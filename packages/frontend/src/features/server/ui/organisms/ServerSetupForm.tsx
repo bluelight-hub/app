@@ -11,6 +11,7 @@
  * - Form validation with Zod
  * - TanStack Form integration
  * - Exchange invite mutation on submit
+ * - Inline network error handling with Alert component (Story 2.7, AC3)
  *
  * **Flow:**
  * 1. User gibt Server-URL ein
@@ -21,8 +22,9 @@
  * **Integration:**
  * - useExchangeInvite() (Story 2.4) - Server hinzufügen bei bestehendem Setup
  * - Admin-Setup API - Admin-Account erstellen bei neuem Server
- * - ExpiredLinkError (Story 2.4) - Error UI
+ * - OnboardingErrorCard (Story 2.4) - Error UI
  * - Toast (sonner) - Success/Error notifications
+ * - Inline Alert for network errors (Story 2.7, AC3, NFR-R2)
  */
 
 import { useForm } from '@tanstack/react-form';
@@ -34,7 +36,7 @@ import { cn } from '@/shared/ui/cn';
 import { serverUrlSchema, inviteCodeSchema, serverNameSchema, adminUsernameSchema, adminPasswordSchema } from '../../schemas/url-params.schema';
 import { useExchangeInvite } from '../../api/mutations';
 import { useHealthCheck, HealthCheckError } from '../../api/use-health-check';
-import { ExpiredLinkError } from '../molecules/ExpiredLinkError';
+import { OnboardingErrorCard } from '../molecules/OnboardingErrorCard';
 import { toast } from 'sonner';
 import { PiDatabase, PiKey, PiBuildings, PiUser, PiLock, PiWarning, PiCheckCircle, PiArrowRight } from 'react-icons/pi';
 import { Configuration, AdminApi } from '@bluelight-hub/shared/client';
@@ -116,6 +118,9 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
   const [hasManuallyEditedName, setHasManuallyEditedName] = useState(false);
   // Ref für Stale Closure Prevention in useCallback (Race Condition Fix)
   const hasManuallyEditedNameRef = useRef(hasManuallyEditedName);
+  // Inline Network Error State (Story 2.7, AC3)
+  // Zeigt Netzwerkfehler als Alert-Komponente oberhalb des Submit-Buttons
+  const [inlineNetworkError, setInlineNetworkError] = useState<string | null>(null);
 
   // Synchronisiere Ref mit State
   useEffect(() => {
@@ -151,6 +156,18 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
       // Reset Fehler
       setHealthCheckError(null);
       setAdminSetupError(null);
+      setInlineNetworkError(null);
+
+      // M4 FIX: TOCTOU Re-Validierung - Server-Name Duplikat-Check direkt vor Submit
+      // Verhindert Race Condition zwischen onChange-Validierung und Submit
+      const serverName = value.serverName;
+      if (serverName && isServerNameTaken(serverName)) {
+        form.setFieldMeta('serverName', (prev) => ({
+          ...prev,
+          errors: ['Ein Server mit diesem Namen existiert bereits'],
+        }));
+        return; // Abort submit
+      }
 
       try {
         // Wenn wir im idle-Modus sind, nur Health-Check durchführen
@@ -258,13 +275,18 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
       } catch (error) {
         // Health-Check Fehler
         if (error instanceof HealthCheckError) {
+          // Story 2.7, AC3: Network errors → Inline Alert
+          // NFR-R2: Fehlerfeedback < 2s (wird direkt nach fetch-Fehler gesetzt)
+          if (error.type === 'NETWORK') {
+            setInlineNetworkError('Prüfe deine Internetverbindung und versuche es erneut.');
+            return;
+          }
+
+          // Andere Health-Check Fehler (TIMEOUT, UNKNOWN) → Inline Text Error
           let errorMessage: string;
           switch (error.type) {
             case 'TIMEOUT':
               errorMessage = 'Server antwortet nicht (Timeout nach 5 Sekunden)';
-              break;
-            case 'NETWORK':
-              errorMessage = 'Server nicht erreichbar. Prüfe die URL.';
               break;
             case 'UNKNOWN':
             default:
@@ -339,6 +361,36 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
     [form],
   );
 
+  // H5: Debounced Auto-Fill Ref um Race Conditions bei schnellem Tippen zu vermeiden
+  const autoFillTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  /**
+   * H5: Debounced Auto-Fill mit cleanup bei Unmount
+   */
+  const debouncedAutoFill = useCallback(
+    (url: string) => {
+      // Vorherigen Timeout clearen
+      if (autoFillTimeoutRef.current) {
+        clearTimeout(autoFillTimeoutRef.current);
+      }
+      // Neuen Timeout setzen
+      autoFillTimeoutRef.current = setTimeout(() => {
+        if (hasManuallyEditedNameRef.current) return;
+        tryAutoFillServerName(url);
+      }, 300);
+    },
+    [tryAutoFillServerName],
+  );
+
+  // Cleanup bei Unmount
+  useEffect(() => {
+    return () => {
+      if (autoFillTimeoutRef.current) {
+        clearTimeout(autoFillTimeoutRef.current);
+      }
+    };
+  }, []);
+
   /**
    * Zurück zum URL-Eingabe Modus
    *
@@ -350,6 +402,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
     setVerifiedServerUrl(null);
     setHealthCheckError(null);
     setAdminSetupError(null);
+    setInlineNetworkError(null);
     // Ref synchron aktualisieren für sofortigen Effekt in tryAutoFillServerName
     hasManuallyEditedNameRef.current = false;
     setHasManuallyEditedName(false);
@@ -357,6 +410,18 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
 
   // Show error card if invite exchange failed with specific error codes
   const showErrorCard = exchangeInvite.isError;
+
+  /**
+   * Handler für "Erneut versuchen" Button bei Netzwerkfehlern
+   *
+   * Story 2.7, AC3: Cleart den Inline-Fehler und triggert erneuten Submit.
+   * NFR-R2: Reaktion < 2s garantiert durch direktes State-Update.
+   */
+  const handleRetryNetworkError = useCallback(() => {
+    setInlineNetworkError(null);
+    // Re-trigger form submission
+    form.handleSubmit();
+  }, [form]);
 
   /**
    * Handler für "Weiter zur Anmeldung" Button in Token-Anzeige
@@ -409,7 +474,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
   return (
     <div className={cn('w-full space-y-6', className)}>
       {/* Error Card (reuse from Story 2.4) */}
-      {showErrorCard && <ExpiredLinkError className="mb-4" />}
+      {showErrorCard && <OnboardingErrorCard errorCode="INVITE_EXPIRED" className="mb-4" />}
 
       {/* Admin-Setup Info Banner */}
       {formMode === 'admin-setup' && (
@@ -469,12 +534,14 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
                       onChange={(e) => {
                         const newValue = e.target.value;
                         field.handleChange(newValue);
+                        // Story 2.7, AC3: Clear inline network error on input change
+                        setInlineNetworkError(null);
                         // Bei Änderung der URL: Modus zurücksetzen
                         if (formMode !== 'idle') {
                           handleResetMode();
                         }
-                        // Auto-Fill Server-Name aus URL (wenn nicht manuell editiert)
-                        tryAutoFillServerName(newValue);
+                        // H5: Auto-Fill Server-Name aus URL (debounced für Race Condition Prevention)
+                        debouncedAutoFill(newValue);
                       }}
                       onBlur={field.handleBlur}
                       variant={fieldError ? 'error' : 'default'}
@@ -676,6 +743,8 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
                       // Ref synchron aktualisieren für sofortigen Effekt (F1 Fix)
                       hasManuallyEditedNameRef.current = true;
                       setHasManuallyEditedName(true);
+                      // NICHT setInlineNetworkError(null) - Server-Name hat keine Verbindung zu Netzwerkfehlern
+                      // Network errors werden nur bei serverUrl-Änderung gecleart (Story 2.7, AC3)
                       field.handleChange(e.target.value);
                     }}
                     onBlur={field.handleBlur}
@@ -690,6 +759,22 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
             }}
           </form.Field>
         </div>
+
+        {/* Inline Network Error Alert (Story 2.7, AC3) */}
+        {inlineNetworkError && (
+          <div data-testid="inline-network-error">
+            <Alert status="error" title="Server nicht erreichbar" description={inlineNetworkError}>
+              <button
+                type="button"
+                onClick={handleRetryNetworkError}
+                className="mt-2 font-medium text-red-800 text-sm underline hover:text-red-900 dark:text-red-300 dark:hover:text-red-200"
+                data-testid="retry-network-error-button"
+              >
+                Erneut versuchen
+              </button>
+            </Alert>
+          </div>
+        )}
 
         {/* Submit Button */}
         <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>

@@ -617,7 +617,7 @@ describe('ServerSetupForm', () => {
       });
     });
 
-    it('should show specific error message for NETWORK error', async () => {
+    it('should show inline Alert for NETWORK error (Story 2.7, AC3)', async () => {
       // Given (Arrange)
       const user = userEvent.setup();
       mockHealthCheckMutateAsync.mockRejectedValueOnce(new HealthCheckError('Network error', 'NETWORK'));
@@ -629,9 +629,13 @@ describe('ServerSetupForm', () => {
       await user.type(screen.getByLabelText(/Server-Name/i), 'Test Server');
       await user.click(screen.getByRole('button', { name: /Mit Server verbinden/i }));
 
-      // Then (Assert)
+      // Then (Assert) - Story 2.7: NETWORK errors now show inline Alert instead of text
       await waitFor(() => {
-        expect(screen.getByText(/Server nicht erreichbar\. Prüfe die URL\./i)).toBeInTheDocument();
+        // Alert sollte angezeigt werden mit spezifischer Nachricht
+        const alert = screen.getByTestId('inline-network-error');
+        expect(alert).toBeInTheDocument();
+        expect(alert).toHaveTextContent('Server nicht erreichbar');
+        expect(alert).toHaveTextContent('Prüfe deine Internetverbindung und versuche es erneut.');
       });
     });
 
@@ -700,7 +704,7 @@ describe('ServerSetupForm', () => {
   });
 
   describe('Exchange Error Handling', () => {
-    it('should show ExpiredLinkError component when exchange fails', () => {
+    it('should show OnboardingErrorCard component when exchange fails', () => {
       // Given (Arrange)
       (useExchangeInvite as ReturnType<typeof vi.fn>).mockReturnValue({
         mutateAsync: mockMutateAsync,
@@ -713,7 +717,7 @@ describe('ServerSetupForm', () => {
       render(<ServerSetupForm />);
 
       // Then (Assert)
-      expect(screen.getByText(/Dieser Einladungslink ist abgelaufen/i)).toBeInTheDocument();
+      expect(screen.getByText(/Einladungslink abgelaufen/i)).toBeInTheDocument();
     });
 
     it('should show error toast when exchange submission fails', async () => {
@@ -886,6 +890,188 @@ describe('ServerSetupForm', () => {
       // Then (Assert) - Auto-fill should work again
       await waitFor(() => {
         expect(screen.getByLabelText(/Server-Name/i)).toHaveValue('new.example.de');
+      });
+    });
+  });
+
+  /**
+   * Story 2.7, AC3: Inline Network Error Alert Tests
+   *
+   * Testet die Anzeige und Interaktion mit dem Inline-Netzwerkfehler-Alert.
+   * NFR-R2: Fehlerfeedback < 2s.
+   */
+  describe('Inline Network Error Alert (Story 2.7, AC3)', () => {
+    it('should display Alert component with status="error" for NETWORK errors', async () => {
+      // Given (Arrange)
+      const user = userEvent.setup();
+      mockHealthCheckMutateAsync.mockRejectedValueOnce(new HealthCheckError('Network error', 'NETWORK'));
+
+      render(<ServerSetupForm />);
+
+      // When (Act)
+      await user.type(screen.getByLabelText(/Server-URL/i), 'https://api.example.de');
+      await user.type(screen.getByLabelText(/Server-Name/i), 'Test Server');
+      await user.click(screen.getByRole('button', { name: /Mit Server verbinden/i }));
+
+      // Then (Assert)
+      await waitFor(() => {
+        // Alert component mit status="error" sollte angezeigt werden
+        const alert = screen.getByTestId('inline-network-error');
+        expect(alert).toBeInTheDocument();
+        expect(alert).toHaveTextContent('Server nicht erreichbar');
+        expect(alert).toHaveTextContent('Prüfe deine Internetverbindung und versuche es erneut.');
+      });
+    });
+
+    it('should show "Erneut versuchen" button inside network error Alert', async () => {
+      // Given (Arrange)
+      const user = userEvent.setup();
+      mockHealthCheckMutateAsync.mockRejectedValueOnce(new HealthCheckError('Network error', 'NETWORK'));
+
+      render(<ServerSetupForm />);
+
+      // When (Act)
+      await user.type(screen.getByLabelText(/Server-URL/i), 'https://api.example.de');
+      await user.type(screen.getByLabelText(/Server-Name/i), 'Test Server');
+      await user.click(screen.getByRole('button', { name: /Mit Server verbinden/i }));
+
+      // Then (Assert)
+      await waitFor(() => {
+        const retryButton = screen.getByTestId('retry-network-error-button');
+        expect(retryButton).toBeInTheDocument();
+        expect(retryButton).toHaveTextContent('Erneut versuchen');
+      });
+    });
+
+    it('should clear inline network error and re-trigger submission when "Erneut versuchen" is clicked', async () => {
+      // Given (Arrange)
+      const user = userEvent.setup();
+      // First call fails with NETWORK error, second call succeeds
+      mockHealthCheckMutateAsync.mockRejectedValueOnce(new HealthCheckError('Network error', 'NETWORK')).mockResolvedValueOnce({
+        isHealthy: true,
+        status: 'ok',
+        setupComplete: true,
+      });
+
+      render(<ServerSetupForm />);
+
+      // Submit form to trigger network error
+      await user.type(screen.getByLabelText(/Server-URL/i), 'https://api.example.de');
+      await user.type(screen.getByLabelText(/Server-Name/i), 'Test Server');
+      await user.click(screen.getByRole('button', { name: /Mit Server verbinden/i }));
+
+      // Wait for error to appear
+      await waitFor(() => {
+        expect(screen.getByTestId('inline-network-error')).toBeInTheDocument();
+      });
+
+      // When (Act) - Click retry button
+      await user.click(screen.getByTestId('retry-network-error-button'));
+
+      // Then (Assert) - Error should be cleared and health check re-triggered
+      await waitFor(() => {
+        expect(screen.queryByTestId('inline-network-error')).not.toBeInTheDocument();
+      });
+
+      // Health check should have been called twice
+      expect(mockHealthCheckMutateAsync).toHaveBeenCalledTimes(2);
+    });
+
+    it('should clear inline network error when server URL input changes', async () => {
+      // Given (Arrange)
+      const user = userEvent.setup();
+      mockHealthCheckMutateAsync.mockRejectedValueOnce(new HealthCheckError('Network error', 'NETWORK'));
+
+      render(<ServerSetupForm />);
+
+      // Submit form to trigger network error
+      await user.type(screen.getByLabelText(/Server-URL/i), 'https://api.example.de');
+      await user.type(screen.getByLabelText(/Server-Name/i), 'Test Server');
+      await user.click(screen.getByRole('button', { name: /Mit Server verbinden/i }));
+
+      // Wait for error to appear
+      await waitFor(() => {
+        expect(screen.getByTestId('inline-network-error')).toBeInTheDocument();
+      });
+
+      // When (Act) - Change server URL input
+      const serverUrlInput = screen.getByLabelText(/Server-URL/i);
+      await user.type(serverUrlInput, '/new-path');
+
+      // Then (Assert) - Error should be cleared
+      await waitFor(() => {
+        expect(screen.queryByTestId('inline-network-error')).not.toBeInTheDocument();
+      });
+    });
+
+    it('should NOT clear inline network error when server name input changes (only serverUrl should clear it)', async () => {
+      // Given (Arrange)
+      // FIX: Server-Name hat keine Verbindung zu Netzwerkfehlern - nur serverUrl-Änderung sollte den Error clearen
+      const user = userEvent.setup();
+      mockHealthCheckMutateAsync.mockRejectedValueOnce(new HealthCheckError('Network error', 'NETWORK'));
+
+      render(<ServerSetupForm />);
+
+      // Submit form to trigger network error
+      await user.type(screen.getByLabelText(/Server-URL/i), 'https://api.example.de');
+      await user.type(screen.getByLabelText(/Server-Name/i), 'Test Server');
+      await user.click(screen.getByRole('button', { name: /Mit Server verbinden/i }));
+
+      // Wait for error to appear
+      await waitFor(() => {
+        expect(screen.getByTestId('inline-network-error')).toBeInTheDocument();
+      });
+
+      // When (Act) - Change server name input (NOT serverUrl)
+      const serverNameInput = screen.getByLabelText(/Server-Name/i);
+      await user.type(serverNameInput, ' Updated');
+
+      // Then (Assert) - Error should STILL be visible (serverName has nothing to do with network errors)
+      // Network error should only be cleared when serverUrl changes
+      expect(screen.getByTestId('inline-network-error')).toBeInTheDocument();
+    });
+
+    it('should NOT display inline Alert for non-NETWORK errors (TIMEOUT should use text error)', async () => {
+      // Given (Arrange)
+      const user = userEvent.setup();
+      mockHealthCheckMutateAsync.mockRejectedValueOnce(new HealthCheckError('Timeout', 'TIMEOUT'));
+
+      render(<ServerSetupForm />);
+
+      // When (Act)
+      await user.type(screen.getByLabelText(/Server-URL/i), 'https://api.example.de');
+      await user.type(screen.getByLabelText(/Server-Name/i), 'Test Server');
+      await user.click(screen.getByRole('button', { name: /Mit Server verbinden/i }));
+
+      // Then (Assert)
+      await waitFor(() => {
+        // Inline Alert sollte NICHT angezeigt werden für TIMEOUT
+        expect(screen.queryByTestId('inline-network-error')).not.toBeInTheDocument();
+        // Stattdessen sollte der Text-basierte Fehler angezeigt werden
+        expect(screen.getByText(/Server antwortet nicht \(Timeout nach 5 Sekunden\)/i)).toBeInTheDocument();
+      });
+    });
+
+    it('should position inline Alert above submit button', async () => {
+      // Given (Arrange)
+      const user = userEvent.setup();
+      mockHealthCheckMutateAsync.mockRejectedValueOnce(new HealthCheckError('Network error', 'NETWORK'));
+
+      render(<ServerSetupForm />);
+
+      // When (Act)
+      await user.type(screen.getByLabelText(/Server-URL/i), 'https://api.example.de');
+      await user.type(screen.getByLabelText(/Server-Name/i), 'Test Server');
+      await user.click(screen.getByRole('button', { name: /Mit Server verbinden/i }));
+
+      // Then (Assert)
+      await waitFor(() => {
+        const alert = screen.getByTestId('inline-network-error');
+        const submitButton = screen.getByRole('button', { name: /Mit Server verbinden/i });
+
+        // Alert sollte im DOM vor dem Submit Button kommen
+        // compareDocumentPosition: 4 bedeutet "follows" (alert kommt vor button)
+        expect(alert.compareDocumentPosition(submitButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
       });
     });
   });
