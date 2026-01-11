@@ -16,30 +16,72 @@ const INVITE_CODE_CONSTRAINTS = {
 } as const;
 
 /**
+ * Prüft ob der INSECURE_MODE aktiviert ist.
+ *
+ * Im INSECURE_MODE sind http:// Verbindungen erlaubt.
+ * Ohne INSECURE_MODE sind nur https:// Verbindungen erlaubt.
+ *
+ * Die Umgebungsvariable wird zur Build-Zeit durch Vite ersetzt.
+ */
+export function isInsecureModeEnabled(): boolean {
+  return import.meta.env.VITE_INSECURE_MODE === 'true';
+}
+
+/**
  * Server-URL Schema (konsistent mit @bluelight-hub/shared/schemas/auth/server-url.schema.ts)
  *
  * Validiert URLs für Backend-Server-Verbindungen:
  * - Muss eine gültige URL sein
- * - Erlaubt http:// und https://
- * - Für Entwicklung: localhost und 127.0.0.1 erlaubt
+ * - HTTPS immer erlaubt
+ * - HTTP nur erlaubt wenn VITE_INSECURE_MODE='true'
+ *
+ * **AC6: URL-Validierung**
+ * - URL wird auf gültiges Format validiert
+ * - https:// immer erlaubt
+ * - http:// nur für INSECURE_MODE
  */
+/**
+ * Generiert die Fehlermeldung für ungültige URL-Protokolle.
+ * Dynamisch, damit die Meldung zur Validierungszeit korrekt ist.
+ */
+function getProtocolErrorMessage(): string {
+  return isInsecureModeEnabled() ? 'Server-URL muss mit http:// oder https:// beginnen' : 'Server-URL muss mit https:// beginnen. HTTP ist nur im Entwicklungsmodus erlaubt.';
+}
+
 const serverUrlSchema = z
   .string()
-  .url('Ungültige Server-URL')
-  .refine(
-    (url) => {
-      try {
-        const parsed = new URL(url);
-        // Erlaube nur http/https
-        return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-      } catch {
-        return false;
+  .url({ message: 'Ungültige Server-URL' })
+  .superRefine((url, ctx) => {
+    try {
+      const parsed = new URL(url);
+      // HTTPS ist immer erlaubt
+      if (parsed.protocol === 'https:') {
+        return; // Valid
       }
-    },
-    {
-      message: 'Server-URL muss mit http:// oder https:// beginnen',
-    },
-  );
+      // HTTP nur erlaubt wenn INSECURE_MODE aktiviert ist
+      if (parsed.protocol === 'http:') {
+        if (isInsecureModeEnabled()) {
+          return; // Valid im INSECURE_MODE
+        }
+        // HTTP nicht erlaubt ohne INSECURE_MODE
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: getProtocolErrorMessage(),
+        });
+        return;
+      }
+      // Andere Protokolle (file://, javascript://, etc.) sind nie erlaubt
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: getProtocolErrorMessage(),
+      });
+    } catch {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Ungültige Server-URL',
+      });
+    }
+  });
 
 /**
  * Invite-Code Schema (konsistent mit @bluelight-hub/shared/schemas/auth/invite-code.schema.ts)
@@ -94,8 +136,60 @@ export const urlParamsSchema = z.object({
   invite: inviteCodeSchema.optional(),
 });
 
+/**
+ * Server-Name Schema
+ *
+ * Pflichtfeld für den Display-Namen des Servers.
+ * Wird automatisch aus der URL (Hostname) befüllt, kann aber manuell geändert werden.
+ * Muss eindeutig sein (Duplikat-Check erfolgt im Form/Store).
+ *
+ * Format:
+ * - Mindestens 1 Zeichen (Pflichtfeld)
+ * - Maximal 100 Zeichen
+ * - Wird getrimmt vor Validierung
+ */
+const serverNameSchema = z.string('Server-Name muss ein Text sein').trim().min(1, 'Server-Name ist ein Pflichtfeld').max(100, 'Server-Name darf maximal 100 Zeichen haben');
+
+/**
+ * Admin-Username Schema
+ *
+ * Validiert den Nutzernamen für den Admin-Account beim initialen Setup.
+ * Konsistent mit Backend-Validierung in CompleteSetupDto.
+ *
+ * Regeln:
+ * - Mindestens 3 Zeichen
+ * - Maximal 20 Zeichen
+ * - Nur alphanumerische Zeichen, Bindestriche und Unterstriche
+ */
+const adminUsernameSchema = z
+  .string('Nutzername muss ein Text sein')
+  .min(3, 'Nutzername muss mindestens 3 Zeichen haben')
+  .max(20, 'Nutzername darf maximal 20 Zeichen haben')
+  .regex(/^[a-zA-Z0-9_-]+$/, 'Nutzername darf nur Buchstaben, Zahlen, Bindestriche und Unterstriche enthalten');
+
+/**
+ * Admin-Password Schema
+ *
+ * Validiert das Passwort für den Admin-Account beim initialen Setup.
+ * Konsistent mit Backend-Validierung in CompleteSetupDto.
+ *
+ * Regeln:
+ * - Mindestens 8 Zeichen
+ * - Mindestens ein Großbuchstabe
+ * - Mindestens ein Kleinbuchstabe
+ * - Mindestens eine Ziffer
+ * - Mindestens ein Sonderzeichen
+ */
+const adminPasswordSchema = z
+  .string('Passwort muss ein Text sein')
+  .min(8, 'Passwort muss mindestens 8 Zeichen haben')
+  .refine((val) => /[A-Z]/.test(val), 'Passwort muss mindestens einen Großbuchstaben enthalten')
+  .refine((val) => /[a-z]/.test(val), 'Passwort muss mindestens einen Kleinbuchstaben enthalten')
+  .refine((val) => /[0-9]/.test(val), 'Passwort muss mindestens eine Ziffer enthalten')
+  .refine((val) => /[!@#$%^&*(),.?":{}|<>_-]/.test(val), 'Passwort muss mindestens ein Sonderzeichen enthalten');
+
 // Re-export für Verwendung in anderen Teilen des Features
-export { serverUrlSchema, inviteCodeSchema };
+export { serverUrlSchema, inviteCodeSchema, serverNameSchema, adminUsernameSchema, adminPasswordSchema };
 
 /**
  * TypeScript-Typ für URL-Parameter (inferred von Zod Schema)

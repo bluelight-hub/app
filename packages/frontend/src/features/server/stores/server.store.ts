@@ -1,6 +1,7 @@
 import { Store } from '@tanstack/react-store';
 import type { ConnectionStatus, ServerConfig, ServerState } from '../types/server-config';
 import { loadServers, saveServers } from './server-persistence';
+import { setServerAccessToken, clearServerAccessToken } from '@/shared/lib/server-access-token';
 
 /**
  * Initial State des Server-Stores.
@@ -67,6 +68,37 @@ function validateUrl(url: string): boolean {
 }
 
 /**
+ * Gibt alle existierenden Server-Namen zurück.
+ *
+ * Wird verwendet für Duplikat-Validierung im ServerSetupForm.
+ * Namen werden lowercase verglichen für case-insensitive Prüfung.
+ *
+ * @returns Array aller Server-Namen (lowercase)
+ *
+ * @example
+ * ```typescript
+ * const names = getExistingServerNames();
+ * const isDuplicate = names.includes(newName.toLowerCase());
+ * ```
+ */
+export function getExistingServerNames(): string[] {
+  return serverStore.state.servers.map((s) => s.name.toLowerCase());
+}
+
+/**
+ * Prüft ob ein Server-Name bereits existiert.
+ *
+ * Case-insensitive Prüfung zur Vermeidung von Duplikaten.
+ *
+ * @param name - Der zu prüfende Server-Name
+ * @returns true wenn Name bereits existiert
+ */
+export function isServerNameTaken(name: string): boolean {
+  const normalizedName = name.trim().toLowerCase();
+  return serverStore.state.servers.some((s) => s.name.toLowerCase() === normalizedName);
+}
+
+/**
  * Fügt einen neuen Server zur Konfiguration hinzu.
  *
  * Auto-generiert ID, createdAt und lastUsedAt Timestamps.
@@ -87,9 +119,15 @@ function validateUrl(url: string): boolean {
  * ```
  */
 export async function addServer(config: Omit<ServerConfig, 'id' | 'createdAt'>): Promise<string> {
-  // Validierung
-  if (!config.name || config.name.trim().length < 1) {
+  // Validierung: Name nicht leer (Schema trimmt bereits, hier nur Sicherheitscheck)
+  const trimmedName = config.name?.trim();
+  if (!trimmedName) {
     throw new Error('Server name must be at least 1 character long');
+  }
+
+  // Validierung: Name eindeutig (case-insensitive)
+  if (isServerNameTaken(trimmedName)) {
+    throw new Error(`Ein Server mit dem Namen "${trimmedName}" existiert bereits`);
   }
 
   if (!validateUrl(config.url)) {
@@ -137,24 +175,24 @@ export async function setActiveServer(serverId: string): Promise<void> {
   const state = serverStore.state;
 
   // Validierung: Server existiert
-  const serverExists = state.servers.some((s) => s.id === serverId);
-  if (!serverExists) {
+  const server = state.servers.find((s) => s.id === serverId);
+  if (!server) {
     throw new Error(`Server with id "${serverId}" does not exist`);
   }
 
   const now = new Date().toISOString();
 
   // Immutable Update: isDefault und lastUsedAt für alle Server
-  const updatedServers = state.servers.map((server) => {
-    if (server.id === serverId) {
+  const updatedServers = state.servers.map((s) => {
+    if (s.id === serverId) {
       return {
-        ...server,
+        ...s,
         isDefault: true,
         lastUsedAt: now,
       };
     }
     return {
-      ...server,
+      ...s,
       isDefault: false,
     };
   });
@@ -165,6 +203,16 @@ export async function setActiveServer(serverId: string): Promise<void> {
     servers: updatedServers,
     activeServerId: serverId,
   }));
+
+  // Token-Synchronisation: Server-Access-Token aus Server-Config in globalen Storage kopieren
+  // Damit fetchWithRefresh den korrekten Token für API-Requests verwendet
+  if (server.accessToken) {
+    console.log('[ServerStore] Syncing access token for server:', server.name);
+    setServerAccessToken(server.accessToken);
+  } else {
+    console.log('[ServerStore] No access token for server:', server.name, '- clearing global token');
+    clearServerAccessToken();
+  }
 
   // Storage Sync
   await saveServers(serverStore.state.servers);
@@ -238,11 +286,22 @@ export async function hydrateServerStore(): Promise<void> {
     return;
   }
 
+  console.log('[ServerStore] Starting hydration...');
+
   // Load servers from storage (errors propagate to caller)
   const servers = await loadServers();
 
-  // Find default server
-  const defaultServer = servers.find((s) => s.isDefault);
+  console.log(
+    '[ServerStore] Loaded servers:',
+    servers.length,
+    servers.map((s) => s.name),
+  );
+
+  // Find default server, fallback to first server if none is default
+  // Ensures that if servers exist, at least one is active
+  const defaultServer = servers.find((s) => s.isDefault) ?? servers[0];
+
+  console.log('[ServerStore] Default server:', defaultServer?.name ?? 'none');
 
   // Update store state
   serverStore.setState((state) => ({
@@ -251,6 +310,23 @@ export async function hydrateServerStore(): Promise<void> {
     activeServerId: defaultServer?.id ?? null,
     isHydrated: true,
   }));
+
+  // Token-Synchronisation: Server-Access-Token aus aktiver Server-Config in globalen Storage kopieren
+  // WICHTIG: Muss NACH dem Store-Update passieren, damit API-Requests den Token haben
+  if (defaultServer?.accessToken) {
+    console.log('[ServerStore] Syncing access token for default server:', defaultServer.name);
+    setServerAccessToken(defaultServer.accessToken);
+  } else if (defaultServer) {
+    console.log('[ServerStore] No access token for default server:', defaultServer.name, '- clearing global token');
+    clearServerAccessToken();
+  }
+
+  console.log('[ServerStore] Hydration complete. Store state:', {
+    serverCount: serverStore.state.servers.length,
+    isHydrated: serverStore.state.isHydrated,
+    activeServerId: serverStore.state.activeServerId,
+    hasAccessToken: !!defaultServer?.accessToken,
+  });
 }
 
 /**

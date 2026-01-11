@@ -7,30 +7,56 @@
  * **Features:**
  * - Prefill server URL from props (URL params integration)
  * - Manual invite code entry
+ * - Admin-Setup wenn Server noch nicht eingerichtet (setupComplete: false)
  * - Form validation with Zod
  * - TanStack Form integration
  * - Exchange invite mutation on submit
  *
+ * **Flow:**
+ * 1. User gibt Server-URL ein
+ * 2. Health-Check prüft setupComplete Status
+ * 3a. setupComplete: true → Invite-Code Eingabe
+ * 3b. setupComplete: false → Admin-Setup (Username + Password)
+ *
  * **Integration:**
- * - useExchangeInvite() (Story 2.4) - Server hinzufügen
+ * - useExchangeInvite() (Story 2.4) - Server hinzufügen bei bestehendem Setup
+ * - Admin-Setup API - Admin-Account erstellen bei neuem Server
  * - ExpiredLinkError (Story 2.4) - Error UI
  * - Toast (sonner) - Success/Error notifications
  */
 
 import { useForm } from '@tanstack/react-form';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Input } from '@/shared/ui/atoms/input.atom';
+import { Alert } from '@/shared/ui/atoms/alert.atom';
 import { cn } from '@/shared/ui/cn';
-import { serverUrlSchema, inviteCodeSchema } from '../../schemas/url-params.schema';
+import { serverUrlSchema, inviteCodeSchema, serverNameSchema, adminUsernameSchema, adminPasswordSchema } from '../../schemas/url-params.schema';
 import { useExchangeInvite } from '../../api/mutations';
+import { useHealthCheck, HealthCheckError } from '../../api/use-health-check';
 import { ExpiredLinkError } from '../molecules/ExpiredLinkError';
 import { toast } from 'sonner';
-import { PiDatabase, PiKey } from 'react-icons/pi';
+import { PiDatabase, PiKey, PiBuildings, PiUser, PiLock, PiWarning, PiCheckCircle, PiArrowRight } from 'react-icons/pi';
+import { Configuration, AdminApi } from '@bluelight-hub/shared/client';
+import { addServer, setActiveServer, isServerNameTaken } from '../../stores/server.store';
+import { logger } from '@/shared/lib/logger';
+import { setServerAccessToken } from '@/shared/lib/server-access-token';
+import { PasswordStrengthIndicator } from '@/shared/ui/molecules/password-strength-indicator.molecule';
+import { CopyButton } from '@/shared/ui/molecules';
 
-type ServerSetupFormValues = {
-  serverUrl: string;
-  inviteCode: string;
-};
+/**
+ * Form-Modus: Welche Felder werden angezeigt?
+ * - idle: Nur Server-URL Feld
+ * - invite: Server-URL + Invite-Code (setupComplete: true)
+ * - admin-setup: Server-URL + Username/Password (setupComplete: false)
+ * - token-display: Token-Anzeige nach erfolgreichem Admin-Setup
+ */
+type FormMode = 'idle' | 'invite' | 'admin-setup' | 'token-display';
+
+/**
+ * Submit-Phase für Button-States
+ */
+type SubmitPhase = 'idle' | 'health-check' | 'exchange' | 'admin-setup';
 
 /**
  * Helper function to extract Zod validation error message
@@ -63,7 +89,7 @@ interface ServerSetupFormProps {
  * Server Setup Formular
  *
  * Ermöglicht das manuelle Hinzufügen eines Servers durch Eingabe
- * von Server-URL und Invite-Code.
+ * von Server-URL und Invite-Code oder Admin-Credentials.
  *
  * @example
  * ```tsx
@@ -76,46 +102,336 @@ interface ServerSetupFormProps {
  */
 export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: ServerSetupFormProps) {
   const exchangeInvite = useExchangeInvite();
+  const healthCheck = useHealthCheck();
+
+  // UI States
+  const [submitPhase, setSubmitPhase] = useState<SubmitPhase>('idle');
+  const [healthCheckError, setHealthCheckError] = useState<string | null>(null);
+  const [formMode, setFormMode] = useState<FormMode>('idle');
+  const [isAdminSetupLoading, setIsAdminSetupLoading] = useState(false);
+  const [adminSetupError, setAdminSetupError] = useState<string | null>(null);
+  // Token-Anzeige nach erfolgreichem Admin-Setup
+  const [generatedToken, setGeneratedToken] = useState<string | null>(null);
+  // Trackt ob User den Server-Namen manuell geändert hat (stoppt Auto-Fill)
+  const [hasManuallyEditedName, setHasManuallyEditedName] = useState(false);
+  // Ref für Stale Closure Prevention in useCallback (Race Condition Fix)
+  const hasManuallyEditedNameRef = useRef(hasManuallyEditedName);
+
+  // Synchronisiere Ref mit State
+  useEffect(() => {
+    hasManuallyEditedNameRef.current = hasManuallyEditedName;
+  }, [hasManuallyEditedName]);
+
+  // Auto-clear Token nach 60 Sekunden aus Sicherheitsgründen (Shoulder Surfing Prevention)
+  useEffect(() => {
+    if (!generatedToken) return;
+
+    const timer = setTimeout(() => {
+      setGeneratedToken(null);
+      toast.info('Token ausgeblendet', {
+        description: 'Aus Sicherheitsgründen wurde der Token nach 60 Sekunden entfernt.',
+      });
+    }, 60000);
+
+    return () => clearTimeout(timer);
+  }, [generatedToken]);
+
+  // Speichere die verifizierte Server-URL für das Submit
+  const [verifiedServerUrl, setVerifiedServerUrl] = useState<string | null>(null);
 
   const form = useForm({
     defaultValues: {
       serverUrl: prefillServerUrl || '',
       inviteCode: '',
-    } as ServerSetupFormValues,
+      serverName: '',
+      username: '',
+      password: '',
+    },
     onSubmit: async ({ value }) => {
+      // Reset Fehler
+      setHealthCheckError(null);
+      setAdminSetupError(null);
+
       try {
-        // Exchange invite code (mutation handles server persistence)
-        // Issue #2 Fix: Übergebe auch die serverUrl für korrekten Ziel-Server
-        await exchangeInvite.mutateAsync({
-          inviteCode: value.inviteCode,
-          serverUrl: value.serverUrl || undefined,
-        });
+        // Wenn wir im idle-Modus sind, nur Health-Check durchführen
+        if (formMode === 'idle') {
+          setSubmitPhase('health-check');
 
-        // Success notification
-        toast.success('Server erfolgreich hinzugefügt', {
-          description: 'Du wirst weitergeleitet...',
-        });
+          const healthResult = await healthCheck.mutateAsync({
+            serverUrl: value.serverUrl,
+          });
 
-        // Callback for parent component (e.g., navigation)
-        onSuccess?.();
+          // Speichere verifizierte URL
+          setVerifiedServerUrl(value.serverUrl);
+
+          // Bestimme Modus basierend auf setupComplete
+          if (healthResult.setupComplete) {
+            setFormMode('invite');
+            toast.info('Server gefunden', {
+              description: 'Gib deinen Einladungscode ein.',
+            });
+          } else {
+            setFormMode('admin-setup');
+            toast.info('Server nicht eingerichtet', {
+              description: 'Erstelle einen Admin-Account um fortzufahren.',
+            });
+          }
+
+          setSubmitPhase('idle');
+          return;
+        }
+
+        // Invite-Code Exchange
+        if (formMode === 'invite') {
+          setSubmitPhase('exchange');
+
+          const response = await exchangeInvite.mutateAsync({
+            inviteCode: value.inviteCode,
+            serverUrl: verifiedServerUrl || value.serverUrl || undefined,
+            serverName: value.serverName || undefined,
+          });
+
+          const displayName = value.serverName || response.data.serverInfo.name;
+
+          toast.success(`Server '${displayName}' hinzugefügt`, {
+            description: 'Du wirst weitergeleitet...',
+          });
+
+          onSuccess?.();
+          return;
+        }
+
+        // Admin-Setup
+        if (formMode === 'admin-setup') {
+          setSubmitPhase('admin-setup');
+          setIsAdminSetupLoading(true);
+
+          const serverUrl = verifiedServerUrl || value.serverUrl;
+
+          // Temporärer API-Client für den Ziel-Server
+          const normalizedUrl = serverUrl.endsWith('/') ? serverUrl.slice(0, -1) : serverUrl;
+          const tempConfig = new Configuration({
+            basePath: normalizedUrl,
+            credentials: 'include',
+          });
+          const adminApi = new AdminApi(tempConfig);
+
+          logger.debug('Starting admin setup', { serverUrl: normalizedUrl });
+
+          // Admin-Setup durchführen
+          const response = await adminApi.adminSetupControllerCompleteSetupVAlpha({
+            completeSetupDto: {
+              username: value.username,
+              password: value.password,
+            },
+          });
+
+          logger.info('Admin setup successful', {
+            username: response.data.user.username,
+          });
+
+          // Server zum Store hinzufügen
+          const serverName = value.serverName || new URL(serverUrl).hostname;
+          const accessToken = response.data.accessToken.token;
+          const newServerId = await addServer({
+            name: serverName,
+            url: normalizedUrl,
+            accessToken,
+            isDefault: false,
+            lastUsedAt: new Date().toISOString(),
+          });
+
+          // Token auch im globalen Storage speichern für fetchWithRefresh
+          setServerAccessToken(accessToken);
+
+          // Als aktiven Server setzen
+          await setActiveServer(newServerId);
+
+          toast.success(`Server '${serverName}' eingerichtet`, {
+            description: `Admin-Account '${value.username}' erstellt.`,
+          });
+
+          // Token-Anzeige aktivieren (WICHTIG: Nicht sofort weiterleiten!)
+          setGeneratedToken(accessToken);
+          setFormMode('token-display');
+        }
       } catch (error) {
-        // Error is already logged in mutation onError
-        // Show toast notification
+        // Health-Check Fehler
+        if (error instanceof HealthCheckError) {
+          let errorMessage: string;
+          switch (error.type) {
+            case 'TIMEOUT':
+              errorMessage = 'Server antwortet nicht (Timeout nach 5 Sekunden)';
+              break;
+            case 'NETWORK':
+              errorMessage = 'Server nicht erreichbar. Prüfe die URL.';
+              break;
+            case 'UNKNOWN':
+            default:
+              errorMessage = 'Unbekannter Fehler beim Verbindungstest.';
+              break;
+          }
+          setHealthCheckError(errorMessage);
+          return;
+        }
+
+        // F2: Duplikat-Check Error von addServer() - Race Condition zwischen Validierung und Submit
+        if (error instanceof Error && error.message.includes('existiert bereits')) {
+          toast.error('Server-Name bereits vergeben', {
+            description: 'Bitte wähle einen anderen Namen für diesen Server.',
+          });
+          return;
+        }
+
+        // Admin-Setup Fehler
+        if (formMode === 'admin-setup') {
+          const errorMessage = error instanceof Error ? error.message : 'Admin-Setup fehlgeschlagen';
+          setAdminSetupError(errorMessage);
+          toast.error('Admin-Setup fehlgeschlagen', {
+            description: errorMessage,
+          });
+          return;
+        }
+
+        // Exchange-Fehler (nur wenn keiner der obigen Fälle zutrifft)
         const errorMessage = error instanceof Error ? error.message : 'Unbekannter Fehler';
         toast.error('Fehler beim Hinzufügen des Servers', {
           description: errorMessage,
         });
+      } finally {
+        setSubmitPhase('idle');
+        setIsAdminSetupLoading(false);
       }
     },
   });
 
+  /**
+   * Auto-Fill Server-Name aus URL-Hostname.
+   *
+   * Wird nur ausgeführt wenn:
+   * - URL valide ist
+   * - User den Namen NICHT manuell editiert hat
+   *
+   * Aktualisiert den Namen direkt aus dem Hostname der URL.
+   *
+   * Nutzt Ref statt State um Stale Closures bei schnellem Tippen zu vermeiden.
+   */
+  const tryAutoFillServerName = useCallback(
+    (serverUrl: string) => {
+      // Nutze Ref statt State um Race Conditions bei schnellem Tippen zu vermeiden
+      if (hasManuallyEditedNameRef.current) return;
+
+      const urlValidation = serverUrlSchema.safeParse(serverUrl);
+      if (!urlValidation.success) return;
+
+      try {
+        const url = new URL(serverUrl);
+        const hostname = url.hostname;
+        // Port mit anhängen wenn vorhanden und nicht Standard-Port (80/443)
+        const port = url.port;
+        const isDefaultPort = (url.protocol === 'https:' && port === '443') || (url.protocol === 'http:' && port === '80') || !port;
+        const displayName = port && !isDefaultPort ? `${hostname}:${port}` : hostname;
+        form.setFieldValue('serverName', displayName);
+      } catch {
+        // URL-Parsing fehlgeschlagen, ignorieren
+      }
+    },
+    [form],
+  );
+
+  /**
+   * Zurück zum URL-Eingabe Modus
+   *
+   * Setzt alle Form-States zurück und erlaubt erneutes Auto-Fill.
+   * Ref wird synchron aktualisiert um Race Conditions zu vermeiden (F4 Fix).
+   */
+  const handleResetMode = useCallback(() => {
+    setFormMode('idle');
+    setVerifiedServerUrl(null);
+    setHealthCheckError(null);
+    setAdminSetupError(null);
+    // Ref synchron aktualisieren für sofortigen Effekt in tryAutoFillServerName
+    hasManuallyEditedNameRef.current = false;
+    setHasManuallyEditedName(false);
+  }, []);
+
   // Show error card if invite exchange failed with specific error codes
   const showErrorCard = exchangeInvite.isError;
 
+  /**
+   * Handler für "Weiter zur Anmeldung" Button in Token-Anzeige
+   */
+  const handleContinueAfterTokenDisplay = useCallback(() => {
+    onSuccess?.();
+  }, [onSuccess]);
+
+  // Token-Anzeige nach erfolgreichem Admin-Setup
+  if (formMode === 'token-display' && generatedToken) {
+    return (
+      <div className={cn('space-y-6', className)}>
+        {/* Success Header */}
+        <div className="text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
+            <svg className="h-6 w-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="font-semibold text-gray-900 text-xl dark:text-white">Setup abgeschlossen!</h2>
+          <p className="mt-1 text-gray-600 text-sm dark:text-gray-400">Der Server ist jetzt einsatzbereit.</p>
+        </div>
+
+        {/* Warning Banner */}
+        <Alert
+          status="warning"
+          icon={<PiWarning className="h-5 w-5" />}
+          title="Wichtig - Nur einmal sichtbar!"
+          description="Speichere diesen Token sicher. Er wird nach Verlassen dieser Seite nicht erneut angezeigt und kann nicht wiederhergestellt werden."
+        />
+
+        {/* Token Display Box */}
+        <div className="rounded-lg border-2 border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50" aria-live="polite">
+          <div className="mb-2 font-medium text-gray-700 text-sm dark:text-gray-300">Server Access Token</div>
+          <div className="flex items-center gap-3">
+            <code className="flex-1 break-all rounded bg-white px-3 py-2 font-mono text-gray-900 text-sm dark:bg-gray-900 dark:text-gray-100">{generatedToken}</code>
+            <CopyButton text={generatedToken} size="sm" />
+          </div>
+        </div>
+
+        {/* Continue Button */}
+        <Button type="button" intent="primary" appearance="heavy" className="w-full gap-2" onClick={handleContinueAfterTokenDisplay}>
+          <span>Weiter zur Anmeldung</span>
+          <PiArrowRight className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <div className={cn('space-y-6', className)}>
+    <div className={cn('w-full space-y-6', className)}>
       {/* Error Card (reuse from Story 2.4) */}
       {showErrorCard && <ExpiredLinkError className="mb-4" />}
+
+      {/* Admin-Setup Info Banner */}
+      {formMode === 'admin-setup' && (
+        <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/50">
+          <PiWarning className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+          <div className="space-y-1">
+            <p className="font-medium text-amber-800 text-sm dark:text-amber-200">Server nicht eingerichtet</p>
+            <p className="text-amber-700 text-sm dark:text-amber-300">Dieser Server wurde noch nicht konfiguriert. Erstelle einen Admin-Account, um den Server zu initialisieren.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Server gefunden Banner */}
+      {formMode === 'invite' && (
+        <div className="flex items-start gap-3 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950/50">
+          <PiCheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400" />
+          <div className="space-y-1">
+            <p className="font-medium text-green-800 text-sm dark:text-green-200">Server gefunden</p>
+            <p className="text-green-700 text-sm dark:text-green-300">Der Server ist erreichbar und eingerichtet. Gib deinen Einladungscode ein, um dich zu verbinden.</p>
+          </div>
+        </div>
+      )}
 
       <form
         onSubmit={async (e) => {
@@ -138,61 +454,235 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
             }}
           >
             {(field) => {
-              // Validators return string | undefined, so errors array contains strings
               const fieldError = field.state.meta.errors[0] as string | undefined;
 
               return (
                 <div className="space-y-1">
-                  <Input
-                    id="serverUrl"
-                    type="url"
-                    placeholder="https://api.example.de"
-                    value={field.state.value as string}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    variant={fieldError ? 'error' : 'default'}
-                    leftIcon={<PiDatabase className="h-5 w-5" />}
-                    autoComplete="url"
-                    autoFocus={!prefillServerUrl} // Focus nur wenn nicht prefilled
-                  />
+                  <div className="flex w-full gap-2">
+                    <Input
+                      id="serverUrl"
+                      type="url"
+                      placeholder="https://api.example.de"
+                      value={field.state.value}
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        field.handleChange(newValue);
+                        // Bei Änderung der URL: Modus zurücksetzen
+                        if (formMode !== 'idle') {
+                          handleResetMode();
+                        }
+                        // Auto-Fill Server-Name aus URL (wenn nicht manuell editiert)
+                        tryAutoFillServerName(newValue);
+                      }}
+                      onBlur={field.handleBlur}
+                      variant={fieldError ? 'error' : 'default'}
+                      leftIcon={<PiDatabase className="h-5 w-5" />}
+                      autoComplete="url"
+                      autoFocus={!prefillServerUrl}
+                      disabled={formMode !== 'idle'}
+                      className="min-w-0 flex-1"
+                    />
+                    {formMode !== 'idle' && (
+                      <Button type="button" appearance="outline" onClick={handleResetMode}>
+                        Ändern
+                      </Button>
+                    )}
+                  </div>
                   {fieldError && <p className="text-red-600 text-sm dark:text-red-400">{fieldError}</p>}
+                  {healthCheckError && !fieldError && (
+                    <div className="space-y-2">
+                      <p className="text-red-600 text-sm dark:text-red-400">{healthCheckError}</p>
+                      <button type="button" onClick={() => setHealthCheckError(null)} className="font-medium text-blue-600 text-sm hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                        Erneut versuchen
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             }}
           </form.Field>
         </div>
 
-        {/* Invite Code Field */}
+        {/* Invite Code Field (nur bei setupComplete: true) */}
+        {formMode === 'invite' && (
+          <div className="space-y-2">
+            <label htmlFor="inviteCode" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
+              Einladungscode
+            </label>
+            <form.Field
+              name="inviteCode"
+              validators={{
+                onChange: ({ value }) => getZodError(inviteCodeSchema.safeParse(value), 'Ungültiger Invite-Code'),
+                onBlur: ({ value }) => getZodError(inviteCodeSchema.safeParse(value), 'Ungültiger Invite-Code'),
+              }}
+            >
+              {(field) => {
+                const fieldError = field.state.meta.errors[0] as string | undefined;
+
+                return (
+                  <div className="space-y-1">
+                    <Input
+                      id="inviteCode"
+                      type="text"
+                      placeholder="ABC12345"
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                      variant={fieldError ? 'error' : 'default'}
+                      leftIcon={<PiKey className="h-5 w-5" />}
+                      autoComplete="off"
+                      autoFocus
+                    />
+                    {fieldError && <p className="text-red-600 text-sm dark:text-red-400">{fieldError}</p>}
+                  </div>
+                );
+              }}
+            </form.Field>
+          </div>
+        )}
+
+        {/* Admin Setup Fields (nur bei setupComplete: false) */}
+        {formMode === 'admin-setup' && (
+          <>
+            {/* Username Field */}
+            <div className="space-y-2">
+              <label htmlFor="username" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
+                Admin-Nutzername
+              </label>
+              <form.Field
+                name="username"
+                validators={{
+                  onChange: ({ value }) => getZodError(adminUsernameSchema.safeParse(value), 'Ungültiger Nutzername'),
+                  onBlur: ({ value }) => getZodError(adminUsernameSchema.safeParse(value), 'Ungültiger Nutzername'),
+                }}
+              >
+                {(field) => {
+                  const fieldError = field.state.meta.errors[0] as string | undefined;
+
+                  return (
+                    <div className="space-y-1">
+                      <Input
+                        id="username"
+                        type="text"
+                        placeholder="admin"
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                        variant={fieldError ? 'error' : 'default'}
+                        leftIcon={<PiUser className="h-5 w-5" />}
+                        autoComplete="username"
+                        autoFocus
+                      />
+                      {fieldError && <p className="text-red-600 text-sm dark:text-red-400">{fieldError}</p>}
+                      <p className="text-gray-500 text-xs dark:text-gray-400">3-20 Zeichen, nur Buchstaben, Zahlen, - und _</p>
+                    </div>
+                  );
+                }}
+              </form.Field>
+            </div>
+
+            {/* Password Field */}
+            <div className="space-y-2">
+              <label htmlFor="password" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
+                Admin-Passwort
+              </label>
+              <form.Field
+                name="password"
+                validators={{
+                  onChange: ({ value }) => getZodError(adminPasswordSchema.safeParse(value), 'Ungültiges Passwort'),
+                  onBlur: ({ value }) => getZodError(adminPasswordSchema.safeParse(value), 'Ungültiges Passwort'),
+                }}
+              >
+                {(field) => {
+                  const fieldError = field.state.meta.errors[0] as string | undefined;
+
+                  return (
+                    <div className="space-y-2">
+                      <Input
+                        id="password"
+                        type="password"
+                        placeholder="Sicheres Passwort"
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                        variant={fieldError ? 'error' : 'default'}
+                        leftIcon={<PiLock className="h-5 w-5" />}
+                        autoComplete="new-password"
+                      />
+                      {fieldError && <p className="text-red-600 text-sm dark:text-red-400">{fieldError}</p>}
+                      {/* Password Strength Indicator */}
+                      <PasswordStrengthIndicator password={field.state.value} showLabel={true} showCriteria={true} />
+                    </div>
+                  );
+                }}
+              </form.Field>
+            </div>
+
+            {/* Admin Setup Error */}
+            {adminSetupError && (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-900 dark:bg-red-950/50">
+                <p className="text-red-600 text-sm dark:text-red-400">{adminSetupError}</p>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Server Name Field (immer sichtbar, Pflichtfeld) */}
         <div className="space-y-2">
-          <label htmlFor="inviteCode" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
-            Einladungscode
+          <label htmlFor="serverName" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
+            Server-Name
           </label>
           <form.Field
-            name="inviteCode"
+            name="serverName"
             validators={{
-              onChange: ({ value }) => getZodError(inviteCodeSchema.safeParse(value), 'Ungültiger Invite-Code'),
-              onBlur: ({ value }) => getZodError(inviteCodeSchema.safeParse(value), 'Ungültiger Invite-Code'),
+              onChange: ({ value }) => {
+                // Schema-Validierung (Pflichtfeld, min 1, max 100)
+                const schemaResult = serverNameSchema.safeParse(value);
+                if (!schemaResult.success) {
+                  return getZodError(schemaResult, 'Ungültiger Server-Name');
+                }
+                // Duplikat-Check (case-insensitive)
+                if (isServerNameTaken(value)) {
+                  return 'Ein Server mit diesem Namen existiert bereits';
+                }
+                return undefined;
+              },
+              onBlur: ({ value }) => {
+                const schemaResult = serverNameSchema.safeParse(value);
+                if (!schemaResult.success) {
+                  return getZodError(schemaResult, 'Ungültiger Server-Name');
+                }
+                if (isServerNameTaken(value)) {
+                  return 'Ein Server mit diesem Namen existiert bereits';
+                }
+                return undefined;
+              },
             }}
           >
             {(field) => {
-              // Validators return string | undefined, so errors array contains strings
               const fieldError = field.state.meta.errors[0] as string | undefined;
 
               return (
                 <div className="space-y-1">
                   <Input
-                    id="inviteCode"
+                    id="serverName"
                     type="text"
-                    placeholder="ABC12345"
-                    value={field.state.value as string}
-                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder="z.B. Produktiv-Server"
+                    value={field.state.value}
+                    onChange={(e) => {
+                      // Markiere als manuell editiert wenn User tippt
+                      // Ref synchron aktualisieren für sofortigen Effekt (F1 Fix)
+                      hasManuallyEditedNameRef.current = true;
+                      setHasManuallyEditedName(true);
+                      field.handleChange(e.target.value);
+                    }}
                     onBlur={field.handleBlur}
                     variant={fieldError ? 'error' : 'default'}
-                    leftIcon={<PiKey className="h-5 w-5" />}
+                    leftIcon={<PiBuildings className="h-5 w-5" />}
                     autoComplete="off"
-                    autoFocus={!!prefillServerUrl} // Focus wenn prefilled (User muss nur Code eingeben)
                   />
                   {fieldError && <p className="text-red-600 text-sm dark:text-red-400">{fieldError}</p>}
+                  <p className="text-gray-500 text-xs dark:text-gray-400">{hasManuallyEditedName ? 'Eindeutiger Anzeigename für diesen Server.' : 'Wird automatisch aus der URL befüllt.'}</p>
                 </div>
               );
             }}
@@ -201,11 +691,33 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
 
         {/* Submit Button */}
         <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-          {([canSubmit, isSubmitting]) => (
-            <Button type="submit" size="lg" className="w-full" loading={isSubmitting || exchangeInvite.isPending} disabled={!canSubmit || exchangeInvite.isPending}>
-              {isSubmitting || exchangeInvite.isPending ? 'Verbinde...' : 'Server hinzufügen'}
-            </Button>
-          )}
+          {([canSubmit, isSubmitting]) => {
+            const isLoading = isSubmitting || healthCheck.isPending || exchangeInvite.isPending || isAdminSetupLoading;
+
+            const getButtonText = () => {
+              if (submitPhase === 'health-check') return 'Prüfe Verbindung...';
+              if (submitPhase === 'exchange') return 'Verbinde...';
+              if (submitPhase === 'admin-setup') return 'Richte Server ein...';
+
+              // Standard-Text basierend auf Modus
+              switch (formMode) {
+                case 'idle':
+                  return 'Mit Server verbinden';
+                case 'invite':
+                  return 'Server hinzufügen';
+                case 'admin-setup':
+                  return 'Admin-Account erstellen';
+                default:
+                  return 'Weiter';
+              }
+            };
+
+            return (
+              <Button type="submit" size="lg" className="w-full" loading={isLoading} disabled={!canSubmit || isLoading}>
+                {getButtonText()}
+              </Button>
+            );
+          }}
         </form.Subscribe>
       </form>
     </div>
