@@ -17,15 +17,18 @@
  */
 
 import { useUrlParams } from '@/features/server/hooks/use-url-params';
+import { useServerList } from '@/features/server/hooks/use-server-list';
 import { ServerConnectLoading } from '../molecules/ServerConnectLoading';
 import { ExpiredLinkError } from '../molecules/ExpiredLinkError';
 import { ServerSetupForm } from '../organisms/ServerSetupForm';
 import { AuthLayout } from '@/shared/ui/templates/AuthLayout';
 import { AuthCard } from '@/shared/ui/molecules/auth-card.molecule';
+import { AuthFooter } from '@/shared/ui/molecules/auth-footer.molecule';
 import { LogoWithIndicator } from '@/shared/ui/molecules/logo-with-indicator.molecule';
 import { Heading } from '@/shared/ui/atoms/heading.atom';
 import { Text } from '@/shared/ui/atoms/text.atom';
 import { useNavigate } from '@tanstack/react-router';
+import { PiArrowLeft, PiInfo } from 'react-icons/pi';
 
 /**
  * Server Onboarding Page
@@ -38,6 +41,8 @@ import { useNavigate } from '@tanstack/react-router';
  */
 export function ServerOnboardingPage() {
   const navigate = useNavigate();
+  const servers = useServerList();
+  const hasExistingServers = servers.length > 0;
   const { prefillServerUrl, isExchanging, error } = useUrlParams();
 
   /**
@@ -52,15 +57,29 @@ export function ServerOnboardingPage() {
     <AuthLayout>
       <AuthCard className="mx-5 w-full max-w-md">
         <div className="space-y-8">
+          {/* Back Button - nur anzeigen wenn bereits Server konfiguriert sind */}
+          {hasExistingServers && (
+            <button
+              type="button"
+              onClick={() => navigate({ to: '/auth' })}
+              className="flex cursor-pointer items-center gap-2 text-gray-500 text-sm transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              <PiArrowLeft className="h-4 w-4" />
+              Zurück zur Anmeldung
+            </button>
+          )}
+
           {/* Logo Section */}
-          <div className="space-y-6 text-center">
-            <LogoWithIndicator size="lg" status="checking" showIndicator={false} />
-            <Heading size="2xl" className="text-gray-900 dark:text-white">
-              Bluelight Hub
-            </Heading>
-            <Text size="md" color="muted">
-              {isExchanging ? 'Verbinde mit Server...' : error ? 'Fehler beim Verbinden' : 'Server hinzufügen'}
-            </Text>
+          <div className="space-y-4 text-center">
+            <LogoWithIndicator size="lg" status={isExchanging ? 'checking' : error ? 'error' : undefined} showIndicator={isExchanging} />
+            <div className="space-y-2">
+              <Heading size="2xl" className="text-gray-900 dark:text-white">
+                Bluelight Hub
+              </Heading>
+              <Text size="md" color="muted">
+                {isExchanging ? 'Verbinde mit Server...' : error ? 'Fehler beim Verbinden' : 'Server verbinden'}
+              </Text>
+            </div>
           </div>
 
           {/* Content Section */}
@@ -70,29 +89,55 @@ export function ServerOnboardingPage() {
 
             {/* Error State: Exchange fehlgeschlagen */}
             {!isExchanging && error && (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <ExpiredLinkError />
-                <Text size="sm" color="muted" className="text-center">
-                  Du kannst es manuell versuchen:
-                </Text>
-                <ServerSetupForm prefillServerUrl={prefillServerUrl || undefined} onSuccess={handleSuccess} />
+                <div className="space-y-4">
+                  <Text size="sm" color="muted" className="text-center">
+                    Du kannst es manuell versuchen:
+                  </Text>
+                  <ServerSetupForm prefillServerUrl={prefillServerUrl || undefined} onSuccess={handleSuccess} />
+                </div>
               </div>
             )}
 
             {/* Form State: Prefill oder leer */}
             {!isExchanging && !error && (
-              <div className="space-y-4">
-                {prefillServerUrl && (
-                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
-                    <Text size="sm" className="text-blue-800">
-                      Server-URL wurde aus dem Link übernommen. Bitte gib deinen Einladungscode ein.
-                    </Text>
+              <div className="space-y-6">
+                {/* Info Text */}
+                {!prefillServerUrl && (
+                  <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/50">
+                    <PiInfo className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400" />
+                    <div className="space-y-1">
+                      <p className="font-medium text-blue-800 text-sm dark:text-blue-200">Willkommen bei Bluelight Hub</p>
+                      <p className="text-blue-700 text-sm dark:text-blue-300">Gib die Server-URL ein und verbinde dich mit einem Einladungscode oder richte einen neuen Server ein.</p>
+                    </div>
                   </div>
                 )}
+
+                {/* Prefill Info */}
+                {prefillServerUrl && (
+                  <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/50">
+                    <PiInfo className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400" />
+                    <p className="text-blue-700 text-sm dark:text-blue-300">Server-URL wurde aus dem Link übernommen. Bitte gib deinen Einladungscode ein.</p>
+                  </div>
+                )}
+
                 <ServerSetupForm prefillServerUrl={prefillServerUrl || undefined} onSuccess={handleSuccess} />
               </div>
             )}
           </div>
+
+          {/* Footer */}
+          <AuthFooter
+            badges={[
+              {
+                label: isExchanging ? 'Verbinde...' : error ? 'Fehler' : 'Bereit',
+                variant: 'default',
+                dotColor: isExchanging ? 'yellow' : error ? 'red' : 'green',
+              },
+            ]}
+            copyright={`© ${new Date().getFullYear()} BlueLight Hub`}
+          />
         </div>
       </AuthCard>
     </AuthLayout>

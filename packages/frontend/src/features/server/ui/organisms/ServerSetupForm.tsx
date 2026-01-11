@@ -449,7 +449,9 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
           <form.Field
             name="serverUrl"
             validators={{
-              onChange: ({ value }) => getZodError(serverUrlSchema.safeParse(value), 'Ungültige Server-URL'),
+              // onChange: Nur validieren wenn Wert vorhanden (verhindert Fehler bei leerem Feld)
+              onChange: ({ value }) => (value ? getZodError(serverUrlSchema.safeParse(value), 'Ungültige Server-URL') : undefined),
+              // onBlur: Immer validieren (zeigt Fehler nach Verlassen des Feldes)
               onBlur: ({ value }) => getZodError(serverUrlSchema.safeParse(value), 'Ungültige Server-URL'),
             }}
           >
