@@ -16,9 +16,7 @@ export default defineConfig({
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
   plugins: [
-    devtools({
-      editor: { name: 'zed' },
-    }),
+    devtools(),
     tanstackRouter({
       target: 'react',
       autoCodeSplitting: true,
@@ -60,6 +58,7 @@ export default defineConfig({
       '@organisms': path.resolve(__dirname, './src/components/organisms'),
       '@templates': path.resolve(__dirname, './src/components/templates'),
       '@pages': path.resolve(__dirname, './src/components/pages'),
+      '@bluelight-hub/shared/client': path.resolve(__dirname, '../shared/client'),
     },
   },
 });

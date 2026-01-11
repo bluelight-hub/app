@@ -6,9 +6,9 @@
  * @module features/einsatz/api
  */
 
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { logger } from '@/shared/lib/logger';
-import type { FahrzeugtypDto, ResponseError } from '@bluelight-hub/shared/client';
+import type { FahrzeugtypDto, ResponseError } from '@/shared';
 import { useQuery } from '@tanstack/react-query';
 
 /**

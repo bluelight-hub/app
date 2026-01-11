@@ -32,7 +32,7 @@ import {
   TabPanel,
   TabPanels,
 } from '@headlessui/react';
-import type { StammPersonDto } from '@bluelight-hub/shared/client';
+import type { StammPersonDto } from '@/shared';
 import { debounce } from '@tanstack/pacer';
 import { useForm } from '@tanstack/react-form';
 import { zodValidator } from '@tanstack/zod-form-adapter';

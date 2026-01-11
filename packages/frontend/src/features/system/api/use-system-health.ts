@@ -1,5 +1,7 @@
 import { api } from '@/shared/api/api';
+import { serverStore } from '@/features/server/stores/server.store';
 import { useQuery } from '@tanstack/react-query';
+import { useStore } from '@tanstack/react-store';
 import { milliseconds } from 'date-fns';
 import { SYSTEM_QUERY_KEYS } from './queries';
 
@@ -67,6 +69,12 @@ export interface SystemHealthResult {
  * ```
  */
 export const useSystemHealth = () => {
+  // Warte auf Server-Store-Hydration bevor API-Calls gemacht werden
+  // Verhindert Race Condition: API-Call → 401 Token Error → Redirect zu /server/setup
+  const isHydrated = useStore(serverStore, (state) => state.isHydrated);
+  const activeServerId = useStore(serverStore, (state) => state.activeServerId);
+  const isServerReady = isHydrated && activeServerId !== null;
+
   const query = useQuery({
     queryKey: SYSTEM_QUERY_KEYS.health(),
     queryFn: () => api.health().healthControllerCheck(),
@@ -74,6 +82,8 @@ export const useSystemHealth = () => {
     refetchInterval: milliseconds({ seconds: 30 }),
     retry: 3,
     refetchOnWindowFocus: true,
+    // Nur Query ausfuehren wenn Server-Store hydriert und ein Server aktiv ist
+    enabled: isServerReady,
   });
 
   // F2: Sichere Extraktion der Details mit Null-Checks statt unsicherer Type Assertion

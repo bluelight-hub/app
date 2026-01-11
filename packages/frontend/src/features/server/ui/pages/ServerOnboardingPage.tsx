@@ -13,13 +13,13 @@
  * - useUrlParams (Task 4) - URL params extraction and exchange
  * - ServerSetupForm (Task 5) - Manual server setup form
  * - ServerConnectLoading (Story 2.4) - Loading state
- * - ExpiredLinkError (Story 2.4) - Error state
+ * - OnboardingErrorCard (Story 2.4) - Error state
  */
 
 import { useUrlParams } from '@/features/server/hooks/use-url-params';
 import { useServerList } from '@/features/server/hooks/use-server-list';
 import { ServerConnectLoading } from '../molecules/ServerConnectLoading';
-import { ExpiredLinkError } from '../molecules/ExpiredLinkError';
+import { OnboardingErrorCard } from '../molecules/OnboardingErrorCard';
 import { ServerSetupForm } from '../organisms/ServerSetupForm';
 import { AuthLayout } from '@/shared/ui/templates/AuthLayout';
 import { AuthCard } from '@/shared/ui/molecules/auth-card.molecule';
@@ -29,6 +29,7 @@ import { Heading } from '@/shared/ui/atoms/heading.atom';
 import { Text } from '@/shared/ui/atoms/text.atom';
 import { useNavigate } from '@tanstack/react-router';
 import { PiArrowLeft, PiInfo } from 'react-icons/pi';
+import { setSetupRedirectInProgress } from '@/shared/lib/server-access-token';
 
 /**
  * Server Onboarding Page
@@ -48,8 +49,12 @@ export function ServerOnboardingPage() {
   /**
    * Callback bei erfolgreichem Server-Setup
    * Navigiert zur Login-Seite nach erfolgreichem Hinzufügen
+   *
+   * M7 FIX: Reset Setup-Redirect-Flag damit andere Hooks/Error-Handler
+   * wieder normal arbeiten können (z.B. useRequireServer)
    */
   const handleSuccess = () => {
+    setSetupRedirectInProgress(false); // Reset flag
     navigate({ to: '/auth' });
   };
 
@@ -90,7 +95,7 @@ export function ServerOnboardingPage() {
             {/* Error State: Exchange fehlgeschlagen */}
             {!isExchanging && error && (
               <div className="space-y-6">
-                <ExpiredLinkError />
+                <OnboardingErrorCard errorCode="INVITE_EXPIRED" />
                 <div className="space-y-4">
                   <Text size="sm" color="muted" className="text-center">
                     Du kannst es manuell versuchen:

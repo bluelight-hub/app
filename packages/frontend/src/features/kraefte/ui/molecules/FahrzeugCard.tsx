@@ -18,7 +18,7 @@
 import { cn } from '@/shared/ui/cn';
 import { FmsStatusBadge } from '@/features/einsatz/ui/atoms/FmsStatusBadge.atom';
 import { isFmsStatus, type FmsStatus } from '@/features/einsatz/constants/fms-status.constants';
-import type { EinsatzFahrzeugDto } from '@bluelight-hub/shared/client';
+import type { EinsatzFahrzeugDto } from '@/shared';
 import { PiTruck, PiUsers } from 'react-icons/pi';
 import { useDashboardMode, type DashboardMode } from '../../contexts';
 

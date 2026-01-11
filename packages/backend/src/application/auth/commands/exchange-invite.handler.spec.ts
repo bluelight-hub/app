@@ -71,7 +71,7 @@ describe('ExchangeInviteHandler', () => {
   /**
    * Helper: Erstellt ein gültiges InviteCode Aggregate
    */
-  function createValidInviteCode(overrides: { usedCount?: number; expiresAt?: Date; maxUses?: number } = {}): InviteCode {
+  function _createValidInviteCode(overrides: { usedCount?: number; expiresAt?: Date; maxUses?: number } = {}): InviteCode {
     const futureDate = new Date();
     futureDate.setHours(futureDate.getHours() + 24); // 1 Tag in Zukunft
 

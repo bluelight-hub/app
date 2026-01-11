@@ -13,7 +13,6 @@ import { ConfigService } from '@nestjs/config';
 import type { Response } from 'express';
 import { ProcessOAuthCallbackHandler } from '@application/integrations/commands/process-oauth-callback/process-oauth-callback.handler';
 import { ProcessOAuthCallbackCommand } from '@application/integrations/commands/process-oauth-callback/process-oauth-callback.command';
-import { IntegrationError, INTEGRATION_ERROR_CODES } from '@domain/integrations';
 import { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { SkipServerAccess } from '@/infrastructure/decorators/skip-server-access.decorator';

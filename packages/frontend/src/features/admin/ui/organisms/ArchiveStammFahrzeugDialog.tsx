@@ -1,4 +1,4 @@
-import type { StammFahrzeugDto } from '@bluelight-hub/shared/client';
+import type { StammFahrzeugDto } from '@/shared';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { Text } from '@/shared/ui/atoms/text.atom';

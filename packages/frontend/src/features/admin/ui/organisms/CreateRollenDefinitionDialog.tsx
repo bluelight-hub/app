@@ -1,7 +1,7 @@
 import { useForm } from '@tanstack/react-form';
 import { zodValidator } from '@tanstack/zod-form-adapter';
 import { z } from 'zod';
-import type { CreateRollenDefinitionDto, QualifikationDto } from '@bluelight-hub/shared/client';
+import type { CreateRollenDefinitionDto, QualifikationDto } from '@/shared';
 import { useAdminQualifikationenManagement } from '@/features/admin/api';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';

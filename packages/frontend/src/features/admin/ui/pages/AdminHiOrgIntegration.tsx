@@ -4,7 +4,7 @@ import { PiPlugsConnected, PiCheckCircle, PiWarningCircle, PiSpinner, PiUsers, P
 import { toast } from 'sonner';
 import { useAdminAuth } from '@/features/auth/api';
 import { useAdminHiOrgIntegration, useAdminQualifikationenManagement, type BatchMappingItem } from '@/features/admin/api';
-import type { HiOrgQualifikationPreviewItemDto } from '@bluelight-hub/shared/client';
+import type { HiOrgQualifikationPreviewItemDto } from '@/shared';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Card } from '@/shared/ui/atoms/card.atom';
 import { Container } from '@/shared/ui/atoms/container.atom';

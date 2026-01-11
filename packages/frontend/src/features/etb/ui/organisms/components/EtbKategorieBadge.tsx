@@ -1,6 +1,6 @@
 import { Badge } from '@/shared/ui/atoms/badge.atom';
 import { cn } from '@/shared/ui/cn';
-import type { EintragDtoKategorieEnum as EtbKategorie } from '@bluelight-hub/shared/client';
+import type { EintragDtoKategorieEnum as EtbKategorie } from '@/shared';
 import { kategorieFarben } from '../../../constants/kategorie.constants';
 import { kategorieLabels } from '../../../types/etb.types';
 

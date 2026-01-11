@@ -12,7 +12,7 @@
  */
 
 import type { UrlParamsSchemaType } from '../schemas/url-params.schema';
-import { urlParamsSchema } from '../schemas/url-params.schema';
+import { urlParamsSchema, inviteCodeSchema } from '../schemas/url-params.schema';
 import type { ZodError } from 'zod';
 
 /**
@@ -146,29 +146,29 @@ export function normalizeServerUrl(url: string): string {
 /**
  * Prüft ob Invite-Code valides Format hat.
  *
- * Backend-Format: Exakt 8 Zeichen alphanumerisch
- * Frontend-Prüfung: Mindestens 8 Zeichen (für bessere UX)
+ * M5 FIX: Nutzt das zentrale inviteCodeSchema für konsistente Validierung.
+ * Das Schema prüft: exakt 8 Zeichen, Großbuchstaben A-Z und Ziffern 0-9.
  *
- * **Warum nicht exakte Backend-Validierung?**
- * - Frontend: Mindestlänge-Check für frühe UX-Feedback
- * - Backend: Exakte Validierung + DB-Lookup für Sicherheit
- * - Separation of Concerns: Frontend UX, Backend Security
+ * **Warum Schema statt manueller Prüfung?**
+ * - Konsistente Validierung im gesamten Frontend
+ * - Single Source of Truth für Invite-Code-Format
+ * - Schema ist synchronisiert mit Backend-Validierung
  *
  * **Sicherheit:**
- * - Keine SQL-Injection-Gefahr (nur Length-Check)
+ * - Keine SQL-Injection-Gefahr (Schema validiert Format)
  * - Finale Validierung erfolgt serverseitig
  *
  * @param inviteCode - Invite Code String
- * @returns true wenn mindestens 8 Zeichen
+ * @returns true wenn valide nach Schema (exakt 8 Zeichen, A-Z0-9)
  *
  * @example
  * ```ts
- * isValidInviteCode('ABC12345'); // true (8 Zeichen)
- * isValidInviteCode('ABC123456'); // true (9 Zeichen, OK)
- * isValidInviteCode('ABC123'); // false (6 Zeichen)
+ * isValidInviteCode('ABC12345'); // true (8 Zeichen, A-Z0-9)
+ * isValidInviteCode('abc12345'); // false (Kleinbuchstaben)
+ * isValidInviteCode('ABC123'); // false (nur 6 Zeichen)
  * isValidInviteCode(''); // false (leer)
  * ```
  */
 export function isValidInviteCode(inviteCode: string): boolean {
-  return inviteCode.trim().length >= 8;
+  return inviteCodeSchema.safeParse(inviteCode).success;
 }

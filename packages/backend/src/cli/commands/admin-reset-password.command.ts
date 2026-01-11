@@ -5,7 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { isAdmin } from '@/modules/auth/utils/auth.utils';
 // biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
-import { validateBcryptCostFactor, BCRYPT_COST_FACTOR_PASSWORD } from '@/infrastructure/config/security.constants';
+import { validateBcryptCostFactor } from '@/infrastructure/config/security.constants';
 
 @Injectable()
 export class AdminResetPasswordCommand {

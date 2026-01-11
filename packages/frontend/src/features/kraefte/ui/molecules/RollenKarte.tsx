@@ -12,7 +12,7 @@
 
 import { cn } from '@/shared/ui/cn';
 import { PiCheck, PiUserMinus, PiShieldCheck } from 'react-icons/pi';
-import type { RollenBesetzungListItemDto } from '@bluelight-hub/shared/client';
+import type { RollenBesetzungListItemDto } from '@/shared';
 import { useDashboardMode, type DashboardMode } from '../../contexts';
 
 interface RollenKarteProps {

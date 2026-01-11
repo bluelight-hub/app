@@ -1,6 +1,6 @@
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { Button } from '@/shared/ui/atoms/button.atom';
-import type { EtbSnapshotDto } from '@bluelight-hub/shared/client';
+import type { EtbSnapshotDto } from '@/shared';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { Timeline, TimelineDot, TimelineItem } from '@/shared/ui/molecules/timeline.molecule';
 import { useQuery } from '@tanstack/react-query';

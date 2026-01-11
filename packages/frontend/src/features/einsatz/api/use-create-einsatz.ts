@@ -5,10 +5,10 @@
  * Invalidiert automatisch alle betroffenen Queries nach erfolgreicher Erstellung.
  */
 
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { logger } from '@/shared/lib/logger';
-import type { CreateEinsatzDto, EinsatzControllerFindAllVAlpha200Response, EinsatzDto, EinsatzListItemDto, ResponseError } from '@bluelight-hub/shared/client';
-import { EinsatzDtoStatusEnum } from '@bluelight-hub/shared/client';
+import type { CreateEinsatzDto, EinsatzControllerFindAllVAlpha200Response, EinsatzDto, EinsatzListItemDto, ResponseError } from '@/shared';
+import { EinsatzDtoStatusEnum } from '@/shared';
 import type { InfiniteData } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { EINSATZ_QUERY_KEYS, calculateRetryDelay, type EinsatzQueryFilters } from './queries';

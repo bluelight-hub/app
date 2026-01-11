@@ -12,7 +12,7 @@ import { Marker, Popup } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import { toast } from 'sonner';
 import type { LeafletMouseEvent } from 'leaflet';
-import type { PoiDto } from '@bluelight-hub/shared/client';
+import type { PoiDto } from '@/shared';
 
 interface ClusteredPoiLayerProps {
   lagekarteId: string | undefined;

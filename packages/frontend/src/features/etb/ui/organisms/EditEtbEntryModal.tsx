@@ -5,7 +5,7 @@ import { Label } from '@/shared/ui/atoms/label.atom';
 import { Textarea } from '@/shared/ui/atoms/textarea.atom';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { useUpdateEtbEntry } from '@/features/etb';
-import { EintragDtoKategorieEnum as EtbKategorie, type EintragDto } from '@bluelight-hub/shared/client';
+import { EintragDtoKategorieEnum as EtbKategorie, type EintragDto } from '@/shared';
 import { EtbKategorieSelect } from './EtbKategorieSelect';
 import { useForm } from '@tanstack/react-form';
 import { format, isValid } from 'date-fns';

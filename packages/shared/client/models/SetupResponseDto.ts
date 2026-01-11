@@ -17,6 +17,8 @@ import type { SetupUserDto } from './SetupUserDto';
 import { SetupUserDtoFromJSON, SetupUserDtoFromJSONTyped, SetupUserDtoToJSON, SetupUserDtoToJSONTyped } from './SetupUserDto';
 import type { SetupTokenDto } from './SetupTokenDto';
 import { SetupTokenDtoFromJSON, SetupTokenDtoFromJSONTyped, SetupTokenDtoToJSON, SetupTokenDtoToJSONTyped } from './SetupTokenDto';
+import type { SetupInviteCodeDto } from './SetupInviteCodeDto';
+import { SetupInviteCodeDtoFromJSON, SetupInviteCodeDtoFromJSONTyped, SetupInviteCodeDtoToJSON, SetupInviteCodeDtoToJSONTyped } from './SetupInviteCodeDto';
 
 /**
  *
@@ -36,6 +38,12 @@ export interface SetupResponseDto {
    * @memberof SetupResponseDto
    */
   accessToken: SetupTokenDto;
+  /**
+   * Initialer Invite-Code
+   * @type {SetupInviteCodeDto}
+   * @memberof SetupResponseDto
+   */
+  inviteCode: SetupInviteCodeDto;
 }
 
 /**
@@ -44,6 +52,7 @@ export interface SetupResponseDto {
 export function instanceOfSetupResponseDto(value: object): value is SetupResponseDto {
   if (!('user' in value) || value['user'] === undefined) return false;
   if (!('accessToken' in value) || value['accessToken'] === undefined) return false;
+  if (!('inviteCode' in value) || value['inviteCode'] === undefined) return false;
   return true;
 }
 
@@ -58,6 +67,7 @@ export function SetupResponseDtoFromJSONTyped(json: any, ignoreDiscriminator: bo
   return {
     user: SetupUserDtoFromJSON(json['user']),
     accessToken: SetupTokenDtoFromJSON(json['accessToken']),
+    inviteCode: SetupInviteCodeDtoFromJSON(json['inviteCode']),
   };
 }
 
@@ -73,5 +83,6 @@ export function SetupResponseDtoToJSONTyped(value?: SetupResponseDto | null, ign
   return {
     user: SetupUserDtoToJSON(value['user']),
     accessToken: SetupTokenDtoToJSON(value['accessToken']),
+    inviteCode: SetupInviteCodeDtoToJSON(value['inviteCode']),
   };
 }

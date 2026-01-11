@@ -1,6 +1,6 @@
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { AUTH_KEYS } from './queries';
-import type { AdminLoginResponseDto, AdminPasswordDto, AuthRequestDto, AuthResponseDto } from '@bluelight-hub/shared/client';
+import type { AdminLoginResponseDto, AdminPasswordDto, AuthRequestDto, AuthResponseDto } from '@/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 /**
@@ -28,8 +28,9 @@ export const useUnifiedAuth = () => {
   return useMutation<AuthResponseDto, Error, AuthRequestDto>({
     mutationFn: (authRequestDto: AuthRequestDto) => api.auth().authControllerUnifiedAuth({ authRequestDto }),
     onSuccess: async () => {
-      // AuthCheck invalidieren, damit neuer User geladen wird
-      await queryClient.invalidateQueries({
+      // AuthCheck refetchen, damit neuer User geladen wird
+      // Wichtig: refetchQueries wartet auf das Refetch, invalidateQueries nicht
+      await queryClient.refetchQueries({
         queryKey: AUTH_KEYS.auth.queries.authCheck,
       });
     },

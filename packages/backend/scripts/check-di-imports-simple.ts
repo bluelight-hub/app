@@ -1,7 +1,7 @@
 #!/usr/bin/env ts-node
 
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { glob } from 'glob';
 
 /**
@@ -48,7 +48,7 @@ function fileHasInjectableDecorator(filePath: string): boolean {
     // Pattern: @Injectable( ... ) und class SomeName
     const injectablePattern = /@Injectable\s*\(/;
     return injectablePattern.test(content);
-  } catch (e) {
+  } catch (_e) {
     return false;
   }
 }
@@ -85,7 +85,7 @@ function resolveImportPath(importPath: string, fromDir: string, baseSrcDir: stri
     }
   } else if (!importPath.startsWith('.') && !importPath.startsWith('@')) {
     // Absolute imports (path alias)
-    const fullPath = path.join(baseSrcDir, resolvedPath + '.ts');
+    const fullPath = path.join(baseSrcDir, `${resolvedPath}.ts`);
     if (fs.existsSync(fullPath)) {
       return fullPath;
     }
@@ -149,7 +149,7 @@ function analyzeFile(filePath: string, baseSrcDir: string): void {
         }
       }
     });
-  } catch (error) {
+  } catch (_error) {
     // Fehler bei Datei-Verarbeitung ignorieren
   }
 }

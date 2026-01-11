@@ -9,7 +9,7 @@ import type {
   AdminHiOrgIntegrationControllerTestConnectionVAlpha200Response,
   BatchSaveQualifikationMappingsResponseDto,
   ImportPersonsResponseDto,
-} from '@bluelight-hub/shared/client';
+} from '@/shared';
 import { type ResponseError, getApiErrorMessage } from '@/shared/api/errors';
 import { logger } from '@/shared/lib/logger';
 import { api } from '@/shared/api/api';

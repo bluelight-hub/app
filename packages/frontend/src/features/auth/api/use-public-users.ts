@@ -1,9 +1,10 @@
-import type { PublicUserDto } from '@bluelight-hub/shared/client';
+import type { PublicUserDto } from '@/shared';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
-import { api } from '@bluelight-hub/shared/client';
+import { useStore } from '@tanstack/react-store';
+import { api } from '@/shared';
+import { serverStore } from '@/features/server/stores/server.store';
 import { AUTH_KEYS } from './queries';
-import { logger } from '@/shared/lib/logger';
 
 /**
  * Hook zum Abrufen der öffentlichen Benutzerliste
@@ -24,18 +25,21 @@ import { logger } from '@/shared/lib/logger';
  * ```
  */
 export function usePublicUsers(): UseQueryResult<Array<PublicUserDto>, Error> {
+  // Warte auf Server-Store-Hydration bevor API-Calls gemacht werden
+  // Verhindert Race Condition: API-Call → 401 Token Error → Redirect zu /server/setup
+  const isHydrated = useStore(serverStore, (state) => state.isHydrated);
+  const activeServerId = useStore(serverStore, (state) => state.activeServerId);
+  const isServerReady = isHydrated && activeServerId !== null;
+
   return useQuery({
     queryKey: AUTH_KEYS.publicUsers,
     queryFn: async () => {
-      try {
-        const response = await api.auth().authControllerGetPublicUsers();
-        return response.users;
-      } catch (error) {
-        logger.error('Failed to fetch public users', error);
-        throw error;
-      }
+      const response = await api.auth().authControllerGetPublicUsers();
+      return response.users;
     },
     staleTime: 30000,
     retry: 1,
+    // Nur Query ausfuehren wenn Server-Store hydriert und ein Server aktiv ist
+    enabled: isServerReady,
   });
 }

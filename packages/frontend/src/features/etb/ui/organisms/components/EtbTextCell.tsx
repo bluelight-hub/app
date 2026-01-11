@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { EintragDto } from '@bluelight-hub/shared/client';
+import type { EintragDto } from '@/shared';
 import { ScreenshotLightbox } from './ScreenshotLightbox';
 import { safeValidateScreenshotUrl } from '@/features/etb/utils';
 import { cn } from '@/shared/ui/cn';

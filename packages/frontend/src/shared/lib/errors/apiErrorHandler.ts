@@ -1,5 +1,5 @@
 import { logger } from '@/shared/lib/logger';
-import { ResponseError } from '@bluelight-hub/shared/client';
+import { ResponseError } from '@/shared';
 
 /**
  * Structured error response from the API

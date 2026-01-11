@@ -7,8 +7,8 @@
  * Keine externe Abhängigkeit auf 'glob' - deshalb zuverlässiger & schneller
  */
 
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 interface DiImportViolation {
   filePath: string;
@@ -50,7 +50,7 @@ function findTypeScriptFiles(dir: string, baseDir: string): string[] {
         files.push(fullPath);
       }
     }
-  } catch (e) {
+  } catch (_e) {
     // Skip auf Fehler
   }
 
@@ -102,15 +102,15 @@ function resolveImportPath(importPath: string, fromDir: string, baseSrcDir: stri
   // Relative Imports
   if (importPath.startsWith('.')) {
     const basePath = path.resolve(fromDir, importPath);
-    if (fs.existsSync(basePath + '.ts')) return basePath + '.ts';
-    if (fs.existsSync(basePath + '/index.ts')) return basePath + '/index.ts';
+    if (fs.existsSync(`${basePath}.ts`)) return `${basePath}.ts`;
+    if (fs.existsSync(`${basePath}/index.ts`)) return `${basePath}/index.ts`;
     if (fs.existsSync(basePath)) {
       const indexFile = path.join(basePath, 'index.ts');
       if (fs.existsSync(indexFile)) return indexFile;
     }
   } else if (importPath) {
     // Absolute/alias Imports
-    const candidate1 = path.join(baseSrcDir, resolvedPath + '.ts');
+    const candidate1 = path.join(baseSrcDir, `${resolvedPath}.ts`);
     if (fs.existsSync(candidate1)) return candidate1;
 
     const candidate2 = path.join(baseSrcDir, resolvedPath, 'index.ts');
@@ -174,7 +174,7 @@ function analyzeFile(filePath: string, baseSrcDir: string): void {
         });
       }
     });
-  } catch (e) {
+  } catch (_e) {
     // Fehler bei Dateiverarbeitung ignorieren
   }
 }

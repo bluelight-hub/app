@@ -2,7 +2,7 @@ import { Button } from '@/shared/ui/atoms/button.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { useCurrentUser } from '@/features/auth';
 import { useLockEtb } from '@/features/etb';
-import { AuthUserDtoRoleEnum } from '@bluelight-hub/shared/client';
+import { AuthUserDtoRoleEnum } from '@/shared';
 import { useState, useCallback } from 'react';
 import { PiLockSimple } from 'react-icons/pi';
 

@@ -1,4 +1,4 @@
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { CommandTrigger } from '@/shared/ui/atoms/command-trigger.atom';
 import { Container } from '@/shared/ui/atoms/container.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
@@ -10,7 +10,7 @@ import { CommandPaletteErrorBoundary } from '@/shared/ui/organisms/command-palet
 import { EINSATZ_QUERY_KEYS, useEinsatzDetails, useEinsatzModules } from '@/features/einsatz';
 import { cn, getModuleActiveColor, getModuleColor } from '@/shared/ui';
 import { Button } from '@/shared/ui/atoms/button.atom';
-import { EinsatzDtoStatusEnum } from '@bluelight-hub/shared/client';
+import { EinsatzDtoStatusEnum } from '@/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, Outlet, useMatchRoute, useNavigate, useParams, useRouter } from '@tanstack/react-router';
 import { formatDistanceToNow } from 'date-fns';

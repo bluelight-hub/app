@@ -5,9 +5,9 @@
  * Automatische Sync mit globalem Einsatz-Store für selectedEinsatzId.
  */
 
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { useEinsatzStore } from '../stores/active-einsatz.store';
-import type { EinsatzControllerCreateVAlpha200Response, ResponseError } from '@bluelight-hub/shared/client';
+import type { EinsatzControllerCreateVAlpha200Response, ResponseError } from '@/shared';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { EINSATZ_QUERY_KEYS, calculateRetryDelay } from './queries';

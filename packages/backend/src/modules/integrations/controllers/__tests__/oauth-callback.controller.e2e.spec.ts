@@ -24,7 +24,6 @@ import * as request from 'supertest';
 import { PrismaClient } from '@prisma/client';
 import { createId } from '@paralleldrive/cuid2';
 import { ConfigService } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { IntegrationsModule } from '@/modules/integrations/integrations.module';
 import { ProcessOAuthCallbackHandler } from '@/application/integrations/commands/process-oauth-callback/process-oauth-callback.handler';
@@ -88,12 +87,12 @@ async function cleanupOAuthStates(prisma: TestPrismaService): Promise<void> {
 /**
  * SQL zum Deaktivieren von Database Triggers.
  */
-const DISABLE_TRIGGERS_SQL = 'SET session_replication_role = replica;';
+const _DISABLE_TRIGGERS_SQL = 'SET session_replication_role = replica;';
 
 /**
  * SQL zum Reaktivieren von Database Triggers.
  */
-const ENABLE_TRIGGERS_SQL = 'SET session_replication_role = DEFAULT;';
+const _ENABLE_TRIGGERS_SQL = 'SET session_replication_role = DEFAULT;';
 
 // ============================================
 // E2E TESTS
@@ -105,7 +104,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
   let app: INestApplication;
   let prisma: TestPrismaService;
   let mockHandler: jest.Mocked<ProcessOAuthCallbackHandler>;
-  let configService: ConfigService;
+  let _configService: ConfigService;
 
   beforeAll(async () => {
     // Setup Prisma
@@ -144,7 +143,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       })
       .compile();
 
-    configService = moduleFixture.get<ConfigService>(ConfigService);
+    _configService = moduleFixture.get<ConfigService>(ConfigService);
     app = moduleFixture.createNestApplication();
 
     // Register Global Guards (in richtiger Reihenfolge wie in app.module.ts)

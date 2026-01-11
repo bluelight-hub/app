@@ -25,7 +25,7 @@ import { useCallback, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { cn } from '@/shared/ui/cn';
 import { PiChartBar, PiArrowClockwise, PiArrowsOut, PiDevices } from 'react-icons/pi';
-import type { RollenBesetzungListItemDto } from '@bluelight-hub/shared/client';
+import type { RollenBesetzungListItemDto } from '@/shared';
 import { FullscreenCloseButton } from '@/features/lagekarte/ui/organisms/FullscreenCloseButton';
 import { useTaktischeStaerke } from '../../api';
 import { DashboardModeProvider, type DashboardMode } from '../../contexts';

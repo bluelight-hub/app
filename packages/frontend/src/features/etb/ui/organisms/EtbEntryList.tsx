@@ -1,7 +1,7 @@
 import { useConfirm } from '@/shared/hooks/useConfirm';
 import { useDeleteEtbEntry } from '@/features/etb';
 import { useUserNames } from '@/features/auth';
-import type { EintragDto } from '@bluelight-hub/shared/client';
+import type { EintragDto } from '@/shared';
 import { type ExpandedState, getCoreRowModel, getExpandedRowModel, getFilteredRowModel, getSortedRowModel, type SortingState, useReactTable } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useCallback, useEffect, useRef, useState } from 'react';

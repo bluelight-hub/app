@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import type { CreateStammPersonDto, StammPersonDto, UpdateStammPersonDto } from '@bluelight-hub/shared/client';
+import type { CreateStammPersonDto, StammPersonDto, UpdateStammPersonDto } from '@/shared';
 import { type ResponseError, getApiErrorMessage } from '@/shared/api/errors';
 import { logger } from '@/shared/lib/logger';
 import { api } from '@/shared/api/api';

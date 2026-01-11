@@ -88,12 +88,63 @@ export class SetupTokenDto {
 }
 
 /**
+ * DTO fuer den erstellten Invite-Code in der Setup-Response.
+ *
+ * **Sicherheitshinweis:**
+ * Der Invite-Code wird im Klartext zurueckgegeben.
+ * Dieser Code sollte an die ersten Nutzer weitergegeben werden,
+ * damit diese sich registrieren koennen.
+ */
+export class SetupInviteCodeDto {
+  /**
+   * Der generierte 8-stellige Invite-Code.
+   */
+  @ApiProperty({
+    description: '8-stelliger Invite-Code',
+    example: 'ABC12345',
+  })
+  @IsString()
+  @IsNotEmpty()
+  code!: string;
+
+  /**
+   * Ablaufdatum des Codes (ISO-8601).
+   */
+  @ApiProperty({
+    description: 'Ablaufdatum (ISO-8601)',
+    example: '2026-01-17T12:00:00.000Z',
+  })
+  @IsString()
+  @IsNotEmpty()
+  expiresAt!: string;
+
+  /**
+   * Maximale Anzahl erlaubter Nutzungen.
+   */
+  @ApiProperty({
+    description: 'Maximale Nutzungen',
+    example: 10,
+  })
+  maxUses!: number;
+
+  /**
+   * Label zur Identifizierung.
+   */
+  @ApiProperty({
+    description: 'Label',
+    example: 'Initial Setup Invite',
+  })
+  @IsString()
+  label!: string;
+}
+
+/**
  * Response DTO fuer den erfolgreichen Server-Setup.
  *
  * Enthaelt sowohl den erstellten Admin-User als auch den
- * generierten Access-Token. Der Token-Wert wird NUR in
- * dieser Response zurueckgegeben und kann spaeter nicht
- * erneut abgerufen werden.
+ * generierten Access-Token und einen initialen Invite-Code.
+ * Der Token-Wert wird NUR in dieser Response zurueckgegeben
+ * und kann spaeter nicht erneut abgerufen werden.
  *
  * **Verwendung im Controller:**
  * ```typescript
@@ -125,4 +176,15 @@ export class SetupResponseDto {
   @ValidateNested()
   @Type(() => SetupTokenDto)
   accessToken!: SetupTokenDto;
+
+  /**
+   * Initial erstellter Invite-Code fuer erste Nutzer-Registrierungen.
+   */
+  @ApiProperty({
+    description: 'Initialer Invite-Code',
+    type: SetupInviteCodeDto,
+  })
+  @ValidateNested()
+  @Type(() => SetupInviteCodeDto)
+  inviteCode!: SetupInviteCodeDto;
 }

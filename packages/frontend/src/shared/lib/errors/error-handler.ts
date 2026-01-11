@@ -1,6 +1,6 @@
 import { logger } from '@/shared/lib/logger';
-import { isServerAccessTokenPromptActive, isSetupRedirectInProgress } from '@/shared/lib/server-access-token';
-import type { FetchError, ResponseError } from '@bluelight-hub/shared/client';
+import { isSetupRedirectInProgress } from '@/shared/lib/server-access-token';
+import type { FetchError, ResponseError } from '@/shared';
 import { toast } from 'sonner';
 
 // Track shown errors to prevent duplicates
@@ -261,14 +261,15 @@ export async function handleQueryError(error: unknown, _query?: unknown): Promis
     // Hier nur sicherstellen dass kein Toast gezeigt wird (Flag-Check oben erledigt das)
 
     if (status === 401) {
-      // Wenn Token-Prompt aktiv ist, nichts tun - das Modal kuemmert sich darum
-      if (isServerAccessTokenPromptActive()) {
-        logger.debug('Server access token prompt active, skipping 401 handling');
+      // Check if we're on pages that handle auth themselves
+      const isOnAuthPage = window.location.pathname.startsWith('/auth');
+      const isOnServerSetup = window.location.pathname.startsWith('/server/setup');
+
+      // On server setup page, don't redirect - the page handles token errors itself
+      if (isOnServerSetup) {
+        logger.debug('On server setup page, skipping 401 handling');
         return;
       }
-
-      // Check if we're already on the auth page to prevent redirect loops
-      const isOnAuthPage = window.location.pathname.startsWith('/auth');
 
       // Get the URL from the error response to check if it's an auth endpoint
       const errorUrl = responseError.response.url || '';

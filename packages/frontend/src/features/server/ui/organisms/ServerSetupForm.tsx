@@ -288,7 +288,6 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
             case 'TIMEOUT':
               errorMessage = 'Server antwortet nicht (Timeout nach 5 Sekunden)';
               break;
-            case 'UNKNOWN':
             default:
               errorMessage = 'Unbekannter Fehler beim Verbindungstest.';
               break;

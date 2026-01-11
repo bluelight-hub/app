@@ -1,5 +1,5 @@
 import { formatDisplayDateTime } from '@/shared/lib/dateFormatter';
-import type { EintragDto } from '@bluelight-hub/shared/client';
+import type { EintragDto } from '@/shared';
 import { format, isValid } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useState } from 'react';

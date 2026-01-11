@@ -1,4 +1,4 @@
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { logger } from '@/shared/lib/logger';
 import type {
@@ -8,7 +8,7 @@ import type {
   AdminInviteControllerCreateInviteVAlpha201Response,
   CreateInviteDto,
   ResponseError,
-} from '@bluelight-hub/shared/client';
+} from '@/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ADMIN_QUERY_KEYS } from './queries';

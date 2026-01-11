@@ -1,6 +1,6 @@
 'use client';
 
-import type { AuthRequestDto } from '@bluelight-hub/shared/client';
+import type { AuthRequestDto } from '@/shared';
 import { useForm } from '@tanstack/react-form';
 import { useMemo } from 'react';
 import { PiUser } from 'react-icons/pi';

@@ -1,8 +1,7 @@
 #!/usr/bin/env ts-node-dev
 
-import { execSync } from 'child_process';
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import ts from 'typescript';
 
 /**
@@ -124,7 +123,7 @@ function analyzeFile(filePath: string): void {
                 suggestion: `Change "import type { ${importName} }" to "import { ${importName} }"`,
               });
             }
-          } catch (e) {
+          } catch (_e) {
             // Stille Fehler bei Import-Auflösung (ist ok, könnte externe Library sein)
           }
         });
@@ -134,7 +133,7 @@ function analyzeFile(filePath: string): void {
     };
 
     visit(sourceFile);
-  } catch (error) {
+  } catch (_error) {
     // Fehler beim Lesen/Parsen ignorieren
   }
 }
@@ -195,7 +194,7 @@ function main(): void {
           analyzeFile(filePath);
         }
       }
-    } catch (e) {
+    } catch (_e) {
       // Directory Fehler ignorieren
     }
   }

@@ -1,4 +1,4 @@
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { useLagekarte, usePois } from '@/features/lagekarte/api';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';

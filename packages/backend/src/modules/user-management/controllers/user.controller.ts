@@ -10,7 +10,6 @@ import {
   GetUserByIdQueryHandler,
   type UserDto as AppUserDto,
   UserBasicDto,
-  UserBasicListResponse,
   ManagedUserResponseDto,
   ManagedUserResponse,
 } from '@application/user-management';

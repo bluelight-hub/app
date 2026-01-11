@@ -21,7 +21,7 @@ import { type DrkQrData, DrkQrParseErrorCode, isDrkQrCodeFormat, parseDrkQrCode 
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { InlineSpinner } from '@/shared/ui/atoms/spinner.atom';
 import { cn } from '@/shared/ui/cn';
-import type { ResponseError } from '@bluelight-hub/shared/client';
+import type { ResponseError } from '@/shared';
 import { isTauri } from '@tauri-apps/api/core';
 import jsQR from 'jsqr';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';

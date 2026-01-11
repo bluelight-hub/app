@@ -1,4 +1,4 @@
-import { ManagedUserResponseDtoRoleEnum } from '@bluelight-hub/shared/client';
+import { ManagedUserResponseDtoRoleEnum } from '@/shared';
 
 const adminRoles: Array<ManagedUserResponseDtoRoleEnum> = [ManagedUserResponseDtoRoleEnum.Admin, ManagedUserResponseDtoRoleEnum.SuperAdmin];
 export const isAdmin = (role: ManagedUserResponseDtoRoleEnum | string | undefined): boolean => {

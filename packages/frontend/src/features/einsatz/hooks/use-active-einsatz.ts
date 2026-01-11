@@ -1,9 +1,9 @@
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { EINSATZ_QUERY_KEYS } from '../api';
 import { einsatzStore, useEinsatzStore } from '../stores/active-einsatz.store';
 import { clearActiveEinsatz as clearPersistedEinsatz, loadActiveEinsatzId, rehydrateActiveEinsatz } from '../stores/persistence/einsatz-persistence';
 import { logger } from '@/shared/lib/logger';
-import type { EinsatzControllerFindOneVAlpha200Response, ResponseError } from '@bluelight-hub/shared/client';
+import type { EinsatzControllerFindOneVAlpha200Response, ResponseError } from '@/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { milliseconds } from 'date-fns';
 import { useCallback, useEffect } from 'react';

@@ -4,9 +4,9 @@
  * Holt die Anzahl der Einsätze pro Status vom Backend.
  */
 
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { logger } from '@/shared/lib/logger';
-import type { EinsatzControllerGetStatusCountsVAlpha200Response, ResponseError } from '@bluelight-hub/shared/client';
+import type { EinsatzControllerGetStatusCountsVAlpha200Response, ResponseError } from '@/shared';
 import { useQuery } from '@tanstack/react-query';
 import { milliseconds } from 'date-fns';
 import { EINSATZ_QUERY_KEYS, calculateRetryDelay } from './queries';

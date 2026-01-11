@@ -11,15 +11,64 @@ import { AuthApi, Configuration } from '@bluelight-hub/shared/client';
 import { api } from '@/shared/api/api';
 import { logger } from '@/shared/lib/logger';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { type OnboardingErrorCode, parseOnboardingErrorCode } from '../constants/error-codes.constants';
 import { addServer, setActiveServer } from '../stores/server.store';
 import { SERVER_QUERY_KEYS } from './query-keys';
 
 /**
+ * HTTP Status Codes die NICHT erneut versucht werden sollen.
+ *
+ * Diese Status Codes repräsentieren Business-Logic-Fehler,
+ * bei denen ein erneuter Versuch das gleiche Ergebnis liefern würde:
+ * - 400: Bad Request (ungültige Eingabe)
+ * - 401: Unauthorized (Authentifizierung fehlgeschlagen)
+ * - 403: Forbidden (keine Berechtigung)
+ * - 404: Not Found (Ressource existiert nicht)
+ * - 409: Conflict (z.B. Invite bereits verwendet)
+ * - 410: Gone (Ressource nicht mehr verfügbar, z.B. abgelaufener Invite)
+ * - 422: Unprocessable Entity (Validierungsfehler)
+ */
+const NON_RETRYABLE_STATUS_CODES = [400, 401, 403, 404, 409, 410, 422];
+
+/**
+ * Extrahiert den Onboarding-Fehlercode aus einem Exchange-Fehler.
+ *
+ * Diese Hilfsfunktion kann von Komponenten verwendet werden, um
+ * den strukturierten Fehlercode aus einem Mutation-Fehler zu extrahieren.
+ * Der Fehlercode kann dann mit `getOnboardingErrorDetails()` in
+ * benutzerfreundliche Fehlermeldungen umgewandelt werden.
+ *
+ * @param error - Der Fehler aus der Mutation (mutation.error)
+ * @returns Promise mit dem ermittelten OnboardingErrorCode
+ *
+ * @example
+ * ```tsx
+ * const exchangeInvite = useExchangeInvite();
+ *
+ * useEffect(() => {
+ *   if (exchangeInvite.error) {
+ *     getExchangeErrorCode(exchangeInvite.error).then((code) => {
+ *       const details = getOnboardingErrorDetails(code);
+ *       showErrorNotification(details.title, details.message);
+ *     });
+ *   }
+ * }, [exchangeInvite.error]);
+ * ```
+ */
+export async function getExchangeErrorCode(error: unknown): Promise<OnboardingErrorCode> {
+  return parseOnboardingErrorCode(error);
+}
+
+/**
  * Input-Parameter für die Exchange Invite Mutation.
  *
- * Erlaubt optional eine Server-URL anzugeben, falls der Exchange
- * gegen einen anderen Server als den aktuell aktiven gehen soll
- * (z.B. bei Deep Links mit ?server=...&invite=... Parametern).
+ * Erlaubt optional eine Server-URL und einen Server-Namen anzugeben,
+ * falls der Exchange gegen einen anderen Server als den aktuell aktiven gehen soll
+ * (z.B. bei Deep Links mit ?server=...&invite=... Parametern oder manuellem Setup).
+ *
+ * **AC5: Erfolgreicher Setup**
+ * - Der serverName wird im Toast verwendet: "Server '[Name]' hinzugefügt"
+ * - Falls nicht angegeben, wird serverInfo.name aus der API Response verwendet
  */
 export interface ExchangeInviteInput {
   /** Der Invite-Code zum Eintauschen */
@@ -30,6 +79,12 @@ export interface ExchangeInviteInput {
    * Falls nicht angegeben, wird der aktuell aktive Server verwendet.
    */
   serverUrl?: string;
+  /**
+   * Optionaler Server-Name (Display-Name).
+   * Falls angegeben, wird dieser statt serverInfo.name verwendet.
+   * Ermöglicht dem User einen benutzerdefinierten Namen zu vergeben.
+   */
+  serverName?: string;
 }
 
 /**
@@ -51,10 +106,11 @@ export interface ExchangeInviteInput {
  * ```tsx
  * const exchangeInvite = useExchangeInvite();
  *
- * const handleDeepLink = (inviteCode: string) => {
- *   exchangeInvite.mutate(inviteCode, {
- *     onSuccess: () => {
- *       toast.success('Server erfolgreich hinzugefügt');
+ * const handleDeepLink = (inviteCode: string, serverName?: string) => {
+ *   exchangeInvite.mutate({ inviteCode, serverName }, {
+ *     onSuccess: (response) => {
+ *       const displayName = serverName || response.data.serverInfo.name;
+ *       toast.success(`Server '${displayName}' hinzugefügt`);
  *       navigate('/dashboard');
  *     },
  *     onError: (error) => {
@@ -97,19 +153,23 @@ export const useExchangeInvite = () => {
       return response;
     },
 
-    onSuccess: async (response) => {
+    onSuccess: async (response, variables) => {
       try {
         // Extract data from wrapped response
         const { accessToken, serverInfo } = response.data;
 
+        // Nutze den vom User angegebenen Server-Namen oder fallback auf serverInfo.name (AC5)
+        const displayName = variables.serverName || serverInfo.name;
+
         logger.debug('Invite exchange successful', {
-          serverName: serverInfo.name,
+          serverName: displayName,
           serverUrl: serverInfo.baseUrl,
+          customName: !!variables.serverName,
         });
 
-        // Create new server config
+        // Create new server config with optional custom name
         const newServer = {
-          name: serverInfo.name,
+          name: displayName,
           url: serverInfo.baseUrl,
           accessToken,
           isDefault: false,
@@ -127,7 +187,7 @@ export const useExchangeInvite = () => {
         await queryClient.invalidateQueries({ queryKey: SERVER_QUERY_KEYS.list() });
 
         logger.info('Server added and activated successfully', {
-          serverName: serverInfo.name,
+          serverName: displayName,
         });
       } catch (error) {
         // Log error but don't re-throw - mutation was successful at API level
@@ -149,7 +209,23 @@ export const useExchangeInvite = () => {
       // Error handling (toast notification in component layer)
     },
 
-    retry: 2, // Retry twice on network errors
+    // Retry-Logik: Nicht bei Business-Logic-Fehlern wiederholen
+    retry: (failureCount, error) => {
+      // Bei ResponseError prüfen ob der Status Code ein Business-Logic-Fehler ist
+      if (error && typeof error === 'object' && 'response' in error) {
+        const responseError = error as ResponseError;
+        const status = responseError.response?.status ?? 0;
+
+        // Business-Logic-Fehler nicht wiederholen
+        if (NON_RETRYABLE_STATUS_CODES.includes(status)) {
+          logger.debug('Not retrying due to business logic error', { status });
+          return false;
+        }
+      }
+
+      // Netzwerkfehler bis zu 2x wiederholen
+      return failureCount < 2;
+    },
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000), // Exponential backoff
   });
 };

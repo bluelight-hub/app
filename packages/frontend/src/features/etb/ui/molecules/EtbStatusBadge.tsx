@@ -1,6 +1,6 @@
 import { Badge } from '@/shared/ui/atoms/badge.atom';
 import type { BadgeVariant } from '@/shared/ui/atoms/badge.atom';
-import type { EtbDtoStatusEnum } from '@bluelight-hub/shared/client';
+import type { EtbDtoStatusEnum } from '@/shared';
 
 /**
  * Status-Typen fuer das ETB

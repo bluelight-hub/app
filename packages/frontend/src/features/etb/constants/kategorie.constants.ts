@@ -1,4 +1,4 @@
-import { EintragDtoKategorieEnum as EtbKategorie } from '@bluelight-hub/shared/client';
+import { EintragDtoKategorieEnum as EtbKategorie } from '@/shared';
 
 /**
  * Farben für verschiedene Kategorien

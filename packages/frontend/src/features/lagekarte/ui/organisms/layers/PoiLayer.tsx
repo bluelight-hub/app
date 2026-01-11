@@ -10,7 +10,7 @@ import { PiTrash, PiWarning, PiXCircle } from 'react-icons/pi';
 import { Marker, Popup } from 'react-leaflet';
 import { toast } from 'sonner';
 import type { LeafletMouseEvent } from 'leaflet';
-import type { PoiDto } from '@bluelight-hub/shared/client';
+import type { PoiDto } from '@/shared';
 
 interface PoiLayerProps {
   lagekarteId: string | undefined;

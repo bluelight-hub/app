@@ -1,6 +1,6 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
-import { api } from '@bluelight-hub/shared/client';
-import type { PoiDto } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
+import type { PoiDto } from '@/shared';
 import { LAGEKARTE_QUERY_KEYS } from './queries';
 
 /**

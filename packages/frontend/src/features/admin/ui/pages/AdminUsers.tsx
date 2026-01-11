@@ -6,7 +6,7 @@ import { Card } from '@/shared/ui/atoms/card.atom';
 import { Container } from '@/shared/ui/atoms/container.atom';
 import { Heading } from '@/shared/ui/atoms/heading.atom';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
-import { type CreateUserDto, type UpdateUserDto, type ManagedUserResponseDto, ManagedUserResponseDtoRoleEnum } from '@bluelight-hub/shared/client';
+import { type CreateUserDto, type UpdateUserDto, type ManagedUserResponseDto, ManagedUserResponseDtoRoleEnum } from '@/shared';
 import { ConfirmDeleteDialog, type UserActionType } from '@/features/admin/ui/organisms/ConfirmDeleteDialog';
 import { CreateUserDialog } from '@/features/admin/ui/organisms/CreateUserDialog';
 import { EditUserDialog } from '@/features/admin/ui/organisms/EditUserDialog';

@@ -1,4 +1,11 @@
+import { serverStore } from '@/features/server/stores/server.store';
 import { logger } from '@/shared/lib/logger';
+
+/**
+ * Flag um mehrfache "No server configured" Warnungen zu verhindern.
+ * Wird beim ersten fehlenden Server gesetzt und bei Server-Konfiguration zurückgesetzt.
+ */
+let hasLoggedNoServerWarning = false;
 import {
   AdminApi,
   AdminIntegrationsHiorgApi,
@@ -28,25 +35,41 @@ import {
 import { fetchWithRefresh } from './fetchWithRefresh';
 
 /**
- * Ermittelt die Basis-URL für die API basierend auf der Umgebung
+ * Ermittelt die Basis-URL für die API basierend auf dem aktiven Server.
  *
- * @returns Die Basis-URL ohne abschließenden Slash
+ * WICHTIG: Es muss ein Server konfiguriert sein. Ohne konfigurierten Server
+ * wird ein leerer String zurückgegeben, was API-Requests fehlschlagen lässt.
+ * Der User wird dann automatisch zur Server-Setup-Seite weitergeleitet
+ * (via useRequireServer Hook).
+ *
+ * HINWEIS: Diese Funktion greift direkt auf den Store zu und funktioniert
+ * auch außerhalb von React-Komponenten.
+ *
+ * @returns Die Basis-URL ohne abschließenden Slash, oder leerer String wenn kein Server
  */
 export const getBaseUrl = (): string => {
-  const configuredUrl = import.meta.env.VITE_API_URL;
-  if (configuredUrl && configuredUrl.trim() !== '') {
-    logger.debug('Using configured API URL', { configuredUrl });
+  const state = serverStore.state;
 
-    if (configuredUrl.endsWith('/')) {
-      return configuredUrl.slice(0, -1);
+  // Nur wenn hydratisiert und ein Server aktiv ist
+  if (state.isHydrated && state.activeServerId) {
+    const activeServer = state.servers.find((s) => s.id === state.activeServerId);
+    if (activeServer) {
+      // Server gefunden - Warning-Flag zurücksetzen für nächsten Server-Wechsel
+      hasLoggedNoServerWarning = false;
+      logger.debug('Using active server URL', { url: activeServer.url, serverName: activeServer.name });
+      // URL normalisieren (trailing slash entfernen)
+      return activeServer.url.endsWith('/') ? activeServer.url.slice(0, -1) : activeServer.url;
     }
-
-    return configuredUrl;
   }
-  // Fallback für Entwicklung
-  const fallbackUrl = 'http://localhost:3091';
-  logger.debug('Using fallback API URL', { fallbackUrl });
-  return fallbackUrl;
+
+  // Kein Server konfiguriert - leerer String führt zu fehlgeschlagenen Requests
+  // useRequireServer Hook wird User zur Server-Setup-Seite leiten
+  // Nur einmal warnen um Console-Spam zu vermeiden
+  if (!hasLoggedNoServerWarning) {
+    logger.warn('No server configured - API requests will fail');
+    hasLoggedNoServerWarning = true;
+  }
+  return '';
 };
 
 /**
@@ -337,12 +360,98 @@ class BackendApi {
 }
 
 /**
- * Singleton-Instanz der BackendApi für die Verwendung in der gesamten Anwendung
+ * Cache für BackendApi-Instanzen pro Server-URL.
+ *
+ * Verhindert unnötige Neuerstellung bei jedem API-Aufruf,
+ * erstellt aber neue Instanz wenn die URL sich ändert.
+ */
+const apiCache = new Map<string, BackendApi>();
+
+/**
+ * Gibt die letzte verwendete URL zurück (für Debugging/Logs).
+ */
+let lastUsedUrl: string | null = null;
+
+/**
+ * Gibt die aktuelle BackendApi-Instanz für den aktiven Server zurück.
+ *
+ * Diese Funktion cached API-Instanzen pro URL. Bei Server-Wechsel
+ * wird automatisch die richtige (gecachte) Instanz verwendet.
+ *
+ * @returns BackendApi-Instanz für den aktiven Server
  *
  * @example
  * ```typescript
- * import {api} from '@/api';
+ * import { getApi } from '@/shared/api/api';
+ * const users = await getApi().userManagement().userManagementControllerFindAllVAlpha();
+ * ```
+ */
+export function getApi(): BackendApi {
+  const currentUrl = getBaseUrl();
+
+  // Cache-Hit: Instanz für diese URL existiert bereits
+  let instance = apiCache.get(currentUrl);
+  if (instance) {
+    return instance;
+  }
+
+  // Cache-Miss: Neue Instanz erstellen und cachen
+  logger.debug('Creating new BackendApi instance', {
+    url: currentUrl,
+    previousUrl: lastUsedUrl,
+    cacheSize: apiCache.size,
+  });
+
+  instance = new BackendApi();
+  apiCache.set(currentUrl, instance);
+  lastUsedUrl = currentUrl;
+
+  return instance;
+}
+
+/**
+ * Leert den API-Cache.
+ *
+ * Nützlich nach Server-Konfigurationsänderungen oder für Tests.
+ */
+export function clearApiCache(): void {
+  apiCache.clear();
+  lastUsedUrl = null;
+  logger.debug('API cache cleared');
+}
+
+/**
+ * Proxy-Objekt für rückwärtskompatiblen `api.*` Zugriff.
+ *
+ * Ermöglicht bestehenden Code weiter zu verwenden ohne Änderungen:
+ * - `api.einsatz()` funktioniert weiterhin
+ * - Bei Server-Wechsel wird automatisch die richtige Instanz verwendet
+ *
+ * Der Proxy delegiert alle Zugriffe an die aktuelle `getApi()` Instanz.
+ *
+ * @example
+ * ```typescript
+ * import { api } from '@/shared/api/api';
+ * // Funktioniert wie bisher, aber dynamisch
  * const users = await api.userManagement().userManagementControllerFindAllVAlpha();
  * ```
  */
-export const api = new BackendApi();
+export const api: BackendApi = new Proxy({} as BackendApi, {
+  get(_target, prop: string | symbol) {
+    // Ignoriere Symbol-Properties (z.B. Symbol.toStringTag)
+    if (typeof prop === 'symbol') {
+      return undefined;
+    }
+
+    // Delegiert alle Property-Zugriffe an die aktuelle API-Instanz
+    const currentApi = getApi();
+    const value = currentApi[prop as keyof BackendApi];
+
+    // Für Methoden: Binding an die richtige Instanz
+    if (typeof value === 'function') {
+      return value.bind(currentApi);
+    }
+
+    return value;
+  },
+});

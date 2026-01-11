@@ -4,7 +4,7 @@ import { useEtbInfinite } from '@/features/etb';
 import { useUserNames } from '@/features/auth';
 import { cn } from '@/shared/ui/cn';
 import { formatDisplayDateTime } from '@/shared/lib/dateFormatter';
-import type { EintragDto } from '@bluelight-hub/shared/client';
+import type { EintragDto } from '@/shared';
 import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useRef } from 'react';
 import { PiWarning, PiCircleNotch, PiUser } from 'react-icons/pi';

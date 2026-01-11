@@ -5,17 +5,10 @@
  * Unterstützt sowohl Detail-Updates als auch List-Updates.
  */
 
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { logger } from '@/shared/lib/logger';
-import type {
-  EinsatzControllerCreateVAlpha200Response,
-  EinsatzControllerFindAllVAlpha200Response,
-  EinsatzDto,
-  EinsatzListItemDto,
-  ResponseError,
-  UpdateEinsatzDto,
-} from '@bluelight-hub/shared/client';
+import type { EinsatzControllerCreateVAlpha200Response, EinsatzControllerFindAllVAlpha200Response, EinsatzDto, EinsatzListItemDto, ResponseError, UpdateEinsatzDto } from '@/shared';
 import type { InfiniteData } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';

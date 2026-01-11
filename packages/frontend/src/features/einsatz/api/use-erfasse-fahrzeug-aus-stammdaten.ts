@@ -8,9 +8,9 @@
  * @module features/einsatz/api
  */
 
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { logger } from '@/shared/lib/logger';
-import type { EinsatzFahrzeugDto, ErfasseFahrzeugAusStammdatenDto, ResponseError } from '@bluelight-hub/shared/client';
+import type { EinsatzFahrzeugDto, ErfasseFahrzeugAusStammdatenDto, ResponseError } from '@/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { calculateRetryDelay, EINSATZ_QUERY_KEYS } from './queries';
 

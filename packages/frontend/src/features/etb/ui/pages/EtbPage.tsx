@@ -1,7 +1,7 @@
 import { ErrorState } from '@/shared/ui/atoms/ErrorState';
 import { LoadingState } from '@/shared/ui/atoms/LoadingState';
 import { EtbLockButton, EtbStatusBadge, type EtbStatus, EtbSnapshotHistoryModal, EditEtbEntryModal, EtbEntryForm, EtbEntryList, EtbFullscreenView, useEtbInfinite } from '@/features/etb';
-import type { EintragDto } from '@bluelight-hub/shared/client';
+import type { EintragDto } from '@/shared';
 import { useMemo, useState } from 'react';
 import { PiClockCounterClockwise } from 'react-icons/pi';
 

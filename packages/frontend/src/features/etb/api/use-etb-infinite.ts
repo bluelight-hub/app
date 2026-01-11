@@ -7,7 +7,7 @@
  * nur für Backward Compatibility mit bestehenden Komponenten.
  */
 
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { logger } from '@/shared/lib/logger';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { ETB_QUERY_KEYS, calculateRetryDelay } from './queries';

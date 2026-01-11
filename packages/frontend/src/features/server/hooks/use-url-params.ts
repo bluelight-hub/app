@@ -96,7 +96,7 @@ export interface UseUrlParamsResult {
  *   }
  *
  *   if (error) {
- *     return <ExpiredLinkError message={error.message} />;
+ *     return <OnboardingErrorCard errorCode="INVITE_EXPIRED" />;
  *   }
  *
  *   return <ServerSetupForm initialUrl={prefillServerUrl} />;

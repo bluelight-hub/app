@@ -1,6 +1,6 @@
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { logger } from '@/shared/lib/logger';
-import type { EinsatzDetailsDto, EinsatzDto, EtbDto, LagekarteDto, ResponseError } from '@bluelight-hub/shared/client';
+import type { EinsatzDetailsDto, EinsatzDto, EtbDto, LagekarteDto, ResponseError } from '@/shared';
 import { useQuery } from '@tanstack/react-query';
 import { EINSATZ_QUERY_KEYS, calculateRetryDelay } from '../api/queries';
 

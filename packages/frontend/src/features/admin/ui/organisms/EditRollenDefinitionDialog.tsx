@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useForm } from '@tanstack/react-form';
 import { zodValidator } from '@tanstack/zod-form-adapter';
 import { z } from 'zod';
-import type { RollenDefinitionDto, UpdateRollenDefinitionDto, QualifikationDto } from '@bluelight-hub/shared/client';
+import type { RollenDefinitionDto, UpdateRollenDefinitionDto, QualifikationDto } from '@/shared';
 import { useAdminQualifikationenManagement } from '@/features/admin/api';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Switch } from '@/shared/ui/atoms/switch.atom';

@@ -39,7 +39,6 @@
     "store:allow-clear",
     "store:allow-keys",
     "barcode-scanner:default",
-    "deep-link:default",
-    "single-instance:default"
+    "deep-link:default"
   ]
 }

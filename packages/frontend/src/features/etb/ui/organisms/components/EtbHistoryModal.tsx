@@ -1,6 +1,6 @@
 import { useEtbHistory } from '@/features/etb';
 import { Button } from '@/shared/ui/atoms/button.atom';
-import type { EintragDto } from '@bluelight-hub/shared/client';
+import type { EintragDto } from '@/shared';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { Timeline, TimelineDot, TimelineItem } from '@/shared/ui/molecules/timeline.molecule';
 import { useEffect, useRef } from 'react';

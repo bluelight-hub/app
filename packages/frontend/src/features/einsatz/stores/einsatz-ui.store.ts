@@ -5,7 +5,7 @@
  * Verwaltet UI-spezifische Zustände wie Filter, Sorting, Selected Items.
  */
 
-import type { EinsatzControllerFindAllVAlphaOrderByEnum, EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzControllerFindAllVAlphaStatusEnum } from '@bluelight-hub/shared/client';
+import type { EinsatzControllerFindAllVAlphaOrderByEnum, EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzControllerFindAllVAlphaStatusEnum } from '@/shared';
 import { Store } from '@tanstack/react-store';
 
 /**

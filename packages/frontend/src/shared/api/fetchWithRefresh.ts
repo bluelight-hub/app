@@ -1,6 +1,6 @@
 import { logger } from '@/shared/lib/logger';
-import { clearServerAccessToken, getServerAccessToken, isSetupRedirectInProgress, isTokenErrorMessage, requestServerAccessToken, setSetupRedirectInProgress } from '@/shared/lib/server-access-token';
-import { AuthApi, Configuration } from '@bluelight-hub/shared/client';
+import { clearServerAccessToken, getServerAccessToken, isSetupRedirectInProgress, isTokenErrorMessage, setSetupRedirectInProgress } from '@/shared/lib/server-access-token';
+import { AuthApi, Configuration } from '@/shared';
 import { getBaseUrl } from './api';
 
 /**
@@ -102,8 +102,8 @@ function addServerAccessTokenHeader(init: RequestInit): RequestInit {
  * 1. Token fehlt: "Server access token required"
  * 2. Token ungueltig: "Invalid or revoked server access token"
  *
- * In beiden Faellen soll das TokenRequiredModal erscheinen,
- * damit der User einen gueltigen Token eingeben kann.
+ * In beiden Faellen soll zur Server-Setup-Seite weitergeleitet werden,
+ * wo der User einen neuen Server mit gueltigem Invite Code konfigurieren kann.
  */
 async function isServerAccessTokenRequired(response: Response): Promise<boolean> {
   if (response.status !== 401) {
@@ -150,23 +150,28 @@ async function isServerNotSetupError(response: Response): Promise<boolean> {
  * Nutzt zentrales Flag um mehrfache Redirects bei parallelen Requests zu verhindern.
  */
 function handleServerNotSetup(): void {
+  console.log('[handleServerNotSetup] Called!', { currentPath: window.location.pathname });
+
   // Vermeide mehrfache Redirects bei parallelen Requests
   if (isSetupRedirectInProgress()) {
+    console.log('[handleServerNotSetup] Already in progress, skipping');
     return;
   }
   // Flag SOFORT setzen um Race Conditions zu verhindern
   setSetupRedirectInProgress(true);
 
   // Nicht redirecten wenn wir bereits auf der Setup-Seite sind
-  if (window.location.pathname.startsWith('/setup')) {
+  if (window.location.pathname.startsWith('/server/setup')) {
+    console.log('[handleServerNotSetup] Already on setup page, skipping');
     setSetupRedirectInProgress(false);
     return;
   }
 
   // Clear old token - backend was reset, old token is invalid
   clearServerAccessToken();
-  logger.info('Server requires setup, clearing old token and redirecting to /setup');
-  window.location.href = '/setup';
+  console.log('[handleServerNotSetup] Redirecting to /server/setup');
+  logger.info('Server requires setup, clearing old token and redirecting to /server/setup');
+  window.location.href = '/server/setup';
 }
 
 /**
@@ -202,18 +207,24 @@ export async function fetchWithRefresh(input: RequestInfo | URL, init?: RequestI
     }
   }
 
-  // Check if server access token is required
+  // Handle 401 errors
   if (response.status === 401) {
-    const tokenRequired = await isServerAccessTokenRequired(response);
-    if (tokenRequired) {
-      logger.warn('Server access token required but not provided or invalid');
-      // Signalisiere dass Token benoetigt wird (fuer UI)
-      requestServerAccessToken();
-      // Response zurueckgeben damit Error-Handler es verarbeiten kann
+    // Don't handle token errors if we're already on server setup page
+    if (window.location.pathname.startsWith('/server/setup')) {
+      logger.debug('On server setup page, skipping 401 redirect');
       return response;
     }
 
-    // Standard 401 - try token refresh
+    // Check if this is a Server Access Token error
+    const tokenRequired = await isServerAccessTokenRequired(response);
+    if (tokenRequired) {
+      logger.warn('Server access token required - redirecting to server setup');
+      // Redirect zu Server Setup, dort kann der User einen neuen Server konfigurieren
+      handleServerNotSetup();
+      return response;
+    }
+
+    // Standard 401 - try token refresh (Auth Token, not Server Access Token)
     logger.debug('Received 401, attempting token refresh');
 
     // Queue-basierter Refresh: alle parallelen 401s warten auf EINEN Refresh

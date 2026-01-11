@@ -8,9 +8,9 @@
  */
 
 import { KRAEFTE_QUERY_KEYS } from '@/features/kraefte';
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { logger } from '@/shared/lib/logger';
-import type { RegistrierePersonViaQrCodeDto, ResponseError } from '@bluelight-hub/shared/client';
+import type { RegistrierePersonViaQrCodeDto, ResponseError } from '@/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { EINSATZ_QUERY_KEYS } from './queries';
 

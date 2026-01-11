@@ -4,7 +4,7 @@ import { CloseButton } from '@/shared/ui/atoms/close-button.atom';
 import { DateInput } from '@/shared/ui/atoms/date-input.atom';
 import { Input } from '@/shared/ui/atoms/input.atom';
 import { Textarea } from '@/shared/ui/atoms/textarea.atom';
-import type { CreateEinsatzDto } from '@bluelight-hub/shared/client';
+import type { CreateEinsatzDto } from '@/shared';
 import { FormFieldWrapper } from '@/shared/ui/molecules/form/FormFieldWrapper';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { useForm } from '@tanstack/react-form';

@@ -2,8 +2,8 @@ import { EinsatzCompletenessBar } from '@/features/einsatz/ui/molecules/einsatz-
 import { EinsatzStatusBadge } from '@/features/einsatz/ui/molecules/einsatz-status-badge.molecule';
 import { formatNatoDateTime } from '@/shared/lib/dateFormatter';
 import { Textarea } from '@/shared/ui/atoms/textarea.atom';
-import type { EinsatzResponseDto } from '@bluelight-hub/shared/client';
-import { EinsatzResponseDtoStatusEnum } from '@bluelight-hub/shared/client';
+import type { EinsatzResponseDto } from '@/shared';
+import { EinsatzResponseDtoStatusEnum } from '@/shared';
 import type { ReactFormApi } from '@tanstack/react-form';
 import { PiArchive, PiBookOpen, PiCheckCircle, PiClock, PiMapPin as PiMapPinIcon } from 'react-icons/pi';
 

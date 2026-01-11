@@ -9,6 +9,7 @@ CREATE TABLE "invite_codes" (
     "revokedAt" TIMESTAMP(3),
     "label" VARCHAR(100),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdById" VARCHAR(100) NOT NULL,
 
     CONSTRAINT "invite_codes_pkey" PRIMARY KEY ("id")
@@ -28,6 +29,9 @@ CREATE INDEX "idx_invite_expires" ON "invite_codes"("expiresAt");
 
 -- CreateIndex
 CREATE INDEX "idx_invite_created_by" ON "invite_codes"("createdById");
+
+-- CreateIndex: Composite index for findAllActive() query performance
+CREATE INDEX "idx_invite_active_codes" ON "invite_codes"("isRevoked", "expiresAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "server_access_tokens_inviteCodeId_key" ON "server_access_tokens"("inviteCodeId");

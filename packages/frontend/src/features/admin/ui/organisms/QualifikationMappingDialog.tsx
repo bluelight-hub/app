@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Listbox } from '@headlessui/react';
 import { PiMagicWand, PiCheck, PiCaretUpDown } from 'react-icons/pi';
-import type { QualifikationMappingItemDto } from '@bluelight-hub/shared/client';
+import type { QualifikationMappingItemDto } from '@/shared';
 import { useAdminQualifikationenManagement } from '@/features/admin/api';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { Button } from '@/shared/ui/atoms/button.atom';
@@ -202,7 +202,7 @@ function QualifikationListbox({ value, qualifikationen, onChange, disabled = fal
 
       <Listbox.Options
         anchor="bottom start"
-        className="z-[100] mt-1 max-h-60 w-[var(--button-width)] overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm dark:bg-gray-800 dark:ring-gray-700 [--anchor-gap:4px]"
+        className="z-[100] mt-1 max-h-60 w-[var(--button-width)] overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 [--anchor-gap:4px] focus:outline-none sm:text-sm dark:bg-gray-800 dark:ring-gray-700"
       >
         {/* Option: Nicht zugeordnet */}
         <Listbox.Option

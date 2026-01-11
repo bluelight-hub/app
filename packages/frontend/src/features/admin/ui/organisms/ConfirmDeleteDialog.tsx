@@ -3,7 +3,7 @@ import { Button } from '@/shared/ui/atoms/button.atom';
 import { Input } from '@/shared/ui/atoms/input.atom';
 import { Label } from '@/shared/ui/atoms/label.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
-import { ManagedUserResponseDtoRoleEnum } from '@bluelight-hub/shared/client';
+import { ManagedUserResponseDtoRoleEnum } from '@/shared';
 import { useState } from 'react';
 import { PiLockKey, PiShieldWarning, PiUserMinus } from 'react-icons/pi';
 

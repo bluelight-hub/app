@@ -22,7 +22,7 @@ import { FahrzeugCard, FahrzeugCardSkeleton } from '../molecules/FahrzeugCard';
 import { useEinsatzFahrzeuge } from '../../api/use-einsatz-fahrzeuge';
 import { useDashboardMode, type DashboardMode } from '../../contexts';
 import { PiTruck, PiWarningCircle, PiArrowClockwise } from 'react-icons/pi';
-import type { EinsatzFahrzeugDto } from '@bluelight-hub/shared/client';
+import type { EinsatzFahrzeugDto } from '@/shared';
 
 interface FahrzeugStatusListeProps {
   /** Einsatz-ID für die Fahrzeug-Abfrage */

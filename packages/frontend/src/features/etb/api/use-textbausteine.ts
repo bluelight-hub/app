@@ -4,9 +4,9 @@
  * Hook für Textbausteine-Abfrage (vordefinierte Textblöcke für ETB-Einträge).
  */
 
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { logger } from '@/shared/lib/logger';
-import type { ResponseError, TextbausteinListResponse } from '@bluelight-hub/shared/client';
+import type { ResponseError, TextbausteinListResponse } from '@/shared';
 import { useQuery } from '@tanstack/react-query';
 import { ETB_QUERY_KEYS, calculateRetryDelay } from './queries';
 

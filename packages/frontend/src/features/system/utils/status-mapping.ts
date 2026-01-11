@@ -22,7 +22,7 @@ export const STATUS_DOT_COLORS = {
   online: 'green',
   offline: 'yellow',
   error: 'red',
-  checking: 'gray',
+  checking: 'blue',
 } as const;
 
 /**

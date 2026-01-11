@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
-import { api } from '@bluelight-hub/shared/client';
-import type { LagekarteControllerGetLagekarteVAlpha200Response, SaveLagekarteStateDto } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
+import type { LagekarteControllerGetLagekarteVAlpha200Response, SaveLagekarteStateDto } from '@/shared';
 import type * as GeoJSON from 'geojson';
 import { z } from 'zod';
 import { LAGEKARTE_QUERY_KEYS } from './queries';

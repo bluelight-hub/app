@@ -1,7 +1,7 @@
 import { useForm } from '@tanstack/react-form';
 import { zodValidator } from '@tanstack/zod-form-adapter';
 import { z } from 'zod';
-import type { CreateStammFahrzeugDto, FahrzeugtypDto } from '@bluelight-hub/shared/client';
+import type { CreateStammFahrzeugDto, FahrzeugtypDto } from '@/shared';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { FormField } from '@/shared/ui/atoms/form-field.atom';

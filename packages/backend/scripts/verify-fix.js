@@ -70,7 +70,7 @@ async function verifyFix() {
     }
 
     // 4. Summary
-    console.log('\n' + '='.repeat(60));
+    console.log(`\n${'='.repeat(60)}`);
     console.log('✅ FIX VERIFICATION COMPLETE\n');
     console.log('Summary:');
     console.log('  - Problematic record (cmk55h5y90001e192gbzd7yu8) removed');

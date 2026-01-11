@@ -5,10 +5,10 @@
  * Nutzt TanStack Query's useInfiniteQuery für nahtloses Nachladen.
  */
 
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { logger } from '@/shared/lib/logger';
-import type { EinsatzControllerFindAllVAlpha200Response, ResponseError } from '@bluelight-hub/shared/client';
+import type { EinsatzControllerFindAllVAlpha200Response, ResponseError } from '@/shared';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { EINSATZ_QUERY_KEYS, calculateRetryDelay, type EinsatzQueryFilters } from './queries';

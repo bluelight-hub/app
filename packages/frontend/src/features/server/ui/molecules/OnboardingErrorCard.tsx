@@ -142,7 +142,7 @@ export function OnboardingErrorCard({ errorCode, title, message, cta, onRetry, o
           </div>
 
           {/* Title */}
-          <h2 className={cn('text-center text-lg font-semibold', styles.title)} data-testid="error-title">
+          <h2 className={cn('text-center font-semibold text-lg', styles.title)} data-testid="error-title">
             {displayTitle}
           </h2>
 
@@ -170,7 +170,7 @@ export function OnboardingErrorCard({ errorCode, title, message, cta, onRetry, o
                 <button
                   type="button"
                   onClick={onRetry}
-                  className={cn('rounded-md px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2', styles.primaryButton)}
+                  className={cn('rounded-md px-4 py-2 font-medium text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2', styles.primaryButton)}
                   data-testid="retry-button"
                 >
                   Erneut versuchen
@@ -181,7 +181,7 @@ export function OnboardingErrorCard({ errorCode, title, message, cta, onRetry, o
                   type="button"
                   onClick={onManualSetup}
                   className={cn(
-                    'rounded-md border px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2',
+                    'rounded-md border px-4 py-2 font-medium text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2',
                     showRetryButton ? styles.secondaryButton : styles.primaryButton,
                   )}
                   data-testid="manual-setup-button"

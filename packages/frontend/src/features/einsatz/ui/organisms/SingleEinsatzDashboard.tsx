@@ -1,4 +1,4 @@
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { ErrorState } from '@/shared/ui/atoms/ErrorState';
 import { LoadingState } from '@/shared/ui/atoms/LoadingState';
 import { EinsatzResourceWidget } from '@/features/einsatz/ui/molecules/EinsatzResourceWidget';

@@ -669,7 +669,7 @@ describe('useUrlParams', () => {
       unmount();
 
       // Then: Exchange completes in background (fire-and-forget)
-      resolveExchange!({
+      resolveExchange?.({
         data: {
           accessToken: 'token',
           serverInfo: { name: 'Test', baseUrl: 'https://api.test.de' },

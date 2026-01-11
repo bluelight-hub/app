@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useMap } from 'react-leaflet';
 import L from 'leaflet';
-import type { PoiDto } from '@bluelight-hub/shared/client';
+import type { PoiDto } from '@/shared';
 
 /**
  * Default-Zentrum für Deutschland

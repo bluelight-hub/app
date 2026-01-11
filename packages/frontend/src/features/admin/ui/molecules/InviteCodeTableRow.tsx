@@ -1,6 +1,6 @@
 import { InviteStatusBadge } from '@/features/admin/ui/atoms/InviteStatusBadge';
 import { Table } from '@/shared/ui/molecules/table.molecule';
-import type { InviteCodeListItemDto } from '@bluelight-hub/shared/client';
+import type { InviteCodeListItemDto } from '@/shared';
 import { RevokeInviteButton } from './RevokeInviteButton';
 
 interface InviteCodeTableRowProps {

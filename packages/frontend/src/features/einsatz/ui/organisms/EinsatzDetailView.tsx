@@ -1,4 +1,4 @@
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { ErrorState } from '@/shared/ui/atoms/ErrorState';
 import { LoadingState } from '@/shared/ui/atoms/LoadingState';
 import { ArchivedBanner } from '@/features/einsatz/ui/molecules/ArchivedBanner';
@@ -8,8 +8,8 @@ import { PlaceholderModule } from '@/features/einsatz/ui/molecules/PlaceholderMo
 import { useArchiveEinsatz, EINSATZ_QUERY_KEYS, updateEinsatzSchema } from '@/features/einsatz';
 import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { logger } from '@/shared/lib/logger';
-import type { ResponseError, UpdateEinsatzDto } from '@bluelight-hub/shared/client';
-import { EinsatzResponseDtoStatusEnum } from '@bluelight-hub/shared/client';
+import type { ResponseError, UpdateEinsatzDto } from '@/shared';
+import { EinsatzResponseDtoStatusEnum } from '@/shared';
 import { useForm } from '@tanstack/react-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';

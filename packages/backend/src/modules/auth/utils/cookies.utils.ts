@@ -22,7 +22,7 @@ export function getAccessTokenCookieOptions(isProduction: boolean): AuthCookieOp
   return {
     httpOnly: true,
     secure: isProduction,
-    sameSite: 'strict',
+    sameSite: 'lax', // 'lax' erlaubt Cross-Origin Requests (unterschiedliche Ports in Dev)
     maxAge: milliseconds({ minutes: 15 }),
     path: '/',
   };
@@ -38,7 +38,7 @@ export function getRefreshTokenCookieOptions(isProduction: boolean): AuthCookieO
   return {
     httpOnly: true,
     secure: isProduction,
-    sameSite: 'strict',
+    sameSite: 'lax', // 'lax' erlaubt Cross-Origin Requests (unterschiedliche Ports in Dev)
     maxAge: milliseconds({ days: 7 }),
     path: '/',
   };

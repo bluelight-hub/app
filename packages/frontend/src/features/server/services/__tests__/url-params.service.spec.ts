@@ -143,6 +143,7 @@ describe('validateParams()', () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues.length).toBeGreaterThan(0);
+      // biome-ignore lint/suspicious/noExplicitAny: Zod error type inference
       const serverError = result.error.issues.find((err: any) => err.path.includes('server'));
       expect(serverError).toBeDefined();
     }
@@ -161,10 +162,11 @@ describe('validateParams()', () => {
     // Then (Assert)
     expect(result.success).toBe(false);
     if (!result.success) {
+      // biome-ignore lint/suspicious/noExplicitAny: Zod error type inference
       const serverError = result.error.issues.find((err: any) => err.path.includes('server'));
       expect(serverError).toBeDefined();
-      // Konsistent mit serverUrlSchema Fehlermeldung
-      expect(serverError?.message).toContain('http://');
+      // Konsistent mit serverUrlSchema Fehlermeldung (AC6: INSECURE_MODE)
+      expect(serverError?.message).toContain('https://');
     }
   });
 
@@ -181,6 +183,7 @@ describe('validateParams()', () => {
     // Then (Assert)
     expect(result.success).toBe(false);
     if (!result.success) {
+      // biome-ignore lint/suspicious/noExplicitAny: Zod error type inference
       const inviteError = result.error.issues.find((err: any) => err.path.includes('invite'));
       expect(inviteError).toBeDefined();
       // Konsistent mit inviteCodeSchema Fehlermeldung (exakt 8 Zeichen)
@@ -280,15 +283,15 @@ describe('isValidInviteCode()', () => {
     expect(result).toBe(true);
   });
 
-  it('should accept invite code with more than 8 characters', () => {
-    // Given (Arrange)
+  it('should reject invite code with more than 8 characters (M5: strict schema)', () => {
+    // Given (Arrange) - M5 FIX: Schema requires EXACTLY 8 characters
     const inviteCode = 'ABC123456789';
 
     // When (Act)
     const result = isValidInviteCode(inviteCode);
 
-    // Then (Assert)
-    expect(result).toBe(true);
+    // Then (Assert) - Now rejected per inviteCodeSchema (exakt 8 Zeichen)
+    expect(result).toBe(false);
   });
 
   it('should reject invite code with less than 8 characters', () => {

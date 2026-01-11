@@ -5,7 +5,7 @@
  * Folgt dem hierarchischen Pattern von @tanstack/react-query Best Practices.
  */
 
-import type { EinsatzControllerFindAllVAlphaOrderByEnum, EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzControllerFindAllVAlphaStatusEnum } from '@bluelight-hub/shared/client';
+import type { EinsatzControllerFindAllVAlphaOrderByEnum, EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzControllerFindAllVAlphaStatusEnum } from '@/shared';
 
 /**
  * Filter-Optionen für Einsatz-Queries

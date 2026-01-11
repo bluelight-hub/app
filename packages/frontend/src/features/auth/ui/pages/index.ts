@@ -1,1 +1,2 @@
-export { SetupPage } from './SetupPage';
+// SetupPage removed - use /server/setup route instead
+export {};

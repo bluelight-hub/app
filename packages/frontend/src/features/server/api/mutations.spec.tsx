@@ -9,9 +9,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react';
 import type { ReactElement, ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { OnboardingErrorCode } from '../constants/error-codes.constants';
 import { addServer, setActiveServer } from '../stores/server.store';
 import { SERVER_QUERY_KEYS } from './query-keys';
-import { useExchangeInvite } from './mutations';
+import { getExchangeErrorCode, useExchangeInvite } from './mutations';
 
 // Create mock function for API
 const mockAuthControllerExchangeInvite = vi.fn();
@@ -99,7 +100,8 @@ describe('useExchangeInvite', () => {
       // When (Act)
       const { result } = renderHook(() => useExchangeInvite(), { wrapper });
 
-      result.current.mutate(inviteCode);
+      // Mutation erwartet ExchangeInviteInput Object, nicht String
+      result.current.mutate({ inviteCode });
 
       // Then (Assert)
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -146,7 +148,7 @@ describe('useExchangeInvite', () => {
       // When (Act)
       const { result } = renderHook(() => useExchangeInvite(), { wrapper });
 
-      result.current.mutate('INV_TESTCODE');
+      result.current.mutate({ inviteCode: 'INV_TESTCODE' });
 
       // Then (Assert)
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -187,7 +189,7 @@ describe('useExchangeInvite', () => {
       // When (Act)
       const { result } = renderHook(() => useExchangeInvite(), { wrapper });
 
-      result.current.mutate('INV_CACHE');
+      result.current.mutate({ inviteCode: 'INV_CACHE' });
 
       // Then (Assert)
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -225,7 +227,7 @@ describe('useExchangeInvite', () => {
       // When (Act)
       const { result } = renderHook(() => useExchangeInvite(), { wrapper });
 
-      result.current.mutate('INV_STORE_ERR');
+      result.current.mutate({ inviteCode: 'INV_STORE_ERR' });
 
       // Then (Assert)
       // Should still be success because API call succeeded
@@ -274,7 +276,7 @@ describe('useExchangeInvite', () => {
 
       expect(result.current.isPending).toBe(false);
 
-      result.current.mutate('INV_LOADING');
+      result.current.mutate({ inviteCode: 'INV_LOADING' });
 
       // Then (Assert)
       // Immediately after mutate, should be pending
@@ -312,7 +314,7 @@ describe('useExchangeInvite', () => {
       // When (Act)
       const { result } = renderHook(() => useExchangeInvite(), { wrapper });
 
-      const responsePromise = result.current.mutateAsync('INV_ASYNC');
+      const responsePromise = result.current.mutateAsync({ inviteCode: 'INV_ASYNC' });
 
       // Then (Assert)
       const response = await responsePromise;
@@ -324,5 +326,261 @@ describe('useExchangeInvite', () => {
 
       expect(addServer).toHaveBeenCalled();
     });
+  });
+
+  describe('Retry Logic', () => {
+    it('should not retry on 400 Bad Request error', async () => {
+      // Given (Arrange)
+      const mockResponse = new Response(JSON.stringify({ error: 'INVITE_INVALID' }), {
+        status: 400,
+        statusText: 'Bad Request',
+      });
+      const apiError = {
+        response: mockResponse,
+        message: 'Bad Request',
+      };
+
+      mockAuthControllerExchangeInvite.mockRejectedValue(apiError);
+
+      // When (Act)
+      const { result } = renderHook(() => useExchangeInvite(), { wrapper });
+
+      result.current.mutate({ inviteCode: 'INV_INVALID' });
+
+      // Then (Assert)
+      await waitFor(() => expect(result.current.isError).toBe(true));
+
+      // Should only be called once (no retries)
+      expect(mockAuthControllerExchangeInvite).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not retry on 401 Unauthorized error', async () => {
+      // Given (Arrange)
+      const mockResponse = new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        statusText: 'Unauthorized',
+      });
+      const apiError = {
+        response: mockResponse,
+        message: 'Unauthorized',
+      };
+
+      mockAuthControllerExchangeInvite.mockRejectedValue(apiError);
+
+      // When (Act)
+      const { result } = renderHook(() => useExchangeInvite(), { wrapper });
+
+      result.current.mutate({ inviteCode: 'INV_UNAUTH' });
+
+      // Then (Assert)
+      await waitFor(() => expect(result.current.isError).toBe(true));
+
+      // Should only be called once (no retries)
+      expect(mockAuthControllerExchangeInvite).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not retry on 409 Conflict error (invite already used)', async () => {
+      // Given (Arrange)
+      const mockResponse = new Response(JSON.stringify({ error: 'INVITE_ALREADY_USED' }), {
+        status: 409,
+        statusText: 'Conflict',
+      });
+      const apiError = {
+        response: mockResponse,
+        message: 'Conflict',
+      };
+
+      mockAuthControllerExchangeInvite.mockRejectedValue(apiError);
+
+      // When (Act)
+      const { result } = renderHook(() => useExchangeInvite(), { wrapper });
+
+      result.current.mutate({ inviteCode: 'INV_USED' });
+
+      // Then (Assert)
+      await waitFor(() => expect(result.current.isError).toBe(true));
+
+      // Should only be called once (no retries)
+      expect(mockAuthControllerExchangeInvite).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not retry on 410 Gone error (invite expired)', async () => {
+      // Given (Arrange)
+      const mockResponse = new Response(JSON.stringify({ error: 'INVITE_EXPIRED' }), {
+        status: 410,
+        statusText: 'Gone',
+      });
+      const apiError = {
+        response: mockResponse,
+        message: 'Gone',
+      };
+
+      mockAuthControllerExchangeInvite.mockRejectedValue(apiError);
+
+      // When (Act)
+      const { result } = renderHook(() => useExchangeInvite(), { wrapper });
+
+      result.current.mutate({ inviteCode: 'INV_EXPIRED' });
+
+      // Then (Assert)
+      await waitFor(() => expect(result.current.isError).toBe(true));
+
+      // Should only be called once (no retries)
+      expect(mockAuthControllerExchangeInvite).toHaveBeenCalledTimes(1);
+    });
+
+    it('should retry on 500 Server Error', async () => {
+      // Given (Arrange)
+      const mockResponse = new Response(JSON.stringify({ error: 'Internal Server Error' }), {
+        status: 500,
+        statusText: 'Internal Server Error',
+      });
+      const apiError = {
+        response: mockResponse,
+        message: 'Internal Server Error',
+      };
+
+      mockAuthControllerExchangeInvite.mockRejectedValue(apiError);
+
+      // When (Act)
+      const { result } = renderHook(() => useExchangeInvite(), { wrapper });
+
+      result.current.mutate({ inviteCode: 'INV_SERVER_ERR' });
+
+      // Then (Assert)
+      // Wait for all retries to complete (initial + 2 retries = 3 calls)
+      await waitFor(
+        () => {
+          expect(result.current.isError).toBe(true);
+        },
+        { timeout: 10000 },
+      );
+
+      // Should be called 3 times (initial + 2 retries)
+      expect(mockAuthControllerExchangeInvite).toHaveBeenCalledTimes(3);
+    });
+
+    it('should retry on network error (TypeError)', async () => {
+      // Given (Arrange)
+      const networkError = new TypeError('Failed to fetch');
+
+      mockAuthControllerExchangeInvite.mockRejectedValue(networkError);
+
+      // When (Act)
+      const { result } = renderHook(() => useExchangeInvite(), { wrapper });
+
+      result.current.mutate({ inviteCode: 'INV_NETWORK' });
+
+      // Then (Assert)
+      // Wait for all retries to complete
+      await waitFor(
+        () => {
+          expect(result.current.isError).toBe(true);
+        },
+        { timeout: 10000 },
+      );
+
+      // Should be called 3 times (initial + 2 retries)
+      expect(mockAuthControllerExchangeInvite).toHaveBeenCalledTimes(3);
+    });
+  });
+});
+
+describe('getExchangeErrorCode', () => {
+  it('should return NETWORK_ERROR for TypeError', async () => {
+    // Given (Arrange)
+    const networkError = new TypeError('Failed to fetch');
+
+    // When (Act)
+    const errorCode = await getExchangeErrorCode(networkError);
+
+    // Then (Assert)
+    expect(errorCode).toBe(OnboardingErrorCode.NETWORK_ERROR);
+  });
+
+  it('should return INVITE_EXPIRED for ResponseError with INVITE_CODE_EXPIRED', async () => {
+    // Given (Arrange)
+    const { ResponseError } = await import('@/shared/api/types');
+    const mockResponse = new Response(JSON.stringify({ code: 'INVITE_CODE_EXPIRED' }), {
+      status: 410,
+      statusText: 'Gone',
+    });
+    const responseError = new ResponseError(mockResponse, 'Invite expired');
+
+    // When (Act)
+    const errorCode = await getExchangeErrorCode(responseError);
+
+    // Then (Assert)
+    expect(errorCode).toBe(OnboardingErrorCode.INVITE_EXPIRED);
+  });
+
+  it('should return INVITE_ALREADY_USED for ResponseError with INVITE_CODE_ALREADY_USED', async () => {
+    // Given (Arrange)
+    const { ResponseError } = await import('@/shared/api/types');
+    const mockResponse = new Response(JSON.stringify({ code: 'INVITE_CODE_ALREADY_USED' }), {
+      status: 409,
+      statusText: 'Conflict',
+    });
+    const responseError = new ResponseError(mockResponse, 'Invite already used');
+
+    // When (Act)
+    const errorCode = await getExchangeErrorCode(responseError);
+
+    // Then (Assert)
+    expect(errorCode).toBe(OnboardingErrorCode.INVITE_ALREADY_USED);
+  });
+
+  it('should return INVITE_INVALID for ResponseError with INVITE_CODE_INVALID', async () => {
+    // Given (Arrange)
+    const { ResponseError } = await import('@/shared/api/types');
+    const mockResponse = new Response(JSON.stringify({ code: 'INVITE_CODE_INVALID' }), {
+      status: 400,
+      statusText: 'Bad Request',
+    });
+    const responseError = new ResponseError(mockResponse, 'Invite invalid');
+
+    // When (Act)
+    const errorCode = await getExchangeErrorCode(responseError);
+
+    // Then (Assert)
+    expect(errorCode).toBe(OnboardingErrorCode.INVITE_INVALID);
+  });
+
+  it('should return INVITE_RATE_LIMITED for ResponseError with status 429', async () => {
+    // Given (Arrange)
+    const { ResponseError } = await import('@/shared/api/types');
+    const mockResponse = new Response(JSON.stringify({ message: 'Too many requests' }), {
+      status: 429,
+      statusText: 'Too Many Requests',
+    });
+    const responseError = new ResponseError(mockResponse, 'Rate limited');
+
+    // When (Act)
+    const errorCode = await getExchangeErrorCode(responseError);
+
+    // Then (Assert)
+    expect(errorCode).toBe(OnboardingErrorCode.INVITE_RATE_LIMITED);
+  });
+
+  it('should return UNKNOWN for unrecognized errors', async () => {
+    // Given (Arrange)
+    const unknownError = new Error('Something unexpected happened');
+
+    // When (Act)
+    const errorCode = await getExchangeErrorCode(unknownError);
+
+    // Then (Assert)
+    expect(errorCode).toBe(OnboardingErrorCode.UNKNOWN);
+  });
+
+  it('should return NETWORK_ERROR for Error with network-related message', async () => {
+    // Given (Arrange)
+    const connectionError = new Error('Connection refused: ECONNREFUSED');
+
+    // When (Act)
+    const errorCode = await getExchangeErrorCode(connectionError);
+
+    // Then (Assert)
+    expect(errorCode).toBe(OnboardingErrorCode.NETWORK_ERROR);
   });
 });

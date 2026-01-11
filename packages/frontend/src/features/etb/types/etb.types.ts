@@ -1,4 +1,4 @@
-import { AddEintragDtoKategorieEnum as EtbKategorie } from '@bluelight-hub/shared/client';
+import { AddEintragDtoKategorieEnum as EtbKategorie } from '@/shared';
 import { z } from 'zod';
 
 /**

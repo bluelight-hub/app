@@ -2,7 +2,7 @@ import { cn } from '@/shared/ui/cn';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { Select } from '@/shared/ui/atoms/select.atom';
-import { EinsatzControllerFindAllVAlphaOrderByEnum, EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzDtoStatusEnum } from '@bluelight-hub/shared/client';
+import { EinsatzControllerFindAllVAlphaOrderByEnum, EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzDtoStatusEnum } from '@/shared';
 import { PiArchive } from 'react-icons/pi';
 
 interface SortOption {

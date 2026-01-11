@@ -186,7 +186,7 @@ const adminPasswordSchema = z
   .refine((val) => /[A-Z]/.test(val), 'Passwort muss mindestens einen Großbuchstaben enthalten')
   .refine((val) => /[a-z]/.test(val), 'Passwort muss mindestens einen Kleinbuchstaben enthalten')
   .refine((val) => /[0-9]/.test(val), 'Passwort muss mindestens eine Ziffer enthalten')
-  .refine((val) => /[!@#$%^&*(),.?":{}|<>_-]/.test(val), 'Passwort muss mindestens ein Sonderzeichen enthalten');
+  .refine((val) => /[^a-zA-Z0-9]/.test(val), 'Passwort muss mindestens ein Sonderzeichen enthalten');
 
 // Re-export für Verwendung in anderen Teilen des Features
 export { serverUrlSchema, inviteCodeSchema, serverNameSchema, adminUsernameSchema, adminPasswordSchema };

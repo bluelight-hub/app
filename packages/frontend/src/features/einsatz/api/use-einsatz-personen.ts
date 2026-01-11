@@ -7,9 +7,9 @@
  */
 
 import { KRAEFTE_QUERY_KEYS } from '@/features/kraefte';
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { logger } from '@/shared/lib/logger';
-import type { EinsatzPersonResponseDto, RegistrierePersonDto, ResponseError } from '@bluelight-hub/shared/client';
+import type { EinsatzPersonResponseDto, RegistrierePersonDto, ResponseError } from '@/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { calculateRetryDelay, EINSATZ_QUERY_KEYS } from './queries';
 

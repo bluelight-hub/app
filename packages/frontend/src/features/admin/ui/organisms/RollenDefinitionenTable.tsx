@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { type SortingState, flexRender, getCoreRowModel, getSortedRowModel, useReactTable, createColumnHelper } from '@tanstack/react-table';
 import { PiPencilSimple, PiProhibit, PiCheckCircle, PiCaretUpDown } from 'react-icons/pi';
-import type { RollenDefinitionDto } from '@bluelight-hub/shared/client';
+import type { RollenDefinitionDto } from '@/shared';
 import { Badge } from '@/shared/ui/atoms/badge.atom';
 import { IconButton } from '@/shared/ui/atoms/icon-button.atom';
 import { Table } from '@/shared/ui/molecules/table.molecule';

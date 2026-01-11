@@ -1,4 +1,4 @@
-import type { HiOrgQualifikationPreviewItemDto, QualifikationDto } from '@bluelight-hub/shared/client';
+import type { HiOrgQualifikationPreviewItemDto, QualifikationDto } from '@/shared';
 import { Skeleton } from '@/shared/ui/atoms/skeleton';
 import { Text } from '@/shared/ui/atoms/text.atom';
 import { Checkbox } from '@/shared/ui/atoms/checkbox.atom';

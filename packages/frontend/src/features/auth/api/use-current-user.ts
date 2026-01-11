@@ -1,7 +1,9 @@
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { AUTH_KEYS } from './queries';
 import { useQuery } from '@tanstack/react-query';
+import { useStore } from '@tanstack/react-store';
 import { milliseconds } from 'date-fns';
+import { serverStore } from '@/features/server/stores/server.store';
 
 /**
  * Hook zum Abrufen des aktuell eingeloggten Benutzers
@@ -20,10 +22,41 @@ import { milliseconds } from 'date-fns';
  * return <UserProfile user={user} />;
  * ```
  */
+/**
+ * AuthCheckResponse Typ - das Backend gibt dies direkt zurück (ohne Wrapping)
+ * weil AuthController @SkipTransform() verwendet
+ */
+interface AuthCheckResponse {
+  user?: {
+    id: string;
+    username: string;
+    role?: string;
+    isActive?: boolean;
+    lastLoginAt?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  } | null;
+  authenticated: boolean;
+  isAdminAuthenticated?: boolean;
+}
+
 export const useCurrentUser = () => {
+  // Warte auf Server-Store-Hydration bevor API-Calls gemacht werden
+  // Verhindert Race Condition: API-Call → 401 Token Error → Redirect zu /server/setup
+  const isHydrated = useStore(serverStore, (state) => state.isHydrated);
+  const activeServerId = useStore(serverStore, (state) => state.activeServerId);
+  const isServerReady = isHydrated && activeServerId !== null;
+
   const authCheckQuery = useQuery({
     queryKey: AUTH_KEYS.auth.queries.authCheck,
-    queryFn: () => api.auth().authControllerCheckAuth(),
+    queryFn: async (): Promise<AuthCheckResponse> => {
+      // Der generierte API-Client erwartet { data, meta } Format,
+      // aber AuthController verwendet @SkipTransform() und gibt die Daten direkt zurück.
+      // Wir müssen die Raw-Response selbst parsen.
+      const response = await api.auth().authControllerCheckAuthRaw();
+      const json = await response.raw.json();
+      return json as AuthCheckResponse;
+    },
     retry: (failureCount, error) => {
       // Bei 503 SERVER_NOT_SETUP nicht retrien - Setup-Status aendert sich nicht automatisch
       const status = (error as { response?: { status?: number } })?.response?.status;
@@ -33,14 +66,25 @@ export const useCurrentUser = () => {
       // Fuer andere Fehler maximal 2 Retries
       return failureCount < 2;
     },
+    // Nur Query ausfuehren wenn Server-Store hydriert und ein Server aktiv ist
+    // Verhindert API-Calls mit leerem baseUrl der zu Token-Fehlern fuehrt
+    enabled: isServerReady,
   });
 
+  // authCheckQuery.data ist jetzt direkt AuthCheckResponse (nicht gewrappt)
+  const authData = authCheckQuery.data;
+
   // Admin-Status nur für eingeloggte Admins abfragen
-  const isAdmin = !!authCheckQuery.data?.user && authCheckQuery.data.user.role?.includes('ADMIN');
+  const isAdmin = !!authData?.user && authData.user.role?.includes('ADMIN');
 
   const adminStatusQuery = useQuery({
     queryKey: AUTH_KEYS.auth.queries.adminStatus,
-    queryFn: () => api.auth().authControllerGetAdminStatus(),
+    queryFn: async (): Promise<{ adminSetupAvailable?: boolean }> => {
+      // AuthController verwendet @SkipTransform() - Raw Response parsen
+      const response = await api.auth().authControllerGetAdminStatusRaw();
+      const json = await response.raw.json();
+      return json as { adminSetupAvailable?: boolean };
+    },
     staleTime: milliseconds({ seconds: 30 }),
     refetchInterval: isAdmin ? milliseconds({ seconds: 30 }) : false,
     throwOnError: false,
@@ -58,12 +102,12 @@ export const useCurrentUser = () => {
     /**
      * Aktuell eingeloggter Benutzer (null wenn nicht eingeloggt)
      */
-    user: authCheckQuery.data?.user,
+    user: authData?.user,
 
     /**
      * Ist der Benutzer als Admin authentifiziert?
      */
-    isAdminAuthenticated: authCheckQuery.data?.isAdminAuthenticated,
+    isAdminAuthenticated: authData?.isAdminAuthenticated,
 
     /**
      * Admin-Status (Setup verfügbar, etc.)

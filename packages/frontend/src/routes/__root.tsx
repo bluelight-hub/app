@@ -2,21 +2,21 @@ import { Provider } from '@/shared/ui/headless/provider';
 import { ConfirmProvider } from '@/shared/hooks/useConfirm';
 import { useWindowOrientation } from '@/shared/hooks/useWindowOrientation';
 import { handleQueryError } from '@/shared/lib/errors/error-handler';
-import { isServerAccessTokenPromptActive, setSetupRedirectInProgress } from '@/shared/lib/server-access-token';
-import { TokenRequiredModal } from '@/shared/ui/organisms/TokenRequiredModal';
+import { setSetupRedirectInProgress } from '@/shared/lib/server-access-token';
 import { useDeepLinkEffect } from '@/features/server/hooks/useDeepLinkEffect';
+import { useLoadServers } from '@/features/server/hooks';
 import { urlParamsSchema } from '@/features/server/schemas/url-params.schema';
 
-// Reset Setup-Redirect-Flag beim App-Start - ABER NICHT wenn wir auf /setup sind!
-// Grund: Nach einem Full-Page-Redirect zu /setup (via window.location.href) wird die App
+// Reset Setup-Redirect-Flag beim App-Start - ABER NICHT wenn wir auf /server/setup sind!
+// Grund: Nach einem Full-Page-Redirect zu /server/setup (via window.location.href) wird die App
 // komplett neu geladen. Wenn wir das Flag hier bedingungslos zuruecksetzen, ist es false
-// BEVOR der /setup Route beforeLoad laufen kann. Background-Requests (React Query) koennten
+// BEVOR der /server/setup Route beforeLoad laufen kann. Background-Requests (React Query) koennten
 // dann erneut 503 bekommen und handleServerNotSetup() triggern - was einen neuen Redirect
-// startet obwohl wir gerade auf dem Weg zu /setup sind → Endlos-Loop.
+// startet obwohl wir gerade auf dem Weg zu /server/setup sind → Endlos-Loop.
 //
-// Loesung: Nur zuruecksetzen wenn wir NICHT auf /setup sind. Die /setup Route selbst
+// Loesung: Nur zuruecksetzen wenn wir NICHT auf /server/setup sind. Die /server/setup Route selbst
 // setzt das Flag nach ihrem beforeLoad Check zurueck.
-if (!window.location.pathname.startsWith('/setup')) {
+if (!window.location.pathname.startsWith('/server/setup')) {
   setSetupRedirectInProgress(false);
 }
 import { TanStackDevtools } from '@tanstack/react-devtools';
@@ -42,9 +42,8 @@ const queryClient = new QueryClient({
       await handleQueryError(error, query);
 
       // If it was a 401 error and token refresh was successful, retry the query
-      // ABER: Nicht retrien wenn Token-Prompt aktiv ist (verhindert Endlos-Loop)
       const status = (error as { response?: { status?: number } })?.response?.status;
-      if (status === 401 && !isServerAccessTokenPromptActive()) {
+      if (status === 401) {
         // Small delay to ensure cookies are updated
         setTimeout(() => {
           queryClient.invalidateQueries({ queryKey: query.queryKey });
@@ -74,11 +73,7 @@ const queryClient = new QueryClient({
         }
 
         // Allow one retry for 401 errors (after token refresh) for non-auth queries
-        // ABER: Nicht retrien wenn Token-Prompt aktiv ist
         if (status === 401) {
-          if (isServerAccessTokenPromptActive()) {
-            return false;
-          }
           return failureCount < 1;
         }
         // Don't retry on other 4xx client errors
@@ -105,6 +100,10 @@ const queryClient = new QueryClient({
 });
 
 function RootComponent() {
+  // Server Store Hydration - lädt Server-Konfiguration aus localStorage
+  // MUSS vor anderen Server-abhängigen Hooks aufgerufen werden!
+  useLoadServers();
+
   // Automatisches Fenster-Resizing basierend auf Route (nur in Tauri)
   useWindowOrientation();
 
@@ -131,7 +130,6 @@ function RootComponent() {
             />
           </div>
           <Toaster duration={4000} position="bottom-right" closeButton theme="system" richColors />
-          <TokenRequiredModal />
         </ConfirmProvider>
       </QueryClientProvider>
     </Provider>

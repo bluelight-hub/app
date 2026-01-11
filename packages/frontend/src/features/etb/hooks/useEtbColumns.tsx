@@ -1,6 +1,6 @@
 import { cn } from '@/shared/ui/cn';
 import { IconButton } from '@/shared/ui/atoms/icon-button.atom';
-import type { EintragDto, EintragDtoKategorieEnum } from '@bluelight-hub/shared/client';
+import type { EintragDto, EintragDtoKategorieEnum } from '@/shared';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format, isValid } from 'date-fns';
 import { de } from 'date-fns/locale';

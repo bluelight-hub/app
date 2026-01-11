@@ -74,7 +74,6 @@ models/AuthControllerCheckAuth200Response.ts
 models/AuthControllerExchangeInvite200Response.ts
 models/AuthControllerExchangeInvite400Response.ts
 models/AuthControllerGetAdminStatus200Response.ts
-models/AuthControllerGetPublicUsers200Response.ts
 models/AuthControllerLogin200Response.ts
 models/AuthControllerRefresh200Response.ts
 models/AuthControllerUnifiedAuth200Response.ts
@@ -208,6 +207,7 @@ models/RollenDefinitionDto.ts
 models/SaveLagekarteStateDto.ts
 models/SaveQualifikationMappingRequestDto.ts
 models/ServerInfoDto.ts
+models/SetupInviteCodeDto.ts
 models/SetupResponseDto.ts
 models/SetupTokenDto.ts
 models/SetupUserDto.ts

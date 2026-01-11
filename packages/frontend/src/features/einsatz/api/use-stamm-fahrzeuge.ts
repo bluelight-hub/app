@@ -7,9 +7,9 @@
  * @module features/einsatz/api
  */
 
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { logger } from '@/shared/lib/logger';
-import type { ResponseError, StammFahrzeugDto } from '@bluelight-hub/shared/client';
+import type { ResponseError, StammFahrzeugDto } from '@/shared';
 import { useQuery } from '@tanstack/react-query';
 import { calculateRetryDelay } from './queries';
 

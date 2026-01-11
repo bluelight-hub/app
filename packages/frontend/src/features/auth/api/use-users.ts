@@ -1,6 +1,6 @@
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { AUTH_KEYS } from './queries';
-import type { UserBasicDto, UserControllerFindOneVAlpha200Response } from '@bluelight-hub/shared/client';
+import type { UserBasicDto, UserControllerFindOneVAlpha200Response } from '@/shared';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 

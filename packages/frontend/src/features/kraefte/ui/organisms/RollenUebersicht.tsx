@@ -11,7 +11,7 @@
  * - Grid-Klassen sind DYNAMISCH basierend auf Mode (nicht mehr hardcoded)
  */
 
-import type { RollenBesetzungListItemDto } from '@bluelight-hub/shared/client';
+import type { RollenBesetzungListItemDto } from '@/shared';
 import { PiArrowClockwise, PiPlus, PiUsers, PiWarningCircle } from 'react-icons/pi';
 
 import { cn } from '@/shared/ui/cn';

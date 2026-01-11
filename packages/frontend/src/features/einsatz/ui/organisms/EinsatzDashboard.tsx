@@ -7,7 +7,7 @@ import { MobileFilterDialog } from '@/shared/ui/organisms/dashboard/MobileFilter
 import { EinsatzCreateForm } from '@/features/einsatz/ui/organisms/EinsatzCreateForm';
 import { useActiveEinsaetzeWithCounts, useEinsatzStatusCounts } from '@/features/einsatz';
 import { Button } from '@/shared/ui/atoms/button.atom';
-import { EinsatzControllerFindAllVAlphaOrderByEnum, EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzResponseDtoStatusEnum } from '@bluelight-hub/shared/client';
+import { EinsatzControllerFindAllVAlphaOrderByEnum, EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzResponseDtoStatusEnum } from '@/shared';
 import { Link } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';

@@ -190,7 +190,7 @@ FIX: Ersetze alle "import type" durch "import" (3x)
 // ============================================
 // Summary
 // ============================================
-console.log('\n' + '='.repeat(50));
+console.log(`\n${'='.repeat(50)}`);
 console.log('ZUSAMMENFASSUNG');
 console.log('='.repeat(50));
 console.log(`

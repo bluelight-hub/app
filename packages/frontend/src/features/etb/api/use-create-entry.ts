@@ -4,10 +4,10 @@
  * Hook für ETB-Eintrag-Erstellung (CQRS API).
  */
 
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { logger } from '@/shared/lib/logger';
-import type { AddEintragDto, EintragDto, ResponseError } from '@bluelight-hub/shared/client';
+import type { AddEintragDto, EintragDto, ResponseError } from '@/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ETB_QUERY_KEYS, calculateRetryDelay } from './queries';

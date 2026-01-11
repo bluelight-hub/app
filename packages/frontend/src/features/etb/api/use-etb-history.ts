@@ -7,7 +7,7 @@
 import { getBaseUrl } from '@/shared/api/api';
 import { fetchWithRefresh } from '@/shared/api/fetchWithRefresh';
 import { logger } from '@/shared/lib/logger';
-import type { EtbSnapshotDto, ResponseError } from '@bluelight-hub/shared/client';
+import type { EtbSnapshotDto, ResponseError } from '@/shared';
 import { useQuery } from '@tanstack/react-query';
 import { calculateRetryDelay, ETB_QUERY_KEYS } from './queries';
 

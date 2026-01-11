@@ -16,7 +16,7 @@ import { InlineSpinner } from '@/shared/ui/atoms/spinner.atom';
 import { cn } from '@/shared/ui/cn';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { Combobox as HeadlessCombobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions, Label, Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react';
-import type { StammFahrzeugDto } from '@bluelight-hub/shared/client';
+import type { StammFahrzeugDto } from '@/shared';
 import { useForm } from '@tanstack/react-form';
 import { zodValidator } from '@tanstack/zod-form-adapter';
 import { useCallback, useMemo, useState } from 'react';

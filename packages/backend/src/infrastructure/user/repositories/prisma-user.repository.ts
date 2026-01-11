@@ -314,9 +314,9 @@ export class PrismaUserRepository implements IUserRepository {
     try {
       // Cast notwendig da Interface string[] akzeptiert aber Prisma
       // den generierten Enum-Type erwartet. Die Werte sind identisch.
-      // biome-ignore lint/suspicious/noExplicitAny: Prisma generiert Enum aus Schema, wir akzeptieren flexible Strings
       const count = await client.user.count({
         where: {
+          // biome-ignore lint/suspicious/noExplicitAny: Prisma generiert Enum aus Schema, wir akzeptieren flexible Strings
           role: { in: roles as any },
         },
       });
@@ -325,6 +325,38 @@ export class PrismaUserRepository implements IUserRepository {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.logger.error('Failed to count users by roles', { roles, error: message });
+      return Result.fail(`Database error: ${message}`);
+    }
+  }
+
+  /**
+   * Zählt AKTIVE User mit bestimmten Rollen.
+   *
+   * Prüft zusätzlich zu countByRoles():
+   * - isActive: true
+   * - isDeleted: false
+   *
+   * @param roles - Array von Role-Strings (z.B. ['ADMIN', 'SUPER_ADMIN'])
+   * @param tx - Optional Transaction Context für Atomizität
+   * @returns Result<number> - Success mit Anzahl der AKTIVEN User mit diesen Rollen
+   */
+  async countActiveByRoles(roles: string[], tx?: TransactionContext): Promise<Result<number>> {
+    const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
+
+    try {
+      const count = await client.user.count({
+        where: {
+          // biome-ignore lint/suspicious/noExplicitAny: Prisma generiert Enum aus Schema, wir akzeptieren flexible Strings
+          role: { in: roles as any },
+          isActive: true,
+          isDeleted: false,
+        },
+      });
+
+      return Result.ok(count);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error('Failed to count active users by roles', { roles, error: message });
       return Result.fail(`Database error: ${message}`);
     }
   }

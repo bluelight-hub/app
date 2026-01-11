@@ -8,7 +8,7 @@
 
 import { useCallback, useState } from 'react';
 
-import type { RollenBesetzungListItemDto } from '@bluelight-hub/shared/client';
+import type { RollenBesetzungListItemDto } from '@/shared';
 import { PiWarning } from 'react-icons/pi';
 
 import { Button } from '@/shared/ui/atoms/button.atom';

@@ -1,8 +1,8 @@
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { AUTH_KEYS } from './queries';
 import { SYSTEM_QUERY_KEYS } from '@/features/system/api/queries';
 import { setServerAccessToken } from '@/shared/lib/server-access-token';
-import type { AdminSetupControllerCompleteSetupVAlpha201Response, CompleteSetupDto } from '@bluelight-hub/shared/client';
+import type { AdminSetupControllerCompleteSetupVAlpha201Response, CompleteSetupDto } from '@/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 /**

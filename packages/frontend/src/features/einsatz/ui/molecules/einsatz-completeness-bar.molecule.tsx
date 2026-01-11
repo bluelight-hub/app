@@ -1,6 +1,6 @@
 import type { ProgressBarVariant } from '@/shared/ui/atoms/progress-bar.atom';
 import { ProgressBar } from '@/shared/ui/atoms/progress-bar.atom';
-import type { EinsatzResponseDto } from '@bluelight-hub/shared/client';
+import type { EinsatzResponseDto } from '@/shared';
 import { useMemo } from 'react';
 
 type EinsatzFields = 'alarmstichwort' | 'alarmierungszeit' | 'einsatzort' | 'einsatzleiter';

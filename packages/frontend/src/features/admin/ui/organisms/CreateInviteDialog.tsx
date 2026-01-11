@@ -1,6 +1,6 @@
 import { useForm } from '@tanstack/react-form';
 import { zodValidator } from '@tanstack/zod-form-adapter';
-import type { CreateInviteDto } from '@bluelight-hub/shared/client';
+import type { CreateInviteDto } from '@/shared';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { FormField } from '@/shared/ui/atoms/form-field.atom';

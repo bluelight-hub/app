@@ -9,13 +9,13 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SetupRouteImport } from './routes/setup'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AdminLoginRouteImport } from './routes/admin-login'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as ServerSetupRouteImport } from './routes/server/setup'
 import { Route as AppEinsatzRouteImport } from './routes/app/einsatz'
 import { Route as AppEinsaetzeRouteImport } from './routes/app/einsaetze'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
@@ -62,11 +62,6 @@ import { Route as AppEinsatzEinsatzIdBetreuungUnterkunftRouteImport } from './ro
 import { Route as AppEinsatzEinsatzIdBetreuungBetroffeneRouteImport } from './routes/app/einsatz/$einsatzId/betreuung/betroffene'
 import { Route as AppEinsatzEinsatzIdFChar252hrungEtbIndexRouteImport } from './routes/app/einsatz/$einsatzId/führung/etb/index'
 
-const SetupRoute = SetupRouteImport.update({
-  id: '/setup',
-  path: '/setup',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -96,6 +91,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
+} as any)
+const ServerSetupRoute = ServerSetupRouteImport.update({
+  id: '/server/setup',
+  path: '/server/setup',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppEinsatzRoute = AppEinsatzRouteImport.update({
   id: '/einsatz',
@@ -363,13 +363,13 @@ export interface FileRoutesByFullPath {
   '/admin-login': typeof AdminLoginRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
-  '/setup': typeof SetupRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/invites': typeof AdminInvitesRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/users': typeof AdminUsersRoute
   '/app/einsaetze': typeof AppEinsaetzeRouteWithChildren
   '/app/einsatz': typeof AppEinsatzRouteWithChildren
+  '/server/setup': typeof ServerSetupRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/integrations/hiorg': typeof AdminIntegrationsHiorgRoute
   '/admin/kraefte/qualifikationen': typeof AdminKraefteQualifikationenRoute
@@ -416,12 +416,12 @@ export interface FileRoutesByTo {
   '/admin-login': typeof AdminLoginRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
-  '/setup': typeof SetupRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/invites': typeof AdminInvitesRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/users': typeof AdminUsersRoute
   '/app/einsatz': typeof AppEinsatzRouteWithChildren
+  '/server/setup': typeof ServerSetupRoute
   '/admin': typeof AdminIndexRoute
   '/admin/integrations/hiorg': typeof AdminIntegrationsHiorgRoute
   '/admin/kraefte/qualifikationen': typeof AdminKraefteQualifikationenRoute
@@ -468,13 +468,13 @@ export interface FileRoutesById {
   '/admin-login': typeof AdminLoginRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
-  '/setup': typeof SetupRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/invites': typeof AdminInvitesRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/users': typeof AdminUsersRoute
   '/app/einsaetze': typeof AppEinsaetzeRouteWithChildren
   '/app/einsatz': typeof AppEinsatzRouteWithChildren
+  '/server/setup': typeof ServerSetupRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/integrations/hiorg': typeof AdminIntegrationsHiorgRoute
   '/admin/kraefte/qualifikationen': typeof AdminKraefteQualifikationenRoute
@@ -524,13 +524,13 @@ export interface FileRouteTypes {
     | '/admin-login'
     | '/app'
     | '/auth'
-    | '/setup'
     | '/admin/dashboard'
     | '/admin/invites'
     | '/admin/setup'
     | '/admin/users'
     | '/app/einsaetze'
     | '/app/einsatz'
+    | '/server/setup'
     | '/admin/'
     | '/admin/integrations/hiorg'
     | '/admin/kraefte/qualifikationen'
@@ -577,12 +577,12 @@ export interface FileRouteTypes {
     | '/admin-login'
     | '/app'
     | '/auth'
-    | '/setup'
     | '/admin/dashboard'
     | '/admin/invites'
     | '/admin/setup'
     | '/admin/users'
     | '/app/einsatz'
+    | '/server/setup'
     | '/admin'
     | '/admin/integrations/hiorg'
     | '/admin/kraefte/qualifikationen'
@@ -628,13 +628,13 @@ export interface FileRouteTypes {
     | '/admin-login'
     | '/app'
     | '/auth'
-    | '/setup'
     | '/admin/dashboard'
     | '/admin/invites'
     | '/admin/setup'
     | '/admin/users'
     | '/app/einsaetze'
     | '/app/einsatz'
+    | '/server/setup'
     | '/admin/'
     | '/admin/integrations/hiorg'
     | '/admin/kraefte/qualifikationen'
@@ -683,18 +683,11 @@ export interface RootRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRoute
-  SetupRoute: typeof SetupRoute
+  ServerSetupRoute: typeof ServerSetupRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/setup': {
-      id: '/setup'
-      path: '/setup'
-      fullPath: '/setup'
-      preLoaderRoute: typeof SetupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -736,6 +729,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/server/setup': {
+      id: '/server/setup'
+      path: '/server/setup'
+      fullPath: '/server/setup'
+      preLoaderRoute: typeof ServerSetupRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/app/einsatz': {
       id: '/app/einsatz'
@@ -1240,7 +1240,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRoute,
-  SetupRoute: SetupRoute,
+  ServerSetupRoute: ServerSetupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

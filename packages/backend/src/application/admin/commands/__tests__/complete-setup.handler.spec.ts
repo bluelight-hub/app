@@ -2,7 +2,7 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
 import { Result } from '@domain/common/result';
 import type { UserAggregate } from '@domain/aggregates/user.aggregate';
-import { LOGGER, OUTBOX_REPOSITORY, SERVER_ACCESS_TOKEN_REPOSITORY, USER_REPOSITORY } from '@infrastructure/di-tokens';
+import { INVITE_CODE_REPOSITORY, LOGGER, OUTBOX_REPOSITORY, SERVER_ACCESS_TOKEN_REPOSITORY, USER_REPOSITORY } from '@infrastructure/di-tokens';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 import { CompleteSetupHandler } from '../complete-setup.handler';
 import { CompleteSetupCommand } from '../complete-setup.command';
@@ -22,6 +22,7 @@ describe('CompleteSetupHandler', () => {
     findById: jest.Mock;
     findByUsername: jest.Mock;
     countByRoles: jest.Mock;
+    countActiveByRoles: jest.Mock;
     setPasswordHash: jest.Mock;
   };
   let mockTokenRepository: {
@@ -29,6 +30,17 @@ describe('CompleteSetupHandler', () => {
     findById: jest.Mock;
     findByHash: jest.Mock;
     findActive: jest.Mock;
+  };
+  let mockInviteCodeRepository: {
+    save: jest.Mock;
+    findById: jest.Mock;
+    findByCode: jest.Mock;
+    findAllActive: jest.Mock;
+    findByCreator: jest.Mock;
+    existsByCode: jest.Mock;
+    countActive: jest.Mock;
+    findAll: jest.Mock;
+    markAsUsedAtomic: jest.Mock;
   };
   let mockOutboxRepository: {
     save: jest.Mock;
@@ -57,7 +69,8 @@ describe('CompleteSetupHandler', () => {
       save: jest.fn().mockResolvedValue(Result.ok(undefined)),
       findById: jest.fn(),
       findByUsername: jest.fn(),
-      countByRoles: jest.fn().mockResolvedValue(Result.ok(0)), // Default: Kein Admin existiert
+      countByRoles: jest.fn().mockResolvedValue(Result.ok(0)),
+      countActiveByRoles: jest.fn().mockResolvedValue(Result.ok(0)), // Default: Kein AKTIVER Admin existiert
       setPasswordHash: jest.fn().mockResolvedValue(Result.ok(undefined)),
     };
 
@@ -66,6 +79,18 @@ describe('CompleteSetupHandler', () => {
       findById: jest.fn(),
       findByHash: jest.fn(),
       findActive: jest.fn(),
+    };
+
+    mockInviteCodeRepository = {
+      save: jest.fn().mockResolvedValue(Result.ok(undefined)),
+      findById: jest.fn(),
+      findByCode: jest.fn(),
+      findAllActive: jest.fn(),
+      findByCreator: jest.fn(),
+      existsByCode: jest.fn(),
+      countActive: jest.fn(),
+      findAll: jest.fn(),
+      markAsUsedAtomic: jest.fn(),
     };
 
     mockOutboxRepository = {
@@ -98,6 +123,7 @@ describe('CompleteSetupHandler', () => {
         { provide: OUTBOX_REPOSITORY, useValue: mockOutboxRepository },
         { provide: USER_REPOSITORY, useValue: mockUserRepository },
         { provide: SERVER_ACCESS_TOKEN_REPOSITORY, useValue: mockTokenRepository },
+        { provide: INVITE_CODE_REPOSITORY, useValue: mockInviteCodeRepository },
         { provide: LOGGER, useValue: mockLogger },
       ],
     }).compile();
@@ -125,9 +151,15 @@ describe('CompleteSetupHandler', () => {
       expect(result.value!.accessToken).toBeDefined();
       expect(result.value!.accessToken.token).toMatch(/^blh_/);
       expect(result.value!.accessToken.name).toBe('Initial Setup Token');
+      // Invite Code assertions
+      expect(result.value!.inviteCode).toBeDefined();
+      expect(result.value!.inviteCode.code).toMatch(/^[A-Z0-9]{8}$/);
+      expect(result.value!.inviteCode.maxUses).toBe(10);
+      expect(result.value!.inviteCode.label).toBe('Initial Setup Invite');
+      expect(result.value!.inviteCode.expiresAt).toBeDefined();
     });
 
-    it('sollte countByRoles mit korrekten Rollen aufrufen', async () => {
+    it('sollte countActiveByRoles mit korrekten Rollen aufrufen', async () => {
       // Given (Arrange)
       const command = CompleteSetupCommand.create({
         username: 'admin',
@@ -138,12 +170,12 @@ describe('CompleteSetupHandler', () => {
       await handler.execute(command);
 
       // Then (Assert)
-      expect(mockUserRepository.countByRoles).toHaveBeenCalledWith(['ADMIN', 'SUPER_ADMIN'], expect.anything());
+      expect(mockUserRepository.countActiveByRoles).toHaveBeenCalledWith(['ADMIN', 'SUPER_ADMIN'], expect.anything());
     });
 
     it('sollte fehlschlagen wenn Admin bereits existiert (AC5)', async () => {
       // Given (Arrange)
-      mockUserRepository.countByRoles.mockResolvedValue(Result.ok(1)); // Admin existiert bereits
+      mockUserRepository.countActiveByRoles.mockResolvedValue(Result.ok(1)); // Admin existiert bereits
 
       const command = CompleteSetupCommand.create({
         username: 'admin',
@@ -162,7 +194,7 @@ describe('CompleteSetupHandler', () => {
 
     it('sollte fehlschlagen wenn SUPER_ADMIN bereits existiert', async () => {
       // Given (Arrange)
-      mockUserRepository.countByRoles.mockResolvedValue(Result.ok(1)); // SUPER_ADMIN counts as admin
+      mockUserRepository.countActiveByRoles.mockResolvedValue(Result.ok(1)); // SUPER_ADMIN counts as admin
 
       const command = CompleteSetupCommand.create({
         username: 'admin',
@@ -355,7 +387,7 @@ describe('CompleteSetupHandler', () => {
       expect(mockPrismaService.$transaction).toHaveBeenCalledTimes(1);
     });
 
-    it('sollte User und Token in gleicher Transaktion speichern', async () => {
+    it('sollte User, Token und InviteCode in gleicher Transaktion speichern', async () => {
       // Given (Arrange)
       const command = CompleteSetupCommand.create({
         username: 'admin',
@@ -368,9 +400,11 @@ describe('CompleteSetupHandler', () => {
       // Then (Assert)
       expect(mockUserRepository.save).toHaveBeenCalledTimes(1);
       expect(mockTokenRepository.save).toHaveBeenCalledTimes(1);
-      // Beide sollten mit Transaction Context aufgerufen werden
+      expect(mockInviteCodeRepository.save).toHaveBeenCalledTimes(1);
+      // Alle sollten mit Transaction Context aufgerufen werden
       expect(mockUserRepository.save.mock.calls[0][1]).toBeDefined();
       expect(mockTokenRepository.save.mock.calls[0][1]).toBeDefined();
+      expect(mockInviteCodeRepository.save.mock.calls[0][1]).toBeDefined();
     });
 
     it('sollte Rollback durchfuehren wenn UserRepository.save fehlschlaegt', async () => {
@@ -406,6 +440,24 @@ describe('CompleteSetupHandler', () => {
       // Then (Assert)
       expect(result.isFailure).toBe(true);
       expect(result.error).toContain('Token konnte nicht gespeichert werden');
+      expect(mockInviteCodeRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('sollte Rollback durchfuehren wenn InviteCodeRepository.save fehlschlaegt', async () => {
+      // Given (Arrange)
+      mockInviteCodeRepository.save.mockResolvedValue(Result.fail('InviteCode konnte nicht gespeichert werden'));
+
+      const command = CompleteSetupCommand.create({
+        username: 'admin',
+        password: 'SecurePassword123!',
+      }).value!;
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('InviteCode konnte nicht gespeichert werden');
     });
 
     it('sollte Rollback durchfuehren wenn Outbox-Speicherung fehlschlaegt', async () => {
@@ -479,6 +531,22 @@ describe('CompleteSetupHandler', () => {
       const events = mockOutboxRepository.save.mock.calls[0][0];
       const tokenEvent = events.find((e: { constructor: { name: string } }) => e.constructor.name === 'ServerAccessTokenCreatedEvent');
       expect(tokenEvent).toBeDefined();
+    });
+
+    it('sollte InviteCodeCreatedEvent emittieren', async () => {
+      // Given (Arrange)
+      const command = CompleteSetupCommand.create({
+        username: 'admin',
+        password: 'SecurePassword123!',
+      }).value!;
+
+      // When (Act)
+      await handler.execute(command);
+
+      // Then (Assert)
+      const events = mockOutboxRepository.save.mock.calls[0][0];
+      const inviteEvent = events.find((e: { constructor: { name: string } }) => e.constructor.name === 'InviteCodeCreatedEvent');
+      expect(inviteEvent).toBeDefined();
     });
   });
 
@@ -621,6 +689,130 @@ describe('CompleteSetupHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value!.user.username).toBe('admin123');
+    });
+  });
+
+  describe('Invite Code Creation', () => {
+    it('sollte Invite-Code mit korrekten Defaults erstellen', async () => {
+      // Given (Arrange)
+      const command = CompleteSetupCommand.create({
+        username: 'admin',
+        password: 'SecurePassword123!',
+      }).value!;
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      expect(result.value!.inviteCode).toBeDefined();
+      expect(result.value!.inviteCode.maxUses).toBe(10);
+      expect(result.value!.inviteCode.label).toBe('Initial Setup Invite');
+    });
+
+    it('sollte Invite-Code mit 7 Tagen Gueltigkeit erstellen', async () => {
+      // Given (Arrange)
+      const command = CompleteSetupCommand.create({
+        username: 'admin',
+        password: 'SecurePassword123!',
+      }).value!;
+
+      const beforeExecution = new Date();
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      const expiresAt = new Date(result.value!.inviteCode.expiresAt);
+      const expectedMin = new Date(beforeExecution);
+      expectedMin.setDate(expectedMin.getDate() + 6); // Mindestens 6 Tage
+      const expectedMax = new Date(beforeExecution);
+      expectedMax.setDate(expectedMax.getDate() + 8); // Hoechstens 8 Tage (Buffer)
+
+      expect(expiresAt.getTime()).toBeGreaterThanOrEqual(expectedMin.getTime());
+      expect(expiresAt.getTime()).toBeLessThanOrEqual(expectedMax.getTime());
+    });
+
+    it('sollte 8-stelligen alphanumerischen Code generieren', async () => {
+      // Given (Arrange)
+      const command = CompleteSetupCommand.create({
+        username: 'admin',
+        password: 'SecurePassword123!',
+      }).value!;
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      // InviteCodeValue generiert 8-stellige alphanumerische Codes (Grossbuchstaben + Zahlen)
+      expect(result.value!.inviteCode.code).toMatch(/^[A-Z0-9]{8}$/);
+    });
+
+    it('sollte Invite-Code im Audit-Log maskiert ausgeben', async () => {
+      // Given (Arrange)
+      const command = CompleteSetupCommand.create({
+        username: 'admin',
+        password: 'SecurePassword123!',
+      }).value!;
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      const rawCode = result.value!.inviteCode.code;
+
+      // Der vollstaendige Code sollte NICHT in den Logs erscheinen
+      const allLogMethods = ['log', 'error', 'warn', 'debug'] as const;
+      for (const method of allLogMethods) {
+        const calls = mockLogger[method].mock.calls;
+        for (const call of calls) {
+          for (const arg of call) {
+            const argString = typeof arg === 'string' ? arg : JSON.stringify(arg);
+            // Pruefe dass der vollstaendige Code nicht geloggt wird
+            // (Der maskierte Code wie "ABC1****" ist erlaubt)
+            expect(argString).not.toContain(rawCode);
+          }
+        }
+      }
+    });
+
+    it('sollte InviteCodeRepository.save mit Aggregate aufrufen', async () => {
+      // Given (Arrange)
+      const command = CompleteSetupCommand.create({
+        username: 'admin',
+        password: 'SecurePassword123!',
+      }).value!;
+
+      // When (Act)
+      await handler.execute(command);
+
+      // Then (Assert)
+      expect(mockInviteCodeRepository.save).toHaveBeenCalledTimes(1);
+      const savedInviteCode = mockInviteCodeRepository.save.mock.calls[0][0];
+      expect(savedInviteCode).toBeDefined();
+      expect(savedInviteCode.code).toBeDefined();
+      expect(savedInviteCode.maxUses).toBe(10);
+      expect(savedInviteCode.label).toBe('Initial Setup Invite');
+    });
+
+    it('sollte Invite-Code mit Admin-User-ID als Ersteller erstellen', async () => {
+      // Given (Arrange)
+      const command = CompleteSetupCommand.create({
+        username: 'admin',
+        password: 'SecurePassword123!',
+      }).value!;
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      const savedInviteCode = mockInviteCodeRepository.save.mock.calls[0][0];
+      // Der createdById sollte die User-ID des Admin sein
+      expect(savedInviteCode.createdById).toBe(result.value!.user.id);
     });
   });
 });

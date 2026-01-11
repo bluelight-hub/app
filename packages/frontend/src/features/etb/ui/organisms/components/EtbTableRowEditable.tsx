@@ -1,7 +1,7 @@
 import type React from 'react';
 import { useState } from 'react';
 import { flexRender, type Row } from '@tanstack/react-table';
-import type { EintragDto } from '@bluelight-hub/shared/client';
+import type { EintragDto } from '@/shared';
 import { useUpdateEtbEntry } from '@/features/etb';
 import { cn } from '@/shared/ui/cn';
 import { EtbActionsCell } from './cells/EtbActionsCell';

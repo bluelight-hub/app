@@ -14,8 +14,8 @@
 import { getBaseUrl } from '@/shared/api/api';
 import { fetchWithRefresh } from '@/shared/api/fetchWithRefresh';
 import { logger } from '@/shared/lib/logger';
-import type { ResponseError, StammPersonDto } from '@bluelight-hub/shared/client';
-import { Configuration, KraefteStammPersonenApi } from '@bluelight-hub/shared/client';
+import type { ResponseError, StammPersonDto } from '@/shared';
+import { Configuration, KraefteStammPersonenApi } from '@/shared';
 import { useQuery } from '@tanstack/react-query';
 import { calculateRetryDelay, EINSATZ_QUERY_KEYS } from './queries';
 

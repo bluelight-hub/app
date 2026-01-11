@@ -11,12 +11,15 @@ import { TransactionContext } from '@domain/common/transaction';
 import { ILogger } from '@domain/ports/i-logger.port';
 import { ServerAccessToken } from '@domain/aggregates/server-access-token.aggregate';
 import { UserAggregate } from '@domain/aggregates/user.aggregate';
+import { InviteCode } from '@domain/aggregates/invite-code.aggregate';
 // biome-ignore lint/style/useImportType: IOutboxRepository wird fuer NestJS DI benoetigt
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 // biome-ignore lint/style/useImportType: IServerAccessTokenRepository wird fuer NestJS DI benoetigt
 import { IServerAccessTokenRepository } from '@domain/repositories/i-server-access-token.repository';
 // biome-ignore lint/style/useImportType: IUserRepository wird fuer NestJS DI benoetigt
 import { IUserRepository } from '@domain/repositories/i-user.repository';
+// biome-ignore lint/style/useImportType: IInviteCodeRepository wird fuer NestJS DI benoetigt
+import { IInviteCodeRepository } from '@domain/repositories/i-invite-code.repository';
 import { TokenHash } from '@domain/value-objects/token-hash';
 import { Username } from '@domain/value-objects/username';
 import { UserRole } from '@domain/value-objects/user-role';
@@ -24,7 +27,7 @@ import { UserRole } from '@domain/value-objects/user-role';
 import { TransactionalCommandHandler } from '@/application/common/handlers/transactional-command.handler';
 // biome-ignore lint/style/useImportType: PrismaService wird zur Laufzeit fuer NestJS DI benoetigt
 import { PrismaService } from '@/infrastructure/database/prisma.service';
-import { LOGGER, OUTBOX_REPOSITORY, SERVER_ACCESS_TOKEN_REPOSITORY, USER_REPOSITORY } from '@infrastructure/di-tokens';
+import { INVITE_CODE_REPOSITORY, LOGGER, OUTBOX_REPOSITORY, SERVER_ACCESS_TOKEN_REPOSITORY, USER_REPOSITORY } from '@infrastructure/di-tokens';
 import { BCRYPT_COST_FACTOR_PASSWORD, BCRYPT_COST_FACTOR_TOKEN } from '@/infrastructure/config/security.constants';
 
 // biome-ignore lint/style/useImportType: CompleteSetupCommand wird fuer Runtime-Typisierung benoetigt
@@ -44,26 +47,43 @@ const TOKEN_PREFIX = 'blh_';
 const INITIAL_TOKEN_NAME = 'Initial Setup Token';
 
 /**
+ * Label fuer den initialen Invite-Code.
+ */
+const INITIAL_INVITE_LABEL = 'Initial Setup Invite';
+
+/**
+ * Maximale Nutzungen fuer den initialen Invite-Code.
+ * Erlaubt genug Registrierungen fuer das erste Team.
+ */
+const INITIAL_INVITE_MAX_USES = 10;
+
+/**
+ * Gueltigkeit des initialen Invite-Codes in Tagen.
+ */
+const INITIAL_INVITE_EXPIRES_DAYS = 7;
+
+/**
  * Handler fuer den initialen Server-Setup.
  *
- * Erstellt den ersten Admin-User und einen Server-Access-Token
- * in einer atomaren Transaktion. Der Setup kann nur EINMAL
- * durchgefuehrt werden - bei bereits existierendem Admin wird
- * ein Fehler zurueckgegeben.
+ * Erstellt den ersten Admin-User, einen Server-Access-Token und
+ * einen initialen Invite-Code in einer atomaren Transaktion.
+ * Der Setup kann nur EINMAL durchgefuehrt werden - bei bereits
+ * existierendem Admin wird ein Fehler zurueckgegeben.
  *
  * **Wichtig:** Admins haben Nutzername + Passwort.
  * Normale Nutzer haben NUR Nutzername (kein Passwort).
  *
  * **Transaktionale Garantien:**
- * - Admin-User und Token werden in EINER Transaktion erstellt
+ * - Admin-User, Token und Invite-Code werden in EINER Transaktion erstellt
  * - Domain Events werden atomar im Outbox gespeichert
- * - Bei Fehler: vollstaendiger Rollback beider Entities
+ * - Bei Fehler: vollstaendiger Rollback aller Entities
  *
  * **Security Considerations:**
  * - Password wird mit bcrypt (cost 10) gehasht
  * - Token wird mit bcrypt (cost 10) gehasht
  * - Raw-Token wird NUR in Response zurueckgegeben, NICHT geloggt
  * - Audit-Trail loggt nur Token-Prefix (erste 7 Zeichen)
+ * - Invite-Code wird maskiert im Log ausgegeben
  *
  * @example
  * ```typescript
@@ -75,6 +95,7 @@ const INITIAL_TOKEN_NAME = 'Initial Setup Token';
  * const result = await handler.execute(command);
  * if (result.isSuccess) {
  *   console.log(result.value.accessToken.token); // blh_xxx... (nur hier sichtbar!)
+ *   console.log(result.value.inviteCode.code);   // ABC12345 (fuer erste Registrierungen)
  * }
  * ```
  */
@@ -85,6 +106,7 @@ export class CompleteSetupHandler extends TransactionalCommandHandler<CompleteSe
     @Inject(OUTBOX_REPOSITORY) outboxRepository: IOutboxRepository,
     @Inject(USER_REPOSITORY) private readonly userRepository: IUserRepository,
     @Inject(SERVER_ACCESS_TOKEN_REPOSITORY) private readonly tokenRepository: IServerAccessTokenRepository,
+    @Inject(INVITE_CODE_REPOSITORY) private readonly inviteCodeRepository: IInviteCodeRepository,
     @Inject(LOGGER) private readonly logger: ILogger,
   ) {
     super(prisma, outboxRepository);
@@ -97,9 +119,10 @@ export class CompleteSetupHandler extends TransactionalCommandHandler<CompleteSe
    * 1. Pruefe ob Admin bereits existiert (AC5)
    * 2. Erstelle Admin-User mit gehashtem Passwort
    * 3. Generiere und hashe Server-Access-Token
-   * 4. Speichere beide Aggregates
-   * 5. Logge Audit-Trail mit maskiertem Token-Prefix (AC4)
-   * 6. Sammle Domain Events
+   * 4. Erstelle initialen Invite-Code fuer erste Registrierungen
+   * 5. Speichere alle Aggregates
+   * 6. Logge Audit-Trail mit maskiertem Token-Prefix (AC4)
+   * 7. Sammle Domain Events
    *
    * @param command - Validiertes Setup-Command
    * @param tx - Transaction Context
@@ -107,9 +130,11 @@ export class CompleteSetupHandler extends TransactionalCommandHandler<CompleteSe
    */
   protected async executeInTransaction(command: CompleteSetupCommand, tx: TransactionContext): Promise<Result<SetupResponseDto> | { result: SetupResponseDto; events: DomainEvent[] }> {
     // ════════════════════════════════════════════════════════════════════════
-    // AC5: Pruefe ob Admin bereits existiert (via Repository-Abstraction)
+    // AC5: Pruefe ob AKTIVER Admin bereits existiert (via Repository-Abstraction)
+    // WICHTIG: countActiveByRoles prueft isActive=true UND isDeleted=false
+    // Der SYSTEM-User (isActive=false) wird dadurch NICHT gezaehlt.
     // ════════════════════════════════════════════════════════════════════════
-    const adminCountResult = await this.userRepository.countByRoles(['ADMIN', 'SUPER_ADMIN'], tx);
+    const adminCountResult = await this.userRepository.countActiveByRoles(['ADMIN', 'SUPER_ADMIN'], tx);
     if (adminCountResult.isFailure || adminCountResult.value === undefined) {
       return Result.fail<SetupResponseDto>(adminCountResult.error ?? 'ADMIN_COUNT_FAILED');
     }
@@ -184,24 +209,58 @@ export class CompleteSetupHandler extends TransactionalCommandHandler<CompleteSe
     }
 
     // ════════════════════════════════════════════════════════════════════════
-    // AC4: Audit-Trail mit maskiertem Token-Prefix und User-Kontext
+    // Erstelle initialen Invite-Code fuer erste Registrierungen
+    // WARUM: Ohne Invite-Code koennen sich keine Nutzer registrieren.
+    // Der Code wird beim Setup automatisch erstellt, damit das erste Team
+    // sofort mit der Nutzung beginnen kann.
+    // ════════════════════════════════════════════════════════════════════════
+
+    // Berechne Ablaufdatum: heute + 7 Tage
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + INITIAL_INVITE_EXPIRES_DAYS);
+
+    // InviteCode Aggregate erstellen
+    const inviteCodeResult = InviteCode.create({
+      expiresAt,
+      maxUses: INITIAL_INVITE_MAX_USES,
+      createdById: user.id.value,
+      label: INITIAL_INVITE_LABEL,
+    });
+    if (inviteCodeResult.isFailure || !inviteCodeResult.value) {
+      return Result.fail<SetupResponseDto>(inviteCodeResult.error ?? 'INVITE_CODE_CREATION_FAILED');
+    }
+    const inviteCode = inviteCodeResult.value;
+
+    // InviteCode speichern
+    const saveInviteResult = await this.inviteCodeRepository.save(inviteCode, tx);
+    if (saveInviteResult.isFailure) {
+      return Result.fail<SetupResponseDto>(saveInviteResult.error ?? 'INVITE_CODE_SAVE_FAILED');
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // Audit-Trail mit maskiertem Token-Prefix, User-Kontext und Invite-Code
     // ════════════════════════════════════════════════════════════════════════
     const tokenPrefix = rawToken.substring(0, 7);
-    this.logger.log(`Server setup completed. Admin user '${command.username}' (ID: ${user.id.value}) created with initial access token (prefix: ${tokenPrefix}...)`);
+    this.logger.log(
+      `Server setup completed. Admin user '${command.username}' (ID: ${user.id.value}) created ` +
+        `with initial access token (prefix: ${tokenPrefix}...) and invite code (${inviteCode.code.toMasked()}, maxUses: ${INITIAL_INVITE_MAX_USES}, expires: ${expiresAt.toISOString().split('T')[0]})`,
+    );
 
     // ════════════════════════════════════════════════════════════════════════
     // Domain Events sammeln
     // ════════════════════════════════════════════════════════════════════════
     const userEvents = user.getDomainEvents();
     const tokenEvents = token.getDomainEvents();
-    const allEvents = [...userEvents, ...tokenEvents];
+    const inviteEvents = inviteCode.getDomainEvents();
+    const allEvents = [...userEvents, ...tokenEvents, ...inviteEvents];
 
     // Events clearen (da sie jetzt zur Outbox gehen)
     user.clearDomainEvents();
     token.clearDomainEvents();
+    inviteCode.clearDomainEvents();
 
     // ════════════════════════════════════════════════════════════════════════
-    // AC2: Response zusammenstellen
+    // Response zusammenstellen
     // ════════════════════════════════════════════════════════════════════════
     const response: SetupResponseDto = {
       user: {
@@ -213,6 +272,12 @@ export class CompleteSetupHandler extends TransactionalCommandHandler<CompleteSe
         token: rawToken, // ⚠️ EINMALIG! Wird nie wieder angezeigt!
         name: INITIAL_TOKEN_NAME,
         createdAt: new Date().toISOString(),
+      },
+      inviteCode: {
+        code: inviteCode.code.value,
+        expiresAt: expiresAt.toISOString(),
+        maxUses: INITIAL_INVITE_MAX_USES,
+        label: INITIAL_INVITE_LABEL,
       },
     };
 

@@ -7,9 +7,9 @@
  * Unterstützt Cold Start (App geschlossen) und Warm Start (App läuft).
  */
 
-import { onOpenUrl, getCurrent } from '@tauri-apps/plugin-deep-link';
 import type { DeepLinkParams, DeepLinkEvent } from '../types/deep-link';
 import { DeepLinkError } from '../types/deep-link';
+import { isTauri } from '@/shared/utils/platform';
 
 /**
  * Event Callback Type für Deep Link Events
@@ -54,10 +54,18 @@ export class DeepLinkService {
    *
    * WICHTIG: Nur einmal aufrufen (App Lifecycle Hook)
    * Registriert Tauri Plugin für Cold Start und Warm Start.
+   * Im Browser-Modus wird die Initialisierung übersprungen.
    */
   public async initialize(): Promise<void> {
     if (this.isInitialized) {
       console.warn('[DeepLinkService] Already initialized, skipping...');
+      return;
+    }
+
+    // Skip initialization in browser mode (Tauri APIs not available)
+    if (!isTauri()) {
+      console.info('[DeepLinkService] Running in browser mode, skipping initialization');
+      this.isInitialized = true;
       return;
     }
 
@@ -79,6 +87,9 @@ export class DeepLinkService {
    * - Warm Start: Deep Link während App läuft (via onOpenUrl())
    */
   private async registerListeners(): Promise<void> {
+    // Dynamic import to avoid errors in browser mode
+    const { getCurrent, onOpenUrl } = await import('@tauri-apps/plugin-deep-link');
+
     // 1. Check for Cold Start Deep Links
     const currentUrls = await getCurrent();
     if (currentUrls && currentUrls.length > 0) {

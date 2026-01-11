@@ -42,8 +42,6 @@ import {
   DeleteUserDto,
   LockUserDto,
   ManagedUserResponseDto,
-  ManagedUsersListResponse,
-  ManagedUserResponse,
   DeleteManagedUserResponse,
   toDeleteUserResponseDto,
 } from '@application/user-management';

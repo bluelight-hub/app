@@ -1,6 +1,6 @@
 import { useCreateEtbEntry, useTextbausteine, useUpdateEtbEntry } from '@/features/etb';
 import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
-import { AddEintragDtoKategorieEnum as EtbKategorie, type EintragDto } from '@bluelight-hub/shared/client';
+import { AddEintragDtoKategorieEnum as EtbKategorie, type EintragDto } from '@/shared';
 import { EtbFormActions } from '../molecules/EtbFormActions';
 import { EtbTextbausteinPreview } from '../molecules/EtbTextbausteinPreview';
 import { EtbKategorieSelect } from './EtbKategorieSelect';

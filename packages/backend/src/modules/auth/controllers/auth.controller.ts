@@ -21,7 +21,7 @@ import {
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@/infrastructure/di-tokens';
 import { ConfigService } from '@nestjs/config';
-import { ApiBody, ApiCookieAuth, ApiForbiddenResponse, ApiNoContentResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse, ApiBadRequestResponse } from '@nestjs/swagger';
+import { ApiBody, ApiCookieAuth, ApiForbiddenResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse, ApiBadRequestResponse } from '@nestjs/swagger';
 import { ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
@@ -70,7 +70,6 @@ import { SkipSetupCheck } from '@/infrastructure/decorators/skip-setup-check.dec
   path: 'auth',
   version: VERSION_NEUTRAL,
 })
-@SkipTransform()
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
@@ -451,6 +450,7 @@ export class AuthController {
    */
   @Get('check')
   @Throttle({ default: { limit: 120, ttl: 60000 } }) // 120 Anfragen pro Minute (2/s) - wird häufig aufgerufen bei Route-Wechsel, Focus-Events etc.
+  @SkipTransform()
   @ApiOperation({
     summary: 'Authentifizierungsstatus prüfen',
     description: 'Prüft, ob ein Benutzer authentifiziert ist, und gibt dessen Informationen zurück',
@@ -561,11 +561,13 @@ export class AuthController {
    */
   @Get('users')
   @HttpCode(HttpStatus.OK)
+  @SkipTransform()
   @ApiOperation({
     summary: 'Öffentliche Benutzerliste abrufen',
     description: 'Gibt eine Liste aller verfügbaren Benutzenden für den Login-Screen zurück',
   })
-  @ApiWrappedResponse(PublicUsersResponseDto, {
+  @ApiOkResponse({
+    type: PublicUsersResponseDto,
     description: 'Liste der verfügbaren Benutzenden',
   })
   async getPublicUsers(): Promise<PublicUsersResponseDto> {
@@ -582,6 +584,7 @@ export class AuthController {
   @Get('admin/status')
   @UseGuards(JwtAuthGuard)
   @SkipThrottle()
+  @SkipTransform()
   @ApiCookieAuth()
   @ApiOperation({
     summary: 'Admin-Setup-Status abrufen',
@@ -697,6 +700,7 @@ export class AuthController {
       });
     }
 
+    // biome-ignore lint/style/noNonNullAssertion: Result pattern garantiert value nach isSuccess check
     return result.value!;
   }
 

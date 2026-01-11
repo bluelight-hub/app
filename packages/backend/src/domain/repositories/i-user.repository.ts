@@ -208,6 +208,24 @@ export interface IUserRepository {
   countByRoles(roles: string[], tx?: TransactionContext): Promise<Result<number>>;
 
   /**
+   * Zählt AKTIVE User mit bestimmten Rollen.
+   *
+   * Im Gegensatz zu countByRoles() prüft diese Methode zusätzlich:
+   * - isActive: true
+   * - isDeleted: false
+   *
+   * **Use Case:**
+   * - Setup-Check: Existiert bereits ein AKTIVER Admin?
+   * - Health-Check: Setup-Complete Prüfung
+   * - Konsistente Semantik mit HealthController.isSetupComplete()
+   *
+   * @param roles - Array von Role-Strings (z.B. ['ADMIN', 'SUPER_ADMIN'])
+   * @param tx - Optional Transaction Context für Atomizität
+   * @returns Result<number> - Success mit Anzahl der AKTIVEN User mit diesen Rollen
+   */
+  countActiveByRoles(roles: string[], tx?: TransactionContext): Promise<Result<number>>;
+
+  /**
    * Setzt den Password Hash für einen User.
    *
    * **Security Separation:**

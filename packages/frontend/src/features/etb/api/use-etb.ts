@@ -4,9 +4,9 @@
  * Haupthook für ETB-Abfrage anhand der Einsatz-ID.
  */
 
-import { api } from '@bluelight-hub/shared/client';
+import { api } from '@/shared';
 import { logger } from '@/shared/lib/logger';
-import type { EtbDto, ResponseError } from '@bluelight-hub/shared/client';
+import type { EtbDto, ResponseError } from '@/shared';
 import { useQuery } from '@tanstack/react-query';
 import { ETB_QUERY_KEYS, calculateRetryDelay } from './queries';
 

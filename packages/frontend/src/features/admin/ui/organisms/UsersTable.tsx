@@ -1,8 +1,8 @@
 import { Badge } from '@/shared/ui/atoms/badge.atom';
 import { IconButton } from '@/shared/ui/atoms/icon-button.atom';
 import { Table } from '@/shared/ui/molecules/table.molecule';
-import type { ManagedUserResponseDto } from '@bluelight-hub/shared/client';
-import { ManagedUserResponseDtoRoleEnum } from '@bluelight-hub/shared/client';
+import type { ManagedUserResponseDto } from '@/shared';
+import { ManagedUserResponseDtoRoleEnum } from '@/shared';
 import type { SortingState } from '@tanstack/react-table';
 import { createColumnHelper, flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';

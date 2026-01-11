@@ -391,7 +391,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       const responses = await Promise.all(requests);
 
       // Then: Mind. eine Response sollte 429 sein
-      const successResponses = responses.filter((r) => r.status === 200);
+      const _successResponses = responses.filter((r) => r.status === 200);
       const rateLimitedResponses = responses.filter((r) => r.status === 429);
 
       // Entweder 5 success + 1 rate-limited ODER alle erfolg (je nach Timing)

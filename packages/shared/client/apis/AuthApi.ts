@@ -23,7 +23,6 @@ import type {
   AuthControllerExchangeInvite200Response,
   AuthControllerExchangeInvite400Response,
   AuthControllerGetAdminStatus200Response,
-  AuthControllerGetPublicUsers200Response,
   AuthControllerLogin200Response,
   AuthControllerRefresh200Response,
   AuthControllerUnifiedAuth200Response,
@@ -31,6 +30,7 @@ import type {
   AuthRequestDto,
   ExchangeInviteDto,
   LoginDto,
+  PublicUsersResponseDto,
 } from '../models/index';
 import {
   AdminPasswordDtoFromJSON,
@@ -51,8 +51,6 @@ import {
   AuthControllerExchangeInvite400ResponseToJSON,
   AuthControllerGetAdminStatus200ResponseFromJSON,
   AuthControllerGetAdminStatus200ResponseToJSON,
-  AuthControllerGetPublicUsers200ResponseFromJSON,
-  AuthControllerGetPublicUsers200ResponseToJSON,
   AuthControllerLogin200ResponseFromJSON,
   AuthControllerLogin200ResponseToJSON,
   AuthControllerRefresh200ResponseFromJSON,
@@ -67,6 +65,8 @@ import {
   ExchangeInviteDtoToJSON,
   LoginDtoFromJSON,
   LoginDtoToJSON,
+  PublicUsersResponseDtoFromJSON,
+  PublicUsersResponseDtoToJSON,
 } from '../models/index';
 
 export interface AuthControllerAdminLoginRequest {
@@ -316,7 +316,7 @@ export class AuthApi extends runtime.BaseAPI {
    * Gibt eine Liste aller verfügbaren Benutzenden für den Login-Screen zurück
    * Öffentliche Benutzerliste abrufen
    */
-  async authControllerGetPublicUsersRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuthControllerGetPublicUsers200Response>> {
+  async authControllerGetPublicUsersRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PublicUsersResponseDto>> {
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -331,14 +331,14 @@ export class AuthApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => AuthControllerGetPublicUsers200ResponseFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => PublicUsersResponseDtoFromJSON(jsonValue));
   }
 
   /**
    * Gibt eine Liste aller verfügbaren Benutzenden für den Login-Screen zurück
    * Öffentliche Benutzerliste abrufen
    */
-  async authControllerGetPublicUsers(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuthControllerGetPublicUsers200Response> {
+  async authControllerGetPublicUsers(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PublicUsersResponseDto> {
     const response = await this.authControllerGetPublicUsersRaw(initOverrides);
     return await response.value();
   }

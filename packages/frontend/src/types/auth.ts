@@ -1,4 +1,4 @@
-import type { UserResponseDto } from '@bluelight-hub/shared/client';
+import type { UserResponseDto } from '@/shared';
 
 /**
  * Auth-Context State Interface für den React Context
