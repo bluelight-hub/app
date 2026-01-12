@@ -10,9 +10,9 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { BrowserSecurityBanner } from './BrowserSecurityBanner';
 
-// Mock isTauri platform detection
-vi.mock('@/shared/utils/platform', () => ({
-  isTauri: vi.fn(() => false), // Default: Browser mode
+// Mock useIsTauri hook
+vi.mock('@/shared/hooks/useIsTauri', () => ({
+  useIsTauri: vi.fn(() => ({ isTauri: false })), // Default: Browser mode
 }));
 
 // Mock useBrowserWarningDismissed hook
@@ -25,14 +25,14 @@ vi.mock('../../hooks/use-browser-warning-dismissed', () => ({
 }));
 
 // Import mocked modules for type safety
-import { isTauri } from '@/shared/utils/platform';
+import { useIsTauri } from '@/shared/hooks/useIsTauri';
 import { useBrowserWarningDismissed } from '../../hooks/use-browser-warning-dismissed';
 
 describe('BrowserSecurityBanner', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset to browser mode by default
-    vi.mocked(isTauri).mockReturnValue(false);
+    vi.mocked(useIsTauri).mockReturnValue({ isTauri: false });
     vi.mocked(useBrowserWarningDismissed).mockReturnValue({
       isDismissed: false,
       dismiss: mockDismiss,
@@ -42,7 +42,7 @@ describe('BrowserSecurityBanner', () => {
   describe('Browser Mode Rendering', () => {
     it('should render warning text in browser mode', () => {
       // Given (Arrange)
-      vi.mocked(isTauri).mockReturnValue(false);
+      vi.mocked(useIsTauri).mockReturnValue({ isTauri: false });
 
       // When (Act)
       render(<BrowserSecurityBanner />);
@@ -53,7 +53,7 @@ describe('BrowserSecurityBanner', () => {
 
     it('should render warning icon', () => {
       // Given (Arrange)
-      vi.mocked(isTauri).mockReturnValue(false);
+      vi.mocked(useIsTauri).mockReturnValue({ isTauri: false });
 
       // When (Act)
       const { container } = render(<BrowserSecurityBanner />);
@@ -67,7 +67,7 @@ describe('BrowserSecurityBanner', () => {
 
     it('should render dismiss button', () => {
       // Given (Arrange)
-      vi.mocked(isTauri).mockReturnValue(false);
+      vi.mocked(useIsTauri).mockReturnValue({ isTauri: false });
 
       // When (Act)
       render(<BrowserSecurityBanner />);
@@ -81,7 +81,7 @@ describe('BrowserSecurityBanner', () => {
 
     it('should have correct ARIA attributes', () => {
       // Given (Arrange)
-      vi.mocked(isTauri).mockReturnValue(false);
+      vi.mocked(useIsTauri).mockReturnValue({ isTauri: false });
 
       // When (Act)
       const { container } = render(<BrowserSecurityBanner />);
@@ -96,7 +96,7 @@ describe('BrowserSecurityBanner', () => {
   describe('Tauri Mode (AC5)', () => {
     it('should NOT render in Tauri mode', () => {
       // Given (Arrange)
-      vi.mocked(isTauri).mockReturnValue(true);
+      vi.mocked(useIsTauri).mockReturnValue({ isTauri: true });
 
       // When (Act)
       const { container } = render(<BrowserSecurityBanner />);
@@ -107,7 +107,7 @@ describe('BrowserSecurityBanner', () => {
 
     it('should return null when isTauri is true', () => {
       // Given (Arrange)
-      vi.mocked(isTauri).mockReturnValue(true);
+      vi.mocked(useIsTauri).mockReturnValue({ isTauri: true });
 
       // When (Act)
       render(<BrowserSecurityBanner />);
@@ -120,7 +120,7 @@ describe('BrowserSecurityBanner', () => {
   describe('Dismissed State', () => {
     it('should NOT render when dismissed', () => {
       // Given (Arrange)
-      vi.mocked(isTauri).mockReturnValue(false);
+      vi.mocked(useIsTauri).mockReturnValue({ isTauri: false });
       vi.mocked(useBrowserWarningDismissed).mockReturnValue({
         isDismissed: true,
         dismiss: mockDismiss,
@@ -151,7 +151,7 @@ describe('BrowserSecurityBanner', () => {
   describe('Dismiss Button Behavior', () => {
     it('should call dismiss function when button is clicked', async () => {
       // Given (Arrange)
-      vi.mocked(isTauri).mockReturnValue(false);
+      vi.mocked(useIsTauri).mockReturnValue({ isTauri: false });
       const user = userEvent.setup();
 
       render(<BrowserSecurityBanner />);
@@ -169,7 +169,7 @@ describe('BrowserSecurityBanner', () => {
 
     it('should have correct aria-label on dismiss button', () => {
       // Given (Arrange)
-      vi.mocked(isTauri).mockReturnValue(false);
+      vi.mocked(useIsTauri).mockReturnValue({ isTauri: false });
 
       // When (Act)
       render(<BrowserSecurityBanner />);
@@ -181,7 +181,7 @@ describe('BrowserSecurityBanner', () => {
 
     it('should be keyboard accessible', async () => {
       // Given (Arrange)
-      vi.mocked(isTauri).mockReturnValue(false);
+      vi.mocked(useIsTauri).mockReturnValue({ isTauri: false });
       const user = userEvent.setup();
 
       render(<BrowserSecurityBanner />);
@@ -202,7 +202,7 @@ describe('BrowserSecurityBanner', () => {
   describe('Styling', () => {
     it('should have correct warning colors', () => {
       // Given (Arrange)
-      vi.mocked(isTauri).mockReturnValue(false);
+      vi.mocked(useIsTauri).mockReturnValue({ isTauri: false });
 
       // When (Act)
       const { container } = render(<BrowserSecurityBanner />);
@@ -215,7 +215,7 @@ describe('BrowserSecurityBanner', () => {
 
     it('should have sticky positioning', () => {
       // Given (Arrange)
-      vi.mocked(isTauri).mockReturnValue(false);
+      vi.mocked(useIsTauri).mockReturnValue({ isTauri: false });
 
       // When (Act)
       const { container } = render(<BrowserSecurityBanner />);
@@ -229,7 +229,7 @@ describe('BrowserSecurityBanner', () => {
 
     it('should have correct text styling', () => {
       // Given (Arrange)
-      vi.mocked(isTauri).mockReturnValue(false);
+      vi.mocked(useIsTauri).mockReturnValue({ isTauri: false });
 
       // When (Act)
       render(<BrowserSecurityBanner />);
@@ -244,7 +244,7 @@ describe('BrowserSecurityBanner', () => {
   describe('Custom Props', () => {
     it('should apply custom className when provided', () => {
       // Given (Arrange)
-      vi.mocked(isTauri).mockReturnValue(false);
+      vi.mocked(useIsTauri).mockReturnValue({ isTauri: false });
       const customClassName = 'my-custom-class';
 
       // When (Act)
@@ -257,7 +257,7 @@ describe('BrowserSecurityBanner', () => {
 
     it('should merge custom className with default classes', () => {
       // Given (Arrange)
-      vi.mocked(isTauri).mockReturnValue(false);
+      vi.mocked(useIsTauri).mockReturnValue({ isTauri: false });
       const customClassName = 'shadow-lg';
 
       // When (Act)
@@ -277,7 +277,7 @@ describe('BrowserSecurityBanner', () => {
   describe('Accessibility', () => {
     it('should have focus ring styles on dismiss button', () => {
       // Given (Arrange)
-      vi.mocked(isTauri).mockReturnValue(false);
+      vi.mocked(useIsTauri).mockReturnValue({ isTauri: false });
 
       // When (Act)
       render(<BrowserSecurityBanner />);
@@ -292,7 +292,7 @@ describe('BrowserSecurityBanner', () => {
 
     it('should have hidden icon for screen readers', () => {
       // Given (Arrange)
-      vi.mocked(isTauri).mockReturnValue(false);
+      vi.mocked(useIsTauri).mockReturnValue({ isTauri: false });
 
       // When (Act)
       const { container } = render(<BrowserSecurityBanner />);
@@ -304,7 +304,7 @@ describe('BrowserSecurityBanner', () => {
 
     it('should have aria-labelledby pointing to warning text', () => {
       // Given (Arrange)
-      vi.mocked(isTauri).mockReturnValue(false);
+      vi.mocked(useIsTauri).mockReturnValue({ isTauri: false });
 
       // When (Act)
       const { container } = render(<BrowserSecurityBanner />);
@@ -316,7 +316,7 @@ describe('BrowserSecurityBanner', () => {
 
     it('should have id on warning text element for aria-labelledby reference', () => {
       // Given (Arrange)
-      vi.mocked(isTauri).mockReturnValue(false);
+      vi.mocked(useIsTauri).mockReturnValue({ isTauri: false });
 
       // When (Act)
       render(<BrowserSecurityBanner />);

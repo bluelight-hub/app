@@ -2,7 +2,7 @@
  * Server Constants Module
  *
  * Exportiert alle Konstanten für das Server-Feature,
- * insbesondere Fehlercodes und Mapping-Funktionen.
+ * insbesondere Fehlercodes, Mapping-Funktionen und Icon-Presets.
  */
 
 export {
@@ -11,3 +11,12 @@ export {
   getOnboardingErrorDetails,
   parseOnboardingErrorCode,
 } from './error-codes.constants';
+
+export {
+  SERVER_ICON_PRESETS,
+  DEFAULT_SERVER_ICON,
+  type ServerIconProps,
+  type ServerIconComponent,
+  type ServerIconValue,
+  type ServerIconPreset,
+} from './server-icons';

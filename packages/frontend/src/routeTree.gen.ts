@@ -16,9 +16,11 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ServerSetupRouteImport } from './routes/server/setup'
+import { Route as ServerManageRouteImport } from './routes/server/manage'
 import { Route as AppEinsatzRouteImport } from './routes/app/einsatz'
 import { Route as AppEinsaetzeRouteImport } from './routes/app/einsaetze'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
+import { Route as AdminTokensRouteImport } from './routes/admin/tokens'
 import { Route as AdminSetupRouteImport } from './routes/admin/setup'
 import { Route as AdminInvitesRouteImport } from './routes/admin/invites'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
@@ -97,6 +99,11 @@ const ServerSetupRoute = ServerSetupRouteImport.update({
   path: '/server/setup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ServerManageRoute = ServerManageRouteImport.update({
+  id: '/server/manage',
+  path: '/server/manage',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppEinsatzRoute = AppEinsatzRouteImport.update({
   id: '/einsatz',
   path: '/einsatz',
@@ -110,6 +117,11 @@ const AppEinsaetzeRoute = AppEinsaetzeRouteImport.update({
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminTokensRoute = AdminTokensRouteImport.update({
+  id: '/tokens',
+  path: '/tokens',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminSetupRoute = AdminSetupRouteImport.update({
@@ -366,9 +378,11 @@ export interface FileRoutesByFullPath {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/invites': typeof AdminInvitesRoute
   '/admin/setup': typeof AdminSetupRoute
+  '/admin/tokens': typeof AdminTokensRoute
   '/admin/users': typeof AdminUsersRoute
   '/app/einsaetze': typeof AppEinsaetzeRouteWithChildren
   '/app/einsatz': typeof AppEinsatzRouteWithChildren
+  '/server/manage': typeof ServerManageRoute
   '/server/setup': typeof ServerSetupRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/integrations/hiorg': typeof AdminIntegrationsHiorgRoute
@@ -419,8 +433,10 @@ export interface FileRoutesByTo {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/invites': typeof AdminInvitesRoute
   '/admin/setup': typeof AdminSetupRoute
+  '/admin/tokens': typeof AdminTokensRoute
   '/admin/users': typeof AdminUsersRoute
   '/app/einsatz': typeof AppEinsatzRouteWithChildren
+  '/server/manage': typeof ServerManageRoute
   '/server/setup': typeof ServerSetupRoute
   '/admin': typeof AdminIndexRoute
   '/admin/integrations/hiorg': typeof AdminIntegrationsHiorgRoute
@@ -471,9 +487,11 @@ export interface FileRoutesById {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/invites': typeof AdminInvitesRoute
   '/admin/setup': typeof AdminSetupRoute
+  '/admin/tokens': typeof AdminTokensRoute
   '/admin/users': typeof AdminUsersRoute
   '/app/einsaetze': typeof AppEinsaetzeRouteWithChildren
   '/app/einsatz': typeof AppEinsatzRouteWithChildren
+  '/server/manage': typeof ServerManageRoute
   '/server/setup': typeof ServerSetupRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/integrations/hiorg': typeof AdminIntegrationsHiorgRoute
@@ -527,9 +545,11 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/invites'
     | '/admin/setup'
+    | '/admin/tokens'
     | '/admin/users'
     | '/app/einsaetze'
     | '/app/einsatz'
+    | '/server/manage'
     | '/server/setup'
     | '/admin/'
     | '/admin/integrations/hiorg'
@@ -580,8 +600,10 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/invites'
     | '/admin/setup'
+    | '/admin/tokens'
     | '/admin/users'
     | '/app/einsatz'
+    | '/server/manage'
     | '/server/setup'
     | '/admin'
     | '/admin/integrations/hiorg'
@@ -631,9 +653,11 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/invites'
     | '/admin/setup'
+    | '/admin/tokens'
     | '/admin/users'
     | '/app/einsaetze'
     | '/app/einsatz'
+    | '/server/manage'
     | '/server/setup'
     | '/admin/'
     | '/admin/integrations/hiorg'
@@ -683,6 +707,7 @@ export interface RootRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ServerManageRoute: typeof ServerManageRoute
   ServerSetupRoute: typeof ServerSetupRoute
 }
 
@@ -737,6 +762,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ServerSetupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/server/manage': {
+      id: '/server/manage'
+      path: '/server/manage'
+      fullPath: '/server/manage'
+      preLoaderRoute: typeof ServerManageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/einsatz': {
       id: '/app/einsatz'
       path: '/einsatz'
@@ -756,6 +788,13 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/admin/users'
       preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/tokens': {
+      id: '/admin/tokens'
+      path: '/tokens'
+      fullPath: '/admin/tokens'
+      preLoaderRoute: typeof AdminTokensRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/setup': {
@@ -1059,6 +1098,7 @@ interface AdminRouteChildren {
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminInvitesRoute: typeof AdminInvitesRoute
   AdminSetupRoute: typeof AdminSetupRoute
+  AdminTokensRoute: typeof AdminTokensRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminIntegrationsHiorgRoute: typeof AdminIntegrationsHiorgRoute
@@ -1072,6 +1112,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminDashboardRoute: AdminDashboardRoute,
   AdminInvitesRoute: AdminInvitesRoute,
   AdminSetupRoute: AdminSetupRoute,
+  AdminTokensRoute: AdminTokensRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminIntegrationsHiorgRoute: AdminIntegrationsHiorgRoute,
@@ -1240,6 +1281,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRoute,
+  ServerManageRoute: ServerManageRoute,
   ServerSetupRoute: ServerSetupRoute,
 }
 export const routeTree = rootRouteImport

@@ -22,12 +22,14 @@ export const ADMIN_QUERY_KEYS = {
     all: ['admin', 'kraefte'] as const,
     qualifikationen: {
       all: () => [...ADMIN_QUERY_KEYS.kraefte.all, 'qualifikationen'] as const,
-      list: (filters?: { istAktiv?: boolean }) => [...ADMIN_QUERY_KEYS.kraefte.qualifikationen.all(), 'list', filters].filter((v) => v !== undefined) as const,
+      list: (filters?: { istAktiv?: boolean }) =>
+        filters ? ([...ADMIN_QUERY_KEYS.kraefte.qualifikationen.all(), 'list', filters] as const) : ([...ADMIN_QUERY_KEYS.kraefte.qualifikationen.all(), 'list'] as const),
       detail: (id: string) => [...ADMIN_QUERY_KEYS.kraefte.qualifikationen.all(), 'detail', id] as const,
     },
     rollenDefinitionen: {
       all: () => [...ADMIN_QUERY_KEYS.kraefte.all, 'rollenDefinitionen'] as const,
-      list: (filters?: { istAktiv?: boolean }) => [...ADMIN_QUERY_KEYS.kraefte.rollenDefinitionen.all(), 'list', filters].filter((v) => v !== undefined) as const,
+      list: (filters?: { istAktiv?: boolean }) =>
+        filters ? ([...ADMIN_QUERY_KEYS.kraefte.rollenDefinitionen.all(), 'list', filters] as const) : ([...ADMIN_QUERY_KEYS.kraefte.rollenDefinitionen.all(), 'list'] as const),
       detail: (id: string) => [...ADMIN_QUERY_KEYS.kraefte.rollenDefinitionen.all(), 'detail', id] as const,
     },
   },
@@ -35,12 +37,14 @@ export const ADMIN_QUERY_KEYS = {
     all: ['admin', 'stammdaten'] as const,
     fahrzeuge: {
       all: () => [...ADMIN_QUERY_KEYS.stammdaten.all, 'fahrzeuge'] as const,
-      list: (filters?: { includeArchived?: boolean }) => [...ADMIN_QUERY_KEYS.stammdaten.fahrzeuge.all(), 'list', filters].filter((v) => v !== undefined) as const,
+      list: (filters?: { includeArchived?: boolean }) =>
+        filters ? ([...ADMIN_QUERY_KEYS.stammdaten.fahrzeuge.all(), 'list', filters] as const) : ([...ADMIN_QUERY_KEYS.stammdaten.fahrzeuge.all(), 'list'] as const),
       detail: (id: string) => [...ADMIN_QUERY_KEYS.stammdaten.fahrzeuge.all(), 'detail', id] as const,
     },
     personen: {
       all: () => [...ADMIN_QUERY_KEYS.stammdaten.all, 'personen'] as const,
-      list: (filters?: { includeArchived?: boolean }) => [...ADMIN_QUERY_KEYS.stammdaten.personen.all(), 'list', filters].filter((v) => v !== undefined) as const,
+      list: (filters?: { includeArchived?: boolean }) =>
+        filters ? ([...ADMIN_QUERY_KEYS.stammdaten.personen.all(), 'list', filters] as const) : ([...ADMIN_QUERY_KEYS.stammdaten.personen.all(), 'list'] as const),
       detail: (id: string) => [...ADMIN_QUERY_KEYS.stammdaten.personen.all(), 'detail', id] as const,
     },
   },
@@ -49,14 +53,21 @@ export const ADMIN_QUERY_KEYS = {
     hiorg: {
       all: () => [...ADMIN_QUERY_KEYS.integrations.all, 'hiorg'] as const,
       credentials: () => [...ADMIN_QUERY_KEYS.integrations.hiorg.all(), 'credentials'] as const,
-      preview: (filters?: { activeOnly?: boolean }) => [...ADMIN_QUERY_KEYS.integrations.hiorg.all(), 'preview', filters].filter((v) => v !== undefined) as const,
+      preview: (filters?: { activeOnly?: boolean }) =>
+        filters ? ([...ADMIN_QUERY_KEYS.integrations.hiorg.all(), 'preview', filters] as const) : ([...ADMIN_QUERY_KEYS.integrations.hiorg.all(), 'preview'] as const),
       qualifikationMappings: () => [...ADMIN_QUERY_KEYS.integrations.hiorg.all(), 'qualifikationMappings'] as const,
     },
   },
   invites: {
     all: () => [...ADMIN_QUERY_KEYS.all, 'invites'] as const,
     list: (filters?: { status?: string; createdBy?: string; page?: number; pageSize?: number; sort?: string }) =>
-      [...ADMIN_QUERY_KEYS.invites.all(), 'list', filters].filter((v) => v !== undefined) as const,
+      filters ? ([...ADMIN_QUERY_KEYS.invites.all(), 'list', filters] as const) : ([...ADMIN_QUERY_KEYS.invites.all(), 'list'] as const),
     detail: (id: string) => [...ADMIN_QUERY_KEYS.invites.all(), 'detail', id] as const,
+  },
+  accessTokens: {
+    all: () => [...ADMIN_QUERY_KEYS.all, 'accessTokens'] as const,
+    list: (filters?: { page?: number; limit?: number }) =>
+      filters ? ([...ADMIN_QUERY_KEYS.accessTokens.all(), 'list', filters] as const) : ([...ADMIN_QUERY_KEYS.accessTokens.all(), 'list'] as const),
+    detail: (id: string) => [...ADMIN_QUERY_KEYS.accessTokens.all(), 'detail', id] as const,
   },
 } as const;

@@ -21,6 +21,9 @@ import { logger } from '@/shared/lib/logger';
 /** Timeout in Millisekunden (NFR-P4: 5 Sekunden) */
 const HEALTH_CHECK_TIMEOUT_MS = 5000;
 
+/** Interval für periodische Health-Checks in Millisekunden (30 Sekunden) */
+const HEALTH_CHECK_INTERVAL_MS = 30000;
+
 /**
  * Führt einen Health-Check für einen einzelnen Server durch.
  *
@@ -100,6 +103,7 @@ export function useServerListHealth(): void {
           }, HEALTH_CHECK_TIMEOUT_MS);
 
           // Kombiniere globalen Abort mit Timeout
+          // { once: true } entfernt den Listener automatisch nach einmaligem Aufruf
           const handleAbort = () => timeoutController.abort();
           controller.signal.addEventListener('abort', handleAbort, { once: true });
 
@@ -108,7 +112,6 @@ export function useServerListHealth(): void {
             return { serverId: server.id, serverName: server.name, isHealthy };
           } finally {
             clearTimeout(timeoutId);
-            controller.signal.removeEventListener('abort', handleAbort);
           }
         }),
       );
@@ -121,9 +124,18 @@ export function useServerListHealth(): void {
 
       // Ergebnisse verarbeiten
       for (const result of results) {
-        if (controller.signal.aborted) break;
+        // Abort-Check VOR jedem Status-Update um Race Conditions zu vermeiden
+        if (controller.signal.aborted) {
+          logger.debug('[ServerListHealth] Aborted during result processing');
+          break;
+        }
         if (result.status === 'fulfilled') {
           const { serverId, serverName, isHealthy } = result.value;
+          // Erneuter Abort-Check direkt vor dem Status-Update
+          if (controller.signal.aborted) {
+            logger.debug('[ServerListHealth] Aborted before status update');
+            break;
+          }
           const status = isHealthy ? 'connected' : 'disconnected';
           updateConnectionStatus(serverId, status);
           logger.debug('[ServerListHealth] Server check complete', {
@@ -136,11 +148,21 @@ export function useServerListHealth(): void {
       logger.debug('[ServerListHealth] All health checks complete');
     };
 
+    // Initialer Health-Check bei Mount
     checkAllServers();
 
-    // Cleanup: Laufende Checks abbrechen
+    // Periodische Health-Checks alle 30 Sekunden
+    const intervalId = setInterval(() => {
+      if (!controller.signal.aborted) {
+        logger.debug('[ServerListHealth] Running periodic health check');
+        checkAllServers();
+      }
+    }, HEALTH_CHECK_INTERVAL_MS);
+
+    // Cleanup: Laufende Checks abbrechen und Interval stoppen
     return () => {
       controller.abort();
+      clearInterval(intervalId);
       abortControllerRef.current = null;
     };
   }, [isHydrated, servers]);

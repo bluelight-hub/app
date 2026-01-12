@@ -9,7 +9,7 @@
 
 import type { DeepLinkParams, DeepLinkEvent } from '../types/deep-link';
 import { DeepLinkError } from '../types/deep-link';
-import { isTauri } from '@/shared/utils/platform';
+import { isTauri } from '@tauri-apps/api/core';
 
 /**
  * Event Callback Type für Deep Link Events

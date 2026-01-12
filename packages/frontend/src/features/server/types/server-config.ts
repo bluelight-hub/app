@@ -1,3 +1,6 @@
+import type { ServerIconValue } from '../constants/server-icons';
+import type { ServerColorValue } from '../utils/server-color.utils';
+
 /**
  * Konfiguration eines einzelnen Backend-Servers.
  *
@@ -43,6 +46,18 @@ export interface ServerConfig {
    * Wird aktualisiert wenn eine Verbindung zum Server aufgebaut wird.
    */
   lastUsedAt: string | null;
+
+  /**
+   * Optionales Icon für visuelle Unterscheidung im UI.
+   * Muss ein gültiger ServerIconValue sein (z.B. 'building', 'shield', 'server').
+   */
+  icon?: ServerIconValue;
+
+  /**
+   * Optionale Farbe für visuelle Unterscheidung im UI.
+   * Muss ein gültiger ServerColorValue sein (z.B. 'sky', 'emerald', 'amber').
+   */
+  color?: ServerColorValue;
 }
 
 /**

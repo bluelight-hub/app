@@ -16,6 +16,12 @@ export { useAdminStammFahrzeugeManagement } from './use-admin-stamm-fahrzeuge-ma
 export { useAdminStammPersonenManagement } from './use-admin-stamm-personen-management';
 export { useAdminHiOrgIntegration } from './use-admin-hiorg-integration';
 export { useListInvites, useRevokeInvite, type InviteFilters } from './use-admin-invite-management';
+export {
+  useAccessTokenManagement,
+  useListAccessTokens,
+  useCreateAccessToken,
+  type AccessTokenFilters,
+} from './use-access-token-management';
 
 // Re-export generierte DTOs für Convenience
 export type { CreateQualifikationDto, QualifikationDto, UpdateQualifikationDto } from '@/shared';
@@ -23,3 +29,11 @@ export type { CreateRollenDefinitionDto, RollenDefinitionDto, UpdateRollenDefini
 export type { CreateStammFahrzeugDto, StammFahrzeugDto, UpdateStammFahrzeugDto } from '@/shared';
 export type { CreateStammPersonDto, StammPersonDto, UpdateStammPersonDto, StammPersonQualifikationDto } from '@/shared';
 export type { InviteCodeListItemDto, AdminInviteControllerListInvitesVAlphaStatusEnum } from '@/shared';
+export type {
+  CreateAccessTokenDto,
+  CreateAccessTokenResponseDto,
+  TokenListItemDto,
+  TokenListItemDtoStatusEnum,
+  AdminTokenControllerCreateTokenVAlpha201Response,
+  AdminTokenControllerListTokensVAlpha200Response,
+} from '@/shared';

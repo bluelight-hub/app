@@ -19,7 +19,10 @@ import type {
   AdminInviteControllerRevokeInviteVAlpha200Response,
   AdminSetupControllerCompleteSetupVAlpha201Response,
   AdminSetupControllerCompleteSetupVAlpha400Response,
+  AdminTokenControllerCreateTokenVAlpha201Response,
+  AdminTokenControllerListTokensVAlpha200Response,
   CompleteSetupDto,
+  CreateAccessTokenDto,
   CreateInviteDto,
 } from '../models/index';
 import {
@@ -33,8 +36,14 @@ import {
   AdminSetupControllerCompleteSetupVAlpha201ResponseToJSON,
   AdminSetupControllerCompleteSetupVAlpha400ResponseFromJSON,
   AdminSetupControllerCompleteSetupVAlpha400ResponseToJSON,
+  AdminTokenControllerCreateTokenVAlpha201ResponseFromJSON,
+  AdminTokenControllerCreateTokenVAlpha201ResponseToJSON,
+  AdminTokenControllerListTokensVAlpha200ResponseFromJSON,
+  AdminTokenControllerListTokensVAlpha200ResponseToJSON,
   CompleteSetupDtoFromJSON,
   CompleteSetupDtoToJSON,
+  CreateAccessTokenDtoFromJSON,
+  CreateAccessTokenDtoToJSON,
   CreateInviteDtoFromJSON,
   CreateInviteDtoToJSON,
 } from '../models/index';
@@ -57,6 +66,15 @@ export interface AdminInviteControllerRevokeInviteVAlphaRequest {
 
 export interface AdminSetupControllerCompleteSetupVAlphaRequest {
   completeSetupDto: CompleteSetupDto;
+}
+
+export interface AdminTokenControllerCreateTokenVAlphaRequest {
+  createAccessTokenDto: CreateAccessTokenDto;
+}
+
+export interface AdminTokenControllerListTokensVAlphaRequest {
+  page?: number;
+  limit?: number;
 }
 
 /**
@@ -246,6 +264,95 @@ export class AdminApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<AdminSetupControllerCompleteSetupVAlpha201Response> {
     const response = await this.adminSetupControllerCompleteSetupVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Erstellt einen neuen Server-Access-Token. Das Token wird NUR in dieser Response im Klartext angezeigt. Rate-Limit: 10/Minute.
+   * Access-Token erstellen
+   */
+  async adminTokenControllerCreateTokenVAlphaRaw(
+    requestParameters: AdminTokenControllerCreateTokenVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<AdminTokenControllerCreateTokenVAlpha201Response>> {
+    if (requestParameters['createAccessTokenDto'] == null) {
+      throw new runtime.RequiredError('createAccessTokenDto', 'Required parameter "createAccessTokenDto" was null or undefined when calling adminTokenControllerCreateTokenVAlpha().');
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/admin/tokens`,
+        method: 'POST',
+        headers: headerParameters,
+        query: queryParameters,
+        body: CreateAccessTokenDtoToJSON(requestParameters['createAccessTokenDto']),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminTokenControllerCreateTokenVAlpha201ResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Erstellt einen neuen Server-Access-Token. Das Token wird NUR in dieser Response im Klartext angezeigt. Rate-Limit: 10/Minute.
+   * Access-Token erstellen
+   */
+  async adminTokenControllerCreateTokenVAlpha(
+    requestParameters: AdminTokenControllerCreateTokenVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<AdminTokenControllerCreateTokenVAlpha201Response> {
+    const response = await this.adminTokenControllerCreateTokenVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Gibt eine paginierte Liste aller Server-Access-Tokens zurück. Token-Hashes werden aus Sicherheitsgründen nicht angezeigt.
+   * Access-Tokens auflisten
+   */
+  async adminTokenControllerListTokensVAlphaRaw(
+    requestParameters: AdminTokenControllerListTokensVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<AdminTokenControllerListTokensVAlpha200Response>> {
+    const queryParameters: any = {};
+
+    if (requestParameters['page'] != null) {
+      queryParameters['page'] = requestParameters['page'];
+    }
+
+    if (requestParameters['limit'] != null) {
+      queryParameters['limit'] = requestParameters['limit'];
+    }
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/admin/tokens`,
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminTokenControllerListTokensVAlpha200ResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Gibt eine paginierte Liste aller Server-Access-Tokens zurück. Token-Hashes werden aus Sicherheitsgründen nicht angezeigt.
+   * Access-Tokens auflisten
+   */
+  async adminTokenControllerListTokensVAlpha(
+    requestParameters: AdminTokenControllerListTokensVAlphaRequest = {},
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<AdminTokenControllerListTokensVAlpha200Response> {
+    const response = await this.adminTokenControllerListTokensVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
 }

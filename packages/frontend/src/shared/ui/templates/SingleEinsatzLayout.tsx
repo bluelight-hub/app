@@ -8,6 +8,8 @@ import { ModuleOverviewCard } from '@/features/einsatz/ui/molecules/ModuleOvervi
 import { CommandPalette } from '@/shared/ui/organisms/command-palette';
 import { CommandPaletteErrorBoundary } from '@/shared/ui/organisms/command-palette/CommandPaletteErrorBoundary';
 import { EINSATZ_QUERY_KEYS, useEinsatzDetails, useEinsatzModules } from '@/features/einsatz';
+import { useActiveServer } from '@/features/server/hooks';
+import { ServerNameBadge } from '@/features/server/ui/atoms';
 import { cn, getModuleActiveColor, getModuleColor } from '@/shared/ui';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { EinsatzDtoStatusEnum } from '@/shared';
@@ -30,6 +32,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   const queryClient = useQueryClient();
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [showEndConfirmation, setShowEndConfirmation] = useState(false);
+  const activeServer = useActiveServer();
 
   // Prüfe ob wir im Fullscreen/Presentation-Modus sind
   const currentSearch = router.state.location.search as { mode?: string };
@@ -207,9 +210,12 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
                 )}
               </div>
 
-              {/* Right: Fullscreen, Status and Timer */}
+              {/* Right: Server Name, Fullscreen, Status and Timer */}
               {einsatz && (
                 <div className="flex items-center gap-4">
+                  {/* Server Name Badge */}
+                  {activeServer && <ServerNameBadge name={activeServer.name} className="hidden md:flex" />}
+
                   {/* Fullscreen-Button (für /karte und /etb Routes) */}
                   {supportsFullscreen && (
                     <Button appearance="ghost" size="sm" onClick={handleFullscreenToggle} className="gap-2" title="Vollbildmodus aktivieren">

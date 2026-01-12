@@ -10,10 +10,11 @@ import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 import { cleanupExpiredTiles } from '@/shared/lib/storage/offline-cleanup';
 import { QueryProvider } from '@/provider/query-client.provider';
+import { logger } from '@/shared/lib/logger';
 
 // Initialize offline tile cleanup on app startup
 cleanupExpiredTiles('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').catch((error) => {
-  console.error('[App-Startup] Offline-Cleanup fehlgeschlagen:', error);
+  logger.error('[App-Startup] Offline-Cleanup fehlgeschlagen', { error });
 });
 
 const router = createRouter({

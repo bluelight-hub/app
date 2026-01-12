@@ -11,3 +11,4 @@ export type { UseRequireServerResult } from './use-require-server';
 export { useServerListHealth } from './use-server-list-health';
 export { useBrowserWarningDismissed } from './use-browser-warning-dismissed';
 export type { UseBrowserWarningDismissedResult } from './use-browser-warning-dismissed';
+export { useServerById } from './use-server-by-id';

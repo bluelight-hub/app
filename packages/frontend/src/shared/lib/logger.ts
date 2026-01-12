@@ -1,5 +1,10 @@
-import { createConsola } from 'consola';
+import { createConsola } from 'consola/browser';
 
+/**
+ * Zentrale Logger-Instanz für das Frontend.
+ *
+ * Nutzt consola/browser für korrekte Browser-Formatierung ohne ANSI-Codes.
+ */
 export const logger = createConsola({
-  level: process.env.NODE_ENV === 'production' ? 3 : 5,
+  level: import.meta.env.PROD ? 3 : 5,
 });

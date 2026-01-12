@@ -1,6 +1,7 @@
 import { milliseconds } from 'date-fns';
 import type { TileInfo } from 'leaflet.offline';
 import { getStorageInfo, removeTile } from 'leaflet.offline';
+import { logger } from '@/shared/lib/logger';
 
 /**
  * Bereinigt abgelaufene Tiles aus dem IndexedDB-Cache.
@@ -30,10 +31,13 @@ export async function cleanupExpiredTiles(urlTemplate: string, ttlDays = 30): Pr
       return now - tile.createdAt > ttl;
     });
 
-    console.log(`[Offline-Cleanup] Gefundene Tiles: ${allTiles.length}, Abgelaufen: ${expiredTiles.length}`);
+    logger.debug('[Offline-Cleanup] Gefundene Tiles', {
+      total: allTiles.length,
+      expired: expiredTiles.length,
+    });
 
     if (expiredTiles.length === 0) {
-      console.log('[Offline-Cleanup] Keine abgelaufenen Tiles zum Löschen');
+      logger.debug('[Offline-Cleanup] Keine abgelaufenen Tiles zum Löschen', {});
       return;
     }
 
@@ -42,9 +46,11 @@ export async function cleanupExpiredTiles(urlTemplate: string, ttlDays = 30): Pr
       await removeTile(tile.key);
     }
 
-    console.log(`[Offline-Cleanup] ${expiredTiles.length} abgelaufene Tiles erfolgreich gelöscht`);
+    logger.debug('[Offline-Cleanup] Abgelaufene Tiles gelöscht', {
+      count: expiredTiles.length,
+    });
   } catch (error) {
-    console.error('[Offline-Cleanup] Fehler beim Cleanup:', error);
+    logger.error('[Offline-Cleanup] Fehler beim Cleanup', { error });
     throw error;
   }
 }
@@ -85,7 +91,7 @@ export async function getTileStorageStats(urlTemplate: string): Promise<{
       newestTile: new Date(newestTimestamp),
     };
   } catch (error) {
-    console.error('[Offline-Cleanup] Fehler beim Abrufen der Statistiken:', error);
+    logger.error('[Offline-Cleanup] Fehler beim Abrufen der Statistiken', { error });
     throw error;
   }
 }

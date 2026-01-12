@@ -62,6 +62,8 @@ models/AdminStammFahrzeugeControllerFindAllVAlpha200Response.ts
 models/AdminStammPersonenControllerCreateVAlpha201Response.ts
 models/AdminStammPersonenControllerFindAllVAlpha200Response.ts
 models/AdminStatusDto.ts
+models/AdminTokenControllerCreateTokenVAlpha201Response.ts
+models/AdminTokenControllerListTokensVAlpha200Response.ts
 models/AdminTokenVerificationDto.ts
 models/AdminUserDto.ts
 models/ApiMeta.ts
@@ -95,6 +97,8 @@ models/BesetzeRolleDto.ts
 models/CompleteSetupDto.ts
 models/CompletenessResponseDto.ts
 models/CoordinateDto.ts
+models/CreateAccessTokenDto.ts
+models/CreateAccessTokenResponseDto.ts
 models/CreateEinsatzDto.ts
 models/CreateFahrzeugtypDto.ts
 models/CreateInviteDto.ts
@@ -219,6 +223,7 @@ models/StatusCountsResponseDto.ts
 models/TaktischeStaerkeDto.ts
 models/TextbausteinDto.ts
 models/TextbausteinListResponse.ts
+models/TokenListItemDto.ts
 models/UpdateEinsatzDto.ts
 models/UpdateEintragDto.ts
 models/UpdateFahrzeugtypDto.ts

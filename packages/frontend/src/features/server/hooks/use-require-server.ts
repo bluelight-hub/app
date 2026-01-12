@@ -21,6 +21,7 @@
 import { useStore } from '@tanstack/react-store';
 import { useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
+import { toast } from 'sonner';
 import { serverStore } from '../stores/server.store';
 import { logger } from '@/shared/lib/logger';
 import { isSetupRedirectInProgress } from '@/shared/lib/server-access-token';
@@ -128,6 +129,7 @@ export function useRequireServer(): UseRequireServerResult {
     // Nur redirect wenn KEINE Server konfiguriert sind
     if (servers.length === 0) {
       logger.info('useRequireServer: No servers configured, redirecting to /server/setup');
+      toast.info('Bitte füge zuerst einen Server hinzu');
       navigate({ to: '/server/setup', replace: true });
     } else {
       logger.debug('useRequireServer: Servers found, no redirect needed', { serverCount: servers.length });

@@ -144,4 +144,37 @@ export interface IServerAccessTokenRepository {
    * @returns Result<number> - Anzahl aktiver Tokens
    */
   countActive(tx?: TransactionContext): Promise<Result<number>>;
+
+  /**
+   * Lädt alle Tokens mit Pagination (sowohl aktive als auch widerrufene).
+   *
+   * **Use Case:**
+   * - Admin Dashboard: Token-Übersicht mit allen Tokens
+   * - Token-Verwaltung: Liste aller Tokens zur Administration
+   *
+   * **Sortierung:**
+   * - Tokens werden nach createdAt DESC sortiert (neueste zuerst)
+   *
+   * @param page - Seitennummer (1-basiert)
+   * @param limit - Anzahl der Einträge pro Seite
+   * @param tx - Optional Transaction Context
+   * @returns Result<ServerAccessTokenPaginatedResult> - Success mit paginiertem Ergebnis
+   */
+  findAllPaginated(page: number, limit: number, tx?: TransactionContext): Promise<Result<ServerAccessTokenPaginatedResult>>;
+}
+
+/**
+ * Paginiertes Ergebnis für ServerAccessToken Queries.
+ */
+export interface ServerAccessTokenPaginatedResult {
+  /** Liste der Tokens auf der aktuellen Seite */
+  items: ServerAccessToken[];
+  /** Gesamtzahl aller Tokens */
+  total: number;
+  /** Aktuelle Seitennummer */
+  page: number;
+  /** Anzahl der Einträge pro Seite */
+  pageSize: number;
+  /** Gesamtzahl der Seiten */
+  totalPages: number;
 }

@@ -2,6 +2,8 @@ import { Store } from '@tanstack/react-store';
 import type { ConnectionStatus, ServerConfig, ServerState } from '../types/server-config';
 import { loadServers, saveServers } from './server-persistence';
 import { setServerAccessToken, clearServerAccessToken } from '@/shared/lib/server-access-token';
+import { isValidServerIcon, type ServerIconValue } from '../utils/server-icon.utils';
+import { isValidServerColor, type ServerColorValue } from '../utils/server-color.utils';
 
 /**
  * Initial State des Server-Stores.
@@ -35,6 +37,26 @@ const initialState: ServerState = {
 export const serverStore = new Store<ServerState>(initialState);
 
 /**
+ * Sanitisiert Server-Namen um XSS-Angriffe zu verhindern (Defense in Depth).
+ *
+ * Entfernt HTML-Tags inkl. Inhalt von script/style Tags und begrenzt die Länge auf 100 Zeichen.
+ * Diese Sanitization ist eine zusätzliche Sicherheitsebene für den Fall,
+ * dass localStorage manipuliert wird oder bösartige Daten injiziert werden.
+ *
+ * @param name - Der zu sanitisierende Server-Name
+ * @returns Bereinigter Name ohne HTML-Tags, max 100 Zeichen
+ */
+function sanitizeServerName(name: string): string {
+  // 1. Script/Style Tags inkl. Inhalt entfernen (Case-insensitive)
+  let sanitized = name.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  sanitized = sanitized.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
+  // 2. Alle verbleibenden HTML-Tags entfernen (verhindert <img onerror>, <a onclick>, etc.)
+  sanitized = sanitized.replace(/<[^>]*>/g, '');
+  // 3. Max-Length enforcing (DoS Prevention) + Whitespace trimmen
+  return sanitized.substring(0, 100).trim();
+}
+
+/**
  * Generiert eine eindeutige Server-ID.
  *
  * Verwendet native crypto.randomUUID() wenn verfügbar (moderne Browser),
@@ -52,7 +74,8 @@ function generateServerId(): string {
 /**
  * Validiert eine Server-URL.
  *
- * Erlaubt nur HTTPS-URLs oder localhost für Entwicklung.
+ * Erlaubt HTTPS-URLs immer, HTTP nur für localhost oder wenn VITE_INSECURE_MODE='true'.
+ * Synchronisiert mit der Logik in url-params.schema.ts für konsistente Validierung.
  * Verwendet native URL-Konstruktor für sichere Validierung.
  *
  * @param url - Die zu validierende URL
@@ -61,41 +84,132 @@ function generateServerId(): string {
 function validateUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
-    return parsed.protocol === 'https:' || parsed.hostname === 'localhost';
+    const isInsecureMode = import.meta.env.VITE_INSECURE_MODE === 'true';
+
+    if (parsed.protocol === 'https:') return true;
+    if (parsed.protocol === 'http:') {
+      return parsed.hostname === 'localhost' || isInsecureMode;
+    }
+    return false;
   } catch {
     return false;
   }
 }
 
 /**
+ * Sortiert Server-Liste nach Last-Used Priorität (zuletzt verwendet zuerst).
+ *
+ * Sortierlogik:
+ * 1. Server mit neuestem `lastUsedAt` Timestamp zuerst
+ * 2. Server mit `lastUsedAt` vor Servern ohne
+ * 3. Server ohne `lastUsedAt`: sortiert nach `createdAt` (älteste zuerst)
+ *
+ * Performance-Optimierung: Pre-parst alle Timestamps VOR der Sortierung
+ * (O(N) statt O(N log N) Date-Konstruktionen im Comparator).
+ *
+ * Diese Funktion ist wiederverwendbar für:
+ * - ServerSelector Dropdown (sortierte Server-Liste)
+ * - getDefaultServer() (ermittelt ersten der sortierten Liste)
+ *
+ * @param servers - Array der zu sortierenden Server
+ * @returns Sortierte Kopie des Arrays (immutable)
+ *
+ * @example
+ * ```typescript
+ * const sortedServers = sortServersByLastUsed(servers);
+ * // sortedServers[0] ist der zuletzt verwendete Server
+ * ```
+ */
+export function sortServersByLastUsed(servers: ServerConfig[]): ServerConfig[] {
+  if (servers.length <= 1) return [...servers];
+
+  // Pre-parse Timestamps EINMAL vor der Sortierung (O(N))
+  // Vermeidet O(N log N) Date-Konstruktionen im Comparator
+  const serversWithParsedDates = servers.map((server) => ({
+    server,
+    lastUsedTime: server.lastUsedAt ? new Date(server.lastUsedAt).getTime() : -1,
+    createdTime: new Date(server.createdAt).getTime(),
+  }));
+
+  // Sortiere mit pre-parsed Timestamps (Vergleiche sind jetzt O(1))
+  serversWithParsedDates.sort((a, b) => {
+    // Priorität 1: Beide haben lastUsedAt -> neuester zuerst
+    if (a.lastUsedTime !== -1 && b.lastUsedTime !== -1) {
+      return b.lastUsedTime - a.lastUsedTime;
+    }
+    // Priorität 2: Nur a hat lastUsedAt -> a zuerst
+    if (a.lastUsedTime !== -1) return -1;
+    // Priorität 3: Nur b hat lastUsedAt -> b zuerst
+    if (b.lastUsedTime !== -1) return 1;
+    // Fallback: Beide ohne lastUsedAt -> ältester nach createdAt zuerst
+    return a.createdTime - b.createdTime;
+  });
+
+  return serversWithParsedDates.map((item) => item.server);
+}
+
+/**
+ * Ermittelt den Default-Server basierend auf Last-Used Priorität.
+ *
+ * Sortierlogik für automatische Server-Auswahl beim App-Start:
+ * 1. Server mit neuestem `lastUsedAt` Timestamp (zuletzt verwendet)
+ * 2. Bei gleichem/fehlendem `lastUsedAt`: Nach `createdAt` (ältester zuerst)
+ *
+ * Diese Logik stellt sicher, dass der zuletzt verwendete Server
+ * automatisch ausgewählt wird, was die UX bei Multi-Server-Setups verbessert.
+ *
+ * @param servers - Array aller konfigurierten Server
+ * @returns Der Default-Server oder null wenn keine Server existieren
+ *
+ * @example
+ * ```typescript
+ * const servers = serverStore.state.servers;
+ * const defaultServer = getDefaultServer(servers);
+ * if (defaultServer) {
+ *   await setActiveServer(defaultServer.id);
+ * }
+ * ```
+ */
+export function getDefaultServer(servers: ServerConfig[]): ServerConfig | null {
+  if (servers.length === 0) return null;
+  // sortServersByLastUsed implementiert bereits die vollständige Sortierlogik
+  // inkl. createdAt Fallback für Server ohne lastUsedAt
+  return sortServersByLastUsed(servers)[0];
+}
+
+/**
  * Gibt alle existierenden Server-Namen zurück.
  *
  * Wird verwendet für Duplikat-Validierung im ServerSetupForm.
- * Namen werden lowercase verglichen für case-insensitive Prüfung.
+ * Namen werden mit toLocaleLowerCase('de-DE') verglichen für korrekte
+ * Behandlung deutscher Umlaute (ä, ö, ü, ß) bei case-insensitive Prüfung.
  *
- * @returns Array aller Server-Namen (lowercase)
+ * @returns Array aller Server-Namen (lowercase mit deutscher Locale)
  *
  * @example
  * ```typescript
  * const names = getExistingServerNames();
- * const isDuplicate = names.includes(newName.toLowerCase());
+ * const isDuplicate = names.includes(newName.toLocaleLowerCase('de-DE'));
  * ```
  */
 export function getExistingServerNames(): string[] {
-  return serverStore.state.servers.map((s) => s.name.toLowerCase());
+  return serverStore.state.servers.map((s) => s.name.toLocaleLowerCase('de-DE'));
 }
 
 /**
  * Prüft ob ein Server-Name bereits existiert.
  *
- * Case-insensitive Prüfung zur Vermeidung von Duplikaten.
+ * Case-insensitive Prüfung mit deutscher Locale für korrekte Umlaut-Behandlung.
+ * Optionaler `excludeServerId` Parameter ermöglicht Ausnahme für den
+ * eigenen Server bei Bearbeitung (Story 3.3).
  *
  * @param name - Der zu prüfende Server-Name
- * @returns true wenn Name bereits existiert
+ * @param excludeServerId - Optional: Server-ID die vom Check ausgenommen wird (für Edit)
+ * @returns true wenn Name bereits existiert (außer beim excluded Server)
  */
-export function isServerNameTaken(name: string): boolean {
-  const normalizedName = name.trim().toLowerCase();
-  return serverStore.state.servers.some((s) => s.name.toLowerCase() === normalizedName);
+export function isServerNameTaken(name: string, excludeServerId?: string): boolean {
+  const normalizedName = name.trim().toLocaleLowerCase('de-DE');
+  return serverStore.state.servers.some((s) => s.name.toLocaleLowerCase('de-DE') === normalizedName && s.id !== excludeServerId);
 }
 
 /**
@@ -119,15 +233,17 @@ export function isServerNameTaken(name: string): boolean {
  * ```
  */
 export async function addServer(config: Omit<ServerConfig, 'id' | 'createdAt'>): Promise<string> {
+  // XSS-Sanitization: HTML-Tags entfernen, Länge begrenzen (Defense in Depth)
+  const sanitizedName = sanitizeServerName(config.name ?? '');
+
   // Validierung: Name nicht leer (Schema trimmt bereits, hier nur Sicherheitscheck)
-  const trimmedName = config.name?.trim();
-  if (!trimmedName) {
-    throw new Error('Server name must be at least 1 character long');
+  if (!sanitizedName) {
+    throw new Error('Server-Name darf nicht leer sein');
   }
 
   // Validierung: Name eindeutig (case-insensitive)
-  if (isServerNameTaken(trimmedName)) {
-    throw new Error(`Ein Server mit dem Namen "${trimmedName}" existiert bereits`);
+  if (isServerNameTaken(sanitizedName)) {
+    throw new Error(`Ein Server mit dem Namen "${sanitizedName}" existiert bereits`);
   }
 
   if (!validateUrl(config.url)) {
@@ -139,6 +255,7 @@ export async function addServer(config: Omit<ServerConfig, 'id' | 'createdAt'>):
   const serverId = generateServerId();
   const newServer: ServerConfig = {
     ...config,
+    name: sanitizedName, // Sanitisierten Namen verwenden
     id: serverId,
     createdAt: now,
     lastUsedAt: now,
@@ -198,8 +315,8 @@ export async function setActiveServer(serverId: string): Promise<void> {
   });
 
   // Store Update
-  serverStore.setState((state) => ({
-    ...state,
+  serverStore.setState((prevState) => ({
+    ...prevState,
     servers: updatedServers,
     activeServerId: serverId,
   }));
@@ -254,13 +371,103 @@ export async function removeServer(serverId: string): Promise<void> {
   }
 
   // Store Update
-  serverStore.setState((state) => ({
-    ...state,
+  serverStore.setState((prevState) => ({
+    ...prevState,
     servers: updatedServers,
     activeServerId: newActiveServerId,
   }));
 
-  // Storage Sync
+  // Token-Synchronisation: Wenn aktiver Server gewechselt hat, Token entsprechend setzen
+  if (state.activeServerId === serverId) {
+    const newActiveServer = serverStore.state.servers.find((s) => s.id === serverStore.state.activeServerId);
+    if (newActiveServer?.accessToken) {
+      setServerAccessToken(newActiveServer.accessToken);
+    } else {
+      clearServerAccessToken();
+    }
+  }
+
+  // Storage Sync NACH setState mit aktuellem State (verhindert Race Condition)
+  await saveServers(serverStore.state.servers);
+}
+
+/**
+ * Aktualisiert einen existierenden Server.
+ *
+ * Validiert Name-Eindeutigkeit (mit Ausnahme für aktuellen Server)
+ * und URL-Format. Token bleibt erhalten wenn nicht explizit überschrieben.
+ * Synchronisiert State automatisch mit dem Storage Adapter.
+ *
+ * @param serverId - ID des zu aktualisierenden Servers
+ * @param updates - Partielle Server-Config (name, url, accessToken optional)
+ * @throws Error wenn Server nicht existiert
+ * @throws Error wenn Name bereits vergeben (außer eigener Name)
+ * @throws Error wenn URL ungültig
+ *
+ * @example
+ * ```typescript
+ * // Nur Name ändern
+ * await updateServer('abc-123', { name: 'Neuer Name' });
+ *
+ * // Name und URL ändern
+ * await updateServer('abc-123', { name: 'Prod', url: 'https://new.api.com' });
+ * ```
+ */
+export async function updateServer(serverId: string, updates: Partial<Omit<ServerConfig, 'id' | 'createdAt'>>): Promise<void> {
+  // Early Return: Keine Updates = keine Aktion (verhindert unnötige Storage-Syncs)
+  if (Object.keys(updates).length === 0) {
+    return;
+  }
+
+  const state = serverStore.state;
+  const server = state.servers.find((s) => s.id === serverId);
+
+  // Validierung: Server existiert
+  if (!server) {
+    throw new Error(`Server with id "${serverId}" does not exist`);
+  }
+
+  // Name-Validierung mit Ausnahme für aktuellen Server + XSS-Sanitization
+  let sanitizedName: string | undefined;
+  if (updates.name !== undefined) {
+    // XSS-Sanitization: HTML-Tags entfernen, Länge begrenzen (Defense in Depth)
+    sanitizedName = sanitizeServerName(updates.name);
+    if (!sanitizedName) {
+      throw new Error('Server-Name darf nicht leer sein');
+    }
+    if (isServerNameTaken(sanitizedName, serverId)) {
+      throw new Error(`Ein Server mit dem Namen "${sanitizedName}" existiert bereits`);
+    }
+  }
+
+  // URL-Validierung wenn geändert
+  if (updates.url !== undefined && !validateUrl(updates.url)) {
+    throw new Error('Invalid server URL: must be HTTPS or localhost for development');
+  }
+
+  // Immutable Update: Nur angegebene Felder ändern, Token bleibt erhalten wenn nicht überschrieben
+  // Sanitisierten Namen verwenden falls vorhanden
+  const sanitizedUpdates = sanitizedName !== undefined ? { ...updates, name: sanitizedName } : updates;
+  const updatedServers = state.servers.map((s) => (s.id === serverId ? { ...s, ...sanitizedUpdates } : s));
+
+  // Store Update
+  serverStore.setState((prevState) => ({
+    ...prevState,
+    servers: updatedServers,
+  }));
+
+  // Token-Synchronisation: IMMER wenn aktiver Server geändert wird (nicht nur bei Token-Änderung)
+  // Nutzt aktuellen State NACH setState für konsistente Token-Synchronisation
+  if (serverStore.state.activeServerId === serverId) {
+    const updatedServer = serverStore.state.servers.find((s) => s.id === serverId);
+    if (updatedServer?.accessToken) {
+      setServerAccessToken(updatedServer.accessToken);
+    } else {
+      clearServerAccessToken();
+    }
+  }
+
+  // Storage Sync NACH setState mit aktuellem State (verhindert Race Condition)
   await saveServers(serverStore.state.servers);
 }
 
@@ -297,9 +504,9 @@ export async function hydrateServerStore(): Promise<void> {
     servers.map((s) => s.name),
   );
 
-  // Find default server, fallback to first server if none is default
-  // Ensures that if servers exist, at least one is active
-  const defaultServer = servers.find((s) => s.isDefault) ?? servers[0];
+  // Default-Server mit Last-Used Priorität ermitteln
+  // Priorität: 1) Neuester lastUsedAt, 2) Ältester createdAt (bei gleich/fehlendem lastUsedAt)
+  const defaultServer = getDefaultServer(servers);
 
   console.log('[ServerStore] Default server:', defaultServer?.name ?? 'none');
 
@@ -327,6 +534,77 @@ export async function hydrateServerStore(): Promise<void> {
     activeServerId: serverStore.state.activeServerId,
     hasAccessToken: !!defaultServer?.accessToken,
   });
+}
+
+/**
+ * Aktualisiert die visuellen Eigenschaften eines Servers (Icon und/oder Farbe).
+ *
+ * Diese Funktion ermöglicht die Personalisierung von Server-Einträgen im UI,
+ * um mehrere Server visuell unterscheiden zu können. Die Änderungen werden
+ * automatisch im Storage persistiert.
+ *
+ * @param serverId - ID des zu aktualisierenden Servers
+ * @param visuals - Objekt mit optionalen icon und/oder color Eigenschaften
+ * @throws Error wenn Server nicht existiert
+ *
+ * @example
+ * ```typescript
+ * // Nur Icon setzen
+ * await updateServerVisuals('abc-123', { icon: 'fire' });
+ *
+ * // Nur Farbe setzen
+ * await updateServerVisuals('abc-123', { color: '#FF5733' });
+ *
+ * // Beides gleichzeitig setzen
+ * await updateServerVisuals('abc-123', { icon: 'shield', color: '#3498DB' });
+ *
+ * // Icon entfernen (auf undefined setzen)
+ * await updateServerVisuals('abc-123', { icon: undefined });
+ * ```
+ */
+export async function updateServerVisuals(serverId: string, visuals: { icon?: ServerIconValue; color?: ServerColorValue }): Promise<void> {
+  // M6 Fix: Early Return für leere Updates - verhindert unnötige Storage-Syncs
+  if (Object.keys(visuals).length === 0) {
+    return;
+  }
+
+  const state = serverStore.state;
+
+  // Validierung: Server existiert
+  const server = state.servers.find((s) => s.id === serverId);
+  if (!server) {
+    throw new Error(`Server with id "${serverId}" does not exist`);
+  }
+
+  // V1: Validierung von Icon und Farbe (nur wenn definiert)
+  // Hinweis: ServerIconValue/ServerColorValue sind typisierte Union Types, daher kein Leerstring-Check nötig
+  if (visuals.icon !== undefined && !isValidServerIcon(visuals.icon)) {
+    throw new Error(`Invalid icon value: "${visuals.icon}"`);
+  }
+  if (visuals.color !== undefined && !isValidServerColor(visuals.color)) {
+    throw new Error(`Invalid color value: "${visuals.color}"`);
+  }
+
+  // L5 Fix: Explizit nur icon und color übernehmen - verhindert unerwünschte Key-Überschreibungen
+  // Nutze "in" Operator um zu prüfen ob Property angegeben wurde (auch bei undefined)
+  const updatedServers = state.servers.map((s) =>
+    s.id === serverId
+      ? {
+          ...s,
+          icon: 'icon' in visuals ? visuals.icon : s.icon,
+          color: 'color' in visuals ? visuals.color : s.color,
+        }
+      : s,
+  );
+
+  // Store Update
+  serverStore.setState((currentState) => ({
+    ...currentState,
+    servers: updatedServers,
+  }));
+
+  // Storage Sync NACH setState mit aktuellem State
+  await saveServers(serverStore.state.servers);
 }
 
 /**

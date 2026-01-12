@@ -4,7 +4,7 @@ import type { Prisma } from '@prisma/client';
 import { Result } from '@domain/common/result';
 import type { TransactionContext } from '@domain/common/transaction';
 import type { ServerAccessToken } from '@domain/aggregates/server-access-token.aggregate';
-import type { IServerAccessTokenRepository } from '@domain/repositories/i-server-access-token.repository';
+import type { IServerAccessTokenRepository, ServerAccessTokenPaginatedResult } from '@domain/repositories/i-server-access-token.repository';
 import type { AccessTokenId } from '@domain/value-objects/access-token-id';
 import { TokenHash } from '@domain/value-objects/token-hash';
 import type { ILogger } from '@domain/ports/i-logger.port';
@@ -230,6 +230,40 @@ export class PrismaServerAccessTokenRepository implements IServerAccessTokenRepo
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.logger.error('Failed to count active ServerAccessTokens', { error: message });
+      return Result.fail(`Database error: ${message}`);
+    }
+  }
+
+  /**
+   * {@inheritDoc IServerAccessTokenRepository.findAllPaginated}
+   */
+  async findAllPaginated(page: number, limit: number, tx?: TransactionContext): Promise<Result<ServerAccessTokenPaginatedResult>> {
+    const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
+
+    try {
+      // Parallele Abfrage von Tokens und Gesamtanzahl
+      const [records, total] = await Promise.all([
+        client.serverAccessToken.findMany({
+          orderBy: { createdAt: 'desc' },
+          skip: (page - 1) * limit,
+          take: limit,
+        }),
+        client.serverAccessToken.count(),
+      ]);
+
+      const aggregates = records.map((record) => PrismaServerAccessTokenMapper.toAggregate(record));
+      const totalPages = Math.ceil(total / limit);
+
+      return Result.ok<ServerAccessTokenPaginatedResult>({
+        items: aggregates,
+        total,
+        page,
+        pageSize: limit,
+        totalPages,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error('Failed to find paginated ServerAccessTokens', { error: message });
       return Result.fail(`Database error: ${message}`);
     }
   }

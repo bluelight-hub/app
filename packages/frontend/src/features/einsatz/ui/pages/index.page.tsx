@@ -7,6 +7,8 @@
  */
 import { isAdmin, useCurrentUser, useLogout } from '@/features/auth';
 import { EinsatzDashboard } from '@/features/einsatz/ui/organisms/EinsatzDashboard';
+import { useActiveServer } from '@/features/server/hooks';
+import { ServerNameBadge } from '@/features/server/ui/atoms';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Heading } from '@/shared/ui/atoms/heading.atom';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
@@ -19,6 +21,7 @@ export function IndexPage() {
   const { isLoading, user, adminStatus } = useCurrentUser();
   const logout = useLogout();
   const { navigate } = useRouter();
+  const activeServer = useActiveServer();
 
   // Admin-Fenster öffnen Handler
   const handleOpenAdminWindow = async () => {
@@ -50,10 +53,15 @@ export function IndexPage() {
     <div className="flex h-screen flex-col overflow-hidden p-4 sm:p-6 lg:p-8">
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
         <div className="flex-shrink-0">
-          <Heading size="2xl" as="h1">
-            Willkommen bei BlueLight Hub
-          </Heading>
-          <Text color="muted">Sie sind angemeldet als: {user.username}</Text>
+          <div className="flex items-start justify-between">
+            <div>
+              <Heading size="2xl" as="h1">
+                Willkommen bei BlueLight Hub
+              </Heading>
+              <Text color="muted">Sie sind angemeldet als: {user.username}</Text>
+            </div>
+            {activeServer && <ServerNameBadge name={activeServer.name} />}
+          </div>
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden lg:grid lg:gap-6">

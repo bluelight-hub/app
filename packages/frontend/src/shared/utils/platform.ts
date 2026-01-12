@@ -2,26 +2,18 @@
  * Platform Detection Utilities
  *
  * Bietet Funktionen zur Erkennung der Laufzeitumgebung (Tauri Desktop vs. Web Browser).
+ *
+ * HINWEIS: Für Tauri-Erkennung in Komponenten verwende den Hook `useIsTauri`
+ * aus `@/shared/hooks/useIsTauri`, der die offizielle Tauri API verwendet.
  */
 
-/**
- * Prüft ob die App in Tauri Desktop Environment läuft.
- *
- * Nutzt window.__TAURI__ Präsenz als Detection-Mechanismus.
- * In Tauri Desktop Apps ist das __TAURI__ Object verfügbar,
- * in reinen Web-Environments nicht.
- *
- * @returns true wenn Tauri erkannt wurde, false sonst
- */
-export function isTauri(): boolean {
-  return typeof window !== 'undefined' && '__TAURI__' in window;
-}
+import { isTauri } from '@tauri-apps/api/core';
 
 /**
  * Ermittelt die aktuelle Platform (Tauri Desktop oder Web Browser).
  *
- * Verwendet isTauri() zur Detection und liefert einen
- * Platform-String für Type-Safe Switch-Cases.
+ * Verwendet die offizielle isTauri() Funktion aus @tauri-apps/api/core
+ * und liefert einen Platform-String für Type-Safe Switch-Cases.
  *
  * @returns 'tauri' für Desktop-App, 'web' für Browser-Environment
  */

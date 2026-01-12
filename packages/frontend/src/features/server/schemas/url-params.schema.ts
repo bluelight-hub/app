@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { SERVER_ICON_PRESETS } from '../constants/server-icons';
+import { SERVER_COLOR_PRESETS } from '../utils/server-color.utils';
 
 /**
  * Konstanten für die Invite-Code-Validierung.
@@ -188,8 +190,36 @@ const adminPasswordSchema = z
   .refine((val) => /[0-9]/.test(val), 'Passwort muss mindestens eine Ziffer enthalten')
   .refine((val) => /[^a-zA-Z0-9]/.test(val), 'Passwort muss mindestens ein Sonderzeichen enthalten');
 
+/**
+ * Generierte Icon-Werte aus den Presets für Zod-Enum.
+ * Typisiert als Tuple für Zod's enum-Anforderung (mindestens 1 Element).
+ */
+const iconValues = SERVER_ICON_PRESETS.map((p) => p.value) as [string, ...string[]];
+
+/**
+ * Server-Icon Schema
+ *
+ * Optionales Feld für das Server-Icon.
+ * Die erlaubten Werte werden aus SERVER_ICON_PRESETS generiert.
+ */
+const serverIconSchema = z.enum(iconValues).optional();
+
+/**
+ * Generierte Farb-Werte aus den Presets für Zod-Enum.
+ * Typisiert als Tuple für Zod's enum-Anforderung (mindestens 1 Element).
+ */
+const colorValues = SERVER_COLOR_PRESETS.map((p) => p.value) as [string, ...string[]];
+
+/**
+ * Server-Color Schema
+ *
+ * Optionales Feld für die Server-Farbe.
+ * Die erlaubten Werte werden aus SERVER_COLOR_PRESETS generiert.
+ */
+const serverColorSchema = z.enum(colorValues).optional();
+
 // Re-export für Verwendung in anderen Teilen des Features
-export { serverUrlSchema, inviteCodeSchema, serverNameSchema, adminUsernameSchema, adminPasswordSchema };
+export { serverUrlSchema, inviteCodeSchema, serverNameSchema, adminUsernameSchema, adminPasswordSchema, serverIconSchema, serverColorSchema };
 
 /**
  * TypeScript-Typ für URL-Parameter (inferred von Zod Schema)

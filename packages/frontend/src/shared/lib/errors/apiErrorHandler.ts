@@ -31,7 +31,9 @@ export type ApiErrorContext =
   | 'deleteEtb'
   | 'createEtbEintrag'
   | 'updateEtbEintrag'
-  | 'deleteEtbEintrag';
+  | 'deleteEtbEintrag'
+  | 'createAccessToken'
+  | 'listAccessTokens';
 
 /**
  * Error message mappings based on HTTP status codes and error codes

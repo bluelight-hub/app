@@ -10,7 +10,7 @@ import type { ReactNode } from 'react';
  * - GcTime: 10 Minuten (Cache-Lifetime)
  * - RefetchOnWindowFocus: Deaktiviert für bessere UX
  */
-const queryClient = new QueryClient({
+export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 3,

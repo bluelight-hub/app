@@ -14,3 +14,4 @@ export { AdminSetup } from './AdminSetup';
 export { AdminStammFahrzeuge } from './AdminStammFahrzeuge';
 export { AdminStammPersonen } from './AdminStammPersonen';
 export { AdminUsers } from './AdminUsers';
+export { TokenManagementPage } from './TokenManagementPage';

@@ -1,4 +1,4 @@
-import { AUTH_KEYS, useCurrentUser, useUnifiedAuth } from '@/features/auth';
+import { AUTH_KEYS, useCurrentUser, useUnifiedAuth, useLogout } from '@/features/auth';
 import { useRequireServer, useServerList, useActiveServer, useServerListHealth } from '@/features/server/hooks';
 import { setActiveServer, removeServer } from '@/features/server/stores/server.store';
 import { serverStore } from '@/features/server/stores/server.store';
@@ -49,9 +49,12 @@ export function LoginWindow(_props: Props) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [serverToDelete, setServerToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  // Issue 7 Fix: Loading-State beim Server-Wechsel um Race Conditions zu verhindern
+  const [isSwitching, setIsSwitching] = useState(false);
 
   const { user, isLoading } = useCurrentUser();
   const unifiedAuth = useUnifiedAuth();
+  const logout = useLogout();
 
   const { connectionMode, isLoading: healthLoading, isError: healthError, insecureMode } = useSystemHealth();
   const { frontendVersion, mismatchSeverity } = useSystemVersion();
@@ -62,9 +65,13 @@ export function LoginWindow(_props: Props) {
   // Server-Callbacks
   const handleServerChange = useCallback(
     async (serverId: string) => {
+      // Issue 7 Fix: Verhindere parallele Server-Wechsel (Race Condition)
+      if (isSwitching) return;
+
       // F4-Fix: Server-Name VOR async Operationen capturen um Stale Closure zu vermeiden
       const serverName = servers.find((s) => s.id === serverId)?.name ?? 'Unbekannt';
 
+      setIsSwitching(true);
       try {
         await setActiveServer(serverId);
         // F7-Fix: Nur auth-bezogene Queries invalidieren statt alle
@@ -77,13 +84,19 @@ export function LoginWindow(_props: Props) {
         toast.error('Serverwechsel fehlgeschlagen', {
           description: error instanceof Error ? error.message : 'Unbekannter Fehler',
         });
+      } finally {
+        setIsSwitching(false);
       }
     },
-    [queryClient, servers],
+    [isSwitching, queryClient, servers],
   );
 
   const handleAddServer = useCallback(() => {
     navigate({ to: '/server/setup' });
+  }, [navigate]);
+
+  const handleManageServers = useCallback(() => {
+    navigate({ to: '/server/manage' });
   }, [navigate]);
 
   const handleReconfigureServer = useCallback(
@@ -235,8 +248,8 @@ export function LoginWindow(_props: Props) {
             </Text>
           </div>
 
-          {/* Server Selector - nur anzeigen wenn Server konfiguriert sind */}
-          {servers.length > 0 && (
+          {/* Server-Anzeige - Dropdown wird IMMER angezeigt (auch bei 1 Server) für konsistente UX */}
+          {servers.length >= 1 && (
             <div className="w-full">
               <ServerSelector
                 servers={servers}
@@ -246,6 +259,16 @@ export function LoginWindow(_props: Props) {
                 onAddServer={handleAddServer}
                 onReconfigureServer={handleReconfigureServer}
                 onDeleteServer={handleDeleteServer}
+                onManageServers={handleManageServers}
+                disabled={isSwitching}
+                isAuthenticated={!!user}
+                onLogoutAndSwitch={async (targetServerId: string) => {
+                  // AC4: Logout durchführen, dann Server wechseln
+                  await logout.mutateAsync();
+                  await setActiveServer(targetServerId);
+                  // Bereits auf /auth, nur Queries invalidieren
+                  await queryClient.invalidateQueries({ queryKey: AUTH_KEYS.auth.queries.authCheck });
+                }}
               />
             </div>
           )}

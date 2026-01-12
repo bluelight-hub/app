@@ -71,20 +71,20 @@ development_status:
   # ═══════════════════════════════════════════════════════════════════════════
   # EPIC 3: Server-Auswahl & -Management
   # ═══════════════════════════════════════════════════════════════════════════
-  epic-3: backlog
-  3-1-server-liste-anzeigen: backlog
-  3-2-server-dropdown-auf-login-screen: backlog
-  3-3-server-bearbeiten: backlog
-  3-4-server-entfernen: backlog
-  3-5-default-server-last-used-logik: backlog
-  3-6-server-icon-farbe-fuer-visuelle-unterscheidung: backlog
-  epic-3-retrospective: optional
+  epic-3: done # All stories completed, Retrospective done (2026-01-12)
+  3-1-server-liste-anzeigen: done # Code Review complete (2026-01-11) - 106 Tests, 7 Issues fixed
+  3-2-server-dropdown-auf-login-screen: done # All 6 ACs implemented, 40 Tests passing (2026-01-11)
+  3-3-server-bearbeiten: done # All 6 ACs implemented, E2E Tests passed (2026-01-12)
+  3-4-server-entfernen: done # Code Review + All Issues Fixed (2026-01-12) - 50 Tests, 12 Findings fixed
+  3-5-default-server-last-used-logik: done # Code Review + All Issues Fixed (2026-01-12) - 117 Tests, 9 Findings fixed
+  3-6-server-icon-farbe-fuer-visuelle-unterscheidung: done # Code Review + All Issues Fixed (2026-01-12) - 383 Tests, 35 Findings fixed
+  epic-3-retrospective: done # Retrospektive completed (2026-01-12)
 
   # ═══════════════════════════════════════════════════════════════════════════
   # EPIC 4: Admin Token-Verwaltung
   # ═══════════════════════════════════════════════════════════════════════════
-  epic-4: backlog
-  4-1-access-token-mit-namen-erstellen: backlog
+  epic-4: in-progress # Started 2026-01-12
+  4-1-access-token-mit-namen-erstellen: review # All 13 Tasks complete, limit=100 fix (2026-01-12)
   4-2-access-token-deaktivieren: backlog
   4-3-token-usage-statistiken-einsehen: backlog
   4-4-token-rotieren: backlog

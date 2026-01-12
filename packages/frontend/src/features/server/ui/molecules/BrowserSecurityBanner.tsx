@@ -6,7 +6,7 @@
  */
 
 import { PiWarningFill, PiX } from 'react-icons/pi';
-import { isTauri } from '@/shared/utils/platform';
+import { useIsTauri } from '@/shared/hooks/useIsTauri';
 import { useBrowserWarningDismissed } from '../../hooks/use-browser-warning-dismissed';
 import { cn } from '@/shared/ui/cn';
 
@@ -31,10 +31,11 @@ export interface BrowserSecurityBannerProps {
  * ```
  */
 export const BrowserSecurityBanner: React.FC<BrowserSecurityBannerProps> = ({ className }) => {
+  const { isTauri: isTauriApp } = useIsTauri();
   const { isDismissed, dismiss } = useBrowserWarningDismissed();
 
   // In Tauri Desktop-App: Nichts anzeigen (AC5)
-  if (isTauri()) {
+  if (isTauriApp) {
     return null;
   }
 
