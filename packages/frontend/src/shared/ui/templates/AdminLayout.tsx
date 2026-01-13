@@ -107,7 +107,7 @@ export function AdminLayout() {
   const matchRoute = useMatchRoute();
 
   return (
-    <Container maxWidth="6xl" className="py-12">
+    <Container maxWidth="6xl" className="px-0 py-8">
       <div className="flex flex-col gap-4">
         {/* Header mit Titel und Close-Button */}
         <div className="border-gray-200 border-b pb-4 dark:border-gray-800">
