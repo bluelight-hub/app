@@ -1,0 +1,15 @@
+# GitGuardian Configuration
+# Excludes test files from secret scanning (they contain mock data, not real secrets)
+
+paths-ignore:
+  # Test files with mock credentials
+  - "**/*.spec.ts"
+  - "**/*.test.ts"
+  - "**/__tests__/**"
+  - "**/tests/**"
+  - "**/*.e2e.spec.ts"
+  - "**/*.integration.spec.ts"
+
+  # Example/documentation files
+  - "**/*.example.*"
+  - "**/examples/**"
