@@ -39,7 +39,8 @@ export const serverStore = new Store<ServerState>(initialState);
 /**
  * Sanitisiert Server-Namen um XSS-Angriffe zu verhindern (Defense in Depth).
  *
- * Entfernt HTML-Tags inkl. Inhalt von script/style Tags und begrenzt die Länge auf 100 Zeichen.
+ * Verwendet iterative Tag-Entfernung um verschachtelte Tag-Angriffe zu verhindern
+ * (z.B. `<scr<script>ipt>`) und begrenzt die Länge auf 100 Zeichen.
  * Diese Sanitization ist eine zusätzliche Sicherheitsebene für den Fall,
  * dass localStorage manipuliert wird oder bösartige Daten injiziert werden.
  *
@@ -47,12 +48,22 @@ export const serverStore = new Store<ServerState>(initialState);
  * @returns Bereinigter Name ohne HTML-Tags, max 100 Zeichen
  */
 function sanitizeServerName(name: string): string {
-  // 1. Script/Style Tags inkl. Inhalt entfernen (Case-insensitive)
-  let sanitized = name.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-  sanitized = sanitized.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
-  // 2. Alle verbleibenden HTML-Tags entfernen (verhindert <img onerror>, <a onclick>, etc.)
-  sanitized = sanitized.replace(/<[^>]*>/g, '');
-  // 3. Max-Length enforcing (DoS Prevention) + Whitespace trimmen
+  // Iterative Tag-Entfernung: Wiederhole bis keine Tags mehr vorhanden sind.
+  // Dies verhindert Umgehung durch verschachtelte Tags wie <scr<script>ipt>
+  // oder Tags mit ungewöhnlichen Leerzeichen wie </script >.
+  let sanitized = name;
+  let previous: string;
+  let iterations = 0;
+  const maxIterations = 10; // DoS Prevention: Max 10 Durchläufe
+
+  do {
+    previous = sanitized;
+    // Entfernt alle HTML-Tags inkl. Tags mit Leerzeichen wie </script >
+    sanitized = sanitized.replace(/<\/?[^>]*>/g, '');
+    iterations++;
+  } while (sanitized !== previous && iterations < maxIterations);
+
+  // Max-Length enforcing (DoS Prevention) + Whitespace trimmen
   return sanitized.substring(0, 100).trim();
 }
 

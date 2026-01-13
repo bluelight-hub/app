@@ -133,12 +133,19 @@ export class OAuthCallbackController {
   @ApiQuery({ name: 'code', required: true, description: 'Authorization Code' })
   @ApiQuery({ name: 'state', required: true, description: 'State fuer CSRF-Schutz' })
   async handleHiOrgCallback(
-    @Query('code') code: string,
-    @Query('state') state: string,
-    @Query('error') error: string,
-    @Query('error_description') errorDescription: string,
+    @Query('code') codeParam: string | string[],
+    @Query('state') stateParam: string | string[],
+    @Query('error') errorParam: string | string[],
+    @Query('error_description') errorDescParam: string | string[],
     @Res() response: Response,
   ): Promise<void> {
+    // F7: Type confusion prevention - Query params can be arrays in Express
+    // Normalize to strings by taking first element if array
+    const code = Array.isArray(codeParam) ? codeParam[0] : codeParam;
+    const state = Array.isArray(stateParam) ? stateParam[0] : stateParam;
+    const error = Array.isArray(errorParam) ? errorParam[0] : errorParam;
+    const errorDescription = Array.isArray(errorDescParam) ? errorDescParam[0] : errorDescParam;
+
     // Validate FRONTEND_URL against whitelist (F1: Open Redirect Prevention)
     const frontendUrl = this.config.get<string>('FRONTEND_URL', 'http://localhost:3090');
     if (!this.validateRedirectUrl(frontendUrl)) {
