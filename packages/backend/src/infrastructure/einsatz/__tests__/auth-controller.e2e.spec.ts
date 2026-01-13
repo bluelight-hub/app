@@ -91,7 +91,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       password: 'password',
     });
 
-    cachedAccessToken = loginResponse.body.token;
+    cachedAccessToken = loginResponse.body.data.token;
     const cookies = loginResponse.headers['set-cookie'] as string[];
     cachedAccessTokenCookie = cookies?.find((c) => c.startsWith('accessToken=')) || '';
   }, 60000);
@@ -124,9 +124,10 @@ const databaseAvailable = !!process.env.DATABASE_URL;
         })
         .expect(200);
 
-      expect(response.body).toHaveProperty('token');
-      expect(typeof response.body.token).toBe('string');
-      expect(response.body.token.length).toBeGreaterThan(0);
+      expect(response.body).toHaveProperty('data');
+      expect(response.body.data).toHaveProperty('token');
+      expect(typeof response.body.data.token).toBe('string');
+      expect(response.body.data.token.length).toBeGreaterThan(0);
     });
 
     /**

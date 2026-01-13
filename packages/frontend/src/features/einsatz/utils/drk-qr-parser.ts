@@ -173,10 +173,11 @@ function isCsvFormat(data: string): boolean {
 }
 
 /**
- * Prüft ob der String im URL-Format vorliegt (drk://person?...)
+ * Prüft ob der String im URL-Format vorliegt (drk://...)
+ * Erkennt alle drk:// URLs für korrekte Fehlerbehandlung
  */
 function isUrlFormat(data: string): boolean {
-  return data.toLowerCase().startsWith('drk://person?');
+  return data.toLowerCase().startsWith('drk://');
 }
 
 /**
@@ -274,8 +275,8 @@ function parseUrlFormat(data: string): ParseResult<DrkQrData> {
     };
   }
 
-  // Typ prüfen (person)
-  if (url.hostname !== DRK_PERSON_TYPE) {
+  // Typ prüfen (person) - case insensitive
+  if (url.hostname.toLowerCase() !== DRK_PERSON_TYPE) {
     return {
       success: false,
       error: {

@@ -110,6 +110,10 @@ export const EVENT_NAMES = {
     USED: 'server_access_token.used',
     /** Event: Server Access Token wurde widerrufen */
     REVOKED: 'server_access_token.revoked',
+    /** Event: Server Access Token wurde reaktiviert */
+    REACTIVATED: 'server_access_token.reactivated',
+    /** Event: Server Access Token wurde rotiert (altes widerrufen, neues erstellt) */
+    ROTATED: 'server_access_token.rotated',
   },
 
   /**
@@ -122,6 +126,14 @@ export const EVENT_NAMES = {
     USED: 'invite_code.used',
     /** Event: Invite-Code wurde widerrufen */
     REVOKED: 'invite_code.revoked',
+  },
+
+  /**
+   * Server Config Bounded Context Events (Story 4.6)
+   */
+  SERVER_CONFIG: {
+    /** Event: Server wurde von INSECURE zu SECURE Mode migriert */
+    MIGRATED_TO_SECURE: 'server_config.migrated_to_secure',
   },
 } as const;
 
@@ -144,4 +156,5 @@ export type EventName =
   | (typeof EVENT_NAMES.LAGEKARTE)[keyof typeof EVENT_NAMES.LAGEKARTE]
   | (typeof EVENT_NAMES.USER)[keyof typeof EVENT_NAMES.USER]
   | (typeof EVENT_NAMES.SERVER_ACCESS_TOKEN)[keyof typeof EVENT_NAMES.SERVER_ACCESS_TOKEN]
-  | (typeof EVENT_NAMES.INVITE_CODE)[keyof typeof EVENT_NAMES.INVITE_CODE];
+  | (typeof EVENT_NAMES.INVITE_CODE)[keyof typeof EVENT_NAMES.INVITE_CODE]
+  | (typeof EVENT_NAMES.SERVER_CONFIG)[keyof typeof EVENT_NAMES.SERVER_CONFIG];

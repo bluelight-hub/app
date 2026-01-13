@@ -134,6 +134,7 @@ describe('ServerAccessToken', () => {
     it('should reconstruct token with all fields', () => {
       // Given: All fields from database
       const id = AccessTokenId.create('blh_abcdefghij1234567890abcd').value!;
+      const rotatedFromId = AccessTokenId.create('blh_originaltokenid123456789').value!;
       const lastUsedAt = new Date('2025-01-01');
       const expiresAt = new Date('2025-12-31');
       const revokedAt = new Date('2025-06-15');
@@ -149,6 +150,7 @@ describe('ServerAccessToken', () => {
         expiresAt,
         isRevoked: true,
         revokedAt,
+        rotatedFromId,
         createdAt,
         updatedAt,
       });
@@ -161,6 +163,7 @@ describe('ServerAccessToken', () => {
       expect(token.expiresAt).toEqual(expiresAt);
       expect(token.isRevoked).toBe(true);
       expect(token.revokedAt).toEqual(revokedAt);
+      expect(token.rotatedFromId?.value).toBe('blh_originaltokenid123456789');
       expect(token.createdAt).toEqual(createdAt);
       expect(token.updatedAt).toEqual(updatedAt);
     });
@@ -180,6 +183,7 @@ describe('ServerAccessToken', () => {
         expiresAt: null,
         isRevoked: false,
         revokedAt: null,
+        rotatedFromId: null,
         createdAt,
         updatedAt,
       });
@@ -189,6 +193,130 @@ describe('ServerAccessToken', () => {
       expect(token.lastUsedAt).toBeNull();
       expect(token.expiresAt).toBeNull();
       expect(token.revokedAt).toBeNull();
+      expect(token.rotatedFromId).toBeNull();
+    });
+  });
+
+  describe('rotatedFromId - Token Rotation Tracking', () => {
+    it('should create token with rotatedFromId when provided', () => {
+      // Given: Original token ID for rotation reference
+      const originalTokenId = AccessTokenId.create().value!;
+      const props = {
+        tokenHash: validTokenHash,
+        name: 'Rotated Token',
+        rotatedFromId: originalTokenId,
+      };
+
+      // When: Creating ServerAccessToken with rotatedFromId
+      const result = ServerAccessToken.create(props);
+
+      // Then: Token has rotatedFromId set
+      expect(result.isSuccess).toBe(true);
+      expect(result.value?.rotatedFromId).not.toBeNull();
+      expect(result.value?.rotatedFromId?.equals(originalTokenId)).toBe(true);
+    });
+
+    it('should create token without rotatedFromId by default', () => {
+      // Given: Props without rotatedFromId
+      const props = { tokenHash: validTokenHash };
+
+      // When: Creating ServerAccessToken
+      const result = ServerAccessToken.create(props);
+
+      // Then: rotatedFromId is null
+      expect(result.isSuccess).toBe(true);
+      expect(result.value?.rotatedFromId).toBeNull();
+    });
+
+    it('should preserve rotatedFromId on reconstruct', () => {
+      // Given: Reconstructed token with rotatedFromId
+      const id = AccessTokenId.create().value!;
+      const originalTokenId = AccessTokenId.create('blh_originaltokenid123456789').value!;
+      const createdAt = new Date();
+
+      // When: Reconstructing
+      const token = ServerAccessToken.reconstruct({
+        id,
+        tokenHash: validTokenHash,
+        name: 'Rotated Token',
+        lastUsedAt: null,
+        expiresAt: null,
+        isRevoked: false,
+        revokedAt: null,
+        rotatedFromId: originalTokenId,
+        createdAt,
+        updatedAt: createdAt,
+      });
+
+      // Then: rotatedFromId is preserved
+      expect(token.rotatedFromId?.value).toBe('blh_originaltokenid123456789');
+    });
+  });
+
+  describe('wasRotated()', () => {
+    it('should return true when token was created from rotation', () => {
+      // Given: Token with rotatedFromId
+      const originalTokenId = AccessTokenId.create().value!;
+      const token = ServerAccessToken.create({
+        tokenHash: validTokenHash,
+        rotatedFromId: originalTokenId,
+      }).value!;
+
+      // When/Then
+      expect(token.wasRotated()).toBe(true);
+    });
+
+    it('should return false when token was created normally', () => {
+      // Given: Token without rotatedFromId
+      const token = ServerAccessToken.create({ tokenHash: validTokenHash }).value!;
+
+      // When/Then
+      expect(token.wasRotated()).toBe(false);
+    });
+
+    it('should return true for reconstructed rotated token', () => {
+      // Given: Reconstructed token with rotatedFromId
+      const id = AccessTokenId.create().value!;
+      const originalTokenId = AccessTokenId.create().value!;
+      const createdAt = new Date();
+
+      const token = ServerAccessToken.reconstruct({
+        id,
+        tokenHash: validTokenHash,
+        name: null,
+        lastUsedAt: null,
+        expiresAt: null,
+        isRevoked: false,
+        revokedAt: null,
+        rotatedFromId: originalTokenId,
+        createdAt,
+        updatedAt: createdAt,
+      });
+
+      // When/Then
+      expect(token.wasRotated()).toBe(true);
+    });
+
+    it('should return false for reconstructed non-rotated token', () => {
+      // Given: Reconstructed token without rotatedFromId
+      const id = AccessTokenId.create().value!;
+      const createdAt = new Date();
+
+      const token = ServerAccessToken.reconstruct({
+        id,
+        tokenHash: validTokenHash,
+        name: null,
+        lastUsedAt: null,
+        expiresAt: null,
+        isRevoked: false,
+        revokedAt: null,
+        rotatedFromId: null,
+        createdAt,
+        updatedAt: createdAt,
+      });
+
+      // When/Then
+      expect(token.wasRotated()).toBe(false);
     });
   });
 
@@ -235,6 +363,7 @@ describe('ServerAccessToken', () => {
         expiresAt: pastDate,
         isRevoked: false,
         revokedAt: null,
+        rotatedFromId: null,
         createdAt: new Date('2019-01-01'),
         updatedAt: new Date('2019-01-01'),
       });
@@ -255,6 +384,7 @@ describe('ServerAccessToken', () => {
         expiresAt: pastDate,
         isRevoked: true,
         revokedAt: new Date('2020-06-01'),
+        rotatedFromId: null,
         createdAt: new Date('2019-01-01'),
         updatedAt: new Date('2020-06-01'),
       });
@@ -439,6 +569,7 @@ describe('ServerAccessToken', () => {
         expiresAt: null,
         isRevoked: false,
         revokedAt: null,
+        rotatedFromId: null,
         createdAt,
         updatedAt: createdAt,
       });
@@ -450,6 +581,7 @@ describe('ServerAccessToken', () => {
         expiresAt: null,
         isRevoked: false,
         revokedAt: null,
+        rotatedFromId: null,
         createdAt,
         updatedAt: createdAt,
       });
@@ -610,6 +742,7 @@ describe('ServerAccessToken', () => {
           expiresAt: null,
           isRevoked: false,
           revokedAt: null,
+          rotatedFromId: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         });

@@ -252,16 +252,17 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
   // ========================================
 
   describe('findAll() - Pagination, Filtering, Sorting', () => {
-    describe('Empty Database', () => {
-      it('should return empty array when no InviteCodes exist', async () => {
+    describe('Empty Database (scoped by createdById)', () => {
+      it('should return empty array when no InviteCodes exist for creator', async () => {
         if (!databaseAvailable) return;
 
-        // Given: No InviteCodes in DB (cleanup in afterEach)
+        // Given: No InviteCodes for testUserId (cleanup in afterEach)
+        // Note: DB may have other codes from development, so we filter by testUserId
 
-        // When: Query without filters
-        const result = await repository.findAll();
+        // When: Query with createdById filter
+        const result = await repository.findAll({ createdById: testUserId });
 
-        // Then: Empty paginated result
+        // Then: Empty paginated result for this creator
         expect(result.isSuccess).toBe(true);
         expect(result.value).toBeDefined();
         expect(result.value!.items).toEqual([]);
@@ -275,15 +276,15 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
       it('should use default pagination (page=1, pageSize=20, sort=createdAt desc)', async () => {
         if (!databaseAvailable) return;
 
-        // Given: 3 InviteCodes
+        // Given: 3 InviteCodes for testUserId
         await createAndSaveInviteCode({ label: 'Code 1' });
         await new Promise((resolve) => setTimeout(resolve, 50)); // Kleine Pause fuer verschiedene createdAt
         await createAndSaveInviteCode({ label: 'Code 2' });
         await new Promise((resolve) => setTimeout(resolve, 50));
         await createAndSaveInviteCode({ label: 'Code 3' });
 
-        // When: Query without any parameters
-        const result = await repository.findAll();
+        // When: Query with createdById filter (to isolate test data from dev data)
+        const result = await repository.findAll({ createdById: testUserId });
 
         // Then: Default values applied
         expect(result.isSuccess).toBe(true);
@@ -304,14 +305,14 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
       it('should paginate correctly with multiple pages', async () => {
         if (!databaseAvailable) return;
 
-        // Given: 5 InviteCodes
+        // Given: 5 InviteCodes for testUserId
         for (let i = 1; i <= 5; i++) {
           await createAndSaveInviteCode({ label: `Code ${i}` });
           await new Promise((resolve) => setTimeout(resolve, 20));
         }
 
-        // When: Query page 1 with pageSize 2
-        const page1Result = await repository.findAll(undefined, undefined, { page: 1, pageSize: 2 });
+        // When: Query page 1 with pageSize 2 (filtered by testUserId)
+        const page1Result = await repository.findAll({ createdById: testUserId }, undefined, { page: 1, pageSize: 2 });
 
         // Then: Page 1 contains first 2 items
         expect(page1Result.isSuccess).toBe(true);
@@ -322,7 +323,7 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
         expect(page1Result.value!.totalPages).toBe(3); // ceil(5/2) = 3
 
         // When: Query page 2
-        const page2Result = await repository.findAll(undefined, undefined, { page: 2, pageSize: 2 });
+        const page2Result = await repository.findAll({ createdById: testUserId }, undefined, { page: 2, pageSize: 2 });
 
         // Then: Page 2 contains next 2 items
         expect(page2Result.isSuccess).toBe(true);
@@ -330,7 +331,7 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
         expect(page2Result.value!.page).toBe(2);
 
         // When: Query page 3 (last page)
-        const page3Result = await repository.findAll(undefined, undefined, { page: 3, pageSize: 2 });
+        const page3Result = await repository.findAll({ createdById: testUserId }, undefined, { page: 3, pageSize: 2 });
 
         // Then: Page 3 contains remaining 1 item
         expect(page3Result.isSuccess).toBe(true);
@@ -341,13 +342,13 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
       it('should return empty array when page exceeds total pages', async () => {
         if (!databaseAvailable) return;
 
-        // Given: 3 InviteCodes
+        // Given: 3 InviteCodes for testUserId
         await createAndSaveInviteCode({});
         await createAndSaveInviteCode({});
         await createAndSaveInviteCode({});
 
-        // When: Query page 100
-        const result = await repository.findAll(undefined, undefined, { page: 100, pageSize: 20 });
+        // When: Query page 100 (filtered by testUserId)
+        const result = await repository.findAll({ createdById: testUserId }, undefined, { page: 100, pageSize: 20 });
 
         // Then: Empty items but correct total
         expect(result.isSuccess).toBe(true);
@@ -359,12 +360,12 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
       it('should limit pageSize to maximum 100', async () => {
         if (!databaseAvailable) return;
 
-        // Given: 2 InviteCodes
+        // Given: 2 InviteCodes for testUserId
         await createAndSaveInviteCode({});
         await createAndSaveInviteCode({});
 
-        // When: Query with pageSize > 100
-        const result = await repository.findAll(undefined, undefined, { page: 1, pageSize: 200 });
+        // When: Query with pageSize > 100 (filtered by testUserId)
+        const result = await repository.findAll({ createdById: testUserId }, undefined, { page: 1, pageSize: 200 });
 
         // Then: pageSize capped at 100
         expect(result.isSuccess).toBe(true);
@@ -421,7 +422,7 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
       it('should filter by ACTIVE status', async () => {
         if (!databaseAvailable) return;
 
-        // Given: 1 active, 1 used, 1 expired, 1 revoked
+        // Given: 1 active, 1 used, 1 expired, 1 revoked (all for testUserId)
         const futureDate = new Date();
         futureDate.setHours(futureDate.getHours() + 24);
 
@@ -430,8 +431,8 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
         await createExpiredInviteCode(testUserId); // EXPIRED
         await createAndSaveInviteCode({ expiresAt: futureDate, isRevoked: true }); // REVOKED
 
-        // When: Filter by ACTIVE status
-        const result = await repository.findAll({ status: InviteCodeStatus.ACTIVE });
+        // When: Filter by ACTIVE status AND testUserId
+        const result = await repository.findAll({ status: InviteCodeStatus.ACTIVE, createdById: testUserId });
 
         // Then: Only active codes returned
         expect(result.isSuccess).toBe(true);
@@ -443,7 +444,7 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
       it('should filter by USED status', async () => {
         if (!databaseAvailable) return;
 
-        // Given: Codes with different statuses
+        // Given: Codes with different statuses (all for testUserId)
         const futureDate = new Date();
         futureDate.setHours(futureDate.getHours() + 24);
 
@@ -451,8 +452,8 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
         await createAndSaveInviteCode({ expiresAt: futureDate, maxUses: 5, usedCount: 5 }); // USED
         await createAndSaveInviteCode({ expiresAt: futureDate, maxUses: 1, usedCount: 1 }); // USED
 
-        // When: Filter by USED status
-        const result = await repository.findAll({ status: InviteCodeStatus.USED });
+        // When: Filter by USED status AND testUserId
+        const result = await repository.findAll({ status: InviteCodeStatus.USED, createdById: testUserId });
 
         // Then: Only used codes returned
         expect(result.isSuccess).toBe(true);
@@ -497,7 +498,7 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
       it('should combine status filter with pagination', async () => {
         if (!databaseAvailable) return;
 
-        // Given: 5 active codes
+        // Given: 5 active codes (for testUserId)
         for (let i = 0; i < 5; i++) {
           await createAndSaveInviteCode({ label: `Active ${i}` });
           await new Promise((resolve) => setTimeout(resolve, 20));
@@ -506,8 +507,8 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
         await createAndSaveInviteCode({ isRevoked: true });
         await createAndSaveInviteCode({ isRevoked: true });
 
-        // When: Filter by ACTIVE with pagination
-        const result = await repository.findAll({ status: InviteCodeStatus.ACTIVE }, undefined, { page: 1, pageSize: 2 });
+        // When: Filter by ACTIVE status AND testUserId with pagination
+        const result = await repository.findAll({ status: InviteCodeStatus.ACTIVE, createdById: testUserId }, undefined, { page: 1, pageSize: 2 });
 
         // Then: Pagination applied after status filter
         expect(result.isSuccess).toBe(true);
@@ -521,15 +522,15 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
       it('should sort by createdAt ascending', async () => {
         if (!databaseAvailable) return;
 
-        // Given: 3 codes with different createdAt
+        // Given: 3 codes with different createdAt (for testUserId)
         await createAndSaveInviteCode({ label: 'First' });
         await new Promise((resolve) => setTimeout(resolve, 50));
         await createAndSaveInviteCode({ label: 'Second' });
         await new Promise((resolve) => setTimeout(resolve, 50));
         await createAndSaveInviteCode({ label: 'Third' });
 
-        // When: Sort by createdAt asc
-        const result = await repository.findAll(undefined, { field: 'createdAt', direction: 'asc' });
+        // When: Sort by createdAt asc (filtered by testUserId)
+        const result = await repository.findAll({ createdById: testUserId }, { field: 'createdAt', direction: 'asc' });
 
         // Then: Oldest first
         expect(result.isSuccess).toBe(true);
@@ -541,15 +542,15 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
       it('should sort by createdAt descending', async () => {
         if (!databaseAvailable) return;
 
-        // Given: 3 codes with different createdAt
+        // Given: 3 codes with different createdAt (for testUserId)
         await createAndSaveInviteCode({ label: 'First' });
         await new Promise((resolve) => setTimeout(resolve, 50));
         await createAndSaveInviteCode({ label: 'Second' });
         await new Promise((resolve) => setTimeout(resolve, 50));
         await createAndSaveInviteCode({ label: 'Third' });
 
-        // When: Sort by createdAt desc
-        const result = await repository.findAll(undefined, { field: 'createdAt', direction: 'desc' });
+        // When: Sort by createdAt desc (filtered by testUserId)
+        const result = await repository.findAll({ createdById: testUserId }, { field: 'createdAt', direction: 'desc' });
 
         // Then: Newest first
         expect(result.isSuccess).toBe(true);
@@ -561,7 +562,7 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
       it('should sort by expiresAt ascending', async () => {
         if (!databaseAvailable) return;
 
-        // Given: 3 codes with different expiresAt
+        // Given: 3 codes with different expiresAt (for testUserId)
         const now = new Date();
         const date1 = new Date(now.getTime() + 1 * 60 * 60 * 1000); // +1h
         const date2 = new Date(now.getTime() + 2 * 60 * 60 * 1000); // +2h
@@ -571,8 +572,8 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
         await createAndSaveInviteCode({ expiresAt: date1, label: 'Expires 1h' });
         await createAndSaveInviteCode({ expiresAt: date3, label: 'Expires 3h' });
 
-        // When: Sort by expiresAt asc
-        const result = await repository.findAll(undefined, { field: 'expiresAt', direction: 'asc' });
+        // When: Sort by expiresAt asc (filtered by testUserId)
+        const result = await repository.findAll({ createdById: testUserId }, { field: 'expiresAt', direction: 'asc' });
 
         // Then: Soonest expiry first
         expect(result.isSuccess).toBe(true);
@@ -584,7 +585,7 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
       it('should sort by expiresAt descending', async () => {
         if (!databaseAvailable) return;
 
-        // Given: 3 codes with different expiresAt
+        // Given: 3 codes with different expiresAt (for testUserId)
         const now = new Date();
         const date1 = new Date(now.getTime() + 1 * 60 * 60 * 1000);
         const date2 = new Date(now.getTime() + 2 * 60 * 60 * 1000);
@@ -594,8 +595,8 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
         await createAndSaveInviteCode({ expiresAt: date1, label: 'Expires 1h' });
         await createAndSaveInviteCode({ expiresAt: date3, label: 'Expires 3h' });
 
-        // When: Sort by expiresAt desc
-        const result = await repository.findAll(undefined, { field: 'expiresAt', direction: 'desc' });
+        // When: Sort by expiresAt desc (filtered by testUserId)
+        const result = await repository.findAll({ createdById: testUserId }, { field: 'expiresAt', direction: 'desc' });
 
         // Then: Latest expiry first
         expect(result.isSuccess).toBe(true);
@@ -607,13 +608,13 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
       it('should sort by useCount ascending', async () => {
         if (!databaseAvailable) return;
 
-        // Given: 3 codes with different useCount
+        // Given: 3 codes with different useCount (for testUserId)
         await createAndSaveInviteCode({ label: 'Used 5', usedCount: 5 });
         await createAndSaveInviteCode({ label: 'Used 0', usedCount: 0 });
         await createAndSaveInviteCode({ label: 'Used 3', usedCount: 3 });
 
-        // When: Sort by useCount asc
-        const result = await repository.findAll(undefined, { field: 'useCount', direction: 'asc' });
+        // When: Sort by useCount asc (filtered by testUserId)
+        const result = await repository.findAll({ createdById: testUserId }, { field: 'useCount', direction: 'asc' });
 
         // Then: Least used first
         expect(result.isSuccess).toBe(true);
@@ -626,13 +627,13 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
       it('should sort by useCount descending', async () => {
         if (!databaseAvailable) return;
 
-        // Given: 3 codes with different useCount
+        // Given: 3 codes with different useCount (for testUserId)
         await createAndSaveInviteCode({ label: 'Used 5', usedCount: 5 });
         await createAndSaveInviteCode({ label: 'Used 0', usedCount: 0 });
         await createAndSaveInviteCode({ label: 'Used 3', usedCount: 3 });
 
-        // When: Sort by useCount desc
-        const result = await repository.findAll(undefined, { field: 'useCount', direction: 'desc' });
+        // When: Sort by useCount desc (filtered by testUserId)
+        const result = await repository.findAll({ createdById: testUserId }, { field: 'useCount', direction: 'desc' });
 
         // Then: Most used first
         expect(result.isSuccess).toBe(true);

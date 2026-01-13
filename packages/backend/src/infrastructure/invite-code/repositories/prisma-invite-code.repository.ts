@@ -251,16 +251,29 @@ export class PrismaInviteCodeRepository implements IInviteCodeRepository {
    * können keine parallelen Writes stattfinden. Zweiter Request findet
    * kein Match mehr (useCount bereits incrementiert).
    *
-   * **Error Mapping:**
-   * - count = 0: Code invalid, aufgebraucht, abgelaufen oder widerrufen
-   * - count = 1: Success (Code wurde atomar markiert)
+   * **Error Mapping (mit spezifischer Unterscheidung):**
+   * - Code existiert nicht: INVITE_INVALID
+   * - Code abgelaufen: INVITE_EXPIRED
+   * - Code aufgebraucht/widerrufen: INVITE_ALREADY_USED
+   * - count = 1: Success (Code wurde atomar markiert), gibt InviteCodeId zurück
    * - Exception: Unerwarteter DB-Fehler
    */
-  async markAsUsedAtomic(code: InviteCodeValue, tx?: TransactionContext): Promise<Result<void>> {
+  async markAsUsedAtomic(code: InviteCodeValue, tx?: TransactionContext): Promise<Result<string>> {
     const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
     const now = new Date();
 
     try {
+      // Zuerst die InviteCodeId holen (brauchen wir für den Erfolgsfall)
+      const inviteCode = await client.inviteCode.findUnique({
+        where: { code: code.value },
+        select: { id: true, expiresAt: true, useCount: true, maxUses: true, isRevoked: true },
+      });
+
+      if (!inviteCode) {
+        this.logger.warn('InviteCode not found', { codeMasked: code.toMasked() });
+        return Result.fail('INVITE_INVALID');
+      }
+
       // Atomare UPDATE mit bedingtem WHERE (Race-Condition-sicher!)
       const result = await client.inviteCode.updateMany({
         where: {
@@ -274,20 +287,33 @@ export class PrismaInviteCodeRepository implements IInviteCodeRepository {
         },
       });
 
-      // result.count = 0 → Code invalid, aufgebraucht, oder abgelaufen
+      // result.count = 0 → Fehler, aber wir kennen bereits den Code
       if (result.count === 0) {
-        this.logger.error('Failed to mark InviteCode as used atomically', {
+        // Prüfe ob abgelaufen (hat Priorität über "already used")
+        if (inviteCode.expiresAt <= now) {
+          this.logger.warn('InviteCode is expired', {
+            codeMasked: code.toMasked(),
+            expiresAt: inviteCode.expiresAt.toISOString(),
+          });
+          return Result.fail('INVITE_EXPIRED');
+        }
+
+        // Code existiert aber konnte nicht verwendet werden (aufgebraucht oder widerrufen)
+        this.logger.warn('InviteCode cannot be used', {
           codeMasked: code.toMasked(),
-          reason: 'Code invalid, already used, expired, or revoked',
+          isRevoked: inviteCode.isRevoked,
+          useCount: inviteCode.useCount,
+          maxUses: inviteCode.maxUses,
         });
         return Result.fail('INVITE_ALREADY_USED');
       }
 
-      // Success: Code atomar markiert
+      // Success: Code atomar markiert, gib InviteCodeId zurück
       this.logger.log('InviteCode marked as used atomically', {
         codeMasked: code.toMasked(),
+        inviteCodeId: inviteCode.id,
       });
-      return Result.ok(undefined);
+      return Result.ok(inviteCode.id);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.logger.error('Failed to mark InviteCode as used atomically', {

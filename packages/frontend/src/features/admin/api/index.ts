@@ -22,6 +22,14 @@ export {
   useCreateAccessToken,
   type AccessTokenFilters,
 } from './use-access-token-management';
+export {
+  useSecurityManagement,
+  useSecurityStatus,
+  useMigrateToSecureMode,
+  type SecurityStatus,
+  type MigrateToSecureModeResponse,
+  type MigrateToSecureModeRequest,
+} from './use-security-management';
 
 // Re-export generierte DTOs für Convenience
 export type { CreateQualifikationDto, QualifikationDto, UpdateQualifikationDto } from '@/shared';

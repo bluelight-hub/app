@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * BlueLight Hub API
- * BlueLight Hub API for the BlueLight Hub application
+ * BlueLight Hub API for the BlueLight Hub application.  ## Server-Access-Token (X-Server-Access-Token)  Alle API-Endpunkte (außer /health und /setup) erfordern einen gültigen Server-Access-Token im Header:  ``` X-Server-Access-Token: <plaintext_token> ```  **Multi-Token Support:** - Mehrere aktive Tokens gleichzeitig möglich - Jedes Token hat einen eindeutigen Namen zur Identifikation - `lastUsedAt` wird bei jeder erfolgreichen Validierung aktualisiert - Tokens können individuell deaktiviert/reaktiviert/rotiert werden  **Token-Namenskonventionen (Best Practices):** - `Desktop Hauptwache` - für Desktop-App der Hauptwache - `Mobile SEG Nord` - für Mobile App der SEG Nord - `Integration Server` - für automatisierte Systeme - Bei Rotation: Datum im Namen (z.B. \"Desktop HW 2026-01\")
  *
  * The version of the OpenAPI document: 1.0.0-alpha.39
  *
@@ -17,13 +17,19 @@ import type {
   AdminInviteControllerCreateInviteVAlpha201Response,
   AdminInviteControllerListInvitesVAlpha200Response,
   AdminInviteControllerRevokeInviteVAlpha200Response,
+  AdminSecurityControllerGetStatusVAlpha200Response,
+  AdminSecurityControllerMigrateToSecureVAlpha201Response,
   AdminSetupControllerCompleteSetupVAlpha201Response,
   AdminSetupControllerCompleteSetupVAlpha400Response,
   AdminTokenControllerCreateTokenVAlpha201Response,
   AdminTokenControllerListTokensVAlpha200Response,
+  AdminTokenControllerRevokeTokenVAlpha200Response,
+  AdminTokenControllerRotateTokenVAlpha201Response,
   CompleteSetupDto,
   CreateAccessTokenDto,
   CreateInviteDto,
+  MigrateToSecureModeRequestDto,
+  RotateAccessTokenRequestDto,
 } from '../models/index';
 import {
   AdminInviteControllerCreateInviteVAlpha201ResponseFromJSON,
@@ -32,6 +38,10 @@ import {
   AdminInviteControllerListInvitesVAlpha200ResponseToJSON,
   AdminInviteControllerRevokeInviteVAlpha200ResponseFromJSON,
   AdminInviteControllerRevokeInviteVAlpha200ResponseToJSON,
+  AdminSecurityControllerGetStatusVAlpha200ResponseFromJSON,
+  AdminSecurityControllerGetStatusVAlpha200ResponseToJSON,
+  AdminSecurityControllerMigrateToSecureVAlpha201ResponseFromJSON,
+  AdminSecurityControllerMigrateToSecureVAlpha201ResponseToJSON,
   AdminSetupControllerCompleteSetupVAlpha201ResponseFromJSON,
   AdminSetupControllerCompleteSetupVAlpha201ResponseToJSON,
   AdminSetupControllerCompleteSetupVAlpha400ResponseFromJSON,
@@ -40,12 +50,20 @@ import {
   AdminTokenControllerCreateTokenVAlpha201ResponseToJSON,
   AdminTokenControllerListTokensVAlpha200ResponseFromJSON,
   AdminTokenControllerListTokensVAlpha200ResponseToJSON,
+  AdminTokenControllerRevokeTokenVAlpha200ResponseFromJSON,
+  AdminTokenControllerRevokeTokenVAlpha200ResponseToJSON,
+  AdminTokenControllerRotateTokenVAlpha201ResponseFromJSON,
+  AdminTokenControllerRotateTokenVAlpha201ResponseToJSON,
   CompleteSetupDtoFromJSON,
   CompleteSetupDtoToJSON,
   CreateAccessTokenDtoFromJSON,
   CreateAccessTokenDtoToJSON,
   CreateInviteDtoFromJSON,
   CreateInviteDtoToJSON,
+  MigrateToSecureModeRequestDtoFromJSON,
+  MigrateToSecureModeRequestDtoToJSON,
+  RotateAccessTokenRequestDtoFromJSON,
+  RotateAccessTokenRequestDtoToJSON,
 } from '../models/index';
 
 export interface AdminInviteControllerCreateInviteVAlphaRequest {
@@ -64,6 +82,10 @@ export interface AdminInviteControllerRevokeInviteVAlphaRequest {
   id: string;
 }
 
+export interface AdminSecurityControllerMigrateToSecureVAlphaRequest {
+  migrateToSecureModeRequestDto: MigrateToSecureModeRequestDto;
+}
+
 export interface AdminSetupControllerCompleteSetupVAlphaRequest {
   completeSetupDto: CompleteSetupDto;
 }
@@ -75,6 +97,22 @@ export interface AdminTokenControllerCreateTokenVAlphaRequest {
 export interface AdminTokenControllerListTokensVAlphaRequest {
   page?: number;
   limit?: number;
+  sortBy?: AdminTokenControllerListTokensVAlphaSortByEnum;
+  sortOrder?: AdminTokenControllerListTokensVAlphaSortOrderEnum;
+  inactiveDays?: number;
+}
+
+export interface AdminTokenControllerReactivateTokenVAlphaRequest {
+  id: string;
+}
+
+export interface AdminTokenControllerRevokeTokenVAlphaRequest {
+  id: string;
+}
+
+export interface AdminTokenControllerRotateTokenVAlphaRequest {
+  id: string;
+  rotateAccessTokenRequestDto: RotateAccessTokenRequestDto;
 }
 
 /**
@@ -224,6 +262,84 @@ export class AdminApi extends runtime.BaseAPI {
   }
 
   /**
+   * Gibt den aktuellen Security-Mode des Servers zurueck (INSECURE/SECURE), Setup-Status und Anzahl aktiver Tokens.
+   * Security-Status abfragen
+   */
+  async adminSecurityControllerGetStatusVAlphaRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AdminSecurityControllerGetStatusVAlpha200Response>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/admin/security/status`,
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminSecurityControllerGetStatusVAlpha200ResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Gibt den aktuellen Security-Mode des Servers zurueck (INSECURE/SECURE), Setup-Status und Anzahl aktiver Tokens.
+   * Security-Status abfragen
+   */
+  async adminSecurityControllerGetStatusVAlpha(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminSecurityControllerGetStatusVAlpha200Response> {
+    const response = await this.adminSecurityControllerGetStatusVAlphaRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Migriert den Server irreversibel von INSECURE zu SECURE Mode. Erstellt ein Initial-Token das NUR in dieser Response sichtbar ist! Rate-Limit: 5/Minute.
+   * Zu SECURE Mode migrieren
+   */
+  async adminSecurityControllerMigrateToSecureVAlphaRaw(
+    requestParameters: AdminSecurityControllerMigrateToSecureVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<AdminSecurityControllerMigrateToSecureVAlpha201Response>> {
+    if (requestParameters['migrateToSecureModeRequestDto'] == null) {
+      throw new runtime.RequiredError(
+        'migrateToSecureModeRequestDto',
+        'Required parameter "migrateToSecureModeRequestDto" was null or undefined when calling adminSecurityControllerMigrateToSecureVAlpha().',
+      );
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/admin/security/migrate-to-secure`,
+        method: 'POST',
+        headers: headerParameters,
+        query: queryParameters,
+        body: MigrateToSecureModeRequestDtoToJSON(requestParameters['migrateToSecureModeRequestDto']),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminSecurityControllerMigrateToSecureVAlpha201ResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Migriert den Server irreversibel von INSECURE zu SECURE Mode. Erstellt ein Initial-Token das NUR in dieser Response sichtbar ist! Rate-Limit: 5/Minute.
+   * Zu SECURE Mode migrieren
+   */
+  async adminSecurityControllerMigrateToSecureVAlpha(
+    requestParameters: AdminSecurityControllerMigrateToSecureVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<AdminSecurityControllerMigrateToSecureVAlpha201Response> {
+    const response = await this.adminSecurityControllerMigrateToSecureVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
+  /**
    * Creates the first admin user and generates a server access token. This endpoint can only be called ONCE. The access token is returned only in this response and cannot be retrieved later.
    * Complete initial server setup
    */
@@ -312,7 +428,7 @@ export class AdminApi extends runtime.BaseAPI {
   }
 
   /**
-   * Gibt eine paginierte Liste aller Server-Access-Tokens zurück. Token-Hashes werden aus Sicherheitsgründen nicht angezeigt.
+   * Gibt eine paginierte, sortierbare und filterbare Liste aller Server-Access-Tokens zurück. Token-Hashes werden aus Sicherheitsgründen nicht angezeigt. Mit inactiveDays können inaktive Tokens gefiltert werden.
    * Access-Tokens auflisten
    */
   async adminTokenControllerListTokensVAlphaRaw(
@@ -327,6 +443,18 @@ export class AdminApi extends runtime.BaseAPI {
 
     if (requestParameters['limit'] != null) {
       queryParameters['limit'] = requestParameters['limit'];
+    }
+
+    if (requestParameters['sortBy'] != null) {
+      queryParameters['sortBy'] = requestParameters['sortBy'];
+    }
+
+    if (requestParameters['sortOrder'] != null) {
+      queryParameters['sortOrder'] = requestParameters['sortOrder'];
+    }
+
+    if (requestParameters['inactiveDays'] != null) {
+      queryParameters['inactiveDays'] = requestParameters['inactiveDays'];
     }
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -345,7 +473,7 @@ export class AdminApi extends runtime.BaseAPI {
   }
 
   /**
-   * Gibt eine paginierte Liste aller Server-Access-Tokens zurück. Token-Hashes werden aus Sicherheitsgründen nicht angezeigt.
+   * Gibt eine paginierte, sortierbare und filterbare Liste aller Server-Access-Tokens zurück. Token-Hashes werden aus Sicherheitsgründen nicht angezeigt. Mit inactiveDays können inaktive Tokens gefiltert werden.
    * Access-Tokens auflisten
    */
   async adminTokenControllerListTokensVAlpha(
@@ -353,6 +481,136 @@ export class AdminApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<AdminTokenControllerListTokensVAlpha200Response> {
     const response = await this.adminTokenControllerListTokensVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Reaktiviert ein widerrufenes Access-Token. Das Token kann danach wieder verwendet werden. Rate-Limit: 10/Minute.
+   * Access-Token reaktivieren
+   */
+  async adminTokenControllerReactivateTokenVAlphaRaw(
+    requestParameters: AdminTokenControllerReactivateTokenVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<AdminTokenControllerRevokeTokenVAlpha200Response>> {
+    if (requestParameters['id'] == null) {
+      throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling adminTokenControllerReactivateTokenVAlpha().');
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/admin/tokens/{id}/reactivate`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
+        method: 'POST',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminTokenControllerRevokeTokenVAlpha200ResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Reaktiviert ein widerrufenes Access-Token. Das Token kann danach wieder verwendet werden. Rate-Limit: 10/Minute.
+   * Access-Token reaktivieren
+   */
+  async adminTokenControllerReactivateTokenVAlpha(
+    requestParameters: AdminTokenControllerReactivateTokenVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<AdminTokenControllerRevokeTokenVAlpha200Response> {
+    const response = await this.adminTokenControllerReactivateTokenVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Widerruft ein Access-Token. Das Token kann danach nicht mehr verwendet werden. Rate-Limit: 10/Minute.
+   * Access-Token widerrufen
+   */
+  async adminTokenControllerRevokeTokenVAlphaRaw(
+    requestParameters: AdminTokenControllerRevokeTokenVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<AdminTokenControllerRevokeTokenVAlpha200Response>> {
+    if (requestParameters['id'] == null) {
+      throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling adminTokenControllerRevokeTokenVAlpha().');
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/admin/tokens/{id}/revoke`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
+        method: 'POST',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminTokenControllerRevokeTokenVAlpha200ResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Widerruft ein Access-Token. Das Token kann danach nicht mehr verwendet werden. Rate-Limit: 10/Minute.
+   * Access-Token widerrufen
+   */
+  async adminTokenControllerRevokeTokenVAlpha(
+    requestParameters: AdminTokenControllerRevokeTokenVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<AdminTokenControllerRevokeTokenVAlpha200Response> {
+    const response = await this.adminTokenControllerRevokeTokenVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Rotiert ein Access-Token: Das alte Token wird widerrufen, ein neues wird erstellt. Das neue Token ist NUR in dieser Response sichtbar! Rate-Limit: 5/Minute.
+   * Access-Token rotieren
+   */
+  async adminTokenControllerRotateTokenVAlphaRaw(
+    requestParameters: AdminTokenControllerRotateTokenVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<AdminTokenControllerRotateTokenVAlpha201Response>> {
+    if (requestParameters['id'] == null) {
+      throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling adminTokenControllerRotateTokenVAlpha().');
+    }
+
+    if (requestParameters['rotateAccessTokenRequestDto'] == null) {
+      throw new runtime.RequiredError('rotateAccessTokenRequestDto', 'Required parameter "rotateAccessTokenRequestDto" was null or undefined when calling adminTokenControllerRotateTokenVAlpha().');
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/admin/tokens/{id}/rotate`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
+        method: 'POST',
+        headers: headerParameters,
+        query: queryParameters,
+        body: RotateAccessTokenRequestDtoToJSON(requestParameters['rotateAccessTokenRequestDto']),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => AdminTokenControllerRotateTokenVAlpha201ResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Rotiert ein Access-Token: Das alte Token wird widerrufen, ein neues wird erstellt. Das neue Token ist NUR in dieser Response sichtbar! Rate-Limit: 5/Minute.
+   * Access-Token rotieren
+   */
+  async adminTokenControllerRotateTokenVAlpha(
+    requestParameters: AdminTokenControllerRotateTokenVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<AdminTokenControllerRotateTokenVAlpha201Response> {
+    const response = await this.adminTokenControllerRotateTokenVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
 }
@@ -367,3 +625,20 @@ export const AdminInviteControllerListInvitesVAlphaStatusEnum = {
   Revoked: 'revoked',
 } as const;
 export type AdminInviteControllerListInvitesVAlphaStatusEnum = (typeof AdminInviteControllerListInvitesVAlphaStatusEnum)[keyof typeof AdminInviteControllerListInvitesVAlphaStatusEnum];
+/**
+ * @export
+ */
+export const AdminTokenControllerListTokensVAlphaSortByEnum = {
+  CreatedAt: 'createdAt',
+  LastUsedAt: 'lastUsedAt',
+  Name: 'name',
+} as const;
+export type AdminTokenControllerListTokensVAlphaSortByEnum = (typeof AdminTokenControllerListTokensVAlphaSortByEnum)[keyof typeof AdminTokenControllerListTokensVAlphaSortByEnum];
+/**
+ * @export
+ */
+export const AdminTokenControllerListTokensVAlphaSortOrderEnum = {
+  Asc: 'asc',
+  Desc: 'desc',
+} as const;
+export type AdminTokenControllerListTokensVAlphaSortOrderEnum = (typeof AdminTokenControllerListTokensVAlphaSortOrderEnum)[keyof typeof AdminTokenControllerListTokensVAlphaSortOrderEnum];

@@ -327,10 +327,10 @@ describe('PrismaServerAccessTokenRepository - Integration Tests', () => {
       // When: Find all active
       const result = await repository.findAllActive();
 
-      // Then: Returns only 2 active tokens
+      // Then: Active tokens are included, revoked token is excluded
       expect(result.isSuccess).toBe(true);
       const active = result.value!;
-      expect(active.length).toBe(2);
+      // Check that our test tokens are correctly included/excluded (DB may have other tokens)
       expect(active.some((t) => t.id.value === activeToken1.id.value)).toBe(true);
       expect(active.some((t) => t.id.value === activeToken2.id.value)).toBe(true);
       expect(active.some((t) => t.id.value === revokedToken.id.value)).toBe(false);
@@ -352,24 +352,28 @@ describe('PrismaServerAccessTokenRepository - Integration Tests', () => {
       // When: Find all active
       const result = await repository.findAllActive();
 
-      // Then: Returns only 1 active token
+      // Then: Active token is included, expired token is excluded (DB may have other tokens)
       expect(result.isSuccess).toBe(true);
       const active = result.value!;
-      expect(active.length).toBe(1);
-      expect(active[0].id.value).toBe(activeToken.id.value);
+      expect(active.some((t) => t.id.value === activeToken.id.value)).toBe(true);
+      expect(active.some((t) => t.id.value === expiredToken.id.value)).toBe(false);
     });
 
-    it('should return empty array when no active tokens', async () => {
+    it('should not include revoked tokens even if recently created', async () => {
       if (!databaseAvailable) return;
 
-      // Given: No tokens (cleanup in afterEach)
+      // Given: A revoked token
+      const revokedToken = await createTestToken({ name: 'Recently Revoked' });
+      revokedToken.revoke();
+      await repository.save(revokedToken);
 
       // When: Find all active
       const result = await repository.findAllActive();
 
-      // Then: Returns success with empty array
+      // Then: Revoked token is not included
       expect(result.isSuccess).toBe(true);
-      expect(result.value).toEqual([]);
+      const active = result.value!;
+      expect(active.some((t) => t.id.value === revokedToken.id.value)).toBe(false);
     });
   });
 
@@ -415,10 +419,15 @@ describe('PrismaServerAccessTokenRepository - Integration Tests', () => {
   // ========================================
 
   describe('AC7: countActive() Method', () => {
-    it('should count only active tokens', async () => {
+    it('should count only active tokens (increment check)', async () => {
       if (!databaseAvailable) return;
 
-      // Given: 2 active + 1 revoked
+      // Given: Get initial count
+      const initialCountResult = await repository.countActive();
+      expect(initialCountResult.isSuccess).toBe(true);
+      const initialCount = initialCountResult.value!;
+
+      // And: Add 2 active + 1 revoked
       const token1 = await createTestToken();
       const token2 = await createTestToken();
       const revokedToken = await createTestToken();
@@ -431,22 +440,30 @@ describe('PrismaServerAccessTokenRepository - Integration Tests', () => {
       // When: Count active
       const result = await repository.countActive();
 
-      // Then: Returns 2
+      // Then: Count increased by 2 (revoked token not counted)
       expect(result.isSuccess).toBe(true);
-      expect(result.value).toBe(2);
+      expect(result.value).toBe(initialCount + 2);
     });
 
-    it('should return 0 when no active tokens', async () => {
+    it('should not count revoked tokens', async () => {
       if (!databaseAvailable) return;
 
-      // Given: No tokens
+      // Given: Get initial count
+      const initialCountResult = await repository.countActive();
+      expect(initialCountResult.isSuccess).toBe(true);
+      const initialCount = initialCountResult.value!;
+
+      // And: Add only a revoked token
+      const revokedToken = await createTestToken();
+      revokedToken.revoke();
+      await repository.save(revokedToken);
 
       // When: Count active
       const result = await repository.countActive();
 
-      // Then: Returns 0
+      // Then: Count unchanged (revoked token not counted)
       expect(result.isSuccess).toBe(true);
-      expect(result.value).toBe(0);
+      expect(result.value).toBe(initialCount);
     });
   });
 

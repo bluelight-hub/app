@@ -1,28 +1,27 @@
 import { api } from '@/shared';
 import { AUTH_KEYS } from './queries';
 import { SYSTEM_QUERY_KEYS } from '@/features/system/api/queries';
-import { setServerAccessToken } from '@/shared/lib/server-access-token';
-import type { AdminSetupControllerCompleteSetupVAlpha201Response, CompleteSetupDto } from '@/shared';
+import type { AuthControllerAdminSetup200Response, AdminSetupDto } from '@/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 /**
- * Hook für initialen Admin-Setup
+ * Hook für Admin-Passwort-Setup
  *
- * Erstellt den ersten Admin-User und generiert einen Server-Access-Token.
- * Kann nur EINMAL aufgerufen werden (beim ersten Server-Start).
+ * Setzt das Passwort für einen existierenden Admin-User.
+ * Wird verwendet wenn `adminSetupAvailable: true` (Admin hat noch kein Passwort).
  *
- * @returns Mutation für Admin-Setup mit Token in der Response
+ * HINWEIS: Dies ist NICHT der initiale Server-Setup (POST /admin/setup),
+ * sondern das Admin-Passwort-Setup für existierende User (POST /auth/admin/setup).
+ *
+ * @returns Mutation für Admin-Passwort-Setup
  *
  * @example
  * ```tsx
  * const { mutate: setupAdmin, isPending } = useAdminSetup();
  *
- * const handleSetup = (username: string, password: string) => {
- *   setupAdmin({ username, password }, {
- *     onSuccess: (response) => {
- *       // Token anzeigen: response.data.accessToken.token
- *       console.log('Token:', response.data.accessToken.token);
- *     },
+ * const handleSetup = (password: string) => {
+ *   setupAdmin({ password }, {
+ *     onSuccess: () => navigate('/admin/dashboard'),
  *     onError: (err) => toast.error(err.message),
  *   });
  * };
@@ -31,26 +30,20 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 export const useAdminSetup = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<AdminSetupControllerCompleteSetupVAlpha201Response, Error, CompleteSetupDto>({
-    mutationFn: (completeSetupDto: CompleteSetupDto) => api.admin().adminSetupControllerCompleteSetupVAlpha({ completeSetupDto }),
-    onSuccess: async (response) => {
-      // Fix 6.3 & 6.4: Token ZUERST speichern (vor Query Invalidation)
-      try {
-        setServerAccessToken(response.data.accessToken.token);
-      } catch (error) {
-        // Fix 6.3: Error Handling wenn localStorage voll/disabled ist
-        console.error('Failed to store access token in localStorage:', error);
-        // Token ist trotzdem in response.data verfuegbar
-      }
-
-      // Fix 6.4: Query Invalidation NACH Token-Speicherung
-      // Health-Check invalidieren (setupComplete wird true)
-      await queryClient.invalidateQueries({
-        queryKey: SYSTEM_QUERY_KEYS.health(),
-      });
-      // Admin-Status invalidieren
+  return useMutation<AuthControllerAdminSetup200Response, Error, AdminSetupDto>({
+    mutationFn: (adminSetupDto: AdminSetupDto) => api.auth().authControllerAdminSetup({ adminSetupDto }),
+    onSuccess: async () => {
+      // Admin-Status invalidieren (adminSetupAvailable wird false)
       await queryClient.invalidateQueries({
         queryKey: AUTH_KEYS.auth.queries.adminStatus,
+      });
+      // Auth-Check invalidieren (für isAdminAuthenticated)
+      await queryClient.invalidateQueries({
+        queryKey: AUTH_KEYS.auth.queries.authCheck,
+      });
+      // Health-Check invalidieren
+      await queryClient.invalidateQueries({
+        queryKey: SYSTEM_QUERY_KEYS.health(),
       });
     },
   });

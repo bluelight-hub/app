@@ -11,10 +11,10 @@ import { SERVER_ACCESS_TOKEN_REPOSITORY, LOGGER } from '@infrastructure/di-token
 
 import type { GetTokenListQuery } from './get-token-list.query';
 import type { TokenListDto } from '../dto/token-list.dto';
-import type { TokenListItemDto, TokenStatus } from '../dto/token-list-item.dto';
+import type { TokenListItemDto, TokenRotatedStatus } from '../dto/token-list-item.dto';
 
 /**
- * Handler zum Auflisten von Server-Access-Tokens mit Pagination.
+ * Handler zum Auflisten von Server-Access-Tokens mit Pagination, Sortierung und Filter.
  *
  * Laedt Tokens aus dem Repository, mappt sie zu DTOs und
  * loggt einen Audit-Trail fuer die Abfrage.
@@ -29,11 +29,22 @@ import type { TokenListItemDto, TokenStatus } from '../dto/token-list-item.dto';
  * - Nur der Prefix (blh_...) wird angezeigt
  * - Audit-Trail loggt anfragenden Admin
  *
+ * **Sortierung (Story 4.3):**
+ * - sortBy: 'createdAt' | 'lastUsedAt' | 'name'
+ * - sortOrder: 'asc' | 'desc'
+ *
+ * **Inaktivitäts-Filter (Story 4.3):**
+ * - inactiveDays: Tokens die länger als X Tage nicht verwendet wurden
+ * - Inkludiert auch Tokens die NIE verwendet wurden
+ *
  * @example
  * ```typescript
  * const query = GetTokenListQuery.create({
  *   page: 1,
  *   limit: 20,
+ *   sortBy: 'lastUsedAt',
+ *   sortOrder: 'asc',
+ *   inactiveDays: 30,
  *   requestedById: 'admin_123',
  * }).value!;
  *
@@ -56,7 +67,7 @@ export class GetTokenListHandler {
    * Fuehrt die Query aus und gibt paginierte Tokens als DTOs zurueck.
    *
    * **Ablauf:**
-   * 1. Repository-Abfrage mit Pagination
+   * 1. Repository-Abfrage mit Pagination, Sortierung und Filter
    * 2. Repository-Result pruefen
    * 3. Domain Aggregates zu DTOs mappen (OHNE Token-Hash!)
    * 4. Audit-Trail loggen
@@ -73,9 +84,15 @@ export class GetTokenListHandler {
   async execute(query: GetTokenListQuery): Promise<Result<TokenListDto>> {
     try {
       // ════════════════════════════════════════════════════════════════════════
-      // 1. Repository-Abfrage mit Pagination
+      // 1. Repository-Abfrage mit Pagination, Sortierung und Filter
       // ════════════════════════════════════════════════════════════════════════
-      const repositoryResult = await this.tokenRepository.findAllPaginated(query.page, query.limit);
+      const repositoryResult = await this.tokenRepository.findAllPaginated({
+        page: query.page,
+        limit: query.limit,
+        sortBy: query.sortBy,
+        sortOrder: query.sortOrder,
+        inactiveDays: query.inactiveDays,
+      });
 
       // ════════════════════════════════════════════════════════════════════════
       // 2. Repository-Result pruefen
@@ -93,13 +110,19 @@ export class GetTokenListHandler {
       // ════════════════════════════════════════════════════════════════════════
       // 3. Domain Aggregates zu DTOs mappen (OHNE Token-Hash!)
       // ════════════════════════════════════════════════════════════════════════
-      const items: TokenListItemDto[] = paginatedResult.items.map((token) => this.mapToListItemDto(token));
+      // Sammle alle rotatedFromIds fuer den 'rotated' Status Check
+      const rotatedFromIds = new Set(
+        paginatedResult.items.filter((t): t is typeof t & { rotatedFromId: NonNullable<typeof t.rotatedFromId> } => t.rotatedFromId !== null).map((t) => t.rotatedFromId.value),
+      );
+
+      const items: TokenListItemDto[] = paginatedResult.items.map((token) => this.mapToListItemDto(token, rotatedFromIds));
 
       // ════════════════════════════════════════════════════════════════════════
-      // 4. Audit-Trail loggen
+      // 4. Audit-Trail loggen (inkl. Sortierung/Filter)
       // ════════════════════════════════════════════════════════════════════════
+      const filterInfo = query.inactiveDays !== null ? `, inactive>${query.inactiveDays}d` : '';
       this.logger.log(
-        `Admin listed access tokens (count: ${items.length}, total: ${paginatedResult.total}, page: ${query.page}/${paginatedResult.totalPages}, by: ${query.requestedById})`,
+        `Admin listed access tokens (count: ${items.length}, total: ${paginatedResult.total}, page: ${query.page}/${paginatedResult.totalPages}, sort: ${query.sortBy}/${query.sortOrder}${filterInfo}, by: ${query.requestedById})`,
         'GetTokenListHandler',
       );
 
@@ -130,61 +153,54 @@ export class GetTokenListHandler {
    * **Security:**
    * - Token-Hash wird NIEMALS in der Response zurückgegeben
    * - Nur der Prefix (ID: blh_...) wird angezeigt
-   * - Status wird zur Laufzeit berechnet
+   * - Status wird via Aggregate-Methode berechnet
    *
    * @param token - ServerAccessToken Domain Aggregate
+   * @param rotatedFromIds - Set aller Token-IDs die als rotatedFromId referenziert werden
    * @returns TokenListItemDto ohne sensible Daten
    */
-  private mapToListItemDto(token: ServerAccessToken): TokenListItemDto {
+  private mapToListItemDto(token: ServerAccessToken, rotatedFromIds: Set<string>): TokenListItemDto {
     return {
       id: token.id.value,
       name: token.name ?? 'Unbenanntes Token',
-      prefix: this.extractTokenPrefix(token.id.value),
+      prefix: token.getDisplayPrefix(),
       createdAt: token.createdAt.toISOString(),
-      status: this.computeStatus(token),
+      status: token.getStatus(),
       lastUsedAt: token.lastUsedAt?.toISOString() ?? null,
       expiresAt: token.expiresAt?.toISOString() ?? null,
+      revokedAt: token.revokedAt?.toISOString() ?? null,
+      rotatedFromId: token.rotatedFromId?.value ?? null,
+      rotatedStatus: this.computeRotatedStatus(token, rotatedFromIds),
     };
   }
 
   /**
-   * Extrahiert den Prefix aus der Token-ID.
+   * Berechnet den Rotations-Status eines Tokens.
    *
-   * Das Token-ID hat das Format "blh_..." (24+ Zeichen).
-   * Wir zeigen die ersten 12 Zeichen als Prefix.
+   * **Logik:**
+   * - `'replacement'`: Dieses Token wurde durch Rotation erstellt (rotatedFromId ist gesetzt)
+   * - `'rotated'`: Dieses Token wurde durch Rotation ersetzt (isRevoked && ein anderes Token hat rotatedFromId = this.id)
+   * - `null`: Normales Token (weder rotiert noch Replacement)
    *
-   * @param tokenId - Die Token-ID (blh_...)
-   * @returns Prefix mit max. 12 Zeichen
-   */
-  private extractTokenPrefix(tokenId: string): string {
-    // Token-ID ist bereits der Prefix (blh_ + CUID2)
-    // Wir zeigen die ersten 12 Zeichen für die Identifizierung
-    return tokenId.substring(0, 12);
-  }
-
-  /**
-   * Berechnet den aktuellen Status des Tokens.
-   *
-   * Priorität:
-   * 1. revoked (höchste Priorität)
-   * 2. expired
-   * 3. active
+   * **Hinweis:** Der 'rotated' Status kann nur fuer Tokens in der aktuellen Seite berechnet werden.
+   * Wenn ein Replacement-Token auf einer anderen Seite ist, wird das originale Token als `null` angezeigt.
    *
    * @param token - ServerAccessToken Aggregate
-   * @returns TokenStatus
+   * @param rotatedFromIds - Set aller Token-IDs die in der aktuellen Seite als rotatedFromId referenziert werden
+   * @returns TokenRotatedStatus
    */
-  private computeStatus(token: ServerAccessToken): TokenStatus {
-    // Revoked hat höchste Priorität
-    if (token.isRevoked) {
-      return 'revoked';
+  private computeRotatedStatus(token: ServerAccessToken, rotatedFromIds: Set<string>): TokenRotatedStatus {
+    // 1. Dieses Token ist ein Replacement (wurde durch Rotation erstellt)
+    if (token.rotatedFromId !== null) {
+      return 'replacement';
     }
 
-    // Abgelaufen prüfen
-    if (token.expiresAt !== null && token.expiresAt < new Date()) {
-      return 'expired';
+    // 2. Dieses Token wurde rotiert (widerrufen UND ein anderes Token referenziert es als rotatedFromId)
+    if (token.isRevoked && rotatedFromIds.has(token.id.value)) {
+      return 'rotated';
     }
 
-    // Ansonsten aktiv
-    return 'active';
+    // 3. Normales Token
+    return null;
   }
 }

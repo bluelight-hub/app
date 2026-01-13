@@ -475,9 +475,9 @@ describe('Architecture Dependency Rules', () => {
         const hasSymbolInject = /@Inject\s*\(\s*[A-Z_]+\s*\)/g.test(content);
 
         if (hasSymbolInject) {
-          // Dann sollte sie von @infrastructure/di-tokens importieren
+          // Dann sollte sie von @infrastructure/di-tokens oder @/infrastructure/di-tokens importieren
           const imports = extractImports(file);
-          const hasTokenImport = imports.some((imp) => imp.includes('@infrastructure/di-tokens'));
+          const hasTokenImport = imports.some((imp) => imp.includes('@infrastructure/di-tokens') || imp.includes('@/infrastructure/di-tokens'));
 
           if (!hasTokenImport) {
             violations.push(path.relative(SRC_PATH, file));
@@ -507,8 +507,8 @@ describe('Architecture Dependency Rules', () => {
       for (const file of handlerFiles) {
         const content = fs.readFileSync(file, 'utf-8');
 
-        // Prüfe dass Result importiert wird
-        const hasResultImport = /import\s+.*Result.*from\s+['"]@domain\/common\/result['"]/.test(content);
+        // Prüfe dass Result importiert wird (beide Pfade: @domain/ und @/domain/)
+        const hasResultImport = /import\s+.*Result.*from\s+['"]@\/?domain\/common\/result['"]/.test(content);
 
         // Prüfe dass execute() Methode Result<T> returned ODER TransactionalCommandHandler extended
         const hasResultReturn = /async\s+execute\s*\([^)]*\)\s*:\s*Promise<Result</g.test(content);

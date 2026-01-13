@@ -36,6 +36,10 @@ import type { RollenDefinitionCreatedEvent } from '@domain/kraefte/events/rollen
 import type { RollenDefinitionUpdatedEvent } from '@domain/kraefte/events/rollen-definition-updated.event';
 import type { InviteCodeCreatedEvent } from '@domain/events/invite-code-created.event';
 import type { InviteCodeRevokedEvent } from '@domain/events/invite-code-revoked.event';
+import type { ServerAccessTokenCreatedEvent } from '@domain/events/server-access-token-created.event';
+import type { ServerAccessTokenRevokedEvent } from '@domain/events/server-access-token-revoked.event';
+import type { ServerAccessTokenRotatedEvent } from '@domain/events/server-access-token-rotated.event';
+import type { ServerAccessTokenReactivatedEvent } from '@domain/events/server-access-token-reactivated.event';
 
 /**
  * Serialisiertes Event-Payload für Outbox-Persistierung.
@@ -233,6 +237,16 @@ export class EventSerializer {
         return this.serializeInviteCodeCreated(event as unknown as InviteCodeCreatedEvent);
       case 'invite_code.revoked':
         return this.serializeInviteCodeRevoked(event as unknown as InviteCodeRevokedEvent);
+
+      // ===== SERVER ACCESS TOKEN EVENTS =====
+      case 'server_access_token.created':
+        return this.serializeServerAccessTokenCreated(event as unknown as ServerAccessTokenCreatedEvent);
+      case 'server_access_token.revoked':
+        return this.serializeServerAccessTokenRevoked(event as unknown as ServerAccessTokenRevokedEvent);
+      case 'server_access_token.rotated':
+        return this.serializeServerAccessTokenRotated(event as unknown as ServerAccessTokenRotatedEvent);
+      case 'server_access_token.reactivated':
+        return this.serializeServerAccessTokenReactivated(event as unknown as ServerAccessTokenReactivatedEvent);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -596,6 +610,39 @@ export class EventSerializer {
       codeMasked: event.codeMasked,
       revokedAt: event.revokedAt.toISOString(),
       revokedById: event.revokedById,
+    };
+  }
+
+  // ===== SERVER ACCESS TOKEN SERIALIZERS =====
+
+  private serializeServerAccessTokenCreated(event: ServerAccessTokenCreatedEvent): Record<string, unknown> {
+    return {
+      tokenId: event.tokenId.toString(), // AccessTokenId → string
+      name: event.name, // string | null
+      expiresAt: event.expiresAt?.toISOString() ?? null, // Date | null → ISO string | null
+    };
+  }
+
+  private serializeServerAccessTokenRevoked(event: ServerAccessTokenRevokedEvent): Record<string, unknown> {
+    return {
+      tokenId: event.tokenId.toString(), // AccessTokenId → string
+      revokedAt: event.revokedAt.toISOString(), // Date → ISO string
+    };
+  }
+
+  private serializeServerAccessTokenRotated(event: ServerAccessTokenRotatedEvent): Record<string, unknown> {
+    return {
+      oldTokenId: event.oldTokenId.toString(), // AccessTokenId → string
+      newTokenId: event.newTokenId.toString(), // AccessTokenId → string
+      rotatedAt: event.rotatedAt.toISOString(), // Date → ISO string
+      rotatedBy: event.rotatedBy ?? null, // string | undefined → string | null
+    };
+  }
+
+  private serializeServerAccessTokenReactivated(event: ServerAccessTokenReactivatedEvent): Record<string, unknown> {
+    return {
+      tokenId: event.tokenId.toString(), // AccessTokenId → string
+      reactivatedAt: event.reactivatedAt.toISOString(), // Date → ISO string
     };
   }
 }

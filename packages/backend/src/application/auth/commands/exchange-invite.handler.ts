@@ -110,10 +110,15 @@ export class ExchangeInviteHandler {
     // Step 2: AC6 - Atomare Invite-Markierung (Race-Condition-sicher!)
     // Diese Methode prüft Code-Validität (expired, used, revoked) atomar in der DB
     // und incrementiert useCount nur wenn alle Bedingungen erfüllt sind.
+    // Gibt bei Erfolg die InviteCodeId zurück für die Token-Verknüpfung.
     const markResult = await this.inviteRepo.markAsUsedAtomic(inviteCodeValue);
     if (markResult.isFailure) {
-      // Error Codes: INVITE_ALREADY_USED, INVITE_INVALID, DATABASE_ERROR
+      // Error Codes: INVITE_ALREADY_USED, INVITE_EXPIRED, INVITE_INVALID, DATABASE_ERROR
       return Result.fail(markResult.error ?? 'INVITE_ALREADY_USED');
+    }
+    const inviteCodeId = markResult.value;
+    if (!inviteCodeId) {
+      return Result.fail('DATABASE_ERROR');
     }
 
     // Step 3: Generate Server-Access-Token (bcrypt Cost 10, ~100ms)
@@ -148,8 +153,8 @@ export class ExchangeInviteHandler {
 
     const token = tokenResult.value;
 
-    // Step 5: Persistiere ServerAccessToken
-    const saveTokenResult = await this.tokenRepo.save(token);
+    // Step 5: Persistiere ServerAccessToken mit Verknüpfung zum InviteCode
+    const saveTokenResult = await this.tokenRepo.saveWithInviteCode(token, inviteCodeId);
     if (saveTokenResult.isFailure) {
       // DB Error beim Token-Save
       return Result.fail('DATABASE_ERROR');

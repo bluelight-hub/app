@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * BlueLight Hub API
- * BlueLight Hub API for the BlueLight Hub application
+ * BlueLight Hub API for the BlueLight Hub application.  ## Server-Access-Token (X-Server-Access-Token)  Alle API-Endpunkte (außer /health und /setup) erfordern einen gültigen Server-Access-Token im Header:  ``` X-Server-Access-Token: <plaintext_token> ```  **Multi-Token Support:** - Mehrere aktive Tokens gleichzeitig möglich - Jedes Token hat einen eindeutigen Namen zur Identifikation - `lastUsedAt` wird bei jeder erfolgreichen Validierung aktualisiert - Tokens können individuell deaktiviert/reaktiviert/rotiert werden  **Token-Namenskonventionen (Best Practices):** - `Desktop Hauptwache` - für Desktop-App der Hauptwache - `Mobile SEG Nord` - für Mobile App der SEG Nord - `Integration Server` - für automatisierte Systeme - Bei Rotation: Datum im Namen (z.B. \"Desktop HW 2026-01\")
  *
  * The version of the OpenAPI document: 1.0.0-alpha.39
  *
@@ -61,6 +61,24 @@ export interface TokenListItemDto {
    * @memberof TokenListItemDto
    */
   expiresAt: object | null;
+  /**
+   * Widerrufungsdatum (ISO-8601)
+   * @type {object}
+   * @memberof TokenListItemDto
+   */
+  revokedAt: object | null;
+  /**
+   * ID des ursprünglichen Tokens bei Rotation
+   * @type {object}
+   * @memberof TokenListItemDto
+   */
+  rotatedFromId?: object | null;
+  /**
+   * Rotations-Status des Tokens
+   * @type {string}
+   * @memberof TokenListItemDto
+   */
+  rotatedStatus?: TokenListItemDtoRotatedStatusEnum | null;
 }
 
 /**
@@ -74,6 +92,15 @@ export const TokenListItemDtoStatusEnum = {
 export type TokenListItemDtoStatusEnum = (typeof TokenListItemDtoStatusEnum)[keyof typeof TokenListItemDtoStatusEnum];
 
 /**
+ * @export
+ */
+export const TokenListItemDtoRotatedStatusEnum = {
+  Rotated: 'rotated',
+  Replacement: 'replacement',
+} as const;
+export type TokenListItemDtoRotatedStatusEnum = (typeof TokenListItemDtoRotatedStatusEnum)[keyof typeof TokenListItemDtoRotatedStatusEnum];
+
+/**
  * Check if a given object implements the TokenListItemDto interface.
  */
 export function instanceOfTokenListItemDto(value: object): value is TokenListItemDto {
@@ -84,6 +111,7 @@ export function instanceOfTokenListItemDto(value: object): value is TokenListIte
   if (!('status' in value) || value['status'] === undefined) return false;
   if (!('lastUsedAt' in value) || value['lastUsedAt'] === undefined) return false;
   if (!('expiresAt' in value) || value['expiresAt'] === undefined) return false;
+  if (!('revokedAt' in value) || value['revokedAt'] === undefined) return false;
   return true;
 }
 
@@ -103,6 +131,9 @@ export function TokenListItemDtoFromJSONTyped(json: any, ignoreDiscriminator: bo
     status: json['status'],
     lastUsedAt: json['lastUsedAt'],
     expiresAt: json['expiresAt'],
+    revokedAt: json['revokedAt'],
+    rotatedFromId: json['rotatedFromId'] == null ? undefined : json['rotatedFromId'],
+    rotatedStatus: json['rotatedStatus'] == null ? undefined : json['rotatedStatus'],
   };
 }
 
@@ -123,5 +154,8 @@ export function TokenListItemDtoToJSONTyped(value?: TokenListItemDto | null, ign
     status: value['status'],
     lastUsedAt: value['lastUsedAt'],
     expiresAt: value['expiresAt'],
+    revokedAt: value['revokedAt'],
+    rotatedFromId: value['rotatedFromId'],
+    rotatedStatus: value['rotatedStatus'],
   };
 }

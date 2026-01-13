@@ -10,3 +10,5 @@ export { InviteCodeListDto } from './invite-code-list.dto';
 export { RevokeInviteResponseDto } from './revoke-invite-response.dto';
 export { TokenListItemDto, type TokenStatus } from './token-list-item.dto';
 export { TokenListDto, TokenListPaginationDto } from './token-list.dto';
+export { SecurityStatusDto } from './security-status.dto';
+export { MigrateToSecureModeRequestDto, MigrateToSecureModeResponseDto } from './migrate-to-secure-mode.dto';

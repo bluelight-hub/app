@@ -42,17 +42,15 @@ describe('TauriStorageAdapter', () => {
       expect(result).toBeNull();
     });
 
-    it('should return null when invoke throws error', async () => {
+    it('should throw error when invoke throws error', async () => {
       // Given
-      vi.mocked(invoke).mockRejectedValue(new Error('IPC error'));
+      const error = new Error('IPC error');
+      vi.mocked(invoke).mockRejectedValue(error);
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      // When
-      const result = await adapter.getItem('test-key');
-
-      // Then
-      expect(result).toBeNull();
-      expect(consoleErrorSpy).toHaveBeenCalledWith('[TauriStorageAdapter] getItem failed:', expect.any(Error));
+      // When/Then
+      await expect(adapter.getItem('test-key')).rejects.toThrow('IPC error');
+      expect(consoleErrorSpy).toHaveBeenCalledWith('[TauriStorageAdapter] getItem failed:', error);
 
       consoleErrorSpy.mockRestore();
     });

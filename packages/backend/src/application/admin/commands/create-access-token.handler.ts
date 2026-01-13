@@ -27,18 +27,7 @@ import { CreateAccessTokenCommand } from './create-access-token.command';
 // biome-ignore lint/style/useImportType: CreateAccessTokenResponseDto wird fuer Runtime-Typisierung benoetigt
 import { CreateAccessTokenResponseDto } from '../dto/create-access-token-response.dto';
 import { ACCESS_TOKEN_ERROR_CODES } from '../errors/access-token-error.codes';
-
-/**
- * Token-Prefix fuer Server Access Tokens.
- * Format: blh_ + cuid2 (24 Zeichen) = 28 Zeichen total.
- */
-const TOKEN_PREFIX = 'blh_';
-
-/**
- * Laenge des Token-Prefix fuer Anzeige/Logging.
- * Format: blh_ + 8 Zeichen = 12 Zeichen.
- */
-const TOKEN_PREFIX_DISPLAY_LENGTH = 12;
+import { TOKEN_PREFIX, TOKEN_PREFIX_DISPLAY_LENGTH } from '../constants/token.constants';
 
 /**
  * Handler zum Erstellen eines neuen Server-Access-Tokens.
@@ -117,8 +106,16 @@ export class CreateAccessTokenHandler extends TransactionalCommandHandler<Create
 
     // ════════════════════════════════════════════════════════════════════════
     // 3. bcrypt-Hash mit Cost-Factor 10 erstellen (NFR-S1 compliant)
+    // Fehler bei bcrypt (z.B. Memory Allocation) werden als Result.fail() behandelt.
     // ════════════════════════════════════════════════════════════════════════
-    const tokenHashValue = await bcrypt.hash(rawToken, BCRYPT_COST_FACTOR_TOKEN);
+    let tokenHashValue: string;
+    try {
+      tokenHashValue = await bcrypt.hash(rawToken, BCRYPT_COST_FACTOR_TOKEN);
+    } catch (bcryptError) {
+      const errorMessage = bcryptError instanceof Error ? bcryptError.message : 'Unknown bcrypt error';
+      this.logger.error(`bcrypt.hash() failed: ${errorMessage}`, 'CreateAccessTokenHandler');
+      return Result.fail<CreateAccessTokenResponseDto>(ACCESS_TOKEN_ERROR_CODES.TOKEN_HASH_FAILED);
+    }
 
     // ════════════════════════════════════════════════════════════════════════
     // 4. TokenHash Value Object erstellen (validiert bcrypt-Format)

@@ -12,10 +12,53 @@
 
 | Strategie | Guard | Verwendung |
 |-----------|-------|------------|
+| `server-access` | `ServerAccessGuard` | Server-zu-Server (global) |
 | `jwt` | `JwtAuthGuard` | Standard-Benutzer |
 | `admin-jwt` | `AdminJwtAuthGuard` | Admin-Operationen |
 
-### 1.2 Token Format
+### 1.2 Server-Access-Token (X-Server-Access-Token)
+
+Der `X-Server-Access-Token` Header authentifiziert Server/Clients gegen das Backend. Dieser Guard wird **global** angewendet und muss bei jedem API-Aufruf (außer Health/Setup) mitgesendet werden.
+
+**Format:**
+```
+X-Server-Access-Token: <plaintext_token>
+```
+
+**Multi-Token Support:**
+- Mehrere aktive Tokens gleichzeitig möglich
+- Jedes Token hat einen eindeutigen Namen zur Identifikation
+- `lastUsedAt` wird bei jeder Nutzung asynchron aktualisiert
+- Tokens können individuell deaktiviert/reaktiviert werden
+
+**Token-Validierung:**
+- Tokens werden gegen bcrypt-Hashes validiert (timing-safe)
+- Nur aktive (`isActive: true`) und nicht abgelaufene Tokens sind gültig
+- Bei ungültigem Token: `401 Unauthorized`
+
+**Bypass:**
+- Endpoints mit `@SkipServerAccess()` Decorator (z.B. `/health`, `/setup`)
+- `INSECURE_MODE=true` (nur lokale Entwicklung!)
+
+#### Token-Namenskonventionen (Best Practices)
+
+Bei der Erstellung von Access Tokens sollten beschreibende Namen gewählt werden:
+
+| Empfohlener Name | Verwendungszweck |
+|------------------|------------------|
+| `Desktop Hauptwache` | Desktop-App der Hauptwache |
+| `Mobile SEG Nord` | Mobile App der SEG Nord |
+| `Backup Token` | Notfall-Zugang |
+| `Integration Server` | Automatisierte Systeme |
+| `Test Token Dev` | Entwicklung/Testing |
+
+**Namensrichtlinien:**
+- **Beschreibend:** Kombination aus Gerät + Standort (z.B. `Tablet Wache 2`)
+- **Keine sensitiven Daten:** Keine Passwörter, IPs oder interne URLs im Namen
+- **Bei Rotation:** Neuen Namen mit Datum versehen (z.B. `Desktop HW 2026-01`)
+- **Eindeutig:** Jeder Token sollte einen einzigartigen Namen haben
+
+### 1.3 JWT Token Format
 
 ```
 Authorization: Bearer <jwt_token>
@@ -238,6 +281,53 @@ interface WrappedResponse<T> {
 | GET | `/integrations/credentials` | Credentials abrufen | JWT |
 | POST | `/integrations/credentials` | Credentials speichern | JWT |
 | POST | `/integrations/hiorg/sync` | HiOrg-Server Sync | JWT |
+
+---
+
+### 3.9 Admin - Access Tokens
+
+Verwaltung von Server-Access-Tokens für Multi-Client-Support.
+
+| Method | Endpoint | Beschreibung | Auth |
+|--------|----------|--------------|------|
+| GET | `/admin/tokens` | Alle Tokens auflisten | Admin |
+| POST | `/admin/tokens` | Neues Token erstellen | Admin |
+| POST | `/admin/tokens/:id/revoke` | Token deaktivieren | Admin |
+| POST | `/admin/tokens/:id/reactivate` | Token reaktivieren | Admin |
+| POST | `/admin/tokens/:id/rotate` | Token rotieren | Admin |
+
+**CreateAccessTokenDto:**
+```json
+{
+  "name": "Desktop Hauptwache",
+  "expiresAt": "2027-01-01T00:00:00Z"
+}
+```
+
+**TokenListItemDto (Response):**
+```json
+{
+  "id": "clx...",
+  "name": "Desktop Hauptwache",
+  "tokenPrefix": "bh_abc1",
+  "isActive": true,
+  "lastUsedAt": "2026-01-13T10:30:00Z",
+  "expiresAt": "2027-01-01T00:00:00Z",
+  "createdAt": "2026-01-10T08:00:00Z"
+}
+```
+
+**Token nach Erstellung (einmalig sichtbar):**
+```json
+{
+  "id": "clx...",
+  "name": "Desktop Hauptwache",
+  "token": "bh_abc123...xyz789",
+  "tokenPrefix": "bh_abc1"
+}
+```
+
+**Hinweis:** Das vollständige Token wird nur bei Erstellung/Rotation zurückgegeben und kann danach nicht mehr abgerufen werden.
 
 ---
 

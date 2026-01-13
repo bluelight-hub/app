@@ -4,6 +4,7 @@ import { LOGGER, SERVER_ACCESS_TOKEN_REPOSITORY } from '@infrastructure/di-token
 import { NestLoggerAdapter } from '../common/adapters/nest-logger.adapter';
 import { PrismaServerAccessTokenRepository } from './repositories/prisma-server-access-token.repository';
 import { ServerAccessGuard } from '../guards/server-access.guard';
+import { ServerConfigInfrastructureModule } from '../server-config/server-config-infrastructure.module';
 
 /**
  * NestJS Module fuer ServerAccessToken Infrastructure Layer.
@@ -30,7 +31,7 @@ import { ServerAccessGuard } from '../guards/server-access.guard';
  */
 @Global()
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, ServerConfigInfrastructureModule],
   providers: [
     // Logger fuer ServerAccessToken Infrastructure
     {

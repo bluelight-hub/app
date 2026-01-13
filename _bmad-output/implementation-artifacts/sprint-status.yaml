@@ -84,12 +84,12 @@ development_status:
   # EPIC 4: Admin Token-Verwaltung
   # ═══════════════════════════════════════════════════════════════════════════
   epic-4: in-progress # Started 2026-01-12
-  4-1-access-token-mit-namen-erstellen: review # All 13 Tasks complete, limit=100 fix (2026-01-12)
-  4-2-access-token-deaktivieren: backlog
-  4-3-token-usage-statistiken-einsehen: backlog
-  4-4-token-rotieren: backlog
-  4-5-basis-token-liste-mehrfach-token-support: backlog
+  4-1-access-token-mit-namen-erstellen: done # Code Review + All 17 Issues Fixed (2026-01-12) - 89 Tests added
+  4-2-access-token-deaktivieren: done # Implementation complete, ready for code review (2026-01-12)
+  4-3-token-usage-statistiken-einsehen: done # Code Review + All Issues Fixed (2026-01-12) - 159 Tests, 8 Findings fixed
+  4-4-token-rotieren: done # Implementation complete (2026-01-12) - 58 Tests, ready for code review
+  4-5-basis-token-liste-mehrfach-token-support: done # Code Review + All 13 Issues Fixed (2026-01-13) - 628 Tests, DRY Refactoring, Zod Schema
   4-5a-token-liste-paginierung-filter: backlog
   4-5b-letzten-aktiven-token-schuetzen: backlog
-  4-6-insecure-zu-secure-migration: backlog
+  4-6-insecure-zu-secure-migration: in-progress # Dev started (2026-01-13)
   epic-4-retrospective: optional

@@ -39,7 +39,12 @@ describe('useStore Hook', () => {
   });
 
   it('should set and persist value', async () => {
-    const { result } = renderHook(() => useStore('testKey'));
+    const { result } = renderHook(() => useStore('testKey', 'defaultValue'));
+
+    // Wait for initial load to complete
+    await waitFor(() => {
+      expect(result.current[3]).toBe(false); // isLoading
+    });
 
     await act(async () => {
       await result.current[1]('newValue');
@@ -67,13 +72,17 @@ describe('useStore Hook', () => {
   });
 
   it('should handle set errors gracefully', async () => {
+    // Setup: first call returns 'initialValue', then reject on set
+    vi.mocked(storeService.getStoreValue).mockResolvedValueOnce('initialValue');
     const error = new Error('Save failed');
     vi.mocked(storeService.setStoreValue).mockRejectedValueOnce(error);
 
     const { result } = renderHook(() => useStore('testKey', 'initialValue'));
 
+    // Wait for initial load to complete and value to be set
     await waitFor(() => {
-      expect(result.current[3]).toBe(false);
+      expect(result.current[3]).toBe(false); // isLoading
+      expect(result.current[0]).toBe('initialValue');
     });
 
     await expect(

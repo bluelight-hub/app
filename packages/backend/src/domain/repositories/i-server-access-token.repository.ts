@@ -5,6 +5,32 @@ import type { AccessTokenId } from '../value-objects/access-token-id';
 import type { TokenHash } from '../value-objects/token-hash';
 
 /**
+ * Sortierfeld fuer Token-Listen.
+ */
+export type TokenListSortBy = 'createdAt' | 'lastUsedAt' | 'name';
+
+/**
+ * Sortierrichtung.
+ */
+export type TokenListSortOrder = 'asc' | 'desc';
+
+/**
+ * Optionen fuer paginierte Token-Abfrage mit Sortierung und Filter.
+ */
+export interface TokenListQueryOptions {
+  /** Seitennummer (1-basiert) */
+  page: number;
+  /** Anzahl Eintraege pro Seite */
+  limit: number;
+  /** Sortierfeld (default: createdAt) */
+  sortBy?: TokenListSortBy;
+  /** Sortierrichtung (default: desc) */
+  sortOrder?: TokenListSortOrder;
+  /** Filter: Tokens die länger als X Tage nicht verwendet wurden (inkl. nie verwendet) */
+  inactiveDays?: number | null;
+}
+
+/**
  * Repository Port Interface für ServerAccessToken Aggregates (Hexagonal Architecture).
  *
  * Definiert die Persistenz-Schnittstelle für ServerAccessToken Aggregates ohne
@@ -146,21 +172,63 @@ export interface IServerAccessTokenRepository {
   countActive(tx?: TransactionContext): Promise<Result<number>>;
 
   /**
-   * Lädt alle Tokens mit Pagination (sowohl aktive als auch widerrufene).
+   * Lädt alle Tokens mit Pagination, Sortierung und optionalem Filter.
    *
    * **Use Case:**
    * - Admin Dashboard: Token-Übersicht mit allen Tokens
    * - Token-Verwaltung: Liste aller Tokens zur Administration
+   * - Inaktive Token finden: Filter nach Inaktivitätstagen
    *
    * **Sortierung:**
-   * - Tokens werden nach createdAt DESC sortiert (neueste zuerst)
+   * - Default: createdAt DESC (neueste zuerst)
+   * - Unterstützt: createdAt, lastUsedAt, name
    *
-   * @param page - Seitennummer (1-basiert)
-   * @param limit - Anzahl der Einträge pro Seite
+   * **Inaktivitäts-Filter (inactiveDays):**
+   * - Filtert Tokens, deren lastUsedAt älter als (now - inactiveDays) ist
+   * - ODER lastUsedAt IS NULL (nie verwendet)
+   *
+   * @param options - TokenListQueryOptions mit Pagination, Sortierung und Filter
    * @param tx - Optional Transaction Context
    * @returns Result<ServerAccessTokenPaginatedResult> - Success mit paginiertem Ergebnis
    */
-  findAllPaginated(page: number, limit: number, tx?: TransactionContext): Promise<Result<ServerAccessTokenPaginatedResult>>;
+  findAllPaginated(options: TokenListQueryOptions, tx?: TransactionContext): Promise<Result<ServerAccessTokenPaginatedResult>>;
+
+  /**
+   * Aktualisiert den lastUsedAt Zeitstempel eines Tokens.
+   *
+   * **Use Case:**
+   * - Usage-Tracking: Token-Nutzung asynchron erfassen (Story 4.3)
+   * - Debounced Updates: Nur einmal pro Zeitfenster aktualisieren
+   *
+   * **Performance Note:**
+   * Diese Methode wird häufig aufgerufen (bei jeder Token-Nutzung).
+   * Der Event Handler implementiert Debouncing um DB-Last zu reduzieren.
+   *
+   * @param id - AccessTokenId des zu aktualisierenden Tokens
+   * @param lastUsedAt - Zeitpunkt der letzten Nutzung
+   * @param tx - Optional Transaction Context
+   * @returns Result<void> - Success oder Failure bei Persistenz-Fehler
+   */
+  updateLastUsed(id: AccessTokenId, lastUsedAt: Date, tx?: TransactionContext): Promise<Result<void>>;
+
+  /**
+   * Speichert ein Token mit einer optionalen Verknüpfung zu einem InviteCode.
+   *
+   * **Use Case:**
+   * - Invite-Code Exchange: Token wird mit dem eingelösten InviteCode verknüpft
+   * - Token-Tracking: Ermöglicht Nachverfolgung welches Token durch welchen Code erstellt wurde
+   *
+   * **Warum separate Methode statt inviteCodeId im Aggregate:**
+   * - InviteCodeId ist eine Infrastruktur-Beziehung, keine Domain-Eigenschaft
+   * - Das Token-Aggregate sollte nicht von InviteCode-Konzepten abhängen
+   * - Die Verknüpfung erfolgt nur bei der Erstellung via Invite-Code Exchange
+   *
+   * @param token - ServerAccessToken Aggregate
+   * @param inviteCodeId - ID des zugehörigen InviteCodes
+   * @param tx - Optional Transaction Context für Atomizität
+   * @returns Result<void> - Success oder Failure bei Persistenz-Fehler
+   */
+  saveWithInviteCode(token: ServerAccessToken, inviteCodeId: string, tx?: TransactionContext): Promise<Result<void>>;
 }
 
 /**

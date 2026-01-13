@@ -9,6 +9,11 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/test/setup.ts',
+    env: {
+      // Explicitly set INSECURE_MODE to false for tests
+      // Tests that need INSECURE_MODE can override via vi.stubEnv()
+      VITE_INSECURE_MODE: 'false',
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

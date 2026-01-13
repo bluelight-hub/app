@@ -1,7 +1,16 @@
 export { CompleteSetupCommand } from './complete-setup.command';
 export { CompleteSetupHandler } from './complete-setup.handler';
 export { CreateAccessTokenCommand } from './create-access-token.command';
+export { CreateAccessTokenHandler } from './create-access-token.handler';
 export { CreateInviteCommand } from './create-invite.command';
 export { CreateInviteHandler } from './create-invite.handler';
+export { MigrateToSecureModeCommand } from './migrate-to-secure-mode.command';
+export { MigrateToSecureModeHandler } from './migrate-to-secure-mode.handler';
+export { ReactivateAccessTokenCommand } from './reactivate-access-token.command';
+export { ReactivateAccessTokenHandler } from './reactivate-access-token.handler';
+export { RevokeAccessTokenCommand } from './revoke-access-token.command';
+export { RevokeAccessTokenHandler } from './revoke-access-token.handler';
 export { RevokeInviteCommand } from './revoke-invite.command';
 export { RevokeInviteHandler } from './revoke-invite.handler';
+export { RotateAccessTokenCommand, type RotateAccessTokenCommandProps, type RotateAccessTokenResult } from './rotate-access-token.command';
+export { RotateAccessTokenHandler } from './rotate-access-token.handler';

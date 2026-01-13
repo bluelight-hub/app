@@ -287,14 +287,15 @@ export interface IInviteCodeRepository {
    * ```
    *
    * **Rückgabewerte:**
-   * - Result.ok(): Code erfolgreich markiert (useCount++)
-   * - Result.fail('INVITE_ALREADY_USED'): Code bereits aufgebraucht oder abgelaufen
+   * - Result.ok(inviteCodeId): Code erfolgreich markiert (useCount++), gibt InviteCodeId zurück
+   * - Result.fail('INVITE_ALREADY_USED'): Code bereits aufgebraucht oder widerrufen
+   * - Result.fail('INVITE_EXPIRED'): Code ist abgelaufen
    * - Result.fail('INVITE_INVALID'): Code existiert nicht
    * - Result.fail('DATABASE_ERROR'): Unerwarteter DB-Fehler
    *
    * @param code - InviteCodeValue des zu markierenden Codes
    * @param tx - Optional Transaction Context für Atomizität mit Token-Save
-   * @returns Result<void> - Success oder Failure mit Error-Code
+   * @returns Result<string> - Success mit InviteCodeId oder Failure mit Error-Code
    *
    * @example
    * ```typescript
@@ -305,11 +306,12 @@ export interface IInviteCodeRepository {
    *     return Result.fail(markResult.error);
    *   }
    *
+   *   const inviteCodeId = markResult.value!;
    *   const token = ServerAccessToken.create({ ... });
-   *   await this.tokenRepo.save(token, tx);
+   *   await this.tokenRepo.saveWithInviteCode(token, inviteCodeId, tx);
    *   return Result.ok(token.id.value);
    * });
    * ```
    */
-  markAsUsedAtomic(code: InviteCodeValue, tx?: TransactionContext): Promise<Result<void>>;
+  markAsUsedAtomic(code: InviteCodeValue, tx?: TransactionContext): Promise<Result<string>>;
 }

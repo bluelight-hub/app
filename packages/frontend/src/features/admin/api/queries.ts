@@ -66,6 +66,11 @@ export const ADMIN_QUERY_KEYS = {
   },
   accessTokens: {
     all: () => [...ADMIN_QUERY_KEYS.all, 'accessTokens'] as const,
+    /**
+     * Query Key fuer Token-Liste.
+     * Hinweis: Sortierung erfolgt client-seitig (siehe TokenList.tsx),
+     * daher enthaelt der Query Key nur Pagination-Parameter.
+     */
     list: (filters?: { page?: number; limit?: number }) =>
       filters ? ([...ADMIN_QUERY_KEYS.accessTokens.all(), 'list', filters] as const) : ([...ADMIN_QUERY_KEYS.accessTokens.all(), 'list'] as const),
     detail: (id: string) => [...ADMIN_QUERY_KEYS.accessTokens.all(), 'detail', id] as const,

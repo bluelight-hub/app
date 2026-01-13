@@ -1,111 +1,154 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { initializeStore, getStore, setStoreValue, getStoreValue, hasStoreKey, deleteStoreKey, clearStore, getStoreKeys, storeService } from '../store.service';
-import { Store } from '@tauri-apps/plugin-store';
 
-// Mock @tauri-apps/plugin-store
-vi.mock('@tauri-apps/plugin-store', () => {
-  const mockStore = {
-    load: vi.fn().mockResolvedValue(undefined),
-    set: vi.fn().mockResolvedValue(undefined),
-    get: vi.fn().mockResolvedValue(null),
-    has: vi.fn().mockResolvedValue(false),
-    delete: vi.fn().mockResolvedValue(undefined),
-    clear: vi.fn().mockResolvedValue(undefined),
-    keys: vi.fn().mockResolvedValue([]),
-    save: vi.fn().mockResolvedValue(undefined),
-  };
+// Mock Store Instanz
+const mockStoreInstance = {
+  load: vi.fn().mockResolvedValue(undefined),
+  set: vi.fn().mockResolvedValue(undefined),
+  get: vi.fn().mockResolvedValue(null),
+  has: vi.fn().mockResolvedValue(false),
+  delete: vi.fn().mockResolvedValue(undefined),
+  clear: vi.fn().mockResolvedValue(undefined),
+  keys: vi.fn().mockResolvedValue([]),
+  save: vi.fn().mockResolvedValue(undefined),
+};
 
-  return {
-    Store: vi.fn(() => mockStore),
-  };
-});
+// Mock Konstruktor als Klasse die mit `new` aufgerufen werden kann
+class MockStoreClass {
+  load = mockStoreInstance.load;
+  set = mockStoreInstance.set;
+  get = mockStoreInstance.get;
+  has = mockStoreInstance.has;
+  delete = mockStoreInstance.delete;
+  clear = mockStoreInstance.clear;
+  keys = mockStoreInstance.keys;
+  save = mockStoreInstance.save;
+
+  static constructorSpy = vi.fn();
+
+  constructor(path: string) {
+    MockStoreClass.constructorSpy(path);
+  }
+}
+
+// Mock @tauri-apps/plugin-store vor allen Imports
+vi.mock('@tauri-apps/plugin-store', () => ({
+  Store: MockStoreClass,
+}));
 
 describe('Store Service', () => {
-  beforeEach(() => {
+  // Dynamisch importierte Module
+  let initializeStore: typeof import('../store.service').initializeStore;
+  let getStore: typeof import('../store.service').getStore;
+  let setStoreValue: typeof import('../store.service').setStoreValue;
+  let getStoreValue: typeof import('../store.service').getStoreValue;
+  let hasStoreKey: typeof import('../store.service').hasStoreKey;
+  let deleteStoreKey: typeof import('../store.service').deleteStoreKey;
+  let clearStore: typeof import('../store.service').clearStore;
+  let getStoreKeys: typeof import('../store.service').getStoreKeys;
+  let storeService: typeof import('../store.service').storeService;
+
+  beforeEach(async () => {
+    // Reset aller Mocks
     vi.clearAllMocks();
+    mockStoreInstance.load.mockResolvedValue(undefined);
+    mockStoreInstance.set.mockResolvedValue(undefined);
+    mockStoreInstance.get.mockResolvedValue(null);
+    mockStoreInstance.has.mockResolvedValue(false);
+    mockStoreInstance.delete.mockResolvedValue(undefined);
+    mockStoreInstance.clear.mockResolvedValue(undefined);
+    mockStoreInstance.keys.mockResolvedValue([]);
+    mockStoreInstance.save.mockResolvedValue(undefined);
+    MockStoreClass.constructorSpy.mockClear();
+
+    // Reset des Moduls um Singleton zu clearen
+    vi.resetModules();
+
+    // Dynamischer Import nach Modul-Reset
+    const storeModule = await import('../store.service');
+    initializeStore = storeModule.initializeStore;
+    getStore = storeModule.getStore;
+    setStoreValue = storeModule.setStoreValue;
+    getStoreValue = storeModule.getStoreValue;
+    hasStoreKey = storeModule.hasStoreKey;
+    deleteStoreKey = storeModule.deleteStoreKey;
+    clearStore = storeModule.clearStore;
+    getStoreKeys = storeModule.getStoreKeys;
+    storeService = storeModule.storeService;
   });
 
   describe('Initialization', () => {
     it('should initialize store successfully', async () => {
       const store = await initializeStore();
       expect(store).toBeDefined();
-      expect(Store).toHaveBeenCalledWith('app-store.json');
+      expect(MockStoreClass.constructorSpy).toHaveBeenCalledWith('app-store.json');
     });
 
     it('should use custom store path', async () => {
-      vi.clearAllMocks();
       await initializeStore('custom-store.json');
-      expect(Store).toHaveBeenCalledWith('custom-store.json');
+      expect(MockStoreClass.constructorSpy).toHaveBeenCalledWith('custom-store.json');
     });
 
     it('should return cached instance on subsequent calls', async () => {
       const store1 = await getStore();
-      vi.clearAllMocks();
+      MockStoreClass.constructorSpy.mockClear();
       const store2 = await getStore();
       expect(store1).toBe(store2);
-      expect(Store).not.toHaveBeenCalled();
+      expect(MockStoreClass.constructorSpy).not.toHaveBeenCalled();
     });
 
     it('should handle initialization errors', async () => {
-      const error = new Error('Initialization failed');
-      vi.mocked(Store).mockImplementationOnce(() => {
-        throw error;
-      });
+      mockStoreInstance.load.mockRejectedValueOnce(new Error('Initialization failed'));
 
-      await expect(initializeStore('error-store.json')).rejects.toThrow('Initialization failed');
+      await expect(initializeStore()).rejects.toThrow('Initialization failed');
     });
   });
 
   describe('Set and Get Operations', () => {
     it('should set string value', async () => {
-      const store = await getStore();
+      await getStore();
       await setStoreValue('testKey', 'testValue');
 
-      expect(store.set).toHaveBeenCalledWith('testKey', 'testValue');
-      expect(store.save).toHaveBeenCalled();
+      expect(mockStoreInstance.set).toHaveBeenCalledWith('testKey', 'testValue');
+      expect(mockStoreInstance.save).toHaveBeenCalled();
     });
 
     it('should set object value', async () => {
-      const store = await getStore();
+      await getStore();
       const testObj = { name: 'test', count: 42 };
       await setStoreValue('objKey', testObj);
 
-      expect(store.set).toHaveBeenCalledWith('objKey', testObj);
+      expect(mockStoreInstance.set).toHaveBeenCalledWith('objKey', testObj);
     });
 
     it('should get string value', async () => {
-      const store = await getStore();
-      const mockStore = store as unknown as Record<string, unknown>;
-      (mockStore.get as any).mockResolvedValueOnce('testValue');
+      await getStore();
+      mockStoreInstance.get.mockResolvedValueOnce('testValue');
 
       const value = await getStoreValue('testKey');
       expect(value).toBe('testValue');
-      expect(store.get).toHaveBeenCalledWith('testKey');
+      expect(mockStoreInstance.get).toHaveBeenCalledWith('testKey');
     });
 
     it('should return default value when key not found', async () => {
-      const store = await getStore();
-      const mockStore = store as any;
-      mockStore.get.mockResolvedValueOnce(null);
+      await getStore();
+      mockStoreInstance.get.mockResolvedValueOnce(null);
 
       const value = await getStoreValue('missingKey', 'defaultValue');
       expect(value).toBe('defaultValue');
     });
 
     it('should handle set errors gracefully', async () => {
-      const store = await getStore();
-      const mockStore = store as any;
+      await getStore();
       const error = new Error('Set failed');
-      mockStore.set.mockRejectedValueOnce(error);
+      mockStoreInstance.set.mockRejectedValueOnce(error);
 
       await expect(setStoreValue('errorKey', 'value')).rejects.toThrow('Set failed');
     });
 
     it('should handle get errors gracefully', async () => {
-      const store = await getStore();
-      const mockStore = store as any;
+      await getStore();
       const error = new Error('Get failed');
-      mockStore.get.mockRejectedValueOnce(error);
+      mockStoreInstance.get.mockRejectedValueOnce(error);
 
       await expect(getStoreValue('errorKey')).rejects.toThrow('Get failed');
     });
@@ -113,57 +156,53 @@ describe('Store Service', () => {
 
   describe('Key Operations', () => {
     it('should check if key exists', async () => {
-      const store = await getStore();
-      const mockStore = store as any;
-      mockStore.has.mockResolvedValueOnce(true);
+      await getStore();
+      mockStoreInstance.has.mockResolvedValueOnce(true);
 
       const exists = await hasStoreKey('existingKey');
       expect(exists).toBe(true);
-      expect(store.has).toHaveBeenCalledWith('existingKey');
+      expect(mockStoreInstance.has).toHaveBeenCalledWith('existingKey');
     });
 
     it('should return false for non-existent keys', async () => {
-      const store = await getStore();
-      const mockStore = store as any;
-      mockStore.has.mockResolvedValueOnce(false);
+      await getStore();
+      mockStoreInstance.has.mockResolvedValueOnce(false);
 
       const exists = await hasStoreKey('missingKey');
       expect(exists).toBe(false);
     });
 
     it('should delete key', async () => {
-      const store = await getStore();
+      await getStore();
       await deleteStoreKey('deleteMe');
 
-      expect(store.delete).toHaveBeenCalledWith('deleteMe');
-      expect(store.save).toHaveBeenCalled();
+      expect(mockStoreInstance.delete).toHaveBeenCalledWith('deleteMe');
+      expect(mockStoreInstance.save).toHaveBeenCalled();
     });
 
     it('should get all keys', async () => {
-      const store = await getStore();
-      const mockStore = store as any;
-      mockStore.keys.mockResolvedValueOnce(['key1', 'key2', 'key3']);
+      await getStore();
+      mockStoreInstance.keys.mockResolvedValueOnce(['key1', 'key2', 'key3']);
 
       const keys = await getStoreKeys();
       expect(keys).toEqual(['key1', 'key2', 'key3']);
-      expect(store.keys).toHaveBeenCalled();
+      expect(mockStoreInstance.keys).toHaveBeenCalled();
     });
   });
 
   describe('Clear Operation', () => {
     it('should clear all keys', async () => {
-      const store = await getStore();
+      await getStore();
       await clearStore();
 
-      expect(store.clear).toHaveBeenCalled();
-      expect(store.save).toHaveBeenCalled();
+      expect(mockStoreInstance.clear).toHaveBeenCalled();
+      expect(mockStoreInstance.save).toHaveBeenCalled();
     });
 
     it('should handle clear errors', async () => {
-      const store = await getStore();
-      const mockStore = store as any;
+      await getStore();
       const error = new Error('Clear failed');
-      mockStore.clear.mockRejectedValueOnce(error);
+      mockStoreInstance.clear.mockRejectedValueOnce(error);
 
       await expect(clearStore()).rejects.toThrow('Clear failed');
     });

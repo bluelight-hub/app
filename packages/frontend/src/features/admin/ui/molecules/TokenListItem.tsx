@@ -1,7 +1,19 @@
 import { Badge } from '@/shared/ui/atoms/badge.atom';
+import { Button } from '@/shared/ui/atoms/button.atom';
 import { cn } from '@/shared/ui/cn';
-import type { TokenListItemDto, TokenListItemDtoStatusEnum } from '@/shared';
-import { PiKey, PiCalendar, PiClock } from 'react-icons/pi';
+import type { TokenListItemDto } from '@/shared';
+import { PiKey, PiCalendar, PiClock, PiProhibit, PiArrowCounterClockwise, PiArrowsClockwise } from 'react-icons/pi';
+import { formatLastUsed } from '@/features/admin/lib/format-last-used';
+import { InactivityBadge } from '../atoms/InactivityBadge';
+import { format, parseISO } from 'date-fns';
+import { de } from 'date-fns/locale';
+
+/**
+ * Erweiterter Token-Status fuer UI-Anzeige.
+ *
+ * Kombiniert Backend-Status mit Rotations-Status fuer praezise Badge-Darstellung.
+ */
+type TokenDisplayStatus = 'active' | 'revoked' | 'expired' | 'rotated' | 'replacement';
 
 interface TokenListItemProps {
   /**
@@ -12,19 +24,40 @@ interface TokenListItemProps {
    * Optionaler Klick-Handler fuer die gesamte Zeile
    */
   onClick?: () => void;
+  /**
+   * Callback wenn "Deaktivieren" geklickt wird
+   */
+  onRevokeClick?: () => void;
+  /**
+   * Callback wenn "Reaktivieren" geklickt wird
+   */
+  onReactivateClick?: () => void;
+  /**
+   * Callback wenn "Rotieren" geklickt wird
+   */
+  onRotateClick?: () => void;
+  /**
+   * Deaktiviert die Action-Buttons waehrend einer laufenden Operation
+   */
+  isActionLoading?: boolean;
+  /**
+   * Alle Tokens fuer Nachfolger/Vorgaenger-Lookup
+   */
+  allTokens?: TokenListItemDto[];
 }
 
 /**
- * Formatiert ein ISO-Datum in deutsches Format
+ * Formatiert ein ISO-Datum in deutsches Format (dd.MM.yyyy HH:mm).
+ *
+ * Akzeptiert string, Date oder object (wegen OpenAPI-Generator Typisierung).
+ * Das Backend liefert ISO-8601 Strings, aber der Generator typisiert nullable
+ * Felder manchmal als `object | null`.
+ *
+ * Nutzt date-fns fuer konsistente Formatierung im Projekt.
  */
-const formatDate = (isoDate: string): string => {
-  return new Intl.DateTimeFormat('de-DE', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(isoDate));
+const formatDate = (isoDate: string | Date | object): string => {
+  const date = isoDate instanceof Date ? isoDate : parseISO(String(isoDate));
+  return format(date, 'dd.MM.yyyy HH:mm', { locale: de });
 };
 
 /**
@@ -36,14 +69,35 @@ const formatMaskedPrefix = (prefix: string): string => {
 };
 
 /**
- * Ermittelt die Badge-Variante basierend auf dem Token-Status
+ * Ermittelt den erweiterten Anzeige-Status des Tokens.
+ *
+ * Beruecksichtigt Rotations-Status vor Backend-Status, da ein rotierter
+ * Token technisch "revoked" ist, aber semantisch anders dargestellt wird.
  */
-const getStatusBadgeVariant = (status: TokenListItemDtoStatusEnum): 'success' | 'error' | 'warning' => {
+const getDisplayStatus = (token: TokenListItemDto): TokenDisplayStatus => {
+  // Rotations-Status hat Vorrang
+  if (token.rotatedStatus === 'replacement') {
+    return 'replacement';
+  }
+  if (token.rotatedStatus === 'rotated') {
+    return 'rotated';
+  }
+  // Fallback auf Backend-Status
+  return token.status as TokenDisplayStatus;
+};
+
+/**
+ * Ermittelt die Badge-Variante basierend auf dem erweiterten Token-Status
+ */
+const getStatusBadgeVariant = (status: TokenDisplayStatus): 'success' | 'error' | 'warning' | 'info' => {
   switch (status) {
     case 'active':
+    case 'replacement':
       return 'success';
     case 'revoked':
       return 'error';
+    case 'rotated':
+      return 'info';
     case 'expired':
       return 'warning';
     default:
@@ -52,9 +106,9 @@ const getStatusBadgeVariant = (status: TokenListItemDtoStatusEnum): 'success' | 
 };
 
 /**
- * Gibt den deutschen Label-Text fuer den Status zurueck
+ * Gibt den deutschen Label-Text fuer den erweiterten Status zurueck
  */
-const getStatusLabel = (status: TokenListItemDtoStatusEnum): string => {
+const getStatusLabel = (status: TokenDisplayStatus): string => {
   switch (status) {
     case 'active':
       return 'Aktiv';
@@ -62,6 +116,10 @@ const getStatusLabel = (status: TokenListItemDtoStatusEnum): string => {
       return 'Widerrufen';
     case 'expired':
       return 'Abgelaufen';
+    case 'rotated':
+      return 'Rotiert';
+    case 'replacement':
+      return 'Aktiv';
     default:
       return 'Unbekannt';
   }
@@ -92,15 +150,121 @@ const getStatusLabel = (status: TokenListItemDtoStatusEnum): string => {
  *     createdAt: '2025-01-10T10:00:00Z',
  *     lastUsedAt: null,
  *     expiresAt: null,
+ *     revokedAt: null,
  *   }}
  *   onClick={() => console.log('Token clicked')}
+ *   onRevokeClick={() => handleRevoke('123')}
+ *   onReactivateClick={() => handleReactivate('123')}
  * />
  * ```
  */
-export function TokenListItem({ token, onClick }: TokenListItemProps) {
+export function TokenListItem({ token, onClick, onRevokeClick, onReactivateClick, onRotateClick, isActionLoading, allTokens }: TokenListItemProps) {
   const isClickable = !!onClick;
-  const statusVariant = getStatusBadgeVariant(token.status);
-  const statusLabel = getStatusLabel(token.status);
+  const displayStatus = getDisplayStatus(token);
+  const statusVariant = getStatusBadgeVariant(displayStatus);
+  const statusLabel = getStatusLabel(displayStatus);
+  const isActive = token.status === 'active';
+  const isRevoked = token.status === 'revoked';
+  const isRotated = token.rotatedStatus === 'rotated';
+  const isReplacement = token.rotatedStatus === 'replacement';
+
+  // Formatiere lastUsedAt mit relativer Zeit und Inaktivitaets-Status
+  const lastUsedInfo = formatLastUsed(token.lastUsedAt);
+
+  /**
+   * Findet das Replacement-Token fuer einen rotierten Token.
+   */
+  const findReplacementToken = (): TokenListItemDto | undefined => {
+    if (!allTokens || !isRotated) return undefined;
+    return allTokens.find((t) => t.rotatedFromId && String(t.rotatedFromId) === token.id);
+  };
+
+  /**
+   * Findet das urspruengliche Token fuer ein Replacement-Token.
+   */
+  const findOriginalToken = (): TokenListItemDto | undefined => {
+    if (!allTokens || !isReplacement || !token.rotatedFromId) return undefined;
+    return allTokens.find((t) => t.id === String(token.rotatedFromId));
+  };
+
+  const replacementToken = findReplacementToken();
+  const originalToken = findOriginalToken();
+
+  /**
+   * Handler fuer Action-Button Klicks.
+   * Stoppt Event-Propagation um Klick auf Parent zu verhindern.
+   */
+  const handleActionClick = (event: React.MouseEvent, action: () => void) => {
+    event.stopPropagation();
+    action();
+  };
+
+  /**
+   * Generiert Tooltip-Text fuer rotierte/Replacement-Tokens.
+   * Enthaelt Zeitangabe und Token-Namen fuer bessere Nachvollziehbarkeit.
+   */
+  const getRotationTooltip = (): string | undefined => {
+    if (isRotated && replacementToken) {
+      const rotatedAt = token.revokedAt ? format(parseISO(String(token.revokedAt)), 'dd.MM.yyyy', { locale: de }) : '';
+      return `Rotiert${rotatedAt ? ` am ${rotatedAt}` : ''}. Neuer Token: ${replacementToken.name || replacementToken.prefix}...`;
+    }
+    if (isReplacement && originalToken) {
+      return `Ersetzt Token: ${originalToken.name || originalToken.prefix}...`;
+    }
+    return undefined;
+  };
+
+  const rotationTooltip = getRotationTooltip();
+
+  /**
+   * Rendert die Action-Buttons basierend auf Token-Status.
+   */
+  const renderActionButtons = () => {
+    const buttons: React.ReactNode[] = [];
+
+    // Rotieren-Button: Nur fuer aktive Tokens
+    if (isActive && onRotateClick) {
+      buttons.push(
+        <Button
+          key="rotate"
+          intent="secondary"
+          appearance="outline"
+          size="sm"
+          onClick={(e) => handleActionClick(e, onRotateClick)}
+          disabled={isActionLoading}
+          loading={isActionLoading}
+          aria-label="Token rotieren"
+        >
+          <PiArrowsClockwise className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
+          Rotieren
+        </Button>,
+      );
+    }
+
+    // Deaktivieren-Button: Nur fuer aktive Tokens
+    if (isActive && onRevokeClick) {
+      buttons.push(
+        <Button key="revoke" intent="danger" appearance="outline" size="sm" onClick={(e) => handleActionClick(e, onRevokeClick)} disabled={isActionLoading} loading={isActionLoading}>
+          <PiProhibit className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
+          Deaktivieren
+        </Button>,
+      );
+    }
+
+    // Reaktivieren-Button: Nur fuer manuell widerrufene Tokens (NICHT rotierte!)
+    if (isRevoked && !isRotated && onReactivateClick) {
+      buttons.push(
+        <Button key="reactivate" intent="primary" appearance="outline" size="sm" onClick={(e) => handleActionClick(e, onReactivateClick)} disabled={isActionLoading} loading={isActionLoading}>
+          <PiArrowCounterClockwise className="mr-1 h-3.5 w-3.5" aria-hidden="true" />
+          Reaktivieren
+        </Button>,
+      );
+    }
+
+    if (buttons.length === 0) return null;
+
+    return <div className="flex flex-wrap gap-2">{buttons}</div>;
+  };
 
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: Interaktivitaet ist optional und role wird dynamisch gesetzt
@@ -109,6 +273,7 @@ export function TokenListItem({ token, onClick }: TokenListItemProps) {
         'rounded-lg border border-gray-200 bg-white p-4 transition-colors',
         'dark:border-gray-700 dark:bg-gray-800',
         isClickable && 'cursor-pointer hover:border-gray-300 hover:bg-gray-50 dark:hover:border-gray-600 dark:hover:bg-gray-750',
+        isActionLoading && 'pointer-events-none opacity-60',
       )}
       onClick={onClick}
       onKeyDown={
@@ -126,16 +291,29 @@ export function TokenListItem({ token, onClick }: TokenListItemProps) {
     >
       {/* Mobile Layout (< sm) */}
       <div className="flex flex-col gap-3 sm:hidden">
-        {/* Header: Name + Status */}
+        {/* Header: Name + Status + Inaktiv-Badge */}
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <h3 className="truncate font-medium text-gray-900 text-sm dark:text-white">{token.name}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="truncate font-medium text-gray-900 text-sm dark:text-white">{token.name}</h3>
+              {isActive && <InactivityBadge isInactive={lastUsedInfo.isInactive} tooltip={lastUsedInfo.tooltip} />}
+            </div>
             <code className="font-mono text-gray-500 text-xs dark:text-gray-400">{formatMaskedPrefix(token.prefix)}</code>
           </div>
-          <Badge variant={statusVariant} size="sm" dot={token.status === 'active'} dotColor={token.status === 'active' ? 'green' : undefined}>
-            {statusLabel}
-          </Badge>
+          <div title={rotationTooltip}>
+            <Badge variant={statusVariant} size="sm" dot={isActive || isReplacement} dotColor={isActive || isReplacement ? 'green' : undefined}>
+              {statusLabel}
+            </Badge>
+          </div>
         </div>
+
+        {/* Rotations-Info (Mobile) */}
+        {rotationTooltip && (
+          <div className="flex items-center gap-1 text-blue-600 text-xs dark:text-blue-400">
+            <PiArrowsClockwise className="h-3.5 w-3.5" aria-hidden="true" />
+            {rotationTooltip}
+          </div>
+        )}
 
         {/* Meta-Informationen */}
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-gray-500 text-xs dark:text-gray-400">
@@ -143,13 +321,26 @@ export function TokenListItem({ token, onClick }: TokenListItemProps) {
             <PiCalendar className="h-3.5 w-3.5" aria-hidden="true" />
             Erstellt: {formatDate(token.createdAt)}
           </span>
-          {token.lastUsedAt && (
-            <span className="flex items-center gap-1">
-              <PiClock className="h-3.5 w-3.5" aria-hidden="true" />
-              Zuletzt: {formatDate(token.lastUsedAt as unknown as string)}
+          <span className="flex items-center gap-1" title={lastUsedInfo.tooltip}>
+            <PiClock className="h-3.5 w-3.5" aria-hidden="true" />
+            Zuletzt: {lastUsedInfo.text}
+          </span>
+          {token.revokedAt && !isRotated && (
+            <span className="flex items-center gap-1 text-red-600 dark:text-red-400">
+              <PiProhibit className="h-3.5 w-3.5" aria-hidden="true" />
+              Deaktiviert: {formatDate(token.revokedAt)}
+            </span>
+          )}
+          {isRotated && token.revokedAt && (
+            <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+              <PiArrowsClockwise className="h-3.5 w-3.5" aria-hidden="true" />
+              Rotiert: {formatDate(token.revokedAt)}
             </span>
           )}
         </div>
+
+        {/* Action Buttons (Mobile) */}
+        {renderActionButtons()}
       </div>
 
       {/* Desktop Layout (>= sm) */}
@@ -161,8 +352,18 @@ export function TokenListItem({ token, onClick }: TokenListItemProps) {
 
         {/* Name & Prefix */}
         <div className="min-w-0 flex-1">
-          <h3 className="truncate font-medium text-gray-900 dark:text-white">{token.name}</h3>
-          <code className="font-mono text-gray-500 text-sm dark:text-gray-400">{formatMaskedPrefix(token.prefix)}</code>
+          <div className="flex items-center gap-2">
+            <h3 className="truncate font-medium text-gray-900 dark:text-white">{token.name}</h3>
+            {isActive && <InactivityBadge isInactive={lastUsedInfo.isInactive} tooltip={lastUsedInfo.tooltip} />}
+          </div>
+          <div className="flex items-center gap-2">
+            <code className="font-mono text-gray-500 text-sm dark:text-gray-400">{formatMaskedPrefix(token.prefix)}</code>
+            {rotationTooltip && (
+              <span className="text-blue-600 text-xs dark:text-blue-400" title={rotationTooltip}>
+                <PiArrowsClockwise className="inline h-3.5 w-3.5" aria-hidden="true" />
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Erstellungsdatum */}
@@ -171,18 +372,37 @@ export function TokenListItem({ token, onClick }: TokenListItemProps) {
           <div className="text-gray-700 text-sm dark:text-gray-300">{formatDate(token.createdAt)}</div>
         </div>
 
-        {/* Letzte Verwendung */}
+        {/* Letzte Verwendung / Deaktivierungsdatum / Rotationsdatum */}
         <div className="hidden flex-shrink-0 text-right lg:block">
-          <div className="text-gray-500 text-xs dark:text-gray-400">Zuletzt verwendet</div>
-          <div className="text-gray-700 text-sm dark:text-gray-300">{token.lastUsedAt ? formatDate(token.lastUsedAt as unknown as string) : 'Nie'}</div>
+          {isRotated && token.revokedAt ? (
+            <>
+              <div className="text-blue-500 text-xs dark:text-blue-400">Rotiert am</div>
+              <div className="text-blue-700 text-sm dark:text-blue-300">{formatDate(token.revokedAt)}</div>
+            </>
+          ) : token.revokedAt ? (
+            <>
+              <div className="text-red-500 text-xs dark:text-red-400">Deaktiviert am</div>
+              <div className="text-red-700 text-sm dark:text-red-300">{formatDate(token.revokedAt)}</div>
+            </>
+          ) : (
+            <>
+              <div className="text-gray-500 text-xs dark:text-gray-400">Zuletzt verwendet</div>
+              <div className="text-gray-700 text-sm dark:text-gray-300" title={lastUsedInfo.tooltip}>
+                {lastUsedInfo.text}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Status Badge */}
-        <div className="flex-shrink-0">
-          <Badge variant={statusVariant} size="md" dot={token.status === 'active'} dotColor={token.status === 'active' ? 'green' : undefined}>
+        <div className="flex-shrink-0" title={rotationTooltip}>
+          <Badge variant={statusVariant} size="md" dot={isActive || isReplacement} dotColor={isActive || isReplacement ? 'green' : undefined}>
             {statusLabel}
           </Badge>
         </div>
+
+        {/* Action Buttons (Desktop) */}
+        <div className="flex-shrink-0">{renderActionButtons()}</div>
       </div>
     </div>
   );

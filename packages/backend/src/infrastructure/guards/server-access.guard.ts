@@ -3,12 +3,16 @@ import { type CanActivate, type ExecutionContext, Inject, Injectable, Unauthoriz
 import { Reflector } from '@nestjs/core';
 // biome-ignore lint/style/useImportType: ConfigService ist Injectable Class - wird zur Laufzeit fuer NestJS DI benoetigt
 import { ConfigService } from '@nestjs/config';
+// biome-ignore lint/style/useImportType: EventEmitter2 ist Injectable Class - wird zur Laufzeit fuer NestJS DI benoetigt
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as bcrypt from 'bcrypt';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import type { IServerAccessTokenRepository } from '@domain/repositories/i-server-access-token.repository';
+import type { IServerConfigRepository } from '@domain/repositories/i-server-config.repository';
 import type { ServerAccessToken } from '@domain/aggregates/server-access-token.aggregate';
-import { LOGGER, SERVER_ACCESS_TOKEN_REPOSITORY } from '@/infrastructure/di-tokens';
+import { LOGGER, SERVER_ACCESS_TOKEN_REPOSITORY, SERVER_CONFIG_REPOSITORY } from '@/infrastructure/di-tokens';
 import { SKIP_SERVER_ACCESS_KEY } from '../decorators/skip-server-access.decorator';
+import { EVENT_NAMES } from '@domain/events/event-names';
 
 /**
  * Guard zur Validierung von Server-Access-Tokens.
@@ -16,26 +20,47 @@ import { SKIP_SERVER_ACCESS_KEY } from '../decorators/skip-server-access.decorat
  * Prueft den `X-Server-Access-Token` Header gegen die Datenbank.
  * Aktualisiert `lastUsedAt` asynchron bei gueltigem Token.
  *
- * **Guard-Reihenfolge (zwischen Guards):**
+ * ## OpenAPI Header-Spezifikation
+ *
+ * **Header:** `X-Server-Access-Token`
+ * **Format:** `X-Server-Access-Token: <plaintext_token>`
+ * **Beispiel:** `X-Server-Access-Token: bh_abc123def456...`
+ *
+ * ## Multi-Token Support
+ *
+ * Das System unterstuetzt mehrere gleichzeitig aktive Tokens:
+ * - Jedes Token hat einen eindeutigen Namen (z.B. "Desktop Hauptwache")
+ * - `lastUsedAt` wird bei jeder erfolgreichen Validierung aktualisiert
+ * - Tokens koennen individuell deaktiviert/reaktiviert werden
+ * - Bei Rotation wird ein neues Token generiert, das alte deaktiviert
+ *
+ * ## Guard-Reihenfolge (zwischen Guards)
+ *
  * ThrottlerGuard → ServerAccessGuard → JwtAuthGuard (per Endpoint)
  *
- * **Check-Reihenfolge (innerhalb canActivate):**
- * 1. `@SkipServerAccess` Decorator Check (hoechste Prioritaet, sofort return)
- * 2. `INSECURE_MODE` Check (Development-Bypass, Warning Log)
- * 3. Token-Extraktion aus `X-Server-Access-Token` Header
- * 4. Token-Validierung gegen alle aktiven Hashes (bcrypt.compare)
- * 5. lastUsedAt Update (asynchron, non-blocking)
+ * ## Check-Reihenfolge (innerhalb canActivate)
  *
- * **Rationale:**
+ * 1. `@SkipServerAccess` Decorator Check (hoechste Prioritaet, sofort return)
+ * 2. DB-Config Check: `ServerConfig.insecureMode` (Prioritaet 1)
+ * 3. Fallback: `INSECURE_MODE` ENV Variable (Prioritaet 2, nur wenn kein DB-Eintrag/DB-Fehler)
+ * 4. Token-Extraktion aus `X-Server-Access-Token` Header
+ * 5. Token-Validierung gegen alle aktiven Hashes (bcrypt.compare)
+ * 6. lastUsedAt Update (asynchron, non-blocking)
+ *
+ * ## Rationale
+ *
  * - ThrottlerGuard zuerst: Verhindert DoS bevor teure bcrypt-Operationen
  * - ServerAccessGuard zweiter: Globale Server-Authentifizierung via Token
  * - JwtAuthGuard per Endpoint: Optionale User-Authentifizierung
  *
- * **Bypass:**
- * - Endpoints mit `@SkipServerAccess()` Decorator ueberspringen die Pruefung.
- * - `INSECURE_MODE=true` Environment Variable deaktiviert Token-Validierung komplett (nur fuer lokale Entwicklung!)
+ * ## Bypass
  *
- * **Security:**
+ * - Endpoints mit `@SkipServerAccess()` Decorator ueberspringen die Pruefung
+ * - `ServerConfig.insecureMode=true` in DB deaktiviert Token-Validierung (Prioritaet 1)
+ * - `INSECURE_MODE=true` ENV Variable als Fallback (Prioritaet 2, nur bei DB-Fehler/kein DB-Eintrag)
+ *
+ * ## Security
+ *
  * - Token-Hashes werden mit bcrypt.compare() timing-safe validiert
  * - Tokens werden NIEMALS vollstaendig geloggt (nur erste 8 Zeichen bei Fehlern)
  * - lastUsedAt Update erfolgt asynchron (non-blocking)
@@ -47,9 +72,12 @@ export class ServerAccessGuard implements CanActivate {
   constructor(
     @Inject(SERVER_ACCESS_TOKEN_REPOSITORY)
     private readonly tokenRepo: IServerAccessTokenRepository,
+    @Inject(SERVER_CONFIG_REPOSITORY)
+    private readonly serverConfigRepo: IServerConfigRepository,
     private readonly reflector: Reflector,
     @Inject(LOGGER) private readonly logger: ILogger,
     private readonly configService: ConfigService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -59,10 +87,9 @@ export class ServerAccessGuard implements CanActivate {
       return true;
     }
 
-    // 2. Check INSECURE_MODE (fuer lokale Entwicklung ohne Token-Setup)
-    const insecureMode = this.configService.get<string>('INSECURE_MODE') === 'true';
-    if (insecureMode) {
-      this.logger.warn('ServerAccessGuard: INSECURE_MODE enabled - bypassing token validation');
+    // 2. Check insecure mode (DB-Config hat Prioritaet ueber ENV)
+    const isInsecure = await this.checkInsecureMode();
+    if (isInsecure) {
       return true;
     }
 
@@ -87,6 +114,53 @@ export class ServerAccessGuard implements CanActivate {
 
     this.logger.debug(`ServerAccessGuard: Token ${validToken.id.value} validated`);
     return true;
+  }
+
+  /**
+   * Prueft ob der Server im INSECURE Mode laeuft.
+   *
+   * **Prioritaetsreihenfolge:**
+   * 1. DB-Config (ServerConfig.insecureMode) - hoechste Prioritaet
+   * 2. ENV Variable (INSECURE_MODE) - Fallback bei DB-Fehler oder fehlendem Eintrag
+   *
+   * **Sicherheitshinweise:**
+   * - KEIN Caching: Security-Entscheidungen werden IMMER live aus DB gelesen
+   * - Bei DB-Fehlern: Fallback auf ENV (Backward Compatibility)
+   * - Separate Warnings fuer DB-Config vs ENV Bypass
+   *
+   * **Rationale fuer Fallback:**
+   * - Backward Compatibility: Bestehende Deployments ohne DB-Config funktionieren weiterhin
+   * - Graceful Degradation: DB-Ausfaelle blockieren nicht komplett
+   * - Migration: Erlaubt schrittweise Migration von ENV zu DB-Config
+   *
+   * @returns true wenn INSECURE Mode aktiv (Token-Validierung wird uebersprungen)
+   */
+  private async checkInsecureMode(): Promise<boolean> {
+    // Prioritaet 1: DB-Config abfragen
+    const dbConfigResult = await this.serverConfigRepo.isInsecureMode();
+
+    if (dbConfigResult.isSuccess) {
+      // DB-Config existiert - diese hat Prioritaet ueber ENV
+      const isInsecureFromDb = dbConfigResult.value!;
+      if (isInsecureFromDb) {
+        this.logger.warn('ServerAccessGuard: INSECURE_MODE enabled via DB config - bypassing token validation');
+        return true;
+      }
+      // DB sagt insecureMode=false -> Token erforderlich
+      return false;
+    }
+
+    // DB-Fehler: Log und Fallback auf ENV
+    this.logger.warn(`ServerAccessGuard: Failed to read DB config (${dbConfigResult.error}), falling back to ENV`);
+
+    // Prioritaet 2: Fallback auf INSECURE_MODE ENV Variable
+    const insecureModeEnv = this.configService.get<string>('INSECURE_MODE') === 'true';
+    if (insecureModeEnv) {
+      this.logger.warn('ServerAccessGuard: INSECURE_MODE enabled via ENV fallback - bypassing token validation');
+      return true;
+    }
+
+    return false;
   }
 
   /**
@@ -137,12 +211,30 @@ export class ServerAccessGuard implements CanActivate {
    * - Verhindert Race Conditions zwischen Response und DB-Write
    * - Request-Latenz wird nicht von lastUsedAt-Update beeinflusst
    *
+   * **Event Emission:**
+   * - recordUsage() fuegt Domain Event zur Aggregate hinzu
+   * - Events werden VOR save() extrahiert und emittiert
+   * - Repository.save() loescht Events nach Persistierung
+   * - EventEmitter2 triggert asynchrone Event Handler
+   *
    * @param token - Das validierte ServerAccessToken
    */
   private updateLastUsedAsync(token: ServerAccessToken): void {
     setImmediate(async () => {
       try {
+        // 1. recordUsage() aktualisiert lastUsedAt und fuegt Domain Event hinzu
         token.recordUsage();
+
+        // 2. Domain Events VOR save() extrahieren (save() loescht sie via clearDomainEvents)
+        const domainEvents = token.getDomainEvents();
+
+        // 3. Events emittieren (asynchron, non-blocking)
+        // Hinweis: eventName() ist statisch, daher nutzen wir EVENT_NAMES direkt
+        for (const event of domainEvents) {
+          this.eventEmitter.emit(EVENT_NAMES.SERVER_ACCESS_TOKEN.USED, event);
+        }
+
+        // 4. Token speichern (loescht Domain Events nach erfolgreichem Save)
         const saveResult = await this.tokenRepo.save(token);
         if (saveResult.isFailure) {
           this.logger.error(`ServerAccessGuard: Failed to save lastUsedAt for ${token.id.value}: ${saveResult.error}`);

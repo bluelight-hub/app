@@ -1,15 +1,12 @@
-import { createFileRoute, redirect } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
+import { AdminSetup } from '@/features/admin/ui/pages/AdminSetup';
 
 /**
- * Legacy-Route für Admin-Setup
+ * Route für Admin-Passwort-Setup
  *
- * Redirected zur Server-Setup-Route `/server/setup`.
- * Behalten für Backward-Compatibility.
+ * Zeigt das Formular zum Setzen des Admin-Passworts.
+ * Wird angezeigt wenn `adminSetupAvailable: true` (Admin hat noch kein Passwort gesetzt).
  */
 export const Route = createFileRoute('/admin/setup')({
-  beforeLoad: () => {
-    throw redirect({
-      to: '/server/setup',
-    });
-  },
+  component: AdminSetup,
 });

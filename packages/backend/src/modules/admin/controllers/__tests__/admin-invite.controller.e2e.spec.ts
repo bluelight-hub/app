@@ -215,21 +215,24 @@ describe('AdminInviteController (e2e)', () => {
     cachedAdminTokenRegular = generateAdminToken(testRegularUser.id, testRegularUser.username, testRegularUser.role);
   }, 60000);
 
-  beforeEach(() => {
+  beforeEach(async () => {
     if (!databaseAvailable) return;
     jest.clearAllMocks();
-  });
 
-  afterEach(async () => {
-    if (!databaseAvailable) return;
-
-    // Cleanup InviteCodes nach jedem Test
+    // Cleanup ALLE InviteCodes vor jedem Test um Test-Isolation zu garantieren
+    // Dies verhindert, dass Codes aus anderen Tests die Ergebnisse beeinflussen
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {
-      await prisma.$executeRawUnsafe(`DELETE FROM "invite_codes" WHERE "createdById" = $1`, testAdminUser?.id);
+      await prisma.$executeRawUnsafe(`DELETE FROM "invite_codes"`);
     } finally {
       await prisma.$executeRawUnsafe('SET session_replication_role = DEFAULT;');
     }
+  });
+
+  afterEach(async () => {
+    // Cleanup wird jetzt im beforeEach gemacht, um Test-Isolation zu garantieren
+    // afterEach bleibt leer, da beforeEach bereits alle Codes loescht
+    if (!databaseAvailable) return;
   });
 
   afterAll(async () => {

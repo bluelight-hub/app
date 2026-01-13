@@ -1,10 +1,26 @@
 import { AggregateRoot } from '@domain/common/aggregate-root';
 import { Result } from '@domain/common/result';
 import { ServerAccessTokenCreatedEvent } from '@domain/events/server-access-token-created.event';
+import { ServerAccessTokenReactivatedEvent } from '@domain/events/server-access-token-reactivated.event';
 import { ServerAccessTokenRevokedEvent } from '@domain/events/server-access-token-revoked.event';
 import { ServerAccessTokenUsedEvent } from '@domain/events/server-access-token-used.event';
 import { AccessTokenId } from '@domain/value-objects/access-token-id';
 import type { TokenHash } from '@domain/value-objects/token-hash';
+
+/**
+ * Token-Status Typen.
+ * - active: Token ist gueltig und kann verwendet werden
+ * - revoked: Token wurde widerrufen
+ * - expired: Token ist abgelaufen
+ */
+export type TokenStatus = 'active' | 'revoked' | 'expired';
+
+/**
+ * Laenge des Token-Prefix fuer Anzeige/Logging.
+ * Format: blh_ + 8 Zeichen = 12 Zeichen.
+ * Domain-Konstante fuer getDisplayPrefix().
+ */
+const TOKEN_PREFIX_DISPLAY_LENGTH = 12;
 
 /**
  * Props für die ServerAccessToken Erstellung.
@@ -13,6 +29,8 @@ export interface CreateServerAccessTokenProps {
   tokenHash: TokenHash;
   name?: string;
   expiresAt?: Date;
+  /** ID des ursprünglichen Tokens, falls dieses Token durch Rotation erstellt wurde */
+  rotatedFromId?: AccessTokenId;
 }
 
 /**
@@ -26,6 +44,8 @@ export interface ReconstructServerAccessTokenProps {
   expiresAt: Date | null;
   isRevoked: boolean;
   revokedAt: Date | null;
+  /** ID des ursprünglichen Tokens, falls dieses Token durch Rotation erstellt wurde */
+  rotatedFromId: AccessTokenId | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -103,6 +123,9 @@ export class ServerAccessToken extends AggregateRoot<AccessTokenId> {
   /** Zeitpunkt des Widerrufs (null wenn nicht widerrufen) */
   private _revokedAt: Date | null;
 
+  /** ID des ursprünglichen Tokens, falls dieses Token durch Rotation erstellt wurde */
+  private readonly _rotatedFromId: AccessTokenId | null;
+
   /**
    * Private Constructor erzwingt Factory Method Nutzung.
    * Verhindert direkte Instanziierung ohne Validation.
@@ -115,6 +138,7 @@ export class ServerAccessToken extends AggregateRoot<AccessTokenId> {
     expiresAt: Date | null,
     isRevoked: boolean,
     revokedAt: Date | null,
+    rotatedFromId: AccessTokenId | null,
     createdAt?: Date,
     updatedAt?: Date,
   ) {
@@ -125,6 +149,7 @@ export class ServerAccessToken extends AggregateRoot<AccessTokenId> {
     this._expiresAt = expiresAt;
     this._isRevoked = isRevoked;
     this._revokedAt = revokedAt;
+    this._rotatedFromId = rotatedFromId;
   }
 
   // ============================================================
@@ -179,6 +204,55 @@ export class ServerAccessToken extends AggregateRoot<AccessTokenId> {
     return this._revokedAt;
   }
 
+  /**
+   * Readonly getter für die ID des ursprünglichen Tokens bei Rotation.
+   * @returns AccessTokenId des ursprünglichen Tokens oder null wenn nicht rotiert
+   */
+  get rotatedFromId(): AccessTokenId | null {
+    return this._rotatedFromId;
+  }
+
+  /**
+   * Prüft ob dieses Token durch Rotation eines anderen Tokens erstellt wurde.
+   * @returns true wenn dieses Token durch Rotation erstellt wurde
+   */
+  public wasRotated(): boolean {
+    return this._rotatedFromId !== null;
+  }
+
+  /**
+   * Ermittelt den aktuellen Status des Tokens.
+   *
+   * **Status-Logik:**
+   * - revoked: Token wurde widerrufen (hoechste Prioritaet)
+   * - expired: Token ist abgelaufen (expiresAt < now)
+   * - active: Token ist gueltig und kann verwendet werden
+   *
+   * @returns TokenStatus - 'active' | 'revoked' | 'expired'
+   */
+  public getStatus(): TokenStatus {
+    if (this._isRevoked) {
+      return 'revoked';
+    }
+    if (this._expiresAt && this._expiresAt < new Date()) {
+      return 'expired';
+    }
+    return 'active';
+  }
+
+  /**
+   * Gibt den Anzeige-Prefix des Tokens zurueck.
+   * Format: blh_ + erste 8 Zeichen = 12 Zeichen total.
+   *
+   * Wird fuer Logging und UI-Anzeige verwendet, um das Token
+   * identifizierbar zu machen ohne den vollstaendigen Wert zu zeigen.
+   *
+   * @returns String mit den ersten 12 Zeichen der Token-ID
+   */
+  public getDisplayPrefix(): string {
+    return this.id.toString().substring(0, TOKEN_PREFIX_DISPLAY_LENGTH);
+  }
+
   // ============================================================
   // Factory Methods
   // ============================================================
@@ -191,9 +265,10 @@ export class ServerAccessToken extends AggregateRoot<AccessTokenId> {
    * - tokenHash ist required und muss valides bcrypt-Format haben
    * - name ist optional (max 100 Zeichen)
    * - expiresAt ist optional (null = kein Ablauf)
+   * - rotatedFromId ist optional (gesetzt wenn Token durch Rotation erstellt wurde)
    * - Initial: lastUsedAt = null, isRevoked = false, revokedAt = null
    *
-   * @param props - CreateServerAccessTokenProps mit tokenHash, name?, expiresAt?
+   * @param props - CreateServerAccessTokenProps mit tokenHash, name?, expiresAt?, rotatedFromId?
    * @returns Result<ServerAccessToken> - Success mit Token oder Failure mit Error
    */
   static create(props: CreateServerAccessTokenProps): Result<ServerAccessToken> {
@@ -216,6 +291,7 @@ export class ServerAccessToken extends AggregateRoot<AccessTokenId> {
       props.expiresAt ?? null,
       false, // isRevoked = false
       null, // revokedAt = null
+      props.rotatedFromId ?? null, // rotatedFromId (null wenn nicht rotiert)
     );
 
     // Emit Domain Event
@@ -237,7 +313,7 @@ export class ServerAccessToken extends AggregateRoot<AccessTokenId> {
    * @returns ServerAccessToken Instanz
    */
   static reconstruct(props: ReconstructServerAccessTokenProps): ServerAccessToken {
-    return new ServerAccessToken(props.id, props.tokenHash, props.name, props.lastUsedAt, props.expiresAt, props.isRevoked, props.revokedAt, props.createdAt, props.updatedAt);
+    return new ServerAccessToken(props.id, props.tokenHash, props.name, props.lastUsedAt, props.expiresAt, props.isRevoked, props.revokedAt, props.rotatedFromId, props.createdAt, props.updatedAt);
   }
 
   // ============================================================
@@ -313,6 +389,34 @@ export class ServerAccessToken extends AggregateRoot<AccessTokenId> {
 
     // Emit Domain Event
     this.addDomainEvent(new ServerAccessTokenRevokedEvent(this._id, revokedAt));
+
+    return Result.ok<void>(undefined);
+  }
+
+  /**
+   * Business Method: Reaktiviert ein widerrufenes Token.
+   * Setzt isRevoked = false und revokedAt = null.
+   *
+   * **Business Rules:**
+   * - Idempotent: Mehrfacher Aufruf ist erlaubt (kein Fehler)
+   * - Bei bereits aktivem Token: No-Op (kein Event)
+   * - Nach Reaktivierung: Token ist wieder gültig (sofern nicht abgelaufen)
+   *
+   * @returns Result<void> - Immer Success (idempotent)
+   */
+  public reactivate(): Result<void> {
+    // Idempotent: Bereits aktiv → No-Op
+    if (!this._isRevoked) {
+      return Result.ok<void>(undefined);
+    }
+
+    const reactivatedAt = new Date();
+    this._isRevoked = false;
+    this._revokedAt = null;
+    this.updateTimestamp();
+
+    // Emit Domain Event
+    this.addDomainEvent(new ServerAccessTokenReactivatedEvent(this._id, reactivatedAt));
 
     return Result.ok<void>(undefined);
   }

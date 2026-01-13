@@ -33,7 +33,10 @@ export type ApiErrorContext =
   | 'updateEtbEintrag'
   | 'deleteEtbEintrag'
   | 'createAccessToken'
-  | 'listAccessTokens';
+  | 'listAccessTokens'
+  | 'revokeAccessToken'
+  | 'reactivateAccessToken'
+  | 'rotateAccessToken';
 
 /**
  * Error message mappings based on HTTP status codes and error codes
@@ -323,6 +326,43 @@ function getContextSpecificMessage(status: number, errorData: ApiErrorResponse, 
       if (status === 403) {
         return 'Sie haben keine Berechtigung, diesen ETB-Eintrag zu löschen.';
       }
+      break;
+
+    case 'createAccessToken':
+      if (status === 409) {
+        return 'Ein Token mit diesem Namen existiert bereits.';
+      }
+      if (status === 400) {
+        return 'Ungültige Eingabe. Bitte prüfen Sie den Token-Namen.';
+      }
+      break;
+
+    case 'revokeAccessToken':
+      if (status === 404) {
+        return 'Das zu deaktivierende Token wurde nicht gefunden.';
+      }
+      if (status === 400) {
+        return 'Das Token kann nicht deaktiviert werden (bereits widerrufen).';
+      }
+      break;
+
+    case 'reactivateAccessToken':
+      if (status === 404) {
+        return 'Das zu reaktivierende Token wurde nicht gefunden.';
+      }
+      if (status === 400) {
+        return 'Das Token kann nicht reaktiviert werden.';
+      }
+      break;
+
+    case 'rotateAccessToken':
+      if (status === 404) {
+        return 'Das zu rotierende Token wurde nicht gefunden.';
+      }
+      if (status === 400) {
+        return 'Das Token kann nicht rotiert werden (bereits widerrufen oder abgelaufen).';
+      }
+      break;
   }
 
   return null;

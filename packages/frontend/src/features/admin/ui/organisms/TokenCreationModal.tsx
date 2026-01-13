@@ -64,6 +64,17 @@ export const TokenCreationModal = ({ isOpen, onClose, onTokenCreated }: TokenCre
     },
   });
 
+  // Reset State wenn Modal geschlossen wird - verhindert Memory Leak durch Token-State
+  useEffect(() => {
+    if (!isOpen) {
+      setCreatedToken(null);
+      setCreatedTokenName(null);
+      setShowToken(false);
+      setConfirmed(false);
+      setCopied(false);
+    }
+  }, [isOpen]);
+
   // Reset Copied-State nach Timeout
   useEffect(() => {
     if (copied) {
@@ -107,7 +118,7 @@ export const TokenCreationModal = ({ isOpen, onClose, onTokenCreated }: TokenCre
   // Success View: Token-Anzeige mit Kopier-Funktion und Bestaetigung
   if (showToken && createdToken) {
     return (
-      <Dialog isOpen={isOpen} onClose={canClose ? handleClose : () => {}} closeOnEscape={canClose} closeOnClickOutside={canClose}>
+      <Dialog isOpen={isOpen} onClose={handleClose} closeOnEscape={canClose} closeOnClickOutside={canClose}>
         <Dialog.Title>
           <div className="flex items-center gap-2">
             <PiKey className="h-5 w-5 text-green-500" />
@@ -144,6 +155,12 @@ export const TokenCreationModal = ({ isOpen, onClose, onTokenCreated }: TokenCre
                 >
                   {copied ? <PiCheck className="h-5 w-5" /> : <PiCopy className="h-5 w-5" />}
                 </Button>
+                {/* Screen Reader Announcement fuer Kopier-Aktion */}
+                {copied && (
+                  <output className="sr-only" aria-live="polite">
+                    Token wurde in die Zwischenablage kopiert
+                  </output>
+                )}
               </div>
             </div>
 
@@ -212,6 +229,7 @@ export const TokenCreationModal = ({ isOpen, onClose, onTokenCreated }: TokenCre
                     autoFocus
                     autoComplete="off"
                     maxLength={50}
+                    disabled={createMutation.isPending}
                   />
                 </FormField>
               )}

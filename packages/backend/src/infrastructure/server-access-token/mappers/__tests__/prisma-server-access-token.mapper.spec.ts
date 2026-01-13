@@ -35,6 +35,8 @@ function createPrismaRecord(overrides?: Partial<PrismaServerAccessToken>): Prism
     expiresAt: null,
     isRevoked: false,
     revokedAt: null,
+    rotatedFromId: null,
+    inviteCodeId: null,
     createdAt: now,
     updatedAt: now,
     ...overrides,
@@ -148,6 +150,35 @@ describe('PrismaServerAccessTokenMapper', () => {
         expect(aggregate.createdAt.getTime()).toBe(createdAt.getTime());
         expect(aggregate.updatedAt.getTime()).toBe(updatedAt.getTime());
       });
+
+      it('should map token with rotatedFromId', () => {
+        // Given: Record with rotatedFromId (rotiertes Token)
+        const record = createPrismaRecord({
+          rotatedFromId: 'blh_originaltokenid123456789',
+        });
+
+        // When: Map to aggregate
+        const aggregate = PrismaServerAccessTokenMapper.toAggregate(record);
+
+        // Then: rotatedFromId is correctly mapped
+        expect(aggregate.rotatedFromId).not.toBeNull();
+        expect(aggregate.rotatedFromId?.value).toBe('blh_originaltokenid123456789');
+        expect(aggregate.wasRotated()).toBe(true);
+      });
+
+      it('should map token without rotatedFromId', () => {
+        // Given: Record without rotatedFromId
+        const record = createPrismaRecord({
+          rotatedFromId: null,
+        });
+
+        // When: Map to aggregate
+        const aggregate = PrismaServerAccessTokenMapper.toAggregate(record);
+
+        // Then: rotatedFromId is null
+        expect(aggregate.rotatedFromId).toBeNull();
+        expect(aggregate.wasRotated()).toBe(false);
+      });
     });
 
     describe('Error Cases', () => {
@@ -179,6 +210,16 @@ describe('PrismaServerAccessTokenMapper', () => {
 
         // When/Then: Throws error (cost factor 08 < 10)
         expect(() => PrismaServerAccessTokenMapper.toAggregate(record)).toThrow('Invalid TokenHash in database');
+      });
+
+      it('should throw when rotatedFromId has invalid format', () => {
+        // Given: Record with invalid rotatedFromId format
+        const record = createPrismaRecord({
+          rotatedFromId: 'invalid-token-id',
+        });
+
+        // When/Then: Throws error
+        expect(() => PrismaServerAccessTokenMapper.toAggregate(record)).toThrow('Invalid rotatedFromId in database');
       });
     });
   });
@@ -246,6 +287,17 @@ describe('PrismaServerAccessTokenMapper', () => {
 
         // Then: lastUsedAt is set
         expect(dto.lastUsedAt).toBeInstanceOf(Date);
+      });
+
+      it('should map aggregate without rotatedFromId to null', () => {
+        // Given: Aggregate without rotatedFromId
+        const aggregate = createDomainAggregate();
+
+        // When: Map to persistence
+        const dto = PrismaServerAccessTokenMapper.toPersistence(aggregate);
+
+        // Then: rotatedFromId is null
+        expect(dto.rotatedFromId).toBeNull();
       });
     });
   });

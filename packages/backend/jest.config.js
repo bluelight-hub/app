@@ -12,6 +12,9 @@ module.exports = {
     '**/common/**/*.spec.ts',
     '**/smoke/**/*.smoke.spec.ts',
     '**/__tests__/**/*.spec.ts',
+    '**/__tests__/**/*.e2e.spec.ts',
+    '**/modules/**/*.spec.ts',
+    '**/modules/**/*.e2e.spec.ts',
   ],
   testPathIgnorePatterns: ['/node_modules/'],
   transform: {

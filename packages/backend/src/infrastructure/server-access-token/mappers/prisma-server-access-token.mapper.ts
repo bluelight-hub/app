@@ -20,6 +20,8 @@ export interface ServerAccessTokenPersistenceDto {
   expiresAt: Date | null;
   isRevoked: boolean;
   revokedAt: Date | null;
+  /** ID des ursprünglichen Tokens bei Rotation (null wenn nicht rotiert) */
+  rotatedFromId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -68,6 +70,16 @@ export class PrismaServerAccessTokenMapper {
       throw new Error(`Invalid TokenHash in database for token: ${record.id}`);
     }
 
+    // rotatedFromId rekonstruieren falls vorhanden
+    let rotatedFromIdValue: AccessTokenId | null = null;
+    if (record.rotatedFromId) {
+      const rotatedFromIdResult = AccessTokenId.create(record.rotatedFromId);
+      if (rotatedFromIdResult.isFailure || !rotatedFromIdResult.value) {
+        throw new Error(`Invalid rotatedFromId in database: ${record.rotatedFromId}`);
+      }
+      rotatedFromIdValue = rotatedFromIdResult.value;
+    }
+
     // Reconstruct Props erstellen
     const props: ReconstructServerAccessTokenProps = {
       id: idResult.value,
@@ -77,6 +89,7 @@ export class PrismaServerAccessTokenMapper {
       expiresAt: record.expiresAt,
       isRevoked: record.isRevoked,
       revokedAt: record.revokedAt,
+      rotatedFromId: rotatedFromIdValue,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,
     };
@@ -101,6 +114,7 @@ export class PrismaServerAccessTokenMapper {
       expiresAt: aggregate.expiresAt,
       isRevoked: aggregate.isRevoked,
       revokedAt: aggregate.revokedAt,
+      rotatedFromId: aggregate.rotatedFromId?.value ?? null,
       createdAt: aggregate.createdAt,
       updatedAt: aggregate.updatedAt,
     };

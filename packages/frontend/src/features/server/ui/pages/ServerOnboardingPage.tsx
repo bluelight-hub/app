@@ -66,7 +66,11 @@ export function ServerOnboardingPage() {
           {hasExistingServers && (
             <button
               type="button"
-              onClick={() => navigate({ to: '/auth' })}
+              onClick={() => {
+                // Reset Setup-Redirect-Flag damit /auth nicht wieder hierher redirectet
+                setSetupRedirectInProgress(false);
+                navigate({ to: '/auth' });
+              }}
               className="flex cursor-pointer items-center gap-2 text-gray-500 text-sm transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             >
               <PiArrowLeft className="h-4 w-4" />

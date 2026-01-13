@@ -10,6 +10,11 @@ import { DeepLinkService } from './deep-link.service';
 import { DeepLinkError } from '../types/deep-link';
 import type { DeepLinkParams } from '../types/deep-link';
 
+// Mock Tauri Core API - isTauri() muss true zurückgeben für Tests
+vi.mock('@tauri-apps/api/core', () => ({
+  isTauri: vi.fn(() => true),
+}));
+
 // Mock Tauri Deep Link Plugin
 vi.mock('@tauri-apps/plugin-deep-link', () => ({
   onOpenUrl: vi.fn(),
@@ -18,6 +23,7 @@ vi.mock('@tauri-apps/plugin-deep-link', () => ({
 
 // Import mocked functions after mock definition
 import { onOpenUrl, getCurrent } from '@tauri-apps/plugin-deep-link';
+import { isTauri } from '@tauri-apps/api/core';
 
 describe('DeepLinkService', () => {
   let service: DeepLinkService;
@@ -25,6 +31,9 @@ describe('DeepLinkService', () => {
   beforeEach(() => {
     // CRITICAL: Mock Reset
     vi.clearAllMocks();
+
+    // Ensure isTauri returns true for all tests (Tauri environment simulation)
+    vi.mocked(isTauri).mockReturnValue(true);
 
     // Reset Singleton zwischen Tests
     DeepLinkService.reset();

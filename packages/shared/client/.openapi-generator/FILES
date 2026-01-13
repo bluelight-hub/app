@@ -52,6 +52,8 @@ models/AdminQualifikationenControllerCreateVAlpha201Response.ts
 models/AdminQualifikationenControllerFindAllVAlpha200Response.ts
 models/AdminRollenControllerCreateVAlpha201Response.ts
 models/AdminRollenControllerFindAllVAlpha200Response.ts
+models/AdminSecurityControllerGetStatusVAlpha200Response.ts
+models/AdminSecurityControllerMigrateToSecureVAlpha201Response.ts
 models/AdminSetupControllerCompleteSetupVAlpha201Response.ts
 models/AdminSetupControllerCompleteSetupVAlpha400Response.ts
 models/AdminSetupDto.ts
@@ -64,6 +66,8 @@ models/AdminStammPersonenControllerFindAllVAlpha200Response.ts
 models/AdminStatusDto.ts
 models/AdminTokenControllerCreateTokenVAlpha201Response.ts
 models/AdminTokenControllerListTokensVAlpha200Response.ts
+models/AdminTokenControllerRevokeTokenVAlpha200Response.ts
+models/AdminTokenControllerRotateTokenVAlpha201Response.ts
 models/AdminTokenVerificationDto.ts
 models/AdminUserDto.ts
 models/ApiMeta.ts
@@ -185,6 +189,8 @@ models/LoginResponseDto.ts
 models/LogoutResponseDto.ts
 models/ManagedUserResponse.ts
 models/ManagedUserResponseDto.ts
+models/MigrateToSecureModeRequestDto.ts
+models/MigrateToSecureModeResponseDto.ts
 models/NavigationResponseDto.ts
 models/PersonRegisteredResponseDto.ts
 models/PoiControllerCreatePoiVAlpha200Response.ts
@@ -208,8 +214,11 @@ models/RollenBesetzungControllerFreigebenRolleVAlpha200Response.ts
 models/RollenBesetzungDto.ts
 models/RollenBesetzungListItemDto.ts
 models/RollenDefinitionDto.ts
+models/RotateAccessTokenRequestDto.ts
+models/RotateAccessTokenResponseDto.ts
 models/SaveLagekarteStateDto.ts
 models/SaveQualifikationMappingRequestDto.ts
+models/SecurityStatusDto.ts
 models/ServerInfoDto.ts
 models/SetupInviteCodeDto.ts
 models/SetupResponseDto.ts

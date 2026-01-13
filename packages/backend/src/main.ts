@@ -44,8 +44,39 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('BlueLight Hub API')
-    .setDescription('BlueLight Hub API for the BlueLight Hub application')
+    .setDescription(
+      `BlueLight Hub API for the BlueLight Hub application.
+
+## Server-Access-Token (X-Server-Access-Token)
+
+Alle API-Endpunkte (außer /health und /setup) erfordern einen gültigen Server-Access-Token im Header:
+
+\`\`\`
+X-Server-Access-Token: <plaintext_token>
+\`\`\`
+
+**Multi-Token Support:**
+- Mehrere aktive Tokens gleichzeitig möglich
+- Jedes Token hat einen eindeutigen Namen zur Identifikation
+- \`lastUsedAt\` wird bei jeder erfolgreichen Validierung aktualisiert
+- Tokens können individuell deaktiviert/reaktiviert/rotiert werden
+
+**Token-Namenskonventionen (Best Practices):**
+- \`Desktop Hauptwache\` - für Desktop-App der Hauptwache
+- \`Mobile SEG Nord\` - für Mobile App der SEG Nord
+- \`Integration Server\` - für automatisierte Systeme
+- Bei Rotation: Datum im Namen (z.B. "Desktop HW 2026-01")`,
+    )
     .setVersion(packageJson.version)
+    .addApiKey(
+      {
+        type: 'apiKey',
+        name: 'X-Server-Access-Token',
+        in: 'header',
+        description: 'Server-Access-Token für die Server-Authentifizierung. Mehrere aktive Tokens werden unterstützt. lastUsedAt wird bei jeder Nutzung aktualisiert.',
+      },
+      'server-access-token',
+    )
     .addBearerAuth(
       {
         type: 'http',

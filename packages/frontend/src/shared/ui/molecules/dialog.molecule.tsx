@@ -72,7 +72,11 @@ interface SlideInDialogProps {
 /**
  * Dialog Molecule Component
  *
- * Wiederverwendbare Dialog-Komponente basierend auf Headless UI
+ * Wiederverwendbare Dialog-Komponente basierend auf Headless UI.
+ *
+ * WICHTIG: closeOnEscape und closeOnClickOutside kontrollieren, ob der Dialog
+ * durch ESC-Taste bzw. Klick auf den Backdrop geschlossen werden kann.
+ * Bei kritischen Dialogen (z.B. Token-Anzeige) sollten beide auf false gesetzt werden.
  */
 export const Dialog = ({ isOpen, onClose, children, className, size = 'md', closeOnEscape = true, closeOnClickOutside = true, initialFocus }: DialogProps) => {
   const sizeClasses = {
@@ -83,16 +87,36 @@ export const Dialog = ({ isOpen, onClose, children, className, size = 'md', clos
     full: 'max-w-4xl', // 896px (was 672px)
   };
 
-  // Handle custom close behavior
-  const handleClose = React.useCallback(() => {
-    if (closeOnClickOutside || closeOnEscape) {
+  // Handler fuer Backdrop-Klick (wird von HeadlessDialog.onClose aufgerufen)
+  // Bei Headless UI wird onClose sowohl bei ESC als auch bei Backdrop-Klick aufgerufen.
+  // Wir verwenden diesen Handler nur fuer Backdrop-Klicks, ESC wird separat behandelt.
+  const handleBackdropClose = React.useCallback(() => {
+    if (closeOnClickOutside) {
       onClose();
     }
-  }, [closeOnClickOutside, closeOnEscape, onClose]);
+  }, [closeOnClickOutside, onClose]);
+
+  // Separater Handler fuer ESC-Taste
+  React.useEffect(() => {
+    if (!isOpen || !closeOnEscape) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose();
+      }
+    };
+
+    // Event Listener mit capture:true um vor Headless UI zu feuern
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
+    return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
+  }, [isOpen, closeOnEscape, onClose]);
 
   return (
     <Transition appear show={isOpen} as={React.Fragment}>
-      <HeadlessDialog as="div" className="relative z-50" onClose={handleClose} initialFocus={initialFocus}>
+      {/* __demoMode verhindert dass Headless UI ESC selbst behandelt */}
+      <HeadlessDialog as="div" className="relative z-50" onClose={handleBackdropClose} initialFocus={initialFocus} __demoMode>
         <TransitionChild as={React.Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
           <div className="fixed inset-0 bg-black/25 backdrop-blur-sm" />
         </TransitionChild>

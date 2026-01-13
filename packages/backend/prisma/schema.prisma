@@ -831,11 +831,11 @@ model StammPerson {
   // Einsatz-Personen Relation (Story 4.0 - Rückverfolgbarkeit)
   einsatzPersonen EinsatzPerson[]
 
+  @@unique([externalSource, externalId]) // Externe ID eindeutig pro Quelle
   // Indexes
   @@index([archivedAt])
   @@index([archivedAt, nachname])
   @@index([createdBy])
-  @@unique([externalSource, externalId]) // Externe ID eindeutig pro Quelle
   @@map("stamm_personen")
 }
 
@@ -1118,7 +1118,7 @@ model QualifikationMapping {
   externalSource  String  @db.VarChar(50) // z.B. "HIORG_SERVER"
   qualifikationId String? // FK auf Qualifikation (null = nicht gemappt)
   isAutoMatched   Boolean @default(false) // Automatisch gemappt?
-  confidence      Int?    // Konfidenz-Score (0-100) für Auto-Match
+  confidence      Int? // Konfidenz-Score (0-100) für Auto-Match
 
   // Audit-Trail
   createdAt DateTime @default(now())
@@ -1159,6 +1159,11 @@ model ServerAccessToken {
   inviteCodeId    String?     @unique
   createdByInvite InviteCode? @relation(fields: [inviteCodeId], references: [id])
 
+  // Token Rotation (Story 4.4)
+  rotatedFromId String?            @unique
+  rotatedFrom   ServerAccessToken? @relation("TokenRotation", fields: [rotatedFromId], references: [id])
+  rotatedTo     ServerAccessToken? @relation("TokenRotation")
+
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1167,6 +1172,7 @@ model ServerAccessToken {
   @@index([tokenHash], map: "idx_server_access_token_hash") // Schnelle Token-Lookups
   @@index([tokenHash, isRevoked], map: "idx_server_access_token_validate") // validateToken Query
   @@index([isRevoked, expiresAt], map: "idx_server_access_token_active") // findActiveTokens Query
+  @@index([rotatedFromId], map: "idx_server_access_token_rotated_from") // Token-Kette Queries
   @@map("server_access_tokens")
 }
 
@@ -1203,4 +1209,28 @@ model InviteCode {
   @@index([createdById], map: "idx_invite_created_by")
   @@index([isRevoked, expiresAt], map: "idx_invite_active_codes")
   @@map("invite_codes")
+}
+
+// ========================================
+// Server Configuration
+// Story 4.6: INSECURE zu SECURE Migration
+// ========================================
+
+/// ServerConfig: Singleton-Konfiguration für Server-weite Einstellungen
+/// - id = "singleton": Stellt sicher, dass nur eine Zeile existiert
+/// - insecureMode: true = Server akzeptiert alle Requests ohne Authentifizierung
+/// - migratedAt: Zeitpunkt der Migration von INSECURE zu SECURE Mode
+///
+/// **Warum Singleton-Pattern:**
+/// - Genau eine Konfiguration pro Server-Instanz
+/// - Einfache Abfrage via findUnique (keine Pagination nötig)
+/// - Atomare Updates ohne Konfliktpotential
+model ServerConfig {
+  id           String    @id @default("singleton")
+  insecureMode Boolean   @default(true)
+  migratedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("server_config")
 }

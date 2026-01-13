@@ -41,6 +41,12 @@ export const ACCESS_TOKEN_ERROR_CODES = {
   SAVE_FAILED: 'ACCESS_TOKEN_SAVE_FAILED',
   /** Token-Hash-Erstellung fehlgeschlagen */
   TOKEN_HASH_FAILED: 'ACCESS_TOKEN_HASH_FAILED',
+  /** Ungueltige User-ID */
+  INVALID_USER_ID: 'ACCESS_TOKEN_INVALID_USER_ID',
+  /** Token kann nicht rotiert werden (revoked oder expired) */
+  NOT_ROTATABLE: 'ACCESS_TOKEN_NOT_ROTATABLE',
+  /** Ungueltige Token-ID */
+  INVALID_TOKEN_ID: 'ACCESS_TOKEN_INVALID_TOKEN_ID',
 } as const;
 
 /**

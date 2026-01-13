@@ -6,6 +6,7 @@ import { HealthController } from './health.controller';
 import type { PrismaHealthIndicator } from './prisma-health.indicator';
 import type { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { IServerAccessTokenRepository } from '@domain/repositories/i-server-access-token.repository';
+import type { IServerConfigRepository } from '@domain/repositories/i-server-config.repository';
 import { Result } from '@domain/common/result';
 import type { ServerAccessToken } from '@domain/aggregates/server-access-token.aggregate';
 import { AccessTokenId } from '@domain/value-objects/access-token-id';
@@ -29,6 +30,7 @@ import { BCRYPT_COST_FACTOR_TOKEN } from '@infrastructure/config/security.consta
  *
  * **Mocking Strategy:**
  * - IServerAccessTokenRepository: Vollstaendig gemockt (findAllActive, countActive)
+ * - IServerConfigRepository: Gemockt fuer isInsecureMode() Abfragen (Story 4.6)
  * - PrismaService: Gemockt fuer user.count() Abfragen
  * - PrismaHealthIndicator: Gemockt fuer pingCheck
  * - HealthCheckService: Gemockt fuer check() Aufrufe
@@ -45,8 +47,10 @@ describe('HealthController', () => {
   let mockDiskIndicator: jest.Mocked<DiskHealthIndicator>;
   let mockPrismaHealth: jest.Mocked<PrismaHealthIndicator>;
   let mockTokenRepo: jest.Mocked<IServerAccessTokenRepository>;
+  let mockServerConfigRepo: jest.Mocked<IServerConfigRepository>;
   let mockPrisma: jest.Mocked<PrismaService>;
   let mockConfigService: jest.Mocked<ConfigService>;
+  let mockUserCount: jest.Mock;
 
   /**
    * Mock HealthCheckResult fuer detaillierte Health-Response
@@ -136,22 +140,31 @@ describe('HealthController', () => {
       countActive: jest.fn().mockResolvedValue(Result.ok(0)),
     } as unknown as jest.Mocked<IServerAccessTokenRepository>;
 
-    // Mock PrismaService
+    // Mock IServerConfigRepository (Story 4.6)
+    mockServerConfigRepo = {
+      getOrCreate: jest.fn().mockResolvedValue(Result.ok({ id: 'singleton', insecureMode: false, migratedAt: null, createdAt: new Date(), updatedAt: new Date() })),
+      update: jest.fn(),
+      isInsecureMode: jest.fn().mockResolvedValue(Result.ok(false)),
+      hasMigrated: jest.fn().mockResolvedValue(Result.ok(false)),
+    } as unknown as jest.Mocked<IServerConfigRepository>;
+
+    // Mock PrismaService mit explizit typisierten Mocks
+    mockUserCount = jest.fn().mockResolvedValue(0);
     mockPrisma = {
       user: {
-        count: jest.fn().mockResolvedValue(0),
+        count: mockUserCount,
       },
       $queryRaw: jest.fn(),
       $executeRaw: jest.fn(),
     } as unknown as jest.Mocked<PrismaService>;
 
-    // Mock ConfigService (fuer INSECURE_MODE Abfragen)
+    // Mock ConfigService (fuer INSECURE_MODE Abfragen - Fallback bei DB-Fehler)
     mockConfigService = {
       get: jest.fn().mockReturnValue(undefined),
     } as unknown as jest.Mocked<ConfigService>;
 
-    // Controller mit allen 7 Dependencies erstellen
-    controller = new HealthController(mockHealthCheckService, mockMemoryIndicator, mockDiskIndicator, mockPrismaHealth, mockPrisma, mockTokenRepo, mockConfigService);
+    // Controller mit allen 8 Dependencies erstellen (Story 4.6: +mockServerConfigRepo)
+    controller = new HealthController(mockHealthCheckService, mockMemoryIndicator, mockDiskIndicator, mockPrismaHealth, mockPrisma, mockTokenRepo, mockServerConfigRepo, mockConfigService);
   });
 
   afterEach(() => {
@@ -191,7 +204,7 @@ describe('HealthController', () => {
       const rawToken = 'blh_test_valid_token_123';
       const validToken = await createMockTokenWithHash(rawToken);
       mockTokenRepo.findAllActive.mockResolvedValue(Result.ok([validToken]));
-      mockPrisma.user.count.mockResolvedValue(1); // Admin existiert
+      mockUserCount.mockResolvedValue(1); // Admin existiert
       mockTokenRepo.countActive.mockResolvedValue(Result.ok(1)); // Token existiert
 
       const mockRequest = {
@@ -330,7 +343,7 @@ describe('HealthController', () => {
      */
     it('should return setupComplete: false when no admin user exists', async () => {
       // Given: Keine Admin User in DB
-      mockPrisma.user.count.mockResolvedValue(0);
+      mockUserCount.mockResolvedValue(0);
       mockTokenRepo.countActive.mockResolvedValue(Result.ok(1)); // Token existiert
 
       const mockRequest = { headers: {} } as Request;
@@ -348,7 +361,7 @@ describe('HealthController', () => {
      */
     it('should return setupComplete: false when no active tokens exist', async () => {
       // Given: Admin existiert aber keine aktiven Tokens
-      mockPrisma.user.count.mockResolvedValue(1); // Admin existiert
+      mockUserCount.mockResolvedValue(1); // Admin existiert
       mockTokenRepo.countActive.mockResolvedValue(Result.ok(0)); // Keine Tokens
 
       const mockRequest = { headers: {} } as Request;
@@ -366,7 +379,7 @@ describe('HealthController', () => {
      */
     it('should return setupComplete: true when admin and active token exist', async () => {
       // Given: Admin User UND aktive Tokens existieren
-      mockPrisma.user.count.mockResolvedValue(1); // Admin existiert
+      mockUserCount.mockResolvedValue(1); // Admin existiert
       mockTokenRepo.countActive.mockResolvedValue(Result.ok(1)); // Token existiert
 
       const mockRequest = { headers: {} } as Request;
@@ -472,7 +485,7 @@ describe('HealthController', () => {
     it('should always return status ok for unauthenticated requests even when DB is down', async () => {
       // Given: Database ist nicht erreichbar
       mockPrismaHealth.pingCheck.mockRejectedValue(new Error('Database connection failed'));
-      mockPrisma.user.count.mockResolvedValue(0);
+      mockUserCount.mockResolvedValue(0);
       mockTokenRepo.countActive.mockResolvedValue(Result.ok(0));
 
       const mockRequest = { headers: {} } as Request;
@@ -499,7 +512,7 @@ describe('HealthController', () => {
       const validToken = await createMockTokenWithHash(rawToken);
       mockTokenRepo.findAllActive.mockResolvedValue(Result.ok([validToken]));
       mockPrismaHealth.pingCheck.mockRejectedValue(new Error('Database down'));
-      mockPrisma.user.count.mockResolvedValue(1);
+      mockUserCount.mockResolvedValue(1);
       mockTokenRepo.countActive.mockResolvedValue(Result.ok(1));
 
       const mockRequest = {
@@ -522,7 +535,7 @@ describe('HealthController', () => {
      */
     it('should use cached setupComplete value within TTL', async () => {
       // Given: Admin und Token existieren
-      mockPrisma.user.count.mockResolvedValue(1);
+      mockUserCount.mockResolvedValue(1);
       mockTokenRepo.countActive.mockResolvedValue(Result.ok(1));
 
       const mockRequest = { headers: {} } as Request;
@@ -542,7 +555,7 @@ describe('HealthController', () => {
      */
     it('should invalidate cache when database error occurs', async () => {
       // Given: Erster Call erfolgreich, zweiter Call mit DB-Fehler
-      mockPrisma.user.count.mockResolvedValueOnce(1).mockRejectedValueOnce(new Error('DB Error')).mockResolvedValueOnce(1);
+      mockUserCount.mockResolvedValueOnce(1).mockRejectedValueOnce(new Error('DB Error')).mockResolvedValueOnce(1);
       mockTokenRepo.countActive.mockResolvedValue(Result.ok(1));
 
       const mockRequest = { headers: {} } as Request;
@@ -552,7 +565,7 @@ describe('HealthController', () => {
 
       // Simuliere Zeit vergangen (Cache abgelaufen) durch neuen Controller
       // In echtem Test: jest.useFakeTimers()
-      const controller2 = new HealthController(mockHealthCheckService, mockMemoryIndicator, mockDiskIndicator, mockPrismaHealth, mockPrisma, mockTokenRepo, mockConfigService);
+      const controller2 = new HealthController(mockHealthCheckService, mockMemoryIndicator, mockDiskIndicator, mockPrismaHealth, mockPrisma, mockTokenRepo, mockServerConfigRepo, mockConfigService);
       const result2 = await controller2.check(mockRequest);
 
       // Then: Ergebnis reflektiert DB-Status korrekt
@@ -562,43 +575,38 @@ describe('HealthController', () => {
     });
   });
 
-  describe('check() - insecureMode in Health Responses (Story 1.5)', () => {
+  describe('check() - insecureMode in Health Responses (Story 4.6)', () => {
     /**
-     * Test 6.4: BasicHealth Response enthält insecureMode: true wenn INSECURE_MODE=true
-     * Story 1.5: Frontend muss ueber Insecure-Modus informiert werden
+     * Test: BasicHealth Response enthält insecureMode: true wenn DB ServerConfig.insecureMode=true
+     * Story 4.6: insecureMode wird aus DB gelesen (nicht aus ENV)
      */
-    it('should include insecureMode=true in basic health when INSECURE_MODE=true', async () => {
-      // Given: INSECURE_MODE ist auf 'true' gesetzt
-      mockConfigService.get.mockImplementation((key: string) => {
-        if (key === 'INSECURE_MODE') return 'true';
-        return undefined;
-      });
+    it('should include insecureMode=true in basic health when DB insecureMode=true', async () => {
+      // Given: DB ServerConfig hat insecureMode: true
+      mockServerConfigRepo.isInsecureMode.mockResolvedValue(Result.ok(true));
 
       const mockRequest = { headers: {} } as Request;
 
       // When: check() ohne Token aufgerufen wird (unauthenticated -> BasicHealthDto)
       const result = await controller.check(mockRequest);
 
-      // Then: insecureMode ist true
+      // Then: insecureMode ist true (aus DB)
       expect(result).toHaveProperty('insecureMode', true);
+      expect(mockServerConfigRepo.isInsecureMode).toHaveBeenCalled();
     });
 
     /**
-     * Test 6.5: DetailedHealth Response enthält insecureMode: true wenn INSECURE_MODE=true
-     * Story 1.5: Authentifizierte Clients sehen auch insecureMode
+     * Test: DetailedHealth Response enthält insecureMode: true wenn DB insecureMode=true
+     * Story 4.6: Authentifizierte Clients sehen auch insecureMode aus DB
      */
-    it('should include insecureMode=true in detailed health when INSECURE_MODE=true', async () => {
-      // Given: INSECURE_MODE ist auf 'true' gesetzt
-      mockConfigService.get.mockImplementation((key: string) => {
-        if (key === 'INSECURE_MODE') return 'true';
-        return undefined;
-      });
+    it('should include insecureMode=true in detailed health when DB insecureMode=true', async () => {
+      // Given: DB ServerConfig hat insecureMode: true
+      mockServerConfigRepo.isInsecureMode.mockResolvedValue(Result.ok(true));
 
       // Gueltiger Token fuer DetailedHealthDto
       const rawToken = 'blh_test_insecure_token';
       const validToken = await createMockTokenWithHash(rawToken);
       mockTokenRepo.findAllActive.mockResolvedValue(Result.ok([validToken]));
-      mockPrisma.user.count.mockResolvedValue(1);
+      mockUserCount.mockResolvedValue(1);
       mockTokenRepo.countActive.mockResolvedValue(Result.ok(1));
 
       const mockRequest = {
@@ -608,69 +616,45 @@ describe('HealthController', () => {
       // When: check() mit gueltigem Token aufgerufen wird (authenticated -> DetailedHealthDto)
       const result = await controller.check(mockRequest);
 
-      // Then: insecureMode ist true
+      // Then: insecureMode ist true (aus DB)
       expect(result).toHaveProperty('insecureMode', true);
+      expect(mockServerConfigRepo.isInsecureMode).toHaveBeenCalled();
       // Validierung dass es DetailedHealthDto ist
       expect(result).toHaveProperty('database');
       expect(result).toHaveProperty('uptime');
     });
 
     /**
-     * Bonus Test: insecureMode=false wenn INSECURE_MODE nicht gesetzt
-     * Story 1.5: Default-Verhalten ist sicherer Modus
+     * Test: insecureMode=false wenn DB insecureMode=false
+     * Story 4.6: SECURE Mode aus DB
      */
-    it('should include insecureMode=false in basic health when INSECURE_MODE not set', async () => {
-      // Given: INSECURE_MODE ist nicht gesetzt (undefined)
-      mockConfigService.get.mockImplementation((key: string) => {
-        if (key === 'INSECURE_MODE') return undefined;
-        return undefined;
-      });
+    it('should include insecureMode=false in basic health when DB insecureMode=false', async () => {
+      // Given: DB ServerConfig hat insecureMode: false
+      mockServerConfigRepo.isInsecureMode.mockResolvedValue(Result.ok(false));
 
       const mockRequest = { headers: {} } as Request;
 
       // When: check() aufgerufen wird
       const result = await controller.check(mockRequest);
 
-      // Then: insecureMode ist false
+      // Then: insecureMode ist false (aus DB)
       expect(result).toHaveProperty('insecureMode', false);
+      expect(mockServerConfigRepo.isInsecureMode).toHaveBeenCalled();
     });
 
     /**
-     * Bonus Test: insecureMode=false wenn INSECURE_MODE='false'
-     * Story 1.5: Explizit false gesetzt
+     * Test: insecureMode=false in DetailedHealth wenn DB insecureMode=false
+     * Story 4.6: Konsistenz zwischen Basic und Detailed Response
      */
-    it('should include insecureMode=false in basic health when INSECURE_MODE=false', async () => {
-      // Given: INSECURE_MODE ist explizit auf 'false' gesetzt
-      mockConfigService.get.mockImplementation((key: string) => {
-        if (key === 'INSECURE_MODE') return 'false';
-        return undefined;
-      });
-
-      const mockRequest = { headers: {} } as Request;
-
-      // When: check() aufgerufen wird
-      const result = await controller.check(mockRequest);
-
-      // Then: insecureMode ist false
-      expect(result).toHaveProperty('insecureMode', false);
-    });
-
-    /**
-     * Bonus Test: insecureMode=false in DetailedHealth wenn nicht gesetzt
-     * Story 1.5: Konsistenz zwischen Basic und Detailed Response
-     */
-    it('should include insecureMode=false in detailed health when INSECURE_MODE not set', async () => {
-      // Given: INSECURE_MODE ist nicht gesetzt
-      mockConfigService.get.mockImplementation((key: string) => {
-        if (key === 'INSECURE_MODE') return undefined;
-        return undefined;
-      });
+    it('should include insecureMode=false in detailed health when DB insecureMode=false', async () => {
+      // Given: DB ServerConfig hat insecureMode: false
+      mockServerConfigRepo.isInsecureMode.mockResolvedValue(Result.ok(false));
 
       // Gueltiger Token fuer DetailedHealthDto
       const rawToken = 'blh_test_secure_token';
       const validToken = await createMockTokenWithHash(rawToken);
       mockTokenRepo.findAllActive.mockResolvedValue(Result.ok([validToken]));
-      mockPrisma.user.count.mockResolvedValue(1);
+      mockUserCount.mockResolvedValue(1);
       mockTokenRepo.countActive.mockResolvedValue(Result.ok(1));
 
       const mockRequest = {
@@ -682,7 +666,92 @@ describe('HealthController', () => {
 
       // Then: insecureMode ist false in DetailedHealthDto
       expect(result).toHaveProperty('insecureMode', false);
+      expect(mockServerConfigRepo.isInsecureMode).toHaveBeenCalled();
       expect(result).toHaveProperty('database');
+    });
+
+    /**
+     * Test: Fallback auf ENV wenn DB Fehler
+     * Story 4.6: Health Endpoint muss auch bei DB-Fehler funktionieren
+     */
+    it('should fallback to ENV when DB isInsecureMode returns error', async () => {
+      // Given: DB Repository liefert Fehler, aber ENV hat INSECURE_MODE=true
+      mockServerConfigRepo.isInsecureMode.mockResolvedValue(Result.fail('Database error'));
+      mockConfigService.get.mockImplementation((key: string) => {
+        if (key === 'INSECURE_MODE') return 'true';
+        return undefined;
+      });
+
+      const mockRequest = { headers: {} } as Request;
+
+      // When: check() aufgerufen wird
+      const result = await controller.check(mockRequest);
+
+      // Then: Fallback auf ENV, insecureMode ist true
+      expect(result).toHaveProperty('insecureMode', true);
+      expect(mockServerConfigRepo.isInsecureMode).toHaveBeenCalled();
+      expect(mockConfigService.get).toHaveBeenCalledWith('INSECURE_MODE');
+    });
+
+    /**
+     * Test: Fallback auf ENV=false wenn DB Fehler und kein ENV gesetzt
+     * Story 4.6: Default ist sicher (false)
+     */
+    it('should fallback to insecureMode=false when DB error and ENV not set', async () => {
+      // Given: DB Repository liefert Fehler und ENV ist nicht gesetzt
+      mockServerConfigRepo.isInsecureMode.mockResolvedValue(Result.fail('Database error'));
+      mockConfigService.get.mockReturnValue(undefined);
+
+      const mockRequest = { headers: {} } as Request;
+
+      // When: check() aufgerufen wird
+      const result = await controller.check(mockRequest);
+
+      // Then: Fallback auf Default (false)
+      expect(result).toHaveProperty('insecureMode', false);
+    });
+
+    /**
+     * Test: Fallback auf ENV bei Exception
+     * Story 4.6: Graceful Degradation bei unerwarteten Fehlern
+     */
+    it('should fallback to ENV when DB isInsecureMode throws exception', async () => {
+      // Given: DB Repository wirft Exception
+      mockServerConfigRepo.isInsecureMode.mockRejectedValue(new Error('Connection refused'));
+      mockConfigService.get.mockImplementation((key: string) => {
+        if (key === 'INSECURE_MODE') return 'true';
+        return undefined;
+      });
+
+      const mockRequest = { headers: {} } as Request;
+
+      // When: check() aufgerufen wird
+      const result = await controller.check(mockRequest);
+
+      // Then: Fallback auf ENV
+      expect(result).toHaveProperty('insecureMode', true);
+    });
+
+    /**
+     * Test: DB-Wert hat Prioritaet ueber ENV
+     * Story 4.6: DB ist Single Source of Truth
+     */
+    it('should use DB value over ENV when both are available', async () => {
+      // Given: DB hat insecureMode=false, aber ENV hat INSECURE_MODE=true
+      mockServerConfigRepo.isInsecureMode.mockResolvedValue(Result.ok(false));
+      mockConfigService.get.mockImplementation((key: string) => {
+        if (key === 'INSECURE_MODE') return 'true'; // ENV sagt true
+        return undefined;
+      });
+
+      const mockRequest = { headers: {} } as Request;
+
+      // When: check() aufgerufen wird
+      const result = await controller.check(mockRequest);
+
+      // Then: DB-Wert (false) hat Prioritaet
+      expect(result).toHaveProperty('insecureMode', false);
+      expect(mockServerConfigRepo.isInsecureMode).toHaveBeenCalled();
     });
   });
 });
