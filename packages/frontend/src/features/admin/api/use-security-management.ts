@@ -7,12 +7,25 @@ import type { ResponseError, AdminSecurityControllerGetStatusVAlpha200Response, 
 import { ADMIN_QUERY_KEYS } from './queries';
 
 /**
- * Query Keys fuer Security-Management
+ * Security-Status Response Typ
+ *
+ * Enthaelt den aktuellen Security-Mode des Servers (INSECURE/SECURE).
  */
-const SECURITY_QUERY_KEYS = {
-  all: () => [...ADMIN_QUERY_KEYS.all, 'security'] as const,
-  status: () => [...SECURITY_QUERY_KEYS.all(), 'status'] as const,
-};
+export type SecurityStatus = AdminSecurityControllerGetStatusVAlpha200Response;
+
+/**
+ * Response Typ fuer die Migration zu SECURE Mode
+ *
+ * Enthaelt das initial erstellte Access-Token nach erfolgreicher Migration.
+ */
+export type MigrateToSecureModeResponse = AdminSecurityControllerMigrateToSecureVAlpha201Response;
+
+/**
+ * Request Typ fuer die Migration zu SECURE Mode
+ *
+ * Enthaelt die Daten fuer die Erstellung des initialen Tokens.
+ */
+export type MigrateToSecureModeRequest = MigrateToSecureModeRequestDto;
 
 /**
  * Hook fuer das Abrufen des Security-Status
@@ -27,7 +40,7 @@ const SECURITY_QUERY_KEYS = {
  */
 export const useSecurityStatus = () => {
   return useQuery<AdminSecurityControllerGetStatusVAlpha200Response, ResponseError>({
-    queryKey: SECURITY_QUERY_KEYS.status(),
+    queryKey: ADMIN_QUERY_KEYS.security.status(),
     queryFn: async () => {
       return await api.admin().adminSecurityControllerGetStatusVAlpha();
     },
@@ -67,7 +80,7 @@ export const useMigrateToSecureMode = () => {
 
       // Invalidate Security-Status Query
       await queryClient.invalidateQueries({
-        queryKey: SECURITY_QUERY_KEYS.status(),
+        queryKey: ADMIN_QUERY_KEYS.security.status(),
       });
 
       // Invalidate Token-Liste da neues Token erstellt wurde

@@ -12,6 +12,7 @@ import { SERVER_ACCESS_TOKEN_REPOSITORY, SERVER_CONFIG_REPOSITORY, LOGGER } from
 
 import type { GetSecurityStatusQuery } from './get-security-status.query';
 import type { SecurityStatusDto } from '../dto/security-status.dto';
+import { SECURITY_ERROR_CODES } from '../errors/security-error.codes';
 
 /**
  * Handler zum Abrufen des Security-Status des Servers.
@@ -86,12 +87,12 @@ export class GetSecurityStatusHandler {
 
       if (configResult.isFailure) {
         this.logger.error(`Failed to load server config: ${configResult.error}`, 'GetSecurityStatusHandler');
-        return Result.fail<SecurityStatusDto>(configResult.error ?? 'Failed to load server configuration');
+        return Result.fail<SecurityStatusDto>(configResult.error ?? SECURITY_ERROR_CODES.CONFIG_NOT_FOUND);
       }
 
       const config = configResult.value;
       if (!config) {
-        return Result.fail<SecurityStatusDto>('Unexpected null config from repository');
+        return Result.fail<SecurityStatusDto>(SECURITY_ERROR_CODES.CONFIG_NULL);
       }
 
       // ════════════════════════════════════════════════════════════════════════
@@ -101,7 +102,7 @@ export class GetSecurityStatusHandler {
 
       if (countResult.isFailure) {
         this.logger.error(`Failed to count active tokens: ${countResult.error}`, 'GetSecurityStatusHandler');
-        return Result.fail<SecurityStatusDto>(countResult.error ?? 'Failed to count active tokens');
+        return Result.fail<SecurityStatusDto>(countResult.error ?? SECURITY_ERROR_CODES.TOKEN_COUNT_FAILED);
       }
 
       const activeTokenCount = countResult.value ?? 0;
@@ -134,9 +135,9 @@ export class GetSecurityStatusHandler {
       // ════════════════════════════════════════════════════════════════════════
       return Result.ok<SecurityStatusDto>(securityStatus);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unexpected error while getting security status';
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       this.logger.error(`Unexpected error in GetSecurityStatusHandler: ${errorMessage}`, 'GetSecurityStatusHandler');
-      return Result.fail<SecurityStatusDto>(errorMessage);
+      return Result.fail<SecurityStatusDto>(SECURITY_ERROR_CODES.STATUS_QUERY_FAILED);
     }
   }
 }

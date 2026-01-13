@@ -14,6 +14,7 @@
  * - ADMIN_QUERY_KEYS.kraefte.qualifikationen - invalidiert Qualifikationen-Queries
  * - ADMIN_QUERY_KEYS.stammdaten.fahrzeuge - invalidiert StammFahrzeuge-Queries
  * - ADMIN_QUERY_KEYS.stammdaten.personen - invalidiert StammPersonen-Queries
+ * - ADMIN_QUERY_KEYS.security - invalidiert Security-Queries (Status, Migration)
  */
 export const ADMIN_QUERY_KEYS = {
   all: ['admin'] as const,
@@ -74,5 +75,9 @@ export const ADMIN_QUERY_KEYS = {
     list: (filters?: { page?: number; limit?: number }) =>
       filters ? ([...ADMIN_QUERY_KEYS.accessTokens.all(), 'list', filters] as const) : ([...ADMIN_QUERY_KEYS.accessTokens.all(), 'list'] as const),
     detail: (id: string) => [...ADMIN_QUERY_KEYS.accessTokens.all(), 'detail', id] as const,
+  },
+  security: {
+    all: () => [...ADMIN_QUERY_KEYS.all, 'security'] as const,
+    status: () => [...ADMIN_QUERY_KEYS.all, 'security', 'status'] as const,
   },
 } as const;

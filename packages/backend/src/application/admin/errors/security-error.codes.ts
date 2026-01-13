@@ -35,6 +35,12 @@ export const SECURITY_ERROR_CODES = {
   CONFIG_NOT_FOUND: 'SECURITY_CONFIG_NOT_FOUND',
   /** Server-Konfiguration konnte nicht aktualisiert werden */
   CONFIG_UPDATE_FAILED: 'SECURITY_CONFIG_UPDATE_FAILED',
+  /** Konfiguration ist unerwartet null */
+  CONFIG_NULL: 'SECURITY_CONFIG_NULL',
+  /** Token-Zaehlung fehlgeschlagen */
+  TOKEN_COUNT_FAILED: 'SECURITY_TOKEN_COUNT_FAILED',
+  /** Unerwarteter Fehler beim Abrufen des Security-Status */
+  STATUS_QUERY_FAILED: 'SECURITY_STATUS_QUERY_FAILED',
 } as const;
 
 /**

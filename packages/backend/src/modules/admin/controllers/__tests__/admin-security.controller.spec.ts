@@ -240,9 +240,10 @@ describe('AdminSecurityController', () => {
         expect(result).toEqual(mockMigrationResponse);
         expect(mockMigrateHandler.execute).toHaveBeenCalledTimes(1);
 
-        // Verify command was created with correct tokenName
+        // Verify command was created with correct tokenName and requestedById (Audit Trail NFR-S8)
         const executedCommand = mockMigrateHandler.execute.mock.calls[0]?.[0];
         expect(executedCommand?.tokenName).toBe('Primary Server Token');
+        expect(executedCommand?.requestedById).toBe(mockAdminUser.userId);
       });
 
       it('sollte Migration mit Default-Token-Namen durchfuehren wenn nicht angegeben', async () => {

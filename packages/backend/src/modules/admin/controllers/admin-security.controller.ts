@@ -162,7 +162,7 @@ export class AdminSecurityController {
       }),
     )
     dto: MigrateToSecureModeRequestDto,
-    @CurrentUser() _user: ValidatedUser,
+    @CurrentUser() user: ValidatedUser,
   ): Promise<MigrateToSecureModeResponseDto> {
     // ════════════════════════════════════════════════════════════════════════
     // 1. Default tokenName setzen falls nicht angegeben
@@ -170,10 +170,11 @@ export class AdminSecurityController {
     const tokenName = dto.tokenName ?? 'Primary Access Token';
 
     // ════════════════════════════════════════════════════════════════════════
-    // 2. Command erstellen mit Validierung
+    // 2. Command erstellen mit Validierung (inkl. requestedById fuer Audit-Trail)
     // ════════════════════════════════════════════════════════════════════════
     const commandResult = MigrateToSecureModeCommand.create({
       tokenName,
+      requestedById: user.userId,
     });
 
     if (commandResult.isFailure || !commandResult.value) {

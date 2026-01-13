@@ -36,7 +36,9 @@ export type ApiErrorContext =
   | 'listAccessTokens'
   | 'revokeAccessToken'
   | 'reactivateAccessToken'
-  | 'rotateAccessToken';
+  | 'rotateAccessToken'
+  | 'migrateToSecureMode'
+  | 'getSecurityStatus';
 
 /**
  * Error message mappings based on HTTP status codes and error codes

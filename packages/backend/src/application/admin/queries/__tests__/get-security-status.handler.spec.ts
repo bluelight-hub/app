@@ -5,6 +5,7 @@ import type { IServerConfigRepository, ServerConfig } from '@domain/repositories
 import { SERVER_ACCESS_TOKEN_REPOSITORY, SERVER_CONFIG_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 import { GetSecurityStatusHandler } from '../get-security-status.handler';
 import { GetSecurityStatusQuery } from '../get-security-status.query';
+import { SECURITY_ERROR_CODES } from '../../errors/security-error.codes';
 
 describe('GetSecurityStatusHandler', () => {
   let handler: GetSecurityStatusHandler;
@@ -254,7 +255,7 @@ describe('GetSecurityStatusHandler', () => {
 
       // Then (Assert)
       expect(result.isFailure).toBe(true);
-      expect(result.error).toContain('Unexpected null config');
+      expect(result.error).toBe(SECURITY_ERROR_CODES.CONFIG_NULL);
     });
 
     it('should log error when config repository fails', async () => {
@@ -327,7 +328,7 @@ describe('GetSecurityStatusHandler', () => {
 
       // Then (Assert)
       expect(result.isFailure).toBe(true);
-      expect(result.error).toContain('Unexpected DB crash');
+      expect(result.error).toBe(SECURITY_ERROR_CODES.STATUS_QUERY_FAILED);
     });
 
     it('should handle unexpected exception from token repository', async () => {
@@ -341,7 +342,7 @@ describe('GetSecurityStatusHandler', () => {
 
       // Then (Assert)
       expect(result.isFailure).toBe(true);
-      expect(result.error).toContain('Token service crashed');
+      expect(result.error).toBe(SECURITY_ERROR_CODES.STATUS_QUERY_FAILED);
     });
 
     it('should handle non-Error exceptions gracefully', async () => {
@@ -354,7 +355,7 @@ describe('GetSecurityStatusHandler', () => {
 
       // Then (Assert)
       expect(result.isFailure).toBe(true);
-      expect(result.error).toContain('Unexpected error');
+      expect(result.error).toBe(SECURITY_ERROR_CODES.STATUS_QUERY_FAILED);
     });
 
     it('should log unexpected errors', async () => {
@@ -367,7 +368,7 @@ describe('GetSecurityStatusHandler', () => {
 
       // Then (Assert)
       expect(mockLogger.error).toHaveBeenCalledTimes(1);
-      expect(mockLogger.error.mock.calls[0][0]).toContain('Unexpected error');
+      expect(mockLogger.error.mock.calls[0][0]).toContain('GetSecurityStatusHandler');
     });
   });
 

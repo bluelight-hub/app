@@ -12,6 +12,14 @@ export interface MigrateToSecureModeCommandProps {
    * den Zugriff auf den Server nach dem Wechsel zu SECURE Mode.
    */
   tokenName?: string;
+
+  /**
+   * ID des anfragenden Admins (fuer Audit-Trail).
+   * Pflichtfeld fuer Compliance/NFR-S8 - wir muessen nachvollziehen
+   * koennen, WER die Migration durchgefuehrt hat.
+   * Minimale Laenge: 8 Zeichen (z.B. cuid2, uuid).
+   */
+  requestedById: string;
 }
 
 /**
@@ -38,10 +46,13 @@ export interface MigrateToSecureModeCommandProps {
  * // Mit benutzerdefiniertem Namen
  * const result = MigrateToSecureModeCommand.create({
  *   tokenName: 'Admin Initial Token',
+ *   requestedById: 'admin_abc123xyz',
  * });
  *
  * // Mit Default-Namen
- * const result = MigrateToSecureModeCommand.create({});
+ * const result = MigrateToSecureModeCommand.create({
+ *   requestedById: 'admin_abc123xyz',
+ * });
  *
  * if (result.isSuccess) {
  *   const command = result.value!;
@@ -57,8 +68,13 @@ export class MigrateToSecureModeCommand {
   private static readonly MAX_NAME_LENGTH = 50;
   /** Default-Name fuer das Initial-Token */
   public static readonly DEFAULT_TOKEN_NAME = 'Primary Access Token';
+  /** Minimale Laenge fuer requestedById (z.B. cuid2, uuid Format) */
+  private static readonly MIN_REQUESTED_BY_LENGTH = 8;
 
-  private constructor(public readonly tokenName: string) {}
+  private constructor(
+    public readonly tokenName: string,
+    public readonly requestedById: string,
+  ) {}
 
   /**
    * Factory Method zur Erstellung eines validierten Commands.
@@ -67,13 +83,31 @@ export class MigrateToSecureModeCommand {
    * zurueck. Bei Validierungsfehlern wird Result.fail() zurueckgegeben.
    *
    * **Business Rules:**
+   * - requestedById: Pflichtfeld, nicht-leerer String (min. 8 Zeichen)
    * - Wenn tokenName angegeben: muss 3-50 Zeichen lang sein (nach trim)
    * - Wenn tokenName nicht angegeben oder leer: DEFAULT_TOKEN_NAME wird verwendet
    *
-   * @param props - Die Eingabedaten (optional)
+   * @param props - Die Eingabedaten (requestedById ist Pflicht)
    * @returns Result<MigrateToSecureModeCommand> - Success mit Command oder Failure mit Error Code
    */
-  static create(props: MigrateToSecureModeCommandProps = {}): Result<MigrateToSecureModeCommand> {
+  static create(props: MigrateToSecureModeCommandProps): Result<MigrateToSecureModeCommand> {
+    // ════════════════════════════════════════════════════════════════════════
+    // 1. Validate requestedById (Pflichtfeld fuer Audit-Trail, NFR-S8)
+    // ════════════════════════════════════════════════════════════════════════
+    const trimmedRequestedById = props.requestedById?.trim() ?? '';
+
+    if (trimmedRequestedById.length === 0) {
+      return Result.fail<MigrateToSecureModeCommand>('COMMAND_REQUESTED_BY_REQUIRED');
+    }
+
+    // Minimale Laenge fuer sinnvolle ID (z.B. cuid2, uuid, etc.)
+    if (trimmedRequestedById.length < MigrateToSecureModeCommand.MIN_REQUESTED_BY_LENGTH) {
+      return Result.fail<MigrateToSecureModeCommand>('COMMAND_REQUESTED_BY_TOO_SHORT');
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // 2. Validate tokenName (optional, mit Default)
+    // ════════════════════════════════════════════════════════════════════════
     // Trim tokenName for validation (use default if empty/undefined)
     const trimmedName = props.tokenName?.trim();
 
@@ -90,6 +124,6 @@ export class MigrateToSecureModeCommand {
       return Result.fail<MigrateToSecureModeCommand>(ACCESS_TOKEN_ERROR_CODES.NAME_TOO_LONG);
     }
 
-    return Result.ok(new MigrateToSecureModeCommand(finalName));
+    return Result.ok(new MigrateToSecureModeCommand(finalName, trimmedRequestedById));
   }
 }

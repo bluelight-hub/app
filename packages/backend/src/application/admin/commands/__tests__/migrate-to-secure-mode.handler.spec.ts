@@ -141,10 +141,12 @@ describe('MigrateToSecureModeHandler', () => {
   function createValidCommand(
     overrides: Partial<{
       tokenName: string;
+      requestedById: string;
     }> = {},
   ): MigrateToSecureModeCommand {
     return MigrateToSecureModeCommand.create({
       tokenName: 'Admin Initial Token',
+      requestedById: 'admin_test_123',
       ...overrides,
     }).value!;
   }
@@ -220,7 +222,7 @@ describe('MigrateToSecureModeHandler', () => {
 
     it('should use default tokenName when not provided', async () => {
       // Given (Arrange)
-      const command = MigrateToSecureModeCommand.create({}).value!;
+      const command = MigrateToSecureModeCommand.create({ requestedById: 'admin_test_123' }).value!;
 
       // When (Act)
       const result = await handler.execute(command);

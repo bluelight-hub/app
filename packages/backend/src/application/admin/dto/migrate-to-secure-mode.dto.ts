@@ -90,34 +90,36 @@ export class MigrateToSecureModeResponseDto {
   /**
    * Das vollstaendige primaere Access-Token im Klartext.
    * WICHTIG: Wird NUR hier zurueckgegeben, nicht erneut abrufbar!
-   * Kann null sein wenn kein neues Token erstellt wurde.
+   * Immer vorhanden bei erfolgreicher Migration.
    */
   @ApiProperty({
     description: 'Das vollstaendige Access-Token (NUR hier sichtbar!)',
     example: 'blh_abc123def456ghi789jkl012mno345pqr678stu901vwx234',
-    nullable: true,
+    nullable: false,
   })
-  token!: string | null;
+  token!: string;
 
   /**
    * Name des erstellten primaeren Tokens.
+   * Immer vorhanden bei erfolgreicher Migration.
    */
   @ApiProperty({
     description: 'Name des erstellten Tokens',
     example: 'Primary Server Token',
-    nullable: true,
+    nullable: false,
   })
-  tokenName!: string | null;
+  tokenName!: string;
 
   /**
    * Praefix des erstellten Tokens zur Identifizierung.
+   * Immer vorhanden bei erfolgreicher Migration.
    */
   @ApiProperty({
     description: 'Praefix des Tokens',
     example: 'blh_abc1',
-    nullable: true,
+    nullable: false,
   })
-  tokenPrefix!: string | null;
+  tokenPrefix!: string;
 
   /**
    * Zeitpunkt der Migration (ISO-8601).
