@@ -35,9 +35,13 @@ const databaseAvailable = !!process.env.DATABASE_URL;
   // Gecachte Tokens (werden in beforeAll einmal generiert)
   let cachedAccessToken: string;
   let cachedAccessTokenCookie: string;
+  /** Server Access Token fuer X-Server-Access-Token Header (fuer nicht-Auth-Endpunkte) */
+  let serverAccessToken: string;
 
   beforeAll(async () => {
     ctx = await createEinsatzE2eModule();
+    // Server Access Token fuer SetupPendingGuard (Setup muss komplett sein)
+    serverAccessToken = ctx.serverAccessToken.rawToken;
 
     // Bootstrap der vollständigen NestJS-Anwendung
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -311,14 +315,14 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       const accessTokenCookie = loginCookies.find((c) => c.startsWith('accessToken='));
 
       // Vor Logout: Zugriff auf geschützten Endpoint funktioniert
-      await request(app.getHttpServer()).get('/api/v-alpha/einsatz/active-with-counts').set('Cookie', [accessTokenCookie]).expect(200);
+      await request(app.getHttpServer()).get('/api/v-alpha/einsatz/active-with-counts').set('X-Server-Access-Token', serverAccessToken).set('Cookie', [accessTokenCookie]).expect(200);
 
       // Logout
-      await request(app.getHttpServer()).post('/api/auth/logout').set('Cookie', [accessTokenCookie]).expect(204);
+      await request(app.getHttpServer()).post('/api/auth/logout').set('X-Server-Access-Token', serverAccessToken).set('Cookie', [accessTokenCookie]).expect(204);
 
       // Nach Logout: Zugriff mit altem Token schlägt fehl
       // TODO: Erst implementiert mit Redis Blacklist
-      await request(app.getHttpServer()).get('/api/v-alpha/einsatz/active-with-counts').set('Cookie', [accessTokenCookie]).expect(401);
+      await request(app.getHttpServer()).get('/api/v-alpha/einsatz/active-with-counts').set('X-Server-Access-Token', serverAccessToken).set('Cookie', [accessTokenCookie]).expect(401);
     });
   });
 
@@ -331,7 +335,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
      * mit 401 Unauthorized ablehnen.
      */
     it('should return 401 for protected endpoint without token', async () => {
-      const response = await request(app.getHttpServer()).get('/api/v-alpha/einsatz/active-with-counts').expect(401);
+      const response = await request(app.getHttpServer()).get('/api/v-alpha/einsatz/active-with-counts').set('X-Server-Access-Token', serverAccessToken).expect(401);
 
       expect(response.body).toHaveProperty('statusCode', 401);
       expect(response.body.message).toContain('Unauthorized');
@@ -350,6 +354,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .get('/api/v-alpha/einsatz/active-with-counts')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${expiredToken}`])
         .expect(401);
 
@@ -368,6 +373,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .get('/api/v-alpha/einsatz/active-with-counts')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${invalidToken}`])
         .expect(401);
 
@@ -390,6 +396,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .get('/api/v-alpha/einsatz/active-with-counts')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${tamperedToken}`])
         .expect(401);
 
@@ -552,7 +559,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       const accessTokenCookie = cookies.find((c) => c.startsWith('accessToken='));
 
       // Zugriff auf ADMIN-Endpoint sollte funktionieren
-      await request(app.getHttpServer()).get('/api/v-alpha/einsatz/active-with-counts').set('Cookie', [accessTokenCookie]).expect(200);
+      await request(app.getHttpServer()).get('/api/v-alpha/einsatz/active-with-counts').set('X-Server-Access-Token', serverAccessToken).set('Cookie', [accessTokenCookie]).expect(200);
 
       // Zugriff auf SUPER_ADMIN-Endpoint sollte funktionieren
       // (Beispiel: User-Rolle ändern)

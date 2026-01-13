@@ -7,8 +7,9 @@ import * as jwt from 'jsonwebtoken';
 import { AppModule } from '../../../app.module';
 import { PrismaClient } from '@prisma/client';
 import { createId } from '@paralleldrive/cuid2';
+import * as bcryptLib from 'bcrypt';
 import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
-import { BCRYPT_COST_FACTOR_PASSWORD } from '@infrastructure/config/security.constants';
+import { BCRYPT_COST_FACTOR_PASSWORD, BCRYPT_COST_FACTOR_TOKEN } from '@infrastructure/config/security.constants';
 
 /**
  * AdminJwtAuthGuard HTTP Integration Tests.
@@ -53,6 +54,10 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
   let cachedAdminTokenAdmin: string;
   let cachedAccessTokenSuperAdmin: string;
   let cachedAdminTokenSuperAdmin: string;
+  /** Server Access Token fuer X-Server-Access-Token Header (SetupPendingGuard) */
+  let serverAccessToken: string;
+  /** Server Access Token ID (fuer Cleanup) */
+  let serverAccessTokenId: string;
 
   /**
    * Generiert ein gültiges Access-Token (regulärer JWT)
@@ -238,6 +243,20 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
 
     cachedAccessTokenSuperAdmin = generateAccessToken(testUserSuperAdmin.id, testUserSuperAdmin.username, testUserSuperAdmin.role);
     cachedAdminTokenSuperAdmin = generateAdminToken(testUserSuperAdmin.id, testUserSuperAdmin.username, testUserSuperAdmin.role);
+
+    // ServerAccessToken erstellen (erforderlich fuer SetupPendingGuard)
+    // Der Guard prueft: hasAdmin && hasActiveToken
+    serverAccessTokenId = `blh_${createId()}`;
+    serverAccessToken = `blh_test_${createId()}`;
+    const tokenHash = await bcryptLib.hash(serverAccessToken, BCRYPT_COST_FACTOR_TOKEN);
+    await prisma.serverAccessToken.create({
+      data: {
+        id: serverAccessTokenId,
+        tokenHash,
+        name: `test_admin_guard_token_${testRunId}`,
+        isRevoked: false,
+      },
+    });
   }, 60000);
 
   beforeEach(() => {
@@ -253,9 +272,10 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
   afterAll(async () => {
     if (!databaseAvailable) return; // Skip cleanup if DB not available
 
-    // Cleanup Test-Users nach Test-Suite (Triggers deaktivieren für DELETE)
+    // Cleanup Test-Users und ServerAccessToken nach Test-Suite (Triggers deaktivieren für DELETE)
     try {
       await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
+      await prisma.$executeRawUnsafe(`DELETE FROM "server_access_tokens" WHERE name LIKE 'test_admin_guard_%'`);
       await prisma.$executeRawUnsafe(`DELETE FROM "User" WHERE username LIKE 'test_admin_guard_%'`);
       await prisma.$executeRawUnsafe('SET session_replication_role = DEFAULT;');
     } catch {
@@ -290,6 +310,7 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
     it('should return 401 without accessToken and adminToken', async () => {
       const response = await request(app.getHttpServer())
         .post('/api/v-alpha/admin/users')
+        .set('X-Server-Access-Token', serverAccessToken)
         .send({
           username: 'newuser',
         })
@@ -309,6 +330,7 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
     it('should return 401 with accessToken but without adminToken', async () => {
       const response = await request(app.getHttpServer())
         .post('/api/v-alpha/admin/users')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessTokenAdmin}`])
         .send({
           username: 'newuser',
@@ -328,6 +350,7 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
     it('should return 401 with adminToken but without accessToken', async () => {
       const response = await request(app.getHttpServer())
         .post('/api/v-alpha/admin/users')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`adminToken=${cachedAdminTokenAdmin}`])
         .send({
           username: 'newuser',
@@ -350,6 +373,7 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
 
       const response = await request(app.getHttpServer())
         .post('/api/v-alpha/admin/users')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessTokenAdmin}`, `adminToken=${invalidAdminToken}`])
         .send({
           username: 'newuser',
@@ -381,6 +405,7 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
 
       const response = await request(app.getHttpServer())
         .post('/api/v-alpha/admin/users')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessTokenAdmin}`, `adminToken=${expiredAdminToken}`])
         .send({
           username: 'newuser',
@@ -407,6 +432,7 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
     it('should return 403 when USER accesses admin endpoint (AC6)', async () => {
       const response = await request(app.getHttpServer())
         .post('/api/v-alpha/admin/users')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessTokenRegular}`, `adminToken=${cachedAdminTokenRegular}`])
         .send({
           username: 'newuser',
@@ -431,6 +457,7 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
       const newUsername = `tcreate_${testRunId}`;
       const response = await request(app.getHttpServer())
         .post('/api/v-alpha/admin/users')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessTokenAdmin}`, `adminToken=${cachedAdminTokenAdmin}`])
         .send({
           username: newUsername,
@@ -464,6 +491,7 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
       const newUsername = `tsuper_${testRunId}`;
       const response = await request(app.getHttpServer())
         .post('/api/v-alpha/admin/users')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessTokenSuperAdmin}`, `adminToken=${cachedAdminTokenSuperAdmin}`])
         .send({
           username: newUsername,
@@ -495,6 +523,7 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
     it('should return 200 when ADMIN lists users', async () => {
       const response = await request(app.getHttpServer())
         .get('/api/v-alpha/admin/users')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessTokenAdmin}`, `adminToken=${cachedAdminTokenAdmin}`])
         .expect(200);
 
@@ -552,6 +581,7 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
       // AdminJwtAuthGuard prüft Token bereits vor Controller-Ausführung
       const response = await request(app.getHttpServer())
         .get('/api/v-alpha/admin/users')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${accessToken}`, `adminToken=${adminToken}`]);
 
       // Erwarte 401 (von AdminJwtStrategy) oder 404 (von JwtStrategy auf accessToken)
@@ -577,6 +607,7 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
       try {
         const response = await request(app.getHttpServer())
           .post('/api/v-alpha/admin/users')
+          .set('X-Server-Access-Token', serverAccessToken)
           .set('Cookie', [`accessToken=${cachedAccessTokenAdmin}`, `adminToken=${cachedAdminTokenAdmin}`])
           .send({
             username: 'newuser',
@@ -597,6 +628,7 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
     it('should return 401 when accessToken is empty string', async () => {
       const response = await request(app.getHttpServer())
         .post('/api/v-alpha/admin/users')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=`, `adminToken=${cachedAdminTokenAdmin}`])
         .send({ username: 'newuser' })
         .expect(401);
@@ -607,6 +639,7 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
     it('should return 401 when accessToken is whitespace-only', async () => {
       const response = await request(app.getHttpServer())
         .post('/api/v-alpha/admin/users')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=   `, `adminToken=${cachedAdminTokenAdmin}`])
         .send({ username: 'newuser' })
         .expect(401);
@@ -617,6 +650,7 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
     it('should return 401 when adminToken is empty string', async () => {
       const response = await request(app.getHttpServer())
         .post('/api/v-alpha/admin/users')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessTokenAdmin}`, `adminToken=`])
         .send({ username: 'newuser' })
         .expect(401);
@@ -627,6 +661,7 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
     it('should return 401 when adminToken is whitespace-only', async () => {
       const response = await request(app.getHttpServer())
         .post('/api/v-alpha/admin/users')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessTokenAdmin}`, `adminToken=   `])
         .send({ username: 'newuser' })
         .expect(401);

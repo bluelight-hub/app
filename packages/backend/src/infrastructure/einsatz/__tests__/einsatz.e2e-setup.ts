@@ -21,12 +21,14 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 import type { DomainEvent } from '@domain/common/domain-event';
 import type { IEventPublisher } from '@domain/services/ports/i-event-publisher.port';
 import { PrismaEinsatzRepository } from '../repositories/prisma-einsatz.repository';
 import { PrismaOutboxRepository } from '@/infrastructure/outbox/prisma-outbox.repository';
 import { EventSerializer } from '@/infrastructure/outbox/event-serializer';
 import { createId } from '@paralleldrive/cuid2';
+import { BCRYPT_COST_FACTOR_TOKEN } from '@infrastructure/config/security.constants';
 
 // ============================================
 // TEST PRISMA SERVICE
@@ -237,6 +239,19 @@ export interface EinsatzE2eTestContext {
 
   /** Unique Test Run ID fuer Isolation (Timestamp) */
   testRunId: string;
+
+  /**
+   * Server Access Token fuer SetupPendingGuard.
+   *
+   * Der SetupPendingGuard prueft ob mindestens ein aktiver Admin UND ein aktiver
+   * ServerAccessToken existiert. Ohne diesen Token wird 503 zurueckgegeben.
+   */
+  serverAccessToken: {
+    /** Token ID in DB (Format: blh_{cuid2}) */
+    id: string;
+    /** Klartext-Token fuer X-Server-Access-Token Header */
+    rawToken: string;
+  };
 }
 
 /**
@@ -369,10 +384,14 @@ export async function createEinsatzE2eModule(): Promise<EinsatzE2eTestContext> {
     ON CONFLICT (username) DO NOTHING
   `;
 
-  // 4. Mock Logger für Repository-Instanziierung
+  // 4. ServerAccessToken erstellen (erforderlich fuer SetupPendingGuard)
+  // Der Guard prueft: hasAdmin && hasActiveToken
+  const serverAccessToken = await createServerAccessTokenHelper(prisma, testRunId);
+
+  // 6. Mock Logger für Repository-Instanziierung
   const mockLogger = createMockLogger();
 
-  // 5. Repository und EventPublisher
+  // 7. Repository und EventPublisher
   const repository = new PrismaEinsatzRepository(prisma, mockLogger);
   const eventPublisher = new SpyEventPublisher();
 
@@ -392,6 +411,7 @@ export async function createEinsatzE2eModule(): Promise<EinsatzE2eTestContext> {
       superAdmin: superAdminId,
     },
     testRunId,
+    serverAccessToken,
   };
 }
 
@@ -446,6 +466,13 @@ export async function teardownE2eModule(ctx: EinsatzE2eTestContext): Promise<voi
 
     // Einsaetze
     await safeDelete(ctx.prisma, `DELETE FROM einsaetze WHERE "createdBy" = ANY($1)`, [allUserIds]);
+
+    // ServerAccessTokens (fuer SetupPendingGuard)
+    if (ctx.serverAccessToken?.id) {
+      await safeDelete(ctx.prisma, `DELETE FROM "server_access_tokens" WHERE id = $1`, [ctx.serverAccessToken.id]);
+    }
+    // Cleanup alle Test-Tokens (fuer Tests die zusaetzliche Tokens erstellen)
+    await safeDelete(ctx.prisma, `DELETE FROM "server_access_tokens" WHERE name LIKE 'test_einsatz_e2e_%'`);
 
     // Test Users
     await safeDelete(ctx.prisma, `DELETE FROM "User" WHERE id = ANY($1)`, [allUserIds]);
@@ -518,6 +545,92 @@ export async function cleanupTestData(ctx: EinsatzE2eTestContext): Promise<void>
   } finally {
     await ctx.prisma.$executeRawUnsafe(ENABLE_TRIGGERS_SQL);
   }
+}
+
+// ============================================
+// SERVER ACCESS TOKEN HELPER
+// ============================================
+
+/**
+ * Interner Helper: Erstellt einen ServerAccessToken fuer E2E Tests.
+ *
+ * Wird von createEinsatzE2eModule() intern aufgerufen um SetupPendingGuard
+ * zu erfuellen. Der Guard prueft: hasAdmin && hasActiveToken.
+ *
+ * @param prisma - PrismaClient Instanz
+ * @param testRunId - Unique Test Run ID
+ * @returns Token ID und Klartext-Token
+ */
+async function createServerAccessTokenHelper(prisma: TestPrismaService, testRunId: string): Promise<{ id: string; rawToken: string }> {
+  // AccessTokenId Format: blh_ (4 Zeichen) + cuid2 (24 Zeichen) = 28 Zeichen
+  const cuid = createId();
+  const id = `blh_${cuid}`;
+  const rawToken = `blh_test_${createId()}`;
+  const tokenHash = await bcrypt.hash(rawToken, BCRYPT_COST_FACTOR_TOKEN);
+
+  await prisma.$executeRaw`
+    INSERT INTO "server_access_tokens" (id, "tokenHash", name, "isRevoked", "createdAt", "updatedAt")
+    VALUES (
+      ${id},
+      ${tokenHash},
+      ${`test_einsatz_e2e_token_${testRunId}`},
+      false,
+      NOW(),
+      NOW()
+    )
+    ON CONFLICT (id) DO NOTHING
+  `;
+
+  return { id, rawToken };
+}
+
+/**
+ * Exportierte Helper-Funktion: Erstellt einen ServerAccessToken fuer E2E Tests.
+ *
+ * Nuetzlich wenn ein Test einen zusaetzlichen Token benoetigt (z.B. fuer
+ * Multi-Token-Tests oder um einen separaten Token zu erstellen/deaktivieren).
+ *
+ * @param ctx - E2E Test Context
+ * @param options - Optionale Token-Konfiguration
+ * @returns Token ID und Klartext-Token
+ *
+ * @example
+ * ```typescript
+ * it('should handle multiple tokens', async () => {
+ *   const token1 = ctx.serverAccessToken; // Bereits erstellt
+ *   const token2 = await createTestServerAccessToken(ctx, { name: 'second-token' });
+ *   // ... test logic
+ * });
+ * ```
+ */
+export async function createTestServerAccessToken(
+  ctx: EinsatzE2eTestContext,
+  options?: {
+    name?: string;
+    expiresAt?: Date | null;
+    isRevoked?: boolean;
+  },
+): Promise<{ id: string; rawToken: string; tokenHash: string }> {
+  const cuid = createId();
+  const id = `blh_${cuid}`;
+  const rawToken = `blh_test_${createId()}`;
+  const tokenHash = await bcrypt.hash(rawToken, BCRYPT_COST_FACTOR_TOKEN);
+
+  await ctx.prisma.$executeRaw`
+    INSERT INTO "server_access_tokens" (id, "tokenHash", name, "expiresAt", "isRevoked", "revokedAt", "createdAt", "updatedAt")
+    VALUES (
+      ${id},
+      ${tokenHash},
+      ${options?.name ?? `test_einsatz_e2e_token_${ctx.testRunId}_${Date.now()}`},
+      ${options?.expiresAt ?? null},
+      ${options?.isRevoked ?? false},
+      ${options?.isRevoked ? new Date() : null},
+      NOW(),
+      NOW()
+    )
+  `;
+
+  return { id, rawToken, tokenHash };
 }
 
 // ============================================

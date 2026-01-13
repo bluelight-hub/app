@@ -32,7 +32,8 @@ import { AppModule } from '../../../../app.module';
 import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
 import { InviteCodeStatus } from '@domain/value-objects/invite-code-status';
 import { InviteCodeValue } from '@domain/value-objects/invite-code-value';
-import { BCRYPT_COST_FACTOR_PASSWORD } from '@infrastructure/config/security.constants';
+import { BCRYPT_COST_FACTOR_PASSWORD, BCRYPT_COST_FACTOR_TOKEN } from '@infrastructure/config/security.constants';
+import * as bcryptLib from 'bcrypt';
 
 describe('AdminInviteController (e2e)', () => {
   let databaseAvailable = false;
@@ -53,6 +54,8 @@ describe('AdminInviteController (e2e)', () => {
   let cachedAdminTokenAdmin: string;
   let cachedAccessTokenRegular: string;
   let cachedAdminTokenRegular: string;
+  /** Server Access Token ID (fuer Cleanup) */
+  let serverAccessTokenId: string;
 
   /**
    * Generiert ein gueltiges Access-Token (regulaerer JWT).
@@ -213,6 +216,20 @@ describe('AdminInviteController (e2e)', () => {
     cachedAdminTokenAdmin = generateAdminToken(testAdminUser.id, testAdminUser.username, testAdminUser.role);
     cachedAccessTokenRegular = generateAccessToken(testRegularUser.id, testRegularUser.username, testRegularUser.role);
     cachedAdminTokenRegular = generateAdminToken(testRegularUser.id, testRegularUser.username, testRegularUser.role);
+
+    // ServerAccessToken erstellen (erforderlich fuer SetupPendingGuard)
+    // INSECURE_MODE umgeht nur ServerAccessGuard, NICHT SetupPendingGuard!
+    serverAccessTokenId = `blh_${createId()}`;
+    const serverAccessTokenRaw = `blh_test_${createId()}`;
+    const tokenHash = await bcryptLib.hash(serverAccessTokenRaw, BCRYPT_COST_FACTOR_TOKEN);
+    await prisma.serverAccessToken.create({
+      data: {
+        id: serverAccessTokenId,
+        tokenHash,
+        name: `test_admin_invite_token_${testRunId}`,
+        isRevoked: false,
+      },
+    });
   }, 60000);
 
   beforeEach(async () => {
@@ -241,6 +258,7 @@ describe('AdminInviteController (e2e)', () => {
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {
       await prisma.$executeRawUnsafe(`DELETE FROM "invite_codes" WHERE "createdById" IN ($1, $2)`, testAdminUser?.id, testRegularUser?.id);
+      await prisma.$executeRawUnsafe(`DELETE FROM "server_access_tokens" WHERE name LIKE 'test_admin_invite_%'`);
       await prisma.$executeRawUnsafe(`DELETE FROM "User" WHERE username LIKE 'test_admin_invite_%'`);
     } catch {
       // Ignore cleanup errors

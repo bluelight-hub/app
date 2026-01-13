@@ -29,11 +29,15 @@ const databaseAvailable = !!process.env.DATABASE_URL;
   let cachedAccessToken: string;
   /** Unique marker for this test run to identify test-created data */
   let testRunMarker: string;
+  /** Server Access Token fuer X-Server-Access-Token Header */
+  let serverAccessToken: string;
 
   beforeAll(async () => {
     ctx = await createEinsatzE2eModule();
     // Create unique marker for this test run (used to filter test data)
     testRunMarker = `E2E-HTTP-${Date.now()}-${generateTestId().slice(0, 8)}`;
+    // Server Access Token fuer SetupPendingGuard (Setup muss komplett sein)
+    serverAccessToken = ctx.serverAccessToken.rawToken;
 
     // Bootstrap der vollständigen NestJS-Anwendung für HTTP-Tests
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -111,6 +115,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     it('should return 201 Created with valid request', async () => {
       const response = await request(app.getHttpServer())
         .post('/api/v-alpha/einsatz')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .send({
           alarmstichwort: 'B3 - Wohnungsbrand',
@@ -134,6 +139,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     it('should create Einsatz without alarmstichwort (all fields optional)', async () => {
       const response = await request(app.getHttpServer())
         .post('/api/v-alpha/einsatz')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .send({
           beschreibung: 'Test ohne Alarmstichwort',
@@ -155,6 +161,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     it('should return 401 without authentication', async () => {
       await request(app.getHttpServer())
         .post('/api/v-alpha/einsatz')
+        .set('X-Server-Access-Token', serverAccessToken)
         .send({
           alarmstichwort: 'Test',
         })
@@ -171,6 +178,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     it('should return 400 with invalid field types', async () => {
       const response = await request(app.getHttpServer())
         .post('/api/v-alpha/einsatz')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .send({
           alarmstichwort: 12345, // Should be string
@@ -201,6 +209,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .get('/api/v-alpha/einsatz/active-with-counts')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(200);
 
@@ -232,6 +241,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .get('/api/v-alpha/einsatz/active-with-counts')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(200);
 
@@ -249,7 +259,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
      * Testet Authentifizierungsschutz.
      */
     it('should return 401 without authentication', async () => {
-      await request(app.getHttpServer()).get('/api/v-alpha/einsatz/active-with-counts').expect(401);
+      await request(app.getHttpServer()).get('/api/v-alpha/einsatz/active-with-counts').set('X-Server-Access-Token', serverAccessToken).expect(401);
     });
 
     /**
@@ -265,6 +275,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .get('/api/v-alpha/einsatz/active-with-counts')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(200);
 
@@ -289,6 +300,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .get(`/api/v-alpha/einsatz/${einsatzId}/details`)
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(200);
 
@@ -313,6 +325,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .get(`/api/v-alpha/einsatz/${nonExistentId}/details`)
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(404);
 
@@ -326,6 +339,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     it('should return 400 with invalid CUID format', async () => {
       await request(app.getHttpServer())
         .get('/api/v-alpha/einsatz/invalid-uuid/details')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(400);
     });
@@ -338,6 +352,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .get(`/api/v-alpha/einsatz/${einsatzId}/details`)
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(200);
 
@@ -358,6 +373,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .post(`/api/v-alpha/einsatz/${einsatzId}/complete`)
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(201); // POST returns 201 Created
 
@@ -379,6 +395,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .post(`/api/v-alpha/einsatz/${einsatzId}/complete`)
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(400);
 
@@ -396,6 +413,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       await request(app.getHttpServer())
         .post(`/api/v-alpha/einsatz/${nonExistentId}/complete`)
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(404);
     });
@@ -415,6 +433,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       // Einsatz abschließen
       const response = await request(app.getHttpServer())
         .post(`/api/v-alpha/einsatz/${einsatzId}/complete`)
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(201); // POST returns 201 Created
 
@@ -435,6 +454,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .delete(`/api/v-alpha/einsatz/${einsatzId}`)
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(400);
 
@@ -453,6 +473,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .delete(`/api/v-alpha/einsatz/${einsatzId}`)
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(400);
 
@@ -473,12 +494,14 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       // DELETE-Versuch
       await request(app.getHttpServer())
         .delete(`/api/v-alpha/einsatz/${einsatzId}`)
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(400);
 
       // Einsatz muss noch existieren - EinsatzDetailsDto has nested structure
       const response = await request(app.getHttpServer())
         .get(`/api/v-alpha/einsatz/${einsatzId}/details`)
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(200);
 
@@ -500,6 +523,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       // Not Found Error (404) - use valid CUID format that doesn't exist
       const notFoundError = await request(app.getHttpServer())
         .get('/api/v-alpha/einsatz/cnonexistent123456789abcd/details')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(404);
 
@@ -517,6 +541,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     it('should return 400 with validation error for invalid types', async () => {
       const response = await request(app.getHttpServer())
         .post('/api/v-alpha/einsatz')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .send({
           alarmstichwort: 12345, // Zahl statt String - Typ-Fehler
@@ -556,6 +581,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .patch(`/api/v-alpha/einsatz/${einsatzId}`)
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .send({
           einsatzort: 'Neue Straße 456',
@@ -578,6 +604,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       await request(app.getHttpServer())
         .patch(`/api/v-alpha/einsatz/${einsatzId}`)
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .send({
           status: 'INVALID_STATUS', // Ungültiger Enum-Wert
@@ -597,6 +624,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .post(`/api/v-alpha/einsatz/${einsatzId}/archive`)
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`]);
 
       // Accept either 200 or 201 as valid success status
@@ -614,6 +642,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .post(`/api/v-alpha/einsatz/${einsatzId}/archive`)
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(400);
 
@@ -644,6 +673,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       // Get all einsaetze to verify our test data exists
       const allResponse = await request(app.getHttpServer())
         .get('/api/v-alpha/einsatz?limit=100&offset=0')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(200);
 
@@ -655,6 +685,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       // Test pagination works (limit=2)
       const paginatedResponse = await request(app.getHttpServer())
         .get('/api/v-alpha/einsatz?limit=2&offset=0')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(200);
 
@@ -679,6 +710,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       const response = await request(app.getHttpServer())
         .get('/api/v-alpha/einsatz?status=IN_BEARBEITUNG')
+        .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(200);
 

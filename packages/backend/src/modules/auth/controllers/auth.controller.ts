@@ -84,8 +84,12 @@ export class AuthController {
   /**
    * Unified Auth - Kombiniert Login und automatische Registrierung
    *
+   * Dieser Endpoint ist oeffentlich zugaenglich (SkipServerAccess, SkipSetupCheck),
+   * da er fuer den initialen Server-Setup und regulaeren Login benoetigt wird.
+   * Rate-Limiting verhindert Brute-Force-Angriffe.
+   *
    * Wenn der Benutzer existiert:
-   * - Mit Passwort (Admin): Passwort wird geprüft
+   * - Mit Passwort (Admin): Passwort wird geprueft
    * - Ohne Passwort (Normal): Sofortiger Login
    *
    * Wenn der Benutzer nicht existiert:
@@ -93,11 +97,13 @@ export class AuthController {
    *
    * @param req - Express Request
    * @param dto - Auth Request mit Username und optionalem Passwort
-   * @param res - Express Response für Cookie-Verwaltung
+   * @param res - Express Response fuer Cookie-Verwaltung
    * @returns Auth Response mit Token und User-Info
    */
   @Post('unified')
   @HttpCode(HttpStatus.OK)
+  @SkipServerAccess()
+  @SkipSetupCheck()
   @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 Anfragen pro Minute
   @ApiOperation({
     summary: 'Unified Login & Auto-Register',
@@ -161,21 +167,27 @@ export class AuthController {
   /**
    * User Login via CQRS (LoginCommand)
    *
-   * Meldet einen User an und gibt JWT Token zurück:
-   * - PASSWORDLESS für USER Role (nur Username)
-   * - PASSWORD-REQUIRED für ADMIN/SUPER_ADMIN Role
+   * Dieser Endpoint ist oeffentlich zugaenglich (SkipServerAccess, SkipSetupCheck),
+   * da er fuer den initialen Server-Setup und regulaeren Login benoetigt wird.
+   * Rate-Limiting verhindert Brute-Force-Angriffe.
    *
-   * Der Token wird zusätzlich als HTTP-Only Cookie gesetzt (optional für Web-Clients).
+   * Meldet einen User an und gibt JWT Token zurueck:
+   * - PASSWORDLESS fuer USER Role (nur Username)
+   * - PASSWORD-REQUIRED fuer ADMIN/SUPER_ADMIN Role
+   *
+   * Der Token wird zusaetzlich als HTTP-Only Cookie gesetzt (optional fuer Web-Clients).
    *
    * @param dto - LoginDto mit Username und optional Passwort
-   * @param res - Express Response für Cookie-Verwaltung
+   * @param res - Express Response fuer Cookie-Verwaltung
    * @returns LoginResponseDto mit JWT Token
-   * @throws UnauthorizedException bei ungültigen Credentials
+   * @throws UnauthorizedException bei ungueltigen Credentials
    * @throws ForbiddenException wenn Account gesperrt ist
    * @throws BadRequestException bei Validierungsfehlern
    */
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @SkipServerAccess()
+  @SkipSetupCheck()
   @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 Anfragen pro Minute
   @ApiOperation({
     summary: 'User Login (PASSWORDLESS für USER, PASSWORD für ADMIN)',
@@ -335,21 +347,27 @@ export class AuthController {
   /**
    * User Logout via CQRS (LogoutCommand)
    *
-   * Meldet einen User ab und löscht die Authentifizierung-Cookies.
+   * Dieser Endpoint ist oeffentlich zugaenglich (SkipServerAccess, SkipSetupCheck),
+   * da ein bereits eingeloggter User sich ausloggen koennen sollte.
+   * Der JwtAuthGuard stellt sicher, dass nur authentifizierte User zugreifen.
+   *
+   * Meldet einen User ab und loescht die Authentifizierung-Cookies.
    * JWT Token wird automatisch aus dem Cookie extrahiert.
-   * MVP: Stateless JWT (Token bleibt gültig bis Expiration 24h).
-   * Future: Redis Blacklist für echtes Token-Revocation.
+   * MVP: Stateless JWT (Token bleibt gueltig bis Expiration 24h).
+   * Future: Redis Blacklist fuer echtes Token-Revocation.
    *
    * @param req - Express Request mit accessToken Cookie
-   * @param response - Express Response für Cookie-Verwaltung
-   * @throws BadRequestException bei fehlendem oder ungültigem Token
+   * @param response - Express Response fuer Cookie-Verwaltung
+   * @throws BadRequestException bei fehlendem oder ungueltigem Token
    */
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @SkipServerAccess()
+  @SkipSetupCheck()
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'User Logout',
-    description: 'Meldet den User ab und löscht alle Authentifizierung-Cookies. MVP: Token bleibt gültig bis Expiration.',
+    description: 'Meldet den User ab und loescht alle Authentifizierung-Cookies. MVP: Token bleibt gueltig bis Expiration.',
   })
   @ApiNoContentResponse({
     description: 'Logout erfolgreich',
