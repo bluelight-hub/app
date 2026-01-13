@@ -53,7 +53,7 @@ import { ACCESS_TOKEN_ERROR_CODES } from '@/application/admin/errors/access-toke
  *   -d '{"tokenName": "Primary Server Token"}'
  * ```
  */
-@Controller('admin/security')
+@Controller({ path: 'admin/security', version: 'alpha' })
 @ApiTags('admin')
 @UseGuards(AdminJwtAuthGuard)
 @ApiUnauthorizedResponse({ description: 'Nicht authentifiziert - Admin-Login erforderlich' })

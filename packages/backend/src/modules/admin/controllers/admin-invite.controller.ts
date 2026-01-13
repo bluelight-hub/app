@@ -44,7 +44,7 @@ import { InviteCodeStatus } from '@domain/value-objects/invite-code-status';
  *   -d '{"expiresAt": "2026-02-01T12:00:00Z", "maxUses": 5, "label": "Team Nord"}'
  * ```
  */
-@Controller('admin/invites')
+@Controller({ path: 'admin/invites', version: 'alpha' })
 @ApiTags('admin')
 @UseGuards(AdminJwtAuthGuard)
 @ApiUnauthorizedResponse({ description: 'Nicht authentifiziert - Admin-Login erforderlich' })

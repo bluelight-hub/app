@@ -30,7 +30,7 @@ import { SkipSetupCheck } from '@/infrastructure/decorators/skip-setup-check.dec
  *   -d '{"username": "admin", "password": "SecurePassword123!"}'
  * ```
  */
-@Controller('admin')
+@Controller({ path: 'admin', version: 'alpha' })
 @ApiTags('admin')
 export class AdminSetupController {
   constructor(private readonly completeSetupHandler: CompleteSetupHandler) {}

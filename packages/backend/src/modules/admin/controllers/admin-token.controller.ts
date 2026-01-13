@@ -63,7 +63,7 @@ import type { PaginatedData } from '@/infrastructure/http/interceptors/transform
  *   -d '{"name": "CI/CD Pipeline Token"}'
  * ```
  */
-@Controller('admin/tokens')
+@Controller({ path: 'admin/tokens', version: 'alpha' })
 @ApiTags('admin')
 @UseGuards(AdminJwtAuthGuard)
 @ApiUnauthorizedResponse({ description: 'Nicht authentifiziert - Admin-Login erforderlich' })
