@@ -1,3 +1,14 @@
+## Version [v1.0.0-alpha.41](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.40...v1.0.0-alpha.41) – Veröffentlicht am 2026-01-14
+
+## 🐛 Fehlerbehebungen
+Diese Probleme wurden behoben:
+- [`f1912e71`](https://github.com/rubenvitt/bluelight-hub/commit/f1912e71) (auth): Disable password manager autofill in login combobox 
+(Zugehörige Issues: [`#309`](https://github.com/rubenvitt/bluelight-hub/issues/))
+
+
+
+# [1.0.0-alpha.41](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.40...v1.0.0-alpha.41) (2026-01-14)
+
 ## Version [v1.0.0-alpha.40](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.39...v1.0.0-alpha.40) – Veröffentlicht am 2026-01-14
 
 ## ✨ Neue Funktionen
