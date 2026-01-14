@@ -120,6 +120,9 @@ export function Combobox({
             )}
             autoCorrect={'off'}
             autoComplete={'off'}
+            data-1p-ignore="true"
+            data-lpignore="true"
+            data-form-type="other"
             placeholder={placeholder}
             onChange={(event) => handleQueryChange(event.target.value)}
             onBlur={() => {
