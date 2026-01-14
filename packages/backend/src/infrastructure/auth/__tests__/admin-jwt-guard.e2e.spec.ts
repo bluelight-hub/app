@@ -341,24 +341,27 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
     });
 
     /**
-     * Testet 401 bei fehlendem accessToken (aber vorhandenem adminToken).
+     * Testet dass Admin-Request mit gültigem adminToken aber ohne accessToken durchkommt.
      *
      * @remarks
-     * AdminJwtStrategy prüft in validate() explizit ob accessToken vorhanden ist.
-     * Wenn accessToken fehlt, wird UnauthorizedException geworfen.
+     * Der accessToken-Check in AdminJwtStrategy ist optional. Der adminToken enthält
+     * bereits alle nötigen Informationen (userId, role, isAdmin) und wird mit separatem
+     * Secret validiert. Die DB-Prüfungen stellen sicher, dass der User existiert und
+     * Admin-Rechte hat. Dies ermöglicht Admin-Sessions auch wenn der accessToken
+     * abgelaufen ist (und der Auto-Refresh noch nicht gegriffen hat).
      */
-    it('should return 401 with adminToken but without accessToken', async () => {
+    it('should allow request with valid adminToken but without accessToken', async () => {
       const response = await request(app.getHttpServer())
         .post('/api/v-alpha/admin/users')
         .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`adminToken=${cachedAdminTokenAdmin}`])
         .send({
           username: 'newuser',
-        })
-        .expect(401);
+        });
 
-      expect(response.body).toHaveProperty('statusCode', 401);
-      expect(response.body.message).toContain('Unauthorized');
+      // Request kommt durch (kein 401) - kann 201 (Erfolg) oder 400/409 (Validation) sein
+      expect(response.status).not.toBe(401);
+      expect(response.status).not.toBe(403);
     });
 
     /**
@@ -625,26 +628,42 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
       }
     });
 
-    it('should return 401 when accessToken is empty string', async () => {
+    /**
+     * Testet dass Admin-Request mit gültigem adminToken und leerem accessToken durchkommt.
+     *
+     * @remarks
+     * Der accessToken-Check ist optional - ein leerer accessToken wird ignoriert
+     * und der adminToken reicht für die Admin-Authentifizierung.
+     */
+    it('should allow request with valid adminToken and empty accessToken', async () => {
       const response = await request(app.getHttpServer())
         .post('/api/v-alpha/admin/users')
         .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=`, `adminToken=${cachedAdminTokenAdmin}`])
-        .send({ username: 'newuser' })
-        .expect(401);
-      expect(response.body).toHaveProperty('statusCode', 401);
-      expect(response.body.message).toContain('Unauthorized');
+        .send({ username: 'newuser' });
+
+      // Request kommt durch (kein 401) - adminToken reicht
+      expect(response.status).not.toBe(401);
+      expect(response.status).not.toBe(403);
     });
 
-    it('should return 401 when accessToken is whitespace-only', async () => {
+    /**
+     * Testet dass Admin-Request mit gültigem adminToken und Whitespace-only accessToken durchkommt.
+     *
+     * @remarks
+     * Der accessToken-Check ist optional - ein Whitespace-only accessToken wird ignoriert
+     * und der adminToken reicht für die Admin-Authentifizierung.
+     */
+    it('should allow request with valid adminToken and whitespace-only accessToken', async () => {
       const response = await request(app.getHttpServer())
         .post('/api/v-alpha/admin/users')
         .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=   `, `adminToken=${cachedAdminTokenAdmin}`])
-        .send({ username: 'newuser' })
-        .expect(401);
-      expect(response.body).toHaveProperty('statusCode', 401);
-      expect(response.body.message).toContain('Unauthorized');
+        .send({ username: 'newuser' });
+
+      // Request kommt durch (kein 401) - adminToken reicht
+      expect(response.status).not.toBe(401);
+      expect(response.status).not.toBe(403);
     });
 
     it('should return 401 when adminToken is empty string', async () => {

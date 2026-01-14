@@ -154,28 +154,37 @@ export class AdminJwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') im
   }
 
   /**
-   * Validiert dass der Access Token vorhanden und gültig ist
+   * Validiert den Access Token falls vorhanden (optional)
    *
-   * @param accessToken - Der Access Token aus dem Cookie
-   * @throws UnauthorizedException wenn Token fehlt oder ungültig ist
+   * Der Access-Token-Check ist optional, da der adminToken bereits alle nötigen
+   * Informationen enthält (userId, role, isAdmin). Der adminToken wird mit einem
+   * separaten Secret signiert und die DB-Prüfungen (validateUserExists, validateAdminRights)
+   * stellen sicher, dass der User noch existiert und Admin-Rechte hat.
+   *
+   * Diese Änderung behebt das Problem, dass Admin-Sessions nach 15 Minuten ungültig
+   * werden, obwohl der adminToken noch gültig ist - weil der accessToken abgelaufen war
+   * und der Auto-Refresh nicht vor der Admin-Validierung greift.
+   *
+   * @param accessToken - Der Access Token aus dem Cookie (optional)
    */
   private async validateAccessToken(accessToken: string | undefined): Promise<void> {
+    // Wenn kein accessToken vorhanden → Skip (adminToken reicht für Admin-Auth)
     if (!accessToken || accessToken.trim() === '') {
-      // HI-5 Fix: Logging für leeren accessToken (Empty-String-Angriffe)
-      // HI-4 Fix: Keine userId bei Auth-Fehlern loggen (Information Disclosure)
-      this.logger.warn('Admin access attempt without valid access token');
-      await this.constantTimeDelay();
-      throw new UnauthorizedException('Unauthorized - Invalid admin credentials');
+      this.logger.debug('No accessToken present, relying on adminToken only');
+      return;
     }
 
     try {
       await this.authService.verifyAccessToken(accessToken);
+      this.logger.debug('AccessToken validation successful');
     } catch (_error) {
-      this.logger.debug('Error details:', _error);
-      // HI-4 Fix: Keine userId bei Auth-Fehlern loggen (Information Disclosure)
-      this.logger.warn('Admin access attempt with invalid access token');
-      await this.constantTimeDelay();
-      throw new UnauthorizedException('Unauthorized - Invalid admin credentials');
+      // AccessToken ungültig/abgelaufen → Skip (adminToken reicht für Admin-Auth)
+      // Dies ist kein Sicherheitsproblem, da:
+      // 1. adminToken wurde bereits von Passport validiert (Signatur + Expiry)
+      // 2. validateUserExists() prüft ob User noch in DB existiert
+      // 3. validateAdminRights() prüft ob User noch Admin-Rolle hat
+      this.logger.debug('AccessToken invalid/expired, relying on adminToken only');
+      return;
     }
   }
 
