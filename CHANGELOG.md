@@ -1,3 +1,176 @@
+## Version [v1.0.0-alpha.40](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.39...v1.0.0-alpha.40) – Veröffentlicht am 2026-01-14
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`48b1f40a`](https://github.com/rubenvitt/bluelight-hub/commit/48b1f40a) (auth): Add server access token system for initial setup 
+
+- [`c9ed2c85`](https://github.com/rubenvitt/bluelight-hub/commit/c9ed2c85) (backend): Implement differentiated health endpoint (Story 1.4) 
+
+- [`662c1a4a`](https://github.com/rubenvitt/bluelight-hub/commit/662c1a4a) (auth): Add multi-server config foundation 
+(Zugehörige Issues: [`#284`](https://github.com/rubenvitt/bluelight-hub/issues/))
+
+- [`4464b9af`](https://github.com/rubenvitt/bluelight-hub/commit/4464b9af) (invite-code): Complete Story 1.7 - Invite-Code verwalten 
+
+- [`f8b5cde5`](https://github.com/rubenvitt/bluelight-hub/commit/f8b5cde5) (backend): implement invite codes 
+
+- [`227b21cc`](https://github.com/rubenvitt/bluelight-hub/commit/227b21cc) (admin): Implement Task 1 - Query Keys &amp; API Hook for Invite Management 
+
+- [`5f363d2a`](https://github.com/rubenvitt/bluelight-hub/commit/5f363d2a) (admin): Add InviteStatusBadge atom component 
+
+- [`88710011`](https://github.com/rubenvitt/bluelight-hub/commit/88710011) (admin-invites): Implement UI molecules for invite code management 
+
+- [`ce0f89c1`](https://github.com/rubenvitt/bluelight-hub/commit/ce0f89c1) (admin): Implement InviteCodeTable organism 
+
+- [`df1eb719`](https://github.com/rubenvitt/bluelight-hub/commit/df1eb719) (admin): Add Invite-Codes navigation link to AdminDashboard 
+
+- [`4246895a`](https://github.com/rubenvitt/bluelight-hub/commit/4246895a) (admin): Add /admin/invites route definition 
+
+- [`ba66db66`](https://github.com/rubenvitt/bluelight-hub/commit/ba66db66) (storage): Add Rust storage commands with Mutex-based state 
+
+- [`2a98106c`](https://github.com/rubenvitt/bluelight-hub/commit/2a98106c) (storage): Implement TauriStorageAdapter with Tauri invoke 
+
+- [`52919cca`](https://github.com/rubenvitt/bluelight-hub/commit/52919cca) (storage): Implement WebStorageAdapter with localStorage fallback 
+
+- [`806221ba`](https://github.com/rubenvitt/bluelight-hub/commit/806221ba) (storage): Add storage adapter factory with singleton pattern 
+
+- [`bef14edc`](https://github.com/rubenvitt/bluelight-hub/commit/bef14edc) (server): Create ServerConfig types and TanStack Store foundation 
+
+- [`61dd46d7`](https://github.com/rubenvitt/bluelight-hub/commit/61dd46d7) (server): Implement server CRUD actions (add/set/remove) 
+
+- [`c50b1633`](https://github.com/rubenvitt/bluelight-hub/commit/c50b1633) (server): Implement store hydration and useLoadServers hook 
+
+- [`ace7da33`](https://github.com/rubenvitt/bluelight-hub/commit/ace7da33) (server): Implement connection status tracking 
+
+- [`24db540a`](https://github.com/rubenvitt/bluelight-hub/commit/24db540a) (server): Add custom hooks for UI integration 
+
+- [`b5c4f46d`](https://github.com/rubenvitt/bluelight-hub/commit/b5c4f46d) (auth): Add Exchange Invite DTOs for Story 2.3 
+
+- [`08926c5d`](https://github.com/rubenvitt/bluelight-hub/commit/08926c5d) (auth): Implement ExchangeInviteHandler with Result pattern 
+
+- [`b286b2f4`](https://github.com/rubenvitt/bluelight-hub/commit/b286b2f4) (auth): Add exchange-invite endpoint to AuthController 
+
+- [`4677c28e`](https://github.com/rubenvitt/bluelight-hub/commit/4677c28e) (api): Generate API client with exchange-invite endpoint 
+
+- [`0628f87d`](https://github.com/rubenvitt/bluelight-hub/commit/0628f87d) (frontend): Add Tauri deep link plugin support 
+
+- [`8bde213a`](https://github.com/rubenvitt/bluelight-hub/commit/8bde213a) (frontend): Add DeepLinkService with event handling 
+
+- [`3f360cab`](https://github.com/rubenvitt/bluelight-hub/commit/3f360cab) (frontend): Add useExchangeInvite mutation hook 
+
+- [`eeeb8fff`](https://github.com/rubenvitt/bluelight-hub/commit/eeeb8fff) (frontend): Add Deep Link UI components (Loading, Error) 
+
+- [`2573751c`](https://github.com/rubenvitt/bluelight-hub/commit/2573751c) (frontend): Integrate Deep Link handler with navigation 
+
+- [`a8fb4be6`](https://github.com/rubenvitt/bluelight-hub/commit/a8fb4be6) (server): Add URL params types and validation schema 
+
+- [`eaa96372`](https://github.com/rubenvitt/bluelight-hub/commit/eaa96372) (server): Implement URL params parsing service 
+
+- [`7a533fce`](https://github.com/rubenvitt/bluelight-hub/commit/7a533fce) (server): Add URL param validation to root route 
+
+- [`64161a3d`](https://github.com/rubenvitt/bluelight-hub/commit/64161a3d) (server): Add useUrlParams hook with exchange logic 
+
+- [`509a1640`](https://github.com/rubenvitt/bluelight-hub/commit/509a1640) (server): Add URL params UI integration 
+
+- [`51656be4`](https://github.com/rubenvitt/bluelight-hub/commit/51656be4) (server): Add required server name validation with auto-fill 
+
+- [`488e7c0d`](https://github.com/rubenvitt/bluelight-hub/commit/488e7c0d) (server): Add back button on setup page when servers exist 
+
+- [`6c110aa7`](https://github.com/rubenvitt/bluelight-hub/commit/6c110aa7) (server): Implement multi-server configuration feature 
+
+- [`925870a7`](https://github.com/rubenvitt/bluelight-hub/commit/925870a7) (admin): Implement access token management (Story 4.1) 
+
+- [`bdb6337b`](https://github.com/rubenvitt/bluelight-hub/commit/bdb6337b) (admin): Implement token lifecycle management (Stories 4.2-4.6) 
+
+- [`8aa3e62b`](https://github.com/rubenvitt/bluelight-hub/commit/8aa3e62b) (general): add not committed files 
+
+- [`12e02354`](https://github.com/rubenvitt/bluelight-hub/commit/12e02354) (admin): Add default expiry (7 days) for invite codes 
+
+## 🐛 Fehlerbehebungen
+Diese Probleme wurden behoben:
+- [`93b0e0cd`](https://github.com/rubenvitt/bluelight-hub/commit/93b0e0cd) (auth): Fix token storage race condition and error handling 
+
+- [`d19ce476`](https://github.com/rubenvitt/bluelight-hub/commit/d19ce476) (invite-code): Fix missing LOGGER provider in module 
+
+- [`04f3cddb`](https://github.com/rubenvitt/bluelight-hub/commit/04f3cddb) (admin): Fix HTML validation error in InviteCodeTable skeleton 
+
+- [`26e7a389`](https://github.com/rubenvitt/bluelight-hub/commit/26e7a389) (invite-code): Add missing InviteCodeCreatedEvent serializer 
+
+- [`61f0fb8d`](https://github.com/rubenvitt/bluelight-hub/commit/61f0fb8d) (shared): Fix ESM imports in Backend tests and Frontend schemas 
+
+- [`8b46b465`](https://github.com/rubenvitt/bluelight-hub/commit/8b46b465) (server): Fix lastUsedAt null handling in useServerList hook 
+
+- [`742a59ab`](https://github.com/rubenvitt/bluelight-hub/commit/742a59ab) (server): Fix TypeScript errors in unit tests 
+
+- [`5dad6a87`](https://github.com/rubenvitt/bluelight-hub/commit/5dad6a87) (server): Replace deprecated Zod validators with refine() 
+(Zugehörige Issues: [`#3`](https://github.com/rubenvitt/bluelight-hub/issues/))
+
+- [`5f10998c`](https://github.com/rubenvitt/bluelight-hub/commit/5f10998c) (auth): Fix exchange-invite HTTP status code to 200 OK 
+
+- [`c84f137d`](https://github.com/rubenvitt/bluelight-hub/commit/c84f137d) (auth): Fix race condition and transaction rollback (Issues #2 &amp; #3) 
+(Zugehörige Issues: [`#2`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#3`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#2`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#3`](https://github.com/rubenvitt/bluelight-hub/issues/))
+
+- [`42540bee`](https://github.com/rubenvitt/bluelight-hub/commit/42540bee) (frontend): Fix TypeScript errors in DeepLinkService 
+
+- [`07fbc9f3`](https://github.com/rubenvitt/bluelight-hub/commit/07fbc9f3) (frontend): Fix Tauri deep-link plugin API usage 
+
+- [`969e5eac`](https://github.com/rubenvitt/bluelight-hub/commit/969e5eac) (frontend): Fix API client import path across codebase 
+
+- [`f0865b2e`](https://github.com/rubenvitt/bluelight-hub/commit/f0865b2e) (frontend): Fix API client import and test wrapper scope 
+
+- [`89defe5d`](https://github.com/rubenvitt/bluelight-hub/commit/89defe5d) (frontend): Fix ReactElement import in mutations tests 
+
+- [`bcef1b57`](https://github.com/rubenvitt/bluelight-hub/commit/bcef1b57) (frontend): Fix TypeScript errors in Deep Link integration 
+
+- [`11956709`](https://github.com/rubenvitt/bluelight-hub/commit/11956709) (frontend): Add method overloads for DeepLinkService.off() 
+
+- [`191cf97e`](https://github.com/rubenvitt/bluelight-hub/commit/191cf97e) (deep-link): Fix critical code review issues (Story 2.4) 
+
+- [`4bdc8e07`](https://github.com/rubenvitt/bluelight-hub/commit/4bdc8e07) (server): Fix TypeScript errors in UI components 
+
+- [`c085bcce`](https://github.com/rubenvitt/bluelight-hub/commit/c085bcce) (server): Fix TanStack Form validation API pattern 
+
+- [`10d76edf`](https://github.com/rubenvitt/bluelight-hub/commit/10d76edf) (server): Fix critical code review issues for Story 2.5 
+(Zugehörige Issues: [`#1`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#2`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#3`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#4`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#5`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#6`](https://github.com/rubenvitt/bluelight-hub/issues/))
+
+- [`9924e9e5`](https://github.com/rubenvitt/bluelight-hub/commit/9924e9e5) (server): Fix Code Review Issues for Story 2.7 
+(Zugehörige Issues: [`#1`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#2`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#3`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#4`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#5`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#6`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#7`](https://github.com/rubenvitt/bluelight-hub/issues/))
+
+- [`c19c891d`](https://github.com/rubenvitt/bluelight-hub/commit/c19c891d) (frontend): Add missing format-last-used.ts to git 
+
+- [`70347135`](https://github.com/rubenvitt/bluelight-hub/commit/70347135) (backend): Fix E2E tests for SetupPendingGuard requirements 
+
+- [`2d506234`](https://github.com/rubenvitt/bluelight-hub/commit/2d506234) (admin): Add API versioning to admin controllers 
+
+- [`475fd9f2`](https://github.com/rubenvitt/bluelight-hub/commit/475fd9f2) (admin): Fix Story 4.6 code review issues 
+
+- [`19ff89f8`](https://github.com/rubenvitt/bluelight-hub/commit/19ff89f8) (auth): Make accessToken validation optional in AdminJwtStrategy 
+
+## 🔒 Sicherheitsverbesserungen
+Sicherheitsrelevante Änderungen:
+- [`93749c11`](https://github.com/rubenvitt/bluelight-hub/commit/93749c11) (security): Fix CodeQL security vulnerabilities 
+
+## 🧹 Codebereinigungen
+Aufräumarbeiten und kleinere Verbesserungen:
+- [`29f7bb5b`](https://github.com/rubenvitt/bluelight-hub/commit/29f7bb5b) (frontend): Cleanup unused imports in DeepLinkService 
+
+## ♻ Refactoring
+Struktur- oder Code-Verbesserungen:
+- [`5baaf964`](https://github.com/rubenvitt/bluelight-hub/commit/5baaf964) (frontend): Code Review Fixes for Story 1.7a 
+
+- [`cd6977d0`](https://github.com/rubenvitt/bluelight-hub/commit/cd6977d0) (storage): Code review fixes for Story 2.1 
+
+- [`7844e666`](https://github.com/rubenvitt/bluelight-hub/commit/7844e666) (auth): Use milliseconds() for cookie maxAge readability 
+
+## 🔧 Tool Verbesserungen
+Verbesserungen an den Werkzeugen:
+- [`8a6280f7`](https://github.com/rubenvitt/bluelight-hub/commit/8a6280f7) (bmad): Add sub-agent usage to all agent configurations 
+
+- [`921d4b6b`](https://github.com/rubenvitt/bluelight-hub/commit/921d4b6b) (ci): Add GitGuardian config to exclude test files 
+
+
+
+# [1.0.0-alpha.40](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.39...v1.0.0-alpha.40) (2026-01-14)
+
 ## Version [v1.0.0-alpha.39](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.38...v1.0.0-alpha.39) – Veröffentlicht am 2026-01-05
 
 ## 🐛 Fehlerbehebungen
