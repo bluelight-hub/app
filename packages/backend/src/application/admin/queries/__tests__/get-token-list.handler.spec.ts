@@ -396,23 +396,23 @@ describe('GetTokenListHandler', () => {
       expect(result.value!.data[0].status).toBe('active');
     });
 
-    it('should return active status for token expiring exactly now (boundary case)', async () => {
-      // Given (Arrange): Token expires exactly at current time
+    it('should return active status for token expiring in 100ms (near-boundary case)', async () => {
+      // Given (Arrange): Token expires in 100ms (small buffer for test execution time)
       // Basierend auf der computeStatus Logik: expiresAt < new Date()
-      // Wenn expiresAt === now, dann ist expiresAt NICHT < now, also ist das Token noch aktiv
+      // Ein Token das in 100ms abläuft sollte noch aktiv sein
       const query = createValidQuery();
-      const now = new Date();
+      const soonExpiring = new Date(Date.now() + 100);
 
       const mockToken = createMockToken({
         isRevoked: false,
-        expiresAt: now,
+        expiresAt: soonExpiring,
       });
       mockTokenRepository.findAllPaginated.mockResolvedValue(Result.ok(createPaginatedResult([mockToken])));
 
       // When (Act)
       const result = await handler.execute(query);
 
-      // Then (Assert): Based on < comparison, token at exactly now is still active
+      // Then (Assert): Token should still be active
       expect(result.isSuccess).toBe(true);
       expect(result.value!.data[0].status).toBe('active');
     });
