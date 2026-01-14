@@ -16,22 +16,22 @@ import { LOGGER } from '@infrastructure/di-tokens';
  *
  * **Test Coverage:**
  * - Request ohne Token → 401 Unauthorized
- * - Request mit nur adminToken (ohne accessToken) → 401
- * - Request mit ungültigem accessToken → 401
+ * - Request mit nur adminToken (ohne accessToken) → Success (accessToken optional seit Story 4.6)
+ * - Request mit ungültigem accessToken → Success (accessToken optional, wird ignoriert)
  * - Request mit User-Token (ohne Admin) → 403 Forbidden
  * - Request mit gelöschtem User → 401
  * - Request mit User der Admin-Rechte verloren hat → 403
  * - Request mit Admin-Token + Access-Token → Success
  * - Request mit SUPER_ADMIN-Token → Success
  * - Request mit isAdmin Flag (neues Format) → Success
- * - Request ohne beide Cookies → 401
+ * - Request ohne beide Cookies → 401 (via validateUserExists, nicht validateAccessToken)
  * - Request mit undefined Rolle im Payload → 403
  * - Request mit null Rolle in DB → 403
  *
- * **Token-System:**
- * - accessToken: Normale Auth (muss vorhanden sein)
- * - adminToken: Admin-Berechtigung (enthält Rolle)
- * - Admin-Endpoints brauchen BEIDE Tokens
+ * **Token-System (nach Story 4.6 Änderung):**
+ * - accessToken: Optional für Admin-Auth (seit Story 4.6 - behebt 15min Session-Timeout Bug)
+ * - adminToken: Admin-Berechtigung (enthält Rolle, wird von Passport validiert)
+ * - Admin-Endpoints brauchen nur adminToken (accessToken optional)
  * - isAdmin() akzeptiert nur ADMIN und SUPER_ADMIN
  *
  * **Mocking Strategy:**
@@ -92,12 +92,13 @@ describe('AdminJwtStrategy (via AdminJwtAuthGuard)', () => {
   });
 
   describe('validate()', () => {
-    it('should throw UnauthorizedException when accessToken is missing', async () => {
-      // Given: Request ohne accessToken Cookie
+    it('should successfully validate when accessToken is missing (adminToken only)', async () => {
+      // Given: Request ohne accessToken Cookie (nur adminToken)
+      // Story 4.6: accessToken ist jetzt optional für Admin-Auth
       const mockRequest = {
         cookies: {
           adminToken: 'valid-admin-token',
-          // accessToken fehlt absichtlich
+          // accessToken fehlt absichtlich - das ist jetzt OK
         },
       } as Request;
 
@@ -107,19 +108,37 @@ describe('AdminJwtStrategy (via AdminJwtAuthGuard)', () => {
         role: UserRole.ADMIN,
       };
 
-      // When/Then: Validierung sollte mit UnauthorizedException fehlschlagen
-      // ME-3: Code-Pfad: AdminJwtStrategy.validateAccessToken() (Zeile 112-116)
-      // → Early exit wenn accessToken fehlt (!accessToken check)
-      await expect(strategy.validate(mockRequest, payload)).rejects.toThrow(UnauthorizedException);
-      // ME-2: Error-Message-Konsistenz prüfen
-      await expect(strategy.validate(mockRequest, payload)).rejects.toThrow('Unauthorized - Invalid admin credentials');
+      // Mock: User existiert und ist Admin
+      mockAuthService.findUserById.mockResolvedValue({
+        id: 'user-123',
+        username: 'admin@example.com',
+        role: UserRole.ADMIN,
+        password: 'hashed',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
 
-      // Verify: verifyAccessToken wurde NICHT aufgerufen (früher Abbruch)
+      // When: Validierung ausführen
+      const result: ValidatedAdminUser = await strategy.validate(mockRequest, payload);
+
+      // Then: Sollte erfolgreich sein (accessToken ist optional seit Story 4.6)
+      expect(result).toEqual({
+        userId: 'user-123',
+        username: 'admin@example.com',
+        role: UserRole.ADMIN,
+      });
+
+      // Verify: verifyAccessToken wurde NICHT aufgerufen (kein accessToken vorhanden)
       expect(mockAuthService.verifyAccessToken).not.toHaveBeenCalled();
+      // Verify: findUserById wurde aufgerufen (Validierung geht weiter)
+      expect(mockAuthService.findUserById).toHaveBeenCalledWith('user-123');
+      // Verify: Debug-Log wurde ausgegeben
+      expect(mockLogger.debug).toHaveBeenCalledWith('No accessToken present, relying on adminToken only');
     });
 
-    it('should throw UnauthorizedException when accessToken is invalid', async () => {
-      // Given: Request mit ungültigem accessToken
+    it('should successfully validate when accessToken is invalid/expired (adminToken only)', async () => {
+      // Given: Request mit ungültigem/abgelaufenem accessToken
+      // Story 4.6: accessToken ist optional - ungültige Tokens werden ignoriert
       const mockRequest = {
         cookies: {
           adminToken: 'valid-admin-token',
@@ -133,15 +152,34 @@ describe('AdminJwtStrategy (via AdminJwtAuthGuard)', () => {
         role: UserRole.ADMIN,
       };
 
-      // Mock: verifyAccessToken wirft Fehler
+      // Mock: verifyAccessToken wirft Fehler (Token abgelaufen)
       mockAuthService.verifyAccessToken.mockRejectedValue(new Error('Token expired'));
+      // Mock: User existiert und ist Admin
+      mockAuthService.findUserById.mockResolvedValue({
+        id: 'user-123',
+        username: 'admin@example.com',
+        role: UserRole.ADMIN,
+        password: 'hashed',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
 
-      // When/Then: Validierung sollte mit UnauthorizedException fehlschlagen
-      // ME-3: Code-Pfad: AdminJwtStrategy.validateAccessToken() (Zeile 118-123)
-      // → verifyAccessToken() catch Block wirft UnauthorizedException
-      await expect(strategy.validate(mockRequest, payload)).rejects.toThrow(UnauthorizedException);
-      // ME-2: Error-Message-Konsistenz prüfen
-      await expect(strategy.validate(mockRequest, payload)).rejects.toThrow('Unauthorized - Invalid admin credentials');
+      // When: Validierung ausführen
+      const result: ValidatedAdminUser = await strategy.validate(mockRequest, payload);
+
+      // Then: Sollte erfolgreich sein (accessToken-Fehler wird ignoriert seit Story 4.6)
+      expect(result).toEqual({
+        userId: 'user-123',
+        username: 'admin@example.com',
+        role: UserRole.ADMIN,
+      });
+
+      // Verify: verifyAccessToken wurde aufgerufen und hat Fehler geworfen
+      expect(mockAuthService.verifyAccessToken).toHaveBeenCalledWith('invalid-or-expired-token');
+      // Verify: findUserById wurde aufgerufen (Validierung geht weiter trotz accessToken-Fehler)
+      expect(mockAuthService.findUserById).toHaveBeenCalledWith('user-123');
+      // Verify: Debug-Log wurde ausgegeben
+      expect(mockLogger.debug).toHaveBeenCalledWith('AccessToken invalid/expired, relying on adminToken only');
     });
 
     it('should throw ForbiddenException when payload has no admin role', async () => {
@@ -377,12 +415,13 @@ describe('AdminJwtStrategy (via AdminJwtAuthGuard)', () => {
       expect(mockAuthService.findUserById).not.toHaveBeenCalled();
     });
 
-    it('should throw UnauthorizedException when accessToken is empty string', async () => {
+    it('should successfully validate when accessToken is empty string (treated as missing)', async () => {
       // Given: Request mit leerem accessToken (trim() Pfad)
+      // Story 4.6: Leere Strings werden wie fehlende accessTokens behandelt
       const mockRequest = {
         cookies: {
           adminToken: 'valid-admin-token',
-          accessToken: '   ', // Nur Whitespace
+          accessToken: '   ', // Nur Whitespace - wird wie fehlend behandelt
         },
       } as Request;
 
@@ -392,15 +431,32 @@ describe('AdminJwtStrategy (via AdminJwtAuthGuard)', () => {
         role: UserRole.ADMIN,
       };
 
-      // When/Then: Validierung sollte mit UnauthorizedException fehlschlagen
-      // ME-3: Code-Pfad: AdminJwtStrategy.validateAccessToken() (Zeile 113)
-      // → accessToken.trim() === '' Check → wirft UnauthorizedException
-      await expect(strategy.validate(mockRequest, payload)).rejects.toThrow(UnauthorizedException);
-      // ME-2: Error-Message-Konsistenz prüfen
-      await expect(strategy.validate(mockRequest, payload)).rejects.toThrow('Unauthorized - Invalid admin credentials');
+      // Mock: User existiert und ist Admin
+      mockAuthService.findUserById.mockResolvedValue({
+        id: 'user-999',
+        username: 'admin@example.com',
+        role: UserRole.ADMIN,
+        password: 'hashed',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
 
-      // Verify: verifyAccessToken wurde NICHT aufgerufen (früher Abbruch wegen trim)
+      // When: Validierung ausführen
+      const result: ValidatedAdminUser = await strategy.validate(mockRequest, payload);
+
+      // Then: Sollte erfolgreich sein (leerer accessToken = kein accessToken = OK seit Story 4.6)
+      expect(result).toEqual({
+        userId: 'user-999',
+        username: 'admin@example.com',
+        role: UserRole.ADMIN,
+      });
+
+      // Verify: verifyAccessToken wurde NICHT aufgerufen (trim() check → Skip)
       expect(mockAuthService.verifyAccessToken).not.toHaveBeenCalled();
+      // Verify: findUserById wurde aufgerufen (Validierung geht weiter)
+      expect(mockAuthService.findUserById).toHaveBeenCalledWith('user-999');
+      // Verify: Debug-Log wurde ausgegeben
+      expect(mockLogger.debug).toHaveBeenCalledWith('No accessToken present, relying on adminToken only');
     });
 
     it('should throw UnauthorizedException when findUserById throws exception', async () => {
@@ -433,8 +489,9 @@ describe('AdminJwtStrategy (via AdminJwtAuthGuard)', () => {
       expect(mockAuthService.findUserById).toHaveBeenCalledWith('user-888');
     });
 
-    it('should throw UnauthorizedException when both cookies are missing', async () => {
+    it('should throw UnauthorizedException when both cookies are missing and user not found', async () => {
       // Given: Request ohne Cookies (weder accessToken noch adminToken)
+      // Story 4.6: accessToken ist optional, Validierung geht weiter bis validateUserExists
       const mockRequest = {
         cookies: {}, // Beide Cookies fehlen
       } as Request;
@@ -445,15 +502,21 @@ describe('AdminJwtStrategy (via AdminJwtAuthGuard)', () => {
         role: UserRole.ADMIN,
       };
 
+      // Mock: User existiert nicht in DB
+      mockAuthService.findUserById.mockResolvedValue(null);
+
       // When/Then: Validierung sollte mit UnauthorizedException fehlschlagen
-      // ME-3: Code-Pfad: AdminJwtStrategy.validateAccessToken() (Zeile 112-116)
-      // → accessToken ist undefined → wirft UnauthorizedException
+      // ME-3: Code-Pfad: validateAccessToken() → Skip (kein accessToken)
+      //                  validateAdminPayload() → Pass (payload hat ADMIN role)
+      //                  validateUserExists() → User null → UnauthorizedException
       await expect(strategy.validate(mockRequest, payload)).rejects.toThrow(UnauthorizedException);
       // ME-2: Error-Message-Konsistenz prüfen
       await expect(strategy.validate(mockRequest, payload)).rejects.toThrow('Unauthorized - Invalid admin credentials');
 
-      // Verify: findUserById wurde NICHT aufgerufen (früher Abbruch)
-      expect(mockAuthService.findUserById).not.toHaveBeenCalled();
+      // Verify: findUserById wurde aufgerufen (Validierung ging weiter)
+      expect(mockAuthService.findUserById).toHaveBeenCalledWith('user-123');
+      // Verify: Debug-Log für fehlenden accessToken wurde ausgegeben
+      expect(mockLogger.debug).toHaveBeenCalledWith('No accessToken present, relying on adminToken only');
     });
 
     it('should throw ForbiddenException when payload role is undefined', async () => {
