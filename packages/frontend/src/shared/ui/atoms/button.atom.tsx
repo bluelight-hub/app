@@ -25,7 +25,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, type = 'button', intent = 'primary', appearance = 'filled', size = 'md', fullWidth = false, loading = false, disabled, kbd, animate = false, children, ...props }, ref) => {
     const baseStyles =
-      'group cursor-pointer inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+      'group cursor-pointer inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset disabled:opacity-50 disabled:cursor-not-allowed';
 
     // Animation classes only applied when animate=true
     const animationStyles = animate ? 'hover:-translate-y-0.5 active:translate-y-0 transition-transform' : '';
