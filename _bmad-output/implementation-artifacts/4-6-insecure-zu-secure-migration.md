@@ -1,6 +1,6 @@
 # Story 4.6: INSECURE zu SECURE Migration
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -51,99 +51,99 @@ damit **ich einen Entwicklungsserver fuer den Produktivbetrieb absichern kann, o
 
 ### Backend Tasks
 
-- [ ] **Task 1: ServerConfig Entity & Repository erstellen** (AC: 1, 3, 5)
-  - [ ] 1.1: Prisma-Migration fuer `ServerConfig` Model mit `insecureMode: Boolean`, `migratedAt: DateTime?`
-  - [ ] 1.2: `ServerConfigRepository` Interface in `/domain/repositories/i-server-config.repository.ts`
-  - [ ] 1.3: `PrismaServerConfigRepository` Implementation mit `getOrCreate()`, `update()` Methoden
-  - [ ] 1.4: DI-Token `DI_TOKENS.REPOSITORIES.SERVER_CONFIG` hinzufuegen
-  - [ ] 1.5: Unit Tests fuer Repository (15-20 Tests)
+- [x] **Task 1: ServerConfig Entity & Repository erstellen** (AC: 1, 3, 5)
+  - [x] 1.1: Prisma-Migration fuer `ServerConfig` Model mit `insecureMode: Boolean`, `migratedAt: DateTime?`
+  - [x] 1.2: `ServerConfigRepository` Interface in `/domain/repositories/i-server-config.repository.ts`
+  - [x] 1.3: `PrismaServerConfigRepository` Implementation mit `getOrCreate()`, `update()` Methoden
+  - [x] 1.4: DI-Token `DI_TOKENS.REPOSITORIES.SERVER_CONFIG` hinzufuegen
+  - [x] 1.5: Unit Tests fuer Repository (15-20 Tests)
 
-- [ ] **Task 2: MigrateToSecureModeCommand & Handler** (AC: 2, 3)
-  - [ ] 2.1: `MigrateToSecureModeCommand` mit tokenName Validierung (3-50 Zeichen)
-  - [ ] 2.2: `MigrateToSecureModeRequestDto` mit class-validator Decorators
-  - [ ] 2.3: `MigrateToSecureModeResponseDto` mit token, tokenName, prefix, migratedAt
-  - [ ] 2.4: `MigrateToSecureModeHandler extends TransactionalCommandHandler`
+- [x] **Task 2: MigrateToSecureModeCommand & Handler** (AC: 2, 3)
+  - [x] 2.1: `MigrateToSecureModeCommand` mit tokenName Validierung (3-50 Zeichen)
+  - [x] 2.2: `MigrateToSecureModeRequestDto` mit class-validator Decorators
+  - [x] 2.3: `MigrateToSecureModeResponseDto` mit token, tokenName, prefix, migratedAt
+  - [x] 2.4: `MigrateToSecureModeHandler extends TransactionalCommandHandler`
     - Validierung: INSECURE_MODE muss true sein
     - Token generieren (blh_ + cuid2, bcrypt Hash)
     - ServerConfig.insecureMode = false setzen
     - ServerAccessToken erstellen (atomar in einer Transaktion)
-  - [ ] 2.5: Domain Event `ServerMigratedToSecureModeEvent` erstellen
-  - [ ] 2.6: Unit Tests (30-40 Tests, AAA Pattern mit Given-When-Then)
+  - [x] 2.5: Domain Event `ServerMigratedToSecureModeEvent` erstellen
+  - [x] 2.6: Unit Tests (30-40 Tests, AAA Pattern mit Given-When-Then)
 
-- [ ] **Task 3: GetSecurityStatusQuery implementieren** (AC: 1, 5, 6)
-  - [ ] 3.1: `GetSecurityStatusQuery` und `GetSecurityStatusHandler`
-  - [ ] 3.2: `SecurityStatusDto` mit insecureMode, setupComplete, activeTokenCount
-  - [ ] 3.3: `GET /admin/security/status` Endpoint
-  - [ ] 3.4: Unit Tests (15-20 Tests)
+- [x] **Task 3: GetSecurityStatusQuery implementieren** (AC: 1, 5, 6)
+  - [x] 3.1: `GetSecurityStatusQuery` und `GetSecurityStatusHandler`
+  - [x] 3.2: `SecurityStatusDto` mit insecureMode, setupComplete, activeTokenCount
+  - [x] 3.3: `GET /admin/security/status` Endpoint
+  - [x] 3.4: Unit Tests (15-20 Tests)
 
-- [ ] **Task 4: Controller Endpoint erstellen** (AC: 2, 3)
-  - [ ] 4.1: `AdminSecurityController` mit `POST /admin/security/migrate-to-secure`
-  - [ ] 4.2: `@ApiWrappedCreatedResponse(MigrateToSecureModeResponseDto)` Decorator
-  - [ ] 4.3: `@UseGuards(AdminJwtAuthGuard)` fuer Admin-Only
-  - [ ] 4.4: `@Throttle({ default: { limit: 5, ttl: 60000 } })` Rate-Limiting (5/min)
-  - [ ] 4.5: Error-Mapping: ALREADY_IN_SECURE_MODE -> 409 Conflict
-  - [ ] 4.6: Controller Unit Tests (25-30 Tests)
+- [x] **Task 4: Controller Endpoint erstellen** (AC: 2, 3)
+  - [x] 4.1: `AdminSecurityController` mit `POST /admin/security/migrate-to-secure`
+  - [x] 4.2: `@ApiWrappedCreatedResponse(MigrateToSecureModeResponseDto)` Decorator
+  - [x] 4.3: `@UseGuards(AdminJwtAuthGuard)` fuer Admin-Only
+  - [x] 4.4: `@Throttle({ default: { limit: 5, ttl: 60000 } })` Rate-Limiting (5/min)
+  - [x] 4.5: Error-Mapping: ALREADY_IN_SECURE_MODE -> 409 Conflict
+  - [x] 4.6: Controller Unit Tests (25-30 Tests)
 
-- [ ] **Task 5: ServerAccessGuard erweitern** (AC: 4)
-  - [ ] 5.1: Guard priorisiert DB-Config (`ServerConfig.insecureMode`) ueber ENV-Variable
-  - [ ] 5.2: Falls DB-Eintrag existiert, ignoriere ENV-Variable
-  - [ ] 5.3: Fallback auf ENV wenn kein DB-Eintrag (Backward Compatibility)
-  - [ ] 5.4: Cache-Invalidation nach Migration
-  - [ ] 5.5: Unit Tests fuer Guard-Anpassung (10-15 Tests)
+- [x] **Task 5: ServerAccessGuard erweitern** (AC: 4)
+  - [x] 5.1: Guard priorisiert DB-Config (`ServerConfig.insecureMode`) ueber ENV-Variable
+  - [x] 5.2: Falls DB-Eintrag existiert, ignoriere ENV-Variable
+  - [x] 5.3: Fallback auf ENV wenn kein DB-Eintrag (Backward Compatibility)
+  - [x] 5.4: Cache-Invalidation nach Migration
+  - [x] 5.5: Unit Tests fuer Guard-Anpassung (10-15 Tests)
 
-- [ ] **Task 6: Health Endpoint erweitern** (AC: 1)
-  - [ ] 6.1: `BasicHealthDto.insecureMode` bereits vorhanden - pruefen dass DB-Status verwendet wird
-  - [ ] 6.2: Falls noetig: Health-Service auf DB-Config umstellen
-  - [ ] 6.3: Unit Tests (5-10 Tests)
+- [x] **Task 6: Health Endpoint erweitern** (AC: 1)
+  - [x] 6.1: `BasicHealthDto.insecureMode` bereits vorhanden - pruefen dass DB-Status verwendet wird
+  - [x] 6.2: Falls noetig: Health-Service auf DB-Config umstellen
+  - [x] 6.3: Unit Tests (5-10 Tests)
 
-- [ ] **Task 7: API-Client generieren**
-  - [ ] 7.1: `pnpm run generate-api` ausfuehren
-  - [ ] 7.2: Generierte Types verifizieren (AdminApi mit migrateToSecure, getSecurityStatus)
+- [x] **Task 7: API-Client generieren**
+  - [x] 7.1: `pnpm run generate-api` ausfuehren
+  - [x] 7.2: Generierte Types verifizieren (AdminApi mit migrateToSecure, getSecurityStatus)
 
 ### Frontend Tasks
 
-- [ ] **Task 8: TanStack Query Hooks erstellen** (AC: 1, 2, 3)
-  - [ ] 8.1: `useSecurityStatus` Query in `/features/admin/api/use-security.ts`
-  - [ ] 8.2: `useMigrateToSecureMode` Mutation in `/features/admin/api/use-security.ts`
-  - [ ] 8.3: Query Keys: `admin.security.status`, `admin.security.migrate`
-  - [ ] 8.4: Cache-Invalidation nach Migration (accessTokens.list invalidieren)
+- [x] **Task 8: TanStack Query Hooks erstellen** (AC: 1, 2, 3)
+  - [x] 8.1: `useSecurityStatus` Query in `/features/admin/api/use-security.ts`
+  - [x] 8.2: `useMigrateToSecureMode` Mutation in `/features/admin/api/use-security.ts`
+  - [x] 8.3: Query Keys: `admin.security.status`, `admin.security.migrate`
+  - [x] 8.4: Cache-Invalidation nach Migration (accessTokens.list invalidieren)
 
-- [ ] **Task 9: InsecureModeBanner Atom erstellen** (AC: 1)
-  - [ ] 9.1: Prominente Warnung mit Amber/Orange Farbe
-  - [ ] 9.2: Icon (ShieldExclamation oder Warning)
-  - [ ] 9.3: Text: "Dieser Server laeuft im unsicheren Modus. Tokens sind nicht erforderlich."
-  - [ ] 9.4: Button: "Zu SECURE_MODE wechseln"
-  - [ ] 9.5: Dark Mode Support
-  - [ ] 9.6: Responsive Design
+- [x] **Task 9: InsecureModeBanner Atom erstellen** (AC: 1)
+  - [x] 9.1: Prominente Warnung mit Amber/Orange Farbe
+  - [x] 9.2: Icon (ShieldExclamation oder Warning)
+  - [x] 9.3: Text: "Dieser Server laeuft im unsicheren Modus. Tokens sind nicht erforderlich."
+  - [x] 9.4: Button: "Zu SECURE_MODE wechseln"
+  - [x] 9.5: Dark Mode Support
+  - [x] 9.6: Responsive Design
 
-- [ ] **Task 10: MigrationModal Organism erstellen** (AC: 2, 3)
-  - [ ] 10.1: TanStack Form Integration mit Zod-Validator
-  - [ ] 10.2: Erklaerungstext: "Nach der Migration benoetigen alle Clients einen gueltigen Token."
-  - [ ] 10.3: Token-Name Input (3-50 Zeichen, Zod-Schema)
-  - [ ] 10.4: Submit-Button mit Loading-State
-  - [ ] 10.5: Nach Erfolg: Token-Anzeige (genau einmal, Copy-Button)
-  - [ ] 10.6: Warnung: "Dieser Token wird nur einmal angezeigt. Kopieren Sie ihn jetzt."
-  - [ ] 10.7: Checkbox: "Ich habe den Token gesichert"
-  - [ ] 10.8: Dialog erst schliessbar nach Checkbox-Bestaetigung
-  - [ ] 10.9: A11y: Screen Reader Announcement fuer Copy-Aktion
+- [x] **Task 10: MigrationModal Organism erstellen** (AC: 2, 3)
+  - [x] 10.1: TanStack Form Integration mit Zod-Validator
+  - [x] 10.2: Erklaerungstext: "Nach der Migration benoetigen alle Clients einen gueltigen Token."
+  - [x] 10.3: Token-Name Input (3-50 Zeichen, Zod-Schema)
+  - [x] 10.4: Submit-Button mit Loading-State
+  - [x] 10.5: Nach Erfolg: Token-Anzeige (genau einmal, Copy-Button)
+  - [x] 10.6: Warnung: "Dieser Token wird nur einmal angezeigt. Kopieren Sie ihn jetzt."
+  - [x] 10.7: Checkbox: "Ich habe den Token gesichert"
+  - [x] 10.8: Dialog erst schliessbar nach Checkbox-Bestaetigung
+  - [x] 10.9: A11y: Screen Reader Announcement fuer Copy-Aktion
 
-- [ ] **Task 11: Zod-Schema fuer Migration** (AC: 2)
-  - [ ] 11.1: `migrationSchema` in `/features/admin/schemas/migration.schema.ts`
-  - [ ] 11.2: tokenName: min 3, max 50 Zeichen, required
-  - [ ] 11.3: Deutsche Fehlermeldungen
+- [x] **Task 11: Zod-Schema fuer Migration** (AC: 2)
+  - [x] 11.1: `migrationSchema` in `/features/admin/schemas/migration.schema.ts`
+  - [x] 11.2: tokenName: min 3, max 50 Zeichen, required
+  - [x] 11.3: Deutsche Fehlermeldungen
 
-- [ ] **Task 12: Admin Dashboard Integration** (AC: 1, 5)
-  - [ ] 12.1: InsecureModeBanner im Admin Dashboard anzeigen wenn insecureMode=true
-  - [ ] 12.2: Banner ausblenden nach Migration (Query-Refresh)
-  - [ ] 12.3: Keine UI-Aenderung wenn bereits SECURE_MODE
+- [x] **Task 12: Admin Dashboard Integration** (AC: 1, 5)
+  - [x] 12.1: InsecureModeBanner im Admin Dashboard anzeigen wenn insecureMode=true
+  - [x] 12.2: Banner ausblenden nach Migration (Query-Refresh)
+  - [x] 12.3: Keine UI-Aenderung wenn bereits SECURE_MODE
 
 ### Testing Tasks
 
-- [ ] **Task 13: E2E Spot-Check mit Chrome MCP**
-  - [ ] 13.1: INSECURE_MODE Banner wird angezeigt (wenn ENV aktiv)
-  - [ ] 13.2: Migration-Modal oeffnet sich
-  - [ ] 13.3: Token wird nach Migration angezeigt
-  - [ ] 13.4: Banner verschwindet nach Migration
+- [x] **Task 13: E2E Spot-Check mit Chrome MCP**
+  - [x] 13.1: INSECURE_MODE Banner wird angezeigt (wenn ENV aktiv)
+  - [x] 13.2: Migration-Modal oeffnet sich
+  - [~] 13.3: Token wird nach Migration angezeigt (nicht getestet - wuerde Server-Zustand permanent aendern)
+  - [~] 13.4: Banner verschwindet nach Migration (nicht getestet - wuerde Server-Zustand permanent aendern)
 
 ## Dev Notes
 
@@ -462,15 +462,39 @@ const MigrationModal: FC<Props> = ({ isOpen, onClose }) => {
 
 ### Agent Model Used
 
-{{agent_model_name_version}}
+Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Debug Log References
 
-_Wird waehrend Implementation ausgefuellt_
+- Backend Unit Tests: 5250 Tests passing (15 skipped)
+- E2E Spot-Check: Chrome MCP Validierung erfolgreich
 
 ### Completion Notes List
 
-_Wird waehrend Implementation ausgefuellt_
+**2026-01-13 - Story Completion Review:**
+
+1. **Backend Tasks 1-6:** Alle bereits implementiert vor Session-Start
+   - ServerConfig Entity & Repository vorhanden
+   - MigrateToSecureModeCommand & Handler mit Tests
+   - GetSecurityStatusQuery mit Tests
+   - AdminSecurityController mit Swagger Decorators
+   - ServerAccessGuard mit DB-Config Prioritaet
+   - Health Endpoint nutzt DB-Config
+
+2. **Task 7:** API-Client bereits generiert (AdminApi.migrateToSecure, getSecurityStatus)
+
+3. **Frontend Tasks 8-12:** Alle bereits implementiert
+   - `use-security-management.ts` mit useSecurityStatus, useMigrateToSecureMode
+   - InsecureModeBanner.tsx mit Amber Styling und A11y
+   - MigrationModal.tsx mit TanStack Form, Zod, Copy-Button, Checkbox
+   - TokenManagementPage.tsx Integration
+
+4. **Task 13 E2E Spot-Check:**
+   - ✅ 13.1: InsecureModeBanner wird korrekt angezeigt
+   - ✅ 13.2: MigrationModal oeffnet mit Warnung und Form
+   - ⏭️ 13.3-13.4: Nicht getestet (wuerde Server-Zustand permanent aendern)
+
+**Status: READY FOR CODE REVIEW**
 
 ### File List
 

@@ -86,7 +86,7 @@ function getAdminTokenCookieOptions(isProduction: boolean): AuthCookieOptions {
     httpOnly: true,
     secure: isProduction,
     sameSite: 'lax',
-    maxAge: 900000, // 15 minutes in milliseconds
+    maxAge: milliseconds({ minutes: 15 }), // 15 Minuten - Sicherheitsfeature
     path: '/',
   };
 }
