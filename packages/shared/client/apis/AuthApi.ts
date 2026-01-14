@@ -385,7 +385,7 @@ export class AuthApi extends runtime.BaseAPI {
   }
 
   /**
-   * Meldet den User ab und löscht alle Authentifizierung-Cookies. MVP: Token bleibt gültig bis Expiration.
+   * Meldet den User ab und loescht alle Authentifizierung-Cookies. MVP: Token bleibt gueltig bis Expiration.
    * User Logout
    */
   async authControllerLogoutRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
@@ -407,7 +407,7 @@ export class AuthApi extends runtime.BaseAPI {
   }
 
   /**
-   * Meldet den User ab und löscht alle Authentifizierung-Cookies. MVP: Token bleibt gültig bis Expiration.
+   * Meldet den User ab und loescht alle Authentifizierung-Cookies. MVP: Token bleibt gueltig bis Expiration.
    * User Logout
    */
   async authControllerLogout(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {

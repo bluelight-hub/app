@@ -20,11 +20,11 @@ import { mapValues } from '../runtime';
  */
 export interface CreateInviteDto {
   /**
-   * Ablaufdatum des Invite-Codes (ISO-8601 Format)
+   * Ablaufdatum des Invite-Codes (ISO-8601 Format). Optional - default: 7 Tage ab jetzt
    * @type {string}
    * @memberof CreateInviteDto
    */
-  expiresAt: string;
+  expiresAt?: string;
   /**
    * Maximale Anzahl Einlösungen (1-100, default: 1)
    * @type {number}
@@ -43,7 +43,6 @@ export interface CreateInviteDto {
  * Check if a given object implements the CreateInviteDto interface.
  */
 export function instanceOfCreateInviteDto(value: object): value is CreateInviteDto {
-  if (!('expiresAt' in value) || value['expiresAt'] === undefined) return false;
   return true;
 }
 
@@ -56,7 +55,7 @@ export function CreateInviteDtoFromJSONTyped(json: any, ignoreDiscriminator: boo
     return json;
   }
   return {
-    expiresAt: json['expiresAt'],
+    expiresAt: json['expiresAt'] == null ? undefined : json['expiresAt'],
     maxUses: json['maxUses'] == null ? undefined : json['maxUses'],
     label: json['label'] == null ? undefined : json['label'],
   };

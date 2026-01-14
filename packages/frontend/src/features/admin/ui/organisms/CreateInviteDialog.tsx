@@ -20,12 +20,21 @@ interface CreateInviteDialogProps {
  *
  * Zeigt ein Formular mit:
  * - Label (optional, max 100 Zeichen)
- * - Ablaufdatum (required, datetime-local input)
- * - Max Uses (optional, number 1-100)
+ * - Ablaufdatum (optional, Default: 7 Tage)
+ * - Max Uses (optional, Default: 1)
  *
  * Nach erfolgreicher Erstellung wird der vollständige Code
  * in einem kopierbaren Format angezeigt.
  */
+/**
+ * Berechnet das Default-Ablaufdatum (7 Tage ab jetzt) im datetime-local Format.
+ */
+function getDefaultExpiresAt(): string {
+  const date = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  // datetime-local Format: YYYY-MM-DDTHH:mm
+  return date.toISOString().slice(0, 16);
+}
+
 export const CreateInviteDialog = ({ isOpen, onClose }: CreateInviteDialogProps) => {
   const createInviteMutation = useCreateInvite();
   const [createdCode, setCreatedCode] = useState<string | null>(null);
@@ -34,7 +43,7 @@ export const CreateInviteDialog = ({ isOpen, onClose }: CreateInviteDialogProps)
   const form = useForm({
     defaultValues: {
       label: '',
-      expiresAt: '',
+      expiresAt: getDefaultExpiresAt(),
       maxUses: undefined as number | undefined,
     },
     validatorAdapter: zodValidator(),
@@ -43,7 +52,8 @@ export const CreateInviteDialog = ({ isOpen, onClose }: CreateInviteDialogProps)
     },
     onSubmit: async ({ value }) => {
       const dto: CreateInviteDto = {
-        expiresAt: value.expiresAt,
+        // Leerer String -> undefined -> Backend-Default (7 Tage)
+        expiresAt: value.expiresAt || undefined,
         label: value.label || undefined,
         maxUses: value.maxUses,
       };
@@ -133,7 +143,7 @@ export const CreateInviteDialog = ({ isOpen, onClose }: CreateInviteDialogProps)
             {/* Ablaufdatum */}
             <form.Field name="expiresAt">
               {(field) => (
-                <FormField label="Ablaufdatum" error={field.state.meta.errors[0]} required htmlFor="create-invite-expires">
+                <FormField label="Ablaufdatum" helperText="Standard: 7 Tage ab jetzt" error={field.state.meta.errors[0]} htmlFor="create-invite-expires">
                   <Input
                     id="create-invite-expires"
                     type="datetime-local"

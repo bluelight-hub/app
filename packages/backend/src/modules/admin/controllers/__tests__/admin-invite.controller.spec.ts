@@ -2,7 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { AdminInviteController } from '@/modules/admin/controllers/admin-invite.controller';
 import { Result } from '@/domain/common/result';
 import type { CreateInviteHandler } from '@/application/admin/commands/create-invite.handler';
-import type { CreateInviteDto } from '@/application/admin/dto/create-invite.dto';
+import { CreateInviteDto } from '@/application/admin/dto/create-invite.dto';
 import type { CreateInviteResponseDto } from '@/application/admin/dto/create-invite-response.dto';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { INVITE_ERROR_CODES } from '@/application/admin/errors/invite-error.codes';
@@ -91,7 +91,7 @@ describe('AdminInviteController', () => {
         expect(executedCommand.createdById).toBe(mockAdminUser.userId);
       });
 
-      it('sollte Invite-Code ohne optionale Felder erstellen', async () => {
+      it('sollte Invite-Code ohne optionale Felder erstellen (mit explizitem expiresAt)', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
           expiresAt: '2026-02-01T12:00:00.000Z',
@@ -114,6 +114,51 @@ describe('AdminInviteController', () => {
 
         const executedCommand = mockCreateInviteHandler.execute.mock.calls[0][0];
         expect(executedCommand.maxUses).toBe(1); // Default value
+        expect(executedCommand.label).toBeUndefined();
+      });
+
+      it('sollte Invite-Code ohne expiresAt erstellen (Default: 7 Tage)', async () => {
+        // Given (Arrange)
+        const dto: CreateInviteDto = {
+          maxUses: 5,
+          label: 'Test ohne expiresAt',
+        };
+
+        const expectedDefaultExpiry = new Date(Date.now() + CreateInviteDto.DEFAULT_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+        mockCreateInviteHandler.execute.mockResolvedValue(Result.ok(mockSuccessResponse));
+
+        // When (Act)
+        await controller.createInvite(dto, mockAdminUser);
+
+        // Then (Assert)
+        expect(mockCreateInviteHandler.execute).toHaveBeenCalledTimes(1);
+
+        const executedCommand = mockCreateInviteHandler.execute.mock.calls[0][0];
+        // Pruefen, dass expiresAt ca. 7 Tage in der Zukunft liegt (mit 5 Sekunden Toleranz)
+        const timeDiff = Math.abs(executedCommand.expiresAt.getTime() - expectedDefaultExpiry.getTime());
+        expect(timeDiff).toBeLessThan(5000); // Max 5 Sekunden Abweichung
+      });
+
+      it('sollte Invite-Code komplett ohne optionale Felder erstellen (alle Defaults)', async () => {
+        // Given (Arrange)
+        const dto: CreateInviteDto = {};
+
+        mockCreateInviteHandler.execute.mockResolvedValue(Result.ok(mockSuccessResponse));
+
+        // When (Act)
+        await controller.createInvite(dto, mockAdminUser);
+
+        // Then (Assert)
+        expect(mockCreateInviteHandler.execute).toHaveBeenCalledTimes(1);
+
+        const executedCommand = mockCreateInviteHandler.execute.mock.calls[0][0];
+        // Default expiresAt: 7 Tage
+        const expectedDefaultExpiry = new Date(Date.now() + CreateInviteDto.DEFAULT_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+        const timeDiff = Math.abs(executedCommand.expiresAt.getTime() - expectedDefaultExpiry.getTime());
+        expect(timeDiff).toBeLessThan(5000);
+        // Default maxUses: 1
+        expect(executedCommand.maxUses).toBe(1);
+        // Default label: undefined
         expect(executedCommand.label).toBeUndefined();
       });
 

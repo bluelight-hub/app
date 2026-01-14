@@ -39,22 +39,22 @@ export interface MigrateToSecureModeResponseDto {
   newMode: MigrateToSecureModeResponseDtoNewModeEnum;
   /**
    * Das vollstaendige Access-Token (NUR hier sichtbar!)
-   * @type {object}
+   * @type {string}
    * @memberof MigrateToSecureModeResponseDto
    */
-  token: object | null;
+  token: string;
   /**
    * Name des erstellten Tokens
-   * @type {object}
+   * @type {string}
    * @memberof MigrateToSecureModeResponseDto
    */
-  tokenName: object | null;
+  tokenName: string;
   /**
    * Praefix des Tokens
-   * @type {object}
+   * @type {string}
    * @memberof MigrateToSecureModeResponseDto
    */
-  tokenPrefix: object | null;
+  tokenPrefix: string;
   /**
    * Migrationszeitpunkt
    * @type {string}

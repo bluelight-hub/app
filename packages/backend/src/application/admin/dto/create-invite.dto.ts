@@ -9,7 +9,7 @@ import { IsDateString, IsInt, IsOptional, IsString, Max, MaxLength, Min } from '
  * erfolgt im CreateInviteCommand.
  *
  * **Felder:**
- * - expiresAt: Ablaufdatum als ISO-8601 String (Pflicht)
+ * - expiresAt: Ablaufdatum als ISO-8601 String (Optional, default: 7 Tage)
  * - maxUses: Maximale Anzahl Einlösungen, 1-100 (Optional, default: 1)
  * - label: Optionale Beschreibung, max 100 Zeichen
  *
@@ -23,16 +23,22 @@ import { IsDateString, IsInt, IsOptional, IsString, Max, MaxLength, Min } from '
  * ```
  */
 export class CreateInviteDto {
+  /** Default-Ablaufzeit: 7 Tage in Millisekunden */
+  static readonly DEFAULT_EXPIRY_DAYS = 7;
+
   /**
    * Ablaufdatum des Invite-Codes.
+   * Optional - wenn nicht angegeben, wird 7 Tage ab jetzt verwendet.
    * Muss in der Zukunft liegen (validiert im Command).
    */
   @ApiProperty({
-    description: 'Ablaufdatum des Invite-Codes (ISO-8601 Format)',
+    description: 'Ablaufdatum des Invite-Codes (ISO-8601 Format). Optional - default: 7 Tage ab jetzt',
     example: '2026-02-01T12:00:00.000Z',
+    required: false,
   })
+  @IsOptional()
   @IsDateString({}, { message: 'expiresAt muss ein gültiges ISO-8601 Datum sein' })
-  expiresAt!: string;
+  expiresAt?: string;
 
   /**
    * Maximale Anzahl Einlösungen des Codes.

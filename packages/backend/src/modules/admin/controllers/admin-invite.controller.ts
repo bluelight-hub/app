@@ -94,10 +94,15 @@ export class AdminInviteController {
     @CurrentUser() user: ValidatedUser,
   ): Promise<CreateInviteResponseDto> {
     // ════════════════════════════════════════════════════════════════════════
-    // 1. Command erstellen mit Validierung
+    // 1. Default expiresAt berechnen (7 Tage) wenn nicht angegeben
+    // ════════════════════════════════════════════════════════════════════════
+    const expiresAt = dto.expiresAt ? new Date(dto.expiresAt) : new Date(Date.now() + CreateInviteDto.DEFAULT_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+
+    // ════════════════════════════════════════════════════════════════════════
+    // 2. Command erstellen mit Validierung
     // ════════════════════════════════════════════════════════════════════════
     const commandResult = CreateInviteCommand.create({
-      expiresAt: new Date(dto.expiresAt),
+      expiresAt,
       maxUses: dto.maxUses,
       label: dto.label,
       createdById: user.userId,
