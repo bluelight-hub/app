@@ -1,3 +1,13 @@
+## Version [v1.0.0-alpha.42](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.41...v1.0.0-alpha.42) – Veröffentlicht am 2026-01-15
+
+## 🐛 Fehlerbehebungen
+Diese Probleme wurden behoben:
+- [`1e96c450`](https://github.com/rubenvitt/bluelight-hub/commit/1e96c450) (ui): Fix layout issues in button and color mode menu 
+
+
+
+# [1.0.0-alpha.42](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.41...v1.0.0-alpha.42) (2026-01-15)
+
 ## Version [v1.0.0-alpha.41](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.40...v1.0.0-alpha.41) – Veröffentlicht am 2026-01-14
 
 ## 🐛 Fehlerbehebungen

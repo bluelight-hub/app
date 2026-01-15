@@ -1,7 +1,7 @@
 {
   "name": "@bluelight-hub/frontend",
   "private": true,
-  "version": "1.0.0-alpha.41",
+  "version": "1.0.0-alpha.42",
   "type": "module",
   "scripts": {
     "dev": "tauri dev",
