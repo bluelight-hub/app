@@ -139,7 +139,7 @@ export const ServerListItem = forwardRef<HTMLDivElement, ServerListItemProps>(({
         <div className="relative flex-shrink-0">
           <ServerVisualBadge server={server} size="sm" />
           {/* Status-Indikator als Overlay unten-rechts */}
-          <div className="-right-0.5 -bottom-0.5 absolute">
+          <div className="absolute -right-0.5 -bottom-0.5">
             <ServerStatusDot status={status ?? 'disconnected'} size="sm" className="ring-2 ring-white dark:ring-gray-800" />
           </div>
         </div>

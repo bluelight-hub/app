@@ -76,7 +76,7 @@ export function ColorModeMenu({ placement = 'bottom', align = 'right' }: ColorMo
         className={cn(
           'inline-flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2',
           'border border-gray-200 bg-white text-gray-700',
-          'hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500',
+          'hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset',
           'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700',
           'transition-colors duration-200',
         )}

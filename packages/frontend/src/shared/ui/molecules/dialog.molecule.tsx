@@ -168,7 +168,7 @@ Dialog.Footer = ({ children, className, loading }: DialogFooterProps) => {
 };
 
 Dialog.CloseButton = ({ onClose }: { onClose: () => void }) => {
-  return <CloseButton onClick={onClose} className="-top-2 absolute right-0" appearance="minimal" size="sm" />;
+  return <CloseButton onClick={onClose} className="absolute -top-2 right-0" appearance="minimal" size="sm" />;
 };
 
 /**

@@ -269,7 +269,7 @@ export function ServerSelector({
                     <ServerVisualBadge server={activeServer} size="sm" />
                     {/* Status-Indikator als Overlay unten-rechts */}
                     <span
-                      className={cn('-right-0.5 -bottom-0.5 absolute h-2 w-2 rounded-full ring-2 ring-white dark:ring-gray-900', getStatusColor(connectionStatus?.get(activeServer.id)))}
+                      className={cn('absolute -right-0.5 -bottom-0.5 h-2 w-2 rounded-full ring-2 ring-white dark:ring-gray-900', getStatusColor(connectionStatus?.get(activeServer.id)))}
                       aria-hidden="true"
                     />
                   </div>
@@ -309,7 +309,7 @@ export function ServerSelector({
                         <ServerVisualBadge server={server} size="sm" />
                         {/* Status-Indikator als Overlay unten-rechts */}
                         <span
-                          className={cn('-right-0.5 -bottom-0.5 absolute h-2 w-2 rounded-full ring-2 ring-white dark:ring-gray-800', getStatusColor(connectionStatus?.get(server.id)))}
+                          className={cn('absolute -right-0.5 -bottom-0.5 h-2 w-2 rounded-full ring-2 ring-white dark:ring-gray-800', getStatusColor(connectionStatus?.get(server.id)))}
                           aria-hidden="true"
                         />
                       </div>
