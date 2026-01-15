@@ -13,17 +13,26 @@
  * - Given-When-Then BDD Style
  */
 
-// Create mock factory that will be reconfigured per test
-let mockQueryRaw: jest.Mock;
-let mockDisconnect: jest.Mock;
+// Mock storage accessible from factory functions
+const mockStorage = {
+  queryRaw: jest.fn(),
+  disconnect: jest.fn(),
+};
 
-// Mock PrismaClient BEFORE imports
-jest.mock('@prisma/client', () => {
+// Mock PrismaPg adapter BEFORE imports
+jest.mock('@prisma/adapter-pg', () => {
+  return {
+    PrismaPg: jest.fn().mockImplementation(() => ({})),
+  };
+});
+
+// Mock PrismaClient from generated path BEFORE imports
+jest.mock('@/generated/prisma/client', () => {
   return {
     PrismaClient: jest.fn().mockImplementation(() => {
       return {
-        $queryRaw: mockQueryRaw,
-        $disconnect: mockDisconnect,
+        $queryRaw: (...args: unknown[]) => mockStorage.queryRaw(...args),
+        $disconnect: () => mockStorage.disconnect(),
       };
     }),
   };
@@ -41,9 +50,9 @@ describe('Database Test Helper - skipIfNoDatabase()', () => {
     process.env = { ...originalEnv };
     consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
-    // Reset mock functions
-    mockQueryRaw = jest.fn();
-    mockDisconnect = jest.fn().mockResolvedValue(undefined);
+    // Reset mock functions with default implementations
+    mockStorage.queryRaw.mockReset();
+    mockStorage.disconnect.mockReset().mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -110,7 +119,7 @@ describe('Database Test Helper - skipIfNoDatabase()', () => {
     process.env.DATABASE_URL = 'postgresql://localhost:5432/test';
 
     // Mock PrismaClient.$queryRaw to throw error
-    mockQueryRaw.mockRejectedValue(new Error('Connection refused'));
+    mockStorage.queryRaw.mockRejectedValue(new Error('Connection refused'));
 
     // When: Check database availability
     const result = await skipIfNoDatabase();
@@ -123,7 +132,7 @@ describe('Database Test Helper - skipIfNoDatabase()', () => {
     expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Connection refused'));
 
     // And: PrismaClient cleanup called
-    expect(mockDisconnect).toHaveBeenCalled();
+    expect(mockStorage.disconnect).toHaveBeenCalled();
   });
 
   /**
@@ -137,7 +146,7 @@ describe('Database Test Helper - skipIfNoDatabase()', () => {
     process.env.DATABASE_URL = 'postgresql://localhost:5432/test';
 
     // Mock PrismaClient.$queryRaw to hang (never resolves)
-    mockQueryRaw.mockImplementation(
+    mockStorage.queryRaw.mockImplementation(
       () =>
         new Promise((resolve) => {
           // Never resolves - simulates hanging connection
@@ -156,7 +165,7 @@ describe('Database Test Helper - skipIfNoDatabase()', () => {
     expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('timeout'));
 
     // And: Cleanup called
-    expect(mockDisconnect).toHaveBeenCalled();
+    expect(mockStorage.disconnect).toHaveBeenCalled();
   }, 10000); // Test timeout: 10s
 
   // ========================================
@@ -174,7 +183,7 @@ describe('Database Test Helper - skipIfNoDatabase()', () => {
     process.env.DATABASE_URL = 'postgresql://localhost:5432/test';
 
     // Mock successful PrismaClient connection
-    mockQueryRaw.mockResolvedValue([{ result: 1 }]);
+    mockStorage.queryRaw.mockResolvedValue([{ result: 1 }]);
 
     // When: Check database availability
     const result = await skipIfNoDatabase();
@@ -186,7 +195,7 @@ describe('Database Test Helper - skipIfNoDatabase()', () => {
     expect(consoleWarnSpy).not.toHaveBeenCalled();
 
     // And: PrismaClient cleanup called
-    expect(mockDisconnect).toHaveBeenCalled();
+    expect(mockStorage.disconnect).toHaveBeenCalled();
   });
 
   // ========================================
@@ -203,12 +212,12 @@ describe('Database Test Helper - skipIfNoDatabase()', () => {
     // Given: DATABASE_URL gesetzt aber Connection fehlschlägt
     process.env.DATABASE_URL = 'postgresql://localhost:5432/test';
 
-    mockQueryRaw.mockRejectedValue(new Error('Test error'));
+    mockStorage.queryRaw.mockRejectedValue(new Error('Test error'));
 
     // When: Check database availability
     await skipIfNoDatabase();
 
     // Then: Disconnect ALWAYS called (finally block)
-    expect(mockDisconnect).toHaveBeenCalled();
+    expect(mockStorage.disconnect).toHaveBeenCalled();
   });
 });
