@@ -35,10 +35,10 @@ export function AuthLayout({ children, className }: AuthLayoutProps) {
   return (
     <div className={cn('login-background relative min-h-screen overflow-hidden', className)}>
       {/* Background with blur effect */}
-      <div className="-z-20 absolute inset-0 bg-center bg-cover bg-no-repeat blur-md" style={backgroundStyle} />
+      <div className="absolute inset-0 -z-20 bg-center bg-cover bg-no-repeat blur-md" style={backgroundStyle} />
 
       {/* Background overlay */}
-      <div className="-z-10 absolute inset-0 bg-gradient-to-br from-blue-800/80 via-blue-800/40 to-red-600/30 dark:from-blue-900/40 dark:via-blue-900/20 dark:to-red-900/15" />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-blue-800/80 via-blue-800/40 to-red-600/30 dark:from-blue-900/40 dark:via-blue-900/20 dark:to-red-900/15" />
 
       {/* Browser Security Banner - oben fixiert, nur im Browser sichtbar (AC4/AC5) */}
       <BrowserSecurityBanner />

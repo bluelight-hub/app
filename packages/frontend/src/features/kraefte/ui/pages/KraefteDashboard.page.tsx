@@ -67,7 +67,7 @@ interface DashboardHeaderProps {
  */
 function DashboardHeader({ onRefresh, lastUpdated, isRefreshing, mode, onModeChange }: DashboardHeaderProps) {
   return (
-    <div className={cn('flex items-center justify-between', mode === 'fullscreen' && '-mx-6 -mt-6 lg:-mx-8 sticky top-0 z-10 bg-white px-6 py-4 shadow-sm lg:px-8 dark:bg-gray-800')}>
+    <div className={cn('flex items-center justify-between', mode === 'fullscreen' && 'sticky top-0 z-10 -mx-6 -mt-6 bg-white px-6 py-4 shadow-sm lg:-mx-8 lg:px-8 dark:bg-gray-800')}>
       <div className="flex items-center gap-3">
         <PiChartBar className={cn('text-gray-500 dark:text-gray-400', mode === 'fullscreen' ? 'h-8 w-8' : 'h-6 w-6')} />
         <h1 className={cn('font-bold text-gray-900 dark:text-gray-100', mode === 'fullscreen' ? 'text-3xl lg:text-4xl' : 'text-2xl')}>Kräfte-Dashboard</h1>

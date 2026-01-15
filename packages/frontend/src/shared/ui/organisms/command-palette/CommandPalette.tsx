@@ -123,7 +123,7 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
               >
                 {/* Search Input */}
                 <div className="relative">
-                  <div className="-translate-y-1/2 absolute top-1/2 left-4">
+                  <div className="absolute top-1/2 left-4 -translate-y-1/2">
                     <PiTerminal className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                   </div>
                   <Command.Input
@@ -141,7 +141,7 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
                     autoFocus
                   />
                   {state.immediateSearch && (
-                    <CloseButton onClick={() => actions.setSearch('')} className="-translate-y-1/2 absolute top-1/2 right-4" aria-label="Suche löschen">
+                    <CloseButton onClick={() => actions.setSearch('')} className="absolute top-1/2 right-4 -translate-y-1/2" aria-label="Suche löschen">
                       <PiX className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                     </CloseButton>
                   )}

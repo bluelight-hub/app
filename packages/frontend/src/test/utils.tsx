@@ -20,11 +20,6 @@ export function createTestQueryClient(): QueryClient {
         retry: false,
       },
     },
-    logger: {
-      log: () => {},
-      warn: () => {},
-      error: () => {},
-    },
   });
 }
 
@@ -69,12 +64,23 @@ export function renderWithProviders(ui: ReactElement, { queryClient, ...options 
 }
 
 /**
+ * Mock-User-Typ für Tests.
+ * Definiert die Struktur eines User-Objekts in der Anwendung.
+ */
+interface MockUser {
+  id: string;
+  username: string;
+  email: string;
+  roles: string[];
+}
+
+/**
  * Factory für Mock-User-Objekte in Tests.
  *
  * Erstellt ein valides User-Objekt mit Default-Werten die
  * in Tests überschrieben werden können.
  */
-export function createMockUser(overrides?: Partial<any>) {
+export function createMockUser(overrides?: Partial<MockUser>): MockUser {
   return {
     id: 'test-user-id',
     username: 'testuser',

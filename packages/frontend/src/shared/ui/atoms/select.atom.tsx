@@ -59,7 +59,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({ classN
           </option>
         ))}
       </select>
-      <PiCaretDown className={cn('-translate-y-1/2 pointer-events-none absolute top-1/2 right-2 text-gray-500 dark:text-gray-400', iconSizes[selectSize])} aria-hidden="true" />
+      <PiCaretDown className={cn('pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-gray-500 dark:text-gray-400', iconSizes[selectSize])} aria-hidden="true" />
     </div>
   );
 });

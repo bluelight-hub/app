@@ -326,7 +326,7 @@ export class PreviewHiOrgPersonsHandler {
     if (a.length === 0 || b.length === 0) return 0;
 
     // Initialisiere Matrix mit expliziten Werten
-    const matrix: number[][] = Array.from({ length: a.length + 1 }, (_, i) => Array.from({ length: b.length + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0)));
+    const matrix: number[][] = Array.from({ length: a.length + 1 }, (_, rowIdx) => Array.from({ length: b.length + 1 }, (_, colIdx) => (rowIdx === 0 ? colIdx : colIdx === 0 ? rowIdx : 0)));
 
     for (let i = 1; i <= a.length; i++) {
       const row = matrix[i];

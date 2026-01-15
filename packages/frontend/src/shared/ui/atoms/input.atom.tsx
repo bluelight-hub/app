@@ -36,7 +36,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     if (leftIcon || rightElement) {
       return (
         <div className="relative w-full">
-          {leftIcon && <div className="-translate-y-1/2 pointer-events-none absolute top-1/2 left-4 text-gray-500 dark:text-gray-400">{leftIcon}</div>}
+          {leftIcon && <div className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-gray-500 dark:text-gray-400">{leftIcon}</div>}
           <input ref={ref} className={inputClasses} autoCorrect={autoCorrect} {...props} />
           {rightElement && <div className="absolute top-0 right-0 flex h-full items-center pr-1">{rightElement}</div>}
         </div>

@@ -48,7 +48,7 @@ export function LogoWithIndicator({ size = 'lg', showIndicator = true, status = 
   return (
     <div className="relative inline-block">
       <img src={logoSrc} alt="Bluelight Hub Logo" className={`${sizeClasses[size]} object-contain drop-shadow-[0_10px_30px_rgba(0,61,122,0.3)]`} />
-      {showIndicator && <div className={`-right-0.5 -top-0.5 absolute h-4 w-4 rounded-full border-[3px] border-white dark:border-gray-800 ${statusColorClasses[status]}`} />}
+      {showIndicator && <div className={`absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full border-[3px] border-white dark:border-gray-800 ${statusColorClasses[status]}`} />}
     </div>
   );
 }
