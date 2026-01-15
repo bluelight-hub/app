@@ -213,3 +213,6 @@ packages/backend/artillery/results/
 
 # Auto Claude data directory
 .auto-claude/
+
+# Generated Prisma Client (regenerated on build)
+packages/backend/src/generated/

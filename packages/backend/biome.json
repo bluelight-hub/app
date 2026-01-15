@@ -2,12 +2,12 @@
   "extends": "//",
   "formatter": {
     "enabled": true,
-    "includes": ["!coverage/**", "!coverage-e2e/**", "!dist/**", "!node_modules/**"]
+    "includes": ["!coverage/**", "!coverage-e2e/**", "!dist/**", "!node_modules/**", "!src/generated/**"]
   },
   "linter": {
     "enabled": true,
     "rules": {},
-    "includes": ["!coverage/**", "!coverage-e2e/**", "!dist/**", "!node_modules/**"]
+    "includes": ["!coverage/**", "!coverage-e2e/**", "!dist/**", "!node_modules/**", "!src/generated/**"]
   },
   "javascript": {
     "parser": {

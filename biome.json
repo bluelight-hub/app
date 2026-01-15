@@ -32,7 +32,8 @@
       "!**/*.min.css",
       "!**/*.tailwind.css",
       "!docs/**/*.md",
-      "!docs/*.md"
+      "!docs/*.md",
+      "!**/generated/**"
     ]
   },
   "linter": {
@@ -68,7 +69,8 @@
       "!**/*.min.css",
       "!**/*.tailwind.css",
       "!.releaserc.js",
-      "!docs/**/*.md"
+      "!docs/**/*.md",
+      "!**/generated/**"
     ]
   },
   "assist": {
