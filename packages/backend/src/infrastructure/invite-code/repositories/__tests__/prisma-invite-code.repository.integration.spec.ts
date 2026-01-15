@@ -16,7 +16,7 @@
  * - afterEach() cleanup in reverse FK order
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/generated/prisma/client';
 import { createId } from '@paralleldrive/cuid2';
 import { PrismaInviteCodeRepository } from '../prisma-invite-code.repository';
 import { InviteCode } from '@domain/aggregates/invite-code.aggregate';

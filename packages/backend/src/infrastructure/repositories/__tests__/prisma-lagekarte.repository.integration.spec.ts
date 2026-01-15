@@ -37,7 +37,7 @@ jest.mock('@paralleldrive/cuid2', () => ({
   }),
 }));
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/generated/prisma/client';
 import { PrismaLagekarteRepository } from '../prisma-lagekarte.repository';
 import { LagekarteAggregate } from '@domain/aggregates/lagekarte.aggregate';
 import { LagekarteId } from '@domain/value-objects/lagekarte-id';

@@ -43,7 +43,7 @@ jest.mock('@paralleldrive/cuid2', () => ({
   }),
 }));
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/generated/prisma/client';
 import { PrismaEtbRepository } from '../prisma-etb.repository';
 import { EinsatztagebuchAggregate } from '@domain/aggregates/einsatztagebuch.aggregate';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';

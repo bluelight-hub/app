@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { EinsatzStatus } from '@prisma/client';
+import { EinsatzStatus } from '@/generated/prisma/client';
 import { Transform } from 'class-transformer';
 import { IsDateString, IsEnum, IsObject, IsOptional, IsString, MaxLength } from 'class-validator';
 

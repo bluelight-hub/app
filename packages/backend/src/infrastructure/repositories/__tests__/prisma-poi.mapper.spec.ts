@@ -36,7 +36,7 @@ import { Poi } from '@domain/entities/poi.entity';
 import { MgrsCoordinate } from '@domain/value-objects/mgrs-coordinate';
 import { PoiCategory } from '@domain/value-objects/poi-category';
 import { UserId } from '@domain/value-objects/user-id';
-import type { LagekartePoi, PoiType } from '@prisma/client';
+import type { LagekartePoi, PoiType } from '@/generated/prisma/client';
 
 describe('PrismaPoiMapper', () => {
   // Test Data Setup (use valid CUID2 format - 25 characters, lowercase a-z0-9, starts with letter)

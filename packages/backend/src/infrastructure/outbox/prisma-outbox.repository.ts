@@ -5,15 +5,15 @@ import type { IOutboxRepository, OutboxEventDto } from '@domain/repositories/i-o
 import { Inject, Injectable } from '@nestjs/common';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@infrastructure/di-tokens';
-import type { OutboxEvent } from '@prisma/client';
-import { Prisma } from '@prisma/client';
+import type { OutboxEvent } from '@/generated/prisma/client';
+import { Prisma } from '@/generated/prisma/client';
 import { EventSerializer, type SerializedEvent } from './event-serializer';
 
 /**
  * Prisma Transaction Client Type für atomare Operationen.
  * Cast-Ziel für TransactionContext aus dem Domain Layer.
  */
-type PrismaTransactionClient = Omit<PrismaService, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends' | 'onModuleInit' | 'onModuleDestroy'>;
+type PrismaTransactionClient = PrismaService;
 
 /**
  * Prisma Transaction Type für atomare Operationen (Legacy Export).
@@ -150,7 +150,7 @@ export class PrismaOutboxRepository implements IOutboxRepository {
 
     // Raw Query mit FOR UPDATE SKIP LOCKED für Pessimistic Locking
     // Der Index idx_outbox_pending_poll [status, createdAt] optimiert diese Query
-    const events = await client.$queryRaw<OutboxEvent[]>`
+    const events = (await client.$queryRaw`
       SELECT
         id,
         "eventName",
@@ -168,7 +168,7 @@ export class PrismaOutboxRepository implements IOutboxRepository {
       ORDER BY "createdAt" ASC
       LIMIT ${limit}
       FOR UPDATE SKIP LOCKED
-    `;
+    `) as OutboxEvent[];
 
     if (events.length > 0) {
       this.logger.debug(`Found and locked ${events.length} pending events (limit: ${limit})`);

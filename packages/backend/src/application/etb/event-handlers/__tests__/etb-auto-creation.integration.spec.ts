@@ -44,7 +44,7 @@ jest.mock('@paralleldrive/cuid2', () => ({
 
 import { Test, type TestingModule } from '@nestjs/testing';
 import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/generated/prisma/client';
 import { Logger } from '@nestjs/common';
 import { EtbAutoCreationHandler } from '../etb-auto-creation.handler';
 import { CreateEtbHandler } from '../../commands/create-etb/create-etb.handler';

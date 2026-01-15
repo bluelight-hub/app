@@ -45,7 +45,7 @@ import {
   DeleteManagedUserResponse,
   toDeleteUserResponseDto,
 } from '@application/user-management';
-import { UserRole as PrismaUserRole } from '@prisma/client';
+import { UserRole as PrismaUserRole } from '@/generated/prisma/client';
 import { UserRole as DomainUserRole } from '@domain/value-objects/user-role';
 import type { UserDto as AppUserDto } from '@application/user-management';
 

@@ -5,7 +5,7 @@ import { Result } from '@domain/common/result';
 import type { TextbausteinDto } from '@application/etb/dto';
 import type { GetTextbausteineQuery } from './get-textbausteine.query';
 // biome-ignore lint/style/noRestrictedImports: Prisma types needed for query filters (CQRS Read-Side Pattern)
-import type { Prisma } from '@prisma/client';
+import type { Prisma } from '@/generated/prisma/client';
 
 /**
  * Handler fuer GetTextbausteineQuery.

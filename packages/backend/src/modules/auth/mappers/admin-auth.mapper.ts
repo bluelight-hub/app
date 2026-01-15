@@ -1,4 +1,4 @@
-import type { User } from '@prisma/client';
+import type { User } from '@/generated/prisma/client';
 import type { AdminLoginResponseDto } from '../dto/admin-login-response.dto';
 import type { AdminSetupResponseDto } from '../dto/admin-setup-response.dto';
 import type { AdminStatusDto } from '../dto/admin-status.dto';

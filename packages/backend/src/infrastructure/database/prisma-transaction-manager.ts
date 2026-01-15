@@ -127,7 +127,8 @@ export class PrismaTransactionManager implements ITransactionManager {
     this.logger.debug('Starting database transaction');
 
     try {
-      const result = await this.prisma.$transaction(
+      // Prisma v7: $transaction() gibt jetzt `unknown` zurück, Type-Assertion erforderlich
+      const result = (await this.prisma.$transaction(
         async (prismaTx) => {
           // Prisma TransactionClient wird als Opaque TransactionContext übergeben
           // Infrastructure Repositories casten intern zu Prisma.TransactionClient
@@ -139,7 +140,7 @@ export class PrismaTransactionManager implements ITransactionManager {
           // Maximale Transaktionsdauer (Deadlock Prevention + Resource Cleanup)
           timeout: 10000,
         },
-      );
+      )) as T;
 
       this.logger.debug('Database transaction committed successfully');
       return result;

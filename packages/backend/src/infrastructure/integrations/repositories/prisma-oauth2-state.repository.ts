@@ -18,7 +18,7 @@ import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { Result } from '@domain/common/result';
 import { OAuth2State, INTEGRATION_ERROR_CODES, IntegrationError } from '@domain/integrations';
 import type { IOAuth2StateRepository } from '@domain/integrations/repositories/i-oauth2-state.repository';
-import type { OAuth2State as PrismaOAuth2State } from '@prisma/client';
+import type { OAuth2State as PrismaOAuth2State } from '@/generated/prisma/client';
 
 /**
  * Prisma-basiertes Repository für OAuth2State.

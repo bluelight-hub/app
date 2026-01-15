@@ -6,7 +6,7 @@ import type { EinsatzId } from '@domain/value-objects/einsatz-id';
 import type { UserId } from '@domain/value-objects/user-id';
 import { EinsatzStatus } from '@domain/value-objects/einsatz-status';
 import type { Address } from '@domain/value-objects/address';
-import type { Einsatz as PrismaEinsatz, EinsatzStatus as PrismaEinsatzStatus } from '@prisma/client';
+import type { Einsatz as PrismaEinsatz, EinsatzStatus as PrismaEinsatzStatus } from '@/generated/prisma/client';
 import { Result } from '@domain/common/result';
 import type { ILogger } from '@domain/ports/i-logger.port';
 

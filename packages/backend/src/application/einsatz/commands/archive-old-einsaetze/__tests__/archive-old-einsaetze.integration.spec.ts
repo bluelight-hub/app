@@ -6,7 +6,7 @@ import { PrismaEinsatzRepository } from '@infrastructure/einsatz/repositories/pr
 import { PrismaOutboxRepository } from '@infrastructure/outbox/prisma-outbox.repository';
 import { EventSerializer } from '@infrastructure/outbox/event-serializer';
 import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
-import { EinsatzStatus } from '@prisma/client';
+import { EinsatzStatus } from '@/generated/prisma/client';
 import type { ILogger } from '@domain/ports/i-logger.port';
 
 /**

@@ -21,7 +21,7 @@ import { PrismaQualifikationMappingMapper } from '../mappers';
  * Prisma Transaction Client Type für atomare Operationen.
  * Cast-Ziel für TransactionContext aus dem Domain Layer.
  */
-type PrismaTransactionClient = Omit<PrismaService, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends' | 'onModuleInit' | 'onModuleDestroy'>;
+type PrismaTransactionClient = PrismaService;
 
 /**
  * Prisma-basiertes Repository für QualifikationMapping.
@@ -228,13 +228,13 @@ export class PrismaQualifikationMappingRepository implements IQualifikationMappi
         });
       });
 
-      // Falls bereits in TX, führe einzeln aus; sonst nutze $transaction
+      // Falls bereits in TX, führe einzeln aus; sonst parallel
       if (tx) {
         for (const op of operations) {
           await op;
         }
       } else {
-        await this.prisma.$transaction(operations);
+        await Promise.all(operations);
       }
 
       this.logger.log(`Saved ${mappings.length} mappings in batch`);

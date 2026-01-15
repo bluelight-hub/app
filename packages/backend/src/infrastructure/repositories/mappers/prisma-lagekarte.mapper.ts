@@ -1,6 +1,6 @@
 import type { LagekarteAggregate } from '@domain/aggregates/lagekarte.aggregate';
 import { LagekarteAggregate as LagekarteAggregateImpl } from '@domain/aggregates/lagekarte.aggregate';
-import type { Lagekarte, LagekartePoi, Prisma } from '@prisma/client';
+import type { Lagekarte, LagekartePoi, Prisma } from '@/generated/prisma/client';
 import { LagekarteId } from '@domain/value-objects/lagekarte-id';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { UserId } from '@domain/value-objects/user-id';

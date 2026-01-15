@@ -1,6 +1,6 @@
 import type { Poi } from '@domain/entities/poi.entity';
 import { Poi as PoiEntity } from '@domain/entities/poi.entity';
-import type { LagekartePoi, Prisma, PoiType } from '@prisma/client';
+import type { LagekartePoi, Prisma, PoiType } from '@/generated/prisma/client';
 import { MgrsCoordinate } from '@domain/value-objects/mgrs-coordinate';
 import { PoiCategory } from '@domain/value-objects/poi-category';
 import { UserId } from '@domain/value-objects/user-id';

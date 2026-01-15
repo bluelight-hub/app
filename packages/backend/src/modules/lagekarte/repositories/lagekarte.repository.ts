@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
-import { Lagekarte } from '@prisma/client';
+import { Lagekarte } from '@/generated/prisma/client';
 
 /**
  * Lagekarte Repository

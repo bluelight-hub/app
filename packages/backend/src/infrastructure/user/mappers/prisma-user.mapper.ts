@@ -1,4 +1,4 @@
-import type { User as PrismaUser, UserRole as PrismaUserRole } from '@prisma/client';
+import type { User as PrismaUser, UserRole as PrismaUserRole } from '@/generated/prisma/client';
 import { UserAggregate } from '@domain/aggregates/user.aggregate';
 import { UserId } from '@domain/value-objects/user-id';
 import { Username } from '@domain/value-objects/username';

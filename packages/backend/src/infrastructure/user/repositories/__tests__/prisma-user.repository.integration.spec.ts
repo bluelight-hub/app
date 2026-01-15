@@ -24,7 +24,7 @@
  * - countSuperAdmins() counts only unlocked SUPER_ADMINs
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/generated/prisma/client';
 import { PrismaUserRepository } from '../prisma-user.repository';
 import { UserAggregate } from '@domain/aggregates/user.aggregate';
 import { UserId } from '@domain/value-objects/user-id';

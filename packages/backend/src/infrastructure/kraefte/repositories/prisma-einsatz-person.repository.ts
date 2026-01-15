@@ -1,5 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
+import type { Prisma } from '@/generated/prisma/client';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 import { Result } from '@domain/common/result';
 import type { IEinsatzPersonRepository } from '@domain/kraefte/repositories/i-einsatz-person.repository';

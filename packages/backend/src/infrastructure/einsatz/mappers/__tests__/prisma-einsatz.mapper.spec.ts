@@ -38,7 +38,7 @@ jest.mock('@paralleldrive/cuid2', () => ({
 import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
 import { Address } from '@domain/value-objects/address';
 import { UserId } from '@domain/value-objects/user-id';
-import type { EinsatzStatus as PrismaEinsatzStatus } from '@prisma/client';
+import type { EinsatzStatus as PrismaEinsatzStatus } from '@/generated/prisma/client';
 import { PrismaEinsatzMapper, type EinsatzWithRelations } from '../prisma-einsatz.mapper';
 
 // ============================================================================

@@ -37,7 +37,7 @@ import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { MgrsCoordinate } from '@domain/value-objects/mgrs-coordinate';
 import { PoiCategory } from '@domain/value-objects/poi-category';
 import { UserId } from '@domain/value-objects/user-id';
-import type { Lagekarte, LagekartePoi } from '@prisma/client';
+import type { Lagekarte, LagekartePoi } from '@/generated/prisma/client';
 
 describe('PrismaLagekarteMapper', () => {
   // Test Data Setup (use valid CUID2 format - 25 characters, lowercase a-z0-9, starts with letter)

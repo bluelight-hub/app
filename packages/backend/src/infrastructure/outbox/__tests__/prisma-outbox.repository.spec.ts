@@ -23,7 +23,7 @@ import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { DomainEvent } from '@domain/common/domain-event';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@infrastructure/di-tokens';
-import type { OutboxEventStatus } from '@prisma/client';
+import type { OutboxEventStatus } from '@/generated/prisma/client';
 
 // Mock EinsatzCreatedEvent for testing
 class MockEinsatzCreatedEvent implements DomainEvent {

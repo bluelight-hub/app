@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsString, IsOptional, IsNumber, IsObject, MaxLength, ValidateIf, Min, Max } from 'class-validator';
-import { PoiType } from '@prisma/client';
+import { PoiType } from '@/generated/prisma/client';
 import { IsCoordinatesOrAddress } from '../validators/coordinates-or-address.validator';
 
 /**

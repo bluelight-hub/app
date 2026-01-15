@@ -1,5 +1,5 @@
-import { Prisma } from '@prisma/client';
-import type { EinsatzPerson as PrismaEinsatzPerson } from '@prisma/client';
+import { Prisma } from '@/generated/prisma/client';
+import type { EinsatzPerson as PrismaEinsatzPerson } from '@/generated/prisma/client';
 import { EinsatzPerson } from '@domain/kraefte/aggregates/einsatz-person.aggregate';
 import { Result } from '@domain/common/result';
 import { nullToUndefined } from '@/shared/utils/type-utils';

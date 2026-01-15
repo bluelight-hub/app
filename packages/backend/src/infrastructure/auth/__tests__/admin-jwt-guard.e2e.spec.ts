@@ -5,7 +5,7 @@ import request from 'supertest';
 import cookieParser from 'cookie-parser';
 import * as jwt from 'jsonwebtoken';
 import { AppModule } from '../../../app.module';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/generated/prisma/client';
 import { createId } from '@paralleldrive/cuid2';
 import * as bcryptLib from 'bcrypt';
 import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';

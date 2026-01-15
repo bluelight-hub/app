@@ -39,7 +39,7 @@ import { UserAggregate } from '@domain/aggregates/user.aggregate';
 import { Username } from '@domain/value-objects/username';
 import { UserRole } from '@domain/value-objects/user-role';
 import { Permission } from '@domain/value-objects/permission';
-import type { UserRole as PrismaUserRole } from '@prisma/client';
+import type { UserRole as PrismaUserRole } from '@/generated/prisma/client';
 import { PrismaUserMapper, type UserWithRelations } from '../prisma-user.mapper';
 
 // ============================================================================

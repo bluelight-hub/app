@@ -1,4 +1,4 @@
-import type { Prisma, StammPerson as PrismaStammPerson, StammPersonQualifikation } from '@prisma/client';
+import type { Prisma, StammPerson as PrismaStammPerson, StammPersonQualifikation } from '@/generated/prisma/client';
 import { StammPerson } from '@domain/kraefte/aggregates/stamm-person.aggregate';
 import { Result } from '@domain/common/result';
 

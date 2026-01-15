@@ -1,4 +1,4 @@
-import type { ServerAccessToken as PrismaServerAccessToken } from '@prisma/client';
+import type { ServerAccessToken as PrismaServerAccessToken } from '@/generated/prisma/client';
 import { ServerAccessToken, type ReconstructServerAccessTokenProps } from '@domain/aggregates/server-access-token.aggregate';
 import { AccessTokenId } from '@domain/value-objects/access-token-id';
 import { TokenHash } from '@domain/value-objects/token-hash';

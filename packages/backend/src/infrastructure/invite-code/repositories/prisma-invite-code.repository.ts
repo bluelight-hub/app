@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
+import type { Prisma } from '@/generated/prisma/client';
 
 import { Result } from '@domain/common/result';
 import type { TransactionContext } from '@domain/common/transaction';

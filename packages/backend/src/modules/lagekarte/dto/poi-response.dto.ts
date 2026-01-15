@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { PoiType } from '@prisma/client';
+import { PoiType } from '@/generated/prisma/client';
 
 /**
  * DTO für POI-Response

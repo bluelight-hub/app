@@ -13,7 +13,7 @@ import {
   ManagedUserResponseDto,
   ManagedUserResponse,
 } from '@application/user-management';
-import { UserRole as PrismaUserRole } from '@prisma/client';
+import { UserRole as PrismaUserRole } from '@/generated/prisma/client';
 
 /**
  * Mappt Application Layer UserDto auf API ManagedUserResponseDto.

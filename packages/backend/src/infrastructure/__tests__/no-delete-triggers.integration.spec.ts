@@ -20,7 +20,7 @@
  * Epic 1 Story 1.8 | Task 2
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/generated/prisma/client';
 import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
 
 describe('NO-DELETE Triggers Integration Tests', () => {

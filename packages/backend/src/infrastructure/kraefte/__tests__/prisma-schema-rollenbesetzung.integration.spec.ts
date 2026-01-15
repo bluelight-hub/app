@@ -37,7 +37,7 @@ jest.mock('@paralleldrive/cuid2', () => ({
   }),
 }));
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/generated/prisma/client';
 import { skipIfNoDatabase } from '@/infrastructure/__tests__/helpers/database-test.helper';
 
 // Generate CUID2-compliant test IDs

@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { EinsatzStatus, type Prisma } from '@prisma/client';
+import { EinsatzStatus, type Prisma } from '@/generated/prisma/client';
 import { IsEnum } from 'class-validator';
 
 /**

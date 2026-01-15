@@ -41,7 +41,7 @@ import { diskStorage } from 'multer';
 import { join } from 'node:path';
 import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { SaveLagekarteStateDto } from '../dto/save-lagekarte-state.dto';
-import { Lagekarte } from '@prisma/client';
+import { Lagekarte } from '@/generated/prisma/client';
 import { CreateLagekarteDto, AddPoiDto, UpdatePoiPositionDto } from '@/application/lagekarte/dto';
 import { CreateLagekarteCommand, AddPoiCommand, RemovePoiCommand, UpdatePoiPositionCommand } from '@/application/lagekarte/commands';
 import { GetLagekarteQuery, GetPoisQuery } from '@/application/lagekarte/queries';

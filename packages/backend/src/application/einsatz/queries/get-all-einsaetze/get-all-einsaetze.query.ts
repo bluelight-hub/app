@@ -1,6 +1,6 @@
 // TODO (Epic 6): Migrate to Domain EinsatzStatus enum - currently uses Prisma enum for backward compatibility
 // biome-ignore lint/style/noRestrictedImports: Legacy dependency - tracked for migration in Epic 6
-import type { EinsatzStatus } from '@prisma/client';
+import type { EinsatzStatus } from '@/generated/prisma/client';
 
 /**
  * Query Parameter Interface für paginierte Einsatz-Abfrage.

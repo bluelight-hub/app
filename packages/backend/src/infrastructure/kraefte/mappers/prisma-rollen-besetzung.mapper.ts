@@ -1,4 +1,4 @@
-import type { Prisma } from '@prisma/client';
+import type { Prisma } from '@/generated/prisma/client';
 import { Result } from '@domain/common/result';
 import { RollenBesetzung } from '@domain/kraefte/aggregates/rollen-besetzung.aggregate';
 import { RollenBesetzungId } from '@domain/kraefte/value-objects/rollen-besetzung-id';

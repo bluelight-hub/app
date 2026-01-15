@@ -12,7 +12,7 @@ import { GetAllEinsaetzeQuery } from './get-all-einsaetze.query';
 import { EINSATZ_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 // TODO (Epic 6): Migrate utilities to use Domain Aggregate instead of Prisma Entity
 // biome-ignore lint/style/noRestrictedImports: Legacy dependency - EinsatzNameGenerator/CompletenessCalculator require Prisma types
-import type { Einsatz as PrismaEinsatz } from '@prisma/client';
+import type { Einsatz as PrismaEinsatz, EinsatzStatus } from '@/generated/prisma/client';
 
 /**
  * Handler für GetAllEinsaetzeQuery.
@@ -231,7 +231,7 @@ export class GetAllEinsaetzeQueryHandler implements IQueryHandler<GetAllEinsaetz
       beschreibung: aggregate.bemerkung ?? null,
       alarmierungszeit: null, // TODO: Aggregate hat noch kein alarmierungszeit Feld
       einsatzleiter: null, // TODO: Aggregate hat noch kein einsatzleiter Feld
-      status: aggregate.status.value as import('@prisma/client').EinsatzStatus, // EinsatzStatus Value Object → Enum
+      status: aggregate.status.value as EinsatzStatus, // EinsatzStatus Value Object → Enum
       metadata: null, // TODO: Aggregate hat noch kein metadata Feld
       createdAt: aggregate.createdAt,
       updatedAt: aggregate.updatedAt,

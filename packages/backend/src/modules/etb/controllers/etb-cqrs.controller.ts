@@ -1,3 +1,4 @@
+import type { EtbKategorie } from '@/generated/prisma/client';
 import { AddEintragCommand, DeleteEintragCommand, LockEtbCommand, UpdateEintragCommand } from '@/application/etb/commands';
 import { AddEintragHandler } from '@/application/etb/commands/add-eintrag/add-eintrag.handler';
 import { DeleteEintragHandler } from '@/application/etb/commands/delete-eintrag/delete-eintrag.handler';
@@ -105,7 +106,7 @@ export class EtbCqrsController {
     const onlyActiveBoolean = onlyActive === undefined || onlyActive === 'true';
 
     // Parse kategorie - undefined wenn nicht angegeben
-    const kategorieEnum = kategorie as import('@prisma/client').EtbKategorie | undefined;
+    const kategorieEnum = kategorie as EtbKategorie | undefined;
 
     const query = new GetTextbausteineQuery(kategorieEnum, onlyActiveBoolean);
     const result = await this.getTextbausteineHandler.execute(query);
