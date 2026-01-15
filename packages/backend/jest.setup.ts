@@ -9,8 +9,13 @@
 import * as dotenvx from '@dotenvx/dotenvx';
 import { resolve } from 'node:path';
 
-// Load .env from backend root
-dotenvx.config({ path: resolve(__dirname, '.env') });
+// Load .env from backend root (falls vorhanden)
+// In CI-Umgebungen existiert keine .env Datei - das ist OK, wir setzen Test-Secrets unten
+dotenvx.config({
+  path: resolve(__dirname, '.env'),
+  ignore: ['MISSING_ENV_FILE'],
+  quiet: true,
+});
 
 /**
  * Test-Secrets für CI-Umgebung wo keine .env Datei existiert.
