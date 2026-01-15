@@ -43,6 +43,7 @@ jest.mock('@paralleldrive/cuid2', () => ({
   }),
 }));
 
+import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@/generated/prisma/client';
 import { PrismaLagekarteRepository } from '../prisma-lagekarte.repository';
 import { LagekarteAggregate } from '@domain/aggregates/lagekarte.aggregate';
@@ -128,7 +129,8 @@ const performanceResults: Record<string, { avg: number; min: number; max: number
    */
   beforeAll(async () => {
     // Initialize Prisma client (only called when database is available due to describe.skip guard)
-    prisma = new PrismaClient();
+    const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+    prisma = new PrismaClient({ adapter });
 
     // Disable triggers temporarily für cleanup von vorherigen Test Runs
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');

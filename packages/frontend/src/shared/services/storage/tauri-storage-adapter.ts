@@ -1,14 +1,24 @@
-import { invoke } from '@tauri-apps/api/core';
+import { LazyStore } from '@tauri-apps/plugin-store';
 import type { IStoragePort } from '@/shared/types/storage';
 
 /**
- * Tauri Storage Adapter für platform-agnostischen Storage-Zugriff
+ * Storage-Dateiname für Tauri Plugin Store.
  *
- * Implementiert IStoragePort Interface via Tauri IPC Commands.
- * Nutzt Rust-Backend für In-Memory Key-Value Storage mit Mutex-basiertem State.
+ * Wird im App-Data-Verzeichnis gespeichert:
+ * - macOS: ~/Library/Application Support/<app-identifier>/
+ * - Windows: %APPDATA%/<app-identifier>/
+ * - Linux: ~/.config/<app-identifier>/
+ */
+const STORE_FILENAME = 'bluelight-storage.json';
+
+/**
+ * Tauri Storage Adapter für persistenten Storage-Zugriff.
  *
- * WICHTIG: Daten sind NICHT persistent über App-Restarts (RAM only).
- * Für persistente Daten muss tauri-plugin-store genutzt werden.
+ * Implementiert IStoragePort Interface via tauri-plugin-store.
+ * Nutzt LazyStore für verzögerte Initialisierung (lädt erst bei erstem Zugriff).
+ *
+ * WICHTIG: Daten sind PERSISTENT über App-Restarts!
+ * Die Daten werden als JSON-Datei im App-Data-Verzeichnis gespeichert.
  *
  * @example
  * ```typescript
@@ -20,16 +30,20 @@ import type { IStoragePort } from '@/shared/types/storage';
  */
 export class TauriStorageAdapter implements IStoragePort {
   /**
-   * Liest einen Wert aus dem Storage.
-   *
-   * Ruft Rust Command `storage_get` via Tauri IPC.
+   * LazyStore Instanz - wird bei erstem Zugriff initialisiert.
+   * autoSave: true sorgt für automatisches Speichern nach Änderungen.
+   */
+  private store = new LazyStore(STORE_FILENAME, { autoSave: true, defaults: {} });
+
+  /**
+   * Liest einen Wert aus dem persistenten Storage.
    *
    * @param key - Storage Key
    * @returns Promise mit Wert als String oder null wenn nicht vorhanden
    */
   async getItem(key: string): Promise<string | null> {
     try {
-      const result = await invoke<string | null>('storage_get', { key });
+      const result = await this.store.get<string>(key);
       return result ?? null;
     } catch (error) {
       console.error('[TauriStorageAdapter] getItem failed:', error);
@@ -38,9 +52,7 @@ export class TauriStorageAdapter implements IStoragePort {
   }
 
   /**
-   * Speichert einen Wert im Storage.
-   *
-   * Ruft Rust Command `storage_set` via Tauri IPC.
+   * Speichert einen Wert im persistenten Storage.
    *
    * @param key - Storage Key
    * @param value - Wert als String
@@ -48,7 +60,7 @@ export class TauriStorageAdapter implements IStoragePort {
    */
   async setItem(key: string, value: string): Promise<void> {
     try {
-      await invoke<void>('storage_set', { key, value });
+      await this.store.set(key, value);
     } catch (error) {
       console.error('[TauriStorageAdapter] setItem failed:', error);
       throw error;
@@ -56,16 +68,14 @@ export class TauriStorageAdapter implements IStoragePort {
   }
 
   /**
-   * Entfernt einen Wert aus dem Storage.
-   *
-   * Ruft Rust Command `storage_remove` via Tauri IPC.
+   * Entfernt einen Wert aus dem persistenten Storage.
    *
    * @param key - Storage Key
    * @returns Promise wenn Operation abgeschlossen
    */
   async removeItem(key: string): Promise<void> {
     try {
-      await invoke<boolean>('storage_remove', { key });
+      await this.store.delete(key);
     } catch (error) {
       console.error('[TauriStorageAdapter] removeItem failed:', error);
       throw error;
@@ -75,13 +85,11 @@ export class TauriStorageAdapter implements IStoragePort {
   /**
    * Löscht alle Einträge aus dem Storage.
    *
-   * Ruft Rust Command `storage_clear` via Tauri IPC.
-   *
    * @returns Promise wenn Operation abgeschlossen
    */
   async clear(): Promise<void> {
     try {
-      await invoke<void>('storage_clear');
+      await this.store.clear();
     } catch (error) {
       console.error('[TauriStorageAdapter] clear failed:', error);
       throw error;

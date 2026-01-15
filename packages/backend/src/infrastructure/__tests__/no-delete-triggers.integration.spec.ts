@@ -20,6 +20,7 @@
  * Epic 1 Story 1.8 | Task 2
  */
 
+import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@/generated/prisma/client';
 import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
 
@@ -40,7 +41,8 @@ describe('NO-DELETE Triggers Integration Tests', () => {
   beforeAll(async () => {
     databaseAvailable = await skipIfNoDatabase();
     if (!databaseAvailable) return;
-    prisma = new PrismaClient(); // Initialisierung NACH dem Check
+    const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+    prisma = new PrismaClient({ adapter }); // Initialisierung NACH dem Check mit Adapter
     // Cleanup from previous failed test runs (disable triggers temporarily)
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {

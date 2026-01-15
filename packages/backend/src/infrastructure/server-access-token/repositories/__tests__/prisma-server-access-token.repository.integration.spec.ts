@@ -21,7 +21,7 @@
  * - AC3: Repository implements IServerAccessTokenRepository Interface
  */
 
-import { PrismaClient } from '@/generated/prisma/client';
+import type { PrismaClient } from '@/generated/prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaServerAccessTokenRepository } from '../prisma-server-access-token.repository';
 import { ServerAccessToken } from '@domain/aggregates/server-access-token.aggregate';
@@ -30,7 +30,7 @@ import { TokenHash } from '@domain/value-objects/token-hash';
 import type { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { IServerAccessTokenRepository } from '@domain/repositories/i-server-access-token.repository';
 import type { ILogger } from '@domain/ports/i-logger.port';
-import { skipIfNoDatabase } from '@/infrastructure/__tests__/helpers/database-test.helper';
+import { skipIfNoDatabase, createTestPrismaClient } from '@/infrastructure/__tests__/helpers/database-test.helper';
 import { BCRYPT_COST_FACTOR_TOKEN } from '@infrastructure/config/security.constants';
 
 /**
@@ -67,7 +67,7 @@ describe('PrismaServerAccessTokenRepository - Integration Tests', () => {
     if (!databaseAvailable) {
       return;
     }
-    prisma = new PrismaClient();
+    prisma = createTestPrismaClient();
 
     // Initialize Repository
     const prismaService = prisma as unknown as PrismaService;

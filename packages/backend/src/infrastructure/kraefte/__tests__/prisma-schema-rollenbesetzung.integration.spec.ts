@@ -37,8 +37,8 @@ jest.mock('@paralleldrive/cuid2', () => ({
   }),
 }));
 
-import { PrismaClient } from '@/generated/prisma/client';
-import { skipIfNoDatabase } from '@/infrastructure/__tests__/helpers/database-test.helper';
+import type { PrismaClient } from '@/generated/prisma/client';
+import { skipIfNoDatabase, createTestPrismaClient } from '@/infrastructure/__tests__/helpers/database-test.helper';
 
 // Generate CUID2-compliant test IDs
 const generateTestId = (): string => {
@@ -68,7 +68,7 @@ describe('Prisma Schema - EinsatzRollenbesetzung Integration Tests', () => {
       return;
     }
 
-    prisma = new PrismaClient();
+    prisma = createTestPrismaClient();
 
     // Create Test User (für createdBy/updatedBy)
     // NOTE: User Model hat kein 'email' Feld mehr (Prisma Schema aktualisiert)

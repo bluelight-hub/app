@@ -1,13 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { TauriStorageAdapter } from '../tauri-storage-adapter';
 
-// Mock @tauri-apps/api/core
-vi.mock('@tauri-apps/api/core', () => ({
-  invoke: vi.fn(),
-}));
+// Mock @tauri-apps/plugin-store LazyStore
+const mockGet = vi.fn();
+const mockSet = vi.fn();
+const mockDelete = vi.fn();
+const mockClear = vi.fn();
 
-// Import mocked invoke
-import { invoke } from '@tauri-apps/api/core';
+vi.mock('@tauri-apps/plugin-store', () => ({
+  LazyStore: class MockLazyStore {
+    get = mockGet;
+    set = mockSet;
+    delete = mockDelete;
+    clear = mockClear;
+  },
+}));
 
 describe('TauriStorageAdapter', () => {
   let adapter: TauriStorageAdapter;
@@ -18,22 +25,22 @@ describe('TauriStorageAdapter', () => {
   });
 
   describe('getItem', () => {
-    it('should call storage_get command with key', async () => {
+    it('should call store.get with key', async () => {
       // Given
       const mockValue = 'test-value';
-      vi.mocked(invoke).mockResolvedValue(mockValue);
+      mockGet.mockResolvedValue(mockValue);
 
       // When
       const result = await adapter.getItem('test-key');
 
       // Then
-      expect(invoke).toHaveBeenCalledWith('storage_get', { key: 'test-key' });
+      expect(mockGet).toHaveBeenCalledWith('test-key');
       expect(result).toBe(mockValue);
     });
 
     it('should return null when key does not exist', async () => {
       // Given
-      vi.mocked(invoke).mockResolvedValue(null);
+      mockGet.mockResolvedValue(undefined);
 
       // When
       const result = await adapter.getItem('non-existent-key');
@@ -42,14 +49,14 @@ describe('TauriStorageAdapter', () => {
       expect(result).toBeNull();
     });
 
-    it('should throw error when invoke throws error', async () => {
+    it('should throw error when store.get throws error', async () => {
       // Given
-      const error = new Error('IPC error');
-      vi.mocked(invoke).mockRejectedValue(error);
+      const error = new Error('Store error');
+      mockGet.mockRejectedValue(error);
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // When/Then
-      await expect(adapter.getItem('test-key')).rejects.toThrow('IPC error');
+      await expect(adapter.getItem('test-key')).rejects.toThrow('Store error');
       expect(consoleErrorSpy).toHaveBeenCalledWith('[TauriStorageAdapter] getItem failed:', error);
 
       consoleErrorSpy.mockRestore();
@@ -57,28 +64,25 @@ describe('TauriStorageAdapter', () => {
   });
 
   describe('setItem', () => {
-    it('should call storage_set command with key and value', async () => {
+    it('should call store.set with key and value', async () => {
       // Given
-      vi.mocked(invoke).mockResolvedValue(undefined);
+      mockSet.mockResolvedValue(undefined);
 
       // When
       await adapter.setItem('test-key', 'test-value');
 
       // Then
-      expect(invoke).toHaveBeenCalledWith('storage_set', {
-        key: 'test-key',
-        value: 'test-value',
-      });
+      expect(mockSet).toHaveBeenCalledWith('test-key', 'test-value');
     });
 
-    it('should throw error when invoke fails', async () => {
+    it('should throw error when store.set fails', async () => {
       // Given
-      const error = new Error('IPC error');
-      vi.mocked(invoke).mockRejectedValue(error);
+      const error = new Error('Store error');
+      mockSet.mockRejectedValue(error);
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // When/Then
-      await expect(adapter.setItem('test-key', 'test-value')).rejects.toThrow('IPC error');
+      await expect(adapter.setItem('test-key', 'test-value')).rejects.toThrow('Store error');
       expect(consoleErrorSpy).toHaveBeenCalledWith('[TauriStorageAdapter] setItem failed:', error);
 
       consoleErrorSpy.mockRestore();
@@ -86,33 +90,33 @@ describe('TauriStorageAdapter', () => {
   });
 
   describe('removeItem', () => {
-    it('should call storage_remove command with key', async () => {
+    it('should call store.delete with key', async () => {
       // Given
-      vi.mocked(invoke).mockResolvedValue(true);
+      mockDelete.mockResolvedValue(true);
 
       // When
       await adapter.removeItem('test-key');
 
       // Then
-      expect(invoke).toHaveBeenCalledWith('storage_remove', { key: 'test-key' });
+      expect(mockDelete).toHaveBeenCalledWith('test-key');
     });
 
     it('should handle when key does not exist', async () => {
       // Given
-      vi.mocked(invoke).mockResolvedValue(false);
+      mockDelete.mockResolvedValue(false);
 
       // When/Then
       await expect(adapter.removeItem('non-existent-key')).resolves.not.toThrow();
     });
 
-    it('should throw error when invoke fails', async () => {
+    it('should throw error when store.delete fails', async () => {
       // Given
-      const error = new Error('IPC error');
-      vi.mocked(invoke).mockRejectedValue(error);
+      const error = new Error('Store error');
+      mockDelete.mockRejectedValue(error);
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // When/Then
-      await expect(adapter.removeItem('test-key')).rejects.toThrow('IPC error');
+      await expect(adapter.removeItem('test-key')).rejects.toThrow('Store error');
       expect(consoleErrorSpy).toHaveBeenCalledWith('[TauriStorageAdapter] removeItem failed:', error);
 
       consoleErrorSpy.mockRestore();
@@ -120,25 +124,25 @@ describe('TauriStorageAdapter', () => {
   });
 
   describe('clear', () => {
-    it('should call storage_clear command', async () => {
+    it('should call store.clear', async () => {
       // Given
-      vi.mocked(invoke).mockResolvedValue(undefined);
+      mockClear.mockResolvedValue(undefined);
 
       // When
       await adapter.clear();
 
       // Then
-      expect(invoke).toHaveBeenCalledWith('storage_clear');
+      expect(mockClear).toHaveBeenCalled();
     });
 
-    it('should throw error when invoke fails', async () => {
+    it('should throw error when store.clear fails', async () => {
       // Given
-      const error = new Error('IPC error');
-      vi.mocked(invoke).mockRejectedValue(error);
+      const error = new Error('Store error');
+      mockClear.mockRejectedValue(error);
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // When/Then
-      await expect(adapter.clear()).rejects.toThrow('IPC error');
+      await expect(adapter.clear()).rejects.toThrow('Store error');
       expect(consoleErrorSpy).toHaveBeenCalledWith('[TauriStorageAdapter] clear failed:', error);
 
       consoleErrorSpy.mockRestore();
@@ -160,10 +164,10 @@ describe('TauriStorageAdapter', () => {
   });
 
   describe('Error Handling - Critical Edge Cases', () => {
-    it('should throw error when Tauri invoke fails with permission denied', async () => {
-      // Given: Mock invoke rejection mit Permission Error
+    it('should throw error when store fails with permission denied', async () => {
+      // Given: Mock store rejection mit Permission Error
       const error = new Error('Permission denied');
-      vi.mocked(invoke).mockRejectedValue(error);
+      mockGet.mockRejectedValue(error);
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // When/Then: getItem sollte Error werfen
@@ -173,10 +177,10 @@ describe('TauriStorageAdapter', () => {
       consoleErrorSpy.mockRestore();
     });
 
-    it('should throw error when Tauri invoke times out', async () => {
+    it('should throw error when store times out', async () => {
       // Given: Mock timeout scenario
       const timeoutError = new Error('Timeout');
-      vi.mocked(invoke).mockImplementation(() => new Promise((_, reject) => setTimeout(() => reject(timeoutError), 100)));
+      mockSet.mockImplementation(() => new Promise((_, reject) => setTimeout(() => reject(timeoutError), 100)));
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // When/Then: setItem sollte Timeout Error werfen
@@ -186,15 +190,15 @@ describe('TauriStorageAdapter', () => {
       consoleErrorSpy.mockRestore();
     });
 
-    it('should throw error when storage command not registered', async () => {
-      // Given: Mock Tauri command not found error
-      const commandError = new Error('Command storage_get not found');
-      vi.mocked(invoke).mockRejectedValue(commandError);
+    it('should throw error when store plugin not initialized', async () => {
+      // Given: Mock store plugin not found error
+      const pluginError = new Error('Store plugin not initialized');
+      mockGet.mockRejectedValue(pluginError);
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // When/Then: getItem sollte Error werfen
-      await expect(adapter.getItem('key')).rejects.toThrow('Command storage_get not found');
-      expect(consoleErrorSpy).toHaveBeenCalledWith('[TauriStorageAdapter] getItem failed:', commandError);
+      await expect(adapter.getItem('key')).rejects.toThrow('Store plugin not initialized');
+      expect(consoleErrorSpy).toHaveBeenCalledWith('[TauriStorageAdapter] getItem failed:', pluginError);
 
       consoleErrorSpy.mockRestore();
     });

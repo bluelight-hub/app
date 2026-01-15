@@ -44,7 +44,7 @@ jest.mock('@paralleldrive/cuid2', () => ({
 
 import { Test, type TestingModule } from '@nestjs/testing';
 import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
-import { PrismaClient } from '@/generated/prisma/client';
+import type { PrismaClient } from '@/generated/prisma/client';
 import { Logger } from '@nestjs/common';
 import { EtbAutoCreationHandler } from '../etb-auto-creation.handler';
 import { CreateEtbHandler } from '../../commands/create-etb/create-etb.handler';
@@ -59,7 +59,7 @@ import { EventSerializer } from '@/infrastructure/outbox/event-serializer';
 import type { IEinsatzRepository } from '@domain/repositories';
 import { EVENT_NAMES } from '@domain/events/event-names';
 import { EINSATZ_REPOSITORY, ETB_REPOSITORY, EVENT_HANDLER, LOGGER } from '@/infrastructure/di-tokens';
-import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
+import { skipIfNoDatabase, createTestPrismaClient } from '@infrastructure/__tests__/helpers/database-test.helper';
 import { EtbEventAdapter } from '@infrastructure/events/adapters/etb-event.adapter';
 import type { ILogger } from '@domain/ports/i-logger.port';
 
@@ -136,7 +136,7 @@ describe('EtbAutoCreationHandler - Integration Tests (AC6)', () => {
   beforeAll(async () => {
     databaseAvailable = await skipIfNoDatabase();
     if (!databaseAvailable) return;
-    prisma = new PrismaClient(); // Initialisierung NACH dem Check
+    prisma = createTestPrismaClient(); // Initialisierung NACH dem Check mit Adapter
     // Check if etb_snapshots table exists
     try {
       await prisma.$queryRaw`SELECT 1 FROM etb_snapshots LIMIT 1`;

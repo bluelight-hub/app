@@ -24,6 +24,7 @@
  * - countSuperAdmins() counts only unlocked SUPER_ADMINs
  */
 
+import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@/generated/prisma/client';
 import { PrismaUserRepository } from '../prisma-user.repository';
 import { UserAggregate } from '@domain/aggregates/user.aggregate';
@@ -72,7 +73,8 @@ describe('PrismaUserRepository - Integration Tests', () => {
   beforeAll(async () => {
     databaseAvailable = await skipIfNoDatabase();
     if (!databaseAvailable) return;
-    prisma = new PrismaClient(); // Initialisierung NACH dem Check
+    const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+    prisma = new PrismaClient({ adapter }); // Initialisierung NACH dem Check mit Adapter
     // Disable triggers temporarily für cleanup von vorherigen Test Runs
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {
