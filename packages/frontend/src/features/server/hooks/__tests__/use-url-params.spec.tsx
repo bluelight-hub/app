@@ -70,11 +70,11 @@ describe('useUrlParams', () => {
 
     // Setup navigate mock
     mockNavigate = vi.fn().mockResolvedValue(undefined);
-    vi.mocked(useNavigate).mockReturnValue(mockNavigate as any);
+    vi.mocked(useNavigate).mockReturnValue(mockNavigate as ReturnType<typeof useNavigate>);
 
     // Setup useSearch mock
     mockUseSearch = vi.fn().mockReturnValue({});
-    vi.mocked(Route.useSearch).mockImplementation(mockUseSearch as any);
+    vi.mocked(Route.useSearch).mockImplementation(mockUseSearch as typeof Route.useSearch);
 
     // Setup mutation mock (default: success)
     mockMutateAsync = vi.fn();
@@ -652,7 +652,7 @@ describe('useUrlParams', () => {
         invite: 'INV_12345',
       });
 
-      let resolveExchange: (value: unknown) => void;
+      let resolveExchange!: (value: unknown) => void;
       const exchangePromise = new Promise((resolve) => {
         resolveExchange = resolve;
       });

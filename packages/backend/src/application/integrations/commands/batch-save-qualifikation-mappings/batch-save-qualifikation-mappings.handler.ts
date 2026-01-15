@@ -72,7 +72,7 @@ export class BatchSaveQualifikationMappingsHandler {
           createdBy: command.savedBy,
         });
 
-        if (createResult.isFailure) {
+        if (createResult.isFailure || !createResult.value) {
           return Result.fail(createResult.error ?? 'Fehler beim Erstellen des Mappings');
         }
 
@@ -81,8 +81,8 @@ export class BatchSaveQualifikationMappingsHandler {
         } else {
           saved++;
         }
-        // Nach isFailure-Check ist value garantiert definiert
-        mappingsToSave.push(createResult.value!);
+        // Nach isFailure-Check und value-Check ist value garantiert definiert
+        mappingsToSave.push(createResult.value);
       }
     }
 

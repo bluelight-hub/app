@@ -92,13 +92,7 @@ async function exampleComplexObject() {
 }
 
 // Example 4: Settings Management with useStoreObject
-interface AppSettings {
-  theme: 'light' | 'dark';
-  language: 'de' | 'en';
-  autoSave: boolean;
-  enableNotifications: boolean;
-}
-
+// Note: AppSettings interface shown in comments below for documentation
 function exampleSettingsComponent() {
   // const { values, set, setAll, isLoading } = useStoreObject<AppSettings>(
   //   'appSettings',
@@ -222,7 +216,7 @@ async function exampleMultipartForm() {
   const formKey = 'multipartForm';
 
   // Auto-save form progress
-  const saveFormStep = async (stepName: keyof MultipartFormData, data: any) => {
+  const saveFormStep = async (stepName: keyof MultipartFormData, data: MultipartFormData[typeof stepName]) => {
     const existing = await storeService.get<Partial<MultipartFormData>>(formKey, {});
     const updated = { ...existing, [stepName]: data };
     await storeService.set(formKey, updated);
