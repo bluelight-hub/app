@@ -11,7 +11,6 @@ import { EinsatzCompletenessCalculator } from '@/modules/einsatz/utils/completen
 import { GetAllEinsaetzeQuery } from './get-all-einsaetze.query';
 import { EINSATZ_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 // TODO (Epic 6): Migrate utilities to use Domain Aggregate instead of Prisma Entity
-// biome-ignore lint/style/noRestrictedImports: Legacy dependency - EinsatzNameGenerator/CompletenessCalculator require Prisma types
 import type { Einsatz as PrismaEinsatz, EinsatzStatus } from '@/generated/prisma/client';
 
 /**

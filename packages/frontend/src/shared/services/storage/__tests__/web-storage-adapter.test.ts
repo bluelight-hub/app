@@ -147,7 +147,8 @@ describe('WebStorageAdapter', () => {
       const rawData = mockLocalStorage.data.get(key);
       expect(rawData).toBeTruthy();
 
-      const parsed = JSON.parse(rawData!);
+      // rawData is confirmed truthy by the assertion above
+      const parsed = JSON.parse(rawData as string);
       expect(parsed).toHaveProperty('storageType', 'insecure');
       expect(parsed).toHaveProperty('data', value);
     });

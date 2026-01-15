@@ -248,10 +248,10 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
           });
 
           // Server zum Store hinzufügen
-          const serverName = value.serverName || new URL(serverUrl).hostname;
+          const displayServerName = value.serverName || new URL(serverUrl).hostname;
           const accessToken = response.data.accessToken.token;
           const newServerId = await addServer({
-            name: serverName,
+            name: displayServerName,
             url: normalizedUrl,
             accessToken,
             isDefault: false,
@@ -264,7 +264,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
           // Als aktiven Server setzen
           await setActiveServer(newServerId);
 
-          toast.success(`Server '${serverName}' eingerichtet`, {
+          toast.success(`Server '${displayServerName}' eingerichtet`, {
             description: `Admin-Account '${value.username}' erstellt.`,
           });
 
