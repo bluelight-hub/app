@@ -9,7 +9,7 @@ import { ApiBadRequestResponse, ApiBearerAuth, ApiExtraModels, ApiForbiddenRespo
 import { CreatePoiDto } from '../dto/create-poi.dto';
 import { UpdatePoiDto } from '../dto/update-poi.dto';
 import { PoiResponseDto } from '../dto/poi-response.dto';
-import { LagekartePoi, Prisma } from '@prisma/client';
+import { LagekartePoi, Prisma } from '@/generated/prisma/client';
 import { PoiRepository } from '../repositories/poi.repository';
 import { LagekarteRepository } from '../repositories/lagekarte.repository';
 import { GeocodingService } from '../services/geocoding.service';

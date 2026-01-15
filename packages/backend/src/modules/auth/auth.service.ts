@@ -7,7 +7,7 @@ import { LOGGER } from '@/infrastructure/di-tokens';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { isCuid } from '@paralleldrive/cuid2';
-import type { User } from '@prisma/client';
+import type { User } from '@/generated/prisma/client';
 import * as bcrypt from 'bcrypt';
 import { BCRYPT_COST_FACTOR_PASSWORD } from '@/infrastructure/config/security.constants';
 import type { AdminSetupDto } from './dto/admin-setup.dto';

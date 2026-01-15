@@ -1,7 +1,7 @@
 import { ForbiddenException, Inject, Injectable, type OnModuleDestroy, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
-import type { UserRole } from '@prisma/client';
+import type { UserRole } from '@/generated/prisma/client';
 import type { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import type { ILogger } from '@domain/ports/i-logger.port';

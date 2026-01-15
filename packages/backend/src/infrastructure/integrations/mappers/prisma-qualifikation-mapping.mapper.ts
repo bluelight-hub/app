@@ -1,4 +1,4 @@
-import type { QualifikationMapping as PrismaQualifikationMapping } from '@prisma/client';
+import type { QualifikationMapping as PrismaQualifikationMapping } from '@/generated/prisma/client';
 import { QualifikationMapping, type IntegrationType } from '@domain/integrations';
 
 /**

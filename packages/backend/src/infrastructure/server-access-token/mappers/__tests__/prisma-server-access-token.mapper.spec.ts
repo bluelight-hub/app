@@ -11,7 +11,7 @@
  * - Error Cases: Ungültige DB-Daten
  */
 
-import type { ServerAccessToken as PrismaServerAccessToken } from '@prisma/client';
+import type { ServerAccessToken as PrismaServerAccessToken } from '@/generated/prisma/client';
 import { PrismaServerAccessTokenMapper } from '../prisma-server-access-token.mapper';
 import { ServerAccessToken } from '@domain/aggregates/server-access-token.aggregate';
 import { TokenHash } from '@domain/value-objects/token-hash';

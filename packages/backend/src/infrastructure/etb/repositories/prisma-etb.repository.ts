@@ -7,8 +7,8 @@ import type { EtbId } from '@domain/value-objects/etb-id';
 import { type EtbEintragSnapshot, EtbSnapshot } from '@domain/value-objects/etb-snapshot';
 import { EtbVersion } from '@domain/value-objects/etb-version';
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import type { EtbSnapshot as PrismaEtbSnapshot } from '@prisma/client';
+import { Prisma } from '@/generated/prisma/client';
+import type { EtbSnapshot as PrismaEtbSnapshot } from '@/generated/prisma/client';
 import { PrismaEtbMapper } from '../mappers/prisma-etb.mapper';
 
 /**

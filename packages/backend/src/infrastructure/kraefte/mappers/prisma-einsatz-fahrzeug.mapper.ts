@@ -1,4 +1,4 @@
-import type { Prisma, EinsatzFahrzeug as PrismaEinsatzFahrzeug, Fahrzeugtyp } from '@prisma/client';
+import type { Prisma, EinsatzFahrzeug as PrismaEinsatzFahrzeug, Fahrzeugtyp } from '@/generated/prisma/client';
 import { EinsatzFahrzeug } from '@domain/kraefte/aggregates/einsatz-fahrzeug.aggregate';
 import { Result } from '@domain/common/result';
 

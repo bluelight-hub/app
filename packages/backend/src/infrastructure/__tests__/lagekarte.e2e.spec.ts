@@ -39,7 +39,7 @@ jest.mock('@paralleldrive/cuid2', () => ({
   }),
 }));
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/generated/prisma/client';
 
 // Domain
 import { LagekarteId } from '@domain/value-objects/lagekarte-id';

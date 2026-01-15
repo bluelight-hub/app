@@ -36,7 +36,7 @@ import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import request from 'supertest';
 import cookieParser from 'cookie-parser';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/generated/prisma/client';
 import { createId } from '@paralleldrive/cuid2';
 import { AuthModule } from '../../auth.module';
 import { PrismaModule } from '@/infrastructure/database/prisma.module';

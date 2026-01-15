@@ -1,4 +1,4 @@
-import type { InviteCode as PrismaInviteCode } from '@prisma/client';
+import type { InviteCode as PrismaInviteCode } from '@/generated/prisma/client';
 import { InviteCode, type ReconstructInviteCodeProps } from '@domain/aggregates/invite-code.aggregate';
 import { InviteCodeId } from '@domain/value-objects/invite-code-id';
 import { InviteCodeValue } from '@domain/value-objects/invite-code-value';

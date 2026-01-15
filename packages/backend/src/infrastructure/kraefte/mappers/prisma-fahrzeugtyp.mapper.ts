@@ -1,4 +1,4 @@
-import type { Fahrzeugtyp as PrismaFahrzeugtyp, FahrzeugtypKategorie as PrismaFahrzeugtypKategorie, Prisma } from '@prisma/client';
+import type { Fahrzeugtyp as PrismaFahrzeugtyp, FahrzeugtypKategorie as PrismaFahrzeugtypKategorie, Prisma } from '@/generated/prisma/client';
 import { Fahrzeugtyp, type SollbesatzungSchema } from '@domain/kraefte/aggregates/fahrzeugtyp.aggregate';
 import { Result } from '@domain/common/result';
 

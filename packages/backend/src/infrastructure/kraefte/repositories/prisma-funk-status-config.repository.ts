@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@infrastructure/di-tokens';
-import type { Prisma } from '@prisma/client';
+import type { Prisma } from '@/generated/prisma/client';
 import { PrismaService } from '@infrastructure/database/prisma.service';
 import { Result } from '@domain/common/result';
 import type { FunkStatusConfig } from '@domain/kraefte/aggregates/funk-status-config.aggregate';

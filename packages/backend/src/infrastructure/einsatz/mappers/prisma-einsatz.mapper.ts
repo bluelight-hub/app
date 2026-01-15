@@ -1,4 +1,4 @@
-import type { Einsatz as PrismaEinsatz, EinsatzStatus as PrismaEinsatzStatus, Prisma } from '@prisma/client';
+import type { Einsatz as PrismaEinsatz, EinsatzStatus as PrismaEinsatzStatus, Prisma } from '@/generated/prisma/client';
 import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { EinsatzStatus } from '@domain/value-objects/einsatz-status';

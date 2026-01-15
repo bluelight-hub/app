@@ -1,4 +1,4 @@
-import type { RollenDefinition as PrismaRollenDefinition, RolleQualifikation as PrismaRolleQualifikation } from '@prisma/client';
+import type { RollenDefinition as PrismaRollenDefinition, RolleQualifikation as PrismaRolleQualifikation } from '@/generated/prisma/client';
 import { RollenDefinition, type ErforderlicheQualifikation } from '@domain/kraefte/aggregates/rollen-definition.aggregate';
 import { Result } from '@domain/common/result';
 

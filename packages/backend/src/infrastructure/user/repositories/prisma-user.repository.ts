@@ -9,7 +9,7 @@ import type { Username } from '@domain/value-objects/username';
 import { Result } from '@domain/common/result';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { PrismaUserMapper } from '../mappers/prisma-user.mapper';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@/generated/prisma/client';
 
 /**
  * Transaction Client Type Alias für bessere Lesbarkeit.

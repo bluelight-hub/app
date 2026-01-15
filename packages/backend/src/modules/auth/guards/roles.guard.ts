@@ -2,7 +2,7 @@ import { type CanActivate, type ExecutionContext, Injectable, ForbiddenException
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@/infrastructure/di-tokens';
 import { Reflector } from '@nestjs/core';
-import type { UserRole } from '@prisma/client';
+import type { UserRole } from '@/generated/prisma/client';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 import type { ValidatedUser } from '../strategies/jwt.strategy';
 

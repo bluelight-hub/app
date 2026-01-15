@@ -257,7 +257,7 @@ export abstract class TransactionalCommandHandler<TCommand, TResult> {
    */
   async execute(command: TCommand): Promise<Result<TResult>> {
     try {
-      return await this.prisma.$transaction(
+      return (await this.prisma.$transaction(
         async (tx) => {
           // 1. Business Logic ausführen (Aggregate erstellen/ändern + persistieren)
           // WICHTIG: tx wird als TransactionContext übergeben (Opaque Type)
@@ -293,7 +293,7 @@ export abstract class TransactionalCommandHandler<TCommand, TResult> {
           // Maximale Transaktionsdauer (Deadlock Prevention + Resource Cleanup)
           timeout: 10000,
         },
-      );
+      )) as Result<TResult>;
     } catch (error) {
       // Fehler von executeInTransaction (Business Logic Fehler)
       // wurden in Exception konvertiert für Transaction Rollback

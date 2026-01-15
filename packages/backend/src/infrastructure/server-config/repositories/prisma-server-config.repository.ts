@@ -17,7 +17,7 @@ const SINGLETON_ID = 'singleton';
  * Transaction Client Type Alias für bessere Lesbarkeit.
  * Verwendet das gleiche Pattern wie andere Repositories im Projekt.
  */
-type PrismaTransactionClient = Omit<PrismaService, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends' | 'onModuleInit' | 'onModuleDestroy'>;
+type PrismaTransactionClient = PrismaService;
 
 /**
  * Prisma-basierte Implementierung des IServerConfigRepository.

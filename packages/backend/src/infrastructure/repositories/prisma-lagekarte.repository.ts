@@ -6,7 +6,7 @@ import type { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { PrismaLagekarteMapper } from './mappers/prisma-lagekarte.mapper';
-import type { PrismaClient } from '@prisma/client';
+import type { PrismaClient } from '@/generated/prisma/client';
 
 /**
  * Prisma Implementation des ILagekarteRepository (Hexagonal Architecture).

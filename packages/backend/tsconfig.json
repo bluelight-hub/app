@@ -30,9 +30,10 @@
       "@/*": ["src/*"],
       "@domain/*": ["src/domain/*"],
       "@application/*": ["src/application/*"],
-      "@infrastructure/*": ["src/infrastructure/*"]
+      "@infrastructure/*": ["src/infrastructure/*"],
+      "@prisma/client": ["src/generated/prisma"]
     }
   },
-  "include": ["src/**/*", "prisma/**/*", ".config/prisma.ts"],
+  "include": ["src/**/*", "prisma/**/*", "prisma.config.ts"],
   "exclude": ["node_modules", "dist", "**/*.spec.ts"]
 }

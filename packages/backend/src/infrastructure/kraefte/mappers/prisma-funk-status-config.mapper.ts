@@ -1,4 +1,4 @@
-import type { FunkStatusConfig as PrismaFunkStatusConfig } from '@prisma/client';
+import type { FunkStatusConfig as PrismaFunkStatusConfig } from '@/generated/prisma/client';
 import { FunkStatusConfig } from '@domain/kraefte/aggregates/funk-status-config.aggregate';
 import { Result } from '@domain/common/result';
 

@@ -21,7 +21,7 @@
  * - AC3: Repository implements IServerAccessTokenRepository Interface
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/generated/prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaServerAccessTokenRepository } from '../prisma-server-access-token.repository';
 import { ServerAccessToken } from '@domain/aggregates/server-access-token.aggregate';

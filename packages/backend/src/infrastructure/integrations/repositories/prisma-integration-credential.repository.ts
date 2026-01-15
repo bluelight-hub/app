@@ -12,7 +12,7 @@ import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { Result } from '@domain/common/result';
 import { IntegrationCredential, type IntegrationType, INTEGRATION_ERROR_CODES, IntegrationError } from '@domain/integrations';
 import type { IIntegrationCredentialRepository } from '@domain/integrations/repositories/i-integration-credential.repository';
-import type { IntegrationCredential as PrismaIntegrationCredential } from '@prisma/client';
+import type { IntegrationCredential as PrismaIntegrationCredential } from '@/generated/prisma/client';
 
 /**
  * Prisma-basiertes Repository für IntegrationCredential.

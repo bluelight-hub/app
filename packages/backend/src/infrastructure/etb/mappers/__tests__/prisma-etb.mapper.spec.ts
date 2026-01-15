@@ -39,7 +39,7 @@ import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { EintragId } from '@domain/value-objects/eintrag-id';
 import { EtbSequenceNumber } from '@domain/value-objects/etb-sequence-number';
 import { UserId } from '@domain/value-objects/user-id';
-import type { EtbEintrag as PrismaEtbEintrag, EtbStatus as PrismaEtbStatus } from '@prisma/client';
+import type { EtbEintrag as PrismaEtbEintrag, EtbStatus as PrismaEtbStatus } from '@/generated/prisma/client';
 import { PrismaEintragMapper, PrismaEtbMapper, type EinsatztagebuchWithEintraege } from '../prisma-etb.mapper';
 
 // ============================================================================

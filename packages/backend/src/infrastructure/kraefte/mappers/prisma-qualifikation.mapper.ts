@@ -1,4 +1,4 @@
-import type { Qualifikation as PrismaQualifikation, QualifikationKategorie as PrismaQualifikationKategorie } from '@prisma/client';
+import type { Qualifikation as PrismaQualifikation, QualifikationKategorie as PrismaQualifikationKategorie } from '@/generated/prisma/client';
 import { Qualifikation } from '@domain/kraefte';
 import { Result } from '@domain/common/result';
 

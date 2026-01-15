@@ -1,4 +1,4 @@
-import type { Prisma, StammFahrzeug as PrismaStammFahrzeug, Fahrzeugtyp } from '@prisma/client';
+import type { Prisma, StammFahrzeug as PrismaStammFahrzeug, Fahrzeugtyp } from '@/generated/prisma/client';
 import { StammFahrzeug } from '@domain/kraefte/aggregates/stamm-fahrzeug.aggregate';
 import { Result } from '@domain/common/result';
 

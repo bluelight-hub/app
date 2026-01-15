@@ -6,7 +6,7 @@ import type { EinsatzId } from '@domain/value-objects/einsatz-id';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { Result } from '@domain/common/result';
 import { Inject, Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@/generated/prisma/client';
 import { PrismaEinsatzMapper } from '../mappers/prisma-einsatz.mapper';
 import { LOGGER } from '@infrastructure/di-tokens';
 

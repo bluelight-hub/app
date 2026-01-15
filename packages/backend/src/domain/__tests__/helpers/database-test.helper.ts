@@ -29,7 +29,8 @@
  * - Entwickler ohne lokale DB können trotzdem Unit Tests ausführen
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '@/generated/prisma/client';
 
 /**
  * Prüft ob DATABASE_URL gesetzt ist und ob eine Verbindung zur Datenbank möglich ist.
@@ -72,7 +73,8 @@ export async function skipIfNoDatabase(): Promise<boolean> {
   }
 
   // AC2: Try to connect to database (with timeout)
-  const prisma = new PrismaClient();
+  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+  const prisma = new PrismaClient({ adapter });
   try {
     // Quick connection probe with 5s timeout
     await Promise.race([prisma.$queryRaw`SELECT 1`, new Promise((_, reject) => setTimeout(() => reject(new Error('Database connection timeout')), 5000))]);

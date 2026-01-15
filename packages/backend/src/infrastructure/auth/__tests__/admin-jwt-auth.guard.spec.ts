@@ -1,6 +1,6 @@
 import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '@/generated/prisma/client';
 import type { Request } from 'express';
 import { AdminJwtStrategy, type AdminJwtPayload, type ValidatedAdminUser } from '@/modules/auth/strategies/admin-jwt.strategy';
 import { AuthService } from '@/modules/auth/auth.service';

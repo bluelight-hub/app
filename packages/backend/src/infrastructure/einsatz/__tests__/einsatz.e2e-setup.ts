@@ -20,10 +20,12 @@
  * - RBAC Testing mit 3 User-Rollen (USER, ADMIN, SUPER_ADMIN)
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcrypt';
 import type { DomainEvent } from '@domain/common/domain-event';
 import type { IEventPublisher } from '@domain/services/ports/i-event-publisher.port';
+import type { PrismaService } from '@/infrastructure/database/prisma.service';
 import { PrismaEinsatzRepository } from '../repositories/prisma-einsatz.repository';
 import { PrismaOutboxRepository } from '@/infrastructure/outbox/prisma-outbox.repository';
 import { EventSerializer } from '@/infrastructure/outbox/event-serializer';
@@ -35,19 +37,147 @@ import { BCRYPT_COST_FACTOR_TOKEN } from '@infrastructure/config/security.consta
 // ============================================
 
 /**
+ * Basistyp für den generierten Prisma Client
+ * Wird verwendet um den Typ für Composition zu definieren
+ */
+type BasePrismaClient = InstanceType<typeof PrismaClient>;
+
+/**
  * Test-kompatible PrismaService fuer E2E Tests.
  *
- * Diese Klasse erweitert PrismaClient und implementiert die NestJS
- * Lifecycle Hooks (OnModuleInit, OnModuleDestroy) um mit PrismaEinsatzRepository
- * kompatibel zu sein, der einen PrismaService erwartet.
+ * Diese Klasse verwendet Composition (wie der echte PrismaService) und
+ * implementiert die NestJS Lifecycle Hooks (OnModuleInit, OnModuleDestroy)
+ * um mit PrismaEinsatzRepository kompatibel zu sein.
+ *
+ * Ab Prisma v7 wird das Adapter-Pattern verwendet, um eine direkte
+ * TCP-Verbindung zur PostgreSQL-Datenbank herzustellen.
  */
-class TestPrismaService extends PrismaClient {
+class TestPrismaService {
+  private readonly _client: BasePrismaClient;
+
+  constructor() {
+    const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+    this._client = new PrismaClient({ adapter });
+  }
+
   async onModuleInit(): Promise<void> {
-    await this.$connect();
+    await this._client.$connect();
   }
 
   async onModuleDestroy(): Promise<void> {
-    await this.$disconnect();
+    await this._client.$disconnect();
+  }
+
+  // Delegate all model accessors to the underlying client
+  get user() {
+    return this._client.user;
+  }
+  get einsatz() {
+    return this._client.einsatz;
+  }
+  get einsatztagebuch() {
+    return this._client.einsatztagebuch;
+  }
+  get etbEintrag() {
+    return this._client.etbEintrag;
+  }
+  get etbEintragHistorie() {
+    return this._client.etbEintragHistorie;
+  }
+  get etbTextbaustein() {
+    return this._client.etbTextbaustein;
+  }
+  get etbSnapshot() {
+    return this._client.etbSnapshot;
+  }
+  get etbArchiv() {
+    return this._client.etbArchiv;
+  }
+  get lagekarte() {
+    return this._client.lagekarte;
+  }
+  get outboxEvent() {
+    return this._client.outboxEvent;
+  }
+  get lagekartePoi() {
+    return this._client.lagekartePoi;
+  }
+  get qualifikation() {
+    return this._client.qualifikation;
+  }
+  get fahrzeugtyp() {
+    return this._client.fahrzeugtyp;
+  }
+  get rollenDefinition() {
+    return this._client.rollenDefinition;
+  }
+  get rolleQualifikation() {
+    return this._client.rolleQualifikation;
+  }
+  get funkStatusConfig() {
+    return this._client.funkStatusConfig;
+  }
+  get stammFahrzeug() {
+    return this._client.stammFahrzeug;
+  }
+  get stammPerson() {
+    return this._client.stammPerson;
+  }
+  get stammPersonQualifikation() {
+    return this._client.stammPersonQualifikation;
+  }
+  get einsatzFahrzeug() {
+    return this._client.einsatzFahrzeug;
+  }
+  get einsatzPerson() {
+    return this._client.einsatzPerson;
+  }
+  get einsatzPersonQualifikation() {
+    return this._client.einsatzPersonQualifikation;
+  }
+  get einsatzRollenbesetzung() {
+    return this._client.einsatzRollenbesetzung;
+  }
+  get integrationCredential() {
+    return this._client.integrationCredential;
+  }
+  get oAuth2State() {
+    return this._client.oAuth2State;
+  }
+  get qualifikationMapping() {
+    return this._client.qualifikationMapping;
+  }
+  get serverAccessToken() {
+    return this._client.serverAccessToken;
+  }
+  get inviteCode() {
+    return this._client.inviteCode;
+  }
+  get serverConfig() {
+    return this._client.serverConfig;
+  }
+
+  // Delegate Prisma Client methods
+  $connect() {
+    return this._client.$connect();
+  }
+  $disconnect() {
+    return this._client.$disconnect();
+  }
+  $transaction(...args: Parameters<BasePrismaClient['$transaction']>): ReturnType<BasePrismaClient['$transaction']> {
+    return this._client.$transaction(...args);
+  }
+  $queryRaw(...args: Parameters<BasePrismaClient['$queryRaw']>): ReturnType<BasePrismaClient['$queryRaw']> {
+    return this._client.$queryRaw(...args);
+  }
+  $executeRaw(...args: Parameters<BasePrismaClient['$executeRaw']>): ReturnType<BasePrismaClient['$executeRaw']> {
+    return this._client.$executeRaw(...args);
+  }
+  $queryRawUnsafe(...args: Parameters<BasePrismaClient['$queryRawUnsafe']>): ReturnType<BasePrismaClient['$queryRawUnsafe']> {
+    return this._client.$queryRawUnsafe(...args);
+  }
+  $executeRawUnsafe(...args: Parameters<BasePrismaClient['$executeRawUnsafe']>): ReturnType<BasePrismaClient['$executeRawUnsafe']> {
+    return this._client.$executeRawUnsafe(...args);
   }
 }
 
@@ -392,12 +522,14 @@ export async function createEinsatzE2eModule(): Promise<EinsatzE2eTestContext> {
   const mockLogger = createMockLogger();
 
   // 7. Repository und EventPublisher
-  const repository = new PrismaEinsatzRepository(prisma, mockLogger);
+  // Cast TestPrismaService zu PrismaService für Repository-Kompatibilität
+  const prismaService = prisma as unknown as PrismaService;
+  const repository = new PrismaEinsatzRepository(prismaService, mockLogger);
   const eventPublisher = new SpyEventPublisher();
 
   // Outbox Repository für direkten Zugriff in Tests
   const eventSerializer = new EventSerializer();
-  const outboxRepository = new PrismaOutboxRepository(prisma, eventSerializer, mockLogger);
+  const outboxRepository = new PrismaOutboxRepository(prismaService, eventSerializer, mockLogger);
 
   return {
     prisma,
@@ -499,10 +631,10 @@ export async function cleanupTestData(ctx: EinsatzE2eTestContext): Promise<void>
 
     // Also include 'admin' user created by HTTP tests (not in ctx.testUserIds)
     // Get admin user ID(s) by username pattern
-    const adminUsers = await ctx.prisma.$queryRaw<{ id: string }[]>`
+    const adminUsers = (await ctx.prisma.$queryRaw`
       SELECT id FROM "User" WHERE username = 'admin' OR username LIKE 'admin_%'
-    `;
-    const adminUserIds = adminUsers.map((u: { id: string }) => u.id);
+    `) as { id: string }[];
+    const adminUserIds = adminUsers.map((u) => u.id);
     const allCleanupUserIds = [...allUserIds, ...adminUserIds];
 
     // Reihenfolge (FK Order!): Lagekarten -> ETB -> Outbox -> Einsaetze
