@@ -182,6 +182,7 @@ jobs:
 
   # Summary job for branch protection
   summary:
+    name: CI Pipeline Summary
     needs: [ build-and-test-linux, build-and-test-other ]
     runs-on: ubuntu-latest
     if: always()
