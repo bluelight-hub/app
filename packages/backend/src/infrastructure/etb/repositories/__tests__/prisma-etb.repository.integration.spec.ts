@@ -43,7 +43,7 @@ jest.mock('@paralleldrive/cuid2', () => ({
   }),
 }));
 
-import { PrismaClient } from '@/generated/prisma/client';
+import type { PrismaClient } from '@/generated/prisma/client';
 import { PrismaEtbRepository } from '../prisma-etb.repository';
 import { EinsatztagebuchAggregate } from '@domain/aggregates/einsatztagebuch.aggregate';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
@@ -51,7 +51,7 @@ import { EtbId } from '@domain/value-objects/etb-id';
 import { UserId } from '@domain/value-objects/user-id';
 import type { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { IEtbRepository } from '@domain/repositories/i-etb.repository';
-import { skipIfNoDatabase } from '@/infrastructure/__tests__/helpers/database-test.helper';
+import { skipIfNoDatabase, createTestPrismaClient } from '@/infrastructure/__tests__/helpers/database-test.helper';
 
 // Generate CUID2-compliant test IDs (20-30 chars, lowercase a-z0-9, starts with letter)
 const generateTestId = (): string => {
@@ -135,7 +135,7 @@ describe('PrismaEtbRepository - Integration Tests', () => {
     if (!databaseAvailable) {
       return;
     }
-    prisma = new PrismaClient(); // Initialisierung NACH dem Check
+    prisma = createTestPrismaClient(); // Initialisierung NACH dem Check mit Adapter
     // Check if etb_snapshots table exists (migration might not have been run)
     try {
       await prisma.$queryRaw`SELECT 1 FROM etb_snapshots LIMIT 1`;

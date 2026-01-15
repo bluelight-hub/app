@@ -37,7 +37,7 @@ jest.mock('@paralleldrive/cuid2', () => ({
   }),
 }));
 
-import { PrismaClient } from '@/generated/prisma/client';
+import type { PrismaClient } from '@/generated/prisma/client';
 import { PrismaLagekarteRepository } from '../prisma-lagekarte.repository';
 import { LagekarteAggregate } from '@domain/aggregates/lagekarte.aggregate';
 import { LagekarteId } from '@domain/value-objects/lagekarte-id';
@@ -46,7 +46,7 @@ import { UserId } from '@domain/value-objects/user-id';
 import { MgrsCoordinate } from '@domain/value-objects/mgrs-coordinate';
 import { PoiCategory } from '@domain/value-objects/poi-category';
 import type { PrismaService } from '@/infrastructure/database/prisma.service';
-import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
+import { skipIfNoDatabase, createTestPrismaClient } from '@infrastructure/__tests__/helpers/database-test.helper';
 
 // Generate CUID2-compliant test IDs (20-30 chars, lowercase a-z0-9, starts with letter)
 const generateTestId = () => {
@@ -82,7 +82,7 @@ describe('PrismaLagekarteRepository - Integration Tests', () => {
   beforeAll(async () => {
     databaseAvailable = await skipIfNoDatabase();
     if (!databaseAvailable) return;
-    prisma = new PrismaClient(); // Initialisierung NACH dem Check
+    prisma = createTestPrismaClient(); // Initialisierung NACH dem Check mit Adapter
     // Disable triggers temporarily für cleanup von vorherigen Test Runs
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {

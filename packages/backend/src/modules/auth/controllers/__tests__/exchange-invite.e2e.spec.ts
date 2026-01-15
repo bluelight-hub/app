@@ -36,6 +36,7 @@ import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import request from 'supertest';
 import cookieParser from 'cookie-parser';
+import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@/generated/prisma/client';
 import { createId } from '@paralleldrive/cuid2';
 import { AuthModule } from '../../auth.module';
@@ -130,7 +131,8 @@ const databaseAvailable = !!process.env.DATABASE_URL;
   let adminUserId: string;
 
   beforeAll(async () => {
-    prisma = new PrismaClient();
+    const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+    prisma = new PrismaClient({ adapter });
     await prisma.$connect();
 
     // Bootstrap Test-Modul OHNE ThrottlerGuard als APP_GUARD

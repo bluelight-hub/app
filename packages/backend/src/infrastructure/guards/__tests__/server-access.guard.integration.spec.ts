@@ -27,10 +27,10 @@ import request from 'supertest';
 import cookieParser from 'cookie-parser';
 import * as jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
-import { PrismaClient } from '@/generated/prisma/client';
+import type { PrismaClient } from '@/generated/prisma/client';
 import { createId } from '@paralleldrive/cuid2';
 import { AppModule } from '../../../app.module';
-import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
+import { skipIfNoDatabase, createTestPrismaClient } from '@infrastructure/__tests__/helpers/database-test.helper';
 import { BCRYPT_COST_FACTOR_TOKEN, BCRYPT_COST_FACTOR_PASSWORD } from '@infrastructure/config/security.constants';
 
 describe('ServerAccessGuard - Multi-Token-Validierung Integration Tests (Story 4.5)', () => {
@@ -142,7 +142,7 @@ describe('ServerAccessGuard - Multi-Token-Validierung Integration Tests (Story 4
     // INSECURE_MODE muss FALSE sein für diese Tests - wir testen den Guard
     delete process.env.INSECURE_MODE;
 
-    prisma = new PrismaClient();
+    prisma = createTestPrismaClient();
     await prisma.$connect();
 
     // WICHTIG: ServerConfig muss explizit auf insecureMode=false gesetzt werden!

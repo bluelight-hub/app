@@ -43,7 +43,7 @@ jest.mock('@paralleldrive/cuid2', () => ({
   }),
 }));
 
-import { PrismaClient } from '@/generated/prisma/client';
+import type { PrismaClient } from '@/generated/prisma/client';
 import { PrismaEinsatzRepository } from '../prisma-einsatz.repository';
 import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
@@ -51,7 +51,7 @@ import { UserId } from '@domain/value-objects/user-id';
 import type { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { IEinsatzRepository } from '@domain/repositories/ieinsatz.repository';
 import type { ILogger } from '@domain/ports/i-logger.port';
-import { skipIfNoDatabase } from '@/infrastructure/__tests__/helpers/database-test.helper';
+import { skipIfNoDatabase, createTestPrismaClient } from '@/infrastructure/__tests__/helpers/database-test.helper';
 
 /**
  * Mock Logger für Integration Tests.
@@ -111,7 +111,7 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
     if (!databaseAvailable) {
       return;
     }
-    prisma = new PrismaClient(); // Initialisierung NACH dem Check
+    prisma = createTestPrismaClient(); // Initialisierung NACH dem Check mit Adapter
     // Disable triggers temporarily für cleanup von vorherigen Test Runs
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');
     try {

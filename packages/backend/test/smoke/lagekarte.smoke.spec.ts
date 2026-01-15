@@ -31,7 +31,8 @@ jest.mock('@paralleldrive/cuid2', () => ({
   }),
 }));
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '@/generated/prisma/client';
 import { PrismaLagekarteRepository } from '@infrastructure/repositories/prisma-lagekarte.repository';
 import { LagekarteAggregate } from '@domain/aggregates/lagekarte.aggregate';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
@@ -71,7 +72,8 @@ function generateCuid2(): string {
    * HINWEIS: Wir generieren nanoid-konforme IDs um Domain Value Objects zu nutzen
    */
   beforeAll(async () => {
-    prisma = new PrismaClient();
+    const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+    prisma = new PrismaClient({ adapter });
     // PrismaLagekarteRepository erwartet PrismaService, wir nutzen Duck Typing
     // biome-ignore lint/suspicious/noExplicitAny: Duck Typing für PrismaClient statt PrismaService
     repository = new PrismaLagekarteRepository(prisma as any);

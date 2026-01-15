@@ -308,20 +308,49 @@ async function safeDeleteOld(prisma: TestPrismaService, table: string, timestamp
 }
 
 /**
+ * Typ fuer Prisma-Executor (Client oder Transaction).
+ * Beide haben die gleichen Raw Query Methoden.
+ */
+type PrismaExecutor = {
+  $executeRawUnsafe(query: string, ...values: unknown[]): Promise<number>;
+};
+
+/**
+ * Helper: Loescht alte Test-Daten aus einer Tabelle (aelter als 1 Stunde) innerhalb einer Transaktion.
+ *
+ * Version von safeDeleteOld fuer interaktive Transaktionen.
+ *
+ * @param tx - Prisma Transaction Context
+ * @param table - Tabellenname (inkl. Quotes wenn reserved word)
+ * @param timestampCol - Spaltenname fuer Timestamp-Vergleich (inkl. Quotes)
+ */
+async function safeDeleteOldTx(tx: PrismaExecutor, table: string, timestampCol: string): Promise<void> {
+  try {
+    await tx.$executeRawUnsafe(`DELETE FROM ${table} WHERE ${timestampCol} < NOW() - INTERVAL '1 hour'`);
+  } catch (error: unknown) {
+    // Table might not exist - ignore error
+    const msg = error instanceof Error ? error.message : String(error);
+    if (!msg.includes('does not exist') && !msg.includes('42P01')) {
+      throw error;
+    }
+  }
+}
+
+/**
  * Helper: Fuehrt SQL DELETE aus, ignoriert aber Fehler wenn Tabelle nicht existiert.
  *
  * Nuetzlich fuer Cleanup-Operationen bei optionalen/zukuenftigen Tabellen.
  *
- * @param prisma - PrismaClient Instanz
+ * @param executor - Prisma Client oder Transaction Context
  * @param sql - SQL DELETE Statement
  * @param params - SQL Parameter (optional)
  */
-async function safeDelete(prisma: TestPrismaService, sql: string, params?: unknown[]): Promise<void> {
+async function safeDelete(executor: PrismaExecutor, sql: string, params?: unknown[]): Promise<void> {
   try {
     if (params) {
-      await prisma.$executeRawUnsafe(sql, ...params);
+      await executor.$executeRawUnsafe(sql, ...params);
     } else {
-      await prisma.$executeRawUnsafe(sql);
+      await executor.$executeRawUnsafe(sql);
     }
   } catch (error: unknown) {
     // Table might not exist - ignore error
@@ -432,35 +461,40 @@ export async function createEinsatzE2eModule(): Promise<EinsatzE2eTestContext> {
   const prisma = new TestPrismaService();
 
   // 2. Cleanup von vorherigen Test-Runs (älter als 1 Stunde)
-  await prisma.$executeRawUnsafe(DISABLE_TRIGGERS_SQL);
-  try {
+  // Interaktive Transaktion stellt sicher, dass session_replication_role
+  // auf derselben Verbindung wie alle DELETEs ausgeführt wird
+  await prisma.$transaction(async (tx) => {
+    // Deaktiviere Triggers innerhalb der Transaktion
+    await tx.$executeRawUnsafe(DISABLE_TRIGGERS_SQL);
+
     // Reihenfolge wichtig (FK Constraints beachten!):
     // Lagekarten Dependencies (POIs, etc.) -> ETB Dependencies -> Outbox -> Einsaetze -> Users
 
     // Lagekarten Dependencies (deepest FK first)
-    await safeDeleteOld(prisma, 'lagekarten_pois', '"createdAt"');
-    await safeDeleteOld(prisma, 'lagekarten_aktualisierungen', '"createdAt"');
-    await safeDeleteOld(prisma, 'lagekarten_versionen', '"versionTimestamp"');
-    await safeDeleteOld(prisma, 'lagekarten_snapshots', '"snapshotAt"');
-    await safeDeleteOld(prisma, 'lagekarten_eintraege', '"createdAt"');
-    await safeDeleteOld(prisma, 'lagekarten', '"createdAt"');
+    await safeDeleteOldTx(tx, 'lagekarten_pois', '"createdAt"');
+    await safeDeleteOldTx(tx, 'lagekarten_aktualisierungen', '"createdAt"');
+    await safeDeleteOldTx(tx, 'lagekarten_versionen', '"versionTimestamp"');
+    await safeDeleteOldTx(tx, 'lagekarten_snapshots', '"snapshotAt"');
+    await safeDeleteOldTx(tx, 'lagekarten_eintraege', '"createdAt"');
+    await safeDeleteOldTx(tx, 'lagekarten', '"createdAt"');
 
     // ETB Dependencies
-    await safeDeleteOld(prisma, 'etb_snapshots', '"snapshotAt"');
-    await safeDeleteOld(prisma, 'etb_eintraege', '"createdAt"');
-    await safeDeleteOld(prisma, 'einsatztagebuecher', '"createdAt"');
+    await safeDeleteOldTx(tx, 'etb_snapshots', '"snapshotAt"');
+    await safeDeleteOldTx(tx, 'etb_eintraege', '"createdAt"');
+    await safeDeleteOldTx(tx, 'einsatztagebuecher', '"createdAt"');
 
     // Outbox Events (for outbox integration tests)
-    await safeDeleteOld(prisma, 'outbox_events', '"createdAt"');
+    await safeDeleteOldTx(tx, 'outbox_events', '"createdAt"');
 
     // Einsaetze
-    await safeDeleteOld(prisma, 'einsaetze', '"createdAt"');
+    await safeDeleteOldTx(tx, 'einsaetze', '"createdAt"');
 
     // Test Users
-    await prisma.$executeRawUnsafe(`DELETE FROM "User" WHERE username LIKE 'test_einsatz_e2e_%'`);
-  } finally {
-    await prisma.$executeRawUnsafe(ENABLE_TRIGGERS_SQL);
-  }
+    await tx.$executeRawUnsafe(`DELETE FROM "User" WHERE username LIKE 'test_einsatz_e2e_%'`);
+
+    // Reaktiviere Triggers am Ende der Transaktion
+    await tx.$executeRawUnsafe(ENABLE_TRIGGERS_SQL);
+  });
 
   // 3. Test Users erstellen (3 Rollen fuer RBAC Testing - CUID2 Format!)
   const testRunId = Date.now().toString();
@@ -556,62 +590,61 @@ export async function createEinsatzE2eModule(): Promise<EinsatzE2eTestContext> {
  * @param ctx - E2E Test Context
  */
 export async function teardownE2eModule(ctx: EinsatzE2eTestContext): Promise<void> {
-  await ctx.prisma.$executeRawUnsafe(DISABLE_TRIGGERS_SQL);
-  try {
+  // Cleanup all test data created during tests (delete by test user IDs)
+  const allUserIds = [ctx.testUserIds.user, ctx.testUserIds.admin, ctx.testUserIds.superAdmin];
+  const serverAccessTokenId = ctx.serverAccessToken?.id;
+
+  // Interaktive Transaktion stellt sicher, dass session_replication_role
+  // auf derselben Verbindung wie alle DELETEs ausgeführt wird
+  await ctx.prisma.$transaction(async (tx) => {
+    // Deaktiviere Triggers innerhalb der Transaktion
+    await tx.$executeRawUnsafe(DISABLE_TRIGGERS_SQL);
+
     // Reihenfolge (FK-Reverse Order!):
     // Lagekarten -> ETB -> Outbox -> Einsaetze -> Users
 
-    // Cleanup all test data created during tests (delete by test user IDs)
-    const allUserIds = [ctx.testUserIds.user, ctx.testUserIds.admin, ctx.testUserIds.superAdmin];
-
     // Lagekarten Dependencies (safe delete - tables may not exist yet)
-    await safeDelete(ctx.prisma, `DELETE FROM lagekarten_pois WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
+    await safeDelete(tx, `DELETE FROM lagekarten_pois WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [allUserIds]);
+    await safeDelete(tx, `DELETE FROM lagekarten_aktualisierungen WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
       allUserIds,
     ]);
-    await safeDelete(
-      ctx.prisma,
-      `DELETE FROM lagekarten_aktualisierungen WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`,
-      [allUserIds],
-    );
-    await safeDelete(ctx.prisma, `DELETE FROM lagekarten_versionen WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
+    await safeDelete(tx, `DELETE FROM lagekarten_versionen WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
       allUserIds,
     ]);
-    await safeDelete(ctx.prisma, `DELETE FROM lagekarten_snapshots WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
+    await safeDelete(tx, `DELETE FROM lagekarten_snapshots WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
       allUserIds,
     ]);
-    await safeDelete(ctx.prisma, `DELETE FROM lagekarten_eintraege WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
+    await safeDelete(tx, `DELETE FROM lagekarten_eintraege WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
       allUserIds,
     ]);
-    await safeDelete(ctx.prisma, `DELETE FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1))`, [allUserIds]);
+    await safeDelete(tx, `DELETE FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1))`, [allUserIds]);
 
     // ETB Dependencies
-    await safeDelete(ctx.prisma, `DELETE FROM etb_snapshots WHERE "etbId" IN (SELECT id FROM einsatztagebuecher WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
-      allUserIds,
-    ]);
-    await safeDelete(ctx.prisma, `DELETE FROM etb_eintraege WHERE "etbId" IN (SELECT id FROM einsatztagebuecher WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
-      allUserIds,
-    ]);
-    await safeDelete(ctx.prisma, `DELETE FROM einsatztagebuecher WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1))`, [allUserIds]);
+    await safeDelete(tx, `DELETE FROM etb_snapshots WHERE "etbId" IN (SELECT id FROM einsatztagebuecher WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [allUserIds]);
+    await safeDelete(tx, `DELETE FROM etb_eintraege WHERE "etbId" IN (SELECT id FROM einsatztagebuecher WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [allUserIds]);
+    await safeDelete(tx, `DELETE FROM einsatztagebuecher WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1))`, [allUserIds]);
 
     // Outbox Events
-    await safeDelete(ctx.prisma, `DELETE FROM outbox_events WHERE "aggregateId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1))`, [allUserIds]);
+    await safeDelete(tx, `DELETE FROM outbox_events WHERE "aggregateId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1))`, [allUserIds]);
 
     // Einsaetze
-    await safeDelete(ctx.prisma, `DELETE FROM einsaetze WHERE "createdBy" = ANY($1)`, [allUserIds]);
+    await safeDelete(tx, `DELETE FROM einsaetze WHERE "createdBy" = ANY($1)`, [allUserIds]);
 
     // ServerAccessTokens (fuer SetupPendingGuard)
-    if (ctx.serverAccessToken?.id) {
-      await safeDelete(ctx.prisma, `DELETE FROM "server_access_tokens" WHERE id = $1`, [ctx.serverAccessToken.id]);
+    if (serverAccessTokenId) {
+      await safeDelete(tx, `DELETE FROM "server_access_tokens" WHERE id = $1`, [serverAccessTokenId]);
     }
     // Cleanup alle Test-Tokens (fuer Tests die zusaetzliche Tokens erstellen)
-    await safeDelete(ctx.prisma, `DELETE FROM "server_access_tokens" WHERE name LIKE 'test_einsatz_e2e_%'`);
+    await safeDelete(tx, `DELETE FROM "server_access_tokens" WHERE name LIKE 'test_einsatz_e2e_%'`);
 
     // Test Users
-    await safeDelete(ctx.prisma, `DELETE FROM "User" WHERE id = ANY($1)`, [allUserIds]);
-  } finally {
-    await ctx.prisma.$executeRawUnsafe(ENABLE_TRIGGERS_SQL);
-    await ctx.prisma.$disconnect();
-  }
+    await safeDelete(tx, `DELETE FROM "User" WHERE id = ANY($1)`, [allUserIds]);
+
+    // Reaktiviere Triggers am Ende der Transaktion
+    await tx.$executeRawUnsafe(ENABLE_TRIGGERS_SQL);
+  });
+
+  await ctx.prisma.$disconnect();
 }
 
 /**
@@ -620,63 +653,69 @@ export async function teardownE2eModule(ctx: EinsatzE2eTestContext): Promise<voi
  * Loescht Einsatz-Daten aber behaelt Test-Users.
  * Cleared auch den Event Publisher Spy.
  *
+ * Verwendet eine interaktive Transaktion, um sicherzustellen, dass
+ * SET session_replication_role auf derselben Verbindung wie die DELETEs läuft.
+ *
  * @param ctx - E2E Test Context
  */
 export async function cleanupTestData(ctx: EinsatzE2eTestContext): Promise<void> {
   ctx.eventPublisher.clear();
 
-  await ctx.prisma.$executeRawUnsafe(DISABLE_TRIGGERS_SQL);
-  try {
-    const allUserIds = [ctx.testUserIds.user, ctx.testUserIds.admin, ctx.testUserIds.superAdmin];
+  const allUserIds = [ctx.testUserIds.user, ctx.testUserIds.admin, ctx.testUserIds.superAdmin];
 
-    // Also include 'admin' user created by HTTP tests (not in ctx.testUserIds)
-    // Get admin user ID(s) by username pattern
-    const adminUsers = (await ctx.prisma.$queryRaw`
-      SELECT id FROM "User" WHERE username = 'admin' OR username LIKE 'admin_%'
-    `) as { id: string }[];
-    const adminUserIds = adminUsers.map((u) => u.id);
-    const allCleanupUserIds = [...allUserIds, ...adminUserIds];
+  // Also include 'admin' user created by HTTP tests (not in ctx.testUserIds)
+  // Get admin user ID(s) by username pattern
+  const adminUsers = (await ctx.prisma.$queryRaw`
+    SELECT id FROM "User" WHERE username = 'admin' OR username LIKE 'admin_%'
+  `) as { id: string }[];
+  const adminUserIds = adminUsers.map((u) => u.id);
+  const allCleanupUserIds = [...allUserIds, ...adminUserIds];
+
+  // Interaktive Transaktion stellt sicher, dass session_replication_role
+  // auf derselben Verbindung wie alle DELETEs ausgeführt wird
+  await ctx.prisma.$transaction(async (tx) => {
+    // Deaktiviere Triggers innerhalb der Transaktion
+    await tx.$executeRawUnsafe(DISABLE_TRIGGERS_SQL);
 
     // Reihenfolge (FK Order!): Lagekarten -> ETB -> Outbox -> Einsaetze
     // (Users bleiben erhalten!)
 
     // Lagekarten Dependencies (safe delete - tables may not exist yet)
-    await safeDelete(ctx.prisma, `DELETE FROM lagekarten_pois WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
+    await safeDelete(tx, `DELETE FROM lagekarten_pois WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
       allCleanupUserIds,
     ]);
-    await safeDelete(
-      ctx.prisma,
-      `DELETE FROM lagekarten_aktualisierungen WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`,
-      [allCleanupUserIds],
-    );
-    await safeDelete(ctx.prisma, `DELETE FROM lagekarten_versionen WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
+    await safeDelete(tx, `DELETE FROM lagekarten_aktualisierungen WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
       allCleanupUserIds,
     ]);
-    await safeDelete(ctx.prisma, `DELETE FROM lagekarten_snapshots WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
+    await safeDelete(tx, `DELETE FROM lagekarten_versionen WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
       allCleanupUserIds,
     ]);
-    await safeDelete(ctx.prisma, `DELETE FROM lagekarten_eintraege WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
+    await safeDelete(tx, `DELETE FROM lagekarten_snapshots WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
       allCleanupUserIds,
     ]);
-    await safeDelete(ctx.prisma, `DELETE FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1))`, [allCleanupUserIds]);
+    await safeDelete(tx, `DELETE FROM lagekarten_eintraege WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
+      allCleanupUserIds,
+    ]);
+    await safeDelete(tx, `DELETE FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1))`, [allCleanupUserIds]);
 
     // ETB Dependencies
-    await safeDelete(ctx.prisma, `DELETE FROM etb_snapshots WHERE "etbId" IN (SELECT id FROM einsatztagebuecher WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
+    await safeDelete(tx, `DELETE FROM etb_snapshots WHERE "etbId" IN (SELECT id FROM einsatztagebuecher WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
       allCleanupUserIds,
     ]);
-    await safeDelete(ctx.prisma, `DELETE FROM etb_eintraege WHERE "etbId" IN (SELECT id FROM einsatztagebuecher WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
+    await safeDelete(tx, `DELETE FROM etb_eintraege WHERE "etbId" IN (SELECT id FROM einsatztagebuecher WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
       allCleanupUserIds,
     ]);
-    await safeDelete(ctx.prisma, `DELETE FROM einsatztagebuecher WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1))`, [allCleanupUserIds]);
+    await safeDelete(tx, `DELETE FROM einsatztagebuecher WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1))`, [allCleanupUserIds]);
 
     // Outbox Events
-    await safeDelete(ctx.prisma, `DELETE FROM outbox_events WHERE "aggregateId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1))`, [allCleanupUserIds]);
+    await safeDelete(tx, `DELETE FROM outbox_events WHERE "aggregateId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1))`, [allCleanupUserIds]);
 
     // Einsaetze
-    await safeDelete(ctx.prisma, `DELETE FROM einsaetze WHERE "createdBy" = ANY($1)`, [allCleanupUserIds]);
-  } finally {
-    await ctx.prisma.$executeRawUnsafe(ENABLE_TRIGGERS_SQL);
-  }
+    await safeDelete(tx, `DELETE FROM einsaetze WHERE "createdBy" = ANY($1)`, [allCleanupUserIds]);
+
+    // Reaktiviere Triggers am Ende der Transaktion
+    await tx.$executeRawUnsafe(ENABLE_TRIGGERS_SQL);
+  });
 }
 
 // ============================================
@@ -1006,31 +1045,36 @@ export async function waitFor(assertion: () => Promise<void>, timeout = 500, int
  * ```
  */
 export async function cleanupEinsatzById(ctx: EinsatzE2eTestContext, einsatzId: string): Promise<void> {
-  await ctx.prisma.$executeRawUnsafe(DISABLE_TRIGGERS_SQL);
-  try {
+  // Interaktive Transaktion stellt sicher, dass session_replication_role
+  // auf derselben Verbindung wie alle DELETEs ausgeführt wird
+  await ctx.prisma.$transaction(async (tx) => {
+    // Deaktiviere Triggers innerhalb der Transaktion
+    await tx.$executeRawUnsafe(DISABLE_TRIGGERS_SQL);
+
     // Reihenfolge (FK Order!): Lagekarten -> ETB -> Outbox -> Einsatz
 
     // Lagekarten Dependencies (safe delete - tables may not exist yet)
-    await safeDelete(ctx.prisma, `DELETE FROM lagekarten_pois WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" = $1)`, [einsatzId]);
-    await safeDelete(ctx.prisma, `DELETE FROM lagekarten_aktualisierungen WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" = $1)`, [einsatzId]);
-    await safeDelete(ctx.prisma, `DELETE FROM lagekarten_versionen WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" = $1)`, [einsatzId]);
-    await safeDelete(ctx.prisma, `DELETE FROM lagekarten_snapshots WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" = $1)`, [einsatzId]);
-    await safeDelete(ctx.prisma, `DELETE FROM lagekarten_eintraege WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" = $1)`, [einsatzId]);
-    await safeDelete(ctx.prisma, `DELETE FROM lagekarten WHERE "einsatzId" = $1`, [einsatzId]);
+    await safeDelete(tx, `DELETE FROM lagekarten_pois WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" = $1)`, [einsatzId]);
+    await safeDelete(tx, `DELETE FROM lagekarten_aktualisierungen WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" = $1)`, [einsatzId]);
+    await safeDelete(tx, `DELETE FROM lagekarten_versionen WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" = $1)`, [einsatzId]);
+    await safeDelete(tx, `DELETE FROM lagekarten_snapshots WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" = $1)`, [einsatzId]);
+    await safeDelete(tx, `DELETE FROM lagekarten_eintraege WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" = $1)`, [einsatzId]);
+    await safeDelete(tx, `DELETE FROM lagekarten WHERE "einsatzId" = $1`, [einsatzId]);
 
     // ETB Dependencies
-    await safeDelete(ctx.prisma, `DELETE FROM etb_snapshots WHERE "etbId" IN (SELECT id FROM einsatztagebuecher WHERE "einsatzId" = $1)`, [einsatzId]);
-    await safeDelete(ctx.prisma, `DELETE FROM etb_eintraege WHERE "etbId" IN (SELECT id FROM einsatztagebuecher WHERE "einsatzId" = $1)`, [einsatzId]);
-    await safeDelete(ctx.prisma, `DELETE FROM einsatztagebuecher WHERE "einsatzId" = $1`, [einsatzId]);
+    await safeDelete(tx, `DELETE FROM etb_snapshots WHERE "etbId" IN (SELECT id FROM einsatztagebuecher WHERE "einsatzId" = $1)`, [einsatzId]);
+    await safeDelete(tx, `DELETE FROM etb_eintraege WHERE "etbId" IN (SELECT id FROM einsatztagebuecher WHERE "einsatzId" = $1)`, [einsatzId]);
+    await safeDelete(tx, `DELETE FROM einsatztagebuecher WHERE "einsatzId" = $1`, [einsatzId]);
 
     // Outbox Events
-    await safeDelete(ctx.prisma, `DELETE FROM outbox_events WHERE "aggregateId" = $1`, [einsatzId]);
+    await safeDelete(tx, `DELETE FROM outbox_events WHERE "aggregateId" = $1`, [einsatzId]);
 
     // Einsatz
-    await safeDelete(ctx.prisma, `DELETE FROM einsaetze WHERE id = $1`, [einsatzId]);
-  } finally {
-    await ctx.prisma.$executeRawUnsafe(ENABLE_TRIGGERS_SQL);
-  }
+    await safeDelete(tx, `DELETE FROM einsaetze WHERE id = $1`, [einsatzId]);
+
+    // Reaktiviere Triggers am Ende der Transaktion
+    await tx.$executeRawUnsafe(ENABLE_TRIGGERS_SQL);
+  });
 }
 
 // ============================================

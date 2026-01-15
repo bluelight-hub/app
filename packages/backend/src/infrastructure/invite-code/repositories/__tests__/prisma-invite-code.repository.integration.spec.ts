@@ -16,7 +16,7 @@
  * - afterEach() cleanup in reverse FK order
  */
 
-import { PrismaClient } from '@/generated/prisma/client';
+import type { PrismaClient } from '@/generated/prisma/client';
 import { createId } from '@paralleldrive/cuid2';
 import { PrismaInviteCodeRepository } from '../prisma-invite-code.repository';
 import { InviteCode } from '@domain/aggregates/invite-code.aggregate';
@@ -26,7 +26,7 @@ import { InviteCodeStatus } from '@domain/value-objects/invite-code-status';
 import type { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { IInviteCodeRepository } from '@domain/repositories/i-invite-code.repository';
 import type { ILogger } from '@domain/ports/i-logger.port';
-import { skipIfNoDatabase } from '@/infrastructure/__tests__/helpers/database-test.helper';
+import { skipIfNoDatabase, createTestPrismaClient } from '@/infrastructure/__tests__/helpers/database-test.helper';
 
 /**
  * Mock Logger fuer Integration Tests.
@@ -57,7 +57,7 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
       return;
     }
 
-    prisma = new PrismaClient();
+    prisma = createTestPrismaClient();
 
     // Disable triggers temporarily fuer cleanup von vorherigen Test Runs
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');

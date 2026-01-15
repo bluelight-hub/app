@@ -26,10 +26,10 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import cookieParser from 'cookie-parser';
 import * as jwt from 'jsonwebtoken';
-import { PrismaClient } from '@/generated/prisma/client';
+import type { PrismaClient } from '@/generated/prisma/client';
 import { createId } from '@paralleldrive/cuid2';
 import { AppModule } from '../../../../app.module';
-import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
+import { skipIfNoDatabase, createTestPrismaClient } from '@infrastructure/__tests__/helpers/database-test.helper';
 import { InviteCodeStatus } from '@domain/value-objects/invite-code-status';
 import { InviteCodeValue } from '@domain/value-objects/invite-code-value';
 import { BCRYPT_COST_FACTOR_PASSWORD, BCRYPT_COST_FACTOR_TOKEN } from '@infrastructure/config/security.constants';
@@ -146,7 +146,7 @@ describe('AdminInviteController (e2e)', () => {
     // Enable INSECURE_MODE to bypass ServerAccessGuard in E2E tests
     process.env.INSECURE_MODE = 'true';
 
-    prisma = new PrismaClient();
+    prisma = createTestPrismaClient();
     await prisma.$connect();
 
     // Bootstrap NestJS-Anwendung

@@ -5,10 +5,10 @@ import request from 'supertest';
 import cookieParser from 'cookie-parser';
 import * as jwt from 'jsonwebtoken';
 import { AppModule } from '../../../app.module';
-import { PrismaClient } from '@/generated/prisma/client';
+import type { PrismaClient } from '@/generated/prisma/client';
 import { createId } from '@paralleldrive/cuid2';
 import * as bcryptLib from 'bcrypt';
-import { skipIfNoDatabase } from '@infrastructure/__tests__/helpers/database-test.helper';
+import { skipIfNoDatabase, createTestPrismaClient } from '@infrastructure/__tests__/helpers/database-test.helper';
 import { BCRYPT_COST_FACTOR_PASSWORD, BCRYPT_COST_FACTOR_TOKEN } from '@infrastructure/config/security.constants';
 
 /**
@@ -121,7 +121,7 @@ describe('AdminJwtAuthGuard HTTP Integration Tests (AC5.3)', () => {
     }
 
     // Prisma Client für User Setup
-    prisma = new PrismaClient();
+    prisma = createTestPrismaClient();
     await prisma.$connect();
 
     // Bootstrap der vollständigen NestJS-Anwendung

@@ -39,6 +39,7 @@ jest.mock('@paralleldrive/cuid2', () => ({
   }),
 }));
 
+import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@/generated/prisma/client';
 
 // Domain
@@ -79,7 +80,8 @@ const generateTestId = () => {
   return result;
 };
 
-const prisma = new PrismaClient();
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
 
 /**
  * Spy EventPublisher: Implementiert IEventPublisher und trackt alle publizierten Events.

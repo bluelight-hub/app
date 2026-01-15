@@ -125,3 +125,38 @@ export async function skipIfNoDatabase(): Promise<boolean> {
  * });
  * ```
  */
+
+/**
+ * Erstellt einen neuen PrismaClient mit dem korrekten PrismaPg Adapter.
+ *
+ * Ab Prisma v7 erfordert der PrismaClient einen Adapter für die
+ * direkte TCP-Verbindung zur PostgreSQL Datenbank.
+ *
+ * **WICHTIG:** Diese Funktion sollte NUR aufgerufen werden NACHDEM
+ * `skipIfNoDatabase()` geprüft hat, dass die Datenbank verfügbar ist.
+ *
+ * @returns PrismaClient - Neuer PrismaClient mit PrismaPg Adapter
+ *
+ * @example
+ * ```typescript
+ * describe('MyRepository - Integration Tests', () => {
+ *   let prisma: PrismaClient;
+ *   let databaseAvailable = false;
+ *
+ *   beforeAll(async () => {
+ *     databaseAvailable = await skipIfNoDatabase();
+ *     if (!databaseAvailable) return;
+ *     prisma = createTestPrismaClient();
+ *   });
+ *
+ *   afterAll(async () => {
+ *     if (!databaseAvailable) return;
+ *     await prisma.$disconnect();
+ *   });
+ * });
+ * ```
+ */
+export function createTestPrismaClient(): InstanceType<typeof PrismaClient> {
+  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+  return new PrismaClient({ adapter });
+}
