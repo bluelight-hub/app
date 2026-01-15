@@ -6,11 +6,11 @@
  * In CI-Umgebungen werden Test-Secrets für Auth gesetzt.
  */
 
-import { config } from 'dotenv';
+import * as dotenvx from '@dotenvx/dotenvx';
 import { resolve } from 'node:path';
 
 // Load .env from backend root
-config({ path: resolve(__dirname, '.env') });
+dotenvx.config({ path: resolve(__dirname, '.env') });
 
 /**
  * Test-Secrets für CI-Umgebung wo keine .env Datei existiert.
