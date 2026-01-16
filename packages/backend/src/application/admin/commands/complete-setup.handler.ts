@@ -29,7 +29,8 @@ import { TransactionalCommandHandler } from '@/application/common/handlers/trans
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { INVITE_CODE_REPOSITORY, LOGGER, OUTBOX_REPOSITORY, SERVER_ACCESS_TOKEN_REPOSITORY, USER_REPOSITORY } from '@infrastructure/di-tokens';
 import { BCRYPT_COST_FACTOR_PASSWORD, BCRYPT_COST_FACTOR_TOKEN } from '@/infrastructure/config/security.constants';
-import type { HibpService } from '@/infrastructure/password/hibp.service';
+// biome-ignore lint/style/useImportType: HibpService wird fuer NestJS DI benoetigt
+import { HibpService } from '@/infrastructure/password/hibp.service';
 
 // biome-ignore lint/style/useImportType: CompleteSetupCommand wird fuer Runtime-Typisierung benoetigt
 import { CompleteSetupCommand } from './complete-setup.command';

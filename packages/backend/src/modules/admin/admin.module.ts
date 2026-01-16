@@ -17,6 +17,7 @@ import { ServerAccessTokenInfrastructureModule } from '@/infrastructure/server-a
 import { ServerConfigInfrastructureModule } from '@/infrastructure/server-config/server-config-infrastructure.module';
 import { UserInfrastructureModule } from '@/infrastructure/user/user-infrastructure.module';
 import { InviteCodeInfrastructureModule } from '@/infrastructure/invite-code';
+import { PasswordModule } from '@/infrastructure/password/password.module';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { OutboxModule } from '@/infrastructure/outbox/outbox.module';
 import { NestLoggerAdapter } from '@/infrastructure/common/adapters/nest-logger.adapter';
@@ -69,7 +70,7 @@ import { AdminSecurityController } from './controllers/admin-security.controller
  * - `LOGGER`: NestJS Logger Adapter
  */
 @Module({
-  imports: [PrismaModule, ServerAccessTokenInfrastructureModule, ServerConfigInfrastructureModule, UserInfrastructureModule, InviteCodeInfrastructureModule, OutboxModule],
+  imports: [PrismaModule, ServerAccessTokenInfrastructureModule, ServerConfigInfrastructureModule, UserInfrastructureModule, InviteCodeInfrastructureModule, OutboxModule, PasswordModule],
   controllers: [AdminSetupController, AdminInviteController, AdminTokenController, AdminSecurityController],
   providers: [
     // Logger fuer Handler
