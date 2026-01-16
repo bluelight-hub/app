@@ -48,7 +48,11 @@ export class HibpService {
    */
   async checkPassword(password: string): Promise<HibpCheckResult> {
     try {
-      // SHA-1 Hash des Passworts erstellen (HIBP nutzt SHA-1)
+      // SECURITY NOTE: SHA-1 ist hier absichtlich und sicher verwendet.
+      // Dies ist NICHT für Passwort-Speicherung - Passwörter werden separat mit bcrypt gehasht.
+      // SHA-1 ist von der HIBP API-Spezifikation (k-Anonymity Protokoll) vorgeschrieben.
+      // Nur die ersten 5 Zeichen des Hashes werden an die API gesendet.
+      // CodeQL-Warnung ist ein False Positive (lgtm[js/insufficient-password-hash])
       const sha1Hash = createHash('sha1').update(password).digest('hex').toUpperCase();
 
       // K-Anonymity: Nur die ersten 5 Zeichen senden
