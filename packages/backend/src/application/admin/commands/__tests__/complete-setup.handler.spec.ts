@@ -4,6 +4,7 @@ import { Result } from '@domain/common/result';
 import type { UserAggregate } from '@domain/aggregates/user.aggregate';
 import { INVITE_CODE_REPOSITORY, LOGGER, OUTBOX_REPOSITORY, SERVER_ACCESS_TOKEN_REPOSITORY, USER_REPOSITORY } from '@infrastructure/di-tokens';
 import { PrismaService } from '@infrastructure/database/prisma.service';
+import { HibpService } from '@infrastructure/password/hibp.service';
 import { CompleteSetupHandler } from '../complete-setup.handler';
 import { CompleteSetupCommand } from '../complete-setup.command';
 import { BCRYPT_COST_FACTOR_PASSWORD, BCRYPT_COST_FACTOR_TOKEN } from '@infrastructure/config/security.constants';
@@ -57,6 +58,9 @@ describe('CompleteSetupHandler', () => {
     error: jest.Mock;
     warn: jest.Mock;
     debug: jest.Mock;
+  };
+  let mockHibpService: {
+    checkPassword: jest.Mock;
   };
 
   beforeEach(async () => {
@@ -116,6 +120,14 @@ describe('CompleteSetupHandler', () => {
       debug: jest.fn(),
     };
 
+    // Mock HIBP Service - Default: Passwort nicht kompromittiert
+    mockHibpService = {
+      checkPassword: jest.fn().mockResolvedValue({
+        isCompromised: false,
+        occurrences: 0,
+      }),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CompleteSetupHandler,
@@ -125,6 +137,7 @@ describe('CompleteSetupHandler', () => {
         { provide: SERVER_ACCESS_TOKEN_REPOSITORY, useValue: mockTokenRepository },
         { provide: INVITE_CODE_REPOSITORY, useValue: mockInviteCodeRepository },
         { provide: LOGGER, useValue: mockLogger },
+        { provide: HibpService, useValue: mockHibpService },
       ],
     }).compile();
 
@@ -813,6 +826,134 @@ describe('CompleteSetupHandler', () => {
       const savedInviteCode = mockInviteCodeRepository.save.mock.calls[0][0];
       // Der createdById sollte die User-ID des Admin sein
       expect(savedInviteCode.createdById).toBe(result.value!.user.id);
+    });
+  });
+
+  describe('HIBP Password Breach Check (NIST SP 800-63B-4)', () => {
+    it('sollte Setup ablehnen wenn Passwort in bekanntem Breach gefunden wurde', async () => {
+      // Given (Arrange)
+      mockHibpService.checkPassword.mockResolvedValue({
+        isCompromised: true,
+        occurrences: 3730471, // "password" wurde 3.7 Mio mal gefunden
+      });
+
+      const command = CompleteSetupCommand.create({
+        username: 'admin',
+        password: 'password', // Bekanntes kompromittiertes Passwort
+      }).value!;
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('PASSWORD_COMPROMISED');
+      // Kein User sollte erstellt worden sein
+      expect(mockUserRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('sollte Warning loggen wenn Passwort kompromittiert ist', async () => {
+      // Given (Arrange)
+      mockHibpService.checkPassword.mockResolvedValue({
+        isCompromised: true,
+        occurrences: 1000000,
+      });
+
+      const command = CompleteSetupCommand.create({
+        username: 'admin',
+        password: 'CompromisedPassword123',
+      }).value!;
+
+      // When (Act)
+      await handler.execute(command);
+
+      // Then (Assert)
+      expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining('Password breach detected'));
+      expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining('1000000'));
+    });
+
+    it('sollte Setup fortsetzen wenn HIBP API fehlschlaegt (Graceful Degradation)', async () => {
+      // Given (Arrange): HIBP API Fehler (z.B. Rate Limiting, Timeout)
+      mockHibpService.checkPassword.mockResolvedValue({
+        isCompromised: false,
+        occurrences: 0,
+        error: 'HIBP API error: 429 Too Many Requests',
+      });
+
+      const command = CompleteSetupCommand.create({
+        username: 'admin',
+        password: 'SecurePassword123!',
+      }).value!;
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert): Setup sollte trotzdem erfolgreich sein
+      expect(result.isSuccess).toBe(true);
+      expect(result.value!.user.username).toBe('admin');
+      // Warning sollte geloggt werden
+      expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining('HIBP check failed'));
+    });
+
+    it('sollte HIBP Service mit Passwort aufrufen', async () => {
+      // Given (Arrange)
+      const command = CompleteSetupCommand.create({
+        username: 'admin',
+        password: 'MySecureTestPassword123!',
+      }).value!;
+
+      // When (Act)
+      await handler.execute(command);
+
+      // Then (Assert)
+      expect(mockHibpService.checkPassword).toHaveBeenCalledTimes(1);
+      expect(mockHibpService.checkPassword).toHaveBeenCalledWith('MySecureTestPassword123!');
+    });
+
+    it('sollte HIBP Check VOR Password-Hashing ausfuehren', async () => {
+      // Given (Arrange)
+      const callOrder: string[] = [];
+      mockHibpService.checkPassword.mockImplementation(async () => {
+        callOrder.push('hibp');
+        return { isCompromised: false, occurrences: 0 };
+      });
+      (bcrypt.hash as jest.Mock).mockImplementation(async () => {
+        callOrder.push('bcrypt');
+        return MOCK_BCRYPT_HASH;
+      });
+
+      const command = CompleteSetupCommand.create({
+        username: 'admin',
+        password: 'SecurePassword123!',
+      }).value!;
+
+      // When (Act)
+      await handler.execute(command);
+
+      // Then (Assert): HIBP sollte vor bcrypt aufgerufen werden
+      expect(callOrder.indexOf('hibp')).toBeLessThan(callOrder.indexOf('bcrypt'));
+    });
+
+    it('sollte nicht speichern wenn Passwort kompromittiert ist', async () => {
+      // Given (Arrange)
+      mockHibpService.checkPassword.mockResolvedValue({
+        isCompromised: true,
+        occurrences: 500,
+      });
+
+      const command = CompleteSetupCommand.create({
+        username: 'admin',
+        password: 'WeakPassword',
+      }).value!;
+
+      // When (Act)
+      await handler.execute(command);
+
+      // Then (Assert): Keine Repositories sollten aufgerufen worden sein
+      expect(mockUserRepository.save).not.toHaveBeenCalled();
+      expect(mockTokenRepository.save).not.toHaveBeenCalled();
+      expect(mockInviteCodeRepository.save).not.toHaveBeenCalled();
+      expect(mockOutboxRepository.save).not.toHaveBeenCalled();
     });
   });
 });

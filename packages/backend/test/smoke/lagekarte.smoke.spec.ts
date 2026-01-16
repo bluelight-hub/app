@@ -88,7 +88,7 @@ function generateCuid2(): string {
     await prisma.user.create({
       data: {
         id: testUserDbId,
-        username: `smoke-test-user-${Date.now()}`,
+        username: `smoke_test_user_${Date.now()}`,
         role: 'USER',
         isActive: true,
       },

@@ -462,7 +462,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
         .post('/api/v-alpha/user/create') // Beispiel ADMIN-Endpoint
         .set('Cookie', [accessTokenCookie])
         .send({
-          username: `new-user-${generateTestId()}`,
+          username: `new_user_${generateTestId()}`,
           password: 'password',
           role: 'USER',
         })

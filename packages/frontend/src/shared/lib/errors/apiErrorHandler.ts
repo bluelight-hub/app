@@ -1,5 +1,5 @@
 import { logger } from '@/shared/lib/logger';
-import { ResponseError } from '@/shared';
+import { ResponseError } from '@bluelight-hub/shared/client';
 
 /**
  * Structured error response from the API
@@ -19,6 +19,7 @@ export type ApiErrorContext =
   | 'deleteUser'
   | 'updateUser'
   | 'adminSetup'
+  | 'serverSetup'
   | 'adminLogin'
   | 'userLogin'
   | 'userRegister'
@@ -197,6 +198,27 @@ function getContextSpecificMessage(status: number, errorData: ApiErrorResponse, 
       break;
 
     case 'adminSetup':
+    case 'serverSetup':
+      if (status === 400) {
+        // NIST SP 800-63B-4: Spezifische Fehlermeldungen für Passwort-Validierung
+        // Hinweis: message kann String oder Array sein (je nach Fehlerquelle)
+        const messageStr = Array.isArray(errorData.message) ? errorData.message.join(' ') : (errorData.message ?? '');
+
+        if (messageStr.includes('PASSWORD_COMPROMISED') || errorData.code === 'PASSWORD_COMPROMISED') {
+          return 'Dieses Passwort wurde in bekannten Datenlecks gefunden. Bitte wählen Sie ein sicheres, einzigartiges Passwort.';
+        }
+        if (messageStr.includes('zu häufig') || messageStr.includes('PASSWORD_BLOCKED')) {
+          return 'Dieses Passwort ist zu häufig und nicht erlaubt. Bitte wählen Sie ein einzigartiges Passwort.';
+        }
+        if (messageStr.includes('mindestens 8 Zeichen')) {
+          return 'Das Passwort muss mindestens 8 Zeichen lang sein.';
+        }
+        // Für DTO-Validierungsfehler: Zeige die Backend-Nachricht
+        if (messageStr) {
+          return messageStr;
+        }
+        return 'Ungültige Eingabe. Bitte überprüfen Sie das Passwort.';
+      }
       if (status === 409) {
         return 'Ein Administrator wurde bereits eingerichtet. Bitte melden Sie sich mit dem bestehenden Admin-Konto an.';
       }

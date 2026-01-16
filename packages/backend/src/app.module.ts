@@ -30,6 +30,7 @@ import { ServerAccessTokenInfrastructureModule } from './infrastructure/server-a
 import { ServerAccessGuard } from './infrastructure/guards/server-access.guard';
 import { SetupPendingGuard } from './infrastructure/guards/setup-pending.guard';
 import { AdminModule } from './modules/admin/admin.module';
+import { PasswordModule } from './infrastructure/password/password.module';
 
 /**
  * Haupt-Anwendungsmodul der Bluelight Hub Backend-Anwendung
@@ -99,6 +100,7 @@ import { AdminModule } from './modules/admin/admin.module';
     IntegrationsModule, // HiOrg-Server Integration (Story 7-1)
     ServerAccessTokenInfrastructureModule, // Server-Access-Token Guard & Repository (Story 1-1a)
     AdminModule, // Admin Setup & Management (Story 1.3)
+    PasswordModule, // HIBP Password Breach Check (NIST SP 800-63B-4)
   ],
   controllers: [AppController],
   providers: [

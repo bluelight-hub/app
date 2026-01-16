@@ -76,7 +76,7 @@ describe('Prisma Schema - EinsatzRollenbesetzung Integration Tests', () => {
     await prisma.user.create({
       data: {
         id: testUserId,
-        username: `test-rollen-besetzung-${Date.now()}`,
+        username: `test_rollen_besetzung_${Date.now()}`,
         passwordHash: 'hashed-password-dummy',
         role: 'USER',
       },

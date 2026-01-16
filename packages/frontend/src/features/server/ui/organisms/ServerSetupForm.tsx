@@ -40,6 +40,7 @@ import { OnboardingErrorCard } from '../molecules/OnboardingErrorCard';
 import { toast } from 'sonner';
 import { PiDatabase, PiKey, PiBuildings, PiUser, PiLock, PiWarning, PiCheckCircle, PiArrowRight } from 'react-icons/pi';
 import { Configuration, AdminApi } from '@bluelight-hub/shared/client';
+import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { addServer, setActiveServer, isServerNameTaken } from '../../stores/server.store';
 import { logger } from '@/shared/lib/logger';
 import { setServerAccessToken } from '@/shared/lib/server-access-token';
@@ -306,7 +307,8 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
 
         // Admin-Setup Fehler
         if (formMode === 'admin-setup') {
-          const errorMessage = error instanceof Error ? error.message : 'Admin-Setup fehlgeschlagen';
+          // NIST SP 800-63B-4: Benutzerfreundliche Fehlermeldungen für Passwort-Validierung
+          const errorMessage = await getApiErrorMessage(error, 'Admin-Setup fehlgeschlagen. Bitte versuchen Sie es erneut.', 'serverSetup');
           setAdminSetupError(errorMessage);
           toast.error('Admin-Setup fehlgeschlagen', {
             description: errorMessage,
@@ -679,7 +681,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
                       />
                       {fieldError && <p className="text-red-600 text-sm dark:text-red-400">{fieldError}</p>}
                       {/* Password Strength Indicator */}
-                      <PasswordStrengthIndicator password={field.state.value} showLabel={true} showCriteria={true} />
+                      <PasswordStrengthIndicator password={field.state.value} showLabel={true} />
                     </div>
                   );
                 }}

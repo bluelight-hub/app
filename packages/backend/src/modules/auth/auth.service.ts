@@ -10,6 +10,7 @@ import { isCuid } from '@paralleldrive/cuid2';
 import type { User } from '@/generated/prisma/client';
 import * as bcrypt from 'bcrypt';
 import { BCRYPT_COST_FACTOR_PASSWORD } from '@/infrastructure/config/security.constants';
+import { PasswordValidationService } from '@/infrastructure/password/password-validation.service';
 import type { AdminSetupDto } from './dto/admin-setup.dto';
 import type { AuthRequestDto } from './dto/auth-request.dto';
 import type { AuthResponseDto } from './dto/auth-response.dto';
@@ -29,6 +30,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     @Inject(LOGGER) private readonly logger: ILogger,
+    private readonly passwordValidation: PasswordValidationService,
   ) {}
 
   /**
@@ -318,6 +320,9 @@ export class AuthService {
     if (currentUser.passwordHash) {
       throw new ConflictException('Passwort bereits gesetzt');
     }
+
+    // NIST SP 800-63B-4: Passwort-Validierung (Blocklist + HIBP)
+    await this.passwordValidation.validatePassword(dto.password, 'admin-setup');
 
     // Hash das Passwort mit type-safe Cost Factor (NFR-S1 compliant)
     const passwordHash = await bcrypt.hash(dto.password, BCRYPT_COST_FACTOR_PASSWORD);

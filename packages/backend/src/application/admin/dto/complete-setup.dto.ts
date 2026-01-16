@@ -4,6 +4,7 @@ import { IsNotEmpty, IsString } from 'class-validator';
 // import { passwordSchema, usernameSchema } from '@bluelight-hub/shared/schemas';
 import { z } from 'zod';
 import { ValidateWithZod } from '@/application/common/validation';
+import { isPasswordBlocked } from '@/infrastructure/password/password-blocklist.const';
 
 // TEMPORARY: Inline schemas until backend ESM migration (Issue: Backend ESM Migration)
 // Source: @bluelight-hub/shared/schemas (keep in sync!)
@@ -13,13 +14,25 @@ const usernameSchema = z
   .max(20, 'Nutzername darf höchstens 20 Zeichen lang sein')
   .regex(/^[a-zA-Z0-9_-]+$/, 'Nutzername darf nur Buchstaben, Zahlen, Bindestriche und Unterstriche enthalten');
 
+/**
+ * Passwort-Schema gemäß NIST SP 800-63B-4 (Juli 2025)
+ *
+ * NIST-Compliance:
+ * - Mindestlänge: 8 Zeichen
+ * - Maximallänge: 128 Zeichen
+ * - KEINE Composition Rules (von NIST als ineffektiv eingestuft)
+ * - Blocklist-Prüfung mit ~193 häufigen Passwörtern
+ * - HIBP-Breach-Check im Handler für zusätzliche Sicherheit
+ *
+ * HINWEIS: Blocklist importiert aus password-blocklist.const.ts (synchron mit Shared-Package)
+ */
 const passwordSchema = z
   .string()
   .min(8, 'Passwort muss mindestens 8 Zeichen lang sein')
-  .regex(/[a-z]/, 'Passwort muss mindestens einen Kleinbuchstaben enthalten')
-  .regex(/[A-Z]/, 'Passwort muss mindestens einen Großbuchstaben enthalten')
-  .regex(/[0-9]/, 'Passwort muss mindestens eine Ziffer enthalten')
-  .regex(/[^a-zA-Z0-9]/, 'Passwort muss mindestens ein Sonderzeichen enthalten');
+  .max(128, 'Passwort darf maximal 128 Zeichen lang sein')
+  .refine((password) => !isPasswordBlocked(password), {
+    message: 'Dieses Passwort ist zu häufig und nicht erlaubt',
+  });
 
 /**
  * Request DTO fuer den initialen Server-Setup.
@@ -31,16 +44,16 @@ const passwordSchema = z
  * **Wichtig:** Admins haben Nutzername + Passwort.
  * Normale Nutzer haben NUR Nutzername (kein Passwort).
  *
- * **Validierung:** Nutzt Shared Zod-Schemas aus @bluelight-hub/shared/schemas
- * für konsistente Frontend/Backend-Validierung:
+ * **Validierung gemäß NIST SP 800-63B-4:**
  * - usernameSchema: 3-20 Zeichen, alphanumerisch + Bindestriche/Unterstriche
- * - passwordSchema: Min. 8 Zeichen, Komplexitätsregeln (Gross/Klein/Zahlen/Sonderzeichen)
+ * - passwordSchema: Min. 8 Zeichen, max. 128 Zeichen, Blocklist-Prüfung
+ * - KEINE Composition Rules (von NIST als ineffektiv eingestuft)
  *
  * @example
  * ```typescript
  * const dto = new CompleteSetupDto();
  * dto.username = 'admin';
- * dto.password = 'SecurePassword123!';
+ * dto.password = 'MeinSicheresPasswort2025';
  * ```
  */
 export class CompleteSetupDto {
@@ -61,12 +74,13 @@ export class CompleteSetupDto {
 
   /**
    * Passwort fuer den Admin-Account.
-   * Validierung via Shared Zod-Schema (passwordSchema).
+   * Validierung gemäß NIST SP 800-63B-4 (keine Composition Rules, Blocklist-Prüfung).
    */
   @ApiProperty({
-    description: 'Passwort fuer den Admin-Account (min. 8 Zeichen, Komplexitätsregeln)',
-    example: 'SecurePassword123!',
+    description: 'Passwort fuer den Admin-Account (8-128 Zeichen, NIST SP 800-63B-4 konform)',
+    example: 'MeinSicheresPasswort2025',
     minLength: 8,
+    maxLength: 128,
   })
   @IsString()
   @IsNotEmpty({ message: 'Passwort darf nicht leer sein' })

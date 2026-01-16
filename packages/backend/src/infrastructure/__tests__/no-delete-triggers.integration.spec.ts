@@ -268,7 +268,7 @@ describe('NO-DELETE Triggers Integration Tests', () => {
       // Given: Regular User exists with role USER
       const user = await prisma.user.create({
         data: {
-          username: `testuser-delete-prevention-${testRunId}`,
+          username: `testuser_delete_prevention_${testRunId}`,
           passwordHash: 'hashed-password-dummy',
           role: 'USER',
           isActive: true,
@@ -415,7 +415,7 @@ describe('NO-DELETE Triggers Integration Tests', () => {
       // Given: Active User with isLocked = false (NOT locked yet)
       const user = await prisma.user.create({
         data: {
-          username: `testuser-locking-${testRunId}`,
+          username: `testuser_locking_${testRunId}`,
           passwordHash: 'hashed-password-dummy',
           role: 'USER',
           isActive: true,

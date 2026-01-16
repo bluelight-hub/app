@@ -29,6 +29,7 @@ import { TransactionalCommandHandler } from '@/application/common/handlers/trans
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { INVITE_CODE_REPOSITORY, LOGGER, OUTBOX_REPOSITORY, SERVER_ACCESS_TOKEN_REPOSITORY, USER_REPOSITORY } from '@infrastructure/di-tokens';
 import { BCRYPT_COST_FACTOR_PASSWORD, BCRYPT_COST_FACTOR_TOKEN } from '@/infrastructure/config/security.constants';
+import type { HibpService } from '@/infrastructure/password/hibp.service';
 
 // biome-ignore lint/style/useImportType: CompleteSetupCommand wird fuer Runtime-Typisierung benoetigt
 import { CompleteSetupCommand } from './complete-setup.command';
@@ -78,7 +79,8 @@ const INITIAL_INVITE_EXPIRES_DAYS = 7;
  * - Domain Events werden atomar im Outbox gespeichert
  * - Bei Fehler: vollstaendiger Rollback aller Entities
  *
- * **Security Considerations:**
+ * **Security Considerations (NIST SP 800-63B-4):**
+ * - HIBP Breach Database Check vor Password-Hash
  * - Password wird mit bcrypt (cost 10) gehasht
  * - Token wird mit bcrypt (cost 10) gehasht
  * - Raw-Token wird NUR in Response zurueckgegeben, NICHT geloggt
@@ -108,6 +110,7 @@ export class CompleteSetupHandler extends TransactionalCommandHandler<CompleteSe
     @Inject(SERVER_ACCESS_TOKEN_REPOSITORY) private readonly tokenRepository: IServerAccessTokenRepository,
     @Inject(INVITE_CODE_REPOSITORY) private readonly inviteCodeRepository: IInviteCodeRepository,
     @Inject(LOGGER) private readonly logger: ILogger,
+    private readonly hibpService: HibpService,
   ) {
     super(prisma, outboxRepository);
   }
@@ -141,6 +144,20 @@ export class CompleteSetupHandler extends TransactionalCommandHandler<CompleteSe
 
     if (adminCountResult.value > 0) {
       return Result.fail<SetupResponseDto>('SETUP_ALREADY_COMPLETED');
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // NIST SP 800-63B-4: HIBP Breach Database Check (Optional aber empfohlen)
+    // HINWEIS: Bei API-Fehlern wird NICHT blockiert (Graceful Degradation)
+    // ════════════════════════════════════════════════════════════════════════
+    const hibpResult = await this.hibpService.checkPassword(command.password);
+    if (hibpResult.isCompromised) {
+      this.logger.warn(`Password breach detected during setup: Password found in ${hibpResult.occurrences} known data breaches`);
+      return Result.fail<SetupResponseDto>('PASSWORD_COMPROMISED');
+    }
+    if (hibpResult.error) {
+      // Log warning but continue - HIBP is optional per NIST
+      this.logger.warn(`HIBP check failed (continuing anyway): ${hibpResult.error}`);
     }
 
     // ════════════════════════════════════════════════════════════════════════

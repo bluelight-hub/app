@@ -1,46 +1,13 @@
 /**
- * Minimaler zxcvbn Score für sichere Passwörter
- *
- * Score-Skala:
- * - 0-1: Schwach
- * - 2: Mittel
- * - 3-4: Stark
- *
- * NIST SP 800-63B-4: zxcvbn erkennt gängige Passwörter, Wörterbuch-Wörter
- * und vorhersehbare Muster automatisch.
- */
-export const PASSWORD_MIN_SCORE = 3;
-
-/**
- * Passwort-Kriterien für die Validierung gemäß NIST SP 800-63B-4 (Juli 2025)
- *
- * NIST-Compliance:
- * - Mindestlänge: 8 Zeichen (NIST-Minimum)
- * - Maximallänge: 128 Zeichen (über NIST-Minimum von 64)
- * - KEINE Composition Rules (NIST verbietet diese als ineffektiv)
- * - Blocklist für gängige Passwörter (NIST-Pflicht)
- * - zxcvbn für Entropie-Analyse (NIST-Empfehlung)
- */
-export const PASSWORD_CRITERIA = {
-  minLength: 8,
-  maxLength: 128,
-  /**
-   * @deprecated NIST SP 800-63B-4 verbietet Composition Rules.
-   * Diese Flags bleiben für Backward-Compatibility, werden aber nicht mehr geprüft.
-   */
-  requireLowercase: false,
-  requireUppercase: false,
-  requireNumber: false,
-  requireSymbol: false,
-} as const;
-
-/**
  * Blocklist der häufigsten Passwörter gemäß NIST SP 800-63B-4
  *
  * Diese Liste enthält ~193 der häufigsten Passwörter.
- * Für Produktionsumgebungen empfiehlt NIST eine Blocklist mit mindestens 10.000 Einträgen.
+ * HIBP-Integration prüft zusätzlich gegen Milliarden von Breach-Passwörtern.
  *
  * Quellen: SecLists, Have I Been Pwned Breached Passwords
+ *
+ * HINWEIS: Diese Liste muss mit @bluelight-hub/shared/validation synchron bleiben!
+ * Backend kann Shared-Package nicht direkt importieren (kein ESM).
  */
 export const PASSWORD_BLOCKLIST: ReadonlySet<string> = new Set([
   // Top 100 häufigste Passwörter (case-insensitive verglichen)
@@ -241,59 +208,11 @@ export const PASSWORD_BLOCKLIST: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * Prüft ob ein Passwort auf der Blocklist steht (case-insensitive)
- *
- * Nutzt Unicode-Normalisierung (NFKD) gegen Homoglyph-Angriffe.
- * Beispiel: Griechisches ρ (U+03C1) wird zu Latin-p (U+0070) normalisiert.
+ * Prüft ob ein Passwort auf der Blocklist steht (case-insensitive mit Unicode-Normalisierung)
  *
  * @param password - Das zu prüfende Passwort
  * @returns true wenn das Passwort blockiert ist
  */
 export function isPasswordBlocked(password: string): boolean {
   return PASSWORD_BLOCKLIST.has(password.normalize('NFKD').toLowerCase());
-}
-
-/**
- * Validiert ein Passwort gemäß NIST SP 800-63B-4 Richtlinien
- *
- * Prüft:
- * - Länge (8-128 Zeichen)
- * - Blocklist (häufige Passwörter)
- *
- * HINWEIS: zxcvbn-Score-Validierung erfolgt in der UI-Komponente (lazy loaded).
- * Backend sollte ebenfalls zxcvbn prüfen für Defense-in-Depth.
- *
- * @param password - Das zu validierende Passwort
- * @returns Validierungsergebnis mit isValid und optionaler Fehlermeldung
- */
-export function validatePasswordCriteria(password: string): {
-  isValid: boolean;
-  error?: string;
-} {
-  // Längenprüfung
-  if (password.length < PASSWORD_CRITERIA.minLength) {
-    return {
-      isValid: false,
-      error: `Das Passwort muss mindestens ${PASSWORD_CRITERIA.minLength} Zeichen lang sein`,
-    };
-  }
-
-  if (password.length > PASSWORD_CRITERIA.maxLength) {
-    return {
-      isValid: false,
-      error: `Das Passwort darf maximal ${PASSWORD_CRITERIA.maxLength} Zeichen lang sein`,
-    };
-  }
-
-  // Blocklist-Prüfung (NIST SP 800-63B-4 Pflicht)
-  if (isPasswordBlocked(password)) {
-    return {
-      isValid: false,
-      error: 'Dieses Passwort ist zu häufig und nicht erlaubt',
-    };
-  }
-
-  return {
-    isValid: true,
-  };
 }

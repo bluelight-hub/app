@@ -8,6 +8,7 @@ import { Text } from '@/shared/ui/atoms/text.atom';
 import { FormFieldWrapper } from '@/shared/ui/molecules/form/FormFieldWrapper';
 import { PasswordInput } from '@/shared/ui/molecules/password-input.molecule';
 import { PasswordStrengthIndicator } from '@/shared/ui/molecules/password-strength-indicator.lazy';
+import { calculatePasswordStrength } from '@/shared/ui/molecules/password-strength-indicator.molecule';
 import { PASSWORD_MIN_SCORE, validatePasswordCriteria } from '@bluelight-hub/shared';
 import { useForm } from '@tanstack/react-form';
 import { useNavigate } from '@tanstack/react-router';
@@ -99,10 +100,21 @@ export function AdminSetup() {
               name="password"
               validators={{
                 onChange: ({ value }) => {
+                  // NIST SP 800-63B-4: Länge + Blocklist prüfen
                   const result = validatePasswordCriteria(value);
                   if (!result.isValid) {
                     return result.error;
                   }
+
+                  // zxcvbn-Score Validierung (Defense-in-Depth)
+                  const strength = calculatePasswordStrength(value);
+                  if (strength.isBlocked) {
+                    return 'Dieses Passwort ist zu häufig und nicht erlaubt';
+                  }
+                  if (strength.score < PASSWORD_MIN_SCORE) {
+                    return `Passwort zu schwach (Score ${strength.score}/${PASSWORD_MIN_SCORE} erforderlich)`;
+                  }
+
                   return undefined;
                 },
               }}
@@ -111,7 +123,7 @@ export function AdminSetup() {
                 <FormFieldWrapper
                   field={field}
                   label={'Passwort'}
-                  helpText={field.state.meta.errors.length === 0 ? 'Mind. 8 Zeichen, 1 Groß-, 1 Kleinbuchstabe, 1 Zahl, 1 Sonderzeichen, Score ≥ 3' : undefined}
+                  helpText={field.state.meta.errors.length === 0 ? 'Mind. 8 Zeichen, keine häufigen Passwörter, Stärke-Score ≥ 3' : undefined}
                   required
                 >
                   <div className="space-y-3">
@@ -129,7 +141,7 @@ export function AdminSetup() {
                       variant={field.state.meta.isTouched && field.state.meta.errors.length > 0 ? 'error' : 'default'}
                       fullWidth
                     />
-                    <PasswordStrengthIndicator password={field.state.value} showLabel={true} showCriteria={true} minScore={PASSWORD_MIN_SCORE} />
+                    <PasswordStrengthIndicator password={field.state.value} showLabel={true} minScore={PASSWORD_MIN_SCORE} />
                   </div>
                 </FormFieldWrapper>
               )}
