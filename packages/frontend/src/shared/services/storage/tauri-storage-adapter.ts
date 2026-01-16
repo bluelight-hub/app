@@ -12,10 +12,34 @@ import type { IStoragePort } from '@/shared/types/storage';
 const STORE_FILENAME = 'bluelight-storage.json';
 
 /**
+ * Modul-Level Singleton für den LazyStore (lazy initialisiert).
+ *
+ * Wird erst beim ersten Zugriff erstellt, nicht beim Import.
+ * Dies ermöglicht korrektes Mocking in Tests und verhindert Race Conditions,
+ * die entstehen könnten, wenn mehrere Store-Instanzen auf dieselbe Datei zugreifen.
+ */
+let storeInstance: LazyStore | null = null;
+
+/**
+ * Gibt die Singleton-Instanz des LazyStore zurück.
+ * Erstellt die Instanz beim ersten Aufruf (lazy initialization).
+ */
+function getStore(): LazyStore {
+  if (!storeInstance) {
+    storeInstance = new LazyStore(STORE_FILENAME, { autoSave: true, defaults: {} });
+  }
+  return storeInstance;
+}
+
+/**
  * Tauri Storage Adapter für persistenten Storage-Zugriff.
  *
  * Implementiert IStoragePort Interface via tauri-plugin-store.
- * Nutzt LazyStore für verzögerte Initialisierung (lädt erst bei erstem Zugriff).
+ * Nutzt einen Modul-Level Singleton LazyStore für verzögerte Initialisierung
+ * (lädt erst bei erstem Zugriff).
+ *
+ * WICHTIG: Alle TauriStorageAdapter-Instanzen teilen denselben Store!
+ * Dies ist beabsichtigt, um Race Conditions bei parallelen Zugriffen zu vermeiden.
  *
  * WICHTIG: Daten sind PERSISTENT über App-Restarts!
  * Die Daten werden als JSON-Datei im App-Data-Verzeichnis gespeichert.
@@ -30,12 +54,6 @@ const STORE_FILENAME = 'bluelight-storage.json';
  */
 export class TauriStorageAdapter implements IStoragePort {
   /**
-   * LazyStore Instanz - wird bei erstem Zugriff initialisiert.
-   * autoSave: true sorgt für automatisches Speichern nach Änderungen.
-   */
-  private store = new LazyStore(STORE_FILENAME, { autoSave: true, defaults: {} });
-
-  /**
    * Liest einen Wert aus dem persistenten Storage.
    *
    * @param key - Storage Key
@@ -43,7 +61,7 @@ export class TauriStorageAdapter implements IStoragePort {
    */
   async getItem(key: string): Promise<string | null> {
     try {
-      const result = await this.store.get<string>(key);
+      const result = await getStore().get<string>(key);
       return result ?? null;
     } catch (error) {
       console.error('[TauriStorageAdapter] getItem failed:', error);
@@ -60,7 +78,7 @@ export class TauriStorageAdapter implements IStoragePort {
    */
   async setItem(key: string, value: string): Promise<void> {
     try {
-      await this.store.set(key, value);
+      await getStore().set(key, value);
     } catch (error) {
       console.error('[TauriStorageAdapter] setItem failed:', error);
       throw error;
@@ -75,7 +93,7 @@ export class TauriStorageAdapter implements IStoragePort {
    */
   async removeItem(key: string): Promise<void> {
     try {
-      await this.store.delete(key);
+      await getStore().delete(key);
     } catch (error) {
       console.error('[TauriStorageAdapter] removeItem failed:', error);
       throw error;
@@ -89,7 +107,7 @@ export class TauriStorageAdapter implements IStoragePort {
    */
   async clear(): Promise<void> {
     try {
-      await this.store.clear();
+      await getStore().clear();
     } catch (error) {
       console.error('[TauriStorageAdapter] clear failed:', error);
       throw error;
