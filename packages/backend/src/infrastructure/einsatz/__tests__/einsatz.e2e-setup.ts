@@ -284,6 +284,7 @@ export function generateTestId(): string {
  * SQL zum Deaktivieren von Database Triggers.
  *
  * Notwendig fuer sichere Test-Daten Loeschung (FK Constraints umgehen).
+ * ACHTUNG: Erfordert SUPERUSER-Rechte in PostgreSQL!
  */
 export const DISABLE_TRIGGERS_SQL = 'SET session_replication_role = replica;';
 
@@ -293,6 +294,51 @@ export const DISABLE_TRIGGERS_SQL = 'SET session_replication_role = replica;';
  * IMMER in finally-Block ausfuehren!
  */
 export const ENABLE_TRIGGERS_SQL = 'SET session_replication_role = DEFAULT;';
+
+// Cache für SUPERUSER-Status (wird einmal pro Test-Run geprüft)
+let _superuserStatus: boolean | null = null;
+
+/**
+ * Prueft einmalig, ob der DB-User SUPERUSER-Rechte hat.
+ *
+ * Das Ergebnis wird gecached, da alle Connections zum selben User gehoeren.
+ * Die Pruefung passiert AUSSERHALB einer Transaction mit eigenem
+ * Error-Handling, damit keine Connection in einem schlechten Zustand bleibt.
+ *
+ * @param prisma - PrismaClient Instanz
+ * @returns true wenn SUPERUSER, false wenn nicht
+ */
+async function checkSuperuserPrivileges(prisma: TestPrismaService): Promise<boolean> {
+  // Cache nutzen wenn bereits geprüft
+  if (_superuserStatus !== null) {
+    return _superuserStatus;
+  }
+
+  try {
+    // Query statt SET, um Transaktions-Probleme zu vermeiden
+    const result = (await prisma.$queryRaw`
+      SELECT usesuper FROM pg_user WHERE usename = current_user
+    `) as { usesuper: boolean }[];
+    _superuserStatus = result.length > 0 && result[0]?.usesuper === true;
+    return _superuserStatus;
+  } catch {
+    // Bei jedem Fehler annehmen, dass keine SUPERUSER-Rechte vorhanden
+    _superuserStatus = false;
+    return false;
+  }
+}
+
+/**
+ * Setzt session_replication_role innerhalb einer Transaction.
+ *
+ * WICHTIG: Nur aufrufen wenn vorher checkSuperuserPrivileges() true ergab!
+ *
+ * @param tx - Prisma Transaction Context
+ * @param mode - 'replica' zum Deaktivieren, 'DEFAULT' zum Reaktivieren
+ */
+async function setReplicationRole(tx: PrismaExecutor, mode: 'replica' | 'DEFAULT'): Promise<void> {
+  await tx.$executeRawUnsafe(`SET session_replication_role = ${mode};`);
+}
 
 /**
  * Helper: Loescht alte Test-Daten aus einer Tabelle (aelter als 1 Stunde).
@@ -308,10 +354,25 @@ type PrismaExecutor = {
  * @param timestampCol - Spaltenname fuer Timestamp-Vergleich (inkl. Quotes)
  */
 async function safeDeleteOldTx(tx: PrismaExecutor, table: string, timestampCol: string): Promise<void> {
+  // SAVEPOINT verwenden, damit Fehler die Transaction nicht abbrechen.
+  // PostgreSQL bricht bei jedem Fehler die Transaction ab, auch wenn
+  // wir den Fehler in JavaScript abfangen. Mit SAVEPOINT wird nur der
+  // Savepoint zurückgerollt, nicht die gesamte Transaction.
+  const savepointName = `sp_${table.replace(/[^a-zA-Z0-9]/g, '')}_${Date.now()}`;
   try {
+    await tx.$executeRawUnsafe(`SAVEPOINT ${savepointName};`);
     await tx.$executeRawUnsafe(`DELETE FROM ${table} WHERE ${timestampCol} < NOW() - INTERVAL '1 hour'`);
+    await tx.$executeRawUnsafe(`RELEASE SAVEPOINT ${savepointName};`);
   } catch (error: unknown) {
-    // Table might not exist - ignore error
+    // Rollback zum Savepoint bei JEDEM Fehler
+    try {
+      await tx.$executeRawUnsafe(`ROLLBACK TO SAVEPOINT ${savepointName};`);
+      await tx.$executeRawUnsafe(`RELEASE SAVEPOINT ${savepointName};`);
+    } catch {
+      // Ignore - Savepoint cleanup ist best-effort
+    }
+    // Bekannte Fehler ignorieren:
+    // - 42P01: relation does not exist (Tabelle noch nicht angelegt)
     const msg = error instanceof Error ? error.message : String(error);
     if (!msg.includes('does not exist') && !msg.includes('42P01')) {
       throw error;
@@ -329,14 +390,26 @@ async function safeDeleteOldTx(tx: PrismaExecutor, table: string, timestampCol: 
  * @param params - SQL Parameter (optional)
  */
 async function safeDelete(executor: PrismaExecutor, sql: string, params?: unknown[]): Promise<void> {
+  // SAVEPOINT verwenden, damit Fehler die Transaction nicht abbrechen.
+  const savepointName = `sp_safedel_${Date.now()}`;
   try {
+    await executor.$executeRawUnsafe(`SAVEPOINT ${savepointName};`);
     if (params) {
       await executor.$executeRawUnsafe(sql, ...params);
     } else {
       await executor.$executeRawUnsafe(sql);
     }
+    await executor.$executeRawUnsafe(`RELEASE SAVEPOINT ${savepointName};`);
   } catch (error: unknown) {
-    // Table might not exist - ignore error
+    // Rollback zum Savepoint bei JEDEM Fehler
+    try {
+      await executor.$executeRawUnsafe(`ROLLBACK TO SAVEPOINT ${savepointName};`);
+      await executor.$executeRawUnsafe(`RELEASE SAVEPOINT ${savepointName};`);
+    } catch {
+      // Ignore - Savepoint cleanup ist best-effort
+    }
+    // Bekannte Fehler ignorieren:
+    // - 42P01: relation does not exist (Tabelle noch nicht angelegt)
     const msg = error instanceof Error ? error.message : String(error);
     if (!msg.includes('does not exist') && !msg.includes('42P01')) {
       throw error;
@@ -444,11 +517,18 @@ export async function createEinsatzE2eModule(): Promise<EinsatzE2eTestContext> {
   const prisma = new TestPrismaService();
 
   // 2. Cleanup von vorherigen Test-Runs (älter als 1 Stunde)
+  // Prüfe SUPERUSER-Rechte AUSSERHALB der Transaction (bricht nichts ab bei Fehler)
+  const hasSuperuserPrivileges = await checkSuperuserPrivileges(prisma);
+
   // Interaktive Transaktion stellt sicher, dass session_replication_role
   // auf derselben Verbindung wie alle DELETEs ausgeführt wird
   await prisma.$transaction(async (tx) => {
-    // Deaktiviere Triggers innerhalb der Transaktion
-    await tx.$executeRawUnsafe(DISABLE_TRIGGERS_SQL);
+    // Triggers deaktivieren (nur wenn SUPERUSER-Rechte vorhanden)
+    // In CI-Umgebungen ohne SUPERUSER funktionieren die Tests trotzdem,
+    // da die DELETE-Reihenfolge FK-Constraints beachtet
+    if (hasSuperuserPrivileges) {
+      await setReplicationRole(tx, 'replica');
+    }
 
     // Reihenfolge wichtig (FK Constraints beachten!):
     // Lagekarten Dependencies (POIs, etc.) -> ETB Dependencies -> Outbox -> Einsaetze -> Users
@@ -473,10 +553,12 @@ export async function createEinsatzE2eModule(): Promise<EinsatzE2eTestContext> {
     await safeDeleteOldTx(tx, 'einsaetze', '"createdAt"');
 
     // Test Users
-    await tx.$executeRawUnsafe(`DELETE FROM "User" WHERE username LIKE 'test_einsatz_e2e_%'`);
+    await safeDeleteOldTx(tx, '"User"', '"createdAt"');
 
-    // Reaktiviere Triggers am Ende der Transaktion
-    await tx.$executeRawUnsafe(ENABLE_TRIGGERS_SQL);
+    // Reaktiviere Triggers am Ende der Transaktion (nur wenn vorher deaktiviert)
+    if (hasSuperuserPrivileges) {
+      await setReplicationRole(tx, 'DEFAULT');
+    }
   });
 
   // 3. Test Users erstellen (3 Rollen fuer RBAC Testing - CUID2 Format!)
@@ -577,11 +659,16 @@ export async function teardownE2eModule(ctx: EinsatzE2eTestContext): Promise<voi
   const allUserIds = [ctx.testUserIds.user, ctx.testUserIds.admin, ctx.testUserIds.superAdmin];
   const serverAccessTokenId = ctx.serverAccessToken?.id;
 
+  // Prüfe SUPERUSER-Rechte AUSSERHALB der Transaction (bricht nichts ab bei Fehler)
+  const hasSuperuserPrivileges = await checkSuperuserPrivileges(ctx.prisma);
+
   // Interaktive Transaktion stellt sicher, dass session_replication_role
   // auf derselben Verbindung wie alle DELETEs ausgeführt wird
   await ctx.prisma.$transaction(async (tx) => {
-    // Deaktiviere Triggers innerhalb der Transaktion
-    await tx.$executeRawUnsafe(DISABLE_TRIGGERS_SQL);
+    // Triggers deaktivieren (nur wenn SUPERUSER-Rechte vorhanden)
+    if (hasSuperuserPrivileges) {
+      await setReplicationRole(tx, 'replica');
+    }
 
     // Reihenfolge (FK-Reverse Order!):
     // Lagekarten -> ETB -> Outbox -> Einsaetze -> Users
@@ -623,8 +710,10 @@ export async function teardownE2eModule(ctx: EinsatzE2eTestContext): Promise<voi
     // Test Users
     await safeDelete(tx, `DELETE FROM "User" WHERE id = ANY($1)`, [allUserIds]);
 
-    // Reaktiviere Triggers am Ende der Transaktion
-    await tx.$executeRawUnsafe(ENABLE_TRIGGERS_SQL);
+    // Reaktiviere Triggers am Ende der Transaktion (nur wenn vorher deaktiviert)
+    if (hasSuperuserPrivileges) {
+      await setReplicationRole(tx, 'DEFAULT');
+    }
   });
 
   await ctx.prisma.$disconnect();
@@ -654,11 +743,16 @@ export async function cleanupTestData(ctx: EinsatzE2eTestContext): Promise<void>
   const adminUserIds = adminUsers.map((u) => u.id);
   const allCleanupUserIds = [...allUserIds, ...adminUserIds];
 
+  // Prüfe SUPERUSER-Rechte AUSSERHALB der Transaction (bricht nichts ab bei Fehler)
+  const hasSuperuserPrivileges = await checkSuperuserPrivileges(ctx.prisma);
+
   // Interaktive Transaktion stellt sicher, dass session_replication_role
   // auf derselben Verbindung wie alle DELETEs ausgeführt wird
   await ctx.prisma.$transaction(async (tx) => {
-    // Deaktiviere Triggers innerhalb der Transaktion
-    await tx.$executeRawUnsafe(DISABLE_TRIGGERS_SQL);
+    // Triggers deaktivieren (nur wenn SUPERUSER-Rechte vorhanden)
+    if (hasSuperuserPrivileges) {
+      await setReplicationRole(tx, 'replica');
+    }
 
     // Reihenfolge (FK Order!): Lagekarten -> ETB -> Outbox -> Einsaetze
     // (Users bleiben erhalten!)
@@ -696,8 +790,10 @@ export async function cleanupTestData(ctx: EinsatzE2eTestContext): Promise<void>
     // Einsaetze
     await safeDelete(tx, `DELETE FROM einsaetze WHERE "createdBy" = ANY($1)`, [allCleanupUserIds]);
 
-    // Reaktiviere Triggers am Ende der Transaktion
-    await tx.$executeRawUnsafe(ENABLE_TRIGGERS_SQL);
+    // Reaktiviere Triggers am Ende der Transaktion (nur wenn vorher deaktiviert)
+    if (hasSuperuserPrivileges) {
+      await setReplicationRole(tx, 'DEFAULT');
+    }
   });
 }
 
@@ -1028,11 +1124,16 @@ export async function waitFor(assertion: () => Promise<void>, timeout = 500, int
  * ```
  */
 export async function cleanupEinsatzById(ctx: EinsatzE2eTestContext, einsatzId: string): Promise<void> {
+  // Prüfe SUPERUSER-Rechte AUSSERHALB der Transaction (bricht nichts ab bei Fehler)
+  const hasSuperuserPrivileges = await checkSuperuserPrivileges(ctx.prisma);
+
   // Interaktive Transaktion stellt sicher, dass session_replication_role
   // auf derselben Verbindung wie alle DELETEs ausgeführt wird
   await ctx.prisma.$transaction(async (tx) => {
-    // Deaktiviere Triggers innerhalb der Transaktion
-    await tx.$executeRawUnsafe(DISABLE_TRIGGERS_SQL);
+    // Triggers deaktivieren (nur wenn SUPERUSER-Rechte vorhanden)
+    if (hasSuperuserPrivileges) {
+      await setReplicationRole(tx, 'replica');
+    }
 
     // Reihenfolge (FK Order!): Lagekarten -> ETB -> Outbox -> Einsatz
 
@@ -1055,8 +1156,10 @@ export async function cleanupEinsatzById(ctx: EinsatzE2eTestContext, einsatzId: 
     // Einsatz
     await safeDelete(tx, `DELETE FROM einsaetze WHERE id = $1`, [einsatzId]);
 
-    // Reaktiviere Triggers am Ende der Transaktion
-    await tx.$executeRawUnsafe(ENABLE_TRIGGERS_SQL);
+    // Reaktiviere Triggers am Ende der Transaktion (nur wenn vorher deaktiviert)
+    if (hasSuperuserPrivileges) {
+      await setReplicationRole(tx, 'DEFAULT');
+    }
   });
 }
 
