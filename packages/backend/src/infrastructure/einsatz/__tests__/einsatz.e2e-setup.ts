@@ -32,6 +32,16 @@ import { EventSerializer } from '@/infrastructure/outbox/event-serializer';
 import { createId } from '@paralleldrive/cuid2';
 import { BCRYPT_COST_FACTOR_TOKEN } from '@infrastructure/config/security.constants';
 
+/**
+ * Typ für Prisma Executor (Client oder Transaction).
+ *
+ * Ermöglicht die Verwendung von `$executeRawUnsafe` sowohl mit
+ * PrismaClient als auch innerhalb von Transactions.
+ */
+type PrismaExecutor = {
+  $executeRawUnsafe: (query: string, ...values: unknown[]) => Promise<number>;
+};
+
 // ============================================
 // TEST PRISMA SERVICE
 // ============================================
@@ -286,39 +296,12 @@ export const ENABLE_TRIGGERS_SQL = 'SET session_replication_role = DEFAULT;';
 
 /**
  * Helper: Loescht alte Test-Daten aus einer Tabelle (aelter als 1 Stunde).
- *
- * Diese Funktion wird verwendet um Daten von vorherigen fehlgeschlagenen
- * Test-Runs aufzuraeumen. Sie ist idempotent und behandelt nicht-existente
- * Tabellen gracefully.
- *
- * @param prisma - PrismaClient Instanz
- * @param table - Tabellenname (inkl. Quotes wenn reserved word)
- * @param timestampCol - Spaltenname fuer Timestamp-Vergleich (inkl. Quotes)
- */
-async function safeDeleteOld(prisma: TestPrismaService, table: string, timestampCol: string): Promise<void> {
-  try {
-    await prisma.$executeRawUnsafe(`DELETE FROM ${table} WHERE ${timestampCol} < NOW() - INTERVAL '1 hour'`);
-  } catch (error: unknown) {
-    // Table might not exist - ignore error
-    const msg = error instanceof Error ? error.message : String(error);
-    if (!msg.includes('does not exist') && !msg.includes('42P01')) {
-      throw error;
-    }
-  }
-}
-
-/**
- * Typ fuer Prisma-Executor (Client oder Transaction).
- * Beide haben die gleichen Raw Query Methoden.
- */
 type PrismaExecutor = {
   $executeRawUnsafe(query: string, ...values: unknown[]): Promise<number>;
 };
 
 /**
  * Helper: Loescht alte Test-Daten aus einer Tabelle (aelter als 1 Stunde) innerhalb einer Transaktion.
- *
- * Version von safeDeleteOld fuer interaktive Transaktionen.
  *
  * @param tx - Prisma Transaction Context
  * @param table - Tabellenname (inkl. Quotes wenn reserved word)
