@@ -240,6 +240,7 @@ export function generateTestId(): string {
  * SQL zum Deaktivieren von Database Triggers.
  *
  * Notwendig fuer sichere Test-Daten Loeschung (FK Constraints umgehen).
+ * ACHTUNG: Erfordert SUPERUSER-Rechte in PostgreSQL!
  */
 export const DISABLE_TRIGGERS_SQL = 'SET session_replication_role = replica;';
 
@@ -249,6 +250,35 @@ export const DISABLE_TRIGGERS_SQL = 'SET session_replication_role = replica;';
  * IMMER in finally-Block ausfuehren!
  */
 export const ENABLE_TRIGGERS_SQL = 'SET session_replication_role = DEFAULT;';
+
+/**
+ * Versucht session_replication_role zu setzen, ignoriert aber Fehler
+ * wenn der DB-User keine SUPERUSER-Rechte hat (z.B. in CI).
+ *
+ * Hinweis: Da diese Funktion außerhalb von $transaction aufgerufen wird,
+ * ist jeder Befehl auto-commit und SAVEPOINT nicht nötig.
+ * Der Fehler wird einfach abgefangen und ignoriert.
+ *
+ * @param prisma - PrismaClient Instanz
+ * @param mode - 'replica' zum Deaktivieren, 'DEFAULT' zum Reaktivieren
+ * @returns true wenn erfolgreich, false wenn keine Rechte
+ */
+async function trySetReplicationRole(prisma: TestPrismaService, mode: 'replica' | 'DEFAULT'): Promise<boolean> {
+  try {
+    await prisma.$executeRawUnsafe(`SET session_replication_role = ${mode};`);
+    return true;
+  } catch (error: unknown) {
+    // PostgreSQL Error 42501: permission denied (keine SUPERUSER-Rechte)
+    // Dies ist in CI-Umgebungen normal und kann ignoriert werden.
+    const msg = error instanceof Error ? error.message : String(error);
+    if (msg.includes('42501') || msg.includes('permission denied') || msg.includes('must be superuser')) {
+      // Silent ignore - Tests funktionieren auch ohne Trigger-Deaktivierung
+      // wenn die DELETE-Reihenfolge FK-Constraints beachtet
+      return false;
+    }
+    throw error;
+  }
+}
 
 /**
  * Helper: Loescht alte Test-Daten aus einer Tabelle (aelter als 1 Stunde).
@@ -344,7 +374,8 @@ export async function createEtbE2eModule(): Promise<EtbE2eTestContext> {
   const prisma = new TestPrismaService();
 
   // 2. Cleanup von vorherigen Test-Runs (älter als 1 Stunde)
-  await prisma.$executeRawUnsafe(DISABLE_TRIGGERS_SQL);
+  // Versuche Triggers zu deaktivieren (benötigt SUPERUSER-Rechte)
+  const triggersDisabled = await trySetReplicationRole(prisma, 'replica');
   try {
     // Reihenfolge wichtig (FK Constraints!):
     // Snapshots -> Eintraege -> Einsatztagebuecher -> Einsaetze -> User
@@ -352,9 +383,12 @@ export async function createEtbE2eModule(): Promise<EtbE2eTestContext> {
     await safeDeleteOld(prisma, 'etb_eintraege', '"createdAt"');
     await safeDeleteOld(prisma, 'einsatztagebuecher', '"createdAt"');
     await safeDeleteOld(prisma, 'einsaetze', '"createdAt"');
-    await prisma.$executeRawUnsafe(`DELETE FROM "User" WHERE username LIKE 'test-etb-e2e-%'`);
+    await safeDeleteOld(prisma, '"User"', '"createdAt"');
   } finally {
-    await prisma.$executeRawUnsafe(ENABLE_TRIGGERS_SQL);
+    // Reaktiviere Triggers (nur wenn vorher deaktiviert)
+    if (triggersDisabled) {
+      await trySetReplicationRole(prisma, 'DEFAULT');
+    }
   }
 
   // 3. Test User erstellen (CUID2 Format!)
@@ -451,7 +485,8 @@ export async function createEtbE2eModule(): Promise<EtbE2eTestContext> {
  * @param ctx - E2E Test Context
  */
 export async function teardownE2eModule(ctx: EtbE2eTestContext): Promise<void> {
-  await ctx.prisma.$executeRawUnsafe(DISABLE_TRIGGERS_SQL);
+  // Versuche Triggers zu deaktivieren (benötigt SUPERUSER-Rechte)
+  const triggersDisabled = await trySetReplicationRole(ctx.prisma, 'replica');
   try {
     // Reihenfolge (FK-Reverse Order!):
     // Snapshots -> Eintraege -> Einsatztagebuecher -> Outbox Events -> Einsaetze -> User
@@ -462,7 +497,10 @@ export async function teardownE2eModule(ctx: EtbE2eTestContext): Promise<void> {
     await ctx.prisma.$executeRaw`DELETE FROM einsaetze WHERE id = ${ctx.testEinsatzId}`;
     await ctx.prisma.$executeRaw`DELETE FROM "User" WHERE id = ${ctx.testUserId}`;
   } finally {
-    await ctx.prisma.$executeRawUnsafe(ENABLE_TRIGGERS_SQL);
+    // Reaktiviere Triggers (nur wenn vorher deaktiviert)
+    if (triggersDisabled) {
+      await trySetReplicationRole(ctx.prisma, 'DEFAULT');
+    }
     await ctx.prisma.$disconnect();
   }
 }
@@ -478,7 +516,8 @@ export async function teardownE2eModule(ctx: EtbE2eTestContext): Promise<void> {
 export async function cleanupTestData(ctx: EtbE2eTestContext): Promise<void> {
   ctx.eventPublisher.clear();
 
-  await ctx.prisma.$executeRawUnsafe(DISABLE_TRIGGERS_SQL);
+  // Versuche Triggers zu deaktivieren (benötigt SUPERUSER-Rechte)
+  const triggersDisabled = await trySetReplicationRole(ctx.prisma, 'replica');
   try {
     // Reihenfolge (FK Order!): Snapshots -> Eintraege -> Einsatztagebuecher -> Outbox Events
     await ctx.prisma.$executeRaw`DELETE FROM etb_snapshots WHERE "etbId" IN (SELECT id FROM einsatztagebuecher WHERE "einsatzId" = ${ctx.testEinsatzId})`;
@@ -486,7 +525,10 @@ export async function cleanupTestData(ctx: EtbE2eTestContext): Promise<void> {
     await ctx.prisma.$executeRaw`DELETE FROM einsatztagebuecher WHERE "einsatzId" = ${ctx.testEinsatzId}`;
     await ctx.prisma.$executeRaw`DELETE FROM outbox_events WHERE "aggregateId" = ${ctx.testEinsatzId}`;
   } finally {
-    await ctx.prisma.$executeRawUnsafe(ENABLE_TRIGGERS_SQL);
+    // Reaktiviere Triggers (nur wenn vorher deaktiviert)
+    if (triggersDisabled) {
+      await trySetReplicationRole(ctx.prisma, 'DEFAULT');
+    }
   }
 }
 
