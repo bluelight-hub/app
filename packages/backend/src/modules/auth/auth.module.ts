@@ -14,6 +14,7 @@ import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { AuthApplicationModule } from '@/application/auth/auth-application.module';
 import { ExchangeInviteHandler } from '@/application/auth/commands/exchange-invite.handler';
 import { InviteCodeInfrastructureModule } from '@/infrastructure/invite-code/invite-code-infrastructure.module';
+import { PasswordModule } from '@/infrastructure/password/password.module';
 import { ServerAccessTokenInfrastructureModule } from '@/infrastructure/server-access-token/server-access-token-infrastructure.module';
 
 /**
@@ -47,6 +48,8 @@ import { ServerAccessTokenInfrastructureModule } from '@/infrastructure/server-a
     // Infrastructure Module für ExchangeInviteHandler Dependencies
     InviteCodeInfrastructureModule,
     ServerAccessTokenInfrastructureModule,
+    // Password Validation für Admin-Setup und Passwort-Prüfungen
+    PasswordModule,
   ],
   controllers: [AuthController],
   providers: [
