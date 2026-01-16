@@ -25,7 +25,8 @@ import { Module, Injectable, Logger } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import type { TestingModule } from '@nestjs/testing';
 import request from 'supertest';
-import { PrismaClient } from '@/generated/prisma/client';
+import { createTestPrismaClient } from '@/infrastructure/__tests__/helpers/database-test.helper';
+import type { PrismaClient } from '@/generated/prisma/client';
 import { createId } from '@paralleldrive/cuid2';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
@@ -89,19 +90,11 @@ class TestOAuthCallbackModule {}
 // ============================================
 
 /**
- * Test PrismaService für E2E Tests.
+ * Typ-Alias für den Test PrismaClient.
  *
- * Erweitert PrismaClient mit NestJS Lifecycle Hooks.
+ * Verwendet den PrismaPg Adapter Pattern (Prisma v7).
  */
-class TestPrismaService extends PrismaClient {
-  async onModuleInit(): Promise<void> {
-    await this.$connect();
-  }
-
-  async onModuleDestroy(): Promise<void> {
-    await this.$disconnect();
-  }
-}
+type TestPrismaService = ReturnType<typeof createTestPrismaClient>;
 
 /**
  * Generiert Test OAuth State in Datenbank.
@@ -158,8 +151,8 @@ const databaseAvailable = !!process.env.DATABASE_URL;
   let mockHandler: jest.Mocked<ProcessOAuthCallbackHandler>;
 
   beforeAll(async () => {
-    // Setup Prisma
-    prisma = new TestPrismaService();
+    // Setup Prisma (uses PrismaPg Adapter for Prisma v7)
+    prisma = createTestPrismaClient();
     await prisma.$connect();
 
     // Mock ProcessOAuthCallbackHandler
