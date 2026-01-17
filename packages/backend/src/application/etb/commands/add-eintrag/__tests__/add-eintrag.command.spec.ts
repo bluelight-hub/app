@@ -278,5 +278,179 @@ describe('AddEintragCommand', () => {
         expect(Object.keys(command)).toContain('kategorie');
       });
     });
+
+    describe('absender parameter', () => {
+      it('should accept absender with valid length', () => {
+        // Given
+        const absender = 'Florian Musterstadt 11/1';
+
+        // When
+        const result = AddEintragCommand.create(validEtbId, validText, validUserId, undefined, undefined, absender);
+
+        // Then
+        expect(result.isSuccess).toBe(true);
+        expect(result.value?.absender).toBe('Florian Musterstadt 11/1');
+      });
+
+      it('should accept absender with max 100 characters', () => {
+        // Given
+        const maxLengthAbsender = 'A'.repeat(100);
+
+        // When
+        const result = AddEintragCommand.create(validEtbId, validText, validUserId, undefined, undefined, maxLengthAbsender);
+
+        // Then
+        expect(result.isSuccess).toBe(true);
+        expect(result.value?.absender).toBe(maxLengthAbsender);
+      });
+
+      it('should reject absender exceeding 100 characters', () => {
+        // Given
+        const tooLongAbsender = 'A'.repeat(101);
+
+        // When
+        const result = AddEintragCommand.create(validEtbId, validText, validUserId, undefined, undefined, tooLongAbsender);
+
+        // Then
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('absender');
+      });
+
+      it('should accept undefined absender', () => {
+        // When
+        const result = AddEintragCommand.create(validEtbId, validText, validUserId, undefined, undefined, undefined);
+
+        // Then
+        expect(result.isSuccess).toBe(true);
+        expect(result.value?.absender).toBeUndefined();
+      });
+
+      it('should accept empty string absender', () => {
+        // Given
+        const emptyAbsender = '';
+
+        // When
+        const result = AddEintragCommand.create(validEtbId, validText, validUserId, undefined, undefined, emptyAbsender);
+
+        // Then
+        expect(result.isSuccess).toBe(true);
+        expect(result.value?.absender).toBe('');
+      });
+    });
+
+    describe('empfaenger parameter', () => {
+      it('should accept empfaenger with valid length', () => {
+        // Given
+        const empfaenger = 'Leitstelle';
+
+        // When
+        const result = AddEintragCommand.create(validEtbId, validText, validUserId, undefined, undefined, undefined, empfaenger);
+
+        // Then
+        expect(result.isSuccess).toBe(true);
+        expect(result.value?.empfaenger).toBe('Leitstelle');
+      });
+
+      it('should accept empfaenger with max 100 characters', () => {
+        // Given
+        const maxLengthEmpfaenger = 'B'.repeat(100);
+
+        // When
+        const result = AddEintragCommand.create(validEtbId, validText, validUserId, undefined, undefined, undefined, maxLengthEmpfaenger);
+
+        // Then
+        expect(result.isSuccess).toBe(true);
+        expect(result.value?.empfaenger).toBe(maxLengthEmpfaenger);
+      });
+
+      it('should reject empfaenger exceeding 100 characters', () => {
+        // Given
+        const tooLongEmpfaenger = 'B'.repeat(101);
+
+        // When
+        const result = AddEintragCommand.create(validEtbId, validText, validUserId, undefined, undefined, undefined, tooLongEmpfaenger);
+
+        // Then
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('empfaenger');
+      });
+
+      it('should accept undefined empfaenger', () => {
+        // When
+        const result = AddEintragCommand.create(validEtbId, validText, validUserId, undefined, undefined, undefined, undefined);
+
+        // Then
+        expect(result.isSuccess).toBe(true);
+        expect(result.value?.empfaenger).toBeUndefined();
+      });
+
+      it('should accept empty string empfaenger', () => {
+        // Given
+        const emptyEmpfaenger = '';
+
+        // When
+        const result = AddEintragCommand.create(validEtbId, validText, validUserId, undefined, undefined, undefined, emptyEmpfaenger);
+
+        // Then
+        expect(result.isSuccess).toBe(true);
+        expect(result.value?.empfaenger).toBe('');
+      });
+    });
+
+    describe('absender and empfaenger together', () => {
+      it('should accept both absender and empfaenger', () => {
+        // Given
+        const absender = 'Florian 11/1';
+        const empfaenger = 'Leitstelle';
+
+        // When
+        const result = AddEintragCommand.create(validEtbId, validText, validUserId, undefined, undefined, absender, empfaenger);
+
+        // Then
+        expect(result.isSuccess).toBe(true);
+        expect(result.value?.absender).toBe('Florian 11/1');
+        expect(result.value?.empfaenger).toBe('Leitstelle');
+      });
+
+      it('should accept both with max length', () => {
+        // Given
+        const absender = 'A'.repeat(100);
+        const empfaenger = 'B'.repeat(100);
+
+        // When
+        const result = AddEintragCommand.create(validEtbId, validText, validUserId, undefined, undefined, absender, empfaenger);
+
+        // Then
+        expect(result.isSuccess).toBe(true);
+        expect(result.value?.absender).toBe(absender);
+        expect(result.value?.empfaenger).toBe(empfaenger);
+      });
+
+      it('should fail if absender exceeds limit while empfaenger is valid', () => {
+        // Given
+        const absender = 'A'.repeat(101);
+        const empfaenger = 'Leitstelle';
+
+        // When
+        const result = AddEintragCommand.create(validEtbId, validText, validUserId, undefined, undefined, absender, empfaenger);
+
+        // Then
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('absender');
+      });
+
+      it('should fail if empfaenger exceeds limit while absender is valid', () => {
+        // Given
+        const absender = 'Florian 11/1';
+        const empfaenger = 'B'.repeat(101);
+
+        // When
+        const result = AddEintragCommand.create(validEtbId, validText, validUserId, undefined, undefined, absender, empfaenger);
+
+        // Then
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('empfaenger');
+      });
+    });
   });
 });

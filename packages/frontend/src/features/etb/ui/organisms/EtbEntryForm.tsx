@@ -1,5 +1,5 @@
 import { useCreateEtbEntry, useTextbausteine, useUpdateEtbEntry } from '@/features/etb';
-import { useMyEinsatzTeilnahme } from '@/features/einsatz/api';
+import { useMyEinsatzTeilnahme, useEinsatzFahrzeuge, useEinsatzPersonen } from '@/features/einsatz/api';
 import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { AddEintragDtoKategorieEnum, type EintragDto } from '@bluelight-hub/shared/client';
 import { EtbFormActions } from '../molecules/EtbFormActions';
@@ -10,7 +10,7 @@ import { EtbTextInput } from './EtbTextInput';
 import { EtbAbsenderInput } from './EtbAbsenderInput';
 import { useEtbFormLogic } from '../../hooks/useEtbFormLogic';
 import { useForm } from '@tanstack/react-form';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -46,6 +46,8 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
   const updateEintrag = useUpdateEtbEntry();
   const { data: textbausteineData } = useTextbausteine();
   const { data: teilnahmeData } = useMyEinsatzTeilnahme(einsatzId);
+  const { data: fahrzeuge } = useEinsatzFahrzeuge(einsatzId ?? null);
+  const { data: personen } = useEinsatzPersonen(einsatzId ?? null);
 
   const [selectedKategorie, setSelectedKategorie] = useState<AddEintragDtoKategorieEnum>(editingEntry?.kategorie || AddEintragDtoKategorieEnum.Lage);
   const [pendingTextbaustein, setPendingTextbaustein] = useState<{ id: string; text: string } | null>(null);
@@ -55,8 +57,35 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
   // Auto-Fill Absender aus Teilnahme-Daten
   const autoFillAbsender = teilnahmeData?.data?.funkrufname || '';
 
-  // Absender-Vorschläge: eigener Funkrufname als Vorschlag
-  const absenderSuggestions = autoFillAbsender ? [{ value: autoFillAbsender, label: `${autoFillAbsender} (Mein Funkrufname)` }] : [];
+  // Funkrufname-Vorschläge aus allen EinsatzKräften (Fahrzeuge + Personen)
+  const funkrufnameVorschlaege = useMemo(() => {
+    const suggestions: Array<{ value: string; label: string }> = [];
+    const seen = new Set<string>();
+
+    // Eigener Funkrufname zuerst (wenn vorhanden)
+    if (autoFillAbsender) {
+      suggestions.push({ value: autoFillAbsender, label: `${autoFillAbsender} (Mein Funkrufname)` });
+      seen.add(autoFillAbsender);
+    }
+
+    // Fahrzeuge (z.B. "Florian Musterstadt 11/1")
+    fahrzeuge?.forEach((fz) => {
+      if (fz.funkrufname && !seen.has(fz.funkrufname)) {
+        suggestions.push({ value: fz.funkrufname, label: fz.funkrufname });
+        seen.add(fz.funkrufname);
+      }
+    });
+
+    // Personen (z.B. "GF", "ZF")
+    personen?.forEach((p) => {
+      if (p.funkrufname && !seen.has(p.funkrufname)) {
+        suggestions.push({ value: p.funkrufname, label: p.funkrufname });
+        seen.add(p.funkrufname);
+      }
+    });
+
+    return suggestions;
+  }, [autoFillAbsender, fahrzeuge, personen]);
 
   const form = useForm({
     defaultValues: {
@@ -243,7 +272,8 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
                 empfaengerValue={empfaenger || ''}
                 onAbsenderChange={(value: string) => form.setFieldValue('absender', value)}
                 onEmpfaengerChange={(value: string) => form.setFieldValue('empfaenger', value)}
-                absenderSuggestions={absenderSuggestions}
+                absenderSuggestions={funkrufnameVorschlaege}
+                empfaengerSuggestions={funkrufnameVorschlaege}
               />
             )}
           </form.Subscribe>
