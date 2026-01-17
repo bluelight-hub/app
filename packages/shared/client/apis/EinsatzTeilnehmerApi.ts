@@ -13,13 +13,19 @@
  */
 
 import * as runtime from '../runtime';
-import type { EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200Response, JoinEinsatzDto } from '../models/index';
+import type { EinsatzTeilnehmerControllerGetAllTeilnehmerVAlpha200Response, EinsatzTeilnehmerControllerJoinEinsatzVAlpha201Response, JoinEinsatzDto } from '../models/index';
 import {
-  EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200ResponseFromJSON,
-  EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200ResponseToJSON,
+  EinsatzTeilnehmerControllerGetAllTeilnehmerVAlpha200ResponseFromJSON,
+  EinsatzTeilnehmerControllerGetAllTeilnehmerVAlpha200ResponseToJSON,
+  EinsatzTeilnehmerControllerJoinEinsatzVAlpha201ResponseFromJSON,
+  EinsatzTeilnehmerControllerJoinEinsatzVAlpha201ResponseToJSON,
   JoinEinsatzDtoFromJSON,
   JoinEinsatzDtoToJSON,
 } from '../models/index';
+
+export interface EinsatzTeilnehmerControllerGetAllTeilnehmerVAlphaRequest {
+  einsatzId: string;
+}
 
 export interface EinsatzTeilnehmerControllerGetMyTeilnahmeVAlphaRequest {
   einsatzId: string;
@@ -35,13 +41,54 @@ export interface EinsatzTeilnehmerControllerJoinEinsatzVAlphaRequest {
  */
 export class EinsatzTeilnehmerApi extends runtime.BaseAPI {
   /**
+   * Gibt alle aktiven Teilnehmer des Einsatzes zurück. Inkl. Funkrufnamen für ETB-Autocomplete.
+   * Alle Einsatz-Teilnehmer abrufen
+   */
+  async einsatzTeilnehmerControllerGetAllTeilnehmerVAlphaRaw(
+    requestParameters: EinsatzTeilnehmerControllerGetAllTeilnehmerVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<EinsatzTeilnehmerControllerGetAllTeilnehmerVAlpha200Response>> {
+    if (requestParameters['einsatzId'] == null) {
+      throw new runtime.RequiredError('einsatzId', 'Required parameter "einsatzId" was null or undefined when calling einsatzTeilnehmerControllerGetAllTeilnehmerVAlpha().');
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/einsatz/{einsatzId}/teilnahme`.replace(`{${'einsatzId'}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzTeilnehmerControllerGetAllTeilnehmerVAlpha200ResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Gibt alle aktiven Teilnehmer des Einsatzes zurück. Inkl. Funkrufnamen für ETB-Autocomplete.
+   * Alle Einsatz-Teilnehmer abrufen
+   */
+  async einsatzTeilnehmerControllerGetAllTeilnehmerVAlpha(
+    requestParameters: EinsatzTeilnehmerControllerGetAllTeilnehmerVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<EinsatzTeilnehmerControllerGetAllTeilnehmerVAlpha200Response> {
+    const response = await this.einsatzTeilnehmerControllerGetAllTeilnehmerVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
+  /**
    * Gibt die aktive Teilnahme des aktuellen Users am Einsatz zurück. Inkl. Funkrufname für ETB Auto-Fill.
    * Eigene Einsatz-Teilnahme abrufen
    */
   async einsatzTeilnehmerControllerGetMyTeilnahmeVAlphaRaw(
     requestParameters: EinsatzTeilnehmerControllerGetMyTeilnahmeVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200Response>> {
+  ): Promise<runtime.ApiResponse<EinsatzTeilnehmerControllerJoinEinsatzVAlpha201Response>> {
     if (requestParameters['einsatzId'] == null) {
       throw new runtime.RequiredError('einsatzId', 'Required parameter "einsatzId" was null or undefined when calling einsatzTeilnehmerControllerGetMyTeilnahmeVAlpha().');
     }
@@ -60,7 +107,7 @@ export class EinsatzTeilnehmerApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200ResponseFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzTeilnehmerControllerJoinEinsatzVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -70,7 +117,7 @@ export class EinsatzTeilnehmerApi extends runtime.BaseAPI {
   async einsatzTeilnehmerControllerGetMyTeilnahmeVAlpha(
     requestParameters: EinsatzTeilnehmerControllerGetMyTeilnahmeVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200Response> {
+  ): Promise<EinsatzTeilnehmerControllerJoinEinsatzVAlpha201Response> {
     const response = await this.einsatzTeilnehmerControllerGetMyTeilnahmeVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
@@ -82,7 +129,7 @@ export class EinsatzTeilnehmerApi extends runtime.BaseAPI {
   async einsatzTeilnehmerControllerJoinEinsatzVAlphaRaw(
     requestParameters: EinsatzTeilnehmerControllerJoinEinsatzVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200Response>> {
+  ): Promise<runtime.ApiResponse<EinsatzTeilnehmerControllerJoinEinsatzVAlpha201Response>> {
     if (requestParameters['einsatzId'] == null) {
       throw new runtime.RequiredError('einsatzId', 'Required parameter "einsatzId" was null or undefined when calling einsatzTeilnehmerControllerJoinEinsatzVAlpha().');
     }
@@ -108,7 +155,7 @@ export class EinsatzTeilnehmerApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200ResponseFromJSON(jsonValue));
+    return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzTeilnehmerControllerJoinEinsatzVAlpha201ResponseFromJSON(jsonValue));
   }
 
   /**
@@ -118,7 +165,7 @@ export class EinsatzTeilnehmerApi extends runtime.BaseAPI {
   async einsatzTeilnehmerControllerJoinEinsatzVAlpha(
     requestParameters: EinsatzTeilnehmerControllerJoinEinsatzVAlphaRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200Response> {
+  ): Promise<EinsatzTeilnehmerControllerJoinEinsatzVAlpha201Response> {
     const response = await this.einsatzTeilnehmerControllerJoinEinsatzVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }

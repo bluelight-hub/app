@@ -37,16 +37,27 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   const activeServer = useActiveServer();
 
   // Prüfe ob User bereits dem Einsatz beigetreten ist (Funkrufname gesetzt)
-  const { data: teilnahmeData } = useMyEinsatzTeilnahme(einsatzId);
+  const { data: teilnahmeData, isLoading: isTeilnahmeLoading } = useMyEinsatzTeilnahme(einsatzId);
   const currentFunkrufname = teilnahmeData?.data?.funkrufname;
 
-  // Auto-show dialog when user hasn't joined yet
+  // Auto-show dialog when user hasn't joined yet (only once per session using sessionStorage)
   useEffect(() => {
-    // Only show if query has loaded (teilnahmeData !== undefined) and no funkrufname
-    if (teilnahmeData !== undefined && !currentFunkrufname) {
+    // Skip if still loading
+    if (isTeilnahmeLoading) return;
+
+    // Check if we've already shown the dialog for this einsatz in this session
+    const storageKey = `beitritt-dialog-shown-${einsatzId}`;
+    const hasShownInSession = sessionStorage.getItem(storageKey) === 'true';
+
+    // Only show if:
+    // 1. Query has finished loading
+    // 2. No funkrufname set (user hasn't joined)
+    // 3. Haven't shown dialog yet in this browser session
+    if (!currentFunkrufname && !hasShownInSession) {
+      sessionStorage.setItem(storageKey, 'true');
       setShowBeitrittDialog(true);
     }
-  }, [teilnahmeData, currentFunkrufname]);
+  }, [einsatzId, isTeilnahmeLoading, currentFunkrufname]);
 
   // Prüfe ob wir im Fullscreen/Presentation-Modus sind
   const currentSearch = router.state.location.search as { mode?: string };

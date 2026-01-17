@@ -4,12 +4,13 @@ import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ApiWrappedCreatedResponse, ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
-import { SkipTransform } from '@/modules/common/decorators/skip-transform.decorator';
 import { EinsatzTeilnehmerResponseDto, JoinEinsatzDto } from '@/application/einsatz-teilnehmer/dto';
 import { JoinEinsatzCommand } from '@/application/einsatz-teilnehmer/commands/join-einsatz/join-einsatz.command';
 import { JoinEinsatzHandler } from '@/application/einsatz-teilnehmer/commands/join-einsatz/join-einsatz.handler';
 import { GetMyTeilnahmeQuery } from '@/application/einsatz-teilnehmer/queries/get-my-teilnahme/get-my-teilnahme.query';
 import { GetMyTeilnahmeHandler } from '@/application/einsatz-teilnehmer/queries/get-my-teilnahme/get-my-teilnahme.handler';
+import { GetAllTeilnehmerQuery } from '@/application/einsatz-teilnehmer/queries/get-all-teilnehmer/get-all-teilnehmer.query';
+import { GetAllTeilnehmerHandler } from '@/application/einsatz-teilnehmer/queries/get-all-teilnehmer/get-all-teilnehmer.handler';
 
 /**
  * Controller für Einsatz-Teilnehmer Management.
@@ -21,7 +22,6 @@ import { GetMyTeilnahmeHandler } from '@/application/einsatz-teilnehmer/queries/
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @ApiUnauthorizedResponse({ description: 'Nicht authentifiziert - JWT Token fehlt oder ungültig' })
-@SkipTransform()
 @Controller({
   path: 'einsatz/:einsatzId/teilnahme',
   version: 'alpha',
@@ -30,7 +30,34 @@ export class EinsatzTeilnehmerController {
   constructor(
     private readonly joinHandler: JoinEinsatzHandler,
     private readonly getMyTeilnahmeHandler: GetMyTeilnahmeHandler,
+    private readonly getAllTeilnehmerHandler: GetAllTeilnehmerHandler,
   ) {}
+
+  /**
+   * Alle aktiven Teilnehmer eines Einsatzes abrufen.
+   *
+   * Gibt die Liste aller aktiven Teilnehmer mit ihren Funkrufnamen zurück.
+   * Wird für ETB-Absender/Empfänger Autocomplete-Vorschläge verwendet.
+   */
+  @Get()
+  @ApiOperation({
+    summary: 'Alle Einsatz-Teilnehmer abrufen',
+    description: 'Gibt alle aktiven Teilnehmer des Einsatzes zurück. Inkl. Funkrufnamen für ETB-Autocomplete.',
+  })
+  @ApiWrappedResponse(EinsatzTeilnehmerResponseDto, {
+    isArray: true,
+    description: 'Liste aller aktiven Teilnehmer',
+  })
+  async getAllTeilnehmer(@Param('einsatzId') einsatzId: string): Promise<EinsatzTeilnehmerResponseDto[]> {
+    const query = new GetAllTeilnehmerQuery(einsatzId);
+    const result = await this.getAllTeilnehmerHandler.execute(query);
+
+    if (result.isFailure) {
+      throw new BadRequestException(result.error);
+    }
+
+    return result.value ?? [];
+  }
 
   /**
    * Eigene Teilnahme an einem Einsatz abrufen.

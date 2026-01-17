@@ -1,5 +1,5 @@
 import { useCreateEtbEntry, useTextbausteine, useUpdateEtbEntry } from '@/features/etb';
-import { useMyEinsatzTeilnahme, useEinsatzFahrzeuge, useEinsatzPersonen } from '@/features/einsatz/api';
+import { useMyEinsatzTeilnahme, useEinsatzFahrzeuge, useEinsatzPersonen, useEinsatzTeilnehmer } from '@/features/einsatz/api';
 import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { AddEintragDtoKategorieEnum, type EintragDto } from '@bluelight-hub/shared/client';
 import { EtbFormActions } from '../molecules/EtbFormActions';
@@ -48,6 +48,7 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
   const { data: teilnahmeData } = useMyEinsatzTeilnahme(einsatzId);
   const { data: fahrzeuge } = useEinsatzFahrzeuge(einsatzId ?? null);
   const { data: personen } = useEinsatzPersonen(einsatzId ?? null);
+  const { data: alleTeilnehmer } = useEinsatzTeilnehmer(einsatzId);
 
   const [selectedKategorie, setSelectedKategorie] = useState<AddEintragDtoKategorieEnum>(editingEntry?.kategorie || AddEintragDtoKategorieEnum.Lage);
   const [pendingTextbaustein, setPendingTextbaustein] = useState<{ id: string; text: string } | null>(null);
@@ -57,7 +58,7 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
   // Auto-Fill Absender aus Teilnahme-Daten
   const autoFillAbsender = teilnahmeData?.data?.funkrufname || '';
 
-  // Funkrufname-Vorschläge aus allen EinsatzKräften (Fahrzeuge + Personen)
+  // Funkrufname-Vorschläge aus allen EinsatzKräften (Fahrzeuge + Personen + Teilnehmer)
   const funkrufnameVorschlaege = useMemo(() => {
     const suggestions: Array<{ value: string; label: string }> = [];
     const seen = new Set<string>();
@@ -68,10 +69,18 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
       seen.add(autoFillAbsender);
     }
 
+    // Alle aktiven Einsatz-Teilnehmer (andere User mit Funkrufnamen)
+    alleTeilnehmer?.data?.forEach((teilnehmer) => {
+      if (teilnehmer.funkrufname && !seen.has(teilnehmer.funkrufname)) {
+        suggestions.push({ value: teilnehmer.funkrufname, label: `${teilnehmer.funkrufname} (Teilnehmer)` });
+        seen.add(teilnehmer.funkrufname);
+      }
+    });
+
     // Fahrzeuge (z.B. "Florian Musterstadt 11/1")
     fahrzeuge?.forEach((fz) => {
       if (fz.funkrufname && !seen.has(fz.funkrufname)) {
-        suggestions.push({ value: fz.funkrufname, label: fz.funkrufname });
+        suggestions.push({ value: fz.funkrufname, label: `${fz.funkrufname} (Fahrzeug)` });
         seen.add(fz.funkrufname);
       }
     });
@@ -79,13 +88,13 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
     // Personen (z.B. "GF", "ZF")
     personen?.forEach((p) => {
       if (p.funkrufname && !seen.has(p.funkrufname)) {
-        suggestions.push({ value: p.funkrufname, label: p.funkrufname });
+        suggestions.push({ value: p.funkrufname, label: `${p.funkrufname} (Person)` });
         seen.add(p.funkrufname);
       }
     });
 
     return suggestions;
-  }, [autoFillAbsender, fahrzeuge, personen]);
+  }, [autoFillAbsender, alleTeilnehmer, fahrzeuge, personen]);
 
   const form = useForm({
     defaultValues: {

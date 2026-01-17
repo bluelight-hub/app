@@ -182,12 +182,13 @@ export class PrismaEtbRepository implements IEtbRepository {
             INSERT INTO etb_eintraege (
               "id", "etbId", "sequenceNumber", "text", "createdBy", "createdAt",
               "updatedAt", "deletedAt", "deletedBy", "kategorie", "timestamp",
-              "version", "isAutomatic", "metadata"
+              "version", "isAutomatic", "absender", "empfaenger", "metadata"
             ) VALUES (
               ${eintrag.id}, ${etbId}, ${eintrag.sequenceNumber}, ${eintrag.text},
               ${eintrag.createdBy}, ${eintrag.createdAt}, ${eintrag.updatedAt},
               ${eintrag.deletedAt}, ${eintrag.deletedBy}, ${eintrag.kategorie}::"EtbKategorie",
               ${eintrag.timestamp}, ${eintrag.version}, ${eintrag.isAutomatic},
+              ${eintrag.absender}, ${eintrag.empfaenger},
               ${eintrag.metadata ?? null}::jsonb
             )
             ON CONFLICT ("etbId", "sequenceNumber") DO UPDATE SET
@@ -195,7 +196,9 @@ export class PrismaEtbRepository implements IEtbRepository {
               "updatedAt" = EXCLUDED."updatedAt",
               "deletedAt" = EXCLUDED."deletedAt",
               "deletedBy" = EXCLUDED."deletedBy",
-              "version" = EXCLUDED."version"
+              "version" = EXCLUDED."version",
+              "absender" = EXCLUDED."absender",
+              "empfaenger" = EXCLUDED."empfaenger"
           `;
         }
       }

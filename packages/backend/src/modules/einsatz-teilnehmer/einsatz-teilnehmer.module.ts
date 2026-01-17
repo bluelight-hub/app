@@ -5,6 +5,7 @@ import { EINSATZ_TEILNEHMER_REPOSITORY } from '@infrastructure/di-tokens';
 import { PrismaEinsatzTeilnehmerRepository } from '@infrastructure/einsatz-teilnehmer/repositories/prisma-einsatz-teilnehmer.repository';
 import { JoinEinsatzHandler } from '@/application/einsatz-teilnehmer/commands/join-einsatz/join-einsatz.handler';
 import { GetMyTeilnahmeHandler } from '@/application/einsatz-teilnehmer/queries/get-my-teilnahme/get-my-teilnahme.handler';
+import { GetAllTeilnehmerHandler } from '@/application/einsatz-teilnehmer/queries/get-all-teilnehmer/get-all-teilnehmer.handler';
 import { EinsatzTeilnehmerController } from './controllers/einsatz-teilnehmer.controller';
 
 /**
@@ -25,7 +26,8 @@ import { EinsatzTeilnehmerController } from './controllers/einsatz-teilnehmer.co
     // Handlers
     JoinEinsatzHandler,
     GetMyTeilnahmeHandler,
+    GetAllTeilnehmerHandler,
   ],
-  exports: [EINSATZ_TEILNEHMER_REPOSITORY, JoinEinsatzHandler, GetMyTeilnahmeHandler],
+  exports: [EINSATZ_TEILNEHMER_REPOSITORY, JoinEinsatzHandler, GetMyTeilnahmeHandler, GetAllTeilnehmerHandler],
 })
 export class EinsatzTeilnehmerModule {}

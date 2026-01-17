@@ -105,6 +105,42 @@ export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory }: UseE
         enableSorting: true,
       },
       {
+        id: 'absender',
+        accessorKey: 'absender',
+        header: 'Von',
+        cell: ({ getValue }) => {
+          const absender = getValue<string | null | undefined>();
+          if (!absender) {
+            return <span className="text-gray-400 text-sm dark:text-gray-500">-</span>;
+          }
+          return (
+            <span className="text-gray-700 text-sm dark:text-gray-300" title={absender}>
+              {absender}
+            </span>
+          );
+        },
+        size: 120,
+        enableSorting: true,
+      },
+      {
+        id: 'empfaenger',
+        accessorKey: 'empfaenger',
+        header: 'An',
+        cell: ({ getValue }) => {
+          const empfaenger = getValue<string | null | undefined>();
+          if (!empfaenger) {
+            return <span className="text-gray-400 text-sm dark:text-gray-500">-</span>;
+          }
+          return (
+            <span className="text-gray-700 text-sm dark:text-gray-300" title={empfaenger}>
+              {empfaenger}
+            </span>
+          );
+        },
+        size: 120,
+        enableSorting: true,
+      },
+      {
         id: 'kategorie',
         accessorKey: 'kategorie',
         header: 'Kategorie',

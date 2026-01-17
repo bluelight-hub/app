@@ -39,4 +39,4 @@ export { useRegistrierePersonViaQr, isDuplicatePersonError, type RegistrierePers
 export { useWeisePersonZuFahrzeugZu, useEntfernePersonVonFahrzeug } from './use-weise-person-zu-fahrzeug';
 
 // EinsatzTeilnehmer Hooks (Story 115 - ETB Absender Auto-Fill)
-export { useMyEinsatzTeilnahme, useJoinEinsatz, useUpdateFunkrufname, TEILNAHME_QUERY_KEYS } from './use-einsatz-teilnahme';
+export { useMyEinsatzTeilnahme, useJoinEinsatz, useUpdateFunkrufname, useEinsatzTeilnehmer, TEILNAHME_QUERY_KEYS } from './use-einsatz-teilnahme';
