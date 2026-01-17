@@ -55,6 +55,9 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
   // Auto-Fill Absender aus Teilnahme-Daten
   const autoFillAbsender = teilnahmeData?.data?.funkrufname || '';
 
+  // Absender-Vorschläge: eigener Funkrufname als Vorschlag
+  const absenderSuggestions = autoFillAbsender ? [{ value: autoFillAbsender, label: `${autoFillAbsender} (Mein Funkrufname)` }] : [];
+
   const form = useForm({
     defaultValues: {
       kategorie: editingEntry?.kategorie || AddEintragDtoKategorieEnum.Lage,
@@ -240,6 +243,7 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
                 empfaengerValue={empfaenger || ''}
                 onAbsenderChange={(value: string) => form.setFieldValue('absender', value)}
                 onEmpfaengerChange={(value: string) => form.setFieldValue('empfaenger', value)}
+                absenderSuggestions={absenderSuggestions}
               />
             )}
           </form.Subscribe>

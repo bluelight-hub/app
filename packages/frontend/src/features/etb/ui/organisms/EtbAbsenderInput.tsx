@@ -1,12 +1,26 @@
 /**
  * ETB Absender/Empfaenger Input Komponente
  *
- * Eingabefelder für Absender und Empfänger in ETB-Einträgen.
+ * Combobox-Felder für Absender und Empfänger in ETB-Einträgen mit Auto-Vervollständigung.
  * Absender wird automatisch mit dem Funkrufnamen des Users vorausgefüllt.
  */
 
 import { cn } from '@/shared/ui/cn';
-import { Input } from '@/shared/ui/atoms/input.atom';
+import { Combobox, type ComboboxItem } from '@/shared/ui/headless/combobox';
+import { useMemo } from 'react';
+
+/**
+ * Standard-Vorschläge für häufig verwendete Empfänger
+ */
+const DEFAULT_EMPFAENGER_SUGGESTIONS: ComboboxItem[] = [
+  { value: 'Leitstelle', label: 'Leitstelle' },
+  { value: 'EL', label: 'EL (Einsatzleiter)' },
+  { value: 'ZF', label: 'ZF (Zugführer)' },
+  { value: 'GF', label: 'GF (Gruppenführer)' },
+  { value: 'TEL', label: 'TEL (Technische Einsatzleitung)' },
+  { value: 'OrgL', label: 'OrgL (Organisatorischer Leiter)' },
+  { value: 'LNA', label: 'LNA (Leitender Notarzt)' },
+];
 
 interface EtbAbsenderInputProps {
   absenderValue: string;
@@ -15,58 +29,65 @@ interface EtbAbsenderInputProps {
   onEmpfaengerChange: (value: string) => void;
   absenderError?: string;
   empfaengerError?: string;
+  /** Vorschläge für Absender (z.B. aus EinsatzTeilnehmer) */
+  absenderSuggestions?: ComboboxItem[];
+  /** Zusätzliche Vorschläge für Empfänger */
+  empfaengerSuggestions?: ComboboxItem[];
   className?: string;
 }
 
 /**
- * Eingabefelder für Absender und Empfänger
+ * Combobox-Felder für Absender und Empfänger mit Auto-Vervollständigung
  *
  * Der Absender wird für die Dokumentation verwendet, wer eine Nachricht
  * gesendet oder eine Meldung gemacht hat. Der Empfänger dokumentiert,
  * an wen die Nachricht gerichtet war.
+ *
+ * Beide Felder erlauben auch freie Texteingabe für nicht vorgeschlagene Werte.
  */
-export function EtbAbsenderInput({ absenderValue, empfaengerValue, onAbsenderChange, onEmpfaengerChange, absenderError, empfaengerError, className }: EtbAbsenderInputProps) {
+export function EtbAbsenderInput({
+  absenderValue,
+  empfaengerValue,
+  onAbsenderChange,
+  onEmpfaengerChange,
+  absenderError,
+  empfaengerError,
+  absenderSuggestions = [],
+  empfaengerSuggestions = [],
+  className,
+}: EtbAbsenderInputProps) {
+  // Kombiniere Standard-Vorschläge mit übergebenen Vorschlägen (ohne Duplikate)
+  const allEmpfaengerSuggestions = useMemo(() => {
+    const combined = [...empfaengerSuggestions, ...DEFAULT_EMPFAENGER_SUGGESTIONS];
+    const seen = new Set<string>();
+    return combined.filter((item) => {
+      if (seen.has(item.value)) return false;
+      seen.add(item.value);
+      return true;
+    });
+  }, [empfaengerSuggestions]);
+
   return (
     <div className={cn('grid grid-cols-1 gap-4 md:grid-cols-2', className)}>
-      <div className="space-y-1">
-        <label htmlFor="etb-absender" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
-          Absender (Funkrufname)
-        </label>
-        <Input
-          id="etb-absender"
-          type="text"
-          value={absenderValue}
-          onChange={(e) => onAbsenderChange(e.target.value)}
-          placeholder="z.B. Florian Musterstadt 11/1"
-          maxLength={100}
-          variant={absenderError ? 'error' : 'default'}
-        />
-        {absenderError && (
-          <p className="text-red-600 text-sm dark:text-red-400" role="alert">
-            {absenderError}
-          </p>
-        )}
-      </div>
+      <Combobox
+        label="Absender (Funkrufname)"
+        items={absenderSuggestions}
+        value={absenderValue}
+        onChange={onAbsenderChange}
+        placeholder="z.B. Florian Musterstadt 11/1"
+        allowCustomValue
+        error={absenderError}
+      />
 
-      <div className="space-y-1">
-        <label htmlFor="etb-empfaenger" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
-          Empfänger (Funkrufname)
-        </label>
-        <Input
-          id="etb-empfaenger"
-          type="text"
-          value={empfaengerValue}
-          onChange={(e) => onEmpfaengerChange(e.target.value)}
-          placeholder="z.B. Leitstelle"
-          maxLength={100}
-          variant={empfaengerError ? 'error' : 'default'}
-        />
-        {empfaengerError && (
-          <p className="text-red-600 text-sm dark:text-red-400" role="alert">
-            {empfaengerError}
-          </p>
-        )}
-      </div>
+      <Combobox
+        label="Empfänger (Funkrufname)"
+        items={allEmpfaengerSuggestions}
+        value={empfaengerValue}
+        onChange={onEmpfaengerChange}
+        placeholder="z.B. Leitstelle"
+        allowCustomValue
+        error={empfaengerError}
+      />
     </div>
   );
 }
