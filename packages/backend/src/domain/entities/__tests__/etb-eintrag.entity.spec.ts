@@ -88,8 +88,8 @@ describe('EtbEintrag Entity', () => {
       // Given: Custom metadata
       const metadata = { screenshot: 'path/to/image.png', coordinates: { lat: 51.5, lon: 7.5 } };
 
-      // When: Creating entity with metadata
-      const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId, undefined, undefined, metadata);
+      // When: Creating entity with metadata (absender, empfaenger are undefined)
+      const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId, undefined, undefined, undefined, undefined, metadata);
 
       // Then: Metadata is set correctly
       expect(eintrag.metadata).toEqual(metadata);
@@ -433,14 +433,14 @@ describe('EtbEintrag Entity', () => {
         customData: { key: 'value' },
       };
 
-      const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId, undefined, undefined, metadata);
+      const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId, undefined, undefined, undefined, undefined, metadata);
 
       expect(eintrag.metadata).toEqual(metadata);
     });
 
     it('should preserve metadata after update', () => {
       const metadata = { key: 'value' };
-      const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId, undefined, undefined, metadata);
+      const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId, undefined, undefined, undefined, undefined, metadata);
 
       eintrag.update('New text');
 
@@ -449,7 +449,7 @@ describe('EtbEintrag Entity', () => {
 
     it('should preserve metadata after soft-delete', () => {
       const metadata = { screenshot: 'image.png' };
-      const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId, undefined, undefined, metadata);
+      const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId, undefined, undefined, undefined, undefined, metadata);
 
       eintrag.markAsDeleted();
 
