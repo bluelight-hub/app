@@ -1,3 +1,74 @@
+## Version [v1.0.0-alpha.44](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.43...v1.0.0-alpha.44) – Veröffentlicht am 2026-01-16
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`a8eec0fc`](https://github.com/rubenvitt/bluelight-hub/commit/a8eec0fc) (storage): Implement persistent server storage with tauri-plugin-store 
+
+## 🐛 Fehlerbehebungen
+Diese Probleme wurden behoben:
+- [`87c3309e`](https://github.com/rubenvitt/bluelight-hub/commit/87c3309e) (prisma): Fix prisma generate failing without DATABASE_URL 
+
+- [`d4f206c2`](https://github.com/rubenvitt/bluelight-hub/commit/d4f206c2) (test): Fix database-test.helper mock imports 
+
+- [`fc6402a0`](https://github.com/rubenvitt/bluelight-hub/commit/fc6402a0) (test): Fix database-test.helper mock imports 
+
+- [`d5c79574`](https://github.com/rubenvitt/bluelight-hub/commit/d5c79574) (test): Fix E2E tests failing with PostgreSQL 25P02 error 
+
+- [`c1ae4092`](https://github.com/rubenvitt/bluelight-hub/commit/c1ae4092) (test): Fix Prisma 7.x compatibility in OAuth e2e tests 
+
+- [`35526971`](https://github.com/rubenvitt/bluelight-hub/commit/35526971) (build): Exclude test files from shared package TypeScript build 
+
+- [`ea5d9ca9`](https://github.com/rubenvitt/bluelight-hub/commit/ea5d9ca9) (build): Use dedicated tsconfig.build.json for shared package 
+
+- [`96987025`](https://github.com/rubenvitt/bluelight-hub/commit/96987025) (di): Fix HibpService dependency injection and add CodeQL workflow 
+
+- [`c88029a7`](https://github.com/rubenvitt/bluelight-hub/commit/c88029a7) (auth): Add PasswordModule import to fix DI in tests 
+
+## 🔒 Sicherheitsverbesserungen
+Sicherheitsrelevante Änderungen:
+- [`b8e69a70`](https://github.com/rubenvitt/bluelight-hub/commit/b8e69a70) (auth): Implement NIST SP 800-63B-4 password policy 
+
+## 🧹 Codebereinigungen
+Aufräumarbeiten und kleinere Verbesserungen:
+- [`92a5532e`](https://github.com/rubenvitt/bluelight-hub/commit/92a5532e) (lint): Fix all Biome lint errors for CI pipeline 
+
+- [`e878182d`](https://github.com/rubenvitt/bluelight-hub/commit/e878182d) (lint): Fix remaining Biome lint errors 
+
+## 🔧 Tool Verbesserungen
+Verbesserungen an den Werkzeugen:
+- [`d6c76a5f`](https://github.com/rubenvitt/bluelight-hub/commit/d6c76a5f) (deps): Update dev dependencies to latest versions 
+
+- [`8adc6e0e`](https://github.com/rubenvitt/bluelight-hub/commit/8adc6e0e) (deps): Update frontend dependencies and migrate dotenvx 
+
+- [`7c879d60`](https://github.com/rubenvitt/bluelight-hub/commit/7c879d60) (deps): Update backend dependencies to latest versions 
+
+- [`e8d187a2`](https://github.com/rubenvitt/bluelight-hub/commit/e8d187a2) (config): Remove auto-generated bmad output file 
+
+- [`c35db03d`](https://github.com/rubenvitt/bluelight-hub/commit/c35db03d) (deps): Update Tauri plugins and dependencies to latest versions 
+
+- [`7120fcb3`](https://github.com/rubenvitt/bluelight-hub/commit/7120fcb3) (config): Ignore generated Prisma client files 
+
+## 💥 Breaking Changes
+Bitte beachtet folgende Änderungen, die möglicherweise Anpassungen erfordern:
+- [`34a0963a`](https://github.com/rubenvitt/bluelight-hub/commit/34a0963a) (db): Migrate Prisma v6 to v7 with adapter pattern 
+
+
+
+# [1.0.0-alpha.44](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.43...v1.0.0-alpha.44) (2026-01-16)
+
+
+* 💥(db): Migrate Prisma v6 to v7 with adapter pattern ([34a0963](https://github.com/rubenvitt/bluelight-hub/commit/34a0963a5d5f8930e80b302deeeb7a0128d156d1))
+
+
+### BREAKING CHANGES
+
+* Prisma v7 uses adapter pattern instead of query engine.
+All @prisma/client imports now resolve to generated client.
+
+🤖 Generated with Claude Code
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+
 ## Version [v1.0.0-alpha.43](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.42...v1.0.0-alpha.43) – Veröffentlicht am 2026-01-16
 
 ## ✨ Neue Funktionen
