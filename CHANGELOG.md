@@ -1,3 +1,25 @@
+## Version [v1.0.0-alpha.45](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.44...v1.0.0-alpha.45) – Veröffentlicht am 2026-01-17
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`f020b578`](https://github.com/rubenvitt/bluelight-hub/commit/f020b578) (etb): Add absender/empfaenger with auto-fill feature 
+
+- [`8df918e9`](https://github.com/rubenvitt/bluelight-hub/commit/8df918e9) (etb): Add auto-show Beitritts-Dialog in SingleEinsatzLayout 
+
+- [`5e7bb47f`](https://github.com/rubenvitt/bluelight-hub/commit/5e7bb47f) (etb): Add GetAllTeilnehmer query and improve auto-fill UX 
+
+## 🐛 Fehlerbehebungen
+Diese Probleme wurden behoben:
+- [`e0fa76a2`](https://github.com/rubenvitt/bluelight-hub/commit/e0fa76a2) (etb): Fix ETB response structure and add Funkrufname UI 
+
+- [`8383d0bf`](https://github.com/rubenvitt/bluelight-hub/commit/8383d0bf) (etb): Remove @SkipTransform to fix response wrapping 
+
+- [`a3288cae`](https://github.com/rubenvitt/bluelight-hub/commit/a3288cae) (etb): Fix metadata tests for new constructor signature 
+
+
+
+# [1.0.0-alpha.45](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.44...v1.0.0-alpha.45) (2026-01-17)
+
 ## Version [v1.0.0-alpha.44](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.43...v1.0.0-alpha.44) – Veröffentlicht am 2026-01-16
 
 ## ✨ Neue Funktionen
