@@ -95,7 +95,7 @@ export const useEtbInfinite = ({ einsatzId, limit = 20, sortBy = 'timestamp', so
         });
 
         // Return in format expected by infinite query
-        // etbData ist wrapped: { data: EtbDto, meta: {...} } - extrahiere das eigentliche ETB
+        // Response ist gewrappt: { data: EtbDto, meta: {...} }
         const etb = etbData.data;
         return {
           data: etb,
