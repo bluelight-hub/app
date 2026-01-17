@@ -95,12 +95,14 @@ export const useEtbInfinite = ({ einsatzId, limit = 20, sortBy = 'timestamp', so
         });
 
         // Return in format expected by infinite query
+        // etbData ist wrapped: { data: EtbDto, meta: {...} } - extrahiere das eigentliche ETB
+        const etb = etbData.data;
         return {
-          data: etbData,
+          data: etb,
           pagination: {
             page: 1,
             totalPages: 1,
-            total: etbData.eintraege?.length ?? 0,
+            total: etb.eintraege?.length ?? 0,
           },
         };
       } catch (error) {

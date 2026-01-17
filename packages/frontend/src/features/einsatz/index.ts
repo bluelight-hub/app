@@ -32,6 +32,11 @@ export {
   STAMM_FAHRZEUGE_QUERY_KEYS,
   useFahrzeugtypen,
   FAHRZEUGTYP_QUERY_KEYS,
+  // EinsatzTeilnehmer (Story 115 - ETB Absender Auto-Fill)
+  useMyEinsatzTeilnahme,
+  useJoinEinsatz,
+  useUpdateFunkrufname,
+  TEILNAHME_QUERY_KEYS,
 } from './api';
 
 // ============================================

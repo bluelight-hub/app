@@ -1,4 +1,5 @@
 export { ArchiveConfirmationModal } from './ArchiveConfirmationModal';
+export { EinsatzBeitrittDialog } from './EinsatzBeitrittDialog.organism';
 export { EinsatzCreateForm } from './EinsatzCreateForm';
 export { EinsatzDashboard } from './EinsatzDashboard';
 export { EinsatzDetailView } from './EinsatzDetailView';

@@ -5,9 +5,10 @@ import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { EinsatzStatusBadge } from '@/features/einsatz/ui/molecules/einsatz-status-badge.molecule';
 import { ModuleButton } from '@/features/einsatz/ui/molecules/ModuleButton';
 import { ModuleOverviewCard } from '@/features/einsatz/ui/molecules/ModuleOverviewCard';
+import { EinsatzBeitrittDialog } from '@/features/einsatz/ui/organisms';
 import { CommandPalette } from '@/shared/ui/organisms/command-palette';
 import { CommandPaletteErrorBoundary } from '@/shared/ui/organisms/command-palette/CommandPaletteErrorBoundary';
-import { EINSATZ_QUERY_KEYS, useEinsatzDetails, useEinsatzModules } from '@/features/einsatz';
+import { EINSATZ_QUERY_KEYS, useEinsatzDetails, useEinsatzModules, useMyEinsatzTeilnahme } from '@/features/einsatz';
 import { useActiveServer } from '@/features/server/hooks';
 import { ServerNameBadge } from '@/features/server/ui/atoms';
 import { cn, getModuleActiveColor, getModuleColor } from '@/shared/ui';
@@ -18,7 +19,7 @@ import { Link, Outlet, useMatchRoute, useNavigate, useParams, useRouter } from '
 import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { PiArrowLeft, PiArrowsOut, PiClock, PiGear, PiGridFour, PiQuestion, PiSiren, PiWarning } from 'react-icons/pi';
+import { PiArrowLeft, PiArrowsOut, PiClock, PiGear, PiGridFour, PiQuestion, PiRadio, PiSiren, PiWarning } from 'react-icons/pi';
 
 interface SingleEinsatzLayoutProps {
   className?: string;
@@ -32,7 +33,12 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   const queryClient = useQueryClient();
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [showEndConfirmation, setShowEndConfirmation] = useState(false);
+  const [showBeitrittDialog, setShowBeitrittDialog] = useState(false);
   const activeServer = useActiveServer();
+
+  // Prüfe ob User bereits dem Einsatz beigetreten ist (Funkrufname gesetzt)
+  const { data: teilnahmeData } = useMyEinsatzTeilnahme(einsatzId);
+  const currentFunkrufname = teilnahmeData?.data?.funkrufname;
 
   // Prüfe ob wir im Fullscreen/Presentation-Modus sind
   const currentSearch = router.state.location.search as { mode?: string };
@@ -402,6 +408,11 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
 
                   {/* Quick Actions */}
                   <div className="mt-6 border-gray-200 border-t pt-6 dark:border-gray-700">
+                    {/* Funkrufname / Einsatz-Beitritt */}
+                    <Button appearance="ghost" size="sm" className="mb-2 w-full justify-start" onClick={() => setShowBeitrittDialog(true)}>
+                      <PiRadio className="mr-2 h-4 w-4" />
+                      {currentFunkrufname ? <span className="truncate">{currentFunkrufname}</span> : <span className="text-blue-600 dark:text-blue-400">Funkrufname setzen</span>}
+                    </Button>
                     <Button appearance="ghost" size="sm" className="mb-2 w-full">
                       <PiGear className="mr-2 h-4 w-4" />
                       Modul-Einstellungen
@@ -505,6 +516,9 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
           </Button>
         </Dialog.Footer>
       </Dialog>
+
+      {/* Einsatz Beitritt / Funkrufname Dialog */}
+      <EinsatzBeitrittDialog einsatzId={einsatzId} isOpen={showBeitrittDialog} onClose={() => setShowBeitrittDialog(false)} />
     </>
   );
 }
