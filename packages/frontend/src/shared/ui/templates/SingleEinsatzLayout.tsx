@@ -40,6 +40,14 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   const { data: teilnahmeData } = useMyEinsatzTeilnahme(einsatzId);
   const currentFunkrufname = teilnahmeData?.data?.funkrufname;
 
+  // Auto-show dialog when user hasn't joined yet
+  useEffect(() => {
+    // Only show if query has loaded (teilnahmeData !== undefined) and no funkrufname
+    if (teilnahmeData !== undefined && !currentFunkrufname) {
+      setShowBeitrittDialog(true);
+    }
+  }, [teilnahmeData, currentFunkrufname]);
+
   // Prüfe ob wir im Fullscreen/Presentation-Modus sind
   const currentSearch = router.state.location.search as { mode?: string };
   const isFullscreenMode = currentSearch?.mode === 'fullscreen' || currentSearch?.mode === 'presentation';
