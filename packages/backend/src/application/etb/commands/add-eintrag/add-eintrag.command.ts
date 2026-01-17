@@ -34,6 +34,8 @@ export class AddEintragCommand {
    * @param userId - ID des erstellenden Users (CUID2-Format)
    * @param kategorie - Kategorie des Eintrags (Default: LAGE)
    * @param einsatzId - Optional: Einsatz-ID für automatische ETB-Erstellung
+   * @param absender - Optional: Absender des Eintrags (z.B. Funkrufname)
+   * @param empfaenger - Optional: Empfänger des Eintrags (z.B. LST)
    * @param metadata - Optional: Metadaten (z.B. Screenshots)
    */
   private constructor(
@@ -42,6 +44,8 @@ export class AddEintragCommand {
     public readonly userId: string,
     public readonly kategorie: EtbKategorieValue = 'LAGE',
     public readonly einsatzId?: string,
+    public readonly absender?: string,
+    public readonly empfaenger?: string,
     public readonly metadata?: Record<string, unknown>,
   ) {}
 
@@ -56,10 +60,21 @@ export class AddEintragCommand {
    * @param userId - ID des Users, der den Eintrag erstellt
    * @param kategorie - Kategorie des Eintrags (optional, Default: LAGE)
    * @param einsatzId - Optional: Einsatz-ID für automatische ETB-Erstellung
+   * @param absender - Optional: Absender des Eintrags (z.B. Funkrufname)
+   * @param empfaenger - Optional: Empfänger des Eintrags (z.B. LST)
    * @param metadata - Optional: Metadaten (z.B. Screenshots, Anhänge)
    * @returns Result mit validiertem Command oder Fehlermeldung
    */
-  public static create(etbId: string, text: string, userId: string, kategorie?: EtbKategorieValue, einsatzId?: string, metadata?: Record<string, unknown>): Result<AddEintragCommand> {
+  public static create(
+    etbId: string,
+    text: string,
+    userId: string,
+    kategorie?: EtbKategorieValue,
+    einsatzId?: string,
+    absender?: string,
+    empfaenger?: string,
+    metadata?: Record<string, unknown>,
+  ): Result<AddEintragCommand> {
     // Validation: etbId required
     if (!etbId || etbId.trim().length === 0) {
       return Result.fail('etbId is required');
@@ -80,6 +95,16 @@ export class AddEintragCommand {
       return Result.fail('einsatzId cannot be empty when provided');
     }
 
-    return Result.ok(new AddEintragCommand(etbId, text, userId, kategorie ?? 'LAGE', einsatzId, metadata));
+    // Validation: absender max length
+    if (absender && absender.length > 100) {
+      return Result.fail('absender cannot exceed 100 characters');
+    }
+
+    // Validation: empfaenger max length
+    if (empfaenger && empfaenger.length > 100) {
+      return Result.fail('empfaenger cannot exceed 100 characters');
+    }
+
+    return Result.ok(new AddEintragCommand(etbId, text, userId, kategorie ?? 'LAGE', einsatzId, absender, empfaenger, metadata));
   }
 }

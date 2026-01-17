@@ -77,13 +77,15 @@ export class EinsatzPersonHinzugefuegtEventHandler implements IEventHandler<Eins
       const text = `Person ${event.vorname} ${event.nachname} registriert (Funktion: ${event.funktion})`;
 
       // Command erstellen mit Validierung
-      // AddEintragCommand.create(etbId, text, userId, kategorie, einsatzId, metadata)
+      // AddEintragCommand.create(etbId, text, userId, kategorie, einsatzId, absender, empfaenger, metadata)
       const commandResult = AddEintragCommand.create(
         etbId,
         text,
         event.registriertVon,
         'PERSONAL', // ETB Kategorie für Personalbezogene Einträge
         event.einsatzId,
+        undefined, // absender - nicht relevant für automatische Einträge
+        undefined, // empfaenger - nicht relevant für automatische Einträge
         {
           eventType: 'EinsatzPersonHinzugefuegt',
           einsatzPersonId: event.einsatzPersonId,

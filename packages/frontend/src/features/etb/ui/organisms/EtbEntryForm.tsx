@@ -1,21 +1,27 @@
 import { useCreateEtbEntry, useTextbausteine, useUpdateEtbEntry } from '@/features/etb';
+import { useMyEinsatzTeilnahme } from '@/features/einsatz/api';
 import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
-import { AddEintragDtoKategorieEnum as EtbKategorie, type EintragDto } from '@/shared';
+import { AddEintragDtoKategorieEnum, type EintragDto } from '@bluelight-hub/shared/client';
 import { EtbFormActions } from '../molecules/EtbFormActions';
 import { EtbTextbausteinPreview } from '../molecules/EtbTextbausteinPreview';
 import { EtbKategorieSelect } from './EtbKategorieSelect';
 import { EtbTextbausteinSelect } from './EtbTextbausteinSelect';
 import { EtbTextInput } from './EtbTextInput';
+import { EtbAbsenderInput } from './EtbAbsenderInput';
 import { useEtbFormLogic } from '../../hooks/useEtbFormLogic';
 import { useForm } from '@tanstack/react-form';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
+// Zod Schema mit Kategorie als String-Union (Enum-Werte)
+const KATEGORIE_VALUES = Object.values(AddEintragDtoKategorieEnum) as [string, ...string[]];
+
 const etbEntrySchema = z.object({
-  kategorie: z.enum(EtbKategorie),
+  kategorie: z.enum(KATEGORIE_VALUES),
   text: z.string().min(1, 'Text ist erforderlich').max(2000, 'Maximal 2000 Zeichen'),
-  timestamp: z.date().optional(),
+  absender: z.string().max(100, 'Maximal 100 Zeichen').optional(),
+  empfaenger: z.string().max(100, 'Maximal 100 Zeichen').optional(),
 });
 
 type EtbEntryFormData = z.infer<typeof etbEntrySchema>;
@@ -31,21 +37,30 @@ interface EtbEntryFormProps {
 
 /**
  * Formular zur Erstellung und Bearbeitung von ETB-Einträgen
+ *
+ * Unterstützt automatisches Ausfüllen des Absender-Feldes basierend auf
+ * dem Funkrufnamen des Users für diesen Einsatz (via EinsatzTeilnehmer).
  */
 export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCancel, className }: EtbEntryFormProps) {
   const createEintrag = useCreateEtbEntry();
   const updateEintrag = useUpdateEtbEntry();
   const { data: textbausteineData } = useTextbausteine();
-  const [selectedKategorie, setSelectedKategorie] = useState<EtbKategorie>(editingEntry?.kategorie || EtbKategorie.Lage);
+  const { data: teilnahmeData } = useMyEinsatzTeilnahme(einsatzId);
+
+  const [selectedKategorie, setSelectedKategorie] = useState<AddEintragDtoKategorieEnum>(editingEntry?.kategorie || AddEintragDtoKategorieEnum.Lage);
   const [pendingTextbaustein, setPendingTextbaustein] = useState<{ id: string; text: string } | null>(null);
   const [lastAppliedTextbausteinText, setLastAppliedTextbausteinText] = useState<string | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
+  // Auto-Fill Absender aus Teilnahme-Daten
+  const autoFillAbsender = teilnahmeData?.data?.funkrufname || '';
+
   const form = useForm({
     defaultValues: {
-      kategorie: editingEntry?.kategorie || EtbKategorie.Lage,
+      kategorie: editingEntry?.kategorie || AddEintragDtoKategorieEnum.Lage,
       text: editingEntry?.text || '',
-      timestamp: editingEntry ? new Date(editingEntry.timestamp) : new Date(),
+      absender: editingEntry?.absender || autoFillAbsender,
+      empfaenger: editingEntry?.empfaenger || '',
     } as EtbEntryFormData,
     validators: {
       onSubmit: etbEntrySchema,
@@ -53,7 +68,8 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
     listeners: {
       onChangeDebounceMs: 100,
       onChange: ({ formApi }) => {
-        setSelectedKategorie(formApi.getFieldValue('kategorie'));
+        const kategorieValue = formApi.getFieldValue('kategorie') as AddEintragDtoKategorieEnum;
+        setSelectedKategorie(kategorieValue);
       },
     },
     onSubmit: async ({ value }) => {
@@ -69,14 +85,15 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
             },
           });
         } else {
-          // Create new entry
+          // Create new entry mit absender/empfaenger
           await createEintrag.mutateAsync({
             etbId,
             data: {
-              kategorie: value.kategorie,
+              kategorie: value.kategorie as AddEintragDtoKategorieEnum,
               text: value.text.trim(),
-              timestamp: value.timestamp,
               einsatzId,
+              absender: value.absender?.trim() || undefined,
+              empfaenger: value.empfaenger?.trim() || undefined,
             },
           });
         }
@@ -101,7 +118,16 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
     },
   });
 
-  const { selectedTextbaustein, setSelectedTextbaustein, filteredTextbausteine, resetSelection } = useEtbFormLogic(textbausteineData?.data || []);
+  // Textbausteine extrahieren (API gibt { data: Array<TextbausteinListResponse> } zurück)
+  const textbausteine = (textbausteineData as { data?: unknown[] } | undefined)?.data ?? [];
+  const { selectedTextbaustein, setSelectedTextbaustein, filteredTextbausteine, resetSelection } = useEtbFormLogic(textbausteine as import('../../types/etb.types').TextbausteinData[]);
+
+  // Auto-Fill Absender wenn Teilnahme-Daten geladen werden (nur für neue Einträge)
+  useEffect(() => {
+    if (!editingEntry && autoFillAbsender && !form.getFieldValue('absender')) {
+      form.setFieldValue('absender', autoFillAbsender);
+    }
+  }, [autoFillAbsender, editingEntry, form]);
 
   // Reset form when editingEntry changes
   useEffect(() => {
@@ -109,27 +135,29 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
       form.reset({
         kategorie: editingEntry.kategorie,
         text: editingEntry.text,
-        timestamp: new Date(editingEntry.timestamp),
+        absender: editingEntry.absender || '',
+        empfaenger: editingEntry.empfaenger || '',
       });
       setSelectedKategorie(editingEntry.kategorie);
     } else {
       form.reset({
-        kategorie: EtbKategorie.Lage,
+        kategorie: AddEintragDtoKategorieEnum.Lage,
         text: '',
-        timestamp: new Date(),
+        absender: autoFillAbsender,
+        empfaenger: '',
       });
-      setSelectedKategorie(EtbKategorie.Lage);
+      setSelectedKategorie(AddEintragDtoKategorieEnum.Lage);
     }
     resetSelection();
     setPendingTextbaustein(null);
     setLastAppliedTextbausteinText(null);
     setShowResetConfirm(false);
-  }, [editingEntry, form, resetSelection]);
+  }, [editingEntry, form, resetSelection, autoFillAbsender]);
 
   const handleTextbausteinChange = (textbausteinId: string) => {
     setSelectedTextbaustein(textbausteinId);
 
-    const textbaustein = filteredTextbausteine(form.state.values.kategorie).find((tb) => tb.id === textbausteinId);
+    const textbaustein = filteredTextbausteine(form.state.values.kategorie as AddEintragDtoKategorieEnum).find((tb) => tb.id === textbausteinId);
 
     if (textbaustein?.volltext) {
       const currentText = form.state.values.text;
@@ -190,7 +218,7 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
           <form.Field name="kategorie">
             {(field) => (
               <EtbKategorieSelect
-                value={field.state.value}
+                value={field.state.value as AddEintragDtoKategorieEnum}
                 onChange={(value) => {
                   field.handleChange(value);
                   setSelectedTextbaustein('');
@@ -202,6 +230,20 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
 
           <EtbTextbausteinSelect kategorie={selectedKategorie} value={selectedTextbaustein} onChange={handleTextbausteinChange} textbausteine={filteredTextbausteine(selectedKategorie)} />
         </div>
+
+        {/* Absender/Empfänger Felder (nur beim Erstellen neuer Einträge) */}
+        {!editingEntry && (
+          <form.Subscribe selector={(state) => ({ absender: state.values.absender, empfaenger: state.values.empfaenger })}>
+            {({ absender, empfaenger }) => (
+              <EtbAbsenderInput
+                absenderValue={absender || ''}
+                empfaengerValue={empfaenger || ''}
+                onAbsenderChange={(value: string) => form.setFieldValue('absender', value)}
+                onEmpfaengerChange={(value: string) => form.setFieldValue('empfaenger', value)}
+              />
+            )}
+          </form.Subscribe>
+        )}
 
         {/* Preview Banner */}
         {pendingTextbaustein && <EtbTextbausteinPreview text={pendingTextbaustein.text} onApply={applyPendingTextbaustein} onCancel={cancelPendingTextbaustein} />}

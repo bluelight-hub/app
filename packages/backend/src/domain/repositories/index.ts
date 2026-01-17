@@ -62,3 +62,6 @@ export {
   type InviteCodePaginationOptions,
   type InviteCodePaginatedResult,
 } from './i-invite-code.repository';
+
+// EinsatzTeilnehmer Repository Interface (Story 115)
+export type { IEinsatzTeilnehmerRepository, EinsatzTeilnehmerDto } from './i-einsatz-teilnehmer.repository';

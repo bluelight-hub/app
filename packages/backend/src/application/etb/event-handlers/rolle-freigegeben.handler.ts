@@ -65,12 +65,15 @@ export class RolleFreigegebenEventHandler implements IEventHandler<RolleFreigege
 
       // Command erstellen mit Validierung
       // Nutze RolleFreigegeben.eventName() für konsistente Event-Type Referenzierung
+      // AddEintragCommand.create(etbId, text, userId, kategorie, einsatzId, absender, empfaenger, metadata)
       const commandResult = AddEintragCommand.create(
         etbId,
         text,
         event.freigegebenVon,
         'PERSONAL', // ETB Kategorie für Personaländerungen (Rollenfreigabe)
         event.einsatzId,
+        undefined, // absender - nicht relevant für automatische Einträge
+        undefined, // empfaenger - nicht relevant für automatische Einträge
         {
           eventType: RolleFreigegeben.eventName(),
           einsatzPersonId: event.einsatzPersonId,

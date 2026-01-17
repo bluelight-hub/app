@@ -148,6 +148,9 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get serverConfig() {
     return this._client.serverConfig;
   }
+  get einsatzTeilnehmer() {
+    return this._client.einsatzTeilnehmer;
+  }
 
   // Delegate Prisma Client methods
   $connect() {

@@ -64,12 +64,15 @@ export class RolleBesetztEventHandler implements IEventHandler<RolleBesetzt> {
       const text = `${event.personVorname} ${event.personNachname} übernimmt Rolle ${event.rollenName}`;
 
       // Command erstellen mit Validierung
+      // AddEintragCommand.create(etbId, text, userId, kategorie, einsatzId, absender, empfaenger, metadata)
       const commandResult = AddEintragCommand.create(
         etbId,
         text,
         event.besetztVon,
         'PERSONAL', // ETB Kategorie für Personaländerungen (Rollenbesetzung)
         event.einsatzId,
+        undefined, // absender - nicht relevant für automatische Einträge
+        undefined, // empfaenger - nicht relevant für automatische Einträge
         {
           eventType: 'RolleBesetzt',
           einsatzPersonId: event.einsatzPersonId,

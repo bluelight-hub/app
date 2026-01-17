@@ -160,8 +160,10 @@ export class EtbQueryMapper {
       text: eintrag.text,
       // Fachlicher Zeitstempel: Default = createdAt (Domain hat kein separates timestamp-Feld)
       timestamp: eintrag.createdAt,
-      // Optionale Properties: Domain-Entity hat diese nicht, Defaults = null
-      funkrufname: null,
+      // Absender/Empfänger aus Domain-Entity
+      absender: eintrag.absender ?? null,
+      empfaenger: eintrag.empfaenger ?? null,
+      // Optionaler Standort: Domain-Entity hat kein standort-Feld
       standort: null,
       // Versionsnummer: Default = 1 (Domain trackt Version nicht auf Entity-Ebene)
       version: 1,

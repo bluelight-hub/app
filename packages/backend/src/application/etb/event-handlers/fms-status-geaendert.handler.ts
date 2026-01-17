@@ -106,13 +106,15 @@ export class FmsStatusGeaendertEventHandler implements IEventHandler<FmsStatusGe
       const text = `Fahrzeug ${event.funkrufname} Status: ${previousLabel} → ${neuerLabel}`;
 
       // Command erstellen mit Validierung
-      // AddEintragCommand.create(etbId, text, userId, kategorie, einsatzId, metadata)
+      // AddEintragCommand.create(etbId, text, userId, kategorie, einsatzId, absender, empfaenger, metadata)
       const commandResult = AddEintragCommand.create(
         etbId,
         text,
         event.geaendertVon,
         'FAHRZEUG', // ETB Kategorie für Fahrzeug-bezogene Einträge
         event.einsatzId,
+        undefined, // absender - nicht relevant für automatische Einträge
+        undefined, // empfaenger - nicht relevant für automatische Einträge
         {
           eventType: 'FmsStatusGeaendert',
           einsatzFahrzeugId: event.einsatzFahrzeugId,

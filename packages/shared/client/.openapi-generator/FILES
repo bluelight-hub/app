@@ -13,6 +13,7 @@ apis/ETBApi.ts
 apis/EinsatzApi.ts
 apis/EinsatzFahrzeugeApi.ts
 apis/EinsatzPersonenApi.ts
+apis/EinsatzTeilnehmerApi.ts
 apis/GeocodingApi.ts
 apis/HealthApi.ts
 apis/KraefteDashboardApi.ts
@@ -139,6 +140,8 @@ models/EinsatzPersonenControllerFindAllVAlpha200Response.ts
 models/EinsatzPersonenControllerRegistrierePersonVAlpha201Response.ts
 models/EinsatzPersonenControllerWeiseZuFahrzeugVAlpha200Response.ts
 models/EinsatzResponseDto.ts
+models/EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200Response.ts
+models/EinsatzTeilnehmerResponseDto.ts
 models/EintragDto.ts
 models/ErfasseFahrzeugAusStammdatenDto.ts
 models/ErfasseTemporalesFahrzeugDto.ts
@@ -174,6 +177,7 @@ models/InitialPoiDto.ts
 models/InitiateOAuthResponseDto.ts
 models/InviteCodeCreatorDto.ts
 models/InviteCodeListItemDto.ts
+models/JoinEinsatzDto.ts
 models/KraefteDashboardControllerGetTaktischeStaerkeVAlpha200Response.ts
 models/KraeftePoisFeatureCollectionDto.ts
 models/KraeftePoisFeatureDto.ts

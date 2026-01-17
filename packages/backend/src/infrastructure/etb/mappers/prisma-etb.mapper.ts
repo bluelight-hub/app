@@ -47,6 +47,9 @@ export interface EtbEintragPersistenceData {
   timestamp: Date;
   version: number;
   isAutomatic: boolean;
+  // Absender und Empfänger für manuelle ETB-Einträge
+  absender: string | null;
+  empfaenger: string | null;
   // Optionale Metadaten (z.B. Screenshots) - Prisma JSON Typ
   metadata?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
 }
@@ -158,8 +161,12 @@ export class PrismaEintragMapper {
     // Metadata Reconstruction (optional JSON field)
     const metadata = prismaEintrag.metadata as Record<string, unknown> | null;
 
-    // Create EtbEintrag via Public Constructor (inkl. Kategorie und Metadata aus DB)
-    const eintrag = new EtbEintrag(eintragId, sequenceNumber, prismaEintrag.text, createdBy, prismaEintrag.createdAt, kategorie, metadata ?? undefined);
+    // Absender/Empfaenger Reconstruction (optional string fields)
+    const absender = prismaEintrag.absender ?? undefined;
+    const empfaenger = prismaEintrag.empfaenger ?? undefined;
+
+    // Create EtbEintrag via Public Constructor (inkl. Kategorie, Absender, Empfaenger und Metadata aus DB)
+    const eintrag = new EtbEintrag(eintragId, sequenceNumber, prismaEintrag.text, createdBy, prismaEintrag.createdAt, kategorie, absender, empfaenger, metadata ?? undefined);
 
     // Override private _updatedAt (Entity Constructor setzt dies nicht)
     if (prismaEintrag.updatedAt) {
@@ -230,6 +237,9 @@ export class PrismaEintragMapper {
       timestamp: eintrag.createdAt, // timestamp = createdAt fuer konsistente Sortierung
       version: 1, // Initial version (Historie wird separat verwaltet)
       isAutomatic: false, // Domain-Eintraege sind manuell
+      // Absender/Empfänger aus Domain Entity
+      absender: eintrag.absender ?? null,
+      empfaenger: eintrag.empfaenger ?? null,
       // Optionale Metadaten (z.B. Screenshots) - Prisma erwartet spezielle Null-Behandlung
       metadata: eintrag.metadata ? (eintrag.metadata as Prisma.InputJsonValue) : Prisma.JsonNull,
     };
