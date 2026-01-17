@@ -31,37 +31,37 @@ import {
 /**
  *
  * @export
- * @interface EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200Response
+ * @interface EinsatzTeilnehmerControllerJoinEinsatzVAlpha201Response
  */
-export interface EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200Response {
+export interface EinsatzTeilnehmerControllerJoinEinsatzVAlpha201Response {
   /**
    *
    * @type {EinsatzTeilnehmerResponseDto}
-   * @memberof EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200Response
+   * @memberof EinsatzTeilnehmerControllerJoinEinsatzVAlpha201Response
    */
   data: EinsatzTeilnehmerResponseDto;
   /**
    *
    * @type {AuthControllerUnifiedAuth200ResponseMeta}
-   * @memberof EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200Response
+   * @memberof EinsatzTeilnehmerControllerJoinEinsatzVAlpha201Response
    */
   meta: AuthControllerUnifiedAuth200ResponseMeta;
 }
 
 /**
- * Check if a given object implements the EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200Response interface.
+ * Check if a given object implements the EinsatzTeilnehmerControllerJoinEinsatzVAlpha201Response interface.
  */
-export function instanceOfEinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200Response(value: object): value is EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200Response {
+export function instanceOfEinsatzTeilnehmerControllerJoinEinsatzVAlpha201Response(value: object): value is EinsatzTeilnehmerControllerJoinEinsatzVAlpha201Response {
   if (!('data' in value) || value['data'] === undefined) return false;
   if (!('meta' in value) || value['meta'] === undefined) return false;
   return true;
 }
 
-export function EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200ResponseFromJSON(json: any): EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200Response {
-  return EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200ResponseFromJSONTyped(json, false);
+export function EinsatzTeilnehmerControllerJoinEinsatzVAlpha201ResponseFromJSON(json: any): EinsatzTeilnehmerControllerJoinEinsatzVAlpha201Response {
+  return EinsatzTeilnehmerControllerJoinEinsatzVAlpha201ResponseFromJSONTyped(json, false);
 }
 
-export function EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200Response {
+export function EinsatzTeilnehmerControllerJoinEinsatzVAlpha201ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): EinsatzTeilnehmerControllerJoinEinsatzVAlpha201Response {
   if (json == null) {
     return json;
   }
@@ -71,14 +71,11 @@ export function EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200ResponseFromJS
   };
 }
 
-export function EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200ResponseToJSON(json: any): EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200Response {
-  return EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200ResponseToJSONTyped(json, false);
+export function EinsatzTeilnehmerControllerJoinEinsatzVAlpha201ResponseToJSON(json: any): EinsatzTeilnehmerControllerJoinEinsatzVAlpha201Response {
+  return EinsatzTeilnehmerControllerJoinEinsatzVAlpha201ResponseToJSONTyped(json, false);
 }
 
-export function EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200ResponseToJSONTyped(
-  value?: EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200Response | null,
-  ignoreDiscriminator: boolean = false,
-): any {
+export function EinsatzTeilnehmerControllerJoinEinsatzVAlpha201ResponseToJSONTyped(value?: EinsatzTeilnehmerControllerJoinEinsatzVAlpha201Response | null, ignoreDiscriminator: boolean = false): any {
   if (value == null) {
     return value;
   }

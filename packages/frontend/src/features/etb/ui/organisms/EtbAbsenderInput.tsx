@@ -10,9 +10,12 @@ import { Combobox, type ComboboxItem } from '@/shared/ui/headless/combobox';
 import { useMemo } from 'react';
 
 /**
- * Standard-Vorschläge für häufig verwendete Empfänger
+ * Standard-Vorschläge für häufig verwendete Absender/Empfänger (Rollen + Stellen)
+ *
+ * Diese Vorschläge werden für BEIDE Felder (Absender und Empfänger) verwendet,
+ * da sowohl Absender als auch Empfänger typische Rollen sein können.
  */
-const DEFAULT_EMPFAENGER_SUGGESTIONS: ComboboxItem[] = [
+const DEFAULT_ROLE_SUGGESTIONS: ComboboxItem[] = [
   { value: 'Leitstelle', label: 'Leitstelle' },
   { value: 'EL', label: 'EL (Einsatzleiter)' },
   { value: 'ZF', label: 'ZF (Zugführer)' },
@@ -20,6 +23,7 @@ const DEFAULT_EMPFAENGER_SUGGESTIONS: ComboboxItem[] = [
   { value: 'TEL', label: 'TEL (Technische Einsatzleitung)' },
   { value: 'OrgL', label: 'OrgL (Organisatorischer Leiter)' },
   { value: 'LNA', label: 'LNA (Leitender Notarzt)' },
+  { value: 'Polizei', label: 'Polizei' },
 ];
 
 interface EtbAbsenderInputProps {
@@ -56,9 +60,19 @@ export function EtbAbsenderInput({
   empfaengerSuggestions = [],
   className,
 }: EtbAbsenderInputProps) {
-  // Kombiniere Standard-Vorschläge mit übergebenen Vorschlägen (ohne Duplikate)
+  // Kombiniere übergebene Vorschläge mit Standard-Rollen (ohne Duplikate)
+  const allAbsenderSuggestions = useMemo(() => {
+    const combined = [...absenderSuggestions, ...DEFAULT_ROLE_SUGGESTIONS];
+    const seen = new Set<string>();
+    return combined.filter((item) => {
+      if (seen.has(item.value)) return false;
+      seen.add(item.value);
+      return true;
+    });
+  }, [absenderSuggestions]);
+
   const allEmpfaengerSuggestions = useMemo(() => {
-    const combined = [...empfaengerSuggestions, ...DEFAULT_EMPFAENGER_SUGGESTIONS];
+    const combined = [...empfaengerSuggestions, ...DEFAULT_ROLE_SUGGESTIONS];
     const seen = new Set<string>();
     return combined.filter((item) => {
       if (seen.has(item.value)) return false;
@@ -71,7 +85,7 @@ export function EtbAbsenderInput({
     <div className={cn('grid grid-cols-1 gap-4 md:grid-cols-2', className)}>
       <Combobox
         label="Absender (Funkrufname)"
-        items={absenderSuggestions}
+        items={allAbsenderSuggestions}
         value={absenderValue}
         onChange={onAbsenderChange}
         placeholder="z.B. Florian Musterstadt 11/1"

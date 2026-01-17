@@ -8,7 +8,7 @@
 import { api } from '@/shared';
 import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { logger } from '@/shared/lib/logger';
-import type { EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200Response, JoinEinsatzDto, ResponseError } from '@/shared';
+import type { EinsatzTeilnehmerControllerGetAllTeilnehmerVAlpha200Response, EinsatzTeilnehmerControllerJoinEinsatzVAlpha201Response, JoinEinsatzDto, ResponseError } from '@/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { EINSATZ_QUERY_KEYS, calculateRetryDelay } from './queries';
@@ -19,6 +19,7 @@ import { EINSATZ_QUERY_KEYS, calculateRetryDelay } from './queries';
 export const TEILNAHME_QUERY_KEYS = {
   all: ['einsatz-teilnahme'] as const,
   byEinsatz: (einsatzId: string) => [...TEILNAHME_QUERY_KEYS.all, einsatzId] as const,
+  allTeilnehmer: (einsatzId: string) => [...TEILNAHME_QUERY_KEYS.all, 'all', einsatzId] as const,
 } as const;
 
 /**
@@ -37,7 +38,7 @@ export const TEILNAHME_QUERY_KEYS = {
  * ```
  */
 export const useMyEinsatzTeilnahme = (einsatzId: string | undefined) => {
-  return useQuery<EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200Response | null, ResponseError>({
+  return useQuery<EinsatzTeilnehmerControllerJoinEinsatzVAlpha201Response | null, ResponseError>({
     queryKey: TEILNAHME_QUERY_KEYS.byEinsatz(einsatzId ?? ''),
     queryFn: async () => {
       if (!einsatzId) return null;
@@ -83,7 +84,7 @@ export const useMyEinsatzTeilnahme = (einsatzId: string | undefined) => {
 export const useJoinEinsatz = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<EinsatzTeilnehmerControllerGetMyTeilnahmeVAlpha200Response, ResponseError, { einsatzId: string; data: JoinEinsatzDto }>({
+  return useMutation<EinsatzTeilnehmerControllerJoinEinsatzVAlpha201Response, ResponseError, { einsatzId: string; data: JoinEinsatzDto }>({
     mutationFn: async ({ einsatzId, data }) => {
       return await api.einsatzTeilnehmer().einsatzTeilnehmerControllerJoinEinsatzVAlpha({
         einsatzId,
@@ -131,4 +132,35 @@ export const useJoinEinsatz = () => {
 export const useUpdateFunkrufname = () => {
   // Verwendet intern useJoinEinsatz - Backend behandelt Upsert
   return useJoinEinsatz();
+};
+
+/**
+ * Hook zum Abrufen aller aktiven Teilnehmer eines Einsatzes
+ *
+ * Gibt alle aktiven Teilnehmer mit ihren Funkrufnamen zurück.
+ * Wird für ETB-Absender/Empfänger Autocomplete-Vorschläge verwendet.
+ *
+ * @param einsatzId - Die ID des Einsatzes
+ * @returns Query Result mit Liste aller Teilnehmer
+ *
+ * @example
+ * ```tsx
+ * const { data: teilnehmer } = useEinsatzTeilnehmer(einsatzId);
+ * const funkrufnamen = teilnehmer?.data?.map(t => t.funkrufname) ?? [];
+ * ```
+ */
+export const useEinsatzTeilnehmer = (einsatzId: string | null | undefined) => {
+  return useQuery<EinsatzTeilnehmerControllerGetAllTeilnehmerVAlpha200Response | null, ResponseError>({
+    queryKey: TEILNAHME_QUERY_KEYS.allTeilnehmer(einsatzId ?? ''),
+    queryFn: async () => {
+      if (!einsatzId) return null;
+      return await api.einsatzTeilnehmer().einsatzTeilnehmerControllerGetAllTeilnehmerVAlpha({
+        einsatzId,
+      });
+    },
+    enabled: !!einsatzId,
+    staleTime: 30_000, // 30 Sekunden - Teilnehmerliste ändert sich selten
+    retry: 3,
+    retryDelay: calculateRetryDelay,
+  });
 };
