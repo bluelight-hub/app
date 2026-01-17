@@ -98,6 +98,18 @@ export class EtbEintrag {
   private readonly _kategorie: EtbKategorie;
 
   /**
+   * Absender des Eintrags (z.B. Funkrufname).
+   * Optional - wird für manuelle ETB-Einträge verwendet.
+   */
+  private _absender?: string;
+
+  /**
+   * Empfänger des Eintrags (z.B. LST, Polizei).
+   * Optional - wird für Kommunikationsdokumentation verwendet.
+   */
+  private _empfaenger?: string;
+
+  /**
    * Optionale Metadaten (z.B. Screenshots, Anhänge).
    * Wird für Lagekarten-Screenshots und andere Medien verwendet.
    */
@@ -113,9 +125,21 @@ export class EtbEintrag {
    * @param createdBy - User ID des Erstellers
    * @param createdAt - Optional: Creation timestamp (default: new Date())
    * @param kategorie - Optional: Kategorie des Eintrags (default: EtbKategorie.LAGE())
+   * @param absender - Optional: Absender des Eintrags (z.B. Funkrufname)
+   * @param empfaenger - Optional: Empfänger des Eintrags (z.B. LST)
    * @param metadata - Optional: Metadaten (z.B. Screenshots)
    */
-  public constructor(id: EintragId, sequenceNumber: EtbSequenceNumber, text: string, createdBy: UserId, createdAt?: Date, kategorie?: EtbKategorie, metadata?: Record<string, unknown>) {
+  public constructor(
+    id: EintragId,
+    sequenceNumber: EtbSequenceNumber,
+    text: string,
+    createdBy: UserId,
+    createdAt?: Date,
+    kategorie?: EtbKategorie,
+    absender?: string,
+    empfaenger?: string,
+    metadata?: Record<string, unknown>,
+  ) {
     this._id = id;
     this._sequenceNumber = sequenceNumber;
     this._text = text;
@@ -123,6 +147,8 @@ export class EtbEintrag {
     this._createdAt = createdAt ?? new Date();
     this._isDeleted = false;
     this._kategorie = kategorie ?? EtbKategorie.LAGE();
+    this._absender = absender;
+    this._empfaenger = empfaenger;
     this._metadata = metadata;
   }
 
@@ -182,6 +208,22 @@ export class EtbEintrag {
    */
   get kategorie(): EtbKategorie {
     return this._kategorie;
+  }
+
+  /**
+   * Readonly getter für Absender.
+   * Enthält z.B. Funkrufname des Absenders.
+   */
+  get absender(): string | undefined {
+    return this._absender;
+  }
+
+  /**
+   * Readonly getter für Empfänger.
+   * Enthält z.B. LST, Polizei etc.
+   */
+  get empfaenger(): string | undefined {
+    return this._empfaenger;
   }
 
   /**

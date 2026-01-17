@@ -18,6 +18,7 @@ import {
   EinsatzApi,
   EinsatzFahrzeugeApi,
   EinsatzPersonenApi,
+  EinsatzTeilnehmerApi,
   ETBApi,
   GeocodingApi,
   HealthApi,
@@ -109,6 +110,7 @@ class BackendApi {
   private readonly kraefteRollenDefinitionenApi: KraefteRollenDefinitionenApi;
   private readonly rollenBesetzungApi: RollenBesetzungApi;
   private readonly adminIntegrationsHiorgApi: AdminIntegrationsHiorgApi;
+  private readonly einsatzTeilnehmerApi: EinsatzTeilnehmerApi;
 
   /**
    * Erstellt eine neue Instanz der BackendApi-Klasse
@@ -149,6 +151,7 @@ class BackendApi {
     this.kraefteStammPersonenApi = new KraefteStammPersonenApi(this.configuration);
     this.rollenBesetzungApi = new RollenBesetzungApi(this.configuration);
     this.adminIntegrationsHiorgApi = new AdminIntegrationsHiorgApi(this.configuration);
+    this.einsatzTeilnehmerApi = new EinsatzTeilnehmerApi(this.configuration);
   }
 
   /**
@@ -356,6 +359,15 @@ class BackendApi {
    */
   adminIntegrationsHiorg(): AdminIntegrationsHiorgApi {
     return this.adminIntegrationsHiorgApi;
+  }
+
+  /**
+   * Gibt die gecachte EinsatzTeilnehmer-API-Instanz zurück
+   *
+   * @returns Die EinsatzTeilnehmer-API-Instanz für Einsatz-Beitritt mit Funkrufname
+   */
+  einsatzTeilnehmer(): EinsatzTeilnehmerApi {
+    return this.einsatzTeilnehmerApi;
   }
 }
 

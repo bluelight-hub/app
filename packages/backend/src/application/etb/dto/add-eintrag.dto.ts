@@ -62,6 +62,37 @@ export class AddEintragDto {
   einsatzId?: string;
 
   /**
+   * Absender des Eintrags (z.B. Funkrufname).
+   *
+   * Wird automatisch mit dem User-Funkrufname vorausgefüllt im Frontend,
+   * kann aber überschrieben werden für Einträge im Namen anderer Parteien.
+   */
+  @ApiPropertyOptional({
+    description: 'Absender des Eintrags (z.B. Funkrufname)',
+    example: 'Rotkreuz 83/1',
+    maxLength: 100,
+  })
+  @IsOptional()
+  @IsString({ message: 'absender muss ein String sein' })
+  @MaxLength(100, { message: 'Absender darf maximal 100 Zeichen lang sein' })
+  absender?: string;
+
+  /**
+   * Empfänger des Eintrags (z.B. LST, Polizei).
+   *
+   * Optional - wird verwendet um Kommunikationspartner zu dokumentieren.
+   */
+  @ApiPropertyOptional({
+    description: 'Empfänger des Eintrags (z.B. LST, Polizei)',
+    example: 'LST Darmstadt',
+    maxLength: 100,
+  })
+  @IsOptional()
+  @IsString({ message: 'empfaenger muss ein String sein' })
+  @MaxLength(100, { message: 'Empfänger darf maximal 100 Zeichen lang sein' })
+  empfaenger?: string;
+
+  /**
    * Optionale Metadaten für den Eintrag (z.B. Lagekarten-Screenshots).
    *
    * Wird verwendet um strukturierte Zusatzinformationen wie Screenshot-URLs

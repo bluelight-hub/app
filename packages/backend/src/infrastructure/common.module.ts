@@ -57,6 +57,6 @@ import { LOGGER } from './di-tokens';
       inject: [Reflector],
     },
   ],
-  exports: [AppConfigService, CacheConfigService, CacheRateLimiterService, CacheDuplicateDetectionService, CacheModule],
+  exports: [AppConfigService, CacheConfigService, CacheRateLimiterService, CacheDuplicateDetectionService, CacheModule, LOGGER],
 })
 export class InfrastructureCommonModule {}

@@ -191,7 +191,7 @@ export class AddEintragHandler {
     // - Creates snapshot BEFORE mutation (DRK-Compliance)
     // - Auto-increments sequence number
     // - Creates EintragAddedEvent
-    const addResult = aggregate.addEintrag(command.text, userId, kategorieVo, command.metadata);
+    const addResult = aggregate.addEintrag(command.text, userId, kategorieVo, command.absender, command.empfaenger, command.metadata);
     if (addResult.isFailure) {
       // Domain-level validation failure
       return Result.fail<EtbEintrag>(addResult.error ?? 'Eintrag konnte nicht hinzugefügt werden');

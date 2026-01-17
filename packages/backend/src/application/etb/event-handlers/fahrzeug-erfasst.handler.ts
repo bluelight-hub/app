@@ -77,13 +77,15 @@ export class FahrzeugErfasstEventHandler implements IEventHandler<FahrzeugErfass
       const text = isTemporary ? `Temporäres Fahrzeug ${event.funkrufname} erfasst (Status: ${statusLabel})` : `Fahrzeug ${event.funkrufname} erfasst (Status: ${statusLabel})`;
 
       // Command erstellen mit Validierung
-      // AddEintragCommand.create(etbId, text, userId, kategorie, einsatzId, metadata)
+      // AddEintragCommand.create(etbId, text, userId, kategorie, einsatzId, absender, empfaenger, metadata)
       const commandResult = AddEintragCommand.create(
         etbId,
         text,
         event.erfasstVon,
         'FAHRZEUG', // ETB Kategorie für Fahrzeug-bezogene Einträge
         event.einsatzId,
+        undefined, // absender - nicht relevant für automatische Einträge
+        undefined, // empfaenger - nicht relevant für automatische Einträge
         {
           eventType: 'FahrzeugErfasst',
           einsatzFahrzeugId: event.einsatzFahrzeugId,

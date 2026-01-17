@@ -266,7 +266,7 @@ export class EtbCqrsController {
   ): Promise<EintragDto> {
     this.logger.log(`Adding Eintrag to ETB ${etbId} by user ${user.userId}`);
 
-    const commandResult = AddEintragCommand.create(etbId, dto.text, user.userId, dto.kategorie, dto.einsatzId, dto.metadata);
+    const commandResult = AddEintragCommand.create(etbId, dto.text, user.userId, dto.kategorie, dto.einsatzId, dto.absender, dto.empfaenger, dto.metadata);
     if (commandResult.isFailure || !commandResult.value) {
       this.logger.error(`Invalid AddEintragCommand: ${commandResult.error}`);
       throw new BadRequestException(commandResult.error);

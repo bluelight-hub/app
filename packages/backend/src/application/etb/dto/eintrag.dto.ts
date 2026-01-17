@@ -55,13 +55,22 @@ export class EintragDto {
   timestamp!: Date;
 
   @ApiPropertyOptional({
-    description: 'Optionaler Funkrufname der Einheit',
-    example: 'W1',
+    description: 'Absender des Eintrags (z.B. Funkrufname)',
+    example: 'Rotkreuz 83/1',
     maxLength: 100,
     nullable: true,
     type: 'string',
   })
-  funkrufname?: string | null;
+  absender?: string | null;
+
+  @ApiPropertyOptional({
+    description: 'Empfänger des Eintrags (z.B. LST, Polizei)',
+    example: 'LST Darmstadt',
+    maxLength: 100,
+    nullable: true,
+    type: 'string',
+  })
+  empfaenger?: string | null;
 
   @ApiPropertyOptional({
     description: 'Optionaler Standort der Einheit',

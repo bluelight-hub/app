@@ -146,6 +146,11 @@ model User {
   // ========================================
   createdInviteCodes InviteCode[]
 
+  // ========================================
+  // Einsatz-Teilnehmer Relations (Story 115)
+  // ========================================
+  einsatzTeilnahmen EinsatzTeilnehmer[]
+
   // Indexes
   @@index([username], map: "idx_user_username")
   @@index([role, isActive], map: "idx_user_role_active")
@@ -203,6 +208,9 @@ model Einsatz {
 
   // Rollen-Besetzung Relation (1:N, Story 5.0)
   rollenBesetzungen EinsatzRollenbesetzung[]
+
+  // Einsatz-Teilnehmer Relation (1:N, Story 115)
+  teilnehmer EinsatzTeilnehmer[]
 
   // Indexes
   @@index([status, createdAt])
@@ -289,7 +297,8 @@ model EtbEintrag {
   version        Int          @default(1) // Versionsnummer für Historie
 
   // Metadaten
-  funkrufname String? @db.VarChar(100) // Optionaler Funkrufname
+  absender    String? @db.VarChar(100) // Absender des Eintrags (z.B. Funkrufname)
+  empfaenger  String? @db.VarChar(100) // Empfänger des Eintrags (z.B. LST)
   standort    String? @db.VarChar(255) // Optionaler Standort
   isAutomatic Boolean @default(false) // Automatisch generierter Eintrag
   metadata    Json?   @db.JsonB // Zusätzliche strukturierte Daten
@@ -333,7 +342,8 @@ model EtbEintragHistorie {
   sequenceNumber Int // Original laufende Nummer
   kategorie      EtbKategorie // Original Kategorie
   text           String       @db.Text // Original Text
-  funkrufname    String?      @db.VarChar(100)
+  absender       String?      @db.VarChar(100) // Absender des Eintrags
+  empfaenger     String?      @db.VarChar(100) // Empfänger des Eintrags
   standort       String?      @db.VarChar(255)
   metadata       Json?        @db.JsonB
 
@@ -1233,4 +1243,34 @@ model ServerConfig {
   updatedAt    DateTime  @updatedAt
 
   @@map("server_config")
+}
+
+// ========================================
+// Einsatz-Teilnehmer (Story 115)
+// User-Funkrufname pro Einsatz
+// ========================================
+
+/// EinsatzTeilnehmer: Speichert den gewählten Funkrufnamen eines Users pro Einsatz
+/// - Jeder User kann pro Einsatz nur einmal beitreten (@@unique)
+/// - Funkrufname wird für ETB-Absender Auto-Fill verwendet
+/// - leftAt wird gesetzt wenn User den Einsatz verlässt (Soft-Leave)
+model EinsatzTeilnehmer {
+  id          String    @id @default(cuid())
+  einsatzId   String    @map("einsatz_id")
+  userId      String    @map("user_id")
+  funkrufname String    @db.VarChar(100)
+  joinedAt    DateTime  @default(now()) @map("joined_at")
+  leftAt      DateTime? @map("left_at")
+
+  // Relations
+  einsatz Einsatz @relation(fields: [einsatzId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Constraints: User kann pro Einsatz nur einmal beitreten
+  @@unique([einsatzId, userId])
+  // Indexes
+  @@index([einsatzId])
+  @@index([userId])
+  @@index([einsatzId, leftAt]) // Aktive Teilnehmer pro Einsatz
+  @@map("einsatz_teilnehmer")
 }

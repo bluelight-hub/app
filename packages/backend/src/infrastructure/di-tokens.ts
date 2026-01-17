@@ -49,6 +49,9 @@ export const INVITE_CODE_REPOSITORY = Symbol('IInviteCodeRepository');
 /** Repository Token für IServerConfigRepository (Story 4-6) */
 export const SERVER_CONFIG_REPOSITORY = Symbol('IServerConfigRepository');
 
+/** Repository Token für IEinsatzTeilnehmerRepository (Story 115) */
+export const EINSATZ_TEILNEHMER_REPOSITORY = Symbol('IEinsatzTeilnehmerRepository');
+
 /**
  * Kräftemanagement Repository Tokens (Epic 1+).
  *

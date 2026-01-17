@@ -247,13 +247,15 @@ export class PersonFahrzeugZuweisungHandler implements IEventHandler<PersonZuFah
       const text = `${event.personVorname} ${event.personNachname} zu ${event.fahrzeugFunkrufname} zugewiesen`;
 
       // Command erstellen mit Validierung
-      // AddEintragCommand.create(etbId, text, userId, kategorie, einsatzId, metadata)
+      // AddEintragCommand.create(etbId, text, userId, kategorie, einsatzId, absender, empfaenger, metadata)
       const commandResult = AddEintragCommand.create(
         etbId,
         text,
         event.zugewiesenVon,
         'MASSNAHME', // ETB Kategorie für Massnahmen/Aktionen
         event.einsatzId,
+        undefined, // absender - nicht relevant für automatische Einträge
+        undefined, // empfaenger - nicht relevant für automatische Einträge
         {
           eventType: 'PersonZuFahrzeugZugewiesen',
           personId: event.personId,
@@ -335,13 +337,15 @@ export class PersonFahrzeugZuweisungHandler implements IEventHandler<PersonZuFah
       const text = `${event.personVorname} ${event.personNachname} von ${event.fahrzeugFunkrufname} entfernt`;
 
       // Command erstellen mit Validierung
-      // AddEintragCommand.create(etbId, text, userId, kategorie, einsatzId, metadata)
+      // AddEintragCommand.create(etbId, text, userId, kategorie, einsatzId, absender, empfaenger, metadata)
       const commandResult = AddEintragCommand.create(
         etbId,
         text,
         event.entferntVon,
         'MASSNAHME', // ETB Kategorie für Massnahmen/Aktionen
         event.einsatzId,
+        undefined, // absender - nicht relevant für automatische Einträge
+        undefined, // empfaenger - nicht relevant für automatische Einträge
         {
           eventType: 'PersonVonFahrzeugEntfernt',
           personId: event.personId,
