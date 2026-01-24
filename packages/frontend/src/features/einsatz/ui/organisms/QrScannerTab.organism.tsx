@@ -28,18 +28,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { PiCamera, PiCameraSlash, PiCheckCircle, PiQrCode, PiWarningCircle, PiXCircle } from 'react-icons/pi';
 import { toast } from 'sonner';
 
-/**
- * Sanitizes string for safe console logging (prevents log injection attacks)
- */
-function sanitizeForLog(input: string): string {
-  if (input.length > 100) {
-    return `${input.substring(0, 100)}... [truncated, ${input.length} chars total]`;
-  }
-  // Remove control characters and potential injection patterns
-  // biome-ignore lint/suspicious/noControlCharactersInRegex: Needed for security - sanitizing untrusted QR input
-  return input.replace(/[\x00-\x1F\x7F]/g, '?');
-}
-
 interface QrScannerTabProps {
   einsatzId: string;
   onSuccess?: (personName: string) => void;
@@ -193,11 +181,8 @@ export function QrScannerTab({ einsatzId, onSuccess, isActive = true }: QrScanne
         return;
       }
 
-      console.log('[QR Scanner] processQrCode aufgerufen:', sanitizeForLog(qrContent));
-
       // CRITICAL FIX #7: Debounce check und cooldown SOFORT setzen (BEFORE ANY async operations)
       if (lastScannedRef.current === qrContent || cooldownRef.current) {
-        console.log('[QR Scanner] Debounce aktiv, überspringe');
         return;
       }
       // Set cooldown IMMEDIATELY to prevent race condition (gap between check and set)
@@ -206,19 +191,14 @@ export function QrScannerTab({ einsatzId, onSuccess, isActive = true }: QrScanne
 
       // Quick-Check: Ist es überhaupt ein DRK QR-Code?
       if (!isDrkQrCodeFormat(qrContent)) {
-        // Log: Zeige das tatsächliche Format für Debugging
-        console.log('[QR Scanner] Kein DRK-Format erkannt. Erwartet: drk://person?..., Erhalten:', sanitizeForLog(qrContent.substring(0, 50)));
         // Reset cooldown for non-DRK codes to allow scanning valid codes immediately
         cooldownRef.current = false;
         lastScannedRef.current = null;
         return;
       }
 
-      console.log('[QR Scanner] DRK-Format erkannt, parse...');
-
       // Parse den QR-Code
       const parseResult = parseDrkQrCode(qrContent);
-      console.log('[QR Scanner] Parse-Ergebnis:', parseResult);
 
       if (!parseResult.success) {
         // Parsing-Fehler anzeigen
@@ -372,11 +352,9 @@ export function QrScannerTab({ einsatzId, onSuccess, isActive = true }: QrScanne
       });
 
       if (code?.data) {
-        console.log('[QR Scanner] Code erkannt:', sanitizeForLog(code.data));
         processQrCode(code.data);
       }
     } catch (err) {
-      console.error('[QR Scanner] jsQR failed on large canvas:', err);
       // Continue scanning - don't break the loop
     }
 
