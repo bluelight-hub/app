@@ -109,20 +109,14 @@ export class GetNextEinsatzIdQueryHandler implements IQueryHandler<GetNextEinsat
       const aggregate = repoResult.value;
       const createdAt = aggregate.createdAt;
 
-      // HINWEIS: Diese Methode existiert noch NICHT im IEinsatzRepository Interface!
-      // TODO: Füge findNextId(createdAt: Date) zum Interface hinzu
-      // const nextIdResult = await this.repository.findNextId(createdAt);
-      // if (nextIdResult.isFailure) {
-      //   return Result.fail(nextIdResult.error ?? 'Repository-Fehler beim Laden der naechsten ID');
-      // }
+      // Finde naechsten Einsatz
+      const nextIdResult = await this.repository.findNextId(createdAt);
+      if (nextIdResult.isFailure) {
+        return Result.fail(nextIdResult.error ?? 'Repository-Fehler beim Laden der naechsten ID');
+      }
 
-      // TEMPORARY WORKAROUND: Return Placeholder bis Repository-Methode implementiert ist
-      this.logger.warn('findNextId() ist noch nicht im IEinsatzRepository implementiert');
-      this.logger.debug(`Würde naechsten Einsatz suchen für createdAt: ${createdAt.toISOString()}`);
-
-      // Placeholder Response
       const response: NavigationResponseDto = {
-        id: null, // TODO: Replace with nextIdResult.value
+        id: nextIdResult.value,
       };
 
       return Result.ok(response);
