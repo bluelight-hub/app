@@ -18,10 +18,11 @@
  */
 
 import { cn } from '@/shared/ui/cn';
+import { DashboardErrorCard } from '../molecules/DashboardErrorCard';
 import { FahrzeugCard, FahrzeugCardSkeleton } from '../molecules/FahrzeugCard';
 import { useEinsatzFahrzeuge } from '../../api/use-einsatz-fahrzeuge';
 import { useDashboardMode, type DashboardMode } from '../../contexts';
-import { PiTruck, PiWarningCircle, PiArrowClockwise } from 'react-icons/pi';
+import { PiArrowClockwise, PiTruck } from 'react-icons/pi';
 import type { EinsatzFahrzeugDto } from '@/shared';
 
 interface FahrzeugStatusListeProps {
@@ -126,17 +127,7 @@ export function FahrzeugStatusListe({ einsatzId, onFahrzeugClick, className }: F
 
   // Error State
   if (error) {
-    return (
-      <div className={cn('rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800', containerClasses, className)}>
-        <div className="flex flex-col items-center py-8 text-red-500">
-          <PiWarningCircle className="mb-2 h-8 w-8" />
-          <p className="text-sm">Fehler beim Laden der Fahrzeuge</p>
-          <button type="button" onClick={() => refetch()} className="mt-2 text-blue-600 text-sm hover:underline">
-            Erneut versuchen
-          </button>
-        </div>
-      </div>
-    );
+    return <DashboardErrorCard title="Fahrzeuge" onRetry={() => refetch()} className={className} />;
   }
 
   const fahrzeugCount = fahrzeuge?.length ?? 0;
