@@ -209,6 +209,8 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
       expect(typeof repo.findActive).toBe('function');
       expect(typeof repo.exists).toBe('function');
       expect(typeof repo.findByNummer).toBe('function');
+      expect(typeof repo.findNextId).toBe('function');
+      expect(typeof repo.findPreviousId).toBe('function');
     });
   });
 

@@ -94,6 +94,59 @@ class InMemoryEinsatzRepository implements IEinsatzRepository {
     }
   }
 
+  async countByStatus(includeArchived: boolean): Promise<
+    Result<{
+      angelegt: number;
+      inBearbeitung: number;
+      abgeschlossen: number;
+      archiviert: number;
+    }>
+  > {
+    const counts = { angelegt: 0, inBearbeitung: 0, abgeschlossen: 0, archiviert: 0 };
+    for (const einsatz of this.storage.values()) {
+      if (einsatz.status.value === 'ANGELEGT') counts.angelegt++;
+      else if (einsatz.status.value === 'IN_BEARBEITUNG') counts.inBearbeitung++;
+      else if (einsatz.status.value === 'ABGESCHLOSSEN') counts.abgeschlossen++;
+      else if (includeArchived && einsatz.status.value === 'ARCHIVIERT') counts.archiviert++;
+    }
+    return Result.ok(counts);
+  }
+
+  async findAllPaginated(): Promise<
+    Result<{
+      items: Einsatz[];
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    }>
+  > {
+    // Stub implementation
+    return Result.ok({ items: [], total: 0, page: 1, limit: 10, totalPages: 0 });
+  }
+
+  async findEligibleForArchival(_olderThan: Date): Promise<Result<Einsatz[]>> {
+    return Result.ok([]);
+  }
+
+  async findPreviousId(createdAt: Date): Promise<Result<EinsatzId | null>> {
+    const sorted = Array.from(this.storage.values())
+      .filter((e) => e.status.value !== 'ARCHIVIERT')
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()); // DESC
+
+    const current = sorted.find((e) => e.createdAt.getTime() < createdAt.getTime());
+    return Result.ok(current ? current.id : null);
+  }
+
+  async findNextId(createdAt: Date): Promise<Result<EinsatzId | null>> {
+    const sorted = Array.from(this.storage.values())
+      .filter((e) => e.status.value !== 'ARCHIVIERT')
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()); // ASC
+
+    const current = sorted.find((e) => e.createdAt.getTime() > createdAt.getTime());
+    return Result.ok(current ? current.id : null);
+  }
+
   // Test-Helper (nicht Teil des Interface)
   clear(): void {
     this.storage.clear();
