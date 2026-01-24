@@ -4,6 +4,7 @@ function sanitizeForLog(input: string): string {
   if (input.length > 100) {
     return `${input.substring(0, 100)}... [truncated, ${input.length} chars total]`;
   }
+  // biome-ignore lint/suspicious/noControlCharactersInRegex: Needed for security - sanitizing untrusted QR input
   return input.replace(/[\x00-\x1F\x7F]/g, '?');
 }
 

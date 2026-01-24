@@ -354,7 +354,7 @@ export function QrScannerTab({ einsatzId, onSuccess, isActive = true }: QrScanne
       if (code?.data) {
         processQrCode(code.data);
       }
-    } catch (err) {
+    } catch (_err) {
       // Continue scanning - don't break the loop
     }
 
