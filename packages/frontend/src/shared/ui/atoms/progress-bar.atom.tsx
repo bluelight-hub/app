@@ -1,6 +1,4 @@
-import { cn } from '@/shared/ui/cn';
-import { Transition } from '@headlessui/react';
-import { memo } from 'react';
+import {cn} from '@/shared/ui/cn';
 
 export type ProgressBarVariant = 'default' | 'success' | 'warning' | 'error' | 'info';
 
@@ -15,13 +13,23 @@ interface ProgressBarProps {
   className?: string;
 }
 
-const variantClasses = {
-  default: 'bg-primary-600 dark:bg-primary-400',
-  success: 'bg-green-600 dark:bg-green-500',
-  warning: 'bg-yellow-600 dark:bg-yellow-500',
-  error: 'bg-red-600 dark:bg-red-500',
-  info: 'bg-blue-600 dark:bg-blue-500',
-};
+/**
+ * ProgressBar-Komponente fuer Fortschrittsanzeigen
+ *
+ * Zeigt einen animierten Fortschrittsbalken mit verschiedenen Varianten und Groessen.
+ * Nutzt native CSS-Transitions fuer die Animation.
+ */
+export function ProgressBar({ value, max = 100, variant = 'default', size = 'md', label, showPercentage = false, animated = true, className }: ProgressBarProps) {
+  const safeMax = Number.isFinite(max) && max > 0 ? max : 100;
+  const percentage = Math.min(Math.max((value / safeMax) * 100, 0), 100);
+
+  const variantClasses = {
+    default: 'bg-primary-600 dark:bg-primary-400',
+    success: 'bg-green-600 dark:bg-green-500',
+    warning: 'bg-yellow-600 dark:bg-yellow-500',
+    error: 'bg-red-600 dark:bg-red-500',
+    info: 'bg-blue-600 dark:bg-blue-500',
+  };
 
 const sizeClasses = {
   sm: 'h-1',
@@ -55,9 +63,7 @@ export const ProgressBar = memo(function ProgressBarImpl({ value, max = 100, var
         </div>
       )}
       <div className={cn('w-full overflow-hidden rounded-full', backgroundClasses[variant], sizeClasses[size])} role="progressbar" aria-valuenow={value} aria-valuemin={0} aria-valuemax={max}>
-        <Transition show={true} appear={animated} enter="transition-transform duration-500 ease-out" enterFrom="scale-x-0" enterTo="scale-x-100">
-          <div className={cn('h-full origin-left rounded-full transition-all duration-300 ease-out', variantClasses[variant], animated && 'animate-pulse')} style={{ width: `${percentage}%` }} />
-        </Transition>
+        <div className={cn('h-full origin-left rounded-full', 'transition-all duration-500 ease-out', variantClasses[variant], animated && 'animate-pulse')} style={{ width: `${percentage}%` }} />
       </div>
     </div>
   );
