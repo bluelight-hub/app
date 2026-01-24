@@ -54,8 +54,6 @@ export const helmetConfig: HelmetOptions = {
   permittedCrossDomainPolicies: false,
   // Referrer Policy
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
-  // XSS Filter - Aktiviert XSS-Filter in älteren Browsern
-  xssFilter: true,
 };
 
 /**
