@@ -861,4 +861,110 @@ describe('PrismaEinsatzRepository', () => {
       });
     });
   });
+
+  describe('findPreviousId()', () => {
+    it('sollte ID zurückgeben wenn gefunden', async () => {
+      // Arrange
+      const createdAt = new Date('2024-01-01T12:00:00Z');
+      const previousId = 'clw3h8x9y0000qwertyuiopas';
+
+      mockPrismaService.einsatz.findFirst.mockResolvedValue({
+        id: previousId,
+      } as any);
+
+      // Act
+      const result = await repository.findPreviousId(createdAt);
+
+      // Assert
+      expect(result.isSuccess).toBe(true);
+      expect(result.value?.value).toBe(previousId);
+      expect(mockPrismaService.einsatz.findFirst).toHaveBeenCalledWith({
+        where: {
+          createdAt: { lt: createdAt },
+          status: { not: 'ARCHIVIERT' },
+        },
+        orderBy: { createdAt: 'desc' },
+        select: { id: true },
+      });
+    });
+
+    it('sollte null zurückgeben wenn nicht gefunden', async () => {
+      // Arrange
+      const createdAt = new Date('2024-01-01T12:00:00Z');
+
+      mockPrismaService.einsatz.findFirst.mockResolvedValue(null);
+
+      // Act
+      const result = await repository.findPreviousId(createdAt);
+
+      // Assert
+      expect(result.isSuccess).toBe(true);
+      expect(result.value).toBeNull();
+    });
+
+    it('sollte Result.fail() zurückgeben bei DB Fehler', async () => {
+      // Arrange
+      const createdAt = new Date('2024-01-01T12:00:00Z');
+      mockPrismaService.einsatz.findFirst.mockRejectedValue(new Error('DB Error'));
+
+      // Act
+      const result = await repository.findPreviousId(createdAt);
+
+      // Assert
+      expect(result.isFailure).toBe(true);
+    });
+  });
+
+  describe('findNextId()', () => {
+    it('sollte ID zurückgeben wenn gefunden', async () => {
+      // Arrange
+      const createdAt = new Date('2024-01-01T12:00:00Z');
+      const nextId = 'clw3h8x9y0000qwertyuiopdf';
+
+      mockPrismaService.einsatz.findFirst.mockResolvedValue({
+        id: nextId,
+      } as any);
+
+      // Act
+      const result = await repository.findNextId(createdAt);
+
+      // Assert
+      expect(result.isSuccess).toBe(true);
+      expect(result.value?.value).toBe(nextId);
+      expect(mockPrismaService.einsatz.findFirst).toHaveBeenCalledWith({
+        where: {
+          createdAt: { gt: createdAt },
+          status: { not: 'ARCHIVIERT' },
+        },
+        orderBy: { createdAt: 'asc' },
+        select: { id: true },
+      });
+    });
+
+    it('sollte null zurückgeben wenn nicht gefunden', async () => {
+      // Arrange
+      const createdAt = new Date('2024-01-01T12:00:00Z');
+
+      mockPrismaService.einsatz.findFirst.mockResolvedValue(null);
+
+      // Act
+      const result = await repository.findNextId(createdAt);
+
+      // Assert
+      expect(result.isSuccess).toBe(true);
+      expect(result.value).toBeNull();
+    });
+
+    it('sollte Result.fail() zurückgeben bei DB Fehler', async () => {
+      // Arrange
+      const createdAt = new Date('2024-01-01T12:00:00Z');
+      mockPrismaService.einsatz.findFirst.mockRejectedValue(new Error('DB Error'));
+
+      // Act
+      const result = await repository.findNextId(createdAt);
+
+      // Assert
+      expect(result.isFailure).toBe(true);
+    });
+  });
 });

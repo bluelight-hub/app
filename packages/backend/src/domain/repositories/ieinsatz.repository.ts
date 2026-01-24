@@ -368,4 +368,36 @@ export interface IEinsatzRepository {
    * - Audit-Log der Löschung (wer, wann, warum)
    * - Nur für ARCHIVIERT Status + älter als 10 Jahre
    */
+
+  /**
+   * Findet die ID des zeitlich vorherigen Einsatzes.
+   *
+   * Gibt die ID des Einsatzes zurück, der zeitlich VOR dem angegebenen
+   * Zeitstempel erstellt wurde.
+   *
+   * **Business Rules:**
+   * - Nur aktive Einsätze (Status !== ARCHIVIERT) werden berücksichtigt
+   * - Sortierung nach createdAt DESC (neueste zuerst)
+   * - Return null wenn kein vorheriger Einsatz existiert
+   *
+   * @param createdAt - Zeitstempel des aktuellen Einsatzes
+   * @returns Result<EinsatzId | null> - Success mit ID oder null
+   */
+  findPreviousId(createdAt: Date): Promise<Result<EinsatzId | null>>;
+
+  /**
+   * Findet die ID des zeitlich naechsten Einsatzes.
+   *
+   * Gibt die ID des Einsatzes zurück, der zeitlich NACH dem angegebenen
+   * Zeitstempel erstellt wurde.
+   *
+   * **Business Rules:**
+   * - Nur aktive Einsätze (Status !== ARCHIVIERT) werden berücksichtigt
+   * - Sortierung nach createdAt ASC (älteste zuerst)
+   * - Return null wenn kein nächster Einsatz existiert
+   *
+   * @param createdAt - Zeitstempel des aktuellen Einsatzes
+   * @returns Result<EinsatzId | null> - Success mit ID oder null
+   */
+  findNextId(createdAt: Date): Promise<Result<EinsatzId | null>>;
 }

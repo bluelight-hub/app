@@ -2,7 +2,7 @@ import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { Einsatz } from '@domain/aggregates/einsatz.aggregate';
 import type { IEinsatzRepository } from '@domain/repositories/ieinsatz.repository';
 import type { TransactionContext } from '@domain/common/transaction';
-import type { EinsatzId } from '@domain/value-objects/einsatz-id';
+import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { Result } from '@domain/common/result';
 import { Inject, Injectable } from '@nestjs/common';
@@ -561,6 +561,76 @@ export class PrismaEinsatzRepository implements IEinsatzRepository {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.logger?.error(`Failed to find eligible Einsaetze for archival: ${message}`);
+      return Result.fail(`Database error: ${message}`);
+    }
+  }
+
+  /**
+   * Findet die ID des zeitlich vorherigen Einsatzes.
+   *
+   * @param createdAt - Zeitstempel des aktuellen Einsatzes
+   * @returns Promise<Result<EinsatzId | null>> - Success mit ID oder null
+   */
+  async findPreviousId(createdAt: Date): Promise<Result<EinsatzId | null>> {
+    try {
+      const result = await this.prisma.einsatz.findFirst({
+        where: {
+          createdAt: { lt: createdAt },
+          status: { not: 'ARCHIVIERT' },
+        },
+        orderBy: { createdAt: 'desc' },
+        select: { id: true },
+      });
+
+      if (!result) {
+        return Result.ok(null);
+      }
+
+      const idResult = EinsatzId.create(result.id);
+      if (idResult.isFailure) {
+        this.logger?.error(`Invalid ID found in database for previous Einsatz: ${result.id}`);
+        return Result.fail(`Invalid ID in database: ${idResult.error}`);
+      }
+
+      return Result.ok(idResult.value);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger?.error(`Failed to find previous Einsatz ID: ${message}`, { createdAt: createdAt.toISOString() });
+      return Result.fail(`Database error: ${message}`);
+    }
+  }
+
+  /**
+   * Findet die ID des zeitlich naechsten Einsatzes.
+   *
+   * @param createdAt - Zeitstempel des aktuellen Einsatzes
+   * @returns Promise<Result<EinsatzId | null>> - Success mit ID oder null
+   */
+  async findNextId(createdAt: Date): Promise<Result<EinsatzId | null>> {
+    try {
+      const result = await this.prisma.einsatz.findFirst({
+        where: {
+          createdAt: { gt: createdAt },
+          status: { not: 'ARCHIVIERT' },
+        },
+        orderBy: { createdAt: 'asc' },
+        select: { id: true },
+      });
+
+      if (!result) {
+        return Result.ok(null);
+      }
+
+      const idResult = EinsatzId.create(result.id);
+      if (idResult.isFailure) {
+        this.logger?.error(`Invalid ID found in database for next Einsatz: ${result.id}`);
+        return Result.fail(`Invalid ID in database: ${idResult.error}`);
+      }
+
+      return Result.ok(idResult.value);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger?.error(`Failed to find next Einsatz ID: ${message}`, { createdAt: createdAt.toISOString() });
       return Result.fail(`Database error: ${message}`);
     }
   }
