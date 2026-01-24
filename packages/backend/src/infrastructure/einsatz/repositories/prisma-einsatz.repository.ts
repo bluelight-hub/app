@@ -564,4 +564,52 @@ export class PrismaEinsatzRepository implements IEinsatzRepository {
       return Result.fail(`Database error: ${message}`);
     }
   }
+
+  /**
+   * Findet die ID des zeitlich vorherigen Einsatzes.
+   *
+   * @param createdAt - Zeitstempel des aktuellen Einsatzes
+   * @returns Promise<Result<string | null>> - Success mit ID oder null
+   */
+  async findPreviousId(createdAt: Date): Promise<Result<string | null>> {
+    try {
+      const result = await this.prisma.einsatz.findFirst({
+        where: {
+          createdAt: { lt: createdAt },
+          status: { not: 'ARCHIVIERT' },
+        },
+        orderBy: { createdAt: 'desc' },
+        select: { id: true },
+      });
+      return Result.ok(result?.id || null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger?.error(`Failed to find previous Einsatz ID: ${message}`, { createdAt: createdAt.toISOString() });
+      return Result.fail(`Database error: ${message}`);
+    }
+  }
+
+  /**
+   * Findet die ID des zeitlich naechsten Einsatzes.
+   *
+   * @param createdAt - Zeitstempel des aktuellen Einsatzes
+   * @returns Promise<Result<string | null>> - Success mit ID oder null
+   */
+  async findNextId(createdAt: Date): Promise<Result<string | null>> {
+    try {
+      const result = await this.prisma.einsatz.findFirst({
+        where: {
+          createdAt: { gt: createdAt },
+          status: { not: 'ARCHIVIERT' },
+        },
+        orderBy: { createdAt: 'asc' },
+        select: { id: true },
+      });
+      return Result.ok(result?.id || null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger?.error(`Failed to find next Einsatz ID: ${message}`, { createdAt: createdAt.toISOString() });
+      return Result.fail(`Database error: ${message}`);
+    }
+  }
 }
