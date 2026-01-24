@@ -93,9 +93,16 @@ describe('ImportSelectedPersonsHandler', () => {
     mockMappingRepo = {
       findByExternalSource: jest.fn(),
       findByExternalName: jest.fn(),
+      findByExternalNames: jest.fn(),
+      findById: jest.fn(),
+      findByQualifikationId: jest.fn(),
+      findUnmapped: jest.fn(),
       save: jest.fn(),
-      deleteMapping: jest.fn(),
-    };
+      saveMany: jest.fn(),
+      delete: jest.fn(),
+      deleteBySource: jest.fn(),
+      count: jest.fn(),
+    } as unknown as jest.Mocked<IQualifikationMappingRepository>;
 
     mockTokenRefresh = {
       getValidAccessToken: jest.fn(),

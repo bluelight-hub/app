@@ -70,6 +70,7 @@ describe('SaveQualifikationMappingHandler', () => {
       findById: jest.fn(),
       findByExternalSource: jest.fn(),
       findByExternalName: jest.fn(),
+      findByExternalNames: jest.fn(),
       findByQualifikationId: jest.fn(),
       findUnmapped: jest.fn(),
       save: jest.fn(),

@@ -50,6 +50,16 @@ export interface IQualifikationMappingRepository {
   findByExternalName(name: string, source: IntegrationType, tx?: TransactionContext): Promise<Result<QualifikationMapping | null>>;
 
   /**
+   * Findet mehrere Mappings nach externen Namen und Quelle.
+   *
+   * @param names - Array von externen Qualifikations-Namen
+   * @param source - Externe Quelle (z.B. "HIORG_SERVER")
+   * @param tx - Optional: Transaction Context
+   * @returns Result mit Array von gefundenen Mappings
+   */
+  findByExternalNames(names: string[], source: IntegrationType, tx?: TransactionContext): Promise<Result<QualifikationMapping[]>>;
+
+  /**
    * Findet ein Mapping nach ID.
    *
    * @param id - Mapping ID

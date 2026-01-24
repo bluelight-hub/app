@@ -43,25 +43,41 @@ export class BatchSaveQualifikationMappingsHandler {
     let saved = 0;
     let ignored = 0;
 
-    for (const item of command.mappings) {
-      // Prüfe ob Mapping bereits existiert
-      const existingResult = await this.mappingRepo.findByExternalName(item.externalName, INTEGRATION_TYPES.HIORG_SERVER);
+    // PERFORMANCE: Alle existierenden Mappings vorab laden (N+1 Problem lösen)
+    const externalNames = command.mappings.map((m) => m.externalName);
+    const existingResult = await this.mappingRepo.findByExternalNames(externalNames, INTEGRATION_TYPES.HIORG_SERVER);
 
-      if (existingResult.isSuccess && existingResult.value) {
+    if (existingResult.isFailure) {
+      return Result.fail(existingResult.error ?? 'Fehler beim Laden der existierenden Mappings');
+    }
+
+    const existingMap = new Map<string, QualifikationMapping>();
+    for (const mapping of existingResult.value) {
+      existingMap.set(mapping.externalName, mapping);
+    }
+
+    for (const item of command.mappings) {
+      // Prüfe ob Mapping bereits existiert (im Memory)
+      const existing = existingMap.get(item.externalName);
+
+      if (existing) {
         // Update existierendes Mapping
-        const existing = existingResult.value;
+        let updatedMapping: QualifikationMapping;
+
         if (item.qualifikationId === null) {
           // Ignorieren = Mapping löschen oder null setzen
-          existing.clearMapping(command.savedBy);
+          updatedMapping = existing.clearMapping(command.savedBy);
           ignored++;
         } else {
-          existing.updateMapping({
+          updatedMapping = existing.updateMapping({
             qualifikationId: item.qualifikationId,
             updatedBy: command.savedBy,
           });
           saved++;
         }
-        mappingsToSave.push(existing);
+        mappingsToSave.push(updatedMapping);
+        // WICHTIG: Map aktualisieren für den Fall von Duplikaten im Batch
+        existingMap.set(item.externalName, updatedMapping);
       } else {
         // Neues Mapping erstellen
         const createResult = QualifikationMapping.create({
@@ -83,6 +99,8 @@ export class BatchSaveQualifikationMappingsHandler {
         }
         // Nach isFailure-Check und value-Check ist value garantiert definiert
         mappingsToSave.push(createResult.value);
+        // WICHTIG: Map aktualisieren
+        existingMap.set(item.externalName, createResult.value);
       }
     }
 

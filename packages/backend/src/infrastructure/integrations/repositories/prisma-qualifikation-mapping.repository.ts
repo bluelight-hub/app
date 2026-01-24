@@ -89,6 +89,31 @@ export class PrismaQualifikationMappingRepository implements IQualifikationMappi
   }
 
   /**
+   * Findet mehrere Mappings nach externen Namen und Quelle.
+   */
+  async findByExternalNames(names: string[], source: IntegrationType, tx?: TransactionContext): Promise<Result<QualifikationMapping[]>> {
+    try {
+      if (names.length === 0) {
+        return Result.ok([]);
+      }
+
+      const client = this.getClient(tx);
+      const records = await client.qualifikationMapping.findMany({
+        where: {
+          externalName: { in: names },
+          externalSource: source,
+        },
+      });
+
+      const mappings = records.map((r) => PrismaQualifikationMappingMapper.toDomain(r));
+      return Result.ok(mappings);
+    } catch (error) {
+      this.logger.error(`Failed to find mappings for names`, String(error));
+      return Result.fail(IntegrationError.format(INTEGRATION_ERROR_CODES.MAPPING_NOT_FOUND, 'Fehler beim Laden der Mappings'));
+    }
+  }
+
+  /**
    * Findet ein Mapping nach ID.
    */
   async findById(id: string, tx?: TransactionContext): Promise<Result<QualifikationMapping | null>> {
