@@ -17,6 +17,8 @@ interface DashboardErrorCardProps {
   title: string;
   /** Retry-Callback */
   onRetry: () => void;
+  /** Zusätzliche CSS Klassen */
+  className?: string;
 }
 
 /**
@@ -51,12 +53,12 @@ const getModeClasses = (mode: DashboardMode) => ({
  * Story 6.2: Mode-aware via useDashboardMode() Context.
  * Zeigt Fehlermeldung mit Icon und Retry-Button.
  */
-export function DashboardErrorCard({ title, onRetry }: DashboardErrorCardProps) {
+export function DashboardErrorCard({ title, onRetry, className }: DashboardErrorCardProps) {
   const mode = useDashboardMode();
   const classes = getModeClasses(mode);
 
   return (
-    <div className={cn('flex flex-col items-center justify-center rounded-lg border border-red-200 bg-red-50', 'dark:border-red-800 dark:bg-red-900/20', classes.container)}>
+    <div className={cn('flex flex-col items-center justify-center rounded-lg border border-red-200 bg-red-50', 'dark:border-red-800 dark:bg-red-900/20', classes.container, className)}>
       <PiWarningCircle className={cn('text-red-500', classes.icon)} />
       <p className={cn('text-center text-red-600 dark:text-red-400', classes.text)}>{title} konnte nicht geladen werden</p>
       <button
@@ -70,6 +72,7 @@ export function DashboardErrorCard({ title, onRetry }: DashboardErrorCardProps) 
           mode === 'compact' && 'min-h-[44px] min-w-[44px] px-2 py-2',
           mode === 'fullscreen' && 'px-4 py-3',
         )}
+        aria-label={`${title} erneut laden`}
       >
         <PiArrowClockwise className={classes.buttonIcon} />
         Erneut versuchen

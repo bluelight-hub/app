@@ -12,12 +12,13 @@
  */
 
 import type { RollenBesetzungListItemDto } from '@/shared';
-import { PiArrowClockwise, PiPlus, PiUsers, PiWarningCircle } from 'react-icons/pi';
+import { PiArrowClockwise, PiPlus, PiUsers } from 'react-icons/pi';
 
 import { cn } from '@/shared/ui/cn';
 
 import { useRollenBesetzungen } from '../../api';
 import { type DashboardMode, useDashboardMode } from '../../contexts';
+import { DashboardErrorCard } from '../molecules/DashboardErrorCard';
 import { RollenKarte, RollenKarteSkeleton } from '../molecules/RollenKarte';
 
 interface RollenUebersichtProps {
@@ -121,17 +122,7 @@ export function RollenUebersicht({ einsatzId, onFreigebeClick, onBesetzeClick, c
 
   // Error State
   if (error) {
-    return (
-      <div className={cn('rounded-lg border bg-white dark:bg-gray-800', containerClasses, className)}>
-        <div className="flex flex-col items-center py-8 text-red-500">
-          <PiWarningCircle className="mb-2 h-8 w-8" />
-          <p className="text-sm">Fehler beim Laden der Rollen</p>
-          <button type="button" onClick={() => refetch()} className="mt-2 text-blue-600 text-sm hover:underline">
-            Erneut versuchen
-          </button>
-        </div>
-      </div>
-    );
+    return <DashboardErrorCard title="Rollen" onRetry={() => refetch()} className={className} />;
   }
 
   const besetzteCount = besetzungen?.length ?? 0;
