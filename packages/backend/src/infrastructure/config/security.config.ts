@@ -28,6 +28,7 @@ export const helmetConfig: HelmetOptions = {
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
       frameSrc: ["'none'"],
+      frameAncestors: ["'none'"],
     },
   },
   // Cross-Origin-Embedder-Policy
