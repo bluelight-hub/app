@@ -216,3 +216,6 @@ packages/backend/artillery/results/
 
 # Generated Prisma Client (regenerated on build)
 packages/backend/src/generated/
+
+# Certificates
+certs/
