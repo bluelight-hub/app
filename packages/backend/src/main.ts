@@ -1,4 +1,5 @@
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
+import type { HttpsOptions } from '@nestjs/common/interfaces/external/https-options.interface';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory, Reflector } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
@@ -25,9 +26,42 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const trustProxy = process.env.TRUSTED_PROXIES?.split(',').map((value) => value.trim()) || false;
   logger.log(`TRUSTED_PROXIES: ${trustProxy}`);
+
+  // HTTPS Configuration
+  const httpsEnabled = process.env.HTTPS_ENABLED === 'true';
+  let httpsOptions: HttpsOptions | undefined;
+
+  if (httpsEnabled) {
+    const keyPath = process.env.HTTPS_KEY_PATH;
+    const certPath = process.env.HTTPS_CERT_PATH;
+
+    if (keyPath && certPath) {
+      try {
+        const fs = require('node:fs');
+        const path = require('node:path');
+        // Resolve paths relative to process.cwd() (usually packages/backend)
+        const absoluteKeyPath = path.resolve(process.cwd(), keyPath);
+        const absoluteCertPath = path.resolve(process.cwd(), certPath);
+
+        if (fs.existsSync(absoluteKeyPath) && fs.existsSync(absoluteCertPath)) {
+          httpsOptions = {
+            key: fs.readFileSync(absoluteKeyPath),
+            cert: fs.readFileSync(absoluteCertPath),
+          };
+          logger.log('🔐 HTTPS Enabled', 'Bootstrap');
+        } else {
+          logger.warn(`⚠️ HTTPS Enabled but cert files not found at ${absoluteKeyPath} or ${absoluteCertPath}`, 'Bootstrap');
+        }
+      } catch (error) {
+        logger.error('❌ Failed to load HTTPS certificates', error, 'Bootstrap');
+      }
+    }
+  }
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bodyParser: true,
     rawBody: true,
+    httpsOptions,
   });
 
   app.set('trust proxy', trustProxy);
