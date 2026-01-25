@@ -2,7 +2,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { devtools } from '@tanstack/devtools-vite';
 import tanstackRouter from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react-swc';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import * as process from 'node:process';
 import { defineConfig } from 'vite';
@@ -10,6 +10,11 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 
 const pkg = JSON.parse(readFileSync('./package.json', 'utf8'));
 const host = process.env.TAURI_DEV_HOST;
+
+// Check for certificates
+const certPath = path.resolve(__dirname, '../../certs/localhost.pem');
+const keyPath = path.resolve(__dirname, '../../certs/localhost-key.pem');
+const useHttps = existsSync(certPath) && existsSync(keyPath);
 
 export default defineConfig({
   define: {
@@ -31,14 +36,20 @@ export default defineConfig({
     host: host || true,
     allowedHosts: true, // allow access from all hosts
     port: 3090,
+    https: useHttps
+      ? {
+          key: readFileSync(keyPath),
+          cert: readFileSync(certPath),
+        }
+      : false,
     proxy: {
       '/uploads': {
-        target: process.env.VITE_API_URL || 'http://localhost:3091',
+        target: process.env.VITE_API_URL || (useHttps ? 'https://localhost:3091' : 'http://localhost:3091'),
         changeOrigin: true,
         secure: false,
       },
       '/api': {
-        target: process.env.VITE_API_URL || 'http://localhost:3091',
+        target: process.env.VITE_API_URL || (useHttps ? 'https://localhost:3091' : 'http://localhost:3091'),
         changeOrigin: true,
         secure: false,
       },
