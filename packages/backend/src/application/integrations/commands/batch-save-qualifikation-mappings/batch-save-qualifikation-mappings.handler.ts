@@ -47,7 +47,7 @@ export class BatchSaveQualifikationMappingsHandler {
     const externalNames = command.mappings.map((m) => m.externalName);
     const existingResult = await this.mappingRepo.findByExternalNames(externalNames, INTEGRATION_TYPES.HIORG_SERVER);
 
-    if (existingResult.isFailure) {
+    if (existingResult.isFailure || !existingResult.value) {
       return Result.fail(existingResult.error ?? 'Fehler beim Laden der existierenden Mappings');
     }
 
