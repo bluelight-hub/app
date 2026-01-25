@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "pnpm -r --filter '@bluelight-hub/*' dev",
+    "gen:certs": "./scripts/generate-certs.sh",
     "build": "pnpm -r --filter '@bluelight-hub/*' build",
     "generate-api": "pnpm -r --filter '@bluelight-hub/*' --if-present generate-api",
     "lint": "biome check --write",
