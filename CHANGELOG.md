@@ -1,3 +1,19 @@
+## Version [v1.0.0-alpha.46](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.45...v1.0.0-alpha.46) – Veröffentlicht am 2026-01-25
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`056f6819`](https://github.com/rubenvitt/bluelight-hub/commit/056f6819) (einsatz): Implement findNextId and findPreviousId navigation 
+
+
+
+# [1.0.0-alpha.46](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.45...v1.0.0-alpha.46) (2026-01-25)
+
+
+### Features
+
+* enable https for local development ([ef3892e](https://github.com/rubenvitt/bluelight-hub/commit/ef3892e245939044b7fbdfdca564831e200efea9))
+* **security:** remove deprecated X-XSS-Protection header ([b5b89d6](https://github.com/rubenvitt/bluelight-hub/commit/b5b89d685e4d5771f980b658c6aa93a5f7699a81))
+
 ## Version [v1.0.0-alpha.45](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.44...v1.0.0-alpha.45) – Veröffentlicht am 2026-01-17
 
 ## ✨ Neue Funktionen
