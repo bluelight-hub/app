@@ -109,20 +109,14 @@ export class GetPreviousEinsatzIdQueryHandler implements IQueryHandler<GetPrevio
       const aggregate = repoResult.value;
       const createdAt = aggregate.createdAt;
 
-      // HINWEIS: Diese Methode existiert noch NICHT im IEinsatzRepository Interface!
-      // TODO: Füge findPreviousId(createdAt: Date) zum Interface hinzu
-      // const previousIdResult = await this.repository.findPreviousId(createdAt);
-      // if (previousIdResult.isFailure) {
-      //   return Result.fail(previousIdResult.error ?? 'Repository-Fehler beim Laden der vorherigen ID');
-      // }
+      // Finde vorherigen Einsatz
+      const previousIdResult = await this.repository.findPreviousId(createdAt);
+      if (previousIdResult.isFailure) {
+        return Result.fail(previousIdResult.error ?? 'Repository-Fehler beim Laden der vorherigen ID');
+      }
 
-      // TEMPORARY WORKAROUND: Return Placeholder bis Repository-Methode implementiert ist
-      this.logger.warn('findPreviousId() ist noch nicht im IEinsatzRepository implementiert');
-      this.logger.debug(`Würde vorherigen Einsatz suchen für createdAt: ${createdAt.toISOString()}`);
-
-      // Placeholder Response
       const response: NavigationResponseDto = {
-        id: null, // TODO: Replace with previousIdResult.value
+        id: previousIdResult.value,
       };
 
       return Result.ok(response);

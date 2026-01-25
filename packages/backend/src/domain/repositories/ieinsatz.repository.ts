@@ -355,6 +355,38 @@ export interface IEinsatzRepository {
   findEligibleForArchival(olderThan: Date): Promise<Result<Einsatz[]>>;
 
   /**
+   * Findet die ID des zeitlich vorherigen Einsatzes.
+   *
+   * Gibt die ID des Einsatzes zurück, der zeitlich VOR dem angegebenen
+   * Zeitstempel erstellt wurde.
+   *
+   * **Business Rules:**
+   * - Nur aktive Einsätze (Status !== ARCHIVIERT) werden berücksichtigt
+   * - Sortierung nach createdAt DESC (neueste zuerst)
+   * - Return null wenn kein vorheriger Einsatz existiert
+   *
+   * @param createdAt - Zeitstempel des aktuellen Einsatzes
+   * @returns Result<string | null> - Success mit ID oder null
+   */
+  findPreviousId(createdAt: Date): Promise<Result<string | null>>;
+
+  /**
+   * Findet die ID des zeitlich naechsten Einsatzes.
+   *
+   * Gibt die ID des Einsatzes zurück, der zeitlich NACH dem angegebenen
+   * Zeitstempel erstellt wurde.
+   *
+   * **Business Rules:**
+   * - Nur aktive Einsätze (Status !== ARCHIVIERT) werden berücksichtigt
+   * - Sortierung nach createdAt ASC (älteste zuerst)
+   * - Return null wenn kein nächster Einsatz existiert
+   *
+   * @param createdAt - Zeitstempel des aktuellen Einsatzes
+   * @returns Result<string | null> - Success mit ID oder null
+   */
+  findNextId(createdAt: Date): Promise<Result<string | null>>;
+
+  /**
    * HINWEIS: KEINE delete() Method!
    *
    * Warum kein delete()?
