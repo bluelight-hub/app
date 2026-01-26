@@ -1,6 +1,5 @@
 import { useCreateEinsatz } from '@/features/einsatz';
 import { Button } from '@/shared/ui/atoms/button.atom';
-import { CloseButton } from '@/shared/ui/atoms/close-button.atom';
 import { DateInput } from '@/shared/ui/atoms/date-input.atom';
 import { Input } from '@/shared/ui/atoms/input.atom';
 import { Textarea } from '@/shared/ui/atoms/textarea.atom';
@@ -207,7 +206,9 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
 
         {/* Actions */}
         <div className="flex justify-end gap-3 border-t pt-6">
-          <CloseButton onClick={handleClose} label="Abbrechen" />
+          <Button onClick={handleClose} intent="secondary" appearance="ghost">
+            Abbrechen
+          </Button>
           <Button type="submit" disabled={form.state.isSubmitting}>
             {form.state.isSubmitting ? 'Erstelle...' : 'Einsatz erstellen'}
           </Button>
