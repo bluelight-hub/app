@@ -15,7 +15,7 @@ import type { HelmetOptions } from 'helmet';
  *
  * @constant {HelmetOptions}
  */
-export const helmetConfig: HelmetOptions = {
+export const swaggerHelmetConfig: HelmetOptions = {
   // Content Security Policy - Verhindert XSS-Angriffe
   contentSecurityPolicy: {
     directives: {
@@ -55,6 +55,30 @@ export const helmetConfig: HelmetOptions = {
   permittedCrossDomainPolicies: false,
   // Referrer Policy
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+};
+
+/**
+ * Strikte Helmet-Konfiguration für die Anwendung (ohne Swagger).
+ * Entfernt 'unsafe-inline' aus script-src und style-src für erhöhte Sicherheit.
+ *
+ * @constant {HelmetOptions}
+ */
+export const helmetConfig: HelmetOptions = {
+  ...swaggerHelmetConfig,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+      frameAncestors: ["'none'"],
+    },
+  },
 };
 
 /**
