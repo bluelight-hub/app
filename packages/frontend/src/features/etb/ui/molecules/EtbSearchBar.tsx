@@ -19,6 +19,10 @@ export function EtbSearchBar({ value, onChange, placeholder = 'Einträge durchsu
         value={value ?? ''}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
+        spellCheck={false}
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="off"
         className={cn(
           'w-full py-2 pr-4 pl-9 text-sm',
           'rounded-lg border border-gray-300',
