@@ -20,8 +20,8 @@ export const helmetConfig: HelmetOptions = {
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"], // Für Swagger UI
-      scriptSrc: ["'self'", "'unsafe-inline'"], // Für Swagger UI
+      styleSrc: ["'self'"],
+      scriptSrc: ["'self'"],
       imgSrc: ["'self'", 'data:', 'https:'],
       connectSrc: ["'self'"],
       fontSrc: ["'self'"],
@@ -54,6 +54,45 @@ export const helmetConfig: HelmetOptions = {
   // Permitted Cross Domain Policies
   permittedCrossDomainPolicies: false,
   // Referrer Policy
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+};
+
+/**
+ * Gelockerte Helmet-Konfiguration speziell für die Swagger UI.
+ * Erlaubt 'unsafe-inline' für Skripte und Styles, was für Swagger erforderlich ist.
+ * DIESE KONFIGURATION SOLLTE NUR FÜR DEN SWAGGER-ENDPOINT VERWENDET WERDEN.
+ *
+ * @constant {HelmetOptions}
+ */
+export const swaggerHelmetConfig: HelmetOptions = {
+  // Content Security Policy - Verhindert XSS-Angriffe
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"], // Für Swagger UI
+      scriptSrc: ["'self'", "'unsafe-inline'"], // Für Swagger UI
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+      frameAncestors: ["'none'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+  dnsPrefetchControl: { allow: false },
+  frameguard: { action: 'deny' },
+  hidePoweredBy: true,
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true,
+  },
+  ieNoOpen: true,
+  noSniff: true,
+  originAgentCluster: true,
+  permittedCrossDomainPolicies: false,
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
 };
 
