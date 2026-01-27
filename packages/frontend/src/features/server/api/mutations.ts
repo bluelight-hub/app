@@ -161,16 +161,25 @@ export const useExchangeInvite = () => {
         // Nutze den vom User angegebenen Server-Namen oder fallback auf serverInfo.name (AC5)
         const displayName = variables.serverName || serverInfo.name;
 
+        // Nutze die vom User angegebene Server-URL (normalisiert) oder fallback auf Backend-Response
+        // WICHTIG: User-Input hat Vorrang, da Backend-URL oft intern/falsch sein kann (z.B. Docker-Container URL)
+        let serverUrl = serverInfo.baseUrl;
+        if (variables.serverUrl) {
+          serverUrl = variables.serverUrl.endsWith('/') ? variables.serverUrl.slice(0, -1) : variables.serverUrl;
+        }
+
         logger.debug('Invite exchange successful', {
           serverName: displayName,
-          serverUrl: serverInfo.baseUrl,
+          serverUrl,
+          originalServerUrl: serverInfo.baseUrl,
           customName: !!variables.serverName,
+          customUrl: !!variables.serverUrl,
         });
 
         // Create new server config with optional custom name
         const newServer = {
           name: displayName,
-          url: serverInfo.baseUrl,
+          url: serverUrl,
           accessToken,
           isDefault: false,
           lastUsedAt: new Date().toISOString(),
