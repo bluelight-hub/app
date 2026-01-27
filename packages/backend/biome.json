@@ -54,7 +54,9 @@
         "src/**/*.repository.ts",
         "src/**/*.module.ts",
         "src/**/*.resolver.ts",
-        "src/**/*.interceptor.ts"
+        "src/**/*.interceptor.ts",
+        "src/**/*.scheduler.ts",
+        "src/**/*.handler.ts"
       ],
       "linter": {
         "rules": {
