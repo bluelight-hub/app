@@ -1343,8 +1343,11 @@ model Erinnerung {
 
   // Escalation (Story 4.1) - Optionale Eskalationsperson
   eskalationsPersonId String?     @map("eskalations_person_id") @db.VarChar(100)
-  // Story 4.5: Eskalations-Tracking
+  // Story 4.5: Eskalations-Tracking (Last Escalation)
   escalatedAt         DateTime?   @map("escalated_at")
+  // Story 4.9: Eskalations-Statistik
+  wurdeEskaliert      Boolean     @default(false) @map("wurde_eskaliert")
+  eskaliertAm         DateTime?   @map("eskaliert_am") // First Escalation Timestamp
   previousAssigneeId  String?     @map("previous_assignee_id") @db.VarChar(100)
   // Hotfix: Intensivierungs-Counter um Endlos-Loop zu verhindern
   intensivierungsCount Int        @default(0) @map("intensivierungs_count")

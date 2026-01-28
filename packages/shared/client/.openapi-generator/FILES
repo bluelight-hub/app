@@ -215,6 +215,7 @@ models/PoiControllerGetPoisVAlpha200Response.ts
 models/PoiDto.ts
 models/PoiResponseDto.ts
 models/PositionDto.ts
+models/ProfileControllerUpdateProfileV1200Response.ts
 models/PublicUserDto.ts
 models/PublicUsersResponseDto.ts
 models/QualifikationDto.ts
@@ -260,6 +261,7 @@ models/UpdateFmsStatusDto.ts
 models/UpdateFunkStatusConfigDto.ts
 models/UpdatePoiDto.ts
 models/UpdatePoiPositionDto.ts
+models/UpdateProfileDto.ts
 models/UpdateQualifikationDto.ts
 models/UpdateRollenDefinitionDto.ts
 models/UpdateStammFahrzeugDto.ts

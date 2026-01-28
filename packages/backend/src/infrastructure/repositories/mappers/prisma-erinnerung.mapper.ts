@@ -159,6 +159,8 @@ export class PrismaErinnerungMapper {
       escalatedAt: prisma.escalatedAt,
       previousAssigneeId: prisma.previousAssigneeId ? UserId.create(prisma.previousAssigneeId).value : null,
       intensivierungsCount: prisma.intensivierungsCount,
+      wurdeEskaliert: prisma.wurdeEskaliert, // Story 4.9
+      eskaliertAm: prisma.eskaliertAm, // Story 4.9
     });
   }
 
@@ -203,6 +205,8 @@ export class PrismaErinnerungMapper {
     escalatedAt: Date | null;
     previousAssigneeId: string | null;
     intensivierungsCount: number;
+    wurdeEskaliert: boolean;
+    eskaliertAm: Date | null;
   } {
     return {
       id: entity.id.toString(),
@@ -240,6 +244,8 @@ export class PrismaErinnerungMapper {
       escalatedAt: entity.escalatedAt,
       previousAssigneeId: entity.previousAssigneeId?.toString() ?? null,
       intensivierungsCount: entity.intensivierungsCount,
+      wurdeEskaliert: entity.wurdeEskaliert,
+      eskaliertAm: entity.eskaliertAm,
     };
   }
 

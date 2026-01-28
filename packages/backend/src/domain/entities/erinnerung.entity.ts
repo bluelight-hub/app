@@ -101,6 +101,10 @@ export interface ReconstructErinnerungProps {
   previousAssigneeId?: UserId | null;
   /** Hotfix: Anzahl der Intensivierungen (um Endlos-Loop zu verhindern) */
   intensivierungsCount?: number;
+  /** Story 4.9: Flag ob jemals eskaliert */
+  wurdeEskaliert?: boolean;
+  /** Story 4.9: Zeitpunkt der ERSTEN Eskalation */
+  eskaliertAm?: Date | null;
 }
 
 /**
@@ -199,6 +203,10 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
   // Escalation Tracking (Story 4.5)
   private _escalatedAt: Date | null;
   private _previousAssigneeId: UserId | null;
+
+  // Escalation Statistics (Story 4.9)
+  private _wurdeEskaliert: boolean;
+  private _eskaliertAm: Date | null;
 
   // Intensivierungs-Counter (Hotfix: Endlos-Loop verhindern)
   private _intensivierungsCount: number;
@@ -415,6 +423,22 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
     return this._intensivierungsCount;
   }
 
+  // Escalation Statistics Getters (Story 4.9)
+
+  /**
+   * Gibt zurück ob die Erinnerung jemals eskaliert wurde.
+   */
+  get wurdeEskaliert(): boolean {
+    return this._wurdeEskaliert;
+  }
+
+  /**
+   * Gibt den Zeitpunkt der ERSTEN Eskalation zurück.
+   */
+  get eskaliertAm(): Date | null {
+    return this._eskaliertAm ? new Date(this._eskaliertAm.getTime()) : null;
+  }
+
   // ============================================================
   // Private Constructor (erzwingt Factory Methods)
   // ============================================================
@@ -450,6 +474,8 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
     escalatedAt: Date | null = null, // Story 4.5
     previousAssigneeId: UserId | null = null, // Story 4.5
     intensivierungsCount = 0, // Hotfix: Endlos-Loop verhindern
+    wurdeEskaliert = false, // Story 4.9
+    eskaliertAm: Date | null = null, // Story 4.9
   ) {
     super(id, createdAt, updatedAt);
     this._einsatzId = einsatzId;
@@ -479,6 +505,8 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
     this._escalatedAt = escalatedAt;
     this._previousAssigneeId = previousAssigneeId;
     this._intensivierungsCount = intensivierungsCount;
+    this._wurdeEskaliert = wurdeEskaliert;
+    this._eskaliertAm = eskaliertAm;
   }
 
   // ============================================================
@@ -611,6 +639,8 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
       props.escalatedAt ?? null, // Story 4.5
       props.previousAssigneeId ?? null, // Story 4.5
       props.intensivierungsCount ?? 0, // Hotfix: Endlos-Loop
+      props.wurdeEskaliert ?? false, // Story 4.9
+      props.eskaliertAm ?? null, // Story 4.9
     );
   }
 
@@ -929,6 +959,13 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
       }
 
       this._escalatedAt = now;
+
+      // Story 4.9: Escalation Statistics
+      this._wurdeEskaliert = true;
+      // Setze eskaliertAm (First Escalation Timestamp) nur einmal
+      if (!this._eskaliertAm) {
+        this._eskaliertAm = now;
+      }
 
       // Transfer Assignment to Escalation Person
       // "Die Erinnerung erscheint nun in der Liste der Eskalationsperson"
