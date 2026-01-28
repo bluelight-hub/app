@@ -1,5 +1,5 @@
 import { cn } from '@/shared/ui/cn';
-import type { ReactNode } from 'react';
+import { type ReactNode, memo } from 'react';
 
 export interface TextProps {
   children: ReactNode;
@@ -9,27 +9,29 @@ export interface TextProps {
   as?: 'p' | 'span' | 'div';
 }
 
+const SIZE_CLASSES = {
+  xs: 'text-xs',
+  sm: 'text-sm',
+  md: 'text-base',
+  lg: 'text-lg',
+  xl: 'text-xl',
+};
+
+const COLOR_CLASSES = {
+  default: 'text-gray-900 dark:text-white',
+  muted: 'text-gray-500 dark:text-gray-400',
+  success: 'text-green-600 dark:text-green-400',
+  error: 'text-red-600 dark:text-red-400',
+  warning: 'text-yellow-600 dark:text-yellow-400',
+};
+
 /**
  * Text-Komponente für typografische Inhalte
  *
  * Bietet konsistente Text-Stile und Farben.
  */
-export function Text({ children, size = 'md', color = 'default', className, as: Component = 'p' }: TextProps) {
-  const sizeClasses = {
-    xs: 'text-xs',
-    sm: 'text-sm',
-    md: 'text-base',
-    lg: 'text-lg',
-    xl: 'text-xl',
-  };
+export const Text = memo(({ children, size = 'md', color = 'default', className, as: Component = 'p' }: TextProps) => {
+  return <Component className={cn(SIZE_CLASSES[size], COLOR_CLASSES[color], className)}>{children}</Component>;
+});
 
-  const colorClasses = {
-    default: 'text-gray-900 dark:text-white',
-    muted: 'text-gray-500 dark:text-gray-400',
-    success: 'text-green-600 dark:text-green-400',
-    error: 'text-red-600 dark:text-red-400',
-    warning: 'text-yellow-600 dark:text-yellow-400',
-  };
-
-  return <Component className={cn(sizeClasses[size], colorClasses[color], className)}>{children}</Component>;
-}
+Text.displayName = 'Text';
