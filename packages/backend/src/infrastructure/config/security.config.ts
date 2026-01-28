@@ -15,13 +15,13 @@ import type { HelmetOptions } from 'helmet';
  *
  * @constant {HelmetOptions}
  */
-export const helmetConfig: HelmetOptions = {
+export const defaultHelmetConfig: HelmetOptions = {
   // Content Security Policy - Verhindert XSS-Angriffe
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"], // Für Swagger UI
-      scriptSrc: ["'self'", "'unsafe-inline'"], // Für Swagger UI
+      styleSrc: ["'self'"],
+      scriptSrc: ["'self'"],
       imgSrc: ["'self'", 'data:', 'https:'],
       connectSrc: ["'self'"],
       fontSrc: ["'self'"],
@@ -55,6 +55,26 @@ export const helmetConfig: HelmetOptions = {
   permittedCrossDomainPolicies: false,
   // Referrer Policy
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+};
+
+/**
+ * Helmet-Konfiguration speziell für die Swagger-UI.
+ *
+ * Diese Konfiguration ist eine Erweiterung der Standard-Helmet-Konfiguration
+ * und lockert die Content Security Policy (CSP), um 'unsafe-inline' für
+ * Skripte und Stile zu erlauben, was für die Swagger-UI erforderlich ist.
+ *
+ * @constant {HelmetOptions}
+ */
+export const swaggerHelmetConfig: HelmetOptions = {
+  ...defaultHelmetConfig,
+  contentSecurityPolicy: {
+    directives: {
+      ...defaultHelmetConfig.contentSecurityPolicy.directives,
+      styleSrc: ["'self'", "'unsafe-inline'"], // Für Swagger UI
+      scriptSrc: ["'self'", "'unsafe-inline'"], // Für Swagger UI
+    },
+  },
 };
 
 /**
