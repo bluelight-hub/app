@@ -20,6 +20,10 @@ import {
   ErinnerungSnoozedEventHandler,
   ErinnerungRetriggeredEventHandler,
   ErinnerungErledigtEventHandler,
+  ErinnerungErstelltEventHandler,
+  ErinnerungAssignedEventHandler,
+  ErinnerungEskaliertEventHandler,
+  ErinnerungIntensiviertEventHandler,
 } from './event-handlers';
 import { EtbQueryMapper } from './mappers';
 import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler, GetTextbausteineHandler } from './queries';
@@ -171,6 +175,26 @@ import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler
       provide: EVENT_HANDLER.ERINNERUNG_ERLEDIGT_ETB,
       useClass: ErinnerungErledigtEventHandler,
     },
+    // ErinnerungErstellt Event Handler (Story 5.0) - ETB-Eintrag bei Erinnerung-Erstellung
+    {
+      provide: EVENT_HANDLER.ERINNERUNG_ERSTELLT_ETB,
+      useClass: ErinnerungErstelltEventHandler,
+    },
+    // ErinnerungAssigned Event Handler (Story 5.0) - ETB-Eintrag bei Erinnerung-Zuweisung
+    {
+      provide: EVENT_HANDLER.ERINNERUNG_ASSIGNED_ETB,
+      useClass: ErinnerungAssignedEventHandler,
+    },
+    // ErinnerungEskaliert Event Handler (Story 5.0) - ETB-Eintrag bei Erinnerung-Eskalation
+    {
+      provide: EVENT_HANDLER.ERINNERUNG_ESKALIERT_ETB,
+      useClass: ErinnerungEskaliertEventHandler,
+    },
+    // ErinnerungIntensiviert Event Handler (Story 5.0) - ETB-Eintrag bei Erinnerung-Intensivierung
+    {
+      provide: EVENT_HANDLER.ERINNERUNG_INTENSIVIERT_ETB,
+      useClass: ErinnerungIntensiviertEventHandler,
+    },
 
     // Mappers (Story 3.3)
     EtbQueryMapper,
@@ -206,6 +230,10 @@ import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler
     EVENT_HANDLER.ERINNERUNG_SNOOZED_ETB,
     EVENT_HANDLER.ERINNERUNG_RETRIGGERED_ETB,
     EVENT_HANDLER.ERINNERUNG_ERLEDIGT_ETB,
+    EVENT_HANDLER.ERINNERUNG_ERSTELLT_ETB,
+    EVENT_HANDLER.ERINNERUNG_ASSIGNED_ETB,
+    EVENT_HANDLER.ERINNERUNG_ESKALIERT_ETB,
+    EVENT_HANDLER.ERINNERUNG_INTENSIVIERT_ETB,
 
     // Mappers (Story 3.3)
     EtbQueryMapper,

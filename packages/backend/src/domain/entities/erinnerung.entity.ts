@@ -109,6 +109,8 @@ export interface ReconstructErinnerungProps {
   eskaliertAm?: Date | null;
   /** Story 4.10: Flag für Eskalations-Restriktion */
   eskalationNurAnErsteller?: boolean;
+  /** Story 5.0: ETB-Eintrag ID für bidirektionale Verknüpfung */
+  etbEntryId?: string | null;
 }
 
 /**
@@ -222,6 +224,9 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
 
   // Story 4.10: Restriction Flag
   private readonly _eskalationNurAnErsteller: boolean;
+
+  // Story 5.0: ETB-Integration - Bidirektionale Verknüpfung
+  private _etbEntryId: string | null;
 
   // ============================================================
   // Readonly Getters
@@ -419,6 +424,16 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
     return this._eskalationNurAnErsteller;
   }
 
+  // Story 5.0: ETB-Integration Getter
+
+  /**
+   * Gibt die ID des verknüpften ETB-Eintrags zurück.
+   * Null wenn keine Verknüpfung besteht.
+   */
+  get etbEntryId(): string | null {
+    return this._etbEntryId;
+  }
+
   // Escalation Tracking Getters (Story 4.5)
 
   /**
@@ -496,6 +511,7 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
     wurdeEskaliert = false, // Story 4.9
     eskaliertAm: Date | null = null, // Story 4.9
     eskalationNurAnErsteller = Erinnerung.DEFAULT_ESKALATION_NUR_AN_ERSTELLER, // Story 4.10
+    etbEntryId: string | null = null, // Story 5.0
   ) {
     super(id, createdAt, updatedAt);
     this._einsatzId = einsatzId;
@@ -528,6 +544,7 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
     this._wurdeEskaliert = wurdeEskaliert;
     this._eskaliertAm = eskaliertAm;
     this._eskalationNurAnErsteller = eskalationNurAnErsteller;
+    this._etbEntryId = etbEntryId;
   }
 
   // ============================================================
@@ -609,6 +626,7 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
       false, // wurdeEskaliert (default)
       null, // eskaliertAm (default)
       props.eskalationNurAnErsteller ?? Erinnerung.DEFAULT_ESKALATION_NUR_AN_ERSTELLER, // Story 4.10
+      null, // etbEntryId (Story 5.0)
     );
 
     // Emit Domain Event (Story 3.3: null für assignedToId bei Erstellung ohne Zuweisung)
@@ -667,6 +685,7 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
       props.wurdeEskaliert ?? false, // Story 4.9
       props.eskaliertAm ?? null, // Story 4.9
       props.eskalationNurAnErsteller ?? Erinnerung.DEFAULT_ESKALATION_NUR_AN_ERSTELLER, // Story 4.10
+      props.etbEntryId ?? null, // Story 5.0
     );
   }
 

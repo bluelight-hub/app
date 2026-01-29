@@ -305,6 +305,7 @@ enum EtbKategorie {
   DOKUMENTATION // Dokumentarische Einträge (Screenshots, Fotos, Anhänge)
   SONSTIGES // Sonstige Einträge
   SYSTEM // Systemeinträge (automatisch)
+  ERINNERUNG // Erinnerungseinträge (automatisch aus Erinnerungs-Events)
 }
 
 // ETB Eintrag Model (n:1 mit Einsatztagebuch)
@@ -1345,6 +1346,9 @@ model Erinnerung {
   eskalationsPersonId String?     @map("eskalations_person_id") @db.VarChar(100)
   // Story 4.10: Delegation ohne Eskalationsrecht
   eskalationNurAnErsteller Boolean @default(false) @map("eskalation_nur_an_ersteller")
+
+  // Story 5.0: ETB-Integration - Bidirektionale Verknüpfung
+  etbEntryId String? @map("etb_entry_id") @db.VarChar(100)
   // Story 4.5: Eskalations-Tracking (Last Escalation)
   escalatedAt         DateTime?   @map("escalated_at")
   // Story 4.9: Eskalations-Statistik

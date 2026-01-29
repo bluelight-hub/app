@@ -2145,4 +2145,70 @@ describe('Erinnerung Entity', () => {
       expect(events.some((e) => e instanceof ErinnerungIntensiviertEvent)).toBe(false);
     });
   });
+
+  // ============================================================
+  // Story 5.0: etbEntryId - ETB-Integration Vorbereitung
+  // ============================================================
+
+  describe('Story 5.0: etbEntryId Rekonstruktion', () => {
+    it('sollte Erinnerung mit etbEntryId rekonstruieren', () => {
+      // Given
+      const etbEntryId = 'etb-entry-123';
+
+      // When
+      const erinnerung = Erinnerung.reconstruct({
+        id: ErinnerungId.create().value!,
+        einsatzId: testEinsatzId,
+        titel: ErinnerungTitel.create('ETB Test').value!,
+        beschreibung: null,
+        faelligAm: new Date(),
+        status: ErinnerungStatus.GEPLANT(),
+        erstelltVon: testUserId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        etbEntryId,
+      });
+
+      // Then
+      expect(erinnerung.etbEntryId).toBe(etbEntryId);
+    });
+
+    it('sollte Erinnerung ohne etbEntryId rekonstruieren (null)', () => {
+      // Given/When
+      const erinnerung = Erinnerung.reconstruct({
+        id: ErinnerungId.create().value!,
+        einsatzId: testEinsatzId,
+        titel: ErinnerungTitel.create('Ohne ETB').value!,
+        beschreibung: null,
+        faelligAm: new Date(),
+        status: ErinnerungStatus.GEPLANT(),
+        erstelltVon: testUserId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        etbEntryId: null,
+      });
+
+      // Then
+      expect(erinnerung.etbEntryId).toBeNull();
+    });
+
+    it('sollte Erinnerung ohne etbEntryId Prop rekonstruieren (Default null)', () => {
+      // Given/When: etbEntryId nicht angegeben
+      const erinnerung = Erinnerung.reconstruct({
+        id: ErinnerungId.create().value!,
+        einsatzId: testEinsatzId,
+        titel: ErinnerungTitel.create('Default ETB').value!,
+        beschreibung: null,
+        faelligAm: new Date(),
+        status: ErinnerungStatus.GEPLANT(),
+        erstelltVon: testUserId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        // etbEntryId nicht angegeben - Default null
+      });
+
+      // Then
+      expect(erinnerung.etbEntryId).toBeNull();
+    });
+  });
 });

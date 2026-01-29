@@ -189,6 +189,18 @@ export const EVENT_HANDLER = {
 
   /** ErinnerungErledigt ETB-Eintrag Handler Token (Story 2.5 AC4) */
   ERINNERUNG_ERLEDIGT_ETB: Symbol('IEventHandler<ErinnerungErledigtEvent>:EtbEintrag'),
+
+  /** ErinnerungErstellt ETB-Eintrag Handler Token (Story 5.0) */
+  ERINNERUNG_ERSTELLT_ETB: Symbol('IEventHandler<ErinnerungErstelltEvent>:EtbEintrag'),
+
+  /** ErinnerungAssigned ETB-Eintrag Handler Token (Story 5.0) */
+  ERINNERUNG_ASSIGNED_ETB: Symbol('IEventHandler<ErinnerungAssignedEvent>:EtbEintrag'),
+
+  /** ErinnerungEskaliert ETB-Eintrag Handler Token (Story 5.0) */
+  ERINNERUNG_ESKALIERT_ETB: Symbol('IEventHandler<ErinnerungEskaliertEvent>:EtbEintrag'),
+
+  /** ErinnerungIntensiviert ETB-Eintrag Handler Token (Story 5.0) */
+  ERINNERUNG_INTENSIVIERT_ETB: Symbol('IEventHandler<ErinnerungIntensiviertEvent>:EtbEintrag'),
 } as const;
 
 /**
