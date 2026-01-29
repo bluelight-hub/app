@@ -15,7 +15,7 @@ import { formatNatoDateTime } from '@/shared/lib/dateFormatter';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
-import { addMinutes, format, formatDistanceToNow } from 'date-fns';
+import { addMinutes, format, formatDistanceToNow, milliseconds } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useCallback, useEffect, useState } from 'react';
 import { PiClipboard, PiClock, PiFileText, PiMapPin, PiPhone, PiRadio, PiTruck, PiUsers } from 'react-icons/pi';
@@ -47,7 +47,7 @@ export function SingleEinsatzDashboard() {
   } = useQuery({
     queryKey: EINSATZ_QUERY_KEYS.detail(einsatzId),
     queryFn: () => api.einsatz().einsatzControllerFindOneVAlpha({ id: einsatzId }),
-    staleTime: 5_000, // 5 Sekunden - verhindert 429 bei schnellen Tab-Wechseln
+    staleTime: milliseconds({ seconds: 5 }),
   });
 
   const einsatz = einsatzResponse?.data;
