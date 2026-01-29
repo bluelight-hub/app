@@ -63,7 +63,7 @@ pnpm --filter @bluelight-hub/frontend dev:vite  # Nur Web (ohne Tauri)
 pnpm run generate-api                # API Client generieren
 
 # Database (IMMER mit Name, sonst interaktiv!)
-pnpm --filter @bluelight-hub/backend prisma:migrate dev --name add_feature_xyz
+pnpm --filter @bluelight-hub/backend prisma:migrate --name add_feature_xyz
 
 # Tests
 pnpm --filter @bluelight-hub/backend test
