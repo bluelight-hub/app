@@ -12,7 +12,8 @@ import { AppModule } from './app.module';
 import { validateInsecureMode } from './infrastructure/config/bootstrap-validation';
 import { PerformanceInterceptor } from './infrastructure/http/interceptors/performance.interceptor';
 import { TransformInterceptor } from './infrastructure/http/interceptors/transform.interceptor';
-import { corsConfig, helmetConfig } from './infrastructure/config/security.config';
+import { corsConfig, helmetConfig, swaggerHelmetConfig } from './infrastructure/config/security.config';
+import type { NextFunction, Request, Response } from 'express';
 
 require('@dotenvx/dotenvx').config();
 
@@ -140,7 +141,14 @@ X-Server-Access-Token: <plaintext_token>
   SwaggerModule.setup('api', app, document, {});
 
   // Apply Helmet middleware for security headers
-  app.use(helmet(helmetConfig));
+  // We use a stricter policy for the app and a more lenient one for Swagger UI
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.path.startsWith('/api')) {
+      helmet(swaggerHelmetConfig)(req, res, next);
+    } else {
+      helmet(helmetConfig)(req, res, next);
+    }
+  });
 
   // Apply cookie parser middleware
   app.use(cookieParser());

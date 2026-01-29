@@ -7,21 +7,21 @@ import type { HelmetOptions } from 'helmet';
  */
 
 /**
- * Helmet-Konfiguration für sichere HTTP-Header
+ * Strikte Helmet-Konfiguration für sichere HTTP-Header (Anwendungsstandard)
  *
  * Diese Konfiguration setzt verschiedene Sicherheits-Header,
  * um die Anwendung gegen gängige Webangriffe zu schützen.
  * Enthält CSP, HSTS, X-Frame-Options und weitere Schutzmaßnahmen.
+ * CSP ist restriktiv und erlaubt keine unsicheren Inline-Skripte oder -Stile.
  *
  * @constant {HelmetOptions}
  */
 export const helmetConfig: HelmetOptions = {
-  // Content Security Policy - Verhindert XSS-Angriffe
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"], // Für Swagger UI
-      scriptSrc: ["'self'", "'unsafe-inline'"], // Für Swagger UI
+      styleSrc: ["'self'"], // Keine unsicheren Inline-Stile
+      scriptSrc: ["'self'"], // Keine unsicheren Inline-Skripte
       imgSrc: ["'self'", 'data:', 'https:'],
       connectSrc: ["'self'"],
       fontSrc: ["'self'"],
@@ -31,30 +31,42 @@ export const helmetConfig: HelmetOptions = {
       frameAncestors: ["'none'"],
     },
   },
-  // Cross-Origin-Embedder-Policy
-  crossOriginEmbedderPolicy: false, // Für Swagger UI deaktiviert
-  // DNS Prefetch Control
+  crossOriginEmbedderPolicy: true,
   dnsPrefetchControl: { allow: false },
-  // Frameguard - Verhindert Clickjacking
   frameguard: { action: 'deny' },
-  // Hide Powered By - Versteckt X-Powered-By Header
   hidePoweredBy: true,
-  // HSTS - HTTP Strict Transport Security
   hsts: {
     maxAge: 31536000, // 1 Jahr
     includeSubDomains: true,
     preload: true,
   },
-  // IE No Open - Verhindert IE Downloads zu öffnen
   ieNoOpen: true,
-  // No Sniff - Verhindert MIME-Type Sniffing
   noSniff: true,
-  // Origin Agent Cluster
   originAgentCluster: true,
-  // Permitted Cross Domain Policies
   permittedCrossDomainPolicies: false,
-  // Referrer Policy
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+};
+
+/**
+ * Gelockerte Helmet-Konfiguration speziell für die Swagger UI
+ *
+ * Diese Konfiguration ist eine Erweiterung der strikten Konfiguration,
+ * erlaubt jedoch 'unsafe-inline' für Skripte und Stile, was für die
+ * Funktionsfähigkeit der Swagger UI notwendig ist.
+ * Sie sollte NUR für den Swagger-Endpunkt verwendet werden.
+ *
+ * @constant {HelmetOptions}
+ */
+export const swaggerHelmetConfig: HelmetOptions = {
+  ...helmetConfig,
+  contentSecurityPolicy: {
+    directives: {
+      ...(helmetConfig.contentSecurityPolicy as { directives: Record<string, unknown> }).directives,
+      styleSrc: ["'self'", "'unsafe-inline'"], // Erforderlich für Swagger UI
+      scriptSrc: ["'self'", "'unsafe-inline'"], // Erforderlich für Swagger UI
+    },
+  },
+  crossOriginEmbedderPolicy: false, // Erforderlich für Swagger UI
 };
 
 /**
