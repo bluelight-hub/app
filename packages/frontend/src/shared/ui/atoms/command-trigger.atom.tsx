@@ -6,15 +6,17 @@ interface CommandTriggerProps {
   onClick: () => void;
   className?: string;
   variant?: 'default' | 'compact';
+  'aria-label'?: string;
 }
 
-export function CommandTrigger({ onClick, className, variant = 'default' }: CommandTriggerProps) {
+export function CommandTrigger({ onClick, className, variant = 'default', 'aria-label': ariaLabel = 'Befehle und Navigation' }: CommandTriggerProps) {
   return (
     <Button
       intent="info"
       appearance="outline"
       kbd="cmd+K"
       onClick={onClick}
+      aria-label={ariaLabel}
       className={cn(
         'inline-flex items-center gap-2 px-3 py-1.5 font-medium text-sm',
         'text-gray-700 dark:text-gray-200',
