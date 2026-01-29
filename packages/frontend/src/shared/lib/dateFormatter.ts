@@ -30,3 +30,24 @@ export function formatDisplayDateTime(date: string | Date | null | undefined): s
 
   return format(d, 'dd.MM.yyyy HH:mm');
 }
+
+/**
+ * Formatiert Sekunden in eine lesbare Dauer.
+ * @param seconds Sekunden
+ * @returns z.B. "5m 30s" oder "1h 15m"
+ */
+export function formatDuration(seconds: number): string {
+  if (Math.round(seconds) < 60) {
+    return `${Math.round(seconds)}s`;
+  }
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.round(seconds % 60);
+
+  if (minutes < 60) {
+    return `${minutes}m ${remainingSeconds}s`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return `${hours}h ${remainingMinutes}m`;
+}

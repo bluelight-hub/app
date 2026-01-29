@@ -140,6 +140,12 @@ export interface ErinnerungResponseDto {
    */
   eskalationsPersonName?: string | null;
   /**
+   * Eskalation nur an Ersteller/Rückläufer aktiv (Story 4.10)
+   * @type {boolean}
+   * @memberof ErinnerungResponseDto
+   */
+  eskalationNurAnErsteller?: boolean;
+  /**
    * Zeitpunkt der Eskalation (Story 4.5)
    * @type {object}
    * @memberof ErinnerungResponseDto
@@ -219,6 +225,7 @@ export function ErinnerungResponseDtoFromJSONTyped(json: any, ignoreDiscriminato
     erstellerName: json['erstellerName'] == null ? undefined : json['erstellerName'],
     eskalationsPersonId: json['eskalationsPersonId'] == null ? undefined : json['eskalationsPersonId'],
     eskalationsPersonName: json['eskalationsPersonName'] == null ? undefined : json['eskalationsPersonName'],
+    eskalationNurAnErsteller: json['eskalationNurAnErsteller'] == null ? undefined : json['eskalationNurAnErsteller'],
     escalatedAt: json['escalatedAt'] == null ? undefined : json['escalatedAt'],
     previousAssigneeId: json['previousAssigneeId'] == null ? undefined : json['previousAssigneeId'],
     previousAssigneeName: json['previousAssigneeName'] == null ? undefined : json['previousAssigneeName'],
@@ -255,6 +262,7 @@ export function ErinnerungResponseDtoToJSONTyped(value?: ErinnerungResponseDto |
     erstellerName: value['erstellerName'],
     eskalationsPersonId: value['eskalationsPersonId'],
     eskalationsPersonName: value['eskalationsPersonName'],
+    eskalationNurAnErsteller: value['eskalationNurAnErsteller'],
     escalatedAt: value['escalatedAt'],
     previousAssigneeId: value['previousAssigneeId'],
     previousAssigneeName: value['previousAssigneeName'],

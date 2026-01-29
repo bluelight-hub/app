@@ -359,26 +359,36 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
             )}
           </form.Field>
 
-          {/* Story 4.1: Eskalationsperson */}
-          <form.Field name="eskalationsPersonId">
-            {(field) => (
-              <div>
-                <label htmlFor="edit-eskalationsPersonId" className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
-                  Eskalation an <span className="text-gray-400 text-xs">(optional)</span>
-                </label>
-                <AssigneeSelector
-                  einsatzId={einsatzId}
-                  value={field.state.value}
-                  onChange={(userId) => field.handleChange(userId)}
-                  onBlur={field.handleBlur}
-                  disabled={isPending}
-                  error={field.state.meta.errors.length > 0 ? formatErrors(field.state.meta.errors) : undefined}
-                  placeholder="Keine Eskalation"
-                />
-                <p className="mt-1 text-gray-500 text-xs dark:text-gray-400">Wird benachrichtigt, wenn Zuweisungsempfänger nicht reagiert</p>
-              </div>
-            )}
-          </form.Field>
+          {/* Story 4.1: Eskalationsperson - Story 4.10: Nicht änderbar wenn Rückläufer aktiv */}
+          {(erinnerung as unknown as { eskalationNurAnErsteller?: boolean })?.eskalationNurAnErsteller ? (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-900/20">
+              <p className="flex items-center gap-2 font-medium text-amber-800 text-sm dark:text-amber-200">
+                <span className="text-base">↩️</span>
+                Rückläufer aktiv
+              </p>
+              <p className="mt-1 text-amber-700 text-xs dark:text-amber-300">Eskalation geht automatisch an den Ersteller zurück. Diese Einstellung kann nicht geändert werden.</p>
+            </div>
+          ) : (
+            <form.Field name="eskalationsPersonId">
+              {(field) => (
+                <div>
+                  <label htmlFor="edit-eskalationsPersonId" className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
+                    Eskalation an <span className="text-gray-400 text-xs">(optional)</span>
+                  </label>
+                  <AssigneeSelector
+                    einsatzId={einsatzId}
+                    value={field.state.value}
+                    onChange={(userId) => field.handleChange(userId)}
+                    onBlur={field.handleBlur}
+                    disabled={isPending}
+                    error={field.state.meta.errors.length > 0 ? formatErrors(field.state.meta.errors) : undefined}
+                    placeholder="Keine Eskalation"
+                  />
+                  <p className="mt-1 text-gray-500 text-xs dark:text-gray-400">Wird benachrichtigt, wenn Zuweisungsempfänger nicht reagiert</p>
+                </div>
+              )}
+            </form.Field>
+          )}
 
           {/* Optionale Beschreibung */}
           <form.Field name="beschreibung">

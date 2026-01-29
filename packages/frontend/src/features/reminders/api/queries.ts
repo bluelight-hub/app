@@ -8,7 +8,7 @@
 
 import { api } from '@/shared';
 import { logger } from '@/shared/lib/logger';
-import type { ErinnerungResponseDto, ResponseError } from '@/shared';
+import type { ErinnerungResponseDto, ErinnerungStatistikDto, ResponseError } from '@/shared';
 import { useQuery } from '@tanstack/react-query';
 
 /**
@@ -32,6 +32,7 @@ export const ERINNERUNG_QUERY_KEYS = {
   list: (einsatzId: string) => [...ERINNERUNG_QUERY_KEYS.lists(), einsatzId] as const,
   details: () => [...ERINNERUNG_QUERY_KEYS.all, 'detail'] as const,
   detail: (id: string) => [...ERINNERUNG_QUERY_KEYS.details(), id] as const,
+  statistik: (einsatzId: string) => [...ERINNERUNG_QUERY_KEYS.all, 'statistik', einsatzId] as const,
 } as const;
 
 /**
@@ -109,5 +110,22 @@ export const useErinnerungenByEinsatz = ({ einsatzId }: UseErinnerungenByEinsatz
       return failureCount < 3;
     },
     retryDelay: calculateRetryDelay,
+  });
+};
+
+/**
+ * Hook für Eskalations-Statistiken Abfrage
+ * Story 4.9: Statistiken anzeigen
+ */
+export const useErinnerungStatistik = (einsatzId?: string) => {
+  return useQuery<ErinnerungStatistikDto, ResponseError>({
+    enabled: !!einsatzId,
+    queryKey: ERINNERUNG_QUERY_KEYS.statistik(einsatzId ?? ''),
+    queryFn: async () => {
+      if (!einsatzId) throw new Error('einsatzId required');
+      const response = await api.erinnerungen().erinnerungControllerGetStatistikVAlpha({ einsatzId });
+      return response.data;
+    },
+    staleTime: 60_000, // 1 Minute Cache
   });
 };

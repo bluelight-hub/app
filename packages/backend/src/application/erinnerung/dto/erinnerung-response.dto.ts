@@ -184,6 +184,13 @@ export class ErinnerungResponseDto {
   eskalationsPersonName?: string | null;
 
   @ApiProperty({
+    description: 'Eskalation nur an Ersteller/Rückläufer aktiv (Story 4.10)',
+    example: false,
+    required: false,
+  })
+  eskalationNurAnErsteller?: boolean;
+
+  @ApiProperty({
     description: 'Zeitpunkt der Eskalation (Story 4.5)',
     example: '2026-01-19T15:45:00.000Z',
     nullable: true,

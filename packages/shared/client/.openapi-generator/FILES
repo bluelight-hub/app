@@ -155,9 +155,11 @@ models/ErfasseTemporalesFahrzeugDto.ts
 models/ErforderlicheQualifikationDto.ts
 models/ErinnerungControllerCreateVAlpha201Response.ts
 models/ErinnerungControllerGetByEinsatzVAlpha200Response.ts
+models/ErinnerungControllerGetStatistikVAlpha200Response.ts
 models/ErinnerungKonfigurationControllerGetConfigVAlpha200Response.ts
 models/ErinnerungKonfigurationDto.ts
 models/ErinnerungResponseDto.ts
+models/ErinnerungStatistikDto.ts
 models/EtbCqrsControllerAddEintragVAlpha201Response.ts
 models/EtbCqrsControllerGetEtbByEinsatzIdVAlpha200Response.ts
 models/EtbCqrsControllerGetEtbHistoryVAlpha200Response.ts
@@ -252,6 +254,7 @@ models/TaktischeStaerkeDto.ts
 models/TextbausteinDto.ts
 models/TextbausteinListResponse.ts
 models/TokenListItemDto.ts
+models/TopReceiverDto.ts
 models/UpdateEinsatzDto.ts
 models/UpdateEintragDto.ts
 models/UpdateErinnerungDto.ts

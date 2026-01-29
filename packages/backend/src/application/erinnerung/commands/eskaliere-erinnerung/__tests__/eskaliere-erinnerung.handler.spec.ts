@@ -192,4 +192,65 @@ describe('EskaliereErinnerungHandler', () => {
     expect(erinnerung.assignedToId?.value).toBe(testNextTargetId);
     expect(erinnerung.eskalationsPersonId?.value).toBe(testNextTargetId);
   });
+
+  /**
+   * Story 4.10: Eskalation nur an Ersteller
+   *
+   * Wenn `eskalationNurAnErsteller: true` gesetzt ist, soll die Eskalation
+   * IMMER an den Ersteller gehen, nicht an die Standard-Eskalationsperson
+   * des Delegatees.
+   */
+  it('should escalate to creator when eskalationNurAnErsteller is true (Story 4.10)', async () => {
+    // Given: IDs für Creator (A), Delegatee (B), und dessen Standard-Eskalationsziel (C)
+    const testErinnerungId = 'clx123456789abcdefghij013';
+    const testEinsatzId = 'clx123456789abcdefghij014';
+    const testCreatorId = 'clx123456789abcdefghij015'; // User A - Ersteller
+    const testDelegateeId = 'clx123456789abcdefghij016'; // User B - Delegatee
+    const testDelegateeEscalationTargetId = 'clx123456789abcdefghij017'; // User C - B's Standard-Eskalationsziel
+
+    const command = new EskaliereErinnerungCommand(testErinnerungId, 'SYSTEM');
+
+    // Given: Erinnerung mit eskalationNurAnErsteller = true, erstellt von A, zugewiesen an B
+    const erinnerung = Erinnerung.reconstruct({
+      id: ErinnerungId.create(testErinnerungId).value!,
+      einsatzId: EinsatzId.create(testEinsatzId).value!,
+      titel: ErinnerungTitel.create('Test Story 4.10').value!,
+      beschreibung: null,
+      faelligAm: new Date(),
+      status: ErinnerungStatus.AUSGELOEST(),
+      erstelltVon: UserId.create(testCreatorId).value!,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      assignedToId: UserId.create(testDelegateeId).value!, // Zugewiesen an B (Delegatee)
+      eskalationsPersonId: null, // Keine explizite Eskalationsperson
+      eskalationNurAnErsteller: true, // Die Flag ist gesetzt!
+    });
+
+    // Mock: User B (Delegatee) hat ein Standard-Eskalationsziel C
+    userRepository.findById.mockResolvedValue(
+      Result.ok({
+        id: UserId.create(testDelegateeId).value!,
+        defaultEscalationTargetId: UserId.create(testDelegateeEscalationTargetId).value!,
+      } as any),
+    );
+
+    erinnerungRepository.findById.mockResolvedValue(Result.ok(erinnerung));
+    erinnerungRepository.save.mockResolvedValue(Result.ok(undefined));
+    mockResponseFactory.create.mockResolvedValue({ id: testErinnerungId, status: 'ESKALIERT' } as any);
+
+    // When: Eskalation wird ausgelöst
+    const result = await handler.execute(command);
+
+    // Then: Eskalation erfolgreich
+    expect(result.isSuccess).toBe(true);
+    expect(erinnerungRepository.save).toHaveBeenCalled();
+
+    // Then: AC - Das Eskalationsziel ist der ERSTELLER (A), NICHT C (B's Standard-Eskalationsziel)
+    expect(erinnerung.status.isEskaliert()).toBe(true);
+    expect(erinnerung.eskalationsPersonId?.value).toBe(testCreatorId);
+    expect(erinnerung.assignedToId?.value).toBe(testCreatorId);
+
+    // Verify: Eskalation ging NICHT an C (den Standard-Escalation-Target von B)
+    expect(erinnerung.assignedToId?.value).not.toBe(testDelegateeEscalationTargetId);
+  });
 });

@@ -15,3 +15,4 @@ export { ErinnerungEditDialog } from './ErinnerungEditDialog';
 export { ErinnerungDeleteDialog } from './ErinnerungDeleteDialog';
 export { ErinnerungMarkErledigtDialog } from './ErinnerungMarkErledigtDialog';
 export { ErinnerungAssignDialog } from './ErinnerungAssignDialog';
+export { ErinnerungStatistik } from './ErinnerungStatistik';

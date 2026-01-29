@@ -19,7 +19,7 @@
 import { useCallback, useState } from 'react';
 import { useForm } from '@tanstack/react-form';
 import { zodValidator } from '@tanstack/zod-form-adapter';
-import { PiAlarm, PiClock, PiNotepad } from 'react-icons/pi';
+import { PiAlarm, PiClock, PiNotepad, PiArrowUUpLeft } from 'react-icons/pi';
 import { toast } from 'sonner';
 
 import { Button } from '@/shared/ui/atoms/button.atom';
@@ -77,6 +77,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId }: Quic
       requiresNote: false, // Story 2.6: Pflicht-Notiz default aus
       assignedToId: null, // Story 3.3: Keine Zuweisung = fuer alle
       eskalationsPersonId: null, // Story 4.1 AC1: Optional
+      eskalationNurAnErsteller: false, // Story 4.10 AC1: Default false
     } as CreateErinnerungFormData,
     validatorAdapter: zodValidator(),
     validators: {
@@ -112,6 +113,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId }: Quic
             requiresNote: value.requiresNote, // Story 2.6: Pflicht-Notiz Flag
             assignedToId: value.assignedToId ?? undefined, // Story 3.3: Zuweisung an Person
             eskalationsPersonId: value.eskalationsPersonId ?? undefined, // Story 4.1: Eskalationsperson
+            eskalationNurAnErsteller: value.eskalationNurAnErsteller, // Story 4.10
           },
         },
         {
@@ -289,7 +291,13 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId }: Quic
                 <AssigneeSelector
                   einsatzId={einsatzId}
                   value={field.state.value}
-                  onChange={(userId) => field.handleChange(userId)}
+                  onChange={(userId) => {
+                    field.handleChange(userId);
+                    // Reset eskalationNurAnErsteller wenn keine Zuweisung mehr
+                    if (!userId) {
+                      form.setFieldValue('eskalationNurAnErsteller', false);
+                    }
+                  }}
                   onBlur={field.handleBlur}
                   disabled={isPending}
                   error={field.state.meta.errors.length > 0 ? formatErrors(field.state.meta.errors) : undefined}
@@ -300,26 +308,74 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId }: Quic
             )}
           </form.Field>
 
-          {/* Story 4.1: Eskalationsperson */}
-          <form.Field name="eskalationsPersonId">
-            {(field) => (
-              <div>
-                <label htmlFor="eskalationsPersonId" className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
-                  Eskalation an <span className="text-gray-400 text-xs">(optional)</span>
-                </label>
-                <AssigneeSelector
-                  einsatzId={einsatzId}
-                  value={field.state.value}
-                  onChange={(userId) => field.handleChange(userId)}
-                  onBlur={field.handleBlur}
-                  disabled={isPending}
-                  error={field.state.meta.errors.length > 0 ? formatErrors(field.state.meta.errors) : undefined}
-                  placeholder="Keine Eskalation"
-                />
-                <p className="mt-1 text-gray-500 text-xs dark:text-gray-400">Wird benachrichtigt, wenn Zuweisungsempfänger nicht reagiert</p>
-              </div>
-            )}
-          </form.Field>
+          {/* Story 4.10: Eskalation nur an Ersteller Checkbox - nur sichtbar wenn Zuweisung gesetzt */}
+          <form.Subscribe selector={(state) => state.values.assignedToId}>
+            {(assignedToId) =>
+              assignedToId && (
+                <form.Field name="eskalationNurAnErsteller">
+                  {(field) => (
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-6 items-center">
+                        <input
+                          id="eskalationNurAnErsteller"
+                          type="checkbox"
+                          checked={field.state.value ?? false}
+                          onChange={(e) => {
+                            field.handleChange(e.target.checked);
+                            // Story 4.10: Reset eskalationsPersonId wenn Haken aktiviert wird
+                            if (e.target.checked) {
+                              form.setFieldValue('eskalationsPersonId', null);
+                            }
+                          }}
+                          disabled={isPending}
+                          className={cn(
+                            'h-5 w-5 rounded border-2 text-amber-500',
+                            'focus:ring-2 focus:ring-amber-500 focus:ring-offset-2',
+                            'disabled:cursor-not-allowed disabled:opacity-50',
+                            'dark:border-gray-600 dark:bg-gray-800 dark:focus:ring-offset-gray-900',
+                          )}
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label htmlFor="eskalationNurAnErsteller" className="flex cursor-pointer items-center gap-2 font-medium text-gray-700 text-sm dark:text-gray-300">
+                          <PiArrowUUpLeft className="h-4 w-4 text-amber-500" />
+                          Eskalation nur an mich (Rückläufer)
+                        </label>
+                        <p className="mt-0.5 text-gray-500 text-xs dark:text-gray-400">Wenn aktiviert, geht jede Eskalation zurück an dich, statt an eine andere Person.</p>
+                      </div>
+                    </div>
+                  )}
+                </form.Field>
+              )
+            }
+          </form.Subscribe>
+
+          {/* Story 4.1: Eskalationsperson - ausgeblendet wenn "Eskalation nur an mich" aktiv (Story 4.10) */}
+          <form.Subscribe selector={(state) => state.values.eskalationNurAnErsteller}>
+            {(eskalationNurAnErsteller) =>
+              !eskalationNurAnErsteller && (
+                <form.Field name="eskalationsPersonId">
+                  {(field) => (
+                    <div>
+                      <label htmlFor="eskalationsPersonId" className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
+                        Eskalation an <span className="text-gray-400 text-xs">(optional)</span>
+                      </label>
+                      <AssigneeSelector
+                        einsatzId={einsatzId}
+                        value={field.state.value}
+                        onChange={(userId) => field.handleChange(userId)}
+                        onBlur={field.handleBlur}
+                        disabled={isPending}
+                        error={field.state.meta.errors.length > 0 ? formatErrors(field.state.meta.errors) : undefined}
+                        placeholder="Keine Eskalation"
+                      />
+                      <p className="mt-1 text-gray-500 text-xs dark:text-gray-400">Wird benachrichtigt, wenn Zuweisungsempfänger nicht reagiert</p>
+                    </div>
+                  )}
+                </form.Field>
+              )
+            }
+          </form.Subscribe>
 
           {/* AC3: Optionale Beschreibung */}
           <form.Field name="beschreibung">

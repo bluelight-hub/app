@@ -8,6 +8,8 @@ import { Injectable } from '@nestjs/common';
 import { Result } from '@domain/common/result';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { PrismaErinnerungMapper } from './mappers/prisma-erinnerung.mapper';
+import type { ErinnerungStatistik } from '@domain/repositories/erinnerung-statistik';
+import { UserId } from '@domain/value-objects/user-id';
 
 /**
  * Prisma Implementation des IErinnerungRepository (Hexagonal Architecture).
@@ -111,6 +113,8 @@ export class PrismaErinnerungRepository implements IErinnerungRepository {
           requiresNote: data.requiresNote,
           // Eskalation (Story 4.1)
           eskalationsPersonId: data.eskalationsPersonId,
+          // Story 4.10: Delegation ohne Eskalationsrecht
+          eskalationNurAnErsteller: data.eskalationNurAnErsteller,
           // Intensivierungs-Counter (Hotfix für Endlos-Loop)
           intensivierungsCount: data.intensivierungsCount,
         },
@@ -143,6 +147,7 @@ export class PrismaErinnerungRepository implements IErinnerungRepository {
           assignedAt: data.assignedAt,
           // Eskalation Felder (Story 4.1/4.5) - werden bei eskalieren() gesetzt
           eskalationsPersonId: data.eskalationsPersonId,
+          eskalationNurAnErsteller: data.eskalationNurAnErsteller, // Story 4.10
           escalatedAt: data.escalatedAt,
           previousAssigneeId: data.previousAssigneeId,
           // Hotfix: Intensivierungs-Counter
@@ -287,6 +292,76 @@ export class PrismaErinnerungRepository implements IErinnerungRepository {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown database error';
       return Result.fail(`Failed to check Erinnerung existence: ${message}`);
+    }
+  }
+
+  /**
+   * Berechnet Statistiken für einen Einsatz.
+   * Story 4.9: Escalation Statistics
+   */
+  async getStatistik(einsatzId: EinsatzId): Promise<Result<ErinnerungStatistik>> {
+    try {
+      // 1. Fetch escalated items
+      const escalatedItems = await this.prisma.erinnerung.findMany({
+        where: {
+          einsatzId: einsatzId.toString(),
+          wurdeEskaliert: true,
+          isDeleted: false,
+        },
+        select: {
+          ausgeloestAm: true,
+          eskaliertAm: true,
+          assignedToId: true,
+        },
+      });
+
+      const totalEscalated = escalatedItems.length;
+
+      // 2. Calculate Avg Time
+      let totalTimeMs = 0;
+      let timeCount = 0;
+
+      for (const item of escalatedItems) {
+        if (item.ausgeloestAm && item.eskaliertAm) {
+          const diff = item.eskaliertAm.getTime() - item.ausgeloestAm.getTime();
+          // Ignoriere negative Werte (sollte nicht passieren, aber sicher ist sicher)
+          if (diff >= 0) {
+            totalTimeMs += diff;
+            timeCount++;
+          }
+        }
+      }
+
+      const avgEscalationTimeSeconds = timeCount > 0 ? totalTimeMs / timeCount / 1000 : 0;
+
+      // 3. Calculate Top Receivers
+      const receiverCounts = new Map<string, number>();
+      for (const item of escalatedItems) {
+        if (item.assignedToId) {
+          const current = receiverCounts.get(item.assignedToId) || 0;
+          receiverCounts.set(item.assignedToId, current + 1);
+        }
+      }
+
+      const topReceivers = Array.from(receiverCounts.entries())
+        .sort((a, b) => b[1] - a[1]) // Descending by count
+        .slice(0, 3) // Top 3
+        .map(([rawId, count]) => {
+          // Wir erstellen UserId Objekte. Falls ungültig (was DB Konsistenz verhindern sollte),
+          // loggen wir oder ignorieren. Hier nehmen wir an DB ist sauber.
+          const userIdResult = UserId.create(rawId);
+          // Fallback falls ID ungültig: SYSTEM oder Ignore
+          return { userId: userIdResult.isSuccess ? userIdResult.value! : UserId.create('SYSTEM').value!, count };
+        });
+
+      return Result.ok({
+        totalEscalated,
+        avgEscalationTimeSeconds,
+        topReceivers,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown database error';
+      return Result.fail(`Failed to get statistics: ${message}`);
     }
   }
 }

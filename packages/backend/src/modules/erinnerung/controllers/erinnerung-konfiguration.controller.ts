@@ -26,7 +26,7 @@ export class ErinnerungKonfigurationController {
   ) {}
 
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.USER)
   @ApiOperation({ summary: 'Ruft die globale Erinnerungs-Konfiguration ab' })
   @ApiWrappedResponse(ErinnerungKonfigurationDto)
   async getConfig(): Promise<ErinnerungKonfigurationDto> {
