@@ -27,6 +27,7 @@ import { AuthFooter } from '@/shared/ui/molecules/auth-footer.molecule';
 import { LogoWithIndicator } from '@/shared/ui/molecules/logo-with-indicator.molecule';
 import { Heading } from '@/shared/ui/atoms/heading.atom';
 import { Text } from '@/shared/ui/atoms/text.atom';
+import { Button } from '@/shared/ui/atoms/button.atom';
 import { useNavigate } from '@tanstack/react-router';
 import { PiArrowLeft, PiInfo } from 'react-icons/pi';
 import { setSetupRedirectInProgress } from '@/shared/lib/server-access-token';
@@ -64,18 +65,20 @@ export function ServerOnboardingPage() {
         <div className="space-y-8">
           {/* Back Button - nur anzeigen wenn bereits Server konfiguriert sind */}
           {hasExistingServers && (
-            <button
-              type="button"
+            <Button
+              appearance="minimal"
+              intent="secondary"
+              size="sm"
+              className="gap-2 px-0"
               onClick={() => {
                 // Reset Setup-Redirect-Flag damit /auth nicht wieder hierher redirectet
                 setSetupRedirectInProgress(false);
                 navigate({ to: '/auth' });
               }}
-              className="flex cursor-pointer items-center gap-2 text-gray-500 text-sm transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             >
               <PiArrowLeft className="h-4 w-4" />
               Zurück zur Anmeldung
-            </button>
+            </Button>
           )}
 
           {/* Logo Section */}
