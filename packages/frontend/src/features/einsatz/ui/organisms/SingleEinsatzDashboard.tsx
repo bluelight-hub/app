@@ -10,7 +10,7 @@ import { useActiveEinsatz, EINSATZ_QUERY_KEYS, useEinsatzFahrzeuge, useUpdateFms
 import type { FmsStatus } from '@/features/einsatz';
 import { useEtb } from '@/features/etb';
 import { useLagekarte } from '@/features/lagekarte';
-import { ErinnerungenList } from '@/features/reminders';
+import { ErinnerungenList, ErinnerungStatistik } from '@/features/reminders';
 import { formatNatoDateTime } from '@/shared/lib/dateFormatter';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { useQuery } from '@tanstack/react-query';
@@ -47,6 +47,7 @@ export function SingleEinsatzDashboard() {
   } = useQuery({
     queryKey: EINSATZ_QUERY_KEYS.detail(einsatzId),
     queryFn: () => api.einsatz().einsatzControllerFindOneVAlpha({ id: einsatzId }),
+    staleTime: 5_000, // 5 Sekunden - verhindert 429 bei schnellen Tab-Wechseln
   });
 
   const einsatz = einsatzResponse?.data;
@@ -261,6 +262,11 @@ export function SingleEinsatzDashboard() {
                 </Button>
               </div>
             </div>
+          </div>
+
+          {/* Eskalations-Statistik (Story 4.9) */}
+          <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
+            <ErinnerungStatistik einsatzId={einsatzId} />
           </div>
 
           {/* Erinnerungen (Story 1.3) */}

@@ -122,4 +122,21 @@ export class CreateErinnerungDto {
   @IsOptional()
   @IsString({ message: 'eskalationsPersonId muss ein String sein' })
   eskalationsPersonId?: string;
+
+  /**
+   * Story 4.10: Eskalation nur an Ersteller (Rückläufer).
+   * Wenn true, werden Eskalationen immer an den Ersteller zurückgeleitet.
+   *
+   * @default false
+   * @example false
+   */
+  @ApiProperty({
+    description: 'Eskalation nur an Ersteller (Story 4.10)',
+    example: false,
+    required: false,
+    default: false,
+  })
+  @IsOptional()
+  @IsBoolean({ message: 'eskalationNurAnErsteller muss ein Boolean sein' })
+  eskalationNurAnErsteller?: boolean;
 }

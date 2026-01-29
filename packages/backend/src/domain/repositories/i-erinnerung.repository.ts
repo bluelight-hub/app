@@ -3,6 +3,7 @@ import type { Result } from '@domain/common/result';
 import type { Erinnerung } from '@domain/entities/erinnerung.entity';
 import type { ErinnerungId } from '@domain/value-objects/erinnerung-id';
 import type { EinsatzId } from '@domain/value-objects/einsatz-id';
+import type { ErinnerungStatistik } from './erinnerung-statistik';
 
 /**
  * Repository Port Interface für Erinnerung Aggregate Persistence.
@@ -144,4 +145,10 @@ export interface IErinnerungRepository {
    * @param tx - Optional: Transaction Context
    */
   findOverdue(threshold: Date, tx?: TransactionContext): Promise<Result<Erinnerung[]>>;
+
+  /**
+   * Berechnet Statistiken für einen Einsatz.
+   * Story 4.9: Escalation Statistics
+   */
+  getStatistik(einsatzId: EinsatzId): Promise<Result<ErinnerungStatistik>>;
 }

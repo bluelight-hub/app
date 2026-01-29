@@ -55,6 +55,12 @@ export interface CreateErinnerungDto {
    * @memberof CreateErinnerungDto
    */
   eskalationsPersonId?: string;
+  /**
+   * Eskalation nur an Ersteller (Story 4.10)
+   * @type {boolean}
+   * @memberof CreateErinnerungDto
+   */
+  eskalationNurAnErsteller?: boolean;
 }
 
 /**
@@ -81,6 +87,7 @@ export function CreateErinnerungDtoFromJSONTyped(json: any, ignoreDiscriminator:
     requiresNote: json['requiresNote'] == null ? undefined : json['requiresNote'],
     assignedToId: json['assignedToId'] == null ? undefined : json['assignedToId'],
     eskalationsPersonId: json['eskalationsPersonId'] == null ? undefined : json['eskalationsPersonId'],
+    eskalationNurAnErsteller: json['eskalationNurAnErsteller'] == null ? undefined : json['eskalationNurAnErsteller'],
   };
 }
 
@@ -100,5 +107,6 @@ export function CreateErinnerungDtoToJSONTyped(value?: CreateErinnerungDto | nul
     requiresNote: value['requiresNote'],
     assignedToId: value['assignedToId'],
     eskalationsPersonId: value['eskalationsPersonId'],
+    eskalationNurAnErsteller: value['eskalationNurAnErsteller'],
   };
 }

@@ -48,6 +48,7 @@ export class ErinnerungResponseFactory {
       assignedToName,
       eskalationsPersonId: erinnerung.eskalationsPersonId?.toString() ?? null,
       eskalationsPersonName,
+      eskalationNurAnErsteller: erinnerung.eskalationNurAnErsteller, // Story 4.10
 
       // Weitere Felder
       erledigtBy: erinnerung.erledigtBy?.toString() ?? null,

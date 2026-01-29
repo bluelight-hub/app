@@ -4,7 +4,7 @@ import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ApiWrappedCreatedResponse, ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
-import { AssignErinnerungDto, CreateErinnerungDto, UpdateErinnerungDto, ErinnerungResponseDto } from '@/application/erinnerung/dto';
+import { AssignErinnerungDto, CreateErinnerungDto, UpdateErinnerungDto, ErinnerungResponseDto, ErinnerungStatistikDto } from '@/application/erinnerung/dto';
 import { CreateErinnerungCommand } from '@/application/erinnerung/commands/create-erinnerung/create-erinnerung.command';
 import { CreateErinnerungHandler } from '@/application/erinnerung/commands/create-erinnerung/create-erinnerung.handler';
 import { UpdateErinnerungCommand } from '@/application/erinnerung/commands/update-erinnerung/update-erinnerung.command';
@@ -26,6 +26,8 @@ import { MarkErledigtErinnerungDto } from '@/application/erinnerung/dto/mark-erl
 import { GetErinnerungenByEinsatzQuery } from '@/application/erinnerung/queries/get-erinnerungen-by-einsatz/get-erinnerungen-by-einsatz.query';
 import { GetErinnerungenByEinsatzHandler } from '@/application/erinnerung/queries/get-erinnerungen-by-einsatz/get-erinnerungen-by-einsatz.handler';
 import { ERINNERUNG_ERROR_CODES } from '@/application/erinnerung/errors/erinnerung-error.codes';
+import { GetErinnerungStatistikHandler } from '@/application/erinnerung/queries/get-erinnerung-statistik/get-erinnerung-statistik.handler';
+import { GetErinnerungStatistikQuery } from '@/application/erinnerung/queries/get-erinnerung-statistik/get-erinnerung-statistik.query';
 
 /**
  * Controller für Erinnerungen innerhalb eines Einsatzes.
@@ -57,6 +59,7 @@ export class ErinnerungController {
     private readonly markErledigtHandler: MarkErledigtErinnerungHandler,
     private readonly assignHandler: AssignErinnerungHandler,
     private readonly getByEinsatzHandler: GetErinnerungenByEinsatzHandler,
+    private readonly getStatistikHandler: GetErinnerungStatistikHandler,
   ) {}
 
   /**
@@ -95,6 +98,41 @@ export class ErinnerungController {
     }
 
     return result.value ?? [];
+  }
+
+  /**
+   * Eskalations-Statistiken abrufen.
+   *
+   * Liefert KPIs zu eskalierten Erinnerungen im Einsatz.
+   *
+   * **Story 4.9 ACs:**
+   * - Total Escalated
+   * - Avg Escalation Time
+   * - Top Receivers
+   */
+  @Get('statistik')
+  @ApiOperation({
+    summary: 'Eskalations-Statistiken abrufen',
+    description: 'Liefert Statistiken zu eskalierten Erinnerungen (Anzahl, Dauer, Top-Empfänger).',
+  })
+  @ApiWrappedResponse(ErinnerungStatistikDto, {
+    description: 'Eskalations-Statistiken erfolgreich abgerufen',
+  })
+  @ApiBadRequestResponse({ description: 'Ungültige EinsatzId' })
+  async getStatistik(@Param('einsatzId') einsatzId: string): Promise<ErinnerungStatistikDto> {
+    const queryResult = GetErinnerungStatistikQuery.create({ einsatzId });
+
+    if (queryResult.isFailure || !queryResult.value) {
+      throw new BadRequestException(queryResult.error);
+    }
+
+    const result = await this.getStatistikHandler.execute(queryResult.value);
+
+    if (result.isFailure) {
+      throw new BadRequestException(result.error);
+    }
+
+    return result.value!;
   }
 
   /**
@@ -139,6 +177,7 @@ export class ErinnerungController {
       requiresNote: dto.requiresNote,
       assignedToId: dto.assignedToId, // Story 3.3: Zuweisung bei Erstellung
       eskalationsPersonId: dto.eskalationsPersonId, // Story 4.1: Eskalationsperson
+      eskalationNurAnErsteller: dto.eskalationNurAnErsteller, // Story 4.10: Eskalations-Restriktion
     });
 
     if (commandResult.isFailure || !commandResult.value) {

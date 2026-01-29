@@ -17,6 +17,8 @@ export interface CreateErinnerungCommandProps {
   assignedToId?: string;
   /** Story 4.1: Optionale Eskalationsperson */
   eskalationsPersonId?: string;
+  /** Story 4.10: Eskalation nur an Ersteller (Rückläufer) */
+  eskalationNurAnErsteller?: boolean;
 }
 
 /**
@@ -67,6 +69,7 @@ export class CreateErinnerungCommand {
     public readonly requiresNote: boolean,
     public readonly assignedToId: string | undefined,
     public readonly eskalationsPersonId: string | undefined,
+    public readonly eskalationNurAnErsteller: boolean,
   ) {}
 
   /**
@@ -142,6 +145,7 @@ export class CreateErinnerungCommand {
         props.requiresNote ?? Erinnerung.DEFAULT_REQUIRES_NOTE,
         props.assignedToId?.trim() || undefined,
         props.eskalationsPersonId?.trim() || undefined,
+        props.eskalationNurAnErsteller ?? false,
       ),
     );
   }

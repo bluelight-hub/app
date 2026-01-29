@@ -489,6 +489,16 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                   {erinnerung.eskalationsPersonName}
                 </output>
               )}
+              {/* Story 4.10: Rückläufer Badge */}
+              {(erinnerung as unknown as { eskalationNurAnErsteller?: boolean })?.eskalationNurAnErsteller && (
+                <output
+                  aria-label="Rückläufer aktiv - Eskalation geht an Ersteller"
+                  className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 font-medium text-amber-700 text-xs dark:bg-amber-900/40 dark:text-amber-300"
+                  title="Eskalation geht automatisch an den Ersteller zurück (Rückläufer)"
+                >
+                  ↩️ Rückläufer
+                </output>
+              )}
               {/* Story 4.5: Eskaliert von Info */}
               {/* Story 4.5: Eskaliert von Info */}
               {erinnerung.previousAssigneeName && (

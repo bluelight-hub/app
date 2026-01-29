@@ -18,6 +18,7 @@ import type {
   CreateErinnerungDto,
   ErinnerungControllerCreateVAlpha201Response,
   ErinnerungControllerGetByEinsatzVAlpha200Response,
+  ErinnerungControllerGetStatistikVAlpha200Response,
   MarkErledigtErinnerungDto,
   SnoozeErinnerungDto,
   UpdateErinnerungDto,
@@ -31,6 +32,8 @@ import {
   ErinnerungControllerCreateVAlpha201ResponseToJSON,
   ErinnerungControllerGetByEinsatzVAlpha200ResponseFromJSON,
   ErinnerungControllerGetByEinsatzVAlpha200ResponseToJSON,
+  ErinnerungControllerGetStatistikVAlpha200ResponseFromJSON,
+  ErinnerungControllerGetStatistikVAlpha200ResponseToJSON,
   MarkErledigtErinnerungDtoFromJSON,
   MarkErledigtErinnerungDtoToJSON,
   SnoozeErinnerungDtoFromJSON,
@@ -61,6 +64,10 @@ export interface ErinnerungControllerDeleteVAlphaRequest {
 }
 
 export interface ErinnerungControllerGetByEinsatzVAlphaRequest {
+  einsatzId: string;
+}
+
+export interface ErinnerungControllerGetStatistikVAlphaRequest {
   einsatzId: string;
 }
 
@@ -321,6 +328,47 @@ export class ErinnerungenApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<ErinnerungControllerGetByEinsatzVAlpha200Response> {
     const response = await this.erinnerungControllerGetByEinsatzVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Liefert Statistiken zu eskalierten Erinnerungen (Anzahl, Dauer, Top-Empfänger).
+   * Eskalations-Statistiken abrufen
+   */
+  async erinnerungControllerGetStatistikVAlphaRaw(
+    requestParameters: ErinnerungControllerGetStatistikVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<ErinnerungControllerGetStatistikVAlpha200Response>> {
+    if (requestParameters['einsatzId'] == null) {
+      throw new runtime.RequiredError('einsatzId', 'Required parameter "einsatzId" was null or undefined when calling erinnerungControllerGetStatistikVAlpha().');
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/statistik`.replace(`{${'einsatzId'}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => ErinnerungControllerGetStatistikVAlpha200ResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Liefert Statistiken zu eskalierten Erinnerungen (Anzahl, Dauer, Top-Empfänger).
+   * Eskalations-Statistiken abrufen
+   */
+  async erinnerungControllerGetStatistikVAlpha(
+    requestParameters: ErinnerungControllerGetStatistikVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<ErinnerungControllerGetStatistikVAlpha200Response> {
+    const response = await this.erinnerungControllerGetStatistikVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
 

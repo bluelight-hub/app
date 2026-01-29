@@ -91,6 +91,7 @@ export class CreateErinnerungHandler extends TransactionalCommandHandler<CreateE
       erstelltVon: userIdResult.value,
       requiresNote: command.requiresNote,
       eskalationsPersonId: command.eskalationsPersonId ? UserId.create(command.eskalationsPersonId).value : undefined,
+      eskalationNurAnErsteller: command.eskalationNurAnErsteller,
     });
 
     if (erinnerungResult.isFailure || !erinnerungResult.value) {

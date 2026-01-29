@@ -156,6 +156,7 @@ export class PrismaErinnerungMapper {
       assignedBy,
       assignedAt: prisma.assignedAt,
       eskalationsPersonId,
+      eskalationNurAnErsteller: prisma.eskalationNurAnErsteller, // Story 4.10
       escalatedAt: prisma.escalatedAt,
       previousAssigneeId: prisma.previousAssigneeId ? UserId.create(prisma.previousAssigneeId).value : null,
       intensivierungsCount: prisma.intensivierungsCount,
@@ -202,6 +203,7 @@ export class PrismaErinnerungMapper {
     assignedBy: string | null;
     assignedAt: Date | null;
     eskalationsPersonId: string | null;
+    eskalationNurAnErsteller: boolean; // Story 4.10
     escalatedAt: Date | null;
     previousAssigneeId: string | null;
     intensivierungsCount: number;
@@ -241,6 +243,7 @@ export class PrismaErinnerungMapper {
       assignedBy: entity.assignedBy?.toString() ?? null,
       assignedAt: entity.assignedAt,
       eskalationsPersonId: entity.eskalationsPersonId?.toString() ?? null,
+      eskalationNurAnErsteller: entity.eskalationNurAnErsteller, // Story 4.10
       escalatedAt: entity.escalatedAt,
       previousAssigneeId: entity.previousAssigneeId?.toString() ?? null,
       intensivierungsCount: entity.intensivierungsCount,

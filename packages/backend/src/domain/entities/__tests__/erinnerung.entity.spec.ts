@@ -28,6 +28,8 @@ import { ErinnerungAssignedEvent } from '@domain/events/erinnerung-assigned.even
 import { ErinnerungAusgeloestEvent } from '@domain/events/erinnerung-ausgeloest.event';
 import { ErinnerungRetriggeredEvent } from '@domain/events/erinnerung-retriggered.event';
 import { ErinnerungErledigtEvent } from '@domain/events/erinnerung-erledigt.event';
+import { ErinnerungEskaliertEvent } from '@domain/events/erinnerung-eskaliert.event';
+import { ErinnerungIntensiviertEvent } from '@domain/events/erinnerung-intensiviert.event';
 
 describe('Erinnerung Entity', () => {
   let testEinsatzId: EinsatzId;
@@ -2022,6 +2024,125 @@ describe('Erinnerung Entity', () => {
       // Then: Failure
       expect(result.isFailure).toBe(true);
       expect(result.error).toBe('ALREADY_ESCALATED');
+    });
+  });
+
+  // ============================================================
+  // Story 4.10: Delegation ohne Eskalationsrecht
+  // ============================================================
+
+  describe('Story 4.10: Delegation ohne Eskalationsrecht', () => {
+    it('sollte Erinnerung mit eskalationNurAnErsteller=true erstellen', () => {
+      // Given
+      const props = {
+        einsatzId: testEinsatzId,
+        titel: 'Restricted Escalation',
+        faelligAm: new Date(Date.now() + 60 * 60 * 1000),
+        erstelltVon: testUserId,
+        eskalationNurAnErsteller: true,
+      };
+
+      // When
+      const result = Erinnerung.create(props);
+
+      // Then
+      expect(result.isSuccess).toBe(true);
+      expect(result.value!.eskalationNurAnErsteller).toBe(true);
+    });
+
+    it('sollte Eskalation auf Ersteller erzwingen wenn Flag true ist', () => {
+      // Given
+      const creator = testUserId;
+      const delegatee = UserId.create().value!;
+      const thirdParty = UserId.create().value!;
+
+      // We simulate a reminder created by 'creator', assigned to 'delegatee', with flag=true
+      const erinnerung = Erinnerung.reconstruct({
+        id: ErinnerungId.create().value!,
+        einsatzId: testEinsatzId,
+        titel: ErinnerungTitel.create('Restricted').value!,
+        beschreibung: null,
+        faelligAm: new Date(),
+        status: ErinnerungStatus.AUSGELOEST(),
+        erstelltVon: creator,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        assignedToId: delegatee,
+        eskalationNurAnErsteller: true,
+      });
+
+      // When: Delegatee tries to escalate to ThirdParty
+      const result = erinnerung.eskalieren(delegatee, thirdParty);
+
+      // Then
+      expect(result.isSuccess).toBe(true);
+      // TARGET MUST BE CREATOR (ignore thirdParty)
+      expect(erinnerung.assignedToId).toBe(creator);
+      expect(erinnerung.eskalationsPersonId).toBe(creator);
+    });
+
+    it('sollte normale Eskalation erlauben wenn Flag false ist', () => {
+      // Given
+      const creator = testUserId;
+      const delegatee = UserId.create().value!;
+      const thirdParty = UserId.create().value!;
+
+      const erinnerung = Erinnerung.reconstruct({
+        id: ErinnerungId.create().value!,
+        einsatzId: testEinsatzId,
+        titel: ErinnerungTitel.create('Normal').value!,
+        beschreibung: null,
+        faelligAm: new Date(),
+        status: ErinnerungStatus.AUSGELOEST(),
+        erstelltVon: creator,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        assignedToId: delegatee,
+        eskalationNurAnErsteller: false,
+      });
+
+      // When: Delegatee tries to escalate to ThirdParty
+      const result = erinnerung.eskalieren(delegatee, thirdParty);
+
+      // Then
+      expect(result.isSuccess).toBe(true);
+      // Target MUST be thirdParty
+      expect(erinnerung.assignedToId).toBe(thirdParty);
+    });
+
+    it('sollte an Ersteller eskalieren wenn Flag true aber KEINE eskalationsPersonId gesetzt (Bugfix)', () => {
+      // Given: Erinnerung mit eskalationNurAnErsteller=true aber OHNE eskalationsPersonId
+      const creator = testUserId;
+      const delegatee = UserId.create().value!;
+
+      const erinnerung = Erinnerung.reconstruct({
+        id: ErinnerungId.create().value!,
+        einsatzId: testEinsatzId,
+        titel: ErinnerungTitel.create('Rückläufer ohne Eskalationsperson').value!,
+        beschreibung: null,
+        faelligAm: new Date(),
+        status: ErinnerungStatus.AUSGELOEST(),
+        erstelltVon: creator,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        assignedToId: delegatee,
+        eskalationsPersonId: null, // KEIN explizites Eskalationsziel
+        eskalationNurAnErsteller: true, // Aber Flag gesetzt!
+      });
+
+      // When: System triggers escalation
+      const result = erinnerung.eskalieren('SYSTEM');
+
+      // Then: MUSS eskaliert werden (nicht nur intensiviert!)
+      expect(result.isSuccess).toBe(true);
+      expect(erinnerung.status.isEskaliert()).toBe(true);
+      // Target MUSS der Ersteller sein
+      expect(erinnerung.assignedToId).toBe(creator);
+      expect(erinnerung.eskalationsPersonId).toBe(creator);
+      // Event muss ErinnerungEskaliertEvent sein, NICHT ErinnerungIntensiviertEvent
+      const events = erinnerung.getDomainEvents();
+      expect(events.some((e) => e instanceof ErinnerungEskaliertEvent)).toBe(true);
+      expect(events.some((e) => e instanceof ErinnerungIntensiviertEvent)).toBe(false);
     });
   });
 });

@@ -17,6 +17,7 @@ import { SnoozeErinnerungHandler } from '@/application/erinnerung/commands/snooz
 import { MarkErledigtErinnerungHandler } from '@/application/erinnerung/commands/mark-erledigt-erinnerung/mark-erledigt-erinnerung.handler';
 import { AssignErinnerungHandler } from '@/application/erinnerung/commands/assign-erinnerung/assign-erinnerung.handler';
 import { GetErinnerungenByEinsatzHandler } from '@/application/erinnerung/queries/get-erinnerungen-by-einsatz/get-erinnerungen-by-einsatz.handler';
+import { GetErinnerungStatistikHandler } from '@/application/erinnerung/queries/get-erinnerung-statistik/get-erinnerung-statistik.handler';
 import { GetErinnerungKonfigurationHandler } from '@application/erinnerung-konfiguration/queries/get-erinnerung-konfiguration.query';
 import { UpdateEskalationsTimeoutHandler } from '@application/erinnerung-konfiguration/commands/update-eskalations-timeout.command';
 import { ErinnerungKonfigurationController } from './controllers/erinnerung-konfiguration.controller';
@@ -64,6 +65,7 @@ import { ErinnerungWebSocketEventAdapter } from '@infrastructure/events/adapters
     MarkErledigtErinnerungHandler,
     AssignErinnerungHandler,
     GetErinnerungenByEinsatzHandler,
+    GetErinnerungStatistikHandler,
     // Configuration Handlers (Story 4.3)
     GetErinnerungKonfigurationHandler,
     UpdateEskalationsTimeoutHandler,

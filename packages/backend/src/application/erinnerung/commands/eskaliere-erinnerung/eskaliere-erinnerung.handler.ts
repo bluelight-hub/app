@@ -207,7 +207,6 @@ export class EskaliereErinnerungHandler extends TransactionalCommandHandler<Eska
         eskalationsPersonId: erinnerung.eskalationsPersonId?.toString() ?? null,
         eskalationsPersonName,
         erledigtBy: erinnerung.erledigtBy?.toString() ?? null,
-        // erledigtByName: erledigtByName, // Not in DTO interface yet
         erledigungsNotiz: erinnerung.erledigungsNotiz ?? null,
         escalatedAt: erinnerung.escalatedAt?.toISOString() ?? null,
         previousAssigneeId: erinnerung.previousAssigneeId?.toString() ?? null,

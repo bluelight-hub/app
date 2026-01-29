@@ -55,6 +55,8 @@ export const createErinnerungSchema = z
     assignedToId: z.string().optional().nullable(),
     /** Story 4.1: Eskalationsperson (optional) */
     eskalationsPersonId: z.string().optional().nullable(),
+    /** Story 4.10: Eskalation nur an Ersteller (optional) */
+    eskalationNurAnErsteller: z.boolean().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.timeMode === 'preset' && data.minuten === undefined) {

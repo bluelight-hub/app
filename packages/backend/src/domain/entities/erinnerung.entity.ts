@@ -31,6 +31,8 @@ export interface CreateErinnerungProps {
   requiresNote?: boolean;
   /** Story 4.1: Optionale Eskalationsperson */
   eskalationsPersonId?: UserId | null;
+  /** Story 4.10: Eskalation nur an Ersteller (Rückläufer) */
+  eskalationNurAnErsteller?: boolean;
 }
 
 /**
@@ -105,6 +107,8 @@ export interface ReconstructErinnerungProps {
   wurdeEskaliert?: boolean;
   /** Story 4.9: Zeitpunkt der ERSTEN Eskalation */
   eskaliertAm?: Date | null;
+  /** Story 4.10: Flag für Eskalations-Restriktion */
+  eskalationNurAnErsteller?: boolean;
 }
 
 /**
@@ -159,6 +163,11 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
    */
   public static readonly MAX_INTENSIVIERUNGEN = 5;
 
+  /**
+   * Story 4.10: Default für Eskalations-Restriktion.
+   */
+  public static readonly DEFAULT_ESKALATION_NUR_AN_ERSTELLER = false;
+
   private readonly _einsatzId: EinsatzId;
   private _titel: ErinnerungTitel;
   private _beschreibung: string | null;
@@ -210,6 +219,9 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
 
   // Intensivierungs-Counter (Hotfix: Endlos-Loop verhindern)
   private _intensivierungsCount: number;
+
+  // Story 4.10: Restriction Flag
+  private readonly _eskalationNurAnErsteller: boolean;
 
   // ============================================================
   // Readonly Getters
@@ -400,6 +412,13 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
     return this._eskalationsPersonId;
   }
 
+  /**
+   * Story 4.10: Gibt zurück ob Eskalationen nur an den Ersteller gehen dürfen.
+   */
+  get eskalationNurAnErsteller(): boolean {
+    return this._eskalationNurAnErsteller;
+  }
+
   // Escalation Tracking Getters (Story 4.5)
 
   /**
@@ -476,6 +495,7 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
     intensivierungsCount = 0, // Hotfix: Endlos-Loop verhindern
     wurdeEskaliert = false, // Story 4.9
     eskaliertAm: Date | null = null, // Story 4.9
+    eskalationNurAnErsteller = Erinnerung.DEFAULT_ESKALATION_NUR_AN_ERSTELLER, // Story 4.10
   ) {
     super(id, createdAt, updatedAt);
     this._einsatzId = einsatzId;
@@ -507,6 +527,7 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
     this._intensivierungsCount = intensivierungsCount;
     this._wurdeEskaliert = wurdeEskaliert;
     this._eskaliertAm = eskaliertAm;
+    this._eskalationNurAnErsteller = eskalationNurAnErsteller;
   }
 
   // ============================================================
@@ -584,6 +605,10 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
       props.eskalationsPersonId ?? null, // Story 4.1
       null, // escalatedAt (Story 4.5)
       null, // previousAssigneeId (Story 4.5)
+      0, // intensivierungsCount (default)
+      false, // wurdeEskaliert (default)
+      null, // eskaliertAm (default)
+      props.eskalationNurAnErsteller ?? Erinnerung.DEFAULT_ESKALATION_NUR_AN_ERSTELLER, // Story 4.10
     );
 
     // Emit Domain Event (Story 3.3: null für assignedToId bei Erstellung ohne Zuweisung)
@@ -641,6 +666,7 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
       props.intensivierungsCount ?? 0, // Hotfix: Endlos-Loop
       props.wurdeEskaliert ?? false, // Story 4.9
       props.eskaliertAm ?? null, // Story 4.9
+      props.eskalationNurAnErsteller ?? Erinnerung.DEFAULT_ESKALATION_NUR_AN_ERSTELLER, // Story 4.10
     );
   }
 
@@ -737,7 +763,9 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
     }
 
     // Update eskalationsPersonId (Story 4.1)
-    if (props.eskalationsPersonId !== undefined) {
+    // Story 4.10: Wenn Flag gesetzt, kann eskalationsPersonId NICHT geändert werden
+    // (Die Eskalation geht immer an den Ersteller zurück)
+    if (props.eskalationsPersonId !== undefined && !this._eskalationNurAnErsteller) {
       this._eskalationsPersonId = props.eskalationsPersonId;
       aenderungen.eskalationsPersonId = props.eskalationsPersonId;
     }
@@ -942,11 +970,24 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
       this._eskalationsPersonId = nextTargetId;
     }
 
+    // Story 4.10 FIX: Wenn Flag gesetzt ist aber KEINE Eskalationsperson definiert,
+    // setzen wir den Ersteller als Ziel BEVOR dem Check. So wird immer eskaliert statt nur intensiviert.
+    if (this._eskalationNurAnErsteller && !this._eskalationsPersonId) {
+      this._eskalationsPersonId = this._erstelltVon;
+    }
+
     if (this._eskalationsPersonId) {
       // Check: Wenn bereits eskaliert und KEIN neues Ziel (nextTargetId), dann intensivieren
       // (Außer Status ist AUSGELOEST, dann ist es die erste Eskalation)
       if (this._status.isEskaliert() && !nextTargetId) {
         return this.intensivieren(now, eskaliertVon);
+      }
+
+      // Story 4.10: Check Escalation Restriction
+      // Wenn Flag gesetzt ist, MUSS die Eskalation an den Ersteller gehen.
+      // Wir überschreiben das Ziel hart.
+      if (this._eskalationNurAnErsteller) {
+        this._eskalationsPersonId = this._erstelltVon;
       }
 
       // Case 1: Eskalation an Person
