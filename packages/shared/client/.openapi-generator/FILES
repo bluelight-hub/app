@@ -160,7 +160,10 @@ models/ErinnerungKonfigurationControllerGetConfigVAlpha200Response.ts
 models/ErinnerungKonfigurationDto.ts
 models/ErinnerungResponseDto.ts
 models/ErinnerungStatistikDto.ts
+models/ErinnerungTimelineDto.ts
+models/ErinnerungTimelineEventDto.ts
 models/EtbCqrsControllerAddEintragVAlpha201Response.ts
+models/EtbCqrsControllerGetErinnerungTimelineVAlpha200Response.ts
 models/EtbCqrsControllerGetEtbByEinsatzIdVAlpha200Response.ts
 models/EtbCqrsControllerGetEtbHistoryVAlpha200Response.ts
 models/EtbCqrsControllerGetTextbausteineVAlpha200Response.ts
@@ -253,6 +256,7 @@ models/StatusCountsResponseDto.ts
 models/TaktischeStaerkeDto.ts
 models/TextbausteinDto.ts
 models/TextbausteinListResponse.ts
+models/TimelineUserDto.ts
 models/TokenListItemDto.ts
 models/TopReceiverDto.ts
 models/UpdateEinsatzDto.ts

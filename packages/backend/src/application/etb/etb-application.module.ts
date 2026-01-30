@@ -27,7 +27,7 @@ import {
   ErinnerungIntensiviertEventHandler,
 } from './event-handlers';
 import { EtbQueryMapper } from './mappers';
-import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler, GetTextbausteineHandler } from './queries';
+import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler, GetTextbausteineHandler } from './queries';
 
 /**
  * ETB Application Module - Event-Driven Architecture
@@ -102,6 +102,7 @@ import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler
     GetEtbHistoryQueryHandler,
     GetEintraegeQueryHandler,
     GetTextbausteineHandler,
+    GetErinnerungTimelineQueryHandler, // Story 5.5
 
     // Event Handlers (Story 3.6) - Registered via Symbol Token for Clean Architecture
     {
@@ -216,6 +217,7 @@ import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler
     GetEtbHistoryQueryHandler,
     GetEintraegeQueryHandler,
     GetTextbausteineHandler,
+    GetErinnerungTimelineQueryHandler, // Story 5.5
 
     // Event Handlers (exported via Symbol Token for Infrastructure Adapters)
     EVENT_HANDLER.ETB_AUTO_CREATION,

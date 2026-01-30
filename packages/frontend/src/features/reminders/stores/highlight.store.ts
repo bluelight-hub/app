@@ -1,10 +1,12 @@
 /**
  * Highlight Store
  *
- * Trackt welche Erinnerung gerade hervorgehoben werden soll (z.B. beim Klick auf Badge im ETB).
+ * Trackt welche Elemente gerade hervorgehoben werden sollen (z.B. beim Klick auf Badge im ETB).
  *
  * **Story 5.4 Task 6:** Badge in ETB-Tabelle zeigt verknuepfte Erinnerung
  * Beim Klick auf den Badge wird die Erinnerung hervorgehoben und in den View gescrollt.
+ *
+ * **Story 5.5:** ETB-Eintraege koennen ebenfalls hervorgehoben werden (Timeline-Navigation)
  */
 
 import { Store, useStore } from '@tanstack/react-store';
@@ -15,6 +17,8 @@ import { Store, useStore } from '@tanstack/react-store';
 export interface HighlightStoreState {
   /** ID der hervorzuhebenden Erinnerung (null = keine Hervorhebung) */
   highlightedErinnerungId: string | null;
+  /** ID des hervorzuhebenden ETB-Eintrags (null = keine Hervorhebung) - Story 5.5 */
+  highlightedEntryId: string | null;
 }
 
 /**
@@ -28,6 +32,7 @@ const HIGHLIGHT_DURATION_MS = 3000;
  */
 export const highlightStore = new Store<HighlightStoreState>({
   highlightedErinnerungId: null,
+  highlightedEntryId: null,
 });
 
 // ============================================================================
@@ -58,8 +63,40 @@ export function setHighlightedErinnerung(erinnerungId: string): void {
  * Entfernt die aktuelle Hervorhebung.
  */
 export function clearHighlightedErinnerung(): void {
-  highlightStore.setState(() => ({
+  highlightStore.setState((state) => ({
+    ...state,
     highlightedErinnerungId: null,
+  }));
+}
+
+/**
+ * Setzt den hervorzuhebenden ETB-Eintrag (Story 5.5).
+ * Entfernt automatisch nach HIGHLIGHT_DURATION_MS.
+ *
+ * @param entryId - ID des hervorzuhebenden ETB-Eintrags
+ */
+export function setHighlightedEntry(entryId: string): void {
+  highlightStore.setState((state) => ({
+    ...state,
+    highlightedEntryId: entryId,
+  }));
+
+  // Auto-Cleanup nach Highlight-Dauer
+  setTimeout(() => {
+    // Nur entfernen wenn noch derselbe Eintrag hervorgehoben ist
+    if (highlightStore.state.highlightedEntryId === entryId) {
+      clearHighlightedEntry();
+    }
+  }, HIGHLIGHT_DURATION_MS);
+}
+
+/**
+ * Entfernt die Hervorhebung des ETB-Eintrags (Story 5.5).
+ */
+export function clearHighlightedEntry(): void {
+  highlightStore.setState((state) => ({
+    ...state,
+    highlightedEntryId: null,
   }));
 }
 
@@ -69,6 +106,7 @@ export function clearHighlightedErinnerung(): void {
 export function resetHighlightStore(): void {
   highlightStore.setState(() => ({
     highlightedErinnerungId: null,
+    highlightedEntryId: null,
   }));
 }
 
@@ -125,4 +163,27 @@ export function useHighlightedErinnerungId(): string | null {
  */
 export function useHighlightStoreState(): HighlightStoreState {
   return useStore(highlightStore);
+}
+
+// ============================================================================
+// ETB Entry Highlight Hooks (Story 5.5)
+// ============================================================================
+
+/**
+ * Hook um zu pruefen ob ein ETB-Eintrag hervorgehoben ist.
+ *
+ * @param entryId - ID des ETB-Eintrags
+ * @returns true wenn Eintrag hervorgehoben
+ */
+export function useIsEntryHighlighted(entryId: string): boolean {
+  return useStore(highlightStore, (state) => state.highlightedEntryId === entryId);
+}
+
+/**
+ * Hook fuer die ID des hervorgehobenen ETB-Eintrags.
+ *
+ * @returns Entry-ID oder null
+ */
+export function useHighlightedEntryId(): string | null {
+  return useStore(highlightStore, (state) => state.highlightedEntryId);
 }
