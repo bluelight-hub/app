@@ -15,7 +15,7 @@ import type { HelmetOptions } from 'helmet';
  *
  * @constant {HelmetOptions}
  */
-export const helmetConfigPermissive: HelmetOptions = {
+export const helmetConfig: HelmetOptions = {
   // Content Security Policy - Verhindert XSS-Angriffe
   contentSecurityPolicy: {
     directives: {
@@ -55,25 +55,6 @@ export const helmetConfigPermissive: HelmetOptions = {
   permittedCrossDomainPolicies: false,
   // Referrer Policy
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
-};
-
-/**
- * Strikte Helmet-Konfiguration für die allgemeine Anwendung (ohne 'unsafe-inline')
- *
- * @constant {HelmetOptions}
- */
-export const helmetConfig: HelmetOptions = {
-  ...helmetConfigPermissive,
-  contentSecurityPolicy: {
-    directives: {
-      ...(helmetConfigPermissive.contentSecurityPolicy &&
-      typeof helmetConfigPermissive.contentSecurityPolicy === 'object'
-        ? helmetConfigPermissive.contentSecurityPolicy.directives
-        : {}),
-      styleSrc: ["'self'"], // Entfernt 'unsafe-inline'
-      scriptSrc: ["'self'"], // Entfernt 'unsafe-inline'
-    },
-  },
 };
 
 /**

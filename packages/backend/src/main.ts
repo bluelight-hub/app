@@ -5,7 +5,6 @@ import { NestFactory, Reflector } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
-import type { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import * as process from 'node:process';
 import * as packageJson from '../package.json';
@@ -13,7 +12,7 @@ import { AppModule } from './app.module';
 import { validateInsecureMode } from './infrastructure/config/bootstrap-validation';
 import { PerformanceInterceptor } from './infrastructure/http/interceptors/performance.interceptor';
 import { TransformInterceptor } from './infrastructure/http/interceptors/transform.interceptor';
-import { corsConfig, helmetConfig, helmetConfigPermissive } from './infrastructure/config/security.config';
+import { corsConfig, helmetConfig } from './infrastructure/config/security.config';
 
 require('@dotenvx/dotenvx').config();
 
@@ -141,14 +140,8 @@ X-Server-Access-Token: <plaintext_token>
   SwaggerModule.setup('api', app, document, {});
 
   // Apply Helmet middleware for security headers
-  // Use a more permissive CSP for the Swagger UI ('/api')
-  app.use((req: Request, res: Response, next: NextFunction) => {
-    if (req.path.startsWith('/api')) {
-      helmet(helmetConfigPermissive)(req, res, next);
-    } else {
-      helmet(helmetConfig)(req, res, next);
-    }
-  });
+  const isProduction = configService.get('NODE_ENV') === 'production';
+  app.use(helmet(isProduction ? helmetConfig : helmetConfigPermissive));
 
   // Apply cookie parser middleware
   app.use(cookieParser());
