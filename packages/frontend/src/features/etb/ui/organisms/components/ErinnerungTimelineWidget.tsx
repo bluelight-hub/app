@@ -127,7 +127,7 @@ function getMetadataDetails(eventType: string, metadata: object | null | undefin
   const meta = metadata as Record<string, unknown>;
 
   // Snoozed: Zeige die Snooze-Dauer
-  if (eventType === 'Snoozed' && meta.snoozeDurationMinutes) {
+  if (eventType === 'ErinnerungSnoozed' && meta.snoozeDurationMinutes) {
     const minutes = meta.snoozeDurationMinutes as number;
     if (minutes >= 60) {
       const hours = Math.floor(minutes / 60);
@@ -138,12 +138,12 @@ function getMetadataDetails(eventType: string, metadata: object | null | undefin
   }
 
   // Erledigt: Zeige die Notiz
-  if (eventType === 'Erledigt' && meta.notiz) {
+  if (eventType === 'ErinnerungErledigt' && meta.notiz) {
     return meta.notiz as string;
   }
 
   // Eskaliert/Intensiviert: Zeige Eskalationsstufe
-  if ((eventType === 'Eskaliert' || eventType === 'Intensiviert') && meta.escalationLevel) {
+  if ((eventType === 'ErinnerungEskaliert' || eventType === 'ErinnerungIntensiviert') && meta.escalationLevel) {
     return `Stufe ${meta.escalationLevel}`;
   }
 
@@ -199,7 +199,7 @@ function TimelineEventItem({ event, isLast, onEntryClick }: TimelineEventItemPro
             {/* Metadata Details */}
             {metadataDetails && (
               <p className="mt-1 text-gray-500 text-xs dark:text-gray-400">
-                <span className="font-medium">{event.eventType === 'Snoozed' ? 'Dauer:' : event.eventType === 'Erledigt' ? 'Notiz:' : ''}</span>
+                <span className="font-medium">{event.eventType === 'ErinnerungSnoozed' ? 'Dauer:' : event.eventType === 'ErinnerungErledigt' ? 'Notiz:' : ''}</span>
                 {metadataDetails}
               </p>
             )}

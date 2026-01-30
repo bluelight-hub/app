@@ -52,7 +52,7 @@ const createWrapper = () => {
 function createMockEvent(overrides: Partial<ErinnerungTimelineEventDto> = {}): ErinnerungTimelineEventDto {
   return {
     id: 'event-1',
-    eventType: 'Erstellt',
+    eventType: 'ErinnerungErstellt',
     timestamp: new Date('2025-01-15T10:30:00Z'),
     sequenceNumber: 1,
     createdBy: {
@@ -200,7 +200,7 @@ describe('ErinnerungTimelineWidget', () => {
       // Given (Arrange)
       mockUseErinnerungTimeline.mockReturnValue({
         data: createMockTimeline({
-          events: [createMockEvent({ eventType: 'Erstellt' })],
+          events: [createMockEvent({ eventType: 'ErinnerungErstellt' })],
         }),
         isLoading: false,
         error: null,
@@ -219,7 +219,7 @@ describe('ErinnerungTimelineWidget', () => {
       // Given (Arrange)
       mockUseErinnerungTimeline.mockReturnValue({
         data: createMockTimeline({
-          events: [createMockEvent({ eventType: 'Ausgeloest' })],
+          events: [createMockEvent({ eventType: 'ErinnerungAusgeloest' })],
         }),
         isLoading: false,
         error: null,
@@ -231,14 +231,14 @@ describe('ErinnerungTimelineWidget', () => {
       });
 
       // Then (Assert)
-      expect(screen.getByText('Ausgeloest')).toBeInTheDocument();
+      expect(screen.getByText('Ausgelöst')).toBeInTheDocument();
     });
 
-    it('should display "Retriggered" event with label "Erneut ausgeloest"', () => {
+    it('should display "Retriggered" event with label "Erneut ausgelöst"', () => {
       // Given (Arrange)
       mockUseErinnerungTimeline.mockReturnValue({
         data: createMockTimeline({
-          events: [createMockEvent({ eventType: 'Retriggered' })],
+          events: [createMockEvent({ eventType: 'ErinnerungRetriggered' })],
         }),
         isLoading: false,
         error: null,
@@ -250,14 +250,14 @@ describe('ErinnerungTimelineWidget', () => {
       });
 
       // Then (Assert)
-      expect(screen.getByText('Erneut ausgeloest')).toBeInTheDocument();
+      expect(screen.getByText('Erneut ausgelöst')).toBeInTheDocument();
     });
 
-    it('should display "Acknowledged" event with label "Bestaetigt"', () => {
+    it('should display "Acknowledged" event with label "Bestätigt"', () => {
       // Given (Arrange)
       mockUseErinnerungTimeline.mockReturnValue({
         data: createMockTimeline({
-          events: [createMockEvent({ eventType: 'Acknowledged' })],
+          events: [createMockEvent({ eventType: 'ErinnerungAcknowledged' })],
         }),
         isLoading: false,
         error: null,
@@ -269,14 +269,14 @@ describe('ErinnerungTimelineWidget', () => {
       });
 
       // Then (Assert)
-      expect(screen.getByText('Bestaetigt')).toBeInTheDocument();
+      expect(screen.getByText('Bestätigt')).toBeInTheDocument();
     });
 
     it('should display "Snoozed" event with label "Verschoben"', () => {
       // Given (Arrange)
       mockUseErinnerungTimeline.mockReturnValue({
         data: createMockTimeline({
-          events: [createMockEvent({ eventType: 'Snoozed' })],
+          events: [createMockEvent({ eventType: 'ErinnerungSnoozed' })],
         }),
         isLoading: false,
         error: null,
@@ -295,7 +295,7 @@ describe('ErinnerungTimelineWidget', () => {
       // Given (Arrange)
       mockUseErinnerungTimeline.mockReturnValue({
         data: createMockTimeline({
-          events: [createMockEvent({ eventType: 'Eskaliert' })],
+          events: [createMockEvent({ eventType: 'ErinnerungEskaliert' })],
         }),
         isLoading: false,
         error: null,
@@ -314,7 +314,7 @@ describe('ErinnerungTimelineWidget', () => {
       // Given (Arrange)
       mockUseErinnerungTimeline.mockReturnValue({
         data: createMockTimeline({
-          events: [createMockEvent({ eventType: 'Intensiviert' })],
+          events: [createMockEvent({ eventType: 'ErinnerungIntensiviert' })],
         }),
         isLoading: false,
         error: null,
@@ -333,7 +333,7 @@ describe('ErinnerungTimelineWidget', () => {
       // Given (Arrange)
       mockUseErinnerungTimeline.mockReturnValue({
         data: createMockTimeline({
-          events: [createMockEvent({ eventType: 'Erledigt' })],
+          events: [createMockEvent({ eventType: 'ErinnerungErledigt' })],
         }),
         isLoading: false,
         error: null,
@@ -352,7 +352,7 @@ describe('ErinnerungTimelineWidget', () => {
       // Given (Arrange)
       mockUseErinnerungTimeline.mockReturnValue({
         data: createMockTimeline({
-          events: [createMockEvent({ eventType: 'Assigned' })],
+          events: [createMockEvent({ eventType: 'ErinnerungAssigned' })],
         }),
         isLoading: false,
         error: null,
@@ -371,7 +371,7 @@ describe('ErinnerungTimelineWidget', () => {
       // Given (Arrange)
       mockUseErinnerungTimeline.mockReturnValue({
         data: createMockTimeline({
-          events: [createMockEvent({ eventType: 'Aktualisiert' })],
+          events: [createMockEvent({ eventType: 'ErinnerungAktualisiert' })],
         }),
         isLoading: false,
         error: null,
@@ -386,11 +386,11 @@ describe('ErinnerungTimelineWidget', () => {
       expect(screen.getByText('Aktualisiert')).toBeInTheDocument();
     });
 
-    it('should display "Geloescht" event with correct label', () => {
+    it('should display "Gelöscht" event with correct label', () => {
       // Given (Arrange)
       mockUseErinnerungTimeline.mockReturnValue({
         data: createMockTimeline({
-          events: [createMockEvent({ eventType: 'Geloescht' })],
+          events: [createMockEvent({ eventType: 'ErinnerungGeloescht' })],
         }),
         isLoading: false,
         error: null,
@@ -402,7 +402,7 @@ describe('ErinnerungTimelineWidget', () => {
       });
 
       // Then (Assert)
-      expect(screen.getByText('Geloescht')).toBeInTheDocument();
+      expect(screen.getByText('Gelöscht')).toBeInTheDocument();
     });
 
     it('should display unknown event type as-is (fallback)', () => {
@@ -431,10 +431,10 @@ describe('ErinnerungTimelineWidget', () => {
       mockUseErinnerungTimeline.mockReturnValue({
         data: createMockTimeline({
           events: [
-            createMockEvent({ id: 'ev-1', eventType: 'Erstellt', sequenceNumber: 1 }),
-            createMockEvent({ id: 'ev-2', eventType: 'Ausgeloest', sequenceNumber: 2 }),
-            createMockEvent({ id: 'ev-3', eventType: 'Snoozed', sequenceNumber: 3 }),
-            createMockEvent({ id: 'ev-4', eventType: 'Erledigt', sequenceNumber: 4 }),
+            createMockEvent({ id: 'ev-1', eventType: 'ErinnerungErstellt', sequenceNumber: 1 }),
+            createMockEvent({ id: 'ev-2', eventType: 'ErinnerungAusgeloest', sequenceNumber: 2 }),
+            createMockEvent({ id: 'ev-3', eventType: 'ErinnerungSnoozed', sequenceNumber: 3 }),
+            createMockEvent({ id: 'ev-4', eventType: 'ErinnerungErledigt', sequenceNumber: 4 }),
           ],
           totalCount: 4,
         }),
@@ -449,7 +449,7 @@ describe('ErinnerungTimelineWidget', () => {
 
       // Then (Assert)
       expect(screen.getByText('Erstellt')).toBeInTheDocument();
-      expect(screen.getByText('Ausgeloest')).toBeInTheDocument();
+      expect(screen.getByText('Ausgelöst')).toBeInTheDocument();
       expect(screen.getByText('Verschoben')).toBeInTheDocument();
       expect(screen.getByText('Erledigt')).toBeInTheDocument();
     });
@@ -631,7 +631,7 @@ describe('ErinnerungTimelineWidget', () => {
         data: createMockTimeline({
           events: [
             createMockEvent({
-              eventType: 'Snoozed',
+              eventType: 'ErinnerungSnoozed',
               metadata: { snoozeDurationMinutes: 30 },
             }),
           ],
@@ -656,7 +656,7 @@ describe('ErinnerungTimelineWidget', () => {
         data: createMockTimeline({
           events: [
             createMockEvent({
-              eventType: 'Snoozed',
+              eventType: 'ErinnerungSnoozed',
               metadata: { snoozeDurationMinutes: 120 },
             }),
           ],
@@ -680,7 +680,7 @@ describe('ErinnerungTimelineWidget', () => {
         data: createMockTimeline({
           events: [
             createMockEvent({
-              eventType: 'Snoozed',
+              eventType: 'ErinnerungSnoozed',
               metadata: { snoozeDurationMinutes: 90 },
             }),
           ],
@@ -704,7 +704,7 @@ describe('ErinnerungTimelineWidget', () => {
         data: createMockTimeline({
           events: [
             createMockEvent({
-              eventType: 'Erledigt',
+              eventType: 'ErinnerungErledigt',
               metadata: { notiz: 'Wurde telefonisch geklaert' },
             }),
           ],
@@ -729,7 +729,7 @@ describe('ErinnerungTimelineWidget', () => {
         data: createMockTimeline({
           events: [
             createMockEvent({
-              eventType: 'Eskaliert',
+              eventType: 'ErinnerungEskaliert',
               metadata: { escalationLevel: 2 },
             }),
           ],
@@ -753,7 +753,7 @@ describe('ErinnerungTimelineWidget', () => {
         data: createMockTimeline({
           events: [
             createMockEvent({
-              eventType: 'Intensiviert',
+              eventType: 'ErinnerungIntensiviert',
               metadata: { escalationLevel: 3 },
             }),
           ],
@@ -777,7 +777,7 @@ describe('ErinnerungTimelineWidget', () => {
         data: createMockTimeline({
           events: [
             createMockEvent({
-              eventType: 'Snoozed',
+              eventType: 'ErinnerungSnoozed',
               metadata: null,
             }),
           ],
