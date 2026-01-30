@@ -5,6 +5,7 @@ import { NestFactory, Reflector } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
+import type { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import * as process from 'node:process';
 import * as packageJson from '../package.json';
@@ -141,7 +142,7 @@ X-Server-Access-Token: <plaintext_token>
 
   // Apply Helmet middleware for security headers
   // Use a more permissive CSP for the Swagger UI ('/api')
-  app.use((req, res, next) => {
+  app.use((req: Request, res: Response, next: NextFunction) => {
     if (req.path.startsWith('/api')) {
       helmet(helmetConfigPermissive)(req, res, next);
     } else {

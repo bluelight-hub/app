@@ -66,7 +66,10 @@ export const helmetConfig: HelmetOptions = {
   ...helmetConfigPermissive,
   contentSecurityPolicy: {
     directives: {
-      ...helmetConfigPermissive.contentSecurityPolicy.directives,
+      ...(helmetConfigPermissive.contentSecurityPolicy &&
+      typeof helmetConfigPermissive.contentSecurityPolicy === 'object'
+        ? helmetConfigPermissive.contentSecurityPolicy.directives
+        : {}),
       styleSrc: ["'self'"], // Entfernt 'unsafe-inline'
       scriptSrc: ["'self'"], // Entfernt 'unsafe-inline'
     },
