@@ -1,11 +1,12 @@
 import { EtbEntryDetails } from '@/features/etb/ui/organisms/components/EtbEntryDetails';
 import { EtbTableRowEditable } from '@/features/etb/ui/organisms/components/EtbTableRowEditable';
+import { useIsEntryHighlighted } from '@/features/reminders/stores';
 import { cn } from '@/shared/ui/cn';
 import type { EintragDto } from '@/shared';
 import type { ColumnDef, Row } from '@tanstack/react-table';
 import { flexRender } from '@tanstack/react-table';
 import type { VirtualItem } from '@tanstack/react-virtual';
-import { Fragment } from 'react';
+import { Fragment, memo } from 'react';
 import { PiCircleNotch } from 'react-icons/pi';
 
 interface EtbTableBodyProps {
@@ -18,17 +19,83 @@ interface EtbTableBodyProps {
   entries: EintragDto[];
   enableInlineEdit: boolean;
   einsatzId?: string;
+  /**
+   * ETB-ID fuer Timeline-Abfrage (Story 5.5)
+   */
+  etbId?: string;
   onDelete: (entry: EintragDto) => void;
   getUserName: (userId: string) => string | undefined;
+  /**
+   * Callback wenn auf einen ETB-Eintrag in der Timeline geklickt wird (Story 5.5)
+   */
+  onEntryClick?: (entryId: string) => void;
 }
 
 // Statische Skeleton-Row-Keys (für Performance und Linter)
 const SKELETON_KEYS = Array.from({ length: 10 }, (_, i) => `skeleton-${i}`);
 
 /**
- * ETB Table Body mit Virtualisierung
+ * Story 5.5: Einzelne Tabellenzeile mit Highlight-Support
+ *
+ * Nutzt useIsEntryHighlighted um reaktiv auf Highlight-Store Aenderungen zu reagieren.
  */
-export function EtbTableBody({ virtualRows, rows, columns, paddingTop, paddingBottom, isLoading, entries, enableInlineEdit, einsatzId, onDelete, getUserName }: EtbTableBodyProps) {
+interface EtbTableRowProps {
+  row: Row<EintragDto>;
+  virtualRowSize: number;
+  getUserName: (userId: string) => string | undefined;
+  etbId?: string;
+  onEntryClick?: (entryId: string) => void;
+}
+
+const EtbTableRow = memo(function EtbTableRow({ row, virtualRowSize, getUserName, etbId, onEntryClick }: EtbTableRowProps) {
+  const isHighlighted = useIsEntryHighlighted(row.original.id);
+
+  return (
+    <tr
+      id={`etb-entry-${row.original.id}`}
+      className={cn(
+        'transition-all duration-300',
+        row.original.deletedAt ? 'border-l-2 border-l-red-500 bg-red-50/30 opacity-60 dark:bg-red-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-900/50',
+        // Story 5.5: Highlight-Animation wenn Entry hervorgehoben ist
+        isHighlighted && 'ring-2 ring-primary-500 ring-offset-2 bg-primary-50 dark:bg-primary-900/20',
+      )}
+      style={{ height: `${virtualRowSize}px` }}
+    >
+      {row.getVisibleCells().map((cell) => (
+        <td
+          key={cell.id}
+          className="px-4 py-3 align-top"
+          style={{
+            width: cell.column.getSize(),
+          }}
+        >
+          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+        </td>
+      ))}
+    </tr>
+  );
+});
+
+/**
+ * ETB Table Body mit Virtualisierung
+ *
+ * **Story 5.5:** Unterstuetzt Timeline-Widget in expandierten Eintraegen
+ */
+export function EtbTableBody({
+  virtualRows,
+  rows,
+  columns,
+  paddingTop,
+  paddingBottom,
+  isLoading,
+  entries,
+  enableInlineEdit,
+  einsatzId,
+  etbId,
+  onDelete,
+  getUserName,
+  onEntryClick,
+}: EtbTableBodyProps) {
   return (
     <tbody className="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-gray-950">
       {paddingTop > 0 && (
@@ -80,29 +147,14 @@ export function EtbTableBody({ virtualRows, rows, columns, paddingTop, paddingBo
               {enableInlineEdit && einsatzId ? (
                 <EtbTableRowEditable row={row} style={{ height: `${virtualRow.size}px` }} onDelete={onDelete} einsatzId={einsatzId} />
               ) : (
-                <tr
-                  className={cn('transition-colors', row.original.deletedAt ? 'border-l-2 border-l-red-500 bg-red-50/30 opacity-60 dark:bg-red-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-900/50')}
-                  style={{ height: `${virtualRow.size}px` }}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <td
-                      key={cell.id}
-                      className="px-4 py-3 align-top"
-                      style={{
-                        width: cell.column.getSize(),
-                      }}
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
-                </tr>
+                <EtbTableRow row={row} virtualRowSize={virtualRow.size} getUserName={getUserName} etbId={etbId} onEntryClick={onEntryClick} />
               )}
 
               {/* Expanded Row */}
               {row.getIsExpanded() && (
                 <tr>
                   <td colSpan={columns.length} className="bg-gray-50 px-8 py-4 dark:bg-gray-900/30">
-                    <EtbEntryDetails entry={row.original} getUserName={getUserName} />
+                    <EtbEntryDetails entry={row.original} getUserName={getUserName} etbId={etbId} onEntryClick={onEntryClick} />
                   </td>
                 </tr>
               )}

@@ -1,3 +1,4 @@
+import { ErinnerungTimelineDto, GetErinnerungTimelineQuery, GetErinnerungTimelineQueryHandler } from '@/application/etb/queries';
 import { AddEintragCommand, DeleteEintragCommand, LockEtbCommand, UpdateEintragCommand } from '@/application/etb/commands';
 import { AddEintragHandler } from '@/application/etb/commands/add-eintrag/add-eintrag.handler';
 import { DeleteEintragHandler } from '@/application/etb/commands/delete-eintrag/delete-eintrag.handler';
@@ -8,6 +9,8 @@ import { EtbQueryMapper, type EtbSnapshotDto as EtbSnapshotDtoFromMapper } from 
 import { GetEtbHistoryQuery, GetEtbHistoryQueryHandler, GetEtbQuery, GetEtbQueryHandler, GetTextbausteineHandler, GetTextbausteineQuery } from '@/application/etb/queries';
 import type { EtbKategorie } from '@/generated/prisma/client';
 import { ETB_REPOSITORY, LOGGER } from '@/infrastructure/di-tokens';
+// biome-ignore lint/style/useImportType: PrismaService is an Injectable class, not just a type - needed for DI at runtime
+import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import { Roles } from '@/modules/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
@@ -35,6 +38,7 @@ import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiNotFound
  * **Endpunkte:**
  * - GET /etb/einsatz/:einsatzId - ETB für Einsatz abrufen
  * - GET /etb/:etbId/history - ETB Versionshistorie abrufen
+ * - GET /etb/:etbId/erinnerungen/:erinnerungId/timeline - Erinnerungs-Timeline abrufen (Story 5.5)
  * - POST /etb/:etbId/eintrag - Neuen Eintrag hinzufügen
  * - PUT /etb/:etbId/eintrag/:eintragId - Eintrag aktualisieren
  * - DELETE /etb/:etbId/eintrag/:eintragId - Eintrag soft-löschen
@@ -61,10 +65,37 @@ export class EtbCqrsController {
     private readonly getEtbQueryHandler: GetEtbQueryHandler,
     private readonly getEtbHistoryQueryHandler: GetEtbHistoryQueryHandler,
     private readonly getTextbausteineHandler: GetTextbausteineHandler,
+    private readonly getErinnerungTimelineHandler: GetErinnerungTimelineQueryHandler,
     @Inject(ETB_REPOSITORY)
     private readonly etbRepository: IEtbRepository,
     @Inject(LOGGER) private readonly logger: ILogger,
+    private readonly prisma: PrismaService,
   ) {}
+
+  // ============================================
+  // PRIVATE HELPERS
+  // ============================================
+
+  /**
+   * Prüft ob ein User aktiver Einsatzteilnehmer ist.
+   *
+   * Ein User ist aktiv wenn er am Einsatz teilnimmt und noch nicht verlassen hat (leftAt: null).
+   *
+   * @param userId - ID des Users
+   * @param einsatzId - ID des Einsatzes
+   * @returns true wenn User aktiver Teilnehmer ist, false sonst
+   */
+  private async checkUserIsActiveTeilnehmer(userId: string, einsatzId: string): Promise<boolean> {
+    const teilnehmer = await this.prisma.einsatzTeilnehmer.findFirst({
+      where: {
+        userId,
+        einsatzId,
+        leftAt: null, // Nur aktive Teilnehmer (nicht verlassen)
+      },
+      select: { id: true },
+    });
+    return teilnehmer !== null;
+  }
 
   // ============================================
   // GET ENDPOINTS (Queries)
@@ -226,6 +257,85 @@ export class EtbCqrsController {
       }
       throw error;
     }
+  }
+
+  /**
+   * Erinnerungs-Timeline abrufen (Story 5.5)
+   *
+   * Liefert den vollständigen Verlauf einer Erinnerung als Timeline.
+   * Die Timeline zeigt alle Status-Übergänge, Zuweisungen, Snoozes etc.
+   *
+   * @param etbId - ID des ETB (CUID2 Format)
+   * @param erinnerungId - ID der Erinnerung (CUID2 Format)
+   * @param user - Authentifizierter User (aus JWT)
+   * @returns ErinnerungTimelineDto mit allen Timeline-Einträgen
+   * @throws NotFoundException wenn ETB oder Erinnerung nicht gefunden
+   * @throws BadRequestException bei ungültigen IDs
+   */
+  @Get(':etbId/erinnerungen/:erinnerungId/timeline')
+  @ApiOperation({
+    summary: 'Erinnerungs-Timeline abrufen',
+    description: 'Gibt den vollständigen Verlauf einer Erinnerung als Timeline zurück. Zeigt alle Status-Übergänge, Zuweisungen, Snoozes etc.',
+  })
+  @ApiWrappedResponse(ErinnerungTimelineDto, {
+    description: 'Vollständiger Erinnerungsverlauf als Timeline',
+  })
+  @ApiNotFoundResponse({ description: 'ETB oder Erinnerung nicht gefunden' })
+  @ApiBadRequestResponse({ description: 'Ungültige ETB-ID oder Erinnerungs-ID' })
+  async getErinnerungTimeline(@Param('etbId') etbId: string, @Param('erinnerungId') erinnerungId: string, @CurrentUser() user: ValidatedUser): Promise<ErinnerungTimelineDto> {
+    this.logger.log(`Getting timeline for Erinnerung ${erinnerungId} in ETB ${etbId} by user ${user.userId}`);
+
+    // Erst ETB laden um einsatzId zu erhalten
+    const etbIdResult = EtbId.create(etbId);
+    if (etbIdResult.isFailure || !etbIdResult.value) {
+      throw new BadRequestException('Ungültige ETB-ID');
+    }
+
+    const etbAggregate = await this.etbRepository.findById(etbIdResult.value);
+    if (!etbAggregate) {
+      throw new NotFoundException(`ETB ${etbId} nicht gefunden`);
+    }
+
+    // CRITICAL 3: Validierung dass ETB zur Route-Parameter etbId gehört
+    // ETB und Einsatz haben eine 1:1 Beziehung mit gleicher ID
+    // Die einsatzId aus dem geladenen ETB wird an den Handler übergeben,
+    // der sie als etbId für die Query verwendet - so ist garantiert,
+    // dass nur Einträge vom geladenen ETB zurückgegeben werden
+    const einsatzId = etbAggregate.einsatzId.value;
+
+    // CRITICAL 1: Prüfe User-Berechtigung für Einsatz-Zugriff
+    // User muss aktiver Einsatzteilnehmer sein (leftAt: null = aktiv)
+    const isActiveTeilnehmer = await this.checkUserIsActiveTeilnehmer(user.userId, einsatzId);
+    if (!isActiveTeilnehmer) {
+      this.logger.warn(`User ${user.userId} is not an active participant of Einsatz ${einsatzId}`, 'EtbCqrsController');
+      throw new ForbiddenException('Keine Berechtigung: User ist kein aktiver Einsatzteilnehmer');
+    }
+
+    // Timeline-Query erstellen und ausführen
+    // Query-Konstruktor validiert Inputs und wirft Error bei ungültigen IDs
+    let query: GetErinnerungTimelineQuery;
+    try {
+      query = new GetErinnerungTimelineQuery(erinnerungId, einsatzId);
+    } catch (error) {
+      throw new BadRequestException(error instanceof Error ? error.message : 'Ungültige Query-Parameter');
+    }
+
+    const result = await this.getErinnerungTimelineHandler.execute(query);
+
+    if (result.isFailure) {
+      this.logger.error(`Failed to get timeline for Erinnerung ${erinnerungId}: ${result.error}`);
+      if (result.error?.includes('nicht gefunden') || result.error?.includes('not found')) {
+        throw new NotFoundException(result.error);
+      }
+      throw new BadRequestException(result.error);
+    }
+
+    if (!result.value) {
+      throw new NotFoundException(`Timeline für Erinnerung ${erinnerungId} nicht gefunden`);
+    }
+
+    this.logger.log(`Timeline for Erinnerung ${erinnerungId} returned with ${result.value.events?.length ?? 0} events`);
+    return result.value;
   }
 
   // ============================================

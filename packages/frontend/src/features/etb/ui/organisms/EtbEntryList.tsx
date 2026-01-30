@@ -1,6 +1,7 @@
 import { useConfirm } from '@/shared/hooks/useConfirm';
 import { useDeleteEtbEntry } from '@/features/etb';
 import { useUserNames } from '@/features/auth';
+import { useHighlightedEntryId, setHighlightedEntry } from '@/features/reminders/stores';
 import type { EintragDto } from '@/shared';
 import { type ExpandedState, getCoreRowModel, getExpandedRowModel, getFilteredRowModel, getSortedRowModel, type SortingState, useReactTable } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
@@ -33,7 +34,10 @@ interface EtbEntryListProps {
 }
 
 /**
- * ETB-Einträge-Liste mit TanStack Table
+ * ETB-Eintraege-Liste mit TanStack Table
+ *
+ * **Story 5.5:** Unterstuetzt Timeline-Widget in expandierten Eintraegen.
+ * Scroll-To-Entry wird intern via Highlight-Store gehandhabt.
  */
 export function EtbEntryList({
   entries,
@@ -188,6 +192,32 @@ export function EtbEntryList({
   const paddingTop = virtualRows.length > 0 ? virtualRows?.[0]?.start || 0 : 0;
   const paddingBottom = virtualRows.length > 0 ? totalSize - (virtualRows?.[virtualRows.length - 1]?.end || 0) : 0;
 
+  // Story 5.5: Highlight Store Integration - scrolle zu hervorgehobenen Eintraegen
+  const highlightedEntryId = useHighlightedEntryId();
+
+  useEffect(() => {
+    if (!highlightedEntryId) return;
+
+    // Finde den Index des Eintrags in der (gefilterten/sortierten) Tabelle
+    const entryIndex = rows.findIndex((row) => row.original.id === highlightedEntryId);
+    if (entryIndex === -1) return;
+
+    // Scrolle zum Index mit dem Virtualizer
+    rowVirtualizer.scrollToIndex(entryIndex, {
+      align: 'center',
+      behavior: 'smooth',
+    });
+  }, [highlightedEntryId, rows, rowVirtualizer]);
+
+  /**
+   * Story 5.5: Scrollt zu einem ETB-Eintrag und hebt ihn hervor
+   * Nutzt den Highlight-Store fuer reaktives Scrolling und Animation
+   */
+  const handleScrollToEntry = useCallback((entryId: string) => {
+    // Setze den Eintrag im Store - der Effect oben kuemmert sich um das Scrollen
+    setHighlightedEntry(entryId);
+  }, []);
+
   // Empty State mit fester Höhe für konsistentes Layout
   if (entries.length === 0 && !isLoading) {
     return (
@@ -236,8 +266,10 @@ export function EtbEntryList({
             entries={entries}
             enableInlineEdit={enableInlineEdit}
             einsatzId={einsatzId}
+            etbId={etbId}
             onDelete={handleDelete}
             getUserName={getUserName}
+            onEntryClick={handleScrollToEntry}
           />
         </table>
 

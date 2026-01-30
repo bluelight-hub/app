@@ -16,6 +16,7 @@ import * as runtime from '../runtime';
 import type {
   AddEintragDto,
   EtbCqrsControllerAddEintragVAlpha201Response,
+  EtbCqrsControllerGetErinnerungTimelineVAlpha200Response,
   EtbCqrsControllerGetEtbByEinsatzIdVAlpha200Response,
   EtbCqrsControllerGetEtbHistoryVAlpha200Response,
   EtbCqrsControllerGetTextbausteineVAlpha200Response,
@@ -26,6 +27,8 @@ import {
   AddEintragDtoToJSON,
   EtbCqrsControllerAddEintragVAlpha201ResponseFromJSON,
   EtbCqrsControllerAddEintragVAlpha201ResponseToJSON,
+  EtbCqrsControllerGetErinnerungTimelineVAlpha200ResponseFromJSON,
+  EtbCqrsControllerGetErinnerungTimelineVAlpha200ResponseToJSON,
   EtbCqrsControllerGetEtbByEinsatzIdVAlpha200ResponseFromJSON,
   EtbCqrsControllerGetEtbByEinsatzIdVAlpha200ResponseToJSON,
   EtbCqrsControllerGetEtbHistoryVAlpha200ResponseFromJSON,
@@ -44,6 +47,11 @@ export interface EtbCqrsControllerAddEintragVAlphaRequest {
 export interface EtbCqrsControllerDeleteEintragVAlphaRequest {
   etbId: string;
   eintragId: string;
+}
+
+export interface EtbCqrsControllerGetErinnerungTimelineVAlphaRequest {
+  etbId: string;
+  erinnerungId: string;
 }
 
 export interface EtbCqrsControllerGetEtbByEinsatzIdVAlphaRequest {
@@ -163,6 +171,53 @@ export class ETBApi extends runtime.BaseAPI {
    */
   async etbCqrsControllerDeleteEintragVAlpha(requestParameters: EtbCqrsControllerDeleteEintragVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
     await this.etbCqrsControllerDeleteEintragVAlphaRaw(requestParameters, initOverrides);
+  }
+
+  /**
+   * Gibt den vollständigen Verlauf einer Erinnerung als Timeline zurück. Zeigt alle Status-Übergänge, Zuweisungen, Snoozes etc.
+   * Erinnerungs-Timeline abrufen
+   */
+  async etbCqrsControllerGetErinnerungTimelineVAlphaRaw(
+    requestParameters: EtbCqrsControllerGetErinnerungTimelineVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<EtbCqrsControllerGetErinnerungTimelineVAlpha200Response>> {
+    if (requestParameters['etbId'] == null) {
+      throw new runtime.RequiredError('etbId', 'Required parameter "etbId" was null or undefined when calling etbCqrsControllerGetErinnerungTimelineVAlpha().');
+    }
+
+    if (requestParameters['erinnerungId'] == null) {
+      throw new runtime.RequiredError('erinnerungId', 'Required parameter "erinnerungId" was null or undefined when calling etbCqrsControllerGetErinnerungTimelineVAlpha().');
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/etb/{etbId}/erinnerungen/{erinnerungId}/timeline`
+          .replace(`{${'etbId'}}`, encodeURIComponent(String(requestParameters['etbId'])))
+          .replace(`{${'erinnerungId'}}`, encodeURIComponent(String(requestParameters['erinnerungId']))),
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => EtbCqrsControllerGetErinnerungTimelineVAlpha200ResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Gibt den vollständigen Verlauf einer Erinnerung als Timeline zurück. Zeigt alle Status-Übergänge, Zuweisungen, Snoozes etc.
+   * Erinnerungs-Timeline abrufen
+   */
+  async etbCqrsControllerGetErinnerungTimelineVAlpha(
+    requestParameters: EtbCqrsControllerGetErinnerungTimelineVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<EtbCqrsControllerGetErinnerungTimelineVAlpha200Response> {
+    const response = await this.etbCqrsControllerGetErinnerungTimelineVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
   }
 
   /**

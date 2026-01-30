@@ -37,3 +37,7 @@ export type { LockEtbVariables } from './use-lock-etb';
 // Combined Operations
 export { useEtbOperations } from './use-etb-operations';
 export type { UseEtbOperationsOptions } from './use-etb-operations';
+
+// Timeline (Story 5.5)
+export { useErinnerungTimeline, ERINNERUNG_TIMELINE_QUERY_KEYS } from './use-erinnerung-timeline';
+export type { UseErinnerungTimelineOptions } from './use-erinnerung-timeline';

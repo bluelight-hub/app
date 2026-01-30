@@ -225,6 +225,11 @@ export {
   useIsHighlighted,
   useHighlightedErinnerungId,
   useHighlightStoreState,
+  // ETB Entry Highlight (Story 5.5)
+  setHighlightedEntry,
+  clearHighlightedEntry,
+  useIsEntryHighlighted,
+  useHighlightedEntryId,
   // Types
   type HighlightStoreState,
 } from './highlight.store';

@@ -13,3 +13,4 @@ export { EtbVersionDto } from './etb-version.dto';
 export { EtbSnapshotDto } from './etb-snapshot.dto';
 export { TextbausteinDto } from './textbaustein.dto';
 export { TextbausteinListResponse } from './textbaustein-list-response.dto';
+export { ErinnerungTimelineDto, ErinnerungTimelineEventDto, TimelineUserDto } from './erinnerung-timeline.dto';

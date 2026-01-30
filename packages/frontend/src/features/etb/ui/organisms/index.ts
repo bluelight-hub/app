@@ -20,6 +20,7 @@ export { EtbSnapshotHistoryModal } from './components/EtbSnapshotHistoryModal';
 export { EtbTableRowEditable } from './components/EtbTableRowEditable';
 export { ScreenshotLightbox } from './components/ScreenshotLightbox';
 export { EtbActionsCell } from './components/cells/EtbActionsCell';
+export { ErinnerungTimelineWidget } from './components/ErinnerungTimelineWidget';
 
 // Fullscreen View
 export { EtbFullscreenView } from './EtbFullscreenView';

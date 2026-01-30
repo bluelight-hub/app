@@ -133,8 +133,12 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
   // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
   let mockGetTextbausteineHandler: jest.Mocked<any>;
   // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+  let mockGetErinnerungTimelineHandler: jest.Mocked<any>;
+  // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
   let mockEtbRepository: jest.Mocked<any>;
   let mockLogger: jest.Mocked<ILogger>;
+  // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+  let mockPrismaService: jest.Mocked<any>;
 
   const adminUser: ValidatedUser = {
     userId: createTestCuid('admin'),
@@ -178,6 +182,10 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       execute: jest.fn(),
     };
 
+    mockGetErinnerungTimelineHandler = {
+      execute: jest.fn(),
+    };
+
     mockEtbRepository = {
       findById: jest.fn(),
       findByEinsatzId: jest.fn(),
@@ -193,6 +201,13 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       verbose: jest.fn(),
     } as jest.Mocked<ILogger>;
 
+    // Create mock PrismaService
+    mockPrismaService = {
+      einsatzTeilnehmer: {
+        findFirst: jest.fn(),
+      },
+    };
+
     // Instantiate controller with mocks (Direct Instantiation Pattern)
     controller = new EtbCqrsController(
       mockAddEintragHandler,
@@ -202,8 +217,10 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       mockGetEtbQueryHandler,
       mockGetEtbHistoryQueryHandler,
       mockGetTextbausteineHandler,
+      mockGetErinnerungTimelineHandler,
       mockEtbRepository,
       mockLogger,
+      mockPrismaService,
     );
   });
 

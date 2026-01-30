@@ -21,7 +21,7 @@ import { EtbCqrsController } from './controllers/etb-cqrs.controller';
 @Module({
   imports: [
     PrismaModule,
-    EtbApplicationModule, // Registers all ETB Command/Query Handlers
+    EtbApplicationModule, // Registers all ETB Command/Query Handlers (inkl. GetErinnerungTimelineQueryHandler Story 5.5)
     EtbInfrastructureModule, // Provides IEtbRepository for Controller
   ],
   controllers: [EtbCqrsController],

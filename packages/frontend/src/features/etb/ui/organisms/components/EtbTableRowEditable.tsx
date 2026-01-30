@@ -5,7 +5,7 @@ import type { EintragDto } from '@/shared';
 import { useUpdateEtbEntry } from '@/features/etb';
 import { cn } from '@/shared/ui/cn';
 import { EtbActionsCell } from './cells/EtbActionsCell';
-import { openQuickCreateFromEtb } from '@/features/reminders/stores';
+import { openQuickCreateFromEtb, useIsEntryHighlighted } from '@/features/reminders/stores';
 
 interface EtbTableRowEditableProps {
   row: Row<EintragDto>;
@@ -20,6 +20,8 @@ export const EtbTableRowEditable: React.FC<EtbTableRowEditableProps> = ({ row, s
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(row.original.text);
   const updateEintrag = useUpdateEtbEntry();
+  // Story 5.5: Highlight-Support fuer Inline-Editing Zeilen
+  const isHighlighted = useIsEntryHighlighted(row.original.id);
 
   const handleSave = () => {
     if (!row.original.id) return;
@@ -56,10 +58,13 @@ export const EtbTableRowEditable: React.FC<EtbTableRowEditableProps> = ({ row, s
 
   return (
     <tr
+      id={`etb-entry-${row.original.id}`}
       className={cn(
-        'transition-colors',
+        'transition-all duration-300',
         row.original.deletedAt ? 'border-l-2 border-l-red-500 bg-red-50/30 opacity-60 dark:bg-red-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-900/50',
         isEditing && 'bg-blue-50 dark:bg-blue-900/20',
+        // Story 5.5: Highlight-Animation wenn Entry hervorgehoben ist
+        isHighlighted && 'ring-2 ring-primary-500 ring-offset-2 bg-primary-50 dark:bg-primary-900/20',
         className,
       )}
       style={style}

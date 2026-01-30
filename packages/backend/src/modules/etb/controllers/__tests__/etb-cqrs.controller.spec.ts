@@ -106,8 +106,12 @@ describe('EtbCqrsController', () => {
   let mockGetEtbQueryHandler: jest.Mocked<GetEtbQueryHandler>;
   let mockGetEtbHistoryQueryHandler: jest.Mocked<GetEtbHistoryQueryHandler>;
   let mockGetTextbausteineHandler: jest.Mocked<GetTextbausteineHandler>;
+  // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+  let mockGetErinnerungTimelineHandler: jest.Mocked<any>;
   let mockEtbRepository: jest.Mocked<IEtbRepository>;
   let mockLogger: jest.Mocked<ILogger>;
+  // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+  let mockPrismaService: jest.Mocked<any>;
 
   // Standard mock user for authenticated requests
   const mockUser: ValidatedUser = {
@@ -167,6 +171,11 @@ describe('EtbCqrsController', () => {
       // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
+    mockGetErinnerungTimelineHandler = {
+      execute: jest.fn(),
+      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+    } as any;
+
     mockEtbRepository = {
       findById: jest.fn(),
       findByEinsatzId: jest.fn(),
@@ -184,6 +193,14 @@ describe('EtbCqrsController', () => {
       // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
+    // Create mock PrismaService
+    mockPrismaService = {
+      einsatzTeilnehmer: {
+        findFirst: jest.fn(),
+      },
+      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+    } as any;
+
     // Instantiate controller with mocks
     controller = new EtbCqrsController(
       mockAddEintragHandler,
@@ -193,8 +210,10 @@ describe('EtbCqrsController', () => {
       mockGetEtbQueryHandler,
       mockGetEtbHistoryQueryHandler,
       mockGetTextbausteineHandler,
+      mockGetErinnerungTimelineHandler,
       mockEtbRepository,
       mockLogger,
+      mockPrismaService,
     );
   });
 
