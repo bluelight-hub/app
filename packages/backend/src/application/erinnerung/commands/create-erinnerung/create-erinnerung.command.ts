@@ -19,6 +19,8 @@ export interface CreateErinnerungCommandProps {
   eskalationsPersonId?: string;
   /** Story 4.10: Eskalation nur an Ersteller (Rückläufer) */
   eskalationNurAnErsteller?: boolean;
+  /** Story 5.4: Optionale Referenz zu einem ETB-Eintrag */
+  etbEntryId?: string;
 }
 
 /**
@@ -70,6 +72,7 @@ export class CreateErinnerungCommand {
     public readonly assignedToId: string | undefined,
     public readonly eskalationsPersonId: string | undefined,
     public readonly eskalationNurAnErsteller: boolean,
+    public readonly etbEntryId: string | undefined,
   ) {}
 
   /**
@@ -133,6 +136,21 @@ export class CreateErinnerungCommand {
     }
 
     // ════════════════════════════════════════════════════════════════════════
+    // Validiere etbEntryId (Story 5.4) - optional, aber wenn gesetzt muss es CUID2 sein
+    // ════════════════════════════════════════════════════════════════════════
+    let validatedEtbEntryId: string | undefined;
+    if (props.etbEntryId !== undefined) {
+      const trimmedEtbEntryId = props.etbEntryId.trim();
+      if (trimmedEtbEntryId.length === 0) {
+        return Result.fail<CreateErinnerungCommand>(ERINNERUNG_ERROR_CODES.ETB_ENTRY_ID_INVALID);
+      }
+      if (!CreateErinnerungCommand.CUID2_PATTERN.test(trimmedEtbEntryId)) {
+        return Result.fail<CreateErinnerungCommand>(ERINNERUNG_ERROR_CODES.ETB_ENTRY_ID_INVALID);
+      }
+      validatedEtbEntryId = trimmedEtbEntryId;
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
     // Command erstellen
     // ════════════════════════════════════════════════════════════════════════
     return Result.ok(
@@ -146,6 +164,7 @@ export class CreateErinnerungCommand {
         props.assignedToId?.trim() || undefined,
         props.eskalationsPersonId?.trim() || undefined,
         props.eskalationNurAnErsteller ?? false,
+        validatedEtbEntryId,
       ),
     );
   }

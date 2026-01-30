@@ -58,6 +58,9 @@ export class ErinnerungResponseFactory {
       escalatedAt: erinnerung.escalatedAt?.toISOString() ?? null,
       previousAssigneeId: erinnerung.previousAssigneeId?.toString() ?? null,
       previousAssigneeName: erinnerung.previousAssigneeId ? await this.resolveUserName(erinnerung.previousAssigneeId) : null,
+
+      // Story 5.4: ETB-Eintrag Referenz
+      etbEntryId: erinnerung.etbEntryId ?? null,
     };
   }
 

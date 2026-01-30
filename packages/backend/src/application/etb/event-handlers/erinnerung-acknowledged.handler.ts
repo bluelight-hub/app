@@ -17,17 +17,21 @@ import type { IEventHandler } from '@domain/ports/i-event-handler.port';
 // biome-ignore lint/style/useImportType: ILogger needed for DI at runtime
 import { ILogger } from '@domain/ports/i-logger.port';
 import type { ErinnerungAcknowledgedEvent } from '@domain/events/erinnerung-acknowledged.event';
-import { LOGGER } from '@infrastructure/di-tokens';
+// biome-ignore lint/style/useImportType: IUserRepository needed for DI at runtime
+import { IUserRepository } from '@domain/repositories/i-user.repository';
+import { LOGGER, USER_REPOSITORY } from '@infrastructure/di-tokens';
 import { AddEintragCommand } from '../commands/add-eintrag/add-eintrag.command';
 // biome-ignore lint/style/useImportType: AddEintragHandler needed for DI at runtime
 import { AddEintragHandler } from '../commands/add-eintrag/add-eintrag.handler';
 import type { EtbKategorieValue } from '@domain/value-objects/etb-kategorie';
+import { ERINNERUNG_ETB_TEMPLATES } from '../constants/erinnerung-etb-templates';
+import { UserId } from '@domain/value-objects/user-id';
 
 /**
- * ETB Kategorie fuer automatische System-Eintraege (Erinnerungen).
+ * ETB Kategorie fuer Erinnerungen (Story 5.1 AC2).
  * Als Konstante definiert fuer bessere Wartbarkeit und Type-Safety.
  */
-const ETB_KATEGORIE_SYSTEM: EtbKategorieValue = 'SYSTEM';
+const ETB_KATEGORIE_ERINNERUNG: EtbKategorieValue = 'ERINNERUNG';
 
 /**
  * Event Handler fuer automatischen ETB-Eintrag bei Erinnerung-Bestaetigung.
@@ -45,6 +49,7 @@ export class ErinnerungAcknowledgedEventHandler implements IEventHandler<Erinner
   constructor(
     private readonly addEintragHandler: AddEintragHandler,
     @Inject(LOGGER) private readonly logger: ILogger,
+    @Inject(USER_REPOSITORY) private readonly userRepository: IUserRepository,
   ) {}
 
   /**
@@ -69,15 +74,18 @@ export class ErinnerungAcknowledgedEventHandler implements IEventHandler<Erinner
       // ETB-ID entspricht der EinsatzId (1:1 Beziehung)
       const etbId = event.einsatzId.toString();
 
-      // Story 1.6 AC5: Text fuer ETB-Eintrag
-      const text = `Erinnerung '${event.titel}' bestaetigt`;
+      // Benutzernamen auflösen (Fallback auf UserId falls nicht gefunden)
+      const personName = await this.resolveUserName(event.acknowledgedBy);
+
+      // Story 5.1 AC2: Text fuer ETB-Eintrag via Template
+      const text = ERINNERUNG_ETB_TEMPLATES.ACKNOWLEDGED.replace('{titel}', event.titel).replace('{person}', personName);
 
       // Command erstellen mit Validierung
       const commandResult = AddEintragCommand.create(
         etbId,
         text,
         event.acknowledgedBy.toString(),
-        ETB_KATEGORIE_SYSTEM,
+        ETB_KATEGORIE_ERINNERUNG,
         event.einsatzId.toString(),
         undefined, // absender - nicht relevant fuer automatische Eintraege
         undefined, // empfaenger - nicht relevant fuer automatische Eintraege
@@ -120,6 +128,38 @@ export class ErinnerungAcknowledgedEventHandler implements IEventHandler<Erinner
         'ErinnerungAcknowledgedEventHandler',
       );
       // Fire-and-Forget: NICHT re-thrown!
+    }
+  }
+
+  /**
+   * Loest den Benutzernamen fuer eine UserId auf.
+   * Fallback auf UserId.toString() falls User nicht gefunden wird.
+   *
+   * @param userId - Die aufzuloesende UserId
+   * @returns Benutzername oder UserId als String
+   */
+  private async resolveUserName(userId: UserId): Promise<string> {
+    try {
+      const result = await this.userRepository.findById(userId);
+
+      if (result.isFailure) {
+        // Repository-Fehler (DB-Problem, etc.) - loggen aber nicht crashen
+        this.logger.warn(`Failed to resolve username for userId=${userId.toString()}: ${result.error}, using fallback`, 'ErinnerungAcknowledgedEventHandler');
+        return userId.toString();
+      }
+
+      if (result.value) {
+        // Defensive null check auf username
+        return result.value.username?.value ?? userId.toString();
+      }
+
+      // User nicht gefunden - Fallback auf UserId (kein Log noetig)
+      return userId.toString();
+    } catch (error) {
+      // Unerwartete Exception - loggen und Fallback
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.warn(`Unexpected error resolving username for userId=${userId.toString()}: ${errorMessage}, using fallback`, 'ErinnerungAcknowledgedEventHandler');
+      return userId.toString();
     }
   }
 }

@@ -169,7 +169,7 @@ export function EtbPage({ einsatzId, mode }: EtbPageProps) {
               onSortChange={handleSortChange}
               sortBy={sortBy}
               sortOrder={sortOrder}
-              enableInlineEdit={false}
+              enableInlineEdit={true}
               showDeleted={showDeleted}
               onShowDeletedChange={setShowDeleted}
             />

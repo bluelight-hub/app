@@ -61,6 +61,12 @@ export interface CreateErinnerungDto {
    * @memberof CreateErinnerungDto
    */
   eskalationNurAnErsteller?: boolean;
+  /**
+   * Optionale ETB-Eintrag Referenz (Story 5.4)
+   * @type {string}
+   * @memberof CreateErinnerungDto
+   */
+  etbEntryId?: string;
 }
 
 /**
@@ -88,6 +94,7 @@ export function CreateErinnerungDtoFromJSONTyped(json: any, ignoreDiscriminator:
     assignedToId: json['assignedToId'] == null ? undefined : json['assignedToId'],
     eskalationsPersonId: json['eskalationsPersonId'] == null ? undefined : json['eskalationsPersonId'],
     eskalationNurAnErsteller: json['eskalationNurAnErsteller'] == null ? undefined : json['eskalationNurAnErsteller'],
+    etbEntryId: json['etbEntryId'] == null ? undefined : json['etbEntryId'],
   };
 }
 
@@ -108,5 +115,6 @@ export function CreateErinnerungDtoToJSONTyped(value?: CreateErinnerungDto | nul
     assignedToId: value['assignedToId'],
     eskalationsPersonId: value['eskalationsPersonId'],
     eskalationNurAnErsteller: value['eskalationNurAnErsteller'],
+    etbEntryId: value['etbEntryId'],
   };
 }

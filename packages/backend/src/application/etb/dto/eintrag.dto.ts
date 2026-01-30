@@ -168,4 +168,18 @@ export class EintragDto {
     nullable: true,
   })
   metadata?: Record<string, unknown>;
+
+  /**
+   * Story 5.4: Verknüpfte Erinnerung (wenn aus diesem Eintrag erstellt).
+   * Wird query-basiert geladen - keine Denormalisierung in ETB-Eintrag.
+   */
+  @ApiPropertyOptional({
+    description: 'Verknüpfte Erinnerung (Story 5.4)',
+    example: { id: 'clw3h8x9y0000qwertyuiopas', titel: 'Follow-up Leitstelle' },
+    nullable: true,
+  })
+  linkedErinnerung?: {
+    id: string;
+    titel: string;
+  } | null;
 }

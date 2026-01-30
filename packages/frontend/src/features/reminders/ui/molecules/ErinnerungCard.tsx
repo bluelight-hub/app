@@ -56,14 +56,14 @@ import type { ErinnerungResponseDto } from '@/shared';
 
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { cn } from '@/shared/ui/cn';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PiCheckCircle, PiCheckSquareOffset, PiClockCounterClockwise, PiCloudSlash, PiNotepad, PiPencil, PiTrash, PiUserPlus, PiWarning } from 'react-icons/pi';
 import { useAcknowledgeErinnerung, useSnoozeErinnerung, type SnoozeMinutes } from '../../api';
 import { soundService, timerService, intensificationService } from '../../services';
 import { useCountdown } from '../../hooks/use-countdown';
 import { useErinnerungKonfiguration } from '../../hooks/use-erinnerung-konfiguration';
 import { syncService } from '../../services/sync.service';
-import { openDeleteDialog, openEditDialog, openMarkErledigtDialog, useAnimationEntry, useIntensityLevel, useAudioFailed } from '../../stores';
+import { openDeleteDialog, openEditDialog, openMarkErledigtDialog, useAnimationEntry, useIntensityLevel, useAudioFailed, useIsHighlighted } from '../../stores';
 import { markAsSeen, useIsUnseen } from '../../stores/seen-assignments.store';
 import { AlarmStateBadge } from '../atoms/AlarmStateBadge';
 import { AvatarInitials } from '../atoms/AvatarInitials';
@@ -154,6 +154,22 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
 
   // Story 3.2 AC2: Animation bei WebSocket-Updates
   const animationEntry = useAnimationEntry(erinnerung.id);
+
+  // Story 5.4 Task 6.2: Highlight für Scroll-to-Erinnerung aus ETB Badge
+  const isHighlighted = useIsHighlighted(erinnerung.id);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Story 5.4 Task 6.2: Bei Highlight scrollIntoView aufrufen
+  useEffect(() => {
+    if (isHighlighted && cardRef.current) {
+      cardRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Optional: Fokus setzen fuer Accessibility
+      // Nur fokussieren wenn kein Input-Element aktiv ist (verhindert Formular-Unterbrechung)
+      if (document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+        cardRef.current.focus({ preventScroll: true });
+      }
+    }
+  }, [isHighlighted]);
 
   // Story 3.2 AC2 Accessibility: Reduced-Motion Praeferenz des Benutzers
   const prefersReducedMotion = usePrefersReducedMotion();
@@ -419,6 +435,8 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
     (isTriggered || isEskaliert) && 'bg-red-50 dark:bg-red-900/20',
     // Story 3.2 AC2: Animation bei WebSocket-Updates
     getAnimationClasses(),
+    // Story 5.4 Task 6.2: Highlight-Effekt bei Scroll-to-Erinnerung
+    isHighlighted && 'ring-4 ring-amber-400 ring-opacity-75 animate-pulse',
     className,
   );
 
@@ -661,7 +679,9 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
       <>
         {/* biome-ignore lint/a11y/useSemanticElements: div mit role="group" ist hier korrekt, da Container interaktive Elemente enthaelt */}
         <div
+          ref={cardRef}
           role="group"
+          tabIndex={isHighlighted ? 0 : undefined}
           onKeyDown={handleKeyDown}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
@@ -681,6 +701,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
     <>
       {/* biome-ignore lint/a11y/useSemanticElements: interactive card container requires div */}
       <div
+        ref={cardRef}
         role="button"
         tabIndex={0}
         className={cardBaseClasses}

@@ -139,4 +139,19 @@ export class CreateErinnerungDto {
   @IsOptional()
   @IsBoolean({ message: 'eskalationNurAnErsteller muss ein Boolean sein' })
   eskalationNurAnErsteller?: boolean;
+
+  /**
+   * Story 5.4: Optionale Referenz zu einem ETB-Eintrag.
+   * Wenn gesetzt, wird die Erinnerung mit dem ETB-Eintrag verknüpft.
+   *
+   * @example "clw3h8x9y0006abcdefghijkl"
+   */
+  @ApiProperty({
+    description: 'Optionale ETB-Eintrag Referenz (Story 5.4)',
+    example: 'clw3h8x9y0006abcdefghijkl',
+    required: false,
+  })
+  @IsOptional()
+  @IsString({ message: 'etbEntryId muss ein String sein' })
+  etbEntryId?: string;
 }

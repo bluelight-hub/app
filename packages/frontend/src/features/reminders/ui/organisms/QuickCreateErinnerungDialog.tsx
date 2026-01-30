@@ -16,10 +16,11 @@
  * AC5: Validierung bei Benutzerdefiniert
  */
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from '@tanstack/react-form';
 import { zodValidator } from '@tanstack/zod-form-adapter';
-import { PiAlarm, PiClock, PiNotepad, PiArrowUUpLeft } from 'react-icons/pi';
+import { useQueryClient } from '@tanstack/react-query';
+import { PiAlarm, PiClock, PiNotepad, PiArrowUUpLeft, PiBookOpen } from 'react-icons/pi';
 import { toast } from 'sonner';
 
 import { Button } from '@/shared/ui/atoms/button.atom';
@@ -32,6 +33,7 @@ import { createErinnerungSchema, TIME_PRESETS, type CreateErinnerungFormData } f
 import { TimeInput } from '../molecules/TimeInput';
 import { AssigneeSelector } from '../molecules/AssigneeSelector';
 import { calculateCustomFaelligAm, formatTimeForToast, getDefaultCustomTime } from '../../utils/time-calculation';
+import { ETB_QUERY_KEYS } from '@/features/etb/api/queries';
 
 /**
  * Extrahiert Fehlermeldungen aus TanStack Form Errors.
@@ -47,6 +49,31 @@ function formatErrors(errors: unknown[]): string {
     .join(', ');
 }
 
+/**
+ * Story 5.4: Kuerzt Text fuer Titel-Vorausfuellung.
+ *
+ * @param text - Der zu kuerzende Text
+ * @param maxLength - Maximale Laenge (Standard: 80, um mit " - Follow-up" auf max 100 zu kommen)
+ * @returns Gekuerzter Text mit "..." wenn noetig
+ */
+function truncateForTitle(text: string, maxLength = 80): string {
+  const trimmed = text.trim();
+  if (trimmed.length <= maxLength) {
+    return trimmed;
+  }
+  return `${trimmed.slice(0, maxLength - 3)}...`;
+}
+
+/**
+ * Story 5.4: FromEtb Daten fuer Erinnerung aus ETB-Eintrag erstellen.
+ */
+export interface FromEtbData {
+  /** ID des ETB-Eintrags */
+  entryId: string;
+  /** Text des ETB-Eintrags (fuer Titel-Vorausfuellung) */
+  text: string;
+}
+
 interface QuickCreateErinnerungDialogProps {
   /** Ob der Dialog offen ist */
   isOpen: boolean;
@@ -54,6 +81,11 @@ interface QuickCreateErinnerungDialogProps {
   onClose: () => void;
   /** Einsatz ID */
   einsatzId: string;
+  /**
+   * Story 5.4: Optional - ETB-Eintrag Kontext fuer Erinnerung aus ETB erstellen.
+   * Wenn gesetzt, wird der Titel vorausgefuellt und etbEntryId an die Mutation uebergeben.
+   */
+  fromEtb?: FromEtbData | null;
 }
 
 /**
@@ -61,15 +93,25 @@ interface QuickCreateErinnerungDialogProps {
  *
  * Der User waehlt ein Zeit-Preset (Chips) und gibt einen Titel ein.
  * Das Backend berechnet automatisch die faelligAm-Zeit basierend auf der Auswahl.
+ *
+ * **Story 5.4:** Unterstuetzt optional `fromEtb` prop fuer Erinnerung aus ETB-Eintrag.
  */
-export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId }: QuickCreateErinnerungDialogProps) {
+export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEtb }: QuickCreateErinnerungDialogProps) {
   const [apiErrorMessage, setApiErrorMessage] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const { mutate: createErinnerung, isPending } = useCreateErinnerung();
 
+  // Story 5.4: Berechne vorausgefuellten Titel aus ETB-Text
+  const defaultTitel = useMemo(() => {
+    if (!fromEtb?.text) return '';
+    // Kuerze Text auf 80 Zeichen und fuege " - Follow-up" hinzu (gesamt max 100 Zeichen)
+    return `${truncateForTitle(fromEtb.text, 80)} - Follow-up`;
+  }, [fromEtb?.text]);
+
   const form = useForm({
     defaultValues: {
-      titel: '',
+      titel: defaultTitel,
       timeMode: 'preset', // Story 1.2: Default ist Preset-Modus
       minuten: 30, // Default: 30 Minuten
       customTime: getDefaultCustomTime(), // Story 1.2 AC2: aktuelle Zeit + 30 Min
@@ -114,10 +156,18 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId }: Quic
             assignedToId: value.assignedToId ?? undefined, // Story 3.3: Zuweisung an Person
             eskalationsPersonId: value.eskalationsPersonId ?? undefined, // Story 4.1: Eskalationsperson
             eskalationNurAnErsteller: value.eskalationNurAnErsteller, // Story 4.10
+            etbEntryId: fromEtb?.entryId, // Story 5.4: ETB-Eintrag Referenz
           },
         },
         {
-          onSuccess: () => {
+          onSuccess: async () => {
+            // Story 5.4: ETB Query invalidieren fuer UI-Update wenn fromEtb gesetzt
+            if (fromEtb?.entryId) {
+              await queryClient.invalidateQueries({
+                queryKey: ETB_QUERY_KEYS.byEinsatz(einsatzId),
+              });
+            }
+
             // Story 1.2 AC3: Zeige spezifischen Toast mit Zeit-Information
             toast.success('Erinnerung erstellt', {
               description: toastMessage,
@@ -134,6 +184,20 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId }: Quic
       );
     },
   });
+
+  // Story 5.4: Titel aktualisieren wenn fromEtb sich aendert (Dialog wird mit neuem ETB-Kontext geoeffnet)
+  // Fix: Race Condition vermeiden - Titel nur einmal beim ersten Open setzen
+  const hasSetTitelRef = useRef(false);
+
+  useEffect(() => {
+    if (isOpen && defaultTitel && !hasSetTitelRef.current) {
+      form.setFieldValue('titel', defaultTitel);
+      hasSetTitelRef.current = true;
+    }
+    if (!isOpen) {
+      hasSetTitelRef.current = false; // Reset fuer naechsten Dialog-Open
+    }
+  }, [isOpen, defaultTitel, form]);
 
   const handleClose = useCallback(() => {
     if (!isPending) {
@@ -153,6 +217,14 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId }: Quic
       </div>
 
       <Dialog.Body>
+        {/* Story 5.4: ETB-Verknuepfungs-Hinweis */}
+        {fromEtb && (
+          <div className="mb-4 flex items-center gap-2 rounded-lg bg-blue-50 p-3 text-blue-700 text-sm dark:bg-blue-900/20 dark:text-blue-400">
+            <PiBookOpen className="h-4 w-4 flex-shrink-0" />
+            <span>Diese Erinnerung wird mit dem ETB-Eintrag verknuepft.</span>
+          </div>
+        )}
+
         <form
           id="quick-create-erinnerung-form"
           onSubmit={(e) => {

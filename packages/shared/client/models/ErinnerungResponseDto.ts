@@ -163,6 +163,12 @@ export interface ErinnerungResponseDto {
    * @memberof ErinnerungResponseDto
    */
   previousAssigneeName?: string | null;
+  /**
+   * Referenz zu verknüpftem ETB-Eintrag (Story 5.4)
+   * @type {string}
+   * @memberof ErinnerungResponseDto
+   */
+  etbEntryId?: string | null;
 }
 
 /**
@@ -229,6 +235,7 @@ export function ErinnerungResponseDtoFromJSONTyped(json: any, ignoreDiscriminato
     escalatedAt: json['escalatedAt'] == null ? undefined : json['escalatedAt'],
     previousAssigneeId: json['previousAssigneeId'] == null ? undefined : json['previousAssigneeId'],
     previousAssigneeName: json['previousAssigneeName'] == null ? undefined : json['previousAssigneeName'],
+    etbEntryId: json['etbEntryId'] == null ? undefined : json['etbEntryId'],
   };
 }
 
@@ -266,5 +273,6 @@ export function ErinnerungResponseDtoToJSONTyped(value?: ErinnerungResponseDto |
     escalatedAt: value['escalatedAt'],
     previousAssigneeId: value['previousAssigneeId'],
     previousAssigneeName: value['previousAssigneeName'],
+    etbEntryId: value['etbEntryId'],
   };
 }

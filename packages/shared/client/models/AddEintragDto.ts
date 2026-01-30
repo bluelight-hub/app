@@ -75,6 +75,7 @@ export const AddEintragDtoKategorieEnum = {
   Dokumentation: 'DOKUMENTATION',
   Sonstiges: 'SONSTIGES',
   System: 'SYSTEM',
+  Erinnerung: 'ERINNERUNG',
 } as const;
 export type AddEintragDtoKategorieEnum = (typeof AddEintragDtoKategorieEnum)[keyof typeof AddEintragDtoKategorieEnum];
 

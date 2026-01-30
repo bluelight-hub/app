@@ -4,6 +4,7 @@ import { NestLoggerAdapter } from '@infrastructure/common/adapters';
 import { EtbInfrastructureModule } from '@infrastructure/etb/etb-infrastructure.module';
 import { EventInfrastructureModule } from '@infrastructure/events/event-infrastructure.module';
 import { LagekarteInfrastructureModule } from '@infrastructure/lagekarte-infrastructure.module';
+import { UserInfrastructureModule } from '@infrastructure/user/user-infrastructure.module';
 import { Module } from '@nestjs/common';
 import {
   EtbAutoCreationHandler,
@@ -79,6 +80,8 @@ import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler
     EtbInfrastructureModule,
     // Repository Infrastructure (IEinsatzRepository) - für Einsatz-Existenz-Prüfung in CreateEtbHandler
     LagekarteInfrastructureModule,
+    // User Infrastructure (IUserRepository) - für Benutzernamen-Auflösung in Event-Handlers (Story 5.0)
+    UserInfrastructureModule,
   ],
   providers: [
     // Infrastructure Adapters (Cross-cutting concerns)

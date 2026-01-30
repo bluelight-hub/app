@@ -563,6 +563,165 @@ describe('CreateErinnerungHandler', () => {
     });
   });
 
+  describe('etbEntryId (Story 5.4)', () => {
+    it('should create erinnerung with valid etbEntryId', async () => {
+      // Given (Arrange)
+      const etbEntryId = 'clw3h8x9y0000abcdefghijkl'; // Valid CUID2
+      const einsatzId = generateValidEinsatzId();
+      const faelligAm = new Date(Date.now() + 30 * 60 * 1000);
+      const commandResult = CreateErinnerungCommand.create({
+        einsatzId,
+        titel: 'ETB Follow-up',
+        faelligAm,
+        erstelltVon: generateValidUserId(),
+        etbEntryId,
+      });
+      expect(commandResult.isSuccess).toBe(true);
+      const command = commandResult.value!;
+
+      // Mock EtbEintrag existiert und gehört zum gleichen Einsatz
+      const prismaTx = {
+        etbEintrag: {
+          findUnique: jest.fn().mockResolvedValue({
+            id: etbEntryId,
+            etb: { einsatzId }, // Story 5.4: ETB gehört zum gleichen Einsatz
+          }),
+        },
+        einsatzTeilnehmer: {
+          findFirst: jest.fn().mockResolvedValue(null),
+        },
+      };
+      mockPrismaService.$transaction.mockImplementation(async (callback) => callback(prismaTx));
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      const savedEntity = mockErinnerungRepository.save.mock.calls[0][0];
+      expect(savedEntity.etbEntryId).toBe(etbEntryId);
+    });
+
+    it('should fail with non-existent etbEntryId', async () => {
+      // Given (Arrange)
+      const nonExistentEtbEntryId = 'clw3h8x9y0000nonexistent12';
+      const faelligAm = new Date(Date.now() + 30 * 60 * 1000);
+      const commandResult = CreateErinnerungCommand.create({
+        einsatzId: generateValidEinsatzId(),
+        titel: 'ETB Follow-up',
+        faelligAm,
+        erstelltVon: generateValidUserId(),
+        etbEntryId: nonExistentEtbEntryId,
+      });
+      expect(commandResult.isSuccess).toBe(true);
+      const command = commandResult.value!;
+
+      // Mock EtbEintrag existiert NICHT
+      const prismaTx = {
+        etbEintrag: {
+          findUnique: jest.fn().mockResolvedValue(null),
+        },
+        einsatzTeilnehmer: {
+          findFirst: jest.fn().mockResolvedValue(null),
+        },
+      };
+      mockPrismaService.$transaction.mockImplementation(async (callback) => callback(prismaTx));
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe(ERINNERUNG_ERROR_CODES.ETB_ENTRY_NOT_FOUND);
+    });
+
+    it('should create erinnerung without etbEntryId (optional)', async () => {
+      // Given (Arrange)
+      const commandResult = createValidCommand();
+      expect(commandResult.isSuccess).toBe(true);
+      const command = commandResult.value!;
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      const savedEntity = mockErinnerungRepository.save.mock.calls[0][0];
+      expect(savedEntity.etbEntryId).toBeNull();
+    });
+
+    it('should fail when etbEntryId is invalid CUID2 format', () => {
+      // Given & When (Arrange & Act)
+      const faelligAm = new Date(Date.now() + 30 * 60 * 1000);
+      const result = CreateErinnerungCommand.create({
+        einsatzId: generateValidEinsatzId(),
+        titel: 'Test',
+        faelligAm,
+        erstelltVon: generateValidUserId(),
+        etbEntryId: 'invalid-format', // Invalid CUID2
+      });
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe(ERINNERUNG_ERROR_CODES.ETB_ENTRY_ID_INVALID);
+    });
+
+    it('should fail when etbEntryId is empty string', () => {
+      // Given & When (Arrange & Act)
+      const faelligAm = new Date(Date.now() + 30 * 60 * 1000);
+      const result = CreateErinnerungCommand.create({
+        einsatzId: generateValidEinsatzId(),
+        titel: 'Test',
+        faelligAm,
+        erstelltVon: generateValidUserId(),
+        etbEntryId: '', // Empty string
+      });
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe(ERINNERUNG_ERROR_CODES.ETB_ENTRY_ID_INVALID);
+    });
+
+    it('should fail when etbEntryId belongs to different einsatz', async () => {
+      // Given (Arrange)
+      const einsatzIdA = generateValidEinsatzId();
+      const einsatzIdB = generateValidEinsatzId(); // ANDERER Einsatz
+      const etbEntryIdFromEinsatzB = 'clw3h8x9y0000einsatzbabc';
+      const faelligAm = new Date(Date.now() + 30 * 60 * 1000);
+
+      const commandResult = CreateErinnerungCommand.create({
+        einsatzId: einsatzIdA, // Erinnerung für Einsatz A
+        titel: 'ETB Follow-up',
+        faelligAm,
+        erstelltVon: generateValidUserId(),
+        etbEntryId: etbEntryIdFromEinsatzB, // Aber ETB aus Einsatz B!
+      });
+      expect(commandResult.isSuccess).toBe(true);
+      const command = commandResult.value!;
+
+      // Mock ETB-Eintrag existiert, aber für ANDEREN Einsatz
+      const prismaTx = {
+        etbEintrag: {
+          findUnique: jest.fn().mockResolvedValue({
+            id: etbEntryIdFromEinsatzB,
+            etb: { einsatzId: einsatzIdB }, // MISMATCH!
+          }),
+        },
+        einsatzTeilnehmer: {
+          findFirst: jest.fn().mockResolvedValue(null),
+        },
+      };
+      mockPrismaService.$transaction.mockImplementation(async (callback) => callback(prismaTx));
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe(ERINNERUNG_ERROR_CODES.ETB_ENTRY_WRONG_EINSATZ);
+    });
+  });
+
   describe('Logging', () => {
     it('should log successful creation', async () => {
       // Given (Arrange)

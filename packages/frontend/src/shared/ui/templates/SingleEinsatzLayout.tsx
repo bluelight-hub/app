@@ -15,7 +15,7 @@ import {
   closeEditDialog,
   closeDeleteDialog,
   closeMarkErledigtDialog,
-  useQuickCreateDialogState,
+  useQuickCreateDialogStateWithEtb,
   useEditDialogState,
   useDeleteDialogState,
   useMarkErledigtDialogState,
@@ -51,8 +51,8 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   const [showBeitrittDialog, setShowBeitrittDialog] = useState(false);
   const activeServer = useActiveServer();
 
-  // Quick-Create Erinnerung Dialog State und Hotkeys (Story 1.1 AC1)
-  const [isQuickCreateOpen, quickCreateEinsatzId] = useQuickCreateDialogState();
+  // Quick-Create Erinnerung Dialog State und Hotkeys (Story 1.1 AC1, Story 5.4)
+  const { isOpen: isQuickCreateOpen, einsatzId: quickCreateEinsatzId, etbEintragId, etbEintragText } = useQuickCreateDialogStateWithEtb();
   // Edit Erinnerung Dialog State (Story 1.3 AC1)
   const [isEditDialogOpen, erinnerungToEdit, editDialogEinsatzId] = useEditDialogState();
   // Delete Erinnerung Dialog State (Story 1.4 AC2)
@@ -569,8 +569,13 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
       {/* Einsatz Beitritt / Funkrufname Dialog */}
       <EinsatzBeitrittDialog einsatzId={einsatzId} isOpen={showBeitrittDialog} onClose={() => setShowBeitrittDialog(false)} />
 
-      {/* Quick-Create Erinnerung Dialog (Story 1.1 AC1) */}
-      <QuickCreateErinnerungDialog isOpen={isQuickCreateOpen} einsatzId={quickCreateEinsatzId ?? einsatzId} onClose={closeQuickCreateDialog} />
+      {/* Quick-Create Erinnerung Dialog (Story 1.1 AC1, Story 5.4) */}
+      <QuickCreateErinnerungDialog
+        isOpen={isQuickCreateOpen}
+        einsatzId={quickCreateEinsatzId ?? einsatzId}
+        onClose={closeQuickCreateDialog}
+        fromEtb={etbEintragId && etbEintragText ? { entryId: etbEintragId, text: etbEintragText } : undefined}
+      />
 
       {/* Edit Erinnerung Dialog (Story 1.3 AC1) */}
       <ErinnerungEditDialog isOpen={isEditDialogOpen} erinnerung={erinnerungToEdit} einsatzId={editDialogEinsatzId ?? einsatzId} onClose={closeEditDialog} />

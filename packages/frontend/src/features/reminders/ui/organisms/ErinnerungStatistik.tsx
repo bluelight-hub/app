@@ -14,7 +14,7 @@ export const ErinnerungStatistik = ({ einsatzId }: ErinnerungStatistikProps) => 
   }
 
   if (error) {
-    return <p className="text-sm text-red-500 dark:text-red-400">Fehler beim Laden der Statistik</p>;
+    return <p className="text-red-500 text-sm dark:text-red-400">Fehler beim Laden der Statistik</p>;
   }
 
   if (!stats || stats.totalEscalated === 0) {

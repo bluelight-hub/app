@@ -15,19 +15,21 @@
  */
 import { Inject, Injectable } from '@nestjs/common';
 import type { IEventHandler } from '@domain/ports/i-event-handler.port';
-import type { ILogger } from '@domain/ports/i-logger.port';
+// biome-ignore lint/style/useImportType: ILogger needed for DI at runtime
+import { ILogger } from '@domain/ports/i-logger.port';
 import type { ErinnerungErledigtEvent } from '@domain/events/erinnerung-erledigt.event';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { AddEintragCommand } from '../commands/add-eintrag/add-eintrag.command';
 // biome-ignore lint/style/useImportType: AddEintragHandler needed for DI at runtime
 import { AddEintragHandler } from '../commands/add-eintrag/add-eintrag.handler';
 import type { EtbKategorieValue } from '@domain/value-objects/etb-kategorie';
+import { ERINNERUNG_ETB_TEMPLATES } from '../constants/erinnerung-etb-templates';
 
 /**
- * ETB Kategorie fuer automatische System-Eintraege (Erinnerungen).
+ * ETB Kategorie fuer Erinnerungen (Story 5.1 AC2).
  * Als Konstante definiert fuer bessere Wartbarkeit und Type-Safety.
  */
-const ETB_KATEGORIE_SYSTEM: EtbKategorieValue = 'SYSTEM';
+const ETB_KATEGORIE_ERINNERUNG: EtbKategorieValue = 'ERINNERUNG';
 
 /**
  * Event Handler fuer automatischen ETB-Eintrag bei Erinnerung-Erledigung.
@@ -69,15 +71,16 @@ export class ErinnerungErledigtEventHandler implements IEventHandler<ErinnerungE
       // ETB-ID entspricht der EinsatzId (1:1 Beziehung)
       const etbId = event.einsatzId.toString();
 
-      // Story 2.5 AC4: Text fuer ETB-Eintrag mit optionaler Notiz
-      const text = event.erledigungsNotiz ? `Erinnerung '${event.titel}' erledigt: ${event.erledigungsNotiz}` : `Erinnerung '${event.titel}' erledigt`;
+      // Story 5.1 AC2: Text fuer ETB-Eintrag via Template
+      const notiz = event.erledigungsNotiz || '-';
+      const text = ERINNERUNG_ETB_TEMPLATES.ERLEDIGT.replace('{titel}', event.titel).replace('{notiz}', notiz);
 
       // Command erstellen mit Validierung
       const commandResult = AddEintragCommand.create(
         etbId,
         text,
         event.erledigtBy.toString(),
-        ETB_KATEGORIE_SYSTEM,
+        ETB_KATEGORIE_ERINNERUNG,
         event.einsatzId.toString(),
         undefined, // absender - nicht relevant fuer automatische Eintraege
         undefined, // empfaenger - nicht relevant fuer automatische Eintraege

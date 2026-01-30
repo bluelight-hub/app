@@ -1,5 +1,5 @@
 import { IconButton } from '@/shared/ui/atoms/icon-button.atom';
-import { PiPencil, PiTrash, PiCheck, PiX } from 'react-icons/pi';
+import { PiPencil, PiTrash, PiCheck, PiX, PiBell } from 'react-icons/pi';
 import type React from 'react';
 
 interface EtbActionsCellProps {
@@ -8,11 +8,13 @@ interface EtbActionsCellProps {
   onSave?: () => void;
   onCancel?: () => void;
   onDelete?: () => void;
+  /** Callback zum Erstellen einer Erinnerung aus diesem ETB-Eintrag (Story 5.4) */
+  onCreateErinnerung?: () => void;
   isLoading?: boolean;
   isDeleted?: boolean;
 }
 
-export const EtbActionsCell: React.FC<EtbActionsCellProps> = ({ isEditing, onEdit, onSave, onCancel, onDelete, isLoading = false, isDeleted = false }) => {
+export const EtbActionsCell: React.FC<EtbActionsCellProps> = ({ isEditing, onEdit, onSave, onCancel, onDelete, onCreateErinnerung, isLoading = false, isDeleted = false }) => {
   if (isEditing) {
     return (
       <div className="flex justify-center gap-1">
@@ -40,6 +42,17 @@ export const EtbActionsCell: React.FC<EtbActionsCellProps> = ({ isEditing, onEdi
       <IconButton appearance="minimal" size="sm" onClick={onEdit} className="text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400" aria-label="Bearbeiten">
         <PiPencil />
       </IconButton>
+      {onCreateErinnerung && (
+        <IconButton
+          size="sm"
+          appearance="minimal"
+          onClick={onCreateErinnerung}
+          className="text-gray-500 hover:text-amber-600 dark:text-gray-400 dark:hover:text-amber-400"
+          aria-label="Erinnerung erstellen"
+        >
+          <PiBell />
+        </IconButton>
+      )}
       {onDelete && (
         <IconButton size="sm" appearance="minimal" intent="danger" onClick={onDelete} aria-label="Löschen">
           <PiTrash />

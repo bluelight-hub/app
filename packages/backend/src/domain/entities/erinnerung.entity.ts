@@ -33,6 +33,8 @@ export interface CreateErinnerungProps {
   eskalationsPersonId?: UserId | null;
   /** Story 4.10: Eskalation nur an Ersteller (Rückläufer) */
   eskalationNurAnErsteller?: boolean;
+  /** Story 5.4: Optionale Referenz zu einem ETB-Eintrag */
+  etbEntryId?: string | null;
 }
 
 /**
@@ -626,7 +628,7 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
       false, // wurdeEskaliert (default)
       null, // eskaliertAm (default)
       props.eskalationNurAnErsteller ?? Erinnerung.DEFAULT_ESKALATION_NUR_AN_ERSTELLER, // Story 4.10
-      null, // etbEntryId (Story 5.0)
+      props.etbEntryId ?? null, // Story 5.4: ETB-Eintrag Referenz
     );
 
     // Emit Domain Event (Story 3.3: null für assignedToId bei Erstellung ohne Zuweisung)

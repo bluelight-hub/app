@@ -1,5 +1,6 @@
 import { Result } from '@domain/common/result';
 import { ErinnerungAcknowledgedEvent } from '@domain/events/erinnerung-acknowledged.event';
+import type { IUserRepository } from '@domain/repositories/i-user.repository';
 import type { AddEintragHandler } from '../../commands/add-eintrag/add-eintrag.handler';
 import { ErinnerungAcknowledgedEventHandler } from '../erinnerung-acknowledged.handler';
 
@@ -68,6 +69,9 @@ function createTestEvent(
   );
 }
 
+/** Default Test-Username fuer UserRepository Mock */
+const TEST_USERNAME = 'Max Mustermann';
+
 describe('ErinnerungAcknowledgedEventHandler', () => {
   let handler: ErinnerungAcknowledgedEventHandler;
   let mockAddEintragHandler: jest.Mocked<AddEintragHandler>;
@@ -77,6 +81,7 @@ describe('ErinnerungAcknowledgedEventHandler', () => {
     error: jest.Mock;
     debug: jest.Mock;
   }>;
+  let mockUserRepository: jest.Mocked<IUserRepository>;
 
   beforeEach(() => {
     // Reset deterministic ID counters (R2-TEST3)
@@ -96,18 +101,29 @@ describe('ErinnerungAcknowledgedEventHandler', () => {
       debug: jest.fn(),
     } as jest.Mocked<typeof mockLogger>;
 
+    // Mock UserRepository - gibt standardmaessig einen User mit TEST_USERNAME zurueck
+    mockUserRepository = {
+      findById: jest.fn().mockResolvedValue(
+        Result.ok({
+          username: { value: TEST_USERNAME },
+        }),
+      ),
+    } as unknown as jest.Mocked<IUserRepository>;
+
     // Clear mocks AFTER initialization (AC6)
     jest.clearAllMocks();
 
     // Handler mit Mocks instanziieren
-    handler = new ErinnerungAcknowledgedEventHandler(mockAddEintragHandler, mockLogger);
+    handler = new ErinnerungAcknowledgedEventHandler(mockAddEintragHandler, mockLogger, mockUserRepository);
   });
 
   describe('AC1: Handler sollte ETB-Eintrag fuer Erinnerung-Bestaetigung erstellen', () => {
-    it('should create ETB entry with correct text format "Erinnerung \'{titel}\' bestaetigt"', async () => {
+    it('should create ETB entry with correct text format "Erinnerung \'{titel}\' bestätigt von {username}"', async () => {
       // Given (Arrange)
+      const acknowledgedBy = generateTestCuid();
       const event = createTestEvent({
         titel: 'Lagebesprechung',
+        acknowledgedBy,
       });
 
       mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
@@ -115,13 +131,13 @@ describe('ErinnerungAcknowledgedEventHandler', () => {
       // When (Act)
       await handler.handle(event);
 
-      // Then (Assert)
+      // Then (Assert) - Benutzername (nicht UserId) im ETB-Text
       expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(1);
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      expect(receivedCommand.text).toBe("Erinnerung 'Lagebesprechung' bestaetigt");
+      expect(receivedCommand.text).toBe(`Erinnerung 'Lagebesprechung' bestätigt von ${TEST_USERNAME}`);
     });
 
-    it('should set kategorie to SYSTEM for erinnerung bestaetigung', async () => {
+    it('should set kategorie to ERINNERUNG for erinnerung bestaetigung (Story 5.1 AC2)', async () => {
       // Given (Arrange)
       const event = createTestEvent();
 
@@ -132,7 +148,7 @@ describe('ErinnerungAcknowledgedEventHandler', () => {
 
       // Then (Assert)
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      expect(receivedCommand.kategorie).toBe('SYSTEM');
+      expect(receivedCommand.kategorie).toBe('ERINNERUNG');
     });
 
     it('should pass einsatzId from event to ETB command', async () => {
@@ -205,6 +221,16 @@ describe('ErinnerungAcknowledgedEventHandler', () => {
         acknowledgedAm: acknowledgedAm.toISOString(),
         acknowledgedBy,
       });
+
+      // AC3: Metadata MUSS erinnerungId und eventType enthalten
+      expect(mockAddEintragHandler.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          metadata: expect.objectContaining({
+            erinnerungId: event.erinnerungId,
+            eventType: 'ErinnerungAcknowledged',
+          }),
+        }),
+      );
     });
   });
 
@@ -543,7 +569,7 @@ describe('ErinnerungAcknowledgedEventHandler', () => {
   });
 
   describe('ETB Entry Text Format Validation', () => {
-    it('should validate exact format "Erinnerung \'{titel}\' bestaetigt"', async () => {
+    it('should validate exact format "Erinnerung \'{titel}\' bestätigt von {username}"', async () => {
       // Given (Arrange)
       const event = createTestEvent({
         titel: 'Funkueberpruefung',
@@ -554,13 +580,53 @@ describe('ErinnerungAcknowledgedEventHandler', () => {
       // When (Act)
       await handler.handle(event);
 
-      // Then (Assert)
+      // Then (Assert) - Benutzername (nicht UserId) im ETB-Text
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      const expectedText = "Erinnerung 'Funkueberpruefung' bestaetigt";
+      const expectedText = `Erinnerung 'Funkueberpruefung' bestätigt von ${TEST_USERNAME}`;
       expect(receivedCommand.text).toBe(expectedText);
 
       // Validate format structure
-      expect(receivedCommand.text).toMatch(/^Erinnerung '.+' bestaetigt$/);
+      expect(receivedCommand.text).toMatch(/^Erinnerung '.+' bestätigt von .+$/);
+    });
+
+    it('should fallback to userId when user is not found', async () => {
+      // Given (Arrange)
+      const acknowledgedBy = generateTestCuid();
+      const event = createTestEvent({
+        titel: 'Test-Erinnerung',
+        acknowledgedBy,
+      });
+
+      // UserRepository gibt null zurueck (User nicht gefunden)
+      mockUserRepository.findById.mockResolvedValue(Result.ok(null));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+
+      // When (Act)
+      await handler.handle(event);
+
+      // Then (Assert) - Fallback auf UserId
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      expect(receivedCommand.text).toBe(`Erinnerung 'Test-Erinnerung' bestätigt von ${acknowledgedBy}`);
+    });
+
+    it('should fallback to userId when userRepository throws', async () => {
+      // Given (Arrange)
+      const acknowledgedBy = generateTestCuid();
+      const event = createTestEvent({
+        titel: 'Test-Erinnerung',
+        acknowledgedBy,
+      });
+
+      // UserRepository wirft Exception
+      mockUserRepository.findById.mockRejectedValue(new Error('DB connection failed'));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+
+      // When (Act)
+      await handler.handle(event);
+
+      // Then (Assert) - Fallback auf UserId, kein Crash
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      expect(receivedCommand.text).toBe(`Erinnerung 'Test-Erinnerung' bestätigt von ${acknowledgedBy}`);
     });
   });
 

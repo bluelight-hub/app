@@ -51,6 +51,11 @@ export const ERINNERUNG_ERROR_CODES = {
   // Query Errors
   QUERY_EINSATZ_ID_REQUIRED: 'ERINNERUNG_QUERY_EINSATZ_ID_REQUIRED',
   QUERY_FAILED: 'ERINNERUNG_QUERY_FAILED',
+
+  // Story 5.4: ETB-Integration Errors
+  ETB_ENTRY_ID_INVALID: 'ERINNERUNG_ETB_ENTRY_ID_INVALID', // Story 5.4: etbEntryId ist ungültiges CUID2 Format
+  ETB_ENTRY_NOT_FOUND: 'ERINNERUNG_ETB_ENTRY_NOT_FOUND', // Story 5.4: etbEntryId referenziert nicht-existierenden ETB-Eintrag
+  ETB_ENTRY_WRONG_EINSATZ: 'ERINNERUNG_ETB_ENTRY_WRONG_EINSATZ', // Story 5.4: etbEntryId gehört zu anderem Einsatz
 } as const;
 
 export type ErinnerungErrorCode = (typeof ERINNERUNG_ERROR_CODES)[keyof typeof ERINNERUNG_ERROR_CODES];

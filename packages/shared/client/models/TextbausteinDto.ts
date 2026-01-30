@@ -87,6 +87,7 @@ export const TextbausteinDtoKategorieEnum = {
   Dokumentation: 'DOKUMENTATION',
   Sonstiges: 'SONSTIGES',
   System: 'SYSTEM',
+  Erinnerung: 'ERINNERUNG',
 } as const;
 export type TextbausteinDtoKategorieEnum = (typeof TextbausteinDtoKategorieEnum)[keyof typeof TextbausteinDtoKategorieEnum];
 
