@@ -133,6 +133,12 @@ export interface EintragDto {
    * @memberof EintragDto
    */
   metadata?: object | null;
+  /**
+   * Verknüpfte Erinnerung (Story 5.4)
+   * @type {object}
+   * @memberof EintragDto
+   */
+  linkedErinnerung?: object | null;
 }
 
 /**
@@ -153,6 +159,7 @@ export const EintragDtoKategorieEnum = {
   Dokumentation: 'DOKUMENTATION',
   Sonstiges: 'SONSTIGES',
   System: 'SYSTEM',
+  Erinnerung: 'ERINNERUNG',
 } as const;
 export type EintragDtoKategorieEnum = (typeof EintragDtoKategorieEnum)[keyof typeof EintragDtoKategorieEnum];
 
@@ -201,6 +208,7 @@ export function EintragDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean)
     deletedBy: json['deletedBy'] == null ? undefined : json['deletedBy'],
     deleterUsername: json['deleterUsername'] == null ? undefined : json['deleterUsername'],
     metadata: json['metadata'] == null ? undefined : json['metadata'],
+    linkedErinnerung: json['linkedErinnerung'] == null ? undefined : json['linkedErinnerung'],
   };
 }
 
@@ -233,5 +241,6 @@ export function EintragDtoToJSONTyped(value?: EintragDto | null, ignoreDiscrimin
     deletedBy: value['deletedBy'],
     deleterUsername: value['deleterUsername'],
     metadata: value['metadata'],
+    linkedErinnerung: value['linkedErinnerung'],
   };
 }

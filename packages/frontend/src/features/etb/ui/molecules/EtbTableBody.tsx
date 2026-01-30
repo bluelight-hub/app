@@ -78,7 +78,7 @@ export function EtbTableBody({ virtualRows, rows, columns, paddingTop, paddingBo
             <Fragment key={row.id}>
               {/* Main Row */}
               {enableInlineEdit && einsatzId ? (
-                <EtbTableRowEditable row={row} style={{ height: `${virtualRow.size}px` }} onDelete={onDelete} />
+                <EtbTableRowEditable row={row} style={{ height: `${virtualRow.size}px` }} onDelete={onDelete} einsatzId={einsatzId} />
               ) : (
                 <tr
                   className={cn('transition-colors', row.original.deletedAt ? 'border-l-2 border-l-red-500 bg-red-50/30 opacity-60 dark:bg-red-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-900/50')}

@@ -1,0 +1,128 @@
+/**
+ * Highlight Store
+ *
+ * Trackt welche Erinnerung gerade hervorgehoben werden soll (z.B. beim Klick auf Badge im ETB).
+ *
+ * **Story 5.4 Task 6:** Badge in ETB-Tabelle zeigt verknuepfte Erinnerung
+ * Beim Klick auf den Badge wird die Erinnerung hervorgehoben und in den View gescrollt.
+ */
+
+import { Store, useStore } from '@tanstack/react-store';
+
+/**
+ * Highlight Store State
+ */
+export interface HighlightStoreState {
+  /** ID der hervorzuhebenden Erinnerung (null = keine Hervorhebung) */
+  highlightedErinnerungId: string | null;
+}
+
+/**
+ * Highlight Dauer in Millisekunden
+ * Nach dieser Zeit wird die Hervorhebung automatisch entfernt
+ */
+const HIGHLIGHT_DURATION_MS = 3000;
+
+/**
+ * TanStack Store fuer Highlight-State
+ */
+export const highlightStore = new Store<HighlightStoreState>({
+  highlightedErinnerungId: null,
+});
+
+// ============================================================================
+// Actions
+// ============================================================================
+
+/**
+ * Setzt die hervorzuhebende Erinnerung.
+ * Entfernt automatisch nach HIGHLIGHT_DURATION_MS.
+ *
+ * @param erinnerungId - ID der hervorzuhebenden Erinnerung
+ */
+export function setHighlightedErinnerung(erinnerungId: string): void {
+  highlightStore.setState(() => ({
+    highlightedErinnerungId: erinnerungId,
+  }));
+
+  // Auto-Cleanup nach Highlight-Dauer
+  setTimeout(() => {
+    // Nur entfernen wenn noch dieselbe Erinnerung hervorgehoben ist
+    if (highlightStore.state.highlightedErinnerungId === erinnerungId) {
+      clearHighlightedErinnerung();
+    }
+  }, HIGHLIGHT_DURATION_MS);
+}
+
+/**
+ * Entfernt die aktuelle Hervorhebung.
+ */
+export function clearHighlightedErinnerung(): void {
+  highlightStore.setState(() => ({
+    highlightedErinnerungId: null,
+  }));
+}
+
+/**
+ * Resettet den Highlight-Store auf Initialzustand.
+ */
+export function resetHighlightStore(): void {
+  highlightStore.setState(() => ({
+    highlightedErinnerungId: null,
+  }));
+}
+
+// ============================================================================
+// Selectors
+// ============================================================================
+
+/**
+ * Prueft ob eine Erinnerung gerade hervorgehoben ist.
+ *
+ * @param erinnerungId - ID der Erinnerung
+ * @returns true wenn Erinnerung hervorgehoben
+ */
+export function isHighlighted(erinnerungId: string): boolean {
+  return highlightStore.state.highlightedErinnerungId === erinnerungId;
+}
+
+/**
+ * Gibt die ID der hervorgehobenen Erinnerung zurueck.
+ *
+ * @returns Erinnerungs-ID oder null
+ */
+export function getHighlightedErinnerungId(): string | null {
+  return highlightStore.state.highlightedErinnerungId;
+}
+
+// ============================================================================
+// Hooks
+// ============================================================================
+
+/**
+ * Hook um zu pruefen ob eine Erinnerung hervorgehoben ist.
+ *
+ * @param erinnerungId - ID der Erinnerung
+ * @returns true wenn Erinnerung hervorgehoben
+ */
+export function useIsHighlighted(erinnerungId: string): boolean {
+  return useStore(highlightStore, (state) => state.highlightedErinnerungId === erinnerungId);
+}
+
+/**
+ * Hook fuer die ID der hervorgehobenen Erinnerung.
+ *
+ * @returns Erinnerungs-ID oder null
+ */
+export function useHighlightedErinnerungId(): string | null {
+  return useStore(highlightStore, (state) => state.highlightedErinnerungId);
+}
+
+/**
+ * Hook fuer den kompletten Highlight-Store State (Debug/Testing).
+ *
+ * @returns Kompletter Store State
+ */
+export function useHighlightStoreState(): HighlightStoreState {
+  return useStore(highlightStore);
+}

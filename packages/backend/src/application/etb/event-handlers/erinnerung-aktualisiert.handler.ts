@@ -21,6 +21,14 @@ import { LOGGER } from '@infrastructure/di-tokens';
 import { AddEintragCommand } from '../commands/add-eintrag/add-eintrag.command';
 // biome-ignore lint/style/useImportType: AddEintragHandler needed for DI at runtime
 import { AddEintragHandler } from '../commands/add-eintrag/add-eintrag.handler';
+import type { EtbKategorieValue } from '@domain/value-objects/etb-kategorie';
+import { ERINNERUNG_ETB_TEMPLATES } from '../constants/erinnerung-etb-templates';
+
+/**
+ * ETB Kategorie fuer Erinnerungen (Story 5.1 AC2).
+ * Als Konstante definiert fuer bessere Wartbarkeit und Type-Safety.
+ */
+const ETB_KATEGORIE_ERINNERUNG: EtbKategorieValue = 'ERINNERUNG';
 
 /**
  * Event Handler fuer automatischen ETB-Eintrag bei Erinnerung-Aktualisierung.
@@ -50,23 +58,27 @@ export class ErinnerungAktualisiertEventHandler implements IEventHandler<Erinner
     this.logger.log(`Creating ETB entry for ErinnerungAktualisiert: einsatzId=${event.einsatzId}, erinnerungId=${event.erinnerungId}, titel=${event.titel}`, 'ErinnerungAktualisiertEventHandler');
 
     try {
-      // Validation: Titel sollte vorhanden sein
-      if (!event.titel) {
-        this.logger.warn(`ErinnerungAktualisiert event has missing titel: einsatzId=${event.einsatzId}, erinnerungId=${event.erinnerungId}`, 'ErinnerungAktualisiertEventHandler');
+      // Validierung aller required Fields
+      if (!event.titel || !event.aktualisierVon || !event.erinnerungId || !event.einsatzId) {
+        this.logger.error(
+          `ErinnerungAktualisiert event has missing required fields: einsatzId=${event.einsatzId}, erinnerungId=${event.erinnerungId}, titel=${event.titel}, aktualisiertVon=${event.aktualisierVon}`,
+          'ErinnerungAktualisiertEventHandler',
+        );
+        return; // Early exit - Event ist ungueltig
       }
 
       // ETB-ID entspricht der EinsatzId (1:1 Beziehung)
       const etbId = event.einsatzId.toString();
 
-      // AC5: Text fuer ETB-Eintrag
-      const text = `Erinnerung '${event.titel}' aktualisiert`;
+      // AC5: Text fuer ETB-Eintrag aus Template
+      const text = ERINNERUNG_ETB_TEMPLATES.AKTUALISIERT.replace('{titel}', event.titel);
 
       // Command erstellen mit Validierung
       const commandResult = AddEintragCommand.create(
         etbId,
         text,
         event.aktualisierVon.toString(),
-        'SYSTEM', // ETB Kategorie fuer automatische System-Eintraege (Erinnerungen)
+        ETB_KATEGORIE_ERINNERUNG,
         event.einsatzId.toString(),
         undefined, // absender - nicht relevant fuer automatische Eintraege
         undefined, // empfaenger - nicht relevant fuer automatische Eintraege

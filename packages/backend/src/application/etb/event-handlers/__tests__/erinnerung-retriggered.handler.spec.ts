@@ -1,8 +1,5 @@
 import { Result } from '@domain/common/result';
 import { ErinnerungRetriggeredEvent } from '@domain/events/erinnerung-retriggered.event';
-import type { EinsatzId } from '@domain/value-objects/einsatz-id';
-import type { ErinnerungId } from '@domain/value-objects/erinnerung-id';
-import type { UserId } from '@domain/value-objects/user-id';
 import type { AddEintragHandler } from '../../commands/add-eintrag/add-eintrag.handler';
 import { ErinnerungRetriggeredEventHandler } from '../erinnerung-retriggered.handler';
 
@@ -17,14 +14,19 @@ jest.mock('@paralleldrive/cuid2', () => ({
 }));
 
 /**
- * Deterministic Test Fixtures (R2-TEST3: No Math.random())
- * Diese Fixtures garantieren reproduzierbare Tests ohne Zufallswerte.
+ * Generiert eine deterministische Test-CUID.
+ * Format: 25 Zeichen, beginnt mit 'c', nur lowercase a-z und 0-9.
+ * R2-TEST3: Verwendet fixe Counter-basierte IDs statt Math.random().
  */
 let cuidCounter = 1000;
 function generateTestCuid(): string {
   return `ctest${String(cuidCounter++).padStart(20, '0')}`;
 }
 
+/**
+ * Generiert eine deterministische Test-UUID v4.
+ * R2-TEST3: Verwendet fixe Counter-basierte IDs statt Math.random().
+ */
 let uuidCounter = 1000;
 function generateTestUuid(): string {
   const counter = String(uuidCounter++).padStart(12, '0');
@@ -32,11 +34,10 @@ function generateTestUuid(): string {
 }
 
 /**
- * Mock Value Object Factory fuer ErinnerungId, EinsatzId, UserId.
- * Simuliert toString() Verhalten der echten Value Objects.
+ * Erstellt ein Mock-Objekt mit toString() Methode fuer Value Objects.
  */
-function createMockValueObject<T>(value: string): T {
-  return { value, toString: () => value } as unknown as T;
+function createMockValueObject(value: string): { toString(): string } {
+  return { toString: () => value };
 }
 
 /**
@@ -63,11 +64,11 @@ function createTestEvent(
   const previousSnoozedAt = 'previousSnoozedAt' in overrides ? overrides.previousSnoozedAt : new Date('2026-01-20T14:25:00.000Z');
 
   return new ErinnerungRetriggeredEvent(
-    createMockValueObject<ErinnerungId>(erinnerungId),
-    createMockValueObject<EinsatzId>(einsatzId),
+    createMockValueObject(erinnerungId) as unknown as import('@domain/value-objects/erinnerung-id').ErinnerungId,
+    createMockValueObject(einsatzId) as unknown as import('@domain/value-objects/einsatz-id').EinsatzId,
     overrides.retriggeredAm ?? new Date('2026-01-20T14:30:00.000Z'),
     overrides.titel ?? 'Test-Erinnerung',
-    createMockValueObject<UserId>(erstelltVon),
+    createMockValueObject(erstelltVon) as unknown as import('@domain/value-objects/user-id').UserId,
     overrides.snoozeCount ?? 1,
     previousSnoozedAt ?? null,
     erinnerungId,
@@ -109,8 +110,8 @@ describe('ErinnerungRetriggeredEventHandler', () => {
     handler = new ErinnerungRetriggeredEventHandler(mockAddEintragHandler, mockLogger);
   });
 
-  describe('Story 2.2 AC2: ETB-Eintrag Text mit Snooze-Counter', () => {
-    it('should create ETB entry with correct snooze count text (snoozeCount=2 -> "3. Auslösung nach 2x Snooze")', async () => {
+  describe('Story 5.1 AC2: ETB-Eintrag Text via Template', () => {
+    it('should create ETB entry with correct text format "Erinnerung \'{titel}\' erneut ausgelöst"', async () => {
       // Given (Arrange)
       const event = createTestEvent({
         titel: 'Lagebesprechung',
@@ -125,11 +126,11 @@ describe('ErinnerungRetriggeredEventHandler', () => {
       // Then (Assert)
       expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(1);
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      expect(receivedCommand.text).toBe("Erinnerung 'Lagebesprechung' erneut ausgelöst (3. Auslösung nach 2x Snooze)");
+      expect(receivedCommand.text).toBe("Erinnerung 'Lagebesprechung' erneut ausgelöst");
     });
 
-    it('should calculate triggerNumber as snoozeCount + 1', async () => {
-      // Given (Arrange) - snoozeCount=5 -> triggerNumber=6
+    it('should use same format regardless of snoozeCount', async () => {
+      // Given (Arrange) - snoozeCount=5
       const event = createTestEvent({
         titel: 'Funkueberpruefung',
         snoozeCount: 5,
@@ -142,11 +143,11 @@ describe('ErinnerungRetriggeredEventHandler', () => {
 
       // Then (Assert)
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      expect(receivedCommand.text).toBe("Erinnerung 'Funkueberpruefung' erneut ausgelöst (6. Auslösung nach 5x Snooze)");
+      expect(receivedCommand.text).toBe("Erinnerung 'Funkueberpruefung' erneut ausgelöst");
     });
 
     it('should handle snoozeCount=1 correctly (first re-trigger)', async () => {
-      // Given (Arrange) - snoozeCount=1 -> triggerNumber=2
+      // Given (Arrange) - snoozeCount=1
       const event = createTestEvent({
         titel: 'Wichtige Erinnerung',
         snoozeCount: 1,
@@ -159,7 +160,7 @@ describe('ErinnerungRetriggeredEventHandler', () => {
 
       // Then (Assert)
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      expect(receivedCommand.text).toBe("Erinnerung 'Wichtige Erinnerung' erneut ausgelöst (2. Auslösung nach 1x Snooze)");
+      expect(receivedCommand.text).toBe("Erinnerung 'Wichtige Erinnerung' erneut ausgelöst");
     });
   });
 
@@ -305,7 +306,7 @@ describe('ErinnerungRetriggeredEventHandler', () => {
   });
 
   describe('ETB Command Properties', () => {
-    it('should set kategorie to SYSTEM for erinnerung retriggered', async () => {
+    it('should set kategorie to ERINNERUNG for erinnerung retriggered (Story 5.1 AC2)', async () => {
       // Given (Arrange)
       const event = createTestEvent();
 
@@ -316,7 +317,7 @@ describe('ErinnerungRetriggeredEventHandler', () => {
 
       // Then (Assert)
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      expect(receivedCommand.kategorie).toBe('SYSTEM');
+      expect(receivedCommand.kategorie).toBe('ERINNERUNG');
     });
 
     it('should pass einsatzId from event to ETB command', async () => {
@@ -391,6 +392,16 @@ describe('ErinnerungRetriggeredEventHandler', () => {
         snoozeCount: 3,
         previousSnoozedAt: previousSnoozedAt.toISOString(),
       });
+
+      // AC3: Metadata MUSS erinnerungId und eventType enthalten
+      expect(mockAddEintragHandler.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          metadata: expect.objectContaining({
+            erinnerungId: event.erinnerungId.toString(),
+            eventType: 'ErinnerungRetriggered',
+          }),
+        }),
+      );
     });
   });
 
@@ -438,7 +449,7 @@ describe('ErinnerungRetriggeredEventHandler', () => {
   });
 
   describe('Validation', () => {
-    it('should call Logger.warn() when titel is missing', async () => {
+    it('should call Logger.error() and early exit when required fields are missing', async () => {
       // Given (Arrange) - Event mit leerem titel (korrupte Daten)
       const event = createTestEvent({
         titel: '',
@@ -449,11 +460,12 @@ describe('ErinnerungRetriggeredEventHandler', () => {
       // When (Act)
       await handler.handle(event);
 
-      // Then (Assert)
-      expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringMatching(/ErinnerungRetriggered event has missing titel/), 'ErinnerungRetriggeredEventHandler');
+      // Then (Assert) - Error loggen und Early Exit
+      expect(mockLogger.error).toHaveBeenCalledWith(expect.stringMatching(/ErinnerungRetriggered event has missing required fields/), 'ErinnerungRetriggeredEventHandler');
+      expect(mockAddEintragHandler.execute).not.toHaveBeenCalled();
     });
 
-    it('should NOT call Logger.warn() when titel is present', async () => {
+    it('should NOT call Logger.error() for validation when titel is present', async () => {
       // Given (Arrange) - Event mit vollstaendigem Titel
       const event = createTestEvent({
         titel: 'Lagebesprechung',
@@ -464,8 +476,8 @@ describe('ErinnerungRetriggeredEventHandler', () => {
       // When (Act)
       await handler.handle(event);
 
-      // Then (Assert)
-      expect(mockLogger.warn).not.toHaveBeenCalled();
+      // Then (Assert) - Kein Validation-Error wenn Titel vorhanden
+      expect(mockLogger.error).not.toHaveBeenCalled();
     });
   });
 
@@ -517,7 +529,7 @@ describe('ErinnerungRetriggeredEventHandler', () => {
 
       // Then (Assert)
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      expect(receivedCommand.text).toBe("Erinnerung 'Test 'mit' Quotes' erneut ausgelöst (2. Auslösung nach 1x Snooze)");
+      expect(receivedCommand.text).toBe("Erinnerung 'Test 'mit' Quotes' erneut ausgelöst");
     });
 
     it('should handle snoozeCount=0 edge case (defensive)', async () => {
@@ -532,9 +544,35 @@ describe('ErinnerungRetriggeredEventHandler', () => {
       // When (Act)
       await handler.handle(event);
 
-      // Then (Assert) - snoozeCount=0 -> triggerNumber=1
+      // Then (Assert) - Template wird unabhaengig von snoozeCount verwendet
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      expect(receivedCommand.text).toBe("Erinnerung 'Test' erneut ausgelöst (1. Auslösung nach 0x Snooze)");
+      expect(receivedCommand.text).toBe("Erinnerung 'Test' erneut ausgelöst");
+    });
+
+    it('should handle negative snoozeCount gracefully', async () => {
+      // Arrange
+      const event = createTestEvent({ snoozeCount: -1 });
+
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+
+      // Act
+      await handler.handle(event);
+
+      // Assert - sollte trotzdem funktionieren (defensive Programmierung)
+      expect(mockAddEintragHandler.execute).toHaveBeenCalled();
+    });
+
+    it('should handle very large snoozeCount', async () => {
+      // Arrange
+      const event = createTestEvent({ snoozeCount: 999999 });
+
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+
+      // Act
+      await handler.handle(event);
+
+      // Assert
+      expect(mockAddEintragHandler.execute).toHaveBeenCalled();
     });
   });
 

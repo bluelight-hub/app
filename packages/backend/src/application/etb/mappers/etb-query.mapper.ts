@@ -190,6 +190,9 @@ export class EtbQueryMapper {
       dto.metadata = eintrag.metadata;
     }
 
+    // Story 5.4: linkedErinnerung wird vom Handler nachträglich gesetzt (query-based)
+    dto.linkedErinnerung = null;
+
     return dto;
   }
 

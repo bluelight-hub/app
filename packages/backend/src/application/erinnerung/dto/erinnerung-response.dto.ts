@@ -215,4 +215,13 @@ export class ErinnerungResponseDto {
     type: String,
   })
   previousAssigneeName?: string | null;
+
+  @ApiProperty({
+    description: 'Referenz zu verknüpftem ETB-Eintrag (Story 5.4)',
+    example: 'clw3h8x9y0006abcdefghijkl',
+    nullable: true,
+    required: false,
+    type: String,
+  })
+  etbEntryId?: string | null;
 }

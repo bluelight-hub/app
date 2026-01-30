@@ -178,6 +178,7 @@ export class ErinnerungController {
       assignedToId: dto.assignedToId, // Story 3.3: Zuweisung bei Erstellung
       eskalationsPersonId: dto.eskalationsPersonId, // Story 4.1: Eskalationsperson
       eskalationNurAnErsteller: dto.eskalationNurAnErsteller, // Story 4.10: Eskalations-Restriktion
+      etbEntryId: dto.etbEntryId, // Story 5.4: ETB-Eintrag Referenz
     });
 
     if (commandResult.isFailure || !commandResult.value) {

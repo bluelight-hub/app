@@ -17,6 +17,10 @@ export {
   openQuickCreateDialog,
   closeQuickCreateDialog,
   useQuickCreateDialogState,
+  // Quick-Create from ETB (Story 5.4)
+  openQuickCreateFromEtb,
+  useQuickCreateDialogStateWithEtb,
+  type QuickCreateDialogState,
   // Edit Dialog (Story 1.3)
   openEditDialog,
   closeEditDialog,
@@ -206,3 +210,21 @@ export {
   // Types
   type SeenAssignmentsStoreState,
 } from './seen-assignments.store';
+
+export {
+  // Highlight Store (Story 5.4 Task 6)
+  highlightStore,
+  // Highlight Actions
+  setHighlightedErinnerung,
+  clearHighlightedErinnerung,
+  resetHighlightStore,
+  // Highlight Selectors
+  isHighlighted,
+  getHighlightedErinnerungId,
+  // Highlight Hooks
+  useIsHighlighted,
+  useHighlightedErinnerungId,
+  useHighlightStoreState,
+  // Types
+  type HighlightStoreState,
+} from './highlight.store';

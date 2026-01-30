@@ -81,6 +81,31 @@ export class CreateErinnerungHandler extends TransactionalCommandHandler<CreateE
     }
 
     // ════════════════════════════════════════════════════════════════════════
+    // 1a. Story 5.4: Validiere etbEntryId wenn gesetzt
+    // ════════════════════════════════════════════════════════════════════════
+    if (command.etbEntryId) {
+      const prismaTx = tx as Prisma.TransactionClient;
+      const etbEintrag = await prismaTx.etbEintrag.findUnique({
+        where: { id: command.etbEntryId },
+        select: {
+          id: true,
+          einsatztagebuch: {
+            select: { einsatzId: true },
+          },
+        },
+      });
+
+      if (!etbEintrag) {
+        return Result.fail<ErinnerungResponseDto>(ERINNERUNG_ERROR_CODES.ETB_ENTRY_NOT_FOUND);
+      }
+
+      // Validierung: ETB-Eintrag muss zum gleichen Einsatz gehören
+      if (etbEintrag.einsatztagebuch.einsatzId !== command.einsatzId) {
+        return Result.fail<ErinnerungResponseDto>(ERINNERUNG_ERROR_CODES.ETB_ENTRY_WRONG_EINSATZ);
+      }
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
     // 2. Erinnerung Aggregate erstellen
     // ════════════════════════════════════════════════════════════════════════
     const erinnerungResult = Erinnerung.create({
@@ -92,6 +117,7 @@ export class CreateErinnerungHandler extends TransactionalCommandHandler<CreateE
       requiresNote: command.requiresNote,
       eskalationsPersonId: command.eskalationsPersonId ? UserId.create(command.eskalationsPersonId).value : undefined,
       eskalationNurAnErsteller: command.eskalationNurAnErsteller,
+      etbEntryId: command.etbEntryId,
     });
 
     if (erinnerungResult.isFailure || !erinnerungResult.value) {

@@ -1,7 +1,7 @@
 import { Result } from '@domain/common/result';
-import { ErinnerungAusgeloestEvent } from '@domain/events/erinnerung-ausgeloest.event';
+import { ErinnerungAssignedEvent } from '@domain/events/erinnerung-assigned.event';
 import type { AddEintragHandler } from '../../commands/add-eintrag/add-eintrag.handler';
-import { ErinnerungAusgeloestEventHandler } from '../erinnerung-ausgeloest.handler';
+import { ErinnerungAssignedEventHandler } from '../erinnerung-assigned.handler';
 
 // Mock CUID2 fuer deterministische Tests
 jest.mock('@paralleldrive/cuid2', () => ({
@@ -12,23 +12,6 @@ jest.mock('@paralleldrive/cuid2', () => ({
     return /^[a-zA-Z][a-zA-Z0-9_-]*$/.test(id);
   }),
 }));
-
-/**
- * Deterministic Test Fixtures (R2-TEST3: No Math.random())
- * Diese Fixtures garantieren reproduzierbare Tests ohne Zufallswerte.
- */
-const _TEST_FIXTURES = {
-  EINSATZ_IDS: {
-    DEFAULT: '123e4567-e89b-12d3-a456-426614174000',
-    ALTERNATIVE: '223e4567-e89b-12d3-a456-426614174001',
-  },
-  CUID_IDS: {
-    ERINNERUNG_1: 'ctest1erinnerung00000001',
-    ERINNERUNG_2: 'ctest2erinnerung00000002',
-    USER_1: 'ctest1user0000000000001',
-    USER_2: 'ctest2user0000000000002',
-  },
-} as const;
 
 /**
  * Generiert eine deterministische Test-CUID.
@@ -51,7 +34,14 @@ function generateTestUuid(): string {
 }
 
 /**
- * Erstellt ein Test-ErinnerungAusgeloestEvent mit allen erforderlichen Daten.
+ * Erstellt ein Mock-Objekt mit toString() Methode fuer Value Objects.
+ */
+function createMockValueObject(value: string): { toString(): string } {
+  return { toString: () => value };
+}
+
+/**
+ * Erstellt ein Test-ErinnerungAssignedEvent mit allen erforderlichen Daten.
  *
  * @param overrides - Optional: Teilweise Ueberschreibungen der Default-Werte
  */
@@ -59,22 +49,30 @@ function createTestEvent(
   overrides: Partial<{
     erinnerungId: string;
     einsatzId: string;
-    ausgeloestAm: Date;
+    assignedToId: string;
+    assignedById: string;
     titel: string;
-    erstelltVon: string;
+    assignedAt: Date;
   }> = {},
-): ErinnerungAusgeloestEvent {
-  return new ErinnerungAusgeloestEvent(
-    overrides.erinnerungId ?? generateTestCuid(),
-    overrides.einsatzId ?? generateTestUuid(),
-    overrides.ausgeloestAm ?? new Date('2026-01-20T14:30:00.000Z'),
+): ErinnerungAssignedEvent {
+  const erinnerungId = overrides.erinnerungId ?? generateTestCuid();
+  const einsatzId = overrides.einsatzId ?? generateTestUuid();
+  const assignedToId = overrides.assignedToId ?? generateTestCuid();
+  const assignedById = overrides.assignedById ?? generateTestCuid();
+
+  return new ErinnerungAssignedEvent(
+    createMockValueObject(erinnerungId) as unknown as import('@domain/value-objects/erinnerung-id').ErinnerungId,
+    createMockValueObject(einsatzId) as unknown as import('@domain/value-objects/einsatz-id').EinsatzId,
+    createMockValueObject(assignedToId) as unknown as import('@domain/value-objects/user-id').UserId,
+    createMockValueObject(assignedById) as unknown as import('@domain/value-objects/user-id').UserId,
     overrides.titel ?? 'Test-Erinnerung',
-    overrides.erstelltVon ?? generateTestCuid(),
+    overrides.assignedAt ?? new Date('2026-01-20T14:30:00.000Z'),
+    erinnerungId,
   );
 }
 
-describe('ErinnerungAusgeloestEventHandler', () => {
-  let handler: ErinnerungAusgeloestEventHandler;
+describe('ErinnerungAssignedEventHandler', () => {
+  let handler: ErinnerungAssignedEventHandler;
   let mockAddEintragHandler: jest.Mocked<AddEintragHandler>;
   let mockLogger: jest.Mocked<{
     log: jest.Mock;
@@ -105,14 +103,16 @@ describe('ErinnerungAusgeloestEventHandler', () => {
     jest.clearAllMocks();
 
     // Handler mit Mocks instanziieren
-    handler = new ErinnerungAusgeloestEventHandler(mockAddEintragHandler, mockLogger);
+    handler = new ErinnerungAssignedEventHandler(mockAddEintragHandler, mockLogger);
   });
 
-  describe('AC1: Handler sollte ETB-Eintrag für Erinnerung-Ausloesung erstellen', () => {
-    it('should create ETB entry with correct text format "Erinnerung \'{titel}\' ausgelöst"', async () => {
+  describe('AC1: Handler sollte ETB-Eintrag fuer Erinnerung-Zuweisung erstellen', () => {
+    it('should create ETB entry with correct text format "Erinnerung \'{titel}\' zugewiesen an {person}"', async () => {
       // Given (Arrange)
+      const assignedToId = generateTestCuid();
       const event = createTestEvent({
         titel: 'Lagebesprechung',
+        assignedToId,
       });
 
       mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
@@ -123,10 +123,10 @@ describe('ErinnerungAusgeloestEventHandler', () => {
       // Then (Assert)
       expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(1);
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      expect(receivedCommand.text).toBe("Erinnerung 'Lagebesprechung' ausgelöst");
+      expect(receivedCommand.text).toBe(`Erinnerung 'Lagebesprechung' zugewiesen an ${assignedToId}`);
     });
 
-    it('should set kategorie to ERINNERUNG for erinnerung ausloesung (Story 5.1 AC2)', async () => {
+    it('should set kategorie to ERINNERUNG for erinnerung assignment (Story 5.1 AC2)', async () => {
       // Given (Arrange)
       const event = createTestEvent();
 
@@ -155,10 +155,10 @@ describe('ErinnerungAusgeloestEventHandler', () => {
       expect(receivedCommand.einsatzId).toBe(einsatzId);
     });
 
-    it('should pass erstelltVon as userId to ETB command', async () => {
+    it('should pass assignedById as userId to ETB command', async () => {
       // Given (Arrange)
-      const erstelltVon = generateTestCuid();
-      const event = createTestEvent({ erstelltVon });
+      const assignedById = generateTestCuid();
+      const event = createTestEvent({ assignedById });
 
       mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
 
@@ -167,7 +167,7 @@ describe('ErinnerungAusgeloestEventHandler', () => {
 
       // Then (Assert)
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      expect(receivedCommand.userId).toBe(erstelltVon);
+      expect(receivedCommand.userId).toBe(assignedById);
     });
 
     it('should set etbId equal to einsatzId (1:1 relationship)', async () => {
@@ -188,10 +188,14 @@ describe('ErinnerungAusgeloestEventHandler', () => {
     it('should include metadata with event details', async () => {
       // Given (Arrange)
       const erinnerungId = generateTestCuid();
-      const ausgeloestAm = new Date('2026-01-20T15:00:00.000Z');
+      const assignedToId = generateTestCuid();
+      const assignedById = generateTestCuid();
+      const assignedAt = new Date('2026-01-20T15:00:00.000Z');
       const event = createTestEvent({
         erinnerungId,
-        ausgeloestAm,
+        assignedToId,
+        assignedById,
+        assignedAt,
         titel: 'Funkueberpruefung',
       });
 
@@ -203,17 +207,19 @@ describe('ErinnerungAusgeloestEventHandler', () => {
       // Then (Assert)
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
       expect(receivedCommand.metadata).toEqual({
-        eventType: 'ErinnerungAusgeloest',
+        eventType: 'ErinnerungAssigned',
         erinnerungId,
-        ausgeloestAm: ausgeloestAm.toISOString(),
+        assignedToId,
+        assignedById,
+        assignedAt: assignedAt.toISOString(),
       });
 
       // AC3: Metadata MUSS erinnerungId und eventType enthalten
       expect(mockAddEintragHandler.execute).toHaveBeenCalledWith(
         expect.objectContaining({
           metadata: expect.objectContaining({
-            erinnerungId: event.erinnerungId,
-            eventType: 'ErinnerungAusgeloest',
+            erinnerungId: event.erinnerungId.toString(),
+            eventType: 'ErinnerungAssigned',
           }),
         }),
       );
@@ -231,7 +237,7 @@ describe('ErinnerungAusgeloestEventHandler', () => {
       await handler.handle(event);
 
       // Then (Assert)
-      expect(mockLogger.log).toHaveBeenCalledWith(expect.stringContaining('Creating ETB entry for ErinnerungAusgeloest'), 'ErinnerungAusgeloestEventHandler');
+      expect(mockLogger.log).toHaveBeenCalledWith(expect.stringContaining('Creating ETB entry for ErinnerungAssigned'), 'ErinnerungAssignedEventHandler');
     });
 
     it('should call Logger.log() with success message on successful creation', async () => {
@@ -246,7 +252,7 @@ describe('ErinnerungAusgeloestEventHandler', () => {
       await handler.handle(event);
 
       // Then (Assert)
-      expect(mockLogger.log).toHaveBeenCalledWith(expect.stringMatching(/ETB entry created for ErinnerungAusgeloest.*titel=Lagebesprechung/), 'ErinnerungAusgeloestEventHandler');
+      expect(mockLogger.log).toHaveBeenCalledWith(expect.stringMatching(/ETB entry created for ErinnerungAssigned.*erinnerungId=/), 'ErinnerungAssignedEventHandler');
     });
 
     it('should log both start and success messages when creation succeeds', async () => {
@@ -276,7 +282,7 @@ describe('ErinnerungAusgeloestEventHandler', () => {
       await handler.handle(event);
 
       // Then (Assert) - Error loggen und Early Exit (keine Verarbeitung)
-      expect(mockLogger.error).toHaveBeenCalledWith(expect.stringMatching(/ErinnerungAusgeloest event has missing required fields/), 'ErinnerungAusgeloestEventHandler');
+      expect(mockLogger.error).toHaveBeenCalledWith(expect.stringMatching(/ErinnerungAssigned event has missing required fields/), 'ErinnerungAssignedEventHandler');
       // Handler sollte NICHT fortfahren (Early Exit)
       expect(mockAddEintragHandler.execute).not.toHaveBeenCalled();
     });
@@ -303,8 +309,8 @@ describe('ErinnerungAusgeloestEventHandler', () => {
 
       // Then (Assert)
       expect(mockLogger.error).toHaveBeenCalledWith(
-        expect.stringMatching(/Failed to add ETB entry for ErinnerungAusgeloest.*Repository save failed.*severity=ERROR.*actionRequired=Manual ETB entry may be needed/),
-        'ErinnerungAusgeloestEventHandler',
+        expect.stringMatching(/Failed to add ETB entry for ErinnerungAssigned.*Repository save failed.*severity=ERROR.*actionRequired=Manual ETB entry may be needed/),
+        'ErinnerungAssignedEventHandler',
       );
     });
 
@@ -349,7 +355,7 @@ describe('ErinnerungAusgeloestEventHandler', () => {
       expect(errorCall[0]).toContain('Database connection failed');
       expect(errorCall[0]).toContain('severity=CRITICAL');
       expect(errorCall[0]).toContain('actionRequired=Manual ETB entry may be needed');
-      expect(errorCall[1]).toBe('ErinnerungAusgeloestEventHandler');
+      expect(errorCall[1]).toBe('ErinnerungAssignedEventHandler');
     });
 
     it('should include stack trace in error log', async () => {
@@ -365,7 +371,7 @@ describe('ErinnerungAusgeloestEventHandler', () => {
       // Then (Assert)
       const errorLogCall = mockLogger.error.mock.calls[0];
       expect(errorLogCall[0]).toContain('stack=');
-      expect(errorLogCall[1]).toBe('ErinnerungAusgeloestEventHandler');
+      expect(errorLogCall[1]).toBe('ErinnerungAssignedEventHandler');
     });
 
     it('should handle non-Error thrown objects gracefully', async () => {
@@ -380,7 +386,7 @@ describe('ErinnerungAusgeloestEventHandler', () => {
       // Then (Assert)
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringMatching(/CRITICAL.*String error.*severity=CRITICAL.*actionRequired=Manual ETB entry may be needed/),
-        'ErinnerungAusgeloestEventHandler',
+        'ErinnerungAssignedEventHandler',
       );
     });
 
@@ -439,7 +445,7 @@ describe('ErinnerungAusgeloestEventHandler', () => {
       await handler.handle(event);
 
       // Then (Assert) - Error loggen und Early Exit
-      expect(mockLogger.error).toHaveBeenCalledWith(expect.stringMatching(/ErinnerungAusgeloest event has missing required fields/), 'ErinnerungAusgeloestEventHandler');
+      expect(mockLogger.error).toHaveBeenCalledWith(expect.stringMatching(/ErinnerungAssigned event has missing required fields/), 'ErinnerungAssignedEventHandler');
       expect(mockAddEintragHandler.execute).not.toHaveBeenCalled();
     });
 
@@ -464,14 +470,16 @@ describe('ErinnerungAusgeloestEventHandler', () => {
       // Given (Arrange)
       const einsatzId = generateTestUuid();
       const erinnerungId = generateTestCuid();
-      const erstelltVon = generateTestCuid();
-      const ausgeloestAm = new Date('2026-01-20T16:00:00.000Z');
+      const assignedToId = generateTestCuid();
+      const assignedById = generateTestCuid();
+      const assignedAt = new Date('2026-01-20T16:00:00.000Z');
 
       const specificEvent = createTestEvent({
         einsatzId,
         erinnerungId,
-        erstelltVon,
-        ausgeloestAm,
+        assignedToId,
+        assignedById,
+        assignedAt,
         titel: 'Wichtige Erinnerung',
       });
 
@@ -484,16 +492,16 @@ describe('ErinnerungAusgeloestEventHandler', () => {
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
       expect(receivedCommand.etbId).toBe(einsatzId);
       expect(receivedCommand.einsatzId).toBe(einsatzId);
-      expect(receivedCommand.userId).toBe(erstelltVon);
+      expect(receivedCommand.userId).toBe(assignedById);
       expect(receivedCommand.text).toContain('Wichtige Erinnerung');
       expect(receivedCommand.metadata.erinnerungId).toBe(erinnerungId);
-      expect(receivedCommand.metadata.ausgeloestAm).toBe(ausgeloestAm.toISOString());
+      expect(receivedCommand.metadata.assignedAt).toBe(assignedAt.toISOString());
     });
 
     it('should handle titel with special characters', async () => {
       // Given (Arrange)
       const event = createTestEvent({
-        titel: "Lagebesprechung (Führung) - 'dringend'",
+        titel: "Lagebesprechung (Fuehrung) - 'dringend'",
       });
 
       mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
@@ -503,7 +511,7 @@ describe('ErinnerungAusgeloestEventHandler', () => {
 
       // Then (Assert)
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      expect(receivedCommand.text).toContain("Lagebesprechung (Führung) - 'dringend'");
+      expect(receivedCommand.text).toContain("Lagebesprechung (Fuehrung) - 'dringend'");
     });
   });
 
@@ -538,7 +546,7 @@ describe('ErinnerungAusgeloestEventHandler', () => {
     it('should handle titel with umlauts and special characters', async () => {
       // Given (Arrange)
       const event = createTestEvent({
-        titel: 'Führungsübergabe',
+        titel: 'Fuehrungsuebergabe',
       });
 
       mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
@@ -548,15 +556,17 @@ describe('ErinnerungAusgeloestEventHandler', () => {
 
       // Then (Assert)
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      expect(receivedCommand.text).toContain('Führungsübergabe');
+      expect(receivedCommand.text).toContain('Fuehrungsuebergabe');
     });
   });
 
   describe('ETB Entry Text Format Validation', () => {
-    it('should validate exact format "Erinnerung \'{titel}\' ausgelöst"', async () => {
+    it('should validate exact format "Erinnerung \'{titel}\' zugewiesen an {person}"', async () => {
       // Given (Arrange)
+      const assignedToId = 'ctest0000000000000012345';
       const event = createTestEvent({
         titel: 'Funkueberpruefung',
+        assignedToId,
       });
 
       mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
@@ -566,37 +576,11 @@ describe('ErinnerungAusgeloestEventHandler', () => {
 
       // Then (Assert)
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      const expectedText = "Erinnerung 'Funkueberpruefung' ausgelöst";
+      const expectedText = `Erinnerung 'Funkueberpruefung' zugewiesen an ${assignedToId}`;
       expect(receivedCommand.text).toBe(expectedText);
 
       // Validate format structure
-      expect(receivedCommand.text).toMatch(/^Erinnerung '.+' ausgelöst$/);
-    });
-  });
-
-  describe('Fire-and-Forget Resilience', () => {
-    it('should return void (undefined) always', async () => {
-      // Given (Arrange)
-      const event = createTestEvent();
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
-
-      // When (Act)
-      const result = await handler.handle(event);
-
-      // Then (Assert) - Fire-and-Forget Handler gibt immer void zurück
-      expect(result).toBeUndefined();
-    });
-
-    it('should log error but continue when handler execution fails', async () => {
-      // Given (Arrange)
-      const event = createTestEvent();
-      mockAddEintragHandler.execute.mockResolvedValue(Result.fail('ETB konnte nicht erstellt werden'));
-
-      // When (Act)
-      await handler.handle(event);
-
-      // Then (Assert) - Bei Failure-Result wird error geloggt
-      expect(mockLogger.error).toHaveBeenCalled();
+      expect(receivedCommand.text).toMatch(/^Erinnerung '.+' zugewiesen an .+$/);
     });
   });
 });

@@ -16,6 +16,7 @@ import { Store, useStore } from '@tanstack/react-store';
  * **Story 1.3:** Edit Dialog State
  * **Story 1.4:** Delete Dialog State
  * **Story 2.5:** MarkErledigt Dialog State
+ * **Story 5.4:** ETB Quick-Create Dialog State
  */
 export interface ErinnerungDialogState {
   /** Ob der Quick-Create Dialog geoeffnet ist */
@@ -34,6 +35,10 @@ export interface ErinnerungDialogState {
   isMarkErledigtOpen: boolean;
   /** Die zu erledigende Erinnerung (Story 2.5) */
   erinnerungToMarkErledigt: ErinnerungResponseDto | null;
+  /** ETB-Eintrag-ID fuer Quick-Create aus ETB (Story 5.4) */
+  etbEintragId: string | null;
+  /** ETB-Eintrag-Text fuer Quick-Create aus ETB (Story 5.4) */
+  etbEintragText: string | null;
 }
 
 /**
@@ -48,6 +53,8 @@ const initialState: ErinnerungDialogState = {
   erinnerungToDelete: null,
   isMarkErledigtOpen: false,
   erinnerungToMarkErledigt: null,
+  etbEintragId: null,
+  etbEintragText: null,
 };
 
 /**
@@ -82,6 +89,28 @@ export const closeQuickCreateDialog = () => {
     ...state,
     isQuickCreateOpen: false,
     // einsatzId bleibt erhalten fuer potentielle Wiederverwendung
+    // ETB-Felder zuruecksetzen
+    etbEintragId: null,
+    etbEintragText: null,
+  }));
+};
+
+/**
+ * Oeffnet den Quick-Create Dialog aus einem ETB-Eintrag.
+ *
+ * **Story 5.4:** "Erinnerung aus ETB-Eintrag erstellen"
+ *
+ * @param einsatzId - ID des Einsatzes
+ * @param eintragId - ID des ETB-Eintrags
+ * @param eintragText - Text des ETB-Eintrags (wird als Vorausfuellung verwendet)
+ */
+export const openQuickCreateFromEtb = (einsatzId: string, eintragId: string, eintragText: string) => {
+  erinnerungDialogStore.setState((state) => ({
+    ...state,
+    isQuickCreateOpen: true,
+    einsatzId,
+    etbEintragId: eintragId,
+    etbEintragText: eintragText,
   }));
 };
 
@@ -184,6 +213,18 @@ export const resetErinnerungDialogStore = () => {
 // ============================================
 
 /**
+ * Quick-Create Dialog State mit ETB-Verknuepfung
+ *
+ * **Story 5.4:** Erweitert um ETB-Felder
+ */
+export interface QuickCreateDialogState {
+  isOpen: boolean;
+  einsatzId: string | null;
+  etbEintragId: string | null;
+  etbEintragText: string | null;
+}
+
+/**
  * Hook fuer den Quick-Create Dialog State.
  *
  * @returns Tuple aus [isOpen, einsatzId]
@@ -205,6 +246,36 @@ export const useQuickCreateDialogState = (): [boolean, string | null] => {
   const isOpen = useStore(erinnerungDialogStore, (state) => state.isQuickCreateOpen);
   const einsatzId = useStore(erinnerungDialogStore, (state) => state.einsatzId);
   return [isOpen, einsatzId];
+};
+
+/**
+ * Hook fuer den Quick-Create Dialog State mit ETB-Verknuepfung.
+ *
+ * **Story 5.4:** "Erinnerung aus ETB-Eintrag erstellen"
+ *
+ * @returns QuickCreateDialogState mit ETB-Feldern
+ *
+ * @example
+ * ```tsx
+ * const { isOpen, einsatzId, etbEintragId, etbEintragText } = useQuickCreateDialogStateWithEtb();
+ *
+ * return (
+ *   <QuickCreateErinnerungDialog
+ *     isOpen={isOpen}
+ *     einsatzId={einsatzId ?? ''}
+ *     etbEintragId={etbEintragId}
+ *     defaultText={etbEintragText}
+ *     onClose={closeQuickCreateDialog}
+ *   />
+ * );
+ * ```
+ */
+export const useQuickCreateDialogStateWithEtb = (): QuickCreateDialogState => {
+  const isOpen = useStore(erinnerungDialogStore, (state) => state.isQuickCreateOpen);
+  const einsatzId = useStore(erinnerungDialogStore, (state) => state.einsatzId);
+  const etbEintragId = useStore(erinnerungDialogStore, (state) => state.etbEintragId);
+  const etbEintragText = useStore(erinnerungDialogStore, (state) => state.etbEintragText);
+  return { isOpen, einsatzId, etbEintragId, etbEintragText };
 };
 
 /**

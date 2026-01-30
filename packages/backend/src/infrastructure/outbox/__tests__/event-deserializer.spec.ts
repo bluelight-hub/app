@@ -49,7 +49,17 @@ import { RolleBesetzt } from '@domain/kraefte/events/rolle-besetzt.event';
 import { RolleFreigegeben } from '@domain/kraefte/events/rolle-freigegeben.event';
 
 // Erinnerung Events
+import { ErinnerungErstelltEvent } from '@domain/events/erinnerung-erstellt.event';
+import { ErinnerungAusgeloestEvent } from '@domain/events/erinnerung-ausgeloest.event';
+import { ErinnerungAcknowledgedEvent } from '@domain/events/erinnerung-acknowledged.event';
+import { ErinnerungSnoozedEvent } from '@domain/events/erinnerung-snoozed.event';
 import { ErinnerungRetriggeredEvent } from '@domain/events/erinnerung-retriggered.event';
+import { ErinnerungErledigtEvent } from '@domain/events/erinnerung-erledigt.event';
+import { ErinnerungAssignedEvent } from '@domain/events/erinnerung-assigned.event';
+import { ErinnerungEskaliertEvent } from '@domain/events/erinnerung-eskaliert.event';
+import { ErinnerungIntensiviertEvent } from '@domain/events/erinnerung-intensiviert.event';
+import { ErinnerungAktualisiertEvent } from '@domain/events/erinnerung-aktualisiert.event';
+import { ErinnerungGeloeschtEvent } from '@domain/events/erinnerung-geloescht.event';
 
 // Value Objects (für Test IDs)
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
@@ -895,6 +905,1156 @@ describe('EventDeserializer', () => {
     });
   });
 
+  // ===== ERINNERUNG ERSTELLT EVENT =====
+
+  describe('ErinnerungErstelltEvent deserialization', () => {
+    it('should deserialize ErinnerungErstelltEvent correctly', () => {
+      // Given (Arrange)
+      const faelligAm = '2026-01-21T15:00:00.000Z';
+      const serialized = createSerializedEvent(
+        'erinnerung.erstellt',
+        {
+          erinnerungId: erinnerungIdValue,
+          einsatzId: einsatzIdValue,
+          titel: 'Lagebesprechung',
+          faelligAm,
+          erstelltVon: userIdValue,
+          assignedToId: null,
+          eskalationsPersonId: null,
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      const event = result.value as ErinnerungErstelltEvent;
+      expect(event).toBeInstanceOf(ErinnerungErstelltEvent);
+      expect(event.erinnerungId.value).toBe(erinnerungIdValue);
+      expect(event.einsatzId.value).toBe(einsatzIdValue);
+      expect(event.titel).toBe('Lagebesprechung');
+      expect(event.faelligAm.toISOString()).toBe(faelligAm);
+      expect(event.erstelltVon.value).toBe(userIdValue);
+      expect(event.assignedToId).toBeNull();
+      expect(event.eskalationsPersonId).toBeNull();
+    });
+
+    it('should deserialize ErinnerungErstelltEvent with assignedToId and eskalationsPersonId', () => {
+      // Given (Arrange)
+      const faelligAm = '2026-01-21T15:00:00.000Z';
+      const serialized = createSerializedEvent(
+        'erinnerung.erstellt',
+        {
+          erinnerungId: erinnerungIdValue,
+          einsatzId: einsatzIdValue,
+          titel: 'Zugewiesene Erinnerung',
+          faelligAm,
+          erstelltVon: userIdValue,
+          assignedToId: userId2Value,
+          eskalationsPersonId: userId2Value,
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      const event = result.value as ErinnerungErstelltEvent;
+      expect(event).toBeInstanceOf(ErinnerungErstelltEvent);
+      expect(event.assignedToId?.value).toBe(userId2Value);
+      expect(event.eskalationsPersonId?.value).toBe(userId2Value);
+    });
+
+    it('should fail with invalid erinnerungId', () => {
+      // Given (Arrange)
+      const serialized = createSerializedEvent(
+        'erinnerung.erstellt',
+        {
+          erinnerungId: 'invalid-id-format!',
+          einsatzId: einsatzIdValue,
+          titel: 'Test',
+          faelligAm: '2026-01-21T15:00:00.000Z',
+          erstelltVon: userIdValue,
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Invalid erinnerungId');
+    });
+
+    it('should roundtrip ErinnerungErstelltEvent: serialize -> deserialize -> equals original', () => {
+      // Given - Originale Event-Instanz
+      const erinnerungId = ErinnerungId.create().value!;
+      const einsatzId = EinsatzId.create().value!;
+      const erstelltVon = UserId.create().value!;
+      const faelligAm = new Date('2026-01-21T15:00:00.000Z');
+
+      const originalEvent = new ErinnerungErstelltEvent(erinnerungId, einsatzId, 'Wichtige Besprechung', faelligAm, erstelltVon, null, null, erinnerungId.value);
+
+      // Serialized payload (wie es in der DB gespeichert wäre)
+      const serialized = createSerializedEvent(
+        'erinnerung.erstellt',
+        {
+          erinnerungId: originalEvent.erinnerungId.value,
+          einsatzId: originalEvent.einsatzId.value,
+          titel: originalEvent.titel,
+          faelligAm: originalEvent.faelligAm.toISOString(),
+          erstelltVon: originalEvent.erstelltVon.value,
+          assignedToId: originalEvent.assignedToId?.value ?? null,
+          eskalationsPersonId: originalEvent.eskalationsPersonId?.value ?? null,
+        },
+        originalEvent.aggregateId,
+      );
+
+      // When - Deserialisieren
+      const result = deserializer.deserialize(serialized);
+
+      // Then - Alle Felder stimmen überein
+      expect(result.isSuccess).toBe(true);
+      const deserializedEvent = result.value as ErinnerungErstelltEvent;
+
+      expect(deserializedEvent.erinnerungId.value).toBe(originalEvent.erinnerungId.value);
+      expect(deserializedEvent.einsatzId.value).toBe(originalEvent.einsatzId.value);
+      expect(deserializedEvent.titel).toBe(originalEvent.titel);
+      expect(deserializedEvent.faelligAm.toISOString()).toBe(originalEvent.faelligAm.toISOString());
+      expect(deserializedEvent.erstelltVon.value).toBe(originalEvent.erstelltVon.value);
+      expect(deserializedEvent.aggregateId).toBe(originalEvent.aggregateId);
+    });
+  });
+
+  // ===== ERINNERUNG AUSGELOEST EVENT =====
+
+  describe('ErinnerungAusgeloestEvent deserialization', () => {
+    it('should deserialize ErinnerungAusgeloestEvent correctly', () => {
+      // Given (Arrange)
+      const ausgeloestAm = '2026-01-21T15:00:00.000Z';
+      const serialized = createSerializedEvent(
+        'erinnerung.ausgeloest',
+        {
+          erinnerungId: erinnerungIdValue,
+          einsatzId: einsatzIdValue,
+          ausgeloestAm,
+          titel: 'Lagebesprechung',
+          erstelltVon: userIdValue,
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      const event = result.value as ErinnerungAusgeloestEvent;
+      expect(event).toBeInstanceOf(ErinnerungAusgeloestEvent);
+      expect(event.erinnerungId.value).toBe(erinnerungIdValue);
+      expect(event.einsatzId.value).toBe(einsatzIdValue);
+      expect(event.ausgeloestAm.toISOString()).toBe(ausgeloestAm);
+      expect(event.titel).toBe('Lagebesprechung');
+      expect(event.erstelltVon.value).toBe(userIdValue);
+    });
+
+    it('should fail with invalid erinnerungId', () => {
+      // Given (Arrange)
+      const serialized = createSerializedEvent(
+        'erinnerung.ausgeloest',
+        {
+          erinnerungId: 'invalid-id-format!',
+          einsatzId: einsatzIdValue,
+          ausgeloestAm: '2026-01-21T15:00:00.000Z',
+          titel: 'Test',
+          erstelltVon: userIdValue,
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Invalid erinnerungId');
+    });
+
+    it('should roundtrip ErinnerungAusgeloestEvent: serialize -> deserialize -> equals original', () => {
+      // Given - Originale Event-Instanz
+      const erinnerungId = ErinnerungId.create().value!;
+      const einsatzId = EinsatzId.create().value!;
+      const erstelltVon = UserId.create().value!;
+      const ausgeloestAm = new Date('2026-01-21T15:00:00.000Z');
+
+      const originalEvent = new ErinnerungAusgeloestEvent(erinnerungId, einsatzId, ausgeloestAm, 'Timer abgelaufen', erstelltVon, erinnerungId.value);
+
+      // Serialized payload
+      const serialized = createSerializedEvent(
+        'erinnerung.ausgeloest',
+        {
+          erinnerungId: originalEvent.erinnerungId.value,
+          einsatzId: originalEvent.einsatzId.value,
+          ausgeloestAm: originalEvent.ausgeloestAm.toISOString(),
+          titel: originalEvent.titel,
+          erstelltVon: originalEvent.erstelltVon.value,
+        },
+        originalEvent.aggregateId,
+      );
+
+      // When - Deserialisieren
+      const result = deserializer.deserialize(serialized);
+
+      // Then - Alle Felder stimmen überein
+      expect(result.isSuccess).toBe(true);
+      const deserializedEvent = result.value as ErinnerungAusgeloestEvent;
+
+      expect(deserializedEvent.erinnerungId.value).toBe(originalEvent.erinnerungId.value);
+      expect(deserializedEvent.einsatzId.value).toBe(originalEvent.einsatzId.value);
+      expect(deserializedEvent.ausgeloestAm.toISOString()).toBe(originalEvent.ausgeloestAm.toISOString());
+      expect(deserializedEvent.titel).toBe(originalEvent.titel);
+      expect(deserializedEvent.erstelltVon.value).toBe(originalEvent.erstelltVon.value);
+    });
+  });
+
+  // ===== ERINNERUNG ACKNOWLEDGED EVENT =====
+
+  describe('ErinnerungAcknowledgedEvent deserialization', () => {
+    it('should deserialize ErinnerungAcknowledgedEvent correctly', () => {
+      // Given (Arrange)
+      const acknowledgedAm = '2026-01-21T15:05:00.000Z';
+      const serialized = createSerializedEvent(
+        'erinnerung.acknowledged',
+        {
+          erinnerungId: erinnerungIdValue,
+          einsatzId: einsatzIdValue,
+          acknowledgedAm,
+          acknowledgedBy: userIdValue,
+          titel: 'Lagebesprechung',
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      const event = result.value as ErinnerungAcknowledgedEvent;
+      expect(event).toBeInstanceOf(ErinnerungAcknowledgedEvent);
+      expect(event.erinnerungId.value).toBe(erinnerungIdValue);
+      expect(event.einsatzId.value).toBe(einsatzIdValue);
+      expect(event.acknowledgedAm.toISOString()).toBe(acknowledgedAm);
+      expect(event.acknowledgedBy.value).toBe(userIdValue);
+      expect(event.titel).toBe('Lagebesprechung');
+    });
+
+    it('should fail with invalid acknowledgedBy userId', () => {
+      // Given (Arrange)
+      const serialized = createSerializedEvent(
+        'erinnerung.acknowledged',
+        {
+          erinnerungId: erinnerungIdValue,
+          einsatzId: einsatzIdValue,
+          acknowledgedAm: '2026-01-21T15:05:00.000Z',
+          acknowledgedBy: 'invalid-user-id!',
+          titel: 'Test',
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Invalid acknowledgedBy');
+    });
+
+    it('should roundtrip ErinnerungAcknowledgedEvent: serialize -> deserialize -> equals original', () => {
+      // Given - Originale Event-Instanz
+      const erinnerungId = ErinnerungId.create().value!;
+      const einsatzId = EinsatzId.create().value!;
+      const acknowledgedBy = UserId.create().value!;
+      const acknowledgedAm = new Date('2026-01-21T15:05:00.000Z');
+
+      const originalEvent = new ErinnerungAcknowledgedEvent(erinnerungId, einsatzId, acknowledgedAm, acknowledgedBy, 'Bestätigte Erinnerung', erinnerungId.value);
+
+      // Serialized payload
+      const serialized = createSerializedEvent(
+        'erinnerung.acknowledged',
+        {
+          erinnerungId: originalEvent.erinnerungId.value,
+          einsatzId: originalEvent.einsatzId.value,
+          acknowledgedAm: originalEvent.acknowledgedAm.toISOString(),
+          acknowledgedBy: originalEvent.acknowledgedBy.value,
+          titel: originalEvent.titel,
+        },
+        originalEvent.aggregateId,
+      );
+
+      // When - Deserialisieren
+      const result = deserializer.deserialize(serialized);
+
+      // Then - Alle Felder stimmen überein
+      expect(result.isSuccess).toBe(true);
+      const deserializedEvent = result.value as ErinnerungAcknowledgedEvent;
+
+      expect(deserializedEvent.erinnerungId.value).toBe(originalEvent.erinnerungId.value);
+      expect(deserializedEvent.einsatzId.value).toBe(originalEvent.einsatzId.value);
+      expect(deserializedEvent.acknowledgedAm.toISOString()).toBe(originalEvent.acknowledgedAm.toISOString());
+      expect(deserializedEvent.acknowledgedBy.value).toBe(originalEvent.acknowledgedBy.value);
+      expect(deserializedEvent.titel).toBe(originalEvent.titel);
+    });
+  });
+
+  // ===== ERINNERUNG SNOOZED EVENT =====
+
+  describe('ErinnerungSnoozedEvent deserialization', () => {
+    it('should deserialize ErinnerungSnoozedEvent correctly', () => {
+      // Given (Arrange)
+      const snoozedAt = '2026-01-21T15:00:00.000Z';
+      const snoozedUntil = '2026-01-21T15:05:00.000Z';
+      const serialized = createSerializedEvent(
+        'erinnerung.snoozed',
+        {
+          erinnerungId: erinnerungIdValue,
+          einsatzId: einsatzIdValue,
+          snoozedAt,
+          snoozedUntil,
+          snoozedBy: userIdValue,
+          snoozeMinutes: 5,
+          snoozeCount: 1,
+          titel: 'Lagebesprechung',
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      const event = result.value as ErinnerungSnoozedEvent;
+      expect(event).toBeInstanceOf(ErinnerungSnoozedEvent);
+      expect(event.erinnerungId.value).toBe(erinnerungIdValue);
+      expect(event.einsatzId.value).toBe(einsatzIdValue);
+      expect(event.snoozedAt.toISOString()).toBe(snoozedAt);
+      expect(event.snoozedUntil.toISOString()).toBe(snoozedUntil);
+      expect(event.snoozedBy.value).toBe(userIdValue);
+      expect(event.snoozeMinutes).toBe(5);
+      expect(event.snoozeCount).toBe(1);
+      expect(event.titel).toBe('Lagebesprechung');
+    });
+
+    it('should fail with invalid snoozedBy userId', () => {
+      // Given (Arrange)
+      const serialized = createSerializedEvent(
+        'erinnerung.snoozed',
+        {
+          erinnerungId: erinnerungIdValue,
+          einsatzId: einsatzIdValue,
+          snoozedAt: '2026-01-21T15:00:00.000Z',
+          snoozedUntil: '2026-01-21T15:05:00.000Z',
+          snoozedBy: 'invalid-user-id!',
+          snoozeMinutes: 5,
+          snoozeCount: 1,
+          titel: 'Test',
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Invalid snoozedBy');
+    });
+
+    it('should roundtrip ErinnerungSnoozedEvent: serialize -> deserialize -> equals original', () => {
+      // Given - Originale Event-Instanz
+      const erinnerungId = ErinnerungId.create().value!;
+      const einsatzId = EinsatzId.create().value!;
+      const snoozedBy = UserId.create().value!;
+      const snoozedAt = new Date('2026-01-21T15:00:00.000Z');
+      const snoozedUntil = new Date('2026-01-21T15:10:00.000Z');
+
+      const originalEvent = new ErinnerungSnoozedEvent(erinnerungId, einsatzId, snoozedAt, snoozedUntil, snoozedBy, 10, 2, 'Verschobene Erinnerung', erinnerungId.value);
+
+      // Serialized payload
+      const serialized = createSerializedEvent(
+        'erinnerung.snoozed',
+        {
+          erinnerungId: originalEvent.erinnerungId.value,
+          einsatzId: originalEvent.einsatzId.value,
+          snoozedAt: originalEvent.snoozedAt.toISOString(),
+          snoozedUntil: originalEvent.snoozedUntil.toISOString(),
+          snoozedBy: originalEvent.snoozedBy.value,
+          snoozeMinutes: originalEvent.snoozeMinutes,
+          snoozeCount: originalEvent.snoozeCount,
+          titel: originalEvent.titel,
+        },
+        originalEvent.aggregateId,
+      );
+
+      // When - Deserialisieren
+      const result = deserializer.deserialize(serialized);
+
+      // Then - Alle Felder stimmen überein
+      expect(result.isSuccess).toBe(true);
+      const deserializedEvent = result.value as ErinnerungSnoozedEvent;
+
+      expect(deserializedEvent.erinnerungId.value).toBe(originalEvent.erinnerungId.value);
+      expect(deserializedEvent.einsatzId.value).toBe(originalEvent.einsatzId.value);
+      expect(deserializedEvent.snoozedAt.toISOString()).toBe(originalEvent.snoozedAt.toISOString());
+      expect(deserializedEvent.snoozedUntil.toISOString()).toBe(originalEvent.snoozedUntil.toISOString());
+      expect(deserializedEvent.snoozedBy.value).toBe(originalEvent.snoozedBy.value);
+      expect(deserializedEvent.snoozeMinutes).toBe(originalEvent.snoozeMinutes);
+      expect(deserializedEvent.snoozeCount).toBe(originalEvent.snoozeCount);
+      expect(deserializedEvent.titel).toBe(originalEvent.titel);
+    });
+  });
+
+  // ===== ERINNERUNG ERLEDIGT EVENT =====
+
+  describe('ErinnerungErledigtEvent deserialization', () => {
+    it('should deserialize ErinnerungErledigtEvent correctly with erledigungsNotiz', () => {
+      // Given (Arrange)
+      const erledigtAm = '2026-01-21T16:00:00.000Z';
+      const serialized = createSerializedEvent(
+        'erinnerung.erledigt',
+        {
+          erinnerungId: erinnerungIdValue,
+          einsatzId: einsatzIdValue,
+          erledigtAm,
+          erledigtBy: userIdValue,
+          titel: 'Lagebesprechung',
+          erledigungsNotiz: 'Aufgabe erfolgreich abgeschlossen',
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      const event = result.value as ErinnerungErledigtEvent;
+      expect(event).toBeInstanceOf(ErinnerungErledigtEvent);
+      expect(event.erinnerungId.value).toBe(erinnerungIdValue);
+      expect(event.einsatzId.value).toBe(einsatzIdValue);
+      expect(event.erledigtAm.toISOString()).toBe(erledigtAm);
+      expect(event.erledigtBy.value).toBe(userIdValue);
+      expect(event.titel).toBe('Lagebesprechung');
+      expect(event.erledigungsNotiz).toBe('Aufgabe erfolgreich abgeschlossen');
+    });
+
+    it('should handle null erledigungsNotiz correctly', () => {
+      // Given (Arrange)
+      const erledigtAm = '2026-01-21T16:00:00.000Z';
+      const serialized = createSerializedEvent(
+        'erinnerung.erledigt',
+        {
+          erinnerungId: erinnerungIdValue,
+          einsatzId: einsatzIdValue,
+          erledigtAm,
+          erledigtBy: userIdValue,
+          titel: 'Lagebesprechung',
+          erledigungsNotiz: null,
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      const event = result.value as ErinnerungErledigtEvent;
+      expect(event).toBeInstanceOf(ErinnerungErledigtEvent);
+      expect(event.erledigungsNotiz).toBeNull();
+    });
+
+    it('should fail with invalid erledigtBy userId', () => {
+      // Given (Arrange)
+      const serialized = createSerializedEvent(
+        'erinnerung.erledigt',
+        {
+          erinnerungId: erinnerungIdValue,
+          einsatzId: einsatzIdValue,
+          erledigtAm: '2026-01-21T16:00:00.000Z',
+          erledigtBy: 'invalid-user-id!',
+          titel: 'Test',
+          erledigungsNotiz: null,
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Invalid erledigtBy');
+    });
+
+    it('should roundtrip ErinnerungErledigtEvent: serialize -> deserialize -> equals original', () => {
+      // Given - Originale Event-Instanz
+      const erinnerungId = ErinnerungId.create().value!;
+      const einsatzId = EinsatzId.create().value!;
+      const erledigtBy = UserId.create().value!;
+      const erledigtAm = new Date('2026-01-21T16:00:00.000Z');
+
+      const originalEvent = new ErinnerungErledigtEvent(erinnerungId, einsatzId, erledigtAm, erledigtBy, 'Erledigte Aufgabe', 'Alles erledigt!', erinnerungId.value);
+
+      // Serialized payload
+      const serialized = createSerializedEvent(
+        'erinnerung.erledigt',
+        {
+          erinnerungId: originalEvent.erinnerungId.value,
+          einsatzId: originalEvent.einsatzId.value,
+          erledigtAm: originalEvent.erledigtAm.toISOString(),
+          erledigtBy: originalEvent.erledigtBy.value,
+          titel: originalEvent.titel,
+          erledigungsNotiz: originalEvent.erledigungsNotiz,
+        },
+        originalEvent.aggregateId,
+      );
+
+      // When - Deserialisieren
+      const result = deserializer.deserialize(serialized);
+
+      // Then - Alle Felder stimmen überein
+      expect(result.isSuccess).toBe(true);
+      const deserializedEvent = result.value as ErinnerungErledigtEvent;
+
+      expect(deserializedEvent.erinnerungId.value).toBe(originalEvent.erinnerungId.value);
+      expect(deserializedEvent.einsatzId.value).toBe(originalEvent.einsatzId.value);
+      expect(deserializedEvent.erledigtAm.toISOString()).toBe(originalEvent.erledigtAm.toISOString());
+      expect(deserializedEvent.erledigtBy.value).toBe(originalEvent.erledigtBy.value);
+      expect(deserializedEvent.titel).toBe(originalEvent.titel);
+      expect(deserializedEvent.erledigungsNotiz).toBe(originalEvent.erledigungsNotiz);
+    });
+  });
+
+  // ===== ERINNERUNG ASSIGNED EVENT =====
+
+  describe('ErinnerungAssignedEvent deserialization', () => {
+    it('should deserialize ErinnerungAssignedEvent correctly', () => {
+      // Given (Arrange)
+      const assignedAt = '2026-01-21T14:00:00.000Z';
+      const serialized = createSerializedEvent(
+        'erinnerung.assigned',
+        {
+          erinnerungId: erinnerungIdValue,
+          einsatzId: einsatzIdValue,
+          assignedToId: userId2Value,
+          assignedById: userIdValue,
+          titel: 'Zugewiesene Aufgabe',
+          assignedAt,
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      const event = result.value as ErinnerungAssignedEvent;
+      expect(event).toBeInstanceOf(ErinnerungAssignedEvent);
+      expect(event.erinnerungId.value).toBe(erinnerungIdValue);
+      expect(event.einsatzId.value).toBe(einsatzIdValue);
+      expect(event.assignedToId.value).toBe(userId2Value);
+      expect(event.assignedById.value).toBe(userIdValue);
+      expect(event.titel).toBe('Zugewiesene Aufgabe');
+      expect(event.assignedAt.toISOString()).toBe(assignedAt);
+    });
+
+    it('should fail with invalid assignedToId', () => {
+      // Given (Arrange)
+      const serialized = createSerializedEvent(
+        'erinnerung.assigned',
+        {
+          erinnerungId: erinnerungIdValue,
+          einsatzId: einsatzIdValue,
+          assignedToId: 'invalid-user-id!',
+          assignedById: userIdValue,
+          titel: 'Test',
+          assignedAt: '2026-01-21T14:00:00.000Z',
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Invalid assignedToId');
+    });
+
+    it('should fail with invalid assignedById', () => {
+      // Given (Arrange)
+      const serialized = createSerializedEvent(
+        'erinnerung.assigned',
+        {
+          erinnerungId: erinnerungIdValue,
+          einsatzId: einsatzIdValue,
+          assignedToId: userId2Value,
+          assignedById: 'invalid-user-id!',
+          titel: 'Test',
+          assignedAt: '2026-01-21T14:00:00.000Z',
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Invalid assignedById');
+    });
+
+    it('should roundtrip ErinnerungAssignedEvent: serialize -> deserialize -> equals original', () => {
+      // Given - Originale Event-Instanz
+      const erinnerungId = ErinnerungId.create().value!;
+      const einsatzId = EinsatzId.create().value!;
+      const assignedToId = UserId.create().value!;
+      const assignedById = UserId.create().value!;
+      const assignedAt = new Date('2026-01-21T14:00:00.000Z');
+
+      const originalEvent = new ErinnerungAssignedEvent(erinnerungId, einsatzId, assignedToId, assignedById, 'Zugewiesene Erinnerung', assignedAt, erinnerungId.value);
+
+      // Serialized payload
+      const serialized = createSerializedEvent(
+        'erinnerung.assigned',
+        {
+          erinnerungId: originalEvent.erinnerungId.value,
+          einsatzId: originalEvent.einsatzId.value,
+          assignedToId: originalEvent.assignedToId.value,
+          assignedById: originalEvent.assignedById.value,
+          titel: originalEvent.titel,
+          assignedAt: originalEvent.assignedAt.toISOString(),
+        },
+        originalEvent.aggregateId,
+      );
+
+      // When - Deserialisieren
+      const result = deserializer.deserialize(serialized);
+
+      // Then - Alle Felder stimmen überein
+      expect(result.isSuccess).toBe(true);
+      const deserializedEvent = result.value as ErinnerungAssignedEvent;
+
+      expect(deserializedEvent.erinnerungId.value).toBe(originalEvent.erinnerungId.value);
+      expect(deserializedEvent.einsatzId.value).toBe(originalEvent.einsatzId.value);
+      expect(deserializedEvent.assignedToId.value).toBe(originalEvent.assignedToId.value);
+      expect(deserializedEvent.assignedById.value).toBe(originalEvent.assignedById.value);
+      expect(deserializedEvent.titel).toBe(originalEvent.titel);
+      expect(deserializedEvent.assignedAt.toISOString()).toBe(originalEvent.assignedAt.toISOString());
+    });
+  });
+
+  // ===== ERINNERUNG ESKALIERT EVENT =====
+
+  describe('ErinnerungEskaliertEvent deserialization', () => {
+    it('should deserialize ErinnerungEskaliertEvent correctly with eskalationsPersonId', () => {
+      // Given (Arrange)
+      const eskaliertAm = '2026-01-21T15:30:00.000Z';
+      const serialized = createSerializedEvent(
+        'erinnerung.eskaliert',
+        {
+          erinnerungId: erinnerungIdValue,
+          einsatzId: einsatzIdValue,
+          eskaliertAm,
+          titel: 'Überfällige Erinnerung',
+          erstelltVon: userIdValue,
+          eskalationsPersonId: userId2Value,
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      const event = result.value as ErinnerungEskaliertEvent;
+      expect(event).toBeInstanceOf(ErinnerungEskaliertEvent);
+      expect(event.erinnerungId.toString()).toBe(erinnerungIdValue);
+      expect(event.einsatzId.value).toBe(einsatzIdValue);
+      expect(event.eskaliertAm.toISOString()).toBe(eskaliertAm);
+      expect(event.titel).toBe('Überfällige Erinnerung');
+      expect(event.erstelltVon.value).toBe(userIdValue);
+      expect(event.eskalationsPersonId?.value).toBe(userId2Value);
+    });
+
+    it('should handle null eskalationsPersonId correctly', () => {
+      // Given (Arrange)
+      const eskaliertAm = '2026-01-21T15:30:00.000Z';
+      const serialized = createSerializedEvent(
+        'erinnerung.eskaliert',
+        {
+          erinnerungId: erinnerungIdValue,
+          einsatzId: einsatzIdValue,
+          eskaliertAm,
+          titel: 'Überfällige Erinnerung ohne Eskalationsperson',
+          erstelltVon: userIdValue,
+          eskalationsPersonId: null,
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      const event = result.value as ErinnerungEskaliertEvent;
+      expect(event).toBeInstanceOf(ErinnerungEskaliertEvent);
+      expect(event.eskalationsPersonId).toBeNull();
+    });
+
+    it('should fail with invalid erinnerungId', () => {
+      // Given (Arrange)
+      const serialized = createSerializedEvent(
+        'erinnerung.eskaliert',
+        {
+          erinnerungId: 'invalid-id-format!',
+          einsatzId: einsatzIdValue,
+          eskaliertAm: '2026-01-21T15:30:00.000Z',
+          titel: 'Test',
+          erstelltVon: userIdValue,
+          eskalationsPersonId: null,
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Invalid erinnerungId');
+    });
+
+    it('should roundtrip ErinnerungEskaliertEvent: serialize -> deserialize -> equals original', () => {
+      // Given - Originale Event-Instanz
+      const erinnerungId = ErinnerungId.create().value!;
+      const einsatzId = EinsatzId.create().value!;
+      const erstelltVon = UserId.create().value!;
+      const eskalationsPersonId = UserId.create().value!;
+      const eskaliertAm = new Date('2026-01-21T15:30:00.000Z');
+
+      const originalEvent = new ErinnerungEskaliertEvent(erinnerungId, einsatzId, eskaliertAm, 'Eskalierte Aufgabe', erstelltVon, eskalationsPersonId, erinnerungId.value);
+
+      // Serialized payload
+      const serialized = createSerializedEvent(
+        'erinnerung.eskaliert',
+        {
+          erinnerungId: originalEvent.erinnerungId.toString(),
+          einsatzId: originalEvent.einsatzId.value,
+          eskaliertAm: originalEvent.eskaliertAm.toISOString(),
+          titel: originalEvent.titel,
+          erstelltVon: originalEvent.erstelltVon.value,
+          eskalationsPersonId: originalEvent.eskalationsPersonId?.value ?? null,
+        },
+        originalEvent.aggregateId,
+      );
+
+      // When - Deserialisieren
+      const result = deserializer.deserialize(serialized);
+
+      // Then - Alle Felder stimmen überein
+      expect(result.isSuccess).toBe(true);
+      const deserializedEvent = result.value as ErinnerungEskaliertEvent;
+
+      expect(deserializedEvent.erinnerungId.toString()).toBe(originalEvent.erinnerungId.toString());
+      expect(deserializedEvent.einsatzId.value).toBe(originalEvent.einsatzId.value);
+      expect(deserializedEvent.eskaliertAm.toISOString()).toBe(originalEvent.eskaliertAm.toISOString());
+      expect(deserializedEvent.titel).toBe(originalEvent.titel);
+      expect(deserializedEvent.erstelltVon.value).toBe(originalEvent.erstelltVon.value);
+      expect(deserializedEvent.eskalationsPersonId?.value).toBe(originalEvent.eskalationsPersonId?.value);
+    });
+  });
+
+  // ===== ERINNERUNG INTENSIVIERT EVENT =====
+
+  describe('ErinnerungIntensiviertEvent deserialization', () => {
+    it('should deserialize ErinnerungIntensiviertEvent correctly', () => {
+      // Given (Arrange)
+      const intensiviertAm = '2026-01-21T15:35:00.000Z';
+      const serialized = createSerializedEvent(
+        'erinnerung.intensiviert',
+        {
+          erinnerungId: erinnerungIdValue,
+          einsatzId: einsatzIdValue,
+          intensiviertAm,
+          titel: 'Überfällige Erinnerung ohne Eskalationsperson',
+          erstelltVon: userIdValue,
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      const event = result.value as ErinnerungIntensiviertEvent;
+      expect(event).toBeInstanceOf(ErinnerungIntensiviertEvent);
+      expect(event.erinnerungId.toString()).toBe(erinnerungIdValue);
+      expect(event.einsatzId.value).toBe(einsatzIdValue);
+      expect(event.intensiviertAm.toISOString()).toBe(intensiviertAm);
+      expect(event.titel).toBe('Überfällige Erinnerung ohne Eskalationsperson');
+      expect(event.erstelltVon.value).toBe(userIdValue);
+    });
+
+    it('should fail with invalid erinnerungId', () => {
+      // Given (Arrange)
+      const serialized = createSerializedEvent(
+        'erinnerung.intensiviert',
+        {
+          erinnerungId: 'invalid-id-format!',
+          einsatzId: einsatzIdValue,
+          intensiviertAm: '2026-01-21T15:35:00.000Z',
+          titel: 'Test',
+          erstelltVon: userIdValue,
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Invalid erinnerungId');
+    });
+
+    it('should roundtrip ErinnerungIntensiviertEvent: serialize -> deserialize -> equals original', () => {
+      // Given - Originale Event-Instanz
+      const erinnerungId = ErinnerungId.create().value!;
+      const einsatzId = EinsatzId.create().value!;
+      const erstelltVon = UserId.create().value!;
+      const intensiviertAm = new Date('2026-01-21T15:35:00.000Z');
+
+      const originalEvent = new ErinnerungIntensiviertEvent(erinnerungId, einsatzId, intensiviertAm, 'Intensivierte Aufgabe', erstelltVon, erinnerungId.value);
+
+      // Serialized payload
+      const serialized = createSerializedEvent(
+        'erinnerung.intensiviert',
+        {
+          erinnerungId: originalEvent.erinnerungId.toString(),
+          einsatzId: originalEvent.einsatzId.value,
+          intensiviertAm: originalEvent.intensiviertAm.toISOString(),
+          titel: originalEvent.titel,
+          erstelltVon: originalEvent.erstelltVon.value,
+        },
+        originalEvent.aggregateId,
+      );
+
+      // When - Deserialisieren
+      const result = deserializer.deserialize(serialized);
+
+      // Then - Alle Felder stimmen überein
+      expect(result.isSuccess).toBe(true);
+      const deserializedEvent = result.value as ErinnerungIntensiviertEvent;
+
+      expect(deserializedEvent.erinnerungId.toString()).toBe(originalEvent.erinnerungId.toString());
+      expect(deserializedEvent.einsatzId.value).toBe(originalEvent.einsatzId.value);
+      expect(deserializedEvent.intensiviertAm.toISOString()).toBe(originalEvent.intensiviertAm.toISOString());
+      expect(deserializedEvent.titel).toBe(originalEvent.titel);
+      expect(deserializedEvent.erstelltVon.value).toBe(originalEvent.erstelltVon.value);
+    });
+  });
+
+  // ===== ERINNERUNG AKTUALISIERT EVENT =====
+
+  describe('ErinnerungAktualisiertEvent deserialization', () => {
+    it('should deserialize ErinnerungAktualisiertEvent correctly with all aenderungen', () => {
+      // Given (Arrange)
+      const neueFaelligAm = '2026-01-22T10:00:00.000Z';
+      const serialized = createSerializedEvent(
+        'erinnerung.aktualisiert',
+        {
+          erinnerungId: erinnerungIdValue,
+          einsatzId: einsatzIdValue,
+          aenderungen: {
+            titel: 'Neuer Titel',
+            beschreibung: 'Neue Beschreibung',
+            faelligAm: neueFaelligAm,
+            eskalationsPersonId: userId2Value,
+          },
+          aktualisierVon: userIdValue,
+          titel: 'Aktueller Titel',
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      const event = result.value as ErinnerungAktualisiertEvent;
+      expect(event).toBeInstanceOf(ErinnerungAktualisiertEvent);
+      expect(event.erinnerungId.value).toBe(erinnerungIdValue);
+      expect(event.einsatzId.value).toBe(einsatzIdValue);
+      expect(event.aenderungen.titel).toBe('Neuer Titel');
+      expect(event.aenderungen.beschreibung).toBe('Neue Beschreibung');
+      expect(event.aenderungen.faelligAm?.toISOString()).toBe(neueFaelligAm);
+      expect(event.aenderungen.eskalationsPersonId?.value).toBe(userId2Value);
+      expect(event.aktualisierVon.value).toBe(userIdValue);
+      expect(event.titel).toBe('Aktueller Titel');
+    });
+
+    it('should handle partial aenderungen correctly', () => {
+      // Given (Arrange)
+      const serialized = createSerializedEvent(
+        'erinnerung.aktualisiert',
+        {
+          erinnerungId: erinnerungIdValue,
+          einsatzId: einsatzIdValue,
+          aenderungen: {
+            titel: 'Nur Titel geändert',
+          },
+          aktualisierVon: userIdValue,
+          titel: 'Aktueller Titel',
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      const event = result.value as ErinnerungAktualisiertEvent;
+      expect(event.aenderungen.titel).toBe('Nur Titel geändert');
+      expect(event.aenderungen.beschreibung).toBeUndefined();
+      expect(event.aenderungen.faelligAm).toBeUndefined();
+      expect(event.aenderungen.eskalationsPersonId).toBeUndefined();
+    });
+
+    it('should handle null eskalationsPersonId in aenderungen correctly', () => {
+      // Given (Arrange)
+      const serialized = createSerializedEvent(
+        'erinnerung.aktualisiert',
+        {
+          erinnerungId: erinnerungIdValue,
+          einsatzId: einsatzIdValue,
+          aenderungen: {
+            eskalationsPersonId: null,
+          },
+          aktualisierVon: userIdValue,
+          titel: 'Aktueller Titel',
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      const event = result.value as ErinnerungAktualisiertEvent;
+      expect(event.aenderungen.eskalationsPersonId).toBeNull();
+    });
+
+    it('should fail with invalid aktualisierVon userId', () => {
+      // Given (Arrange)
+      const serialized = createSerializedEvent(
+        'erinnerung.aktualisiert',
+        {
+          erinnerungId: erinnerungIdValue,
+          einsatzId: einsatzIdValue,
+          aenderungen: { titel: 'Test' },
+          aktualisierVon: 'invalid-user-id!',
+          titel: 'Test',
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Invalid aktualisierVon');
+    });
+
+    it('should roundtrip ErinnerungAktualisiertEvent: serialize -> deserialize -> equals original', () => {
+      // Given - Originale Event-Instanz
+      const erinnerungId = ErinnerungId.create().value!;
+      const einsatzId = EinsatzId.create().value!;
+      const aktualisierVon = UserId.create().value!;
+      const eskalationsPersonId = UserId.create().value!;
+      const neueFaelligAm = new Date('2026-01-22T10:00:00.000Z');
+
+      const originalEvent = new ErinnerungAktualisiertEvent(
+        erinnerungId,
+        einsatzId,
+        {
+          titel: 'Neuer Titel',
+          beschreibung: 'Neue Beschreibung',
+          faelligAm: neueFaelligAm,
+          eskalationsPersonId: eskalationsPersonId,
+        },
+        aktualisierVon,
+        'Aktueller Titel',
+        erinnerungId.value,
+      );
+
+      // Serialized payload
+      const serialized = createSerializedEvent(
+        'erinnerung.aktualisiert',
+        {
+          erinnerungId: originalEvent.erinnerungId.value,
+          einsatzId: originalEvent.einsatzId.value,
+          aenderungen: {
+            titel: originalEvent.aenderungen.titel,
+            beschreibung: originalEvent.aenderungen.beschreibung,
+            faelligAm: originalEvent.aenderungen.faelligAm?.toISOString(),
+            eskalationsPersonId: originalEvent.aenderungen.eskalationsPersonId?.value ?? null,
+          },
+          aktualisierVon: originalEvent.aktualisierVon.value,
+          titel: originalEvent.titel,
+        },
+        originalEvent.aggregateId,
+      );
+
+      // When - Deserialisieren
+      const result = deserializer.deserialize(serialized);
+
+      // Then - Alle Felder stimmen überein
+      expect(result.isSuccess).toBe(true);
+      const deserializedEvent = result.value as ErinnerungAktualisiertEvent;
+
+      expect(deserializedEvent.erinnerungId.value).toBe(originalEvent.erinnerungId.value);
+      expect(deserializedEvent.einsatzId.value).toBe(originalEvent.einsatzId.value);
+      expect(deserializedEvent.aenderungen.titel).toBe(originalEvent.aenderungen.titel);
+      expect(deserializedEvent.aenderungen.beschreibung).toBe(originalEvent.aenderungen.beschreibung);
+      expect(deserializedEvent.aenderungen.faelligAm?.toISOString()).toBe(originalEvent.aenderungen.faelligAm?.toISOString());
+      expect(deserializedEvent.aenderungen.eskalationsPersonId?.value).toBe(originalEvent.aenderungen.eskalationsPersonId?.value);
+      expect(deserializedEvent.aktualisierVon.value).toBe(originalEvent.aktualisierVon.value);
+      expect(deserializedEvent.titel).toBe(originalEvent.titel);
+    });
+  });
+
+  // ===== ERINNERUNG GELOESCHT EVENT =====
+
+  describe('ErinnerungGeloeschtEvent deserialization', () => {
+    it('should deserialize ErinnerungGeloeschtEvent correctly', () => {
+      // Given (Arrange)
+      const serialized = createSerializedEvent(
+        'erinnerung.geloescht',
+        {
+          erinnerungId: erinnerungIdValue,
+          einsatzId: einsatzIdValue,
+          titel: 'Gelöschte Erinnerung',
+          geloeschtVon: userIdValue,
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      const event = result.value as ErinnerungGeloeschtEvent;
+      expect(event).toBeInstanceOf(ErinnerungGeloeschtEvent);
+      expect(event.erinnerungId.value).toBe(erinnerungIdValue);
+      expect(event.einsatzId.value).toBe(einsatzIdValue);
+      expect(event.titel).toBe('Gelöschte Erinnerung');
+      expect(event.geloeschtVon.value).toBe(userIdValue);
+    });
+
+    it('should fail with invalid erinnerungId', () => {
+      // Given (Arrange)
+      const serialized = createSerializedEvent(
+        'erinnerung.geloescht',
+        {
+          erinnerungId: 'invalid-id-format!',
+          einsatzId: einsatzIdValue,
+          titel: 'Test',
+          geloeschtVon: userIdValue,
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Invalid erinnerungId');
+    });
+
+    it('should fail with invalid geloeschtVon userId', () => {
+      // Given (Arrange)
+      const serialized = createSerializedEvent(
+        'erinnerung.geloescht',
+        {
+          erinnerungId: erinnerungIdValue,
+          einsatzId: einsatzIdValue,
+          titel: 'Test',
+          geloeschtVon: 'invalid-user-id!',
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Invalid geloeschtVon');
+    });
+
+    it('should roundtrip ErinnerungGeloeschtEvent: serialize -> deserialize -> equals original', () => {
+      // Given - Originale Event-Instanz
+      const erinnerungId = ErinnerungId.create().value!;
+      const einsatzId = EinsatzId.create().value!;
+      const geloeschtVon = UserId.create().value!;
+
+      const originalEvent = new ErinnerungGeloeschtEvent(erinnerungId, einsatzId, 'Zu löschende Erinnerung', geloeschtVon, erinnerungId.value);
+
+      // Serialized payload
+      const serialized = createSerializedEvent(
+        'erinnerung.geloescht',
+        {
+          erinnerungId: originalEvent.erinnerungId.value,
+          einsatzId: originalEvent.einsatzId.value,
+          titel: originalEvent.titel,
+          geloeschtVon: originalEvent.geloeschtVon.value,
+        },
+        originalEvent.aggregateId,
+      );
+
+      // When - Deserialisieren
+      const result = deserializer.deserialize(serialized);
+
+      // Then - Alle Felder stimmen überein
+      expect(result.isSuccess).toBe(true);
+      const deserializedEvent = result.value as ErinnerungGeloeschtEvent;
+
+      expect(deserializedEvent.erinnerungId.value).toBe(originalEvent.erinnerungId.value);
+      expect(deserializedEvent.einsatzId.value).toBe(originalEvent.einsatzId.value);
+      expect(deserializedEvent.titel).toBe(originalEvent.titel);
+      expect(deserializedEvent.geloeschtVon.value).toBe(originalEvent.geloeschtVon.value);
+    });
+  });
+
   // ===== ERROR HANDLING =====
 
   describe('Error Handling', () => {
@@ -1011,11 +2171,11 @@ describe('EventDeserializer', () => {
       expect(deserializer.supportsEventType('')).toBe(false);
     });
 
-    it('should return all 44 supported event types', () => {
+    it('should return all 50 supported event types', () => {
       const supportedTypes = deserializer.getSupportedEventTypes();
 
-      // 44 Event-Typen: Basis-Events + Erinnerung-Events (Story 1.x, 2.x incl. acknowledged, snoozed, retriggered)
-      expect(supportedTypes).toHaveLength(44);
+      // 50 Event-Typen: Basis-Events + Erinnerung-Events + 2 Legacy-Aliases für Eskaliert/Intensiviert
+      expect(supportedTypes).toHaveLength(50);
       expect(supportedTypes).toContain('einsatz.created');
       expect(supportedTypes).toContain('etb.created');
       expect(supportedTypes).toContain('lagekarte.created');

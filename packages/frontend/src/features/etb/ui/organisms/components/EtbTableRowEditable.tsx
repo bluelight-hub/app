@@ -5,15 +5,18 @@ import type { EintragDto } from '@/shared';
 import { useUpdateEtbEntry } from '@/features/etb';
 import { cn } from '@/shared/ui/cn';
 import { EtbActionsCell } from './cells/EtbActionsCell';
+import { openQuickCreateFromEtb } from '@/features/reminders/stores';
 
 interface EtbTableRowEditableProps {
   row: Row<EintragDto>;
   style?: React.CSSProperties;
   className?: string;
   onDelete?: (entry: EintragDto) => void;
+  /** Einsatz-ID fuer Erinnerung-Erstellung (Story 5.4) */
+  einsatzId: string;
 }
 
-export const EtbTableRowEditable: React.FC<EtbTableRowEditableProps> = ({ row, style, className = '', onDelete }) => {
+export const EtbTableRowEditable: React.FC<EtbTableRowEditableProps> = ({ row, style, className = '', onDelete, einsatzId }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(row.original.text);
   const updateEintrag = useUpdateEtbEntry();
@@ -39,6 +42,16 @@ export const EtbTableRowEditable: React.FC<EtbTableRowEditableProps> = ({ row, s
   const handleCancel = () => {
     setEditText(row.original.text);
     setIsEditing(false);
+  };
+
+  /**
+   * Oeffnet den Quick-Create Dialog mit dem ETB-Eintrag verknuepft.
+   *
+   * **Story 5.4:** "Erinnerung aus ETB-Eintrag erstellen"
+   */
+  const handleCreateErinnerung = () => {
+    if (!row.original.id) return;
+    openQuickCreateFromEtb(einsatzId, row.original.id, row.original.text);
   };
 
   return (
@@ -78,6 +91,7 @@ export const EtbTableRowEditable: React.FC<EtbTableRowEditableProps> = ({ row, s
                 onSave={handleSave}
                 onCancel={handleCancel}
                 onDelete={onDelete ? () => onDelete(row.original) : undefined}
+                onCreateErinnerung={handleCreateErinnerung}
                 isLoading={updateEintrag.isPending}
                 isDeleted={!!row.original.deletedAt}
               />
