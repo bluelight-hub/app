@@ -20,71 +20,71 @@ const EVENT_CONFIG: Record<
     label: string;
   }
 > = {
-  Erstellt: {
+  ErinnerungErstellt: {
     icon: PiBellSimple,
     bgColor: 'bg-blue-100 dark:bg-blue-900/30',
     textColor: 'text-blue-600 dark:text-blue-400',
     label: 'Erstellt',
   },
-  Ausgeloest: {
+  ErinnerungAusgeloest: {
     icon: PiAlarm,
     bgColor: 'bg-orange-100 dark:bg-orange-900/30',
     textColor: 'text-orange-600 dark:text-orange-400',
-    label: 'Ausgeloest',
+    label: 'Ausgelöst',
   },
-  Retriggered: {
+  ErinnerungRetriggered: {
     icon: PiAlarm,
     bgColor: 'bg-amber-100 dark:bg-amber-900/30',
     textColor: 'text-amber-600 dark:text-amber-400',
-    label: 'Erneut ausgeloest',
+    label: 'Erneut ausgelöst',
   },
-  Acknowledged: {
+  ErinnerungAcknowledged: {
     icon: PiCheck,
     bgColor: 'bg-green-100 dark:bg-green-900/30',
     textColor: 'text-green-600 dark:text-green-400',
-    label: 'Bestaetigt',
+    label: 'Bestätigt',
   },
-  Snoozed: {
+  ErinnerungSnoozed: {
     icon: PiClock,
     bgColor: 'bg-purple-100 dark:bg-purple-900/30',
     textColor: 'text-purple-600 dark:text-purple-400',
     label: 'Verschoben',
   },
-  Eskaliert: {
+  ErinnerungEskaliert: {
     icon: PiWarning,
     bgColor: 'bg-red-100 dark:bg-red-900/30',
     textColor: 'text-red-600 dark:text-red-400',
     label: 'Eskaliert',
   },
-  Intensiviert: {
+  ErinnerungIntensiviert: {
     icon: PiWarning,
     bgColor: 'bg-red-100 dark:bg-red-900/30',
     textColor: 'text-red-600 dark:text-red-400',
     label: 'Intensiviert',
   },
-  Erledigt: {
+  ErinnerungErledigt: {
     icon: PiCheckCircle,
     bgColor: 'bg-emerald-100 dark:bg-emerald-900/30',
     textColor: 'text-emerald-600 dark:text-emerald-400',
     label: 'Erledigt',
   },
-  Assigned: {
+  ErinnerungAssigned: {
     icon: PiUser,
     bgColor: 'bg-indigo-100 dark:bg-indigo-900/30',
     textColor: 'text-indigo-600 dark:text-indigo-400',
     label: 'Zugewiesen',
   },
-  Aktualisiert: {
+  ErinnerungAktualisiert: {
     icon: PiPencilSimple,
     bgColor: 'bg-gray-100 dark:bg-gray-900/30',
     textColor: 'text-gray-600 dark:text-gray-400',
     label: 'Aktualisiert',
   },
-  Geloescht: {
+  ErinnerungGeloescht: {
     icon: PiTrash,
     bgColor: 'bg-gray-100 dark:bg-gray-900/30',
     textColor: 'text-gray-500 dark:text-gray-500',
-    label: 'Geloescht',
+    label: 'Gelöscht',
   },
 };
 
