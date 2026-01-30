@@ -75,10 +75,11 @@ export function useErinnerungTimeline({ etbId, erinnerungId, enabled = true }: U
         throw new Error('etbId und erinnerungId muessen angegeben werden');
       }
 
-      return await api.etb().etbCqrsControllerGetErinnerungTimelineVAlpha({
+      const response = await api.etb().etbCqrsControllerGetErinnerungTimelineVAlpha({
         etbId,
         erinnerungId,
       });
+      return response.data;
     },
     enabled: isEnabled,
     staleTime: 30000, // 30 Sekunden Cache
