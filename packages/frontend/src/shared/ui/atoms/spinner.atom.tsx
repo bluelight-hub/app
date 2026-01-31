@@ -4,6 +4,7 @@ interface SpinnerProps {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   type?: 'wave' | 'dots' | 'ring' | 'pulse';
   className?: string;
+  label?: string;
 }
 
 /**
@@ -14,26 +15,31 @@ interface SpinnerProps {
  * @param size - Größe des Spinners
  * @param type - Stil des Spinners (wave, dots, ring, pulse)
  * @param className - Zusätzliche CSS-Klassen
+ * @param label - Accessibillity Label (Default: "Laden...")
  */
-export function Spinner({ size = 'md', type = 'wave', className }: SpinnerProps) {
+export function Spinner({ size = 'md', type = 'wave', className, label }: SpinnerProps) {
   switch (type) {
     case 'wave':
-      return <WaveSpinner size={size} className={className} />;
+      return <WaveSpinner size={size} className={className} label={label} />;
     case 'dots':
-      return <DotsSpinner size={size} className={className} />;
+      return <DotsSpinner size={size} className={className} label={label} />;
     case 'ring':
-      return <RingSpinner size={size} className={className} />;
+      return <RingSpinner size={size} className={className} label={label} />;
     case 'pulse':
-      return <PulseSpinner size={size} className={className} />;
+      return <PulseSpinner size={size} className={className} label={label} />;
     default:
       return null;
   }
 }
 
+interface SpecificSpinnerProps extends Omit<SpinnerProps, 'type'> {
+  label?: string;
+}
+
 /**
  * Wave-Spinner - Animierte Wellen
  */
-function WaveSpinner({ size = 'md', className }: Omit<SpinnerProps, 'type'>) {
+function WaveSpinner({ size = 'md', className, label = 'Laden...' }: SpecificSpinnerProps) {
   const sizeConfig = {
     xs: { height: 'h-8', width: 'w-0.5', gap: 'gap-0.5' },
     sm: { height: 'h-12', width: 'w-1', gap: 'gap-1' },
@@ -46,7 +52,8 @@ function WaveSpinner({ size = 'md', className }: Omit<SpinnerProps, 'type'>) {
   const waves = Array.from({ length: 10 }, (_, i) => i);
 
   return (
-    <div className={cn('flex items-center justify-center', config.gap, className)}>
+    // biome-ignore lint/a11y/useSemanticElements: Spinner uses div for layout stability
+    <div role="status" aria-label={label} className={cn('flex items-center justify-center', config.gap, className)}>
       {waves.map((index) => (
         <div
           key={index}
@@ -66,7 +73,7 @@ function WaveSpinner({ size = 'md', className }: Omit<SpinnerProps, 'type'>) {
 /**
  * Dots-Spinner - Drei pulsierende Punkte
  */
-function DotsSpinner({ size = 'md', className }: Omit<SpinnerProps, 'type'>) {
+function DotsSpinner({ size = 'md', className, label = 'Laden...' }: SpecificSpinnerProps) {
   const sizeConfig = {
     xs: 'w-1 h-1',
     sm: 'w-1.5 h-1.5',
@@ -80,7 +87,8 @@ function DotsSpinner({ size = 'md', className }: Omit<SpinnerProps, 'type'>) {
   const hasTextColor = className?.includes('text-');
 
   return (
-    <div className={cn('flex gap-1', className)}>
+    // biome-ignore lint/a11y/useSemanticElements: Spinner uses div for layout stability
+    <div role="status" aria-label={label} className={cn('flex gap-1', className)}>
       {[0, 1, 2].map((i) => (
         <div
           key={i}
@@ -99,7 +107,7 @@ function DotsSpinner({ size = 'md', className }: Omit<SpinnerProps, 'type'>) {
 /**
  * Ring-Spinner - Rotierender Ring
  */
-function RingSpinner({ size = 'md', className }: Omit<SpinnerProps, 'type'>) {
+function RingSpinner({ size = 'md', className, label = 'Laden...' }: SpecificSpinnerProps) {
   const sizeConfig = {
     xs: 'w-3 h-3',
     sm: 'w-4 h-4',
@@ -114,7 +122,8 @@ function RingSpinner({ size = 'md', className }: Omit<SpinnerProps, 'type'>) {
 
   if (hasTextColor) {
     return (
-      <div className={cn('relative', ringSize, className)}>
+      // biome-ignore lint/a11y/useSemanticElements: Spinner uses div for layout stability
+      <div role="status" aria-label={label} className={cn('relative', ringSize, className)}>
         <div className={cn('absolute inset-0 rounded-full border-2', ringSize)} style={{ borderColor: 'currentColor', opacity: 0.25 }} />
         <div className={cn('absolute inset-0 animate-spin rounded-full border-2', ringSize)} style={{ borderColor: 'transparent', borderTopColor: 'currentColor' }} />
       </div>
@@ -122,7 +131,8 @@ function RingSpinner({ size = 'md', className }: Omit<SpinnerProps, 'type'>) {
   }
 
   return (
-    <div className={cn('relative', ringSize, className)}>
+    // biome-ignore lint/a11y/useSemanticElements: Spinner uses div for layout stability
+    <div role="status" aria-label={label} className={cn('relative', ringSize, className)}>
       <div className={cn('absolute inset-0 rounded-full border-2 border-gray-200 dark:border-gray-700', ringSize)} />
       <div className={cn('absolute inset-0 animate-spin rounded-full border-2 border-t-primary-600 dark:border-t-primary-500', ringSize)} />
     </div>
@@ -132,7 +142,7 @@ function RingSpinner({ size = 'md', className }: Omit<SpinnerProps, 'type'>) {
 /**
  * Pulse-Spinner - Pulsierender Kreis
  */
-function PulseSpinner({ size = 'md', className }: Omit<SpinnerProps, 'type'>) {
+function PulseSpinner({ size = 'md', className, label = 'Laden...' }: SpecificSpinnerProps) {
   const sizeConfig = {
     xs: 'w-3 h-3',
     sm: 'w-4 h-4',
@@ -146,7 +156,8 @@ function PulseSpinner({ size = 'md', className }: Omit<SpinnerProps, 'type'>) {
   const hasTextColor = className?.includes('text-');
 
   return (
-    <div className={cn('relative', pulseSize, className)}>
+    // biome-ignore lint/a11y/useSemanticElements: Spinner uses div for layout stability
+    <div role="status" aria-label={label} className={cn('relative', pulseSize, className)}>
       <div
         className={cn('absolute inset-0 animate-ping rounded-full opacity-75', !hasTextColor && 'bg-primary-600 dark:bg-primary-500', pulseSize)}
         style={hasTextColor ? { backgroundColor: 'currentColor' } : undefined}
@@ -164,11 +175,12 @@ function PulseSpinner({ size = 'md', className }: Omit<SpinnerProps, 'type'>) {
  *
  * @param size - Größe des Spinners (xs ist Standard für inline)
  * @param className - Zusätzliche CSS-Klassen (text-* Klassen setzen die Farbe)
+ * @param label - Accessibility Label (Default: "Laden...")
  */
-export function InlineSpinner({ size = 'xs', className }: { size?: 'xs' | 'sm' | 'md'; className?: string }) {
+export function InlineSpinner({ size = 'xs', className, label }: { size?: 'xs' | 'sm' | 'md'; className?: string; label?: string }) {
   // Stelle sicher, dass text-current gesetzt ist, falls keine text-* Klasse vorhanden
   const hasTextColor = className?.includes('text-');
   const finalClassName = cn(!hasTextColor && 'text-current', 'inline-block', className);
 
-  return <RingSpinner size={size} className={finalClassName} />;
+  return <RingSpinner size={size} className={finalClassName} label={label} />;
 }

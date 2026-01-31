@@ -14,18 +14,35 @@ import { addServer, setActiveServer } from '../stores/server.store';
 import { SERVER_QUERY_KEYS } from './query-keys';
 import { getExchangeErrorCode, useExchangeInvite } from './mutations';
 
-// Create mock function for API
-const mockAuthControllerExchangeInvite = vi.fn();
+// Use vi.hoisted to create mock functions that can be used in vi.mock
+const mocks = vi.hoisted(() => ({
+  authControllerExchangeInvite: vi.fn(),
+}));
 
-// Create stable mock object
-const mockAuthApi = {
-  authControllerExchangeInvite: mockAuthControllerExchangeInvite,
+// Create stable mock object for reuse
+const mockAuthApiInstance = {
+  authControllerExchangeInvite: mocks.authControllerExchangeInvite,
 };
 
-// Mock API Client
+// Mock generated client package to support new AuthApi(config) calls
+vi.mock('@bluelight-hub/shared/client', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@bluelight-hub/shared/client')>();
+
+  // Create a mock class
+  class MockAuthApi {
+    authControllerExchangeInvite = mocks.authControllerExchangeInvite;
+  }
+
+  return {
+    ...actual,
+    AuthApi: MockAuthApi,
+  };
+});
+
+// Mock API Singleton
 vi.mock('@/shared/api/api', () => ({
   api: {
-    auth: () => mockAuthApi,
+    auth: () => mockAuthApiInstance,
   },
 }));
 
@@ -92,7 +109,7 @@ describe('useExchangeInvite', () => {
         },
       };
 
-      mockAuthControllerExchangeInvite.mockResolvedValue(mockResponse);
+      mocks.authControllerExchangeInvite.mockResolvedValue(mockResponse);
 
       // Mock query data to simulate server being added
       queryClient.setQueryData(SERVER_QUERY_KEYS.list(), [{ id: 'server-1' }]);
@@ -107,7 +124,7 @@ describe('useExchangeInvite', () => {
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
       // Verify API called with correct payload
-      expect(mockAuthControllerExchangeInvite).toHaveBeenCalledWith({
+      expect(mocks.authControllerExchangeInvite).toHaveBeenCalledWith({
         exchangeInviteDto: { inviteCode },
       });
 
@@ -123,6 +140,86 @@ describe('useExchangeInvite', () => {
 
       // Verify server set as active
       expect(setActiveServer).toHaveBeenCalledWith('server-1');
+    });
+
+    it('should prioritize user-provided server URL over backend-reported URL', async () => {
+      // Given (Arrange)
+      const mockResponse = {
+        data: {
+          accessToken: 'token_override',
+          serverInfo: {
+            name: 'Backend Server Name',
+            baseUrl: 'http://localhost:3000', // Backend reports internal URL
+            version: '1.0.0',
+          },
+        },
+        meta: {
+          timestamp: new Date().toISOString(),
+          version: 'alpha',
+          requestId: 'req_override',
+        },
+      };
+
+      mocks.authControllerExchangeInvite.mockResolvedValue(mockResponse);
+
+      // When (Act)
+      const { result } = renderHook(() => useExchangeInvite(), { wrapper });
+
+      // User enters public URL which should be preserved
+      result.current.mutate({
+        inviteCode: 'INV_OVERRIDE',
+        serverUrl: 'https://public-api.example.com',
+      });
+
+      // Then (Assert)
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+      // Verify server added with user-provided URL, NOT backend URL
+      expect(addServer).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: 'https://public-api.example.com',
+          accessToken: 'token_override',
+        }),
+      );
+    });
+
+    it('should normalize user-provided server URL by removing trailing slash', async () => {
+      // Given (Arrange)
+      const mockResponse = {
+        data: {
+          accessToken: 'token_slash',
+          serverInfo: {
+            name: 'Slash Server',
+            baseUrl: 'http://localhost:3000',
+            version: '1.0.0',
+          },
+        },
+        meta: {
+          timestamp: new Date().toISOString(),
+          version: 'alpha',
+          requestId: 'req_slash',
+        },
+      };
+
+      mocks.authControllerExchangeInvite.mockResolvedValue(mockResponse);
+
+      // When (Act)
+      const { result } = renderHook(() => useExchangeInvite(), { wrapper });
+
+      result.current.mutate({
+        inviteCode: 'INV_SLASH',
+        serverUrl: 'https://api.example.com/', // With trailing slash
+      });
+
+      // Then (Assert)
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+      // Verify trailing slash removed
+      expect(addServer).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: 'https://api.example.com',
+        }),
+      );
     });
 
     it('should handle server info with trailing slash in URL', async () => {
@@ -143,7 +240,7 @@ describe('useExchangeInvite', () => {
         },
       };
 
-      mockAuthControllerExchangeInvite.mockResolvedValue(mockResponse);
+      mocks.authControllerExchangeInvite.mockResolvedValue(mockResponse);
 
       // When (Act)
       const { result } = renderHook(() => useExchangeInvite(), { wrapper });
@@ -179,7 +276,7 @@ describe('useExchangeInvite', () => {
         },
       };
 
-      mockAuthControllerExchangeInvite.mockResolvedValue(mockResponse);
+      mocks.authControllerExchangeInvite.mockResolvedValue(mockResponse);
 
       // Set initial query data
       queryClient.setQueryData(SERVER_QUERY_KEYS.list(), []);
@@ -218,7 +315,7 @@ describe('useExchangeInvite', () => {
         },
       };
 
-      mockAuthControllerExchangeInvite.mockResolvedValue(mockResponse);
+      mocks.authControllerExchangeInvite.mockResolvedValue(mockResponse);
 
       // Simulate store error
       const storeError = new Error('Failed to save to storage');
@@ -234,7 +331,7 @@ describe('useExchangeInvite', () => {
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
       // Verify API was called successfully
-      expect(mockAuthControllerExchangeInvite).toHaveBeenCalled();
+      expect(mocks.authControllerExchangeInvite).toHaveBeenCalled();
 
       // Verify store was attempted
       expect(addServer).toHaveBeenCalled();
@@ -264,7 +361,7 @@ describe('useExchangeInvite', () => {
       };
 
       // Simulate slow API response
-      mockAuthControllerExchangeInvite.mockImplementation(
+      mocks.authControllerExchangeInvite.mockImplementation(
         () =>
           new Promise((resolve) => {
             setTimeout(() => resolve(mockResponse), 100);
@@ -307,7 +404,7 @@ describe('useExchangeInvite', () => {
         },
       };
 
-      mockAuthControllerExchangeInvite.mockResolvedValue(mockResponse);
+      mocks.authControllerExchangeInvite.mockResolvedValue(mockResponse);
 
       queryClient.setQueryData(SERVER_QUERY_KEYS.list(), [{ id: 'server-async' }]);
 
@@ -340,7 +437,7 @@ describe('useExchangeInvite', () => {
         message: 'Bad Request',
       };
 
-      mockAuthControllerExchangeInvite.mockRejectedValue(apiError);
+      mocks.authControllerExchangeInvite.mockRejectedValue(apiError);
 
       // When (Act)
       const { result } = renderHook(() => useExchangeInvite(), { wrapper });
@@ -351,7 +448,7 @@ describe('useExchangeInvite', () => {
       await waitFor(() => expect(result.current.isError).toBe(true));
 
       // Should only be called once (no retries)
-      expect(mockAuthControllerExchangeInvite).toHaveBeenCalledTimes(1);
+      expect(mocks.authControllerExchangeInvite).toHaveBeenCalledTimes(1);
     });
 
     it('should not retry on 401 Unauthorized error', async () => {
@@ -365,7 +462,7 @@ describe('useExchangeInvite', () => {
         message: 'Unauthorized',
       };
 
-      mockAuthControllerExchangeInvite.mockRejectedValue(apiError);
+      mocks.authControllerExchangeInvite.mockRejectedValue(apiError);
 
       // When (Act)
       const { result } = renderHook(() => useExchangeInvite(), { wrapper });
@@ -376,7 +473,7 @@ describe('useExchangeInvite', () => {
       await waitFor(() => expect(result.current.isError).toBe(true));
 
       // Should only be called once (no retries)
-      expect(mockAuthControllerExchangeInvite).toHaveBeenCalledTimes(1);
+      expect(mocks.authControllerExchangeInvite).toHaveBeenCalledTimes(1);
     });
 
     it('should not retry on 409 Conflict error (invite already used)', async () => {
@@ -390,7 +487,7 @@ describe('useExchangeInvite', () => {
         message: 'Conflict',
       };
 
-      mockAuthControllerExchangeInvite.mockRejectedValue(apiError);
+      mocks.authControllerExchangeInvite.mockRejectedValue(apiError);
 
       // When (Act)
       const { result } = renderHook(() => useExchangeInvite(), { wrapper });
@@ -401,7 +498,7 @@ describe('useExchangeInvite', () => {
       await waitFor(() => expect(result.current.isError).toBe(true));
 
       // Should only be called once (no retries)
-      expect(mockAuthControllerExchangeInvite).toHaveBeenCalledTimes(1);
+      expect(mocks.authControllerExchangeInvite).toHaveBeenCalledTimes(1);
     });
 
     it('should not retry on 410 Gone error (invite expired)', async () => {
@@ -415,7 +512,7 @@ describe('useExchangeInvite', () => {
         message: 'Gone',
       };
 
-      mockAuthControllerExchangeInvite.mockRejectedValue(apiError);
+      mocks.authControllerExchangeInvite.mockRejectedValue(apiError);
 
       // When (Act)
       const { result } = renderHook(() => useExchangeInvite(), { wrapper });
@@ -426,7 +523,7 @@ describe('useExchangeInvite', () => {
       await waitFor(() => expect(result.current.isError).toBe(true));
 
       // Should only be called once (no retries)
-      expect(mockAuthControllerExchangeInvite).toHaveBeenCalledTimes(1);
+      expect(mocks.authControllerExchangeInvite).toHaveBeenCalledTimes(1);
     });
 
     it('should retry on 500 Server Error', async () => {
@@ -440,7 +537,7 @@ describe('useExchangeInvite', () => {
         message: 'Internal Server Error',
       };
 
-      mockAuthControllerExchangeInvite.mockRejectedValue(apiError);
+      mocks.authControllerExchangeInvite.mockRejectedValue(apiError);
 
       // When (Act)
       const { result } = renderHook(() => useExchangeInvite(), { wrapper });
@@ -457,14 +554,14 @@ describe('useExchangeInvite', () => {
       );
 
       // Should be called 3 times (initial + 2 retries)
-      expect(mockAuthControllerExchangeInvite).toHaveBeenCalledTimes(3);
+      expect(mocks.authControllerExchangeInvite).toHaveBeenCalledTimes(3);
     });
 
     it('should retry on network error (TypeError)', async () => {
       // Given (Arrange)
       const networkError = new TypeError('Failed to fetch');
 
-      mockAuthControllerExchangeInvite.mockRejectedValue(networkError);
+      mocks.authControllerExchangeInvite.mockRejectedValue(networkError);
 
       // When (Act)
       const { result } = renderHook(() => useExchangeInvite(), { wrapper });
@@ -481,7 +578,7 @@ describe('useExchangeInvite', () => {
       );
 
       // Should be called 3 times (initial + 2 retries)
-      expect(mockAuthControllerExchangeInvite).toHaveBeenCalledTimes(3);
+      expect(mocks.authControllerExchangeInvite).toHaveBeenCalledTimes(3);
     });
   });
 });

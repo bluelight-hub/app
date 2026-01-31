@@ -9,7 +9,7 @@ export interface TextProps {
   as?: 'p' | 'span' | 'div';
 }
 
-const sizeClasses = {
+const SIZE_CLASSES = {
   xs: 'text-xs',
   sm: 'text-sm',
   md: 'text-base',
@@ -17,7 +17,7 @@ const sizeClasses = {
   xl: 'text-xl',
 };
 
-const colorClasses = {
+const COLOR_CLASSES = {
   default: 'text-gray-900 dark:text-white',
   muted: 'text-gray-500 dark:text-gray-400',
   success: 'text-green-600 dark:text-green-400',
@@ -31,7 +31,7 @@ const colorClasses = {
  * Bietet konsistente Text-Stile und Farben.
  */
 export const Text = memo(({ children, size = 'md', color = 'default', className, as: Component = 'p' }: TextProps) => {
-  return <Component className={cn(sizeClasses[size], colorClasses[color], className)}>{children}</Component>;
+  return <Component className={cn(SIZE_CLASSES[size], COLOR_CLASSES[color], className)}>{children}</Component>;
 });
 
 Text.displayName = 'Text';
