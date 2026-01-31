@@ -1,4 +1,7 @@
-import { AUTH_KEYS, useCurrentUser, useUnifiedAuth, useLogout } from '@/features/auth';
+import { AUTH_KEYS } from '@/features/auth';
+import { useCurrentUser } from '@/features/auth/api/use-current-user';
+import { useUnifiedAuth } from '@/features/auth/api/use-login';
+import { useLogout } from '@/features/auth/api/use-logout';
 import { useRequireServer, useServerList, useActiveServer, useServerListHealth } from '@/features/server/hooks';
 import { setActiveServer, removeServer } from '@/features/server/stores/server.store';
 import { serverStore } from '@/features/server/stores/server.store';

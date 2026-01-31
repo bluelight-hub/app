@@ -1,4 +1,4 @@
-import { useActiveEinsatz } from '@/features/einsatz';
+import { useActiveEinsatz } from '@/features/einsatz/hooks/use-active-einsatz';
 import { logger } from '@/shared/lib/logger';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { CloseButton } from '@/shared/ui/atoms/close-button.atom';
