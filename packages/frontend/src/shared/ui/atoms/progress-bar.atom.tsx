@@ -1,5 +1,6 @@
 import { cn } from '@/shared/ui/cn';
 import { Transition } from '@headlessui/react';
+import { memo } from 'react';
 
 export type ProgressBarVariant = 'default' | 'success' | 'warning' | 'error' | 'info';
 
@@ -14,36 +15,36 @@ interface ProgressBarProps {
   className?: string;
 }
 
+const variantClasses = {
+  default: 'bg-primary-600 dark:bg-primary-400',
+  success: 'bg-green-600 dark:bg-green-500',
+  warning: 'bg-yellow-600 dark:bg-yellow-500',
+  error: 'bg-red-600 dark:bg-red-500',
+  info: 'bg-blue-600 dark:bg-blue-500',
+};
+
+const sizeClasses = {
+  sm: 'h-1',
+  md: 'h-2',
+  lg: 'h-3',
+};
+
+const backgroundClasses = {
+  default: 'bg-gray-200 dark:bg-gray-700',
+  success: 'bg-green-100 dark:bg-green-900/30',
+  warning: 'bg-yellow-100 dark:bg-yellow-900/30',
+  error: 'bg-red-100 dark:bg-red-900/30',
+  info: 'bg-blue-100 dark:bg-blue-900/30',
+};
+
 /**
  * ProgressBar-Komponente für Fortschrittsanzeigen
  *
  * Zeigt einen animierten Fortschrittsbalken mit verschiedenen Varianten und Größen.
  */
-export function ProgressBar({ value, max = 100, variant = 'default', size = 'md', label, showPercentage = false, animated = true, className }: ProgressBarProps) {
+export const ProgressBar = memo(function ProgressBarImpl({ value, max = 100, variant = 'default', size = 'md', label, showPercentage = false, animated = true, className }: ProgressBarProps) {
   const safeMax = Number.isFinite(max) && max > 0 ? max : 100;
   const percentage = Math.min(Math.max((value / safeMax) * 100, 0), 100);
-
-  const variantClasses = {
-    default: 'bg-primary-600 dark:bg-primary-400',
-    success: 'bg-green-600 dark:bg-green-500',
-    warning: 'bg-yellow-600 dark:bg-yellow-500',
-    error: 'bg-red-600 dark:bg-red-500',
-    info: 'bg-blue-600 dark:bg-blue-500',
-  };
-
-  const sizeClasses = {
-    sm: 'h-1',
-    md: 'h-2',
-    lg: 'h-3',
-  };
-
-  const backgroundClasses = {
-    default: 'bg-gray-200 dark:bg-gray-700',
-    success: 'bg-green-100 dark:bg-green-900/30',
-    warning: 'bg-yellow-100 dark:bg-yellow-900/30',
-    error: 'bg-red-100 dark:bg-red-900/30',
-    info: 'bg-blue-100 dark:bg-blue-900/30',
-  };
 
   return (
     <div className={cn('w-full', className)}>
@@ -60,4 +61,4 @@ export function ProgressBar({ value, max = 100, variant = 'default', size = 'md'
       </div>
     </div>
   );
-}
+});
