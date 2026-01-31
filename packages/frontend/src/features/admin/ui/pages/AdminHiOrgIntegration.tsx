@@ -243,7 +243,7 @@ export function AdminHiOrgIntegration() {
     <Container className="space-y-6 py-8">
       {/* Header */}
       <div>
-        <Heading level={1}>HiOrg-Server Integration</Heading>
+        <Heading size="2xl" as="h1">HiOrg-Server Integration</Heading>
         <Text className="text-gray-600 dark:text-gray-400">Verbinde Bluelight Hub mit deinem HiOrg-Server Account um Personen zu importieren.</Text>
       </div>
 
@@ -255,20 +255,17 @@ export function AdminHiOrgIntegration() {
               {/* Status Icon: Grün wenn OAuth oder getestet, Gelb wenn Token vorhanden aber nicht getestet, Rot wenn nichts konfiguriert */}
               {credentials.hasOAuthTokens || credentials.lastTestedAt ? (
                 <PiCheckCircle className="h-8 w-8 text-green-500" />
-              ) : credentials.hasToken ? (
-                <PiWarningCircle className="h-8 w-8 text-yellow-500" />
               ) : (
                 <PiWarningCircle className="h-8 w-8 text-red-500" />
               )}
               <div>
                 <Text className="font-medium">
-                  {credentials.hasOAuthTokens ? 'OAuth2 verbunden' : credentials.lastTestedAt ? 'Verbunden' : credentials.hasToken ? 'Nicht getestet' : 'Nicht konfiguriert'}
+                  {credentials.hasOAuthTokens ? 'OAuth2 verbunden' : credentials.lastTestedAt ? 'Verbunden' : 'Nicht konfiguriert'}
                 </Text>
-                {credentials.orgKuerzel && <Text className="text-gray-500 text-sm">Organisation: {credentials.orgKuerzel}</Text>}
                 {credentials.lastTestedAt && <Text className="text-gray-400 text-xs">Letzter Test: {new Date(credentials.lastTestedAt).toLocaleString('de-DE')}</Text>}
               </div>
             </div>
-            <Button variant="outline" onClick={() => testConnection()} disabled={isTestingConnection || (!credentials.hasToken && !credentials.hasOAuthTokens)}>
+            <Button appearance="outline" intent="secondary" onClick={() => testConnection()} disabled={isTestingConnection || !credentials.hasOAuthTokens}>
               {isTestingConnection ? (
                 <>
                   <PiSpinner className="mr-2 h-4 w-4 animate-spin" />
@@ -294,7 +291,7 @@ export function AdminHiOrgIntegration() {
 
       {/* OAuth Connect Card */}
       <Card className="p-6">
-        <Heading level={3} className="mb-4">
+        <Heading size="lg" as="h3" className="mb-4">
           HiOrg-Server verbinden
         </Heading>
 
@@ -335,11 +332,11 @@ export function AdminHiOrgIntegration() {
       </Card>
 
       {/* Preview Section - Zeige wenn Token oder OAuth vorhanden */}
-      {(credentials?.hasToken || credentials?.hasOAuthTokens) && (
+      {credentials?.hasOAuthTokens && (
         <Card className="p-6">
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <Heading level={3}>Personen-Vorschau & Import</Heading>
+              <Heading size="lg" as="h3">Personen-Vorschau & Import</Heading>
               {selectedUsernames.size > 0 && (
                 <Text className="mt-1 text-gray-500 text-sm">
                   {selectedUsernames.size} Person{selectedUsernames.size !== 1 ? 'en' : ''} ausgewählt
@@ -354,11 +351,11 @@ export function AdminHiOrgIntegration() {
                   {selectedUsernames.size} importieren
                 </Button>
               )}
-              <Button variant="outline" onClick={() => setShowMappingDialog(true)}>
+              <Button appearance="outline" intent="secondary" onClick={() => setShowMappingDialog(true)}>
                 <PiGear className="mr-2 h-4 w-4" />
                 Mapping konfigurieren
               </Button>
-              <Button variant="outline" onClick={() => setShowPreview(!showPreview)}>
+              <Button appearance="outline" intent="secondary" onClick={() => setShowPreview(!showPreview)}>
                 <PiUsers className="mr-2 h-4 w-4" />
                 {showPreview ? 'Ausblenden' : 'Vorschau laden'}
               </Button>
@@ -423,7 +420,7 @@ export function AdminHiOrgIntegration() {
                           <td className="px-4 py-2 text-gray-500 text-sm">{person.qualifikationenCount}</td>
                           <td className="px-4 py-2">
                             {!person.mitgliednr?.trim() ? (
-                              <Badge variant="danger" size="sm">
+                              <Badge variant="error" size="sm">
                                 <PiWarningCircle className="mr-1 h-3 w-3" />
                                 Import nicht möglich
                               </Badge>

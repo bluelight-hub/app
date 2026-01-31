@@ -14,7 +14,7 @@ export { useAdminQualifikationenManagement, type QualifikationKategorie, KATEGOR
 export { useAdminRollenDefinitionenManagement } from './use-admin-rollen-definitionen-management';
 export { useAdminStammFahrzeugeManagement } from './use-admin-stamm-fahrzeuge-management';
 export { useAdminStammPersonenManagement } from './use-admin-stamm-personen-management';
-export { useAdminHiOrgIntegration } from './use-admin-hiorg-integration';
+export { useAdminHiOrgIntegration, type BatchMappingItem } from './use-admin-hiorg-integration';
 export { useListInvites, useRevokeInvite, type InviteFilters } from './use-admin-invite-management';
 export {
   useAccessTokenManagement,

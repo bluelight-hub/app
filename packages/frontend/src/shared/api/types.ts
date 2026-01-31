@@ -19,5 +19,4 @@ export class ResponseError extends Error {
 }
 
 // Re-export aller DTOs, Types, Enums und Constants (sowohl Types als auch Values)
-export type * from '@bluelight-hub/shared/client';
 export * from '@bluelight-hub/shared/client';
