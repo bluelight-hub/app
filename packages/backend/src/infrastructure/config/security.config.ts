@@ -7,32 +7,9 @@ import type { HelmetOptions } from 'helmet';
  */
 
 /**
- * Helmet-Konfiguration für sichere HTTP-Header
- *
- * Diese Konfiguration setzt verschiedene Sicherheits-Header,
- * um die Anwendung gegen gängige Webangriffe zu schützen.
- * Enthält CSP, HSTS, X-Frame-Options und weitere Schutzmaßnahmen.
- *
- * @constant {HelmetOptions}
+ * Gemeinsame Helmet-Optionen, die für alle Konfigurationen gelten.
  */
-export const helmetConfig: HelmetOptions = {
-  // Content Security Policy - Verhindert XSS-Angriffe
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"], // Für Swagger UI
-      scriptSrc: ["'self'", "'unsafe-inline'"], // Für Swagger UI
-      imgSrc: ["'self'", 'data:', 'https:'],
-      connectSrc: ["'self'"],
-      fontSrc: ["'self'"],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'"],
-      frameSrc: ["'none'"],
-      frameAncestors: ["'none'"],
-    },
-  },
-  // Cross-Origin-Embedder-Policy
-  crossOriginEmbedderPolicy: false, // Für Swagger UI deaktiviert
+const sharedHelmetOptions: HelmetOptions = {
   // DNS Prefetch Control
   dnsPrefetchControl: { allow: false },
   // Frameguard - Verhindert Clickjacking
@@ -58,12 +35,65 @@ export const helmetConfig: HelmetOptions = {
 };
 
 /**
+ * Gemeinsame CSP-Directives.
+ */
+const sharedCSPDirectives = {
+  defaultSrc: ["'self'"],
+  imgSrc: ["'self'", 'data:', 'https:'],
+  connectSrc: ["'self'"],
+  fontSrc: ["'self'"],
+  objectSrc: ["'none'"],
+  mediaSrc: ["'self'"],
+  frameSrc: ["'none'"],
+  frameAncestors: ["'none'"],
+};
+
+/**
+ * Strikte Helmet-Konfiguration (Standard für die App)
+ *
+ * Deaktiviert 'unsafe-inline' in der CSP für maximale Sicherheit.
+ */
+export const strictHelmetConfig: HelmetOptions = {
+  ...sharedHelmetOptions,
+  contentSecurityPolicy: {
+    directives: {
+      ...sharedCSPDirectives,
+      styleSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+    },
+  },
+  crossOriginEmbedderPolicy: true,
+};
+
+/**
+ * Helmet-Konfiguration für Swagger UI
+ *
+ * Erlaubt 'unsafe-inline' in der CSP, damit Swagger UI korrekt funktioniert.
+ * Diese Konfiguration sollte NUR für die Swagger-Routen verwendet werden.
+ */
+export const swaggerHelmetConfig: HelmetOptions = {
+  ...sharedHelmetOptions,
+  contentSecurityPolicy: {
+    directives: {
+      ...sharedCSPDirectives,
+      styleSrc: ["'self'", "'unsafe-inline'"], // Für Swagger UI benötigt
+      scriptSrc: ["'self'", "'unsafe-inline'"], // Für Swagger UI benötigt
+    },
+  },
+  crossOriginEmbedderPolicy: false, // Für Swagger UI deaktiviert
+};
+
+/**
+ * Abwärtskompatibler Export (entspricht der bisherigen helmetConfig)
+ * @deprecated Nutze strictHelmetConfig oder swaggerHelmetConfig je nach Route
+ */
+export const helmetConfig: HelmetOptions = swaggerHelmetConfig;
+
+/**
  * CORS-Konfiguration für verschiedene Umgebungen
  *
  * Definiert Cross-Origin Resource Sharing Einstellungen
  * für Development- und Production-Umgebungen.
- *
- * @constant
  */
 /**
  * Dynamische Origin-Validierung für Tauri und Development

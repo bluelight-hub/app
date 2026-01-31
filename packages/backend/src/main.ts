@@ -12,7 +12,8 @@ import { AppModule } from './app.module';
 import { validateInsecureMode } from './infrastructure/config/bootstrap-validation';
 import { PerformanceInterceptor } from './infrastructure/http/interceptors/performance.interceptor';
 import { TransformInterceptor } from './infrastructure/http/interceptors/transform.interceptor';
-import { corsConfig, helmetConfig } from './infrastructure/config/security.config';
+import { corsConfig, strictHelmetConfig, swaggerHelmetConfig } from './infrastructure/config/security.config';
+import type { NextFunction, Request, Response } from 'express';
 
 require('@dotenvx/dotenvx').config();
 
@@ -139,8 +140,19 @@ X-Server-Access-Token: <plaintext_token>
 
   SwaggerModule.setup('api', app, document, {});
 
-  // Apply Helmet middleware for security headers
-  app.use(helmet(helmetConfig));
+  /**
+   * Konditionale Anwendung von Helmet-Sicherheits-Headern.
+   *
+   * Verwendet eine strikte CSP für alle App-Routen und eine permissivere
+   * Konfiguration für Swagger UI, damit dieses korrekt gerendert werden kann.
+   */
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    // Swagger UI wird unter /api serviert. API-Routen sind versioniert (/api/v-...).
+    const isSwaggerPath = req.path === '/api' || req.path === '/api/' || req.path.startsWith('/api-json') || (req.path.startsWith('/api/') && !req.path.includes('/v-'));
+
+    const helmetOptions = isSwaggerPath ? swaggerHelmetConfig : strictHelmetConfig;
+    return helmet(helmetOptions)(req, res, next);
+  });
 
   // Apply cookie parser middleware
   app.use(cookieParser());
