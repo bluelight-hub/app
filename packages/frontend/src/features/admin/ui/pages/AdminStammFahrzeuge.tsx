@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Navigate } from '@tanstack/react-router';
 import { PiPlus, PiWarning } from 'react-icons/pi';
-import { useAdminAuth } from '@/features/auth/api';
+import { useAdminAuth } from '@/features/auth/api/use-current-user';
 import { useAdminStammFahrzeugeManagement, type StammFahrzeugDto, type CreateStammFahrzeugDto, type UpdateStammFahrzeugDto } from '@/features/admin/api';
 import { useFahrzeugtypen } from '@/features/einsatz/api/use-fahrzeugtypen';
 import { Button } from '@/shared/ui/atoms/button.atom';

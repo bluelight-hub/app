@@ -6,7 +6,10 @@ import { EinsatzStatsCard } from '@/features/einsatz/ui/molecules/EinsatzStatsCa
 import { EinsatzTimelineWidget } from '@/features/einsatz/ui/molecules/EinsatzTimelineWidget';
 import { FahrzeugHinzufuegenDialog } from '@/features/einsatz/ui/organisms/FahrzeugHinzufuegenDialog.organism';
 import { PersonHinzufuegenDialog } from '@/features/einsatz/ui/organisms/PersonHinzufuegenDialog.organism';
-import { useActiveEinsatz, EINSATZ_QUERY_KEYS, useEinsatzFahrzeuge, useUpdateFmsStatus } from '@/features/einsatz';
+import { EINSATZ_QUERY_KEYS } from '@/features/einsatz';
+import { useActiveEinsatz } from '@/features/einsatz/hooks/use-active-einsatz';
+import { useEinsatzFahrzeuge } from '@/features/einsatz/api/use-einsatz-fahrzeuge';
+import { useUpdateFmsStatus } from '@/features/einsatz/api/use-update-fms-status';
 import type { FmsStatus } from '@/features/einsatz';
 import { useEtb } from '@/features/etb';
 import { useLagekarte } from '@/features/lagekarte';

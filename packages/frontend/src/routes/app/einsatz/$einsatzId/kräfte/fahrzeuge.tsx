@@ -6,7 +6,8 @@
  */
 
 import { createFileRoute, useParams } from '@tanstack/react-router';
-import { useEinsatzFahrzeuge, useUpdateFmsStatus } from '@/features/einsatz/api';
+import { useEinsatzFahrzeuge } from '@/features/einsatz/api/use-einsatz-fahrzeuge';
+import { useUpdateFmsStatus } from '@/features/einsatz/api/use-update-fms-status';
 import { FahrzeugHinzufuegenDialog } from '@/features/einsatz/ui/organisms/FahrzeugHinzufuegenDialog.organism';
 import { EinsatzResourceWidget } from '@/features/einsatz/ui/molecules/EinsatzResourceWidget';
 import { Button } from '@/shared/ui/atoms/button.atom';

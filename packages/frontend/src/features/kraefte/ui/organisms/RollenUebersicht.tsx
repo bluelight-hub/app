@@ -16,7 +16,7 @@ import { PiArrowClockwise, PiPlus, PiUsers } from 'react-icons/pi';
 
 import { cn } from '@/shared/ui/cn';
 
-import { useRollenBesetzungen } from '../../api';
+import { useRollenBesetzungen } from '../../api/use-rollen-besetzungen';
 import { type DashboardMode, useDashboardMode } from '../../contexts';
 import { DashboardErrorCard } from '../molecules/DashboardErrorCard';
 import { RollenKarte, RollenKarteSkeleton } from '../molecules/RollenKarte';

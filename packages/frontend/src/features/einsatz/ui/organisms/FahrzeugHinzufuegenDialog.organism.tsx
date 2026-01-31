@@ -9,7 +9,9 @@
  * @module features/einsatz/ui/organisms
  */
 
-import { useEinsatzFahrzeuge, useErfasseFahrzeugAusStammdaten, useErfasseTemporalesFahrzeug, useFahrzeugtypen, useStammFahrzeuge } from '@/features/einsatz/api';
+import { useEinsatzFahrzeuge } from '@/features/einsatz/api/use-einsatz-fahrzeuge';
+import { useFahrzeugtypen } from '@/features/einsatz/api/use-fahrzeugtypen';
+import { useErfasseFahrzeugAusStammdaten, useErfasseTemporalesFahrzeug, useStammFahrzeuge } from '@/features/einsatz/api';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { FormField } from '@/shared/ui/atoms/form-field.atom';
 import { InlineSpinner } from '@/shared/ui/atoms/spinner.atom';

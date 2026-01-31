@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Navigate } from '@tanstack/react-router';
 import { PiPlus, PiWarning } from 'react-icons/pi';
-import { useAdminAuth } from '@/features/auth/api';
+import { useAdminAuth } from '@/features/auth/api/use-current-user';
 import { useAdminRollenDefinitionenManagement, type RollenDefinitionDto, type CreateRollenDefinitionDto, type UpdateRollenDefinitionDto } from '@/features/admin/api';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Card } from '@/shared/ui/atoms/card.atom';

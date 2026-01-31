@@ -867,6 +867,7 @@ describe('PrismaEinsatzRepository', () => {
       // Arrange
       const createdAt = new Date('2024-01-02T10:00:00Z');
       const previousId = 'prev_id';
+      // biome-ignore lint/suspicious/noExplicitAny: mocking partial return
       mockPrismaService.einsatz.findFirst.mockResolvedValue({ id: previousId } as any);
 
       // Act
@@ -917,6 +918,7 @@ describe('PrismaEinsatzRepository', () => {
       // Arrange
       const createdAt = new Date('2024-01-02T10:00:00Z');
       const nextId = 'next_id';
+      // biome-ignore lint/suspicious/noExplicitAny: mocking partial return
       mockPrismaService.einsatz.findFirst.mockResolvedValue({ id: nextId } as any);
 
       // Act

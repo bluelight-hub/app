@@ -1,4 +1,5 @@
-import { useCurrentUser, useAdminLogout } from '@/features/auth';
+import { useCurrentUser } from '@/features/auth';
+import { useAdminLogout } from '@/features/auth/api/use-logout';
 import { logger } from '@/shared/lib/logger';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Heading } from '@/shared/ui/atoms/heading.atom';

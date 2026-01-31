@@ -96,7 +96,7 @@ export const useAdminHiOrgIntegration = (options?: UseAdminHiOrgIntegrationOptio
       });
     },
     // Nur ausführen wenn Credentials vorhanden sind (Token oder OAuth) UND Preview explizit aktiviert
-    enabled: (credentialsQuery.data?.data.hasOAuthTokens === true) && enablePreview,
+    enabled: credentialsQuery.data?.data.hasOAuthTokens === true && enablePreview,
     retry: 2,
     staleTime: 30_000, // 30 Sekunden
   });
@@ -154,7 +154,7 @@ export const useAdminHiOrgIntegration = (options?: UseAdminHiOrgIntegrationOptio
     queryFn: async () => {
       return await api.adminIntegrationsHiorg().adminHiOrgIntegrationControllerGetQualifikationMappingsVAlpha();
     },
-    enabled: (credentialsQuery.data?.data.hasOAuthTokens === true) && enableMappings,
+    enabled: credentialsQuery.data?.data.hasOAuthTokens === true && enableMappings,
     retry: 2,
     staleTime: 60_000, // 1 Minute
   });

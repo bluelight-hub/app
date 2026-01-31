@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Navigate, useSearch, useNavigate } from '@tanstack/react-router';
 import { PiPlugsConnected, PiCheckCircle, PiWarningCircle, PiSpinner, PiUsers, PiDownload, PiCopy, PiGear } from 'react-icons/pi';
 import { toast } from 'sonner';
-import { useAdminAuth } from '@/features/auth/api';
+import { useAdminAuth } from '@/features/auth/api/use-current-user';
 import { useAdminHiOrgIntegration, useAdminQualifikationenManagement, type BatchMappingItem } from '@/features/admin/api';
 import type { HiOrgQualifikationPreviewItemDto } from '@/shared';
 import { Button } from '@/shared/ui/atoms/button.atom';
@@ -243,7 +243,9 @@ export function AdminHiOrgIntegration() {
     <Container className="space-y-6 py-8">
       {/* Header */}
       <div>
-        <Heading size="2xl" as="h1">HiOrg-Server Integration</Heading>
+        <Heading size="2xl" as="h1">
+          HiOrg-Server Integration
+        </Heading>
         <Text className="text-gray-600 dark:text-gray-400">Verbinde Bluelight Hub mit deinem HiOrg-Server Account um Personen zu importieren.</Text>
       </div>
 
@@ -253,15 +255,9 @@ export function AdminHiOrgIntegration() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {/* Status Icon: Grün wenn OAuth oder getestet, Gelb wenn Token vorhanden aber nicht getestet, Rot wenn nichts konfiguriert */}
-              {credentials.hasOAuthTokens || credentials.lastTestedAt ? (
-                <PiCheckCircle className="h-8 w-8 text-green-500" />
-              ) : (
-                <PiWarningCircle className="h-8 w-8 text-red-500" />
-              )}
+              {credentials.hasOAuthTokens || credentials.lastTestedAt ? <PiCheckCircle className="h-8 w-8 text-green-500" /> : <PiWarningCircle className="h-8 w-8 text-red-500" />}
               <div>
-                <Text className="font-medium">
-                  {credentials.hasOAuthTokens ? 'OAuth2 verbunden' : credentials.lastTestedAt ? 'Verbunden' : 'Nicht konfiguriert'}
-                </Text>
+                <Text className="font-medium">{credentials.hasOAuthTokens ? 'OAuth2 verbunden' : credentials.lastTestedAt ? 'Verbunden' : 'Nicht konfiguriert'}</Text>
                 {credentials.lastTestedAt && <Text className="text-gray-400 text-xs">Letzter Test: {new Date(credentials.lastTestedAt).toLocaleString('de-DE')}</Text>}
               </div>
             </div>
@@ -336,7 +332,9 @@ export function AdminHiOrgIntegration() {
         <Card className="p-6">
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <Heading size="lg" as="h3">Personen-Vorschau & Import</Heading>
+              <Heading size="lg" as="h3">
+                Personen-Vorschau & Import
+              </Heading>
               {selectedUsernames.size > 0 && (
                 <Text className="mt-1 text-gray-500 text-sm">
                   {selectedUsernames.size} Person{selectedUsernames.size !== 1 ? 'en' : ''} ausgewählt

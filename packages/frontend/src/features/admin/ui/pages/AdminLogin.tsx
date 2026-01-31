@@ -1,4 +1,5 @@
-import { useCurrentUser, useAdminLogin } from '@/features/auth';
+import { useCurrentUser } from '@/features/auth';
+import { useAdminLogin } from '@/features/auth/api/use-login';
 import { useSystemHealth } from '@/features/system/api/use-system-health';
 import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { Alert } from '@/shared/ui/atoms/alert.atom';

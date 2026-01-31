@@ -2,8 +2,10 @@
  * ETB Organism Components
  */
 
-export { EditEtbEntryModal } from './EditEtbEntryModal';
-export { EtbEntryForm } from './EtbEntryForm';
+// EditEtbEntryModal wird nur direkt importiert um circular dependencies zu vermeiden
+// export { EditEtbEntryModal } from './EditEtbEntryModal';
+// EtbEntryForm wird nur direkt importiert um circular dependencies zu vermeiden
+// export { EtbEntryForm } from './EtbEntryForm';
 export { EtbEntryList } from './EtbEntryList';
 export { EtbKategorieSelect } from './EtbKategorieSelect';
 export { EtbTextbausteinSelect } from './EtbTextbausteinSelect';

@@ -48,7 +48,8 @@ export * from './stores';
 // Hooks
 // ============================================
 export {
-  useActiveEinsatz,
+  // useActiveEinsatz nur direkt importieren
+  // useActiveEinsatz,
   useEinsatzDetails,
   type UseEinsatzDetailsResult,
   useEinsatzModules,
