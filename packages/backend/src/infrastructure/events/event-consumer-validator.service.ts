@@ -31,6 +31,9 @@ const EVENTS_WITHOUT_REQUIRED_HANDLER: ReadonlySet<string> = new Set([
   'etb.eintrag_updated',
   'etb.eintrag_deleted',
 
+  // Erinnerungsvorlage Events - Admin/Konfiguration, kein ETB-Eintrag nötig
+  'erinnerungsvorlage.erstellt',
+
   // Stammdaten Events - aktuell nur für Audit/Logging
   'StammPersonCreated',
   'StammPersonUpdated',

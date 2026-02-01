@@ -28,3 +28,5 @@ export * from './erinnerung-websocket-event.adapter';
 export * from './erinnerung-snoozed-event.adapter';
 export * from './erinnerung-retriggered-event.adapter';
 export * from './erinnerung-erledigt-event.adapter';
+export * from './erinnerung-eskaliert-event.adapter';
+export * from './erinnerung-intensiviert-event.adapter';

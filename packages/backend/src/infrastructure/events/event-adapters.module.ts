@@ -15,6 +15,8 @@ import {
   ErinnerungSnoozedEventAdapter,
   ErinnerungRetriggeredEventAdapter,
   ErinnerungErledigtEventAdapter,
+  ErinnerungEskaliertEventAdapter,
+  ErinnerungIntensiviertEventAdapter,
 } from './adapters';
 import { EtbApplicationModule } from '@application/etb/etb-application.module';
 import { LagekarteApplicationModule } from '@application/lagekarte/lagekarte-application.module';
@@ -105,6 +107,8 @@ import { OutboxModule } from '@infrastructure/outbox/outbox.module';
     ErinnerungSnoozedEventAdapter, // Story 2.1: ErinnerungSnoozed ETB-Eintrag
     ErinnerungRetriggeredEventAdapter, // Story 2.2 AC2: ErinnerungRetriggered ETB-Eintrag
     ErinnerungErledigtEventAdapter, // Story 2.5 AC4: ErinnerungErledigt ETB-Eintrag
+    ErinnerungEskaliertEventAdapter, // Story 5.0 AC2: ErinnerungEskaliert ETB-Eintrag
+    ErinnerungIntensiviertEventAdapter, // Story 5.0 AC2: ErinnerungIntensiviert ETB-Eintrag
     // Event Logging Handler (Infrastructure-specific)
     LagekarteEventLoggerHandler,
     EinsatzEventLoggerHandler,
