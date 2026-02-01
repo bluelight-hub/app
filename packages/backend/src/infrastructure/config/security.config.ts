@@ -7,21 +7,21 @@ import type { HelmetOptions } from 'helmet';
  */
 
 /**
- * Helmet-Konfiguration für sichere HTTP-Header
+ * Basis Helmet-Konfiguration für sichere HTTP-Header (Strict)
  *
  * Diese Konfiguration setzt verschiedene Sicherheits-Header,
  * um die Anwendung gegen gängige Webangriffe zu schützen.
- * Enthält CSP, HSTS, X-Frame-Options und weitere Schutzmaßnahmen.
+ * Enthält eine strikte CSP ohne 'unsafe-inline'.
  *
  * @constant {HelmetOptions}
  */
 export const helmetConfig: HelmetOptions = {
-  // Content Security Policy - Verhindert XSS-Angriffe
+  // Content Security Policy - Verhindert XSS-Angriffe (Strikt)
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"], // Für Swagger UI
-      scriptSrc: ["'self'", "'unsafe-inline'"], // Für Swagger UI
+      styleSrc: ["'self'"], // Kein 'unsafe-inline' für API
+      scriptSrc: ["'self'"], // Kein 'unsafe-inline' für API
       imgSrc: ["'self'", 'data:', 'https:'],
       connectSrc: ["'self'"],
       fontSrc: ["'self'"],
@@ -32,7 +32,7 @@ export const helmetConfig: HelmetOptions = {
     },
   },
   // Cross-Origin-Embedder-Policy
-  crossOriginEmbedderPolicy: false, // Für Swagger UI deaktiviert
+  crossOriginEmbedderPolicy: true,
   // DNS Prefetch Control
   dnsPrefetchControl: { allow: false },
   // Frameguard - Verhindert Clickjacking
@@ -55,6 +55,27 @@ export const helmetConfig: HelmetOptions = {
   permittedCrossDomainPolicies: false,
   // Referrer Policy
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+};
+
+/**
+ * Erweiterte Helmet-Konfiguration für Swagger UI (Permissive)
+ *
+ * Swagger UI benötigt 'unsafe-inline' für Styles und Scripts.
+ * Diese Konfiguration wird nur für Swagger-spezifische Pfade verwendet.
+ *
+ * @constant {HelmetOptions}
+ */
+export const swaggerHelmetConfig: HelmetOptions = {
+  ...helmetConfig,
+  contentSecurityPolicy: {
+    directives: {
+      ...(helmetConfig.contentSecurityPolicy as { directives: Record<string, string[]> }).directives,
+      styleSrc: ["'self'", "'unsafe-inline'"], // Erforderlich für Swagger UI
+      scriptSrc: ["'self'", "'unsafe-inline'"], // Erforderlich für Swagger UI
+    },
+  },
+  // crossOriginEmbedderPolicy muss für Swagger UI deaktiviert sein
+  crossOriginEmbedderPolicy: false,
 };
 
 /**

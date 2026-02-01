@@ -5,6 +5,7 @@ import { NestFactory, Reflector } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
+import type { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import * as process from 'node:process';
 import * as packageJson from '../package.json';
@@ -12,7 +13,7 @@ import { AppModule } from './app.module';
 import { validateInsecureMode } from './infrastructure/config/bootstrap-validation';
 import { PerformanceInterceptor } from './infrastructure/http/interceptors/performance.interceptor';
 import { TransformInterceptor } from './infrastructure/http/interceptors/transform.interceptor';
-import { corsConfig, helmetConfig } from './infrastructure/config/security.config';
+import { corsConfig, helmetConfig, swaggerHelmetConfig } from './infrastructure/config/security.config';
 
 require('@dotenvx/dotenvx').config();
 
@@ -140,7 +141,23 @@ X-Server-Access-Token: <plaintext_token>
   SwaggerModule.setup('api', app, document, {});
 
   // Apply Helmet middleware for security headers
-  app.use(helmet(helmetConfig));
+  // We use a custom middleware to switch between strict and permissive CSP.
+  // Strict CSP (helmetConfig) is used for the API to prevent XSS.
+  // Permissive CSP (swaggerHelmetConfig) is used only for Swagger UI.
+  const strictHelmetMiddleware = helmet(helmetConfig);
+  const swaggerHelmetMiddleware = helmet(swaggerHelmetConfig);
+
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    // Determine if the request is for Swagger UI or the API spec
+    // Swagger UI is at /api and /api/, the spec is at /api-json
+    // Versioned API routes (e.g., /api/v-alpha/...) should use the strict policy
+    const isSwaggerPath = req.url === '/api' || req.url === '/api/' || req.url.startsWith('/api-json') || (req.url.startsWith('/api/') && !req.url.startsWith('/api/v-'));
+
+    if (isSwaggerPath) {
+      return swaggerHelmetMiddleware(req, res, next);
+    }
+    return strictHelmetMiddleware(req, res, next);
+  });
 
   // Apply cookie parser middleware
   app.use(cookieParser());
