@@ -3,6 +3,7 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import helmet from 'helmet';
 import type { NextFunction, Request, Response } from 'express';
+import { ConfigService } from '@nestjs/config';
 import { helmetConfig, swaggerHelmetConfig } from '../config/security.config';
 import { AppModule } from '../../app.module';
 
@@ -12,7 +13,21 @@ describe('Security Headers (E2E)', () => {
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(ConfigService)
+      .useValue({
+        get: jest.fn((key: string, defaultValue?: unknown) => {
+          if (key === 'INTEGRATION_ENCRYPTION_KEY') return '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+          if (key === 'ADMIN_JWT_SECRET') return 'test-secret';
+          return defaultValue;
+        }),
+        getOrThrow: jest.fn((key: string) => {
+          if (key === 'INTEGRATION_ENCRYPTION_KEY') return '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+          if (key === 'ADMIN_JWT_SECRET') return 'test-secret';
+          throw new Error(`Config key ${key} not found`);
+        }),
+      })
+      .compile();
 
     app = moduleFixture.createNestApplication();
 
@@ -21,8 +36,7 @@ describe('Security Headers (E2E)', () => {
     const swaggerHelmetMiddleware = helmet(swaggerHelmetConfig);
 
     app.use((req: Request, res: Response, next: NextFunction) => {
-      const isSwaggerPath =
-        req.url === '/api' || req.url === '/api/' || req.url.startsWith('/api-json') || (req.url.startsWith('/api/') && !req.url.startsWith('/api/v-'));
+      const isSwaggerPath = req.url === '/api' || req.url === '/api/' || req.url.startsWith('/api-json') || (req.url.startsWith('/api/') && !req.url.startsWith('/api/v-'));
 
       if (isSwaggerPath) {
         return swaggerHelmetMiddleware(req, res, next);
