@@ -671,14 +671,6 @@ export async function teardownE2eModule(ctx: EinsatzE2eTestContext): Promise<voi
 
     // Lagekarten Dependencies (safe delete - tables may not exist yet)
     await safeDelete(tx, `DELETE FROM lagekarte_poi WHERE "lagekarteId" IN (SELECT id FROM lagekarte WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [allUserIds]);
-      allUserIds,
-    ]);
-      allUserIds,
-    ]);
-      allUserIds,
-    ]);
-      allUserIds,
-    ]);
     await safeDelete(tx, `DELETE FROM lagekarte WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1))`, [allUserIds]);
 
     // ETB Dependencies
@@ -751,14 +743,6 @@ export async function cleanupTestData(ctx: EinsatzE2eTestContext): Promise<void>
 
     // Lagekarten Dependencies (safe delete - tables may not exist yet)
     await safeDelete(tx, `DELETE FROM lagekarte_poi WHERE "lagekarteId" IN (SELECT id FROM lagekarte WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
-      allCleanupUserIds,
-    ]);
-      allCleanupUserIds,
-    ]);
-      allCleanupUserIds,
-    ]);
-      allCleanupUserIds,
-    ]);
       allCleanupUserIds,
     ]);
     await safeDelete(tx, `DELETE FROM lagekarte WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1))`, [allCleanupUserIds]);
