@@ -36,12 +36,12 @@ describe('AdminInviteController', () => {
   const mockSuccessResponse: CreateInviteResponseDto = {
     id: 'inv_ckpf2xrkc0001zyp8jq8qzx9',
     code: 'ABC12345',
-    expiresAt: '2026-02-01T12:00:00.000Z',
+    expiresAt: '2030-01-01T12:00:00.000Z',
     maxUses: 5,
     useCount: 0,
     label: 'Team Nord',
     createdAt: '2026-01-07T10:30:00.000Z',
-    deepLink: 'bluelight://connect?url=http%3A%2F%2Flocalhost%3A3091&invite=ABC12345&expires=2026-02-01T12%3A00%3A00.000Z',
+    deepLink: 'bluelight://connect?url=http%3A%2F%2Flocalhost%3A3091&invite=ABC12345&expires=2030-01-01T12%3A00%3A00.000Z',
     webLink: 'http://localhost:3090?server=http%3A%2F%2Flocalhost%3A3091&invite=ABC12345',
   };
 
@@ -69,7 +69,7 @@ describe('AdminInviteController', () => {
       it('sollte Invite-Code erfolgreich erstellen und CreateInviteResponseDto zurueckgeben', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: '2030-01-01T12:00:00.000Z',
           maxUses: 5,
           label: 'Team Nord',
         };
@@ -94,7 +94,7 @@ describe('AdminInviteController', () => {
       it('sollte Invite-Code ohne optionale Felder erstellen (mit explizitem expiresAt)', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: '2030-01-01T12:00:00.000Z',
         };
 
         const responseWithoutOptionals: CreateInviteResponseDto = {
@@ -165,7 +165,7 @@ describe('AdminInviteController', () => {
       it('sollte Invite-Code mit maxUses=1 erstellen (Minimum)', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: '2030-01-01T12:00:00.000Z',
           maxUses: 1,
         };
 
@@ -182,7 +182,7 @@ describe('AdminInviteController', () => {
       it('sollte Invite-Code mit maxUses=100 erstellen (Maximum)', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: '2030-01-01T12:00:00.000Z',
           maxUses: 100,
         };
 
@@ -237,7 +237,7 @@ describe('AdminInviteController', () => {
       it('sollte BadRequestException werfen wenn maxUses zu klein ist (0)', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: '2030-01-01T12:00:00.000Z',
           maxUses: 0,
         };
 
@@ -249,7 +249,7 @@ describe('AdminInviteController', () => {
       it('sollte BadRequestException werfen wenn maxUses negativ ist', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: '2030-01-01T12:00:00.000Z',
           maxUses: -5,
         };
 
@@ -261,7 +261,7 @@ describe('AdminInviteController', () => {
       it('sollte BadRequestException werfen wenn maxUses zu gross ist (101)', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: '2030-01-01T12:00:00.000Z',
           maxUses: 101,
         };
 
@@ -273,7 +273,7 @@ describe('AdminInviteController', () => {
       it('sollte BadRequestException werfen wenn label zu lang ist (>100 Zeichen)', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: '2030-01-01T12:00:00.000Z',
           label: 'A'.repeat(101), // 101 Zeichen
         };
 
@@ -287,7 +287,7 @@ describe('AdminInviteController', () => {
       it('sollte BadRequestException werfen wenn Handler mit CREATION_FAILED fehlschlaegt', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: '2030-01-01T12:00:00.000Z',
           maxUses: 5,
         };
 
@@ -301,7 +301,7 @@ describe('AdminInviteController', () => {
       it('sollte BadRequestException werfen wenn Handler mit SAVE_FAILED fehlschlaegt', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: '2030-01-01T12:00:00.000Z',
           maxUses: 5,
         };
 
@@ -324,7 +324,7 @@ describe('AdminInviteController', () => {
       it('sollte BadRequestException werfen wenn Handler mit unbekanntem Fehler fehlschlaegt', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: '2030-01-01T12:00:00.000Z',
         };
 
         mockCreateInviteHandler.execute.mockResolvedValue(Result.fail('UNKNOWN_ERROR'));
@@ -337,7 +337,7 @@ describe('AdminInviteController', () => {
       it('sollte BadRequestException werfen wenn Handler undefined value zurueckgibt', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: '2030-01-01T12:00:00.000Z',
         };
 
         // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
@@ -352,7 +352,7 @@ describe('AdminInviteController', () => {
       it('sollte createdById aus ValidatedUser korrekt an Command weitergeben', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: '2030-01-01T12:00:00.000Z',
         };
         const customUser: ValidatedUser = {
           userId: 'custom_admin_789',
@@ -372,7 +372,7 @@ describe('AdminInviteController', () => {
       it('sollte mit ADMIN role funktionieren', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: '2030-01-01T12:00:00.000Z',
         };
         const adminUser: ValidatedUser = {
           userId: 'admin_user_123',
@@ -391,7 +391,7 @@ describe('AdminInviteController', () => {
       it('sollte mit SUPER_ADMIN role funktionieren', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: '2030-01-01T12:00:00.000Z',
         };
         const superAdminUser: ValidatedUser = {
           userId: 'super_admin_456',
@@ -412,7 +412,7 @@ describe('AdminInviteController', () => {
       it('sollte ISO-8601 Datum korrekt in Date Objekt konvertieren', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-12-31T23:59:59.999Z',
+          expiresAt: '2030-12-31T23:59:59.999Z',
         };
 
         mockCreateInviteHandler.execute.mockResolvedValue(Result.ok(mockSuccessResponse));
@@ -422,14 +422,14 @@ describe('AdminInviteController', () => {
 
         // Then (Assert)
         const executedCommand = mockCreateInviteHandler.execute.mock.calls[0][0];
-        expect(executedCommand.expiresAt).toEqual(new Date('2026-12-31T23:59:59.999Z'));
+        expect(executedCommand.expiresAt).toEqual(new Date('2030-12-31T23:59:59.999Z'));
         expect(executedCommand.expiresAt).toBeInstanceOf(Date);
       });
 
       it('sollte Datum mit Zeitzone korrekt verarbeiten', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-06-15T14:30:00.000+02:00',
+          expiresAt: '2030-06-15T14:30:00.000+02:00',
         };
 
         mockCreateInviteHandler.execute.mockResolvedValue(Result.ok(mockSuccessResponse));
@@ -441,7 +441,7 @@ describe('AdminInviteController', () => {
         const executedCommand = mockCreateInviteHandler.execute.mock.calls[0][0];
         expect(executedCommand.expiresAt).toBeInstanceOf(Date);
         // Das Datum sollte korrekt geparst werden (UTC: 12:30)
-        expect(executedCommand.expiresAt.toISOString()).toBe('2026-06-15T12:30:00.000Z');
+        expect(executedCommand.expiresAt.toISOString()).toBe('2030-06-15T12:30:00.000Z');
       });
     });
 
@@ -469,7 +469,7 @@ describe('AdminInviteController', () => {
       it('sollte INVITE_MAX_USES_INVALID zu benutzerfreundlicher Nachricht mappen', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: '2030-01-01T12:00:00.000Z',
           maxUses: 0,
         };
 
@@ -489,7 +489,7 @@ describe('AdminInviteController', () => {
       it('sollte INVITE_LABEL_TOO_LONG zu benutzerfreundlicher Nachricht mappen', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: '2030-01-01T12:00:00.000Z',
           label: 'A'.repeat(101),
         };
 
@@ -525,7 +525,7 @@ describe('AdminInviteController', () => {
     it('sollte Handler mit korrektem Command aufrufen', async () => {
       // Given (Arrange)
       const dto: CreateInviteDto = {
-        expiresAt: '2026-03-15T10:00:00.000Z',
+        expiresAt: '2030-03-15T10:00:00.000Z',
         maxUses: 10,
         label: 'Integration Test',
       };
@@ -539,7 +539,7 @@ describe('AdminInviteController', () => {
       expect(mockCreateInviteHandler.execute).toHaveBeenCalledTimes(1);
 
       const executedCommand = mockCreateInviteHandler.execute.mock.calls[0][0];
-      expect(executedCommand.expiresAt).toEqual(new Date('2026-03-15T10:00:00.000Z'));
+      expect(executedCommand.expiresAt).toEqual(new Date('2030-03-15T10:00:00.000Z'));
       expect(executedCommand.maxUses).toBe(10);
       expect(executedCommand.label).toBe('Integration Test');
       expect(executedCommand.createdById).toBe(mockAdminUser.userId);
@@ -548,13 +548,13 @@ describe('AdminInviteController', () => {
     it('sollte Handler-Ergebnis direkt zurueckgeben (kein Wrapper)', async () => {
       // Given (Arrange)
       const dto: CreateInviteDto = {
-        expiresAt: '2026-02-01T12:00:00.000Z',
+        expiresAt: '2030-01-01T12:00:00.000Z',
       };
 
       const customResponse: CreateInviteResponseDto = {
         id: 'inv_customid123456789012345',
         code: 'XYZ98765',
-        expiresAt: '2026-02-01T12:00:00.000Z',
+        expiresAt: '2030-01-01T12:00:00.000Z',
         maxUses: 1,
         useCount: 0,
         createdAt: '2026-01-07T15:00:00.000Z',
@@ -578,7 +578,7 @@ describe('AdminInviteController', () => {
     it('sollte mit Label am Grenzwert (100 Zeichen) funktionieren', async () => {
       // Given (Arrange)
       const dto: CreateInviteDto = {
-        expiresAt: '2026-02-01T12:00:00.000Z',
+        expiresAt: '2030-01-01T12:00:00.000Z',
         label: 'A'.repeat(100), // Genau 100 Zeichen
       };
 
@@ -595,7 +595,7 @@ describe('AdminInviteController', () => {
     it('sollte leeren Label-String zu undefined normalisieren', async () => {
       // Given (Arrange)
       const dto: CreateInviteDto = {
-        expiresAt: '2026-02-01T12:00:00.000Z',
+        expiresAt: '2030-01-01T12:00:00.000Z',
         label: '',
       };
 
@@ -613,7 +613,7 @@ describe('AdminInviteController', () => {
     it('sollte Label mit Whitespace trimmen', async () => {
       // Given (Arrange)
       const dto: CreateInviteDto = {
-        expiresAt: '2026-02-01T12:00:00.000Z',
+        expiresAt: '2030-01-01T12:00:00.000Z',
         label: '   Team Nord   ',
       };
 

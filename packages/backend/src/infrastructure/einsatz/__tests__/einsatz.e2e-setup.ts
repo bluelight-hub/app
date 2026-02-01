@@ -534,12 +534,8 @@ export async function createEinsatzE2eModule(): Promise<EinsatzE2eTestContext> {
     // Lagekarten Dependencies (POIs, etc.) -> ETB Dependencies -> Outbox -> Einsaetze -> Users
 
     // Lagekarten Dependencies (deepest FK first)
-    await safeDeleteOldTx(tx, 'lagekarten_pois', '"createdAt"');
-    await safeDeleteOldTx(tx, 'lagekarten_aktualisierungen', '"createdAt"');
-    await safeDeleteOldTx(tx, 'lagekarten_versionen', '"versionTimestamp"');
-    await safeDeleteOldTx(tx, 'lagekarten_snapshots', '"snapshotAt"');
-    await safeDeleteOldTx(tx, 'lagekarten_eintraege', '"createdAt"');
-    await safeDeleteOldTx(tx, 'lagekarten', '"createdAt"');
+    await safeDeleteOldTx(tx, 'lagekarte_poi', '"createdAt"');
+    await safeDeleteOldTx(tx, 'lagekarte', '"createdAt"');
 
     // ETB Dependencies
     await safeDeleteOldTx(tx, 'etb_snapshots', '"snapshotAt"');
@@ -674,20 +670,16 @@ export async function teardownE2eModule(ctx: EinsatzE2eTestContext): Promise<voi
     // Lagekarten -> ETB -> Outbox -> Einsaetze -> Users
 
     // Lagekarten Dependencies (safe delete - tables may not exist yet)
-    await safeDelete(tx, `DELETE FROM lagekarten_pois WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [allUserIds]);
-    await safeDelete(tx, `DELETE FROM lagekarten_aktualisierungen WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
+    await safeDelete(tx, `DELETE FROM lagekarte_poi WHERE "lagekarteId" IN (SELECT id FROM lagekarte WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [allUserIds]);
       allUserIds,
     ]);
-    await safeDelete(tx, `DELETE FROM lagekarten_versionen WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
       allUserIds,
     ]);
-    await safeDelete(tx, `DELETE FROM lagekarten_snapshots WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
       allUserIds,
     ]);
-    await safeDelete(tx, `DELETE FROM lagekarten_eintraege WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
       allUserIds,
     ]);
-    await safeDelete(tx, `DELETE FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1))`, [allUserIds]);
+    await safeDelete(tx, `DELETE FROM lagekarte WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1))`, [allUserIds]);
 
     // ETB Dependencies
     await safeDelete(tx, `DELETE FROM etb_snapshots WHERE "etbId" IN (SELECT id FROM einsatztagebuecher WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [allUserIds]);
@@ -758,22 +750,18 @@ export async function cleanupTestData(ctx: EinsatzE2eTestContext): Promise<void>
     // (Users bleiben erhalten!)
 
     // Lagekarten Dependencies (safe delete - tables may not exist yet)
-    await safeDelete(tx, `DELETE FROM lagekarten_pois WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
+    await safeDelete(tx, `DELETE FROM lagekarte_poi WHERE "lagekarteId" IN (SELECT id FROM lagekarte WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
       allCleanupUserIds,
     ]);
-    await safeDelete(tx, `DELETE FROM lagekarten_aktualisierungen WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
       allCleanupUserIds,
     ]);
-    await safeDelete(tx, `DELETE FROM lagekarten_versionen WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
       allCleanupUserIds,
     ]);
-    await safeDelete(tx, `DELETE FROM lagekarten_snapshots WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
       allCleanupUserIds,
     ]);
-    await safeDelete(tx, `DELETE FROM lagekarten_eintraege WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
       allCleanupUserIds,
     ]);
-    await safeDelete(tx, `DELETE FROM lagekarten WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1))`, [allCleanupUserIds]);
+    await safeDelete(tx, `DELETE FROM lagekarte WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1))`, [allCleanupUserIds]);
 
     // ETB Dependencies
     await safeDelete(tx, `DELETE FROM etb_snapshots WHERE "etbId" IN (SELECT id FROM einsatztagebuecher WHERE "einsatzId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1)))`, [
@@ -1138,12 +1126,8 @@ export async function cleanupEinsatzById(ctx: EinsatzE2eTestContext, einsatzId: 
     // Reihenfolge (FK Order!): Lagekarten -> ETB -> Outbox -> Einsatz
 
     // Lagekarten Dependencies (safe delete - tables may not exist yet)
-    await safeDelete(tx, `DELETE FROM lagekarten_pois WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" = $1)`, [einsatzId]);
-    await safeDelete(tx, `DELETE FROM lagekarten_aktualisierungen WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" = $1)`, [einsatzId]);
-    await safeDelete(tx, `DELETE FROM lagekarten_versionen WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" = $1)`, [einsatzId]);
-    await safeDelete(tx, `DELETE FROM lagekarten_snapshots WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" = $1)`, [einsatzId]);
-    await safeDelete(tx, `DELETE FROM lagekarten_eintraege WHERE "lagekarteId" IN (SELECT id FROM lagekarten WHERE "einsatzId" = $1)`, [einsatzId]);
-    await safeDelete(tx, `DELETE FROM lagekarten WHERE "einsatzId" = $1`, [einsatzId]);
+    await safeDelete(tx, `DELETE FROM lagekarte_poi WHERE "lagekarteId" IN (SELECT id FROM lagekarte WHERE "einsatzId" = $1)`, [einsatzId]);
+    await safeDelete(tx, `DELETE FROM lagekarte WHERE "einsatzId" = $1`, [einsatzId]);
 
     // ETB Dependencies
     await safeDelete(tx, `DELETE FROM etb_snapshots WHERE "etbId" IN (SELECT id FROM einsatztagebuecher WHERE "einsatzId" = $1)`, [einsatzId]);

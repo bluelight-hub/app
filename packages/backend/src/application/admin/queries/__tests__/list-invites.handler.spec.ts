@@ -340,7 +340,7 @@ describe('ListInvitesHandler', () => {
     it('should map all fields correctly', async () => {
       // Given (Arrange)
       const query = createValidQuery();
-      const expiresAt = new Date('2026-02-01T12:00:00.000Z');
+      const expiresAt = new Date('2030-01-01T12:00:00.000Z');
       const mockInvite = createMockInviteCode({
         expiresAt,
         maxUses: 5,
@@ -356,7 +356,7 @@ describe('ListInvitesHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       const dto = result.value!.data[0];
-      expect(dto.expiresAt).toBe('2026-02-01T12:00:00.000Z');
+      expect(dto.expiresAt).toBe('2030-01-01T12:00:00.000Z');
       expect(dto.maxUses).toBe(5);
       expect(dto.useCount).toBe(2);
       expect(dto.label).toBe('Team Nord');
@@ -386,7 +386,7 @@ describe('ListInvitesHandler', () => {
       const mockInvite = InviteCode.reconstruct({
         id: InviteCodeId.create().value!,
         code: InviteCodeValue.generate().value!,
-        expiresAt: new Date('2026-02-01'),
+        expiresAt: new Date('2030-01-01'),
         maxUses: 10,
         usedCount: 0,
         createdById: 'user_123',
