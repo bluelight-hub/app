@@ -221,7 +221,7 @@ export class ETBApi extends runtime.BaseAPI {
   }
 
   /**
-   * Gibt das Einsatztagebuch für einen Einsatz zurück. Optional können soft-gelöschte Einträge mit includeDeleted=true angezeigt werden.
+   * Gibt das Einsatztagebuch für einen Einsatz zurück. Optional können soft-gelöschte Einträge mit includeDeleted=true angezeigt werden. Nur aktive Einsatzteilnehmer haben Zugriff.
    * ETB für Einsatz abrufen
    */
   async etbCqrsControllerGetEtbByEinsatzIdVAlphaRaw(
@@ -254,7 +254,7 @@ export class ETBApi extends runtime.BaseAPI {
   }
 
   /**
-   * Gibt das Einsatztagebuch für einen Einsatz zurück. Optional können soft-gelöschte Einträge mit includeDeleted=true angezeigt werden.
+   * Gibt das Einsatztagebuch für einen Einsatz zurück. Optional können soft-gelöschte Einträge mit includeDeleted=true angezeigt werden. Nur aktive Einsatzteilnehmer haben Zugriff.
    * ETB für Einsatz abrufen
    */
   async etbCqrsControllerGetEtbByEinsatzIdVAlpha(
@@ -266,7 +266,7 @@ export class ETBApi extends runtime.BaseAPI {
   }
 
   /**
-   * Gibt alle Versionen/Snapshots eines ETB zurück. Sortiert nach Version absteigend (neueste zuerst).
+   * Gibt alle Versionen/Snapshots eines ETB zurück. Sortiert nach Version absteigend (neueste zuerst). Nur aktive Einsatzteilnehmer haben Zugriff.
    * ETB Versionshistorie abrufen
    */
   async etbCqrsControllerGetEtbHistoryVAlphaRaw(
@@ -295,7 +295,7 @@ export class ETBApi extends runtime.BaseAPI {
   }
 
   /**
-   * Gibt alle Versionen/Snapshots eines ETB zurück. Sortiert nach Version absteigend (neueste zuerst).
+   * Gibt alle Versionen/Snapshots eines ETB zurück. Sortiert nach Version absteigend (neueste zuerst). Nur aktive Einsatzteilnehmer haben Zugriff.
    * ETB Versionshistorie abrufen
    */
   async etbCqrsControllerGetEtbHistoryVAlpha(

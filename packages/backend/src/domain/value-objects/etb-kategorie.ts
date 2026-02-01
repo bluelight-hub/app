@@ -26,7 +26,6 @@ export const ETB_KATEGORIE_VALUES = [
   'DOKUMENTATION',
   'SONSTIGES',
   'SYSTEM',
-  'ERINNERUNG',
 ] as const;
 
 /**
@@ -61,8 +60,7 @@ export type EtbKategorieValue = (typeof ETB_KATEGORIE_VALUES)[number];
  * - WETTER: Wetteraenderungen
  * - DOKUMENTATION: Dokumentarische Eintraege (Screenshots, Fotos, Anhaenge)
  * - SONSTIGES: Sonstige Eintraege
- * - SYSTEM: Systemeintraege (automatisch)
- * - ERINNERUNG: Erinnerungseintraege (automatisch aus Erinnerungs-Events)
+ * - SYSTEM: Systemeintraege (automatisch, inkl. Erinnerungseintraege)
  *
  * @example
  * ```typescript
@@ -240,15 +238,6 @@ export class EtbKategorie extends ValueObject<EtbKategorieProps> {
    */
   static SYSTEM(): EtbKategorie {
     return new EtbKategorie('SYSTEM');
-  }
-
-  /**
-   * Erstellt Kategorie ERINNERUNG (Erinnerungseintraege automatisch aus Erinnerungs-Events).
-   *
-   * Wird fuer automatische ETB-Dokumentation von Erinnerungs-Lifecycle-Events verwendet.
-   */
-  static ERINNERUNG(): EtbKategorie {
-    return new EtbKategorie('ERINNERUNG');
   }
 
   /**

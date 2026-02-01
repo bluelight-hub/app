@@ -2,6 +2,7 @@ import { Result } from '@domain/common/result';
 import type { IEinsatzRepository } from '@domain/repositories';
 import { InMemoryEtbRepository } from '../../__tests__/in-memory-etb.repository';
 import { createTestEtb, createTestSnapshot } from '@domain/aggregates/__tests__/fixtures/etb.fixtures';
+import type { PrismaService } from '@infrastructure/database/prisma.service';
 
 const databaseAvailable = !!process.env.DATABASE_URL;
 
@@ -78,6 +79,7 @@ function generateTestCuid(): string {
 (databaseAvailable ? describe : describe.skip)('ETB Query Integration Tests', () => {
   let etbRepository: InMemoryEtbRepository;
   let mockEinsatzRepository: jest.Mocked<IEinsatzRepository>;
+  let mockPrismaService: jest.Mocked<PrismaService>;
 
   // Command Handlers
   let createEtbHandler: CreateEtbHandler;
@@ -109,6 +111,13 @@ function generateTestCuid(): string {
       save: jest.fn(),
     };
 
+    // Mock PrismaService (GetEtbHandler und GetEintraegeHandler benoetigen Erinnerung-Queries)
+    mockPrismaService = {
+      erinnerung: {
+        findMany: jest.fn().mockResolvedValue([]),
+      },
+    } as unknown as jest.Mocked<PrismaService>;
+
     // Command Handlers initialisieren (Transactional Outbox Pattern - kein Event Publisher nötig)
     createEtbHandler = new CreateEtbHandler(mockEinsatzRepository, etbRepository);
     addEintragHandler = new AddEintragHandler(etbRepository);
@@ -117,8 +126,8 @@ function generateTestCuid(): string {
     lockEtbHandler = new LockEtbHandler(etbRepository);
 
     // Query Handlers initialisieren
-    getEtbHandler = new GetEtbQueryHandler(etbRepository);
-    getEintraegeHandler = new GetEintraegeQueryHandler(etbRepository);
+    getEtbHandler = new GetEtbQueryHandler(etbRepository, mockPrismaService);
+    getEintraegeHandler = new GetEintraegeQueryHandler(etbRepository, mockPrismaService);
     getHistoryHandler = new GetEtbHistoryQueryHandler(etbRepository);
   });
 

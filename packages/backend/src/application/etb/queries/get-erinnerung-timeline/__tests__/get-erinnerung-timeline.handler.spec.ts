@@ -1,8 +1,7 @@
 import { GetErinnerungTimelineQueryHandler } from '../get-erinnerung-timeline.handler';
 import { GetErinnerungTimelineQuery } from '../get-erinnerung-timeline.query';
 import { createValidTestId } from '../../__tests__/helpers/test-id.helper';
-// biome-ignore lint/style/useImportType: PrismaService is an Injectable class, not just a type - needed for DI at runtime
-import { PrismaService } from '@/infrastructure/database/prisma.service';
+import type { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { ILogger } from '@domain/ports/i-logger.port';
 
 // Mock cuid2 fuer deterministische Test-IDs
@@ -42,6 +41,7 @@ describe('GetErinnerungTimelineQueryHandler', () => {
   const erinnerungId = createValidTestId('erin1');
   const userId = createValidTestId('user1');
   const differentEinsatzId = createValidTestId('eins2');
+  const etbId = createValidTestId('etb01');
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -57,6 +57,9 @@ describe('GetErinnerungTimelineQueryHandler', () => {
     // Mock PrismaService
     mockPrisma = {
       erinnerung: {
+        findUnique: jest.fn(),
+      },
+      einsatztagebuch: {
         findUnique: jest.fn(),
       },
       etbEintrag: {
@@ -110,6 +113,7 @@ describe('GetErinnerungTimelineQueryHandler', () => {
       ];
 
       mockPrisma.erinnerung.findUnique = jest.fn().mockResolvedValue(erinnerungData);
+      (mockPrisma.einsatztagebuch.findUnique as jest.Mock).mockResolvedValue({ id: etbId });
       mockPrisma.etbEintrag.findMany = jest.fn().mockResolvedValue(etbEntries);
 
       const query = new GetErinnerungTimelineQuery(erinnerungId, einsatzId);
@@ -135,7 +139,7 @@ describe('GetErinnerungTimelineQueryHandler', () => {
       );
     });
 
-    it('should filter by kategorie ERINNERUNG', async () => {
+    it('should filter by metadata.erinnerungId', async () => {
       // Given: Erinnerung existiert
       const erinnerungData = {
         id: erinnerungId,
@@ -144,6 +148,7 @@ describe('GetErinnerungTimelineQueryHandler', () => {
       };
 
       mockPrisma.erinnerung.findUnique = jest.fn().mockResolvedValue(erinnerungData);
+      (mockPrisma.einsatztagebuch.findUnique as jest.Mock).mockResolvedValue({ id: etbId });
       mockPrisma.etbEintrag.findMany = jest.fn().mockResolvedValue([]);
 
       const query = new GetErinnerungTimelineQuery(erinnerungId, einsatzId);
@@ -151,11 +156,15 @@ describe('GetErinnerungTimelineQueryHandler', () => {
       // When
       await handler.execute(query);
 
-      // Then: Verify kategorie Filter im Prisma-Call
+      // Then: Verify metadata.erinnerungId Filter im Prisma-Call
+      // Story 5.7: kategorie-Filter wurde entfernt, da ERINNERUNG nicht mehr im Enum existiert
       expect(mockPrisma.etbEintrag.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            kategorie: 'ERINNERUNG',
+            metadata: {
+              path: ['erinnerungId'],
+              equals: erinnerungId,
+            },
           }),
         }),
       );
@@ -181,6 +190,7 @@ describe('GetErinnerungTimelineQueryHandler', () => {
       ];
 
       mockPrisma.erinnerung.findUnique = jest.fn().mockResolvedValue(erinnerungData);
+      (mockPrisma.einsatztagebuch.findUnique as jest.Mock).mockResolvedValue({ id: etbId });
       mockPrisma.etbEintrag.findMany = jest.fn().mockResolvedValue(etbEntries);
 
       const query = new GetErinnerungTimelineQuery(erinnerungId, einsatzId);
@@ -215,6 +225,7 @@ describe('GetErinnerungTimelineQueryHandler', () => {
       };
 
       mockPrisma.erinnerung.findUnique = jest.fn().mockResolvedValue(erinnerungData);
+      (mockPrisma.einsatztagebuch.findUnique as jest.Mock).mockResolvedValue({ id: etbId });
       mockPrisma.etbEintrag.findMany = jest.fn().mockResolvedValue([]);
 
       const query = new GetErinnerungTimelineQuery(erinnerungId, einsatzId);
@@ -267,6 +278,7 @@ describe('GetErinnerungTimelineQueryHandler', () => {
       ];
 
       mockPrisma.erinnerung.findUnique = jest.fn().mockResolvedValue(erinnerungData);
+      (mockPrisma.einsatztagebuch.findUnique as jest.Mock).mockResolvedValue({ id: etbId });
       mockPrisma.etbEintrag.findMany = jest.fn().mockResolvedValue(etbEntries);
 
       const query = new GetErinnerungTimelineQuery(erinnerungId, einsatzId);
@@ -316,6 +328,7 @@ describe('GetErinnerungTimelineQueryHandler', () => {
       ];
 
       mockPrisma.erinnerung.findUnique = jest.fn().mockResolvedValue(erinnerungData);
+      (mockPrisma.einsatztagebuch.findUnique as jest.Mock).mockResolvedValue({ id: etbId });
       mockPrisma.etbEintrag.findMany = jest.fn().mockResolvedValue(etbEntries);
 
       const query = new GetErinnerungTimelineQuery(erinnerungId, einsatzId);
@@ -459,6 +472,7 @@ describe('GetErinnerungTimelineQueryHandler', () => {
       ];
 
       mockPrisma.erinnerung.findUnique = jest.fn().mockResolvedValue(erinnerungData);
+      (mockPrisma.einsatztagebuch.findUnique as jest.Mock).mockResolvedValue({ id: etbId });
       mockPrisma.etbEintrag.findMany = jest.fn().mockResolvedValue(etbEntries);
 
       const query = new GetErinnerungTimelineQuery(erinnerungId, einsatzId);
@@ -509,6 +523,7 @@ describe('GetErinnerungTimelineQueryHandler', () => {
       ];
 
       mockPrisma.erinnerung.findUnique = jest.fn().mockResolvedValue(erinnerungData);
+      (mockPrisma.einsatztagebuch.findUnique as jest.Mock).mockResolvedValue({ id: etbId });
       mockPrisma.etbEintrag.findMany = jest.fn().mockResolvedValue(etbEntries);
 
       const query = new GetErinnerungTimelineQuery(erinnerungId, einsatzId);
@@ -535,6 +550,7 @@ describe('GetErinnerungTimelineQueryHandler', () => {
       };
 
       mockPrisma.erinnerung.findUnique = jest.fn().mockResolvedValue(erinnerungData);
+      (mockPrisma.einsatztagebuch.findUnique as jest.Mock).mockResolvedValue({ id: etbId });
       mockPrisma.etbEintrag.findMany = jest.fn().mockResolvedValue([]);
 
       const query = new GetErinnerungTimelineQuery(erinnerungId, einsatzId);

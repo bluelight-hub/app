@@ -163,6 +163,14 @@ export const EVENT_NAMES = {
     /** Event: Erinnerung wurde intensiviert (Dauerton nach Timeout ohne Eskalationsperson) (Story 4.4) */
     INTENSIVIERT: 'erinnerung.intensiviert',
   },
+
+  /**
+   * Erinnerungsvorlage Bounded Context Events (Story 6.1)
+   */
+  ERINNERUNGSVORLAGE: {
+    /** Event: Neue Erinnerungsvorlage wurde erstellt */
+    ERSTELLT: 'erinnerungsvorlage.erstellt',
+  },
 } as const;
 
 /**
@@ -186,4 +194,5 @@ export type EventName =
   | (typeof EVENT_NAMES.SERVER_ACCESS_TOKEN)[keyof typeof EVENT_NAMES.SERVER_ACCESS_TOKEN]
   | (typeof EVENT_NAMES.INVITE_CODE)[keyof typeof EVENT_NAMES.INVITE_CODE]
   | (typeof EVENT_NAMES.SERVER_CONFIG)[keyof typeof EVENT_NAMES.SERVER_CONFIG]
-  | (typeof EVENT_NAMES.ERINNERUNG)[keyof typeof EVENT_NAMES.ERINNERUNG];
+  | (typeof EVENT_NAMES.ERINNERUNG)[keyof typeof EVENT_NAMES.ERINNERUNG]
+  | (typeof EVENT_NAMES.ERINNERUNGSVORLAGE)[keyof typeof EVENT_NAMES.ERINNERUNGSVORLAGE];

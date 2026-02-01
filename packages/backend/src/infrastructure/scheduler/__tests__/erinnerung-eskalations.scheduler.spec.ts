@@ -1,4 +1,5 @@
 import { Test, type TestingModule } from '@nestjs/testing';
+import { SchedulerRegistry } from '@nestjs/schedule';
 import { ErinnerungEskalationsScheduler } from '../erinnerung-eskalations.scheduler';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ERINNERUNG_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
@@ -50,6 +51,12 @@ describe('ErinnerungEskalationsScheduler', () => {
           provide: QueryBus,
           useValue: {
             execute: jest.fn(),
+          },
+        },
+        {
+          provide: SchedulerRegistry,
+          useValue: {
+            getCronJobs: jest.fn().mockReturnValue(new Map()),
           },
         },
       ],

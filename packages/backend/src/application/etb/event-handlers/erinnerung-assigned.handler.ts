@@ -14,12 +14,10 @@
  */
 import type { ErinnerungAssignedEvent } from '@domain/events/erinnerung-assigned.event';
 import type { IEventHandler } from '@domain/ports/i-event-handler.port';
-// biome-ignore lint/style/useImportType: ILogger needed for DI at runtime
 import { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { Inject, Injectable } from '@nestjs/common';
 import { AddEintragCommand } from '../commands/add-eintrag/add-eintrag.command';
-// biome-ignore lint/style/useImportType: AddEintragHandler needed for DI at runtime
 import { AddEintragHandler } from '../commands/add-eintrag/add-eintrag.handler';
 import type { EtbKategorieValue } from '@domain/value-objects/etb-kategorie';
 import { ERINNERUNG_ETB_TEMPLATES } from '../constants/erinnerung-etb-templates';
@@ -28,7 +26,7 @@ import { ERINNERUNG_ETB_TEMPLATES } from '../constants/erinnerung-etb-templates'
  * ETB Kategorie fuer Erinnerungen (Story 5.1 AC2).
  * Als Konstante definiert fuer bessere Wartbarkeit und Type-Safety.
  */
-const ETB_KATEGORIE_ERINNERUNG: EtbKategorieValue = 'ERINNERUNG';
+const ETB_KATEGORIE_ERINNERUNG: EtbKategorieValue = 'SYSTEM';
 
 /**
  * Event Handler fuer automatischen ETB-Eintrag bei Erinnerung-Zuweisung.

@@ -126,7 +126,7 @@ describe('ErinnerungAusgeloestEventHandler', () => {
       expect(receivedCommand.text).toBe("Erinnerung 'Lagebesprechung' ausgelöst");
     });
 
-    it('should set kategorie to ERINNERUNG for erinnerung ausloesung (Story 5.1 AC2)', async () => {
+    it('should set kategorie to SYSTEM for erinnerung ausloesung (Story 5.1 AC2)', async () => {
       // Given (Arrange)
       const event = createTestEvent();
 
@@ -137,7 +137,7 @@ describe('ErinnerungAusgeloestEventHandler', () => {
 
       // Then (Assert)
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      expect(receivedCommand.kategorie).toBe('ERINNERUNG');
+      expect(receivedCommand.kategorie).toBe('SYSTEM');
     });
 
     it('should pass einsatzId from event to ETB command', async () => {

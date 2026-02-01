@@ -223,3 +223,4 @@ _bmad-output
 
 .gemini/
 gha-creds-*.json
+.serena/

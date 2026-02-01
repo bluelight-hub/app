@@ -13,6 +13,7 @@ import { QueryProvider } from '@/provider/query-client.provider';
 import { logger } from '@/shared/lib/logger';
 import { initializeNotificationSetup, requestNotificationPermission } from '@/features/reminders/services';
 import { initSeenAssignmentsStore } from '@/features/reminders/stores';
+import { initEtbOfflineStore } from '@/features/etb/stores';
 
 // Initialize offline tile cleanup on app startup
 cleanupExpiredTiles('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').catch((error) => {
@@ -38,6 +39,11 @@ initializeNotificationSetup()
 initSeenAssignmentsStore()
   .then(() => logger.info('[App-Startup] Seen Assignments Store initialisiert'))
   .catch((error) => logger.error('[App-Startup] Seen Assignments Store Init fehlgeschlagen', { error }));
+
+// Initialize ETB offline store (Story 5.10) - Loads persisted ETB queue from Tauri Store
+initEtbOfflineStore()
+  .then(() => logger.info('[App-Startup] ETB Offline Store initialisiert'))
+  .catch((error) => logger.error('[App-Startup] ETB Offline Store Init fehlgeschlagen', { error }));
 
 const router = createRouter({
   routeTree,

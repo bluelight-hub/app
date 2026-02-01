@@ -117,7 +117,7 @@ describe('ErinnerungSnoozedEventHandler (Story 2.1)', () => {
       expect(receivedCommand.text).toBe("Erinnerung 'Lagebesprechung' verschoben um 5 Minuten");
     });
 
-    it('should set kategorie to ERINNERUNG', async () => {
+    it('should set kategorie to SYSTEM', async () => {
       // Given (Arrange)
       const event = createTestEvent();
 
@@ -128,7 +128,7 @@ describe('ErinnerungSnoozedEventHandler (Story 2.1)', () => {
 
       // Then (Assert)
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      expect(receivedCommand.kategorie).toBe('ERINNERUNG');
+      expect(receivedCommand.kategorie).toBe('SYSTEM');
     });
 
     it('should pass einsatzId from event to ETB command', async () => {

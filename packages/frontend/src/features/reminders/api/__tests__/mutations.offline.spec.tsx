@@ -13,7 +13,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { PropsWithChildren } from 'react';
-import { useCreateErinnerung, useTriggerErinnerung, useAcknowledgeErinnerung, useSnoozeErinnerung } from '../mutations';
+import { useCreateErinnerung, useTriggerErinnerung, useAcknowledgeErinnerung, useSnoozeErinnerung, useMarkErledigtErinnerung } from '../mutations';
 import { offlineDetectionService } from '../../services/offline-detection.service';
 import { syncService } from '../../services/sync.service';
 import { resetOfflineStore } from '../../stores/offline.store';
@@ -55,7 +55,27 @@ vi.mock('../../services/timer.service', () => ({
   timerService: {
     addTimer: vi.fn(),
     updateTimerStatus: vi.fn(),
+    resetTriggered: vi.fn(),
   },
+}));
+
+// Mock sound service
+vi.mock('../../services/sound.service', () => ({
+  soundService: {
+    stopAllSounds: vi.fn(),
+  },
+}));
+
+// Mock intensification service
+vi.mock('../../services/intensification.service', () => ({
+  intensificationService: {
+    stopTimer: vi.fn(),
+  },
+}));
+
+// Mock hideErinnerungAlarmToast
+vi.mock('../../ui/atoms/ErinnerungAlarmToast', () => ({
+  hideErinnerungAlarmToast: vi.fn(),
 }));
 
 // Mock toast
@@ -65,6 +85,19 @@ vi.mock('sonner', () => ({
     error: vi.fn(),
     warning: vi.fn(),
   },
+}));
+
+// Mock ETB offline store
+vi.mock('@/features/etb/stores/offline.store', () => ({
+  queueEtbAction: vi.fn(),
+}));
+
+// Mock useCurrentUser
+vi.mock('@/features/auth/api/use-current-user', () => ({
+  useCurrentUser: vi.fn(() => ({
+    user: { username: 'TestUser' },
+    isLoading: false,
+  })),
 }));
 
 describe('Offline Mutations', () => {
@@ -250,6 +283,57 @@ describe('Offline Mutations', () => {
       expect(syncService.queueTriggerAction).toHaveBeenCalledWith('erin-1', 'einsatz-1');
     });
 
+    it('should queue ETB action when offline (Story 5.10 AC1)', async () => {
+      // Given (Arrange)
+      vi.mocked(offlineDetectionService.isOffline).mockReturnValue(true);
+
+      queryClient.setQueryData(
+        ['erinnerungen', 'list', 'einsatz-1'],
+        [
+          {
+            id: 'erin-1',
+            einsatzId: 'einsatz-1',
+            titel: 'Testmeldung',
+            status: 'GEPLANT',
+            faelligAm: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ],
+      );
+
+      const { result } = renderHook(() => useTriggerErinnerung(), {
+        wrapper: createWrapper(),
+      });
+
+      // When (Act)
+      result.current.mutate({
+        einsatzId: 'einsatz-1',
+        erinnerungId: 'erin-1',
+      });
+
+      // Then (Assert)
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      const { queueEtbAction } = await import('@/features/etb/stores/offline.store');
+      expect(queueEtbAction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          actionType: 'addEintrag',
+          payload: expect.objectContaining({
+            text: "Erinnerung 'Testmeldung' ausgelöst",
+            kategorie: 'SYSTEM',
+            metadata: expect.objectContaining({
+              eventType: 'ErinnerungAusgeloest',
+              erinnerungId: 'erin-1',
+            }),
+          }),
+          einsatzId: 'einsatz-1',
+        }),
+      );
+    });
+
     it('should update local cache status to AUSGELOEST when offline', async () => {
       // Given (Arrange)
       vi.mocked(offlineDetectionService.isOffline).mockReturnValue(true);
@@ -362,6 +446,57 @@ describe('Offline Mutations', () => {
       });
 
       expect(syncService.queueAcknowledgeAction).toHaveBeenCalledWith('erin-1', 'einsatz-1');
+    });
+
+    it('should queue ETB action when offline (Story 5.10 AC1)', async () => {
+      // Given (Arrange)
+      vi.mocked(offlineDetectionService.isOffline).mockReturnValue(true);
+
+      queryClient.setQueryData(
+        ['erinnerungen', 'list', 'einsatz-1'],
+        [
+          {
+            id: 'erin-1',
+            einsatzId: 'einsatz-1',
+            titel: 'Testmeldung',
+            status: 'AUSGELOEST',
+            faelligAm: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ],
+      );
+
+      const { result } = renderHook(() => useAcknowledgeErinnerung(), {
+        wrapper: createWrapper(),
+      });
+
+      // When (Act)
+      result.current.mutate({
+        einsatzId: 'einsatz-1',
+        erinnerungId: 'erin-1',
+      });
+
+      // Then (Assert)
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      const { queueEtbAction } = await import('@/features/etb/stores/offline.store');
+      expect(queueEtbAction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          actionType: 'addEintrag',
+          payload: expect.objectContaining({
+            text: "Erinnerung 'Testmeldung' bestätigt von TestUser",
+            kategorie: 'SYSTEM',
+            metadata: expect.objectContaining({
+              eventType: 'ErinnerungAcknowledged',
+              erinnerungId: 'erin-1',
+            }),
+          }),
+          einsatzId: 'einsatz-1',
+        }),
+      );
     });
 
     it('should update local cache status to ACKNOWLEDGED when offline', async () => {
@@ -478,6 +613,60 @@ describe('Offline Mutations', () => {
       });
 
       expect(syncService.queueSnoozeAction).toHaveBeenCalledWith('erin-1', 'einsatz-1', 5);
+    });
+
+    it('should queue ETB action when offline (Story 5.10 AC2)', async () => {
+      // Given (Arrange)
+      vi.mocked(offlineDetectionService.isOffline).mockReturnValue(true);
+
+      queryClient.setQueryData(
+        ['erinnerungen', 'list', 'einsatz-1'],
+        [
+          {
+            id: 'erin-1',
+            einsatzId: 'einsatz-1',
+            titel: 'Testmeldung',
+            status: 'AUSGELOEST',
+            faelligAm: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            snoozeCount: 0,
+          },
+        ],
+      );
+
+      const { result } = renderHook(() => useSnoozeErinnerung(), {
+        wrapper: createWrapper(),
+      });
+
+      // When (Act)
+      result.current.mutate({
+        einsatzId: 'einsatz-1',
+        erinnerungId: 'erin-1',
+        snoozeMinutes: 5,
+      });
+
+      // Then (Assert)
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      const { queueEtbAction } = await import('@/features/etb/stores/offline.store');
+      expect(queueEtbAction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          actionType: 'addEintrag',
+          payload: expect.objectContaining({
+            text: "Erinnerung 'Testmeldung' verschoben um 5 Min",
+            kategorie: 'SYSTEM',
+            metadata: expect.objectContaining({
+              eventType: 'ErinnerungSnoozed',
+              erinnerungId: 'erin-1',
+              snoozeMinutes: 5,
+            }),
+          }),
+          einsatzId: 'einsatz-1',
+        }),
+      );
     });
 
     it('should update local cache status to SNOOZED when offline (Story 2.1 AC2)', async () => {
@@ -647,6 +836,113 @@ describe('Offline Mutations', () => {
 
         expect(syncService.queueSnoozeAction).toHaveBeenCalledWith(`erin-${minutes}`, 'einsatz-1', minutes);
       }
+    });
+  });
+
+  describe('useMarkErledigtErinnerung - Offline Mode', () => {
+    it('should queue ETB action when offline (Story 5.10 AC3)', async () => {
+      // Given (Arrange)
+      vi.mocked(offlineDetectionService.isOffline).mockReturnValue(true);
+
+      queryClient.setQueryData(
+        ['erinnerungen', 'list', 'einsatz-1'],
+        [
+          {
+            id: 'erin-1',
+            einsatzId: 'einsatz-1',
+            titel: 'Testmeldung',
+            status: 'ACKNOWLEDGED',
+            faelligAm: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ],
+      );
+
+      const { result } = renderHook(() => useMarkErledigtErinnerung(), {
+        wrapper: createWrapper(),
+      });
+
+      // When (Act)
+      result.current.mutate({
+        einsatzId: 'einsatz-1',
+        erinnerungId: 'erin-1',
+        erledigungsNotiz: 'Aufgabe abgeschlossen',
+      });
+
+      // Then (Assert)
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      const { queueEtbAction } = await import('@/features/etb/stores/offline.store');
+      expect(queueEtbAction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          actionType: 'addEintrag',
+          payload: expect.objectContaining({
+            text: "Erinnerung 'Testmeldung' erledigt: Aufgabe abgeschlossen",
+            kategorie: 'SYSTEM',
+            metadata: expect.objectContaining({
+              eventType: 'ErinnerungErledigt',
+              erinnerungId: 'erin-1',
+              erledigungsNotiz: 'Aufgabe abgeschlossen',
+            }),
+          }),
+          einsatzId: 'einsatz-1',
+        }),
+      );
+    });
+
+    it('should queue ETB action with "Keine Notiz" when no note provided (Story 5.10 AC3)', async () => {
+      // Given (Arrange)
+      vi.mocked(offlineDetectionService.isOffline).mockReturnValue(true);
+
+      queryClient.setQueryData(
+        ['erinnerungen', 'list', 'einsatz-1'],
+        [
+          {
+            id: 'erin-1',
+            einsatzId: 'einsatz-1',
+            titel: 'Testmeldung',
+            status: 'ACKNOWLEDGED',
+            faelligAm: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ],
+      );
+
+      const { result } = renderHook(() => useMarkErledigtErinnerung(), {
+        wrapper: createWrapper(),
+      });
+
+      // When (Act) - ohne Notiz
+      result.current.mutate({
+        einsatzId: 'einsatz-1',
+        erinnerungId: 'erin-1',
+      });
+
+      // Then (Assert)
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      const { queueEtbAction } = await import('@/features/etb/stores/offline.store');
+      expect(queueEtbAction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          actionType: 'addEintrag',
+          payload: expect.objectContaining({
+            text: "Erinnerung 'Testmeldung' erledigt: Keine Notiz",
+            kategorie: 'SYSTEM',
+            metadata: expect.objectContaining({
+              eventType: 'ErinnerungErledigt',
+              erinnerungId: 'erin-1',
+              erledigungsNotiz: null,
+            }),
+          }),
+          einsatzId: 'einsatz-1',
+        }),
+      );
     });
   });
 

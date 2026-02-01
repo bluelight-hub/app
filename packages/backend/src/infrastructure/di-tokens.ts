@@ -62,6 +62,9 @@ export const EINSATZ_TEILNEHMER_REPOSITORY = Symbol('IEinsatzTeilnehmerRepositor
  */
 export const ERINNERUNG_REPOSITORY = Symbol('IErinnerungRepository');
 
+/** Repository Token für IErinnerungsvorlageRepository */
+export const ERINNERUNGSVORLAGE_REPOSITORY = Symbol('IErinnerungsvorlageRepository');
+
 /**
  * Kräftemanagement Repository Tokens (Epic 1+).
  *

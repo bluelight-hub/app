@@ -664,16 +664,26 @@ const databaseAvailable = !!process.env.DATABASE_URL;
      * Testet SameSite Cookie-Attribute zur CSRF-Prävention.
      *
      * @remarks
-     * JWT Cookies müssen SameSite=Strict oder Lax gesetzt haben,
-     * um CSRF-Angriffe zu verhindern.
+     * JWT Cookies müssen ein SameSite-Attribut gesetzt haben.
+     * - Strict/Lax: Verhindert CSRF-Angriffe
+     * - None (mit Secure=true): Für Cross-Origin-Szenarien (z.B. Tauri-App)
+     *
+     * Die Anwendung verwendet 'none' für HTTPS-Verbindungen, um Tauri/Localhost-Ports
+     * zu unterstützen, und 'lax' für HTTP (Entwicklung).
      */
     it('should set SameSite attribute on auth cookies', async () => {
       // Nutze gecachten Token (Performance-Optimierung: kein Login pro Test)
       // Der Cookie wurde bereits beim initialen Login in beforeAll gesetzt
       expect(cachedAccessTokenCookie).toContain('SameSite');
 
-      // Strict oder Lax (nicht None)
-      expect(cachedAccessTokenCookie.includes('SameSite=Strict') || cachedAccessTokenCookie.includes('SameSite=Lax')).toBe(true);
+      // Strict, Lax oder None (mit Secure) sind alle akzeptabel:
+      // - Strict/Lax für maximalen CSRF-Schutz
+      // - None (mit Secure=true) für Cross-Origin-Szenarien wie Tauri
+      const hasValidSameSite =
+        cachedAccessTokenCookie.includes('SameSite=Strict') ||
+        cachedAccessTokenCookie.includes('SameSite=Lax') ||
+        (cachedAccessTokenCookie.includes('SameSite=None') && cachedAccessTokenCookie.includes('Secure'));
+      expect(hasValidSameSite).toBe(true);
     });
   });
 

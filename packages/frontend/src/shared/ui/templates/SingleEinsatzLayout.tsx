@@ -20,7 +20,12 @@ import {
   useDeleteDialogState,
   useMarkErledigtDialogState,
   useQuickCreateErinnerungHotkeys,
+  useAlarmTrigger,
+  useErinnerungenByEinsatz,
 } from '@/features/reminders';
+import { filterMyErinnerungen } from '@/features/reminders/utils/erinnerung-ownership';
+import { useCurrentUser } from '@/features/auth';
+import { toast } from 'sonner';
 import { CommandPalette } from '@/shared/ui/organisms/command-palette';
 import { CommandPaletteErrorBoundary } from '@/shared/ui/organisms/command-palette/CommandPaletteErrorBoundary';
 import { EINSATZ_QUERY_KEYS, useEinsatzDetails, useEinsatzModules, useMyEinsatzTeilnahme } from '@/features/einsatz';
@@ -62,6 +67,40 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   useQuickCreateErinnerungHotkeys({
     einsatzId,
     enabled: !commandPaletteOpen && !showEndConfirmation && !showBeitrittDialog && !isQuickCreateOpen && !isEditDialogOpen && !isDeleteDialogOpen && !isMarkErledigtDialogOpen,
+  });
+
+  // Story App-weite Erinnerungsprüfung: Globaler Alarm-Trigger für den aktiven Einsatz
+  // Triggert Sound + OS-Notification für Erinnerungen die den User betreffen:
+  // - Mir zugewiesen (assignedToId === user.id)
+  // - An mich eskaliert (status === 'ESKALIERT' && eskalationsPersonId === user.id)
+  // - Von mir erstellt und niemand anderem zugewiesen (!assignedTo && erstelltVon === user.id)
+  const { user, isLoading: isUserLoading } = useCurrentUser();
+  const { data: alleErinnerungen = [], isLoading: isErinnerungenLoading, error: erinnerungenError } = useErinnerungenByEinsatz({ einsatzId });
+
+  // Filterlogik via shared utility (DRY mit ErinnerungenList)
+  const meineErinnerungen = useMemo(() => {
+    if (!user?.id) return [];
+    return filterMyErinnerungen(alleErinnerungen, user.id);
+  }, [alleErinnerungen, user?.id]);
+
+  // Alarm-Trigger nur wenn User UND Erinnerungen geladen sind (Race Condition Fix)
+  const isAlarmTriggerReady = !!user?.id && !isUserLoading && !isErinnerungenLoading && !erinnerungenError;
+
+  useAlarmTrigger({
+    erinnerungen: meineErinnerungen,
+    einsatzId,
+    enabled: isAlarmTriggerReady,
+    onTriggerSuccess: (erinnerung) => {
+      toast.success('Erinnerung ausgelöst', {
+        description: erinnerung.titel,
+        duration: 10000,
+      });
+    },
+    onTriggerError: (erinnerung, err) => {
+      toast.error('Erinnerung fehlgeschlagen', {
+        description: `${erinnerung.titel}: ${err.message}`,
+      });
+    },
   });
 
   // Prüfe ob User bereits dem Einsatz beigetreten ist (Funkrufname gesetzt)

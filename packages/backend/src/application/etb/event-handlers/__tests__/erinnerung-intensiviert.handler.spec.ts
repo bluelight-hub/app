@@ -142,7 +142,7 @@ describe('ErinnerungIntensiviertEventHandler', () => {
       expect(receivedCommand.text).toContain('Stufe 2');
     });
 
-    it('should set kategorie to ERINNERUNG for erinnerung intensivierung (Story 5.1 AC2)', async () => {
+    it('should set kategorie to SYSTEM for erinnerung intensivierung (Story 5.1 AC2)', async () => {
       // Given (Arrange)
       const event = createTestEvent();
 
@@ -153,7 +153,7 @@ describe('ErinnerungIntensiviertEventHandler', () => {
 
       // Then (Assert)
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      expect(receivedCommand.kategorie).toBe('ERINNERUNG');
+      expect(receivedCommand.kategorie).toBe('SYSTEM');
     });
 
     it('should pass einsatzId from event to ETB command', async () => {

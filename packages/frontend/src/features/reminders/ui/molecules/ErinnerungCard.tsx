@@ -63,12 +63,12 @@ import { soundService, timerService, intensificationService } from '../../servic
 import { useCountdown } from '../../hooks/use-countdown';
 import { useErinnerungKonfiguration } from '../../hooks/use-erinnerung-konfiguration';
 import { syncService } from '../../services/sync.service';
-import { openDeleteDialog, openEditDialog, openMarkErledigtDialog, useAnimationEntry, useIntensityLevel, useAudioFailed, useIsHighlighted } from '../../stores';
+import { openDeleteDialog, openEditDialog, openMarkErledigtDialog, useAnimationEntry, useIntensityLevel, useAudioFailed, useIsHighlighted, setHighlightedEntry } from '../../stores';
 import { markAsSeen, useIsUnseen } from '../../stores/seen-assignments.store';
 import { AlarmStateBadge } from '../atoms/AlarmStateBadge';
 import { AvatarInitials } from '../atoms/AvatarInitials';
 import { CountdownDisplay } from '../atoms/CountdownDisplay';
-import { NewBadge } from '../atoms';
+import { NewBadge, ErinnerungEtbLink } from '../atoms';
 import { SnoozeButtonGroup } from './SnoozeButtonGroup';
 import { ErinnerungAssignDialog } from '../organisms/ErinnerungAssignDialog';
 import { ErinnerungHistoryDialog } from '../organisms/ErinnerungHistoryDialog';
@@ -533,6 +533,18 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
             </div>
             {erinnerung.beschreibung && <p className="mt-0.5 text-gray-500 text-xs dark:text-gray-400">{erinnerung.beschreibung as unknown as string}</p>}
 
+            {/* Story 5.7 AC1/AC2: Link zum Source-ETB-Eintrag */}
+            {erinnerung.etbEntryId && (
+              <div className="mt-1">
+                <ErinnerungEtbLink
+                  etbEntryId={erinnerung.etbEntryId}
+                  onClick={() => {
+                    setHighlightedEntry(erinnerung.etbEntryId as string);
+                  }}
+                />
+              </div>
+            )}
+
             {(showCreator || isTeamReminder || (assignedToId && assignedToId === currentUserId)) && erinnerung.erstellerName && (
               <div className="mt-0.5 flex items-center gap-1.5">
                 <AvatarInitials name={erinnerung.erstellerName as unknown as string} size="sm" />
@@ -692,7 +704,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
           {cardContent}
         </div>
         {assignDialog}
-        {<ErinnerungHistoryDialog isOpen={isHistoryDialogOpen} onClose={() => setIsHistoryDialogOpen(false)} erinnerung={erinnerung} />}
+        {<ErinnerungHistoryDialog isOpen={isHistoryDialogOpen} onClose={() => setIsHistoryDialogOpen(false)} erinnerung={erinnerung} einsatzId={einsatzId} />}
       </>
     );
   }
@@ -713,7 +725,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
         {cardContent}
       </div>
       {assignDialog}
-      {<ErinnerungHistoryDialog isOpen={isHistoryDialogOpen} onClose={() => setIsHistoryDialogOpen(false)} erinnerung={erinnerung} />}
+      {<ErinnerungHistoryDialog isOpen={isHistoryDialogOpen} onClose={() => setIsHistoryDialogOpen(false)} erinnerung={erinnerung} einsatzId={einsatzId} />}
     </>
   );
 }

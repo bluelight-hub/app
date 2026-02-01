@@ -10,6 +10,7 @@ import { UserId } from '@domain/value-objects/user-id';
 import { ERINNERUNG_ERROR_CODES } from '../../../errors/erinnerung-error.codes';
 import type { IErinnerungRepository } from '@domain/repositories/i-erinnerung.repository';
 import type { ILogger } from '@domain/ports/i-logger.port';
+import type { IUserRepository } from '@domain/repositories/i-user.repository';
 
 /**
  * Helper: Erstellt eine Mock-Erinnerung für Tests.
@@ -71,6 +72,7 @@ describe('GetErinnerungenByEinsatzHandler', () => {
   let handler: GetErinnerungenByEinsatzHandler;
   let mockRepository: jest.Mocked<IErinnerungRepository>;
   let mockLogger: jest.Mocked<ILogger>;
+  let mockUserRepository: jest.Mocked<IUserRepository>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -91,7 +93,21 @@ describe('GetErinnerungenByEinsatzHandler', () => {
       debug: jest.fn(),
     } as unknown as jest.Mocked<ILogger>;
 
-    handler = new GetErinnerungenByEinsatzHandler(mockRepository, mockLogger);
+    // Mock User Repository für User-Namen Auflösung
+    mockUserRepository = {
+      findById: jest.fn().mockResolvedValue(Result.ok(null)),
+      findByUsername: jest.fn(),
+      findAll: jest.fn(),
+      save: jest.fn(),
+      countSuperAdmins: jest.fn(),
+      existsByUsername: jest.fn(),
+      countByRoles: jest.fn(),
+      countActiveByRoles: jest.fn(),
+      setPasswordHash: jest.fn(),
+      getPasswordHash: jest.fn(),
+    } as jest.Mocked<IUserRepository>;
+
+    handler = new GetErinnerungenByEinsatzHandler(mockRepository, mockLogger, mockUserRepository);
   });
 
   afterEach(() => {

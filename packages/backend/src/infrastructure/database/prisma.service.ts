@@ -157,6 +157,9 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get erinnerungKonfiguration() {
     return this._client.erinnerungKonfiguration;
   }
+  get erinnerungsvorlage() {
+    return this._client.erinnerungsvorlage;
+  }
 
   // Delegate Prisma Client methods
   $connect() {

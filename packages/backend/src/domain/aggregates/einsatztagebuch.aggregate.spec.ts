@@ -132,6 +132,51 @@ describe('EinsatztagebuchAggregate', () => {
     });
   });
 
+  describe('occurredAt timestamp handling (Story 5.10 AC3)', () => {
+    it('should use provided occurredAt as createdAt', () => {
+      // Given
+      const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
+      const specificTime = new Date('2025-01-15T14:30:00.000Z');
+
+      // When
+      const result = etb.addEintrag('Test entry', userId, undefined, undefined, undefined, undefined, specificTime);
+
+      // Then
+      expect(result.isSuccess).toBe(true);
+      expect(result.value?.createdAt).toEqual(specificTime);
+    });
+
+    it('should fallback to current time when occurredAt is undefined', () => {
+      // Given
+      const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
+      const before = new Date();
+
+      // When
+      const result = etb.addEintrag('Test entry', userId);
+
+      const after = new Date();
+
+      // Then
+      expect(result.isSuccess).toBe(true);
+      const createdAt = result.value?.createdAt;
+      expect(createdAt).toBeDefined();
+      expect(createdAt!.getTime()).toBeGreaterThanOrEqual(before.getTime());
+      expect(createdAt!.getTime()).toBeLessThanOrEqual(after.getTime());
+    });
+
+    it('should preserve occurredAt millisecond precision', () => {
+      // Given
+      const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
+      const preciseTime = new Date('2025-01-15T14:30:45.123Z');
+
+      // When
+      const result = etb.addEintrag('Test', userId, undefined, undefined, undefined, undefined, preciseTime);
+
+      // Then
+      expect(result.value?.createdAt.getTime()).toBe(preciseTime.getTime());
+    });
+  });
+
   describe('versioning (Version Increment Logic)', () => {
     it('should increment version on addEintrag', () => {
       const etb = EinsatztagebuchAggregate.create(einsatzId).value!;

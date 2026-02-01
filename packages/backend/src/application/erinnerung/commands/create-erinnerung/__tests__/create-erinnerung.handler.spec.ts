@@ -584,7 +584,7 @@ describe('CreateErinnerungHandler', () => {
         etbEintrag: {
           findUnique: jest.fn().mockResolvedValue({
             id: etbEntryId,
-            etb: { einsatzId }, // Story 5.4: ETB gehört zum gleichen Einsatz
+            einsatztagebuch: { einsatzId }, // Story 5.4: ETB gehört zum gleichen Einsatz
           }),
         },
         einsatzTeilnehmer: {
@@ -704,7 +704,7 @@ describe('CreateErinnerungHandler', () => {
         etbEintrag: {
           findUnique: jest.fn().mockResolvedValue({
             id: etbEntryIdFromEinsatzB,
-            etb: { einsatzId: einsatzIdB }, // MISMATCH!
+            einsatztagebuch: { einsatzId: einsatzIdB }, // MISMATCH!
           }),
         },
         einsatzTeilnehmer: {

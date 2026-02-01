@@ -116,29 +116,6 @@ export {
 } from './intensification.store';
 
 export {
-  // FloatingPill Store (Story 2.4 Task 7)
-  floatingPillStore,
-  // FloatingPill Actions
-  showFloatingPill,
-  hideFloatingPill,
-  hideAllFloatingPills,
-  resetFloatingPillStore,
-  // FloatingPill Selectors
-  isFloating,
-  getActiveFloatingPills,
-  getFloatingPillCount,
-  // FloatingPill Hooks
-  useIsFloating,
-  useActiveFloatingPills,
-  useFloatingPillEntry,
-  useFloatingPillCount,
-  useFloatingPillStoreState,
-  // Types
-  type FloatingPillEntry,
-  type FloatingPillStoreState,
-} from './floating-pill.store';
-
-export {
   // Animation Store (Story 3.2 Task 2)
   animationStore,
   // Animation Actions

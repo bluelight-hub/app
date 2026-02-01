@@ -70,9 +70,9 @@ describe('Erinnerung Domain Events', () => {
     });
 
     it('should support optional aggregateId', () => {
-      // Given: aggregateId provided (Story 3.3: assignedToId vor aggregateId)
+      // Given: aggregateId provided (Story 3.3: assignedToId vor aggregateId, Story 4.1: eskalationsPersonId)
       const aggregateId = 'aggregate-123';
-      const event = new ErinnerungErstelltEvent(ErinnerungId.create().value!, EinsatzId.create().value!, 'Test', new Date(), UserId.create().value!, null, aggregateId);
+      const event = new ErinnerungErstelltEvent(ErinnerungId.create().value!, EinsatzId.create().value!, 'Test', new Date(), UserId.create().value!, null, null, aggregateId);
 
       // Then: aggregateId is stored
       expect(event.aggregateId).toBe(aggregateId);

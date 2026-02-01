@@ -330,9 +330,10 @@ export class EinsatztagebuchAggregate extends AggregateRoot<EtbId> {
    * @param absender - Optional: Absender des Eintrags (z.B. Funkrufname)
    * @param empfaenger - Optional: Empfänger des Eintrags (z.B. LST)
    * @param metadata - Optional: Metadaten (z.B. Screenshots, Anhänge)
+   * @param occurredAt - Optional: Zeitpunkt des Auftretens (default: aktuelle Server-Zeit)
    * @returns Result<EtbEintrag> - Success mit erstelltem Eintrag oder Failure mit Error
    */
-  public addEintrag(text: string, userId: UserId, kategorie?: EtbKategorie, absender?: string, empfaenger?: string, metadata?: Record<string, unknown>): Result<EtbEintrag> {
+  public addEintrag(text: string, userId: UserId, kategorie?: EtbKategorie, absender?: string, empfaenger?: string, metadata?: Record<string, unknown>, occurredAt?: Date): Result<EtbEintrag> {
     // Validate: ETB must not be locked
     if (this.isLocked()) {
       return Result.fail<EtbEintrag>('ETB ist gesperrt und kann nicht mehr geändert werden');
@@ -365,7 +366,7 @@ export class EinsatztagebuchAggregate extends AggregateRoot<EtbId> {
     // Kategorie mit Default-Wert LAGE falls nicht angegeben
     const eintragKategorie = kategorie ?? EtbKategorie.LAGE();
 
-    const eintrag = new EtbEintrag(eintragId, sequenceNumber, text, userId, undefined, eintragKategorie, absender, empfaenger, metadata);
+    const eintrag = new EtbEintrag(eintragId, sequenceNumber, text, userId, occurredAt, eintragKategorie, absender, empfaenger, metadata);
 
     // Add to entries list
     this._eintraege.push(eintrag);

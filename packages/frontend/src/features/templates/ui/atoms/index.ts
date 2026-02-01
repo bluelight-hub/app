@@ -1,0 +1,1 @@
+export { VorlageCard } from './VorlageCard';

@@ -66,6 +66,9 @@ import { ErinnerungAssignedEvent } from '@domain/events/erinnerung-assigned.even
 import { ErinnerungEskaliertEvent } from '@domain/events/erinnerung-eskaliert.event';
 import { ErinnerungIntensiviertEvent } from '@domain/events/erinnerung-intensiviert.event';
 
+// Erinnerungsvorlage Events
+import { ErinnerungsvorlageErstelltEvent } from '@domain/erinnerungsvorlage/events/erinnerungsvorlage-erstellt.event';
+
 // Fahrzeugtyp Events
 import { FahrzeugtypCreatedEvent } from '@domain/kraefte/events/fahrzeugtyp-created.event';
 import { FahrzeugtypUpdatedEvent } from '@domain/kraefte/events/fahrzeugtyp-updated.event';
@@ -89,6 +92,7 @@ import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { EtbId } from '@domain/value-objects/etb-id';
 import { EintragId } from '@domain/value-objects/eintrag-id';
 import { ErinnerungId } from '@domain/value-objects/erinnerung-id';
+import { ErinnerungsvorlageId } from '@domain/erinnerungsvorlage/value-objects/erinnerungsvorlage-id';
 import { LagekarteId } from '@domain/value-objects/lagekarte-id';
 import { PoiId } from '@domain/value-objects/poi-id';
 import { UserId } from '@domain/value-objects/user-id';
@@ -219,6 +223,9 @@ export class EventDeserializer {
       // Compatibility aliases for events created before correct naming
       ['ErinnerungEskaliert', this.deserializeErinnerungEskaliert.bind(this)],
       ['ErinnerungIntensiviert', this.deserializeErinnerungIntensiviert.bind(this)],
+
+      // ===== ERINNERUNGSVORLAGE EVENTS =====
+      ['erinnerungsvorlage.erstellt', deserializeErinnerungsvorlageErstellt],
     ]);
   }
 
@@ -1323,4 +1330,25 @@ export class EventDeserializer {
 
     return Result.ok<DomainEvent>(event);
   }
+}
+
+// ===== ERINNERUNGSVORLAGE DESERIALIZERS (Standalone Functions) =====
+
+/**
+ * Deserialisiert ErinnerungsvorlageErstelltEvent (Story 6.1).
+ */
+function deserializeErinnerungsvorlageErstellt(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const vorlageIdResult = ErinnerungsvorlageId.create(payload.vorlageId as string);
+  if (vorlageIdResult.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid vorlageId: ${payload.vorlageId}`);
+  }
+
+  const createdByResult = UserId.create(payload.createdBy as string);
+  if (createdByResult.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid createdBy: ${payload.createdBy}`);
+  }
+
+  const event = new ErinnerungsvorlageErstelltEvent(vorlageIdResult.value! as ErinnerungsvorlageId, payload.titel as string, payload.minuten as number, createdByResult.value! as UserId, aggregateId);
+
+  return Result.ok<DomainEvent>(event);
 }

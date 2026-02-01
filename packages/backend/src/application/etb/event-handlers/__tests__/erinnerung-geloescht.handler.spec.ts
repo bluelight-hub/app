@@ -103,7 +103,7 @@ describe('ErinnerungGeloeschtEventHandler (Story 1.4 AC5)', () => {
       expect(receivedCommand.text).toBe("Erinnerung 'Lagebesprechung' gelöscht");
     });
 
-    it('should set kategorie to ERINNERUNG', async () => {
+    it('should set kategorie to SYSTEM', async () => {
       // Given (Arrange)
       const event = createTestEvent();
 
@@ -114,7 +114,7 @@ describe('ErinnerungGeloeschtEventHandler (Story 1.4 AC5)', () => {
 
       // Then (Assert)
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      expect(receivedCommand.kategorie).toBe('ERINNERUNG');
+      expect(receivedCommand.kategorie).toBe('SYSTEM');
     });
 
     it('should pass einsatzId from event to ETB command', async () => {

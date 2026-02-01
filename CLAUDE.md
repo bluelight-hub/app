@@ -6,11 +6,11 @@
 
 Bluelight Hub ist eine **Web + Tauri Desktop App** für Blaulicht-Organisationen (Katastrophenschutz).
 
-| Package | Stack | Beschreibung |
-|---------|-------|--------------|
-| `frontend/` | React 19 + Vite + Tauri | Desktop App mit Feature-based Architektur |
-| `backend/` | NestJS + Prisma + PostgreSQL | Hexagonale Architektur (Domain → Application → Infrastructure → Modules) |
-| `shared/client/` | Generiert | API Client - **NIEMALS manuell ändern!** |
+| Package          | Stack                        | Beschreibung                                                             |
+|------------------|------------------------------|--------------------------------------------------------------------------|
+| `frontend/`      | React 19 + Vite + Tauri      | Desktop App mit Feature-based Architektur                                |
+| `backend/`       | NestJS + Prisma + PostgreSQL | Hexagonale Architektur (Domain → Application → Infrastructure → Modules) |
+| `shared/client/` | Generiert                    | API Client - **NIEMALS manuell ändern!**                                 |
 
 ## MCP Server (NUTZE SIE!)
 
@@ -21,20 +21,24 @@ Bluelight Hub ist eine **Web + Tauri Desktop App** für Blaulicht-Organisationen
 ## Kritische Regeln
 
 ### API Workflow (IMMER so!)
+
 ```
 Backend-Endpoint → pnpm run generate-api → TanStack Query Hook → Komponente
 ```
+
 **NIEMALS** manuelle `fetch()` Calls oder API-Helper!
 
 ### Tech Stack (NUR diese!)
-| Bereich | Erlaubt | Verboten |
-|---------|---------|----------|
-| UI | Tailwind CSS + Headless UI | CSS-in-JS, andere Frameworks |
-| Forms | @tanstack/react-form + Zod | HTML Forms, Formik |
-| State | @tanstack/react-query (Server), @tanstack/react-store (Client) | Redux |
-| Linting | Biome | ESLint, Prettier |
+
+| Bereich | Erlaubt                                                        | Verboten                     |
+|---------|----------------------------------------------------------------|------------------------------|
+| UI      | Tailwind CSS + Headless UI                                     | CSS-in-JS, andere Frameworks |
+| Forms   | @tanstack/react-form + Zod                                     | HTML Forms, Formik           |
+| State   | @tanstack/react-query (Server), @tanstack/react-store (Client) | Redux                        |
+| Linting | Biome                                                          | ESLint, Prettier             |
 
 ### Backend DI Import (AC1)
+
 ```typescript
 // ✅ Injectable Classes mit "import"
 import { MyService } from './my.service';
@@ -42,9 +46,11 @@ import { MyService } from './my.service';
 // ❌ NIEMALS "import type" für Injectable Classes (bricht NestJS DI!)
 import type { MyService } from './my.service';
 ```
+
 Pre-commit Hook prüft automatisch. Check: `pnpm --filter @bluelight-hub/backend check:di:imports`
 
 ### Controller Response Decorators (AC7)
+
 ```typescript
 // ✅ IMMER Custom Decorators für korrekte OpenAPI-Generierung
 @ApiWrappedResponse(EinsatzDto, { description: '...' })
@@ -74,15 +80,18 @@ pnpm --filter @bluelight-hub/backend check:arch  # Circular Dependencies
 ```
 
 ## Ports
+
 - Frontend: `localhost:3090`
 - Backend API + Swagger UI: `localhost:3091/api`
 
 ## Commit Format
+
 ```
 <emoji>(<context>): <title>
 
 ✨ Feature | 🐛 Fix | ♻️ Refactor | 📝 Docs | 🧪 Test | 💥 Breaking
 ```
+
 **NIEMALS** `--no-verify`!
 
 ## Architektur-Layers (Backend)
@@ -102,13 +111,19 @@ Abhängigkeiten fließen **IMMER nach innen**.
 ## Pattern-Referenz
 
 Diese Patterns im Code nachschauen (nicht auswendig lernen):
+
 - **Feature-Struktur:** `frontend/src/features/einsatz/`
 - **TransactionalCommandHandler:** `backend/src/application/common/handlers/`
 - **Result Pattern:** `backend/src/domain/common/result.ts`
 - **API Wrapper Decorator:** `backend/src/modules/common/decorators/api-wrapped-response.decorator.ts`
 - **DI Tokens:** `backend/src/infrastructure/di-tokens.ts`
-- **Event Registry:** `backend/src/infrastructure/outbox/event-deserializer.ts` - Neue Events MÜSSEN hier registriert werden!
+- **Event Registry:** `backend/src/infrastructure/outbox/event-deserializer.ts` - Neue Events MÜSSEN hier registriert
+  werden!
 
 ## Dokumentation
 
 Bei Architektur-Änderungen: `/docs/architecture/` (arc42) und `/docs/adr/` aktualisieren!
+
+# WICHTIGE Notice am Ende
+
+Vergiss nicht: Verwende Serena MCP (als erstes Projekt aktivieren).

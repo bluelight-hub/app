@@ -127,7 +127,7 @@ describe('ErinnerungErledigtEventHandler (Story 2.5 AC4)', () => {
       expect(receivedCommand.text).toBe("Erinnerung 'Lagebesprechung' erledigt: Aufgabe erfolgreich abgeschlossen");
     });
 
-    it('should set kategorie to ERINNERUNG', async () => {
+    it('should set kategorie to SYSTEM', async () => {
       // Given (Arrange)
       const event = createTestEvent();
 
@@ -138,7 +138,7 @@ describe('ErinnerungErledigtEventHandler (Story 2.5 AC4)', () => {
 
       // Then (Assert)
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      expect(receivedCommand.kategorie).toBe('ERINNERUNG');
+      expect(receivedCommand.kategorie).toBe('SYSTEM');
     });
 
     it('should pass einsatzId from event to ETB command', async () => {
@@ -614,6 +614,63 @@ describe('ErinnerungErledigtEventHandler (Story 2.5 AC4)', () => {
 
       // Validate format structure
       expect(receivedCommand.text).toMatch(/^Erinnerung '.+' erledigt: .+$/);
+    });
+
+    it('should include full 500-character erledigungsNotiz in ETB text without truncation (AC2)', async () => {
+      // Given (Arrange) - Exakt 500 Zeichen lange Notiz
+      const notiz500Chars = 'A'.repeat(500);
+      expect(notiz500Chars.length).toBe(500); // Sanity check
+
+      const event = createTestEvent({
+        titel: 'Test-Erinnerung',
+        erledigungsNotiz: notiz500Chars,
+      });
+
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+
+      // When (Act)
+      await handler.handle(event);
+
+      // Then (Assert)
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+
+      // Verify full 500-character notiz is included without truncation
+      expect(receivedCommand.text).toContain(notiz500Chars);
+      expect(receivedCommand.text).toBe(`Erinnerung 'Test-Erinnerung' erledigt: ${notiz500Chars}`);
+
+      // Verify metadata also contains full notiz
+      expect(receivedCommand.metadata.erledigungsNotiz).toBe(notiz500Chars);
+      expect(receivedCommand.metadata.erledigungsNotiz.length).toBe(500);
+    });
+
+    it('should not re-apply template placeholders in erledigungsNotiz (Template-Injection Security)', async () => {
+      // Given (Arrange) - Notiz enthaelt Template-Platzhalter die NICHT ersetzt werden sollen
+      const maliciousNotiz = 'Bitte {titel} ueberpruefen und {notiz} beachten - Test mit {{titel}}';
+
+      const event = createTestEvent({
+        titel: 'Sicherheitstest',
+        erledigungsNotiz: maliciousNotiz,
+      });
+
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+
+      // When (Act)
+      await handler.handle(event);
+
+      // Then (Assert)
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+
+      // Die Platzhalter in der Notiz duerfen NICHT ersetzt werden
+      // Sie muessen literal als "{titel}" und "{notiz}" erhalten bleiben
+      expect(receivedCommand.text).toBe(`Erinnerung 'Sicherheitstest' erledigt: ${maliciousNotiz}`);
+      expect(receivedCommand.text).toContain('{titel}');
+      expect(receivedCommand.text).toContain('{notiz}');
+      expect(receivedCommand.text).toContain('{{titel}}');
+
+      // Verify the placeholders were NOT replaced with actual values
+      // If template injection occurred, we would see "Sicherheitstest" twice (once from titel, once from injected {titel})
+      const titelOccurrences = (receivedCommand.text.match(/Sicherheitstest/g) || []).length;
+      expect(titelOccurrences).toBe(1); // Nur einmal - im echten Titel-Bereich
     });
   });
 });

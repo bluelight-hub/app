@@ -34,6 +34,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { PasswordModule } from './infrastructure/password/password.module';
 import { EinsatzTeilnehmerModule } from './modules/einsatz-teilnehmer/einsatz-teilnehmer.module';
 import { ErinnerungModule } from './modules/erinnerung/erinnerung.module';
+import { ErinnerungsvorlageModule } from './modules/erinnerungsvorlage/erinnerungsvorlage.module';
 import { SchedulerModule } from './infrastructure/scheduler/scheduler.module';
 
 /**
@@ -108,6 +109,7 @@ import { SchedulerModule } from './infrastructure/scheduler/scheduler.module';
     PasswordModule, // HIBP Password Breach Check (NIST SP 800-63B-4)
     EinsatzTeilnehmerModule, // Einsatz-Teilnehmer Management (Story 115)
     ErinnerungModule, // Erinnerungen/Wecker für Einsätze (Story 1.1)
+    ErinnerungsvorlageModule, // Erinnerungsvorlagen (Story 6.1)
     SchedulerModule, // Cron-Jobs (nur einmal importiert, um mehrfache Registrierung zu vermeiden)
   ],
   controllers: [AppController],

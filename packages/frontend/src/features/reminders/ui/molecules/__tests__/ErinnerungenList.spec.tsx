@@ -81,10 +81,6 @@ vi.mock('../OfflineBanner', () => ({
   OfflineBanner: () => null,
 }));
 
-vi.mock('../../organisms/FloatingPillPortal', () => ({
-  FloatingPillPortal: () => null,
-}));
-
 // Mock TeamFilterDropdown - Story 3.6 Task 3.3
 vi.mock('../../atoms/TeamFilterDropdown', () => ({
   TeamFilterDropdown: ({ selectedFilter, onFilterChange }: { selectedFilter: { type: string; userId?: string }; onFilterChange: (f: { type: string }) => void }) => (

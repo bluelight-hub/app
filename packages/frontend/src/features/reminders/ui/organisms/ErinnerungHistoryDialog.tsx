@@ -3,8 +3,11 @@ import type { ErinnerungResponseDto } from '@/shared';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { cn } from '@/shared/ui/cn';
 import { format } from 'date-fns';
-import { Fragment } from 'react';
+import { Fragment, useCallback } from 'react';
 import { PiCheck, PiClock, PiWarning, PiX } from 'react-icons/pi';
+import { useNavigate } from '@tanstack/react-router';
+import { setHighlightedEntry } from '../../stores';
+import { ErinnerungEtbHistoryWidget } from '../molecules/ErinnerungEtbHistoryWidget';
 
 // TODO: Remove this extension once backend restart + generate-api works
 interface ExtendedErinnerungResponseDto extends ErinnerungResponseDto {
@@ -18,6 +21,8 @@ interface ErinnerungHistoryDialogProps {
   isOpen: boolean;
   onClose: () => void;
   erinnerung: ErinnerungResponseDto;
+  /** Einsatz-ID für ETB-History Widget (Story 5.7) */
+  einsatzId?: string;
 }
 
 interface TimelineEvent {
@@ -29,7 +34,29 @@ interface TimelineEvent {
   user?: string;
 }
 
-export function ErinnerungHistoryDialog({ isOpen, onClose, erinnerung }: ErinnerungHistoryDialogProps) {
+export function ErinnerungHistoryDialog({ isOpen, onClose, erinnerung, einsatzId }: ErinnerungHistoryDialogProps) {
+  const navigate = useNavigate();
+
+  // Story 5.7: Handler für Navigation zu ETB-Eintrag
+  const handleEtbEntryClick = useCallback(
+    (entryId: string) => {
+      // Setze Highlight für den ETB-Eintrag (triggert scroll-to und highlight animation)
+      setHighlightedEntry(entryId);
+
+      // Navigiere zum ETB Tab
+      if (einsatzId) {
+        navigate({
+          to: '/app/einsatz/$einsatzId/führung/etb',
+          params: { einsatzId },
+        });
+      }
+
+      // Schließe den Dialog
+      onClose();
+    },
+    [onClose, navigate, einsatzId],
+  );
+
   // Construct timeline from reminder state
   const events: TimelineEvent[] = [];
 
@@ -155,6 +182,13 @@ export function ErinnerungHistoryDialog({ isOpen, onClose, erinnerung }: Erinner
                     ))}
                   </ul>
                 </div>
+
+                {/* Story 5.7: ETB-Verknüpfungen Widget */}
+                {einsatzId && (
+                  <div className="mt-6 border-t pt-4 dark:border-gray-700">
+                    <ErinnerungEtbHistoryWidget erinnerungId={erinnerung.id} einsatzId={einsatzId} onEntryClick={handleEtbEntryClick} className="bg-gray-50 dark:bg-gray-900" />
+                  </div>
+                )}
 
                 <div className="mt-8 flex justify-end">
                   <Button appearance="outline" onClick={onClose}>

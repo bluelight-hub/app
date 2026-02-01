@@ -15,6 +15,7 @@ import type { PropsWithChildren } from 'react';
 import { useReconnectSync } from '../use-reconnect-sync';
 import { offlineDetectionService } from '../../services/offline-detection.service';
 import { syncService } from '../../services/sync.service';
+import { etbSyncService } from '@/features/etb/services/etb-sync.service';
 
 // Mock offline detection service
 vi.mock('../../services/offline-detection.service', () => ({
@@ -31,12 +32,27 @@ vi.mock('../../services/sync.service', () => ({
   },
 }));
 
+// Mock ETB sync service (Story 5.10)
+vi.mock('@/features/etb/services/etb-sync.service', () => ({
+  etbSyncService: {
+    syncAll: vi.fn(),
+  },
+}));
+
 // Mock queries to provide ERINNERUNG_QUERY_KEYS
 vi.mock('../../api/queries', () => ({
   ERINNERUNG_QUERY_KEYS: {
     all: ['erinnerungen'],
     list: (einsatzId: string) => ['erinnerungen', 'list', einsatzId],
     detail: (id: string) => ['erinnerungen', 'detail', id],
+  },
+}));
+
+// Mock ETB queries to provide ETB_QUERY_KEYS (Story 5.10)
+vi.mock('@/features/etb/api/queries', () => ({
+  ETB_QUERY_KEYS: {
+    all: ['etb'],
+    byEinsatz: (einsatzId?: string) => ['etb', 'einsatz', einsatzId],
   },
 }));
 
@@ -336,6 +352,167 @@ describe('useReconnectSync', () => {
 
       // Then (Assert)
       expect(invalidateSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('ETB sync integration (Story 5.10)', () => {
+    it('should sync ETB before Erinnerungen on triggerSync (AC2)', async () => {
+      // Given (Arrange)
+      const syncOrder: string[] = [];
+
+      vi.mocked(etbSyncService.syncAll).mockImplementation(async () => {
+        syncOrder.push('etb');
+        return 1;
+      });
+
+      vi.mocked(syncService.hasPendingSync).mockReturnValue(true);
+      vi.mocked(syncService.syncAll).mockImplementation(async () => {
+        syncOrder.push('erinnerungen');
+        return { successCount: 1, failureCount: 0, results: [{ actionId: '1', success: true }] };
+      });
+
+      const { result } = renderHook(() => useReconnectSync(), { wrapper: createWrapper() });
+
+      // When (Act) - Manually trigger sync
+      await act(async () => {
+        await result.current.triggerSync();
+      });
+
+      // Then (Assert) - ETB sync should happen BEFORE Erinnerungen sync
+      expect(syncOrder).toEqual(['etb', 'erinnerungen']);
+      expect(etbSyncService.syncAll).toHaveBeenCalledTimes(1);
+      expect(syncService.syncAll).toHaveBeenCalledTimes(1);
+    });
+
+    it('should sync ETB before Erinnerungen on reconnect (AC2)', async () => {
+      // Given (Arrange)
+      const syncOrder: string[] = [];
+
+      vi.mocked(etbSyncService.syncAll).mockImplementation(async () => {
+        syncOrder.push('etb');
+        return 1;
+      });
+
+      vi.mocked(syncService.hasPendingSync).mockReturnValue(true);
+      vi.mocked(syncService.syncAll).mockImplementation(async () => {
+        syncOrder.push('erinnerungen');
+        return { successCount: 1, failureCount: 0, results: [{ actionId: '1', success: true }] };
+      });
+
+      let registeredCallback: ((data: { offlineSince: Date; onlineSince: Date }) => void) | null = null;
+      vi.mocked(offlineDetectionService.setOnOnlineCallback).mockImplementation((cb) => {
+        registeredCallback = cb;
+      });
+
+      renderHook(() => useReconnectSync(), { wrapper: createWrapper() });
+
+      // When (Act) - Simulate reconnect
+      await act(async () => {
+        registeredCallback?.({
+          offlineSince: new Date(Date.now() - 60000),
+          onlineSince: new Date(),
+        });
+      });
+
+      // Then (Assert) - ETB sync should happen BEFORE Erinnerungen sync
+      expect(syncOrder).toEqual(['etb', 'erinnerungen']);
+      expect(etbSyncService.syncAll).toHaveBeenCalledTimes(1);
+      expect(syncService.syncAll).toHaveBeenCalledTimes(1);
+    });
+
+    it('should invalidate ETB queries after successful ETB sync', async () => {
+      // Given (Arrange)
+      vi.mocked(etbSyncService.syncAll).mockResolvedValue(2); // 2 successful syncs
+      vi.mocked(syncService.hasPendingSync).mockReturnValue(true);
+      vi.mocked(syncService.syncAll).mockResolvedValue({
+        successCount: 0,
+        failureCount: 0,
+        results: [],
+      });
+
+      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+      const { result } = renderHook(() => useReconnectSync(), { wrapper: createWrapper() });
+
+      // When (Act) - Trigger sync manually
+      await act(async () => {
+        await result.current.triggerSync();
+      });
+
+      // Then (Assert) - ETB queries should be invalidated
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: ['etb'],
+      });
+    });
+
+    it('should invalidate specific ETB einsatz queries when einsatzId provided', async () => {
+      // Given (Arrange)
+      vi.mocked(etbSyncService.syncAll).mockResolvedValue(1);
+      vi.mocked(syncService.hasPendingSync).mockReturnValue(true);
+      vi.mocked(syncService.syncAll).mockResolvedValue({
+        successCount: 0,
+        failureCount: 0,
+        results: [],
+      });
+
+      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+      const { result } = renderHook(() => useReconnectSync('einsatz-123'), { wrapper: createWrapper() });
+
+      // When (Act) - Trigger sync manually
+      await act(async () => {
+        await result.current.triggerSync();
+      });
+
+      // Then (Assert) - Specific ETB einsatz queries should be invalidated
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: ['etb', 'einsatz', 'einsatz-123'],
+      });
+    });
+
+    it('should not invalidate ETB queries when no ETB sync successes', async () => {
+      // Given (Arrange)
+      vi.mocked(etbSyncService.syncAll).mockResolvedValue(0); // No successful syncs
+      vi.mocked(syncService.hasPendingSync).mockReturnValue(true);
+      vi.mocked(syncService.syncAll).mockResolvedValue({
+        successCount: 0,
+        failureCount: 0,
+        results: [],
+      });
+
+      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+      const { result } = renderHook(() => useReconnectSync(), { wrapper: createWrapper() });
+
+      // When (Act) - Trigger sync manually
+      await act(async () => {
+        await result.current.triggerSync();
+      });
+
+      // Then (Assert) - ETB queries should NOT be invalidated
+      expect(invalidateSpy).not.toHaveBeenCalled();
+    });
+
+    it('should continue with Erinnerungen sync even if ETB sync fails', async () => {
+      // Given (Arrange)
+      vi.mocked(etbSyncService.syncAll).mockRejectedValue(new Error('ETB sync failed'));
+      vi.mocked(syncService.hasPendingSync).mockReturnValue(true);
+      vi.mocked(syncService.syncAll).mockResolvedValue({
+        successCount: 1,
+        failureCount: 0,
+        results: [{ actionId: '1', success: true }],
+      });
+
+      const { result } = renderHook(() => useReconnectSync(), { wrapper: createWrapper() });
+
+      // When (Act) - Trigger sync manually
+      await act(async () => {
+        await result.current.triggerSync();
+      });
+
+      // Then (Assert) - Erinnerungen sync should still happen
+      expect(etbSyncService.syncAll).toHaveBeenCalled();
+      expect(syncService.syncAll).toHaveBeenCalled();
     });
   });
 });
