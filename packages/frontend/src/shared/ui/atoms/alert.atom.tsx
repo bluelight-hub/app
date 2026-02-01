@@ -9,6 +9,11 @@ interface AlertProps {
   icon?: React.ReactNode;
   className?: string;
   children?: React.ReactNode;
+  /**
+   * Accessible role for the alert.
+   * Defaults to 'alert' for error status, and 'status' for others.
+   */
+  role?: string;
 }
 
 /**
@@ -16,7 +21,7 @@ interface AlertProps {
  *
  * Komponente für Benachrichtigungen und Warnungen
  */
-function Alert({ status = 'info', title, description, icon, className, children }: AlertProps) {
+function Alert({ status = 'info', title, description, icon, className, children, role }: AlertProps) {
   const statusStyles = {
     info: 'bg-blue-50 border-blue-200 text-blue-800',
     warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
@@ -31,8 +36,11 @@ function Alert({ status = 'info', title, description, icon, className, children 
     success: <PiCheckCircleFill className="h-5 w-5" aria-hidden="true" />,
   };
 
+  // Determine role based on status if not provided
+  const defaultRole = status === 'error' ? 'alert' : 'status';
+
   return (
-    <div className={cn('flex gap-3 rounded-lg border p-4', statusStyles[status], className)}>
+    <div role={role || defaultRole} className={cn('flex gap-3 rounded-lg border p-4', statusStyles[status], className)}>
       <div className="flex-shrink-0">{icon || defaultIcons[status]}</div>
       <div className="flex-1">
         {title && <h3 className="mb-1 font-medium text-sm">{title}</h3>}
