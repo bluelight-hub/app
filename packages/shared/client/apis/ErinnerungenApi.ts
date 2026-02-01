@@ -18,6 +18,7 @@ import type {
   CreateErinnerungDto,
   ErinnerungControllerCreateVAlpha201Response,
   ErinnerungControllerGetByEinsatzVAlpha200Response,
+  ErinnerungControllerGetEtbHistoryVAlpha200Response,
   ErinnerungControllerGetStatistikVAlpha200Response,
   MarkErledigtErinnerungDto,
   SnoozeErinnerungDto,
@@ -32,6 +33,8 @@ import {
   ErinnerungControllerCreateVAlpha201ResponseToJSON,
   ErinnerungControllerGetByEinsatzVAlpha200ResponseFromJSON,
   ErinnerungControllerGetByEinsatzVAlpha200ResponseToJSON,
+  ErinnerungControllerGetEtbHistoryVAlpha200ResponseFromJSON,
+  ErinnerungControllerGetEtbHistoryVAlpha200ResponseToJSON,
   ErinnerungControllerGetStatistikVAlpha200ResponseFromJSON,
   ErinnerungControllerGetStatistikVAlpha200ResponseToJSON,
   MarkErledigtErinnerungDtoFromJSON,
@@ -64,6 +67,11 @@ export interface ErinnerungControllerDeleteVAlphaRequest {
 }
 
 export interface ErinnerungControllerGetByEinsatzVAlphaRequest {
+  einsatzId: string;
+}
+
+export interface ErinnerungControllerGetEtbHistoryVAlphaRequest {
+  erinnerungId: string;
   einsatzId: string;
 }
 
@@ -328,6 +336,53 @@ export class ErinnerungenApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<ErinnerungControllerGetByEinsatzVAlpha200Response> {
     const response = await this.erinnerungControllerGetByEinsatzVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Gibt alle ETB-Einträge zurück, die zu dieser Erinnerung gehören. Sortiert nach Erstellungszeitpunkt (älteste zuerst).
+   * ETB-History einer Erinnerung abrufen
+   */
+  async erinnerungControllerGetEtbHistoryVAlphaRaw(
+    requestParameters: ErinnerungControllerGetEtbHistoryVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<ErinnerungControllerGetEtbHistoryVAlpha200Response>> {
+    if (requestParameters['erinnerungId'] == null) {
+      throw new runtime.RequiredError('erinnerungId', 'Required parameter "erinnerungId" was null or undefined when calling erinnerungControllerGetEtbHistoryVAlpha().');
+    }
+
+    if (requestParameters['einsatzId'] == null) {
+      throw new runtime.RequiredError('einsatzId', 'Required parameter "einsatzId" was null or undefined when calling erinnerungControllerGetEtbHistoryVAlpha().');
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/{erinnerungId}/etb-history`
+          .replace(`{${'erinnerungId'}}`, encodeURIComponent(String(requestParameters['erinnerungId'])))
+          .replace(`{${'einsatzId'}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+        method: 'GET',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => ErinnerungControllerGetEtbHistoryVAlpha200ResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Gibt alle ETB-Einträge zurück, die zu dieser Erinnerung gehören. Sortiert nach Erstellungszeitpunkt (älteste zuerst).
+   * ETB-History einer Erinnerung abrufen
+   */
+  async erinnerungControllerGetEtbHistoryVAlpha(
+    requestParameters: ErinnerungControllerGetEtbHistoryVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<ErinnerungControllerGetEtbHistoryVAlpha200Response> {
+    const response = await this.erinnerungControllerGetEtbHistoryVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
 

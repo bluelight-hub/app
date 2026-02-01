@@ -279,6 +279,41 @@ describe('AddEintragCommand', () => {
       });
     });
 
+    describe('occurredAt parameter', () => {
+      it('should accept occurredAt with valid Date', () => {
+        // Given
+        const occurredAt = new Date('2025-01-15T14:30:00.000Z');
+
+        // When
+        const result = AddEintragCommand.create(validEtbId, validText, validUserId, undefined, undefined, undefined, undefined, undefined, occurredAt);
+
+        // Then
+        expect(result.isSuccess).toBe(true);
+        expect(result.value?.occurredAt).toEqual(occurredAt);
+      });
+
+      it('should accept undefined occurredAt', () => {
+        // When
+        const result = AddEintragCommand.create(validEtbId, validText, validUserId);
+
+        // Then
+        expect(result.isSuccess).toBe(true);
+        expect(result.value?.occurredAt).toBeUndefined();
+      });
+
+      it('should preserve occurredAt timestamp precision', () => {
+        // Given
+        const specificTime = new Date('2025-01-15T14:30:45.123Z');
+
+        // When
+        const result = AddEintragCommand.create(validEtbId, validText, validUserId, undefined, undefined, undefined, undefined, undefined, specificTime);
+
+        // Then
+        expect(result.isSuccess).toBe(true);
+        expect(result.value?.occurredAt?.getTime()).toBe(specificTime.getTime());
+      });
+    });
+
     describe('absender parameter', () => {
       it('should accept absender with valid length', () => {
         // Given

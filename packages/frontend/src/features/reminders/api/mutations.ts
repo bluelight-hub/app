@@ -26,10 +26,13 @@ import type {
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ERINNERUNG_QUERY_KEYS, calculateRetryDelay } from './queries';
+import { ETB_QUERY_KEYS } from '@/features/etb/api/queries';
 import { offlineDetectionService } from '../services/offline-detection.service';
 import { syncService } from '../services/sync.service';
 import { soundService, timerService, intensificationService } from '../services';
-import { hideFloatingPill } from '../stores';
+import { hideErinnerungAlarmToast } from '../ui/atoms/ErinnerungAlarmToast';
+import { queueEtbAction } from '@/features/etb/stores/offline.store';
+import { useCurrentUser } from '@/features/auth/api/use-current-user';
 
 /**
  * Prueft ob ein Error ein Netzwerkfehler ist (Connection Lost, Timeout, etc.)
@@ -552,15 +555,35 @@ export const useTriggerErinnerung = () => {
           throw new Error(`Erinnerung ${erinnerungId} nicht im Cache gefunden`);
         }
 
+        const now = new Date().toISOString();
+
         // Erstelle optimistische Response mit Status AUSGELOEST
         const triggeredErinnerung: ErinnerungResponseDto = {
           ...erinnerung,
           status: 'AUSGELOEST',
-          updatedAt: new Date().toISOString(),
+          updatedAt: now,
         };
 
         // Queue für Sync bei Reconnect (mit einsatzId fuer API-Aufruf)
         syncService.queueTriggerAction(erinnerungId, einsatzId);
+
+        // Story 5.10 AC1: Queue ETB-Eintrag bei Offline-Trigger
+        queueEtbAction({
+          id: crypto.randomUUID(),
+          actionType: 'addEintrag',
+          payload: {
+            text: `Erinnerung '${erinnerung.titel}' ausgelöst`,
+            kategorie: 'SYSTEM',
+            metadata: {
+              eventType: 'ErinnerungAusgeloest',
+              erinnerungId,
+            },
+            occurredAt: now,
+          },
+          einsatzId,
+          timestamp: now,
+          retryCount: 0,
+        });
 
         logger.debug('[useTriggerErinnerung] Triggered offline erinnerung', { erinnerungId, einsatzId });
         return triggeredErinnerung;
@@ -699,6 +722,7 @@ interface AcknowledgeErinnerungContext {
  */
 export const useAcknowledgeErinnerung = () => {
   const queryClient = useQueryClient();
+  const { user } = useCurrentUser();
 
   return useMutation<ErinnerungResponseDto, ResponseError, AcknowledgeErinnerungVariables, AcknowledgeErinnerungContext>({
     mutationKey: ['erinnerung', 'acknowledge'],
@@ -715,15 +739,36 @@ export const useAcknowledgeErinnerung = () => {
           throw new Error(`Erinnerung ${erinnerungId} nicht im Cache gefunden`);
         }
 
+        const now = new Date().toISOString();
+        const personName = user?.username ?? 'Unbekannt';
+
         // Erstelle optimistische Response mit Status ACKNOWLEDGED
         const acknowledgedErinnerung: ErinnerungResponseDto = {
           ...erinnerung,
           status: 'ACKNOWLEDGED',
-          updatedAt: new Date().toISOString(),
+          updatedAt: now,
         };
 
         // Queue für Sync bei Reconnect (mit einsatzId fuer API-Aufruf)
         syncService.queueAcknowledgeAction(erinnerungId, einsatzId);
+
+        // Story 5.10 AC1: Queue ETB-Eintrag bei Offline-Acknowledge
+        queueEtbAction({
+          id: crypto.randomUUID(),
+          actionType: 'addEintrag',
+          payload: {
+            text: `Erinnerung '${erinnerung.titel}' bestätigt von ${personName}`,
+            kategorie: 'SYSTEM',
+            metadata: {
+              eventType: 'ErinnerungAcknowledged',
+              erinnerungId,
+            },
+            occurredAt: now,
+          },
+          einsatzId,
+          timestamp: now,
+          retryCount: 0,
+        });
 
         logger.debug('[useAcknowledgeErinnerung] Acknowledged offline erinnerung', { erinnerungId, einsatzId });
         return acknowledgedErinnerung;
@@ -812,6 +857,10 @@ export const useAcknowledgeErinnerung = () => {
         queryClient.invalidateQueries({
           queryKey: ERINNERUNG_QUERY_KEYS.detail(erinnerungId),
         }),
+        // Story 5.5: ETB-Queries invalidieren fuer Timeline-Update
+        queryClient.invalidateQueries({
+          queryKey: ETB_QUERY_KEYS.all,
+        }),
       ]);
 
       // H1 Fix: Success-Toast nach erfolgreichem Acknowledge (nur wenn kein Fehler)
@@ -896,18 +945,42 @@ export const useSnoozeErinnerung = () => {
         }
 
         const now = new Date();
+        const nowIso = now.toISOString();
         const snoozedUntil = new Date(now.getTime() + snoozeMinutes * 60 * 1000);
+
+        // Snooze-Dauer als Text formatieren (z.B. "5 Min")
+        const dauer = snoozeMinutes === 1 ? '1 Min' : `${snoozeMinutes} Min`;
 
         // Erstelle optimistische Response mit Status SNOOZED und neuer Fälligkeit
         const snoozedErinnerung: ErinnerungResponseDto = {
           ...erinnerung,
           status: 'SNOOZED',
           faelligAm: snoozedUntil.toISOString(),
-          updatedAt: now.toISOString(),
+          snoozeCount: (erinnerung.snoozeCount ?? 0) + 1,
+          updatedAt: nowIso,
         };
 
         // Queue für Sync bei Reconnect (mit einsatzId fuer API-Aufruf)
         syncService.queueSnoozeAction(erinnerungId, einsatzId, snoozeMinutes);
+
+        // Story 5.10 AC2: Queue ETB-Eintrag bei Offline-Snooze
+        queueEtbAction({
+          id: crypto.randomUUID(),
+          actionType: 'addEintrag',
+          payload: {
+            text: `Erinnerung '${erinnerung.titel}' verschoben um ${dauer}`,
+            kategorie: 'SYSTEM',
+            metadata: {
+              eventType: 'ErinnerungSnoozed',
+              erinnerungId,
+              snoozeMinutes,
+            },
+            occurredAt: nowIso,
+          },
+          einsatzId,
+          timestamp: nowIso,
+          retryCount: 0,
+        });
 
         logger.debug('[useSnoozeErinnerung] Snoozed offline erinnerung', { erinnerungId, einsatzId, snoozeMinutes });
         return snoozedErinnerung;
@@ -1091,6 +1164,26 @@ export const useMarkErledigtErinnerung = () => {
         // TODO: Queue für Sync bei Reconnect (wenn Offline-Support für markErledigt benötigt wird)
         // syncService.queueMarkErledigtAction(erinnerungId, einsatzId, erledigungsNotiz);
 
+        // Story 5.10 AC3: Queue ETB-Eintrag bei Offline-Erledigung
+        const notizText = erledigungsNotiz ?? 'Keine Notiz';
+        queueEtbAction({
+          id: crypto.randomUUID(),
+          actionType: 'addEintrag',
+          payload: {
+            text: `Erinnerung '${erinnerung.titel}' erledigt: ${notizText}`,
+            kategorie: 'SYSTEM',
+            metadata: {
+              eventType: 'ErinnerungErledigt',
+              erinnerungId,
+              erledigungsNotiz: erledigungsNotiz ?? null,
+            },
+            occurredAt: now,
+          },
+          einsatzId,
+          timestamp: now,
+          retryCount: 0,
+        });
+
         logger.debug('[useMarkErledigtErinnerung] Marked offline erinnerung as erledigt', { erinnerungId, einsatzId });
         return erledigteErinnerung;
       };
@@ -1125,7 +1218,7 @@ export const useMarkErledigtErinnerung = () => {
       soundService.stopAllSounds();
       timerService.resetTriggered(erinnerungId);
       intensificationService.stopTimer(erinnerungId);
-      hideFloatingPill(erinnerungId);
+      hideErinnerungAlarmToast(erinnerungId);
 
       // Cancel ALL related queries to prevent race conditions
       await Promise.all([
@@ -1186,7 +1279,12 @@ export const useMarkErledigtErinnerung = () => {
     },
     onSettled: async (_data, error, { einsatzId, erinnerungId }) => {
       // Ensure consistency - invalidate Erinnerungen list and detail for this Einsatz
-      await Promise.all([queryClient.invalidateQueries({ queryKey: ERINNERUNG_QUERY_KEYS.list(einsatzId) }), queryClient.invalidateQueries({ queryKey: ERINNERUNG_QUERY_KEYS.detail(erinnerungId) })]);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ERINNERUNG_QUERY_KEYS.list(einsatzId) }),
+        queryClient.invalidateQueries({ queryKey: ERINNERUNG_QUERY_KEYS.detail(erinnerungId) }),
+        // Story 5.5: ETB-Queries invalidieren fuer Timeline-Update
+        queryClient.invalidateQueries({ queryKey: ETB_QUERY_KEYS.all }),
+      ]);
 
       // Success-Toast nach erfolgreichem Erledigen (nur wenn kein Fehler)
       if (!error) {

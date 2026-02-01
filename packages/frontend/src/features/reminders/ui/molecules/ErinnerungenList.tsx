@@ -21,12 +21,11 @@ import { Button } from '@/shared/ui/atoms/button.atom';
 import { cn } from '@/shared/ui/cn';
 import { Tabs } from '@/shared/ui/molecules/tabs.molecule';
 import { PiAlarm, PiPlus, PiWifiHigh, PiWifiSlash } from 'react-icons/pi';
-import { toast } from 'sonner';
 import { useCurrentUser } from '@/features/auth';
 import { useAktiveEinsatzTeilnehmer } from '@/features/einsatz/api';
 import { sanitizeName } from '@/shared/utils/sanitize';
 import { useErinnerungenByEinsatz } from '../../api';
-import { useAlarmTrigger, useErinnerungWebSocket, useOfflineStatus, useReconnectSync, useTrayBadge, useTrayClickNavigation } from '../../hooks';
+import { useErinnerungWebSocket, useOfflineStatus, useReconnectSync, useTrayBadge, useTrayClickNavigation } from '../../hooks';
 import {
   addAnimatedId,
   openQuickCreateDialog,
@@ -41,8 +40,8 @@ import {
   type TeamSortType,
 } from '../../stores';
 import { compareErinnerungen } from '../../utils/sorting-utils';
+import { isMyErinnerung } from '../../utils/erinnerung-ownership';
 import { TeamFilterDropdown, TeamSortDropdown } from '../atoms';
-import { FloatingPillPortal } from '../organisms/FloatingPillPortal';
 import { ErinnerungCard } from './ErinnerungCard';
 import { OfflineBanner } from './OfflineBanner';
 
@@ -53,34 +52,6 @@ interface ErinnerungenListProps {
   className?: string;
   /** Kompakte Ansicht (weniger Padding, keine Header) */
   compact?: boolean;
-}
-
-/**
- * Story 3.6 Issue #5: Helper zur Pruefung ob Erinnerung dem User gehoert.
- *
- * **Story 3.4 AC2 Fix:** Nach Zuweisung an jemand anderen verschwindet
- * die Erinnerung aus 'Meine Erinnerungen' des Erstellers.
- *
- * Eine Erinnerung gehoert dem User wenn:
- * - Sie ihm zugewiesen wurde (assignedToId === userId), ODER
- * - Niemand zugewiesen ist UND er sie erstellt hat (assignedToId === null && erstelltVon === userId)
- */
-function isMyErinnerung(erinnerung: ErinnerungResponseDto, userId: string): boolean {
-  const assignedTo = erinnerung.assignedToId as string | null | undefined;
-  // Wenn mir zugewiesen → meine Erinnerung
-  if (assignedTo === userId) {
-    return true;
-  }
-  // Story 4.5: Wenn an mich eskaliert → meine Erinnerung (Priorität vor Ersteller)
-  if (erinnerung.status === 'ESKALIERT' && erinnerung.eskalationsPersonId === userId) {
-    return true;
-  }
-  // Wenn niemand zugewiesen UND ich Ersteller → meine Erinnerung
-  if (!assignedTo && erinnerung.erstelltVon === userId) {
-    return true;
-  }
-  // Sonst nicht meine Erinnerung
-  return false;
 }
 
 /**
@@ -237,23 +208,8 @@ function ErinnerungenListInner({ einsatzId, className, compact = false, currentU
     onAcknowledged: handleWebSocketAcknowledged,
   });
 
-  // Story 1.5: Alarm Trigger Hook fuer automatische Erinnerungs-Ausloesung
-  useAlarmTrigger({
-    erinnerungen: erinnerungen ?? [],
-    einsatzId,
-    enabled: !isLoading && !error,
-    onTriggerSuccess: (erinnerung) => {
-      toast.success('Erinnerung ausgelöst', {
-        description: erinnerung.titel,
-        duration: 10000, // 10 Sekunden sichtbar
-      });
-    },
-    onTriggerError: (erinnerung, err) => {
-      toast.error('Erinnerung fehlgeschlagen', {
-        description: `${erinnerung.titel}: ${err.message}`,
-      });
-    },
-  });
+  // Story 1.5: Alarm Trigger Hook wurde nach SingleEinsatzLayout verschoben
+  // für app-weite Erinnerungsprüfung (auch auf Lagekarte, ETB, etc.)
 
   const handleCreateClick = () => {
     openQuickCreateDialog(einsatzId);
@@ -329,9 +285,6 @@ function ErinnerungenListInner({ einsatzId, className, compact = false, currentU
 
   return (
     <div className={className}>
-      {/* Story 2.4 AC2: FloatingPill Portal fuer urgent Alarme */}
-      <FloatingPillPortal einsatzId={einsatzId} />
-
       {/* Story 1.8 AC1: Offline-Banner */}
       <OfflineBanner isOffline={isOffline} pendingCount={pendingActionsCount} isSyncing={isSyncing} offlineSince={offlineSince} className="mb-2 rounded-lg" />
 

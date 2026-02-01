@@ -9,7 +9,6 @@ import { EtbQueryMapper, type EtbSnapshotDto as EtbSnapshotDtoFromMapper } from 
 import { GetEtbHistoryQuery, GetEtbHistoryQueryHandler, GetEtbQuery, GetEtbQueryHandler, GetTextbausteineHandler, GetTextbausteineQuery } from '@/application/etb/queries';
 import type { EtbKategorie } from '@/generated/prisma/client';
 import { ETB_REPOSITORY, LOGGER } from '@/infrastructure/di-tokens';
-// biome-ignore lint/style/useImportType: PrismaService is an Injectable class, not just a type - needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import { Roles } from '@/modules/auth/decorators/roles.decorator';
@@ -162,10 +161,27 @@ export class EtbCqrsController {
    * @throws NotFoundException wenn ETB nicht existiert
    * @throws BadRequestException bei ungültiger einsatzId
    */
+  /**
+   * ETB für Einsatz abrufen (AC4)
+   *
+   * Lädt das ETB für einen Einsatz via GetEtbQuery. Unterstützt optionales
+   * Einblenden von soft-gelöschten Einträgen via includeDeleted Parameter.
+   *
+   * **Story 5.9 (AC2, AC3):** Berechtigung wird geprüft - nur aktive Einsatzteilnehmer
+   * dürfen das ETB lesen (NFR10).
+   *
+   * @param einsatzId - ID des Einsatzes (CUID2 Format)
+   * @param includeDeleted - Optional: Gelöschte Einträge anzeigen (default: false)
+   * @param user - Authentifizierter User (aus JWT)
+   * @returns EtbDto mit allen Einträgen oder null wenn nicht gefunden
+   * @throws NotFoundException wenn ETB nicht existiert
+   * @throws BadRequestException bei ungültiger einsatzId
+   * @throws ForbiddenException wenn User kein aktiver Einsatzteilnehmer
+   */
   @Get('einsatz/:einsatzId')
   @ApiOperation({
     summary: 'ETB für Einsatz abrufen',
-    description: 'Gibt das Einsatztagebuch für einen Einsatz zurück. Optional können soft-gelöschte Einträge mit includeDeleted=true angezeigt werden.',
+    description: 'Gibt das Einsatztagebuch für einen Einsatz zurück. Optional können soft-gelöschte Einträge mit includeDeleted=true angezeigt werden. Nur aktive Einsatzteilnehmer haben Zugriff.',
   })
   @ApiWrappedResponse(EtbDto, {
     description: 'ETB erfolgreich abgerufen',
@@ -178,9 +194,16 @@ export class EtbCqrsController {
     type: Boolean,
     description: 'Soft-gelöschte Einträge anzeigen (default: false)',
   })
-  async getEtbByEinsatzId(@Param('einsatzId') einsatzId: string, @Query('includeDeleted') includeDeleted?: string): Promise<EtbDto> {
+  async getEtbByEinsatzId(@Param('einsatzId') einsatzId: string, @CurrentUser() user: ValidatedUser, @Query('includeDeleted') includeDeleted?: string): Promise<EtbDto> {
     const includeDeletedBool = includeDeleted === 'true';
-    this.logger.log(`Getting ETB for Einsatz ${einsatzId} (includeDeleted: ${includeDeletedBool})`);
+    this.logger.log(`Getting ETB for Einsatz ${einsatzId} (includeDeleted: ${includeDeletedBool}) by user ${user.userId}`);
+
+    // Story 5.9 (AC2, AC3): Prüfe ob User aktiver Einsatzteilnehmer ist
+    const isActiveTeilnehmer = await this.checkUserIsActiveTeilnehmer(user.userId, einsatzId);
+    if (!isActiveTeilnehmer) {
+      this.logger.warn(`User ${user.userId} is not an active participant of Einsatz ${einsatzId}`, 'EtbCqrsController');
+      throw new ForbiddenException('Keine Berechtigung: User ist kein aktiver Einsatzteilnehmer');
+    }
 
     try {
       const query = new GetEtbQuery(einsatzId, includeDeletedBool);
@@ -203,7 +226,7 @@ export class EtbCqrsController {
       return result.value;
     } catch (error) {
       // Query constructor throws Error on validation failure
-      if (error instanceof Error && !(error instanceof NotFoundException) && !(error instanceof BadRequestException)) {
+      if (error instanceof Error && !(error instanceof NotFoundException) && !(error instanceof BadRequestException) && !(error instanceof ForbiddenException)) {
         this.logger.error(`Invalid query parameters: ${error.message}`);
         throw new BadRequestException(error.message);
       }
@@ -222,10 +245,26 @@ export class EtbCqrsController {
    * @throws NotFoundException wenn ETB nicht existiert
    * @throws BadRequestException bei ungültiger etbId
    */
+  /**
+   * ETB Versionshistorie abrufen (AC4)
+   *
+   * Lädt alle Snapshots eines ETB für die Versionshistorie.
+   * Snapshots werden VOR jeder mutierenden Operation erstellt (DRK-Compliance).
+   *
+   * **Story 5.9 (AC2, AC3):** Berechtigung wird geprüft - nur aktive Einsatzteilnehmer
+   * dürfen die Historie lesen (NFR10).
+   *
+   * @param etbId - ID des ETB (CUID2 Format)
+   * @param user - Authentifizierter User (aus JWT)
+   * @returns Array von EtbSnapshotDto, sortiert nach Version absteigend (neueste zuerst)
+   * @throws NotFoundException wenn ETB nicht existiert
+   * @throws BadRequestException bei ungültiger etbId
+   * @throws ForbiddenException wenn User kein aktiver Einsatzteilnehmer
+   */
   @Get(':etbId/history')
   @ApiOperation({
     summary: 'ETB Versionshistorie abrufen',
-    description: 'Gibt alle Versionen/Snapshots eines ETB zurück. Sortiert nach Version absteigend (neueste zuerst).',
+    description: 'Gibt alle Versionen/Snapshots eines ETB zurück. Sortiert nach Version absteigend (neueste zuerst). Nur aktive Einsatzteilnehmer haben Zugriff.',
   })
   @ApiWrappedResponse(EtbSnapshotDto, {
     isArray: true,
@@ -233,8 +272,28 @@ export class EtbCqrsController {
   })
   @ApiNotFoundResponse({ description: 'ETB nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Ungültige ETB-ID' })
-  async getEtbHistory(@Param('etbId') etbId: string): Promise<EtbSnapshotDtoFromMapper[]> {
-    this.logger.log(`Getting history for ETB ${etbId}`);
+  async getEtbHistory(@Param('etbId') etbId: string, @CurrentUser() user: ValidatedUser): Promise<EtbSnapshotDtoFromMapper[]> {
+    this.logger.log(`Getting history for ETB ${etbId} by user ${user.userId}`);
+
+    // Story 5.9 (AC2, AC3): Lade ETB um einsatzId zu erhalten und Berechtigung zu prüfen
+    const etbIdResult = EtbId.create(etbId);
+    if (etbIdResult.isFailure || !etbIdResult.value) {
+      throw new BadRequestException('Ungültige ETB-ID');
+    }
+
+    const etbAggregate = await this.etbRepository.findById(etbIdResult.value);
+    if (!etbAggregate) {
+      throw new NotFoundException(`ETB ${etbId} nicht gefunden`);
+    }
+
+    const einsatzId = etbAggregate.einsatzId.value;
+
+    // Prüfe ob User aktiver Einsatzteilnehmer ist
+    const isActiveTeilnehmer = await this.checkUserIsActiveTeilnehmer(user.userId, einsatzId);
+    if (!isActiveTeilnehmer) {
+      this.logger.warn(`User ${user.userId} is not an active participant of Einsatz ${einsatzId}`, 'EtbCqrsController');
+      throw new ForbiddenException('Keine Berechtigung: User ist kein aktiver Einsatzteilnehmer');
+    }
 
     try {
       const query = new GetEtbHistoryQuery(etbId);
@@ -251,7 +310,7 @@ export class EtbCqrsController {
       this.logger.log(`${result.value?.length ?? 0} snapshots returned for ETB ${etbId}`);
       return result.value ?? [];
     } catch (error) {
-      if (error instanceof Error && !(error instanceof NotFoundException) && !(error instanceof BadRequestException)) {
+      if (error instanceof Error && !(error instanceof NotFoundException) && !(error instanceof BadRequestException) && !(error instanceof ForbiddenException)) {
         this.logger.error(`Invalid query parameters: ${error.message}`);
         throw new BadRequestException(error.message);
       }
@@ -374,7 +433,30 @@ export class EtbCqrsController {
   ): Promise<EintragDto> {
     this.logger.log(`Adding Eintrag to ETB ${etbId} by user ${user.userId}`);
 
-    const commandResult = AddEintragCommand.create(etbId, dto.text, user.userId, dto.kategorie, dto.einsatzId, dto.absender, dto.empfaenger, dto.metadata);
+    // Story 5.9: Lade ETB um einsatzId zu erhalten und Berechtigung zu prüfen
+    const etbIdResult = EtbId.create(etbId);
+    if (etbIdResult.isFailure || !etbIdResult.value) {
+      throw new BadRequestException('Ungültige ETB-ID');
+    }
+
+    const etbAggregate = await this.etbRepository.findById(etbIdResult.value);
+    if (!etbAggregate) {
+      throw new NotFoundException(`ETB ${etbId} nicht gefunden`);
+    }
+
+    const einsatzId = etbAggregate.einsatzId.value;
+
+    // Prüfe ob User aktiver Einsatzteilnehmer ist
+    const isActiveTeilnehmer = await this.checkUserIsActiveTeilnehmer(user.userId, einsatzId);
+    if (!isActiveTeilnehmer) {
+      this.logger.warn(`User ${user.userId} is not an active participant of Einsatz ${einsatzId}`, 'EtbCqrsController');
+      throw new ForbiddenException('Keine Berechtigung: User ist kein aktiver Einsatzteilnehmer');
+    }
+
+    // Convert optional ISO string to Date if present
+    const occurredAt = dto.occurredAt ? new Date(dto.occurredAt) : undefined;
+
+    const commandResult = AddEintragCommand.create(etbId, dto.text, user.userId, dto.kategorie, einsatzId, dto.absender, dto.empfaenger, dto.metadata, occurredAt);
     if (commandResult.isFailure || !commandResult.value) {
       this.logger.error(`Invalid AddEintragCommand: ${commandResult.error}`);
       throw new BadRequestException(commandResult.error);
@@ -435,6 +517,26 @@ export class EtbCqrsController {
   ): Promise<EintragDto> {
     this.logger.log(`Updating Eintrag ${eintragId} in ETB ${etbId} by user ${user.userId}`);
 
+    // Story 5.9: Lade ETB um einsatzId zu erhalten und Berechtigung zu prüfen
+    const etbIdResult = EtbId.create(etbId);
+    if (etbIdResult.isFailure || !etbIdResult.value) {
+      throw new BadRequestException('Ungültige ETB-ID');
+    }
+
+    const etbAggregate = await this.etbRepository.findById(etbIdResult.value);
+    if (!etbAggregate) {
+      throw new NotFoundException(`ETB ${etbId} nicht gefunden`);
+    }
+
+    const einsatzId = etbAggregate.einsatzId.value;
+
+    // Prüfe ob User aktiver Einsatzteilnehmer ist
+    const isActiveTeilnehmer = await this.checkUserIsActiveTeilnehmer(user.userId, einsatzId);
+    if (!isActiveTeilnehmer) {
+      this.logger.warn(`User ${user.userId} is not an active participant of Einsatz ${einsatzId}`, 'EtbCqrsController');
+      throw new ForbiddenException('Keine Berechtigung: User ist kein aktiver Einsatzteilnehmer');
+    }
+
     const commandResult = UpdateEintragCommand.create(etbId, eintragId, dto.newText, user.userId);
     if (commandResult.isFailure || !commandResult.value) {
       this.logger.error(`Invalid UpdateEintragCommand: ${commandResult.error}`);
@@ -452,19 +554,14 @@ export class EtbCqrsController {
     }
 
     // Handler returns Result<void>, need to load updated Eintrag via Repository
-    // Use findById with EtbId (not einsatzId like GetEtbQuery expects)
-    const etbIdResult = EtbId.create(etbId);
-    if (etbIdResult.isFailure || !etbIdResult.value) {
-      throw new BadRequestException('Ungültige ETB ID');
-    }
-
-    const aggregate = await this.etbRepository.findById(etbIdResult.value);
-    if (!aggregate) {
+    // Nutze bereits validierte etbIdResult.value von oben
+    const updatedAggregate = await this.etbRepository.findById(etbIdResult.value);
+    if (!updatedAggregate) {
       throw new NotFoundException('ETB nicht gefunden nach Update');
     }
 
     // Map aggregate to DTO and find the updated Eintrag
-    const etbDto = EtbQueryMapper.toEtbDto(aggregate, false);
+    const etbDto = EtbQueryMapper.toEtbDto(updatedAggregate, false);
     const updatedEintrag = etbDto.eintraege.find((e: EintragDto) => e.id === eintragId);
     if (!updatedEintrag) {
       throw new NotFoundException(`Eintrag ${eintragId} nicht gefunden nach Update`);
@@ -498,6 +595,26 @@ export class EtbCqrsController {
   @ApiBadRequestResponse({ description: 'Validierungsfehler oder ETB ist gesperrt' })
   async deleteEintrag(@Param('etbId') etbId: string, @Param('eintragId') eintragId: string, @CurrentUser() user: ValidatedUser): Promise<void> {
     this.logger.log(`Deleting Eintrag ${eintragId} from ETB ${etbId} by user ${user.userId}`);
+
+    // Story 5.9: Lade ETB um einsatzId zu erhalten und Berechtigung zu prüfen
+    const etbIdResult = EtbId.create(etbId);
+    if (etbIdResult.isFailure || !etbIdResult.value) {
+      throw new BadRequestException('Ungültige ETB-ID');
+    }
+
+    const etbAggregate = await this.etbRepository.findById(etbIdResult.value);
+    if (!etbAggregate) {
+      throw new NotFoundException(`ETB ${etbId} nicht gefunden`);
+    }
+
+    const einsatzId = etbAggregate.einsatzId.value;
+
+    // Prüfe ob User aktiver Einsatzteilnehmer ist
+    const isActiveTeilnehmer = await this.checkUserIsActiveTeilnehmer(user.userId, einsatzId);
+    if (!isActiveTeilnehmer) {
+      this.logger.warn(`User ${user.userId} is not an active participant of Einsatz ${einsatzId}`, 'EtbCqrsController');
+      throw new ForbiddenException('Keine Berechtigung: User ist kein aktiver Einsatzteilnehmer');
+    }
 
     const commandResult = DeleteEintragCommand.create(etbId, eintragId, user.userId);
     if (commandResult.isFailure || !commandResult.value) {

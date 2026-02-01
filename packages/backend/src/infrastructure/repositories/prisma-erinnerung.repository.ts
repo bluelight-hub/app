@@ -117,6 +117,8 @@ export class PrismaErinnerungRepository implements IErinnerungRepository {
           eskalationNurAnErsteller: data.eskalationNurAnErsteller,
           // Intensivierungs-Counter (Hotfix für Endlos-Loop)
           intensivierungsCount: data.intensivierungsCount,
+          // Story 5.4: ETB-Verknuepfung (bidirektional)
+          etbEntryId: data.etbEntryId,
         },
         update: {
           titel: data.titel,

@@ -279,15 +279,6 @@ describe('EtbKategorie', () => {
       expect(kategorie.value).toBe('SYSTEM');
     });
 
-    it('should create ERINNERUNG via static factory', () => {
-      // Given: Static Factory ERINNERUNG()
-      // When: Kategorie wird erstellt
-      const kategorie = EtbKategorie.ERINNERUNG();
-
-      // Then: Korrekte Kategorie
-      expect(kategorie.value).toBe('ERINNERUNG');
-    });
-
     it('should have static factory for all ETB_KATEGORIE_VALUES', () => {
       // Given: Alle Kategorien aus ETB_KATEGORIE_VALUES
       const expectedFactories: Record<string, () => EtbKategorie> = {
@@ -305,7 +296,6 @@ describe('EtbKategorie', () => {
         DOKUMENTATION: EtbKategorie.DOKUMENTATION,
         SONSTIGES: EtbKategorie.SONSTIGES,
         SYSTEM: EtbKategorie.SYSTEM,
-        ERINNERUNG: EtbKategorie.ERINNERUNG,
       };
 
       // When: Alle Factories werden aufgerufen
@@ -471,7 +461,6 @@ describe('EtbKategorie', () => {
         'DOKUMENTATION',
         'SONSTIGES',
         'SYSTEM',
-        'ERINNERUNG',
       ];
 
       // When: Values werden geprueft

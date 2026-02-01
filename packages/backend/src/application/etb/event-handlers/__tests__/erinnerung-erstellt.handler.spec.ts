@@ -107,7 +107,7 @@ describe('ErinnerungErstelltEventHandler (Story 5.1 AC1)', () => {
       expect(receivedCommand.text).toContain('20.01.2026');
     });
 
-    it('should set kategorie to ERINNERUNG (Story 5.1 AC2)', async () => {
+    it('should set kategorie to SYSTEM (Story 5.1 AC2)', async () => {
       // Given
       const event = createTestEvent();
       mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
@@ -117,7 +117,7 @@ describe('ErinnerungErstelltEventHandler (Story 5.1 AC1)', () => {
 
       // Then
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      expect(receivedCommand.kategorie).toBe('ERINNERUNG');
+      expect(receivedCommand.kategorie).toBe('SYSTEM');
     });
 
     it('should pass einsatzId from event to ETB command', async () => {

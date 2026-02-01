@@ -46,3 +46,4 @@ docs/*
 
 prisma/generated/*
 /generated/prisma
+.serena/

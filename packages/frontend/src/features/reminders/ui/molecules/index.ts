@@ -14,3 +14,4 @@ export { ErinnerungenList } from './ErinnerungenList';
 export { OfflineBanner, type OfflineBannerVariant } from './OfflineBanner';
 export { SnoozeButtonGroup, type SnoozeMinutes } from './SnoozeButtonGroup';
 export { AssigneeSelector } from './AssigneeSelector';
+export { ErinnerungEtbHistoryWidget, type ErinnerungEtbHistoryWidgetProps } from './ErinnerungEtbHistoryWidget';

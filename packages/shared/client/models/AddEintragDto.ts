@@ -55,6 +55,12 @@ export interface AddEintragDto {
    * @memberof AddEintragDto
    */
   metadata?: object | null;
+  /**
+   * Zeitpunkt des Auftretens (ISO 8601 DateTime String)
+   * @type {string}
+   * @memberof AddEintragDto
+   */
+  occurredAt?: string;
 }
 
 /**
@@ -75,7 +81,6 @@ export const AddEintragDtoKategorieEnum = {
   Dokumentation: 'DOKUMENTATION',
   Sonstiges: 'SONSTIGES',
   System: 'SYSTEM',
-  Erinnerung: 'ERINNERUNG',
 } as const;
 export type AddEintragDtoKategorieEnum = (typeof AddEintragDtoKategorieEnum)[keyof typeof AddEintragDtoKategorieEnum];
 
@@ -102,6 +107,7 @@ export function AddEintragDtoFromJSONTyped(json: any, ignoreDiscriminator: boole
     absender: json['absender'] == null ? undefined : json['absender'],
     empfaenger: json['empfaenger'] == null ? undefined : json['empfaenger'],
     metadata: json['metadata'] == null ? undefined : json['metadata'],
+    occurredAt: json['occurredAt'] == null ? undefined : json['occurredAt'],
   };
 }
 
@@ -121,5 +127,6 @@ export function AddEintragDtoToJSONTyped(value?: AddEintragDto | null, ignoreDis
     absender: value['absender'],
     empfaenger: value['empfaenger'],
     metadata: value['metadata'],
+    occurredAt: value['occurredAt'],
   };
 }

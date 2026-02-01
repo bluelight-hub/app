@@ -1,9 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Result } from '@domain/common/result';
 import { LOGGER } from '@infrastructure/di-tokens';
-// biome-ignore lint/style/useImportType: ILogger is needed for DI at runtime
 import { ILogger } from '@domain/ports/i-logger.port';
-// biome-ignore lint/style/useImportType: PrismaService is an Injectable class, not just a type - needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { GetErinnerungTimelineQuery } from './get-erinnerung-timeline.query';
 import type { ErinnerungTimelineDto, ErinnerungTimelineEventDto, TimelineUserDto } from '@application/etb/dto/erinnerung-timeline.dto';
@@ -71,12 +69,14 @@ export class GetErinnerungTimelineQueryHandler {
       this.logger.log(`Loading timeline for erinnerungId=${query.erinnerungId}, einsatzId=${query.einsatzId}`, 'GetErinnerungTimelineQueryHandler');
 
       // Step 1+2: Validate Erinnerung exists and belongs to Einsatz
+      // Story 5.7: Auch etbEntryId laden für Original-Eintrag Verknüpfung
       const erinnerung = await this.prisma.erinnerung.findUnique({
         where: { id: query.erinnerungId },
         select: {
           id: true,
           titel: true,
           einsatzId: true,
+          etbEntryId: true,
         },
       });
 
@@ -92,19 +92,47 @@ export class GetErinnerungTimelineQueryHandler {
       }
 
       // Step 3+4+5: Query ETB entries with metadata filter
-      // ETB has same ID as Einsatz (1:1 relationship)
-      const etbId = query.einsatzId;
+      // WICHTIG: ETB hat eine eigene ID, die nicht gleich der EinsatzId ist!
+      // Wir muessen das ETB per EinsatzId laden, um dessen echte ID zu bekommen.
+      const etbRecord = await this.prisma.einsatztagebuch.findUnique({
+        where: { einsatzId: query.einsatzId },
+        select: { id: true },
+      });
+
+      if (!etbRecord) {
+        this.logger.warn(`ETB not found for einsatzId=${query.einsatzId}`, 'GetErinnerungTimelineQueryHandler');
+        return Result.fail('ETB nicht gefunden');
+      }
+
+      const etbId = etbRecord.id;
 
       // CRITICAL 2: Safety-Limit für Pagination (eine Timeline hat selten mehr als 100 Events)
-      const etbEntries = await this.prisma.etbEintrag.findMany({
-        where: {
+      // Story 5.7: Zwei Arten von Verknüpfungen finden:
+      // 1. Einträge mit metadata.erinnerungId (automatisch erstellte wie "Erinnerung erstellt")
+      // 2. Der Original-Eintrag (von dem aus die Erinnerung erstellt wurde, via etbEntryId)
+      const orConditions = [
+        {
           etbId: etbId,
-          kategorie: 'ERINNERUNG',
           // JSON path filter for metadata.erinnerungId
           metadata: {
             path: ['erinnerungId'],
             equals: query.erinnerungId,
           },
+        },
+        // Wenn etbEntryId vorhanden, auch den Original-Eintrag finden
+        ...(erinnerung.etbEntryId
+          ? [
+              {
+                etbId: etbId,
+                id: erinnerung.etbEntryId,
+              },
+            ]
+          : []),
+      ];
+
+      const etbEntries = await this.prisma.etbEintrag.findMany({
+        where: {
+          OR: orConditions,
         },
         include: {
           creator: {
@@ -123,8 +151,17 @@ export class GetErinnerungTimelineQueryHandler {
       // Step 6: Map to DTOs
       const events: ErinnerungTimelineEventDto[] = etbEntries.map((entry) => {
         const metadata = entry.metadata as Record<string, unknown> | null;
-        // MEDIUM 5: Sichere Runtime-Validierung statt unsafes Type Casting
-        const eventType = typeof metadata?.eventType === 'string' ? metadata.eventType : 'Unknown';
+        // Story 5.7: EventType bestimmen
+        // - Automatische Einträge haben metadata.eventType
+        // - Original-Eintrag (etbEntryId) bekommt 'UrsprungsEintrag' als Marker
+        let eventType: string;
+        if (typeof metadata?.eventType === 'string') {
+          eventType = metadata.eventType;
+        } else if (entry.id === erinnerung.etbEntryId) {
+          eventType = 'UrsprungsEintrag';
+        } else {
+          eventType = 'Unknown';
+        }
 
         const createdBy: TimelineUserDto = {
           id: entry.creator.id,

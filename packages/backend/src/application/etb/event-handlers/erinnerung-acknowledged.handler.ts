@@ -14,14 +14,11 @@
  */
 import { Inject, Injectable } from '@nestjs/common';
 import type { IEventHandler } from '@domain/ports/i-event-handler.port';
-// biome-ignore lint/style/useImportType: ILogger needed for DI at runtime
 import { ILogger } from '@domain/ports/i-logger.port';
 import type { ErinnerungAcknowledgedEvent } from '@domain/events/erinnerung-acknowledged.event';
-// biome-ignore lint/style/useImportType: IUserRepository needed for DI at runtime
 import { IUserRepository } from '@domain/repositories/i-user.repository';
 import { LOGGER, USER_REPOSITORY } from '@infrastructure/di-tokens';
 import { AddEintragCommand } from '../commands/add-eintrag/add-eintrag.command';
-// biome-ignore lint/style/useImportType: AddEintragHandler needed for DI at runtime
 import { AddEintragHandler } from '../commands/add-eintrag/add-eintrag.handler';
 import type { EtbKategorieValue } from '@domain/value-objects/etb-kategorie';
 import { ERINNERUNG_ETB_TEMPLATES } from '../constants/erinnerung-etb-templates';
@@ -31,7 +28,7 @@ import { UserId } from '@domain/value-objects/user-id';
  * ETB Kategorie fuer Erinnerungen (Story 5.1 AC2).
  * Als Konstante definiert fuer bessere Wartbarkeit und Type-Safety.
  */
-const ETB_KATEGORIE_ERINNERUNG: EtbKategorieValue = 'ERINNERUNG';
+const ETB_KATEGORIE_ERINNERUNG: EtbKategorieValue = 'SYSTEM';
 
 /**
  * Event Handler fuer automatischen ETB-Eintrag bei Erinnerung-Bestaetigung.

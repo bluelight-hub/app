@@ -1,3 +1,4 @@
+import type { PrismaService } from '@/infrastructure/database/prisma.service';
 import { GetEtbQueryHandler } from '../get-etb/get-etb.handler';
 import { GetEtbQuery } from '../get-etb/get-etb.query';
 import { InMemoryEtbRepository } from '../../__tests__/in-memory-etb.repository';
@@ -33,10 +34,21 @@ jest.mock('@paralleldrive/cuid2', () => ({
 describe('GetEtbQueryHandler', () => {
   let handler: GetEtbQueryHandler;
   let repository: InMemoryEtbRepository;
+  let mockPrismaService: {
+    erinnerung: {
+      findMany: jest.Mock;
+    };
+  };
 
   beforeEach(() => {
     repository = new InMemoryEtbRepository();
-    handler = new GetEtbQueryHandler(repository);
+    mockPrismaService = {
+      erinnerung: {
+        findMany: jest.fn().mockResolvedValue([]),
+      },
+    };
+    // Handler braucht PrismaService für Story 5.4 (linked Erinnerungen)
+    handler = new GetEtbQueryHandler(repository, mockPrismaService as unknown as PrismaService);
   });
 
   afterEach(() => {

@@ -169,6 +169,12 @@ model User {
   previouslyAssignedErinnerungen Erinnerung[] @relation("ErinnerungPreviousAssignee") // Story 4.5
   updatedErinnerungKonfiguration ErinnerungKonfiguration[] @relation("ErinnerungKonfigurationUpdater") // Story 4.3: Konfigurations-Update Audit Trail
 
+  // ========================================
+  // Erinnerungsvorlagen Relations (Story 6.1)
+  // ========================================
+  createdErinnerungsvorlagen  Erinnerungsvorlage[] @relation("ErinnerungsvorlageCreator")
+  deletedErinnerungsvorlagen  Erinnerungsvorlage[] @relation("ErinnerungsvorlageDeleter")
+
   // Indexes
   @@index([username], map: "idx_user_username")
   @@index([role, isActive], map: "idx_user_role_active")
@@ -305,7 +311,6 @@ enum EtbKategorie {
   DOKUMENTATION // Dokumentarische Einträge (Screenshots, Fotos, Anhänge)
   SONSTIGES // Sonstige Einträge
   SYSTEM // Systemeinträge (automatisch)
-  ERINNERUNG // Erinnerungseinträge (automatisch aus Erinnerungs-Events)
 }
 
 // ETB Eintrag Model (n:1 mit Einsatztagebuch)
@@ -1409,4 +1414,33 @@ model ErinnerungKonfiguration {
   updater User @relation("ErinnerungKonfigurationUpdater", fields: [updatedBy], references: [id], onDelete: Restrict)
 
   @@map("erinnerung_konfiguration")
+}
+
+// ========================================
+// Erinnerungsvorlagen (Story 6.1)
+// ========================================
+
+model Erinnerungsvorlage {
+  id            String    @id @default(cuid())
+  titel         String    @db.VarChar(100)
+  beschreibung  String?   @db.VarChar(500)
+  minuten       Int       // Zeitdauer in Minuten (relativ)
+
+  // Audit Trail
+  createdBy     String    @db.VarChar(100)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Soft-Delete (Story 6.2)
+  isDeleted     Boolean   @default(false)
+  deletedAt     DateTime?
+  deletedBy     String?   @db.VarChar(100)
+
+  // Relations
+  creator       User      @relation("ErinnerungsvorlageCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  deleter       User?     @relation("ErinnerungsvorlageDeleter", fields: [deletedBy], references: [id], onDelete: Restrict)
+
+  @@index([isDeleted])
+  @@index([createdBy])
+  @@map("erinnerungsvorlagen")
 }

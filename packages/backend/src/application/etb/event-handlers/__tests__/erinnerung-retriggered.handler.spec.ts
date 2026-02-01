@@ -306,7 +306,7 @@ describe('ErinnerungRetriggeredEventHandler', () => {
   });
 
   describe('ETB Command Properties', () => {
-    it('should set kategorie to ERINNERUNG for erinnerung retriggered (Story 5.1 AC2)', async () => {
+    it('should set kategorie to SYSTEM for erinnerung retriggered (Story 5.1 AC2)', async () => {
       // Given (Arrange)
       const event = createTestEvent();
 
@@ -317,7 +317,7 @@ describe('ErinnerungRetriggeredEventHandler', () => {
 
       // Then (Assert)
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      expect(receivedCommand.kategorie).toBe('ERINNERUNG');
+      expect(receivedCommand.kategorie).toBe('SYSTEM');
     });
 
     it('should pass einsatzId from event to ETB command', async () => {

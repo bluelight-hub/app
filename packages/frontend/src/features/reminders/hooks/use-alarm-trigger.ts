@@ -43,7 +43,7 @@ import { toast } from 'sonner';
 import { useTriggerErinnerung } from '../api';
 import { timerService, soundService, sendErinnerungNotification, sendIntensifiedNotification, requestNotificationPermission, intensificationService } from '../services';
 import { type IntensityLevel, setAudioFailed } from '../stores/intensification.store';
-import { showFloatingPill, hideFloatingPill } from '../stores/floating-pill.store';
+import { showErinnerungAlarmToast, hideErinnerungAlarmToast } from '../ui/atoms/ErinnerungAlarmToast';
 
 /**
  * Optionen fuer den Alarm Trigger Hook
@@ -186,14 +186,10 @@ export function useAlarmTrigger({ erinnerungen, einsatzId, enabled = true, onTri
         }
       }
 
-      // Story 2.4 AC2: FloatingPill bei urgent Level aktivieren
+      // Story 2.4 AC2: Alarm-Toast bei urgent Level aktivieren (falls noch nicht sichtbar)
       if (level === 'urgent') {
-        logger.info(`[AlarmTrigger] Story 2.4: Activating FloatingPill for: ${erinnerung.titel}`);
-        showFloatingPill(erinnerung.id, {
-          titel: erinnerung.titel,
-          // Nutze ausgeloestAm wenn vorhanden, sonst faelligAm als Fallback
-          ausgeloestAm: erinnerung.ausgeloestAm ?? erinnerung.faelligAm,
-        });
+        logger.info(`[AlarmTrigger] Story 2.4: Showing urgent alarm toast for: ${erinnerung.titel}`);
+        showErinnerungAlarmToast(erinnerung.id, currentEinsatzId, erinnerung.titel, erinnerung.ausgeloestAm ?? erinnerung.faelligAm);
       }
 
       // Callback an Consumer
@@ -250,12 +246,9 @@ export function useAlarmTrigger({ erinnerungen, einsatzId, enabled = true, onTri
         // Hinweis: Wir setzen das Flag jetzt immer, da der API-Call gleich kommt.
         setAudioFailed(erinnerung.id, true);
 
-        // FloatingPill sofort aktivieren da kein Audio
-        logger.info(`[AlarmTrigger] Story 2.8: Audio-Ausfall - Aktiviere FloatingPill sofort fuer: ${erinnerung.titel}`);
-        showFloatingPill(erinnerung.id, {
-          titel: erinnerung.titel,
-          ausgeloestAm: erinnerung.ausgeloestAm ?? erinnerung.faelligAm,
-        });
+        // Alarm-Toast sofort anzeigen da kein Audio
+        logger.info(`[AlarmTrigger] Story 2.8: Audio-Ausfall - Zeige Alarm-Toast sofort fuer: ${erinnerung.titel}`);
+        showErinnerungAlarmToast(erinnerung.id, currentEinsatzId, erinnerung.titel, erinnerung.ausgeloestAm ?? erinnerung.faelligAm);
 
         toast.error('Audio nicht verfügbar', {
           description: `${erinnerung.titel} - Bitte Lautsprecher prüfen. Der visuelle Alarm wurde verstärkt.`,
@@ -289,6 +282,10 @@ export function useAlarmTrigger({ erinnerungen, einsatzId, enabled = true, onTri
 
         logger.info(`[AlarmTrigger] Trigger sequence completed: ${erinnerung.titel}`);
 
+        // Alarm-Toast IMMER bei erfolgreichem Trigger anzeigen
+        // Zeigt visuelle Bestaetigung oben rechts dass Erinnerung ausgeloest wurde
+        showErinnerungAlarmToast(erinnerung.id, currentEinsatzId, erinnerung.titel, erinnerung.ausgeloestAm ?? erinnerung.faelligAm);
+
         // 4. Story 2.3: Intensification Timer starten
         //
         // CQ-3 Dokumentation: Wir nutzen Date.now() statt ausgeloestAm aus dem API-Response.
@@ -304,9 +301,21 @@ export function useAlarmTrigger({ erinnerungen, einsatzId, enabled = true, onTri
         callbacksRef.current.onTriggerSuccess?.(erinnerung);
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error));
+
+        // Bug Fix: Bei 409 Conflict (bereits getriggert) NICHT resetten!
+        // Das wuerde sonst eine Endlosschleife verursachen:
+        // Timer triggert -> 409 -> resetTriggered -> Timer triggert erneut -> 409 -> ...
+        const isConflict = (error as { response?: { status?: number } })?.response?.status === 409;
+
+        if (isConflict) {
+          logger.debug(`[AlarmTrigger] Erinnerung bereits getriggert (409 Conflict): ${erinnerung.id}`);
+          // Kein Reset, kein Error-Callback - die Erinnerung ist bereits korrekt verarbeitet
+          return;
+        }
+
         logger.error(`[AlarmTrigger] API trigger failed: ${erinnerung.id}`, error);
 
-        // Bug Fix: Bei API-Fehler die Erinnerung aus triggeredIds entfernen,
+        // Bug Fix: Bei API-Fehler (ausser 409) die Erinnerung aus triggeredIds entfernen,
         // damit sie beim naechsten Check erneut getriggert werden kann.
         // Ohne diesen Reset bleibt die Erinnerung "stuck" im GEPLANT Status.
         timerService.resetTriggered(erinnerung.id);
@@ -373,7 +382,7 @@ export function useAlarmTrigger({ erinnerungen, einsatzId, enabled = true, onTri
         intensificationService.stopTimer(erinnerung.id);
 
         // Story 2.4 AC5: FloatingPill ebenfalls entfernen
-        hideFloatingPill(erinnerung.id);
+        hideErinnerungAlarmToast(erinnerung.id);
       }
     }
   }, [erinnerungen]);
@@ -386,6 +395,30 @@ export function useAlarmTrigger({ erinnerungen, einsatzId, enabled = true, onTri
       });
     }
   }, [enabled]);
+
+  // Beim Laden: Toasts fuer bereits ausgeloeste Erinnerungen anzeigen (ohne WebSocket)
+  // Das ist wichtig wenn der User die App neu laedt oder sich einloggt und
+  // es bereits AUSGELOEST-Erinnerungen gibt die noch nicht acknowledged wurden.
+  const hasShownInitialToastsRef = useRef(false);
+  useEffect(() => {
+    // Nur einmal ausfuehren wenn enabled und Erinnerungen geladen
+    if (!enabled || hasShownInitialToastsRef.current || erinnerungen.length === 0) {
+      return;
+    }
+
+    const currentEinsatzId = einsatzIdRef.current;
+    const ausgeloesteErinnerungen = erinnerungen.filter((e) => e.status === 'AUSGELOEST' || e.status === 'ESKALIERT');
+
+    if (ausgeloesteErinnerungen.length > 0) {
+      logger.info(`[AlarmTrigger] Zeige ${ausgeloesteErinnerungen.length} bestehende Alarm-Toasts beim Laden`);
+
+      for (const erinnerung of ausgeloesteErinnerungen) {
+        showErinnerungAlarmToast(erinnerung.id, currentEinsatzId, erinnerung.titel, erinnerung.ausgeloestAm ?? erinnerung.faelligAm);
+      }
+    }
+
+    hasShownInitialToastsRef.current = true;
+  }, [enabled, erinnerungen]);
 
   return {
     /**
@@ -423,7 +456,7 @@ export function useAlarmTrigger({ erinnerungen, einsatzId, enabled = true, onTri
       // Story 2.3 AC4: Intensification Timer stoppen bei Snooze
       intensificationService.stopTimer(erinnerungId);
       // Story 2.4 AC4: FloatingPill entfernen
-      hideFloatingPill(erinnerungId);
+      hideErinnerungAlarmToast(erinnerungId);
     },
 
     /**
@@ -435,7 +468,7 @@ export function useAlarmTrigger({ erinnerungen, einsatzId, enabled = true, onTri
     stopIntensification: (erinnerungId: string) => {
       intensificationService.stopTimer(erinnerungId);
       // Story 2.4 AC4: FloatingPill entfernen
-      hideFloatingPill(erinnerungId);
+      hideErinnerungAlarmToast(erinnerungId);
     },
   };
 }

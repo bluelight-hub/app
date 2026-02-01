@@ -41,8 +41,12 @@ export function EtbEntryDetails({ entry, getUserName, etbId, onEntryClick }: Etb
   // Sanitize URL (XSS prevention)
   const sanitizedUrl = screenshotUrl ? encodeURI(screenshotUrl) : null;
 
-  // Story 5.5: Erinnerungs-ID aus Metadata extrahieren
-  const erinnerungId = entry.metadata && typeof entry.metadata === 'object' && 'erinnerungId' in entry.metadata && typeof entry.metadata.erinnerungId === 'string' ? entry.metadata.erinnerungId : null;
+  // Story 5.5: linkedErinnerung extrahieren - Timeline nur fuer Original-Eintrag (aus dem Erinnerung erstellt wurde)
+  // NICHT metadata.erinnerungId verwenden, da das in ALLEN automatischen Eintraegen vorhanden ist
+  const linkedErinnerung =
+    entry.linkedErinnerung && typeof entry.linkedErinnerung === 'object' && 'id' in entry.linkedErinnerung && typeof entry.linkedErinnerung.id === 'string' && entry.linkedErinnerung.id !== ''
+      ? (entry.linkedErinnerung as { id: string; titel: string })
+      : null;
 
   const updatedAtDate = entry.updatedAt ? new Date(entry.updatedAt) : null;
   const updatedAtDisplay = updatedAtDate && isValid(updatedAtDate) ? format(updatedAtDate, 'HH:mm', { locale: de }) : null;
@@ -80,8 +84,8 @@ export function EtbEntryDetails({ entry, getUserName, etbId, onEntryClick }: Etb
       {/* Lightbox Modal */}
       {sanitizedUrl && <ScreenshotLightbox isOpen={lightboxOpen} onClose={() => setLightboxOpen(false)} screenshotUrl={screenshotUrl} title="Lagekarten-Screenshot" />}
 
-      {/* Story 5.5: Erinnerung Timeline Widget */}
-      {erinnerungId && etbId && <ErinnerungTimelineWidget etbId={etbId} erinnerungId={erinnerungId} onEntryClick={onEntryClick} />}
+      {/* Story 5.5: Erinnerung Timeline Widget - nur im Original-Eintrag anzeigen */}
+      {linkedErinnerung && etbId && <ErinnerungTimelineWidget etbId={etbId} erinnerungId={linkedErinnerung.id} onEntryClick={onEntryClick} />}
 
       {/* Meta-Informationen */}
       <div className="grid grid-cols-2 gap-4 text-xs md:grid-cols-3">

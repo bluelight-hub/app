@@ -44,6 +44,9 @@
         "useSortedClasses": "on",
         "noShadow": "on"
       },
+      "style": {
+        "useImportType": "off"
+      },
       "complexity": {
         "noStaticOnlyClass": "off"
       }

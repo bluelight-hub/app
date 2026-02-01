@@ -20,6 +20,7 @@ import {
   EinsatzPersonenApi,
   EinsatzTeilnehmerApi,
   ErinnerungenApi,
+  ErinnerungsvorlagenApi,
   ETBApi,
   GeocodingApi,
   HealthApi,
@@ -113,6 +114,7 @@ class BackendApi {
   private readonly adminIntegrationsHiorgApi: AdminIntegrationsHiorgApi;
   private readonly einsatzTeilnehmerApi: EinsatzTeilnehmerApi;
   private readonly erinnerungenApi: ErinnerungenApi;
+  private readonly erinnerungsvorlagenApi: ErinnerungsvorlagenApi;
 
   /**
    * Erstellt eine neue Instanz der BackendApi-Klasse
@@ -155,6 +157,7 @@ class BackendApi {
     this.adminIntegrationsHiorgApi = new AdminIntegrationsHiorgApi(this.configuration);
     this.einsatzTeilnehmerApi = new EinsatzTeilnehmerApi(this.configuration);
     this.erinnerungenApi = new ErinnerungenApi(this.configuration);
+    this.erinnerungsvorlagenApi = new ErinnerungsvorlagenApi(this.configuration);
   }
 
   /**
@@ -380,6 +383,15 @@ class BackendApi {
    */
   erinnerungen(): ErinnerungenApi {
     return this.erinnerungenApi;
+  }
+
+  /**
+   * Gibt die gecachte Erinnerungsvorlagen-API-Instanz zurück
+   *
+   * @returns Die Erinnerungsvorlagen-API-Instanz für Erinnerungsvorlagen-Management
+   */
+  erinnerungsvorlagen(): ErinnerungsvorlagenApi {
+    return this.erinnerungsvorlagenApi;
   }
 }
 

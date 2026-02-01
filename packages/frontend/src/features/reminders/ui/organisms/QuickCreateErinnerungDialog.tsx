@@ -145,6 +145,9 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
         toastMessage = `Erinnerung für ${formatTimeForToast(faelligAm)} erstellt`;
       }
 
+      // DEBUG: Logging um den Flow zu tracen
+      console.log('[QuickCreateErinnerungDialog] Creating erinnerung with fromEtb:', fromEtb, 'etbEntryId:', fromEtb?.entryId);
+
       createErinnerung(
         {
           einsatzId,
@@ -161,10 +164,14 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
         },
         {
           onSuccess: async () => {
+            console.log('[QuickCreateErinnerungDialog] Success! fromEtb:', fromEtb);
             // Story 5.4: ETB Query invalidieren fuer UI-Update wenn fromEtb gesetzt
+            // Verwende ETB_QUERY_KEYS.all statt .byEinsatz(), da byEinsatz() einen spezifischen
+            // includeDeleted-Wert im Key hat und die Invalidierung sonst nicht greift
             if (fromEtb?.entryId) {
+              console.log('[QuickCreateErinnerungDialog] Invalidating ETB queries');
               await queryClient.invalidateQueries({
-                queryKey: ETB_QUERY_KEYS.byEinsatz(einsatzId),
+                queryKey: ETB_QUERY_KEYS.all,
               });
             }
 

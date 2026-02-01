@@ -1,4 +1,20 @@
-import { BadRequestException, Body, ConflictException, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, Post, Put, UseGuards, ValidationPipe } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  ConflictException,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  InternalServerErrorException,
+  NotFoundException,
+  Param,
+  Post,
+  Put,
+  UseGuards,
+  ValidationPipe,
+} from '@nestjs/common';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiNotFoundResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
@@ -28,6 +44,9 @@ import { GetErinnerungenByEinsatzHandler } from '@/application/erinnerung/querie
 import { ERINNERUNG_ERROR_CODES } from '@/application/erinnerung/errors/erinnerung-error.codes';
 import { GetErinnerungStatistikHandler } from '@/application/erinnerung/queries/get-erinnerung-statistik/get-erinnerung-statistik.handler';
 import { GetErinnerungStatistikQuery } from '@/application/erinnerung/queries/get-erinnerung-statistik/get-erinnerung-statistik.query';
+import { GetEtbEntriesByErinnerungHandler } from '@/application/erinnerung/queries/get-etb-entries-by-erinnerung/get-etb-entries-by-erinnerung.handler';
+import { GetEtbEntriesByErinnerungQuery } from '@/application/erinnerung/queries/get-etb-entries-by-erinnerung/get-etb-entries-by-erinnerung.query';
+import { ErinnerungEtbHistoryDto } from '@/application/erinnerung/dto/erinnerung-etb-history.dto';
 
 /**
  * Controller für Erinnerungen innerhalb eines Einsatzes.
@@ -60,6 +79,7 @@ export class ErinnerungController {
     private readonly assignHandler: AssignErinnerungHandler,
     private readonly getByEinsatzHandler: GetErinnerungenByEinsatzHandler,
     private readonly getStatistikHandler: GetErinnerungStatistikHandler,
+    private readonly getEtbHistoryHandler: GetEtbEntriesByErinnerungHandler,
   ) {}
 
   /**
@@ -132,6 +152,7 @@ export class ErinnerungController {
       throw new BadRequestException(result.error);
     }
 
+    // biome-ignore lint/style/noNonNullAssertion: Result pattern - value is guaranteed after isFailure check
     return result.value!;
   }
 
@@ -160,14 +181,6 @@ export class ErinnerungController {
     dto: CreateErinnerungDto,
     @CurrentUser() user: ValidatedUser,
   ): Promise<ErinnerungResponseDto> {
-    // DEBUG: Log received DTO to verify requiresNote
-    console.log('[DEBUG] Create Erinnerung - received DTO:', {
-      titel: dto.titel,
-      faelligAm: dto.faelligAm,
-      requiresNote: dto.requiresNote,
-      requiresNoteType: typeof dto.requiresNote,
-    });
-
     const commandResult = CreateErinnerungCommand.create({
       einsatzId,
       titel: dto.titel,
@@ -630,5 +643,45 @@ export class ErinnerungController {
     }
 
     // 204 No Content - kein Body
+  }
+
+  /**
+   * ETB-History einer Erinnerung abrufen.
+   *
+   * Gibt alle ETB-Einträge zurück, die zu dieser Erinnerung gehören.
+   * Die Einträge werden chronologisch sortiert (älteste zuerst).
+   *
+   * **Story 5.7: Bidirektionale Verknüpfung - Erinnerung zu ETB-Einträgen Query**
+   * - Zeigt alle ETB-Einträge für diese Erinnerung
+   * - Ermöglicht Audit-Trail und Nachvollziehbarkeit
+   */
+  @Get(':erinnerungId/etb-history')
+  @ApiOperation({
+    summary: 'ETB-History einer Erinnerung abrufen',
+    description: 'Gibt alle ETB-Einträge zurück, die zu dieser Erinnerung gehören. Sortiert nach Erstellungszeitpunkt (älteste zuerst).',
+  })
+  @ApiWrappedResponse(ErinnerungEtbHistoryDto, {
+    description: 'ETB-Historie dieser Erinnerung',
+  })
+  @ApiBadRequestResponse({ description: 'Ungültige ErinnerungId oder EinsatzId' })
+  @ApiNotFoundResponse({ description: 'Erinnerung nicht gefunden oder gehört nicht zu diesem Einsatz' })
+  async getEtbHistory(@Param('erinnerungId') erinnerungId: string, @Param('einsatzId') einsatzId: string): Promise<ErinnerungEtbHistoryDto> {
+    const query = new GetEtbEntriesByErinnerungQuery(erinnerungId, einsatzId);
+    const result = await this.getEtbHistoryHandler.execute(query);
+
+    if (result.isFailure) {
+      // Error Mapping: NOT_FOUND-artige Fehler → 404, DB-Fehler → 500, sonst 400
+      const notFoundErrors = ['Erinnerung nicht gefunden', 'Erinnerung gehört nicht zu diesem Einsatz', 'ETB nicht gefunden'];
+      if (notFoundErrors.includes(result.error ?? '')) {
+        throw new NotFoundException(result.error);
+      }
+      if (result.error === 'Fehler beim Laden der ETB-History') {
+        throw new InternalServerErrorException(result.error);
+      }
+      throw new BadRequestException(result.error);
+    }
+
+    // biome-ignore lint/style/noNonNullAssertion: Result pattern - value is guaranteed after isFailure check
+    return result.value!;
   }
 }

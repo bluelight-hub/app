@@ -37,6 +37,7 @@ export class AddEintragCommand {
    * @param absender - Optional: Absender des Eintrags (z.B. Funkrufname)
    * @param empfaenger - Optional: Empfänger des Eintrags (z.B. LST)
    * @param metadata - Optional: Metadaten (z.B. Screenshots)
+   * @param occurredAt - Optional: Zeitpunkt des Auftretens (Default: aktuelle Server-Zeit)
    */
   private constructor(
     public readonly etbId: string,
@@ -47,6 +48,7 @@ export class AddEintragCommand {
     public readonly absender?: string,
     public readonly empfaenger?: string,
     public readonly metadata?: Record<string, unknown>,
+    public readonly occurredAt?: Date,
   ) {}
 
   /**
@@ -63,6 +65,7 @@ export class AddEintragCommand {
    * @param absender - Optional: Absender des Eintrags (z.B. Funkrufname)
    * @param empfaenger - Optional: Empfänger des Eintrags (z.B. LST)
    * @param metadata - Optional: Metadaten (z.B. Screenshots, Anhänge)
+   * @param occurredAt - Optional: Zeitpunkt des Auftretens (Default: aktuelle Server-Zeit)
    * @returns Result mit validiertem Command oder Fehlermeldung
    */
   public static create(
@@ -74,6 +77,7 @@ export class AddEintragCommand {
     absender?: string,
     empfaenger?: string,
     metadata?: Record<string, unknown>,
+    occurredAt?: Date,
   ): Result<AddEintragCommand> {
     // Validation: etbId required
     if (!etbId || etbId.trim().length === 0) {
@@ -105,6 +109,6 @@ export class AddEintragCommand {
       return Result.fail('empfaenger cannot exceed 100 characters');
     }
 
-    return Result.ok(new AddEintragCommand(etbId, text, userId, kategorie ?? 'LAGE', einsatzId, absender, empfaenger, metadata));
+    return Result.ok(new AddEintragCommand(etbId, text, userId, kategorie ?? 'LAGE', einsatzId, absender, empfaenger, metadata, occurredAt));
   }
 }
