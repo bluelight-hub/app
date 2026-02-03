@@ -13,7 +13,12 @@
  */
 
 import * as runtime from '../runtime';
-import type { CreateErinnerungsvorlageDto, ErinnerungsvorlageControllerCreateVAlpha201Response, ErinnerungsvorlageControllerGetAllVAlpha200Response } from '../models/index';
+import type {
+  CreateErinnerungsvorlageDto,
+  ErinnerungsvorlageControllerCreateVAlpha201Response,
+  ErinnerungsvorlageControllerGetAllVAlpha200Response,
+  UpdateErinnerungsvorlageDto,
+} from '../models/index';
 import {
   CreateErinnerungsvorlageDtoFromJSON,
   CreateErinnerungsvorlageDtoToJSON,
@@ -21,10 +26,21 @@ import {
   ErinnerungsvorlageControllerCreateVAlpha201ResponseToJSON,
   ErinnerungsvorlageControllerGetAllVAlpha200ResponseFromJSON,
   ErinnerungsvorlageControllerGetAllVAlpha200ResponseToJSON,
+  UpdateErinnerungsvorlageDtoFromJSON,
+  UpdateErinnerungsvorlageDtoToJSON,
 } from '../models/index';
 
 export interface ErinnerungsvorlageControllerCreateVAlphaRequest {
   createErinnerungsvorlageDto: CreateErinnerungsvorlageDto;
+}
+
+export interface ErinnerungsvorlageControllerDeleteVAlphaRequest {
+  id: string;
+}
+
+export interface ErinnerungsvorlageControllerUpdateVAlphaRequest {
+  id: string;
+  updateErinnerungsvorlageDto: UpdateErinnerungsvorlageDto;
 }
 
 /**
@@ -74,6 +90,41 @@ export class ErinnerungsvorlagenApi extends runtime.BaseAPI {
   }
 
   /**
+   * Erinnerungsvorlage löschen (Soft-Delete)
+   */
+  async erinnerungsvorlageControllerDeleteVAlphaRaw(
+    requestParameters: ErinnerungsvorlageControllerDeleteVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<void>> {
+    if (requestParameters['id'] == null) {
+      throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling erinnerungsvorlageControllerDeleteVAlpha().');
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/erinnerungsvorlagen/{id}`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
+        method: 'DELETE',
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.VoidApiResponse(response);
+  }
+
+  /**
+   * Erinnerungsvorlage löschen (Soft-Delete)
+   */
+  async erinnerungsvorlageControllerDeleteVAlpha(requestParameters: ErinnerungsvorlageControllerDeleteVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+    await this.erinnerungsvorlageControllerDeleteVAlphaRaw(requestParameters, initOverrides);
+  }
+
+  /**
    * Alle Erinnerungsvorlagen abrufen
    */
   async erinnerungsvorlageControllerGetAllVAlphaRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ErinnerungsvorlageControllerGetAllVAlpha200Response>> {
@@ -99,6 +150,52 @@ export class ErinnerungsvorlagenApi extends runtime.BaseAPI {
    */
   async erinnerungsvorlageControllerGetAllVAlpha(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ErinnerungsvorlageControllerGetAllVAlpha200Response> {
     const response = await this.erinnerungsvorlageControllerGetAllVAlphaRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Erinnerungsvorlage aktualisieren
+   */
+  async erinnerungsvorlageControllerUpdateVAlphaRaw(
+    requestParameters: ErinnerungsvorlageControllerUpdateVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<ErinnerungsvorlageControllerCreateVAlpha201Response>> {
+    if (requestParameters['id'] == null) {
+      throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling erinnerungsvorlageControllerUpdateVAlpha().');
+    }
+
+    if (requestParameters['updateErinnerungsvorlageDto'] == null) {
+      throw new runtime.RequiredError('updateErinnerungsvorlageDto', 'Required parameter "updateErinnerungsvorlageDto" was null or undefined when calling erinnerungsvorlageControllerUpdateVAlpha().');
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/erinnerungsvorlagen/{id}`.replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
+        method: 'PATCH',
+        headers: headerParameters,
+        query: queryParameters,
+        body: UpdateErinnerungsvorlageDtoToJSON(requestParameters['updateErinnerungsvorlageDto']),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => ErinnerungsvorlageControllerCreateVAlpha201ResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Erinnerungsvorlage aktualisieren
+   */
+  async erinnerungsvorlageControllerUpdateVAlpha(
+    requestParameters: ErinnerungsvorlageControllerUpdateVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<ErinnerungsvorlageControllerCreateVAlpha201Response> {
+    const response = await this.erinnerungsvorlageControllerUpdateVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
 }

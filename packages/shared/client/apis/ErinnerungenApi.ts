@@ -22,6 +22,7 @@ import type {
   ErinnerungControllerGetStatistikVAlpha200Response,
   MarkErledigtErinnerungDto,
   SnoozeErinnerungDto,
+  StopRecurringSeriesDto,
   UpdateErinnerungDto,
 } from '../models/index';
 import {
@@ -41,6 +42,8 @@ import {
   MarkErledigtErinnerungDtoToJSON,
   SnoozeErinnerungDtoFromJSON,
   SnoozeErinnerungDtoToJSON,
+  StopRecurringSeriesDtoFromJSON,
+  StopRecurringSeriesDtoToJSON,
   UpdateErinnerungDtoFromJSON,
   UpdateErinnerungDtoToJSON,
 } from '../models/index';
@@ -89,6 +92,12 @@ export interface ErinnerungControllerSnoozeVAlphaRequest {
   einsatzId: string;
   id: string;
   snoozeErinnerungDto: SnoozeErinnerungDto;
+}
+
+export interface ErinnerungControllerStopRecurringSeriesVAlphaRequest {
+  einsatzId: string;
+  id: string;
+  stopRecurringSeriesDto: StopRecurringSeriesDto;
 }
 
 export interface ErinnerungControllerTriggerVAlphaRequest {
@@ -532,6 +541,60 @@ export class ErinnerungenApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<ErinnerungControllerCreateVAlpha201Response> {
     const response = await this.erinnerungControllerSnoozeVAlphaRaw(requestParameters, initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Stoppt eine wiederkehrende Serie. Keine weiteren Instanzen werden erstellt. Optional: Aktuelle Instanz abbrechen.
+   * Wiederkehrende Serie stoppen
+   */
+  async erinnerungControllerStopRecurringSeriesVAlphaRaw(
+    requestParameters: ErinnerungControllerStopRecurringSeriesVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<ErinnerungControllerCreateVAlpha201Response>> {
+    if (requestParameters['einsatzId'] == null) {
+      throw new runtime.RequiredError('einsatzId', 'Required parameter "einsatzId" was null or undefined when calling erinnerungControllerStopRecurringSeriesVAlpha().');
+    }
+
+    if (requestParameters['id'] == null) {
+      throw new runtime.RequiredError('id', 'Required parameter "id" was null or undefined when calling erinnerungControllerStopRecurringSeriesVAlpha().');
+    }
+
+    if (requestParameters['stopRecurringSeriesDto'] == null) {
+      throw new runtime.RequiredError('stopRecurringSeriesDto', 'Required parameter "stopRecurringSeriesDto" was null or undefined when calling erinnerungControllerStopRecurringSeriesVAlpha().');
+    }
+
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    headerParameters['Content-Type'] = 'application/json';
+
+    const response = await this.request(
+      {
+        path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/{id}/stop-recurring`
+          .replace(`{${'einsatzId'}}`, encodeURIComponent(String(requestParameters['einsatzId'])))
+          .replace(`{${'id'}}`, encodeURIComponent(String(requestParameters['id']))),
+        method: 'PATCH',
+        headers: headerParameters,
+        query: queryParameters,
+        body: StopRecurringSeriesDtoToJSON(requestParameters['stopRecurringSeriesDto']),
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) => ErinnerungControllerCreateVAlpha201ResponseFromJSON(jsonValue));
+  }
+
+  /**
+   * Stoppt eine wiederkehrende Serie. Keine weiteren Instanzen werden erstellt. Optional: Aktuelle Instanz abbrechen.
+   * Wiederkehrende Serie stoppen
+   */
+  async erinnerungControllerStopRecurringSeriesVAlpha(
+    requestParameters: ErinnerungControllerStopRecurringSeriesVAlphaRequest,
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<ErinnerungControllerCreateVAlpha201Response> {
+    const response = await this.erinnerungControllerStopRecurringSeriesVAlphaRaw(requestParameters, initOverrides);
     return await response.value();
   }
 

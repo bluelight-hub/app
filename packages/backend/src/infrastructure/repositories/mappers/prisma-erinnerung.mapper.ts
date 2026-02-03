@@ -163,6 +163,14 @@ export class PrismaErinnerungMapper {
       wurdeEskaliert: prisma.wurdeEskaliert, // Story 4.9
       eskaliertAm: prisma.eskaliertAm, // Story 4.9
       etbEntryId: prisma.etbEntryId, // Story 5.0
+      // Recurring Felder (Story 6.4)
+      isRecurring: prisma.isRecurring,
+      recurringIntervalMinutes: prisma.recurringIntervalMinutes,
+      recurringEndDate: prisma.recurringEndDate,
+      recurringMaxCount: prisma.recurringMaxCount,
+      recurringCurrentCount: prisma.recurringCurrentCount,
+      parentErinnerungId: prisma.parentErinnerungId ? ErinnerungId.create(prisma.parentErinnerungId).value : null,
+      recurringSequenceNumber: prisma.recurringSequenceNumber,
     });
   }
 
@@ -211,6 +219,14 @@ export class PrismaErinnerungMapper {
     wurdeEskaliert: boolean;
     eskaliertAm: Date | null;
     etbEntryId: string | null; // Story 5.0
+    // Recurring Felder (Story 6.4)
+    isRecurring: boolean;
+    recurringIntervalMinutes: number | null;
+    recurringEndDate: Date | null;
+    recurringMaxCount: number | null;
+    recurringCurrentCount: number;
+    parentErinnerungId: string | null;
+    recurringSequenceNumber: number | null;
   } {
     return {
       id: entity.id.toString(),
@@ -252,6 +268,14 @@ export class PrismaErinnerungMapper {
       wurdeEskaliert: entity.wurdeEskaliert,
       eskaliertAm: entity.eskaliertAm,
       etbEntryId: entity.etbEntryId, // Story 5.0
+      // Recurring Felder (Story 6.4)
+      isRecurring: entity.isRecurring,
+      recurringIntervalMinutes: entity.recurringIntervalMinutes,
+      recurringEndDate: entity.recurringEndDate,
+      recurringMaxCount: entity.recurringMaxCount,
+      recurringCurrentCount: entity.recurringCurrentCount,
+      parentErinnerungId: entity.parentErinnerungId?.toString() ?? null,
+      recurringSequenceNumber: entity.recurringSequenceNumber,
     };
   }
 

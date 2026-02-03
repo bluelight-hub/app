@@ -150,6 +150,13 @@ export class TriggerErinnerungHandler extends TransactionalCommandHandler<Trigge
       updatedAt: erinnerung.updatedAt.toISOString(),
       snoozeCount: erinnerung.snoozeCount,
       requiresNote: erinnerung.requiresNote,
+      isRecurring: erinnerung.isRecurring,
+      recurringIntervalMinutes: erinnerung.recurringIntervalMinutes ?? null,
+      recurringEndDate: erinnerung.recurringEndDate?.toISOString() ?? null,
+      recurringMaxCount: erinnerung.recurringMaxCount ?? null,
+      recurringCurrentCount: erinnerung.recurringCurrentCount,
+      parentErinnerungId: erinnerung.parentErinnerungId?.toString() ?? null,
+      recurringSequenceNumber: erinnerung.recurringSequenceNumber ?? null,
     };
 
     return {

@@ -39,10 +39,10 @@ export interface ErinnerungsvorlageResponseDto {
   minuten: number;
   /**
    * Beschreibung der Vorlage
-   * @type {object}
+   * @type {string}
    * @memberof ErinnerungsvorlageResponseDto
    */
-  beschreibung: object | null;
+  beschreibung: string | null;
   /**
    * Erstellt von (User ID)
    * @type {string}

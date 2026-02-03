@@ -67,6 +67,30 @@ export interface CreateErinnerungDto {
    * @memberof CreateErinnerungDto
    */
   etbEntryId?: string;
+  /**
+   * Ob die Erinnerung wiederkehrend ist (Story 6.4)
+   * @type {boolean}
+   * @memberof CreateErinnerungDto
+   */
+  isRecurring?: boolean;
+  /**
+   * Intervall in Minuten für wiederkehrende Erinnerungen (1-1440)
+   * @type {number}
+   * @memberof CreateErinnerungDto
+   */
+  recurringIntervalMinutes?: number;
+  /**
+   * Endzeitpunkt der wiederkehrenden Serie (ISO-8601)
+   * @type {string}
+   * @memberof CreateErinnerungDto
+   */
+  recurringEndDate?: string;
+  /**
+   * Maximale Anzahl Wiederholungen (1-100)
+   * @type {number}
+   * @memberof CreateErinnerungDto
+   */
+  recurringMaxCount?: number;
 }
 
 /**
@@ -95,6 +119,10 @@ export function CreateErinnerungDtoFromJSONTyped(json: any, ignoreDiscriminator:
     eskalationsPersonId: json['eskalationsPersonId'] == null ? undefined : json['eskalationsPersonId'],
     eskalationNurAnErsteller: json['eskalationNurAnErsteller'] == null ? undefined : json['eskalationNurAnErsteller'],
     etbEntryId: json['etbEntryId'] == null ? undefined : json['etbEntryId'],
+    isRecurring: json['isRecurring'] == null ? undefined : json['isRecurring'],
+    recurringIntervalMinutes: json['recurringIntervalMinutes'] == null ? undefined : json['recurringIntervalMinutes'],
+    recurringEndDate: json['recurringEndDate'] == null ? undefined : json['recurringEndDate'],
+    recurringMaxCount: json['recurringMaxCount'] == null ? undefined : json['recurringMaxCount'],
   };
 }
 
@@ -116,5 +144,9 @@ export function CreateErinnerungDtoToJSONTyped(value?: CreateErinnerungDto | nul
     eskalationsPersonId: value['eskalationsPersonId'],
     eskalationNurAnErsteller: value['eskalationNurAnErsteller'],
     etbEntryId: value['etbEntryId'],
+    isRecurring: value['isRecurring'],
+    recurringIntervalMinutes: value['recurringIntervalMinutes'],
+    recurringEndDate: value['recurringEndDate'],
+    recurringMaxCount: value['recurringMaxCount'],
   };
 }

@@ -4,6 +4,8 @@ import { OutboxModule } from '@/infrastructure/outbox/outbox.module';
 import { ErinnerungsvorlageController } from './controllers/erinnerungsvorlage.controller';
 import { PrismaErinnerungsvorlageRepository } from '@/infrastructure/repositories/prisma-erinnerungsvorlage.repository';
 import { CreateErinnerungsvorlageHandler } from '@/application/erinnerungsvorlage/commands/create-erinnerungsvorlage/create-erinnerungsvorlage.handler';
+import { UpdateErinnerungsvorlageHandler } from '@/application/erinnerungsvorlage/commands/update-erinnerungsvorlage/update-erinnerungsvorlage.handler';
+import { DeleteErinnerungsvorlageHandler } from '@/application/erinnerungsvorlage/commands/delete-erinnerungsvorlage/delete-erinnerungsvorlage.handler';
 import { GetAllVorlagenHandler } from '@/application/erinnerungsvorlage/queries/get-all-vorlagen/get-all-vorlagen.handler';
 import { ErinnerungsvorlageResponseFactory } from '@/application/erinnerungsvorlage/dto/erinnerungsvorlage-response.factory';
 import { ERINNERUNGSVORLAGE_REPOSITORY } from '@infrastructure/di-tokens';
@@ -21,9 +23,11 @@ import { ERINNERUNGSVORLAGE_REPOSITORY } from '@infrastructure/di-tokens';
       useClass: PrismaErinnerungsvorlageRepository,
     },
     CreateErinnerungsvorlageHandler,
+    UpdateErinnerungsvorlageHandler,
+    DeleteErinnerungsvorlageHandler,
     GetAllVorlagenHandler,
     ErinnerungsvorlageResponseFactory,
   ],
-  exports: [ERINNERUNGSVORLAGE_REPOSITORY, CreateErinnerungsvorlageHandler, GetAllVorlagenHandler],
+  exports: [ERINNERUNGSVORLAGE_REPOSITORY, CreateErinnerungsvorlageHandler, UpdateErinnerungsvorlageHandler, DeleteErinnerungsvorlageHandler, GetAllVorlagenHandler],
 })
 export class ErinnerungsvorlageModule {}

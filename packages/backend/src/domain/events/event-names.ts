@@ -162,6 +162,10 @@ export const EVENT_NAMES = {
     ASSIGNED: 'erinnerung.assigned',
     /** Event: Erinnerung wurde intensiviert (Dauerton nach Timeout ohne Eskalationsperson) (Story 4.4) */
     INTENSIVIERT: 'erinnerung.intensiviert',
+    /** Event: Neue wiederkehrende Instanz wurde erstellt (Story 6.4) */
+    WIEDERKEHRENDE_INSTANZ_ERSTELLT: 'erinnerung.wiederkehrende-instanz-erstellt',
+    /** Event: Wiederkehrende Serie wurde gestoppt (Story 6.5) */
+    SERIE_GESTOPPT: 'erinnerung.serie-gestoppt',
   },
 
   /**
@@ -170,6 +174,20 @@ export const EVENT_NAMES = {
   ERINNERUNGSVORLAGE: {
     /** Event: Neue Erinnerungsvorlage wurde erstellt */
     ERSTELLT: 'erinnerungsvorlage.erstellt',
+    /** Event: Erinnerungsvorlage wurde aktualisiert (Story 6.2) */
+    AKTUALISIERT: 'erinnerungsvorlage.aktualisiert',
+    /** Event: Erinnerungsvorlage wurde geloescht (Story 6.2) */
+    GELOESCHT: 'erinnerungsvorlage.geloescht',
+  },
+
+  /**
+   * Fuehrungsrhythmus-Template Bounded Context Events (Story 6.6)
+   */
+  FUEHRUNGSRHYTHMUS_TEMPLATE: {
+    /** Event: Neues Fuehrungsrhythmus-Template wurde erstellt */
+    ERSTELLT: 'fuehrungsrhythmus-template.erstellt',
+    /** Event: Fuehrungsrhythmus-Template wurde geloescht */
+    GELOESCHT: 'fuehrungsrhythmus-template.geloescht',
   },
 } as const;
 
@@ -195,4 +213,5 @@ export type EventName =
   | (typeof EVENT_NAMES.INVITE_CODE)[keyof typeof EVENT_NAMES.INVITE_CODE]
   | (typeof EVENT_NAMES.SERVER_CONFIG)[keyof typeof EVENT_NAMES.SERVER_CONFIG]
   | (typeof EVENT_NAMES.ERINNERUNG)[keyof typeof EVENT_NAMES.ERINNERUNG]
-  | (typeof EVENT_NAMES.ERINNERUNGSVORLAGE)[keyof typeof EVENT_NAMES.ERINNERUNGSVORLAGE];
+  | (typeof EVENT_NAMES.ERINNERUNGSVORLAGE)[keyof typeof EVENT_NAMES.ERINNERUNGSVORLAGE]
+  | (typeof EVENT_NAMES.FUEHRUNGSRHYTHMUS_TEMPLATE)[keyof typeof EVENT_NAMES.FUEHRUNGSRHYTHMUS_TEMPLATE];

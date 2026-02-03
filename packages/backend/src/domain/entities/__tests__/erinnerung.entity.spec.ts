@@ -30,6 +30,7 @@ import { ErinnerungRetriggeredEvent } from '@domain/events/erinnerung-retriggere
 import { ErinnerungErledigtEvent } from '@domain/events/erinnerung-erledigt.event';
 import { ErinnerungEskaliertEvent } from '@domain/events/erinnerung-eskaliert.event';
 import { ErinnerungIntensiviertEvent } from '@domain/events/erinnerung-intensiviert.event';
+import { ErinnerungSerieGestopptEvent } from '@domain/events/erinnerung-serie-gestoppt.event';
 
 describe('Erinnerung Entity', () => {
   let testEinsatzId: EinsatzId;
@@ -56,7 +57,20 @@ describe('Erinnerung Entity', () => {
   }
 
   // Helper: Create Erinnerung with specific status
-  function createErinnerungWithStatus(status: ErinnerungStatus, overrides?: { requiresNote?: boolean; assignedToId?: UserId }): Erinnerung {
+  function createErinnerungWithStatus(
+    status: ErinnerungStatus,
+    overrides?: {
+      requiresNote?: boolean;
+      assignedToId?: UserId;
+      isRecurring?: boolean;
+      recurringIntervalMinutes?: number;
+      recurringEndDate?: Date;
+      recurringMaxCount?: number;
+      recurringCurrentCount?: number;
+      parentErinnerungId?: ErinnerungId;
+      recurringSequenceNumber?: number | null;
+    },
+  ): Erinnerung {
     const id = ErinnerungId.create().value!;
     const titel = ErinnerungTitel.create('Test').value!;
     return Erinnerung.reconstruct({
@@ -71,6 +85,13 @@ describe('Erinnerung Entity', () => {
       updatedAt: new Date(),
       requiresNote: overrides?.requiresNote ?? false,
       assignedToId: overrides?.assignedToId ?? null,
+      isRecurring: overrides?.isRecurring ?? false,
+      recurringIntervalMinutes: overrides?.recurringIntervalMinutes ?? null,
+      recurringEndDate: overrides?.recurringEndDate ?? null,
+      recurringMaxCount: overrides?.recurringMaxCount ?? null,
+      recurringCurrentCount: overrides?.recurringCurrentCount ?? 0,
+      parentErinnerungId: overrides?.parentErinnerungId ?? null,
+      recurringSequenceNumber: overrides?.recurringSequenceNumber ?? null,
     });
   }
 
@@ -412,7 +433,7 @@ describe('Erinnerung Entity', () => {
         expect(erinnerung.isDeleted).toBe(true);
       });
 
-      it('sollte Delete verweigern wenn Status ACKNOWLEDGED ist', () => {
+      it('sollte Delete erlauben wenn Status ACKNOWLEDGED ist (Story 6.5 AC2)', () => {
         // Given
         const erinnerung = createErinnerungWithStatus(ErinnerungStatus.ACKNOWLEDGED());
 
@@ -420,12 +441,11 @@ describe('Erinnerung Entity', () => {
         const result = erinnerung.delete(testUserId);
 
         // Then
-        expect(result.isFailure).toBe(true);
-        expect(result.error).toBe('ERINNERUNG_NOT_DELETABLE');
-        expect(erinnerung.isDeleted).toBe(false);
+        expect(result.isSuccess).toBe(true);
+        expect(erinnerung.isDeleted).toBe(true);
       });
 
-      it('sollte Delete verweigern wenn Status SNOOZED ist', () => {
+      it('sollte Delete erlauben wenn Status SNOOZED ist (Story 6.5 AC2)', () => {
         // Given
         const erinnerung = createErinnerungWithStatus(ErinnerungStatus.SNOOZED());
 
@@ -433,11 +453,11 @@ describe('Erinnerung Entity', () => {
         const result = erinnerung.delete(testUserId);
 
         // Then
-        expect(result.isFailure).toBe(true);
-        expect(result.error).toBe('ERINNERUNG_NOT_DELETABLE');
+        expect(result.isSuccess).toBe(true);
+        expect(erinnerung.isDeleted).toBe(true);
       });
 
-      it('sollte Delete verweigern wenn Status ESKALIERT ist', () => {
+      it('sollte Delete erlauben wenn Status ESKALIERT ist (Story 6.5 AC2)', () => {
         // Given
         const erinnerung = createErinnerungWithStatus(ErinnerungStatus.ESKALIERT());
 
@@ -445,8 +465,8 @@ describe('Erinnerung Entity', () => {
         const result = erinnerung.delete(testUserId);
 
         // Then
-        expect(result.isFailure).toBe(true);
-        expect(result.error).toBe('ERINNERUNG_NOT_DELETABLE');
+        expect(result.isSuccess).toBe(true);
+        expect(erinnerung.isDeleted).toBe(true);
       });
 
       it('sollte Delete verweigern wenn Status ERLEDIGT ist', () => {
@@ -2209,6 +2229,446 @@ describe('Erinnerung Entity', () => {
 
       // Then
       expect(erinnerung.etbEntryId).toBeNull();
+    });
+  });
+
+  // ============================================================
+  // Story 6.4: Recurring (Wiederkehrende Erinnerungen)
+  // ============================================================
+
+  describe('Recurring - Wiederkehrende Erinnerungen (Story 6.4)', () => {
+    // Standard-Props für wiederkehrende Tests
+    const defaultProps = {
+      get einsatzId() {
+        return testEinsatzId;
+      },
+      titel: 'Test Erinnerung',
+      get faelligAm() {
+        return new Date(Date.now() + 60 * 60 * 1000);
+      },
+      get erstelltVon() {
+        return testUserId;
+      },
+    };
+
+    describe('create() mit recurring Props', () => {
+      it('sollte eine wiederkehrende Erinnerung erstellen', () => {
+        const result = Erinnerung.create({
+          ...defaultProps,
+          isRecurring: true,
+          recurringIntervalMinutes: 30,
+        });
+
+        expect(result.isSuccess).toBe(true);
+        expect(result.value!.isRecurring).toBe(true);
+        expect(result.value!.recurringIntervalMinutes).toBe(30);
+        expect(result.value!.recurringCurrentCount).toBe(0);
+        expect(result.value!.parentErinnerungId).toBeNull();
+        expect(result.value!.recurringSequenceNumber).toBeNull();
+      });
+
+      it('sollte eine wiederkehrende Erinnerung mit maxCount erstellen', () => {
+        const result = Erinnerung.create({
+          ...defaultProps,
+          isRecurring: true,
+          recurringIntervalMinutes: 15,
+          recurringMaxCount: 5,
+        });
+
+        expect(result.isSuccess).toBe(true);
+        expect(result.value!.recurringMaxCount).toBe(5);
+      });
+
+      it('sollte eine wiederkehrende Erinnerung mit endDate erstellen', () => {
+        const endDate = new Date(Date.now() + 24 * 60 * 60 * 1000); // morgen
+        const result = Erinnerung.create({
+          ...defaultProps,
+          isRecurring: true,
+          recurringIntervalMinutes: 60,
+          recurringEndDate: endDate,
+        });
+
+        expect(result.isSuccess).toBe(true);
+        expect(result.value!.recurringEndDate).toEqual(endDate);
+      });
+
+      it('sollte fehlschlagen wenn isRecurring=true ohne Intervall', () => {
+        const result = Erinnerung.create({
+          ...defaultProps,
+          isRecurring: true,
+        });
+
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('ERINNERUNG_RECURRING_INTERVAL_INVALID');
+      });
+
+      it('sollte fehlschlagen wenn Intervall < 1', () => {
+        const result = Erinnerung.create({
+          ...defaultProps,
+          isRecurring: true,
+          recurringIntervalMinutes: 0,
+        });
+
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('ERINNERUNG_RECURRING_INTERVAL_INVALID');
+      });
+
+      it('sollte fehlschlagen wenn Intervall > 1440', () => {
+        const result = Erinnerung.create({
+          ...defaultProps,
+          isRecurring: true,
+          recurringIntervalMinutes: 1441,
+        });
+
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('ERINNERUNG_RECURRING_INTERVAL_INVALID');
+      });
+
+      it('sollte fehlschlagen wenn maxCount < 1', () => {
+        const result = Erinnerung.create({
+          ...defaultProps,
+          isRecurring: true,
+          recurringIntervalMinutes: 30,
+          recurringMaxCount: 0,
+        });
+
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('ERINNERUNG_RECURRING_MAX_COUNT_INVALID');
+      });
+
+      it('sollte fehlschlagen wenn maxCount > 100', () => {
+        const result = Erinnerung.create({
+          ...defaultProps,
+          isRecurring: true,
+          recurringIntervalMinutes: 30,
+          recurringMaxCount: 101,
+        });
+
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('ERINNERUNG_RECURRING_MAX_COUNT_INVALID');
+      });
+
+      it('sollte fehlschlagen wenn endDate in der Vergangenheit', () => {
+        const pastDate = new Date(Date.now() - 1000);
+        const result = Erinnerung.create({
+          ...defaultProps,
+          isRecurring: true,
+          recurringIntervalMinutes: 30,
+          recurringEndDate: pastDate,
+        });
+
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toContain('ERINNERUNG_RECURRING_END_DATE_IN_PAST');
+      });
+
+      it('sollte nicht-wiederkehrende Erinnerung mit isRecurring=false erstellen', () => {
+        const result = Erinnerung.create({
+          ...defaultProps,
+          isRecurring: false,
+        });
+
+        expect(result.isSuccess).toBe(true);
+        expect(result.value!.isRecurring).toBe(false);
+        expect(result.value!.recurringIntervalMinutes).toBeNull();
+      });
+
+      it('sollte Recurring-Felder ignorieren wenn isRecurring=false', () => {
+        const result = Erinnerung.create({
+          ...defaultProps,
+          isRecurring: false,
+          recurringIntervalMinutes: 30,
+        });
+
+        expect(result.isSuccess).toBe(true);
+        expect(result.value!.isRecurring).toBe(false);
+        expect(result.value!.recurringIntervalMinutes).toBeNull();
+      });
+    });
+
+    describe('shouldCreateNextOccurrence()', () => {
+      it('sollte true zurückgeben für wiederkehrende ohne Limit', () => {
+        const erinnerung = createErinnerungWithStatus(ErinnerungStatus.GEPLANT(), {
+          isRecurring: true,
+          recurringIntervalMinutes: 30,
+          recurringCurrentCount: 0,
+        });
+
+        expect(erinnerung.shouldCreateNextOccurrence()).toBe(true);
+      });
+
+      it('sollte false zurückgeben für nicht-wiederkehrende', () => {
+        const erinnerung = createErinnerungWithStatus(ErinnerungStatus.GEPLANT());
+
+        expect(erinnerung.shouldCreateNextOccurrence()).toBe(false);
+      });
+
+      it('sollte false zurückgeben wenn maxCount erreicht', () => {
+        const erinnerung = createErinnerungWithStatus(ErinnerungStatus.GEPLANT(), {
+          isRecurring: true,
+          recurringIntervalMinutes: 30,
+          recurringMaxCount: 5,
+          recurringCurrentCount: 5,
+        });
+
+        expect(erinnerung.shouldCreateNextOccurrence()).toBe(false);
+      });
+
+      it('sollte true zurückgeben wenn maxCount noch nicht erreicht', () => {
+        const erinnerung = createErinnerungWithStatus(ErinnerungStatus.GEPLANT(), {
+          isRecurring: true,
+          recurringIntervalMinutes: 30,
+          recurringMaxCount: 5,
+          recurringCurrentCount: 3,
+        });
+
+        expect(erinnerung.shouldCreateNextOccurrence()).toBe(true);
+      });
+
+      it('sollte false zurückgeben wenn endDate überschritten', () => {
+        const pastEndDate = new Date(Date.now() - 1000);
+        const erinnerung = createErinnerungWithStatus(ErinnerungStatus.GEPLANT(), {
+          isRecurring: true,
+          recurringIntervalMinutes: 30,
+          recurringEndDate: pastEndDate,
+        });
+
+        expect(erinnerung.shouldCreateNextOccurrence()).toBe(false);
+      });
+
+      it('sollte true zurückgeben wenn endDate noch nicht erreicht', () => {
+        const futureEndDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        const erinnerung = createErinnerungWithStatus(ErinnerungStatus.GEPLANT(), {
+          isRecurring: true,
+          recurringIntervalMinutes: 30,
+          recurringEndDate: futureEndDate,
+        });
+
+        expect(erinnerung.shouldCreateNextOccurrence()).toBe(true);
+      });
+    });
+
+    describe('calculateNextDueDate()', () => {
+      it('sollte jetzt + Intervall zurückgeben', () => {
+        const erinnerung = createErinnerungWithStatus(ErinnerungStatus.GEPLANT(), {
+          isRecurring: true,
+          recurringIntervalMinutes: 30,
+        });
+
+        const before = Date.now();
+        const nextDueDate = erinnerung.calculateNextDueDate();
+        const after = Date.now();
+
+        expect(nextDueDate.getTime()).toBeGreaterThanOrEqual(before + 30 * 60 * 1000);
+        expect(nextDueDate.getTime()).toBeLessThanOrEqual(after + 30 * 60 * 1000);
+      });
+
+      it('sollte Error werfen wenn kein Intervall gesetzt', () => {
+        const erinnerung = createErinnerungWithStatus(ErinnerungStatus.GEPLANT());
+
+        expect(() => erinnerung.calculateNextDueDate()).toThrow('Cannot calculate next due date without interval');
+      });
+    });
+
+    describe('getNextOccurrenceProps()', () => {
+      it('sollte Props für nächste Instanz zurückgeben', () => {
+        const erinnerung = createErinnerungWithStatus(ErinnerungStatus.GEPLANT(), {
+          isRecurring: true,
+          recurringIntervalMinutes: 30,
+          recurringCurrentCount: 0,
+          recurringSequenceNumber: null,
+        });
+
+        const props = erinnerung.getNextOccurrenceProps();
+
+        expect(props).not.toBeNull();
+        expect(props!.isRecurring).toBe(false);
+        expect(props!.parentErinnerungId).toBeDefined();
+        expect(props!.recurringSequenceNumber).toBe(1);
+        expect(props!.titel).toBe(erinnerung.titel.value);
+      });
+
+      it('sollte requiresNote vom Parent erben', () => {
+        const erinnerung = createErinnerungWithStatus(ErinnerungStatus.GEPLANT(), {
+          isRecurring: true,
+          recurringIntervalMinutes: 30,
+          requiresNote: true,
+        });
+
+        const props = erinnerung.getNextOccurrenceProps();
+        expect(props!.requiresNote).toBe(true);
+      });
+
+      it('sollte null zurückgeben wenn keine Wiederholung nötig', () => {
+        const erinnerung = createErinnerungWithStatus(ErinnerungStatus.GEPLANT(), {
+          isRecurring: true,
+          recurringIntervalMinutes: 30,
+          recurringMaxCount: 3,
+          recurringCurrentCount: 3,
+        });
+
+        expect(erinnerung.getNextOccurrenceProps()).toBeNull();
+      });
+
+      it('sollte sequenceNumber inkrementieren', () => {
+        const erinnerung = createErinnerungWithStatus(ErinnerungStatus.GEPLANT(), {
+          isRecurring: true,
+          recurringIntervalMinutes: 30,
+          recurringSequenceNumber: 3,
+        });
+
+        const props = erinnerung.getNextOccurrenceProps();
+        expect(props!.recurringSequenceNumber).toBe(4);
+      });
+    });
+
+    describe('incrementOccurrenceCount()', () => {
+      it('sollte den Counter um 1 erhöhen', () => {
+        const erinnerung = createErinnerungWithStatus(ErinnerungStatus.GEPLANT(), {
+          isRecurring: true,
+          recurringIntervalMinutes: 30,
+          recurringCurrentCount: 2,
+        });
+
+        erinnerung.incrementOccurrenceCount();
+        expect(erinnerung.recurringCurrentCount).toBe(3);
+      });
+    });
+
+    describe('reconstruct() mit recurring Feldern', () => {
+      it('sollte alle Recurring-Felder korrekt rekonstruieren', () => {
+        const endDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        const parentId = ErinnerungId.create().value!;
+
+        const erinnerung = createErinnerungWithStatus(ErinnerungStatus.GEPLANT(), {
+          isRecurring: true,
+          recurringIntervalMinutes: 45,
+          recurringEndDate: endDate,
+          recurringMaxCount: 10,
+          recurringCurrentCount: 3,
+          parentErinnerungId: parentId,
+          recurringSequenceNumber: 3,
+        });
+
+        expect(erinnerung.isRecurring).toBe(true);
+        expect(erinnerung.recurringIntervalMinutes).toBe(45);
+        expect(erinnerung.recurringEndDate).toEqual(endDate);
+        expect(erinnerung.recurringMaxCount).toBe(10);
+        expect(erinnerung.recurringCurrentCount).toBe(3);
+        expect(erinnerung.parentErinnerungId?.toString()).toBe(parentId.toString());
+        expect(erinnerung.recurringSequenceNumber).toBe(3);
+      });
+
+      it('sollte Defaults für fehlende Recurring-Felder setzen', () => {
+        const erinnerung = createErinnerungWithStatus(ErinnerungStatus.GEPLANT());
+
+        expect(erinnerung.isRecurring).toBe(false);
+        expect(erinnerung.recurringIntervalMinutes).toBeNull();
+        expect(erinnerung.recurringEndDate).toBeNull();
+        expect(erinnerung.recurringMaxCount).toBeNull();
+        expect(erinnerung.recurringCurrentCount).toBe(0);
+        expect(erinnerung.parentErinnerungId).toBeNull();
+        expect(erinnerung.recurringSequenceNumber).toBeNull();
+      });
+    });
+
+    describe('stopRecurringSeries() (Story 6.5)', () => {
+      it('sollte eine wiederkehrende Serie stoppen', () => {
+        const erinnerung = createErinnerungWithStatus(ErinnerungStatus.GEPLANT(), {
+          isRecurring: true,
+          recurringIntervalMinutes: 30,
+          recurringCurrentCount: 3,
+        });
+
+        const result = erinnerung.stopRecurringSeries();
+
+        expect(result.isSuccess).toBe(true);
+        expect(erinnerung.isRecurring).toBe(false);
+      });
+
+      it('sollte shouldCreateNextOccurrence() nach Stopp false zurückgeben', () => {
+        const erinnerung = createErinnerungWithStatus(ErinnerungStatus.GEPLANT(), {
+          isRecurring: true,
+          recurringIntervalMinutes: 30,
+          recurringCurrentCount: 1,
+        });
+
+        erinnerung.stopRecurringSeries();
+
+        expect(erinnerung.shouldCreateNextOccurrence()).toBe(false);
+      });
+
+      it('sollte ErinnerungSerieGestopptEvent emittieren', () => {
+        const erinnerung = createErinnerungWithStatus(ErinnerungStatus.GEPLANT(), {
+          isRecurring: true,
+          recurringIntervalMinutes: 30,
+          recurringCurrentCount: 5,
+        });
+
+        const result = erinnerung.stopRecurringSeries();
+
+        expect(result.isSuccess).toBe(true);
+        expect(erinnerung.getDomainEvents()).toHaveLength(1);
+
+        const event = erinnerung.getDomainEvents()[0];
+        expect(event).toBeInstanceOf(ErinnerungSerieGestopptEvent);
+        expect((event as ErinnerungSerieGestopptEvent).erinnerungId).toEqual(erinnerung.id);
+        expect((event as ErinnerungSerieGestopptEvent).totalErstellteInstanzen).toBe(5);
+      });
+
+      it('sollte fehlschlagen wenn Erinnerung nicht wiederkehrend ist', () => {
+        const erinnerung = createErinnerungWithStatus(ErinnerungStatus.GEPLANT());
+
+        const result = erinnerung.stopRecurringSeries();
+
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toBe('ERINNERUNG_NOT_RECURRING');
+      });
+
+      it('sollte fehlschlagen wenn es eine Kind-Instanz ist', () => {
+        const parentId = ErinnerungId.create().value!;
+        const erinnerung = createErinnerungWithStatus(ErinnerungStatus.GEPLANT(), {
+          isRecurring: false,
+          parentErinnerungId: parentId,
+          recurringSequenceNumber: 1,
+        });
+
+        const result = erinnerung.stopRecurringSeries();
+
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toBe('ERINNERUNG_IS_CHILD_INSTANCE');
+      });
+
+      it('sollte mit SERIE_ALREADY_STOPPED fehlschlagen wenn Serie bereits gestoppt wurde', () => {
+        // Given: Eine bereits gestoppte Serie (isRecurring=false + recurringIntervalMinutes gesetzt)
+        const erinnerung = createErinnerungWithStatus(ErinnerungStatus.GEPLANT(), {
+          isRecurring: true,
+          recurringIntervalMinutes: 30,
+          recurringCurrentCount: 3,
+        });
+        erinnerung.stopRecurringSeries(); // Einmal stoppen
+
+        // When: Nochmal stoppen
+        const result = erinnerung.stopRecurringSeries();
+
+        // Then: Spezifischer Fehler
+        expect(result.isFailure).toBe(true);
+        expect(result.error).toBe('ERINNERUNG_SERIE_ALREADY_STOPPED');
+      });
+
+      it('sollte recurringIntervalMinutes und recurringCurrentCount beibehalten', () => {
+        const erinnerung = createErinnerungWithStatus(ErinnerungStatus.GEPLANT(), {
+          isRecurring: true,
+          recurringIntervalMinutes: 45,
+          recurringCurrentCount: 7,
+        });
+
+        erinnerung.stopRecurringSeries();
+
+        // Gestoppte Serie erkennbar an: isRecurring=false + recurringIntervalMinutes!=null + recurringCurrentCount>0
+        expect(erinnerung.isRecurring).toBe(false);
+        expect(erinnerung.recurringIntervalMinutes).toBe(45);
+        expect(erinnerung.recurringCurrentCount).toBe(7);
+      });
     });
   });
 });

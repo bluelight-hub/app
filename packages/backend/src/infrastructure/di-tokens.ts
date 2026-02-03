@@ -65,6 +65,9 @@ export const ERINNERUNG_REPOSITORY = Symbol('IErinnerungRepository');
 /** Repository Token für IErinnerungsvorlageRepository */
 export const ERINNERUNGSVORLAGE_REPOSITORY = Symbol('IErinnerungsvorlageRepository');
 
+/** Repository Token für IFuehrungsrhythmusTemplateRepository (Story 6.6) */
+export const FUEHRUNGSRHYTHMUS_TEMPLATE_REPOSITORY = Symbol('IFuehrungsrhythmusTemplateRepository');
+
 /**
  * Kräftemanagement Repository Tokens (Epic 1+).
  *

@@ -15,6 +15,8 @@ import {
   erinnerungDialogStore,
   openMarkErledigtDialog,
   closeMarkErledigtDialog,
+  openStopRecurringDialog,
+  closeStopRecurringDialog,
   resetErinnerungDialogStore,
   openQuickCreateDialog,
   openEditDialog,
@@ -365,6 +367,120 @@ describe('ErinnerungDialogStore - Pflicht-Notiz (Story 2.6)', () => {
 
       // Then (Assert)
       expect(mockErinnerung.requiresNote).toBe(false);
+    });
+  });
+});
+
+/**
+ * Story 6.5: Wiederkehrende Serie stoppen
+ */
+describe('ErinnerungDialogStore - StopRecurring (Story 6.5)', () => {
+  beforeEach(() => {
+    resetErinnerungDialogStore();
+  });
+
+  describe('initial state', () => {
+    it('should have isStopRecurringOpen=false on initialization', () => {
+      const state = erinnerungDialogStore.state;
+      expect(state.isStopRecurringOpen).toBe(false);
+      expect(state.erinnerungToStopRecurring).toBeNull();
+    });
+  });
+
+  describe('openStopRecurringDialog()', () => {
+    it('should set isStopRecurringOpen to true', () => {
+      const mockErinnerung = createMockErinnerung({ isRecurring: true } as Partial<ErinnerungResponseDto>);
+      openStopRecurringDialog(mockErinnerung, 'test-einsatz-123');
+
+      const state = erinnerungDialogStore.state;
+      expect(state.isStopRecurringOpen).toBe(true);
+    });
+
+    it('should store the erinnerung to stop recurring', () => {
+      const mockErinnerung = createMockErinnerung({ titel: 'Lagebesprechung' });
+      openStopRecurringDialog(mockErinnerung, 'test-einsatz-123');
+
+      const state = erinnerungDialogStore.state;
+      expect(state.erinnerungToStopRecurring).toEqual(mockErinnerung);
+      expect(state.erinnerungToStopRecurring?.titel).toBe('Lagebesprechung');
+    });
+
+    it('should store the einsatzId', () => {
+      const mockErinnerung = createMockErinnerung();
+      openStopRecurringDialog(mockErinnerung, 'test-einsatz-456');
+
+      const state = erinnerungDialogStore.state;
+      expect(state.einsatzId).toBe('test-einsatz-456');
+    });
+
+    it('should replace previous erinnerung when opening again', () => {
+      const first = createMockErinnerung({ id: 'first-id', titel: 'First' });
+      const second = createMockErinnerung({ id: 'second-id', titel: 'Second' });
+      openStopRecurringDialog(first, 'test-einsatz-123');
+
+      openStopRecurringDialog(second, 'test-einsatz-123');
+
+      const state = erinnerungDialogStore.state;
+      expect(state.erinnerungToStopRecurring?.id).toBe('second-id');
+    });
+  });
+
+  describe('closeStopRecurringDialog()', () => {
+    it('should set isStopRecurringOpen to false', () => {
+      const mockErinnerung = createMockErinnerung();
+      openStopRecurringDialog(mockErinnerung, 'test-einsatz-123');
+
+      closeStopRecurringDialog();
+
+      const state = erinnerungDialogStore.state;
+      expect(state.isStopRecurringOpen).toBe(false);
+    });
+
+    it('should clear erinnerungToStopRecurring', () => {
+      const mockErinnerung = createMockErinnerung();
+      openStopRecurringDialog(mockErinnerung, 'test-einsatz-123');
+
+      closeStopRecurringDialog();
+
+      const state = erinnerungDialogStore.state;
+      expect(state.erinnerungToStopRecurring).toBeNull();
+    });
+
+    it('should preserve einsatzId after close', () => {
+      const mockErinnerung = createMockErinnerung();
+      openStopRecurringDialog(mockErinnerung, 'test-einsatz-123');
+
+      closeStopRecurringDialog();
+
+      const state = erinnerungDialogStore.state;
+      expect(state.einsatzId).toBe('test-einsatz-123');
+    });
+  });
+
+  describe('interaction with other dialogs', () => {
+    it('should not affect MarkErledigt dialog state', () => {
+      const markErinnerung = createMockErinnerung({ id: 'mark-id' });
+      openMarkErledigtDialog(markErinnerung, 'mark-einsatz');
+
+      const stopErinnerung = createMockErinnerung({ id: 'stop-id' });
+      openStopRecurringDialog(stopErinnerung, 'stop-einsatz');
+
+      const state = erinnerungDialogStore.state;
+      expect(state.isMarkErledigtOpen).toBe(true);
+      expect(state.isStopRecurringOpen).toBe(true);
+    });
+  });
+
+  describe('resetErinnerungDialogStore()', () => {
+    it('should reset StopRecurring state to initial values', () => {
+      const mockErinnerung = createMockErinnerung();
+      openStopRecurringDialog(mockErinnerung, 'test-einsatz-123');
+
+      resetErinnerungDialogStore();
+
+      const state = erinnerungDialogStore.state;
+      expect(state.isStopRecurringOpen).toBe(false);
+      expect(state.erinnerungToStopRecurring).toBeNull();
     });
   });
 });

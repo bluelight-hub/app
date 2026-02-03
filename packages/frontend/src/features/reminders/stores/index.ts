@@ -19,6 +19,8 @@ export {
   useQuickCreateDialogState,
   // Quick-Create from ETB (Story 5.4)
   openQuickCreateFromEtb,
+  // Quick-Create from Template (Story 6.3)
+  openQuickCreateFromTemplate,
   useQuickCreateDialogStateWithEtb,
   type QuickCreateDialogState,
   // Edit Dialog (Story 1.3)
@@ -33,6 +35,10 @@ export {
   openMarkErledigtDialog,
   closeMarkErledigtDialog,
   useMarkErledigtDialogState,
+  // StopRecurring Dialog (Story 6.5)
+  openStopRecurringDialog,
+  closeStopRecurringDialog,
+  useStopRecurringDialogState,
   // Shared
   resetErinnerungDialogStore,
   type ErinnerungDialogState,

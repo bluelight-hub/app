@@ -65,9 +65,18 @@ import { ErinnerungErledigtEvent } from '@domain/events/erinnerung-erledigt.even
 import { ErinnerungAssignedEvent } from '@domain/events/erinnerung-assigned.event';
 import { ErinnerungEskaliertEvent } from '@domain/events/erinnerung-eskaliert.event';
 import { ErinnerungIntensiviertEvent } from '@domain/events/erinnerung-intensiviert.event';
+import { WiederkehrendeInstanzErstelltEvent } from '@domain/events/wiederkehrende-instanz-erstellt.event';
+import { ErinnerungSerieGestopptEvent } from '@domain/events/erinnerung-serie-gestoppt.event';
 
 // Erinnerungsvorlage Events
 import { ErinnerungsvorlageErstelltEvent } from '@domain/erinnerungsvorlage/events/erinnerungsvorlage-erstellt.event';
+import { ErinnerungsvorlageAktualisiertEvent } from '@domain/erinnerungsvorlage/events/erinnerungsvorlage-aktualisiert.event';
+import { ErinnerungsvorlageGeloeschtEvent } from '@domain/erinnerungsvorlage/events/erinnerungsvorlage-geloescht.event';
+
+// Fuehrungsrhythmus Template Events
+import { FuehrungsrhythmusTemplateErstelltEvent } from '@domain/fuehrungsrhythmus/events/fuehrungsrhythmus-template-erstellt.event';
+import { FuehrungsrhythmusTemplateGeloeschtEvent } from '@domain/fuehrungsrhythmus/events/fuehrungsrhythmus-template-geloescht.event';
+import { FuehrungsrhythmusTemplateId } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-template-id';
 
 // Fahrzeugtyp Events
 import { FahrzeugtypCreatedEvent } from '@domain/kraefte/events/fahrzeugtyp-created.event';
@@ -220,12 +229,20 @@ export class EventDeserializer {
       ['erinnerung.assigned', this.deserializeErinnerungAssigned.bind(this)],
       ['erinnerung.eskaliert', this.deserializeErinnerungEskaliert.bind(this)],
       ['erinnerung.intensiviert', this.deserializeErinnerungIntensiviert.bind(this)],
+      ['erinnerung.wiederkehrende-instanz-erstellt', this.deserializeWiederkehrendeInstanzErstellt.bind(this)],
+      ['erinnerung.serie-gestoppt', this.deserializeErinnerungSerieGestoppt.bind(this)],
       // Compatibility aliases for events created before correct naming
       ['ErinnerungEskaliert', this.deserializeErinnerungEskaliert.bind(this)],
       ['ErinnerungIntensiviert', this.deserializeErinnerungIntensiviert.bind(this)],
 
       // ===== ERINNERUNGSVORLAGE EVENTS =====
       ['erinnerungsvorlage.erstellt', deserializeErinnerungsvorlageErstellt],
+      ['erinnerungsvorlage.aktualisiert', deserializeErinnerungsvorlageAktualisiert],
+      ['erinnerungsvorlage.geloescht', deserializeErinnerungsvorlageGeloescht],
+
+      // ===== FUEHRUNGSRHYTHMUS TEMPLATE EVENTS =====
+      ['fuehrungsrhythmus-template.erstellt', deserializeFuehrungsrhythmusTemplateErstellt],
+      ['fuehrungsrhythmus-template.geloescht', deserializeFuehrungsrhythmusTemplateGeloescht],
     ]);
   }
 
@@ -1330,6 +1347,56 @@ export class EventDeserializer {
 
     return Result.ok<DomainEvent>(event);
   }
+
+  private deserializeWiederkehrendeInstanzErstellt(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+    const erinnerungIdResult = ErinnerungId.create(payload.erinnerungId as string);
+    if (erinnerungIdResult.isFailure) {
+      return Result.fail<DomainEvent>(`Invalid erinnerungId: ${erinnerungIdResult.error}`);
+    }
+
+    const parentIdResult = ErinnerungId.create(payload.parentId as string);
+    if (parentIdResult.isFailure) {
+      return Result.fail<DomainEvent>(`Invalid parentId: ${parentIdResult.error}`);
+    }
+
+    const einsatzIdResult = EinsatzId.create(payload.einsatzId as string);
+    if (einsatzIdResult.isFailure) {
+      return Result.fail<DomainEvent>(`Invalid einsatzId: ${einsatzIdResult.error}`);
+    }
+
+    const faelligAm = new Date(payload.faelligAm as string);
+
+    const event = new WiederkehrendeInstanzErstelltEvent(
+      erinnerungIdResult.value!,
+      parentIdResult.value!,
+      einsatzIdResult.value!,
+      payload.titel as string,
+      faelligAm,
+      payload.sequenceNumber as number,
+      aggregateId,
+    );
+
+    return Result.ok<DomainEvent>(event);
+  }
+
+  /**
+   * Deserialisiert ErinnerungSerieGestopptEvent (Story 6.5).
+   */
+  private deserializeErinnerungSerieGestoppt(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+    const erinnerungIdResult = ErinnerungId.create(payload.erinnerungId as string);
+    if (erinnerungIdResult.isFailure) {
+      return Result.fail<DomainEvent>(`Invalid erinnerungId: ${erinnerungIdResult.error}`);
+    }
+
+    const einsatzIdResult = EinsatzId.create(payload.einsatzId as string);
+    if (einsatzIdResult.isFailure) {
+      return Result.fail<DomainEvent>(`Invalid einsatzId: ${einsatzIdResult.error}`);
+    }
+
+    const event = new ErinnerungSerieGestopptEvent(erinnerungIdResult.value!, einsatzIdResult.value!, payload.titel as string, payload.totalErstellteInstanzen as number, aggregateId);
+
+    return Result.ok<DomainEvent>(event);
+  }
 }
 
 // ===== ERINNERUNGSVORLAGE DESERIALIZERS (Standalone Functions) =====
@@ -1349,6 +1416,92 @@ function deserializeErinnerungsvorlageErstellt(payload: Record<string, unknown>,
   }
 
   const event = new ErinnerungsvorlageErstelltEvent(vorlageIdResult.value! as ErinnerungsvorlageId, payload.titel as string, payload.minuten as number, createdByResult.value! as UserId, aggregateId);
+
+  return Result.ok<DomainEvent>(event);
+}
+
+/**
+ * Deserialisiert ErinnerungsvorlageAktualisiertEvent (Story 6.2).
+ */
+function deserializeErinnerungsvorlageAktualisiert(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const vorlageIdResult = ErinnerungsvorlageId.create(payload.vorlageId as string);
+  if (vorlageIdResult.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid vorlageId: ${payload.vorlageId}`);
+  }
+
+  const event = new ErinnerungsvorlageAktualisiertEvent(
+    vorlageIdResult.value! as ErinnerungsvorlageId,
+    payload.titel as string,
+    payload.minuten as number,
+    (payload.beschreibung as string | null) ?? null,
+    payload.updatedBy as string,
+    aggregateId,
+  );
+
+  return Result.ok<DomainEvent>(event);
+}
+
+/**
+ * Deserialisiert ErinnerungsvorlageGeloeschtEvent (Story 6.2).
+ */
+function deserializeErinnerungsvorlageGeloescht(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const vorlageIdResult = ErinnerungsvorlageId.create(payload.vorlageId as string);
+  if (vorlageIdResult.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid vorlageId: ${payload.vorlageId}`);
+  }
+
+  const deletedByResult = UserId.create(payload.deletedBy as string);
+  if (deletedByResult.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid deletedBy: ${payload.deletedBy}`);
+  }
+
+  const event = new ErinnerungsvorlageGeloeschtEvent(vorlageIdResult.value! as ErinnerungsvorlageId, payload.titel as string, deletedByResult.value! as UserId, aggregateId);
+
+  return Result.ok<DomainEvent>(event);
+}
+
+// ===== FUEHRUNGSRHYTHMUS TEMPLATE DESERIALIZERS (Standalone Functions) =====
+
+/**
+ * Deserialisiert FuehrungsrhythmusTemplateErstelltEvent (Story 6.6).
+ */
+function deserializeFuehrungsrhythmusTemplateErstellt(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const templateIdResult = FuehrungsrhythmusTemplateId.create(payload.templateId as string);
+  if (templateIdResult.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid templateId: ${payload.templateId}`);
+  }
+
+  const createdByResult = UserId.create(payload.createdBy as string);
+  if (createdByResult.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid createdBy: ${payload.createdBy}`);
+  }
+
+  const event = new FuehrungsrhythmusTemplateErstelltEvent(
+    templateIdResult.value! as FuehrungsrhythmusTemplateId,
+    payload.name as string,
+    payload.eintraegeCount as number,
+    createdByResult.value! as UserId,
+    aggregateId,
+  );
+
+  return Result.ok<DomainEvent>(event);
+}
+
+/**
+ * Deserialisiert FuehrungsrhythmusTemplateGeloeschtEvent (Story 6.6).
+ */
+function deserializeFuehrungsrhythmusTemplateGeloescht(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const templateIdResult = FuehrungsrhythmusTemplateId.create(payload.templateId as string);
+  if (templateIdResult.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid templateId: ${payload.templateId}`);
+  }
+
+  const deletedByResult = UserId.create(payload.deletedBy as string);
+  if (deletedByResult.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid deletedBy: ${payload.deletedBy}`);
+  }
+
+  const event = new FuehrungsrhythmusTemplateGeloeschtEvent(templateIdResult.value! as FuehrungsrhythmusTemplateId, payload.name as string, deletedByResult.value! as UserId, aggregateId);
 
   return Result.ok<DomainEvent>(event);
 }

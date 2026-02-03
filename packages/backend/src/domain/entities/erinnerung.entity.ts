@@ -17,6 +17,7 @@ import { ErinnerungErledigtEvent } from '@domain/events/erinnerung-erledigt.even
 import { ErinnerungAssignedEvent } from '@domain/events/erinnerung-assigned.event';
 import { ErinnerungEskaliertEvent } from '@domain/events/erinnerung-eskaliert.event';
 import { ErinnerungIntensiviertEvent } from '@domain/events/erinnerung-intensiviert.event';
+import { ErinnerungSerieGestopptEvent } from '@domain/events/erinnerung-serie-gestoppt.event';
 
 /**
  * Props für die Erstellung einer neuen Erinnerung.
@@ -35,6 +36,18 @@ export interface CreateErinnerungProps {
   eskalationNurAnErsteller?: boolean;
   /** Story 5.4: Optionale Referenz zu einem ETB-Eintrag */
   etbEntryId?: string | null;
+  /** Story 6.4: Wiederkehrende Erinnerung */
+  isRecurring?: boolean;
+  /** Story 6.4: Intervall in Minuten (1-1440) */
+  recurringIntervalMinutes?: number;
+  /** Story 6.4: Endzeitpunkt der Serie */
+  recurringEndDate?: Date;
+  /** Story 6.4: Maximale Anzahl Wiederholungen (1-100) */
+  recurringMaxCount?: number;
+  /** Story 6.4: Parent-Erinnerung ID (für Kind-Instanzen) */
+  parentErinnerungId?: ErinnerungId | null;
+  /** Story 6.4: Sequenznummer in der Serie */
+  recurringSequenceNumber?: number;
 }
 
 /**
@@ -113,6 +126,20 @@ export interface ReconstructErinnerungProps {
   eskalationNurAnErsteller?: boolean;
   /** Story 5.0: ETB-Eintrag ID für bidirektionale Verknüpfung */
   etbEntryId?: string | null;
+  /** Story 6.4: Wiederkehrende Erinnerung */
+  isRecurring?: boolean;
+  /** Story 6.4: Intervall in Minuten */
+  recurringIntervalMinutes?: number | null;
+  /** Story 6.4: Endzeitpunkt der Serie */
+  recurringEndDate?: Date | null;
+  /** Story 6.4: Maximale Anzahl Wiederholungen */
+  recurringMaxCount?: number | null;
+  /** Story 6.4: Aktuelle Anzahl erstellter Instanzen */
+  recurringCurrentCount?: number;
+  /** Story 6.4: Parent-Erinnerung ID */
+  parentErinnerungId?: ErinnerungId | null;
+  /** Story 6.4: Sequenznummer in der Serie */
+  recurringSequenceNumber?: number | null;
 }
 
 /**
@@ -229,6 +256,15 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
 
   // Story 5.0: ETB-Integration - Bidirektionale Verknüpfung
   private _etbEntryId: string | null;
+
+  // Recurring Felder (Story 6.4)
+  private _isRecurring: boolean;
+  private _recurringIntervalMinutes: number | null;
+  private _recurringEndDate: Date | null;
+  private _recurringMaxCount: number | null;
+  private _recurringCurrentCount: number;
+  private _parentErinnerungId: ErinnerungId | null;
+  private _recurringSequenceNumber: number | null;
 
   // ============================================================
   // Readonly Getters
@@ -436,6 +472,43 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
     return this._etbEntryId;
   }
 
+  // Recurring Getters (Story 6.4)
+
+  /** Gibt zurück ob die Erinnerung wiederkehrend ist. */
+  get isRecurring(): boolean {
+    return this._isRecurring;
+  }
+
+  /** Gibt das Intervall in Minuten zurück. */
+  get recurringIntervalMinutes(): number | null {
+    return this._recurringIntervalMinutes;
+  }
+
+  /** Gibt den Endzeitpunkt der Serie zurück. */
+  get recurringEndDate(): Date | null {
+    return this._recurringEndDate ? new Date(this._recurringEndDate.getTime()) : null;
+  }
+
+  /** Gibt die maximale Anzahl Wiederholungen zurück. */
+  get recurringMaxCount(): number | null {
+    return this._recurringMaxCount;
+  }
+
+  /** Gibt die aktuelle Anzahl erstellter Instanzen zurück. */
+  get recurringCurrentCount(): number {
+    return this._recurringCurrentCount;
+  }
+
+  /** Gibt die Parent-Erinnerung ID zurück. */
+  get parentErinnerungId(): ErinnerungId | null {
+    return this._parentErinnerungId;
+  }
+
+  /** Gibt die Sequenznummer in der Serie zurück. */
+  get recurringSequenceNumber(): number | null {
+    return this._recurringSequenceNumber;
+  }
+
   // Escalation Tracking Getters (Story 4.5)
 
   /**
@@ -514,6 +587,13 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
     eskaliertAm: Date | null = null, // Story 4.9
     eskalationNurAnErsteller = Erinnerung.DEFAULT_ESKALATION_NUR_AN_ERSTELLER, // Story 4.10
     etbEntryId: string | null = null, // Story 5.0
+    isRecurring = false, // Story 6.4
+    recurringIntervalMinutes: number | null = null, // Story 6.4
+    recurringEndDate: Date | null = null, // Story 6.4
+    recurringMaxCount: number | null = null, // Story 6.4
+    recurringCurrentCount = 0, // Story 6.4
+    parentErinnerungId: ErinnerungId | null = null, // Story 6.4
+    recurringSequenceNumber: number | null = null, // Story 6.4
   ) {
     super(id, createdAt, updatedAt);
     this._einsatzId = einsatzId;
@@ -547,6 +627,13 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
     this._eskaliertAm = eskaliertAm;
     this._eskalationNurAnErsteller = eskalationNurAnErsteller;
     this._etbEntryId = etbEntryId;
+    this._isRecurring = isRecurring;
+    this._recurringIntervalMinutes = recurringIntervalMinutes;
+    this._recurringEndDate = recurringEndDate;
+    this._recurringMaxCount = recurringMaxCount;
+    this._recurringCurrentCount = recurringCurrentCount;
+    this._parentErinnerungId = parentErinnerungId;
+    this._recurringSequenceNumber = recurringSequenceNumber;
   }
 
   // ============================================================
@@ -586,6 +673,20 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
         return Result.fail<Erinnerung>(`ERINNERUNG_BESCHREIBUNG_TOO_LONG: Beschreibung darf maximal ${Erinnerung.MAX_BESCHREIBUNG_LENGTH} Zeichen haben`);
       }
       beschreibung = trimmedBeschreibung;
+    }
+
+    // Story 6.4: Validierung der Recurring-Felder
+    const isRecurring = props.isRecurring ?? false;
+    if (isRecurring) {
+      if (!props.recurringIntervalMinutes || props.recurringIntervalMinutes < 1 || props.recurringIntervalMinutes > 1440) {
+        return Result.fail<Erinnerung>('ERINNERUNG_RECURRING_INTERVAL_INVALID: Intervall muss zwischen 1 und 1440 Minuten liegen');
+      }
+      if (props.recurringMaxCount !== undefined && props.recurringMaxCount !== null && (props.recurringMaxCount < 1 || props.recurringMaxCount > 100)) {
+        return Result.fail<Erinnerung>('ERINNERUNG_RECURRING_MAX_COUNT_INVALID: Maximale Anzahl muss zwischen 1 und 100 liegen');
+      }
+      if (props.recurringEndDate && props.recurringEndDate <= now) {
+        return Result.fail<Erinnerung>('ERINNERUNG_RECURRING_END_DATE_IN_PAST: Endzeitpunkt muss in der Zukunft liegen');
+      }
     }
 
     // Generiere ID
@@ -629,6 +730,13 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
       null, // eskaliertAm (default)
       props.eskalationNurAnErsteller ?? Erinnerung.DEFAULT_ESKALATION_NUR_AN_ERSTELLER, // Story 4.10
       props.etbEntryId ?? null, // Story 5.4: ETB-Eintrag Referenz
+      isRecurring, // Story 6.4
+      isRecurring ? (props.recurringIntervalMinutes ?? null) : null, // Story 6.4
+      isRecurring ? (props.recurringEndDate ?? null) : null, // Story 6.4
+      isRecurring ? (props.recurringMaxCount ?? null) : null, // Story 6.4
+      0, // recurringCurrentCount (Story 6.4)
+      props.parentErinnerungId ?? null, // Story 6.4
+      props.recurringSequenceNumber ?? null, // Story 6.4
     );
 
     // Emit Domain Event (Story 3.3: null für assignedToId bei Erstellung ohne Zuweisung)
@@ -688,6 +796,13 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
       props.eskaliertAm ?? null, // Story 4.9
       props.eskalationNurAnErsteller ?? Erinnerung.DEFAULT_ESKALATION_NUR_AN_ERSTELLER, // Story 4.10
       props.etbEntryId ?? null, // Story 5.0
+      props.isRecurring ?? false, // Story 6.4
+      props.recurringIntervalMinutes ?? null, // Story 6.4
+      props.recurringEndDate ?? null, // Story 6.4
+      props.recurringMaxCount ?? null, // Story 6.4
+      props.recurringCurrentCount ?? 0, // Story 6.4
+      props.parentErinnerungId ?? null, // Story 6.4
+      props.recurringSequenceNumber ?? null, // Story 6.4
     );
   }
 
@@ -707,6 +822,115 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
    */
   public istAktiv(): boolean {
     return this._status.isActive();
+  }
+
+  /**
+   * Story 6.4: Prüft ob eine nächste Instanz erstellt werden soll.
+   * Returns true wenn: isRecurring UND maxCount nicht erreicht UND endDate nicht überschritten.
+   */
+  public shouldCreateNextOccurrence(): boolean {
+    if (!this._isRecurring) return false;
+
+    // Prüfe maxCount (wenn gesetzt)
+    if (this._recurringMaxCount !== null && this._recurringCurrentCount >= this._recurringMaxCount) {
+      return false;
+    }
+
+    // Prüfe endDate (wenn gesetzt)
+    if (this._recurringEndDate !== null) {
+      const nextDueDate = this.calculateNextDueDate();
+      if (nextDueDate > this._recurringEndDate) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Story 6.4: Berechnet den nächsten Fälligkeitszeitpunkt.
+   * nextDueDate = jetzt + intervalMinutes (NICHT letzte faelligAm + interval, vermeidet Drift)
+   */
+  public calculateNextDueDate(): Date {
+    if (!this._recurringIntervalMinutes) {
+      throw new Error('Cannot calculate next due date without interval');
+    }
+    const now = new Date();
+    return new Date(now.getTime() + this._recurringIntervalMinutes * 60 * 1000);
+  }
+
+  /**
+   * Story 6.4: Gibt Props für die nächste Instanz zurück.
+   * Erbt: Titel, Beschreibung, requiresNote, Eskalation
+   * Erbt NICHT: assignedToId, etbEntryId (instanzspezifisch)
+   * Returns null wenn keine nächste Instanz erstellt werden soll.
+   */
+  public getNextOccurrenceProps(): CreateErinnerungProps | null {
+    if (!this.shouldCreateNextOccurrence()) return null;
+
+    const nextDueDate = this.calculateNextDueDate();
+    const parentId = this._parentErinnerungId ?? this.id; // Parent ist entweder gesetzt oder this ist Parent
+
+    return {
+      einsatzId: this._einsatzId,
+      titel: this._titel.value,
+      beschreibung: this._beschreibung ?? undefined,
+      faelligAm: nextDueDate,
+      erstelltVon: this._erstelltVon,
+      requiresNote: this._requiresNote,
+      eskalationsPersonId: this._eskalationsPersonId,
+      eskalationNurAnErsteller: this._eskalationNurAnErsteller,
+      // Kind-Instanzen sind NICHT selbst wiederkehrend
+      isRecurring: false,
+      parentErinnerungId: parentId,
+      recurringSequenceNumber: (this._recurringSequenceNumber ?? 0) + 1,
+    };
+  }
+
+  /**
+   * Story 6.4: Erhöht den Instanz-Counter.
+   * Wird auf dem Parent aufgerufen nach Erstellung einer neuen Kind-Instanz.
+   */
+  public incrementOccurrenceCount(): void {
+    this._recurringCurrentCount++;
+  }
+
+  /**
+   * Stoppt eine wiederkehrende Serie (Story 6.5, AC1).
+   *
+   * Setzt `isRecurring = false`, wodurch `shouldCreateNextOccurrence()` false zurückgibt
+   * und keine weiteren Instanzen erstellt werden.
+   *
+   * **Business Rules:**
+   * - Nur recurring Parents (`isRecurring === true`) können gestoppt werden
+   * - Kind-Instanzen (`parentErinnerungId !== null`) können keine Serie stoppen
+   * - Bereits gestoppte Serien werden erkannt (`isRecurring === false` + `recurringIntervalMinutes !== null`)
+   *
+   * @returns Result.ok() bei Erfolg, Result.fail() bei Validierungsfehlern
+   */
+  public stopRecurringSeries(): Result<void> {
+    // Kind-Instanzen können keine Serie stoppen
+    if (this._parentErinnerungId !== null) {
+      return Result.fail<void>('ERINNERUNG_IS_CHILD_INSTANCE');
+    }
+
+    // Bereits gestoppte Serie erkennen (isRecurring=false + recurringIntervalMinutes gesetzt)
+    if (!this._isRecurring && this._recurringIntervalMinutes !== null) {
+      return Result.fail<void>('ERINNERUNG_SERIE_ALREADY_STOPPED');
+    }
+
+    // Nur wiederkehrende Erinnerungen können gestoppt werden
+    if (!this._isRecurring) {
+      return Result.fail<void>('ERINNERUNG_NOT_RECURRING');
+    }
+
+    // Serie stoppen: isRecurring = false verhindert weitere Instanz-Erstellung
+    this._isRecurring = false;
+
+    // Domain Event emittieren für ETB-Integration
+    this.addDomainEvent(new ErinnerungSerieGestopptEvent(this.id, this._einsatzId, this._titel.value, this._recurringCurrentCount, this.id.toString()));
+
+    return Result.ok<void>(undefined);
   }
 
   /**
@@ -800,9 +1024,10 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
   /**
    * Löscht eine Erinnerung (Soft-Delete).
    *
-   * **Business Rules (Story 1.4):**
-   * - Nur Erinnerungen mit Status GEPLANT oder AUSGELOEST können gelöscht werden
-   * - Bei anderen Status (ACKNOWLEDGED, ERLEDIGT, etc.) wird ein Fehler zurückgegeben
+   * **Business Rules (Story 1.4 + Story 6.5 AC2):**
+   * - Nur Erinnerungen mit nicht-erledigtem Status können gelöscht werden
+   *   (GEPLANT, AUSGELOEST, SNOOZED, ACKNOWLEDGED, ESKALIERT)
+   * - Bei Status ERLEDIGT wird ein Fehler zurückgegeben
    * - Emittiert ErinnerungGeloeschtEvent für ETB-Integration und Audit-Trail
    *
    * @param geloeschtVon - User der die Erinnerung löscht (für Audit-Trail)
@@ -818,8 +1043,8 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
    * ```
    */
   public delete(geloeschtVon: UserId): Result<void> {
-    // Business Rule: Nur GEPLANT oder AUSGELOEST Status erlaubt (AC1)
-    const deletableStatuses = [ErinnerungStatus.GEPLANT(), ErinnerungStatus.AUSGELOEST()];
+    // Business Rule: Nur nicht-erledigte Status erlaubt (AC1 + Story 6.5 AC2)
+    const deletableStatuses = [ErinnerungStatus.GEPLANT(), ErinnerungStatus.AUSGELOEST(), ErinnerungStatus.SNOOZED(), ErinnerungStatus.ACKNOWLEDGED(), ErinnerungStatus.ESKALIERT()];
     const isDeletable = deletableStatuses.some((s) => s.equals(this._status));
 
     if (!isDeletable) {

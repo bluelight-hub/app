@@ -151,4 +151,14 @@ export interface IErinnerungRepository {
    * Story 4.9: Escalation Statistics
    */
   getStatistik(einsatzId: EinsatzId): Promise<Result<ErinnerungStatistik>>;
+
+  /**
+   * Findet die aktive Kind-Instanz einer wiederkehrenden Parent-Erinnerung.
+   * Story 6.5 AC2: Aktuelle Instanz abbrechen.
+   *
+   * @param parentId - Die ID der Parent-Erinnerung
+   * @param tx - Optional: Transaction Context
+   * @returns Die aktive Kind-Instanz (GEPLANT/AUSGELOEST/SNOOZED) oder null
+   */
+  findActiveChildByParentId(parentId: ErinnerungId, tx?: TransactionContext): Promise<Result<Erinnerung | null>>;
 }

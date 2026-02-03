@@ -20,7 +20,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from '@tanstack/react-form';
 import { zodValidator } from '@tanstack/zod-form-adapter';
 import { useQueryClient } from '@tanstack/react-query';
-import { PiAlarm, PiClock, PiNotepad, PiArrowUUpLeft, PiBookOpen } from 'react-icons/pi';
+import { PiAlarm, PiClock, PiNotepad, PiArrowUUpLeft, PiBookOpen, PiRepeat } from 'react-icons/pi';
 import { toast } from 'sonner';
 
 import { Button } from '@/shared/ui/atoms/button.atom';
@@ -29,11 +29,13 @@ import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { cn } from '@/shared/ui/cn';
 
 import { useCreateErinnerung } from '../../api';
-import { createErinnerungSchema, TIME_PRESETS, type CreateErinnerungFormData } from '../../schemas/erinnerung.schema';
+import { createErinnerungSchema, TIME_PRESETS, RECURRING_INTERVAL_PRESETS, type CreateErinnerungFormData } from '../../schemas/erinnerung.schema';
 import { TimeInput } from '../molecules/TimeInput';
 import { AssigneeSelector } from '../molecules/AssigneeSelector';
 import { calculateCustomFaelligAm, formatTimeForToast, getDefaultCustomTime } from '../../utils/time-calculation';
 import { ETB_QUERY_KEYS } from '@/features/etb/api/queries';
+import { useVorlagen, TemplatePicker } from '@/features/templates';
+import type { ErinnerungsvorlageResponseDto } from '@/shared';
 
 /**
  * Extrahiert Fehlermeldungen aus TanStack Form Errors.
@@ -86,6 +88,11 @@ interface QuickCreateErinnerungDialogProps {
    * Wenn gesetzt, wird der Titel vorausgefuellt und etbEntryId an die Mutation uebergeben.
    */
   fromEtb?: FromEtbData | null;
+  /**
+   * Story 6.3: Optional - Vorlage fuer Vorausfuellung des Formulars.
+   * Wenn gesetzt, werden Titel, Minuten und Beschreibung vorausgefuellt.
+   */
+  fromTemplate?: ErinnerungsvorlageResponseDto | null;
 }
 
 /**
@@ -96,11 +103,14 @@ interface QuickCreateErinnerungDialogProps {
  *
  * **Story 5.4:** Unterstuetzt optional `fromEtb` prop fuer Erinnerung aus ETB-Eintrag.
  */
-export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEtb }: QuickCreateErinnerungDialogProps) {
+export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEtb, fromTemplate }: QuickCreateErinnerungDialogProps) {
   const [apiErrorMessage, setApiErrorMessage] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { mutate: createErinnerung, isPending } = useCreateErinnerung();
+
+  // Story 6.3 Task 2: Vorlagen lazy laden (nur wenn Dialog offen)
+  const { data: vorlagen, isLoading: isLoadingVorlagen } = useVorlagen({ enabled: isOpen });
 
   // Story 5.4: Berechne vorausgefuellten Titel aus ETB-Text
   const defaultTitel = useMemo(() => {
@@ -120,6 +130,11 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
       assignedToId: null, // Story 3.3: Keine Zuweisung = fuer alle
       eskalationsPersonId: null, // Story 4.1 AC1: Optional
       eskalationNurAnErsteller: false, // Story 4.10 AC1: Default false
+      isRecurring: false, // Story 6.4
+      recurringIntervalMinutes: undefined, // Story 6.4
+      recurringEndMode: 'none' as const, // Story 6.4
+      recurringMaxCount: undefined, // Story 6.4
+      recurringEndDate: undefined, // Story 6.4
     } as CreateErinnerungFormData,
     validatorAdapter: zodValidator(),
     validators: {
@@ -160,6 +175,10 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
             eskalationsPersonId: value.eskalationsPersonId ?? undefined, // Story 4.1: Eskalationsperson
             eskalationNurAnErsteller: value.eskalationNurAnErsteller, // Story 4.10
             etbEntryId: fromEtb?.entryId, // Story 5.4: ETB-Eintrag Referenz
+            isRecurring: value.isRecurring ?? false,
+            recurringIntervalMinutes: value.isRecurring ? value.recurringIntervalMinutes : undefined,
+            recurringEndDate: value.isRecurring && value.recurringEndMode === 'date' ? value.recurringEndDate : undefined,
+            recurringMaxCount: value.isRecurring && value.recurringEndMode === 'count' ? value.recurringMaxCount : undefined,
           },
         },
         {
@@ -206,6 +225,40 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
     }
   }, [isOpen, defaultTitel, form]);
 
+  // Story 6.3: Vorlagen-Vorausfuellung beim Dialog-Oeffnen
+  const hasSetTemplateRef = useRef(false);
+
+  useEffect(() => {
+    if (isOpen && fromTemplate && !hasSetTemplateRef.current) {
+      form.setFieldValue('titel', fromTemplate.titel);
+      form.setFieldValue('timeMode', 'preset');
+      form.setFieldValue('minuten', fromTemplate.minuten);
+      if (fromTemplate.beschreibung) {
+        form.setFieldValue('beschreibung', fromTemplate.beschreibung);
+      }
+      // Story 6.4 AC6: Vorlage-Minuten als Recurring-Intervall vorausfüllen
+      hasSetTemplateRef.current = true;
+    }
+    if (!isOpen) {
+      hasSetTemplateRef.current = false;
+    }
+  }, [isOpen, fromTemplate, form]);
+
+  /**
+   * Story 6.3 AC2/AC3: Handler fuer Vorlage-Auswahl aus TemplatePicker.
+   * Fuellt Formular-Felder via setFieldValue vor (kein form.reset!).
+   */
+  const handleTemplateSelect = useCallback(
+    (vorlage: ErinnerungsvorlageResponseDto) => {
+      form.setFieldValue('titel', vorlage.titel);
+      form.setFieldValue('timeMode', 'preset');
+      form.setFieldValue('minuten', vorlage.minuten);
+      form.setFieldValue('beschreibung', vorlage.beschreibung ?? undefined);
+      // Story 6.4 AC6: Vorlage-Minuten als Recurring-Intervall vorausfüllen (aber Recurring nicht automatisch aktivieren)
+    },
+    [form],
+  );
+
   const handleClose = useCallback(() => {
     if (!isPending) {
       setApiErrorMessage(null);
@@ -224,6 +277,13 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
       </div>
 
       <Dialog.Body>
+        {/* Story 6.3: TemplatePicker - nur anzeigen wenn kein ETB-Kontext */}
+        {!fromEtb && (
+          <div className="mb-4">
+            <TemplatePicker vorlagen={vorlagen ?? []} isLoading={isLoadingVorlagen} onSelect={handleTemplateSelect} disabled={isPending} />
+          </div>
+        )}
+
         {/* Story 5.4: ETB-Verknuepfungs-Hinweis */}
         {fromEtb && (
           <div className="mb-4 flex items-center gap-2 rounded-lg bg-blue-50 p-3 text-blue-700 text-sm dark:bg-blue-900/20 dark:text-blue-400">
@@ -524,6 +584,178 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                   </label>
                   <p className="mt-0.5 text-gray-500 text-xs dark:text-gray-400">Wenn aktiviert, muss bei Erledigung eine Dokumentations-Notiz eingegeben werden.</p>
                 </div>
+              </div>
+            )}
+          </form.Field>
+
+          {/* Story 6.4: Wiederkehrend Toggle + Intervall */}
+          <form.Field name="isRecurring">
+            {(recurringField) => (
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-6 items-center">
+                    <input
+                      id="isRecurring"
+                      type="checkbox"
+                      checked={recurringField.state.value ?? false}
+                      onChange={(e) => recurringField.handleChange(e.target.checked)}
+                      disabled={isPending}
+                      className={cn(
+                        'h-5 w-5 rounded border-2 text-amber-500',
+                        'focus:ring-2 focus:ring-amber-500 focus:ring-offset-2',
+                        'disabled:cursor-not-allowed disabled:opacity-50',
+                        'dark:border-gray-600 dark:bg-gray-800 dark:focus:ring-offset-gray-900',
+                      )}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label htmlFor="isRecurring" className="flex cursor-pointer items-center gap-2 font-medium text-gray-700 text-sm dark:text-gray-300">
+                      <PiRepeat className="h-4 w-4 text-amber-500" />
+                      Wiederkehrend
+                    </label>
+                    <p className="mt-0.5 text-gray-500 text-xs dark:text-gray-400">Erstellt automatisch eine neue Erinnerung nach Erledigung.</p>
+                  </div>
+                </div>
+
+                {/* Conditional Recurring Options */}
+                {recurringField.state.value && (
+                  <div className="ml-8 space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
+                    {/* Intervall-Chips */}
+                    <form.Field name="recurringIntervalMinutes">
+                      {(intervalField) => (
+                        <div>
+                          <label className="mb-2 block font-medium text-gray-700 text-sm dark:text-gray-300">
+                            Intervall <span className="text-red-500">*</span>
+                          </label>
+                          <div className="flex flex-wrap gap-2">
+                            {RECURRING_INTERVAL_PRESETS.map((preset) => (
+                              <button
+                                key={preset.value}
+                                type="button"
+                                aria-pressed={intervalField.state.value === preset.value}
+                                onClick={() => intervalField.handleChange(preset.value)}
+                                disabled={isPending}
+                                className={cn(
+                                  'rounded-full px-3 py-1.5 font-medium text-sm transition-all duration-200',
+                                  'focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800',
+                                  intervalField.state.value === preset.value
+                                    ? 'bg-amber-500 text-white shadow-md hover:bg-amber-600'
+                                    : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600',
+                                  isPending && 'cursor-not-allowed opacity-50',
+                                )}
+                              >
+                                {preset.label}
+                              </button>
+                            ))}
+                          </div>
+                          {/* Custom interval input */}
+                          <div className="mt-2 flex items-center gap-2">
+                            <Input
+                              type="number"
+                              placeholder="Benutzerdefiniert"
+                              value={intervalField.state.value && !RECURRING_INTERVAL_PRESETS.some((p) => p.value === intervalField.state.value) ? intervalField.state.value : ''}
+                              onChange={(e) => {
+                                const val = e.target.value ? Number.parseInt(e.target.value, 10) : undefined;
+                                intervalField.handleChange(val as number);
+                              }}
+                              disabled={isPending}
+                              className="w-32"
+                              min={1}
+                              max={1440}
+                            />
+                            <span className="text-gray-500 text-sm dark:text-gray-400">Min</span>
+                          </div>
+                          {intervalField.state.meta.errors.length > 0 && <p className="mt-1 text-red-600 text-sm dark:text-red-400">{formatErrors(intervalField.state.meta.errors)}</p>}
+                        </div>
+                      )}
+                    </form.Field>
+
+                    {/* Ende-Bedingung */}
+                    <form.Field name="recurringEndMode">
+                      {(endModeField) => (
+                        <div>
+                          <label className="mb-2 block font-medium text-gray-700 text-sm dark:text-gray-300">Ende</label>
+                          <div className="space-y-2">
+                            <label className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                name="recurringEndMode"
+                                value="none"
+                                checked={endModeField.state.value === 'none'}
+                                onChange={() => endModeField.handleChange('none')}
+                                disabled={isPending}
+                                className="h-4 w-4 text-amber-500 focus:ring-amber-500 dark:bg-gray-800"
+                              />
+                              <span className="text-gray-700 text-sm dark:text-gray-300">Kein Ende</span>
+                            </label>
+
+                            <label className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                name="recurringEndMode"
+                                value="count"
+                                checked={endModeField.state.value === 'count'}
+                                onChange={() => endModeField.handleChange('count')}
+                                disabled={isPending}
+                                className="h-4 w-4 text-amber-500 focus:ring-amber-500 dark:bg-gray-800"
+                              />
+                              <span className="text-gray-700 text-sm dark:text-gray-300">Nach</span>
+                              {endModeField.state.value === 'count' && (
+                                <form.Field name="recurringMaxCount">
+                                  {(maxCountField) => (
+                                    <>
+                                      <Input
+                                        type="number"
+                                        value={maxCountField.state.value ?? ''}
+                                        onChange={(e) => maxCountField.handleChange(e.target.value ? Number.parseInt(e.target.value, 10) : undefined)}
+                                        disabled={isPending}
+                                        className="w-20"
+                                        min={1}
+                                        max={100}
+                                        placeholder="5"
+                                      />
+                                      <span className="text-gray-700 text-sm dark:text-gray-300">Wiederholungen</span>
+                                      {maxCountField.state.meta.errors.length > 0 && <p className="text-red-600 text-sm dark:text-red-400">{formatErrors(maxCountField.state.meta.errors)}</p>}
+                                    </>
+                                  )}
+                                </form.Field>
+                              )}
+                            </label>
+
+                            <label className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                name="recurringEndMode"
+                                value="date"
+                                checked={endModeField.state.value === 'date'}
+                                onChange={() => endModeField.handleChange('date')}
+                                disabled={isPending}
+                                className="h-4 w-4 text-amber-500 focus:ring-amber-500 dark:bg-gray-800"
+                              />
+                              <span className="text-gray-700 text-sm dark:text-gray-300">Bis</span>
+                              {endModeField.state.value === 'date' && (
+                                <form.Field name="recurringEndDate">
+                                  {(endDateField) => (
+                                    <>
+                                      <Input
+                                        type="datetime-local"
+                                        value={endDateField.state.value ?? ''}
+                                        onChange={(e) => endDateField.handleChange(e.target.value || undefined)}
+                                        disabled={isPending}
+                                        className="w-56"
+                                      />
+                                      {endDateField.state.meta.errors.length > 0 && <p className="text-red-600 text-sm dark:text-red-400">{formatErrors(endDateField.state.meta.errors)}</p>}
+                                    </>
+                                  )}
+                                </form.Field>
+                              )}
+                            </label>
+                          </div>
+                        </div>
+                      )}
+                    </form.Field>
+                  </div>
+                )}
               </div>
             )}
           </form.Field>

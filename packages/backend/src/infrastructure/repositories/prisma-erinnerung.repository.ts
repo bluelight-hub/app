@@ -119,6 +119,14 @@ export class PrismaErinnerungRepository implements IErinnerungRepository {
           intensivierungsCount: data.intensivierungsCount,
           // Story 5.4: ETB-Verknuepfung (bidirektional)
           etbEntryId: data.etbEntryId,
+          // Recurring Felder (Story 6.4)
+          isRecurring: data.isRecurring,
+          recurringIntervalMinutes: data.recurringIntervalMinutes,
+          recurringEndDate: data.recurringEndDate,
+          recurringMaxCount: data.recurringMaxCount,
+          recurringCurrentCount: data.recurringCurrentCount,
+          parentErinnerungId: data.parentErinnerungId,
+          recurringSequenceNumber: data.recurringSequenceNumber,
         },
         update: {
           titel: data.titel,
@@ -154,6 +162,14 @@ export class PrismaErinnerungRepository implements IErinnerungRepository {
           previousAssigneeId: data.previousAssigneeId,
           // Hotfix: Intensivierungs-Counter
           intensivierungsCount: data.intensivierungsCount,
+          // Recurring Felder (Story 6.4) - recurringCurrentCount kann sich ändern
+          isRecurring: data.isRecurring,
+          recurringIntervalMinutes: data.recurringIntervalMinutes,
+          recurringEndDate: data.recurringEndDate,
+          recurringMaxCount: data.recurringMaxCount,
+          recurringCurrentCount: data.recurringCurrentCount,
+          parentErinnerungId: data.parentErinnerungId,
+          recurringSequenceNumber: data.recurringSequenceNumber,
           // einsatzId und erstelltVon sind immutable nach Erstellung
         },
       });
@@ -364,6 +380,33 @@ export class PrismaErinnerungRepository implements IErinnerungRepository {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown database error';
       return Result.fail(`Failed to get statistics: ${message}`);
+    }
+  }
+
+  /**
+   * Findet die aktive Kind-Instanz einer wiederkehrenden Parent-Erinnerung (Story 6.5 AC2).
+   */
+  async findActiveChildByParentId(parentId: ErinnerungId, tx?: TransactionContext): Promise<Result<Erinnerung | null>> {
+    try {
+      const client = (tx as PrismaClient | undefined) ?? this.prisma;
+
+      const data = await client.erinnerung.findFirst({
+        where: {
+          parentErinnerungId: parentId.toString(),
+          status: { in: ['GEPLANT', 'AUSGELOEST', 'SNOOZED', 'ACKNOWLEDGED', 'ESKALIERT'] },
+          isDeleted: false,
+        },
+        orderBy: { faelligAm: 'asc' },
+      });
+
+      if (!data) {
+        return Result.ok(null);
+      }
+
+      return Result.ok(PrismaErinnerungMapper.toDomain(data));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown database error';
+      return Result.fail(`Failed to find active child: ${message}`);
     }
   }
 }

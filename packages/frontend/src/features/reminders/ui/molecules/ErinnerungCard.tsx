@@ -57,13 +57,23 @@ import type { ErinnerungResponseDto } from '@/shared';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { cn } from '@/shared/ui/cn';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { PiCheckCircle, PiCheckSquareOffset, PiClockCounterClockwise, PiCloudSlash, PiNotepad, PiPencil, PiTrash, PiUserPlus, PiWarning } from 'react-icons/pi';
+import { PiCheckCircle, PiCheckSquareOffset, PiClockCounterClockwise, PiCloudSlash, PiNotepad, PiPencil, PiRepeat, PiStopCircle, PiTrash, PiUserPlus, PiWarning } from 'react-icons/pi';
 import { useAcknowledgeErinnerung, useSnoozeErinnerung, type SnoozeMinutes } from '../../api';
 import { soundService, timerService, intensificationService } from '../../services';
 import { useCountdown } from '../../hooks/use-countdown';
 import { useErinnerungKonfiguration } from '../../hooks/use-erinnerung-konfiguration';
 import { syncService } from '../../services/sync.service';
-import { openDeleteDialog, openEditDialog, openMarkErledigtDialog, useAnimationEntry, useIntensityLevel, useAudioFailed, useIsHighlighted, setHighlightedEntry } from '../../stores';
+import {
+  openDeleteDialog,
+  openEditDialog,
+  openMarkErledigtDialog,
+  openStopRecurringDialog,
+  useAnimationEntry,
+  useIntensityLevel,
+  useAudioFailed,
+  useIsHighlighted,
+  setHighlightedEntry,
+} from '../../stores';
 import { markAsSeen, useIsUnseen } from '../../stores/seen-assignments.store';
 import { AlarmStateBadge } from '../atoms/AlarmStateBadge';
 import { AvatarInitials } from '../atoms/AvatarInitials';
@@ -455,6 +465,30 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
               <h4 className="font-medium text-gray-900 text-sm dark:text-white">{erinnerung.titel}</h4>
               {/* Story 3.7 AC3: Neu Badge */}
               {shouldShowNewBadge && <NewBadge />}
+              {/* Story 6.4 + 6.5: Wiederkehrend-Badge */}
+              {(erinnerung.isRecurring || erinnerung.parentErinnerungId) && (
+                <span
+                  className="inline-flex items-center text-amber-500 dark:text-amber-400"
+                  title={
+                    erinnerung.isRecurring
+                      ? `Wiederkehrend alle ${erinnerung.recurringIntervalMinutes} Min`
+                      : `Instanz ${(erinnerung.recurringSequenceNumber as unknown as number) ?? '?'}/${(erinnerung.recurringMaxCount as unknown as number) ?? '\u221E'}`
+                  }
+                >
+                  <PiRepeat className="h-4 w-4" aria-hidden="true" />
+                </span>
+              )}
+              {/* Story 6.5 AC3: Serie gestoppt Badge */}
+              {!erinnerung.isRecurring && !erinnerung.parentErinnerungId && (erinnerung.recurringCurrentCount as unknown as number) > 0 && erinnerung.recurringIntervalMinutes && (
+                <output
+                  aria-label="Serie gestoppt"
+                  className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-1.5 py-0.5 font-medium text-gray-600 text-xs dark:bg-gray-700 dark:text-gray-300"
+                  title={`Serie gestoppt (${erinnerung.recurringCurrentCount as unknown as number} Instanzen erstellt)`}
+                >
+                  <PiStopCircle className="h-3 w-3" aria-hidden="true" />
+                  Serie gestoppt
+                </output>
+              )}
               {/* Story 1.8 AC1: Offline-Badge */}
               {isOfflineCreated && (
                 <output
@@ -601,6 +635,23 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
               className="h-10 w-10 p-0 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
             >
               <PiTrash className="h-5 w-5" />
+            </Button>
+          )}
+
+          {/* Story 6.5 AC1/AC4: Serie beenden Button */}
+          {erinnerung.isRecurring && !erinnerung.parentErinnerungId && (
+            <Button
+              appearance="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                openStopRecurringDialog(erinnerung, einsatzId);
+              }}
+              aria-label="Serie beenden"
+              title="Wiederkehrende Serie beenden"
+              className="h-10 w-10 p-0 text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-900/20"
+            >
+              <PiStopCircle className="h-5 w-5" />
             </Button>
           )}
 
