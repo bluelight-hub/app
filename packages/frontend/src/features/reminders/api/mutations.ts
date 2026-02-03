@@ -22,6 +22,7 @@ import type {
   ErinnerungControllerMarkErledigtVAlphaRequest,
   AssignErinnerungDto,
   ErinnerungControllerAssignVAlphaRequest,
+  ErinnerungControllerStopRecurringSeriesVAlphaRequest,
 } from '@/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -1419,6 +1420,120 @@ export const useAssignErinnerung = () => {
       // Success-Toast nach erfolgreicher Zuweisung (nur wenn kein Fehler)
       if (!error) {
         toast.success('Erinnerung zugewiesen');
+      }
+    },
+    retry: 3,
+    retryDelay: calculateRetryDelay,
+  });
+};
+
+export interface StopRecurringSeriesVariables {
+  /** Einsatz-ID */
+  einsatzId: string;
+  /** Erinnerungs-ID (Parent) */
+  erinnerungId: string;
+  /** Auch die aktuelle aktive Instanz abbrechen */
+  cancelCurrent?: boolean;
+}
+
+interface StopRecurringSeriesContext {
+  einsatzId: string;
+  erinnerungId: string;
+  previousErinnerungen: ErinnerungResponseDto[] | undefined;
+}
+
+/**
+ * Hook fuer Stop Recurring Series mit Optimistic Updates
+ *
+ * Stoppt eine wiederkehrende Erinnerungsserie (isRecurring → false).
+ * Optional: Aktuelle Kind-Instanz abbrechen.
+ *
+ * **Story 6.5 AC1:** "Serie beenden (nur zukuenftige Instanzen)"
+ * **Story 6.5 AC2:** "Serie und aktuelle Instanz beenden"
+ *
+ * @returns Mutation fuer Stop Recurring Series
+ */
+export const useStopRecurringSeries = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<ErinnerungResponseDto, ResponseError, StopRecurringSeriesVariables, StopRecurringSeriesContext>({
+    mutationKey: ['erinnerung', 'stopRecurringSeries'],
+    mutationFn: async ({ einsatzId, erinnerungId, cancelCurrent }) => {
+      try {
+        const request: ErinnerungControllerStopRecurringSeriesVAlphaRequest = {
+          einsatzId,
+          id: erinnerungId,
+          stopRecurringSeriesDto: { cancelCurrent: cancelCurrent ?? false },
+        };
+        const response = await api.erinnerungen().erinnerungControllerStopRecurringSeriesVAlpha(request);
+        return response.data;
+      } catch (error) {
+        if (isNetworkError(error)) {
+          logger.warn('[useStopRecurringSeries] Network error during API call', { error, erinnerungId });
+          offlineDetectionService.markOffline();
+          throw new Error('Netzwerkverbindung verloren. Bitte erneut versuchen wenn online.');
+        }
+        throw error;
+      }
+    },
+    onMutate: async ({ einsatzId, erinnerungId, cancelCurrent }) => {
+      await Promise.all([queryClient.cancelQueries({ queryKey: ERINNERUNG_QUERY_KEYS.list(einsatzId) }), queryClient.cancelQueries({ queryKey: ERINNERUNG_QUERY_KEYS.detail(erinnerungId) })]);
+
+      const previousErinnerungen = queryClient.getQueryData<ErinnerungResponseDto[]>(ERINNERUNG_QUERY_KEYS.list(einsatzId));
+
+      // Optimistic Update: isRecurring auf false setzen + ggf. aktive Instanz entfernen
+      if (previousErinnerungen) {
+        // Prüfe ob es eine aktive Kind-Instanz gibt
+        const hasActiveChild = cancelCurrent && previousErinnerungen.some((e) => e.parentErinnerungId === erinnerungId && e.status !== 'ERLEDIGT');
+        const parent = previousErinnerungen.find((e) => e.id === erinnerungId);
+        // Parent ist aktiv wenn er nicht ERLEDIGT ist
+        const parentIsActive = parent && parent.status !== 'ERLEDIGT';
+
+        const updatedErinnerungen = previousErinnerungen
+          .filter((e) => {
+            if (!cancelCurrent) return true;
+            // AC2 Fall 1: Aktive Kind-Instanz entfernen
+            if (e.parentErinnerungId === erinnerungId && e.status !== 'ERLEDIGT') {
+              return false;
+            }
+            // AC2 Fall 2: Parent selbst entfernen wenn er aktiv ist und kein aktives Kind existiert
+            if (e.id === erinnerungId && !hasActiveChild && parentIsActive) {
+              return false;
+            }
+            return true;
+          })
+          .map((e) => {
+            // Parent: isRecurring = false (nur wenn er nicht entfernt wurde)
+            if (e.id === erinnerungId) {
+              return {
+                ...e,
+                isRecurring: false,
+                updatedAt: new Date().toISOString(),
+              };
+            }
+            return e;
+          });
+        queryClient.setQueryData<ErinnerungResponseDto[]>(ERINNERUNG_QUERY_KEYS.list(einsatzId), updatedErinnerungen);
+      }
+
+      return { einsatzId, erinnerungId, previousErinnerungen };
+    },
+    onError: async (error: ResponseError, _variables, context) => {
+      if (context?.previousErinnerungen !== undefined) {
+        queryClient.setQueryData(ERINNERUNG_QUERY_KEYS.list(context.einsatzId), context.previousErinnerungen);
+      }
+
+      const message = await getApiErrorMessage(error, 'Die wiederkehrende Serie konnte nicht gestoppt werden.', 'stopRecurringSeries');
+      logger.error('Failed to stop recurring series', error);
+      toast.error('Fehler', { description: message });
+    },
+    onSettled: async (_data, error, { einsatzId, erinnerungId }) => {
+      await Promise.all([queryClient.invalidateQueries({ queryKey: ERINNERUNG_QUERY_KEYS.list(einsatzId) }), queryClient.invalidateQueries({ queryKey: ERINNERUNG_QUERY_KEYS.detail(erinnerungId) })]);
+
+      if (!error) {
+        toast.success('Serie gestoppt', {
+          description: 'Es werden keine weiteren Instanzen erstellt.',
+        });
       }
     },
     retry: 3,

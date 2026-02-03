@@ -11,14 +11,17 @@ import {
   ErinnerungEditDialog,
   ErinnerungDeleteDialog,
   ErinnerungMarkErledigtDialog,
+  StopRecurringErinnerungDialog,
   closeQuickCreateDialog,
   closeEditDialog,
   closeDeleteDialog,
   closeMarkErledigtDialog,
+  closeStopRecurringDialog,
   useQuickCreateDialogStateWithEtb,
   useEditDialogState,
   useDeleteDialogState,
   useMarkErledigtDialogState,
+  useStopRecurringDialogState,
   useQuickCreateErinnerungHotkeys,
   useAlarmTrigger,
   useErinnerungenByEinsatz,
@@ -57,13 +60,15 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   const activeServer = useActiveServer();
 
   // Quick-Create Erinnerung Dialog State und Hotkeys (Story 1.1 AC1, Story 5.4)
-  const { isOpen: isQuickCreateOpen, einsatzId: quickCreateEinsatzId, etbEintragId, etbEintragText } = useQuickCreateDialogStateWithEtb();
+  const { isOpen: isQuickCreateOpen, einsatzId: quickCreateEinsatzId, etbEintragId, etbEintragText, fromTemplate } = useQuickCreateDialogStateWithEtb();
   // Edit Erinnerung Dialog State (Story 1.3 AC1)
   const [isEditDialogOpen, erinnerungToEdit, editDialogEinsatzId] = useEditDialogState();
   // Delete Erinnerung Dialog State (Story 1.4 AC2)
   const [isDeleteDialogOpen, erinnerungToDelete, deleteDialogEinsatzId] = useDeleteDialogState();
   // MarkErledigt Erinnerung Dialog State (Story 2.5)
   const [isMarkErledigtDialogOpen, erinnerungToMarkErledigt, markErledigtDialogEinsatzId] = useMarkErledigtDialogState();
+  // StopRecurring Erinnerung Dialog State (Story 6.5)
+  const [isStopRecurringDialogOpen, erinnerungToStopRecurring, stopRecurringDialogEinsatzId] = useStopRecurringDialogState();
   useQuickCreateErinnerungHotkeys({
     einsatzId,
     enabled: !commandPaletteOpen && !showEndConfirmation && !showBeitrittDialog && !isQuickCreateOpen && !isEditDialogOpen && !isDeleteDialogOpen && !isMarkErledigtDialogOpen,
@@ -614,6 +619,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
         einsatzId={quickCreateEinsatzId ?? einsatzId}
         onClose={closeQuickCreateDialog}
         fromEtb={etbEintragId && etbEintragText ? { entryId: etbEintragId, text: etbEintragText } : undefined}
+        fromTemplate={fromTemplate}
       />
 
       {/* Edit Erinnerung Dialog (Story 1.3 AC1) */}
@@ -624,6 +630,14 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
 
       {/* MarkErledigt Erinnerung Dialog (Story 2.5) */}
       <ErinnerungMarkErledigtDialog isOpen={isMarkErledigtDialogOpen} erinnerung={erinnerungToMarkErledigt} einsatzId={markErledigtDialogEinsatzId ?? einsatzId} onClose={closeMarkErledigtDialog} />
+
+      {/* StopRecurring Erinnerung Dialog (Story 6.5) */}
+      <StopRecurringErinnerungDialog
+        isOpen={isStopRecurringDialogOpen}
+        erinnerung={erinnerungToStopRecurring}
+        einsatzId={stopRecurringDialogEinsatzId ?? einsatzId}
+        onClose={closeStopRecurringDialog}
+      />
     </>
   );
 }

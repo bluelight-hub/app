@@ -181,6 +181,13 @@ export class AssignErinnerungHandler extends TransactionalCommandHandler<AssignE
       requiresNote: erinnerung.requiresNote,
       assignedToId: command.assignedToId,
       assignedToName,
+      isRecurring: erinnerung.isRecurring,
+      recurringIntervalMinutes: erinnerung.recurringIntervalMinutes ?? null,
+      recurringEndDate: erinnerung.recurringEndDate?.toISOString() ?? null,
+      recurringMaxCount: erinnerung.recurringMaxCount ?? null,
+      recurringCurrentCount: erinnerung.recurringCurrentCount,
+      parentErinnerungId: erinnerung.parentErinnerungId?.toString() ?? null,
+      recurringSequenceNumber: erinnerung.recurringSequenceNumber ?? null,
     };
 
     return {

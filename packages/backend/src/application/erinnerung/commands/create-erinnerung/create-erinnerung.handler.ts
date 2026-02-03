@@ -7,6 +7,7 @@ import type { ILogger } from '@domain/ports/i-logger.port';
 import type { IErinnerungRepository } from '@domain/repositories/i-erinnerung.repository';
 import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
+import { ErinnerungId } from '@domain/value-objects/erinnerung-id';
 import { UserId } from '@domain/value-objects/user-id';
 import { TransactionalCommandHandler } from '@/application/common/handlers/transactional-command.handler';
 // biome-ignore lint/style/useImportType: PrismaService is an Injectable class, not just a type - needed for DI at runtime
@@ -118,6 +119,12 @@ export class CreateErinnerungHandler extends TransactionalCommandHandler<CreateE
       eskalationsPersonId: command.eskalationsPersonId ? UserId.create(command.eskalationsPersonId).value : undefined,
       eskalationNurAnErsteller: command.eskalationNurAnErsteller,
       etbEntryId: command.etbEntryId,
+      isRecurring: command.isRecurring,
+      recurringIntervalMinutes: command.recurringIntervalMinutes,
+      recurringEndDate: command.recurringEndDate,
+      recurringMaxCount: command.recurringMaxCount,
+      parentErinnerungId: command.parentErinnerungId ? ErinnerungId.create(command.parentErinnerungId).value : null,
+      recurringSequenceNumber: command.recurringSequenceNumber,
     });
 
     if (erinnerungResult.isFailure || !erinnerungResult.value) {

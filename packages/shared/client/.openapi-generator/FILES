@@ -17,6 +17,7 @@ apis/EinsatzTeilnehmerApi.ts
 apis/ErinnerungApi.ts
 apis/ErinnerungenApi.ts
 apis/ErinnerungsvorlagenApi.ts
+apis/FuehrungsrhythmusTemplatesApi.ts
 apis/GeocodingApi.ts
 apis/HealthApi.ts
 apis/KraefteDashboardApi.ts
@@ -113,6 +114,7 @@ models/CreateEinsatzDto.ts
 models/CreateErinnerungDto.ts
 models/CreateErinnerungsvorlageDto.ts
 models/CreateFahrzeugtypDto.ts
+models/CreateFuehrungsrhythmusTemplateDto.ts
 models/CreateInviteDto.ts
 models/CreateInviteResponseDto.ts
 models/CreateLagekarteDto.ts
@@ -183,6 +185,11 @@ models/ExchangeInviteDto.ts
 models/ExchangeInviteResponseDto.ts
 models/FahrzeugtypDto.ts
 models/FahrzeugtypSollbesatzungDto.ts
+models/FuehrungsrhythmusEintragDto.ts
+models/FuehrungsrhythmusEintragResponseDto.ts
+models/FuehrungsrhythmusTemplateControllerCreateVAlpha201Response.ts
+models/FuehrungsrhythmusTemplateControllerGetAllVAlpha200Response.ts
+models/FuehrungsrhythmusTemplateResponseDto.ts
 models/FunkStatusConfigDto.ts
 models/GeoJsonPointDto.ts
 models/GeoPositionDto.ts
@@ -262,6 +269,7 @@ models/StammPersonDto.ts
 models/StammPersonQualifikationDto.ts
 models/StatusCountsDto.ts
 models/StatusCountsResponseDto.ts
+models/StopRecurringSeriesDto.ts
 models/TaktischeStaerkeDto.ts
 models/TextbausteinDto.ts
 models/TextbausteinListResponse.ts
@@ -271,6 +279,7 @@ models/TopReceiverDto.ts
 models/UpdateEinsatzDto.ts
 models/UpdateEintragDto.ts
 models/UpdateErinnerungDto.ts
+models/UpdateErinnerungsvorlageDto.ts
 models/UpdateEskalationsTimeoutDto.ts
 models/UpdateFahrzeugtypDto.ts
 models/UpdateFmsStatusDto.ts

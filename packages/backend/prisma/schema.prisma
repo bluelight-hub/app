@@ -175,6 +175,12 @@ model User {
   createdErinnerungsvorlagen  Erinnerungsvorlage[] @relation("ErinnerungsvorlageCreator")
   deletedErinnerungsvorlagen  Erinnerungsvorlage[] @relation("ErinnerungsvorlageDeleter")
 
+  // ========================================
+  // Führungsrhythmus-Template Relations (Story 6.6)
+  // ========================================
+  createdFuehrungsrhythmusTemplates  FuehrungsrhythmusTemplate[] @relation("FuehrungsrhythmusTemplateCreator")
+  deletedFuehrungsrhythmusTemplates  FuehrungsrhythmusTemplate[] @relation("FuehrungsrhythmusTemplateDeleter")
+
   // Indexes
   @@index([username], map: "idx_user_username")
   @@index([role, isActive], map: "idx_user_role_active")
@@ -1363,6 +1369,15 @@ model Erinnerung {
   // Hotfix: Intensivierungs-Counter um Endlos-Loop zu verhindern
   intensivierungsCount Int        @default(0) @map("intensivierungs_count")
 
+  // Recurring (Story 6.4) - Wiederkehrende Erinnerungen
+  isRecurring              Boolean   @default(false) @map("is_recurring")
+  recurringIntervalMinutes Int?      @map("recurring_interval_minutes")
+  recurringEndDate         DateTime? @map("recurring_end_date")
+  recurringMaxCount        Int?      @map("recurring_max_count")
+  recurringCurrentCount    Int       @default(0) @map("recurring_current_count")
+  parentErinnerungId       String?   @map("parent_erinnerung_id")
+  recurringSequenceNumber  Int?      @map("recurring_sequence_number")
+
   erstelltVon    String           @map("erstellt_von") @db.VarChar(100)
 
   // Audit Trail
@@ -1385,6 +1400,8 @@ model Erinnerung {
   assigner         User?   @relation("ErinnerungAssigner", fields: [assignedBy], references: [id], onDelete: Restrict) // Story 3.3/3.4: Wer hat zugewiesen
   eskalationsPerson User?  @relation("ErinnerungEskalationsPerson", fields: [eskalationsPersonId], references: [id], onDelete: Restrict) // Story 4.1
   previousAssignee  User?  @relation("ErinnerungPreviousAssignee", fields: [previousAssigneeId], references: [id], onDelete: Restrict) // Story 4.5
+  parentErinnerung   Erinnerung?  @relation("RecurringParent", fields: [parentErinnerungId], references: [id], onDelete: SetNull) // Story 6.4
+  childErinnerungen  Erinnerung[] @relation("RecurringParent") // Story 6.4
 
   // Indexes
   @@index([einsatzId])
@@ -1394,6 +1411,8 @@ model Erinnerung {
   @@index([erstelltVon])
   @@index([isDeleted]) // Effiziente Filterung für Soft-Delete Boolean (Story 1.4)
   @@index([deletedAt]) // Effiziente Filterung für Soft-Delete Timestamp (Story 1.4)
+  @@index([isRecurring]) // Story 6.4: Filter für wiederkehrende Erinnerungen
+  @@index([parentErinnerungId]) // Story 6.4: Lookup für Kind-Instanzen
   @@map("erinnerungen")
 }
 
@@ -1443,4 +1462,50 @@ model Erinnerungsvorlage {
   @@index([isDeleted])
   @@index([createdBy])
   @@map("erinnerungsvorlagen")
+}
+
+// ========================================
+// Führungsrhythmus-Template (Story 6.6)
+// ========================================
+model FuehrungsrhythmusTemplate {
+  id            String    @id @default(cuid())
+  name          String    @db.VarChar(100)
+  beschreibung  String?   @db.VarChar(500)
+
+  // Audit Trail
+  createdBy     String    @db.VarChar(100)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Soft-Delete
+  isDeleted     Boolean   @default(false)
+  deletedAt     DateTime?
+  deletedBy     String?   @db.VarChar(100)
+
+  // Relations
+  creator       User      @relation("FuehrungsrhythmusTemplateCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  deleter       User?     @relation("FuehrungsrhythmusTemplateDeleter", fields: [deletedBy], references: [id], onDelete: Restrict)
+  eintraege     FuehrungsrhythmusEintrag[]
+
+  @@index([isDeleted])
+  @@index([createdBy])
+  @@map("fuehrungsrhythmus_templates")
+}
+
+model FuehrungsrhythmusEintrag {
+  id                          String    @id @default(cuid())
+  fuehrungsrhythmusTemplateId String    @map("fuehrungsrhythmus_template_id")
+  titel                       String    @db.VarChar(100)
+  intervallMinuten            Int       @map("intervall_minuten")
+  offsetMinuten               Int       @default(0) @map("offset_minuten")
+  sortOrder                   Int       @map("sort_order")
+
+  // Audit Trail
+  createdAt                   DateTime  @default(now())
+
+  // Relations
+  template                    FuehrungsrhythmusTemplate @relation(fields: [fuehrungsrhythmusTemplateId], references: [id], onDelete: Cascade)
+
+  @@index([fuehrungsrhythmusTemplateId])
+  @@map("fuehrungsrhythmus_eintraege")
 }

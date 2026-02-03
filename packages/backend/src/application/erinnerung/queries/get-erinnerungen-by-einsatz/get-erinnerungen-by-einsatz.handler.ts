@@ -127,6 +127,14 @@ export class GetErinnerungenByEinsatzHandler {
       escalatedAt: erinnerung.escalatedAt?.toISOString() ?? null,
       previousAssigneeId: erinnerung.previousAssigneeId?.toString() ?? null,
       previousAssigneeName: erinnerung.previousAssigneeId ? (userMap.get(erinnerung.previousAssigneeId.toString()) ?? null) : null,
+      // Story 6.4: Recurring fields
+      isRecurring: erinnerung.isRecurring,
+      recurringIntervalMinutes: erinnerung.recurringIntervalMinutes ?? null,
+      recurringEndDate: erinnerung.recurringEndDate?.toISOString() ?? null,
+      recurringMaxCount: erinnerung.recurringMaxCount ?? null,
+      recurringCurrentCount: erinnerung.recurringCurrentCount,
+      parentErinnerungId: erinnerung.parentErinnerungId?.toString() ?? null,
+      recurringSequenceNumber: erinnerung.recurringSequenceNumber ?? null,
     }));
 
     // ════════════════════════════════════════════════════════════════════════

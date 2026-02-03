@@ -56,6 +56,11 @@ export const ERINNERUNG_ERROR_CODES = {
   ETB_ENTRY_ID_INVALID: 'ERINNERUNG_ETB_ENTRY_ID_INVALID', // Story 5.4: etbEntryId ist ungültiges CUID2 Format
   ETB_ENTRY_NOT_FOUND: 'ERINNERUNG_ETB_ENTRY_NOT_FOUND', // Story 5.4: etbEntryId referenziert nicht-existierenden ETB-Eintrag
   ETB_ENTRY_WRONG_EINSATZ: 'ERINNERUNG_ETB_ENTRY_WRONG_EINSATZ', // Story 5.4: etbEntryId gehört zu anderem Einsatz
+
+  // Story 6.5: Wiederkehrende Serie stoppen
+  NOT_RECURRING: 'ERINNERUNG_NOT_RECURRING', // Story 6.5: Erinnerung ist nicht wiederkehrend
+  IS_CHILD_INSTANCE: 'ERINNERUNG_IS_CHILD_INSTANCE', // Story 6.5: Kind-Instanz kann Serie nicht stoppen
+  SERIE_ALREADY_STOPPED: 'ERINNERUNG_SERIE_ALREADY_STOPPED', // Story 6.5: Serie wurde bereits gestoppt
 } as const;
 
 export type ErinnerungErrorCode = (typeof ERINNERUNG_ERROR_CODES)[keyof typeof ERINNERUNG_ERROR_CODES];

@@ -6,7 +6,7 @@
  * **Story 1.1 AC4:** "Erstellen-Button oeffnet Quick-Create Dialog"
  */
 
-import type { ErinnerungResponseDto } from '@/shared';
+import type { ErinnerungResponseDto, ErinnerungsvorlageResponseDto } from '@/shared';
 import { Store, useStore } from '@tanstack/react-store';
 
 /**
@@ -39,6 +39,12 @@ export interface ErinnerungDialogState {
   etbEintragId: string | null;
   /** ETB-Eintrag-Text fuer Quick-Create aus ETB (Story 5.4) */
   etbEintragText: string | null;
+  /** Vorlage fuer Quick-Create aus Vorlage (Story 6.3) */
+  fromTemplate: ErinnerungsvorlageResponseDto | null;
+  /** Ob der StopRecurring Dialog geoeffnet ist (Story 6.5) */
+  isStopRecurringOpen: boolean;
+  /** Die Erinnerung deren Serie gestoppt werden soll (Story 6.5) */
+  erinnerungToStopRecurring: ErinnerungResponseDto | null;
 }
 
 /**
@@ -55,6 +61,9 @@ const initialState: ErinnerungDialogState = {
   erinnerungToMarkErledigt: null,
   etbEintragId: null,
   etbEintragText: null,
+  fromTemplate: null,
+  isStopRecurringOpen: false,
+  erinnerungToStopRecurring: null,
 };
 
 /**
@@ -92,6 +101,8 @@ export const closeQuickCreateDialog = () => {
     // ETB-Felder zuruecksetzen
     etbEintragId: null,
     etbEintragText: null,
+    // Vorlage zuruecksetzen (Story 6.3)
+    fromTemplate: null,
   }));
 };
 
@@ -111,6 +122,26 @@ export const openQuickCreateFromEtb = (einsatzId: string, eintragId: string, ein
     einsatzId,
     etbEintragId: eintragId,
     etbEintragText: eintragText,
+  }));
+};
+
+/**
+ * Oeffnet den Quick-Create Dialog aus einer Vorlage.
+ *
+ * **Story 6.3:** "Erinnerung aus Vorlage erstellen"
+ *
+ * @param einsatzId - ID des Einsatzes
+ * @param vorlage - Die ausgewaehlte Erinnerungsvorlage
+ */
+export const openQuickCreateFromTemplate = (einsatzId: string, vorlage: ErinnerungsvorlageResponseDto) => {
+  erinnerungDialogStore.setState((state) => ({
+    ...state,
+    isQuickCreateOpen: true,
+    einsatzId,
+    fromTemplate: vorlage,
+    // ETB-Felder zuruecksetzen
+    etbEintragId: null,
+    etbEintragText: null,
   }));
 };
 
@@ -202,6 +233,34 @@ export const closeMarkErledigtDialog = () => {
 };
 
 /**
+ * Oeffnet den StopRecurring Dialog fuer eine Erinnerung.
+ *
+ * **Story 6.5:** "Wiederkehrende Serie stoppen"
+ *
+ * @param erinnerung - Die Erinnerung deren Serie gestoppt werden soll
+ * @param einsatzId - ID des Einsatzes
+ */
+export const openStopRecurringDialog = (erinnerung: ErinnerungResponseDto, einsatzId: string) => {
+  erinnerungDialogStore.setState((state) => ({
+    ...state,
+    isStopRecurringOpen: true,
+    erinnerungToStopRecurring: erinnerung,
+    einsatzId,
+  }));
+};
+
+/**
+ * Schliesst den StopRecurring Dialog.
+ */
+export const closeStopRecurringDialog = () => {
+  erinnerungDialogStore.setState((state) => ({
+    ...state,
+    isStopRecurringOpen: false,
+    erinnerungToStopRecurring: null,
+  }));
+};
+
+/**
  * Setzt den Store zurueck.
  */
 export const resetErinnerungDialogStore = () => {
@@ -222,6 +281,8 @@ export interface QuickCreateDialogState {
   einsatzId: string | null;
   etbEintragId: string | null;
   etbEintragText: string | null;
+  /** Story 6.3: Vorlage fuer Quick-Create */
+  fromTemplate: ErinnerungsvorlageResponseDto | null;
 }
 
 /**
@@ -275,7 +336,8 @@ export const useQuickCreateDialogStateWithEtb = (): QuickCreateDialogState => {
   const einsatzId = useStore(erinnerungDialogStore, (state) => state.einsatzId);
   const etbEintragId = useStore(erinnerungDialogStore, (state) => state.etbEintragId);
   const etbEintragText = useStore(erinnerungDialogStore, (state) => state.etbEintragText);
-  return { isOpen, einsatzId, etbEintragId, etbEintragText };
+  const fromTemplate = useStore(erinnerungDialogStore, (state) => state.fromTemplate);
+  return { isOpen, einsatzId, etbEintragId, etbEintragText, fromTemplate };
 };
 
 /**
@@ -360,4 +422,18 @@ export const useMarkErledigtDialogState = (): [boolean, ErinnerungResponseDto | 
   const erinnerungToMarkErledigt = useStore(erinnerungDialogStore, (state) => state.erinnerungToMarkErledigt);
   const einsatzId = useStore(erinnerungDialogStore, (state) => state.einsatzId);
   return [isOpen, erinnerungToMarkErledigt, einsatzId];
+};
+
+/**
+ * Hook fuer den StopRecurring Dialog State.
+ *
+ * **Story 6.5:** "Wiederkehrende Serie stoppen"
+ *
+ * @returns Tuple aus [isOpen, erinnerungToStopRecurring, einsatzId]
+ */
+export const useStopRecurringDialogState = (): [boolean, ErinnerungResponseDto | null, string | null] => {
+  const isOpen = useStore(erinnerungDialogStore, (state) => state.isStopRecurringOpen);
+  const erinnerungToStopRecurring = useStore(erinnerungDialogStore, (state) => state.erinnerungToStopRecurring);
+  const einsatzId = useStore(erinnerungDialogStore, (state) => state.einsatzId);
+  return [isOpen, erinnerungToStopRecurring, einsatzId];
 };

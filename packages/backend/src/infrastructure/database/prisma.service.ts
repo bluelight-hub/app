@@ -160,6 +160,12 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get erinnerungsvorlage() {
     return this._client.erinnerungsvorlage;
   }
+  get fuehrungsrhythmusTemplate() {
+    return this._client.fuehrungsrhythmusTemplate;
+  }
+  get fuehrungsrhythmusEintrag() {
+    return this._client.fuehrungsrhythmusEintrag;
+  }
 
   // Delegate Prisma Client methods
   $connect() {

@@ -57,6 +57,16 @@ export const createErinnerungSchema = z
     eskalationsPersonId: z.string().optional().nullable(),
     /** Story 4.10: Eskalation nur an Ersteller (optional) */
     eskalationNurAnErsteller: z.boolean().optional(),
+    /** Story 6.4: Wiederkehrende Erinnerung */
+    isRecurring: z.boolean().optional().default(false),
+    /** Story 6.4: Intervall in Minuten */
+    recurringIntervalMinutes: z.number().int().min(1).max(1440).optional(),
+    /** Story 6.4: Endzeitpunkt der Serie (ISO-8601 String) */
+    recurringEndDate: z.string().datetime().optional(),
+    /** Story 6.4: Maximale Anzahl Wiederholungen */
+    recurringMaxCount: z.number().int().min(1).max(100).optional(),
+    /** Story 6.4: Ende-Modus für UI */
+    recurringEndMode: z.enum(['none', 'count', 'date']).optional().default('none'),
   })
   .superRefine((data, ctx) => {
     if (data.timeMode === 'preset' && data.minuten === undefined) {
@@ -71,6 +81,28 @@ export const createErinnerungSchema = z
         code: z.ZodIssueCode.custom,
         message: 'Zeit ist erforderlich',
         path: ['customTime'],
+      });
+    }
+    // Story 6.4: Recurring Validierung
+    if (data.isRecurring && !data.recurringIntervalMinutes) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Intervall ist Pflicht bei wiederkehrenden Erinnerungen',
+        path: ['recurringIntervalMinutes'],
+      });
+    }
+    if (data.isRecurring && data.recurringEndMode === 'count' && !data.recurringMaxCount) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Anzahl Wiederholungen ist erforderlich',
+        path: ['recurringMaxCount'],
+      });
+    }
+    if (data.isRecurring && data.recurringEndMode === 'date' && !data.recurringEndDate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Endzeitpunkt ist erforderlich',
+        path: ['recurringEndDate'],
       });
     }
   });
@@ -91,6 +123,18 @@ export const TIME_PRESETS = [
 ] as const;
 
 export type TimePreset = (typeof TIME_PRESETS)[number];
+
+/**
+ * Story 6.4: Verfügbare Intervall-Presets für wiederkehrende Erinnerungen.
+ */
+export const RECURRING_INTERVAL_PRESETS = [
+  { label: '15 Min', value: 15 },
+  { label: '30 Min', value: 30 },
+  { label: '45 Min', value: 45 },
+  { label: '60 Min', value: 60 },
+] as const;
+
+export type RecurringIntervalPreset = (typeof RECURRING_INTERVAL_PRESETS)[number];
 
 /**
  * Schema für Update-Erinnerung Form.

@@ -5,16 +5,20 @@ import { Button } from '@/shared/ui/atoms/button.atom';
 import { useVorlagen } from '../../api';
 import { VorlageCard } from '../atoms/VorlageCard';
 import { CreateVorlageDialog } from './CreateVorlageDialog';
+import { EditVorlageDialog } from './EditVorlageDialog';
+import { DeleteVorlageConfirm } from '../molecules/DeleteVorlageConfirm';
 
 interface VorlageListProps {
   className?: string;
 }
 
 /**
- * Organism: Liste der Vorlagen mit "Neue Vorlage" Button (Story 6.1 AC2).
+ * Organism: Liste der Vorlagen mit Create/Edit/Delete (Story 6.1 + 6.2).
  */
 export function VorlageList({ className }: VorlageListProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [editingVorlage, setEditingVorlage] = useState<{ id: string; titel: string; minuten: number; beschreibung: string | null } | null>(null);
+  const [deletingVorlage, setDeletingVorlage] = useState<{ id: string; titel: string } | null>(null);
   const { data: vorlagen, isLoading, error } = useVorlagen();
 
   return (
@@ -53,13 +57,22 @@ export function VorlageList({ className }: VorlageListProps) {
       {!isLoading && !error && vorlagen && vorlagen.length > 0 && (
         <div className="grid gap-3">
           {vorlagen.map((vorlage) => (
-            <VorlageCard key={vorlage.id} titel={vorlage.titel} minuten={vorlage.minuten} beschreibung={vorlage.beschreibung ?? null} />
+            <VorlageCard
+              key={vorlage.id}
+              titel={vorlage.titel}
+              minuten={vorlage.minuten}
+              beschreibung={vorlage.beschreibung ?? null}
+              onEdit={() => setEditingVorlage({ id: vorlage.id, titel: vorlage.titel, minuten: vorlage.minuten, beschreibung: vorlage.beschreibung ?? null })}
+              onDelete={() => setDeletingVorlage({ id: vorlage.id, titel: vorlage.titel })}
+            />
           ))}
         </div>
       )}
 
-      {/* Create Dialog */}
+      {/* Dialogs */}
       <CreateVorlageDialog isOpen={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)} />
+      <EditVorlageDialog isOpen={editingVorlage !== null} onClose={() => setEditingVorlage(null)} vorlage={editingVorlage} />
+      <DeleteVorlageConfirm isOpen={deletingVorlage !== null} onClose={() => setDeletingVorlage(null)} vorlage={deletingVorlage} />
     </div>
   );
 }

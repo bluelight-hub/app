@@ -21,6 +21,18 @@ export interface CreateErinnerungCommandProps {
   eskalationNurAnErsteller?: boolean;
   /** Story 5.4: Optionale Referenz zu einem ETB-Eintrag */
   etbEntryId?: string;
+  /** Story 6.4: Wiederkehrende Erinnerung */
+  isRecurring?: boolean;
+  /** Story 6.4: Intervall in Minuten zwischen Wiederholungen */
+  recurringIntervalMinutes?: number;
+  /** Story 6.4: Enddatum für wiederkehrende Serie */
+  recurringEndDate?: Date;
+  /** Story 6.4: Maximale Anzahl Wiederholungen */
+  recurringMaxCount?: number;
+  /** Story 6.4: Referenz zur Eltern-Erinnerung (bei generierten Folge-Erinnerungen) */
+  parentErinnerungId?: string;
+  /** Story 6.4: Sequenznummer innerhalb der Serie */
+  recurringSequenceNumber?: number;
 }
 
 /**
@@ -73,6 +85,12 @@ export class CreateErinnerungCommand {
     public readonly eskalationsPersonId: string | undefined,
     public readonly eskalationNurAnErsteller: boolean,
     public readonly etbEntryId: string | undefined,
+    public readonly isRecurring: boolean | undefined,
+    public readonly recurringIntervalMinutes: number | undefined,
+    public readonly recurringEndDate: Date | undefined,
+    public readonly recurringMaxCount: number | undefined,
+    public readonly parentErinnerungId: string | undefined,
+    public readonly recurringSequenceNumber: number | undefined,
   ) {}
 
   /**
@@ -165,6 +183,12 @@ export class CreateErinnerungCommand {
         props.eskalationsPersonId?.trim() || undefined,
         props.eskalationNurAnErsteller ?? false,
         validatedEtbEntryId,
+        props.isRecurring,
+        props.recurringIntervalMinutes,
+        props.recurringEndDate,
+        props.recurringMaxCount,
+        props.parentErinnerungId?.trim() || undefined,
+        props.recurringSequenceNumber,
       ),
     );
   }

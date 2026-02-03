@@ -11,10 +11,12 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '@/test/utils';
 import { QuickCreateErinnerungDialog } from '../QuickCreateErinnerungDialog';
+
+import type { ErinnerungsvorlageResponseDto } from '@/shared';
 
 // Mock der API-Hooks
 const mockMutate = vi.fn();
@@ -23,6 +25,108 @@ vi.mock('../../../api', () => ({
     mutate: mockMutate,
     isPending: false,
   }),
+}));
+
+// Story 6.3: Mock der Templates Feature Imports
+const mockVorlagen: ErinnerungsvorlageResponseDto[] = [
+  {
+    id: 'v1',
+    titel: 'Lagebesprechung',
+    minuten: 30,
+    beschreibung: 'Regelmaessige Lagebesprechung im Stab',
+    createdBy: 'user-1',
+    createdAt: '2026-01-20T10:00:00Z',
+    updatedAt: '2026-01-20T10:00:00Z',
+  },
+  {
+    id: 'v2',
+    titel: 'Rueckmeldung pruefen',
+    minuten: 15,
+    beschreibung: null,
+    createdBy: 'user-1',
+    createdAt: '2026-01-20T11:00:00Z',
+    updatedAt: '2026-01-20T11:00:00Z',
+  },
+];
+
+vi.mock('@/features/templates', () => ({
+  useVorlagen: () => ({
+    data: mockVorlagen,
+    isLoading: false,
+  }),
+  TemplatePicker: ({
+    vorlagen,
+    onSelect,
+    isLoading,
+    disabled,
+  }: {
+    vorlagen: ErinnerungsvorlageResponseDto[];
+    onSelect: (v: ErinnerungsvorlageResponseDto) => void;
+    isLoading: boolean;
+    disabled?: boolean;
+  }) => (
+    <div data-testid="template-picker">
+      {vorlagen.map((v) => (
+        <button key={v.id} type="button" data-testid={`template-${v.id}`} onClick={() => onSelect(v)} disabled={disabled || isLoading}>
+          {v.titel} ({v.minuten} Min)
+        </button>
+      ))}
+    </div>
+  ),
+}));
+
+// Mock ETB queries (vermeidet EtbKategorie Enum Import-Fehler in der transitiven Dependency-Chain)
+vi.mock('@/features/etb/api/queries', () => ({
+  ETB_QUERY_KEYS: {
+    all: ['etb'] as const,
+    byEinsatz: (einsatzId: string) => ['etb', 'list', einsatzId] as const,
+  },
+}));
+
+// Mock @/shared (vorbestehendes Problem: EtbKategorie Enum nicht auflösbar in Vitest)
+// Noetig weil QuickCreateErinnerungDialog transitiv @/features/etb importiert,
+// das @/shared fuer AddEintragDtoKategorieEnum braucht.
+vi.mock('@/shared', () => ({
+  AddEintragDtoKategorieEnum: {
+    Alarmierung: 'ALARMIERUNG',
+    Ankunft: 'ANKUNFT',
+    Befehl: 'BEFEHL',
+    Erkundung: 'ERKUNDUNG',
+    Lage: 'LAGE',
+    Massnahme: 'MASSNAHME',
+    Personal: 'PERSONAL',
+    Fahrzeug: 'FAHRZEUG',
+    Material: 'MATERIAL',
+    Kommunikation: 'KOMMUNIKATION',
+    Wetter: 'WETTER',
+    Dokumentation: 'DOKUMENTATION',
+    Sonstiges: 'SONSTIGES',
+    System: 'SYSTEM',
+  },
+  EintragDtoKategorieEnum: {
+    Alarmierung: 'ALARMIERUNG',
+    Ankunft: 'ANKUNFT',
+    Befehl: 'BEFEHL',
+    Erkundung: 'ERKUNDUNG',
+    Lage: 'LAGE',
+    Massnahme: 'MASSNAHME',
+    Personal: 'PERSONAL',
+    Fahrzeug: 'FAHRZEUG',
+    Material: 'MATERIAL',
+    Kommunikation: 'KOMMUNIKATION',
+    Wetter: 'WETTER',
+    Dokumentation: 'DOKUMENTATION',
+    Sonstiges: 'SONSTIGES',
+    System: 'SYSTEM',
+  },
+  api: {},
+  ResponseError: class ResponseError extends Error {
+    response: Response;
+    constructor(response: Response, msg?: string) {
+      super(msg);
+      this.response = response;
+    }
+  },
 }));
 
 // Mock der Zeit-Berechnung für deterministische Tests
@@ -48,12 +152,14 @@ describe('QuickCreateErinnerungDialog', () => {
   });
 
   describe('Story 1.2 AC1: Benutzerdefiniert-Chip Sichtbarkeit', () => {
-    it('should display "Benutzerdefiniert" chip alongside preset chips', () => {
+    it('should display "Benutzerdefiniert" chip alongside preset chips', async () => {
       // Given (Arrange)
       // - Dialog wird gerendert mit Standard-Props
 
-      // When (Act)
-      renderWithProviders(<QuickCreateErinnerungDialog {...defaultProps} />);
+      // When (Act) - await act() um State-Updates aus useEffect abzuwarten
+      await act(async () => {
+        renderWithProviders(<QuickCreateErinnerungDialog {...defaultProps} />);
+      });
 
       // Then (Assert)
       // - Alle Preset-Chips sind sichtbar
@@ -67,12 +173,14 @@ describe('QuickCreateErinnerungDialog', () => {
       expect(screen.getByRole('button', { name: /benutzerdefiniert/i })).toBeInTheDocument();
     });
 
-    it('should have preset mode selected by default (30 Min)', () => {
+    it('should have preset mode selected by default (30 Min)', async () => {
       // Given (Arrange)
       // - Dialog wird gerendert
 
-      // When (Act)
-      renderWithProviders(<QuickCreateErinnerungDialog {...defaultProps} />);
+      // When (Act) - await act() um State-Updates aus useEffect abzuwarten
+      await act(async () => {
+        renderWithProviders(<QuickCreateErinnerungDialog {...defaultProps} />);
+      });
 
       // Then (Assert)
       // - 30 Min Chip ist standardmaessig aktiv (aria-pressed)
@@ -305,12 +413,14 @@ describe('QuickCreateErinnerungDialog', () => {
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    it('should not render when isOpen is false', () => {
+    it('should not render when isOpen is false', async () => {
       // Given (Arrange)
       // - Dialog mit isOpen=false
 
-      // When (Act)
-      renderWithProviders(<QuickCreateErinnerungDialog {...defaultProps} isOpen={false} />);
+      // When (Act) - await act() um State-Updates aus useEffect abzuwarten
+      await act(async () => {
+        renderWithProviders(<QuickCreateErinnerungDialog {...defaultProps} isOpen={false} />);
+      });
 
       // Then (Assert)
       expect(screen.queryByText(/erinnerung erstellen/i)).not.toBeInTheDocument();
@@ -334,6 +444,230 @@ describe('QuickCreateErinnerungDialog', () => {
       // Then (Assert)
       // - onClose wurde aufgerufen (Dialog schliessen + Form reset wird intern durch handleClose gemacht)
       expect(onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Story 6.4: Wiederkehrende Erinnerungen', () => {
+    it('sollte die Recurring-Sektion anzeigen wenn Toggle aktiviert wird', async () => {
+      // Given (Arrange) - Dialog wird gerendert
+      const user = userEvent.setup();
+      renderWithProviders(<QuickCreateErinnerungDialog {...defaultProps} />);
+
+      // - Recurring-Sektion ist initial nicht sichtbar
+      expect(screen.queryByText(/intervall/i)).not.toBeInTheDocument();
+
+      // When (Act) - "Wiederkehrend" Checkbox aktivieren
+      const recurringCheckbox = screen.getByLabelText(/wiederkehrend/i);
+      await user.click(recurringCheckbox);
+
+      // Then (Assert)
+      // - "Intervall" Label ist sichtbar
+      expect(screen.getByText(/intervall/i)).toBeInTheDocument();
+
+      // - Intervall-Preset Buttons sind sichtbar (45 Min ist eindeutig fuer Recurring-Sektion)
+      expect(screen.getByRole('button', { name: '45 Min' })).toBeInTheDocument();
+    });
+
+    it('sollte die Recurring-Sektion verbergen wenn Toggle deaktiviert wird', async () => {
+      // Given (Arrange) - Dialog wird gerendert
+      const user = userEvent.setup();
+      renderWithProviders(<QuickCreateErinnerungDialog {...defaultProps} />);
+
+      // - Recurring-Toggle aktivieren
+      const recurringCheckbox = screen.getByLabelText(/wiederkehrend/i);
+      await user.click(recurringCheckbox);
+
+      // - Sektion ist sichtbar
+      expect(screen.getByText(/intervall/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '45 Min' })).toBeInTheDocument();
+
+      // When (Act) - Recurring-Toggle deaktivieren
+      await user.click(recurringCheckbox);
+
+      // Then (Assert)
+      // - Recurring-Sektion ist nicht mehr sichtbar
+      expect(screen.queryByText(/intervall/i)).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: '45 Min' })).not.toBeInTheDocument();
+    });
+
+    it('sollte ein Intervall-Preset auswaehlen koennen', async () => {
+      // Given (Arrange) - Dialog mit aktiviertem Recurring-Toggle
+      const user = userEvent.setup();
+      renderWithProviders(<QuickCreateErinnerungDialog {...defaultProps} />);
+
+      // - Recurring-Toggle aktivieren
+      const recurringCheckbox = screen.getByLabelText(/wiederkehrend/i);
+      await user.click(recurringCheckbox);
+
+      // When (Act) - "30 Min" Intervall-Chip klicken (zweiter "30 Min" Button, da erster ein Zeit-Preset ist)
+      const allButtons30Min = screen.getAllByRole('button', { name: '30 Min' });
+      // Der zweite "30 Min" Button gehoert zur Recurring-Intervall-Sektion
+      const intervalChip = allButtons30Min[1];
+      await user.click(intervalChip);
+
+      // Then (Assert) - Intervall-Chip ist ausgewaehlt
+      expect(intervalChip).toHaveAttribute('aria-pressed', 'true');
+    });
+
+    it('sollte Recurring-Daten beim Submit uebergeben', async () => {
+      // Given (Arrange)
+      const user = userEvent.setup();
+      renderWithProviders(<QuickCreateErinnerungDialog {...defaultProps} />);
+
+      // - Titel eingeben
+      const titelInput = screen.getByPlaceholderText(/lagebesprechung/i);
+      await user.type(titelInput, 'Wiederkehrende Lagebesprechung');
+
+      // - Zeit-Preset auswaehlen (15 Min)
+      const presetChip = screen.getByRole('button', { name: '15 Min' });
+      await user.click(presetChip);
+
+      // - Recurring-Toggle aktivieren
+      const recurringCheckbox = screen.getByLabelText(/wiederkehrend/i);
+      await user.click(recurringCheckbox);
+
+      // - Intervall 30 Min auswaehlen (zweiter "30 Min" Button = Recurring-Intervall)
+      const allButtons30Min = screen.getAllByRole('button', { name: '30 Min' });
+      const intervalChip = allButtons30Min[1];
+      await user.click(intervalChip);
+
+      // When (Act) - Formular absenden
+      const submitButton = screen.getByRole('button', { name: /erinnerung erstellen/i });
+      await user.click(submitButton);
+
+      // Then (Assert) - API wurde mit Recurring-Daten aufgerufen
+      await waitFor(() => {
+        expect(mockMutate).toHaveBeenCalledTimes(1);
+      });
+
+      const callArgs = mockMutate.mock.calls[0][0];
+      expect(callArgs.einsatzId).toBe('test-einsatz-123');
+      expect(callArgs.data.titel).toBe('Wiederkehrende Lagebesprechung');
+      expect(callArgs.data.isRecurring).toBe(true);
+      expect(callArgs.data.recurringIntervalMinutes).toBe(30);
+      expect(callArgs.data.faelligAm).toBeDefined();
+    });
+  });
+
+  describe('Story 6.3: Erinnerung aus Vorlage erstellen', () => {
+    it('should render TemplatePicker when no fromEtb is provided (AC1)', async () => {
+      // Given (Arrange) - Dialog ohne fromEtb
+
+      // When (Act) - await act() um State-Updates aus useEffect abzuwarten
+      await act(async () => {
+        renderWithProviders(<QuickCreateErinnerungDialog {...defaultProps} />);
+      });
+
+      // Then (Assert)
+      expect(screen.getByTestId('template-picker')).toBeInTheDocument();
+    });
+
+    it('should NOT render TemplatePicker when fromEtb is provided', async () => {
+      // Given (Arrange) - Dialog mit fromEtb
+      const fromEtb = { entryId: 'etb-1', text: 'ETB Eintrag Text' };
+
+      // When (Act) - await act() um State-Updates aus useEffect abzuwarten
+      await act(async () => {
+        renderWithProviders(<QuickCreateErinnerungDialog {...defaultProps} fromEtb={fromEtb} />);
+      });
+
+      // Then (Assert) - TemplatePicker sollte nicht sichtbar sein (ETB hat Vorrang)
+      expect(screen.queryByTestId('template-picker')).not.toBeInTheDocument();
+    });
+
+    it('should prefill form when template is selected via TemplatePicker (AC2, AC3)', async () => {
+      // Given (Arrange)
+      const user = userEvent.setup();
+      renderWithProviders(<QuickCreateErinnerungDialog {...defaultProps} />);
+
+      // When (Act) - Klicke auf eine Vorlage im TemplatePicker
+      const templateButton = screen.getByTestId('template-v1');
+      await user.click(templateButton);
+
+      // Then (Assert) - Formular-Felder sind vorausgefuellt
+      await waitFor(() => {
+        const titelInput = screen.getByPlaceholderText(/lagebesprechung/i) as HTMLInputElement;
+        expect(titelInput.value).toBe('Lagebesprechung');
+      });
+
+      // Beschreibung ist ebenfalls vorausgefuellt (aus Vorlage v1)
+      const beschreibungTextarea = screen.getByLabelText(/beschreibung/i) as HTMLTextAreaElement;
+      expect(beschreibungTextarea.value).toBe('Regelmaessige Lagebesprechung im Stab');
+    });
+
+    it('should prefill form from fromTemplate prop on dialog open (AC2)', async () => {
+      // Given (Arrange) - Dialog mit fromTemplate
+      const template: ErinnerungsvorlageResponseDto = {
+        id: 'v1',
+        titel: 'Lagebesprechung',
+        minuten: 30,
+        beschreibung: 'Regelmaessige Lagebesprechung im Stab',
+        createdBy: 'user-1',
+        createdAt: '2026-01-20T10:00:00Z',
+        updatedAt: '2026-01-20T10:00:00Z',
+      };
+
+      // When (Act)
+      renderWithProviders(<QuickCreateErinnerungDialog {...defaultProps} fromTemplate={template} />);
+
+      // Then (Assert) - Formular-Felder sind vorausgefuellt
+      await waitFor(() => {
+        const titelInput = screen.getByPlaceholderText(/lagebesprechung/i) as HTMLInputElement;
+        expect(titelInput.value).toBe('Lagebesprechung');
+      });
+
+      // Beschreibung ist ebenfalls vorausgefuellt (aus fromTemplate prop)
+      const beschreibungTextarea = screen.getByLabelText(/beschreibung/i) as HTMLTextAreaElement;
+      expect(beschreibungTextarea.value).toBe('Regelmaessige Lagebesprechung im Stab');
+    });
+
+    it('should allow editing prefilled values before submit (AC3)', async () => {
+      // Given (Arrange)
+      const user = userEvent.setup();
+      renderWithProviders(<QuickCreateErinnerungDialog {...defaultProps} />);
+
+      // - Vorlage auswaehlen
+      await user.click(screen.getByTestId('template-v1'));
+
+      // When (Act) - Vorausgefuellten Titel aendern
+      const titelInput = screen.getByPlaceholderText(/lagebesprechung/i);
+      await waitFor(() => {
+        expect((titelInput as HTMLInputElement).value).toBe('Lagebesprechung');
+      });
+      await user.clear(titelInput);
+      await user.type(titelInput, 'Angepasste Lagebesprechung');
+
+      // Then (Assert) - Geaenderter Titel
+      expect((titelInput as HTMLInputElement).value).toBe('Angepasste Lagebesprechung');
+    });
+
+    it('should submit with template values correctly (AC2)', async () => {
+      // Given (Arrange)
+      const user = userEvent.setup();
+      renderWithProviders(<QuickCreateErinnerungDialog {...defaultProps} />);
+
+      // - Vorlage auswaehlen
+      await user.click(screen.getByTestId('template-v1'));
+
+      // - Warte auf Vorausfuellung
+      await waitFor(() => {
+        const titelInput = screen.getByPlaceholderText(/lagebesprechung/i) as HTMLInputElement;
+        expect(titelInput.value).toBe('Lagebesprechung');
+      });
+
+      // When (Act) - Submit
+      const submitButton = screen.getByRole('button', { name: /erinnerung erstellen/i });
+      await user.click(submitButton);
+
+      // Then (Assert) - API wurde mit Vorlagen-Werten aufgerufen
+      await waitFor(() => {
+        expect(mockMutate).toHaveBeenCalledTimes(1);
+      });
+
+      const callArgs = mockMutate.mock.calls[0][0];
+      expect(callArgs.data.titel).toBe('Lagebesprechung');
+      expect(callArgs.data.beschreibung).toBe('Regelmaessige Lagebesprechung im Stab');
+      expect(callArgs.data.faelligAm).toBeDefined();
     });
   });
 });

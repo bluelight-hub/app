@@ -51,6 +51,10 @@ import type { ErinnerungErledigtEvent } from '@domain/events/erinnerung-erledigt
 import type { ErinnerungAssignedEvent } from '@domain/events/erinnerung-assigned.event';
 import type { ErinnerungEskaliertEvent } from '@domain/events/erinnerung-eskaliert.event';
 import type { ErinnerungIntensiviertEvent } from '@domain/events/erinnerung-intensiviert.event';
+import type { WiederkehrendeInstanzErstelltEvent } from '@domain/events/wiederkehrende-instanz-erstellt.event';
+import type { ErinnerungSerieGestopptEvent } from '@domain/events/erinnerung-serie-gestoppt.event';
+import type { FuehrungsrhythmusTemplateErstelltEvent } from '@domain/fuehrungsrhythmus/events/fuehrungsrhythmus-template-erstellt.event';
+import type { FuehrungsrhythmusTemplateGeloeschtEvent } from '@domain/fuehrungsrhythmus/events/fuehrungsrhythmus-template-geloescht.event';
 
 /**
  * Serialisiertes Event-Payload für Outbox-Persistierung.
@@ -285,6 +289,18 @@ export class EventSerializer {
       case 'erinnerung.intensiviert':
         return this.serializeErinnerungIntensiviert(event as unknown as ErinnerungIntensiviertEvent);
 
+      // ===== WIEDERKEHRENDE ERINNERUNG EVENTS (Story 6.4) =====
+      case 'erinnerung.wiederkehrende-instanz-erstellt':
+        return this.serializeWiederkehrendeInstanzErstellt(event as unknown as WiederkehrendeInstanzErstelltEvent);
+      case 'erinnerung.serie-gestoppt':
+        return this.serializeErinnerungSerieGestoppt(event as unknown as ErinnerungSerieGestopptEvent);
+
+      // ===== FUEHRUNGSRHYTHMUS TEMPLATE EVENTS (Story 6.6) =====
+      case 'fuehrungsrhythmus-template.erstellt':
+        return this.serializeFuehrungsrhythmusTemplateErstellt(event as unknown as FuehrungsrhythmusTemplateErstelltEvent);
+      case 'fuehrungsrhythmus-template.geloescht':
+        return this.serializeFuehrungsrhythmusTemplateGeloescht(event as unknown as FuehrungsrhythmusTemplateGeloeschtEvent);
+
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
     }
@@ -316,6 +332,32 @@ export class EventSerializer {
       intensiviertAm: event.intensiviertAm.toISOString(),
       titel: event.titel,
       erstelltVon: event.erstelltVon.toString(),
+    };
+  }
+
+  /**
+   * Serialisiert WiederkehrendeInstanzErstelltEvent (Story 6.4).
+   */
+  private serializeWiederkehrendeInstanzErstellt(event: WiederkehrendeInstanzErstelltEvent): Record<string, unknown> {
+    return {
+      erinnerungId: event.erinnerungId.toString(),
+      parentId: event.parentId.toString(),
+      einsatzId: event.einsatzId.toString(),
+      titel: event.titel,
+      faelligAm: event.faelligAm.toISOString(),
+      sequenceNumber: event.sequenceNumber,
+    };
+  }
+
+  /**
+   * Serialisiert ErinnerungSerieGestopptEvent (Story 6.5).
+   */
+  private serializeErinnerungSerieGestoppt(event: ErinnerungSerieGestopptEvent): Record<string, unknown> {
+    return {
+      erinnerungId: event.erinnerungId.toString(),
+      einsatzId: event.einsatzId.toString(),
+      titel: event.titel,
+      totalErstellteInstanzen: event.totalErstellteInstanzen,
     };
   }
 
@@ -824,6 +866,31 @@ export class EventSerializer {
       assignedById: event.assignedById.toString(), // UserId → string
       titel: event.titel, // Already primitive string
       assignedAt: event.assignedAt.toISOString(), // Date → ISO string
+    };
+  }
+
+  // ===== FUEHRUNGSRHYTHMUS TEMPLATE SERIALIZERS (Story 6.6) =====
+
+  /**
+   * Serialisiert FuehrungsrhythmusTemplateErstelltEvent (Story 6.6).
+   */
+  private serializeFuehrungsrhythmusTemplateErstellt(event: FuehrungsrhythmusTemplateErstelltEvent): Record<string, unknown> {
+    return {
+      templateId: event.templateId.toString(), // FuehrungsrhythmusTemplateId → string
+      name: event.name, // Already primitive string
+      eintraegeCount: event.eintraegeCount, // Already primitive number
+      createdBy: event.createdBy.toString(), // UserId → string
+    };
+  }
+
+  /**
+   * Serialisiert FuehrungsrhythmusTemplateGeloeschtEvent (Story 6.6).
+   */
+  private serializeFuehrungsrhythmusTemplateGeloescht(event: FuehrungsrhythmusTemplateGeloeschtEvent): Record<string, unknown> {
+    return {
+      templateId: event.templateId.toString(), // FuehrungsrhythmusTemplateId → string
+      name: event.name, // Already primitive string
+      deletedBy: event.deletedBy.toString(), // UserId → string
     };
   }
 }

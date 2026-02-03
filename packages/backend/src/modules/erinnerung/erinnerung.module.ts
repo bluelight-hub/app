@@ -29,6 +29,7 @@ import { ErinnerungGateway } from './gateways/erinnerung.gateway';
 import { WsJwtAuthGuard } from './guards/ws-jwt-auth.guard';
 import { ErinnerungResponseFactory } from '@/application/erinnerung/dto/erinnerung-response.factory';
 import { EskaliereErinnerungHandler } from '@/application/erinnerung/commands/eskaliere-erinnerung/eskaliere-erinnerung.handler';
+import { StopRecurringSeriesHandler } from '@/application/erinnerung/commands/stop-recurring-series/stop-recurring-series.handler';
 import { ErinnerungWebSocketEventAdapter } from '@infrastructure/events/adapters/erinnerung-websocket-event.adapter';
 
 @Module({
@@ -71,6 +72,8 @@ import { ErinnerungWebSocketEventAdapter } from '@infrastructure/events/adapters
     // Configuration Handlers (Story 4.3)
     GetErinnerungKonfigurationHandler,
     UpdateEskalationsTimeoutHandler,
+    // Stop Recurring Series (Story 6.5)
+    StopRecurringSeriesHandler,
     // Escalation (Story 4.1)
     EskaliereErinnerungHandler,
     // WebSocket (Story 1.5 AC4 + Security C1, C2, C3)

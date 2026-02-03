@@ -21,6 +21,7 @@ import {
   EinsatzTeilnehmerApi,
   ErinnerungenApi,
   ErinnerungsvorlagenApi,
+  FuehrungsrhythmusTemplatesApi,
   ETBApi,
   GeocodingApi,
   HealthApi,
@@ -115,6 +116,7 @@ class BackendApi {
   private readonly einsatzTeilnehmerApi: EinsatzTeilnehmerApi;
   private readonly erinnerungenApi: ErinnerungenApi;
   private readonly erinnerungsvorlagenApi: ErinnerungsvorlagenApi;
+  private readonly fuehrungsrhythmusTemplatesApi: FuehrungsrhythmusTemplatesApi;
 
   /**
    * Erstellt eine neue Instanz der BackendApi-Klasse
@@ -158,6 +160,7 @@ class BackendApi {
     this.einsatzTeilnehmerApi = new EinsatzTeilnehmerApi(this.configuration);
     this.erinnerungenApi = new ErinnerungenApi(this.configuration);
     this.erinnerungsvorlagenApi = new ErinnerungsvorlagenApi(this.configuration);
+    this.fuehrungsrhythmusTemplatesApi = new FuehrungsrhythmusTemplatesApi(this.configuration);
   }
 
   /**
@@ -392,6 +395,15 @@ class BackendApi {
    */
   erinnerungsvorlagen(): ErinnerungsvorlagenApi {
     return this.erinnerungsvorlagenApi;
+  }
+
+  /**
+   * Gibt die gecachte FuehrungsrhythmusTemplates-API-Instanz zurueck
+   *
+   * @returns Die FuehrungsrhythmusTemplates-API-Instanz fuer Fuehrungsrhythmus-Template-Management
+   */
+  fuehrungsrhythmusTemplates(): FuehrungsrhythmusTemplatesApi {
+    return this.fuehrungsrhythmusTemplatesApi;
   }
 }
 

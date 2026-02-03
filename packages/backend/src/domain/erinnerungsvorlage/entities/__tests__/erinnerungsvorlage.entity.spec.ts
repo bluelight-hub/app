@@ -1,5 +1,7 @@
 import { Erinnerungsvorlage } from '../erinnerungsvorlage.entity';
 import { ErinnerungsvorlageErstelltEvent } from '@domain/erinnerungsvorlage/events/erinnerungsvorlage-erstellt.event';
+import { ErinnerungsvorlageAktualisiertEvent } from '@domain/erinnerungsvorlage/events/erinnerungsvorlage-aktualisiert.event';
+import { ErinnerungsvorlageGeloeschtEvent } from '@domain/erinnerungsvorlage/events/erinnerungsvorlage-geloescht.event';
 import { ErinnerungsvorlageId } from '@domain/erinnerungsvorlage/value-objects/erinnerungsvorlage-id';
 import { ErinnerungsvorlageTitel } from '@domain/erinnerungsvorlage/value-objects/erinnerungsvorlage-titel';
 import { UserId } from '@domain/value-objects/user-id';
@@ -386,6 +388,338 @@ describe('Erinnerungsvorlage Entity', () => {
 
       // Then (Assert)
       expect(vorlage1.equals(vorlage2)).toBe(false);
+    });
+  });
+
+  describe('update()', () => {
+    const validUpdatedBy = 'user_updater_123';
+
+    /**
+     * Erzeugt eine gueltige Erinnerungsvorlage fuer Update-Tests.
+     * Cleared automatisch die Create-Events.
+     */
+    const createVorlageForUpdate = () => {
+      const createdBy = generateValidUserId();
+      const result = Erinnerungsvorlage.create({
+        titel: 'Original Titel',
+        minuten: 30,
+        beschreibung: 'Original Beschreibung',
+        createdBy,
+      });
+      const vorlage = result.value!;
+      vorlage.clearDomainEvents();
+      return vorlage;
+    };
+
+    it('should update titel successfully', () => {
+      // Given (Arrange)
+      const vorlage = createVorlageForUpdate();
+
+      // When (Act)
+      const result = vorlage.update({ updatedBy: validUpdatedBy, titel: 'Neuer Titel' });
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      expect(vorlage.titel.value).toBe('Neuer Titel');
+    });
+
+    it('should update minuten successfully', () => {
+      // Given (Arrange)
+      const vorlage = createVorlageForUpdate();
+
+      // When (Act)
+      const result = vorlage.update({ updatedBy: validUpdatedBy, minuten: 60 });
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      expect(vorlage.minuten).toBe(60);
+    });
+
+    it('should update beschreibung successfully', () => {
+      // Given (Arrange)
+      const vorlage = createVorlageForUpdate();
+
+      // When (Act)
+      const result = vorlage.update({ updatedBy: validUpdatedBy, beschreibung: 'Neue Beschreibung' });
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      expect(vorlage.beschreibung).toBe('Neue Beschreibung');
+    });
+
+    it('should update multiple fields simultaneously', () => {
+      // Given (Arrange)
+      const vorlage = createVorlageForUpdate();
+
+      // When (Act)
+      const result = vorlage.update({
+        titel: 'Komplett Neu',
+        minuten: 120,
+        beschreibung: 'Alles geaendert',
+      });
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      expect(vorlage.titel.value).toBe('Komplett Neu');
+      expect(vorlage.minuten).toBe(120);
+      expect(vorlage.beschreibung).toBe('Alles geaendert');
+    });
+
+    it('should fail when vorlage is deleted (ALREADY_DELETED)', () => {
+      // Given (Arrange)
+      const vorlage = createVorlageForUpdate();
+      const userId = generateValidUserId();
+      vorlage.softDelete(userId);
+      vorlage.clearDomainEvents();
+
+      // When (Act)
+      const result = vorlage.update({ updatedBy: validUpdatedBy, titel: 'Neuer Titel' });
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('VORLAGE_ALREADY_DELETED');
+    });
+
+    it('should fail when no changes provided (NO_CHANGES)', () => {
+      // Given (Arrange)
+      const vorlage = createVorlageForUpdate();
+
+      // When (Act)
+      const result = vorlage.update({ updatedBy: validUpdatedBy });
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('VORLAGE_NO_CHANGES');
+    });
+
+    it('should fail when titel is too long', () => {
+      // Given (Arrange)
+      const vorlage = createVorlageForUpdate();
+
+      // When (Act)
+      const result = vorlage.update({ updatedBy: validUpdatedBy, titel: 'A'.repeat(101) });
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('VORLAGE_TITEL_TOO_LONG');
+    });
+
+    it('should fail when titel is empty', () => {
+      // Given (Arrange)
+      const vorlage = createVorlageForUpdate();
+
+      // When (Act)
+      const result = vorlage.update({ updatedBy: validUpdatedBy, titel: '' });
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('VORLAGE_TITEL_REQUIRED');
+    });
+
+    it('should fail when minuten is less than 1', () => {
+      // Given (Arrange)
+      const vorlage = createVorlageForUpdate();
+
+      // When (Act)
+      const result = vorlage.update({ updatedBy: validUpdatedBy, minuten: 0 });
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('VORLAGE_MINUTEN_INVALID');
+    });
+
+    it('should fail when minuten is negative', () => {
+      // Given (Arrange)
+      const vorlage = createVorlageForUpdate();
+
+      // When (Act)
+      const result = vorlage.update({ updatedBy: validUpdatedBy, minuten: -5 });
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('VORLAGE_MINUTEN_INVALID');
+    });
+
+    it('should fail when beschreibung exceeds max length', () => {
+      // Given (Arrange)
+      const vorlage = createVorlageForUpdate();
+
+      // When (Act)
+      const result = vorlage.update({ updatedBy: validUpdatedBy, beschreibung: 'B'.repeat(501) });
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('VORLAGE_BESCHREIBUNG_TOO_LONG');
+    });
+
+    it('should emit ErinnerungsvorlageAktualisiertEvent', () => {
+      // Given (Arrange)
+      const vorlage = createVorlageForUpdate();
+
+      // When (Act)
+      const result = vorlage.update({ updatedBy: validUpdatedBy, titel: 'Updated Titel', minuten: 45 });
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+
+      const events = vorlage.getDomainEvents();
+      expect(events.length).toBe(1);
+      expect(events[0]).toBeInstanceOf(ErinnerungsvorlageAktualisiertEvent);
+
+      const event = events[0] as ErinnerungsvorlageAktualisiertEvent;
+      expect(event.vorlageId.toString()).toBe(vorlage.id.toString());
+      expect(event.titel).toBe('Updated Titel');
+      expect(event.minuten).toBe(45);
+    });
+
+    it('should update updatedAt timestamp', () => {
+      // Given (Arrange)
+      const vorlage = createVorlageForUpdate();
+      const originalUpdatedAt = vorlage.updatedAt;
+
+      // When (Act) - kleine Verzoegerung um Timestamp-Unterschied zu garantieren
+      const result = vorlage.update({ updatedBy: validUpdatedBy, titel: 'Zeitstempel Test' });
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      expect(vorlage.updatedAt.getTime()).toBeGreaterThanOrEqual(originalUpdatedAt.getTime());
+    });
+
+    it('should remove beschreibung when set to null', () => {
+      // Given (Arrange)
+      const vorlage = createVorlageForUpdate();
+      expect(vorlage.beschreibung).toBe('Original Beschreibung');
+
+      // When (Act)
+      const result = vorlage.update({ updatedBy: validUpdatedBy, beschreibung: null });
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      expect(vorlage.beschreibung).toBeNull();
+    });
+
+    it('should trim beschreibung whitespace', () => {
+      // Given (Arrange)
+      const vorlage = createVorlageForUpdate();
+
+      // When (Act)
+      const result = vorlage.update({ updatedBy: validUpdatedBy, beschreibung: '  Getrimmt  ' });
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      expect(vorlage.beschreibung).toBe('Getrimmt');
+    });
+  });
+
+  describe('softDelete()', () => {
+    /**
+     * Erzeugt eine gueltige Erinnerungsvorlage fuer SoftDelete-Tests.
+     * Cleared automatisch die Create-Events.
+     */
+    const createVorlageForDelete = () => {
+      const createdBy = generateValidUserId();
+      const result = Erinnerungsvorlage.create({
+        titel: 'Zu loeschende Vorlage',
+        minuten: 30,
+        beschreibung: 'Wird geloescht',
+        createdBy,
+      });
+      const vorlage = result.value!;
+      vorlage.clearDomainEvents();
+      return vorlage;
+    };
+
+    it('should mark vorlage as deleted (isDeleted=true)', () => {
+      // Given (Arrange)
+      const vorlage = createVorlageForDelete();
+      const userId = generateValidUserId();
+
+      // When (Act)
+      const result = vorlage.softDelete(userId);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      expect(vorlage.isDeleted).toBe(true);
+    });
+
+    it('should set deletedAt', () => {
+      // Given (Arrange)
+      const vorlage = createVorlageForDelete();
+      const userId = generateValidUserId();
+      const beforeDelete = new Date();
+
+      // When (Act)
+      const result = vorlage.softDelete(userId);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      expect(vorlage.deletedAt).toBeDefined();
+      expect(vorlage.deletedAt).toBeInstanceOf(Date);
+      expect(vorlage.deletedAt!.getTime()).toBeGreaterThanOrEqual(beforeDelete.getTime());
+    });
+
+    it('should set deletedBy', () => {
+      // Given (Arrange)
+      const vorlage = createVorlageForDelete();
+      const userId = generateValidUserId();
+
+      // When (Act)
+      const result = vorlage.softDelete(userId);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      expect(vorlage.deletedBy).toBeDefined();
+      expect(vorlage.deletedBy!.equals(userId)).toBe(true);
+    });
+
+    it('should fail when already deleted (ALREADY_DELETED)', () => {
+      // Given (Arrange)
+      const vorlage = createVorlageForDelete();
+      const userId = generateValidUserId();
+      vorlage.softDelete(userId);
+      vorlage.clearDomainEvents();
+
+      // When (Act)
+      const result = vorlage.softDelete(userId);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('VORLAGE_ALREADY_DELETED');
+    });
+
+    it('should emit ErinnerungsvorlageGeloeschtEvent', () => {
+      // Given (Arrange)
+      const vorlage = createVorlageForDelete();
+      const userId = generateValidUserId();
+
+      // When (Act)
+      const result = vorlage.softDelete(userId);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+
+      const events = vorlage.getDomainEvents();
+      expect(events.length).toBe(1);
+      expect(events[0]).toBeInstanceOf(ErinnerungsvorlageGeloeschtEvent);
+
+      const event = events[0] as ErinnerungsvorlageGeloeschtEvent;
+      expect(event.vorlageId.toString()).toBe(vorlage.id.toString());
+      expect(event.titel).toBe('Zu loeschende Vorlage');
+      expect(event.deletedBy.equals(userId)).toBe(true);
+    });
+
+    it('should update updatedAt timestamp on delete', () => {
+      // Given (Arrange)
+      const vorlage = createVorlageForDelete();
+      const userId = generateValidUserId();
+      const originalUpdatedAt = vorlage.updatedAt;
+
+      // When (Act)
+      const result = vorlage.softDelete(userId);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      expect(vorlage.updatedAt.getTime()).toBeGreaterThanOrEqual(originalUpdatedAt.getTime());
     });
   });
 });

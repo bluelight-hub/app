@@ -4,6 +4,8 @@ import { ErinnerungsvorlageId } from '@domain/erinnerungsvorlage/value-objects/e
 import { ErinnerungsvorlageTitel } from '@domain/erinnerungsvorlage/value-objects/erinnerungsvorlage-titel';
 import type { UserId } from '@domain/value-objects/user-id';
 import { ErinnerungsvorlageErstelltEvent } from '@domain/erinnerungsvorlage/events/erinnerungsvorlage-erstellt.event';
+import { ErinnerungsvorlageAktualisiertEvent } from '@domain/erinnerungsvorlage/events/erinnerungsvorlage-aktualisiert.event';
+import { ErinnerungsvorlageGeloeschtEvent } from '@domain/erinnerungsvorlage/events/erinnerungsvorlage-geloescht.event';
 
 /**
  * Props fuer die Erstellung einer neuen Erinnerungsvorlage.
@@ -32,6 +34,16 @@ export interface ReconstructErinnerungsvorlageProps {
 }
 
 /**
+ * Props fuer die Aktualisierung einer Erinnerungsvorlage (Story 6.2).
+ */
+export interface UpdateErinnerungsvorlageProps {
+  titel?: string;
+  minuten?: number;
+  beschreibung?: string | null; // null = Beschreibung entfernen
+  updatedBy: string;
+}
+
+/**
  * Erinnerungsvorlage Aggregate Root.
  * Kapselt Business Rules fuer Erinnerungsvorlagen (Konfiguration/Stammdaten).
  */
@@ -39,13 +51,13 @@ export class Erinnerungsvorlage extends AggregateRoot<ErinnerungsvorlageId> {
   public static readonly MAX_BESCHREIBUNG_LENGTH = 500;
   public static readonly MIN_MINUTEN = 1;
 
-  private readonly _titel: ErinnerungsvorlageTitel;
-  private readonly _minuten: number;
-  private readonly _beschreibung: string | null;
+  private _titel: ErinnerungsvorlageTitel;
+  private _minuten: number;
+  private _beschreibung: string | null;
   private readonly _createdBy: UserId;
-  private readonly _isDeleted: boolean;
-  private readonly _deletedAt: Date | null;
-  private readonly _deletedBy: UserId | null;
+  private _isDeleted: boolean;
+  private _deletedAt: Date | null;
+  private _deletedBy: UserId | null;
 
   private constructor(
     id: ErinnerungsvorlageId,
@@ -138,5 +150,80 @@ export class Erinnerungsvorlage extends AggregateRoot<ErinnerungsvorlageId> {
    */
   static reconstruct(props: ReconstructErinnerungsvorlageProps): Erinnerungsvorlage {
     return new Erinnerungsvorlage(props.id, props.titel, props.minuten, props.beschreibung, props.createdBy, props.createdAt, props.updatedAt, props.isDeleted, props.deletedAt, props.deletedBy);
+  }
+
+  /**
+   * Aktualisiert die Erinnerungsvorlage mit den gegebenen Properties (Story 6.2).
+   * Business Rules:
+   * - Geloeschte Vorlagen duerfen nicht bearbeitet werden
+   * - Mindestens ein Feld muss geaendert werden
+   * - Titel und Minuten werden validiert
+   */
+  public update(props: UpdateErinnerungsvorlageProps): Result<void> {
+    // Business Rule: Geloeschte Vorlagen duerfen nicht bearbeitet werden
+    if (this._isDeleted) {
+      return Result.fail<void>('VORLAGE_ALREADY_DELETED');
+    }
+
+    // Mindestens ein Feld muss geaendert werden
+    if (props.titel === undefined && props.minuten === undefined && props.beschreibung === undefined) {
+      return Result.fail<void>('VORLAGE_NO_CHANGES');
+    }
+
+    // Validiere und update Titel
+    if (props.titel !== undefined) {
+      const titelResult = ErinnerungsvorlageTitel.create(props.titel);
+      if (titelResult.isFailure || !titelResult.value) {
+        return Result.fail<void>(titelResult.error ?? 'VORLAGE_TITEL_INVALID');
+      }
+      this._titel = titelResult.value;
+    }
+
+    // Validiere und update Minuten
+    if (props.minuten !== undefined) {
+      if (props.minuten < Erinnerungsvorlage.MIN_MINUTEN) {
+        return Result.fail<void>('VORLAGE_MINUTEN_INVALID');
+      }
+      this._minuten = props.minuten;
+    }
+
+    // Update Beschreibung (null = Beschreibung entfernen)
+    if (props.beschreibung !== undefined) {
+      if (props.beschreibung !== null) {
+        const trimmedBeschreibung = props.beschreibung.trim();
+        if (trimmedBeschreibung.length > Erinnerungsvorlage.MAX_BESCHREIBUNG_LENGTH) {
+          return Result.fail<void>(`VORLAGE_BESCHREIBUNG_TOO_LONG`);
+        }
+        this._beschreibung = trimmedBeschreibung.length > 0 ? trimmedBeschreibung : null;
+      } else {
+        this._beschreibung = null;
+      }
+    }
+
+    this.updateTimestamp();
+
+    // Emit Domain Event
+    this.addDomainEvent(new ErinnerungsvorlageAktualisiertEvent(this.id, this._titel.value, this._minuten, this._beschreibung, props.updatedBy, this.id.toString()));
+
+    return Result.ok<void>(undefined);
+  }
+
+  /**
+   * Soft-Delete: Markiert die Erinnerungsvorlage als geloescht (Story 6.2).
+   * Business Rule: Bereits geloeschte Vorlagen koennen nicht erneut geloescht werden.
+   */
+  public softDelete(deletedBy: UserId): Result<void> {
+    if (this._isDeleted) {
+      return Result.fail<void>('VORLAGE_ALREADY_DELETED');
+    }
+
+    this._isDeleted = true;
+    this._deletedAt = new Date();
+    this._deletedBy = deletedBy;
+    this.updateTimestamp();
+
+    this.addDomainEvent(new ErinnerungsvorlageGeloeschtEvent(this.id, this._titel.value, deletedBy, this.id.toString()));
+
+    return Result.ok<void>(undefined);
   }
 }

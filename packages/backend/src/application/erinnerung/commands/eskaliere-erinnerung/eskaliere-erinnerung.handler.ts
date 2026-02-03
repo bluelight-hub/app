@@ -211,6 +211,13 @@ export class EskaliereErinnerungHandler extends TransactionalCommandHandler<Eska
         escalatedAt: erinnerung.escalatedAt?.toISOString() ?? null,
         previousAssigneeId: erinnerung.previousAssigneeId?.toString() ?? null,
         previousAssigneeName,
+        isRecurring: erinnerung.isRecurring,
+        recurringIntervalMinutes: erinnerung.recurringIntervalMinutes ?? null,
+        recurringEndDate: erinnerung.recurringEndDate?.toISOString() ?? null,
+        recurringMaxCount: erinnerung.recurringMaxCount ?? null,
+        recurringCurrentCount: erinnerung.recurringCurrentCount,
+        parentErinnerungId: erinnerung.parentErinnerungId?.toString() ?? null,
+        recurringSequenceNumber: erinnerung.recurringSequenceNumber ?? null,
       };
 
       return {

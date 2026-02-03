@@ -10,6 +10,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
   Param,
+  Patch,
   Post,
   Put,
   UseGuards,
@@ -47,6 +48,9 @@ import { GetErinnerungStatistikQuery } from '@/application/erinnerung/queries/ge
 import { GetEtbEntriesByErinnerungHandler } from '@/application/erinnerung/queries/get-etb-entries-by-erinnerung/get-etb-entries-by-erinnerung.handler';
 import { GetEtbEntriesByErinnerungQuery } from '@/application/erinnerung/queries/get-etb-entries-by-erinnerung/get-etb-entries-by-erinnerung.query';
 import { ErinnerungEtbHistoryDto } from '@/application/erinnerung/dto/erinnerung-etb-history.dto';
+import { StopRecurringSeriesCommand } from '@/application/erinnerung/commands/stop-recurring-series/stop-recurring-series.command';
+import { StopRecurringSeriesHandler } from '@/application/erinnerung/commands/stop-recurring-series/stop-recurring-series.handler';
+import { StopRecurringSeriesDto } from '@/application/erinnerung/dto/stop-recurring-series.dto';
 
 /**
  * Controller für Erinnerungen innerhalb eines Einsatzes.
@@ -80,6 +84,7 @@ export class ErinnerungController {
     private readonly getByEinsatzHandler: GetErinnerungenByEinsatzHandler,
     private readonly getStatistikHandler: GetErinnerungStatistikHandler,
     private readonly getEtbHistoryHandler: GetEtbEntriesByErinnerungHandler,
+    private readonly stopRecurringSeriesHandler: StopRecurringSeriesHandler,
   ) {}
 
   /**
@@ -192,6 +197,10 @@ export class ErinnerungController {
       eskalationsPersonId: dto.eskalationsPersonId, // Story 4.1: Eskalationsperson
       eskalationNurAnErsteller: dto.eskalationNurAnErsteller, // Story 4.10: Eskalations-Restriktion
       etbEntryId: dto.etbEntryId, // Story 5.4: ETB-Eintrag Referenz
+      isRecurring: dto.isRecurring, // Story 6.4: Wiederkehrende Erinnerungen
+      recurringIntervalMinutes: dto.recurringIntervalMinutes, // Story 6.4
+      recurringEndDate: dto.recurringEndDate ? new Date(dto.recurringEndDate) : undefined, // Story 6.4
+      recurringMaxCount: dto.recurringMaxCount, // Story 6.4
     });
 
     if (commandResult.isFailure || !commandResult.value) {
@@ -585,6 +594,68 @@ export class ErinnerungController {
 
     if (!result.value) {
       throw new BadRequestException('Erinnerung konnte nicht zugewiesen werden');
+    }
+
+    return result.value;
+  }
+
+  /**
+   * Stoppt eine wiederkehrende Erinnerungs-Serie (Story 6.5).
+   *
+   * Setzt isRecurring auf false, sodass keine weiteren Instanzen erstellt werden.
+   * Optional kann die aktuelle aktive Kind-Instanz abgebrochen werden (cancelCurrent=true).
+   *
+   * **Story 6.5 ACs:**
+   * - AC1: Serie beenden (nur zukünftige Instanzen)
+   * - AC2: Serie und aktuelle Instanz beenden
+   * - AC4: Jeder Einsatzleiter darf stoppen (Einsatz-Kontext)
+   */
+  @Patch(':id/stop-recurring')
+  @ApiOperation({
+    summary: 'Wiederkehrende Serie stoppen',
+    description: 'Stoppt eine wiederkehrende Serie. Keine weiteren Instanzen werden erstellt. Optional: Aktuelle Instanz abbrechen.',
+  })
+  @ApiWrappedResponse(ErinnerungResponseDto, {
+    description: 'Wiederkehrende Serie erfolgreich gestoppt',
+  })
+  @ApiBadRequestResponse({ description: 'Erinnerung ist nicht wiederkehrend oder ist eine Kind-Instanz' })
+  @ApiNotFoundResponse({ description: 'Erinnerung nicht gefunden' })
+  async stopRecurringSeries(
+    @Param('einsatzId') einsatzId: string,
+    @Param('id') id: string,
+    @Body(new ValidationPipe({ transform: true, whitelist: true }))
+    dto: StopRecurringSeriesDto,
+  ): Promise<ErinnerungResponseDto> {
+    const commandResult = StopRecurringSeriesCommand.create({
+      erinnerungId: id,
+      einsatzId,
+      cancelCurrent: dto.cancelCurrent,
+    });
+
+    if (commandResult.isFailure || !commandResult.value) {
+      throw new BadRequestException(commandResult.error);
+    }
+
+    const result = await this.stopRecurringSeriesHandler.execute(commandResult.value);
+
+    if (result.isFailure) {
+      if (result.error === ERINNERUNG_ERROR_CODES.NOT_FOUND) {
+        throw new NotFoundException('Erinnerung nicht gefunden');
+      }
+      if (result.error === ERINNERUNG_ERROR_CODES.NOT_RECURRING) {
+        throw new BadRequestException('Erinnerung ist nicht wiederkehrend');
+      }
+      if (result.error === ERINNERUNG_ERROR_CODES.IS_CHILD_INSTANCE) {
+        throw new BadRequestException('Kind-Instanzen können keine Serie stoppen');
+      }
+      if (result.error === ERINNERUNG_ERROR_CODES.SERIE_ALREADY_STOPPED) {
+        throw new BadRequestException('Die wiederkehrende Serie wurde bereits gestoppt');
+      }
+      throw new BadRequestException(result.error);
+    }
+
+    if (!result.value) {
+      throw new BadRequestException('Serie konnte nicht gestoppt werden');
     }
 
     return result.value;

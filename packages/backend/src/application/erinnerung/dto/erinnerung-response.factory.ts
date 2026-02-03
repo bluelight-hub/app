@@ -51,6 +51,7 @@ export class ErinnerungResponseFactory {
       eskalationNurAnErsteller: erinnerung.eskalationNurAnErsteller, // Story 4.10
 
       // Weitere Felder
+      erledigtAm: erinnerung.erledigtAm?.toISOString() ?? null,
       erledigtBy: erinnerung.erledigtBy?.toString() ?? null,
       erledigungsNotiz: erinnerung.erledigungsNotiz ?? null,
 
@@ -61,6 +62,15 @@ export class ErinnerungResponseFactory {
 
       // Story 5.4: ETB-Eintrag Referenz
       etbEntryId: erinnerung.etbEntryId ?? null,
+
+      // Story 6.4: Wiederkehrende Erinnerungen
+      isRecurring: erinnerung.isRecurring,
+      recurringIntervalMinutes: erinnerung.recurringIntervalMinutes,
+      recurringEndDate: erinnerung.recurringEndDate?.toISOString() ?? null,
+      recurringMaxCount: erinnerung.recurringMaxCount,
+      recurringCurrentCount: erinnerung.recurringCurrentCount,
+      parentErinnerungId: erinnerung.parentErinnerungId?.toString() ?? null,
+      recurringSequenceNumber: erinnerung.recurringSequenceNumber,
     };
   }
 

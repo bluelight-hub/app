@@ -18,6 +18,7 @@ export * from './EinsatzTeilnehmerApi';
 export * from './ErinnerungApi';
 export * from './ErinnerungenApi';
 export * from './ErinnerungsvorlagenApi';
+export * from './FuehrungsrhythmusTemplatesApi';
 export * from './GeocodingApi';
 export * from './HealthApi';
 export * from './KraefteDashboardApi';

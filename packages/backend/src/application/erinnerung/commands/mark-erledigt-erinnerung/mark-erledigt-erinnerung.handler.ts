@@ -2,6 +2,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { DomainEvent } from '@domain/common/domain-event';
 import { Result } from '@domain/common/result';
 import type { TransactionContext } from '@domain/common/transaction';
+// biome-ignore lint/style/useImportType: Erinnerung is used at runtime for Erinnerung.create()
+import { Erinnerung } from '@domain/entities/erinnerung.entity';
+import { WiederkehrendeInstanzErstelltEvent } from '@domain/events/wiederkehrende-instanz-erstellt.event';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import type { IErinnerungRepository } from '@domain/repositories/i-erinnerung.repository';
 import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
@@ -29,6 +32,12 @@ import type { ErinnerungResponseDto } from '../../dto/erinnerung-response.dto';
  * - AC3: Status wechselt zu ERLEDIGT
  * - AC4: Domain Event wird publiziert für ETB-Integration
  * - AC5: Alle Timer/Alarme werden gestoppt (via WebSocket Event)
+ *
+ * **Story 6.4:** Wiederkehrende Erinnerungen - Naechste Instanz erstellen
+ * - Wenn erledigte Erinnerung ein Kind ist: Parent laden, naechste Instanz erstellen
+ * - Wenn erledigte Erinnerung der Parent ist: Naechste Instanz direkt erstellen
+ * - Parent's occurrence count inkrementieren
+ * - WiederkehrendeInstanzErstelltEvent emittieren
  *
  * **Transactional Outbox Pattern:**
  * - Erinnerung und ErinnerungErledigtEvent werden atomar in einer Transaktion gespeichert
@@ -60,7 +69,9 @@ export class MarkErledigtErinnerungHandler extends TransactionalCommandHandler<M
    * 3. Entity.markErledigt() aufrufen (Business Rules enforced)
    * 4. Domain Events sammeln
    * 5. Im Repository persistieren (status + erledigtAm + erledigtBy + erledigungsNotiz)
-   * 6. Response DTO erstellen und zurueckgeben
+   * 5b. Story 6.4: Naechste wiederkehrende Instanz erstellen (falls recurring)
+   * 6. Audit-Trail loggen
+   * 7. Response DTO erstellen und zurueckgeben
    *
    * @param command - Validierter MarkErledigtErinnerungCommand
    * @param tx - Transaction Context fuer atomare Operationen
@@ -129,6 +140,103 @@ export class MarkErledigtErinnerungHandler extends TransactionalCommandHandler<M
     }
 
     // ════════════════════════════════════════════════════════════════════════
+    // 5b. Story 6.4: Wiederkehrende Erinnerung - Nächste Instanz erstellen
+    // ════════════════════════════════════════════════════════════════════════
+    if (erinnerung.parentErinnerungId) {
+      // Diese Erinnerung ist ein Kind - Parent laden
+      const parentResult = await this.erinnerungRepository.findById(erinnerung.parentErinnerungId, tx);
+      if (parentResult.isSuccess && parentResult.value) {
+        const parent = parentResult.value;
+        const nextProps = parent.getNextOccurrenceProps();
+        if (nextProps) {
+          const nextResult = Erinnerung.create(nextProps);
+          if (nextResult.isSuccess && nextResult.value) {
+            const nextErinnerung = nextResult.value;
+            const nextSaveResult = await this.erinnerungRepository.save(nextErinnerung, tx);
+            if (nextSaveResult.isFailure) {
+              this.logger.error(`Failed to save next recurring Erinnerung: ${nextSaveResult.error}`, 'MarkErledigtErinnerungHandler');
+              return Result.fail<ErinnerungResponseDto>(nextSaveResult.error ?? ERINNERUNG_ERROR_CODES.SAVE_FAILED);
+            }
+
+            parent.incrementOccurrenceCount();
+            const parentSaveResult = await this.erinnerungRepository.save(parent, tx);
+            if (parentSaveResult.isFailure) {
+              this.logger.error(`Failed to save updated parent Erinnerung: ${parentSaveResult.error}`, 'MarkErledigtErinnerungHandler');
+              return Result.fail<ErinnerungResponseDto>(parentSaveResult.error ?? ERINNERUNG_ERROR_CODES.SAVE_FAILED);
+            }
+
+            // Events der neuen Instanz sammeln
+            for (const event of nextErinnerung.getDomainEvents()) {
+              events.push(event);
+            }
+
+            // WiederkehrendeInstanzErstelltEvent emittieren
+            events.push(
+              new WiederkehrendeInstanzErstelltEvent(
+                nextErinnerung.id,
+                erinnerung.parentErinnerungId,
+                nextErinnerung.einsatzId,
+                nextErinnerung.titel.value,
+                nextErinnerung.faelligAm,
+                nextProps.recurringSequenceNumber ?? 1,
+                nextErinnerung.id.toString(),
+              ),
+            );
+
+            this.logger.log(
+              `Wiederkehrende Instanz erstellt (nextId: ${nextErinnerung.id.toString()}, parentId: ${erinnerung.parentErinnerungId.toString()}, seq: ${nextProps.recurringSequenceNumber ?? 1})`,
+              'MarkErledigtErinnerungHandler',
+            );
+          }
+        }
+      }
+    } else if (erinnerung.isRecurring) {
+      // Diese Erinnerung IST der Parent (erste Instanz direkt erledigt)
+      const nextProps = erinnerung.getNextOccurrenceProps();
+      if (nextProps) {
+        const nextResult = Erinnerung.create(nextProps);
+        if (nextResult.isSuccess && nextResult.value) {
+          const nextErinnerung = nextResult.value;
+          const nextSaveResult = await this.erinnerungRepository.save(nextErinnerung, tx);
+          if (nextSaveResult.isFailure) {
+            this.logger.error(`Failed to save next recurring Erinnerung: ${nextSaveResult.error}`, 'MarkErledigtErinnerungHandler');
+            return Result.fail<ErinnerungResponseDto>(nextSaveResult.error ?? ERINNERUNG_ERROR_CODES.SAVE_FAILED);
+          }
+
+          erinnerung.incrementOccurrenceCount();
+          // Parent muss erneut gespeichert werden (incrementOccurrenceCount)
+          const parentSaveResult = await this.erinnerungRepository.save(erinnerung, tx);
+          if (parentSaveResult.isFailure) {
+            this.logger.error(`Failed to save updated parent Erinnerung: ${parentSaveResult.error}`, 'MarkErledigtErinnerungHandler');
+            return Result.fail<ErinnerungResponseDto>(parentSaveResult.error ?? ERINNERUNG_ERROR_CODES.SAVE_FAILED);
+          }
+
+          // Events der neuen Instanz sammeln
+          for (const event of nextErinnerung.getDomainEvents()) {
+            events.push(event);
+          }
+
+          events.push(
+            new WiederkehrendeInstanzErstelltEvent(
+              nextErinnerung.id,
+              erinnerung.id,
+              nextErinnerung.einsatzId,
+              nextErinnerung.titel.value,
+              nextErinnerung.faelligAm,
+              nextProps.recurringSequenceNumber ?? 1,
+              nextErinnerung.id.toString(),
+            ),
+          );
+
+          this.logger.log(
+            `Wiederkehrende Instanz erstellt (nextId: ${nextErinnerung.id.toString()}, parentId: ${erinnerung.id.toString()}, seq: ${nextProps.recurringSequenceNumber ?? 1})`,
+            'MarkErledigtErinnerungHandler',
+          );
+        }
+      }
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
     // 6. Audit-Trail loggen
     // ════════════════════════════════════════════════════════════════════════
     this.logger.log(
@@ -154,6 +262,14 @@ export class MarkErledigtErinnerungHandler extends TransactionalCommandHandler<M
       erledigtBy: erinnerung.erledigtBy?.toString() ?? null,
       erledigungsNotiz: erinnerung.erledigungsNotiz ?? null,
       requiresNote: erinnerung.requiresNote,
+      // Story 6.4: Wiederkehrende Felder
+      isRecurring: erinnerung.isRecurring,
+      recurringIntervalMinutes: erinnerung.recurringIntervalMinutes ?? null,
+      recurringEndDate: erinnerung.recurringEndDate?.toISOString() ?? null,
+      recurringMaxCount: erinnerung.recurringMaxCount ?? null,
+      recurringCurrentCount: erinnerung.recurringCurrentCount,
+      parentErinnerungId: erinnerung.parentErinnerungId?.toString() ?? null,
+      recurringSequenceNumber: erinnerung.recurringSequenceNumber ?? null,
     };
 
     return {

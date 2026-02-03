@@ -169,6 +169,48 @@ export interface ErinnerungResponseDto {
    * @memberof ErinnerungResponseDto
    */
   etbEntryId?: string | null;
+  /**
+   * Ob die Erinnerung wiederkehrend ist
+   * @type {boolean}
+   * @memberof ErinnerungResponseDto
+   */
+  isRecurring: boolean;
+  /**
+   * Intervall in Minuten für wiederkehrende Erinnerungen
+   * @type {object}
+   * @memberof ErinnerungResponseDto
+   */
+  recurringIntervalMinutes?: object | null;
+  /**
+   * Endzeitpunkt der wiederkehrenden Serie (ISO-8601)
+   * @type {object}
+   * @memberof ErinnerungResponseDto
+   */
+  recurringEndDate?: object | null;
+  /**
+   * Maximale Anzahl Wiederholungen
+   * @type {object}
+   * @memberof ErinnerungResponseDto
+   */
+  recurringMaxCount?: object | null;
+  /**
+   * Aktuelle Anzahl erstellter Instanzen
+   * @type {number}
+   * @memberof ErinnerungResponseDto
+   */
+  recurringCurrentCount: number;
+  /**
+   * ID der Parent-Erinnerung (bei Kind-Instanzen)
+   * @type {object}
+   * @memberof ErinnerungResponseDto
+   */
+  parentErinnerungId?: object | null;
+  /**
+   * Sequenznummer in der wiederkehrenden Serie
+   * @type {object}
+   * @memberof ErinnerungResponseDto
+   */
+  recurringSequenceNumber?: object | null;
 }
 
 /**
@@ -199,6 +241,8 @@ export function instanceOfErinnerungResponseDto(value: object): value is Erinner
   if (!('updatedAt' in value) || value['updatedAt'] === undefined) return false;
   if (!('snoozeCount' in value) || value['snoozeCount'] === undefined) return false;
   if (!('requiresNote' in value) || value['requiresNote'] === undefined) return false;
+  if (!('isRecurring' in value) || value['isRecurring'] === undefined) return false;
+  if (!('recurringCurrentCount' in value) || value['recurringCurrentCount'] === undefined) return false;
   return true;
 }
 
@@ -236,6 +280,13 @@ export function ErinnerungResponseDtoFromJSONTyped(json: any, ignoreDiscriminato
     previousAssigneeId: json['previousAssigneeId'] == null ? undefined : json['previousAssigneeId'],
     previousAssigneeName: json['previousAssigneeName'] == null ? undefined : json['previousAssigneeName'],
     etbEntryId: json['etbEntryId'] == null ? undefined : json['etbEntryId'],
+    isRecurring: json['isRecurring'],
+    recurringIntervalMinutes: json['recurringIntervalMinutes'] == null ? undefined : json['recurringIntervalMinutes'],
+    recurringEndDate: json['recurringEndDate'] == null ? undefined : json['recurringEndDate'],
+    recurringMaxCount: json['recurringMaxCount'] == null ? undefined : json['recurringMaxCount'],
+    recurringCurrentCount: json['recurringCurrentCount'],
+    parentErinnerungId: json['parentErinnerungId'] == null ? undefined : json['parentErinnerungId'],
+    recurringSequenceNumber: json['recurringSequenceNumber'] == null ? undefined : json['recurringSequenceNumber'],
   };
 }
 
@@ -274,5 +325,12 @@ export function ErinnerungResponseDtoToJSONTyped(value?: ErinnerungResponseDto |
     previousAssigneeId: value['previousAssigneeId'],
     previousAssigneeName: value['previousAssigneeName'],
     etbEntryId: value['etbEntryId'],
+    isRecurring: value['isRecurring'],
+    recurringIntervalMinutes: value['recurringIntervalMinutes'],
+    recurringEndDate: value['recurringEndDate'],
+    recurringMaxCount: value['recurringMaxCount'],
+    recurringCurrentCount: value['recurringCurrentCount'],
+    parentErinnerungId: value['parentErinnerungId'],
+    recurringSequenceNumber: value['recurringSequenceNumber'],
   };
 }

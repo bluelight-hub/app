@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 // Trigger rebuild
 /**
@@ -224,4 +224,84 @@ export class ErinnerungResponseDto {
     type: String,
   })
   etbEntryId?: string | null;
+
+  /**
+   * Story 6.4: Ob die Erinnerung wiederkehrend ist.
+   * @example false
+   */
+  @ApiProperty({
+    description: 'Ob die Erinnerung wiederkehrend ist',
+    example: false,
+  })
+  isRecurring!: boolean;
+
+  /**
+   * Story 6.4: Intervall in Minuten für wiederkehrende Erinnerungen.
+   * Null wenn nicht wiederkehrend.
+   * @example 30
+   */
+  @ApiPropertyOptional({
+    description: 'Intervall in Minuten für wiederkehrende Erinnerungen',
+    example: 30,
+    nullable: true,
+  })
+  recurringIntervalMinutes!: number | null;
+
+  /**
+   * Story 6.4: Endzeitpunkt der wiederkehrenden Serie (ISO-8601).
+   * Null wenn nicht wiederkehrend oder kein Endzeitpunkt gesetzt.
+   * @example "2026-02-03T12:00:00.000Z"
+   */
+  @ApiPropertyOptional({
+    description: 'Endzeitpunkt der wiederkehrenden Serie (ISO-8601)',
+    example: '2026-02-03T12:00:00.000Z',
+    nullable: true,
+  })
+  recurringEndDate!: string | null;
+
+  /**
+   * Story 6.4: Maximale Anzahl Wiederholungen.
+   * Null wenn nicht wiederkehrend oder unbegrenzt.
+   * @example 5
+   */
+  @ApiPropertyOptional({
+    description: 'Maximale Anzahl Wiederholungen',
+    example: 5,
+    nullable: true,
+  })
+  recurringMaxCount!: number | null;
+
+  /**
+   * Story 6.4: Aktuelle Anzahl erstellter Instanzen der wiederkehrenden Serie.
+   * @example 0
+   */
+  @ApiProperty({
+    description: 'Aktuelle Anzahl erstellter Instanzen',
+    example: 0,
+  })
+  recurringCurrentCount!: number;
+
+  /**
+   * Story 6.4: ID der Parent-Erinnerung (bei Kind-Instanzen einer wiederkehrenden Serie).
+   * Null wenn keine Kind-Instanz.
+   * @example null
+   */
+  @ApiPropertyOptional({
+    description: 'ID der Parent-Erinnerung (bei Kind-Instanzen)',
+    example: null,
+    nullable: true,
+  })
+  parentErinnerungId!: string | null;
+
+  /**
+   * Story 6.4: Sequenznummer in der wiederkehrenden Serie.
+   * Null wenn keine Kind-Instanz.
+   * @example null
+   */
+  @ApiPropertyOptional({
+    description: 'Sequenznummer in der wiederkehrenden Serie',
+    example: null,
+    nullable: true,
+  })
+  recurringSequenceNumber!: number | null;
 }

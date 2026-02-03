@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsDateString, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsBoolean, IsDateString, IsInt, IsNotEmpty, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 
 /**
  * Request DTO zum Erstellen einer neuen Erinnerung (Quick-Create).
@@ -154,4 +154,69 @@ export class CreateErinnerungDto {
   @IsOptional()
   @IsString({ message: 'etbEntryId muss ein String sein' })
   etbEntryId?: string;
+
+  /**
+   * Story 6.4: Ob die Erinnerung wiederkehrend ist.
+   *
+   * @default false
+   * @example false
+   */
+  @ApiPropertyOptional({
+    description: 'Ob die Erinnerung wiederkehrend ist (Story 6.4)',
+    example: false,
+    default: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  isRecurring?: boolean;
+
+  /**
+   * Story 6.4: Intervall in Minuten für wiederkehrende Erinnerungen.
+   * Wertebereich: 1-1440 (1 Minute bis 24 Stunden).
+   *
+   * @example 30
+   */
+  @ApiPropertyOptional({
+    description: 'Intervall in Minuten für wiederkehrende Erinnerungen (1-1440)',
+    example: 30,
+    minimum: 1,
+    maximum: 1440,
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(1440)
+  recurringIntervalMinutes?: number;
+
+  /**
+   * Story 6.4: Endzeitpunkt der wiederkehrenden Serie.
+   * ISO-8601 Format. Muss in der Zukunft liegen.
+   *
+   * @example "2026-02-03T12:00:00.000Z"
+   */
+  @ApiPropertyOptional({
+    description: 'Endzeitpunkt der wiederkehrenden Serie (ISO-8601)',
+    example: '2026-02-03T12:00:00.000Z',
+  })
+  @IsOptional()
+  @IsDateString()
+  recurringEndDate?: string;
+
+  /**
+   * Story 6.4: Maximale Anzahl Wiederholungen.
+   * Wertebereich: 1-100.
+   *
+   * @example 5
+   */
+  @ApiPropertyOptional({
+    description: 'Maximale Anzahl Wiederholungen (1-100)',
+    example: 5,
+    minimum: 1,
+    maximum: 100,
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  recurringMaxCount?: number;
 }
