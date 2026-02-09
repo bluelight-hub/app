@@ -8,7 +8,7 @@
 
 import { api } from '@/shared';
 import { logger } from '@/shared/lib/logger';
-import type { ErinnerungResponseDto, ErinnerungStatistikDto, ResponseError } from '@/shared';
+import type { ErinnerungResponseDto, ErinnerungStatistikDto, PersonStatistikDto, ZeitverlaufStatistikDto, ResponseError } from '@/shared';
 import { useQuery } from '@tanstack/react-query';
 
 /**
@@ -33,6 +33,8 @@ export const ERINNERUNG_QUERY_KEYS = {
   details: () => [...ERINNERUNG_QUERY_KEYS.all, 'detail'] as const,
   detail: (id: string) => [...ERINNERUNG_QUERY_KEYS.details(), id] as const,
   statistik: (einsatzId: string) => [...ERINNERUNG_QUERY_KEYS.all, 'statistik', einsatzId] as const,
+  personStatistik: (einsatzId: string) => [...ERINNERUNG_QUERY_KEYS.all, 'person-statistik', einsatzId] as const,
+  zeitverlauf: (einsatzId: string) => [...ERINNERUNG_QUERY_KEYS.all, 'zeitverlauf', einsatzId] as const,
 } as const;
 
 /**
@@ -127,5 +129,41 @@ export const useErinnerungStatistik = (einsatzId?: string) => {
       return response.data;
     },
     staleTime: 60_000, // 1 Minute Cache
+  });
+};
+
+/**
+ * Hook für Personen-Statistiken Abfrage
+ * Story 9.2: Statistiken nach Person
+ */
+export const usePersonStatistik = (einsatzId?: string) => {
+  return useQuery<PersonStatistikDto, ResponseError>({
+    enabled: !!einsatzId,
+    queryKey: ERINNERUNG_QUERY_KEYS.personStatistik(einsatzId ?? ''),
+    queryFn: async () => {
+      if (!einsatzId) throw new Error('einsatzId required');
+      const response = await api.erinnerungen().erinnerungControllerGetPersonStatistikVAlpha({ einsatzId });
+      return response.data;
+    },
+    staleTime: 60_000, // 1 Minute Cache
+  });
+};
+
+/**
+ * Hook für Zeitverlauf-Statistiken Abfrage
+ * Story 9.3: Zeitverlauf-Diagramm
+ */
+export const useZeitverlaufStatistik = (einsatzId?: string) => {
+  return useQuery<ZeitverlaufStatistikDto, ResponseError>({
+    enabled: !!einsatzId,
+    queryKey: ERINNERUNG_QUERY_KEYS.zeitverlauf(einsatzId ?? ''),
+    queryFn: async () => {
+      if (!einsatzId) throw new Error('einsatzId required');
+      const response = await api.erinnerungen().erinnerungControllerGetZeitverlaufStatistikVAlpha({ einsatzId });
+      return response.data;
+    },
+    staleTime: 60_000,
+    retry: 3,
+    retryDelay: calculateRetryDelay,
   });
 };

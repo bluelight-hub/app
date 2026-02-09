@@ -36,6 +36,10 @@ export interface CreateErinnerungProps {
   eskalationNurAnErsteller?: boolean;
   /** Story 5.4: Optionale Referenz zu einem ETB-Eintrag */
   etbEntryId?: string | null;
+  /** Story 7.6: Optionale Referenz zur Quell-Notiz (Konvertierung) */
+  notizId?: string | null;
+  /** Story 8.2: Optionale Kategorie-Referenz */
+  kategorieId?: string | null;
   /** Story 6.4: Wiederkehrende Erinnerung */
   isRecurring?: boolean;
   /** Story 6.4: Intervall in Minuten (1-1440) */
@@ -126,6 +130,10 @@ export interface ReconstructErinnerungProps {
   eskalationNurAnErsteller?: boolean;
   /** Story 5.0: ETB-Eintrag ID für bidirektionale Verknüpfung */
   etbEntryId?: string | null;
+  /** Story 7.6: Referenz zur Quell-Notiz */
+  notizId?: string | null;
+  /** Story 8.2: Kategorie-Referenz */
+  kategorieId: string | null;
   /** Story 6.4: Wiederkehrende Erinnerung */
   isRecurring?: boolean;
   /** Story 6.4: Intervall in Minuten */
@@ -256,6 +264,12 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
 
   // Story 5.0: ETB-Integration - Bidirektionale Verknüpfung
   private _etbEntryId: string | null;
+
+  // Story 7.6: Notiz-Referenz (Konvertierung Notiz → Erinnerung)
+  private _notizId: string | null;
+
+  // Story 8.2: Kategorie-Referenz
+  private _kategorieId: string | null;
 
   // Recurring Felder (Story 6.4)
   private _isRecurring: boolean;
@@ -472,6 +486,26 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
     return this._etbEntryId;
   }
 
+  // Story 7.6: Notiz-Referenz Getter
+
+  /**
+   * Gibt die ID der verknüpften Quell-Notiz zurück.
+   * Null wenn keine Verknüpfung besteht.
+   */
+  get notizId(): string | null {
+    return this._notizId;
+  }
+
+  // Story 8.2: Kategorie-Referenz Getter
+
+  /**
+   * Gibt die ID der zugewiesenen Kategorie zurück.
+   * Null wenn keine Kategorie zugewiesen ist.
+   */
+  get kategorieId(): string | null {
+    return this._kategorieId;
+  }
+
   // Recurring Getters (Story 6.4)
 
   /** Gibt zurück ob die Erinnerung wiederkehrend ist. */
@@ -587,6 +621,8 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
     eskaliertAm: Date | null = null, // Story 4.9
     eskalationNurAnErsteller = Erinnerung.DEFAULT_ESKALATION_NUR_AN_ERSTELLER, // Story 4.10
     etbEntryId: string | null = null, // Story 5.0
+    notizId: string | null = null, // Story 7.6
+    kategorieId: string | null = null, // Story 8.2
     isRecurring = false, // Story 6.4
     recurringIntervalMinutes: number | null = null, // Story 6.4
     recurringEndDate: Date | null = null, // Story 6.4
@@ -627,6 +663,8 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
     this._eskaliertAm = eskaliertAm;
     this._eskalationNurAnErsteller = eskalationNurAnErsteller;
     this._etbEntryId = etbEntryId;
+    this._notizId = notizId;
+    this._kategorieId = kategorieId;
     this._isRecurring = isRecurring;
     this._recurringIntervalMinutes = recurringIntervalMinutes;
     this._recurringEndDate = recurringEndDate;
@@ -730,6 +768,8 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
       null, // eskaliertAm (default)
       props.eskalationNurAnErsteller ?? Erinnerung.DEFAULT_ESKALATION_NUR_AN_ERSTELLER, // Story 4.10
       props.etbEntryId ?? null, // Story 5.4: ETB-Eintrag Referenz
+      props.notizId ?? null, // Story 7.6: Quell-Notiz Referenz
+      props.kategorieId ?? null, // Story 8.2: Kategorie-Referenz
       isRecurring, // Story 6.4
       isRecurring ? (props.recurringIntervalMinutes ?? null) : null, // Story 6.4
       isRecurring ? (props.recurringEndDate ?? null) : null, // Story 6.4
@@ -796,6 +836,8 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
       props.eskaliertAm ?? null, // Story 4.9
       props.eskalationNurAnErsteller ?? Erinnerung.DEFAULT_ESKALATION_NUR_AN_ERSTELLER, // Story 4.10
       props.etbEntryId ?? null, // Story 5.0
+      props.notizId ?? null, // Story 7.6
+      props.kategorieId ?? null, // Story 8.2
       props.isRecurring ?? false, // Story 6.4
       props.recurringIntervalMinutes ?? null, // Story 6.4
       props.recurringEndDate ?? null, // Story 6.4
@@ -1447,5 +1489,18 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
     this.addDomainEvent(new ErinnerungAssignedEvent(this.id, this._einsatzId, assignedToId, assignedById, this._titel.value, this._assignedAt, this.id.toString()));
 
     return Result.ok<void>(undefined);
+  }
+
+  /**
+   * Story 8.2: Aktualisiert die Kategorie einer Erinnerung.
+   *
+   * Die Kategorie kann jederzeit geändert werden, unabhängig vom Status.
+   * Dies ermöglicht die nachträgliche Kategorisierung auch von bereits
+   * ausgelösten oder erledigten Erinnerungen.
+   *
+   * @param kategorieId - Die neue Kategorie-ID oder null zum Entfernen
+   */
+  public updateKategorie(kategorieId: string | null): void {
+    this._kategorieId = kategorieId;
   }
 }

@@ -55,6 +55,13 @@ import type { WiederkehrendeInstanzErstelltEvent } from '@domain/events/wiederke
 import type { ErinnerungSerieGestopptEvent } from '@domain/events/erinnerung-serie-gestoppt.event';
 import type { FuehrungsrhythmusTemplateErstelltEvent } from '@domain/fuehrungsrhythmus/events/fuehrungsrhythmus-template-erstellt.event';
 import type { FuehrungsrhythmusTemplateGeloeschtEvent } from '@domain/fuehrungsrhythmus/events/fuehrungsrhythmus-template-geloescht.event';
+import type { FuehrungsrhythmusAktiviertEvent } from '@domain/fuehrungsrhythmus/events/fuehrungsrhythmus-aktiviert.event';
+import type { FuehrungsrhythmusTemplateAktualisiertEvent } from '@domain/fuehrungsrhythmus/events/fuehrungsrhythmus-template-aktualisiert.event';
+import type { NotizErstelltEvent } from '@domain/notiz/events/notiz-erstellt.event';
+import type { NotizAktualisiertEvent } from '@domain/notiz/events/notiz-aktualisiert.event';
+import type { NotizGeloeschtEvent } from '@domain/notiz/events/notiz-geloescht.event';
+import type { KategorieErstelltEvent } from '@domain/kategorie/events/kategorie-erstellt.event';
+import type { KategorieGeloeschtEvent } from '@domain/kategorie/events/kategorie-geloescht.event';
 
 /**
  * Serialisiertes Event-Payload für Outbox-Persistierung.
@@ -300,6 +307,24 @@ export class EventSerializer {
         return this.serializeFuehrungsrhythmusTemplateErstellt(event as unknown as FuehrungsrhythmusTemplateErstelltEvent);
       case 'fuehrungsrhythmus-template.geloescht':
         return this.serializeFuehrungsrhythmusTemplateGeloescht(event as unknown as FuehrungsrhythmusTemplateGeloeschtEvent);
+      case 'fuehrungsrhythmus-template.aktiviert':
+        return this.serializeFuehrungsrhythmusAktiviert(event as unknown as FuehrungsrhythmusAktiviertEvent);
+      case 'fuehrungsrhythmus-template.aktualisiert':
+        return this.serializeFuehrungsrhythmusTemplateAktualisiert(event as unknown as FuehrungsrhythmusTemplateAktualisiertEvent);
+
+      // ===== NOTIZ EVENTS (Story 7.1) =====
+      case 'notiz.erstellt':
+        return this.serializeNotizErstellt(event as unknown as NotizErstelltEvent);
+      case 'notiz.aktualisiert':
+        return this.serializeNotizAktualisiert(event as unknown as NotizAktualisiertEvent);
+      case 'notiz.geloescht':
+        return this.serializeNotizGeloescht(event as unknown as NotizGeloeschtEvent);
+
+      // ===== KATEGORIE EVENTS (Story 8.1) =====
+      case 'kategorie.erstellt':
+        return this.serializeKategorieErstellt(event as unknown as KategorieErstelltEvent);
+      case 'kategorie.geloescht':
+        return this.serializeKategorieGeloescht(event as unknown as KategorieGeloeschtEvent);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -891,6 +916,93 @@ export class EventSerializer {
       templateId: event.templateId.toString(), // FuehrungsrhythmusTemplateId → string
       name: event.name, // Already primitive string
       deletedBy: event.deletedBy.toString(), // UserId → string
+    };
+  }
+
+  /**
+   * Serialisiert FuehrungsrhythmusTemplateAktualisiertEvent (Story 6.8).
+   */
+  private serializeFuehrungsrhythmusTemplateAktualisiert(event: FuehrungsrhythmusTemplateAktualisiertEvent): Record<string, unknown> {
+    return {
+      templateId: event.templateId.toString(),
+      name: event.name,
+      aktualisiertVon: event.aktualisiertVon.toString(),
+    };
+  }
+
+  /**
+   * Serialisiert FuehrungsrhythmusAktiviertEvent (Story 6.7).
+   */
+  private serializeFuehrungsrhythmusAktiviert(event: FuehrungsrhythmusAktiviertEvent): Record<string, unknown> {
+    return {
+      templateId: event.templateId.toString(), // FuehrungsrhythmusTemplateId → string
+      templateName: event.templateName, // Already primitive string
+      einsatzId: event.einsatzId.toString(), // EinsatzId → string
+      erstellteErinnerungIds: event.erstellteErinnerungIds.map((id) => id.toString()), // ErinnerungId[] → string[]
+      aktiviertVon: event.aktiviertVon.toString(), // UserId → string
+    };
+  }
+
+  // ===== NOTIZ SERIALIZERS (Story 7.1) =====
+
+  /**
+   * Serialisiert NotizErstelltEvent (Story 7.1).
+   */
+  private serializeNotizErstellt(event: NotizErstelltEvent): Record<string, unknown> {
+    return {
+      notizId: event.notizId.toString(), // NotizId → string
+      einsatzId: event.einsatzId, // Already primitive string
+      titel: event.titel, // Already primitive string
+      erstelltVon: event.erstelltVon.toString(), // UserId → string
+      istTeamsichtbar: event.istTeamsichtbar, // Already primitive boolean
+    };
+  }
+
+  /**
+   * Serialisiert NotizAktualisiertEvent (Story 7.3).
+   */
+  private serializeNotizAktualisiert(event: NotizAktualisiertEvent): Record<string, unknown> {
+    return {
+      notizId: event.notizId.toString(), // NotizId → string
+      einsatzId: event.einsatzId, // Already primitive string
+      titel: event.titel, // Already primitive string
+      inhalt: event.inhalt, // string | null
+      kategorie: event.kategorie, // string | null
+      istTeamsichtbar: event.istTeamsichtbar, // Already primitive boolean
+      aktualisiertVon: event.aktualisiertVon, // Already primitive string
+    };
+  }
+
+  /**
+   * Serialisiert NotizGeloeschtEvent (Story 7.4).
+   */
+  private serializeNotizGeloescht(event: NotizGeloeschtEvent): Record<string, unknown> {
+    return {
+      notizId: event.notizId.toString(), // NotizId → string
+      einsatzId: event.einsatzId, // Already primitive string
+      titel: event.titel, // Already primitive string
+      geloeschtVon: event.geloeschtVon.toString(), // UserId → string
+    };
+  }
+
+  // ===== KATEGORIE SERIALIZERS (Story 8.1) =====
+
+  private serializeKategorieErstellt(event: KategorieErstelltEvent): Record<string, unknown> {
+    return {
+      kategorieId: event.kategorieId.toString(),
+      einsatzId: event.einsatzId,
+      name: event.name,
+      farbe: event.farbe,
+      erstelltVon: event.erstelltVon.toString(),
+    };
+  }
+
+  private serializeKategorieGeloescht(event: KategorieGeloeschtEvent): Record<string, unknown> {
+    return {
+      kategorieId: event.kategorieId.toString(),
+      einsatzId: event.einsatzId,
+      name: event.name,
+      geloeschtVon: event.geloeschtVon.toString(),
     };
   }
 }

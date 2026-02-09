@@ -5,3 +5,5 @@ export { ErinnerungResponseDto } from './erinnerung-response.dto';
 export { MarkErledigtErinnerungDto } from './mark-erledigt-erinnerung.dto';
 export { ErinnerungStatistikDto } from './erinnerung-statistik.dto';
 export { ErinnerungEtbHistoryDto, EtbEntryPreviewDto, EtbHistoryUserDto } from './erinnerung-etb-history.dto';
+export { PersonStatistikDto, PersonStatistikItemDto } from './person-statistik.dto';
+export { ZeitverlaufStatistikDto, ZeitverlaufBucketDto } from './zeitverlauf-statistik.dto';

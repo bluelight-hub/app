@@ -24,3 +24,7 @@ export { ErinnerungErstelltEventHandler } from './erinnerung-erstellt.handler';
 export { ErinnerungAssignedEventHandler } from './erinnerung-assigned.handler';
 export { ErinnerungEskaliertEventHandler } from './erinnerung-eskaliert.handler';
 export { ErinnerungIntensiviertEventHandler } from './erinnerung-intensiviert.handler';
+export { FuehrungsrhythmusAktiviertEtbHandler } from './fuehrungsrhythmus-aktiviert.handler';
+export { NotizErstelltEtbHandler } from './notiz-erstellt.handler';
+export { NotizAktualisiertEtbHandler } from './notiz-aktualisiert.handler';
+export { NotizGeloeschtEtbHandler } from './notiz-geloescht.handler';

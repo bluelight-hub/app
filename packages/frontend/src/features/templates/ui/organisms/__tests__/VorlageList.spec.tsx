@@ -20,8 +20,10 @@ vi.mock('../../../api', () => ({
   useUpdateVorlage: () => ({ mutate: vi.fn(), isPending: false }),
   useDeleteVorlage: () => ({ mutate: vi.fn(), isPending: false }),
   useCreateVorlage: () => ({ mutate: vi.fn(), isPending: false }),
-  useCreateFuehrungsrhythmusTemplate: () => ({ mutate: vi.fn(), isPending: false }),
-  useFuehrungsrhythmusTemplates: () => ({ data: undefined, isLoading: false, error: null }),
+  useCreateGlobalFuehrungsrhythmusTemplate: () => ({ mutate: vi.fn(), isPending: false }),
+  useCreateEinsatzFuehrungsrhythmusTemplate: () => ({ mutate: vi.fn(), isPending: false }),
+  useGlobalFuehrungsrhythmusTemplates: () => ({ data: undefined, isLoading: false, error: null }),
+  useEinsatzFuehrungsrhythmusTemplates: () => ({ data: undefined, isLoading: false, error: null }),
   VORLAGE_QUERY_KEYS: { all: ['vorlagen'], list: () => ['vorlagen', 'list'] },
   FR_TEMPLATE_QUERY_KEYS: { all: ['fuehrungsrhythmus-templates'], list: () => ['fuehrungsrhythmus-templates', 'list'] },
 }));

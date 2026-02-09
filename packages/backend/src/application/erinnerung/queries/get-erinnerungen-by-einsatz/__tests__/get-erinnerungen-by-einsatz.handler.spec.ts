@@ -9,6 +9,7 @@ import { ErinnerungTitel } from '@domain/value-objects/erinnerung-titel';
 import { UserId } from '@domain/value-objects/user-id';
 import { ERINNERUNG_ERROR_CODES } from '../../../errors/erinnerung-error.codes';
 import type { IErinnerungRepository } from '@domain/repositories/i-erinnerung.repository';
+import type { IKategorieRepository } from '@domain/kategorie/repositories/i-kategorie.repository';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import type { IUserRepository } from '@domain/repositories/i-user.repository';
 
@@ -73,6 +74,7 @@ describe('GetErinnerungenByEinsatzHandler', () => {
   let mockRepository: jest.Mocked<IErinnerungRepository>;
   let mockLogger: jest.Mocked<ILogger>;
   let mockUserRepository: jest.Mocked<IUserRepository>;
+  let mockKategorieRepository: jest.Mocked<IKategorieRepository>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -107,7 +109,16 @@ describe('GetErinnerungenByEinsatzHandler', () => {
       getPasswordHash: jest.fn(),
     } as jest.Mocked<IUserRepository>;
 
-    handler = new GetErinnerungenByEinsatzHandler(mockRepository, mockLogger, mockUserRepository);
+    // Mock Kategorie Repository für Story 8.2
+    mockKategorieRepository = {
+      save: jest.fn(),
+      findById: jest.fn(),
+      findByEinsatzId: jest.fn().mockResolvedValue([]),
+      existsByNameAndEinsatzId: jest.fn(),
+      delete: jest.fn(),
+    } as jest.Mocked<IKategorieRepository>;
+
+    handler = new GetErinnerungenByEinsatzHandler(mockRepository, mockLogger, mockUserRepository, mockKategorieRepository);
   });
 
   afterEach(() => {

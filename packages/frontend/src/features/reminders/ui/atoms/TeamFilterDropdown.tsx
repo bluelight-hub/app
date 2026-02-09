@@ -86,9 +86,6 @@ export function TeamFilterDropdown({ selectedFilter, onFilterChange, teilnehmer,
     [teilnehmer, currentUserId],
   );
 
-  /** Alle Optionen kombiniert */
-  const _allOptions = useMemo(() => [...BASE_OPTIONS, ...teilnehmerOptions], [teilnehmerOptions]);
-
   /** Ist ein aktiver Filter gesetzt (nicht "Alle")? */
   const isFilterActive = selectedFilter.type !== 'all';
 

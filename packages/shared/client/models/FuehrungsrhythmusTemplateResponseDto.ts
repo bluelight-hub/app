@@ -69,7 +69,28 @@ export interface FuehrungsrhythmusTemplateResponseDto {
    * @memberof FuehrungsrhythmusTemplateResponseDto
    */
   updatedAt: string;
+  /**
+   * Scope des Templates
+   * @type {string}
+   * @memberof FuehrungsrhythmusTemplateResponseDto
+   */
+  scope: FuehrungsrhythmusTemplateResponseDtoScopeEnum;
+  /**
+   * Einsatz-ID (nur bei Scope EINSATZ)
+   * @type {string}
+   * @memberof FuehrungsrhythmusTemplateResponseDto
+   */
+  einsatzId: string | null;
 }
+
+/**
+ * @export
+ */
+export const FuehrungsrhythmusTemplateResponseDtoScopeEnum = {
+  Einsatz: 'EINSATZ',
+  Global: 'GLOBAL',
+} as const;
+export type FuehrungsrhythmusTemplateResponseDtoScopeEnum = (typeof FuehrungsrhythmusTemplateResponseDtoScopeEnum)[keyof typeof FuehrungsrhythmusTemplateResponseDtoScopeEnum];
 
 /**
  * Check if a given object implements the FuehrungsrhythmusTemplateResponseDto interface.
@@ -82,6 +103,8 @@ export function instanceOfFuehrungsrhythmusTemplateResponseDto(value: object): v
   if (!('createdBy' in value) || value['createdBy'] === undefined) return false;
   if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
   if (!('updatedAt' in value) || value['updatedAt'] === undefined) return false;
+  if (!('scope' in value) || value['scope'] === undefined) return false;
+  if (!('einsatzId' in value) || value['einsatzId'] === undefined) return false;
   return true;
 }
 
@@ -101,6 +124,8 @@ export function FuehrungsrhythmusTemplateResponseDtoFromJSONTyped(json: any, ign
     createdBy: json['createdBy'],
     createdAt: json['createdAt'],
     updatedAt: json['updatedAt'],
+    scope: json['scope'],
+    einsatzId: json['einsatzId'],
   };
 }
 
@@ -121,5 +146,7 @@ export function FuehrungsrhythmusTemplateResponseDtoToJSONTyped(value?: Fuehrung
     createdBy: value['createdBy'],
     createdAt: value['createdAt'],
     updatedAt: value['updatedAt'],
+    scope: value['scope'],
+    einsatzId: value['einsatzId'],
   };
 }

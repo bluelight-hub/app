@@ -181,6 +181,18 @@ export const EVENT_NAMES = {
   },
 
   /**
+   * Notiz Bounded Context Events (Story 7.1)
+   */
+  NOTIZ: {
+    /** Event: Neue Notiz wurde erstellt */
+    ERSTELLT: 'notiz.erstellt',
+    /** Event: Notiz wurde aktualisiert (Story 7.3) */
+    AKTUALISIERT: 'notiz.aktualisiert',
+    /** Event: Notiz wurde geloescht (Soft-Delete) (Story 7.4) */
+    GELOESCHT: 'notiz.geloescht',
+  },
+
+  /**
    * Fuehrungsrhythmus-Template Bounded Context Events (Story 6.6)
    */
   FUEHRUNGSRHYTHMUS_TEMPLATE: {
@@ -188,6 +200,20 @@ export const EVENT_NAMES = {
     ERSTELLT: 'fuehrungsrhythmus-template.erstellt',
     /** Event: Fuehrungsrhythmus-Template wurde geloescht */
     GELOESCHT: 'fuehrungsrhythmus-template.geloescht',
+    /** Event: Fuehrungsrhythmus-Template wurde fuer einen Einsatz aktiviert (Story 6.7) */
+    AKTIVIERT: 'fuehrungsrhythmus-template.aktiviert',
+    /** Event: Fuehrungsrhythmus-Template wurde aktualisiert (Story 6.8) */
+    AKTUALISIERT: 'fuehrungsrhythmus-template.aktualisiert',
+  },
+
+  /**
+   * Kategorie Bounded Context Events (Story 8.1)
+   */
+  KATEGORIE: {
+    /** Event: Neue Kategorie wurde erstellt */
+    ERSTELLT: 'kategorie.erstellt',
+    /** Event: Kategorie wurde geloescht (Soft-Delete) */
+    GELOESCHT: 'kategorie.geloescht',
   },
 } as const;
 
@@ -214,4 +240,6 @@ export type EventName =
   | (typeof EVENT_NAMES.SERVER_CONFIG)[keyof typeof EVENT_NAMES.SERVER_CONFIG]
   | (typeof EVENT_NAMES.ERINNERUNG)[keyof typeof EVENT_NAMES.ERINNERUNG]
   | (typeof EVENT_NAMES.ERINNERUNGSVORLAGE)[keyof typeof EVENT_NAMES.ERINNERUNGSVORLAGE]
-  | (typeof EVENT_NAMES.FUEHRUNGSRHYTHMUS_TEMPLATE)[keyof typeof EVENT_NAMES.FUEHRUNGSRHYTHMUS_TEMPLATE];
+  | (typeof EVENT_NAMES.NOTIZ)[keyof typeof EVENT_NAMES.NOTIZ]
+  | (typeof EVENT_NAMES.FUEHRUNGSRHYTHMUS_TEMPLATE)[keyof typeof EVENT_NAMES.FUEHRUNGSRHYTHMUS_TEMPLATE]
+  | (typeof EVENT_NAMES.KATEGORIE)[keyof typeof EVENT_NAMES.KATEGORIE];

@@ -163,6 +163,8 @@ export class PrismaErinnerungMapper {
       wurdeEskaliert: prisma.wurdeEskaliert, // Story 4.9
       eskaliertAm: prisma.eskaliertAm, // Story 4.9
       etbEntryId: prisma.etbEntryId, // Story 5.0
+      notizId: prisma.notizId, // Story 7.6
+      kategorieId: prisma.kategorieId, // Story 8.2
       // Recurring Felder (Story 6.4)
       isRecurring: prisma.isRecurring,
       recurringIntervalMinutes: prisma.recurringIntervalMinutes,
@@ -219,6 +221,8 @@ export class PrismaErinnerungMapper {
     wurdeEskaliert: boolean;
     eskaliertAm: Date | null;
     etbEntryId: string | null; // Story 5.0
+    notizId: string | null; // Story 7.6
+    kategorieId: string | null; // Story 8.2
     // Recurring Felder (Story 6.4)
     isRecurring: boolean;
     recurringIntervalMinutes: number | null;
@@ -268,6 +272,8 @@ export class PrismaErinnerungMapper {
       wurdeEskaliert: entity.wurdeEskaliert,
       eskaliertAm: entity.eskaliertAm,
       etbEntryId: entity.etbEntryId, // Story 5.0
+      notizId: entity.notizId, // Story 7.6
+      kategorieId: entity.kategorieId, // Story 8.2
       // Recurring Felder (Story 6.4)
       isRecurring: entity.isRecurring,
       recurringIntervalMinutes: entity.recurringIntervalMinutes,

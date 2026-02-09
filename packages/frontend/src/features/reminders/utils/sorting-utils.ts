@@ -76,8 +76,20 @@ export function getSortPriority(erinnerung: ErinnerungResponseDto): number {
  * @returns number - negative if a < b, positive if a > b, 0 if equal
  */
 export function compareErinnerungen(a: ErinnerungResponseDto, b: ErinnerungResponseDto, selectedSort: TeamSortType): number {
+  // Story 8.7 AC3: Faelligkeit absteigend (keine Urgency-Logik, spaeteste zuerst)
+  if (selectedSort === 'faelligkeit_desc') {
+    return new Date(b.faelligAm).getTime() - new Date(a.faelligAm).getTime();
+  }
+
   if (selectedSort === 'erstellt') {
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  }
+
+  // Story 8.8 AC2: Alphabetische Sortierung nach Titel A-Z
+  if (selectedSort === 'titel') {
+    const cmp = a.titel.localeCompare(b.titel, 'de', { sensitivity: 'base' });
+    if (cmp !== 0) return cmp;
+    return new Date(a.faelligAm).getTime() - new Date(b.faelligAm).getTime();
   }
 
   if (selectedSort === 'status') {

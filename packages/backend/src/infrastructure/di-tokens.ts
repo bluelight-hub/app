@@ -68,6 +68,12 @@ export const ERINNERUNGSVORLAGE_REPOSITORY = Symbol('IErinnerungsvorlageReposito
 /** Repository Token für IFuehrungsrhythmusTemplateRepository (Story 6.6) */
 export const FUEHRUNGSRHYTHMUS_TEMPLATE_REPOSITORY = Symbol('IFuehrungsrhythmusTemplateRepository');
 
+/** Repository Token für INotizRepository */
+export const NOTIZ_REPOSITORY = Symbol('INotizRepository');
+
+/** Repository Token für IKategorieRepository */
+export const KATEGORIE_REPOSITORY = Symbol('IKategorieRepository');
+
 /**
  * Kräftemanagement Repository Tokens (Epic 1+).
  *
@@ -207,6 +213,24 @@ export const EVENT_HANDLER = {
 
   /** ErinnerungIntensiviert ETB-Eintrag Handler Token (Story 5.0) */
   ERINNERUNG_INTENSIVIERT_ETB: Symbol('IEventHandler<ErinnerungIntensiviertEvent>:EtbEintrag'),
+
+  /** FuehrungsrhythmusAktiviert ETB-Eintrag Handler Token (Story 6.7) */
+  FUEHRUNGSRHYTHMUS_AKTIVIERT_ETB: Symbol('IEventHandler<FuehrungsrhythmusAktiviertEvent>:EtbEintrag'),
+
+  /** NotizErstellt ETB-Eintrag Handler Token (Story 7.1) */
+  NOTIZ_ERSTELLT_ETB: Symbol('IEventHandler<NotizErstelltEvent>:EtbEintrag'),
+
+  /** NotizAktualisiert ETB-Eintrag Handler Token (Story 7.3) */
+  NOTIZ_AKTUALISIERT_ETB: Symbol('IEventHandler<NotizAktualisiertEvent>:EtbEintrag'),
+
+  /** NotizGeloescht ETB-Eintrag Handler Token (Story 7.4) */
+  NOTIZ_GELOESCHT_ETB: Symbol('IEventHandler<NotizGeloeschtEvent>:EtbEintrag'),
+
+  /** KategorieErstellt ETB-Eintrag Handler Token (Story 8.1) */
+  KATEGORIE_ERSTELLT_ETB: Symbol('IEventHandler<KategorieErstelltEvent>:EtbEintrag'),
+
+  /** KategorieGeloescht ETB-Eintrag Handler Token (Story 8.1) */
+  KATEGORIE_GELOESCHT_ETB: Symbol('IEventHandler<KategorieGeloeschtEvent>:EtbEintrag'),
 } as const;
 
 /**

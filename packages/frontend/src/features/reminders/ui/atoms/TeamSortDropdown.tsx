@@ -5,13 +5,13 @@
  * Nutzt Headless UI Listbox fuer accessibility-konforme Implementierung.
  *
  * **Story 3.8:**
- * - Sortier-Optionen: Fälligkeit, Erstellt-Datum, Status
+ * - Sortier-Optionen: Fälligkeit (bald/später zuerst), Erstellt-Datum, Status
  * - Visuelles Feedback bei aktiver Sortierung
  */
 
 import { cn } from '@/shared/ui/cn';
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react';
-import { PiCaretDown, PiCheck, PiSortAscending, PiClock, PiCalendar, PiShieldCheck } from 'react-icons/pi';
+import { PiCaretDown, PiCheck, PiSortAscending, PiSortDescending, PiClock, PiClockCountdown, PiCalendar, PiShieldCheck, PiTextAa } from 'react-icons/pi';
 import type { TeamSortType } from '../../stores';
 
 export interface TeamSortDropdownProps {
@@ -32,9 +32,11 @@ interface SortOption {
 }
 
 const SORT_OPTIONS: SortOption[] = [
-  { value: 'faelligkeit', label: 'Fälligkeit', icon: <PiClock className="h-4 w-4" /> },
+  { value: 'faelligkeit', label: 'Fälligkeit (bald zuerst)', icon: <PiClock className="h-4 w-4" /> },
+  { value: 'faelligkeit_desc', label: 'Fälligkeit (später zuerst)', icon: <PiClockCountdown className="h-4 w-4" /> },
   { value: 'erstellt', label: 'Erstellt-Datum', icon: <PiCalendar className="h-4 w-4" /> },
   { value: 'status', label: 'Status', icon: <PiShieldCheck className="h-4 w-4" /> },
+  { value: 'titel', label: 'Titel (A-Z)', icon: <PiTextAa className="h-4 w-4" /> },
 ];
 
 /**
@@ -47,6 +49,7 @@ export function TeamSortDropdown({ selectedSort, onSortChange, disabled = false,
     <Listbox value={selectedSort} onChange={onSortChange} disabled={disabled}>
       <div className={cn('relative', className)}>
         <ListboxButton
+          aria-label="Sortierung auswählen"
           className={cn(
             'relative flex w-full cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm',
             'transition-all duration-200',
@@ -55,7 +58,11 @@ export function TeamSortDropdown({ selectedSort, onSortChange, disabled = false,
             'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700',
           )}
         >
-          <PiSortAscending className="h-4 w-4 flex-shrink-0 text-gray-400" aria-hidden="true" />
+          {selectedSort === 'faelligkeit_desc' ? (
+            <PiSortDescending className="h-4 w-4 flex-shrink-0 text-gray-400" aria-hidden="true" />
+          ) : (
+            <PiSortAscending className="h-4 w-4 flex-shrink-0 text-gray-400" aria-hidden="true" />
+          )}
           <span className="block truncate font-medium">{currentOption.label}</span>
           <PiCaretDown className="ml-auto h-4 w-4 flex-shrink-0 text-gray-400" aria-hidden="true" />
         </ListboxButton>

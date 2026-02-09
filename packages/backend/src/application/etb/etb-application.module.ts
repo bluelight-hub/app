@@ -25,6 +25,10 @@ import {
   ErinnerungAssignedEventHandler,
   ErinnerungEskaliertEventHandler,
   ErinnerungIntensiviertEventHandler,
+  FuehrungsrhythmusAktiviertEtbHandler,
+  NotizErstelltEtbHandler,
+  NotizAktualisiertEtbHandler,
+  NotizGeloeschtEtbHandler,
 } from './event-handlers';
 import { EtbQueryMapper } from './mappers';
 import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler, GetTextbausteineHandler } from './queries';
@@ -199,6 +203,26 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
       provide: EVENT_HANDLER.ERINNERUNG_INTENSIVIERT_ETB,
       useClass: ErinnerungIntensiviertEventHandler,
     },
+    // FuehrungsrhythmusAktiviert Event Handler (Story 6.7) - ETB-Eintrag bei Fuehrungsrhythmus-Aktivierung
+    {
+      provide: EVENT_HANDLER.FUEHRUNGSRHYTHMUS_AKTIVIERT_ETB,
+      useClass: FuehrungsrhythmusAktiviertEtbHandler,
+    },
+    // NotizErstellt Event Handler (Story 7.1) - ETB-Eintrag bei Notiz-Erstellung
+    {
+      provide: EVENT_HANDLER.NOTIZ_ERSTELLT_ETB,
+      useClass: NotizErstelltEtbHandler,
+    },
+    // NotizAktualisiert Event Handler (Story 7.3) - ETB-Eintrag bei Notiz-Aktualisierung
+    {
+      provide: EVENT_HANDLER.NOTIZ_AKTUALISIERT_ETB,
+      useClass: NotizAktualisiertEtbHandler,
+    },
+    // NotizGeloescht Event Handler (Story 7.4) - ETB-Eintrag bei Notiz-Loeschung
+    {
+      provide: EVENT_HANDLER.NOTIZ_GELOESCHT_ETB,
+      useClass: NotizGeloeschtEtbHandler,
+    },
 
     // Mappers (Story 3.3)
     EtbQueryMapper,
@@ -239,6 +263,10 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
     EVENT_HANDLER.ERINNERUNG_ASSIGNED_ETB,
     EVENT_HANDLER.ERINNERUNG_ESKALIERT_ETB,
     EVENT_HANDLER.ERINNERUNG_INTENSIVIERT_ETB,
+    EVENT_HANDLER.FUEHRUNGSRHYTHMUS_AKTIVIERT_ETB,
+    EVENT_HANDLER.NOTIZ_ERSTELLT_ETB,
+    EVENT_HANDLER.NOTIZ_AKTUALISIERT_ETB,
+    EVENT_HANDLER.NOTIZ_GELOESCHT_ETB,
 
     // Mappers (Story 3.3)
     EtbQueryMapper,

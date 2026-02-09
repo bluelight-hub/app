@@ -6,6 +6,15 @@ import { USER_REPOSITORY } from '@infrastructure/di-tokens';
 import type { UserId } from '@domain/value-objects/user-id';
 
 /**
+ * Optionale Kategorie-Daten, die vom Repository via Include geladen werden.
+ * Story 8.2: Kategorie-Name und -Farbe für die Anzeige.
+ */
+export interface KategorieData {
+  name: string;
+  farbe: string;
+}
+
+/**
  * Factory zur Erstellung von ErinnerungResponseDtos.
  *
  * Kapselt die Logik zum Laden von verknüpften Namen (Ersteller, AssignedTo, Eskalation),
@@ -19,9 +28,10 @@ export class ErinnerungResponseFactory {
    * Erstellt ein DTO für eine einzelne Erinnerung inkl. Namens-Auflösung.
    *
    * @param erinnerung - Die Domain Entity
-   * @returns ErinnerungResponseDto mit aufgelösten Namen
+   * @param kategorieData - Optionale Kategorie-Daten (Name, Farbe) aus Repository-Include (Story 8.2)
+   * @returns ErinnerungResponseDto mit aufgelösten Namen und Kategorie-Daten
    */
-  async create(erinnerung: Erinnerung): Promise<ErinnerungResponseDto> {
+  async create(erinnerung: Erinnerung, kategorieData?: KategorieData | null): Promise<ErinnerungResponseDto> {
     // 1. Namen laden (Parallel für Performance)
     const [erstellerName, assignedToName, eskalationsPersonName] = await Promise.all([
       this.resolveUserName(erinnerung.erstelltVon),
@@ -63,6 +73,9 @@ export class ErinnerungResponseFactory {
       // Story 5.4: ETB-Eintrag Referenz
       etbEntryId: erinnerung.etbEntryId ?? null,
 
+      // Story 7.6: Notiz-Referenz
+      notizId: erinnerung.notizId ?? null,
+
       // Story 6.4: Wiederkehrende Erinnerungen
       isRecurring: erinnerung.isRecurring,
       recurringIntervalMinutes: erinnerung.recurringIntervalMinutes,
@@ -71,6 +84,11 @@ export class ErinnerungResponseFactory {
       recurringCurrentCount: erinnerung.recurringCurrentCount,
       parentErinnerungId: erinnerung.parentErinnerungId?.toString() ?? null,
       recurringSequenceNumber: erinnerung.recurringSequenceNumber,
+
+      // Story 8.2: Kategorie-Daten
+      kategorieId: erinnerung.kategorieId ?? null,
+      kategorieName: kategorieData?.name ?? null,
+      kategorieFarbe: kategorieData?.farbe ?? null,
     };
   }
 

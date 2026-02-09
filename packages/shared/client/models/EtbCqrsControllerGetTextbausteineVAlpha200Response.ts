@@ -13,6 +13,8 @@
  */
 
 import { mapValues } from '../runtime';
+import type { TextbausteinDto } from './TextbausteinDto';
+import { TextbausteinDtoFromJSON, TextbausteinDtoFromJSONTyped, TextbausteinDtoToJSON, TextbausteinDtoToJSONTyped } from './TextbausteinDto';
 import type { AuthControllerUnifiedAuth200ResponseMeta } from './AuthControllerUnifiedAuth200ResponseMeta';
 import {
   AuthControllerUnifiedAuth200ResponseMetaFromJSON,
@@ -20,8 +22,6 @@ import {
   AuthControllerUnifiedAuth200ResponseMetaToJSON,
   AuthControllerUnifiedAuth200ResponseMetaToJSONTyped,
 } from './AuthControllerUnifiedAuth200ResponseMeta';
-import type { TextbausteinListResponse } from './TextbausteinListResponse';
-import { TextbausteinListResponseFromJSON, TextbausteinListResponseFromJSONTyped, TextbausteinListResponseToJSON, TextbausteinListResponseToJSONTyped } from './TextbausteinListResponse';
 import type { UserControllerFindAllBasicVAlpha200ResponsePagination } from './UserControllerFindAllBasicVAlpha200ResponsePagination';
 import {
   UserControllerFindAllBasicVAlpha200ResponsePaginationFromJSON,
@@ -38,10 +38,10 @@ import {
 export interface EtbCqrsControllerGetTextbausteineVAlpha200Response {
   /**
    *
-   * @type {Array<TextbausteinListResponse>}
+   * @type {Array<TextbausteinDto>}
    * @memberof EtbCqrsControllerGetTextbausteineVAlpha200Response
    */
-  data: Array<TextbausteinListResponse>;
+  data: Array<TextbausteinDto>;
   /**
    *
    * @type {AuthControllerUnifiedAuth200ResponseMeta}
@@ -74,7 +74,7 @@ export function EtbCqrsControllerGetTextbausteineVAlpha200ResponseFromJSONTyped(
     return json;
   }
   return {
-    data: (json['data'] as Array<any>).map(TextbausteinListResponseFromJSON),
+    data: (json['data'] as Array<any>).map(TextbausteinDtoFromJSON),
     meta: AuthControllerUnifiedAuth200ResponseMetaFromJSON(json['meta']),
     pagination: json['pagination'] == null ? undefined : UserControllerFindAllBasicVAlpha200ResponsePaginationFromJSON(json['pagination']),
   };
@@ -90,7 +90,7 @@ export function EtbCqrsControllerGetTextbausteineVAlpha200ResponseToJSONTyped(va
   }
 
   return {
-    data: (value['data'] as Array<any>).map(TextbausteinListResponseToJSON),
+    data: (value['data'] as Array<any>).map(TextbausteinDtoToJSON),
     meta: AuthControllerUnifiedAuth200ResponseMetaToJSON(value['meta']),
     pagination: UserControllerFindAllBasicVAlpha200ResponsePaginationToJSON(value['pagination']),
   };

@@ -13,3 +13,13 @@ export { useOfflineStatus, type UseOfflineStatusReturn } from './use-offline-sta
 export { useReconnectSync, type UseReconnectSyncReturn } from './use-reconnect-sync';
 export { useTrayClickNavigation } from './use-tray-click-navigation';
 export { useTrayBadge } from './use-tray-badge';
+export {
+  useKategorieStatistik,
+  calculateKategorieStatistik,
+  type KategorieStatistik,
+} from './use-kategorie-statistik';
+export {
+  useErinnerungUebersichtStatistik,
+  calculateErinnerungUebersichtStats,
+  type ErinnerungUebersichtStats,
+} from './use-erinnerung-uebersicht-statistik';

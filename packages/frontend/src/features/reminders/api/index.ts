@@ -5,7 +5,15 @@
  */
 
 // Query Hooks und Keys
-export { ERINNERUNG_QUERY_KEYS, calculateRetryDelay, useErinnerungenByEinsatz, type UseErinnerungenByEinsatzOptions } from './queries';
+export {
+  ERINNERUNG_QUERY_KEYS,
+  calculateRetryDelay,
+  useErinnerungenByEinsatz,
+  useErinnerungStatistik,
+  usePersonStatistik,
+  useZeitverlaufStatistik,
+  type UseErinnerungenByEinsatzOptions,
+} from './queries';
 
 // ETB History Hook (Story 5.7)
 export { ERINNERUNG_ETB_HISTORY_QUERY_KEYS, useErinnerungEtbHistory, type UseErinnerungEtbHistoryOptions } from './use-erinnerung-etb-history';

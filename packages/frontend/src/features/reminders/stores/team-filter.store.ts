@@ -31,13 +31,15 @@ import { Store, useStore } from '@tanstack/react-store';
 export type TeamFilterType = { type: 'all' } | { type: 'mine' } | { type: 'unassigned' } | { type: 'user'; userId: string };
 
 /**
- * Team-Sort Type (Story 3.8)
+ * Team-Sort Type (Story 3.8, Story 8.7, Story 8.8)
  *
- * - 'faelligkeit': Standard-Sortierung nach Faelligkeit (überfällige zuerst)
+ * - 'faelligkeit': Standard-Sortierung nach Faelligkeit (überfällige zuerst, mit Urgency-Logik)
+ * - 'faelligkeit_desc': Sortierung nach Faelligkeit absteigend (späteste zuerst, ohne Urgency-Logik)
  * - 'erstellt': Sortierung nach Erstellungsdatum (neueste zuerst)
  * - 'status': Gruppierung nach Status (Acknowledge-Pflicht zuerst)
+ * - 'titel': Alphabetische Sortierung nach Titel A-Z (case-insensitive, locale 'de')
  */
-export type TeamSortType = 'faelligkeit' | 'erstellt' | 'status';
+export type TeamSortType = 'faelligkeit' | 'faelligkeit_desc' | 'erstellt' | 'status' | 'titel';
 
 /**
  * Teilnehmer-Typ fuer die Dropdown-Auswahl (AC1)

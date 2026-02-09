@@ -1,9 +1,13 @@
 import { FuehrungsrhythmusTemplate } from '../fuehrungsrhythmus-template.entity';
 import { FuehrungsrhythmusTemplateErstelltEvent } from '@domain/fuehrungsrhythmus/events/fuehrungsrhythmus-template-erstellt.event';
+import { FuehrungsrhythmusTemplateAktualisiertEvent } from '@domain/fuehrungsrhythmus/events/fuehrungsrhythmus-template-aktualisiert.event';
+import { FuehrungsrhythmusTemplateGeloeschtEvent } from '@domain/fuehrungsrhythmus/events/fuehrungsrhythmus-template-geloescht.event';
 import { FuehrungsrhythmusTemplateId } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-template-id';
 import { FuehrungsrhythmusTemplateName } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-template-name';
 import { FuehrungsrhythmusEintrag } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-eintrag';
+import { FuehrungsrhythmusTemplateScope } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-template-scope';
 import { UserId } from '@domain/value-objects/user-id';
+import { EinsatzId } from '@domain/value-objects/einsatz-id';
 
 /**
  * Unit Tests fuer FuehrungsrhythmusTemplate Entity (Aggregate Root).
@@ -245,6 +249,75 @@ describe('FuehrungsrhythmusTemplate Entity', () => {
       expect(result.value!.beschreibung).toBe('Im ELW');
     });
 
+    it('should fail when scope is EINSATZ but einsatzId is missing', () => {
+      // Given & When (Arrange & Act)
+      const result = FuehrungsrhythmusTemplate.create({
+        name: 'Einsatz Template',
+        eintraege: [createValidEintrag()],
+        createdBy: generateValidUserId(),
+        scope: FuehrungsrhythmusTemplateScope.EINSATZ,
+      });
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('EINSATZ_SCOPE_REQUIRES_EINSATZ_ID');
+    });
+
+    it('should fail when scope is GLOBAL but einsatzId is provided', () => {
+      // Given & When (Arrange & Act)
+      const einsatzId = EinsatzId.create().value!;
+      const result = FuehrungsrhythmusTemplate.create({
+        name: 'Global Template',
+        eintraege: [createValidEintrag()],
+        createdBy: generateValidUserId(),
+        scope: FuehrungsrhythmusTemplateScope.GLOBAL,
+        einsatzId,
+      });
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('GLOBAL_SCOPE_NO_EINSATZ_ID');
+    });
+
+    it('should create template with scope EINSATZ and valid einsatzId', () => {
+      // Given (Arrange)
+      const einsatzId = EinsatzId.create().value!;
+      const props = {
+        name: 'Einsatz Fuehrungsrhythmus',
+        eintraege: [createValidEintrag()],
+        createdBy: generateValidUserId(),
+        scope: FuehrungsrhythmusTemplateScope.EINSATZ,
+        einsatzId,
+      };
+
+      // When (Act)
+      const result = FuehrungsrhythmusTemplate.create(props);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      expect(result.value!.scope).toBe(FuehrungsrhythmusTemplateScope.EINSATZ);
+      expect(result.value!.einsatzId).toBeDefined();
+      expect(result.value!.einsatzId!.equals(einsatzId)).toBe(true);
+    });
+
+    it('should create template with scope GLOBAL and no einsatzId', () => {
+      // Given (Arrange)
+      const props = {
+        name: 'Globales Fuehrungsrhythmus',
+        eintraege: [createValidEintrag()],
+        createdBy: generateValidUserId(),
+        scope: FuehrungsrhythmusTemplateScope.GLOBAL,
+      };
+
+      // When (Act)
+      const result = FuehrungsrhythmusTemplate.create(props);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      expect(result.value!.scope).toBe(FuehrungsrhythmusTemplateScope.GLOBAL);
+      expect(result.value!.einsatzId).toBeNull();
+    });
+
     it('should return defensive copy of eintraege (no mutation)', () => {
       // Given (Arrange)
       const eintrag = createValidEintrag();
@@ -281,6 +354,8 @@ describe('FuehrungsrhythmusTemplate Entity', () => {
         name,
         beschreibung: 'Test Beschreibung',
         eintraege: [eintrag],
+        scope: FuehrungsrhythmusTemplateScope.GLOBAL,
+        einsatzId: null,
         createdBy,
         createdAt,
         updatedAt,
@@ -321,6 +396,8 @@ describe('FuehrungsrhythmusTemplate Entity', () => {
         name,
         beschreibung: null,
         eintraege: [createValidEintrag()],
+        scope: FuehrungsrhythmusTemplateScope.GLOBAL,
+        einsatzId: null,
         createdBy,
         createdAt: new Date('2026-01-19T10:00:00.000Z'),
         updatedAt: new Date('2026-01-20T12:00:00.000Z'),
@@ -349,6 +426,8 @@ describe('FuehrungsrhythmusTemplate Entity', () => {
         name,
         beschreibung: null,
         eintraege: [createValidEintrag()],
+        scope: FuehrungsrhythmusTemplateScope.GLOBAL,
+        einsatzId: null,
         createdBy: generateValidUserId(),
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -359,6 +438,149 @@ describe('FuehrungsrhythmusTemplate Entity', () => {
 
       // Then (Assert)
       expect(template.beschreibung).toBeNull();
+    });
+  });
+
+  describe('update()', () => {
+    /**
+     * Erzeugt ein gueltiges FuehrungsrhythmusTemplate fuer Update-Tests.
+     * Cleared automatisch die Create-Events.
+     */
+    const createTemplateForUpdate = () => {
+      const createdBy = generateValidUserId();
+      const result = FuehrungsrhythmusTemplate.create({
+        name: 'Original Template',
+        beschreibung: 'Original Beschreibung',
+        eintraege: [createValidEintrag()],
+        createdBy,
+      });
+      const template = result.value!;
+      template.clearDomainEvents();
+      return { template, createdBy };
+    };
+
+    it('should update name, beschreibung and eintraege successfully', () => {
+      // Given (Arrange)
+      const { template } = createTemplateForUpdate();
+      const aktualisiertVon = generateValidUserId();
+      const neuerEintrag1 = createValidEintrag({ titel: 'Neue Lagebesprechung', intervallMinuten: 60, sortOrder: 0 });
+      const neuerEintrag2 = createValidEintrag({ titel: 'Funkmeldecheck', intervallMinuten: 15, sortOrder: 1 });
+
+      // When (Act)
+      const result = template.update({
+        name: 'Aktualisiertes Template',
+        beschreibung: 'Neue Beschreibung',
+        eintraege: [neuerEintrag1, neuerEintrag2],
+        aktualisiertVon,
+      });
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      expect(template.name.value).toBe('Aktualisiertes Template');
+      expect(template.beschreibung).toBe('Neue Beschreibung');
+      expect(template.eintraege).toHaveLength(2);
+      expect(template.eintraege[0].titel).toBe('Neue Lagebesprechung');
+      expect(template.eintraege[1].titel).toBe('Funkmeldecheck');
+    });
+
+    it('should emit FuehrungsrhythmusTemplateAktualisiertEvent on update', () => {
+      // Given (Arrange)
+      const { template } = createTemplateForUpdate();
+      const aktualisiertVon = generateValidUserId();
+
+      // When (Act)
+      const result = template.update({
+        name: 'Aktualisiert',
+        beschreibung: null,
+        eintraege: [createValidEintrag()],
+        aktualisiertVon,
+      });
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      const events = template.getDomainEvents();
+      expect(events.length).toBe(1);
+      expect(events[0]).toBeInstanceOf(FuehrungsrhythmusTemplateAktualisiertEvent);
+
+      const event = events[0] as FuehrungsrhythmusTemplateAktualisiertEvent;
+      expect(event.templateId.toString()).toBe(template.id.toString());
+      expect(event.name).toBe('Aktualisiert');
+      expect(event.aktualisiertVon.equals(aktualisiertVon)).toBe(true);
+    });
+
+    it('should fail when template is already deleted (ALREADY_DELETED)', () => {
+      // Given (Arrange)
+      const { template } = createTemplateForUpdate();
+      const userId = generateValidUserId();
+      template.softDelete(userId);
+      template.clearDomainEvents();
+
+      // When (Act)
+      const result = template.update({
+        name: 'Versuch',
+        beschreibung: null,
+        eintraege: [createValidEintrag()],
+        aktualisiertVon: userId,
+      });
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('FR_TEMPLATE_ALREADY_DELETED');
+    });
+
+    it('should fail when name is invalid', () => {
+      // Given (Arrange)
+      const { template } = createTemplateForUpdate();
+      const aktualisiertVon = generateValidUserId();
+
+      // When (Act)
+      const result = template.update({
+        name: '',
+        beschreibung: null,
+        eintraege: [createValidEintrag()],
+        aktualisiertVon,
+      });
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('FR_TEMPLATE_NAME');
+    });
+
+    it('should fail when eintraege is empty', () => {
+      // Given (Arrange)
+      const { template } = createTemplateForUpdate();
+      const aktualisiertVon = generateValidUserId();
+
+      // When (Act)
+      const result = template.update({
+        name: 'Gueltig',
+        beschreibung: null,
+        eintraege: [],
+        aktualisiertVon,
+      });
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('FR_TEMPLATE_EINTRAEGE_EMPTY');
+    });
+
+    it('should update updatedAt timestamp', () => {
+      // Given (Arrange)
+      const { template } = createTemplateForUpdate();
+      const aktualisiertVon = generateValidUserId();
+      const originalUpdatedAt = template.updatedAt;
+
+      // When (Act)
+      const result = template.update({
+        name: 'Aktualisiert',
+        beschreibung: null,
+        eintraege: [createValidEintrag()],
+        aktualisiertVon,
+      });
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      expect(template.updatedAt.getTime()).toBeGreaterThanOrEqual(originalUpdatedAt.getTime());
     });
   });
 
@@ -450,6 +672,26 @@ describe('FuehrungsrhythmusTemplate Entity', () => {
       expect(result.isSuccess).toBe(true);
       expect(template.updatedAt.getTime()).toBeGreaterThanOrEqual(originalUpdatedAt.getTime());
     });
+
+    it('should emit FuehrungsrhythmusTemplateGeloeschtEvent on softDelete', () => {
+      // Given (Arrange)
+      const template = createTemplateForDelete();
+      const userId = generateValidUserId();
+
+      // When (Act)
+      const result = template.softDelete(userId);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      const events = template.getDomainEvents();
+      expect(events.length).toBe(1);
+      expect(events[0]).toBeInstanceOf(FuehrungsrhythmusTemplateGeloeschtEvent);
+
+      const event = events[0] as FuehrungsrhythmusTemplateGeloeschtEvent;
+      expect(event.templateId.toString()).toBe(template.id.toString());
+      expect(event.name).toBe('Zu loeschendes Template');
+      expect(event.deletedBy.equals(userId)).toBe(true);
+    });
   });
 
   describe('Identity Equality', () => {
@@ -466,6 +708,8 @@ describe('FuehrungsrhythmusTemplate Entity', () => {
         name: name1,
         beschreibung: null,
         eintraege: [eintrag],
+        scope: FuehrungsrhythmusTemplateScope.GLOBAL,
+        einsatzId: null,
         createdBy: generateValidUserId(),
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -478,6 +722,8 @@ describe('FuehrungsrhythmusTemplate Entity', () => {
         name: name2, // anderer Name
         beschreibung: 'Beschreibung',
         eintraege: [eintrag],
+        scope: FuehrungsrhythmusTemplateScope.GLOBAL,
+        einsatzId: null,
         createdBy: generateValidUserId(),
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -502,6 +748,8 @@ describe('FuehrungsrhythmusTemplate Entity', () => {
         name,
         beschreibung: null,
         eintraege: [eintrag],
+        scope: FuehrungsrhythmusTemplateScope.GLOBAL,
+        einsatzId: null,
         createdBy,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -514,6 +762,8 @@ describe('FuehrungsrhythmusTemplate Entity', () => {
         name,
         beschreibung: null,
         eintraege: [eintrag],
+        scope: FuehrungsrhythmusTemplateScope.GLOBAL,
+        einsatzId: null,
         createdBy,
         createdAt: new Date(),
         updatedAt: new Date(),

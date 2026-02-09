@@ -13,6 +13,8 @@
  */
 
 import { mapValues } from '../runtime';
+import type { ErinnerungStatusCountsDto } from './ErinnerungStatusCountsDto';
+import { ErinnerungStatusCountsDtoFromJSON, ErinnerungStatusCountsDtoFromJSONTyped, ErinnerungStatusCountsDtoToJSON, ErinnerungStatusCountsDtoToJSONTyped } from './ErinnerungStatusCountsDto';
 import type { TopReceiverDto } from './TopReceiverDto';
 import { TopReceiverDtoFromJSON, TopReceiverDtoFromJSONTyped, TopReceiverDtoToJSON, TopReceiverDtoToJSONTyped } from './TopReceiverDto';
 
@@ -35,11 +37,23 @@ export interface ErinnerungStatistikDto {
    */
   avgEscalationTimeSeconds: number;
   /**
-   * Top 3 Empfänger von Eskalationen
+   * Top 3 Empfaenger von Eskalationen
    * @type {Array<TopReceiverDto>}
    * @memberof ErinnerungStatistikDto
    */
   topReceivers: Array<TopReceiverDto>;
+  /**
+   * Anzahl Erinnerungen pro Status
+   * @type {ErinnerungStatusCountsDto}
+   * @memberof ErinnerungStatistikDto
+   */
+  statusCounts: ErinnerungStatusCountsDto;
+  /**
+   * Anzahl aktiver (nicht erledigter) Erinnerungen
+   * @type {number}
+   * @memberof ErinnerungStatistikDto
+   */
+  activeCount: number;
 }
 
 /**
@@ -49,6 +63,8 @@ export function instanceOfErinnerungStatistikDto(value: object): value is Erinne
   if (!('totalEscalated' in value) || value['totalEscalated'] === undefined) return false;
   if (!('avgEscalationTimeSeconds' in value) || value['avgEscalationTimeSeconds'] === undefined) return false;
   if (!('topReceivers' in value) || value['topReceivers'] === undefined) return false;
+  if (!('statusCounts' in value) || value['statusCounts'] === undefined) return false;
+  if (!('activeCount' in value) || value['activeCount'] === undefined) return false;
   return true;
 }
 
@@ -64,6 +80,8 @@ export function ErinnerungStatistikDtoFromJSONTyped(json: any, ignoreDiscriminat
     totalEscalated: json['totalEscalated'],
     avgEscalationTimeSeconds: json['avgEscalationTimeSeconds'],
     topReceivers: (json['topReceivers'] as Array<any>).map(TopReceiverDtoFromJSON),
+    statusCounts: ErinnerungStatusCountsDtoFromJSON(json['statusCounts']),
+    activeCount: json['activeCount'],
   };
 }
 
@@ -80,5 +98,7 @@ export function ErinnerungStatistikDtoToJSONTyped(value?: ErinnerungStatistikDto
     totalEscalated: value['totalEscalated'],
     avgEscalationTimeSeconds: value['avgEscalationTimeSeconds'],
     topReceivers: (value['topReceivers'] as Array<any>).map(TopReceiverDtoToJSON),
+    statusCounts: ErinnerungStatusCountsDtoToJSON(value['statusCounts']),
+    activeCount: value['activeCount'],
   };
 }

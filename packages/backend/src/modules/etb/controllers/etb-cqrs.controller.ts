@@ -4,7 +4,7 @@ import { AddEintragHandler } from '@/application/etb/commands/add-eintrag/add-ei
 import { DeleteEintragHandler } from '@/application/etb/commands/delete-eintrag/delete-eintrag.handler';
 import { LockEtbHandler } from '@/application/etb/commands/lock-etb/lock-etb.handler';
 import { UpdateEintragHandler } from '@/application/etb/commands/update-eintrag/update-eintrag.handler';
-import { AddEintragDto, EintragDto, EtbDto, EtbSnapshotDto, TextbausteinListResponse, UpdateEintragDto } from '@/application/etb/dto';
+import { AddEintragDto, EintragDto, EtbDto, EtbSnapshotDto, TextbausteinDto, TextbausteinListResponse, UpdateEintragDto } from '@/application/etb/dto';
 import { EtbQueryMapper, type EtbSnapshotDto as EtbSnapshotDtoFromMapper } from '@/application/etb/mappers';
 import { GetEtbHistoryQuery, GetEtbHistoryQueryHandler, GetEtbQuery, GetEtbQueryHandler, GetTextbausteineHandler, GetTextbausteineQuery } from '@/application/etb/queries';
 import type { EtbKategorie } from '@/generated/prisma/client';
@@ -120,14 +120,14 @@ export class EtbCqrsController {
     summary: 'Alle Textbausteine abrufen',
     description: 'Gibt alle verfuegbaren Textbausteine zur schnellen ETB-Erstellung zurueck. Optional nach Kategorie filterbar.',
   })
-  @ApiWrappedResponse(TextbausteinListResponse, {
+  @ApiWrappedResponse(TextbausteinDto, {
     isArray: true,
     description: 'Textbausteine erfolgreich abgerufen',
   })
   @ApiBadRequestResponse({ description: 'Fehler beim Laden der Textbausteine' })
   @ApiQuery({ name: 'kategorie', required: false, description: 'Filter nach Kategorie (z.B. ALARMIERUNG, LAGE)' })
   @ApiQuery({ name: 'onlyActive', required: false, type: Boolean, description: 'Nur aktive Textbausteine (Standard: true)' })
-  async getTextbausteine(@Query('kategorie') kategorie?: string, @Query('onlyActive') onlyActive?: string): Promise<TextbausteinListResponse> {
+  async getTextbausteine(@Query('kategorie') kategorie?: string, @Query('onlyActive') onlyActive?: string): Promise<TextbausteinDto[]> {
     this.logger.log(`Getting Textbausteine (kategorie: ${kategorie ?? 'all'}, onlyActive: ${onlyActive ?? 'true'})`);
 
     // Parse onlyActive - Standard ist true
@@ -143,10 +143,7 @@ export class EtbCqrsController {
       throw new BadRequestException(result.error);
     }
 
-    return {
-      meta: { timestamp: new Date().toISOString() },
-      data: result.value ?? [],
-    };
+    return result.value ?? [];
   }
 
   /**

@@ -4,6 +4,7 @@ import { FuehrungsrhythmusTemplate } from '@domain/fuehrungsrhythmus/entities/fu
 import { FuehrungsrhythmusTemplateId } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-template-id';
 import { FuehrungsrhythmusTemplateName } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-template-name';
 import { FuehrungsrhythmusEintrag } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-eintrag';
+import { FuehrungsrhythmusTemplateScope } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-template-scope';
 import { UserId } from '@domain/value-objects/user-id';
 import { FUEHRUNGSRHYTHMUS_TEMPLATE_REPOSITORY } from '@/infrastructure/di-tokens';
 import type { IFuehrungsrhythmusTemplateRepository } from '@domain/fuehrungsrhythmus/repositories/i-fuehrungsrhythmus-template.repository';
@@ -32,6 +33,8 @@ function createMockTemplate(overrides?: { name?: string; beschreibung?: string |
     name,
     beschreibung: overrides?.beschreibung ?? null,
     eintraege: overrides?.eintraege ?? [defaultEintrag],
+    scope: FuehrungsrhythmusTemplateScope.GLOBAL,
+    einsatzId: null,
     createdBy,
     createdAt: overrides?.createdAt ?? now,
     updatedAt: overrides?.updatedAt ?? now,
@@ -225,6 +228,34 @@ describe('GetAllFuehrungsrhythmusTemplatesHandler', () => {
       // Then (Assert)
       expect(result).toHaveLength(1);
       expect(result[0].beschreibung).toBeNull();
+    });
+
+    it('should pass einsatzId filter to repository', async () => {
+      // Given (Arrange)
+      mockTemplateRepository.findAll.mockResolvedValue([]);
+
+      // When (Act)
+      await handler.execute({ scope: FuehrungsrhythmusTemplateScope.EINSATZ, einsatzId: 'clw3h8x9y0000qwertyuiopas' });
+
+      // Then (Assert)
+      expect(mockTemplateRepository.findAll).toHaveBeenCalledTimes(1);
+      const calledFilter = mockTemplateRepository.findAll.mock.calls[0][0];
+      expect(calledFilter?.scope).toBe(FuehrungsrhythmusTemplateScope.EINSATZ);
+      expect(calledFilter?.einsatzId).toBeDefined();
+    });
+
+    it('should pass includeGlobal filter to repository', async () => {
+      // Given (Arrange)
+      mockTemplateRepository.findAll.mockResolvedValue([]);
+
+      // When (Act)
+      await handler.execute({ einsatzId: 'clw3h8x9y0000qwertyuiopas', includeGlobal: true });
+
+      // Then (Assert)
+      expect(mockTemplateRepository.findAll).toHaveBeenCalledTimes(1);
+      const calledFilter = mockTemplateRepository.findAll.mock.calls[0][0];
+      expect(calledFilter?.includeGlobal).toBe(true);
+      expect(calledFilter?.einsatzId).toBeDefined();
     });
 
     it('should NOT call save() method (Read-Only Query)', async () => {

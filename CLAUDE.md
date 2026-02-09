@@ -14,7 +14,6 @@ Bluelight Hub ist eine **Web + Tauri Desktop App** für Blaulicht-Organisationen
 
 ## MCP Server (NUTZE SIE!)
 
-- **Serena** - Symbolische Code-Navigation, Refactoring, Semantic Search
 - **Context7** - Aktuelle Library-Dokumentation abrufen
 - **Claude-in-Chrome** - Frontend testen (Login: rubeen / MyPass123*)
 
@@ -123,7 +122,3 @@ Diese Patterns im Code nachschauen (nicht auswendig lernen):
 ## Dokumentation
 
 Bei Architektur-Änderungen: `/docs/architecture/` (arc42) und `/docs/adr/` aktualisieren!
-
-# WICHTIGE Notice am Ende
-
-Vergiss nicht: Verwende Serena MCP (als erstes Projekt aktivieren).

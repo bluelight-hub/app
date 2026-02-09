@@ -25,6 +25,8 @@ export class FuehrungsrhythmusTemplateResponseFactory {
       createdBy: template.createdBy.toString(),
       createdAt: template.createdAt.toISOString(),
       updatedAt: template.updatedAt.toISOString(),
+      scope: template.scope,
+      einsatzId: template.einsatzId?.toString() ?? null,
     };
   }
 }

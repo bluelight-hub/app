@@ -58,6 +58,8 @@ export class GetErinnerungStatistikHandler {
       totalEscalated: stats.totalEscalated,
       avgEscalationTimeSeconds: stats.avgEscalationTimeSeconds,
       topReceivers: topReceiversWithNames,
+      statusCounts: stats.statusCounts,
+      activeCount: stats.activeCount,
     };
 
     return Result.ok(dto);

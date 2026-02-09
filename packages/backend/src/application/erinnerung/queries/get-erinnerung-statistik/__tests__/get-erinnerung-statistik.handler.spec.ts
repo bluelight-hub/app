@@ -69,6 +69,16 @@ describe('GetErinnerungStatistikHandler', () => {
         { userId: user1Id, count: 3 },
         { userId: user2Id, count: 2 },
       ],
+      statusCounts: {
+        total: 10,
+        geplant: 2,
+        ausgeloest: 3,
+        acknowledged: 1,
+        snoozed: 1,
+        eskaliert: 2,
+        erledigt: 1,
+      },
+      activeCount: 9,
     };
 
     repository.getStatistik.mockResolvedValue(Result.ok(mockStats));
@@ -94,6 +104,16 @@ describe('GetErinnerungStatistikHandler', () => {
         { userId: user1Id.toString(), userName: 'Max Mustermann', count: 3 },
         { userId: user2Id.toString(), userName: 'Erika Musterfrau', count: 2 },
       ],
+      statusCounts: {
+        total: 10,
+        geplant: 2,
+        ausgeloest: 3,
+        acknowledged: 1,
+        snoozed: 1,
+        eskaliert: 2,
+        erledigt: 1,
+      },
+      activeCount: 9,
     });
     expect(repository.getStatistik).toHaveBeenCalledWith(expect.objectContaining({ value: einsatzId }));
     expect(userRepository.findById).toHaveBeenCalledTimes(2);
@@ -108,6 +128,16 @@ describe('GetErinnerungStatistikHandler', () => {
       totalEscalated: 1,
       avgEscalationTimeSeconds: 60,
       topReceivers: [{ userId: user1Id, count: 1 }],
+      statusCounts: {
+        total: 1,
+        geplant: 0,
+        ausgeloest: 0,
+        acknowledged: 0,
+        snoozed: 0,
+        eskaliert: 1,
+        erledigt: 0,
+      },
+      activeCount: 1,
     };
 
     repository.getStatistik.mockResolvedValue(Result.ok(mockStats));
@@ -143,5 +173,36 @@ describe('GetErinnerungStatistikHandler', () => {
     expect(result.error).toBeDefined();
 
     spy.mockRestore();
+  });
+
+  it('should pass through statusCounts and activeCount from repository', async () => {
+    const einsatzId = 'clw3h8x9y000108l6d8888888';
+    const query = GetErinnerungStatistikQuery.create({ einsatzId }).value!;
+
+    const expectedStatusCounts = {
+      total: 25,
+      geplant: 5,
+      ausgeloest: 7,
+      acknowledged: 3,
+      snoozed: 2,
+      eskaliert: 4,
+      erledigt: 4,
+    };
+
+    const mockStats = {
+      totalEscalated: 4,
+      avgEscalationTimeSeconds: 90,
+      topReceivers: [],
+      statusCounts: expectedStatusCounts,
+      activeCount: 21,
+    };
+
+    repository.getStatistik.mockResolvedValue(Result.ok(mockStats));
+
+    const result = await handler.execute(query);
+
+    expect(result.isSuccess).toBe(true);
+    expect(result.value!.statusCounts).toEqual(expectedStatusCounts);
+    expect(result.value!.activeCount).toBe(21);
   });
 });

@@ -2,7 +2,9 @@ import { Injectable } from '@nestjs/common';
 import type { IFuehrungsrhythmusTemplateRepository } from '@domain/fuehrungsrhythmus/repositories/i-fuehrungsrhythmus-template.repository';
 import type { FuehrungsrhythmusTemplate } from '@domain/fuehrungsrhythmus/entities/fuehrungsrhythmus-template.entity';
 import type { FuehrungsrhythmusTemplateId } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-template-id';
+import type { EinsatzId } from '@domain/value-objects/einsatz-id';
 import type { TransactionContext } from '@domain/common/transaction';
+import { FuehrungsrhythmusTemplateScope } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-template-scope';
 import type { PrismaClient } from '@/generated/prisma/client';
 // biome-ignore lint/style/useImportType: PrismaService ist Injectable - kein "import type" verwenden (bricht NestJS DI)
 import { PrismaService } from '@/infrastructure/database/prisma.service';
@@ -47,6 +49,8 @@ export class PrismaFuehrungsrhythmusTemplateRepository implements IFuehrungsrhyt
         name: data.template.name,
         beschreibung: data.template.beschreibung,
         createdBy: data.template.createdBy,
+        scope: data.template.scope,
+        einsatzId: data.template.einsatzId,
         isDeleted: data.template.isDeleted,
         deletedAt: data.template.deletedAt,
         deletedBy: data.template.deletedBy,
@@ -54,6 +58,8 @@ export class PrismaFuehrungsrhythmusTemplateRepository implements IFuehrungsrhyt
       update: {
         name: data.template.name,
         beschreibung: data.template.beschreibung,
+        scope: data.template.scope,
+        einsatzId: data.template.einsatzId,
         isDeleted: data.template.isDeleted,
         deletedAt: data.template.deletedAt,
         deletedBy: data.template.deletedBy,
@@ -77,9 +83,23 @@ export class PrismaFuehrungsrhythmusTemplateRepository implements IFuehrungsrhyt
    * Gibt alle nicht-geloeschten FuehrungsrhythmusTemplates zurueck.
    * Eintraege werden nach sortOrder sortiert inkludiert.
    */
-  async findAll(): Promise<FuehrungsrhythmusTemplate[]> {
+  async findAll(filter?: { scope?: FuehrungsrhythmusTemplateScope; einsatzId?: EinsatzId; includeGlobal?: boolean }): Promise<FuehrungsrhythmusTemplate[]> {
+    const where: Record<string, unknown> = { isDeleted: false };
+
+    if (filter?.includeGlobal && filter?.einsatzId) {
+      // Einsatz-Kontext: GLOBAL + EINSATZ-Templates dieses Einsatzes
+      where.OR = [{ scope: FuehrungsrhythmusTemplateScope.GLOBAL }, { scope: FuehrungsrhythmusTemplateScope.EINSATZ, einsatzId: filter.einsatzId.toString() }];
+    } else {
+      if (filter?.scope) {
+        where.scope = filter.scope;
+      }
+      if (filter?.einsatzId) {
+        where.einsatzId = filter.einsatzId.toString();
+      }
+    }
+
     const templates = await this.prisma.fuehrungsrhythmusTemplate.findMany({
-      where: { isDeleted: false },
+      where,
       include: {
         eintraege: {
           orderBy: { sortOrder: 'asc' },
@@ -95,8 +115,9 @@ export class PrismaFuehrungsrhythmusTemplateRepository implements IFuehrungsrhyt
    * Findet ein FuehrungsrhythmusTemplate anhand seiner ID.
    * Eintraege werden nach sortOrder sortiert inkludiert.
    */
-  async findById(id: FuehrungsrhythmusTemplateId): Promise<FuehrungsrhythmusTemplate | null> {
-    const raw = await this.prisma.fuehrungsrhythmusTemplate.findUnique({
+  async findById(id: FuehrungsrhythmusTemplateId, tx?: TransactionContext): Promise<FuehrungsrhythmusTemplate | null> {
+    const client = (tx as PrismaClient | undefined) ?? this.prisma;
+    const raw = await client.fuehrungsrhythmusTemplate.findUnique({
       where: { id: id.toString() },
       include: {
         eintraege: {

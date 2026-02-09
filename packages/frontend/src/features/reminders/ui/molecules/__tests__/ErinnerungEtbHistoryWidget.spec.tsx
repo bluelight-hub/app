@@ -73,6 +73,12 @@ describe('ErinnerungEtbHistoryWidget', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Default: Query-Objekt zurueckgeben damit Destructuring nicht fehlschlaegt
+    mockUseErinnerungEtbHistory.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: null,
+    });
   });
 
   describe('Conditional Rendering (AC5)', () => {

@@ -1,7 +1,15 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/shared';
+import { ERINNERUNG_QUERY_KEYS } from '@/features/reminders';
 import { FR_TEMPLATE_QUERY_KEYS, VORLAGE_QUERY_KEYS } from './queries';
-import type { CreateErinnerungsvorlageDto, CreateFuehrungsrhythmusTemplateDto, UpdateErinnerungsvorlageDto, ErinnerungsvorlageResponseDto, ResponseError } from '@bluelight-hub/shared/client';
+import type {
+  CreateErinnerungsvorlageDto,
+  CreateFuehrungsrhythmusTemplateDto,
+  UpdateFuehrungsrhythmusTemplateDto,
+  UpdateErinnerungsvorlageDto,
+  ErinnerungsvorlageResponseDto,
+  ResponseError,
+} from '@bluelight-hub/shared/client';
 import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { logger } from '@/shared/lib/logger';
 import { toast } from 'sonner';
@@ -172,20 +180,209 @@ export interface CreateFuehrungsrhythmusTemplateVariables {
 }
 
 /**
- * Hook: Neues Fuehrungsrhythmus-Template erstellen (Story 6.6).
+ * Hook: Neues globales Fuehrungsrhythmus-Template erstellen (Admin).
  */
-export const useCreateFuehrungsrhythmusTemplate = () => {
+export const useCreateGlobalFuehrungsrhythmusTemplate = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ data }: CreateFuehrungsrhythmusTemplateVariables) => {
-      const response = await api.fuehrungsrhythmusTemplates().fuehrungsrhythmusTemplateControllerCreateVAlpha({
+      const response = await api.fuehrungsrhythmusTemplatesAdmin().fuehrungsrhythmusTemplateControllerCreateVAlpha({
         createFuehrungsrhythmusTemplateDto: data,
       });
       return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: FR_TEMPLATE_QUERY_KEYS.all });
+    },
+  });
+};
+
+export interface CreateEinsatzFuehrungsrhythmusTemplateVariables {
+  einsatzId: string;
+  data: CreateFuehrungsrhythmusTemplateDto;
+}
+
+/**
+ * Hook: Neues Einsatz-spezifisches Fuehrungsrhythmus-Template erstellen.
+ */
+export const useCreateEinsatzFuehrungsrhythmusTemplate = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ einsatzId, data }: CreateEinsatzFuehrungsrhythmusTemplateVariables) => {
+      const response = await api.einsatzFuehrungsrhythmusTemplates().einsatzFuehrungsrhythmusTemplateControllerCreateVAlpha({
+        einsatzId,
+        createFuehrungsrhythmusTemplateDto: data,
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: FR_TEMPLATE_QUERY_KEYS.all });
+    },
+  });
+};
+
+export interface UpdateFuehrungsrhythmusTemplateVariables {
+  id: string;
+  data: UpdateFuehrungsrhythmusTemplateDto;
+}
+
+/**
+ * Hook: Globales Fuehrungsrhythmus-Template aktualisieren (Admin).
+ */
+export const useUpdateGlobalFuehrungsrhythmusTemplate = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: UpdateFuehrungsrhythmusTemplateVariables) => {
+      const response = await api.fuehrungsrhythmusTemplatesAdmin().fuehrungsrhythmusTemplateControllerUpdateVAlpha({
+        id,
+        updateFuehrungsrhythmusTemplateDto: data,
+      });
+      return response.data;
+    },
+    onError: (error: ResponseError) => {
+      logger.error('Failed to update Fuehrungsrhythmus-Template', error);
+    },
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: FR_TEMPLATE_QUERY_KEYS.all });
+    },
+  });
+};
+
+export interface UpdateEinsatzFuehrungsrhythmusTemplateVariables {
+  einsatzId: string;
+  id: string;
+  data: UpdateFuehrungsrhythmusTemplateDto;
+}
+
+/**
+ * Hook: Einsatz-Fuehrungsrhythmus-Template aktualisieren.
+ */
+export const useUpdateEinsatzFuehrungsrhythmusTemplate = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ einsatzId, id, data }: UpdateEinsatzFuehrungsrhythmusTemplateVariables) => {
+      const response = await api.einsatzFuehrungsrhythmusTemplates().einsatzFuehrungsrhythmusTemplateControllerUpdateVAlpha({
+        einsatzId,
+        id,
+        updateFuehrungsrhythmusTemplateDto: data,
+      });
+      return response.data;
+    },
+    onError: (error: ResponseError) => {
+      logger.error('Failed to update Einsatz-Fuehrungsrhythmus-Template', error);
+    },
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: FR_TEMPLATE_QUERY_KEYS.all });
+    },
+  });
+};
+
+export interface DeleteFuehrungsrhythmusTemplateVariables {
+  id: string;
+}
+
+/**
+ * Hook: Globales Fuehrungsrhythmus-Template loeschen (Soft-Delete, Admin).
+ */
+export const useDeleteGlobalFuehrungsrhythmusTemplate = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id }: DeleteFuehrungsrhythmusTemplateVariables) => {
+      await api.fuehrungsrhythmusTemplatesAdmin().fuehrungsrhythmusTemplateControllerRemoveVAlpha({ id });
+    },
+    onError: async (error: ResponseError) => {
+      const message = await getApiErrorMessage(error, 'Das Template konnte nicht gelöscht werden.', 'deleteFrTemplate');
+      logger.error('Failed to delete Fuehrungsrhythmus-Template', error);
+      toast.error('Fehler', { description: message });
+    },
+    onSettled: async (_data, error) => {
+      await queryClient.invalidateQueries({ queryKey: FR_TEMPLATE_QUERY_KEYS.all });
+      if (!error) {
+        toast.success('Template gelöscht', {
+          description: 'Das Führungsrhythmus-Template wurde gelöscht.',
+        });
+      }
+    },
+  });
+};
+
+export interface DeleteEinsatzFuehrungsrhythmusTemplateVariables {
+  einsatzId: string;
+  id: string;
+}
+
+/**
+ * Hook: Einsatz-Fuehrungsrhythmus-Template loeschen (Soft-Delete).
+ */
+export const useDeleteEinsatzFuehrungsrhythmusTemplate = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ einsatzId, id }: DeleteEinsatzFuehrungsrhythmusTemplateVariables) => {
+      await api.einsatzFuehrungsrhythmusTemplates().einsatzFuehrungsrhythmusTemplateControllerRemoveVAlpha({ einsatzId, id });
+    },
+    onError: async (error: ResponseError) => {
+      const message = await getApiErrorMessage(error, 'Das Template konnte nicht gelöscht werden.', 'deleteFrTemplate');
+      logger.error('Failed to delete Einsatz-Fuehrungsrhythmus-Template', error);
+      toast.error('Fehler', { description: message });
+    },
+    onSettled: async (_data, error) => {
+      await queryClient.invalidateQueries({ queryKey: FR_TEMPLATE_QUERY_KEYS.all });
+      if (!error) {
+        toast.success('Template gelöscht', {
+          description: 'Das Führungsrhythmus-Template wurde gelöscht.',
+        });
+      }
+    },
+  });
+};
+
+export interface ActivateFuehrungsrhythmusTemplateVariables {
+  templateId: string;
+  einsatzId: string;
+}
+
+/**
+ * Hook: Globales Fuehrungsrhythmus-Template aktivieren (Admin, Story 6.7).
+ */
+export const useActivateGlobalFuehrungsrhythmusTemplate = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ templateId, einsatzId }: ActivateFuehrungsrhythmusTemplateVariables) => {
+      const response = await api.fuehrungsrhythmusTemplatesAdmin().fuehrungsrhythmusTemplateControllerActivateVAlpha({
+        id: templateId,
+        activateFuehrungsrhythmusTemplateDto: { einsatzId },
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ERINNERUNG_QUERY_KEYS.all });
+    },
+  });
+};
+
+/**
+ * Hook: Einsatz-Fuehrungsrhythmus-Template aktivieren.
+ */
+export const useActivateEinsatzFuehrungsrhythmusTemplate = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ templateId, einsatzId }: ActivateFuehrungsrhythmusTemplateVariables) => {
+      const response = await api.einsatzFuehrungsrhythmusTemplates().einsatzFuehrungsrhythmusTemplateControllerActivateVAlpha({
+        einsatzId,
+        id: templateId,
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ERINNERUNG_QUERY_KEYS.all });
     },
   });
 };

@@ -19,3 +19,15 @@ export const createFuehrungsrhythmusTemplateSchema = z.object({
 });
 
 export type CreateFuehrungsrhythmusTemplateFormData = z.infer<typeof createFuehrungsrhythmusTemplateSchema>;
+
+/**
+ * Schema zum Aktualisieren eines Fuehrungsrhythmus-Templates (Story 6.8 AC4).
+ * Gleiche Validierung wie beim Erstellen.
+ */
+export const updateFuehrungsrhythmusTemplateSchema = z.object({
+  name: z.string().trim().min(1, 'Name ist erforderlich').max(100, 'Name darf maximal 100 Zeichen lang sein'),
+  beschreibung: z.string().max(500, 'Beschreibung darf maximal 500 Zeichen lang sein').optional(),
+  eintraege: z.array(eintragSchema).min(1, 'Mindestens eine Erinnerung erforderlich'),
+});
+
+export type UpdateFuehrungsrhythmusTemplateFormData = z.infer<typeof updateFuehrungsrhythmusTemplateSchema>;

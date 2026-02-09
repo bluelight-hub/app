@@ -49,6 +49,9 @@ vi.mock('@/features/reminders/hooks', () => ({
 
 // Mock Stores - Story 3.6: Team-Filter Store (Tagged Union Format)
 // Story 3.8: Team-Sort Store
+// Story 8.3: Kategorie-Filter Store
+// Story 8.4: Status-Filter Store
+// Story 8.9: Filter-Preset Store
 vi.mock('@/features/reminders/stores', () => ({
   addAnimatedId: vi.fn(),
   openQuickCreateDialog: vi.fn(),
@@ -58,9 +61,35 @@ vi.mock('@/features/reminders/stores', () => ({
   resetTeamFilterStore: vi.fn(),
   useTeamFilter: vi.fn().mockReturnValue({ type: 'all' }),
   useAvailableTeilnehmer: vi.fn().mockReturnValue([]),
+  // Story 3.6 Selectors (used by SavePresetDialog)
+  getTeamFilter: vi.fn(() => ({ type: 'all' })),
   // Story 3.8 Team-Sort Store
   setTeamSort: vi.fn(),
   useTeamSort: vi.fn().mockReturnValue('faelligkeit'),
+  getTeamSort: vi.fn(() => 'faelligkeit'),
+  // Story 8.3 Kategorie-Filter Store
+  useKategorieFilter: vi.fn().mockReturnValue({ type: 'all' }),
+  setKategorieFilter: vi.fn(),
+  resetKategorieFilterStore: vi.fn(),
+  getKategorieFilter: vi.fn(() => ({ type: 'all' })),
+  // Story 8.4 Status-Filter Store
+  useStatusFilter: vi.fn().mockReturnValue({ type: 'all' }),
+  setStatusFilter: vi.fn(),
+  resetStatusFilterStore: vi.fn(),
+  getStatusFilter: vi.fn(() => ({ type: 'all' })),
+  // Story 8.9 Filter-Preset Store
+  filterPresetStore: { state: { presets: [], activePresetId: null }, subscribe: vi.fn() },
+  addPreset: vi.fn(),
+  removePreset: vi.fn(),
+  applyPreset: vi.fn(),
+  resetFilterPresetStore: vi.fn(),
+  reloadPresetsFromStorage: vi.fn(),
+  getFilterPresets: vi.fn(() => []),
+  getActivePresetId: vi.fn(() => null),
+  isPresetActive: vi.fn(() => false),
+  useFilterPresets: vi.fn(() => []),
+  useActivePresetId: vi.fn(() => null),
+  useFilterPresetStoreState: vi.fn(() => ({ presets: [], activePresetId: null })),
 }));
 
 // Mock Einsatz API - Story 3.6 Task 3.4
@@ -81,6 +110,16 @@ vi.mock('../OfflineBanner', () => ({
   OfflineBanner: () => null,
 }));
 
+// Mock PresetBar - Story 8.9
+vi.mock('../PresetBar', () => ({
+  PresetBar: () => <div data-testid="preset-bar">PresetBar</div>,
+}));
+
+// Mock SavePresetDialog - Story 8.9
+vi.mock('../../organisms/SavePresetDialog', () => ({
+  SavePresetDialog: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div data-testid="save-preset-dialog">SavePresetDialog</div> : null),
+}));
+
 // Mock TeamFilterDropdown - Story 3.6 Task 3.3
 vi.mock('../../atoms/TeamFilterDropdown', () => ({
   TeamFilterDropdown: ({ selectedFilter, onFilterChange }: { selectedFilter: { type: string; userId?: string }; onFilterChange: (f: { type: string }) => void }) => (
@@ -97,6 +136,33 @@ vi.mock('../../atoms/TeamSortDropdown', () => ({
       Sort: {selectedSort}
     </button>
   ),
+}));
+
+// Mock KategorieFilterDropdown - Story 8.3
+vi.mock('../../atoms/KategorieFilterDropdown', () => ({
+  KategorieFilterDropdown: ({ selectedFilter, onFilterChange }: { selectedFilter: { type: string }; onFilterChange: (f: { type: string }) => void }) => (
+    <button type="button" data-testid="kategorie-filter-dropdown" onClick={() => onFilterChange({ type: 'kategorie', kategorieId: 'kat-1' })}>
+      Kategorie: {selectedFilter.type}
+    </button>
+  ),
+}));
+
+// Mock StatusFilterDropdown - Story 8.4
+vi.mock('../../atoms/StatusFilterDropdown', () => ({
+  StatusFilterDropdown: ({ selectedFilter, onFilterChange }: { selectedFilter: { type: string }; onFilterChange: (f: { type: string }) => void }) => (
+    <button type="button" data-testid="status-filter-dropdown" onClick={() => onFilterChange({ type: 'status', status: 'GEPLANT' })}>
+      Status: {selectedFilter.type}
+    </button>
+  ),
+}));
+
+// Mock Kategorien API - Story 8.3
+vi.mock('@/features/kategorien', () => ({
+  useKategorienByEinsatz: vi.fn().mockReturnValue({
+    data: [],
+    isLoading: false,
+    error: null,
+  }),
 }));
 
 vi.mock('@/shared/ui/molecules/tabs.molecule', () => ({
@@ -523,6 +589,37 @@ describe('ErinnerungenList', () => {
       const cards = within(teamTab).getAllByTestId('erinnerung-card');
       expect(cards).toHaveLength(1);
       expect(cards[0]).toHaveTextContent('Erinnerung von User 3 fuer sich selbst');
+    });
+  });
+
+  describe('Kategorie-Filter Integration (Story 8.3)', () => {
+    it('sollte KategorieFilterDropdown im Team-Tab anzeigen', async () => {
+      // Given (Arrange)
+      const { useErinnerungenByEinsatz } = await import('@/features/reminders/api');
+      vi.mocked(useErinnerungenByEinsatz).mockReturnValue({
+        data: [{ id: '1', titel: 'Test', status: 'GEPLANT', faelligAm: new Date().toISOString(), erstelltVon: 'user-1' }],
+        isLoading: false,
+        error: null,
+      });
+
+      // When (Act)
+      renderWithQueryClient(<ErinnerungenList einsatzId="einsatz-123" />);
+
+      // Then (Assert)
+      expect(screen.getByTestId('kategorie-filter-dropdown')).toBeInTheDocument();
+    });
+
+    it('sollte resetKategorieFilterStore bei Unmount aufrufen', async () => {
+      // Given (Arrange)
+      const storesModule = await import('@/features/reminders/stores');
+      const resetKategorieFilterStoreMock = vi.mocked(storesModule.resetKategorieFilterStore);
+      const { unmount } = renderWithQueryClient(<ErinnerungenList einsatzId="einsatz-123" />);
+
+      // When (Act)
+      unmount();
+
+      // Then (Assert)
+      expect(resetKategorieFilterStoreMock).toHaveBeenCalled();
     });
   });
 });

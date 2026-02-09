@@ -46,7 +46,8 @@ COPY packages/backend/package.json ./packages/backend/
 COPY --from=backend-builder /app/node_modules ./node_modules
 
 # Dev-Abhängigkeiten entfernen, Prisma-Client bleibt erhalten
-RUN CI=true pnpm prune --prod
+# --filter begrenzt prune auf das Backend-Package, damit pnpm die Workspace-Struktur korrekt auflöst
+RUN CI=true pnpm --filter @bluelight-hub/backend prune --prod
 
 # Copy build outputs and runtime assets
 COPY --from=shared-builder /app/packages/shared/dist ./packages/shared/dist

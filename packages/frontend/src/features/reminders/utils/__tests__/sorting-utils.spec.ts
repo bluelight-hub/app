@@ -105,5 +105,156 @@ describe('sorting-utils', () => {
         expect(compareErinnerungen(e1, e2, 'status')).toBeLessThan(0);
       });
     });
+
+    /**
+     * Story 8.8 AC2: Sortierung nach Titel
+     */
+    describe('sort by titel (Story 8.8 AC2)', () => {
+      it('should sort alphabetically by title A-Z', () => {
+        // Given
+        const erinnerungen = [createMockErinnerung({ titel: 'Charlie' }), createMockErinnerung({ titel: 'Alpha' }), createMockErinnerung({ titel: 'Bravo' })];
+
+        // When
+        const sorted = [...erinnerungen].sort((a, b) => compareErinnerungen(a, b, 'titel'));
+
+        // Then
+        expect(sorted[0].titel).toBe('Alpha');
+        expect(sorted[1].titel).toBe('Bravo');
+        expect(sorted[2].titel).toBe('Charlie');
+      });
+
+      it('should sort case-insensitive', () => {
+        // Given
+        const erinnerungen = [createMockErinnerung({ titel: 'charlie' }), createMockErinnerung({ titel: 'Alpha' }), createMockErinnerung({ titel: 'BRAVO' })];
+
+        // When
+        const sorted = [...erinnerungen].sort((a, b) => compareErinnerungen(a, b, 'titel'));
+
+        // Then
+        expect(sorted[0].titel).toBe('Alpha');
+        expect(sorted[1].titel).toBe('BRAVO');
+        expect(sorted[2].titel).toBe('charlie');
+      });
+
+      it('should use faelligAm as secondary sort when titles are equal', () => {
+        // Given
+        const erinnerungen = [
+          createMockErinnerung({ id: 'later', titel: 'Same Title', faelligAm: '2026-02-10T10:00:00Z' }),
+          createMockErinnerung({ id: 'earlier', titel: 'Same Title', faelligAm: '2026-02-01T10:00:00Z' }),
+        ];
+
+        // When
+        const sorted = [...erinnerungen].sort((a, b) => compareErinnerungen(a, b, 'titel'));
+
+        // Then - fruehere Faelligkeit zuerst
+        expect(sorted[0].id).toBe('earlier');
+        expect(sorted[1].id).toBe('later');
+      });
+
+      it('should sort umlauts correctly (ä after a, ö after o, ü after u)', () => {
+        // Given
+        const erinnerungen = [
+          createMockErinnerung({ titel: 'Übung' }),
+          createMockErinnerung({ titel: 'Alarm' }),
+          createMockErinnerung({ titel: 'Ärzte' }),
+          createMockErinnerung({ titel: 'Ordnung' }),
+          createMockErinnerung({ titel: 'Öffnung' }),
+        ];
+
+        // When
+        const sorted = [...erinnerungen].sort((a, b) => compareErinnerungen(a, b, 'titel'));
+
+        // Then - deutsche Sortierung: ä nach a, ö nach o, ü nach u
+        expect(sorted[0].titel).toBe('Alarm');
+        expect(sorted[1].titel).toBe('Ärzte');
+        expect(sorted[2].titel).toBe('Öffnung');
+        expect(sorted[3].titel).toBe('Ordnung');
+        expect(sorted[4].titel).toBe('Übung');
+      });
+    });
+
+    /**
+     * Story 8.7 AC3: Faelligkeit absteigend Option
+     */
+    describe('sort by faelligkeit_desc (Story 8.7 AC3)', () => {
+      it('should sort by due date descending (later dates first)', () => {
+        // Given
+        const erinnerungen = [
+          createMockErinnerung({ id: 'mid', faelligAm: '2026-02-05T10:00:00Z' }),
+          createMockErinnerung({ id: 'late', faelligAm: '2026-02-10T10:00:00Z' }),
+          createMockErinnerung({ id: 'early', faelligAm: '2026-02-01T10:00:00Z' }),
+        ];
+
+        // When
+        const sorted = [...erinnerungen].sort((a, b) => compareErinnerungen(a, b, 'faelligkeit_desc'));
+
+        // Then - Späteste Fälligkeit zuerst
+        expect(sorted[0].id).toBe('late');
+        expect(sorted[1].id).toBe('mid');
+        expect(sorted[2].id).toBe('early');
+      });
+
+      it('should NOT apply urgency priority for faelligkeit_desc', () => {
+        // Given: AUSGELOEST mit später Fälligkeit vs GEPLANT mit früher Fälligkeit
+        const ausgeloest = createMockErinnerung({
+          id: 'ausgeloest',
+          faelligAm: '2026-02-10T10:00:00Z',
+          status: 'AUSGELOEST',
+        });
+        const geplant = createMockErinnerung({
+          id: 'geplant',
+          faelligAm: '2026-02-01T10:00:00Z',
+          status: 'GEPLANT',
+        });
+
+        // When
+        const sorted = [geplant, ausgeloest].sort((a, b) => compareErinnerungen(a, b, 'faelligkeit_desc'));
+
+        // Then: Spätere Fälligkeit zuerst, unabhängig vom Status
+        expect(sorted[0].id).toBe('ausgeloest'); // Spaetere Faelligkeit zuerst
+        expect(sorted[1].id).toBe('geplant');
+      });
+
+      it('should sort ESKALIERT and ERLEDIGT purely by date when using faelligkeit_desc', () => {
+        // Given: verschiedene Status, verschiedene Faelligkeiten
+        const erledigt = createMockErinnerung({
+          id: 'erledigt',
+          faelligAm: '2026-02-15T10:00:00Z',
+          status: 'ERLEDIGT',
+        });
+        const eskaliert = createMockErinnerung({
+          id: 'eskaliert',
+          faelligAm: '2026-02-05T10:00:00Z',
+          status: 'ESKALIERT',
+        });
+
+        // When
+        const sorted = [eskaliert, erledigt].sort((a, b) => compareErinnerungen(a, b, 'faelligkeit_desc'));
+
+        // Then: ERLEDIGT mit spaeterer Faelligkeit zuerst (rein chronologisch)
+        expect(sorted[0].id).toBe('erledigt');
+        expect(sorted[1].id).toBe('eskaliert');
+      });
+
+      it('should return 0 for equal due dates (stable sort)', () => {
+        // Given: Zwei Erinnerungen mit exakt gleicher Faelligkeit
+        const a = createMockErinnerung({
+          id: 'a',
+          faelligAm: '2026-02-05T10:00:00Z',
+          status: 'GEPLANT',
+        });
+        const b = createMockErinnerung({
+          id: 'b',
+          faelligAm: '2026-02-05T10:00:00Z',
+          status: 'AUSGELOEST',
+        });
+
+        // When
+        const result = compareErinnerungen(a, b, 'faelligkeit_desc');
+
+        // Then: Gleiche Faelligkeit = 0 (stabile Reihenfolge)
+        expect(result).toBe(0);
+      });
+    });
   });
 });

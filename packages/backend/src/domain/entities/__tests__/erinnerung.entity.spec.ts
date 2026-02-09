@@ -2233,6 +2233,88 @@ describe('Erinnerung Entity', () => {
   });
 
   // ============================================================
+  // Story 7.6: notizId - Notiz zu Erinnerung Konvertierung
+  // ============================================================
+
+  describe('Story 7.6: notizId Referenz', () => {
+    it('sollte Erinnerung mit notizId erstellen', () => {
+      // Given
+      const notizId = 'clw3notiz00001abcdefghijk';
+      const futureDate = new Date(Date.now() + 60 * 60 * 1000);
+
+      // When
+      const result = Erinnerung.create({
+        einsatzId: testEinsatzId,
+        titel: 'Aus Notiz erstellt',
+        faelligAm: futureDate,
+        erstelltVon: testUserId,
+        notizId,
+      });
+
+      // Then
+      expect(result.isSuccess).toBe(true);
+      expect(result.value!.notizId).toBe(notizId);
+    });
+
+    it('sollte Erinnerung ohne notizId erstellen (default null)', () => {
+      // Given
+      const futureDate = new Date(Date.now() + 60 * 60 * 1000);
+
+      // When
+      const result = Erinnerung.create({
+        einsatzId: testEinsatzId,
+        titel: 'Ohne Notiz-Referenz',
+        faelligAm: futureDate,
+        erstelltVon: testUserId,
+      });
+
+      // Then
+      expect(result.isSuccess).toBe(true);
+      expect(result.value!.notizId).toBeNull();
+    });
+
+    it('sollte Erinnerung mit notizId rekonstruieren', () => {
+      // Given
+      const notizId = 'clw3notiz00002abcdefghijk';
+
+      // When
+      const erinnerung = Erinnerung.reconstruct({
+        id: ErinnerungId.create().value!,
+        einsatzId: testEinsatzId,
+        titel: ErinnerungTitel.create('Notiz Konvertierung').value!,
+        beschreibung: null,
+        faelligAm: new Date(),
+        status: ErinnerungStatus.GEPLANT(),
+        erstelltVon: testUserId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        notizId,
+      });
+
+      // Then
+      expect(erinnerung.notizId).toBe(notizId);
+    });
+
+    it('sollte Erinnerung ohne notizId rekonstruieren (default null)', () => {
+      // When
+      const erinnerung = Erinnerung.reconstruct({
+        id: ErinnerungId.create().value!,
+        einsatzId: testEinsatzId,
+        titel: ErinnerungTitel.create('Ohne Notiz').value!,
+        beschreibung: null,
+        faelligAm: new Date(),
+        status: ErinnerungStatus.GEPLANT(),
+        erstelltVon: testUserId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      // Then
+      expect(erinnerung.notizId).toBeNull();
+    });
+  });
+
+  // ============================================================
   // Story 6.4: Recurring (Wiederkehrende Erinnerungen)
   // ============================================================
 
