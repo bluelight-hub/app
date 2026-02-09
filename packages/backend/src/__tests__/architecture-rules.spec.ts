@@ -209,7 +209,8 @@ describe('Architecture Rules', () => {
 
       // Match only actual assignments like: NAME: 'event.name' or NAME: "event.name"
       // This excludes comments and JSDoc examples
-      const eventNameMatches = content.match(/[A-Z_]+:\s*['"]([a-z_]+\.[a-z_]+)['"]/g);
+      // Erlaubt Bindestriche in Event-Namen (z.B. 'fuehrungsrhythmus-template.erstellt', 'erinnerung.wiederkehrende-instanz-erstellt')
+      const eventNameMatches = content.match(/[A-Z_]+:\s*['"]([a-z][a-z0-9_-]*\.[a-z][a-z0-9_-]*)['"]/g);
       if (!eventNameMatches) {
         return [];
       }
@@ -219,7 +220,7 @@ describe('Architecture Rules', () => {
         ...new Set(
           eventNameMatches
             .map((match) => {
-              const nameMatch = match.match(/['"]([a-z_]+\.[a-z_]+)['"]/);
+              const nameMatch = match.match(/['"]([a-z][a-z0-9_-]*\.[a-z][a-z0-9_-]*)['"]/);
               return nameMatch ? nameMatch[1] : '';
             })
             .filter(Boolean),
@@ -234,9 +235,10 @@ describe('Architecture Rules', () => {
       const deserializerFile = path.join(__dirname, '../infrastructure/outbox/event-deserializer.ts');
       const content = fs.readFileSync(deserializerFile, 'utf8');
 
-      // Match all event registry entries in the format: ['event.name', this.deserialize...]
+      // Match all event registry entries in the format: ['event.name', this.deserialize...] or ['event.name', deserialize...]
       // Also matches PascalCase compatibility aliases like ['ErinnerungEskaliert', ...]
-      const registryMatches = content.match(/\['([^']+)',\s*this\.deserialize/g);
+      // Standalone-Funktionen (ohne this.) werden ebenfalls erkannt (z.B. Erinnerungsvorlage, Notiz Events)
+      const registryMatches = content.match(/\['([^']+)',\s*(?:this\.)?deserialize/g);
       if (!registryMatches) {
         return [];
       }

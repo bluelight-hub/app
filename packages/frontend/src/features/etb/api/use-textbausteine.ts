@@ -6,7 +6,7 @@
 
 import { api } from '@/shared';
 import { logger } from '@/shared/lib/logger';
-import type { ResponseError, TextbausteinListResponse } from '@/shared';
+import type { EtbCqrsControllerGetTextbausteineVAlpha200Response, ResponseError } from '@/shared';
 import { useQuery } from '@tanstack/react-query';
 import { ETB_QUERY_KEYS, calculateRetryDelay } from './queries';
 
@@ -33,7 +33,7 @@ import { ETB_QUERY_KEYS, calculateRetryDelay } from './queries';
  * ```
  */
 export const useTextbausteine = () => {
-  return useQuery<TextbausteinListResponse, ResponseError>({
+  return useQuery<EtbCqrsControllerGetTextbausteineVAlpha200Response, ResponseError>({
     queryKey: ETB_QUERY_KEYS.textbausteine(),
     queryFn: async () => {
       try {

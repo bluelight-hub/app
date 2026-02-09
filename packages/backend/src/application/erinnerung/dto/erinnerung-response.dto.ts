@@ -225,6 +225,14 @@ export class ErinnerungResponseDto {
   })
   etbEntryId?: string | null;
 
+  @ApiPropertyOptional({
+    description: 'Referenz zur Quell-Notiz (Story 7.6 - Konvertierung)',
+    example: 'clw3h8x9y0007abcdefghijkl',
+    nullable: true,
+    type: String,
+  })
+  notizId?: string | null;
+
   /**
    * Story 6.4: Ob die Erinnerung wiederkehrend ist.
    * @example false
@@ -304,4 +312,25 @@ export class ErinnerungResponseDto {
     nullable: true,
   })
   recurringSequenceNumber!: number | null;
+
+  /**
+   * Story 8.2: Kategorie-ID der Erinnerung.
+   * @example "clw3h8x9y0008kategorie123"
+   */
+  @ApiPropertyOptional({ description: 'Kategorie-ID', nullable: true })
+  kategorieId?: string | null;
+
+  /**
+   * Story 8.2: Kategorie-Name fuer die Anzeige.
+   * @example "Dringend"
+   */
+  @ApiPropertyOptional({ description: 'Kategorie-Name für Anzeige', nullable: true })
+  kategorieName?: string | null;
+
+  /**
+   * Story 8.2: Kategorie-Farbe (Hex-Code).
+   * @example "#FF5733"
+   */
+  @ApiPropertyOptional({ description: 'Kategorie-Farbe (Hex-Code)', nullable: true })
+  kategorieFarbe?: string | null;
 }

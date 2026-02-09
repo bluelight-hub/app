@@ -13,6 +13,8 @@ export interface CreateFuehrungsrhythmusTemplateCommandProps {
   beschreibung?: string;
   eintraege: CreateFuehrungsrhythmusTemplateEintragProps[];
   createdBy: string;
+  scope?: string;
+  einsatzId?: string;
 }
 
 /**
@@ -27,6 +29,8 @@ export class CreateFuehrungsrhythmusTemplateCommand {
     public readonly beschreibung: string | undefined,
     public readonly eintraege: CreateFuehrungsrhythmusTemplateEintragProps[],
     public readonly createdBy: string,
+    public readonly scope: string | undefined,
+    public readonly einsatzId: string | undefined,
   ) {}
 
   static create(props: CreateFuehrungsrhythmusTemplateCommandProps): Result<CreateFuehrungsrhythmusTemplateCommand> {
@@ -59,6 +63,17 @@ export class CreateFuehrungsrhythmusTemplateCommand {
       return Result.fail<CreateFuehrungsrhythmusTemplateCommand>(FUEHRUNGSRHYTHMUS_TEMPLATE_ERROR_CODES.CREATED_BY_REQUIRED);
     }
 
-    return Result.ok(new CreateFuehrungsrhythmusTemplateCommand(trimmedName, trimmedBeschreibung, props.eintraege, trimmedCreatedBy));
+    const trimmedScope = props.scope?.trim() || undefined;
+    const trimmedEinsatzId = props.einsatzId?.trim() || undefined;
+
+    // Validiere Scope + einsatzId Konsistenz
+    if (trimmedScope === 'EINSATZ' && !trimmedEinsatzId) {
+      return Result.fail<CreateFuehrungsrhythmusTemplateCommand>(FUEHRUNGSRHYTHMUS_TEMPLATE_ERROR_CODES.EINSATZ_SCOPE_REQUIRES_EINSATZ_ID);
+    }
+    if (trimmedScope === 'GLOBAL' && trimmedEinsatzId) {
+      return Result.fail<CreateFuehrungsrhythmusTemplateCommand>(FUEHRUNGSRHYTHMUS_TEMPLATE_ERROR_CODES.GLOBAL_SCOPE_NO_EINSATZ_ID);
+    }
+
+    return Result.ok(new CreateFuehrungsrhythmusTemplateCommand(trimmedName, trimmedBeschreibung, props.eintraege, trimmedCreatedBy, trimmedScope, trimmedEinsatzId));
   }
 }

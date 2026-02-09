@@ -191,13 +191,13 @@ describe('DeleteErinnerungHandler', () => {
       expect(mockOutboxRepository.save).not.toHaveBeenCalled();
     });
 
-    it('should fail when erinnerung is not deletable (status = ACKNOWLEDGED)', async () => {
-      // Given (Arrange)
-      const nonDeletableErinnerung = createMockErinnerung(ErinnerungStatus.ACKNOWLEDGED());
-      mockErinnerungRepository.findById.mockResolvedValue(Result.ok(nonDeletableErinnerung));
+    it('should delete erinnerung with ACKNOWLEDGED status successfully (Story 6.5 AC2)', async () => {
+      // Given (Arrange) - ACKNOWLEDGED ist jetzt loeschbar (Story 6.5 AC2)
+      const deletableErinnerung = createMockErinnerung(ErinnerungStatus.ACKNOWLEDGED());
+      mockErinnerungRepository.findById.mockResolvedValue(Result.ok(deletableErinnerung));
 
       const commandResult = DeleteErinnerungCommand.create({
-        erinnerungId: nonDeletableErinnerung.id.toString(),
+        erinnerungId: deletableErinnerung.id.toString(),
         geloeschtVon: generateValidUserId(),
       });
       const command = commandResult.value!;
@@ -206,10 +206,9 @@ describe('DeleteErinnerungHandler', () => {
       const result = await handler.execute(command);
 
       // Then (Assert)
-      expect(result.isSuccess).toBe(false);
-      expect(result.error).toBe(ERINNERUNG_ERROR_CODES.NOT_DELETABLE);
-      expect(mockErinnerungRepository.save).not.toHaveBeenCalled();
-      expect(mockOutboxRepository.save).not.toHaveBeenCalled();
+      expect(result.isSuccess).toBe(true);
+      expect(mockErinnerungRepository.save).toHaveBeenCalledTimes(1);
+      expect(mockOutboxRepository.save).toHaveBeenCalledTimes(1);
     });
 
     it('should fail when erinnerung is not deletable (status = ERLEDIGT)', async () => {
@@ -231,13 +230,13 @@ describe('DeleteErinnerungHandler', () => {
       expect(result.error).toBe(ERINNERUNG_ERROR_CODES.NOT_DELETABLE);
     });
 
-    it('should fail when erinnerung is not deletable (status = SNOOZED)', async () => {
-      // Given (Arrange)
-      const nonDeletableErinnerung = createMockErinnerung(ErinnerungStatus.SNOOZED());
-      mockErinnerungRepository.findById.mockResolvedValue(Result.ok(nonDeletableErinnerung));
+    it('should delete erinnerung with SNOOZED status successfully (Story 6.5 AC2)', async () => {
+      // Given (Arrange) - SNOOZED ist jetzt loeschbar (Story 6.5 AC2)
+      const deletableErinnerung = createMockErinnerung(ErinnerungStatus.SNOOZED());
+      mockErinnerungRepository.findById.mockResolvedValue(Result.ok(deletableErinnerung));
 
       const commandResult = DeleteErinnerungCommand.create({
-        erinnerungId: nonDeletableErinnerung.id.toString(),
+        erinnerungId: deletableErinnerung.id.toString(),
         geloeschtVon: generateValidUserId(),
       });
       const command = commandResult.value!;
@@ -246,17 +245,18 @@ describe('DeleteErinnerungHandler', () => {
       const result = await handler.execute(command);
 
       // Then (Assert)
-      expect(result.isSuccess).toBe(false);
-      expect(result.error).toBe(ERINNERUNG_ERROR_CODES.NOT_DELETABLE);
+      expect(result.isSuccess).toBe(true);
+      expect(mockErinnerungRepository.save).toHaveBeenCalledTimes(1);
+      expect(mockOutboxRepository.save).toHaveBeenCalledTimes(1);
     });
 
-    it('should fail when erinnerung is not deletable (status = ESKALIERT)', async () => {
-      // Given (Arrange)
-      const nonDeletableErinnerung = createMockErinnerung(ErinnerungStatus.ESKALIERT());
-      mockErinnerungRepository.findById.mockResolvedValue(Result.ok(nonDeletableErinnerung));
+    it('should delete erinnerung with ESKALIERT status successfully (Story 6.5 AC2)', async () => {
+      // Given (Arrange) - ESKALIERT ist jetzt loeschbar (Story 6.5 AC2)
+      const deletableErinnerung = createMockErinnerung(ErinnerungStatus.ESKALIERT());
+      mockErinnerungRepository.findById.mockResolvedValue(Result.ok(deletableErinnerung));
 
       const commandResult = DeleteErinnerungCommand.create({
-        erinnerungId: nonDeletableErinnerung.id.toString(),
+        erinnerungId: deletableErinnerung.id.toString(),
         geloeschtVon: generateValidUserId(),
       });
       const command = commandResult.value!;
@@ -265,8 +265,9 @@ describe('DeleteErinnerungHandler', () => {
       const result = await handler.execute(command);
 
       // Then (Assert)
-      expect(result.isSuccess).toBe(false);
-      expect(result.error).toBe(ERINNERUNG_ERROR_CODES.NOT_DELETABLE);
+      expect(result.isSuccess).toBe(true);
+      expect(mockErinnerungRepository.save).toHaveBeenCalledTimes(1);
+      expect(mockOutboxRepository.save).toHaveBeenCalledTimes(1);
     });
 
     it('should fail when erinnerung is already deleted', async () => {
@@ -725,8 +726,8 @@ describe('DeleteErinnerungHandler', () => {
       expect(result.isSuccess).toBe(true);
     });
 
-    it('should fail for ACKNOWLEDGED status', async () => {
-      // Given (Arrange)
+    it('should succeed for ACKNOWLEDGED status (Story 6.5 AC2)', async () => {
+      // Given (Arrange) - ACKNOWLEDGED ist jetzt loeschbar (Story 6.5 AC2)
       const erinnerung = createMockErinnerung(ErinnerungStatus.ACKNOWLEDGED());
       mockErinnerungRepository.findById.mockResolvedValue(Result.ok(erinnerung));
 
@@ -740,12 +741,11 @@ describe('DeleteErinnerungHandler', () => {
       const result = await handler.execute(command);
 
       // Then (Assert)
-      expect(result.isSuccess).toBe(false);
-      expect(result.error).toBe(ERINNERUNG_ERROR_CODES.NOT_DELETABLE);
+      expect(result.isSuccess).toBe(true);
     });
 
-    it('should fail for SNOOZED status', async () => {
-      // Given (Arrange)
+    it('should succeed for SNOOZED status (Story 6.5 AC2)', async () => {
+      // Given (Arrange) - SNOOZED ist jetzt loeschbar (Story 6.5 AC2)
       const erinnerung = createMockErinnerung(ErinnerungStatus.SNOOZED());
       mockErinnerungRepository.findById.mockResolvedValue(Result.ok(erinnerung));
 
@@ -759,12 +759,11 @@ describe('DeleteErinnerungHandler', () => {
       const result = await handler.execute(command);
 
       // Then (Assert)
-      expect(result.isSuccess).toBe(false);
-      expect(result.error).toBe(ERINNERUNG_ERROR_CODES.NOT_DELETABLE);
+      expect(result.isSuccess).toBe(true);
     });
 
-    it('should fail for ESKALIERT status', async () => {
-      // Given (Arrange)
+    it('should succeed for ESKALIERT status (Story 6.5 AC2)', async () => {
+      // Given (Arrange) - ESKALIERT ist jetzt loeschbar (Story 6.5 AC2)
       const erinnerung = createMockErinnerung(ErinnerungStatus.ESKALIERT());
       mockErinnerungRepository.findById.mockResolvedValue(Result.ok(erinnerung));
 
@@ -778,8 +777,7 @@ describe('DeleteErinnerungHandler', () => {
       const result = await handler.execute(command);
 
       // Then (Assert)
-      expect(result.isSuccess).toBe(false);
-      expect(result.error).toBe(ERINNERUNG_ERROR_CODES.NOT_DELETABLE);
+      expect(result.isSuccess).toBe(true);
     });
 
     it('should fail for ERLEDIGT status', async () => {

@@ -44,4 +44,10 @@ export class FuehrungsrhythmusTemplateResponseDto {
 
   @ApiProperty({ description: 'Zuletzt aktualisiert (ISO-8601)', example: '2026-01-19T15:30:00.000Z' })
   updatedAt!: string;
+
+  @ApiProperty({ description: 'Scope des Templates', example: 'GLOBAL', enum: ['EINSATZ', 'GLOBAL'] })
+  scope!: string;
+
+  @ApiProperty({ description: 'Einsatz-ID (nur bei Scope EINSATZ)', nullable: true, type: String, example: null })
+  einsatzId!: string | null;
 }

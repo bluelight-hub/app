@@ -3,7 +3,9 @@ import { FuehrungsrhythmusTemplate } from '@domain/fuehrungsrhythmus/entities/fu
 import { FuehrungsrhythmusTemplateId } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-template-id';
 import { FuehrungsrhythmusTemplateName } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-template-name';
 import { FuehrungsrhythmusEintrag } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-eintrag';
+import { FuehrungsrhythmusTemplateScope } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-template-scope';
 import { UserId } from '@domain/value-objects/user-id';
+import { EinsatzId } from '@domain/value-objects/einsatz-id';
 
 /**
  * Prisma DB Record mit inkludierten Eintraegen.
@@ -58,12 +60,25 @@ export class PrismaFuehrungsrhythmusTemplateMapper {
       return eintragResult.value;
     });
 
+    const scope = raw.scope === 'GLOBAL' ? FuehrungsrhythmusTemplateScope.GLOBAL : FuehrungsrhythmusTemplateScope.EINSATZ;
+
+    // einsatzId parsen (null bei GLOBAL)
+    let einsatzId: EinsatzId | null = null;
+    if (raw.einsatzId) {
+      const einsatzIdResult = EinsatzId.create(raw.einsatzId);
+      if (einsatzIdResult.isSuccess && einsatzIdResult.value) {
+        einsatzId = einsatzIdResult.value as EinsatzId;
+      }
+    }
+
     return FuehrungsrhythmusTemplate.reconstruct({
       id: idResult.value as FuehrungsrhythmusTemplateId,
       name: nameResult.value,
       beschreibung: raw.beschreibung,
       eintraege,
       createdBy: createdByResult.value as UserId,
+      scope,
+      einsatzId,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       isDeleted: raw.isDeleted,
@@ -83,6 +98,8 @@ export class PrismaFuehrungsrhythmusTemplateMapper {
         name: template.name.value,
         beschreibung: template.beschreibung,
         createdBy: template.createdBy.toString(),
+        scope: template.scope,
+        einsatzId: template.einsatzId?.toString() ?? null,
         isDeleted: template.isDeleted,
         deletedAt: template.deletedAt,
         deletedBy: template.deletedBy?.toString() ?? null,

@@ -4,9 +4,12 @@ import type { EntityId } from '@domain/common/entity-id';
 import { FuehrungsrhythmusTemplateId } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-template-id';
 import { FuehrungsrhythmusTemplateName } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-template-name';
 import type { FuehrungsrhythmusEintrag } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-eintrag';
+import { FuehrungsrhythmusTemplateScope } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-template-scope';
 import { FuehrungsrhythmusTemplateErstelltEvent } from '@domain/fuehrungsrhythmus/events/fuehrungsrhythmus-template-erstellt.event';
 import { FuehrungsrhythmusTemplateGeloeschtEvent } from '@domain/fuehrungsrhythmus/events/fuehrungsrhythmus-template-geloescht.event';
+import { FuehrungsrhythmusTemplateAktualisiertEvent } from '@domain/fuehrungsrhythmus/events/fuehrungsrhythmus-template-aktualisiert.event';
 import type { UserId } from '@domain/value-objects/user-id';
+import { EinsatzId } from '@domain/value-objects/einsatz-id';
 
 /**
  * Props fuer die Erstellung eines neuen Fuehrungsrhythmus-Templates.
@@ -16,6 +19,8 @@ export interface CreateFuehrungsrhythmusTemplateProps {
   beschreibung?: string;
   eintraege: FuehrungsrhythmusEintrag[];
   createdBy: UserId;
+  scope?: FuehrungsrhythmusTemplateScope;
+  einsatzId?: EinsatzId;
 }
 
 /**
@@ -32,6 +37,8 @@ export interface ReconstructFuehrungsrhythmusTemplateProps {
   isDeleted: boolean;
   deletedAt: Date | null;
   deletedBy: UserId | null;
+  scope: FuehrungsrhythmusTemplateScope;
+  einsatzId: EinsatzId | null;
 }
 
 /**
@@ -53,6 +60,8 @@ export class FuehrungsrhythmusTemplate extends AggregateRoot<FuehrungsrhythmusTe
   private _isDeleted: boolean;
   private _deletedAt: Date | null;
   private _deletedBy: UserId | null;
+  private _scope: FuehrungsrhythmusTemplateScope;
+  private _einsatzId: EinsatzId | null;
 
   private constructor(
     id: FuehrungsrhythmusTemplateId,
@@ -60,6 +69,8 @@ export class FuehrungsrhythmusTemplate extends AggregateRoot<FuehrungsrhythmusTe
     beschreibung: string | null,
     eintraege: FuehrungsrhythmusEintrag[],
     createdBy: UserId,
+    scope: FuehrungsrhythmusTemplateScope = FuehrungsrhythmusTemplateScope.GLOBAL,
+    einsatzId: EinsatzId | null = null,
     createdAt?: Date,
     updatedAt?: Date,
     isDeleted = false,
@@ -71,6 +82,8 @@ export class FuehrungsrhythmusTemplate extends AggregateRoot<FuehrungsrhythmusTe
     this._beschreibung = beschreibung;
     this._eintraege = eintraege;
     this._createdBy = createdBy;
+    this._scope = scope;
+    this._einsatzId = einsatzId;
     this._isDeleted = isDeleted;
     this._deletedAt = deletedAt;
     this._deletedBy = deletedBy;
@@ -97,6 +110,12 @@ export class FuehrungsrhythmusTemplate extends AggregateRoot<FuehrungsrhythmusTe
   }
   get deletedBy(): UserId | null {
     return this._deletedBy;
+  }
+  get scope(): FuehrungsrhythmusTemplateScope {
+    return this._scope;
+  }
+  get einsatzId(): EinsatzId | null {
+    return this._einsatzId;
   }
 
   /**
@@ -130,7 +149,24 @@ export class FuehrungsrhythmusTemplate extends AggregateRoot<FuehrungsrhythmusTe
       return Result.fail<FuehrungsrhythmusTemplate>(idResult.error ?? 'FR_TEMPLATE_ID_INVALID');
     }
 
-    const template = new FuehrungsrhythmusTemplate(idResult.value as FuehrungsrhythmusTemplateId, nameResult.value, beschreibung, [...props.eintraege], props.createdBy);
+    // Validiere Scope + einsatzId Konsistenz
+    const scope = props.scope ?? FuehrungsrhythmusTemplateScope.GLOBAL;
+    if (scope === FuehrungsrhythmusTemplateScope.EINSATZ && !props.einsatzId) {
+      return Result.fail<FuehrungsrhythmusTemplate>('EINSATZ_SCOPE_REQUIRES_EINSATZ_ID');
+    }
+    if (scope === FuehrungsrhythmusTemplateScope.GLOBAL && props.einsatzId) {
+      return Result.fail<FuehrungsrhythmusTemplate>('GLOBAL_SCOPE_NO_EINSATZ_ID');
+    }
+
+    const template = new FuehrungsrhythmusTemplate(
+      idResult.value as FuehrungsrhythmusTemplateId,
+      nameResult.value,
+      beschreibung,
+      [...props.eintraege],
+      props.createdBy,
+      scope,
+      props.einsatzId ?? null,
+    );
 
     // Emit Domain Event
     template.addDomainEvent(
@@ -156,12 +192,51 @@ export class FuehrungsrhythmusTemplate extends AggregateRoot<FuehrungsrhythmusTe
       props.beschreibung,
       [...props.eintraege],
       props.createdBy,
+      props.scope,
+      props.einsatzId,
       props.createdAt,
       props.updatedAt,
       props.isDeleted,
       props.deletedAt,
       props.deletedBy,
     );
+  }
+
+  /**
+   * Update: Aktualisiert Name, Beschreibung und Eintraege des Templates (Story 6.8).
+   * Business Rule: Bereits geloeschte Templates koennen nicht aktualisiert werden.
+   */
+  public update(props: { name: string; beschreibung: string | null; eintraege: FuehrungsrhythmusEintrag[]; aktualisiertVon: UserId }): Result<void> {
+    if (this._isDeleted) {
+      return Result.fail<void>('FR_TEMPLATE_ALREADY_DELETED');
+    }
+
+    const nameResult = FuehrungsrhythmusTemplateName.create(props.name);
+    if (nameResult.isFailure || !nameResult.value) {
+      return Result.fail<void>(nameResult.error ?? 'FR_TEMPLATE_NAME_INVALID');
+    }
+
+    if (!props.eintraege || props.eintraege.length < FuehrungsrhythmusTemplate.MIN_EINTRAEGE) {
+      return Result.fail<void>('FR_TEMPLATE_EINTRAEGE_EMPTY');
+    }
+
+    let beschreibung: string | null = null;
+    if (props.beschreibung != null && props.beschreibung.trim().length > 0) {
+      const trimmedBeschreibung = props.beschreibung.trim();
+      if (trimmedBeschreibung.length > FuehrungsrhythmusTemplate.MAX_BESCHREIBUNG_LENGTH) {
+        return Result.fail<void>(`FR_TEMPLATE_BESCHREIBUNG_TOO_LONG: Beschreibung darf maximal ${FuehrungsrhythmusTemplate.MAX_BESCHREIBUNG_LENGTH} Zeichen haben`);
+      }
+      beschreibung = trimmedBeschreibung;
+    }
+
+    this._name = nameResult.value;
+    this._beschreibung = beschreibung;
+    this._eintraege = [...props.eintraege];
+    this.updateTimestamp();
+
+    this.addDomainEvent(new FuehrungsrhythmusTemplateAktualisiertEvent(this._id, this._name.value, props.aktualisiertVon, this._id.toString()));
+
+    return Result.ok<void>(undefined);
   }
 
   /**

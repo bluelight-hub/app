@@ -75,4 +75,21 @@ export class CreateFuehrungsrhythmusTemplateDto {
   @ValidateNested({ each: true })
   @Type(() => FuehrungsrhythmusEintragDto)
   eintraege!: FuehrungsrhythmusEintragDto[];
+
+  @ApiPropertyOptional({
+    description: 'Scope des Templates (Standard: GLOBAL)',
+    example: 'GLOBAL',
+    enum: ['EINSATZ', 'GLOBAL'],
+  })
+  @IsOptional()
+  @IsString({ message: 'Scope muss ein String sein' })
+  scope?: string;
+
+  @ApiPropertyOptional({
+    description: 'Einsatz-ID (Pflicht bei Scope EINSATZ, nicht erlaubt bei GLOBAL)',
+    example: 'clw3h8x9y0000qwertyuiopas',
+  })
+  @IsOptional()
+  @IsString({ message: 'EinsatzId muss ein String sein' })
+  einsatzId?: string;
 }

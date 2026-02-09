@@ -28,7 +28,7 @@ describe('TeamSortDropdown', () => {
 
       // Then (Assert)
       expect(screen.getByRole('button')).toBeInTheDocument();
-      expect(screen.getByText('Fälligkeit')).toBeInTheDocument();
+      expect(screen.getByText('Fälligkeit (bald zuerst)')).toBeInTheDocument();
     });
 
     it('should display "Erstellt-Datum" when sort is "erstellt"', () => {
@@ -61,9 +61,80 @@ describe('TeamSortDropdown', () => {
 
       // Then (Assert)
       expect(screen.getByRole('listbox')).toBeInTheDocument();
-      expect(screen.getByRole('option', { name: /Fälligkeit/i })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: /Fälligkeit \(bald zuerst\)/i })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: /Fälligkeit \(später zuerst\)/i })).toBeInTheDocument();
       expect(screen.getByRole('option', { name: /Erstellt-Datum/i })).toBeInTheDocument();
       expect(screen.getByRole('option', { name: /Status/i })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: /Titel \(A-Z\)/i })).toBeInTheDocument();
+    });
+  });
+
+  /**
+   * Story 8.7 AC3: Faelligkeit absteigend Option
+   */
+  describe('faelligkeit_desc option (Story 8.7 AC3)', () => {
+    it('should render "Fälligkeit (später zuerst)" option', async () => {
+      // Given (Arrange)
+      const user = userEvent.setup();
+      render(<TeamSortDropdown selectedSort="faelligkeit" onSortChange={mockOnSortChange} />);
+
+      // When (Act)
+      await user.click(screen.getByRole('button'));
+
+      // Then (Assert)
+      expect(screen.getByRole('option', { name: /Fälligkeit \(später zuerst\)/i })).toBeInTheDocument();
+    });
+
+    it('should call onSortChange with "faelligkeit_desc" when selecting "Fälligkeit (später zuerst)"', async () => {
+      // Given (Arrange)
+      const user = userEvent.setup();
+      render(<TeamSortDropdown selectedSort="faelligkeit" onSortChange={mockOnSortChange} />);
+
+      // When (Act)
+      await user.click(screen.getByRole('button'));
+      await user.click(screen.getByRole('option', { name: /Fälligkeit \(später zuerst\)/i }));
+
+      // Then (Assert)
+      expect(mockOnSortChange).toHaveBeenCalledWith('faelligkeit_desc');
+    });
+
+    it('should display "Fälligkeit (später zuerst)" when sort is "faelligkeit_desc"', () => {
+      // Given (Arrange)
+      // When (Act)
+      render(<TeamSortDropdown selectedSort="faelligkeit_desc" onSortChange={mockOnSortChange} />);
+
+      // Then (Assert)
+      expect(screen.getByText('Fälligkeit (später zuerst)')).toBeInTheDocument();
+    });
+  });
+
+  /**
+   * Story 8.8 AC1: Titel (A-Z) Option im Dropdown
+   */
+  describe('titel option (Story 8.8 AC1)', () => {
+    it('should render "Titel (A-Z)" option in dropdown', async () => {
+      // Given (Arrange)
+      const user = userEvent.setup();
+      render(<TeamSortDropdown selectedSort="faelligkeit" onSortChange={mockOnSortChange} />);
+
+      // When (Act)
+      await user.click(screen.getByRole('button'));
+
+      // Then (Assert)
+      expect(screen.getByRole('option', { name: /Titel \(A-Z\)/i })).toBeInTheDocument();
+    });
+
+    it('should call onSortChange with "titel" when selecting "Titel (A-Z)"', async () => {
+      // Given (Arrange)
+      const user = userEvent.setup();
+      render(<TeamSortDropdown selectedSort="faelligkeit" onSortChange={mockOnSortChange} />);
+
+      // When (Act)
+      await user.click(screen.getByRole('button'));
+      await user.click(screen.getByRole('option', { name: /Titel \(A-Z\)/i }));
+
+      // Then (Assert)
+      expect(mockOnSortChange).toHaveBeenCalledWith('titel');
     });
   });
 
@@ -94,14 +165,14 @@ describe('TeamSortDropdown', () => {
       expect(mockOnSortChange).toHaveBeenCalledWith('status');
     });
 
-    it('should call onSortChange with "faelligkeit" when selecting "Fälligkeit"', async () => {
+    it('should call onSortChange with "faelligkeit" when selecting "Fälligkeit (bald zuerst)"', async () => {
       // Given (Arrange)
       const user = userEvent.setup();
       render(<TeamSortDropdown selectedSort="status" onSortChange={mockOnSortChange} />);
 
       // When (Act)
       await user.click(screen.getByRole('button'));
-      await user.click(screen.getByRole('option', { name: /Fälligkeit/i }));
+      await user.click(screen.getByRole('option', { name: /Fälligkeit \(bald zuerst\)/i }));
 
       // Then (Assert)
       expect(mockOnSortChange).toHaveBeenCalledWith('faelligkeit');

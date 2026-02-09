@@ -50,10 +50,16 @@ export class ErinnerungsvorlageController {
     });
 
     if (commandResult.isFailure || !commandResult.value) {
-      throw new Error(commandResult.error ?? 'COMMAND_CREATION_FAILED');
+      throw new BadRequestException(commandResult.error ?? 'COMMAND_CREATION_FAILED');
     }
 
-    return this.createHandler.execute(commandResult.value);
+    const result = await this.createHandler.execute(commandResult.value);
+
+    if (result.isFailure) {
+      throw new BadRequestException(result.error);
+    }
+
+    return result.value;
   }
 
   @Patch(':id')

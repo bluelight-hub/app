@@ -2,8 +2,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Result } from '@domain/common/result';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import type { IErinnerungRepository } from '@domain/repositories/i-erinnerung.repository';
+import type { IKategorieRepository } from '@domain/kategorie/repositories/i-kategorie.repository';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
-import { ERINNERUNG_REPOSITORY, LOGGER, USER_REPOSITORY } from '@infrastructure/di-tokens';
+import { ERINNERUNG_REPOSITORY, KATEGORIE_REPOSITORY, LOGGER, USER_REPOSITORY } from '@infrastructure/di-tokens';
 import type { IUserRepository } from '@domain/repositories/i-user.repository';
 import { UserId } from '@domain/value-objects/user-id';
 import type { ErinnerungResponseDto } from '../../dto/erinnerung-response.dto';
@@ -30,6 +31,8 @@ export class GetErinnerungenByEinsatzHandler {
     private readonly logger: ILogger,
     @Inject(USER_REPOSITORY)
     private readonly userRepository: IUserRepository,
+    @Inject(KATEGORIE_REPOSITORY)
+    private readonly kategorieRepository: IKategorieRepository,
   ) {}
 
   /**
@@ -102,40 +105,61 @@ export class GetErinnerungenByEinsatzHandler {
     }
 
     // ════════════════════════════════════════════════════════════════════════
+    // 3b. Story 8.2: Kategorien effizient laden (batch für alle Erinnerungen)
+    // ════════════════════════════════════════════════════════════════════════
+    const kategorien = await this.kategorieRepository.findByEinsatzId(query.einsatzId);
+    const kategorieMap = new Map<string, { name: string; farbe: string }>();
+    for (const kategorie of kategorien) {
+      kategorieMap.set(kategorie.id.toString(), {
+        name: kategorie.name.value,
+        farbe: kategorie.farbe.value,
+      });
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
     // 4. Domain Entities zu DTOs mappen
     // ════════════════════════════════════════════════════════════════════════
-    const dtos: ErinnerungResponseDto[] = erinnerungen.map((erinnerung) => ({
-      id: erinnerung.id.toString(),
-      einsatzId: erinnerung.einsatzId.toString(),
-      titel: erinnerung.titel.value,
-      beschreibung: erinnerung.beschreibung ?? null,
-      faelligAm: erinnerung.faelligAm.toISOString(),
-      status: erinnerung.status.value,
-      // Story 4.1: Zeitpunkt der Auslösung/Intensivierung
-      ausgeloestAm: erinnerung.ausgeloestAm?.toISOString() ?? null,
-      erstelltVon: erinnerung.erstelltVon.toString(),
-      erstellerName: userMap.get(erinnerung.erstelltVon.toString()) ?? null,
-      createdAt: erinnerung.createdAt.toISOString(),
-      updatedAt: erinnerung.updatedAt.toISOString(),
-      snoozeCount: erinnerung.snoozeCount,
-      requiresNote: erinnerung.requiresNote,
-      assignedToId: erinnerung.assignedToId?.toString() ?? null,
-      assignedToName: erinnerung.assignedToId ? (userMap.get(erinnerung.assignedToId.toString()) ?? null) : null,
-      eskalationsPersonId: erinnerung.eskalationsPersonId?.toString() ?? null,
-      eskalationsPersonName: erinnerung.eskalationsPersonId ? (userMap.get(erinnerung.eskalationsPersonId.toString()) ?? null) : null,
-      // Story 4.5: Eskalations-Tracking Felder
-      escalatedAt: erinnerung.escalatedAt?.toISOString() ?? null,
-      previousAssigneeId: erinnerung.previousAssigneeId?.toString() ?? null,
-      previousAssigneeName: erinnerung.previousAssigneeId ? (userMap.get(erinnerung.previousAssigneeId.toString()) ?? null) : null,
-      // Story 6.4: Recurring fields
-      isRecurring: erinnerung.isRecurring,
-      recurringIntervalMinutes: erinnerung.recurringIntervalMinutes ?? null,
-      recurringEndDate: erinnerung.recurringEndDate?.toISOString() ?? null,
-      recurringMaxCount: erinnerung.recurringMaxCount ?? null,
-      recurringCurrentCount: erinnerung.recurringCurrentCount,
-      parentErinnerungId: erinnerung.parentErinnerungId?.toString() ?? null,
-      recurringSequenceNumber: erinnerung.recurringSequenceNumber ?? null,
-    }));
+    const dtos: ErinnerungResponseDto[] = erinnerungen.map((erinnerung) => {
+      // Story 8.2: Kategorie-Daten aus der Map holen
+      const kategorieData = erinnerung.kategorieId ? kategorieMap.get(erinnerung.kategorieId) : null;
+
+      return {
+        id: erinnerung.id.toString(),
+        einsatzId: erinnerung.einsatzId.toString(),
+        titel: erinnerung.titel.value,
+        beschreibung: erinnerung.beschreibung ?? null,
+        faelligAm: erinnerung.faelligAm.toISOString(),
+        status: erinnerung.status.value,
+        // Story 4.1: Zeitpunkt der Auslösung/Intensivierung
+        ausgeloestAm: erinnerung.ausgeloestAm?.toISOString() ?? null,
+        erstelltVon: erinnerung.erstelltVon.toString(),
+        erstellerName: userMap.get(erinnerung.erstelltVon.toString()) ?? null,
+        createdAt: erinnerung.createdAt.toISOString(),
+        updatedAt: erinnerung.updatedAt.toISOString(),
+        snoozeCount: erinnerung.snoozeCount,
+        requiresNote: erinnerung.requiresNote,
+        assignedToId: erinnerung.assignedToId?.toString() ?? null,
+        assignedToName: erinnerung.assignedToId ? (userMap.get(erinnerung.assignedToId.toString()) ?? null) : null,
+        eskalationsPersonId: erinnerung.eskalationsPersonId?.toString() ?? null,
+        eskalationsPersonName: erinnerung.eskalationsPersonId ? (userMap.get(erinnerung.eskalationsPersonId.toString()) ?? null) : null,
+        // Story 4.5: Eskalations-Tracking Felder
+        escalatedAt: erinnerung.escalatedAt?.toISOString() ?? null,
+        previousAssigneeId: erinnerung.previousAssigneeId?.toString() ?? null,
+        previousAssigneeName: erinnerung.previousAssigneeId ? (userMap.get(erinnerung.previousAssigneeId.toString()) ?? null) : null,
+        // Story 6.4: Recurring fields
+        isRecurring: erinnerung.isRecurring,
+        recurringIntervalMinutes: erinnerung.recurringIntervalMinutes ?? null,
+        recurringEndDate: erinnerung.recurringEndDate?.toISOString() ?? null,
+        recurringMaxCount: erinnerung.recurringMaxCount ?? null,
+        recurringCurrentCount: erinnerung.recurringCurrentCount,
+        parentErinnerungId: erinnerung.parentErinnerungId?.toString() ?? null,
+        recurringSequenceNumber: erinnerung.recurringSequenceNumber ?? null,
+        // Story 8.2: Kategorie-Daten
+        kategorieId: erinnerung.kategorieId ?? null,
+        kategorieName: kategorieData?.name ?? null,
+        kategorieFarbe: kategorieData?.farbe ?? null,
+      };
+    });
 
     // ════════════════════════════════════════════════════════════════════════
     // 5. Audit-Trail loggen

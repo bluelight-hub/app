@@ -170,6 +170,12 @@ export interface ErinnerungResponseDto {
    */
   etbEntryId?: string | null;
   /**
+   * Referenz zur Quell-Notiz (Story 7.6 - Konvertierung)
+   * @type {string}
+   * @memberof ErinnerungResponseDto
+   */
+  notizId?: string | null;
+  /**
    * Ob die Erinnerung wiederkehrend ist
    * @type {boolean}
    * @memberof ErinnerungResponseDto
@@ -211,6 +217,24 @@ export interface ErinnerungResponseDto {
    * @memberof ErinnerungResponseDto
    */
   recurringSequenceNumber?: object | null;
+  /**
+   * Kategorie-ID
+   * @type {object}
+   * @memberof ErinnerungResponseDto
+   */
+  kategorieId?: object | null;
+  /**
+   * Kategorie-Name für Anzeige
+   * @type {object}
+   * @memberof ErinnerungResponseDto
+   */
+  kategorieName?: object | null;
+  /**
+   * Kategorie-Farbe (Hex-Code)
+   * @type {object}
+   * @memberof ErinnerungResponseDto
+   */
+  kategorieFarbe?: object | null;
 }
 
 /**
@@ -280,6 +304,7 @@ export function ErinnerungResponseDtoFromJSONTyped(json: any, ignoreDiscriminato
     previousAssigneeId: json['previousAssigneeId'] == null ? undefined : json['previousAssigneeId'],
     previousAssigneeName: json['previousAssigneeName'] == null ? undefined : json['previousAssigneeName'],
     etbEntryId: json['etbEntryId'] == null ? undefined : json['etbEntryId'],
+    notizId: json['notizId'] == null ? undefined : json['notizId'],
     isRecurring: json['isRecurring'],
     recurringIntervalMinutes: json['recurringIntervalMinutes'] == null ? undefined : json['recurringIntervalMinutes'],
     recurringEndDate: json['recurringEndDate'] == null ? undefined : json['recurringEndDate'],
@@ -287,6 +312,9 @@ export function ErinnerungResponseDtoFromJSONTyped(json: any, ignoreDiscriminato
     recurringCurrentCount: json['recurringCurrentCount'],
     parentErinnerungId: json['parentErinnerungId'] == null ? undefined : json['parentErinnerungId'],
     recurringSequenceNumber: json['recurringSequenceNumber'] == null ? undefined : json['recurringSequenceNumber'],
+    kategorieId: json['kategorieId'] == null ? undefined : json['kategorieId'],
+    kategorieName: json['kategorieName'] == null ? undefined : json['kategorieName'],
+    kategorieFarbe: json['kategorieFarbe'] == null ? undefined : json['kategorieFarbe'],
   };
 }
 
@@ -325,6 +353,7 @@ export function ErinnerungResponseDtoToJSONTyped(value?: ErinnerungResponseDto |
     previousAssigneeId: value['previousAssigneeId'],
     previousAssigneeName: value['previousAssigneeName'],
     etbEntryId: value['etbEntryId'],
+    notizId: value['notizId'],
     isRecurring: value['isRecurring'],
     recurringIntervalMinutes: value['recurringIntervalMinutes'],
     recurringEndDate: value['recurringEndDate'],
@@ -332,5 +361,8 @@ export function ErinnerungResponseDtoToJSONTyped(value?: ErinnerungResponseDto |
     recurringCurrentCount: value['recurringCurrentCount'],
     parentErinnerungId: value['parentErinnerungId'],
     recurringSequenceNumber: value['recurringSequenceNumber'],
+    kategorieId: value['kategorieId'],
+    kategorieName: value['kategorieName'],
+    kategorieFarbe: value['kategorieFarbe'],
   };
 }

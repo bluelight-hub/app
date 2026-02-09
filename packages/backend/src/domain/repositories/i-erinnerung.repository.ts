@@ -4,6 +4,8 @@ import type { Erinnerung } from '@domain/entities/erinnerung.entity';
 import type { ErinnerungId } from '@domain/value-objects/erinnerung-id';
 import type { EinsatzId } from '@domain/value-objects/einsatz-id';
 import type { ErinnerungStatistik } from './erinnerung-statistik';
+import type { PersonErinnerungStatistik } from './person-erinnerung-statistik';
+import type { ZeitverlaufStatistik } from './zeitverlauf-statistik';
 
 /**
  * Repository Port Interface für Erinnerung Aggregate Persistence.
@@ -151,6 +153,18 @@ export interface IErinnerungRepository {
    * Story 4.9: Escalation Statistics
    */
   getStatistik(einsatzId: EinsatzId): Promise<Result<ErinnerungStatistik>>;
+
+  /**
+   * Berechnet Statistiken pro Person für einen Einsatz.
+   * Story 9.2: Statistiken nach Person
+   */
+  getPersonStatistik(einsatzId: EinsatzId): Promise<Result<PersonErinnerungStatistik>>;
+
+  /**
+   * Berechnet Zeitverlauf-Statistiken für einen Einsatz.
+   * Story 9.3: Zeitverlauf-Diagramm
+   */
+  getZeitverlaufStatistik(einsatzId: EinsatzId): Promise<Result<ZeitverlaufStatistik>>;
 
   /**
    * Findet die aktive Kind-Instanz einer wiederkehrenden Parent-Erinnerung.

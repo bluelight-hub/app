@@ -21,8 +21,11 @@ import {
   EinsatzTeilnehmerApi,
   ErinnerungenApi,
   ErinnerungsvorlagenApi,
-  FuehrungsrhythmusTemplatesApi,
+  FuehrungsrhythmusTemplatesAdminApi,
+  EinsatzFuehrungsrhythmusTemplatesApi,
   ETBApi,
+  NotizenApi,
+  KategorienApi,
   GeocodingApi,
   HealthApi,
   KraefteDashboardApi,
@@ -116,7 +119,10 @@ class BackendApi {
   private readonly einsatzTeilnehmerApi: EinsatzTeilnehmerApi;
   private readonly erinnerungenApi: ErinnerungenApi;
   private readonly erinnerungsvorlagenApi: ErinnerungsvorlagenApi;
-  private readonly fuehrungsrhythmusTemplatesApi: FuehrungsrhythmusTemplatesApi;
+  private readonly fuehrungsrhythmusTemplatesAdminApi: FuehrungsrhythmusTemplatesAdminApi;
+  private readonly einsatzFuehrungsrhythmusTemplatesApi: EinsatzFuehrungsrhythmusTemplatesApi;
+  private readonly notizenApi: NotizenApi;
+  private readonly kategorienApi: KategorienApi;
 
   /**
    * Erstellt eine neue Instanz der BackendApi-Klasse
@@ -160,7 +166,10 @@ class BackendApi {
     this.einsatzTeilnehmerApi = new EinsatzTeilnehmerApi(this.configuration);
     this.erinnerungenApi = new ErinnerungenApi(this.configuration);
     this.erinnerungsvorlagenApi = new ErinnerungsvorlagenApi(this.configuration);
-    this.fuehrungsrhythmusTemplatesApi = new FuehrungsrhythmusTemplatesApi(this.configuration);
+    this.fuehrungsrhythmusTemplatesAdminApi = new FuehrungsrhythmusTemplatesAdminApi(this.configuration);
+    this.einsatzFuehrungsrhythmusTemplatesApi = new EinsatzFuehrungsrhythmusTemplatesApi(this.configuration);
+    this.notizenApi = new NotizenApi(this.configuration);
+    this.kategorienApi = new KategorienApi(this.configuration);
   }
 
   /**
@@ -402,8 +411,30 @@ class BackendApi {
    *
    * @returns Die FuehrungsrhythmusTemplates-API-Instanz fuer Fuehrungsrhythmus-Template-Management
    */
-  fuehrungsrhythmusTemplates(): FuehrungsrhythmusTemplatesApi {
-    return this.fuehrungsrhythmusTemplatesApi;
+  fuehrungsrhythmusTemplatesAdmin(): FuehrungsrhythmusTemplatesAdminApi {
+    return this.fuehrungsrhythmusTemplatesAdminApi;
+  }
+
+  einsatzFuehrungsrhythmusTemplates(): EinsatzFuehrungsrhythmusTemplatesApi {
+    return this.einsatzFuehrungsrhythmusTemplatesApi;
+  }
+
+  /**
+   * Gibt die gecachte Notizen-API-Instanz zurueck
+   *
+   * @returns Die Notizen-API-Instanz fuer Notizen-Management im Einsatz
+   */
+  notizen(): NotizenApi {
+    return this.notizenApi;
+  }
+
+  /**
+   * Gibt die gecachte Kategorien-API-Instanz zurueck (Story 8.1)
+   *
+   * @returns Die Kategorien-API-Instanz fuer Kategorien-Management im Einsatz
+   */
+  kategorien(): KategorienApi {
+    return this.kategorienApi;
   }
 }
 

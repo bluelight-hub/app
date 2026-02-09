@@ -21,6 +21,8 @@ export interface CreateErinnerungCommandProps {
   eskalationNurAnErsteller?: boolean;
   /** Story 5.4: Optionale Referenz zu einem ETB-Eintrag */
   etbEntryId?: string;
+  /** Story 7.6: Optionale Referenz zur Quell-Notiz (Konvertierung) */
+  notizId?: string;
   /** Story 6.4: Wiederkehrende Erinnerung */
   isRecurring?: boolean;
   /** Story 6.4: Intervall in Minuten zwischen Wiederholungen */
@@ -33,6 +35,8 @@ export interface CreateErinnerungCommandProps {
   parentErinnerungId?: string;
   /** Story 6.4: Sequenznummer innerhalb der Serie */
   recurringSequenceNumber?: number;
+  /** Story 8.2: Optionale Kategorie-Referenz */
+  kategorieId?: string | null;
 }
 
 /**
@@ -85,12 +89,14 @@ export class CreateErinnerungCommand {
     public readonly eskalationsPersonId: string | undefined,
     public readonly eskalationNurAnErsteller: boolean,
     public readonly etbEntryId: string | undefined,
+    public readonly notizId: string | undefined,
     public readonly isRecurring: boolean | undefined,
     public readonly recurringIntervalMinutes: number | undefined,
     public readonly recurringEndDate: Date | undefined,
     public readonly recurringMaxCount: number | undefined,
     public readonly parentErinnerungId: string | undefined,
     public readonly recurringSequenceNumber: number | undefined,
+    public readonly kategorieId: string | null,
   ) {}
 
   /**
@@ -169,6 +175,21 @@ export class CreateErinnerungCommand {
     }
 
     // ════════════════════════════════════════════════════════════════════════
+    // Validiere notizId (Story 7.6) - optional, aber wenn gesetzt muss es CUID2 sein
+    // ════════════════════════════════════════════════════════════════════════
+    let validatedNotizId: string | undefined;
+    if (props.notizId !== undefined) {
+      const trimmedNotizId = props.notizId.trim();
+      if (trimmedNotizId.length === 0) {
+        return Result.fail<CreateErinnerungCommand>(ERINNERUNG_ERROR_CODES.NOTIZ_ID_INVALID);
+      }
+      if (!CreateErinnerungCommand.CUID2_PATTERN.test(trimmedNotizId)) {
+        return Result.fail<CreateErinnerungCommand>(ERINNERUNG_ERROR_CODES.NOTIZ_ID_INVALID);
+      }
+      validatedNotizId = trimmedNotizId;
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
     // Command erstellen
     // ════════════════════════════════════════════════════════════════════════
     return Result.ok(
@@ -183,12 +204,14 @@ export class CreateErinnerungCommand {
         props.eskalationsPersonId?.trim() || undefined,
         props.eskalationNurAnErsteller ?? false,
         validatedEtbEntryId,
+        validatedNotizId,
         props.isRecurring,
         props.recurringIntervalMinutes,
         props.recurringEndDate,
         props.recurringMaxCount,
         props.parentErinnerungId?.trim() || undefined,
         props.recurringSequenceNumber,
+        props.kategorieId ?? null,
       ),
     );
   }

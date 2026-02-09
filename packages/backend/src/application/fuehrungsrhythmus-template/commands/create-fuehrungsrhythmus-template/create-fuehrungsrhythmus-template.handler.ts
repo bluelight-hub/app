@@ -5,10 +5,13 @@ import type { TransactionContext } from '@domain/common/transaction';
 // biome-ignore lint/style/useImportType: Injectable class needs runtime symbol for NestJS DI
 import { FuehrungsrhythmusTemplate } from '@domain/fuehrungsrhythmus/entities/fuehrungsrhythmus-template.entity';
 import { FuehrungsrhythmusEintrag } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-eintrag';
+// biome-ignore lint/style/useImportType: Injectable class needs runtime symbol for NestJS DI
+import { FuehrungsrhythmusTemplateScope } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-template-scope';
 import type { IFuehrungsrhythmusTemplateRepository } from '@domain/fuehrungsrhythmus/repositories/i-fuehrungsrhythmus-template.repository';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import { UserId } from '@domain/value-objects/user-id';
+import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { TransactionalCommandHandler } from '@/application/common/handlers/transactional-command.handler';
 // biome-ignore lint/style/useImportType: Injectable class needs runtime symbol for NestJS DI
 import { PrismaService } from '@/infrastructure/database/prisma.service';
@@ -64,12 +67,27 @@ export class CreateFuehrungsrhythmusTemplateHandler extends TransactionalCommand
       eintraege.push(eintragResult.value);
     }
 
+    // Scope bestimmen (default GLOBAL)
+    const scope = command.scope === 'EINSATZ' ? FuehrungsrhythmusTemplateScope.EINSATZ : FuehrungsrhythmusTemplateScope.GLOBAL;
+
+    // EinsatzId parsen (optional)
+    let einsatzId: EinsatzId | undefined;
+    if (command.einsatzId) {
+      const einsatzIdResult = EinsatzId.create(command.einsatzId);
+      if (einsatzIdResult.isFailure || !einsatzIdResult.value) {
+        return Result.fail<FuehrungsrhythmusTemplateResponseDto>(einsatzIdResult.error ?? FUEHRUNGSRHYTHMUS_TEMPLATE_ERROR_CODES.EINSATZ_ID_REQUIRED);
+      }
+      einsatzId = einsatzIdResult.value;
+    }
+
     // 3. Aggregate erstellen
     const templateResult = FuehrungsrhythmusTemplate.create({
       name: command.name,
       beschreibung: command.beschreibung,
       eintraege,
       createdBy: userIdResult.value,
+      scope,
+      einsatzId,
     });
 
     if (templateResult.isFailure || !templateResult.value) {

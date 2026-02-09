@@ -68,6 +68,12 @@ export interface CreateErinnerungDto {
    */
   etbEntryId?: string;
   /**
+   * Referenz zur Quell-Notiz (Story 7.6 - Konvertierung)
+   * @type {string}
+   * @memberof CreateErinnerungDto
+   */
+  notizId?: string;
+  /**
    * Ob die Erinnerung wiederkehrend ist (Story 6.4)
    * @type {boolean}
    * @memberof CreateErinnerungDto
@@ -91,6 +97,12 @@ export interface CreateErinnerungDto {
    * @memberof CreateErinnerungDto
    */
   recurringMaxCount?: number;
+  /**
+   * Optionale Kategorie-ID
+   * @type {string}
+   * @memberof CreateErinnerungDto
+   */
+  kategorieId?: string;
 }
 
 /**
@@ -119,10 +131,12 @@ export function CreateErinnerungDtoFromJSONTyped(json: any, ignoreDiscriminator:
     eskalationsPersonId: json['eskalationsPersonId'] == null ? undefined : json['eskalationsPersonId'],
     eskalationNurAnErsteller: json['eskalationNurAnErsteller'] == null ? undefined : json['eskalationNurAnErsteller'],
     etbEntryId: json['etbEntryId'] == null ? undefined : json['etbEntryId'],
+    notizId: json['notizId'] == null ? undefined : json['notizId'],
     isRecurring: json['isRecurring'] == null ? undefined : json['isRecurring'],
     recurringIntervalMinutes: json['recurringIntervalMinutes'] == null ? undefined : json['recurringIntervalMinutes'],
     recurringEndDate: json['recurringEndDate'] == null ? undefined : json['recurringEndDate'],
     recurringMaxCount: json['recurringMaxCount'] == null ? undefined : json['recurringMaxCount'],
+    kategorieId: json['kategorieId'] == null ? undefined : json['kategorieId'],
   };
 }
 
@@ -144,9 +158,11 @@ export function CreateErinnerungDtoToJSONTyped(value?: CreateErinnerungDto | nul
     eskalationsPersonId: value['eskalationsPersonId'],
     eskalationNurAnErsteller: value['eskalationNurAnErsteller'],
     etbEntryId: value['etbEntryId'],
+    notizId: value['notizId'],
     isRecurring: value['isRecurring'],
     recurringIntervalMinutes: value['recurringIntervalMinutes'],
     recurringEndDate: value['recurringEndDate'],
     recurringMaxCount: value['recurringMaxCount'],
+    kategorieId: value['kategorieId'],
   };
 }

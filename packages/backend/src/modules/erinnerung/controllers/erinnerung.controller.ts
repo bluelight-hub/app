@@ -21,7 +21,15 @@ import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ApiWrappedCreatedResponse, ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
-import { AssignErinnerungDto, CreateErinnerungDto, UpdateErinnerungDto, ErinnerungResponseDto, ErinnerungStatistikDto } from '@/application/erinnerung/dto';
+import {
+  AssignErinnerungDto,
+  CreateErinnerungDto,
+  UpdateErinnerungDto,
+  ErinnerungResponseDto,
+  ErinnerungStatistikDto,
+  PersonStatistikDto,
+  ZeitverlaufStatistikDto,
+} from '@/application/erinnerung/dto';
 import { CreateErinnerungCommand } from '@/application/erinnerung/commands/create-erinnerung/create-erinnerung.command';
 import { CreateErinnerungHandler } from '@/application/erinnerung/commands/create-erinnerung/create-erinnerung.handler';
 import { UpdateErinnerungCommand } from '@/application/erinnerung/commands/update-erinnerung/update-erinnerung.command';
@@ -45,8 +53,12 @@ import { GetErinnerungenByEinsatzHandler } from '@/application/erinnerung/querie
 import { ERINNERUNG_ERROR_CODES } from '@/application/erinnerung/errors/erinnerung-error.codes';
 import { GetErinnerungStatistikHandler } from '@/application/erinnerung/queries/get-erinnerung-statistik/get-erinnerung-statistik.handler';
 import { GetErinnerungStatistikQuery } from '@/application/erinnerung/queries/get-erinnerung-statistik/get-erinnerung-statistik.query';
+import { GetPersonStatistikHandler } from '@/application/erinnerung/queries/get-person-statistik/get-person-statistik.handler';
+import { GetPersonStatistikQuery } from '@/application/erinnerung/queries/get-person-statistik/get-person-statistik.query';
 import { GetEtbEntriesByErinnerungHandler } from '@/application/erinnerung/queries/get-etb-entries-by-erinnerung/get-etb-entries-by-erinnerung.handler';
 import { GetEtbEntriesByErinnerungQuery } from '@/application/erinnerung/queries/get-etb-entries-by-erinnerung/get-etb-entries-by-erinnerung.query';
+import { GetZeitverlaufStatistikHandler } from '@/application/erinnerung/queries/get-zeitverlauf-statistik/get-zeitverlauf-statistik.handler';
+import { GetZeitverlaufStatistikQuery } from '@/application/erinnerung/queries/get-zeitverlauf-statistik/get-zeitverlauf-statistik.query';
 import { ErinnerungEtbHistoryDto } from '@/application/erinnerung/dto/erinnerung-etb-history.dto';
 import { StopRecurringSeriesCommand } from '@/application/erinnerung/commands/stop-recurring-series/stop-recurring-series.command';
 import { StopRecurringSeriesHandler } from '@/application/erinnerung/commands/stop-recurring-series/stop-recurring-series.handler';
@@ -83,8 +95,10 @@ export class ErinnerungController {
     private readonly assignHandler: AssignErinnerungHandler,
     private readonly getByEinsatzHandler: GetErinnerungenByEinsatzHandler,
     private readonly getStatistikHandler: GetErinnerungStatistikHandler,
+    private readonly getPersonStatistikHandler: GetPersonStatistikHandler,
     private readonly getEtbHistoryHandler: GetEtbEntriesByErinnerungHandler,
     private readonly stopRecurringSeriesHandler: StopRecurringSeriesHandler,
+    private readonly getZeitverlaufStatistikHandler: GetZeitverlaufStatistikHandler,
   ) {}
 
   /**
@@ -126,19 +140,23 @@ export class ErinnerungController {
   }
 
   /**
-   * Eskalations-Statistiken abrufen.
+   * Erinnerungs-Statistiken abrufen.
    *
-   * Liefert KPIs zu eskalierten Erinnerungen im Einsatz.
+   * Liefert KPIs zu eskalierten Erinnerungen und Status-Uebersicht im Einsatz.
    *
    * **Story 4.9 ACs:**
    * - Total Escalated
    * - Avg Escalation Time
    * - Top Receivers
+   *
+   * **Story 9.1 ACs:**
+   * - Status Counts (Anzahl Erinnerungen pro Status)
+   * - Active Count (nicht erledigte Erinnerungen)
    */
   @Get('statistik')
   @ApiOperation({
-    summary: 'Eskalations-Statistiken abrufen',
-    description: 'Liefert Statistiken zu eskalierten Erinnerungen (Anzahl, Dauer, Top-Empfänger).',
+    summary: 'Erinnerungs-Statistiken abrufen',
+    description: 'Liefert Statistiken zu Erinnerungen: Eskalation (Anzahl, Dauer, Top-Empfänger) und Status-Counts.',
   })
   @ApiWrappedResponse(ErinnerungStatistikDto, {
     description: 'Eskalations-Statistiken erfolgreich abgerufen',
@@ -155,6 +173,76 @@ export class ErinnerungController {
 
     if (result.isFailure) {
       throw new BadRequestException(result.error);
+    }
+
+    // biome-ignore lint/style/noNonNullAssertion: Result pattern - value is guaranteed after isFailure check
+    return result.value!;
+  }
+
+  /**
+   * Personen-Statistiken abrufen.
+   *
+   * Liefert Statistiken pro Teilnehmer: Zugewiesen, Acknowledged, Eskalationen, Avg Reaktionszeit.
+   *
+   * **Story 9.2 ACs:**
+   * - AC1: Pro Teilnehmer: Zugewiesen, Acknowledged, Eskalationen, Avg Reaktionszeit
+   * - AC2: Teilnehmer ohne Erinnerungen werden mit 0-Werten angezeigt
+   */
+  @Get('statistik/personen')
+  @ApiOperation({
+    summary: 'Personen-Statistiken abrufen',
+    description: 'Liefert Statistiken pro Teilnehmer: Zugewiesene Erinnerungen, Acknowledges, Eskalationen und durchschnittliche Reaktionszeit.',
+  })
+  @ApiWrappedResponse(PersonStatistikDto, {
+    description: 'Personen-Statistiken erfolgreich abgerufen',
+  })
+  @ApiBadRequestResponse({ description: 'Ungültige EinsatzId' })
+  async getPersonStatistik(@Param('einsatzId') einsatzId: string): Promise<PersonStatistikDto> {
+    const queryResult = GetPersonStatistikQuery.create({ einsatzId });
+
+    if (queryResult.isFailure || !queryResult.value) {
+      throw new BadRequestException(queryResult.error);
+    }
+
+    const result = await this.getPersonStatistikHandler.execute(queryResult.value);
+
+    if (result.isFailure) {
+      throw new InternalServerErrorException(result.error);
+    }
+
+    // biome-ignore lint/style/noNonNullAssertion: Result pattern - value is guaranteed after isFailure check
+    return result.value!;
+  }
+
+  /**
+   * Zeitverlauf-Statistiken abrufen.
+   *
+   * Liefert ein Zeitreihen-Diagramm mit Erstellt/Ausgelöst/Eskaliert pro Zeitintervall.
+   *
+   * **Story 9.3 ACs:**
+   * - AC1: Area-/Liniendiagramm mit Zeitachse (X) und Anzahl (Y)
+   * - AC2: Automatische Zeitintervalle je nach Einsatzdauer
+   */
+  @Get('statistik/zeitverlauf')
+  @ApiOperation({
+    summary: 'Zeitverlauf-Statistiken abrufen',
+    description: 'Liefert Zeitreihen-Daten: Erstellte, ausgelöste und eskalierte Erinnerungen pro Zeitintervall.',
+  })
+  @ApiWrappedResponse(ZeitverlaufStatistikDto, {
+    description: 'Zeitverlauf-Statistiken erfolgreich abgerufen',
+  })
+  @ApiBadRequestResponse({ description: 'Ungültige EinsatzId' })
+  async getZeitverlaufStatistik(@Param('einsatzId') einsatzId: string): Promise<ZeitverlaufStatistikDto> {
+    const queryResult = GetZeitverlaufStatistikQuery.create({ einsatzId });
+
+    if (queryResult.isFailure || !queryResult.value) {
+      throw new BadRequestException(queryResult.error);
+    }
+
+    const result = await this.getZeitverlaufStatistikHandler.execute(queryResult.value);
+
+    if (result.isFailure) {
+      throw new InternalServerErrorException(result.error);
     }
 
     // biome-ignore lint/style/noNonNullAssertion: Result pattern - value is guaranteed after isFailure check

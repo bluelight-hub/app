@@ -156,6 +156,22 @@ export class CreateErinnerungDto {
   etbEntryId?: string;
 
   /**
+   * Story 7.6: Optionale Referenz zur Quell-Notiz (Konvertierung).
+   * Wenn gesetzt, wurde die Erinnerung aus einer Notiz erstellt.
+   *
+   * @example "clw3h8x9y0007abcdefghijkl"
+   */
+  @ApiProperty({
+    description: 'Referenz zur Quell-Notiz (Story 7.6 - Konvertierung)',
+    example: 'clw3h8x9y0007abcdefghijkl',
+    required: false,
+    type: String,
+  })
+  @IsOptional()
+  @IsString({ message: 'notizId muss ein String sein' })
+  notizId?: string;
+
+  /**
    * Story 6.4: Ob die Erinnerung wiederkehrend ist.
    *
    * @default false
@@ -219,4 +235,14 @@ export class CreateErinnerungDto {
   @Min(1)
   @Max(100)
   recurringMaxCount?: number;
+
+  /**
+   * Story 8.2: Optionale Kategorie-ID zur Kategorisierung.
+   *
+   * @example "clw3h8x9y0008kategorie123"
+   */
+  @ApiPropertyOptional({ description: 'Optionale Kategorie-ID' })
+  @IsOptional()
+  @IsString()
+  kategorieId?: string;
 }

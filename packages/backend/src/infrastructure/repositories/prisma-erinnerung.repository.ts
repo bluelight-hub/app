@@ -4,11 +4,14 @@ import { Erinnerung } from '@domain/entities/erinnerung.entity';
 import { ErinnerungId } from '@domain/value-objects/erinnerung-id';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import type { PrismaClient } from '@/generated/prisma/client';
-import { Injectable } from '@nestjs/common';
+// biome-ignore lint/style/noRestrictedImports: Logger wird direkt in Repository verwendet (kein DI-Context für statischen Logger)
+import { Injectable, Logger } from '@nestjs/common';
 import { Result } from '@domain/common/result';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { PrismaErinnerungMapper } from './mappers/prisma-erinnerung.mapper';
-import type { ErinnerungStatistik } from '@domain/repositories/erinnerung-statistik';
+import type { ErinnerungStatistik, ErinnerungStatusCounts } from '@domain/repositories/erinnerung-statistik';
+import type { PersonErinnerungStatistik } from '@domain/repositories/person-erinnerung-statistik';
+import type { ZeitverlaufStatistik, ZeitverlaufBucket } from '@domain/repositories/zeitverlauf-statistik';
 import { UserId } from '@domain/value-objects/user-id';
 
 /**
@@ -61,6 +64,8 @@ import { UserId } from '@domain/value-objects/user-id';
  */
 @Injectable()
 export class PrismaErinnerungRepository implements IErinnerungRepository {
+  private readonly logger = new Logger(PrismaErinnerungRepository.name);
+
   /**
    * Constructor mit PrismaService Dependency Injection.
    *
@@ -372,14 +377,251 @@ export class PrismaErinnerungRepository implements IErinnerungRepository {
           return { userId: userIdResult.isSuccess ? userIdResult.value! : UserId.create('SYSTEM').value!, count };
         });
 
+      // 4. Status Counts via groupBy
+      const statusGroups = await this.prisma.erinnerung.groupBy({
+        by: ['status'],
+        _count: true,
+        where: {
+          einsatzId: einsatzId.toString(),
+          isDeleted: false,
+        },
+      });
+
+      const statusCounts: ErinnerungStatusCounts = {
+        total: 0,
+        geplant: 0,
+        ausgeloest: 0,
+        acknowledged: 0,
+        snoozed: 0,
+        eskaliert: 0,
+        erledigt: 0,
+      };
+
+      for (const group of statusGroups) {
+        const count = group._count;
+        statusCounts.total += count;
+        switch (group.status) {
+          case 'GEPLANT':
+            statusCounts.geplant = count;
+            break;
+          case 'AUSGELOEST':
+            statusCounts.ausgeloest = count;
+            break;
+          case 'ACKNOWLEDGED':
+            statusCounts.acknowledged = count;
+            break;
+          case 'SNOOZED':
+            statusCounts.snoozed = count;
+            break;
+          case 'ESKALIERT':
+            statusCounts.eskaliert = count;
+            break;
+          case 'ERLEDIGT':
+            statusCounts.erledigt = count;
+            break;
+          default:
+            this.logger.warn(`Unbekannter Erinnerungs-Status in Statistik: ${group.status}`);
+            break;
+        }
+      }
+
+      const activeCount = statusCounts.geplant + statusCounts.ausgeloest + statusCounts.acknowledged + statusCounts.snoozed + statusCounts.eskaliert;
+
       return Result.ok({
         totalEscalated,
         avgEscalationTimeSeconds,
         topReceivers,
+        statusCounts,
+        activeCount,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown database error';
       return Result.fail(`Failed to get statistics: ${message}`);
+    }
+  }
+
+  /**
+   * Berechnet Statistiken pro Person für einen Einsatz.
+   * Story 9.2: Statistiken nach Person
+   */
+  async getPersonStatistik(einsatzId: EinsatzId): Promise<Result<PersonErinnerungStatistik>> {
+    try {
+      const einsatzIdStr = einsatzId.toString();
+
+      // Alle nicht-gelöschten Erinnerungen des Einsatzes laden
+      const erinnerungen = await this.prisma.erinnerung.findMany({
+        where: {
+          einsatzId: einsatzIdStr,
+          isDeleted: false,
+        },
+        select: {
+          assignedToId: true,
+          acknowledgedBy: true,
+          wurdeEskaliert: true,
+          ausgeloestAm: true,
+          acknowledgedAm: true,
+        },
+      });
+
+      // Per userId aggregieren
+      const personMap = new Map<string, { zugewiesen: number; acknowledged: number; eskalationen: number; reaktionszeitMs: number[] }>();
+
+      for (const e of erinnerungen) {
+        // Zuweisungen zählen
+        if (e.assignedToId) {
+          const entry = personMap.get(e.assignedToId) ?? { zugewiesen: 0, acknowledged: 0, eskalationen: 0, reaktionszeitMs: [] };
+          entry.zugewiesen++;
+          if (e.wurdeEskaliert) {
+            // "Eskalationen empfangen": Zählt bei assignedToId, da nach Eskalation die Erinnerung dem Empfänger zugewiesen ist
+            entry.eskalationen++;
+          }
+          personMap.set(e.assignedToId, entry);
+        }
+
+        // Acknowledges zählen
+        if (e.acknowledgedBy) {
+          const entry = personMap.get(e.acknowledgedBy) ?? { zugewiesen: 0, acknowledged: 0, eskalationen: 0, reaktionszeitMs: [] };
+          // Acknowledged wird der Person zugerechnet, die tatsächlich bestätigt hat (kann von assignedTo abweichen bei Delegation)
+          entry.acknowledged++;
+          // Reaktionszeit berechnen
+          if (e.ausgeloestAm && e.acknowledgedAm) {
+            const diff = e.acknowledgedAm.getTime() - e.ausgeloestAm.getTime();
+            if (diff >= 0) {
+              entry.reaktionszeitMs.push(diff);
+            }
+          }
+          personMap.set(e.acknowledgedBy, entry);
+        }
+      }
+
+      // AC2: Alle aktiven Einsatz-Teilnehmer einbeziehen (auch ohne Erinnerungen)
+      const teilnehmer = await this.prisma.einsatzTeilnehmer.findMany({
+        where: { einsatzId: einsatzIdStr, leftAt: null },
+        select: { userId: true },
+      });
+
+      for (const t of teilnehmer) {
+        if (!personMap.has(t.userId)) {
+          personMap.set(t.userId, { zugewiesen: 0, acknowledged: 0, eskalationen: 0, reaktionszeitMs: [] });
+        }
+      }
+
+      // Map zu Array konvertieren
+      const items = Array.from(personMap.entries()).map(([rawId, data]) => {
+        const userIdResult = UserId.create(rawId);
+        const userId = userIdResult.isSuccess ? userIdResult.value! : UserId.create('SYSTEM').value!;
+        const avgReaktionszeitSeconds = data.reaktionszeitMs.length > 0 ? data.reaktionszeitMs.reduce((sum, val) => sum + val, 0) / data.reaktionszeitMs.length / 1000 : null;
+        return {
+          userId,
+          zugewiesen: data.zugewiesen,
+          acknowledged: data.acknowledged,
+          eskalationen: data.eskalationen,
+          avgReaktionszeitSeconds,
+        };
+      });
+
+      return Result.ok({ items });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown database error';
+      return Result.fail(`Failed to get person statistics: ${message}`);
+    }
+  }
+
+  /**
+   * Berechnet Zeitverlauf-Statistiken für einen Einsatz (Story 9.3).
+   */
+  async getZeitverlaufStatistik(einsatzId: EinsatzId): Promise<Result<ZeitverlaufStatistik>> {
+    try {
+      const erinnerungen = await this.prisma.erinnerung.findMany({
+        where: {
+          einsatzId: einsatzId.toString(),
+          isDeleted: false,
+        },
+        select: {
+          createdAt: true,
+          ausgeloestAm: true,
+          escalatedAt: true,
+        },
+      });
+
+      if (erinnerungen.length === 0) {
+        return Result.ok({ intervalMinutes: 0, buckets: [] });
+      }
+
+      if (erinnerungen.length === 1) {
+        const single = erinnerungen[0]!;
+        const bucket: ZeitverlaufBucket = {
+          timestamp: single.createdAt,
+          erstellt: 1,
+          ausgeloest: single.ausgeloestAm ? 1 : 0,
+          eskaliert: single.escalatedAt ? 1 : 0,
+        };
+        return Result.ok({ intervalMinutes: 15, buckets: [bucket] });
+      }
+
+      // Einsatzdauer berechnen
+      // biome-ignore lint/style/noNonNullAssertion: length > 1 is guaranteed by early return above
+      let minTime = erinnerungen[0]!.createdAt.getTime();
+      let maxTime = minTime;
+      for (const e of erinnerungen) {
+        const t = e.createdAt.getTime();
+        if (t < minTime) minTime = t;
+        if (t > maxTime) maxTime = t;
+      }
+
+      const durationMs = maxTime - minTime;
+      const durationHours = durationMs / (1000 * 60 * 60);
+
+      // Intervall wählen
+      let intervalMinutes: number;
+      if (durationHours < 2) {
+        intervalMinutes = 15;
+      } else if (durationHours < 8) {
+        intervalMinutes = 30;
+      } else if (durationHours < 24) {
+        intervalMinutes = 60;
+      } else {
+        intervalMinutes = 240;
+      }
+
+      const intervalMs = intervalMinutes * 60 * 1000;
+
+      // Bucket-Start berechnen (auf Intervall abrunden)
+      const bucketStart = Math.floor(minTime / intervalMs) * intervalMs;
+      const bucketEnd = Math.floor(maxTime / intervalMs) * intervalMs;
+
+      // Alle Buckets initialisieren
+      const bucketMap = new Map<number, ZeitverlaufBucket>();
+      for (let ts = bucketStart; ts <= bucketEnd; ts += intervalMs) {
+        bucketMap.set(ts, { timestamp: new Date(ts), erstellt: 0, ausgeloest: 0, eskaliert: 0 });
+      }
+
+      // Erinnerungen in Buckets einordnen
+      for (const e of erinnerungen) {
+        const createdBucket = Math.floor(e.createdAt.getTime() / intervalMs) * intervalMs;
+        const bucket = bucketMap.get(createdBucket);
+        if (bucket) bucket.erstellt++;
+
+        if (e.ausgeloestAm) {
+          const triggerBucket = Math.floor(e.ausgeloestAm.getTime() / intervalMs) * intervalMs;
+          const tb = bucketMap.get(triggerBucket);
+          if (tb) tb.ausgeloest++;
+        }
+
+        if (e.escalatedAt) {
+          const escalationBucket = Math.floor(e.escalatedAt.getTime() / intervalMs) * intervalMs;
+          const eb = bucketMap.get(escalationBucket);
+          if (eb) eb.eskaliert++;
+        }
+      }
+
+      // Aufsteigend sortieren
+      const buckets = Array.from(bucketMap.values()).sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+
+      return Result.ok({ intervalMinutes, buckets });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown database error';
+      return Result.fail(`Failed to get zeitverlauf statistics: ${message}`);
     }
   }
 

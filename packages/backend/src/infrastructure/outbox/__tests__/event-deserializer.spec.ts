@@ -2171,16 +2171,21 @@ describe('EventDeserializer', () => {
       expect(deserializer.supportsEventType('')).toBe(false);
     });
 
-    it('should return all 50 supported event types', () => {
+    it('should return all 64 supported event types', () => {
       const supportedTypes = deserializer.getSupportedEventTypes();
 
-      // 50 Event-Typen: Basis-Events + Erinnerung-Events + 2 Legacy-Aliases für Eskaliert/Intensiviert
-      expect(supportedTypes).toHaveLength(50);
+      // 64 Event-Typen: Basis + Erinnerung + Erinnerungsvorlage + Notiz + Fuehrungsrhythmus
+      // + Fahrzeugtyp + RollenDefinition + FunkStatusConfig + 2 Legacy-Aliases + Kategorie (Story 8.1)
+      expect(supportedTypes).toHaveLength(64);
       expect(supportedTypes).toContain('einsatz.created');
       expect(supportedTypes).toContain('etb.created');
       expect(supportedTypes).toContain('lagekarte.created');
       expect(supportedTypes).toContain('user.created');
       expect(supportedTypes).toContain('einsatz_person.hinzugefuegt');
+      // Neue Event-Gruppen aus dieser Branch
+      expect(supportedTypes).toContain('erinnerungsvorlage.erstellt');
+      expect(supportedTypes).toContain('notiz.erstellt');
+      expect(supportedTypes).toContain('fuehrungsrhythmus-template.erstellt');
     });
   });
 

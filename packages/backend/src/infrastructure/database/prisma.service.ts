@@ -166,6 +166,12 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get fuehrungsrhythmusEintrag() {
     return this._client.fuehrungsrhythmusEintrag;
   }
+  get notiz() {
+    return this._client.notiz;
+  }
+  get kategorie() {
+    return this._client.kategorie;
+  }
 
   // Delegate Prisma Client methods
   $connect() {

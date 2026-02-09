@@ -32,13 +32,27 @@ export const FR_TEMPLATE_QUERY_KEYS = {
 };
 
 /**
- * Hook: Alle Fuehrungsrhythmus-Templates laden (Story 6.6).
+ * Hook: Alle globalen Fuehrungsrhythmus-Templates laden (Admin).
  */
-export const useFuehrungsrhythmusTemplates = (options?: { enabled?: boolean }) => {
+export const useGlobalFuehrungsrhythmusTemplates = (options?: { enabled?: boolean }) => {
   return useQuery({
-    queryKey: FR_TEMPLATE_QUERY_KEYS.list(),
+    queryKey: [...FR_TEMPLATE_QUERY_KEYS.list(), 'GLOBAL'],
     queryFn: async () => {
-      const response = await api.fuehrungsrhythmusTemplates().fuehrungsrhythmusTemplateControllerGetAllVAlpha();
+      const response = await api.fuehrungsrhythmusTemplatesAdmin().fuehrungsrhythmusTemplateControllerGetAllVAlpha();
+      return response.data;
+    },
+    enabled: options?.enabled,
+  });
+};
+
+/**
+ * Hook: Alle Einsatz-spezifischen Fuehrungsrhythmus-Templates laden.
+ */
+export const useEinsatzFuehrungsrhythmusTemplates = (einsatzId: string, options?: { enabled?: boolean }) => {
+  return useQuery({
+    queryKey: [...FR_TEMPLATE_QUERY_KEYS.list(), 'EINSATZ', einsatzId],
+    queryFn: async () => {
+      const response = await api.einsatzFuehrungsrhythmusTemplates().einsatzFuehrungsrhythmusTemplateControllerGetAllVAlpha({ einsatzId });
       return response.data;
     },
     enabled: options?.enabled,

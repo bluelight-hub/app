@@ -195,6 +195,29 @@ export {
 } from './seen-assignments.store';
 
 export {
+  // Kategorie-Filter Store (Story 8.3 Task 1)
+  kategorieFilterStore,
+  // Kategorie-Filter Actions
+  setKategorieFilter,
+  resetKategorieFilterStore,
+  // Kategorie-Filter Selectors
+  getKategorieFilter,
+  isKategorieFilterActive,
+  // Kategorie-Filter Hooks
+  useKategorieFilter,
+  useIsKategorieFilterActive,
+  useIsKategorieFilterMatch,
+  useKategorieFilterStoreState,
+  // Kategorie-Filter Helpers (Tagged Union)
+  isKategorieFilter,
+  createKategorieFilter,
+  kategorieFilterToValue,
+  // Types
+  type KategorieFilterType,
+  type KategorieFilterStoreState,
+} from './kategorie-filter.store';
+
+export {
   // Highlight Store (Story 5.4 Task 6)
   highlightStore,
   // Highlight Actions
@@ -216,3 +239,50 @@ export {
   // Types
   type HighlightStoreState,
 } from './highlight.store';
+
+export {
+  // Filter-Preset Store (Story 8.9)
+  filterPresetStore,
+  // Filter-Preset Actions
+  addPreset,
+  removePreset,
+  applyPreset,
+  resetFilterPresetStore,
+  reloadPresetsFromStorage,
+  // Filter-Preset Selectors
+  getFilterPresets,
+  getActivePresetId,
+  isPresetActive,
+  // Filter-Preset Hooks
+  useFilterPresets,
+  useActivePresetId,
+  useFilterPresetStoreState,
+  // Types
+  type FilterPresetType,
+  type FilterPresetStoreState,
+} from './filter-preset.store';
+
+export {
+  // Status-Filter Store (Story 8.4)
+  statusFilterStore,
+  // Status-Filter Actions
+  setStatusFilter,
+  resetStatusFilterStore,
+  // Status-Filter Selectors
+  getStatusFilter,
+  isStatusFilterActive,
+  // Status-Filter Hooks
+  useStatusFilter,
+  useIsStatusFilterActive,
+  useIsStatusFilterMatch,
+  useStatusFilterStoreState,
+  // Status-Filter Helpers (Tagged Union)
+  isStatusFilter,
+  createStatusFilter,
+  statusFilterToValue,
+  // Types
+  ErinnerungStatus,
+  type ErinnerungStatus as ErinnerungStatusType,
+  type StatusFilterType,
+  type StatusFilterStoreState,
+} from './status-filter.store';

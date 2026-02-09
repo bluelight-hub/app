@@ -159,7 +159,7 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
     },
   });
 
-  // Textbausteine extrahieren (API gibt { data: Array<TextbausteinListResponse> } zurück)
+  // Textbausteine extrahieren (API gibt { data: Array<TextbausteinDto> } zurück)
   const textbausteine = (textbausteineData as { data?: unknown[] } | undefined)?.data ?? [];
   const { selectedTextbaustein, setSelectedTextbaustein, filteredTextbausteine, resetSelection } = useEtbFormLogic(textbausteine as import('../../types/etb.types').TextbausteinData[]);
 

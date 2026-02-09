@@ -9,7 +9,7 @@ import { Input } from '@/shared/ui/atoms/input.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { cn } from '@/shared/ui/cn';
 
-import { useCreateFuehrungsrhythmusTemplate } from '../../api';
+import { useCreateGlobalFuehrungsrhythmusTemplate, useCreateEinsatzFuehrungsrhythmusTemplate } from '../../api';
 import { createFuehrungsrhythmusTemplateSchema, type CreateFuehrungsrhythmusTemplateFormData } from '../../schemas/fuehrungsrhythmus-template.schema';
 
 /**
@@ -31,14 +31,19 @@ const INTERVALL_PRESETS = [15, 30, 45, 60] as const;
 interface CreateFuehrungsrhythmusTemplateDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  defaultScope?: string;
+  einsatzId?: string;
 }
 
 /**
  * Dialog zum Erstellen eines Fuehrungsrhythmus-Templates (Story 6.6 AC1, AC3).
  */
-export function CreateFuehrungsrhythmusTemplateDialog({ isOpen, onClose }: CreateFuehrungsrhythmusTemplateDialogProps) {
+export function CreateFuehrungsrhythmusTemplateDialog({ isOpen, onClose, defaultScope, einsatzId }: CreateFuehrungsrhythmusTemplateDialogProps) {
   const [apiErrorMessage, setApiErrorMessage] = useState<string | null>(null);
-  const { mutate: createTemplate, isPending } = useCreateFuehrungsrhythmusTemplate();
+  const globalMutation = useCreateGlobalFuehrungsrhythmusTemplate();
+  const einsatzMutation = useCreateEinsatzFuehrungsrhythmusTemplate();
+  const isEinsatz = defaultScope === 'EINSATZ';
+  const { mutate: createTemplate, isPending } = isEinsatz ? einsatzMutation : globalMutation;
 
   const form = useForm({
     defaultValues: {
@@ -53,18 +58,20 @@ export function CreateFuehrungsrhythmusTemplateDialog({ isOpen, onClose }: Creat
     onSubmit: async ({ value }) => {
       setApiErrorMessage(null);
 
+      const templateData = {
+        name: value.name.trim(),
+        beschreibung: value.beschreibung?.trim() || undefined,
+        ...(defaultScope && { scope: defaultScope }),
+        eintraege: value.eintraege.map((e) => ({
+          titel: e.titel.trim(),
+          intervallMinuten: e.intervallMinuten,
+          offsetMinuten: e.offsetMinuten ?? 0,
+        })),
+      };
+
       createTemplate(
-        {
-          data: {
-            name: value.name.trim(),
-            beschreibung: value.beschreibung?.trim() || undefined,
-            eintraege: value.eintraege.map((e) => ({
-              titel: e.titel.trim(),
-              intervallMinuten: e.intervallMinuten,
-              offsetMinuten: e.offsetMinuten ?? 0,
-            })),
-          },
-        },
+        // @ts-expect-error -- Die Mutation-Variable unterscheidet sich je nach Scope (mit/ohne einsatzId)
+        isEinsatz && einsatzId ? { einsatzId, data: templateData } : { data: templateData },
         {
           onSuccess: () => {
             toast.success('Fuehrungsrhythmus-Template erstellt');

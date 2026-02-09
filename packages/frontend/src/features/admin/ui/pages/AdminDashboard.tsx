@@ -9,7 +9,7 @@ import { isTauri } from '@tauri-apps/api/core';
 import { AdminDashboardLayout } from '@/shared/ui/templates/AdminDashboardLayout';
 import { useCallback } from 'react';
 import type { ReactNode } from 'react';
-import { PiCertificate, PiIdentificationBadge, PiSignOut, PiUsers, PiTruck, PiUserList, PiPlugsConnected, PiTicket, PiKey, PiCaretRight, PiBell } from 'react-icons/pi';
+import { PiCertificate, PiIdentificationBadge, PiSignOut, PiUsers, PiTruck, PiUserList, PiPlugsConnected, PiTicket, PiKey, PiCaretRight, PiBell, PiMetronome } from 'react-icons/pi';
 
 /**
  * Navigation-Card für Admin-Dashboard
@@ -154,6 +154,13 @@ export function AdminDashboard() {
             title="Erinnerungen"
             description="Timeouts & globale Einstellungen"
             onClick={() => navigate({ to: '/admin/erinnerungen' })}
+            accentColor="blue"
+          />
+          <NavCard
+            icon={<PiMetronome className="h-6 w-6" />}
+            title="Führungsrhythmus-Templates"
+            description="Globale Templates verwalten"
+            onClick={() => navigate({ to: '/admin/fuehrungsrhythmus-templates' })}
             accentColor="blue"
           />
         </div>

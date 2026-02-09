@@ -35,8 +35,9 @@ import { PasswordModule } from './infrastructure/password/password.module';
 import { EinsatzTeilnehmerModule } from './modules/einsatz-teilnehmer/einsatz-teilnehmer.module';
 import { ErinnerungModule } from './modules/erinnerung/erinnerung.module';
 import { ErinnerungsvorlageModule } from './modules/erinnerungsvorlage/erinnerungsvorlage.module';
-// biome-ignore lint/style/useImportType: NestJS Module needs runtime symbol
 import { FuehrungsrhythmusTemplateModule } from './modules/fuehrungsrhythmus-template/fuehrungsrhythmus-template.module';
+import { NotizModule } from './modules/notiz/notiz.module';
+import { KategorieModule } from './modules/kategorie/kategorie.module';
 import { SchedulerModule } from './infrastructure/scheduler/scheduler.module';
 
 /**
@@ -113,6 +114,8 @@ import { SchedulerModule } from './infrastructure/scheduler/scheduler.module';
     ErinnerungModule, // Erinnerungen/Wecker für Einsätze (Story 1.1)
     ErinnerungsvorlageModule, // Erinnerungsvorlagen (Story 6.1)
     FuehrungsrhythmusTemplateModule, // Fuehrungsrhythmus-Templates (Story 6.6)
+    NotizModule, // Notizen im Einsatz-Kontext (Story 7.1)
+    KategorieModule, // Kategorien (Story 8.1)
     SchedulerModule, // Cron-Jobs (nur einmal importiert, um mehrfache Registrierung zu vermeiden)
   ],
   controllers: [AppController],

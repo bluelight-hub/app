@@ -35,6 +35,7 @@ import { AssigneeSelector } from '../molecules/AssigneeSelector';
 import { calculateCustomFaelligAm, formatTimeForToast, getDefaultCustomTime } from '../../utils/time-calculation';
 import { ETB_QUERY_KEYS } from '@/features/etb/api/queries';
 import { useVorlagen, TemplatePicker } from '@/features/templates';
+import { KategorieSelector } from '@/features/kategorien';
 import type { ErinnerungsvorlageResponseDto } from '@/shared';
 
 /**
@@ -76,6 +77,18 @@ export interface FromEtbData {
   text: string;
 }
 
+/**
+ * Story 7.6: FromNotiz Daten fuer Erinnerung aus Notiz erstellen.
+ */
+export interface FromNotizData {
+  /** ID der Quell-Notiz */
+  notizId: string;
+  /** Titel der Notiz (fuer Titel-Vorausfuellung) */
+  titel: string;
+  /** Inhalt der Notiz (fuer Beschreibung-Vorausfuellung) */
+  inhalt?: string | null;
+}
+
 interface QuickCreateErinnerungDialogProps {
   /** Ob der Dialog offen ist */
   isOpen: boolean;
@@ -93,6 +106,11 @@ interface QuickCreateErinnerungDialogProps {
    * Wenn gesetzt, werden Titel, Minuten und Beschreibung vorausgefuellt.
    */
   fromTemplate?: ErinnerungsvorlageResponseDto | null;
+  /**
+   * Story 7.6: Optional - Notiz-Kontext fuer Erinnerung aus Notiz erstellen.
+   * Wenn gesetzt, werden Titel und Beschreibung vorausgefuellt und notizId an die Mutation uebergeben.
+   */
+  fromNotiz?: FromNotizData | null;
 }
 
 /**
@@ -103,7 +121,7 @@ interface QuickCreateErinnerungDialogProps {
  *
  * **Story 5.4:** Unterstuetzt optional `fromEtb` prop fuer Erinnerung aus ETB-Eintrag.
  */
-export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEtb, fromTemplate }: QuickCreateErinnerungDialogProps) {
+export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEtb, fromTemplate, fromNotiz }: QuickCreateErinnerungDialogProps) {
   const [apiErrorMessage, setApiErrorMessage] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
@@ -130,6 +148,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
       assignedToId: null, // Story 3.3: Keine Zuweisung = fuer alle
       eskalationsPersonId: null, // Story 4.1 AC1: Optional
       eskalationNurAnErsteller: false, // Story 4.10 AC1: Default false
+      kategorieId: null, // Story 8.2: Keine Kategorie
       isRecurring: false, // Story 6.4
       recurringIntervalMinutes: undefined, // Story 6.4
       recurringEndMode: 'none' as const, // Story 6.4
@@ -174,7 +193,9 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
             assignedToId: value.assignedToId ?? undefined, // Story 3.3: Zuweisung an Person
             eskalationsPersonId: value.eskalationsPersonId ?? undefined, // Story 4.1: Eskalationsperson
             eskalationNurAnErsteller: value.eskalationNurAnErsteller, // Story 4.10
+            kategorieId: value.kategorieId ?? undefined, // Story 8.2: Kategorie
             etbEntryId: fromEtb?.entryId, // Story 5.4: ETB-Eintrag Referenz
+            notizId: fromNotiz?.notizId, // Story 7.6: Quell-Notiz Referenz
             isRecurring: value.isRecurring ?? false,
             recurringIntervalMinutes: value.isRecurring ? value.recurringIntervalMinutes : undefined,
             recurringEndDate: value.isRecurring && value.recurringEndMode === 'date' ? value.recurringEndDate : undefined,
@@ -194,8 +215,8 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
               });
             }
 
-            // Story 1.2 AC3: Zeige spezifischen Toast mit Zeit-Information
-            toast.success('Erinnerung erstellt', {
+            // Story 7.6/1.2: Spezifischer Toast
+            toast.success(fromNotiz ? 'Erinnerung aus Notiz erstellt' : 'Erinnerung erstellt', {
               description: toastMessage,
             });
             setTimeout(() => {
@@ -244,6 +265,22 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
     }
   }, [isOpen, fromTemplate, form]);
 
+  // Story 7.6: Notiz-Vorausfuellung beim Dialog-Oeffnen
+  const hasSetNotizRef = useRef(false);
+
+  useEffect(() => {
+    if (isOpen && fromNotiz && !hasSetNotizRef.current) {
+      form.setFieldValue('titel', fromNotiz.titel);
+      if (fromNotiz.inhalt && fromNotiz.inhalt.trim().length > 0) {
+        form.setFieldValue('beschreibung', fromNotiz.inhalt.substring(0, 500));
+      }
+      hasSetNotizRef.current = true;
+    }
+    if (!isOpen) {
+      hasSetNotizRef.current = false;
+    }
+  }, [isOpen, fromNotiz, form]);
+
   /**
    * Story 6.3 AC2/AC3: Handler fuer Vorlage-Auswahl aus TemplatePicker.
    * Fuellt Formular-Felder via setFieldValue vor (kein form.reset!).
@@ -277,10 +314,18 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
       </div>
 
       <Dialog.Body>
-        {/* Story 6.3: TemplatePicker - nur anzeigen wenn kein ETB-Kontext */}
-        {!fromEtb && (
+        {/* Story 6.3: TemplatePicker - nur anzeigen wenn kein ETB- oder Notiz-Kontext */}
+        {!fromEtb && !fromNotiz && (
           <div className="mb-4">
             <TemplatePicker vorlagen={vorlagen ?? []} isLoading={isLoadingVorlagen} onSelect={handleTemplateSelect} disabled={isPending} />
+          </div>
+        )}
+
+        {/* Story 7.6: Notiz-Verknuepfungs-Hinweis */}
+        {fromNotiz && (
+          <div className="mb-4 flex items-center gap-2 rounded-lg bg-amber-50 p-3 text-amber-700 text-sm dark:bg-amber-900/20 dark:text-amber-400">
+            <PiNotepad className="h-4 w-4 flex-shrink-0" />
+            <span>Diese Erinnerung wird aus der Notiz erstellt. Die Notiz bleibt bestehen.</span>
           </div>
         )}
 
@@ -554,6 +599,25 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                   )}
                 />
                 {field.state.meta.errors.length > 0 && <p className="mt-1 text-red-600 text-sm dark:text-red-400">{formatErrors(field.state.meta.errors)}</p>}
+              </div>
+            )}
+          </form.Field>
+
+          {/* Story 8.2: Kategorie-Auswahl */}
+          <form.Field name="kategorieId">
+            {(field) => (
+              <div>
+                <label className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
+                  Kategorie <span className="text-gray-400 text-xs">(optional)</span>
+                </label>
+                <KategorieSelector
+                  einsatzId={einsatzId}
+                  value={field.state.value}
+                  onChange={(kategorieId) => field.handleChange(kategorieId)}
+                  onBlur={field.handleBlur}
+                  disabled={isPending}
+                  error={field.state.meta.errors.length > 0 ? formatErrors(field.state.meta.errors) : undefined}
+                />
               </div>
             )}
           </form.Field>

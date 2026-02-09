@@ -15,35 +15,48 @@
  * **Story 3.6:** Filter fuer Team-Erinnerungen nach Zuweisung
  */
 
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ErinnerungResponseDto } from '@/shared';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { cn } from '@/shared/ui/cn';
 import { Tabs } from '@/shared/ui/molecules/tabs.molecule';
-import { PiAlarm, PiPlus, PiWifiHigh, PiWifiSlash } from 'react-icons/pi';
+import { PiAlarm, PiBookmarkSimple, PiPlus, PiWifiHigh, PiWifiSlash } from 'react-icons/pi';
 import { useCurrentUser } from '@/features/auth';
 import { useAktiveEinsatzTeilnehmer } from '@/features/einsatz/api';
+import { useKategorienByEinsatz } from '@/features/kategorien';
 import { sanitizeName } from '@/shared/utils/sanitize';
 import { useErinnerungenByEinsatz } from '../../api';
 import { useErinnerungWebSocket, useOfflineStatus, useReconnectSync, useTrayBadge, useTrayClickNavigation } from '../../hooks';
 import {
   addAnimatedId,
   openQuickCreateDialog,
+  resetKategorieFilterStore,
+  resetStatusFilterStore,
   resetTeamFilterStore,
   setAvailableTeilnehmer,
+  setKategorieFilter,
+  setStatusFilter,
   setTeamFilter,
   setTeamSort,
   useAvailableTeilnehmer,
+  useKategorieFilter,
+  useStatusFilter,
   useTeamFilter,
   useTeamSort,
+  type KategorieFilterType,
+  type StatusFilterType,
   type TeamFilterType,
   type TeamSortType,
 } from '../../stores';
 import { compareErinnerungen } from '../../utils/sorting-utils';
 import { isMyErinnerung } from '../../utils/erinnerung-ownership';
-import { TeamFilterDropdown, TeamSortDropdown } from '../atoms';
+import { KategorieFilterDropdown, StatusFilterDropdown, TeamFilterDropdown, TeamSortDropdown } from '../atoms';
+import { ActiveFiltersBar } from './ActiveFiltersBar';
 import { ErinnerungCard } from './ErinnerungCard';
+import { KategorieDashboard } from './KategorieDashboard';
 import { OfflineBanner } from './OfflineBanner';
+import { PresetBar } from './PresetBar';
+import { SavePresetDialog } from '../organisms/SavePresetDialog';
 
 interface ErinnerungenListProps {
   /** Einsatz-ID fuer die Erinnerungen */
@@ -103,18 +116,29 @@ function ErinnerungenListInner({ einsatzId, className, compact = false, currentU
   // Story 3.8: Sort Store Hooks
   const selectedSort = useTeamSort();
 
+  // Story 8.3 Task 3.1: Kategorie-Filter Store Hook
+  const selectedKategorieFilter = useKategorieFilter();
+
+  // Story 8.4 Task 3: Status-Filter Store Hook
+  const selectedStatusFilter = useStatusFilter();
+
   // Story 3.6 Task 3.4: Teilnehmer aus Einsatz laden
   const { data: einsatzTeilnehmer } = useAktiveEinsatzTeilnehmer(einsatzId);
 
+  // Story 8.3 Task 3.2: Kategorien aus Einsatz laden
+  const { data: kategorien = [] } = useKategorienByEinsatz(einsatzId);
+
   /**
-   * Story 3.6 Issue #4: Cleanup bei Unmount
+   * Story 3.6 Issue #4 / Story 8.3 / Story 8.4: Cleanup bei Unmount
    *
-   * Resettet den Team-Filter Store wenn die Komponente unmountet wird.
+   * Resettet die Filter Stores wenn die Komponente unmountet wird.
    * Verhindert Memory Leaks und stale Filter-States.
    */
   useEffect(() => {
     return () => {
       resetTeamFilterStore();
+      resetKategorieFilterStore();
+      resetStatusFilterStore();
     };
   }, []);
 
@@ -176,6 +200,35 @@ function ErinnerungenListInner({ einsatzId, className, compact = false, currentU
     setTeamSort(sort);
   }, []);
 
+  // Story 8.3 Task 3: Kategorie-Filter-Change Handler
+  const handleKategorieFilterChange = useCallback((filter: KategorieFilterType) => {
+    setKategorieFilter(filter);
+  }, []);
+
+  // Story 8.4 Task 3: Status-Filter-Change Handler
+  const handleStatusFilterChange = useCallback((filter: StatusFilterType) => {
+    setStatusFilter(filter);
+  }, []);
+
+  // Story 8.6 Task 3: Clear-Filter Handler fuer ActiveFiltersBar
+  const handleClearTeamFilter = useCallback(() => {
+    setTeamFilter({ type: 'all' });
+  }, []);
+
+  const handleClearKategorieFilter = useCallback(() => {
+    setKategorieFilter({ type: 'all' });
+  }, []);
+
+  const handleClearStatusFilter = useCallback(() => {
+    setStatusFilter({ type: 'all' });
+  }, []);
+
+  const handleClearAllFilters = useCallback(() => {
+    resetTeamFilterStore();
+    resetKategorieFilterStore();
+    resetStatusFilterStore();
+  }, []);
+
   // Story 1.8: Offline-Status und Sync-Handling
   const { isOffline, pendingActionsCount, offlineSince } = useOfflineStatus();
   const { isSyncing } = useReconnectSync(einsatzId);
@@ -211,15 +264,19 @@ function ErinnerungenListInner({ einsatzId, className, compact = false, currentU
   // Story 1.5: Alarm Trigger Hook wurde nach SingleEinsatzLayout verschoben
   // für app-weite Erinnerungsprüfung (auch auf Lagekarte, ETB, etc.)
 
+  // Story 8.9: SavePresetDialog State
+  const [isSavePresetOpen, setIsSavePresetOpen] = useState(false);
+
   const handleCreateClick = () => {
     openQuickCreateDialog(einsatzId);
   };
 
   /**
-   * Story 1.7 AC5 / Story 3.8: Sortier-Logik
+   * Story 1.7 AC5 / Story 3.8 / Story 8.7: Sortier-Logik
    *
    * Verarbeitet verschiedene Sortier-Modi:
    * - faelligkeit (Standard): Urgency Priority, dann Faelligkeit aufsteigend
+   * - faelligkeit_desc: Faelligkeit absteigend (spaeteste zuerst, keine Urgency-Logik)
    * - erstellt: Erstellungsdatum absteigend (neueste oben)
    * - status: Status-Prioritaet (Acknowledge-Pflicht oben), dann Faelligkeit
    */
@@ -265,6 +322,44 @@ function ErinnerungenListInner({ einsatzId, className, compact = false, currentU
         return base.filter((e) => (e.assignedToId as string | null | undefined) === selectedFilter.userId);
     }
   }, [teamErinnerungen, selectedFilter, currentUserId]);
+
+  /**
+   * Story 8.3 Task 3.3: Gefilterte Erinnerungen basierend auf Kategorie-Filter
+   *
+   * Filter-Logik (Tagged Union):
+   * - { type: 'all' }: Alle Team-Erinnerungen (keine Kategorie-Filterung) (AC1)
+   * - { type: 'kategorie', kategorieId }: Nur Erinnerungen mit dieser Kategorie (AC2)
+   * - { type: 'untagged' }: Nur Erinnerungen ohne zugewiesene Kategorie (AC4)
+   */
+  const filteredByKategorie = useMemo(() => {
+    switch (selectedKategorieFilter.type) {
+      case 'all':
+        return filteredTeamErinnerungen;
+      case 'kategorie':
+        return filteredTeamErinnerungen.filter((e) => e.kategorieId === selectedKategorieFilter.kategorieId);
+      case 'untagged':
+        return filteredTeamErinnerungen.filter((e) => !e.kategorieId);
+    }
+  }, [filteredTeamErinnerungen, selectedKategorieFilter]);
+
+  /**
+   * Story 8.4 Task 3: Gefilterte Erinnerungen basierend auf Status-Filter
+   *
+   * Filter-Logik (Tagged Union):
+   * - { type: 'all' }: Alle Erinnerungen (keine Status-Filterung)
+   * - { type: 'status', status }: Nur Erinnerungen mit diesem Status
+   */
+  const filteredByStatus = useMemo(() => {
+    switch (selectedStatusFilter.type) {
+      case 'all':
+        return filteredByKategorie;
+      case 'status':
+        return filteredByKategorie.filter((e) => e.status === selectedStatusFilter.status);
+    }
+  }, [filteredByKategorie, selectedStatusFilter]);
+
+  /** Story 8.3 / Story 8.4: Ist einer der Filter aktiv? */
+  const isAnyFilterActive = selectedFilter.type !== 'all' || selectedKategorieFilter.type !== 'all' || selectedStatusFilter.type !== 'all';
 
   if (isLoading) {
     return (
@@ -315,6 +410,14 @@ function ErinnerungenListInner({ einsatzId, className, compact = false, currentU
         </div>
       )}
 
+      {/* Story 8.9 Task 4.3: SavePresetDialog verdrahten mit Store */}
+      <SavePresetDialog
+        isOpen={isSavePresetOpen}
+        onClose={() => setIsSavePresetOpen(false)}
+        teilnehmerMap={new Map(availableTeilnehmer.map((t) => [t.id, t.name]))}
+        kategorienMap={new Map(kategorien.map((k) => [k.id, k.name]))}
+      />
+
       {/* Story 3.1 AC1: Tabs fuer "Meine" / "Team" Ansicht */}
       <Tabs
         items={[
@@ -336,27 +439,54 @@ function ErinnerungenListInner({ einsatzId, className, compact = false, currentU
             label: `Team (${teamErinnerungen.length})`,
             content: (
               <div className="space-y-3">
-                {/* Story 3.6 / Story 3.8: Filter & Sort Dropdowns im Team-Tab Header */}
+                {/* Story 8.9: PresetBar oberhalb der Filter-Dropdowns */}
+                <PresetBar />
+                {/* Story 8.10: KategorieDashboard zwischen PresetBar und Filter-Dropdowns */}
+                <KategorieDashboard erinnerungen={erinnerungen ?? []} kategorien={kategorien} />
+                {/* Story 3.6 / Story 3.8 / Story 8.3 / Story 8.4: Filter & Sort Dropdowns im Team-Tab Header */}
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <TeamFilterDropdown selectedFilter={selectedFilter} onFilterChange={handleFilterChange} teilnehmer={availableTeilnehmer} currentUserId={currentUserId} className="w-44" />
+                    {/* Story 8.3 Task 4: Kategorie-Filter-Dropdown */}
+                    <KategorieFilterDropdown selectedFilter={selectedKategorieFilter} onFilterChange={handleKategorieFilterChange} kategorien={kategorien} className="w-44" />
+                    {/* Story 8.4 Task 3: Status-Filter-Dropdown */}
+                    <StatusFilterDropdown selectedFilter={selectedStatusFilter} onFilterChange={handleStatusFilterChange} />
                     <TeamSortDropdown selectedSort={selectedSort} onSortChange={handleSortChange} className="w-36" />
+                    {/* Story 8.9 Task 4.1: "Preset speichern" Button - nur wenn mindestens ein Filter aktiv */}
+                    {isAnyFilterActive && (
+                      <Button size="sm" appearance="ghost" onClick={() => setIsSavePresetOpen(true)} aria-label="Filter als Preset speichern">
+                        <PiBookmarkSimple className="mr-1 h-4 w-4" />
+                        Speichern
+                      </Button>
+                    )}
                   </div>
-                  {/* Story 3.6 AC2: Anzeige der gefilterten Anzahl */}
-                  {selectedFilter.type !== 'all' && (
+                  {/* Story 8.6 AC5: Anzeige der gefilterten Anzahl bei aktivem Filter */}
+                  {isAnyFilterActive && (
                     <span className="text-gray-500 text-xs dark:text-gray-400">
-                      {filteredTeamErinnerungen.length} von {teamErinnerungen.length}
+                      {filteredByStatus.length} von {teamErinnerungen.length}
                     </span>
                   )}
                 </div>
+                {/* Story 8.6 AC2-4: Aktive Filter als Chips anzeigen */}
+                <ActiveFiltersBar
+                  teamFilter={selectedFilter}
+                  kategorieFilter={selectedKategorieFilter}
+                  statusFilter={selectedStatusFilter}
+                  kategorien={kategorien}
+                  teilnehmer={availableTeilnehmer}
+                  onClearTeamFilter={handleClearTeamFilter}
+                  onClearKategorieFilter={handleClearKategorieFilter}
+                  onClearStatusFilter={handleClearStatusFilter}
+                  onClearAll={handleClearAllFilters}
+                />
                 <ErinnerungListContent
-                  erinnerungen={filteredTeamErinnerungen}
+                  erinnerungen={filteredByStatus}
                   einsatzId={einsatzId}
                   currentUserId={currentUserId}
                   showCreator={true}
                   compact={compact}
                   onCreateClick={handleCreateClick}
-                  emptyMessage={selectedFilter.type === 'all' ? 'Keine Team-Erinnerungen vorhanden' : 'Keine Erinnerungen fuer diesen Filter'}
+                  emptyMessage={isAnyFilterActive ? 'Keine Erinnerungen fuer diesen Filter' : 'Keine Team-Erinnerungen vorhanden'}
                 />
               </div>
             ),

@@ -7,7 +7,11 @@ import { CreateFuehrungsrhythmusTemplateDialog } from '../CreateFuehrungsrhythmu
 // Mock API Hooks
 const mockCreateTemplate = vi.fn();
 vi.mock('../../../api', () => ({
-  useCreateFuehrungsrhythmusTemplate: () => ({
+  useCreateGlobalFuehrungsrhythmusTemplate: () => ({
+    mutate: mockCreateTemplate,
+    isPending: false,
+  }),
+  useCreateEinsatzFuehrungsrhythmusTemplate: () => ({
     mutate: mockCreateTemplate,
     isPending: false,
   }),

@@ -722,6 +722,161 @@ describe('CreateErinnerungHandler', () => {
     });
   });
 
+  describe('kategorieId (Story 8.2)', () => {
+    it('should create Erinnerung with kategorieId', async () => {
+      // Given
+      const kategorieId = 'clw3h8x9y0000kategorie1a'; // Valid CUID2
+      const einsatzId = generateValidEinsatzId();
+      const faelligAm = new Date(Date.now() + 30 * 60 * 1000);
+      const commandResult = CreateErinnerungCommand.create({
+        einsatzId,
+        titel: 'Test Erinnerung mit Kategorie',
+        faelligAm,
+        erstelltVon: generateValidUserId(),
+        kategorieId,
+      });
+      expect(commandResult.isSuccess).toBe(true);
+      const command = commandResult.value!;
+
+      // Story 8.2: Mock Kategorie existiert und gehört zum selben Einsatz
+      const prismaTx = {
+        kategorie: {
+          findUnique: jest.fn().mockResolvedValue({
+            id: kategorieId,
+            einsatzId,
+            name: 'Test Kategorie',
+            farbe: '#FF0000',
+            geloeschtAm: null,
+          }),
+        },
+      };
+      mockPrismaService.$transaction.mockImplementation(async (callback) => callback(prismaTx));
+
+      // When
+      const result = await handler.execute(command);
+
+      // Then
+      expect(result.isSuccess).toBe(true);
+      expect(mockErinnerungRepository.save).toHaveBeenCalledWith(expect.objectContaining({ kategorieId }), expect.any(Object));
+    });
+
+    it('should fail when kategorieId does not exist', async () => {
+      // Given
+      const kategorieId = 'clw3h8x9y0000kategorie1a';
+      const einsatzId = generateValidEinsatzId();
+      const faelligAm = new Date(Date.now() + 30 * 60 * 1000);
+      const commandResult = CreateErinnerungCommand.create({
+        einsatzId,
+        titel: 'Test Erinnerung',
+        faelligAm,
+        erstelltVon: generateValidUserId(),
+        kategorieId,
+      });
+      expect(commandResult.isSuccess).toBe(true);
+      const command = commandResult.value!;
+
+      // Story 8.2: Mock Kategorie existiert NICHT
+      const prismaTx = {
+        kategorie: {
+          findUnique: jest.fn().mockResolvedValue(null),
+        },
+      };
+      mockPrismaService.$transaction.mockImplementation(async (callback) => callback(prismaTx));
+
+      // When
+      const result = await handler.execute(command);
+
+      // Then
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe(ERINNERUNG_ERROR_CODES.KATEGORIE_NOT_FOUND);
+    });
+
+    it('should fail when kategorie belongs to different einsatz', async () => {
+      // Given
+      const kategorieId = 'clw3h8x9y0000kategorie1a';
+      const einsatzIdA = generateValidEinsatzId();
+      const einsatzIdB = generateValidEinsatzId(); // DIFFERENT Einsatz
+      const faelligAm = new Date(Date.now() + 30 * 60 * 1000);
+      const commandResult = CreateErinnerungCommand.create({
+        einsatzId: einsatzIdA,
+        titel: 'Test Erinnerung',
+        faelligAm,
+        erstelltVon: generateValidUserId(),
+        kategorieId,
+      });
+      expect(commandResult.isSuccess).toBe(true);
+      const command = commandResult.value!;
+
+      // Story 8.2: Mock Kategorie existiert, aber gehört zu ANDEREM Einsatz
+      const prismaTx = {
+        kategorie: {
+          findUnique: jest.fn().mockResolvedValue({
+            id: kategorieId,
+            einsatzId: einsatzIdB, // MISMATCH!
+            name: 'Test Kategorie',
+            farbe: '#FF0000',
+            geloeschtAm: null,
+          }),
+        },
+      };
+      mockPrismaService.$transaction.mockImplementation(async (callback) => callback(prismaTx));
+
+      // When
+      const result = await handler.execute(command);
+
+      // Then
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe(ERINNERUNG_ERROR_CODES.KATEGORIE_WRONG_EINSATZ);
+    });
+
+    it('should create Erinnerung without kategorieId (optional)', async () => {
+      // Given
+      const commandResult = createValidCommand(); // Ohne kategorieId
+      expect(commandResult.isSuccess).toBe(true);
+      const command = commandResult.value!;
+
+      // When
+      const result = await handler.execute(command);
+
+      // Then
+      expect(result.isSuccess).toBe(true);
+      expect(mockErinnerungRepository.save).toHaveBeenCalledWith(expect.objectContaining({ kategorieId: null }), expect.any(Object));
+    });
+
+    it('should accept kategorieId set to null explicitly', () => {
+      // Given & When
+      const faelligAm = new Date(Date.now() + 30 * 60 * 1000);
+      const result = CreateErinnerungCommand.create({
+        einsatzId: generateValidEinsatzId(),
+        titel: 'Test Erinnerung',
+        faelligAm,
+        erstelltVon: generateValidUserId(),
+        kategorieId: null, // Explizit null
+      });
+
+      // Then
+      expect(result.isSuccess).toBe(true);
+      expect(result.value!.kategorieId).toBeNull();
+    });
+
+    it('should store kategorieId in command when provided', () => {
+      // Given & When
+      const kategorieId = 'clw3h8x9y0000kategorie1a';
+      const faelligAm = new Date(Date.now() + 30 * 60 * 1000);
+      const result = CreateErinnerungCommand.create({
+        einsatzId: generateValidEinsatzId(),
+        titel: 'Test Erinnerung',
+        faelligAm,
+        erstelltVon: generateValidUserId(),
+        kategorieId,
+      });
+
+      // Then
+      expect(result.isSuccess).toBe(true);
+      expect(result.value!.kategorieId).toBe(kategorieId);
+    });
+  });
+
   describe('Logging', () => {
     it('should log successful creation', async () => {
       // Given (Arrange)

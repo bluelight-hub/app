@@ -45,7 +45,28 @@ export interface CreateFuehrungsrhythmusTemplateDto {
    * @memberof CreateFuehrungsrhythmusTemplateDto
    */
   eintraege: Array<FuehrungsrhythmusEintragDto>;
+  /**
+   * Scope des Templates (Standard: GLOBAL)
+   * @type {string}
+   * @memberof CreateFuehrungsrhythmusTemplateDto
+   */
+  scope?: CreateFuehrungsrhythmusTemplateDtoScopeEnum;
+  /**
+   * Einsatz-ID (Pflicht bei Scope EINSATZ, nicht erlaubt bei GLOBAL)
+   * @type {string}
+   * @memberof CreateFuehrungsrhythmusTemplateDto
+   */
+  einsatzId?: string;
 }
+
+/**
+ * @export
+ */
+export const CreateFuehrungsrhythmusTemplateDtoScopeEnum = {
+  Einsatz: 'EINSATZ',
+  Global: 'GLOBAL',
+} as const;
+export type CreateFuehrungsrhythmusTemplateDtoScopeEnum = (typeof CreateFuehrungsrhythmusTemplateDtoScopeEnum)[keyof typeof CreateFuehrungsrhythmusTemplateDtoScopeEnum];
 
 /**
  * Check if a given object implements the CreateFuehrungsrhythmusTemplateDto interface.
@@ -68,6 +89,8 @@ export function CreateFuehrungsrhythmusTemplateDtoFromJSONTyped(json: any, ignor
     name: json['name'],
     beschreibung: json['beschreibung'] == null ? undefined : json['beschreibung'],
     eintraege: (json['eintraege'] as Array<any>).map(FuehrungsrhythmusEintragDtoFromJSON),
+    scope: json['scope'] == null ? undefined : json['scope'],
+    einsatzId: json['einsatzId'] == null ? undefined : json['einsatzId'],
   };
 }
 
@@ -84,5 +107,7 @@ export function CreateFuehrungsrhythmusTemplateDtoToJSONTyped(value?: CreateFueh
     name: value['name'],
     beschreibung: value['beschreibung'],
     eintraege: (value['eintraege'] as Array<any>).map(FuehrungsrhythmusEintragDtoToJSON),
+    scope: value['scope'],
+    einsatzId: value['einsatzId'],
   };
 }

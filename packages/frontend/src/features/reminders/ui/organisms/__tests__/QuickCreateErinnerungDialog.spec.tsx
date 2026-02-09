@@ -670,4 +670,134 @@ describe('QuickCreateErinnerungDialog', () => {
       expect(callArgs.data.faelligAm).toBeDefined();
     });
   });
+
+  // =========================================================================
+  // Story 7.6: fromNotiz - Notiz zu Erinnerung Konvertierung
+  // =========================================================================
+  describe('Story 7.6: fromNotiz Vorausfuellung', () => {
+    it('should prefill titel from notiz', async () => {
+      // Given (Arrange) - Dialog mit fromNotiz
+      renderWithProviders(
+        <QuickCreateErinnerungDialog
+          isOpen={true}
+          onClose={() => {}}
+          einsatzId="clw3testeinsatz00000000001"
+          fromNotiz={{
+            notizId: 'notiz-123',
+            titel: 'Wichtige Notiz',
+            inhalt: 'Inhalt der Notiz als Beschreibung',
+          }}
+        />,
+      );
+
+      // Then (Assert) - Titel ist vorausgefuellt
+      await waitFor(() => {
+        const titelInput = screen.getByPlaceholderText(/lagebesprechung/i) as HTMLInputElement;
+        expect(titelInput.value).toBe('Wichtige Notiz');
+      });
+    });
+
+    it('should prefill beschreibung from notiz inhalt', async () => {
+      // Given (Arrange) - Dialog mit fromNotiz inkl. Inhalt
+      renderWithProviders(
+        <QuickCreateErinnerungDialog
+          isOpen={true}
+          onClose={() => {}}
+          einsatzId="clw3testeinsatz00000000001"
+          fromNotiz={{
+            notizId: 'notiz-123',
+            titel: 'Wichtige Notiz',
+            inhalt: 'Detaillierter Inhalt der Notiz',
+          }}
+        />,
+      );
+
+      // Then (Assert) - Beschreibung ist vorausgefuellt
+      await waitFor(() => {
+        const beschreibungField = screen.getByPlaceholderText(/zusaetzliche details/i) as HTMLTextAreaElement;
+        expect(beschreibungField.value).toBe('Detaillierter Inhalt der Notiz');
+      });
+    });
+
+    it('should show notiz hint banner', async () => {
+      // Given (Arrange) - Dialog mit fromNotiz
+
+      // When (Act) - await act() um State-Updates aus useEffect abzuwarten
+      await act(async () => {
+        renderWithProviders(
+          <QuickCreateErinnerungDialog
+            isOpen={true}
+            onClose={() => {}}
+            einsatzId="clw3testeinsatz00000000001"
+            fromNotiz={{
+              notizId: 'notiz-123',
+              titel: 'Notiz-Titel',
+              inhalt: null,
+            }}
+          />,
+        );
+      });
+
+      // Then (Assert) - Hinweis-Banner wird angezeigt
+      expect(screen.getByText(/aus der Notiz erstellt/)).toBeInTheDocument();
+    });
+
+    it('should not show TemplatePicker when fromNotiz is set', async () => {
+      // Given (Arrange) - Dialog mit fromNotiz
+
+      // When (Act) - await act() um State-Updates aus useEffect abzuwarten
+      await act(async () => {
+        renderWithProviders(
+          <QuickCreateErinnerungDialog
+            isOpen={true}
+            onClose={() => {}}
+            einsatzId="clw3testeinsatz00000000001"
+            fromNotiz={{
+              notizId: 'notiz-123',
+              titel: 'Notiz-Titel',
+              inhalt: null,
+            }}
+          />,
+        );
+      });
+
+      // Then (Assert) - TemplatePicker ist nicht sichtbar
+      expect(screen.queryByTestId('template-picker')).not.toBeInTheDocument();
+    });
+
+    it('should submit with notizId in mutation payload', async () => {
+      // Given (Arrange) - Dialog mit fromNotiz
+      const user = userEvent.setup();
+      renderWithProviders(
+        <QuickCreateErinnerungDialog
+          isOpen={true}
+          onClose={() => {}}
+          einsatzId="clw3testeinsatz00000000001"
+          fromNotiz={{
+            notizId: 'notiz-456',
+            titel: 'Follow-up Notiz',
+            inhalt: null,
+          }}
+        />,
+      );
+
+      // When (Act) - Warte auf Vorausfuellung und submit
+      await waitFor(() => {
+        const titelInput = screen.getByPlaceholderText(/lagebesprechung/i) as HTMLInputElement;
+        expect(titelInput.value).toBe('Follow-up Notiz');
+      });
+
+      const submitButton = screen.getByRole('button', { name: /erinnerung erstellen/i });
+      await user.click(submitButton);
+
+      // Then (Assert) - API wurde mit notizId aufgerufen
+      await waitFor(() => {
+        expect(mockMutate).toHaveBeenCalledTimes(1);
+      });
+
+      const callArgs = mockMutate.mock.calls[0][0];
+      expect(callArgs.data.notizId).toBe('notiz-456');
+      expect(callArgs.data.titel).toBe('Follow-up Notiz');
+    });
+  });
 });

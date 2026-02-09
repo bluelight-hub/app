@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -6,6 +6,7 @@ import { PrismaModule } from '@infrastructure/database/prisma.module';
 import { InfrastructureCommonModule } from '@infrastructure/common.module';
 import { OutboxModule } from '@infrastructure/outbox/outbox.module';
 import { UserInfrastructureModule } from '@infrastructure/user/user-infrastructure.module';
+import { KategorieModule } from '@/modules/kategorie/kategorie.module';
 import { ERINNERUNG_REPOSITORY } from '@infrastructure/di-tokens';
 import { PrismaErinnerungRepository } from '@infrastructure/repositories/prisma-erinnerung.repository';
 import { CreateErinnerungHandler } from '@/application/erinnerung/commands/create-erinnerung/create-erinnerung.handler';
@@ -18,7 +19,9 @@ import { MarkErledigtErinnerungHandler } from '@/application/erinnerung/commands
 import { AssignErinnerungHandler } from '@/application/erinnerung/commands/assign-erinnerung/assign-erinnerung.handler';
 import { GetErinnerungenByEinsatzHandler } from '@/application/erinnerung/queries/get-erinnerungen-by-einsatz/get-erinnerungen-by-einsatz.handler';
 import { GetErinnerungStatistikHandler } from '@/application/erinnerung/queries/get-erinnerung-statistik/get-erinnerung-statistik.handler';
+import { GetPersonStatistikHandler } from '@/application/erinnerung/queries/get-person-statistik/get-person-statistik.handler';
 import { GetEtbEntriesByErinnerungHandler } from '@/application/erinnerung/queries/get-etb-entries-by-erinnerung/get-etb-entries-by-erinnerung.handler';
+import { GetZeitverlaufStatistikHandler } from '@/application/erinnerung/queries/get-zeitverlauf-statistik/get-zeitverlauf-statistik.handler';
 import { GetErinnerungKonfigurationHandler } from '@application/erinnerung-konfiguration/queries/get-erinnerung-konfiguration.query';
 import { UpdateEskalationsTimeoutHandler } from '@application/erinnerung-konfiguration/commands/update-eskalations-timeout.command';
 import { ErinnerungKonfigurationController } from './controllers/erinnerung-konfiguration.controller';
@@ -39,6 +42,8 @@ import { ErinnerungWebSocketEventAdapter } from '@infrastructure/events/adapters
     OutboxModule,
     UserInfrastructureModule,
     CqrsModule,
+    // Story 8.2: KategorieModule für Kategorie-Daten in Query-Responses
+    forwardRef(() => KategorieModule),
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
@@ -68,7 +73,9 @@ import { ErinnerungWebSocketEventAdapter } from '@infrastructure/events/adapters
     AssignErinnerungHandler,
     GetErinnerungenByEinsatzHandler,
     GetErinnerungStatistikHandler,
+    GetPersonStatistikHandler,
     GetEtbEntriesByErinnerungHandler,
+    GetZeitverlaufStatistikHandler,
     // Configuration Handlers (Story 4.3)
     GetErinnerungKonfigurationHandler,
     UpdateEskalationsTimeoutHandler,
@@ -96,6 +103,7 @@ import { ErinnerungWebSocketEventAdapter } from '@infrastructure/events/adapters
     GetErinnerungenByEinsatzHandler,
     ErinnerungGateway, // Export for WebSocket Event Adapter
     ErinnerungResponseFactory,
+    GetZeitverlaufStatistikHandler,
   ],
 })
 export class ErinnerungModule {}

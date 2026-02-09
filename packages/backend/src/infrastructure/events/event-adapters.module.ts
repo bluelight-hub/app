@@ -17,6 +17,13 @@ import {
   ErinnerungErledigtEventAdapter,
   ErinnerungEskaliertEventAdapter,
   ErinnerungIntensiviertEventAdapter,
+  FuehrungsrhythmusAktiviertEventAdapter,
+  NotizErstelltEventAdapter,
+  NotizAktualisiertEventAdapter,
+  NotizGeloeschtEventAdapter,
+  // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
+  // KategorieErstelltEventAdapter,
+  // KategorieGeloeschtEventAdapter,
 } from './adapters';
 import { EtbApplicationModule } from '@application/etb/etb-application.module';
 import { LagekarteApplicationModule } from '@application/lagekarte/lagekarte-application.module';
@@ -109,6 +116,13 @@ import { OutboxModule } from '@infrastructure/outbox/outbox.module';
     ErinnerungErledigtEventAdapter, // Story 2.5 AC4: ErinnerungErledigt ETB-Eintrag
     ErinnerungEskaliertEventAdapter, // Story 5.0 AC2: ErinnerungEskaliert ETB-Eintrag
     ErinnerungIntensiviertEventAdapter, // Story 5.0 AC2: ErinnerungIntensiviert ETB-Eintrag
+    FuehrungsrhythmusAktiviertEventAdapter, // Story 6.7: FuehrungsrhythmusAktiviert ETB-Eintrag
+    NotizErstelltEventAdapter, // Story 7.1: NotizErstellt ETB-Eintrag
+    NotizAktualisiertEventAdapter, // Story 7.3: NotizAktualisiert ETB-Eintrag
+    NotizGeloeschtEventAdapter, // Story 7.4: NotizGeloescht ETB-Eintrag
+    // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
+    // KategorieErstelltEventAdapter, // Story 8.1: KategorieErstellt ETB-Eintrag
+    // KategorieGeloeschtEventAdapter, // Story 8.1: KategorieGeloescht ETB-Eintrag
     // Event Logging Handler (Infrastructure-specific)
     LagekarteEventLoggerHandler,
     EinsatzEventLoggerHandler,

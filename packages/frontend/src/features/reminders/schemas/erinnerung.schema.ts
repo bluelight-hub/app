@@ -57,6 +57,8 @@ export const createErinnerungSchema = z
     eskalationsPersonId: z.string().optional().nullable(),
     /** Story 4.10: Eskalation nur an Ersteller (optional) */
     eskalationNurAnErsteller: z.boolean().optional(),
+    /** Story 8.2: Kategorie fuer Erinnerung (optional) */
+    kategorieId: z.string().optional().nullable(),
     /** Story 6.4: Wiederkehrende Erinnerung */
     isRecurring: z.boolean().optional().default(false),
     /** Story 6.4: Intervall in Minuten */

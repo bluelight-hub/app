@@ -75,6 +75,8 @@ import {
   setHighlightedEntry,
 } from '../../stores';
 import { markAsSeen, useIsUnseen } from '../../stores/seen-assignments.store';
+import { ItemTypeBadge } from '@/features/notizen';
+import { KategorieChip } from '@/features/kategorien';
 import { AlarmStateBadge } from '../atoms/AlarmStateBadge';
 import { AvatarInitials } from '../atoms/AvatarInitials';
 import { CountdownDisplay } from '../atoms/CountdownDisplay';
@@ -463,6 +465,10 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h4 className="font-medium text-gray-900 text-sm dark:text-white">{erinnerung.titel}</h4>
+              {/* Story 7.5 AC3: Typ-Badge */}
+              <ItemTypeBadge type="erinnerung" />
+              {/* Story 8.2: Kategorie-Badge mit Runtime Type Check */}
+              {typeof erinnerung.kategorieName === 'string' && typeof erinnerung.kategorieFarbe === 'string' && <KategorieChip name={erinnerung.kategorieName} farbe={erinnerung.kategorieFarbe} />}
               {/* Story 3.7 AC3: Neu Badge */}
               {shouldShowNewBadge && <NewBadge />}
               {/* Story 6.4 + 6.5: Wiederkehrend-Badge */}

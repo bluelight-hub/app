@@ -107,6 +107,25 @@ export class CreateErinnerungHandler extends TransactionalCommandHandler<CreateE
     }
 
     // ════════════════════════════════════════════════════════════════════════
+    // 1b. Story 8.2: Validiere kategorieId wenn gesetzt
+    // ════════════════════════════════════════════════════════════════════════
+    if (command.kategorieId) {
+      const prismaTx = tx as Prisma.TransactionClient;
+      const kategorie = await prismaTx.kategorie.findUnique({
+        where: { id: command.kategorieId },
+        select: { id: true, einsatzId: true, geloeschtAm: true },
+      });
+
+      if (!kategorie || kategorie.geloeschtAm) {
+        return Result.fail<ErinnerungResponseDto>(ERINNERUNG_ERROR_CODES.KATEGORIE_NOT_FOUND);
+      }
+
+      if (kategorie.einsatzId !== command.einsatzId) {
+        return Result.fail<ErinnerungResponseDto>(ERINNERUNG_ERROR_CODES.KATEGORIE_WRONG_EINSATZ);
+      }
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
     // 2. Erinnerung Aggregate erstellen
     // ════════════════════════════════════════════════════════════════════════
     const erinnerungResult = Erinnerung.create({
@@ -119,6 +138,8 @@ export class CreateErinnerungHandler extends TransactionalCommandHandler<CreateE
       eskalationsPersonId: command.eskalationsPersonId ? UserId.create(command.eskalationsPersonId).value : undefined,
       eskalationNurAnErsteller: command.eskalationNurAnErsteller,
       etbEntryId: command.etbEntryId,
+      notizId: command.notizId,
+      kategorieId: command.kategorieId,
       isRecurring: command.isRecurring,
       recurringIntervalMinutes: command.recurringIntervalMinutes,
       recurringEndDate: command.recurringEndDate,
@@ -192,6 +213,20 @@ export class CreateErinnerungHandler extends TransactionalCommandHandler<CreateE
     );
 
     // ════════════════════════════════════════════════════════════════════════
+    // 5. Story 8.2: Kategorie-Daten für Response laden
+    // ════════════════════════════════════════════════════════════════════════
+    let kategorieData: { name: string; farbe: string } | null = null;
+    if (erinnerung.kategorieId) {
+      const prismaTx = tx as Prisma.TransactionClient;
+      const kategorie = await prismaTx.kategorie.findUnique({
+        where: { id: erinnerung.kategorieId },
+        select: { name: true, farbe: true },
+      });
+      if (kategorie) {
+        kategorieData = { name: kategorie.name, farbe: kategorie.farbe };
+      }
+    }
+
     // ════════════════════════════════════════════════════════════════════════
     // 6. Domain Events sammeln
     // ════════════════════════════════════════════════════════════════════════
@@ -201,7 +236,7 @@ export class CreateErinnerungHandler extends TransactionalCommandHandler<CreateE
     // ════════════════════════════════════════════════════════════════════════
     // 7. Response DTO erstellen und zurückgeben
     // ════════════════════════════════════════════════════════════════════════
-    const responseDto = await this.responseFactory.create(erinnerung);
+    const responseDto = await this.responseFactory.create(erinnerung, kategorieData);
 
     return {
       result: responseDto,

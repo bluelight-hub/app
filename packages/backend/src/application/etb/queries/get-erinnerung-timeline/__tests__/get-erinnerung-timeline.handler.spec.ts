@@ -157,14 +157,18 @@ describe('GetErinnerungTimelineQueryHandler', () => {
       await handler.execute(query);
 
       // Then: Verify metadata.erinnerungId Filter im Prisma-Call
-      // Story 5.7: kategorie-Filter wurde entfernt, da ERINNERUNG nicht mehr im Enum existiert
+      // Story 5.7: Query nutzt OR-Bedingung fuer metadata.erinnerungId und etbEntryId
       expect(mockPrisma.etbEintrag.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            metadata: {
-              path: ['erinnerungId'],
-              equals: erinnerungId,
-            },
+            OR: expect.arrayContaining([
+              expect.objectContaining({
+                metadata: {
+                  path: ['erinnerungId'],
+                  equals: erinnerungId,
+                },
+              }),
+            ]),
           }),
         }),
       );
