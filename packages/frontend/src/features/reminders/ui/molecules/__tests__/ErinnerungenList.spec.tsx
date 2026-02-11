@@ -92,10 +92,15 @@ vi.mock('@/features/reminders/stores', () => ({
   useFilterPresetStoreState: vi.fn(() => ({ presets: [], activePresetId: null })),
 }));
 
-// Mock Einsatz API - Story 3.6 Task 3.4
+// Mock Einsatz API - Story 3.6 Task 3.4 / L1: useEinsatzDetail fuer Statistik-Guard
 vi.mock('@/features/einsatz/api', () => ({
   useAktiveEinsatzTeilnehmer: vi.fn().mockReturnValue({
     data: [],
+    isLoading: false,
+    error: null,
+  }),
+  useEinsatzDetail: vi.fn().mockReturnValue({
+    einsatz: { status: 'IN_BEARBEITUNG' },
     isLoading: false,
     error: null,
   }),

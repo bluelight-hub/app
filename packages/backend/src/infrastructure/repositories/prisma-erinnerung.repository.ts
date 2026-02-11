@@ -9,7 +9,13 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Result } from '@domain/common/result';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { PrismaErinnerungMapper } from './mappers/prisma-erinnerung.mapper';
-import type { ErinnerungStatistik, ErinnerungStatusCounts } from '@domain/repositories/erinnerung-statistik';
+import type { ErinnerungStatistik, ErinnerungStatusCounts, TopReceiverStats } from '@domain/repositories/erinnerung-statistik';
+import type { EskalationsAnalyse, TopSourceStats, EskalationsAnalyseItem } from '@domain/repositories/eskalations-analyse';
+import type { ErinnerungExportItem } from '@domain/repositories/erinnerung-export';
+import type { RohdatenExportItem } from '@domain/repositories/rohdaten-export';
+import type { FuehrungsrhythmusStatistik, FuehrungsrhythmusActivationGroup, FuehrungsrhythmusReminderTypeStats } from '@domain/repositories/fuehrungsrhythmus-statistik';
+import type { EinsatzVergleich, EinsatzVergleichItem } from '@domain/repositories/einsatz-vergleich';
+import type { ReaktionszeitStatistik, ReaktionszeitBucket } from '@domain/repositories/reaktionszeit-statistik';
 import type { PersonErinnerungStatistik } from '@domain/repositories/person-erinnerung-statistik';
 import type { ZeitverlaufStatistik, ZeitverlaufBucket } from '@domain/repositories/zeitverlauf-statistik';
 import { UserId } from '@domain/value-objects/user-id';
@@ -626,6 +632,230 @@ export class PrismaErinnerungRepository implements IErinnerungRepository {
   }
 
   /**
+   * Berechnet Eskalations-Analyse für einen Einsatz.
+   * Story 9.4: Eskalations-Analyse
+   */
+  async getEskalationsAnalyse(einsatzId: EinsatzId): Promise<Result<EskalationsAnalyse>> {
+    try {
+      const einsatzIdStr = einsatzId.toString();
+
+      // 1. Eskalierte Erinnerungen laden
+      const escalatedItems = await this.prisma.erinnerung.findMany({
+        where: {
+          einsatzId: einsatzIdStr,
+          wurdeEskaliert: true,
+          isDeleted: false,
+        },
+        select: {
+          id: true,
+          titel: true,
+          ausgeloestAm: true,
+          eskaliertAm: true,
+          assignedToId: true,
+          previousAssigneeId: true,
+          erstelltVon: true,
+        },
+      });
+
+      // 2. Gesamtanzahl aller nicht-gelöschten Erinnerungen
+      const totalErinnerungen = await this.prisma.erinnerung.count({
+        where: {
+          einsatzId: einsatzIdStr,
+          isDeleted: false,
+        },
+      });
+
+      const totalEscalated = escalatedItems.length;
+
+      // 3. Eskalationsrate
+      const eskalationsRate = totalErinnerungen > 0 ? totalEscalated / totalErinnerungen : 0;
+
+      // 4. Durchschnittliche Zeit bis Eskalation
+      let totalTimeMs = 0;
+      let timeCount = 0;
+      for (const item of escalatedItems) {
+        if (item.ausgeloestAm && item.eskaliertAm) {
+          const diff = item.eskaliertAm.getTime() - item.ausgeloestAm.getTime();
+          if (diff >= 0) {
+            totalTimeMs += diff;
+            timeCount++;
+          }
+        }
+      }
+      const avgZeitBisEskalationSeconds = timeCount > 0 ? totalTimeMs / timeCount / 1000 : 0;
+
+      // 5. Top Receivers (groupBy assignedToId)
+      const receiverCounts = new Map<string, number>();
+      for (const item of escalatedItems) {
+        if (item.assignedToId) {
+          const current = receiverCounts.get(item.assignedToId) || 0;
+          receiverCounts.set(item.assignedToId, current + 1);
+        }
+      }
+      const topReceivers: TopReceiverStats[] = Array.from(receiverCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([rawId, count]) => {
+          const userIdResult = UserId.create(rawId);
+          return { userId: userIdResult.isSuccess ? userIdResult.value! : UserId.create('SYSTEM').value!, count };
+        });
+
+      // 6. Top Sources (groupBy erstelltVon)
+      const sourceCounts = new Map<string, number>();
+      for (const item of escalatedItems) {
+        const current = sourceCounts.get(item.erstelltVon) || 0;
+        sourceCounts.set(item.erstelltVon, current + 1);
+      }
+      const topSources: TopSourceStats[] = Array.from(sourceCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([rawId, count]) => {
+          const userIdResult = UserId.create(rawId);
+          return { userId: userIdResult.isSuccess ? userIdResult.value! : UserId.create('SYSTEM').value!, count };
+        });
+
+      // 7. Items für Detail-Tabelle
+      const validItems = escalatedItems.filter((item) => item.ausgeloestAm && item.eskaliertAm);
+      if (validItems.length < escalatedItems.length) {
+        this.logger.warn(`${escalatedItems.length - validItems.length} eskalierte Erinnerungen mit fehlenden Timestamps übersprungen`, 'PrismaErinnerungRepository.getEskalationsAnalyse');
+      }
+      const items: EskalationsAnalyseItem[] = validItems.map((item) => {
+        const erinnerungIdResult = ErinnerungId.create(item.id);
+        const eskaliertAnIdResult = item.assignedToId ? UserId.create(item.assignedToId) : Result.fail<UserId>('No assignedToId');
+        const previousAssigneeIdResult = item.previousAssigneeId ? UserId.create(item.previousAssigneeId) : null;
+
+        return {
+          erinnerungId: erinnerungIdResult.isSuccess ? erinnerungIdResult.value! : ErinnerungId.create('unknown').value!,
+          titel: item.titel,
+          // biome-ignore lint/style/noNonNullAssertion: filtered above
+          ausgeloestAm: item.ausgeloestAm!,
+          // biome-ignore lint/style/noNonNullAssertion: filtered above
+          eskaliertAm: item.eskaliertAm!,
+          // biome-ignore lint/style/noNonNullAssertion: filtered above
+          zeitBisEskalationSeconds: Math.max(0, (item.eskaliertAm!.getTime() - item.ausgeloestAm!.getTime()) / 1000),
+          eskaliertAnId: eskaliertAnIdResult.isSuccess ? eskaliertAnIdResult.value! : UserId.create('SYSTEM').value!,
+          previousAssigneeId: previousAssigneeIdResult?.isSuccess ? previousAssigneeIdResult.value! : null,
+        };
+      });
+
+      return Result.ok({
+        totalEscalated,
+        totalErinnerungen,
+        eskalationsRate,
+        avgZeitBisEskalationSeconds,
+        topReceivers,
+        topSources,
+        items,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown database error';
+      return Result.fail(`Failed to get escalation analysis: ${message}`);
+    }
+  }
+
+  /**
+   * Berechnet Reaktionszeit-Statistiken für einen Einsatz (Story 9.5).
+   */
+  async getReaktionszeitStatistik(einsatzId: EinsatzId): Promise<Result<ReaktionszeitStatistik>> {
+    try {
+      const erinnerungen = await this.prisma.erinnerung.findMany({
+        where: {
+          einsatzId: einsatzId.toString(),
+          isDeleted: false,
+          ausgeloestAm: { not: null },
+          acknowledgedAm: { not: null },
+        },
+        select: {
+          ausgeloestAm: true,
+          acknowledgedAm: true,
+        },
+      });
+
+      // Reaktionszeiten berechnen (nur diff >= 0)
+      const reaktionszeitMs: number[] = [];
+      for (const e of erinnerungen) {
+        if (e.ausgeloestAm && e.acknowledgedAm) {
+          const diff = e.acknowledgedAm.getTime() - e.ausgeloestAm.getTime();
+          if (diff >= 0) {
+            reaktionszeitMs.push(diff);
+          }
+        }
+      }
+
+      const totalAcknowledged = reaktionszeitMs.length;
+
+      if (totalAcknowledged === 0) {
+        return Result.ok({
+          totalAcknowledged: 0,
+          avgReaktionszeitSeconds: 0,
+          medianReaktionszeitSeconds: 0,
+          minReaktionszeitSeconds: 0,
+          maxReaktionszeitSeconds: 0,
+          buckets: [],
+        });
+      }
+
+      // Avg
+      const sumMs = reaktionszeitMs.reduce((sum, val) => sum + val, 0);
+      const avgReaktionszeitSeconds = Math.max(0, sumMs / totalAcknowledged / 1000);
+
+      // Median
+      const sorted = [...reaktionszeitMs].sort((a, b) => a - b);
+      let medianMs: number;
+      const mid = Math.floor(sorted.length / 2);
+      if (sorted.length % 2 === 0) {
+        // biome-ignore lint/style/noNonNullAssertion: mid and mid-1 guaranteed by length check
+        medianMs = (sorted[mid - 1]! + sorted[mid]!) / 2;
+      } else {
+        // biome-ignore lint/style/noNonNullAssertion: mid guaranteed by length check
+        medianMs = sorted[mid]!;
+      }
+      const medianReaktionszeitSeconds = Math.max(0, medianMs / 1000);
+
+      // Min / Max
+      const minReaktionszeitSeconds = Math.max(0, Math.min(...reaktionszeitMs) / 1000);
+      const maxReaktionszeitSeconds = Math.max(0, Math.max(...reaktionszeitMs) / 1000);
+
+      // Histogramm-Buckets
+      const BUCKET_BOUNDARIES = [
+        { label: '0-30s', minSeconds: 0, maxSeconds: 30 },
+        { label: '30s-1m', minSeconds: 30, maxSeconds: 60 },
+        { label: '1-2m', minSeconds: 60, maxSeconds: 120 },
+        { label: '2-5m', minSeconds: 120, maxSeconds: 300 },
+        { label: '5-10m', minSeconds: 300, maxSeconds: 600 },
+        { label: '>10m', minSeconds: 600, maxSeconds: Number.POSITIVE_INFINITY },
+      ];
+
+      const buckets: ReaktionszeitBucket[] = BUCKET_BOUNDARIES.map((boundary) => ({
+        ...boundary,
+        count: 0,
+      }));
+
+      for (const ms of reaktionszeitMs) {
+        const seconds = ms / 1000;
+        for (const bucket of buckets) {
+          if (seconds >= bucket.minSeconds && seconds < bucket.maxSeconds) {
+            bucket.count++;
+            break;
+          }
+        }
+      }
+
+      return Result.ok({
+        totalAcknowledged,
+        avgReaktionszeitSeconds,
+        medianReaktionszeitSeconds,
+        minReaktionszeitSeconds,
+        maxReaktionszeitSeconds,
+        buckets,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown database error';
+      return Result.fail(`Failed to get reaction time statistics: ${message}`);
+    }
+  }
+
+  /**
    * Findet die aktive Kind-Instanz einer wiederkehrenden Parent-Erinnerung (Story 6.5 AC2).
    */
   async findActiveChildByParentId(parentId: ErinnerungId, tx?: TransactionContext): Promise<Result<Erinnerung | null>> {
@@ -649,6 +879,318 @@ export class PrismaErinnerungRepository implements IErinnerungRepository {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown database error';
       return Result.fail(`Failed to find active child: ${message}`);
+    }
+  }
+
+  /**
+   * Laedt alle nicht-geloeschten Erinnerungen eines Einsatzes fuer den Export.
+   * Story 9.6: Statistiken nach Einsatz-Ende exportieren
+   */
+  async getErinnerungenForExport(einsatzId: EinsatzId): Promise<Result<ErinnerungExportItem[]>> {
+    try {
+      const erinnerungen = await this.prisma.erinnerung.findMany({
+        where: {
+          einsatzId: einsatzId.toString(),
+          isDeleted: false,
+        },
+        include: {
+          ersteller: { select: { username: true } },
+          assignedTo: { select: { username: true } },
+          kategorie: { select: { name: true } },
+        },
+        orderBy: { faelligAm: 'asc' },
+      });
+
+      const items: ErinnerungExportItem[] = erinnerungen.map((e) => ({
+        id: e.id,
+        titel: e.titel,
+        beschreibung: e.beschreibung ?? '',
+        status: e.status,
+        erstelltVonName: e.ersteller?.username ?? 'Unbekannt',
+        assignedToName: e.assignedTo?.username ?? null,
+        kategorieName: e.kategorie?.name ?? null,
+        faelligAm: e.faelligAm,
+        ausgeloestAm: e.ausgeloestAm,
+        acknowledgedAm: e.acknowledgedAm,
+        erledigtAm: e.erledigtAm,
+        eskaliertAm: e.eskaliertAm,
+        wurdeEskaliert: e.wurdeEskaliert,
+        snoozeCount: e.snoozeCount,
+        createdAt: e.createdAt,
+      }));
+
+      return Result.ok(items);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown database error';
+      this.logger.error(`Failed to load erinnerungen for export: ${message}`);
+      return Result.fail(`Failed to load erinnerungen for export: ${message}`);
+    }
+  }
+
+  /**
+   * Berechnet Fuehrungsrhythmus-Statistiken fuer einen Einsatz.
+   * Story 9.8: Fuehrungsrhythmus-Statistik
+   */
+  async getFuehrungsrhythmusStatistik(einsatzId: EinsatzId): Promise<Result<FuehrungsrhythmusStatistik>> {
+    try {
+      // 1. Alle Parent-Erinnerungen (recurring=true, parentId=null) laden
+      const parents = await this.prisma.erinnerung.findMany({
+        where: {
+          einsatzId: einsatzId.toString(),
+          isRecurring: true,
+          parentErinnerungId: null,
+          isDeleted: false,
+        },
+        select: {
+          id: true,
+          titel: true,
+          status: true,
+          recurringCurrentCount: true,
+          snoozeCount: true,
+          wurdeEskaliert: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: 'asc' },
+      });
+
+      if (parents.length === 0) {
+        return Result.ok({
+          activations: [],
+          totalActivations: 0,
+          totalCycles: 0,
+          avgCompletionRate: 0,
+          totalEscalations: 0,
+          overallSnoozeRate: 0,
+        });
+      }
+
+      // 2. Nach Aktivierungs-Zeitpunkt gruppieren (gleiche Sekunde = gleiche Aktivierung)
+      const activationGroups = new Map<string, typeof parents>();
+      for (const parent of parents) {
+        const key = new Date(Math.floor(parent.createdAt.getTime() / 1000) * 1000).toISOString();
+        const group = activationGroups.get(key) ?? [];
+        group.push(parent);
+        activationGroups.set(key, group);
+      }
+
+      // 3. Pro Aktivierung Statistiken berechnen
+      const activations: FuehrungsrhythmusActivationGroup[] = [];
+      let totalCycles = 0;
+      let totalEscalations = 0;
+      let totalSnoozed = 0;
+      let totalParents = 0;
+
+      for (const [timestamp, groupParents] of activationGroups) {
+        const groupCycles = groupParents.reduce((sum, p) => sum + p.recurringCurrentCount, 0);
+        const completedParents = groupParents.filter((p) => p.status === 'ERLEDIGT').length;
+        const escalatedCount = groupParents.filter((p) => p.wurdeEskaliert).length;
+        const groupSnoozeCount = groupParents.reduce((sum, p) => sum + p.snoozeCount, 0);
+
+        // Typ-Statistiken
+        const typeMap = new Map<string, { total: number; snoozeCount: number; snoozed: number; escalated: number }>();
+        for (const p of groupParents) {
+          const existing = typeMap.get(p.titel) ?? { total: 0, snoozeCount: 0, snoozed: 0, escalated: 0 };
+          existing.total++;
+          existing.snoozeCount += p.snoozeCount;
+          if (p.snoozeCount > 0) existing.snoozed++;
+          if (p.wurdeEskaliert) existing.escalated++;
+          typeMap.set(p.titel, existing);
+        }
+
+        const reminderTypeStats: FuehrungsrhythmusReminderTypeStats[] = Array.from(typeMap.entries()).map(([type, stats]) => ({
+          reminderType: type,
+          totalOccurrences: stats.total,
+          snoozeCount: stats.snoozeCount,
+          snoozeRate: stats.total > 0 ? stats.snoozeCount / stats.total : 0,
+          escalationCount: stats.escalated,
+          escalationRate: stats.total > 0 ? stats.escalated / stats.total : 0,
+        }));
+
+        activations.push({
+          activationTimestamp: new Date(timestamp),
+          reminderCount: groupParents.length,
+          totalCycles: groupCycles,
+          completedParents,
+          completionRate: groupParents.length > 0 ? completedParents / groupParents.length : 0,
+          escalatedCount,
+          reminderTypeStats,
+        });
+
+        totalCycles += groupCycles;
+        totalEscalations += escalatedCount;
+        totalSnoozed += groupSnoozeCount;
+        totalParents += groupParents.length;
+      }
+
+      const avgCompletionRate = activations.length > 0 ? activations.reduce((sum, a) => sum + a.completionRate, 0) / activations.length : 0;
+
+      return Result.ok({
+        activations,
+        totalActivations: activations.length,
+        totalCycles,
+        avgCompletionRate,
+        totalEscalations,
+        overallSnoozeRate: totalParents > 0 ? totalSnoozed / totalParents : 0,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown database error';
+      return Result.fail(`Failed to get Fuehrungsrhythmus-Statistik: ${message}`);
+    }
+  }
+
+  /**
+   * Story 9.9: Vergleichsstatistiken ueber mehrere Einsaetze berechnen.
+   */
+  async getVergleichsStatistik(einsatzIds: EinsatzId[]): Promise<Result<EinsatzVergleich>> {
+    try {
+      const ids = einsatzIds.map((id) => id.toString());
+
+      const einsaetze = await this.prisma.einsatz.findMany({
+        where: {
+          id: { in: ids },
+          status: { in: ['ABGESCHLOSSEN', 'ARCHIVIERT'] },
+        },
+        select: {
+          id: true,
+          alarmstichwort: true,
+          alarmierungszeit: true,
+          archivedAt: true,
+          updatedAt: true,
+        },
+      });
+
+      // Gesamtanzahl Erinnerungen pro Einsatz
+      const erinnerungenByEinsatz = await this.prisma.erinnerung.groupBy({
+        by: ['einsatzId'],
+        where: {
+          einsatzId: { in: ids },
+          isDeleted: false,
+        },
+        _count: { id: true },
+      });
+
+      // Eskalierte Erinnerungen pro Einsatz
+      const eskaliertByEinsatz = await this.prisma.erinnerung.groupBy({
+        by: ['einsatzId'],
+        where: {
+          einsatzId: { in: ids },
+          isDeleted: false,
+          wurdeEskaliert: true,
+        },
+        _count: { id: true },
+      });
+
+      // Reaktionszeiten (nur Erinnerungen mit beiden Timestamps)
+      const reaktionszeiten = await this.prisma.erinnerung.findMany({
+        where: {
+          einsatzId: { in: ids },
+          isDeleted: false,
+          ausgeloestAm: { not: null },
+          acknowledgedAm: { not: null },
+        },
+        select: {
+          einsatzId: true,
+          ausgeloestAm: true,
+          acknowledgedAm: true,
+        },
+      });
+
+      const items: EinsatzVergleichItem[] = einsaetze.map((einsatz) => {
+        const gesamtErinnerungen = erinnerungenByEinsatz.find((e) => e.einsatzId === einsatz.id)?._count.id ?? 0;
+        const eskaliertCount = eskaliertByEinsatz.find((e) => e.einsatzId === einsatz.id)?._count.id ?? 0;
+
+        // Einsatz-Dauer: alarmierungszeit bis archivedAt (oder updatedAt als Fallback)
+        const startTime = einsatz.alarmierungszeit ?? einsatz.updatedAt;
+        const endTime = einsatz.archivedAt ?? einsatz.updatedAt;
+        const dauerMs = endTime.getTime() - startTime.getTime();
+        const dauerStunden = Math.max(dauerMs / (1000 * 60 * 60), 0.01);
+
+        const erinnerungenProStunde = gesamtErinnerungen / dauerStunden;
+        const eskalationsrate = gesamtErinnerungen > 0 ? (eskaliertCount / gesamtErinnerungen) * 100 : 0;
+
+        // Durchschnittliche Reaktionszeit in Sekunden
+        const einsatzReaktionszeiten = reaktionszeiten
+          .filter((r) => r.einsatzId === einsatz.id)
+          .map((r) => (r.acknowledgedAm!.getTime() - r.ausgeloestAm!.getTime()) / 1000)
+          .filter((seconds) => seconds >= 0);
+
+        const durchschnittlicheReaktionszeit = einsatzReaktionszeiten.length > 0 ? einsatzReaktionszeiten.reduce((a, b) => a + b, 0) / einsatzReaktionszeiten.length : null;
+
+        return {
+          einsatzId: EinsatzId.create(einsatz.id).value!,
+          alarmstichwort: einsatz.alarmstichwort,
+          alarmierungszeit: einsatz.alarmierungszeit,
+          erinnerungenProStunde: Math.round(erinnerungenProStunde * 100) / 100,
+          eskalationsrate: Math.round(eskalationsrate * 100) / 100,
+          durchschnittlicheReaktionszeit: durchschnittlicheReaktionszeit !== null ? Math.round(durchschnittlicheReaktionszeit) : null,
+          gesamtErinnerungen,
+          dauer: Math.round(dauerStunden * 100) / 100,
+        };
+      });
+
+      return Result.ok<EinsatzVergleich>({ items });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown database error';
+      this.logger.error(`Failed to get Vergleichsstatistik: ${message}`);
+      return Result.fail<EinsatzVergleich>('Fehler beim Laden der Vergleichsstatistik');
+    }
+  }
+
+  /** Story 9.10: Laedt alle nicht-geloeschten Erinnerungen fuer den Rohdaten-Export mit allen Joins. */
+  async getErinnerungenForRawExport(einsatzId: EinsatzId): Promise<Result<RohdatenExportItem[]>> {
+    try {
+      const erinnerungen = await this.prisma.erinnerung.findMany({
+        where: {
+          einsatzId: einsatzId.toString(),
+          isDeleted: false,
+        },
+        include: {
+          ersteller: { select: { username: true } },
+          assignedTo: { select: { username: true } },
+          assigner: { select: { username: true } },
+          acknowledger: { select: { username: true } },
+          snoozer: { select: { username: true } },
+          erledigter: { select: { username: true } },
+          eskalationsPerson: { select: { username: true } },
+          previousAssignee: { select: { username: true } },
+          kategorie: { select: { name: true } },
+        },
+        orderBy: { faelligAm: 'asc' },
+      });
+
+      const items: RohdatenExportItem[] = erinnerungen.map((e) => ({
+        id: e.id,
+        titel: e.titel,
+        beschreibung: e.beschreibung ?? '',
+        status: e.status,
+        kategorieName: e.kategorie?.name ?? null,
+        erstelltVonName: e.ersteller?.username ?? 'Unbekannt',
+        createdAt: e.createdAt,
+        faelligAm: e.faelligAm,
+        ausgeloestAm: e.ausgeloestAm,
+        acknowledgedAm: e.acknowledgedAm,
+        acknowledgedByName: e.acknowledger?.username ?? null,
+        snoozedAt: e.snoozedAt,
+        snoozedByName: e.snoozer?.username ?? null,
+        snoozedUntil: e.snoozedUntil,
+        snoozeCount: e.snoozeCount,
+        erledigtAm: e.erledigtAm,
+        erledigtByName: e.erledigter?.username ?? null,
+        erledigungsNotiz: e.erledigungsNotiz ?? null,
+        assignedToName: e.assignedTo?.username ?? null,
+        assignedByName: e.assigner?.username ?? null,
+        assignedAt: e.assignedAt,
+        wurdeEskaliert: e.wurdeEskaliert,
+        eskaliertAm: e.eskaliertAm,
+        eskalationsPersonName: e.eskalationsPerson?.username ?? null,
+        previousAssigneeName: e.previousAssignee?.username ?? null,
+      }));
+
+      return Result.ok(items);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown database error';
+      this.logger.error(`Failed to load erinnerungen for raw export: ${message}`);
+      return Result.fail(`Failed to load erinnerungen for raw export: ${message}`);
     }
   }
 }

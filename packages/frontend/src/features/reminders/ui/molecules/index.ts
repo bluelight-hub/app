@@ -29,3 +29,15 @@ export { ErinnerungUebersicht } from './ErinnerungUebersicht';
 export { PersonStatistikTabelle } from './PersonStatistikTabelle';
 // Story 9.3: ZeitverlaufDiagramm fuer Zeitreihen-Chart
 export { ZeitverlaufDiagramm } from './ZeitverlaufDiagramm';
+// Story 9.4: EskalationsAnalyse fuer Eskalations-Statistiken
+export { EskalationsAnalyse } from './EskalationsAnalyse';
+// Story 9.5: ReaktionszeitStatistik fuer Reaktionszeit-Analyse
+export { ReaktionszeitStatistik } from './ReaktionszeitStatistik';
+// Story 9.6: StatistikExportDialog fuer Export-Format-Auswahl
+export { StatistikExportDialog } from './StatistikExportDialog';
+// Story 9.8: FuehrungsrhythmusStatistik fuer Fuehrungsrhythmus-Analyse
+export { FuehrungsrhythmusStatistik } from './FuehrungsrhythmusStatistik';
+// Story 9.9: EinsatzVergleich fuer Einsatz-Vergleichsstatistiken
+export { EinsatzVergleich } from './EinsatzVergleich';
+// Story 9.10: RohdatenExportDialog fuer Rohdaten-Export
+export { RohdatenExportDialog } from './RohdatenExportDialog';
