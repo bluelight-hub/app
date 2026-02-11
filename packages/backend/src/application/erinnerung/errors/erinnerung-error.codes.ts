@@ -67,6 +67,9 @@ export const ERINNERUNG_ERROR_CODES = {
   KATEGORIE_ID_INVALID: 'ERINNERUNG_KATEGORIE_ID_INVALID', // Story 8.2: kategorieId ist ungültiges CUID2 Format
   KATEGORIE_NOT_FOUND: 'ERINNERUNG_KATEGORIE_NOT_FOUND', // Story 8.2: Kategorie existiert nicht oder wurde gelöscht
   KATEGORIE_WRONG_EINSATZ: 'ERINNERUNG_KATEGORIE_WRONG_EINSATZ', // Story 8.2: Kategorie gehört zu anderem Einsatz
+
+  // Story 9.10: Rohdaten-Export
+  ROHDATEN_EXPORT_FORMAT_INVALID: 'ERINNERUNG_ROHDATEN_EXPORT_FORMAT_INVALID', // Story 9.10: Ungültiges Export-Format (nur csv/json)
 } as const;
 
 export type ErinnerungErrorCode = (typeof ERINNERUNG_ERROR_CODES)[keyof typeof ERINNERUNG_ERROR_CODES];

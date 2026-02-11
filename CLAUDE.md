@@ -119,6 +119,26 @@ Diese Patterns im Code nachschauen (nicht auswendig lernen):
 - **Event Registry:** `backend/src/infrastructure/outbox/event-deserializer.ts` - Neue Events MÜSSEN hier registriert
   werden!
 
+## Implementation Rules
+
+When implementing features, always work directly in the real application codebase. Never create standalone HTML prototypes or mockups unless explicitly requested.
+
+## Agent Team / Task Orchestration
+
+When using parallel sub-agents (Task tool), ensure all agents use consistent API contracts: matching endpoint URLs, response field names, and TypeScript types. Before spawning agents, define a shared interface contract in the task instructions.
+
+## General Behavior
+
+Before adding workarounds, dependency shims, or custom implementations, first question whether they are truly necessary. Present the analysis and ask for confirmation before implementing.
+
+## Testing
+
+When running tests, use precise testPathPattern targeting only the specific test files for the feature being worked on. Avoid broad patterns that match unrelated test files.
+
+## Definition of Done
+
+After completing implementation tasks, always run the full relevant test suite and fix any failures before marking a story/task as complete. Report the exact test count (e.g., '114/114 tests passing').
+
 ## Dokumentation
 
 Bei Architektur-Änderungen: `/docs/architecture/` (arc42) und `/docs/adr/` aktualisieren!

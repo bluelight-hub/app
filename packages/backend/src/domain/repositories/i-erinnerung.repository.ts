@@ -5,7 +5,13 @@ import type { ErinnerungId } from '@domain/value-objects/erinnerung-id';
 import type { EinsatzId } from '@domain/value-objects/einsatz-id';
 import type { ErinnerungStatistik } from './erinnerung-statistik';
 import type { PersonErinnerungStatistik } from './person-erinnerung-statistik';
+import type { EskalationsAnalyse } from './eskalations-analyse';
 import type { ZeitverlaufStatistik } from './zeitverlauf-statistik';
+import type { ReaktionszeitStatistik } from './reaktionszeit-statistik';
+import type { ErinnerungExportItem } from './erinnerung-export';
+import type { RohdatenExportItem } from './rohdaten-export';
+import type { FuehrungsrhythmusStatistik } from './fuehrungsrhythmus-statistik';
+import type { EinsatzVergleich } from './einsatz-vergleich';
 
 /**
  * Repository Port Interface für Erinnerung Aggregate Persistence.
@@ -167,6 +173,18 @@ export interface IErinnerungRepository {
   getZeitverlaufStatistik(einsatzId: EinsatzId): Promise<Result<ZeitverlaufStatistik>>;
 
   /**
+   * Berechnet Eskalations-Analyse für einen Einsatz.
+   * Story 9.4: Eskalations-Analyse
+   */
+  getEskalationsAnalyse(einsatzId: EinsatzId): Promise<Result<EskalationsAnalyse>>;
+
+  /**
+   * Berechnet Reaktionszeit-Statistiken für einen Einsatz.
+   * Story 9.5: Reaktionszeit-Statistik
+   */
+  getReaktionszeitStatistik(einsatzId: EinsatzId): Promise<Result<ReaktionszeitStatistik>>;
+
+  /**
    * Findet die aktive Kind-Instanz einer wiederkehrenden Parent-Erinnerung.
    * Story 6.5 AC2: Aktuelle Instanz abbrechen.
    *
@@ -175,4 +193,28 @@ export interface IErinnerungRepository {
    * @returns Die aktive Kind-Instanz (GEPLANT/AUSGELOEST/SNOOZED) oder null
    */
   findActiveChildByParentId(parentId: ErinnerungId, tx?: TransactionContext): Promise<Result<Erinnerung | null>>;
+
+  /**
+   * Laedt alle nicht-geloeschten Erinnerungen fuer den Export.
+   * Story 9.6: Statistiken nach Einsatz-Ende exportieren
+   */
+  getErinnerungenForExport(einsatzId: EinsatzId): Promise<Result<ErinnerungExportItem[]>>;
+
+  /**
+   * Berechnet Fuehrungsrhythmus-Statistiken fuer einen Einsatz.
+   * Story 9.8: Fuehrungsrhythmus-Statistik
+   */
+  getFuehrungsrhythmusStatistik(einsatzId: EinsatzId): Promise<Result<FuehrungsrhythmusStatistik>>;
+
+  /**
+   * Berechnet Vergleichsstatistiken ueber mehrere Einsaetze.
+   * Story 9.9: Vergleich mit vorherigen Einsaetzen
+   */
+  getVergleichsStatistik(einsatzIds: EinsatzId[]): Promise<Result<EinsatzVergleich>>;
+
+  /**
+   * Laedt alle nicht-geloeschten Erinnerungen fuer den Rohdaten-Export.
+   * Story 9.10: Export der Rohdaten mit allen 25 Feldern inkl. User-Name-Aufloesung.
+   */
+  getErinnerungenForRawExport(einsatzId: EinsatzId): Promise<Result<RohdatenExportItem[]>>;
 }

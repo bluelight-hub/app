@@ -7,18 +7,25 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Inject,
   InternalServerErrorException,
   NotFoundException,
   Param,
   Patch,
   Post,
   Put,
+  Query,
+  Res,
+  StreamableFile,
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiNotFoundResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiNotFoundResponse, ApiOperation, ApiQuery, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import type { Response } from 'express';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
+import { Roles } from '@/modules/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
+import { RolesGuard } from '@/modules/auth/guards/roles.guard';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ApiWrappedCreatedResponse, ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import {
@@ -29,6 +36,8 @@ import {
   ErinnerungStatistikDto,
   PersonStatistikDto,
   ZeitverlaufStatistikDto,
+  EskalationsAnalyseDto,
+  EinsatzVergleichDto,
 } from '@/application/erinnerung/dto';
 import { CreateErinnerungCommand } from '@/application/erinnerung/commands/create-erinnerung/create-erinnerung.command';
 import { CreateErinnerungHandler } from '@/application/erinnerung/commands/create-erinnerung/create-erinnerung.handler';
@@ -59,10 +68,27 @@ import { GetEtbEntriesByErinnerungHandler } from '@/application/erinnerung/queri
 import { GetEtbEntriesByErinnerungQuery } from '@/application/erinnerung/queries/get-etb-entries-by-erinnerung/get-etb-entries-by-erinnerung.query';
 import { GetZeitverlaufStatistikHandler } from '@/application/erinnerung/queries/get-zeitverlauf-statistik/get-zeitverlauf-statistik.handler';
 import { GetZeitverlaufStatistikQuery } from '@/application/erinnerung/queries/get-zeitverlauf-statistik/get-zeitverlauf-statistik.query';
+import { GetEskalationsAnalyseHandler } from '@/application/erinnerung/queries/get-eskalations-analyse/get-eskalations-analyse.handler';
+import { GetEskalationsAnalyseQuery } from '@/application/erinnerung/queries/get-eskalations-analyse/get-eskalations-analyse.query';
+import { GetReaktionszeitStatistikHandler } from '@/application/erinnerung/queries/get-reaktionszeit-statistik/get-reaktionszeit-statistik.handler';
+import { GetReaktionszeitStatistikQuery } from '@/application/erinnerung/queries/get-reaktionszeit-statistik/get-reaktionszeit-statistik.query';
+import { ReaktionszeitStatistikDto } from '@/application/erinnerung/dto/reaktionszeit-statistik.dto';
+import { FuehrungsrhythmusStatistikDto } from '@/application/erinnerung/dto/fuehrungsrhythmus-statistik.dto';
+import { GetFuehrungsrhythmusStatistikHandler } from '@/application/erinnerung/queries/get-fuehrungsrhythmus-statistik/get-fuehrungsrhythmus-statistik.handler';
+import { GetFuehrungsrhythmusStatistikQuery } from '@/application/erinnerung/queries/get-fuehrungsrhythmus-statistik/get-fuehrungsrhythmus-statistik.query';
 import { ErinnerungEtbHistoryDto } from '@/application/erinnerung/dto/erinnerung-etb-history.dto';
+import { GetEinsatzVergleichHandler } from '@/application/erinnerung/queries/get-einsatz-vergleich/get-einsatz-vergleich.handler';
+import { GetEinsatzVergleichQuery } from '@/application/erinnerung/queries/get-einsatz-vergleich/get-einsatz-vergleich.query';
 import { StopRecurringSeriesCommand } from '@/application/erinnerung/commands/stop-recurring-series/stop-recurring-series.command';
 import { StopRecurringSeriesHandler } from '@/application/erinnerung/commands/stop-recurring-series/stop-recurring-series.handler';
 import { StopRecurringSeriesDto } from '@/application/erinnerung/dto/stop-recurring-series.dto';
+import { ExportErinnerungenHandler } from '@/application/erinnerung/queries/export-erinnerungen/export-erinnerungen.handler';
+import { ExportErinnerungenQuery } from '@/application/erinnerung/queries/export-erinnerungen/export-erinnerungen.query';
+import { ExportRohdatenHandler } from '@/application/erinnerung/queries/export-rohdaten/export-rohdaten.handler';
+import { ExportRohdatenQuery } from '@/application/erinnerung/queries/export-rohdaten/export-rohdaten.query';
+import type { IEinsatzRepository } from '@domain/repositories/ieinsatz.repository';
+import { EinsatzId } from '@domain/value-objects/einsatz-id';
+import { EINSATZ_REPOSITORY } from '@infrastructure/di-tokens';
 
 /**
  * Controller für Erinnerungen innerhalb eines Einsatzes.
@@ -99,6 +125,14 @@ export class ErinnerungController {
     private readonly getEtbHistoryHandler: GetEtbEntriesByErinnerungHandler,
     private readonly stopRecurringSeriesHandler: StopRecurringSeriesHandler,
     private readonly getZeitverlaufStatistikHandler: GetZeitverlaufStatistikHandler,
+    private readonly getEskalationsAnalyseHandler: GetEskalationsAnalyseHandler,
+    private readonly getReaktionszeitStatistikHandler: GetReaktionszeitStatistikHandler,
+    private readonly exportHandler: ExportErinnerungenHandler,
+    private readonly getFuehrungsrhythmusStatistikHandler: GetFuehrungsrhythmusStatistikHandler,
+    private readonly getEinsatzVergleichHandler: GetEinsatzVergleichHandler,
+    private readonly exportRohdatenHandler: ExportRohdatenHandler,
+    @Inject(EINSATZ_REPOSITORY)
+    private readonly einsatzRepository: IEinsatzRepository,
   ) {}
 
   /**
@@ -245,6 +279,134 @@ export class ErinnerungController {
       throw new InternalServerErrorException(result.error);
     }
 
+    // biome-ignore lint/style/noNonNullAssertion: Result pattern - value is guaranteed after isFailure check
+    return result.value!;
+  }
+
+  /**
+   * Eskalations-Analyse abrufen.
+   *
+   * Liefert detaillierte Eskalations-Analyse: Rate, Top-Quellen, Top-Empfänger,
+   * Einzelaufstellung aller eskalierten Erinnerungen.
+   *
+   * **Story 9.4 ACs:**
+   * - AC1: Eskalationen gesamt, Rate %, Ø Zeit, Top Empfänger/Quellen
+   * - AC2: Detail-Tabelle mit Einzelaufstellung
+   */
+  @Get('statistik/eskalationen')
+  @ApiOperation({
+    summary: 'Eskalations-Analyse abrufen',
+    description: 'Liefert detaillierte Eskalations-Analyse: Eskalationsrate, Top-Quellen, Top-Empfänger und Einzelaufstellung aller eskalierten Erinnerungen.',
+  })
+  @ApiWrappedResponse(EskalationsAnalyseDto, {
+    description: 'Eskalations-Analyse erfolgreich abgerufen',
+  })
+  @ApiBadRequestResponse({ description: 'Ungültige EinsatzId' })
+  async getEskalationsAnalyse(@Param('einsatzId') einsatzId: string): Promise<EskalationsAnalyseDto> {
+    const queryResult = GetEskalationsAnalyseQuery.create({ einsatzId });
+
+    if (queryResult.isFailure || !queryResult.value) {
+      throw new BadRequestException(queryResult.error);
+    }
+
+    const result = await this.getEskalationsAnalyseHandler.execute(queryResult.value);
+
+    if (result.isFailure) {
+      throw new InternalServerErrorException(result.error);
+    }
+
+    // biome-ignore lint/style/noNonNullAssertion: Result pattern - value is guaranteed after isFailure check
+    return result.value!;
+  }
+
+  /**
+   * Reaktionszeit-Statistik abrufen.
+   *
+   * Liefert globale Reaktionszeit-Metriken (Avg, Median, Min, Max)
+   * und ein Histogramm der Reaktionszeit-Verteilung.
+   *
+   * **Story 9.5 ACs:**
+   * - AC1: Summary Cards mit Avg, Median, Min, Max
+   * - AC2: Histogramm mit Bucket-Verteilung
+   */
+  @Get('statistik/reaktionszeiten')
+  @ApiOperation({
+    summary: 'Reaktionszeit-Statistik abrufen',
+    description: 'Liefert globale Reaktionszeit-Metriken und ein Histogramm der Reaktionszeit-Verteilung aller acknowledged Erinnerungen.',
+  })
+  @ApiWrappedResponse(ReaktionszeitStatistikDto, {
+    description: 'Reaktionszeit-Statistiken erfolgreich abgerufen',
+  })
+  @ApiBadRequestResponse({ description: 'Ungültige EinsatzId' })
+  async getReaktionszeitStatistik(@Param('einsatzId') einsatzId: string): Promise<ReaktionszeitStatistikDto> {
+    const queryResult = GetReaktionszeitStatistikQuery.create({ einsatzId });
+
+    if (queryResult.isFailure || !queryResult.value) {
+      throw new BadRequestException(queryResult.error);
+    }
+
+    const result = await this.getReaktionszeitStatistikHandler.execute(queryResult.value);
+
+    if (result.isFailure) {
+      throw new InternalServerErrorException(result.error);
+    }
+
+    // biome-ignore lint/style/noNonNullAssertion: Result pattern - value is guaranteed after isFailure check
+    return result.value!;
+  }
+
+  /**
+   * Fuehrungsrhythmus-Statistik abrufen.
+   *
+   * Story 9.8 ACs:
+   * - AC1: Zyklen, Snooze-Rate/Typ, Completion-Rate, Eskalationen
+   * - AC2: Leerer Zustand
+   */
+  @Get('statistik/fuehrungsrhythmus')
+  @ApiOperation({
+    summary: 'Fuehrungsrhythmus-Statistik abrufen',
+    description: 'Statistiken zu aktivierten Fuehrungsrhythmus-Templates: Zyklen, Snooze-Rate, Abschlussrate, Eskalationen.',
+  })
+  @ApiWrappedResponse(FuehrungsrhythmusStatistikDto, {
+    description: 'Fuehrungsrhythmus-Statistik erfolgreich abgerufen',
+  })
+  @ApiBadRequestResponse({ description: 'Ungueltige EinsatzId' })
+  async getFuehrungsrhythmusStatistik(@Param('einsatzId') einsatzId: string): Promise<FuehrungsrhythmusStatistikDto> {
+    const queryResult = GetFuehrungsrhythmusStatistikQuery.create({ einsatzId });
+
+    if (queryResult.isFailure || !queryResult.value) {
+      throw new BadRequestException(queryResult.error);
+    }
+
+    const result = await this.getFuehrungsrhythmusStatistikHandler.execute(queryResult.value);
+
+    if (result.isFailure) {
+      throw new InternalServerErrorException(result.error);
+    }
+
+    // biome-ignore lint/style/noNonNullAssertion: Result pattern - value is guaranteed after isFailure check
+    return result.value!;
+  }
+
+  /**
+   * Vergleichsstatistiken abrufen.
+   * Story 9.9: Vergleich mit vorherigen Einsaetzen
+   */
+  @Get('statistik/vergleich')
+  @ApiOperation({ summary: 'Vergleichsstatistiken abrufen', description: 'Vergleicht Erinnerungs-Metriken ueber mehrere Einsaetze.' })
+  @ApiWrappedResponse(EinsatzVergleichDto, { description: 'Vergleichsstatistiken fuer ausgewaehlte Einsaetze' })
+  @ApiBadRequestResponse({ description: 'Ungueltige EinsatzId(s)' })
+  @ApiQuery({ name: 'vergleichsEinsatzIds', required: false, type: String, description: 'Kommaseparierte Einsatz-IDs zum Vergleich' })
+  async getVergleich(@Param('einsatzId') einsatzId: string, @Query('vergleichsEinsatzIds') vergleichsEinsatzIds?: string): Promise<EinsatzVergleichDto> {
+    const allIds = [einsatzId, ...(vergleichsEinsatzIds?.split(',').filter(Boolean) ?? [])];
+    const queryResult = GetEinsatzVergleichQuery.create({ einsatzIds: allIds });
+    if (queryResult.isFailure || !queryResult.value) {
+      throw new BadRequestException(queryResult.error);
+    }
+    const result = await this.getEinsatzVergleichHandler.execute(queryResult.value);
+    if (result.isFailure) {
+      throw new InternalServerErrorException(result.error);
+    }
     // biome-ignore lint/style/noNonNullAssertion: Result pattern - value is guaranteed after isFailure check
     return result.value!;
   }
@@ -842,5 +1004,125 @@ export class ErinnerungController {
 
     // biome-ignore lint/style/noNonNullAssertion: Result pattern - value is guaranteed after isFailure check
     return result.value!;
+  }
+
+  /**
+   * Erinnerungs-Rohdaten als CSV oder JSON exportieren.
+   * Story 9.10: Alle Felder inkl. User-Aufloesung fuer externe Analyse-Tools.
+   */
+  @Get('export/rohdaten')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({
+    summary: 'Erinnerungs-Rohdaten exportieren (Admin)',
+    description: 'Exportiert alle Erinnerungs-Records mit 25 Feldern als CSV oder JSON. Nur für abgeschlossene/archivierte Einsätze. Erfordert Admin-Rolle.',
+  })
+  @ApiQuery({ name: 'format', enum: ['csv', 'json'], required: true })
+  @ApiResponse({
+    status: 200,
+    description: 'Rohdaten-Export als CSV oder JSON',
+    content: {
+      'text/csv': { schema: { type: 'string', format: 'binary' } },
+      'application/json': { schema: { type: 'string', format: 'binary' } },
+    },
+  })
+  @ApiBadRequestResponse({ description: 'Ungültiges Format oder Einsatz nicht abgeschlossen' })
+  async exportRohdaten(@Param('einsatzId') einsatzId: string, @Query('format') format: string, @Res({ passthrough: true }) res: Response): Promise<StreamableFile> {
+    const einsatzIdResult = EinsatzId.create(einsatzId);
+    if (einsatzIdResult.isFailure || !einsatzIdResult.value) {
+      throw new BadRequestException('Ungültige EinsatzId');
+    }
+
+    const einsatzResult = await this.einsatzRepository.findById(einsatzIdResult.value);
+    if (einsatzResult.isFailure || !einsatzResult.value) {
+      throw new NotFoundException('Einsatz nicht gefunden');
+    }
+
+    const einsatzStatus = einsatzResult.value.status.value;
+    if (einsatzStatus !== 'ABGESCHLOSSEN' && einsatzStatus !== 'ARCHIVIERT') {
+      throw new BadRequestException('Export erst nach Einsatzende verfügbar');
+    }
+
+    const queryResult = ExportRohdatenQuery.create({ einsatzId, einsatzNummer: einsatzResult.value.nummer, format });
+    if (queryResult.isFailure) {
+      throw new BadRequestException(queryResult.error);
+    }
+
+    // biome-ignore lint/style/noNonNullAssertion: Result pattern
+    const result = await this.exportRohdatenHandler.execute(queryResult.value!);
+
+    if (result.isFailure) {
+      throw new InternalServerErrorException(result.error);
+    }
+
+    // biome-ignore lint/style/noNonNullAssertion: Result pattern
+    const exportData = result.value!;
+
+    res.set({
+      'Content-Type': exportData.contentType,
+      'Content-Disposition': `attachment; filename="${exportData.filename}"`,
+    });
+
+    return new StreamableFile(exportData.buffer);
+  }
+
+  /**
+   * Erinnerungen-Statistiken als PDF, CSV oder JSON exportieren.
+   * Story 9.6: Export erst nach Einsatzende verfuegbar.
+   */
+  @Get('export')
+  @ApiOperation({
+    summary: 'Erinnerungen-Statistiken exportieren',
+    description: 'Exportiert Statistiken und Erinnerungsliste als PDF, CSV oder JSON. Nur für abgeschlossene/archivierte Einsätze.',
+  })
+  @ApiQuery({ name: 'format', enum: ['pdf', 'csv', 'json'], required: true })
+  @ApiResponse({
+    status: 200,
+    description: 'Export-Datei erfolgreich generiert',
+    content: {
+      'application/pdf': { schema: { type: 'string', format: 'binary' } },
+      'text/csv': { schema: { type: 'string', format: 'binary' } },
+      'application/json': { schema: { type: 'string', format: 'binary' } },
+    },
+  })
+  @ApiBadRequestResponse({ description: 'Ungültiges Format oder Einsatz nicht abgeschlossen' })
+  async exportErinnerungen(@Param('einsatzId') einsatzId: string, @Query('format') format: string, @Res({ passthrough: true }) res: Response): Promise<StreamableFile> {
+    // Einsatz-Status validieren
+    const einsatzIdResult = EinsatzId.create(einsatzId);
+    if (einsatzIdResult.isFailure || !einsatzIdResult.value) {
+      throw new BadRequestException('Ungültige EinsatzId');
+    }
+
+    const einsatzResult = await this.einsatzRepository.findById(einsatzIdResult.value);
+    if (einsatzResult.isFailure || !einsatzResult.value) {
+      throw new NotFoundException('Einsatz nicht gefunden');
+    }
+
+    const einsatzStatus = einsatzResult.value.status.value;
+    if (einsatzStatus !== 'ABGESCHLOSSEN' && einsatzStatus !== 'ARCHIVIERT') {
+      throw new BadRequestException('Export erst nach Einsatzende verfügbar');
+    }
+
+    const queryResult = ExportErinnerungenQuery.create({ einsatzId, format });
+    if (queryResult.isFailure) {
+      throw new BadRequestException(queryResult.error);
+    }
+
+    // biome-ignore lint/style/noNonNullAssertion: Result pattern
+    const result = await this.exportHandler.execute(queryResult.value!);
+
+    if (result.isFailure) {
+      throw new InternalServerErrorException(result.error);
+    }
+
+    // biome-ignore lint/style/noNonNullAssertion: Result pattern
+    const exportData = result.value!;
+
+    res.set({
+      'Content-Type': exportData.contentType,
+      'Content-Disposition': `attachment; filename="${exportData.filename}"`,
+    });
+
+    return new StreamableFile(exportData.buffer);
   }
 }

@@ -12,6 +12,10 @@ export {
   useErinnerungStatistik,
   usePersonStatistik,
   useZeitverlaufStatistik,
+  useEskalationsAnalyse,
+  useReaktionszeitStatistik,
+  useFuehrungsrhythmusStatistik,
+  useEinsatzVergleich,
   type UseErinnerungenByEinsatzOptions,
 } from './queries';
 
@@ -40,3 +44,9 @@ export {
   type StopRecurringSeriesVariables,
   type SnoozeMinutes,
 } from './mutations';
+
+// Export Hook (Story 9.6)
+export { useExportStatistik, type ExportFormat } from './use-export-statistik';
+
+// Rohdaten Export Hook (Story 9.10)
+export { useExportRohdaten, type RohdatenExportFormat } from './use-export-rohdaten';

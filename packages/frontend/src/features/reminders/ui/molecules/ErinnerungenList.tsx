@@ -22,7 +22,7 @@ import { cn } from '@/shared/ui/cn';
 import { Tabs } from '@/shared/ui/molecules/tabs.molecule';
 import { PiAlarm, PiBookmarkSimple, PiPlus, PiWifiHigh, PiWifiSlash } from 'react-icons/pi';
 import { useCurrentUser } from '@/features/auth';
-import { useAktiveEinsatzTeilnehmer } from '@/features/einsatz/api';
+import { useAktiveEinsatzTeilnehmer, useEinsatzDetail } from '@/features/einsatz/api';
 import { useKategorienByEinsatz } from '@/features/kategorien';
 import { sanitizeName } from '@/shared/utils/sanitize';
 import { useErinnerungenByEinsatz } from '../../api';
@@ -65,6 +65,8 @@ interface ErinnerungenListProps {
   className?: string;
   /** Kompakte Ansicht (weniger Padding, keine Header) */
   compact?: boolean;
+  /** Story 9.7: Callback fuer WebSocket-Verbindungsstatus (fuer LiveIndikator) */
+  onConnectionStatusChange?: (isConnected: boolean) => void;
 }
 
 /**
@@ -76,7 +78,7 @@ interface ErinnerungenListProps {
  * Story 3.6 Issue #6: Wrapper-Komponente mit User-Guard.
  * Delegiert an ErinnerungenListInner wenn User eingeloggt ist.
  */
-export function ErinnerungenList({ einsatzId, className, compact = false }: ErinnerungenListProps) {
+export function ErinnerungenList({ einsatzId, className, compact = false, onConnectionStatusChange }: ErinnerungenListProps) {
   const { user } = useCurrentUser();
 
   // Story 3.6 Issue #6: Guard - User muss eingeloggt sein
@@ -89,7 +91,7 @@ export function ErinnerungenList({ einsatzId, className, compact = false }: Erin
   }
 
   // Nach Guard ist user garantiert non-null - rendere innere Komponente
-  return <ErinnerungenListInner einsatzId={einsatzId} className={className} compact={compact} currentUserId={user.id} />;
+  return <ErinnerungenListInner einsatzId={einsatzId} className={className} compact={compact} currentUserId={user.id} onConnectionStatusChange={onConnectionStatusChange} />;
 }
 
 /**
@@ -98,6 +100,8 @@ export function ErinnerungenList({ einsatzId, className, compact = false }: Erin
 interface ErinnerungenListInnerProps extends ErinnerungenListProps {
   /** Garantiert non-null User-ID (nach Guard in Wrapper) */
   currentUserId: string;
+  /** Story 9.7: Callback fuer WebSocket-Verbindungsstatus */
+  onConnectionStatusChange?: (isConnected: boolean) => void;
 }
 
 /**
@@ -106,8 +110,14 @@ interface ErinnerungenListInnerProps extends ErinnerungenListProps {
  * Wird nur gerendert wenn User eingeloggt ist (currentUserId garantiert non-null).
  * Ermoeglicht saubere Hook-Aufrufe ohne bedingte Logik (React Rules of Hooks).
  */
-function ErinnerungenListInner({ einsatzId, className, compact = false, currentUserId }: ErinnerungenListInnerProps) {
+const LIVE_EINSATZ_STATUS = new Set(['IN_BEARBEITUNG', 'ANGELEGT']);
+
+function ErinnerungenListInner({ einsatzId, className, compact = false, currentUserId, onConnectionStatusChange }: ErinnerungenListInnerProps) {
   const { data: erinnerungen, isLoading, error } = useErinnerungenByEinsatz({ einsatzId });
+
+  // L1: Einsatz-Status fuer bedingte Statistik-Invalidierung (Query wird dedupliziert via TanStack)
+  const { einsatz } = useEinsatzDetail(einsatzId);
+  const isLiveEinsatz = einsatz?.status != null && LIVE_EINSATZ_STATUS.has(einsatz.status);
 
   // Story 3.6 Task 3.1: Team-Filter Store Hooks
   const selectedFilter = useTeamFilter();
@@ -255,11 +265,17 @@ function ErinnerungenListInner({ einsatzId, className, compact = false, currentU
     einsatzId,
     enabled: true,
     showTeamToasts: true, // AC3: Toast bei Team-Events
+    invalidateStatistik: isLiveEinsatz, // L1: Statistik nur bei Live-Einsaetzen invalidieren
     // Story 3.2 AC2: Animation bei Status-Aenderung
     onCreated: handleWebSocketCreated,
     onUpdated: handleWebSocketUpdated,
     onAcknowledged: handleWebSocketAcknowledged,
   });
+
+  // Story 9.7: WebSocket-Verbindungsstatus an Parent melden (fuer LiveIndikator)
+  useEffect(() => {
+    onConnectionStatusChange?.(isConnected);
+  }, [isConnected, onConnectionStatusChange]);
 
   // Story 1.5: Alarm Trigger Hook wurde nach SingleEinsatzLayout verschoben
   // für app-weite Erinnerungsprüfung (auch auf Lagekarte, ETB, etc.)

@@ -8,7 +8,17 @@
 
 import { api } from '@/shared';
 import { logger } from '@/shared/lib/logger';
-import type { ErinnerungResponseDto, ErinnerungStatistikDto, PersonStatistikDto, ZeitverlaufStatistikDto, ResponseError } from '@/shared';
+import type {
+  ErinnerungResponseDto,
+  ErinnerungStatistikDto,
+  PersonStatistikDto,
+  ZeitverlaufStatistikDto,
+  EskalationsAnalyseDto,
+  ReaktionszeitStatistikDto,
+  FuehrungsrhythmusStatistikDto,
+  EinsatzVergleichDto,
+  ResponseError,
+} from '@/shared';
 import { useQuery } from '@tanstack/react-query';
 
 /**
@@ -35,6 +45,10 @@ export const ERINNERUNG_QUERY_KEYS = {
   statistik: (einsatzId: string) => [...ERINNERUNG_QUERY_KEYS.all, 'statistik', einsatzId] as const,
   personStatistik: (einsatzId: string) => [...ERINNERUNG_QUERY_KEYS.all, 'person-statistik', einsatzId] as const,
   zeitverlauf: (einsatzId: string) => [...ERINNERUNG_QUERY_KEYS.all, 'zeitverlauf', einsatzId] as const,
+  eskalationsAnalyse: (einsatzId: string) => [...ERINNERUNG_QUERY_KEYS.all, 'eskalations-analyse', einsatzId] as const,
+  reaktionszeit: (einsatzId: string) => [...ERINNERUNG_QUERY_KEYS.all, 'reaktionszeit', einsatzId] as const,
+  fuehrungsrhythmus: (einsatzId: string) => [...ERINNERUNG_QUERY_KEYS.all, 'fuehrungsrhythmus', einsatzId] as const,
+  vergleich: (einsatzId: string, vergleichsIds: string[]) => [...ERINNERUNG_QUERY_KEYS.all, 'vergleich', einsatzId, ...vergleichsIds.sort()] as const,
 } as const;
 
 /**
@@ -128,7 +142,8 @@ export const useErinnerungStatistik = (einsatzId?: string) => {
       const response = await api.erinnerungen().erinnerungControllerGetStatistikVAlpha({ einsatzId });
       return response.data;
     },
-    staleTime: 60_000, // 1 Minute Cache
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -145,7 +160,8 @@ export const usePersonStatistik = (einsatzId?: string) => {
       const response = await api.erinnerungen().erinnerungControllerGetPersonStatistikVAlpha({ einsatzId });
       return response.data;
     },
-    staleTime: 60_000, // 1 Minute Cache
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -162,7 +178,91 @@ export const useZeitverlaufStatistik = (einsatzId?: string) => {
       const response = await api.erinnerungen().erinnerungControllerGetZeitverlaufStatistikVAlpha({ einsatzId });
       return response.data;
     },
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
+    retry: 3,
+    retryDelay: calculateRetryDelay,
+  });
+};
+
+/**
+ * Hook für Eskalations-Analyse Abfrage
+ * Story 9.4: Eskalations-Analyse
+ */
+export const useEskalationsAnalyse = (einsatzId?: string) => {
+  return useQuery<EskalationsAnalyseDto, ResponseError>({
+    enabled: !!einsatzId,
+    queryKey: ERINNERUNG_QUERY_KEYS.eskalationsAnalyse(einsatzId ?? ''),
+    queryFn: async () => {
+      if (!einsatzId) throw new Error('einsatzId required');
+      const response = await api.erinnerungen().erinnerungControllerGetEskalationsAnalyseVAlpha({ einsatzId });
+      return response.data;
+    },
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
+    retry: 3,
+    retryDelay: calculateRetryDelay,
+  });
+};
+
+/**
+ * Hook für Reaktionszeit-Statistik Abfrage
+ * Story 9.5: Reaktionszeit-Statistik
+ */
+export const useReaktionszeitStatistik = (einsatzId?: string) => {
+  return useQuery<ReaktionszeitStatistikDto, ResponseError>({
+    enabled: !!einsatzId,
+    queryKey: ERINNERUNG_QUERY_KEYS.reaktionszeit(einsatzId ?? ''),
+    queryFn: async () => {
+      if (!einsatzId) throw new Error('einsatzId required');
+      const response = await api.erinnerungen().erinnerungControllerGetReaktionszeitStatistikVAlpha({ einsatzId });
+      return response.data;
+    },
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
+    retry: 3,
+    retryDelay: calculateRetryDelay,
+  });
+};
+
+/**
+ * Hook fuer Fuehrungsrhythmus-Statistik Abfrage
+ * Story 9.8: Fuehrungsrhythmus-Statistik
+ */
+export const useFuehrungsrhythmusStatistik = (einsatzId?: string) => {
+  return useQuery<FuehrungsrhythmusStatistikDto, ResponseError>({
+    enabled: !!einsatzId,
+    queryKey: ERINNERUNG_QUERY_KEYS.fuehrungsrhythmus(einsatzId ?? ''),
+    queryFn: async () => {
+      if (!einsatzId) throw new Error('einsatzId required');
+      const response = await api.erinnerungen().erinnerungControllerGetFuehrungsrhythmusStatistikVAlpha({ einsatzId });
+      return response.data;
+    },
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
+    retry: 3,
+    retryDelay: calculateRetryDelay,
+  });
+};
+
+/**
+ * Hook fuer Einsatz-Vergleich Abfrage
+ * Story 9.9: Vergleich mit vorherigen Einsaetzen
+ */
+export const useEinsatzVergleich = (einsatzId?: string, vergleichsEinsatzIds?: string[]) => {
+  return useQuery<EinsatzVergleichDto, ResponseError>({
+    enabled: !!einsatzId && !!vergleichsEinsatzIds && vergleichsEinsatzIds.length > 0,
+    queryKey: ERINNERUNG_QUERY_KEYS.vergleich(einsatzId ?? '', vergleichsEinsatzIds ?? []),
+    queryFn: async () => {
+      if (!einsatzId) throw new Error('einsatzId required');
+      const response = await api.erinnerungen().erinnerungControllerGetVergleichVAlpha({
+        einsatzId,
+        vergleichsEinsatzIds: vergleichsEinsatzIds?.join(','),
+      });
+      return response.data;
+    },
     staleTime: 60_000,
+    refetchOnWindowFocus: true,
     retry: 3,
     retryDelay: calculateRetryDelay,
   });

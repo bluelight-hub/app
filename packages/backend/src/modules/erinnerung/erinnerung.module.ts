@@ -22,6 +22,16 @@ import { GetErinnerungStatistikHandler } from '@/application/erinnerung/queries/
 import { GetPersonStatistikHandler } from '@/application/erinnerung/queries/get-person-statistik/get-person-statistik.handler';
 import { GetEtbEntriesByErinnerungHandler } from '@/application/erinnerung/queries/get-etb-entries-by-erinnerung/get-etb-entries-by-erinnerung.handler';
 import { GetZeitverlaufStatistikHandler } from '@/application/erinnerung/queries/get-zeitverlauf-statistik/get-zeitverlauf-statistik.handler';
+import { GetEskalationsAnalyseHandler } from '@/application/erinnerung/queries/get-eskalations-analyse/get-eskalations-analyse.handler';
+import { GetReaktionszeitStatistikHandler } from '@/application/erinnerung/queries/get-reaktionszeit-statistik/get-reaktionszeit-statistik.handler';
+import { GetFuehrungsrhythmusStatistikHandler } from '@/application/erinnerung/queries/get-fuehrungsrhythmus-statistik/get-fuehrungsrhythmus-statistik.handler';
+import { GetEinsatzVergleichHandler } from '@/application/erinnerung/queries/get-einsatz-vergleich/get-einsatz-vergleich.handler';
+import { ExportErinnerungenHandler } from '@/application/erinnerung/queries/export-erinnerungen/export-erinnerungen.handler';
+import { ExportRohdatenHandler } from '@/application/erinnerung/queries/export-rohdaten/export-rohdaten.handler';
+import { PdfExportService } from '@infrastructure/export/pdf-export.service';
+import { CsvExportService } from '@infrastructure/export/csv-export.service';
+import { JsonExportService } from '@infrastructure/export/json-export.service';
+import { EinsatzInfrastructureModule } from '@infrastructure/einsatz/einsatz-infrastructure.module';
 import { GetErinnerungKonfigurationHandler } from '@application/erinnerung-konfiguration/queries/get-erinnerung-konfiguration.query';
 import { UpdateEskalationsTimeoutHandler } from '@application/erinnerung-konfiguration/commands/update-eskalations-timeout.command';
 import { ErinnerungKonfigurationController } from './controllers/erinnerung-konfiguration.controller';
@@ -44,6 +54,8 @@ import { ErinnerungWebSocketEventAdapter } from '@infrastructure/events/adapters
     CqrsModule,
     // Story 8.2: KategorieModule für Kategorie-Daten in Query-Responses
     forwardRef(() => KategorieModule),
+    // Story 9.6: EinsatzRepository für Status-Validierung im Export-Endpoint
+    EinsatzInfrastructureModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
@@ -76,6 +88,14 @@ import { ErinnerungWebSocketEventAdapter } from '@infrastructure/events/adapters
     GetPersonStatistikHandler,
     GetEtbEntriesByErinnerungHandler,
     GetZeitverlaufStatistikHandler,
+    // Escalation Analysis (Story 9.4)
+    GetEskalationsAnalyseHandler,
+    // Reaction Time Statistics (Story 9.5)
+    GetReaktionszeitStatistikHandler,
+    // Fuehrungsrhythmus Statistics (Story 9.8)
+    GetFuehrungsrhythmusStatistikHandler,
+    // Einsatz-Vergleich (Story 9.9)
+    GetEinsatzVergleichHandler,
     // Configuration Handlers (Story 4.3)
     GetErinnerungKonfigurationHandler,
     UpdateEskalationsTimeoutHandler,
@@ -83,6 +103,13 @@ import { ErinnerungWebSocketEventAdapter } from '@infrastructure/events/adapters
     StopRecurringSeriesHandler,
     // Escalation (Story 4.1)
     EskaliereErinnerungHandler,
+    // Export (Story 9.6)
+    ExportErinnerungenHandler,
+    // Rohdaten-Export (Story 9.10)
+    ExportRohdatenHandler,
+    PdfExportService,
+    CsvExportService,
+    JsonExportService,
     // WebSocket (Story 1.5 AC4 + Security C1, C2, C3)
     ErinnerungGateway,
     WsJwtAuthGuard,

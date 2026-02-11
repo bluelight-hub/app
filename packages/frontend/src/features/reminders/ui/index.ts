@@ -8,5 +8,6 @@
  * **Story 1.3:** ErinnerungEditDialog, ErinnerungCard, ErinnerungenList
  */
 
+export * from './atoms';
 export * from './molecules';
 export * from './organisms';

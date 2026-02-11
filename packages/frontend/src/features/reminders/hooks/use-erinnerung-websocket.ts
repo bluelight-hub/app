@@ -82,6 +82,8 @@ export interface UseErinnerungWebSocketOptions {
   enabled?: boolean;
   /** Toast bei Team-Events anzeigen (default: true) */
   showTeamToasts?: boolean;
+  /** Ob Statistik-Cache invalidiert werden soll (default: true, false bei abgeschlossenen Einsaetzen) */
+  invalidateStatistik?: boolean;
   /** Callback bei Trigger-Event */
   onTriggered?: (event: ErinnerungWebSocketEvent) => void;
   /** Callback bei Create-Event */
@@ -139,6 +141,7 @@ export function useErinnerungWebSocket({
   einsatzId,
   enabled = true,
   showTeamToasts = true,
+  invalidateStatistik = true,
   onTriggered,
   onCreated,
   onUpdated,
@@ -179,9 +182,6 @@ export function useErinnerungWebSocket({
   const currentUserIdRef = useRef(currentUserId);
   currentUserIdRef.current = currentUserId;
 
-  // C4 Fix: Track previous einsatzId for room cleanup
-  const previousEinsatzIdRef = useRef<string | null>(null);
-
   // Room Name für den Einsatz
   const roomName = `einsatz:${einsatzId}:erinnerungen`;
 
@@ -194,6 +194,38 @@ export function useErinnerungWebSocket({
       queryKey: ERINNERUNG_QUERY_KEYS.list(einsatzId),
     });
   }, [queryClient, einsatzId]);
+
+  /**
+   * Invalidiert alle Statistik-Query-Caches
+   */
+  const invalidateStatistikCache = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ERINNERUNG_QUERY_KEYS.statistik(einsatzId) });
+    queryClient.invalidateQueries({ queryKey: ERINNERUNG_QUERY_KEYS.personStatistik(einsatzId) });
+    queryClient.invalidateQueries({ queryKey: ERINNERUNG_QUERY_KEYS.zeitverlauf(einsatzId) });
+    queryClient.invalidateQueries({ queryKey: ERINNERUNG_QUERY_KEYS.eskalationsAnalyse(einsatzId) });
+    queryClient.invalidateQueries({ queryKey: ERINNERUNG_QUERY_KEYS.reaktionszeit(einsatzId) });
+    queryClient.invalidateQueries({ queryKey: ERINNERUNG_QUERY_KEYS.fuehrungsrhythmus(einsatzId) });
+    // Story 9.9: Vergleichs-Cache nur mit einsatzId-Prefix invalidieren
+    queryClient.invalidateQueries({ queryKey: [...ERINNERUNG_QUERY_KEYS.all, 'vergleich'] });
+  }, [queryClient, einsatzId]);
+
+  /**
+   * Debounced Statistik-Cache-Invalidierung (500ms)
+   * Verhindert mehrfache Invalidierungen bei schnell aufeinanderfolgenden Events
+   */
+  const statistikDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const debouncedInvalidateStatistik = useCallback(() => {
+    // L1: Keine Statistik-Invalidierung bei abgeschlossenen Einsaetzen
+    if (!invalidateStatistik) return;
+    if (statistikDebounceRef.current) {
+      clearTimeout(statistikDebounceRef.current);
+    }
+    statistikDebounceRef.current = setTimeout(() => {
+      invalidateStatistikCache();
+      statistikDebounceRef.current = null;
+    }, 500);
+  }, [invalidateStatistik, invalidateStatistikCache]);
 
   /**
    * Handler für 'erinnerung.triggered' Event
@@ -224,10 +256,12 @@ export function useErinnerungWebSocket({
           });
         }
         onTriggeredRef.current?.(event);
+        debouncedInvalidateStatistik();
         return;
       }
 
       invalidateCache();
+      debouncedInvalidateStatistik();
 
       // Issue 7 Fix: Toast nur bei Team-Events (nicht eigene Actions)
       if (showTeamToasts && !isOwnEvent && event.titel) {
@@ -238,7 +272,7 @@ export function useErinnerungWebSocket({
 
       onTriggeredRef.current?.(event);
     },
-    [invalidateCache, showTeamToasts, queryClient],
+    [invalidateCache, showTeamToasts, queryClient, debouncedInvalidateStatistik],
   );
 
   /**
@@ -250,6 +284,7 @@ export function useErinnerungWebSocket({
     (event: ErinnerungWebSocketEvent) => {
       logger.info('WebSocket: Erinnerung created', event);
       invalidateCache();
+      debouncedInvalidateStatistik();
 
       // Issue #2 Fix: Nutze Ref statt Closure für aktuelle userId
       const userId = currentUserIdRef.current;
@@ -265,7 +300,7 @@ export function useErinnerungWebSocket({
 
       onCreatedRef.current?.(event);
     },
-    [invalidateCache, showTeamToasts],
+    [invalidateCache, showTeamToasts, debouncedInvalidateStatistik],
   );
 
   /**
@@ -275,10 +310,11 @@ export function useErinnerungWebSocket({
     (event: ErinnerungWebSocketEvent) => {
       logger.info('WebSocket: Erinnerung updated', event);
       invalidateCache();
+      debouncedInvalidateStatistik();
 
       onUpdatedRef.current?.(event);
     },
-    [invalidateCache],
+    [invalidateCache, debouncedInvalidateStatistik],
   );
 
   /**
@@ -290,6 +326,7 @@ export function useErinnerungWebSocket({
     (event: ErinnerungWebSocketEvent) => {
       logger.info('WebSocket: Erinnerung deleted', event);
       invalidateCache();
+      debouncedInvalidateStatistik();
 
       // Issue #2 Fix: Nutze Ref statt Closure für aktuelle userId
       const userId = currentUserIdRef.current;
@@ -305,7 +342,7 @@ export function useErinnerungWebSocket({
 
       onDeletedRef.current?.(event);
     },
-    [invalidateCache, showTeamToasts],
+    [invalidateCache, showTeamToasts, debouncedInvalidateStatistik],
   );
 
   /**
@@ -340,10 +377,12 @@ export function useErinnerungWebSocket({
           });
         }
         onAcknowledgedRef.current?.(event);
+        debouncedInvalidateStatistik();
         return;
       }
 
       invalidateCache();
+      debouncedInvalidateStatistik();
 
       // Issue 7 Fix: Toast nur bei Team-Events (nicht eigene Actions)
       if (showTeamToasts && !isOwnEvent) {
@@ -354,7 +393,7 @@ export function useErinnerungWebSocket({
 
       onAcknowledgedRef.current?.(event);
     },
-    [invalidateCache, showTeamToasts, queryClient],
+    [invalidateCache, showTeamToasts, queryClient, debouncedInvalidateStatistik],
   );
 
   /**
@@ -426,14 +465,16 @@ export function useErinnerungWebSocket({
         // Skip cache invalidation but still show notifications and call callback for team sync
         showAssignmentNotifications();
         onAssignedRef.current?.(event);
+        debouncedInvalidateStatistik();
         return;
       }
 
       invalidateCache();
+      debouncedInvalidateStatistik();
       showAssignmentNotifications();
       onAssignedRef.current?.(event);
     },
-    [invalidateCache, showTeamToasts, queryClient],
+    [invalidateCache, showTeamToasts, queryClient, debouncedInvalidateStatistik],
   );
 
   /**
@@ -484,11 +525,32 @@ export function useErinnerungWebSocket({
       };
 
       invalidateCache();
+      debouncedInvalidateStatistik();
       showEscalationNotifications();
       onEscalatedRef.current?.(event);
     },
-    [invalidateCache, showTeamToasts],
+    [invalidateCache, showTeamToasts, debouncedInvalidateStatistik],
   );
+
+  // H2 Fix: Handler-Refs fuer stabile connect Dependencies (kein Reconnect bei Handler-Aenderung)
+  const handleTriggeredRef = useRef(handleTriggered);
+  handleTriggeredRef.current = handleTriggered;
+  const handleCreatedRef = useRef(handleCreated);
+  handleCreatedRef.current = handleCreated;
+  const handleUpdatedRef = useRef(handleUpdated);
+  handleUpdatedRef.current = handleUpdated;
+  const handleDeletedRef = useRef(handleDeleted);
+  handleDeletedRef.current = handleDeleted;
+  const handleAcknowledgedRef = useRef(handleAcknowledged);
+  handleAcknowledgedRef.current = handleAcknowledged;
+  const handleAssignedRef = useRef(handleAssigned);
+  handleAssignedRef.current = handleAssigned;
+  const handleEscalatedRef = useRef(handleEscalated);
+  handleEscalatedRef.current = handleEscalated;
+  const invalidateCacheRef = useRef(invalidateCache);
+  invalidateCacheRef.current = invalidateCache;
+  const debouncedInvalidateStatistikRef = useRef(debouncedInvalidateStatistik);
+  debouncedInvalidateStatistikRef.current = debouncedInvalidateStatistik;
 
   /**
    * Verbindung herstellen
@@ -538,21 +600,32 @@ export function useErinnerungWebSocket({
       setStatus('error');
     });
 
-    // Erinnerungs-Events registrieren
-    socket.on('erinnerung.triggered', handleTriggered);
-    socket.on('erinnerung.created', handleCreated);
-    socket.on('erinnerung.updated', handleUpdated);
-    socket.on('erinnerung.deleted', handleDeleted);
-    socket.on('erinnerung.acknowledged', handleAcknowledged);
-    socket.on('erinnerung.assigned', handleAssigned);
-    socket.on('erinnerung.escalated', handleEscalated);
+    // H2 Fix: Events ueber Refs registrieren (stabile connect Dependencies, kein Reconnect)
+    socket.on('erinnerung.triggered', (event) => handleTriggeredRef.current(event));
+    socket.on('erinnerung.created', (event) => handleCreatedRef.current(event));
+    socket.on('erinnerung.updated', (event) => handleUpdatedRef.current(event));
+    socket.on('erinnerung.deleted', (event) => handleDeletedRef.current(event));
+    socket.on('erinnerung.acknowledged', (event) => handleAcknowledgedRef.current(event));
+    socket.on('erinnerung.assigned', (event) => handleAssignedRef.current(event));
+    socket.on('erinnerung.escalated', (event) => handleEscalatedRef.current(event));
+    socket.on('erinnerung.snoozed', (event) => {
+      logger.info('WebSocket: Erinnerung snoozed', event);
+      invalidateCacheRef.current();
+      debouncedInvalidateStatistikRef.current();
+    });
+    socket.on('erinnerung.retriggered', (event) => {
+      logger.info('WebSocket: Erinnerung retriggered', event);
+      invalidateCacheRef.current();
+      debouncedInvalidateStatistikRef.current();
+    });
     socket.on('erinnerung.intensified', (event) => {
       logger.info('WebSocket: Erinnerung intensified', event);
-      invalidateCache();
+      invalidateCacheRef.current();
+      debouncedInvalidateStatistikRef.current();
     });
 
     socketRef.current = socket;
-  }, [enabled, einsatzId, roomName, handleTriggered, handleCreated, handleUpdated, handleDeleted, handleAcknowledged, handleAssigned, handleEscalated, invalidateCache]);
+  }, [enabled, einsatzId, roomName]);
 
   /**
    * Verbindung trennen
@@ -574,27 +647,12 @@ export function useErinnerungWebSocket({
     }
 
     return () => {
+      if (statistikDebounceRef.current) {
+        clearTimeout(statistikDebounceRef.current);
+      }
       disconnect();
     };
   }, [enabled, einsatzId, connect, disconnect]);
-
-  // C4 Fix: Room wechseln bei einsatzId-Änderung (leave old room first)
-  useEffect(() => {
-    if (socketRef.current?.connected && einsatzId) {
-      // Leave old room if einsatzId changed
-      if (previousEinsatzIdRef.current && previousEinsatzIdRef.current !== einsatzId) {
-        logger.debug('WebSocket: Leaving old room', { oldEinsatzId: previousEinsatzIdRef.current });
-        socketRef.current.emit('leave', { einsatzId: previousEinsatzIdRef.current });
-      }
-
-      // Join new room
-      logger.debug('WebSocket: Switching room to', { room: roomName });
-      socketRef.current.emit('join', { einsatzId });
-
-      // Update ref
-      previousEinsatzIdRef.current = einsatzId;
-    }
-  }, [einsatzId, roomName]);
 
   return {
     status,
