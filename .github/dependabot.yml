@@ -1,0 +1,79 @@
+version: 2
+
+updates:
+  # pnpm monorepo - npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "friday"
+      time: "20:00"
+      timezone: "Europe/Berlin"
+    target-branch: "alpha"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+    groups:
+      nestjs:
+        patterns:
+          - "@nestjs/*"
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+      tanstack:
+        patterns:
+          - "@tanstack/*"
+      prisma:
+        patterns:
+          - "prisma"
+          - "@prisma/*"
+      tauri:
+        patterns:
+          - "@tauri-apps/*"
+      dev-minor-patch:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Tauri Rust dependencies
+  - package-ecosystem: "cargo"
+    directory: "/packages/frontend/src-tauri"
+    schedule:
+      interval: "weekly"
+      day: "friday"
+      time: "20:00"
+      timezone: "Europe/Berlin"
+    target-branch: "alpha"
+    labels:
+      - "dependencies"
+      - "rust"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "friday"
+      time: "20:00"
+      timezone: "Europe/Berlin"
+    target-branch: "alpha"
+    labels:
+      - "dependencies"
+      - "ci"
+
+  # Docker
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "friday"
+      time: "20:00"
+      timezone: "Europe/Berlin"
+    target-branch: "alpha"
+    labels:
+      - "dependencies"
+      - "docker"
