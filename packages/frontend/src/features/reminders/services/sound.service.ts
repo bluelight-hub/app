@@ -181,7 +181,7 @@ export class SoundService {
         // Story 2.8 AC1: Tauri mit Fallback zu Web Audio
         try {
           await this.playTauriNativeSoundWithVolume(level, sound, audioVolume);
-          logger.info(`[SoundService] Sound abgespielt: ${level}/${sound} @ ${volume}%`);
+          logger.info(`[SoundService] Sound abgespielt: ${level}/${sound} @ ${volume}%%`);
           return { success: true };
         } catch (tauriError) {
           // AC1: Bei Tauri-Fehler automatisch Web Audio Fallback
@@ -191,7 +191,7 @@ export class SoundService {
           // Fallback zu Web Audio
           const webAudioResult = await this.playWebAudioWithFallbackTracking(soundFile, audioVolume);
           if (webAudioResult.success) {
-            logger.info(`[SoundService] Fallback erfolgreich: ${level}/${sound} @ ${volume}%`);
+            logger.info(`[SoundService] Fallback erfolgreich: ${level}/${sound} @ ${volume}%%`);
             return { success: true, fallbackUsed: true };
           }
           // Beide fehlgeschlagen → AC2 wird von Caller behandelt
@@ -200,7 +200,7 @@ export class SoundService {
       } else {
         // Nicht-Tauri Umgebung: Nur Web Audio
         await this.playWebAudioWithVolume(soundFile, audioVolume);
-        logger.info(`[SoundService] Sound abgespielt: ${level}/${sound} @ ${volume}%`);
+        logger.info(`[SoundService] Sound abgespielt: ${level}/${sound} @ ${volume}%%`);
         return { success: true };
       }
     } catch (error) {
@@ -224,7 +224,7 @@ export class SoundService {
    * **Story 2.7 AC4:** Vorschau-Funktion
    */
   public async playPreview(level: SoundLevel, sound: SoundOption, volume: number): Promise<SoundResult> {
-    logger.info(`[SoundService] Preview: ${level}/${sound} @ ${volume}%`);
+    logger.info(`[SoundService] Preview: ${level}/${sound} @ ${volume}%%`);
     return this.playWithConfig(level, sound, volume);
   }
 

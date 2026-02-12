@@ -10,6 +10,7 @@
  * - Offline-State Tracking mit occurredAt-Preservation
  */
 
+import { isTauri } from '@tauri-apps/api/core';
 import { LazyStore } from '@tauri-apps/plugin-store';
 import { Store, useStore } from '@tanstack/react-store';
 
@@ -109,7 +110,11 @@ let tauriStoreInstance: LazyStore | null = null;
 /**
  * Gibt die Singleton-Instanz des Tauri LazyStore zurueck
  */
-function getTauriStore(): LazyStore {
+function getTauriStore(): LazyStore | null {
+  if (!isTauri()) {
+    return null;
+  }
+
   if (!tauriStoreInstance) {
     tauriStoreInstance = new LazyStore(TAURI_STORE_FILENAME, { autoSave: true });
   }
@@ -123,9 +128,10 @@ function getTauriStore(): LazyStore {
  */
 async function persistToTauriStore(): Promise<void> {
   try {
-    const state = etbOfflineStore.state;
     const store = getTauriStore();
+    if (!store) return;
 
+    const state = etbOfflineStore.state;
     await Promise.all([store.set(ETB_OFFLINE_STORE_KEYS.QUEUE, state.queue), store.set(ETB_OFFLINE_STORE_KEYS.LAST_SYNC, state.lastSync)]);
   } catch (error) {
     console.error('[EtbOfflineStore] Failed to persist to Tauri Store:', error);
@@ -144,6 +150,11 @@ export async function initEtbOfflineStore(): Promise<void> {
   try {
     const store = getTauriStore();
 
+    if (!store) {
+      console.info('[EtbOfflineStore] Running in Browser Mode (No Persistence)');
+      return;
+    }
+
     const [queue, lastSync] = await Promise.all([store.get<EtbQueueAction[]>(ETB_OFFLINE_STORE_KEYS.QUEUE), store.get<string | null>(ETB_OFFLINE_STORE_KEYS.LAST_SYNC)]);
 
     etbOfflineStore.setState(() => ({
@@ -157,7 +168,6 @@ export async function initEtbOfflineStore(): Promise<void> {
     });
   } catch (error) {
     console.error('[EtbOfflineStore] Failed to initialize from Tauri Store:', error);
-    // Bei Fehler bleiben wir beim initialState - kein App-Crash
   }
 }
 

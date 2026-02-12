@@ -686,7 +686,7 @@ describe('Erinnerung Entity', () => {
         expect(erinnerung.status.isAcknowledged()).toBe(true);
       });
 
-      it('sollte Acknowledge verweigern wenn Status GEPLANT ist', () => {
+      it('sollte Acknowledge erlauben wenn Status GEPLANT ist (vorzeitige Bestätigung)', () => {
         // Given
         const erinnerung = createErinnerungWithStatus(ErinnerungStatus.GEPLANT());
 
@@ -694,8 +694,8 @@ describe('Erinnerung Entity', () => {
         const result = erinnerung.acknowledge(testUserId);
 
         // Then
-        expect(result.isFailure).toBe(true);
-        expect(result.error).toBe('ERINNERUNG_NOT_ACKNOWLEDGEABLE');
+        expect(result.isSuccess).toBe(true);
+        expect(erinnerung.status.isAcknowledged()).toBe(true);
       });
 
       it('sollte Acknowledge verweigern wenn Status ACKNOWLEDGED ist', () => {
@@ -873,8 +873,8 @@ describe('Erinnerung Entity', () => {
       });
 
       it('sollte kein Event emittieren bei Validierungsfehler', () => {
-        // Given: GEPLANT Status - nicht acknowledgeable
-        const erinnerung = createErinnerungWithStatus(ErinnerungStatus.GEPLANT());
+        // Given: ACKNOWLEDGED Status - nicht erneut acknowledgeable
+        const erinnerung = createErinnerungWithStatus(ErinnerungStatus.ACKNOWLEDGED());
         erinnerung.clearDomainEvents();
 
         // When

@@ -615,14 +615,14 @@ export class ErinnerungController {
   @Post(':id/acknowledge')
   @ApiOperation({
     summary: 'Erinnerung bestaetigen',
-    description: 'Bestätigt eine ausgelöste Erinnerung (Status → ACKNOWLEDGED). Nur Erinnerungen im Status AUSGELOEST können bestätigt werden.',
+    description: 'Bestätigt eine Erinnerung (Status → ACKNOWLEDGED). Erinnerungen im Status GEPLANT (vorzeitig), AUSGELOEST oder ESKALIERT können bestätigt werden.',
   })
   @ApiWrappedResponse(ErinnerungResponseDto, {
     description: 'Erinnerung erfolgreich bestätigt',
   })
   @ApiBadRequestResponse({ description: 'Ungültige ErinnerungId oder UserId' })
   @ApiNotFoundResponse({ description: 'Erinnerung nicht gefunden' })
-  @ApiConflictResponse({ description: 'Erinnerung kann nicht bestätigt werden (Status ist nicht AUSGELOEST)' })
+  @ApiConflictResponse({ description: 'Erinnerung kann nicht bestätigt werden (Status ist nicht GEPLANT, AUSGELOEST oder ESKALIERT)' })
   async acknowledge(
     @Param('einsatzId') _einsatzId: string, // Für URL-Struktur, nicht für Validierung genutzt
     @Param('id') id: string,
@@ -645,7 +645,7 @@ export class ErinnerungController {
         throw new NotFoundException('Erinnerung nicht gefunden');
       }
       if (result.error === ERINNERUNG_ERROR_CODES.NOT_ACKNOWLEDGEABLE) {
-        throw new ConflictException('Nur ausgelöste Erinnerungen können bestätigt werden');
+        throw new ConflictException('Erinnerung kann in diesem Status nicht bestätigt werden');
       }
       throw new BadRequestException(result.error);
     }

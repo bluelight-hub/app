@@ -171,7 +171,7 @@ describe('AcknowledgeErinnerungHandler', () => {
         expect(mockOutboxRepository.save).toHaveBeenCalledTimes(1);
       });
 
-      it('sollte fehlschlagen wenn Status GEPLANT ist', async () => {
+      it('sollte erfolgreich sein wenn Status GEPLANT ist (vorzeitige Bestätigung)', async () => {
         // Given (Arrange)
         const erinnerung = createTestErinnerung({ status: ErinnerungStatus.GEPLANT() });
         mockRepository.findById.mockResolvedValue(Result.ok(erinnerung));
@@ -185,10 +185,9 @@ describe('AcknowledgeErinnerungHandler', () => {
         const result = await handler.execute(command);
 
         // Then (Assert)
-        expect(result.isFailure).toBe(true);
-        expect(result.error).toBe(ERINNERUNG_ERROR_CODES.NOT_ACKNOWLEDGEABLE);
-        expect(mockRepository.save).not.toHaveBeenCalled();
-        expect(mockOutboxRepository.save).not.toHaveBeenCalled();
+        expect(result.isSuccess).toBe(true);
+        expect(mockRepository.save).toHaveBeenCalledTimes(1);
+        expect(mockOutboxRepository.save).toHaveBeenCalledTimes(1);
       });
 
       it('sollte fehlschlagen wenn Status ACKNOWLEDGED ist (bereits bestaetigt)', async () => {
@@ -478,8 +477,8 @@ describe('AcknowledgeErinnerungHandler', () => {
       });
 
       it('sollte keine Events speichern bei Domain-Validierungsfehler', async () => {
-        // Given (Arrange) - GEPLANT Status kann nicht acknowledged werden
-        const erinnerung = createTestErinnerung({ status: ErinnerungStatus.GEPLANT() });
+        // Given (Arrange) - ACKNOWLEDGED Status kann nicht erneut acknowledged werden
+        const erinnerung = createTestErinnerung({ status: ErinnerungStatus.ACKNOWLEDGED() });
         mockRepository.findById.mockResolvedValue(Result.ok(erinnerung));
 
         const command = AcknowledgeErinnerungCommand.create({
@@ -518,8 +517,8 @@ describe('AcknowledgeErinnerungHandler', () => {
       });
 
       it('sollte Warn-Log bei Domain-Validierungsfehler schreiben', async () => {
-        // Given (Arrange)
-        const erinnerung = createTestErinnerung({ status: ErinnerungStatus.GEPLANT() });
+        // Given (Arrange) - ACKNOWLEDGED Status kann nicht erneut acknowledged werden
+        const erinnerung = createTestErinnerung({ status: ErinnerungStatus.ACKNOWLEDGED() });
         mockRepository.findById.mockResolvedValue(Result.ok(erinnerung));
 
         const command = AcknowledgeErinnerungCommand.create({

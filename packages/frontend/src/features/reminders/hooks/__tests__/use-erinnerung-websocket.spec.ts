@@ -109,8 +109,16 @@ describe('useErinnerungWebSocket', () => {
     });
   });
 
-  it('should connect on mount', () => {
+  /** Flusht den setTimeout(fn, 0) aus dem useEffect Auto-Connect */
+  const flushConnectTimer = async () => {
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 0));
+    });
+  };
+
+  it('should connect on mount', async () => {
     renderHook(() => useErinnerungWebSocket({ einsatzId: 'einsatz-1' }));
+    await flushConnectTimer();
 
     expect(mockIo).toHaveBeenCalled();
     expect(mockSocket.emit).toHaveBeenCalledWith('join', { einsatzId: 'einsatz-1' });
@@ -120,11 +128,7 @@ describe('useErinnerungWebSocket', () => {
     it('should show notification and toast when assigned to current user', async () => {
       // Setup
       renderHook(() => useErinnerungWebSocket({ einsatzId: 'einsatz-1' }));
-
-      // Simulate connect
-      const connectCallback = mockSocket.on.mock.calls.find((call) => call[0] === 'connect')?.[1];
-      act(() => connectCallback?.());
-      mockSocket.connected = true;
+      await flushConnectTimer();
 
       // Get the 'erinnerung.assigned' handler
       const assignedHandler = mockSocket.on.mock.calls.find((call) => call[0] === 'erinnerung.assigned')?.[1];
@@ -164,10 +168,7 @@ describe('useErinnerungWebSocket', () => {
     it('should NOT show notification when user assigns to themselves', async () => {
       // Setup
       renderHook(() => useErinnerungWebSocket({ einsatzId: 'einsatz-1' }));
-
-      // Simulate connect
-      const connectCallback = mockSocket.on.mock.calls.find((call) => call[0] === 'connect')?.[1];
-      act(() => connectCallback?.());
+      await flushConnectTimer();
 
       // Get the 'erinnerung.assigned' handler
       const assignedHandler = mockSocket.on.mock.calls.find((call) => call[0] === 'erinnerung.assigned')?.[1];
@@ -198,11 +199,7 @@ describe('useErinnerungWebSocket', () => {
     it('should show generic toast when assigned to someone else', async () => {
       // Setup
       renderHook(() => useErinnerungWebSocket({ einsatzId: 'einsatz-1' }));
-
-      // Simulate connect
-      const connectCallback = mockSocket.on.mock.calls.find((call) => call[0] === 'connect')?.[1];
-      act(() => connectCallback?.());
-      mockSocket.connected = true;
+      await flushConnectTimer();
 
       // Get the 'erinnerung.assigned' handler
       const assignedHandler = mockSocket.on.mock.calls.find((call) => call[0] === 'erinnerung.assigned')?.[1];
@@ -243,9 +240,7 @@ describe('useErinnerungWebSocket', () => {
   describe('handleEscalated (Story 4.5)', () => {
     it('should show error toast and notification when escalated to current user', async () => {
       renderHook(() => useErinnerungWebSocket({ einsatzId: 'einsatz-1' }));
-      const connectCallback = mockSocket.on.mock.calls.find((call) => call[0] === 'connect')?.[1];
-      act(() => connectCallback?.());
-      mockSocket.connected = true;
+      await flushConnectTimer();
 
       const escalatedHandler = mockSocket.on.mock.calls.find((call) => call[0] === 'erinnerung.escalated')?.[1];
       const event = {
@@ -275,9 +270,7 @@ describe('useErinnerungWebSocket', () => {
 
     it('should show warning toast when own reminder is escalated', async () => {
       renderHook(() => useErinnerungWebSocket({ einsatzId: 'einsatz-1' }));
-      const connectCallback = mockSocket.on.mock.calls.find((call) => call[0] === 'connect')?.[1];
-      act(() => connectCallback?.());
-      mockSocket.connected = true;
+      await flushConnectTimer();
 
       const escalatedHandler = mockSocket.on.mock.calls.find((call) => call[0] === 'erinnerung.escalated')?.[1];
       const event = {
@@ -304,9 +297,7 @@ describe('useErinnerungWebSocket', () => {
 
     it('should show generic warning toast for other escalations', async () => {
       renderHook(() => useErinnerungWebSocket({ einsatzId: 'einsatz-1' }));
-      const connectCallback = mockSocket.on.mock.calls.find((call) => call[0] === 'connect')?.[1];
-      act(() => connectCallback?.());
-      mockSocket.connected = true;
+      await flushConnectTimer();
 
       const escalatedHandler = mockSocket.on.mock.calls.find((call) => call[0] === 'erinnerung.escalated')?.[1];
       const event = {

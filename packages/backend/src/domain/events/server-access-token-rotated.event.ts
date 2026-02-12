@@ -1,5 +1,4 @@
 import { DomainEvent } from '@domain/common/domain-event';
-// biome-ignore lint/style/useImportType: AccessTokenId ist Value Object mit Runtime-Referenz fuer Event Payload
 import { AccessTokenId } from '@domain/value-objects/access-token-id';
 import { EVENT_NAMES } from './event-names';
 

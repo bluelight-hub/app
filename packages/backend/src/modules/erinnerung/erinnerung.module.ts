@@ -7,7 +7,7 @@ import { InfrastructureCommonModule } from '@infrastructure/common.module';
 import { OutboxModule } from '@infrastructure/outbox/outbox.module';
 import { UserInfrastructureModule } from '@infrastructure/user/user-infrastructure.module';
 import { KategorieModule } from '@/modules/kategorie/kategorie.module';
-import { ERINNERUNG_REPOSITORY } from '@infrastructure/di-tokens';
+import { ERINNERUNG_REPOSITORY, PDF_EXPORT_SERVICE, CSV_EXPORT_SERVICE, JSON_EXPORT_SERVICE } from '@infrastructure/di-tokens';
 import { PrismaErinnerungRepository } from '@infrastructure/repositories/prisma-erinnerung.repository';
 import { CreateErinnerungHandler } from '@/application/erinnerung/commands/create-erinnerung/create-erinnerung.handler';
 import { UpdateErinnerungHandler } from '@/application/erinnerung/commands/update-erinnerung/update-erinnerung.handler';
@@ -107,9 +107,19 @@ import { ErinnerungWebSocketEventAdapter } from '@infrastructure/events/adapters
     ExportErinnerungenHandler,
     // Rohdaten-Export (Story 9.10)
     ExportRohdatenHandler,
-    PdfExportService,
-    CsvExportService,
-    JsonExportService,
+    // Export Services (DI-Token basiert fuer Clean Architecture)
+    {
+      provide: PDF_EXPORT_SERVICE,
+      useClass: PdfExportService,
+    },
+    {
+      provide: CSV_EXPORT_SERVICE,
+      useClass: CsvExportService,
+    },
+    {
+      provide: JSON_EXPORT_SERVICE,
+      useClass: JsonExportService,
+    },
     // WebSocket (Story 1.5 AC4 + Security C1, C2, C3)
     ErinnerungGateway,
     WsJwtAuthGuard,

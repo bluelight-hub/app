@@ -10,7 +10,7 @@ import { useActiveEinsatz, EINSATZ_QUERY_KEYS, useEinsatzFahrzeuge, useUpdateFms
 import type { FmsStatus } from '@/features/einsatz';
 import { useEtb } from '@/features/etb';
 import { useLagekarte } from '@/features/lagekarte';
-import { ErinnerungenList, ErinnerungStatistik } from '@/features/reminders';
+import { DashboardErinnerungen, ErinnerungStatistik } from '@/features/reminders';
 import { formatNatoDateTime } from '@/shared/lib/dateFormatter';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { useQuery } from '@tanstack/react-query';
@@ -269,10 +269,8 @@ export function SingleEinsatzDashboard() {
             <ErinnerungStatistik einsatzId={einsatzId} />
           </div>
 
-          {/* Erinnerungen (Story 1.3) */}
-          <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
-            <ErinnerungenList einsatzId={einsatzId} />
-          </div>
+          {/* Erinnerungen - Kompakte Dashboard-Ansicht */}
+          <DashboardErinnerungen einsatzId={einsatzId} />
         </div>
       </div>
 

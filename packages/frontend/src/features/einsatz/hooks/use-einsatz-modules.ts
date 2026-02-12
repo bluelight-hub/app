@@ -17,7 +17,6 @@ import {
   PiRadio,
   PiShieldWarning,
   PiSprayBottle,
-  PiSquaresFour,
   PiTruck,
   PiUserCheck,
   PiUsers,
@@ -79,17 +78,17 @@ export function useEinsatzModules(): Module[] {
       description: 'Einsatzleitung und Dokumentation',
       subPages: [
         {
-          name: 'Cockpit',
-          href: '/app/einsatz/$einsatzId/führung/cockpit',
-          icon: PiSquaresFour,
-          description: 'Erinnerungen & Notizen',
-        },
-        {
           name: 'ETB',
           href: '/app/einsatz/$einsatzId/führung/etb',
           icon: PiClipboard,
           description: 'Einsatztagebuch',
           badge: 'NEU',
+        },
+        {
+          name: 'Pinnwand',
+          href: '/app/einsatz/$einsatzId/führung/pinnwand',
+          icon: PiNotepad,
+          description: 'Erinnerungen & Notizen',
         },
         {
           name: 'Befehle',
@@ -114,12 +113,6 @@ export function useEinsatzModules(): Module[] {
           href: '/app/einsatz/$einsatzId/führung/rhythmus',
           icon: PiMetronome,
           description: 'Wiederkehrende Erinnerungen',
-        },
-        {
-          name: 'Notizen',
-          href: '/app/einsatz/$einsatzId/führung/notizen',
-          icon: PiNotepad,
-          description: 'Einsatznotizen',
         },
       ],
     },

@@ -122,10 +122,13 @@ export class PrismaErinnerungRepository implements IErinnerungRepository {
           assignedAt: data.assignedAt,
           // Pflichtfeld-Flag (Story 2.x) - wird bei Erstellung gesetzt
           requiresNote: data.requiresNote,
-          // Eskalation (Story 4.1)
+          // Eskalation (Story 4.1/4.9)
           eskalationsPersonId: data.eskalationsPersonId,
           // Story 4.10: Delegation ohne Eskalationsrecht
           eskalationNurAnErsteller: data.eskalationNurAnErsteller,
+          // Story 4.9: Eskalationsstatistik-Felder (Defaults: false/null, aber für Konsistenz explizit)
+          wurdeEskaliert: data.wurdeEskaliert,
+          eskaliertAm: data.eskaliertAm,
           // Intensivierungs-Counter (Hotfix für Endlos-Loop)
           intensivierungsCount: data.intensivierungsCount,
           // Story 5.4: ETB-Verknuepfung (bidirektional)
@@ -166,11 +169,13 @@ export class PrismaErinnerungRepository implements IErinnerungRepository {
           assignedToId: data.assignedToId,
           assignedBy: data.assignedBy,
           assignedAt: data.assignedAt,
-          // Eskalation Felder (Story 4.1/4.5) - werden bei eskalieren() gesetzt
+          // Eskalation Felder (Story 4.1/4.5/4.9) - werden bei eskalieren() gesetzt
           eskalationsPersonId: data.eskalationsPersonId,
           eskalationNurAnErsteller: data.eskalationNurAnErsteller, // Story 4.10
           escalatedAt: data.escalatedAt,
           previousAssigneeId: data.previousAssigneeId,
+          wurdeEskaliert: data.wurdeEskaliert, // Story 4.9: Eskalationsstatistik-Flag
+          eskaliertAm: data.eskaliertAm, // Story 4.9: Erster Eskalationszeitpunkt
           // Hotfix: Intensivierungs-Counter
           intensivierungsCount: data.intensivierungsCount,
           // Recurring Felder (Story 6.4) - recurringCurrentCount kann sich ändern

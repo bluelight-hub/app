@@ -96,11 +96,11 @@ describe('ErinnerungStatus', () => {
         expect(current.canTransitionTo(target)).toBe(true);
       });
 
-      it('should not allow transition GEPLANT → ACKNOWLEDGED', () => {
+      it('should allow transition GEPLANT → ACKNOWLEDGED (vorzeitige Bestätigung)', () => {
         const current = ErinnerungStatus.GEPLANT();
         const target = ErinnerungStatus.ACKNOWLEDGED();
 
-        expect(current.canTransitionTo(target)).toBe(false);
+        expect(current.canTransitionTo(target)).toBe(true);
       });
 
       it('should not allow transition GEPLANT → ERLEDIGT', () => {

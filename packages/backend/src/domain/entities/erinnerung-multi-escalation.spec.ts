@@ -110,7 +110,7 @@ describe('Erinnerung - Multi-Level Escalation (Story 4.8)', () => {
       const erinnerung = createTestErinnerung(ErinnerungStatus.ESKALIERT(), userIdB, userIdA, userIdB);
 
       // When: Escalate with nextTarget = B
-      const result = erinnerung.eskalieren(systemUser, userIdB);
+      const _result = erinnerung.eskalieren(systemUser, userIdB);
 
       // Then: Fallback to Intensivierung
       expect(erinnerung.assignedToId?.equals(userIdB)).toBe(true);

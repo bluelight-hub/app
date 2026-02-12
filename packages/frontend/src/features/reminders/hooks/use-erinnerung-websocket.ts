@@ -22,6 +22,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import { toast } from 'sonner';
 import { ERINNERUNG_QUERY_KEYS } from '../api/queries';
+import { hideErinnerungAlarmToast } from '../ui/atoms/ErinnerungAlarmToast';
+import { soundService, timerService, intensificationService } from '../services';
 import { sendAssignmentNotification } from '../services/notification.service';
 
 /** WebSocket Server URL (Backend Port) */
@@ -357,6 +359,12 @@ export function useErinnerungWebSocket({
     (event: ErinnerungWebSocketEvent) => {
       logger.info('WebSocket: Erinnerung acknowledged', event);
 
+      // Alarm-Cleanup wenn acknowledged (egal von wem)
+      soundService.stopAllSounds();
+      timerService.resetTriggered(event.erinnerungId);
+      intensificationService.stopTimer(event.erinnerungId);
+      hideErinnerungAlarmToast(event.erinnerungId);
+
       // Issue #2 Fix: Nutze Ref statt Closure für aktuelle userId
       const userId = currentUserIdRef.current;
       // Issue 7 Fix: Prüfe ob Event vom aktuellen User stammt
@@ -610,6 +618,10 @@ export function useErinnerungWebSocket({
     socket.on('erinnerung.escalated', (event) => handleEscalatedRef.current(event));
     socket.on('erinnerung.snoozed', (event) => {
       logger.info('WebSocket: Erinnerung snoozed', event);
+      soundService.stopAllSounds();
+      timerService.resetTriggered(event.erinnerungId);
+      intensificationService.stopTimer(event.erinnerungId);
+      hideErinnerungAlarmToast(event.erinnerungId);
       invalidateCacheRef.current();
       debouncedInvalidateStatistikRef.current();
     });
@@ -633,7 +645,9 @@ export function useErinnerungWebSocket({
   const disconnect = useCallback(() => {
     if (socketRef.current) {
       logger.info('WebSocket: Disconnecting');
-      socketRef.current.emit('leave', { einsatzId });
+      if (socketRef.current.connected) {
+        socketRef.current.emit('leave', { einsatzId });
+      }
       socketRef.current.disconnect();
       socketRef.current = null;
       setStatus('disconnected');
@@ -642,11 +656,22 @@ export function useErinnerungWebSocket({
 
   // Auto-Connect beim Mount
   useEffect(() => {
+    let cleanedUp = false;
+    let connectTimer: ReturnType<typeof setTimeout> | null = null;
+
     if (enabled && einsatzId) {
-      connect();
+      connectTimer = setTimeout(() => {
+        if (!cleanedUp) {
+          connect();
+        }
+      }, 0);
     }
 
     return () => {
+      cleanedUp = true;
+      if (connectTimer) {
+        clearTimeout(connectTimer);
+      }
       if (statistikDebounceRef.current) {
         clearTimeout(statistikDebounceRef.current);
       }

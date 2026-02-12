@@ -77,6 +77,11 @@ describe('useErinnerungWebSocket - Cache-Invalidierung', () => {
       wrapper: createWrapper(),
     });
 
+    // Auto-Connect setTimeout(fn, 0) ausfuehren
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+
     // Simuliere connect und ein Event das debouncedInvalidateStatistik aufruft
     const connectHandler = getEventHandler('connect');
     act(() => {
@@ -116,6 +121,11 @@ describe('useErinnerungWebSocket - Cache-Invalidierung', () => {
     const einsatzId = 'einsatz-2';
     renderHook(() => useErinnerungWebSocket({ einsatzId }), {
       wrapper: createWrapper(),
+    });
+
+    // Auto-Connect setTimeout(fn, 0) ausfuehren
+    act(() => {
+      vi.advanceTimersByTime(1);
     });
 
     const connectHandler = getEventHandler('connect');
@@ -203,6 +213,11 @@ describe('useErinnerungWebSocket - Cache-Invalidierung', () => {
     const einsatzId = 'einsatz-4';
     renderHook(() => useErinnerungWebSocket({ einsatzId }), {
       wrapper: createWrapper(),
+    });
+
+    // Auto-Connect setTimeout(fn, 0) ausfuehren
+    act(() => {
+      vi.advanceTimersByTime(1);
     });
 
     const connectHandler = getEventHandler('connect');

@@ -408,6 +408,49 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                             </button>
                           ))}
 
+                          {/* Eigene Dauer als Inline-Chip-Input (immer sichtbar) */}
+                          <label
+                            className={cn(
+                              'min-h-[48px] rounded-full px-4 py-2 font-medium text-sm transition-all duration-200',
+                              'focus-within:ring-2 focus-within:ring-amber-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-gray-800',
+                              'flex items-center gap-1',
+                              timeModeField.state.value === 'preset' && minutenField.state.value !== undefined && !TIME_PRESETS.some((p) => p.value === minutenField.state.value)
+                                ? 'bg-amber-500 text-white shadow-md'
+                                : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
+                              isPending && 'cursor-not-allowed opacity-50',
+                            )}
+                          >
+                            <input
+                              id="custom-duration-input"
+                              type="number"
+                              placeholder="__"
+                              aria-label="Eigene Dauer"
+                              aria-invalid={minutenField.state.meta.errors.length > 0}
+                              value={
+                                timeModeField.state.value === 'preset' && minutenField.state.value !== undefined && !TIME_PRESETS.some((p) => p.value === minutenField.state.value)
+                                  ? minutenField.state.value
+                                  : ''
+                              }
+                              onChange={(e) => {
+                                timeModeField.handleChange('preset');
+                                const parsed = Number.parseInt(e.target.value, 10);
+                                const val = e.target.value && !Number.isNaN(parsed) ? parsed : undefined;
+                                minutenField.handleChange(val);
+                              }}
+                              disabled={isPending}
+                              min={1}
+                              max={1440}
+                              className={cn(
+                                'w-12 bg-transparent text-center font-medium text-sm focus:outline-none',
+                                '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
+                                timeModeField.state.value === 'preset' && minutenField.state.value !== undefined && !TIME_PRESETS.some((p) => p.value === minutenField.state.value)
+                                  ? 'text-white placeholder:text-white/60'
+                                  : 'text-gray-700 placeholder:text-gray-400 dark:text-gray-300 dark:placeholder:text-gray-500',
+                              )}
+                            />
+                            Min
+                          </label>
+
                           {/* Story 1.2 AC1: Benutzerdefiniert Chip */}
                           <button
                             type="button"
@@ -432,7 +475,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                             )}
                           >
                             <PiClock className="h-4 w-4" />
-                            Benutzerdefiniert
+                            Uhrzeit
                           </button>
                         </div>
 
@@ -607,6 +650,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
           <form.Field name="kategorieId">
             {(field) => (
               <div>
+                {/* biome-ignore lint/a11y/noLabelWithoutControl: KategorieSelector ist Custom-Komponente mit internem Select */}
                 <label className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
                   Kategorie <span className="text-gray-400 text-xs">(optional)</span>
                 </label>
@@ -688,6 +732,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                     <form.Field name="recurringIntervalMinutes">
                       {(intervalField) => (
                         <div>
+                          {/* biome-ignore lint/a11y/noLabelWithoutControl: Label fuer Button-Chip-Gruppe, kein Input-Element */}
                           <label className="mb-2 block font-medium text-gray-700 text-sm dark:text-gray-300">
                             Intervall <span className="text-red-500">*</span>
                           </label>
@@ -711,23 +756,41 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                                 {preset.label}
                               </button>
                             ))}
-                          </div>
-                          {/* Custom interval input */}
-                          <div className="mt-2 flex items-center gap-2">
-                            <Input
-                              type="number"
-                              placeholder="Benutzerdefiniert"
-                              value={intervalField.state.value && !RECURRING_INTERVAL_PRESETS.some((p) => p.value === intervalField.state.value) ? intervalField.state.value : ''}
-                              onChange={(e) => {
-                                const val = e.target.value ? Number.parseInt(e.target.value, 10) : undefined;
-                                intervalField.handleChange(val as number);
-                              }}
-                              disabled={isPending}
-                              className="w-32"
-                              min={1}
-                              max={1440}
-                            />
-                            <span className="text-gray-500 text-sm dark:text-gray-400">Min</span>
+                            {/* Eigene Intervall-Dauer als Inline-Chip-Input */}
+                            <label
+                              className={cn(
+                                'rounded-full px-3 py-1.5 font-medium text-sm transition-all duration-200',
+                                'focus-within:ring-2 focus-within:ring-amber-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-gray-800',
+                                'flex items-center gap-1',
+                                intervalField.state.value && !RECURRING_INTERVAL_PRESETS.some((p) => p.value === intervalField.state.value)
+                                  ? 'bg-amber-500 text-white shadow-md'
+                                  : 'bg-white text-gray-700 dark:bg-gray-700 dark:text-gray-300',
+                                isPending && 'cursor-not-allowed opacity-50',
+                              )}
+                            >
+                              <input
+                                type="number"
+                                placeholder="__"
+                                aria-label="Eigenes Intervall"
+                                value={intervalField.state.value && !RECURRING_INTERVAL_PRESETS.some((p) => p.value === intervalField.state.value) ? intervalField.state.value : ''}
+                                onChange={(e) => {
+                                  const parsed = Number.parseInt(e.target.value, 10);
+                                  const val = e.target.value && !Number.isNaN(parsed) ? parsed : undefined;
+                                  intervalField.handleChange(val);
+                                }}
+                                disabled={isPending}
+                                min={1}
+                                max={1440}
+                                className={cn(
+                                  'w-12 bg-transparent text-center font-medium text-sm focus:outline-none',
+                                  '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
+                                  intervalField.state.value && !RECURRING_INTERVAL_PRESETS.some((p) => p.value === intervalField.state.value)
+                                    ? 'text-white placeholder:text-white/60'
+                                    : 'text-gray-700 placeholder:text-gray-400 dark:text-gray-300 dark:placeholder:text-gray-500',
+                                )}
+                              />
+                              Min
+                            </label>
                           </div>
                           {intervalField.state.meta.errors.length > 0 && <p className="mt-1 text-red-600 text-sm dark:text-red-400">{formatErrors(intervalField.state.meta.errors)}</p>}
                         </div>
@@ -738,6 +801,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                     <form.Field name="recurringEndMode">
                       {(endModeField) => (
                         <div>
+                          {/* biome-ignore lint/a11y/noLabelWithoutControl: Label fuer Radio-Button-Gruppe */}
                           <label className="mb-2 block font-medium text-gray-700 text-sm dark:text-gray-300">Ende</label>
                           <div className="space-y-2">
                             <label className="flex items-center gap-2">

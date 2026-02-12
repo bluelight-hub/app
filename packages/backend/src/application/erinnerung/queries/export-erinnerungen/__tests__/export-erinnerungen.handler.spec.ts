@@ -2,12 +2,9 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import { Result } from '@domain/common/result';
 import type { IErinnerungRepository } from '@domain/repositories/i-erinnerung.repository';
 import type { ILogger } from '@domain/ports/i-logger.port';
-import { ERINNERUNG_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
+import { ERINNERUNG_REPOSITORY, LOGGER, PDF_EXPORT_SERVICE, CSV_EXPORT_SERVICE, JSON_EXPORT_SERVICE } from '@infrastructure/di-tokens';
 import { ExportErinnerungenHandler } from '../export-erinnerungen.handler';
 import { ExportErinnerungenQuery } from '../export-erinnerungen.query';
-import { PdfExportService } from '@infrastructure/export/pdf-export.service';
-import { CsvExportService } from '@infrastructure/export/csv-export.service';
-import { JsonExportService } from '@infrastructure/export/json-export.service';
 import { GetErinnerungStatistikHandler } from '../../get-erinnerung-statistik/get-erinnerung-statistik.handler';
 import { GetPersonStatistikHandler } from '../../get-person-statistik/get-person-statistik.handler';
 import { GetEskalationsAnalyseHandler } from '../../get-eskalations-analyse/get-eskalations-analyse.handler';
@@ -72,9 +69,9 @@ describe('ExportErinnerungenHandler', () => {
         ExportErinnerungenHandler,
         { provide: ERINNERUNG_REPOSITORY, useValue: repositoryMock },
         { provide: LOGGER, useValue: loggerMock },
-        { provide: PdfExportService, useValue: pdfService },
-        { provide: CsvExportService, useValue: csvService },
-        { provide: JsonExportService, useValue: jsonService },
+        { provide: PDF_EXPORT_SERVICE, useValue: pdfService },
+        { provide: CSV_EXPORT_SERVICE, useValue: csvService },
+        { provide: JSON_EXPORT_SERVICE, useValue: jsonService },
         { provide: GetErinnerungStatistikHandler, useValue: statistikHandler },
         { provide: GetPersonStatistikHandler, useValue: personStatistikHandler },
         { provide: GetEskalationsAnalyseHandler, useValue: eskalationsAnalyseHandler },

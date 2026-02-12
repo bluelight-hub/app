@@ -3,9 +3,9 @@ import { Result } from '@domain/common/result';
 import { ILogger } from '@domain/ports/i-logger.port';
 import { IErinnerungRepository } from '@domain/repositories/i-erinnerung.repository';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
-import { ERINNERUNG_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
-import { CsvExportService } from '@infrastructure/export/csv-export.service';
-import { JsonExportService } from '@infrastructure/export/json-export.service';
+import { ERINNERUNG_REPOSITORY, LOGGER, CSV_EXPORT_SERVICE, JSON_EXPORT_SERVICE } from '@infrastructure/di-tokens';
+import { ICsvExportService } from '../../ports/i-csv-export.service';
+import { IJsonExportService } from '../../ports/i-json-export.service';
 import { ERINNERUNG_ERROR_CODES } from '../../errors/erinnerung-error.codes';
 import type { ExportRohdatenQuery } from './export-rohdaten.query';
 import type { ExportResult } from '../export-erinnerungen/export-erinnerungen.handler';
@@ -17,8 +17,10 @@ export class ExportRohdatenHandler {
     private readonly erinnerungRepository: IErinnerungRepository,
     @Inject(LOGGER)
     private readonly logger: ILogger,
-    private readonly csvService: CsvExportService,
-    private readonly jsonService: JsonExportService,
+    @Inject(CSV_EXPORT_SERVICE)
+    private readonly csvService: ICsvExportService,
+    @Inject(JSON_EXPORT_SERVICE)
+    private readonly jsonService: IJsonExportService,
   ) {}
 
   async execute(query: ExportRohdatenQuery): Promise<Result<ExportResult>> {
@@ -33,6 +35,7 @@ export class ExportRohdatenHandler {
       return Result.fail<ExportResult>(exportResult.error ?? ERINNERUNG_ERROR_CODES.QUERY_FAILED);
     }
 
+    // biome-ignore lint/style/noNonNullAssertion: Result.value ist nach isFailure-Check garantiert
     const erinnerungen = exportResult.value!;
     const einsatzNummer = query.einsatzNummer;
 

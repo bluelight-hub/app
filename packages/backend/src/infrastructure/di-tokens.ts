@@ -115,6 +115,15 @@ export const KRAEFTE_REPOSITORIES = {
   ROLLEN_BESETZUNG: Symbol('IRollenBesetzungRepository'),
 } as const;
 
+/** Export Service Token für IPdfExportService (Story 9.6) */
+export const PDF_EXPORT_SERVICE = Symbol('IPdfExportService');
+
+/** Export Service Token für ICsvExportService (Story 9.6) */
+export const CSV_EXPORT_SERVICE = Symbol('ICsvExportService');
+
+/** Export Service Token für IJsonExportService (Story 9.6) */
+export const JSON_EXPORT_SERVICE = Symbol('IJsonExportService');
+
 /** Transaction Manager Token für ITransactionManager */
 export const TRANSACTION_MANAGER = Symbol('ITransactionManager');
 

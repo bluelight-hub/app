@@ -19,3 +19,5 @@ export { ErinnerungAssignDialog } from './ErinnerungAssignDialog';
 export { StopRecurringErinnerungDialog } from './StopRecurringErinnerungDialog';
 export { ErinnerungStatistik } from './ErinnerungStatistik';
 export { SavePresetDialog } from './SavePresetDialog';
+export { PinnwandErinnerungen } from './PinnwandErinnerungen';
+export { DashboardErinnerungen } from './DashboardErinnerungen';

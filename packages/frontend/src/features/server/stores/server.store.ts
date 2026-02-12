@@ -58,7 +58,10 @@ function sanitizeServerName(name: string): string {
 
   do {
     previous = sanitized;
-    // Entfernt alle HTML-Tags inkl. Tags mit Leerzeichen wie </script >
+    // Schritt 1: Script/Style-Tags MIT Inhalt entfernen (case-insensitive)
+    // Verhindert dass JavaScript-Code als Text im Namen verbleibt
+    sanitized = sanitized.replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, '');
+    // Schritt 2: Verbleibende einzelne HTML-Tags entfernen (z.B. <img>, <br>, selbstschließende Tags)
     sanitized = sanitized.replace(/<\/?[^>]*>/g, '');
     iterations++;
   } while (sanitized !== previous && iterations < maxIterations);

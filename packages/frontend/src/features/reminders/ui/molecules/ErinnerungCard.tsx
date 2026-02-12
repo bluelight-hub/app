@@ -12,7 +12,7 @@
  * - Loeschen oeffnet Bestaetigungs-Dialog
  *
  * **Story 1.6 AC1:**
- * - Acknowledge-Button bei Status AUSGELOEST
+ * - Acknowledge-Button bei Status GEPLANT, AUSGELOEST oder ESKALIERT
  * - 1-Tap Bestaetigung ruft API auf
  * - Optimistic Update fuer schnelles Feedback
  *
@@ -52,38 +52,38 @@
  * - Insert-Animation: Slide-in bei neuer Erinnerung via WebSocket
  */
 
+import { KategorieChip } from '@/features/kategorien';
+import { ItemTypeBadge } from '@/features/notizen';
 import type { ErinnerungResponseDto } from '@/shared';
 
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { cn } from '@/shared/ui/cn';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { PiCheckCircle, PiCheckSquareOffset, PiClockCounterClockwise, PiCloudSlash, PiNotepad, PiPencil, PiRepeat, PiStopCircle, PiTrash, PiUserPlus, PiWarning } from 'react-icons/pi';
-import { useAcknowledgeErinnerung, useSnoozeErinnerung, type SnoozeMinutes } from '../../api';
-import { soundService, timerService, intensificationService } from '../../services';
+import { PiCheckCircle, PiCheckSquareOffset, PiClockCounterClockwise, PiCloudSlash, PiNotepad, PiPencil, PiRepeat, PiStopCircle, PiTimer, PiTrash, PiUserPlus, PiWarning } from 'react-icons/pi';
+import { type SnoozeMinutes, useAcknowledgeErinnerung, useSnoozeErinnerung } from '../../api';
 import { useCountdown } from '../../hooks/use-countdown';
 import { useErinnerungKonfiguration } from '../../hooks/use-erinnerung-konfiguration';
+import { intensificationService, soundService, timerService } from '../../services';
 import { syncService } from '../../services/sync.service';
 import {
   openDeleteDialog,
   openEditDialog,
   openMarkErledigtDialog,
   openStopRecurringDialog,
-  useAnimationEntry,
-  useIntensityLevel,
-  useAudioFailed,
-  useIsHighlighted,
   setHighlightedEntry,
+  useAnimationEntry,
+  useAudioFailed,
+  useIntensityLevel,
+  useIsHighlighted,
 } from '../../stores';
 import { markAsSeen, useIsUnseen } from '../../stores/seen-assignments.store';
-import { ItemTypeBadge } from '@/features/notizen';
-import { KategorieChip } from '@/features/kategorien';
+import { ErinnerungEtbLink, NewBadge } from '../atoms';
 import { AlarmStateBadge } from '../atoms/AlarmStateBadge';
 import { AvatarInitials } from '../atoms/AvatarInitials';
 import { CountdownDisplay } from '../atoms/CountdownDisplay';
-import { NewBadge, ErinnerungEtbLink } from '../atoms';
-import { SnoozeButtonGroup } from './SnoozeButtonGroup';
 import { ErinnerungAssignDialog } from '../organisms/ErinnerungAssignDialog';
 import { ErinnerungHistoryDialog } from '../organisms/ErinnerungHistoryDialog';
+import { SnoozeButtonGroup } from './SnoozeButtonGroup'; // Helper für relative Zeit (TODO: In shared/utils verschieben wenn öfter benötigt)
 
 // Helper für relative Zeit (TODO: In shared/utils verschieben wenn öfter benötigt)
 const calculateRelativeTime = (dateStr: string) => {
@@ -123,6 +123,56 @@ const usePrefersReducedMotion = (): boolean => {
   return prefersReducedMotion;
 };
 
+/**
+ * Display-Variante fuer verschiedene Kontexte.
+ * - 'full': Alle Details und Actions sichtbar (Standard, fuer rote Swimlane)
+ * - 'compact': Titel + Status + Zeit, Actions bei Hover (fuer gelbe Swimlane)
+ * - 'minimal': Einzeilig, nur Status-Dot + Titel + Zeit (fuer gruene/graue Swimlane)
+ */
+export type ErinnerungCardVariant = 'full' | 'compact' | 'minimal';
+
+/** Akzent-Farbe fuer den linken Border im Priority Board Stil (Option C) */
+export type ErinnerungCardAccentColor = 'red' | 'amber' | 'green' | 'blue' | 'gray';
+
+/** Border-Klassen pro Akzent-Farbe */
+const ACCENT_BORDER: Record<ErinnerungCardAccentColor, string> = {
+  red: 'border-red-500',
+  amber: 'border-amber-400',
+  green: 'border-green-300 dark:border-green-700',
+  blue: 'border-blue-400 dark:border-blue-600',
+  gray: 'border-gray-300 dark:border-gray-700',
+};
+
+/** Hintergrund-Klassen pro Akzent-Farbe (full/compact) */
+const ACCENT_BG: Record<ErinnerungCardAccentColor, string> = {
+  red: 'bg-red-50/95 dark:bg-red-950/30',
+  amber: 'bg-amber-50/95 dark:bg-amber-950/30',
+  green: 'bg-green-50/95 dark:bg-green-950/30',
+  blue: 'bg-blue-50/95 dark:bg-blue-950/30',
+  gray: 'dark:bg-gray-800/70',
+};
+
+/** Hover-Hintergrund pro Akzent-Farbe (minimal) */
+const ACCENT_HOVER_BG: Record<ErinnerungCardAccentColor, string> = {
+  red: 'hover:bg-red-50 dark:hover:bg-red-950/30',
+  amber: 'hover:bg-amber-50 dark:hover:bg-amber-950/30',
+  green: 'hover:bg-green-50/50 dark:hover:bg-green-950/20',
+  blue: 'hover:bg-blue-50/50 dark:hover:bg-blue-950/20',
+  gray: 'hover:bg-gray-50/50 dark:hover:bg-gray-800/50',
+};
+
+/** Uhrzeit-Farbe pro Akzent-Farbe */
+const ACCENT_TIME: Record<ErinnerungCardAccentColor, string> = {
+  red: 'text-red-600 dark:text-red-400',
+  amber: 'text-amber-600 dark:text-amber-400',
+  green: 'text-green-600 dark:text-green-400',
+  blue: 'text-blue-600 dark:text-blue-400',
+  gray: 'text-gray-400 dark:text-gray-600',
+};
+
+/** Accent-Farben mit ausgefuellten Aktions-Buttons (sofort handeln + unter Kontrolle) */
+const FILLED_BUTTON_ACCENTS = new Set<ErinnerungCardAccentColor>(['red', 'green']);
+
 interface ErinnerungCardProps {
   /** Die anzuzeigende Erinnerung */
   erinnerung: ErinnerungResponseDto;
@@ -140,6 +190,19 @@ interface ErinnerungCardProps {
    * Wenn angegeben, werden fremde Erinnerungen mit "Team"-Badge markiert
    */
   currentUserId?: string;
+  /**
+   * Display-Variante fuer verschiedene Kontexte.
+   * - 'full': Alle Details und Actions sichtbar (Standard, fuer rote Swimlane)
+   * - 'compact': Titel + Status + Zeit, Actions bei Hover (fuer gelbe Swimlane)
+   * - 'minimal': Einzeilig, nur Status-Dot + Titel + Zeit (fuer gruene/graue Swimlane)
+   * @default 'full'
+   */
+  variant?: ErinnerungCardVariant;
+  /**
+   * Akzent-Farbe fuer Priority Board Stil (border-l-4).
+   * Wenn gesetzt, wird der Card-Stil auf den Prototyp-Look umgestellt.
+   */
+  accentColor?: ErinnerungCardAccentColor;
 }
 
 /**
@@ -149,7 +212,8 @@ interface ErinnerungCardProps {
  * **Story 1.3 AC3:** Nur GEPLANT Status ist editierbar
  * **Story 1.7:** Visuelle Status-Anzeige mit AlarmStateBadge und CountdownDisplay
  */
-export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator = false, currentUserId }: ErinnerungCardProps) {
+export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator = false, currentUserId, variant: variantProp, accentColor }: ErinnerungCardProps) {
+  const variant = variantProp ?? 'full';
   // Story 1.7: Countdown Hook für dynamische Updates und Urgency Level
   const { urgencyLevel, remaining } = useCountdown(erinnerung.faelligAm);
 
@@ -219,8 +283,8 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
   const isErledigt = erinnerung.status === 'ERLEDIGT';
   // Story 1.4 AC1: Nur GEPLANT oder AUSGELOEST Status loeschbar
   const isDeletable = erinnerung.status === 'GEPLANT' || erinnerung.status === 'AUSGELOEST';
-  // Story 1.5 Task 14.4: Nur AUSGELOEST oder ESKALIERT Status kann bestätigt werden
-  const isAcknowledgeable = erinnerung.status === 'AUSGELOEST' || erinnerung.status === 'ESKALIERT';
+  // Story 1.5 Task 14.4: GEPLANT, AUSGELOEST oder ESKALIERT Status kann bestätigt werden
+  const isAcknowledgeable = erinnerung.status === 'GEPLANT' || erinnerung.status === 'AUSGELOEST' || erinnerung.status === 'ESKALIERT';
   // Story 2.1 AC1: Nur AUSGELOEST Status kann gesnoozed werden
   const isSnoozeable = erinnerung.status === 'AUSGELOEST';
   // Story 2.5 AC1: Nur ACKNOWLEDGED oder ESKALIERT Status kann erledigt werden
@@ -343,7 +407,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
   );
 
   // H2 Fix: Enter-Key Support für AC1 Requirement + Story 2.1 AC1: Escape-Key für 5 Min Snooze
-  const handleKeyDown = useCallback(
+  const _handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       // Enter: Acknowledge
       if (e.key === 'Enter' && isAcknowledgeable && !acknowledgeErinnerung.isPending) {
@@ -439,142 +503,308 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
     }
   };
 
-  // Gemeinsame CSS-Klassen für Card-Container
+  // Effekt-Klassen fuer triggered/eskaliert im Accent-Modus (ohne Border, nur Ring/Glow)
+  const getEffectClasses = () => {
+    if (isTriggered || isEskaliert) {
+      if (isEscalationImminent) return 'ring-4 ring-red-500 dark:ring-red-600 animate-pulse';
+      if (audioFailed) return 'ring-4 ring-red-400 dark:ring-red-700 animate-border-glow-urgent';
+      if (intensityLevel !== 'none') return 'ring-2 ring-red-300 dark:ring-red-800 animate-border-glow';
+    }
+    if (isAcknowledged || isErledigt) return 'opacity-75';
+    return '';
+  };
+
+  // Gemeinsame CSS-Klassen fuer Card-Container (variant-abhaengig)
+  // Bei accentColor: Priority Board Stil (border-l-4 Akzent)
+  // Ohne accentColor: Standard-Stil (rounded-lg border shadow-sm) fuer Rueckwaertskompatibilitaet
   const cardBaseClasses = cn(
-    'rounded-lg border bg-white p-4 shadow-sm transition-all dark:bg-gray-800',
-    getBorderClasses(),
-    // Background für AUSGELOEST oder ESKALIERT
-    (isTriggered || isEskaliert) && 'bg-red-50 dark:bg-red-900/20',
-    // Story 3.2 AC2: Animation bei WebSocket-Updates
-    getAnimationClasses(),
-    // Story 5.4 Task 6.2: Highlight-Effekt bei Scroll-to-Erinnerung
-    isHighlighted && 'ring-4 ring-amber-400 ring-opacity-75 animate-pulse',
+    variant === 'minimal'
+      ? accentColor
+        ? cn('border-l-4 rounded-r px-3 py-2 transition-colors', ACCENT_BORDER[accentColor], ACCENT_HOVER_BG[accentColor])
+        : 'border-b border-gray-100 bg-white py-2 px-3 dark:border-gray-800 dark:bg-gray-800'
+      : accentColor
+        ? cn(
+            'border-l-4 rounded-r-lg transition-all',
+            variant === 'compact' ? 'px-4 py-3' : 'p-4',
+            ACCENT_BORDER[accentColor],
+            ACCENT_BG[accentColor],
+            getEffectClasses(),
+            getAnimationClasses(),
+            isHighlighted && 'ring-4 ring-amber-400 ring-opacity-75 animate-pulse',
+          )
+        : cn(
+            'rounded-lg border bg-white shadow-sm transition-all dark:bg-gray-800',
+            variant === 'compact' ? 'p-3' : 'p-4',
+            getBorderClasses(),
+            (isTriggered || isEskaliert) && 'bg-red-50 dark:bg-red-900/20',
+            getAnimationClasses(),
+            isHighlighted && 'ring-4 ring-amber-400 ring-opacity-75 animate-pulse',
+          ),
     className,
   );
 
+  // Uhrzeit fuer compact/minimal
+  const timeString = new Date(erinnerung.faelligAm).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+
+  // Status-Dot Farbe fuer minimal Variante
+  const getStatusDotColor = () => {
+    if (isTriggered || isEskaliert) return 'bg-red-500 animate-pulse';
+    if (erinnerung.status === 'SNOOZED') return 'bg-orange-400';
+    if (isAcknowledged) return 'bg-emerald-500';
+    if (isErledigt) return 'bg-gray-300 dark:bg-gray-600';
+    // GEPLANT: Orange wenn bald faellig
+    if (urgencyLevel === 'warning' || urgencyLevel === 'urgent' || urgencyLevel === 'critical') return 'bg-orange-400';
+    return 'bg-gray-400';
+  };
+
+  // Status-spezifische Text-Klassen fuer minimal Variante
+  const getMinimalTextClasses = () => {
+    if (isTriggered || isEskaliert) return 'font-medium text-red-700 dark:text-red-400';
+    if (erinnerung.status === 'SNOOZED') return 'italic text-orange-600 dark:text-orange-400';
+    if (isErledigt) return 'line-through text-gray-500 dark:text-gray-400';
+    return 'text-gray-900 dark:text-white';
+  };
+
+  // Story 3.4: Zuweisungs-Dialog (wird immer gerendert, sichtbar nur wenn isAssignDialogOpen)
+  const assignDialog = <ErinnerungAssignDialog isOpen={isAssignDialogOpen} onClose={() => setIsAssignDialogOpen(false)} erinnerung={erinnerung} einsatzId={einsatzId} />;
+
+  // History-Dialog (wird in allen Varianten benoetigt)
+  const historyDialog = <ErinnerungHistoryDialog isOpen={isHistoryDialogOpen} onClose={() => setIsHistoryDialogOpen(false)} erinnerung={erinnerung} einsatzId={einsatzId} />;
+
+  /**
+   * Click-Handler fuer den Card-Container.
+   * Markiert die Erinnerung als gesehen (Story 3.7 AC4).
+   * Acknowledge erfolgt NUR ueber die expliziten Action-Buttons.
+   */
+  const handleCardClick = useCallback(() => {
+    handleMarkAsSeen();
+  }, [handleMarkAsSeen]);
+
+  // ═══════════════════════════════════════════════════════════════════
+  // MINIMAL Variante: Einzeilige Darstellung mit Status-Dot
+  // ═══════════════════════════════════════════════════════════════════
+  if (variant === 'minimal') {
+    return (
+      <>
+        {/* biome-ignore lint/a11y/useSemanticElements: div mit role="group" ist hier korrekt, da Container interaktive Elemente enthaelt */}
+        {/* biome-ignore lint/a11y/useKeyWithClickEvents: Keyboard-Navigation via interaktive Kindelemente */}
+        <div ref={cardRef} role="group" onClick={handleCardClick} aria-label={`Erinnerung "${erinnerung.titel}"`} className={cn(cardBaseClasses, 'group relative focus:outline-none')}>
+          <div className="flex items-center gap-2">
+            {/* Status-Dot */}
+            <span className={cn('h-2 w-2 flex-shrink-0 rounded-full', getStatusDotColor())} aria-hidden="true" />
+
+            {/* Snoozed: Kleines Uhr-Icon */}
+            {erinnerung.status === 'SNOOZED' && <PiTimer className="h-3 w-3 flex-shrink-0 text-orange-500 dark:text-orange-400" aria-hidden="true" />}
+
+            {/* Titel mit Status-spezifischem Styling */}
+            <span className={cn('min-w-0 truncate text-sm', getMinimalTextClasses())}>{erinnerung.titel}</span>
+
+            {/* Uhrzeit (wird bei Hover durch Actions ersetzt) */}
+            <span className={cn('ml-auto whitespace-nowrap text-xs group-hover:hidden', accentColor ? cn('font-mono font-semibold', ACCENT_TIME[accentColor]) : 'text-gray-400')}>{timeString}</span>
+
+            {/* Hover-Actions (ersetzen die Uhrzeit visuell) */}
+            <div className="ml-auto hidden flex-shrink-0 items-center gap-0.5 group-hover:flex">
+              {isAcknowledgeable && (
+                <Button
+                  appearance="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAcknowledge();
+                  }}
+                  aria-label="Bestätigen"
+                  title="Bestätigen"
+                  className="h-6 w-6 cursor-pointer p-0 text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20"
+                >
+                  <PiCheckCircle className="pointer-events-none h-3.5 w-3.5" />
+                </Button>
+              )}
+              {isMarkErledigtable && (
+                <Button
+                  appearance="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleMarkErledigt();
+                  }}
+                  aria-label="Erledigt"
+                  title="Erledigt"
+                  className="h-6 w-6 cursor-pointer p-0 text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20"
+                >
+                  <PiCheckSquareOffset className="pointer-events-none h-3.5 w-3.5" />
+                </Button>
+              )}
+              {isSnoozeable && (
+                <Button
+                  appearance="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSnooze(5);
+                  }}
+                  aria-label="5 Min Snooze"
+                  title="5 Min Snooze"
+                  className="h-6 w-6 cursor-pointer p-0 text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-900/20"
+                >
+                  <PiTimer className="pointer-events-none h-3.5 w-3.5" />
+                </Button>
+              )}
+              <Button
+                appearance="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsHistoryDialogOpen(true);
+                }}
+                aria-label="Verlauf anzeigen"
+                title="Verlauf anzeigen"
+                className="h-6 w-6 cursor-pointer p-0 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+              >
+                <PiClockCounterClockwise className="pointer-events-none h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
+        </div>
+        {assignDialog}
+        {historyDialog}
+      </>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // COMPACT und FULL Varianten: Gemeinsamer cardContent mit bedingtem Ausblenden
+  // ═══════════════════════════════════════════════════════════════════
+
   // Card-Inhalt als JSX (wird in beiden Varianten wiederverwendet)
   const cardContent = (
-    <div className="flex flex-col gap-3">
+    <div className={cn('flex flex-col', variant === 'compact' ? 'gap-2' : 'gap-3')}>
       <div className="flex items-start justify-between gap-3">
         {/* Status-Badge und Inhalt */}
         <div className="flex items-start gap-3">
           {/* Story 1.7 AC1/AC6: AlarmStateBadge statt inline Icon */}
           {/* biome-ignore lint/suspicious/noExplicitAny: DTO type mismatch */}
-          <AlarmStateBadge status={erinnerung.status as any} minutesUntilDue={minutesUntilDue} size="md" intensityLevel={intensityLevel} audioFailed={audioFailed} />
+          <AlarmStateBadge status={erinnerung.status as any} minutesUntilDue={minutesUntilDue} size={variant === 'compact' ? 'sm' : 'md'} intensityLevel={intensityLevel} audioFailed={audioFailed} />
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h4 className="font-medium text-gray-900 text-sm dark:text-white">{erinnerung.titel}</h4>
-              {/* Story 7.5 AC3: Typ-Badge */}
-              <ItemTypeBadge type="erinnerung" />
+              {/* Compact: Uhrzeit rechtsbuendig in Zeile 1 */}
+              {variant === 'compact' && <span className={cn('ml-auto whitespace-nowrap font-mono font-semibold text-xs', accentColor ? ACCENT_TIME[accentColor] : 'text-gray-400')}>{timeString}</span>}
+              {/* Story 7.5 AC3: Typ-Badge (nur full) */}
+              {variant === 'full' && <ItemTypeBadge type="erinnerung" />}
               {/* Story 8.2: Kategorie-Badge mit Runtime Type Check */}
               {typeof erinnerung.kategorieName === 'string' && typeof erinnerung.kategorieFarbe === 'string' && <KategorieChip name={erinnerung.kategorieName} farbe={erinnerung.kategorieFarbe} />}
               {/* Story 3.7 AC3: Neu Badge */}
               {shouldShowNewBadge && <NewBadge />}
-              {/* Story 6.4 + 6.5: Wiederkehrend-Badge */}
-              {(erinnerung.isRecurring || erinnerung.parentErinnerungId) && (
-                <span
-                  className="inline-flex items-center text-amber-500 dark:text-amber-400"
-                  title={
-                    erinnerung.isRecurring
-                      ? `Wiederkehrend alle ${erinnerung.recurringIntervalMinutes} Min`
-                      : `Instanz ${(erinnerung.recurringSequenceNumber as unknown as number) ?? '?'}/${(erinnerung.recurringMaxCount as unknown as number) ?? '\u221E'}`
-                  }
-                >
-                  <PiRepeat className="h-4 w-4" aria-hidden="true" />
-                </span>
-              )}
-              {/* Story 6.5 AC3: Serie gestoppt Badge */}
-              {!erinnerung.isRecurring && !erinnerung.parentErinnerungId && (erinnerung.recurringCurrentCount as unknown as number) > 0 && erinnerung.recurringIntervalMinutes && (
-                <output
-                  aria-label="Serie gestoppt"
-                  className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-1.5 py-0.5 font-medium text-gray-600 text-xs dark:bg-gray-700 dark:text-gray-300"
-                  title={`Serie gestoppt (${erinnerung.recurringCurrentCount as unknown as number} Instanzen erstellt)`}
-                >
-                  <PiStopCircle className="h-3 w-3" aria-hidden="true" />
-                  Serie gestoppt
-                </output>
-              )}
-              {/* Story 1.8 AC1: Offline-Badge */}
-              {isOfflineCreated && (
-                <output
-                  aria-label="Offline erstellt"
-                  className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 font-medium text-amber-700 text-xs dark:bg-amber-900/40 dark:text-amber-300"
-                  title="Offline erstellt"
-                >
-                  <PiCloudSlash className="h-3 w-3" aria-hidden="true" />
-                  Offline
-                </output>
-              )}
-              {/* Story 2.2 AC2: Re-Trigger Badge */}
-              {isRetrigger && (
-                <output
-                  aria-label={`${retriggerNumber}. Auslösung`}
-                  className="inline-flex items-center gap-1 rounded-full bg-red-100 px-1.5 py-0.5 font-medium text-red-700 text-xs dark:bg-red-900/40 dark:text-red-300"
-                  title={`${retriggerNumber}. Auslösung`}
-                >
-                  {retriggerNumber}. Auslösung
-                </output>
-              )}
-              {/* Story 2.6: Pflicht-Notiz */}
-              {erinnerung.requiresNote && (
-                <output
-                  aria-label="Pflicht-Notiz"
-                  className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 font-medium text-amber-700 text-xs dark:bg-amber-900/40 dark:text-amber-300"
-                  title="Notiz erforderlich"
-                >
-                  <PiNotepad className="h-3 w-3" aria-hidden="true" />
-                  Pflicht
-                </output>
-              )}
-              {/* Story 3.1 AC8: Team-Badge */}
-              {isTeamReminder && (
-                <output
-                  aria-label="Team-Erinnerung"
-                  className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-1.5 py-0.5 font-medium text-blue-700 text-xs dark:bg-blue-900/40 dark:text-blue-300"
-                >
-                  Team
-                </output>
-              )}
-              {/* Story 4.1: Eskalationsperson */}
-              {erinnerung.eskalationsPersonName && (
-                <output
-                  aria-label={`Eskalation an: ${erinnerung.eskalationsPersonName}`}
-                  className="inline-flex items-center gap-1 rounded-full bg-red-50 px-1.5 py-0.5 font-medium text-red-700 text-xs dark:bg-red-900/40 dark:text-red-300"
-                  title={`Im Eskalationsfall benachrichtigt: ${erinnerung.eskalationsPersonName}`}
-                >
-                  <PiWarning className="h-3 w-3" aria-hidden="true" />
-                  {erinnerung.eskalationsPersonName}
-                </output>
-              )}
-              {/* Story 4.10: Rückläufer Badge */}
-              {(erinnerung as unknown as { eskalationNurAnErsteller?: boolean })?.eskalationNurAnErsteller && (
-                <output
-                  aria-label="Rückläufer aktiv - Eskalation geht an Ersteller"
-                  className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 font-medium text-amber-700 text-xs dark:bg-amber-900/40 dark:text-amber-300"
-                  title="Eskalation geht automatisch an den Ersteller zurück (Rückläufer)"
-                >
-                  ↩️ Rückläufer
-                </output>
-              )}
-              {/* Story 4.5: Eskaliert von Info */}
-              {/* Story 4.5: Eskaliert von Info */}
-              {erinnerung.previousAssigneeName && (
-                <output
-                  aria-label={`Eskaliert von: ${erinnerung.previousAssigneeName}`}
-                  className="inline-flex items-center gap-1 rounded-full bg-red-100 px-1.5 py-0.5 font-medium text-red-700 text-xs dark:bg-red-900/40 dark:text-red-300"
-                  title={`Eskaliert von ${erinnerung.previousAssigneeName} am ${erinnerung.escalatedAt ? new Date(erinnerung.escalatedAt as unknown as string).toLocaleTimeString() : ''}`}
-                >
-                  <PiWarning className="h-3 w-3" aria-hidden="true" />
-                  Von {erinnerung.previousAssigneeName}
-                  {erinnerung.escalatedAt && <span className="opacity-75"> ({calculateRelativeTime(erinnerung.escalatedAt as unknown as string)})</span>}
-                </output>
+              {/* Folgende Badges nur in full Variante */}
+              {variant === 'full' && (
+                <>
+                  {/* Story 6.4 + 6.5: Wiederkehrend-Badge */}
+                  {(erinnerung.isRecurring || erinnerung.parentErinnerungId) && (
+                    <span
+                      className="inline-flex items-center text-amber-500 dark:text-amber-400"
+                      title={
+                        erinnerung.isRecurring
+                          ? `Wiederkehrend alle ${erinnerung.recurringIntervalMinutes} Min`
+                          : `Instanz ${(erinnerung.recurringSequenceNumber as unknown as number) ?? '?'}/${(erinnerung.recurringMaxCount as unknown as number) ?? '\u221E'}`
+                      }
+                    >
+                      <PiRepeat className="h-4 w-4" aria-hidden="true" />
+                    </span>
+                  )}
+                  {/* Story 6.5 AC3: Serie gestoppt Badge */}
+                  {!erinnerung.isRecurring && !erinnerung.parentErinnerungId && (erinnerung.recurringCurrentCount as unknown as number) > 0 && erinnerung.recurringIntervalMinutes && (
+                    <output
+                      aria-label="Serie gestoppt"
+                      className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-1.5 py-0.5 font-medium text-gray-600 text-xs dark:bg-gray-700 dark:text-gray-300"
+                      title={`Serie gestoppt (${erinnerung.recurringCurrentCount as unknown as number} Instanzen erstellt)`}
+                    >
+                      <PiStopCircle className="h-3 w-3" aria-hidden="true" />
+                      Serie gestoppt
+                    </output>
+                  )}
+                  {/* Story 1.8 AC1: Offline-Badge */}
+                  {isOfflineCreated && (
+                    <output
+                      aria-label="Offline erstellt"
+                      className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 font-medium text-amber-700 text-xs dark:bg-amber-900/40 dark:text-amber-300"
+                      title="Offline erstellt"
+                    >
+                      <PiCloudSlash className="h-3 w-3" aria-hidden="true" />
+                      Offline
+                    </output>
+                  )}
+                  {/* Story 2.2 AC2: Re-Trigger Badge */}
+                  {isRetrigger && (
+                    <output
+                      aria-label={`${retriggerNumber}. Auslösung`}
+                      className="inline-flex items-center gap-1 rounded-full bg-red-100 px-1.5 py-0.5 font-medium text-red-700 text-xs dark:bg-red-900/40 dark:text-red-300"
+                      title={`${retriggerNumber}. Auslösung`}
+                    >
+                      {retriggerNumber}. Auslösung
+                    </output>
+                  )}
+                  {/* Story 2.6: Pflicht-Notiz */}
+                  {erinnerung.requiresNote && (
+                    <output
+                      aria-label="Pflicht-Notiz"
+                      className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 font-medium text-amber-700 text-xs dark:bg-amber-900/40 dark:text-amber-300"
+                      title="Notiz erforderlich"
+                    >
+                      <PiNotepad className="h-3 w-3" aria-hidden="true" />
+                      Pflicht
+                    </output>
+                  )}
+                  {/* Story 3.1 AC8: Team-Badge */}
+                  {isTeamReminder && (
+                    <output
+                      aria-label="Team-Erinnerung"
+                      className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-1.5 py-0.5 font-medium text-blue-700 text-xs dark:bg-blue-900/40 dark:text-blue-300"
+                    >
+                      Team
+                    </output>
+                  )}
+                  {/* Story 4.1: Eskalationsperson */}
+                  {erinnerung.eskalationsPersonName && (
+                    <output
+                      aria-label={`Eskalation an: ${erinnerung.eskalationsPersonName}`}
+                      className="inline-flex items-center gap-1 rounded-full bg-red-50 px-1.5 py-0.5 font-medium text-red-700 text-xs dark:bg-red-900/40 dark:text-red-300"
+                      title={`Im Eskalationsfall benachrichtigt: ${erinnerung.eskalationsPersonName}`}
+                    >
+                      <PiWarning className="h-3 w-3" aria-hidden="true" />
+                      {erinnerung.eskalationsPersonName}
+                    </output>
+                  )}
+                  {/* Story 4.10: Ruecklaufer Badge */}
+                  {(erinnerung as unknown as { eskalationNurAnErsteller?: boolean })?.eskalationNurAnErsteller && (
+                    <output
+                      aria-label="Rückläufer aktiv - Eskalation geht an Ersteller"
+                      className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 font-medium text-amber-700 text-xs dark:bg-amber-900/40 dark:text-amber-300"
+                      title="Eskalation geht automatisch an den Ersteller zurück (Rückläufer)"
+                    >
+                      ↩️ Rückläufer
+                    </output>
+                  )}
+                  {/* Story 4.5: Eskaliert von Info */}
+                  {erinnerung.previousAssigneeName && (
+                    <output
+                      aria-label={`Eskaliert von: ${erinnerung.previousAssigneeName}`}
+                      className="inline-flex items-center gap-1 rounded-full bg-red-100 px-1.5 py-0.5 font-medium text-red-700 text-xs dark:bg-red-900/40 dark:text-red-300"
+                      title={`Eskaliert von ${erinnerung.previousAssigneeName} am ${erinnerung.escalatedAt ? new Date(erinnerung.escalatedAt as unknown as string).toLocaleTimeString() : ''}`}
+                    >
+                      <PiWarning className="h-3 w-3" aria-hidden="true" />
+                      Von {erinnerung.previousAssigneeName}
+                      {erinnerung.escalatedAt && <span className="opacity-75"> ({calculateRelativeTime(erinnerung.escalatedAt as unknown as string)})</span>}
+                    </output>
+                  )}
+                </>
               )}
             </div>
-            {erinnerung.beschreibung && <p className="mt-0.5 text-gray-500 text-xs dark:text-gray-400">{erinnerung.beschreibung as unknown as string}</p>}
+            {/* Beschreibung: nur in full */}
+            {variant === 'full' && erinnerung.beschreibung && <p className="mt-0.5 text-gray-500 text-xs dark:text-gray-400">{erinnerung.beschreibung as unknown as string}</p>}
 
-            {/* Story 5.7 AC1/AC2: Link zum Source-ETB-Eintrag */}
-            {erinnerung.etbEntryId && (
+            {/* ETB-Link: nur in full */}
+            {variant === 'full' && erinnerung.etbEntryId && (
               <div className="mt-1">
                 <ErinnerungEtbLink
                   etbEntryId={erinnerung.etbEntryId}
@@ -585,7 +815,8 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
               </div>
             )}
 
-            {(showCreator || isTeamReminder || (assignedToId && assignedToId === currentUserId)) && erinnerung.erstellerName && (
+            {/* Ersteller-Info: nur in full */}
+            {variant === 'full' && (showCreator || isTeamReminder || (assignedToId && assignedToId === currentUserId)) && erinnerung.erstellerName && (
               <div className="mt-0.5 flex items-center gap-1.5">
                 <AvatarInitials name={erinnerung.erstellerName as unknown as string} size="sm" />
                 <p className="text-gray-400 text-xs dark:text-gray-500">
@@ -594,24 +825,29 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
               </div>
             )}
 
-            <div className="mt-1 flex items-center gap-2">
-              {erinnerung.status === 'GEPLANT' && <CountdownDisplay faelligAm={erinnerung.faelligAm} className="text-sm" />}
+            {/* CountdownDisplay und Uhrzeit: nur in full */}
+            {variant === 'full' && (
+              <div className="mt-1 flex items-center gap-2">
+                {erinnerung.status === 'GEPLANT' && <CountdownDisplay faelligAm={erinnerung.faelligAm} className="text-sm" />}
 
-              {/* Story 4.7: Escalation Countdown */}
-              {isEscalationImminent && (
-                <span className="flex animate-pulse items-center gap-1 font-bold text-red-600 text-xs dark:text-red-400">
-                  <PiWarning className="h-3 w-3" />
-                  {msUntilEscalation > 0 ? `Eskaliert in ${Math.ceil(msUntilEscalation / 1000)}s` : 'Eskalation wird ausgeführt...'}
-                </span>
-              )}
+                {/* Story 4.7: Escalation Countdown */}
+                {isEscalationImminent && (
+                  <span className="flex animate-pulse items-center gap-1 font-bold text-red-600 text-xs dark:text-red-400">
+                    <PiWarning className="h-3 w-3" />
+                    {msUntilEscalation > 0 ? `Eskaliert in ${Math.ceil(msUntilEscalation / 1000)}s` : 'Eskalation wird ausgeführt...'}
+                  </span>
+                )}
 
-              <span className="text-gray-400 text-xs">{new Date(erinnerung.faelligAm).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}</span>
-            </div>
+                <span className="text-gray-400 text-xs">{timeString}</span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Administrative Aktionen (Immer oben rechts) */}
-        <div className="flex flex-shrink-0 gap-1">
+        {/* Administrative Aktionen */}
+        {/* Compact: Versteckt, nur bei Hover sichtbar (group + group-hover Pattern) */}
+        {/* Full: Immer sichtbar */}
+        <div className={cn('flex flex-shrink-0 gap-1', variant === 'compact' && 'opacity-0 transition-opacity group-hover:opacity-100')}>
           {isEditable && (
             <Button appearance="ghost" size="sm" onClick={handleEdit} aria-label="Erinnerung bearbeiten" title="Erinnerung bearbeiten" className="h-10 w-10 p-0">
               <PiPencil className="h-5 w-5" />
@@ -678,111 +914,102 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
         </div>
       </div>
 
-      {/* Primäre Aktionen für AUSGELOEST oder ACKNOWLEDGED (Neue Zeile für bessere Containment) */}
+      {/* Primaere Aktionen fuer AUSGELOEST oder ACKNOWLEDGED */}
       {(isAcknowledgeable || isMarkErledigtable || isSnoozeable) && (
         <div className={cn('flex flex-wrap items-center gap-2 border-t pt-2', isTriggered ? 'border-red-200 dark:border-red-800' : 'border-gray-100 dark:border-gray-700')}>
-          {/* Acknowledge Button */}
-          {isAcknowledgeable && (
-            <Button
-              appearance="filled"
-              size="sm"
-              onClick={handleAcknowledge}
-              disabled={acknowledgeErinnerung.isPending}
-              className={cn('h-10 min-w-[120px] flex-1 justify-center gap-2', isTriggered ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700')}
-            >
-              <PiCheckCircle className={cn('h-5 w-5', acknowledgeErinnerung.isPending && 'animate-pulse')} />
-              <span>Bestätigen</span>
-            </Button>
-          )}
+          {/* Acknowledge Button - filled in rot/gruen Zone, outline in anderen */}
+          {isAcknowledgeable &&
+            (accentColor && FILLED_BUTTON_ACCENTS.has(accentColor) ? (
+              <Button
+                appearance="filled"
+                size="sm"
+                onClick={handleAcknowledge}
+                disabled={acknowledgeErinnerung.isPending}
+                className={cn(
+                  'justify-center gap-2',
+                  variant === 'compact'
+                    ? cn('h-8 min-w-[80px]', isTriggered ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700')
+                    : cn('h-10 min-w-[120px] flex-1', isTriggered ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'),
+                )}
+              >
+                <PiCheckCircle className={cn(variant === 'compact' ? 'h-4 w-4' : 'h-5 w-5', acknowledgeErinnerung.isPending && 'animate-pulse')} />
+                <span>Bestätigen</span>
+              </Button>
+            ) : (
+              <Button
+                appearance="outline"
+                size="sm"
+                onClick={handleAcknowledge}
+                disabled={acknowledgeErinnerung.isPending}
+                className={cn(
+                  'justify-center gap-2 border-green-500 text-green-700 hover:bg-green-50 dark:border-green-600 dark:text-green-400 dark:hover:bg-green-950/30',
+                  variant === 'compact' ? 'h-8 min-w-[80px]' : 'h-10 min-w-[120px] flex-1',
+                )}
+              >
+                <PiCheckCircle className={cn(variant === 'compact' ? 'h-4 w-4' : 'h-5 w-5', acknowledgeErinnerung.isPending && 'animate-pulse')} />
+                <span>Bestätigen</span>
+              </Button>
+            ))}
 
-          {/* Erledigt Markieren Button */}
-          {isMarkErledigtable && (
-            <Button appearance="outline" size="sm" onClick={handleMarkErledigt} className="h-10 flex-1 justify-center gap-2 border-green-600 text-green-600 hover:bg-green-50">
-              <PiCheckSquareOffset className="h-5 w-5" />
-              <span>Erledigt</span>
-            </Button>
-          )}
+          {/* Erledigt Markieren Button - filled gruen in rot/gruen Zone, outline in anderen */}
+          {isMarkErledigtable &&
+            (accentColor && FILLED_BUTTON_ACCENTS.has(accentColor) ? (
+              <Button
+                appearance="filled"
+                size="sm"
+                onClick={handleMarkErledigt}
+                className={cn('justify-center gap-2 bg-green-600 text-white hover:bg-green-700', variant === 'compact' ? 'h-8 min-w-[80px]' : 'h-10 flex-1')}
+              >
+                <PiCheckSquareOffset className={variant === 'compact' ? 'h-4 w-4' : 'h-5 w-5'} />
+                <span>Erledigt</span>
+              </Button>
+            ) : (
+              <Button
+                appearance="outline"
+                size="sm"
+                onClick={handleMarkErledigt}
+                className={cn(
+                  'justify-center gap-2 border-green-500 text-green-700 hover:bg-green-50 dark:border-green-600 dark:text-green-400 dark:hover:bg-green-950/30',
+                  variant === 'compact' ? 'h-8 min-w-[80px]' : 'h-10 flex-1',
+                )}
+              >
+                <PiCheckSquareOffset className={variant === 'compact' ? 'h-4 w-4' : 'h-5 w-5'} />
+                <span>Erledigt</span>
+              </Button>
+            ))}
 
           {/* Snooze Buttons (Nur bei AUSGELOEST) */}
           {isSnoozeable && <SnoozeButtonGroup onSnooze={handleSnooze} disabled={snoozeErinnerung.isPending} className="flex-shrink-0" variant={isTriggered ? 'default' : 'default'} />}
 
-          {/* Keyboard Hint */}
-          {isFocused && isAcknowledgeable && <span className="mt-1 w-full animate-pulse text-center font-medium text-red-600 text-xs dark:text-red-400">Enter: Bestätigen · Esc: 5 Min Snooze</span>}
+          {/* Keyboard Hint: nur in full */}
+          {variant === 'full' && isFocused && isAcknowledgeable && (
+            <span className="mt-1 w-full animate-pulse text-center font-medium text-red-600 text-xs dark:text-red-400">Enter: Bestätigen · Esc: 5 Min Snooze</span>
+          )}
         </div>
       )}
     </div>
   );
 
-  // Story 3.4: Zuweisungs-Dialog (wird immer gerendert, sichtbar nur wenn isAssignDialogOpen)
-  const assignDialog = <ErinnerungAssignDialog isOpen={isAssignDialogOpen} onClose={() => setIsAssignDialogOpen(false)} erinnerung={erinnerung} einsatzId={einsatzId} />;
-
-  /**
-   * Click-Handler fuer den Card-Container.
-   * Triggert Acknowledge nur wenn direkt auf die Card geklickt wird,
-   * nicht wenn auf innere interaktive Elemente (Buttons) geklickt wird.
-   */
-  const handleCardClick = useCallback(
-    (e: React.MouseEvent) => {
-      // Story 3.7 AC4: Bei Klick immer als gesehen markieren
-      handleMarkAsSeen();
-
-      // Ignoriere Clicks auf innere interaktive Elemente (Buttons, Links, etc.)
-      const target = e.target as HTMLElement;
-      if (target.closest('button, a, [role="button"]')) {
-        return;
-      }
-
-      // Acknowledge nur wenn möglich
-      if (isAcknowledgeable) {
-        handleAcknowledge();
-      }
-    },
-    [handleAcknowledge, isAcknowledgeable, handleMarkAsSeen],
-  );
-
-  // Render: Interaktiver Container fuer acknowledgeable Cards, sonst normaler div
-  // Fix: Kein <button> als Container, da innere Buttons enthalten sind (HTML Nesting Violation)
-  // Stattdessen: <div> mit tabIndex fuer Keyboard-Zugaenglichkeit
-  if (isAcknowledgeable) {
-    return (
-      <>
-        {/* biome-ignore lint/a11y/useSemanticElements: div mit role="group" ist hier korrekt, da Container interaktive Elemente enthaelt */}
-        <div
-          ref={cardRef}
-          role="group"
-          tabIndex={isHighlighted ? 0 : undefined}
-          onKeyDown={handleKeyDown}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          onClick={handleCardClick}
-          aria-label={`Erinnerung "${erinnerung.titel}" - Enter: Bestätigen, Escape: 5 Min Snooze`}
-          className={cn(cardBaseClasses, 'w-full cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-green-500')}
-        >
-          {cardContent}
-        </div>
-        {assignDialog}
-        {<ErinnerungHistoryDialog isOpen={isHistoryDialogOpen} onClose={() => setIsHistoryDialogOpen(false)} erinnerung={erinnerung} einsatzId={einsatzId} />}
-      </>
-    );
-  }
-
+  // Render: Card-Container mit group-Klasse fuer Hover-Sichtbarkeit der Actions
+  // Acknowledge erfolgt NUR ueber explizite Buttons, nicht per Card-Klick.
   return (
     <>
-      {/* biome-ignore lint/a11y/useSemanticElements: interactive card container requires div */}
+      {/* biome-ignore lint/a11y/useSemanticElements: div mit role="group" ist hier korrekt, da Container interaktive Elemente enthaelt */}
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents: Keyboard-Navigation via interaktive Kindelemente */}
       <div
         ref={cardRef}
-        role="button"
-        tabIndex={0}
-        className={cardBaseClasses}
+        role="group"
+        tabIndex={isHighlighted ? 0 : undefined}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
         onClick={handleCardClick}
-        onKeyUp={(e) => {
-          if (e.key === 'Enter') handleMarkAsSeen();
-        }} // Accessibility
+        aria-label={`Erinnerung "${erinnerung.titel}"`}
+        className={cn(cardBaseClasses, 'group w-full text-left focus:outline-none')}
       >
         {cardContent}
       </div>
       {assignDialog}
-      {<ErinnerungHistoryDialog isOpen={isHistoryDialogOpen} onClose={() => setIsHistoryDialogOpen(false)} erinnerung={erinnerung} einsatzId={einsatzId} />}
+      {historyDialog}
     </>
   );
 }
