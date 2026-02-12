@@ -170,7 +170,7 @@ describe('QuickCreateErinnerungDialog', () => {
       expect(screen.getByRole('button', { name: '60 Min' })).toBeInTheDocument();
 
       // - Benutzerdefiniert-Chip ist ebenfalls sichtbar
-      expect(screen.getByRole('button', { name: /benutzerdefiniert/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /uhrzeit/i })).toBeInTheDocument();
     });
 
     it('should have preset mode selected by default (30 Min)', async () => {
@@ -188,7 +188,7 @@ describe('QuickCreateErinnerungDialog', () => {
       expect(defaultChip).toHaveAttribute('aria-pressed', 'true');
 
       // - Benutzerdefiniert-Chip ist nicht aktiv
-      const customChip = screen.getByRole('button', { name: /benutzerdefiniert/i });
+      const customChip = screen.getByRole('button', { name: /uhrzeit/i });
       expect(customChip).toHaveAttribute('aria-pressed', 'false');
     });
   });
@@ -203,7 +203,7 @@ describe('QuickCreateErinnerungDialog', () => {
       expect(screen.queryByLabelText(/stunden/i)).not.toBeInTheDocument();
 
       // When (Act)
-      const customChip = screen.getByRole('button', { name: /benutzerdefiniert/i });
+      const customChip = screen.getByRole('button', { name: /uhrzeit/i });
       await user.click(customChip);
 
       // Then (Assert)
@@ -218,7 +218,7 @@ describe('QuickCreateErinnerungDialog', () => {
       renderWithProviders(<QuickCreateErinnerungDialog {...defaultProps} />);
 
       // When (Act)
-      const customChip = screen.getByRole('button', { name: /benutzerdefiniert/i });
+      const customChip = screen.getByRole('button', { name: /uhrzeit/i });
       await user.click(customChip);
 
       // Then (Assert)
@@ -236,7 +236,7 @@ describe('QuickCreateErinnerungDialog', () => {
       renderWithProviders(<QuickCreateErinnerungDialog {...defaultProps} />);
 
       // When (Act)
-      const customChip = screen.getByRole('button', { name: /benutzerdefiniert/i });
+      const customChip = screen.getByRole('button', { name: /uhrzeit/i });
       await user.click(customChip);
 
       // Then (Assert)
@@ -253,7 +253,7 @@ describe('QuickCreateErinnerungDialog', () => {
       renderWithProviders(<QuickCreateErinnerungDialog {...defaultProps} />);
 
       // - Wechsle zu Custom-Modus
-      const customChip = screen.getByRole('button', { name: /benutzerdefiniert/i });
+      const customChip = screen.getByRole('button', { name: /uhrzeit/i });
       await user.click(customChip);
 
       // - TimeInput ist sichtbar
@@ -282,7 +282,7 @@ describe('QuickCreateErinnerungDialog', () => {
       renderWithProviders(<QuickCreateErinnerungDialog {...defaultProps} />);
 
       // - Wechsle zu Custom-Modus
-      const customChip = screen.getByRole('button', { name: /benutzerdefiniert/i });
+      const customChip = screen.getByRole('button', { name: /uhrzeit/i });
       await user.click(customChip);
 
       // - TimeInput ist sichtbar
@@ -317,7 +317,7 @@ describe('QuickCreateErinnerungDialog', () => {
       await user.type(titelInput, 'Wichtige Erinnerung');
 
       // - Wechsle zu Custom-Modus
-      const customChip = screen.getByRole('button', { name: /benutzerdefiniert/i });
+      const customChip = screen.getByRole('button', { name: /uhrzeit/i });
       await user.click(customChip);
 
       // - Zeit aendern

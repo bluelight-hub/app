@@ -1164,10 +1164,11 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
   }
 
   /**
-   * Bestätigt eine ausgelöste Erinnerung (1-Tap Acknowledge).
+   * Bestätigt eine Erinnerung (1-Tap Acknowledge).
    *
    * **Business Rules (Story 1.6):**
-   * - Nur Erinnerungen mit Status AUSGELOEST können bestätigt werden
+   * - Erinnerungen mit Status GEPLANT, AUSGELOEST oder ESKALIERT können bestätigt werden
+   * - GEPLANT: Vorzeitige Bestätigung - überspringt Auslösung, kein Alarm
    * - Bei anderen Status wird ein Fehler zurückgegeben
    * - Setzt Status auf ACKNOWLEDGED und speichert Bestätigungszeitpunkt + User
    * - Emittiert ErinnerungAcknowledgedEvent für ETB-Integration und WebSocket
@@ -1179,14 +1180,13 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
    * ```typescript
    * const acknowledgeResult = erinnerung.acknowledge(userId);
    * if (acknowledgeResult.isFailure) {
-   *   // Nur AUSGELOEST kann acknowledged werden
    *   console.log(acknowledgeResult.error); // "ERINNERUNG_NOT_ACKNOWLEDGEABLE"
    * }
    * ```
    */
   public acknowledge(acknowledgedBy: UserId): Result<void> {
-    // Business Rule: Nur AUSGELOEST oder ESKALIERT Status kann acknowledged werden
-    if (!this._status.isAusgeloest() && !this._status.isEskaliert()) {
+    // Business Rule: GEPLANT, AUSGELOEST oder ESKALIERT Status kann acknowledged werden
+    if (!this._status.isGeplant() && !this._status.isAusgeloest() && !this._status.isEskaliert()) {
       return Result.fail<void>('ERINNERUNG_NOT_ACKNOWLEDGEABLE');
     }
 
@@ -1324,7 +1324,7 @@ export class Erinnerung extends AggregateRoot<ErinnerungId> {
   /**
    * Helper für Intensivierung logik (DRY).
    */
-  private intensivieren(now: Date, eskaliertVon: UserId | 'SYSTEM'): Result<void> {
+  private intensivieren(now: Date, _eskaliertVon: UserId | 'SYSTEM'): Result<void> {
     // Hotfix: Limit prüfen um Endlos-Loop zu verhindern
     if (this._intensivierungsCount >= Erinnerung.MAX_INTENSIVIERUNGEN) {
       return Result.fail<void>('INTENSIVIERUNG_LIMIT_ERREICHT');

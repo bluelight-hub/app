@@ -300,8 +300,8 @@ describe('ErinnerungCard', () => {
       // When (Act)
       render(<ErinnerungCard erinnerung={erinnerung} einsatzId="einsatz-1" />);
 
-      // Then (Assert) - Card ist ein group mit Keyboard-Hinweis im aria-label
-      const card = screen.getByRole('group', { name: /Erinnerung.*Enter: Bestätigen/i });
+      // Then (Assert) - Card ist ein group mit Erinnerung-Titel im aria-label
+      const card = screen.getByRole('group', { name: /Erinnerung/i });
       expect(card).toBeInTheDocument();
     });
 

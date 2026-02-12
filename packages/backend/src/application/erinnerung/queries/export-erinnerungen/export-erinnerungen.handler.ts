@@ -3,10 +3,10 @@ import { Result } from '@domain/common/result';
 import { ILogger } from '@domain/ports/i-logger.port';
 import { IErinnerungRepository } from '@domain/repositories/i-erinnerung.repository';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
-import { ERINNERUNG_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
-import { PdfExportService } from '@infrastructure/export/pdf-export.service';
-import { CsvExportService } from '@infrastructure/export/csv-export.service';
-import { JsonExportService } from '@infrastructure/export/json-export.service';
+import { ERINNERUNG_REPOSITORY, LOGGER, PDF_EXPORT_SERVICE, CSV_EXPORT_SERVICE, JSON_EXPORT_SERVICE } from '@infrastructure/di-tokens';
+import { IPdfExportService } from '../../ports/i-pdf-export.service';
+import { ICsvExportService } from '../../ports/i-csv-export.service';
+import { IJsonExportService } from '../../ports/i-json-export.service';
 import { GetErinnerungStatistikHandler } from '../get-erinnerung-statistik/get-erinnerung-statistik.handler';
 import { GetPersonStatistikHandler } from '../get-person-statistik/get-person-statistik.handler';
 import { GetEskalationsAnalyseHandler } from '../get-eskalations-analyse/get-eskalations-analyse.handler';
@@ -35,9 +35,12 @@ export class ExportErinnerungenHandler {
     private readonly personStatistikHandler: GetPersonStatistikHandler,
     private readonly eskalationsAnalyseHandler: GetEskalationsAnalyseHandler,
     private readonly reaktionszeitHandler: GetReaktionszeitStatistikHandler,
-    private readonly pdfService: PdfExportService,
-    private readonly csvService: CsvExportService,
-    private readonly jsonService: JsonExportService,
+    @Inject(PDF_EXPORT_SERVICE)
+    private readonly pdfService: IPdfExportService,
+    @Inject(CSV_EXPORT_SERVICE)
+    private readonly csvService: ICsvExportService,
+    @Inject(JSON_EXPORT_SERVICE)
+    private readonly jsonService: IJsonExportService,
   ) {}
 
   async execute(query: ExportErinnerungenQuery): Promise<Result<ExportResult>> {
@@ -53,6 +56,7 @@ export class ExportErinnerungenHandler {
       return Result.fail<ExportResult>(exportResult.error ?? ERINNERUNG_ERROR_CODES.QUERY_FAILED);
     }
 
+    // biome-ignore lint/style/noNonNullAssertion: Result.value ist nach isFailure-Check garantiert
     const erinnerungen = exportResult.value!;
     const einsatzNummer = query.einsatzId.substring(0, 8);
 
@@ -64,11 +68,20 @@ export class ExportErinnerungenHandler {
       switch (query.format) {
         case 'pdf': {
           // Alle Statistiken parallel laden
+          // biome-ignore lint/style/noNonNullAssertion: Query.create() mit validem einsatzId gibt immer Ok zurueck
+          const statistikQuery = GetErinnerungStatistikQuery.create({ einsatzId: query.einsatzId }).value!;
+          // biome-ignore lint/style/noNonNullAssertion: Query.create() mit validem einsatzId gibt immer Ok zurueck
+          const personQuery = GetPersonStatistikQuery.create({ einsatzId: query.einsatzId }).value!;
+          // biome-ignore lint/style/noNonNullAssertion: Query.create() mit validem einsatzId gibt immer Ok zurueck
+          const eskalationsQuery = GetEskalationsAnalyseQuery.create({ einsatzId: query.einsatzId }).value!;
+          // biome-ignore lint/style/noNonNullAssertion: Query.create() mit validem einsatzId gibt immer Ok zurueck
+          const reaktionszeitQuery = GetReaktionszeitStatistikQuery.create({ einsatzId: query.einsatzId }).value!;
+
           const [statistikResult, personResult, eskalationsResult, reaktionszeitResult] = await Promise.all([
-            this.statistikHandler.execute(GetErinnerungStatistikQuery.create({ einsatzId: query.einsatzId }).value!),
-            this.personStatistikHandler.execute(GetPersonStatistikQuery.create({ einsatzId: query.einsatzId }).value!),
-            this.eskalationsAnalyseHandler.execute(GetEskalationsAnalyseQuery.create({ einsatzId: query.einsatzId }).value!),
-            this.reaktionszeitHandler.execute(GetReaktionszeitStatistikQuery.create({ einsatzId: query.einsatzId }).value!),
+            this.statistikHandler.execute(statistikQuery),
+            this.personStatistikHandler.execute(personQuery),
+            this.eskalationsAnalyseHandler.execute(eskalationsQuery),
+            this.reaktionszeitHandler.execute(reaktionszeitQuery),
           ]);
 
           if (statistikResult.isFailure || personResult.isFailure || eskalationsResult.isFailure || reaktionszeitResult.isFailure) {
@@ -82,7 +95,16 @@ export class ExportErinnerungenHandler {
             return Result.fail<ExportResult>(ERINNERUNG_ERROR_CODES.QUERY_FAILED);
           }
 
-          buffer = await this.pdfService.generateExport(statistikResult.value!, personResult.value!, eskalationsResult.value!, reaktionszeitResult.value!, erinnerungen, einsatzNummer);
+          // biome-ignore lint/style/noNonNullAssertion: Result.value ist nach isFailure-Check garantiert
+          const statistik = statistikResult.value!;
+          // biome-ignore lint/style/noNonNullAssertion: Result.value ist nach isFailure-Check garantiert
+          const person = personResult.value!;
+          // biome-ignore lint/style/noNonNullAssertion: Result.value ist nach isFailure-Check garantiert
+          const eskalation = eskalationsResult.value!;
+          // biome-ignore lint/style/noNonNullAssertion: Result.value ist nach isFailure-Check garantiert
+          const reaktionszeit = reaktionszeitResult.value!;
+
+          buffer = await this.pdfService.generateExport(statistik, person, eskalation, reaktionszeit, erinnerungen, einsatzNummer);
           contentType = 'application/pdf';
           extension = 'pdf';
           break;

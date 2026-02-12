@@ -27,6 +27,8 @@ import {
   useErinnerungenByEinsatz,
 } from '@/features/reminders';
 import { filterMyErinnerungen } from '@/features/reminders/utils/erinnerung-ownership';
+import { CreateNotizDialog, useQuickCreateNotizDialogState, closeQuickCreateNotizDialog, useQuickCreateNotizHotkeys } from '@/features/notizen';
+import { AudioSettingsDialog } from '@/features/settings';
 import { useCurrentUser } from '@/features/auth';
 import { toast } from 'sonner';
 import { CommandPalette } from '@/shared/ui/organisms/command-palette';
@@ -57,6 +59,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [showEndConfirmation, setShowEndConfirmation] = useState(false);
   const [showBeitrittDialog, setShowBeitrittDialog] = useState(false);
+  const [showAudioDialog, setShowAudioDialog] = useState(false);
   const activeServer = useActiveServer();
 
   // Quick-Create Erinnerung Dialog State und Hotkeys (Story 1.1 AC1, Story 5.4)
@@ -69,9 +72,20 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   const [isMarkErledigtDialogOpen, erinnerungToMarkErledigt, markErledigtDialogEinsatzId] = useMarkErledigtDialogState();
   // StopRecurring Erinnerung Dialog State (Story 6.5)
   const [isStopRecurringDialogOpen, erinnerungToStopRecurring, stopRecurringDialogEinsatzId] = useStopRecurringDialogState();
+
+  // Quick-Create Notiz Dialog State und Hotkeys
+  const [isQuickCreateNotizOpen, quickCreateNotizEinsatzId] = useQuickCreateNotizDialogState();
+
+  const anyDialogOpen =
+    commandPaletteOpen || showEndConfirmation || showBeitrittDialog || isQuickCreateOpen || isEditDialogOpen || isDeleteDialogOpen || isMarkErledigtDialogOpen || isQuickCreateNotizOpen;
+
   useQuickCreateErinnerungHotkeys({
     einsatzId,
-    enabled: !commandPaletteOpen && !showEndConfirmation && !showBeitrittDialog && !isQuickCreateOpen && !isEditDialogOpen && !isDeleteDialogOpen && !isMarkErledigtDialogOpen,
+    enabled: !anyDialogOpen,
+  });
+  useQuickCreateNotizHotkeys({
+    einsatzId,
+    enabled: !anyDialogOpen,
   });
 
   // Story App-weite Erinnerungsprüfung: Globaler Alarm-Trigger für den aktiven Einsatz
@@ -504,12 +518,10 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
                       <PiRadio className="mr-2 h-4 w-4" />
                       {currentFunkrufname ? <span className="truncate">{currentFunkrufname}</span> : <span className="text-blue-600 dark:text-blue-400">Funkrufname setzen</span>}
                     </Button>
-                    <Link to="/app/settings/audio">
-                      <Button appearance="ghost" size="sm" className="mb-2 w-full justify-start">
-                        <PiSpeakerHigh className="mr-2 h-4 w-4" />
-                        Audio-Einstellungen
-                      </Button>
-                    </Link>
+                    <Button appearance="ghost" size="sm" className="mb-2 w-full justify-start" onClick={() => setShowAudioDialog(true)} aria-haspopup="dialog">
+                      <PiSpeakerHigh className="mr-2 h-4 w-4" />
+                      Audio-Einstellungen
+                    </Button>
                     <Button
                       intent="danger"
                       size="sm"
@@ -638,6 +650,12 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
         einsatzId={stopRecurringDialogEinsatzId ?? einsatzId}
         onClose={closeStopRecurringDialog}
       />
+
+      {/* Quick-Create Notiz Dialog */}
+      <CreateNotizDialog isOpen={isQuickCreateNotizOpen} einsatzId={quickCreateNotizEinsatzId ?? einsatzId} onClose={closeQuickCreateNotizDialog} />
+
+      {/* Audio-Einstellungen Dialog (Story 2.7) */}
+      <AudioSettingsDialog isOpen={showAudioDialog} onClose={() => setShowAudioDialog(false)} />
     </>
   );
 }

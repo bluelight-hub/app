@@ -31,7 +31,7 @@ export {
 export {
   AudioLevelConfig as AudioLevelConfigComponent,
   AudioToggle,
-  AudioSettingsPage,
+  AudioSettingsDialog,
 } from './ui';
 
-export type { AudioLevelConfigProps, AudioToggleProps, AudioSettingsPageProps } from './ui';
+export type { AudioLevelConfigProps, AudioToggleProps, AudioSettingsDialogProps } from './ui';

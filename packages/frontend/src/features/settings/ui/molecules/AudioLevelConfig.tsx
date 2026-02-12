@@ -136,9 +136,9 @@ export function AudioLevelConfig({ level, config, onChange, disabled = false, cl
           </div>
 
           {/* Preview Button */}
-          <Button type="button" appearance="ghost" size="md" onClick={handlePreview} disabled={disabled || isPreviewPlaying} aria-label={`${levelLabel} Vorschau abspielen`} className="shrink-0">
+          <Button type="button" appearance="outline" size="md" onClick={handlePreview} disabled={disabled || isPreviewPlaying} aria-label={`${levelLabel} Vorschau abspielen`} className="shrink-0">
             <PiPlay className={cn('h-5 w-5', isPreviewPlaying && 'animate-pulse')} />
-            <span className="sr-only">Vorschau</span>
+            <span className="ml-1.5">Abspielen</span>
           </Button>
         </div>
 

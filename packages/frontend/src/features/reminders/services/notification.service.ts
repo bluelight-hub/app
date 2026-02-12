@@ -85,10 +85,11 @@ class NotificationService {
   }
 
   /**
-   * Prüft ob das Tauri Notification Plugin wirklich funktioniert
+   * Prueft ob das Tauri Notification Plugin verfuegbar ist
    *
-   * Der Import alleine reicht nicht - das Plugin muss auch im Rust Backend
-   * registriert sein. Diese Methode testet die tatsächliche Funktionalität.
+   * Prueft nur ob das JS-Modul importierbar ist und die erwarteten Exports hat.
+   * Kein IPC-Call um Mixed-Content-Fehler (https:// → ipc://) zu vermeiden.
+   * Die tatsaechliche Plugin-Verfuegbarkeit wird beim ersten Aufruf verifiziert.
    */
   private async isTauriPluginAvailable(): Promise<boolean> {
     // Cached Ergebnis nutzen
@@ -97,11 +98,12 @@ class NotificationService {
     }
 
     try {
-      const { isPermissionGranted } = await import('@tauri-apps/plugin-notification');
-      // Tatsächlichen Plugin-Aufruf testen
-      await isPermissionGranted();
-      this.tauriPluginAvailable = true;
-      return true;
+      const mod = await import('@tauri-apps/plugin-notification');
+      // Modul importierbar und erwartete Exports vorhanden → optimistisch verfuegbar
+      // Kein IPC-Probe-Call: Mixed-Content-Block (https→ipc) loest Browser-Fehler aus
+      // bevor unser catch greift. Tatsaechliche Verfuegbarkeit wird bei erstem Aufruf geprueft.
+      this.tauriPluginAvailable = typeof mod.isPermissionGranted === 'function';
+      return this.tauriPluginAvailable;
     } catch {
       logger.warn('Tauri Notification Plugin nicht verfügbar, nutze Web Notifications als Fallback');
       this.tauriPluginAvailable = false;
@@ -299,6 +301,8 @@ class NotificationService {
       return this.permissionStatus;
     } catch (error) {
       logger.error('Fehler beim Prüfen der Tauri Notification Permission:', error);
+      // Plugin funktioniert nicht → Fallback auf Web Notifications
+      this.tauriPluginAvailable = false;
       this.permissionStatus = 'not-supported';
       return this.permissionStatus;
     }
@@ -326,6 +330,8 @@ class NotificationService {
       return this.permissionStatus;
     } catch (error) {
       logger.error('Fehler beim Anfordern der Tauri Notification Permission:', error);
+      // Plugin funktioniert nicht → Fallback auf Web Notifications
+      this.tauriPluginAvailable = false;
       this.permissionStatus = 'not-supported';
       return this.permissionStatus;
     }

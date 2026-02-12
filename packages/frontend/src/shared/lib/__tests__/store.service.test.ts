@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock Store Instanz
 const mockStoreInstance = {
-  load: vi.fn().mockResolvedValue(undefined),
   set: vi.fn().mockResolvedValue(undefined),
   get: vi.fn().mockResolvedValue(null),
   has: vi.fn().mockResolvedValue(false),
@@ -12,27 +11,18 @@ const mockStoreInstance = {
   save: vi.fn().mockResolvedValue(undefined),
 };
 
-// Mock Konstruktor als Klasse die mit `new` aufgerufen werden kann
-class MockStoreClass {
-  load = mockStoreInstance.load;
-  set = mockStoreInstance.set;
-  get = mockStoreInstance.get;
-  has = mockStoreInstance.has;
-  delete = mockStoreInstance.delete;
-  clear = mockStoreInstance.clear;
-  keys = mockStoreInstance.keys;
-  save = mockStoreInstance.save;
+// Mock @tauri-apps/api/core damit isTauri() true zurueckgibt
+vi.mock('@tauri-apps/api/core', () => ({
+  isTauri: () => true,
+}));
 
-  static constructorSpy = vi.fn();
+// Mock @tauri-apps/plugin-store mit Store.load() als statische Methode (Tauri v2 API)
+const loadSpy = vi.fn().mockResolvedValue(mockStoreInstance);
 
-  constructor(path: string) {
-    MockStoreClass.constructorSpy(path);
-  }
-}
-
-// Mock @tauri-apps/plugin-store vor allen Imports
 vi.mock('@tauri-apps/plugin-store', () => ({
-  Store: MockStoreClass,
+  Store: {
+    load: loadSpy,
+  },
 }));
 
 describe('Store Service', () => {
@@ -50,7 +40,7 @@ describe('Store Service', () => {
   beforeEach(async () => {
     // Reset aller Mocks
     vi.clearAllMocks();
-    mockStoreInstance.load.mockResolvedValue(undefined);
+    loadSpy.mockResolvedValue(mockStoreInstance);
     mockStoreInstance.set.mockResolvedValue(undefined);
     mockStoreInstance.get.mockResolvedValue(null);
     mockStoreInstance.has.mockResolvedValue(false);
@@ -58,7 +48,6 @@ describe('Store Service', () => {
     mockStoreInstance.clear.mockResolvedValue(undefined);
     mockStoreInstance.keys.mockResolvedValue([]);
     mockStoreInstance.save.mockResolvedValue(undefined);
-    MockStoreClass.constructorSpy.mockClear();
 
     // Reset des Moduls um Singleton zu clearen
     vi.resetModules();
@@ -80,24 +69,24 @@ describe('Store Service', () => {
     it('should initialize store successfully', async () => {
       const store = await initializeStore();
       expect(store).toBeDefined();
-      expect(MockStoreClass.constructorSpy).toHaveBeenCalledWith('app-store.json');
+      expect(loadSpy).toHaveBeenCalledWith('app-store.json');
     });
 
     it('should use custom store path', async () => {
       await initializeStore('custom-store.json');
-      expect(MockStoreClass.constructorSpy).toHaveBeenCalledWith('custom-store.json');
+      expect(loadSpy).toHaveBeenCalledWith('custom-store.json');
     });
 
     it('should return cached instance on subsequent calls', async () => {
       const store1 = await getStore();
-      MockStoreClass.constructorSpy.mockClear();
+      loadSpy.mockClear();
       const store2 = await getStore();
       expect(store1).toBe(store2);
-      expect(MockStoreClass.constructorSpy).not.toHaveBeenCalled();
+      expect(loadSpy).not.toHaveBeenCalled();
     });
 
     it('should handle initialization errors', async () => {
-      mockStoreInstance.load.mockRejectedValueOnce(new Error('Initialization failed'));
+      loadSpy.mockRejectedValueOnce(new Error('Initialization failed'));
 
       await expect(initializeStore()).rejects.toThrow('Initialization failed');
     });

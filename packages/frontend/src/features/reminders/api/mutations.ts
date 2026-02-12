@@ -800,6 +800,12 @@ export const useAcknowledgeErinnerung = () => {
       }
     },
     onMutate: async ({ einsatzId, erinnerungId }) => {
+      // Cleanup Timer/Audio/Intensification/Toast sofort bei Acknowledge
+      soundService.stopAllSounds();
+      timerService.resetTriggered(erinnerungId);
+      intensificationService.stopTimer(erinnerungId);
+      hideErinnerungAlarmToast(erinnerungId);
+
       // Cancel ALL related queries to prevent race conditions
       await Promise.all([
         queryClient.cancelQueries({
@@ -1012,6 +1018,12 @@ export const useSnoozeErinnerung = () => {
       }
     },
     onMutate: async ({ einsatzId, erinnerungId, snoozeMinutes }) => {
+      // Cleanup Timer/Audio/Intensification/Toast sofort bei Snooze
+      soundService.stopAllSounds();
+      timerService.resetTriggered(erinnerungId);
+      intensificationService.stopTimer(erinnerungId);
+      hideErinnerungAlarmToast(erinnerungId);
+
       // Cancel ALL related queries to prevent race conditions
       await Promise.all([
         queryClient.cancelQueries({

@@ -154,7 +154,7 @@ export class ErinnerungStatus extends ValueObject<ErinnerungStatusProps> {
    * State Machine Logic: Prüft ob eine Transition zu einem neuen Status erlaubt ist.
    *
    * **Valid Transitions:**
-   * - GEPLANT → AUSGELOEST (Timer abgelaufen)
+   * - GEPLANT → AUSGELOEST (Timer abgelaufen), ACKNOWLEDGED (vorzeitig bestätigt)
    * - AUSGELOEST → ACKNOWLEDGED, SNOOZED, ESKALIERT
    * - ACKNOWLEDGED → ERLEDIGT
    * - SNOOZED → AUSGELOEST, ESKALIERT
@@ -166,7 +166,7 @@ export class ErinnerungStatus extends ValueObject<ErinnerungStatusProps> {
    */
   public canTransitionTo(newStatus: ErinnerungStatus): boolean {
     const validTransitions: Record<string, string[]> = {
-      GEPLANT: ['AUSGELOEST'],
+      GEPLANT: ['AUSGELOEST', 'ACKNOWLEDGED'],
       AUSGELOEST: ['ACKNOWLEDGED', 'SNOOZED', 'ESKALIERT'],
       ACKNOWLEDGED: ['ERLEDIGT'],
       SNOOZED: ['AUSGELOEST', 'ESKALIERT'],

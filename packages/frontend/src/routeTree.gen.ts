@@ -28,7 +28,6 @@ import { Route as AdminFuehrungsrhythmusTemplatesRouteImport } from './routes/ad
 import { Route as AdminErinnerungenRouteImport } from './routes/admin/erinnerungen'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 import { Route as AppEinsaetzeIndexRouteImport } from './routes/app/einsaetze/index'
-import { Route as AppSettingsAudioRouteImport } from './routes/app/settings/audio'
 import { Route as AppEinsatzEinsatzIdRouteImport } from './routes/app/einsatz/$einsatzId'
 import { Route as AppEinsaetzeEinsatzIdRouteImport } from './routes/app/einsaetze/$einsatzId'
 import { Route as AdminStammdatenPersonenRouteImport } from './routes/admin/stammdaten/personen'
@@ -58,9 +57,8 @@ import { Route as AppEinsatzEinsatzIdKommunikationFunkRouteImport } from './rout
 import { Route as AppEinsatzEinsatzIdKommunikationAlarmierungRouteImport } from './routes/app/einsatz/$einsatzId/kommunikation/alarmierung'
 import { Route as AppEinsatzEinsatzIdFChar252hrungRhythmusRouteImport } from './routes/app/einsatz/$einsatzId/führung/rhythmus'
 import { Route as AppEinsatzEinsatzIdFChar252hrungProtokollRouteImport } from './routes/app/einsatz/$einsatzId/führung/protokoll'
-import { Route as AppEinsatzEinsatzIdFChar252hrungNotizenRouteImport } from './routes/app/einsatz/$einsatzId/führung/notizen'
+import { Route as AppEinsatzEinsatzIdFChar252hrungPinnwandRouteImport } from './routes/app/einsatz/$einsatzId/führung/pinnwand'
 import { Route as AppEinsatzEinsatzIdFChar252hrungEtbRouteImport } from './routes/app/einsatz/$einsatzId/führung/etb'
-import { Route as AppEinsatzEinsatzIdFChar252hrungCockpitRouteImport } from './routes/app/einsatz/$einsatzId/führung/cockpit'
 import { Route as AppEinsatzEinsatzIdFChar252hrungBerichteRouteImport } from './routes/app/einsatz/$einsatzId/führung/berichte'
 import { Route as AppEinsatzEinsatzIdFChar252hrungBefehleRouteImport } from './routes/app/einsatz/$einsatzId/führung/befehle'
 import { Route as AppEinsatzEinsatzIdDrohneSteuerungRouteImport } from './routes/app/einsatz/$einsatzId/drohne/steuerung'
@@ -166,11 +164,6 @@ const AppEinsaetzeIndexRoute = AppEinsaetzeIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppEinsaetzeRoute,
-} as any)
-const AppSettingsAudioRoute = AppSettingsAudioRouteImport.update({
-  id: '/audio',
-  path: '/audio',
-  getParentRoute: () => AppSettingsRoute,
 } as any)
 const AppEinsatzEinsatzIdRoute = AppEinsatzEinsatzIdRouteImport.update({
   id: '/$einsatzId',
@@ -342,22 +335,16 @@ const AppEinsatzEinsatzIdFChar252hrungProtokollRoute =
     path: '/führung/protokoll',
     getParentRoute: () => AppEinsatzEinsatzIdRoute,
   } as any)
-const AppEinsatzEinsatzIdFChar252hrungNotizenRoute =
-  AppEinsatzEinsatzIdFChar252hrungNotizenRouteImport.update({
-    id: '/führung/notizen',
-    path: '/führung/notizen',
+const AppEinsatzEinsatzIdFChar252hrungPinnwandRoute =
+  AppEinsatzEinsatzIdFChar252hrungPinnwandRouteImport.update({
+    id: '/führung/pinnwand',
+    path: '/führung/pinnwand',
     getParentRoute: () => AppEinsatzEinsatzIdRoute,
   } as any)
 const AppEinsatzEinsatzIdFChar252hrungEtbRoute =
   AppEinsatzEinsatzIdFChar252hrungEtbRouteImport.update({
     id: '/führung/etb',
     path: '/führung/etb',
-    getParentRoute: () => AppEinsatzEinsatzIdRoute,
-  } as any)
-const AppEinsatzEinsatzIdFChar252hrungCockpitRoute =
-  AppEinsatzEinsatzIdFChar252hrungCockpitRouteImport.update({
-    id: '/führung/cockpit',
-    path: '/führung/cockpit',
     getParentRoute: () => AppEinsatzEinsatzIdRoute,
   } as any)
 const AppEinsatzEinsatzIdFChar252hrungBerichteRoute =
@@ -430,7 +417,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AdminUsersRoute
   '/app/einsaetze': typeof AppEinsaetzeRouteWithChildren
   '/app/einsatz': typeof AppEinsatzRouteWithChildren
-  '/app/settings': typeof AppSettingsRouteWithChildren
+  '/app/settings': typeof AppSettingsRoute
   '/server/manage': typeof ServerManageRoute
   '/server/setup': typeof ServerSetupRoute
   '/admin/': typeof AdminIndexRoute
@@ -441,7 +428,6 @@ export interface FileRoutesByFullPath {
   '/admin/stammdaten/personen': typeof AdminStammdatenPersonenRoute
   '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
   '/app/einsatz/$einsatzId': typeof AppEinsatzEinsatzIdRouteWithChildren
-  '/app/settings/audio': typeof AppSettingsAudioRoute
   '/app/einsaetze/': typeof AppEinsaetzeIndexRoute
   '/app/einsatz/$einsatzId/': typeof AppEinsatzEinsatzIdIndexRoute
   '/app/einsatz/$einsatzId/betreuung/betroffene': typeof AppEinsatzEinsatzIdBetreuungBetroffeneRoute
@@ -452,9 +438,8 @@ export interface FileRoutesByFullPath {
   '/app/einsatz/$einsatzId/drohne/steuerung': typeof AppEinsatzEinsatzIdDrohneSteuerungRoute
   '/app/einsatz/$einsatzId/führung/befehle': typeof AppEinsatzEinsatzIdFChar252hrungBefehleRoute
   '/app/einsatz/$einsatzId/führung/berichte': typeof AppEinsatzEinsatzIdFChar252hrungBerichteRoute
-  '/app/einsatz/$einsatzId/führung/cockpit': typeof AppEinsatzEinsatzIdFChar252hrungCockpitRoute
   '/app/einsatz/$einsatzId/führung/etb': typeof AppEinsatzEinsatzIdFChar252hrungEtbRouteWithChildren
-  '/app/einsatz/$einsatzId/führung/notizen': typeof AppEinsatzEinsatzIdFChar252hrungNotizenRoute
+  '/app/einsatz/$einsatzId/führung/pinnwand': typeof AppEinsatzEinsatzIdFChar252hrungPinnwandRoute
   '/app/einsatz/$einsatzId/führung/protokoll': typeof AppEinsatzEinsatzIdFChar252hrungProtokollRoute
   '/app/einsatz/$einsatzId/führung/rhythmus': typeof AppEinsatzEinsatzIdFChar252hrungRhythmusRoute
   '/app/einsatz/$einsatzId/kommunikation/alarmierung': typeof AppEinsatzEinsatzIdKommunikationAlarmierungRoute
@@ -491,7 +476,7 @@ export interface FileRoutesByTo {
   '/admin/tokens': typeof AdminTokensRoute
   '/admin/users': typeof AdminUsersRoute
   '/app/einsatz': typeof AppEinsatzRouteWithChildren
-  '/app/settings': typeof AppSettingsRouteWithChildren
+  '/app/settings': typeof AppSettingsRoute
   '/server/manage': typeof ServerManageRoute
   '/server/setup': typeof ServerSetupRoute
   '/admin': typeof AdminIndexRoute
@@ -501,7 +486,6 @@ export interface FileRoutesByTo {
   '/admin/stammdaten/fahrzeuge': typeof AdminStammdatenFahrzeugeRoute
   '/admin/stammdaten/personen': typeof AdminStammdatenPersonenRoute
   '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
-  '/app/settings/audio': typeof AppSettingsAudioRoute
   '/app/einsaetze': typeof AppEinsaetzeIndexRoute
   '/app/einsatz/$einsatzId': typeof AppEinsatzEinsatzIdIndexRoute
   '/app/einsatz/$einsatzId/betreuung/betroffene': typeof AppEinsatzEinsatzIdBetreuungBetroffeneRoute
@@ -512,8 +496,7 @@ export interface FileRoutesByTo {
   '/app/einsatz/$einsatzId/drohne/steuerung': typeof AppEinsatzEinsatzIdDrohneSteuerungRoute
   '/app/einsatz/$einsatzId/führung/befehle': typeof AppEinsatzEinsatzIdFChar252hrungBefehleRoute
   '/app/einsatz/$einsatzId/führung/berichte': typeof AppEinsatzEinsatzIdFChar252hrungBerichteRoute
-  '/app/einsatz/$einsatzId/führung/cockpit': typeof AppEinsatzEinsatzIdFChar252hrungCockpitRoute
-  '/app/einsatz/$einsatzId/führung/notizen': typeof AppEinsatzEinsatzIdFChar252hrungNotizenRoute
+  '/app/einsatz/$einsatzId/führung/pinnwand': typeof AppEinsatzEinsatzIdFChar252hrungPinnwandRoute
   '/app/einsatz/$einsatzId/führung/protokoll': typeof AppEinsatzEinsatzIdFChar252hrungProtokollRoute
   '/app/einsatz/$einsatzId/führung/rhythmus': typeof AppEinsatzEinsatzIdFChar252hrungRhythmusRoute
   '/app/einsatz/$einsatzId/kommunikation/alarmierung': typeof AppEinsatzEinsatzIdKommunikationAlarmierungRoute
@@ -553,7 +536,7 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRoute
   '/app/einsaetze': typeof AppEinsaetzeRouteWithChildren
   '/app/einsatz': typeof AppEinsatzRouteWithChildren
-  '/app/settings': typeof AppSettingsRouteWithChildren
+  '/app/settings': typeof AppSettingsRoute
   '/server/manage': typeof ServerManageRoute
   '/server/setup': typeof ServerSetupRoute
   '/admin/': typeof AdminIndexRoute
@@ -564,7 +547,6 @@ export interface FileRoutesById {
   '/admin/stammdaten/personen': typeof AdminStammdatenPersonenRoute
   '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
   '/app/einsatz/$einsatzId': typeof AppEinsatzEinsatzIdRouteWithChildren
-  '/app/settings/audio': typeof AppSettingsAudioRoute
   '/app/einsaetze/': typeof AppEinsaetzeIndexRoute
   '/app/einsatz/$einsatzId/': typeof AppEinsatzEinsatzIdIndexRoute
   '/app/einsatz/$einsatzId/betreuung/betroffene': typeof AppEinsatzEinsatzIdBetreuungBetroffeneRoute
@@ -575,9 +557,8 @@ export interface FileRoutesById {
   '/app/einsatz/$einsatzId/drohne/steuerung': typeof AppEinsatzEinsatzIdDrohneSteuerungRoute
   '/app/einsatz/$einsatzId/führung/befehle': typeof AppEinsatzEinsatzIdFChar252hrungBefehleRoute
   '/app/einsatz/$einsatzId/führung/berichte': typeof AppEinsatzEinsatzIdFChar252hrungBerichteRoute
-  '/app/einsatz/$einsatzId/führung/cockpit': typeof AppEinsatzEinsatzIdFChar252hrungCockpitRoute
   '/app/einsatz/$einsatzId/führung/etb': typeof AppEinsatzEinsatzIdFChar252hrungEtbRouteWithChildren
-  '/app/einsatz/$einsatzId/führung/notizen': typeof AppEinsatzEinsatzIdFChar252hrungNotizenRoute
+  '/app/einsatz/$einsatzId/führung/pinnwand': typeof AppEinsatzEinsatzIdFChar252hrungPinnwandRoute
   '/app/einsatz/$einsatzId/führung/protokoll': typeof AppEinsatzEinsatzIdFChar252hrungProtokollRoute
   '/app/einsatz/$einsatzId/führung/rhythmus': typeof AppEinsatzEinsatzIdFChar252hrungRhythmusRoute
   '/app/einsatz/$einsatzId/kommunikation/alarmierung': typeof AppEinsatzEinsatzIdKommunikationAlarmierungRoute
@@ -629,7 +610,6 @@ export interface FileRouteTypes {
     | '/admin/stammdaten/personen'
     | '/app/einsaetze/$einsatzId'
     | '/app/einsatz/$einsatzId'
-    | '/app/settings/audio'
     | '/app/einsaetze/'
     | '/app/einsatz/$einsatzId/'
     | '/app/einsatz/$einsatzId/betreuung/betroffene'
@@ -640,9 +620,8 @@ export interface FileRouteTypes {
     | '/app/einsatz/$einsatzId/drohne/steuerung'
     | '/app/einsatz/$einsatzId/führung/befehle'
     | '/app/einsatz/$einsatzId/führung/berichte'
-    | '/app/einsatz/$einsatzId/führung/cockpit'
     | '/app/einsatz/$einsatzId/führung/etb'
-    | '/app/einsatz/$einsatzId/führung/notizen'
+    | '/app/einsatz/$einsatzId/führung/pinnwand'
     | '/app/einsatz/$einsatzId/führung/protokoll'
     | '/app/einsatz/$einsatzId/führung/rhythmus'
     | '/app/einsatz/$einsatzId/kommunikation/alarmierung'
@@ -689,7 +668,6 @@ export interface FileRouteTypes {
     | '/admin/stammdaten/fahrzeuge'
     | '/admin/stammdaten/personen'
     | '/app/einsaetze/$einsatzId'
-    | '/app/settings/audio'
     | '/app/einsaetze'
     | '/app/einsatz/$einsatzId'
     | '/app/einsatz/$einsatzId/betreuung/betroffene'
@@ -700,8 +678,7 @@ export interface FileRouteTypes {
     | '/app/einsatz/$einsatzId/drohne/steuerung'
     | '/app/einsatz/$einsatzId/führung/befehle'
     | '/app/einsatz/$einsatzId/führung/berichte'
-    | '/app/einsatz/$einsatzId/führung/cockpit'
-    | '/app/einsatz/$einsatzId/führung/notizen'
+    | '/app/einsatz/$einsatzId/führung/pinnwand'
     | '/app/einsatz/$einsatzId/führung/protokoll'
     | '/app/einsatz/$einsatzId/führung/rhythmus'
     | '/app/einsatz/$einsatzId/kommunikation/alarmierung'
@@ -751,7 +728,6 @@ export interface FileRouteTypes {
     | '/admin/stammdaten/personen'
     | '/app/einsaetze/$einsatzId'
     | '/app/einsatz/$einsatzId'
-    | '/app/settings/audio'
     | '/app/einsaetze/'
     | '/app/einsatz/$einsatzId/'
     | '/app/einsatz/$einsatzId/betreuung/betroffene'
@@ -762,9 +738,8 @@ export interface FileRouteTypes {
     | '/app/einsatz/$einsatzId/drohne/steuerung'
     | '/app/einsatz/$einsatzId/führung/befehle'
     | '/app/einsatz/$einsatzId/führung/berichte'
-    | '/app/einsatz/$einsatzId/führung/cockpit'
     | '/app/einsatz/$einsatzId/führung/etb'
-    | '/app/einsatz/$einsatzId/führung/notizen'
+    | '/app/einsatz/$einsatzId/führung/pinnwand'
     | '/app/einsatz/$einsatzId/führung/protokoll'
     | '/app/einsatz/$einsatzId/führung/rhythmus'
     | '/app/einsatz/$einsatzId/kommunikation/alarmierung'
@@ -933,13 +908,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/einsaetze/'
       preLoaderRoute: typeof AppEinsaetzeIndexRouteImport
       parentRoute: typeof AppEinsaetzeRoute
-    }
-    '/app/settings/audio': {
-      id: '/app/settings/audio'
-      path: '/audio'
-      fullPath: '/app/settings/audio'
-      preLoaderRoute: typeof AppSettingsAudioRouteImport
-      parentRoute: typeof AppSettingsRoute
     }
     '/app/einsatz/$einsatzId': {
       id: '/app/einsatz/$einsatzId'
@@ -1144,11 +1112,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppEinsatzEinsatzIdFChar252hrungProtokollRouteImport
       parentRoute: typeof AppEinsatzEinsatzIdRoute
     }
-    '/app/einsatz/$einsatzId/führung/notizen': {
-      id: '/app/einsatz/$einsatzId/führung/notizen'
-      path: '/führung/notizen'
-      fullPath: '/app/einsatz/$einsatzId/führung/notizen'
-      preLoaderRoute: typeof AppEinsatzEinsatzIdFChar252hrungNotizenRouteImport
+    '/app/einsatz/$einsatzId/führung/pinnwand': {
+      id: '/app/einsatz/$einsatzId/führung/pinnwand'
+      path: '/führung/pinnwand'
+      fullPath: '/app/einsatz/$einsatzId/führung/pinnwand'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdFChar252hrungPinnwandRouteImport
       parentRoute: typeof AppEinsatzEinsatzIdRoute
     }
     '/app/einsatz/$einsatzId/führung/etb': {
@@ -1156,13 +1124,6 @@ declare module '@tanstack/react-router' {
       path: '/führung/etb'
       fullPath: '/app/einsatz/$einsatzId/führung/etb'
       preLoaderRoute: typeof AppEinsatzEinsatzIdFChar252hrungEtbRouteImport
-      parentRoute: typeof AppEinsatzEinsatzIdRoute
-    }
-    '/app/einsatz/$einsatzId/führung/cockpit': {
-      id: '/app/einsatz/$einsatzId/führung/cockpit'
-      path: '/führung/cockpit'
-      fullPath: '/app/einsatz/$einsatzId/führung/cockpit'
-      preLoaderRoute: typeof AppEinsatzEinsatzIdFChar252hrungCockpitRouteImport
       parentRoute: typeof AppEinsatzEinsatzIdRoute
     }
     '/app/einsatz/$einsatzId/führung/berichte': {
@@ -1304,9 +1265,8 @@ interface AppEinsatzEinsatzIdRouteChildren {
   AppEinsatzEinsatzIdDrohneSteuerungRoute: typeof AppEinsatzEinsatzIdDrohneSteuerungRoute
   AppEinsatzEinsatzIdFChar252hrungBefehleRoute: typeof AppEinsatzEinsatzIdFChar252hrungBefehleRoute
   AppEinsatzEinsatzIdFChar252hrungBerichteRoute: typeof AppEinsatzEinsatzIdFChar252hrungBerichteRoute
-  AppEinsatzEinsatzIdFChar252hrungCockpitRoute: typeof AppEinsatzEinsatzIdFChar252hrungCockpitRoute
   AppEinsatzEinsatzIdFChar252hrungEtbRoute: typeof AppEinsatzEinsatzIdFChar252hrungEtbRouteWithChildren
-  AppEinsatzEinsatzIdFChar252hrungNotizenRoute: typeof AppEinsatzEinsatzIdFChar252hrungNotizenRoute
+  AppEinsatzEinsatzIdFChar252hrungPinnwandRoute: typeof AppEinsatzEinsatzIdFChar252hrungPinnwandRoute
   AppEinsatzEinsatzIdFChar252hrungProtokollRoute: typeof AppEinsatzEinsatzIdFChar252hrungProtokollRoute
   AppEinsatzEinsatzIdFChar252hrungRhythmusRoute: typeof AppEinsatzEinsatzIdFChar252hrungRhythmusRoute
   AppEinsatzEinsatzIdKommunikationAlarmierungRoute: typeof AppEinsatzEinsatzIdKommunikationAlarmierungRoute
@@ -1348,12 +1308,10 @@ const AppEinsatzEinsatzIdRouteChildren: AppEinsatzEinsatzIdRouteChildren = {
     AppEinsatzEinsatzIdFChar252hrungBefehleRoute,
   AppEinsatzEinsatzIdFChar252hrungBerichteRoute:
     AppEinsatzEinsatzIdFChar252hrungBerichteRoute,
-  AppEinsatzEinsatzIdFChar252hrungCockpitRoute:
-    AppEinsatzEinsatzIdFChar252hrungCockpitRoute,
   AppEinsatzEinsatzIdFChar252hrungEtbRoute:
     AppEinsatzEinsatzIdFChar252hrungEtbRouteWithChildren,
-  AppEinsatzEinsatzIdFChar252hrungNotizenRoute:
-    AppEinsatzEinsatzIdFChar252hrungNotizenRoute,
+  AppEinsatzEinsatzIdFChar252hrungPinnwandRoute:
+    AppEinsatzEinsatzIdFChar252hrungPinnwandRoute,
   AppEinsatzEinsatzIdFChar252hrungProtokollRoute:
     AppEinsatzEinsatzIdFChar252hrungProtokollRoute,
   AppEinsatzEinsatzIdFChar252hrungRhythmusRoute:
@@ -1413,28 +1371,16 @@ const AppEinsatzRouteWithChildren = AppEinsatzRoute._addFileChildren(
   AppEinsatzRouteChildren,
 )
 
-interface AppSettingsRouteChildren {
-  AppSettingsAudioRoute: typeof AppSettingsAudioRoute
-}
-
-const AppSettingsRouteChildren: AppSettingsRouteChildren = {
-  AppSettingsAudioRoute: AppSettingsAudioRoute,
-}
-
-const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
-  AppSettingsRouteChildren,
-)
-
 interface AppRouteChildren {
   AppEinsaetzeRoute: typeof AppEinsaetzeRouteWithChildren
   AppEinsatzRoute: typeof AppEinsatzRouteWithChildren
-  AppSettingsRoute: typeof AppSettingsRouteWithChildren
+  AppSettingsRoute: typeof AppSettingsRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppEinsaetzeRoute: AppEinsaetzeRouteWithChildren,
   AppEinsatzRoute: AppEinsatzRouteWithChildren,
-  AppSettingsRoute: AppSettingsRouteWithChildren,
+  AppSettingsRoute: AppSettingsRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

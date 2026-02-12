@@ -99,7 +99,7 @@ fn try_resolve_sound_file(
 }
 
 /// Spielt einen generierten Beep-Ton ab (Fallback wenn keine Sound-Datei)
-fn play_beep(sound_type: SoundType, stream_handle: &rodio::OutputStreamHandle) {
+fn play_beep(sound_type: SoundType, stream_handle: &rodio::OutputStreamHandle, volume: f32) {
     let (freq, duration_ms, repeats) = sound_type.beep_params();
 
     let sink = match Sink::try_new(stream_handle) {
@@ -110,10 +110,12 @@ fn play_beep(sound_type: SoundType, stream_handle: &rodio::OutputStreamHandle) {
         }
     };
 
+    sink.set_volume(volume);
+
     for i in 0..repeats {
         let source = SineWave::new(freq)
             .take_duration(Duration::from_millis(duration_ms))
-            .amplify(0.3); // Nicht zu laut
+            .amplify(0.3);
 
         sink.append(source);
 
@@ -130,7 +132,7 @@ fn play_beep(sound_type: SoundType, stream_handle: &rodio::OutputStreamHandle) {
 }
 
 /// Spielt eine Audio-Datei (WAV/MP3) ab
-fn play_audio_file(path: PathBuf, stream_handle: &rodio::OutputStreamHandle) -> Result<(), String> {
+fn play_audio_file(path: PathBuf, stream_handle: &rodio::OutputStreamHandle, volume: f32) -> Result<(), String> {
     let file = File::open(&path).map_err(|e| format!("Konnte Datei nicht öffnen: {}", e))?;
     let reader = BufReader::new(file);
 
@@ -140,6 +142,7 @@ fn play_audio_file(path: PathBuf, stream_handle: &rodio::OutputStreamHandle) -> 
     let sink = Sink::try_new(stream_handle)
         .map_err(|e| format!("Konnte Audio-Sink nicht erstellen: {}", e))?;
 
+    sink.set_volume(volume);
     sink.append(source);
     sink.sleep_until_end();
 
@@ -151,8 +154,12 @@ fn play_sound_internal(
     app_handle: AppHandle,
     sound_type: SoundType,
     custom_file: Option<String>,
+    volume: f32,
 ) -> Result<(), String> {
     let sound_path = try_resolve_sound_file(&app_handle, sound_type, custom_file);
+
+    // Volume clampen (Defense in Depth)
+    let volume = volume.clamp(0.0, 1.0);
 
     // Sound in separatem Thread abspielen um nicht zu blockieren
     thread::spawn(move || {
@@ -167,20 +174,20 @@ fn play_sound_internal(
 
         match sound_path {
             Some(path) => {
-                if let Err(e) = play_audio_file(path, &stream_handle) {
+                if let Err(e) = play_audio_file(path, &stream_handle, volume) {
                     log::warn!(
                         "Fehler beim Abspielen der Sound-Datei: {}, nutze Fallback",
                         e
                     );
-                    play_beep(sound_type, &stream_handle);
+                    play_beep(sound_type, &stream_handle, volume);
                 }
             }
             None => {
-                play_beep(sound_type, &stream_handle);
+                play_beep(sound_type, &stream_handle, volume);
             }
         }
 
-        log::info!("Sound {:?} erfolgreich abgespielt", sound_type);
+        log::info!("Sound {:?} erfolgreich abgespielt (volume: {})", sound_type, volume);
     });
 
     Ok(())
@@ -191,6 +198,7 @@ fn play_sound_internal(
 /// # Parameter
 /// - `sound_type`: "info", "warning", "urgent"
 /// - `sound_file`: Optionaler Pfad zur Sound-Datei (z.B. "/sounds/alarm-info-chime.mp3")
+/// - `volume`: Lautstärke als Float (0.0 - 1.0), Standard: 1.0
 ///
 /// # Rückgabe
 /// - `Ok(())` wenn der Sound erfolgreich gestartet wurde
@@ -200,11 +208,14 @@ pub fn play_sound(
     app_handle: AppHandle,
     sound_type: String,
     sound_file: Option<String>,
+    volume: Option<f32>,
 ) -> Result<(), String> {
+    let vol = volume.unwrap_or(1.0);
     log::info!(
-        "play_sound aufgerufen mit Typ: {}, File: {:?}",
+        "play_sound aufgerufen mit Typ: {}, File: {:?}, Volume: {}",
         sound_type,
-        sound_file
+        sound_file,
+        vol
     );
 
     let parsed_type = SoundType::from_str(&sound_type).ok_or_else(|| {
@@ -214,27 +225,57 @@ pub fn play_sound(
         )
     })?;
 
-    play_sound_internal(app_handle, parsed_type, sound_file)
+    play_sound_internal(app_handle, parsed_type, sound_file, vol)
 }
 
-/// Tauri Command: Testet ob Audio-Wiedergabe funktioniert
+/// Tauri Command: Testet ob Audio-Wiedergabe funktioniert und prüft Sound-Dateien
 ///
-/// Nützlich für Debugging und Initialisierung
+/// Prüft Audio-System und ob alle erwarteten Sound-Dateien vorhanden sind.
+/// Gibt Diagnose-Informationen als JSON-String zurück.
 #[tauri::command]
-pub fn test_audio() -> Result<String, String> {
+pub fn test_audio(app_handle: AppHandle) -> Result<String, String> {
     log::info!("Audio-Test gestartet");
 
-    match OutputStream::try_default() {
+    // Audio-System prüfen
+    let audio_available = match OutputStream::try_default() {
         Ok(_) => {
             log::info!("Audio-System verfügbar");
-            Ok("Audio-System ist verfügbar".to_string())
+            true
         }
         Err(e) => {
-            let msg = format!("Audio-System nicht verfügbar: {}", e);
-            log::error!("{}", msg);
-            Err(msg)
+            log::error!("Audio-System nicht verfügbar: {}", e);
+            false
+        }
+    };
+
+    // Sound-Dateien prüfen
+    let sound_types = [SoundType::Info, SoundType::Warning, SoundType::Urgent];
+    let mut missing_files: Vec<String> = Vec::new();
+    let mut found_count = 0;
+
+    for sound_type in &sound_types {
+        if try_resolve_sound_file(&app_handle, *sound_type, None).is_some() {
+            found_count += 1;
+        } else {
+            missing_files.push(sound_type.default_filename().to_string());
         }
     }
+
+    let status = if audio_available && missing_files.is_empty() {
+        "ok"
+    } else if audio_available {
+        "degraded"
+    } else {
+        "unavailable"
+    };
+
+    let result = format!(
+        r#"{{"status":"{}","audioAvailable":{},"soundFiles":{{"found":{},"missing":{:?}}}}}"#,
+        status, audio_available, found_count, missing_files
+    );
+
+    log::info!("Audio-Test Ergebnis: {}", result);
+    Ok(result)
 }
 
 #[cfg(test)]

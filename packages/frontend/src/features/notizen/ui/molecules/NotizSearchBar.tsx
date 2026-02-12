@@ -41,9 +41,9 @@ export function NotizSearchBar({ value, onChange, onClear, resultCount, totalCou
       />
       <div className="absolute top-1/2 right-3 flex -translate-y-1/2 items-center gap-2">
         {showResultCount && (
-          <span className="text-xs text-gray-400" aria-live="polite">
+          <output className="text-gray-400 text-xs" aria-live="polite">
             {resultCount} von {totalCount}
-          </span>
+          </output>
         )}
         {hasValue && (
           <button

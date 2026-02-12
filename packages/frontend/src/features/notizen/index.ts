@@ -6,6 +6,18 @@ export type { CreateNotizVariables, UpdateNotizVariables, DeleteNotizVariables }
 export { createNotizSchema, updateNotizSchema } from './schemas/notiz.schema';
 export type { CreateNotizFormValues, UpdateNotizFormValues } from './schemas/notiz.schema';
 
+// Stores
+export {
+  notizDialogStore,
+  openQuickCreateNotizDialog,
+  closeQuickCreateNotizDialog,
+  resetNotizDialogStore,
+  useQuickCreateNotizDialogState,
+} from './stores/notiz-dialog.store';
+
+// Hooks
+export { useQuickCreateNotizHotkeys } from './hooks/use-quick-create-notiz-hotkeys';
+
 // UI Components
 export { NotizCard } from './ui/atoms/NotizCard';
 export { ItemTypeBadge } from './ui/atoms/ItemTypeBadge';

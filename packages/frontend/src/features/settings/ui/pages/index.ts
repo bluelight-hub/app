@@ -1,1 +1,1 @@
-export { AudioSettingsPage, type AudioSettingsPageProps } from './AudioSettingsPage';
+export { AudioSettingsDialog, type AudioSettingsDialogProps } from './AudioSettingsDialog';

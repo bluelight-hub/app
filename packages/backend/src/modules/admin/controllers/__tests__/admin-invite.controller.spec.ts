@@ -2,10 +2,17 @@ import { BadRequestException } from '@nestjs/common';
 import { AdminInviteController } from '@/modules/admin/controllers/admin-invite.controller';
 import { Result } from '@/domain/common/result';
 import type { CreateInviteHandler } from '@/application/admin/commands/create-invite.handler';
+import type { ListInvitesHandler } from '@/application/admin/queries/list-invites.handler';
+import type { RevokeInviteHandler } from '@/application/admin/commands/revoke-invite.handler';
 import { CreateInviteDto } from '@/application/admin/dto/create-invite.dto';
 import type { CreateInviteResponseDto } from '@/application/admin/dto/create-invite-response.dto';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { INVITE_ERROR_CODES } from '@/application/admin/errors/invite-error.codes';
+
+/** Hilfsfunktion: Gibt ein ISO-Datum 24 Stunden in der Zukunft zurueck */
+function futureIsoDate(): string {
+  return new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+}
 
 /**
  * Unit Tests fuer AdminInviteController.
@@ -31,6 +38,8 @@ import { INVITE_ERROR_CODES } from '@/application/admin/errors/invite-error.code
 describe('AdminInviteController', () => {
   let controller: AdminInviteController;
   let mockCreateInviteHandler: jest.Mocked<CreateInviteHandler>;
+  let mockListInvitesHandler: jest.Mocked<ListInvitesHandler>;
+  let mockRevokeInviteHandler: jest.Mocked<RevokeInviteHandler>;
 
   // Standard-Erfolgsantwort fuer Mock
   const mockSuccessResponse: CreateInviteResponseDto = {
@@ -54,22 +63,33 @@ describe('AdminInviteController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Create mock handler (Direct Instantiation Pattern)
+    // Create mock handlers (Direct Instantiation Pattern)
     mockCreateInviteHandler = {
       execute: jest.fn(),
       // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
-    // Instantiate controller with mocks
-    controller = new AdminInviteController(mockCreateInviteHandler);
+    mockListInvitesHandler = {
+      execute: jest.fn(),
+      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+    } as any;
+
+    mockRevokeInviteHandler = {
+      execute: jest.fn(),
+      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+    } as any;
+
+    // Instantiate controller with all required mocks
+    controller = new AdminInviteController(mockCreateInviteHandler, mockListInvitesHandler, mockRevokeInviteHandler);
   });
 
   describe('createInvite()', () => {
     describe('Success Cases', () => {
       it('sollte Invite-Code erfolgreich erstellen und CreateInviteResponseDto zurueckgeben', async () => {
         // Given (Arrange)
+        const expiresAt = futureIsoDate();
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt,
           maxUses: 5,
           label: 'Team Nord',
         };
@@ -85,7 +105,7 @@ describe('AdminInviteController', () => {
 
         // Verify command was created correctly
         const executedCommand = mockCreateInviteHandler.execute.mock.calls[0][0];
-        expect(executedCommand.expiresAt).toEqual(new Date(dto.expiresAt));
+        expect(executedCommand.expiresAt).toEqual(new Date(expiresAt));
         expect(executedCommand.maxUses).toBe(5);
         expect(executedCommand.label).toBe('Team Nord');
         expect(executedCommand.createdById).toBe(mockAdminUser.userId);
@@ -94,7 +114,7 @@ describe('AdminInviteController', () => {
       it('sollte Invite-Code ohne optionale Felder erstellen (mit explizitem expiresAt)', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: futureIsoDate(),
         };
 
         const responseWithoutOptionals: CreateInviteResponseDto = {
@@ -165,7 +185,7 @@ describe('AdminInviteController', () => {
       it('sollte Invite-Code mit maxUses=1 erstellen (Minimum)', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: futureIsoDate(),
           maxUses: 1,
         };
 
@@ -182,7 +202,7 @@ describe('AdminInviteController', () => {
       it('sollte Invite-Code mit maxUses=100 erstellen (Maximum)', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: futureIsoDate(),
           maxUses: 100,
         };
 
@@ -237,7 +257,7 @@ describe('AdminInviteController', () => {
       it('sollte BadRequestException werfen wenn maxUses zu klein ist (0)', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: futureIsoDate(),
           maxUses: 0,
         };
 
@@ -249,7 +269,7 @@ describe('AdminInviteController', () => {
       it('sollte BadRequestException werfen wenn maxUses negativ ist', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: futureIsoDate(),
           maxUses: -5,
         };
 
@@ -261,7 +281,7 @@ describe('AdminInviteController', () => {
       it('sollte BadRequestException werfen wenn maxUses zu gross ist (101)', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: futureIsoDate(),
           maxUses: 101,
         };
 
@@ -273,7 +293,7 @@ describe('AdminInviteController', () => {
       it('sollte BadRequestException werfen wenn label zu lang ist (>100 Zeichen)', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: futureIsoDate(),
           label: 'A'.repeat(101), // 101 Zeichen
         };
 
@@ -287,7 +307,7 @@ describe('AdminInviteController', () => {
       it('sollte BadRequestException werfen wenn Handler mit CREATION_FAILED fehlschlaegt', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: futureIsoDate(),
           maxUses: 5,
         };
 
@@ -300,8 +320,9 @@ describe('AdminInviteController', () => {
 
       it('sollte BadRequestException werfen wenn Handler mit SAVE_FAILED fehlschlaegt', async () => {
         // Given (Arrange)
+        const expiresAt = futureIsoDate();
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt,
           maxUses: 5,
         };
 
@@ -324,7 +345,7 @@ describe('AdminInviteController', () => {
       it('sollte BadRequestException werfen wenn Handler mit unbekanntem Fehler fehlschlaegt', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: futureIsoDate(),
         };
 
         mockCreateInviteHandler.execute.mockResolvedValue(Result.fail('UNKNOWN_ERROR'));
@@ -337,7 +358,7 @@ describe('AdminInviteController', () => {
       it('sollte BadRequestException werfen wenn Handler undefined value zurueckgibt', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: futureIsoDate(),
         };
 
         // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
@@ -352,7 +373,7 @@ describe('AdminInviteController', () => {
       it('sollte createdById aus ValidatedUser korrekt an Command weitergeben', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: futureIsoDate(),
         };
         const customUser: ValidatedUser = {
           userId: 'custom_admin_789',
@@ -372,7 +393,7 @@ describe('AdminInviteController', () => {
       it('sollte mit ADMIN role funktionieren', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: futureIsoDate(),
         };
         const adminUser: ValidatedUser = {
           userId: 'admin_user_123',
@@ -391,7 +412,7 @@ describe('AdminInviteController', () => {
       it('sollte mit SUPER_ADMIN role funktionieren', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: futureIsoDate(),
         };
         const superAdminUser: ValidatedUser = {
           userId: 'super_admin_456',
@@ -469,7 +490,7 @@ describe('AdminInviteController', () => {
       it('sollte INVITE_MAX_USES_INVALID zu benutzerfreundlicher Nachricht mappen', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: futureIsoDate(),
           maxUses: 0,
         };
 
@@ -489,7 +510,7 @@ describe('AdminInviteController', () => {
       it('sollte INVITE_LABEL_TOO_LONG zu benutzerfreundlicher Nachricht mappen', async () => {
         // Given (Arrange)
         const dto: CreateInviteDto = {
-          expiresAt: '2026-02-01T12:00:00.000Z',
+          expiresAt: futureIsoDate(),
           label: 'A'.repeat(101),
         };
 
@@ -548,13 +569,13 @@ describe('AdminInviteController', () => {
     it('sollte Handler-Ergebnis direkt zurueckgeben (kein Wrapper)', async () => {
       // Given (Arrange)
       const dto: CreateInviteDto = {
-        expiresAt: '2026-02-01T12:00:00.000Z',
+        expiresAt: futureIsoDate(),
       };
 
       const customResponse: CreateInviteResponseDto = {
         id: 'inv_customid123456789012345',
         code: 'XYZ98765',
-        expiresAt: '2026-02-01T12:00:00.000Z',
+        expiresAt: '2027-02-01T12:00:00.000Z',
         maxUses: 1,
         useCount: 0,
         createdAt: '2026-01-07T15:00:00.000Z',
@@ -578,7 +599,7 @@ describe('AdminInviteController', () => {
     it('sollte mit Label am Grenzwert (100 Zeichen) funktionieren', async () => {
       // Given (Arrange)
       const dto: CreateInviteDto = {
-        expiresAt: '2026-02-01T12:00:00.000Z',
+        expiresAt: futureIsoDate(),
         label: 'A'.repeat(100), // Genau 100 Zeichen
       };
 
@@ -595,7 +616,7 @@ describe('AdminInviteController', () => {
     it('sollte leeren Label-String zu undefined normalisieren', async () => {
       // Given (Arrange)
       const dto: CreateInviteDto = {
-        expiresAt: '2026-02-01T12:00:00.000Z',
+        expiresAt: futureIsoDate(),
         label: '',
       };
 
@@ -613,7 +634,7 @@ describe('AdminInviteController', () => {
     it('sollte Label mit Whitespace trimmen', async () => {
       // Given (Arrange)
       const dto: CreateInviteDto = {
-        expiresAt: '2026-02-01T12:00:00.000Z',
+        expiresAt: futureIsoDate(),
         label: '   Team Nord   ',
       };
 
