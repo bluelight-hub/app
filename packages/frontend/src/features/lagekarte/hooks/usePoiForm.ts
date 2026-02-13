@@ -30,11 +30,15 @@ const poiFormSchema = z.object({
   name: z.string().min(3, 'Name muss mindestens 3 Zeichen lang sein'),
   adresse: z.string().optional(),
   latitude: z
-    .number({ required_error: COORDINATE_ERROR_MESSAGES.LATITUDE.REQUIRED })
+    .number({
+      error: (issue) => (issue.input === undefined ? COORDINATE_ERROR_MESSAGES.LATITUDE.REQUIRED : undefined),
+    })
     .min(COORDINATE_LIMITS.LATITUDE.MIN, COORDINATE_ERROR_MESSAGES.LATITUDE.OUT_OF_RANGE)
     .max(COORDINATE_LIMITS.LATITUDE.MAX, COORDINATE_ERROR_MESSAGES.LATITUDE.OUT_OF_RANGE),
   longitude: z
-    .number({ required_error: COORDINATE_ERROR_MESSAGES.LONGITUDE.REQUIRED })
+    .number({
+      error: (issue) => (issue.input === undefined ? COORDINATE_ERROR_MESSAGES.LONGITUDE.REQUIRED : undefined),
+    })
     .min(COORDINATE_LIMITS.LONGITUDE.MIN, COORDINATE_ERROR_MESSAGES.LONGITUDE.OUT_OF_RANGE)
     .max(COORDINATE_LIMITS.LONGITUDE.MAX, COORDINATE_ERROR_MESSAGES.LONGITUDE.OUT_OF_RANGE),
   mgrs: z.string().optional(),

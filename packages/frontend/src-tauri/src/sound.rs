@@ -7,7 +7,8 @@
 //! Fallback: Generiert einen einfachen Beep-Ton wenn keine Datei vorhanden ist.
 
 use rodio::source::{SineWave, Source};
-use rodio::{Decoder, OutputStream, Sink};
+use rodio::mixer::Mixer;
+use rodio::{Decoder, OutputStreamBuilder, Sink};
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
@@ -99,16 +100,10 @@ fn try_resolve_sound_file(
 }
 
 /// Spielt einen generierten Beep-Ton ab (Fallback wenn keine Sound-Datei)
-fn play_beep(sound_type: SoundType, stream_handle: &rodio::OutputStreamHandle, volume: f32) {
+fn play_beep(sound_type: SoundType, mixer: &Mixer, volume: f32) {
     let (freq, duration_ms, repeats) = sound_type.beep_params();
 
-    let sink = match Sink::try_new(stream_handle) {
-        Ok(sink) => sink,
-        Err(e) => {
-            log::error!("Konnte Audio-Sink nicht erstellen: {}", e);
-            return;
-        }
-    };
+    let sink = Sink::connect_new(mixer);
 
     sink.set_volume(volume);
 
@@ -132,15 +127,14 @@ fn play_beep(sound_type: SoundType, stream_handle: &rodio::OutputStreamHandle, v
 }
 
 /// Spielt eine Audio-Datei (WAV/MP3) ab
-fn play_audio_file(path: PathBuf, stream_handle: &rodio::OutputStreamHandle, volume: f32) -> Result<(), String> {
+fn play_audio_file(path: PathBuf, mixer: &Mixer, volume: f32) -> Result<(), String> {
     let file = File::open(&path).map_err(|e| format!("Konnte Datei nicht öffnen: {}", e))?;
     let reader = BufReader::new(file);
 
     let source =
         Decoder::new(reader).map_err(|e| format!("Konnte Sound nicht dekodieren: {}", e))?;
 
-    let sink = Sink::try_new(stream_handle)
-        .map_err(|e| format!("Konnte Audio-Sink nicht erstellen: {}", e))?;
+    let sink = Sink::connect_new(mixer);
 
     sink.set_volume(volume);
     sink.append(source);
@@ -164,26 +158,27 @@ fn play_sound_internal(
     // Sound in separatem Thread abspielen um nicht zu blockieren
     thread::spawn(move || {
         // OutputStream muss im gleichen Thread wie Sink leben
-        let (_stream, stream_handle) = match OutputStream::try_default() {
-            Ok(output) => output,
+        let stream = match OutputStreamBuilder::open_default_stream() {
+            Ok(stream) => stream,
             Err(e) => {
                 log::error!("Konnte Audio-Output nicht initialisieren: {}", e);
                 return;
             }
         };
+        let mixer = stream.mixer();
 
         match sound_path {
             Some(path) => {
-                if let Err(e) = play_audio_file(path, &stream_handle, volume) {
+                if let Err(e) = play_audio_file(path, mixer, volume) {
                     log::warn!(
                         "Fehler beim Abspielen der Sound-Datei: {}, nutze Fallback",
                         e
                     );
-                    play_beep(sound_type, &stream_handle, volume);
+                    play_beep(sound_type, mixer, volume);
                 }
             }
             None => {
-                play_beep(sound_type, &stream_handle, volume);
+                play_beep(sound_type, mixer, volume);
             }
         }
 
@@ -237,7 +232,7 @@ pub fn test_audio(app_handle: AppHandle) -> Result<String, String> {
     log::info!("Audio-Test gestartet");
 
     // Audio-System prüfen
-    let audio_available = match OutputStream::try_default() {
+    let audio_available = match OutputStreamBuilder::open_default_stream() {
         Ok(_) => {
             log::info!("Audio-System verfügbar");
             true
