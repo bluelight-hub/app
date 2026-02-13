@@ -79,7 +79,7 @@ jobs:
           touch "${{ runner.temp }}/digests/${digest#sha256:}"
 
       - name: Upload digest
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: digests-${{ matrix.runner }}
           path: ${{ runner.temp }}/digests/*
@@ -133,7 +133,7 @@ jobs:
         run: echo "${{ steps.meta.outputs.tags }}" > backend-image-tags.txt
 
       - name: Upload Backend Image Tags
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: backend-image-tags
           path: backend-image-tags.txt
@@ -221,7 +221,7 @@ jobs:
           ls -la "$BUNDLE_PATH"
 
       - name: Upload Frontend Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: frontend-artifact-${{ matrix.artifact_suffix }}
           path: ${{ steps.bundle.outputs.path }}
