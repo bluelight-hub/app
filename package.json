@@ -49,18 +49,18 @@
     "node": ">=24.0.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.3.11",
+    "@biomejs/biome": "2.3.15",
     "@mermaid-js/mermaid-cli": "^11.12.0",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/exec": "^7.1.0",
     "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "^12.0.2",
+    "@semantic-release/github": "^12.0.6",
     "@softwaretechnik/dbml-renderer": "^1.0.31",
     "debug": "^4.4.3",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
-    "puppeteer": "^24.35.0",
-    "semantic-release": "^25.0.2",
-    "semantic-release-gitmoji": "^1.6.8"
+    "puppeteer": "^24.37.2",
+    "semantic-release": "^25.0.3",
+    "semantic-release-gitmoji": "^1.6.9"
   }
 }
