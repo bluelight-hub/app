@@ -50,8 +50,7 @@ export const INVITE_CODE_CONSTRAINTS = {
  */
 export const inviteCodeSchema = z
   .string({
-    required_error: 'Invite-Code wird benötigt',
-    invalid_type_error: 'Invite-Code muss ein Text sein',
+    error: (issue) => (issue.input === undefined ? 'Invite-Code wird benötigt' : 'Invite-Code muss ein Text sein'),
   })
   .trim()
   .length(INVITE_CODE_CONSTRAINTS.length, `Invite-Code muss exakt ${INVITE_CODE_CONSTRAINTS.length} Zeichen lang sein`)
@@ -75,8 +74,7 @@ export const inviteCodeSchema = z
  */
 export const inviteCodeSchemaNormalized = z
   .string({
-    required_error: 'Invite-Code wird benötigt',
-    invalid_type_error: 'Invite-Code muss ein Text sein',
+    error: (issue) => (issue.input === undefined ? 'Invite-Code wird benötigt' : 'Invite-Code muss ein Text sein'),
   })
   .trim()
   .transform((val) => val.toUpperCase())

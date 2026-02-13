@@ -125,9 +125,7 @@ function analyzeFile(filePath: string, baseSrcDir: string): void {
         const importPath = match[3]; // './path' oder '@/path'
 
         const importedNames = namedImports
-          ? namedImports
-              .split(',')
-              .map((n) => n.trim().split(' ')[0]) // Ignoriere 'as' aliases
+          ? namedImports.split(',').map((n) => n.trim().split(' ')[0]) // Ignoriere 'as' aliases
           : defaultImport
             ? [defaultImport]
             : [];
