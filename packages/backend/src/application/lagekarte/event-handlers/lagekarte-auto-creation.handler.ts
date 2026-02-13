@@ -18,7 +18,6 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { IEventHandler } from '@domain/ports/i-event-handler.port';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import type { EinsatzCreatedEvent } from '@domain/events/einsatz-created.event';
-// biome-ignore lint/style/useImportType: CreateLagekarteCommandHandler needed for DI at runtime
 import { CreateLagekarteCommandHandler } from '../commands/create-lagekarte.handler';
 import { CreateLagekarteCommand } from '../commands/create-lagekarte.command';
 import { LOGGER } from '@infrastructure/di-tokens';

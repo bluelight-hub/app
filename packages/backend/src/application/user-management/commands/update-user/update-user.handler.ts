@@ -4,7 +4,6 @@ import type { UpdateUserCommand } from './update-user.command';
 import { Result } from '@domain/common/result';
 import type { DomainEvent } from '@domain/common/domain-event';
 import type { TransactionContext } from '@domain/common/transaction';
-// biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import type { IUserRepository } from '@domain/repositories/i-user.repository';

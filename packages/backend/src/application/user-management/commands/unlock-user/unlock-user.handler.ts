@@ -2,7 +2,6 @@ import { CommandHandler } from '@nestjs/cqrs';
 import { Inject, Injectable } from '@nestjs/common';
 import { TransactionalCommandHandler } from '@application/common/handlers/transactional-command.handler';
 import type { ILogger } from '@domain/ports/i-logger.port';
-// biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import type { IUserRepository } from '@domain/repositories/i-user.repository';

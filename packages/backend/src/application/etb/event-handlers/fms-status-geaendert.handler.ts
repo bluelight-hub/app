@@ -22,7 +22,6 @@ import type { ILogger } from '@domain/ports/i-logger.port';
 import type { FmsStatusGeaendertEvent } from '@domain/kraefte/events/fms-status-geaendert.event';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { AddEintragCommand } from '../commands/add-eintrag/add-eintrag.command';
-// biome-ignore lint/style/useImportType: AddEintragHandler needed for DI at runtime
 import { AddEintragHandler } from '../commands/add-eintrag/add-eintrag.handler';
 import { FMS_STATUS_LABELS } from '@domain/kraefte/constants/einsatz-fahrzeug-validation.constants';
 

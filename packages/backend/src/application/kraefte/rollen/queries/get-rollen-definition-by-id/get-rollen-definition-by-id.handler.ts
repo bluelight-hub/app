@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { Result } from '@domain/common/result';
-// biome-ignore lint/style/useImportType: IRollenDefinitionRepository needed for DI at runtime
 import { IRollenDefinitionRepository } from '@domain/kraefte/repositories/i-rollen-definition.repository';
 import { RolleId } from '@domain/kraefte/value-objects/rolle-id';
 import { KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';

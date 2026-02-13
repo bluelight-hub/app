@@ -1,9 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Result } from '@domain/common/result';
 import type { ILogger } from '@domain/ports/i-logger.port';
-// biome-ignore lint/style/useImportType: IStammPersonRepository needed for DI at runtime
 import { IStammPersonRepository } from '@domain/kraefte/repositories/i-stamm-person.repository';
-// biome-ignore lint/style/useImportType: IQualifikationRepository needed for DI at runtime
 import { IQualifikationRepository } from '@domain/kraefte/repositories/i-qualifikation.repository';
 import { QualifikationId } from '@domain/kraefte/value-objects/qualifikation-id';
 import { KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';

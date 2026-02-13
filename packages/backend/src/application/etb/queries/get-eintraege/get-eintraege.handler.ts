@@ -6,7 +6,6 @@ import { EtbQueryMapper } from '@application/etb/mappers/etb-query.mapper';
 import type { EintragDto } from '@application/etb/mappers/etb-query.mapper';
 import type { GetEintraegeQuery } from './get-eintraege.query';
 import { ETB_REPOSITORY } from '@infrastructure/di-tokens';
-// biome-ignore lint/style/useImportType: PrismaService is an Injectable class, not just a type - needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 
 /**

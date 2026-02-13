@@ -2,7 +2,6 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { IKategorieRepository } from '@domain/kategorie/repositories/i-kategorie.repository';
 import { Result } from '@domain/common/result';
 import { KATEGORIE_REPOSITORY } from '@infrastructure/di-tokens';
-// biome-ignore lint/style/useImportType: Injectable class needs runtime symbol for NestJS DI
 import { KategorieResponseFactory } from '../../dto/kategorie-response.factory';
 import type { KategorieResponseDto } from '../../dto/kategorie-response.dto';
 import type { GetKategorienByEinsatzQuery } from './get-kategorien-by-einsatz.query';

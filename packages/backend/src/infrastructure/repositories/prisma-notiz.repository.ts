@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import type { INotizRepository } from '@domain/notiz/repositories/i-notiz.repository';
 import type { Notiz } from '@domain/notiz/entities/notiz.entity';
 import type { NotizId } from '@domain/notiz/value-objects/notiz-id';
-// biome-ignore lint/style/useImportType: Injectable class needs runtime symbol for NestJS DI
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { PrismaNotizMapper } from './mappers/prisma-notiz.mapper';
 

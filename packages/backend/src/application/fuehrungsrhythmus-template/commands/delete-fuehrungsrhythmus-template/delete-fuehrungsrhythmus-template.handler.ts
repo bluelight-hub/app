@@ -8,7 +8,6 @@ import { UserId } from '@domain/value-objects/user-id';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import { TransactionalCommandHandler } from '@/application/common/handlers/transactional-command.handler';
-// biome-ignore lint/style/useImportType: Injectable class needs runtime symbol for NestJS DI
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { FUEHRUNGSRHYTHMUS_TEMPLATE_REPOSITORY, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
 import type { DeleteFuehrungsrhythmusTemplateCommand } from './delete-fuehrungsrhythmus-template.command';

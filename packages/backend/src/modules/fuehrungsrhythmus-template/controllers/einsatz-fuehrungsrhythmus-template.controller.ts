@@ -4,15 +4,10 @@ import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ApiWrappedCreatedResponse, ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
-// biome-ignore lint/style/useImportType: Injectable class needs runtime symbol for NestJS DI
 import { CreateFuehrungsrhythmusTemplateHandler } from '@/application/fuehrungsrhythmus-template/commands/create-fuehrungsrhythmus-template/create-fuehrungsrhythmus-template.handler';
-// biome-ignore lint/style/useImportType: Injectable class needs runtime symbol for NestJS DI
 import { GetAllFuehrungsrhythmusTemplatesHandler } from '@/application/fuehrungsrhythmus-template/queries/get-all-fuehrungsrhythmus-templates/get-all-fuehrungsrhythmus-templates.handler';
-// biome-ignore lint/style/useImportType: Injectable class needs runtime symbol for NestJS DI
 import { ActivateFuehrungsrhythmusTemplateHandler } from '@/application/fuehrungsrhythmus-template/commands/activate-fuehrungsrhythmus-template/activate-fuehrungsrhythmus-template.handler';
-// biome-ignore lint/style/useImportType: Injectable class needs runtime symbol for NestJS DI
 import { UpdateFuehrungsrhythmusTemplateHandler } from '@/application/fuehrungsrhythmus-template/commands/update-fuehrungsrhythmus-template/update-fuehrungsrhythmus-template.handler';
-// biome-ignore lint/style/useImportType: Injectable class needs runtime symbol for NestJS DI
 import { DeleteFuehrungsrhythmusTemplateHandler } from '@/application/fuehrungsrhythmus-template/commands/delete-fuehrungsrhythmus-template/delete-fuehrungsrhythmus-template.handler';
 import { CreateFuehrungsrhythmusTemplateDto } from '@/application/fuehrungsrhythmus-template/dto/create-fuehrungsrhythmus-template.dto';
 import { FuehrungsrhythmusTemplateResponseDto } from '@/application/fuehrungsrhythmus-template/dto/fuehrungsrhythmus-template-response.dto';

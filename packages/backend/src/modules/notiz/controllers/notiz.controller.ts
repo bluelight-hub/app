@@ -7,9 +7,7 @@ import { Roles } from '@/modules/auth/decorators/roles.decorator';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ApiWrappedCreatedResponse, ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { CreateNotizHandler } from '@/application/notiz/commands/create-notiz/create-notiz.handler';
-// biome-ignore lint/style/useImportType: Injectable class needs runtime symbol for NestJS DI
 import { UpdateNotizHandler } from '@/application/notiz/commands/update-notiz/update-notiz.handler';
-// biome-ignore lint/style/useImportType: Injectable class needs runtime symbol for NestJS DI
 import { DeleteNotizHandler } from '@/application/notiz/commands/delete-notiz/delete-notiz.handler';
 import { DeleteNotizCommand } from '@/application/notiz/commands/delete-notiz/delete-notiz.command';
 import { GetNotizenByEinsatzHandler } from '@/application/notiz/queries/get-notizen-by-einsatz/get-notizen-by-einsatz.handler';

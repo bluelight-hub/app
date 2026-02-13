@@ -2,32 +2,23 @@ import { Inject, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { createId } from '@paralleldrive/cuid2';
 
-// biome-ignore lint/style/useImportType: DomainEvent wird fuer Runtime-Typisierung benoetigt
 import { DomainEvent } from '@domain/common/domain-event';
 import { Result } from '@domain/common/result';
-// biome-ignore lint/style/useImportType: TransactionContext wird fuer Runtime-Typisierung benoetigt
 import { TransactionContext } from '@domain/common/transaction';
-// biome-ignore lint/style/useImportType: ILogger wird fuer NestJS DI benoetigt
 import { ILogger } from '@domain/ports/i-logger.port';
 import { ServerAccessToken } from '@domain/aggregates/server-access-token.aggregate';
-// biome-ignore lint/style/useImportType: IOutboxRepository wird fuer NestJS DI benoetigt
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
-// biome-ignore lint/style/useImportType: IServerAccessTokenRepository wird fuer NestJS DI benoetigt
 import { IServerAccessTokenRepository } from '@domain/repositories/i-server-access-token.repository';
-// biome-ignore lint/style/useImportType: IServerConfigRepository wird fuer NestJS DI benoetigt
 import { IServerConfigRepository } from '@domain/repositories/i-server-config.repository';
 import { TokenHash } from '@domain/value-objects/token-hash';
 import { ServerMigratedToSecureModeEvent } from '@domain/events/server-migrated-to-secure-mode.event';
 
 import { TransactionalCommandHandler } from '@/application/common/handlers/transactional-command.handler';
-// biome-ignore lint/style/useImportType: PrismaService wird zur Laufzeit fuer NestJS DI benoetigt
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { LOGGER, OUTBOX_REPOSITORY, SERVER_ACCESS_TOKEN_REPOSITORY, SERVER_CONFIG_REPOSITORY } from '@infrastructure/di-tokens';
 import { BCRYPT_COST_FACTOR_TOKEN } from '@/infrastructure/config/security.constants';
 
-// biome-ignore lint/style/useImportType: MigrateToSecureModeCommand wird fuer Runtime-Typisierung benoetigt
 import { MigrateToSecureModeCommand } from './migrate-to-secure-mode.command';
-// biome-ignore lint/style/useImportType: MigrateToSecureModeResponseDto wird fuer Runtime-Typisierung benoetigt
 import { MigrateToSecureModeResponseDto } from '../dto/migrate-to-secure-mode.dto';
 import { SECURITY_ERROR_CODES } from '../errors/security-error.codes';
 import { ACCESS_TOKEN_ERROR_CODES } from '../errors/access-token-error.codes';

@@ -9,10 +9,8 @@ import { UserId } from '@domain/value-objects/user-id';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import { TransactionalCommandHandler } from '@/application/common/handlers/transactional-command.handler';
-// biome-ignore lint/style/useImportType: Injectable class needs runtime symbol for NestJS DI
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { FUEHRUNGSRHYTHMUS_TEMPLATE_REPOSITORY, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
-// biome-ignore lint/style/useImportType: Injectable class needs runtime symbol for NestJS DI
 import { FuehrungsrhythmusTemplateResponseFactory } from '../../dto/fuehrungsrhythmus-template-response.factory';
 import type { UpdateFuehrungsrhythmusTemplateCommand } from './update-fuehrungsrhythmus-template.command';
 import { FUEHRUNGSRHYTHMUS_TEMPLATE_ERROR_CODES } from '../../errors/fuehrungsrhythmus-template-error.codes';

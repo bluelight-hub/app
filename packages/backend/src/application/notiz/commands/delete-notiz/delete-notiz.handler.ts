@@ -8,7 +8,6 @@ import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository
 import { NotizId } from '@domain/notiz/value-objects/notiz-id';
 import { UserId } from '@domain/value-objects/user-id';
 import { TransactionalCommandHandler } from '@/application/common/handlers/transactional-command.handler';
-// biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { NOTIZ_REPOSITORY, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
 import type { DeleteNotizCommand } from './delete-notiz.command';

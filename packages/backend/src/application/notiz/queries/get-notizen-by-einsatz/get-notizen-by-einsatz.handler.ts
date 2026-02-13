@@ -3,7 +3,6 @@ import type { INotizRepository } from '@domain/notiz/repositories/i-notiz.reposi
 import type { IKategorieRepository } from '@domain/kategorie/repositories/i-kategorie.repository';
 import { Result } from '@domain/common/result';
 import { KATEGORIE_REPOSITORY, NOTIZ_REPOSITORY } from '@infrastructure/di-tokens';
-// biome-ignore lint/style/useImportType: Injectable class needs runtime symbol for NestJS DI
 import { NotizResponseFactory } from '../../dto/notiz-response.factory';
 import type { NotizResponseDto } from '../../dto/notiz-response.dto';
 import type { GetNotizenByEinsatzQuery } from './get-notizen-by-einsatz.query';

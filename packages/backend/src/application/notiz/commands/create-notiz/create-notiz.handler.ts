@@ -12,7 +12,6 @@ import { KategorieId } from '@domain/kategorie/value-objects/kategorie-id';
 import { TransactionalCommandHandler } from '@/application/common/handlers/transactional-command.handler';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { NOTIZ_REPOSITORY, KATEGORIE_REPOSITORY, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
-// biome-ignore lint/style/useImportType: Injectable class needs runtime symbol for NestJS DI
 import { NotizResponseFactory } from '../../dto/notiz-response.factory';
 import type { CreateNotizCommand } from './create-notiz.command';
 import { NOTIZ_ERROR_CODES } from '../../errors/notiz-error.codes';

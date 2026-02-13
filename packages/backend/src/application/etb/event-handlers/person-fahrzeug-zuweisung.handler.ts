@@ -26,7 +26,6 @@ import type { PersonVonFahrzeugEntferntEvent } from '@domain/kraefte/events/pers
 import { Result } from '@domain/common/result';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { AddEintragCommand } from '../commands/add-eintrag/add-eintrag.command';
-// biome-ignore lint/style/useImportType: AddEintragHandler needed for DI at runtime
 import { AddEintragHandler } from '../commands/add-eintrag/add-eintrag.handler';
 
 /**

@@ -5,12 +5,9 @@ import type { DomainEvent } from '@domain/common/domain-event';
 import { Result } from '@domain/common/result';
 import type { TransactionContext } from '@domain/kraefte/repositories/i-rollen-definition.repository';
 import { RollenDefinition } from '@domain/kraefte/aggregates/rollen-definition.aggregate';
-// biome-ignore lint/style/useImportType: IRollenDefinitionRepository needed for DI at runtime
 import { IRollenDefinitionRepository } from '@domain/kraefte/repositories/i-rollen-definition.repository';
-// biome-ignore lint/style/useImportType: IOutboxRepository needed for DI at runtime
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import { KRAEFTE_REPOSITORIES, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
-// biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { RollenDefinitionDto } from '../../dto/rollen-definition.dto';
 import { RollenDefinitionQueryMapper } from '../../queries/rollen-definition-query.mapper';

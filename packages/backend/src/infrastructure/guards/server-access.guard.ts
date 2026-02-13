@@ -1,9 +1,6 @@
 import { type CanActivate, type ExecutionContext, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
-// biome-ignore lint/style/useImportType: Reflector ist Injectable Class - wird zur Laufzeit fuer NestJS DI benoetigt
 import { Reflector } from '@nestjs/core';
-// biome-ignore lint/style/useImportType: ConfigService ist Injectable Class - wird zur Laufzeit fuer NestJS DI benoetigt
 import { ConfigService } from '@nestjs/config';
-// biome-ignore lint/style/useImportType: EventEmitter2 ist Injectable Class - wird zur Laufzeit fuer NestJS DI benoetigt
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as bcrypt from 'bcrypt';
 import type { ILogger } from '@domain/ports/i-logger.port';

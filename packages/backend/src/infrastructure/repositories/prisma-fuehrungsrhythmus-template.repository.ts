@@ -6,7 +6,6 @@ import type { EinsatzId } from '@domain/value-objects/einsatz-id';
 import type { TransactionContext } from '@domain/common/transaction';
 import { FuehrungsrhythmusTemplateScope } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-template-scope';
 import type { PrismaClient } from '@/generated/prisma/client';
-// biome-ignore lint/style/useImportType: PrismaService ist Injectable - kein "import type" verwenden (bricht NestJS DI)
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { PrismaFuehrungsrhythmusTemplateMapper } from './mappers/prisma-fuehrungsrhythmus-template.mapper';
 

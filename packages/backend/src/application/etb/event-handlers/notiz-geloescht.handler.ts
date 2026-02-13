@@ -11,13 +11,11 @@
  */
 import type { NotizGeloeschtEvent } from '@domain/notiz/events/notiz-geloescht.event';
 import type { IEventHandler } from '@domain/ports/i-event-handler.port';
-// biome-ignore lint/style/useImportType: ILogger needed for DI at runtime
 import { ILogger } from '@domain/ports/i-logger.port';
 import type { EtbKategorieValue } from '@domain/value-objects/etb-kategorie';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { Inject, Injectable } from '@nestjs/common';
 import { AddEintragCommand } from '../commands/add-eintrag/add-eintrag.command';
-// biome-ignore lint/style/useImportType: Injectable class needs runtime symbol for NestJS DI
 import { AddEintragHandler } from '../commands/add-eintrag/add-eintrag.handler';
 
 const ETB_KATEGORIE_NOTIZ: EtbKategorieValue = 'SYSTEM';

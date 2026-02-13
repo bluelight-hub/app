@@ -3,7 +3,6 @@ import type { IFuehrungsrhythmusTemplateRepository } from '@domain/fuehrungsrhyt
 import type { FuehrungsrhythmusTemplateScope } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-template-scope';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { FUEHRUNGSRHYTHMUS_TEMPLATE_REPOSITORY } from '@infrastructure/di-tokens';
-// biome-ignore lint/style/useImportType: Injectable class - NestJS DI erfordert Value Import
 import { FuehrungsrhythmusTemplateResponseFactory } from '../../dto/fuehrungsrhythmus-template-response.factory';
 import type { FuehrungsrhythmusTemplateResponseDto } from '../../dto/fuehrungsrhythmus-template-response.dto';
 

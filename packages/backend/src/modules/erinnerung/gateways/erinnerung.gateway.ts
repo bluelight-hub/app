@@ -1,9 +1,7 @@
 import { Inject, Injectable, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { WebSocketGateway, WebSocketServer, SubscribeMessage, type OnGatewayConnection, type OnGatewayDisconnect, ConnectedSocket, MessageBody } from '@nestjs/websockets';
 import type { Server, Socket } from 'socket.io';
-// biome-ignore lint/style/useImportType: ConfigService needed for NestJS DI at runtime (AC1)
 import { ConfigService } from '@nestjs/config';
-// biome-ignore lint/style/useImportType: ILogger needed for DI at runtime
 import { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { WsJwtAuthGuard } from '../guards/ws-jwt-auth.guard';

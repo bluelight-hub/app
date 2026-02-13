@@ -1,9 +1,7 @@
 import { type CanActivate, Injectable, type ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import type { Socket } from 'socket.io';
-// biome-ignore lint/style/useImportType: JwtService needed for NestJS DI at runtime (AC1)
 import { JwtService } from '@nestjs/jwt';
 import type { JwtPayload } from '@/modules/auth/strategies/jwt.strategy';
-// biome-ignore lint/style/useImportType: ConfigService needed for NestJS DI at runtime (AC1)
 import { ConfigService } from '@nestjs/config';
 
 /**

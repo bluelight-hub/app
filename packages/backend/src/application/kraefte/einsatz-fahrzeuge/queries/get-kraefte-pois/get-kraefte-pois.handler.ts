@@ -1,10 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Result } from '@domain/common/result';
-// biome-ignore lint/style/useImportType: IEinsatzFahrzeugRepository needed for DI at runtime
 import { IEinsatzFahrzeugRepository } from '@domain/kraefte/repositories/i-einsatz-fahrzeug.repository';
-// biome-ignore lint/style/useImportType: IFunkStatusConfigRepository needed for DI at runtime
 import { IFunkStatusConfigRepository } from '@domain/kraefte/repositories/i-funk-status-config.repository';
-// biome-ignore lint/style/useImportType: IFahrzeugtypRepository needed for DI at runtime
 import { IFahrzeugtypRepository } from '@domain/kraefte/repositories/i-fahrzeugtyp.repository';
 import type { EinsatzFahrzeug } from '@domain/kraefte/aggregates/einsatz-fahrzeug.aggregate';
 import type { FunkStatusConfig } from '@domain/kraefte/aggregates/funk-status-config.aggregate';

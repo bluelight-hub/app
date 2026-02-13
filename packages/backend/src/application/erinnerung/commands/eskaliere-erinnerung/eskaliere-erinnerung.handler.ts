@@ -10,13 +10,11 @@ import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository
 import { UserId } from '@domain/value-objects/user-id';
 import { ErinnerungId } from '@domain/value-objects/erinnerung-id';
 import { TransactionalCommandHandler } from '@/application/common/handlers/transactional-command.handler';
-// biome-ignore lint/style/useImportType: PrismaService is an Injectable class, not just a type needed for runtime DI
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { ERINNERUNG_REPOSITORY, LOGGER, OUTBOX_REPOSITORY, USER_REPOSITORY } from '@infrastructure/di-tokens';
 import { EskaliereErinnerungCommand } from './eskaliere-erinnerung.command';
 import { ERINNERUNG_ERROR_CODES } from '../../errors/erinnerung-error.codes';
 import type { ErinnerungResponseDto } from '../../dto/erinnerung-response.dto';
-// biome-ignore lint/style/useImportType: ErinnerungResponseFactory is an Injectable class, needed for DI
 import { ErinnerungResponseFactory } from '../../dto/erinnerung-response.factory';
 
 /**

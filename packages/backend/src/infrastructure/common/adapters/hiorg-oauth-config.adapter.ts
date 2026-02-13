@@ -12,7 +12,6 @@
  */
 
 import { Injectable } from '@nestjs/common';
-// biome-ignore lint/style/useImportType: ConfigService needed for DI at runtime
 import { ConfigService } from '@nestjs/config';
 import type { IHiOrgOAuthConfigPort, HiOrgOAuthClientCredentials } from '@domain/ports/i-hiorg-oauth-config.port';
 
