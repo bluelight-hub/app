@@ -1,30 +1,3 @@
 {
-  "extends": "//",
-  "formatter": {
-    "includes": ["!.github/**", "!.tanstack/**", "!dist/**", "!node_modules/**", "!src-tauri/gen/**", "!src-tauri/target/**", "!test-results/**", "!.env", "!.env*", "!src/routeTree.gen.ts"]
-  },
-  "linter": {
-    "domains": {
-      "react": "recommended"
-    },
-    "includes": ["!.github/**", "!.tanstack/**", "!dist/**", "!node_modules/**", "!src-tauri/gen/**", "!src-tauri/target/**", "!test-results/**", "!.env", "!.env*", "!src/routeTree.gen.ts"],
-    "rules": {
-      "a11y": {
-        "noLabelWithoutControl": {
-          "level": "warn"
-        }
-      },
-      "suspicious": {
-        "noArrayIndexKey": {
-          "level": "warn"
-        },
-        "noImplicitAnyLet": {
-          "level": "warn"
-        }
-      }
-    }
-  },
-  "assist": {
-    "includes": ["!.github/**", "!.tanstack/**", "!dist/**", "!node_modules/**", "!src-tauri/gen/**", "!src-tauri/target/**", "!test-results/**", "!.env", "!.env*", "!src/routeTree.gen.ts"]
-  }
+  "extends": "//"
 }

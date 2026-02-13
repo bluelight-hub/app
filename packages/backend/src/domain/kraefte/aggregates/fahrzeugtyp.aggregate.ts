@@ -488,9 +488,7 @@ export class Fahrzeugtyp extends AggregateRoot<FahrzeugtypId> {
     return Result.ok<Fahrzeugtyp>(
       new Fahrzeugtyp(
         id,
-        props.code
-          .trim()
-          .toUpperCase(), // UPPERCASE Normalisierung
+        props.code.trim().toUpperCase(), // UPPERCASE Normalisierung
         props.bezeichnung.trim(),
         kategorie,
         props.createdBy.trim(),

@@ -169,7 +169,7 @@ export interface ErinnerungControllerUpdateVAlphaRequest {
  */
 export class ErinnerungenApi extends runtime.BaseAPI {
   /**
-   * Bestätigt eine ausgelöste Erinnerung (Status → ACKNOWLEDGED). Nur Erinnerungen im Status AUSGELOEST können bestätigt werden.
+   * Bestätigt eine Erinnerung (Status → ACKNOWLEDGED). Erinnerungen im Status GEPLANT (vorzeitig), AUSGELOEST oder ESKALIERT können bestätigt werden.
    * Erinnerung bestaetigen
    */
   async erinnerungControllerAcknowledgeVAlphaRaw(
@@ -204,7 +204,7 @@ export class ErinnerungenApi extends runtime.BaseAPI {
   }
 
   /**
-   * Bestätigt eine ausgelöste Erinnerung (Status → ACKNOWLEDGED). Nur Erinnerungen im Status AUSGELOEST können bestätigt werden.
+   * Bestätigt eine Erinnerung (Status → ACKNOWLEDGED). Erinnerungen im Status GEPLANT (vorzeitig), AUSGELOEST oder ESKALIERT können bestätigt werden.
    * Erinnerung bestaetigen
    */
   async erinnerungControllerAcknowledgeVAlpha(
@@ -410,7 +410,7 @@ export class ErinnerungenApi extends runtime.BaseAPI {
   }
 
   /**
-   * Exportiert alle Erinnerungs-Records mit 25 Feldern als CSV oder JSON. Nur für abgeschlossene/archivierte Einsätze.
+   * Exportiert alle Erinnerungs-Records mit 25 Feldern als CSV oder JSON. Nur für abgeschlossene/archivierte Einsätze. Erfordert Admin-Rolle.
    * Erinnerungs-Rohdaten exportieren (Admin)
    */
   async erinnerungControllerExportRohdatenVAlphaRaw(
@@ -447,7 +447,7 @@ export class ErinnerungenApi extends runtime.BaseAPI {
   }
 
   /**
-   * Exportiert alle Erinnerungs-Records mit 25 Feldern als CSV oder JSON. Nur für abgeschlossene/archivierte Einsätze.
+   * Exportiert alle Erinnerungs-Records mit 25 Feldern als CSV oder JSON. Nur für abgeschlossene/archivierte Einsätze. Erfordert Admin-Rolle.
    * Erinnerungs-Rohdaten exportieren (Admin)
    */
   async erinnerungControllerExportRohdatenVAlpha(requestParameters: ErinnerungControllerExportRohdatenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
