@@ -33,7 +33,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@openapitools/openapi-generator-cli": "^2.27.0",
+    "@openapitools/openapi-generator-cli": "^2.28.3",
     "rimraf": "^6.1.2",
     "typescript": "^5.9.3"
   }
