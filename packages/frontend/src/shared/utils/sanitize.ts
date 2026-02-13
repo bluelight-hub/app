@@ -29,8 +29,16 @@ export function sanitizeName(name: string | null | undefined): string {
     return 'Unbekannt';
   }
 
-  // Entferne alle HTML-Tags und behalte nur den Textinhalt
-  const sanitized = name.replace(/<[^>]*>/g, '').trim();
+  // Iterative Tag-Entfernung um verschachtelte Tag-Angriffe zu verhindern
+  // (z.B. <scr<script>ipt> → <script> nach einmaligem Ersetzen)
+  let sanitized = name;
+  let previous = '';
+  while (previous !== sanitized) {
+    previous = sanitized;
+    sanitized = sanitized.replace(/<[^>]*>/g, '');
+  }
+
+  sanitized = sanitized.trim();
 
   // Falls nach Sanitization leer, Fallback zu 'Unbekannt'
   return sanitized || 'Unbekannt';
