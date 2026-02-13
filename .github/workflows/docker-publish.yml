@@ -17,10 +17,24 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # App image (production target)
           - platform: linux/amd64
             runner: ubuntu-24.04
+            target: production
+            variant: app
           - platform: linux/arm64
             runner: ubuntu-24.04-arm
+            target: production
+            variant: app
+          # Migrations image
+          - platform: linux/amd64
+            runner: ubuntu-24.04
+            target: migrations
+            variant: migrations
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+            target: migrations
+            variant: migrations
     permissions:
       contents: read
       packages: write
@@ -38,22 +52,32 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Determine image name
+        id: image
+        run: |
+          if [ "${{ matrix.variant }}" = "app" ]; then
+            echo "name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.variant }}" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ steps.image.outputs.name }}
 
       - name: Build and push by digest
         id: build
         uses: docker/build-push-action@v6
         with:
           context: .
+          target: ${{ matrix.target }}
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
-          cache-from: type=gha,scope=${{ matrix.platform }}
-          cache-to: type=gha,scope=${{ matrix.platform }},mode=max
+          outputs: type=image,name=${{ steps.image.outputs.name }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=${{ matrix.platform }}-${{ matrix.variant }}
+          cache-to: type=gha,scope=${{ matrix.platform }}-${{ matrix.variant }},mode=max
 
       - name: Export digest
         run: |
@@ -64,7 +88,7 @@ jobs:
       - name: Upload digest
         uses: actions/upload-artifact@v4
         with:
-          name: digests-${{ matrix.runner }}
+          name: digests-${{ matrix.variant }}-${{ matrix.runner }}
           path: ${{ runner.temp }}/digests/*
           if-no-files-found: error
           retention-days: 1
@@ -72,6 +96,14 @@ jobs:
   merge:
     runs-on: ubuntu-latest
     needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: app
+            image_suffix: ""
+          - variant: migrations
+            image_suffix: "/migrations"
     permissions:
       contents: read
       packages: write
@@ -81,7 +113,7 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           path: ${{ runner.temp }}/digests
-          pattern: digests-*
+          pattern: digests-${{ matrix.variant }}-*
           merge-multiple: true
 
       - name: Log in to GitHub Container Registry
@@ -98,7 +130,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}${{ matrix.image_suffix }}
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
@@ -110,4 +142,4 @@ jobs:
         working-directory: ${{ runner.temp }}/digests
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)
+            $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}${{ matrix.image_suffix }}@sha256:%s ' *)

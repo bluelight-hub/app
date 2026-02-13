@@ -18,10 +18,27 @@ services:
       retries: 5
       start_period: 10s
 
-  app:
+  migrations:
+    image: ${MIGRATIONS_IMAGE:-ghcr.io/rubenvitt/bluelight-hub/migrations:latest}
     build:
       context: .
       dockerfile: Dockerfile
+      target: migrations
+    environment:
+      - DATABASE_URL=postgresql://${DATABASE_USER:-bluelight}:${DATABASE_PASSWORD:-bluelight}@postgres:5432/${DATABASE_NAME:-bluelight-hub}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    profiles:
+      - full-app
+
+  app:
+    image: ${APP_IMAGE:-ghcr.io/rubenvitt/bluelight-hub:latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
     ports:
       - "3091:3091"
     volumes:
@@ -34,6 +51,8 @@ services:
       - DATABASE_PASSWORD=${DATABASE_PASSWORD:-bluelight}
       - DATABASE_NAME=${DATABASE_NAME:-bluelight-hub}
     depends_on:
+      migrations:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
     restart: unless-stopped
