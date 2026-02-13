@@ -160,10 +160,8 @@ WIP Änderungen:
           'frontend-artifacts/**/*.exe',
           'frontend-artifacts/**/*.deb',
         ],
-        successComment:
-          '🎉 Dieses Issue/PR wurde im Release [v${nextRelease.version}](${releases.filter(release => release.name)[0]?.url || ""}) veröffentlicht.',
-        failComment:
-          '❌ Das Release ist fehlgeschlagen. Details in den [CI Logs](${branch.url}).',
+        successComment: '🎉 Dieses Issue/PR wurde im Release [v${nextRelease.version}](${releases.filter(release => release.name)[0]?.url || ""}) veröffentlicht.',
+        failComment: '❌ Das Release ist fehlgeschlagen. Details in den [CI Logs](${branch.url}).',
       },
     ],
   ],
