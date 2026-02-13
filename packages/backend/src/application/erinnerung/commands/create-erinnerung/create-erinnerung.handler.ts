@@ -1,0 +1,244 @@
+import { Inject, Injectable } from '@nestjs/common';
+import type { DomainEvent } from '@domain/common/domain-event';
+import { Result } from '@domain/common/result';
+import type { TransactionContext } from '@domain/common/transaction';
+import { Erinnerung } from '@domain/entities/erinnerung.entity';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import type { IErinnerungRepository } from '@domain/repositories/i-erinnerung.repository';
+import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
+import { EinsatzId } from '@domain/value-objects/einsatz-id';
+import { ErinnerungId } from '@domain/value-objects/erinnerung-id';
+import { UserId } from '@domain/value-objects/user-id';
+import { TransactionalCommandHandler } from '@/application/common/handlers/transactional-command.handler';
+import { PrismaService } from '@/infrastructure/database/prisma.service';
+import { ERINNERUNG_REPOSITORY, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { ErinnerungResponseFactory } from '../../dto/erinnerung-response.factory';
+import type { CreateErinnerungCommand } from './create-erinnerung.command';
+import { ERINNERUNG_ERROR_CODES } from '../../errors/erinnerung-error.codes';
+import type { ErinnerungResponseDto } from '../../dto/erinnerung-response.dto';
+import type { Prisma } from '@/generated/prisma/client';
+
+/**
+ * Handler zum Erstellen einer neuen Erinnerung.
+ *
+ * Nutzt TransactionalCommandHandler für atomare Persistenz mit Outbox-Events.
+ * Erstellt eine neue Erinnerung im Status GEPLANT und emittiert ErinnerungErstelltEvent.
+ *
+ * **Transactional Outbox Pattern:**
+ * - Erinnerung und ErinnerungErstelltEvent werden atomar in einer Transaktion gespeichert
+ * - Event wird erst nach erfolgreichem Commit aus Outbox verarbeitet
+ * - Garantiert Konsistenz zwischen Aggregate-State und Event-Store
+ *
+ * **Business Rules:**
+ * - Titel ist erforderlich (max 100 Zeichen)
+ * - FaelligAm muss in der Zukunft liegen
+ * - Status wird initial auf GEPLANT gesetzt
+ *
+ * @see CreateErinnerungCommand - Input Validierung
+ * @see Erinnerung - Domain Entity
+ * @see ErinnerungErstelltEvent - Emittiertes Domain Event
+ */
+@Injectable()
+export class CreateErinnerungHandler extends TransactionalCommandHandler<CreateErinnerungCommand, ErinnerungResponseDto> {
+  constructor(
+    prisma: PrismaService,
+    @Inject(OUTBOX_REPOSITORY) outboxRepository: IOutboxRepository,
+    @Inject(ERINNERUNG_REPOSITORY)
+    private readonly erinnerungRepository: IErinnerungRepository,
+    @Inject(LOGGER) private readonly logger: ILogger,
+    private readonly responseFactory: ErinnerungResponseFactory,
+  ) {
+    super(prisma, outboxRepository);
+  }
+
+  /**
+   * Führt die Erinnerung-Erstellung in einer Transaktion aus.
+   *
+   * **Flow:**
+   * 1. Value Objects erstellen (EinsatzId, UserId)
+   * 2. Erinnerung Aggregate erstellen (Domain Logic + Event)
+   * 3. Im Repository persistieren (innerhalb Transaction)
+   * 4. Domain Events sammeln
+   * 5. Result mit ID zurückgeben
+   *
+   * @param command - Validierter CreateErinnerungCommand
+   * @param tx - Transaction Context für atomare Operationen
+   * @returns Result mit ErinnerungId oder Error
+   */
+  protected async executeInTransaction(command: CreateErinnerungCommand, tx: TransactionContext): Promise<Result<ErinnerungResponseDto> | { result: ErinnerungResponseDto; events: DomainEvent[] }> {
+    // ════════════════════════════════════════════════════════════════════════
+    // 1. Value Objects erstellen
+    // ════════════════════════════════════════════════════════════════════════
+    const einsatzIdResult = EinsatzId.create(command.einsatzId);
+    if (einsatzIdResult.isFailure || !einsatzIdResult.value) {
+      return Result.fail<ErinnerungResponseDto>(einsatzIdResult.error ?? ERINNERUNG_ERROR_CODES.EINSATZ_ID_INVALID);
+    }
+
+    const userIdResult = UserId.create(command.erstelltVon);
+    if (userIdResult.isFailure || !userIdResult.value) {
+      return Result.fail<ErinnerungResponseDto>(userIdResult.error ?? ERINNERUNG_ERROR_CODES.ERSTELLT_VON_REQUIRED);
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // 1a. Story 5.4: Validiere etbEntryId wenn gesetzt
+    // ════════════════════════════════════════════════════════════════════════
+    if (command.etbEntryId) {
+      const prismaTx = tx as Prisma.TransactionClient;
+      const etbEintrag = await prismaTx.etbEintrag.findUnique({
+        where: { id: command.etbEntryId },
+        select: {
+          id: true,
+          einsatztagebuch: {
+            select: { einsatzId: true },
+          },
+        },
+      });
+
+      if (!etbEintrag) {
+        return Result.fail<ErinnerungResponseDto>(ERINNERUNG_ERROR_CODES.ETB_ENTRY_NOT_FOUND);
+      }
+
+      // Validierung: ETB-Eintrag muss zum gleichen Einsatz gehören
+      if (etbEintrag.einsatztagebuch.einsatzId !== command.einsatzId) {
+        return Result.fail<ErinnerungResponseDto>(ERINNERUNG_ERROR_CODES.ETB_ENTRY_WRONG_EINSATZ);
+      }
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // 1b. Story 8.2: Validiere kategorieId wenn gesetzt
+    // ════════════════════════════════════════════════════════════════════════
+    if (command.kategorieId) {
+      const prismaTx = tx as Prisma.TransactionClient;
+      const kategorie = await prismaTx.kategorie.findUnique({
+        where: { id: command.kategorieId },
+        select: { id: true, einsatzId: true, geloeschtAm: true },
+      });
+
+      if (!kategorie || kategorie.geloeschtAm) {
+        return Result.fail<ErinnerungResponseDto>(ERINNERUNG_ERROR_CODES.KATEGORIE_NOT_FOUND);
+      }
+
+      if (kategorie.einsatzId !== command.einsatzId) {
+        return Result.fail<ErinnerungResponseDto>(ERINNERUNG_ERROR_CODES.KATEGORIE_WRONG_EINSATZ);
+      }
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // 2. Erinnerung Aggregate erstellen
+    // ════════════════════════════════════════════════════════════════════════
+    const erinnerungResult = Erinnerung.create({
+      einsatzId: einsatzIdResult.value,
+      titel: command.titel,
+      beschreibung: command.beschreibung,
+      faelligAm: command.faelligAm,
+      erstelltVon: userIdResult.value,
+      requiresNote: command.requiresNote,
+      eskalationsPersonId: command.eskalationsPersonId ? UserId.create(command.eskalationsPersonId).value : undefined,
+      eskalationNurAnErsteller: command.eskalationNurAnErsteller,
+      etbEntryId: command.etbEntryId,
+      notizId: command.notizId,
+      kategorieId: command.kategorieId,
+      isRecurring: command.isRecurring,
+      recurringIntervalMinutes: command.recurringIntervalMinutes,
+      recurringEndDate: command.recurringEndDate,
+      recurringMaxCount: command.recurringMaxCount,
+      parentErinnerungId: command.parentErinnerungId ? ErinnerungId.create(command.parentErinnerungId).value : null,
+      recurringSequenceNumber: command.recurringSequenceNumber,
+    });
+
+    if (erinnerungResult.isFailure || !erinnerungResult.value) {
+      return Result.fail<ErinnerungResponseDto>(erinnerungResult.error ?? ERINNERUNG_ERROR_CODES.CREATION_FAILED);
+    }
+
+    const erinnerung = erinnerungResult.value;
+
+    // ════════════════════════════════════════════════════════════════════════
+    // 2a. Story 3.3: Optionale initiale Zuweisung
+    // ════════════════════════════════════════════════════════════════════════
+    let _assignedToName: string | null = null;
+    if (command.assignedToId) {
+      // Validiere assignedToId als CUID2
+      const assignedToIdResult = UserId.create(command.assignedToId);
+      if (assignedToIdResult.isFailure || !assignedToIdResult.value) {
+        return Result.fail<ErinnerungResponseDto>(ERINNERUNG_ERROR_CODES.ASSIGNED_TO_INVALID);
+      }
+
+      // Prüfe ob User aktiver Einsatzteilnehmer ist (leftAt: null = aktiv)
+      const prismaTx = tx as Prisma.TransactionClient;
+      const teilnehmer = await prismaTx.einsatzTeilnehmer.findFirst({
+        where: {
+          einsatzId: command.einsatzId,
+          userId: command.assignedToId,
+          leftAt: null, // Nur aktive Teilnehmer (nicht verlassen)
+        },
+        include: {
+          user: {
+            select: {
+              username: true,
+            },
+          },
+        },
+      });
+
+      if (!teilnehmer) {
+        return Result.fail<ErinnerungResponseDto>(ERINNERUNG_ERROR_CODES.ASSIGNED_TO_NOT_TEILNEHMER);
+      }
+
+      // Zuweisung durchführen
+      const assignResult = erinnerung.assignToUser(assignedToIdResult.value, userIdResult.value);
+      if (assignResult.isFailure) {
+        return Result.fail<ErinnerungResponseDto>(assignResult.error ?? ERINNERUNG_ERROR_CODES.ASSIGNMENT_FAILED);
+      }
+
+      _assignedToName = teilnehmer.user.username;
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // 3. Im Repository persistieren
+    // ════════════════════════════════════════════════════════════════════════
+    const saveResult = await this.erinnerungRepository.save(erinnerung, tx);
+    if (saveResult.isFailure) {
+      this.logger.error(`Failed to save Erinnerung: ${saveResult.error}`, 'CreateErinnerungHandler');
+      return Result.fail<ErinnerungResponseDto>(saveResult.error ?? ERINNERUNG_ERROR_CODES.SAVE_FAILED);
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // 4. Audit-Trail loggen
+    // ════════════════════════════════════════════════════════════════════════
+    this.logger.log(
+      `Erinnerung erstellt (id: ${erinnerung.id.toString()}, titel: "${erinnerung.titel.value}", faelligAm: ${erinnerung.faelligAm.toISOString()}, einsatz: ${command.einsatzId}, ersteller: ${command.erstelltVon})`,
+      'CreateErinnerungHandler',
+    );
+
+    // ════════════════════════════════════════════════════════════════════════
+    // 5. Story 8.2: Kategorie-Daten für Response laden
+    // ════════════════════════════════════════════════════════════════════════
+    let kategorieData: { name: string; farbe: string } | null = null;
+    if (erinnerung.kategorieId) {
+      const prismaTx = tx as Prisma.TransactionClient;
+      const kategorie = await prismaTx.kategorie.findUnique({
+        where: { id: erinnerung.kategorieId },
+        select: { name: true, farbe: true },
+      });
+      if (kategorie) {
+        kategorieData = { name: kategorie.name, farbe: kategorie.farbe };
+      }
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // 6. Domain Events sammeln
+    // ════════════════════════════════════════════════════════════════════════
+    const events = erinnerung.getDomainEvents();
+    erinnerung.clearDomainEvents();
+
+    // ════════════════════════════════════════════════════════════════════════
+    // 7. Response DTO erstellen und zurückgeben
+    // ════════════════════════════════════════════════════════════════════════
+    const responseDto = await this.responseFactory.create(erinnerung, kategorieData);
+
+    return {
+      result: responseDto,
+      events,
+    };
+  }
+}

@@ -17,12 +17,15 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ServerSetupRouteImport } from './routes/server/setup'
 import { Route as ServerManageRouteImport } from './routes/server/manage'
+import { Route as AppSettingsRouteImport } from './routes/app/settings'
 import { Route as AppEinsatzRouteImport } from './routes/app/einsatz'
 import { Route as AppEinsaetzeRouteImport } from './routes/app/einsaetze'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminTokensRouteImport } from './routes/admin/tokens'
 import { Route as AdminSetupRouteImport } from './routes/admin/setup'
 import { Route as AdminInvitesRouteImport } from './routes/admin/invites'
+import { Route as AdminFuehrungsrhythmusTemplatesRouteImport } from './routes/admin/fuehrungsrhythmus-templates'
+import { Route as AdminErinnerungenRouteImport } from './routes/admin/erinnerungen'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 import { Route as AppEinsaetzeIndexRouteImport } from './routes/app/einsaetze/index'
 import { Route as AppEinsatzEinsatzIdRouteImport } from './routes/app/einsatz/$einsatzId'
@@ -52,7 +55,9 @@ import { Route as AppEinsatzEinsatzIdKrChar228fteDashboardRouteImport } from './
 import { Route as AppEinsatzEinsatzIdKommunikationMeldungenRouteImport } from './routes/app/einsatz/$einsatzId/kommunikation/meldungen'
 import { Route as AppEinsatzEinsatzIdKommunikationFunkRouteImport } from './routes/app/einsatz/$einsatzId/kommunikation/funk'
 import { Route as AppEinsatzEinsatzIdKommunikationAlarmierungRouteImport } from './routes/app/einsatz/$einsatzId/kommunikation/alarmierung'
+import { Route as AppEinsatzEinsatzIdFChar252hrungRhythmusRouteImport } from './routes/app/einsatz/$einsatzId/führung/rhythmus'
 import { Route as AppEinsatzEinsatzIdFChar252hrungProtokollRouteImport } from './routes/app/einsatz/$einsatzId/führung/protokoll'
+import { Route as AppEinsatzEinsatzIdFChar252hrungPinnwandRouteImport } from './routes/app/einsatz/$einsatzId/führung/pinnwand'
 import { Route as AppEinsatzEinsatzIdFChar252hrungEtbRouteImport } from './routes/app/einsatz/$einsatzId/führung/etb'
 import { Route as AppEinsatzEinsatzIdFChar252hrungBerichteRouteImport } from './routes/app/einsatz/$einsatzId/führung/berichte'
 import { Route as AppEinsatzEinsatzIdFChar252hrungBefehleRouteImport } from './routes/app/einsatz/$einsatzId/führung/befehle'
@@ -104,6 +109,11 @@ const ServerManageRoute = ServerManageRouteImport.update({
   path: '/server/manage',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppEinsatzRoute = AppEinsatzRouteImport.update({
   id: '/einsatz',
   path: '/einsatz',
@@ -132,6 +142,17 @@ const AdminSetupRoute = AdminSetupRouteImport.update({
 const AdminInvitesRoute = AdminInvitesRouteImport.update({
   id: '/invites',
   path: '/invites',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminFuehrungsrhythmusTemplatesRoute =
+  AdminFuehrungsrhythmusTemplatesRouteImport.update({
+    id: '/fuehrungsrhythmus-templates',
+    path: '/fuehrungsrhythmus-templates',
+    getParentRoute: () => AdminRoute,
+  } as any)
+const AdminErinnerungenRoute = AdminErinnerungenRouteImport.update({
+  id: '/erinnerungen',
+  path: '/erinnerungen',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminDashboardRoute = AdminDashboardRouteImport.update({
@@ -302,10 +323,22 @@ const AppEinsatzEinsatzIdKommunikationAlarmierungRoute =
     path: '/kommunikation/alarmierung',
     getParentRoute: () => AppEinsatzEinsatzIdRoute,
   } as any)
+const AppEinsatzEinsatzIdFChar252hrungRhythmusRoute =
+  AppEinsatzEinsatzIdFChar252hrungRhythmusRouteImport.update({
+    id: '/führung/rhythmus',
+    path: '/führung/rhythmus',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
 const AppEinsatzEinsatzIdFChar252hrungProtokollRoute =
   AppEinsatzEinsatzIdFChar252hrungProtokollRouteImport.update({
     id: '/führung/protokoll',
     path: '/führung/protokoll',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
+const AppEinsatzEinsatzIdFChar252hrungPinnwandRoute =
+  AppEinsatzEinsatzIdFChar252hrungPinnwandRouteImport.update({
+    id: '/führung/pinnwand',
+    path: '/führung/pinnwand',
     getParentRoute: () => AppEinsatzEinsatzIdRoute,
   } as any)
 const AppEinsatzEinsatzIdFChar252hrungEtbRoute =
@@ -376,12 +409,15 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/erinnerungen': typeof AdminErinnerungenRoute
+  '/admin/fuehrungsrhythmus-templates': typeof AdminFuehrungsrhythmusTemplatesRoute
   '/admin/invites': typeof AdminInvitesRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/tokens': typeof AdminTokensRoute
   '/admin/users': typeof AdminUsersRoute
   '/app/einsaetze': typeof AppEinsaetzeRouteWithChildren
   '/app/einsatz': typeof AppEinsatzRouteWithChildren
+  '/app/settings': typeof AppSettingsRoute
   '/server/manage': typeof ServerManageRoute
   '/server/setup': typeof ServerSetupRoute
   '/admin/': typeof AdminIndexRoute
@@ -403,7 +439,9 @@ export interface FileRoutesByFullPath {
   '/app/einsatz/$einsatzId/führung/befehle': typeof AppEinsatzEinsatzIdFChar252hrungBefehleRoute
   '/app/einsatz/$einsatzId/führung/berichte': typeof AppEinsatzEinsatzIdFChar252hrungBerichteRoute
   '/app/einsatz/$einsatzId/führung/etb': typeof AppEinsatzEinsatzIdFChar252hrungEtbRouteWithChildren
+  '/app/einsatz/$einsatzId/führung/pinnwand': typeof AppEinsatzEinsatzIdFChar252hrungPinnwandRoute
   '/app/einsatz/$einsatzId/führung/protokoll': typeof AppEinsatzEinsatzIdFChar252hrungProtokollRoute
+  '/app/einsatz/$einsatzId/führung/rhythmus': typeof AppEinsatzEinsatzIdFChar252hrungRhythmusRoute
   '/app/einsatz/$einsatzId/kommunikation/alarmierung': typeof AppEinsatzEinsatzIdKommunikationAlarmierungRoute
   '/app/einsatz/$einsatzId/kommunikation/funk': typeof AppEinsatzEinsatzIdKommunikationFunkRoute
   '/app/einsatz/$einsatzId/kommunikation/meldungen': typeof AppEinsatzEinsatzIdKommunikationMeldungenRoute
@@ -431,11 +469,14 @@ export interface FileRoutesByTo {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/erinnerungen': typeof AdminErinnerungenRoute
+  '/admin/fuehrungsrhythmus-templates': typeof AdminFuehrungsrhythmusTemplatesRoute
   '/admin/invites': typeof AdminInvitesRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/tokens': typeof AdminTokensRoute
   '/admin/users': typeof AdminUsersRoute
   '/app/einsatz': typeof AppEinsatzRouteWithChildren
+  '/app/settings': typeof AppSettingsRoute
   '/server/manage': typeof ServerManageRoute
   '/server/setup': typeof ServerSetupRoute
   '/admin': typeof AdminIndexRoute
@@ -455,7 +496,9 @@ export interface FileRoutesByTo {
   '/app/einsatz/$einsatzId/drohne/steuerung': typeof AppEinsatzEinsatzIdDrohneSteuerungRoute
   '/app/einsatz/$einsatzId/führung/befehle': typeof AppEinsatzEinsatzIdFChar252hrungBefehleRoute
   '/app/einsatz/$einsatzId/führung/berichte': typeof AppEinsatzEinsatzIdFChar252hrungBerichteRoute
+  '/app/einsatz/$einsatzId/führung/pinnwand': typeof AppEinsatzEinsatzIdFChar252hrungPinnwandRoute
   '/app/einsatz/$einsatzId/führung/protokoll': typeof AppEinsatzEinsatzIdFChar252hrungProtokollRoute
+  '/app/einsatz/$einsatzId/führung/rhythmus': typeof AppEinsatzEinsatzIdFChar252hrungRhythmusRoute
   '/app/einsatz/$einsatzId/kommunikation/alarmierung': typeof AppEinsatzEinsatzIdKommunikationAlarmierungRoute
   '/app/einsatz/$einsatzId/kommunikation/funk': typeof AppEinsatzEinsatzIdKommunikationFunkRoute
   '/app/einsatz/$einsatzId/kommunikation/meldungen': typeof AppEinsatzEinsatzIdKommunikationMeldungenRoute
@@ -485,12 +528,15 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/erinnerungen': typeof AdminErinnerungenRoute
+  '/admin/fuehrungsrhythmus-templates': typeof AdminFuehrungsrhythmusTemplatesRoute
   '/admin/invites': typeof AdminInvitesRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/tokens': typeof AdminTokensRoute
   '/admin/users': typeof AdminUsersRoute
   '/app/einsaetze': typeof AppEinsaetzeRouteWithChildren
   '/app/einsatz': typeof AppEinsatzRouteWithChildren
+  '/app/settings': typeof AppSettingsRoute
   '/server/manage': typeof ServerManageRoute
   '/server/setup': typeof ServerSetupRoute
   '/admin/': typeof AdminIndexRoute
@@ -512,7 +558,9 @@ export interface FileRoutesById {
   '/app/einsatz/$einsatzId/führung/befehle': typeof AppEinsatzEinsatzIdFChar252hrungBefehleRoute
   '/app/einsatz/$einsatzId/führung/berichte': typeof AppEinsatzEinsatzIdFChar252hrungBerichteRoute
   '/app/einsatz/$einsatzId/führung/etb': typeof AppEinsatzEinsatzIdFChar252hrungEtbRouteWithChildren
+  '/app/einsatz/$einsatzId/führung/pinnwand': typeof AppEinsatzEinsatzIdFChar252hrungPinnwandRoute
   '/app/einsatz/$einsatzId/führung/protokoll': typeof AppEinsatzEinsatzIdFChar252hrungProtokollRoute
+  '/app/einsatz/$einsatzId/führung/rhythmus': typeof AppEinsatzEinsatzIdFChar252hrungRhythmusRoute
   '/app/einsatz/$einsatzId/kommunikation/alarmierung': typeof AppEinsatzEinsatzIdKommunikationAlarmierungRoute
   '/app/einsatz/$einsatzId/kommunikation/funk': typeof AppEinsatzEinsatzIdKommunikationFunkRoute
   '/app/einsatz/$einsatzId/kommunikation/meldungen': typeof AppEinsatzEinsatzIdKommunikationMeldungenRoute
@@ -543,12 +591,15 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/admin/dashboard'
+    | '/admin/erinnerungen'
+    | '/admin/fuehrungsrhythmus-templates'
     | '/admin/invites'
     | '/admin/setup'
     | '/admin/tokens'
     | '/admin/users'
     | '/app/einsaetze'
     | '/app/einsatz'
+    | '/app/settings'
     | '/server/manage'
     | '/server/setup'
     | '/admin/'
@@ -570,7 +621,9 @@ export interface FileRouteTypes {
     | '/app/einsatz/$einsatzId/führung/befehle'
     | '/app/einsatz/$einsatzId/führung/berichte'
     | '/app/einsatz/$einsatzId/führung/etb'
+    | '/app/einsatz/$einsatzId/führung/pinnwand'
     | '/app/einsatz/$einsatzId/führung/protokoll'
+    | '/app/einsatz/$einsatzId/führung/rhythmus'
     | '/app/einsatz/$einsatzId/kommunikation/alarmierung'
     | '/app/einsatz/$einsatzId/kommunikation/funk'
     | '/app/einsatz/$einsatzId/kommunikation/meldungen'
@@ -598,11 +651,14 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/admin/dashboard'
+    | '/admin/erinnerungen'
+    | '/admin/fuehrungsrhythmus-templates'
     | '/admin/invites'
     | '/admin/setup'
     | '/admin/tokens'
     | '/admin/users'
     | '/app/einsatz'
+    | '/app/settings'
     | '/server/manage'
     | '/server/setup'
     | '/admin'
@@ -622,7 +678,9 @@ export interface FileRouteTypes {
     | '/app/einsatz/$einsatzId/drohne/steuerung'
     | '/app/einsatz/$einsatzId/führung/befehle'
     | '/app/einsatz/$einsatzId/führung/berichte'
+    | '/app/einsatz/$einsatzId/führung/pinnwand'
     | '/app/einsatz/$einsatzId/führung/protokoll'
+    | '/app/einsatz/$einsatzId/führung/rhythmus'
     | '/app/einsatz/$einsatzId/kommunikation/alarmierung'
     | '/app/einsatz/$einsatzId/kommunikation/funk'
     | '/app/einsatz/$einsatzId/kommunikation/meldungen'
@@ -651,12 +709,15 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/admin/dashboard'
+    | '/admin/erinnerungen'
+    | '/admin/fuehrungsrhythmus-templates'
     | '/admin/invites'
     | '/admin/setup'
     | '/admin/tokens'
     | '/admin/users'
     | '/app/einsaetze'
     | '/app/einsatz'
+    | '/app/settings'
     | '/server/manage'
     | '/server/setup'
     | '/admin/'
@@ -678,7 +739,9 @@ export interface FileRouteTypes {
     | '/app/einsatz/$einsatzId/führung/befehle'
     | '/app/einsatz/$einsatzId/führung/berichte'
     | '/app/einsatz/$einsatzId/führung/etb'
+    | '/app/einsatz/$einsatzId/führung/pinnwand'
     | '/app/einsatz/$einsatzId/führung/protokoll'
+    | '/app/einsatz/$einsatzId/führung/rhythmus'
     | '/app/einsatz/$einsatzId/kommunikation/alarmierung'
     | '/app/einsatz/$einsatzId/kommunikation/funk'
     | '/app/einsatz/$einsatzId/kommunikation/meldungen'
@@ -769,6 +832,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ServerManageRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/settings': {
+      id: '/app/settings'
+      path: '/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/einsatz': {
       id: '/app/einsatz'
       path: '/einsatz'
@@ -809,6 +879,20 @@ declare module '@tanstack/react-router' {
       path: '/invites'
       fullPath: '/admin/invites'
       preLoaderRoute: typeof AdminInvitesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/fuehrungsrhythmus-templates': {
+      id: '/admin/fuehrungsrhythmus-templates'
+      path: '/fuehrungsrhythmus-templates'
+      fullPath: '/admin/fuehrungsrhythmus-templates'
+      preLoaderRoute: typeof AdminFuehrungsrhythmusTemplatesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/erinnerungen': {
+      id: '/admin/erinnerungen'
+      path: '/erinnerungen'
+      fullPath: '/admin/erinnerungen'
+      preLoaderRoute: typeof AdminErinnerungenRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/dashboard': {
@@ -1014,11 +1098,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppEinsatzEinsatzIdKommunikationAlarmierungRouteImport
       parentRoute: typeof AppEinsatzEinsatzIdRoute
     }
+    '/app/einsatz/$einsatzId/führung/rhythmus': {
+      id: '/app/einsatz/$einsatzId/führung/rhythmus'
+      path: '/führung/rhythmus'
+      fullPath: '/app/einsatz/$einsatzId/führung/rhythmus'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdFChar252hrungRhythmusRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
     '/app/einsatz/$einsatzId/führung/protokoll': {
       id: '/app/einsatz/$einsatzId/führung/protokoll'
       path: '/führung/protokoll'
       fullPath: '/app/einsatz/$einsatzId/führung/protokoll'
       preLoaderRoute: typeof AppEinsatzEinsatzIdFChar252hrungProtokollRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
+    '/app/einsatz/$einsatzId/führung/pinnwand': {
+      id: '/app/einsatz/$einsatzId/führung/pinnwand'
+      path: '/führung/pinnwand'
+      fullPath: '/app/einsatz/$einsatzId/führung/pinnwand'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdFChar252hrungPinnwandRouteImport
       parentRoute: typeof AppEinsatzEinsatzIdRoute
     }
     '/app/einsatz/$einsatzId/führung/etb': {
@@ -1096,6 +1194,8 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminErinnerungenRoute: typeof AdminErinnerungenRoute
+  AdminFuehrungsrhythmusTemplatesRoute: typeof AdminFuehrungsrhythmusTemplatesRoute
   AdminInvitesRoute: typeof AdminInvitesRoute
   AdminSetupRoute: typeof AdminSetupRoute
   AdminTokensRoute: typeof AdminTokensRoute
@@ -1110,6 +1210,8 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminDashboardRoute: AdminDashboardRoute,
+  AdminErinnerungenRoute: AdminErinnerungenRoute,
+  AdminFuehrungsrhythmusTemplatesRoute: AdminFuehrungsrhythmusTemplatesRoute,
   AdminInvitesRoute: AdminInvitesRoute,
   AdminSetupRoute: AdminSetupRoute,
   AdminTokensRoute: AdminTokensRoute,
@@ -1164,7 +1266,9 @@ interface AppEinsatzEinsatzIdRouteChildren {
   AppEinsatzEinsatzIdFChar252hrungBefehleRoute: typeof AppEinsatzEinsatzIdFChar252hrungBefehleRoute
   AppEinsatzEinsatzIdFChar252hrungBerichteRoute: typeof AppEinsatzEinsatzIdFChar252hrungBerichteRoute
   AppEinsatzEinsatzIdFChar252hrungEtbRoute: typeof AppEinsatzEinsatzIdFChar252hrungEtbRouteWithChildren
+  AppEinsatzEinsatzIdFChar252hrungPinnwandRoute: typeof AppEinsatzEinsatzIdFChar252hrungPinnwandRoute
   AppEinsatzEinsatzIdFChar252hrungProtokollRoute: typeof AppEinsatzEinsatzIdFChar252hrungProtokollRoute
+  AppEinsatzEinsatzIdFChar252hrungRhythmusRoute: typeof AppEinsatzEinsatzIdFChar252hrungRhythmusRoute
   AppEinsatzEinsatzIdKommunikationAlarmierungRoute: typeof AppEinsatzEinsatzIdKommunikationAlarmierungRoute
   AppEinsatzEinsatzIdKommunikationFunkRoute: typeof AppEinsatzEinsatzIdKommunikationFunkRoute
   AppEinsatzEinsatzIdKommunikationMeldungenRoute: typeof AppEinsatzEinsatzIdKommunikationMeldungenRoute
@@ -1206,8 +1310,12 @@ const AppEinsatzEinsatzIdRouteChildren: AppEinsatzEinsatzIdRouteChildren = {
     AppEinsatzEinsatzIdFChar252hrungBerichteRoute,
   AppEinsatzEinsatzIdFChar252hrungEtbRoute:
     AppEinsatzEinsatzIdFChar252hrungEtbRouteWithChildren,
+  AppEinsatzEinsatzIdFChar252hrungPinnwandRoute:
+    AppEinsatzEinsatzIdFChar252hrungPinnwandRoute,
   AppEinsatzEinsatzIdFChar252hrungProtokollRoute:
     AppEinsatzEinsatzIdFChar252hrungProtokollRoute,
+  AppEinsatzEinsatzIdFChar252hrungRhythmusRoute:
+    AppEinsatzEinsatzIdFChar252hrungRhythmusRoute,
   AppEinsatzEinsatzIdKommunikationAlarmierungRoute:
     AppEinsatzEinsatzIdKommunikationAlarmierungRoute,
   AppEinsatzEinsatzIdKommunikationFunkRoute:
@@ -1266,11 +1374,13 @@ const AppEinsatzRouteWithChildren = AppEinsatzRoute._addFileChildren(
 interface AppRouteChildren {
   AppEinsaetzeRoute: typeof AppEinsaetzeRouteWithChildren
   AppEinsatzRoute: typeof AppEinsatzRouteWithChildren
+  AppSettingsRoute: typeof AppSettingsRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppEinsaetzeRoute: AppEinsaetzeRouteWithChildren,
   AppEinsatzRoute: AppEinsatzRouteWithChildren,
+  AppSettingsRoute: AppSettingsRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

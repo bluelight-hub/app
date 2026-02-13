@@ -53,6 +53,28 @@ export const SERVER_CONFIG_REPOSITORY = Symbol('IServerConfigRepository');
 export const EINSATZ_TEILNEHMER_REPOSITORY = Symbol('IEinsatzTeilnehmerRepository');
 
 /**
+ * DI Token für IErinnerungRepository Port.
+ *
+ * Verwendung in Handlers:
+ * @example
+ * @Inject(ERINNERUNG_REPOSITORY)
+ * private readonly repo: IErinnerungRepository
+ */
+export const ERINNERUNG_REPOSITORY = Symbol('IErinnerungRepository');
+
+/** Repository Token für IErinnerungsvorlageRepository */
+export const ERINNERUNGSVORLAGE_REPOSITORY = Symbol('IErinnerungsvorlageRepository');
+
+/** Repository Token für IFuehrungsrhythmusTemplateRepository (Story 6.6) */
+export const FUEHRUNGSRHYTHMUS_TEMPLATE_REPOSITORY = Symbol('IFuehrungsrhythmusTemplateRepository');
+
+/** Repository Token für INotizRepository */
+export const NOTIZ_REPOSITORY = Symbol('INotizRepository');
+
+/** Repository Token für IKategorieRepository */
+export const KATEGORIE_REPOSITORY = Symbol('IKategorieRepository');
+
+/**
  * Kräftemanagement Repository Tokens (Epic 1+).
  *
  * Verwaltung von Admin-Konfigurationsdaten:
@@ -92,6 +114,15 @@ export const KRAEFTE_REPOSITORIES = {
   /** Repository Token für IRollenBesetzungRepository (Story 5-0) */
   ROLLEN_BESETZUNG: Symbol('IRollenBesetzungRepository'),
 } as const;
+
+/** Export Service Token für IPdfExportService (Story 9.6) */
+export const PDF_EXPORT_SERVICE = Symbol('IPdfExportService');
+
+/** Export Service Token für ICsvExportService (Story 9.6) */
+export const CSV_EXPORT_SERVICE = Symbol('ICsvExportService');
+
+/** Export Service Token für IJsonExportService (Story 9.6) */
+export const JSON_EXPORT_SERVICE = Symbol('IJsonExportService');
 
 /** Transaction Manager Token für ITransactionManager */
 export const TRANSACTION_MANAGER = Symbol('ITransactionManager');
@@ -158,6 +189,57 @@ export const EVENT_HANDLER = {
 
   /** RolleFreigegeben ETB-Eintrag Handler Token (Story 5-1) */
   ROLLE_FREIGEGEBEN_ETB: Symbol('IEventHandler<RolleFreigegebenEvent>:EtbEintrag'),
+
+  /** ErinnerungAktualisiert ETB-Eintrag Handler Token (Story 1.3 AC5) */
+  ERINNERUNG_AKTUALISIERT_ETB: Symbol('IEventHandler<ErinnerungAktualisiertEvent>:EtbEintrag'),
+
+  /** ErinnerungGeloescht ETB-Eintrag Handler Token (Story 1.4 AC5) */
+  ERINNERUNG_GELOESCHT_ETB: Symbol('IEventHandler<ErinnerungGeloeschtEvent>:EtbEintrag'),
+
+  /** ErinnerungAusgeloest ETB-Eintrag Handler Token (Story 1.5 AC5) */
+  ERINNERUNG_AUSGELOEST_ETB: Symbol('IEventHandler<ErinnerungAusgeloestEvent>:EtbEintrag'),
+
+  /** ErinnerungAcknowledged ETB-Eintrag Handler Token (Story 1.6 AC5) */
+  ERINNERUNG_ACKNOWLEDGED_ETB: Symbol('IEventHandler<ErinnerungAcknowledgedEvent>:EtbEintrag'),
+
+  /** ErinnerungSnoozed ETB-Eintrag Handler Token (Story 2.1 AC2) */
+  ERINNERUNG_SNOOZED_ETB: Symbol('IEventHandler<ErinnerungSnoozedEvent>:EtbEintrag'),
+
+  /** ErinnerungRetriggered ETB-Eintrag Handler Token (Story 2.2 AC2) */
+  ERINNERUNG_RETRIGGERED_ETB: Symbol('IEventHandler<ErinnerungRetriggeredEvent>:EtbEintrag'),
+
+  /** ErinnerungErledigt ETB-Eintrag Handler Token (Story 2.5 AC4) */
+  ERINNERUNG_ERLEDIGT_ETB: Symbol('IEventHandler<ErinnerungErledigtEvent>:EtbEintrag'),
+
+  /** ErinnerungErstellt ETB-Eintrag Handler Token (Story 5.0) */
+  ERINNERUNG_ERSTELLT_ETB: Symbol('IEventHandler<ErinnerungErstelltEvent>:EtbEintrag'),
+
+  /** ErinnerungAssigned ETB-Eintrag Handler Token (Story 5.0) */
+  ERINNERUNG_ASSIGNED_ETB: Symbol('IEventHandler<ErinnerungAssignedEvent>:EtbEintrag'),
+
+  /** ErinnerungEskaliert ETB-Eintrag Handler Token (Story 5.0) */
+  ERINNERUNG_ESKALIERT_ETB: Symbol('IEventHandler<ErinnerungEskaliertEvent>:EtbEintrag'),
+
+  /** ErinnerungIntensiviert ETB-Eintrag Handler Token (Story 5.0) */
+  ERINNERUNG_INTENSIVIERT_ETB: Symbol('IEventHandler<ErinnerungIntensiviertEvent>:EtbEintrag'),
+
+  /** FuehrungsrhythmusAktiviert ETB-Eintrag Handler Token (Story 6.7) */
+  FUEHRUNGSRHYTHMUS_AKTIVIERT_ETB: Symbol('IEventHandler<FuehrungsrhythmusAktiviertEvent>:EtbEintrag'),
+
+  /** NotizErstellt ETB-Eintrag Handler Token (Story 7.1) */
+  NOTIZ_ERSTELLT_ETB: Symbol('IEventHandler<NotizErstelltEvent>:EtbEintrag'),
+
+  /** NotizAktualisiert ETB-Eintrag Handler Token (Story 7.3) */
+  NOTIZ_AKTUALISIERT_ETB: Symbol('IEventHandler<NotizAktualisiertEvent>:EtbEintrag'),
+
+  /** NotizGeloescht ETB-Eintrag Handler Token (Story 7.4) */
+  NOTIZ_GELOESCHT_ETB: Symbol('IEventHandler<NotizGeloeschtEvent>:EtbEintrag'),
+
+  /** KategorieErstellt ETB-Eintrag Handler Token (Story 8.1) */
+  KATEGORIE_ERSTELLT_ETB: Symbol('IEventHandler<KategorieErstelltEvent>:EtbEintrag'),
+
+  /** KategorieGeloescht ETB-Eintrag Handler Token (Story 8.1) */
+  KATEGORIE_GELOESCHT_ETB: Symbol('IEventHandler<KategorieGeloeschtEvent>:EtbEintrag'),
 } as const;
 
 /**

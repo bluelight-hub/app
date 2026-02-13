@@ -19,7 +19,13 @@ import {
   EinsatzFahrzeugeApi,
   EinsatzPersonenApi,
   EinsatzTeilnehmerApi,
+  ErinnerungenApi,
+  ErinnerungsvorlagenApi,
+  FuehrungsrhythmusTemplatesAdminApi,
+  EinsatzFuehrungsrhythmusTemplatesApi,
   ETBApi,
+  NotizenApi,
+  KategorienApi,
   GeocodingApi,
   HealthApi,
   KraefteDashboardApi,
@@ -111,6 +117,12 @@ class BackendApi {
   private readonly rollenBesetzungApi: RollenBesetzungApi;
   private readonly adminIntegrationsHiorgApi: AdminIntegrationsHiorgApi;
   private readonly einsatzTeilnehmerApi: EinsatzTeilnehmerApi;
+  private readonly erinnerungenApi: ErinnerungenApi;
+  private readonly erinnerungsvorlagenApi: ErinnerungsvorlagenApi;
+  private readonly fuehrungsrhythmusTemplatesAdminApi: FuehrungsrhythmusTemplatesAdminApi;
+  private readonly einsatzFuehrungsrhythmusTemplatesApi: EinsatzFuehrungsrhythmusTemplatesApi;
+  private readonly notizenApi: NotizenApi;
+  private readonly kategorienApi: KategorienApi;
 
   /**
    * Erstellt eine neue Instanz der BackendApi-Klasse
@@ -152,6 +164,12 @@ class BackendApi {
     this.rollenBesetzungApi = new RollenBesetzungApi(this.configuration);
     this.adminIntegrationsHiorgApi = new AdminIntegrationsHiorgApi(this.configuration);
     this.einsatzTeilnehmerApi = new EinsatzTeilnehmerApi(this.configuration);
+    this.erinnerungenApi = new ErinnerungenApi(this.configuration);
+    this.erinnerungsvorlagenApi = new ErinnerungsvorlagenApi(this.configuration);
+    this.fuehrungsrhythmusTemplatesAdminApi = new FuehrungsrhythmusTemplatesAdminApi(this.configuration);
+    this.einsatzFuehrungsrhythmusTemplatesApi = new EinsatzFuehrungsrhythmusTemplatesApi(this.configuration);
+    this.notizenApi = new NotizenApi(this.configuration);
+    this.kategorienApi = new KategorienApi(this.configuration);
   }
 
   /**
@@ -368,6 +386,55 @@ class BackendApi {
    */
   einsatzTeilnehmer(): EinsatzTeilnehmerApi {
     return this.einsatzTeilnehmerApi;
+  }
+
+  /**
+   * Gibt die gecachte Erinnerungen-API-Instanz zurück
+   *
+   * @returns Die Erinnerungen-API-Instanz für Erinnerungs-Management (Wecker)
+   */
+  erinnerungen(): ErinnerungenApi {
+    return this.erinnerungenApi;
+  }
+
+  /**
+   * Gibt die gecachte Erinnerungsvorlagen-API-Instanz zurück
+   *
+   * @returns Die Erinnerungsvorlagen-API-Instanz für Erinnerungsvorlagen-Management
+   */
+  erinnerungsvorlagen(): ErinnerungsvorlagenApi {
+    return this.erinnerungsvorlagenApi;
+  }
+
+  /**
+   * Gibt die gecachte FuehrungsrhythmusTemplates-API-Instanz zurueck
+   *
+   * @returns Die FuehrungsrhythmusTemplates-API-Instanz fuer Fuehrungsrhythmus-Template-Management
+   */
+  fuehrungsrhythmusTemplatesAdmin(): FuehrungsrhythmusTemplatesAdminApi {
+    return this.fuehrungsrhythmusTemplatesAdminApi;
+  }
+
+  einsatzFuehrungsrhythmusTemplates(): EinsatzFuehrungsrhythmusTemplatesApi {
+    return this.einsatzFuehrungsrhythmusTemplatesApi;
+  }
+
+  /**
+   * Gibt die gecachte Notizen-API-Instanz zurueck
+   *
+   * @returns Die Notizen-API-Instanz fuer Notizen-Management im Einsatz
+   */
+  notizen(): NotizenApi {
+    return this.notizenApi;
+  }
+
+  /**
+   * Gibt die gecachte Kategorien-API-Instanz zurueck (Story 8.1)
+   *
+   * @returns Die Kategorien-API-Instanz fuer Kategorien-Management im Einsatz
+   */
+  kategorien(): KategorienApi {
+    return this.kategorienApi;
   }
 }
 

@@ -21,8 +21,10 @@ export * from './molecules';
 // Headless UI Wrapper (nicht automatisch exportiert, da spezielle Imports)
 export * from './headless';
 
-// Templates - Layout-Templates (nicht automatisch exportiert, da spezielle Imports)
-export * from './templates';
+// Templates werden NICHT barrel-exportiert, da sie feature-spezifische Imports haben
+// (z.B. SingleEinsatzLayout importiert etb/einsatz Features).
+// Import direkt: import { AuthLayout } from '@/shared/ui/templates';
+// import { SingleEinsatzLayout } from '@/shared/ui/templates/SingleEinsatzLayout';
 
 // Organisms werden NICHT re-exportiert, da aktuell alle feature-spezifisch sind
 // (admin, auth, command-palette, dashboard, einsaetze, einsatz, etb, lagekarte)

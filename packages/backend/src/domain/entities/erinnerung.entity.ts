@@ -1,0 +1,1506 @@
+import { AggregateRoot } from '@domain/common/aggregate-root';
+import { Result } from '@domain/common/result';
+import type { EinsatzId } from '@domain/value-objects/einsatz-id';
+import { ErinnerungId } from '@domain/value-objects/erinnerung-id';
+import { ErinnerungStatus } from '@domain/value-objects/erinnerung-status';
+import { ErinnerungTitel } from '@domain/value-objects/erinnerung-titel';
+import type { UserId } from '@domain/value-objects/user-id';
+import { ErinnerungErstelltEvent } from '@domain/events/erinnerung-erstellt.event';
+import { ErinnerungAktualisiertEvent } from '@domain/events/erinnerung-aktualisiert.event';
+import type { ErinnerungAenderungen } from '@domain/events/erinnerung-aktualisiert.event';
+import { ErinnerungGeloeschtEvent } from '@domain/events/erinnerung-geloescht.event';
+import { ErinnerungAusgeloestEvent } from '@domain/events/erinnerung-ausgeloest.event';
+import { ErinnerungAcknowledgedEvent } from '@domain/events/erinnerung-acknowledged.event';
+import { ErinnerungSnoozedEvent } from '@domain/events/erinnerung-snoozed.event';
+import { ErinnerungRetriggeredEvent } from '@domain/events/erinnerung-retriggered.event';
+import { ErinnerungErledigtEvent } from '@domain/events/erinnerung-erledigt.event';
+import { ErinnerungAssignedEvent } from '@domain/events/erinnerung-assigned.event';
+import { ErinnerungEskaliertEvent } from '@domain/events/erinnerung-eskaliert.event';
+import { ErinnerungIntensiviertEvent } from '@domain/events/erinnerung-intensiviert.event';
+import { ErinnerungSerieGestopptEvent } from '@domain/events/erinnerung-serie-gestoppt.event';
+
+/**
+ * Props für die Erstellung einer neuen Erinnerung.
+ */
+export interface CreateErinnerungProps {
+  einsatzId: EinsatzId;
+  titel: string;
+  beschreibung?: string;
+  faelligAm: Date;
+  erstelltVon: UserId;
+  /** Story 2.6: Pflicht-Notiz bei Erledigung erforderlich (default: false) */
+  requiresNote?: boolean;
+  /** Story 4.1: Optionale Eskalationsperson */
+  eskalationsPersonId?: UserId | null;
+  /** Story 4.10: Eskalation nur an Ersteller (Rückläufer) */
+  eskalationNurAnErsteller?: boolean;
+  /** Story 5.4: Optionale Referenz zu einem ETB-Eintrag */
+  etbEntryId?: string | null;
+  /** Story 7.6: Optionale Referenz zur Quell-Notiz (Konvertierung) */
+  notizId?: string | null;
+  /** Story 8.2: Optionale Kategorie-Referenz */
+  kategorieId?: string | null;
+  /** Story 6.4: Wiederkehrende Erinnerung */
+  isRecurring?: boolean;
+  /** Story 6.4: Intervall in Minuten (1-1440) */
+  recurringIntervalMinutes?: number;
+  /** Story 6.4: Endzeitpunkt der Serie */
+  recurringEndDate?: Date;
+  /** Story 6.4: Maximale Anzahl Wiederholungen (1-100) */
+  recurringMaxCount?: number;
+  /** Story 6.4: Parent-Erinnerung ID (für Kind-Instanzen) */
+  parentErinnerungId?: ErinnerungId | null;
+  /** Story 6.4: Sequenznummer in der Serie */
+  recurringSequenceNumber?: number;
+}
+
+/**
+ * Props für das Aktualisieren einer Erinnerung.
+ * Alle Felder sind optional - nur gesetzte Felder werden aktualisiert.
+ * `aktualisierVon` ist erforderlich für Audit-Trail und ETB-Integration.
+ */
+export interface UpdateErinnerungProps {
+  titel?: string;
+  beschreibung?: string | null;
+  faelligAm?: Date;
+  aktualisierVon: UserId;
+  eskalationsPersonId?: UserId | null;
+}
+
+/**
+ * Props für die Rekonstruktion einer Erinnerung aus der Datenbank.
+ */
+export interface ReconstructErinnerungProps {
+  id: ErinnerungId;
+  einsatzId: EinsatzId;
+  titel: ErinnerungTitel;
+  beschreibung: string | null;
+  faelligAm: Date;
+  status: ErinnerungStatus;
+  erstelltVon: UserId;
+  createdAt: Date;
+  updatedAt: Date;
+  /** Soft-Delete Flag (Story 1.4) */
+  isDeleted?: boolean;
+  /** Zeitpunkt der Löschung (Story 1.4) */
+  deletedAt?: Date | null;
+  /** User der gelöscht hat (Story 1.4) */
+  deletedBy?: UserId | null;
+  /** Zeitpunkt der Auslösung (Story 1.5) */
+  ausgeloestAm?: Date | null;
+  /** Zeitpunkt der Bestätigung (Story 1.6) */
+  acknowledgedAm?: Date | null;
+  /** User der bestätigt hat (Story 1.6) */
+  acknowledgedBy?: UserId | null;
+  /** Zeitpunkt der Snooze-Aktion (Story 2.1) */
+  snoozedAt?: Date | null;
+  /** User der gesnoozed hat (Story 2.1) */
+  snoozedBy?: UserId | null;
+  /** Neue Fälligkeit nach Snooze (Story 2.1) */
+  snoozedUntil?: Date | null;
+  /** Anzahl der Snoozes (Story 2.1) */
+  snoozeCount?: number;
+  /** Zeitpunkt der Erledigung (Story 2.5) */
+  erledigtAm?: Date | null;
+  /** User der erledigt hat (Story 2.5) */
+  erledigtBy?: UserId | null;
+  /** Optionale Notiz bei Erledigung (Story 2.5) */
+  erledigungsNotiz?: string | null;
+  /** Pflicht-Notiz bei Erledigung erforderlich (Story 2.6) */
+  requiresNote?: boolean;
+  /** Story 3.3: Zugewiesener User */
+  assignedToId?: UserId | null;
+  /** Story 3.3: User der zugewiesen hat */
+  assignedBy?: UserId | null;
+  /** Story 3.3: Zeitpunkt der Zuweisung */
+  assignedAt?: Date | null;
+  /** Story 4.1: Eskalationsperson */
+  eskalationsPersonId?: UserId | null;
+  /** Story 4.5: Zeitpunkt der Eskalation */
+  escalatedAt?: Date | null;
+  /** Story 4.5: Vorheriger Assignee */
+  previousAssigneeId?: UserId | null;
+  /** Hotfix: Anzahl der Intensivierungen (um Endlos-Loop zu verhindern) */
+  intensivierungsCount?: number;
+  /** Story 4.9: Flag ob jemals eskaliert */
+  wurdeEskaliert?: boolean;
+  /** Story 4.9: Zeitpunkt der ERSTEN Eskalation */
+  eskaliertAm?: Date | null;
+  /** Story 4.10: Flag für Eskalations-Restriktion */
+  eskalationNurAnErsteller?: boolean;
+  /** Story 5.0: ETB-Eintrag ID für bidirektionale Verknüpfung */
+  etbEntryId?: string | null;
+  /** Story 7.6: Referenz zur Quell-Notiz */
+  notizId?: string | null;
+  /** Story 8.2: Kategorie-Referenz */
+  kategorieId: string | null;
+  /** Story 6.4: Wiederkehrende Erinnerung */
+  isRecurring?: boolean;
+  /** Story 6.4: Intervall in Minuten */
+  recurringIntervalMinutes?: number | null;
+  /** Story 6.4: Endzeitpunkt der Serie */
+  recurringEndDate?: Date | null;
+  /** Story 6.4: Maximale Anzahl Wiederholungen */
+  recurringMaxCount?: number | null;
+  /** Story 6.4: Aktuelle Anzahl erstellter Instanzen */
+  recurringCurrentCount?: number;
+  /** Story 6.4: Parent-Erinnerung ID */
+  parentErinnerungId?: ErinnerungId | null;
+  /** Story 6.4: Sequenznummer in der Serie */
+  recurringSequenceNumber?: number | null;
+}
+
+/**
+ * Erinnerung Aggregate Root für zeitgesteuerte Benachrichtigungen.
+ *
+ * Repräsentiert eine Erinnerung innerhalb eines Einsatzes für FüKw-Personal.
+ * Ermöglicht Quick-Create mit Titel und Zeitpunkt sowie Status-Tracking.
+ *
+ * **Business Rules (Invarianten):**
+ * 1. Titel ist erforderlich und maximal 100 Zeichen
+ * 2. Fälligkeitszeitpunkt muss bei Erstellung in der Zukunft liegen
+ * 3. Initialer Status ist immer GEPLANT
+ * 4. Status-Transitions folgen der State Machine in ErinnerungStatus
+ * 5. Beschreibung ist optional (max 500 Zeichen)
+ *
+ * **Event Flow:**
+ * - create() → ErinnerungErstelltEvent
+ *
+ * @example
+ * ```typescript
+ * const result = Erinnerung.create({
+ *   einsatzId: einsatzId,
+ *   titel: 'Lagebesprechung',
+ *   faelligAm: addMinutes(new Date(), 30),
+ *   erstelltVon: userId,
+ * });
+ *
+ * if (result.isSuccess) {
+ *   const erinnerung = result.value!;
+ *   console.log(erinnerung.status.isGeplant()); // true
+ *   console.log(erinnerung.titel.value); // "Lagebesprechung"
+ * }
+ * ```
+ */
+export class Erinnerung extends AggregateRoot<ErinnerungId> {
+  /**
+   * Maximale Länge der Beschreibung.
+   * Konsistent mit Prisma Schema: @db.VarChar(500)
+   */
+  public static readonly MAX_BESCHREIBUNG_LENGTH = 500;
+
+  /**
+   * Story 2.6: Default-Wert für Pflicht-Notiz Flag.
+   * Zentrale Definition um Redundanz zu vermeiden (Issue 6).
+   */
+  public static readonly DEFAULT_REQUIRES_NOTE = false;
+
+  /**
+   * Maximale Anzahl der Intensivierungen bevor der Scheduler aufhört.
+   * Nach Erreichen des Limits bleibt die Erinnerung im Status AUSGELOEST
+   * und wird nicht mehr vom Scheduler erfasst.
+   */
+  public static readonly MAX_INTENSIVIERUNGEN = 5;
+
+  /**
+   * Story 4.10: Default für Eskalations-Restriktion.
+   */
+  public static readonly DEFAULT_ESKALATION_NUR_AN_ERSTELLER = false;
+
+  private readonly _einsatzId: EinsatzId;
+  private _titel: ErinnerungTitel;
+  private _beschreibung: string | null;
+  private _faelligAm: Date;
+  private _status: ErinnerungStatus;
+  private readonly _erstelltVon: UserId;
+
+  // Soft-Delete Felder (Story 1.4)
+  private _isDeleted: boolean;
+  private _deletedAt: Date | null;
+  private _deletedBy: UserId | null;
+
+  // Auslösung Feld (Story 1.5)
+  private _ausgeloestAm: Date | null;
+
+  // Bestätigung Felder (Story 1.6)
+  private _acknowledgedAm: Date | null;
+  private _acknowledgedBy: UserId | null;
+
+  // Snooze Felder (Story 2.1)
+  private _snoozedAt: Date | null;
+  private _snoozedBy: UserId | null;
+  private _snoozedUntil: Date | null;
+  private _snoozeCount: number;
+
+  // Erledigt Felder (Story 2.5)
+  private _erledigtAm: Date | null;
+  private _erledigtBy: UserId | null;
+  private _erledigungsNotiz: string | null;
+
+  // Pflicht-Notiz Flag (Story 2.6)
+  private readonly _requiresNote: boolean;
+
+  // Zuweisung Felder (Story 3.3)
+  private _assignedToId: UserId | null;
+  private _assignedBy: UserId | null;
+  private _assignedAt: Date | null;
+
+  // Escalation (Story 4.1)
+  private _eskalationsPersonId: UserId | null;
+
+  // Escalation Tracking (Story 4.5)
+  private _escalatedAt: Date | null;
+  private _previousAssigneeId: UserId | null;
+
+  // Escalation Statistics (Story 4.9)
+  private _wurdeEskaliert: boolean;
+  private _eskaliertAm: Date | null;
+
+  // Intensivierungs-Counter (Hotfix: Endlos-Loop verhindern)
+  private _intensivierungsCount: number;
+
+  // Story 4.10: Restriction Flag
+  private readonly _eskalationNurAnErsteller: boolean;
+
+  // Story 5.0: ETB-Integration - Bidirektionale Verknüpfung
+  private _etbEntryId: string | null;
+
+  // Story 7.6: Notiz-Referenz (Konvertierung Notiz → Erinnerung)
+  private _notizId: string | null;
+
+  // Story 8.2: Kategorie-Referenz
+  private _kategorieId: string | null;
+
+  // Recurring Felder (Story 6.4)
+  private _isRecurring: boolean;
+  private _recurringIntervalMinutes: number | null;
+  private _recurringEndDate: Date | null;
+  private _recurringMaxCount: number | null;
+  private _recurringCurrentCount: number;
+  private _parentErinnerungId: ErinnerungId | null;
+  private _recurringSequenceNumber: number | null;
+
+  // ============================================================
+  // Readonly Getters
+  // ============================================================
+
+  get einsatzId(): EinsatzId {
+    return this._einsatzId;
+  }
+
+  get titel(): ErinnerungTitel {
+    return this._titel;
+  }
+
+  get beschreibung(): string | null {
+    return this._beschreibung;
+  }
+
+  /**
+   * Gibt den Fälligkeitszeitpunkt zurück.
+   *
+   * Gibt eine Kopie zurück um Immutabilität zu garantieren,
+   * da Date in JavaScript mutable ist.
+   */
+  get faelligAm(): Date {
+    return new Date(this._faelligAm.getTime());
+  }
+
+  get status(): ErinnerungStatus {
+    return this._status;
+  }
+
+  get erstelltVon(): UserId {
+    return this._erstelltVon;
+  }
+
+  // Soft-Delete Getters (Story 1.4)
+
+  /**
+   * Gibt zurück ob die Erinnerung gelöscht wurde (Soft-Delete).
+   */
+  get isDeleted(): boolean {
+    return this._isDeleted;
+  }
+
+  /**
+   * Gibt den Zeitpunkt der Löschung zurück.
+   * Null wenn nicht gelöscht.
+   */
+  get deletedAt(): Date | null {
+    return this._deletedAt ? new Date(this._deletedAt.getTime()) : null;
+  }
+
+  /**
+   * Gibt den User zurück der gelöscht hat.
+   * Null wenn nicht gelöscht.
+   */
+  get deletedBy(): UserId | null {
+    return this._deletedBy;
+  }
+
+  // Auslösung Getter (Story 1.5)
+
+  /**
+   * Gibt den Zeitpunkt der Auslösung zurück.
+   * Null wenn noch nicht ausgelöst.
+   */
+  get ausgeloestAm(): Date | null {
+    return this._ausgeloestAm ? new Date(this._ausgeloestAm.getTime()) : null;
+  }
+
+  // Bestätigung Getters (Story 1.6)
+
+  /**
+   * Gibt den Zeitpunkt der Bestätigung zurück.
+   * Null wenn noch nicht bestätigt.
+   */
+  get acknowledgedAm(): Date | null {
+    return this._acknowledgedAm ? new Date(this._acknowledgedAm.getTime()) : null;
+  }
+
+  /**
+   * Gibt den User zurück der bestätigt hat.
+   * Null wenn noch nicht bestätigt.
+   */
+  get acknowledgedBy(): UserId | null {
+    return this._acknowledgedBy;
+  }
+
+  // Snooze Getters (Story 2.1)
+
+  /**
+   * Gibt den Zeitpunkt der Snooze-Aktion zurück.
+   * Null wenn nicht gesnoozed.
+   */
+  get snoozedAt(): Date | null {
+    return this._snoozedAt ? new Date(this._snoozedAt.getTime()) : null;
+  }
+
+  /**
+   * Gibt den User zurück der gesnoozed hat.
+   * Null wenn nicht gesnoozed.
+   */
+  get snoozedBy(): UserId | null {
+    return this._snoozedBy;
+  }
+
+  /**
+   * Gibt die neue Fälligkeit nach Snooze zurück.
+   * Null wenn nicht gesnoozed.
+   */
+  get snoozedUntil(): Date | null {
+    return this._snoozedUntil ? new Date(this._snoozedUntil.getTime()) : null;
+  }
+
+  /**
+   * Gibt die Anzahl der Snoozes zurück.
+   */
+  get snoozeCount(): number {
+    return this._snoozeCount;
+  }
+
+  // Erledigt Getters (Story 2.5)
+
+  /**
+   * Gibt den Zeitpunkt der Erledigung zurück.
+   * Null wenn noch nicht erledigt.
+   */
+  get erledigtAm(): Date | null {
+    return this._erledigtAm ? new Date(this._erledigtAm.getTime()) : null;
+  }
+
+  /**
+   * Gibt den User zurück der erledigt hat.
+   * Null wenn noch nicht erledigt.
+   */
+  get erledigtBy(): UserId | null {
+    return this._erledigtBy;
+  }
+
+  /**
+   * Gibt die optionale Erledigungs-Notiz zurück.
+   * Null wenn keine Notiz oder nicht erledigt.
+   */
+  get erledigungsNotiz(): string | null {
+    return this._erledigungsNotiz;
+  }
+
+  // Pflicht-Notiz Getter (Story 2.6)
+
+  /**
+   * Gibt zurück ob bei Erledigung eine Pflicht-Notiz erforderlich ist.
+   */
+  get requiresNote(): boolean {
+    return this._requiresNote;
+  }
+
+  // Zuweisung Getters (Story 3.3)
+
+  /**
+   * Gibt die ID des zugewiesenen Users zurück.
+   * Null wenn nicht zugewiesen.
+   */
+  get assignedToId(): UserId | null {
+    return this._assignedToId;
+  }
+
+  /**
+   * Gibt den User zurück der die Zuweisung vorgenommen hat.
+   * Null wenn nicht zugewiesen.
+   */
+  get assignedBy(): UserId | null {
+    return this._assignedBy;
+  }
+
+  /**
+   * Gibt den Zeitpunkt der Zuweisung zurück.
+   * Null wenn nicht zugewiesen.
+   */
+  get assignedAt(): Date | null {
+    return this._assignedAt ? new Date(this._assignedAt.getTime()) : null;
+  }
+
+  /**
+   * Gibt die ID der Eskalationsperson zurück.
+   * Null wenn keine Eskalationsperson gesetzt.
+   */
+  get eskalationsPersonId(): UserId | null {
+    return this._eskalationsPersonId;
+  }
+
+  /**
+   * Story 4.10: Gibt zurück ob Eskalationen nur an den Ersteller gehen dürfen.
+   */
+  get eskalationNurAnErsteller(): boolean {
+    return this._eskalationNurAnErsteller;
+  }
+
+  // Story 5.0: ETB-Integration Getter
+
+  /**
+   * Gibt die ID des verknüpften ETB-Eintrags zurück.
+   * Null wenn keine Verknüpfung besteht.
+   */
+  get etbEntryId(): string | null {
+    return this._etbEntryId;
+  }
+
+  // Story 7.6: Notiz-Referenz Getter
+
+  /**
+   * Gibt die ID der verknüpften Quell-Notiz zurück.
+   * Null wenn keine Verknüpfung besteht.
+   */
+  get notizId(): string | null {
+    return this._notizId;
+  }
+
+  // Story 8.2: Kategorie-Referenz Getter
+
+  /**
+   * Gibt die ID der zugewiesenen Kategorie zurück.
+   * Null wenn keine Kategorie zugewiesen ist.
+   */
+  get kategorieId(): string | null {
+    return this._kategorieId;
+  }
+
+  // Recurring Getters (Story 6.4)
+
+  /** Gibt zurück ob die Erinnerung wiederkehrend ist. */
+  get isRecurring(): boolean {
+    return this._isRecurring;
+  }
+
+  /** Gibt das Intervall in Minuten zurück. */
+  get recurringIntervalMinutes(): number | null {
+    return this._recurringIntervalMinutes;
+  }
+
+  /** Gibt den Endzeitpunkt der Serie zurück. */
+  get recurringEndDate(): Date | null {
+    return this._recurringEndDate ? new Date(this._recurringEndDate.getTime()) : null;
+  }
+
+  /** Gibt die maximale Anzahl Wiederholungen zurück. */
+  get recurringMaxCount(): number | null {
+    return this._recurringMaxCount;
+  }
+
+  /** Gibt die aktuelle Anzahl erstellter Instanzen zurück. */
+  get recurringCurrentCount(): number {
+    return this._recurringCurrentCount;
+  }
+
+  /** Gibt die Parent-Erinnerung ID zurück. */
+  get parentErinnerungId(): ErinnerungId | null {
+    return this._parentErinnerungId;
+  }
+
+  /** Gibt die Sequenznummer in der Serie zurück. */
+  get recurringSequenceNumber(): number | null {
+    return this._recurringSequenceNumber;
+  }
+
+  // Escalation Tracking Getters (Story 4.5)
+
+  /**
+   * Gibt den Zeitpunkt der Eskalation zurück.
+   */
+  get escalatedAt(): Date | null {
+    return this._escalatedAt ? new Date(this._escalatedAt.getTime()) : null;
+  }
+
+  /**
+   * Gibt die UserID des Users zurück, dem die Erinnerung VOR der Eskalation zugewiesen war.
+   */
+  get previousAssigneeId(): UserId | null {
+    return this._previousAssigneeId;
+  }
+
+  /**
+   * Gibt die Anzahl der bisherigen Intensivierungen zurück.
+   */
+  get intensivierungsCount(): number {
+    return this._intensivierungsCount;
+  }
+
+  // Escalation Statistics Getters (Story 4.9)
+
+  /**
+   * Gibt zurück ob die Erinnerung jemals eskaliert wurde.
+   */
+  get wurdeEskaliert(): boolean {
+    return this._wurdeEskaliert;
+  }
+
+  /**
+   * Gibt den Zeitpunkt der ERSTEN Eskalation zurück.
+   */
+  get eskaliertAm(): Date | null {
+    return this._eskaliertAm ? new Date(this._eskaliertAm.getTime()) : null;
+  }
+
+  // ============================================================
+  // Private Constructor (erzwingt Factory Methods)
+  // ============================================================
+
+  private constructor(
+    id: ErinnerungId,
+    einsatzId: EinsatzId,
+    titel: ErinnerungTitel,
+    beschreibung: string | null,
+    faelligAm: Date,
+    status: ErinnerungStatus,
+    erstelltVon: UserId,
+    createdAt?: Date,
+    updatedAt?: Date,
+    isDeleted = false,
+    deletedAt: Date | null = null,
+    deletedBy: UserId | null = null,
+    ausgeloestAm: Date | null = null,
+    acknowledgedAm: Date | null = null,
+    acknowledgedBy: UserId | null = null,
+    snoozedAt: Date | null = null,
+    snoozedBy: UserId | null = null,
+    snoozedUntil: Date | null = null,
+    snoozeCount = 0,
+    erledigtAm: Date | null = null,
+    erledigtBy: UserId | null = null,
+    erledigungsNotiz: string | null = null,
+    requiresNote = Erinnerung.DEFAULT_REQUIRES_NOTE,
+    assignedToId: UserId | null = null,
+    assignedBy: UserId | null = null,
+    assignedAt: Date | null = null,
+    eskalationsPersonId: UserId | null = null, // Story 4.1
+    escalatedAt: Date | null = null, // Story 4.5
+    previousAssigneeId: UserId | null = null, // Story 4.5
+    intensivierungsCount = 0, // Hotfix: Endlos-Loop verhindern
+    wurdeEskaliert = false, // Story 4.9
+    eskaliertAm: Date | null = null, // Story 4.9
+    eskalationNurAnErsteller = Erinnerung.DEFAULT_ESKALATION_NUR_AN_ERSTELLER, // Story 4.10
+    etbEntryId: string | null = null, // Story 5.0
+    notizId: string | null = null, // Story 7.6
+    kategorieId: string | null = null, // Story 8.2
+    isRecurring = false, // Story 6.4
+    recurringIntervalMinutes: number | null = null, // Story 6.4
+    recurringEndDate: Date | null = null, // Story 6.4
+    recurringMaxCount: number | null = null, // Story 6.4
+    recurringCurrentCount = 0, // Story 6.4
+    parentErinnerungId: ErinnerungId | null = null, // Story 6.4
+    recurringSequenceNumber: number | null = null, // Story 6.4
+  ) {
+    super(id, createdAt, updatedAt);
+    this._einsatzId = einsatzId;
+    this._titel = titel;
+    this._beschreibung = beschreibung;
+    this._faelligAm = faelligAm;
+    this._status = status;
+    this._erstelltVon = erstelltVon;
+    this._isDeleted = isDeleted;
+    this._deletedAt = deletedAt;
+    this._deletedBy = deletedBy;
+    this._ausgeloestAm = ausgeloestAm;
+    this._acknowledgedAm = acknowledgedAm;
+    this._acknowledgedBy = acknowledgedBy;
+    this._snoozedAt = snoozedAt;
+    this._snoozedBy = snoozedBy;
+    this._snoozedUntil = snoozedUntil;
+    this._snoozeCount = snoozeCount;
+    this._erledigtAm = erledigtAm;
+    this._erledigtBy = erledigtBy;
+    this._erledigungsNotiz = erledigungsNotiz;
+    this._requiresNote = requiresNote;
+    this._assignedToId = assignedToId;
+    this._assignedBy = assignedBy;
+    this._assignedAt = assignedAt;
+    this._eskalationsPersonId = eskalationsPersonId;
+    this._escalatedAt = escalatedAt;
+    this._previousAssigneeId = previousAssigneeId;
+    this._intensivierungsCount = intensivierungsCount;
+    this._wurdeEskaliert = wurdeEskaliert;
+    this._eskaliertAm = eskaliertAm;
+    this._eskalationNurAnErsteller = eskalationNurAnErsteller;
+    this._etbEntryId = etbEntryId;
+    this._notizId = notizId;
+    this._kategorieId = kategorieId;
+    this._isRecurring = isRecurring;
+    this._recurringIntervalMinutes = recurringIntervalMinutes;
+    this._recurringEndDate = recurringEndDate;
+    this._recurringMaxCount = recurringMaxCount;
+    this._recurringCurrentCount = recurringCurrentCount;
+    this._parentErinnerungId = parentErinnerungId;
+    this._recurringSequenceNumber = recurringSequenceNumber;
+  }
+
+  // ============================================================
+  // Factory Methods
+  // ============================================================
+
+  /**
+   * Factory Method zur Erstellung einer neuen Erinnerung.
+   *
+   * **Business Rules:**
+   * - Titel darf nicht leer sein und maximal 100 Zeichen haben
+   * - Fälligkeitszeitpunkt muss in der Zukunft liegen
+   * - Beschreibung ist optional, maximal 500 Zeichen
+   * - Emittiert ErinnerungErstelltEvent
+   *
+   * @param props - CreateErinnerungProps mit allen erforderlichen Feldern
+   * @returns Result<Erinnerung> - Success mit Aggregate oder Failure mit Error
+   */
+  static create(props: CreateErinnerungProps): Result<Erinnerung> {
+    // Validiere Titel
+    const titelResult = ErinnerungTitel.create(props.titel);
+    if (titelResult.isFailure || !titelResult.value) {
+      return Result.fail<Erinnerung>(titelResult.error ?? 'ERINNERUNG_TITEL_INVALID');
+    }
+
+    // Validiere faelligAm (muss in Zukunft liegen)
+    const now = new Date();
+    if (props.faelligAm <= now) {
+      return Result.fail<Erinnerung>('ERINNERUNG_FAELLIG_AM_IN_PAST');
+    }
+
+    // Validiere Beschreibung (optional, aber wenn vorhanden maximal 500 Zeichen)
+    let beschreibung: string | null = null;
+    if (props.beschreibung != null && props.beschreibung.trim().length > 0) {
+      const trimmedBeschreibung = props.beschreibung.trim();
+      if (trimmedBeschreibung.length > Erinnerung.MAX_BESCHREIBUNG_LENGTH) {
+        return Result.fail<Erinnerung>(`ERINNERUNG_BESCHREIBUNG_TOO_LONG: Beschreibung darf maximal ${Erinnerung.MAX_BESCHREIBUNG_LENGTH} Zeichen haben`);
+      }
+      beschreibung = trimmedBeschreibung;
+    }
+
+    // Story 6.4: Validierung der Recurring-Felder
+    const isRecurring = props.isRecurring ?? false;
+    if (isRecurring) {
+      if (!props.recurringIntervalMinutes || props.recurringIntervalMinutes < 1 || props.recurringIntervalMinutes > 1440) {
+        return Result.fail<Erinnerung>('ERINNERUNG_RECURRING_INTERVAL_INVALID: Intervall muss zwischen 1 und 1440 Minuten liegen');
+      }
+      if (props.recurringMaxCount !== undefined && props.recurringMaxCount !== null && (props.recurringMaxCount < 1 || props.recurringMaxCount > 100)) {
+        return Result.fail<Erinnerung>('ERINNERUNG_RECURRING_MAX_COUNT_INVALID: Maximale Anzahl muss zwischen 1 und 100 liegen');
+      }
+      if (props.recurringEndDate && props.recurringEndDate <= now) {
+        return Result.fail<Erinnerung>('ERINNERUNG_RECURRING_END_DATE_IN_PAST: Endzeitpunkt muss in der Zukunft liegen');
+      }
+    }
+
+    // Generiere ID
+    const idResult = ErinnerungId.create();
+    if (idResult.isFailure || !idResult.value) {
+      return Result.fail<Erinnerung>(idResult.error ?? 'ERINNERUNG_ID_INVALID');
+    }
+
+    const erinnerung = new Erinnerung(
+      idResult.value,
+      props.einsatzId,
+      titelResult.value,
+      beschreibung,
+      props.faelligAm,
+      ErinnerungStatus.GEPLANT(), // Initialer Status
+      props.erstelltVon,
+      undefined, // createdAt
+      undefined, // updatedAt
+      false, // isDeleted
+      null, // deletedAt
+      null, // deletedBy
+      null, // ausgeloestAm
+      null, // acknowledgedAm
+      null, // acknowledgedBy
+      null, // snoozedAt
+      null, // snoozedBy
+      null, // snoozedUntil
+      0, // snoozeCount
+      null, // erledigtAm
+      null, // erledigtBy
+      null, // erledigungsNotiz
+      props.requiresNote ?? Erinnerung.DEFAULT_REQUIRES_NOTE, // Story 2.6
+      null, // assignedToId (Story 3.3)
+      null, // assignedBy (Story 3.3)
+      null, // assignedAt (Story 3.3)
+      props.eskalationsPersonId ?? null, // Story 4.1
+      null, // escalatedAt (Story 4.5)
+      null, // previousAssigneeId (Story 4.5)
+      0, // intensivierungsCount (default)
+      false, // wurdeEskaliert (default)
+      null, // eskaliertAm (default)
+      props.eskalationNurAnErsteller ?? Erinnerung.DEFAULT_ESKALATION_NUR_AN_ERSTELLER, // Story 4.10
+      props.etbEntryId ?? null, // Story 5.4: ETB-Eintrag Referenz
+      props.notizId ?? null, // Story 7.6: Quell-Notiz Referenz
+      props.kategorieId ?? null, // Story 8.2: Kategorie-Referenz
+      isRecurring, // Story 6.4
+      isRecurring ? (props.recurringIntervalMinutes ?? null) : null, // Story 6.4
+      isRecurring ? (props.recurringEndDate ?? null) : null, // Story 6.4
+      isRecurring ? (props.recurringMaxCount ?? null) : null, // Story 6.4
+      0, // recurringCurrentCount (Story 6.4)
+      props.parentErinnerungId ?? null, // Story 6.4
+      props.recurringSequenceNumber ?? null, // Story 6.4
+    );
+
+    // Emit Domain Event (Story 3.3: null für assignedToId bei Erstellung ohne Zuweisung)
+    erinnerung.addDomainEvent(
+      new ErinnerungErstelltEvent(
+        idResult.value,
+        props.einsatzId,
+        titelResult.value.value,
+        props.faelligAm,
+        props.erstelltVon,
+        null,
+        props.eskalationsPersonId ?? null, // Story 4.1
+        idResult.value.toString(),
+      ),
+    );
+
+    return Result.ok<Erinnerung>(erinnerung);
+  }
+
+  /**
+   * Factory Method zur Rekonstruktion aus der Datenbank.
+   * Überspringt Validierung da Daten bereits validiert wurden.
+   */
+  static reconstruct(props: ReconstructErinnerungProps): Erinnerung {
+    return new Erinnerung(
+      props.id,
+      props.einsatzId,
+      props.titel,
+      props.beschreibung,
+      props.faelligAm,
+      props.status,
+      props.erstelltVon,
+      props.createdAt,
+      props.updatedAt,
+      props.isDeleted ?? false,
+      props.deletedAt ?? null,
+      props.deletedBy ?? null,
+      props.ausgeloestAm ?? null,
+      props.acknowledgedAm ?? null,
+      props.acknowledgedBy ?? null,
+      props.snoozedAt ?? null,
+      props.snoozedBy ?? null,
+      props.snoozedUntil ?? null,
+      props.snoozeCount ?? 0,
+      props.erledigtAm ?? null,
+      props.erledigtBy ?? null,
+      props.erledigungsNotiz ?? null,
+      props.requiresNote ?? Erinnerung.DEFAULT_REQUIRES_NOTE,
+      props.assignedToId ?? null,
+      props.assignedBy ?? null,
+      props.assignedAt ?? null,
+      props.eskalationsPersonId ?? null,
+      props.escalatedAt ?? null, // Story 4.5
+      props.previousAssigneeId ?? null, // Story 4.5
+      props.intensivierungsCount ?? 0, // Hotfix: Endlos-Loop
+      props.wurdeEskaliert ?? false, // Story 4.9
+      props.eskaliertAm ?? null, // Story 4.9
+      props.eskalationNurAnErsteller ?? Erinnerung.DEFAULT_ESKALATION_NUR_AN_ERSTELLER, // Story 4.10
+      props.etbEntryId ?? null, // Story 5.0
+      props.notizId ?? null, // Story 7.6
+      props.kategorieId ?? null, // Story 8.2
+      props.isRecurring ?? false, // Story 6.4
+      props.recurringIntervalMinutes ?? null, // Story 6.4
+      props.recurringEndDate ?? null, // Story 6.4
+      props.recurringMaxCount ?? null, // Story 6.4
+      props.recurringCurrentCount ?? 0, // Story 6.4
+      props.parentErinnerungId ?? null, // Story 6.4
+      props.recurringSequenceNumber ?? null, // Story 6.4
+    );
+  }
+
+  // ============================================================
+  // Business Methods
+  // ============================================================
+
+  /**
+   * Prüft ob die Erinnerung fällig ist (faelligAm <= jetzt).
+   */
+  public istFaellig(): boolean {
+    return new Date() >= this._faelligAm;
+  }
+
+  /**
+   * Prüft ob die Erinnerung noch aktiv ist (nicht erledigt).
+   */
+  public istAktiv(): boolean {
+    return this._status.isActive();
+  }
+
+  /**
+   * Story 6.4: Prüft ob eine nächste Instanz erstellt werden soll.
+   * Returns true wenn: isRecurring UND maxCount nicht erreicht UND endDate nicht überschritten.
+   */
+  public shouldCreateNextOccurrence(): boolean {
+    if (!this._isRecurring) return false;
+
+    // Prüfe maxCount (wenn gesetzt)
+    if (this._recurringMaxCount !== null && this._recurringCurrentCount >= this._recurringMaxCount) {
+      return false;
+    }
+
+    // Prüfe endDate (wenn gesetzt)
+    if (this._recurringEndDate !== null) {
+      const nextDueDate = this.calculateNextDueDate();
+      if (nextDueDate > this._recurringEndDate) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Story 6.4: Berechnet den nächsten Fälligkeitszeitpunkt.
+   * nextDueDate = jetzt + intervalMinutes (NICHT letzte faelligAm + interval, vermeidet Drift)
+   */
+  public calculateNextDueDate(): Date {
+    if (!this._recurringIntervalMinutes) {
+      throw new Error('Cannot calculate next due date without interval');
+    }
+    const now = new Date();
+    return new Date(now.getTime() + this._recurringIntervalMinutes * 60 * 1000);
+  }
+
+  /**
+   * Story 6.4: Gibt Props für die nächste Instanz zurück.
+   * Erbt: Titel, Beschreibung, requiresNote, Eskalation
+   * Erbt NICHT: assignedToId, etbEntryId (instanzspezifisch)
+   * Returns null wenn keine nächste Instanz erstellt werden soll.
+   */
+  public getNextOccurrenceProps(): CreateErinnerungProps | null {
+    if (!this.shouldCreateNextOccurrence()) return null;
+
+    const nextDueDate = this.calculateNextDueDate();
+    const parentId = this._parentErinnerungId ?? this.id; // Parent ist entweder gesetzt oder this ist Parent
+
+    return {
+      einsatzId: this._einsatzId,
+      titel: this._titel.value,
+      beschreibung: this._beschreibung ?? undefined,
+      faelligAm: nextDueDate,
+      erstelltVon: this._erstelltVon,
+      requiresNote: this._requiresNote,
+      eskalationsPersonId: this._eskalationsPersonId,
+      eskalationNurAnErsteller: this._eskalationNurAnErsteller,
+      // Kind-Instanzen sind NICHT selbst wiederkehrend
+      isRecurring: false,
+      parentErinnerungId: parentId,
+      recurringSequenceNumber: (this._recurringSequenceNumber ?? 0) + 1,
+    };
+  }
+
+  /**
+   * Story 6.4: Erhöht den Instanz-Counter.
+   * Wird auf dem Parent aufgerufen nach Erstellung einer neuen Kind-Instanz.
+   */
+  public incrementOccurrenceCount(): void {
+    this._recurringCurrentCount++;
+  }
+
+  /**
+   * Stoppt eine wiederkehrende Serie (Story 6.5, AC1).
+   *
+   * Setzt `isRecurring = false`, wodurch `shouldCreateNextOccurrence()` false zurückgibt
+   * und keine weiteren Instanzen erstellt werden.
+   *
+   * **Business Rules:**
+   * - Nur recurring Parents (`isRecurring === true`) können gestoppt werden
+   * - Kind-Instanzen (`parentErinnerungId !== null`) können keine Serie stoppen
+   * - Bereits gestoppte Serien werden erkannt (`isRecurring === false` + `recurringIntervalMinutes !== null`)
+   *
+   * @returns Result.ok() bei Erfolg, Result.fail() bei Validierungsfehlern
+   */
+  public stopRecurringSeries(): Result<void> {
+    // Kind-Instanzen können keine Serie stoppen
+    if (this._parentErinnerungId !== null) {
+      return Result.fail<void>('ERINNERUNG_IS_CHILD_INSTANCE');
+    }
+
+    // Bereits gestoppte Serie erkennen (isRecurring=false + recurringIntervalMinutes gesetzt)
+    if (!this._isRecurring && this._recurringIntervalMinutes !== null) {
+      return Result.fail<void>('ERINNERUNG_SERIE_ALREADY_STOPPED');
+    }
+
+    // Nur wiederkehrende Erinnerungen können gestoppt werden
+    if (!this._isRecurring) {
+      return Result.fail<void>('ERINNERUNG_NOT_RECURRING');
+    }
+
+    // Serie stoppen: isRecurring = false verhindert weitere Instanz-Erstellung
+    this._isRecurring = false;
+
+    // Domain Event emittieren für ETB-Integration
+    this.addDomainEvent(new ErinnerungSerieGestopptEvent(this.id, this._einsatzId, this._titel.value, this._recurringCurrentCount, this.id.toString()));
+
+    return Result.ok<void>(undefined);
+  }
+
+  /**
+   * Berechnet die verbleibende Zeit bis zur Fälligkeit in Millisekunden.
+   * Gibt 0 zurück wenn bereits fällig.
+   */
+  public verbleibendeZeitMs(): number {
+    const diff = this._faelligAm.getTime() - Date.now();
+    return Math.max(0, diff);
+  }
+
+  // ============================================================
+  // Mutation Methods
+  // ============================================================
+
+  /**
+   * Aktualisiert eine Erinnerung mit partiellen Änderungen.
+   *
+   * **Business Rules:**
+   * - Nur Erinnerungen mit Status GEPLANT können bearbeitet werden
+   * - Titel muss gültig sein (nicht leer, max 100 Zeichen)
+   * - faelligAm muss in der Zukunft liegen
+   * - Beschreibung ist optional, maximal 500 Zeichen
+   * - Emittiert ErinnerungAktualisiertEvent mit den Änderungen
+   *
+   * @param props - UpdateErinnerungProps mit den zu ändernden Feldern
+   * @returns Result<void> - Success oder Failure mit Error Code
+   */
+  public update(props: UpdateErinnerungProps): Result<void> {
+    // Business Rule: Nur GEPLANT Status erlaubt Update (AC3)
+    if (!this._status.isGeplant()) {
+      return Result.fail<void>('ERINNERUNG_NOT_EDITABLE');
+    }
+
+    // Mindestens ein Feld muss geändert werden
+    // Mindestens ein Feld muss geändert werden
+    if (props.titel === undefined && props.beschreibung === undefined && props.faelligAm === undefined && props.eskalationsPersonId === undefined) {
+      return Result.fail<void>('ERINNERUNG_NO_CHANGES');
+    }
+
+    const aenderungen: ErinnerungAenderungen = {};
+
+    // Validiere und update Titel
+    if (props.titel !== undefined) {
+      const titelResult = ErinnerungTitel.create(props.titel);
+      if (titelResult.isFailure || !titelResult.value) {
+        return Result.fail<void>(titelResult.error ?? 'ERINNERUNG_TITEL_INVALID');
+      }
+      this._titel = titelResult.value;
+      aenderungen.titel = props.titel;
+    }
+
+    // Validiere und update Beschreibung
+    if (props.beschreibung !== undefined) {
+      if (props.beschreibung !== null) {
+        const trimmedBeschreibung = props.beschreibung.trim();
+        if (trimmedBeschreibung.length > Erinnerung.MAX_BESCHREIBUNG_LENGTH) {
+          return Result.fail<void>(`ERINNERUNG_BESCHREIBUNG_TOO_LONG: Beschreibung darf maximal ${Erinnerung.MAX_BESCHREIBUNG_LENGTH} Zeichen haben`);
+        }
+        this._beschreibung = trimmedBeschreibung.length > 0 ? trimmedBeschreibung : null;
+      } else {
+        this._beschreibung = null;
+      }
+      aenderungen.beschreibung = this._beschreibung;
+    }
+
+    // Validiere und update faelligAm
+    if (props.faelligAm !== undefined) {
+      const now = new Date();
+      if (props.faelligAm <= now) {
+        return Result.fail<void>('ERINNERUNG_FAELLIG_AM_IN_PAST');
+      }
+      this._faelligAm = props.faelligAm;
+      aenderungen.faelligAm = props.faelligAm;
+    }
+
+    // Update eskalationsPersonId (Story 4.1)
+    // Story 4.10: Wenn Flag gesetzt, kann eskalationsPersonId NICHT geändert werden
+    // (Die Eskalation geht immer an den Ersteller zurück)
+    if (props.eskalationsPersonId !== undefined && !this._eskalationNurAnErsteller) {
+      this._eskalationsPersonId = props.eskalationsPersonId;
+      aenderungen.eskalationsPersonId = props.eskalationsPersonId;
+    }
+
+    // Emit Domain Event mit allen Änderungen
+    this.addDomainEvent(new ErinnerungAktualisiertEvent(this.id, this._einsatzId, aenderungen, props.aktualisierVon, this._titel.value, this.id.toString()));
+
+    return Result.ok<void>(undefined);
+  }
+
+  /**
+   * Löscht eine Erinnerung (Soft-Delete).
+   *
+   * **Business Rules (Story 1.4 + Story 6.5 AC2):**
+   * - Nur Erinnerungen mit nicht-erledigtem Status können gelöscht werden
+   *   (GEPLANT, AUSGELOEST, SNOOZED, ACKNOWLEDGED, ESKALIERT)
+   * - Bei Status ERLEDIGT wird ein Fehler zurückgegeben
+   * - Emittiert ErinnerungGeloeschtEvent für ETB-Integration und Audit-Trail
+   *
+   * @param geloeschtVon - User der die Erinnerung löscht (für Audit-Trail)
+   * @returns Result<void> - Success oder Failure mit Error Code
+   *
+   * @example
+   * ```typescript
+   * const deleteResult = erinnerung.delete(userId);
+   * if (deleteResult.isFailure) {
+   *   // Nur GEPLANT oder AUSGELOEST können gelöscht werden
+   *   console.log(deleteResult.error); // "ERINNERUNG_NOT_DELETABLE"
+   * }
+   * ```
+   */
+  public delete(geloeschtVon: UserId): Result<void> {
+    // Business Rule: Nur nicht-erledigte Status erlaubt (AC1 + Story 6.5 AC2)
+    const deletableStatuses = [ErinnerungStatus.GEPLANT(), ErinnerungStatus.AUSGELOEST(), ErinnerungStatus.SNOOZED(), ErinnerungStatus.ACKNOWLEDGED(), ErinnerungStatus.ESKALIERT()];
+    const isDeletable = deletableStatuses.some((s) => s.equals(this._status));
+
+    if (!isDeletable) {
+      return Result.fail<void>('ERINNERUNG_NOT_DELETABLE');
+    }
+
+    // Bereits gelöscht? (Idempotenz)
+    if (this._isDeleted) {
+      return Result.fail<void>('ERINNERUNG_ALREADY_DELETED');
+    }
+
+    // Soft-Delete durchführen
+    this._isDeleted = true;
+    this._deletedAt = new Date();
+    this._deletedBy = geloeschtVon;
+
+    // Domain Event emittieren für ETB-Integration
+    this.addDomainEvent(new ErinnerungGeloeschtEvent(this.id, this._einsatzId, this._titel.value, geloeschtVon, this.id.toString()));
+
+    return Result.ok<void>(undefined);
+  }
+
+  /**
+   * Löst eine geplante oder gesnoozede Erinnerung bei Fälligkeit aus.
+   *
+   * **Business Rules (Story 1.5 + Story 2.2):**
+   * - Nur Erinnerungen mit Status GEPLANT oder SNOOZED können ausgelöst werden
+   * - Bei anderen Status wird ein Fehler zurückgegeben
+   * - Setzt Status auf AUSGELOEST und speichert/aktualisiert Auslösezeitpunkt
+   * - Bei GEPLANT → Emittiert ErinnerungAusgeloestEvent (erster Trigger)
+   * - Bei SNOOZED → Emittiert ErinnerungRetriggeredEvent (Re-Trigger nach Snooze)
+   * - snoozeCount bleibt unverändert (wurde bereits bei Snooze erhöht)
+   *
+   * @returns Result<void> - Success oder Failure mit Error Code
+   *
+   * @example
+   * ```typescript
+   * // Erster Trigger (GEPLANT → AUSGELOEST)
+   * const triggerResult = erinnerung.ausloesen();
+   * if (triggerResult.isFailure) {
+   *   console.log(triggerResult.error); // "ERINNERUNG_NOT_TRIGGERABLE"
+   * }
+   *
+   * // Re-Trigger nach Snooze (SNOOZED → AUSGELOEST)
+   * // Emittiert ErinnerungRetriggeredEvent mit snoozeCount
+   * ```
+   */
+  public ausloesen(): Result<void> {
+    // Business Rule: Nur GEPLANT oder SNOOZED Status kann ausgelöst werden (AC1 + Story 2.2)
+    const isGeplant = this._status.isGeplant();
+    const isSnoozed = this._status.isSnoozed();
+
+    if (!isGeplant && !isSnoozed) {
+      return Result.fail<void>('ERINNERUNG_NOT_TRIGGERABLE');
+    }
+
+    // Story 2.2: Detect Re-Trigger für unterschiedliches Event
+    const isRetrigger = isSnoozed;
+    const previousSnoozedAt = this._snoozedAt;
+
+    // Status-Wechsel durchführen
+    this._status = ErinnerungStatus.AUSGELOEST();
+    this._ausgeloestAm = new Date();
+
+    // Domain Event emittieren - unterschiedliches Event für Re-Trigger
+    if (isRetrigger) {
+      // Story 2.2: Re-Trigger nach Snooze - enthält Snooze-Historie für ETB
+      this.addDomainEvent(new ErinnerungRetriggeredEvent(this.id, this._einsatzId, this._ausgeloestAm, this._titel.value, this._erstelltVon, this._snoozeCount, previousSnoozedAt, this.id.toString()));
+    } else {
+      // Story 1.5: Erster Trigger
+      this.addDomainEvent(new ErinnerungAusgeloestEvent(this.id, this._einsatzId, this._ausgeloestAm, this._titel.value, this._erstelltVon, this.id.toString()));
+    }
+
+    return Result.ok<void>(undefined);
+  }
+
+  /**
+   * Bestätigt eine Erinnerung (1-Tap Acknowledge).
+   *
+   * **Business Rules (Story 1.6):**
+   * - Erinnerungen mit Status GEPLANT, AUSGELOEST oder ESKALIERT können bestätigt werden
+   * - GEPLANT: Vorzeitige Bestätigung - überspringt Auslösung, kein Alarm
+   * - Bei anderen Status wird ein Fehler zurückgegeben
+   * - Setzt Status auf ACKNOWLEDGED und speichert Bestätigungszeitpunkt + User
+   * - Emittiert ErinnerungAcknowledgedEvent für ETB-Integration und WebSocket
+   *
+   * @param acknowledgedBy - User der die Erinnerung bestätigt (für Audit-Trail)
+   * @returns Result<void> - Success oder Failure mit Error Code
+   *
+   * @example
+   * ```typescript
+   * const acknowledgeResult = erinnerung.acknowledge(userId);
+   * if (acknowledgeResult.isFailure) {
+   *   console.log(acknowledgeResult.error); // "ERINNERUNG_NOT_ACKNOWLEDGEABLE"
+   * }
+   * ```
+   */
+  public acknowledge(acknowledgedBy: UserId): Result<void> {
+    // Business Rule: GEPLANT, AUSGELOEST oder ESKALIERT Status kann acknowledged werden
+    if (!this._status.isGeplant() && !this._status.isAusgeloest() && !this._status.isEskaliert()) {
+      return Result.fail<void>('ERINNERUNG_NOT_ACKNOWLEDGEABLE');
+    }
+
+    // Story 4.6: Bei Eskalation Zuweisung übernehmen und History schreiben
+    if (this._status.isEskaliert()) {
+      // Story 4.7 AC2: Ursprünglicher Assignee darf nach Eskalation nicht mehr acknowledgen
+      if (this._previousAssigneeId?.equals(acknowledgedBy)) {
+        return Result.fail<void>('ALREADY_ESCALATED');
+      }
+
+      if (this._assignedToId) {
+        this._previousAssigneeId = this._assignedToId;
+      }
+      this._assignedToId = acknowledgedBy;
+      this._assignedAt = new Date();
+
+      // Story 4.6: Emittiere AssignedEvent für Realtime-Sync und Notifications
+      this.addDomainEvent(new ErinnerungAssignedEvent(this.id, this._einsatzId, acknowledgedBy, acknowledgedBy, this._titel.value, this._assignedAt, this.id.toString()));
+    }
+
+    // Status-Wechsel durchführen
+    this._status = ErinnerungStatus.ACKNOWLEDGED();
+    this._acknowledgedAm = new Date();
+    this._acknowledgedBy = acknowledgedBy;
+
+    // Domain Event emittieren für ETB-Integration und WebSocket
+    this.addDomainEvent(new ErinnerungAcknowledgedEvent(this.id, this._einsatzId, this._acknowledgedAm, this._acknowledgedBy, this._titel.value, this.id.toString()));
+
+    return Result.ok<void>(undefined);
+  }
+
+  /**
+   * Eskaliert die Erinnerung ODER intensiviert den Alarm.
+   *
+   * **Business Rules (Story 4.4):**
+   * - Nur Erinnerungen mit Status AUSGELOEST oder SNOOZED können eskaliert werden
+   * - Wenn `eskalationsPersonId` gesetzt ist:
+   *    - Status -> ESKALIERT
+   *    - Emit `ErinnerungEskaliertEvent`
+   *    - Story 4.5: Zuweisung wird auf Eskalationsperson übertragen, alter Assignee wird in previousAssigneeId gespeichert
+   * 3. Wenn KEINE `eskalationsPersonId` gesetzt ist:
+   *    - Status bleibt AUSGELOEST (AC2: "kein Statuswechsel")
+   *    - Emit `ErinnerungIntensiviertEvent`
+   *
+   * @param eskaliertVon - UserId (manuell) oder 'SYSTEM' (Scheduler)
+   * @param nextTargetId - Story 4.8: Nächste Eskalationsstufe (optional)
+   */
+  public eskalieren(eskaliertVon: UserId | 'SYSTEM', nextTargetId?: UserId | null): Result<void> {
+    // AC1: Given eine Erinnerung ist AUSGELOEST oder ESKALIERT (Story 4.8)
+    if (!this._status.isAusgeloest() && !this._status.isEskaliert()) {
+      return Result.fail<void>('ERINNERUNG_NOT_ESCALATABLE');
+    }
+
+    const now = new Date();
+
+    // Story 4.8: Multi-Level Escalation
+    // Wenn nextTargetId übergeben wurde, aktualisieren wir das Ziel
+    if (nextTargetId) {
+      // Loop Detection: Verhindere Zirkelbezug A -> B -> A
+      if (this._assignedToId && nextTargetId.equals(this._assignedToId)) {
+        // Fallback zu Intensivierung wenn Ziel == Aktueller Assignee (sollte nicht passieren durch Handler Check)
+        return this.intensivieren(now, eskaliertVon);
+      }
+      if (this._previousAssigneeId && nextTargetId.equals(this._previousAssigneeId)) {
+        // Fallback wenn Ziel == Vorheriger Assignee (Ping-Pong)
+        return this.intensivieren(now, eskaliertVon);
+      }
+
+      this._eskalationsPersonId = nextTargetId;
+    }
+
+    // Story 4.10 FIX: Wenn Flag gesetzt ist aber KEINE Eskalationsperson definiert,
+    // setzen wir den Ersteller als Ziel BEVOR dem Check. So wird immer eskaliert statt nur intensiviert.
+    if (this._eskalationNurAnErsteller && !this._eskalationsPersonId) {
+      this._eskalationsPersonId = this._erstelltVon;
+    }
+
+    if (this._eskalationsPersonId) {
+      // Check: Wenn bereits eskaliert und KEIN neues Ziel (nextTargetId), dann intensivieren
+      // (Außer Status ist AUSGELOEST, dann ist es die erste Eskalation)
+      if (this._status.isEskaliert() && !nextTargetId) {
+        return this.intensivieren(now, eskaliertVon);
+      }
+
+      // Story 4.10: Check Escalation Restriction
+      // Wenn Flag gesetzt ist, MUSS die Eskalation an den Ersteller gehen.
+      // Wir überschreiben das Ziel hart.
+      if (this._eskalationNurAnErsteller) {
+        this._eskalationsPersonId = this._erstelltVon;
+      }
+
+      // Case 1: Eskalation an Person
+      this._status = ErinnerungStatus.ESKALIERT();
+
+      // Story 4.5: Escalation Tracking & Assignment Transfer
+      // Speichere aktuellen Assignee als "Previous"
+      if (this._assignedToId) {
+        this._previousAssigneeId = this._assignedToId;
+      }
+
+      this._escalatedAt = now;
+
+      // Story 4.9: Escalation Statistics
+      this._wurdeEskaliert = true;
+      // Setze eskaliertAm (First Escalation Timestamp) nur einmal
+      if (!this._eskaliertAm) {
+        this._eskaliertAm = now;
+      }
+
+      // Transfer Assignment to Escalation Person
+      // "Die Erinnerung erscheint nun in der Liste der Eskalationsperson"
+      this._assignedToId = this._eskalationsPersonId;
+      // Update Zuweisungs-Audit
+      // Wenn SYSTEM eskaliert hat, setzen wir assignedBy auf null (System)
+      // Wenn ein User manuell eskaliert hat, ist er der Assigner
+      this._assignedBy = eskaliertVon === 'SYSTEM' ? null : eskaliertVon;
+      this._assignedAt = now;
+
+      this.addDomainEvent(new ErinnerungEskaliertEvent(this.id, this._einsatzId, now, this._titel.value, this._erstelltVon, this._eskalationsPersonId, this.id.toString()));
+
+      // Sollen wir auch ein ErinnerungAssignedEvent emittieren?
+      // AC sagt "Eskaliert von X". Dashboard der Eskalationsperson.
+      // Das ErinnerungEskaliertEvent reicht evt für die UI, aber der Read-Status "assignedTo" muss aktualisiert sein.
+      // Und Client braucht evt ein Update.
+      // Wir emittieren KEIN separates AssignedEvent, da das EskaliertEvent den Kontext besser beschreibt.
+      // Der Client updated sich basierend auf dem geänderten DTO im WebSocket/Polling.
+    } else {
+      // Case 2: Intensivierung (AC2)
+      return this.intensivieren(now, eskaliertVon);
+    }
+
+    return Result.ok<void>(undefined);
+  }
+
+  /**
+   * Helper für Intensivierung logik (DRY).
+   */
+  private intensivieren(now: Date, _eskaliertVon: UserId | 'SYSTEM'): Result<void> {
+    // Hotfix: Limit prüfen um Endlos-Loop zu verhindern
+    if (this._intensivierungsCount >= Erinnerung.MAX_INTENSIVIERUNGEN) {
+      return Result.fail<void>('INTENSIVIERUNG_LIMIT_ERREICHT');
+    }
+
+    // Counter erhöhen und Timer resetten
+    this._intensivierungsCount++;
+    this._ausgeloestAm = now;
+    this.addDomainEvent(new ErinnerungIntensiviertEvent(this.id, this._einsatzId, now, this._titel.value, this._erstelltVon, this.id.toString()));
+    return Result.ok<void>(undefined);
+  }
+
+  /**
+   * Verschiebt eine ausgelöste Erinnerung (Snooze).
+   *
+   * **Business Rules (Story 2.1):**
+   * - Nur Erinnerungen mit Status AUSGELOEST können gesnoozed werden
+   * - Bei anderen Status wird ein Fehler zurückgegeben
+   * - Setzt Status auf SNOOZED und aktualisiert faelligAm auf neue Zeit
+   * - Speichert Snooze-Zeitpunkt, User und neue Fälligkeit für Audit-Trail
+   * - Erhöht snoozeCount um 1
+   * - Emittiert ErinnerungSnoozedEvent für ETB-Integration und WebSocket
+   *
+   * @param snoozedBy - User der die Erinnerung snoozed (für Audit-Trail)
+   * @param snoozeMinutes - Snooze-Dauer in Minuten (1, 5, oder 10)
+   * @returns Result<void> - Success oder Failure mit Error Code
+   *
+   * @example
+   * ```typescript
+   * const snoozeResult = erinnerung.snooze(userId, 5);
+   * if (snoozeResult.isFailure) {
+   *   // Nur AUSGELOEST kann gesnoozed werden
+   *   console.log(snoozeResult.error); // "ERINNERUNG_NOT_SNOOZEABLE"
+   * }
+   * ```
+   */
+  public snooze(snoozedBy: UserId, snoozeMinutes: number): Result<void> {
+    // Business Rule: Nur AUSGELOEST Status kann gesnoozed werden (AC2)
+    if (!this._status.isAusgeloest()) {
+      return Result.fail<void>('ERINNERUNG_NOT_SNOOZEABLE');
+    }
+
+    // Validiere snoozeMinutes (nur 1, 5, 10 erlaubt)
+    const validMinutes = [1, 5, 10];
+    if (!validMinutes.includes(snoozeMinutes)) {
+      return Result.fail<void>('ERINNERUNG_SNOOZE_MINUTES_INVALID');
+    }
+
+    // Neue Fälligkeit berechnen
+    const snoozedAt = new Date();
+    const snoozedUntil = new Date(snoozedAt.getTime() + snoozeMinutes * 60 * 1000);
+
+    // Status-Wechsel und Felder aktualisieren
+    this._status = ErinnerungStatus.SNOOZED();
+    this._snoozedAt = snoozedAt;
+    this._snoozedBy = snoozedBy;
+    this._snoozedUntil = snoozedUntil;
+    this._snoozeCount = this._snoozeCount + 1;
+
+    // faelligAm aktualisieren (für Re-Trigger in Story 2.2)
+    this._faelligAm = snoozedUntil;
+
+    // Domain Event emittieren für ETB-Integration und WebSocket
+    this.addDomainEvent(new ErinnerungSnoozedEvent(this.id, this._einsatzId, snoozedAt, snoozedUntil, snoozedBy, snoozeMinutes, this._snoozeCount, this._titel.value, this.id.toString()));
+
+    return Result.ok<void>(undefined);
+  }
+
+  /**
+   * Markiert eine acknowledged oder eskalierte Erinnerung als erledigt.
+   *
+   * **Business Rules (Story 2.5):**
+   * - Nur Erinnerungen mit Status ACKNOWLEDGED oder ESKALIERT können erledigt werden
+   * - Bei anderen Status wird ein Fehler zurückgegeben
+   * - Setzt Status auf ERLEDIGT und speichert Erledigungszeitpunkt + User
+   * - Optional: Erledigungs-Notiz (max 500 Zeichen)
+   * - Emittiert ErinnerungErledigtEvent für ETB-Integration
+   *
+   * @param erledigtBy - User der die Erinnerung erledigt (für Audit-Trail)
+   * @param erledigungsNotiz - Optionale Notiz zur Erledigung (max 500 Zeichen)
+   * @returns Result<void> - Success oder Failure mit Error Code
+   *
+   * @example
+   * ```typescript
+   * const erledigtResult = erinnerung.markErledigt(userId, 'Aufgabe abgeschlossen');
+   * if (erledigtResult.isFailure) {
+   *   // Nur ACKNOWLEDGED oder ESKALIERT kann erledigt werden
+   *   console.log(erledigtResult.error); // "ERINNERUNG_NOT_COMPLETEABLE"
+   * }
+   * ```
+   */
+  public markErledigt(erledigtBy: UserId, erledigungsNotiz?: string): Result<void> {
+    // Business Rule: Nur ACKNOWLEDGED oder ESKALIERT Status kann erledigt werden (AC3)
+    const isAcknowledged = this._status.isAcknowledged();
+    const isEskaliert = this._status.isEskaliert();
+
+    if (!isAcknowledged && !isEskaliert) {
+      return Result.fail<void>('ERINNERUNG_NOT_COMPLETEABLE');
+    }
+
+    // Story 2.6 (AC1, AC5): Pflicht-Notiz Validation bei aktiviertem Flag
+    if (this._requiresNote) {
+      if (!erledigungsNotiz || erledigungsNotiz.trim().length === 0) {
+        return Result.fail<void>('ERINNERUNG_ERLEDIGUNGS_NOTIZ_REQUIRED');
+      }
+    }
+
+    // Validiere Notiz (optional, max 500 Zeichen)
+    let trimmedNotiz: string | null = null;
+    if (erledigungsNotiz != null && erledigungsNotiz.trim().length > 0) {
+      trimmedNotiz = erledigungsNotiz.trim();
+      if (trimmedNotiz.length > Erinnerung.MAX_BESCHREIBUNG_LENGTH) {
+        return Result.fail<void>('ERINNERUNG_NOTIZ_TOO_LONG');
+      }
+    }
+
+    // Status-Wechsel durchführen
+    this._status = ErinnerungStatus.ERLEDIGT();
+    this._erledigtAm = new Date();
+    this._erledigtBy = erledigtBy;
+    this._erledigungsNotiz = trimmedNotiz;
+
+    // Domain Event emittieren für ETB-Integration
+    this.addDomainEvent(new ErinnerungErledigtEvent(this.id, this._einsatzId, this._erledigtAm, this._erledigtBy, this._titel.value, trimmedNotiz, this.id.toString()));
+
+    return Result.ok<void>(undefined);
+  }
+
+  /**
+   * Story 3.3: Weist die Erinnerung einem User zu.
+   *
+   * **Business Rules (Story 3.3/3.4):**
+   * - Nur Erinnerungen mit Status GEPLANT oder AUSGELOEST können zugewiesen werden
+   * - Bei anderen Status (ACKNOWLEDGED, ERLEDIGT, etc.) wird ein Fehler zurückgegeben
+   * - Überschreibt vorherige Zuweisung (Re-Assignment erlaubt)
+   * - Speichert assignedToId, assignedBy und assignedAt für Audit-Trail
+   *
+   * @param assignedToId - User dem die Erinnerung zugewiesen wird
+   * @param assignedById - User der die Zuweisung vornimmt
+   * @returns Result<void> - Success oder Failure mit Error Code
+   *
+   * @example
+   * ```typescript
+   * const assignResult = erinnerung.assignToUser(targetUserId, currentUserId);
+   * if (assignResult.isFailure) {
+   *   // Nur GEPLANT oder AUSGELOEST können zugewiesen werden
+   *   console.log(assignResult.error); // "ERINNERUNG_NOT_ASSIGNABLE"
+   * }
+   * ```
+   */
+  public assignToUser(assignedToId: UserId, assignedById: UserId): Result<void> {
+    // Invariante: Nur GEPLANT, AUSGELOEST oder SNOOZED Erinnerungen können zugewiesen werden
+    if (!this._status.isGeplant() && !this._status.isAusgeloest() && !this._status.isSnoozed()) {
+      return Result.fail<void>('ERINNERUNG_NOT_ASSIGNABLE');
+    }
+
+    this._assignedToId = assignedToId;
+    this._assignedBy = assignedById;
+    this._assignedAt = new Date();
+
+    // Domain Event emittieren für ETB-Integration und WebSocket
+    this.addDomainEvent(new ErinnerungAssignedEvent(this.id, this._einsatzId, assignedToId, assignedById, this._titel.value, this._assignedAt, this.id.toString()));
+
+    return Result.ok<void>(undefined);
+  }
+
+  /**
+   * Story 8.2: Aktualisiert die Kategorie einer Erinnerung.
+   *
+   * Die Kategorie kann jederzeit geändert werden, unabhängig vom Status.
+   * Dies ermöglicht die nachträgliche Kategorisierung auch von bereits
+   * ausgelösten oder erledigten Erinnerungen.
+   *
+   * @param kategorieId - Die neue Kategorie-ID oder null zum Entfernen
+   */
+  public updateKategorie(kategorieId: string | null): void {
+    this._kategorieId = kategorieId;
+  }
+}

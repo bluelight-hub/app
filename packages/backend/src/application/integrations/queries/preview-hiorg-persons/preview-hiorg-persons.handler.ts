@@ -16,7 +16,6 @@ import type { IQualifikationRepository } from '@domain/kraefte/repositories/i-qu
 import type { IQualifikationMappingRepository } from '@domain/integrations/repositories/i-qualifikation-mapping.repository';
 import { INTEGRATION_TYPES } from '@domain/integrations';
 import { INTEGRATIONS, KRAEFTE_REPOSITORIES } from '@infrastructure/di-tokens';
-// biome-ignore lint/style/useImportType: Service wird für DI zur Laufzeit benötigt
 import { HiOrgTokenRefreshService } from '../../services/hiorg-token-refresh.service';
 import type { PreviewHiOrgPersonsQuery } from './preview-hiorg-persons.query';
 

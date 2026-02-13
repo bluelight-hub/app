@@ -8,13 +8,32 @@ import {
   PersonFahrzeugZuweisungEventAdapter,
   RolleBesetztEventAdapter,
   RolleFreigegebenEventAdapter,
+  ErinnerungAktualisiertEventAdapter,
+  ErinnerungGeloeschtEventAdapter,
+  ErinnerungAusgeloestEventAdapter,
+  ErinnerungAcknowledgedEventAdapter,
+  ErinnerungSnoozedEventAdapter,
+  ErinnerungRetriggeredEventAdapter,
+  ErinnerungErledigtEventAdapter,
+  ErinnerungEskaliertEventAdapter,
+  ErinnerungIntensiviertEventAdapter,
+  FuehrungsrhythmusAktiviertEventAdapter,
+  NotizErstelltEventAdapter,
+  NotizAktualisiertEventAdapter,
+  NotizGeloeschtEventAdapter,
+  // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
+  // KategorieErstelltEventAdapter,
+  // KategorieGeloeschtEventAdapter,
 } from './adapters';
 import { EtbApplicationModule } from '@application/etb/etb-application.module';
 import { LagekarteApplicationModule } from '@application/lagekarte/lagekarte-application.module';
 import { LagekarteEventLoggerHandler } from './handlers/lagekarte-event-logger.handler';
 import { EinsatzEventLoggerHandler } from './handlers/einsatz-event-logger.handler';
+import { EventConsumerValidatorService } from './event-consumer-validator.service';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
+import { ErinnerungModule } from '@/modules/erinnerung/erinnerung.module';
+import { OutboxModule } from '@infrastructure/outbox/outbox.module';
 
 /**
  * NestJS Module für Event Adapters (Framework-zu-Application Delegation).
@@ -68,6 +87,10 @@ import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.a
     // Application Modules für Event Handler DI Tokens (einseitige Abhängigkeit!)
     EtbApplicationModule,
     LagekarteApplicationModule,
+    // Erinnerung Module für WebSocket Gateway (Story 1.5 AC4)
+    ErinnerungModule,
+    // OutboxModule für EventDeserializer (Event Consumer Validation)
+    OutboxModule,
   ],
   providers: [
     // Logger für Event Adapters (Infrastructure Logging)
@@ -84,9 +107,27 @@ import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.a
     PersonFahrzeugZuweisungEventAdapter, // Story 4-3: Person-Fahrzeug-Zuweisung/Entfernung
     RolleBesetztEventAdapter, // Story 5-1: RolleBesetzt ETB-Eintrag
     RolleFreigegebenEventAdapter, // Story 5-1: RolleFreigegeben ETB-Eintrag
+    ErinnerungAktualisiertEventAdapter, // Story 1.3 AC5: ErinnerungAktualisiert ETB-Eintrag
+    ErinnerungGeloeschtEventAdapter, // Story 1.4 AC5: ErinnerungGeloescht ETB-Eintrag
+    ErinnerungAusgeloestEventAdapter, // Story 1.5 AC5: ErinnerungAusgeloest ETB-Eintrag
+    ErinnerungAcknowledgedEventAdapter, // Story 1.6 AC5: ErinnerungAcknowledged ETB-Eintrag
+    ErinnerungSnoozedEventAdapter, // Story 2.1: ErinnerungSnoozed ETB-Eintrag
+    ErinnerungRetriggeredEventAdapter, // Story 2.2 AC2: ErinnerungRetriggered ETB-Eintrag
+    ErinnerungErledigtEventAdapter, // Story 2.5 AC4: ErinnerungErledigt ETB-Eintrag
+    ErinnerungEskaliertEventAdapter, // Story 5.0 AC2: ErinnerungEskaliert ETB-Eintrag
+    ErinnerungIntensiviertEventAdapter, // Story 5.0 AC2: ErinnerungIntensiviert ETB-Eintrag
+    FuehrungsrhythmusAktiviertEventAdapter, // Story 6.7: FuehrungsrhythmusAktiviert ETB-Eintrag
+    NotizErstelltEventAdapter, // Story 7.1: NotizErstellt ETB-Eintrag
+    NotizAktualisiertEventAdapter, // Story 7.3: NotizAktualisiert ETB-Eintrag
+    NotizGeloeschtEventAdapter, // Story 7.4: NotizGeloescht ETB-Eintrag
+    // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
+    // KategorieErstelltEventAdapter, // Story 8.1: KategorieErstellt ETB-Eintrag
+    // KategorieGeloeschtEventAdapter, // Story 8.1: KategorieGeloescht ETB-Eintrag
     // Event Logging Handler (Infrastructure-specific)
     LagekarteEventLoggerHandler,
     EinsatzEventLoggerHandler,
+    // Event Consumer Validation - prüft beim Start ob alle Events Handler haben
+    EventConsumerValidatorService,
   ],
 })
 export class EventAdaptersModule {}

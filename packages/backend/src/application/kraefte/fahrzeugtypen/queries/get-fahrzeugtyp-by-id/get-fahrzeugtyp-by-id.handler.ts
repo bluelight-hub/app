@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { Result } from '@domain/common/result';
-// biome-ignore lint/style/useImportType: IFahrzeugtypRepository needed for DI at runtime
 import { IFahrzeugtypRepository } from '@domain/kraefte/repositories/i-fahrzeugtyp.repository';
 import { FahrzeugtypId } from '@domain/kraefte/value-objects/fahrzeugtyp-id';
 import { KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';

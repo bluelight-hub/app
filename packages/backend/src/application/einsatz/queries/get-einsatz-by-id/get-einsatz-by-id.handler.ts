@@ -4,7 +4,6 @@ import type { ILogger } from '@domain/ports/i-logger.port';
 import type { EinsatzDto } from '@application/einsatz/dto/einsatz.dto';
 import { EinsatzQueryMapper } from '@application/einsatz/mappers/einsatz-query.mapper';
 import { Result } from '@domain/common/result';
-// biome-ignore lint/style/useImportType: IEinsatzRepository needed for DI at runtime
 import { IEinsatzRepository } from '@domain/repositories';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { GetEinsatzByIdQuery } from './get-einsatz-by-id.query';

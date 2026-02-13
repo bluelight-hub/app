@@ -1,9 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-// biome-ignore lint/style/useImportType: ConfigService needed for DI at runtime
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { isAdmin } from '@/modules/auth/utils/auth.utils';
-// biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { validateBcryptCostFactor } from '@/infrastructure/config/security.constants';
 

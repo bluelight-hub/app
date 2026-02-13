@@ -13,3 +13,4 @@ export type { EtbStatus } from './EtbStatusBadge';
 export { EtbTableBody } from './EtbTableBody';
 export { EtbTableHeader } from './EtbTableHeader';
 export { EtbTextbausteinPreview } from './EtbTextbausteinPreview';
+export { KategorieFilterSelect } from './KategorieFilterSelect';

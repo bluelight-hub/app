@@ -4,6 +4,7 @@ import { NestLoggerAdapter } from '@infrastructure/common/adapters';
 import { EtbInfrastructureModule } from '@infrastructure/etb/etb-infrastructure.module';
 import { EventInfrastructureModule } from '@infrastructure/events/event-infrastructure.module';
 import { LagekarteInfrastructureModule } from '@infrastructure/lagekarte-infrastructure.module';
+import { UserInfrastructureModule } from '@infrastructure/user/user-infrastructure.module';
 import { Module } from '@nestjs/common';
 import {
   EtbAutoCreationHandler,
@@ -13,9 +14,24 @@ import {
   PersonFahrzeugZuweisungHandler,
   RolleBesetztEventHandler,
   RolleFreigegebenEventHandler,
+  ErinnerungAktualisiertEventHandler,
+  ErinnerungGeloeschtEventHandler,
+  ErinnerungAusgeloestEventHandler,
+  ErinnerungAcknowledgedEventHandler,
+  ErinnerungSnoozedEventHandler,
+  ErinnerungRetriggeredEventHandler,
+  ErinnerungErledigtEventHandler,
+  ErinnerungErstelltEventHandler,
+  ErinnerungAssignedEventHandler,
+  ErinnerungEskaliertEventHandler,
+  ErinnerungIntensiviertEventHandler,
+  FuehrungsrhythmusAktiviertEtbHandler,
+  NotizErstelltEtbHandler,
+  NotizAktualisiertEtbHandler,
+  NotizGeloeschtEtbHandler,
 } from './event-handlers';
 import { EtbQueryMapper } from './mappers';
-import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler, GetTextbausteineHandler } from './queries';
+import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler, GetTextbausteineHandler } from './queries';
 
 /**
  * ETB Application Module - Event-Driven Architecture
@@ -68,6 +84,8 @@ import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler
     EtbInfrastructureModule,
     // Repository Infrastructure (IEinsatzRepository) - für Einsatz-Existenz-Prüfung in CreateEtbHandler
     LagekarteInfrastructureModule,
+    // User Infrastructure (IUserRepository) - für Benutzernamen-Auflösung in Event-Handlers (Story 5.0)
+    UserInfrastructureModule,
   ],
   providers: [
     // Infrastructure Adapters (Cross-cutting concerns)
@@ -88,6 +106,7 @@ import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler
     GetEtbHistoryQueryHandler,
     GetEintraegeQueryHandler,
     GetTextbausteineHandler,
+    GetErinnerungTimelineQueryHandler, // Story 5.5
 
     // Event Handlers (Story 3.6) - Registered via Symbol Token for Clean Architecture
     {
@@ -129,6 +148,81 @@ import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler
       provide: EVENT_HANDLER.ROLLE_FREIGEGEBEN_ETB,
       useClass: RolleFreigegebenEventHandler,
     },
+    // ErinnerungAktualisiert Event Handler (Story 1.3 AC5) - ETB-Eintrag bei Erinnerung-Update
+    {
+      provide: EVENT_HANDLER.ERINNERUNG_AKTUALISIERT_ETB,
+      useClass: ErinnerungAktualisiertEventHandler,
+    },
+    // ErinnerungGeloescht Event Handler (Story 1.4 AC5) - ETB-Eintrag bei Erinnerung-Loeschung
+    {
+      provide: EVENT_HANDLER.ERINNERUNG_GELOESCHT_ETB,
+      useClass: ErinnerungGeloeschtEventHandler,
+    },
+    // ErinnerungAusgeloest Event Handler (Story 1.5 AC5) - ETB-Eintrag bei Erinnerung-Ausloesung
+    {
+      provide: EVENT_HANDLER.ERINNERUNG_AUSGELOEST_ETB,
+      useClass: ErinnerungAusgeloestEventHandler,
+    },
+    // ErinnerungAcknowledged Event Handler (Story 1.6 AC5) - ETB-Eintrag bei Erinnerung-Bestaetigung
+    {
+      provide: EVENT_HANDLER.ERINNERUNG_ACKNOWLEDGED_ETB,
+      useClass: ErinnerungAcknowledgedEventHandler,
+    },
+    // ErinnerungSnoozed Event Handler (Story 2.1) - ETB-Eintrag bei Erinnerung-Snooze
+    {
+      provide: EVENT_HANDLER.ERINNERUNG_SNOOZED_ETB,
+      useClass: ErinnerungSnoozedEventHandler,
+    },
+    // ErinnerungRetriggered Event Handler (Story 2.2 AC2) - ETB-Eintrag bei erneuter Ausloesung nach Snooze
+    {
+      provide: EVENT_HANDLER.ERINNERUNG_RETRIGGERED_ETB,
+      useClass: ErinnerungRetriggeredEventHandler,
+    },
+    // ErinnerungErledigt Event Handler (Story 2.5 AC4) - ETB-Eintrag bei Erinnerung-Erledigung
+    {
+      provide: EVENT_HANDLER.ERINNERUNG_ERLEDIGT_ETB,
+      useClass: ErinnerungErledigtEventHandler,
+    },
+    // ErinnerungErstellt Event Handler (Story 5.0) - ETB-Eintrag bei Erinnerung-Erstellung
+    {
+      provide: EVENT_HANDLER.ERINNERUNG_ERSTELLT_ETB,
+      useClass: ErinnerungErstelltEventHandler,
+    },
+    // ErinnerungAssigned Event Handler (Story 5.0) - ETB-Eintrag bei Erinnerung-Zuweisung
+    {
+      provide: EVENT_HANDLER.ERINNERUNG_ASSIGNED_ETB,
+      useClass: ErinnerungAssignedEventHandler,
+    },
+    // ErinnerungEskaliert Event Handler (Story 5.0) - ETB-Eintrag bei Erinnerung-Eskalation
+    {
+      provide: EVENT_HANDLER.ERINNERUNG_ESKALIERT_ETB,
+      useClass: ErinnerungEskaliertEventHandler,
+    },
+    // ErinnerungIntensiviert Event Handler (Story 5.0) - ETB-Eintrag bei Erinnerung-Intensivierung
+    {
+      provide: EVENT_HANDLER.ERINNERUNG_INTENSIVIERT_ETB,
+      useClass: ErinnerungIntensiviertEventHandler,
+    },
+    // FuehrungsrhythmusAktiviert Event Handler (Story 6.7) - ETB-Eintrag bei Fuehrungsrhythmus-Aktivierung
+    {
+      provide: EVENT_HANDLER.FUEHRUNGSRHYTHMUS_AKTIVIERT_ETB,
+      useClass: FuehrungsrhythmusAktiviertEtbHandler,
+    },
+    // NotizErstellt Event Handler (Story 7.1) - ETB-Eintrag bei Notiz-Erstellung
+    {
+      provide: EVENT_HANDLER.NOTIZ_ERSTELLT_ETB,
+      useClass: NotizErstelltEtbHandler,
+    },
+    // NotizAktualisiert Event Handler (Story 7.3) - ETB-Eintrag bei Notiz-Aktualisierung
+    {
+      provide: EVENT_HANDLER.NOTIZ_AKTUALISIERT_ETB,
+      useClass: NotizAktualisiertEtbHandler,
+    },
+    // NotizGeloescht Event Handler (Story 7.4) - ETB-Eintrag bei Notiz-Loeschung
+    {
+      provide: EVENT_HANDLER.NOTIZ_GELOESCHT_ETB,
+      useClass: NotizGeloeschtEtbHandler,
+    },
 
     // Mappers (Story 3.3)
     EtbQueryMapper,
@@ -147,6 +241,7 @@ import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler
     GetEtbHistoryQueryHandler,
     GetEintraegeQueryHandler,
     GetTextbausteineHandler,
+    GetErinnerungTimelineQueryHandler, // Story 5.5
 
     // Event Handlers (exported via Symbol Token for Infrastructure Adapters)
     EVENT_HANDLER.ETB_AUTO_CREATION,
@@ -157,6 +252,21 @@ import { GetEintraegeQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler
     EVENT_HANDLER.PERSON_VON_FAHRZEUG_ENTFERNT_ETB,
     EVENT_HANDLER.ROLLE_BESETZT_ETB,
     EVENT_HANDLER.ROLLE_FREIGEGEBEN_ETB,
+    EVENT_HANDLER.ERINNERUNG_AKTUALISIERT_ETB,
+    EVENT_HANDLER.ERINNERUNG_GELOESCHT_ETB,
+    EVENT_HANDLER.ERINNERUNG_AUSGELOEST_ETB,
+    EVENT_HANDLER.ERINNERUNG_ACKNOWLEDGED_ETB,
+    EVENT_HANDLER.ERINNERUNG_SNOOZED_ETB,
+    EVENT_HANDLER.ERINNERUNG_RETRIGGERED_ETB,
+    EVENT_HANDLER.ERINNERUNG_ERLEDIGT_ETB,
+    EVENT_HANDLER.ERINNERUNG_ERSTELLT_ETB,
+    EVENT_HANDLER.ERINNERUNG_ASSIGNED_ETB,
+    EVENT_HANDLER.ERINNERUNG_ESKALIERT_ETB,
+    EVENT_HANDLER.ERINNERUNG_INTENSIVIERT_ETB,
+    EVENT_HANDLER.FUEHRUNGSRHYTHMUS_AKTIVIERT_ETB,
+    EVENT_HANDLER.NOTIZ_ERSTELLT_ETB,
+    EVENT_HANDLER.NOTIZ_AKTUALISIERT_ETB,
+    EVENT_HANDLER.NOTIZ_GELOESCHT_ETB,
 
     // Mappers (Story 3.3)
     EtbQueryMapper,

@@ -498,8 +498,16 @@ describe('Architecture Dependency Rules', () => {
       // Application Layer Handler sollten Result<T> returnen (nicht void/naked types)
       // AUSNAHME: Event Handlers (return void/Promise<void>) und Test-Dateien
       // AUSNAHME: TransactionalCommandHandler-basierte Handler (erben execute() von Base-Class)
+      // AUSNAHME: CQRS Read-Side Query Handlers die reine Listenabfragen ohne Domain-Logik sind
+      const cqrsReadSideExceptions = ['get-all-vorlagen.handler.ts', 'get-all-fuehrungsrhythmus-templates.handler.ts'];
+
       const handlerFiles = findTypeScriptFiles(APPLICATION_PATH).filter(
-        (f) => (f.includes('/handlers/') || f.includes('.handler.ts')) && !f.includes('.spec.ts') && !f.includes('__tests__') && !f.includes('event-handlers'), // Event Handlers müssen void returnen
+        (f) =>
+          (f.includes('/handlers/') || f.includes('.handler.ts')) &&
+          !f.includes('.spec.ts') &&
+          !f.includes('__tests__') &&
+          !f.includes('event-handlers') && // Event Handlers muessen void returnen
+          !cqrsReadSideExceptions.some((exc) => f.includes(exc)), // CQRS Read-Side Query Handlers ohne Domain-Logik
       );
 
       const violations: string[] = [];

@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ETB_KATEGORIE_VALUES, type EtbKategorieValue } from '@domain/value-objects/etb-kategorie';
-import { IsEnum, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsDateString, IsEnum, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 /**
  * DTO für AddEintrag-Request.
@@ -122,4 +122,22 @@ export class AddEintragDto {
   })
   @IsOptional()
   metadata?: Record<string, unknown>;
+
+  /**
+   * Zeitpunkt wann der Eintrag ursprünglich aufgetreten ist.
+   *
+   * Optional - wenn nicht gesetzt, wird die aktuelle Server-Zeit verwendet.
+   * Ermöglicht nachträgliches Hinzufügen von Einträgen mit korrektem Zeitstempel
+   * (z.B. bei Import von alten Einträgen oder manueller Erfassung).
+   *
+   * @example "2025-01-15T14:30:00.000Z"
+   */
+  @ApiPropertyOptional({
+    description: 'Zeitpunkt des Auftretens (ISO 8601 DateTime String)',
+    example: '2025-01-15T14:30:00.000Z',
+    type: String,
+  })
+  @IsOptional()
+  @IsDateString({}, { message: 'occurredAt muss ein gültiger ISO 8601 DateTime String sein' })
+  occurredAt?: string;
 }

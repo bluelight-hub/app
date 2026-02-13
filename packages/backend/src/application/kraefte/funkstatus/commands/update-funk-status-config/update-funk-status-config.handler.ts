@@ -4,12 +4,9 @@ import { TransactionalCommandHandler } from '@application/common/handlers/transa
 import type { DomainEvent } from '@domain/common/domain-event';
 import { Result } from '@domain/common/result';
 import type { TransactionContext } from '@domain/kraefte/repositories/i-funk-status-config.repository';
-// biome-ignore lint/style/useImportType: IFunkStatusConfigRepository needed for DI at runtime
 import { IFunkStatusConfigRepository } from '@domain/kraefte/repositories/i-funk-status-config.repository';
-// biome-ignore lint/style/useImportType: IOutboxRepository needed for DI at runtime
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
-// biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { FunkStatusConfigDto } from '../../dto/funk-status-config.dto';
 import { FUNKSTATUS_ERROR_CODES, FunkStatusError } from '@domain/kraefte/common/error-codes';

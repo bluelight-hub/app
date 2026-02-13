@@ -6,7 +6,7 @@ import { LOGGER } from '@infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 
 // Command Handlers
-import { CreateUserHandler, UpdateUserHandler, DeleteUserHandler, LockUserHandler, UnlockUserHandler } from './commands';
+import { CreateUserHandler, UpdateUserHandler, DeleteUserHandler, LockUserHandler, UnlockUserHandler, UpdateProfileHandler } from './commands';
 
 // Query Handlers
 import { GetAllUsersQueryHandler, GetUserByIdQueryHandler } from './queries';
@@ -73,6 +73,7 @@ import { GetAllUsersQueryHandler, GetUserByIdQueryHandler } from './queries';
     DeleteUserHandler,
     LockUserHandler,
     UnlockUserHandler,
+    UpdateProfileHandler,
     // Query Handlers
     GetAllUsersQueryHandler,
     GetUserByIdQueryHandler,
@@ -85,6 +86,7 @@ import { GetAllUsersQueryHandler, GetUserByIdQueryHandler } from './queries';
     DeleteUserHandler,
     LockUserHandler,
     UnlockUserHandler,
+    UpdateProfileHandler,
     // Query Handlers
     GetAllUsersQueryHandler,
     GetUserByIdQueryHandler,

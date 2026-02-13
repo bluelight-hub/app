@@ -1,4 +1,3 @@
-// biome-ignore lint/style/useImportType: IEinsatzRepository needed for DI at runtime
 import { IEinsatzRepository } from '@domain/repositories';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { EinsatzCompletenessService } from '@domain/services/einsatz-completeness.service';
@@ -8,9 +7,7 @@ import { CommandHandler } from '@nestjs/cqrs';
 import { Inject, Injectable } from '@nestjs/common';
 import { CompleteEinsatzCommand } from './complete-einsatz.command';
 import { TransactionalCommandHandler } from '@application/common/handlers/transactional-command.handler';
-// biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
-// biome-ignore lint/style/useImportType: IOutboxRepository needed for DI at runtime
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import type { DomainEvent } from '@domain/common/domain-event';
 import type { TransactionContext } from '@domain/common';

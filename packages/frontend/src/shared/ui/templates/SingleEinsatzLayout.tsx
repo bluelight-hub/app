@@ -6,6 +6,31 @@ import { EinsatzStatusBadge } from '@/features/einsatz/ui/molecules/einsatz-stat
 import { ModuleButton } from '@/features/einsatz/ui/molecules/ModuleButton';
 import { ModuleOverviewCard } from '@/features/einsatz/ui/molecules/ModuleOverviewCard';
 import { EinsatzBeitrittDialog } from '@/features/einsatz/ui/organisms';
+import {
+  QuickCreateErinnerungDialog,
+  ErinnerungEditDialog,
+  ErinnerungDeleteDialog,
+  ErinnerungMarkErledigtDialog,
+  StopRecurringErinnerungDialog,
+  closeQuickCreateDialog,
+  closeEditDialog,
+  closeDeleteDialog,
+  closeMarkErledigtDialog,
+  closeStopRecurringDialog,
+  useQuickCreateDialogStateWithEtb,
+  useEditDialogState,
+  useDeleteDialogState,
+  useMarkErledigtDialogState,
+  useStopRecurringDialogState,
+  useQuickCreateErinnerungHotkeys,
+  useAlarmTrigger,
+  useErinnerungenByEinsatz,
+} from '@/features/reminders';
+import { filterMyErinnerungen } from '@/features/reminders/utils/erinnerung-ownership';
+import { CreateNotizDialog, useQuickCreateNotizDialogState, closeQuickCreateNotizDialog, useQuickCreateNotizHotkeys } from '@/features/notizen';
+import { AudioSettingsDialog } from '@/features/settings';
+import { useCurrentUser } from '@/features/auth';
+import { toast } from 'sonner';
 import { CommandPalette } from '@/shared/ui/organisms/command-palette';
 import { CommandPaletteErrorBoundary } from '@/shared/ui/organisms/command-palette/CommandPaletteErrorBoundary';
 import { EINSATZ_QUERY_KEYS, useEinsatzDetails, useEinsatzModules, useMyEinsatzTeilnahme } from '@/features/einsatz';
@@ -19,7 +44,7 @@ import { Link, Outlet, useMatchRoute, useNavigate, useParams, useRouter } from '
 import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { PiArrowLeft, PiArrowsOut, PiClock, PiGear, PiGridFour, PiQuestion, PiRadio, PiSiren, PiWarning } from 'react-icons/pi';
+import { PiArrowLeft, PiArrowsOut, PiClock, PiGridFour, PiQuestion, PiRadio, PiSiren, PiSpeakerHigh, PiWarning } from 'react-icons/pi';
 
 interface SingleEinsatzLayoutProps {
   className?: string;
@@ -34,7 +59,68 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [showEndConfirmation, setShowEndConfirmation] = useState(false);
   const [showBeitrittDialog, setShowBeitrittDialog] = useState(false);
+  const [showAudioDialog, setShowAudioDialog] = useState(false);
   const activeServer = useActiveServer();
+
+  // Quick-Create Erinnerung Dialog State und Hotkeys (Story 1.1 AC1, Story 5.4)
+  const { isOpen: isQuickCreateOpen, einsatzId: quickCreateEinsatzId, etbEintragId, etbEintragText, fromTemplate } = useQuickCreateDialogStateWithEtb();
+  // Edit Erinnerung Dialog State (Story 1.3 AC1)
+  const [isEditDialogOpen, erinnerungToEdit, editDialogEinsatzId] = useEditDialogState();
+  // Delete Erinnerung Dialog State (Story 1.4 AC2)
+  const [isDeleteDialogOpen, erinnerungToDelete, deleteDialogEinsatzId] = useDeleteDialogState();
+  // MarkErledigt Erinnerung Dialog State (Story 2.5)
+  const [isMarkErledigtDialogOpen, erinnerungToMarkErledigt, markErledigtDialogEinsatzId] = useMarkErledigtDialogState();
+  // StopRecurring Erinnerung Dialog State (Story 6.5)
+  const [isStopRecurringDialogOpen, erinnerungToStopRecurring, stopRecurringDialogEinsatzId] = useStopRecurringDialogState();
+
+  // Quick-Create Notiz Dialog State und Hotkeys
+  const [isQuickCreateNotizOpen, quickCreateNotizEinsatzId] = useQuickCreateNotizDialogState();
+
+  const anyDialogOpen =
+    commandPaletteOpen || showEndConfirmation || showBeitrittDialog || isQuickCreateOpen || isEditDialogOpen || isDeleteDialogOpen || isMarkErledigtDialogOpen || isQuickCreateNotizOpen;
+
+  useQuickCreateErinnerungHotkeys({
+    einsatzId,
+    enabled: !anyDialogOpen,
+  });
+  useQuickCreateNotizHotkeys({
+    einsatzId,
+    enabled: !anyDialogOpen,
+  });
+
+  // Story App-weite Erinnerungsprüfung: Globaler Alarm-Trigger für den aktiven Einsatz
+  // Triggert Sound + OS-Notification für Erinnerungen die den User betreffen:
+  // - Mir zugewiesen (assignedToId === user.id)
+  // - An mich eskaliert (status === 'ESKALIERT' && eskalationsPersonId === user.id)
+  // - Von mir erstellt und niemand anderem zugewiesen (!assignedTo && erstelltVon === user.id)
+  const { user, isLoading: isUserLoading } = useCurrentUser();
+  const { data: alleErinnerungen = [], isLoading: isErinnerungenLoading, error: erinnerungenError } = useErinnerungenByEinsatz({ einsatzId });
+
+  // Filterlogik via shared utility (DRY mit ErinnerungenList)
+  const meineErinnerungen = useMemo(() => {
+    if (!user?.id) return [];
+    return filterMyErinnerungen(alleErinnerungen, user.id);
+  }, [alleErinnerungen, user?.id]);
+
+  // Alarm-Trigger nur wenn User UND Erinnerungen geladen sind (Race Condition Fix)
+  const isAlarmTriggerReady = !!user?.id && !isUserLoading && !isErinnerungenLoading && !erinnerungenError;
+
+  useAlarmTrigger({
+    erinnerungen: meineErinnerungen,
+    einsatzId,
+    enabled: isAlarmTriggerReady,
+    onTriggerSuccess: (erinnerung) => {
+      toast.success('Erinnerung ausgelöst', {
+        description: erinnerung.titel,
+        duration: 10000,
+      });
+    },
+    onTriggerError: (erinnerung, err) => {
+      toast.error('Erinnerung fehlgeschlagen', {
+        description: `${erinnerung.titel}: ${err.message}`,
+      });
+    },
+  });
 
   // Prüfe ob User bereits dem Einsatz beigetreten ist (Funkrufname gesetzt)
   const { data: teilnahmeData, isLoading: isTeilnahmeLoading } = useMyEinsatzTeilnahme(einsatzId);
@@ -432,9 +518,9 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
                       <PiRadio className="mr-2 h-4 w-4" />
                       {currentFunkrufname ? <span className="truncate">{currentFunkrufname}</span> : <span className="text-blue-600 dark:text-blue-400">Funkrufname setzen</span>}
                     </Button>
-                    <Button appearance="ghost" size="sm" className="mb-2 w-full">
-                      <PiGear className="mr-2 h-4 w-4" />
-                      Modul-Einstellungen
+                    <Button appearance="ghost" size="sm" className="mb-2 w-full justify-start" onClick={() => setShowAudioDialog(true)} aria-haspopup="dialog">
+                      <PiSpeakerHigh className="mr-2 h-4 w-4" />
+                      Audio-Einstellungen
                     </Button>
                     <Button
                       intent="danger"
@@ -538,6 +624,38 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
 
       {/* Einsatz Beitritt / Funkrufname Dialog */}
       <EinsatzBeitrittDialog einsatzId={einsatzId} isOpen={showBeitrittDialog} onClose={() => setShowBeitrittDialog(false)} />
+
+      {/* Quick-Create Erinnerung Dialog (Story 1.1 AC1, Story 5.4) */}
+      <QuickCreateErinnerungDialog
+        isOpen={isQuickCreateOpen}
+        einsatzId={quickCreateEinsatzId ?? einsatzId}
+        onClose={closeQuickCreateDialog}
+        fromEtb={etbEintragId && etbEintragText ? { entryId: etbEintragId, text: etbEintragText } : undefined}
+        fromTemplate={fromTemplate}
+      />
+
+      {/* Edit Erinnerung Dialog (Story 1.3 AC1) */}
+      <ErinnerungEditDialog isOpen={isEditDialogOpen} erinnerung={erinnerungToEdit} einsatzId={editDialogEinsatzId ?? einsatzId} onClose={closeEditDialog} />
+
+      {/* Delete Erinnerung Dialog (Story 1.4 AC2) */}
+      <ErinnerungDeleteDialog isOpen={isDeleteDialogOpen} erinnerung={erinnerungToDelete} einsatzId={deleteDialogEinsatzId ?? einsatzId} onClose={closeDeleteDialog} />
+
+      {/* MarkErledigt Erinnerung Dialog (Story 2.5) */}
+      <ErinnerungMarkErledigtDialog isOpen={isMarkErledigtDialogOpen} erinnerung={erinnerungToMarkErledigt} einsatzId={markErledigtDialogEinsatzId ?? einsatzId} onClose={closeMarkErledigtDialog} />
+
+      {/* StopRecurring Erinnerung Dialog (Story 6.5) */}
+      <StopRecurringErinnerungDialog
+        isOpen={isStopRecurringDialogOpen}
+        erinnerung={erinnerungToStopRecurring}
+        einsatzId={stopRecurringDialogEinsatzId ?? einsatzId}
+        onClose={closeStopRecurringDialog}
+      />
+
+      {/* Quick-Create Notiz Dialog */}
+      <CreateNotizDialog isOpen={isQuickCreateNotizOpen} einsatzId={quickCreateNotizEinsatzId ?? einsatzId} onClose={closeQuickCreateNotizDialog} />
+
+      {/* Audio-Einstellungen Dialog (Story 2.7) */}
+      <AudioSettingsDialog isOpen={showAudioDialog} onClose={() => setShowAudioDialog(false)} />
     </>
   );
 }

@@ -6,6 +6,7 @@ import { EtbQueryMapper } from '@application/etb/mappers/etb-query.mapper';
 import type { EintragDto } from '@application/etb/mappers/etb-query.mapper';
 import type { GetEintraegeQuery } from './get-eintraege.query';
 import { ETB_REPOSITORY } from '@infrastructure/di-tokens';
+import { PrismaService } from '@/infrastructure/database/prisma.service';
 
 /**
  * Handler fuer GetEintraegeQuery.
@@ -65,6 +66,7 @@ export class GetEintraegeQueryHandler {
   constructor(
     @Inject(ETB_REPOSITORY)
     private readonly etbRepository: IEtbRepository,
+    private readonly prisma: PrismaService,
   ) {}
 
   /**
@@ -129,6 +131,31 @@ export class GetEintraegeQueryHandler {
 
       // Step 7: Map to DTOs
       const dtos = entries.map(EtbQueryMapper.toEintragDto);
+
+      // Step 8: Story 5.4 - Load linked Erinnerungen (query-based)
+      const entryIds = dtos.map((d) => d.id);
+      if (entryIds.length > 0) {
+        const linkedErinnerungen = await this.prisma.erinnerung.findMany({
+          where: {
+            einsatzId: aggregate.einsatzId.value,
+            etbEntryId: { in: entryIds },
+            isDeleted: false,
+          },
+          select: {
+            id: true,
+            titel: true,
+            etbEntryId: true,
+          },
+        });
+
+        // Build lookup map: etbEntryId -> { id, titel }
+        const linkedMap = new Map(linkedErinnerungen.map((e) => [e.etbEntryId, { id: e.id, titel: e.titel }]));
+
+        // Enrich DTOs with linked Erinnerung
+        for (const dto of dtos) {
+          dto.linkedErinnerung = linkedMap.get(dto.id) ?? null;
+        }
+      }
 
       return Result.ok(dtos);
     } catch (_error) {

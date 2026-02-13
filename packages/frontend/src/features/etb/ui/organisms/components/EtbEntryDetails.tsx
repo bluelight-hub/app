@@ -5,16 +5,28 @@ import { de } from 'date-fns/locale';
 import { useState } from 'react';
 import { PiPencil, PiTrashSimple, PiUser } from 'react-icons/pi';
 import { ScreenshotLightbox } from './ScreenshotLightbox';
+import { ErinnerungTimelineWidget } from './ErinnerungTimelineWidget';
 
 interface EtbEntryDetailsProps {
   entry: EintragDto;
   getUserName: (id: string) => string | undefined;
+  /**
+   * ETB-ID fuer Timeline-Abfrage (Story 5.5)
+   */
+  etbId?: string;
+  /**
+   * Callback wenn auf einen ETB-Eintrag in der Timeline geklickt wird (Story 5.5)
+   */
+  onEntryClick?: (entryId: string) => void;
 }
 
 /**
- * Expandierte Details für einen ETB-Eintrag
+ * Expandierte Details fuer einen ETB-Eintrag
+ *
+ * **Story 5.5:** Zeigt zusaetzlich das Erinnerung Timeline Widget an,
+ * wenn der Eintrag mit einer Erinnerung verknuepft ist.
  */
-export function EtbEntryDetails({ entry, getUserName }: EtbEntryDetailsProps) {
+export function EtbEntryDetails({ entry, getUserName, etbId, onEntryClick }: EtbEntryDetailsProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
   // Check if screenshot exists in metadata
@@ -28,6 +40,13 @@ export function EtbEntryDetails({ entry, getUserName }: EtbEntryDetailsProps) {
 
   // Sanitize URL (XSS prevention)
   const sanitizedUrl = screenshotUrl ? encodeURI(screenshotUrl) : null;
+
+  // Story 5.5: linkedErinnerung extrahieren - Timeline nur fuer Original-Eintrag (aus dem Erinnerung erstellt wurde)
+  // NICHT metadata.erinnerungId verwenden, da das in ALLEN automatischen Eintraegen vorhanden ist
+  const linkedErinnerung =
+    entry.linkedErinnerung && typeof entry.linkedErinnerung === 'object' && 'id' in entry.linkedErinnerung && typeof entry.linkedErinnerung.id === 'string' && entry.linkedErinnerung.id !== ''
+      ? (entry.linkedErinnerung as { id: string; titel: string })
+      : null;
 
   const updatedAtDate = entry.updatedAt ? new Date(entry.updatedAt) : null;
   const updatedAtDisplay = updatedAtDate && isValid(updatedAtDate) ? format(updatedAtDate, 'HH:mm', { locale: de }) : null;
@@ -64,6 +83,9 @@ export function EtbEntryDetails({ entry, getUserName }: EtbEntryDetailsProps) {
 
       {/* Lightbox Modal */}
       {sanitizedUrl && <ScreenshotLightbox isOpen={lightboxOpen} onClose={() => setLightboxOpen(false)} screenshotUrl={screenshotUrl} title="Lagekarten-Screenshot" />}
+
+      {/* Story 5.5: Erinnerung Timeline Widget - nur im Original-Eintrag anzeigen */}
+      {linkedErinnerung && etbId && <ErinnerungTimelineWidget etbId={etbId} erinnerungId={linkedErinnerung.id} onEntryClick={onEntryClick} />}
 
       {/* Meta-Informationen */}
       <div className="grid grid-cols-2 gap-4 text-xs md:grid-cols-3">

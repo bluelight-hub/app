@@ -1,9 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 
 import { Result } from '@domain/common/result';
-// biome-ignore lint/style/useImportType: ILogger wird fuer NestJS DI benoetigt
 import { ILogger } from '@domain/ports/i-logger.port';
-// biome-ignore lint/style/useImportType: IInviteCodeRepository wird fuer NestJS DI benoetigt
 import { IInviteCodeRepository } from '@domain/repositories/i-invite-code.repository';
 import type { InviteCode } from '@domain/aggregates/invite-code.aggregate';
 

@@ -1,26 +1,18 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 
-// biome-ignore lint/style/useImportType: DomainEvent wird fuer Runtime-Typisierung benoetigt
 import { DomainEvent } from '@domain/common/domain-event';
 import { Result } from '@domain/common/result';
-// biome-ignore lint/style/useImportType: TransactionContext wird fuer Runtime-Typisierung benoetigt
 import { TransactionContext } from '@domain/common/transaction';
-// biome-ignore lint/style/useImportType: ILogger wird fuer NestJS DI benoetigt
 import { ILogger } from '@domain/ports/i-logger.port';
-// biome-ignore lint/style/useImportType: IOutboxRepository wird fuer NestJS DI benoetigt
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
-// biome-ignore lint/style/useImportType: IInviteCodeRepository wird fuer NestJS DI benoetigt
 import { IInviteCodeRepository } from '@domain/repositories/i-invite-code.repository';
 import { InviteCodeId } from '@domain/value-objects/invite-code-id';
 
 import { TransactionalCommandHandler } from '@/application/common/handlers/transactional-command.handler';
-// biome-ignore lint/style/useImportType: PrismaService wird zur Laufzeit fuer NestJS DI benoetigt
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { INVITE_CODE_REPOSITORY, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
 
-// biome-ignore lint/style/useImportType: RevokeInviteCommand wird fuer Runtime-Typisierung benoetigt
 import { RevokeInviteCommand } from './revoke-invite.command';
-// biome-ignore lint/style/useImportType: RevokeInviteResponseDto wird fuer Runtime-Typisierung benoetigt
 import { RevokeInviteResponseDto } from '../dto/revoke-invite-response.dto';
 
 /**

@@ -1,0 +1,75 @@
+/**
+ * Zentrale Error Codes für Erinnerung Application Layer.
+ *
+ * **Warum Error Codes statt Error Messages:**
+ * - Internationalisierung: Codes können in verschiedene Sprachen übersetzt werden
+ * - Konsistenz: Einheitliche Fehlercodes über alle Handler hinweg
+ * - Testbarkeit: Einfacher in Tests zu prüfen als Freitext-Messages
+ * - Frontend-Mapping: Frontend kann spezifische UI-Reaktionen per Code triggern
+ *
+ * **Naming Convention:**
+ * - Präfix: ERINNERUNG_
+ * - Suffix: Beschreibung des Fehlers in SCREAMING_SNAKE_CASE
+ */
+export const ERINNERUNG_ERROR_CODES = {
+  // Command Validation Errors
+  TITEL_REQUIRED: 'ERINNERUNG_TITEL_REQUIRED',
+  TITEL_TOO_LONG: 'ERINNERUNG_TITEL_TOO_LONG',
+  FAELLIG_AM_REQUIRED: 'ERINNERUNG_FAELLIG_AM_REQUIRED',
+  FAELLIG_AM_IN_PAST: 'ERINNERUNG_FAELLIG_AM_IN_PAST',
+  EINSATZ_ID_REQUIRED: 'ERINNERUNG_EINSATZ_ID_REQUIRED',
+  EINSATZ_ID_INVALID: 'ERINNERUNG_EINSATZ_ID_INVALID',
+  ERSTELLT_VON_REQUIRED: 'ERINNERUNG_ERSTELLT_VON_REQUIRED',
+
+  // Handler Errors
+  CREATION_FAILED: 'ERINNERUNG_CREATION_FAILED',
+  SAVE_FAILED: 'ERINNERUNG_SAVE_FAILED',
+  NOT_FOUND: 'ERINNERUNG_NOT_FOUND',
+  NOT_EDITABLE: 'ERINNERUNG_NOT_EDITABLE',
+  NOT_DELETABLE: 'ERINNERUNG_NOT_DELETABLE', // Story 1.4
+  ALREADY_DELETED: 'ERINNERUNG_ALREADY_DELETED', // Story 1.4
+  NOT_TRIGGERABLE: 'ERINNERUNG_NOT_TRIGGERABLE', // Story 1.5
+  NOT_ACKNOWLEDGEABLE: 'ERINNERUNG_NOT_ACKNOWLEDGEABLE', // Story 1.6
+  NOT_SNOOZEABLE: 'ERINNERUNG_NOT_SNOOZEABLE', // Story 2.1
+  SNOOZE_MINUTES_INVALID: 'ERINNERUNG_SNOOZE_MINUTES_INVALID', // Story 2.1
+  NOT_COMPLETEABLE: 'ERINNERUNG_NOT_COMPLETEABLE', // Story 2.5
+  NOTIZ_TOO_LONG: 'ERINNERUNG_NOTIZ_TOO_LONG', // Story 2.5
+  ERLEDIGUNGS_NOTIZ_REQUIRED: 'ERINNERUNG_ERLEDIGUNGS_NOTIZ_REQUIRED', // Story 2.6: Pflicht-Notiz fehlt
+  NO_CHANGES: 'ERINNERUNG_NO_CHANGES',
+  ID_REQUIRED: 'ERINNERUNG_ID_REQUIRED',
+  ID_INVALID: 'ERINNERUNG_ID_INVALID',
+  USER_ID_INVALID: 'ERINNERUNG_USER_ID_INVALID', // Story 1.6
+  GELOESCHT_VON_REQUIRED: 'ERINNERUNG_GELOESCHT_VON_REQUIRED', // Story 1.4
+  INVALID_ASSIGNED_TO: 'ERINNERUNG_INVALID_ASSIGNED_TO', // Story 3.3: Ungültiger Teilnehmer
+  UNAUTHORIZED_ACCESS: 'ERINNERUNG_UNAUTHORIZED_ACCESS', // Story 3.3: Ersteller ist kein Einsatz-Teilnehmer
+  ASSIGNED_TO_INVALID: 'ERINNERUNG_ASSIGNED_TO_INVALID', // Story 3.3: assignedToId ist keine gültige CUID2
+  ASSIGNED_TO_NOT_TEILNEHMER: 'ERINNERUNG_ASSIGNED_TO_NOT_TEILNEHMER', // Story 3.3: assignedToId ist kein aktiver Teilnehmer
+  ASSIGNMENT_FAILED: 'ERINNERUNG_ASSIGNMENT_FAILED', // Story 3.3: Zuweisung fehlgeschlagen
+  NOT_ASSIGNABLE: 'ERINNERUNG_NOT_ASSIGNABLE', // Story 3.4: Erinnerung kann nicht zugewiesen werden (falscher Status)
+  NOT_AUTHORIZED: 'ERINNERUNG_NOT_AUTHORIZED', // Story 4.2: Nur der aktuelle Bearbeiter darf delegieren
+
+  // Query Errors
+  QUERY_EINSATZ_ID_REQUIRED: 'ERINNERUNG_QUERY_EINSATZ_ID_REQUIRED',
+  QUERY_FAILED: 'ERINNERUNG_QUERY_FAILED',
+
+  // Story 5.4: ETB-Integration Errors
+  ETB_ENTRY_ID_INVALID: 'ERINNERUNG_ETB_ENTRY_ID_INVALID', // Story 5.4: etbEntryId ist ungültiges CUID2 Format
+  ETB_ENTRY_NOT_FOUND: 'ERINNERUNG_ETB_ENTRY_NOT_FOUND', // Story 5.4: etbEntryId referenziert nicht-existierenden ETB-Eintrag
+  NOTIZ_ID_INVALID: 'ERINNERUNG_NOTIZ_ID_INVALID', // Story 7.6: notizId ist ungültiges CUID2 Format
+  ETB_ENTRY_WRONG_EINSATZ: 'ERINNERUNG_ETB_ENTRY_WRONG_EINSATZ', // Story 5.4: etbEntryId gehört zu anderem Einsatz
+
+  // Story 6.5: Wiederkehrende Serie stoppen
+  NOT_RECURRING: 'ERINNERUNG_NOT_RECURRING', // Story 6.5: Erinnerung ist nicht wiederkehrend
+  IS_CHILD_INSTANCE: 'ERINNERUNG_IS_CHILD_INSTANCE', // Story 6.5: Kind-Instanz kann Serie nicht stoppen
+  SERIE_ALREADY_STOPPED: 'ERINNERUNG_SERIE_ALREADY_STOPPED', // Story 6.5: Serie wurde bereits gestoppt
+
+  // Story 8.2: Kategorie-Validierung
+  KATEGORIE_ID_INVALID: 'ERINNERUNG_KATEGORIE_ID_INVALID', // Story 8.2: kategorieId ist ungültiges CUID2 Format
+  KATEGORIE_NOT_FOUND: 'ERINNERUNG_KATEGORIE_NOT_FOUND', // Story 8.2: Kategorie existiert nicht oder wurde gelöscht
+  KATEGORIE_WRONG_EINSATZ: 'ERINNERUNG_KATEGORIE_WRONG_EINSATZ', // Story 8.2: Kategorie gehört zu anderem Einsatz
+
+  // Story 9.10: Rohdaten-Export
+  ROHDATEN_EXPORT_FORMAT_INVALID: 'ERINNERUNG_ROHDATEN_EXPORT_FORMAT_INVALID', // Story 9.10: Ungültiges Export-Format (nur csv/json)
+} as const;
+
+export type ErinnerungErrorCode = (typeof ERINNERUNG_ERROR_CODES)[keyof typeof ERINNERUNG_ERROR_CODES];

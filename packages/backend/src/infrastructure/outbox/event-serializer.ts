@@ -40,6 +40,28 @@ import type { ServerAccessTokenCreatedEvent } from '@domain/events/server-access
 import type { ServerAccessTokenRevokedEvent } from '@domain/events/server-access-token-revoked.event';
 import type { ServerAccessTokenRotatedEvent } from '@domain/events/server-access-token-rotated.event';
 import type { ServerAccessTokenReactivatedEvent } from '@domain/events/server-access-token-reactivated.event';
+import type { ErinnerungErstelltEvent } from '@domain/events/erinnerung-erstellt.event';
+import type { ErinnerungAktualisiertEvent } from '@domain/events/erinnerung-aktualisiert.event';
+import type { ErinnerungGeloeschtEvent } from '@domain/events/erinnerung-geloescht.event';
+import type { ErinnerungAusgeloestEvent } from '@domain/events/erinnerung-ausgeloest.event';
+import type { ErinnerungAcknowledgedEvent } from '@domain/events/erinnerung-acknowledged.event';
+import type { ErinnerungSnoozedEvent } from '@domain/events/erinnerung-snoozed.event';
+import type { ErinnerungRetriggeredEvent } from '@domain/events/erinnerung-retriggered.event';
+import type { ErinnerungErledigtEvent } from '@domain/events/erinnerung-erledigt.event';
+import type { ErinnerungAssignedEvent } from '@domain/events/erinnerung-assigned.event';
+import type { ErinnerungEskaliertEvent } from '@domain/events/erinnerung-eskaliert.event';
+import type { ErinnerungIntensiviertEvent } from '@domain/events/erinnerung-intensiviert.event';
+import type { WiederkehrendeInstanzErstelltEvent } from '@domain/events/wiederkehrende-instanz-erstellt.event';
+import type { ErinnerungSerieGestopptEvent } from '@domain/events/erinnerung-serie-gestoppt.event';
+import type { FuehrungsrhythmusTemplateErstelltEvent } from '@domain/fuehrungsrhythmus/events/fuehrungsrhythmus-template-erstellt.event';
+import type { FuehrungsrhythmusTemplateGeloeschtEvent } from '@domain/fuehrungsrhythmus/events/fuehrungsrhythmus-template-geloescht.event';
+import type { FuehrungsrhythmusAktiviertEvent } from '@domain/fuehrungsrhythmus/events/fuehrungsrhythmus-aktiviert.event';
+import type { FuehrungsrhythmusTemplateAktualisiertEvent } from '@domain/fuehrungsrhythmus/events/fuehrungsrhythmus-template-aktualisiert.event';
+import type { NotizErstelltEvent } from '@domain/notiz/events/notiz-erstellt.event';
+import type { NotizAktualisiertEvent } from '@domain/notiz/events/notiz-aktualisiert.event';
+import type { NotizGeloeschtEvent } from '@domain/notiz/events/notiz-geloescht.event';
+import type { KategorieErstelltEvent } from '@domain/kategorie/events/kategorie-erstellt.event';
+import type { KategorieGeloeschtEvent } from '@domain/kategorie/events/kategorie-geloescht.event';
 
 /**
  * Serialisiertes Event-Payload für Outbox-Persistierung.
@@ -248,9 +270,120 @@ export class EventSerializer {
       case 'server_access_token.reactivated':
         return this.serializeServerAccessTokenReactivated(event as unknown as ServerAccessTokenReactivatedEvent);
 
+      // ===== ERINNERUNG EVENTS =====
+      case 'erinnerung.erstellt':
+        return this.serializeErinnerungErstellt(event as unknown as ErinnerungErstelltEvent);
+      case 'erinnerung.aktualisiert':
+        return this.serializeErinnerungAktualisiert(event as unknown as ErinnerungAktualisiertEvent);
+      case 'erinnerung.geloescht':
+        return this.serializeErinnerungGeloescht(event as unknown as ErinnerungGeloeschtEvent);
+      case 'erinnerung.ausgeloest':
+        return this.serializeErinnerungAusgeloest(event as unknown as ErinnerungAusgeloestEvent);
+      case 'erinnerung.acknowledged':
+        return this.serializeErinnerungAcknowledged(event as unknown as ErinnerungAcknowledgedEvent);
+      case 'erinnerung.snoozed':
+        return this.serializeErinnerungSnoozed(event as unknown as ErinnerungSnoozedEvent);
+      case 'erinnerung.retriggered':
+        return this.serializeErinnerungRetriggered(event as unknown as ErinnerungRetriggeredEvent);
+      case 'erinnerung.erledigt':
+        return this.serializeErinnerungErledigt(event as unknown as ErinnerungErledigtEvent);
+      case 'erinnerung.assigned':
+        return this.serializeErinnerungAssigned(event as unknown as ErinnerungAssignedEvent);
+
+      // ===== ESKALATION/INTENSIVIERUNG EVENTS (Story 4.4/4.5) =====
+      case 'erinnerung.eskaliert':
+        return this.serializeErinnerungEskaliert(event as unknown as ErinnerungEskaliertEvent);
+      case 'erinnerung.intensiviert':
+        return this.serializeErinnerungIntensiviert(event as unknown as ErinnerungIntensiviertEvent);
+
+      // ===== WIEDERKEHRENDE ERINNERUNG EVENTS (Story 6.4) =====
+      case 'erinnerung.wiederkehrende-instanz-erstellt':
+        return this.serializeWiederkehrendeInstanzErstellt(event as unknown as WiederkehrendeInstanzErstelltEvent);
+      case 'erinnerung.serie-gestoppt':
+        return this.serializeErinnerungSerieGestoppt(event as unknown as ErinnerungSerieGestopptEvent);
+
+      // ===== FUEHRUNGSRHYTHMUS TEMPLATE EVENTS (Story 6.6) =====
+      case 'fuehrungsrhythmus-template.erstellt':
+        return this.serializeFuehrungsrhythmusTemplateErstellt(event as unknown as FuehrungsrhythmusTemplateErstelltEvent);
+      case 'fuehrungsrhythmus-template.geloescht':
+        return this.serializeFuehrungsrhythmusTemplateGeloescht(event as unknown as FuehrungsrhythmusTemplateGeloeschtEvent);
+      case 'fuehrungsrhythmus-template.aktiviert':
+        return this.serializeFuehrungsrhythmusAktiviert(event as unknown as FuehrungsrhythmusAktiviertEvent);
+      case 'fuehrungsrhythmus-template.aktualisiert':
+        return this.serializeFuehrungsrhythmusTemplateAktualisiert(event as unknown as FuehrungsrhythmusTemplateAktualisiertEvent);
+
+      // ===== NOTIZ EVENTS (Story 7.1) =====
+      case 'notiz.erstellt':
+        return this.serializeNotizErstellt(event as unknown as NotizErstelltEvent);
+      case 'notiz.aktualisiert':
+        return this.serializeNotizAktualisiert(event as unknown as NotizAktualisiertEvent);
+      case 'notiz.geloescht':
+        return this.serializeNotizGeloescht(event as unknown as NotizGeloeschtEvent);
+
+      // ===== KATEGORIE EVENTS (Story 8.1) =====
+      case 'kategorie.erstellt':
+        return this.serializeKategorieErstellt(event as unknown as KategorieErstelltEvent);
+      case 'kategorie.geloescht':
+        return this.serializeKategorieGeloescht(event as unknown as KategorieGeloeschtEvent);
+
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
     }
+  }
+
+  // ... (previous serializers) ...
+
+  /**
+   * Serialisiert ErinnerungEskaliertEvent (Story 4.4).
+   */
+  private serializeErinnerungEskaliert(event: ErinnerungEskaliertEvent): Record<string, unknown> {
+    return {
+      erinnerungId: event.erinnerungId.toString(),
+      einsatzId: event.einsatzId.toString(),
+      eskaliertAm: event.eskaliertAm.toISOString(),
+      titel: event.titel,
+      erstelltVon: event.erstelltVon.toString(),
+      eskalationsPersonId: event.eskalationsPersonId?.toString() ?? null,
+    };
+  }
+
+  /**
+   * Serialisiert ErinnerungIntensiviertEvent (Story 4.4).
+   */
+  private serializeErinnerungIntensiviert(event: ErinnerungIntensiviertEvent): Record<string, unknown> {
+    return {
+      erinnerungId: event.erinnerungId.toString(),
+      einsatzId: event.einsatzId.toString(),
+      intensiviertAm: event.intensiviertAm.toISOString(),
+      titel: event.titel,
+      erstelltVon: event.erstelltVon.toString(),
+    };
+  }
+
+  /**
+   * Serialisiert WiederkehrendeInstanzErstelltEvent (Story 6.4).
+   */
+  private serializeWiederkehrendeInstanzErstellt(event: WiederkehrendeInstanzErstelltEvent): Record<string, unknown> {
+    return {
+      erinnerungId: event.erinnerungId.toString(),
+      parentId: event.parentId.toString(),
+      einsatzId: event.einsatzId.toString(),
+      titel: event.titel,
+      faelligAm: event.faelligAm.toISOString(),
+      sequenceNumber: event.sequenceNumber,
+    };
+  }
+
+  /**
+   * Serialisiert ErinnerungSerieGestopptEvent (Story 6.5).
+   */
+  private serializeErinnerungSerieGestoppt(event: ErinnerungSerieGestopptEvent): Record<string, unknown> {
+    return {
+      erinnerungId: event.erinnerungId.toString(),
+      einsatzId: event.einsatzId.toString(),
+      titel: event.titel,
+      totalErstellteInstanzen: event.totalErstellteInstanzen,
+    };
   }
 
   // ===== EINSATZ SERIALIZERS =====
@@ -643,6 +776,233 @@ export class EventSerializer {
     return {
       tokenId: event.tokenId.toString(), // AccessTokenId → string
       reactivatedAt: event.reactivatedAt.toISOString(), // Date → ISO string
+    };
+  }
+
+  // ===== ERINNERUNG SERIALIZERS =====
+
+  private serializeErinnerungErstellt(event: ErinnerungErstelltEvent): Record<string, unknown> {
+    return {
+      erinnerungId: event.erinnerungId.toString(), // ErinnerungId → string
+      einsatzId: event.einsatzId.toString(), // EinsatzId → string
+      titel: event.titel, // Already primitive string
+      faelligAm: event.faelligAm.toISOString(), // Date → ISO string
+      erstelltVon: event.erstelltVon.toString(), // UserId → string
+      assignedToId: event.assignedToId?.toString() ?? null, // Story 3.3: UserId | null → string | null
+    };
+  }
+
+  private serializeErinnerungAktualisiert(event: ErinnerungAktualisiertEvent): Record<string, unknown> {
+    return {
+      erinnerungId: event.erinnerungId.toString(), // ErinnerungId → string
+      einsatzId: event.einsatzId.toString(), // EinsatzId → string
+      aenderungen: {
+        titel: event.aenderungen.titel, // string | undefined
+        beschreibung: event.aenderungen.beschreibung, // string | null | undefined
+        faelligAm: event.aenderungen.faelligAm?.toISOString(), // Date → ISO string | undefined
+      },
+      aktualisierVon: event.aktualisierVon.toString(), // UserId → string
+      titel: event.titel, // Already primitive string (aktueller Titel)
+    };
+  }
+
+  private serializeErinnerungGeloescht(event: ErinnerungGeloeschtEvent): Record<string, unknown> {
+    return {
+      erinnerungId: event.erinnerungId.toString(), // ErinnerungId → string
+      einsatzId: event.einsatzId.toString(), // EinsatzId → string
+      titel: event.titel, // Already primitive string
+      geloeschtVon: event.geloeschtVon.toString(), // UserId → string
+    };
+  }
+
+  private serializeErinnerungAusgeloest(event: ErinnerungAusgeloestEvent): Record<string, unknown> {
+    return {
+      erinnerungId: event.erinnerungId.toString(), // ErinnerungId → string
+      einsatzId: event.einsatzId.toString(), // EinsatzId → string
+      ausgeloestAm: event.ausgeloestAm.toISOString(), // Date → ISO string
+      titel: event.titel, // Already primitive string
+      erstelltVon: event.erstelltVon.toString(), // UserId → string
+    };
+  }
+
+  private serializeErinnerungAcknowledged(event: ErinnerungAcknowledgedEvent): Record<string, unknown> {
+    return {
+      erinnerungId: event.erinnerungId.toString(), // ErinnerungId → string
+      einsatzId: event.einsatzId.toString(), // EinsatzId → string
+      acknowledgedAm: event.acknowledgedAm.toISOString(), // Date → ISO string
+      acknowledgedBy: event.acknowledgedBy.toString(), // UserId → string
+      titel: event.titel, // Already primitive string
+    };
+  }
+
+  /**
+   * Serialisiert ErinnerungSnoozedEvent (Story 2.1).
+   */
+  private serializeErinnerungSnoozed(event: ErinnerungSnoozedEvent): Record<string, unknown> {
+    return {
+      erinnerungId: event.erinnerungId.toString(), // ErinnerungId → string
+      einsatzId: event.einsatzId.toString(), // EinsatzId → string
+      snoozedAt: event.snoozedAt.toISOString(), // Date → ISO string
+      snoozedUntil: event.snoozedUntil.toISOString(), // Date → ISO string
+      snoozedBy: event.snoozedBy.toString(), // UserId → string
+      snoozeMinutes: event.snoozeMinutes, // Already primitive number
+      snoozeCount: event.snoozeCount, // Already primitive number
+      titel: event.titel, // Already primitive string
+    };
+  }
+
+  /**
+   * Serialisiert ErinnerungRetriggeredEvent (Story 2.2).
+   */
+  private serializeErinnerungRetriggered(event: ErinnerungRetriggeredEvent): Record<string, unknown> {
+    return {
+      erinnerungId: event.erinnerungId.toString(), // ErinnerungId → string
+      einsatzId: event.einsatzId.toString(), // EinsatzId → string
+      retriggeredAm: event.retriggeredAm.toISOString(), // Date → ISO string
+      titel: event.titel, // Already primitive string
+      erstelltVon: event.erstelltVon.toString(), // UserId → string
+      snoozeCount: event.snoozeCount, // Already primitive number
+      previousSnoozedAt: event.previousSnoozedAt?.toISOString() ?? null, // Date | null → ISO string | null
+    };
+  }
+
+  /**
+   * Serialisiert ErinnerungErledigtEvent (Story 2.5).
+   */
+  private serializeErinnerungErledigt(event: ErinnerungErledigtEvent): Record<string, unknown> {
+    return {
+      erinnerungId: event.erinnerungId.toString(), // ErinnerungId → string
+      einsatzId: event.einsatzId.toString(), // EinsatzId → string
+      erledigtAm: event.erledigtAm.toISOString(), // Date → ISO string
+      erledigtBy: event.erledigtBy.toString(), // UserId → string
+      titel: event.titel, // Already primitive string
+      erledigungsNotiz: event.erledigungsNotiz, // string | null
+    };
+  }
+
+  /**
+   * Serialisiert ErinnerungAssignedEvent (Story 3.4).
+   */
+  private serializeErinnerungAssigned(event: ErinnerungAssignedEvent): Record<string, unknown> {
+    return {
+      erinnerungId: event.erinnerungId.toString(), // ErinnerungId → string
+      einsatzId: event.einsatzId.toString(), // EinsatzId → string
+      assignedToId: event.assignedToId.toString(), // UserId → string
+      assignedById: event.assignedById.toString(), // UserId → string
+      titel: event.titel, // Already primitive string
+      assignedAt: event.assignedAt.toISOString(), // Date → ISO string
+    };
+  }
+
+  // ===== FUEHRUNGSRHYTHMUS TEMPLATE SERIALIZERS (Story 6.6) =====
+
+  /**
+   * Serialisiert FuehrungsrhythmusTemplateErstelltEvent (Story 6.6).
+   */
+  private serializeFuehrungsrhythmusTemplateErstellt(event: FuehrungsrhythmusTemplateErstelltEvent): Record<string, unknown> {
+    return {
+      templateId: event.templateId.toString(), // FuehrungsrhythmusTemplateId → string
+      name: event.name, // Already primitive string
+      eintraegeCount: event.eintraegeCount, // Already primitive number
+      createdBy: event.createdBy.toString(), // UserId → string
+    };
+  }
+
+  /**
+   * Serialisiert FuehrungsrhythmusTemplateGeloeschtEvent (Story 6.6).
+   */
+  private serializeFuehrungsrhythmusTemplateGeloescht(event: FuehrungsrhythmusTemplateGeloeschtEvent): Record<string, unknown> {
+    return {
+      templateId: event.templateId.toString(), // FuehrungsrhythmusTemplateId → string
+      name: event.name, // Already primitive string
+      deletedBy: event.deletedBy.toString(), // UserId → string
+    };
+  }
+
+  /**
+   * Serialisiert FuehrungsrhythmusTemplateAktualisiertEvent (Story 6.8).
+   */
+  private serializeFuehrungsrhythmusTemplateAktualisiert(event: FuehrungsrhythmusTemplateAktualisiertEvent): Record<string, unknown> {
+    return {
+      templateId: event.templateId.toString(),
+      name: event.name,
+      aktualisiertVon: event.aktualisiertVon.toString(),
+    };
+  }
+
+  /**
+   * Serialisiert FuehrungsrhythmusAktiviertEvent (Story 6.7).
+   */
+  private serializeFuehrungsrhythmusAktiviert(event: FuehrungsrhythmusAktiviertEvent): Record<string, unknown> {
+    return {
+      templateId: event.templateId.toString(), // FuehrungsrhythmusTemplateId → string
+      templateName: event.templateName, // Already primitive string
+      einsatzId: event.einsatzId.toString(), // EinsatzId → string
+      erstellteErinnerungIds: event.erstellteErinnerungIds.map((id) => id.toString()), // ErinnerungId[] → string[]
+      aktiviertVon: event.aktiviertVon.toString(), // UserId → string
+    };
+  }
+
+  // ===== NOTIZ SERIALIZERS (Story 7.1) =====
+
+  /**
+   * Serialisiert NotizErstelltEvent (Story 7.1).
+   */
+  private serializeNotizErstellt(event: NotizErstelltEvent): Record<string, unknown> {
+    return {
+      notizId: event.notizId.toString(), // NotizId → string
+      einsatzId: event.einsatzId, // Already primitive string
+      titel: event.titel, // Already primitive string
+      erstelltVon: event.erstelltVon.toString(), // UserId → string
+      istTeamsichtbar: event.istTeamsichtbar, // Already primitive boolean
+    };
+  }
+
+  /**
+   * Serialisiert NotizAktualisiertEvent (Story 7.3).
+   */
+  private serializeNotizAktualisiert(event: NotizAktualisiertEvent): Record<string, unknown> {
+    return {
+      notizId: event.notizId.toString(), // NotizId → string
+      einsatzId: event.einsatzId, // Already primitive string
+      titel: event.titel, // Already primitive string
+      inhalt: event.inhalt, // string | null
+      kategorie: event.kategorie, // string | null
+      istTeamsichtbar: event.istTeamsichtbar, // Already primitive boolean
+      aktualisiertVon: event.aktualisiertVon, // Already primitive string
+    };
+  }
+
+  /**
+   * Serialisiert NotizGeloeschtEvent (Story 7.4).
+   */
+  private serializeNotizGeloescht(event: NotizGeloeschtEvent): Record<string, unknown> {
+    return {
+      notizId: event.notizId.toString(), // NotizId → string
+      einsatzId: event.einsatzId, // Already primitive string
+      titel: event.titel, // Already primitive string
+      geloeschtVon: event.geloeschtVon.toString(), // UserId → string
+    };
+  }
+
+  // ===== KATEGORIE SERIALIZERS (Story 8.1) =====
+
+  private serializeKategorieErstellt(event: KategorieErstelltEvent): Record<string, unknown> {
+    return {
+      kategorieId: event.kategorieId.toString(),
+      einsatzId: event.einsatzId,
+      name: event.name,
+      farbe: event.farbe,
+      erstelltVon: event.erstelltVon.toString(),
+    };
+  }
+
+  private serializeKategorieGeloescht(event: KategorieGeloeschtEvent): Record<string, unknown> {
+    return {
+      kategorieId: event.kategorieId.toString(),
+      einsatzId: event.einsatzId,
+      name: event.name,
+      geloeschtVon: event.geloeschtVon.toString(),
     };
   }
 }

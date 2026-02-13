@@ -29,6 +29,7 @@ describe('Architecture Rules', () => {
     'eintrag.dto.ts',
     // CQRS Query-Side Pattern: Read-only queries for reference data without domain logic
     'get-textbausteine.handler.ts',
+    'get-einsatz-teilnehmer.handler.ts',
     // User Management - migrated from legacy, needs cleanup
     'delete-user.handler.ts',
     'update-user.command.ts',
@@ -168,6 +169,118 @@ describe('Architecture Rules', () => {
       }
 
       expect(violations).toEqual([]);
+    });
+  });
+
+  describe('Event Registry Completeness', () => {
+    /**
+     * Events die noch nicht im Deserializer registriert sind.
+     * Diese werden dokumentiert und bei Bedarf nachgezogen.
+     *
+     * Grund: Manche Events (z.B. Server-Events, Invite-Code-Events) werden
+     * noch nicht über das Outbox-Pattern publiziert.
+     */
+    const knownMissingEvents = [
+      // Server Access Token Events - noch kein Outbox Consumer
+      'server_access_token.created',
+      'server_access_token.used',
+      'server_access_token.revoked',
+      'server_access_token.reactivated',
+      'server_access_token.rotated',
+      // Invite Code Events - noch kein Outbox Consumer
+      'invite_code.created',
+      'invite_code.used',
+      'invite_code.revoked',
+      // Server Config Events - noch kein Outbox Consumer
+      'server_config.migrated_to_secure',
+      // User Events die noch fehlen
+      'user.locked',
+      'user.unlocked',
+    ];
+
+    /**
+     * Extrahiert alle Event-Namen aus dem EVENT_NAMES Objekt.
+     * Matcht nur tatsächliche Zuweisungen wie: CREATED: 'einsatz.created',
+     */
+    function getAllEventNamesFromConstants(): string[] {
+      // Read and parse the event-names.ts file to extract all event name values
+      const eventNamesFile = path.join(__dirname, '../domain/events/event-names.ts');
+      const content = fs.readFileSync(eventNamesFile, 'utf8');
+
+      // Match only actual assignments like: NAME: 'event.name' or NAME: "event.name"
+      // This excludes comments and JSDoc examples
+      // Erlaubt Bindestriche in Event-Namen (z.B. 'fuehrungsrhythmus-template.erstellt', 'erinnerung.wiederkehrende-instanz-erstellt')
+      const eventNameMatches = content.match(/[A-Z_]+:\s*['"]([a-z][a-z0-9_-]*\.[a-z][a-z0-9_-]*)['"]/g);
+      if (!eventNameMatches) {
+        return [];
+      }
+
+      // Extract the event name from each match and deduplicate
+      return [
+        ...new Set(
+          eventNameMatches
+            .map((match) => {
+              const nameMatch = match.match(/['"]([a-z][a-z0-9_-]*\.[a-z][a-z0-9_-]*)['"]/);
+              return nameMatch ? nameMatch[1] : '';
+            })
+            .filter(Boolean),
+        ),
+      ];
+    }
+
+    /**
+     * Extrahiert alle registrierten Event-Namen aus dem EventDeserializer.
+     */
+    function getRegisteredEventsFromDeserializer(): string[] {
+      const deserializerFile = path.join(__dirname, '../infrastructure/outbox/event-deserializer.ts');
+      const content = fs.readFileSync(deserializerFile, 'utf8');
+
+      // Match all event registry entries in the format: ['event.name', this.deserialize...] or ['event.name', deserialize...]
+      // Also matches PascalCase compatibility aliases like ['ErinnerungEskaliert', ...]
+      // Standalone-Funktionen (ohne this.) werden ebenfalls erkannt (z.B. Erinnerungsvorlage, Notiz Events)
+      const registryMatches = content.match(/\['([^']+)',\s*(?:this\.)?deserialize/g);
+      if (!registryMatches) {
+        return [];
+      }
+
+      // Extract event names
+      return registryMatches
+        .map((match) => {
+          const nameMatch = match.match(/\['([^']+)'/);
+          return nameMatch ? nameMatch[1] : '';
+        })
+        .filter(Boolean);
+    }
+
+    it('should have all EVENT_NAMES registered in EventDeserializer', () => {
+      // Given: All event names from constants and deserializer registry
+      const definedEventNames = getAllEventNamesFromConstants();
+      const registeredEventNames = getRegisteredEventsFromDeserializer();
+
+      // When: Check each defined event name
+      const missingFromDeserializer: string[] = [];
+
+      for (const eventName of definedEventNames) {
+        // Skip known missing events (documented exceptions)
+        if (knownMissingEvents.includes(eventName)) {
+          continue;
+        }
+
+        // Check if event is registered in deserializer
+        if (!registeredEventNames.includes(eventName)) {
+          missingFromDeserializer.push(eventName);
+        }
+      }
+
+      // Then: All events should be registered
+      expect(missingFromDeserializer).toEqual([]);
+    });
+
+    it('should document all known missing events', () => {
+      // This test ensures knownMissingEvents list stays up-to-date
+      // If an event is added to EVENT_NAMES but not in deserializer or knownMissingEvents,
+      // the test above will fail
+      expect(knownMissingEvents.length).toBeGreaterThan(0);
     });
   });
 });

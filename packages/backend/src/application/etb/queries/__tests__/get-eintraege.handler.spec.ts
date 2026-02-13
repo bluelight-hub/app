@@ -4,6 +4,7 @@ import { InMemoryEtbRepository } from '../../__tests__/in-memory-etb.repository'
 import { createTestEtb } from '@domain/aggregates/__tests__/fixtures/etb.fixtures';
 import { UserId } from '@domain/value-objects/user-id';
 import { createValidTestId } from './helpers/test-id.helper';
+import type { PrismaService } from '@/infrastructure/database/prisma.service';
 
 // Mock cuid2 fuer deterministische Test-IDs
 jest.mock('@paralleldrive/cuid2', () => ({
@@ -35,10 +36,17 @@ jest.mock('@paralleldrive/cuid2', () => ({
 describe('GetEintraegeQueryHandler', () => {
   let handler: GetEintraegeQueryHandler;
   let repository: InMemoryEtbRepository;
+  let mockPrisma: jest.Mocked<PrismaService>;
 
   beforeEach(() => {
     repository = new InMemoryEtbRepository();
-    handler = new GetEintraegeQueryHandler(repository);
+    // Story 5.4: Mock PrismaService für linkedErinnerung Query
+    mockPrisma = {
+      erinnerung: {
+        findMany: jest.fn().mockResolvedValue([]),
+      },
+    } as unknown as jest.Mocked<PrismaService>;
+    handler = new GetEintraegeQueryHandler(repository, mockPrisma);
   });
 
   afterEach(() => {
@@ -291,6 +299,92 @@ describe('GetEintraegeQueryHandler', () => {
       for (let i = 1; i < result.value!.length; i++) {
         expect(result.value![i].sequenceNumber).toBeGreaterThan(result.value![i - 1].sequenceNumber);
       }
+    });
+  });
+
+  describe('Story 5.4: linkedErinnerung', () => {
+    it('sollte linkedErinnerung enthalten wenn Erinnerung mit etbEntryId existiert', async () => {
+      // Given: ETB mit Eintrag
+      const einsatzId = createValidTestId('einsatz10');
+      const userId = createValidTestId('user0010');
+      const etb = createTestEtb({ einsatzId, userId, entriesCount: 2 });
+      await repository.save(etb);
+
+      const eintragId = etb.eintraege[0].id.value;
+
+      // Mock: Erinnerung mit etbEntryId existiert
+      mockPrisma.erinnerung.findMany = jest.fn().mockResolvedValue([{ id: 'erinnerung-id-1', titel: 'Follow-up Test', etbEntryId: eintragId }]);
+
+      const query = new GetEintraegeQuery(etb.id.value);
+
+      // When
+      const result = await handler.execute(query);
+
+      // Then
+      expect(result.isSuccess).toBe(true);
+      const linkedEntry = result.value!.find((e) => e.id === eintragId);
+      expect(linkedEntry?.linkedErinnerung).toEqual({
+        id: 'erinnerung-id-1',
+        titel: 'Follow-up Test',
+      });
+
+      // Eintrag ohne Verknüpfung sollte null haben
+      const unlinkedEntry = result.value!.find((e) => e.id !== eintragId);
+      expect(unlinkedEntry?.linkedErinnerung).toBeNull();
+    });
+
+    it('sollte linkedErinnerung = null haben wenn keine Erinnerung verknüpft', async () => {
+      // Given: ETB mit Eintrag, keine verknüpfte Erinnerung
+      const einsatzId = createValidTestId('einsatz11');
+      const userId = createValidTestId('user0011');
+      const etb = createTestEtb({ einsatzId, userId, entriesCount: 1 });
+      await repository.save(etb);
+
+      // Mock: Keine Erinnerungen gefunden
+      mockPrisma.erinnerung.findMany = jest.fn().mockResolvedValue([]);
+
+      const query = new GetEintraegeQuery(etb.id.value);
+
+      // When
+      const result = await handler.execute(query);
+
+      // Then
+      expect(result.isSuccess).toBe(true);
+      expect(result.value![0].linkedErinnerung).toBeNull();
+    });
+
+    it('sollte einsatzId im where-Clause fuer linkedErinnerung Query enthalten', async () => {
+      // Given: ETB mit Eintrag
+      const einsatzId = createValidTestId('einsatz13');
+      const userId = createValidTestId('user0013');
+      const etb = createTestEtb({ einsatzId, userId, entriesCount: 1 });
+      await repository.save(etb);
+
+      const eintragId = etb.eintraege[0].id.value;
+
+      // Mock: Verifiziere dass einsatzId-Filter im Query enthalten ist
+      mockPrisma.erinnerung.findMany = jest.fn().mockImplementation((args) => {
+        // Prüfe dass einsatzId im where-Clause ist
+        expect(args.where.einsatzId).toBe(einsatzId);
+        return Promise.resolve([]);
+      });
+
+      const query = new GetEintraegeQuery(etb.id.value);
+
+      // When
+      const result = await handler.execute(query);
+
+      // Then
+      expect(result.isSuccess).toBe(true);
+      expect(mockPrisma.erinnerung.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            einsatzId: einsatzId,
+            etbEntryId: { in: [eintragId] },
+            isDeleted: false,
+          }),
+        }),
+      );
     });
   });
 });

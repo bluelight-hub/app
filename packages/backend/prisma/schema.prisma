@@ -31,6 +31,9 @@ model User {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
+  // Escalation Configuration (Story 4.8)
+  defaultEscalationTargetId String? @db.VarChar(30) // Optional: Nächste Eskalationsstufe (User ID)
+
   // Soft Delete Fields
   isDeleted Boolean   @default(false)
   deletedAt DateTime?
@@ -151,6 +154,43 @@ model User {
   // ========================================
   einsatzTeilnahmen EinsatzTeilnehmer[]
 
+  // ========================================
+  // Erinnerungen Relations (Story 1.1 Erinnerungen)
+  // ========================================
+  createdErinnerungen            Erinnerung[]              @relation("ErinnerungCreator")
+  deletedErinnerungen            Erinnerung[]              @relation("ErinnerungDeleter") // Story 1.4: Soft-Delete Audit Trail
+  acknowledgedErinnerungen       Erinnerung[]              @relation("ErinnerungAcknowledger") // Story 1.6: Acknowledge Audit Trail
+  snoozedErinnerungen            Erinnerung[]              @relation("ErinnerungSnoozer") // Story 2.1: Snooze Audit Trail
+  erledigteErinnerungen          Erinnerung[]              @relation("ErinnerungErledigter") // Story 2.5: Erledigt Audit Trail
+  assignedErinnerungen           Erinnerung[]              @relation("ErinnerungAssignedTo") // Story 3.3/3.4: Zugewiesene Erinnerungen
+  assignedByErinnerungen         Erinnerung[]              @relation("ErinnerungAssigner") // Story 3.3/3.4: Von mir zugewiesene Erinnerungen
+  beauftragteEskalationen        Erinnerung[]              @relation("ErinnerungEskalationsPerson") // Story 4.1: Mir zugewiesene Eskalationen
+  previouslyAssignedErinnerungen Erinnerung[]              @relation("ErinnerungPreviousAssignee") // Story 4.5
+  updatedErinnerungKonfiguration ErinnerungKonfiguration[] @relation("ErinnerungKonfigurationUpdater") // Story 4.3: Konfigurations-Update Audit Trail
+
+  // ========================================
+  // Erinnerungsvorlagen Relations (Story 6.1)
+  // ========================================
+  createdErinnerungsvorlagen Erinnerungsvorlage[] @relation("ErinnerungsvorlageCreator")
+  deletedErinnerungsvorlagen Erinnerungsvorlage[] @relation("ErinnerungsvorlageDeleter")
+
+  // ========================================
+  // Führungsrhythmus-Template Relations (Story 6.6)
+  // ========================================
+  createdFuehrungsrhythmusTemplates FuehrungsrhythmusTemplate[] @relation("FuehrungsrhythmusTemplateCreator")
+  deletedFuehrungsrhythmusTemplates FuehrungsrhythmusTemplate[] @relation("FuehrungsrhythmusTemplateDeleter")
+
+  // ========================================
+  // Notizen Relations (Story 7.1)
+  // ========================================
+  createdNotizen Notiz[] @relation("NotizCreator")
+  deletedNotizen Notiz[] @relation("NotizDeleter")
+
+  // ========================================
+  // Kategorien Relations
+  // ========================================
+  erstellteKategorien Kategorie[] @relation("KategorieCreator")
+
   // Indexes
   @@index([username], map: "idx_user_username")
   @@index([role, isActive], map: "idx_user_role_active")
@@ -212,10 +252,49 @@ model Einsatz {
   // Einsatz-Teilnehmer Relation (1:N, Story 115)
   teilnehmer EinsatzTeilnehmer[]
 
+  // Erinnerungen Relation (1:N, Story 1.1 Erinnerungen)
+  erinnerungen Erinnerung[]
+
+  // Führungsrhythmus-Templates Relation (1:N, Einsatz-scoped)
+  fuehrungsrhythmusTemplates FuehrungsrhythmusTemplate[] @relation("FuehrungsrhythmusTemplateEinsatz")
+
+  // Notizen Relation (1:N, Story 7.1)
+  notizen Notiz[]
+
+  // Kategorien Relation (1:N)
+  kategorien Kategorie[]
+
   // Indexes
   @@index([status, createdAt])
   @@index([createdBy])
   @@map("einsaetze")
+}
+
+// ========================================
+// Kategorien Models
+// ========================================
+
+model Kategorie {
+  id           String    @id @default(cuid())
+  name         String    @db.VarChar(100)
+  farbe        String    @db.VarChar(7)
+  einsatzId    String    @map("einsatz_id")
+  erstelltVon  String    @map("erstellt_von") @db.VarChar(100)
+  geloeschtAm  DateTime? @map("geloescht_am")
+  geloeschtVon String?   @map("geloescht_von") @db.VarChar(100)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  einsatz      Einsatz      @relation(fields: [einsatzId], references: [id], onDelete: Cascade)
+  ersteller    User         @relation("KategorieCreator", fields: [erstelltVon], references: [id], onDelete: Restrict)
+  // Story 8.2: Gegenrelationen für Erinnerungen und Notizen
+  erinnerungen Erinnerung[] @relation("ErinnerungKategorie")
+  notizen      Notiz[]      @relation("NotizKategorie")
+
+  @@unique([name, einsatzId], name: "kategorie_name_einsatz_unique")
+  @@index([einsatzId, geloeschtAm])
+  @@map("kategorien")
 }
 
 // ========================================
@@ -1273,4 +1352,267 @@ model EinsatzTeilnehmer {
   @@index([userId])
   @@index([einsatzId, leftAt]) // Aktive Teilnehmer pro Einsatz
   @@map("einsatz_teilnehmer")
+}
+
+// ========================================
+// Erinnerungen (Story 1.1 - Quick Create)
+// Epic 1: Persönliche Erinnerungen erstellen und bestätigen
+// ========================================
+
+/// Erinnerung Status Enum
+/// Definiert den Lebenszyklus einer Erinnerung gemäß State Machine
+enum ErinnerungStatus {
+  GEPLANT // Initial: Erinnerung wartet auf Fälligkeit
+  AUSGELOEST // Timer ist abgelaufen, Alarm wurde ausgelöst
+  ACKNOWLEDGED // User hat Erinnerung bestätigt
+  SNOOZED // Temporär verschoben (mit neuem Timer)
+  ESKALIERT // An Eskalationsperson weitergeleitet
+  ERLEDIGT // Abgeschlossen/Erledigt
+}
+
+/// Erinnerung: Zeitgesteuerte Benachrichtigung für FüKw-Personal
+/// - Cascade-Delete mit Einsatz (Erinnerungen sind transient)
+/// - Status-Transitions folgen der State Machine in ErinnerungStatus Value Object
+/// - Timer wird client-seitig verwaltet, Server speichert nur State
+model Erinnerung {
+  id               String           @id @default(cuid())
+  einsatzId        String           @map("einsatz_id")
+  titel            String           @db.VarChar(100)
+  beschreibung     String?          @db.VarChar(500)
+  faelligAm        DateTime         @map("faellig_am")
+  status           ErinnerungStatus @default(GEPLANT)
+  ausgeloestAm     DateTime?        @map("ausgeloest_am") // Story 1.5: Zeitpunkt der Auslösung
+  acknowledgedAm   DateTime?        @map("acknowledged_am") // Story 1.6: Zeitpunkt der Bestätigung
+  acknowledgedBy   String?          @map("acknowledged_by") @db.VarChar(100) // Story 1.6: User der bestätigt hat
+  snoozedAt        DateTime?        @map("snoozed_at") // Story 2.1: Zeitpunkt der Snooze-Aktion
+  snoozedBy        String?          @map("snoozed_by") @db.VarChar(100) // Story 2.1: User der snoozed hat
+  snoozedUntil     DateTime?        @map("snoozed_until") // Story 2.1: Neue Fälligkeit nach Snooze
+  snoozeCount      Int              @default(0) @map("snooze_count") // Story 2.1: Anzahl der Snoozes
+  erledigtAm       DateTime?        @map("erledigt_am") // Story 2.5: Zeitpunkt der Erledigung
+  erledigtBy       String?          @map("erledigt_by") @db.VarChar(100) // Story 2.5: User der erledigt hat
+  erledigungsNotiz String?          @map("erledigungs_notiz") @db.VarChar(500) // Story 2.5: Optionale Notiz
+  requiresNote     Boolean          @default(false) @map("requires_note") // Story 2.6: Pflicht-Notiz bei Erledigung
+  // NOTE: Kein Index auf requiresNote - bei Bedarf hinzufügen wenn Filter-Queries benötigt werden (YAGNI)
+
+  // Zuweisung (Story 3.3/3.4) - Optionale Zuweisung an einen User
+  assignedToId String?   @map("assigned_to_id") @db.VarChar(100)
+  assignedBy   String?   @map("assigned_by") @db.VarChar(100)
+  assignedAt   DateTime? @map("assigned_at")
+
+  // Escalation (Story 4.1) - Optionale Eskalationsperson
+  eskalationsPersonId      String? @map("eskalations_person_id") @db.VarChar(100)
+  // Story 4.10: Delegation ohne Eskalationsrecht
+  eskalationNurAnErsteller Boolean @default(false) @map("eskalation_nur_an_ersteller")
+
+  // Story 5.0: ETB-Integration - Bidirektionale Verknüpfung
+  etbEntryId           String?   @map("etb_entry_id") @db.VarChar(100)
+  // Story 7.6: Referenz zur Quell-Notiz (Konvertierung Notiz → Erinnerung)
+  notizId              String?   @map("notiz_id")
+  // Story 8.2: Kategorie-Referenz
+  kategorieId          String?   @map("kategorie_id")
+  // Story 4.5: Eskalations-Tracking (Last Escalation)
+  escalatedAt          DateTime? @map("escalated_at")
+  // Story 4.9: Eskalations-Statistik
+  wurdeEskaliert       Boolean   @default(false) @map("wurde_eskaliert")
+  eskaliertAm          DateTime? @map("eskaliert_am") // First Escalation Timestamp
+  previousAssigneeId   String?   @map("previous_assignee_id") @db.VarChar(100)
+  // Hotfix: Intensivierungs-Counter um Endlos-Loop zu verhindern
+  intensivierungsCount Int       @default(0) @map("intensivierungs_count")
+
+  // Recurring (Story 6.4) - Wiederkehrende Erinnerungen
+  isRecurring              Boolean   @default(false) @map("is_recurring")
+  recurringIntervalMinutes Int?      @map("recurring_interval_minutes")
+  recurringEndDate         DateTime? @map("recurring_end_date")
+  recurringMaxCount        Int?      @map("recurring_max_count")
+  recurringCurrentCount    Int       @default(0) @map("recurring_current_count")
+  parentErinnerungId       String?   @map("parent_erinnerung_id")
+  recurringSequenceNumber  Int?      @map("recurring_sequence_number")
+
+  erstelltVon String @map("erstellt_von") @db.VarChar(100)
+
+  // Audit Trail
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Soft-Delete (Story 1.4) - Keine physische Löschung (DRK-Compliance)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedAt DateTime? @map("deleted_at")
+  deletedBy String?   @map("deleted_by") @db.VarChar(100)
+
+  // Relations
+  einsatz           Einsatz      @relation(fields: [einsatzId], references: [id], onDelete: Cascade)
+  ersteller         User         @relation("ErinnerungCreator", fields: [erstelltVon], references: [id], onDelete: Restrict)
+  loescher          User?        @relation("ErinnerungDeleter", fields: [deletedBy], references: [id], onDelete: Restrict)
+  acknowledger      User?        @relation("ErinnerungAcknowledger", fields: [acknowledgedBy], references: [id], onDelete: Restrict) // Story 1.6
+  snoozer           User?        @relation("ErinnerungSnoozer", fields: [snoozedBy], references: [id], onDelete: Restrict) // Story 2.1
+  erledigter        User?        @relation("ErinnerungErledigter", fields: [erledigtBy], references: [id], onDelete: Restrict) // Story 2.5
+  assignedTo        User?        @relation("ErinnerungAssignedTo", fields: [assignedToId], references: [id], onDelete: Restrict) // Story 3.3/3.4: Zugewiesene Person
+  assigner          User?        @relation("ErinnerungAssigner", fields: [assignedBy], references: [id], onDelete: Restrict) // Story 3.3/3.4: Wer hat zugewiesen
+  eskalationsPerson User?        @relation("ErinnerungEskalationsPerson", fields: [eskalationsPersonId], references: [id], onDelete: Restrict) // Story 4.1
+  previousAssignee  User?        @relation("ErinnerungPreviousAssignee", fields: [previousAssigneeId], references: [id], onDelete: Restrict) // Story 4.5
+  parentErinnerung  Erinnerung?  @relation("RecurringParent", fields: [parentErinnerungId], references: [id], onDelete: SetNull) // Story 6.4
+  childErinnerungen Erinnerung[] @relation("RecurringParent") // Story 6.4
+  notiz             Notiz?       @relation(fields: [notizId], references: [id], onDelete: SetNull) // Story 7.6
+  kategorie         Kategorie?   @relation("ErinnerungKategorie", fields: [kategorieId], references: [id], onDelete: SetNull) // Story 8.2
+
+  // Indexes
+  @@index([einsatzId])
+  @@index([einsatzId, faelligAm]) // Sortierte Abfrage nach Fälligkeit
+  @@index([einsatzId, status]) // Filter nach Status
+  @@index([status])
+  @@index([erstelltVon])
+  @@index([isDeleted]) // Effiziente Filterung für Soft-Delete Boolean (Story 1.4)
+  @@index([deletedAt]) // Effiziente Filterung für Soft-Delete Timestamp (Story 1.4)
+  @@index([isRecurring]) // Story 6.4: Filter für wiederkehrende Erinnerungen
+  @@index([parentErinnerungId]) // Story 6.4: Lookup für Kind-Instanzen
+  @@index([notizId]) // Story 7.6: Lookup für Notiz-Referenz
+  @@index([kategorieId]) // Story 8.2: Filter nach Kategorie
+  @@map("erinnerungen")
+}
+
+// ========================================
+// Erinnerung Konfiguration (Story 4.3)
+// ========================================
+
+// Globale Konfiguration für Erinnerungen (Singleton Pattern)
+model ErinnerungKonfiguration {
+  id                        String @id @default(cuid())
+  eskalationsTimeoutSeconds Int    @default(300) // 5 Minuten Default
+
+  // Audit-Trail
+  updatedAt DateTime @updatedAt
+  updatedBy String   @db.VarChar(100)
+
+  // Relations
+  updater User @relation("ErinnerungKonfigurationUpdater", fields: [updatedBy], references: [id], onDelete: Restrict)
+
+  @@map("erinnerung_konfiguration")
+}
+
+// ========================================
+// Erinnerungsvorlagen (Story 6.1)
+// ========================================
+
+model Erinnerungsvorlage {
+  id           String  @id @default(cuid())
+  titel        String  @db.VarChar(100)
+  beschreibung String? @db.VarChar(500)
+  minuten      Int // Zeitdauer in Minuten (relativ)
+
+  // Audit Trail
+  createdBy String   @db.VarChar(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Soft-Delete (Story 6.2)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.VarChar(100)
+
+  // Relations
+  creator User  @relation("ErinnerungsvorlageCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  deleter User? @relation("ErinnerungsvorlageDeleter", fields: [deletedBy], references: [id], onDelete: Restrict)
+
+  @@index([isDeleted])
+  @@index([createdBy])
+  @@map("erinnerungsvorlagen")
+}
+
+// ========================================
+// Führungsrhythmus-Template (Story 6.6)
+// ========================================
+
+enum FuehrungsrhythmusTemplateScope {
+  EINSATZ
+  GLOBAL
+}
+
+model FuehrungsrhythmusTemplate {
+  id           String                         @id @default(cuid())
+  name         String                         @db.VarChar(100)
+  beschreibung String?                        @db.VarChar(500)
+  scope        FuehrungsrhythmusTemplateScope @default(GLOBAL)
+  einsatzId    String?                        @db.VarChar(30)
+
+  // Audit Trail
+  createdBy String   @db.VarChar(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Soft-Delete
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  deletedBy String?   @db.VarChar(100)
+
+  // Relations
+  creator   User                       @relation("FuehrungsrhythmusTemplateCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  deleter   User?                      @relation("FuehrungsrhythmusTemplateDeleter", fields: [deletedBy], references: [id], onDelete: Restrict)
+  einsatz   Einsatz?                   @relation("FuehrungsrhythmusTemplateEinsatz", fields: [einsatzId], references: [id], onDelete: Restrict)
+  eintraege FuehrungsrhythmusEintrag[]
+
+  @@index([isDeleted])
+  @@index([createdBy])
+  @@index([scope])
+  @@index([einsatzId])
+  @@map("fuehrungsrhythmus_templates")
+}
+
+model FuehrungsrhythmusEintrag {
+  id                          String @id @default(cuid())
+  fuehrungsrhythmusTemplateId String @map("fuehrungsrhythmus_template_id")
+  titel                       String @db.VarChar(100)
+  intervallMinuten            Int    @map("intervall_minuten")
+  offsetMinuten               Int    @default(0) @map("offset_minuten")
+  sortOrder                   Int    @map("sort_order")
+
+  // Audit Trail
+  createdAt DateTime @default(now())
+
+  // Relations
+  template FuehrungsrhythmusTemplate @relation(fields: [fuehrungsrhythmusTemplateId], references: [id], onDelete: Cascade)
+
+  @@index([fuehrungsrhythmusTemplateId])
+  @@map("fuehrungsrhythmus_eintraege")
+}
+
+// ========================================
+// Notizen (Story 7.1)
+// Epic 7: Notizen im Einsatz-Kontext
+// ========================================
+
+model Notiz {
+  id          String  @id @default(cuid())
+  einsatzId   String  @map("einsatz_id")
+  titel       String  @db.VarChar(100)
+  inhalt      String? @db.Text
+  kategorie   String? @db.VarChar(50) // LEGACY: Altes Freitext-Feld (wird nicht mehr im UI genutzt)
+  // Story 8.2: Kategorie-Referenz (ersetzt das alte Freitext-Feld)
+  kategorieId String? @map("kategorie_id")
+
+  // Audit Trail
+  erstelltVon String   @map("erstellt_von") @db.VarChar(100)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Team-Sichtbarkeit (Story 7.7)
+  istTeamsichtbar Boolean @default(false) @map("ist_teamsichtbar")
+
+  // Soft-Delete (NO-DELETE Policy)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedAt DateTime? @map("deleted_at")
+  deletedBy String?   @map("deleted_by") @db.VarChar(100)
+
+  // Relations
+  einsatz      Einsatz      @relation(fields: [einsatzId], references: [id], onDelete: Cascade)
+  ersteller    User         @relation("NotizCreator", fields: [erstelltVon], references: [id], onDelete: Restrict)
+  loescher     User?        @relation("NotizDeleter", fields: [deletedBy], references: [id], onDelete: Restrict)
+  erinnerungen Erinnerung[] // Story 7.6: Rück-Relation für Notiz → Erinnerung Konvertierung
+  kategorieRef Kategorie?   @relation("NotizKategorie", fields: [kategorieId], references: [id], onDelete: SetNull) // Story 8.2
+
+  @@index([einsatzId, isDeleted, createdAt])
+  @@index([einsatzId, isDeleted, istTeamsichtbar, createdAt])
+  @@index([einsatzId, createdAt])
+  @@index([erstelltVon])
+  @@index([kategorieId]) // Story 8.2: Filter nach Kategorie
+  @@map("notizen")
 }

@@ -2,39 +2,28 @@ import { Inject, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { createId } from '@paralleldrive/cuid2';
 
-// biome-ignore lint/style/useImportType: DomainEvent wird fuer Runtime-Typisierung benoetigt
 import { DomainEvent } from '@domain/common/domain-event';
 import { Result } from '@domain/common/result';
-// biome-ignore lint/style/useImportType: TransactionContext wird fuer Runtime-Typisierung benoetigt
 import { TransactionContext } from '@domain/common/transaction';
-// biome-ignore lint/style/useImportType: ILogger wird fuer NestJS DI benoetigt
 import { ILogger } from '@domain/ports/i-logger.port';
 import { ServerAccessToken } from '@domain/aggregates/server-access-token.aggregate';
 import { UserAggregate } from '@domain/aggregates/user.aggregate';
 import { InviteCode } from '@domain/aggregates/invite-code.aggregate';
-// biome-ignore lint/style/useImportType: IOutboxRepository wird fuer NestJS DI benoetigt
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
-// biome-ignore lint/style/useImportType: IServerAccessTokenRepository wird fuer NestJS DI benoetigt
 import { IServerAccessTokenRepository } from '@domain/repositories/i-server-access-token.repository';
-// biome-ignore lint/style/useImportType: IUserRepository wird fuer NestJS DI benoetigt
 import { IUserRepository } from '@domain/repositories/i-user.repository';
-// biome-ignore lint/style/useImportType: IInviteCodeRepository wird fuer NestJS DI benoetigt
 import { IInviteCodeRepository } from '@domain/repositories/i-invite-code.repository';
 import { TokenHash } from '@domain/value-objects/token-hash';
 import { Username } from '@domain/value-objects/username';
 import { UserRole } from '@domain/value-objects/user-role';
 
 import { TransactionalCommandHandler } from '@/application/common/handlers/transactional-command.handler';
-// biome-ignore lint/style/useImportType: PrismaService wird zur Laufzeit fuer NestJS DI benoetigt
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { INVITE_CODE_REPOSITORY, LOGGER, OUTBOX_REPOSITORY, SERVER_ACCESS_TOKEN_REPOSITORY, USER_REPOSITORY } from '@infrastructure/di-tokens';
 import { BCRYPT_COST_FACTOR_PASSWORD, BCRYPT_COST_FACTOR_TOKEN } from '@/infrastructure/config/security.constants';
-// biome-ignore lint/style/useImportType: HibpService wird fuer NestJS DI benoetigt
 import { HibpService } from '@/infrastructure/password/hibp.service';
 
-// biome-ignore lint/style/useImportType: CompleteSetupCommand wird fuer Runtime-Typisierung benoetigt
 import { CompleteSetupCommand } from './complete-setup.command';
-// biome-ignore lint/style/useImportType: SetupResponseDto wird fuer Runtime-Typisierung benoetigt
 import { SetupResponseDto } from '../dto/setup-response.dto';
 
 /**

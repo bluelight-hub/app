@@ -135,6 +135,86 @@ export const EVENT_NAMES = {
     /** Event: Server wurde von INSECURE zu SECURE Mode migriert */
     MIGRATED_TO_SECURE: 'server_config.migrated_to_secure',
   },
+
+  /**
+   * Erinnerung Bounded Context Events (Story 1.1+)
+   */
+  ERINNERUNG: {
+    /** Event: Neue Erinnerung wurde erstellt */
+    ERSTELLT: 'erinnerung.erstellt',
+    /** Event: Existierende Erinnerung wurde aktualisiert (Story 1.3) */
+    AKTUALISIERT: 'erinnerung.aktualisiert',
+    /** Event: Erinnerung wurde ausgelöst (Timer abgelaufen) */
+    AUSGELOEST: 'erinnerung.ausgeloest',
+    /** Event: Erinnerung wurde bestätigt (acknowledged) */
+    ACKNOWLEDGED: 'erinnerung.acknowledged',
+    /** Event: Erinnerung wurde verschoben (snoozed) */
+    SNOOZED: 'erinnerung.snoozed',
+    /** Event: Erinnerung wurde nach Snooze erneut ausgelöst (Story 2.2) */
+    RETRIGGERED: 'erinnerung.retriggered',
+    /** Event: Erinnerung wurde eskaliert */
+    ESKALIERT: 'erinnerung.eskaliert',
+    /** Event: Erinnerung wurde erledigt */
+    ERLEDIGT: 'erinnerung.erledigt',
+    /** Event: Erinnerung wurde gelöscht (Soft-Delete) (Story 1.4) */
+    GELOESCHT: 'erinnerung.geloescht',
+    /** Event: Erinnerung wurde einem User zugewiesen (Story 3.1 Vorbereitung für 3.3) */
+    ASSIGNED: 'erinnerung.assigned',
+    /** Event: Erinnerung wurde intensiviert (Dauerton nach Timeout ohne Eskalationsperson) (Story 4.4) */
+    INTENSIVIERT: 'erinnerung.intensiviert',
+    /** Event: Neue wiederkehrende Instanz wurde erstellt (Story 6.4) */
+    WIEDERKEHRENDE_INSTANZ_ERSTELLT: 'erinnerung.wiederkehrende-instanz-erstellt',
+    /** Event: Wiederkehrende Serie wurde gestoppt (Story 6.5) */
+    SERIE_GESTOPPT: 'erinnerung.serie-gestoppt',
+  },
+
+  /**
+   * Erinnerungsvorlage Bounded Context Events (Story 6.1)
+   */
+  ERINNERUNGSVORLAGE: {
+    /** Event: Neue Erinnerungsvorlage wurde erstellt */
+    ERSTELLT: 'erinnerungsvorlage.erstellt',
+    /** Event: Erinnerungsvorlage wurde aktualisiert (Story 6.2) */
+    AKTUALISIERT: 'erinnerungsvorlage.aktualisiert',
+    /** Event: Erinnerungsvorlage wurde geloescht (Story 6.2) */
+    GELOESCHT: 'erinnerungsvorlage.geloescht',
+  },
+
+  /**
+   * Notiz Bounded Context Events (Story 7.1)
+   */
+  NOTIZ: {
+    /** Event: Neue Notiz wurde erstellt */
+    ERSTELLT: 'notiz.erstellt',
+    /** Event: Notiz wurde aktualisiert (Story 7.3) */
+    AKTUALISIERT: 'notiz.aktualisiert',
+    /** Event: Notiz wurde geloescht (Soft-Delete) (Story 7.4) */
+    GELOESCHT: 'notiz.geloescht',
+  },
+
+  /**
+   * Fuehrungsrhythmus-Template Bounded Context Events (Story 6.6)
+   */
+  FUEHRUNGSRHYTHMUS_TEMPLATE: {
+    /** Event: Neues Fuehrungsrhythmus-Template wurde erstellt */
+    ERSTELLT: 'fuehrungsrhythmus-template.erstellt',
+    /** Event: Fuehrungsrhythmus-Template wurde geloescht */
+    GELOESCHT: 'fuehrungsrhythmus-template.geloescht',
+    /** Event: Fuehrungsrhythmus-Template wurde fuer einen Einsatz aktiviert (Story 6.7) */
+    AKTIVIERT: 'fuehrungsrhythmus-template.aktiviert',
+    /** Event: Fuehrungsrhythmus-Template wurde aktualisiert (Story 6.8) */
+    AKTUALISIERT: 'fuehrungsrhythmus-template.aktualisiert',
+  },
+
+  /**
+   * Kategorie Bounded Context Events (Story 8.1)
+   */
+  KATEGORIE: {
+    /** Event: Neue Kategorie wurde erstellt */
+    ERSTELLT: 'kategorie.erstellt',
+    /** Event: Kategorie wurde geloescht (Soft-Delete) */
+    GELOESCHT: 'kategorie.geloescht',
+  },
 } as const;
 
 /**
@@ -157,4 +237,9 @@ export type EventName =
   | (typeof EVENT_NAMES.USER)[keyof typeof EVENT_NAMES.USER]
   | (typeof EVENT_NAMES.SERVER_ACCESS_TOKEN)[keyof typeof EVENT_NAMES.SERVER_ACCESS_TOKEN]
   | (typeof EVENT_NAMES.INVITE_CODE)[keyof typeof EVENT_NAMES.INVITE_CODE]
-  | (typeof EVENT_NAMES.SERVER_CONFIG)[keyof typeof EVENT_NAMES.SERVER_CONFIG];
+  | (typeof EVENT_NAMES.SERVER_CONFIG)[keyof typeof EVENT_NAMES.SERVER_CONFIG]
+  | (typeof EVENT_NAMES.ERINNERUNG)[keyof typeof EVENT_NAMES.ERINNERUNG]
+  | (typeof EVENT_NAMES.ERINNERUNGSVORLAGE)[keyof typeof EVENT_NAMES.ERINNERUNGSVORLAGE]
+  | (typeof EVENT_NAMES.NOTIZ)[keyof typeof EVENT_NAMES.NOTIZ]
+  | (typeof EVENT_NAMES.FUEHRUNGSRHYTHMUS_TEMPLATE)[keyof typeof EVENT_NAMES.FUEHRUNGSRHYTHMUS_TEMPLATE]
+  | (typeof EVENT_NAMES.KATEGORIE)[keyof typeof EVENT_NAMES.KATEGORIE];

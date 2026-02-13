@@ -3,18 +3,14 @@ import { TransactionalCommandHandler } from '@application/common/handlers/transa
 import type { DomainEvent } from '@domain/common/domain-event';
 import { Result } from '@domain/common/result';
 import type { TransactionContext } from '@domain/kraefte/repositories/i-einsatz-fahrzeug.repository';
-// biome-ignore lint/style/useImportType: IEinsatzFahrzeugRepository needed for DI at runtime
 import { IEinsatzFahrzeugRepository } from '@domain/kraefte/repositories/i-einsatz-fahrzeug.repository';
-// biome-ignore lint/style/useImportType: IFahrzeugtypRepository needed for DI at runtime
 import { IFahrzeugtypRepository } from '@domain/kraefte/repositories/i-fahrzeugtyp.repository';
-// biome-ignore lint/style/useImportType: IOutboxRepository needed for DI at runtime
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { EinsatzFahrzeugId } from '@domain/kraefte/value-objects/einsatz-fahrzeug-id';
 import { FahrzeugtypId } from '@domain/kraefte/value-objects/fahrzeugtyp-id';
 import { EINSATZ_FAHRZEUG_ERROR_CODES, EinsatzFahrzeugError } from '@domain/kraefte/common/einsatz-fahrzeug-error-codes';
 import { KRAEFTE_REPOSITORIES, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
-// biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { EinsatzFahrzeugDto } from '../../dto';
 import { EinsatzFahrzeugQueryMapper } from '../../queries/einsatz-fahrzeug-query.mapper';

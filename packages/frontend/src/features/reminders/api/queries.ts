@@ -1,0 +1,269 @@
+/**
+ * Erinnerungen Query Hooks
+ *
+ * Query Keys Factory und Query Hooks für Erinnerungen.
+ *
+ * **Story 1.1 AC6:** "Erinnerungen werden im Backend pro Einsatz gespeichert"
+ */
+
+import { api } from '@/shared';
+import { logger } from '@/shared/lib/logger';
+import type {
+  ErinnerungResponseDto,
+  ErinnerungStatistikDto,
+  PersonStatistikDto,
+  ZeitverlaufStatistikDto,
+  EskalationsAnalyseDto,
+  ReaktionszeitStatistikDto,
+  FuehrungsrhythmusStatistikDto,
+  EinsatzVergleichDto,
+  ResponseError,
+} from '@/shared';
+import { useQuery } from '@tanstack/react-query';
+
+/**
+ * Query Keys Factory für Erinnerungen.
+ *
+ * Hierarchische Struktur für granulare Cache-Invalidierung.
+ * Pattern: all -> lists -> list(einsatzId)
+ *
+ * @example
+ * ```typescript
+ * // Alle Erinnerungen-Caches invalidieren
+ * queryClient.invalidateQueries({ queryKey: ERINNERUNG_QUERY_KEYS.all });
+ *
+ * // Nur Listen für spezifischen Einsatz invalidieren
+ * queryClient.invalidateQueries({ queryKey: ERINNERUNG_QUERY_KEYS.list(einsatzId) });
+ * ```
+ */
+export const ERINNERUNG_QUERY_KEYS = {
+  all: ['erinnerungen'] as const,
+  lists: () => [...ERINNERUNG_QUERY_KEYS.all, 'list'] as const,
+  list: (einsatzId: string) => [...ERINNERUNG_QUERY_KEYS.lists(), einsatzId] as const,
+  details: () => [...ERINNERUNG_QUERY_KEYS.all, 'detail'] as const,
+  detail: (id: string) => [...ERINNERUNG_QUERY_KEYS.details(), id] as const,
+  statistik: (einsatzId: string) => [...ERINNERUNG_QUERY_KEYS.all, 'statistik', einsatzId] as const,
+  personStatistik: (einsatzId: string) => [...ERINNERUNG_QUERY_KEYS.all, 'person-statistik', einsatzId] as const,
+  zeitverlauf: (einsatzId: string) => [...ERINNERUNG_QUERY_KEYS.all, 'zeitverlauf', einsatzId] as const,
+  eskalationsAnalyse: (einsatzId: string) => [...ERINNERUNG_QUERY_KEYS.all, 'eskalations-analyse', einsatzId] as const,
+  reaktionszeit: (einsatzId: string) => [...ERINNERUNG_QUERY_KEYS.all, 'reaktionszeit', einsatzId] as const,
+  fuehrungsrhythmus: (einsatzId: string) => [...ERINNERUNG_QUERY_KEYS.all, 'fuehrungsrhythmus', einsatzId] as const,
+  vergleich: (einsatzId: string, vergleichsIds: string[]) => [...ERINNERUNG_QUERY_KEYS.all, 'vergleich', einsatzId, ...vergleichsIds.sort()] as const,
+} as const;
+
+/**
+ * Berechnet Retry-Delay mit Exponential Backoff.
+ *
+ * @param attemptIndex - Aktueller Retry-Versuch (0-basiert)
+ * @returns Delay in Millisekunden (max 30 Sekunden)
+ */
+export function calculateRetryDelay(attemptIndex: number): number {
+  return Math.min(1000 * 2 ** attemptIndex, 30_000);
+}
+
+export interface UseErinnerungenByEinsatzOptions {
+  /**
+   * Einsatz-ID für Erinnerungen-Abfrage
+   */
+  einsatzId?: string;
+}
+
+/**
+ * Hook für Erinnerungen-Abfrage anhand der Einsatz-ID
+ *
+ * Ruft alle Erinnerungen für einen Einsatz ab. Behandelt 404-Fehler
+ * als leere Liste (noch keine Erinnerungen vorhanden).
+ *
+ * @param options - Optionen für die Erinnerungen-Abfrage
+ * @returns Array von Erinnerungen oder leeres Array
+ *
+ * @example
+ * ```tsx
+ * const { data: erinnerungen, isLoading } = useErinnerungenByEinsatz({
+ *   einsatzId: 'abc-123'
+ * });
+ *
+ * if (isLoading) return <Spinner />;
+ * if (!erinnerungen?.length) return <EmptyState>Keine Erinnerungen</EmptyState>;
+ *
+ * return <ErinnerungsList erinnerungen={erinnerungen} />;
+ * ```
+ */
+export const useErinnerungenByEinsatz = ({ einsatzId }: UseErinnerungenByEinsatzOptions) => {
+  return useQuery<ErinnerungResponseDto[], ResponseError>({
+    enabled: !!einsatzId,
+    queryKey: ERINNERUNG_QUERY_KEYS.list(einsatzId ?? ''),
+    queryFn: async () => {
+      if (!einsatzId) {
+        throw new Error('einsatzId must be provided');
+      }
+
+      try {
+        const response = await api.erinnerungen().erinnerungControllerGetByEinsatzVAlpha({
+          einsatzId,
+        });
+        return response.data ?? [];
+      } catch (error) {
+        // 404 bedeutet keine Erinnerungen vorhanden - leeres Array zurückgeben
+        const statusCode = (error as { status?: number })?.status || (error as { response?: { status?: number } })?.response?.status;
+
+        if (statusCode === 404) {
+          logger.debug('Keine Erinnerungen gefunden (404) - normaler Zustand', {
+            einsatzId,
+          });
+          return [];
+        }
+
+        logger.error('Failed to fetch Erinnerungen', error);
+        throw error;
+      }
+    },
+    staleTime: 30_000, // 30 Sekunden
+    retry: (failureCount, error) => {
+      // Kein Retry bei 404
+      const statusCode = (error as { status?: number })?.status || (error as { response?: { status?: number } })?.response?.status;
+      if (statusCode === 404) return false;
+      return failureCount < 3;
+    },
+    retryDelay: calculateRetryDelay,
+  });
+};
+
+/**
+ * Hook für Eskalations-Statistiken Abfrage
+ * Story 4.9: Statistiken anzeigen
+ */
+export const useErinnerungStatistik = (einsatzId?: string) => {
+  return useQuery<ErinnerungStatistikDto, ResponseError>({
+    enabled: !!einsatzId,
+    queryKey: ERINNERUNG_QUERY_KEYS.statistik(einsatzId ?? ''),
+    queryFn: async () => {
+      if (!einsatzId) throw new Error('einsatzId required');
+      const response = await api.erinnerungen().erinnerungControllerGetStatistikVAlpha({ einsatzId });
+      return response.data;
+    },
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
+  });
+};
+
+/**
+ * Hook für Personen-Statistiken Abfrage
+ * Story 9.2: Statistiken nach Person
+ */
+export const usePersonStatistik = (einsatzId?: string) => {
+  return useQuery<PersonStatistikDto, ResponseError>({
+    enabled: !!einsatzId,
+    queryKey: ERINNERUNG_QUERY_KEYS.personStatistik(einsatzId ?? ''),
+    queryFn: async () => {
+      if (!einsatzId) throw new Error('einsatzId required');
+      const response = await api.erinnerungen().erinnerungControllerGetPersonStatistikVAlpha({ einsatzId });
+      return response.data;
+    },
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
+  });
+};
+
+/**
+ * Hook für Zeitverlauf-Statistiken Abfrage
+ * Story 9.3: Zeitverlauf-Diagramm
+ */
+export const useZeitverlaufStatistik = (einsatzId?: string) => {
+  return useQuery<ZeitverlaufStatistikDto, ResponseError>({
+    enabled: !!einsatzId,
+    queryKey: ERINNERUNG_QUERY_KEYS.zeitverlauf(einsatzId ?? ''),
+    queryFn: async () => {
+      if (!einsatzId) throw new Error('einsatzId required');
+      const response = await api.erinnerungen().erinnerungControllerGetZeitverlaufStatistikVAlpha({ einsatzId });
+      return response.data;
+    },
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
+    retry: 3,
+    retryDelay: calculateRetryDelay,
+  });
+};
+
+/**
+ * Hook für Eskalations-Analyse Abfrage
+ * Story 9.4: Eskalations-Analyse
+ */
+export const useEskalationsAnalyse = (einsatzId?: string) => {
+  return useQuery<EskalationsAnalyseDto, ResponseError>({
+    enabled: !!einsatzId,
+    queryKey: ERINNERUNG_QUERY_KEYS.eskalationsAnalyse(einsatzId ?? ''),
+    queryFn: async () => {
+      if (!einsatzId) throw new Error('einsatzId required');
+      const response = await api.erinnerungen().erinnerungControllerGetEskalationsAnalyseVAlpha({ einsatzId });
+      return response.data;
+    },
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
+    retry: 3,
+    retryDelay: calculateRetryDelay,
+  });
+};
+
+/**
+ * Hook für Reaktionszeit-Statistik Abfrage
+ * Story 9.5: Reaktionszeit-Statistik
+ */
+export const useReaktionszeitStatistik = (einsatzId?: string) => {
+  return useQuery<ReaktionszeitStatistikDto, ResponseError>({
+    enabled: !!einsatzId,
+    queryKey: ERINNERUNG_QUERY_KEYS.reaktionszeit(einsatzId ?? ''),
+    queryFn: async () => {
+      if (!einsatzId) throw new Error('einsatzId required');
+      const response = await api.erinnerungen().erinnerungControllerGetReaktionszeitStatistikVAlpha({ einsatzId });
+      return response.data;
+    },
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
+    retry: 3,
+    retryDelay: calculateRetryDelay,
+  });
+};
+
+/**
+ * Hook fuer Fuehrungsrhythmus-Statistik Abfrage
+ * Story 9.8: Fuehrungsrhythmus-Statistik
+ */
+export const useFuehrungsrhythmusStatistik = (einsatzId?: string) => {
+  return useQuery<FuehrungsrhythmusStatistikDto, ResponseError>({
+    enabled: !!einsatzId,
+    queryKey: ERINNERUNG_QUERY_KEYS.fuehrungsrhythmus(einsatzId ?? ''),
+    queryFn: async () => {
+      if (!einsatzId) throw new Error('einsatzId required');
+      const response = await api.erinnerungen().erinnerungControllerGetFuehrungsrhythmusStatistikVAlpha({ einsatzId });
+      return response.data;
+    },
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
+    retry: 3,
+    retryDelay: calculateRetryDelay,
+  });
+};
+
+/**
+ * Hook fuer Einsatz-Vergleich Abfrage
+ * Story 9.9: Vergleich mit vorherigen Einsaetzen
+ */
+export const useEinsatzVergleich = (einsatzId?: string, vergleichsEinsatzIds?: string[]) => {
+  return useQuery<EinsatzVergleichDto, ResponseError>({
+    enabled: !!einsatzId && !!vergleichsEinsatzIds && vergleichsEinsatzIds.length > 0,
+    queryKey: ERINNERUNG_QUERY_KEYS.vergleich(einsatzId ?? '', vergleichsEinsatzIds ?? []),
+    queryFn: async () => {
+      if (!einsatzId) throw new Error('einsatzId required');
+      const response = await api.erinnerungen().erinnerungControllerGetVergleichVAlpha({
+        einsatzId,
+        vergleichsEinsatzIds: vergleichsEinsatzIds?.join(','),
+      });
+      return response.data;
+    },
+    staleTime: 60_000,
+    refetchOnWindowFocus: true,
+    retry: 3,
+    retryDelay: calculateRetryDelay,
+  });
+};

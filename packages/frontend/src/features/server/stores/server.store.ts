@@ -39,29 +39,32 @@ export const serverStore = new Store<ServerState>(initialState);
 /**
  * Sanitisiert Server-Namen um XSS-Angriffe zu verhindern (Defense in Depth).
  *
- * Verwendet iterative Tag-Entfernung um verschachtelte Tag-Angriffe zu verhindern
- * (z.B. `<scr<script>ipt>`) und begrenzt die Länge auf 100 Zeichen.
- * Diese Sanitization ist eine zusätzliche Sicherheitsebene für den Fall,
- * dass localStorage manipuliert wird oder bösartige Daten injiziert werden.
+ * Verwendet iterative Tag-Entfernung (CodeQL-konformes while-Pattern) um
+ * verschachtelte Tag-Angriffe zu verhindern (z.B. `<scr<script>ipt>`) und
+ * begrenzt die Länge auf 100 Zeichen. Diese Sanitization ist eine zusätzliche
+ * Sicherheitsebene für den Fall, dass localStorage manipuliert wird.
  *
  * @param name - Der zu sanitisierende Server-Name
  * @returns Bereinigter Name ohne HTML-Tags, max 100 Zeichen
  */
 function sanitizeServerName(name: string): string {
-  // Iterative Tag-Entfernung: Wiederhole bis keine Tags mehr vorhanden sind.
-  // Dies verhindert Umgehung durch verschachtelte Tags wie <scr<script>ipt>
-  // oder Tags mit ungewöhnlichen Leerzeichen wie </script >.
   let sanitized = name;
-  let previous: string;
-  let iterations = 0;
-  const maxIterations = 10; // DoS Prevention: Max 10 Durchläufe
+  let previous = '';
 
-  do {
+  // Schritt 1: Script/Style-Tags MIT Inhalt iterativ entfernen (case-insensitive)
+  // Verhindert dass JavaScript-Code als Text im Namen verbleibt
+  while (previous !== sanitized) {
     previous = sanitized;
-    // Entfernt alle HTML-Tags inkl. Tags mit Leerzeichen wie </script >
+    sanitized = sanitized.replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, '');
+  }
+
+  // Schritt 2: Verbleibende HTML-Tags iterativ entfernen (z.B. <img>, <br>, <b>)
+  // Verhindert Umgehung durch verschachtelte Tags wie <scr<b>ipt>
+  previous = '';
+  while (previous !== sanitized) {
+    previous = sanitized;
     sanitized = sanitized.replace(/<\/?[^>]*>/g, '');
-    iterations++;
-  } while (sanitized !== previous && iterations < maxIterations);
+  }
 
   // Max-Length enforcing (DoS Prevention) + Whitespace trimmen
   return sanitized.substring(0, 100).trim();

@@ -4,6 +4,7 @@ import { LOGGER } from '@/infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@/infrastructure/common/adapters/nest-logger.adapter';
 import { Logger, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
@@ -32,6 +33,12 @@ import { SetupPendingGuard } from './infrastructure/guards/setup-pending.guard';
 import { AdminModule } from './modules/admin/admin.module';
 import { PasswordModule } from './infrastructure/password/password.module';
 import { EinsatzTeilnehmerModule } from './modules/einsatz-teilnehmer/einsatz-teilnehmer.module';
+import { ErinnerungModule } from './modules/erinnerung/erinnerung.module';
+import { ErinnerungsvorlageModule } from './modules/erinnerungsvorlage/erinnerungsvorlage.module';
+import { FuehrungsrhythmusTemplateModule } from './modules/fuehrungsrhythmus-template/fuehrungsrhythmus-template.module';
+import { NotizModule } from './modules/notiz/notiz.module';
+import { KategorieModule } from './modules/kategorie/kategorie.module';
+import { SchedulerModule } from './infrastructure/scheduler/scheduler.module';
 
 /**
  * Haupt-Anwendungsmodul der Bluelight Hub Backend-Anwendung
@@ -59,6 +66,7 @@ import { EinsatzTeilnehmerModule } from './modules/einsatz-teilnehmer/einsatz-te
       delimiter: '.',
       maxListeners: 10,
     }),
+    ScheduleModule.forRoot(),
     ThrottlerModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
@@ -103,6 +111,12 @@ import { EinsatzTeilnehmerModule } from './modules/einsatz-teilnehmer/einsatz-te
     AdminModule, // Admin Setup & Management (Story 1.3)
     PasswordModule, // HIBP Password Breach Check (NIST SP 800-63B-4)
     EinsatzTeilnehmerModule, // Einsatz-Teilnehmer Management (Story 115)
+    ErinnerungModule, // Erinnerungen/Wecker für Einsätze (Story 1.1)
+    ErinnerungsvorlageModule, // Erinnerungsvorlagen (Story 6.1)
+    FuehrungsrhythmusTemplateModule, // Fuehrungsrhythmus-Templates (Story 6.6)
+    NotizModule, // Notizen im Einsatz-Kontext (Story 7.1)
+    KategorieModule, // Kategorien (Story 8.1)
+    SchedulerModule, // Cron-Jobs (nur einmal importiert, um mehrfache Registrierung zu vermeiden)
   ],
   controllers: [AppController],
   providers: [

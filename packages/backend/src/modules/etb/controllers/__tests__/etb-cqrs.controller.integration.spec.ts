@@ -24,7 +24,7 @@
  * - AC4: GetHistory
  */
 
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { EtbCqrsController } from '@/modules/etb/controllers/etb-cqrs.controller';
 import { Result } from '@/domain/common/result';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
@@ -133,8 +133,12 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
   // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
   let mockGetTextbausteineHandler: jest.Mocked<any>;
   // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+  let mockGetErinnerungTimelineHandler: jest.Mocked<any>;
+  // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
   let mockEtbRepository: jest.Mocked<any>;
   let mockLogger: jest.Mocked<ILogger>;
+  // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+  let mockPrismaService: jest.Mocked<any>;
 
   const adminUser: ValidatedUser = {
     userId: createTestCuid('admin'),
@@ -178,6 +182,10 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       execute: jest.fn(),
     };
 
+    mockGetErinnerungTimelineHandler = {
+      execute: jest.fn(),
+    };
+
     mockEtbRepository = {
       findById: jest.fn(),
       findByEinsatzId: jest.fn(),
@@ -193,6 +201,13 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       verbose: jest.fn(),
     } as jest.Mocked<ILogger>;
 
+    // Create mock PrismaService
+    mockPrismaService = {
+      einsatzTeilnehmer: {
+        findFirst: jest.fn(),
+      },
+    };
+
     // Instantiate controller with mocks (Direct Instantiation Pattern)
     controller = new EtbCqrsController(
       mockAddEintragHandler,
@@ -202,8 +217,10 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       mockGetEtbQueryHandler,
       mockGetEtbHistoryQueryHandler,
       mockGetTextbausteineHandler,
+      mockGetErinnerungTimelineHandler,
       mockEtbRepository,
       mockLogger,
+      mockPrismaService,
     );
   });
 
@@ -216,6 +233,20 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
   // ========================================
 
   describe('POST /etb/:etbId/eintrag - addEintrag()', () => {
+    const einsatzId = createTestCuid('eins0');
+
+    beforeEach(() => {
+      // Story 5.9: Mock ETB aggregate with einsatzId for auth check
+      const mockAggregate = {
+        id: { value: createTestCuid('etb') },
+        einsatzId: { value: einsatzId },
+        eintraege: [],
+      };
+      mockEtbRepository.findById.mockResolvedValue(mockAggregate);
+      // Default mock for active participant check
+      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValue({ id: 'teilnehmer-id' });
+    });
+
     it('should add eintrag to ETB and return EintragDto', async () => {
       // Given
       const etbId = createTestCuid('etb');
@@ -282,6 +313,15 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
   // ========================================
 
   describe('PUT /etb/:etbId/eintrag/:eintragId - updateEintrag()', () => {
+    const einsatzId = createTestCuid('eins0');
+
+    beforeEach(() => {
+      // Story 5.9: Default mock for active participant check
+      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValue({ id: 'teilnehmer-id' });
+      // Note: mockEtbRepository.findById is set up per-test because updateEintrag
+      // calls it twice: once for auth check and once after update to return updated eintrag
+    });
+
     it('should update eintrag text and return EintragDto', async () => {
       // Given
       const etbId = createTestCuid('etb');
@@ -291,7 +331,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       // Mock a minimal aggregate that the mapper can work with
       const mockAggregate = {
         id: { value: etbId },
-        einsatzId: { value: createTestCuid('einsatz') },
+        einsatzId: { value: einsatzId },
         status: { value: 'DRAFT' },
         version: { versionNumber: 1, versionTimestamp: new Date() },
         eintraege: [
@@ -309,8 +349,9 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
         createdBy: { value: adminUser.userId },
       };
 
+      // First call: auth check, second call: after update to return updated eintrag
+      mockEtbRepository.findById.mockResolvedValue(mockAggregate);
       mockUpdateEintragHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
-      mockEtbRepository.findById.mockResolvedValueOnce(mockAggregate);
 
       // When
       const result = await controller.updateEintrag(etbId, eintragId, dto, adminUser);
@@ -320,7 +361,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       expect(result.id).toBe(eintragId);
       expect(result.text).toBe('Aktualisierter Text');
       expect(mockUpdateEintragHandler.execute).toHaveBeenCalledTimes(1);
-      expect(mockEtbRepository.findById).toHaveBeenCalledTimes(1);
+      expect(mockEtbRepository.findById).toHaveBeenCalledTimes(2); // Auth check + after update
     });
 
     it('should throw NotFoundException when eintrag does not exist', async () => {
@@ -329,6 +370,13 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       const eintragId = createTestCuid('entry');
       const dto: UpdateEintragDto = { newText: 'Test' };
 
+      // Mock ETB aggregate for auth check
+      const mockAggregate = {
+        id: { value: etbId },
+        einsatzId: { value: einsatzId },
+        eintraege: [],
+      };
+      mockEtbRepository.findById.mockResolvedValue(mockAggregate);
       mockUpdateEintragHandler.execute.mockResolvedValueOnce(Result.fail('Eintrag nicht gefunden'));
 
       // When/Then
@@ -341,6 +389,13 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       const eintragId = createTestCuid('entry');
       const dto: UpdateEintragDto = { newText: 'Test' };
 
+      // Mock ETB aggregate for auth check
+      const mockAggregate = {
+        id: { value: etbId },
+        einsatzId: { value: einsatzId },
+        eintraege: [],
+      };
+      mockEtbRepository.findById.mockResolvedValue(mockAggregate);
       mockUpdateEintragHandler.execute.mockResolvedValueOnce(Result.fail('ETB ist gesperrt'));
 
       // When/Then
@@ -353,6 +408,20 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
   // ========================================
 
   describe('DELETE /etb/:etbId/eintrag/:eintragId - deleteEintrag()', () => {
+    const einsatzId = createTestCuid('eins0');
+
+    beforeEach(() => {
+      // Story 5.9: Mock ETB aggregate with einsatzId for auth check
+      const mockAggregate = {
+        id: { value: createTestCuid('etb') },
+        einsatzId: { value: einsatzId },
+        eintraege: [],
+      };
+      mockEtbRepository.findById.mockResolvedValue(mockAggregate);
+      // Default mock for active participant check
+      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValue({ id: 'teilnehmer-id' });
+    });
+
     it('should soft-delete eintrag and return void', async () => {
       // Given
       const etbId = createTestCuid('etb');
@@ -461,6 +530,11 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
   // ========================================
 
   describe('GET /etb/einsatz/:einsatzId - getEtbByEinsatzId()', () => {
+    beforeEach(() => {
+      // Story 5.9: Default mock for active participant check
+      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValue({ id: 'teilnehmer-id' });
+    });
+
     it('should return ETB with eintraege for einsatz', async () => {
       // Given
       const einsatzId = createTestCuid('einsatz');
@@ -472,7 +546,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       mockGetEtbQueryHandler.execute.mockResolvedValueOnce(Result.ok(etbDto));
 
       // When
-      const result = await controller.getEtbByEinsatzId(einsatzId);
+      const result = await controller.getEtbByEinsatzId(einsatzId, regularUser, undefined);
 
       // Then
       expect(result).toBeDefined();
@@ -492,7 +566,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       mockGetEtbQueryHandler.execute.mockResolvedValueOnce(Result.ok(etbDto));
 
       // When
-      const result = await controller.getEtbByEinsatzId(einsatzId, 'false');
+      const result = await controller.getEtbByEinsatzId(einsatzId, regularUser, 'false');
 
       // Then
       expect(result.eintraege).toHaveLength(1);
@@ -510,7 +584,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       mockGetEtbQueryHandler.execute.mockResolvedValueOnce(Result.ok(etbDto));
 
       // When
-      const result = await controller.getEtbByEinsatzId(einsatzId, 'true');
+      const result = await controller.getEtbByEinsatzId(einsatzId, regularUser, 'true');
 
       // Then
       expect(result.eintraege).toHaveLength(2);
@@ -525,7 +599,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       mockGetEtbQueryHandler.execute.mockResolvedValueOnce(Result.fail('ETB nicht gefunden'));
 
       // When/Then
-      await expect(controller.getEtbByEinsatzId(einsatzId)).rejects.toThrow(NotFoundException);
+      await expect(controller.getEtbByEinsatzId(einsatzId, regularUser, undefined)).rejects.toThrow(NotFoundException);
     });
 
     it('should throw NotFoundException when query returns null', async () => {
@@ -535,7 +609,29 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       mockGetEtbQueryHandler.execute.mockResolvedValueOnce(Result.ok(null));
 
       // When/Then
-      await expect(controller.getEtbByEinsatzId(einsatzId)).rejects.toThrow(NotFoundException);
+      await expect(controller.getEtbByEinsatzId(einsatzId, regularUser, undefined)).rejects.toThrow(NotFoundException);
+    });
+
+    // Story 5.9: Authorization Tests (AC2, AC3)
+    describe('Authorization (Story 5.9)', () => {
+      it('should throw ForbiddenException for non-participant (AC2)', async () => {
+        // Given
+        const einsatzId = createTestCuid('einsatz');
+        mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce(null);
+
+        // When/Then
+        await expect(controller.getEtbByEinsatzId(einsatzId, regularUser, undefined)).rejects.toThrow(ForbiddenException);
+        expect(mockGetEtbQueryHandler.execute).not.toHaveBeenCalled();
+      });
+
+      it('should throw ForbiddenException for former participant (AC2)', async () => {
+        // Given - Former participant: leftAt !== null means inactive
+        const einsatzId = createTestCuid('einsatz');
+        mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce(null);
+
+        // When/Then
+        await expect(controller.getEtbByEinsatzId(einsatzId, regularUser, undefined)).rejects.toThrow(ForbiddenException);
+      });
     });
   });
 
@@ -544,6 +640,20 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
   // ========================================
 
   describe('GET /etb/:etbId/history - getEtbHistory()', () => {
+    const einsatzId = createTestCuid('eins0');
+
+    beforeEach(() => {
+      // Story 5.9: Default mock for ETB aggregate with einsatzId
+      const mockAggregate = {
+        id: { value: createTestCuid('etb') },
+        einsatzId: { value: einsatzId },
+        eintraege: [],
+      };
+      mockEtbRepository.findById.mockResolvedValue(mockAggregate);
+      // Default mock for active participant check
+      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValue({ id: 'teilnehmer-id' });
+    });
+
     it('should return snapshots sorted by version', async () => {
       // Given
       const etbId = createTestCuid('etb');
@@ -552,7 +662,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       mockGetEtbHistoryQueryHandler.execute.mockResolvedValueOnce(Result.ok(snapshots));
 
       // When
-      const result = await controller.getEtbHistory(etbId);
+      const result = await controller.getEtbHistory(etbId, regularUser);
 
       // Then
       expect(result).toHaveLength(3);
@@ -567,7 +677,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       mockGetEtbHistoryQueryHandler.execute.mockResolvedValueOnce(Result.ok([]));
 
       // When
-      const result = await controller.getEtbHistory(etbId);
+      const result = await controller.getEtbHistory(etbId, regularUser);
 
       // Then
       expect(result).toEqual([]);
@@ -576,11 +686,10 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
     it('should throw NotFoundException when ETB does not exist', async () => {
       // Given
       const etbId = createTestCuid('etb');
-
-      mockGetEtbHistoryQueryHandler.execute.mockResolvedValueOnce(Result.fail('ETB nicht gefunden'));
+      mockEtbRepository.findById.mockResolvedValueOnce(null);
 
       // When/Then
-      await expect(controller.getEtbHistory(etbId)).rejects.toThrow(NotFoundException);
+      await expect(controller.getEtbHistory(etbId, regularUser)).rejects.toThrow(NotFoundException);
     });
 
     it('should throw BadRequestException for invalid etbId format', async () => {
@@ -588,7 +697,39 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       const invalidEtbId = 'invalid-id';
 
       // When/Then - Query.create() validation fails
-      await expect(controller.getEtbHistory(invalidEtbId)).rejects.toThrow(BadRequestException);
+      await expect(controller.getEtbHistory(invalidEtbId, regularUser)).rejects.toThrow(BadRequestException);
+    });
+
+    // Story 5.9: Authorization Tests (AC2, AC3)
+    describe('Authorization (Story 5.9)', () => {
+      it('should throw ForbiddenException for non-participant (AC2)', async () => {
+        // Given
+        const etbId = createTestCuid('etb');
+        mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce(null);
+
+        // When/Then
+        await expect(controller.getEtbHistory(etbId, regularUser)).rejects.toThrow(ForbiddenException);
+        expect(mockGetEtbHistoryQueryHandler.execute).not.toHaveBeenCalled();
+      });
+
+      it('should throw ForbiddenException for former participant (AC2)', async () => {
+        // Given - Former participant: leftAt !== null means inactive
+        const etbId = createTestCuid('etb');
+        mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce(null);
+
+        // When/Then
+        await expect(controller.getEtbHistory(etbId, regularUser)).rejects.toThrow(ForbiddenException);
+      });
+
+      it('should throw NotFoundException when ETB not found during auth check', async () => {
+        // Given
+        const etbId = createTestCuid('etb');
+        mockEtbRepository.findById.mockResolvedValueOnce(null);
+
+        // When/Then
+        await expect(controller.getEtbHistory(etbId, regularUser)).rejects.toThrow(NotFoundException);
+        expect(mockPrismaService.einsatzTeilnehmer.findFirst).not.toHaveBeenCalled();
+      });
     });
   });
 
@@ -597,12 +738,26 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
   // ========================================
 
   describe('Error Handling', () => {
+    const einsatzId = createTestCuid('eins0');
+
+    beforeEach(() => {
+      // Story 5.9: Mock ETB aggregate with einsatzId for auth check
+      const mockAggregate = {
+        id: { value: createTestCuid('etb') },
+        einsatzId: { value: einsatzId },
+        eintraege: [],
+      };
+      mockEtbRepository.findById.mockResolvedValue(mockAggregate);
+      // Default mock for active participant check
+      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValue({ id: 'teilnehmer-id' });
+    });
+
     it('should throw BadRequestException for invalid etbId in addEintrag', async () => {
       // Given
       const invalidEtbId = '';
       const dto: AddEintragDto = { text: 'Test' };
 
-      // When/Then - Command.create() fails for empty etbId
+      // When/Then - EtbId.create() fails for empty etbId before auth check
       await expect(controller.addEintrag(invalidEtbId, dto, adminUser)).rejects.toThrow(BadRequestException);
       expect(mockAddEintragHandler.execute).not.toHaveBeenCalled();
     });
@@ -613,7 +768,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       const emptyEintragId = '';
       const dto: UpdateEintragDto = { newText: 'Test' };
 
-      // When/Then
+      // When/Then - Command.create() fails for empty eintragId after auth check passes
       await expect(controller.updateEintrag(etbId, emptyEintragId, dto, adminUser)).rejects.toThrow(BadRequestException);
       expect(mockUpdateEintragHandler.execute).not.toHaveBeenCalled();
     });
@@ -624,7 +779,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       const eintragId = createTestCuid('entry');
       const dto: UpdateEintragDto = { newText: '' };
 
-      // When/Then
+      // When/Then - Command.create() fails for empty newText after auth check passes
       await expect(controller.updateEintrag(etbId, eintragId, dto, adminUser)).rejects.toThrow(BadRequestException);
       expect(mockUpdateEintragHandler.execute).not.toHaveBeenCalled();
     });
@@ -635,11 +790,31 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
   // ========================================
 
   describe('Full CRUD Flow Integration', () => {
+    const einsatzId = createTestCuid('eins0');
+
+    beforeEach(() => {
+      // Story 5.9: Default mock for active participant check
+      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValue({ id: 'teilnehmer-id' });
+    });
+
     it('should execute complete lifecycle: Add -> Update -> Delete', async () => {
       const etbId = createTestCuid('etb');
       const entryId = createTestCuid('entry');
 
-      // Phase 1: Add eintrag
+      // Base mock aggregate for auth checks
+      const baseAggregate = {
+        id: { value: etbId },
+        einsatzId: { value: einsatzId },
+        status: { value: 'DRAFT' },
+        version: { versionNumber: 1, versionTimestamp: new Date() },
+        eintraege: [],
+        createdAt: new Date(),
+        createdBy: { value: adminUser.userId },
+      };
+
+      // Phase 1: Add eintrag - mock findById for auth check
+      mockEtbRepository.findById.mockResolvedValueOnce(baseAggregate);
+
       const mockEintrag = {
         id: { value: entryId },
         sequenceNumber: { value: 1 },
@@ -654,10 +829,10 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       const added = await controller.addEintrag(etbId, { text: 'Original Text' }, adminUser);
       expect(added.text).toBe('Original Text');
 
-      // Phase 2: Update eintrag
-      const mockAggregate = {
+      // Phase 2: Update eintrag - mock findById twice (auth check + after update)
+      const mockAggregateAfterUpdate = {
         id: { value: etbId },
-        einsatzId: { value: createTestCuid('einsatz') },
+        einsatzId: { value: einsatzId },
         status: { value: 'DRAFT' },
         version: { versionNumber: 2, versionTimestamp: new Date() },
         eintraege: [
@@ -675,13 +850,16 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
         createdBy: { value: adminUser.userId },
       };
 
+      // First call: auth check, second call: after update to return updated eintrag
+      mockEtbRepository.findById.mockResolvedValueOnce(mockAggregateAfterUpdate);
+      mockEtbRepository.findById.mockResolvedValueOnce(mockAggregateAfterUpdate);
       mockUpdateEintragHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
-      mockEtbRepository.findById.mockResolvedValueOnce(mockAggregate);
 
       const updated = await controller.updateEintrag(etbId, entryId, { newText: 'Updated Text' }, adminUser);
       expect(updated.text).toBe('Updated Text');
 
-      // Phase 3: Delete eintrag
+      // Phase 3: Delete eintrag - mock findById for auth check
+      mockEtbRepository.findById.mockResolvedValueOnce(mockAggregateAfterUpdate);
       mockDeleteEintragHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
 
       await controller.deleteEintrag(etbId, entryId, adminUser);
@@ -690,7 +868,8 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(1);
       expect(mockUpdateEintragHandler.execute).toHaveBeenCalledTimes(1);
       expect(mockDeleteEintragHandler.execute).toHaveBeenCalledTimes(1);
-      expect(mockEtbRepository.findById).toHaveBeenCalledTimes(1);
+      // findById called: 1x add auth + 2x update (auth + after) + 1x delete auth = 4
+      expect(mockEtbRepository.findById).toHaveBeenCalledTimes(4);
     });
   });
 });

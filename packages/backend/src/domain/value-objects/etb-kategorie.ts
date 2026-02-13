@@ -60,7 +60,7 @@ export type EtbKategorieValue = (typeof ETB_KATEGORIE_VALUES)[number];
  * - WETTER: Wetteraenderungen
  * - DOKUMENTATION: Dokumentarische Eintraege (Screenshots, Fotos, Anhaenge)
  * - SONSTIGES: Sonstige Eintraege
- * - SYSTEM: Systemeintraege (automatisch)
+ * - SYSTEM: Systemeintraege (automatisch, inkl. Erinnerungseintraege)
  *
  * @example
  * ```typescript

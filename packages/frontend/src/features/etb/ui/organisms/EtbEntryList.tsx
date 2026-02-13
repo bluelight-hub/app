@@ -1,19 +1,22 @@
 import { useConfirm } from '@/shared/hooks/useConfirm';
 import { useDeleteEtbEntry } from '@/features/etb';
 import { useUserNames } from '@/features/auth';
+import { useHighlightedEntryId, setHighlightedEntry } from '@/features/reminders/stores';
 import type { EintragDto } from '@/shared';
 import { type ExpandedState, getCoreRowModel, getExpandedRowModel, getFilteredRowModel, getSortedRowModel, type SortingState, useReactTable } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PiCircleNotch } from 'react-icons/pi';
 import { EtbEmptyState } from '../molecules/EtbEmptyState';
 import { EtbFilterControls } from '../molecules/EtbFilterControls';
+import { KategorieFilterSelect } from '../molecules/KategorieFilterSelect';
 import { EtbResultsCount } from '../molecules/EtbResultsCount';
 import { EtbSearchBar } from '../molecules/EtbSearchBar';
 import { EtbTableBody } from '../molecules/EtbTableBody';
 import { EtbTableHeader } from '../molecules/EtbTableHeader';
 import { EtbHistoryModal } from './components/EtbHistoryModal';
 import { useEtbColumns } from '../../hooks/useEtbColumns';
+import { useExcludedKategorien, useHasActiveFilter, useErinnerungFilterActive } from '../../stores';
 
 interface EtbEntryListProps {
   entries: EintragDto[];
@@ -33,7 +36,10 @@ interface EtbEntryListProps {
 }
 
 /**
- * ETB-Einträge-Liste mit TanStack Table
+ * ETB-Eintraege-Liste mit TanStack Table
+ *
+ * **Story 5.5:** Unterstuetzt Timeline-Widget in expandierten Eintraegen.
+ * **Story 5.6:** Kategorie-Filter (Multiselect mit Exclude-Logik)
  */
 export function EtbEntryList({
   entries,
@@ -57,11 +63,43 @@ export function EtbEntryList({
   const [globalFilter, setGlobalFilter] = useState('');
   const [historyEntry, setHistoryEntry] = useState<EintragDto | null>(null);
 
+  // Story 5.6: Kategorie-Filter aus Store (Multiselect mit Exclude-Logik)
+  const excludedKategorien = useExcludedKategorien();
+  const hasKategorieFilter = useHasActiveFilter();
+  const erinnerungFilterActive = useErinnerungFilterActive();
+
   // Sortierung für Anzeige - lokaler State für die Table
   const [sorting, setSorting] = useState<SortingState>(() => [{ id: sortBy, desc: sortOrder === 'desc' }]);
   const [expanded, setExpanded] = useState<ExpandedState>({});
   const observerTarget = useRef<HTMLDivElement>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * Story 5.6: Kategorie-Filterung VOR der Table
+   * Das ist noetig weil TanStack Table die globalFilterFn cached und nicht
+   * auf externe Dependencies reagiert. Durch Filterung der `data` prop
+   * wird die Table automatisch neu gerendert.
+   *
+   * Erinnerungs-Filter: Zeigt nur Eintraege mit verknuepfter Erinnerung
+   * (metadata.erinnerungId oder linkedErinnerung).
+   */
+  const filteredEntries = useMemo(() => {
+    let result = entries;
+
+    // Erinnerungs-Filter: nur Eintraege mit verknuepfter Erinnerung anzeigen
+    // Zeigt nur Eintraege an, fuer die eine Erinnerung ERSTELLT wurde (linkedErinnerung),
+    // NICHT automatisch generierte System-Eintraege (metadata.erinnerungId)
+    if (erinnerungFilterActive) {
+      result = result.filter((entry) => !!entry.linkedErinnerung);
+    }
+
+    // Kategorie-Exclusion-Filter
+    if (excludedKategorien.size > 0) {
+      result = result.filter((entry) => !excludedKategorien.has(entry.kategorie));
+    }
+
+    return result;
+  }, [entries, excludedKategorien, erinnerungFilterActive]);
 
   // Synchronisiere lokalen Sortier-State mit Props
   useEffect(() => {
@@ -146,9 +184,9 @@ export function EtbEntryList({
     onShowHistory: setHistoryEntry,
   });
 
-  // Table Instance
+  // Table Instance - nutzt gefilterte Daten
   const table = useReactTable({
-    data: entries,
+    data: filteredEntries,
     columns,
     state: {
       sorting,
@@ -188,12 +226,45 @@ export function EtbEntryList({
   const paddingTop = virtualRows.length > 0 ? virtualRows?.[0]?.start || 0 : 0;
   const paddingBottom = virtualRows.length > 0 ? totalSize - (virtualRows?.[virtualRows.length - 1]?.end || 0) : 0;
 
+  // Story 5.5: Highlight Store Integration - scrolle zu hervorgehobenen Eintraegen
+  const highlightedEntryId = useHighlightedEntryId();
+
+  useEffect(() => {
+    if (!highlightedEntryId) return;
+
+    // Finde den Index des Eintrags in der (gefilterten/sortierten) Tabelle
+    const entryIndex = rows.findIndex((row) => row.original.id === highlightedEntryId);
+    if (entryIndex === -1) return;
+
+    // Scrolle zum Index mit dem Virtualizer
+    rowVirtualizer.scrollToIndex(entryIndex, {
+      align: 'center',
+      behavior: 'smooth',
+    });
+  }, [highlightedEntryId, rows, rowVirtualizer]);
+
+  /**
+   * Story 5.5: Scrollt zu einem ETB-Eintrag und hebt ihn hervor
+   * Nutzt den Highlight-Store fuer reaktives Scrolling und Animation
+   */
+  const handleScrollToEntry = useCallback((entryId: string) => {
+    // Setze den Eintrag im Store - der Effect oben kuemmert sich um das Scrollen
+    setHighlightedEntry(entryId);
+  }, []);
+
   // Empty State mit fester Höhe für konsistentes Layout
   if (entries.length === 0 && !isLoading) {
     return (
       <div className="space-y-4">
-        {/* Search - auch bei leerer Liste anzeigen für konsistentes Layout */}
-        <EtbSearchBar value={globalFilter} onChange={setGlobalFilter} />
+        {/* Story 5.6: Filter-Controls - auch bei leerer Liste anzeigen für konsistentes Layout */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="min-w-[200px] flex-1">
+            <EtbSearchBar value={globalFilter} onChange={setGlobalFilter} />
+          </div>
+          <div className="w-48">
+            <KategorieFilterSelect />
+          </div>
+        </div>
 
         {/* Empty State Container mit fester Höhe */}
         <EtbEmptyState />
@@ -203,11 +274,16 @@ export function EtbEntryList({
 
   return (
     <div className="space-y-4">
-      {/* Filter-Optionen */}
-      {onShowDeletedChange && <EtbFilterControls showDeleted={showDeleted} onShowDeletedChange={onShowDeletedChange} />}
-
-      {/* Search */}
-      <EtbSearchBar value={globalFilter} onChange={setGlobalFilter} />
+      {/* Story 5.6: Filter-Controls - Suche, Kategorie-Filter, Geloeschte anzeigen */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="min-w-[200px] flex-1">
+          <EtbSearchBar value={globalFilter} onChange={setGlobalFilter} />
+        </div>
+        <div className="w-48">
+          <KategorieFilterSelect />
+        </div>
+        {onShowDeletedChange && <EtbFilterControls showDeleted={showDeleted} onShowDeletedChange={onShowDeletedChange} />}
+      </div>
 
       {/* Table */}
       <div
@@ -233,11 +309,13 @@ export function EtbEntryList({
             paddingTop={paddingTop}
             paddingBottom={paddingBottom}
             isLoading={isLoading}
-            entries={entries}
+            entries={filteredEntries}
             enableInlineEdit={enableInlineEdit}
             einsatzId={einsatzId}
+            etbId={etbId}
             onDelete={handleDelete}
             getUserName={getUserName}
+            onEntryClick={handleScrollToEntry}
           />
         </table>
 
@@ -252,8 +330,8 @@ export function EtbEntryList({
         <div ref={observerTarget} className="h-1" />
       </div>
 
-      {/* Results Count */}
-      <EtbResultsCount filteredCount={table.getFilteredRowModel().rows.length} totalCount={entries.length} hasGlobalFilter={!!globalFilter} hasNextPage={hasNextPage} />
+      {/* Results Count - Story 5.6: beruecksichtigt Kategorie-Filter */}
+      <EtbResultsCount filteredCount={table.getFilteredRowModel().rows.length} totalCount={filteredEntries.length} hasGlobalFilter={!!globalFilter || hasKategorieFilter} hasNextPage={hasNextPage} />
 
       {/* History Modal */}
       <EtbHistoryModal entry={historyEntry} etbId={etbId} isOpen={historyEntry !== null} onClose={() => setHistoryEntry(null)} />

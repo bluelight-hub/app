@@ -8,7 +8,6 @@ import { Inject, Injectable } from '@nestjs/common';
 import { CreateUserCommand } from './create-user.command';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { TransactionalCommandHandler } from '@application/common/handlers/transactional-command.handler';
-// biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import type { DomainEvent } from '@domain/common/domain-event';

@@ -32,6 +32,7 @@ export interface UserPersistenceData {
   isLocked: boolean;
   lockedManuallyAt: Date | null;
   permissions: string | null;
+  defaultEscalationTargetId: string | null;
 }
 
 /**
@@ -95,6 +96,7 @@ export class PrismaUserMapper {
       isLocked: aggregate.isLocked, // Manual Lock (admin-initiated)
       lockedManuallyAt: aggregate.isLocked ? new Date() : null,
       permissions, // Serialized JSON Array oder NULL
+      defaultEscalationTargetId: aggregate.defaultEscalationTargetId?.value ?? null, // Story 4.8
     };
   }
 
@@ -121,7 +123,7 @@ export class PrismaUserMapper {
 
     const usernameResult = Username.create(prismaData.username);
     if (usernameResult.isFailure) {
-      throw new Error(`Invalid Username: ${usernameResult.error}`);
+      throw new Error(`Invalid Username '${prismaData.username}': ${usernameResult.error}`);
     }
     const username = usernameResult.value as Username;
 
@@ -130,6 +132,17 @@ export class PrismaUserMapper {
 
     // Permission Deserialization: JSON String → Domain Permission[]
     const permissions = PrismaUserMapper.deserializePermissions(prismaData.permissions);
+
+    // Default Escalation Target (Story 4.8)
+    let defaultEscalationTargetId: UserId | null = null;
+    if (prismaData.defaultEscalationTargetId) {
+      const targetIdResult = UserId.create(prismaData.defaultEscalationTargetId);
+      if (targetIdResult.isFailure) {
+        console.warn(`[PrismaUserMapper] Invalid defaultEscalationTargetId: ${prismaData.defaultEscalationTargetId}`);
+      } else {
+        defaultEscalationTargetId = targetIdResult.value as UserId;
+      }
+    }
 
     // Step 2: Erstelle Aggregate via Factory (validiert Constraints)
     const aggregateResult = UserAggregate.create(username, role);
@@ -141,6 +154,13 @@ export class PrismaUserMapper {
 
     // Step 3: Override private fields mit DB-Werten via Object.defineProperty
     // (Factory generiert neue Werte, wir brauchen die aus der DB)
+
+    // _defaultEscalationTargetId (Factory setzt null, wir wollen DB-Wert)
+    Object.defineProperty(aggregate, '_defaultEscalationTargetId', {
+      value: defaultEscalationTargetId,
+      writable: true,
+      configurable: true,
+    });
 
     // _id (Factory generiert neue ID, wir wollen DB-ID)
     Object.defineProperty(aggregate, '_id', {
