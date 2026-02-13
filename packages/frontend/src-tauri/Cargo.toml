@@ -31,4 +31,4 @@ tauri-plugin-single-instance = "2.3.7"
 tauri-plugin-notification = "2"
 
 # Audio playback für Erinnerungs-Sounds (funktioniert auch bei minimierter App)
-rodio = "0.19"
+rodio = "0.21"
