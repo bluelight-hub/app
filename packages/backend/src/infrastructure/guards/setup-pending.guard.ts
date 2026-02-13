@@ -1,8 +1,6 @@
 import { type CanActivate, type ExecutionContext, Inject, Injectable, ServiceUnavailableException } from '@nestjs/common';
-// biome-ignore lint/style/useImportType: Reflector ist Injectable Class - wird zur Laufzeit fuer NestJS DI benoetigt
 import { Reflector } from '@nestjs/core';
 import type { IServerAccessTokenRepository } from '@domain/repositories/i-server-access-token.repository';
-// biome-ignore lint/style/useImportType: PrismaService ist Injectable Class - wird zur Laufzeit fuer NestJS DI benoetigt
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { SERVER_ACCESS_TOKEN_REPOSITORY } from '@/infrastructure/di-tokens';
 import { SKIP_SETUP_CHECK_KEY } from '../decorators/skip-setup-check.decorator';

@@ -1,6 +1,5 @@
 import { Inject, Injectable, Optional } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-// biome-ignore lint/style/useImportType: ILogger needed for DI at runtime
 import { ILogger } from '@domain/ports/i-logger.port';
 import { ErinnerungAusgeloestEvent } from '@domain/events/erinnerung-ausgeloest.event';
 import { ErinnerungAcknowledgedEvent } from '@domain/events/erinnerung-acknowledged.event';
@@ -11,9 +10,7 @@ import { ErinnerungAssignedEvent } from '@domain/events/erinnerung-assigned.even
 import { ErinnerungEskaliertEvent } from '@domain/events/erinnerung-eskaliert.event';
 import { ErinnerungIntensiviertEvent } from '@domain/events/erinnerung-intensiviert.event';
 import { LOGGER } from '@infrastructure/di-tokens';
-// biome-ignore lint/style/useImportType: ErinnerungGateway needed for DI at runtime
 import { ErinnerungGateway } from '@/modules/erinnerung/gateways/erinnerung.gateway';
-// biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 
 /**

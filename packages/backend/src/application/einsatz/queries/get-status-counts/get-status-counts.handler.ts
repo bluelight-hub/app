@@ -1,7 +1,6 @@
 import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
 import type { ILogger } from '@domain/ports/i-logger.port';
-// biome-ignore lint/style/useImportType: IEinsatzRepository needed for DI at runtime
 import { IEinsatzRepository } from '@domain/repositories';
 import { Result } from '@domain/common/result';
 import type { StatusCountsResponseDto } from '@application/einsatz/dto/status-counts.dto';

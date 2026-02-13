@@ -4,19 +4,14 @@ import type { DomainEvent } from '@domain/common/domain-event';
 import { Result } from '@domain/common/result';
 import type { TransactionContext } from '@domain/kraefte/repositories/i-einsatz-person.repository';
 import { EinsatzPerson } from '@domain/kraefte/aggregates/einsatz-person.aggregate';
-// biome-ignore lint/style/useImportType: IEinsatzPersonRepository needed for DI at runtime
 import { IEinsatzPersonRepository } from '@domain/kraefte/repositories/i-einsatz-person.repository';
-// biome-ignore lint/style/useImportType: IStammPersonRepository needed for DI at runtime
 import { IStammPersonRepository } from '@domain/kraefte/repositories/i-stamm-person.repository';
-// biome-ignore lint/style/useImportType: IOutboxRepository needed for DI at runtime
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { StammPersonId } from '@domain/kraefte/value-objects/stamm-person-id';
 import { EINSATZ_PERSON_ERROR_CODES, EinsatzPersonError } from '@domain/kraefte/common/einsatz-person-error-codes';
 import { KRAEFTE_REPOSITORIES, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
-// biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
-// biome-ignore lint/style/useImportType: RegistrierePersonCommand needed for DI at runtime
 import { RegistrierePersonCommand } from './registriere-person.command';
 
 /**

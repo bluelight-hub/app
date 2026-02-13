@@ -1,9 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 
 import { Result } from '@domain/common/result';
-// biome-ignore lint/style/useImportType: ILogger wird fuer NestJS DI benoetigt
 import { ILogger } from '@domain/ports/i-logger.port';
-// biome-ignore lint/style/useImportType: IServerAccessTokenRepository wird fuer NestJS DI benoetigt
 import { IServerAccessTokenRepository } from '@domain/repositories/i-server-access-token.repository';
 import type { ServerAccessToken } from '@domain/aggregates/server-access-token.aggregate';
 

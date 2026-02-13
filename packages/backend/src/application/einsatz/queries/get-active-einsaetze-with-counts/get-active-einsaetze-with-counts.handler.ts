@@ -3,7 +3,6 @@ import { QueryHandler, type IQueryHandler } from '@nestjs/cqrs';
 import { Result } from '@domain/common/result';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@infrastructure/di-tokens';
-// biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { EinsatzListItemDto } from '../../dto/einsatz-list-item.dto';
 import { GetActiveEinsaetzeWithCountsQuery } from './get-active-einsaetze-with-counts.query';

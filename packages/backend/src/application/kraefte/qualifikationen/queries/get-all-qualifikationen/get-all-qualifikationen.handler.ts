@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Result } from '@domain/common/result';
-// biome-ignore lint/style/useImportType: IQualifikationRepository needed for DI at runtime
 import { IQualifikationRepository } from '@domain/kraefte/repositories/i-qualifikation.repository';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';

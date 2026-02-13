@@ -2,10 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { DomainEvent } from '@domain/common/domain-event';
 import { Result } from '@domain/common/result';
 import type { TransactionContext } from '@domain/common/transaction';
-// biome-ignore lint/style/useImportType: Injectable class needs runtime symbol for NestJS DI
 import { FuehrungsrhythmusTemplate } from '@domain/fuehrungsrhythmus/entities/fuehrungsrhythmus-template.entity';
 import { FuehrungsrhythmusEintrag } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-eintrag';
-// biome-ignore lint/style/useImportType: Injectable class needs runtime symbol for NestJS DI
 import { FuehrungsrhythmusTemplateScope } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-template-scope';
 import type { IFuehrungsrhythmusTemplateRepository } from '@domain/fuehrungsrhythmus/repositories/i-fuehrungsrhythmus-template.repository';
 import type { ILogger } from '@domain/ports/i-logger.port';
@@ -13,10 +11,8 @@ import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository
 import { UserId } from '@domain/value-objects/user-id';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { TransactionalCommandHandler } from '@/application/common/handlers/transactional-command.handler';
-// biome-ignore lint/style/useImportType: Injectable class needs runtime symbol for NestJS DI
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { FUEHRUNGSRHYTHMUS_TEMPLATE_REPOSITORY, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
-// biome-ignore lint/style/useImportType: Injectable class needs runtime symbol for NestJS DI
 import { FuehrungsrhythmusTemplateResponseFactory } from '../../dto/fuehrungsrhythmus-template-response.factory';
 import type { CreateFuehrungsrhythmusTemplateCommand } from './create-fuehrungsrhythmus-template.command';
 import { FUEHRUNGSRHYTHMUS_TEMPLATE_ERROR_CODES } from '../../errors/fuehrungsrhythmus-template-error.codes';

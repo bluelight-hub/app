@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { Result } from '@domain/common/result';
-// biome-ignore lint/style/useImportType: IFunkStatusConfigRepository needed for DI at runtime
 import { IFunkStatusConfigRepository } from '@domain/kraefte/repositories/i-funk-status-config.repository';
 import { KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';
 import type { FunkStatusConfigDto } from '../dto/funk-status-config.dto';

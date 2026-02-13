@@ -85,7 +85,6 @@ import { Result } from '@domain/common/result';
  * - `import type` würde zur Compile-Time entfernt → DI bricht zur Laufzeit
  * - Daher MUSS reguläres `import` statt `import type` genutzt werden
  */
-// biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime (siehe JSDoc oben)
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 // NOTE: Import needed for JSDoc example, even though not used in this file

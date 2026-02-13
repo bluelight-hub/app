@@ -11,7 +11,6 @@ import type { TransactionContext } from '@domain/common';
 import { TransactionalCommandHandler } from '@application/common/handlers/transactional-command.handler';
 import type { DomainEvent } from '@domain/common/domain-event';
 import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
-// biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@infrastructure/database/prisma.service';
 
 /**

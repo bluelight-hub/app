@@ -5,16 +5,11 @@ import type { TransactionContext } from '@domain/common';
 import { Result } from '@domain/common/result';
 import { EinsatzPerson } from '@domain/kraefte/aggregates/einsatz-person.aggregate';
 import { EINSATZ_PERSON_ERROR_CODES, EinsatzPersonError, DEFAULT_QR_FUNKTION } from '@domain/kraefte/common/einsatz-person-error-codes';
-// biome-ignore lint/style/useImportType: NestJS DI requires runtime symbol for @Inject
 import { IEinsatzPersonRepository } from '@domain/kraefte/repositories/i-einsatz-person.repository';
-// biome-ignore lint/style/useImportType: NestJS DI requires runtime symbol for @Inject
 import { IStammPersonRepository } from '@domain/kraefte/repositories/i-stamm-person.repository';
-// biome-ignore lint/style/useImportType: NestJS DI requires runtime symbol for @Inject
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
-// biome-ignore lint/style/useImportType: NestJS DI requires runtime symbol for @Inject
 import { ILogger } from '@domain/ports/i-logger.port';
 import { KRAEFTE_REPOSITORIES, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
-// biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 /**
  * Command wird nur als Type verwendet (nicht für DI injected).

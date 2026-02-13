@@ -8,7 +8,6 @@ import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository
 import { ErinnerungId } from '@domain/value-objects/erinnerung-id';
 import { UserId } from '@domain/value-objects/user-id';
 import { TransactionalCommandHandler } from '@/application/common/handlers/transactional-command.handler';
-// biome-ignore lint/style/useImportType: PrismaService is an Injectable class, not just a type - needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { ERINNERUNG_REPOSITORY, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
 import type { SnoozeErinnerungCommand } from './snooze-erinnerung.command';

@@ -2,29 +2,22 @@ import { Inject, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { createId } from '@paralleldrive/cuid2';
 
-// biome-ignore lint/style/useImportType: DomainEvent wird fuer Runtime-Typisierung benoetigt
 import { DomainEvent } from '@domain/common/domain-event';
 import { Result } from '@domain/common/result';
-// biome-ignore lint/style/useImportType: TransactionContext wird fuer Runtime-Typisierung benoetigt
 import { TransactionContext } from '@domain/common/transaction';
-// biome-ignore lint/style/useImportType: ILogger wird fuer NestJS DI benoetigt
 import { ILogger } from '@domain/ports/i-logger.port';
 import { ServerAccessToken } from '@domain/aggregates/server-access-token.aggregate';
 import { ServerAccessTokenRotatedEvent } from '@domain/events/server-access-token-rotated.event';
-// biome-ignore lint/style/useImportType: IOutboxRepository wird fuer NestJS DI benoetigt
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
-// biome-ignore lint/style/useImportType: IServerAccessTokenRepository wird fuer NestJS DI benoetigt
 import { IServerAccessTokenRepository } from '@domain/repositories/i-server-access-token.repository';
 import { TokenHash } from '@domain/value-objects/token-hash';
 import { AccessTokenId } from '@domain/value-objects/access-token-id';
 
 import { TransactionalCommandHandler } from '@/application/common/handlers/transactional-command.handler';
-// biome-ignore lint/style/useImportType: PrismaService wird zur Laufzeit fuer NestJS DI benoetigt
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { LOGGER, OUTBOX_REPOSITORY, SERVER_ACCESS_TOKEN_REPOSITORY } from '@infrastructure/di-tokens';
 import { BCRYPT_COST_FACTOR_TOKEN } from '@/infrastructure/config/security.constants';
 
-// biome-ignore lint/style/useImportType: RotateAccessTokenCommand wird fuer Runtime-Typisierung benoetigt
 import { RotateAccessTokenCommand, RotateAccessTokenResult } from './rotate-access-token.command';
 import { ACCESS_TOKEN_ERROR_CODES } from '../errors/access-token-error.codes';
 import { TOKEN_PREFIX } from '../constants/token.constants';

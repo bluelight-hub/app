@@ -18,7 +18,6 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import type { IEventHandler } from '@domain/ports/i-event-handler.port';
 import type { EinsatzCreatedEvent } from '@domain/events/einsatz-created.event';
-// biome-ignore lint/style/useImportType: CreateEtbHandler needed for DI at runtime
 import { CreateEtbHandler } from '../commands/create-etb/create-etb.handler';
 import { CreateEtbCommand } from '../commands/create-etb/create-etb.command';
 import { LOGGER } from '@infrastructure/di-tokens';

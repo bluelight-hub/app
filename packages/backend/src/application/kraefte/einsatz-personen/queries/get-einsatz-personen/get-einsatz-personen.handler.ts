@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Result } from '@domain/common/result';
-// biome-ignore lint/style/useImportType: IEinsatzPersonRepository needed for DI at runtime
 import { IEinsatzPersonRepository } from '@domain/kraefte/repositories/i-einsatz-person.repository';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';

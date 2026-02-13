@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-// biome-ignore lint/style/useImportType: ArchiveOldEinsaetzeHandler needed for DI at runtime
 import { ArchiveOldEinsaetzeHandler } from '@application/einsatz/commands/archive-old-einsaetze';
 import { ArchiveOldEinsaetzeCommand as ArchiveCommand } from '@application/einsatz/commands/archive-old-einsaetze';
 

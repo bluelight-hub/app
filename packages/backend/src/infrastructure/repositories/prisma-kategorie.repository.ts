@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import type { IKategorieRepository } from '@domain/kategorie/repositories/i-kategorie.repository';
 import type { Kategorie } from '@domain/kategorie/entities/kategorie.entity';
 import type { KategorieId } from '@domain/kategorie/value-objects/kategorie-id';
-// biome-ignore lint/style/useImportType: Injectable class needs runtime symbol for NestJS DI
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { PrismaKategorieMapper } from './mappers/prisma-kategorie.mapper';
 

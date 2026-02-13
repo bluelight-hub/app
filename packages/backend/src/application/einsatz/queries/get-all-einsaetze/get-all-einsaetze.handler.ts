@@ -4,7 +4,6 @@ import { Result } from '@domain/common/result';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import type { PaginatedData } from '@/infrastructure/http/interceptors/transform.interceptor';
 import type { EinsatzResponseDto } from '@/application/einsatz/dto/einsatz-response.dto';
-// biome-ignore lint/style/useImportType: IEinsatzRepository needed for DI at runtime
 import { IEinsatzRepository } from '@domain/repositories';
 import { EinsatzNameGenerator } from '@/modules/einsatz/utils/name-generator.util';
 import { EinsatzCompletenessCalculator } from '@/modules/einsatz/utils/completeness.util';

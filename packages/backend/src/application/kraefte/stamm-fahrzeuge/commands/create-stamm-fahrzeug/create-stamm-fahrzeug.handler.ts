@@ -5,15 +5,11 @@ import type { DomainEvent } from '@domain/common/domain-event';
 import { Result } from '@domain/common/result';
 import type { TransactionContext } from '@domain/kraefte/repositories/i-stamm-fahrzeug.repository';
 import { StammFahrzeug } from '@domain/kraefte/aggregates/stamm-fahrzeug.aggregate';
-// biome-ignore lint/style/useImportType: IStammFahrzeugRepository needed for DI at runtime
 import { IStammFahrzeugRepository } from '@domain/kraefte/repositories/i-stamm-fahrzeug.repository';
-// biome-ignore lint/style/useImportType: IFahrzeugtypRepository needed for DI at runtime
 import { IFahrzeugtypRepository } from '@domain/kraefte/repositories/i-fahrzeugtyp.repository';
 import { FahrzeugtypId } from '@domain/kraefte/value-objects/fahrzeugtyp-id';
-// biome-ignore lint/style/useImportType: IOutboxRepository needed for DI at runtime
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import { KRAEFTE_REPOSITORIES, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
-// biome-ignore lint/style/useImportType: PrismaService needed for DI at runtime
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { StammFahrzeugDto } from '../../dto';
 import { StammFahrzeugQueryMapper } from '../../queries/stamm-fahrzeug-query.mapper';
