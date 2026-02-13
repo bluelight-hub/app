@@ -8,7 +8,7 @@
     "build": "pnpm -r --filter '@bluelight-hub/*' build",
     "generate-api": "pnpm -r --filter '@bluelight-hub/*' --if-present generate-api",
     "lint": "biome check --write",
-    "lint:check": "biome check && pnpm -r --filter '@bluelight-hub/*' lint:check",
+    "lint:check": "biome check",
     "test": "pnpm -r --filter '@bluelight-hub/*' test",
     "test:ui": "pnpm -r --filter '@bluelight-hub/*' test:ui",
     "test:cov": "pnpm -r --filter '@bluelight-hub/*' test:cov",

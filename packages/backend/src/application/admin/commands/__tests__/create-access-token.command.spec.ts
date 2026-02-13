@@ -422,7 +422,7 @@ describe('CreateAccessTokenCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.name.length).toBe(3);
+      expect(result.value?.name.length).toBe(3);
     });
 
     it('should fail at one below minimum (2 chars)', () => {
@@ -446,7 +446,7 @@ describe('CreateAccessTokenCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.name.length).toBe(50);
+      expect(result.value?.name.length).toBe(50);
     });
 
     it('should fail at one above maximum (51 chars)', () => {

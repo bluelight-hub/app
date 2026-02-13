@@ -16,8 +16,10 @@
       "!**/node_modules/**",
       "!**/pnpm-lock.yaml",
       "!old-projects/**",
-      "!dist/**",
-      "!out/**",
+      "!**/dist/**",
+      "!**/out/**",
+      "!**/coverage/**",
+      "!**/coverage-e2e/**",
       "!venv/**",
       "!.husky/**",
       "!**/*.sqlite",
@@ -25,6 +27,7 @@
       "!**/.DS_Store",
       "!**/.idea/",
       "!**/.vscode/",
+      "!.claude/**",
       "!**/.env*",
       "!**/Gemfile.lock",
       "!**/repomix-output.xml",
@@ -33,11 +36,20 @@
       "!**/*.tailwind.css",
       "!docs/**/*.md",
       "!docs/*.md",
-      "!**/generated/**"
+      "!**/generated/**",
+      "!packages/shared/client/**",
+      "!packages/frontend/src/routeTree.gen.ts",
+      "!packages/frontend/src-tauri/gen/**",
+      "!packages/frontend/src-tauri/target/**",
+      "!packages/frontend/.tanstack/**",
+      "!packages/frontend/test-results/**"
     ]
   },
   "linter": {
     "enabled": true,
+    "domains": {
+      "react": "recommended"
+    },
     "rules": {
       "recommended": true,
       "nursery": {
@@ -56,8 +68,10 @@
       "!**/node_modules/**",
       "!**/pnpm-lock.yaml",
       "!old-projects/**",
-      "!dist/**",
-      "!out/**",
+      "!**/dist/**",
+      "!**/out/**",
+      "!**/coverage/**",
+      "!**/coverage-e2e/**",
       "!venv/**",
       "!.husky/**",
       "!**/*.sqlite",
@@ -65,6 +79,7 @@
       "!**/.DS_Store",
       "!**/.idea/",
       "!**/.vscode/",
+      "!.claude/**",
       "!**/.env*",
       "!**/Gemfile.lock",
       "!**/repomix-output.xml",
@@ -73,7 +88,13 @@
       "!**/*.tailwind.css",
       "!.releaserc.js",
       "!docs/**/*.md",
-      "!**/generated/**"
+      "!**/generated/**",
+      "!packages/shared/client/**",
+      "!packages/frontend/src/routeTree.gen.ts",
+      "!packages/frontend/src-tauri/gen/**",
+      "!packages/frontend/src-tauri/target/**",
+      "!packages/frontend/.tanstack/**",
+      "!packages/frontend/test-results/**"
     ]
   },
   "assist": {
@@ -84,8 +105,10 @@
       "!**/pnpm-lock.yaml",
       "!packages/**",
       "!old-projects/**",
-      "!dist/**",
-      "!out/**",
+      "!**/dist/**",
+      "!**/out/**",
+      "!**/coverage/**",
+      "!**/coverage-e2e/**",
       "!venv/**",
       "!.husky/**",
       "!**/*.sqlite",
@@ -93,6 +116,7 @@
       "!**/.DS_Store",
       "!**/.idea/",
       "!**/.vscode/",
+      "!.claude/**",
       "!**/.env*",
       "!**/Gemfile.lock",
       "!**/repomix-output.xml",
@@ -103,6 +127,9 @@
     ]
   },
   "javascript": {
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    },
     "formatter": {
       "jsxQuoteStyle": "double",
       "quoteProperties": "asNeeded",
@@ -118,9 +145,213 @@
   "html": { "formatter": { "selfCloseVoidElements": "always" } },
   "overrides": [
     { "includes": ["*.json", "*.yml", "*.yaml"], "formatter": { "indentWidth": 2 } },
+    { "includes": ["*.md"], "formatter": { "lineWidth": 300 } },
+
     {
-      "includes": ["*.md"],
-      "formatter": { "lineWidth": 300 }
+      "includes": ["packages/frontend/**/*.{ts,tsx}"],
+      "linter": {
+        "rules": {
+          "a11y": { "noLabelWithoutControl": { "level": "warn" } },
+          "suspicious": {
+            "noArrayIndexKey": { "level": "warn" },
+            "noImplicitAnyLet": { "level": "warn" }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["packages/backend/**/*.ts"],
+      "linter": {
+        "domains": { "react": "none" }
+      }
+    },
+
+    {
+      "includes": ["packages/backend/src/**/*.spec.ts", "packages/backend/src/**/*.test.ts"],
+      "linter": {
+        "rules": {
+          "style": { "noNonNullAssertion": "off" }
+        }
+      }
+    },
+    {
+      "includes": ["packages/backend/src/infrastructure/**/*.ts"],
+      "linter": {
+        "rules": {
+          "style": { "noNonNullAssertion": "off" }
+        }
+      }
+    },
+    {
+      "includes": ["packages/backend/src/cli/**/*.ts"],
+      "linter": {
+        "rules": {
+          "style": { "noNonNullAssertion": "off" }
+        }
+      }
+    },
+    {
+      "includes": [
+        "packages/backend/src/**/*.service.ts",
+        "packages/backend/src/**/*.controller.ts",
+        "packages/backend/src/**/*.indicator.ts",
+        "packages/backend/src/**/*.strategy.ts",
+        "packages/backend/src/**/*.repository.ts",
+        "packages/backend/src/**/*.module.ts",
+        "packages/backend/src/**/*.resolver.ts",
+        "packages/backend/src/**/*.interceptor.ts",
+        "packages/backend/src/**/*.scheduler.ts",
+        "packages/backend/src/**/*.handler.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": { "useImportType": "off" }
+        }
+      }
+    },
+    {
+      "includes": ["packages/backend/src/domain/**/*.ts"],
+      "linter": {
+        "rules": {
+          "nursery": { "noShadow": "off" },
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["**/application/*", "../application/*", "@application/*"],
+                    "message": "❌ Domain layer MUST NOT import from Application layer (violates Hexagonal Architecture)"
+                  },
+                  {
+                    "group": ["**/infrastructure/*", "../infrastructure/*", "@infrastructure/*"],
+                    "message": "❌ Domain layer MUST NOT import from Infrastructure layer (violates Hexagonal Architecture)"
+                  },
+                  {
+                    "group": ["@nestjs/*"],
+                    "message": "❌ Domain layer MUST be framework-agnostic (no NestJS imports allowed)"
+                  },
+                  {
+                    "group": ["@prisma/*"],
+                    "message": "❌ Domain layer MUST NOT depend on Prisma (use Repository interfaces instead)"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["packages/backend/src/domain/__tests__/helpers/**/*.ts"],
+      "linter": {
+        "rules": {
+          "style": { "noRestrictedImports": "off" }
+        }
+      }
+    },
+    {
+      "includes": [
+        "packages/backend/src/application/**/*.handler.ts",
+        "packages/backend/src/application/**/*.command.ts",
+        "packages/backend/src/application/**/*.query.ts",
+        "packages/backend/src/application/**/*.service.ts",
+        "packages/backend/src/application/**/common/**/*.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "@nestjs/common": {
+                    "importNames": ["Logger"],
+                    "message": "❌ Application Layer: Logger via DI injizieren mit @Inject(LOGGER) aus @infrastructure/di-tokens"
+                  }
+                },
+                "patterns": [
+                  {
+                    "group": [
+                      "@infrastructure/alert/*",
+                      "@infrastructure/auth/*",
+                      "@infrastructure/common/*",
+                      "@infrastructure/einsatz/*",
+                      "@infrastructure/etb/*",
+                      "@infrastructure/events/*",
+                      "@infrastructure/geocoding/*",
+                      "@infrastructure/kraefte/*",
+                      "@infrastructure/outbox/*",
+                      "@infrastructure/repositories/*",
+                      "@infrastructure/user/*",
+                      "@infrastructure/index",
+                      "@infrastructure/lagekarte-infrastructure.module"
+                    ],
+                    "message": "❌ Application layer MUST NOT import from Infrastructure layer (except @infrastructure/di-tokens, @infrastructure/database). Use DI via Repository interfaces."
+                  },
+                  {
+                    "group": ["@prisma/*"],
+                    "message": "❌ Application layer MUST NOT depend on Prisma directly (use Repository interfaces and DI instead)"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "packages/backend/src/infrastructure/**/*.ts",
+        "!packages/backend/src/infrastructure/**/*.spec.ts",
+        "!packages/backend/src/infrastructure/**/*.test.ts",
+        "!packages/backend/src/infrastructure/common/adapters/**/*.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "@nestjs/common": {
+                    "importNames": ["Logger"],
+                    "message": "❌ Infrastructure Layer: Logger via DI injizieren mit @Inject(LOGGER), außer in Adapters"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["packages/backend/src/modules/**/*.ts", "!packages/backend/src/modules/**/*.spec.ts", "!packages/backend/src/modules/**/*.test.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "@nestjs/common": {
+                    "importNames": ["Logger"],
+                    "message": "❌ Module Layer: Logger via DI injizieren mit @Inject(LOGGER)"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["packages/backend/src/main.ts", "packages/backend/src/main-cli.ts", "packages/backend/src/main-cli-archive.ts"],
+      "linter": {
+        "rules": {
+          "style": { "noRestrictedImports": "off" }
+        }
+      }
     }
   ]
 }
