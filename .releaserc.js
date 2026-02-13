@@ -124,7 +124,6 @@ WIP Änderungen:
         },
       },
     ],
-    '@semantic-release/release-notes-generator',
     [
       '@semantic-release/changelog',
       {
@@ -161,8 +160,8 @@ WIP Änderungen:
           'frontend-artifacts/**/*.exe',
           'frontend-artifacts/**/*.deb',
         ],
-        successComment: false,
-        failComment: false,
+        successComment: '🎉 Dieses Issue/PR wurde im Release [v${nextRelease.version}](${releases.filter(release => release.name)[0]?.url || ""}) veröffentlicht.',
+        failComment: '❌ Das Release ist fehlgeschlagen. Details in den [CI Logs](${branch.url}).',
       },
     ],
   ],
