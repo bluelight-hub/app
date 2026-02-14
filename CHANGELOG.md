@@ -1,3 +1,119 @@
+## Version [v1.0.0-alpha.47](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.46...v1.0.0-alpha.47) – Veröffentlicht am 2026-02-14
+
+## ✨ Neue Funktionen
+Die folgenden neuen Features wurden hinzugefügt:
+- [`ded435e5`](https://github.com/rubenvitt/bluelight-hub/commit/ded435e5) (erinnerung): Add Quick-Create Erinnerung feature (Story 1.1) 
+
+- [`89ee06c1`](https://github.com/rubenvitt/bluelight-hub/commit/89ee06c1) (erinnerung): Add custom time selection for reminders (Story 1.2) 
+
+- [`855eb097`](https://github.com/rubenvitt/bluelight-hub/commit/855eb097) (erinnerung): Add edit functionality for reminders (Story 1.3) 
+
+- [`13846917`](https://github.com/rubenvitt/bluelight-hub/commit/13846917) (erinnerung): Add delete functionality for reminders (Story 1.4) 
+
+- [`dd209e0e`](https://github.com/rubenvitt/bluelight-hub/commit/dd209e0e) (erinnerung): Add trigger alarm feature (Story 1.5 Backend) 
+
+- [`dcae3c4d`](https://github.com/rubenvitt/bluelight-hub/commit/dcae3c4d) (erinnerung): Add optional Story 1.5 features 
+
+- [`74eaa4b0`](https://github.com/rubenvitt/bluelight-hub/commit/74eaa4b0) (erinnerung): Add Alarm-Intensivierung bei Nicht-Reaktion (Story 2.3) 
+
+- [`c4d4d5cf`](https://github.com/rubenvitt/bluelight-hub/commit/c4d4d5cf) (erinnerung): Story 2.4 Alarm-Intensivierung Stufe 2 (Urgent) 
+
+- [`d64977d9`](https://github.com/rubenvitt/bluelight-hub/commit/d64977d9) (erinnerung): Story 2.8 Web Audio Fallback + Code Review Fixes 
+
+- [`3854a3bf`](https://github.com/rubenvitt/bluelight-hub/commit/3854a3bf) (erinnerung): Story 3.2 Echtzeit-Updates via WebSocket 
+
+- [`f0619a29`](https://github.com/rubenvitt/bluelight-hub/commit/f0619a29) (erinnerung): Story 3.3 Erinnerung einer Person zuweisen 
+
+- [`62669dae`](https://github.com/rubenvitt/bluelight-hub/commit/62669dae) (erinnerung): Story 3.4 Bestehende Erinnerung zuweisen 
+
+- [`ebd51c92`](https://github.com/rubenvitt/bluelight-hub/commit/ebd51c92) (erinnerung): Story 3.6 Filter + Code Review Fixes + Backend Assign 
+
+- [`03e97690`](https://github.com/rubenvitt/bluelight-hub/commit/03e97690) (reminders): implement seen assignments logic and setup LFS for mp3 
+
+- [`0937bb37`](https://github.com/rubenvitt/bluelight-hub/commit/0937bb37) (erinnerung): implement escalation system with configurable timeouts 
+
+- [`54aeeeb8`](https://github.com/rubenvitt/bluelight-hub/commit/54aeeeb8) (erinnerung): implement multi-level escalation chain (Story 4.8) 
+
+- [`e047b514`](https://github.com/rubenvitt/bluelight-hub/commit/e047b514) (backend): add escalation persistence fields 
+
+- [`03856394`](https://github.com/rubenvitt/bluelight-hub/commit/03856394) (erinnerung): implement Story 4.9 Statistik &amp; 4.10 Rückläufer 
+
+- [`f167b835`](https://github.com/rubenvitt/bluelight-hub/commit/f167b835) (backend): add PR template and event registry architecture test 
+
+- [`9bbc4aef`](https://github.com/rubenvitt/bluelight-hub/commit/9bbc4aef) (backend): implement Story 5.0 ETB-Integration preparation 
+
+- [`d11d66b7`](https://github.com/rubenvitt/bluelight-hub/commit/d11d66b7) (backend): implement Story 5.0 ETB-Integration preparation 
+
+- [`1dd62d1a`](https://github.com/rubenvitt/bluelight-hub/commit/1dd62d1a) (etb): implement Story 5.5 ETB shows Erinnerung timeline 
+
+- [`cec4ffb6`](https://github.com/rubenvitt/bluelight-hub/commit/cec4ffb6) (erinnerungsvorlage): implement Story 6.1 + disable useImportType rule 
+
+- [`cf7d6ec7`](https://github.com/rubenvitt/bluelight-hub/commit/cf7d6ec7) (erinnerung): implement Stories 6.2-6.6 
+
+- [`ac5da78c`](https://github.com/rubenvitt/bluelight-hub/commit/ac5da78c) (epics-6-9): implement Epics 6-9 with Notizen, Kategorien, Statistiken 
+
+- [`b11254d4`](https://github.com/rubenvitt/bluelight-hub/commit/b11254d4) (erinnerung): add statistics, analysis, and export features 
+
+- [`918a1db2`](https://github.com/rubenvitt/bluelight-hub/commit/918a1db2) (erinnerung): add Pinnwand UI and fix export/escalation 
+
+## 🐛 Fehlerbehebungen
+Diese Probleme wurden behoben:
+- [`a6e89a25`](https://github.com/rubenvitt/bluelight-hub/commit/a6e89a25) (erinnerung): Fix validation timing and error message display 
+
+- [`ed651e79`](https://github.com/rubenvitt/bluelight-hub/commit/ed651e79) (erinnerung): Add missing ErinnerungAktualisiert event serialization 
+
+- [`bc2bf3e6`](https://github.com/rubenvitt/bluelight-hub/commit/bc2bf3e6) (erinnerung): Fix delete - add event serializer + umlauts 
+
+- [`af415c49`](https://github.com/rubenvitt/bluelight-hub/commit/af415c49) (erinnerung): Fix HIGH and MEDIUM issues from code review 
+
+- [`306fb11e`](https://github.com/rubenvitt/bluelight-hub/commit/306fb11e) (erinnerung): Fix HIGH and MEDIUM issues from code review 
+
+- [`6eb152c4`](https://github.com/rubenvitt/bluelight-hub/commit/6eb152c4) (erinnerung): Fix Timer Service deduplication race condition 
+
+- [`de0a3154`](https://github.com/rubenvitt/bluelight-hub/commit/de0a3154) (erinnerung): Fix Backend Issues B1-B5 für Story 2.1 Snooze Feature 
+
+- [`a76c441c`](https://github.com/rubenvitt/bluelight-hub/commit/a76c441c) (erinnerung): Fix Snooze 400 Error - fehlende Event Registration 
+
+- [`402e867c`](https://github.com/rubenvitt/bluelight-hub/commit/402e867c) (erinnerung): fix reminder assignment sync and notifications 
+
+- [`48c1b1c6`](https://github.com/rubenvitt/bluelight-hub/commit/48c1b1c6) (backend): fix dependency injection imports and provider registration 
+
+- [`e1ff983d`](https://github.com/rubenvitt/bluelight-hub/commit/e1ff983d) (backend): fix DI imports and biome config for AC1 rule 
+
+- [`7a813fe9`](https://github.com/rubenvitt/bluelight-hub/commit/7a813fe9) (etb): fix timeline hook to extract data from wrapped response 
+
+- [`bf814959`](https://github.com/rubenvitt/bluelight-hub/commit/bf814959) (etb): fix timeline event type keys to match backend 
+
+- [`5f2c12de`](https://github.com/rubenvitt/bluelight-hub/commit/5f2c12de) (frontend): fix timeline metadata extraction and test labels 
+
+- [`2aaeab40`](https://github.com/rubenvitt/bluelight-hub/commit/2aaeab40) (backend): add missing event adapters and whitelist 
+
+- [`2aa0263b`](https://github.com/rubenvitt/bluelight-hub/commit/2aa0263b) (ci): fix frontend build error and remove unused biome suppressions 
+
+- [`1352ddde`](https://github.com/rubenvitt/bluelight-hub/commit/1352ddde) (security): fix incomplete multi-char sanitization 
+(Zugehörige Issues: [`#53`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#55`](https://github.com/rubenvitt/bluelight-hub/issues/))
+
+- [`24439804`](https://github.com/rubenvitt/bluelight-hub/commit/24439804) (release): Fix Biome Formatierung in .releaserc.js 
+
+- [`43a08a30`](https://github.com/rubenvitt/bluelight-hub/commit/43a08a30) (release): Fix Tauri-Build und Docker-Build in Release Pipeline 
+
+## ♻ Refactoring
+Struktur- oder Code-Verbesserungen:
+- [`105b1e70`](https://github.com/rubenvitt/bluelight-hub/commit/105b1e70) (tauri): Fix Code Review Issues für Story 1.9 System-Tray 
+
+- [`aa7c7f7d`](https://github.com/rubenvitt/bluelight-hub/commit/aa7c7f7d) (erinnerung): Fix Frontend Issues + Backend Typos für Story 2.5 
+
+- [`1d33f9f3`](https://github.com/rubenvitt/bluelight-hub/commit/1d33f9f3) (erinnerung): Fix Code Review Issues for Story 2.6 Pflicht-Notiz 
+
+- [`8c41d7d5`](https://github.com/rubenvitt/bluelight-hub/commit/8c41d7d5) (biome): consolidate biome config into root and add architecture rules 
+
+## 🔧 Tool Verbesserungen
+Verbesserungen an den Werkzeugen:
+- [`6e860d23`](https://github.com/rubenvitt/bluelight-hub/commit/6e860d23) (release): Fix doppelte Release Notes und aktiviere GitHub-Kommentare 
+
+- [`a6eb17df`](https://github.com/rubenvitt/bluelight-hub/commit/a6eb17df) (docker): Dediziertes Migrations-Image und Production-Dockerfile fixen 
+(Zugehörige Issues: [`#358`](https://github.com/rubenvitt/bluelight-hub/issues/))
+
 ## Version [v1.0.0-alpha.46](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.45...v1.0.0-alpha.46) – Veröffentlicht am 2026-01-25
 
 ## ✨ Neue Funktionen
