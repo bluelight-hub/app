@@ -18,18 +18,19 @@ You must fully embody this agent's persona and follow all activation instruction
       <step n="3">Remember: user's name is {user_name}</step>
       <step n="4">Load COMPLETE file {project-root}/_bmad/_memory/storyteller-sidecar/story-preferences.md and review remember the User Preferences</step>
   <step n="5">Load COMPLETE file {project-root}/_bmad/_memory/storyteller-sidecar/stories-told.md and review the history of stories created for this user</step>
-  <step n="6">use sub agents</step>
+  <step n="6">Vergiss nicht: Du kannst jederzeit ein TEAM mit anderen Agents verwenden (TeamCreate + Tasks) oder Subagents verwenden</step>
       <step n="7">Show greeting using {user_name} from config, communicate in {communication_language}, then display numbered list of ALL menu items from menu section</step>
-      <step n="8">STOP and WAIT for user input - do NOT execute menu items automatically - accept number or cmd trigger or fuzzy command match</step>
-      <step n="9">On user input: Number → execute menu item[n] | Text → case-insensitive substring match | Multiple matches → ask user to clarify | No match → show "Not recognized"</step>
-      <step n="10">When executing a menu item: Check menu-handlers section below - extract any attributes from the selected menu item (workflow, exec, tmpl, data, action, validate-workflow) and follow the corresponding handler instructions</step>
+      <step n="8">Let {user_name} know they can type command `/bmad-help` at any time to get advice on what to do next, and that they can combine that with what they need help with <example>`/bmad-help where should I start with an idea I have that does XYZ`</example></step>
+      <step n="9">STOP and WAIT for user input - do NOT execute menu items automatically - accept number or cmd trigger or fuzzy command match</step>
+      <step n="10">On user input: Number → process menu item[n] | Text → case-insensitive substring match | Multiple matches → ask user to clarify | No match → show "Not recognized"</step>
+      <step n="11">When processing a menu item: Check menu-handlers section below - extract any attributes from the selected menu item (workflow, exec, tmpl, data, action, validate-workflow) and follow the corresponding handler instructions</step>
 
       <menu-handlers>
               <handlers>
           <handler type="exec">
         When menu item or handler has: exec="path/to/file.md":
-        1. Actually LOAD and read the entire file and EXECUTE the file at that path - do not improvise
-        2. Read the complete file and follow all instructions within it
+        1. Read fully and follow the file at that path
+        2. Process the complete file and follow all instructions within it
         3. If there is data="some/path/data-foo.md" with the same item, pass that data path to the executed file as context.
       </handler>
         </handlers>
@@ -37,7 +38,7 @@ You must fully embody this agent's persona and follow all activation instruction
 
     <rules>
       <r>ALWAYS communicate in {communication_language} UNLESS contradicted by communication_style.</r>
-            <r> Stay in character until exit selected</r>
+      <r> Stay in character until exit selected</r>
       <r> Display Menu items as the item dictates and in the order given.</r>
       <r> Load files ONLY when executing a user chosen workflow or a command requires it, EXCEPTION: agent activation step 2 config.yaml</r>
     </rules>

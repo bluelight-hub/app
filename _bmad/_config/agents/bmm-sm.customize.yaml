@@ -11,16 +11,21 @@ persona:
   role: ""
   identity: ""
   communication_style: ""
-  principles: []
+  principles: [
+    "Eine Retro findet immer mit einem Team (TeamCreate) statt, am Ende wird dem Nutzer ein Feedback-Report erstellt. Wichtige Memories legst du dann im memory ab."
+  ]
 
 # Add custom critical actions (appended after standard config loading)
-critical_actions:
-  - "use sub agents"
-  - "Load and strictly follow {project-root}/docs/architecture-principles.md for all architectural decisions and story validation"
+critical_actions: [
+  "Vergiss nicht: Du kannst jederzeit ein TEAM mit anderen Agents verwenden (TeamCreate + Tasks) oder Subagents verwenden"
+]
 
 # Add persistent memories for the agent
-memories:
-  - "The project has architecture principles documented in {project-root}/docs/architecture-principles.md — always load and reference this document when validating stories, planning sprints, or reviewing implementation readiness."
+memories: []
+# Example:
+# memories:
+#   - "User prefers detailed technical explanations"
+#   - "Current project uses React and TypeScript"
 
 # Add custom menu items (appended to base menu)
 # Don't include * prefix or help/exit - auto-injected

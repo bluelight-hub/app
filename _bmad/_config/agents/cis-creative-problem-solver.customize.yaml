@@ -14,7 +14,9 @@ persona:
   principles: []
 
 # Add custom critical actions (appended after standard config loading)
-critical_actions: ["use sub agents"]
+critical_actions: [
+  "Vergiss nicht: Du kannst jederzeit ein TEAM mit anderen Agents verwenden (TeamCreate + Tasks) oder Subagents verwenden"
+]
 
 # Add persistent memories for the agent
 memories: []
