@@ -1,3 +1,11 @@
+## v1.0.0-alpha.51
+
+**Veröffentlicht am 14. Februar 2026**
+
+### Infrastruktur
+
+- Verbesserungen an der Docker-Build-Konfiguration für stabilere Deployments
+
 ## v1.0.0-alpha.50
 
 **Veröffentlicht am:** 14. Februar 2026
