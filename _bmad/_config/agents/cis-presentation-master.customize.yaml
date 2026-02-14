@@ -11,13 +11,13 @@ persona:
   role: ""
   identity: ""
   communication_style: ""
-  principles: []
+  principles: [ ]
 
 # Add custom critical actions (appended after standard config loading)
-critical_actions: ["use sub agents"]
+critical_actions: [ "Vergiss nicht: Du kannst jederzeit ein TEAM mit anderen Agents verwenden (TeamCreate + Tasks) oder Subagents verwenden" ]
 
 # Add persistent memories for the agent
-memories: []
+memories: [ ]
 # Example:
 # memories:
 #   - "User prefers detailed technical explanations"
@@ -25,7 +25,7 @@ memories: []
 
 # Add custom menu items (appended to base menu)
 # Don't include * prefix or help/exit - auto-injected
-menu: []
+menu: [ ]
 # Example:
 # menu:
 #   - trigger: my-workflow
@@ -33,7 +33,7 @@ menu: []
 #     description: My custom workflow
 
 # Add custom prompts (for action="#id" handlers)
-prompts: []
+prompts: [ ]
 # Example:
 # prompts:
 # - id: my-prompt
