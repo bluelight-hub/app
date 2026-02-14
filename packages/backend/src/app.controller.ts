@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { Controller, Get, Logger, VERSION_NEUTRAL } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { SkipSetupCheck } from '@/infrastructure/decorators/skip-setup-check.decorator';
 import { SkipTransform } from './modules/common/decorators/skip-transform.decorator';
 import { trimTrailingSlash } from '@/shared/utils/url.util';
 
@@ -40,6 +41,7 @@ export class AppController {
   }
 
   @Get()
+  @SkipSetupCheck()
   @SkipTransform()
   getRoot() {
     return {
