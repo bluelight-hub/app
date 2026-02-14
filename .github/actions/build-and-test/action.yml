@@ -26,7 +26,7 @@ runs:
       uses: pnpm/action-setup@v4
 
     - name: Setup Node.js
-      uses: actions/setup-node@v5
+      uses: actions/setup-node@v6
       with:
         node-version-file: 'package.json'
         cache: 'pnpm'
@@ -40,6 +40,13 @@ runs:
     - name: Generate Prisma Client
       shell: bash
       run: pnpm --filter @bluelight-hub/backend prisma:generate
+
+    - name: Run Prisma migrations
+      if: inputs.database-url != ''
+      shell: bash
+      env:
+        DATABASE_URL: ${{ inputs.database-url }}
+      run: pnpm --filter @bluelight-hub/backend prisma:deploy
 
     - name: Build shared package
       shell: bash
