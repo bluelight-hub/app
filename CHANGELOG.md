@@ -1,3 +1,11 @@
+## v1.0.0-alpha.49
+
+**Veröffentlicht am:** 14. Februar 2026
+
+### Technische Verbesserungen
+
+- Optimierung der Release-Pipeline zur Vermeidung paralleler Veröffentlichungen
+
 ## v1.0.0-alpha.48
 
 ### Entwickler-Erfahrung
