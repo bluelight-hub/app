@@ -1,3 +1,22 @@
+## v1.0.0-alpha.50
+
+**Veröffentlicht am:** 14. Februar 2026
+
+### Fehlerbehebungen
+
+- Das API-Root-Endpunkt bleibt nun während des Setup-Modus erreichbar, was eine bessere Diagnose von Verbindungsproblemen ermöglicht
+
+### Entwickler-Verbesserungen
+
+- Verbessertes Verhalten der Git-Hooks in Worktree-Umgebungen
+- Optimierte Pre-Commit-Prüfungen für generierte Dateien
+
+### Abhängigkeiten
+
+- Aktualisierung auf TanStack Router 1.159.10
+- Aktualisierung auf TanStack React Form 1.28.2
+- Diverse kleinere Dependency-Updates
+
 ## v1.0.0-alpha.49
 
 **Veröffentlicht am:** 14. Februar 2026
