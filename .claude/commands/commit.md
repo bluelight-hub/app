@@ -12,7 +12,7 @@ description: Create a git commit following project conventions
 
 ## Commit Conventions
 
-!`cat .claude/commit-conventions.md`
+!`git rev-parse --show-toplevel | xargs -I{} cat {}/.claude/commit-conventions.md`
 
 ## Workflow
 
