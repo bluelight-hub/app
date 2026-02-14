@@ -13,115 +13,46 @@ module.exports = {
           patch: ['🐛', '🚑', '🔒', '🧹', '♻️', '🔧'],
         },
         releaseNotes: {
-          template: `{{#if compareUrl}}
-## Version [v{{nextRelease.version}}]({{compareUrl}}) – Veröffentlicht am {{datetime "yyyy-mm-dd"}}
-{{else}}
-## Version v{{nextRelease.version}} – Veröffentlicht am {{datetime "yyyy-mm-dd"}}
-{{/if}}
-
-{{#with commits}}
-
-{{!-- Neue Funktionen (✨) --}}
-{{#if sparkles}}
-## ✨ Neue Funktionen
-Die folgenden neuen Features wurden hinzugefügt:
-{{#each sparkles}}
-- {{> commitTemplate}}
-{{/each}}
-{{/if}}
-
-{{!-- Fehlerbehebungen (🐛) --}}
-{{#if bug}}
-## 🐛 Fehlerbehebungen
-Diese Probleme wurden behoben:
-{{#each bug}}
-- {{> commitTemplate}}
-{{/each}}
-{{/if}}
-
-{{!-- Dringende Hotfixes (🚑) --}}
-{{#if ambulance}}
-## 🚑 Hotfixes
-Dringende Hotfixes:
-{{#each ambulance}}
-- {{> commitTemplate}}
-{{/each}}
-{{/if}}
-
-{{!-- Sicherheitsverbesserungen (🔒) --}}
-{{#if lock}}
-## 🔒 Sicherheitsverbesserungen
-Sicherheitsrelevante Änderungen:
-{{#each lock}}
-- {{> commitTemplate}}
-{{/each}}
-{{/if}}
-
-{{!-- Code-Aufräumarbeiten (🧹) --}}
-{{#if broom}}
-## 🧹 Codebereinigungen
-Aufräumarbeiten und kleinere Verbesserungen:
-{{#each broom}}
-- {{> commitTemplate}}
-{{/each}}
-{{/if}}
-
-{{!-- Refactoring (♻) --}}
-{{#if recycle}}
-## ♻ Refactoring
-Struktur- oder Code-Verbesserungen:
-{{#each recycle}}
-- {{> commitTemplate}}
-{{/each}}
-{{/if}}
-
-{{!-- Tool Improvements (🔧) --}}
-{{#if wrench}}
-## 🔧 Tool Verbesserungen
-Verbesserungen an den Werkzeugen:
-{{#each wrench}}
-- {{> commitTemplate}}
-{{/each}}
-{{/if}}
-
-{{!-- Breaking Changes (💥) --}}
-{{#if boom}}
-## 💥 Breaking Changes
-Bitte beachtet folgende Änderungen, die möglicherweise Anpassungen erfordern:
-{{#each boom}}
-- {{> commitTemplate}}
-{{/each}}
-{{/if}}
-
-{{/with}}`,
-          partials: {
-            commitTemplate: `[\`{{commit.short}}\`](https://github.com/{{owner}}/{{repo}}/commit/{{commit.short}}) {{subject}} 
-{{#if issues}}(Zugehörige Issues: {{#each issues}}[\`{{text}}\`]({{link}}){{#unless @last}}, {{/unless}}{{/each}}){{/if}}
-{{#if wip}}
-WIP Änderungen:
-{{#each wip}}
-- [\`{{commit.short}}\`](https://github.com/{{owner}}/{{repo}}/commit/{{commit.short}}) {{subject}}
-{{/each}}
-{{/if}}`,
-          },
-          helpers: {
-            datetime: (format = 'dd.mm.yyyy') => {
-              const date = new Date();
-              const utcDate = new Date(date.toUTCString().slice(0, -4));
-              return format
-                .replace('yyyy', utcDate.getUTCFullYear())
-                .replace('mm', String(utcDate.getUTCMonth() + 1).padStart(2, '0'))
-                .replace('dd', String(utcDate.getUTCDate()).padStart(2, '0'));
-            },
-          },
-          issueResolution: {
-            template: '{baseUrl}/{owner}/{repo}/issues/{ref}',
-            baseUrl: 'https://github.com',
-            source: 'github.com',
-            removeFromCommit: false,
-            regex: /#\d+/g,
-          },
+          template: '',
         },
+      },
+    ],
+    [
+      'semantic-release-claude-changelog',
+      {
+        escaping: 'none',
+        promptTemplate: `Erstelle Release Notes für Version {{version}} (veröffentlicht am {{date}}) des Projekts Bluelight Hub – eine Desktop & Web App für Blaulicht-Organisationen im Katastrophenschutz.
+
+Hier sind die Commits dieses Releases:
+
+\`\`\`json
+{{commits}}
+\`\`\`
+
+{{#additionalContext}}
+Zusätzlicher Kontext:
+
+\`\`\`json
+{{additionalContext}}
+\`\`\`
+{{/additionalContext}}
+
+WICHTIG: Deine Antwort darf NUR die Release Notes im Markdown-Format enthalten. Kein zusätzlicher Text, keine Erklärungen.
+
+Die Release Notes sollen:
+
+1. Auf Deutsch geschrieben sein
+2. Änderungen thematisch nach Feature-Bereichen gruppieren (z.B. "Erinnerungen", "ETB-Integration", "Vorlagen") statt nach Commit-Typ (Feature/Bugfix)
+3. Technische Commit-Messages in benutzerfreundliche Beschreibungen übersetzen
+4. Wichtige Änderungen hervorheben, die Nutzer betreffen
+5. Rein technische Commits weglassen (CI-Fixes, Biome-Config, Refactoring ohne User-Impact, Release-Pipeline-Änderungen)
+6. Bugfixes den jeweiligen Feature-Bereichen zuordnen, nicht separat auflisten
+7. Keine Commit-Hashes, keine Story-Nummern, keine internen Tracking-IDs
+8. Markdown-Formatierung mit ## für Abschnitts-Überschriften
+9. Kompakt und scanbar – Qualität vor Quantität
+10. Bei Breaking Changes (💥) diese prominent am Anfang hervorheben
+
+Starte direkt mit dem Versions-Header im Format: ## v{{version}}`,
       },
     ],
     [
