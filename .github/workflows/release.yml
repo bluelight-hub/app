@@ -33,17 +33,31 @@ jobs:
         run: echo "Tests were successful, proceeding with release"
 
   build-backend:
-    name: Build Backend (${{ matrix.platform }})
+    name: Build Backend ${{ matrix.variant }} (${{ matrix.platform }})
     needs: [ check-test-success ]
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
+          # App image (production target)
           - platform: linux/amd64
             runner: ubuntu-24.04
+            target: production
+            variant: app
           - platform: linux/arm64
             runner: ubuntu-24.04-arm
+            target: production
+            variant: app
+          # Migrations image
+          - platform: linux/amd64
+            runner: ubuntu-24.04
+            target: migrations
+            variant: migrations
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+            target: migrations
+            variant: migrations
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -59,11 +73,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Determine image name
+        id: image
+        run: |
+          if [ "${{ matrix.variant }}" = "app" ]; then
+            echo "name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.variant }}" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ steps.image.outputs.name }}
 
       - name: Build and push by digest
         id: build
@@ -71,11 +94,12 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
+          target: ${{ matrix.target }}
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=${{ github.event_name != 'pull_request' }}
-          cache-from: type=gha,scope=${{ matrix.platform }}
-          cache-to: type=gha,scope=${{ matrix.platform }},mode=max
+          outputs: type=image,name=${{ steps.image.outputs.name }},push-by-digest=true,name-canonical=true,push=${{ github.event_name != 'pull_request' }}
+          cache-from: type=gha,scope=${{ matrix.platform }}-${{ matrix.variant }}
+          cache-to: type=gha,scope=${{ matrix.platform }}-${{ matrix.variant }},mode=max
 
       - name: Export digest
         run: |
@@ -86,21 +110,29 @@ jobs:
       - name: Upload digest
         uses: actions/upload-artifact@v6
         with:
-          name: digests-${{ matrix.runner }}
+          name: digests-${{ matrix.variant }}-${{ matrix.runner }}
           path: ${{ runner.temp }}/digests/*
           if-no-files-found: error
           retention-days: 1
 
   merge-backend:
-    name: Merge Backend Images
+    name: Merge Backend Images (${{ matrix.variant }})
     runs-on: ubuntu-latest
     needs: build-backend
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: app
+            image_suffix: ""
+          - variant: migrations
+            image_suffix: "/migrations"
     steps:
       - name: Download digests
         uses: actions/download-artifact@v7
         with:
           path: ${{ runner.temp }}/digests
-          pattern: digests-*
+          pattern: digests-${{ matrix.variant }}-*
           merge-multiple: true
 
       - name: Log in to the Container registry
@@ -115,33 +147,46 @@ jobs:
 
       - name: Set tags for main branch
         if: github.ref == 'refs/heads/main'
-        run: echo "TAGS=latest,main,main:${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+        run: echo "TAGS=latest,main,main-${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
 
       - name: Set tags for other branches
         if: github.ref != 'refs/heads/main'
-        run: echo "TAGS=${GITHUB_REF#refs/heads/},${GITHUB_REF#refs/heads/}:${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+        run: echo "TAGS=${GITHUB_REF#refs/heads/},${GITHUB_REF#refs/heads/}-${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}${{ matrix.image_suffix }}
           tags: ${{ env.TAGS }}
 
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)
+            $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}${{ matrix.image_suffix }}@sha256:%s ' *)
 
       - name: Save Docker image tags
+        if: matrix.variant == 'app'
         run: echo "${{ steps.meta.outputs.tags }}" > backend-image-tags.txt
 
+      - name: Save Migrations image tags
+        if: matrix.variant == 'migrations'
+        run: echo "${{ steps.meta.outputs.tags }}" > migrations-image-tags.txt
+
       - name: Upload Backend Image Tags
+        if: matrix.variant == 'app'
         uses: actions/upload-artifact@v6
         with:
           name: backend-image-tags
           path: backend-image-tags.txt
+
+      - name: Upload Migrations Image Tags
+        if: matrix.variant == 'migrations'
+        uses: actions/upload-artifact@v6
+        with:
+          name: migrations-image-tags
+          path: migrations-image-tags.txt
 
   build-frontend:
     name: Build Frontend on ${{ matrix.platform }}
@@ -261,6 +306,11 @@ jobs:
         with:
           name: backend-image-tags
 
+      - name: Download Migrations Image Tags
+        uses: actions/download-artifact@v7
+        with:
+          name: migrations-image-tags
+
       - name: Download Frontend Artifacts
         uses: actions/download-artifact@v7
         with:
@@ -270,8 +320,14 @@ jobs:
       - name: Prepare Release Notes
         run: |
           echo "## Docker Image Tags" >> RELEASE_NOTES.md
+          echo "### App" >> RELEASE_NOTES.md
           echo '```' >> RELEASE_NOTES.md
           cat backend-image-tags.txt >> RELEASE_NOTES.md
+          echo '```' >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "### Migrations" >> RELEASE_NOTES.md
+          echo '```' >> RELEASE_NOTES.md
+          cat migrations-image-tags.txt >> RELEASE_NOTES.md
           echo '```' >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
           echo "## Frontend Artifacts" >> RELEASE_NOTES.md
