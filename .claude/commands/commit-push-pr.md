@@ -13,7 +13,7 @@ description: Commit, push, and create a PR with descriptive summary
 
 ## Commit Conventions
 
-!`cat .claude/commit-conventions.md`
+!`git rev-parse --show-toplevel | xargs -I{} cat {}/.claude/commit-conventions.md`
 
 ## Workflow
 
