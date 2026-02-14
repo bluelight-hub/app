@@ -7,6 +7,11 @@ on:
     types:
       - completed
 
+# Nur ein Release gleichzeitig pro Branch - veraltetes Release wird abgebrochen
+concurrency:
+  group: release-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
