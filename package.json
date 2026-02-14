@@ -61,6 +61,7 @@
     "lint-staged": "^16.2.7",
     "puppeteer": "^24.37.2",
     "semantic-release": "^25.0.3",
+    "semantic-release-claude-changelog": "^2.0.0",
     "semantic-release-gitmoji": "^1.6.9"
   }
 }
