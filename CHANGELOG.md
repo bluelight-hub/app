@@ -1,3 +1,14 @@
+## v1.0.0-alpha.48
+
+### Entwickler-Erfahrung
+
+- **Schnellere CI-Pipeline bei Pull Requests**: Die Build-Pipeline wurde optimiert und erkennt nun automatisch, wenn nur Dokumentation geändert wurde – in diesen Fällen werden zeitintensive Build-Schritte übersprungen, was die Feedback-Zeiten deutlich verkürzt
+- **KI-generierte Release Notes**: Release Notes werden nun automatisch mit Claude erstellt und sind benutzerfreundlicher, thematisch gruppiert und leichter verständlich statt als reine Commit-Liste
+
+### Interne Infrastruktur
+
+- Erweiterung des BMAD-Frameworks um Module Builder (BMB) für strukturierte Workflows und Agent-Konfigurationen
+
 ## Version [v1.0.0-alpha.47](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.46...v1.0.0-alpha.47) – Veröffentlicht am 2026-02-14
 
 ## ✨ Neue Funktionen
