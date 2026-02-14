@@ -43,7 +43,7 @@
     "**/*.{js,ts,tsx,json,md,yml,yaml}": ["biome check --write --no-errors-on-unmatched"],
     "packages/backend/**/*.ts": ["pnpm --filter @bluelight-hub/backend lint"],
     "packages/backend/src/domain/**/*.ts": ["pnpm --filter @bluelight-hub/backend lint:domain"],
-    "packages/frontend/**/*.{ts,tsx}": ["pnpm --filter @bluelight-hub/frontend lint"]
+    "packages/frontend/**/!(*.gen).{ts,tsx}": ["pnpm --filter @bluelight-hub/frontend lint"]
   },
   "engines": {
     "node": ">=24.0.0"
