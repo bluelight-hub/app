@@ -1,3 +1,11 @@
+## v1.0.0-alpha.52
+
+**Veröffentlicht am 15. Februar 2026**
+
+### Infrastruktur
+
+- Behebung eines Fehlers bei der Datenbank-Migration in Docker-Containern
+
 ## v1.0.0-alpha.51
 
 **Veröffentlicht am 14. Februar 2026**
