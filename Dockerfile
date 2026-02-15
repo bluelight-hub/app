@@ -44,6 +44,8 @@ WORKDIR /app
 
 # Production node_modules (Prisma client generated, dev deps removed)
 COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=prod-deps /app/packages/backend/node_modules ./packages/backend/node_modules
+COPY --from=prod-deps /app/packages/shared/node_modules ./packages/shared/node_modules
 COPY --from=prod-deps /app/package.json ./
 COPY --from=prod-deps /app/pnpm-lock.yaml ./
 COPY --from=prod-deps /app/pnpm-workspace.yaml ./
