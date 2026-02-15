@@ -31,34 +31,26 @@ RUN pnpm --filter @bluelight-hub/frontend build
 FROM shared-builder AS backend-builder
 RUN pnpm --filter @bluelight-hub/backend build
 
-## Production dependencies: generate Prisma client, then prune dev deps
-FROM base AS prod-deps
-COPY packages/backend/prisma ./packages/backend/prisma
-RUN cd packages/backend && pnpm exec prisma generate
-RUN CI=true pnpm prune --prod
+## Production dependencies: use pnpm deploy for reliable workspace isolation
+## (pnpm prune --prod does not reliably preserve workspace packages' dependencies)
+FROM shared-builder AS prod-deps
+RUN pnpm --filter @bluelight-hub/backend deploy --prod /prod/backend
 
 ## Production image: minimal runtime with pre-built artifacts only
 FROM node:25-alpine AS production
 RUN apk add --no-cache python3 make g++ wget
 WORKDIR /app
 
-# Production node_modules (Prisma client generated, dev deps removed)
-COPY --from=prod-deps /app/node_modules ./node_modules
-COPY --from=prod-deps /app/packages/backend/node_modules ./packages/backend/node_modules
-COPY --from=prod-deps /app/packages/shared/node_modules ./packages/shared/node_modules
-COPY --from=prod-deps /app/package.json ./
-COPY --from=prod-deps /app/pnpm-lock.yaml ./
-COPY --from=prod-deps /app/pnpm-workspace.yaml ./
-COPY --from=prod-deps /app/packages/backend/package.json ./packages/backend/
-COPY --from=prod-deps /app/packages/shared/package.json ./packages/shared/
+# Production node_modules from pnpm deploy (flat, no symlinks)
+# Includes workspace dependency @bluelight-hub/shared with pre-built dist/
+COPY --from=prod-deps /prod/backend/node_modules ./packages/backend/node_modules
 
 # Copy build outputs and runtime assets
-COPY --from=shared-builder /app/packages/shared/dist ./packages/shared/dist
-COPY --from=shared-builder /app/packages/shared/client ./packages/shared/client
 COPY --from=backend-builder /app/packages/backend/dist ./packages/backend/dist
 COPY --from=backend-builder /app/packages/backend/src/generated ./packages/backend/src/generated
 COPY --from=backend-builder /app/packages/backend/prisma ./packages/backend/prisma
 COPY --from=backend-builder /app/packages/backend/.config ./packages/backend/.config
+COPY --from=backend-builder /app/packages/backend/package.json ./packages/backend/package.json
 COPY --from=frontend-builder /app/packages/frontend/dist ./public
 
 ENV NODE_ENV=production
