@@ -61,6 +61,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -145,13 +147,25 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Set tags for main branch
-        if: github.ref == 'refs/heads/main'
-        run: echo "TAGS=latest,main,main-${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
-
-      - name: Set tags for other branches
-        if: github.ref != 'refs/heads/main'
-        run: echo "TAGS=${GITHUB_REF#refs/heads/},${GITHUB_REF#refs/heads/}-${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+      - name: Set image tags
+        run: |
+          BRANCH="${{ github.event.workflow_run.head_branch }}"
+          if [ "$BRANCH" = "main" ]; then
+            {
+              echo "TAGS<<EOF"
+              echo "type=raw,value=latest"
+              echo "type=raw,value=main"
+              echo "type=raw,value=main-${GITHUB_RUN_NUMBER}"
+              echo "EOF"
+            } >> $GITHUB_ENV
+          else
+            {
+              echo "TAGS<<EOF"
+              echo "type=raw,value=${BRANCH}"
+              echo "type=raw,value=${BRANCH}-${GITHUB_RUN_NUMBER}"
+              echo "EOF"
+            } >> $GITHUB_ENV
+          fi
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
@@ -211,6 +225,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
+          ref: ${{ github.event.workflow_run.head_branch }}
           fetch-depth: 0
 
       - name: Install Rust stable
@@ -290,6 +305,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
+          ref: ${{ github.event.workflow_run.head_branch }}
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
 
