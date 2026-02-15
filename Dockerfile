@@ -79,5 +79,7 @@ CMD ["node", "dist/src/main"]
 FROM base AS migrations
 COPY packages/backend/prisma ./packages/backend/prisma
 WORKDIR /app/packages/backend
+# Minimale Config ohne dotenvx - DATABASE_URL kommt direkt als Environment-Variable
+RUN printf 'import { defineConfig } from "prisma/config";\nexport default defineConfig({ datasource: { url: process.env.DATABASE_URL } });\n' > prisma.config.ts
 RUN pnpm exec prisma generate
 CMD ["pnpm", "exec", "prisma", "migrate", "deploy"]
