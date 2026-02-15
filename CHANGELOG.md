@@ -1,3 +1,12 @@
+## v1.0.0-alpha.53
+
+**Veröffentlicht am:** 15. Februar 2026
+
+### Docker & Deployment
+
+- **Verbesserte Docker-Image-Verwaltung**: Docker-Images werden nun mit zusätzlichen Branch-Tags versehen (alpha, beta, latest), um die Bereitstellung und Versionsverwaltung zu vereinfachen
+- **Fehler bei Produktions-Deployment behoben**: Dependencies werden nun korrekt in Docker-Container kopiert, sodass alle benötigten Module verfügbar sind
+
 ## v1.0.0-alpha.52
 
 **Veröffentlicht am 15. Februar 2026**
