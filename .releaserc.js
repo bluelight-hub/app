@@ -21,7 +21,7 @@ module.exports = {
       'semantic-release-claude-changelog',
       {
         escaping: 'none',
-        promptTemplate: `Erstelle Release Notes für Version {{version}} (veröffentlicht am {{date}}) des Projekts Bluelight Hub – eine Desktop & Web App für Blaulicht-Organisationen im Katastrophenschutz.
+        promptTemplate: `Erstelle Release Notes des Projekts Bluelight Hub – eine Desktop & Web App für Blaulicht-Organisationen im Katastrophenschutz.
 
 Hier sind die Commits dieses Releases:
 
@@ -52,7 +52,7 @@ Die Release Notes sollen:
 9. Kompakt und scanbar – Qualität vor Quantität
 10. Bei Breaking Changes (💥) diese prominent am Anfang hervorheben
 
-Starte direkt mit dem Versions-Header im Format: ## v{{version}}`,
+Starte direkt mit den Release notes gruppiert wie oben beschrieben mit ## ...`,
       },
     ],
     [
