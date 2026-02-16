@@ -1,3 +1,8 @@
+## CI/CD & Deployment
+
+- Docker-Images werden nun mit der korrekten Release-Version getaggt statt mit der Build-Nummer
+- Datei-Upload-Pfade in Docker-Umgebungen werden jetzt korrekt aufgelöst
+
 ## v1.0.0-alpha.54
 
 *Veröffentlicht am 16. Februar 2026*
