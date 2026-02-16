@@ -1,3 +1,8 @@
+## Infrastruktur & Betrieb
+
+- Korrigierte Fehler bei leerer `TRUSTED_PROXIES` Umgebungsvariable, der zu Abstürzen der API führen konnte
+- Behebung eines Problems bei der automatischen Docker-Image-Versionierung während des Release-Prozesses
+
 ## CI/CD & Deployment
 
 - Docker-Images werden nun mit der korrekten Release-Version getaggt statt mit der Build-Nummer
