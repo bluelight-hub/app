@@ -5,7 +5,7 @@ RUN apk add --no-cache python3 make g++ wget \
 WORKDIR /app
 
 # Copy only dependency manifests to maximize cache hits
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY packages/backend/package.json ./packages/backend/
 COPY packages/frontend/package.json ./packages/frontend/
 COPY packages/shared/package.json ./packages/shared/
