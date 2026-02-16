@@ -22,6 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       code: ${{ steps.filter.outputs.code }}
+      docker: ${{ steps.filter.outputs.docker }}
     steps:
       - uses: actions/checkout@v6
       - uses: dorny/paths-filter@v3
@@ -33,6 +34,14 @@ jobs:
               - 'package.json'
               - 'pnpm-lock.yaml'
               - '.github/**'
+            docker:
+              - 'Dockerfile'
+              - '.dockerignore'
+              - '.npmrc'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'package.json'
+              - 'packages/*/package.json'
 
   # Linux build with PostgreSQL database
   build-and-test-linux:
@@ -157,10 +166,41 @@ jobs:
       - name: Check JSDoc coverage
         run: pnpm --filter @bluelight-hub/backend check:jsdoc:public || true
 
+  # Docker build smoke test (no push)
+  docker-build:
+    name: Docker Build
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.docker == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build production image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: production
+          push: false
+          cache-from: type=gha,scope=docker-build-production
+          cache-to: type=gha,scope=docker-build-production,mode=max
+
+      - name: Build migrations image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: migrations
+          push: false
+          cache-from: type=gha,scope=docker-build-migrations
+          cache-to: type=gha,scope=docker-build-migrations,mode=max
+
   # Summary job for branch protection
   summary:
     name: CI Pipeline Summary
-    needs: [detect-changes, build-and-test-linux, build-and-test-other]
+    needs: [detect-changes, build-and-test-linux, build-and-test-other, docker-build]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -169,15 +209,18 @@ jobs:
           changes="${{ needs.detect-changes.result }}"
           linux="${{ needs.build-and-test-linux.result }}"
           other="${{ needs.build-and-test-other.result }}"
+          docker="${{ needs.docker-build.result }}"
           if [[ "$changes" != "success" ]]; then
             echo "❌ Change detection failed: $changes"
             exit 1
           fi
           if [[ "$linux" != "success" && "$linux" != "skipped" ]] || \
-             [[ "$other" != "success" && "$other" != "skipped" ]]; then
+             [[ "$other" != "success" && "$other" != "skipped" ]] || \
+             [[ "$docker" != "success" && "$docker" != "skipped" ]]; then
             echo "❌ One or more jobs failed"
             echo "Linux: $linux"
             echo "Other: $other"
+            echo "Docker: $docker"
             exit 1
           fi
           echo "✅ All CI checks passed"
@@ -191,6 +234,7 @@ jobs:
 
           linux="${{ needs.build-and-test-linux.result }}"
           other="${{ needs.build-and-test-other.result }}"
+          docker="${{ needs.docker-build.result }}"
 
           status_icon() {
             case "$1" in
@@ -202,9 +246,11 @@ jobs:
 
           echo "| Build & Test (Linux) | $(status_icon "$linux") $linux |" >> $GITHUB_STEP_SUMMARY
           echo "| Build & Test (Other) | $(status_icon "$other") $other |" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker Build | $(status_icon "$docker") $docker |" >> $GITHUB_STEP_SUMMARY
           echo "| Lightweight Checks | ℹ️ non-blocking |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Platform Results" >> $GITHUB_STEP_SUMMARY
           echo "- Linux: $linux (with PostgreSQL)" >> $GITHUB_STEP_SUMMARY
           echo "- macOS: $other" >> $GITHUB_STEP_SUMMARY
           echo "- Windows: $other (tests skipped)" >> $GITHUB_STEP_SUMMARY
+          echo "- Docker: $docker" >> $GITHUB_STEP_SUMMARY
