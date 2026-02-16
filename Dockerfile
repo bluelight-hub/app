@@ -54,6 +54,7 @@ COPY --from=backend-builder /app/packages/backend/package.json ./packages/backen
 COPY --from=frontend-builder /app/packages/frontend/dist ./public
 
 ENV NODE_ENV=production
+ENV UPLOADS_PATH=/app/uploads
 WORKDIR /app/packages/backend
 
 # Prepare uploads directory and ensure node user owns runtime paths

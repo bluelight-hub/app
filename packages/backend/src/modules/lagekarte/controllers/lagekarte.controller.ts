@@ -38,7 +38,7 @@ import {
 } from '@nestjs/swagger';
 import { ApiWrappedCreatedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { diskStorage } from 'multer';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { SaveLagekarteStateDto } from '../dto/save-lagekarte-state.dto';
 import { Lagekarte } from '@/generated/prisma/client';
@@ -102,7 +102,7 @@ export class LagekarteController {
   ) {
     // Get uploads path from ENV or use default (relative to project root)
     const uploadsBase = this.configService.get<string>('UPLOADS_PATH') || 'uploads';
-    this.uploadsPath = join(process.cwd(), uploadsBase);
+    this.uploadsPath = resolve(process.cwd(), uploadsBase);
     this.uploadDir = join(this.uploadsPath, 'lagekarte');
 
     // Ensure uploads directory exists
@@ -249,7 +249,7 @@ export class LagekarteController {
         destination: (_req, _file, cb) => {
           // Use project root for uploads (consistent with ServeStaticModule)
           const uploadsBase = process.env.UPLOADS_PATH || 'uploads';
-          const uploadsPath = join(process.cwd(), uploadsBase);
+          const uploadsPath = resolve(process.cwd(), uploadsBase);
           const uploadDir = join(uploadsPath, 'lagekarte');
 
           // Ensure directory exists
