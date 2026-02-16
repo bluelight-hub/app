@@ -1,3 +1,12 @@
+## v1.0.0-alpha.54
+
+*Veröffentlicht am 16. Februar 2026*
+
+### Infrastruktur & Deployment
+
+- **Verbesserte Docker-Build-Stabilität**: Behebung von Problemen beim Erstellen des Production-Images, die dazu führten, dass benötigte Abhängigkeiten fehlten
+- **Frühere Fehlererkennung**: Docker-Builds werden jetzt automatisch in Pull Requests getestet, um Deployment-Probleme frühzeitig zu erkennen
+
 ## v1.0.0-alpha.53
 
 **Veröffentlicht am:** 15. Februar 2026
