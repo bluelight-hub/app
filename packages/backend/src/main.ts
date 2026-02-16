@@ -25,7 +25,11 @@ require('@dotenvx/dotenvx').config();
  */
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
-  const trustProxy = process.env.TRUSTED_PROXIES?.split(',').map((value) => value.trim()) || false;
+  const proxies =
+    process.env.TRUSTED_PROXIES?.split(',')
+      .map((v) => v.trim())
+      .filter(Boolean) ?? [];
+  const trustProxy = proxies.length > 0 ? proxies : false;
   logger.log(`TRUSTED_PROXIES: ${trustProxy}`);
 
   // HTTPS Configuration
