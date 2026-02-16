@@ -9,7 +9,7 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { AppController } from './app.controller';
 import { AuthModule } from './modules/auth/auth.module';
 import { InfrastructureCommonModule } from './infrastructure/common.module';
@@ -84,7 +84,7 @@ import { SchedulerModule } from './infrastructure/scheduler/scheduler.module';
       },
     }),
     ServeStaticModule.forRoot({
-      rootPath: join(process.cwd(), process.env.UPLOADS_PATH || 'uploads'),
+      rootPath: resolve(process.cwd(), process.env.UPLOADS_PATH || 'uploads'),
       serveRoot: '/uploads',
       serveStaticOptions: {
         index: false,
