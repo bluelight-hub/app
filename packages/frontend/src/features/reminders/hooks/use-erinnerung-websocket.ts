@@ -16,6 +16,7 @@
  */
 
 import { useCurrentUser } from '@/features/auth/api';
+import { getBaseUrl } from '@/shared/api/client';
 import { logger } from '@/shared/lib/logger';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -26,8 +27,8 @@ import { hideErinnerungAlarmToast } from '../ui/atoms/ErinnerungAlarmToast';
 import { soundService, timerService, intensificationService } from '../services';
 import { sendAssignmentNotification } from '../services/notification.service';
 
-/** WebSocket Server URL (Backend Port) */
-const WS_URL = import.meta.env.VITE_API_URL || 'http://localhost:3091';
+/** WebSocket Server URL - dynamisch aus Server-Store (wie REST-API) */
+const getWsUrl = (): string => getBaseUrl() || 'http://localhost:3091';
 
 /** WebSocket Namespace für Erinnerungen */
 const WS_NAMESPACE = '/erinnerungen';
@@ -575,9 +576,10 @@ export function useErinnerungWebSocket({
     }
 
     setStatus('connecting');
-    logger.info('WebSocket: Connecting to', { url: WS_URL, namespace: WS_NAMESPACE, room: roomName });
+    const wsUrl = getWsUrl();
+    logger.info('WebSocket: Connecting to', { url: wsUrl, namespace: WS_NAMESPACE, room: roomName });
 
-    const socket = io(`${WS_URL}${WS_NAMESPACE}`, {
+    const socket = io(`${wsUrl}${WS_NAMESPACE}`, {
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: RECONNECT_DELAY_MS,
