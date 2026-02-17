@@ -90,6 +90,14 @@ import { FuehrungsrhythmusAktiviertEvent } from '@domain/fuehrungsrhythmus/event
 import { FuehrungsrhythmusTemplateAktualisiertEvent } from '@domain/fuehrungsrhythmus/events/fuehrungsrhythmus-template-aktualisiert.event';
 import { FuehrungsrhythmusTemplateId } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-template-id';
 
+// Befehl Events
+import { BefehlErstelltEvent } from '@domain/events/befehl-erstellt.event';
+import { BefehlZugestelltEvent } from '@domain/events/befehl-zugestellt.event';
+import { BefehlStatusGeaendertEvent } from '@domain/events/befehl-status-geaendert.event';
+import { BefehlKommentarHinzugefuegtEvent } from '@domain/events/befehl-kommentar-hinzugefuegt.event';
+import { BefehlId } from '@domain/value-objects/befehl-id';
+import { BefehlStatus } from '@domain/value-objects/befehl-status';
+
 // Fahrzeugtyp Events
 import { FahrzeugtypCreatedEvent } from '@domain/kraefte/events/fahrzeugtyp-created.event';
 import { FahrzeugtypUpdatedEvent } from '@domain/kraefte/events/fahrzeugtyp-updated.event';
@@ -267,6 +275,12 @@ export class EventDeserializer {
       ['fuehrungsrhythmus-template.geloescht', deserializeFuehrungsrhythmusTemplateGeloescht],
       ['fuehrungsrhythmus-template.aktiviert', deserializeFuehrungsrhythmusAktiviert],
       ['fuehrungsrhythmus-template.aktualisiert', deserializeFuehrungsrhythmusTemplateAktualisiert],
+
+      // ===== BEFEHL EVENTS (Story 1.1) =====
+      ['befehl.erstellt', deserializeBefehlErstellt],
+      ['befehl.zugestellt', deserializeBefehlZugestellt],
+      ['befehl.status_geaendert', deserializeBefehlStatusGeaendert],
+      ['befehl.kommentar_hinzugefuegt', deserializeBefehlKommentarHinzugefuegt],
     ]);
   }
 
@@ -1688,6 +1702,93 @@ function deserializeKategorieGeloescht(payload: Record<string, unknown>, aggrega
   }
 
   const event = new KategorieGeloeschtEvent(kategorieIdResult.value! as KategorieId, payload.einsatzId as string, payload.name as string, geloeschtVonResult.value! as UserId, aggregateId);
+
+  return Result.ok<DomainEvent>(event);
+}
+
+// ===== BEFEHL DESERIALIZERS (Story 1.1) =====
+
+/**
+ * Deserialisiert BefehlErstelltEvent.
+ */
+function deserializeBefehlErstellt(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const befehlIdResult = BefehlId.create(payload.befehlId as string);
+  if (befehlIdResult.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid befehlId: ${payload.befehlId}`);
+  }
+
+  const einsatzIdResult = EinsatzId.create(payload.einsatzId as string);
+  if (einsatzIdResult.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid einsatzId: ${payload.einsatzId}`);
+  }
+
+  const event = new BefehlErstelltEvent(
+    befehlIdResult.value! as BefehlId,
+    einsatzIdResult.value! as EinsatzId,
+    payload.auftrag as string,
+    payload.nummer as string,
+    payload.empfaengerIds as string[],
+    aggregateId,
+  );
+
+  return Result.ok<DomainEvent>(event);
+}
+
+/**
+ * Deserialisiert BefehlZugestelltEvent.
+ */
+function deserializeBefehlZugestellt(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const befehlIdResult = BefehlId.create(payload.befehlId as string);
+  if (befehlIdResult.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid befehlId: ${payload.befehlId}`);
+  }
+
+  const zugestelltAm = new Date(payload.zugestelltAm as string);
+
+  const event = new BefehlZugestelltEvent(befehlIdResult.value! as BefehlId, payload.empfaengerId as string, zugestelltAm, aggregateId);
+
+  return Result.ok<DomainEvent>(event);
+}
+
+/**
+ * Deserialisiert BefehlStatusGeaendertEvent.
+ */
+function deserializeBefehlStatusGeaendert(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const befehlIdResult = BefehlId.create(payload.befehlId as string);
+  if (befehlIdResult.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid befehlId: ${payload.befehlId}`);
+  }
+
+  const oldStatusResult = BefehlStatus.create(payload.oldStatus as string);
+  if (oldStatusResult.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid oldStatus: ${payload.oldStatus}`);
+  }
+
+  const newStatusResult = BefehlStatus.create(payload.newStatus as string);
+  if (newStatusResult.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid newStatus: ${payload.newStatus}`);
+  }
+
+  const event = new BefehlStatusGeaendertEvent(befehlIdResult.value! as BefehlId, oldStatusResult.value! as BefehlStatus, newStatusResult.value! as BefehlStatus, aggregateId);
+
+  return Result.ok<DomainEvent>(event);
+}
+
+/**
+ * Deserialisiert BefehlKommentarHinzugefuegtEvent.
+ */
+function deserializeBefehlKommentarHinzugefuegt(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const befehlIdResult = BefehlId.create(payload.befehlId as string);
+  if (befehlIdResult.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid befehlId: ${payload.befehlId}`);
+  }
+
+  const authorIdResult = UserId.create(payload.authorId as string);
+  if (authorIdResult.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid authorId: ${payload.authorId}`);
+  }
+
+  const event = new BefehlKommentarHinzugefuegtEvent(befehlIdResult.value! as BefehlId, authorIdResult.value! as UserId, payload.text as string, payload.isRueckfrage as boolean, aggregateId);
 
   return Result.ok<DomainEvent>(event);
 }

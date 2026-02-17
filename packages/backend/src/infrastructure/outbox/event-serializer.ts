@@ -62,6 +62,10 @@ import type { NotizAktualisiertEvent } from '@domain/notiz/events/notiz-aktualis
 import type { NotizGeloeschtEvent } from '@domain/notiz/events/notiz-geloescht.event';
 import type { KategorieErstelltEvent } from '@domain/kategorie/events/kategorie-erstellt.event';
 import type { KategorieGeloeschtEvent } from '@domain/kategorie/events/kategorie-geloescht.event';
+import type { BefehlErstelltEvent } from '@domain/events/befehl-erstellt.event';
+import type { BefehlZugestelltEvent } from '@domain/events/befehl-zugestellt.event';
+import type { BefehlStatusGeaendertEvent } from '@domain/events/befehl-status-geaendert.event';
+import type { BefehlKommentarHinzugefuegtEvent } from '@domain/events/befehl-kommentar-hinzugefuegt.event';
 
 /**
  * Serialisiertes Event-Payload für Outbox-Persistierung.
@@ -325,6 +329,16 @@ export class EventSerializer {
         return this.serializeKategorieErstellt(event as unknown as KategorieErstelltEvent);
       case 'kategorie.geloescht':
         return this.serializeKategorieGeloescht(event as unknown as KategorieGeloeschtEvent);
+
+      // ===== BEFEHL EVENTS (Story 1.1) =====
+      case 'befehl.erstellt':
+        return this.serializeBefehlErstellt(event as unknown as BefehlErstelltEvent);
+      case 'befehl.zugestellt':
+        return this.serializeBefehlZugestellt(event as unknown as BefehlZugestelltEvent);
+      case 'befehl.status_geaendert':
+        return this.serializeBefehlStatusGeaendert(event as unknown as BefehlStatusGeaendertEvent);
+      case 'befehl.kommentar_hinzugefuegt':
+        return this.serializeBefehlKommentarHinzugefuegt(event as unknown as BefehlKommentarHinzugefuegtEvent);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -1003,6 +1017,43 @@ export class EventSerializer {
       einsatzId: event.einsatzId,
       name: event.name,
       geloeschtVon: event.geloeschtVon.toString(),
+    };
+  }
+
+  // ===== BEFEHL SERIALIZERS (Story 1.1) =====
+
+  private serializeBefehlErstellt(event: BefehlErstelltEvent): Record<string, unknown> {
+    return {
+      befehlId: event.befehlId.value,
+      einsatzId: event.einsatzId.value,
+      auftrag: event.auftrag,
+      nummer: event.nummer,
+      empfaengerIds: event.empfaengerIds,
+    };
+  }
+
+  private serializeBefehlZugestellt(event: BefehlZugestelltEvent): Record<string, unknown> {
+    return {
+      befehlId: event.befehlId.value,
+      empfaengerId: event.empfaengerId,
+      zugestelltAm: event.zugestelltAm.toISOString(),
+    };
+  }
+
+  private serializeBefehlStatusGeaendert(event: BefehlStatusGeaendertEvent): Record<string, unknown> {
+    return {
+      befehlId: event.befehlId.value,
+      oldStatus: event.oldStatus.value,
+      newStatus: event.newStatus.value,
+    };
+  }
+
+  private serializeBefehlKommentarHinzugefuegt(event: BefehlKommentarHinzugefuegtEvent): Record<string, unknown> {
+    return {
+      befehlId: event.befehlId.value,
+      authorId: event.authorId.value,
+      text: event.text,
+      isRueckfrage: event.isRueckfrage,
     };
   }
 }

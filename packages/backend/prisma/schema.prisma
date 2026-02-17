@@ -191,6 +191,14 @@ model User {
   // ========================================
   erstellteKategorien Kategorie[] @relation("KategorieCreator")
 
+  // ========================================
+  // Befehl-Management Relations (Story 1.1 Befehle)
+  // ========================================
+  gegebeneBefehle       Befehl[]           @relation("BefehlBefehlsgeber")
+  erstellteBefehle      Befehl[]           @relation("BefehlErsteller")
+  befehlEmpfaenger      BefehlEmpfaenger[] @relation("BefehlEmpfaengerUser")
+  befehlKommentare      BefehlKommentar[]  @relation("BefehlKommentarAuthor")
+
   // Indexes
   @@index([username], map: "idx_user_username")
   @@index([role, isActive], map: "idx_user_role_active")
@@ -263,6 +271,9 @@ model Einsatz {
 
   // Kategorien Relation (1:N)
   kategorien Kategorie[]
+
+  // Befehle Relation (1:N, Story 1.1 Befehle)
+  befehle Befehl[]
 
   // Indexes
   @@index([status, createdAt])
@@ -1615,4 +1626,130 @@ model Notiz {
   @@index([erstelltVon])
   @@index([kategorieId]) // Story 8.2: Filter nach Kategorie
   @@map("notizen")
+}
+
+// ========================================
+// Befehl-Management (Story 1.1 Befehle)
+// Epic 1: Führung & Befehle – Befehlsmanagement im Einsatz
+// ========================================
+
+/// Befehl Status Enum
+/// Definiert den Lebenszyklus eines Befehls gemäß State Machine:
+/// ERTEILT → ZUGESTELLT → QUITTIERT
+/// ERTEILT → KORRIGIERT (Befehl durch Korrekturbefehl ersetzt)
+enum BefehlStatus {
+  ERTEILT // Initialer Status bei Befehlserstellung
+  ZUGESTELLT // Alle Empfänger haben den Befehl erhalten
+  QUITTIERT // Alle Empfänger haben quittiert
+  KORRIGIERT // Befehl wurde durch Korrekturbefehl ersetzt
+}
+
+/// Quittierung Art Enum
+/// Art der Quittierung durch einen Befehlsempfänger
+enum QuittierungArt {
+  VERSTANDEN // Befehl verstanden und wird ausgeführt
+  RUECKFRAGE // Rückfrage zum Befehl
+  NICHT_VERSTANDEN // Befehl nicht verstanden
+}
+
+/// Befehl: Führungsbefehl im Einsatz-Kontext
+/// - Append-Only: Befehle werden NIEMALS gelöscht (GoBD-Compliance)
+/// - Korrektur über originalBefehlId (neuer Befehl verweist auf den korrigierten)
+/// - Befehlstyp (KURZBEFEHL/EAMZW/ERWEITERT) ist computed, NICHT in DB
+/// - Cascade-Delete mit Einsatz (Einsatzdaten transient)
+model Befehl {
+  id               String       @id @default(cuid())
+  nummer           String       @unique @db.VarChar(255) // Format: B{YEAR}-{CUID-8}
+  einsatzId        String       @map("einsatz_id")
+  auftrag          String       @db.Text // Pflichtfeld: Kern-Auftrag
+  befehlsgeberId   String       @map("befehlsgeber_id") @db.VarChar(100)
+  erstellerId      String       @map("ersteller_id") @db.VarChar(100)
+  status           BefehlStatus @default(ERTEILT)
+
+  // Optionale EAMZW-Felder (Ereignis, Auftrag, Mittel, Ziel, Weg)
+  zeitvorgabe String? @db.Text
+  ereignis    String? @db.Text
+  mittel      String? @db.Text
+  ziel        String? @db.Text
+  weg         String? @db.Text
+
+  // Korrekturbefehl-Verkettung (Append-Only)
+  originalBefehlId String? @map("original_befehl_id")
+
+  // Timestamps
+  erteiltAm DateTime @default(now()) @map("erteilt_am")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  einsatz         Einsatz            @relation(fields: [einsatzId], references: [id], onDelete: Cascade)
+  befehlsgeber    User               @relation("BefehlBefehlsgeber", fields: [befehlsgeberId], references: [id], onDelete: Restrict)
+  ersteller       User               @relation("BefehlErsteller", fields: [erstellerId], references: [id], onDelete: Restrict)
+  originalBefehl  Befehl?            @relation("BefehlKorrektur", fields: [originalBefehlId], references: [id], onDelete: SetNull)
+  korrekturen     Befehl[]           @relation("BefehlKorrektur")
+  empfaenger      BefehlEmpfaenger[]
+  kommentare      BefehlKommentar[]
+
+  // Indexes
+  @@index([einsatzId])
+  @@index([status])
+  @@index([originalBefehlId])
+  @@index([einsatzId, status])
+  @@index([einsatzId, createdAt])
+  @@map("befehl")
+}
+
+/// BefehlEmpfaenger: Empfänger eines Befehls mit individuellem Zustellungs- und Quittierungsstatus
+/// - Wird über Befehl Aggregate persistiert (kein eigenes Repository)
+/// - Zustellungs- und Quittierungszeitpunkte pro Empfänger individuell
+/// - Cascade-Delete mit Befehl
+model BefehlEmpfaenger {
+  id              String          @id @default(cuid())
+  befehlId        String          @map("befehl_id")
+  empfaengerId    String          @map("empfaenger_id") @db.VarChar(100)
+  zugestelltAm    DateTime?       @map("zugestellt_am")
+  quittiertAm     DateTime?       @map("quittiert_am")
+  quittierungArt  QuittierungArt? @map("quittierung_art")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  befehl    Befehl @relation(fields: [befehlId], references: [id], onDelete: Cascade)
+  empfaenger User  @relation("BefehlEmpfaengerUser", fields: [empfaengerId], references: [id], onDelete: Restrict)
+
+  // Constraints: Ein User kann pro Befehl nur einmal Empfänger sein
+  @@unique([befehlId, empfaengerId])
+  // Indexes
+  @@index([befehlId])
+  @@index([empfaengerId])
+  @@map("befehl_empfaenger")
+}
+
+/// BefehlKommentar: Kommentar/Rückfrage zu einem Befehl mit Thread-Support
+/// - Thread-Support via parentId (Self-Relation)
+/// - isRueckfrage markiert Kommentare die aus einer Quittierungs-Rückfrage entstanden
+/// - Cascade-Delete mit Befehl
+model BefehlKommentar {
+  id            String  @id @default(cuid())
+  befehlId      String  @map("befehl_id")
+  authorId      String  @map("author_id") @db.VarChar(100)
+  text          String  @db.Text
+  isRueckfrage  Boolean @default(false) @map("is_rueckfrage")
+  parentId      String? @map("parent_id") // Thread-Support: Verweis auf übergeordneten Kommentar
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  befehl   Befehl            @relation(fields: [befehlId], references: [id], onDelete: Cascade)
+  author   User              @relation("BefehlKommentarAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  parent   BefehlKommentar?  @relation("KommentarThread", fields: [parentId], references: [id], onDelete: SetNull)
+  children BefehlKommentar[] @relation("KommentarThread")
+
+  // Indexes
+  @@index([befehlId])
+  @@index([authorId])
+  @@index([parentId])
+  @@map("befehl_kommentar")
 }
