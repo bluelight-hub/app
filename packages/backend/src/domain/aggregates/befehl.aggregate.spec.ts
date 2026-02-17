@@ -301,6 +301,17 @@ describe('Befehl Aggregate', () => {
       expect(result.isFailure).toBe(true);
       expect(result.error).toContain('bereits als zugestellt markiert');
     });
+
+    it('sollte fehlschlagen bei korrigiertem Befehl', () => {
+      const props = createDefaultProps();
+      const befehl = Befehl.create(props).value!;
+      befehl.korrigieren();
+
+      const result = befehl.markAlsZugestellt(props.empfaengerIds[0]);
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('korrigierter Befehl');
+    });
   });
 
   describe('quittieren()', () => {
@@ -397,6 +408,18 @@ describe('Befehl Aggregate', () => {
 
       expect(result.isFailure).toBe(true);
       expect(result.error).toContain('bereits quittiert');
+    });
+
+    it('sollte fehlschlagen bei korrigiertem Befehl', () => {
+      const props = createDefaultProps();
+      const befehl = Befehl.create(props).value!;
+      befehl.markAlsZugestellt(props.empfaengerIds[0]);
+      befehl.korrigieren();
+
+      const result = befehl.quittieren(props.empfaengerIds[0], 'VERSTANDEN');
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('korrigierter Befehl');
     });
   });
 
