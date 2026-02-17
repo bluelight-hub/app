@@ -314,6 +314,10 @@ export class Befehl extends AggregateRoot<BefehlId> {
    * Wenn alle Empfänger zugestellt sind, wechselt der Befehl-Status zu ZUGESTELLT.
    */
   public markAlsZugestellt(empfaengerId: UserId): Result<void> {
+    if (this._status.value === 'KORRIGIERT') {
+      return Result.fail<void>('Ein korrigierter Befehl kann nicht mehr zugestellt werden');
+    }
+
     const empfaenger = this._empfaenger.find((e) => e.empfaengerId.equals(empfaengerId));
     if (!empfaenger) {
       return Result.fail<void>('Empfänger nicht gefunden');
@@ -343,6 +347,10 @@ export class Befehl extends AggregateRoot<BefehlId> {
    * Wenn alle Empfänger quittiert haben, wechselt der Status zu QUITTIERT.
    */
   public quittieren(empfaengerId: UserId, quittierungArt: 'VERSTANDEN' | 'RUECKFRAGE' | 'NICHT_VERSTANDEN'): Result<void> {
+    if (this._status.value === 'KORRIGIERT') {
+      return Result.fail<void>('Ein korrigierter Befehl kann nicht quittiert werden');
+    }
+
     const empfaenger = this._empfaenger.find((e) => e.empfaengerId.equals(empfaengerId));
     if (!empfaenger) {
       return Result.fail<void>('Empfänger nicht gefunden');

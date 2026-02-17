@@ -63,6 +63,8 @@ import { CreateBefehlHandler } from './commands/create-befehl/create-befehl.hand
   exports: [
     // Export handler for use in Infrastructure Layer (Controllers)
     CreateBefehlHandler,
+    // Export repository token for use in BefehlController (findById after create)
+    BEFEHL_REPOSITORY,
   ],
 })
 export class BefehlApplicationModule {}
