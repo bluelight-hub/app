@@ -36,3 +36,4 @@ export * from './notiz-aktualisiert-event.adapter';
 export * from './notiz-geloescht-event.adapter';
 export * from './kategorie-erstellt-event.adapter';
 export * from './kategorie-geloescht-event.adapter';
+export * from './befehl-event.adapter';

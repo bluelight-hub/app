@@ -21,6 +21,7 @@ import {
   NotizErstelltEventAdapter,
   NotizAktualisiertEventAdapter,
   NotizGeloeschtEventAdapter,
+  BefehlEventAdapter,
   // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
   // KategorieErstelltEventAdapter,
   // KategorieGeloeschtEventAdapter,
@@ -33,6 +34,7 @@ import { EventConsumerValidatorService } from './event-consumer-validator.servic
 import { LOGGER } from '@infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 import { ErinnerungModule } from '@/modules/erinnerung/erinnerung.module';
+import { BefehlModule } from '@/modules/befehl/befehl.module';
 import { OutboxModule } from '@infrastructure/outbox/outbox.module';
 
 /**
@@ -89,6 +91,8 @@ import { OutboxModule } from '@infrastructure/outbox/outbox.module';
     LagekarteApplicationModule,
     // Erinnerung Module für WebSocket Gateway (Story 1.5 AC4)
     ErinnerungModule,
+    // Befehl Module für WebSocket Gateway (Story 1.3 AC5)
+    BefehlModule,
     // OutboxModule für EventDeserializer (Event Consumer Validation)
     OutboxModule,
   ],
@@ -120,6 +124,7 @@ import { OutboxModule } from '@infrastructure/outbox/outbox.module';
     NotizErstelltEventAdapter, // Story 7.1: NotizErstellt ETB-Eintrag
     NotizAktualisiertEventAdapter, // Story 7.3: NotizAktualisiert ETB-Eintrag
     NotizGeloeschtEventAdapter, // Story 7.4: NotizGeloescht ETB-Eintrag
+    BefehlEventAdapter, // Story 1.3: WebSocket Event Adapter fuer Befehl Domain Events
     // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
     // KategorieErstelltEventAdapter, // Story 8.1: KategorieErstellt ETB-Eintrag
     // KategorieGeloeschtEventAdapter, // Story 8.1: KategorieGeloescht ETB-Eintrag

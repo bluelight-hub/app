@@ -172,6 +172,15 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get kategorie() {
     return this._client.kategorie;
   }
+  get befehl() {
+    return this._client.befehl;
+  }
+  get befehlEmpfaenger() {
+    return this._client.befehlEmpfaenger;
+  }
+  get befehlKommentar() {
+    return this._client.befehlKommentar;
+  }
 
   // Delegate Prisma Client methods
   $connect() {

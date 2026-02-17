@@ -38,6 +38,7 @@ import { ErinnerungsvorlageModule } from './modules/erinnerungsvorlage/erinnerun
 import { FuehrungsrhythmusTemplateModule } from './modules/fuehrungsrhythmus-template/fuehrungsrhythmus-template.module';
 import { NotizModule } from './modules/notiz/notiz.module';
 import { KategorieModule } from './modules/kategorie/kategorie.module';
+import { BefehlModule } from './modules/befehl/befehl.module';
 import { SchedulerModule } from './infrastructure/scheduler/scheduler.module';
 
 /**
@@ -116,6 +117,7 @@ import { SchedulerModule } from './infrastructure/scheduler/scheduler.module';
     FuehrungsrhythmusTemplateModule, // Fuehrungsrhythmus-Templates (Story 6.6)
     NotizModule, // Notizen im Einsatz-Kontext (Story 7.1)
     KategorieModule, // Kategorien (Story 8.1)
+    BefehlModule, // Befehle/Führungsbefehle (Story 1.2)
     SchedulerModule, // Cron-Jobs (nur einmal importiert, um mehrfache Registrierung zu vermeiden)
   ],
   controllers: [AppController],

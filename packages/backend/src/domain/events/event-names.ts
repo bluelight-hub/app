@@ -215,6 +215,20 @@ export const EVENT_NAMES = {
     /** Event: Kategorie wurde geloescht (Soft-Delete) */
     GELOESCHT: 'kategorie.geloescht',
   },
+
+  /**
+   * Befehl Bounded Context Events (Epic 1)
+   */
+  BEFEHL: {
+    /** Event: Neuer Befehl wurde erstellt */
+    ERSTELLT: 'befehl.erstellt',
+    /** Event: Befehl wurde an Empfänger zugestellt */
+    ZUGESTELLT: 'befehl.zugestellt',
+    /** Event: Befehl-Status hat sich geändert */
+    STATUS_GEAENDERT: 'befehl.status_geaendert',
+    /** Event: Kommentar wurde zu Befehl hinzugefügt */
+    KOMMENTAR_HINZUGEFUEGT: 'befehl.kommentar_hinzugefuegt',
+  },
 } as const;
 
 /**
@@ -242,4 +256,5 @@ export type EventName =
   | (typeof EVENT_NAMES.ERINNERUNGSVORLAGE)[keyof typeof EVENT_NAMES.ERINNERUNGSVORLAGE]
   | (typeof EVENT_NAMES.NOTIZ)[keyof typeof EVENT_NAMES.NOTIZ]
   | (typeof EVENT_NAMES.FUEHRUNGSRHYTHMUS_TEMPLATE)[keyof typeof EVENT_NAMES.FUEHRUNGSRHYTHMUS_TEMPLATE]
-  | (typeof EVENT_NAMES.KATEGORIE)[keyof typeof EVENT_NAMES.KATEGORIE];
+  | (typeof EVENT_NAMES.KATEGORIE)[keyof typeof EVENT_NAMES.KATEGORIE]
+  | (typeof EVENT_NAMES.BEFEHL)[keyof typeof EVENT_NAMES.BEFEHL];
