@@ -10,9 +10,11 @@ import { EVENT_NAMES } from './event-names';
 export class BefehlKommentarHinzugefuegtEvent extends DomainEvent {
   constructor(
     public readonly befehlId: BefehlId,
+    public readonly kommentarId: string,
     public readonly authorId: UserId,
     public readonly text: string,
     public readonly isRueckfrage: boolean,
+    public readonly parentId: string | undefined,
     aggregateId?: string,
   ) {
     super(aggregateId);

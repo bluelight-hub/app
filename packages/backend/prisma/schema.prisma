@@ -1659,7 +1659,7 @@ enum QuittierungArt {
 /// - Cascade-Delete mit Einsatz (Einsatzdaten transient)
 model Befehl {
   id               String       @id @default(cuid())
-  nummer           String       @unique @db.VarChar(255) // Format: B{YEAR}-{CUID-8}
+  nummer           String       @db.VarChar(255) // Format: B{YEAR}-{CUID-8}
   einsatzId        String       @map("einsatz_id")
   auftrag          String       @db.Text // Pflichtfeld: Kern-Auftrag
   befehlsgeberId   String       @map("befehlsgeber_id") @db.VarChar(100)
@@ -1691,6 +1691,7 @@ model Befehl {
   kommentare      BefehlKommentar[]
 
   // Indexes
+  @@unique([einsatzId, nummer])
   @@index([einsatzId])
   @@index([status])
   @@index([originalBefehlId])

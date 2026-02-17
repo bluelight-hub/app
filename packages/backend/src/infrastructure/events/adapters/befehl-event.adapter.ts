@@ -63,16 +63,21 @@ export class BefehlEventAdapter {
         select: { befehlsgeberId: true, erstellerId: true, status: true, erteiltAm: true },
       });
 
+      if (!befehl) {
+        this.logger.error(`Befehl not found for WebSocket event: befehlId=${event.befehlId.value}`, 'BefehlEventAdapter');
+        return;
+      }
+
       this.gateway.emitBefehlErstellt({
         befehlId: event.befehlId.value,
         einsatzId: event.einsatzId.value,
         nummer: event.nummer,
         auftrag: event.auftrag,
-        befehlsgeberId: befehl?.befehlsgeberId ?? '',
-        erstellerId: befehl?.erstellerId ?? '',
+        befehlsgeberId: befehl.befehlsgeberId,
+        erstellerId: befehl.erstellerId,
         empfaengerIds: event.empfaengerIds,
-        status: befehl?.status ?? 'ERTEILT',
-        erteiltAm: befehl?.erteiltAm?.toISOString() ?? new Date().toISOString(),
+        status: befehl.status,
+        erteiltAm: befehl.erteiltAm.toISOString(),
       });
 
       this.logger.log(`WebSocket event emitted for BefehlErstellt: befehlId=${event.befehlId.value}`, 'BefehlEventAdapter');
@@ -172,7 +177,7 @@ export class BefehlEventAdapter {
   /**
    * Empfaengt BefehlKommentarHinzugefuegtEvent und emittiert WebSocket Event.
    *
-   * DB-Lookup fuer einsatzId und den zuletzt erstellten Kommentar (fuer kommentarId + parentId).
+   * DB-Lookup fuer einsatzId. kommentarId und parentId kommen direkt aus dem Domain Event.
    *
    * @param event - Das empfangene Domain Event
    */
@@ -201,26 +206,15 @@ export class BefehlEventAdapter {
         return;
       }
 
-      // Letzten Kommentar des Authors laden (der gerade hinzugefuegte)
-      const latestKommentar = await this.prisma.befehlKommentar.findFirst({
-        where: {
-          befehlId: event.befehlId.value,
-          authorId: event.authorId.value,
-          text: event.text,
-        },
-        orderBy: { createdAt: 'desc' },
-        select: { id: true, parentId: true, createdAt: true },
-      });
-
       this.gateway.emitBefehlKommentarHinzugefuegt({
         befehlId: event.befehlId.value,
         einsatzId: befehl.einsatzId,
-        kommentarId: latestKommentar?.id ?? '',
+        kommentarId: event.kommentarId,
         authorId: event.authorId.value,
         text: event.text,
         isRueckfrage: event.isRueckfrage,
-        parentId: latestKommentar?.parentId ?? undefined,
-        timestamp: latestKommentar?.createdAt?.toISOString() ?? new Date().toISOString(),
+        parentId: event.parentId,
+        timestamp: new Date().toISOString(),
       });
 
       this.logger.log(`WebSocket event emitted for BefehlKommentarHinzugefuegt: befehlId=${event.befehlId.value}`, 'BefehlEventAdapter');

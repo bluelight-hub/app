@@ -14,6 +14,7 @@ import {
   AdminStammdatenFahrzeugeApi,
   AdminStammdatenPersonenApi,
   AuthApi,
+  BefehleApi,
   Configuration,
   EinsatzApi,
   EinsatzFahrzeugeApi,
@@ -96,6 +97,7 @@ class BackendApi {
   private readonly adminApi: AdminApi;
   private readonly healthApi: HealthApi;
   private readonly authApi: AuthApi;
+  private readonly befehleApi: BefehleApi;
   private readonly userManagementApi: UserManagementApi;
   private readonly usersApi: UsersApi;
   private readonly einsatzApi: EinsatzApi;
@@ -143,6 +145,7 @@ class BackendApi {
     this.adminApi = new AdminApi(this.configuration);
     this.healthApi = new HealthApi(this.configuration);
     this.authApi = new AuthApi(this.configuration);
+    this.befehleApi = new BefehleApi(this.configuration);
     this.userManagementApi = new UserManagementApi(this.configuration);
     this.usersApi = new UsersApi(this.configuration);
     this.einsatzApi = new EinsatzApi(this.configuration);
@@ -197,6 +200,15 @@ class BackendApi {
    */
   auth(): AuthApi {
     return this.authApi;
+  }
+
+  /**
+   * Gibt die gecachte Befehle-API-Instanz zurück
+   *
+   * @returns Die Befehle-API-Instanz für Befehl-Management
+   */
+  befehle(): BefehleApi {
+    return this.befehleApi;
   }
 
   /**
