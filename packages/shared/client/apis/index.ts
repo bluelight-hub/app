@@ -10,6 +10,7 @@ export * from './AdminStammdatenFahrzeugeApi';
 export * from './AdminStammdatenPersonenApi';
 export * from './AppApi';
 export * from './AuthApi';
+export * from './BefehleApi';
 export * from './ETBApi';
 export * from './EinsatzApi';
 export * from './EinsatzFahrzeugeApi';

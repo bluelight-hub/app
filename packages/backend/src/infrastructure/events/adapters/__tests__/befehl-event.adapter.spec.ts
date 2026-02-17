@@ -177,7 +177,7 @@ describe('BefehlEventAdapter', () => {
       expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining('Failed to emit WebSocket event for BefehlErstellt'), 'BefehlEventAdapter');
     });
 
-    it('should use fallback values when DB-lookup returns null', async () => {
+    it('should log error and return when DB-lookup returns null', async () => {
       // Given: Befehl nicht in DB gefunden
       const befehlId = generateValidBefehlId();
       const einsatzId = generateValidEinsatzId();
@@ -188,15 +188,9 @@ describe('BefehlEventAdapter', () => {
       // When: Handler aufgerufen
       await adapter.onBefehlErstellt(event);
 
-      // Then: Fallback-Werte werden verwendet
-      expect(mockGateway.emitBefehlErstellt).toHaveBeenCalledWith(
-        expect.objectContaining({
-          befehlsgeberId: '',
-          erstellerId: '',
-          status: 'ERTEILT',
-          erteiltAm: expect.any(String),
-        }),
-      );
+      // Then: Early-return mit Error-Log, gateway nicht aufgerufen
+      expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining('Befehl not found'), 'BefehlEventAdapter');
+      expect(mockGateway.emitBefehlErstellt).not.toHaveBeenCalled();
     });
   });
 
@@ -336,21 +330,15 @@ describe('BefehlEventAdapter', () => {
   });
 
   describe('onBefehlKommentarHinzugefuegt', () => {
-    it('should emit WebSocket event with kommentar lookup data', async () => {
-      // Given: BefehlKommentarHinzugefuegtEvent und DB liefert einsatzId + Kommentar-Daten
+    it('should emit WebSocket event with kommentarId from domain event', async () => {
+      // Given: BefehlKommentarHinzugefuegtEvent mit kommentarId und parentId direkt im Event
       const befehlId = generateValidBefehlId();
       const authorId = generateValidUserId();
       const einsatzId = generateValidEinsatzId().value;
-      const kommentarCreatedAt = new Date('2026-02-17T10:10:00.000Z');
 
-      const event = new BefehlKommentarHinzugefuegtEvent(befehlId, authorId, 'Einsatzabschnitt ist gesperrt', true, befehlId.value);
+      const event = new BefehlKommentarHinzugefuegtEvent(befehlId, 'kommentar-abc', authorId, 'Einsatzabschnitt ist gesperrt', true, 'parent-xyz', befehlId.value);
 
       mockPrisma.befehl.findUnique.mockResolvedValue({ einsatzId });
-      mockPrisma.befehlKommentar.findFirst.mockResolvedValue({
-        id: 'kommentar-abc',
-        parentId: 'parent-xyz',
-        createdAt: kommentarCreatedAt,
-      });
 
       // When: onBefehlKommentarHinzugefuegt aufgerufen
       await adapter.onBefehlKommentarHinzugefuegt(event);
@@ -365,44 +353,35 @@ describe('BefehlEventAdapter', () => {
         text: 'Einsatzabschnitt ist gesperrt',
         isRueckfrage: true,
         parentId: 'parent-xyz',
-        timestamp: kommentarCreatedAt.toISOString(),
+        timestamp: expect.any(String),
       });
+      // Kein findFirst-Lookup mehr noetig
+      expect(mockPrisma.befehlKommentar.findFirst).not.toHaveBeenCalled();
     });
 
-    it('should query befehlKommentar with correct filter criteria', async () => {
-      // Given: Valides Event
+    it('should not perform DB lookup for kommentar data (kommentarId comes from event)', async () => {
+      // Given: Valides Event mit kommentarId direkt
       const befehlId = generateValidBefehlId();
       const authorId = generateValidUserId();
 
-      const event = new BefehlKommentarHinzugefuegtEvent(befehlId, authorId, 'Test Kommentar', false, befehlId.value);
+      const event = new BefehlKommentarHinzugefuegtEvent(befehlId, 'kommentar-1', authorId, 'Test Kommentar', false, undefined, befehlId.value);
 
       mockPrisma.befehl.findUnique.mockResolvedValue({ einsatzId: 'einsatz-1' });
-      mockPrisma.befehlKommentar.findFirst.mockResolvedValue({
-        id: 'kommentar-1',
-        parentId: null,
-        createdAt: new Date(),
-      });
 
       // When: Handler aufgerufen
       await adapter.onBefehlKommentarHinzugefuegt(event);
 
-      // Then: befehlKommentar.findFirst mit korrekten Filtern aufgerufen
-      expect(mockPrisma.befehlKommentar.findFirst).toHaveBeenCalledWith({
-        where: {
-          befehlId: befehlId.value,
-          authorId: authorId.value,
-          text: 'Test Kommentar',
-        },
-        orderBy: { createdAt: 'desc' },
-        select: { id: true, parentId: true, createdAt: true },
-      });
+      // Then: Kein befehlKommentar.findFirst aufgerufen
+      expect(mockPrisma.befehlKommentar.findFirst).not.toHaveBeenCalled();
+      // Aber befehl.findUnique fuer einsatzId wird weiterhin aufgerufen
+      expect(mockPrisma.befehl.findUnique).toHaveBeenCalled();
     });
 
     it('should handle missing gateway gracefully (Graceful Degradation)', async () => {
       // Given: Adapter ohne Gateway
       const adapterWithoutGateway = new BefehlEventAdapter(undefined, mockLogger, mockPrisma as unknown as PrismaService);
 
-      const event = new BefehlKommentarHinzugefuegtEvent(generateValidBefehlId(), generateValidUserId(), 'Test', false);
+      const event = new BefehlKommentarHinzugefuegtEvent(generateValidBefehlId(), 'kommentar-1', generateValidUserId(), 'Test', false, undefined);
 
       // When: Handler aufgerufen
       await adapterWithoutGateway.onBefehlKommentarHinzugefuegt(event);
@@ -413,7 +392,7 @@ describe('BefehlEventAdapter', () => {
 
     it('should log error and return when befehl not found in DB', async () => {
       // Given: Befehl nicht in DB
-      const event = new BefehlKommentarHinzugefuegtEvent(generateValidBefehlId(), generateValidUserId(), 'Test', false);
+      const event = new BefehlKommentarHinzugefuegtEvent(generateValidBefehlId(), 'kommentar-1', generateValidUserId(), 'Test', false, undefined);
 
       mockPrisma.befehl.findUnique.mockResolvedValue(null);
 
@@ -425,31 +404,9 @@ describe('BefehlEventAdapter', () => {
       expect(mockGateway.emitBefehlKommentarHinzugefuegt).not.toHaveBeenCalled();
     });
 
-    it('should use fallback values when kommentar not found in DB', async () => {
-      // Given: Befehl gefunden, aber Kommentar nicht
-      const befehlId = generateValidBefehlId();
-      const authorId = generateValidUserId();
-      const event = new BefehlKommentarHinzugefuegtEvent(befehlId, authorId, 'Test', true, befehlId.value);
-
-      mockPrisma.befehl.findUnique.mockResolvedValue({ einsatzId: 'einsatz-1' });
-      mockPrisma.befehlKommentar.findFirst.mockResolvedValue(null);
-
-      // When: Handler aufgerufen
-      await adapter.onBefehlKommentarHinzugefuegt(event);
-
-      // Then: Fallback-Werte verwendet
-      expect(mockGateway.emitBefehlKommentarHinzugefuegt).toHaveBeenCalledWith(
-        expect.objectContaining({
-          kommentarId: '',
-          parentId: undefined,
-          timestamp: expect.any(String),
-        }),
-      );
-    });
-
     it('should log and not propagate errors (Fire-and-Forget)', async () => {
       // Given: DB-Query wirft Fehler
-      const event = new BefehlKommentarHinzugefuegtEvent(generateValidBefehlId(), generateValidUserId(), 'Test', false);
+      const event = new BefehlKommentarHinzugefuegtEvent(generateValidBefehlId(), 'kommentar-1', generateValidUserId(), 'Test', false, undefined);
 
       mockPrisma.befehl.findUnique.mockRejectedValue(new Error('DB error'));
 

@@ -409,7 +409,7 @@ export class Befehl extends AggregateRoot<BefehlId> {
     const kommentar = BefehlKommentar.create(authorId, text.trim(), isRueckfrage, parentId);
     this._kommentare.push(kommentar);
 
-    this.addDomainEvent(new BefehlKommentarHinzugefuegtEvent(this.id, authorId, text.trim(), isRueckfrage, this.id.value));
+    this.addDomainEvent(new BefehlKommentarHinzugefuegtEvent(this.id, kommentar.id, authorId, text.trim(), isRueckfrage, parentId, this.id.value));
 
     return Result.ok<void>(undefined);
   }

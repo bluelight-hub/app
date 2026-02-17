@@ -1051,9 +1051,11 @@ export class EventSerializer {
   private serializeBefehlKommentarHinzugefuegt(event: BefehlKommentarHinzugefuegtEvent): Record<string, unknown> {
     return {
       befehlId: event.befehlId.value,
+      kommentarId: event.kommentarId,
       authorId: event.authorId.value,
       text: event.text,
       isRueckfrage: event.isRueckfrage,
+      parentId: event.parentId ?? null,
     };
   }
 }

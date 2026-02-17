@@ -9,6 +9,7 @@ apis/AdminStammdatenFahrzeugeApi.ts
 apis/AdminStammdatenPersonenApi.ts
 apis/AppApi.ts
 apis/AuthApi.ts
+apis/BefehleApi.ts
 apis/ETBApi.ts
 apis/EinsatzApi.ts
 apis/EinsatzFahrzeugeApi.ts
@@ -108,6 +109,10 @@ models/BasicHealthDto.ts
 models/BatchSaveMappingItemDto.ts
 models/BatchSaveQualifikationMappingsRequestDto.ts
 models/BatchSaveQualifikationMappingsResponseDto.ts
+models/BefehlControllerCreateVAlpha201Response.ts
+models/BefehlDto.ts
+models/BefehlEmpfaengerDto.ts
+models/BefehlKommentarDto.ts
 models/BesatzungMemberDto.ts
 models/BesetzeRolleDto.ts
 models/CompleteSetupDto.ts
@@ -115,6 +120,7 @@ models/CompletenessResponseDto.ts
 models/CoordinateDto.ts
 models/CreateAccessTokenDto.ts
 models/CreateAccessTokenResponseDto.ts
+models/CreateBefehlDto.ts
 models/CreateEinsatzDto.ts
 models/CreateErinnerungDto.ts
 models/CreateErinnerungsvorlageDto.ts

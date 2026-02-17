@@ -1788,7 +1788,15 @@ function deserializeBefehlKommentarHinzugefuegt(payload: Record<string, unknown>
     return Result.fail<DomainEvent>(`Invalid authorId: ${payload.authorId}`);
   }
 
-  const event = new BefehlKommentarHinzugefuegtEvent(befehlIdResult.value! as BefehlId, authorIdResult.value! as UserId, payload.text as string, payload.isRueckfrage as boolean, aggregateId);
+  const event = new BefehlKommentarHinzugefuegtEvent(
+    befehlIdResult.value! as BefehlId,
+    payload.kommentarId as string,
+    authorIdResult.value! as UserId,
+    payload.text as string,
+    payload.isRueckfrage as boolean,
+    (payload.parentId as string | null) ?? undefined,
+    aggregateId,
+  );
 
   return Result.ok<DomainEvent>(event);
 }
