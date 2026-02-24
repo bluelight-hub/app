@@ -1,9 +1,11 @@
 import { AggregateRoot } from '@domain/common/aggregate-root';
+import { anonymisiereString } from '@domain/common/anonymisierung';
 import { Result } from '@domain/common/result';
 import { BefehlEmpfaenger } from '@domain/entities/befehl-empfaenger.entity';
 import { BefehlKommentar } from '@domain/entities/befehl-kommentar.entity';
 import { BefehlErstelltEvent } from '@domain/events/befehl-erstellt.event';
 import { BefehlKommentarHinzugefuegtEvent } from '@domain/events/befehl-kommentar-hinzugefuegt.event';
+import { BefehlQuittiertEvent } from '@domain/events/befehl-quittiert.event';
 import { BefehlStatusGeaendertEvent } from '@domain/events/befehl-status-geaendert.event';
 import { BefehlZugestelltEvent } from '@domain/events/befehl-zugestellt.event';
 import { BefehlId } from '@domain/value-objects/befehl-id';
@@ -19,9 +21,9 @@ import { createId } from '@paralleldrive/cuid2';
 interface CreateBefehlProps {
   einsatzId: EinsatzId;
   auftrag: string;
-  befehlsgeberId: UserId;
+  befehlsgeber: string;
   erstellerId: UserId;
-  empfaengerIds: UserId[];
+  empfaenger: { name: string; empfaengerId?: UserId }[];
   zeitvorgabe?: string;
   ereignis?: string;
   mittel?: string;
@@ -50,8 +52,9 @@ export class Befehl extends AggregateRoot<BefehlId> {
   private _nummer: string;
   private _einsatzId: EinsatzId;
   private _auftrag: string;
-  private _befehlsgeberId: UserId;
-  private _erstellerId: UserId;
+  private _befehlsgeberName: string;
+  private _befehlsgeberId: UserId | undefined;
+  private _erstellerId: UserId | undefined;
   private _status: BefehlStatus;
   private _erteiltAm: Date;
   private _empfaenger: BefehlEmpfaenger[];
@@ -62,14 +65,19 @@ export class Befehl extends AggregateRoot<BefehlId> {
   private _ziel?: string;
   private _weg?: string;
   private _originalBefehlId?: BefehlId;
+  private _isDeleted: boolean;
+  private _deletedAt?: Date;
+  private _deletedBy?: string;
+  private _anonymisiertAm?: Date;
 
   private constructor(
     id: BefehlId,
     nummer: string,
     einsatzId: EinsatzId,
     auftrag: string,
-    befehlsgeberId: UserId,
-    erstellerId: UserId,
+    befehlsgeberName: string,
+    befehlsgeberId: UserId | undefined,
+    erstellerId: UserId | undefined,
     status: BefehlStatus,
     erteiltAm: Date,
     empfaenger: BefehlEmpfaenger[],
@@ -82,11 +90,16 @@ export class Befehl extends AggregateRoot<BefehlId> {
     originalBefehlId?: BefehlId,
     createdAt?: Date,
     updatedAt?: Date,
+    isDeleted = false,
+    deletedAt?: Date,
+    deletedBy?: string,
+    anonymisiertAm?: Date,
   ) {
     super(id, createdAt, updatedAt);
     this._nummer = nummer;
     this._einsatzId = einsatzId;
     this._auftrag = auftrag;
+    this._befehlsgeberName = befehlsgeberName;
     this._befehlsgeberId = befehlsgeberId;
     this._erstellerId = erstellerId;
     this._status = status;
@@ -99,6 +112,10 @@ export class Befehl extends AggregateRoot<BefehlId> {
     this._ziel = ziel;
     this._weg = weg;
     this._originalBefehlId = originalBefehlId;
+    this._isDeleted = isDeleted;
+    this._deletedAt = deletedAt;
+    this._deletedBy = deletedBy;
+    this._anonymisiertAm = anonymisiertAm;
   }
 
   get nummer(): string {
@@ -113,11 +130,15 @@ export class Befehl extends AggregateRoot<BefehlId> {
     return this._auftrag;
   }
 
-  get befehlsgeberId(): UserId {
+  get befehlsgeberName(): string {
+    return this._befehlsgeberName;
+  }
+
+  get befehlsgeberId(): UserId | undefined {
     return this._befehlsgeberId;
   }
 
-  get erstellerId(): UserId {
+  get erstellerId(): UserId | undefined {
     return this._erstellerId;
   }
 
@@ -163,6 +184,27 @@ export class Befehl extends AggregateRoot<BefehlId> {
     return this._originalBefehlId;
   }
 
+  get isDeleted(): boolean {
+    return this._isDeleted;
+  }
+
+  get deletedAt(): Date | undefined {
+    return this._deletedAt;
+  }
+
+  get deletedBy(): string | undefined {
+    return this._deletedBy;
+  }
+
+  get anonymisiertAm(): Date | undefined {
+    return this._anonymisiertAm;
+  }
+
+  /** Prüft ob der Befehl bereits anonymisiert wurde. */
+  get istAnonymisiert(): boolean {
+    return this._anonymisiertAm !== undefined;
+  }
+
   /**
    * Computed getter: Bestimmt den Befehlstyp basierend auf vorhandenen EAMZW-Feldern.
    * NICHT in DB persistiert.
@@ -197,15 +239,15 @@ export class Befehl extends AggregateRoot<BefehlId> {
       return Result.fail<Befehl>('EinsatzId ist erforderlich');
     }
 
-    if (!props.befehlsgeberId) {
-      return Result.fail<Befehl>('BefehlsgeberId ist erforderlich');
+    if (!props.befehlsgeber || props.befehlsgeber.trim().length === 0) {
+      return Result.fail<Befehl>('Befehlsgeber ist erforderlich');
     }
 
     if (!props.erstellerId) {
       return Result.fail<Befehl>('ErstellerId ist erforderlich');
     }
 
-    if (!props.empfaengerIds || props.empfaengerIds.length === 0) {
+    if (!props.empfaenger || props.empfaenger.length === 0) {
       return Result.fail<Befehl>('Mindestens ein Empfänger ist erforderlich');
     }
 
@@ -218,14 +260,15 @@ export class Befehl extends AggregateRoot<BefehlId> {
     const nummer = Befehl.generateNummer();
     const initialStatus = BefehlStatus.ERTEILT();
     const erteiltAm = new Date();
-    const empfaenger = props.empfaengerIds.map((empfaengerId) => BefehlEmpfaenger.create(empfaengerId));
+    const empfaenger = props.empfaenger.map((e) => BefehlEmpfaenger.create(e.name, e.empfaengerId));
 
     const befehl = new Befehl(
       id,
       nummer,
       props.einsatzId,
       props.auftrag.trim(),
-      props.befehlsgeberId,
+      props.befehlsgeber.trim(),
+      undefined,
       props.erstellerId,
       initialStatus,
       erteiltAm,
@@ -245,7 +288,7 @@ export class Befehl extends AggregateRoot<BefehlId> {
         props.einsatzId,
         props.auftrag.trim(),
         nummer,
-        props.empfaengerIds.map((e) => e.value),
+        props.empfaenger.map((e) => e.name),
         id.value,
       ),
     );
@@ -262,8 +305,9 @@ export class Befehl extends AggregateRoot<BefehlId> {
     nummer: string;
     einsatzId: EinsatzId;
     auftrag: string;
-    befehlsgeberId: UserId;
-    erstellerId: UserId;
+    befehlsgeberName: string;
+    befehlsgeberId: UserId | undefined;
+    erstellerId: UserId | undefined;
     status: BefehlStatus;
     erteiltAm: Date;
     empfaenger: BefehlEmpfaenger[];
@@ -276,12 +320,17 @@ export class Befehl extends AggregateRoot<BefehlId> {
     originalBefehlId?: BefehlId;
     createdAt?: Date;
     updatedAt?: Date;
+    isDeleted?: boolean;
+    deletedAt?: Date;
+    deletedBy?: string;
+    anonymisiertAm?: Date;
   }): Befehl {
     return new Befehl(
       props.id,
       props.nummer,
       props.einsatzId,
       props.auftrag,
+      props.befehlsgeberName,
       props.befehlsgeberId,
       props.erstellerId,
       props.status,
@@ -296,6 +345,10 @@ export class Befehl extends AggregateRoot<BefehlId> {
       props.originalBefehlId,
       props.createdAt,
       props.updatedAt,
+      props.isDeleted,
+      props.deletedAt,
+      props.deletedBy,
+      props.anonymisiertAm,
     );
   }
 
@@ -318,7 +371,7 @@ export class Befehl extends AggregateRoot<BefehlId> {
       return Result.fail<void>('Ein korrigierter Befehl kann nicht mehr zugestellt werden');
     }
 
-    const empfaenger = this._empfaenger.find((e) => e.empfaengerId.equals(empfaengerId));
+    const empfaenger = this._empfaenger.find((e) => e.empfaengerId?.equals(empfaengerId));
     if (!empfaenger) {
       return Result.fail<void>('Empfänger nicht gefunden');
     }
@@ -331,8 +384,9 @@ export class Befehl extends AggregateRoot<BefehlId> {
 
     this.addDomainEvent(new BefehlZugestelltEvent(this.id, empfaengerId.value, empfaenger.zugestelltAm!, this.id.value));
 
-    // Prüfe ob alle Empfänger zugestellt → Status-Transition zu ZUGESTELLT
-    const alleZugestellt = this._empfaenger.every((e) => e.zugestelltAm !== undefined);
+    // Prüfe ob alle quittierbare Empfänger zugestellt → Status-Transition zu ZUGESTELLT
+    const quittierbare = this._empfaenger.filter((e) => e.istQuittierbar);
+    const alleZugestellt = quittierbare.length > 0 && quittierbare.every((e) => e.zugestelltAm !== undefined);
     if (alleZugestellt && this._status.canTransitionTo(BefehlStatus.ZUGESTELLT())) {
       const oldStatus = this._status;
       this._status = BefehlStatus.ZUGESTELLT();
@@ -351,7 +405,11 @@ export class Befehl extends AggregateRoot<BefehlId> {
       return Result.fail<void>('Ein korrigierter Befehl kann nicht quittiert werden');
     }
 
-    const empfaenger = this._empfaenger.find((e) => e.empfaengerId.equals(empfaengerId));
+    if (this._status.value === 'QUITTIERT') {
+      return Result.fail<void>('Ein bereits vollständig quittierter Befehl kann nicht erneut quittiert werden');
+    }
+
+    const empfaenger = this._empfaenger.find((e) => e.empfaengerId?.equals(empfaengerId));
     if (!empfaenger) {
       return Result.fail<void>('Empfänger nicht gefunden');
     }
@@ -369,8 +427,12 @@ export class Befehl extends AggregateRoot<BefehlId> {
       return Result.fail<void>(quittierungResult.error ?? 'Quittierung fehlgeschlagen');
     }
 
-    // Prüfe ob alle Empfänger quittiert → Status-Transition zu QUITTIERT
-    const alleQuittiert = this._empfaenger.every((e) => e.quittiertAm !== undefined);
+    // Story 2.1 AC2: BefehlQuittiertEvent emittieren nach erfolgreicher Quittierung
+    this.addDomainEvent(new BefehlQuittiertEvent(this.id, this._einsatzId, empfaengerId, quittierungArt, this._nummer, empfaenger.quittiertAm!, this.id.value));
+
+    // Prüfe ob alle quittierbare Empfänger quittiert → Status-Transition zu QUITTIERT
+    const quittierbare = this._empfaenger.filter((e) => e.istQuittierbar);
+    const alleQuittiert = quittierbare.length > 0 && quittierbare.every((e) => e.quittiertAm !== undefined);
     if (alleQuittiert && this._status.canTransitionTo(BefehlStatus.QUITTIERT())) {
       const oldStatus = this._status;
       this._status = BefehlStatus.QUITTIERT();
@@ -406,6 +468,13 @@ export class Befehl extends AggregateRoot<BefehlId> {
       return Result.fail<void>('Kommentar-Text ist erforderlich');
     }
 
+    if (parentId) {
+      const parentExists = this._kommentare.some((k) => k.id === parentId);
+      if (!parentExists) {
+        return Result.fail<void>('Parent-Kommentar nicht gefunden');
+      }
+    }
+
     const kommentar = BefehlKommentar.create(authorId, text.trim(), isRueckfrage, parentId);
     this._kommentare.push(kommentar);
 
@@ -420,5 +489,86 @@ export class Befehl extends AggregateRoot<BefehlId> {
    */
   public canBeDeleted(): boolean {
     return false;
+  }
+
+  /**
+   * DSGVO-konforme irreversible Anonymisierung personenbezogener Daten.
+   *
+   * Anonymisiert:
+   * - BefehlsgeberName → "[ANON-{hash6}]"
+   * - BefehlsgeberId → undefined
+   * - ErstellerId → undefined (Review-Fix H4)
+   * - Empfaenger-Namen → "[ANON-{hash6}]"
+   * - Kommentar-Author-IDs → undefined (Review-Fix C1)
+   *
+   * Erhalten bleibt:
+   * - Befehlsnummer, Auftrag, Status, Zeitstempel
+   * - Einsatz-Referenz, Sachinhalt (EAMZW-Felder)
+   *
+   * @param salt Per-Einsatz Salt fuer echte Anonymisierung (nicht gespeichert, Review-Fix C2)
+   * @remarks Story 5.5 AC2 — IRREVERSIBEL mit Salt
+   */
+  public anonymisiere(salt: string): Result<{ empfaengerCount: number; kommentarCount: number }> {
+    if (this._anonymisiertAm) {
+      return Result.fail('Befehl wurde bereits anonymisiert');
+    }
+
+    if (this._isDeleted) {
+      return Result.fail('Gelöschte Befehle können nicht anonymisiert werden');
+    }
+
+    // Anonymisiere Befehlsgeber (Name + IDs)
+    this._befehlsgeberName = anonymisiereString(this._befehlsgeberName, salt);
+    this._befehlsgeberId = undefined;
+    this._erstellerId = undefined;
+
+    // Anonymisiere Empfaenger-Namen
+    let empfaengerCount = 0;
+    for (const e of this._empfaenger) {
+      e.anonymisiere(salt);
+      empfaengerCount++;
+    }
+
+    // Anonymisiere Kommentar-Authors (Review-Fix C1)
+    for (const k of this._kommentare) {
+      k.anonymisiere(salt);
+    }
+    const kommentarCount = this._kommentare.length;
+
+    this._anonymisiertAm = new Date();
+
+    return Result.ok({ empfaengerCount, kommentarCount });
+  }
+
+  /**
+   * Markiert den Befehl als soft-deleted nach Ablauf der Freigabeperiode.
+   *
+   * Voraussetzung: Befehl muss bereits anonymisiert sein.
+   * Daten sind über die API nicht mehr abrufbar, Audit-Trail bleibt erhalten.
+   *
+   * @remarks Story 5.5 AC3
+   */
+  public markiereAlsGeloescht(deletedBy: string): Result<void> {
+    if (!this._anonymisiertAm) {
+      return Result.fail<void>('Nur anonymisierte Befehle können gelöscht werden');
+    }
+
+    if (this._isDeleted) {
+      return Result.fail<void>('Befehl ist bereits gelöscht');
+    }
+
+    this._isDeleted = true;
+    this._deletedAt = new Date();
+    this._deletedBy = deletedBy;
+
+    return Result.ok<void>(undefined);
+  }
+
+  /**
+   * Generiert einen irreversiblen 6-Zeichen-Hash aus einem Namen mit Salt.
+   * Delegiert an shared Utility (Review-Fix M3).
+   */
+  static anonymisiereString(name: string, salt: string): string {
+    return anonymisiereString(name, salt);
   }
 }

@@ -17,6 +17,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ServerSetupRouteImport } from './routes/server/setup'
 import { Route as ServerManageRouteImport } from './routes/server/manage'
+import { Route as ServerAufbewahrungRouteImport } from './routes/server/aufbewahrung'
 import { Route as AppSettingsRouteImport } from './routes/app/settings'
 import { Route as AppEinsatzRouteImport } from './routes/app/einsatz'
 import { Route as AppEinsaetzeRouteImport } from './routes/app/einsaetze'
@@ -29,6 +30,8 @@ import { Route as AdminErinnerungenRouteImport } from './routes/admin/erinnerung
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 import { Route as AppEinsaetzeIndexRouteImport } from './routes/app/einsaetze/index'
 import { Route as AppEinsatzEinsatzIdRouteImport } from './routes/app/einsatz/$einsatzId'
+import { Route as AppEinsaetzeMonitoringRouteImport } from './routes/app/einsaetze/monitoring'
+import { Route as AppEinsaetzeMetrikenRouteImport } from './routes/app/einsaetze/metriken'
 import { Route as AppEinsaetzeEinsatzIdRouteImport } from './routes/app/einsaetze/$einsatzId'
 import { Route as AdminStammdatenPersonenRouteImport } from './routes/admin/stammdaten/personen'
 import { Route as AdminStammdatenFahrzeugeRouteImport } from './routes/admin/stammdaten/fahrzeuge'
@@ -55,6 +58,7 @@ import { Route as AppEinsatzEinsatzIdKrChar228fteDashboardRouteImport } from './
 import { Route as AppEinsatzEinsatzIdKommunikationMeldungenRouteImport } from './routes/app/einsatz/$einsatzId/kommunikation/meldungen'
 import { Route as AppEinsatzEinsatzIdKommunikationFunkRouteImport } from './routes/app/einsatz/$einsatzId/kommunikation/funk'
 import { Route as AppEinsatzEinsatzIdKommunikationAlarmierungRouteImport } from './routes/app/einsatz/$einsatzId/kommunikation/alarmierung'
+import { Route as AppEinsatzEinsatzIdFChar252hrungRollenRouteImport } from './routes/app/einsatz/$einsatzId/führung/rollen'
 import { Route as AppEinsatzEinsatzIdFChar252hrungRhythmusRouteImport } from './routes/app/einsatz/$einsatzId/führung/rhythmus'
 import { Route as AppEinsatzEinsatzIdFChar252hrungProtokollRouteImport } from './routes/app/einsatz/$einsatzId/führung/protokoll'
 import { Route as AppEinsatzEinsatzIdFChar252hrungPinnwandRouteImport } from './routes/app/einsatz/$einsatzId/führung/pinnwand'
@@ -107,6 +111,11 @@ const ServerSetupRoute = ServerSetupRouteImport.update({
 const ServerManageRoute = ServerManageRouteImport.update({
   id: '/server/manage',
   path: '/server/manage',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServerAufbewahrungRoute = ServerAufbewahrungRouteImport.update({
+  id: '/server/aufbewahrung',
+  path: '/server/aufbewahrung',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
@@ -169,6 +178,16 @@ const AppEinsatzEinsatzIdRoute = AppEinsatzEinsatzIdRouteImport.update({
   id: '/$einsatzId',
   path: '/$einsatzId',
   getParentRoute: () => AppEinsatzRoute,
+} as any)
+const AppEinsaetzeMonitoringRoute = AppEinsaetzeMonitoringRouteImport.update({
+  id: '/monitoring',
+  path: '/monitoring',
+  getParentRoute: () => AppEinsaetzeRoute,
+} as any)
+const AppEinsaetzeMetrikenRoute = AppEinsaetzeMetrikenRouteImport.update({
+  id: '/metriken',
+  path: '/metriken',
+  getParentRoute: () => AppEinsaetzeRoute,
 } as any)
 const AppEinsaetzeEinsatzIdRoute = AppEinsaetzeEinsatzIdRouteImport.update({
   id: '/$einsatzId',
@@ -323,6 +342,12 @@ const AppEinsatzEinsatzIdKommunikationAlarmierungRoute =
     path: '/kommunikation/alarmierung',
     getParentRoute: () => AppEinsatzEinsatzIdRoute,
   } as any)
+const AppEinsatzEinsatzIdFChar252hrungRollenRoute =
+  AppEinsatzEinsatzIdFChar252hrungRollenRouteImport.update({
+    id: '/führung/rollen',
+    path: '/führung/rollen',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
 const AppEinsatzEinsatzIdFChar252hrungRhythmusRoute =
   AppEinsatzEinsatzIdFChar252hrungRhythmusRouteImport.update({
     id: '/führung/rhythmus',
@@ -418,6 +443,7 @@ export interface FileRoutesByFullPath {
   '/app/einsaetze': typeof AppEinsaetzeRouteWithChildren
   '/app/einsatz': typeof AppEinsatzRouteWithChildren
   '/app/settings': typeof AppSettingsRoute
+  '/server/aufbewahrung': typeof ServerAufbewahrungRoute
   '/server/manage': typeof ServerManageRoute
   '/server/setup': typeof ServerSetupRoute
   '/admin/': typeof AdminIndexRoute
@@ -427,6 +453,8 @@ export interface FileRoutesByFullPath {
   '/admin/stammdaten/fahrzeuge': typeof AdminStammdatenFahrzeugeRoute
   '/admin/stammdaten/personen': typeof AdminStammdatenPersonenRoute
   '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
+  '/app/einsaetze/metriken': typeof AppEinsaetzeMetrikenRoute
+  '/app/einsaetze/monitoring': typeof AppEinsaetzeMonitoringRoute
   '/app/einsatz/$einsatzId': typeof AppEinsatzEinsatzIdRouteWithChildren
   '/app/einsaetze/': typeof AppEinsaetzeIndexRoute
   '/app/einsatz/$einsatzId/': typeof AppEinsatzEinsatzIdIndexRoute
@@ -442,6 +470,7 @@ export interface FileRoutesByFullPath {
   '/app/einsatz/$einsatzId/führung/pinnwand': typeof AppEinsatzEinsatzIdFChar252hrungPinnwandRoute
   '/app/einsatz/$einsatzId/führung/protokoll': typeof AppEinsatzEinsatzIdFChar252hrungProtokollRoute
   '/app/einsatz/$einsatzId/führung/rhythmus': typeof AppEinsatzEinsatzIdFChar252hrungRhythmusRoute
+  '/app/einsatz/$einsatzId/führung/rollen': typeof AppEinsatzEinsatzIdFChar252hrungRollenRoute
   '/app/einsatz/$einsatzId/kommunikation/alarmierung': typeof AppEinsatzEinsatzIdKommunikationAlarmierungRoute
   '/app/einsatz/$einsatzId/kommunikation/funk': typeof AppEinsatzEinsatzIdKommunikationFunkRoute
   '/app/einsatz/$einsatzId/kommunikation/meldungen': typeof AppEinsatzEinsatzIdKommunikationMeldungenRoute
@@ -477,6 +506,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AdminUsersRoute
   '/app/einsatz': typeof AppEinsatzRouteWithChildren
   '/app/settings': typeof AppSettingsRoute
+  '/server/aufbewahrung': typeof ServerAufbewahrungRoute
   '/server/manage': typeof ServerManageRoute
   '/server/setup': typeof ServerSetupRoute
   '/admin': typeof AdminIndexRoute
@@ -486,6 +516,8 @@ export interface FileRoutesByTo {
   '/admin/stammdaten/fahrzeuge': typeof AdminStammdatenFahrzeugeRoute
   '/admin/stammdaten/personen': typeof AdminStammdatenPersonenRoute
   '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
+  '/app/einsaetze/metriken': typeof AppEinsaetzeMetrikenRoute
+  '/app/einsaetze/monitoring': typeof AppEinsaetzeMonitoringRoute
   '/app/einsaetze': typeof AppEinsaetzeIndexRoute
   '/app/einsatz/$einsatzId': typeof AppEinsatzEinsatzIdIndexRoute
   '/app/einsatz/$einsatzId/betreuung/betroffene': typeof AppEinsatzEinsatzIdBetreuungBetroffeneRoute
@@ -499,6 +531,7 @@ export interface FileRoutesByTo {
   '/app/einsatz/$einsatzId/führung/pinnwand': typeof AppEinsatzEinsatzIdFChar252hrungPinnwandRoute
   '/app/einsatz/$einsatzId/führung/protokoll': typeof AppEinsatzEinsatzIdFChar252hrungProtokollRoute
   '/app/einsatz/$einsatzId/führung/rhythmus': typeof AppEinsatzEinsatzIdFChar252hrungRhythmusRoute
+  '/app/einsatz/$einsatzId/führung/rollen': typeof AppEinsatzEinsatzIdFChar252hrungRollenRoute
   '/app/einsatz/$einsatzId/kommunikation/alarmierung': typeof AppEinsatzEinsatzIdKommunikationAlarmierungRoute
   '/app/einsatz/$einsatzId/kommunikation/funk': typeof AppEinsatzEinsatzIdKommunikationFunkRoute
   '/app/einsatz/$einsatzId/kommunikation/meldungen': typeof AppEinsatzEinsatzIdKommunikationMeldungenRoute
@@ -537,6 +570,7 @@ export interface FileRoutesById {
   '/app/einsaetze': typeof AppEinsaetzeRouteWithChildren
   '/app/einsatz': typeof AppEinsatzRouteWithChildren
   '/app/settings': typeof AppSettingsRoute
+  '/server/aufbewahrung': typeof ServerAufbewahrungRoute
   '/server/manage': typeof ServerManageRoute
   '/server/setup': typeof ServerSetupRoute
   '/admin/': typeof AdminIndexRoute
@@ -546,6 +580,8 @@ export interface FileRoutesById {
   '/admin/stammdaten/fahrzeuge': typeof AdminStammdatenFahrzeugeRoute
   '/admin/stammdaten/personen': typeof AdminStammdatenPersonenRoute
   '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
+  '/app/einsaetze/metriken': typeof AppEinsaetzeMetrikenRoute
+  '/app/einsaetze/monitoring': typeof AppEinsaetzeMonitoringRoute
   '/app/einsatz/$einsatzId': typeof AppEinsatzEinsatzIdRouteWithChildren
   '/app/einsaetze/': typeof AppEinsaetzeIndexRoute
   '/app/einsatz/$einsatzId/': typeof AppEinsatzEinsatzIdIndexRoute
@@ -561,6 +597,7 @@ export interface FileRoutesById {
   '/app/einsatz/$einsatzId/führung/pinnwand': typeof AppEinsatzEinsatzIdFChar252hrungPinnwandRoute
   '/app/einsatz/$einsatzId/führung/protokoll': typeof AppEinsatzEinsatzIdFChar252hrungProtokollRoute
   '/app/einsatz/$einsatzId/führung/rhythmus': typeof AppEinsatzEinsatzIdFChar252hrungRhythmusRoute
+  '/app/einsatz/$einsatzId/führung/rollen': typeof AppEinsatzEinsatzIdFChar252hrungRollenRoute
   '/app/einsatz/$einsatzId/kommunikation/alarmierung': typeof AppEinsatzEinsatzIdKommunikationAlarmierungRoute
   '/app/einsatz/$einsatzId/kommunikation/funk': typeof AppEinsatzEinsatzIdKommunikationFunkRoute
   '/app/einsatz/$einsatzId/kommunikation/meldungen': typeof AppEinsatzEinsatzIdKommunikationMeldungenRoute
@@ -600,6 +637,7 @@ export interface FileRouteTypes {
     | '/app/einsaetze'
     | '/app/einsatz'
     | '/app/settings'
+    | '/server/aufbewahrung'
     | '/server/manage'
     | '/server/setup'
     | '/admin/'
@@ -609,6 +647,8 @@ export interface FileRouteTypes {
     | '/admin/stammdaten/fahrzeuge'
     | '/admin/stammdaten/personen'
     | '/app/einsaetze/$einsatzId'
+    | '/app/einsaetze/metriken'
+    | '/app/einsaetze/monitoring'
     | '/app/einsatz/$einsatzId'
     | '/app/einsaetze/'
     | '/app/einsatz/$einsatzId/'
@@ -624,6 +664,7 @@ export interface FileRouteTypes {
     | '/app/einsatz/$einsatzId/führung/pinnwand'
     | '/app/einsatz/$einsatzId/führung/protokoll'
     | '/app/einsatz/$einsatzId/führung/rhythmus'
+    | '/app/einsatz/$einsatzId/führung/rollen'
     | '/app/einsatz/$einsatzId/kommunikation/alarmierung'
     | '/app/einsatz/$einsatzId/kommunikation/funk'
     | '/app/einsatz/$einsatzId/kommunikation/meldungen'
@@ -659,6 +700,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/app/einsatz'
     | '/app/settings'
+    | '/server/aufbewahrung'
     | '/server/manage'
     | '/server/setup'
     | '/admin'
@@ -668,6 +710,8 @@ export interface FileRouteTypes {
     | '/admin/stammdaten/fahrzeuge'
     | '/admin/stammdaten/personen'
     | '/app/einsaetze/$einsatzId'
+    | '/app/einsaetze/metriken'
+    | '/app/einsaetze/monitoring'
     | '/app/einsaetze'
     | '/app/einsatz/$einsatzId'
     | '/app/einsatz/$einsatzId/betreuung/betroffene'
@@ -681,6 +725,7 @@ export interface FileRouteTypes {
     | '/app/einsatz/$einsatzId/führung/pinnwand'
     | '/app/einsatz/$einsatzId/führung/protokoll'
     | '/app/einsatz/$einsatzId/führung/rhythmus'
+    | '/app/einsatz/$einsatzId/führung/rollen'
     | '/app/einsatz/$einsatzId/kommunikation/alarmierung'
     | '/app/einsatz/$einsatzId/kommunikation/funk'
     | '/app/einsatz/$einsatzId/kommunikation/meldungen'
@@ -718,6 +763,7 @@ export interface FileRouteTypes {
     | '/app/einsaetze'
     | '/app/einsatz'
     | '/app/settings'
+    | '/server/aufbewahrung'
     | '/server/manage'
     | '/server/setup'
     | '/admin/'
@@ -727,6 +773,8 @@ export interface FileRouteTypes {
     | '/admin/stammdaten/fahrzeuge'
     | '/admin/stammdaten/personen'
     | '/app/einsaetze/$einsatzId'
+    | '/app/einsaetze/metriken'
+    | '/app/einsaetze/monitoring'
     | '/app/einsatz/$einsatzId'
     | '/app/einsaetze/'
     | '/app/einsatz/$einsatzId/'
@@ -742,6 +790,7 @@ export interface FileRouteTypes {
     | '/app/einsatz/$einsatzId/führung/pinnwand'
     | '/app/einsatz/$einsatzId/führung/protokoll'
     | '/app/einsatz/$einsatzId/führung/rhythmus'
+    | '/app/einsatz/$einsatzId/führung/rollen'
     | '/app/einsatz/$einsatzId/kommunikation/alarmierung'
     | '/app/einsatz/$einsatzId/kommunikation/funk'
     | '/app/einsatz/$einsatzId/kommunikation/meldungen'
@@ -770,6 +819,7 @@ export interface RootRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ServerAufbewahrungRoute: typeof ServerAufbewahrungRoute
   ServerManageRoute: typeof ServerManageRoute
   ServerSetupRoute: typeof ServerSetupRoute
 }
@@ -830,6 +880,13 @@ declare module '@tanstack/react-router' {
       path: '/server/manage'
       fullPath: '/server/manage'
       preLoaderRoute: typeof ServerManageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/server/aufbewahrung': {
+      id: '/server/aufbewahrung'
+      path: '/server/aufbewahrung'
+      fullPath: '/server/aufbewahrung'
+      preLoaderRoute: typeof ServerAufbewahrungRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/settings': {
@@ -915,6 +972,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/einsatz/$einsatzId'
       preLoaderRoute: typeof AppEinsatzEinsatzIdRouteImport
       parentRoute: typeof AppEinsatzRoute
+    }
+    '/app/einsaetze/monitoring': {
+      id: '/app/einsaetze/monitoring'
+      path: '/monitoring'
+      fullPath: '/app/einsaetze/monitoring'
+      preLoaderRoute: typeof AppEinsaetzeMonitoringRouteImport
+      parentRoute: typeof AppEinsaetzeRoute
+    }
+    '/app/einsaetze/metriken': {
+      id: '/app/einsaetze/metriken'
+      path: '/metriken'
+      fullPath: '/app/einsaetze/metriken'
+      preLoaderRoute: typeof AppEinsaetzeMetrikenRouteImport
+      parentRoute: typeof AppEinsaetzeRoute
     }
     '/app/einsaetze/$einsatzId': {
       id: '/app/einsaetze/$einsatzId'
@@ -1098,6 +1169,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppEinsatzEinsatzIdKommunikationAlarmierungRouteImport
       parentRoute: typeof AppEinsatzEinsatzIdRoute
     }
+    '/app/einsatz/$einsatzId/führung/rollen': {
+      id: '/app/einsatz/$einsatzId/führung/rollen'
+      path: '/führung/rollen'
+      fullPath: '/app/einsatz/$einsatzId/führung/rollen'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdFChar252hrungRollenRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
     '/app/einsatz/$einsatzId/führung/rhythmus': {
       id: '/app/einsatz/$einsatzId/führung/rhythmus'
       path: '/führung/rhythmus'
@@ -1228,11 +1306,15 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AppEinsaetzeRouteChildren {
   AppEinsaetzeEinsatzIdRoute: typeof AppEinsaetzeEinsatzIdRoute
+  AppEinsaetzeMetrikenRoute: typeof AppEinsaetzeMetrikenRoute
+  AppEinsaetzeMonitoringRoute: typeof AppEinsaetzeMonitoringRoute
   AppEinsaetzeIndexRoute: typeof AppEinsaetzeIndexRoute
 }
 
 const AppEinsaetzeRouteChildren: AppEinsaetzeRouteChildren = {
   AppEinsaetzeEinsatzIdRoute: AppEinsaetzeEinsatzIdRoute,
+  AppEinsaetzeMetrikenRoute: AppEinsaetzeMetrikenRoute,
+  AppEinsaetzeMonitoringRoute: AppEinsaetzeMonitoringRoute,
   AppEinsaetzeIndexRoute: AppEinsaetzeIndexRoute,
 }
 
@@ -1269,6 +1351,7 @@ interface AppEinsatzEinsatzIdRouteChildren {
   AppEinsatzEinsatzIdFChar252hrungPinnwandRoute: typeof AppEinsatzEinsatzIdFChar252hrungPinnwandRoute
   AppEinsatzEinsatzIdFChar252hrungProtokollRoute: typeof AppEinsatzEinsatzIdFChar252hrungProtokollRoute
   AppEinsatzEinsatzIdFChar252hrungRhythmusRoute: typeof AppEinsatzEinsatzIdFChar252hrungRhythmusRoute
+  AppEinsatzEinsatzIdFChar252hrungRollenRoute: typeof AppEinsatzEinsatzIdFChar252hrungRollenRoute
   AppEinsatzEinsatzIdKommunikationAlarmierungRoute: typeof AppEinsatzEinsatzIdKommunikationAlarmierungRoute
   AppEinsatzEinsatzIdKommunikationFunkRoute: typeof AppEinsatzEinsatzIdKommunikationFunkRoute
   AppEinsatzEinsatzIdKommunikationMeldungenRoute: typeof AppEinsatzEinsatzIdKommunikationMeldungenRoute
@@ -1316,6 +1399,8 @@ const AppEinsatzEinsatzIdRouteChildren: AppEinsatzEinsatzIdRouteChildren = {
     AppEinsatzEinsatzIdFChar252hrungProtokollRoute,
   AppEinsatzEinsatzIdFChar252hrungRhythmusRoute:
     AppEinsatzEinsatzIdFChar252hrungRhythmusRoute,
+  AppEinsatzEinsatzIdFChar252hrungRollenRoute:
+    AppEinsatzEinsatzIdFChar252hrungRollenRoute,
   AppEinsatzEinsatzIdKommunikationAlarmierungRoute:
     AppEinsatzEinsatzIdKommunikationAlarmierungRoute,
   AppEinsatzEinsatzIdKommunikationFunkRoute:
@@ -1391,6 +1476,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRoute,
+  ServerAufbewahrungRoute: ServerAufbewahrungRoute,
   ServerManageRoute: ServerManageRoute,
   ServerSetupRoute: ServerSetupRoute,
 }

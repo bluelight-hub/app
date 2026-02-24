@@ -1,6 +1,7 @@
 import { createId } from '@paralleldrive/cuid2';
 import type { UserId } from '@domain/value-objects/user-id';
 import { Result } from '@domain/common/result';
+import { anonymisiereString } from '@domain/common/anonymisierung';
 
 /**
  * QuittierungArt Enum — Art der Quittierung eines Befehls durch einen Empfänger.
@@ -17,14 +18,16 @@ export type QuittierungArt = 'VERSTANDEN' | 'RUECKFRAGE' | 'NICHT_VERSTANDEN';
  */
 export class BefehlEmpfaenger {
   private readonly _id: string;
-  private readonly _empfaengerId: UserId;
+  private _name: string;
+  private _empfaengerId: UserId | undefined;
   private _zugestelltAm: Date | undefined;
   private _quittiertAm: Date | undefined;
   private _quittierungArt: QuittierungArt | undefined;
   private readonly _createdAt: Date;
 
-  protected constructor(id: string, empfaengerId: UserId, zugestelltAm?: Date, quittiertAm?: Date, quittierungArt?: QuittierungArt, createdAt?: Date) {
+  protected constructor(id: string, name: string, empfaengerId: UserId | undefined, zugestelltAm?: Date, quittiertAm?: Date, quittierungArt?: QuittierungArt, createdAt?: Date) {
     this._id = id;
+    this._name = name;
     this._empfaengerId = empfaengerId;
     this._zugestelltAm = zugestelltAm;
     this._quittiertAm = quittiertAm;
@@ -35,23 +38,27 @@ export class BefehlEmpfaenger {
   /**
    * Erstellt einen neuen BefehlEmpfaenger.
    */
-  public static create(empfaengerId: UserId): BefehlEmpfaenger {
+  public static create(name: string, empfaengerId?: UserId): BefehlEmpfaenger {
     const id = createId();
-    return new BefehlEmpfaenger(id, empfaengerId);
+    return new BefehlEmpfaenger(id, name, empfaengerId);
   }
 
   /**
    * Rekonstruiert einen BefehlEmpfaenger aus DB-Daten.
    */
-  public static reconstitute(id: string, empfaengerId: UserId, zugestelltAm?: Date, quittiertAm?: Date, quittierungArt?: QuittierungArt, createdAt?: Date): BefehlEmpfaenger {
-    return new BefehlEmpfaenger(id, empfaengerId, zugestelltAm, quittiertAm, quittierungArt, createdAt);
+  public static reconstitute(id: string, name: string, empfaengerId: UserId | undefined, zugestelltAm?: Date, quittiertAm?: Date, quittierungArt?: QuittierungArt, createdAt?: Date): BefehlEmpfaenger {
+    return new BefehlEmpfaenger(id, name, empfaengerId, zugestelltAm, quittiertAm, quittierungArt, createdAt);
   }
 
   get id(): string {
     return this._id;
   }
 
-  get empfaengerId(): UserId {
+  get name(): string {
+    return this._name;
+  }
+
+  get empfaengerId(): UserId | undefined {
     return this._empfaengerId;
   }
 
@@ -81,6 +88,11 @@ export class BefehlEmpfaenger {
     return this._quittiertAm !== undefined;
   }
 
+  /** Ob dieser Empfänger quittierbar ist (nur wenn mit einem User verknüpft). */
+  get istQuittierbar(): boolean {
+    return this._empfaengerId !== undefined;
+  }
+
   /**
    * Markiert den Befehl als zugestellt an diesen Empfänger.
    */
@@ -100,6 +112,19 @@ export class BefehlEmpfaenger {
     this._quittiertAm = quittiertAm ?? new Date();
     this._quittierungArt = art;
 
+    return Result.ok<void>(undefined);
+  }
+
+  /**
+   * DSGVO-konforme irreversible Anonymisierung.
+   * Ersetzt Name mit gesalzenem Hash und entfernt User-Referenz.
+   *
+   * @param salt Per-Einsatz Salt fuer echte Anonymisierung (nicht gespeichert)
+   * @remarks Story 5.5 AC2 — Review-Fix C2, M3, M5
+   */
+  public anonymisiere(salt: string): Result<void> {
+    this._name = anonymisiereString(this._name, salt);
+    this._empfaengerId = undefined;
     return Result.ok<void>(undefined);
   }
 

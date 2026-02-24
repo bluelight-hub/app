@@ -1,11 +1,13 @@
 import { Inject, Injectable, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
-import { WebSocketGateway, WebSocketServer, SubscribeMessage, type OnGatewayConnection, type OnGatewayDisconnect, ConnectedSocket, MessageBody } from '@nestjs/websockets';
+import { WebSocketGateway, WebSocketServer, SubscribeMessage, type OnGatewayConnection, type OnGatewayDisconnect, type OnGatewayInit, ConnectedSocket, MessageBody } from '@nestjs/websockets';
 import type { Server, Socket } from 'socket.io';
 import { ConfigService } from '@nestjs/config';
 import { ILogger } from '@domain/ports/i-logger.port';
-import { LOGGER } from '@infrastructure/di-tokens';
+import { LOGGER, METRICS, RESILIENCE } from '@infrastructure/di-tokens';
+import { CircuitBreakerService } from '@infrastructure/resilience/circuit-breaker.service';
 import { WsJwtAuthGuard } from '@/modules/erinnerung/guards/ws-jwt-auth.guard';
-import type { JoinEinsatzDto } from '@/modules/erinnerung/dto/join-einsatz.dto';
+import { JoinEinsatzDto } from '@/modules/erinnerung/dto/join-einsatz.dto';
+import type { Gauge } from 'prom-client';
 import { corsConfig } from '@/infrastructure/config/security.config';
 
 /**
@@ -16,9 +18,10 @@ export interface BefehlErstelltPayload {
   einsatzId: string;
   nummer: string;
   auftrag: string;
-  befehlsgeberId: string;
+  befehlsgeberName: string;
+  befehlsgeberId?: string | null;
   erstellerId: string;
-  empfaengerIds: string[];
+  empfaenger: string[];
   status: string;
   erteiltAm: string; // ISO 8601
 }
@@ -59,6 +62,35 @@ export interface BefehlKommentarHinzugefuegtPayload {
 }
 
 /**
+ * WebSocket Payload fuer befehl.quittiert Event (Story 2.1 AC6).
+ */
+export interface BefehlQuittiertPayload {
+  befehlId: string;
+  einsatzId: string;
+  empfaengerId: string;
+  quittierungArt: string;
+  nummer: string;
+  quittiertAm: string; // ISO 8601
+}
+
+/**
+ * WebSocket Payload fuer rolle.geaendert Event (Story 5.4 AC3).
+ */
+export interface RolleGeaendertPayload {
+  einsatzId: string;
+  timestamp: string; // ISO 8601
+}
+
+/**
+ * WebSocket Payload fuer integration.status_changed Event (Story 5.3 AC6).
+ */
+export interface IntegrationStatusChangedPayload {
+  serviceName: string;
+  state: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+  timestamp: string; // ISO 8601
+}
+
+/**
  * WebSocket Gateway fuer Befehle.
  *
  * **Story 1.3 AC2: WebSocket Events fuer Real-Time Updates**
@@ -83,21 +115,41 @@ export interface BefehlKommentarHinzugefuegtPayload {
  * - `befehl.zugestellt`: Befehl an Empfaenger zugestellt
  * - `befehl.statusGeaendert`: Befehlsstatus geaendert
  * - `befehl.kommentarHinzugefuegt`: Kommentar zu Befehl hinzugefuegt
+ * - `befehl.quittiert`: Befehl von Empfaenger quittiert
+ * - `rolle.geaendert`: Einsatz-Rolle geaendert (Story 5.4 AC3)
+ * - `integration.status_changed`: Circuit Breaker Status geaendert (Story 5.3 AC6)
  */
 @Injectable()
 @UseGuards(WsJwtAuthGuard)
 @WebSocketGateway({
-  namespace: '/befehle',
+  namespace: '/ws/v-alpha/befehl',
   cors: process.env.NODE_ENV === 'production' ? corsConfig.production : corsConfig.development,
 })
-export class BefehlGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class BefehlGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
   @WebSocketServer()
   server!: Server;
 
   constructor(
     @Inject(LOGGER) private readonly logger: ILogger,
+    @Inject(RESILIENCE.CIRCUIT_BREAKER) private readonly circuitBreaker: CircuitBreakerService,
+    @Inject(METRICS.WS_CONNECTIONS) private readonly wsGauge: Gauge,
     readonly _configService: ConfigService,
   ) {}
+
+  /**
+   * Registriert Circuit Breaker State Change Listener fuer WebSocket Broadcasting.
+   * Story 5.3 AC6: Bei Circuit State Change → Broadcast an alle Clients.
+   */
+  afterInit(): void {
+    this.circuitBreaker.onStateChange((serviceName, newState) => {
+      this.emitIntegrationStatusChanged({
+        serviceName,
+        state: newState,
+        timestamp: new Date().toISOString(),
+      });
+    });
+    this.logger.log('Circuit Breaker WebSocket listener registriert', 'BefehlGateway');
+  }
 
   /**
    * Handler fuer neue WebSocket-Verbindungen.
@@ -108,6 +160,7 @@ export class BefehlGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * @param client - WebSocket Client (authenticated via WsJwtAuthGuard)
    */
   handleConnection(client: Socket): void {
+    this.wsGauge.inc({ namespace: '/ws/v-alpha/befehl' });
     const userId = client.data.userId as string | undefined;
     this.logger.log(`Client connected: ${client.id}, userId: ${userId || 'unknown'}`, 'BefehlGateway');
   }
@@ -116,6 +169,7 @@ export class BefehlGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * Handler fuer WebSocket-Verbindungstrennung.
    */
   handleDisconnect(client: Socket): void {
+    this.wsGauge.dec({ namespace: '/ws/v-alpha/befehl' });
     this.logger.log(`Client disconnected: ${client.id}`, 'BefehlGateway');
   }
 
@@ -201,6 +255,46 @@ export class BefehlGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const roomName = this.getRoomName(payload.einsatzId);
     this.server.to(roomName).emit('befehl.kommentarHinzugefuegt', payload);
     this.logger.log(`Emitted befehl.kommentarHinzugefuegt to room ${roomName}: befehlId=${payload.befehlId}, kommentarId=${payload.kommentarId}`, 'BefehlGateway');
+  }
+
+  /**
+   * Emittiert `befehl.quittiert` Event an alle Clients im Einsatz-Room.
+   *
+   * Story 2.1 AC6: Rich Data Payload fuer sofortige UI-Updates (Event-Carried State Transfer).
+   *
+   * @param payload - Event-Payload mit Quittierungsdaten
+   */
+  emitBefehlQuittiert(payload: BefehlQuittiertPayload): void {
+    const roomName = this.getRoomName(payload.einsatzId);
+    this.server.to(roomName).emit('befehl.quittiert', payload);
+    this.logger.log(`Emitted befehl.quittiert to room ${roomName}: befehlId=${payload.befehlId}, empfaengerId=${payload.empfaengerId}`, 'BefehlGateway');
+  }
+
+  /**
+   * Emittiert `rolle.geaendert` Event an alle Clients im Einsatz-Room.
+   *
+   * Story 5.4 AC3: Bei Rollenänderung → Broadcast an alle Clients im Einsatz-Room.
+   * Clients invalidieren ihren Rollen-Cache und aktualisieren Berechtigungen.
+   *
+   * @param payload - Event-Payload mit einsatzId und Timestamp
+   */
+  emitRolleGeaendert(payload: RolleGeaendertPayload): void {
+    const roomName = this.getRoomName(payload.einsatzId);
+    this.server.to(roomName).emit('rolle.geaendert', payload);
+    this.logger.log(`Emitted rolle.geaendert to room ${roomName}`, 'BefehlGateway');
+  }
+
+  /**
+   * Emittiert `integration.status_changed` Event an ALLE connected Clients.
+   *
+   * Story 5.3 AC6: Broadcast an alle Clients (kein Room-Scoping noetig,
+   * da Integration-Status global relevant ist).
+   *
+   * @param payload - Event-Payload mit Service-Name, State und Timestamp
+   */
+  emitIntegrationStatusChanged(payload: IntegrationStatusChangedPayload): void {
+    this.server.emit('integration.status_changed', payload);
+    this.logger.log(`Emitted integration.status_changed: ${payload.serviceName} → ${payload.state}`, 'BefehlGateway');
   }
 
   /**

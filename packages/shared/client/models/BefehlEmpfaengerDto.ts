@@ -26,11 +26,17 @@ export interface BefehlEmpfaengerDto {
      */
     id: string;
     /**
-     * Empfaenger User-ID
+     * Empfaenger Display-Name
      * @type {string}
      * @memberof BefehlEmpfaengerDto
      */
-    empfaengerId: string;
+    name: string;
+    /**
+     * Empfaenger User-ID (optional)
+     * @type {string}
+     * @memberof BefehlEmpfaengerDto
+     */
+    empfaengerId?: string;
     /**
      * Zeitpunkt der Zustellung
      * @type {Date}
@@ -49,6 +55,12 @@ export interface BefehlEmpfaengerDto {
      * @memberof BefehlEmpfaengerDto
      */
     quittierungArt?: BefehlEmpfaengerDtoQuittierungArtEnum;
+    /**
+     * Ob der Empfaenger quittierbar ist (mit User verknuepft)
+     * @type {boolean}
+     * @memberof BefehlEmpfaengerDto
+     */
+    istQuittierbar: boolean;
 }
 
 
@@ -68,7 +80,8 @@ export type BefehlEmpfaengerDtoQuittierungArtEnum = typeof BefehlEmpfaengerDtoQu
  */
 export function instanceOfBefehlEmpfaengerDto(value: object): value is BefehlEmpfaengerDto {
     if (!('id' in value) || value['id'] === undefined) return false;
-    if (!('empfaengerId' in value) || value['empfaengerId'] === undefined) return false;
+    if (!('name' in value) || value['name'] === undefined) return false;
+    if (!('istQuittierbar' in value) || value['istQuittierbar'] === undefined) return false;
     return true;
 }
 
@@ -83,10 +96,12 @@ export function BefehlEmpfaengerDtoFromJSONTyped(json: any, ignoreDiscriminator:
     return {
         
         'id': json['id'],
-        'empfaengerId': json['empfaengerId'],
+        'name': json['name'],
+        'empfaengerId': json['empfaengerId'] == null ? undefined : json['empfaengerId'],
         'zugestelltAm': json['zugestelltAm'] == null ? undefined : (new Date(json['zugestelltAm'])),
         'quittiertAm': json['quittiertAm'] == null ? undefined : (new Date(json['quittiertAm'])),
         'quittierungArt': json['quittierungArt'] == null ? undefined : json['quittierungArt'],
+        'istQuittierbar': json['istQuittierbar'],
     };
 }
 
@@ -102,10 +117,12 @@ export function BefehlEmpfaengerDtoToJSONTyped(value?: BefehlEmpfaengerDto | nul
     return {
         
         'id': value['id'],
+        'name': value['name'],
         'empfaengerId': value['empfaengerId'],
         'zugestelltAm': value['zugestelltAm'] == null ? undefined : ((value['zugestelltAm']).toISOString()),
         'quittiertAm': value['quittiertAm'] == null ? undefined : ((value['quittiertAm']).toISOString()),
         'quittierungArt': value['quittierungArt'],
+        'istQuittierbar': value['istQuittierbar'],
     };
 }
 

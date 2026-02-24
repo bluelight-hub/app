@@ -13,6 +13,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 // NOTE: ScheduleModule.forRoot() wird nur einmal in app.module.ts aufgerufen
 import { PrismaModule } from '@infrastructure/database/prisma.module';
+import { ResilienceModule } from '@infrastructure/resilience/resilience.module';
 import { INTEGRATIONS, LOGGER } from '@infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 import { AesEncryptionAdapter } from '@infrastructure/security/aes-encryption.adapter';
@@ -30,7 +31,7 @@ import { PrismaQualifikationMappingRepository } from './repositories/prisma-qual
  * Stellt Port-Implementierungen und Repositories für DI bereit.
  */
 @Module({
-  imports: [PrismaModule, ConfigModule],
+  imports: [PrismaModule, ConfigModule, ResilienceModule],
   providers: [
     // Logger für Integrations (Audit Trail)
     {

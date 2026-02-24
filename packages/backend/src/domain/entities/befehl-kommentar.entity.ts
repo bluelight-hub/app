@@ -1,5 +1,6 @@
 import { createId } from '@paralleldrive/cuid2';
 import type { UserId } from '@domain/value-objects/user-id';
+import { anonymisiereString } from '@domain/common/anonymisierung';
 
 /**
  * BefehlKommentar Child Entity.
@@ -11,7 +12,7 @@ import type { UserId } from '@domain/value-objects/user-id';
  */
 export class BefehlKommentar {
   private readonly _id: string;
-  private readonly _authorId: UserId;
+  private _authorId: UserId | undefined;
   private readonly _text: string;
   private readonly _isRueckfrage: boolean;
   private readonly _parentId: string | undefined;
@@ -37,15 +38,15 @@ export class BefehlKommentar {
   /**
    * Rekonstruiert einen BefehlKommentar aus DB-Daten.
    */
-  public static reconstitute(id: string, authorId: UserId, text: string, isRueckfrage: boolean, parentId?: string, createdAt?: Date): BefehlKommentar {
-    return new BefehlKommentar(id, authorId, text, isRueckfrage, parentId, createdAt);
+  public static reconstitute(id: string, authorId: UserId | undefined, text: string, isRueckfrage: boolean, parentId?: string, createdAt?: Date): BefehlKommentar {
+    return new BefehlKommentar(id, authorId as UserId, text, isRueckfrage, parentId, createdAt);
   }
 
   get id(): string {
     return this._id;
   }
 
-  get authorId(): UserId {
+  get authorId(): UserId | undefined {
     return this._authorId;
   }
 
@@ -63,6 +64,16 @@ export class BefehlKommentar {
 
   get createdAt(): Date {
     return this._createdAt;
+  }
+
+  /**
+   * DSGVO-konforme irreversible Anonymisierung des Kommentar-Authors.
+   * Entfernt die Author-Referenz (authorId → undefined).
+   *
+   * @remarks Story 5.5 AC2 — Review-Fix C1
+   */
+  public anonymisiere(_salt: string): void {
+    this._authorId = undefined;
   }
 
   /**

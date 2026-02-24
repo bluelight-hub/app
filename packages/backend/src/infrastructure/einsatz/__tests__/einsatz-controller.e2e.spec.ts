@@ -672,7 +672,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       // Get all einsaetze to verify our test data exists
       const allResponse = await request(app.getHttpServer())
-        .get('/api/v-alpha/einsatz?limit=100&offset=0')
+        .get('/api/v-alpha/einsatz?limit=100&page=1')
         .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(200);
@@ -684,7 +684,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
       // Test pagination works (limit=2)
       const paginatedResponse = await request(app.getHttpServer())
-        .get('/api/v-alpha/einsatz?limit=2&offset=0')
+        .get('/api/v-alpha/einsatz?limit=2&page=1')
         .set('X-Server-Access-Token', serverAccessToken)
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(200);

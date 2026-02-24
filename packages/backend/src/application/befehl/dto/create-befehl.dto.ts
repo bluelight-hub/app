@@ -1,5 +1,23 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ArrayMinSize, IsArray, IsOptional, IsString, IsUUID, MinLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import { ArrayMinSize, IsArray, IsOptional, IsString, MinLength, ValidateNested } from 'class-validator';
+
+/**
+ * Sub-DTO fuer einen einzelnen Empfaenger bei der Befehlserstellung.
+ *
+ * name ist Pflicht (Display-Name), empfaengerId ist optional (User-Link).
+ * Empfaenger mit empfaengerId koennen in-app quittieren.
+ */
+export class CreateBefehlEmpfaengerDto {
+  @ApiProperty({ description: 'Empfaenger Display-Name', example: 'ZF Meier' })
+  @IsString()
+  name!: string;
+
+  @ApiPropertyOptional({ description: 'User-ID des Empfaengers (optional, fuer In-App-Quittierung)', example: 'clw3h8x9y0001qwertyuiopas' })
+  @IsOptional()
+  @IsString()
+  empfaengerId?: string;
+}
 
 /**
  * DTO fuer das Erstellen eines neuen Befehls.
@@ -8,32 +26,32 @@ import { ArrayMinSize, IsArray, IsOptional, IsString, IsUUID, MinLength } from '
  * EAMZW-Felder sind optional — der Befehlstyp wird automatisch computed.
  *
  * **Validierungsregeln:**
- * - einsatzId: UUID (Pflicht)
- * - empfaengerIds: min. 1 Empfaenger (Pflicht)
- * - befehlsgeberId: String (Pflicht)
+ * - einsatzId: String (Pflicht)
+ * - empfaenger: min. 1 Empfaenger (Pflicht)
+ * - befehlsgeber: String Display-Name (Pflicht)
  * - erstellerId: String (Pflicht)
  * - auftrag: min. 3 Zeichen (Pflicht)
  * - zeitvorgabe, ereignis, mittel, ziel, weg: optional
  */
 export class CreateBefehlDto {
-  @ApiProperty({ description: 'Einsatz-ID (UUID)', example: 'clw3h8x9y0000qwertyuiopas' })
+  @ApiProperty({ description: 'Einsatz-ID', example: 'clw3h8x9y0000qwertyuiopas' })
   @IsString()
-  @IsUUID()
   einsatzId!: string;
 
   @ApiProperty({
-    description: 'Empfaenger-IDs (min 1)',
-    type: [String],
-    example: ['clw3h8x9y0001qwertyuiopas', 'clw3h8x9y0002qwertyuiopas'],
+    description: 'Empfaenger mit Name und optionaler User-ID (min 1)',
+    type: () => [CreateBefehlEmpfaengerDto],
+    example: [{ name: 'ZF Meier', empfaengerId: 'clw3h8x9y0001qwertyuiopas' }, { name: 'Polizei' }],
   })
   @IsArray()
-  @IsString({ each: true })
+  @ValidateNested({ each: true })
+  @Type(() => CreateBefehlEmpfaengerDto)
   @ArrayMinSize(1)
-  empfaengerIds!: string[];
+  empfaenger!: CreateBefehlEmpfaengerDto[];
 
-  @ApiProperty({ description: 'Befehlsgeber User-ID', example: 'clw3h8x9y0003qwertyuiopas' })
+  @ApiProperty({ description: 'Befehlsgeber Display-Name', example: 'EL Mueller' })
   @IsString()
-  befehlsgeberId!: string;
+  befehlsgeber!: string;
 
   @ApiProperty({ description: 'Ersteller User-ID', example: 'clw3h8x9y0004qwertyuiopas' })
   @IsString()

@@ -10,8 +10,11 @@ export class BefehlEmpfaengerDto {
   @ApiProperty({ description: 'Empfaenger-Eintrag ID', example: 'clw3h8x9y0005qwertyuiopas' })
   id!: string;
 
-  @ApiProperty({ description: 'Empfaenger User-ID', example: 'clw3h8x9y0001qwertyuiopas' })
-  empfaengerId!: string;
+  @ApiProperty({ description: 'Empfaenger Display-Name', example: 'ZF Meier' })
+  name!: string;
+
+  @ApiPropertyOptional({ description: 'Empfaenger User-ID (optional)', example: 'clw3h8x9y0001qwertyuiopas' })
+  empfaengerId?: string;
 
   @ApiPropertyOptional({ description: 'Zeitpunkt der Zustellung', example: '2024-01-15T10:35:00.000Z' })
   zugestelltAm?: Date;
@@ -25,4 +28,7 @@ export class BefehlEmpfaengerDto {
     example: 'VERSTANDEN',
   })
   quittierungArt?: string;
+
+  @ApiProperty({ description: 'Ob der Empfaenger quittierbar ist (mit User verknuepft)', example: true })
+  istQuittierbar!: boolean;
 }

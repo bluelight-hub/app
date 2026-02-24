@@ -31,7 +31,7 @@ export function FmsStatusDropdown({ value, onChange, disabled = false, className
   const selectedLabel = FMS_STATUS_LABELS[value] ?? `Status ${value}`;
 
   return (
-    <Listbox value={value} onChange={onChange} disabled={disabled}>
+    <Listbox as="div" value={value} onChange={onChange} disabled={disabled}>
       <div className={`relative ${className}`}>
         <ListboxButton
           className={`relative w-full cursor-pointer rounded-lg py-2 pr-10 pl-3 text-left shadow-sm ring-1 ring-gray-300 ring-inset focus:outline-none focus:ring-2 focus:ring-primary-500 sm:text-sm ${getStatusClasses(value)} ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}

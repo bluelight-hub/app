@@ -17,9 +17,11 @@ jest.mock('@paralleldrive/cuid2', () => ({
 import { BefehlErstelltEvent } from './befehl-erstellt.event';
 import { BefehlZugestelltEvent } from './befehl-zugestellt.event';
 import { BefehlStatusGeaendertEvent } from './befehl-status-geaendert.event';
+import { BefehlQuittiertEvent } from './befehl-quittiert.event';
 import { BefehlId } from '@domain/value-objects/befehl-id';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { BefehlStatus } from '@domain/value-objects/befehl-status';
+import { UserId } from '@domain/value-objects/user-id';
 
 describe('Befehl Domain Events', () => {
   describe('BefehlErstelltEvent', () => {
@@ -28,15 +30,15 @@ describe('Befehl Domain Events', () => {
       const einsatzId = EinsatzId.create().value!;
       const auftrag = 'Evakuierung Sektor A';
       const nummer = 'B2026-abc12def';
-      const empfaengerIds = ['user-1', 'user-2'];
+      const empfaenger = ['ZF Nord', 'ZF Süd'];
 
-      const event = new BefehlErstelltEvent(befehlId, einsatzId, auftrag, nummer, empfaengerIds);
+      const event = new BefehlErstelltEvent(befehlId, einsatzId, auftrag, nummer, empfaenger);
 
       expect(event.befehlId).toBe(befehlId);
       expect(event.einsatzId).toBe(einsatzId);
       expect(event.auftrag).toBe(auftrag);
       expect(event.nummer).toBe(nummer);
-      expect(event.empfaengerIds).toEqual(empfaengerIds);
+      expect(event.empfaenger).toEqual(empfaenger);
       expect(event.eventId).toMatch(/^[a-z][a-z0-9]+$/);
       expect(event.occurredAt).toBeInstanceOf(Date);
     });
@@ -215,6 +217,83 @@ describe('Befehl Domain Events', () => {
       const event3 = new BefehlStatusGeaendertEvent(befehlId, BefehlStatus.ERTEILT(), BefehlStatus.KORRIGIERT());
       expect(event3.oldStatus.value).toBe('ERTEILT');
       expect(event3.newStatus.value).toBe('KORRIGIERT');
+    });
+  });
+
+  describe('BefehlQuittiertEvent', () => {
+    it('should create event with valid properties', () => {
+      const befehlId = BefehlId.create().value!;
+      const einsatzId = EinsatzId.create().value!;
+      const empfaengerId = UserId.create().value!;
+      const quittierungArt = 'VERSTANDEN' as const;
+      const nummer = 'B2026-abc12def';
+      const quittiertAm = new Date('2026-01-15T10:00:00Z');
+
+      const event = new BefehlQuittiertEvent(befehlId, einsatzId, empfaengerId, quittierungArt, nummer, quittiertAm);
+
+      expect(event.befehlId).toBe(befehlId);
+      expect(event.einsatzId).toBe(einsatzId);
+      expect(event.empfaengerId).toBe(empfaengerId);
+      expect(event.quittierungArt).toBe('VERSTANDEN');
+      expect(event.nummer).toBe(nummer);
+      expect(event.quittiertAm).toBe(quittiertAm);
+      expect(event.eventId).toMatch(/^[a-z][a-z0-9]+$/);
+      expect(event.occurredAt).toBeInstanceOf(Date);
+    });
+
+    it('should return correct event name', () => {
+      expect(BefehlQuittiertEvent.eventName()).toBe('befehl.quittiert');
+    });
+
+    it('should auto-generate unique event IDs', () => {
+      const befehlId = BefehlId.create().value!;
+      const einsatzId = EinsatzId.create().value!;
+      const empfaengerId = UserId.create().value!;
+      const event1 = new BefehlQuittiertEvent(befehlId, einsatzId, empfaengerId, 'VERSTANDEN', 'B2026-test1234', new Date());
+      const event2 = new BefehlQuittiertEvent(befehlId, einsatzId, empfaengerId, 'VERSTANDEN', 'B2026-test1234', new Date());
+
+      expect(event1.eventId).not.toBe(event2.eventId);
+    });
+
+    it('should support optional aggregateId', () => {
+      const aggregateId = 'aggregate-123';
+      const event = new BefehlQuittiertEvent(BefehlId.create().value!, EinsatzId.create().value!, UserId.create().value!, 'VERSTANDEN', 'B2026-test1234', new Date(), aggregateId);
+
+      expect(event.aggregateId).toBe(aggregateId);
+    });
+
+    it('should have undefined aggregateId when not provided', () => {
+      const event = new BefehlQuittiertEvent(BefehlId.create().value!, EinsatzId.create().value!, UserId.create().value!, 'VERSTANDEN', 'B2026-test1234', new Date());
+
+      expect(event.aggregateId).toBeUndefined();
+    });
+
+    it('should generate recent timestamp', () => {
+      const before = new Date();
+      const event = new BefehlQuittiertEvent(BefehlId.create().value!, EinsatzId.create().value!, UserId.create().value!, 'RUECKFRAGE', 'B2026-test1234', new Date());
+      const after = new Date();
+
+      expect(event.occurredAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
+      expect(event.occurredAt.getTime()).toBeLessThanOrEqual(after.getTime());
+    });
+
+    it('should work with typed value objects', () => {
+      const befehlId = BefehlId.create().value!;
+      const einsatzId = EinsatzId.create().value!;
+      const empfaengerId = UserId.create().value!;
+      const event = new BefehlQuittiertEvent(befehlId, einsatzId, empfaengerId, 'NICHT_VERSTANDEN', 'B2026-test1234', new Date());
+
+      expect(event.befehlId).toBeInstanceOf(BefehlId);
+      expect(event.einsatzId).toBeInstanceOf(EinsatzId);
+      expect(event.empfaengerId).toBeInstanceOf(UserId);
+    });
+
+    it('should preserve quittiertAm timestamp exactly', () => {
+      const quittiertAm = new Date('2026-01-15T10:00:00Z');
+      const event = new BefehlQuittiertEvent(BefehlId.create().value!, EinsatzId.create().value!, UserId.create().value!, 'VERSTANDEN', 'B2026-test1234', quittiertAm);
+
+      expect(event.quittiertAm).toBe(quittiertAm);
+      expect(event.quittiertAm.toISOString()).toBe('2026-01-15T10:00:00.000Z');
     });
   });
 });

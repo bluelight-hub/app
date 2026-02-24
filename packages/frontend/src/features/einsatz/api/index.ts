@@ -43,3 +43,7 @@ export { useMyEinsatzTeilnahme, useJoinEinsatz, useUpdateFunkrufname, useEinsatz
 
 // Aktive Teilnehmer Hooks (Story 3.3 - Erinnerung zuweisen)
 export { useAktiveEinsatzTeilnehmer, AKTIVE_TEILNEHMER_QUERY_KEYS } from './use-aktive-einsatz-teilnehmer';
+
+// Einsatz-Rollen Hooks (Story 5.2 - Rollenmanagement)
+export { useEinsatzRollen } from './use-einsatz-rollen';
+export { useUpdateEinsatzRollen } from './use-update-einsatz-rollen';

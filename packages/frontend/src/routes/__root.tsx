@@ -7,6 +7,7 @@ import { useDeepLinkEffect } from '@/features/server/hooks/useDeepLinkEffect';
 import { useLoadServers } from '@/features/server/hooks';
 import { urlParamsSchema } from '@/features/server/schemas/url-params.schema';
 import { useNotificationNavigation } from '@/features/reminders/hooks';
+import { useBefehlNotificationNavigation } from '@/features/befehl';
 
 // Reset Setup-Redirect-Flag beim App-Start - ABER NICHT wenn wir auf /server/setup sind!
 // Grund: Nach einem Full-Page-Redirect zu /server/setup (via window.location.href) wird die App
@@ -17,7 +18,7 @@ import { useNotificationNavigation } from '@/features/reminders/hooks';
 //
 // Loesung: Nur zuruecksetzen wenn wir NICHT auf /server/setup sind. Die /server/setup Route selbst
 // setzt das Flag nach ihrem beforeLoad Check zurueck.
-if (!window.location.pathname.startsWith('/server/setup')) {
+if (!window.location.pathname.startsWith('/server/setup') && !window.location.pathname.startsWith('/server/manage')) {
   setSetupRedirectInProgress(false);
 }
 import { TanStackDevtools } from '@tanstack/react-devtools';
@@ -111,8 +112,9 @@ function RootComponent() {
   // Deep Link Integration für Desktop App
   useDeepLinkEffect();
 
-  // Notification Navigation - registriert Callback für Deep Links bei Notification-Klick
+  // Notification Navigation - registriert Callbacks fuer Deep Links bei Notification-Klick
   useNotificationNavigation();
+  useBefehlNotificationNavigation();
 
   return (
     <Provider>

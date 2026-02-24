@@ -40,6 +40,8 @@ vi.mock('@tauri-apps/plugin-notification', () => ({
 vi.mock('../notification-setup.service', () => ({
   ERINNERUNG_CHANNEL_ID: 'test-channel',
   ERINNERUNG_ACTION_TYPE_ID: 'test-action',
+  BEFEHL_CHANNEL_ID: 'test-befehl-channel',
+  BEFEHL_ACTION_TYPE_ID: 'test-befehl-action',
 }));
 
 // Global mocks for Web Notifications
@@ -167,6 +169,64 @@ describe('NotificationService', () => {
       (global.Notification as any).permission = 'denied';
 
       const result = await notificationService.send({ title: 'Test' });
+
+      expect(result.success).toBe(false);
+      expect(mockWebNotificationConstructor).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('sendBefehlNotification()', () => {
+    it('should send web notification with correct format for befehle', async () => {
+      // biome-ignore lint/suspicious/noExplicitAny: Mocking global
+      (global.Notification as any).permission = 'granted';
+
+      const result = await notificationService.sendBefehlNotification({
+        befehlId: 'befehl-123',
+        einsatzId: 'einsatz-456',
+        nummer: 'B2026-abc12345',
+        befehlsgeber: 'Max Mustermann',
+        inhalt: 'Wasser marsch an Position Alpha',
+      });
+
+      expect(result.success).toBe(true);
+      expect(mockWebNotificationConstructor).toHaveBeenCalledWith(
+        'Neuer Befehl #B2026-abc12345',
+        expect.objectContaining({
+          body: 'Von Max Mustermann: Wasser marsch an Position Alpha',
+          tag: 'befehl-befehl-123',
+        }),
+      );
+    });
+
+    it('should truncate long inhalt to 100 characters', async () => {
+      // biome-ignore lint/suspicious/noExplicitAny: Mocking global
+      (global.Notification as any).permission = 'granted';
+
+      const longInhalt = 'A'.repeat(200);
+      await notificationService.sendBefehlNotification({
+        befehlId: 'befehl-123',
+        einsatzId: 'einsatz-456',
+        nummer: 'B2026-abc12345',
+        befehlsgeber: 'Test',
+        inhalt: longInhalt,
+      });
+
+      const body = mockWebNotificationConstructor.mock.calls[0][1].body;
+      // "Von Test: " + 100 chars = max body length
+      expect(body).toBe(`Von Test: ${'A'.repeat(100)}`);
+    });
+
+    it('should fail gracefully if permission denied', async () => {
+      // biome-ignore lint/suspicious/noExplicitAny: Mocking global
+      (global.Notification as any).permission = 'denied';
+
+      const result = await notificationService.sendBefehlNotification({
+        befehlId: 'befehl-123',
+        einsatzId: 'einsatz-456',
+        nummer: 'B2026-abc12345',
+        befehlsgeber: 'Test',
+        inhalt: 'Test',
+      });
 
       expect(result.success).toBe(false);
       expect(mockWebNotificationConstructor).not.toHaveBeenCalled();

@@ -1,10 +1,18 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/infrastructure/database/prisma.module';
 import { OutboxModule } from '@/infrastructure/outbox/outbox.module';
-import { BEFEHL_REPOSITORY, LOGGER } from '@/infrastructure/di-tokens';
+import { BEFEHL_CSV_SERVICE, BEFEHL_REPOSITORY, LOGGER } from '@/infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@/infrastructure/common/adapters/nest-logger.adapter';
 import { PrismaBefehlRepository } from '@/infrastructure/repositories/prisma-befehl.repository';
+import { BefehlCsvService } from '@/infrastructure/export/befehl-csv.service';
+import { AddBefehlKommentarHandler } from './commands/add-befehl-kommentar/add-befehl-kommentar.handler';
 import { CreateBefehlHandler } from './commands/create-befehl/create-befehl.handler';
+import { KorrigiereBefehlHandler } from './commands/korrigiere-befehl/korrigiere-befehl.handler';
+import { QuittierenBefehlHandler } from './commands/quittieren-befehl/quittieren-befehl.handler';
+import { GetBefehlHistorieQueryHandler } from './queries/get-befehl-historie/get-befehl-historie.handler';
+import { ExportBefehleQueryHandler } from './queries/export-befehle/export-befehle.handler';
+import { GetBefehlMetrikenQueryHandler } from './queries/get-befehl-metriken/get-befehl-metriken.handler';
+import { EmpfaengerSucheQueryHandler } from './queries/empfaenger-suche/empfaenger-suche.handler';
 
 /**
  * NestJS-Modul für Application Layer - Befehl Bounded Context.
@@ -57,12 +65,34 @@ import { CreateBefehlHandler } from './commands/create-befehl/create-befehl.hand
       provide: BEFEHL_REPOSITORY,
       useClass: PrismaBefehlRepository,
     },
-    // Command Handlers (Story 1.2)
+    // Command Handlers
+    AddBefehlKommentarHandler,
     CreateBefehlHandler,
+    KorrigiereBefehlHandler,
+    QuittierenBefehlHandler,
+    // Query Handlers
+    GetBefehlHistorieQueryHandler,
+    ExportBefehleQueryHandler,
+    GetBefehlMetrikenQueryHandler,
+    EmpfaengerSucheQueryHandler,
+    // Infrastructure Services (via DI Token fuer Hexagonale Architektur)
+    {
+      provide: BEFEHL_CSV_SERVICE,
+      useClass: BefehlCsvService,
+    },
   ],
   exports: [
-    // Export handler for use in Infrastructure Layer (Controllers)
+    // Export handlers for use in Infrastructure Layer (Controllers)
+    AddBefehlKommentarHandler,
     CreateBefehlHandler,
+    KorrigiereBefehlHandler,
+    QuittierenBefehlHandler,
+    GetBefehlHistorieQueryHandler,
+    ExportBefehleQueryHandler,
+    GetBefehlMetrikenQueryHandler,
+    EmpfaengerSucheQueryHandler,
+    // Infrastructure Services (via DI Token)
+    BEFEHL_CSV_SERVICE,
     // Export repository token for use in BefehlController (findById after create)
     BEFEHL_REPOSITORY,
   ],

@@ -13,13 +13,6 @@
  */
 
 import { mapValues } from '../runtime';
-import type { AuthControllerUnifiedAuth200ResponseMeta } from './AuthControllerUnifiedAuth200ResponseMeta';
-import {
-    AuthControllerUnifiedAuth200ResponseMetaFromJSON,
-    AuthControllerUnifiedAuth200ResponseMetaFromJSONTyped,
-    AuthControllerUnifiedAuth200ResponseMetaToJSON,
-    AuthControllerUnifiedAuth200ResponseMetaToJSONTyped,
-} from './AuthControllerUnifiedAuth200ResponseMeta';
 import type { NotizResponseDto } from './NotizResponseDto';
 import {
     NotizResponseDtoFromJSON,
@@ -27,6 +20,13 @@ import {
     NotizResponseDtoToJSON,
     NotizResponseDtoToJSONTyped,
 } from './NotizResponseDto';
+import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import {
+    HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
+    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
+    HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
+    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import type { UserControllerFindAllBasicVAlpha200ResponsePagination } from './UserControllerFindAllBasicVAlpha200ResponsePagination';
 import {
     UserControllerFindAllBasicVAlpha200ResponsePaginationFromJSON,
@@ -49,10 +49,10 @@ export interface NotizControllerGetByEinsatzVAlpha200Response {
     data: Array<NotizResponseDto>;
     /**
      * 
-     * @type {AuthControllerUnifiedAuth200ResponseMeta}
+     * @type {HealthControllerGetIntegrationHealth200ResponseMeta}
      * @memberof NotizControllerGetByEinsatzVAlpha200Response
      */
-    meta: AuthControllerUnifiedAuth200ResponseMeta;
+    meta: HealthControllerGetIntegrationHealth200ResponseMeta;
     /**
      * 
      * @type {UserControllerFindAllBasicVAlpha200ResponsePagination}
@@ -81,7 +81,7 @@ export function NotizControllerGetByEinsatzVAlpha200ResponseFromJSONTyped(json: 
     return {
         
         'data': ((json['data'] as Array<any>).map(NotizResponseDtoFromJSON)),
-        'meta': AuthControllerUnifiedAuth200ResponseMetaFromJSON(json['meta']),
+        'meta': HealthControllerGetIntegrationHealth200ResponseMetaFromJSON(json['meta']),
         'pagination': json['pagination'] == null ? undefined : UserControllerFindAllBasicVAlpha200ResponsePaginationFromJSON(json['pagination']),
     };
 }
@@ -98,7 +98,7 @@ export function NotizControllerGetByEinsatzVAlpha200ResponseToJSONTyped(value?: 
     return {
         
         'data': ((value['data'] as Array<any>).map(NotizResponseDtoToJSON)),
-        'meta': AuthControllerUnifiedAuth200ResponseMetaToJSON(value['meta']),
+        'meta': HealthControllerGetIntegrationHealth200ResponseMetaToJSON(value['meta']),
         'pagination': UserControllerFindAllBasicVAlpha200ResponsePaginationToJSON(value['pagination']),
     };
 }

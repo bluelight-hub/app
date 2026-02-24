@@ -9,6 +9,22 @@ import { logger } from '@/shared/lib/logger';
 export type NotificationPermissionStatus = 'granted' | 'denied' | 'unknown' | 'not-supported';
 
 /**
+ * Optionen für das Senden einer Befehl-Benachrichtigung
+ */
+export interface BefehlNotificationOptions {
+  /** Befehl-ID für Deep Link Navigation */
+  befehlId: string;
+  /** Einsatz-ID für Deep Link Navigation */
+  einsatzId: string;
+  /** Befehlsnummer (z.B. "B2026-abc123") */
+  nummer: string;
+  /** Name oder ID des Befehlsgebers */
+  befehlsgeber: string;
+  /** Befehlsinhalt (wird auf 100 Zeichen gekürzt) */
+  inhalt: string;
+}
+
+/**
  * Optionen für das Senden einer Benachrichtigung
  */
 export interface SendNotificationOptions {
@@ -283,6 +299,39 @@ class NotificationService {
     });
   }
 
+  /**
+   * Sendet eine Befehl-Benachrichtigung
+   *
+   * Wird aufgerufen wenn ein neuer Befehl via WebSocket empfangen wird.
+   * Nutzt eigenen Channel und Action Type für Befehl-Deep-Links.
+   *
+   * @param options - Befehl-Notification-Optionen
+   * @returns Promise mit Erfolgs-Status
+   */
+  async sendBefehlNotification(options: BefehlNotificationOptions): Promise<NotificationResult> {
+    const { nummer, befehlsgeber, inhalt, befehlId, einsatzId } = options;
+
+    const title = `Neuer Befehl #${nummer}`;
+    const body = `Von ${befehlsgeber}: ${inhalt.substring(0, 100)}`;
+
+    // Prüfe Permission falls noch nicht bekannt
+    if (this.permissionStatus === 'unknown') {
+      await this.checkPermission();
+    }
+
+    if (this.permissionStatus !== 'granted') {
+      logger.warn('Keine Berechtigung für Benachrichtigungen', { status: this.permissionStatus, title });
+      return { success: false, error: `Keine Berechtigung: ${this.permissionStatus}` };
+    }
+
+    // Nutze Tauri nur wenn Plugin wirklich verfügbar
+    if (isTauri() && this.tauriPluginAvailable) {
+      return this.sendTauriBefehlNotification(title, body, befehlId, einsatzId);
+    }
+
+    return this.sendWebBefehlNotification(title, body, befehlId, einsatzId);
+  }
+
   // ===================
   // Tauri Implementation
   // ===================
@@ -355,8 +404,8 @@ class NotificationService {
         channelId: ERINNERUNG_CHANNEL_ID,
         // Action Type für Klick-Handling mit Deep Link
         actionTypeId: ERINNERUNG_ACTION_TYPE_ID,
-        // Extra-Daten für Deep Link Navigation
-        extra: erinnerungId && einsatzId ? { erinnerungId, einsatzId } : undefined,
+        // Extra-Daten fuer Deep Link Navigation (type-Feld fuer discriminated union)
+        extra: erinnerungId && einsatzId ? { type: 'erinnerung', erinnerungId, einsatzId } : undefined,
         // Notification bleibt bis User interagiert (kein Auto-Dismiss)
         autoCancel: true,
       });
@@ -372,6 +421,37 @@ class NotificationService {
         success: false,
         error: errorMessage,
       };
+    }
+  }
+
+  /**
+   * Sendet Tauri Native Notification für Befehle
+   *
+   * Nutzt den "befehle" Channel für hohe Priorität und
+   * registriert Action Type für Deep Link Navigation zum Befehl.
+   */
+  private async sendTauriBefehlNotification(title: string, body: string, befehlId: string, einsatzId: string): Promise<NotificationResult> {
+    try {
+      const { sendNotification: tauriSendNotification } = await import('@tauri-apps/plugin-notification');
+      const { BEFEHL_CHANNEL_ID, BEFEHL_ACTION_TYPE_ID } = await import('./notification-setup.service');
+
+      await tauriSendNotification({
+        title,
+        body,
+        channelId: BEFEHL_CHANNEL_ID,
+        actionTypeId: BEFEHL_ACTION_TYPE_ID,
+        extra: { type: 'befehl', befehlId, einsatzId },
+        autoCancel: true,
+      });
+
+      logger.debug('Tauri Befehl Notification gesendet:', { title, body, befehlId, einsatzId });
+
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unbekannter Fehler';
+      logger.error('Fehler beim Senden der Tauri Befehl Notification:', error);
+
+      return { success: false, error: errorMessage };
     }
   }
 
@@ -436,6 +516,39 @@ class NotificationService {
   }
 
   /**
+   * Sendet Web Notification für Befehle
+   *
+   * Nutzt eindeutigen Tag um Erinnerung- und Befehl-Notifications zu trennen.
+   */
+  private sendWebBefehlNotification(title: string, body: string, befehlId: string, einsatzId?: string): NotificationResult {
+    try {
+      const notification = new Notification(title, {
+        body,
+        icon: '/favicon.ico',
+        tag: `befehl-${befehlId}`,
+        requireInteraction: true,
+      });
+
+      // Klick auf Notification navigiert zur Befehlsdetail-Ansicht (AC4)
+      if (einsatzId) {
+        notification.onclick = () => {
+          window.focus();
+          window.location.href = `/app/einsatz/${einsatzId}/führung/befehle?befehlId=${befehlId}`;
+        };
+      }
+
+      logger.debug('Web Befehl Notification gesendet:', { title, body, befehlId, einsatzId });
+
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unbekannter Fehler';
+      logger.error('Fehler beim Senden der Web Befehl Notification:', error);
+
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  /**
    * Sendet Web Notification
    */
   private sendWebNotification(title: string, body: string, icon?: string): NotificationResult {
@@ -481,3 +594,4 @@ export const sendIntensifiedNotification = (title: string, erinnerungId?: string
 export const sendAssignmentNotification = (title: string, assignedByName: string, erinnerungId?: string, einsatzId?: string) =>
   notificationService.sendAssignmentNotification(title, assignedByName, erinnerungId, einsatzId);
 export const isNotificationSupported = () => notificationService.isSupported();
+export const sendBefehlNotification = (options: BefehlNotificationOptions) => notificationService.sendBefehlNotification(options);

@@ -95,8 +95,22 @@ import { BefehlErstelltEvent } from '@domain/events/befehl-erstellt.event';
 import { BefehlZugestelltEvent } from '@domain/events/befehl-zugestellt.event';
 import { BefehlStatusGeaendertEvent } from '@domain/events/befehl-status-geaendert.event';
 import { BefehlKommentarHinzugefuegtEvent } from '@domain/events/befehl-kommentar-hinzugefuegt.event';
+import { BefehlQuittiertEvent } from '@domain/events/befehl-quittiert.event';
+import type { QuittierungArt } from '@domain/entities/befehl-empfaenger.entity';
 import { BefehlId } from '@domain/value-objects/befehl-id';
+
+// Einsatz-Rolle Events
+import { RolleGeaendertEvent } from '@domain/events/rolle-geaendert.event';
 import { BefehlStatus } from '@domain/value-objects/befehl-status';
+
+// DSGVO Events (Story 5.5)
+import { BefehlAnonymisiertEvent } from '@domain/events/befehl-anonymisiert.event';
+import { BefehlGeloeschtEvent } from '@domain/events/befehl-geloescht.event';
+import { AufbewahrungsKonfigurationGeaendertEvent } from '@domain/events/aufbewahrungs-konfiguration-geaendert.event';
+
+// System Monitoring Events (Story 5.6)
+import { SystemWarnungEvent } from '@domain/events/system-warnung.event';
+import { WarnungTyp } from '@domain/value-objects/warnung-typ';
 
 // Fahrzeugtyp Events
 import { FahrzeugtypCreatedEvent } from '@domain/kraefte/events/fahrzeugtyp-created.event';
@@ -281,6 +295,18 @@ export class EventDeserializer {
       ['befehl.zugestellt', deserializeBefehlZugestellt],
       ['befehl.status_geaendert', deserializeBefehlStatusGeaendert],
       ['befehl.kommentar_hinzugefuegt', deserializeBefehlKommentarHinzugefuegt],
+      ['befehl.quittiert', deserializeBefehlQuittiert],
+
+      // ===== EINSATZ ROLLE EVENTS (Story 5.4) =====
+      ['rolle.geaendert', deserializeRolleGeaendert],
+
+      // ===== DSGVO EVENTS (Story 5.5) =====
+      ['befehl.anonymisiert', deserializeBefehlAnonymisiert],
+      ['befehl.geloescht', deserializeBefehlGeloescht],
+      ['aufbewahrung.konfiguration_geaendert', deserializeAufbewahrungsKonfigurationGeaendert],
+
+      // ===== SYSTEM MONITORING EVENTS (Story 5.6) =====
+      ['system.warnung', deserializeSystemWarnung],
     ]);
   }
 
@@ -1727,7 +1753,7 @@ function deserializeBefehlErstellt(payload: Record<string, unknown>, aggregateId
     einsatzIdResult.value! as EinsatzId,
     payload.auftrag as string,
     payload.nummer as string,
-    payload.empfaengerIds as string[],
+    (payload.empfaenger ?? payload.empfaengerIds) as string[],
     aggregateId,
   );
 
@@ -1798,5 +1824,103 @@ function deserializeBefehlKommentarHinzugefuegt(payload: Record<string, unknown>
     aggregateId,
   );
 
+  return Result.ok<DomainEvent>(event);
+}
+
+/**
+ * Deserialisiert BefehlQuittiertEvent (Story 2.1).
+ */
+function deserializeBefehlQuittiert(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const befehlIdResult = BefehlId.create(payload.befehlId as string);
+  if (befehlIdResult.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid befehlId: ${payload.befehlId}`);
+  }
+
+  const einsatzIdResult = EinsatzId.create(payload.einsatzId as string);
+  if (einsatzIdResult.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid einsatzId: ${payload.einsatzId}`);
+  }
+
+  const empfaengerIdResult = UserId.create(payload.empfaengerId as string);
+  if (empfaengerIdResult.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid empfaengerId: ${payload.empfaengerId}`);
+  }
+
+  const quittiertAm = new Date(payload.quittiertAm as string);
+
+  const event = new BefehlQuittiertEvent(
+    befehlIdResult.value! as BefehlId,
+    einsatzIdResult.value! as EinsatzId,
+    empfaengerIdResult.value! as UserId,
+    payload.quittierungArt as QuittierungArt,
+    payload.nummer as string,
+    quittiertAm,
+    aggregateId,
+  );
+  return Result.ok<DomainEvent>(event);
+}
+
+// ===== EINSATZ ROLLE DESERIALIZERS (Story 5.4) =====
+
+function deserializeRolleGeaendert(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const event = new RolleGeaendertEvent(
+    payload.einsatzId as string,
+    payload.userId as string,
+    payload.userName as string,
+    (payload.alteRolle as string) ?? null,
+    (payload.neueRolle as string) ?? null,
+    payload.aenderungDurch as string,
+    payload.aenderungDurchName as string,
+    aggregateId,
+  );
+  return Result.ok<DomainEvent>(event);
+}
+
+// ===== DSGVO DESERIALIZERS (Story 5.5) =====
+
+function deserializeBefehlAnonymisiert(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const einsatzIdResult = EinsatzId.create(payload.einsatzId as string);
+  if (einsatzIdResult.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid einsatzId: ${payload.einsatzId}`);
+  }
+
+  const event = new BefehlAnonymisiertEvent(
+    einsatzIdResult.value! as EinsatzId,
+    payload.befehlCount as number,
+    payload.empfaengerCount as number,
+    payload.kommentarCount as number,
+    new Date(payload.anonymisiertAm as string),
+    aggregateId,
+  );
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializeBefehlGeloescht(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const einsatzIdResult = EinsatzId.create(payload.einsatzId as string);
+  if (einsatzIdResult.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid einsatzId: ${payload.einsatzId}`);
+  }
+
+  const event = new BefehlGeloeschtEvent(einsatzIdResult.value! as EinsatzId, payload.befehlCount as number, new Date(payload.geloeschtAm as string), aggregateId);
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializeAufbewahrungsKonfigurationGeaendert(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const event = new AufbewahrungsKonfigurationGeaendertEvent(
+    payload.alteFristJahre as number,
+    payload.neueFristJahre as number,
+    payload.alteFreigabeperiodeTage as number,
+    payload.neueFreigabeperiodeTage as number,
+    payload.automatischLoeschenAktiv as boolean,
+    payload.geaendertVon as string,
+    aggregateId,
+  );
+  return Result.ok<DomainEvent>(event);
+}
+
+// ===== SYSTEM MONITORING DESERIALIZERS (Story 5.6) =====
+
+function deserializeSystemWarnung(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const event = new SystemWarnungEvent(payload.warnungTyp as WarnungTyp, payload.schwellwert as number, payload.aktuellerWert as number, new Date(payload.timestamp as string), aggregateId);
   return Result.ok<DomainEvent>(event);
 }

@@ -29,6 +29,11 @@ import {
   NotizErstelltEtbHandler,
   NotizAktualisiertEtbHandler,
   NotizGeloeschtEtbHandler,
+  BefehlErstelltEtbHandler,
+  BefehlQuittiertEtbHandler,
+  RolleGeaendertEtbHandler,
+  BefehlAnonymisiertEtbHandler,
+  BefehlGeloeschtEtbHandler,
 } from './event-handlers';
 import { EtbQueryMapper } from './mappers';
 import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler, GetTextbausteineHandler } from './queries';
@@ -223,6 +228,31 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
       provide: EVENT_HANDLER.NOTIZ_GELOESCHT_ETB,
       useClass: NotizGeloeschtEtbHandler,
     },
+    // BefehlErstellt ETB Event Handler (Story 4.3) - ETB-Eintrag bei Befehl-Erstellung
+    {
+      provide: EVENT_HANDLER.BEFEHL_ERSTELLT_ETB,
+      useClass: BefehlErstelltEtbHandler,
+    },
+    // BefehlQuittiert ETB Event Handler (Story 4.3) - ETB-Eintrag bei Befehl-Quittierung
+    {
+      provide: EVENT_HANDLER.BEFEHL_QUITTIERT_ETB,
+      useClass: BefehlQuittiertEtbHandler,
+    },
+    // RolleGeaendert ETB Event Handler (Story 5.4 AC4) - ETB-Eintrag bei Rollenänderung
+    {
+      provide: EVENT_HANDLER.ROLLE_GEAENDERT_ETB,
+      useClass: RolleGeaendertEtbHandler,
+    },
+    // BefehlAnonymisiert ETB Event Handler (Story 5.5 AC2) - ETB-Eintrag bei DSGVO-Anonymisierung
+    {
+      provide: EVENT_HANDLER.BEFEHL_ANONYMISIERT_ETB,
+      useClass: BefehlAnonymisiertEtbHandler,
+    },
+    // BefehlGeloescht ETB Event Handler (Story 5.5 AC3) - ETB-Eintrag bei DSGVO-Löschung
+    {
+      provide: EVENT_HANDLER.BEFEHL_GELOESCHT_ETB,
+      useClass: BefehlGeloeschtEtbHandler,
+    },
 
     // Mappers (Story 3.3)
     EtbQueryMapper,
@@ -267,6 +297,11 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
     EVENT_HANDLER.NOTIZ_ERSTELLT_ETB,
     EVENT_HANDLER.NOTIZ_AKTUALISIERT_ETB,
     EVENT_HANDLER.NOTIZ_GELOESCHT_ETB,
+    EVENT_HANDLER.BEFEHL_ERSTELLT_ETB,
+    EVENT_HANDLER.BEFEHL_QUITTIERT_ETB,
+    EVENT_HANDLER.ROLLE_GEAENDERT_ETB,
+    EVENT_HANDLER.BEFEHL_ANONYMISIERT_ETB,
+    EVENT_HANDLER.BEFEHL_GELOESCHT_ETB,
 
     // Mappers (Story 3.3)
     EtbQueryMapper,

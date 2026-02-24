@@ -59,11 +59,17 @@ export interface BefehlDto {
      */
     auftrag: string;
     /**
-     * Befehlsgeber User-ID
+     * Befehlsgeber Display-Name
      * @type {string}
      * @memberof BefehlDto
      */
-    befehlsgeberId: string;
+    befehlsgeberName: string;
+    /**
+     * Befehlsgeber User-ID (optional)
+     * @type {string}
+     * @memberof BefehlDto
+     */
+    befehlsgeberId?: string;
     /**
      * Ersteller User-ID
      * @type {string}
@@ -113,6 +119,12 @@ export interface BefehlDto {
      */
     weg?: string;
     /**
+     * ID des korrigierten Original-Befehls
+     * @type {string}
+     * @memberof BefehlDto
+     */
+    originalBefehlId?: string;
+    /**
      * Erteilungs-Zeitpunkt
      * @type {Date}
      * @memberof BefehlDto
@@ -130,6 +142,30 @@ export interface BefehlDto {
      * @memberof BefehlDto
      */
     kommentare: Array<BefehlKommentarDto>;
+    /**
+     * Ob der Befehl überfällig ist (Zeitvorgabe überschritten, nicht alle quittiert)
+     * @type {boolean}
+     * @memberof BefehlDto
+     */
+    isUeberfaellig: boolean;
+    /**
+     * Ob mindestens ein Empfänger NICHT_VERSTANDEN quittiert hat
+     * @type {boolean}
+     * @memberof BefehlDto
+     */
+    hatNichtVerstanden: boolean;
+    /**
+     * Ob offene Rückfragen ohne Antwort existieren
+     * @type {boolean}
+     * @memberof BefehlDto
+     */
+    hatOffeneRueckfrage: boolean;
+    /**
+     * Berechnete Kritikalitätsstufe
+     * @type {string}
+     * @memberof BefehlDto
+     */
+    kritikalitaet: BefehlDtoKritikalitaetEnum;
     /**
      * Erstellungszeitpunkt
      * @type {Date}
@@ -166,6 +202,16 @@ export const BefehlDtoBefehlstypEnum = {
 } as const;
 export type BefehlDtoBefehlstypEnum = typeof BefehlDtoBefehlstypEnum[keyof typeof BefehlDtoBefehlstypEnum];
 
+/**
+ * @export
+ */
+export const BefehlDtoKritikalitaetEnum = {
+    Kritisch: 'KRITISCH',
+    Warnung: 'WARNUNG',
+    Normal: 'NORMAL'
+} as const;
+export type BefehlDtoKritikalitaetEnum = typeof BefehlDtoKritikalitaetEnum[keyof typeof BefehlDtoKritikalitaetEnum];
+
 
 /**
  * Check if a given object implements the BefehlDto interface.
@@ -175,13 +221,17 @@ export function instanceOfBefehlDto(value: object): value is BefehlDto {
     if (!('nummer' in value) || value['nummer'] === undefined) return false;
     if (!('einsatzId' in value) || value['einsatzId'] === undefined) return false;
     if (!('auftrag' in value) || value['auftrag'] === undefined) return false;
-    if (!('befehlsgeberId' in value) || value['befehlsgeberId'] === undefined) return false;
+    if (!('befehlsgeberName' in value) || value['befehlsgeberName'] === undefined) return false;
     if (!('erstellerId' in value) || value['erstellerId'] === undefined) return false;
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('befehlstyp' in value) || value['befehlstyp'] === undefined) return false;
     if (!('erteiltAm' in value) || value['erteiltAm'] === undefined) return false;
     if (!('empfaenger' in value) || value['empfaenger'] === undefined) return false;
     if (!('kommentare' in value) || value['kommentare'] === undefined) return false;
+    if (!('isUeberfaellig' in value) || value['isUeberfaellig'] === undefined) return false;
+    if (!('hatNichtVerstanden' in value) || value['hatNichtVerstanden'] === undefined) return false;
+    if (!('hatOffeneRueckfrage' in value) || value['hatOffeneRueckfrage'] === undefined) return false;
+    if (!('kritikalitaet' in value) || value['kritikalitaet'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
     if (!('updatedAt' in value) || value['updatedAt'] === undefined) return false;
     return true;
@@ -201,7 +251,8 @@ export function BefehlDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean):
         'nummer': json['nummer'],
         'einsatzId': json['einsatzId'],
         'auftrag': json['auftrag'],
-        'befehlsgeberId': json['befehlsgeberId'],
+        'befehlsgeberName': json['befehlsgeberName'],
+        'befehlsgeberId': json['befehlsgeberId'] == null ? undefined : json['befehlsgeberId'],
         'erstellerId': json['erstellerId'],
         'status': json['status'],
         'befehlstyp': json['befehlstyp'],
@@ -210,9 +261,14 @@ export function BefehlDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean):
         'mittel': json['mittel'] == null ? undefined : json['mittel'],
         'ziel': json['ziel'] == null ? undefined : json['ziel'],
         'weg': json['weg'] == null ? undefined : json['weg'],
+        'originalBefehlId': json['originalBefehlId'] == null ? undefined : json['originalBefehlId'],
         'erteiltAm': (new Date(json['erteiltAm'])),
         'empfaenger': ((json['empfaenger'] as Array<any>).map(BefehlEmpfaengerDtoFromJSON)),
         'kommentare': ((json['kommentare'] as Array<any>).map(BefehlKommentarDtoFromJSON)),
+        'isUeberfaellig': json['isUeberfaellig'],
+        'hatNichtVerstanden': json['hatNichtVerstanden'],
+        'hatOffeneRueckfrage': json['hatOffeneRueckfrage'],
+        'kritikalitaet': json['kritikalitaet'],
         'createdAt': (new Date(json['createdAt'])),
         'updatedAt': (new Date(json['updatedAt'])),
     };
@@ -233,6 +289,7 @@ export function BefehlDtoToJSONTyped(value?: BefehlDto | null, ignoreDiscriminat
         'nummer': value['nummer'],
         'einsatzId': value['einsatzId'],
         'auftrag': value['auftrag'],
+        'befehlsgeberName': value['befehlsgeberName'],
         'befehlsgeberId': value['befehlsgeberId'],
         'erstellerId': value['erstellerId'],
         'status': value['status'],
@@ -242,9 +299,14 @@ export function BefehlDtoToJSONTyped(value?: BefehlDto | null, ignoreDiscriminat
         'mittel': value['mittel'],
         'ziel': value['ziel'],
         'weg': value['weg'],
+        'originalBefehlId': value['originalBefehlId'],
         'erteiltAm': ((value['erteiltAm']).toISOString()),
         'empfaenger': ((value['empfaenger'] as Array<any>).map(BefehlEmpfaengerDtoToJSON)),
         'kommentare': ((value['kommentare'] as Array<any>).map(BefehlKommentarDtoToJSON)),
+        'isUeberfaellig': value['isUeberfaellig'],
+        'hatNichtVerstanden': value['hatNichtVerstanden'],
+        'hatOffeneRueckfrage': value['hatOffeneRueckfrage'],
+        'kritikalitaet': value['kritikalitaet'],
         'createdAt': ((value['createdAt']).toISOString()),
         'updatedAt': ((value['updatedAt']).toISOString()),
     };

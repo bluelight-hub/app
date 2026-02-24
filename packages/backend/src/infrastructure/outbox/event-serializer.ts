@@ -66,6 +66,12 @@ import type { BefehlErstelltEvent } from '@domain/events/befehl-erstellt.event';
 import type { BefehlZugestelltEvent } from '@domain/events/befehl-zugestellt.event';
 import type { BefehlStatusGeaendertEvent } from '@domain/events/befehl-status-geaendert.event';
 import type { BefehlKommentarHinzugefuegtEvent } from '@domain/events/befehl-kommentar-hinzugefuegt.event';
+import type { BefehlQuittiertEvent } from '@domain/events/befehl-quittiert.event';
+import type { RolleGeaendertEvent } from '@domain/events/rolle-geaendert.event';
+import type { BefehlAnonymisiertEvent } from '@domain/events/befehl-anonymisiert.event';
+import type { BefehlGeloeschtEvent } from '@domain/events/befehl-geloescht.event';
+import type { AufbewahrungsKonfigurationGeaendertEvent } from '@domain/events/aufbewahrungs-konfiguration-geaendert.event';
+import type { SystemWarnungEvent } from '@domain/events/system-warnung.event';
 
 /**
  * Serialisiertes Event-Payload für Outbox-Persistierung.
@@ -339,6 +345,24 @@ export class EventSerializer {
         return this.serializeBefehlStatusGeaendert(event as unknown as BefehlStatusGeaendertEvent);
       case 'befehl.kommentar_hinzugefuegt':
         return this.serializeBefehlKommentarHinzugefuegt(event as unknown as BefehlKommentarHinzugefuegtEvent);
+      case 'befehl.quittiert':
+        return this.serializeBefehlQuittiert(event as unknown as BefehlQuittiertEvent);
+
+      // ===== EINSATZ ROLLE EVENTS (Story 5.4) =====
+      case 'rolle.geaendert':
+        return this.serializeRolleGeaendert(event as unknown as RolleGeaendertEvent);
+
+      // ===== DSGVO EVENTS (Story 5.5) =====
+      case 'befehl.anonymisiert':
+        return this.serializeBefehlAnonymisiert(event as unknown as BefehlAnonymisiertEvent);
+      case 'befehl.geloescht':
+        return this.serializeBefehlGeloescht(event as unknown as BefehlGeloeschtEvent);
+      case 'aufbewahrung.konfiguration_geaendert':
+        return this.serializeAufbewahrungsKonfigurationGeaendert(event as unknown as AufbewahrungsKonfigurationGeaendertEvent);
+
+      // ===== SYSTEM MONITORING EVENTS (Story 5.6) =====
+      case 'system.warnung':
+        return this.serializeSystemWarnung(event as unknown as SystemWarnungEvent);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -1028,7 +1052,7 @@ export class EventSerializer {
       einsatzId: event.einsatzId.value,
       auftrag: event.auftrag,
       nummer: event.nummer,
-      empfaengerIds: event.empfaengerIds,
+      empfaenger: event.empfaenger,
     };
   }
 
@@ -1056,6 +1080,73 @@ export class EventSerializer {
       text: event.text,
       isRueckfrage: event.isRueckfrage,
       parentId: event.parentId ?? null,
+    };
+  }
+
+  private serializeBefehlQuittiert(event: BefehlQuittiertEvent): Record<string, unknown> {
+    return {
+      befehlId: event.befehlId.value,
+      einsatzId: event.einsatzId.value,
+      empfaengerId: event.empfaengerId.value,
+      quittierungArt: event.quittierungArt,
+      nummer: event.nummer,
+      quittiertAm: event.quittiertAm.toISOString(),
+    };
+  }
+
+  // ===== EINSATZ ROLLE SERIALIZERS (Story 5.4) =====
+
+  private serializeRolleGeaendert(event: RolleGeaendertEvent): Record<string, unknown> {
+    return {
+      einsatzId: event.einsatzId,
+      userId: event.userId,
+      userName: event.userName,
+      alteRolle: event.alteRolle,
+      neueRolle: event.neueRolle,
+      aenderungDurch: event.aenderungDurch,
+      aenderungDurchName: event.aenderungDurchName,
+    };
+  }
+
+  // ===== DSGVO SERIALIZERS (Story 5.5) =====
+
+  private serializeBefehlAnonymisiert(event: BefehlAnonymisiertEvent): Record<string, unknown> {
+    return {
+      einsatzId: event.einsatzId.value,
+      befehlCount: event.befehlCount,
+      empfaengerCount: event.empfaengerCount,
+      kommentarCount: event.kommentarCount,
+      anonymisiertAm: event.anonymisiertAm.toISOString(),
+    };
+  }
+
+  private serializeBefehlGeloescht(event: BefehlGeloeschtEvent): Record<string, unknown> {
+    return {
+      einsatzId: event.einsatzId.value,
+      befehlCount: event.befehlCount,
+      geloeschtAm: event.geloeschtAm.toISOString(),
+    };
+  }
+
+  private serializeAufbewahrungsKonfigurationGeaendert(event: AufbewahrungsKonfigurationGeaendertEvent): Record<string, unknown> {
+    return {
+      alteFristJahre: event.alteFristJahre,
+      neueFristJahre: event.neueFristJahre,
+      alteFreigabeperiodeTage: event.alteFreigabeperiodeTage,
+      neueFreigabeperiodeTage: event.neueFreigabeperiodeTage,
+      automatischLoeschenAktiv: event.automatischLoeschenAktiv,
+      geaendertVon: event.geaendertVon,
+    };
+  }
+
+  // ===== SYSTEM MONITORING SERIALIZERS (Story 5.6) =====
+
+  private serializeSystemWarnung(event: SystemWarnungEvent): Record<string, unknown> {
+    return {
+      warnungTyp: event.warnungTyp,
+      schwellwert: event.schwellwert,
+      aktuellerWert: event.aktuellerWert,
+      timestamp: event.timestamp.toISOString(),
     };
   }
 }

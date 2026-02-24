@@ -43,31 +43,58 @@ export class PrismaBefehlMapper {
       throw new Error(`Ungültiger BefehlStatus: ${prismaBefehl.status}`);
     }
 
-    const befehlsgeberIdResult = UserId.create(prismaBefehl.befehlsgeberId);
-    if (befehlsgeberIdResult.isFailure) {
-      throw new Error(`Ungültige BefehlsgeberId: ${prismaBefehl.befehlsgeberId}`);
+    // befehlsgeberId ist jetzt optional
+    let befehlsgeberId: UserId | undefined;
+    if (prismaBefehl.befehlsgeberId) {
+      const befehlsgeberIdResult = UserId.create(prismaBefehl.befehlsgeberId);
+      if (befehlsgeberIdResult.isFailure) {
+        throw new Error(`Ungültige BefehlsgeberId: ${prismaBefehl.befehlsgeberId}`);
+      }
+      befehlsgeberId = befehlsgeberIdResult.value!;
     }
 
-    const erstellerIdResult = UserId.create(prismaBefehl.erstellerId);
-    if (erstellerIdResult.isFailure) {
-      throw new Error(`Ungültige ErstellerId: ${prismaBefehl.erstellerId}`);
+    // erstellerId kann null sein bei anonymisierten Befehlen (DSGVO Story 5.5)
+    let erstellerId: UserId | undefined;
+    if (prismaBefehl.erstellerId) {
+      const erstellerIdResult = UserId.create(prismaBefehl.erstellerId);
+      if (erstellerIdResult.isFailure) {
+        throw new Error(`Ungültige ErstellerId: ${prismaBefehl.erstellerId}`);
+      }
+      erstellerId = erstellerIdResult.value!;
     }
 
     // Map Child-Entities
     const empfaenger = prismaBefehl.empfaenger.map((e) => {
-      const empfaengerIdResult = UserId.create(e.empfaengerId);
-      if (empfaengerIdResult.isFailure) {
-        throw new Error(`Ungültige EmpfaengerId: ${e.empfaengerId}`);
+      let empfaengerId: UserId | undefined;
+      if (e.empfaengerId) {
+        const empfaengerIdResult = UserId.create(e.empfaengerId);
+        if (empfaengerIdResult.isFailure) {
+          throw new Error(`Ungültige EmpfaengerId: ${e.empfaengerId}`);
+        }
+        empfaengerId = empfaengerIdResult.value!;
       }
-      return BefehlEmpfaenger.reconstitute(e.id, empfaengerIdResult.value!, e.zugestelltAm ?? undefined, e.quittiertAm ?? undefined, (e.quittierungArt as QuittierungArt) ?? undefined, e.createdAt);
+      return BefehlEmpfaenger.reconstitute(
+        e.id,
+        (e as PrismaBefehlEmpfaenger & { name: string }).name,
+        empfaengerId,
+        e.zugestelltAm ?? undefined,
+        e.quittiertAm ?? undefined,
+        (e.quittierungArt as QuittierungArt) ?? undefined,
+        e.createdAt,
+      );
     });
 
     const kommentare = prismaBefehl.kommentare.map((k) => {
-      const authorIdResult = UserId.create(k.authorId);
-      if (authorIdResult.isFailure) {
-        throw new Error(`Ungültige AuthorId: ${k.authorId}`);
+      // authorId kann null sein bei anonymisierten Kommentaren (DSGVO Story 5.5)
+      let authorId: UserId | undefined;
+      if (k.authorId) {
+        const authorIdResult = UserId.create(k.authorId);
+        if (authorIdResult.isFailure) {
+          throw new Error(`Ungültige AuthorId: ${k.authorId}`);
+        }
+        authorId = authorIdResult.value!;
       }
-      return BefehlKommentar.reconstitute(k.id, authorIdResult.value!, k.text, k.isRueckfrage, k.parentId ?? undefined, k.createdAt);
+      return BefehlKommentar.reconstitute(k.id, authorId, k.text, k.isRueckfrage, k.parentId ?? undefined, k.createdAt);
     });
 
     // Optional: originalBefehlId
@@ -85,8 +112,9 @@ export class PrismaBefehlMapper {
       nummer: prismaBefehl.nummer,
       einsatzId: einsatzIdResult.value! as EinsatzId,
       auftrag: prismaBefehl.auftrag,
-      befehlsgeberId: befehlsgeberIdResult.value!,
-      erstellerId: erstellerIdResult.value!,
+      befehlsgeberName: (prismaBefehl as PrismaBefehl & { befehlsgeberName: string }).befehlsgeberName,
+      befehlsgeberId,
+      erstellerId,
       status: statusResult.value!,
       erteiltAm: prismaBefehl.erteiltAm,
       empfaenger,
@@ -99,6 +127,10 @@ export class PrismaBefehlMapper {
       originalBefehlId,
       createdAt: prismaBefehl.createdAt,
       updatedAt: prismaBefehl.updatedAt,
+      isDeleted: prismaBefehl.isDeleted,
+      deletedAt: prismaBefehl.deletedAt ?? undefined,
+      deletedBy: prismaBefehl.deletedBy ?? undefined,
+      anonymisiertAm: prismaBefehl.anonymisiertAm ?? undefined,
     });
   }
 
@@ -112,8 +144,9 @@ export class PrismaBefehlMapper {
       nummer: befehl.nummer,
       einsatzId: befehl.einsatzId.value,
       auftrag: befehl.auftrag,
-      befehlsgeberId: befehl.befehlsgeberId.value,
-      erstellerId: befehl.erstellerId.value,
+      befehlsgeberName: befehl.befehlsgeberName,
+      befehlsgeberId: befehl.befehlsgeberId?.value ?? null,
+      erstellerId: befehl.erstellerId?.value ?? null,
       status: befehl.status.value as 'ERTEILT' | 'ZUGESTELLT' | 'QUITTIERT' | 'KORRIGIERT',
       erteiltAm: befehl.erteiltAm,
       zeitvorgabe: befehl.zeitvorgabe ?? null,
@@ -122,9 +155,14 @@ export class PrismaBefehlMapper {
       ziel: befehl.ziel ?? null,
       weg: befehl.weg ?? null,
       originalBefehlId: befehl.originalBefehlId?.value ?? null,
+      isDeleted: befehl.isDeleted,
+      deletedAt: befehl.deletedAt ?? null,
+      deletedBy: befehl.deletedBy ?? null,
+      anonymisiertAm: befehl.anonymisiertAm ?? null,
       empfaenger: befehl.empfaenger.map((e) => ({
         id: e.id,
-        empfaengerId: e.empfaengerId.value,
+        name: e.name,
+        empfaengerId: e.empfaengerId?.value ?? null,
         zugestelltAm: e.zugestelltAm ?? null,
         quittiertAm: e.quittiertAm ?? null,
         quittierungArt: e.quittierungArt ?? null,
@@ -132,7 +170,7 @@ export class PrismaBefehlMapper {
       })),
       kommentare: befehl.kommentare.map((k) => ({
         id: k.id,
-        authorId: k.authorId.value,
+        authorId: k.authorId?.value ?? null,
         text: k.text,
         isRueckfrage: k.isRueckfrage,
         parentId: k.parentId ?? null,

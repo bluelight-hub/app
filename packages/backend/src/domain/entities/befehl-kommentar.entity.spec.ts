@@ -72,6 +72,35 @@ describe('BefehlKommentar', () => {
     });
   });
 
+  describe('anonymisiere() - DSGVO Story 5.5', () => {
+    it('sollte authorId entfernen', () => {
+      const authorId = createUserId();
+      const kommentar = BefehlKommentar.create(authorId, 'Test', false);
+      expect(kommentar.authorId).toBe(authorId);
+
+      kommentar.anonymisiere('salt-test');
+
+      expect(kommentar.authorId).toBeUndefined();
+    });
+
+    it('sollte Text erhalten', () => {
+      const kommentar = BefehlKommentar.create(createUserId(), 'Wichtiger Kommentar', false);
+
+      kommentar.anonymisiere('salt-abc');
+
+      expect(kommentar.text).toBe('Wichtiger Kommentar');
+      expect(kommentar.isRueckfrage).toBe(false);
+    });
+
+    it('sollte auch bei bereits undefinierter authorId funktionieren', () => {
+      const kommentar = BefehlKommentar.reconstitute('test-id', undefined, 'Text', false);
+
+      kommentar.anonymisiere('salt');
+
+      expect(kommentar.authorId).toBeUndefined();
+    });
+  });
+
   describe('equals()', () => {
     it('should return true for same id', () => {
       const userId = createUserId();

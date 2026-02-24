@@ -5,6 +5,24 @@ import type { BefehlId } from '@domain/value-objects/befehl-id';
 import type { EinsatzId } from '@domain/value-objects/einsatz-id';
 
 /**
+ * Filter-Parameter fuer gefilterte Befehl-Abfragen.
+ */
+export interface BefehlFilterParams {
+  /** Filter nach BefehlStatus-Werten (ERTEILT, ZUGESTELLT, QUITTIERT, KORRIGIERT). */
+  status?: string[];
+  /** Freitext-Filter auf Empfaenger-Name (case-insensitive, contains). */
+  empfaengerName?: string;
+  /** Freitext-Filter auf Befehlsgeber-Name (case-insensitive, contains). */
+  befehlsgeberName?: string;
+  /** Volltextsuche ueber Auftrag (case-insensitive, contains). */
+  q?: string;
+  /** Zeitfilter: Befehle ab diesem Datum (erteiltAm >= von). */
+  von?: Date;
+  /** Zeitfilter: Befehle bis zu diesem Datum (erteiltAm <= bis). */
+  bis?: Date;
+}
+
+/**
  * Repository Port Interface für Befehl Aggregate Persistence.
  *
  * Definiert die Abstraktion zwischen Domain Layer und Infrastructure Layer.
@@ -36,8 +54,43 @@ export interface IBefehlRepository {
   findByEinsatzId(einsatzId: EinsatzId, tx?: TransactionContext): Promise<Result<Befehl[]>>;
 
   /**
-   * HINWEIS: KEINE delete() Method!
-   * Append-Only Policy: GoBD-Compliance erfordert lückenlose Befehlshistorie.
-   * Befehle können NIEMALS gelöscht werden.
+   * Findet alle Befehle eines Einsatzes, die an einen bestimmten Empfänger gerichtet sind.
+   * Sortierung nach erteiltAm DESC (neueste zuerst).
    */
+  findByEmpfaengerId(einsatzId: EinsatzId, empfaengerId: string, tx?: TransactionContext): Promise<Result<Befehl[]>>;
+
+  /**
+   * Findet alle Befehle eines Einsatzes, die offene Rückfragen haben.
+   * Eine Rückfrage gilt als "offen" wenn isRueckfrage=true und keine Kind-Kommentare existieren.
+   * Sortierung nach erteiltAm DESC.
+   */
+  findWithOpenRueckfragen(einsatzId: EinsatzId, tx?: TransactionContext): Promise<Result<Befehl[]>>;
+
+  /**
+   * Findet Befehle eines Einsatzes mit dynamischen Filtern.
+   * Unterstuetzt Status, Empfaenger-Name, Befehlsgeber-Name, Freitextsuche und Zeitraum.
+   * Sortierung nach erteiltAm DESC (neueste zuerst).
+   */
+  findFiltered(einsatzId: EinsatzId, filters: BefehlFilterParams, tx?: TransactionContext): Promise<Result<Befehl[]>>;
+
+  // ===== DSGVO-Löschkonzept (Story 5.5) =====
+
+  /**
+   * Findet Befehle archivierter Einsätze, deren Aufbewahrungsfrist abgelaufen ist.
+   * Filtert auf: Einsatz.archivedAt + aufbewahrungsfristJahre < cutoffDate
+   * Gibt nur nicht-anonymisierte, nicht-gelöschte Befehle zurück.
+   */
+  findAbgelaufene(cutoffDate: Date, tx?: TransactionContext): Promise<Result<Befehl[]>>;
+
+  /**
+   * Bulk-Update: Setzt anonymisierte Befehl-Daten für einen Einsatz.
+   * Wird vom DSGVO-CronJob nach der Domain-Anonymisierung aufgerufen.
+   */
+  bulkAnonymisiere(einsatzId: EinsatzId, befehle: Befehl[], tx?: TransactionContext): Promise<Result<void>>;
+
+  /**
+   * Bulk Soft-Delete: Markiert alle Befehle eines Einsatzes als gelöscht.
+   * Wird nach Ablauf der Freigabeperiode aufgerufen.
+   */
+  bulkSoftDelete(einsatzId: EinsatzId, deletedBy: string, tx?: TransactionContext): Promise<Result<void>>;
 }

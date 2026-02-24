@@ -30,10 +30,15 @@ export {
   notificationSetupService,
   initializeNotificationSetup,
   setNotificationNavigateCallback,
+  setNotificationNavigateBefehlCallback,
   ERINNERUNG_CHANNEL_ID,
   ERINNERUNG_ACTION_TYPE_ID,
   ERINNERUNG_ACTION_OPEN_ID,
+  BEFEHL_CHANNEL_ID,
+  BEFEHL_ACTION_TYPE_ID,
+  BEFEHL_ACTION_OPEN_ID,
   type NavigateToErinnerungCallback,
+  type NavigateToBefehlCallback,
 } from './notification-setup.service';
 
 export {

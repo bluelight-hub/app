@@ -3,8 +3,9 @@ import type { EintragDto } from '@/shared';
 import { ScreenshotLightbox } from './ScreenshotLightbox';
 import { safeValidateScreenshotUrl } from '@/features/etb/utils';
 import { cn } from '@/shared/ui/cn';
-import { PiBell } from 'react-icons/pi';
+import { PiBell, PiLink } from 'react-icons/pi';
 import { setHighlightedErinnerung } from '@/features/reminders/stores';
+import { Link } from '@tanstack/react-router';
 
 interface EtbTextCellProps {
   /**
@@ -15,6 +16,10 @@ interface EtbTextCellProps {
    * Zeigt an, ob der Eintrag gelöscht wurde (für line-through Styling)
    */
   isDeleted?: boolean;
+  /**
+   * Einsatz-ID fuer Navigation zu Befehl-Details
+   */
+  einsatzId?: string;
 }
 
 /**
@@ -32,7 +37,7 @@ interface EtbTextCellProps {
  *
  * @param entry - ETB-Eintrag
  */
-export function EtbTextCell({ entry, isDeleted }: EtbTextCellProps) {
+export function EtbTextCell({ entry, isDeleted, einsatzId }: EtbTextCellProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
   // Check if screenshot exists in metadata
@@ -49,6 +54,15 @@ export function EtbTextCell({ entry, isDeleted }: EtbTextCellProps) {
 
   // Story 5.4 Task 6: Verknuepfte Erinnerung als Badge anzeigen
   const linkedErinnerung = entry.linkedErinnerung as { id: string; titel: string } | null | undefined;
+
+  // Story 4.3: Befehl-Verlinkung - pruefen ob der Eintrag mit einem Befehl verknuepft ist
+  const linkedBefehlId =
+    entry.metadata && typeof entry.metadata === 'object' && 'befehlId' in entry.metadata && 'eventType' in entry.metadata
+      ? (() => {
+          const m = entry.metadata as { eventType?: unknown; befehlId?: unknown };
+          return typeof m.eventType === 'string' && m.eventType.startsWith('Befehl') && typeof m.befehlId === 'string' ? m.befehlId : null;
+        })()
+      : null;
 
   /**
    * Story 5.4 Task 6.2: Klick auf Badge scrollt zur Erinnerung
@@ -76,6 +90,21 @@ export function EtbTextCell({ entry, isDeleted }: EtbTextCellProps) {
           <PiBell className="h-3.5 w-3.5" aria-hidden="true" />
           Erinnerung
         </button>
+      )}
+
+      {/* Story 4.3: Befehl-Link wenn metadata.befehlId vorhanden */}
+      {linkedBefehlId && einsatzId && (
+        <Link
+          to="/app/einsatz/$einsatzId/führung/befehle"
+          params={{ einsatzId }}
+          search={{ befehlId: linkedBefehlId }}
+          title={`Befehl ${linkedBefehlId} anzeigen`}
+          aria-label={`Befehl ${linkedBefehlId} anzeigen`}
+          className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-purple-100 px-2.5 py-1 font-medium text-purple-800 text-xs transition-colors hover:bg-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-1 dark:bg-purple-900/30 dark:text-purple-300 dark:focus:ring-offset-gray-800 dark:hover:bg-purple-900/50"
+        >
+          <PiLink className="h-3.5 w-3.5" aria-hidden="true" />
+          Befehl anzeigen
+        </Link>
       )}
 
       {/* Screenshot Thumbnail */}

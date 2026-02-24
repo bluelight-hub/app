@@ -17,13 +17,14 @@
  *
  * @module infrastructure/events/adapters
  */
-import { Inject, Injectable, Optional } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { ILogger } from '@domain/ports/i-logger.port';
 import { BefehlErstelltEvent } from '@domain/events/befehl-erstellt.event';
 import { BefehlZugestelltEvent } from '@domain/events/befehl-zugestellt.event';
 import { BefehlStatusGeaendertEvent } from '@domain/events/befehl-status-geaendert.event';
 import { BefehlKommentarHinzugefuegtEvent } from '@domain/events/befehl-kommentar-hinzugefuegt.event';
+import { BefehlQuittiertEvent } from '@domain/events/befehl-quittiert.event';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { BefehlGateway } from '@/modules/befehl/gateways/befehl.gateway';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
@@ -31,7 +32,7 @@ import { PrismaService } from '@/infrastructure/database/prisma.service';
 @Injectable()
 export class BefehlEventAdapter {
   constructor(
-    @Optional() private readonly gateway: BefehlGateway | undefined,
+    private readonly gateway: BefehlGateway,
     @Inject(LOGGER) private readonly logger: ILogger,
     private readonly prisma: PrismaService,
   ) {}
@@ -50,17 +51,12 @@ export class BefehlEventAdapter {
   async onBefehlErstellt(event: BefehlErstelltEvent): Promise<void> {
     this.logger.log(`Processing BefehlErstellt for WebSocket: befehlId=${event.befehlId.value}, einsatzId=${event.einsatzId.value}, nummer=${event.nummer}`, 'BefehlEventAdapter');
 
-    if (!this.gateway) {
-      this.logger.error('BefehlGateway not available - WebSocket event will not be emitted. Check module configuration and ensure BefehlGateway is properly registered.', 'BefehlEventAdapter');
-      return;
-    }
-
     await new Promise((resolve) => setTimeout(resolve, 50));
 
     try {
       const befehl = await this.prisma.befehl.findUnique({
         where: { id: event.befehlId.value },
-        select: { befehlsgeberId: true, erstellerId: true, status: true, erteiltAm: true },
+        select: { befehlsgeberName: true, befehlsgeberId: true, erstellerId: true, status: true, erteiltAm: true, befehlsgeber: { select: { username: true } } },
       });
 
       if (!befehl) {
@@ -74,8 +70,9 @@ export class BefehlEventAdapter {
         nummer: event.nummer,
         auftrag: event.auftrag,
         befehlsgeberId: befehl.befehlsgeberId,
-        erstellerId: befehl.erstellerId,
-        empfaengerIds: event.empfaengerIds,
+        befehlsgeberName: befehl.befehlsgeberName ?? befehl.befehlsgeber?.username ?? '',
+        erstellerId: befehl.erstellerId ?? '',
+        empfaenger: event.empfaenger,
         status: befehl.status,
         erteiltAm: befehl.erteiltAm.toISOString(),
       });
@@ -97,11 +94,6 @@ export class BefehlEventAdapter {
   @OnEvent(BefehlZugestelltEvent.eventName())
   async onBefehlZugestellt(event: BefehlZugestelltEvent): Promise<void> {
     this.logger.log(`Processing BefehlZugestellt for WebSocket: befehlId=${event.befehlId.value}, empfaengerId=${event.empfaengerId}`, 'BefehlEventAdapter');
-
-    if (!this.gateway) {
-      this.logger.error('BefehlGateway not available - WebSocket event will not be emitted. Check module configuration and ensure BefehlGateway is properly registered.', 'BefehlEventAdapter');
-      return;
-    }
 
     await new Promise((resolve) => setTimeout(resolve, 50));
 
@@ -140,11 +132,6 @@ export class BefehlEventAdapter {
   @OnEvent(BefehlStatusGeaendertEvent.eventName())
   async onBefehlStatusGeaendert(event: BefehlStatusGeaendertEvent): Promise<void> {
     this.logger.log(`Processing BefehlStatusGeaendert for WebSocket: befehlId=${event.befehlId.value}, ${event.oldStatus.value} -> ${event.newStatus.value}`, 'BefehlEventAdapter');
-
-    if (!this.gateway) {
-      this.logger.error('BefehlGateway not available - WebSocket event will not be emitted. Check module configuration and ensure BefehlGateway is properly registered.', 'BefehlEventAdapter');
-      return;
-    }
 
     await new Promise((resolve) => setTimeout(resolve, 50));
 
@@ -188,11 +175,6 @@ export class BefehlEventAdapter {
       'BefehlEventAdapter',
     );
 
-    if (!this.gateway) {
-      this.logger.error('BefehlGateway not available - WebSocket event will not be emitted. Check module configuration and ensure BefehlGateway is properly registered.', 'BefehlEventAdapter');
-      return;
-    }
-
     await new Promise((resolve) => setTimeout(resolve, 50));
 
     try {
@@ -221,6 +203,41 @@ export class BefehlEventAdapter {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error(`Failed to emit WebSocket event for BefehlKommentarHinzugefuegt: befehlId=${event.befehlId.value}, error=${errorMessage}`, 'BefehlEventAdapter');
+    }
+  }
+
+  /**
+   * Empfaengt BefehlQuittiertEvent und emittiert WebSocket Event.
+   *
+   * Story 2.1 AC6: BefehlQuittiertEvent wird via WebSocket an verbundene Clients emittiert.
+   * Rich Data aus Event (kein DB-Lookup noetig dank Event-Carried State Transfer).
+   *
+   * @param event - Das empfangene Domain Event
+   */
+  @OnEvent(BefehlQuittiertEvent.eventName())
+  async onBefehlQuittiert(event: BefehlQuittiertEvent): Promise<void> {
+    this.logger.log(
+      `Processing BefehlQuittiert for WebSocket: befehlId=${event.befehlId.value}, empfaengerId=${event.empfaengerId.value}, quittierungArt=${event.quittierungArt}`,
+      'BefehlEventAdapter',
+    );
+
+    // KRITISCH: 50ms Delay fuer Race Condition Prevention
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    try {
+      this.gateway.emitBefehlQuittiert({
+        befehlId: event.befehlId.value,
+        einsatzId: event.einsatzId.value,
+        empfaengerId: event.empfaengerId.value,
+        quittierungArt: event.quittierungArt,
+        nummer: event.nummer,
+        quittiertAm: event.quittiertAm.toISOString(),
+      });
+
+      this.logger.log(`WebSocket event emitted for BefehlQuittiert: befehlId=${event.befehlId.value}`, 'BefehlEventAdapter');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to emit WebSocket event for BefehlQuittiert: befehlId=${event.befehlId.value}, error=${errorMessage}`, 'BefehlEventAdapter');
     }
   }
 }

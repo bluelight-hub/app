@@ -20,18 +20,18 @@ describe('PrismaBefehlMapper', () => {
   const generateValidBefehlId = () => (BefehlId.create().value! as BefehlId).value;
   const generateValidEinsatzId = () => (EinsatzId.create().value! as EinsatzId).value;
 
-  const createValidPrismaBefehl = (overrides: Partial<BefehlWithRelations> = {}): BefehlWithRelations => {
+  const createValidPrismaBefehl = (overrides: Partial<BefehlWithRelations & { befehlsgeberName: string }> = {}): BefehlWithRelations => {
     const befehlId = generateValidBefehlId();
     const einsatzId = generateValidEinsatzId();
     const befehlsgeberId = generateValidUserId().value;
     const erstellerId = generateValidUserId().value;
-    const empfaengerId = generateValidUserId().value;
 
     return {
       id: befehlId,
       nummer: 'B2026-abcd1234',
       einsatzId,
       auftrag: 'Patientenablage einrichten',
+      befehlsgeberName: 'EL Müller',
       befehlsgeberId,
       erstellerId,
       status: 'ERTEILT',
@@ -48,12 +48,13 @@ describe('PrismaBefehlMapper', () => {
         {
           id: generateValidBefehlId(),
           befehlId,
-          empfaengerId,
+          name: 'ZF Nord',
+          empfaengerId: generateValidUserId().value,
           zugestelltAm: null,
           quittiertAm: null,
           quittierungArt: null,
           createdAt: new Date('2026-02-17T10:00:00.000Z'),
-        } as PrismaBefehlEmpfaenger,
+        } as PrismaBefehlEmpfaenger & { name: string },
       ],
       kommentare: [],
       ...overrides,
@@ -74,13 +75,55 @@ describe('PrismaBefehlMapper', () => {
       expect(befehl.nummer).toBe('B2026-abcd1234');
       expect(befehl.einsatzId.value).toBe(prismaBefehl.einsatzId);
       expect(befehl.auftrag).toBe('Patientenablage einrichten');
-      expect(befehl.befehlsgeberId.value).toBe(prismaBefehl.befehlsgeberId);
+      expect(befehl.befehlsgeberName).toBe('EL Müller');
+      expect(befehl.befehlsgeberId?.value).toBe(prismaBefehl.befehlsgeberId);
       expect(befehl.erstellerId.value).toBe(prismaBefehl.erstellerId);
       expect(befehl.status.value).toBe('ERTEILT');
       expect(befehl.zeitvorgabe).toBe('15 min');
       expect(befehl.erteiltAm).toEqual(prismaBefehl.erteiltAm);
       expect(befehl.empfaenger).toHaveLength(1);
+      expect(befehl.empfaenger[0].name).toBe('ZF Nord');
       expect(befehl.kommentare).toHaveLength(0);
+    });
+
+    it('should convert prisma record with nullable befehlsgeberId', () => {
+      // Given
+      const prismaBefehl = createValidPrismaBefehl({
+        befehlsgeberId: null as unknown as string,
+      });
+
+      // When
+      const befehl = PrismaBefehlMapper.toDomain(prismaBefehl);
+
+      // Then
+      expect(befehl.befehlsgeberName).toBe('EL Müller');
+      expect(befehl.befehlsgeberId).toBeUndefined();
+    });
+
+    it('should convert prisma record with nullable empfaengerId', () => {
+      // Given
+      const prismaBefehl = createValidPrismaBefehl({
+        empfaenger: [
+          {
+            id: generateValidBefehlId(),
+            befehlId: generateValidBefehlId(),
+            name: 'ZF Nord',
+            empfaengerId: null,
+            zugestelltAm: null,
+            quittiertAm: null,
+            quittierungArt: null,
+            createdAt: new Date('2026-02-17T10:00:00.000Z'),
+          } as PrismaBefehlEmpfaenger & { name: string },
+        ],
+      });
+
+      // When
+      const befehl = PrismaBefehlMapper.toDomain(prismaBefehl);
+
+      // Then
+      const emp = befehl.empfaenger[0];
+      expect(emp.name).toBe('ZF Nord');
+      expect(emp.empfaengerId).toBeUndefined();
     });
 
     it('should convert prisma record with EAMZW fields', () => {
@@ -111,12 +154,13 @@ describe('PrismaBefehlMapper', () => {
           {
             id: generateValidBefehlId(),
             befehlId: generateValidBefehlId(),
+            name: 'ZF Nord',
             empfaengerId,
             zugestelltAm: new Date('2026-02-17T10:05:00.000Z'),
             quittiertAm: new Date('2026-02-17T10:06:00.000Z'),
             quittierungArt: 'VERSTANDEN',
             createdAt: new Date('2026-02-17T10:00:00.000Z'),
-          } as PrismaBefehlEmpfaenger,
+          } as PrismaBefehlEmpfaenger & { name: string },
         ],
       });
 
@@ -125,7 +169,8 @@ describe('PrismaBefehlMapper', () => {
 
       // Then
       const emp = befehl.empfaenger[0];
-      expect(emp.empfaengerId.value).toBe(empfaengerId);
+      expect(emp.name).toBe('ZF Nord');
+      expect(emp.empfaengerId?.value).toBe(empfaengerId);
       expect(emp.zugestelltAm).toEqual(new Date('2026-02-17T10:05:00.000Z'));
       expect(emp.quittiertAm).toEqual(new Date('2026-02-17T10:06:00.000Z'));
       expect(emp.quittierungArt).toBe('VERSTANDEN');
@@ -232,16 +277,13 @@ describe('PrismaBefehlMapper', () => {
     it('should convert domain aggregate to prisma-compatible data', () => {
       // Given
       const einsatzId = EinsatzId.create().value! as EinsatzId;
-      const befehlsgeberId = generateValidUserId();
-      const erstellerId = generateValidUserId();
-      const empfaengerId = generateValidUserId();
 
       const result = Befehl.create({
         einsatzId,
         auftrag: 'Patientenablage einrichten',
-        befehlsgeberId,
-        erstellerId,
-        empfaengerIds: [empfaengerId],
+        befehlsgeber: 'EL Müller',
+        erstellerId: generateValidUserId(),
+        empfaenger: [{ name: 'ZF Nord' }],
         zeitvorgabe: '15 min',
       });
       const befehl = result.value!;
@@ -254,8 +296,9 @@ describe('PrismaBefehlMapper', () => {
       expect(persistence.nummer).toMatch(/^B\d{4}-[a-z0-9]{8}$/);
       expect(persistence.einsatzId).toBe(einsatzId.value);
       expect(persistence.auftrag).toBe('Patientenablage einrichten');
-      expect(persistence.befehlsgeberId).toBe(befehlsgeberId.value);
-      expect(persistence.erstellerId).toBe(erstellerId.value);
+      expect(persistence.befehlsgeberName).toBe('EL Müller');
+      expect(persistence.befehlsgeberId).toBeNull();
+      expect(persistence.erstellerId).toBe(befehl.erstellerId.value);
       expect(persistence.status).toBe('ERTEILT');
       expect(persistence.zeitvorgabe).toBe('15 min');
       expect(persistence.ereignis).toBeNull();
@@ -264,7 +307,8 @@ describe('PrismaBefehlMapper', () => {
       expect(persistence.weg).toBeNull();
       expect(persistence.originalBefehlId).toBeNull();
       expect(persistence.empfaenger).toHaveLength(1);
-      expect(persistence.empfaenger[0].empfaengerId).toBe(empfaengerId.value);
+      expect(persistence.empfaenger[0].name).toBe('ZF Nord');
+      expect(persistence.empfaenger[0].empfaengerId).toBeNull();
       expect(persistence.kommentare).toHaveLength(0);
     });
 
@@ -274,9 +318,9 @@ describe('PrismaBefehlMapper', () => {
       const result = Befehl.create({
         einsatzId,
         auftrag: 'Brandbekämpfung',
-        befehlsgeberId: generateValidUserId(),
+        befehlsgeber: 'EL Test',
         erstellerId: generateValidUserId(),
-        empfaengerIds: [generateValidUserId()],
+        empfaenger: [{ name: 'ZF Nord' }],
         ereignis: 'Großbrand',
         mittel: '2x LF 20',
         ziel: 'Brand unter Kontrolle',
@@ -315,6 +359,7 @@ describe('PrismaBefehlMapper', () => {
       expect(persistence.nummer).toBe(prismaBefehl.nummer);
       expect(persistence.einsatzId).toBe(prismaBefehl.einsatzId);
       expect(persistence.auftrag).toBe(prismaBefehl.auftrag);
+      expect(persistence.befehlsgeberName).toBe('EL Müller');
       expect(persistence.befehlsgeberId).toBe(prismaBefehl.befehlsgeberId);
       expect(persistence.erstellerId).toBe(prismaBefehl.erstellerId);
       expect(persistence.status).toBe(prismaBefehl.status);
@@ -325,7 +370,7 @@ describe('PrismaBefehlMapper', () => {
       expect(persistence.weg).toBe(prismaBefehl.weg);
       expect(persistence.erteiltAm).toEqual(prismaBefehl.erteiltAm);
       expect(persistence.empfaenger).toHaveLength(prismaBefehl.empfaenger.length);
-      expect(persistence.empfaenger[0].empfaengerId).toBe(prismaBefehl.empfaenger[0].empfaengerId);
+      expect(persistence.empfaenger[0].name).toBe('ZF Nord');
     });
   });
 });

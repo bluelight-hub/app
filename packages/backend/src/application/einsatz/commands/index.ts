@@ -28,3 +28,6 @@ export { UpdateEinsatzStatusHandler } from './update-status/update-status.handle
 
 // Archive Old Einsaetze (Story 5-6: Bulk Archive)
 export { ArchiveOldEinsaetzeCommand, ArchiveOldEinsaetzeHandler, type BulkArchiveResult } from './archive-old-einsaetze';
+
+// Update Einsatz Rollen (Story 5.2)
+export { UpdateEinsatzRollenCommand, UpdateEinsatzRollenHandler } from './update-einsatz-rollen';

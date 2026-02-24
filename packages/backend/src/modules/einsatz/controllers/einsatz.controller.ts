@@ -1,4 +1,5 @@
-import { ArchiveEinsatzCommand, CompleteEinsatzCommand, CreateEinsatzCommand, StartEinsatzCommand, UpdateEinsatzCommand } from '@/application/einsatz/commands';
+import { ArchiveEinsatzCommand, CompleteEinsatzCommand, CreateEinsatzCommand, StartEinsatzCommand, UpdateEinsatzCommand, UpdateEinsatzRollenCommand } from '@/application/einsatz/commands';
+import { UpdateEinsatzRollenHandler } from '@/application/einsatz/commands';
 import { Result } from '@domain/common/result';
 import {
   CompletenessQueryDto,
@@ -14,6 +15,8 @@ import {
   StatusCountsQueryDto,
   StatusCountsResponseDto,
   UpdateEinsatzDto,
+  EinsatzRolleDto,
+  UpdateEinsatzRollenDto,
 } from '@/application/einsatz/dto';
 import {
   GetActiveEinsaetzeWithCountsQuery,
@@ -26,6 +29,8 @@ import {
   GetStatusCountsQuery,
   GetEinsatzTeilnehmerQuery,
   GetEinsatzTeilnehmerHandler,
+  GetEinsatzRollenQuery,
+  GetEinsatzRollenQueryHandler,
 } from '@/application/einsatz/queries';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import { Roles } from '@/modules/auth/decorators/roles.decorator';
@@ -34,7 +39,7 @@ import { RolesGuard } from '@/modules/auth/guards/roles.guard';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ApiWrappedResponse, ApiWrappedCreatedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import type { PaginatedData } from '@/infrastructure/http/interceptors/transform.interceptor';
-import { BadRequestException, Body, Controller, Delete, Get, InternalServerErrorException, NotFoundException, Param, Patch, Post, Query, UseGuards, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, InternalServerErrorException, NotFoundException, Param, Patch, Post, Put, Query, UseGuards, ValidationPipe } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 
@@ -69,13 +74,15 @@ import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiNotFound
 @ApiForbiddenResponse({ description: 'Keine Berechtigung für diese Aktion' })
 @Controller({
   path: 'einsatz',
-  version: 'alpha',
+  version: ['alpha', '1'],
 })
 export class EinsatzController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
     private readonly getTeilnehmerHandler: GetEinsatzTeilnehmerHandler,
+    private readonly updateEinsatzRollenHandler: UpdateEinsatzRollenHandler,
+    private readonly getEinsatzRollenQueryHandler: GetEinsatzRollenQueryHandler,
   ) {}
 
   /**
@@ -137,6 +144,75 @@ export class EinsatzController {
     if (result.isFailure) throw new BadRequestException(result.error ?? 'Fehler beim Abrufen der Status-Statistiken');
     if (!result.value) throw new InternalServerErrorException('Keine Status-Statistiken zurückgegeben');
     return result.value;
+  }
+
+  /**
+   * Gibt alle Rollenzuweisungen fuer einen Einsatz zurueck.
+   *
+   * Story 5.2 AC4: GET /api/v-alpha/einsaetze/:id/rollen
+   */
+  @Get(':id/rollen')
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({
+    summary: 'Rollen-Zuweisungen eines Einsatzes abrufen',
+    description: 'Gibt alle befehlsspezifischen Rollenzuweisungen fuer einen Einsatz zurueck.',
+  })
+  @ApiWrappedResponse(EinsatzRolleDto, {
+    isArray: true,
+    description: 'Liste aller Rollenzuweisungen im Einsatz',
+  })
+  @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
+  async getRollen(@Param('id') id: string): Promise<EinsatzRolleDto[]> {
+    const query = new GetEinsatzRollenQuery(id);
+    const result = await this.getEinsatzRollenQueryHandler.execute(query);
+
+    if (result.isFailure) {
+      if (result.error?.includes('nicht gefunden')) {
+        throw new NotFoundException(result.error);
+      }
+      throw new BadRequestException(result.error);
+    }
+
+    return result.value ?? [];
+  }
+
+  /**
+   * Aktualisiert alle Rollenzuweisungen fuer einen Einsatz (PUT-Semantik).
+   *
+   * Story 5.2 AC3: Ersetzt ALLE Rollen fuer den Einsatz.
+   */
+  @Put(':id/rollen')
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({
+    summary: 'Rollen-Zuweisungen eines Einsatzes aktualisieren',
+    description: 'Ersetzt alle befehlsspezifischen Rollenzuweisungen fuer einen Einsatz (atomares Update).',
+  })
+  @ApiWrappedResponse(EinsatzRolleDto, {
+    isArray: true,
+    description: 'Aktualisierte Liste aller Rollenzuweisungen',
+  })
+  @ApiBadRequestResponse({ description: 'Validierungsfehler in den Eingabedaten' })
+  @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
+  async updateRollen(@Param('id') id: string, @Body(new ValidationPipe({ transform: true, whitelist: true })) dto: UpdateEinsatzRollenDto): Promise<EinsatzRolleDto[]> {
+    const command = new UpdateEinsatzRollenCommand(id, dto.zuweisungen);
+    const result = await this.updateEinsatzRollenHandler.execute(command);
+
+    if (result.isFailure) {
+      if (result.error?.includes('nicht gefunden')) {
+        throw new NotFoundException(result.error);
+      }
+      throw new BadRequestException(result.error);
+    }
+
+    // Aktualisierte Rollen laden und zurueckgeben
+    const rollenQuery = new GetEinsatzRollenQuery(id);
+    const rollenResult = await this.getEinsatzRollenQueryHandler.execute(rollenQuery);
+
+    if (rollenResult.isFailure) {
+      throw new InternalServerErrorException(rollenResult.error);
+    }
+
+    return rollenResult.value ?? [];
   }
 
   /**

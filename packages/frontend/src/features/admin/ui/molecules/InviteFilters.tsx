@@ -39,7 +39,7 @@ export function InviteFilters({ selectedStatus, onChange }: InviteFiltersProps) 
       <Label htmlFor="status-filter" className="text-gray-700 text-sm dark:text-gray-300">
         Status:
       </Label>
-      <Listbox value={selectedStatus} onChange={onChange}>
+      <Listbox as="div" value={selectedStatus} onChange={onChange}>
         <div className="relative">
           <ListboxButton
             id="status-filter"

@@ -12,6 +12,8 @@ import type { ServerAccessToken } from '@domain/aggregates/server-access-token.a
 import { AccessTokenId } from '@domain/value-objects/access-token-id';
 import { TokenHash } from '@domain/value-objects/token-hash';
 import { BCRYPT_COST_FACTOR_TOKEN } from '@infrastructure/config/security.constants';
+import { CircuitBreakerService } from '@infrastructure/resilience/circuit-breaker.service';
+import { CircuitBreakerStateEnum } from '@infrastructure/resilience/circuit-breaker-state';
 
 /**
  * Unit Tests fuer HealthController (Story 1.4).
@@ -50,6 +52,7 @@ describe('HealthController', () => {
   let mockServerConfigRepo: jest.Mocked<IServerConfigRepository>;
   let mockPrisma: jest.Mocked<PrismaService>;
   let mockConfigService: jest.Mocked<ConfigService>;
+  let mockCircuitBreaker: jest.Mocked<CircuitBreakerService>;
   let mockUserCount: jest.Mock;
 
   /**
@@ -163,8 +166,46 @@ describe('HealthController', () => {
       get: jest.fn().mockReturnValue(undefined),
     } as unknown as jest.Mocked<ConfigService>;
 
-    // Controller mit allen 8 Dependencies erstellen (Story 4.6: +mockServerConfigRepo)
-    controller = new HealthController(mockHealthCheckService, mockMemoryIndicator, mockDiskIndicator, mockPrismaHealth, mockPrisma, mockTokenRepo, mockServerConfigRepo, mockConfigService);
+    // Mock CircuitBreakerService (Story 5.3)
+    mockCircuitBreaker = {
+      register: jest.fn(),
+      execute: jest.fn(),
+      getState: jest.fn().mockReturnValue(CircuitBreakerStateEnum.CLOSED),
+      getAllStatus: jest.fn().mockReturnValue([]),
+      reset: jest.fn(),
+      onStateChange: jest.fn(),
+      isOpen: jest.fn().mockReturnValue(false),
+    } as unknown as jest.Mocked<CircuitBreakerService>;
+
+    // Controller mit allen 10 Dependencies erstellen (Story 5.6: +mockSystemHealthHandler)
+    const mockSystemHealthHandler = {
+      execute: jest.fn().mockResolvedValue({
+        isSuccess: true,
+        value: {
+          zustellrate: 100,
+          websocketConnections: 0,
+          outboxQueueDepth: 0,
+          apiResponseTime: { p50: 0, p95: 0, p99: 0 },
+          circuitBreakerStatus: {},
+          dbConnectionPoolUsage: 0,
+          uptime: 3600,
+          timestamp: new Date(),
+        },
+      }),
+    } as any;
+
+    controller = new HealthController(
+      mockHealthCheckService,
+      mockMemoryIndicator,
+      mockDiskIndicator,
+      mockPrismaHealth,
+      mockPrisma,
+      mockTokenRepo,
+      mockServerConfigRepo,
+      mockConfigService,
+      mockCircuitBreaker,
+      mockSystemHealthHandler,
+    );
   });
 
   afterEach(() => {
@@ -565,7 +606,34 @@ describe('HealthController', () => {
 
       // Simuliere Zeit vergangen (Cache abgelaufen) durch neuen Controller
       // In echtem Test: jest.useFakeTimers()
-      const controller2 = new HealthController(mockHealthCheckService, mockMemoryIndicator, mockDiskIndicator, mockPrismaHealth, mockPrisma, mockTokenRepo, mockServerConfigRepo, mockConfigService);
+      const mockSystemHealthHandler2 = {
+        execute: jest.fn().mockResolvedValue({
+          isSuccess: true,
+          value: {
+            zustellrate: 100,
+            websocketConnections: 0,
+            outboxQueueDepth: 0,
+            apiResponseTime: { p50: 0, p95: 0, p99: 0 },
+            circuitBreakerStatus: {},
+            dbConnectionPoolUsage: 0,
+            uptime: 3600,
+            timestamp: new Date(),
+          },
+        }),
+      } as any;
+
+      const controller2 = new HealthController(
+        mockHealthCheckService,
+        mockMemoryIndicator,
+        mockDiskIndicator,
+        mockPrismaHealth,
+        mockPrisma,
+        mockTokenRepo,
+        mockServerConfigRepo,
+        mockConfigService,
+        mockCircuitBreaker,
+        mockSystemHealthHandler2,
+      );
       const result2 = await controller2.check(mockRequest);
 
       // Then: Ergebnis reflektiert DB-Status korrekt
@@ -752,6 +820,244 @@ describe('HealthController', () => {
       // Then: DB-Wert (false) hat Prioritaet
       expect(result).toHaveProperty('insecureMode', false);
       expect(mockServerConfigRepo.isInsecureMode).toHaveBeenCalled();
+    });
+  });
+
+  describe('getSystemHealth() - Aggregierte Metriken (Story 5.6 AC2)', () => {
+    /**
+     * Helper: Erstellt einen neuen Controller mit eigenem mockSystemHealthHandler.
+     * Noetig weil der Handler im beforeEach gesetzt wird und wir ihn pro Test steuern wollen.
+     */
+    const createControllerWithHandler = (handler: any): HealthController => {
+      return new HealthController(
+        mockHealthCheckService,
+        mockMemoryIndicator,
+        mockDiskIndicator,
+        mockPrismaHealth,
+        mockPrisma,
+        mockTokenRepo,
+        mockServerConfigRepo,
+        mockConfigService,
+        mockCircuitBreaker,
+        handler,
+      );
+    };
+
+    it('sollte aggregierte Metriken als SystemHealthDto zurueckgeben', async () => {
+      // Given: Handler liefert erfolgreiche Metriken
+      const timestamp = new Date();
+      const handler = {
+        execute: jest.fn().mockResolvedValue({
+          isSuccess: true,
+          isFailure: false,
+          value: {
+            zustellrate: 99.5,
+            websocketConnections: 12,
+            outboxQueueDepth: 3,
+            apiResponseTime: { p50: 15, p95: 45, p99: 120 },
+            circuitBreakerStatus: { 'hiorg-server': 'CLOSED' },
+            dbConnectionPoolUsage: 25,
+            uptime: 86400,
+            timestamp,
+          },
+        }),
+      };
+      const ctrl = createControllerWithHandler(handler);
+
+      // When: getSystemHealth() aufgerufen wird
+      const result = await ctrl.getSystemHealth();
+
+      // Then: SystemHealthDto mit aggregierten Werten
+      expect(result.zustellrate).toBe(99.5);
+      expect(result.websocketConnections).toBe(12);
+      expect(result.outboxQueueDepth).toBe(3);
+      expect(result.apiResponseTime).toEqual({ p50: 15, p95: 45, p99: 120 });
+      expect(result.dbConnectionPoolUsage).toBe(25);
+      expect(result.uptime).toBe(86400);
+      expect(handler.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('sollte Fallback-DTO zurueckgeben wenn Handler fehlschlaegt', async () => {
+      // Given: Handler liefert Fehler-Result
+      const handler = {
+        execute: jest.fn().mockResolvedValue({
+          isSuccess: false,
+          isFailure: true,
+          error: 'Connection failed',
+        }),
+      };
+      const ctrl = createControllerWithHandler(handler);
+
+      // When: getSystemHealth() aufgerufen wird
+      const result = await ctrl.getSystemHealth();
+
+      // Then: Minimale Fallback-Werte
+      expect(result.zustellrate).toBe(0);
+      expect(result.websocketConnections).toBe(0);
+      expect(result.outboxQueueDepth).toBe(0);
+      expect(result.apiResponseTime).toEqual({ p50: 0, p95: 0, p99: 0 });
+      expect(result.circuitBreakerStatus).toEqual([]);
+      expect(result.dbConnectionPoolUsage).toBe(0);
+      expect(result.uptime).toBeGreaterThanOrEqual(0);
+    });
+
+    it('sollte circuitBreakerStatus von Record zu Array transformieren', async () => {
+      // Given: Handler liefert circuitBreakerStatus als Record<string, string>
+      const handler = {
+        execute: jest.fn().mockResolvedValue({
+          isSuccess: true,
+          isFailure: false,
+          value: {
+            zustellrate: 100,
+            websocketConnections: 5,
+            outboxQueueDepth: 0,
+            apiResponseTime: { p50: 10, p95: 30, p99: 80 },
+            circuitBreakerStatus: {
+              'hiorg-server': 'CLOSED',
+              'etb-service': 'OPEN',
+              'notification-service': 'HALF_OPEN',
+            },
+            dbConnectionPoolUsage: 15,
+            uptime: 3600,
+            timestamp: new Date(),
+          },
+        }),
+      };
+      const ctrl = createControllerWithHandler(handler);
+
+      // When: getSystemHealth() aufgerufen wird
+      const result = await ctrl.getSystemHealth();
+
+      // Then: Record wird zu Array mit { serviceName, state } transformiert
+      expect(result.circuitBreakerStatus).toHaveLength(3);
+      expect(result.circuitBreakerStatus).toEqual([
+        { serviceName: 'hiorg-server', state: 'CLOSED' },
+        { serviceName: 'etb-service', state: 'OPEN' },
+        { serviceName: 'notification-service', state: 'HALF_OPEN' },
+      ]);
+    });
+  });
+
+  describe('getIntegrationHealth() - Circuit Breaker Status (Story 5.3 AC4)', () => {
+    const RAW_TOKEN = 'test-integration-health-token';
+
+    /** Helper: Erstellt Mock-Request mit gueltigem Token-Header */
+    const createAuthenticatedRequest = (): Request => ({ headers: { 'x-server-access-token': RAW_TOKEN } }) as unknown as Request;
+
+    /** Setup: Token-Repo mit gueltigem Token fuer alle Tests */
+    const setupValidToken = async () => {
+      const mockToken = await createMockTokenWithHash(RAW_TOKEN);
+      mockTokenRepo.findAllActive.mockResolvedValue(Result.ok([mockToken]));
+    };
+
+    /**
+     * Test: Leere Integration-Liste wenn keine Circuit Breakers registriert
+     */
+    it('should return empty integrations array when no circuit breakers registered', async () => {
+      // Given: Gueltiger Token, aber keine Circuit Breakers registriert
+      await setupValidToken();
+      mockCircuitBreaker.getAllStatus.mockReturnValue([]);
+
+      // When: getIntegrationHealth() mit authentifiziertem Request aufgerufen wird
+      const result = await controller.getIntegrationHealth(createAuthenticatedRequest());
+
+      // Then: Leere Liste
+      expect(result).toEqual({ integrations: [] });
+      expect(mockCircuitBreaker.getAllStatus).toHaveBeenCalled();
+    });
+
+    /**
+     * Test: Ohne Token → leere Liste (Information Disclosure Prevention)
+     */
+    it('should return empty integrations without token (H4 - Information Disclosure)', async () => {
+      // Given: Kein Token im Request
+      const mockRequest = { headers: {} } as Request;
+
+      // When: getIntegrationHealth() ohne Token aufgerufen wird
+      const result = await controller.getIntegrationHealth(mockRequest);
+
+      // Then: Leere Liste, getAllStatus NICHT aufgerufen
+      expect(result).toEqual({ integrations: [] });
+      expect(mockCircuitBreaker.getAllStatus).not.toHaveBeenCalled();
+    });
+
+    /**
+     * Test: Status aller registrierten Circuit Breakers
+     */
+    it('should return status of all registered circuit breakers', async () => {
+      // Given: Gueltiger Token und zwei registrierte Circuit Breakers
+      await setupValidToken();
+      mockCircuitBreaker.getAllStatus.mockReturnValue([
+        {
+          serviceName: 'hiorg-server',
+          state: CircuitBreakerStateEnum.CLOSED,
+          failureCount: 0,
+          successCount: 10,
+          lastFailure: null,
+          lastSuccess: '2026-02-23T10:00:00.000Z',
+        },
+        {
+          serviceName: 'etb',
+          state: CircuitBreakerStateEnum.OPEN,
+          failureCount: 5,
+          successCount: 15,
+          lastFailure: '2026-02-23T10:05:00.000Z',
+          lastSuccess: '2026-02-23T09:00:00.000Z',
+        },
+      ]);
+
+      // When: getIntegrationHealth() mit authentifiziertem Request aufgerufen wird
+      const result = await controller.getIntegrationHealth(createAuthenticatedRequest());
+
+      // Then: Beide Integrations mit korrektem Status
+      expect(result.integrations).toHaveLength(2);
+      expect(result.integrations[0]).toEqual({
+        serviceName: 'hiorg-server',
+        state: CircuitBreakerStateEnum.CLOSED,
+        failureCount: 0,
+        lastFailure: null,
+        lastSuccess: '2026-02-23T10:00:00.000Z',
+        lastSuccessAt: '2026-02-23T10:00:00.000Z',
+        lastFailureAt: null,
+        errorRate: 0,
+        responseTimeP95: undefined,
+      });
+      expect(result.integrations[1]).toEqual({
+        serviceName: 'etb',
+        state: CircuitBreakerStateEnum.OPEN,
+        failureCount: 5,
+        lastFailure: '2026-02-23T10:05:00.000Z',
+        lastSuccess: '2026-02-23T09:00:00.000Z',
+        lastSuccessAt: '2026-02-23T09:00:00.000Z',
+        lastFailureAt: '2026-02-23T10:05:00.000Z',
+        errorRate: 25,
+        responseTimeP95: undefined,
+      });
+    });
+
+    /**
+     * Test: HALF_OPEN Status korrekt dargestellt
+     */
+    it('should correctly represent HALF_OPEN state', async () => {
+      // Given: Gueltiger Token und Circuit Breaker im HALF_OPEN Zustand
+      await setupValidToken();
+      mockCircuitBreaker.getAllStatus.mockReturnValue([
+        {
+          serviceName: 'hiorg-server',
+          state: CircuitBreakerStateEnum.HALF_OPEN,
+          failureCount: 3,
+          successCount: 5,
+          lastFailure: '2026-02-23T10:05:00.000Z',
+          lastSuccess: null,
+        },
+      ]);
+
+      // When: getIntegrationHealth() mit authentifiziertem Request aufgerufen wird
+      const result = await controller.getIntegrationHealth(createAuthenticatedRequest());
+
+      // Then: HALF_OPEN Status korrekt
+      expect(result.integrations[0].state).toBe(CircuitBreakerStateEnum.HALF_OPEN);
+      expect(result.integrations[0].failureCount).toBe(3);
     });
   });
 });

@@ -22,10 +22,12 @@
  */
 
 // biome-ignore lint/style/noRestrictedImports: Logger in Adapter ist erlaubt
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { Result } from '@domain/common/result';
 import type { IHiOrgServerPort, HiOrgConnectionInfo, HiOrgPersonDto, HiOrgFetchOptions, HiOrgQualifikation, HiOrgAusbildung } from '@domain/ports/i-hiorg-server.port';
 import { INTEGRATION_ERROR_CODES, IntegrationError } from '@domain/integrations/common/integration-error-codes';
+import { RESILIENCE } from '@infrastructure/di-tokens';
+import { CircuitBreakerService } from '@infrastructure/resilience/circuit-breaker.service';
 
 /** Base URL der HiOrg-Server API */
 const BASE_URL = 'https://api.hiorg-server.de/core/v1';
@@ -72,6 +74,9 @@ interface JsonApiResource {
 export class HiOrgServerAdapter implements IHiOrgServerPort {
   private readonly logger = new Logger(HiOrgServerAdapter.name);
 
+  /** Circuit Breaker Service-Name fuer HiOrg-Server Integration */
+  private static readonly CB_SERVICE_NAME = 'hiorg-server';
+
   /**
    * Zeitpunkt des letzten API-Requests für Rate Limiting.
    *
@@ -87,87 +92,88 @@ export class HiOrgServerAdapter implements IHiOrgServerPort {
    */
   private readonly minRequestInterval = 2000;
 
+  constructor(@Inject(RESILIENCE.CIRCUIT_BREAKER) private readonly circuitBreaker: CircuitBreakerService) {
+    this.circuitBreaker.register(HiOrgServerAdapter.CB_SERVICE_NAME);
+  }
+
   /**
    * Testet die Verbindung zum HiOrg-Server.
    *
    * Ruft den Organisations-Stammdaten-Endpoint auf.
    * Die Organisation wird anhand des Tokens automatisch ermittelt.
+   * Geschuetzt durch Circuit Breaker (Story 5.3).
    */
   async testConnection(token: string): Promise<Result<HiOrgConnectionInfo>> {
-    try {
+    return this.circuitBreaker.execute<HiOrgConnectionInfo>(HiOrgServerAdapter.CB_SERVICE_NAME, async () => {
       const response = await this.fetchWithAuth<JsonApiResponse<JsonApiResource>>(`${BASE_URL}/organisation/selbst/stammdaten`, token);
 
       if (response.isFailure) {
-        return Result.fail(response.error!);
+        throw new Error(response.error!);
       }
 
       const data = response.value!.data;
       const attributes = Array.isArray(data) ? data[0]?.attributes : data.attributes;
 
-      return Result.ok({
+      return {
         organisationName: (attributes?.name as string) || 'Unbekannte Organisation',
         testedAt: new Date(),
-      });
-    } catch (error) {
-      this.logger.error('Connection test failed', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        name: error instanceof Error ? error.name : undefined,
-      });
-      return Result.fail(IntegrationError.format(INTEGRATION_ERROR_CODES.CONNECTION_FAILED, 'Verbindung zu HiOrg-Server fehlgeschlagen'));
-    }
+      };
+    });
   }
 
   /**
    * Lädt Personen aus HiOrg-Server.
    *
    * Die Organisation wird anhand des Tokens automatisch ermittelt.
+   * Geschuetzt durch Circuit Breaker (Story 5.3).
    */
   async fetchPersons(token: string, options?: HiOrgFetchOptions): Promise<Result<HiOrgPersonDto[]>> {
-    try {
-      // URL mit Filter-Parametern aufbauen
-      const url = new URL(`${BASE_URL}/personal`);
+    return this.circuitBreaker.execute<HiOrgPersonDto[]>(
+      HiOrgServerAdapter.CB_SERVICE_NAME,
+      async () => {
+        // URL mit Filter-Parametern aufbauen
+        const url = new URL(`${BASE_URL}/personal`);
 
-      if (options?.updatedSince) {
-        url.searchParams.set('filter[updated_since]', options.updatedSince.toISOString());
-      }
-
-      if (options?.status?.length) {
-        url.searchParams.set('filter[status]', options.status.join(','));
-      }
-
-      const response = await this.fetchWithAuth<JsonApiResponse<JsonApiResource>>(url.toString(), token);
-
-      if (response.isFailure) {
-        return Result.fail(response.error!);
-      }
-
-      const data = response.value!.data;
-      const resources = Array.isArray(data) ? data : [data];
-
-      // Personen mit Ausbildungen laden (separate Requests pro Person)
-      const persons: HiOrgPersonDto[] = [];
-
-      for (const resource of resources) {
-        const person = this.mapResourceToPerson(resource);
-
-        // Ausbildungen laden (optional, bei Bedarf)
-        const ausbildungenResult = await this.fetchAusbildungen(resource.id, token);
-        if (ausbildungenResult.isSuccess && ausbildungenResult.value) {
-          person.ausbildungen = ausbildungenResult.value;
+        if (options?.updatedSince) {
+          url.searchParams.set('filter[updated_since]', options.updatedSince.toISOString());
         }
 
-        persons.push(person);
-      }
+        if (options?.status?.length) {
+          url.searchParams.set('filter[status]', options.status.join(','));
+        }
 
-      this.logger.log(`Fetched ${persons.length} persons from HiOrg-Server`);
-      return Result.ok(persons);
-    } catch (error) {
-      this.logger.error('Fetch persons failed', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        name: error instanceof Error ? error.name : undefined,
-      });
-      return Result.fail(IntegrationError.format(INTEGRATION_ERROR_CODES.CONNECTION_FAILED, 'Personenabruf von HiOrg-Server fehlgeschlagen'));
-    }
+        const response = await this.fetchWithAuth<JsonApiResponse<JsonApiResource>>(url.toString(), token);
+
+        if (response.isFailure) {
+          throw new Error(response.error!);
+        }
+
+        const data = response.value!.data;
+        const resources = Array.isArray(data) ? data : [data];
+
+        // Personen mit Ausbildungen laden (separate Requests pro Person)
+        const persons: HiOrgPersonDto[] = [];
+
+        for (const resource of resources) {
+          const person = this.mapResourceToPerson(resource);
+
+          // Ausbildungen laden (optional, bei Bedarf)
+          const ausbildungenResult = await this.fetchAusbildungen(resource.id, token);
+          if (ausbildungenResult.isSuccess && ausbildungenResult.value) {
+            person.ausbildungen = ausbildungenResult.value;
+          }
+
+          persons.push(person);
+        }
+
+        this.logger.log(`Fetched ${persons.length} persons from HiOrg-Server`);
+        return persons;
+      },
+      async () => {
+        this.logger.warn('HiOrg-Server Circuit OPEN - returniere leere Personenliste als Fallback');
+        return [];
+      },
+    );
   }
 
   /**
@@ -193,7 +199,8 @@ export class HiOrgServerAdapter implements IHiOrgServerPort {
           lehrgangsnummer: r.attributes.lehrgangsnummer as string | undefined,
         })),
       );
-    } catch {
+    } catch (error) {
+      this.logger.warn(`HiOrg-Server: Ausbildungen fuer Person ${personId} konnten nicht geladen werden: ${error instanceof Error ? error.message : 'Unbekannt'}`);
       return Result.ok([]); // Bei Fehler leere Liste (nicht kritisch)
     }
   }

@@ -31,6 +31,7 @@ export const useCreateBefehl = (einsatzId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation<BefehlDto, ResponseError, CreateBefehlDto, CreateBefehlMutationContext>({
+    mutationKey: ['befehl', 'create', einsatzId],
     mutationFn: async (data) => {
       const response = await api.befehle().befehlControllerCreateVAlpha({
         createBefehlDto: data,
@@ -49,10 +50,13 @@ export const useCreateBefehl = (einsatzId: string) => {
           nummer: '...',
           status: BefehlDtoStatusEnum.Erteilt,
           befehlstyp: BefehlDtoBefehlstypEnum.Kurzbefehl,
+          befehlsgeberName: newBefehl.befehlsgeber,
           erteiltAm: new Date(),
-          empfaenger: newBefehl.empfaengerIds.map((empfId) => ({
-            id: `temp-${empfId}`,
-            empfaengerId: empfId,
+          empfaenger: newBefehl.empfaenger.map((e) => ({
+            id: `temp-${e.name}`,
+            name: e.name,
+            empfaengerId: e.empfaengerId,
+            istQuittierbar: !!e.empfaengerId,
           })),
           kommentare: [],
           createdAt: new Date(),
@@ -70,7 +74,7 @@ export const useCreateBefehl = (einsatzId: string) => {
     },
     onSettled: async () => {
       await queryClient.invalidateQueries({
-        queryKey: BEFEHL_QUERY_KEYS.list(einsatzId),
+        queryKey: BEFEHL_QUERY_KEYS.listPrefix(einsatzId),
       });
     },
     retry: 3,

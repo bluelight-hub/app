@@ -2,8 +2,11 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { BefehlApplicationModule } from '@/application/befehl/befehl-application.module';
+import { PrismaModule } from '@/infrastructure/database/prisma.module';
+import { ResilienceModule } from '@/infrastructure/resilience/resilience.module';
 import { BefehlController } from './controllers/befehl.controller';
 import { BefehlGateway } from './gateways/befehl.gateway';
+import { BefehlRollenGuard } from '@/modules/common/guards/befehl-rollen.guard';
 import { WsJwtAuthGuard } from '@/modules/erinnerung/guards/ws-jwt-auth.guard';
 
 /**
@@ -36,6 +39,8 @@ import { WsJwtAuthGuard } from '@/modules/erinnerung/guards/ws-jwt-auth.guard';
 @Module({
   imports: [
     BefehlApplicationModule,
+    PrismaModule,
+    ResilienceModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
@@ -44,7 +49,7 @@ import { WsJwtAuthGuard } from '@/modules/erinnerung/guards/ws-jwt-auth.guard';
     }),
   ],
   controllers: [BefehlController],
-  providers: [BefehlGateway, WsJwtAuthGuard],
+  providers: [BefehlGateway, WsJwtAuthGuard, BefehlRollenGuard],
   exports: [BefehlGateway],
 })
 export class BefehlModule {}

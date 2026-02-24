@@ -13,6 +13,7 @@ import {
   AdminKraefteRollenApi,
   AdminStammdatenFahrzeugeApi,
   AdminStammdatenPersonenApi,
+  AufbewahrungApi,
   AuthApi,
   BefehleApi,
   Configuration,
@@ -95,6 +96,7 @@ export const getBaseUrl = (): string => {
 class BackendApi {
   private readonly configuration: Configuration;
   private readonly adminApi: AdminApi;
+  private readonly aufbewahrungApi: AufbewahrungApi;
   private readonly healthApi: HealthApi;
   private readonly authApi: AuthApi;
   private readonly befehleApi: BefehleApi;
@@ -143,6 +145,7 @@ class BackendApi {
 
     // API-Instanzen werden einmalig erstellt und gecacht
     this.adminApi = new AdminApi(this.configuration);
+    this.aufbewahrungApi = new AufbewahrungApi(this.configuration);
     this.healthApi = new HealthApi(this.configuration);
     this.authApi = new AuthApi(this.configuration);
     this.befehleApi = new BefehleApi(this.configuration);
@@ -182,6 +185,15 @@ class BackendApi {
    */
   admin(): AdminApi {
     return this.adminApi;
+  }
+
+  /**
+   * Gibt die gecachte Aufbewahrungs-API-Instanz zurueck
+   *
+   * @returns Die Aufbewahrungs-API-Instanz fuer DSGVO-Aufbewahrungsregeln
+   */
+  aufbewahrung(): AufbewahrungApi {
+    return this.aufbewahrungApi;
   }
 
   /**

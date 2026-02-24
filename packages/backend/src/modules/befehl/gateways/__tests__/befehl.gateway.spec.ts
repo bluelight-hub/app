@@ -1,13 +1,16 @@
 import { BefehlGateway } from '../befehl.gateway';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import type { Socket } from 'socket.io';
-import type { BefehlErstelltPayload, BefehlZugestelltPayload, BefehlStatusGeaendertPayload, BefehlKommentarHinzugefuegtPayload } from '../befehl.gateway';
+import type { BefehlErstelltPayload, BefehlZugestelltPayload, BefehlStatusGeaendertPayload, BefehlKommentarHinzugefuegtPayload, RolleGeaendertPayload } from '../befehl.gateway';
+import { CircuitBreakerService } from '@infrastructure/resilience/circuit-breaker.service';
 
 describe('BefehlGateway', () => {
   let gateway: BefehlGateway;
   let mockLogger: jest.Mocked<ILogger>;
-  let mockServer: { to: jest.Mock };
+  let mockCircuitBreaker: jest.Mocked<CircuitBreakerService>;
+  let mockServer: { to: jest.Mock; emit: jest.Mock };
   let mockEmit: jest.Mock;
+  let mockWsGauge: { inc: jest.Mock; dec: jest.Mock };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -19,12 +22,26 @@ describe('BefehlGateway', () => {
       debug: jest.fn(),
     } as unknown as jest.Mocked<ILogger>;
 
+    mockCircuitBreaker = {
+      onStateChange: jest.fn(),
+      register: jest.fn(),
+      registerIfNotExists: jest.fn(),
+      execute: jest.fn(),
+      getState: jest.fn(),
+      getAllStatus: jest.fn(),
+      reset: jest.fn(),
+      isOpen: jest.fn(),
+    } as unknown as jest.Mocked<CircuitBreakerService>;
+
     mockEmit = jest.fn();
     mockServer = {
       to: jest.fn().mockReturnValue({ emit: mockEmit }),
+      emit: jest.fn(),
     };
 
-    gateway = new BefehlGateway(mockLogger, {} as any);
+    mockWsGauge = { inc: jest.fn(), dec: jest.fn() };
+
+    gateway = new BefehlGateway(mockLogger, mockCircuitBreaker, mockWsGauge as any, {} as any);
     (gateway as any).server = mockServer;
   });
 
@@ -125,9 +142,9 @@ describe('BefehlGateway', () => {
         einsatzId: TEST_EINSATZ_ID,
         nummer: 'B-001',
         auftrag: 'Testauftrag',
-        befehlsgeberId: 'geber-1',
+        befehlsgeberName: 'EL Müller',
         erstellerId: 'ersteller-1',
-        empfaengerIds: ['emp-1', 'emp-2'],
+        empfaenger: ['ZF Nord', 'ZF Süd'],
         status: 'ERTEILT',
         erteiltAm: '2026-02-17T10:00:00Z',
       };
@@ -144,9 +161,9 @@ describe('BefehlGateway', () => {
         einsatzId: TEST_EINSATZ_ID,
         nummer: 'B-001',
         auftrag: 'Testauftrag',
-        befehlsgeberId: 'geber-1',
+        befehlsgeberName: 'EL Müller',
         erstellerId: 'ersteller-1',
-        empfaengerIds: ['emp-1'],
+        empfaenger: ['ZF Nord'],
         status: 'ERTEILT',
         erteiltAm: '2026-02-17T10:00:00Z',
       };
@@ -250,6 +267,72 @@ describe('BefehlGateway', () => {
       gateway.emitBefehlKommentarHinzugefuegt(payload);
 
       expect(mockLogger.log).toHaveBeenCalledWith(expect.stringContaining('kommentarId=kommentar-1'), 'BefehlGateway');
+    });
+  });
+
+  describe('emitRolleGeaendert', () => {
+    it('sollte Event an korrekten Room emittieren', () => {
+      // Given - Rolle geaendert Payload
+      const payload: RolleGeaendertPayload = {
+        einsatzId: TEST_EINSATZ_ID,
+        timestamp: '2026-02-23T12:00:00Z',
+      };
+
+      // When - Event emittieren
+      gateway.emitRolleGeaendert(payload);
+
+      // Then - Event an Room gesendet
+      expect(mockServer.to).toHaveBeenCalledWith(EXPECTED_ROOM);
+      expect(mockEmit).toHaveBeenCalledWith('rolle.geaendert', payload);
+    });
+
+    it('sollte Emission loggen', () => {
+      // Given - Payload
+      const payload: RolleGeaendertPayload = {
+        einsatzId: TEST_EINSATZ_ID,
+        timestamp: '2026-02-23T12:00:00Z',
+      };
+
+      // When - Event emittieren
+      gateway.emitRolleGeaendert(payload);
+
+      // Then - Emission geloggt
+      expect(mockLogger.log).toHaveBeenCalledWith(expect.stringContaining('rolle.geaendert'), 'BefehlGateway');
+    });
+  });
+
+  describe('afterInit', () => {
+    it('sollte Circuit Breaker State Change Listener registrieren', () => {
+      gateway.afterInit();
+
+      expect(mockCircuitBreaker.onStateChange).toHaveBeenCalledWith(expect.any(Function));
+      expect(mockLogger.log).toHaveBeenCalledWith(expect.stringContaining('Circuit Breaker WebSocket listener registriert'), 'BefehlGateway');
+    });
+  });
+
+  describe('emitIntegrationStatusChanged', () => {
+    it('sollte Event global an alle Clients emittieren', () => {
+      const payload = {
+        serviceName: 'hiorg-server',
+        state: 'OPEN' as const,
+        timestamp: '2026-02-23T10:00:00Z',
+      };
+
+      gateway.emitIntegrationStatusChanged(payload);
+
+      expect(mockServer.emit).toHaveBeenCalledWith('integration.status_changed', payload);
+    });
+
+    it('sollte Emission loggen', () => {
+      const payload = {
+        serviceName: 'etb',
+        state: 'CLOSED' as const,
+        timestamp: '2026-02-23T10:00:00Z',
+      };
+
+      gateway.emitIntegrationStatusChanged(payload);
+
+      expect(mockLogger.log).toHaveBeenCalledWith(expect.stringContaining('integration.status_changed'), 'BefehlGateway');
     });
   });
 });

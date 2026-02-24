@@ -130,6 +130,9 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get einsatzRollenbesetzung() {
     return this._client.einsatzRollenbesetzung;
   }
+  get einsatzRollenzuweisung() {
+    return this._client.einsatzRollenzuweisung;
+  }
   get integrationCredential() {
     return this._client.integrationCredential;
   }
@@ -180,6 +183,12 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   }
   get befehlKommentar() {
     return this._client.befehlKommentar;
+  }
+  get aufbewahrungsKonfiguration() {
+    return this._client.aufbewahrungsKonfiguration;
+  }
+  get complianceReport() {
+    return this._client.complianceReport;
   }
 
   // Delegate Prisma Client methods

@@ -40,6 +40,9 @@ export {
   // Aktive Teilnehmer (Story 3.3 - Erinnerung zuweisen)
   useAktiveEinsatzTeilnehmer,
   AKTIVE_TEILNEHMER_QUERY_KEYS,
+  // Einsatz-Rollen (Story 5.2 - Rollenmanagement)
+  useEinsatzRollen,
+  useUpdateEinsatzRollen,
 } from './api';
 
 // ============================================

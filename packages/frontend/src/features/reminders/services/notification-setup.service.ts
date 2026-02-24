@@ -17,14 +17,38 @@ import { z } from 'zod';
 import { logger } from '@/shared/lib/logger';
 
 /**
- * Schema für Runtime-Validierung der Notification extra Daten.
+ * Schema fuer Runtime-Validierung der Notification extra Daten.
  *
- * Verhindert unsichere Type-Assertions bei externen Daten.
+ * Nutzt Zod discriminated union ueber das `type` Feld fuer robuste
+ * Unterscheidung zwischen Erinnerung- und Befehl-Notifications.
+ *
+ * Zusaetzlich Fallback-Schemas ohne `type` fuer Rueckwaertskompatibilitaet
+ * mit bestehenden Notifications die noch kein type-Feld haben.
  */
-const notificationExtraSchema = z.object({
+const typedErinnerungSchema = z.object({
+  type: z.literal('erinnerung'),
   erinnerungId: z.string().min(1),
   einsatzId: z.string().min(1),
 });
+
+const typedBefehlSchema = z.object({
+  type: z.literal('befehl'),
+  befehlId: z.string().min(1),
+  einsatzId: z.string().min(1),
+});
+
+// Fallback-Schemas ohne type-Feld (Rueckwaertskompatibilitaet)
+const legacyErinnerungSchema = z.object({
+  erinnerungId: z.string().min(1),
+  einsatzId: z.string().min(1),
+});
+
+const legacyBefehlSchema = z.object({
+  befehlId: z.string().min(1),
+  einsatzId: z.string().min(1),
+});
+
+const notificationExtraSchema = z.union([typedErinnerungSchema, typedBefehlSchema, legacyBefehlSchema, legacyErinnerungSchema]);
 
 /** Channel ID für Erinnerungen */
 export const ERINNERUNG_CHANNEL_ID = 'erinnerungen';
@@ -35,19 +59,41 @@ export const ERINNERUNG_ACTION_TYPE_ID = 'erinnerung-action';
 /** Action ID für "Öffnen" Button */
 export const ERINNERUNG_ACTION_OPEN_ID = 'open-erinnerung';
 
+/** Channel ID für Befehle */
+export const BEFEHL_CHANNEL_ID = 'befehle';
+
+/** Action Type ID für Befehl-Notifications */
+export const BEFEHL_ACTION_TYPE_ID = 'befehl-action';
+
+/** Action ID für "Öffnen" Button bei Befehlen */
+export const BEFEHL_ACTION_OPEN_ID = 'open-befehl';
+
 /**
- * Callback-Typ für Navigation bei Notification-Klick
+ * Callback-Typ für Navigation bei Erinnerung-Notification-Klick
  */
 export type NavigateToErinnerungCallback = (einsatzId: string, erinnerungId: string) => void;
 
 /**
- * Pending Navigation Eintrag
+ * Callback-Typ für Navigation bei Befehl-Notification-Klick
+ */
+export type NavigateToBefehlCallback = (einsatzId: string, befehlId: string) => void;
+
+/**
+ * Pending Navigation Eintrag für Erinnerungen
  *
  * Speichert Navigationsanfragen die vor Callback-Registrierung eintrafen.
  */
 interface PendingNavigation {
   einsatzId: string;
   erinnerungId: string;
+}
+
+/**
+ * Pending Navigation Eintrag für Befehle
+ */
+interface PendingBefehlNavigation {
+  einsatzId: string;
+  befehlId: string;
 }
 
 /**
@@ -63,8 +109,10 @@ interface PendingNavigation {
 class NotificationSetupService {
   private isInitialized = false;
   private navigateCallback: NavigateToErinnerungCallback | null = null;
+  private navigateBefehlCallback: NavigateToBefehlCallback | null = null;
   private actionListenerUnsubscribe: (() => void) | null = null;
   private pendingNavigations: PendingNavigation[] = [];
+  private pendingBefehlNavigations: PendingBefehlNavigation[] = [];
 
   /**
    * Initialisiert Notification Channels und Action Types
@@ -89,6 +137,7 @@ class NotificationSetupService {
       this.cleanup();
 
       await this.createErinnerungChannel();
+      await this.createBefehlChannel();
       await this.registerActionTypes();
       await this.registerActionHandler();
 
@@ -140,6 +189,30 @@ class NotificationSetupService {
   }
 
   /**
+   * Registriert Callback für Navigation bei Befehl-Notification-Klick
+   *
+   * Verarbeitet automatisch alle pending Befehl-Navigationen die vor der
+   * Callback-Registrierung eingetroffen sind (Race Condition Fix).
+   *
+   * @param callback - Wird aufgerufen mit (einsatzId, befehlId)
+   */
+  setNavigateBefehlCallback(callback: NavigateToBefehlCallback): void {
+    this.navigateBefehlCallback = callback;
+
+    // Verarbeite alle pending Befehl-Navigationen
+    if (this.pendingBefehlNavigations.length > 0) {
+      logger.info(`[NotificationSetup] Processing ${this.pendingBefehlNavigations.length} pending befehl navigation(s)`);
+
+      for (const pending of this.pendingBefehlNavigations) {
+        logger.info('[NotificationSetup] Executing pending befehl navigation:', pending);
+        callback(pending.einsatzId, pending.befehlId);
+      }
+
+      this.pendingBefehlNavigations = [];
+    }
+  }
+
+  /**
    * Erstellt Notification Channel mit High Importance
    *
    * Android/Desktop: Notifications werden prominent angezeigt
@@ -179,6 +252,37 @@ class NotificationSetupService {
   }
 
   /**
+   * Erstellt Befehl Notification Channel mit High Importance
+   *
+   * Analog zum Erinnerung-Channel, aber für Befehl-Notifications.
+   */
+  private async createBefehlChannel(): Promise<void> {
+    try {
+      const { createChannel, Importance, Visibility } = await import('@tauri-apps/plugin-notification');
+
+      await createChannel({
+        id: BEFEHL_CHANNEL_ID,
+        name: 'Befehle',
+        description: 'Benachrichtigungen für neue Befehle',
+        importance: Importance.High,
+        visibility: Visibility.Public,
+        vibration: true,
+        lights: true,
+      });
+
+      logger.info('[NotificationSetup] Befehl channel created with High Importance');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('already exists') || errorMessage.includes('not allowed') || errorMessage.includes('not found')) {
+        logger.debug('[NotificationSetup] Befehl channel API not available on this platform (expected on macOS)');
+        return;
+      }
+      logger.error('[NotificationSetup] Failed to create befehl channel:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Registriert Action Types für Notification-Buttons
    *
    * **Hinweis:** Nicht auf allen Plattformen verfügbar (z.B. nicht auf macOS).
@@ -195,6 +299,16 @@ class NotificationSetupService {
               id: ERINNERUNG_ACTION_OPEN_ID,
               title: 'Öffnen',
               foreground: true, // App in Vordergrund bringen
+            },
+          ],
+        },
+        {
+          id: BEFEHL_ACTION_TYPE_ID,
+          actions: [
+            {
+              id: BEFEHL_ACTION_OPEN_ID,
+              title: 'Öffnen',
+              foreground: true,
             },
           ],
         },
@@ -238,25 +352,31 @@ class NotificationSetupService {
           return;
         }
 
-        const { einsatzId, erinnerungId } = parseResult.data;
+        const data = parseResult.data;
 
-        if (this.navigateCallback) {
-          // Callback vorhanden - Navigation sofort ausführen
-          logger.info('[NotificationSetup] Navigating to erinnerung:', {
-            einsatzId,
-            erinnerungId,
-          });
-          this.navigateCallback(einsatzId, erinnerungId);
+        // Anhand der geparsten extra Daten entscheiden ob Erinnerung oder Befehl Navigation
+        if ('befehlId' in data) {
+          // Befehl Navigation
+          const { einsatzId, befehlId } = data;
+
+          if (this.navigateBefehlCallback) {
+            logger.info('[NotificationSetup] Navigating to befehl:', { einsatzId, befehlId });
+            this.navigateBefehlCallback(einsatzId, befehlId);
+          } else {
+            logger.info('[NotificationSetup] Befehl callback not ready, queueing navigation:', { einsatzId, befehlId });
+            this.pendingBefehlNavigations.push({ einsatzId, befehlId });
+          }
         } else {
-          // Callback noch nicht registriert - Navigation in Queue speichern
-          logger.info('[NotificationSetup] Callback not ready, queueing navigation:', {
-            einsatzId,
-            erinnerungId,
-          });
-          this.pendingNavigations.push({
-            einsatzId,
-            erinnerungId,
-          });
+          // Erinnerung Navigation
+          const { einsatzId, erinnerungId } = data;
+
+          if (this.navigateCallback) {
+            logger.info('[NotificationSetup] Navigating to erinnerung:', { einsatzId, erinnerungId });
+            this.navigateCallback(einsatzId, erinnerungId);
+          } else {
+            logger.info('[NotificationSetup] Callback not ready, queueing navigation:', { einsatzId, erinnerungId });
+            this.pendingNavigations.push({ einsatzId, erinnerungId });
+          }
         }
       });
 
@@ -281,4 +401,5 @@ export const notificationSetupService = new NotificationSetupService();
 // Named Exports für einfachere Verwendung
 export const initializeNotificationSetup = () => notificationSetupService.initialize();
 export const setNotificationNavigateCallback = (callback: NavigateToErinnerungCallback) => notificationSetupService.setNavigateCallback(callback);
+export const setNotificationNavigateBefehlCallback = (callback: NavigateToBefehlCallback) => notificationSetupService.setNavigateBefehlCallback(callback);
 export const cleanupNotificationSetup = () => notificationSetupService.cleanup();
