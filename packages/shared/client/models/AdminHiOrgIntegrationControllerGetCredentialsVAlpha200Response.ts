@@ -13,13 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
-import type { AuthControllerUnifiedAuth200ResponseMeta } from './AuthControllerUnifiedAuth200ResponseMeta';
+import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
-    AuthControllerUnifiedAuth200ResponseMetaFromJSON,
-    AuthControllerUnifiedAuth200ResponseMetaFromJSONTyped,
-    AuthControllerUnifiedAuth200ResponseMetaToJSON,
-    AuthControllerUnifiedAuth200ResponseMetaToJSONTyped,
-} from './AuthControllerUnifiedAuth200ResponseMeta';
+    HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
+    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
+    HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
+    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import type { HiOrgCredentialsResponseDto } from './HiOrgCredentialsResponseDto';
 import {
     HiOrgCredentialsResponseDtoFromJSON,
@@ -42,10 +42,10 @@ export interface AdminHiOrgIntegrationControllerGetCredentialsVAlpha200Response 
     data: HiOrgCredentialsResponseDto;
     /**
      * 
-     * @type {AuthControllerUnifiedAuth200ResponseMeta}
+     * @type {HealthControllerGetIntegrationHealth200ResponseMeta}
      * @memberof AdminHiOrgIntegrationControllerGetCredentialsVAlpha200Response
      */
-    meta: AuthControllerUnifiedAuth200ResponseMeta;
+    meta: HealthControllerGetIntegrationHealth200ResponseMeta;
 }
 
 /**
@@ -68,7 +68,7 @@ export function AdminHiOrgIntegrationControllerGetCredentialsVAlpha200ResponseFr
     return {
         
         'data': HiOrgCredentialsResponseDtoFromJSON(json['data']),
-        'meta': AuthControllerUnifiedAuth200ResponseMetaFromJSON(json['meta']),
+        'meta': HealthControllerGetIntegrationHealth200ResponseMetaFromJSON(json['meta']),
     };
 }
 
@@ -84,7 +84,7 @@ export function AdminHiOrgIntegrationControllerGetCredentialsVAlpha200ResponseTo
     return {
         
         'data': HiOrgCredentialsResponseDtoToJSON(value['data']),
-        'meta': AuthControllerUnifiedAuth200ResponseMetaToJSON(value['meta']),
+        'meta': HealthControllerGetIntegrationHealth200ResponseMetaToJSON(value['meta']),
     };
 }
 

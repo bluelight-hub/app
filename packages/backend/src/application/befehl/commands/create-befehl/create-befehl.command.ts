@@ -7,8 +7,8 @@
 export class CreateBefehlCommand {
   constructor(
     public readonly einsatzId: string,
-    public readonly empfaengerIds: string[],
-    public readonly befehlsgeberId: string,
+    public readonly empfaenger: { name: string; empfaengerId?: string }[],
+    public readonly befehlsgeber: string,
     public readonly erstellerId: string,
     public readonly auftrag: string,
     public readonly zeitvorgabe?: string,

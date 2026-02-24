@@ -6,6 +6,7 @@ import { EinsatzStatusBadge } from '@/features/einsatz/ui/molecules/einsatz-stat
 import { ModuleButton } from '@/features/einsatz/ui/molecules/ModuleButton';
 import { ModuleOverviewCard } from '@/features/einsatz/ui/molecules/ModuleOverviewCard';
 import { EinsatzBeitrittDialog } from '@/features/einsatz/ui/organisms';
+import { EinsatzSwitcher } from '@/features/einsatz/ui/molecules/EinsatzSwitcher.molecule';
 import {
   QuickCreateErinnerungDialog,
   ErinnerungEditDialog,
@@ -481,6 +482,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
               {/* Sidebar with Sub-Pages */}
               <aside className="hidden w-64 flex-shrink-0 pt-6 lg:block">
                 <div className="sticky top-36 space-y-1">
+                  <EinsatzSwitcher />
                   <h3 className="mb-2 px-3 font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">{currentModule.name} Navigation</h3>
                   {currentModule.subPages.map((page) => {
                     const isActive = !!matchRoute({ to: page.href });

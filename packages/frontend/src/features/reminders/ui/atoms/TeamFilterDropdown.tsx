@@ -98,7 +98,7 @@ export function TeamFilterDropdown({ selectedFilter, onFilterChange, teilnehmer,
   );
 
   return (
-    <Listbox value={selectedValue} onChange={handleChange} disabled={disabled}>
+    <Listbox as="div" value={selectedValue} onChange={handleChange} disabled={disabled}>
       <div className={cn('relative', className)}>
         <ListboxButton
           className={cn(

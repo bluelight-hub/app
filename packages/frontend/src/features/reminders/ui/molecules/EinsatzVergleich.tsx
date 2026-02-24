@@ -73,7 +73,7 @@ export function EinsatzVergleich({ einsatzId, className }: EinsatzVergleichProps
           ) : (
             <div className="flex flex-col gap-4">
               <div className="relative">
-                <Listbox value={selectedEinsatzIds} onChange={setSelectedEinsatzIds} multiple>
+                <Listbox as="div" value={selectedEinsatzIds} onChange={setSelectedEinsatzIds} multiple>
                   <ListboxButton className="relative w-full cursor-pointer rounded-lg border border-slate-300 bg-white py-2 pr-10 pl-3 text-left text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800">
                     {selectedEinsatzIds.length === 0 ? 'Einsätze zum Vergleich auswählen...' : `${selectedEinsatzIds.length} Einsatz/Einsätze ausgewählt`}
                   </ListboxButton>

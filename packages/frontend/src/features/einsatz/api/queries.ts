@@ -66,6 +66,9 @@ export const EINSATZ_QUERY_KEYS = {
 
   // StammFahrzeuge Queries (für Fahrzeugauswahl)
   stammFahrzeuge: () => ['stamm_fahrzeuge'] as const,
+
+  // Rollen-Queries (Story 5.2)
+  rollen: (einsatzId: string) => [...EINSATZ_QUERY_KEYS.detail(einsatzId), 'rollen'] as const,
 } as const;
 
 /**

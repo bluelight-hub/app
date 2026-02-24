@@ -22,6 +22,15 @@ import {
   NotizAktualisiertEventAdapter,
   NotizGeloeschtEventAdapter,
   BefehlEventAdapter,
+  BefehlErstelltEtbEventAdapter,
+  BefehlQuittiertEtbEventAdapter,
+  RolleGeaendertEtbEventAdapter,
+  RolleGeaendertWebsocketEventAdapter,
+  BefehlAnonymisiertEtbEventAdapter,
+  BefehlGeloeschtEtbEventAdapter,
+  AufbewahrungsKonfigurationGeaendertEtbEventAdapter,
+  SystemWarnungWebSocketEventAdapter,
+  SystemWarnungEtbEventAdapter,
   // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
   // KategorieErstelltEventAdapter,
   // KategorieGeloeschtEventAdapter,
@@ -36,6 +45,7 @@ import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.a
 import { ErinnerungModule } from '@/modules/erinnerung/erinnerung.module';
 import { BefehlModule } from '@/modules/befehl/befehl.module';
 import { OutboxModule } from '@infrastructure/outbox/outbox.module';
+import { ResilienceModule } from '@infrastructure/resilience/resilience.module';
 
 /**
  * NestJS Module für Event Adapters (Framework-zu-Application Delegation).
@@ -95,6 +105,8 @@ import { OutboxModule } from '@infrastructure/outbox/outbox.module';
     BefehlModule,
     // OutboxModule für EventDeserializer (Event Consumer Validation)
     OutboxModule,
+    // ResilienceModule für Circuit Breaker (Story 4.3: ETB Event Adapters)
+    ResilienceModule,
   ],
   providers: [
     // Logger für Event Adapters (Infrastructure Logging)
@@ -125,6 +137,15 @@ import { OutboxModule } from '@infrastructure/outbox/outbox.module';
     NotizAktualisiertEventAdapter, // Story 7.3: NotizAktualisiert ETB-Eintrag
     NotizGeloeschtEventAdapter, // Story 7.4: NotizGeloescht ETB-Eintrag
     BefehlEventAdapter, // Story 1.3: WebSocket Event Adapter fuer Befehl Domain Events
+    BefehlErstelltEtbEventAdapter, // Story 4.3: BefehlErstellt ETB-Eintrag
+    BefehlQuittiertEtbEventAdapter, // Story 4.3: BefehlQuittiert ETB-Eintrag
+    RolleGeaendertEtbEventAdapter, // Story 5.4 AC4: RolleGeaendert ETB-Eintrag
+    RolleGeaendertWebsocketEventAdapter, // Story 5.4 AC3: RolleGeaendert WebSocket-Broadcast
+    BefehlAnonymisiertEtbEventAdapter, // Story 5.5 AC2: BefehlAnonymisiert ETB-Eintrag
+    BefehlGeloeschtEtbEventAdapter, // Story 5.5 AC3: BefehlGeloescht ETB-Eintrag
+    AufbewahrungsKonfigurationGeaendertEtbEventAdapter, // Story 5.5 AC1: Konfig-Änderung Audit-Log
+    SystemWarnungWebSocketEventAdapter, // Story 5.6 AC3: SystemWarnung WebSocket-Broadcast
+    SystemWarnungEtbEventAdapter, // Story 5.6 AC3: SystemWarnung Audit-Log
     // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
     // KategorieErstelltEventAdapter, // Story 8.1: KategorieErstellt ETB-Eintrag
     // KategorieGeloeschtEventAdapter, // Story 8.1: KategorieGeloescht ETB-Eintrag

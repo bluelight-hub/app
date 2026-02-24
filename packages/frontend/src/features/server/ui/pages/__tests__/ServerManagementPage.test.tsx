@@ -61,6 +61,13 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
   };
 });
 
+// Mock für Route.useSearch() (ServerManagementPage nutzt Route aus @/routes/server/manage)
+vi.mock('@/routes/server/manage', () => ({
+  Route: {
+    useSearch: () => ({ reason: undefined }),
+  },
+}));
+
 // Mock Server-Daten für Sortierungstest und Delete-Tests
 let mockServersForList: Array<{ id: string; name: string; url: string; lastUsedAt: string | null }> = [];
 let mockServerCount = 2; // Default: Mehr als 1 Server für Tests

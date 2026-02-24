@@ -19,7 +19,7 @@ import { CreateBefehlCommand } from './create-befehl.command';
  * Befehl Aggregate und Domain Events in einer Datenbank-Transaktion.
  *
  * **Transactional Flow:**
- * 1. Validiert EinsatzId, UserId-Formate
+ * 1. Validiert EinsatzId, ErstellerId (UserId-Formate)
  * 2. Erstellt Befehl Aggregate via Factory Method
  * 3. Speichert Aggregate in Transaction (via Repository)
  * 4. Extrahiert Domain Events vom Aggregate
@@ -44,35 +44,30 @@ export class CreateBefehlHandler extends TransactionalCommandHandler<CreateBefeh
     }
     const einsatzId = einsatzIdResult.value as EinsatzId;
 
-    // 2. Validate EmpfängerIds
-    const empfaengerIds: UserId[] = [];
-    for (const id of command.empfaengerIds) {
-      const userIdResult = UserId.create(id);
-      if (userIdResult.isFailure) {
-        return Result.fail(userIdResult.error ?? `Ungültige Empfänger-ID: ${id}`);
-      }
-      empfaengerIds.push(userIdResult.value as UserId);
-    }
-
-    // 3. Validate BefehlsgeberId
-    const befehlsgeberIdResult = UserId.create(command.befehlsgeberId);
-    if (befehlsgeberIdResult.isFailure) {
-      return Result.fail(befehlsgeberIdResult.error ?? 'Ungültige Befehlsgeber-ID');
-    }
-    const befehlsgeberId = befehlsgeberIdResult.value as UserId;
-
-    // 4. Validate ErstellerId
+    // 2. Validate ErstellerId (bleibt UserId)
     const erstellerIdResult = UserId.create(command.erstellerId);
     if (erstellerIdResult.isFailure) {
       return Result.fail(erstellerIdResult.error ?? 'Ungültige Ersteller-ID');
     }
     const erstellerId = erstellerIdResult.value as UserId;
 
-    // 5. Create Aggregate via Factory Method
+    // 3. Empfaenger-Namen + optionale UserIds parsen
+    const empfaenger = command.empfaenger.map((e) => {
+      let empfaengerId: UserId | undefined;
+      if (e.empfaengerId) {
+        const idResult = UserId.create(e.empfaengerId);
+        if (idResult.isSuccess) {
+          empfaengerId = idResult.value as UserId;
+        }
+      }
+      return { name: e.name, empfaengerId };
+    });
+
+    // 4. Create Aggregate via Factory Method
     const befehlResult = Befehl.create({
       einsatzId,
-      empfaengerIds,
-      befehlsgeberId,
+      empfaenger,
+      befehlsgeber: command.befehlsgeber,
       erstellerId,
       auftrag: command.auftrag,
       zeitvorgabe: command.zeitvorgabe,

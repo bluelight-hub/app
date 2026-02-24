@@ -12,3 +12,5 @@ export { EinsatzResponseDto, type EinsatzCompleteness, type MissingField, type N
 export { StatusCountsQueryDto } from './status-counts-query.dto';
 export { CompletenessQueryDto } from './completeness-query.dto';
 export { AktiveTeilnehmerResponseDto } from './aktive-teilnehmer-response.dto';
+export { EinsatzRolleDto } from './einsatz-rolle.dto';
+export { UpdateEinsatzRollenDto, RollenZuweisungDto } from './update-einsatz-rollen.dto';

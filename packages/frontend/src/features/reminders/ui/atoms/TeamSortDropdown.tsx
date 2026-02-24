@@ -46,8 +46,8 @@ export function TeamSortDropdown({ selectedSort, onSortChange, disabled = false,
   const currentOption = SORT_OPTIONS.find((opt) => opt.value === selectedSort) || SORT_OPTIONS[0];
 
   return (
-    <Listbox value={selectedSort} onChange={onSortChange} disabled={disabled}>
-      <div className={cn('relative', className)}>
+    <Listbox as="div" value={selectedSort} onChange={onSortChange} disabled={disabled} className={cn('relative', className)}>
+      <div>
         <ListboxButton
           aria-label="Sortierung auswählen"
           className={cn(

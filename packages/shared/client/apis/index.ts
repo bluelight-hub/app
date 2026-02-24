@@ -9,6 +9,7 @@ export * from './AdminKraefteRollenApi';
 export * from './AdminStammdatenFahrzeugeApi';
 export * from './AdminStammdatenPersonenApi';
 export * from './AppApi';
+export * from './AufbewahrungApi';
 export * from './AuthApi';
 export * from './BefehleApi';
 export * from './ETBApi';

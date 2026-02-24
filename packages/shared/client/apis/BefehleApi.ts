@@ -15,24 +15,136 @@
 
 import * as runtime from '../runtime';
 import type {
+  AddBefehlKommentarDto,
   BefehlControllerCreateVAlpha201Response,
+  BefehlControllerEmpfaengerSucheVAlpha200Response,
+  BefehlControllerFindByEinsatzVAlpha200Response,
+  BefehlControllerGetHistorieVAlpha200Response,
+  BefehlControllerGetMetrikenVAlpha200Response,
   CreateBefehlDto,
+  KorrigiereBefehlDto,
+  QuittierenBefehlDto,
 } from '../models/index';
 import {
+    AddBefehlKommentarDtoFromJSON,
+    AddBefehlKommentarDtoToJSON,
     BefehlControllerCreateVAlpha201ResponseFromJSON,
     BefehlControllerCreateVAlpha201ResponseToJSON,
+    BefehlControllerEmpfaengerSucheVAlpha200ResponseFromJSON,
+    BefehlControllerEmpfaengerSucheVAlpha200ResponseToJSON,
+    BefehlControllerFindByEinsatzVAlpha200ResponseFromJSON,
+    BefehlControllerFindByEinsatzVAlpha200ResponseToJSON,
+    BefehlControllerGetHistorieVAlpha200ResponseFromJSON,
+    BefehlControllerGetHistorieVAlpha200ResponseToJSON,
+    BefehlControllerGetMetrikenVAlpha200ResponseFromJSON,
+    BefehlControllerGetMetrikenVAlpha200ResponseToJSON,
     CreateBefehlDtoFromJSON,
     CreateBefehlDtoToJSON,
+    KorrigiereBefehlDtoFromJSON,
+    KorrigiereBefehlDtoToJSON,
+    QuittierenBefehlDtoFromJSON,
+    QuittierenBefehlDtoToJSON,
 } from '../models/index';
+
+export interface BefehlControllerAddKommentarVAlphaRequest {
+    id: string;
+    addBefehlKommentarDto: AddBefehlKommentarDto;
+}
 
 export interface BefehlControllerCreateVAlphaRequest {
     createBefehlDto: CreateBefehlDto;
+}
+
+export interface BefehlControllerEmpfaengerSucheVAlphaRequest {
+    q: string;
+    einsatzId: string;
+}
+
+export interface BefehlControllerExportBefehleVAlphaRequest {
+    einsatzId: string;
+    format: BefehlControllerExportBefehleVAlphaFormatEnum;
+}
+
+export interface BefehlControllerFindByEinsatzVAlphaRequest {
+    einsatzId: string;
+    empfaengerId?: string;
+    hasOpenRueckfragen?: boolean;
+    status?: string;
+    empfaengerName?: string;
+    befehlsgeberName?: string;
+    q?: string;
+    von?: string;
+    bis?: string;
+}
+
+export interface BefehlControllerGetHistorieVAlphaRequest {
+    id: string;
+}
+
+export interface BefehlControllerGetMetrikenVAlphaRequest {
+    von?: string;
+    bis?: string;
+}
+
+export interface BefehlControllerKorrigierenVAlphaRequest {
+    id: string;
+    korrigiereBefehlDto: KorrigiereBefehlDto;
+}
+
+export interface BefehlControllerQuittierenVAlphaRequest {
+    id: string;
+    quittierenBefehlDto: QuittierenBefehlDto;
 }
 
 /**
  * 
  */
 export class BefehleApi extends runtime.BaseAPI {
+
+    /**
+     * Fuegt einen Kommentar oder eine Rueckfrage zu einem Befehl hinzu. Unterstuetzt Thread-Antworten via parentId.
+     * Kommentar zu Befehl hinzufuegen
+     */
+    async befehlControllerAddKommentarVAlphaRaw(requestParameters: BefehlControllerAddKommentarVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BefehlControllerCreateVAlpha201Response>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling befehlControllerAddKommentarVAlpha().'
+            );
+        }
+
+        if (requestParameters['addBefehlKommentarDto'] == null) {
+            throw new runtime.RequiredError(
+                'addBefehlKommentarDto',
+                'Required parameter "addBefehlKommentarDto" was null or undefined when calling befehlControllerAddKommentarVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/api/v-alpha/befehle/{id}/kommentare`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: AddBefehlKommentarDtoToJSON(requestParameters['addBefehlKommentarDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => BefehlControllerCreateVAlpha201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Fuegt einen Kommentar oder eine Rueckfrage zu einem Befehl hinzu. Unterstuetzt Thread-Antworten via parentId.
+     * Kommentar zu Befehl hinzufuegen
+     */
+    async befehlControllerAddKommentarVAlpha(requestParameters: BefehlControllerAddKommentarVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BefehlControllerCreateVAlpha201Response> {
+        const response = await this.befehlControllerAddKommentarVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      * Erstellt einen neuen Kurzbefehl mit Empfängern, Befehlsgeber und Auftrag.
@@ -72,4 +184,344 @@ export class BefehleApi extends runtime.BaseAPI {
         return await response.value();
     }
 
+    /**
+     * Durchsucht EinsatzPersonen und StammPersonen fuer die Empfaenger-Auswahl bei Befehlserstellung.
+     * Empfaenger fuer Befehlsadressierung suchen
+     */
+    async befehlControllerEmpfaengerSucheVAlphaRaw(requestParameters: BefehlControllerEmpfaengerSucheVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BefehlControllerEmpfaengerSucheVAlpha200Response>> {
+        if (requestParameters['q'] == null) {
+            throw new runtime.RequiredError(
+                'q',
+                'Required parameter "q" was null or undefined when calling befehlControllerEmpfaengerSucheVAlpha().'
+            );
+        }
+
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling befehlControllerEmpfaengerSucheVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['q'] != null) {
+            queryParameters['q'] = requestParameters['q'];
+        }
+
+        if (requestParameters['einsatzId'] != null) {
+            queryParameters['einsatzId'] = requestParameters['einsatzId'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/befehle/empfaenger-suche`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => BefehlControllerEmpfaengerSucheVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Durchsucht EinsatzPersonen und StammPersonen fuer die Empfaenger-Auswahl bei Befehlserstellung.
+     * Empfaenger fuer Befehlsadressierung suchen
+     */
+    async befehlControllerEmpfaengerSucheVAlpha(requestParameters: BefehlControllerEmpfaengerSucheVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BefehlControllerEmpfaengerSucheVAlpha200Response> {
+        const response = await this.befehlControllerEmpfaengerSucheVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Exportiert alle Befehle eines Einsatzes als CSV- oder JSON-Datei fuer die Nachbereitung.
+     * Befehle exportieren
+     */
+    async befehlControllerExportBefehleVAlphaRaw(requestParameters: BefehlControllerExportBefehleVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling befehlControllerExportBefehleVAlpha().'
+            );
+        }
+
+        if (requestParameters['format'] == null) {
+            throw new runtime.RequiredError(
+                'format',
+                'Required parameter "format" was null or undefined when calling befehlControllerExportBefehleVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['einsatzId'] != null) {
+            queryParameters['einsatzId'] = requestParameters['einsatzId'];
+        }
+
+        if (requestParameters['format'] != null) {
+            queryParameters['format'] = requestParameters['format'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/befehle/export`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Exportiert alle Befehle eines Einsatzes als CSV- oder JSON-Datei fuer die Nachbereitung.
+     * Befehle exportieren
+     */
+    async befehlControllerExportBefehleVAlpha(requestParameters: BefehlControllerExportBefehleVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.befehlControllerExportBefehleVAlphaRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     * Gibt alle Befehle für den angegebenen Einsatz zurück, sortiert nach Erstellungszeitpunkt (neueste zuerst). Unterstützt erweiterte Filter: Status, Empfänger-Name, Befehlsgeber-Name, Freitextsuche (q) und Zeitraum (von/bis). hasOpenRueckfragen hat Vorrang vor empfaengerId. Erweiterte Filter haben Vorrang vor empfaengerId/hasOpenRueckfragen.
+     * Befehle eines Einsatzes abrufen
+     */
+    async befehlControllerFindByEinsatzVAlphaRaw(requestParameters: BefehlControllerFindByEinsatzVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BefehlControllerFindByEinsatzVAlpha200Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling befehlControllerFindByEinsatzVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['einsatzId'] != null) {
+            queryParameters['einsatzId'] = requestParameters['einsatzId'];
+        }
+
+        if (requestParameters['empfaengerId'] != null) {
+            queryParameters['empfaengerId'] = requestParameters['empfaengerId'];
+        }
+
+        if (requestParameters['hasOpenRueckfragen'] != null) {
+            queryParameters['hasOpenRueckfragen'] = requestParameters['hasOpenRueckfragen'];
+        }
+
+        if (requestParameters['status'] != null) {
+            queryParameters['status'] = requestParameters['status'];
+        }
+
+        if (requestParameters['empfaengerName'] != null) {
+            queryParameters['empfaengerName'] = requestParameters['empfaengerName'];
+        }
+
+        if (requestParameters['befehlsgeberName'] != null) {
+            queryParameters['befehlsgeberName'] = requestParameters['befehlsgeberName'];
+        }
+
+        if (requestParameters['q'] != null) {
+            queryParameters['q'] = requestParameters['q'];
+        }
+
+        if (requestParameters['von'] != null) {
+            queryParameters['von'] = requestParameters['von'];
+        }
+
+        if (requestParameters['bis'] != null) {
+            queryParameters['bis'] = requestParameters['bis'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/befehle`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => BefehlControllerFindByEinsatzVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Gibt alle Befehle für den angegebenen Einsatz zurück, sortiert nach Erstellungszeitpunkt (neueste zuerst). Unterstützt erweiterte Filter: Status, Empfänger-Name, Befehlsgeber-Name, Freitextsuche (q) und Zeitraum (von/bis). hasOpenRueckfragen hat Vorrang vor empfaengerId. Erweiterte Filter haben Vorrang vor empfaengerId/hasOpenRueckfragen.
+     * Befehle eines Einsatzes abrufen
+     */
+    async befehlControllerFindByEinsatzVAlpha(requestParameters: BefehlControllerFindByEinsatzVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BefehlControllerFindByEinsatzVAlpha200Response> {
+        const response = await this.befehlControllerFindByEinsatzVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Gibt die vollstaendige Befehlshistorie als chronologische Timeline im Paket-Tracking-Style zurueck.
+     * Befehlshistorie-Timeline abrufen
+     */
+    async befehlControllerGetHistorieVAlphaRaw(requestParameters: BefehlControllerGetHistorieVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BefehlControllerGetHistorieVAlpha200Response>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling befehlControllerGetHistorieVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/befehle/{id}/historie`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => BefehlControllerGetHistorieVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Gibt die vollstaendige Befehlshistorie als chronologische Timeline im Paket-Tracking-Style zurueck.
+     * Befehlshistorie-Timeline abrufen
+     */
+    async befehlControllerGetHistorieVAlpha(requestParameters: BefehlControllerGetHistorieVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BefehlControllerGetHistorieVAlpha200Response> {
+        const response = await this.befehlControllerGetHistorieVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Gibt aggregierte Adoptionsmetriken und Dokumentationsqualitaet ueber alle Einsaetze eines Zeitraums zurueck.
+     * Befehl-Metriken aggregiert abrufen
+     */
+    async befehlControllerGetMetrikenVAlphaRaw(requestParameters: BefehlControllerGetMetrikenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BefehlControllerGetMetrikenVAlpha200Response>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['von'] != null) {
+            queryParameters['von'] = requestParameters['von'];
+        }
+
+        if (requestParameters['bis'] != null) {
+            queryParameters['bis'] = requestParameters['bis'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/befehle/metriken`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => BefehlControllerGetMetrikenVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Gibt aggregierte Adoptionsmetriken und Dokumentationsqualitaet ueber alle Einsaetze eines Zeitraums zurueck.
+     * Befehl-Metriken aggregiert abrufen
+     */
+    async befehlControllerGetMetrikenVAlpha(requestParameters: BefehlControllerGetMetrikenVAlphaRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BefehlControllerGetMetrikenVAlpha200Response> {
+        const response = await this.befehlControllerGetMetrikenVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Erstellt einen Korrekturbefehl und markiert den Original-Befehl als KORRIGIERT. EinsatzId wird vom Original uebernommen.
+     * Korrekturbefehl erstellen
+     */
+    async befehlControllerKorrigierenVAlphaRaw(requestParameters: BefehlControllerKorrigierenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BefehlControllerCreateVAlpha201Response>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling befehlControllerKorrigierenVAlpha().'
+            );
+        }
+
+        if (requestParameters['korrigiereBefehlDto'] == null) {
+            throw new runtime.RequiredError(
+                'korrigiereBefehlDto',
+                'Required parameter "korrigiereBefehlDto" was null or undefined when calling befehlControllerKorrigierenVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/api/v-alpha/befehle/{id}/korrigieren`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: KorrigiereBefehlDtoToJSON(requestParameters['korrigiereBefehlDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => BefehlControllerCreateVAlpha201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Erstellt einen Korrekturbefehl und markiert den Original-Befehl als KORRIGIERT. EinsatzId wird vom Original uebernommen.
+     * Korrekturbefehl erstellen
+     */
+    async befehlControllerKorrigierenVAlpha(requestParameters: BefehlControllerKorrigierenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BefehlControllerCreateVAlpha201Response> {
+        const response = await this.befehlControllerKorrigierenVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Empfaenger quittiert einen Befehl mit Quittierungsart (VERSTANDEN, RUECKFRAGE, NICHT_VERSTANDEN).
+     * Befehl quittieren
+     */
+    async befehlControllerQuittierenVAlphaRaw(requestParameters: BefehlControllerQuittierenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BefehlControllerCreateVAlpha201Response>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling befehlControllerQuittierenVAlpha().'
+            );
+        }
+
+        if (requestParameters['quittierenBefehlDto'] == null) {
+            throw new runtime.RequiredError(
+                'quittierenBefehlDto',
+                'Required parameter "quittierenBefehlDto" was null or undefined when calling befehlControllerQuittierenVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/api/v-alpha/befehle/{id}/quittieren`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: QuittierenBefehlDtoToJSON(requestParameters['quittierenBefehlDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => BefehlControllerCreateVAlpha201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Empfaenger quittiert einen Befehl mit Quittierungsart (VERSTANDEN, RUECKFRAGE, NICHT_VERSTANDEN).
+     * Befehl quittieren
+     */
+    async befehlControllerQuittierenVAlpha(requestParameters: BefehlControllerQuittierenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BefehlControllerCreateVAlpha201Response> {
+        const response = await this.befehlControllerQuittierenVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
 }
+
+/**
+ * @export
+ */
+export const BefehlControllerExportBefehleVAlphaFormatEnum = {
+    Csv: 'csv',
+    Json: 'json'
+} as const;
+export type BefehlControllerExportBefehleVAlphaFormatEnum = typeof BefehlControllerExportBefehleVAlphaFormatEnum[keyof typeof BefehlControllerExportBefehleVAlphaFormatEnum];

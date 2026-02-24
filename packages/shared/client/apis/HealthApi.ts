@@ -18,6 +18,8 @@ import type {
   HealthControllerCheck200Response,
   HealthControllerCheckLiveness200Response,
   HealthControllerCheckLiveness503Response,
+  HealthControllerGetIntegrationHealth200Response,
+  HealthControllerGetSystemHealth200Response,
 } from '../models/index';
 import {
     HealthControllerCheck200ResponseFromJSON,
@@ -26,6 +28,10 @@ import {
     HealthControllerCheckLiveness200ResponseToJSON,
     HealthControllerCheckLiveness503ResponseFromJSON,
     HealthControllerCheckLiveness503ResponseToJSON,
+    HealthControllerGetIntegrationHealth200ResponseFromJSON,
+    HealthControllerGetIntegrationHealth200ResponseToJSON,
+    HealthControllerGetSystemHealth200ResponseFromJSON,
+    HealthControllerGetSystemHealth200ResponseToJSON,
 } from '../models/index';
 
 /**
@@ -128,6 +134,58 @@ export class HealthApi extends runtime.BaseAPI {
      */
     async healthControllerCheckReadiness(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<HealthControllerCheckLiveness200Response> {
         const response = await this.healthControllerCheckReadinessRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Circuit Breaker Status aller externen Integrationen
+     */
+    async healthControllerGetIntegrationHealthRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<HealthControllerGetIntegrationHealth200Response>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/health/integrations`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => HealthControllerGetIntegrationHealth200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Circuit Breaker Status aller externen Integrationen
+     */
+    async healthControllerGetIntegrationHealth(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<HealthControllerGetIntegrationHealth200Response> {
+        const response = await this.healthControllerGetIntegrationHealthRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Aggregierter System-Gesundheitszustand (Admin only)
+     */
+    async healthControllerGetSystemHealthRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<HealthControllerGetSystemHealth200Response>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/health/system`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => HealthControllerGetSystemHealth200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Aggregierter System-Gesundheitszustand (Admin only)
+     */
+    async healthControllerGetSystemHealth(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<HealthControllerGetSystemHealth200Response> {
+        const response = await this.healthControllerGetSystemHealthRaw(initOverrides);
         return await response.value();
     }
 

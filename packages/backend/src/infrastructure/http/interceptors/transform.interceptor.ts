@@ -86,6 +86,11 @@ export class TransformInterceptor<T = unknown> implements NestInterceptor<T, Tra
     const request = context.switchToHttp().getRequest<Request>();
     const requestId = (request.headers['x-request-id'] as string) || createId();
 
+    // Version aus der URL extrahieren (URI Versioning: /api/v-{version}/...)
+    const url = request.originalUrl || '';
+    const versionMatch = url.match(/\/v-([^/]+)\//);
+    const version = versionMatch ? versionMatch[1] : 'alpha';
+
     return next.handle().pipe(
       map((responseData): TransformedResponse<T> => {
         // Wenn data bereits das korrekte Format hat, nicht nochmal wrappen
@@ -98,7 +103,7 @@ export class TransformInterceptor<T = unknown> implements NestInterceptor<T, Tra
           data: responseData as T,
           meta: {
             timestamp: new Date().toISOString(),
-            version: 'alpha',
+            version,
             requestId,
           },
         };

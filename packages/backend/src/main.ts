@@ -11,9 +11,12 @@ import * as process from 'node:process';
 import * as packageJson from '../package.json';
 import { AppModule } from './app.module';
 import { validateInsecureMode } from './infrastructure/config/bootstrap-validation';
+import { HealthModule } from './infrastructure/health/health.module';
 import { PerformanceInterceptor } from './infrastructure/http/interceptors/performance.interceptor';
 import { TransformInterceptor } from './infrastructure/http/interceptors/transform.interceptor';
 import { corsConfig, helmetConfig } from './infrastructure/config/security.config';
+import { BefehlModule } from './modules/befehl/befehl.module';
+import { EinsatzModule } from './modules/einsatz/einsatz.module';
 
 require('@dotenvx/dotenvx').config();
 
@@ -113,12 +116,29 @@ async function bootstrap() {
     exclude: ['/'],
   });
 
-  const config = new DocumentBuilder()
-    .setTitle('BlueLight Hub API')
-    .setDescription(
-      `BlueLight Hub API for the BlueLight Hub application.
+  // Get config service to determine environment
+  const configService = app.get(ConfigService);
+  const isProduction = configService.get('NODE_ENV') === 'production';
+  const appUrl = configService.get('APP_URL', 'http://localhost:3091');
+  const serverEntry = { url: appUrl, description: isProduction ? 'Production Server' : 'Development Server' };
 
-## Server-Access-Token (X-Server-Access-Token)
+  /** Gemeinsame Auth-Schema-Konfiguration für beide Swagger-Dokumente */
+  const apiKeySchema = {
+    type: 'apiKey' as const,
+    name: 'X-Server-Access-Token',
+    in: 'header' as const,
+    description: 'Server-Access-Token für die Server-Authentifizierung. Mehrere aktive Tokens werden unterstützt. lastUsedAt wird bei jeder Nutzung aktualisiert.',
+  };
+  const bearerAuthSchema = {
+    type: 'http' as const,
+    scheme: 'bearer',
+    bearerFormat: 'JWT',
+    name: 'Authorization',
+    description: 'Admin JWT Token für geschützte Endpoints',
+    in: 'header' as const,
+  };
+
+  const tokenDescription = `## Server-Access-Token (X-Server-Access-Token)
 
 Alle API-Endpunkte (außer /health und /setup) erfordern einen gültigen Server-Access-Token im Header:
 
@@ -136,45 +156,45 @@ X-Server-Access-Token: <plaintext_token>
 - \`Desktop Hauptwache\` - für Desktop-App der Hauptwache
 - \`Mobile SEG Nord\` - für Mobile App der SEG Nord
 - \`Integration Server\` - für automatisierte Systeme
-- Bei Rotation: Datum im Namen (z.B. "Desktop HW 2026-01")`,
-    )
-    .setVersion(packageJson.version)
-    .addApiKey(
-      {
-        type: 'apiKey',
-        name: 'X-Server-Access-Token',
-        in: 'header',
-        description: 'Server-Access-Token für die Server-Authentifizierung. Mehrere aktive Tokens werden unterstützt. lastUsedAt wird bei jeder Nutzung aktualisiert.',
-      },
-      'server-access-token',
-    )
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        name: 'Authorization',
-        description: 'Admin JWT Token für geschützte Endpoints',
-        in: 'header',
-      },
-      'admin-jwt',
-    )
+- Bei Rotation: Datum im Namen (z.B. "Desktop HW 2026-01")`;
+
+  // --- Alpha Swagger (ALLE Module) ---
+  const alphaConfig = new DocumentBuilder()
+    .setTitle('BlueLight Hub API (Alpha)')
+    .setDescription(`BlueLight Hub API for the BlueLight Hub application.\n\n${tokenDescription}`)
+    .setVersion(`${packageJson.version}-alpha`)
+    .addApiKey(apiKeySchema, 'server-access-token')
+    .addBearerAuth(bearerAuthSchema, 'admin-jwt')
     .build();
 
-  // Get config service to determine environment
-  const configService = app.get(ConfigService);
-  const isProduction = configService.get('NODE_ENV') === 'production';
-  const appUrl = configService.get('APP_URL', 'http://localhost:3091');
+  const alphaDocument = SwaggerModule.createDocument(app, alphaConfig);
+  alphaDocument.servers = [serverEntry];
+  SwaggerModule.setup('api/alpha', app, alphaDocument);
+  SwaggerModule.setup('api', app, alphaDocument); // Backward-Compat: /api zeigt weiterhin Alpha-Spec
 
-  const document = SwaggerModule.createDocument(app, config);
-  document.servers = [
-    {
-      url: appUrl,
-      description: isProduction ? 'Production Server' : 'Development Server',
-    },
-  ];
+  // --- v1 Swagger (nur stabile Module) ---
+  const v1Config = new DocumentBuilder()
+    .setTitle('BlueLight Hub API v1 (Stable)')
+    .setDescription(`Stabile API-Verträge für externe Integrationen.\n\nBreaking Changes werden mit 6 Monaten Vorlauf angekündigt.\n\n${tokenDescription}`)
+    .setVersion('1.0.0')
+    .addApiKey(apiKeySchema, 'server-access-token')
+    .addBearerAuth(bearerAuthSchema, 'admin-jwt')
+    .build();
 
-  SwaggerModule.setup('api', app, document, {});
+  const v1Document = SwaggerModule.createDocument(app, v1Config, {
+    include: [BefehlModule, EinsatzModule, HealthModule],
+  });
+
+  // Post-Processing: v1 Spec zeigt nur v-1 und versionsneutrale Pfade
+  // (SwaggerModule include filtert nur Module, nicht Versionen)
+  for (const path of Object.keys(v1Document.paths)) {
+    if (path.includes('/v-alpha/')) {
+      delete v1Document.paths[path];
+    }
+  }
+
+  v1Document.servers = [serverEntry];
+  SwaggerModule.setup('api/v1', app, v1Document);
 
   // Apply Helmet middleware for security headers
   app.use(helmet(helmetConfig));

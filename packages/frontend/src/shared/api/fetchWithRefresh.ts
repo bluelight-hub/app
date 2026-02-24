@@ -175,6 +175,32 @@ function handleServerNotSetup(): void {
 }
 
 /**
+ * Behandelt ungueltige Server Access Tokens (401 mit Token-Error)
+ *
+ * Redirectet zu /server/manage mit reason-Parameter, damit der User
+ * den betroffenen Server entfernen und neu hinzufuegen kann.
+ * Unterschied zu handleServerNotSetup: Token existiert aber ist ungueltig
+ * (z.B. weil der Server zurueckgesetzt wurde).
+ */
+function handleInvalidServerToken(): void {
+  // Vermeide mehrfache Redirects bei parallelen Requests
+  if (isSetupRedirectInProgress()) {
+    return;
+  }
+  setSetupRedirectInProgress(true);
+
+  // Nicht redirecten wenn wir bereits auf der richtigen Seite sind
+  if (window.location.pathname.startsWith('/server/manage')) {
+    setSetupRedirectInProgress(false);
+    return;
+  }
+
+  clearServerAccessToken();
+  logger.info('Invalid server token, redirecting to /server/manage');
+  window.location.href = '/server/manage?reason=token-invalid';
+}
+
+/**
  * Enhanced fetch function with automatic token refresh on 401
  *
  * Fuegt automatisch den Server Access Token Header hinzu und
@@ -209,18 +235,17 @@ export async function fetchWithRefresh(input: RequestInfo | URL, init?: RequestI
 
   // Handle 401 errors
   if (response.status === 401) {
-    // Don't handle token errors if we're already on server setup page
-    if (window.location.pathname.startsWith('/server/setup')) {
-      logger.debug('On server setup page, skipping 401 redirect');
+    // Don't handle token errors if we're already on server setup/manage page
+    if (window.location.pathname.startsWith('/server/setup') || window.location.pathname.startsWith('/server/manage')) {
+      logger.debug('On server setup/manage page, skipping 401 redirect');
       return response;
     }
 
     // Check if this is a Server Access Token error
     const tokenRequired = await isServerAccessTokenRequired(response);
     if (tokenRequired) {
-      logger.warn('Server access token required - redirecting to server setup');
-      // Redirect zu Server Setup, dort kann der User einen neuen Server konfigurieren
-      handleServerNotSetup();
+      logger.warn('Server access token invalid - redirecting to server manage');
+      handleInvalidServerToken();
       return response;
     }
 

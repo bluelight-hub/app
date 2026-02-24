@@ -510,7 +510,7 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId }: PersonHi
                   <form.Field name="funktion">
                     {(field) => (
                       <FormField label="Funktion" required error={getFormErrors(field.state.meta.errors)} helperText="Rolle/Funktion im Einsatz">
-                        <Listbox value={field.state.value} onChange={(val) => field.handleChange(val)} disabled={registrierePerson.isPending}>
+                        <Listbox as="div" value={field.state.value} onChange={(val) => field.handleChange(val)} disabled={registrierePerson.isPending}>
                           <div className="relative mt-2">
                             <ListboxButton
                               aria-label="Funktion auswählen"

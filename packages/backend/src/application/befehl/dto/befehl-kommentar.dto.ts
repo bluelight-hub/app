@@ -10,8 +10,8 @@ export class BefehlKommentarDto {
   @ApiProperty({ description: 'Kommentar-ID', example: 'clw3h8x9y0006qwertyuiopas' })
   id!: string;
 
-  @ApiProperty({ description: 'Autor User-ID', example: 'clw3h8x9y0001qwertyuiopas' })
-  authorId!: string;
+  @ApiPropertyOptional({ description: 'Autor User-ID (null bei anonymisierten Kommentaren)', example: 'clw3h8x9y0001qwertyuiopas', nullable: true })
+  authorId?: string;
 
   @ApiProperty({ description: 'Kommentar-Text', example: 'Rueckfrage: Welcher Eingang genau?' })
   text!: string;

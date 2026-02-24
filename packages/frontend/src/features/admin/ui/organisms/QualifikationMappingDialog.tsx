@@ -184,7 +184,7 @@ function QualifikationListbox({ value, qualifikationen, onChange, disabled = fal
   const buttonLabel = selectedQualifikation ? `${selectedQualifikation.abkuerzung} - ${selectedQualifikation.name}` : 'Nicht zugeordnet';
 
   return (
-    <Listbox value={value} onChange={onChange} disabled={disabled}>
+    <Listbox as="div" value={value} onChange={onChange} disabled={disabled}>
       <Listbox.Button
         className={cn(
           'relative w-full cursor-pointer rounded-lg py-2 pr-10 pl-3 text-left shadow-sm ring-1 ring-inset focus:outline-none focus:ring-2 focus:ring-primary-500 sm:text-sm',

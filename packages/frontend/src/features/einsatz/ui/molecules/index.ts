@@ -7,6 +7,7 @@ export { EinsatzListItem } from './EinsatzListItem';
 export { EinsatzResourceWidget } from './EinsatzResourceWidget';
 export { EinsatzStatsCard } from './EinsatzStatsCard';
 export { EinsatzStatusBadge } from './einsatz-status-badge.molecule';
+export { EinsatzSwitcher } from './EinsatzSwitcher.molecule';
 export { EinsatzTimelineWidget } from './EinsatzTimelineWidget';
 export { FahrzeugZuweisungsDropdown } from './FahrzeugZuweisungsDropdown.molecule';
 export { FmsStatusDropdown } from './FmsStatusDropdown.molecule';

@@ -1,42 +1,238 @@
+import { AddBefehlKommentarHandler } from '@/application/befehl/commands/add-befehl-kommentar/add-befehl-kommentar.handler';
+import { AddBefehlKommentarCommand } from '@/application/befehl/commands/add-befehl-kommentar/add-befehl-kommentar.command';
 import { CreateBefehlHandler } from '@/application/befehl/commands/create-befehl/create-befehl.handler';
+import { KorrigiereBefehlHandler } from '@/application/befehl/commands/korrigiere-befehl/korrigiere-befehl.handler';
+import { QuittierenBefehlHandler } from '@/application/befehl/commands/quittieren-befehl/quittieren-befehl.handler';
+import { GetBefehlHistorieQueryHandler } from '@/application/befehl/queries/get-befehl-historie/get-befehl-historie.handler';
+import { GetBefehlHistorieQuery } from '@/application/befehl/queries/get-befehl-historie/get-befehl-historie.query';
+import { GetBefehlMetrikenQueryHandler } from '@/application/befehl/queries/get-befehl-metriken/get-befehl-metriken.handler';
+import { GetBefehlMetrikenQuery } from '@/application/befehl/queries/get-befehl-metriken/get-befehl-metriken.query';
+import { EmpfaengerSucheQueryHandler } from '@/application/befehl/queries/empfaenger-suche/empfaenger-suche.handler';
+import { EmpfaengerSucheQuery } from '@/application/befehl/queries/empfaenger-suche/empfaenger-suche.query';
+import { EmpfaengerSucheResultDto } from '@/application/befehl/dto/empfaenger-suche-result.dto';
+import { ExportBefehleQueryHandler } from '@/application/befehl/queries/export-befehle/export-befehle.handler';
+import { ExportBefehleQuery } from '@/application/befehl/queries/export-befehle/export-befehle.query';
 import { CreateBefehlCommand } from '@/application/befehl/commands/create-befehl/create-befehl.command';
+import { KorrigiereBefehlCommand } from '@/application/befehl/commands/korrigiere-befehl/korrigiere-befehl.command';
+import { QuittierenBefehlCommand } from '@/application/befehl/commands/quittieren-befehl/quittieren-befehl.command';
+import { AddBefehlKommentarDto } from '@/application/befehl/dto/add-befehl-kommentar.dto';
 import { CreateBefehlDto } from '@/application/befehl/dto/create-befehl.dto';
+import { KorrigiereBefehlDto } from '@/application/befehl/dto/korrigiere-befehl.dto';
+import { QuittierenBefehlDto } from '@/application/befehl/dto/quittieren-befehl.dto';
 import { BefehlDto } from '@/application/befehl/dto/befehl.dto';
 import { BefehlEmpfaengerDto } from '@/application/befehl/dto/befehl-empfaenger.dto';
+import { BefehlHistorieTimelineDto } from '@/application/befehl/dto/befehl-historie.dto';
+import { BefehlMetrikenDto } from '@/application/befehl/dto/befehl-metriken.dto';
 import { BefehlKommentarDto } from '@/application/befehl/dto/befehl-kommentar.dto';
-import { IBefehlRepository } from '@domain/repositories/i-befehl.repository';
+import { BEFEHL_ERROR_CODES } from '@/application/befehl/errors/befehl-error.codes';
+import { computeBefehlPriority } from '@/application/befehl/utils/befehl-kritikalitaet.util';
+import { IBefehlRepository, BefehlFilterParams } from '@domain/repositories/i-befehl.repository';
 import { BefehlId } from '@domain/value-objects/befehl-id';
+import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { BEFEHL_REPOSITORY } from '@infrastructure/di-tokens';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
-import { ApiWrappedCreatedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
-import { BadRequestException, Body, Controller, Inject, InternalServerErrorException, Post, UseGuards, ValidationPipe } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { BefehlRollenGuard } from '@/modules/common/guards/befehl-rollen.guard';
+import { RequiresBefehlRolle } from '@/modules/common/decorators/requires-befehl-rolle.decorator';
+import { ApiWrappedCreatedResponse, ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
+import { BadRequestException, Body, Controller, Get, Inject, InternalServerErrorException, NotFoundException, Param, Post, Query, Req, Res, UseGuards, ValidationPipe } from '@nestjs/common';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiProduces,
+  ApiQuery,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
+import type { Response } from 'express';
 import type { Befehl } from '@domain/aggregates/befehl.aggregate';
 import type { BefehlEmpfaenger } from '@domain/entities/befehl-empfaenger.entity';
 import type { BefehlKommentar } from '@domain/entities/befehl-kommentar.entity';
+import type { Result } from '@domain/common/result';
 
 /**
- * Controller fuer Befehlsverwaltung (Story 1.2).
+ * Controller fuer Befehlsverwaltung.
  *
  * Thin HTTP Adapter: Mappt HTTP-Requests zu Commands und Domain-Ergebnisse
  * zurueck auf HTTP-Responses. Business-Logik liegt im CreateBefehlHandler.
  *
  * **Endpoints:**
  * - POST /api/v-alpha/befehle — Neuen Kurzbefehl erfassen
+ * - POST /api/v-alpha/befehle/:id/quittieren — Befehl quittieren (Story 2.1)
+ * - GET /api/v-alpha/befehle?einsatzId={id} — Befehle eines Einsatzes abrufen
  */
 @ApiTags('Befehle')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, BefehlRollenGuard)
 @ApiUnauthorizedResponse({ description: 'Nicht authentifiziert - JWT Token fehlt oder ungültig' })
+@ApiForbiddenResponse({ description: 'Keine Berechtigung – Einsatz-Rolle nicht ausreichend' })
 @Controller({
   path: 'befehle',
-  version: 'alpha',
+  version: ['alpha', '1'],
 })
 export class BefehlController {
   constructor(
+    private readonly addBefehlKommentarHandler: AddBefehlKommentarHandler,
     private readonly createBefehlHandler: CreateBefehlHandler,
+    private readonly korrigiereBefehlHandler: KorrigiereBefehlHandler,
+    private readonly quittierenBefehlHandler: QuittierenBefehlHandler,
+    private readonly getBefehlHistorieQueryHandler: GetBefehlHistorieQueryHandler,
+    private readonly exportBefehleQueryHandler: ExportBefehleQueryHandler,
+    private readonly getBefehlMetrikenQueryHandler: GetBefehlMetrikenQueryHandler,
+    private readonly empfaengerSucheQueryHandler: EmpfaengerSucheQueryHandler,
     @Inject(BEFEHL_REPOSITORY) private readonly befehlRepository: IBefehlRepository,
   ) {}
+
+  /**
+   * Exportiert alle Befehle eines Einsatzes als CSV oder JSON.
+   *
+   * WICHTIG: Dieser Endpoint MUSS VOR den :id Routen stehen,
+   * da Express sonst 'export' als :id Parameter matched.
+   *
+   * Flow: Query-Params → Query → Handler → File-Download Response
+   */
+  @Get('export')
+  @RequiresBefehlRolle('BEFEHLSGEBER', 'ERSTELLER')
+  @ApiOperation({
+    summary: 'Befehle exportieren',
+    description: 'Exportiert alle Befehle eines Einsatzes als CSV- oder JSON-Datei fuer die Nachbereitung.',
+  })
+  @ApiQuery({ name: 'einsatzId', description: 'ID des Einsatzes', type: String, required: true })
+  @ApiQuery({ name: 'format', description: 'Export-Format', enum: ['csv', 'json'], required: true })
+  @ApiProduces('text/csv', 'application/json')
+  // HINWEIS: @ApiOkResponse statt @ApiWrappedResponse, da File-Download keinen JSON-Envelope nutzt.
+  // CLAUDE.md AC7 Exception: File-Downloads verwenden Stream-Response, kein Standard-Wrapper.
+  @ApiOkResponse({ description: 'Exportierte Befehlsdaten als CSV- oder JSON-Datei' })
+  @ApiBadRequestResponse({ description: 'einsatzId fehlt oder format ungueltig' })
+  async exportBefehle(@Query('einsatzId') einsatzId: string, @Query('format') format: string, @Res() res: Response): Promise<void> {
+    if (!einsatzId) {
+      throw new BadRequestException('einsatzId ist erforderlich');
+    }
+
+    if (format !== 'csv' && format !== 'json') {
+      throw new BadRequestException("format muss 'csv' oder 'json' sein");
+    }
+
+    const query = new ExportBefehleQuery(einsatzId, format as 'csv' | 'json');
+    const result = await this.exportBefehleQueryHandler.execute(query);
+
+    if (result.isFailure) {
+      throw new BadRequestException(result.error);
+    }
+
+    if (!result.value) {
+      throw new InternalServerErrorException('Export konnte nicht erstellt werden');
+    }
+
+    const { content, filename, contentType } = result.value;
+
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(content);
+  }
+
+  /**
+   * Gibt aggregierte Befehl-Metriken fuer einen Zeitraum zurueck.
+   *
+   * WICHTIG: Dieser Endpoint MUSS VOR den :id Routen stehen,
+   * da Express sonst 'metriken' als :id Parameter matched.
+   *
+   * Flow: Query-Params → Query → Handler (Prisma Direct) → DTO Response
+   */
+  @Get('metriken')
+  @RequiresBefehlRolle('BEFEHLSGEBER')
+  @ApiOperation({
+    summary: 'Befehl-Metriken aggregiert abrufen',
+    description: 'Gibt aggregierte Adoptionsmetriken und Dokumentationsqualitaet ueber alle Einsaetze eines Zeitraums zurueck.',
+  })
+  @ApiQuery({ name: 'von', required: false, type: String, description: 'ISO-8601 Startdatum (Default: vor 30 Tagen)' })
+  @ApiQuery({ name: 'bis', required: false, type: String, description: 'ISO-8601 Enddatum (Default: jetzt)' })
+  @ApiWrappedResponse(BefehlMetrikenDto, { description: 'Aggregierte Befehl-Metriken' })
+  @ApiBadRequestResponse({ description: 'Ungueltige Datums-Parameter' })
+  async getMetriken(@Query('von') von?: string, @Query('bis') bis?: string): Promise<BefehlMetrikenDto> {
+    // H1-Fix: bisDatum ZUERST validieren, bevor es fuer vonDatum-Default genutzt wird
+    const bisDatum = bis ? new Date(bis) : new Date();
+    if (Number.isNaN(bisDatum.getTime())) {
+      throw new BadRequestException(`Ungueltiges Datum fuer 'bis': ${bis}. Erwartetes Format: ISO 8601`);
+    }
+
+    const vonDatum = von ? new Date(von) : new Date(bisDatum.getTime() - 30 * 24 * 60 * 60 * 1000);
+    if (Number.isNaN(vonDatum.getTime())) {
+      throw new BadRequestException(`Ungueltiges Datum fuer 'von': ${von}. Erwartetes Format: ISO 8601`);
+    }
+
+    if (bisDatum < vonDatum) {
+      throw new BadRequestException("'bis' muss nach 'von' liegen");
+    }
+
+    // H2-Fix: Maximalen Zeitraum auf 365 Tage begrenzen
+    const diffDays = (bisDatum.getTime() - vonDatum.getTime()) / (1000 * 60 * 60 * 24);
+    if (diffDays > 365) {
+      throw new BadRequestException('Zeitraum darf maximal 365 Tage umfassen');
+    }
+
+    const query = new GetBefehlMetrikenQuery(vonDatum, bisDatum);
+    const result = await this.getBefehlMetrikenQueryHandler.execute(query);
+
+    if (result.isFailure) {
+      throw new InternalServerErrorException(result.error);
+    }
+
+    if (!result.value) {
+      throw new InternalServerErrorException('Metriken konnten nicht berechnet werden');
+    }
+
+    return result.value;
+  }
+
+  /**
+   * Sucht Empfaenger fuer die Befehlsadressierung in EinsatzPersonen und StammPersonen.
+   *
+   * WICHTIG: Dieser Endpoint MUSS VOR den :id Routen stehen,
+   * da Express sonst 'empfaenger-suche' als :id Parameter matched.
+   *
+   * Flow: Query-Params → Query → Handler (Prisma Direct) → DTO[] Response
+   */
+  @Get('empfaenger-suche')
+  @RequiresBefehlRolle('ERSTELLER', 'BEFEHLSGEBER')
+  @ApiOperation({
+    summary: 'Empfaenger fuer Befehlsadressierung suchen',
+    description: 'Durchsucht EinsatzPersonen und StammPersonen fuer die Empfaenger-Auswahl bei Befehlserstellung.',
+  })
+  @ApiQuery({ name: 'q', description: 'Suchbegriff (min. 2 Zeichen)', type: String, required: true })
+  @ApiQuery({ name: 'einsatzId', description: 'Einsatz-ID', type: String, required: true })
+  @ApiWrappedResponse(EmpfaengerSucheResultDto, { isArray: true, description: 'Suchergebnisse' })
+  @ApiBadRequestResponse({ description: 'Suchbegriff zu kurz oder einsatzId fehlt' })
+  async empfaengerSuche(@Query('q') q: string, @Query('einsatzId') einsatzId: string): Promise<EmpfaengerSucheResultDto[]> {
+    const trimmedQ = q?.trim();
+    if (!trimmedQ || trimmedQ.length < 2) {
+      throw new BadRequestException('Suchbegriff muss mindestens 2 Zeichen lang sein');
+    }
+    if (trimmedQ.length > 100) {
+      throw new BadRequestException('Suchbegriff darf maximal 100 Zeichen lang sein');
+    }
+    if (!einsatzId) {
+      throw new BadRequestException('einsatzId ist erforderlich');
+    }
+
+    const einsatzIdResult = EinsatzId.create(einsatzId);
+    if (einsatzIdResult.isFailure) {
+      throw new BadRequestException(einsatzIdResult.error);
+    }
+
+    const query = new EmpfaengerSucheQuery(trimmedQ, einsatzId);
+    const result = await this.empfaengerSucheQueryHandler.execute(query);
+
+    if (result.isFailure) {
+      throw new InternalServerErrorException(result.error);
+    }
+
+    return result.value ?? [];
+  }
 
   /**
    * Erstellt einen neuen Befehl via TransactionalCommandHandler.
@@ -48,10 +244,11 @@ export class BefehlController {
     summary: 'Neuen Befehl erstellen',
     description: 'Erstellt einen neuen Kurzbefehl mit Empfängern, Befehlsgeber und Auftrag.',
   })
+  @RequiresBefehlRolle('ERSTELLER', 'BEFEHLSGEBER')
   @ApiWrappedCreatedResponse(BefehlDto, { description: 'Befehl erfolgreich erstellt' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler in den Eingabedaten' })
   async create(@Body(new ValidationPipe({ transform: true, whitelist: true })) dto: CreateBefehlDto): Promise<BefehlDto> {
-    const command = new CreateBefehlCommand(dto.einsatzId, dto.empfaengerIds, dto.befehlsgeberId, dto.erstellerId, dto.auftrag, dto.zeitvorgabe, dto.ereignis, dto.mittel, dto.ziel, dto.weg);
+    const command = new CreateBefehlCommand(dto.einsatzId, dto.empfaenger, dto.befehlsgeber, dto.erstellerId, dto.auftrag, dto.zeitvorgabe, dto.ereignis, dto.mittel, dto.ziel, dto.weg);
 
     const result = await this.createBefehlHandler.execute(command);
 
@@ -64,6 +261,266 @@ export class BefehlController {
     }
 
     return this.loadBefehlById(result.value);
+  }
+
+  /**
+   * Quittiert einen Befehl durch einen Empfaenger.
+   *
+   * Flow: DTO → Command → Handler (Transaction + Outbox) → Load from DB → DTO Response
+   */
+  @Post(':id/quittieren')
+  @ApiOperation({
+    summary: 'Befehl quittieren',
+    description: 'Empfaenger quittiert einen Befehl mit Quittierungsart (VERSTANDEN, RUECKFRAGE, NICHT_VERSTANDEN).',
+  })
+  @ApiParam({ name: 'id', description: 'Befehl-ID', type: String })
+  @RequiresBefehlRolle('EMPFAENGER')
+  @ApiWrappedResponse(BefehlDto, { description: 'Befehl erfolgreich quittiert' })
+  @ApiBadRequestResponse({ description: 'Validierungsfehler oder Domain-Fehler (nicht zugestellt, bereits quittiert, korrigiert)' })
+  @ApiNotFoundResponse({ description: 'Befehl nicht gefunden' })
+  async quittieren(@Param('id') id: string, @Body(new ValidationPipe({ transform: true, whitelist: true })) dto: QuittierenBefehlDto): Promise<BefehlDto> {
+    const command = new QuittierenBefehlCommand(id, dto.empfaengerId, dto.quittierungArt);
+
+    const result = await this.quittierenBefehlHandler.execute(command);
+
+    if (result.isFailure) {
+      if (result.error === BEFEHL_ERROR_CODES.NOT_FOUND) {
+        throw new NotFoundException(result.error);
+      }
+      throw new BadRequestException(result.error);
+    }
+
+    if (!result.value) {
+      throw new InternalServerErrorException('Befehl wurde quittiert, aber keine ID zurückgegeben');
+    }
+
+    return this.loadBefehlById(result.value);
+  }
+
+  /**
+   * Erstellt einen Korrekturbefehl und markiert den Original-Befehl als KORRIGIERT.
+   *
+   * Flow: DTO → Command → Handler (Transaction + Outbox) → Load from DB → DTO Response
+   */
+  @Post(':id/korrigieren')
+  @ApiOperation({
+    summary: 'Korrekturbefehl erstellen',
+    description: 'Erstellt einen Korrekturbefehl und markiert den Original-Befehl als KORRIGIERT. EinsatzId wird vom Original uebernommen.',
+  })
+  @ApiParam({ name: 'id', description: 'Original-Befehl-ID', type: String })
+  @RequiresBefehlRolle('ERSTELLER', 'BEFEHLSGEBER')
+  @ApiWrappedCreatedResponse(BefehlDto, { description: 'Korrekturbefehl erstellt' })
+  @ApiBadRequestResponse({ description: 'Validierungsfehler oder Domain-Fehler (ungültige Status-Transition)' })
+  @ApiNotFoundResponse({ description: 'Original-Befehl nicht gefunden' })
+  async korrigieren(@Param('id') id: string, @Body(new ValidationPipe({ transform: true, whitelist: true })) dto: KorrigiereBefehlDto): Promise<BefehlDto> {
+    const command = new KorrigiereBefehlCommand(id, dto.empfaenger, dto.befehlsgeber, dto.erstellerId, dto.auftrag, dto.zeitvorgabe, dto.ereignis, dto.mittel, dto.ziel, dto.weg);
+
+    const result = await this.korrigiereBefehlHandler.execute(command);
+
+    if (result.isFailure) {
+      if (result.error === BEFEHL_ERROR_CODES.NOT_FOUND) {
+        throw new NotFoundException(result.error);
+      }
+      throw new BadRequestException(result.error);
+    }
+
+    if (!result.value) {
+      throw new InternalServerErrorException('Korrekturbefehl wurde erstellt, aber keine ID zurückgegeben');
+    }
+
+    return this.loadBefehlById(result.value);
+  }
+
+  /**
+   * Fügt einen Kommentar zu einem Befehl hinzu.
+   *
+   * Flow: DTO → Command → Handler (Transaction + Outbox) → Load from DB → DTO Response
+   */
+  @Post(':id/kommentare')
+  @RequiresBefehlRolle('ERSTELLER', 'BEFEHLSGEBER', 'EMPFAENGER')
+  @ApiOperation({
+    summary: 'Kommentar zu Befehl hinzufuegen',
+    description: 'Fuegt einen Kommentar oder eine Rueckfrage zu einem Befehl hinzu. Unterstuetzt Thread-Antworten via parentId.',
+  })
+  @ApiParam({ name: 'id', description: 'Befehl-ID', type: String })
+  @ApiWrappedCreatedResponse(BefehlDto, { description: 'Kommentar wurde hinzugefuegt' })
+  @ApiBadRequestResponse({ description: 'Validierungsfehler oder Domain-Fehler' })
+  @ApiNotFoundResponse({ description: 'Befehl nicht gefunden' })
+  async addKommentar(
+    @Param('id') id: string,
+    @Body(new ValidationPipe({ transform: true, whitelist: true })) dto: AddBefehlKommentarDto,
+    @Req() req: { user: { userId: string } },
+  ): Promise<BefehlDto> {
+    const authorId = req.user.userId;
+    const command = new AddBefehlKommentarCommand(id, authorId, dto.text, dto.isRueckfrage, dto.parentId);
+
+    const result = await this.addBefehlKommentarHandler.execute(command);
+
+    if (result.isFailure) {
+      if (result.error === BEFEHL_ERROR_CODES.NOT_FOUND) {
+        throw new NotFoundException(result.error);
+      }
+      throw new BadRequestException(result.error);
+    }
+
+    if (!result.value) {
+      throw new InternalServerErrorException('Kommentar wurde hinzugefügt, aber keine ID zurückgegeben');
+    }
+
+    return this.loadBefehlById(result.value);
+  }
+
+  /**
+   * Gibt die vollstaendige Historie eines Befehls als Timeline zurueck.
+   *
+   * Flow: Query → Handler (Prisma Direct) → Timeline-DTO Response
+   */
+  @Get(':id/historie')
+  @RequiresBefehlRolle('BEFEHLSGEBER', 'ERSTELLER', 'EMPFAENGER', 'BEOBACHTER')
+  @ApiOperation({
+    summary: 'Befehlshistorie-Timeline abrufen',
+    description: 'Gibt die vollstaendige Befehlshistorie als chronologische Timeline im Paket-Tracking-Style zurueck.',
+  })
+  @ApiParam({ name: 'id', description: 'Befehl-ID', type: String })
+  @ApiWrappedResponse(BefehlHistorieTimelineDto, { description: 'Vollständige Befehlshistorie-Timeline' })
+  @ApiNotFoundResponse({ description: 'Befehl nicht gefunden' })
+  async getHistorie(@Param('id') id: string): Promise<BefehlHistorieTimelineDto> {
+    const query = new GetBefehlHistorieQuery(id);
+    const result = await this.getBefehlHistorieQueryHandler.execute(query);
+
+    if (result.isFailure) {
+      if (result.error === BEFEHL_ERROR_CODES.NOT_FOUND) {
+        throw new NotFoundException(result.error);
+      }
+      throw new InternalServerErrorException(result.error);
+    }
+
+    if (!result.value) {
+      throw new InternalServerErrorException('Befehlshistorie konnte nicht geladen werden');
+    }
+
+    return result.value;
+  }
+
+  /**
+   * Gibt alle Befehle eines Einsatzes zurück, sortiert nach erteiltAm DESC.
+   */
+  @Get()
+  @ApiOperation({
+    summary: 'Befehle eines Einsatzes abrufen',
+    description:
+      'Gibt alle Befehle für den angegebenen Einsatz zurück, sortiert nach Erstellungszeitpunkt (neueste zuerst). Unterstützt erweiterte Filter: Status, Empfänger-Name, Befehlsgeber-Name, Freitextsuche (q) und Zeitraum (von/bis). hasOpenRueckfragen hat Vorrang vor empfaengerId. Erweiterte Filter haben Vorrang vor empfaengerId/hasOpenRueckfragen.',
+  })
+  @ApiQuery({ name: 'einsatzId', description: 'ID des Einsatzes', type: String, required: true })
+  @ApiQuery({ name: 'empfaengerId', description: 'Optional: Filtert Befehle nach Empfänger-ID', type: String, required: false })
+  @ApiQuery({ name: 'hasOpenRueckfragen', description: 'Filtert auf Befehle mit offenen Rückfragen', type: Boolean, required: false })
+  @ApiQuery({ name: 'status', description: 'Komma-separierte Status-Filter (ERTEILT,ZUGESTELLT,QUITTIERT,KORRIGIERT)', type: String, required: false })
+  @ApiQuery({ name: 'empfaengerName', description: 'Freitext-Filter auf Empfänger-Name (case-insensitive)', type: String, required: false })
+  @ApiQuery({ name: 'befehlsgeberName', description: 'Freitext-Filter auf Befehlsgeber-Name (case-insensitive)', type: String, required: false })
+  @ApiQuery({ name: 'q', description: 'Volltextsuche über Auftrag (case-insensitive)', type: String, required: false })
+  @ApiQuery({ name: 'von', description: 'Zeitfilter: Befehle ab Datum (ISO 8601)', type: String, required: false })
+  @ApiQuery({ name: 'bis', description: 'Zeitfilter: Befehle bis Datum (ISO 8601)', type: String, required: false })
+  @RequiresBefehlRolle('BEFEHLSGEBER', 'ERSTELLER', 'EMPFAENGER', 'BEOBACHTER')
+  @ApiWrappedResponse(BefehlDto, { isArray: true, description: 'Liste aller Befehle eines Einsatzes' })
+  @ApiBadRequestResponse({ description: 'einsatzId fehlt oder ist ungültig' })
+  async findByEinsatz(
+    @Query('einsatzId') einsatzId: string,
+    @Query('empfaengerId') empfaengerId?: string,
+    @Query('hasOpenRueckfragen') hasOpenRueckfragen?: string,
+    @Query('status') status?: string,
+    @Query('empfaengerName') empfaengerName?: string,
+    @Query('befehlsgeberName') befehlsgeberName?: string,
+    @Query('q') q?: string,
+    @Query('von') von?: string,
+    @Query('bis') bis?: string,
+  ): Promise<BefehlDto[]> {
+    if (!einsatzId) {
+      throw new BadRequestException('einsatzId ist erforderlich');
+    }
+
+    const einsatzIdResult = EinsatzId.create(einsatzId);
+    if (einsatzIdResult.isFailure) {
+      throw new BadRequestException(einsatzIdResult.error);
+    }
+
+    const einsatzIdVo = einsatzIdResult.value as EinsatzId;
+
+    // Erweiterte Filter prüfen
+    const hasExtendedFilters = status || empfaengerName || befehlsgeberName || q || von || bis;
+
+    let result: Result<Befehl[]>;
+    if (hasExtendedFilters) {
+      const filters = this.parseFilterParams(status, empfaengerName, befehlsgeberName, q, von, bis);
+      result = await this.befehlRepository.findFiltered(einsatzIdVo, filters);
+    } else {
+      const hasOpenRueckfragenBool = hasOpenRueckfragen?.toLowerCase() === 'true';
+      const trimmedEmpfaengerId = empfaengerId?.trim() || undefined;
+
+      if (hasOpenRueckfragenBool) {
+        result = await this.befehlRepository.findWithOpenRueckfragen(einsatzIdVo);
+      } else if (trimmedEmpfaengerId) {
+        result = await this.befehlRepository.findByEmpfaengerId(einsatzIdVo, trimmedEmpfaengerId);
+      } else {
+        result = await this.befehlRepository.findByEinsatzId(einsatzIdVo);
+      }
+    }
+
+    if (result.isFailure) {
+      throw new InternalServerErrorException('Fehler beim Laden der Befehle');
+    }
+
+    return (result.value ?? []).map((b) => this.mapToDto(b));
+  }
+
+  /**
+   * Parst und validiert die erweiterten Filter-Parameter.
+   */
+  private parseFilterParams(status?: string, empfaengerName?: string, befehlsgeberName?: string, q?: string, von?: string, bis?: string): BefehlFilterParams {
+    const validStatusValues = ['ERTEILT', 'ZUGESTELLT', 'QUITTIERT', 'KORRIGIERT'];
+    const filters: BefehlFilterParams = {};
+
+    if (status) {
+      const statusValues = status.split(',').map((s) => s.trim().toUpperCase());
+      const invalidValues = statusValues.filter((s) => !validStatusValues.includes(s));
+      if (invalidValues.length > 0) {
+        throw new BadRequestException(`Ungültige Status-Werte: ${invalidValues.join(', ')}. Erlaubt: ${validStatusValues.join(', ')}`);
+      }
+      filters.status = statusValues;
+    }
+
+    if (empfaengerName?.trim()) {
+      filters.empfaengerName = empfaengerName.trim();
+    }
+
+    if (befehlsgeberName?.trim()) {
+      filters.befehlsgeberName = befehlsgeberName.trim();
+    }
+
+    if (q?.trim()) {
+      filters.q = q.trim();
+    }
+
+    if (von) {
+      const vonDate = new Date(von);
+      if (Number.isNaN(vonDate.getTime())) {
+        throw new BadRequestException(`Ungültiges Datum für 'von': ${von}. Erwartetes Format: ISO 8601`);
+      }
+      filters.von = vonDate;
+    }
+
+    if (bis) {
+      const bisDate = new Date(bis);
+      if (Number.isNaN(bisDate.getTime())) {
+        throw new BadRequestException(`Ungültiges Datum für 'bis': ${bis}. Erwartetes Format: ISO 8601`);
+      }
+      filters.bis = bisDate;
+    }
+
+    if (filters.von && filters.bis && filters.bis < filters.von) {
+      throw new BadRequestException("'bis' muss nach 'von' liegen");
+    }
+
+    return filters;
   }
 
   /**
@@ -91,6 +548,7 @@ export class BefehlController {
 
   /**
    * Mappt ein Befehl Aggregate auf BefehlDto fuer die API-Response.
+   * Berechnet Priority-Felder via computeBefehlPriority() Utility.
    */
   private mapToDto(befehl: Befehl): BefehlDto {
     const dto = new BefehlDto();
@@ -98,8 +556,9 @@ export class BefehlController {
     dto.nummer = befehl.nummer;
     dto.einsatzId = befehl.einsatzId.value;
     dto.auftrag = befehl.auftrag;
-    dto.befehlsgeberId = befehl.befehlsgeberId.value;
-    dto.erstellerId = befehl.erstellerId.value;
+    dto.befehlsgeberName = befehl.befehlsgeberName;
+    dto.befehlsgeberId = befehl.befehlsgeberId?.value;
+    dto.erstellerId = befehl.erstellerId?.value;
     dto.status = befehl.status.value as BefehlDto['status'];
     dto.befehlstyp = befehl.befehlstyp;
     dto.zeitvorgabe = befehl.zeitvorgabe;
@@ -107,9 +566,18 @@ export class BefehlController {
     dto.mittel = befehl.mittel;
     dto.ziel = befehl.ziel;
     dto.weg = befehl.weg;
+    dto.originalBefehlId = befehl.originalBefehlId?.value;
     dto.erteiltAm = befehl.erteiltAm;
     dto.empfaenger = befehl.empfaenger.map((e) => this.mapEmpfaengerToDto(e));
     dto.kommentare = befehl.kommentare.map((k) => this.mapKommentarToDto(k));
+
+    // Computed Priority-Felder via Utility
+    const priority = computeBefehlPriority(befehl.status.value, befehl.zeitvorgabe, befehl.erteiltAm, befehl.empfaenger, befehl.kommentare);
+    dto.isUeberfaellig = priority.isUeberfaellig;
+    dto.hatNichtVerstanden = priority.hatNichtVerstanden;
+    dto.hatOffeneRueckfrage = priority.hatOffeneRueckfrage;
+    dto.kritikalitaet = priority.kritikalitaet;
+
     dto.createdAt = befehl.createdAt;
     dto.updatedAt = befehl.updatedAt;
     return dto;
@@ -118,17 +586,19 @@ export class BefehlController {
   private mapEmpfaengerToDto(empfaenger: BefehlEmpfaenger): BefehlEmpfaengerDto {
     const dto = new BefehlEmpfaengerDto();
     dto.id = empfaenger.id;
-    dto.empfaengerId = empfaenger.empfaengerId.value;
+    dto.name = empfaenger.name;
+    dto.empfaengerId = empfaenger.empfaengerId?.value;
     dto.zugestelltAm = empfaenger.zugestelltAm;
     dto.quittiertAm = empfaenger.quittiertAm;
     dto.quittierungArt = empfaenger.quittierungArt;
+    dto.istQuittierbar = empfaenger.istQuittierbar;
     return dto;
   }
 
   private mapKommentarToDto(kommentar: BefehlKommentar): BefehlKommentarDto {
     const dto = new BefehlKommentarDto();
     dto.id = kommentar.id;
-    dto.authorId = kommentar.authorId.value;
+    dto.authorId = kommentar.authorId?.value;
     dto.text = kommentar.text;
     dto.isRueckfrage = kommentar.isRueckfrage;
     dto.parentId = kommentar.parentId;

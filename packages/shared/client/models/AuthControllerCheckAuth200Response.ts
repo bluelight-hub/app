@@ -13,13 +13,6 @@
  */
 
 import { mapValues } from '../runtime';
-import type { AuthControllerUnifiedAuth200ResponseMeta } from './AuthControllerUnifiedAuth200ResponseMeta';
-import {
-    AuthControllerUnifiedAuth200ResponseMetaFromJSON,
-    AuthControllerUnifiedAuth200ResponseMetaFromJSONTyped,
-    AuthControllerUnifiedAuth200ResponseMetaToJSON,
-    AuthControllerUnifiedAuth200ResponseMetaToJSONTyped,
-} from './AuthControllerUnifiedAuth200ResponseMeta';
 import type { AuthCheckResponseDto } from './AuthCheckResponseDto';
 import {
     AuthCheckResponseDtoFromJSON,
@@ -27,6 +20,13 @@ import {
     AuthCheckResponseDtoToJSON,
     AuthCheckResponseDtoToJSONTyped,
 } from './AuthCheckResponseDto';
+import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import {
+    HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
+    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
+    HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
+    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 
 /**
  * 
@@ -42,10 +42,10 @@ export interface AuthControllerCheckAuth200Response {
     data: AuthCheckResponseDto;
     /**
      * 
-     * @type {AuthControllerUnifiedAuth200ResponseMeta}
+     * @type {HealthControllerGetIntegrationHealth200ResponseMeta}
      * @memberof AuthControllerCheckAuth200Response
      */
-    meta: AuthControllerUnifiedAuth200ResponseMeta;
+    meta: HealthControllerGetIntegrationHealth200ResponseMeta;
 }
 
 /**
@@ -68,7 +68,7 @@ export function AuthControllerCheckAuth200ResponseFromJSONTyped(json: any, ignor
     return {
         
         'data': AuthCheckResponseDtoFromJSON(json['data']),
-        'meta': AuthControllerUnifiedAuth200ResponseMetaFromJSON(json['meta']),
+        'meta': HealthControllerGetIntegrationHealth200ResponseMetaFromJSON(json['meta']),
     };
 }
 
@@ -84,7 +84,7 @@ export function AuthControllerCheckAuth200ResponseToJSONTyped(value?: AuthContro
     return {
         
         'data': AuthCheckResponseDtoToJSON(value['data']),
-        'meta': AuthControllerUnifiedAuth200ResponseMetaToJSON(value['meta']),
+        'meta': HealthControllerGetIntegrationHealth200ResponseMetaToJSON(value['meta']),
     };
 }
 

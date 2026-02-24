@@ -3,6 +3,7 @@ import { BefehlEmpfaenger } from '@domain/entities/befehl-empfaenger.entity';
 import { BefehlKommentar } from '@domain/entities/befehl-kommentar.entity';
 import { BefehlErstelltEvent } from '@domain/events/befehl-erstellt.event';
 import { BefehlKommentarHinzugefuegtEvent } from '@domain/events/befehl-kommentar-hinzugefuegt.event';
+import { BefehlQuittiertEvent } from '@domain/events/befehl-quittiert.event';
 import { BefehlStatusGeaendertEvent } from '@domain/events/befehl-status-geaendert.event';
 import { BefehlZugestelltEvent } from '@domain/events/befehl-zugestellt.event';
 import { BefehlId } from '@domain/value-objects/befehl-id';
@@ -32,9 +33,9 @@ function createDefaultProps() {
   return {
     einsatzId: EinsatzId.create().value! as EinsatzId,
     auftrag: 'Sofort Wasser marsch am Brandherd',
-    befehlsgeberId: UserId.create().value! as UserId,
+    befehlsgeber: 'EL Müller',
     erstellerId: UserId.create().value! as UserId,
-    empfaengerIds: [UserId.create().value! as UserId, UserId.create().value! as UserId],
+    empfaenger: [{ name: 'ZF Nord' }, { name: 'ZF Süd' }],
   };
 }
 
@@ -42,6 +43,46 @@ function createDefaultProps() {
 function createTestBefehl(overrides?: Partial<ReturnType<typeof createDefaultProps>>) {
   const props = { ...createDefaultProps(), ...overrides };
   return Befehl.create(props).value!;
+}
+
+/**
+ * Helper: Erstellt einen Befehl mit empfaengerIds (für markAlsZugestellt/quittieren Tests).
+ * Da markAlsZugestellt/quittieren intern UserId-Match benötigen, erstellen wir
+ * Empfänger via reconstitute mit UserId.
+ */
+function createBefehlWithUserIds() {
+  const einsatzId = EinsatzId.create().value! as EinsatzId;
+  const erstellerId = UserId.create().value! as UserId;
+  const empfaengerIds = [UserId.create().value! as UserId, UserId.create().value! as UserId];
+
+  const empfaenger = empfaengerIds.map((uid) => BefehlEmpfaenger.create(uid.value, uid));
+
+  const befehlResult = Befehl.create({
+    einsatzId,
+    auftrag: 'Test Auftrag',
+    befehlsgeber: 'EL Test',
+    erstellerId,
+    empfaenger: empfaengerIds.map((uid) => ({ name: uid.value, empfaengerId: uid })),
+  });
+  const befehl = befehlResult.value!;
+
+  // Wir brauchen einen Befehl mit UserIds in den Empfängern für die markAlsZugestellt/quittieren Tests
+  // Da create() jetzt nur noch Namen nimmt, nutzen wir reconstitute()
+  const reconstituted = Befehl.reconstitute({
+    id: befehl.id,
+    nummer: befehl.nummer,
+    einsatzId,
+    auftrag: befehl.auftrag,
+    befehlsgeberName: befehl.befehlsgeberName,
+    befehlsgeberId: undefined,
+    erstellerId,
+    status: BefehlStatus.ERTEILT(),
+    erteiltAm: befehl.erteiltAm,
+    empfaenger,
+    kommentare: [],
+  });
+
+  return { befehl: reconstituted, empfaengerIds, einsatzId, erstellerId };
 }
 
 describe('Befehl Aggregate', () => {
@@ -56,6 +97,8 @@ describe('Befehl Aggregate', () => {
       expect(result.value?.status.value).toBe('ERTEILT');
       expect(result.value?.empfaenger).toHaveLength(2);
       expect(result.value?.kommentare).toHaveLength(0);
+      expect(result.value?.befehlsgeberName).toBe('EL Müller');
+      expect(result.value?.befehlsgeberId).toBeUndefined();
     });
 
     it('sollte Befehlsnummer im Format B{YEAR}-{CUID-8} generieren', () => {
@@ -92,7 +135,8 @@ describe('Befehl Aggregate', () => {
       expect(event.einsatzId).toBe(props.einsatzId);
       expect(event.auftrag).toBe(props.auftrag);
       expect(event.nummer).toBe(befehl.nummer);
-      expect(event.empfaengerIds).toHaveLength(2);
+      expect(event.empfaenger).toHaveLength(2);
+      expect(event.empfaenger).toEqual(['ZF Nord', 'ZF Süd']);
     });
 
     it('sollte Auftrag trimmen', () => {
@@ -118,7 +162,7 @@ describe('Befehl Aggregate', () => {
 
     it('sollte fehlschlagen ohne Empfänger', () => {
       const props = createDefaultProps();
-      const result = Befehl.create({ ...props, empfaengerIds: [] });
+      const result = Befehl.create({ ...props, empfaenger: [] });
 
       expect(result.isFailure).toBe(true);
       expect(result.error).toContain('Mindestens ein Empfänger ist erforderlich');
@@ -218,51 +262,46 @@ describe('Befehl Aggregate', () => {
 
   describe('markAlsZugestellt()', () => {
     it('sollte einen Empfänger als zugestellt markieren', () => {
-      const props = createDefaultProps();
-      const befehl = Befehl.create(props).value!;
-      const empfaengerId = props.empfaengerIds[0];
+      const { befehl, empfaengerIds } = createBefehlWithUserIds();
       befehl.clearDomainEvents();
 
-      const result = befehl.markAlsZugestellt(empfaengerId);
+      const result = befehl.markAlsZugestellt(empfaengerIds[0]);
 
       expect(result.isSuccess).toBe(true);
-      const empfaenger = befehl.empfaenger.find((e) => e.empfaengerId.equals(empfaengerId));
+      const empfaenger = befehl.empfaenger.find((e) => e.empfaengerId?.equals(empfaengerIds[0]));
       expect(empfaenger?.zugestelltAm).toBeInstanceOf(Date);
     });
 
     it('sollte BefehlZugestelltEvent emittieren', () => {
-      const props = createDefaultProps();
-      const befehl = Befehl.create(props).value!;
+      const { befehl, empfaengerIds } = createBefehlWithUserIds();
       befehl.clearDomainEvents();
 
-      befehl.markAlsZugestellt(props.empfaengerIds[0]);
+      befehl.markAlsZugestellt(empfaengerIds[0]);
 
       const events = befehl.getDomainEvents();
       expect(events.length).toBeGreaterThanOrEqual(1);
       expect(events[0]).toBeInstanceOf(BefehlZugestelltEvent);
       const event = events[0] as BefehlZugestelltEvent;
       expect(event.befehlId).toBe(befehl.id);
-      expect(event.empfaengerId).toBe(props.empfaengerIds[0].value);
+      expect(event.empfaengerId).toBe(empfaengerIds[0].value);
     });
 
     it('sollte Status zu ZUGESTELLT ändern wenn alle Empfänger zugestellt', () => {
-      const props = createDefaultProps();
-      const befehl = Befehl.create(props).value!;
+      const { befehl, empfaengerIds } = createBefehlWithUserIds();
       befehl.clearDomainEvents();
 
-      befehl.markAlsZugestellt(props.empfaengerIds[0]);
-      befehl.markAlsZugestellt(props.empfaengerIds[1]);
+      befehl.markAlsZugestellt(empfaengerIds[0]);
+      befehl.markAlsZugestellt(empfaengerIds[1]);
 
       expect(befehl.status.value).toBe('ZUGESTELLT');
     });
 
     it('sollte BefehlStatusGeaendertEvent emittieren bei Transition zu ZUGESTELLT', () => {
-      const props = createDefaultProps();
-      const befehl = Befehl.create(props).value!;
+      const { befehl, empfaengerIds } = createBefehlWithUserIds();
       befehl.clearDomainEvents();
 
-      befehl.markAlsZugestellt(props.empfaengerIds[0]);
-      befehl.markAlsZugestellt(props.empfaengerIds[1]);
+      befehl.markAlsZugestellt(empfaengerIds[0]);
+      befehl.markAlsZugestellt(empfaengerIds[1]);
 
       const events = befehl.getDomainEvents();
       const statusEvents = events.filter((e) => e instanceof BefehlStatusGeaendertEvent);
@@ -273,16 +312,15 @@ describe('Befehl Aggregate', () => {
     });
 
     it('sollte Status NICHT ändern wenn nur teilweise zugestellt', () => {
-      const props = createDefaultProps();
-      const befehl = Befehl.create(props).value!;
+      const { befehl, empfaengerIds } = createBefehlWithUserIds();
 
-      befehl.markAlsZugestellt(props.empfaengerIds[0]);
+      befehl.markAlsZugestellt(empfaengerIds[0]);
 
       expect(befehl.status.value).toBe('ERTEILT');
     });
 
     it('sollte fehlschlagen bei unbekanntem Empfänger', () => {
-      const befehl = createTestBefehl();
+      const { befehl } = createBefehlWithUserIds();
       const unknownId = UserId.create().value! as UserId;
 
       const result = befehl.markAlsZugestellt(unknownId);
@@ -292,22 +330,20 @@ describe('Befehl Aggregate', () => {
     });
 
     it('sollte fehlschlagen bei bereits zugestelltem Empfänger', () => {
-      const props = createDefaultProps();
-      const befehl = Befehl.create(props).value!;
-      befehl.markAlsZugestellt(props.empfaengerIds[0]);
+      const { befehl, empfaengerIds } = createBefehlWithUserIds();
+      befehl.markAlsZugestellt(empfaengerIds[0]);
 
-      const result = befehl.markAlsZugestellt(props.empfaengerIds[0]);
+      const result = befehl.markAlsZugestellt(empfaengerIds[0]);
 
       expect(result.isFailure).toBe(true);
       expect(result.error).toContain('bereits als zugestellt markiert');
     });
 
     it('sollte fehlschlagen bei korrigiertem Befehl', () => {
-      const props = createDefaultProps();
-      const befehl = Befehl.create(props).value!;
+      const { befehl, empfaengerIds } = createBefehlWithUserIds();
       befehl.korrigieren();
 
-      const result = befehl.markAlsZugestellt(props.empfaengerIds[0]);
+      const result = befehl.markAlsZugestellt(empfaengerIds[0]);
 
       expect(result.isFailure).toBe(true);
       expect(result.error).toContain('korrigierter Befehl');
@@ -316,44 +352,77 @@ describe('Befehl Aggregate', () => {
 
   describe('quittieren()', () => {
     it('sollte einen Empfänger quittieren', () => {
-      const props = createDefaultProps();
-      const befehl = Befehl.create(props).value!;
+      const { befehl, empfaengerIds } = createBefehlWithUserIds();
       // Erst zustellen, dann quittieren
-      befehl.markAlsZugestellt(props.empfaengerIds[0]);
-      befehl.markAlsZugestellt(props.empfaengerIds[1]);
+      befehl.markAlsZugestellt(empfaengerIds[0]);
+      befehl.markAlsZugestellt(empfaengerIds[1]);
       befehl.clearDomainEvents();
 
-      const result = befehl.quittieren(props.empfaengerIds[0], 'VERSTANDEN');
+      const result = befehl.quittieren(empfaengerIds[0], 'VERSTANDEN');
 
       expect(result.isSuccess).toBe(true);
-      const empfaenger = befehl.empfaenger.find((e) => e.empfaengerId.equals(props.empfaengerIds[0]));
+      const empfaenger = befehl.empfaenger.find((e) => e.empfaengerId?.equals(empfaengerIds[0]));
       expect(empfaenger?.quittiertAm).toBeInstanceOf(Date);
       expect(empfaenger?.quittierungArt).toBe('VERSTANDEN');
     });
 
-    it('sollte Status zu QUITTIERT ändern wenn alle Empfänger quittiert haben', () => {
-      const props = createDefaultProps();
-      const befehl = Befehl.create(props).value!;
-      befehl.markAlsZugestellt(props.empfaengerIds[0]);
-      befehl.markAlsZugestellt(props.empfaengerIds[1]);
+    it('sollte BefehlQuittiertEvent emittieren (Story 2.1 AC2)', () => {
+      const { befehl, empfaengerIds, einsatzId } = createBefehlWithUserIds();
+      befehl.markAlsZugestellt(empfaengerIds[0]);
+      befehl.markAlsZugestellt(empfaengerIds[1]);
+      befehl.clearDomainEvents();
 
-      befehl.quittieren(props.empfaengerIds[0], 'VERSTANDEN');
-      befehl.quittieren(props.empfaengerIds[1], 'VERSTANDEN');
+      befehl.quittieren(empfaengerIds[0], 'VERSTANDEN');
+
+      const events = befehl.getDomainEvents();
+      const quittierEvents = events.filter((e) => e instanceof BefehlQuittiertEvent);
+      expect(quittierEvents).toHaveLength(1);
+      const event = quittierEvents[0] as BefehlQuittiertEvent;
+      expect(event.befehlId.value).toBe(befehl.id.value);
+      expect(event.einsatzId.value).toBe(einsatzId.value);
+      expect(event.empfaengerId.value).toBe(empfaengerIds[0].value);
+      expect(event.quittierungArt).toBe('VERSTANDEN');
+      expect(event.nummer).toBe(befehl.nummer);
+      expect(event.quittiertAm).toBeInstanceOf(Date);
+    });
+
+    it('sollte BefehlQuittiertEvent mit korrekter QuittierungArt emittieren', () => {
+      const { befehl, empfaengerIds } = createBefehlWithUserIds();
+      befehl.markAlsZugestellt(empfaengerIds[0]);
+      befehl.markAlsZugestellt(empfaengerIds[1]);
+      befehl.clearDomainEvents();
+
+      befehl.quittieren(empfaengerIds[0], 'RUECKFRAGE');
+
+      const quittierEvents = befehl.getDomainEvents().filter((e) => e instanceof BefehlQuittiertEvent);
+      expect(quittierEvents).toHaveLength(1);
+      expect((quittierEvents[0] as BefehlQuittiertEvent).quittierungArt).toBe('RUECKFRAGE');
+    });
+
+    it('sollte Status zu QUITTIERT ändern wenn alle Empfänger quittiert haben', () => {
+      const { befehl, empfaengerIds } = createBefehlWithUserIds();
+      befehl.markAlsZugestellt(empfaengerIds[0]);
+      befehl.markAlsZugestellt(empfaengerIds[1]);
+
+      befehl.quittieren(empfaengerIds[0], 'VERSTANDEN');
+      befehl.quittieren(empfaengerIds[1], 'VERSTANDEN');
 
       expect(befehl.status.value).toBe('QUITTIERT');
     });
 
     it('sollte BefehlStatusGeaendertEvent bei Transition zu QUITTIERT emittieren', () => {
-      const props = createDefaultProps();
-      const befehl = Befehl.create(props).value!;
-      befehl.markAlsZugestellt(props.empfaengerIds[0]);
-      befehl.markAlsZugestellt(props.empfaengerIds[1]);
+      const { befehl, empfaengerIds } = createBefehlWithUserIds();
+      befehl.markAlsZugestellt(empfaengerIds[0]);
+      befehl.markAlsZugestellt(empfaengerIds[1]);
       befehl.clearDomainEvents();
 
-      befehl.quittieren(props.empfaengerIds[0], 'VERSTANDEN');
-      befehl.quittieren(props.empfaengerIds[1], 'RUECKFRAGE');
+      befehl.quittieren(empfaengerIds[0], 'VERSTANDEN');
+      befehl.quittieren(empfaengerIds[1], 'RUECKFRAGE');
 
       const events = befehl.getDomainEvents();
+      // 2 BefehlQuittiertEvents + 1 BefehlStatusGeaendertEvent
+      const quittierEvents = events.filter((e) => e instanceof BefehlQuittiertEvent);
+      expect(quittierEvents).toHaveLength(2);
       const statusEvents = events.filter((e) => e instanceof BefehlStatusGeaendertEvent);
       expect(statusEvents).toHaveLength(1);
       const event = statusEvents[0] as BefehlStatusGeaendertEvent;
@@ -362,20 +431,35 @@ describe('Befehl Aggregate', () => {
     });
 
     it('sollte Status NICHT ändern wenn nur teilweise quittiert', () => {
-      const props = createDefaultProps();
-      const befehl = Befehl.create(props).value!;
-      befehl.markAlsZugestellt(props.empfaengerIds[0]);
-      befehl.markAlsZugestellt(props.empfaengerIds[1]);
+      const { befehl, empfaengerIds } = createBefehlWithUserIds();
+      befehl.markAlsZugestellt(empfaengerIds[0]);
+      befehl.markAlsZugestellt(empfaengerIds[1]);
 
-      befehl.quittieren(props.empfaengerIds[0], 'VERSTANDEN');
+      befehl.quittieren(empfaengerIds[0], 'VERSTANDEN');
 
       expect(befehl.status.value).toBe('ZUGESTELLT');
     });
 
     it('sollte verschiedene QuittierungArten akzeptieren', () => {
-      const props = createDefaultProps();
+      const einsatzId = EinsatzId.create().value! as EinsatzId;
+      const erstellerId = UserId.create().value! as UserId;
       const empfaengerIds = [UserId.create().value! as UserId, UserId.create().value! as UserId, UserId.create().value! as UserId];
-      const befehl = Befehl.create({ ...props, empfaengerIds }).value!;
+      const empfaenger = empfaengerIds.map((uid) => BefehlEmpfaenger.create(uid.value, uid));
+
+      const befehl = Befehl.reconstitute({
+        id: BefehlId.create().value! as BefehlId,
+        nummer: 'B2026-test1234',
+        einsatzId,
+        auftrag: 'Test',
+        befehlsgeberName: 'EL Test',
+        befehlsgeberId: undefined,
+        erstellerId,
+        status: BefehlStatus.ERTEILT(),
+        erteiltAm: new Date(),
+        empfaenger,
+        kommentare: [],
+      });
+
       for (const id of empfaengerIds) befehl.markAlsZugestellt(id);
 
       befehl.quittieren(empfaengerIds[0], 'VERSTANDEN');
@@ -383,13 +467,13 @@ describe('Befehl Aggregate', () => {
       befehl.quittieren(empfaengerIds[2], 'NICHT_VERSTANDEN');
 
       const empfaengerList = befehl.empfaenger;
-      expect(empfaengerList.find((e) => e.empfaengerId.equals(empfaengerIds[0]))?.quittierungArt).toBe('VERSTANDEN');
-      expect(empfaengerList.find((e) => e.empfaengerId.equals(empfaengerIds[1]))?.quittierungArt).toBe('RUECKFRAGE');
-      expect(empfaengerList.find((e) => e.empfaengerId.equals(empfaengerIds[2]))?.quittierungArt).toBe('NICHT_VERSTANDEN');
+      expect(empfaengerList.find((e) => e.empfaengerId?.equals(empfaengerIds[0]))?.quittierungArt).toBe('VERSTANDEN');
+      expect(empfaengerList.find((e) => e.empfaengerId?.equals(empfaengerIds[1]))?.quittierungArt).toBe('RUECKFRAGE');
+      expect(empfaengerList.find((e) => e.empfaengerId?.equals(empfaengerIds[2]))?.quittierungArt).toBe('NICHT_VERSTANDEN');
     });
 
     it('sollte fehlschlagen bei unbekanntem Empfänger', () => {
-      const befehl = createTestBefehl();
+      const { befehl } = createBefehlWithUserIds();
       const unknownId = UserId.create().value! as UserId;
 
       const result = befehl.quittieren(unknownId, 'VERSTANDEN');
@@ -399,27 +483,41 @@ describe('Befehl Aggregate', () => {
     });
 
     it('sollte fehlschlagen bei bereits quittiertem Empfänger', () => {
-      const props = createDefaultProps();
-      const befehl = Befehl.create(props).value!;
-      befehl.markAlsZugestellt(props.empfaengerIds[0]);
-      befehl.quittieren(props.empfaengerIds[0], 'VERSTANDEN');
+      const { befehl, empfaengerIds } = createBefehlWithUserIds();
+      befehl.markAlsZugestellt(empfaengerIds[0]);
+      befehl.quittieren(empfaengerIds[0], 'VERSTANDEN');
 
-      const result = befehl.quittieren(props.empfaengerIds[0], 'RUECKFRAGE');
+      const result = befehl.quittieren(empfaengerIds[0], 'RUECKFRAGE');
 
       expect(result.isFailure).toBe(true);
       expect(result.error).toContain('bereits quittiert');
     });
 
     it('sollte fehlschlagen bei korrigiertem Befehl', () => {
-      const props = createDefaultProps();
-      const befehl = Befehl.create(props).value!;
-      befehl.markAlsZugestellt(props.empfaengerIds[0]);
+      const { befehl, empfaengerIds } = createBefehlWithUserIds();
+      befehl.markAlsZugestellt(empfaengerIds[0]);
       befehl.korrigieren();
 
-      const result = befehl.quittieren(props.empfaengerIds[0], 'VERSTANDEN');
+      const result = befehl.quittieren(empfaengerIds[0], 'VERSTANDEN');
 
       expect(result.isFailure).toBe(true);
       expect(result.error).toContain('korrigierter Befehl');
+    });
+
+    it('sollte fehlschlagen wenn Befehl bereits QUITTIERT ist', () => {
+      const { befehl, empfaengerIds } = createBefehlWithUserIds();
+      // Alle Empfaenger zustellen
+      for (const id of empfaengerIds) befehl.markAlsZugestellt(id);
+      // Alle Empfaenger quittieren → Status wird QUITTIERT
+      for (const id of empfaengerIds) befehl.quittieren(id, 'VERSTANDEN');
+      expect(befehl.status.value).toBe('QUITTIERT');
+
+      // Erneute Quittierung mit einem neuen Empfaenger-ID (der nicht existiert, aber Guard greift vorher)
+      const extraEmpfaenger = UserId.create().value! as UserId;
+      const result = befehl.quittieren(extraEmpfaenger, 'VERSTANDEN');
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('bereits vollständig quittierter Befehl');
     });
   });
 
@@ -435,9 +533,8 @@ describe('Befehl Aggregate', () => {
     });
 
     it('sollte Befehl im Status ZUGESTELLT korrigieren können', () => {
-      const props = createDefaultProps();
-      const befehl = Befehl.create(props).value!;
-      for (const id of props.empfaengerIds) befehl.markAlsZugestellt(id);
+      const { befehl, empfaengerIds } = createBefehlWithUserIds();
+      for (const id of empfaengerIds) befehl.markAlsZugestellt(id);
       expect(befehl.status.value).toBe('ZUGESTELLT');
       befehl.clearDomainEvents();
 
@@ -462,10 +559,9 @@ describe('Befehl Aggregate', () => {
     });
 
     it('sollte fehlschlagen bei Status QUITTIERT', () => {
-      const props = createDefaultProps();
-      const befehl = Befehl.create(props).value!;
-      for (const id of props.empfaengerIds) befehl.markAlsZugestellt(id);
-      for (const id of props.empfaengerIds) befehl.quittieren(id, 'VERSTANDEN');
+      const { befehl, empfaengerIds } = createBefehlWithUserIds();
+      for (const id of empfaengerIds) befehl.markAlsZugestellt(id);
+      for (const id of empfaengerIds) befehl.quittieren(id, 'VERSTANDEN');
       expect(befehl.status.value).toBe('QUITTIERT');
 
       const result = befehl.korrigieren();
@@ -556,6 +652,16 @@ describe('Befehl Aggregate', () => {
       expect(result.error).toContain('Kommentar-Text ist erforderlich');
     });
 
+    it('sollte fehlschlagen bei ungültiger parentId', () => {
+      const befehl = createTestBefehl();
+      const authorId = UserId.create().value! as UserId;
+
+      const result = befehl.addKommentar(authorId, 'Antwort', false, 'nonexistent-parent-id');
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Parent-Kommentar nicht gefunden');
+    });
+
     it('sollte Text trimmen', () => {
       const befehl = createTestBefehl();
       const authorId = UserId.create().value! as UserId;
@@ -573,18 +679,16 @@ describe('Befehl Aggregate', () => {
     });
 
     it('sollte IMMER false zurückgeben bei Status ZUGESTELLT', () => {
-      const props = createDefaultProps();
-      const befehl = Befehl.create(props).value!;
-      for (const id of props.empfaengerIds) befehl.markAlsZugestellt(id);
+      const { befehl, empfaengerIds } = createBefehlWithUserIds();
+      for (const id of empfaengerIds) befehl.markAlsZugestellt(id);
 
       expect(befehl.canBeDeleted()).toBe(false);
     });
 
     it('sollte IMMER false zurückgeben bei Status QUITTIERT', () => {
-      const props = createDefaultProps();
-      const befehl = Befehl.create(props).value!;
-      for (const id of props.empfaengerIds) befehl.markAlsZugestellt(id);
-      for (const id of props.empfaengerIds) befehl.quittieren(id, 'VERSTANDEN');
+      const { befehl, empfaengerIds } = createBefehlWithUserIds();
+      for (const id of empfaengerIds) befehl.markAlsZugestellt(id);
+      for (const id of empfaengerIds) befehl.quittieren(id, 'VERSTANDEN');
 
       expect(befehl.canBeDeleted()).toBe(false);
     });
@@ -614,7 +718,8 @@ describe('Befehl Aggregate', () => {
       expect(befehl.nummer).toBeDefined();
       expect(befehl.einsatzId).toBe(props.einsatzId);
       expect(befehl.auftrag).toBe(props.auftrag);
-      expect(befehl.befehlsgeberId).toBe(props.befehlsgeberId);
+      expect(befehl.befehlsgeberName).toBe('EL Müller');
+      expect(befehl.befehlsgeberId).toBeUndefined();
       expect(befehl.erstellerId).toBe(props.erstellerId);
       expect(befehl.status).toBeInstanceOf(BefehlStatus);
       expect(befehl.erteiltAm).toBeInstanceOf(Date);
@@ -660,28 +765,25 @@ describe('Befehl Aggregate', () => {
 
   describe('Event Accumulation', () => {
     it('sollte Events über den gesamten Lifecycle akkumulieren', () => {
-      const props = createDefaultProps();
-      const befehl = Befehl.create(props).value!;
-
-      // create → 1 BefehlErstelltEvent
-      expect(befehl.getDomainEvents()).toHaveLength(1);
+      const { befehl, empfaengerIds } = createBefehlWithUserIds();
 
       // markAlsZugestellt x2 → +2 BefehlZugestelltEvent + 1 BefehlStatusGeaendertEvent
-      befehl.markAlsZugestellt(props.empfaengerIds[0]);
-      befehl.markAlsZugestellt(props.empfaengerIds[1]);
+      befehl.markAlsZugestellt(empfaengerIds[0]);
+      befehl.markAlsZugestellt(empfaengerIds[1]);
 
       // quittieren x2 → +1 BefehlStatusGeaendertEvent (bei letztem)
-      befehl.quittieren(props.empfaengerIds[0], 'VERSTANDEN');
-      befehl.quittieren(props.empfaengerIds[1], 'VERSTANDEN');
+      befehl.quittieren(empfaengerIds[0], 'VERSTANDEN');
+      befehl.quittieren(empfaengerIds[1], 'VERSTANDEN');
 
       const events = befehl.getDomainEvents();
-      // 1 Erstellt + 2 Zugestellt + 1 StatusGeaendert(ZUGESTELLT) + 1 StatusGeaendert(QUITTIERT)
-      expect(events).toHaveLength(5);
-      expect(events[0]).toBeInstanceOf(BefehlErstelltEvent);
+      // 2 Zugestellt + 1 StatusGeaendert(ZUGESTELLT) + 2 Quittiert + 1 StatusGeaendert(QUITTIERT)
+      expect(events).toHaveLength(6);
+      expect(events[0]).toBeInstanceOf(BefehlZugestelltEvent);
       expect(events[1]).toBeInstanceOf(BefehlZugestelltEvent);
-      expect(events[2]).toBeInstanceOf(BefehlZugestelltEvent);
-      expect(events[3]).toBeInstanceOf(BefehlStatusGeaendertEvent);
-      expect(events[4]).toBeInstanceOf(BefehlStatusGeaendertEvent);
+      expect(events[2]).toBeInstanceOf(BefehlStatusGeaendertEvent);
+      expect(events[3]).toBeInstanceOf(BefehlQuittiertEvent);
+      expect(events[4]).toBeInstanceOf(BefehlQuittiertEvent);
+      expect(events[5]).toBeInstanceOf(BefehlStatusGeaendertEvent);
     });
 
     it('sollte Events mit clearDomainEvents() leeren', () => {
@@ -705,18 +807,17 @@ describe('Befehl Aggregate', () => {
 
   describe('State Machine - Vollständiger Lifecycle', () => {
     it('sollte den vollständigen Happy Path durchlaufen: ERTEILT → ZUGESTELLT → QUITTIERT', () => {
-      const props = createDefaultProps();
-      const befehl = Befehl.create(props).value!;
+      const { befehl, empfaengerIds } = createBefehlWithUserIds();
       expect(befehl.status.value).toBe('ERTEILT');
 
       // Alle Empfänger zustellen → ZUGESTELLT
-      for (const id of props.empfaengerIds) {
+      for (const id of empfaengerIds) {
         befehl.markAlsZugestellt(id);
       }
       expect(befehl.status.value).toBe('ZUGESTELLT');
 
       // Alle Empfänger quittieren → QUITTIERT
-      for (const id of props.empfaengerIds) {
+      for (const id of empfaengerIds) {
         befehl.quittieren(id, 'VERSTANDEN');
       }
       expect(befehl.status.value).toBe('QUITTIERT');
@@ -731,13 +832,195 @@ describe('Befehl Aggregate', () => {
     });
 
     it('sollte Korrektur nach Zustellung unterstützen: ZUGESTELLT → KORRIGIERT', () => {
-      const props = createDefaultProps();
-      const befehl = Befehl.create(props).value!;
-      for (const id of props.empfaengerIds) befehl.markAlsZugestellt(id);
+      const { befehl, empfaengerIds } = createBefehlWithUserIds();
+      for (const id of empfaengerIds) befehl.markAlsZugestellt(id);
       expect(befehl.status.value).toBe('ZUGESTELLT');
 
       befehl.korrigieren();
       expect(befehl.status.value).toBe('KORRIGIERT');
+    });
+  });
+
+  describe('anonymisiere() - DSGVO Story 5.5', () => {
+    it('sollte personenbezogene Daten irreversibel anonymisieren', () => {
+      const befehl = createTestBefehl();
+      const salt = 'test-salt-for-anonymisierung';
+
+      const result = befehl.anonymisiere(salt);
+
+      expect(result.isSuccess).toBe(true);
+      expect(result.value?.empfaengerCount).toBe(2);
+      expect(result.value?.kommentarCount).toBe(0);
+
+      // Befehlsgeber anonymisiert
+      expect(befehl.befehlsgeberName).toMatch(/^\[ANON-[a-f0-9]{6}\]$/);
+      expect(befehl.befehlsgeberId).toBeUndefined();
+      expect(befehl.erstellerId).toBeUndefined();
+      expect(befehl.anonymisiertAm).toBeInstanceOf(Date);
+
+      // Empfaenger-Namen anonymisiert
+      for (const e of befehl.empfaenger) {
+        expect(e.name).toMatch(/^\[ANON-[a-f0-9]{6}\]$/);
+        expect(e.empfaengerId).toBeUndefined();
+      }
+    });
+
+    it('sollte Kommentar-AuthorIds entfernen (Review-Fix C1)', () => {
+      const { befehl, erstellerId } = createBefehlWithUserIds();
+      // Kommentar hinzufügen
+      befehl.addKommentar(erstellerId, 'Test Kommentar', false);
+      befehl.clearDomainEvents();
+
+      const result = befehl.anonymisiere('salt-123');
+
+      expect(result.isSuccess).toBe(true);
+      expect(result.value?.kommentarCount).toBe(1);
+      // AuthorId muss entfernt sein
+      for (const k of befehl.kommentare) {
+        expect(k.authorId).toBeUndefined();
+      }
+    });
+
+    it('sollte fehlschlagen wenn bereits anonymisiert', () => {
+      const befehl = createTestBefehl();
+      befehl.anonymisiere('salt-1');
+
+      const result = befehl.anonymisiere('salt-2');
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('Befehl wurde bereits anonymisiert');
+    });
+
+    it('sollte fehlschlagen wenn gelöscht', () => {
+      const befehl = createTestBefehl();
+      // Erst anonymisieren, dann löschen
+      befehl.anonymisiere('salt-1');
+      befehl.markiereAlsGeloescht('admin');
+
+      // Neuen Befehl erstellen und als gelöscht rekonstituieren
+      const deletedBefehl = Befehl.reconstitute({
+        id: BefehlId.create().value! as BefehlId,
+        nummer: 'B2026-test1234',
+        einsatzId: EinsatzId.create().value! as EinsatzId,
+        auftrag: 'Test',
+        befehlsgeberName: 'EL Test',
+        befehlsgeberId: undefined,
+        erstellerId: undefined,
+        status: BefehlStatus.ERTEILT(),
+        erteiltAm: new Date(),
+        empfaenger: [],
+        kommentare: [],
+        isDeleted: true,
+        deletedAt: new Date(),
+        deletedBy: 'admin',
+      });
+
+      const result = deletedBefehl.anonymisiere('salt-3');
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('Gelöschte Befehle können nicht anonymisiert werden');
+    });
+
+    it('sollte deterministischen Hash mit gleichem Salt erzeugen', () => {
+      const befehl1 = Befehl.create({
+        einsatzId: EinsatzId.create().value! as EinsatzId,
+        auftrag: 'Test',
+        befehlsgeber: 'EL Müller',
+        erstellerId: UserId.create().value! as UserId,
+        empfaenger: [{ name: 'ZF Nord' }],
+      }).value!;
+      const befehl2 = Befehl.create({
+        einsatzId: EinsatzId.create().value! as EinsatzId,
+        auftrag: 'Test',
+        befehlsgeber: 'EL Müller',
+        erstellerId: UserId.create().value! as UserId,
+        empfaenger: [{ name: 'ZF Nord' }],
+      }).value!;
+
+      befehl1.anonymisiere('same-salt');
+      befehl2.anonymisiere('same-salt');
+
+      // Gleicher Name + gleicher Salt = gleicher Hash
+      expect(befehl1.befehlsgeberName).toBe(befehl2.befehlsgeberName);
+    });
+
+    it('sollte verschiedene Hashes mit verschiedenen Salts erzeugen', () => {
+      const befehl1 = Befehl.create({
+        einsatzId: EinsatzId.create().value! as EinsatzId,
+        auftrag: 'Test',
+        befehlsgeber: 'EL Müller',
+        erstellerId: UserId.create().value! as UserId,
+        empfaenger: [{ name: 'ZF Nord' }],
+      }).value!;
+      const befehl2 = Befehl.create({
+        einsatzId: EinsatzId.create().value! as EinsatzId,
+        auftrag: 'Test',
+        befehlsgeber: 'EL Müller',
+        erstellerId: UserId.create().value! as UserId,
+        empfaenger: [{ name: 'ZF Nord' }],
+      }).value!;
+
+      befehl1.anonymisiere('salt-a');
+      befehl2.anonymisiere('salt-b');
+
+      // Verschiedene Salts = verschiedene Hashes
+      expect(befehl1.befehlsgeberName).not.toBe(befehl2.befehlsgeberName);
+    });
+
+    it('sollte Sachinhalt (Auftrag, EAMZW) erhalten', () => {
+      const befehl = Befehl.create({
+        einsatzId: EinsatzId.create().value! as EinsatzId,
+        auftrag: 'Sofort Wasser marsch',
+        befehlsgeber: 'EL Müller',
+        erstellerId: UserId.create().value! as UserId,
+        empfaenger: [{ name: 'ZF Nord' }],
+        zeitvorgabe: 'Sofort',
+        mittel: '2 C-Rohre',
+        ziel: 'Brandbekämpfung OG',
+      }).value!;
+
+      befehl.anonymisiere('salt-xyz');
+
+      expect(befehl.auftrag).toBe('Sofort Wasser marsch');
+      expect(befehl.zeitvorgabe).toBe('Sofort');
+      expect(befehl.mittel).toBe('2 C-Rohre');
+      expect(befehl.ziel).toBe('Brandbekämpfung OG');
+      expect(befehl.status.value).toBe('ERTEILT');
+    });
+  });
+
+  describe('markiereAlsGeloescht() - DSGVO Story 5.5', () => {
+    it('sollte anonymisierten Befehl als gelöscht markieren', () => {
+      const befehl = createTestBefehl();
+      befehl.anonymisiere('salt-test');
+
+      const result = befehl.markiereAlsGeloescht('admin-user-id');
+
+      expect(result.isSuccess).toBe(true);
+      expect(befehl.isDeleted).toBe(true);
+      expect(befehl.deletedAt).toBeInstanceOf(Date);
+      expect(befehl.deletedBy).toBe('admin-user-id');
+    });
+
+    it('sollte fehlschlagen wenn nicht anonymisiert', () => {
+      const befehl = createTestBefehl();
+
+      const result = befehl.markiereAlsGeloescht('admin');
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('Nur anonymisierte Befehle können gelöscht werden');
+      expect(befehl.isDeleted).toBe(false);
+    });
+
+    it('sollte fehlschlagen wenn bereits gelöscht', () => {
+      const befehl = createTestBefehl();
+      befehl.anonymisiere('salt');
+      befehl.markiereAlsGeloescht('admin');
+
+      const result = befehl.markiereAlsGeloescht('admin');
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('Befehl ist bereits gelöscht');
     });
   });
 

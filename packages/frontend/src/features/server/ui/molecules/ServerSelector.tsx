@@ -248,7 +248,7 @@ export function ServerSelector({
 
   return (
     <div className={cn('w-full', className)}>
-      <Listbox value={activeServer} onChange={handleChange} disabled={disabled}>
+      <Listbox as="div" value={activeServer} onChange={handleChange} disabled={disabled}>
         <div className="relative">
           <ListboxButton
             className={cn(

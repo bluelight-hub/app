@@ -28,3 +28,8 @@ export { FuehrungsrhythmusAktiviertEtbHandler } from './fuehrungsrhythmus-aktivi
 export { NotizErstelltEtbHandler } from './notiz-erstellt.handler';
 export { NotizAktualisiertEtbHandler } from './notiz-aktualisiert.handler';
 export { NotizGeloeschtEtbHandler } from './notiz-geloescht.handler';
+export { BefehlErstelltEtbHandler } from './befehl-erstellt.handler';
+export { BefehlQuittiertEtbHandler } from './befehl-quittiert.handler';
+export { RolleGeaendertEtbHandler } from './rolle-geaendert.handler';
+export { BefehlAnonymisiertEtbHandler } from './befehl-anonymisiert.handler';
+export { BefehlGeloeschtEtbHandler } from './befehl-geloescht-etb.handler';

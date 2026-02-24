@@ -17,6 +17,7 @@ import {
   ArchiveEinsatzHandler,
   UpdateEinsatzStatusHandler,
   ArchiveOldEinsaetzeHandler,
+  UpdateEinsatzRollenHandler,
 } from './commands';
 import {
   GetActiveEinsaetzeQueryHandler,
@@ -30,6 +31,7 @@ import {
   GetPreviousEinsatzIdQueryHandler,
   GetNextEinsatzIdQueryHandler,
   GetEinsatzTeilnehmerHandler,
+  GetEinsatzRollenQueryHandler,
 } from './queries';
 
 /**
@@ -116,6 +118,9 @@ import {
     GetNextEinsatzIdQueryHandler,
     // Story 3.3: Teilnehmer Query Handler
     GetEinsatzTeilnehmerHandler,
+    // Story 5.2: Rollen Command + Query Handlers
+    UpdateEinsatzRollenHandler,
+    GetEinsatzRollenQueryHandler,
   ],
   exports: [
     // Export handlers for use in Infrastructure Layer (Controllers)
@@ -144,6 +149,9 @@ import {
     GetNextEinsatzIdQueryHandler,
     // Story 3.3: Teilnehmer Query Handler
     GetEinsatzTeilnehmerHandler,
+    // Story 5.2: Rollen Command + Query Handlers
+    UpdateEinsatzRollenHandler,
+    GetEinsatzRollenQueryHandler,
   ],
 })
 export class EinsatzApplicationModule {}

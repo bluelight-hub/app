@@ -11,6 +11,7 @@
 
 import { Test, type TestingModule } from '@nestjs/testing';
 import { EventDeserializer } from '../event-deserializer';
+import { EventSerializer } from '../event-serializer';
 import type { SerializedEvent } from '../event-serializer';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@infrastructure/di-tokens';
@@ -48,6 +49,9 @@ import { PersonVonFahrzeugEntferntEvent } from '@domain/kraefte/events/person-vo
 import { RolleBesetzt } from '@domain/kraefte/events/rolle-besetzt.event';
 import { RolleFreigegeben } from '@domain/kraefte/events/rolle-freigegeben.event';
 
+// Befehl Events
+import { BefehlQuittiertEvent } from '@domain/events/befehl-quittiert.event';
+
 // Erinnerung Events
 import { ErinnerungErstelltEvent } from '@domain/events/erinnerung-erstellt.event';
 import { ErinnerungAusgeloestEvent } from '@domain/events/erinnerung-ausgeloest.event';
@@ -62,6 +66,7 @@ import { ErinnerungAktualisiertEvent } from '@domain/events/erinnerung-aktualisi
 import { ErinnerungGeloeschtEvent } from '@domain/events/erinnerung-geloescht.event';
 
 // Value Objects (für Test IDs)
+import { BefehlId } from '@domain/value-objects/befehl-id';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { ErinnerungId } from '@domain/value-objects/erinnerung-id';
 import { EtbId } from '@domain/value-objects/etb-id';
@@ -75,6 +80,7 @@ describe('EventDeserializer', () => {
   let mockLogger: jest.Mocked<ILogger>;
 
   // Test IDs (Nanoid format)
+  let befehlIdValue: string;
   let einsatzIdValue: string;
   let userIdValue: string;
   let userId2Value: string;
@@ -86,6 +92,7 @@ describe('EventDeserializer', () => {
 
   beforeAll(() => {
     // Create valid Nanoid IDs
+    befehlIdValue = BefehlId.create().value!.value;
     einsatzIdValue = EinsatzId.create().value!.value;
     userIdValue = UserId.create().value!.value;
     userId2Value = UserId.create().value!.value;
@@ -2156,6 +2163,93 @@ describe('EventDeserializer', () => {
     });
   });
 
+  // ===== BEFEHL QUITTIERT EVENT (Story 2.1) =====
+
+  describe('Befehl Quittiert Event', () => {
+    it('should deserialize BefehlQuittiertEvent correctly (Happy Path)', () => {
+      // Given (Arrange)
+      const quittiertAm = '2026-02-18T10:00:00.000Z';
+      const serialized = createSerializedEvent(
+        'befehl.quittiert',
+        {
+          befehlId: befehlIdValue,
+          einsatzId: einsatzIdValue,
+          empfaengerId: userIdValue,
+          quittierungArt: 'VERSTANDEN',
+          nummer: 'B2026-abc12345',
+          quittiertAm,
+        },
+        'agg-befehl-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      const event = result.value as BefehlQuittiertEvent;
+      expect(event).toBeInstanceOf(BefehlQuittiertEvent);
+      expect(event.befehlId.value).toBe(befehlIdValue);
+      expect(event.einsatzId.value).toBe(einsatzIdValue);
+      expect(event.empfaengerId.value).toBe(userIdValue);
+      expect(event.quittierungArt).toBe('VERSTANDEN');
+      expect(event.nummer).toBe('B2026-abc12345');
+      expect(event.quittiertAm.toISOString()).toBe(quittiertAm);
+    });
+
+    it('should roundtrip BefehlQuittiertEvent: serialize -> deserialize -> equals original', () => {
+      // Given - Originale Event-Instanz
+      const befehlId = BefehlId.create().value!;
+      const einsatzId = EinsatzId.create().value!;
+      const empfaengerId = UserId.create().value!;
+      const quittiertAm = new Date('2026-02-18T10:00:00.000Z');
+
+      const originalEvent = new BefehlQuittiertEvent(befehlId, einsatzId, empfaengerId, 'RUECKFRAGE', 'B2026-xyz98765', quittiertAm, befehlId.value);
+
+      // Serialize mit EventSerializer
+      const serializer = new EventSerializer();
+      const serialized = serializer.serialize(originalEvent);
+
+      // When - Deserialisieren
+      const result = deserializer.deserialize(serialized);
+
+      // Then - Alle Felder stimmen ueberein
+      expect(result.isSuccess).toBe(true);
+      const deserializedEvent = result.value as BefehlQuittiertEvent;
+
+      expect(deserializedEvent.befehlId.value).toBe(originalEvent.befehlId.value);
+      expect(deserializedEvent.einsatzId.value).toBe(originalEvent.einsatzId.value);
+      expect(deserializedEvent.empfaengerId.value).toBe(originalEvent.empfaengerId.value);
+      expect(deserializedEvent.quittierungArt).toBe(originalEvent.quittierungArt);
+      expect(deserializedEvent.nummer).toBe(originalEvent.nummer);
+      expect(deserializedEvent.quittiertAm.toISOString()).toBe(originalEvent.quittiertAm.toISOString());
+      expect(deserializedEvent.aggregateId).toBe(originalEvent.aggregateId);
+    });
+
+    it('should fail with invalid befehlId', () => {
+      // Given (Arrange)
+      const serialized = createSerializedEvent(
+        'befehl.quittiert',
+        {
+          befehlId: 'invalid-not-a-cuid',
+          einsatzId: einsatzIdValue,
+          empfaengerId: userIdValue,
+          quittierungArt: 'VERSTANDEN',
+          nummer: 'B2026-abc12345',
+          quittiertAm: '2026-02-18T10:00:00.000Z',
+        },
+        'agg-123',
+      );
+
+      // When (Act)
+      const result = deserializer.deserialize(serialized);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Invalid befehlId');
+    });
+  });
+
   // ===== UTILITY METHODS =====
 
   describe('Utility Methods', () => {
@@ -2171,13 +2265,15 @@ describe('EventDeserializer', () => {
       expect(deserializer.supportsEventType('')).toBe(false);
     });
 
-    it('should return all 68 supported event types', () => {
+    it('should return all 74 supported event types', () => {
       const supportedTypes = deserializer.getSupportedEventTypes();
 
-      // 68 Event-Typen: Basis + Erinnerung + Erinnerungsvorlage + Notiz + Fuehrungsrhythmus
+      // 74 Event-Typen: Basis + Erinnerung + Erinnerungsvorlage + Notiz + Fuehrungsrhythmus
       // + Fahrzeugtyp + RollenDefinition + FunkStatusConfig + 2 Legacy-Aliases + Kategorie (Story 8.1)
-      // + Befehl (Story 1.1 - 4 Events)
-      expect(supportedTypes).toHaveLength(68);
+      // + Befehl (Story 1.1 - 4 Events) + BefehlQuittiert (Story 2.1) + RolleGeaendert (Story 5.4)
+      // + BefehlAnonymisiert + BefehlGeloescht + AufbewahrungsKonfigurationGeaendert (Story 5.5)
+      // + SystemWarnung (Story 5.6)
+      expect(supportedTypes).toHaveLength(74);
       expect(supportedTypes).toContain('einsatz.created');
       expect(supportedTypes).toContain('etb.created');
       expect(supportedTypes).toContain('lagekarte.created');
@@ -2192,6 +2288,11 @@ describe('EventDeserializer', () => {
       expect(supportedTypes).toContain('befehl.zugestellt');
       expect(supportedTypes).toContain('befehl.status_geaendert');
       expect(supportedTypes).toContain('befehl.kommentar_hinzugefuegt');
+      expect(supportedTypes).toContain('befehl.quittiert');
+      // Einsatz-Rolle Events (Story 5.4)
+      expect(supportedTypes).toContain('rolle.geaendert');
+      // System Monitoring (Story 5.6)
+      expect(supportedTypes).toContain('system.warnung');
     });
   });
 

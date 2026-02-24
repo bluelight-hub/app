@@ -97,6 +97,12 @@ export function useEinsatzModules(): Module[] {
           description: 'Einsatzbefehle',
         },
         {
+          name: 'Rollen',
+          href: '/app/einsatz/$einsatzId/führung/rollen',
+          icon: PiUserCheck,
+          description: 'Befehlsrollen verwalten',
+        },
+        {
           name: 'Protokoll',
           href: '/app/einsatz/$einsatzId/führung/protokoll',
           icon: PiFileText,

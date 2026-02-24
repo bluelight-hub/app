@@ -13,13 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
-import type { AuthControllerUnifiedAuth200ResponseMeta } from './AuthControllerUnifiedAuth200ResponseMeta';
+import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
-    AuthControllerUnifiedAuth200ResponseMetaFromJSON,
-    AuthControllerUnifiedAuth200ResponseMetaFromJSONTyped,
-    AuthControllerUnifiedAuth200ResponseMetaToJSON,
-    AuthControllerUnifiedAuth200ResponseMetaToJSONTyped,
-} from './AuthControllerUnifiedAuth200ResponseMeta';
+    HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
+    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
+    HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
+    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import type { RollenDefinitionDto } from './RollenDefinitionDto';
 import {
     RollenDefinitionDtoFromJSON,
@@ -49,10 +49,10 @@ export interface AdminRollenControllerFindAllVAlpha200Response {
     data: Array<RollenDefinitionDto>;
     /**
      * 
-     * @type {AuthControllerUnifiedAuth200ResponseMeta}
+     * @type {HealthControllerGetIntegrationHealth200ResponseMeta}
      * @memberof AdminRollenControllerFindAllVAlpha200Response
      */
-    meta: AuthControllerUnifiedAuth200ResponseMeta;
+    meta: HealthControllerGetIntegrationHealth200ResponseMeta;
     /**
      * 
      * @type {UserControllerFindAllBasicVAlpha200ResponsePagination}
@@ -81,7 +81,7 @@ export function AdminRollenControllerFindAllVAlpha200ResponseFromJSONTyped(json:
     return {
         
         'data': ((json['data'] as Array<any>).map(RollenDefinitionDtoFromJSON)),
-        'meta': AuthControllerUnifiedAuth200ResponseMetaFromJSON(json['meta']),
+        'meta': HealthControllerGetIntegrationHealth200ResponseMetaFromJSON(json['meta']),
         'pagination': json['pagination'] == null ? undefined : UserControllerFindAllBasicVAlpha200ResponsePaginationFromJSON(json['pagination']),
     };
 }
@@ -98,7 +98,7 @@ export function AdminRollenControllerFindAllVAlpha200ResponseToJSONTyped(value?:
     return {
         
         'data': ((value['data'] as Array<any>).map(RollenDefinitionDtoToJSON)),
-        'meta': AuthControllerUnifiedAuth200ResponseMetaToJSON(value['meta']),
+        'meta': HealthControllerGetIntegrationHealth200ResponseMetaToJSON(value['meta']),
         'pagination': UserControllerFindAllBasicVAlpha200ResponsePaginationToJSON(value['pagination']),
     };
 }

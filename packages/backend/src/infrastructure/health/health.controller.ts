@@ -1,5 +1,5 @@
 import * as os from 'node:os';
-import { Controller, Get, Inject, Req, VERSION_NEUTRAL } from '@nestjs/common';
+import { Controller, Get, Inject, Req, UseGuards, VERSION_NEUTRAL } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiExtraModels, ApiOkResponse, ApiOperation, getSchemaPath } from '@nestjs/swagger';
 import { DiskHealthIndicator, HealthCheck, type HealthCheckResult, HealthCheckService, MemoryHealthIndicator } from '@nestjs/terminus';
@@ -11,9 +11,16 @@ import { SkipSetupCheck } from '@/infrastructure/decorators/skip-setup-check.dec
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { IServerAccessTokenRepository } from '@domain/repositories/i-server-access-token.repository';
 import type { IServerConfigRepository } from '@domain/repositories/i-server-config.repository';
-import { SERVER_ACCESS_TOKEN_REPOSITORY, SERVER_CONFIG_REPOSITORY } from '@/infrastructure/di-tokens';
+import { SERVER_ACCESS_TOKEN_REPOSITORY, SERVER_CONFIG_REPOSITORY, RESILIENCE } from '@/infrastructure/di-tokens';
+import { ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
+import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
+import { RolesGuard } from '@/modules/auth/guards/roles.guard';
+import { Roles } from '@/modules/auth/decorators/roles.decorator';
+import { CircuitBreakerService } from '@/infrastructure/resilience/circuit-breaker.service';
+import { GetSystemHealthQueryHandler } from '@application/monitoring/queries/get-system-health/get-system-health.handler';
+import { GetSystemHealthQuery } from '@application/monitoring/queries/get-system-health/get-system-health.query';
 import { PrismaHealthIndicator } from './prisma-health.indicator';
-import { BasicHealthDto, DetailedHealthDto } from './dto';
+import { BasicHealthDto, DetailedHealthDto, IntegrationHealthDto, SystemHealthDto } from './dto';
 
 /**
  * Konstanten für Health-Checks
@@ -35,7 +42,6 @@ const HEALTH_CHECK_CONFIG = {
  *
  * @class HealthController
  */
-@SkipTransform()
 @SkipServerAccess() // Health-Endpoints muessen ohne Server-Access-Token erreichbar sein
 @SkipSetupCheck() // Health-Endpoints muessen waehrend Setup erreichbar sein (Story 1.2)
 @Controller({ path: 'health', version: VERSION_NEUTRAL })
@@ -70,6 +76,8 @@ export class HealthController {
     @Inject(SERVER_ACCESS_TOKEN_REPOSITORY) private readonly tokenRepo: IServerAccessTokenRepository,
     @Inject(SERVER_CONFIG_REPOSITORY) private readonly configRepo: IServerConfigRepository,
     private readonly configService: ConfigService,
+    @Inject(RESILIENCE.CIRCUIT_BREAKER) private readonly circuitBreaker: CircuitBreakerService,
+    private readonly systemHealthHandler: GetSystemHealthQueryHandler,
   ) {}
 
   /**
@@ -89,6 +97,7 @@ export class HealthController {
    * @returns BasicHealthDto oder DetailedHealthDto je nach Authentifizierung
    */
   @Get()
+  @SkipTransform()
   @ApiOperation({ summary: 'Health-Check mit Token-Differenzierung' })
   @ApiExtraModels(BasicHealthDto, DetailedHealthDto)
   @ApiOkResponse({
@@ -118,6 +127,7 @@ export class HealthController {
    * @returns {Promise<HealthCheckResult>} Liveness-Check-Ergebnisobjekt
    */
   @Get('liveness')
+  @SkipTransform()
   @HealthCheck()
   async checkLiveness(): Promise<HealthCheckResult> {
     return this.health.check([async () => this.prismaDb.pingCheck('database')]);
@@ -130,6 +140,7 @@ export class HealthController {
    * @returns {Promise<HealthCheckResult>} Readiness-Check-Ergebnisobjekt
    */
   @Get('readiness')
+  @SkipTransform()
   @HealthCheck()
   async checkReadiness(): Promise<HealthCheckResult> {
     return this.health.check([
@@ -149,9 +160,105 @@ export class HealthController {
    * @returns {Promise<HealthCheckResult>} Datenbank-Check-Ergebnisobjekt
    */
   @Get('db')
+  @SkipTransform()
   @HealthCheck()
   async checkDatabase(): Promise<HealthCheckResult> {
     return this.health.check([() => this.prismaDb.pingCheck('database'), () => this.prismaDb.isConnected('database_connections')]);
+  }
+
+  /**
+   * Gibt den Circuit Breaker Status aller registrierten Integrationen zurueck.
+   *
+   * Zeigt pro Integration: serviceName, state, failureCount, lastFailure, lastSuccess.
+   *
+   * @see Story 5.3 AC4
+   * @returns {IntegrationHealthDto} Status aller Circuit Breakers
+   */
+  @Get('integrations')
+  @ApiOperation({ summary: 'Circuit Breaker Status aller externen Integrationen' })
+  @ApiWrappedResponse(IntegrationHealthDto, { description: 'Status aller externen Integrationen' })
+  async getIntegrationHealth(@Req() request: Request): Promise<IntegrationHealthDto> {
+    // Token-Validierung: ohne/ungueltigem Token → leere Liste (Information Disclosure Prevention)
+    const rawToken = request.headers['x-server-access-token'];
+    const tokenString = Array.isArray(rawToken) ? rawToken[0] : rawToken;
+
+    if (!tokenString || !(await this.validateToken(tokenString))) {
+      return { integrations: [] };
+    }
+
+    const statuses = this.circuitBreaker.getAllStatus();
+    return {
+      integrations: statuses.map((s) => {
+        const totalCount = s.failureCount + s.successCount;
+        return {
+          serviceName: s.serviceName,
+          state: s.state,
+          failureCount: s.failureCount,
+          lastFailure: s.lastFailure,
+          lastSuccess: s.lastSuccess,
+          // Story 5.6 AC5: Erweiterte Metriken
+          lastSuccessAt: s.lastSuccess,
+          lastFailureAt: s.lastFailure,
+          // AC5: Fehlerrate im Rolling Window (failureCount + successCount aus CircuitBreakerState)
+          errorRate: totalCount > 0 ? (s.failureCount / totalCount) * 100 : 0,
+          // Per-Integration Response Time Tracking ist ein separates Feature.
+          // Das globale Prometheus HTTP Histogram trackt nur aggregierte Latenz, nicht per Integration.
+          responseTimeP95: undefined,
+        };
+      }),
+    };
+  }
+
+  /**
+   * Gibt den aggregierten System-Gesundheitszustand zurueck.
+   *
+   * Erfordert Admin-Authentifizierung (JWT + ADMIN/SUPER_ADMIN Rolle).
+   *
+   * Enthaelt:
+   * - zustellrate: Prozent erfolgreich zugestellter Befehle im 5min-Window
+   * - websocketConnections: Anzahl aktiver WebSocket-Verbindungen
+   * - outboxQueueDepth: Anzahl wartender Events im Outbox
+   * - apiResponseTime: p50/p95/p99 in ms
+   * - circuitBreakerStatus: Status pro Integration
+   * - dbConnectionPoolUsage: Auslastung in Prozent
+   * - uptime: Server-Uptime in Sekunden
+   *
+   * @see Story 5.6 AC2
+   */
+  @Get('system')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Aggregierter System-Gesundheitszustand (Admin only)' })
+  @ApiWrappedResponse(SystemHealthDto, { description: 'System-Health-Metriken' })
+  async getSystemHealth(): Promise<SystemHealthDto> {
+    const result = await this.systemHealthHandler.execute(new GetSystemHealthQuery());
+
+    if (result.isFailure) {
+      // Fallback bei Fehler: minimale Werte
+      return {
+        zustellrate: 0,
+        websocketConnections: 0,
+        outboxQueueDepth: 0,
+        apiResponseTime: { p50: 0, p95: 0, p99: 0 },
+        circuitBreakerStatus: [],
+        dbConnectionPoolUsage: 0,
+        uptime: Math.floor(process.uptime()),
+      };
+    }
+
+    const dto = result.value!;
+    return {
+      zustellrate: dto.zustellrate,
+      websocketConnections: dto.websocketConnections,
+      outboxQueueDepth: dto.outboxQueueDepth,
+      apiResponseTime: dto.apiResponseTime,
+      circuitBreakerStatus: Object.entries(dto.circuitBreakerStatus).map(([serviceName, state]) => ({
+        serviceName,
+        state,
+      })),
+      dbConnectionPoolUsage: dto.dbConnectionPoolUsage,
+      uptime: dto.uptime,
+    };
   }
 
   /**

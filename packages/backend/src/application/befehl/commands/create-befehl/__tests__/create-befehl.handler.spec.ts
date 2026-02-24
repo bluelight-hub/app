@@ -26,17 +26,14 @@ describe('CreateBefehlHandler', () => {
     getRetryCount: jest.Mock;
   };
 
-  /** Erzeugt gültige UserIds für Tests. */
-  const createValidUserIds = (count: number) => Array.from({ length: count }, () => UserId.create().value!);
-
   /** Erzeugt einen gültigen CreateBefehlCommand mit Defaults. */
   const createValidCommand = (overrides: Partial<CreateBefehlCommand> = {}) => {
-    const [befehlsgeber, ersteller, empf1, empf2] = createValidUserIds(4);
+    const ersteller = UserId.create().value!;
     const einsatzId = EinsatzId.create().value!;
     return new CreateBefehlCommand(
       overrides.einsatzId ?? einsatzId.value,
-      overrides.empfaengerIds ?? [empf1.value, empf2.value],
-      overrides.befehlsgeberId ?? befehlsgeber.value,
+      overrides.empfaenger ?? [{ name: 'ZF Meier' }, { name: 'GF Schmidt' }],
+      overrides.befehlsgeber ?? 'EL Mueller',
       overrides.erstellerId ?? ersteller.value,
       overrides.auftrag ?? 'Patientenablage einrichten',
       overrides.zeitvorgabe,
@@ -121,9 +118,8 @@ describe('CreateBefehlHandler', () => {
     });
 
     it('sollte Empfänger korrekt am Aggregate setzen', async () => {
-      const [empf1, empf2] = createValidUserIds(2);
       const command = createValidCommand({
-        empfaengerIds: [empf1.value, empf2.value],
+        empfaenger: [{ name: 'ZF Meier' }, { name: 'GF Schmidt' }],
       });
 
       const result = await handler.execute(command);
@@ -185,24 +181,22 @@ describe('CreateBefehlHandler', () => {
       expect(mockOutboxRepository.save).not.toHaveBeenCalled();
     });
 
-    it('sollte Result.fail bei ungültiger EmpfängerId zurückgeben', async () => {
-      const command = createValidCommand({ empfaengerIds: ['not-a-valid-cuid'] });
+    it('sollte Empfaenger als Display-Namen akzeptieren (keine UserId-Validierung)', async () => {
+      const command = createValidCommand({ empfaenger: [{ name: 'Beliebiger Name' }] });
 
       const result = await handler.execute(command);
 
-      expect(result.isSuccess).toBe(false);
-      expect(result.error).toBeDefined();
-      expect(mockRepository.save).not.toHaveBeenCalled();
+      expect(result.isSuccess).toBe(true);
+      expect(mockRepository.save).toHaveBeenCalled();
     });
 
-    it('sollte Result.fail bei ungültiger BefehlsgeberId zurückgeben', async () => {
-      const command = createValidCommand({ befehlsgeberId: 'INVALID_UPPERCASE' });
+    it('sollte Befehlsgeber als Display-Name akzeptieren (keine UserId-Validierung)', async () => {
+      const command = createValidCommand({ befehlsgeber: 'Beliebiger Befehlsgeber' });
 
       const result = await handler.execute(command);
 
-      expect(result.isSuccess).toBe(false);
-      expect(result.error).toBeDefined();
-      expect(mockRepository.save).not.toHaveBeenCalled();
+      expect(result.isSuccess).toBe(true);
+      expect(mockRepository.save).toHaveBeenCalled();
     });
 
     it('sollte Result.fail bei ungültiger ErstellerId zurückgeben', async () => {
@@ -225,8 +219,8 @@ describe('CreateBefehlHandler', () => {
       expect(mockRepository.save).not.toHaveBeenCalled();
     });
 
-    it('sollte Result.fail bei leerer empfaengerIds-Liste zurückgeben', async () => {
-      const command = createValidCommand({ empfaengerIds: [] });
+    it('sollte Result.fail bei leerer empfaenger-Liste zurückgeben', async () => {
+      const command = createValidCommand({ empfaenger: [] });
 
       const result = await handler.execute(command);
 
@@ -325,10 +319,9 @@ describe('CreateBefehlHandler', () => {
       expect(createdEvent.einsatzId.value).toBe(einsatzId.value);
     });
 
-    it('sollte Event mit Empfänger-IDs speichern', async () => {
-      const [empf1, empf2] = createValidUserIds(2);
+    it('sollte Event mit Empfaenger-Namen speichern', async () => {
       const command = createValidCommand({
-        empfaengerIds: [empf1.value, empf2.value],
+        empfaenger: [{ name: 'ZF Meier' }, { name: 'GF Schmidt' }],
       });
 
       const result = await handler.execute(command);
@@ -336,8 +329,8 @@ describe('CreateBefehlHandler', () => {
       expect(result.isSuccess).toBe(true);
       const savedEvents = mockOutboxRepository.save.mock.calls[0][0];
       const createdEvent = savedEvents[0] as BefehlErstelltEvent;
-      expect(createdEvent.empfaengerIds).toContain(empf1.value);
-      expect(createdEvent.empfaengerIds).toContain(empf2.value);
+      expect(createdEvent.empfaenger).toContain('ZF Meier');
+      expect(createdEvent.empfaenger).toContain('GF Schmidt');
     });
 
     it('sollte Event innerhalb der gleichen Transaction speichern', async () => {

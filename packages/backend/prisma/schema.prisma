@@ -194,10 +194,20 @@ model User {
   // ========================================
   // Befehl-Management Relations (Story 1.1 Befehle)
   // ========================================
-  gegebeneBefehle       Befehl[]           @relation("BefehlBefehlsgeber")
-  erstellteBefehle      Befehl[]           @relation("BefehlErsteller")
-  befehlEmpfaenger      BefehlEmpfaenger[] @relation("BefehlEmpfaengerUser")
-  befehlKommentare      BefehlKommentar[]  @relation("BefehlKommentarAuthor")
+  // ========================================
+  // Einsatz-Rollenzuweisung Relations (Story 5.2)
+  // ========================================
+  einsatzRollenzuweisungen EinsatzRollenzuweisung[]
+
+  gegebeneBefehle  Befehl[]           @relation("BefehlBefehlsgeber")
+  erstellteBefehle Befehl[]           @relation("BefehlErsteller")
+  befehlEmpfaenger BefehlEmpfaenger[] @relation("BefehlEmpfaengerUser")
+  befehlKommentare BefehlKommentar[]  @relation("BefehlKommentarAuthor")
+
+  // ========================================
+  // Aufbewahrungs-Konfiguration Relations (Story 5.5)
+  // ========================================
+  updatedAufbewahrungsKonfigurationen AufbewahrungsKonfiguration[] @relation("AufbewahrungsKonfigurationUpdater")
 
   // Indexes
   @@index([username], map: "idx_user_username")
@@ -274,6 +284,12 @@ model Einsatz {
 
   // Befehle Relation (1:N, Story 1.1 Befehle)
   befehle Befehl[]
+
+  // Einsatz-Rollenzuweisung Relation (1:N, Story 5.2)
+  einsatzRollenzuweisungen EinsatzRollenzuweisung[]
+
+  // Compliance-Reports Relation (1:N, Story 5.5)
+  complianceReports ComplianceReport[]
 
   // Indexes
   @@index([status, createdAt])
@@ -1662,8 +1678,9 @@ model Befehl {
   nummer           String       @db.VarChar(255) // Format: B{YEAR}-{CUID-8}
   einsatzId        String       @map("einsatz_id")
   auftrag          String       @db.Text // Pflichtfeld: Kern-Auftrag
-  befehlsgeberId   String       @map("befehlsgeber_id") @db.VarChar(100)
-  erstellerId      String       @map("ersteller_id") @db.VarChar(100)
+  befehlsgeberName String       @map("befehlsgeber_name") @db.VarChar(255)
+  befehlsgeberId   String?      @map("befehlsgeber_id") @db.VarChar(100)
+  erstellerId      String?      @map("ersteller_id") @db.VarChar(100)
   status           BefehlStatus @default(ERTEILT)
 
   // Optionale EAMZW-Felder (Ereignis, Auftrag, Mittel, Ziel, Weg)
@@ -1681,14 +1698,20 @@ model Befehl {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  // DSGVO Soft-Delete & Anonymisierung (Story 5.5)
+  isDeleted      Boolean   @default(false) @map("is_deleted")
+  deletedAt      DateTime? @map("deleted_at")
+  deletedBy      String?   @map("deleted_by") @db.VarChar(100)
+  anonymisiertAm DateTime? @map("anonymisiert_am")
+
   // Relations
-  einsatz         Einsatz            @relation(fields: [einsatzId], references: [id], onDelete: Cascade)
-  befehlsgeber    User               @relation("BefehlBefehlsgeber", fields: [befehlsgeberId], references: [id], onDelete: Restrict)
-  ersteller       User               @relation("BefehlErsteller", fields: [erstellerId], references: [id], onDelete: Restrict)
-  originalBefehl  Befehl?            @relation("BefehlKorrektur", fields: [originalBefehlId], references: [id], onDelete: SetNull)
-  korrekturen     Befehl[]           @relation("BefehlKorrektur")
-  empfaenger      BefehlEmpfaenger[]
-  kommentare      BefehlKommentar[]
+  einsatz        Einsatz            @relation(fields: [einsatzId], references: [id], onDelete: Cascade)
+  befehlsgeber   User?              @relation("BefehlBefehlsgeber", fields: [befehlsgeberId], references: [id], onDelete: Restrict)
+  ersteller      User?              @relation("BefehlErsteller", fields: [erstellerId], references: [id], onDelete: SetNull)
+  originalBefehl Befehl?            @relation("BefehlKorrektur", fields: [originalBefehlId], references: [id], onDelete: SetNull)
+  korrekturen    Befehl[]           @relation("BefehlKorrektur")
+  empfaenger     BefehlEmpfaenger[]
+  kommentare     BefehlKommentar[]
 
   // Indexes
   @@unique([einsatzId, nummer])
@@ -1697,6 +1720,8 @@ model Befehl {
   @@index([originalBefehlId])
   @@index([einsatzId, status])
   @@index([einsatzId, createdAt])
+  @@index([isDeleted], map: "idx_befehl_is_deleted")
+  @@index([anonymisiertAm], map: "idx_befehl_anonymisiert_am")
   @@map("befehl")
 }
 
@@ -1705,25 +1730,32 @@ model Befehl {
 /// - Zustellungs- und Quittierungszeitpunkte pro Empfänger individuell
 /// - Cascade-Delete mit Befehl
 model BefehlEmpfaenger {
-  id              String          @id @default(cuid())
-  befehlId        String          @map("befehl_id")
-  empfaengerId    String          @map("empfaenger_id") @db.VarChar(100)
-  zugestelltAm    DateTime?       @map("zugestellt_am")
-  quittiertAm     DateTime?       @map("quittiert_am")
-  quittierungArt  QuittierungArt? @map("quittierung_art")
+  id             String          @id @default(cuid())
+  befehlId       String          @map("befehl_id")
+  name           String          @db.VarChar(255)
+  empfaengerId   String?         @map("empfaenger_id") @db.VarChar(100)
+  zugestelltAm   DateTime?       @map("zugestellt_am")
+  quittiertAm    DateTime?       @map("quittiert_am")
+  quittierungArt QuittierungArt? @map("quittierung_art")
 
   // Timestamps
   createdAt DateTime @default(now()) @map("created_at")
 
-  // Relations
-  befehl    Befehl @relation(fields: [befehlId], references: [id], onDelete: Cascade)
-  empfaenger User  @relation("BefehlEmpfaengerUser", fields: [empfaengerId], references: [id], onDelete: Restrict)
+  // DSGVO Soft-Delete (Story 5.5)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedAt DateTime? @map("deleted_at")
+  deletedBy String?   @map("deleted_by") @db.VarChar(100)
 
-  // Constraints: Ein User kann pro Befehl nur einmal Empfänger sein
-  @@unique([befehlId, empfaengerId])
+  // Relations
+  befehl     Befehl @relation(fields: [befehlId], references: [id], onDelete: Cascade)
+  empfaenger User?  @relation("BefehlEmpfaengerUser", fields: [empfaengerId], references: [id], onDelete: Restrict)
+
+  // Constraints: Ein Name kann pro Befehl nur einmal Empfänger sein
+  @@unique([befehlId, name])
   // Indexes
   @@index([befehlId])
   @@index([empfaengerId])
+  @@index([isDeleted], map: "idx_befehl_empfaenger_is_deleted")
   @@map("befehl_empfaenger")
 }
 
@@ -1732,19 +1764,24 @@ model BefehlEmpfaenger {
 /// - isRueckfrage markiert Kommentare die aus einer Quittierungs-Rückfrage entstanden
 /// - Cascade-Delete mit Befehl
 model BefehlKommentar {
-  id            String  @id @default(cuid())
-  befehlId      String  @map("befehl_id")
-  authorId      String  @map("author_id") @db.VarChar(100)
-  text          String  @db.Text
-  isRueckfrage  Boolean @default(false) @map("is_rueckfrage")
-  parentId      String? @map("parent_id") // Thread-Support: Verweis auf übergeordneten Kommentar
+  id           String  @id @default(cuid())
+  befehlId     String  @map("befehl_id")
+  authorId     String? @map("author_id") @db.VarChar(100)
+  text         String  @db.Text
+  isRueckfrage Boolean @default(false) @map("is_rueckfrage")
+  parentId     String? @map("parent_id") // Thread-Support: Verweis auf übergeordneten Kommentar
 
   // Timestamps
   createdAt DateTime @default(now()) @map("created_at")
 
+  // DSGVO Soft-Delete (Story 5.5)
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  deletedAt DateTime? @map("deleted_at")
+  deletedBy String?   @map("deleted_by") @db.VarChar(100)
+
   // Relations
   befehl   Befehl            @relation(fields: [befehlId], references: [id], onDelete: Cascade)
-  author   User              @relation("BefehlKommentarAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  author   User?             @relation("BefehlKommentarAuthor", fields: [authorId], references: [id], onDelete: SetNull)
   parent   BefehlKommentar?  @relation("KommentarThread", fields: [parentId], references: [id], onDelete: SetNull)
   children BefehlKommentar[] @relation("KommentarThread")
 
@@ -1752,5 +1789,84 @@ model BefehlKommentar {
   @@index([befehlId])
   @@index([authorId])
   @@index([parentId])
+  @@index([isDeleted], map: "idx_befehl_kommentar_is_deleted")
   @@map("befehl_kommentar")
+}
+
+// ========================================
+// Einsatz-Rollenzuweisung (Story 5.2)
+// ========================================
+
+enum EinsatzRolle {
+  BEFEHLSGEBER
+  ERSTELLER
+  EMPFAENGER
+  BEOBACHTER
+}
+
+model EinsatzRollenzuweisung {
+  id           String       @id @default(cuid())
+  einsatzId    String       @map("einsatz_id")
+  userId       String       @map("user_id")
+  rolle        EinsatzRolle
+  zugewiesenAm DateTime     @default(now()) @map("zugewiesen_am")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  einsatz Einsatz @relation(fields: [einsatzId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([einsatzId, userId])
+  @@index([einsatzId])
+  @@map("einsatz_rollenzuweisung")
+}
+
+// ========================================
+// DSGVO Aufbewahrung (Story 5.5)
+// ========================================
+
+/// AufbewahrungsKonfiguration: Singleton-Config für DSGVO-Aufbewahrungsregeln
+/// - Immer nur EIN aktiver Datensatz (Singleton-Pattern via upsert)
+/// - Default: 10 Jahre Aufbewahrungsfrist (GoBD §147 AO), 30 Tage Freigabeperiode
+/// - Jede Änderung erzeugt einen ETB-Audit-Eintrag
+model AufbewahrungsKonfiguration {
+  id                       String   @id @default(cuid())
+  isSingleton              Boolean  @default(true) @unique @map("is_singleton")
+  aufbewahrungsfristJahre  Int      @default(10) @map("aufbewahrungsfrist_jahre")
+  freigabeperiodeTage      Int      @default(30) @map("freigabeperiode_tage")
+  automatischLoeschenAktiv Boolean  @default(false) @map("automatisch_loeschen_aktiv")
+  updatedBy                String?  @map("updated_by") @db.VarChar(100)
+  createdAt                DateTime @default(now()) @map("created_at")
+  updatedAt                DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  updater User? @relation("AufbewahrungsKonfigurationUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
+
+  @@map("aufbewahrungs_konfiguration")
+}
+
+/// ComplianceReport: Dokumentation der DSGVO-Anonymisierungsläufe
+/// - Wird automatisch pro anonymisiertem Einsatz erstellt
+/// - Audit-Trail für Datenschutzbeauftragten
+/// - Enthält Metadaten über anonymisierte Daten (Anzahl, Zeitpunkt, Frist)
+model ComplianceReport {
+  id                 String    @id @default(cuid())
+  einsatzId          String    @map("einsatz_id")
+  einsatzName        String?   @map("einsatz_name") @db.VarChar(255)
+  beendetAm          DateTime? @map("beendet_am")
+  befehlCount        Int       @default(0) @map("befehl_count")
+  empfaengerCount    Int       @default(0) @map("empfaenger_count")
+  kommentarCount     Int       @default(0) @map("kommentar_count")
+  aufbewahrungsfrist Int       @map("aufbewahrungsfrist") // In Jahren, zum Zeitpunkt der Anonymisierung
+  anonymisiertAm     DateTime  @map("anonymisiert_am")
+  reportData         Json?     @map("report_data") @db.JsonB // Erweiterte Report-Details
+  createdAt          DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  einsatz Einsatz @relation(fields: [einsatzId], references: [id], onDelete: Restrict)
+
+  @@index([einsatzId], map: "idx_compliance_report_einsatz")
+  @@index([anonymisiertAm], map: "idx_compliance_report_anonymisiert")
+  @@map("compliance_report")
 }

@@ -13,16 +13,41 @@
  */
 
 import { INTEGRATION_ERROR_CODES, IntegrationError } from '@domain/integrations/common/integration-error-codes';
+import { Result } from '@domain/common/result';
 import { HiOrgServerAdapter } from '../hiorg-server.adapter';
+import { CircuitBreakerService } from '@infrastructure/resilience/circuit-breaker.service';
+
+/** Erstellt einen Mock CircuitBreakerService der Operations direkt ausfuehrt */
+const createMockCircuitBreaker = (): CircuitBreakerService => {
+  const mockCb = {
+    register: jest.fn(),
+    execute: jest.fn().mockImplementation(async (_name: string, operation: () => Promise<unknown>, _fallback?: () => Promise<unknown>) => {
+      try {
+        const result = await operation();
+        return Result.ok(result);
+      } catch (error) {
+        return Result.fail(error instanceof Error ? error.message : 'Unbekannt');
+      }
+    }),
+    getState: jest.fn(),
+    getAllStatus: jest.fn().mockReturnValue([]),
+    reset: jest.fn(),
+    onStateChange: jest.fn(),
+    isOpen: jest.fn().mockReturnValue(false),
+  } as unknown as CircuitBreakerService;
+  return mockCb;
+};
 
 describe('HiOrgServerAdapter', () => {
   let adapter: HiOrgServerAdapter;
   let fetchSpy: jest.SpyInstance;
+  let mockCircuitBreaker: CircuitBreakerService;
 
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
-    adapter = new HiOrgServerAdapter();
+    mockCircuitBreaker = createMockCircuitBreaker();
+    adapter = new HiOrgServerAdapter(mockCircuitBreaker);
 
     // Mock global fetch
     fetchSpy = jest.spyOn(global, 'fetch');
@@ -480,6 +505,71 @@ describe('HiOrgServerAdapter', () => {
       expect(result.value?.testedAt).toBeInstanceOf(Date);
       expect(result.value?.testedAt.getTime()).toBeGreaterThanOrEqual(beforeTest.getTime());
       expect(result.value?.testedAt.getTime()).toBeLessThanOrEqual(afterTest.getTime());
+    });
+  });
+
+  describe('Circuit Breaker Integration (Story 5.3)', () => {
+    it('sollte CircuitBreakerService bei Konstruktion registrieren', () => {
+      expect(mockCircuitBreaker.register).toHaveBeenCalledWith('hiorg-server');
+    });
+
+    it('sollte testConnection durch CircuitBreakerService ausfuehren', async () => {
+      // Given
+      fetchSpy.mockResolvedValueOnce(
+        createMockResponse({
+          data: { data: { id: '1', type: 'organisation', attributes: { name: 'Test Org' } } },
+        }),
+      );
+
+      // When
+      await adapter.testConnection('valid-token');
+
+      // Then
+      expect(mockCircuitBreaker.execute).toHaveBeenCalledWith('hiorg-server', expect.any(Function));
+    });
+
+    it('sollte fetchPersons durch CircuitBreakerService ausfuehren', async () => {
+      // Given
+      fetchSpy.mockResolvedValueOnce(createMockResponse({ data: { data: [] } }));
+
+      // When
+      await adapter.fetchPersons('valid-token');
+
+      // Then
+      expect(mockCircuitBreaker.execute).toHaveBeenCalledWith(
+        'hiorg-server',
+        expect.any(Function),
+        expect.any(Function), // Fallback
+      );
+    });
+
+    it('sollte bei Open Circuit leere Personenliste als Fallback liefern', async () => {
+      // Given: CB execute ruft den Fallback auf
+      (mockCircuitBreaker.execute as jest.Mock).mockImplementationOnce(async (_name: string, _operation: () => Promise<unknown>, fallback?: () => Promise<unknown>) => {
+        if (fallback) {
+          return Result.ok(await fallback());
+        }
+        return Result.fail('Circuit open');
+      });
+
+      // When
+      const result = await adapter.fetchPersons('valid-token');
+
+      // Then
+      expect(result.isSuccess).toBe(true);
+      expect(result.value).toEqual([]);
+    });
+
+    it('sollte bei Open Circuit testConnection fehlschlagen lassen (kein Fallback)', async () => {
+      // Given: CB execute gibt Fehler zurueck (kein Fallback fuer testConnection)
+      (mockCircuitBreaker.execute as jest.Mock).mockResolvedValueOnce(Result.fail('Circuit open fuer hiorg-server'));
+
+      // When
+      const result = await adapter.testConnection('valid-token');
+
+      // Then
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Circuit open');
     });
   });
 });

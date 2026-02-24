@@ -1,21 +1,31 @@
 # Deep-Dive: Externe System-Schnittstellen
 
 > **Generiert:** 2026-01-05
+> **Letzte Aktualisierung:** 2026-02-19
 > **Workflow:** BMad Document-Project v1.2.0
 > **Scan-Level:** Exhaustive
-> **Dateien analysiert:** 62
-> **Lines of Code:** ~4.500 LOC
+> **Dateien analysiert:** 78
+> **Lines of Code:** ~5.800 LOC
 
 ---
 
 ## 1. Überblick
 
-Das Bluelight-Hub Backend integriert sich mit zwei externen Systemen:
+Das Bluelight-Hub Backend integriert sich mit folgenden externen Systemen:
 
 | System | Zweck | Protokoll | Authentifizierung |
 |--------|-------|-----------|-------------------|
 | **HiOrg-Server** | Personalverwaltung (Kräfte-Synchronisation) | REST (JSON:API) | OAuth2 + PKCE |
-| **Nominatim (OSM)** | Geocoding (Adresse ↔ Koordinaten) | REST (JSON) | User-Agent Header |
+| **Nominatim (OSM)** | Geocoding (Adresse <-> Koordinaten) | REST (JSON) | User-Agent Header |
+| **HIBP (Have I Been Pwned)** | Passwort-Kompromittierungsprüfung | REST (Text) | User-Agent Header |
+
+Zusätzlich nutzt das Frontend lokale Plattform-APIs für Benachrichtigungen:
+
+| System | Zweck | Protokoll | Verfügbarkeit |
+|--------|-------|-----------|---------------|
+| **Tauri Notification Plugin** | Native OS-Benachrichtigungen | IPC (Tauri Plugin) | Desktop (Tauri) |
+| **Web Notification API** | Browser-Benachrichtigungen | Browser API | Web (Fallback) |
+| **Navigator Badge API** | App-Badge-Counter | Browser API | Web + PWA |
 
 Die Integration folgt der **Hexagonal Architecture** mit klarer Trennung:
 - **Domain Layer:** Ports (Interfaces) definieren Contracts
@@ -67,25 +77,54 @@ Die Integration folgt der **Hexagonal Architecture** mit klarer Trennung:
 │  │                    Domain Entities & Repositories                   │ │
 │  │  IntegrationCredential │ OAuth2State │ QualifikationMapping         │ │
 │  └─────────────────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────────────┘
-                │                   │                   │
-                ▼                   ▼                   ▼
+│  ┌─────────────────┐                                                    │
+│  │ IGeocodingPort  │ (für Lagekarte + allg. Geocoding)                  │
+│  └──────┬──────────┘                                                    │
+└─────────┼───────────────────────────────────────────────────────────────┘
+          │                   │                   │
+          ▼                   ▼                   ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                    Infrastructure Layer (Adapters)                       │
 │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌─────────────────┐ │
 │  │ OAuth2Adapter│ │HiOrgServer   │ │AesEncryption │ │HiOrgOAuthConfig │ │
 │  │              │ │Adapter       │ │Adapter       │ │Adapter          │ │
 │  └──────┬───────┘ └──────┬───────┘ └──────────────┘ └─────────────────┘ │
+│  ┌──────────────┐ ┌──────────────┐                                      │
+│  │ Nominatim    │ │ HibpService  │                                      │
+│  │ Geocoding    │ │ (Passwort-   │                                      │
+│  │ Adapter      │ │  Check)      │                                      │
+│  └──────┬───────┘ └──────┬───────┘                                      │
 │         │                │                                               │
 │         ▼                ▼                                               │
 │  ┌─────────────────────────────────────────────────────────────────────┐│
 │  │                    Externe Systeme (HTTP)                            ││
 │  │  ┌─────────────────────────────┐  ┌───────────────────────────────┐ ││
 │  │  │ HiOrg-Server API            │  │ Nominatim API                 │ ││
-│  │  │ https://api.hiorg-server.de │  │ https://nominatim.osm.org     │ ││
+│  │  │ https://api.hiorg-server.de │  │ https://nominatim.openstreetmap.org │ ││
 │  │  │ OAuth2 + JSON:API           │  │ REST + JSON                   │ ││
 │  │  └─────────────────────────────┘  └───────────────────────────────┘ ││
+│  │  ┌─────────────────────────────┐                                    ││
+│  │  │ HIBP Pwned Passwords API    │                                    ││
+│  │  │ https://api.pwnedpasswords.  │                                    ││
+│  │  │ com/range/{prefix}           │                                    ││
+│  │  │ K-Anonymity + Text Response  │                                    ││
+│  │  └─────────────────────────────┘                                    ││
 │  └─────────────────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────────────────┘
+
+Frontend Notification Layer (lokal, keine Backend-Abhängigkeit):
+┌─────────────────────────────────────────────────────────────────────────┐
+│  ┌─────────────────────┐  ┌───────────────────┐  ┌───────────────────┐ │
+│  │ NotificationService │  │ NotificationSetup │  │ BefehlNotification│ │
+│  │ (send, permission)  │  │ (Channels, Actions│  │ Hook (Badge, Push)│ │
+│  └──────────┬──────────┘  │  Handler)         │  └───────────────────┘ │
+│             │             └───────────────────┘                         │
+│             ▼                                                           │
+│  ┌─────────────────────────────┐  ┌───────────────────────────────────┐ │
+│  │ Tauri Notification Plugin   │  │ Web Notification API (Fallback)   │ │
+│  │ @tauri-apps/plugin-notif.   │  │ window.Notification               │ │
+│  │ Native OS Notifications     │  │ Browser Notifications             │ │
+│  └─────────────────────────────┘  └───────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -100,7 +139,7 @@ Die Integration folgt der **Hexagonal Architecture** mit klarer Trennung:
 
 ```typescript
 interface IEncryptionPort {
-  encrypt(plainText: string): string;  // → "{iv}:{authTag}:{cipherText}"
+  encrypt(plainText: string): string;  // -> "{iv}:{authTag}:{cipherText}"
   decrypt(cipherText: string): string;
 }
 ```
@@ -189,6 +228,22 @@ interface IHiOrgOAuthConfigPort {
 
 ---
 
+#### IGeocodingPort
+**Zweck:** Geocoding-Service für Adress-Koordinaten-Umwandlung
+
+```typescript
+interface IGeocodingPort {
+  geocodeAddress(address: Address): Promise<Result<GeoCoordinate>>;
+  reverseGeocode(coordinate: GeoCoordinate): Promise<Result<Address>>;
+}
+```
+
+**Implementierungen:**
+- `NominatimGeocodingAdapter` (Infrastructure Layer) - Hexagonale Implementierung mit Result Pattern
+- `GeocodingService` (Lagekarte Module Layer) - Direkte Nominatim-Nutzung via `HttpService`
+
+---
+
 ### 3.2 Entities
 
 #### IntegrationCredential
@@ -230,7 +285,7 @@ interface IHiOrgOAuthConfigPort {
 ---
 
 #### QualifikationMapping
-**Zweck:** Mapping externe → interne Qualifikationen
+**Zweck:** Mapping externe -> interne Qualifikationen
 
 | Property | Typ | Beschreibung |
 |----------|-----|--------------|
@@ -376,11 +431,56 @@ const codeChallenge = crypto
 - User-Agent: `Bluelight-Hub/1.0 (contact@bluelight-hub.app)` (PFLICHT!)
 - Rate Limit: 1 req/sec (1000ms Mindestabstand)
 - Timeout: 5 Sekunden
-- Retry: Exponential Backoff bei HTTP 429
+- Retry: Exponential Backoff bei HTTP 429 (max. 3 Versuche)
+- Lifecycle: Implementiert `OnModuleDestroy` für sauberes Timeout-Cleanup
 
 **Endpoints:**
 - Geocoding: `GET /search?q={address}&format=json&countrycodes=de`
 - Reverse: `GET /reverse?lat={lat}&lon={lon}&format=json&addressdetails=1`
+
+**Hinweis:** Zusätzlich existiert ein `GeocodingService` im Lagekarte-Modul (`modules/lagekarte/services/geocoding.service.ts`), der Nominatim direkt via `HttpService` (axios) nutzt. Dieser Service bietet nur Forward-Geocoding und verwendet `@Throttle` für Rate-Limiting. Langfristig sollte er auf den hexagonalen `NominatimGeocodingAdapter` migriert werden.
+
+---
+
+#### HibpService (NEU seit 2026-01-16)
+**Zweck:** Passwort-Kompromittierungsprüfung via Have I Been Pwned API
+
+**API-Konfiguration:**
+- Base URL: `https://api.pwnedpasswords.com/range/`
+- User-Agent: `bluelight-hub-password-check`
+- Timeout: 10 Sekunden
+- Kein API-Key erforderlich
+
+**K-Anonymity Protokoll (Datenschutz):**
+1. SHA-1 Hash des Passworts erstellen (nur lokal)
+2. Nur die ersten 5 Zeichen des Hashes an HIBP senden
+3. HIBP antwortet mit allen Hash-Suffixen die mit diesem Prefix beginnen
+4. Lokaler Vergleich des vollständigen Hashes mit der Antwort
+
+**Sicherheitshinweise:**
+- Das Passwort oder sein vollständiger Hash verlässt **niemals** den Server
+- SHA-1 wird hier bewusst und sicher eingesetzt (HIBP API-Spezifikation, nicht für Passwort-Speicherung)
+- Passwörter werden separat mit bcrypt gehasht und gespeichert
+- NIST SP 800-63B-4 Compliance: Prüfung ist OPTIONAL -- API-Fehler blockieren die Validierung nicht
+- Padding-Header (`Add-Padding: true`) für zusätzliche Privatsphäre
+
+**Response Format:**
+```
+// Request: GET /range/21BD1 (erste 5 Zeichen des SHA-1 Hashes)
+// Response (Text, eine Zeile pro Match):
+0018A45C4D1DEF81644B54AB7F969B88D65:15
+00D4F6E8FA6EECAD2A3AA415EEC418D38EC:2
+...
+// Format: HASH_SUFFIX:OCCURRENCE_COUNT
+```
+
+**Fehlerbehandlung:**
+| Situation | Verhalten |
+|-----------|-----------|
+| API nicht erreichbar | `isCompromised: false` + `error` (kein Block) |
+| HTTP Fehler (4xx/5xx) | `isCompromised: false` + `error` (kein Block) |
+| Timeout | `isCompromised: false` + `error` (kein Block) |
+| Passwort gefunden | `isCompromised: true` + `occurrences: N` |
 
 ---
 
@@ -419,7 +519,7 @@ const codeChallenge = crypto
 
 ## 6. Module Layer (REST API)
 
-### 6.1 Endpoints
+### 6.1 HiOrg-Integration Endpoints
 
 | Method | Endpoint | Auth | Rate | Beschreibung |
 |--------|----------|------|------|--------------|
@@ -434,7 +534,38 @@ const codeChallenge = crypto
 | POST | `/admin/integrations/hiorg/qualifikation-mappings/batch` | Admin | 10/min | Batch-Save |
 | POST | `/admin/integrations/hiorg/import` | Admin | 10/min | Personen importieren |
 
-### 6.2 Security
+### 6.2 WebSocket Gateway: Befehle (NEU seit 2026-02)
+
+**Namespace:** `/befehle`
+**Room-Pattern:** `einsatz:{einsatzId}:befehle`
+
+Der Befehl-WebSocket-Gateway ermöglicht Echtzeit-Kommunikation für das Befehlsmanagement im Einsatz. Er ist zwar keine externe Schnittstelle im engeren Sinne, aber eine relevante Kommunikationsschnittstelle zwischen Frontend und Backend.
+
+**Events:**
+
+| Event | Richtung | Payload | Beschreibung |
+|-------|----------|---------|--------------|
+| `join:einsatz` | Client -> Server | `{ einsatzId }` | Room beitreten |
+| `leave:einsatz` | Client -> Server | `{ einsatzId }` | Room verlassen |
+| `befehl.erstellt` | Server -> Client | `BefehlErstelltPayload` | Neuer Befehl erstellt |
+| `befehl.zugestellt` | Server -> Client | `BefehlZugestelltPayload` | Befehl zugestellt |
+| `befehl.statusGeaendert` | Server -> Client | `BefehlStatusGeaendertPayload` | Status geändert. ⚠️ Wird vom Backend emittiert, aber vom Frontend derzeit nicht abonniert. |
+| `befehl.kommentarHinzugefuegt` | Server -> Client | `BefehlKommentarHinzugefuegtPayload` | Kommentar hinzugefügt |
+| `befehl.quittiert` | Server -> Client | `BefehlQuittiertPayload` | Befehl quittiert |
+
+**Security:**
+- CORS: Nur `FRONTEND_URL` erlaubt (kein Wildcard)
+- Authentication: JWT Token bei Connection (WsJwtAuthGuard)
+- Authorization: einsatzId wird als UUID v4 validiert (verhindert Room Traversal)
+- Input Validation: `JoinEinsatzDto` mit class-validator
+
+**Client-Konfiguration (Frontend):**
+- Transport: WebSocket mit Polling-Fallback
+- Reconnection: Exponential Backoff (1s - 10s, max. 10 Versuche)
+- Deduplizierung: Event-IDs Set (max. 500 Einträge)
+- Cache-Invalidierung: TanStack Query `invalidateQueries` bei Events
+
+### 6.3 Security
 
 - **Auth Guards:** `JwtAuthGuard` + `RolesGuard`
 - **Rollen:** `ADMIN`, `SUPER_ADMIN`
@@ -443,18 +574,78 @@ const codeChallenge = crypto
 
 ---
 
-## 7. Data Flow
+## 7. Frontend: Notification-Schnittstellen (NEU seit 2026-01)
 
-### 7.1 OAuth2 Flow
+### 7.1 Notification Service
+
+**Datei:** `packages/frontend/src/features/reminders/services/notification.service.ts`
+
+Der Notification Service implementiert ein Dual-Layer-System für OS-Benachrichtigungen:
+
+**Schicht 1: Tauri Native Notifications (Desktop)**
+- Plugin: `@tauri-apps/plugin-notification`
+- IPC-basiert (Tauri Plugin System)
+- Channels mit High Importance (Priorität 4)
+- Action Types für Deep Link Navigation
+
+**Schicht 2: Web Notification API (Browser-Fallback)**
+- Standard `window.Notification` API
+- Auto-Close nach 5 Sekunden (Erinnerungen)
+- `requireInteraction: true` (Befehle)
+
+**Badge Count (separat vom NotificationService):**
+- Implementiert in der `updateAppBadge()`-Hilfsfunktion in `use-befehl-notifications.ts`
+- Tauri: `setBadgeCount()` via `@tauri-apps/plugin-notification`
+- Web: `navigator.setAppBadge()` / `navigator.clearAppBadge()`
+- Der NotificationService selbst implementiert nur `send`, `sendBefehlNotification`, `sendErinnerungNotification` etc.
+
+**Notification-Typen:**
+
+| Methode | Zweck | Channel (Tauri) | Tag (Web) |
+|---------|-------|----------------|-----------|
+| `sendErinnerungNotification()` | Fällige Erinnerung | `erinnerungen` | `erinnerung` |
+| `sendIntensifiedNotification()` | Überfällige Erinnerung (30s) | `erinnerungen` | `erinnerung` |
+| `sendAssignmentNotification()` | Zugewiesene Erinnerung | `erinnerungen` | `erinnerung` |
+| `sendBefehlNotification()` | Neuer Befehl | `befehle` | `befehl-{id}` |
+
+### 7.2 Notification Setup Service
+
+**Datei:** `packages/frontend/src/features/reminders/services/notification-setup.service.ts`
+
+Initialisierung beim App-Start:
+1. Channel `erinnerungen` erstellen (High Importance, Vibration, Lights)
+2. Channel `befehle` erstellen (High Importance, Vibration, Lights)
+3. Action Types registrieren (`erinnerung-action`, `befehl-action`)
+4. onAction Handler registrieren (Deep Link Navigation)
+
+**Deep Link Navigation:**
+- Zod-validierte `extra` Daten (Discriminated Union über `type` Feld)
+- Race Condition Handling: Pending Navigation Queue für Events vor Callback-Registrierung
+- Rückwärtskompatibilität: Legacy-Schemas ohne `type` Feld unterstützt
+
+### 7.3 Befehl Notifications Hook
+
+**Datei:** `packages/frontend/src/features/befehl/api/use-befehl-notifications.ts`
+
+- Filtert Events: Nur wenn aktueller User Empfänger ist
+- Keine Notification für eigene erstellte Befehle
+- Badge Count für unquittierte Befehle (Tauri + Web Fallback)
+- Badge wird auf 0 zurückgesetzt beim Unmount
+
+---
+
+## 8. Data Flow
+
+### 8.1 OAuth2 Flow
 
 ```
 ┌─────────┐     1. Initiate      ┌─────────────────┐
-│ Frontend│ ────────────────────▶│ InitiateHandler │
+│ Frontend│ ────────────────────>│ InitiateHandler │
 │ (Admin) │                      │                 │
 └────┬────┘                      └────────┬────────┘
      │                                    │
      │   2. Redirect to HiOrg             ▼
-     │◀──────────────────────────  authorizationUrl
+     │<──────────────────────────  authorizationUrl
      │
      ▼
 ┌──────────────────┐
@@ -465,7 +656,7 @@ const codeChallenge = crypto
          │ 3. Redirect with code+state
          ▼
 ┌────────────────────┐   4. Validate    ┌─────────────────┐
-│ OAuthCallback      │ ────────────────▶│ ProcessCallback │
+│ OAuthCallback      │ ────────────────>│ ProcessCallback │
 │ Controller         │                  │ Handler         │
 └────────────────────┘                  └────────┬────────┘
                                                  │
@@ -484,11 +675,11 @@ const codeChallenge = crypto
                                         └─────────────────┘
 ```
 
-### 7.2 Person Import Flow
+### 8.2 Person Import Flow
 
 ```
 ┌─────────┐  1. Select persons  ┌─────────────────────┐
-│ Frontend│ ───────────────────▶│ ImportSelected      │
+│ Frontend│ ───────────────────>│ ImportSelected      │
 │ (Admin) │  usernames[]        │ PersonsHandler      │
 └─────────┘                     └──────────┬──────────┘
                                            │
@@ -522,11 +713,88 @@ const codeChallenge = crypto
                                 └─────────────────────┘
 ```
 
+### 8.3 HIBP Passwort-Prüfung Flow (NEU)
+
+```
+┌─────────┐  1. Passwort setzen  ┌─────────────────────┐
+│ Frontend│ ───────────────────> │ Passwort-Validierung│
+│ (User)  │  plaintext password  │ (Application Layer) │
+└─────────┘                      └──────────┬──────────┘
+                                            │
+                                            │ 2. SHA-1 Hash + Prefix
+                                            ▼
+                                 ┌──────────────────────┐
+                                 │ HibpService           │
+                                 │ K-Anonymity Check     │
+                                 └──────────┬───────────┘
+                                            │
+                                            │ 3. GET /range/{5-char-prefix}
+                                            ▼
+                                 ┌──────────────────────┐
+                                 │ HIBP Pwned Passwords  │
+                                 │ API v3                │
+                                 └──────────┬───────────┘
+                                            │
+                                            │ 4. Hash-Suffix-Liste
+                                            ▼
+                                 ┌──────────────────────┐
+                                 │ Lokaler Vergleich     │
+                                 │ (vollst. Hash lokal)  │
+                                 └──────────┬───────────┘
+                                            │
+                                            │ 5. isCompromised: true/false
+                                            ▼
+                                 ┌──────────────────────┐
+                                 │ Warnung an User       │
+                                 │ (nicht blockierend)   │
+                                 └──────────────────────┘
+```
+
+### 8.4 Befehl-Notification Flow (NEU)
+
+```
+┌─────────────────┐  1. Befehl erstellen   ┌─────────────────────┐
+│ Frontend        │ ─────────────────────> │ Backend             │
+│ (Befehlsgeber)  │  POST /befehle         │ BefehlController    │
+└─────────────────┘                        └──────────┬──────────┘
+                                                      │
+                                                      │ 2. Event emittieren
+                                                      ▼
+                                           ┌──────────────────────┐
+                                           │ BefehlGateway (WS)   │
+                                           │ Room: einsatz:{id}:  │
+                                           │       befehle        │
+                                           └──────────┬───────────┘
+                                                      │
+                                                      │ 3. befehl.erstellt
+                                                      ▼
+                                           ┌──────────────────────┐
+                                           │ useBefehlWebSocket   │
+                                           │ (alle Empfänger)     │
+                                           └──────────┬───────────┘
+                                                      │
+                                            4. Callback an Hook   │
+                                                      ▼
+                                           ┌──────────────────────┐
+                                           │ useBefehlNotifications│
+                                           │ - Filter: nur eigene │
+                                           │   Empfänger          │
+                                           │ - Badge-Update       │
+                                           └──────────┬───────────┘
+                                                      │
+                                                      │ 5. OS Notification
+                                                      ▼
+                                           ┌──────────────────────┐
+                                           │ NotificationService  │
+                                           │ (Tauri oder Web)     │
+                                           └──────────────────────┘
+```
+
 ---
 
-## 8. Konfiguration
+## 9. Konfiguration
 
-### 8.1 Umgebungsvariablen
+### 9.1 Umgebungsvariablen
 
 | Variable | Erforderlich | Beschreibung |
 |----------|--------------|--------------|
@@ -534,10 +802,16 @@ const codeChallenge = crypto
 | `HIORG_OAUTH_CLIENT_SECRET` | Ja* | OAuth2 Client Secret |
 | `INTEGRATION_ENCRYPTION_KEY` | Ja | AES-256 Key (64 hex chars) |
 | `APP_URL` | Nein | Basis-URL (Default: localhost:3091) |
+| `NOMINATIM_API_URL` | Nein | Nominatim Base URL (Default: https://nominatim.openstreetmap.org) |
 
 \* Nur erforderlich wenn HiOrg-Integration aktiviert
 
-### 8.2 Key-Generierung
+**Keine Konfiguration erforderlich für:**
+- HIBP API (kein API-Key, kein Account)
+- Tauri Notifications (Plugin-Konfiguration in `tauri.conf.json`)
+- Web Notifications (Browser-native API)
+
+### 9.2 Key-Generierung
 
 ```bash
 # AES-256 Key generieren
@@ -548,39 +822,65 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ---
 
-## 9. Sicherheitsaspekte
+## 10. Sicherheitsaspekte
 
-### 9.1 OAuth2 Security
+### 10.1 OAuth2 Security
 
-| Maßnahme | Beschreibung |
+| Massnahme | Beschreibung |
 |----------|--------------|
 | **PKCE** | Schutz vor Authorization Code Interception (S256) |
 | **State Token** | CSRF-Schutz (64 hex chars, 10 Min Ablauf) |
 | **One-Time-Use** | State wird nach Verwendung sofort gelöscht |
 | **Token-Verschlüsselung** | AES-256-GCM für gespeicherte Tokens |
 
-### 9.2 API Security
+### 10.2 API Security
 
-| Maßnahme | Beschreibung |
+| Massnahme | Beschreibung |
 |----------|--------------|
 | **Auth Guards** | JWT + Role-Based Access Control |
 | **Rate Limiting** | 30/min (GET), 10/min (POST) |
 | **Token-Schutz** | Tokens werden nie in Responses exponiert |
 | **Audit Trail** | Alle Mutationen mit User-ID geloggt |
 
-### 9.3 Encryption Security
+### 10.3 Encryption Security
 
-| Maßnahme | Beschreibung |
+| Massnahme | Beschreibung |
 |----------|--------------|
 | **Hard-Fail** | App startet nicht ohne gültigen Key |
 | **AEAD** | Authenticated Encryption (Integrität + Vertraulichkeit) |
 | **Unique IV** | Neuer IV pro Verschlüsselung |
 
+### 10.4 HIBP Security (NEU)
+
+| Massnahme | Beschreibung |
+|----------|--------------|
+| **K-Anonymity** | Nur 5 von 40 Hash-Zeichen werden übertragen |
+| **Padding** | `Add-Padding: true` Header für Traffic-Analyse-Schutz |
+| **Non-Blocking** | API-Fehler blockieren Passwort-Änderung nicht |
+| **Kein API-Key** | Keine Credentials notwendig, kein Account erforderlich |
+
+### 10.5 WebSocket Security (NEU)
+
+| Massnahme | Beschreibung |
+|----------|--------------|
+| **JWT Auth** | WsJwtAuthGuard bei Connection |
+| **CORS** | Nur Frontend-URL erlaubt (kein Wildcard) |
+| **Input Validation** | UUID v4 Format für einsatzId (Room Traversal Schutz) |
+| **Zod Validation** | Runtime-Validierung der Notification `extra` Daten |
+
+### 10.6 Notification Security
+
+| Massnahme | Beschreibung |
+|----------|--------------|
+| **Permission-Gated** | Notifications nur mit expliziter User-Berechtigung |
+| **Graceful Degradation** | Fallback Web -> kein Crash bei fehlender Permission |
+| **Deep Link Validation** | Zod-Schema-Validierung aller Navigation-Daten |
+
 ---
 
-## 10. Testing
+## 11. Testing
 
-### 10.1 Unit Tests
+### 11.1 Unit Tests
 
 ```bash
 # Alle Integration-Tests
@@ -592,7 +892,7 @@ pnpm --filter @bluelight-hub/backend test -- --testPathPattern=process-oauth-cal
 pnpm --filter @bluelight-hub/backend test -- --testPathPattern=hiorg-token-refresh
 ```
 
-### 10.2 Vorhandene Tests
+### 11.2 Vorhandene Tests
 
 | Test-Datei | Beschreibung |
 |------------|--------------|
@@ -603,12 +903,15 @@ pnpm --filter @bluelight-hub/backend test -- --testPathPattern=hiorg-token-refre
 | `oauth2.adapter.spec.ts` | OAuth2 Adapter |
 | `hiorg-server.adapter.spec.ts` | HiOrg API Adapter |
 | `aes-encryption.adapter.spec.ts` | Encryption |
+| `nominatim-geocoding.adapter.integration.spec.ts` | Nominatim Geocoding (mit gemocktem fetch) |
+| `befehl.gateway.spec.ts` | Befehl WebSocket Gateway |
+| `notification.service.spec.ts` | Notification Service |
 
 ---
 
-## 11. Risiken & Gotchas
+## 12. Risiken & Gotchas
 
-### 11.1 Bekannte Risiken
+### 12.1 Bekannte Risiken
 
 | Risiko | Mitigation |
 |--------|------------|
@@ -616,22 +919,46 @@ pnpm --filter @bluelight-hub/backend test -- --testPathPattern=hiorg-token-refre
 | Token-Ablauf während Import | TokenRefreshService prüft vor jedem API-Call |
 | Nominatim Rate Limit (1/sec) | Exponential Backoff + Retry |
 | Encryption Key Verlust | Alle gespeicherten Tokens unbrauchbar |
+| HIBP API nicht erreichbar | Non-blocking Fallback (Passwort wird trotzdem akzeptiert) |
+| WebSocket Disconnect | Auto-Reconnect mit Exponential Backoff (max. 10 Versuche) |
+| Notification Permission denied | Graceful Degradation, kein App-Crash |
 
-### 11.2 Gotchas
+### 12.2 Gotchas
 
 1. **OAuth Callback URL muss exakt matchen** - HiOrg validiert `redirect_uri`
 2. **JSON:API Format beachten** - HiOrg nutzt nicht Standard-JSON
 3. **Nominatim User-Agent Pflicht** - Requests ohne User-Agent werden blockiert
 4. **Qualifikationen hierarchisch** - Niedrigere `position` = höherer Rang
+5. **Zwei Nominatim-Implementierungen** - `NominatimGeocodingAdapter` (hexagonal, Infrastructure Layer) und `GeocodingService` (direkt, Lagekarte Module) -- langfristig konsolidieren. **Achtung:** Die beiden Implementierungen verwenden unterschiedliche User-Agents: der `GeocodingService` sendet `BluelightHub/1.0`, während der hexagonale `NominatimGeocodingAdapter` den konformeren `Bluelight-Hub/1.0 (contact@bluelight-hub.app)` nutzt.
+6. **HIBP SHA-1 ist kein Sicherheitsproblem** - SHA-1 wird nur für K-Anonymity Lookup verwendet, nicht für Passwort-Speicherung (CodeQL False Positive)
+7. **Tauri Notification Channels** - `createChannel()` ist nicht auf allen Plattformen verfügbar (z.B. macOS), Fehler werden abgefangen
+8. **Notification Race Condition** - Events können vor Callback-Registrierung eintreffen, daher Pending Navigation Queue
 
 ---
 
-## 12. Weiterführende Dokumentation
+## 13. Weiterführende Dokumentation
 
 - [API-Referenz](./project-documentation/04-api-referenz.md) - REST Endpoints
 - [Backend-Architektur](./project-documentation/02-backend-architektur.md) - Hexagonal Architecture
 - [HiOrg-Server API Docs](https://wiki.hiorg-server.de/doku.php/rest-api) - Externe Dokumentation
+- [HIBP API v3 Docs](https://haveibeenpwned.com/API/v3#PwnedPasswords) - Pwned Passwords API
+- [Nominatim Usage Policy](https://operations.osmfoundation.org/policies/nominatim/) - Rate-Limiting Regeln
+- [Tauri Notification Plugin](https://v2.tauri.app/plugin/notification/) - Native Notification API
 
 ---
 
-*Deep-Dive generiert durch BMad Document-Project Workflow v1.2.0*
+## Changelog
+
+| Datum | Änderung |
+|-------|----------|
+| 2026-01-05 | Initiale Generierung (HiOrg-Server + Nominatim) |
+| 2026-02-19 | HIBP Passwort-Check ergänzt (hinzugefügt 2026-01-16) |
+| 2026-02-19 | Befehl WebSocket Gateway dokumentiert (neu in Sprint) |
+| 2026-02-19 | Frontend Notification-Schnittstellen dokumentiert (Tauri + Web) |
+| 2026-02-19 | IGeocodingPort und duale Nominatim-Implementierungen dokumentiert |
+| 2026-02-19 | Sicherheitsaspekte erweitert (HIBP, WebSocket, Notifications) |
+| 2026-02-19 | Risiken & Gotchas aktualisiert |
+
+---
+
+*Deep-Dive generiert durch BMad Document-Project Workflow v1.2.0, aktualisiert am 2026-02-19*

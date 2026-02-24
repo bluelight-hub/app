@@ -28,3 +28,6 @@ export { GetNextEinsatzIdQuery, GetNextEinsatzIdQueryHandler } from './get-next-
 
 // GetEinsatzTeilnehmer (Story 3.3: Teilnehmer für Zuweisung)
 export { GetEinsatzTeilnehmerQuery, GetEinsatzTeilnehmerHandler } from './get-einsatz-teilnehmer';
+
+// GetEinsatzRollen (Story 5.2: Rollenzuweisungen)
+export { GetEinsatzRollenQuery, GetEinsatzRollenQueryHandler } from './get-einsatz-rollen';

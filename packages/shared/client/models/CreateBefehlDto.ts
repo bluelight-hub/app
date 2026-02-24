@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { CreateBefehlEmpfaengerDto } from './CreateBefehlEmpfaengerDto';
+import {
+    CreateBefehlEmpfaengerDtoFromJSON,
+    CreateBefehlEmpfaengerDtoFromJSONTyped,
+    CreateBefehlEmpfaengerDtoToJSON,
+    CreateBefehlEmpfaengerDtoToJSONTyped,
+} from './CreateBefehlEmpfaengerDto';
+
 /**
  * 
  * @export
@@ -20,23 +28,23 @@ import { mapValues } from '../runtime';
  */
 export interface CreateBefehlDto {
     /**
-     * Einsatz-ID (UUID)
+     * Einsatz-ID
      * @type {string}
      * @memberof CreateBefehlDto
      */
     einsatzId: string;
     /**
-     * Empfaenger-IDs (min 1)
-     * @type {Array<string>}
+     * Empfaenger mit Name und optionaler User-ID (min 1)
+     * @type {Array<CreateBefehlEmpfaengerDto>}
      * @memberof CreateBefehlDto
      */
-    empfaengerIds: Array<string>;
+    empfaenger: Array<CreateBefehlEmpfaengerDto>;
     /**
-     * Befehlsgeber User-ID
+     * Befehlsgeber Display-Name
      * @type {string}
      * @memberof CreateBefehlDto
      */
-    befehlsgeberId: string;
+    befehlsgeber: string;
     /**
      * Ersteller User-ID
      * @type {string}
@@ -86,8 +94,8 @@ export interface CreateBefehlDto {
  */
 export function instanceOfCreateBefehlDto(value: object): value is CreateBefehlDto {
     if (!('einsatzId' in value) || value['einsatzId'] === undefined) return false;
-    if (!('empfaengerIds' in value) || value['empfaengerIds'] === undefined) return false;
-    if (!('befehlsgeberId' in value) || value['befehlsgeberId'] === undefined) return false;
+    if (!('empfaenger' in value) || value['empfaenger'] === undefined) return false;
+    if (!('befehlsgeber' in value) || value['befehlsgeber'] === undefined) return false;
     if (!('erstellerId' in value) || value['erstellerId'] === undefined) return false;
     if (!('auftrag' in value) || value['auftrag'] === undefined) return false;
     return true;
@@ -104,8 +112,8 @@ export function CreateBefehlDtoFromJSONTyped(json: any, ignoreDiscriminator: boo
     return {
         
         'einsatzId': json['einsatzId'],
-        'empfaengerIds': json['empfaengerIds'],
-        'befehlsgeberId': json['befehlsgeberId'],
+        'empfaenger': ((json['empfaenger'] as Array<any>).map(CreateBefehlEmpfaengerDtoFromJSON)),
+        'befehlsgeber': json['befehlsgeber'],
         'erstellerId': json['erstellerId'],
         'auftrag': json['auftrag'],
         'zeitvorgabe': json['zeitvorgabe'] == null ? undefined : json['zeitvorgabe'],
@@ -128,8 +136,8 @@ export function CreateBefehlDtoToJSONTyped(value?: CreateBefehlDto | null, ignor
     return {
         
         'einsatzId': value['einsatzId'],
-        'empfaengerIds': value['empfaengerIds'],
-        'befehlsgeberId': value['befehlsgeberId'],
+        'empfaenger': ((value['empfaenger'] as Array<any>).map(CreateBefehlEmpfaengerDtoToJSON)),
+        'befehlsgeber': value['befehlsgeber'],
         'erstellerId': value['erstellerId'],
         'auftrag': value['auftrag'],
         'zeitvorgabe': value['zeitvorgabe'],

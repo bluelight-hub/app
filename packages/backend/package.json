@@ -41,7 +41,8 @@
     "test:perf:quick": "artillery run artillery/artillery-quick.yml --output artillery/results/quick-results.json",
     "test:perf:ci": "artillery run artillery/artillery-performance.yml --output artillery/results/ci-results.json --quiet",
     "seed:perf": "ts-node artillery/seed-performance-data.ts",
-    "perf:report": "artillery report artillery/results/results.json -o artillery/results/report.html"
+    "perf:report": "artillery report artillery/results/results.json -o artillery/results/report.html",
+    "update-api-snapshot": "jest --testPathPatterns=api-contract --no-coverage --updateSnapshot"
   },
   "dependencies": {
     "@bluelight-hub/shared": "workspace:*",
@@ -67,6 +68,7 @@
     "@paralleldrive/cuid2": "^3.3.0",
     "@prisma/adapter-pg": "^7.4.0",
     "@prisma/client": "^7.4.0",
+    "@willsoto/nestjs-prometheus": "^6.0.2",
     "axios": "^1.13.5",
     "bcrypt": "^6.0.0",
     "cache-manager": "^7.2.8",
@@ -81,6 +83,7 @@
     "passport-jwt": "^4.0.1",
     "pdfkit": "^0.17.2",
     "pg": "^8.18.0",
+    "prom-client": "^15.1.3",
     "rxjs": "^7.8.2",
     "socket.io": "^4.8.3",
     "zod": "^4.3.6"

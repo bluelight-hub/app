@@ -45,7 +45,7 @@ export function FahrzeugZuweisungsDropdown({ currentFahrzeugId, fahrzeuge, onAss
   );
 
   return (
-    <Listbox value={currentFahrzeugId ?? null} onChange={onAssign} disabled={disabled || isLoading}>
+    <Listbox as="div" value={currentFahrzeugId ?? null} onChange={onAssign} disabled={disabled || isLoading}>
       <div className={cn('relative', className)}>
         <ListboxButton className={buttonClasses} aria-label={`Fahrzeug: ${buttonLabel}`}>
           <span className="flex items-center gap-2 truncate font-medium">

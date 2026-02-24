@@ -14,6 +14,10 @@
       "types": "./client/index.ts",
       "import": "./client/index.ts"
     },
+    "./client-v1": {
+      "types": "./client-v1/index.ts",
+      "import": "./client-v1/index.ts"
+    },
     "./schemas": {
       "types": "./dist/schemas/index.d.ts",
       "import": "./dist/schemas/index.js"
@@ -22,7 +26,10 @@
   "scripts": {
     "lint": "biome check --write",
     "lint:check": "biome check",
-    "generate-api": "rimraf client && openapi-generator-cli generate -g=typescript-fetch -i https://localhost:3091/api-json -o ./client --skip-validate-spec && pnpm lint",
+    "generate-api": "pnpm generate-api:alpha && pnpm lint",
+    "generate-api:alpha": "rimraf client && openapi-generator-cli generate -g=typescript-fetch -i https://localhost:3091/api/alpha-json -o ./client --skip-validate-spec",
+    "generate-api:all": "pnpm generate-api:alpha && pnpm generate-api:v1 && pnpm lint",
+    "generate-api:v1": "rimraf client-v1 && openapi-generator-cli generate -g=typescript-fetch -i https://localhost:3091/api/v1-json -o ./client-v1 --skip-validate-spec",
     "build:tsc": "tsc -p tsconfig.build.json",
     "build": "pnpm build:tsc",
     "build:with-api": "pnpm generate-api && pnpm build:tsc",

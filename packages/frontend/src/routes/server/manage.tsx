@@ -16,8 +16,20 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router';
+import { z } from 'zod';
 import { ServerManagementPage } from '@/features/server/ui/pages';
+
+/**
+ * Search Parameter Schema fuer Token-Invalid Redirect.
+ *
+ * Wenn ein Server-Access-Token ungueltig ist (z.B. Server zurueckgesetzt),
+ * wird zu /server/manage?reason=token-invalid weitergeleitet.
+ */
+const searchSchema = z.object({
+  reason: z.enum(['token-invalid']).optional(),
+});
 
 export const Route = createFileRoute('/server/manage')({
   component: ServerManagementPage,
+  validateSearch: searchSchema,
 });

@@ -37,11 +37,14 @@ export class BefehlDto {
   @ApiProperty({ description: 'Auftrag', example: 'Patientenablage einrichten' })
   auftrag!: string;
 
-  @ApiProperty({ description: 'Befehlsgeber User-ID', example: 'clw3h8x9y0003qwertyuiopas' })
-  befehlsgeberId!: string;
+  @ApiProperty({ description: 'Befehlsgeber Display-Name', example: 'EL Mueller' })
+  befehlsgeberName!: string;
 
-  @ApiProperty({ description: 'Ersteller User-ID', example: 'clw3h8x9y0004qwertyuiopas' })
-  erstellerId!: string;
+  @ApiPropertyOptional({ description: 'Befehlsgeber User-ID (optional)', example: 'clw3h8x9y0003qwertyuiopas' })
+  befehlsgeberId?: string;
+
+  @ApiPropertyOptional({ description: 'Ersteller User-ID (null bei anonymisierten Befehlen)', example: 'clw3h8x9y0004qwertyuiopas', nullable: true })
+  erstellerId?: string;
 
   @ApiProperty({
     description: 'Befehlsstatus',
@@ -72,6 +75,9 @@ export class BefehlDto {
   @ApiPropertyOptional({ description: 'Weg (EAMZW)', example: 'Ueber Haupteingang' })
   weg?: string;
 
+  @ApiPropertyOptional({ description: 'ID des korrigierten Original-Befehls', example: 'clw3h8x9y0000qwertyuiopas' })
+  originalBefehlId?: string;
+
   @ApiProperty({ description: 'Erteilungs-Zeitpunkt', example: '2024-01-15T10:30:00.000Z' })
   erteiltAm!: Date;
 
@@ -80,6 +86,18 @@ export class BefehlDto {
 
   @ApiProperty({ description: 'Kommentar-Liste', type: () => [BefehlKommentarDto] })
   kommentare!: BefehlKommentarDto[];
+
+  @ApiProperty({ description: 'Ob der Befehl überfällig ist (Zeitvorgabe überschritten, nicht alle quittiert)' })
+  isUeberfaellig!: boolean;
+
+  @ApiProperty({ description: 'Ob mindestens ein Empfänger NICHT_VERSTANDEN quittiert hat' })
+  hatNichtVerstanden!: boolean;
+
+  @ApiProperty({ description: 'Ob offene Rückfragen ohne Antwort existieren' })
+  hatOffeneRueckfrage!: boolean;
+
+  @ApiProperty({ description: 'Berechnete Kritikalitätsstufe', enum: ['KRITISCH', 'WARNUNG', 'NORMAL'] })
+  kritikalitaet!: 'KRITISCH' | 'WARNUNG' | 'NORMAL';
 
   @ApiProperty({ description: 'Erstellungszeitpunkt', example: '2024-01-15T10:30:00.000Z' })
   createdAt!: Date;

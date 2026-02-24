@@ -70,6 +70,40 @@ function getZodError(result: { success: boolean; error?: { issues?: Array<{ mess
   return firstIssue?.message || fallback;
 }
 
+/**
+ * Workaround: Erzwingt Sync des Field-Derived-Stores nach form.setFieldValue.
+ *
+ * TanStack Store (@tanstack/store@0.8.0) hat einen Bug in der Derived-Store-Kette:
+ * Wenn form.setFieldValue aus einem setTimeout-Callback (z.B. Debounce) aufgerufen wird,
+ * nachdem das Form einen Submit-Zyklus durchlaufen hat, propagiert die __flush-Kette
+ * die Value-Änderung nicht zum Field-Derived-Store. Der Form-State ist korrekt,
+ * aber das Field-React-Binding bekommt keine Notification und re-rendert nicht.
+ *
+ * Diese Funktion erzwingt manuell:
+ * 1. Recompute des Field-Derived-Stores (liest aktuellen Form-State)
+ * 2. Benachrichtigung der Listener (triggert React-Re-Render)
+ *
+ * Kann entfernt werden wenn @tanstack/store > 0.8.0 das Derived-Propagation-Problem behebt.
+ */
+// biome-ignore lint/suspicious/noExplicitAny: Zugriff auf TanStack Store Internals nötig für Workaround
+function forceFieldStoreSync(form: any, fieldName: string): void {
+  const fieldInfo = form.getFieldInfo(fieldName);
+  const fieldStore = fieldInfo?.instance?.store;
+  if (!fieldStore) return;
+
+  // Recompute: Field-Derived-Store prüft ob sich Dependencies geändert haben
+  if (typeof fieldStore.checkIfRecalculationNeededDeeply === 'function') {
+    fieldStore.checkIfRecalculationNeededDeeply();
+  }
+
+  // Listener benachrichtigen: React (useSyncExternalStore) wird über die Änderung informiert
+  if (fieldStore.listeners) {
+    for (const listener of fieldStore.listeners) {
+      listener({ prevVal: undefined, currentVal: fieldStore.state });
+    }
+  }
+}
+
 interface ServerSetupFormProps {
   /**
    * Server-URL zum Prefill (aus URL-Parametern)
@@ -355,6 +389,15 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
         const isDefaultPort = (url.protocol === 'https:' && port === '443') || (url.protocol === 'http:' && port === '80') || !port;
         const displayName = port && !isDefaultPort ? `${hostname}:${port}` : hostname;
         form.setFieldValue('serverName', displayName);
+        // Workaround: TanStack Store Derived-Reactivity Bug (@tanstack/store@0.8.0)
+        // form.setFieldValue aus setTimeout-Callbacks aktualisiert den internen Form-State
+        // korrekt, aber nach Form-Submit-Zyklen propagiert die __flush-Kette des Schedulers
+        // die Änderung nicht zuverlässig zum Field-Derived-Store. Dadurch bekommt React
+        // keine Notification über die Value-Änderung und re-rendert das Feld nicht.
+        // Fix: Manuell den Derived-Store recomputen und dessen Listener benachrichtigen.
+        // Kann entfernt werden wenn @tanstack/store auf eine Version > 0.8.0 aktualisiert wird,
+        // die dieses Derived-Propagation-Problem behebt.
+        forceFieldStoreSync(form, 'serverName');
       } catch {
         // URL-Parsing fehlgeschlagen, ignorieren
       }

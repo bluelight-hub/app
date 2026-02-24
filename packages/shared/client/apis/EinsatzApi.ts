@@ -23,9 +23,11 @@ import type {
   EinsatzControllerGetCompletenessVAlpha200Response,
   EinsatzControllerGetEinsatzDetailsVAlpha200Response,
   EinsatzControllerGetPreviousVAlpha200Response,
+  EinsatzControllerGetRollenVAlpha200Response,
   EinsatzControllerGetStatusCountsVAlpha200Response,
   EinsatzControllerGetTeilnehmerVAlpha200Response,
   UpdateEinsatzDto,
+  UpdateEinsatzRollenDto,
 } from '../models/index';
 import {
     CreateEinsatzDtoFromJSON,
@@ -44,12 +46,16 @@ import {
     EinsatzControllerGetEinsatzDetailsVAlpha200ResponseToJSON,
     EinsatzControllerGetPreviousVAlpha200ResponseFromJSON,
     EinsatzControllerGetPreviousVAlpha200ResponseToJSON,
+    EinsatzControllerGetRollenVAlpha200ResponseFromJSON,
+    EinsatzControllerGetRollenVAlpha200ResponseToJSON,
     EinsatzControllerGetStatusCountsVAlpha200ResponseFromJSON,
     EinsatzControllerGetStatusCountsVAlpha200ResponseToJSON,
     EinsatzControllerGetTeilnehmerVAlpha200ResponseFromJSON,
     EinsatzControllerGetTeilnehmerVAlpha200ResponseToJSON,
     UpdateEinsatzDtoFromJSON,
     UpdateEinsatzDtoToJSON,
+    UpdateEinsatzRollenDtoFromJSON,
+    UpdateEinsatzRollenDtoToJSON,
 } from '../models/index';
 
 export interface EinsatzControllerArchiveVAlphaRequest {
@@ -104,6 +110,10 @@ export interface EinsatzControllerGetPreviousVAlphaRequest {
     id: string;
 }
 
+export interface EinsatzControllerGetRollenVAlphaRequest {
+    id: string;
+}
+
 export interface EinsatzControllerGetStatusCountsVAlphaRequest {
     includeArchived?: boolean;
 }
@@ -114,6 +124,11 @@ export interface EinsatzControllerGetTeilnehmerVAlphaRequest {
 
 export interface EinsatzControllerStartVAlphaRequest {
     id: string;
+}
+
+export interface EinsatzControllerUpdateRollenVAlphaRequest {
+    id: string;
+    updateEinsatzRollenDto: UpdateEinsatzRollenDto;
 }
 
 export interface EinsatzControllerUpdateVAlphaRequest {
@@ -540,6 +555,41 @@ export class EinsatzApi extends runtime.BaseAPI {
     }
 
     /**
+     * Gibt alle befehlsspezifischen Rollenzuweisungen fuer einen Einsatz zurueck.
+     * Rollen-Zuweisungen eines Einsatzes abrufen
+     */
+    async einsatzControllerGetRollenVAlphaRaw(requestParameters: EinsatzControllerGetRollenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EinsatzControllerGetRollenVAlpha200Response>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling einsatzControllerGetRollenVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsatz/{id}/rollen`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzControllerGetRollenVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Gibt alle befehlsspezifischen Rollenzuweisungen fuer einen Einsatz zurueck.
+     * Rollen-Zuweisungen eines Einsatzes abrufen
+     */
+    async einsatzControllerGetRollenVAlpha(requestParameters: EinsatzControllerGetRollenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EinsatzControllerGetRollenVAlpha200Response> {
+        const response = await this.einsatzControllerGetRollenVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Anzahl der Einsätze pro Status.
      * Status-Statistiken abrufen
      */
@@ -638,6 +688,51 @@ export class EinsatzApi extends runtime.BaseAPI {
      */
     async einsatzControllerStartVAlpha(requestParameters: EinsatzControllerStartVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EinsatzControllerCreateVAlpha201Response> {
         const response = await this.einsatzControllerStartVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Ersetzt alle befehlsspezifischen Rollenzuweisungen fuer einen Einsatz (atomares Update).
+     * Rollen-Zuweisungen eines Einsatzes aktualisieren
+     */
+    async einsatzControllerUpdateRollenVAlphaRaw(requestParameters: EinsatzControllerUpdateRollenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EinsatzControllerGetRollenVAlpha200Response>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling einsatzControllerUpdateRollenVAlpha().'
+            );
+        }
+
+        if (requestParameters['updateEinsatzRollenDto'] == null) {
+            throw new runtime.RequiredError(
+                'updateEinsatzRollenDto',
+                'Required parameter "updateEinsatzRollenDto" was null or undefined when calling einsatzControllerUpdateRollenVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsatz/{id}/rollen`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: UpdateEinsatzRollenDtoToJSON(requestParameters['updateEinsatzRollenDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzControllerGetRollenVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Ersetzt alle befehlsspezifischen Rollenzuweisungen fuer einen Einsatz (atomares Update).
+     * Rollen-Zuweisungen eines Einsatzes aktualisieren
+     */
+    async einsatzControllerUpdateRollenVAlpha(requestParameters: EinsatzControllerUpdateRollenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EinsatzControllerGetRollenVAlpha200Response> {
+        const response = await this.einsatzControllerUpdateRollenVAlphaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

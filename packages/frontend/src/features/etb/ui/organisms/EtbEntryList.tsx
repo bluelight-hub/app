@@ -182,6 +182,7 @@ export function EtbEntryList({
     onEditEntry,
     handleDelete,
     onShowHistory: setHistoryEntry,
+    einsatzId,
   });
 
   // Table Instance - nutzt gefilterte Daten

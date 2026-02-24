@@ -14,9 +14,11 @@ interface UseEtbColumnsProps {
   onEditEntry?: (entry: EintragDto) => void;
   handleDelete: (entry: EintragDto) => void;
   onShowHistory?: (entry: EintragDto) => void;
+  /** Einsatz-ID fuer Befehl-Verlinkung in EtbTextCell */
+  einsatzId?: string;
 }
 
-export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory }: UseEtbColumnsProps): ColumnDef<EintragDto>[] {
+export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory, einsatzId }: UseEtbColumnsProps): ColumnDef<EintragDto>[] {
   return useMemo<ColumnDef<EintragDto>[]>(
     () => [
       {
@@ -152,7 +154,7 @@ export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory }: UseE
         id: 'text',
         accessorKey: 'text',
         header: 'Eintrag',
-        cell: ({ row }) => <EtbTextCell entry={row.original} isDeleted={!!row.original.deletedAt} />,
+        cell: ({ row }) => <EtbTextCell entry={row.original} isDeleted={!!row.original.deletedAt} einsatzId={einsatzId} />,
         size: 600,
         minSize: 400,
       },
@@ -197,6 +199,6 @@ export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory }: UseE
         size: 110,
       },
     ],
-    [onEditEntry, handleDelete, onShowHistory],
+    [onEditEntry, handleDelete, onShowHistory, einsatzId],
   );
 }

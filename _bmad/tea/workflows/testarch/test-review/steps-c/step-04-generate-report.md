@@ -54,7 +54,31 @@ Validate against `checklist.md` and fix any gaps.
 
 ---
 
-## 3. Completion Summary
+## 3. Save Progress
+
+**Save this step's accumulated work to `{outputFile}`.**
+
+- **If `{outputFile}` does not exist** (first save), create it using the workflow template (if available) with YAML frontmatter:
+
+  ```yaml
+  ---
+  stepsCompleted: ['step-04-generate-report']
+  lastStep: 'step-04-generate-report'
+  lastSaved: '{date}'
+  ---
+  ```
+
+  Then write this step's output below the frontmatter.
+
+- **If `{outputFile}` already exists**, update:
+  - Add `'step-04-generate-report'` to `stepsCompleted` array (only if not already present)
+  - Set `lastStep: 'step-04-generate-report'`
+  - Set `lastSaved: '{date}'`
+  - Append this step's output to the appropriate section of the document.
+
+---
+
+## 4. Completion Summary
 
 Report:
 

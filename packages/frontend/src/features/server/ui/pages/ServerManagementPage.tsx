@@ -17,10 +17,12 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useStore } from '@tanstack/react-store';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
-import { PiArrowLeft, PiPencilSimple, PiX } from 'react-icons/pi';
+import { PiArrowLeft, PiPencilSimple, PiWarning, PiX } from 'react-icons/pi';
 import { toast } from 'sonner';
 
+import { Route } from '@/routes/server/manage';
 import { resetAuthStore } from '@/features/auth/stores/auth.store';
+import { setSetupRedirectInProgress } from '@/shared/lib/server-access-token';
 import { queryClient } from '@/shared/query-client';
 import { AuthLayout } from '@/shared/ui/templates';
 import { ServerList } from '../organisms/ServerList';
@@ -47,8 +49,14 @@ import { removeServer, serverStore } from '../../stores/server.store';
  */
 export function ServerManagementPage() {
   const navigate = useNavigate();
+  const { reason } = Route.useSearch();
   const servers = useServerList();
   const activeServerId = useStore(serverStore, (state) => state.activeServerId);
+
+  // Reset Setup-Redirect-Flag (analog zu ServerOnboardingPage)
+  useEffect(() => {
+    setSetupRedirectInProgress(false);
+  }, []);
 
   // State für Edit-Modal (Story 3.3)
   const [editingServerId, setEditingServerId] = useState<string | null>(null);
@@ -182,6 +190,16 @@ export function ServerManagementPage() {
           <h1 className="font-bold text-2xl text-white">Server verwalten</h1>
           <p className="mt-1 text-sm text-white/70">Verwalte deine konfigurierten Server und Verbindungen.</p>
         </div>
+
+        {/* Token-Invalid Warning Banner */}
+        {reason === 'token-invalid' && (
+          <div className="mb-4 flex items-start gap-3 rounded-lg border border-amber-400/30 bg-amber-500/10 p-4">
+            <PiWarning className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-400" />
+            <p className="text-amber-200 text-sm">
+              Der Zugangstoken ist nicht mehr gültig (z.B. weil der Server zurückgesetzt wurde). Bitte entferne den betroffenen Server und füge ihn erneut hinzu.
+            </p>
+          </div>
+        )}
 
         {/* Server List Container */}
         <div className="overflow-hidden rounded-lg border border-white/20 bg-white/10 backdrop-blur-sm">

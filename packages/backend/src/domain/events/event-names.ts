@@ -217,6 +217,14 @@ export const EVENT_NAMES = {
   },
 
   /**
+   * Einsatz-Rolle Bounded Context Events (Story 5.4)
+   */
+  EINSATZ_ROLLE: {
+    /** Event: Einsatz-Rolle wurde geaendert (Zuweisung, Aenderung, Entfernung) */
+    GEAENDERT: 'rolle.geaendert',
+  },
+
+  /**
    * Befehl Bounded Context Events (Epic 1)
    */
   BEFEHL: {
@@ -228,6 +236,28 @@ export const EVENT_NAMES = {
     STATUS_GEAENDERT: 'befehl.status_geaendert',
     /** Event: Kommentar wurde zu Befehl hinzugefügt */
     KOMMENTAR_HINZUGEFUEGT: 'befehl.kommentar_hinzugefuegt',
+    /** Event: Empfänger hat Befehl quittiert (Story 2.1) */
+    QUITTIERT: 'befehl.quittiert',
+    /** Event: Befehl wurde DSGVO-konform anonymisiert (Story 5.5) */
+    ANONYMISIERT: 'befehl.anonymisiert',
+    /** Event: Befehl wurde nach Freigabeperiode soft-deleted (Story 5.5) */
+    GELOESCHT: 'befehl.geloescht',
+  },
+
+  /**
+   * Aufbewahrung Bounded Context Events (Story 5.5)
+   */
+  AUFBEWAHRUNG: {
+    /** Event: Aufbewahrungskonfiguration wurde geändert */
+    KONFIGURATION_GEAENDERT: 'aufbewahrung.konfiguration_geaendert',
+  },
+
+  /**
+   * System Monitoring Events (Story 5.6)
+   */
+  SYSTEM: {
+    /** Event: System-Warnung wurde ausgeloest (Schwellwert ueberschritten) */
+    WARNUNG: 'system.warnung',
   },
 } as const;
 
@@ -257,4 +287,7 @@ export type EventName =
   | (typeof EVENT_NAMES.NOTIZ)[keyof typeof EVENT_NAMES.NOTIZ]
   | (typeof EVENT_NAMES.FUEHRUNGSRHYTHMUS_TEMPLATE)[keyof typeof EVENT_NAMES.FUEHRUNGSRHYTHMUS_TEMPLATE]
   | (typeof EVENT_NAMES.KATEGORIE)[keyof typeof EVENT_NAMES.KATEGORIE]
-  | (typeof EVENT_NAMES.BEFEHL)[keyof typeof EVENT_NAMES.BEFEHL];
+  | (typeof EVENT_NAMES.EINSATZ_ROLLE)[keyof typeof EVENT_NAMES.EINSATZ_ROLLE]
+  | (typeof EVENT_NAMES.BEFEHL)[keyof typeof EVENT_NAMES.BEFEHL]
+  | (typeof EVENT_NAMES.AUFBEWAHRUNG)[keyof typeof EVENT_NAMES.AUFBEWAHRUNG]
+  | (typeof EVENT_NAMES.SYSTEM)[keyof typeof EVENT_NAMES.SYSTEM];

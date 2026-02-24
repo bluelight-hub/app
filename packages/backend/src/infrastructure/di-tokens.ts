@@ -124,6 +124,15 @@ export const PDF_EXPORT_SERVICE = Symbol('IPdfExportService');
 /** Export Service Token für ICsvExportService (Story 9.6) */
 export const CSV_EXPORT_SERVICE = Symbol('ICsvExportService');
 
+/** Export Service Token für IBefehlCsvService (Story 4.4) */
+export const BEFEHL_CSV_SERVICE = Symbol('IBefehlCsvService');
+
+/** Repository Token für IAufbewahrungsKonfigurationRepository (Story 5.5) */
+export const AUFBEWAHRUNGS_KONFIGURATION_REPOSITORY = Symbol('IAufbewahrungsKonfigurationRepository');
+
+/** Repository Token für IComplianceReportRepository (Story 5.5) */
+export const COMPLIANCE_REPORT_REPOSITORY = Symbol('IComplianceReportRepository');
+
 /** Export Service Token für IJsonExportService (Story 9.6) */
 export const JSON_EXPORT_SERVICE = Symbol('IJsonExportService');
 
@@ -243,6 +252,19 @@ export const EVENT_HANDLER = {
 
   /** KategorieGeloescht ETB-Eintrag Handler Token (Story 8.1) */
   KATEGORIE_GELOESCHT_ETB: Symbol('IEventHandler<KategorieGeloeschtEvent>:EtbEintrag'),
+
+  /** RolleGeaendert ETB-Eintrag Handler Token (Story 5.4 AC4) */
+  ROLLE_GEAENDERT_ETB: Symbol('IEventHandler<RolleGeaendertEvent>:EtbEintrag'),
+
+  /** BefehlErstellt ETB-Eintrag Handler Token (Story 4.3) */
+  BEFEHL_ERSTELLT_ETB: Symbol('IEventHandler<BefehlErstelltEvent>:EtbEintrag'),
+  /** BefehlQuittiert ETB-Eintrag Handler Token (Story 4.3) */
+  BEFEHL_QUITTIERT_ETB: Symbol('IEventHandler<BefehlQuittiertEvent>:EtbEintrag'),
+
+  /** BefehlAnonymisiert ETB-Eintrag Handler Token (Story 5.5) */
+  BEFEHL_ANONYMISIERT_ETB: Symbol('IEventHandler<BefehlAnonymisiertEvent>:EtbEintrag'),
+  /** BefehlGeloescht ETB-Eintrag Handler Token (Story 5.5) */
+  BEFEHL_GELOESCHT_ETB: Symbol('IEventHandler<BefehlGeloeschtEvent>:EtbEintrag'),
 } as const;
 
 /**
@@ -270,6 +292,59 @@ export const INTEGRATIONS = {
   HIORG_OAUTH_CONFIG_PORT: Symbol('IHiOrgOAuthConfigPort'),
   /** Repository Token für IQualifikationMappingRepository (Story 7-2) */
   QUALIFIKATION_MAPPING_REPOSITORY: Symbol('IQualifikationMappingRepository'),
+} as const;
+
+/**
+ * Resilience Tokens fuer Circuit Breaker Services (Story 5.3).
+ *
+ * **Verwendung:**
+ * ```typescript
+ * @Inject(RESILIENCE.CIRCUIT_BREAKER) private readonly circuitBreaker: CircuitBreakerService
+ * ```
+ */
+export const RESILIENCE = {
+  /** Service Token fuer CircuitBreakerService */
+  CIRCUIT_BREAKER: Symbol('CircuitBreakerService'),
+} as const;
+
+/**
+ * Metrics Tokens fuer Prometheus Metriken (Story 5.6).
+ *
+ * **Verwendung:**
+ * ```typescript
+ * @Inject(METRICS.REGISTRY) private readonly registry: Registry
+ * @Inject(METRICS.HTTP_REQUEST_DURATION) private readonly histogram: Histogram
+ * ```
+ */
+export const METRICS = {
+  /** Prometheus Registry */
+  REGISTRY: Symbol('PrometheusRegistry'),
+  /** HTTP Request Duration Histogram */
+  HTTP_REQUEST_DURATION: Symbol('HttpRequestDurationHistogram'),
+  /** WebSocket Active Connections Gauge */
+  WS_CONNECTIONS: Symbol('WebSocketConnectionsGauge'),
+  /** Outbox Queue Depth Gauge */
+  OUTBOX_QUEUE_DEPTH: Symbol('OutboxQueueDepthGauge'),
+  /** Befehl Domain Counters */
+  BEFEHL_ERSTELLT_COUNTER: Symbol('BefehlErstelltCounter'),
+  BEFEHL_QUITTIERT_COUNTER: Symbol('BefehlQuittiertCounter'),
+  BEFEHL_KORRIGIERT_COUNTER: Symbol('BefehlKorrigiertCounter'),
+} as const;
+
+/**
+ * Monitoring Tokens fuer System-Monitoring (Story 5.6).
+ *
+ * **Verwendung:**
+ * ```typescript
+ * @Inject(MONITORING.METRICS_COLLECTOR) private readonly collector: IMetricsCollector
+ * @Inject(MONITORING.GATEWAY) private readonly gateway: MonitoringGateway
+ * ```
+ */
+export const MONITORING = {
+  /** Port Token fuer IMetricsCollector */
+  METRICS_COLLECTOR: Symbol('IMetricsCollector'),
+  /** Gateway Token fuer MonitoringGateway */
+  GATEWAY: Symbol('MonitoringGateway'),
 } as const;
 
 /**

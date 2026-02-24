@@ -1,4 +1,3 @@
 [tools]
-mvnd = "latest"
 node = "24"
 python = "3"

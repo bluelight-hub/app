@@ -5,11 +5,11 @@ import { NestLoggerAdapter } from '@/infrastructure/common/adapters/nest-logger.
 import { Logger, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
-import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { join, resolve } from 'node:path';
+import { resolve } from 'node:path';
 import { AppController } from './app.controller';
 import { AuthModule } from './modules/auth/auth.module';
 import { InfrastructureCommonModule } from './infrastructure/common.module';
@@ -39,7 +39,12 @@ import { FuehrungsrhythmusTemplateModule } from './modules/fuehrungsrhythmus-tem
 import { NotizModule } from './modules/notiz/notiz.module';
 import { KategorieModule } from './modules/kategorie/kategorie.module';
 import { BefehlModule } from './modules/befehl/befehl.module';
+import { AufbewahrungModule } from './modules/aufbewahrung/aufbewahrung.module';
 import { SchedulerModule } from './infrastructure/scheduler/scheduler.module';
+import { MetricsModule } from './infrastructure/metrics/metrics.module';
+import { MetricsInterceptor } from './infrastructure/metrics/metrics.interceptor';
+import { DeprecationInterceptor } from './modules/common/interceptors/deprecation.interceptor';
+import { MonitoringModule } from './modules/monitoring/monitoring.module';
 
 /**
  * Haupt-Anwendungsmodul der Bluelight Hub Backend-Anwendung
@@ -118,7 +123,10 @@ import { SchedulerModule } from './infrastructure/scheduler/scheduler.module';
     NotizModule, // Notizen im Einsatz-Kontext (Story 7.1)
     KategorieModule, // Kategorien (Story 8.1)
     BefehlModule, // Befehle/Führungsbefehle (Story 1.2)
+    AufbewahrungModule, // DSGVO-Aufbewahrungsmanagement (Story 5.5)
     SchedulerModule, // Cron-Jobs (nur einmal importiert, um mehrfache Registrierung zu vermeiden)
+    MetricsModule, // Prometheus Metrics (Story 5.6)
+    MonitoringModule, // System-Monitoring WebSocket Gateway (Story 5.6)
   ],
   controllers: [AppController],
   providers: [
@@ -139,6 +147,14 @@ import { SchedulerModule } from './infrastructure/scheduler/scheduler.module';
     {
       provide: APP_GUARD,
       useClass: ServerAccessGuard, // 3. Server-Access-Token Check (Story 1-1a)
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: MetricsInterceptor, // Prometheus HTTP Request Duration (Story 5.6)
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: DeprecationInterceptor, // RFC 8594 Deprecation Headers (Story 5.7)
     },
     {
       provide: APP_FILTER,
