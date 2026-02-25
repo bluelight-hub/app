@@ -105,6 +105,7 @@ export class PrismaEinsatzRepository implements IEinsatzRepository {
           where: { id: persistenceData.id },
           create: {
             id: persistenceData.id,
+            nummer: persistenceData.nummer,
             alarmstichwort: persistenceData.alarmstichwort,
             einsatzort: persistenceData.einsatzort,
             beschreibung: persistenceData.beschreibung,
@@ -236,56 +237,51 @@ export class PrismaEinsatzRepository implements IEinsatzRepository {
   }
 
   /**
+   * Ermittelt die nächste Sequenznummer für ein gegebenes Jahr.
+   *
+   * Zählt alle Einsätze deren Nummer mit "E{year}-" beginnt und gibt count + 1 zurück.
+   * Wird vom CreateEinsatzCommandHandler für sequentielle Nummern verwendet.
+   *
+   * @param year - Das Jahr für die Sequenz (z.B. 2026)
+   * @param tx - Optionale externe Transaktion
+   * @returns Promise<Result<number>> - Nächste Sequenznummer (1-basiert)
+   */
+  async getNextSequenceNumber(year: number, tx?: TransactionContext): Promise<Result<number>> {
+    try {
+      const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
+      const count = await client.einsatz.count({
+        where: {
+          nummer: { startsWith: `E${year}-` },
+        },
+      });
+      return Result.ok(count + 1);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger?.error(`Failed to get next sequence number: ${message}`, { year });
+      return Result.fail(`Database error: ${message}`);
+    }
+  }
+
+  /**
    * Findet ein Einsatz-Aggregat anhand der Einsatznummer (Business Key).
    *
-   * **HINWEIS:** Die `nummer` ist ein Domain-Only Feld, das NICHT in der DB existiert.
-   * Es wird zur Laufzeit aus der ID generiert (Format: "E{YEAR}-{ID-prefix}").
+   * Die `nummer` ist eine DB-Spalte mit Unique Constraint, daher kann direkt
+   * per findFirst gesucht werden (kein clientseitiges Filtern nötig).
    *
-   * Da wir keinen direkten DB-Lookup auf `nummer` haben, müssen wir alle
-   * Einsätze laden und clientseitig filtern. Für Produktionseinsatz sollte
-   * ein `nummer` Feld zum Schema hinzugefügt werden.
-   *
-   * @param nummer - Einsatznummer (z.B. "E2024-clw3h8x9")
+   * @param nummer - Einsatznummer (z.B. "E2026-0001")
    * @returns Promise<Result<Einsatz | null>> - Success mit Aggregate oder null
    */
   async findByNummer(nummer: string): Promise<Result<Einsatz | null>> {
     try {
-      // Extrahiere ID-Prefix aus nummer (Format: "E{YEAR}-{ID-8-chars}")
-      // Beispiel: "E2024-clw3h8x9" → Suche nach ID die mit "clw3h8x9" beginnt
-      const match = nummer.match(/^E\d{4}-(.+)$/);
-      if (!match) {
-        // Ungültiges Format → nicht gefunden
-        return Result.ok(null);
-      }
-
-      const idPrefix = match[1];
-
-      // Suche nach Einsatz dessen ID mit dem Prefix beginnt
-      const einsaetze = await this.prisma.einsatz.findMany({
-        where: {
-          id: { startsWith: idPrefix },
-        },
-        take: 1, // Nur ersten Treffer
+      const einsatz = await this.prisma.einsatz.findFirst({
+        where: { nummer },
       });
 
-      // Array-Bounds-Check: Kein Treffer gefunden
-      if (einsaetze.length === 0) {
+      if (!einsatz) {
         return Result.ok(null);
       }
 
-      // Sicherer Array-Zugriff: einsaetze[0] ist hier garantiert definiert
-      const einsatzRecord = einsaetze[0];
-      if (!einsatzRecord) {
-        return Result.ok(null);
-      }
-
-      const aggregate = PrismaEinsatzMapper.toAggregate(einsatzRecord);
-
-      // Verifiziere dass die rekonstruierte nummer übereinstimmt
-      if (aggregate.nummer !== nummer) {
-        return Result.ok(null);
-      }
-
+      const aggregate = PrismaEinsatzMapper.toAggregate(einsatz);
       return Result.ok(aggregate);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

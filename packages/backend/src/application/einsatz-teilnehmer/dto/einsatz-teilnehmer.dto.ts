@@ -3,7 +3,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 /**
  * Response DTO für einen Einsatz-Teilnehmer.
  *
- * Repräsentiert einen User der einem Einsatz mit einem Funkrufnamen beigetreten ist.
+ * Repräsentiert einen User der einem Einsatz mit einer EinsatzPerson beigetreten ist.
  */
 export class EinsatzTeilnehmerResponseDto {
   @ApiProperty({
@@ -25,10 +25,35 @@ export class EinsatzTeilnehmerResponseDto {
   userId!: string;
 
   @ApiProperty({
-    description: 'Gewählter Funkrufname für diesen Einsatz',
-    example: 'Rotkreuz 83/1',
+    description: 'Verknüpfte EinsatzPerson-ID',
+    example: 'clx1234567890abcdefghijk',
   })
-  funkrufname!: string;
+  einsatzPersonId!: string;
+
+  @ApiProperty({
+    description: 'Vorname der verknüpften Person',
+    example: 'Max',
+  })
+  personVorname!: string;
+
+  @ApiProperty({
+    description: 'Nachname der verknüpften Person',
+    example: 'Mustermann',
+  })
+  personNachname!: string;
+
+  @ApiPropertyOptional({
+    description: 'Funkrufname der verknüpften Person',
+    example: 'Rotkreuz 83/1',
+    nullable: true,
+  })
+  personFunkrufname?: string | null;
+
+  @ApiProperty({
+    description: 'Funktion der verknüpften Person',
+    example: 'Gruppenführer',
+  })
+  personFunktion!: string;
 
   @ApiProperty({
     description: 'Beitrittszeitpunkt',

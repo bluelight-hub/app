@@ -44,11 +44,13 @@ jest.mock('@paralleldrive/cuid2', () => ({
   let namingService: EinsatzNamingService;
   let completenessService: EinsatzCompletenessService;
   let archivalPolicy: EinsatzArchivalPolicy;
+  let nummerCounter = 0;
 
   beforeEach(() => {
     namingService = new EinsatzNamingService();
     completenessService = new EinsatzCompletenessService();
     archivalPolicy = new EinsatzArchivalPolicy();
+    nummerCounter = 0;
   });
 
   // Helper: Create Address
@@ -64,8 +66,10 @@ jest.mock('@paralleldrive/cuid2', () => ({
 
   // Helper: Create Einsatz with standard props
   function createTestEinsatz(alarmstichwort = 'Brand', withAddress = true): EinsatzAggregate {
+    nummerCounter++;
     const props = {
       alarmstichwort,
+      nummer: `E2026-${String(nummerCounter).padStart(3, '0')}`,
       createdBy: createTestUserId(),
       einsatzort: withAddress ? createTestAddress() : undefined,
     };
@@ -83,7 +87,7 @@ jest.mock('@paralleldrive/cuid2', () => ({
 
       // THEN: Number format is auto-generated (E{YEAR}-{NANOID-6})
       // Note: nanoid mock returns 21 chars, but Aggregate uses nanoid(6)
-      expect(einsatz.nummer).toMatch(/^E\d{4}-[A-Za-z0-9_-]+$/);
+      expect(einsatz.nummer).toMatch(/^E\d{4}-\d{3}$/);
 
       // WHEN: Transition to IN_BEARBEITUNG
       const statusUpdateResult = einsatz.updateStatus(EinsatzStatus.IN_BEARBEITUNG());
@@ -331,7 +335,7 @@ jest.mock('@paralleldrive/cuid2', () => ({
 
       // THEN: Einsatz created in ANGELEGT status
       expect(einsatz.status.equals(EinsatzStatus.ANGELEGT())).toBe(true);
-      expect(einsatz.nummer).toMatch(/^E\d{4}-[A-Za-z0-9_-]+$/);
+      expect(einsatz.nummer).toMatch(/^E\d{4}-\d{3}$/);
 
       // WHEN: Step 2 - Transition to IN_BEARBEITUNG
       const statusUpdate = einsatz.updateStatus(EinsatzStatus.IN_BEARBEITUNG());

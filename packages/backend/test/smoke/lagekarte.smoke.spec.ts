@@ -104,6 +104,7 @@ function generateCuid2(): string {
     await prisma.einsatz.create({
       data: {
         id: testEinsatzDbId,
+        nummer: `E2026-SMOKE-${Date.now()}`,
         alarmstichwort: 'Smoke Test',
         status: 'ANGELEGT',
         createdBy: testUserDbId,

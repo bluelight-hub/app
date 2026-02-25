@@ -6,42 +6,42 @@ describe('JoinEinsatzCommand', () => {
       // Given (Arrange)
       const einsatzId = 'einsatz-123';
       const userId = 'user-456';
-      const funkrufname = 'HLM 10/1';
+      const einsatzPersonId = 'person-123';
 
       // When (Act)
-      const result = JoinEinsatzCommand.create(einsatzId, userId, funkrufname);
+      const result = JoinEinsatzCommand.create(einsatzId, userId, einsatzPersonId);
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeInstanceOf(JoinEinsatzCommand);
       expect(result.value?.einsatzId).toBe(einsatzId);
       expect(result.value?.userId).toBe(userId);
-      expect(result.value?.funkrufname).toBe(funkrufname);
+      expect(result.value?.einsatzPersonId).toBe(einsatzPersonId);
     });
 
-    it('should trim funkrufname', () => {
+    it('should trim einsatzPersonId', () => {
       // Given (Arrange)
       const einsatzId = 'einsatz-123';
       const userId = 'user-456';
-      const funkrufnameWithSpaces = '  HLM 10/1  ';
-      const expectedFunkrufname = 'HLM 10/1';
+      const einsatzPersonIdWithSpaces = '  person-abc  ';
+      const expectedEinsatzPersonId = 'person-abc';
 
       // When (Act)
-      const result = JoinEinsatzCommand.create(einsatzId, userId, funkrufnameWithSpaces);
+      const result = JoinEinsatzCommand.create(einsatzId, userId, einsatzPersonIdWithSpaces);
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value?.funkrufname).toBe(expectedFunkrufname);
+      expect(result.value?.einsatzPersonId).toBe(expectedEinsatzPersonId);
     });
 
     it('should fail when einsatzId is empty', () => {
       // Given (Arrange)
       const einsatzId = '';
       const userId = 'user-456';
-      const funkrufname = 'HLM 10/1';
+      const einsatzPersonId = 'person-123';
 
       // When (Act)
-      const result = JoinEinsatzCommand.create(einsatzId, userId, funkrufname);
+      const result = JoinEinsatzCommand.create(einsatzId, userId, einsatzPersonId);
 
       // Then (Assert)
       expect(result.isFailure).toBe(true);
@@ -52,10 +52,10 @@ describe('JoinEinsatzCommand', () => {
       // Given (Arrange)
       const einsatzId = '   ';
       const userId = 'user-456';
-      const funkrufname = 'HLM 10/1';
+      const einsatzPersonId = 'person-123';
 
       // When (Act)
-      const result = JoinEinsatzCommand.create(einsatzId, userId, funkrufname);
+      const result = JoinEinsatzCommand.create(einsatzId, userId, einsatzPersonId);
 
       // Then (Assert)
       expect(result.isFailure).toBe(true);
@@ -66,10 +66,10 @@ describe('JoinEinsatzCommand', () => {
       // Given (Arrange)
       const einsatzId = 'einsatz-123';
       const userId = '';
-      const funkrufname = 'HLM 10/1';
+      const einsatzPersonId = 'person-123';
 
       // When (Act)
-      const result = JoinEinsatzCommand.create(einsatzId, userId, funkrufname);
+      const result = JoinEinsatzCommand.create(einsatzId, userId, einsatzPersonId);
 
       // Then (Assert)
       expect(result.isFailure).toBe(true);
@@ -80,80 +80,52 @@ describe('JoinEinsatzCommand', () => {
       // Given (Arrange)
       const einsatzId = 'einsatz-123';
       const userId = '   ';
-      const funkrufname = 'HLM 10/1';
+      const einsatzPersonId = 'person-123';
 
       // When (Act)
-      const result = JoinEinsatzCommand.create(einsatzId, userId, funkrufname);
+      const result = JoinEinsatzCommand.create(einsatzId, userId, einsatzPersonId);
 
       // Then (Assert)
       expect(result.isFailure).toBe(true);
       expect(result.error).toBe('userId is required');
     });
 
-    it('should fail when funkrufname is empty', () => {
+    it('should fail when einsatzPersonId is empty', () => {
       // Given (Arrange)
       const einsatzId = 'einsatz-123';
       const userId = 'user-456';
-      const funkrufname = '';
+      const einsatzPersonId = '';
 
       // When (Act)
-      const result = JoinEinsatzCommand.create(einsatzId, userId, funkrufname);
+      const result = JoinEinsatzCommand.create(einsatzId, userId, einsatzPersonId);
 
       // Then (Assert)
       expect(result.isFailure).toBe(true);
-      expect(result.error).toBe('funkrufname is required');
+      expect(result.error).toBe('einsatzPersonId is required');
     });
 
-    it('should fail when funkrufname is only whitespace', () => {
+    it('should fail when einsatzPersonId is only whitespace', () => {
       // Given (Arrange)
       const einsatzId = 'einsatz-123';
       const userId = 'user-456';
-      const funkrufname = '   ';
+      const einsatzPersonId = '   ';
 
       // When (Act)
-      const result = JoinEinsatzCommand.create(einsatzId, userId, funkrufname);
+      const result = JoinEinsatzCommand.create(einsatzId, userId, einsatzPersonId);
 
       // Then (Assert)
       expect(result.isFailure).toBe(true);
-      expect(result.error).toBe('funkrufname is required');
-    });
-
-    it('should fail when funkrufname exceeds 100 characters', () => {
-      // Given (Arrange)
-      const einsatzId = 'einsatz-123';
-      const userId = 'user-456';
-      const funkrufname = 'a'.repeat(101); // 101 Zeichen
-
-      // When (Act)
-      const result = JoinEinsatzCommand.create(einsatzId, userId, funkrufname);
-
-      // Then (Assert)
-      expect(result.isFailure).toBe(true);
-      expect(result.error).toBe('funkrufname cannot exceed 100 characters');
-    });
-
-    it('should succeed when funkrufname is exactly 100 characters', () => {
-      // Given (Arrange)
-      const einsatzId = 'einsatz-123';
-      const userId = 'user-456';
-      const funkrufname = 'a'.repeat(100); // Exakt 100 Zeichen
-
-      // When (Act)
-      const result = JoinEinsatzCommand.create(einsatzId, userId, funkrufname);
-
-      // Then (Assert)
-      expect(result.isSuccess).toBe(true);
-      expect(result.value?.funkrufname).toBe(funkrufname);
+      expect(result.error).toBe('einsatzPersonId is required');
     });
 
     it('should create immutable command instance', () => {
       // Given (Arrange)
       const einsatzId = 'einsatz-123';
       const userId = 'user-456';
-      const funkrufname = 'HLM 10/1';
+      const einsatzPersonId = 'person-123';
 
       // When (Act)
-      const result = JoinEinsatzCommand.create(einsatzId, userId, funkrufname);
+      const result = JoinEinsatzCommand.create(einsatzId, userId, einsatzPersonId);
       const command = result.value!;
 
       // Then (Assert)
@@ -161,12 +133,12 @@ describe('JoinEinsatzCommand', () => {
       // Zur Laufzeit prüfen wir, dass die Properties korrekt gesetzt sind
       expect(command.einsatzId).toBe(einsatzId);
       expect(command.userId).toBe(userId);
-      expect(command.funkrufname).toBe(funkrufname);
+      expect(command.einsatzPersonId).toBe(einsatzPersonId);
 
       // Properties sollten existieren und lesbar sein
       expect(command).toHaveProperty('einsatzId');
       expect(command).toHaveProperty('userId');
-      expect(command).toHaveProperty('funkrufname');
+      expect(command).toHaveProperty('einsatzPersonId');
     });
   });
 });

@@ -46,7 +46,7 @@ describe('QuittierenBefehlHandler', () => {
 
     return Befehl.reconstitute({
       id: befehlId,
-      nummer: 'B2026-abc12345',
+      nummer: 'B-001',
       einsatzId,
       auftrag: 'Patientenablage einrichten',
       befehlsgeberName: 'EL Müller',
@@ -190,7 +190,7 @@ describe('QuittierenBefehlHandler', () => {
 
       const befehl = Befehl.reconstitute({
         id: befehlId,
-        nummer: 'B2026-abc12345',
+        nummer: 'B-001',
         einsatzId,
         auftrag: 'Test',
         befehlsgeberName: 'EL Müller',
@@ -229,7 +229,7 @@ describe('QuittierenBefehlHandler', () => {
 
       const befehl = Befehl.reconstitute({
         id: befehlId,
-        nummer: 'B2026-abc12345',
+        nummer: 'B-001',
         einsatzId,
         auftrag: 'Test',
         befehlsgeberName: 'EL Müller',

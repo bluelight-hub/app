@@ -29,6 +29,7 @@ describe('UpdateEinsatzHandler', () => {
     return Einsatz.create({
       alarmstichwort: 'Testbrand',
       createdBy: userId,
+      nummer: 'E2026-001',
     }).value!;
   };
 

@@ -25,7 +25,7 @@ describe('ExportBefehleQueryHandler', () => {
   const createMockBefehl = (): Befehl => {
     return Befehl.reconstitute({
       id: BefehlId.create().value as BefehlId,
-      nummer: 'B2026-test1234',
+      nummer: 'B-001',
       einsatzId: EinsatzId.create('cm5einsatzid123').value as EinsatzId,
       auftrag: 'Patientenablage einrichten',
       befehlsgeberName: 'EL Mueller',
@@ -65,7 +65,7 @@ describe('ExportBefehleQueryHandler', () => {
     it('sollte CSV-Export mit korrektem Dateinamen und Content-Type zurueckgeben (Happy Path)', async () => {
       const befehle = [createMockBefehl()];
       mockBefehlRepository.findByEinsatzId.mockResolvedValue(Result.ok(befehle));
-      mockCsvService.generateCsv.mockReturnValue('\uFEFFNummer;Zeitstempel\r\nB2026-test1234;20.02.2026 11:00\r\n');
+      mockCsvService.generateCsv.mockReturnValue('\uFEFFNummer;Zeitstempel\r\nB-001;20.02.2026 11:00\r\n');
 
       const query = new ExportBefehleQuery('cm5einsatzid123', 'csv');
       const result = await handler.execute(query);
@@ -105,7 +105,7 @@ describe('ExportBefehleQueryHandler', () => {
       const parsed = JSON.parse(result.value!.content);
       expect(parsed).toHaveLength(1);
       expect(parsed[0].id).toBeDefined();
-      expect(parsed[0].nummer).toBe('B2026-test1234');
+      expect(parsed[0].nummer).toBe('B-001');
       expect(parsed[0].auftrag).toBe('Patientenablage einrichten');
       expect(parsed[0].befehlsgeberName).toBe('EL Mueller');
       expect(parsed[0].erstellerId).toBeDefined();

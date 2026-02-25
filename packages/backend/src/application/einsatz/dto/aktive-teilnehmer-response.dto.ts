@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 /**
  * Response DTO fuer aktive Einsatz-Teilnehmer API Responses.
@@ -13,11 +13,10 @@ import { ApiProperty } from '@nestjs/swagger';
  * **Felder:**
  * - userId: Eindeutige User-ID fuer Zuweisung
  * - username: Anzeigename des Users
- * - funkrufname: Einsatz-spezifischer Funkrufname
+ * - personVorname/personNachname: Name der verknuepften EinsatzPerson
+ * - personFunkrufname: Funkrufname der verknuepften Person (optional)
+ * - personFunktion: Funktion der verknuepften Person
  * - joinedAt: Zeitpunkt des Einsatz-Beitritts
- *
- * **Hinweis:** Umbenennung von `EinsatzTeilnehmerResponseDto` zu `AktiveTeilnehmerResponseDto`
- * um Konflikte mit dem bestehenden DTO im `einsatz-teilnehmer` Modul zu vermeiden.
  */
 export class AktiveTeilnehmerResponseDto {
   @ApiProperty({
@@ -33,10 +32,29 @@ export class AktiveTeilnehmerResponseDto {
   username!: string;
 
   @ApiProperty({
-    description: 'Funkrufname im Einsatz',
-    example: 'Florian 11/40',
+    description: 'Vorname der verknuepften EinsatzPerson',
+    example: 'Thomas',
   })
-  funkrufname!: string;
+  personVorname!: string;
+
+  @ApiProperty({
+    description: 'Nachname der verknuepften EinsatzPerson',
+    example: 'Schmidt',
+  })
+  personNachname!: string;
+
+  @ApiPropertyOptional({
+    description: 'Funkrufname der verknuepften EinsatzPerson',
+    example: 'Florian 11/40',
+    nullable: true,
+  })
+  personFunkrufname?: string | null;
+
+  @ApiProperty({
+    description: 'Funktion der verknuepften EinsatzPerson',
+    example: 'Gruppenführer',
+  })
+  personFunktion!: string;
 
   @ApiProperty({
     description: 'Zeitpunkt des Einsatz-Beitritts (ISO-8601)',

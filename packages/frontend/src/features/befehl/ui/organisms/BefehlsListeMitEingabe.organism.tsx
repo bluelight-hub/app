@@ -52,16 +52,17 @@ export function BefehlsListeMitEingabe({ einsatzId, initialBefehlId }: BefehlsLi
   const [showEingabeRow, setShowEingabeRow] = useState(false);
   const { user: currentUser } = useCurrentUser();
   const navigate = useNavigate();
-  const { canCreate, canQuittieren, isLoading: isPermissionsLoading } = useBefehlPermissions(einsatzId);
+  const { canCreate, canQuittieren, canViewAll, isLoading: isPermissionsLoading } = useBefehlPermissions(einsatzId);
+  const hasBefehlAccess = !isPermissionsLoading && canViewAll;
   const [showMeineBefehle, toggleMeineBefehle] = useMeineBefehleFilter();
   const [showOffeneRueckfragen, toggleOffeneRueckfragen] = useOffeneRueckfragenFilter();
 
-  // Alle Befehle laden (fuer "Alle" Tab und Badge-Count)
-  const alleBefehleQuery = useBefehleByEinsatz(einsatzId);
-  // "Meine Befehle" separat laden (nur wenn Filter aktiv, spart Netzwerk-Anfragen)
-  const meineBefehleQuery = useMeineBefehle(einsatzId, showMeineBefehle ? currentUser?.id : undefined);
-  // Offene Rueckfragen Query (nur wenn Filter aktiv, spart Netzwerk-Anfragen)
-  const offeneRueckfragenQuery = useOffeneRueckfragen(einsatzId, showOffeneRueckfragen);
+  // Alle Befehle laden (nur wenn User eine Einsatz-Rolle hat - sonst 403 vom BefehlRollenGuard)
+  const alleBefehleQuery = useBefehleByEinsatz(einsatzId, undefined, hasBefehlAccess);
+  // "Meine Befehle" separat laden (nur wenn Filter aktiv + Rolle vorhanden)
+  const meineBefehleQuery = useMeineBefehle(einsatzId, hasBefehlAccess && showMeineBefehle ? currentUser?.id : undefined);
+  // Offene Rueckfragen Query (nur wenn Filter aktiv + Rolle vorhanden)
+  const offeneRueckfragenQuery = useOffeneRueckfragen(einsatzId, hasBefehlAccess && showOffeneRueckfragen);
   // Count client-seitig aus allen Befehlen berechnen (kein extra API-Call noetig)
   const offeneRueckfragenCount = useMemo(() => {
     if (!alleBefehleQuery.data) return 0;
@@ -267,6 +268,15 @@ export function BefehlsListeMitEingabe({ einsatzId, initialBefehlId }: BefehlsLi
         {showEingabeRow && (
           <div className="px-6 pt-4">
             <BefehlEingabeRow einsatzId={einsatzId} onClose={() => setShowEingabeRow(false)} />
+          </div>
+        )}
+
+        {/* Keine Einsatz-Rolle zugewiesen */}
+        {!isPermissionsLoading && !canViewAll && (
+          <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
+            <PiWarningCircle className="mb-4 h-12 w-12 text-yellow-400 dark:text-yellow-500" />
+            <p className="text-lg font-medium text-gray-900 dark:text-gray-100">Keine Befehl-Rolle zugewiesen</p>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Bitten Sie einen Administrator, Ihnen eine Rolle in diesem Einsatz zuzuweisen.</p>
           </div>
         )}
 

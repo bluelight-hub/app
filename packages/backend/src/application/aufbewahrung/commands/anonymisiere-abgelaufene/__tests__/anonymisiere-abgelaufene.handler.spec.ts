@@ -48,6 +48,7 @@ describe('AnonymisiereAbgelaufeneHandler', () => {
       befehlsgeber: 'EL Mueller',
       erstellerId,
       empfaenger: [{ name: 'ZF Alpha' }],
+      nummer: 'B-001',
     });
     return { befehl: befehlResult.value!, einsatzId };
   }

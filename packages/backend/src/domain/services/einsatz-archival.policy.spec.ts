@@ -38,6 +38,7 @@ describe('EinsatzArchivalPolicy', () => {
     const einsatzResult = Einsatz.create({
       alarmstichwort: 'Brand',
       createdBy: userId,
+      nummer: 'E2026-001',
       einsatzort: addressResult.value,
     });
     const einsatz = einsatzResult.value!;
@@ -68,6 +69,7 @@ describe('EinsatzArchivalPolicy', () => {
       const einsatzResult = Einsatz.create({
         alarmstichwort: 'Brand',
         createdBy: userId,
+        nummer: 'E2026-002',
         einsatzort: addressResult.value,
       });
       const einsatz = einsatzResult.value!;
@@ -86,6 +88,7 @@ describe('EinsatzArchivalPolicy', () => {
       const einsatzResult = Einsatz.create({
         alarmstichwort: 'Brand',
         createdBy: userId,
+        nummer: 'E2026-003',
         einsatzort: addressResult.value,
       });
       const einsatz = einsatzResult.value!;
@@ -185,6 +188,7 @@ describe('EinsatzArchivalPolicy', () => {
       const einsatzResult = Einsatz.create({
         alarmstichwort: 'Brand',
         createdBy: userId,
+        nummer: 'E2026-004',
         einsatzort: addressResult.value,
       });
       const einsatz = einsatzResult.value!;
@@ -267,6 +271,7 @@ describe('EinsatzArchivalPolicy', () => {
       const einsatzResult = Einsatz.create({
         alarmstichwort: 'Brand',
         createdBy: userId,
+        nummer: 'E2026-005',
         einsatzort: addressResult.value,
       });
       const einsatz = einsatzResult.value!;

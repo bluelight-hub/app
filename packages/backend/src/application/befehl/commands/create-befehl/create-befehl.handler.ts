@@ -10,6 +10,7 @@ import { UserId } from '@domain/value-objects/user-id';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import { BEFEHL_REPOSITORY, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { BefehlNamingService } from '@domain/services/befehl-naming.service';
 import { CreateBefehlCommand } from './create-befehl.command';
 
 /**
@@ -63,12 +64,21 @@ export class CreateBefehlHandler extends TransactionalCommandHandler<CreateBefeh
       return { name: e.name, empfaengerId };
     });
 
+    // 3b. Generate sequential Befehlsnummer
+    const seqResult = await this.befehlRepository.getNextSequenceNumber(einsatzId, tx);
+    if (seqResult.isFailure) {
+      return Result.fail(seqResult.error ?? 'Sequenznummer konnte nicht ermittelt werden');
+    }
+    const namingService = new BefehlNamingService();
+    const nummer = namingService.generateBefehlNummer(seqResult.value!);
+
     // 4. Create Aggregate via Factory Method
     const befehlResult = Befehl.create({
       einsatzId,
       empfaenger,
       befehlsgeber: command.befehlsgeber,
       erstellerId,
+      nummer,
       auftrag: command.auftrag,
       zeitvorgabe: command.zeitvorgabe,
       ereignis: command.ereignis,

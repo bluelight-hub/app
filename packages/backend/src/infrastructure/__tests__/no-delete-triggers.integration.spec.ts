@@ -125,6 +125,7 @@ describe('NO-DELETE Triggers Integration Tests', () => {
       // Given: Einsatz exists in database with status ANGELEGT
       const einsatz = await prisma.einsatz.create({
         data: {
+          nummer: `E2026-NDT-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           alarmstichwort: 'B3 - Brand Wohnhaus',
           einsatzort: 'Hauptstraße 123, 12345 Berlin',
           status: 'ANGELEGT',
@@ -161,6 +162,7 @@ describe('NO-DELETE Triggers Integration Tests', () => {
       // Given: Create Einsatz → Einsatztagebuch → ETB Eintrag
       const einsatz = await prisma.einsatz.create({
         data: {
+          nummer: `E2026-NDT-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           alarmstichwort: 'H1 - Hilfeleistung',
           status: 'IN_BEARBEITUNG',
           createdBy: testUserId,
@@ -216,6 +218,7 @@ describe('NO-DELETE Triggers Integration Tests', () => {
       // Given: Create Einsatz → Lagekarte → POI
       const einsatz = await prisma.einsatz.create({
         data: {
+          nummer: `E2026-NDT-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           alarmstichwort: 'TH - Technische Hilfeleistung',
           status: 'ANGELEGT',
           createdBy: testUserId,
@@ -310,6 +313,7 @@ describe('NO-DELETE Triggers Integration Tests', () => {
       // Given: Einsatz with status ABGESCHLOSSEN (ready for archival)
       const einsatz = await prisma.einsatz.create({
         data: {
+          nummer: `E2026-NDT-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           alarmstichwort: 'B2 - Brand PKW',
           einsatzort: 'Parkplatz Einkaufszentrum',
           status: 'ABGESCHLOSSEN',
@@ -351,6 +355,7 @@ describe('NO-DELETE Triggers Integration Tests', () => {
       // Given: Create Einsatz → ETB → Eintrag (NOT deleted yet)
       const einsatz = await prisma.einsatz.create({
         data: {
+          nummer: `E2026-NDT-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           alarmstichwort: 'TH - Ölspur',
           status: 'IN_BEARBEITUNG',
           createdBy: testUserId,

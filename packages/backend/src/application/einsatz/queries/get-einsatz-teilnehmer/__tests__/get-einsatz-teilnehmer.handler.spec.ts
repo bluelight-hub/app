@@ -61,6 +61,14 @@ describe('GetEinsatzTeilnehmerHandler', () => {
               username: true,
             },
           },
+          einsatzPerson: {
+            select: {
+              vorname: true,
+              nachname: true,
+              funkrufname: true,
+              funktion: true,
+            },
+          },
         },
         orderBy: {
           joinedAt: 'asc',
@@ -79,24 +87,36 @@ describe('GetEinsatzTeilnehmerHandler', () => {
           id: 'teilnehmer-1',
           einsatzId: testEinsatzId,
           userId: testUserId1,
-          funkrufname: 'Florian 11/40',
+          einsatzPersonId: 'person-1',
           joinedAt: joinedAt1,
           leftAt: null,
           user: {
             id: testUserId1,
             username: 'tschmidt',
           },
+          einsatzPerson: {
+            vorname: 'Thomas',
+            nachname: 'Schmidt',
+            funkrufname: 'Florian 11/40',
+            funktion: 'Gruppenführer',
+          },
         },
         {
           id: 'teilnehmer-2',
           einsatzId: testEinsatzId,
           userId: testUserId2,
-          funkrufname: 'Florian 11/41',
+          einsatzPersonId: 'person-2',
           joinedAt: joinedAt2,
           leftAt: null,
           user: {
             id: testUserId2,
             username: 'amueller',
+          },
+          einsatzPerson: {
+            vorname: 'Anna',
+            nachname: 'Müller',
+            funkrufname: 'Florian 11/41',
+            funktion: 'Helfer',
           },
         },
       ] as never);
@@ -112,13 +132,19 @@ describe('GetEinsatzTeilnehmerHandler', () => {
       expect(result.value![0]).toEqual({
         userId: testUserId1,
         username: 'tschmidt',
-        funkrufname: 'Florian 11/40',
+        personVorname: 'Thomas',
+        personNachname: 'Schmidt',
+        personFunkrufname: 'Florian 11/40',
+        personFunktion: 'Gruppenführer',
         joinedAt: joinedAt1.toISOString(),
       });
       expect(result.value![1]).toEqual({
         userId: testUserId2,
         username: 'amueller',
-        funkrufname: 'Florian 11/41',
+        personVorname: 'Anna',
+        personNachname: 'Müller',
+        personFunkrufname: 'Florian 11/41',
+        personFunktion: 'Helfer',
         joinedAt: joinedAt2.toISOString(),
       });
     });

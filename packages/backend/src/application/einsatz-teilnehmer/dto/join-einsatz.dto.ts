@@ -1,20 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, MaxLength, MinLength } from 'class-validator';
+import { IsString, IsNotEmpty } from 'class-validator';
 
 /**
  * DTO für den Einsatz-Beitritt Request.
  *
- * Wird verwendet wenn ein User einem Einsatz mit einem Funkrufnamen beitritt.
+ * Wird verwendet wenn ein User einem Einsatz mit einer EinsatzPerson beitritt.
  */
 export class JoinEinsatzDto {
   @ApiProperty({
-    description: 'Funkrufname den der User für diesen Einsatz verwenden möchte',
-    example: 'Rotkreuz 83/1',
-    minLength: 1,
-    maxLength: 100,
+    description: 'ID der EinsatzPerson mit der sich der User verknüpfen möchte',
+    example: 'clx1234567890abcdefghijk',
   })
-  @IsString({ message: 'funkrufname muss ein String sein' })
-  @MinLength(1, { message: 'Funkrufname darf nicht leer sein' })
-  @MaxLength(100, { message: 'Funkrufname darf maximal 100 Zeichen lang sein' })
-  funkrufname!: string;
+  @IsString({ message: 'einsatzPersonId muss ein String sein' })
+  @IsNotEmpty({ message: 'einsatzPersonId darf nicht leer sein' })
+  einsatzPersonId!: string;
 }

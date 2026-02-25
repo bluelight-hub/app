@@ -14,7 +14,6 @@ import { BefehlEmpfaenger } from '@/domain/entities/befehl-empfaenger.entity';
 import { BefehlKommentar } from '@/domain/entities/befehl-kommentar.entity';
 import { BefehlId } from '@/domain/value-objects/befehl-id';
 import { BefehlStatus } from '@/domain/value-objects/befehl-status';
-import { BefehlNummer } from '@/domain/value-objects/befehl-nummer';
 import { EinsatzId } from '@/domain/value-objects/einsatz-id';
 import { UserId } from '@/domain/value-objects/user-id';
 import { AddBefehlKommentarHandler } from '@/application/befehl/commands/add-befehl-kommentar/add-befehl-kommentar.handler';
@@ -72,7 +71,7 @@ describe('BefehlController (Integration Tests - AC10)', () => {
       befehlsgeber: 'EL Mueller',
       erstellerId: UserId.create('ersteller1').value as UserId,
       auftrag: 'Patientenablage einrichten',
-      nummer: BefehlNummer.create('B2026-abc123xy').value as BefehlNummer,
+      nummer: 'B-001',
       zeitvorgabe: '15 min',
     });
 
@@ -175,7 +174,7 @@ describe('BefehlController (Integration Tests - AC10)', () => {
       // Then - verify BefehlDto structure
       expect(result).toBeDefined();
       expect(result.id).toBe(befehlId);
-      expect(result.nummer).toMatch(/^B\d{4}-[a-z0-9]{8}$/); // Generated number format
+      expect(result.nummer).toMatch(/^B-\d{3,}$/); // Generated number format
       expect(result.auftrag).toBe('Patientenablage einrichten');
       expect(result.status).toBe('ERTEILT');
       expect(result.befehlstyp).toBe('KURZBEFEHL');
@@ -359,7 +358,7 @@ describe('BefehlController (Integration Tests - AC10)', () => {
       // Korrektur-Befehl mit originalBefehlId-Referenz (AC3)
       const korrekturBefehl = Befehl.reconstitute({
         id: BefehlId.create().value as BefehlId,
-        nummer: 'B2026-korr1234',
+        nummer: 'B-002',
         einsatzId: originalBefehl.einsatzId,
         auftrag: 'Korrigierter Auftrag',
         befehlsgeberName: 'EL Mueller',
@@ -475,7 +474,7 @@ describe('BefehlController (Integration Tests - AC10)', () => {
 
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe(mockBefehl.id.value);
-      expect(result[0].nummer).toMatch(/^B\d{4}-[a-z0-9]{8}$/);
+      expect(result[0].nummer).toMatch(/^B-\d{3,}$/);
       expect(result[0].status).toBe('ERTEILT');
       expect(mockBefehlRepository.findByEinsatzId).toHaveBeenCalledTimes(1);
       expect(mockBefehlRepository.findByEmpfaengerId).not.toHaveBeenCalled();
@@ -728,14 +727,14 @@ describe('BefehlController (Integration Tests - AC10)', () => {
   describe('getHistorie() - GET /api/api/v-alpha/befehle/:id/historie (Story 4.2)', () => {
     const mockTimeline: BefehlHistorieTimelineDto = {
       befehlId: 'test-befehl-id',
-      befehlNummer: 'B2026-abc12345',
+      befehlNummer: 'B-001',
       aktuellerStatus: 'ERTEILT',
       events: [
         {
           typ: BefehlHistorieEventTyp.ERTEILT,
           status: BefehlHistorieEventStatus.AKTUELL,
           zeitpunkt: new Date('2026-02-20T10:00:00.000Z'),
-          beschreibung: 'Befehl #B2026-abc12345 erteilt',
+          beschreibung: 'Befehl #B-001 erteilt',
           akteur: 'EL Mueller',
         },
       ],
@@ -748,7 +747,7 @@ describe('BefehlController (Integration Tests - AC10)', () => {
 
       expect(result).toBeDefined();
       expect(result.befehlId).toBe('test-befehl-id');
-      expect(result.befehlNummer).toBe('B2026-abc12345');
+      expect(result.befehlNummer).toBe('B-001');
       expect(result.aktuellerStatus).toBe('ERTEILT');
       expect(result.events).toHaveLength(1);
       expect(result.events[0].typ).toBe(BefehlHistorieEventTyp.ERTEILT);
@@ -804,7 +803,7 @@ describe('BefehlController (Integration Tests - AC10)', () => {
 
       return Befehl.reconstitute({
         id: BefehlId.create().value as BefehlId,
-        nummer: 'B2026-test1234',
+        nummer: 'B-001',
         einsatzId,
         auftrag: 'Test-Auftrag',
         befehlsgeberName: 'EL Müller',
@@ -983,7 +982,7 @@ describe('BefehlController (Integration Tests - AC10)', () => {
       const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
       const befehl = Befehl.reconstitute({
         id: BefehlId.create().value as BefehlId,
-        nummer: 'B2026-korr1234',
+        nummer: 'B-002',
         einsatzId: EinsatzId.create('cm5einsatzid123').value as EinsatzId,
         auftrag: 'Korrigierter Auftrag',
         befehlsgeberName: 'EL Müller',
@@ -1405,8 +1404,9 @@ describe('BefehlController Guard-Enforcement (Integration)', () => {
 
   beforeAll(async () => {
     mockPrisma = {
-      einsatzRollenzuweisung: { findUnique: jest.fn() },
+      einsatzRollenzuweisung: { findUnique: jest.fn(), findFirst: jest.fn() },
       befehl: { findUnique: jest.fn() },
+      einsatzTeilnehmer: { findFirst: jest.fn() },
     };
 
     mockBefehlRepository = {
@@ -1624,9 +1624,9 @@ describe('BefehlController Guard-Enforcement (Integration)', () => {
           // einsatzId fehlt!
         });
 
-      // Then - 403 Forbidden (Guard kann keine Rolle pruefen)
+      // Then - 403 Forbidden (Guard findet keine passende Rolle in einem Einsatz)
       expect(response.status).toBe(403);
-      expect(response.body.message).toContain('Einsatz-ID fehlt');
+      expect(response.body.message).toContain('Keine passende Rolle');
     });
 
     it('sollte 403 werfen wenn Befehl-Lookup fehlschlaegt (Befehl nicht gefunden)', async () => {
@@ -1639,9 +1639,9 @@ describe('BefehlController Guard-Enforcement (Integration)', () => {
         quittierungArt: 'VERSTANDEN',
       });
 
-      // Then - 403 Forbidden (keine einsatzId ermittelbar)
+      // Then - 403 Forbidden (keine passende Rolle in einem Einsatz)
       expect(response.status).toBe(403);
-      expect(response.body.message).toContain('Einsatz-ID fehlt');
+      expect(response.body.message).toContain('Keine passende Rolle');
     });
   });
 

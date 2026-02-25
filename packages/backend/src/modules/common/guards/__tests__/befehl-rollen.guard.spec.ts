@@ -22,9 +22,13 @@ describe('BefehlRollenGuard', () => {
     mockPrisma = {
       einsatzRollenzuweisung: {
         findUnique: jest.fn(),
+        findFirst: jest.fn(),
       },
       befehl: {
         findUnique: jest.fn(),
+      },
+      einsatzTeilnehmer: {
+        findFirst: jest.fn(),
       },
     };
 
@@ -120,9 +124,32 @@ describe('BefehlRollenGuard', () => {
     });
   });
 
-  describe('Missing einsatzId', () => {
-    it('should throw ForbiddenException when einsatzId missing', async () => {
-      mockReflector.get.mockReturnValue(['ERSTELLER']);
+  describe('Missing einsatzId (einsatzuebergreifende Endpoints)', () => {
+    it('should allow user with matching role in any einsatz', async () => {
+      mockReflector.get.mockReturnValue(['BEFEHLSGEBER']);
+      mockPrisma.einsatzRollenzuweisung.findFirst.mockResolvedValue({ id: 'zuweisung-1' });
+
+      const context = createMockExecutionContext(
+        { userId: 'user-1' },
+        {}, // no einsatzId in body
+        {}, // no einsatzId in params
+      );
+
+      const result = await guard.canActivate(context as any);
+
+      expect(result).toBe(true);
+      expect(mockPrisma.einsatzRollenzuweisung.findFirst).toHaveBeenCalledWith({
+        where: {
+          userId: 'user-1',
+          rolle: { in: ['BEFEHLSGEBER'] },
+        },
+        select: { id: true },
+      });
+    });
+
+    it('should throw ForbiddenException when user has no matching role in any einsatz', async () => {
+      mockReflector.get.mockReturnValue(['BEFEHLSGEBER']);
+      mockPrisma.einsatzRollenzuweisung.findFirst.mockResolvedValue(null);
 
       const context = createMockExecutionContext(
         { userId: 'user-1' },
@@ -131,6 +158,7 @@ describe('BefehlRollenGuard', () => {
       );
 
       await expect(guard.canActivate(context as any)).rejects.toThrow(ForbiddenException);
+      await expect(guard.canActivate(context as any)).rejects.toThrow('Keine passende Rolle');
     });
   });
 
@@ -142,6 +170,44 @@ describe('BefehlRollenGuard', () => {
       const context = createMockExecutionContext({ userId: 'user-1' }, { einsatzId: 'einsatz-1' });
 
       await expect(guard.canActivate(context as any)).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('Implicit BEOBACHTER for active Teilnehmer', () => {
+    it('should allow active Teilnehmer as implicit BEOBACHTER on read endpoints', async () => {
+      mockReflector.get.mockReturnValue(['BEFEHLSGEBER', 'ERSTELLER', 'EMPFAENGER', 'BEOBACHTER']);
+      mockPrisma.einsatzRollenzuweisung.findUnique.mockResolvedValue(null);
+      mockPrisma.einsatzTeilnehmer.findFirst.mockResolvedValue({ id: 'teilnehmer-1' });
+
+      const context = createMockExecutionContext({ userId: 'user-1' }, { einsatzId: 'einsatz-1' });
+
+      const result = await guard.canActivate(context as any);
+
+      expect(result).toBe(true);
+      expect(mockPrisma.einsatzTeilnehmer.findFirst).toHaveBeenCalledWith({
+        where: { userId: 'user-1', einsatzId: 'einsatz-1', leftAt: null },
+        select: { id: true },
+      });
+    });
+
+    it('should deny non-Teilnehmer without rolle even on read endpoints', async () => {
+      mockReflector.get.mockReturnValue(['BEFEHLSGEBER', 'ERSTELLER', 'EMPFAENGER', 'BEOBACHTER']);
+      mockPrisma.einsatzRollenzuweisung.findUnique.mockResolvedValue(null);
+      mockPrisma.einsatzTeilnehmer.findFirst.mockResolvedValue(null);
+
+      const context = createMockExecutionContext({ userId: 'user-1' }, { einsatzId: 'einsatz-1' });
+
+      await expect(guard.canActivate(context as any)).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should NOT grant implicit BEOBACHTER on write endpoints', async () => {
+      mockReflector.get.mockReturnValue(['ERSTELLER', 'BEFEHLSGEBER']);
+      mockPrisma.einsatzRollenzuweisung.findUnique.mockResolvedValue(null);
+
+      const context = createMockExecutionContext({ userId: 'user-1' }, { einsatzId: 'einsatz-1' });
+
+      await expect(guard.canActivate(context as any)).rejects.toThrow(ForbiddenException);
+      expect(mockPrisma.einsatzTeilnehmer.findFirst).not.toHaveBeenCalled();
     });
   });
 

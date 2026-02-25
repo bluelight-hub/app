@@ -73,6 +73,7 @@ function createValidTestId(suffix = ''): string {
 function createMockPrismaEinsatz(overrides: Partial<EinsatzWithRelations> = {}): EinsatzWithRelations {
   return {
     id: createValidTestId('ein01'),
+    nummer: 'E2026-001',
     alarmstichwort: 'Wohnungsbrand',
     einsatzort: null,
     beschreibung: null,
@@ -102,6 +103,7 @@ function createDomainEinsatz(overrides: { alarmstichwort?: string; createdBy?: s
   const einsatzResult = Einsatz.create({
     alarmstichwort: overrides.alarmstichwort ?? 'Verkehrsunfall',
     createdBy: createdByResult.value as UserId,
+    nummer: 'E2026-001',
     einsatzort: overrides.einsatzort,
     bemerkung: overrides.bemerkung,
   });
@@ -133,22 +135,17 @@ describe('PrismaEinsatzMapper', () => {
       expect(aggregate.createdBy.value).toBe(prismaEinsatz.createdBy);
     });
 
-    it('sollte Einsatznummer aus ID generieren (Format: E{YEAR}-{ID-8})', () => {
-      // Given: Prisma Einsatz mit bekannter ID
-      const testId = createValidTestId('test1');
-      const createdAt = new Date('2024-06-15T10:00:00Z');
+    it('sollte Einsatznummer aus DB-Spalte korrekt rekonstruieren', () => {
+      // Given: Prisma Einsatz mit expliziter Nummer
       const prismaEinsatz = createMockPrismaEinsatz({
-        id: testId,
-        createdAt,
+        nummer: 'E2026-002',
       });
 
       // When: toAggregate() aufgerufen
       const aggregate = PrismaEinsatzMapper.toAggregate(prismaEinsatz);
 
-      // Then: Nummer ist korrekt formatiert
-      expect(aggregate.nummer).toMatch(/^E2024-[a-z0-9]{8}$/);
-      expect(aggregate.nummer).toContain('E2024-'); // Jahr aus createdAt
-      expect(aggregate.nummer).toContain(testId.substring(0, 8)); // Ersten 8 Zeichen der ID
+      // Then: Nummer wird direkt aus DB-Spalte uebernommen
+      expect(aggregate.nummer).toBe('E2026-002');
     });
 
     it('sollte Timestamps korrekt rekonstruieren', () => {

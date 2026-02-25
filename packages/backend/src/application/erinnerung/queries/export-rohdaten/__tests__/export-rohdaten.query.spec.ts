@@ -3,7 +3,7 @@ import { ERINNERUNG_ERROR_CODES } from '../../../errors/erinnerung-error.codes';
 
 describe('ExportRohdatenQuery', () => {
   const validEinsatzId = 'abc123def456ghi789jkl012';
-  const validEinsatzNummer = 'E2026-abc123de';
+  const validEinsatzNummer = 'E2026-001';
 
   describe('create', () => {
     it('should create a valid query with csv format', () => {

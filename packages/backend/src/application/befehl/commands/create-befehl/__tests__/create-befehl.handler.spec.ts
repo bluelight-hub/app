@@ -14,6 +14,7 @@ describe('CreateBefehlHandler', () => {
     save: jest.Mock;
     findById: jest.Mock;
     findByEinsatzId: jest.Mock;
+    getNextSequenceNumber: jest.Mock;
   };
   let mockPrismaService: {
     $transaction: jest.Mock;
@@ -49,6 +50,7 @@ describe('CreateBefehlHandler', () => {
       save: jest.fn().mockResolvedValue(Result.ok(undefined)),
       findById: jest.fn(),
       findByEinsatzId: jest.fn(),
+      getNextSequenceNumber: jest.fn().mockResolvedValue(Result.ok(1)),
     };
 
     mockOutboxRepository = {
@@ -96,15 +98,14 @@ describe('CreateBefehlHandler', () => {
       expect(mockPrismaService.$transaction).toHaveBeenCalledTimes(1);
     });
 
-    it('sollte Befehlsnummer im Format B{YEAR}-{CUID-8} generieren', async () => {
+    it('sollte Befehlsnummer im Format B-{SEQ} generieren', async () => {
       const command = createValidCommand();
 
       const result = await handler.execute(command);
 
       expect(result.isSuccess).toBe(true);
       const savedAggregate = mockRepository.save.mock.calls[0][0];
-      const currentYear = new Date().getFullYear();
-      expect(savedAggregate.nummer).toMatch(new RegExp(`^B${currentYear}-[a-z0-9]{8}$`));
+      expect(savedAggregate.nummer).toBe('B-001');
     });
 
     it('sollte Status ERTEILT sein nach Erstellung', async () => {

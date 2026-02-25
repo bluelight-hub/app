@@ -36,7 +36,7 @@ export class GetEinsatzTeilnehmerHandler {
    * **Ablauf:**
    * 1. Einsatz-Existenz pruefen
    * 2. Aktive Teilnehmer laden (leftAt === null)
-   * 3. User-Daten joinen fuer username
+   * 3. User-Daten + EinsatzPerson-Daten joinen
    * 4. Zu DTOs mappen
    *
    * @param query - Validierte Query mit einsatzId
@@ -54,7 +54,7 @@ export class GetEinsatzTeilnehmerHandler {
         return Result.fail<AktiveTeilnehmerResponseDto[]>(`Einsatz mit ID ${query.einsatzId} nicht gefunden`);
       }
 
-      // 2. Aktive Teilnehmer laden mit User-Join
+      // 2. Aktive Teilnehmer laden mit User + EinsatzPerson Join
       const teilnehmer = await this.prisma.einsatzTeilnehmer.findMany({
         where: {
           einsatzId: query.einsatzId,
@@ -67,6 +67,14 @@ export class GetEinsatzTeilnehmerHandler {
               username: true,
             },
           },
+          einsatzPerson: {
+            select: {
+              vorname: true,
+              nachname: true,
+              funkrufname: true,
+              funktion: true,
+            },
+          },
         },
         orderBy: {
           joinedAt: 'asc', // Aelteste zuerst
@@ -77,7 +85,10 @@ export class GetEinsatzTeilnehmerHandler {
       const dtos: AktiveTeilnehmerResponseDto[] = teilnehmer.map((t) => ({
         userId: t.user.id,
         username: t.user.username,
-        funkrufname: t.funkrufname,
+        personVorname: t.einsatzPerson.vorname,
+        personNachname: t.einsatzPerson.nachname,
+        personFunkrufname: t.einsatzPerson.funkrufname,
+        personFunktion: t.einsatzPerson.funktion,
         joinedAt: t.joinedAt.toISOString(),
       }));
 

@@ -21,12 +21,12 @@ describe('extractEmpfaengerNames', () => {
     const befehle = [
       createBefehl({
         id: '1',
-        nummer: 'B2026-001',
+        nummer: 'B-001',
         empfaenger: [createEmpfaenger({ empfaengerId: 'e1', name: 'THW' }), createEmpfaenger({ empfaengerId: 'e2', name: 'Feuerwehr' })],
       }),
       createBefehl({
         id: '2',
-        nummer: 'B2026-002',
+        nummer: 'B-002',
         empfaenger: [createEmpfaenger({ empfaengerId: 'e3', name: 'DRK' })],
       }),
     ];
@@ -38,12 +38,12 @@ describe('extractEmpfaengerNames', () => {
     const befehle = [
       createBefehl({
         id: '1',
-        nummer: 'B2026-001',
+        nummer: 'B-001',
         empfaenger: [createEmpfaenger({ empfaengerId: 'e1', name: 'THW' })],
       }),
       createBefehl({
         id: '2',
-        nummer: 'B2026-002',
+        nummer: 'B-002',
         empfaenger: [createEmpfaenger({ empfaengerId: 'e2', name: 'THW' })],
       }),
     ];
@@ -55,7 +55,7 @@ describe('extractEmpfaengerNames', () => {
     const befehle = [
       createBefehl({
         id: '1',
-        nummer: 'B2026-001',
+        nummer: 'B-001',
         empfaenger: [createEmpfaenger({ empfaengerId: 'e1', name: 'Zoll' }), createEmpfaenger({ empfaengerId: 'e2', name: 'ASB' }), createEmpfaenger({ empfaengerId: 'e3', name: 'Malteser' })],
       }),
     ];
@@ -64,7 +64,7 @@ describe('extractEmpfaengerNames', () => {
   });
 
   it('behandelt Befehle ohne Empfaenger', () => {
-    const befehle = [createBefehl({ id: '1', nummer: 'B2026-001', empfaenger: [] })];
+    const befehle = [createBefehl({ id: '1', nummer: 'B-001', empfaenger: [] })];
 
     expect(extractEmpfaengerNames(befehle)).toEqual([]);
   });
@@ -76,16 +76,16 @@ describe('extractBefehlsgeberNames', () => {
   });
 
   it('extrahiert eindeutige Befehlsgeber-Namen', () => {
-    const befehle = [createBefehl({ id: '1', nummer: 'B2026-001', befehlsgeberName: 'Einsatzleiter Müller' }), createBefehl({ id: '2', nummer: 'B2026-002', befehlsgeberName: 'Zugführer Schmidt' })];
+    const befehle = [createBefehl({ id: '1', nummer: 'B-001', befehlsgeberName: 'Einsatzleiter Müller' }), createBefehl({ id: '2', nummer: 'B-002', befehlsgeberName: 'Zugführer Schmidt' })];
 
     expect(extractBefehlsgeberNames(befehle)).toEqual(['Einsatzleiter Müller', 'Zugführer Schmidt']);
   });
 
   it('filtert Duplikate', () => {
     const befehle = [
-      createBefehl({ id: '1', nummer: 'B2026-001', befehlsgeberName: 'Einsatzleiter' }),
-      createBefehl({ id: '2', nummer: 'B2026-002', befehlsgeberName: 'Einsatzleiter' }),
-      createBefehl({ id: '3', nummer: 'B2026-003', befehlsgeberName: 'Zugführer' }),
+      createBefehl({ id: '1', nummer: 'B-001', befehlsgeberName: 'Einsatzleiter' }),
+      createBefehl({ id: '2', nummer: 'B-002', befehlsgeberName: 'Einsatzleiter' }),
+      createBefehl({ id: '3', nummer: 'B-003', befehlsgeberName: 'Zugführer' }),
     ];
 
     expect(extractBefehlsgeberNames(befehle)).toEqual(['Einsatzleiter', 'Zugführer']);
@@ -93,9 +93,9 @@ describe('extractBefehlsgeberNames', () => {
 
   it('sortiert alphabetisch', () => {
     const befehle = [
-      createBefehl({ id: '1', nummer: 'B2026-001', befehlsgeberName: 'Zugführer' }),
-      createBefehl({ id: '2', nummer: 'B2026-002', befehlsgeberName: 'Abschnittsleiter' }),
-      createBefehl({ id: '3', nummer: 'B2026-003', befehlsgeberName: 'Einsatzleiter' }),
+      createBefehl({ id: '1', nummer: 'B-001', befehlsgeberName: 'Zugführer' }),
+      createBefehl({ id: '2', nummer: 'B-002', befehlsgeberName: 'Abschnittsleiter' }),
+      createBefehl({ id: '3', nummer: 'B-003', befehlsgeberName: 'Einsatzleiter' }),
     ];
 
     expect(extractBefehlsgeberNames(befehle)).toEqual(['Abschnittsleiter', 'Einsatzleiter', 'Zugführer']);

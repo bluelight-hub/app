@@ -35,7 +35,7 @@ const TEST_PREFIX = 'ARCHIVE_TEST_';
  * Stabiler Username für Test-User.
  * Wird über mehrere Testläufe hinweg wiederverwendet (upsert).
  */
-const TEST_USER_NAME = 'admin-archive-integration-test';
+const TEST_USER_NAME = 'admin_archive_integration_test';
 
 /**
  * Integration Tests für ArchiveOldEinsaetzeHandler (Story 5-6 AC7).
@@ -142,7 +142,10 @@ const TEST_USER_NAME = 'admin-archive-integration-test';
           where: { id: { in: testEinsatzIds } },
         });
       }
-      // NOTE: Test-User wird NICHT gelöscht um Konsistenz zwischen Testläufen zu gewährleisten
+      // Test-User aufräumen
+      await prisma.user.deleteMany({
+        where: { username: TEST_USER_NAME },
+      });
     } finally {
       await prisma.$executeRawUnsafe('SET session_replication_role = DEFAULT;');
     }
@@ -339,6 +342,7 @@ const TEST_USER_NAME = 'admin-archive-integration-test';
       oldDate.setFullYear(oldDate.getFullYear() - 11);
       const invalidEinsatz = await prisma.einsatz.create({
         data: {
+          nummer: `E${oldDate.getFullYear()}-FAIL-${Date.now()}`,
           alarmstichwort: `${TEST_PREFIX}Should fail - IN_BEARBEITUNG`,
           status: EinsatzStatus.IN_BEARBEITUNG, // Invalid for archival
           createdAt: oldDate,
@@ -551,6 +555,7 @@ async function createOldEinsaetze(prisma: PrismaService, createdBy: string, coun
   for (let i = 0; i < count; i++) {
     const einsatz = await prisma.einsatz.create({
       data: {
+        nummer: `E${oldDate.getFullYear()}-${String(i + 1).padStart(3, '0')}-${Date.now()}`,
         alarmstichwort: `${TEST_PREFIX}${status}-${yearsOld}Y-${i}-${Date.now()}`,
         einsatzort: 'Test Ort',
         status: status,

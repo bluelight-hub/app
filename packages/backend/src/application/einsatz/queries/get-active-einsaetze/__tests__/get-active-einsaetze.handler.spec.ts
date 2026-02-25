@@ -22,6 +22,7 @@ function createMockEinsatz(overrides?: { alarmstichwort?: string; status?: Einsa
   const einsatzResult = Einsatz.create({
     alarmstichwort: overrides?.alarmstichwort ?? 'Wohnungsbrand',
     createdBy: userId,
+    nummer: 'E2026-001',
     einsatzort: overrides?.einsatzort,
     bemerkung: overrides?.bemerkung,
   });

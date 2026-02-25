@@ -27,7 +27,7 @@ import type { EinsatzStatusType } from './einsatz.dto';
  * // API Response:
  * {
  *   "id": "clw3h8x9y0000qwertyuiopas",
- *   "nummer": "E2024-abc123xy",
+ *   "nummer": "E2026-001",
  *   "alarmstichwort": "Wohnungsbrand",
  *   "status": "IN_BEARBEITUNG",
  *   "einsatzort": { "ort": "Musterstadt" },
@@ -45,8 +45,8 @@ export class EinsatzListItemDto {
   id!: string;
 
   @ApiProperty({
-    description: 'Einsatznummer (Format: E{YEAR}-{ID})',
-    example: 'E2024-abc123xy',
+    description: 'Einsatznummer (Format: E{YEAR}-{SEQ})',
+    example: 'E2026-001',
   })
   nummer!: string;
 

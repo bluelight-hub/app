@@ -230,7 +230,7 @@ function PinnwandErinnerungenInner({ einsatzId, className, currentUserId }: Pinn
     if (einsatzTeilnehmer && einsatzTeilnehmer.length > 0) {
       const teilnehmerList = einsatzTeilnehmer.map((t) => ({
         id: t.userId,
-        name: sanitizeName(t.username || t.funkrufname),
+        name: sanitizeName(t.username || `${t.personVorname} ${t.personNachname}`),
       }));
       setAvailableTeilnehmer(teilnehmerList);
     }

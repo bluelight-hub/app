@@ -1,22 +1,22 @@
 import { Result } from '@domain/common/result';
 
 /**
- * Command zum Beitreten eines Einsatzes mit einem Funkrufnamen.
+ * Command zum Beitreten eines Einsatzes mit einer EinsatzPerson.
  *
- * Erstellt einen EinsatzTeilnehmer-Eintrag der den User mit seinem
- * gewählten Funkrufnamen dem Einsatz zuordnet.
+ * Erstellt einen EinsatzTeilnehmer-Eintrag der den User mit einer
+ * EinsatzPerson dem Einsatz zuordnet.
  */
 export class JoinEinsatzCommand {
   private constructor(
     public readonly einsatzId: string,
     public readonly userId: string,
-    public readonly funkrufname: string,
+    public readonly einsatzPersonId: string,
   ) {}
 
   /**
    * Factory-Methode für JoinEinsatzCommand mit Validierung.
    */
-  public static create(einsatzId: string, userId: string, funkrufname: string): Result<JoinEinsatzCommand> {
+  public static create(einsatzId: string, userId: string, einsatzPersonId: string): Result<JoinEinsatzCommand> {
     if (!einsatzId || einsatzId.trim().length === 0) {
       return Result.fail('einsatzId is required');
     }
@@ -25,14 +25,10 @@ export class JoinEinsatzCommand {
       return Result.fail('userId is required');
     }
 
-    if (!funkrufname || funkrufname.trim().length === 0) {
-      return Result.fail('funkrufname is required');
+    if (!einsatzPersonId || einsatzPersonId.trim().length === 0) {
+      return Result.fail('einsatzPersonId is required');
     }
 
-    if (funkrufname.length > 100) {
-      return Result.fail('funkrufname cannot exceed 100 characters');
-    }
-
-    return Result.ok(new JoinEinsatzCommand(einsatzId, userId, funkrufname.trim()));
+    return Result.ok(new JoinEinsatzCommand(einsatzId, userId, einsatzPersonId.trim()));
   }
 }

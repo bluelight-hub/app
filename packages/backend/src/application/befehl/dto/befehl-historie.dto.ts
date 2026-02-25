@@ -26,7 +26,7 @@ export class BefehlHistorieEventDto {
   @ApiPropertyOptional({ type: Date, description: 'Nullable bei AUSSTEHEND Events' })
   zeitpunkt!: Date | null;
 
-  @ApiProperty({ example: 'Befehl #B2026-abc12345 erteilt' })
+  @ApiProperty({ example: 'Befehl #B-001 erteilt' })
   beschreibung!: string;
 
   @ApiPropertyOptional({ example: 'ZF Meier' })
@@ -35,7 +35,7 @@ export class BefehlHistorieEventDto {
   @ApiPropertyOptional({ example: 'Kommentar-Text' })
   details?: string;
 
-  @ApiPropertyOptional({ example: 'B2026-korr1234' })
+  @ApiPropertyOptional({ example: 'B-002' })
   korrekturBefehlNummer?: string;
 }
 
@@ -43,7 +43,7 @@ export class BefehlHistorieTimelineDto {
   @ApiProperty()
   befehlId!: string;
 
-  @ApiProperty({ example: 'B2026-abc12345' })
+  @ApiProperty({ example: 'B-001' })
   befehlNummer!: string;
 
   @ApiProperty({ example: 'ERTEILT' })

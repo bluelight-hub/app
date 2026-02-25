@@ -65,7 +65,7 @@ export function AssigneeSelector({ einsatzId, value, onChange, onBlur, disabled 
 
     return teilnehmer.map((t) => ({
       value: t.userId,
-      label: `${t.username} (${t.funkrufname})`,
+      label: `${t.username} (${t.personVorname} ${t.personNachname})`,
     }));
   }, [teilnehmer]);
 

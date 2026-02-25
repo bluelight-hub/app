@@ -56,7 +56,7 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   // Auto-Fill Absender aus Teilnahme-Daten
-  const autoFillAbsender = teilnahmeData?.data?.funkrufname || '';
+  const autoFillAbsender = teilnahmeData?.data?.personFunkrufname || `${teilnahmeData?.data?.personVorname ?? ''} ${teilnahmeData?.data?.personNachname ?? ''}`.trim() || '';
 
   // Funkrufname-Vorschläge aus allen EinsatzKräften (Fahrzeuge + Personen + Teilnehmer)
   const funkrufnameVorschlaege = useMemo(() => {
@@ -71,9 +71,10 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
 
     // Alle aktiven Einsatz-Teilnehmer (andere User mit Funkrufnamen)
     alleTeilnehmer?.data?.forEach((teilnehmer) => {
-      if (teilnehmer.funkrufname && !seen.has(teilnehmer.funkrufname)) {
-        suggestions.push({ value: teilnehmer.funkrufname, label: `${teilnehmer.funkrufname} (Teilnehmer)` });
-        seen.add(teilnehmer.funkrufname);
+      const teilnehmerName = teilnehmer.personFunkrufname || `${teilnehmer.personVorname} ${teilnehmer.personNachname}`;
+      if (teilnehmerName && !seen.has(teilnehmerName)) {
+        suggestions.push({ value: teilnehmerName, label: `${teilnehmerName} (Teilnehmer)` });
+        seen.add(teilnehmerName);
       }
     });
 

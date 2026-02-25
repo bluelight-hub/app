@@ -26,7 +26,7 @@ export type EinsatzStatusType = 'ANGELEGT' | 'IN_BEARBEITUNG' | 'ABGESCHLOSSEN' 
  * // API Response:
  * {
  *   "id": "clw3h8x9y0000qwertyuiopas",
- *   "nummer": "E2024-abc123xy",
+ *   "nummer": "E2026-001",
  *   "alarmstichwort": "Wohnungsbrand",
  *   "status": "IN_BEARBEITUNG",
  *   "createdBy": "clw3h8x9y0001qwertyuiopas",
@@ -42,8 +42,8 @@ export class EinsatzDto {
   id!: string;
 
   @ApiProperty({
-    description: 'Auto-generierte Einsatznummer (Format: E{YEAR}-{CUID-8})',
-    example: 'E2024-abc123xy',
+    description: 'Auto-generierte Einsatznummer (Format: E{YEAR}-{SEQ})',
+    example: 'E2026-001',
   })
   nummer!: string;
 

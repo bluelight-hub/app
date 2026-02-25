@@ -73,6 +73,16 @@ export interface IBefehlRepository {
    */
   findFiltered(einsatzId: EinsatzId, filters: BefehlFilterParams, tx?: TransactionContext): Promise<Result<Befehl[]>>;
 
+  /**
+   * Gibt die nächste Sequenznummer für Befehle eines Einsatzes zurück.
+   * Wird für die Generierung der Befehlsnummer (B-{SEQ}) benötigt.
+   *
+   * @param einsatzId - EinsatzId für die Sequenznummer
+   * @param tx - Optional: Transaction Context
+   * @returns Result<number> - Nächste Sequenznummer (1-basiert)
+   */
+  getNextSequenceNumber(einsatzId: EinsatzId, tx?: TransactionContext): Promise<Result<number>>;
+
   // ===== DSGVO-Löschkonzept (Story 5.5) =====
 
   /**

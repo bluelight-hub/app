@@ -201,6 +201,29 @@ export class PrismaBefehlRepository implements IBefehlRepository {
     }
   }
 
+  /**
+   * Ermittelt die nächste Sequenznummer für Befehle eines Einsatzes.
+   *
+   * Zählt alle existierenden Befehle des Einsatzes und gibt count + 1 zurück.
+   * Wird vom CreateBefehlCommandHandler für sequentielle Befehlsnummern verwendet.
+   *
+   * @param einsatzId - Die EinsatzId für die Sequenz
+   * @param tx - Optionale externe Transaktion
+   * @returns Promise<Result<number>> - Nächste Sequenznummer (1-basiert)
+   */
+  async getNextSequenceNumber(einsatzId: EinsatzId, tx?: TransactionContext): Promise<Result<number>> {
+    try {
+      const client = (tx as PrismaClient | undefined) ?? this.prisma;
+      const count = await client.befehl.count({
+        where: { einsatzId: einsatzId.value },
+      });
+      return Result.ok(count + 1);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      return Result.fail(`Fehler beim Ermitteln der nächsten Sequenznummer: ${message}`);
+    }
+  }
+
   // ===== DSGVO-Löschkonzept (Story 5.5) =====
 
   async findAbgelaufene(cutoffDate: Date, tx?: TransactionContext): Promise<Result<Befehl[]>> {

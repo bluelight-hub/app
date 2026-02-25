@@ -70,6 +70,7 @@ describe('GetEinsatzByIdQueryHandler', () => {
       const einsatz = Einsatz.create({
         alarmstichwort: 'Wohnungsbrand',
         createdBy: userId,
+        nummer: 'E2026-001',
       }).value!;
 
       const query = new GetEinsatzByIdQuery(einsatz.id.value);
@@ -146,6 +147,7 @@ describe('GetEinsatzByIdQueryHandler', () => {
       const einsatz = Einsatz.create({
         alarmstichwort: 'Großbrand',
         createdBy: userId,
+        nummer: 'E2026-002',
         einsatzort: address,
         bemerkung: 'Dachstuhl brennt, Personen evakuiert',
       }).value!;

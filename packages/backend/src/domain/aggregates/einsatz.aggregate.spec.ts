@@ -46,10 +46,11 @@ function _generateTestCuid(suffix = ''): string {
  * @param overrides - Optional: Props zum Überschreiben der Standardwerte
  * @returns Einsatz Aggregate mit Standardwerten
  */
-function createTestEinsatz(overrides?: { alarmstichwort?: string; createdBy?: UserId; einsatzort?: Address; bemerkung?: string }): Einsatz {
+function createTestEinsatz(overrides?: { alarmstichwort?: string; createdBy?: UserId; einsatzort?: Address; bemerkung?: string; nummer?: string }): Einsatz {
   const defaultProps = {
     alarmstichwort: 'Test Wohnungsbrand',
     createdBy: UserId.create().value!,
+    nummer: 'E2026-001',
     einsatzort: Address.create({ plz: '80331', ort: 'München' }).value,
     bemerkung: 'Test Bemerkung',
   };
@@ -76,6 +77,7 @@ describe('Einsatz Aggregate', () => {
       const props = {
         alarmstichwort: 'Wohnungsbrand',
         createdBy: UserId.create().value!,
+        nummer: 'E2026-001',
         einsatzort: Address.create({ plz: '80331', ort: 'München' }).value,
         bemerkung: 'Obergeschoss',
       };
@@ -95,10 +97,11 @@ describe('Einsatz Aggregate', () => {
     });
 
     it('should create Einsatz with minimal props (only required fields)', () => {
-      // Given: Minimal props (nur alarmstichwort + createdBy)
+      // Given: Minimal props (nur alarmstichwort + createdBy + nummer)
       const props = {
         alarmstichwort: 'Verkehrsunfall',
         createdBy: UserId.create().value!,
+        nummer: 'E2026-002',
       };
 
       // When: Creating Einsatz
@@ -116,6 +119,7 @@ describe('Einsatz Aggregate', () => {
       const props = {
         alarmstichwort: '  Wohnungsbrand  ',
         createdBy: UserId.create().value!,
+        nummer: 'E2026-003',
       };
 
       // When: Creating Einsatz
@@ -131,6 +135,7 @@ describe('Einsatz Aggregate', () => {
       const props = {
         alarmstichwort: 'Test',
         createdBy: UserId.create().value!,
+        nummer: 'E2026-004',
         bemerkung: '  Test Bemerkung  ',
       };
 
@@ -147,6 +152,7 @@ describe('Einsatz Aggregate', () => {
       const props = {
         alarmstichwort: '',
         createdBy: UserId.create().value!,
+        nummer: 'E2026-005',
       };
 
       // When: Creating Einsatz
@@ -164,6 +170,7 @@ describe('Einsatz Aggregate', () => {
       const props = {
         alarmstichwort: '   ',
         createdBy: UserId.create().value!,
+        nummer: 'E2026-006',
       };
 
       // When: Creating Einsatz
@@ -174,37 +181,51 @@ describe('Einsatz Aggregate', () => {
       expect(result.error).toContain('Alarmstichwort ist erforderlich');
     });
 
-    it('should auto-generate nummer in format E{YEAR}-{CUID-8}', () => {
-      // Given: Valid props
+    it('should store provided nummer correctly', () => {
+      // Given: Valid props with explicit nummer
+      const props = {
+        alarmstichwort: 'Test',
+        createdBy: UserId.create().value!,
+        nummer: 'E2026-007',
+      };
+
+      // When: Creating Einsatz
+      const result = Einsatz.create(props);
+
+      // Then: Nummer matches provided value
+      expect(result.isSuccess).toBe(true);
+      expect(result.value?.nummer).toBe('E2026-007');
+    });
+
+    it('should fail when nummer is missing', () => {
+      // Given: Props without nummer
       const props = {
         alarmstichwort: 'Test',
         createdBy: UserId.create().value!,
       };
 
       // When: Creating Einsatz
-      const result = Einsatz.create(props);
+      const result = Einsatz.create(props as never);
 
-      // Then: Nummer matches pattern E{YEAR}-{8-char-cuid}
-      const year = new Date().getFullYear();
-      expect(result.value?.nummer).toMatch(new RegExp(`^E${year}-[a-z0-9]{8}$`));
+      // Then: Failure because nummer is required
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Nummer ist erforderlich');
     });
 
-    it('should generate unique nummer for each Einsatz', () => {
-      // Given: Multiple Einsatz creations
+    it('should fail when nummer is empty string', () => {
+      // Given: Props with empty nummer
       const props = {
         alarmstichwort: 'Test',
         createdBy: UserId.create().value!,
+        nummer: '',
       };
 
-      // When: Creating multiple Einsaetze
-      const einsatz1 = Einsatz.create(props).value!;
-      const einsatz2 = Einsatz.create(props).value!;
-      const einsatz3 = Einsatz.create(props).value!;
+      // When: Creating Einsatz
+      const result = Einsatz.create(props);
 
-      // Then: All nummern are different
-      expect(einsatz1.nummer).not.toBe(einsatz2.nummer);
-      expect(einsatz2.nummer).not.toBe(einsatz3.nummer);
-      expect(einsatz1.nummer).not.toBe(einsatz3.nummer);
+      // Then: Failure because nummer is required
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Nummer ist erforderlich');
     });
 
     it('should auto-generate EinsatzId (valid CUID)', () => {
@@ -212,6 +233,7 @@ describe('Einsatz Aggregate', () => {
       const props = {
         alarmstichwort: 'Test',
         createdBy: UserId.create().value!,
+        nummer: 'E2026-008',
       };
 
       // When: Creating Einsatz
@@ -227,6 +249,7 @@ describe('Einsatz Aggregate', () => {
       const props = {
         alarmstichwort: 'Test',
         createdBy: UserId.create().value!,
+        nummer: 'E2026-009',
       };
 
       // When: Creating Einsatz
@@ -243,6 +266,7 @@ describe('Einsatz Aggregate', () => {
       const props = {
         alarmstichwort: 'Wohnungsbrand',
         createdBy: userId,
+        nummer: 'E2026-010',
       };
 
       // When: Creating Einsatz
@@ -263,6 +287,7 @@ describe('Einsatz Aggregate', () => {
       const props = {
         alarmstichwort: 'Test',
         createdBy: userId,
+        nummer: 'E2026-011',
       };
 
       // When: Creating Einsatz
@@ -281,8 +306,8 @@ describe('Einsatz Aggregate', () => {
       // When: Accessing nummer
       const nummer = einsatz.nummer;
 
-      // Then: Returns auto-generated nummer (CUID format)
-      expect(nummer).toMatch(/^E\d{4}-[a-z0-9]{8}$/);
+      // Then: Returns the provided nummer
+      expect(nummer).toBe('E2026-001');
     });
 
     it('should provide readonly access to alarmstichwort', () => {
@@ -325,6 +350,7 @@ describe('Einsatz Aggregate', () => {
       const einsatz = Einsatz.create({
         alarmstichwort: 'Test',
         createdBy: UserId.create().value!,
+        nummer: 'E2026-001',
       }).value!;
 
       // When: Accessing einsatzort
@@ -350,6 +376,7 @@ describe('Einsatz Aggregate', () => {
       const einsatz = Einsatz.create({
         alarmstichwort: 'Test',
         createdBy: UserId.create().value!,
+        nummer: 'E2026-002',
       }).value!;
 
       // When: Accessing bemerkung
@@ -973,12 +1000,16 @@ describe('Einsatz Aggregate', () => {
 
     it('should use identity equality (not structural equality)', () => {
       // Given: Two Einsaetze with identical properties (but different IDs)
-      const props = {
+      const einsatz1 = Einsatz.create({
         alarmstichwort: 'Identical',
         createdBy: UserId.create().value!,
-      };
-      const einsatz1 = Einsatz.create(props).value!;
-      const einsatz2 = Einsatz.create(props).value!;
+        nummer: 'E2026-012',
+      }).value!;
+      const einsatz2 = Einsatz.create({
+        alarmstichwort: 'Identical',
+        createdBy: UserId.create().value!,
+        nummer: 'E2026-013',
+      }).value!;
 
       // When: Comparing
       const areEqual = einsatz1.equals(einsatz2);
@@ -1206,6 +1237,7 @@ describe('Einsatz Aggregate', () => {
       const props = {
         alarmstichwort: '',
         createdBy: UserId.create().value!,
+        nummer: 'E2026-014',
       };
 
       // When: Creating Einsatz

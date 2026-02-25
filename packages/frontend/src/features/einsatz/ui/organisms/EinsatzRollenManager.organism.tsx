@@ -1,7 +1,7 @@
 /**
  * EinsatzRollenManager Organism
  *
- * Admin-Panel zur Verwaltung von Befehlsrollen pro Einsatz.
+ * Panel zur Verwaltung von Befehlsrollen pro Einsatz.
  * Zeigt alle zugewiesenen Rollen und ermöglicht Batch-Updates.
  *
  * Story 5.2 AC7
@@ -305,6 +305,7 @@ function UserSucheCombobox({
     <div className="flex items-center gap-2">
       <div className="flex-1">
         <Combobox
+          as="div"
           onChange={(user: { id: string; username: string } | null) => {
             if (user) onSelect(user.id, user.username);
           }}

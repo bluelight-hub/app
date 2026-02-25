@@ -78,7 +78,7 @@ describe('PrismaEinsatzRepository', () => {
     // Create a FULLY MOCKED aggregate (don't use Factory to avoid complications)
     const mockAggregate = {
       id: einsatzId,
-      nummer: overrides?.nummer ?? 'E2024-xyz789ab',
+      nummer: overrides?.nummer ?? 'E2026-001',
       alarmstichwort: overrides?.alarmstichwort ?? 'Wohnungsbrand',
       status: overrides?.status ?? EinsatzStatus.ANGELEGT(),
       createdBy,
@@ -463,11 +463,11 @@ describe('PrismaEinsatzRepository', () => {
   describe('findByNummer()', () => {
     it('sollte Aggregate zurückgeben wenn gefunden', async () => {
       // Arrange
-      const nummer = 'E2024-xyz789ab';
+      const nummer = 'E2026-001';
       const prismaData = createMockPrismaData({ id: 'xyz789abcdefghijklmnopqrst' });
       const mockAggregate = createMockAggregate({ nummer });
 
-      mockPrismaService.einsatz.findMany.mockResolvedValue([prismaData]);
+      mockPrismaService.einsatz.findFirst.mockResolvedValue(prismaData);
       jest.spyOn(PrismaEinsatzMapper, 'toAggregate').mockReturnValue(mockAggregate);
 
       // Act
@@ -476,46 +476,15 @@ describe('PrismaEinsatzRepository', () => {
       // Assert
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBe(mockAggregate);
-      expect(mockPrismaService.einsatz.findMany).toHaveBeenCalledWith({
-        where: { id: { startsWith: 'xyz789ab' } },
-        take: 1,
+      expect(mockPrismaService.einsatz.findFirst).toHaveBeenCalledWith({
+        where: { nummer },
       });
     });
 
     it('sollte Result.ok(null) zurückgeben wenn nicht gefunden', async () => {
       // Arrange
-      const nummer = 'E2024-notfound';
-      mockPrismaService.einsatz.findMany.mockResolvedValue([]);
-
-      // Act
-      const result = await repository.findByNummer(nummer);
-
-      // Assert
-      expect(result.isSuccess).toBe(true);
-      expect(result.value).toBeNull();
-    });
-
-    it('sollte Result.ok(null) zurückgeben bei ungültigem nummer Format', async () => {
-      // Arrange
-      const invalidNummer = 'INVALID-FORMAT';
-
-      // Act
-      const result = await repository.findByNummer(invalidNummer);
-
-      // Assert
-      expect(result.isSuccess).toBe(true);
-      expect(result.value).toBeNull();
-      expect(mockPrismaService.einsatz.findMany).not.toHaveBeenCalled();
-    });
-
-    it('sollte Result.ok(null) zurückgeben wenn rekonstruierte nummer nicht übereinstimmt', async () => {
-      // Arrange
-      const nummer = 'E2024-xyz789ab';
-      const prismaData = createMockPrismaData({ id: 'xyz789abcdefghijklmnopqrst' });
-      const mockAggregate = createMockAggregate({ nummer: 'E2024-different' }); // Unterschiedliche nummer
-
-      mockPrismaService.einsatz.findMany.mockResolvedValue([prismaData]);
-      jest.spyOn(PrismaEinsatzMapper, 'toAggregate').mockReturnValue(mockAggregate);
+      const nummer = 'E2026-999';
+      mockPrismaService.einsatz.findFirst.mockResolvedValue(null);
 
       // Act
       const result = await repository.findByNummer(nummer);
@@ -527,9 +496,9 @@ describe('PrismaEinsatzRepository', () => {
 
     it('sollte Result.fail() zurückgeben bei DB Fehler', async () => {
       // Arrange
-      const nummer = 'E2024-xyz789ab';
+      const nummer = 'E2026-001';
       const dbError = new Error('Query timeout');
-      mockPrismaService.einsatz.findMany.mockRejectedValue(dbError);
+      mockPrismaService.einsatz.findFirst.mockRejectedValue(dbError);
 
       // Act
       const result = await repository.findByNummer(nummer);

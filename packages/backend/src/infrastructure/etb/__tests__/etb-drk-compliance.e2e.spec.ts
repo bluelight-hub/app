@@ -141,12 +141,14 @@ const databaseAvailable = !!process.env.DATABASE_URL;
   it('should block DELETE on einsaetze with DRK Compliance error', async () => {
     // Given: Separaten Test-Einsatz erstellen
     const separateEinsatzId = `test-delete-${Date.now()}`;
+    const separateNummer = `E2026-DEL-${Date.now()}`;
     await ctx.prisma.$executeRaw`
-      INSERT INTO einsaetze (id, alarmstichwort, einsatzort, status, "createdBy", "updatedBy", "createdAt", "updatedAt")
+      INSERT INTO einsaetze (id, alarmstichwort, einsatzort, nummer, status, "createdBy", "updatedBy", "createdAt", "updatedAt")
       VALUES (
         ${separateEinsatzId},
         'DELETE TEST',
         'Test-Ort',
+        ${separateNummer},
         'ANGELEGT'::"EinsatzStatus",
         ${ctx.testUserId},
         ${ctx.testUserId},

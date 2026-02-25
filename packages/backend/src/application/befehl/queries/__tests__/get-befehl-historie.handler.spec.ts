@@ -56,7 +56,7 @@ describe('GetBefehlHistorieQueryHandler', () => {
     }> = {},
   ) => ({
     id: overrides.id ?? befehlId,
-    nummer: overrides.nummer ?? 'B2026-abc12345',
+    nummer: overrides.nummer ?? 'B-001',
     status: overrides.status ?? 'ERTEILT',
     befehlsgeberName: overrides.befehlsgeberName ?? 'EL Mueller',
     erteiltAm: overrides.erteiltAm ?? new Date('2026-02-20T10:00:00.000Z'),
@@ -89,7 +89,7 @@ describe('GetBefehlHistorieQueryHandler', () => {
         status: 'KORRIGIERT',
         empfaenger: [{ name: 'ZF Meier', zugestelltAm, quittiertAm, quittierungArt: 'VERSTANDEN' }],
         kommentare: [{ text: 'Welches Material?', author: { username: 'ZF Meier' }, createdAt: kommentarAm, isRueckfrage: true }],
-        korrekturen: [{ id: 'korr-1', nummer: 'B2026-korr1234', erteiltAm: korrekturAm }],
+        korrekturen: [{ id: 'korr-1', nummer: 'B-002', erteiltAm: korrekturAm }],
       });
 
       (mockPrisma.befehl.findUnique as jest.Mock).mockResolvedValue(mockBefehl);
@@ -100,7 +100,7 @@ describe('GetBefehlHistorieQueryHandler', () => {
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
       expect(result.value!.befehlId).toBe(befehlId);
-      expect(result.value!.befehlNummer).toBe('B2026-abc12345');
+      expect(result.value!.befehlNummer).toBe('B-001');
       expect(result.value!.aktuellerStatus).toBe('KORRIGIERT');
 
       const events = result.value!.events;
@@ -124,7 +124,7 @@ describe('GetBefehlHistorieQueryHandler', () => {
 
       expect(events[4].typ).toBe(BefehlHistorieEventTyp.KORRIGIERT);
       expect(events[4].zeitpunkt).toEqual(korrekturAm);
-      expect(events[4].korrekturBefehlNummer).toBe('B2026-korr1234');
+      expect(events[4].korrekturBefehlNummer).toBe('B-002');
     });
   });
 
@@ -233,7 +233,7 @@ describe('GetBefehlHistorieQueryHandler', () => {
       const mockBefehl = createMockBefehl({
         status: 'KORRIGIERT',
         empfaenger: [],
-        korrekturen: [{ id: 'korr-1', nummer: 'B2026-korr5678', erteiltAm: korrekturAm }],
+        korrekturen: [{ id: 'korr-1', nummer: 'B-003', erteiltAm: korrekturAm }],
       });
 
       (mockPrisma.befehl.findUnique as jest.Mock).mockResolvedValue(mockBefehl);
@@ -246,8 +246,8 @@ describe('GetBefehlHistorieQueryHandler', () => {
 
       const korrigiertEvent = events.find((e) => e.typ === BefehlHistorieEventTyp.KORRIGIERT);
       expect(korrigiertEvent).toBeDefined();
-      expect(korrigiertEvent!.korrekturBefehlNummer).toBe('B2026-korr5678');
-      expect(korrigiertEvent!.beschreibung).toContain('B2026-korr5678');
+      expect(korrigiertEvent!.korrekturBefehlNummer).toBe('B-003');
+      expect(korrigiertEvent!.beschreibung).toContain('B-003');
       expect(korrigiertEvent!.zeitpunkt).toEqual(korrekturAm);
     });
   });

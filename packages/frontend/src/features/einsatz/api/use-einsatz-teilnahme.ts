@@ -34,7 +34,7 @@ export const TEILNAHME_QUERY_KEYS = {
  * @example
  * ```tsx
  * const { data: teilnahme } = useMyEinsatzTeilnahme(einsatzId);
- * const funkrufname = teilnahme?.data?.funkrufname;
+ * const personName = `${teilnahme?.data?.personVorname} ${teilnahme?.data?.personNachname}`;
  * ```
  */
 export const useMyEinsatzTeilnahme = (einsatzId: string | undefined) => {
@@ -146,7 +146,7 @@ export const useUpdateFunkrufname = () => {
  * @example
  * ```tsx
  * const { data: teilnehmer } = useEinsatzTeilnehmer(einsatzId);
- * const funkrufnamen = teilnehmer?.data?.map(t => t.funkrufname) ?? [];
+ * const personNames = teilnehmer?.data?.map(t => `${t.personVorname} ${t.personNachname}`) ?? [];
  * ```
  */
 export const useEinsatzTeilnehmer = (einsatzId: string | null | undefined) => {

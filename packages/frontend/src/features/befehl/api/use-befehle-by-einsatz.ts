@@ -16,9 +16,10 @@ import { type BefehleQueryFilters, BEFEHL_QUERY_KEYS, calculateRetryDelay, hasAc
  *
  * @param einsatzId - Einsatz-ID für die Abfrage
  * @param filters - Optionale Filter fuer server-seitige Filterung
+ * @param enabled - Ob die Query gefeuert werden soll (default: true)
  * @returns TanStack Query Result mit BefehlDto Array
  */
-export function useBefehleByEinsatz(einsatzId: string, filters?: BefehleQueryFilters) {
+export function useBefehleByEinsatz(einsatzId: string, filters?: BefehleQueryFilters, enabled = true) {
   return useQuery<BefehlDto[]>({
     queryKey: BEFEHL_QUERY_KEYS.list(einsatzId, filters),
     queryFn: async () => {
@@ -50,7 +51,7 @@ export function useBefehleByEinsatz(einsatzId: string, filters?: BefehleQueryFil
       const response = await api.befehle().befehlControllerFindByEinsatzVAlpha(params);
       return response.data;
     },
-    enabled: !!einsatzId,
+    enabled: !!einsatzId && enabled,
     placeholderData: keepPreviousData,
     retry: 3,
     retryDelay: calculateRetryDelay,

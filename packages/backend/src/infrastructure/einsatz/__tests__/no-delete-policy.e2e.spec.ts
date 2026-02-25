@@ -274,6 +274,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       const createResult = Einsatz.create({
         alarmstichwort: 'TEST - canBeDeleted Check',
         createdBy: userId,
+        nummer: 'E2026-001',
       });
       expect(createResult.isSuccess).toBe(true);
       const einsatz = createResult.value!;
@@ -290,6 +291,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       const createResult = Einsatz.create({
         alarmstichwort: 'TEST - canBeDeleted IN_BEARBEITUNG',
         createdBy: userId,
+        nummer: 'E2026-002',
       });
       const einsatz = createResult.value!;
 
@@ -309,6 +311,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       const createResult = Einsatz.create({
         alarmstichwort: 'TEST - canBeDeleted ABGESCHLOSSEN',
         createdBy: userId,
+        nummer: 'E2026-003',
       });
       const einsatz = createResult.value!;
 
@@ -328,6 +331,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       const createResult = Einsatz.create({
         alarmstichwort: 'TEST - canBeDeleted ARCHIVIERT',
         createdBy: userId,
+        nummer: 'E2026-004',
       });
       const einsatz = createResult.value!;
 
@@ -348,6 +352,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       const createResult = Einsatz.create({
         alarmstichwort: 'TEST - Full Lifecycle canBeDeleted',
         createdBy: userId,
+        nummer: 'E2026-005',
       });
       const einsatz = createResult.value!;
 

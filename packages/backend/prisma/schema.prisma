@@ -230,6 +230,7 @@ enum EinsatzStatus {
 // Einsatz Model
 model Einsatz {
   id               String        @id @default(cuid())
+  nummer           String        @db.VarChar(50)
   alarmstichwort   String?       @db.VarChar(255)
   einsatzort       String?       @db.VarChar(500)
   beschreibung     String?       @db.Text
@@ -292,6 +293,7 @@ model Einsatz {
   complianceReports ComplianceReport[]
 
   // Indexes
+  @@unique([nummer])
   @@index([status, createdAt])
   @@index([createdBy])
   @@map("einsaetze")
@@ -1067,6 +1069,9 @@ model EinsatzPerson {
   // Inverse Relation: Rollen-Besetzungen dieser Person (Story 5.0)
   rollenBesetzungen EinsatzRollenbesetzung[]
 
+  // Inverse Relation: Bearbeiter-Verknüpfung (@@unique([einsatzId, einsatzPersonId]) erzwingt max 1 pro Einsatz)
+  teilnehmer EinsatzTeilnehmer[]
+
   // Constraints
   @@unique([einsatzId, stammId], name: "einsatz_person_einsatz_stamm_unique")
   // Indexes
@@ -1364,16 +1369,18 @@ model EinsatzTeilnehmer {
   id          String    @id @default(cuid())
   einsatzId   String    @map("einsatz_id")
   userId      String    @map("user_id")
-  funkrufname String    @db.VarChar(100)
-  joinedAt    DateTime  @default(now()) @map("joined_at")
-  leftAt      DateTime? @map("left_at")
+  einsatzPersonId String    @map("einsatz_person_id")
+  joinedAt        DateTime  @default(now()) @map("joined_at")
+  leftAt          DateTime? @map("left_at")
 
   // Relations
-  einsatz Einsatz @relation(fields: [einsatzId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  einsatz       Einsatz       @relation(fields: [einsatzId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  einsatzPerson EinsatzPerson @relation(fields: [einsatzPersonId], references: [id])
 
   // Constraints: User kann pro Einsatz nur einmal beitreten
   @@unique([einsatzId, userId])
+  @@unique([einsatzId, einsatzPersonId]) // Eine Person = max ein Bearbeiter
   // Indexes
   @@index([einsatzId])
   @@index([userId])
@@ -1675,7 +1682,7 @@ enum QuittierungArt {
 /// - Cascade-Delete mit Einsatz (Einsatzdaten transient)
 model Befehl {
   id               String       @id @default(cuid())
-  nummer           String       @db.VarChar(255) // Format: B{YEAR}-{CUID-8}
+  nummer           String       @db.VarChar(255) // Format: B-{SEQ} (z.B. B-001)
   einsatzId        String       @map("einsatz_id")
   auftrag          String       @db.Text // Pflichtfeld: Kern-Auftrag
   befehlsgeberName String       @map("befehlsgeber_name") @db.VarChar(255)

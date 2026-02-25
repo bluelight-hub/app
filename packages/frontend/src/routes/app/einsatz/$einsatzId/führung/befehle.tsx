@@ -1,11 +1,14 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
-import { PiFunnel, PiCaretDown, PiCaretUp, PiExport, PiChartBar } from 'react-icons/pi';
+import { useHotkeys } from 'react-hotkeys-hook';
+import { PiFunnel, PiCaretDown, PiCaretUp, PiExport, PiChartBar, PiPlus } from 'react-icons/pi';
 import { cn } from '@/shared/ui/cn';
+import { Button } from '@/shared/ui/atoms/button.atom';
 import { Tooltip } from '@/shared/ui/atoms/tooltip.atom';
 import { z } from 'zod';
 import {
   BefehlDetailPanel,
+  BefehlEingabeRow,
   BefehlExportDialog,
   BefehlFilterRow,
   BefehlKanbanView,
@@ -49,11 +52,14 @@ function BefehleSeite() {
   const navigate = Route.useNavigate();
   const { onBefehlErstellt, onBefehlQuittiert } = useBefehlNotifications({ einsatzId });
   const { isConnected } = useBefehlWebSocket({ einsatzId, onBefehlErstellt, onBefehlQuittiert });
-  const { canExport, canViewMetriken, isLoading: isPermissionsLoading } = useBefehlPermissions(einsatzId);
+  const { canCreate, canExport, canViewMetriken, isLoading: isPermissionsLoading } = useBefehlPermissions(einsatzId);
   const [view] = useBefehleView();
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [showOnlyKritisch, setShowOnlyKritisch] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [showEingabeRow, setShowEingabeRow] = useState(false);
+
+  useHotkeys('mod+n', () => setShowEingabeRow(true), { preventDefault: true, enabled: canCreate && !showEingabeRow });
 
   // Filter-State aus Store
   const filterState = useBefehleFilter();
@@ -151,6 +157,20 @@ function BefehleSeite() {
           <span className="text-sm text-gray-500 dark:text-gray-400" aria-live="polite">
             {angezeigteBefeble ? `${angezeigteBefeble.length} Befehle` : ''}
           </span>
+          {/* Neuer Befehl Button */}
+          {!canCreate && !isPermissionsLoading ? (
+            <Tooltip content="Nur Ersteller/Befehlsgeber dürfen Befehle erstellen">
+              <Button intent="primary" size="sm" disabled aria-disabled="true">
+                <PiPlus className="mr-1.5 h-4 w-4" aria-hidden="true" />
+                Neuer Befehl
+              </Button>
+            </Tooltip>
+          ) : (
+            <Button intent="primary" size="sm" kbd="ctrl+n" onClick={() => setShowEingabeRow(true)} disabled={showEingabeRow || isPermissionsLoading}>
+              <PiPlus className="mr-1.5 h-4 w-4" aria-hidden="true" />
+              {isPermissionsLoading ? 'Laden...' : 'Neuer Befehl'}
+            </Button>
+          )}
           {/* Metriken-Link: Nur fuer BEFEHLSGEBER sichtbar */}
           {canViewMetriken && (
             <Link
@@ -196,6 +216,13 @@ function BefehleSeite() {
           <button type="button" onClick={() => window.location.reload()} className="underline hover:no-underline">
             Erneut versuchen
           </button>
+        </div>
+      )}
+
+      {/* Befehl-Eingabezeile */}
+      {showEingabeRow && (
+        <div className="border-b border-gray-200 px-4 py-4 dark:border-gray-700">
+          <BefehlEingabeRow einsatzId={einsatzId} onClose={() => setShowEingabeRow(false)} />
         </div>
       )}
 

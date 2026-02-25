@@ -8,7 +8,7 @@
  * - Multi-Select: Mehrere Empfaenger auswahlbar
  * - Chips: Ausgewaehlte als Chips dargestellt
  * - Chip-Entfernen: X-Button entfernt Empfaenger
- * - Manuelle Eingabe: Freitext-Empfaenger hinzufuegen
+ * - Freitext-Option: Freitext-Empfaenger via Dropdown-Option
  * - Error-Fallback: "Manuelle Eingabe moeglich"
  * - Leerzustand: "Keine Treffer" Nachricht
  */
@@ -88,7 +88,7 @@ describe('EmpfaengerCombobox', () => {
       await user.type(screen.getByPlaceholderText('Empfänger suchen...'), 'M');
 
       await waitFor(() => {
-        expect(screen.getByText('Mind. 2 Zeichen eingeben')).toBeInTheDocument();
+        expect(screen.getByText('Mind. 2 Zeichen für Vorschläge')).toBeInTheDocument();
       });
     });
 
@@ -170,23 +170,47 @@ describe('EmpfaengerCombobox', () => {
     });
   });
 
-  describe('Manuelle Eingabe', () => {
-    it('fuegt manuellen Empfaenger bei Enter hinzu wenn keine Treffer', async () => {
+  describe('Freitext-Eingabe', () => {
+    it('zeigt Freitext-Option im Dropdown', async () => {
       const user = userEvent.setup();
       mockEmpfaengerSuche.mockResolvedValue({ data: [] });
       renderWithQuery(<EmpfaengerCombobox einsatzId={EINSATZ_ID} value={[]} onChange={onChange} />);
 
-      const input = screen.getByPlaceholderText('Empfänger suchen...');
-      await user.type(input, 'Neuer Empfaenger');
+      await user.type(screen.getByPlaceholderText('Empfänger suchen...'), 'Neuer Empfaenger');
 
-      // Warten auf Debounce und leere Ergebnisse
       await waitFor(() => {
-        expect(screen.getByText('Keine Treffer – Name manuell eingeben')).toBeInTheDocument();
+        expect(screen.getByText(/„Neuer Empfaenger" als Freitext hinzufügen/)).toBeInTheDocument();
+      });
+    });
+
+    it('fuegt Freitext-Empfaenger bei Klick auf Option hinzu', async () => {
+      const user = userEvent.setup();
+      mockEmpfaengerSuche.mockResolvedValue({ data: [] });
+      renderWithQuery(<EmpfaengerCombobox einsatzId={EINSATZ_ID} value={[]} onChange={onChange} />);
+
+      await user.type(screen.getByPlaceholderText('Empfänger suchen...'), 'Neuer Empfaenger');
+
+      await waitFor(() => {
+        expect(screen.getByText(/„Neuer Empfaenger" als Freitext hinzufügen/)).toBeInTheDocument();
       });
 
-      await user.keyboard('{Enter}');
+      await user.click(screen.getByText(/„Neuer Empfaenger" als Freitext hinzufügen/));
 
       expect(onChange).toHaveBeenCalledWith([{ name: 'Neuer Empfaenger' }]);
+    });
+
+    it('zeigt Freitext-Option auch neben API-Ergebnissen', async () => {
+      const user = userEvent.setup();
+      renderWithQuery(<EmpfaengerCombobox einsatzId={EINSATZ_ID} value={[]} onChange={onChange} />);
+
+      await user.type(screen.getByPlaceholderText('Empfänger suchen...'), 'Mü');
+
+      await waitFor(() => {
+        // API-Ergebnisse
+        expect(screen.getByText('Müller, Hans')).toBeInTheDocument();
+        // Freitext-Option
+        expect(screen.getByText(/„Mü" als Freitext hinzufügen/)).toBeInTheDocument();
+      });
     });
   });
 
@@ -213,7 +237,7 @@ describe('EmpfaengerCombobox', () => {
       await user.type(screen.getByPlaceholderText('Empfänger suchen...'), 'xyz');
 
       await waitFor(() => {
-        expect(screen.getByText('Keine Treffer – Name manuell eingeben')).toBeInTheDocument();
+        expect(screen.getByText('Keine Treffer gefunden')).toBeInTheDocument();
       });
     });
   });

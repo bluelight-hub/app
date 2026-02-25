@@ -105,6 +105,7 @@ import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
       const einsatzResult = Einsatz.create({
         alarmstichwort: 'Wohnungsbrand - AC1.1 Test',
         createdBy,
+        nummer: 'E2026-001',
       });
 
       expect(einsatzResult.isSuccess).toBe(true);
@@ -162,7 +163,7 @@ import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
               ${einsatzId.value},
               'Rollback Test Einsatz',
               'Teststraße 99',
-              'E2024-ROLLBACK',
+              'E2026-ROLLBACK',
               'ANGELEGT'::"EinsatzStatus",
               ${createdBy.value},
               ${createdBy.value},
@@ -180,7 +181,7 @@ import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
               'einsatz.created',
               1,
               ${einsatzId.value},
-              '{"eventId": "${eventId}", "eventName": "einsatz.created", "eventVersion": 1, "occurredAt": "${new Date().toISOString()}", "aggregateId": "${einsatzId.value}", "payload": {"einsatzId": "${einsatzId.value}", "createdBy": "${createdBy.value}", "alarmstichwort": "Rollback Test", "nummer": "E2024-ROLLBACK"}}'::jsonb,
+              '{"eventId": "${eventId}", "eventName": "einsatz.created", "eventVersion": 1, "occurredAt": "${new Date().toISOString()}", "aggregateId": "${einsatzId.value}", "payload": {"einsatzId": "${einsatzId.value}", "createdBy": "${createdBy.value}", "alarmstichwort": "Rollback Test", "nummer": "E2026-ROLLBACK"}}'::jsonb,
               'PENDING'::"OutboxEventStatus",
               NOW(),
               NOW()
@@ -221,7 +222,7 @@ import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
       const einsatzId = EinsatzId.create().value!;
       const createdBy = UserId.create(ctx.testUserIds.user).value!;
 
-      const event = new EinsatzCreatedEvent(einsatzId, createdBy, 'AC1.3 Test Einsatz', `E2024-${generateTestId().substring(0, 8)}`, einsatzId.value);
+      const event = new EinsatzCreatedEvent(einsatzId, createdBy, 'AC1.3 Test Einsatz', `E2026-${generateTestId().substring(0, 3)}`, einsatzId.value);
 
       await ctx.outboxRepository.save([event]);
 
@@ -288,7 +289,7 @@ import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
       const einsatzId = EinsatzId.create().value!;
       const createdBy = UserId.create(ctx.testUserIds.user).value!;
 
-      const event = new EinsatzCreatedEvent(einsatzId, createdBy, 'Retry Test Einsatz', `E2024-${generateTestId().substring(0, 8)}`, einsatzId.value);
+      const event = new EinsatzCreatedEvent(einsatzId, createdBy, 'Retry Test Einsatz', `E2026-${generateTestId().substring(0, 3)}`, einsatzId.value);
 
       await ctx.outboxRepository.save([event]);
 
@@ -343,7 +344,7 @@ import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
           // createdBy is invalid format → will fail validation
           createdBy: 'invalid-user-id', // Invalid CUID format → Deserialization Error
           alarmstichwort: 'Test',
-          nummer: 'E2024-test',
+          nummer: 'E2026-test',
         } as never,
       });
 
@@ -420,7 +421,7 @@ import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
       // Given: Original event with all fields
       const einsatzId = EinsatzId.create().value!;
       const createdBy = UserId.create(ctx.testUserIds.user).value!;
-      const originalEvent = new EinsatzCreatedEvent(einsatzId, createdBy, 'Großbrand Industriegebiet', `E2024-${generateTestId().substring(0, 8)}`, einsatzId.value);
+      const originalEvent = new EinsatzCreatedEvent(einsatzId, createdBy, 'Großbrand Industriegebiet', `E2026-${generateTestId().substring(0, 3)}`, einsatzId.value);
 
       // When: Serialize → Store in DB → Load → Deserialize
       const _serialized = eventSerializer.serialize(originalEvent);
@@ -449,7 +450,7 @@ import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
         // Einsatz Events
         {
           name: 'EinsatzCreatedEvent',
-          event: new EinsatzCreatedEvent(EinsatzId.create().value!, UserId.create(ctx.testUserIds.user).value!, 'Test Einsatz', `E2024-${generateTestId().substring(0, 8)}`),
+          event: new EinsatzCreatedEvent(EinsatzId.create().value!, UserId.create(ctx.testUserIds.user).value!, 'Test Einsatz', `E2026-${generateTestId().substring(0, 3)}`),
         },
         {
           name: 'EinsatzUpdatedEvent',
@@ -592,7 +593,7 @@ import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
       const events = Array.from({ length: 5 }, (_, i) => {
         const einsatzId = EinsatzId.create().value!;
         const createdBy = UserId.create(ctx.testUserIds.user).value!;
-        return new EinsatzCreatedEvent(einsatzId, createdBy, `Concurrent Test Einsatz ${i}`, `E2024-${generateTestId().substring(0, 8)}`, einsatzId.value);
+        return new EinsatzCreatedEvent(einsatzId, createdBy, `Concurrent Test Einsatz ${i}`, `E2026-${generateTestId().substring(0, 3)}`, einsatzId.value);
       });
 
       await ctx.outboxRepository.save(events);
@@ -624,7 +625,7 @@ import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
       // TODO: Fix cleanupTestData() to reset EventPublisher.publishedEvents array
       //
       // Given: PENDING events
-      const firstBatch = [new EinsatzCreatedEvent(EinsatzId.create().value!, UserId.create(ctx.testUserIds.user).value!, 'Sequential Test 1', `E2024-${generateTestId().substring(0, 8)}`)];
+      const firstBatch = [new EinsatzCreatedEvent(EinsatzId.create().value!, UserId.create(ctx.testUserIds.user).value!, 'Sequential Test 1', `E2026-${generateTestId().substring(0, 3)}`)];
 
       await ctx.outboxRepository.save(firstBatch);
 
@@ -639,7 +640,7 @@ import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
       expect(publishedCount).toBe(baselineCount + 1);
 
       // Add second batch
-      const secondBatch = [new EinsatzCreatedEvent(EinsatzId.create().value!, UserId.create(ctx.testUserIds.user).value!, 'Sequential Test 2', `E2024-${generateTestId().substring(0, 8)}`)];
+      const secondBatch = [new EinsatzCreatedEvent(EinsatzId.create().value!, UserId.create(ctx.testUserIds.user).value!, 'Sequential Test 2', `E2026-${generateTestId().substring(0, 3)}`)];
 
       await ctx.outboxRepository.save(secondBatch);
 
@@ -663,6 +664,7 @@ import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
       const einsatzResult = Einsatz.create({
         alarmstichwort: 'Roundtrip Test - Wohnungsbrand',
         createdBy,
+        nummer: 'E2026-002',
         bemerkung: 'Full event roundtrip test',
       });
 

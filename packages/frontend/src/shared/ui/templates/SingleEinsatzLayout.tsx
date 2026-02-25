@@ -125,7 +125,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
 
   // Prüfe ob User bereits dem Einsatz beigetreten ist (Funkrufname gesetzt)
   const { data: teilnahmeData, isLoading: isTeilnahmeLoading } = useMyEinsatzTeilnahme(einsatzId);
-  const currentFunkrufname = teilnahmeData?.data?.funkrufname;
+  const currentEinsatzPersonId = teilnahmeData?.data?.einsatzPersonId;
 
   // Auto-show dialog when user hasn't joined yet (only once per session using sessionStorage)
   useEffect(() => {
@@ -140,11 +140,11 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
     // 1. Query has finished loading
     // 2. No funkrufname set (user hasn't joined)
     // 3. Haven't shown dialog yet in this browser session
-    if (!currentFunkrufname && !hasShownInSession) {
+    if (!currentEinsatzPersonId && !hasShownInSession) {
       sessionStorage.setItem(storageKey, 'true');
       setShowBeitrittDialog(true);
     }
-  }, [einsatzId, isTeilnahmeLoading, currentFunkrufname]);
+  }, [einsatzId, isTeilnahmeLoading, currentEinsatzPersonId]);
 
   // Prüfe ob wir im Fullscreen/Presentation-Modus sind
   const currentSearch = router.state.location.search as { mode?: string };
@@ -518,7 +518,11 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
                     {/* Funkrufname / Einsatz-Beitritt */}
                     <Button appearance="ghost" size="sm" className="mb-2 w-full justify-start" onClick={() => setShowBeitrittDialog(true)}>
                       <PiRadio className="mr-2 h-4 w-4" />
-                      {currentFunkrufname ? <span className="truncate">{currentFunkrufname}</span> : <span className="text-blue-600 dark:text-blue-400">Funkrufname setzen</span>}
+                      {currentEinsatzPersonId ? (
+                        <span className="truncate">{teilnahmeData?.data?.personFunkrufname || `${teilnahmeData?.data?.personVorname} ${teilnahmeData?.data?.personNachname}`}</span>
+                      ) : (
+                        <span className="text-blue-600 dark:text-blue-400">Person wählen</span>
+                      )}
                     </Button>
                     <Button appearance="ghost" size="sm" className="mb-2 w-full justify-start" onClick={() => setShowAudioDialog(true)} aria-haspopup="dialog">
                       <PiSpeakerHigh className="mr-2 h-4 w-4" />

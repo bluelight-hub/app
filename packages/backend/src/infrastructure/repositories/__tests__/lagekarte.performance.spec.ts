@@ -105,6 +105,7 @@ const performanceResults: Record<string, { avg: number; min: number; max: number
     const einsatz = await prisma.einsatz.create({
       data: {
         id: generateTestId(),
+        nummer: `E2026-PERF-${testRunId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         alarmstichwort: `PERF-TEST-${testRunId}-${Date.now()}`,
         einsatzort: 'Performance Test Einsatzort',
         status: 'ANGELEGT',
@@ -164,6 +165,7 @@ const performanceResults: Record<string, { avg: number; min: number; max: number
     const einsatzResult = await prisma.einsatz.create({
       data: {
         id: generateTestId(),
+        nummer: `E2026-PERF-${testRunId}`,
         alarmstichwort: `TEST - Performance Baselines ${testRunId}`,
         einsatzort: 'Performance Test Einsatzort',
         status: 'ANGELEGT',

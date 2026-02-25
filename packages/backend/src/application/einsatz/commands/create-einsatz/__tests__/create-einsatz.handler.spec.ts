@@ -17,6 +17,7 @@ describe('CreateEinsatzHandler', () => {
     exists: jest.Mock;
     findActive: jest.Mock;
     findByNummer: jest.Mock;
+    getNextSequenceNumber: jest.Mock;
   };
   let mockPrismaService: {
     $transaction: jest.Mock;
@@ -37,6 +38,7 @@ describe('CreateEinsatzHandler', () => {
       exists: jest.fn(),
       findActive: jest.fn(),
       findByNummer: jest.fn(),
+      getNextSequenceNumber: jest.fn().mockResolvedValue(Result.ok(1)),
     };
 
     mockOutboxRepository = {
@@ -99,7 +101,7 @@ describe('CreateEinsatzHandler', () => {
       expect(mockPrismaService.$transaction).toHaveBeenCalledTimes(1);
     });
 
-    it('sollte Einsatznummer im Format E{YEAR}-{CUID-8} generieren', async () => {
+    it('sollte Einsatznummer im Format E{YEAR}-{SEQ} generieren', async () => {
       // Arrange
       const userId = UserId.create().value!;
       const command = CreateEinsatzCommand.create('Verkehrsunfall', userId.value).value!;
@@ -113,7 +115,7 @@ describe('CreateEinsatzHandler', () => {
       // Verify save was called with aggregate that has correct nummer format
       const savedAggregate = mockRepository.save.mock.calls[0][0];
       const currentYear = new Date().getFullYear();
-      expect(savedAggregate.nummer).toMatch(new RegExp(`^E${currentYear}-[a-z0-9]{8}$`));
+      expect(savedAggregate.nummer).toBe(`E${currentYear}-001`);
     });
 
     it('sollte EinsatzCreatedEvent in Outbox speichern mit nummer und alarmstichwort', async () => {
@@ -136,10 +138,10 @@ describe('CreateEinsatzHandler', () => {
       // Validate alarmstichwort
       expect(createdEvent.alarmstichwort).toBe(alarmstichwort);
 
-      // Validate nummer format: E{YEAR}-{CUID-8}
+      // Validate nummer format: E{YEAR}-{SEQ}
       const currentYear = new Date().getFullYear();
       expect(createdEvent.nummer).toBeDefined();
-      expect(createdEvent.nummer).toMatch(new RegExp(`^E${currentYear}-[a-z0-9]{8}$`));
+      expect(createdEvent.nummer).toBe(`E${currentYear}-001`);
 
       // Validate einsatzId exists
       expect(createdEvent.einsatzId).toBeDefined();
@@ -247,7 +249,7 @@ describe('CreateEinsatzHandler', () => {
 
       // Nummer-Format prüfen
       const currentYear = new Date().getFullYear();
-      expect(createdEvent.nummer).toMatch(new RegExp(`^E${currentYear}-[a-z0-9]{8}$`));
+      expect(createdEvent.nummer).toBe(`E${currentYear}-001`);
     });
 
     it('sollte Result.fail zurückgeben bei ungültiger User-ID', async () => {

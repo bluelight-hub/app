@@ -115,6 +115,7 @@ describe('PrismaLagekarteRepository - Integration Tests', () => {
     const einsatzResult = await prisma.einsatz.create({
       data: {
         id: generateTestId(),
+        nummer: `E2026-LKR-${testRunId}`,
         alarmstichwort: `TEST - Lagekarte Repository ${testRunId}`,
         einsatzort: 'Test-Einsatzort für Lagekarte Repository Tests',
         status: 'ANGELEGT',
@@ -412,6 +413,7 @@ describe('PrismaLagekarteRepository - Integration Tests', () => {
       const einsatz2 = await prisma.einsatz.create({
         data: {
           id: generateTestId(),
+          nummer: `E2026-LKR-NL-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           alarmstichwort: `TEST - No Lagekarte ${testRunId}`,
           status: 'ANGELEGT',
           createdBy: testUserId,
@@ -473,6 +475,7 @@ describe('PrismaLagekarteRepository - Integration Tests', () => {
       const einsatz2 = await prisma.einsatz.create({
         data: {
           id: generateTestId(),
+          nummer: `E2026-LKR-EX-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           alarmstichwort: `TEST - Exists Check ${testRunId}`,
           status: 'ANGELEGT',
           createdBy: testUserId,

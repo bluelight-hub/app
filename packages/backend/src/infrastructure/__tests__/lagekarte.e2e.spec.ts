@@ -162,6 +162,7 @@ class SpyEventPublisher implements IEventPublisher {
     await prisma.einsatz.create({
       data: {
         id: testEinsatzId,
+        nummer: `E2026-LKE-${testRunId}`,
         alarmstichwort: `TEST - Lagekarte E2E ${testRunId}`,
         einsatzort: 'Test-Einsatzort für Lagekarte E2E Tests',
         status: 'ANGELEGT',

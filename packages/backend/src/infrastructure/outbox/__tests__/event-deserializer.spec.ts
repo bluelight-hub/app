@@ -149,7 +149,7 @@ describe('EventDeserializer', () => {
           einsatzId: einsatzIdValue,
           createdBy: userIdValue,
           alarmstichwort: 'Wohnungsbrand',
-          nummer: 'E2024-abc12345',
+          nummer: 'E2026-001',
         },
         'agg-123',
       );
@@ -162,7 +162,7 @@ describe('EventDeserializer', () => {
       expect(event.einsatzId.value).toBe(einsatzIdValue);
       expect(event.createdBy.value).toBe(userIdValue);
       expect(event.alarmstichwort).toBe('Wohnungsbrand');
-      expect(event.nummer).toBe('E2024-abc12345');
+      expect(event.nummer).toBe('E2026-001');
     });
 
     it('should deserialize EinsatzUpdatedEvent correctly', () => {
@@ -2079,7 +2079,7 @@ describe('EventDeserializer', () => {
         einsatzId: 'invalid-id-format!',
         createdBy: userIdValue,
         alarmstichwort: 'Test',
-        nummer: 'E2024-test',
+        nummer: 'E2026-002',
       });
 
       const result = deserializer.deserialize(serialized);
@@ -2093,7 +2093,7 @@ describe('EventDeserializer', () => {
         einsatzId: einsatzIdValue,
         createdBy: 'invalid-user-id!',
         alarmstichwort: 'Test',
-        nummer: 'E2024-test',
+        nummer: 'E2026-002',
       });
 
       const result = deserializer.deserialize(serialized);
@@ -2176,7 +2176,7 @@ describe('EventDeserializer', () => {
           einsatzId: einsatzIdValue,
           empfaengerId: userIdValue,
           quittierungArt: 'VERSTANDEN',
-          nummer: 'B2026-abc12345',
+          nummer: 'B-001',
           quittiertAm,
         },
         'agg-befehl-123',
@@ -2193,7 +2193,7 @@ describe('EventDeserializer', () => {
       expect(event.einsatzId.value).toBe(einsatzIdValue);
       expect(event.empfaengerId.value).toBe(userIdValue);
       expect(event.quittierungArt).toBe('VERSTANDEN');
-      expect(event.nummer).toBe('B2026-abc12345');
+      expect(event.nummer).toBe('B-001');
       expect(event.quittiertAm.toISOString()).toBe(quittiertAm);
     });
 
@@ -2204,7 +2204,7 @@ describe('EventDeserializer', () => {
       const empfaengerId = UserId.create().value!;
       const quittiertAm = new Date('2026-02-18T10:00:00.000Z');
 
-      const originalEvent = new BefehlQuittiertEvent(befehlId, einsatzId, empfaengerId, 'RUECKFRAGE', 'B2026-xyz98765', quittiertAm, befehlId.value);
+      const originalEvent = new BefehlQuittiertEvent(befehlId, einsatzId, empfaengerId, 'RUECKFRAGE', 'B-002', quittiertAm, befehlId.value);
 
       // Serialize mit EventSerializer
       const serializer = new EventSerializer();
@@ -2235,7 +2235,7 @@ describe('EventDeserializer', () => {
           einsatzId: einsatzIdValue,
           empfaengerId: userIdValue,
           quittierungArt: 'VERSTANDEN',
-          nummer: 'B2026-abc12345',
+          nummer: 'B-001',
           quittiertAm: '2026-02-18T10:00:00.000Z',
         },
         'agg-123',

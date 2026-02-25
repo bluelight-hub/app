@@ -937,12 +937,14 @@ export async function createTestEinsatz(ctx: EinsatzE2eTestContext, options?: Cr
     archivedBy = createdBy; // Same user who created it
   }
 
+  const nummer = `E2026-E2E-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   await ctx.prisma.$executeRaw`
-    INSERT INTO einsaetze (id, alarmstichwort, einsatzort, status, "createdBy", "updatedBy", "archivedAt", "archivedBy", "createdAt", "updatedAt")
+    INSERT INTO einsaetze (id, alarmstichwort, einsatzort, nummer, status, "createdBy", "updatedBy", "archivedAt", "archivedBy", "createdAt", "updatedAt")
     VALUES (
       ${einsatzId},
       ${alarmstichwort},
       'Test-Einsatzort',
+      ${nummer},
       ${status}::"EinsatzStatus",
       ${createdBy},
       ${createdBy},

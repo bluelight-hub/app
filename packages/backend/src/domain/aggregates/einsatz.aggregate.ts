@@ -9,8 +9,6 @@ import type { Address } from '@domain/value-objects/address';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { EinsatzStatus } from '@domain/value-objects/einsatz-status';
 import type { UserId } from '@domain/value-objects/user-id';
-import { createId } from '@paralleldrive/cuid2';
-
 /**
  * Properties für die Einsatz Erstellung.
  * Kapselt alle erforderlichen und optionalen Felder für create() Factory.
@@ -18,6 +16,7 @@ import { createId } from '@paralleldrive/cuid2';
 interface CreateEinsatzProps {
   alarmstichwort: string;
   createdBy: UserId;
+  nummer: string;
   einsatzort?: Address;
   bemerkung?: string;
 }
@@ -68,7 +67,7 @@ interface CreateEinsatzProps {
  *
  * if (result.isSuccess) {
  *   const einsatz = result.value!;
- *   console.log(einsatz.nummer); // "E2024-A1B2C3" (auto-generated)
+ *   console.log(einsatz.nummer); // "E2024-001" (auto-generated)
  *   console.log(einsatz.status.value); // "ANGELEGT"
  *   console.log(einsatz.getDomainEvents().length); // 1 (EinsatzCreatedEvent)
  *
@@ -114,7 +113,7 @@ export class Einsatz extends AggregateRoot<EinsatzId> {
    * Verhindert direkte Instanziierung ohne Validation.
    *
    * @param id - Type-Safe EinsatzId
-   * @param nummer - Auto-generierte Einsatznummer (z.B. "E2024-A1B2C3")
+   * @param nummer - Auto-generierte Einsatznummer (z.B. "E2024-001")
    * @param alarmstichwort - Alarmstichwort (z.B. "Wohnungsbrand")
    * @param status - Einsatz Status als Value Object
    * @param createdBy - User-ID des Erstellers
@@ -134,14 +133,14 @@ export class Einsatz extends AggregateRoot<EinsatzId> {
   }
 
   /**
-   * Auto-generierte Einsatznummer im Format "E{YEAR}-{CUID-8}".
-   * Beispiel: "E2024-clw3h8x9"
+   * Sequentielle Einsatznummer im Format "E{YEAR}-{SEQ}".
+   * Beispiel: "E2026-001"
    */
   private _nummer: string;
 
   /**
    * Readonly getter für Einsatznummer.
-   * @returns Auto-generierte Einsatznummer (z.B. "E2024-A1B2C3")
+   * @returns Auto-generierte Einsatznummer (z.B. "E2024-001")
    */
   get nummer(): string {
     return this._nummer;
@@ -254,7 +253,7 @@ export class Einsatz extends AggregateRoot<EinsatzId> {
    * - Einsatzort ist optional (Address Value Object)
    * - Bemerkung ist optional
    * - Initialer Status ist IMMER ANGELEGT (State Machine Start)
-   * - Einsatznummer wird auto-generiert (Format: "E{YEAR}-{cuid-6}")
+   * - Einsatznummer wird von außen übergeben (Format: "E{YEAR}-{SEQ}")
    * - Bei Erfolg wird EinsatzCreatedEvent emittiert
    *
    * **Warum alarmstichwort required:**
@@ -297,6 +296,11 @@ export class Einsatz extends AggregateRoot<EinsatzId> {
       return Result.fail<Einsatz>('createdBy ist erforderlich');
     }
 
+    // Validate nummer
+    if (!props.nummer || props.nummer.trim().length === 0) {
+      return Result.fail<Einsatz>('Nummer ist erforderlich');
+    }
+
     // Generate type-safe EinsatzId
     const idResult = EinsatzId.create();
     if (idResult.isFailure) {
@@ -304,38 +308,43 @@ export class Einsatz extends AggregateRoot<EinsatzId> {
     }
     const id = idResult.value as EinsatzId;
 
-    // Auto-generate Einsatznummer
-    const nummer = Einsatz.generateNummer();
-
     // Initial status: ANGELEGT (State Machine Start)
     const initialStatus = EinsatzStatus.ANGELEGT();
 
     // Create aggregate
-    const einsatz = new Einsatz(id, nummer, props.alarmstichwort.trim(), initialStatus, props.createdBy, props.einsatzort, props.bemerkung?.trim());
+    const einsatz = new Einsatz(id, props.nummer, props.alarmstichwort.trim(), initialStatus, props.createdBy, props.einsatzort, props.bemerkung?.trim());
 
     // Emit EinsatzCreatedEvent (Rich Event mit nummer für Event Handler)
-    einsatz.addDomainEvent(new EinsatzCreatedEvent(id, props.createdBy, props.alarmstichwort.trim(), nummer, id.value));
+    einsatz.addDomainEvent(new EinsatzCreatedEvent(id, props.createdBy, props.alarmstichwort.trim(), props.nummer, id.value));
 
     return Result.ok<Einsatz>(einsatz);
   }
 
   /**
-   * Auto-generiert Einsatznummer im Format "E{YEAR}-{CUID-8}".
-   *
-   * Warum dieses Format:
-   * - "E" Prefix: Kennzeichnung als Einsatz (Emergency)
-   * - Jahr: Ermöglicht jahresbasierte Sortierung und Archivierung
-   * - CUID-8: Kurz genug für menschliche Lesbarkeit, dennoch ausreichend unique
-   * - Keine Sequenznummern: Vermeidet Race Conditions bei paralleler Erstellung
-   * - Konsistent mit anderen CUIDs im System
-   *
-   * @returns Einsatznummer im Format "E{YEAR}-{CUID-8}" (z.B. "E2024-clw3h8x9")
+   * Rekonstruiert ein Einsatz Aggregate aus DB-Daten (KEINE Domain Events!).
+   * Für Repository Mapper: toDomain() nutzt reconstitute() statt create().
    */
-  private static generateNummer(): string {
-    const year = new Date().getFullYear();
-    // Nutze die ersten 8 Zeichen des CUID für Lesbarkeit
-    const randomPart = createId().substring(0, 8);
-    return `E${year}-${randomPart}`;
+  static reconstitute(props: {
+    id: EinsatzId;
+    nummer: string;
+    alarmstichwort: string;
+    status: EinsatzStatus;
+    createdBy: UserId;
+    einsatzort?: Address;
+    bemerkung?: string;
+    createdAt?: Date;
+    updatedAt?: Date;
+    abgeschlossenAt?: Date;
+    archivedAt?: Date;
+  }): Einsatz {
+    const einsatz = new Einsatz(props.id, props.nummer, props.alarmstichwort, props.status, props.createdBy, props.einsatzort, props.bemerkung, props.createdAt, props.updatedAt);
+    if (props.abgeschlossenAt) {
+      einsatz._abgeschlossenAt = props.abgeschlossenAt;
+    }
+    if (props.archivedAt) {
+      einsatz._archivedAt = props.archivedAt;
+    }
+    return einsatz;
   }
 
   /**

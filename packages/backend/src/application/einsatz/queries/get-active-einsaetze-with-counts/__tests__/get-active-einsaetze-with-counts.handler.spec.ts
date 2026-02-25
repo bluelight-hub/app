@@ -16,6 +16,7 @@ import type { ILogger } from '@domain/ports/i-logger.port';
  */
 function createMockPrismaEinsatz(overrides?: {
   id?: string;
+  nummer?: string;
   alarmstichwort?: string;
   einsatzort?: string;
   status?: string;
@@ -30,6 +31,7 @@ function createMockPrismaEinsatz(overrides?: {
 
   return {
     id,
+    nummer: overrides?.nummer ?? 'E2026-001',
     alarmstichwort: overrides?.alarmstichwort ?? 'Wohnungsbrand',
     einsatzort: overrides?.einsatzort ?? 'Berlin',
     beschreibung: null,
@@ -123,6 +125,7 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
       // Given: Prisma returnt Einsaetze mit nested counts
       const mockEinsatz = createMockPrismaEinsatz({
         id: 'einsatz-abc-123',
+        nummer: 'E2026-010',
         alarmstichwort: 'Grossbrand',
         einsatzort: 'München',
         status: 'IN_BEARBEITUNG',
@@ -143,7 +146,7 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
 
       const dto = result.value![0];
       expect(dto.id).toBe('einsatz-abc-123');
-      expect(dto.nummer).toBe('E2024-einsatz-'); // Format: E{YEAR}-{ID-8}
+      expect(dto.nummer).toBe('E2026-010'); // Format: E{YEAR}-{SEQ} (DB column)
       expect(dto.alarmstichwort).toBe('Grossbrand');
       expect(dto.status).toBe('IN_BEARBEITUNG');
       expect(dto.einsatzort).toEqual({ ort: 'München' });
@@ -156,16 +159,19 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
       // Given: Prisma query filtert status != ARCHIVIERT
       const einsatz1 = createMockPrismaEinsatz({
         id: 'einsatz-001',
+        nummer: 'E2026-011',
         alarmstichwort: 'Aktiv 1',
         status: 'ANGELEGT',
       });
       const einsatz2 = createMockPrismaEinsatz({
         id: 'einsatz-002',
+        nummer: 'E2026-012',
         alarmstichwort: 'Aktiv 2',
         status: 'IN_BEARBEITUNG',
       });
       const einsatz3 = createMockPrismaEinsatz({
         id: 'einsatz-003',
+        nummer: 'E2026-013',
         alarmstichwort: 'Aktiv 3',
         status: 'ABGESCHLOSSEN',
       });
@@ -220,16 +226,19 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
 
       const einsatz1 = createMockPrismaEinsatz({
         id: 'einsatz-old',
+        nummer: 'E2026-014',
         alarmstichwort: 'Brand Alt',
         createdAt: twoHoursAgo, // Aeltester
       });
       const einsatz2 = createMockPrismaEinsatz({
         id: 'einsatz-middle',
+        nummer: 'E2026-015',
         alarmstichwort: 'Brand Mittel',
         createdAt: oneHourAgo, // Mittlerer
       });
       const einsatz3 = createMockPrismaEinsatz({
         id: 'einsatz-new',
+        nummer: 'E2026-016',
         alarmstichwort: 'Brand Neu',
         createdAt: now, // Neuester
       });
@@ -398,11 +407,12 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
       expect(dto.einsatzort).toBeUndefined();
     });
 
-    it('should generate correct nummer format: E{YEAR}-{ID-8}', async () => {
-      // Given: Einsatz mit bekannter ID und createdAt
+    it('should read nummer from DB column (E{YEAR}-{SEQ})', async () => {
+      // Given: Einsatz mit bekannter nummer DB-Spalte
       const mockEinsatz = createMockPrismaEinsatz({
         id: 'clw3h8x9y0000qwertyuiopas', // 25 Zeichen CUID
-        createdAt: new Date('2024-01-15T10:30:00.000Z'),
+        nummer: 'E2026-042',
+        createdAt: new Date('2026-01-15T10:30:00.000Z'),
       });
 
       mockPrismaService.einsatz.findMany.mockResolvedValue([mockEinsatz]);
@@ -411,28 +421,31 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
       // When
       const result = await handler.execute(query);
 
-      // Then: Nummer = E2024-clw3h8x9
+      // Then: Nummer = E2026-042 (aus DB-Spalte, nicht generiert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(1);
 
       const dto = result.value![0];
-      expect(dto.nummer).toBe('E2024-clw3h8x9'); // E{YEAR}-{ID-8}
+      expect(dto.nummer).toBe('E2026-042'); // E{YEAR}-{SEQ} from DB
     });
 
     it('should handle multiple einsaetze with varying counts', async () => {
       // Given: 3 Einsaetze mit unterschiedlichen Counts
       const einsatz1 = createMockPrismaEinsatz({
         id: 'einsatz-001',
+        nummer: 'E2026-017',
         etbEintraegeCount: 5,
         poisCount: 0,
       });
       const einsatz2 = createMockPrismaEinsatz({
         id: 'einsatz-002',
+        nummer: 'E2026-018',
         etbEintraegeCount: 0,
         poisCount: 10,
       });
       const einsatz3 = createMockPrismaEinsatz({
         id: 'einsatz-003',
+        nummer: 'E2026-019',
         etbEintraegeCount: 20,
         poisCount: 15,
       });
@@ -563,8 +576,8 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
 
     it('should NOT modify Prisma result array (immutability)', async () => {
       // Given: Prisma Result Array
-      const einsatz1 = createMockPrismaEinsatz({ id: 'einsatz-001' });
-      const einsatz2 = createMockPrismaEinsatz({ id: 'einsatz-002' });
+      const einsatz1 = createMockPrismaEinsatz({ id: 'einsatz-001', nummer: 'E2026-024' });
+      const einsatz2 = createMockPrismaEinsatz({ id: 'einsatz-002', nummer: 'E2026-025' });
       const originalArray = [einsatz1, einsatz2];
 
       mockPrismaService.einsatz.findMany.mockResolvedValue(originalArray);
@@ -586,11 +599,13 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
       const now = new Date();
       const einsatz1 = createMockPrismaEinsatz({
         id: 'einsatz-a',
+        nummer: 'E2026-020',
         alarmstichwort: 'Brand A',
         createdAt: now,
       });
       const einsatz2 = createMockPrismaEinsatz({
         id: 'einsatz-b',
+        nummer: 'E2026-021',
         alarmstichwort: 'Brand B',
         createdAt: now,
       });
@@ -607,11 +622,12 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
       expect(result.value!.map((dto) => dto.alarmstichwort).sort()).toEqual(['Brand A', 'Brand B']);
     });
 
-    it('should handle very short Einsatz IDs (< 8 chars)', async () => {
-      // Given: Einsatz mit kurzer ID (Edge Case, sollte nicht vorkommen aber robust sein)
+    it('should read nummer from DB regardless of ID length', async () => {
+      // Given: Einsatz mit kurzer ID - nummer kommt aus DB-Spalte
       const mockEinsatz = createMockPrismaEinsatz({
         id: 'abc123', // Nur 6 Zeichen
-        createdAt: new Date('2024-01-15T10:30:00.000Z'),
+        nummer: 'E2026-022',
+        createdAt: new Date('2026-01-15T10:30:00.000Z'),
       });
 
       mockPrismaService.einsatz.findMany.mockResolvedValue([mockEinsatz]);
@@ -620,10 +636,10 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
       // When
       const result = await handler.execute(query);
 
-      // Then: Nummer = E2024-abc123 (vollständige ID, da < 8 chars)
+      // Then: Nummer = E2026-022 (aus DB-Spalte)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(1);
-      expect(result.value![0].nummer).toBe('E2024-abc123');
+      expect(result.value![0].nummer).toBe('E2026-022');
     });
 
     it('should preserve exact createdAt timestamp in DTO', async () => {
@@ -649,10 +665,11 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
       // Given: Vollständiger Mock-Einsatz
       const mockEinsatz = createMockPrismaEinsatz({
         id: 'test-id-full',
+        nummer: 'E2026-023',
         alarmstichwort: 'Volltest',
         einsatzort: 'Teststadt',
         status: 'ABGESCHLOSSEN',
-        createdAt: new Date('2024-06-10T08:00:00.000Z'),
+        createdAt: new Date('2026-06-10T08:00:00.000Z'),
         etbEintraegeCount: 42,
         poisCount: 13,
       });
@@ -668,11 +685,11 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
       const dto: EinsatzListItemDto = result.value![0];
 
       expect(dto.id).toBe('test-id-full');
-      expect(dto.nummer).toBe('E2024-test-id-');
+      expect(dto.nummer).toBe('E2026-023');
       expect(dto.alarmstichwort).toBe('Volltest');
       expect(dto.status).toBe('ABGESCHLOSSEN');
       expect(dto.einsatzort).toEqual({ ort: 'Teststadt' });
-      expect(dto.createdAt).toEqual(new Date('2024-06-10T08:00:00.000Z'));
+      expect(dto.createdAt).toEqual(new Date('2026-06-10T08:00:00.000Z'));
       expect(dto.etbEintraegeCount).toBe(42);
       expect(dto.poisCount).toBe(13);
     });
