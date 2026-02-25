@@ -92,6 +92,7 @@ describe('GetEinsatzByNummerQueryHandler', () => {
         createdBy: userId,
         einsatzort,
         bemerkung: 'Dachstuhl brennt',
+        nummer: 'E2026-001',
       }).value!;
 
       const einsatzNummer = aggregate.nummer;
@@ -119,7 +120,7 @@ describe('GetEinsatzByNummerQueryHandler', () => {
 
     it('should return null when einsatz not found by nummer', async () => {
       // Given
-      const nummer = 'E2024-abc123xy';
+      const nummer = 'E2026-001';
       const query = new GetEinsatzByNummerQuery(nummer);
 
       // Mock: Repository returns null
@@ -145,6 +146,7 @@ describe('GetEinsatzByNummerQueryHandler', () => {
         alarmstichwort: 'Verkehrsunfall',
         createdBy: userId,
         einsatzort,
+        nummer: 'E2026-002',
       }).value!;
 
       const einsatzNummer = aggregate.nummer;
@@ -189,6 +191,7 @@ describe('GetEinsatzByNummerQueryHandler', () => {
         alarmstichwort: 'Wohnungsbrand',
         createdBy: userId,
         bemerkung: 'Person vermisst',
+        nummer: 'E2026-003',
       }).value!;
 
       const einsatzNummer = aggregate.nummer;
@@ -211,6 +214,7 @@ describe('GetEinsatzByNummerQueryHandler', () => {
       const aggregate = Einsatz.create({
         alarmstichwort: 'Technische Hilfeleistung',
         createdBy: userId,
+        nummer: 'E2026-004',
       }).value!;
 
       const einsatzNummer = aggregate.nummer;
@@ -231,7 +235,7 @@ describe('GetEinsatzByNummerQueryHandler', () => {
   describe('Failure Cases', () => {
     it('should handle repository error gracefully', async () => {
       // Given
-      const nummer = 'E2024-abc123xy';
+      const nummer = 'E2026-001';
       const query = new GetEinsatzByNummerQuery(nummer);
 
       // Mock: Repository returns error
@@ -252,7 +256,7 @@ describe('GetEinsatzByNummerQueryHandler', () => {
 
     it('should handle repository exception gracefully', async () => {
       // Given
-      const nummer = 'E2024-abc123xy';
+      const nummer = 'E2026-001';
       const query = new GetEinsatzByNummerQuery(nummer);
 
       // Mock: Repository throws exception
@@ -272,7 +276,7 @@ describe('GetEinsatzByNummerQueryHandler', () => {
 
     it('should handle repository exception with non-Error object', async () => {
       // Given
-      const nummer = 'E2024-abc123xy';
+      const nummer = 'E2026-001';
       const query = new GetEinsatzByNummerQuery(nummer);
 
       // Mock: Repository throws string
@@ -288,7 +292,7 @@ describe('GetEinsatzByNummerQueryHandler', () => {
 
     it('should handle repository returning Result with undefined value and no error', async () => {
       // Given
-      const nummer = 'E2024-abc123xy';
+      const nummer = 'E2026-001';
       const query = new GetEinsatzByNummerQuery(nummer);
 
       // Mock: Repository returns Result.fail without error message
@@ -306,7 +310,7 @@ describe('GetEinsatzByNummerQueryHandler', () => {
   describe('Orchestration Verification', () => {
     it('should call repository.findByNummer with correct nummer', async () => {
       // Given
-      const nummer = 'E2024-test1234';
+      const nummer = 'E2026-002';
       const query = new GetEinsatzByNummerQuery(nummer);
       mockRepo.findByNummer.mockResolvedValue(Result.ok(null));
 
@@ -324,6 +328,7 @@ describe('GetEinsatzByNummerQueryHandler', () => {
       const aggregate = Einsatz.create({
         alarmstichwort: 'Wohnungsbrand',
         createdBy: userId,
+        nummer: 'E2026-005',
       }).value!;
 
       const einsatzNummer = aggregate.nummer;
@@ -346,6 +351,7 @@ describe('GetEinsatzByNummerQueryHandler', () => {
         alarmstichwort: 'Wohnungsbrand',
         createdBy: userId,
         bemerkung: 'Original',
+        nummer: 'E2026-006',
       }).value!;
 
       const originalAlarmstichwort = aggregate.alarmstichwort;
@@ -372,9 +378,10 @@ describe('GetEinsatzByNummerQueryHandler', () => {
       const aggregate = Einsatz.create({
         alarmstichwort: 'Test',
         createdBy: userId,
+        nummer: 'E2026-007',
       }).value!;
 
-      // Einsatznummer has consistent format (E{YEAR}-{CUID-8})
+      // Einsatznummer has consistent format (E{YEAR}-{SEQ})
       const einsatzNummer = aggregate.nummer;
 
       mockRepo.findByNummer.mockResolvedValue(Result.ok(aggregate));
@@ -395,12 +402,13 @@ describe('GetEinsatzByNummerQueryHandler', () => {
       const aggregate = Einsatz.create({
         alarmstichwort: 'Test',
         createdBy: userId,
+        nummer: 'E2026-008',
       }).value!;
 
       const einsatzNummer = aggregate.nummer;
 
-      // Verify nummer format: E{YEAR}-{8 chars}
-      expect(einsatzNummer).toMatch(/^E\d{4}-[a-z0-9]{8}$/);
+      // Verify nummer format: E{YEAR}-{SEQ}
+      expect(einsatzNummer).toMatch(/^E\d{4}-\d+$/);
 
       mockRepo.findByNummer.mockResolvedValue(Result.ok(aggregate));
 

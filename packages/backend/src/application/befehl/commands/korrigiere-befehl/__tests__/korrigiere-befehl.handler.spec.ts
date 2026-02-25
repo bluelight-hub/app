@@ -18,6 +18,7 @@ describe('KorrigiereBefehlHandler', () => {
     save: jest.Mock;
     findById: jest.Mock;
     findByEinsatzId: jest.Mock;
+    getNextSequenceNumber: jest.Mock;
   };
   let mockPrismaService: {
     $transaction: jest.Mock;
@@ -38,7 +39,7 @@ describe('KorrigiereBefehlHandler', () => {
 
     return Befehl.reconstitute({
       id: befehlId,
-      nummer: 'B2026-orig1234',
+      nummer: 'B-001',
       einsatzId,
       auftrag: 'Original-Auftrag',
       befehlsgeberName: 'EL Mueller',
@@ -75,6 +76,7 @@ describe('KorrigiereBefehlHandler', () => {
       save: jest.fn().mockResolvedValue(Result.ok(undefined)),
       findById: jest.fn(),
       findByEinsatzId: jest.fn(),
+      getNextSequenceNumber: jest.fn().mockResolvedValue(Result.ok(1)),
     };
 
     mockOutboxRepository = {

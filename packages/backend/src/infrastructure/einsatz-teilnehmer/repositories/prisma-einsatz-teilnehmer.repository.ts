@@ -10,9 +10,23 @@ import { Prisma } from '@/generated/prisma/client';
 type PrismaTransactionClient = Prisma.TransactionClient;
 
 /**
+ * Prisma-Include für EinsatzPerson-Join.
+ */
+const EINSATZ_PERSON_INCLUDE = {
+  einsatzPerson: {
+    select: {
+      vorname: true,
+      nachname: true,
+      funkrufname: true,
+      funktion: true,
+    },
+  },
+} as const;
+
+/**
  * Prisma Implementation des EinsatzTeilnehmer Repository.
  *
- * Ermöglicht das Verwalten von Einsatz-Beitritten und Funkrufnamen-Zuordnungen.
+ * Ermöglicht das Verwalten von Einsatz-Beitritten und EinsatzPerson-Verknüpfungen.
  * Wird für ETB-Absender Auto-Fill verwendet.
  */
 @Injectable()
@@ -29,12 +43,29 @@ export class PrismaEinsatzTeilnehmerRepository implements IEinsatzTeilnehmerRepo
   /**
    * Mappt Prisma-Ergebnis zu DTO.
    */
-  private toDto(row: { id: string; einsatzId: string; userId: string; funkrufname: string; joinedAt: Date; leftAt: Date | null }): EinsatzTeilnehmerDto {
+  private toDto(row: {
+    id: string;
+    einsatzId: string;
+    userId: string;
+    einsatzPersonId: string;
+    joinedAt: Date;
+    leftAt: Date | null;
+    einsatzPerson: {
+      vorname: string;
+      nachname: string;
+      funkrufname: string | null;
+      funktion: string;
+    };
+  }): EinsatzTeilnehmerDto {
     return {
       id: row.id,
       einsatzId: row.einsatzId,
       userId: row.userId,
-      funkrufname: row.funkrufname,
+      einsatzPersonId: row.einsatzPersonId,
+      personVorname: row.einsatzPerson.vorname,
+      personNachname: row.einsatzPerson.nachname,
+      personFunkrufname: row.einsatzPerson.funkrufname,
+      personFunktion: row.einsatzPerson.funktion,
       joinedAt: row.joinedAt,
       leftAt: row.leftAt,
     };
@@ -50,6 +81,7 @@ export class PrismaEinsatzTeilnehmerRepository implements IEinsatzTeilnehmerRepo
           userId,
         },
       },
+      include: EINSATZ_PERSON_INCLUDE,
     });
 
     if (!result || result.leftAt !== null) {
@@ -67,6 +99,7 @@ export class PrismaEinsatzTeilnehmerRepository implements IEinsatzTeilnehmerRepo
         einsatzId,
         leftAt: null,
       },
+      include: EINSATZ_PERSON_INCLUDE,
       orderBy: {
         joinedAt: 'asc',
       },
@@ -75,11 +108,27 @@ export class PrismaEinsatzTeilnehmerRepository implements IEinsatzTeilnehmerRepo
     return results.map((r) => this.toDto(r));
   }
 
+  async isPersonAlreadyLinked(einsatzId: string, einsatzPersonId: string, excludeUserId?: string, tx?: TransactionContext): Promise<boolean> {
+    const client = this.getClient(tx);
+
+    const existing = await client.einsatzTeilnehmer.findFirst({
+      where: {
+        einsatzId,
+        einsatzPersonId,
+        leftAt: null,
+        ...(excludeUserId ? { NOT: { userId: excludeUserId } } : {}),
+      },
+      select: { id: true },
+    });
+
+    return !!existing;
+  }
+
   async create(
     teilnehmer: {
       einsatzId: string;
       userId: string;
-      funkrufname: string;
+      einsatzPersonId: string;
     },
     tx?: TransactionContext,
   ): Promise<EinsatzTeilnehmerDto> {
@@ -89,14 +138,15 @@ export class PrismaEinsatzTeilnehmerRepository implements IEinsatzTeilnehmerRepo
       data: {
         einsatzId: teilnehmer.einsatzId,
         userId: teilnehmer.userId,
-        funkrufname: teilnehmer.funkrufname,
+        einsatzPersonId: teilnehmer.einsatzPersonId,
       },
+      include: EINSATZ_PERSON_INCLUDE,
     });
 
     return this.toDto(result);
   }
 
-  async updateFunkrufname(einsatzId: string, userId: string, funkrufname: string, tx?: TransactionContext): Promise<EinsatzTeilnehmerDto | null> {
+  async updateEinsatzPerson(einsatzId: string, userId: string, einsatzPersonId: string, tx?: TransactionContext): Promise<EinsatzTeilnehmerDto | null> {
     const client = this.getClient(tx);
 
     try {
@@ -109,8 +159,9 @@ export class PrismaEinsatzTeilnehmerRepository implements IEinsatzTeilnehmerRepo
           leftAt: null,
         },
         data: {
-          funkrufname,
+          einsatzPersonId,
         },
+        include: EINSATZ_PERSON_INCLUDE,
       });
 
       return this.toDto(result);

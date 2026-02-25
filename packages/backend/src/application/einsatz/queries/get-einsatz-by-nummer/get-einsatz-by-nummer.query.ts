@@ -12,11 +12,11 @@ import { validateRequiredString } from '@application/common/validators/string-va
  * - Testbarkeit: Query-Objekte können isoliert validiert werden
  *
  * **Unterschied zu GetEinsatzByIdQuery:**
- * - ByNummer: Nutzt Business Key (z.B. "E2024-abc123xy") für User-Suche
+ * - ByNummer: Nutzt Business Key (z.B. "E2026-001") für User-Suche
  * - ById: Nutzt interne ID (CUID2) für System-Referenzen
  *
  * **Business Key:**
- * Einsatznummer ist ein eindeutiger Business Key (Format: "E{YEAR}-{CUID-8}"),
+ * Einsatznummer ist ein eindeutiger Business Key (Format: "E{YEAR}-{SEQ}"),
  * der User-sichtbar ist und für Suche/Referenzierung genutzt wird.
  */
 export class GetEinsatzByNummerQuery {
@@ -28,7 +28,7 @@ export class GetEinsatzByNummerQuery {
    * Konstruktor-Validierung stellt sicher, dass ungültige Queries
    * niemals im System existieren (Fail-Fast-Prinzip).
    *
-   * @param nummer - Einsatznummer (z.B. "E2024-abc123xy")
+   * @param nummer - Einsatznummer (z.B. "E2026-001")
    * @throws Error wenn nummer leer oder undefined ist
    */
   constructor(nummer: string) {

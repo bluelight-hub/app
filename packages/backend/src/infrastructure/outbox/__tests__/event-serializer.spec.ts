@@ -125,7 +125,7 @@ describe('EventSerializer', () => {
 
   describe('Einsatz Events', () => {
     it('should serialize EinsatzCreatedEvent correctly', () => {
-      const event = new EinsatzCreatedEvent(einsatzId, userId, 'Wohnungsbrand', 'E2024-abc12345', 'agg-123');
+      const event = new EinsatzCreatedEvent(einsatzId, userId, 'Wohnungsbrand', 'E2026-001', 'agg-123');
 
       const serialized = serializer.serialize(event);
 
@@ -135,7 +135,7 @@ describe('EventSerializer', () => {
         einsatzId: einsatzId.value,
         createdBy: userId.value,
         alarmstichwort: 'Wohnungsbrand',
-        nummer: 'E2024-abc12345',
+        nummer: 'E2026-001',
       });
     });
 
@@ -481,7 +481,7 @@ describe('EventSerializer', () => {
 
   describe('Edge Cases', () => {
     it('should handle event without aggregateId', () => {
-      const event = new EinsatzCreatedEvent(einsatzId, userId, 'Test', 'E2024-xyz');
+      const event = new EinsatzCreatedEvent(einsatzId, userId, 'Test', 'E2026-002');
 
       const serialized = serializer.serialize(event);
 
@@ -490,7 +490,7 @@ describe('EventSerializer', () => {
 
     it('should produce valid ISO8601 timestamp', () => {
       const beforeSerialize = new Date();
-      const event = new EinsatzCreatedEvent(einsatzId, userId, 'Test', 'E2024-xyz');
+      const event = new EinsatzCreatedEvent(einsatzId, userId, 'Test', 'E2026-002');
 
       const serialized = serializer.serialize(event);
       const afterSerialize = new Date();
@@ -517,7 +517,7 @@ describe('EventSerializer', () => {
     });
 
     it('should produce JSON-serializable output', () => {
-      const event = new EinsatzCreatedEvent(einsatzId, userId, 'Wohnungsbrand', 'E2024-abc12345', 'agg-123');
+      const event = new EinsatzCreatedEvent(einsatzId, userId, 'Wohnungsbrand', 'E2026-001', 'agg-123');
 
       const serialized = serializer.serialize(event);
 

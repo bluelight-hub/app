@@ -12,6 +12,7 @@ import type { DomainEvent } from '@domain/common/domain-event';
 import type { TransactionContext } from '@domain/common';
 import { Result } from '@domain/common/result';
 import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
+import { EinsatzNamingService } from '@domain/services/einsatz-naming.service';
 
 /**
  * Handler für CreateEinsatzCommand mit Transactional Outbox Pattern.
@@ -31,7 +32,7 @@ import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/d
  * **Business Rules (vom Aggregate enforced):**
  * - Alarmstichwort ist Pflichtfeld
  * - Initialer Status ist ANGELEGT
- * - Einsatznummer wird auto-generiert (E{YEAR}-{CUID-8})
+ * - Einsatznummer wird auto-generiert (E{YEAR}-{SEQ})
  *
  * **Event Flow:**
  * - EinsatzCreatedEvent wird in Outbox persistiert (PENDING status)
@@ -104,11 +105,27 @@ export class CreateEinsatzHandler extends TransactionalCommandHandler<CreateEins
       return Result.fail('Ungültige User-ID'); // ✅ Result Pattern statt Exception
     }
 
+    // Step 1b: Generate sequential Einsatznummer
+    const year = new Date().getFullYear();
+    const seqResult = await this.einsatzRepository.getNextSequenceNumber(year, tx);
+    if (seqResult.isFailure) {
+      this.logger.error('Failed to get next sequence number', {
+        error: seqResult.error,
+        year,
+        operation: 'createEinsatz',
+        phase: 'sequencing',
+      });
+      return Result.fail(seqResult.error ?? 'Sequenznummer konnte nicht ermittelt werden');
+    }
+    const namingService = new EinsatzNamingService();
+    const nummer = namingService.generateEinsatzNummer(year, seqResult.value!);
+
     // Step 2: Create Aggregate via Factory Method
     // Business Rules werden vom Aggregate enforced (alarmstichwort required, status = ANGELEGT)
     const aggregateResult = Einsatz.create({
       alarmstichwort: command.alarmstichwort,
       createdBy: userId,
+      nummer,
       einsatzort: command.einsatzort,
       bemerkung: command.bemerkung,
     });

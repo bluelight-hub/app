@@ -63,6 +63,7 @@ const createMockEinsatz = (overrides: Partial<{ status: EinsatzStatus; alarmstic
   const einsatzResult = Einsatz.create({
     alarmstichwort,
     createdBy: userId,
+    nummer: 'E2026-001',
   });
 
   if (einsatzResult.isFailure) {

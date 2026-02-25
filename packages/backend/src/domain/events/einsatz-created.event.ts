@@ -25,7 +25,7 @@ import { EVENT_NAMES } from './event-names';
  *   einsatzId,
  *   createdBy,
  *   'Wohnungsbrand',
- *   'E2024-abc12345',
+ *   'E2026-001',
  *   'aggregate-einsatz-123'
  * );
  *
@@ -35,7 +35,7 @@ import { EVENT_NAMES } from './event-names';
  * console.log(event.einsatzId);      // EinsatzId instance
  * console.log(event.createdBy);      // UserId instance
  * console.log(event.alarmstichwort); // "Wohnungsbrand"
- * console.log(event.nummer);         // "E2024-abc12345"
+ * console.log(event.nummer);         // "E2026-001"
  * console.log(event.aggregateId);    // "aggregate-einsatz-123"
  *
  * // Event Routing
@@ -51,7 +51,7 @@ export class EinsatzCreatedEvent extends DomainEvent {
    * @param einsatzId - Type-Safe ID des erstellten Einsatzes
    * @param createdBy - Type-Safe ID des Users der den Einsatz erstellt hat
    * @param alarmstichwort - Alarmstichwort des Einsatzes (z.B. "Wohnungsbrand", "Verkehrsunfall")
-   * @param nummer - Human-readable Einsatznummer (Format: E{YEAR}-{CUID-8}, z.B. "E2024-abc12345")
+   * @param nummer - Human-readable Einsatznummer (Format: E{YEAR}-{SEQ}, z.B. "E2026-001")
    * @param aggregateId - Optional: ID der Einsatz Aggregate Root (für Event Store)
    */
   constructor(

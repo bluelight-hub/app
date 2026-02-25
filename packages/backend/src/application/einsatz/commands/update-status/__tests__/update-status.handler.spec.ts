@@ -20,6 +20,7 @@ const createMockEinsatz = (status: EinsatzStatus = EinsatzStatus.ANGELEGT()): Ei
   const einsatz = Einsatz.create({
     alarmstichwort: 'Testbrand',
     createdBy: userId,
+    nummer: 'E2026-001',
   }).value!;
 
   // Set status through valid transitions

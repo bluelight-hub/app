@@ -1,6 +1,5 @@
 import { ValueObject } from '@domain/common/value-object';
 import { Result } from '@domain/common/result';
-import { createId } from '@paralleldrive/cuid2';
 
 /**
  * Props für BefehlNummer Value Object.
@@ -12,12 +11,12 @@ interface BefehlNummerProps extends Record<string, unknown> {
 /**
  * BefehlNummer Value Object.
  *
- * Format: `B{YEAR}-{CUID-8}` (z.B. "B2026-abc12def")
- * Analog zu EinsatzNummer, aber mit CUID-8 statt Sequenznummer.
+ * Format: `B-{SEQ}` (z.B. "B-001", "B-042")
+ * Laufende Nummer pro Einsatz, kein Jahr nötig.
  */
 export class BefehlNummer extends ValueObject<BefehlNummerProps> {
-  /** Regex für das Befehlsnummer-Format: B{4-stelliges Jahr}-{8 alphanumerische Zeichen} */
-  private static readonly FORMAT_REGEX = /^B\d{4}-[a-z0-9]{8}$/;
+  /** Regex für das Befehlsnummer-Format: B-{3+ stellige Zahl} */
+  private static readonly FORMAT_REGEX = /^B-\d{3,}$/;
 
   get value(): string {
     return this.props.value;
@@ -32,18 +31,9 @@ export class BefehlNummer extends ValueObject<BefehlNummerProps> {
    */
   static create(value: string): Result<BefehlNummer> {
     if (!BefehlNummer.FORMAT_REGEX.test(value)) {
-      return Result.fail<BefehlNummer>(`Ungültiges Befehlsnummer-Format: ${value}. Erwartetes Format: B{YEAR}-{CUID-8}`);
+      return Result.fail<BefehlNummer>(`Ungültiges Befehlsnummer-Format: ${value}. Erwartetes Format: B-{SEQ} (z.B. B-001)`);
     }
     return Result.ok<BefehlNummer>(new BefehlNummer(value));
-  }
-
-  /**
-   * Generiert eine neue Befehlsnummer mit dem aktuellen Jahr und einem CUID-8 Suffix.
-   */
-  static generateNummer(): BefehlNummer {
-    const year = new Date().getFullYear();
-    const cuidSuffix = createId().substring(0, 8);
-    return new BefehlNummer(`B${year}-${cuidSuffix}`);
   }
 
   public toString(): string {

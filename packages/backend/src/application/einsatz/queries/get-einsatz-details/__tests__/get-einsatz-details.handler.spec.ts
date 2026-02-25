@@ -77,6 +77,7 @@ describe('GetEinsatzDetailsQueryHandler', () => {
         const einsatz = Einsatz.create({
           alarmstichwort: 'Wohnungsbrand',
           createdBy: userId,
+          nummer: 'E2026-001',
         }).value!;
 
         const etbAggregate = EinsatztagebuchAggregate.create(einsatz.id).value!;
@@ -131,6 +132,7 @@ describe('GetEinsatzDetailsQueryHandler', () => {
         const einsatz = Einsatz.create({
           alarmstichwort: 'Großbrand',
           createdBy: userId,
+          nummer: 'E2026-002',
           einsatzort: address,
           bemerkung: 'Dachstuhl brennt, Personen evakuiert',
         }).value!;
@@ -171,6 +173,7 @@ describe('GetEinsatzDetailsQueryHandler', () => {
         const einsatz = Einsatz.create({
           alarmstichwort: 'Verkehrsunfall',
           createdBy: userId,
+          nummer: 'E2026-003',
         }).value!;
 
         const lagekarteAggregate = LagekarteAggregate.create(einsatz.id, userId).value!;
@@ -205,6 +208,7 @@ describe('GetEinsatzDetailsQueryHandler', () => {
         const einsatz = Einsatz.create({
           alarmstichwort: 'Technische Hilfeleistung',
           createdBy: userId,
+          nummer: 'E2026-004',
         }).value!;
 
         const etbAggregate = EinsatztagebuchAggregate.create(einsatz.id).value!;
@@ -237,6 +241,7 @@ describe('GetEinsatzDetailsQueryHandler', () => {
         const einsatz = Einsatz.create({
           alarmstichwort: 'Fehlalarm',
           createdBy: userId,
+          nummer: 'E2026-005',
         }).value!;
 
         mockEinsatzRepository.findById.mockResolvedValue(Result.ok(einsatz));
@@ -308,6 +313,7 @@ describe('GetEinsatzDetailsQueryHandler', () => {
         const einsatz = Einsatz.create({
           alarmstichwort: 'Brand',
           createdBy: userId,
+          nummer: 'E2026-006',
         }).value!;
 
         mockEinsatzRepository.findById.mockResolvedValue(Result.ok(einsatz));
@@ -330,6 +336,7 @@ describe('GetEinsatzDetailsQueryHandler', () => {
         const einsatz = Einsatz.create({
           alarmstichwort: 'Brand',
           createdBy: userId,
+          nummer: 'E2026-007',
         }).value!;
 
         const etbAggregate = EinsatztagebuchAggregate.create(einsatz.id).value!;
@@ -377,6 +384,7 @@ describe('GetEinsatzDetailsQueryHandler', () => {
         const einsatz = Einsatz.create({
           alarmstichwort: 'Test',
           createdBy: userId,
+          nummer: 'E2026-008',
         }).value!;
 
         // Mock returns Result.ok(Einsatz)
@@ -401,6 +409,7 @@ describe('GetEinsatzDetailsQueryHandler', () => {
         const einsatz = Einsatz.create({
           alarmstichwort: 'Test',
           createdBy: userId,
+          nummer: 'E2026-009',
         }).value!;
 
         const etbAggregate = EinsatztagebuchAggregate.create(einsatz.id).value!;
@@ -427,6 +436,7 @@ describe('GetEinsatzDetailsQueryHandler', () => {
         const einsatz = Einsatz.create({
           alarmstichwort: 'Test',
           createdBy: userId,
+          nummer: 'E2026-010',
         }).value!;
 
         const lagekarteAggregate = LagekarteAggregate.create(einsatz.id, userId).value!;

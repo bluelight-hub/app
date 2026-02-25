@@ -210,6 +210,7 @@ describe('PrismaEtbRepository - Integration Tests', () => {
     const einsatzResult = await prisma.einsatz.create({
       data: {
         id: generateTestId(),
+        nummer: `E2026-ETBR-${testRunId}`,
         alarmstichwort: `TEST - ETB Repository ${testRunId}`,
         einsatzort: 'Test-Einsatzort für ETB Repository Tests',
         status: 'ANGELEGT',
@@ -662,6 +663,7 @@ describe('PrismaEtbRepository - Integration Tests', () => {
       const einsatz2 = await prisma.einsatz.create({
         data: {
           id: generateTestId(),
+          nummer: `E2026-ETBR-NE-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           alarmstichwort: `TEST - No ETB ${testRunId}`,
           status: 'ANGELEGT',
           createdBy: testUserId,

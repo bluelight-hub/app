@@ -41,7 +41,7 @@ describe('AddBefehlKommentarHandler', () => {
 
     return Befehl.reconstitute({
       id: befehlId,
-      nummer: 'B2026-abc12345',
+      nummer: 'B-001',
       einsatzId,
       auftrag: 'Patientenablage einrichten',
       befehlsgeberName: 'EL Müller',
@@ -131,7 +131,7 @@ describe('AddBefehlKommentarHandler', () => {
       const empfaenger = BefehlEmpfaenger.reconstitute('emp-1', 'ZF Nord', empfaengerId, new Date(), undefined, undefined);
       const befehl = Befehl.reconstitute({
         id: befehlId,
-        nummer: 'B2026-abc12345',
+        nummer: 'B-001',
         einsatzId,
         auftrag: 'Patientenablage einrichten',
         befehlsgeberName: 'EL Müller',

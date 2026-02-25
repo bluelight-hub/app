@@ -22,6 +22,7 @@ const createMockEinsatz = (options: { status?: EinsatzStatus; abgeschlossenYears
   const einsatz = Einsatz.create({
     alarmstichwort: 'Testbrand',
     createdBy: userId,
+    nummer: 'E2026-001',
   }).value!;
 
   // Transition zu IN_BEARBEITUNG dann ABGESCHLOSSEN wenn nötig

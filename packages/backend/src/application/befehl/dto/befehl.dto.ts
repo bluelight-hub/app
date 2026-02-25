@@ -28,7 +28,7 @@ export class BefehlDto {
   @ApiProperty({ description: 'Befehl-ID', example: 'clw3h8x9y0000qwertyuiopas' })
   id!: string;
 
-  @ApiProperty({ description: 'Befehlsnummer (Format: B{YEAR}-{CUID-8})', example: 'B2026-abc123xy' })
+  @ApiProperty({ description: 'Befehlsnummer (Format: B-{SEQ})', example: 'B-001' })
   nummer!: string;
 
   @ApiProperty({ description: 'Einsatz-ID', example: 'clw3h8x9y0010qwertyuiopas' })

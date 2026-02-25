@@ -132,6 +132,7 @@ class InMemoryEinsatzRepository implements IEinsatzRepository {
       const result = Einsatz.create({
         alarmstichwort: 'Brand Gebäude',
         createdBy,
+        nummer: 'E2026-001',
         einsatzort: address,
         bemerkung: 'Mehrere Personen vermisst',
       });
@@ -159,6 +160,7 @@ class InMemoryEinsatzRepository implements IEinsatzRepository {
       const result = Einsatz.create({
         alarmstichwort: 'Verkehrsunfall',
         createdBy,
+        nummer: 'E2026-002',
       });
 
       // Then: Creation succeeds with optional fields undefined
@@ -195,6 +197,7 @@ class InMemoryEinsatzRepository implements IEinsatzRepository {
       const createResult = Einsatz.create({
         alarmstichwort: 'Großbrand',
         createdBy,
+        nummer: 'E2026-001',
       });
       expect(createResult.isSuccess).toBe(true);
       const einsatz = createResult.value!;
@@ -245,14 +248,17 @@ class InMemoryEinsatzRepository implements IEinsatzRepository {
       const einsatz1 = Einsatz.create({
         alarmstichwort: 'Einsatz 1',
         createdBy: user,
+        nummer: 'E2026-001',
       }).value!;
       const einsatz2 = Einsatz.create({
         alarmstichwort: 'Einsatz 2',
         createdBy: user,
+        nummer: 'E2026-002',
       }).value!;
       const einsatz3 = Einsatz.create({
         alarmstichwort: 'Einsatz 3',
         createdBy: user,
+        nummer: 'E2026-003',
       }).value!;
 
       await repository.save(einsatz1);
@@ -286,6 +292,7 @@ class InMemoryEinsatzRepository implements IEinsatzRepository {
       const einsatz = Einsatz.create({
         alarmstichwort: 'Test Event Accumulation',
         createdBy,
+        nummer: 'E2026-001',
       }).value!;
 
       // Then: After creation, one event (EinsatzCreatedEvent)
@@ -315,6 +322,7 @@ class InMemoryEinsatzRepository implements IEinsatzRepository {
       const einsatz = Einsatz.create({
         alarmstichwort: 'Invalid Transition Test',
         createdBy: user,
+        nummer: 'E2026-001',
       }).value!;
 
       // Complete the Einsatz (ANGELEGT → ABGESCHLOSSEN)
@@ -338,6 +346,7 @@ class InMemoryEinsatzRepository implements IEinsatzRepository {
       const einsatz = Einsatz.create({
         alarmstichwort: 'Clear Events Test',
         createdBy: user,
+        nummer: 'E2026-001',
       }).value!;
 
       einsatz.complete(user);
@@ -368,6 +377,7 @@ class InMemoryEinsatzRepository implements IEinsatzRepository {
       const einsatz = Einsatz.create({
         alarmstichwort: 'Repository Test',
         createdBy: user,
+        nummer: 'E2026-001',
       }).value!;
 
       // When: Einsatz is saved
@@ -388,6 +398,7 @@ class InMemoryEinsatzRepository implements IEinsatzRepository {
       const einsatz = Einsatz.create({
         alarmstichwort: 'Find by Nummer',
         createdBy: user,
+        nummer: 'E2026-001',
       }).value!;
 
       await repository.save(einsatz);
@@ -407,6 +418,7 @@ class InMemoryEinsatzRepository implements IEinsatzRepository {
       const einsatz = Einsatz.create({
         alarmstichwort: 'Exists Test',
         createdBy: user,
+        nummer: 'E2026-001',
       }).value!;
 
       await repository.save(einsatz);
@@ -488,6 +500,7 @@ class InMemoryEinsatzRepository implements IEinsatzRepository {
       const result = Einsatz.create({
         alarmstichwort: 'Type Safety Test',
         createdBy, // TypeScript ensures this is UserId
+        nummer: 'E2026-001',
       });
 
       // Then: Creation succeeds with correct types
@@ -510,15 +523,18 @@ class InMemoryEinsatzRepository implements IEinsatzRepository {
       const angelegt = Einsatz.create({
         alarmstichwort: 'Status: ANGELEGT',
         createdBy: user,
+        nummer: 'E2026-001',
       }).value!;
       const completed = Einsatz.create({
         alarmstichwort: 'Status: ABGESCHLOSSEN',
         createdBy: user,
+        nummer: 'E2026-002',
       }).value!;
       completed.complete(user);
       const archived = Einsatz.create({
         alarmstichwort: 'Status: ARCHIVIERT',
         createdBy: user,
+        nummer: 'E2026-003',
       }).value!;
       archived.archive(user);
 
@@ -534,6 +550,7 @@ class InMemoryEinsatzRepository implements IEinsatzRepository {
       const einsatz = Einsatz.create({
         alarmstichwort: 'Archival Immutability Test',
         createdBy: user,
+        nummer: 'E2026-001',
       }).value!;
 
       einsatz.archive(user);
@@ -553,6 +570,7 @@ class InMemoryEinsatzRepository implements IEinsatzRepository {
       const einsatz = Einsatz.create({
         alarmstichwort: 'State Machine Test',
         createdBy: user,
+        nummer: 'E2026-001',
       }).value!;
 
       // Then: Valid transitions work

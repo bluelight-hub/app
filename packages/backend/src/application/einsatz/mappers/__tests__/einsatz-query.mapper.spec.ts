@@ -85,7 +85,7 @@ interface MockEinsatz {
 function createMockEinsatz(overrides: Partial<MockEinsatzProps> = {}): MockEinsatz {
   const defaults: MockEinsatzProps = {
     id: generateTestId(),
-    nummer: 'E2024-abc123xy',
+    nummer: 'E2026-001',
     alarmstichwort: 'Wohnungsbrand',
     status: 'ANGELEGT',
     einsatzort: undefined,
@@ -173,7 +173,7 @@ describe('EinsatzQueryMapper', () => {
 
       // Then - Alle Pflichtfelder sind korrekt gemappt
       expect(dto.id).toBe(mockEinsatz.id.value);
-      expect(dto.nummer).toBe('E2024-abc123xy');
+      expect(dto.nummer).toBe('E2026-001');
       expect(dto.alarmstichwort).toBe('Wohnungsbrand');
       expect(dto.status).toBe('ANGELEGT');
       expect(dto.createdBy).toBe(mockEinsatz.createdBy.value);

@@ -35,7 +35,7 @@ describe('BefehlCsvService', () => {
 
     return Befehl.reconstitute({
       id: BefehlId.create().value as BefehlId,
-      nummer: overrides?.nummer ?? 'B2026-test1234',
+      nummer: overrides?.nummer ?? 'B-001',
       einsatzId: EinsatzId.create('cm5einsatzid123').value as EinsatzId,
       auftrag: overrides?.auftrag ?? 'Patientenablage einrichten',
       befehlsgeberName: overrides?.befehlsgeberName ?? 'EL Mueller',
@@ -77,7 +77,7 @@ describe('BefehlCsvService', () => {
   describe('Datenzeilen', () => {
     it('sollte Befehl-Daten korrekt in CSV-Zeilen formatieren', () => {
       const befehl = createMockBefehl({
-        nummer: 'B2026-abc12345',
+        nummer: 'B-002',
         auftrag: 'Wasser marsch',
         befehlsgeberName: 'EL Schmidt',
         status: 'ERTEILT',
@@ -90,7 +90,7 @@ describe('BefehlCsvService', () => {
       // Zeile 0 = BOM+Header, Zeile 1 = Daten, Zeile 2 = Leer (nach letztem CRLF)
       expect(lines.length).toBeGreaterThanOrEqual(2);
       const dataLine = lines[1];
-      expect(dataLine).toContain('B2026-abc12345');
+      expect(dataLine).toContain('B-002');
       expect(dataLine).toContain('EL Schmidt');
       expect(dataLine).toContain('Wasser marsch');
       expect(dataLine).toContain('ZF Nord');

@@ -51,6 +51,7 @@ describe('EinsatzAggregate', () => {
       const props = {
         alarmstichwort: 'Wohnungsbrand',
         createdBy,
+        nummer: 'E2026-001',
         einsatzort,
         bemerkung: 'Dachstuhl brennt',
       };
@@ -67,8 +68,7 @@ describe('EinsatzAggregate', () => {
       expect(einsatz.einsatzort).toBe(einsatzort);
       expect(einsatz.bemerkung).toBe('Dachstuhl brennt');
       expect(einsatz.status.value).toBe('ANGELEGT');
-      expect(einsatz.nummer).toBeDefined();
-      expect(einsatz.nummer).toMatch(/^E\d{4}-[a-z0-9]{8}$/); // Format: E2024-clw3h8x9
+      expect(einsatz.nummer).toBe('E2026-001');
       expect(einsatz.abgeschlossenAt).toBeUndefined();
       expect(einsatz.archivedAt).toBeUndefined();
     });
@@ -79,6 +79,7 @@ describe('EinsatzAggregate', () => {
       const props = {
         alarmstichwort: 'Verkehrsunfall',
         createdBy,
+        nummer: 'E2026-002',
       };
 
       // When: Einsatz wird erstellt
@@ -101,6 +102,7 @@ describe('EinsatzAggregate', () => {
       const props = {
         alarmstichwort: '',
         createdBy,
+        nummer: 'E2026-001',
       };
 
       // When: Einsatz wird erstellt
@@ -117,6 +119,7 @@ describe('EinsatzAggregate', () => {
       const props = {
         alarmstichwort: '  Großbrand  ',
         createdBy,
+        nummer: 'E2026-001',
       };
 
       // When: Einsatz wird erstellt
@@ -134,6 +137,7 @@ describe('EinsatzAggregate', () => {
       const props = {
         alarmstichwort: '   ',
         createdBy,
+        nummer: 'E2026-001',
       };
 
       // When: Einsatz wird erstellt
@@ -150,6 +154,7 @@ describe('EinsatzAggregate', () => {
       const props = {
         alarmstichwort: 'Brand',
         createdBy,
+        nummer: 'E2026-001',
         bemerkung: '  Wichtige Info  ',
       };
 
@@ -168,6 +173,7 @@ describe('EinsatzAggregate', () => {
       const props = {
         alarmstichwort: 'Wohnungsbrand',
         createdBy,
+        nummer: 'E2026-001',
       };
 
       // When: Einsatz wird erstellt
@@ -187,23 +193,19 @@ describe('EinsatzAggregate', () => {
       expect(createdEvent.nummer).toBe(einsatz.nummer);
     });
 
-    it('sollte unique Einsatznummern generieren', () => {
-      // Given: Mehrere Einsätze
+    it('sollte übergebene Nummer korrekt setzen', () => {
+      // Given: Einsatz mit expliziter Nummer
       const createdBy = UserId.create().value!;
-      const props = {
-        alarmstichwort: 'Test',
-        createdBy,
-      };
 
-      // When: Mehrere Einsätze werden erstellt
-      const einsatz1 = Einsatz.create(props).value!;
-      const einsatz2 = Einsatz.create(props).value!;
-      const einsatz3 = Einsatz.create(props).value!;
+      // When: Einsätze mit verschiedenen Nummern erstellt werden
+      const einsatz1 = Einsatz.create({ alarmstichwort: 'Test', createdBy, nummer: 'E2026-001' }).value!;
+      const einsatz2 = Einsatz.create({ alarmstichwort: 'Test', createdBy, nummer: 'E2026-002' }).value!;
+      const einsatz3 = Einsatz.create({ alarmstichwort: 'Test', createdBy, nummer: 'E2026-003' }).value!;
 
-      // Then: Alle Einsatznummern sind unique
-      const nummern = [einsatz1.nummer, einsatz2.nummer, einsatz3.nummer];
-      const uniqueNummern = new Set(nummern);
-      expect(uniqueNummern.size).toBe(3);
+      // Then: Alle Nummern entsprechen den übergebenen Werten
+      expect(einsatz1.nummer).toBe('E2026-001');
+      expect(einsatz2.nummer).toBe('E2026-002');
+      expect(einsatz3.nummer).toBe('E2026-003');
     });
   });
 
@@ -215,7 +217,7 @@ describe('EinsatzAggregate', () => {
     it('sollte Einsatz erfolgreich abschließen von Status ANGELEGT', () => {
       // Given: Einsatz mit Status ANGELEGT
       const createdBy = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
       einsatz.clearDomainEvents(); // Clear creation event
 
       const userId = UserId.create().value!;
@@ -248,7 +250,7 @@ describe('EinsatzAggregate', () => {
     it('sollte Einsatz erfolgreich abschließen von Status IN_BEARBEITUNG', () => {
       // Given: Einsatz mit Status IN_BEARBEITUNG
       const createdBy = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
       einsatz.updateStatus(EinsatzStatus.IN_BEARBEITUNG());
       einsatz.clearDomainEvents();
 
@@ -265,7 +267,7 @@ describe('EinsatzAggregate', () => {
     it('sollte Einsatz erfolgreich abschließen von Status AUSSTEHEND (nicht im Code, aber test für State Machine)', () => {
       // Given: Einsatz mit Status ANGELEGT (kann direkt zu ABGESCHLOSSEN)
       const createdBy = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
       einsatz.clearDomainEvents();
 
       const userId = UserId.create().value!;
@@ -282,7 +284,7 @@ describe('EinsatzAggregate', () => {
       // Given: Einsatz mit Status ABGESCHLOSSEN
       const createdBy = UserId.create().value!;
       const userId = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
       einsatz.complete(userId);
       einsatz.clearDomainEvents();
 
@@ -299,7 +301,7 @@ describe('EinsatzAggregate', () => {
       // Given: Einsatz mit Status ARCHIVIERT
       const createdBy = UserId.create().value!;
       const userId = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
       einsatz.complete(userId);
       einsatz.archive(userId);
       einsatz.clearDomainEvents();
@@ -326,7 +328,7 @@ describe('EinsatzAggregate', () => {
       // Given: Einsatz mit Status ABGESCHLOSSEN
       const createdBy = UserId.create().value!;
       const userId = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
       einsatz.complete(userId);
       einsatz.clearDomainEvents();
 
@@ -358,7 +360,7 @@ describe('EinsatzAggregate', () => {
       // Given: Einsatz mit Status ANGELEGT
       const createdBy = UserId.create().value!;
       const userId = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
       einsatz.clearDomainEvents();
 
       // When: Einsatz wird direkt archiviert
@@ -373,7 +375,7 @@ describe('EinsatzAggregate', () => {
       // Given: Einsatz mit Status IN_BEARBEITUNG
       const createdBy = UserId.create().value!;
       const userId = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
       einsatz.updateStatus(EinsatzStatus.IN_BEARBEITUNG());
       einsatz.clearDomainEvents();
 
@@ -389,7 +391,7 @@ describe('EinsatzAggregate', () => {
       // Given: Einsatz mit Status ARCHIVIERT
       const createdBy = UserId.create().value!;
       const userId = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
       einsatz.archive(userId);
       einsatz.clearDomainEvents();
 
@@ -409,7 +411,7 @@ describe('EinsatzAggregate', () => {
       // Given: Archivierter Einsatz
       const createdBy = UserId.create().value!;
       const userId = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
       einsatz.archive(userId);
       einsatz.clearDomainEvents();
 
@@ -443,7 +445,7 @@ describe('EinsatzAggregate', () => {
       it('sollte gültige Transition ANGELEGT → IN_BEARBEITUNG durchführen', () => {
         // Given: Einsatz mit Status ANGELEGT
         const createdBy = UserId.create().value!;
-        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
         einsatz.clearDomainEvents();
 
         // When: Status wird zu IN_BEARBEITUNG geändert
@@ -466,7 +468,7 @@ describe('EinsatzAggregate', () => {
       it('sollte gültige Transition ANGELEGT → ABGESCHLOSSEN durchführen', () => {
         // Given: Einsatz mit Status ANGELEGT
         const createdBy = UserId.create().value!;
-        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
         einsatz.clearDomainEvents();
 
         // When: Status wird direkt zu ABGESCHLOSSEN geändert
@@ -480,7 +482,7 @@ describe('EinsatzAggregate', () => {
       it('sollte gültige Transition ANGELEGT → ARCHIVIERT durchführen', () => {
         // Given: Einsatz mit Status ANGELEGT
         const createdBy = UserId.create().value!;
-        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
         einsatz.clearDomainEvents();
 
         // When: Status wird direkt zu ARCHIVIERT geändert
@@ -494,7 +496,7 @@ describe('EinsatzAggregate', () => {
       it('sollte gültige Transition IN_BEARBEITUNG → ABGESCHLOSSEN durchführen', () => {
         // Given: Einsatz mit Status IN_BEARBEITUNG
         const createdBy = UserId.create().value!;
-        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
         einsatz.updateStatus(EinsatzStatus.IN_BEARBEITUNG());
         einsatz.clearDomainEvents();
 
@@ -509,7 +511,7 @@ describe('EinsatzAggregate', () => {
       it('sollte gültige Transition IN_BEARBEITUNG → ARCHIVIERT durchführen', () => {
         // Given: Einsatz mit Status IN_BEARBEITUNG
         const createdBy = UserId.create().value!;
-        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
         einsatz.updateStatus(EinsatzStatus.IN_BEARBEITUNG());
         einsatz.clearDomainEvents();
 
@@ -524,7 +526,7 @@ describe('EinsatzAggregate', () => {
       it('sollte gültige Transition ABGESCHLOSSEN → ARCHIVIERT durchführen', () => {
         // Given: Einsatz mit Status ABGESCHLOSSEN
         const createdBy = UserId.create().value!;
-        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
         einsatz.updateStatus(EinsatzStatus.ABGESCHLOSSEN());
         einsatz.clearDomainEvents();
 
@@ -541,7 +543,7 @@ describe('EinsatzAggregate', () => {
       it('sollte ungültige Transition IN_BEARBEITUNG → ANGELEGT verhindern', () => {
         // Given: Einsatz mit Status IN_BEARBEITUNG
         const createdBy = UserId.create().value!;
-        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
         einsatz.updateStatus(EinsatzStatus.IN_BEARBEITUNG());
         einsatz.clearDomainEvents();
 
@@ -561,7 +563,7 @@ describe('EinsatzAggregate', () => {
       it('sollte ungültige Transition ABGESCHLOSSEN → ANGELEGT verhindern', () => {
         // Given: Einsatz mit Status ABGESCHLOSSEN
         const createdBy = UserId.create().value!;
-        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
         einsatz.updateStatus(EinsatzStatus.ABGESCHLOSSEN());
         einsatz.clearDomainEvents();
 
@@ -576,7 +578,7 @@ describe('EinsatzAggregate', () => {
       it('sollte ungültige Transition ABGESCHLOSSEN → IN_BEARBEITUNG verhindern', () => {
         // Given: Einsatz mit Status ABGESCHLOSSEN
         const createdBy = UserId.create().value!;
-        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
         einsatz.updateStatus(EinsatzStatus.ABGESCHLOSSEN());
         einsatz.clearDomainEvents();
 
@@ -591,7 +593,7 @@ describe('EinsatzAggregate', () => {
       it('sollte ungültige Transition ARCHIVIERT → ANGELEGT verhindern', () => {
         // Given: Einsatz mit Status ARCHIVIERT
         const createdBy = UserId.create().value!;
-        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
         einsatz.updateStatus(EinsatzStatus.ARCHIVIERT());
         einsatz.clearDomainEvents();
 
@@ -606,7 +608,7 @@ describe('EinsatzAggregate', () => {
       it('sollte ungültige Transition ARCHIVIERT → IN_BEARBEITUNG verhindern', () => {
         // Given: Einsatz mit Status ARCHIVIERT
         const createdBy = UserId.create().value!;
-        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
         einsatz.updateStatus(EinsatzStatus.ARCHIVIERT());
         einsatz.clearDomainEvents();
 
@@ -621,7 +623,7 @@ describe('EinsatzAggregate', () => {
       it('sollte ungültige Transition ARCHIVIERT → ABGESCHLOSSEN verhindern', () => {
         // Given: Einsatz mit Status ARCHIVIERT
         const createdBy = UserId.create().value!;
-        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
         einsatz.updateStatus(EinsatzStatus.ARCHIVIERT());
         einsatz.clearDomainEvents();
 
@@ -638,7 +640,7 @@ describe('EinsatzAggregate', () => {
       it('sollte keine Änderung bei gleichem Status durchführen (No-Op)', () => {
         // Given: Einsatz mit Status ANGELEGT
         const createdBy = UserId.create().value!;
-        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
         einsatz.clearDomainEvents();
 
         // When: Status wird zu gleichem Status geändert
@@ -656,7 +658,7 @@ describe('EinsatzAggregate', () => {
       it('sollte keine Änderung bei gleichem Status IN_BEARBEITUNG durchführen', () => {
         // Given: Einsatz mit Status IN_BEARBEITUNG
         const createdBy = UserId.create().value!;
-        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+        const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
         einsatz.updateStatus(EinsatzStatus.IN_BEARBEITUNG());
         einsatz.clearDomainEvents();
 
@@ -682,7 +684,7 @@ describe('EinsatzAggregate', () => {
     it('sollte alarmstichwort erfolgreich aktualisieren', () => {
       // Given: Einsatz
       const createdBy = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Wohnungsbrand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Wohnungsbrand', createdBy, nummer: 'E2026-001' }).value!;
       einsatz.clearDomainEvents();
 
       // When: alarmstichwort wird aktualisiert
@@ -704,7 +706,7 @@ describe('EinsatzAggregate', () => {
     it('sollte einsatzort erfolgreich aktualisieren', () => {
       // Given: Einsatz
       const createdBy = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
       einsatz.clearDomainEvents();
 
       const neuerOrt = Address.create({
@@ -733,7 +735,7 @@ describe('EinsatzAggregate', () => {
     it('sollte bemerkung erfolgreich aktualisieren', () => {
       // Given: Einsatz
       const createdBy = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
       einsatz.clearDomainEvents();
 
       // When: bemerkung wird aktualisiert
@@ -755,7 +757,7 @@ describe('EinsatzAggregate', () => {
     it('sollte mehrere Felder gleichzeitig aktualisieren', () => {
       // Given: Einsatz
       const createdBy = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
       einsatz.clearDomainEvents();
 
       const neuerOrt = Address.create({
@@ -792,7 +794,7 @@ describe('EinsatzAggregate', () => {
     it('sollte bemerkung trimmen', () => {
       // Given: Einsatz
       const createdBy = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
       einsatz.clearDomainEvents();
 
       // When: bemerkung mit whitespace wird aktualisiert
@@ -806,7 +808,7 @@ describe('EinsatzAggregate', () => {
     it('sollte alarmstichwort trimmen', () => {
       // Given: Einsatz
       const createdBy = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
       einsatz.clearDomainEvents();
 
       // When: alarmstichwort mit whitespace wird aktualisiert
@@ -820,7 +822,7 @@ describe('EinsatzAggregate', () => {
     it('sollte fehlschlagen wenn alarmstichwort leer ist', () => {
       // Given: Einsatz
       const createdBy = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
       einsatz.clearDomainEvents();
 
       // When: Versuche leeres alarmstichwort zu setzen
@@ -839,7 +841,7 @@ describe('EinsatzAggregate', () => {
     it('sollte fehlschlagen wenn alarmstichwort nur whitespace ist', () => {
       // Given: Einsatz
       const createdBy = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
       einsatz.clearDomainEvents();
 
       // When: Versuche whitespace-only alarmstichwort zu setzen
@@ -854,7 +856,7 @@ describe('EinsatzAggregate', () => {
       // Given: Archivierter Einsatz
       const createdBy = UserId.create().value!;
       const userId = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
       einsatz.archive(userId);
       einsatz.clearDomainEvents();
 
@@ -873,7 +875,7 @@ describe('EinsatzAggregate', () => {
     it('sollte kein Event emittieren wenn keine Änderungen vorgenommen wurden', () => {
       // Given: Einsatz
       const createdBy = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
       einsatz.clearDomainEvents();
 
       // When: Update ohne Felder
@@ -896,7 +898,7 @@ describe('EinsatzAggregate', () => {
     it('sollte IMMER false zurückgeben für Status ANGELEGT', () => {
       // Given: Einsatz mit Status ANGELEGT
       const createdBy = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
 
       // When: canBeDeleted() wird aufgerufen
       const canDelete = einsatz.canBeDeleted();
@@ -908,7 +910,7 @@ describe('EinsatzAggregate', () => {
     it('sollte IMMER false zurückgeben für Status IN_BEARBEITUNG', () => {
       // Given: Einsatz mit Status IN_BEARBEITUNG
       const createdBy = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
       einsatz.updateStatus(EinsatzStatus.IN_BEARBEITUNG());
 
       // When: canBeDeleted() wird aufgerufen
@@ -922,7 +924,7 @@ describe('EinsatzAggregate', () => {
       // Given: Einsatz mit Status ABGESCHLOSSEN
       const createdBy = UserId.create().value!;
       const userId = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
       einsatz.complete(userId);
 
       // When: canBeDeleted() wird aufgerufen
@@ -936,7 +938,7 @@ describe('EinsatzAggregate', () => {
       // Given: Archivierter Einsatz
       const createdBy = UserId.create().value!;
       const userId = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
       einsatz.archive(userId);
 
       // When: canBeDeleted() wird aufgerufen
@@ -956,7 +958,7 @@ describe('EinsatzAggregate', () => {
       // Given: Einsatz mit mehreren Operationen
       const createdBy = UserId.create().value!;
       const userId = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
 
       // When: Mehrere Operationen
       einsatz.updateStatus(EinsatzStatus.IN_BEARBEITUNG());
@@ -974,7 +976,7 @@ describe('EinsatzAggregate', () => {
     it('sollte Events über clearEvents() löschen können', () => {
       // Given: Einsatz mit Events
       const createdBy = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
       expect(einsatz.getDomainEvents()).toHaveLength(1);
 
       // When: Events werden gelöscht
@@ -988,7 +990,7 @@ describe('EinsatzAggregate', () => {
     it('sollte nach clearEvents() neue Events emittieren können', () => {
       // Given: Einsatz mit gelöschten Events
       const createdBy = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
       einsatz.clearDomainEvents();
 
       // When: Neue Operation wird durchgeführt
@@ -1019,6 +1021,7 @@ describe('EinsatzAggregate', () => {
       const einsatz = Einsatz.create({
         alarmstichwort: 'Wohnungsbrand',
         createdBy,
+        nummer: 'E2026-001',
         einsatzort,
         bemerkung: 'Test Bemerkung',
       }).value!;
@@ -1042,7 +1045,7 @@ describe('EinsatzAggregate', () => {
       // Given: Abgeschlossener Einsatz
       const createdBy = UserId.create().value!;
       const userId = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
 
       // When: Einsatz wird abgeschlossen
       einsatz.complete(userId);
@@ -1056,7 +1059,7 @@ describe('EinsatzAggregate', () => {
       // Given: Archivierter Einsatz
       const createdBy = UserId.create().value!;
       const userId = UserId.create().value!;
-      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy }).value!;
+      const einsatz = Einsatz.create({ alarmstichwort: 'Brand', createdBy, nummer: 'E2026-001' }).value!;
 
       // When: Einsatz wird archiviert
       einsatz.archive(userId);

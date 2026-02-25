@@ -431,12 +431,14 @@ export async function createEtbE2eModule(): Promise<EtbE2eTestContext> {
   // HINWEIS: ON CONFLICT auf id ist selten (CUID2 Kollision unwahrscheinlich),
   // aber wir aktualisieren trotzdem um sicherzustellen, dass die FK-Referenz korrekt ist
   const testEinsatzId = generateTestId();
+  const testEinsatzNummer = `E2026-E2E-${testRunId}`;
   await prisma.$executeRaw`
-    INSERT INTO einsaetze (id, alarmstichwort, einsatzort, status, "createdBy", "updatedBy", "createdAt", "updatedAt")
+    INSERT INTO einsaetze (id, alarmstichwort, einsatzort, nummer, status, "createdBy", "updatedBy", "createdAt", "updatedAt")
     VALUES (
       ${testEinsatzId},
       ${`TEST - ETB E2E ${testRunId}`},
       'Test-Einsatzort fuer ETB E2E Tests',
+      ${testEinsatzNummer},
       'ANGELEGT'::"EinsatzStatus",
       ${testUserId},
       ${testUserId},
@@ -555,12 +557,14 @@ export async function cleanupTestData(ctx: EtbE2eTestContext): Promise<void> {
  */
 export async function createTestEinsatz(ctx: EtbE2eTestContext): Promise<string> {
   const einsatzId = generateTestId();
+  const einsatzNummer = `E2026-E2E-${ctx.testRunId}-${Date.now()}`;
   const rowsAffected = await ctx.prisma.$executeRaw`
-    INSERT INTO einsaetze (id, alarmstichwort, einsatzort, status, "createdBy", "updatedBy", "createdAt", "updatedAt")
+    INSERT INTO einsaetze (id, alarmstichwort, einsatzort, nummer, status, "createdBy", "updatedBy", "createdAt", "updatedAt")
     VALUES (
       ${einsatzId},
       ${`TEST - ETB E2E ${ctx.testRunId}-${Date.now()}`},
       'Test-Einsatzort',
+      ${einsatzNummer},
       'ANGELEGT'::"EinsatzStatus",
       ${ctx.testUserId},
       ${ctx.testUserId},

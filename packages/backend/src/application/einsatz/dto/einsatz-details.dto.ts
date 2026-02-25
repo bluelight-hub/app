@@ -24,7 +24,7 @@ import { LagekarteDto } from '../../lagekarte/dtos/lagekarte.dto';
  * {
  *   "einsatz": {
  *     "id": "clw3h8x9y0000qwertyuiopas",
- *     "nummer": "E2024-abc123xy",
+ *     "nummer": "E2026-001",
  *     "status": "IN_BEARBEITUNG"
  *   },
  *   "etb": {

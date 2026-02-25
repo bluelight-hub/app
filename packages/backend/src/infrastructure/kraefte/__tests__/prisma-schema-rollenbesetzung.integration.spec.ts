@@ -83,11 +83,11 @@ describe('Prisma Schema - EinsatzRollenbesetzung Integration Tests', () => {
     });
 
     // Create Test Einsatz
-    // NOTE: Einsatz Model hat kein 'nummer' Feld (Domain-only, wird zur Runtime generiert)
     testEinsatzId = generateTestId();
     await prisma.einsatz.create({
       data: {
         id: testEinsatzId,
+        nummer: `E2026-RB-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         alarmstichwort: `TEST-${Date.now()}`,
         createdBy: testUserId,
         updatedBy: testUserId,

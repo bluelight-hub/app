@@ -15,7 +15,7 @@ import { WsJwtAuthGuard } from '@/modules/erinnerung/guards/ws-jwt-auth.guard';
  * Features (Story 1.2):
  * - Kurzbefehl erfassen mit POST /api/v-alpha/befehle
  * - TransactionalCommandHandler für atomare Persistierung + Events
- * - Automatische Befehlsnummer-Generierung (B2026-abc123xy)
+ * - Automatische Befehlsnummer-Generierung (B-001, B-002, ...)
  * - Domain Events (BefehlErstelltEvent) via Transactional Outbox
  * - REST API mit Swagger-Dokumentation (@ApiWrappedCreatedResponse)
  *

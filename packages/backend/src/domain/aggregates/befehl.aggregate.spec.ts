@@ -36,6 +36,7 @@ function createDefaultProps() {
     befehlsgeber: 'EL Müller',
     erstellerId: UserId.create().value! as UserId,
     empfaenger: [{ name: 'ZF Nord' }, { name: 'ZF Süd' }],
+    nummer: 'B-001',
   };
 }
 
@@ -63,6 +64,7 @@ function createBefehlWithUserIds() {
     befehlsgeber: 'EL Test',
     erstellerId,
     empfaenger: empfaengerIds.map((uid) => ({ name: uid.value, empfaengerId: uid })),
+    nummer: 'B-001',
   });
   const befehl = befehlResult.value!;
 
@@ -101,15 +103,14 @@ describe('Befehl Aggregate', () => {
       expect(result.value?.befehlsgeberId).toBeUndefined();
     });
 
-    it('sollte Befehlsnummer im Format B{YEAR}-{CUID-8} generieren', () => {
+    it('sollte Befehlsnummer im Format B-{SEQ} verwenden', () => {
       const befehl = createTestBefehl();
-      const year = new Date().getFullYear();
-      expect(befehl.nummer).toMatch(new RegExp(`^B${year}-[a-z0-9]{8}$`));
+      expect(befehl.nummer).toMatch(/^B-\d{3,}$/);
     });
 
-    it('sollte eindeutige Nummern für verschiedene Befehle generieren', () => {
+    it('sollte unterschiedliche Nummern für verschiedene Befehle verwenden', () => {
       const b1 = createTestBefehl();
-      const b2 = createTestBefehl();
+      const b2 = createTestBefehl({ nummer: 'B-002' } as ReturnType<typeof createDefaultProps>);
       expect(b1.nummer).not.toBe(b2.nummer);
     });
 
@@ -448,7 +449,7 @@ describe('Befehl Aggregate', () => {
 
       const befehl = Befehl.reconstitute({
         id: BefehlId.create().value! as BefehlId,
-        nummer: 'B2026-test1234',
+        nummer: 'B-001',
         einsatzId,
         auftrag: 'Test',
         befehlsgeberName: 'EL Test',
@@ -900,7 +901,7 @@ describe('Befehl Aggregate', () => {
       // Neuen Befehl erstellen und als gelöscht rekonstituieren
       const deletedBefehl = Befehl.reconstitute({
         id: BefehlId.create().value! as BefehlId,
-        nummer: 'B2026-test1234',
+        nummer: 'B-001',
         einsatzId: EinsatzId.create().value! as EinsatzId,
         auftrag: 'Test',
         befehlsgeberName: 'EL Test',
@@ -928,6 +929,7 @@ describe('Befehl Aggregate', () => {
         befehlsgeber: 'EL Müller',
         erstellerId: UserId.create().value! as UserId,
         empfaenger: [{ name: 'ZF Nord' }],
+        nummer: 'B-001',
       }).value!;
       const befehl2 = Befehl.create({
         einsatzId: EinsatzId.create().value! as EinsatzId,
@@ -935,6 +937,7 @@ describe('Befehl Aggregate', () => {
         befehlsgeber: 'EL Müller',
         erstellerId: UserId.create().value! as UserId,
         empfaenger: [{ name: 'ZF Nord' }],
+        nummer: 'B-002',
       }).value!;
 
       befehl1.anonymisiere('same-salt');
@@ -951,6 +954,7 @@ describe('Befehl Aggregate', () => {
         befehlsgeber: 'EL Müller',
         erstellerId: UserId.create().value! as UserId,
         empfaenger: [{ name: 'ZF Nord' }],
+        nummer: 'B-001',
       }).value!;
       const befehl2 = Befehl.create({
         einsatzId: EinsatzId.create().value! as EinsatzId,
@@ -958,6 +962,7 @@ describe('Befehl Aggregate', () => {
         befehlsgeber: 'EL Müller',
         erstellerId: UserId.create().value! as UserId,
         empfaenger: [{ name: 'ZF Nord' }],
+        nummer: 'B-002',
       }).value!;
 
       befehl1.anonymisiere('salt-a');
@@ -974,6 +979,7 @@ describe('Befehl Aggregate', () => {
         befehlsgeber: 'EL Müller',
         erstellerId: UserId.create().value! as UserId,
         empfaenger: [{ name: 'ZF Nord' }],
+        nummer: 'B-001',
         zeitvorgabe: 'Sofort',
         mittel: '2 C-Rohre',
         ziel: 'Brandbekämpfung OG',

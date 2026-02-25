@@ -152,7 +152,7 @@ export class EinsatzController {
    * Story 5.2 AC4: GET /api/v-alpha/einsaetze/:id/rollen
    */
   @Get(':id/rollen')
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Roles('USER', 'ADMIN', 'SUPER_ADMIN')
   @ApiOperation({
     summary: 'Rollen-Zuweisungen eines Einsatzes abrufen',
     description: 'Gibt alle befehlsspezifischen Rollenzuweisungen fuer einen Einsatz zurueck.',
@@ -182,7 +182,7 @@ export class EinsatzController {
    * Story 5.2 AC3: Ersetzt ALLE Rollen fuer den Einsatz.
    */
   @Put(':id/rollen')
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Roles('USER', 'ADMIN', 'SUPER_ADMIN')
   @ApiOperation({
     summary: 'Rollen-Zuweisungen eines Einsatzes aktualisieren',
     description: 'Ersetzt alle befehlsspezifischen Rollenzuweisungen fuer einen Einsatz (atomares Update).',
@@ -424,7 +424,7 @@ export class EinsatzController {
    * Archiviert einen Einsatz (Soft-Delete gemäß No-Delete Policy) via CQRS Command
    */
   @Post(':id/archive')
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Roles('USER', 'ADMIN', 'SUPER_ADMIN')
   @ApiOperation({ summary: 'Einsatz archivieren (Soft-Delete)', description: 'Markiert einen Einsatz als ARCHIVIERT. Niemals physisch gelöscht.' })
   @ApiWrappedResponse(EinsatzDto, { description: 'Einsatz erfolgreich archiviert' })
   @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
@@ -444,7 +444,7 @@ export class EinsatzController {
    * NO-DELETE Policy Enforcement: DELETE-Requests werden explizit abgelehnt
    */
   @Delete(':id')
-  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Roles('USER', 'ADMIN', 'SUPER_ADMIN')
   @ApiOperation({
     summary: 'Einsatz löschen (NICHT ERLAUBT)',
     description: 'Einsätze dürfen aus Compliance-Gründen NIEMALS gelöscht werden. Nutze stattdessen Archive-Funktion.',

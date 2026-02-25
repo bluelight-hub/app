@@ -30,7 +30,7 @@ import { EINSATZ_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
  *
  * @example
  * ```typescript
- * const query = new GetEinsatzByNummerQuery('E2024-abc123xy');
+ * const query = new GetEinsatzByNummerQuery('E2026-001');
  * const result = await handler.execute(query);
  *
  * if (result.isSuccess && result.value) {

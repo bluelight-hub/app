@@ -22,6 +22,7 @@ function createMockEinsatz(_id: string, abgeschlossenYearsAgo?: number): Einsatz
   const einsatz = Einsatz.create({
     alarmstichwort: 'Testbrand',
     createdBy: userId,
+    nummer: 'E2026-001',
   }).value!;
 
   // Clear creation events before modifying
@@ -321,6 +322,7 @@ describe('ArchiveOldEinsaetzeHandler', () => {
       const invalidEinsatz = Einsatz.create({
         alarmstichwort: 'Test',
         createdBy: userId,
+        nummer: 'E2026-002',
       }).value!;
       invalidEinsatz.clearDomainEvents();
 

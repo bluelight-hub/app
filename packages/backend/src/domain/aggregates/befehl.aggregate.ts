@@ -12,7 +12,6 @@ import { BefehlId } from '@domain/value-objects/befehl-id';
 import { BefehlStatus } from '@domain/value-objects/befehl-status';
 import type { EinsatzId } from '@domain/value-objects/einsatz-id';
 import type { UserId } from '@domain/value-objects/user-id';
-import { createId } from '@paralleldrive/cuid2';
 
 /**
  * Properties für die Befehl-Erstellung.
@@ -23,6 +22,7 @@ interface CreateBefehlProps {
   auftrag: string;
   befehlsgeber: string;
   erstellerId: UserId;
+  nummer: string;
   empfaenger: { name: string; empfaengerId?: UserId }[];
   zeitvorgabe?: string;
   ereignis?: string;
@@ -227,7 +227,7 @@ export class Befehl extends AggregateRoot<BefehlId> {
    * - Auftrag ist required
    * - Mindestens ein Empfänger ist required
    * - Initialer Status ist ERTEILT
-   * - Befehlsnummer wird auto-generiert (Format: B{YEAR}-{CUID-8})
+   * - Befehlsnummer wird von außen übergeben (Format: B-{SEQ}, z.B. B-001)
    * - Bei Erfolg wird BefehlErstelltEvent emittiert
    */
   static create(props: CreateBefehlProps): Result<Befehl> {
@@ -257,14 +257,17 @@ export class Befehl extends AggregateRoot<BefehlId> {
     }
     const id = idResult.value as BefehlId;
 
-    const nummer = Befehl.generateNummer();
+    if (!props.nummer || props.nummer.trim().length === 0) {
+      return Result.fail<Befehl>('Nummer ist erforderlich');
+    }
+
     const initialStatus = BefehlStatus.ERTEILT();
     const erteiltAm = new Date();
     const empfaenger = props.empfaenger.map((e) => BefehlEmpfaenger.create(e.name, e.empfaengerId));
 
     const befehl = new Befehl(
       id,
-      nummer,
+      props.nummer,
       props.einsatzId,
       props.auftrag.trim(),
       props.befehlsgeber.trim(),
@@ -287,7 +290,7 @@ export class Befehl extends AggregateRoot<BefehlId> {
         id,
         props.einsatzId,
         props.auftrag.trim(),
-        nummer,
+        props.nummer,
         props.empfaenger.map((e) => e.name),
         id.value,
       ),
@@ -350,16 +353,6 @@ export class Befehl extends AggregateRoot<BefehlId> {
       props.deletedBy,
       props.anonymisiertAm,
     );
-  }
-
-  /**
-   * Auto-generiert Befehlsnummer im Format "B{YEAR}-{CUID-8}".
-   * Analog zu EinsatzNummer "E{YEAR}-{CUID-8}".
-   */
-  private static generateNummer(): string {
-    const year = new Date().getFullYear();
-    const randomPart = createId().substring(0, 8);
-    return `B${year}-${randomPart}`;
   }
 
   /**

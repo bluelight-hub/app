@@ -45,7 +45,7 @@ export const AKTIVE_TEILNEHMER_QUERY_KEYS = {
  *   <Select>
  *     {teilnehmer?.map((t) => (
  *       <option key={t.userId} value={t.userId}>
- *         {t.username} ({t.funkrufname})
+ *         {t.username} ({t.personVorname} {t.personNachname})
  *       </option>
  *     ))}
  *   </Select>

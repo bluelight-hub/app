@@ -28,7 +28,7 @@ describe('PrismaBefehlMapper', () => {
 
     return {
       id: befehlId,
-      nummer: 'B2026-abcd1234',
+      nummer: 'B-001',
       einsatzId,
       auftrag: 'Patientenablage einrichten',
       befehlsgeberName: 'EL Müller',
@@ -72,7 +72,7 @@ describe('PrismaBefehlMapper', () => {
       // Then
       expect(befehl).toBeInstanceOf(Befehl);
       expect(befehl.id.value).toBe(prismaBefehl.id);
-      expect(befehl.nummer).toBe('B2026-abcd1234');
+      expect(befehl.nummer).toBe('B-001');
       expect(befehl.einsatzId.value).toBe(prismaBefehl.einsatzId);
       expect(befehl.auftrag).toBe('Patientenablage einrichten');
       expect(befehl.befehlsgeberName).toBe('EL Müller');
@@ -285,6 +285,7 @@ describe('PrismaBefehlMapper', () => {
         erstellerId: generateValidUserId(),
         empfaenger: [{ name: 'ZF Nord' }],
         zeitvorgabe: '15 min',
+        nummer: 'B-001',
       });
       const befehl = result.value!;
 
@@ -293,7 +294,7 @@ describe('PrismaBefehlMapper', () => {
 
       // Then
       expect(persistence.id).toBe(befehl.id.value);
-      expect(persistence.nummer).toMatch(/^B\d{4}-[a-z0-9]{8}$/);
+      expect(persistence.nummer).toMatch(/^B-\d{3,}$/);
       expect(persistence.einsatzId).toBe(einsatzId.value);
       expect(persistence.auftrag).toBe('Patientenablage einrichten');
       expect(persistence.befehlsgeberName).toBe('EL Müller');
@@ -321,6 +322,7 @@ describe('PrismaBefehlMapper', () => {
         befehlsgeber: 'EL Test',
         erstellerId: generateValidUserId(),
         empfaenger: [{ name: 'ZF Nord' }],
+        nummer: 'B-002',
         ereignis: 'Großbrand',
         mittel: '2x LF 20',
         ziel: 'Brand unter Kontrolle',

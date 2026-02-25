@@ -30,7 +30,7 @@ describe('Einsatz Domain Events', () => {
       const einsatzId = EinsatzId.create().value!;
       const createdBy = UserId.create().value!;
       const alarmstichwort = 'Wohnungsbrand';
-      const nummer = 'E2024-abc12345';
+      const nummer = 'E2026-001';
 
       // When: Creating event
       const event = new EinsatzCreatedEvent(einsatzId, createdBy, alarmstichwort, nummer);
@@ -62,7 +62,7 @@ describe('Einsatz Domain Events', () => {
       // Given: Two events created sequentially
       const einsatzId = EinsatzId.create().value!;
       const userId = UserId.create().value!;
-      const nummer = 'E2024-test1234';
+      const nummer = 'E2026-002';
       const event1 = new EinsatzCreatedEvent(einsatzId, userId, 'Test', nummer);
       const event2 = new EinsatzCreatedEvent(einsatzId, userId, 'Test', nummer);
 
@@ -76,7 +76,7 @@ describe('Einsatz Domain Events', () => {
     it('should generate recent timestamp', () => {
       // Given/When: Creating event
       const before = new Date();
-      const event = new EinsatzCreatedEvent(EinsatzId.create().value!, UserId.create().value!, 'Test', 'E2024-test1234');
+      const event = new EinsatzCreatedEvent(EinsatzId.create().value!, UserId.create().value!, 'Test', 'E2026-002');
       const after = new Date();
 
       // Then: Timestamp is recent (within 1 second)
@@ -87,7 +87,7 @@ describe('Einsatz Domain Events', () => {
     it('should support optional aggregateId', () => {
       // Given: aggregateId provided
       const aggregateId = 'aggregate-123';
-      const event = new EinsatzCreatedEvent(EinsatzId.create().value!, UserId.create().value!, 'Test', 'E2024-test1234', aggregateId);
+      const event = new EinsatzCreatedEvent(EinsatzId.create().value!, UserId.create().value!, 'Test', 'E2026-002', aggregateId);
 
       // When/Then: aggregateId is stored
       expect(event.aggregateId).toBe(aggregateId);
@@ -95,7 +95,7 @@ describe('Einsatz Domain Events', () => {
 
     it('should have undefined aggregateId when not provided', () => {
       // Given: No aggregateId
-      const event = new EinsatzCreatedEvent(EinsatzId.create().value!, UserId.create().value!, 'Test', 'E2024-test1234');
+      const event = new EinsatzCreatedEvent(EinsatzId.create().value!, UserId.create().value!, 'Test', 'E2026-002');
 
       // When/Then: aggregateId is undefined
       expect(event.aggregateId).toBeUndefined();
@@ -103,7 +103,7 @@ describe('Einsatz Domain Events', () => {
 
     it('should have readonly properties (immutability)', () => {
       // Given: Event instance
-      const event = new EinsatzCreatedEvent(EinsatzId.create().value!, UserId.create().value!, 'Test', 'E2024-test1234');
+      const event = new EinsatzCreatedEvent(EinsatzId.create().value!, UserId.create().value!, 'Test', 'E2026-002');
 
       // When/Then: Properties are readonly (TypeScript compile-time check)
       // Note: Runtime immutability is enforced by readonly modifier at compile-time
@@ -122,7 +122,7 @@ describe('Einsatz Domain Events', () => {
       const userId = UserId.create().value!;
 
       // When: Creating event
-      const event = new EinsatzCreatedEvent(einsatzId, userId, 'Test', 'E2024-test1234');
+      const event = new EinsatzCreatedEvent(einsatzId, userId, 'Test', 'E2026-002');
 
       // Then: Types are preserved
       expect(event.einsatzId).toBeInstanceOf(EinsatzId);

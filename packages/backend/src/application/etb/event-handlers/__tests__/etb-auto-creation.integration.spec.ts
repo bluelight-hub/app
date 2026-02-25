@@ -204,6 +204,7 @@ describe('EtbAutoCreationHandler - Integration Tests (AC6)', () => {
     const einsatzResult = await prisma.einsatz.create({
       data: {
         id: generateTestCuid(),
+        nummer: `E2026-ETBAC-${testRunId}`,
         alarmstichwort: `TEST - ETB Auto Creation ${testRunId}`,
         einsatzort: 'Test-Einsatzort für ETB Auto Creation Tests',
         status: 'ANGELEGT',

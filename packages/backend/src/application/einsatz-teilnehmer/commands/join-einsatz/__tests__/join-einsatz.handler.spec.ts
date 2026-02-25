@@ -7,48 +7,61 @@ describe('JoinEinsatzHandler', () => {
   let handler: JoinEinsatzHandler;
   let mockRepository: jest.Mocked<IEinsatzTeilnehmerRepository>;
   let mockLogger: jest.Mocked<ILogger>;
+  let mockPrisma: { einsatzPerson: { findFirst: jest.Mock } };
+
+  const mockTeilnehmerDto = (overrides = {}) => ({
+    id: 'teilnehmer-789',
+    einsatzId: 'einsatz-123',
+    userId: 'user-456',
+    einsatzPersonId: 'person-abc',
+    personVorname: 'Max',
+    personNachname: 'Mustermann',
+    personFunkrufname: 'Rotkreuz 83/1',
+    personFunktion: 'Helfer',
+    joinedAt: new Date(),
+    leftAt: null,
+    ...overrides,
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Mock Repository
     mockRepository = {
       findByEinsatzAndUser: jest.fn(),
+      findActiveByEinsatz: jest.fn(),
+      isPersonAlreadyLinked: jest.fn(),
       create: jest.fn(),
-      updateFunkrufname: jest.fn(),
-      findAllByEinsatz: jest.fn(),
-      remove: jest.fn(),
+      updateEinsatzPerson: jest.fn(),
+      leave: jest.fn(),
     };
 
-    // Mock Logger
     mockLogger = {
       log: jest.fn(),
       error: jest.fn(),
       warn: jest.fn(),
       debug: jest.fn(),
-      verbose: jest.fn(),
     };
 
-    handler = new JoinEinsatzHandler(mockRepository, mockLogger);
+    mockPrisma = {
+      einsatzPerson: { findFirst: jest.fn() },
+    };
+
+    handler = new JoinEinsatzHandler(mockRepository, mockLogger, mockPrisma as any);
   });
 
   describe('execute - Insert Case', () => {
-    it('should create new teilnehmer when user not exists', async () => {
+    it('should create new teilnehmer when user does not exist', async () => {
       // Given (Arrange)
       const einsatzId = 'einsatz-123';
       const userId = 'user-456';
-      const funkrufname = 'HLM 10/1';
-      const command = JoinEinsatzCommand.create(einsatzId, userId, funkrufname).value!;
+      const einsatzPersonId = 'person-abc';
+      const command = JoinEinsatzCommand.create(einsatzId, userId, einsatzPersonId).value!;
 
-      const expectedTeilnehmer = {
-        id: 'teilnehmer-789',
-        einsatzId,
-        userId,
-        funkrufname,
-        joinedAt: new Date(),
-      };
+      const expectedTeilnehmer = mockTeilnehmerDto();
 
+      mockPrisma.einsatzPerson.findFirst.mockResolvedValue({ id: einsatzPersonId });
       mockRepository.findByEinsatzAndUser.mockResolvedValue(null);
+      mockRepository.isPersonAlreadyLinked.mockResolvedValue(false);
       mockRepository.create.mockResolvedValue(expectedTeilnehmer);
 
       // When (Act)
@@ -57,52 +70,178 @@ describe('JoinEinsatzHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toEqual(expectedTeilnehmer);
+      expect(mockPrisma.einsatzPerson.findFirst).toHaveBeenCalledWith({
+        where: { id: einsatzPersonId, einsatzId },
+        select: { id: true },
+      });
       expect(mockRepository.findByEinsatzAndUser).toHaveBeenCalledWith(einsatzId, userId);
+      expect(mockRepository.isPersonAlreadyLinked).toHaveBeenCalledWith(einsatzId, einsatzPersonId);
       expect(mockRepository.create).toHaveBeenCalledWith({
         einsatzId,
         userId,
-        funkrufname,
+        einsatzPersonId,
       });
-      expect(mockLogger.log).toHaveBeenCalledWith(`User ${userId} joining Einsatz ${einsatzId} with Funkrufname "${funkrufname}"`);
+      expect(mockLogger.log).toHaveBeenCalledWith(`User ${userId} joining Einsatz ${einsatzId} with EinsatzPerson "${einsatzPersonId}"`);
       expect(mockLogger.log).toHaveBeenCalledWith(`User ${userId} successfully joined Einsatz ${einsatzId}`);
     });
 
-    it('should call repository.create with correct parameters', async () => {
+    it('should validate that EinsatzPerson exists in einsatz', async () => {
       // Given (Arrange)
-      const einsatzId = 'einsatz-abc';
-      const userId = 'user-xyz';
-      const funkrufname = 'MTW 12/1';
-      const command = JoinEinsatzCommand.create(einsatzId, userId, funkrufname).value!;
+      const command = JoinEinsatzCommand.create('einsatz-123', 'user-456', 'person-abc').value!;
 
+      mockPrisma.einsatzPerson.findFirst.mockResolvedValue({ id: 'person-abc' });
       mockRepository.findByEinsatzAndUser.mockResolvedValue(null);
-      mockRepository.create.mockResolvedValue({
-        id: 'teilnehmer-id',
-        einsatzId,
-        userId,
-        funkrufname,
-        joinedAt: new Date(),
-      });
+      mockRepository.isPersonAlreadyLinked.mockResolvedValue(false);
+      mockRepository.create.mockResolvedValue(mockTeilnehmerDto());
 
       // When (Act)
       await handler.execute(command);
 
       // Then (Assert)
-      expect(mockRepository.create).toHaveBeenCalledWith({
-        einsatzId: 'einsatz-abc',
-        userId: 'user-xyz',
-        funkrufname: 'MTW 12/1',
+      expect(mockPrisma.einsatzPerson.findFirst).toHaveBeenCalledWith({
+        where: { id: 'person-abc', einsatzId: 'einsatz-123' },
+        select: { id: true },
       });
-      expect(mockRepository.create).toHaveBeenCalledTimes(1);
     });
 
+    it('should reject when EinsatzPerson not found', async () => {
+      // Given (Arrange)
+      const command = JoinEinsatzCommand.create('einsatz-123', 'user-456', 'nonexistent-person').value!;
+
+      mockPrisma.einsatzPerson.findFirst.mockResolvedValue(null);
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('EinsatzPerson existiert nicht oder gehört nicht zu diesem Einsatz');
+      expect(mockRepository.findByEinsatzAndUser).not.toHaveBeenCalled();
+      expect(mockRepository.create).not.toHaveBeenCalled();
+    });
+
+    it('should reject when person is already linked to another user', async () => {
+      // Given (Arrange)
+      const command = JoinEinsatzCommand.create('einsatz-123', 'user-456', 'person-abc').value!;
+
+      mockPrisma.einsatzPerson.findFirst.mockResolvedValue({ id: 'person-abc' });
+      mockRepository.findByEinsatzAndUser.mockResolvedValue(null);
+      mockRepository.isPersonAlreadyLinked.mockResolvedValue(true);
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('Diese Person ist bereits einem anderen Bearbeiter zugeordnet');
+      expect(mockRepository.isPersonAlreadyLinked).toHaveBeenCalledWith('einsatz-123', 'person-abc');
+      expect(mockRepository.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('execute - Update Case', () => {
+    it('should update einsatzPerson when user already exists', async () => {
+      // Given (Arrange)
+      const einsatzId = 'einsatz-123';
+      const userId = 'user-456';
+      const newPersonId = 'person-def';
+      const command = JoinEinsatzCommand.create(einsatzId, userId, newPersonId).value!;
+
+      const existingTeilnehmer = mockTeilnehmerDto({ einsatzPersonId: 'person-abc' });
+      const updatedTeilnehmer = mockTeilnehmerDto({ einsatzPersonId: newPersonId });
+
+      mockPrisma.einsatzPerson.findFirst.mockResolvedValue({ id: newPersonId });
+      mockRepository.findByEinsatzAndUser.mockResolvedValue(existingTeilnehmer);
+      mockRepository.isPersonAlreadyLinked.mockResolvedValue(false);
+      mockRepository.updateEinsatzPerson.mockResolvedValue(updatedTeilnehmer);
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isSuccess).toBe(true);
+      expect(result.value).toEqual(updatedTeilnehmer);
+      expect(mockRepository.findByEinsatzAndUser).toHaveBeenCalledWith(einsatzId, userId);
+      expect(mockRepository.isPersonAlreadyLinked).toHaveBeenCalledWith(einsatzId, newPersonId, userId);
+      expect(mockRepository.updateEinsatzPerson).toHaveBeenCalledWith(einsatzId, userId, newPersonId);
+      expect(mockRepository.create).not.toHaveBeenCalled();
+      expect(mockLogger.log).toHaveBeenCalledWith(`User ${userId} already joined Einsatz ${einsatzId}, updating EinsatzPerson`);
+    });
+
+    it('should validate that EinsatzPerson exists before updating', async () => {
+      // Given (Arrange)
+      const command = JoinEinsatzCommand.create('einsatz-123', 'user-456', 'nonexistent-person').value!;
+
+      mockPrisma.einsatzPerson.findFirst.mockResolvedValue(null);
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('EinsatzPerson existiert nicht oder gehört nicht zu diesem Einsatz');
+      expect(mockRepository.findByEinsatzAndUser).not.toHaveBeenCalled();
+      expect(mockRepository.updateEinsatzPerson).not.toHaveBeenCalled();
+    });
+
+    it('should reject when person is already linked by another user', async () => {
+      // Given (Arrange)
+      const einsatzId = 'einsatz-123';
+      const userId = 'user-456';
+      const newPersonId = 'person-def';
+      const command = JoinEinsatzCommand.create(einsatzId, userId, newPersonId).value!;
+
+      const existingTeilnehmer = mockTeilnehmerDto({ einsatzPersonId: 'person-abc' });
+
+      mockPrisma.einsatzPerson.findFirst.mockResolvedValue({ id: newPersonId });
+      mockRepository.findByEinsatzAndUser.mockResolvedValue(existingTeilnehmer);
+      mockRepository.isPersonAlreadyLinked.mockResolvedValue(true);
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('Diese Person ist bereits einem anderen Bearbeiter zugeordnet');
+      expect(mockRepository.isPersonAlreadyLinked).toHaveBeenCalledWith(einsatzId, newPersonId, userId);
+      expect(mockRepository.updateEinsatzPerson).not.toHaveBeenCalled();
+    });
+
+    it('should return failure when updateEinsatzPerson returns null', async () => {
+      // Given (Arrange)
+      const einsatzId = 'einsatz-123';
+      const userId = 'user-456';
+      const newPersonId = 'person-def';
+      const command = JoinEinsatzCommand.create(einsatzId, userId, newPersonId).value!;
+
+      const existingTeilnehmer = mockTeilnehmerDto({ einsatzPersonId: 'person-abc' });
+
+      mockPrisma.einsatzPerson.findFirst.mockResolvedValue({ id: newPersonId });
+      mockRepository.findByEinsatzAndUser.mockResolvedValue(existingTeilnehmer);
+      mockRepository.isPersonAlreadyLinked.mockResolvedValue(false);
+      mockRepository.updateEinsatzPerson.mockResolvedValue(null);
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('EinsatzPerson konnte nicht aktualisiert werden');
+      expect(mockLogger.error).toHaveBeenCalledWith(`Failed to update EinsatzPerson for User ${userId} in Einsatz ${einsatzId}`);
+    });
+  });
+
+  describe('execute - Error Handling', () => {
     it('should return failure when repository.create throws error', async () => {
       // Given (Arrange)
       const einsatzId = 'einsatz-123';
       const userId = 'user-456';
-      const funkrufname = 'HLM 10/1';
-      const command = JoinEinsatzCommand.create(einsatzId, userId, funkrufname).value!;
+      const einsatzPersonId = 'person-abc';
+      const command = JoinEinsatzCommand.create(einsatzId, userId, einsatzPersonId).value!;
 
+      mockPrisma.einsatzPerson.findFirst.mockResolvedValue({ id: einsatzPersonId });
       mockRepository.findByEinsatzAndUser.mockResolvedValue(null);
+      mockRepository.isPersonAlreadyLinked.mockResolvedValue(false);
       mockRepository.create.mockRejectedValue(new Error('Database connection error'));
 
       // When (Act)
@@ -112,193 +251,6 @@ describe('JoinEinsatzHandler', () => {
       expect(result.isFailure).toBe(true);
       expect(result.error).toBe('Einsatz-Beitritt fehlgeschlagen');
       expect(mockLogger.error).toHaveBeenCalledWith('Failed to join Einsatz: Database connection error');
-    });
-  });
-
-  describe('execute - Update Case', () => {
-    it('should update funkrufname when user already exists', async () => {
-      // Given (Arrange)
-      const einsatzId = 'einsatz-123';
-      const userId = 'user-456';
-      const oldFunkrufname = 'HLM 10/1';
-      const newFunkrufname = 'MTW 12/1';
-      const command = JoinEinsatzCommand.create(einsatzId, userId, newFunkrufname).value!;
-
-      const existingTeilnehmer = {
-        id: 'teilnehmer-789',
-        einsatzId,
-        userId,
-        funkrufname: oldFunkrufname,
-        joinedAt: new Date(),
-      };
-
-      const updatedTeilnehmer = {
-        ...existingTeilnehmer,
-        funkrufname: newFunkrufname,
-      };
-
-      mockRepository.findByEinsatzAndUser.mockResolvedValue(existingTeilnehmer);
-      mockRepository.updateFunkrufname.mockResolvedValue(updatedTeilnehmer);
-
-      // When (Act)
-      const result = await handler.execute(command);
-
-      // Then (Assert)
-      expect(result.isSuccess).toBe(true);
-      expect(result.value).toEqual(updatedTeilnehmer);
-      expect(mockRepository.findByEinsatzAndUser).toHaveBeenCalledWith(einsatzId, userId);
-      expect(mockRepository.updateFunkrufname).toHaveBeenCalledWith(einsatzId, userId, newFunkrufname);
-      expect(mockRepository.create).not.toHaveBeenCalled();
-      expect(mockLogger.log).toHaveBeenCalledWith(`User ${userId} already joined Einsatz ${einsatzId}, updating Funkrufname`);
-    });
-
-    it('should call repository.updateFunkrufname with correct parameters', async () => {
-      // Given (Arrange)
-      const einsatzId = 'einsatz-abc';
-      const userId = 'user-xyz';
-      const newFunkrufname = 'NEF 13/1';
-      const command = JoinEinsatzCommand.create(einsatzId, userId, newFunkrufname).value!;
-
-      const existingTeilnehmer = {
-        id: 'teilnehmer-id',
-        einsatzId,
-        userId,
-        funkrufname: 'old-name',
-        joinedAt: new Date(),
-      };
-
-      mockRepository.findByEinsatzAndUser.mockResolvedValue(existingTeilnehmer);
-      mockRepository.updateFunkrufname.mockResolvedValue({
-        ...existingTeilnehmer,
-        funkrufname: newFunkrufname,
-      });
-
-      // When (Act)
-      await handler.execute(command);
-
-      // Then (Assert)
-      expect(mockRepository.updateFunkrufname).toHaveBeenCalledWith('einsatz-abc', 'user-xyz', 'NEF 13/1');
-      expect(mockRepository.updateFunkrufname).toHaveBeenCalledTimes(1);
-    });
-
-    it('should return failure when repository.updateFunkrufname returns null', async () => {
-      // Given (Arrange)
-      const einsatzId = 'einsatz-123';
-      const userId = 'user-456';
-      const funkrufname = 'HLM 10/1';
-      const command = JoinEinsatzCommand.create(einsatzId, userId, funkrufname).value!;
-
-      const existingTeilnehmer = {
-        id: 'teilnehmer-789',
-        einsatzId,
-        userId,
-        funkrufname: 'old-name',
-        joinedAt: new Date(),
-      };
-
-      mockRepository.findByEinsatzAndUser.mockResolvedValue(existingTeilnehmer);
-      mockRepository.updateFunkrufname.mockResolvedValue(null);
-
-      // When (Act)
-      const result = await handler.execute(command);
-
-      // Then (Assert)
-      expect(result.isFailure).toBe(true);
-      expect(result.error).toBe('Funkrufname konnte nicht aktualisiert werden');
-      expect(mockLogger.error).toHaveBeenCalledWith(`Failed to update Funkrufname for User ${userId} in Einsatz ${einsatzId}`);
-    });
-  });
-
-  describe('execute - Logger Integration', () => {
-    it('should log initial action message', async () => {
-      // Given (Arrange)
-      const einsatzId = 'einsatz-123';
-      const userId = 'user-456';
-      const funkrufname = 'HLM 10/1';
-      const command = JoinEinsatzCommand.create(einsatzId, userId, funkrufname).value!;
-
-      mockRepository.findByEinsatzAndUser.mockResolvedValue(null);
-      mockRepository.create.mockResolvedValue({
-        id: 'teilnehmer-id',
-        einsatzId,
-        userId,
-        funkrufname,
-        joinedAt: new Date(),
-      });
-
-      // When (Act)
-      await handler.execute(command);
-
-      // Then (Assert)
-      expect(mockLogger.log).toHaveBeenCalledWith(`User ${userId} joining Einsatz ${einsatzId} with Funkrufname "${funkrufname}"`);
-    });
-
-    it('should log success message on create', async () => {
-      // Given (Arrange)
-      const einsatzId = 'einsatz-123';
-      const userId = 'user-456';
-      const funkrufname = 'HLM 10/1';
-      const command = JoinEinsatzCommand.create(einsatzId, userId, funkrufname).value!;
-
-      mockRepository.findByEinsatzAndUser.mockResolvedValue(null);
-      mockRepository.create.mockResolvedValue({
-        id: 'teilnehmer-id',
-        einsatzId,
-        userId,
-        funkrufname,
-        joinedAt: new Date(),
-      });
-
-      // When (Act)
-      await handler.execute(command);
-
-      // Then (Assert)
-      expect(mockLogger.log).toHaveBeenCalledWith(`User ${userId} successfully joined Einsatz ${einsatzId}`);
-    });
-
-    it('should log update message when user already exists', async () => {
-      // Given (Arrange)
-      const einsatzId = 'einsatz-123';
-      const userId = 'user-456';
-      const funkrufname = 'HLM 10/1';
-      const command = JoinEinsatzCommand.create(einsatzId, userId, funkrufname).value!;
-
-      const existingTeilnehmer = {
-        id: 'teilnehmer-id',
-        einsatzId,
-        userId,
-        funkrufname: 'old-name',
-        joinedAt: new Date(),
-      };
-
-      mockRepository.findByEinsatzAndUser.mockResolvedValue(existingTeilnehmer);
-      mockRepository.updateFunkrufname.mockResolvedValue({
-        ...existingTeilnehmer,
-        funkrufname,
-      });
-
-      // When (Act)
-      await handler.execute(command);
-
-      // Then (Assert)
-      expect(mockLogger.log).toHaveBeenCalledWith(`User ${userId} already joined Einsatz ${einsatzId}, updating Funkrufname`);
-    });
-
-    it('should log error on create failure', async () => {
-      // Given (Arrange)
-      const einsatzId = 'einsatz-123';
-      const userId = 'user-456';
-      const funkrufname = 'HLM 10/1';
-      const command = JoinEinsatzCommand.create(einsatzId, userId, funkrufname).value!;
-
-      mockRepository.findByEinsatzAndUser.mockResolvedValue(null);
-      mockRepository.create.mockRejectedValue(new Error('Constraint violation'));
-
-      // When (Act)
-      await handler.execute(command);
-
-      // Then (Assert)
-      expect(mockLogger.error).toHaveBeenCalledWith('Failed to join Einsatz: Constraint violation');
     });
   });
 });

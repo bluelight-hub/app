@@ -10,6 +10,7 @@ import { UserId } from '@domain/value-objects/user-id';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import { BEFEHL_REPOSITORY, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { BefehlNamingService } from '@domain/services/befehl-naming.service';
 import { BEFEHL_ERROR_CODES } from '@/application/befehl/errors/befehl-error.codes';
 import { KorrigiereBefehlCommand } from './korrigiere-befehl.command';
 
@@ -81,12 +82,21 @@ export class KorrigiereBefehlHandler extends TransactionalCommandHandler<Korrigi
       return { name: e.name, empfaengerId };
     });
 
+    // 5b. Generate sequential Befehlsnummer
+    const seqResult = await this.befehlRepository.getNextSequenceNumber(original.einsatzId, tx);
+    if (seqResult.isFailure) {
+      return Result.fail(seqResult.error ?? 'Sequenznummer konnte nicht ermittelt werden');
+    }
+    const namingService = new BefehlNamingService();
+    const nummer = namingService.generateBefehlNummer(seqResult.value!);
+
     // 6. Create new Korrekturbefehl with originalBefehlId reference
     const neuerBefehlResult = Befehl.create({
       einsatzId: original.einsatzId,
       empfaenger,
       befehlsgeber: command.befehlsgeber,
       erstellerId,
+      nummer,
       auftrag: command.auftrag,
       zeitvorgabe: command.zeitvorgabe,
       ereignis: command.ereignis,

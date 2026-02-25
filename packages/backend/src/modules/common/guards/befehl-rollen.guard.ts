@@ -12,10 +12,12 @@ import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
  *
  * **Ablauf:**
  * 1. Liest erforderliche Rollen aus @RequiresBefehlRolle() Decorator
- * 2. Kein Decorator → Zugriff erlaubt (kein Rollen-Check)
+ * 2. Kein Decorator → Fail-Closed
  * 3. Liest einsatzId aus Request (Body, Params, Query oder Befehl-Lookup)
  * 4. Prueft User-Rolle in DB via PrismaService
  * 5. Rolle vorhanden und in erlaubten Rollen → Zugriff erlaubt
+ * 6. Fallback: Aktive Einsatz-Teilnehmer ohne explizite Rolle erhalten
+ *    implizit BEOBACHTER-Zugriff (nur fuer Lese-Endpoints)
  */
 @Injectable()
 export class BefehlRollenGuard implements CanActivate {
@@ -54,11 +56,25 @@ export class BefehlRollenGuard implements CanActivate {
       }
     }
 
+    // 5. Kein einsatzId → einsatzuebergreifender Endpoint (z.B. Metriken)
+    //    Pruefe ob User die erforderliche Rolle in mindestens einem Einsatz hat
     if (!einsatzId) {
-      throw new ForbiddenException('Einsatz-ID fehlt fuer Rollen-Pruefung');
+      const anyZuweisung = await this.prisma.einsatzRollenzuweisung.findFirst({
+        where: {
+          userId: user.userId,
+          rolle: { in: requiredRollen as any[] },
+        },
+        select: { id: true },
+      });
+
+      if (!anyZuweisung) {
+        throw new ForbiddenException(`Keine passende Rolle in einem Einsatz. Erforderlich: ${requiredRollen.join(' oder ')}`);
+      }
+
+      return true;
     }
 
-    // 5. User-Rolle im Einsatz-Kontext pruefen
+    // 6. User-Rolle im spezifischen Einsatz-Kontext pruefen
     const zuweisung = await this.prisma.einsatzRollenzuweisung.findUnique({
       where: {
         einsatzId_userId: {
@@ -69,6 +85,17 @@ export class BefehlRollenGuard implements CanActivate {
     });
 
     if (!zuweisung) {
+      // Fallback: Aktive Einsatz-Teilnehmer erhalten implizit BEOBACHTER-Zugriff
+      // (nur wenn der Endpoint BEOBACHTER als erlaubte Rolle definiert)
+      if (requiredRollen.includes('BEOBACHTER')) {
+        const teilnehmer = await this.prisma.einsatzTeilnehmer.findFirst({
+          where: { userId: user.userId, einsatzId, leftAt: null },
+          select: { id: true },
+        });
+        if (teilnehmer) {
+          return true;
+        }
+      }
       throw new ForbiddenException('Keine Rolle im Einsatz zugewiesen');
     }
 

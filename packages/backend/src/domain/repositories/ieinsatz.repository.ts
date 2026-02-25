@@ -387,6 +387,16 @@ export interface IEinsatzRepository {
   findNextId(createdAt: Date): Promise<Result<string | null>>;
 
   /**
+   * Gibt die nächste Sequenznummer für ein gegebenes Jahr zurück.
+   * Wird für die Generierung der Einsatznummer (E{YEAR}-{SEQ}) benötigt.
+   *
+   * @param year - Das Jahr für die Sequenznummer
+   * @param tx - Optional: Transaction Context
+   * @returns Result<number> - Nächste Sequenznummer (1-basiert)
+   */
+  getNextSequenceNumber(year: number, tx?: TransactionContext): Promise<Result<number>>;
+
+  /**
    * HINWEIS: KEINE delete() Method!
    *
    * Warum kein delete()?

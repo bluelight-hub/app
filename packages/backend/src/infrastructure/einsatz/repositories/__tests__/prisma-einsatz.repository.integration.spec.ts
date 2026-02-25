@@ -229,7 +229,7 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
       const userIdResult = UserId.create(testUserId);
       expect(userIdResult.isSuccess).toBe(true);
       const userId = userIdResult.value as UserId;
-      const aggregateResult = Einsatz.create({ alarmstichwort: 'F2Y - Brand', createdBy: userId });
+      const aggregateResult = Einsatz.create({ alarmstichwort: 'F2Y - Brand', createdBy: userId, nummer: 'E2026-001' });
       expect(aggregateResult.isSuccess).toBe(true);
       const aggregate = aggregateResult.value as Einsatz;
 
@@ -260,7 +260,7 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
       const userIdResult = UserId.create(testUserId);
       expect(userIdResult.isSuccess).toBe(true);
       const userId = userIdResult.value as UserId;
-      const aggregate = Einsatz.create({ alarmstichwort: 'F1 - VU', createdBy: userId }).value as Einsatz;
+      const aggregate = Einsatz.create({ alarmstichwort: 'F1 - VU', createdBy: userId, nummer: 'E2026-002' }).value as Einsatz;
 
       await repository.save(aggregate);
 
@@ -290,7 +290,7 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
       const userIdResult = UserId.create(testUserId);
       expect(userIdResult.isSuccess).toBe(true);
       const userId = userIdResult.value as UserId;
-      const aggregate = Einsatz.create({ alarmstichwort: 'F3 - Technische Hilfe', createdBy: userId }).value as Einsatz;
+      const aggregate = Einsatz.create({ alarmstichwort: 'F3 - Technische Hilfe', createdBy: userId, nummer: 'E2026-003' }).value as Einsatz;
 
       // Verify: Aggregate has uncommitted Domain Events
       expect(aggregate.getDomainEvents().length).toBeGreaterThan(0);
@@ -316,7 +316,7 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
       const userIdResult = UserId.create(testUserId);
       expect(userIdResult.isSuccess).toBe(true);
       const userId = userIdResult.value as UserId;
-      const aggregate = Einsatz.create({ alarmstichwort: 'F1 - Rauchentwicklung', createdBy: userId }).value as Einsatz;
+      const aggregate = Einsatz.create({ alarmstichwort: 'F1 - Rauchentwicklung', createdBy: userId, nummer: 'E2026-004' }).value as Einsatz;
 
       expect(aggregate.getDomainEvents().length).toBeGreaterThan(0);
 
@@ -341,7 +341,7 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
       const fakeUserIdResult = UserId.create(createId());
       expect(fakeUserIdResult.isSuccess).toBe(true);
       const fakeUserId = fakeUserIdResult.value as UserId;
-      const aggregate = Einsatz.create({ alarmstichwort: 'F1 - Test', createdBy: fakeUserId }).value as Einsatz;
+      const aggregate = Einsatz.create({ alarmstichwort: 'F1 - Test', createdBy: fakeUserId, nummer: 'E2026-005' }).value as Einsatz;
 
       // When/Then: Save with non-existent user FK returns failure
       const saveResult = await repository.save(aggregate);
@@ -370,7 +370,7 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
       const userIdResult = UserId.create(testUserId);
       expect(userIdResult.isSuccess).toBe(true);
       const userId = userIdResult.value as UserId;
-      const aggregate = Einsatz.create({ alarmstichwort: 'F2Y - Wohnungsbrand', createdBy: userId }).value as Einsatz;
+      const aggregate = Einsatz.create({ alarmstichwort: 'F2Y - Wohnungsbrand', createdBy: userId, nummer: 'E2026-006' }).value as Einsatz;
 
       await repository.save(aggregate);
 
@@ -416,9 +416,9 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
       const userIdResult = UserId.create(testUserId);
       expect(userIdResult.isSuccess).toBe(true);
       const userId = userIdResult.value as UserId;
-      const einsatz1 = Einsatz.create({ alarmstichwort: 'F1 - Aktiv 1', createdBy: userId }).value as Einsatz;
-      const einsatz2 = Einsatz.create({ alarmstichwort: 'F1 - Aktiv 2', createdBy: userId }).value as Einsatz;
-      const einsatz3 = Einsatz.create({ alarmstichwort: 'F1 - Archiviert', createdBy: userId }).value as Einsatz;
+      const einsatz1 = Einsatz.create({ alarmstichwort: 'F1 - Aktiv 1', createdBy: userId, nummer: 'E2026-007' }).value as Einsatz;
+      const einsatz2 = Einsatz.create({ alarmstichwort: 'F1 - Aktiv 2', createdBy: userId, nummer: 'E2026-008' }).value as Einsatz;
+      const einsatz3 = Einsatz.create({ alarmstichwort: 'F1 - Archiviert', createdBy: userId, nummer: 'E2026-009' }).value as Einsatz;
 
       // Archive einsatz3
       einsatz3.archive(userId);
@@ -473,7 +473,7 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
       const userIdResult = UserId.create(testUserId);
       expect(userIdResult.isSuccess).toBe(true);
       const userId = userIdResult.value as UserId;
-      const aggregate = Einsatz.create({ alarmstichwort: 'F1 - Exists Test', createdBy: userId }).value as Einsatz;
+      const aggregate = Einsatz.create({ alarmstichwort: 'F1 - Exists Test', createdBy: userId, nummer: 'E2026-010' }).value as Einsatz;
       await repository.save(aggregate);
 
       // When: Check existence
@@ -518,7 +518,7 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
       const userIdResult = UserId.create(testUserId);
       expect(userIdResult.isSuccess).toBe(true);
       const userId = userIdResult.value as UserId;
-      const aggregate = Einsatz.create({ alarmstichwort: 'F1 - TX Test', createdBy: userId }).value as Einsatz;
+      const aggregate = Einsatz.create({ alarmstichwort: 'F1 - TX Test', createdBy: userId, nummer: 'E2026-011' }).value as Einsatz;
 
       // When: Save using external transaction
       await prisma.$transaction(async (tx) => {
@@ -542,7 +542,7 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
       const userIdResult = UserId.create(testUserId);
       expect(userIdResult.isSuccess).toBe(true);
       const userId = userIdResult.value as UserId;
-      const aggregate = Einsatz.create({ alarmstichwort: 'F1 - Internal TX', createdBy: userId }).value as Einsatz;
+      const aggregate = Einsatz.create({ alarmstichwort: 'F1 - Internal TX', createdBy: userId, nummer: 'E2026-012' }).value as Einsatz;
 
       // When: Save without tx parameter (uses internal transaction)
       await repository.save(aggregate);
@@ -570,7 +570,7 @@ describe('PrismaEinsatzRepository - Integration Tests', () => {
       const userIdResult = UserId.create(testUserId);
       expect(userIdResult.isSuccess).toBe(true);
       const userId = userIdResult.value as UserId;
-      const aggregate = Einsatz.create({ alarmstichwort: 'F2Y - Brand mit äöü ß € Sonderzeichen', createdBy: userId }).value as Einsatz;
+      const aggregate = Einsatz.create({ alarmstichwort: 'F2Y - Brand mit äöü ß € Sonderzeichen', createdBy: userId, nummer: 'E2026-013' }).value as Einsatz;
 
       // Set optional fields
       aggregate.update({ bemerkung: 'Vollalarm - Alle Einheiten ausrücken' });

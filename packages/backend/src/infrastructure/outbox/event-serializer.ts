@@ -110,7 +110,7 @@ export interface SerializedEvent {
  * @example
  * ```typescript
  * const serializer = new EventSerializer();
- * const event = new EinsatzCreatedEvent(einsatzId, createdBy, 'Wohnungsbrand', 'E2024-abc');
+ * const event = new EinsatzCreatedEvent(einsatzId, createdBy, 'Wohnungsbrand', 'E2026-001');
  * const serialized = serializer.serialize(event);
  * // { eventId: '...', eventName: 'einsatz.created', payload: { einsatzId: 'cuid...', ... } }
  * ```

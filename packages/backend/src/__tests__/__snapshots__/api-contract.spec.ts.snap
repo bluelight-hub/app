@@ -62,14 +62,30 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
       },
       "AktiveTeilnehmerResponseDto": {
         "properties": {
-          "funkrufname": {
-            "description": "Funkrufname im Einsatz",
-            "example": "Florian 11/40",
-            "type": "string",
-          },
           "joinedAt": {
             "description": "Zeitpunkt des Einsatz-Beitritts (ISO-8601)",
             "example": "2026-01-23T08:00:00.000Z",
+            "type": "string",
+          },
+          "personFunkrufname": {
+            "description": "Funkrufname der verknuepften EinsatzPerson",
+            "example": "Florian 11/40",
+            "nullable": true,
+            "type": "object",
+          },
+          "personFunktion": {
+            "description": "Funktion der verknuepften EinsatzPerson",
+            "example": "Gruppenführer",
+            "type": "string",
+          },
+          "personNachname": {
+            "description": "Nachname der verknuepften EinsatzPerson",
+            "example": "Schmidt",
+            "type": "string",
+          },
+          "personVorname": {
+            "description": "Vorname der verknuepften EinsatzPerson",
+            "example": "Thomas",
             "type": "string",
           },
           "userId": {
@@ -86,7 +102,9 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
         "required": [
           "userId",
           "username",
-          "funkrufname",
+          "personVorname",
+          "personNachname",
+          "personFunktion",
           "joinedAt",
         ],
         "type": "object",
@@ -252,8 +270,8 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
             "type": "string",
           },
           "nummer": {
-            "description": "Befehlsnummer (Format: B{YEAR}-{CUID-8})",
-            "example": "B2026-abc123xy",
+            "description": "Befehlsnummer (Format: B-{SEQ})",
+            "example": "B-001",
             "type": "string",
           },
           "originalBefehlId": {
@@ -373,7 +391,7 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
             "type": "string",
           },
           "beschreibung": {
-            "example": "Befehl #B2026-abc12345 erteilt",
+            "example": "Befehl #B-001 erteilt",
             "type": "string",
           },
           "details": {
@@ -381,7 +399,7 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
             "type": "string",
           },
           "korrekturBefehlNummer": {
-            "example": "B2026-korr1234",
+            "example": "B-002",
             "type": "string",
           },
           "status": {
@@ -429,7 +447,7 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
             "type": "string",
           },
           "befehlNummer": {
-            "example": "B2026-abc12345",
+            "example": "B-001",
             "type": "string",
           },
           "events": {
@@ -894,8 +912,8 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
             "type": "string",
           },
           "nummer": {
-            "description": "Auto-generierte Einsatznummer (Format: E{YEAR}-{CUID-8})",
-            "example": "E2024-abc123xy",
+            "description": "Auto-generierte Einsatznummer (Format: E{YEAR}-{SEQ})",
+            "example": "E2026-001",
             "type": "string",
           },
           "status": {
@@ -958,8 +976,8 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
             "type": "string",
           },
           "nummer": {
-            "description": "Einsatznummer (Format: E{YEAR}-{ID})",
-            "example": "E2024-abc123xy",
+            "description": "Einsatznummer (Format: E{YEAR}-{SEQ})",
+            "example": "E2026-001",
             "type": "string",
           },
           "poisCount": {

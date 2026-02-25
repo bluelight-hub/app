@@ -1,11 +1,10 @@
 /**
  * Rollen-Management Route
  *
- * Admin-Seite zur Verwaltung von befehlsspezifischen Rollen im Einsatz.
+ * Seite zur Verwaltung von befehlsspezifischen Rollen im Einsatz.
  * Story 5.2 AC7
  */
 
-import { useAdminAuth } from '@/features/auth/api/use-current-user';
 import { EinsatzRollenManager } from '@/features/einsatz/ui/organisms';
 import { createFileRoute } from '@tanstack/react-router';
 
@@ -15,19 +14,6 @@ export const Route = createFileRoute('/app/einsatz/$einsatzId/führung/rollen')(
 
 function RollenSeite() {
   const { einsatzId } = Route.useParams();
-  const { isAdmin, isLoading } = useAdminAuth();
-
-  if (isLoading) {
-    return <div className="p-6 text-gray-400">Laden...</div>;
-  }
-
-  if (!isAdmin) {
-    return (
-      <div className="p-6 text-center">
-        <p className="text-red-400">Keine Berechtigung. Nur Administratoren können Rollen verwalten.</p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">

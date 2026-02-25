@@ -62,6 +62,8 @@ interface PersonHinzufuegenDialogProps {
   isOpen: boolean;
   onClose: () => void;
   einsatzId: string;
+  /** Optional: Callback nach erfolgreicher Person-Erstellung (z.B. für Auto-Select im Beitritts-Dialog) */
+  onPersonCreated?: (person: { id: string; vorname: string; nachname: string; funkrufname?: string; funktion: string }) => void;
 }
 
 /**
@@ -132,7 +134,7 @@ const FUNKTIONEN = [
  * />
  * ```
  */
-export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId }: PersonHinzufuegenDialogProps) {
+export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCreated }: PersonHinzufuegenDialogProps) {
   // Tab State
   const [selectedTab, setSelectedTab] = useState(0);
   // Ref für Focus Management
@@ -232,7 +234,7 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId }: PersonHi
     const toastId = toast.loading('Person wird registriert…');
 
     try {
-      await registrierePerson.mutateAsync({
+      const result = await registrierePerson.mutateAsync({
         einsatzId,
         vorname: values.vorname,
         nachname: values.nachname,
@@ -245,6 +247,17 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId }: PersonHi
         id: toastId,
         description: 'Person wurde zum Einsatz hinzugefügt',
       });
+
+      // Callback für Auto-Select (z.B. im Beitritts-Dialog)
+      if (onPersonCreated && result?.data) {
+        onPersonCreated({
+          id: result.data.id,
+          vorname: result.data.vorname,
+          nachname: result.data.nachname,
+          funkrufname: result.data.funkrufname ?? undefined,
+          funktion: result.data.funktion,
+        });
+      }
 
       // Reset und schließen
       form.reset();
@@ -267,7 +280,7 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId }: PersonHi
       }
       // Dialog bleibt offen bei Fehler
     }
-  }, [einsatzId, registrierePerson, form, onClose]);
+  }, [einsatzId, registrierePerson, form, onClose, onPersonCreated]);
 
   // Keyboard Shortcuts
   useHotkeys(

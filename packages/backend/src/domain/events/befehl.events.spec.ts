@@ -29,7 +29,7 @@ describe('Befehl Domain Events', () => {
       const befehlId = BefehlId.create().value!;
       const einsatzId = EinsatzId.create().value!;
       const auftrag = 'Evakuierung Sektor A';
-      const nummer = 'B2026-abc12def';
+      const nummer = 'B-001';
       const empfaenger = ['ZF Nord', 'ZF Süd'];
 
       const event = new BefehlErstelltEvent(befehlId, einsatzId, auftrag, nummer, empfaenger);
@@ -54,15 +54,15 @@ describe('Befehl Domain Events', () => {
     it('should auto-generate unique event IDs', () => {
       const befehlId = BefehlId.create().value!;
       const einsatzId = EinsatzId.create().value!;
-      const event1 = new BefehlErstelltEvent(befehlId, einsatzId, 'Test', 'B2026-test1234', []);
-      const event2 = new BefehlErstelltEvent(befehlId, einsatzId, 'Test', 'B2026-test1234', []);
+      const event1 = new BefehlErstelltEvent(befehlId, einsatzId, 'Test', 'B-001', []);
+      const event2 = new BefehlErstelltEvent(befehlId, einsatzId, 'Test', 'B-001', []);
 
       expect(event1.eventId).not.toBe(event2.eventId);
     });
 
     it('should generate recent timestamp', () => {
       const before = new Date();
-      const event = new BefehlErstelltEvent(BefehlId.create().value!, EinsatzId.create().value!, 'Test', 'B2026-test1234', []);
+      const event = new BefehlErstelltEvent(BefehlId.create().value!, EinsatzId.create().value!, 'Test', 'B-001', []);
       const after = new Date();
 
       expect(event.occurredAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
@@ -71,13 +71,13 @@ describe('Befehl Domain Events', () => {
 
     it('should support optional aggregateId', () => {
       const aggregateId = 'aggregate-123';
-      const event = new BefehlErstelltEvent(BefehlId.create().value!, EinsatzId.create().value!, 'Test', 'B2026-test1234', [], aggregateId);
+      const event = new BefehlErstelltEvent(BefehlId.create().value!, EinsatzId.create().value!, 'Test', 'B-001', [], aggregateId);
 
       expect(event.aggregateId).toBe(aggregateId);
     });
 
     it('should have undefined aggregateId when not provided', () => {
-      const event = new BefehlErstelltEvent(BefehlId.create().value!, EinsatzId.create().value!, 'Test', 'B2026-test1234', []);
+      const event = new BefehlErstelltEvent(BefehlId.create().value!, EinsatzId.create().value!, 'Test', 'B-001', []);
 
       expect(event.aggregateId).toBeUndefined();
     });
@@ -85,7 +85,7 @@ describe('Befehl Domain Events', () => {
     it('should work with typed value objects', () => {
       const befehlId = BefehlId.create().value!;
       const einsatzId = EinsatzId.create().value!;
-      const event = new BefehlErstelltEvent(befehlId, einsatzId, 'Test', 'B2026-test1234', []);
+      const event = new BefehlErstelltEvent(befehlId, einsatzId, 'Test', 'B-001', []);
 
       expect(event.befehlId).toBeInstanceOf(BefehlId);
       expect(event.einsatzId).toBeInstanceOf(EinsatzId);
@@ -226,7 +226,7 @@ describe('Befehl Domain Events', () => {
       const einsatzId = EinsatzId.create().value!;
       const empfaengerId = UserId.create().value!;
       const quittierungArt = 'VERSTANDEN' as const;
-      const nummer = 'B2026-abc12def';
+      const nummer = 'B-001';
       const quittiertAm = new Date('2026-01-15T10:00:00Z');
 
       const event = new BefehlQuittiertEvent(befehlId, einsatzId, empfaengerId, quittierungArt, nummer, quittiertAm);
@@ -249,28 +249,28 @@ describe('Befehl Domain Events', () => {
       const befehlId = BefehlId.create().value!;
       const einsatzId = EinsatzId.create().value!;
       const empfaengerId = UserId.create().value!;
-      const event1 = new BefehlQuittiertEvent(befehlId, einsatzId, empfaengerId, 'VERSTANDEN', 'B2026-test1234', new Date());
-      const event2 = new BefehlQuittiertEvent(befehlId, einsatzId, empfaengerId, 'VERSTANDEN', 'B2026-test1234', new Date());
+      const event1 = new BefehlQuittiertEvent(befehlId, einsatzId, empfaengerId, 'VERSTANDEN', 'B-001', new Date());
+      const event2 = new BefehlQuittiertEvent(befehlId, einsatzId, empfaengerId, 'VERSTANDEN', 'B-001', new Date());
 
       expect(event1.eventId).not.toBe(event2.eventId);
     });
 
     it('should support optional aggregateId', () => {
       const aggregateId = 'aggregate-123';
-      const event = new BefehlQuittiertEvent(BefehlId.create().value!, EinsatzId.create().value!, UserId.create().value!, 'VERSTANDEN', 'B2026-test1234', new Date(), aggregateId);
+      const event = new BefehlQuittiertEvent(BefehlId.create().value!, EinsatzId.create().value!, UserId.create().value!, 'VERSTANDEN', 'B-001', new Date(), aggregateId);
 
       expect(event.aggregateId).toBe(aggregateId);
     });
 
     it('should have undefined aggregateId when not provided', () => {
-      const event = new BefehlQuittiertEvent(BefehlId.create().value!, EinsatzId.create().value!, UserId.create().value!, 'VERSTANDEN', 'B2026-test1234', new Date());
+      const event = new BefehlQuittiertEvent(BefehlId.create().value!, EinsatzId.create().value!, UserId.create().value!, 'VERSTANDEN', 'B-001', new Date());
 
       expect(event.aggregateId).toBeUndefined();
     });
 
     it('should generate recent timestamp', () => {
       const before = new Date();
-      const event = new BefehlQuittiertEvent(BefehlId.create().value!, EinsatzId.create().value!, UserId.create().value!, 'RUECKFRAGE', 'B2026-test1234', new Date());
+      const event = new BefehlQuittiertEvent(BefehlId.create().value!, EinsatzId.create().value!, UserId.create().value!, 'RUECKFRAGE', 'B-001', new Date());
       const after = new Date();
 
       expect(event.occurredAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
@@ -281,7 +281,7 @@ describe('Befehl Domain Events', () => {
       const befehlId = BefehlId.create().value!;
       const einsatzId = EinsatzId.create().value!;
       const empfaengerId = UserId.create().value!;
-      const event = new BefehlQuittiertEvent(befehlId, einsatzId, empfaengerId, 'NICHT_VERSTANDEN', 'B2026-test1234', new Date());
+      const event = new BefehlQuittiertEvent(befehlId, einsatzId, empfaengerId, 'NICHT_VERSTANDEN', 'B-001', new Date());
 
       expect(event.befehlId).toBeInstanceOf(BefehlId);
       expect(event.einsatzId).toBeInstanceOf(EinsatzId);
@@ -290,7 +290,7 @@ describe('Befehl Domain Events', () => {
 
     it('should preserve quittiertAm timestamp exactly', () => {
       const quittiertAm = new Date('2026-01-15T10:00:00Z');
-      const event = new BefehlQuittiertEvent(BefehlId.create().value!, EinsatzId.create().value!, UserId.create().value!, 'VERSTANDEN', 'B2026-test1234', quittiertAm);
+      const event = new BefehlQuittiertEvent(BefehlId.create().value!, EinsatzId.create().value!, UserId.create().value!, 'VERSTANDEN', 'B-001', quittiertAm);
 
       expect(event.quittiertAm).toBe(quittiertAm);
       expect(event.quittiertAm.toISOString()).toBe('2026-01-15T10:00:00.000Z');

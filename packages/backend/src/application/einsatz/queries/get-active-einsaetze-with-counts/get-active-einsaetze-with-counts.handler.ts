@@ -112,9 +112,8 @@ export class GetActiveEinsaetzeWithCountsQueryHandler implements IQueryHandler<G
       // 2. Mapping: Prisma Result � EinsatzListItemDto
       const dtos: EinsatzListItemDto[] = einsaetze.map((e) => ({
         id: e.id,
-        // nummer generieren aus createdAt Jahr + ersten 8 Zeichen der ID
-        // Format: "E{YEAR}-{ID-8}" (z.B. "E2024-clw3h8x9")
-        nummer: `E${e.createdAt.getFullYear()}-${e.id.substring(0, 8)}`,
+        // nummer ist eine DB-Spalte (Format: "E{YEAR}-{SEQ}", z.B. "E2026-001")
+        nummer: e.nummer,
         alarmstichwort: e.alarmstichwort ?? '', // null � empty string f�r API
         status: e.status as EinsatzListItemDto['status'],
         einsatzort: e.einsatzort ? { ort: e.einsatzort } : undefined,

@@ -15,8 +15,8 @@ import { GetAllTeilnehmerHandler } from '@/application/einsatz-teilnehmer/querie
 /**
  * Controller für Einsatz-Teilnehmer Management.
  *
- * Ermöglicht Usern das Beitreten zu Einsätzen mit einem Funkrufnamen.
- * Der Funkrufname wird für ETB-Absender Auto-Fill verwendet.
+ * Ermöglicht Usern das Beitreten zu Einsätzen mit einer EinsatzPerson.
+ * Person-Daten werden für ETB-Absender Auto-Fill verwendet.
  */
 @ApiTags('Einsatz Teilnehmer')
 @ApiBearerAuth()
@@ -36,13 +36,13 @@ export class EinsatzTeilnehmerController {
   /**
    * Alle aktiven Teilnehmer eines Einsatzes abrufen.
    *
-   * Gibt die Liste aller aktiven Teilnehmer mit ihren Funkrufnamen zurück.
+   * Gibt die Liste aller aktiven Teilnehmer mit ihren Person-Daten zurück.
    * Wird für ETB-Absender/Empfänger Autocomplete-Vorschläge verwendet.
    */
   @Get()
   @ApiOperation({
     summary: 'Alle Einsatz-Teilnehmer abrufen',
-    description: 'Gibt alle aktiven Teilnehmer des Einsatzes zurück. Inkl. Funkrufnamen für ETB-Autocomplete.',
+    description: 'Gibt alle aktiven Teilnehmer des Einsatzes zurück. Inkl. Person-Daten für ETB-Autocomplete.',
   })
   @ApiWrappedResponse(EinsatzTeilnehmerResponseDto, {
     isArray: true,
@@ -62,13 +62,13 @@ export class EinsatzTeilnehmerController {
   /**
    * Eigene Teilnahme an einem Einsatz abrufen.
    *
-   * Gibt die Teilnahme des aktuellen Users zurück, inkl. Funkrufname.
+   * Gibt die Teilnahme des aktuellen Users zurück, inkl. Person-Daten.
    * Wird für ETB-Absender Auto-Fill verwendet.
    */
   @Get('me')
   @ApiOperation({
     summary: 'Eigene Einsatz-Teilnahme abrufen',
-    description: 'Gibt die aktive Teilnahme des aktuellen Users am Einsatz zurück. Inkl. Funkrufname für ETB Auto-Fill.',
+    description: 'Gibt die aktive Teilnahme des aktuellen Users am Einsatz zurück. Inkl. Person-Daten für ETB Auto-Fill.',
   })
   @ApiWrappedResponse(EinsatzTeilnehmerResponseDto, {
     description: 'Teilnahme erfolgreich abgerufen',
@@ -92,13 +92,13 @@ export class EinsatzTeilnehmerController {
   /**
    * Einem Einsatz beitreten.
    *
-   * Erstellt eine Teilnahme mit dem gewählten Funkrufnamen.
-   * Falls bereits beigetreten, wird der Funkrufname aktualisiert.
+   * Erstellt eine Teilnahme mit der gewählten EinsatzPerson.
+   * Falls bereits beigetreten, wird die verknüpfte Person aktualisiert.
    */
   @Post()
   @ApiOperation({
     summary: 'Einsatz beitreten',
-    description: 'Tritt dem Einsatz mit einem Funkrufnamen bei. Bei erneutem Aufruf wird der Funkrufname aktualisiert.',
+    description: 'Tritt dem Einsatz mit einer EinsatzPerson bei. Bei erneutem Aufruf wird die verknüpfte Person aktualisiert.',
   })
   @ApiWrappedCreatedResponse(EinsatzTeilnehmerResponseDto, {
     description: 'Einsatz erfolgreich beigetreten',
@@ -110,7 +110,7 @@ export class EinsatzTeilnehmerController {
     dto: JoinEinsatzDto,
     @CurrentUser() user: ValidatedUser,
   ): Promise<EinsatzTeilnehmerResponseDto> {
-    const commandResult = JoinEinsatzCommand.create(einsatzId, user.userId, dto.funkrufname);
+    const commandResult = JoinEinsatzCommand.create(einsatzId, user.userId, dto.einsatzPersonId);
 
     if (commandResult.isFailure || !commandResult.value) {
       throw new BadRequestException(commandResult.error);

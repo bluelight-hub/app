@@ -43,6 +43,7 @@ describe('PrismaBefehlRepository', () => {
       erstellerId: generateValidUserId(),
       empfaenger: [{ name: 'ZF Nord' }],
       zeitvorgabe: '15 min',
+      nummer: 'B-001',
     });
     return result.value!;
   };
@@ -57,7 +58,7 @@ describe('PrismaBefehlRepository', () => {
 
     return {
       id: befehlId,
-      nummer: 'B2026-abcd1234',
+      nummer: 'B-001',
       einsatzId,
       auftrag: 'Patientenablage einrichten',
       befehlsgeberName: 'EL Müller',

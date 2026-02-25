@@ -110,7 +110,7 @@ describe('Event Round-Trip (Serialize → Deserialize)', () => {
 
   describe('Einsatz Events Round-Trip', () => {
     it('EinsatzCreatedEvent should survive round-trip', () => {
-      const original = new EinsatzCreatedEvent(einsatzId, userId, 'Wohnungsbrand', 'E2024-abc12345', 'agg-123');
+      const original = new EinsatzCreatedEvent(einsatzId, userId, 'Wohnungsbrand', 'E2026-001', 'agg-123');
 
       const serialized = serializer.serialize(original);
       const result = deserializer.deserialize(serialized);
@@ -403,7 +403,7 @@ describe('Event Round-Trip (Serialize → Deserialize)', () => {
 
   describe('JSON Persistence Simulation', () => {
     it('should survive JSON.stringify → JSON.parse → deserialize (DB simulation)', () => {
-      const original = new EinsatzCreatedEvent(einsatzId, userId, 'Wohnungsbrand', 'E2024-abc12345', 'agg-123');
+      const original = new EinsatzCreatedEvent(einsatzId, userId, 'Wohnungsbrand', 'E2026-001', 'agg-123');
 
       // Serialize
       const serialized = serializer.serialize(original);
@@ -424,7 +424,7 @@ describe('Event Round-Trip (Serialize → Deserialize)', () => {
 
     it('should preserve all 19 events through JSON persistence', () => {
       const events = [
-        new EinsatzCreatedEvent(einsatzId, userId, 'Test', 'E2024-001'),
+        new EinsatzCreatedEvent(einsatzId, userId, 'Test', 'E2026-002'),
         new EinsatzUpdatedEvent(einsatzId, { alarmstichwort: 'Updated' }),
         new EinsatzStatusChangedEvent(einsatzId, einsatzStatusAktiv, einsatzStatusAbgeschlossen),
         new EinsatzCompletedEvent(einsatzId, userId, new Date()),

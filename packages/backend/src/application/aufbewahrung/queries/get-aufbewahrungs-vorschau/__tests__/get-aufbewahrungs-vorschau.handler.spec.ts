@@ -28,7 +28,7 @@ describe('GetAufbewahrungsVorschauQueryHandler', () => {
       mockPrisma.einsatz.findMany.mockResolvedValue([
         {
           id: 'einsatz-1',
-          nummer: 'E2016-abc123',
+          nummer: 'E2016-001',
           archivedAt: new Date('2016-01-15'),
           _count: { befehle: 5 },
         },

@@ -41,6 +41,7 @@ describe('EinsatzCompletenessService', () => {
     const einsatzResult = Einsatz.create({
       alarmstichwort: 'Brand',
       createdBy: userId,
+      nummer: 'E2026-001',
       einsatzort: addressResult.value,
     });
 
@@ -57,6 +58,7 @@ describe('EinsatzCompletenessService', () => {
     const einsatzResult = Einsatz.create({
       alarmstichwort: 'Brand',
       createdBy: userId,
+      nummer: 'E2026-002',
     });
 
     const einsatz = einsatzResult.value as Einsatz;
@@ -129,6 +131,7 @@ describe('EinsatzCompletenessService', () => {
       const einsatzResult = Einsatz.create({
         alarmstichwort: 'Brand',
         createdBy: userId,
+        nummer: 'E2026-003',
         einsatzort: addressResult.value,
       });
       const einsatz = einsatzResult.value as Einsatz;
@@ -219,6 +222,7 @@ describe('EinsatzCompletenessService', () => {
       const einsatzResult = Einsatz.create({
         alarmstichwort: 'Brand',
         createdBy: userId,
+        nummer: 'E2026-004',
         einsatzort: addressResult.value,
       });
       const einsatz = einsatzResult.value as Einsatz;
@@ -236,6 +240,7 @@ describe('EinsatzCompletenessService', () => {
       const einsatzResult = Einsatz.create({
         alarmstichwort: 'Brand',
         createdBy: userId,
+        nummer: 'E2026-005',
       });
       const einsatz = einsatzResult.value as Einsatz;
       // Do NOT update status → stays ANGELEGT
