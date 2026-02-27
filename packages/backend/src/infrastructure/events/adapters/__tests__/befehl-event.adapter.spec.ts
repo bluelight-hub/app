@@ -363,7 +363,7 @@ describe('BefehlEventAdapter', () => {
       const empfaengerId = generateValidUserId();
       const quittiertAm = new Date('2026-02-18T10:00:00.000Z');
 
-      const event = new BefehlQuittiertEvent(befehlId, einsatzId, empfaengerId, 'VERSTANDEN', 'B-001', quittiertAm, undefined, befehlId.value);
+      const event = new BefehlQuittiertEvent(befehlId, einsatzId, empfaengerId, 'VERSTANDEN', 'B-001', quittiertAm, undefined, undefined, undefined, befehlId.value);
 
       // When: onBefehlQuittiert aufgerufen
       await adapter.onBefehlQuittiert(event);

@@ -2204,7 +2204,7 @@ describe('EventDeserializer', () => {
       const empfaengerId = UserId.create().value!;
       const quittiertAm = new Date('2026-02-18T10:00:00.000Z');
 
-      const originalEvent = new BefehlQuittiertEvent(befehlId, einsatzId, empfaengerId, 'RUECKFRAGE', 'B-002', quittiertAm, befehlId.value);
+      const originalEvent = new BefehlQuittiertEvent(befehlId, einsatzId, empfaengerId, 'RUECKFRAGE', 'B-002', quittiertAm, undefined, undefined, undefined, befehlId.value);
 
       // Serialize mit EventSerializer
       const serializer = new EventSerializer();

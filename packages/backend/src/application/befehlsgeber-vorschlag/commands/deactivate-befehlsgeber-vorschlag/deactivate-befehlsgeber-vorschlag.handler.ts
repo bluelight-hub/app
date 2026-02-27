@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { Result } from '@domain/common/result';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { DeleteBefehlsgeberVorschlagCommand } from './deactivate-befehlsgeber-vorschlag.command';
 
@@ -7,17 +8,19 @@ import { DeleteBefehlsgeberVorschlagCommand } from './deactivate-befehlsgeber-vo
 export class DeleteBefehlsgeberVorschlagHandler {
   constructor(private readonly prisma: PrismaService) {}
 
-  async execute(command: DeleteBefehlsgeberVorschlagCommand): Promise<void> {
+  async execute(command: DeleteBefehlsgeberVorschlagCommand): Promise<Result<void>> {
     const existing = await this.prisma.befehlsgeberVorschlag.findUnique({
       where: { id: command.id },
     });
 
     if (!existing) {
-      throw new NotFoundException(`BefehlsgeberVorschlag mit ID "${command.id}" nicht gefunden`);
+      return Result.fail(`BefehlsgeberVorschlag mit ID "${command.id}" nicht gefunden`);
     }
 
     await this.prisma.befehlsgeberVorschlag.delete({
       where: { id: command.id },
     });
+
+    return Result.ok(undefined);
   }
 }

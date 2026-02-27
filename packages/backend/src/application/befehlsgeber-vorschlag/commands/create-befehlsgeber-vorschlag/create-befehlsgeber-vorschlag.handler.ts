@@ -1,4 +1,5 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { Result } from '@domain/common/result';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { BefehlsgeberVorschlagDto } from '../../dto/befehlsgeber-vorschlag.dto';
 import { CreateBefehlsgeberVorschlagCommand } from './create-befehlsgeber-vorschlag.command';
@@ -8,13 +9,13 @@ import { CreateBefehlsgeberVorschlagCommand } from './create-befehlsgeber-vorsch
 export class CreateBefehlsgeberVorschlagHandler {
   constructor(private readonly prisma: PrismaService) {}
 
-  async execute(command: CreateBefehlsgeberVorschlagCommand): Promise<BefehlsgeberVorschlagDto> {
+  async execute(command: CreateBefehlsgeberVorschlagCommand): Promise<Result<BefehlsgeberVorschlagDto>> {
     const existing = await this.prisma.befehlsgeberVorschlag.findUnique({
       where: { kuerzel: command.kuerzel },
     });
 
     if (existing) {
-      throw new ConflictException(`Kuerzel "${command.kuerzel}" ist bereits vergeben`);
+      return Result.fail(`Kuerzel "${command.kuerzel}" ist bereits vergeben`);
     }
 
     const created = await this.prisma.befehlsgeberVorschlag.create({
@@ -26,7 +27,7 @@ export class CreateBefehlsgeberVorschlagHandler {
       },
     });
 
-    return this.toDto(created);
+    return Result.ok(this.toDto(created));
   }
 
   private toDto(entity: {

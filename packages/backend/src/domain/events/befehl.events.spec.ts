@@ -261,7 +261,18 @@ describe('Befehl Domain Events', () => {
 
     it('should support optional aggregateId', () => {
       const aggregateId = 'aggregate-123';
-      const event = new BefehlQuittiertEvent(BefehlId.create().value!, EinsatzId.create().value!, UserId.create().value!, 'VERSTANDEN', 'B-001', new Date(), undefined, aggregateId);
+      const event = new BefehlQuittiertEvent(
+        BefehlId.create().value!,
+        EinsatzId.create().value!,
+        UserId.create().value!,
+        'VERSTANDEN',
+        'B-001',
+        new Date(),
+        undefined,
+        undefined,
+        undefined,
+        aggregateId,
+      );
 
       expect(event.aggregateId).toBe(aggregateId);
     });
