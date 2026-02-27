@@ -112,7 +112,18 @@ export class BefehlController {
   // CLAUDE.md AC7 Exception: File-Downloads verwenden Stream-Response, kein Standard-Wrapper.
   @ApiOkResponse({ description: 'Exportierte Befehlsdaten als CSV- oder JSON-Datei' })
   @ApiBadRequestResponse({ description: 'einsatzId fehlt oder format ungueltig' })
-  async exportBefehle(@Query('einsatzId') einsatzId: string, @Query('format') format: string, @Res() res: Response): Promise<void> {
+  async exportBefehle(@Query('einsatzId') einsatzIdParam: string | string[], @Query('format') formatParam: string | string[], @Res() res: Response): Promise<void> {
+    if (Array.isArray(einsatzIdParam)) {
+      throw new BadRequestException('einsatzId darf nicht mehrfach angegeben werden');
+    }
+
+    if (Array.isArray(formatParam)) {
+      throw new BadRequestException('format darf nicht mehrfach angegeben werden');
+    }
+
+    const einsatzId = einsatzIdParam;
+    const format = formatParam;
+
     if (!einsatzId) {
       throw new BadRequestException('einsatzId ist erforderlich');
     }
