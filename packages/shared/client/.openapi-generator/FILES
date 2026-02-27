@@ -1,5 +1,6 @@
 .openapi-generator-ignore
 apis/AdminApi.ts
+apis/AdminBefehleBefehlsgeberVorschlaegeApi.ts
 apis/AdminIntegrationsHiorgApi.ts
 apis/AdminKraefteFahrzeugtypenApi.ts
 apis/AdminKraefteFunkstatusApi.ts
@@ -44,6 +45,8 @@ models/AddBefehlKommentarDto.ts
 models/AddEintragDto.ts
 models/AddPoiDto.ts
 models/AddressDto.ts
+models/AdminBefehlsgeberVorschlaegeControllerCreateVAlpha201Response.ts
+models/AdminBefehlsgeberVorschlaegeControllerFindAllVAlpha200Response.ts
 models/AdminFahrzeugtypenControllerCreateVAlpha201Response.ts
 models/AdminFahrzeugtypenControllerFindAllVAlpha200Response.ts
 models/AdminFunkStatusControllerFindAllVAlpha200Response.ts
@@ -83,6 +86,7 @@ models/AdminTokenControllerRevokeTokenVAlpha200Response.ts
 models/AdminTokenControllerRotateTokenVAlpha201Response.ts
 models/AdminTokenVerificationDto.ts
 models/AdminUserDto.ts
+models/AendereEmpfaengerStatusDto.ts
 models/AktiveTeilnehmerResponseDto.ts
 models/ApiMeta.ts
 models/ApiPagination.ts
@@ -117,17 +121,18 @@ models/BasicHealthDto.ts
 models/BatchSaveMappingItemDto.ts
 models/BatchSaveQualifikationMappingsRequestDto.ts
 models/BatchSaveQualifikationMappingsResponseDto.ts
+models/BefehlControllerBefehlsgeberSucheVAlpha200Response.ts
 models/BefehlControllerCreateVAlpha201Response.ts
 models/BefehlControllerEmpfaengerSucheVAlpha200Response.ts
 models/BefehlControllerFindByEinsatzVAlpha200Response.ts
 models/BefehlControllerGetHistorieVAlpha200Response.ts
-models/BefehlControllerGetMetrikenVAlpha200Response.ts
 models/BefehlDto.ts
 models/BefehlEmpfaengerDto.ts
 models/BefehlHistorieEventDto.ts
 models/BefehlHistorieTimelineDto.ts
 models/BefehlKommentarDto.ts
-models/BefehlMetrikenDto.ts
+models/BefehlsgeberSucheResultDto.ts
+models/BefehlsgeberVorschlagDto.ts
 models/BesatzungMemberDto.ts
 models/BesetzeRolleDto.ts
 models/CircuitBreakerStatusEntryDto.ts
@@ -139,6 +144,7 @@ models/CreateAccessTokenDto.ts
 models/CreateAccessTokenResponseDto.ts
 models/CreateBefehlDto.ts
 models/CreateBefehlEmpfaengerDto.ts
+models/CreateBefehlsgeberVorschlagDto.ts
 models/CreateEinsatzDto.ts
 models/CreateErinnerungDto.ts
 models/CreateErinnerungsvorlageDto.ts
@@ -177,7 +183,6 @@ models/EinsatzFahrzeugeControllerFindAllVAlpha200Response.ts
 models/EinsatzFahrzeugeControllerGetKraeftePoisVAlpha200Response.ts
 models/EinsatzListItemDto.ts
 models/EinsatzListItemDtoEinsatzort.ts
-models/EinsatzMetrikDto.ts
 models/EinsatzPersonResponseDto.ts
 models/EinsatzPersonenControllerFindAllVAlpha200Response.ts
 models/EinsatzPersonenControllerRegistrierePersonVAlpha201Response.ts
@@ -346,6 +351,7 @@ models/TokenListItemDto.ts
 models/TopReceiverDto.ts
 models/TopSourceDto.ts
 models/UpdateAufbewahrungsKonfigurationDto.ts
+models/UpdateBefehlsgeberVorschlagDto.ts
 models/UpdateEinsatzDto.ts
 models/UpdateEinsatzRollenDto.ts
 models/UpdateEintragDto.ts

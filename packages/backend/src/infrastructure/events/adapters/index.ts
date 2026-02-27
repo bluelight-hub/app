@@ -39,6 +39,8 @@ export * from './kategorie-geloescht-event.adapter';
 export * from './befehl-event.adapter';
 export * from './befehl-erstellt-etb-event.adapter';
 export * from './befehl-quittiert-etb-event.adapter';
+export * from './befehl-status-geaendert-etb-event.adapter';
+export * from './befehl-zugestellt-etb-event.adapter';
 export * from './rolle-geaendert-etb-event.adapter';
 export * from './rolle-geaendert-websocket-event.adapter';
 export * from './befehl-anonymisiert-etb-event.adapter';

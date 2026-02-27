@@ -1,6 +1,8 @@
 export { AlarmDot, BefehlStatusBadge, ConnectionStatusBanner, KritikalitaetBadge, ZustellHaekchen } from './atoms';
 export type { KritikalitaetBadgeType } from './atoms';
 export {
+  BefehlAlertRow,
+  BefehlCompactCard,
   BefehlEingabeRow,
   BefehlFilterRow,
   BefehlKarte,
@@ -18,8 +20,8 @@ export {
   BefehlDetailPanel,
   BefehlExportDialog,
   BefehlHistorieTimeline,
+  HandlungsbedarfSection,
   BefehlKanbanView,
-  BefehlMetrikenDashboard,
   BefehlTabellenView,
   BefehlQuittierenDialog,
   KorrekturBefehlDialog,

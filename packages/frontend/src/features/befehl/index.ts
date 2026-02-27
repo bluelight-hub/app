@@ -16,7 +16,6 @@ export {
   type BefehleQueryFilters,
   // Query Hooks
   useBefehlHistorie,
-  useBefehlMetriken,
   useBefehleByEinsatz,
   useEmpfaengerSuche,
   useMeineBefehle,
@@ -24,15 +23,19 @@ export {
   useOffeneRueckfragen,
   // Mutation Hooks
   useAddBefehlKommentar,
+  useAendereEmpfaengerStatus,
+  type AendereEmpfaengerStatusInput,
   useCreateBefehl,
   useKorrigiereBefehl,
   useQuittierenBefehl,
   // WebSocket Hook & Types
   useBefehlWebSocket,
+  useBefehlWebSocketStatus,
   type BefehlErstelltPayload,
   type BefehlZugestelltPayload,
   type BefehlKommentarHinzugefuegtPayload,
   type BefehlQuittiertPayload,
+  type BefehlStatusGeaendertPayload,
   type WebSocketStatus,
   type UseBefehlWebSocketOptions,
   type UseBefehlWebSocketReturn,
@@ -64,6 +67,10 @@ export {
   useBefehlPermissions,
   type BefehlPermissions,
   useBefehlTabelle,
+  useHandlungsbedarf,
+  getKritischGrund,
+  getRueckfrageInfo,
+  type HandlungsbedarfResult,
   useKanbanGruppierung,
   type KanbanBefehl,
   type KanbanGruppierung,
@@ -87,6 +94,11 @@ export {
   resetBefehleFilter,
   befehleFilterStore,
   type BefehleFilterState,
+  // Befehl-Alerts (Quittierung + Korrektur, persistent bei Login)
+  useMissedBefehlAlerts,
+  markAlertSeen,
+  // Unquittierte Befehle Badge Counter
+  useUnquittierteBefehleCount,
   // Meine Befehle Filter
   useMeineBefehleFilter,
   useShowMeineBefehle,
@@ -154,10 +166,12 @@ export {
 // ============================================
 export {
   AlarmDot,
+  BefehlAlertRow,
+  BefehlCompactCard,
   BefehlDetailPanel,
-  BefehlMetrikenDashboard,
   BefehlExportDialog,
   BefehlHistorieTimeline,
+  HandlungsbedarfSection,
   BefehlEingabeRow,
   BefehlFilterRow,
   BefehlKanbanView,

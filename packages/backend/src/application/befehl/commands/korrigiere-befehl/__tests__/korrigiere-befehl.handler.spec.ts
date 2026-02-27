@@ -224,17 +224,16 @@ describe('KorrigiereBefehlHandler', () => {
       expect(mockRepository.save).not.toHaveBeenCalled();
     });
 
-    it('sollte fehlschlagen wenn Original QUITTIERT ist (kein Uebergang nach KORRIGIERT)', async () => {
+    it('sollte bei QUITTIERT funktionieren (Korrektur nach Quittierung erlaubt)', async () => {
       const original = createOriginalBefehl('QUITTIERT');
       mockRepository.findById.mockResolvedValue(Result.ok(original));
+      mockRepository.save.mockResolvedValue(Result.ok(undefined as never));
 
       const command = createValidCommand(original.id.value);
 
       const result = await handler.execute(command);
 
-      expect(result.isSuccess).toBe(false);
-      expect(result.error).toContain('QUITTIERT');
-      expect(mockRepository.save).not.toHaveBeenCalled();
+      expect(result.isSuccess).toBe(true);
     });
 
     it('sollte fehlschlagen bei ungültiger ErstellerId', async () => {

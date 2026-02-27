@@ -21,6 +21,9 @@ export class BefehlQuittiertEvent extends DomainEvent {
     public readonly quittierungArt: QuittierungArt,
     public readonly nummer: string,
     public readonly quittiertAm: Date,
+    public readonly quittierungKommentar?: string,
+    public readonly erstellerId?: UserId,
+    public readonly befehlsgeberId?: UserId,
     aggregateId?: string,
   ) {
     super(aggregateId);

@@ -1,4 +1,4 @@
-import { PiSquaresFour, PiTable } from 'react-icons/pi';
+import { PiList, PiSquaresFour, PiTable } from 'react-icons/pi';
 import { cn } from '@/shared/ui/cn';
 import { useBefehleView, setBefehleView, type BefehleView } from '../../hooks/use-befehle-view-store';
 
@@ -9,6 +9,7 @@ export function BefehleViewToggle({ className }: { className?: string }) {
   const buttons: { view: BefehleView; icon: typeof PiSquaresFour; label: string }[] = [
     { view: 'kanban', icon: PiSquaresFour, label: 'Kanban-Ansicht' },
     { view: 'tabelle', icon: PiTable, label: 'Tabellen-Ansicht' },
+    { view: 'liste', icon: PiList, label: 'Listenansicht' },
   ];
 
   return (

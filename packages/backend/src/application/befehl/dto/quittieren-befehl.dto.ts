@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsIn, IsNotEmpty, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsIn, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 /**
  * DTO fuer die Quittierung eines Befehls durch einen Empfaenger.
@@ -22,4 +22,10 @@ export class QuittierenBefehlDto {
   @IsString()
   @IsIn(['VERSTANDEN', 'RUECKFRAGE', 'NICHT_VERSTANDEN'])
   quittierungArt!: 'VERSTANDEN' | 'RUECKFRAGE' | 'NICHT_VERSTANDEN';
+
+  @ApiPropertyOptional({ description: 'Optionaler Kommentar zur Quittierung (z.B. Rueckfrage-Text)' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  kommentar?: string;
 }

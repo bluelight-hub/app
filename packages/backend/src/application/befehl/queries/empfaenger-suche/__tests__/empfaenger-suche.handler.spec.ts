@@ -15,10 +15,13 @@ describe('EmpfaengerSucheQueryHandler', () => {
   const mockPrisma = {
     einsatzPerson: { findMany: jest.fn() },
     stammPerson: { findMany: jest.fn() },
+    einsatzTeilnehmer: { findMany: jest.fn() },
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default: keine Teilnehmer-Verknuepfung (wird in spezifischen Tests ueberschrieben)
+    mockPrisma.einsatzTeilnehmer.findMany.mockResolvedValue([]);
     // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     handler = new EmpfaengerSucheQueryHandler(mockPrisma as any);
   });
@@ -236,14 +239,35 @@ describe('EmpfaengerSucheQueryHandler', () => {
     });
   });
 
-  describe('EinsatzPerson hat kein userId', () => {
-    it('sollte userId undefined lassen fuer EinsatzPerson', async () => {
+  describe('userId via EinsatzTeilnehmer', () => {
+    it('sollte userId setzen wenn EinsatzTeilnehmer-Verknuepfung existiert', async () => {
+      mockPrisma.einsatzPerson.findMany.mockResolvedValue([{ id: 'ep-1', vorname: 'Max', nachname: 'Meier', funkrufname: null, funktion: 'Helfer', stammId: null, qualifikationen: [] }]);
+      mockPrisma.einsatzTeilnehmer.findMany.mockResolvedValue([{ einsatzPersonId: 'ep-1', userId: 'user-123' }]);
+      mockPrisma.stammPerson.findMany.mockResolvedValue([]);
+
+      const result = await handler.execute(new EmpfaengerSucheQuery('Meier', 'einsatz-1'));
+
+      expect(result.value![0].userId).toBe('user-123');
+    });
+
+    it('sollte userId undefined lassen wenn kein EinsatzTeilnehmer existiert', async () => {
       mockPrisma.einsatzPerson.findMany.mockResolvedValue([{ id: 'ep-1', vorname: 'Max', nachname: 'Meier', funkrufname: null, funktion: 'Helfer', stammId: null, qualifikationen: [] }]);
       mockPrisma.stammPerson.findMany.mockResolvedValue([]);
 
       const result = await handler.execute(new EmpfaengerSucheQuery('Meier', 'einsatz-1'));
 
       expect(result.value![0].userId).toBeUndefined();
+    });
+
+    it('sollte nur aktive Teilnehmer abfragen (leftAt null)', async () => {
+      mockPrisma.einsatzPerson.findMany.mockResolvedValue([{ id: 'ep-1', vorname: 'Max', nachname: 'Meier', funkrufname: null, funktion: 'Helfer', stammId: null, qualifikationen: [] }]);
+      mockPrisma.stammPerson.findMany.mockResolvedValue([]);
+
+      await handler.execute(new EmpfaengerSucheQuery('Meier', 'einsatz-1'));
+
+      const teilnehmerCall = mockPrisma.einsatzTeilnehmer.findMany.mock.calls[0][0];
+      expect(teilnehmerCall.where.leftAt).toBeNull();
+      expect(teilnehmerCall.where.einsatzId).toBe('einsatz-1');
     });
   });
 

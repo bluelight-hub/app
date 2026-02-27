@@ -16,5 +16,6 @@ export class KorrigiereBefehlCommand {
     public readonly mittel?: string,
     public readonly ziel?: string,
     public readonly weg?: string,
+    public readonly befehlsgeberId?: string,
   ) {}
 }

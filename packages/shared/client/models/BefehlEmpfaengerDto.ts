@@ -56,6 +56,12 @@ export interface BefehlEmpfaengerDto {
      */
     quittierungArt?: BefehlEmpfaengerDtoQuittierungArtEnum;
     /**
+     * Kommentar zur Quittierung
+     * @type {string}
+     * @memberof BefehlEmpfaengerDto
+     */
+    quittierungKommentar?: string;
+    /**
      * Ob der Empfaenger quittierbar ist (mit User verknuepft)
      * @type {boolean}
      * @memberof BefehlEmpfaengerDto
@@ -101,6 +107,7 @@ export function BefehlEmpfaengerDtoFromJSONTyped(json: any, ignoreDiscriminator:
         'zugestelltAm': json['zugestelltAm'] == null ? undefined : (new Date(json['zugestelltAm'])),
         'quittiertAm': json['quittiertAm'] == null ? undefined : (new Date(json['quittiertAm'])),
         'quittierungArt': json['quittierungArt'] == null ? undefined : json['quittierungArt'],
+        'quittierungKommentar': json['quittierungKommentar'] == null ? undefined : json['quittierungKommentar'],
         'istQuittierbar': json['istQuittierbar'],
     };
 }
@@ -122,6 +129,7 @@ export function BefehlEmpfaengerDtoToJSONTyped(value?: BefehlEmpfaengerDto | nul
         'zugestelltAm': value['zugestelltAm'] == null ? undefined : ((value['zugestelltAm']).toISOString()),
         'quittiertAm': value['quittiertAm'] == null ? undefined : ((value['quittiertAm']).toISOString()),
         'quittierungArt': value['quittierungArt'],
+        'quittierungKommentar': value['quittierungKommentar'],
         'istQuittierbar': value['istQuittierbar'],
     };
 }

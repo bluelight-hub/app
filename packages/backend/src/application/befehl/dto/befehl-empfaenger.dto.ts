@@ -29,6 +29,9 @@ export class BefehlEmpfaengerDto {
   })
   quittierungArt?: string;
 
+  @ApiPropertyOptional({ description: 'Kommentar zur Quittierung' })
+  quittierungKommentar?: string;
+
   @ApiProperty({ description: 'Ob der Empfaenger quittierbar ist (mit User verknuepft)', example: true })
   istQuittierbar!: boolean;
 }

@@ -190,6 +190,9 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get complianceReport() {
     return this._client.complianceReport;
   }
+  get befehlsgeberVorschlag() {
+    return this._client.befehlsgeberVorschlag;
+  }
 
   // Delegate Prisma Client methods
   $connect() {

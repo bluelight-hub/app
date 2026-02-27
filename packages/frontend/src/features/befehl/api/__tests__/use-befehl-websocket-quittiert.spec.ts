@@ -134,11 +134,14 @@ describe('useBefehlWebSocket - befehl.quittiert Handler', () => {
     };
 
     await act(async () => {
-      handler!(event);
+      handler?.(event);
     });
 
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: ['befehl', 'list', 'einsatz-1'],
+    });
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ['befehl', 'detail', 'befehl-1'],
     });
   });
 
@@ -158,16 +161,16 @@ describe('useBefehlWebSocket - befehl.quittiert Handler', () => {
 
     // Erstes Mal: sollte verarbeitet werden
     await act(async () => {
-      handler!(event);
+      handler?.(event);
     });
 
     // Zweites Mal: gleicher Event sollte dedupliziert werden
     await act(async () => {
-      handler!(event);
+      handler?.(event);
     });
 
-    // 1 Aufruf pro Event (list invalidiert auch offeneRueckfragen via Prefix-Matching), nur fuer erstes Event
-    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+    // 2 Aufrufe pro Event (list + detail/historie), nur fuer erstes Event
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(2);
   });
 
   it('should show toast for quittierung by another user', async () => {
@@ -185,7 +188,7 @@ describe('useBefehlWebSocket - befehl.quittiert Handler', () => {
     };
 
     await act(async () => {
-      handler!(event);
+      handler?.(event);
     });
 
     expect(toast.info).toHaveBeenCalledWith('Befehl quittiert', {
@@ -208,7 +211,7 @@ describe('useBefehlWebSocket - befehl.quittiert Handler', () => {
     };
 
     await act(async () => {
-      handler!(event);
+      handler?.(event);
     });
 
     // Cache sollte trotzdem invalidiert werden

@@ -24,6 +24,8 @@ import {
   BefehlEventAdapter,
   BefehlErstelltEtbEventAdapter,
   BefehlQuittiertEtbEventAdapter,
+  BefehlStatusGeaendertEtbEventAdapter,
+  BefehlZugestelltEtbEventAdapter,
   RolleGeaendertEtbEventAdapter,
   RolleGeaendertWebsocketEventAdapter,
   BefehlAnonymisiertEtbEventAdapter,
@@ -139,6 +141,8 @@ import { ResilienceModule } from '@infrastructure/resilience/resilience.module';
     BefehlEventAdapter, // Story 1.3: WebSocket Event Adapter fuer Befehl Domain Events
     BefehlErstelltEtbEventAdapter, // Story 4.3: BefehlErstellt ETB-Eintrag
     BefehlQuittiertEtbEventAdapter, // Story 4.3: BefehlQuittiert ETB-Eintrag
+    BefehlStatusGeaendertEtbEventAdapter, // BefehlStatusGeaendert ETB-Eintrag
+    BefehlZugestelltEtbEventAdapter, // BefehlZugestellt ETB-Eintrag
     RolleGeaendertEtbEventAdapter, // Story 5.4 AC4: RolleGeaendert ETB-Eintrag
     RolleGeaendertWebsocketEventAdapter, // Story 5.4 AC3: RolleGeaendert WebSocket-Broadcast
     BefehlAnonymisiertEtbEventAdapter, // Story 5.5 AC2: BefehlAnonymisiert ETB-Eintrag

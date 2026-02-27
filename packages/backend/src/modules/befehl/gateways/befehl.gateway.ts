@@ -22,6 +22,8 @@ export interface BefehlErstelltPayload {
   befehlsgeberId?: string | null;
   erstellerId: string;
   empfaenger: string[];
+  /** User-IDs der Empfänger (für gezielte Benachrichtigungen) */
+  empfaengerIds: string[];
   status: string;
   erteiltAm: string; // ISO 8601
 }
@@ -45,6 +47,10 @@ export interface BefehlStatusGeaendertPayload {
   oldStatus: string;
   newStatus: string;
   timestamp: string; // ISO 8601
+  nummer?: string;
+  erstellerId?: string;
+  befehlsgeberId?: string;
+  empfaengerIds?: string[];
 }
 
 /**
@@ -71,6 +77,9 @@ export interface BefehlQuittiertPayload {
   quittierungArt: string;
   nummer: string;
   quittiertAm: string; // ISO 8601
+  quittierungKommentar?: string;
+  erstellerId?: string;
+  befehlsgeberId?: string;
 }
 
 /**
@@ -103,7 +112,7 @@ export interface IntegrationStatusChangedPayload {
  * **Security (C1, C2, C3):**
  * - CORS: Nur FRONTEND_URL erlaubt (kein wildcard '*')
  * - Authentication: JWT Token bei Connection erforderlich (WsJwtAuthGuard)
- * - Authorization: einsatzId wird validiert (UUID v4 Format)
+ * - Authorization: einsatzId wird validiert (CUID2 Format)
  * - Input Validation: JoinEinsatzDto mit class-validator
  *
  * **Room Pattern:**
@@ -177,7 +186,7 @@ export class BefehlGateway implements OnGatewayConnection, OnGatewayDisconnect, 
    * Client joined einen Einsatz-Room fuer Befehle.
    *
    * **Security (C3):** Input Validation via JoinEinsatzDto.
-   * - einsatzId MUSS UUID v4 Format sein (verhindert Room Traversal)
+   * - einsatzId MUSS CUID2 Format sein (verhindert Room Traversal)
    * - ValidationPipe validiert automatisch vor Room-Join
    *
    * @param dto - Validiertes JoinEinsatzDto mit einsatzId

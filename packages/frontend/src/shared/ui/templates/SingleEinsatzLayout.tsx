@@ -34,6 +34,7 @@ import { useCurrentUser } from '@/features/auth';
 import { toast } from 'sonner';
 import { CommandPalette } from '@/shared/ui/organisms/command-palette';
 import { CommandPaletteErrorBoundary } from '@/shared/ui/organisms/command-palette/CommandPaletteErrorBoundary';
+import { useUnquittierteBefehleCount, useBefehlNotifications, useBefehlWebSocket, useMissedBefehlAlerts } from '@/features/befehl';
 import { EINSATZ_QUERY_KEYS, useEinsatzDetails, useEinsatzModules, useMyEinsatzTeilnahme } from '@/features/einsatz';
 import { useActiveServer } from '@/features/server/hooks';
 import { ServerNameBadge } from '@/features/server/ui/atoms';
@@ -122,6 +123,15 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
       });
     },
   });
+
+  // Befehl-Notifications: WebSocket-Verbindung auf Layout-Ebene, damit Empfaenger
+  // Alarm-Toast + OS-Notification auf JEDER Einsatz-Seite erhalten (nicht nur befehle).
+  const { onBefehlErstellt, onBefehlQuittiert } = useBefehlNotifications({ einsatzId });
+  useBefehlWebSocket({ einsatzId, onBefehlErstellt, onBefehlQuittiert });
+
+  // Quittierung-Alerts: Zeigt persistente Alarm-Toasts fuer verpasste
+  // RUECKFRAGE/NICHT_VERSTANDEN Quittierungen (z.B. nach erneutem Login).
+  useMissedBefehlAlerts(einsatzId);
 
   // Prüfe ob User bereits dem Einsatz beigetreten ist (Funkrufname gesetzt)
   const { data: teilnahmeData, isLoading: isTeilnahmeLoading } = useMyEinsatzTeilnahme(einsatzId);
@@ -212,7 +222,25 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   }, [einsatz]);
 
   // Modul-Konfiguration aus Hook
-  const modules = useEinsatzModules();
+  const baseModules = useEinsatzModules();
+
+  // Badge-Counter fuer unquittierte Befehle (WP4.3)
+  const unquittiertCount = useUnquittierteBefehleCount(einsatzId);
+
+  // Module mit dynamischem Badge fuer Befehle-Tab
+  const modules = useMemo(
+    () =>
+      baseModules.map((module) => ({
+        ...module,
+        subPages: module.subPages.map((page) => {
+          if (page.href.includes('/führung/befehle') && unquittiertCount > 0) {
+            return { ...page, badge: unquittiertCount };
+          }
+          return page;
+        }),
+      })),
+    [baseModules, unquittiertCount],
+  );
 
   // Finde das aktuelle Modul basierend auf der URL
   const currentModule = useMemo(
@@ -310,7 +338,11 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
                   <div className="flex items-center gap-3">
                     <PiSiren className="h-5 w-5 text-red-500" />
                     <div>
-                      <h1 className="font-semibold text-gray-900 text-lg dark:text-gray-100">{einsatz.name}</h1>
+                      <h1 className="font-semibold text-gray-900 text-lg dark:text-gray-100">
+                        <span className="font-mono text-gray-500 text-sm dark:text-gray-400">{einsatz.nummer}</span>
+                        <span className="mx-1.5 text-gray-300 dark:text-gray-600">|</span>
+                        {einsatz.name}
+                      </h1>
                       {einsatz.alarmstichwort && (
                         <p className="text-gray-500 text-xs dark:text-gray-400">
                           {einsatz.alarmstichwort}

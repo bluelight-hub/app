@@ -14,9 +14,9 @@ interface BefehlStatusProps extends Record<string, unknown> {
  * Modelliert den Lebenszyklus eines Befehls als State Machine:
  *
  * ```
- * ERTEILT → ZUGESTELLT → QUITTIERT
- *     ↓
- * KORRIGIERT
+ * ERTEILT ↔ ZUGESTELLT ↔ QUITTIERT
+ *     ↓         ↓            ↓
+ * KORRIGIERT KORRIGIERT  KORRIGIERT
  * ```
  *
  * - `ERTEILT`: Initialer Status bei Befehlserstellung
@@ -74,15 +74,15 @@ export class BefehlStatus extends ValueObject<BefehlStatusProps> {
    *
    * Erlaubte Transitions:
    * - ERTEILT → ZUGESTELLT, KORRIGIERT
-   * - ZUGESTELLT → QUITTIERT, KORRIGIERT
-   * - QUITTIERT → (keine, finaler Status)
+   * - ZUGESTELLT → QUITTIERT, KORRIGIERT, ERTEILT
+   * - QUITTIERT → ZUGESTELLT, KORRIGIERT
    * - KORRIGIERT → (keine, finaler Status)
    */
   public canTransitionTo(newStatus: BefehlStatus): boolean {
     const validTransitions: Record<string, string[]> = {
       ERTEILT: ['ZUGESTELLT', 'KORRIGIERT'],
-      ZUGESTELLT: ['QUITTIERT', 'KORRIGIERT'],
-      QUITTIERT: [],
+      ZUGESTELLT: ['QUITTIERT', 'KORRIGIERT', 'ERTEILT'],
+      QUITTIERT: ['ZUGESTELLT', 'KORRIGIERT'],
       KORRIGIERT: [],
     };
 

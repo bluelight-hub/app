@@ -87,6 +87,12 @@ export interface CreateBefehlDto {
      * @memberof CreateBefehlDto
      */
     weg?: string;
+    /**
+     * Befehlsgeber User-ID (optional, wenn Person als Befehlsgeber gewaehlt)
+     * @type {string}
+     * @memberof CreateBefehlDto
+     */
+    befehlsgeberId?: string;
 }
 
 /**
@@ -121,6 +127,7 @@ export function CreateBefehlDtoFromJSONTyped(json: any, ignoreDiscriminator: boo
         'mittel': json['mittel'] == null ? undefined : json['mittel'],
         'ziel': json['ziel'] == null ? undefined : json['ziel'],
         'weg': json['weg'] == null ? undefined : json['weg'],
+        'befehlsgeberId': json['befehlsgeberId'] == null ? undefined : json['befehlsgeberId'],
     };
 }
 
@@ -145,6 +152,7 @@ export function CreateBefehlDtoToJSONTyped(value?: CreateBefehlDto | null, ignor
         'mittel': value['mittel'],
         'ziel': value['ziel'],
         'weg': value['weg'],
+        'befehlsgeberId': value['befehlsgeberId'],
     };
 }
 

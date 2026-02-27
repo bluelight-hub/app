@@ -28,10 +28,10 @@ import { Route as AdminInvitesRouteImport } from './routes/admin/invites'
 import { Route as AdminFuehrungsrhythmusTemplatesRouteImport } from './routes/admin/fuehrungsrhythmus-templates'
 import { Route as AdminErinnerungenRouteImport } from './routes/admin/erinnerungen'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
+import { Route as AdminBefehlsgeberVorschlaegeRouteImport } from './routes/admin/befehlsgeber-vorschlaege'
 import { Route as AppEinsaetzeIndexRouteImport } from './routes/app/einsaetze/index'
 import { Route as AppEinsatzEinsatzIdRouteImport } from './routes/app/einsatz/$einsatzId'
 import { Route as AppEinsaetzeMonitoringRouteImport } from './routes/app/einsaetze/monitoring'
-import { Route as AppEinsaetzeMetrikenRouteImport } from './routes/app/einsaetze/metriken'
 import { Route as AppEinsaetzeEinsatzIdRouteImport } from './routes/app/einsaetze/$einsatzId'
 import { Route as AdminStammdatenPersonenRouteImport } from './routes/admin/stammdaten/personen'
 import { Route as AdminStammdatenFahrzeugeRouteImport } from './routes/admin/stammdaten/fahrzeuge'
@@ -169,6 +169,12 @@ const AdminDashboardRoute = AdminDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminBefehlsgeberVorschlaegeRoute =
+  AdminBefehlsgeberVorschlaegeRouteImport.update({
+    id: '/befehlsgeber-vorschlaege',
+    path: '/befehlsgeber-vorschlaege',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AppEinsaetzeIndexRoute = AppEinsaetzeIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -182,11 +188,6 @@ const AppEinsatzEinsatzIdRoute = AppEinsatzEinsatzIdRouteImport.update({
 const AppEinsaetzeMonitoringRoute = AppEinsaetzeMonitoringRouteImport.update({
   id: '/monitoring',
   path: '/monitoring',
-  getParentRoute: () => AppEinsaetzeRoute,
-} as any)
-const AppEinsaetzeMetrikenRoute = AppEinsaetzeMetrikenRouteImport.update({
-  id: '/metriken',
-  path: '/metriken',
   getParentRoute: () => AppEinsaetzeRoute,
 } as any)
 const AppEinsaetzeEinsatzIdRoute = AppEinsaetzeEinsatzIdRouteImport.update({
@@ -433,6 +434,7 @@ export interface FileRoutesByFullPath {
   '/admin-login': typeof AdminLoginRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
+  '/admin/befehlsgeber-vorschlaege': typeof AdminBefehlsgeberVorschlaegeRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/erinnerungen': typeof AdminErinnerungenRoute
   '/admin/fuehrungsrhythmus-templates': typeof AdminFuehrungsrhythmusTemplatesRoute
@@ -453,7 +455,6 @@ export interface FileRoutesByFullPath {
   '/admin/stammdaten/fahrzeuge': typeof AdminStammdatenFahrzeugeRoute
   '/admin/stammdaten/personen': typeof AdminStammdatenPersonenRoute
   '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
-  '/app/einsaetze/metriken': typeof AppEinsaetzeMetrikenRoute
   '/app/einsaetze/monitoring': typeof AppEinsaetzeMonitoringRoute
   '/app/einsatz/$einsatzId': typeof AppEinsatzEinsatzIdRouteWithChildren
   '/app/einsaetze/': typeof AppEinsaetzeIndexRoute
@@ -497,6 +498,7 @@ export interface FileRoutesByTo {
   '/admin-login': typeof AdminLoginRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
+  '/admin/befehlsgeber-vorschlaege': typeof AdminBefehlsgeberVorschlaegeRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/erinnerungen': typeof AdminErinnerungenRoute
   '/admin/fuehrungsrhythmus-templates': typeof AdminFuehrungsrhythmusTemplatesRoute
@@ -516,7 +518,6 @@ export interface FileRoutesByTo {
   '/admin/stammdaten/fahrzeuge': typeof AdminStammdatenFahrzeugeRoute
   '/admin/stammdaten/personen': typeof AdminStammdatenPersonenRoute
   '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
-  '/app/einsaetze/metriken': typeof AppEinsaetzeMetrikenRoute
   '/app/einsaetze/monitoring': typeof AppEinsaetzeMonitoringRoute
   '/app/einsaetze': typeof AppEinsaetzeIndexRoute
   '/app/einsatz/$einsatzId': typeof AppEinsatzEinsatzIdIndexRoute
@@ -560,6 +561,7 @@ export interface FileRoutesById {
   '/admin-login': typeof AdminLoginRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
+  '/admin/befehlsgeber-vorschlaege': typeof AdminBefehlsgeberVorschlaegeRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/erinnerungen': typeof AdminErinnerungenRoute
   '/admin/fuehrungsrhythmus-templates': typeof AdminFuehrungsrhythmusTemplatesRoute
@@ -580,7 +582,6 @@ export interface FileRoutesById {
   '/admin/stammdaten/fahrzeuge': typeof AdminStammdatenFahrzeugeRoute
   '/admin/stammdaten/personen': typeof AdminStammdatenPersonenRoute
   '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
-  '/app/einsaetze/metriken': typeof AppEinsaetzeMetrikenRoute
   '/app/einsaetze/monitoring': typeof AppEinsaetzeMonitoringRoute
   '/app/einsatz/$einsatzId': typeof AppEinsatzEinsatzIdRouteWithChildren
   '/app/einsaetze/': typeof AppEinsaetzeIndexRoute
@@ -627,6 +628,7 @@ export interface FileRouteTypes {
     | '/admin-login'
     | '/app'
     | '/auth'
+    | '/admin/befehlsgeber-vorschlaege'
     | '/admin/dashboard'
     | '/admin/erinnerungen'
     | '/admin/fuehrungsrhythmus-templates'
@@ -647,7 +649,6 @@ export interface FileRouteTypes {
     | '/admin/stammdaten/fahrzeuge'
     | '/admin/stammdaten/personen'
     | '/app/einsaetze/$einsatzId'
-    | '/app/einsaetze/metriken'
     | '/app/einsaetze/monitoring'
     | '/app/einsatz/$einsatzId'
     | '/app/einsaetze/'
@@ -691,6 +692,7 @@ export interface FileRouteTypes {
     | '/admin-login'
     | '/app'
     | '/auth'
+    | '/admin/befehlsgeber-vorschlaege'
     | '/admin/dashboard'
     | '/admin/erinnerungen'
     | '/admin/fuehrungsrhythmus-templates'
@@ -710,7 +712,6 @@ export interface FileRouteTypes {
     | '/admin/stammdaten/fahrzeuge'
     | '/admin/stammdaten/personen'
     | '/app/einsaetze/$einsatzId'
-    | '/app/einsaetze/metriken'
     | '/app/einsaetze/monitoring'
     | '/app/einsaetze'
     | '/app/einsatz/$einsatzId'
@@ -753,6 +754,7 @@ export interface FileRouteTypes {
     | '/admin-login'
     | '/app'
     | '/auth'
+    | '/admin/befehlsgeber-vorschlaege'
     | '/admin/dashboard'
     | '/admin/erinnerungen'
     | '/admin/fuehrungsrhythmus-templates'
@@ -773,7 +775,6 @@ export interface FileRouteTypes {
     | '/admin/stammdaten/fahrzeuge'
     | '/admin/stammdaten/personen'
     | '/app/einsaetze/$einsatzId'
-    | '/app/einsaetze/metriken'
     | '/app/einsaetze/monitoring'
     | '/app/einsatz/$einsatzId'
     | '/app/einsaetze/'
@@ -959,6 +960,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDashboardRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/befehlsgeber-vorschlaege': {
+      id: '/admin/befehlsgeber-vorschlaege'
+      path: '/befehlsgeber-vorschlaege'
+      fullPath: '/admin/befehlsgeber-vorschlaege'
+      preLoaderRoute: typeof AdminBefehlsgeberVorschlaegeRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/app/einsaetze/': {
       id: '/app/einsaetze/'
       path: '/'
@@ -978,13 +986,6 @@ declare module '@tanstack/react-router' {
       path: '/monitoring'
       fullPath: '/app/einsaetze/monitoring'
       preLoaderRoute: typeof AppEinsaetzeMonitoringRouteImport
-      parentRoute: typeof AppEinsaetzeRoute
-    }
-    '/app/einsaetze/metriken': {
-      id: '/app/einsaetze/metriken'
-      path: '/metriken'
-      fullPath: '/app/einsaetze/metriken'
-      preLoaderRoute: typeof AppEinsaetzeMetrikenRouteImport
       parentRoute: typeof AppEinsaetzeRoute
     }
     '/app/einsaetze/$einsatzId': {
@@ -1271,6 +1272,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminBefehlsgeberVorschlaegeRoute: typeof AdminBefehlsgeberVorschlaegeRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminErinnerungenRoute: typeof AdminErinnerungenRoute
   AdminFuehrungsrhythmusTemplatesRoute: typeof AdminFuehrungsrhythmusTemplatesRoute
@@ -1287,6 +1289,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminBefehlsgeberVorschlaegeRoute: AdminBefehlsgeberVorschlaegeRoute,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminErinnerungenRoute: AdminErinnerungenRoute,
   AdminFuehrungsrhythmusTemplatesRoute: AdminFuehrungsrhythmusTemplatesRoute,
@@ -1306,14 +1309,12 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AppEinsaetzeRouteChildren {
   AppEinsaetzeEinsatzIdRoute: typeof AppEinsaetzeEinsatzIdRoute
-  AppEinsaetzeMetrikenRoute: typeof AppEinsaetzeMetrikenRoute
   AppEinsaetzeMonitoringRoute: typeof AppEinsaetzeMonitoringRoute
   AppEinsaetzeIndexRoute: typeof AppEinsaetzeIndexRoute
 }
 
 const AppEinsaetzeRouteChildren: AppEinsaetzeRouteChildren = {
   AppEinsaetzeEinsatzIdRoute: AppEinsaetzeEinsatzIdRoute,
-  AppEinsaetzeMetrikenRoute: AppEinsaetzeMetrikenRoute,
   AppEinsaetzeMonitoringRoute: AppEinsaetzeMonitoringRoute,
   AppEinsaetzeIndexRoute: AppEinsaetzeIndexRoute,
 }

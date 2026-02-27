@@ -1,4 +1,4 @@
-import type { BefehlDto, BefehlEmpfaengerDto } from '@bluelight-hub/shared/client';
+import type { BefehlDto, BefehlEmpfaengerDto, BefehlKommentarDto } from '@bluelight-hub/shared/client';
 
 /** Test-Empfaenger erstellen (quittierbar, mit User-Link) */
 export function createEmpfaenger(overrides: Partial<BefehlEmpfaengerDto> & { empfaengerId: string }): BefehlEmpfaengerDto {
@@ -27,6 +27,17 @@ export function createBefehl(overrides: Partial<BefehlDto> & { id: string; numme
     kommentare: [],
     createdAt: new Date('2026-01-01T10:00:00Z'),
     updatedAt: new Date('2026-01-01T10:00:00Z'),
+    ...overrides,
+  };
+}
+
+/** Test-Kommentar erstellen mit sinnvollen Defaults */
+export function createKommentar(overrides: Partial<BefehlKommentarDto> & { id: string }): BefehlKommentarDto {
+  return {
+    authorId: 'user-1',
+    text: 'Test-Kommentar',
+    isRueckfrage: false,
+    createdAt: new Date('2026-01-15T10:00:00Z'),
     ...overrides,
   };
 }

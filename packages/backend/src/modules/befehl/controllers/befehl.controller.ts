@@ -5,16 +5,20 @@ import { KorrigiereBefehlHandler } from '@/application/befehl/commands/korrigier
 import { QuittierenBefehlHandler } from '@/application/befehl/commands/quittieren-befehl/quittieren-befehl.handler';
 import { GetBefehlHistorieQueryHandler } from '@/application/befehl/queries/get-befehl-historie/get-befehl-historie.handler';
 import { GetBefehlHistorieQuery } from '@/application/befehl/queries/get-befehl-historie/get-befehl-historie.query';
-import { GetBefehlMetrikenQueryHandler } from '@/application/befehl/queries/get-befehl-metriken/get-befehl-metriken.handler';
-import { GetBefehlMetrikenQuery } from '@/application/befehl/queries/get-befehl-metriken/get-befehl-metriken.query';
 import { EmpfaengerSucheQueryHandler } from '@/application/befehl/queries/empfaenger-suche/empfaenger-suche.handler';
 import { EmpfaengerSucheQuery } from '@/application/befehl/queries/empfaenger-suche/empfaenger-suche.query';
 import { EmpfaengerSucheResultDto } from '@/application/befehl/dto/empfaenger-suche-result.dto';
+import { BefehlsgeberSucheQueryHandler } from '@/application/befehl/queries/befehlsgeber-suche/befehlsgeber-suche.handler';
+import { BefehlsgeberSucheQuery } from '@/application/befehl/queries/befehlsgeber-suche/befehlsgeber-suche.query';
+import { BefehlsgeberSucheResultDto } from '@/application/befehl/dto/befehlsgeber-suche-result.dto';
 import { ExportBefehleQueryHandler } from '@/application/befehl/queries/export-befehle/export-befehle.handler';
 import { ExportBefehleQuery } from '@/application/befehl/queries/export-befehle/export-befehle.query';
 import { CreateBefehlCommand } from '@/application/befehl/commands/create-befehl/create-befehl.command';
 import { KorrigiereBefehlCommand } from '@/application/befehl/commands/korrigiere-befehl/korrigiere-befehl.command';
 import { QuittierenBefehlCommand } from '@/application/befehl/commands/quittieren-befehl/quittieren-befehl.command';
+import { AendereEmpfaengerStatusHandler } from '@/application/befehl/commands/aendere-empfaenger-status/aendere-empfaenger-status.handler';
+import { AendereEmpfaengerStatusCommand } from '@/application/befehl/commands/aendere-empfaenger-status/aendere-empfaenger-status.command';
+import { AendereEmpfaengerStatusDto } from '@/application/befehl/dto/aendere-empfaenger-status.dto';
 import { AddBefehlKommentarDto } from '@/application/befehl/dto/add-befehl-kommentar.dto';
 import { CreateBefehlDto } from '@/application/befehl/dto/create-befehl.dto';
 import { KorrigiereBefehlDto } from '@/application/befehl/dto/korrigiere-befehl.dto';
@@ -22,7 +26,6 @@ import { QuittierenBefehlDto } from '@/application/befehl/dto/quittieren-befehl.
 import { BefehlDto } from '@/application/befehl/dto/befehl.dto';
 import { BefehlEmpfaengerDto } from '@/application/befehl/dto/befehl-empfaenger.dto';
 import { BefehlHistorieTimelineDto } from '@/application/befehl/dto/befehl-historie.dto';
-import { BefehlMetrikenDto } from '@/application/befehl/dto/befehl-metriken.dto';
 import { BefehlKommentarDto } from '@/application/befehl/dto/befehl-kommentar.dto';
 import { BEFEHL_ERROR_CODES } from '@/application/befehl/errors/befehl-error.codes';
 import { computeBefehlPriority } from '@/application/befehl/utils/befehl-kritikalitaet.util';
@@ -34,7 +37,7 @@ import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import { BefehlRollenGuard } from '@/modules/common/guards/befehl-rollen.guard';
 import { RequiresBefehlRolle } from '@/modules/common/decorators/requires-befehl-rolle.decorator';
 import { ApiWrappedCreatedResponse, ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
-import { BadRequestException, Body, Controller, Get, Inject, InternalServerErrorException, NotFoundException, Param, Post, Query, Req, Res, UseGuards, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Inject, InternalServerErrorException, NotFoundException, Param, Patch, Post, Query, Req, Res, UseGuards, ValidationPipe } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -80,10 +83,11 @@ export class BefehlController {
     private readonly createBefehlHandler: CreateBefehlHandler,
     private readonly korrigiereBefehlHandler: KorrigiereBefehlHandler,
     private readonly quittierenBefehlHandler: QuittierenBefehlHandler,
+    private readonly aendereEmpfaengerStatusHandler: AendereEmpfaengerStatusHandler,
     private readonly getBefehlHistorieQueryHandler: GetBefehlHistorieQueryHandler,
     private readonly exportBefehleQueryHandler: ExportBefehleQueryHandler,
-    private readonly getBefehlMetrikenQueryHandler: GetBefehlMetrikenQueryHandler,
     private readonly empfaengerSucheQueryHandler: EmpfaengerSucheQueryHandler,
+    private readonly befehlsgeberSucheQueryHandler: BefehlsgeberSucheQueryHandler,
     @Inject(BEFEHL_REPOSITORY) private readonly befehlRepository: IBefehlRepository,
   ) {}
 
@@ -136,60 +140,6 @@ export class BefehlController {
   }
 
   /**
-   * Gibt aggregierte Befehl-Metriken fuer einen Zeitraum zurueck.
-   *
-   * WICHTIG: Dieser Endpoint MUSS VOR den :id Routen stehen,
-   * da Express sonst 'metriken' als :id Parameter matched.
-   *
-   * Flow: Query-Params → Query → Handler (Prisma Direct) → DTO Response
-   */
-  @Get('metriken')
-  @RequiresBefehlRolle('BEFEHLSGEBER')
-  @ApiOperation({
-    summary: 'Befehl-Metriken aggregiert abrufen',
-    description: 'Gibt aggregierte Adoptionsmetriken und Dokumentationsqualitaet ueber alle Einsaetze eines Zeitraums zurueck.',
-  })
-  @ApiQuery({ name: 'von', required: false, type: String, description: 'ISO-8601 Startdatum (Default: vor 30 Tagen)' })
-  @ApiQuery({ name: 'bis', required: false, type: String, description: 'ISO-8601 Enddatum (Default: jetzt)' })
-  @ApiWrappedResponse(BefehlMetrikenDto, { description: 'Aggregierte Befehl-Metriken' })
-  @ApiBadRequestResponse({ description: 'Ungueltige Datums-Parameter' })
-  async getMetriken(@Query('von') von?: string, @Query('bis') bis?: string): Promise<BefehlMetrikenDto> {
-    // H1-Fix: bisDatum ZUERST validieren, bevor es fuer vonDatum-Default genutzt wird
-    const bisDatum = bis ? new Date(bis) : new Date();
-    if (Number.isNaN(bisDatum.getTime())) {
-      throw new BadRequestException(`Ungueltiges Datum fuer 'bis': ${bis}. Erwartetes Format: ISO 8601`);
-    }
-
-    const vonDatum = von ? new Date(von) : new Date(bisDatum.getTime() - 30 * 24 * 60 * 60 * 1000);
-    if (Number.isNaN(vonDatum.getTime())) {
-      throw new BadRequestException(`Ungueltiges Datum fuer 'von': ${von}. Erwartetes Format: ISO 8601`);
-    }
-
-    if (bisDatum < vonDatum) {
-      throw new BadRequestException("'bis' muss nach 'von' liegen");
-    }
-
-    // H2-Fix: Maximalen Zeitraum auf 365 Tage begrenzen
-    const diffDays = (bisDatum.getTime() - vonDatum.getTime()) / (1000 * 60 * 60 * 24);
-    if (diffDays > 365) {
-      throw new BadRequestException('Zeitraum darf maximal 365 Tage umfassen');
-    }
-
-    const query = new GetBefehlMetrikenQuery(vonDatum, bisDatum);
-    const result = await this.getBefehlMetrikenQueryHandler.execute(query);
-
-    if (result.isFailure) {
-      throw new InternalServerErrorException(result.error);
-    }
-
-    if (!result.value) {
-      throw new InternalServerErrorException('Metriken konnten nicht berechnet werden');
-    }
-
-    return result.value;
-  }
-
-  /**
    * Sucht Empfaenger fuer die Befehlsadressierung in EinsatzPersonen und StammPersonen.
    *
    * WICHTIG: Dieser Endpoint MUSS VOR den :id Routen stehen,
@@ -235,6 +185,44 @@ export class BefehlController {
   }
 
   /**
+   * Befehlsgeber-Suche: Kombiniert Vorschlaege und EinsatzPersonen.
+   *
+   * WICHTIG: Dieser Endpoint MUSS VOR den :id Routen stehen,
+   * da Express sonst 'befehlsgeber-suche' als :id Parameter matched.
+   *
+   * Flow: Query-Params → Query → Handler (Prisma Direct) → DTO[] Response
+   */
+  @Get('befehlsgeber-suche')
+  @RequiresBefehlRolle('ERSTELLER', 'BEFEHLSGEBER')
+  @ApiOperation({
+    summary: 'Befehlsgeber-Vorschlaege und Kraefte suchen',
+    description: 'Durchsucht konfigurierte Befehlsgeber-Vorschlaege und EinsatzPersonen fuer das Befehlsgeber-Feld.',
+  })
+  @ApiQuery({ name: 'einsatzId', description: 'Einsatz-ID', type: String, required: true })
+  @ApiQuery({ name: 'q', description: 'Optionaler Suchbegriff', type: String, required: false })
+  @ApiWrappedResponse(BefehlsgeberSucheResultDto, { isArray: true, description: 'Befehlsgeber-Suchergebnisse' })
+  @ApiBadRequestResponse({ description: 'einsatzId fehlt' })
+  async befehlsgeberSuche(@Query('einsatzId') einsatzId: string, @Query('q') q?: string): Promise<BefehlsgeberSucheResultDto[]> {
+    if (!einsatzId) {
+      throw new BadRequestException('einsatzId ist erforderlich');
+    }
+
+    const einsatzIdResult = EinsatzId.create(einsatzId);
+    if (einsatzIdResult.isFailure) {
+      throw new BadRequestException(einsatzIdResult.error);
+    }
+
+    const query = new BefehlsgeberSucheQuery(einsatzId, q);
+    const result = await this.befehlsgeberSucheQueryHandler.execute(query);
+
+    if (result.isFailure) {
+      throw new InternalServerErrorException(result.error);
+    }
+
+    return result.value ?? [];
+  }
+
+  /**
    * Erstellt einen neuen Befehl via TransactionalCommandHandler.
    *
    * Flow: DTO → Command → Handler (Transaction + Outbox) → Load from DB → DTO Response
@@ -248,7 +236,19 @@ export class BefehlController {
   @ApiWrappedCreatedResponse(BefehlDto, { description: 'Befehl erfolgreich erstellt' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler in den Eingabedaten' })
   async create(@Body(new ValidationPipe({ transform: true, whitelist: true })) dto: CreateBefehlDto): Promise<BefehlDto> {
-    const command = new CreateBefehlCommand(dto.einsatzId, dto.empfaenger, dto.befehlsgeber, dto.erstellerId, dto.auftrag, dto.zeitvorgabe, dto.ereignis, dto.mittel, dto.ziel, dto.weg);
+    const command = new CreateBefehlCommand(
+      dto.einsatzId,
+      dto.empfaenger,
+      dto.befehlsgeber,
+      dto.erstellerId,
+      dto.auftrag,
+      dto.zeitvorgabe,
+      dto.ereignis,
+      dto.mittel,
+      dto.ziel,
+      dto.weg,
+      dto.befehlsgeberId,
+    );
 
     const result = await this.createBefehlHandler.execute(command);
 
@@ -274,12 +274,12 @@ export class BefehlController {
     description: 'Empfaenger quittiert einen Befehl mit Quittierungsart (VERSTANDEN, RUECKFRAGE, NICHT_VERSTANDEN).',
   })
   @ApiParam({ name: 'id', description: 'Befehl-ID', type: String })
-  @RequiresBefehlRolle('EMPFAENGER')
+  @RequiresBefehlRolle('BEFEHLSGEBER', 'ERSTELLER', 'EMPFAENGER')
   @ApiWrappedResponse(BefehlDto, { description: 'Befehl erfolgreich quittiert' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler oder Domain-Fehler (nicht zugestellt, bereits quittiert, korrigiert)' })
   @ApiNotFoundResponse({ description: 'Befehl nicht gefunden' })
   async quittieren(@Param('id') id: string, @Body(new ValidationPipe({ transform: true, whitelist: true })) dto: QuittierenBefehlDto): Promise<BefehlDto> {
-    const command = new QuittierenBefehlCommand(id, dto.empfaengerId, dto.quittierungArt);
+    const command = new QuittierenBefehlCommand(id, dto.empfaengerId, dto.quittierungArt, dto.kommentar);
 
     const result = await this.quittierenBefehlHandler.execute(command);
 
@@ -292,6 +292,47 @@ export class BefehlController {
 
     if (!result.value) {
       throw new InternalServerErrorException('Befehl wurde quittiert, aber keine ID zurückgegeben');
+    }
+
+    return this.loadBefehlById(result.value);
+  }
+
+  /**
+   * Ändert den Status eines einzelnen Empfängers.
+   * Unterstützt: Zustellen, stellvertretend Quittieren, Zurücksetzen.
+   *
+   * Flow: DTO → Command → Handler (Transaction + Outbox) → Load from DB → DTO Response
+   */
+  @Patch(':id/empfaenger/:empfaengerEntityId/status')
+  @ApiOperation({
+    summary: 'Empfänger-Status ändern',
+    description: 'Ändert den Status eines Empfängers: Zustellen, stellvertretend Quittieren oder Zurücksetzen.',
+  })
+  @ApiParam({ name: 'id', description: 'Befehl-ID', type: String })
+  @ApiParam({ name: 'empfaengerEntityId', description: 'Empfänger-Entity-ID', type: String })
+  @RequiresBefehlRolle('ERSTELLER', 'BEFEHLSGEBER')
+  @ApiWrappedResponse(BefehlDto, { description: 'Befehl mit aktualisiertem Empfänger-Status' })
+  @ApiBadRequestResponse({ description: 'Validierungsfehler oder Domain-Fehler' })
+  @ApiNotFoundResponse({ description: 'Befehl nicht gefunden' })
+  async aendereEmpfaengerStatus(
+    @Param('id') id: string,
+    @Param('empfaengerEntityId') empfaengerEntityId: string,
+    @Body(new ValidationPipe({ transform: true, whitelist: true })) dto: AendereEmpfaengerStatusDto,
+    @Req() req: { user: { userId: string } },
+  ): Promise<BefehlDto> {
+    const command = new AendereEmpfaengerStatusCommand(id, empfaengerEntityId, dto.aktion, req.user.userId, dto.quittierungArt, dto.kommentar, dto.zielStatus);
+
+    const result = await this.aendereEmpfaengerStatusHandler.execute(command);
+
+    if (result.isFailure) {
+      if (result.error === BEFEHL_ERROR_CODES.NOT_FOUND) {
+        throw new NotFoundException(result.error);
+      }
+      throw new BadRequestException(result.error);
+    }
+
+    if (!result.value) {
+      throw new InternalServerErrorException('Empfänger-Status wurde geändert, aber keine ID zurückgegeben');
     }
 
     return this.loadBefehlById(result.value);
@@ -313,7 +354,7 @@ export class BefehlController {
   @ApiBadRequestResponse({ description: 'Validierungsfehler oder Domain-Fehler (ungültige Status-Transition)' })
   @ApiNotFoundResponse({ description: 'Original-Befehl nicht gefunden' })
   async korrigieren(@Param('id') id: string, @Body(new ValidationPipe({ transform: true, whitelist: true })) dto: KorrigiereBefehlDto): Promise<BefehlDto> {
-    const command = new KorrigiereBefehlCommand(id, dto.empfaenger, dto.befehlsgeber, dto.erstellerId, dto.auftrag, dto.zeitvorgabe, dto.ereignis, dto.mittel, dto.ziel, dto.weg);
+    const command = new KorrigiereBefehlCommand(id, dto.empfaenger, dto.befehlsgeber, dto.erstellerId, dto.auftrag, dto.zeitvorgabe, dto.ereignis, dto.mittel, dto.ziel, dto.weg, dto.befehlsgeberId);
 
     const result = await this.korrigiereBefehlHandler.execute(command);
 
@@ -591,6 +632,7 @@ export class BefehlController {
     dto.zugestelltAm = empfaenger.zugestelltAm;
     dto.quittiertAm = empfaenger.quittiertAm;
     dto.quittierungArt = empfaenger.quittierungArt;
+    dto.quittierungKommentar = empfaenger.quittierungKommentar;
     dto.istQuittierbar = empfaenger.istQuittierbar;
     return dto;
   }

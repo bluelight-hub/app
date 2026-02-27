@@ -1,9 +1,6 @@
+import { ComingSoon } from '@/shared/ui/atoms';
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/app/einsatz/$einsatzId/übersicht/statistik')({
-  component: RouteComponent,
+  component: () => <ComingSoon title="Statistik" description="Live-Auswertungen und Einsatzstatistiken." />,
 });
-
-function RouteComponent() {
-  return <div>Hello "/app/einsatz/$einsatzId/overview/statistik"!</div>;
-}

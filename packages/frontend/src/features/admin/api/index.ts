@@ -11,6 +11,7 @@ export { ADMIN_QUERY_KEYS } from './queries';
 // Hooks
 export { useAdminUserManagement } from './use-admin-user-management';
 export { useAdminQualifikationenManagement, type QualifikationKategorie, KATEGORIE_LABELS, getKategorieBadgeVariant } from './use-admin-qualifikationen-management';
+export { useAdminBefehlsgeberVorschlaegeManagement } from './use-admin-befehlsgeber-vorschlaege-management';
 export { useAdminRollenDefinitionenManagement } from './use-admin-rollen-definitionen-management';
 export { useAdminStammFahrzeugeManagement } from './use-admin-stamm-fahrzeuge-management';
 export { useAdminStammPersonenManagement } from './use-admin-stamm-personen-management';
@@ -45,3 +46,4 @@ export type {
   AdminTokenControllerCreateTokenVAlpha201Response,
   AdminTokenControllerListTokensVAlpha200Response,
 } from '@/shared';
+export type { BefehlsgeberVorschlagDto, CreateBefehlsgeberVorschlagDto, UpdateBefehlsgeberVorschlagDto } from '@/shared';

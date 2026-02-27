@@ -20,6 +20,7 @@ interface QuittierenBefehlInput {
   befehlId: string;
   empfaengerId: string;
   quittierungArt: QuittierenBefehlDtoQuittierungArtEnum;
+  kommentar?: string;
 }
 
 /** Context für Optimistic Update Rollback */
@@ -56,6 +57,7 @@ export const useQuittierenBefehl = (einsatzId: string) => {
         quittierenBefehlDto: {
           empfaengerId: data.empfaengerId,
           quittierungArt: data.quittierungArt,
+          kommentar: data.kommentar,
         },
       });
       return response.data;
@@ -105,10 +107,13 @@ export const useQuittierenBefehl = (einsatzId: string) => {
         toast.success('Befehl quittiert');
       }
     },
-    onSettled: async () => {
+    onSettled: async (_data, _error, variables) => {
       if (navigator.onLine) {
         await queryClient.invalidateQueries({
           queryKey: BEFEHL_QUERY_KEYS.listPrefix(einsatzId),
+        });
+        await queryClient.invalidateQueries({
+          queryKey: BEFEHL_QUERY_KEYS.detail(variables.befehlId),
         });
       }
     },

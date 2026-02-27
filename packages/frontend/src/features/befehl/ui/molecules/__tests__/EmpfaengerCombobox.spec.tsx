@@ -17,7 +17,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import type { PropsWithChildren, ReactElement } from 'react';
+import { useState, type PropsWithChildren, type ReactElement } from 'react';
 import { EmpfaengerCombobox, type EmpfaengerSelection } from '../EmpfaengerCombobox.molecule';
 
 const { mockEmpfaengerSuche } = vi.hoisted(() => ({
@@ -57,6 +57,11 @@ function renderWithQuery(ui: ReactElement) {
   return render(ui, {
     wrapper: ({ children }: PropsWithChildren) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>,
   });
+}
+
+function ControlledEmpfaengerCombobox({ initial = [] }: { initial?: EmpfaengerSelection[] }) {
+  const [value, setValue] = useState<EmpfaengerSelection[]>(initial);
+  return <EmpfaengerCombobox einsatzId={EINSATZ_ID} value={value} onChange={setValue} />;
 }
 
 describe('EmpfaengerCombobox', () => {
@@ -197,6 +202,50 @@ describe('EmpfaengerCombobox', () => {
       await user.click(screen.getByText(/„Neuer Empfaenger" als Freitext hinzufügen/));
 
       expect(onChange).toHaveBeenCalledWith([{ name: 'Neuer Empfaenger' }]);
+    });
+
+    it('uebernimmt Freitext per Enter als sichtbaren Chip', async () => {
+      const user = userEvent.setup();
+      mockEmpfaengerSuche.mockResolvedValue({ data: [] });
+      renderWithQuery(<ControlledEmpfaengerCombobox />);
+
+      const input = screen.getByPlaceholderText('Empfänger suchen...');
+      await user.type(input, 'Neuer Empfaenger');
+      await user.keyboard('{Enter}');
+
+      await waitFor(() => {
+        expect(screen.getByText('Neuer Empfaenger')).toBeInTheDocument();
+      });
+    });
+
+    it('uebernimmt mehrere Freitext-Empfaenger per Trennzeichen bei Enter', async () => {
+      const user = userEvent.setup();
+      mockEmpfaengerSuche.mockResolvedValue({ data: [] });
+      renderWithQuery(<ControlledEmpfaengerCombobox />);
+
+      const input = screen.getByPlaceholderText('Empfänger suchen...');
+      await user.type(input, 'RTW 1; Polizei');
+      await user.keyboard('{Enter}');
+
+      await waitFor(() => {
+        expect(screen.getByText('RTW 1')).toBeInTheDocument();
+        expect(screen.getByText('Polizei')).toBeInTheDocument();
+      });
+    });
+
+    it('uebernimmt mehrere Freitext-Empfaenger beim Einfuegen (Paste)', async () => {
+      const user = userEvent.setup();
+      mockEmpfaengerSuche.mockResolvedValue({ data: [] });
+      renderWithQuery(<ControlledEmpfaengerCombobox />);
+
+      const input = screen.getByPlaceholderText('Empfänger suchen...');
+      await user.click(input);
+      await user.paste('OrgL, LNA');
+
+      await waitFor(() => {
+        expect(screen.getByText('OrgL')).toBeInTheDocument();
+        expect(screen.getByText('LNA')).toBeInTheDocument();
+      });
     });
 
     it('zeigt Freitext-Option auch neben API-Ergebnissen', async () => {

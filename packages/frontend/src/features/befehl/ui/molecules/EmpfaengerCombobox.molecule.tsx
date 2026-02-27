@@ -50,13 +50,47 @@ export function EmpfaengerCombobox({ einsatzId, value, onChange, error }: Empfae
   const showFreetextOption =
     trimmedQuery.length > 0 && !value.some((v) => v.name.toLowerCase() === trimmedQuery.toLowerCase()) && !filteredResults.some((r) => r.name.toLowerCase() === trimmedQuery.toLowerCase());
 
-  /** Empfaenger hinzufuegen */
-  const addEmpfaenger = (selection: EmpfaengerSelection) => {
-    if (!value.some((v) => v.name.toLowerCase() === selection.name.toLowerCase())) {
-      onChange([...value, selection]);
+  const isDuplicate = (selection: EmpfaengerSelection, current: EmpfaengerSelection[]) =>
+    current.some((existing) => {
+      if (selection.empfaengerId && existing.empfaengerId) {
+        return selection.empfaengerId === existing.empfaengerId;
+      }
+      return existing.name.toLowerCase() === selection.name.toLowerCase();
+    });
+
+  const addMultipleEmpfaenger = (selections: EmpfaengerSelection[], options: { refocus?: boolean } = {}) => {
+    if (selections.length === 0) return;
+    const next = [...value];
+
+    for (const selection of selections) {
+      if (!isDuplicate(selection, next)) {
+        next.push(selection);
+      }
+    }
+
+    if (next.length !== value.length) {
+      onChange(next);
+    }
+
+    if (inputRef.current) {
+      inputRef.current.value = '';
     }
     setQuery('');
-    inputRef.current?.focus();
+    if (options.refocus ?? true) {
+      inputRef.current?.focus();
+    }
+  };
+
+  const parseFreitextSelections = (rawValue: string): EmpfaengerSelection[] =>
+    rawValue
+      .split(/[,\n;]+/)
+      .map((part) => part.trim())
+      .filter((part) => part.length > 0)
+      .map((name) => ({ name }));
+
+  /** Empfaenger hinzufuegen */
+  const addEmpfaenger = (selection: EmpfaengerSelection, options: { refocus?: boolean } = {}) => {
+    addMultipleEmpfaenger([selection], options);
   };
 
   /** Empfaenger entfernen */
@@ -68,6 +102,35 @@ export function EmpfaengerCombobox({ einsatzId, value, onChange, error }: Empfae
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace' && !query && value.length > 0) {
       removeEmpfaenger(value.length - 1);
+      return;
+    }
+
+    if (showFreetextOption && e.key === ',') {
+      e.preventDefault();
+      addMultipleEmpfaenger(parseFreitextSelections(query));
+      return;
+    }
+
+    if (trimmedQuery.length > 0 && e.key === ';') {
+      e.preventDefault();
+      addMultipleEmpfaenger(parseFreitextSelections(query));
+      return;
+    }
+
+    if (showFreetextOption && e.key === 'Tab') {
+      addEmpfaenger({ name: trimmedQuery }, { refocus: false });
+      return;
+    }
+
+    if (trimmedQuery.length > 0 && /[,\n;]/.test(query) && e.key === 'Enter') {
+      e.preventDefault();
+      addMultipleEmpfaenger(parseFreitextSelections(query));
+      return;
+    }
+
+    if (showFreetextOption && e.key === 'Enter' && filteredResults.length === 0 && !isFetching) {
+      e.preventDefault();
+      addEmpfaenger({ name: trimmedQuery });
     }
   };
 
@@ -79,7 +142,7 @@ export function EmpfaengerCombobox({ einsatzId, value, onChange, error }: Empfae
           {value.map((chip, index) => (
             <span
               key={chip.empfaengerId ?? `manual-${index}`}
-              className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-sm font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+              className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 font-medium text-blue-700 text-sm dark:bg-blue-900/30 dark:text-blue-300"
             >
               {chip.empfaengerId && <PiLink className="h-3 w-3 text-blue-400" aria-hidden="true" />}
               {chip.name}
@@ -126,6 +189,13 @@ export function EmpfaengerCombobox({ einsatzId, value, onChange, error }: Empfae
             placeholder={value.length === 0 ? 'Empfänger suchen...' : 'Weiteren Empfänger hinzufügen...'}
             displayValue={() => query}
             onChange={(e) => setQuery(e.target.value)}
+            onPaste={(e) => {
+              const pasted = e.clipboardData.getData('text');
+              if (!pasted || !/[,\n;]/.test(pasted)) return;
+
+              e.preventDefault();
+              addMultipleEmpfaenger(parseFreitextSelections(pasted));
+            }}
             onKeyDown={handleKeyDown}
           />
 
@@ -159,7 +229,7 @@ export function EmpfaengerCombobox({ einsatzId, value, onChange, error }: Empfae
                 <div className="flex items-center gap-2">
                   <span className="block truncate">{result.name}</span>
                   {result.rolle && (
-                    <span className="inline-flex shrink-0 items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 group-data-[focus]:bg-primary-700 group-data-[focus]:text-primary-100 dark:bg-gray-700 dark:text-gray-300">
+                    <span className="inline-flex shrink-0 items-center rounded-full bg-gray-100 px-2 py-0.5 font-medium text-gray-600 text-xs group-data-[focus]:bg-primary-700 group-data-[focus]:text-primary-100 dark:bg-gray-700 dark:text-gray-300">
                       {result.rolle}
                     </span>
                   )}
@@ -181,7 +251,7 @@ export function EmpfaengerCombobox({ einsatzId, value, onChange, error }: Empfae
               <ComboboxOption
                 value={{ name: trimmedQuery } satisfies EmpfaengerSelection}
                 className={cn(
-                  'group cursor-default select-none border-t border-gray-100 px-3 py-2 text-gray-900',
+                  'group cursor-default select-none border-gray-100 border-t px-3 py-2 text-gray-900',
                   'data-[focus]:bg-primary-600 data-[focus]:text-white data-[focus]:outline-none',
                   'dark:border-gray-700 dark:text-gray-300 dark:data-[focus]:bg-primary-500',
                 )}
@@ -197,7 +267,7 @@ export function EmpfaengerCombobox({ einsatzId, value, onChange, error }: Empfae
       </Combobox>
 
       {/* Error-Hinweis */}
-      {isError && <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">Manuelle Eingabe möglich</p>}
+      {isError && <p className="mt-1.5 text-gray-500 text-xs dark:text-gray-400">Manuelle Eingabe möglich</p>}
     </div>
   );
 }

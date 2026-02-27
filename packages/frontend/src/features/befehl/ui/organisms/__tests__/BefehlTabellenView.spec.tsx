@@ -4,14 +4,15 @@
  * Verifiziert:
  * - Loading-State zeigt Skeleton
  * - Leerzustand zeigt Empty-State-Nachricht
- * - Tabelle rendert alle 7 Spalten
+ * - Tabelle rendert vereinfachte Spalten (Prio, Nr., Befehlsgeber, Auftrag, Empf., Fortschritt, Zeit)
  * - KORRIGIERT-Zeilen haben opacity-60
+ * - Row-Tinting basierend auf Kritikalitaet/Status
  * - aria-sort Attribute auf sortierbaren Headern
  * - Row-Click ruft onBefehlSelect auf
  * - Selektierte Zeile hat Highlight-Klasse
  */
 
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { createBefehl, createEmpfaenger } from '../../../__fixtures__/befehl-test-utils';
@@ -52,12 +53,12 @@ describe('BefehlTabellenView', () => {
       mockIsLoading = true;
       render(<BefehlTabellenView einsatzId="einsatz-1" />);
 
-      // Header sollten sichtbar sein
-      expect(screen.getByText('Nummer')).toBeInTheDocument();
+      // Vereinfachte Header
+      expect(screen.getByText('Prio')).toBeInTheDocument();
+      expect(screen.getByText('Nr.')).toBeInTheDocument();
       expect(screen.getByText('Befehlsgeber')).toBeInTheDocument();
       expect(screen.getByText('Auftrag')).toBeInTheDocument();
-      expect(screen.getByText('Status')).toBeInTheDocument();
-      expect(screen.getByText('Zeitpunkt')).toBeInTheDocument();
+      expect(screen.getByText('Zeit')).toBeInTheDocument();
     });
   });
 
@@ -101,17 +102,19 @@ describe('BefehlTabellenView', () => {
       }),
     ];
 
-    it('rendert alle 7 Spalten-Header', () => {
+    it('rendert vereinfachte Spalten-Header (Status versteckt)', () => {
       mockBefehle = befehle;
       render(<BefehlTabellenView einsatzId="einsatz-1" />);
 
-      expect(screen.getByText('Nummer')).toBeInTheDocument();
+      expect(screen.getByText('Prio')).toBeInTheDocument();
+      expect(screen.getByText('Nr.')).toBeInTheDocument();
       expect(screen.getByText('Befehlsgeber')).toBeInTheDocument();
       expect(screen.getByText('Auftrag')).toBeInTheDocument();
-      expect(screen.getByText('Empfänger')).toBeInTheDocument();
-      expect(screen.getByText('Status')).toBeInTheDocument();
+      expect(screen.getByText('Empf.')).toBeInTheDocument();
       expect(screen.getByText('Fortschritt')).toBeInTheDocument();
-      expect(screen.getByText('Zeitpunkt')).toBeInTheDocument();
+      expect(screen.getByText('Zeit')).toBeInTheDocument();
+      // Status-Spalte ist versteckt (durch columnVisibility)
+      expect(screen.queryByText('Status')).not.toBeInTheDocument();
     });
 
     it('rendert Befehlsnummern in den Zeilen', () => {
@@ -136,14 +139,6 @@ describe('BefehlTabellenView', () => {
 
       expect(screen.getByText('Absperrung errichten')).toBeInTheDocument();
       expect(screen.getByText('Verletzte versorgen')).toBeInTheDocument();
-    });
-
-    it('rendert Status-Badges', () => {
-      mockBefehle = befehle;
-      render(<BefehlTabellenView einsatzId="einsatz-1" />);
-
-      expect(screen.getByText('Erteilt')).toBeInTheDocument();
-      expect(screen.getByText('Zugestellt')).toBeInTheDocument();
     });
 
     it('rendert Zeitstempel im dd.MM. HH:mm Format', () => {
@@ -210,7 +205,7 @@ describe('BefehlTabellenView', () => {
       render(<BefehlTabellenView einsatzId="einsatz-1" />);
 
       // Prioritaet ist default DESC sortiert
-      const prioritaetHeader = screen.getByText('Priorität').closest('th');
+      const prioritaetHeader = screen.getByText('Prio').closest('th');
       expect(prioritaetHeader).toHaveAttribute('aria-sort', 'descending');
     });
 

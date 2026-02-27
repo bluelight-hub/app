@@ -16,5 +16,6 @@ export class CreateBefehlCommand {
     public readonly mittel?: string,
     public readonly ziel?: string,
     public readonly weg?: string,
+    public readonly befehlsgeberId?: string,
   ) {}
 }

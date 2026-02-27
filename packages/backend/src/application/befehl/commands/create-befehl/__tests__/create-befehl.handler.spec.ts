@@ -170,6 +170,48 @@ describe('CreateBefehlHandler', () => {
     });
   });
 
+  describe('Auto-Zustellung (Empfaenger mit UserId)', () => {
+    it('sollte Empfaenger mit empfaengerId automatisch als zugestellt markieren', async () => {
+      const empfaengerId = UserId.create().value!;
+      const command = createValidCommand({
+        empfaenger: [{ name: 'ZF Meier', empfaengerId: empfaengerId.value }],
+      });
+
+      const result = await handler.execute(command);
+
+      expect(result.isSuccess).toBe(true);
+      const savedAggregate = mockRepository.save.mock.calls[0][0];
+      expect(savedAggregate.empfaenger[0].zugestelltAm).toBeDefined();
+    });
+
+    it('sollte Status ZUGESTELLT sein wenn alle Empfaenger mit UserId zugestellt werden', async () => {
+      const empfaengerId = UserId.create().value!;
+      const command = createValidCommand({
+        empfaenger: [{ name: 'ZF Meier', empfaengerId: empfaengerId.value }],
+      });
+
+      const result = await handler.execute(command);
+
+      expect(result.isSuccess).toBe(true);
+      const savedAggregate = mockRepository.save.mock.calls[0][0];
+      expect(savedAggregate.status.value).toBe('ZUGESTELLT');
+    });
+
+    it('sollte Empfaenger ohne empfaengerId nicht als zugestellt markieren', async () => {
+      const empfaengerId = UserId.create().value!;
+      const command = createValidCommand({
+        empfaenger: [{ name: 'ZF Meier', empfaengerId: empfaengerId.value }, { name: 'Polizei' }],
+      });
+
+      const result = await handler.execute(command);
+
+      expect(result.isSuccess).toBe(true);
+      const savedAggregate = mockRepository.save.mock.calls[0][0];
+      expect(savedAggregate.empfaenger[0].zugestelltAm).toBeDefined();
+      expect(savedAggregate.empfaenger[1].zugestelltAm).toBeUndefined();
+    });
+  });
+
   describe('execute (Validation Errors)', () => {
     it('sollte Result.fail bei ungültiger EinsatzId zurückgeben', async () => {
       const command = createValidCommand({ einsatzId: 'invalid-einsatz-id' });

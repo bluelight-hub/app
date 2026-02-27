@@ -142,27 +142,11 @@ describe('useBefehlTabelle', () => {
       expect(nummern).toEqual(['B2026-004', 'B2026-002', 'B2026-003', 'B2026-001', 'B2026-005']);
     });
 
-    it('sortiert nach Status ASC', () => {
+    it('Status-Spalte ist nicht sortierbar (durch Row-Tinting ersetzt)', () => {
       const { result } = renderHook(() => useBefehlTabelle(testBefehle));
 
-      act(() => {
-        result.current.table.getColumn('status')?.toggleSorting(false);
-      });
-
-      const statuses = result.current.table.getRowModel().rows.map((r) => r.original.status);
-      // Alphabetisch: ERTEILT, ERTEILT, KORRIGIERT, QUITTIERT, ZUGESTELLT
-      expect(statuses).toEqual(['ERTEILT', 'ERTEILT', 'KORRIGIERT', 'QUITTIERT', 'ZUGESTELLT']);
-    });
-
-    it('sortiert nach Status DESC', () => {
-      const { result } = renderHook(() => useBefehlTabelle(testBefehle));
-
-      act(() => {
-        result.current.table.getColumn('status')?.toggleSorting(true);
-      });
-
-      const statuses = result.current.table.getRowModel().rows.map((r) => r.original.status);
-      expect(statuses).toEqual(['ZUGESTELLT', 'QUITTIERT', 'KORRIGIERT', 'ERTEILT', 'ERTEILT']);
+      const canSort = result.current.table.getColumn('status')?.getCanSort();
+      expect(canSort).toBe(false);
     });
 
     it('sortiert nach Zeitpunkt ASC (aelteste zuerst)', () => {

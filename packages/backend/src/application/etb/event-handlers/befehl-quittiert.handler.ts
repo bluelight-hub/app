@@ -22,10 +22,10 @@ import { AddEintragHandler } from '../commands/add-eintrag/add-eintrag.handler';
 import type { EtbKategorieValue } from '@domain/value-objects/etb-kategorie';
 
 /**
- * ETB Kategorie fuer Befehle (Story 4.3).
- * Als Konstante definiert fuer bessere Wartbarkeit und Type-Safety.
+ * ETB Kategorie SYSTEM fuer Befehl-Quittierung.
+ * Quittierung ist ein System-Event, kein Befehl-Event (im Gegensatz zur Erstellung).
  */
-const ETB_KATEGORIE_BEFEHL: EtbKategorieValue = 'BEFEHL';
+const ETB_KATEGORIE_SYSTEM: EtbKategorieValue = 'SYSTEM';
 
 /**
  * Event Handler fuer automatischen ETB-Eintrag bei Befehl-Quittierung.
@@ -70,7 +70,7 @@ export class BefehlQuittiertEtbHandler implements IEventHandler<BefehlQuittiertE
         etbId,
         text,
         'system',
-        ETB_KATEGORIE_BEFEHL,
+        ETB_KATEGORIE_SYSTEM,
         event.einsatzId.value,
         undefined,
         undefined,

@@ -1,12 +1,10 @@
 /**
- * Tests fuer Export-Button und Metriken-Link Conditional Rendering
+ * Tests fuer Export-Button Conditional Rendering
  * in der BefehleSeite Route-Komponente.
  *
  * Verifiziert:
  * - Export-Button enabled wenn canExport = true
  * - Export-Button disabled mit aria-disabled wenn canExport = false
- * - Metriken-Link sichtbar wenn canViewMetriken = true
- * - Metriken-Link nicht gerendert wenn canViewMetriken = false
  * - Korrekter State waehrend isLoading = true
  */
 
@@ -24,7 +22,6 @@ const { mockPermissions, captured, mockNavigate, mockUseParams, mockUseSearch } 
     canQuittieren: false,
     canKorrigieren: true,
     canExport: true,
-    canViewMetriken: true,
     canViewAll: true,
     isBeobachter: false,
     rolle: 'BEFEHLSGEBER',
@@ -71,17 +68,9 @@ vi.mock('@/features/befehl/hooks/use-befehl-permissions', () => ({
   useBefehlPermissions: () => mockPermissions,
 }));
 
-// useBefehlNotifications
-vi.mock('@/features/befehl/api/use-befehl-notifications', () => ({
-  useBefehlNotifications: () => ({
-    onBefehlErstellt: vi.fn(),
-    onBefehlQuittiert: vi.fn(),
-  }),
-}));
-
-// useBefehlWebSocket
+// useBefehlWebSocketStatus (WebSocket-Verbindung laeuft im SingleEinsatzLayout)
 vi.mock('@/features/befehl/api/use-befehl-websocket', () => ({
-  useBefehlWebSocket: () => ({ isConnected: true }),
+  useBefehlWebSocketStatus: () => true,
 }));
 
 // useBefehleByEinsatz
@@ -129,8 +118,32 @@ vi.mock('@/features/befehl/hooks/use-befehle-filter-store', () => ({
 vi.mock('@/features/befehl/api/queries', () => ({
   toQueryFilters: () => ({}),
   hasActiveQueryFilters: () => false,
-  BEFEHL_QUERY_KEYS: { all: ['befehle'] },
+  BEFEHL_QUERY_KEYS: { all: ['befehle'], meineBefehle: () => ['befehle', 'meine'] },
   calculateRetryDelay: () => 0,
+}));
+
+// useMeineBefehle
+vi.mock('@/features/befehl/api/use-meine-befehle', () => ({
+  useMeineBefehle: () => ({ data: undefined, isLoading: false, isError: false }),
+}));
+
+// useCurrentUser
+vi.mock('@/features/auth/api', () => ({
+  useCurrentUser: () => ({ user: { id: 'user-1', name: 'Test User' }, isLoading: false }),
+}));
+
+// Meine Befehle Filter
+vi.mock('@/features/befehl/hooks/use-meine-befehle-filter', () => ({
+  useMeineBefehleFilter: () => [false, vi.fn()],
+  useShowMeineBefehle: () => false,
+  useOffeneRueckfragenFilter: () => [false, vi.fn()],
+  useShowOffeneRueckfragen: () => false,
+  setShowMeineBefehle: vi.fn(),
+  setShowOffeneRueckfragen: vi.fn(),
+  toggleMeineBefehle: vi.fn(),
+  toggleOffeneRueckfragen: vi.fn(),
+  resetMeineBefehleFilterStore: vi.fn(),
+  meineBefehleFilterStore: { subscribe: vi.fn(() => vi.fn()), getState: () => ({ showMeineBefehle: false, showOffeneRueckfragen: false }) },
 }));
 
 // extract-filter-options
@@ -153,6 +166,10 @@ vi.mock('@/features/befehl/ui/organisms/BefehlDetailPanel.organism', () => ({
   BefehlDetailPanel: () => <div data-testid="befehl-detail-panel" />,
 }));
 
+vi.mock('@/features/befehl/ui/organisms/BefehlsListeMitEingabe.organism', () => ({
+  BefehlsListeMitEingabe: () => <div data-testid="befehls-liste-mit-eingabe" />,
+}));
+
 vi.mock('@/features/befehl/ui/organisms/BefehlExportDialog.organism', () => ({
   BefehlExportDialog: () => <div data-testid="befehl-export-dialog" />,
 }));
@@ -165,6 +182,10 @@ vi.mock('@/features/befehl/ui/organisms/BefehlTabellenView.organism', () => ({
   BefehlTabellenView: () => <div data-testid="befehl-tabellen-view" />,
 }));
 
+vi.mock('@/features/befehl/ui/organisms/HandlungsbedarfSection.organism', () => ({
+  HandlungsbedarfSection: () => <div data-testid="handlungsbedarf-section" />,
+}));
+
 vi.mock('@/features/befehl/ui/molecules/BefehlFilterRow.molecule', () => ({
   BefehlFilterRow: () => <div data-testid="befehl-filter-row" />,
 }));
@@ -173,12 +194,23 @@ vi.mock('@/features/befehl/ui/molecules/BefehleViewToggle.molecule', () => ({
   BefehleViewToggle: () => <div data-testid="befehle-view-toggle" />,
 }));
 
+vi.mock('@/features/befehl/ui/molecules/BefehlCompactCard.molecule', () => ({
+  BefehlCompactCard: () => <div data-testid="befehl-compact-card" />,
+}));
+
 vi.mock('@/features/befehl/ui/molecules/ConnectionStatusBanner.molecule', () => ({
   ConnectionStatusBanner: () => <div data-testid="connection-status-banner" />,
 }));
 
 vi.mock('@/features/befehl/ui/molecules/KritischeBefehleCounter.molecule', () => ({
   KritischeBefehleCounter: () => <div data-testid="kritische-befehle-counter" />,
+}));
+
+// useHandlungsbedarf mock
+vi.mock('@/features/befehl/hooks/use-handlungsbedarf', () => ({
+  useHandlungsbedarf: () => ({ kritisch: [], warnung: [], zuQuittieren: [], gesamtCount: 0, hatHandlungsbedarf: false }),
+  getKritischGrund: () => 'ueberfaellig',
+  getRueckfrageInfo: () => 'Rückfrage',
 }));
 
 // Tooltip-Mock: Rendert children + role="tooltip" fuer Assertions
@@ -222,7 +254,6 @@ describe('BefehleSeite - Export-Button Conditional Rendering', () => {
       canQuittieren: false,
       canKorrigieren: true,
       canExport: true,
-      canViewMetriken: true,
       canViewAll: true,
       isBeobachter: false,
       rolle: 'BEFEHLSGEBER',
@@ -290,68 +321,6 @@ describe('BefehleSeite - Export-Button Conditional Rendering', () => {
   });
 });
 
-describe('BefehleSeite - Metriken-Link Conditional Rendering', () => {
-  beforeEach(() => {
-    Object.assign(mockPermissions, {
-      canCreate: true,
-      canQuittieren: false,
-      canKorrigieren: true,
-      canExport: true,
-      canViewMetriken: true,
-      canViewAll: true,
-      isBeobachter: false,
-      rolle: 'BEFEHLSGEBER',
-      isLoading: false,
-    });
-  });
-
-  it('zeigt Metriken-Link wenn canViewMetriken = true', () => {
-    renderBefehleSeite();
-
-    const metrikenLink = screen.getByText('Metriken');
-    expect(metrikenLink).toBeInTheDocument();
-    // Pruefe dass es ein Link ist (gerendert als <a> durch Mock)
-    const linkElement = metrikenLink.closest('a');
-    expect(linkElement).toHaveAttribute('href', '/app/einsaetze/metriken');
-  });
-
-  it('zeigt keinen Metriken-Link wenn canViewMetriken = false', () => {
-    Object.assign(mockPermissions, {
-      canViewMetriken: false,
-      rolle: 'EMPFAENGER',
-    });
-
-    renderBefehleSeite();
-
-    expect(screen.queryByText('Metriken')).not.toBeInTheDocument();
-  });
-
-  it('blendet Metriken-Link fuer ERSTELLER aus (nur BEFEHLSGEBER)', () => {
-    Object.assign(mockPermissions, {
-      canViewMetriken: false,
-      canExport: true,
-      rolle: 'ERSTELLER',
-    });
-
-    renderBefehleSeite();
-
-    expect(screen.queryByText('Metriken')).not.toBeInTheDocument();
-  });
-
-  it('blendet Metriken-Link fuer BEOBACHTER aus', () => {
-    Object.assign(mockPermissions, {
-      canViewMetriken: false,
-      canExport: false,
-      isBeobachter: true,
-      rolle: 'BEOBACHTER',
-    });
-
-    renderBefehleSeite();
-
-    expect(screen.queryByText('Metriken')).not.toBeInTheDocument();
-  });
-});
-
 describe('BefehleSeite - Loading State', () => {
   beforeEach(() => {
     Object.assign(mockPermissions, {
@@ -359,7 +328,6 @@ describe('BefehleSeite - Loading State', () => {
       canQuittieren: false,
       canKorrigieren: false,
       canExport: false,
-      canViewMetriken: false,
       canViewAll: false,
       isBeobachter: false,
       rolle: null,
@@ -370,18 +338,11 @@ describe('BefehleSeite - Loading State', () => {
   it('zeigt disabled Export-Button waehrend Permissions laden', () => {
     renderBefehleSeite();
 
-    // Waehrend isLoading sind canExport/canViewMetriken false
+    // Waehrend isLoading sind canExport false
     // => disabled Export-Button wird gerendert
     const exportButton = screen.getByRole('button', { name: /befehle exportieren/i });
     expect(exportButton).toBeDisabled();
     expect(exportButton).toHaveAttribute('aria-disabled', 'true');
-  });
-
-  it('zeigt keinen Metriken-Link waehrend Permissions laden', () => {
-    renderBefehleSeite();
-
-    // canViewMetriken ist false waehrend isLoading
-    expect(screen.queryByText('Metriken')).not.toBeInTheDocument();
   });
 });
 
@@ -392,7 +353,6 @@ describe('BefehleSeite - Kombinierte Szenarien', () => {
       canQuittieren: false,
       canKorrigieren: true,
       canExport: true,
-      canViewMetriken: true,
       canViewAll: true,
       isBeobachter: false,
       rolle: 'BEFEHLSGEBER',
@@ -400,21 +360,17 @@ describe('BefehleSeite - Kombinierte Szenarien', () => {
     });
   });
 
-  it('BEFEHLSGEBER sieht Export-Button und Metriken-Link', () => {
+  it('BEFEHLSGEBER sieht Export-Button', () => {
     renderBefehleSeite();
 
     // Export-Button aktiv
     const exportButton = screen.getByRole('button', { name: /^befehle exportieren$/i });
     expect(exportButton).not.toBeDisabled();
-
-    // Metriken-Link sichtbar
-    expect(screen.getByText('Metriken')).toBeInTheDocument();
   });
 
-  it('ERSTELLER sieht aktiven Export-Button aber keinen Metriken-Link', () => {
+  it('ERSTELLER sieht aktiven Export-Button', () => {
     Object.assign(mockPermissions, {
       canExport: true,
-      canViewMetriken: false,
       rolle: 'ERSTELLER',
     });
 
@@ -422,15 +378,13 @@ describe('BefehleSeite - Kombinierte Szenarien', () => {
 
     const exportButton = screen.getByRole('button', { name: /^befehle exportieren$/i });
     expect(exportButton).not.toBeDisabled();
-    expect(screen.queryByText('Metriken')).not.toBeInTheDocument();
   });
 
-  it('EMPFAENGER sieht disabled Export-Button und keinen Metriken-Link', () => {
+  it('EMPFAENGER sieht disabled Export-Button', () => {
     Object.assign(mockPermissions, {
       canCreate: false,
       canKorrigieren: false,
       canExport: false,
-      canViewMetriken: false,
       canQuittieren: true,
       rolle: 'EMPFAENGER',
     });
@@ -439,15 +393,13 @@ describe('BefehleSeite - Kombinierte Szenarien', () => {
 
     const exportButton = screen.getByRole('button', { name: /befehle exportieren/i });
     expect(exportButton).toBeDisabled();
-    expect(screen.queryByText('Metriken')).not.toBeInTheDocument();
   });
 
-  it('BEOBACHTER sieht disabled Export-Button und keinen Metriken-Link', () => {
+  it('BEOBACHTER sieht disabled Export-Button', () => {
     Object.assign(mockPermissions, {
       canCreate: false,
       canKorrigieren: false,
       canExport: false,
-      canViewMetriken: false,
       isBeobachter: true,
       rolle: 'BEOBACHTER',
     });
@@ -456,6 +408,5 @@ describe('BefehleSeite - Kombinierte Szenarien', () => {
 
     const exportButton = screen.getByRole('button', { name: /befehle exportieren/i });
     expect(exportButton).toBeDisabled();
-    expect(screen.queryByText('Metriken')).not.toBeInTheDocument();
   });
 });

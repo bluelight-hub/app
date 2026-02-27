@@ -5,5 +5,5 @@ export { BefehlTabellenView } from './BefehlTabellenView.organism';
 export { BefehlQuittierenDialog } from './BefehlQuittierenDialog.organism';
 export { KorrekturBefehlDialog } from './KorrekturBefehlDialog.organism';
 export { BefehlExportDialog } from './BefehlExportDialog.organism';
-export { BefehlMetrikenDashboard } from './BefehlMetrikenDashboard.organism';
 export { BefehlsListeMitEingabe } from './BefehlsListeMitEingabe.organism';
+export { HandlungsbedarfSection } from './HandlungsbedarfSection.organism';

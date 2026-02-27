@@ -69,14 +69,28 @@ export class CreateBefehlHandler extends TransactionalCommandHandler<CreateBefeh
     if (seqResult.isFailure) {
       return Result.fail(seqResult.error ?? 'Sequenznummer konnte nicht ermittelt werden');
     }
+    const sequenceNumber = seqResult.value;
+    if (sequenceNumber == null) {
+      return Result.fail('Sequenznummer konnte nicht ermittelt werden');
+    }
     const namingService = new BefehlNamingService();
-    const nummer = namingService.generateBefehlNummer(seqResult.value!);
+    const nummer = namingService.generateBefehlNummer(sequenceNumber);
+
+    // 3c. Validate optional BefehlsgeberId
+    let befehlsgeberId: UserId | undefined;
+    if (command.befehlsgeberId) {
+      const bgIdResult = UserId.create(command.befehlsgeberId);
+      if (bgIdResult.isSuccess) {
+        befehlsgeberId = bgIdResult.value as UserId;
+      }
+    }
 
     // 4. Create Aggregate via Factory Method
     const befehlResult = Befehl.create({
       einsatzId,
       empfaenger,
       befehlsgeber: command.befehlsgeber,
+      befehlsgeberId,
       erstellerId,
       nummer,
       auftrag: command.auftrag,
@@ -92,6 +106,13 @@ export class CreateBefehlHandler extends TransactionalCommandHandler<CreateBefeh
     }
 
     const befehl = befehlResult.value as Befehl;
+
+    // 5. Empfaenger mit User-Account automatisch als zugestellt markieren
+    for (const e of empfaenger) {
+      if (e.empfaengerId) {
+        befehl.markAlsZugestellt(e.empfaengerId);
+      }
+    }
 
     // 6. Save Aggregate in Transaction
     const saveResult = await this.befehlRepository.save(befehl, tx);

@@ -60,6 +60,48 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
         ],
         "type": "object",
       },
+      "AendereEmpfaengerStatusDto": {
+        "properties": {
+          "aktion": {
+            "description": "Auszuführende Aktion",
+            "enum": [
+              "ZUSTELLEN",
+              "QUITTIEREN",
+              "ZURUECKSETZEN",
+            ],
+            "example": "ZUSTELLEN",
+            "type": "string",
+          },
+          "kommentar": {
+            "description": "Optionaler Kommentar (nur bei Aktion QUITTIEREN)",
+            "example": "Stellvertretend quittiert",
+            "type": "string",
+          },
+          "quittierungArt": {
+            "description": "Art der Quittierung (nur bei Aktion QUITTIEREN)",
+            "enum": [
+              "VERSTANDEN",
+              "RUECKFRAGE",
+              "NICHT_VERSTANDEN",
+            ],
+            "example": "VERSTANDEN",
+            "type": "string",
+          },
+          "zielStatus": {
+            "description": "Zielstatus beim Zurücksetzen (nur bei Aktion ZURUECKSETZEN)",
+            "enum": [
+              "ERTEILT",
+              "ZUGESTELLT",
+            ],
+            "example": "ZUGESTELLT",
+            "type": "string",
+          },
+        },
+        "required": [
+          "aktion",
+        ],
+        "type": "object",
+      },
       "AktiveTeilnehmerResponseDto": {
         "properties": {
           "joinedAt": {
@@ -370,6 +412,10 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
             "example": "VERSTANDEN",
             "type": "string",
           },
+          "quittierungKommentar": {
+            "description": "Kommentar zur Quittierung",
+            "type": "string",
+          },
           "zugestelltAm": {
             "description": "Zeitpunkt der Zustellung",
             "example": "2024-01-15T10:35:00.000Z",
@@ -508,72 +554,40 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
         ],
         "type": "object",
       },
-      "BefehlMetrikenDto": {
+      "BefehlsgeberSucheResultDto": {
         "properties": {
-          "adoptionsrateProzent": {
-            "description": "Adoptionsrate in Prozent (Einsaetze mit mindestens einem Befehl)",
-            "type": "number",
-          },
-          "bisDatum": {
-            "description": "Ende des Zeitraums",
-            "format": "date-time",
+          "id": {
+            "description": "ID (Vorschlag-ID oder EinsatzPerson-ID)",
             "type": "string",
           },
-          "dokumentationsqualitaetProzent": {
-            "description": "Dokumentationsqualitaet in Prozent (Anteil Befehle mit vollstaendiger Quittierung)",
-            "type": "number",
+          "label": {
+            "description": "Volles Label (Label oder Nachname, Vorname (Funktion))",
+            "example": "EL (Einsatzleiter)",
+            "type": "string",
           },
-          "einsaetzeMitBefehlen": {
-            "description": "Anzahl Einsaetze mit mindestens einem Befehl",
-            "type": "number",
+          "name": {
+            "description": "Anzeige-Name (Kuerzel oder Nachname, Vorname)",
+            "example": "EL",
+            "type": "string",
           },
-          "einsatzDetails": {
-            "description": "Pro-Einsatz-Breakdown der Metriken",
-            "items": {
-              "$ref": "#/components/schemas/EinsatzMetrikDto",
-            },
-            "type": "array",
+          "quelle": {
+            "description": "Quelle des Ergebnisses",
+            "enum": [
+              "VORSCHLAG",
+              "EINSATZ_PERSON",
+            ],
+            "type": "string",
           },
-          "erfassungszeitMedianSekunden": {
-            "description": "Median der Erfassungszeit in Sekunden (global)",
-            "nullable": true,
-            "type": "number",
-          },
-          "gesamtBefehle": {
-            "description": "Gesamtanzahl Befehle im Zeitraum",
-            "type": "number",
-          },
-          "gesamtEinsaetze": {
-            "description": "Gesamtanzahl Einsaetze im Zeitraum",
-            "type": "number",
-          },
-          "papierRueckfallquoteProzent": {
-            "description": "Papier-Rueckfallquote in Prozent (Einsaetze ohne digitale Befehle)",
-            "type": "number",
-          },
-          "quittierungszeitMedianSekunden": {
-            "description": "Median der Quittierungszeit in Sekunden (global)",
-            "nullable": true,
-            "type": "number",
-          },
-          "vonDatum": {
-            "description": "Start des Zeitraums",
-            "format": "date-time",
+          "userId": {
+            "description": "User-ID (nur bei EINSATZ_PERSON, fuer befehlsgeberId)",
             "type": "string",
           },
         },
         "required": [
-          "erfassungszeitMedianSekunden",
-          "quittierungszeitMedianSekunden",
-          "papierRueckfallquoteProzent",
-          "adoptionsrateProzent",
-          "dokumentationsqualitaetProzent",
-          "gesamtEinsaetze",
-          "einsaetzeMitBefehlen",
-          "gesamtBefehle",
-          "vonDatum",
-          "bisDatum",
-          "einsatzDetails",
+          "id",
+          "name",
+          "label",
+          "quelle",
         ],
         "type": "object",
       },
@@ -642,6 +656,11 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
           "befehlsgeber": {
             "description": "Befehlsgeber Display-Name",
             "example": "EL Mueller",
+            "type": "string",
+          },
+          "befehlsgeberId": {
+            "description": "Befehlsgeber User-ID (optional, wenn Person als Befehlsgeber gewaehlt)",
+            "example": "clw3h8x9y0005qwertyuiopas",
             "type": "string",
           },
           "einsatzId": {
@@ -1009,51 +1028,6 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
         ],
         "type": "object",
       },
-      "EinsatzMetrikDto": {
-        "properties": {
-          "alarmstichwort": {
-            "description": "Alarmstichwort des Einsatzes",
-            "type": "string",
-          },
-          "befehlAnzahl": {
-            "description": "Anzahl der Befehle im Einsatz",
-            "type": "number",
-          },
-          "datum": {
-            "description": "Datum des Einsatzes (createdAt)",
-            "format": "date-time",
-            "type": "string",
-          },
-          "dokumentationsqualitaetProzent": {
-            "description": "Dokumentationsqualitaet in Prozent (Anteil Befehle bei denen alle Empfaenger quittiert haben)",
-            "type": "number",
-          },
-          "einsatzId": {
-            "description": "Einsatz-ID",
-            "type": "string",
-          },
-          "erfassungszeitMedianSekunden": {
-            "description": "Median der Erfassungszeit in Sekunden (erteiltAm → zugestelltAm)",
-            "nullable": true,
-            "type": "number",
-          },
-          "quittierungszeitMedianSekunden": {
-            "description": "Median der Quittierungszeit in Sekunden (zugestelltAm → quittiertAm)",
-            "nullable": true,
-            "type": "number",
-          },
-        },
-        "required": [
-          "einsatzId",
-          "alarmstichwort",
-          "datum",
-          "befehlAnzahl",
-          "erfassungszeitMedianSekunden",
-          "quittierungszeitMedianSekunden",
-          "dokumentationsqualitaetProzent",
-        ],
-        "type": "object",
-      },
       "EinsatzResponseDto": {
         "properties": {
           "alarmierungszeit": {
@@ -1130,6 +1104,11 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
             "description": "Komponenten des generierten Namens",
             "type": "object",
           },
+          "nummer": {
+            "description": "Auto-generierte Einsatznummer (Format: E{YEAR}-{SEQ})",
+            "example": "E2026-001",
+            "type": "string",
+          },
           "status": {
             "description": "Status des Einsatzes",
             "enum": [
@@ -1155,6 +1134,7 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
         },
         "required": [
           "id",
+          "nummer",
           "status",
           "createdAt",
           "updatedAt",
@@ -1387,7 +1367,7 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
             "type": "string",
           },
           "userId": {
-            "description": "Verknuepfter User-ID (fuer In-App-Quittierung) – derzeit nicht befuellt, erfordert Schema-Migration",
+            "description": "Verknuepfter User-ID (fuer In-App-Quittierung)",
             "type": "string",
           },
         },
@@ -1573,6 +1553,11 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
             "example": "EL Mueller",
             "type": "string",
           },
+          "befehlsgeberId": {
+            "description": "Befehlsgeber User-ID (optional, wenn Person als Befehlsgeber gewaehlt)",
+            "example": "clw3h8x9y0005qwertyuiopas",
+            "type": "string",
+          },
           "empfaenger": {
             "description": "Empfaenger mit Name und optionaler User-ID (min 1)",
             "example": [
@@ -1684,6 +1669,10 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
           "empfaengerId": {
             "description": "ID des quittierenden Empfaengers",
             "example": "clw3h8x9y0001qwertyuiopas",
+            "type": "string",
+          },
+          "kommentar": {
+            "description": "Optionaler Kommentar zur Quittierung (z.B. Rueckfrage-Text)",
             "type": "string",
           },
           "quittierungArt": {
@@ -2819,6 +2808,118 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
         ],
       },
     },
+    "/api/v-1/befehle/befehlsgeber-suche": {
+      "get": {
+        "description": "Durchsucht konfigurierte Befehlsgeber-Vorschlaege und EinsatzPersonen fuer das Befehlsgeber-Feld.",
+        "operationId": "BefehlController_befehlsgeberSuche_v-1",
+        "parameters": [
+          {
+            "description": "Einsatz-ID",
+            "in": "query",
+            "name": "einsatzId",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+          {
+            "description": "Optionaler Suchbegriff",
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "items": {
+                        "$ref": "#/components/schemas/BefehlsgeberSucheResultDto",
+                      },
+                      "type": "array",
+                    },
+                    "meta": {
+                      "properties": {
+                        "requestId": {
+                          "example": "abc123xyz",
+                          "type": "string",
+                        },
+                        "timestamp": {
+                          "example": "2025-08-29T14:00:00.000Z",
+                          "format": "date-time",
+                          "type": "string",
+                        },
+                        "version": {
+                          "example": "alpha",
+                          "type": "string",
+                        },
+                      },
+                      "required": [
+                        "timestamp",
+                        "version",
+                        "requestId",
+                      ],
+                      "type": "object",
+                    },
+                    "pagination": {
+                      "properties": {
+                        "limit": {
+                          "example": 20,
+                          "type": "number",
+                        },
+                        "page": {
+                          "example": 1,
+                          "type": "number",
+                        },
+                        "total": {
+                          "example": 100,
+                          "type": "number",
+                        },
+                        "totalPages": {
+                          "example": 5,
+                          "type": "number",
+                        },
+                      },
+                      "type": "object",
+                    },
+                  },
+                  "required": [
+                    "data",
+                    "meta",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Befehlsgeber-Suchergebnisse",
+          },
+          "400": {
+            "description": "einsatzId fehlt",
+          },
+          "401": {
+            "description": "Nicht authentifiziert - JWT Token fehlt oder ungültig",
+          },
+          "403": {
+            "description": "Keine Berechtigung – Einsatz-Rolle nicht ausreichend",
+          },
+        },
+        "security": [
+          {
+            "bearer": [],
+          },
+        ],
+        "summary": "Befehlsgeber-Vorschlaege und Kraefte suchen",
+        "tags": [
+          "Befehle",
+        ],
+      },
+    },
     "/api/v-1/befehle/empfaenger-suche": {
       "get": {
         "description": "Durchsucht EinsatzPersonen und StammPersonen fuer die Empfaenger-Auswahl bei Befehlserstellung.",
@@ -2984,30 +3085,40 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
         ],
       },
     },
-    "/api/v-1/befehle/metriken": {
-      "get": {
-        "description": "Gibt aggregierte Adoptionsmetriken und Dokumentationsqualitaet ueber alle Einsaetze eines Zeitraums zurueck.",
-        "operationId": "BefehlController_getMetriken_v-1",
+    "/api/v-1/befehle/{id}/empfaenger/{empfaengerEntityId}/status": {
+      "patch": {
+        "description": "Ändert den Status eines Empfängers: Zustellen, stellvertretend Quittieren oder Zurücksetzen.",
+        "operationId": "BefehlController_aendereEmpfaengerStatus_v-1",
         "parameters": [
           {
-            "description": "ISO-8601 Startdatum (Default: vor 30 Tagen)",
-            "in": "query",
-            "name": "von",
-            "required": false,
+            "description": "Befehl-ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
             "schema": {
               "type": "string",
             },
           },
           {
-            "description": "ISO-8601 Enddatum (Default: jetzt)",
-            "in": "query",
-            "name": "bis",
-            "required": false,
+            "description": "Empfänger-Entity-ID",
+            "in": "path",
+            "name": "empfaengerEntityId",
+            "required": true,
             "schema": {
               "type": "string",
             },
           },
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AendereEmpfaengerStatusDto",
+              },
+            },
+          },
+          "required": true,
+        },
         "responses": {
           "200": {
             "content": {
@@ -3015,7 +3126,7 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
                 "schema": {
                   "properties": {
                     "data": {
-                      "$ref": "#/components/schemas/BefehlMetrikenDto",
+                      "$ref": "#/components/schemas/BefehlDto",
                     },
                     "meta": {
                       "properties": {
@@ -3049,10 +3160,10 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
                 },
               },
             },
-            "description": "Aggregierte Befehl-Metriken",
+            "description": "Befehl mit aktualisiertem Empfänger-Status",
           },
           "400": {
-            "description": "Ungueltige Datums-Parameter",
+            "description": "Validierungsfehler oder Domain-Fehler",
           },
           "401": {
             "description": "Nicht authentifiziert - JWT Token fehlt oder ungültig",
@@ -3060,13 +3171,16 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
           "403": {
             "description": "Keine Berechtigung – Einsatz-Rolle nicht ausreichend",
           },
+          "404": {
+            "description": "Befehl nicht gefunden",
+          },
         },
         "security": [
           {
             "bearer": [],
           },
         ],
-        "summary": "Befehl-Metriken aggregiert abrufen",
+        "summary": "Empfänger-Status ändern",
         "tags": [
           "Befehle",
         ],
@@ -5230,6 +5344,118 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
         ],
       },
     },
+    "/api/v-alpha/befehle/befehlsgeber-suche": {
+      "get": {
+        "description": "Durchsucht konfigurierte Befehlsgeber-Vorschlaege und EinsatzPersonen fuer das Befehlsgeber-Feld.",
+        "operationId": "BefehlController_befehlsgeberSuche_v-alpha",
+        "parameters": [
+          {
+            "description": "Einsatz-ID",
+            "in": "query",
+            "name": "einsatzId",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+          {
+            "description": "Optionaler Suchbegriff",
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "items": {
+                        "$ref": "#/components/schemas/BefehlsgeberSucheResultDto",
+                      },
+                      "type": "array",
+                    },
+                    "meta": {
+                      "properties": {
+                        "requestId": {
+                          "example": "abc123xyz",
+                          "type": "string",
+                        },
+                        "timestamp": {
+                          "example": "2025-08-29T14:00:00.000Z",
+                          "format": "date-time",
+                          "type": "string",
+                        },
+                        "version": {
+                          "example": "alpha",
+                          "type": "string",
+                        },
+                      },
+                      "required": [
+                        "timestamp",
+                        "version",
+                        "requestId",
+                      ],
+                      "type": "object",
+                    },
+                    "pagination": {
+                      "properties": {
+                        "limit": {
+                          "example": 20,
+                          "type": "number",
+                        },
+                        "page": {
+                          "example": 1,
+                          "type": "number",
+                        },
+                        "total": {
+                          "example": 100,
+                          "type": "number",
+                        },
+                        "totalPages": {
+                          "example": 5,
+                          "type": "number",
+                        },
+                      },
+                      "type": "object",
+                    },
+                  },
+                  "required": [
+                    "data",
+                    "meta",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Befehlsgeber-Suchergebnisse",
+          },
+          "400": {
+            "description": "einsatzId fehlt",
+          },
+          "401": {
+            "description": "Nicht authentifiziert - JWT Token fehlt oder ungültig",
+          },
+          "403": {
+            "description": "Keine Berechtigung – Einsatz-Rolle nicht ausreichend",
+          },
+        },
+        "security": [
+          {
+            "bearer": [],
+          },
+        ],
+        "summary": "Befehlsgeber-Vorschlaege und Kraefte suchen",
+        "tags": [
+          "Befehle",
+        ],
+      },
+    },
     "/api/v-alpha/befehle/empfaenger-suche": {
       "get": {
         "description": "Durchsucht EinsatzPersonen und StammPersonen fuer die Empfaenger-Auswahl bei Befehlserstellung.",
@@ -5395,30 +5621,40 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
         ],
       },
     },
-    "/api/v-alpha/befehle/metriken": {
-      "get": {
-        "description": "Gibt aggregierte Adoptionsmetriken und Dokumentationsqualitaet ueber alle Einsaetze eines Zeitraums zurueck.",
-        "operationId": "BefehlController_getMetriken_v-alpha",
+    "/api/v-alpha/befehle/{id}/empfaenger/{empfaengerEntityId}/status": {
+      "patch": {
+        "description": "Ändert den Status eines Empfängers: Zustellen, stellvertretend Quittieren oder Zurücksetzen.",
+        "operationId": "BefehlController_aendereEmpfaengerStatus_v-alpha",
         "parameters": [
           {
-            "description": "ISO-8601 Startdatum (Default: vor 30 Tagen)",
-            "in": "query",
-            "name": "von",
-            "required": false,
+            "description": "Befehl-ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
             "schema": {
               "type": "string",
             },
           },
           {
-            "description": "ISO-8601 Enddatum (Default: jetzt)",
-            "in": "query",
-            "name": "bis",
-            "required": false,
+            "description": "Empfänger-Entity-ID",
+            "in": "path",
+            "name": "empfaengerEntityId",
+            "required": true,
             "schema": {
               "type": "string",
             },
           },
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AendereEmpfaengerStatusDto",
+              },
+            },
+          },
+          "required": true,
+        },
         "responses": {
           "200": {
             "content": {
@@ -5426,7 +5662,7 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
                 "schema": {
                   "properties": {
                     "data": {
-                      "$ref": "#/components/schemas/BefehlMetrikenDto",
+                      "$ref": "#/components/schemas/BefehlDto",
                     },
                     "meta": {
                       "properties": {
@@ -5460,10 +5696,10 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
                 },
               },
             },
-            "description": "Aggregierte Befehl-Metriken",
+            "description": "Befehl mit aktualisiertem Empfänger-Status",
           },
           "400": {
-            "description": "Ungueltige Datums-Parameter",
+            "description": "Validierungsfehler oder Domain-Fehler",
           },
           "401": {
             "description": "Nicht authentifiziert - JWT Token fehlt oder ungültig",
@@ -5471,13 +5707,16 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
           "403": {
             "description": "Keine Berechtigung – Einsatz-Rolle nicht ausreichend",
           },
+          "404": {
+            "description": "Befehl nicht gefunden",
+          },
         },
         "security": [
           {
             "bearer": [],
           },
         ],
-        "summary": "Befehl-Metriken aggregiert abrufen",
+        "summary": "Empfänger-Status ändern",
         "tags": [
           "Befehle",
         ],

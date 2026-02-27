@@ -9,5 +9,6 @@ export class QuittierenBefehlCommand {
     public readonly befehlId: string,
     public readonly empfaengerId: string,
     public readonly quittierungArt: 'VERSTANDEN' | 'RUECKFRAGE' | 'NICHT_VERSTANDEN',
+    public readonly kommentar?: string,
   ) {}
 }

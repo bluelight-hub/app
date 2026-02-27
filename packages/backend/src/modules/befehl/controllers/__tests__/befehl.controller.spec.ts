@@ -21,9 +21,10 @@ import { CreateBefehlHandler } from '@/application/befehl/commands/create-befehl
 import { KorrigiereBefehlHandler } from '@/application/befehl/commands/korrigiere-befehl/korrigiere-befehl.handler';
 import { QuittierenBefehlHandler } from '@/application/befehl/commands/quittieren-befehl/quittieren-befehl.handler';
 import { GetBefehlHistorieQueryHandler } from '@/application/befehl/queries/get-befehl-historie/get-befehl-historie.handler';
-import { GetBefehlMetrikenQueryHandler } from '@/application/befehl/queries/get-befehl-metriken/get-befehl-metriken.handler';
 import { ExportBefehleQueryHandler } from '@/application/befehl/queries/export-befehle/export-befehle.handler';
+import { AendereEmpfaengerStatusHandler } from '@/application/befehl/commands/aendere-empfaenger-status/aendere-empfaenger-status.handler';
 import { EmpfaengerSucheQueryHandler } from '@/application/befehl/queries/empfaenger-suche/empfaenger-suche.handler';
+import { BefehlsgeberSucheQueryHandler } from '@/application/befehl/queries/befehlsgeber-suche/befehlsgeber-suche.handler';
 import { BefehlHistorieEventStatus, BefehlHistorieEventTyp } from '@/application/befehl/dto/befehl-historie.dto';
 import type { BefehlHistorieTimelineDto } from '@/application/befehl/dto/befehl-historie.dto';
 import type { AddBefehlKommentarDto } from '@/application/befehl/dto/add-befehl-kommentar.dto';
@@ -57,7 +58,6 @@ describe('BefehlController (Integration Tests - AC10)', () => {
   let mockQuittierenBefehlHandler: jest.Mocked<QuittierenBefehlHandler>;
   let mockGetBefehlHistorieQueryHandler: jest.Mocked<GetBefehlHistorieQueryHandler>;
   let mockExportBefehleQueryHandler: jest.Mocked<ExportBefehleQueryHandler>;
-  let mockGetBefehlMetrikenQueryHandler: jest.Mocked<GetBefehlMetrikenQueryHandler>;
   let mockEmpfaengerSucheQueryHandler: jest.Mocked<EmpfaengerSucheQueryHandler>;
   let mockBefehlRepository: jest.Mocked<IBefehlRepository>;
 
@@ -112,11 +112,6 @@ describe('BefehlController (Integration Tests - AC10)', () => {
       // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
-    mockGetBefehlMetrikenQueryHandler = {
-      execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
-    } as any;
-
     mockEmpfaengerSucheQueryHandler = {
       execute: jest.fn(),
       // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
@@ -141,7 +136,6 @@ describe('BefehlController (Integration Tests - AC10)', () => {
       mockQuittierenBefehlHandler,
       mockGetBefehlHistorieQueryHandler,
       mockExportBefehleQueryHandler,
-      mockGetBefehlMetrikenQueryHandler,
       mockEmpfaengerSucheQueryHandler,
       mockBefehlRepository,
     );
@@ -1170,104 +1164,6 @@ describe('BefehlController (Integration Tests - AC10)', () => {
       expect(mockEmpfaengerSucheQueryHandler.execute).not.toHaveBeenCalled();
     });
   });
-
-  describe('getMetriken() - GET /api/api/v-alpha/befehle/metriken (Story 4.5)', () => {
-    it('sollte Metriken erfolgreich zurueckgeben mit Default-Zeitraum (30 Tage)', async () => {
-      const mockMetriken = {
-        erfassungszeitMedianSekunden: 8,
-        quittierungszeitMedianSekunden: 4,
-        papierRueckfallquoteProzent: 10,
-        adoptionsrateProzent: 90,
-        dokumentationsqualitaetProzent: 85,
-        gesamtEinsaetze: 10,
-        einsaetzeMitBefehlen: 9,
-        gesamtBefehle: 25,
-        vonDatum: new Date('2026-01-23T00:00:00.000Z'),
-        bisDatum: new Date('2026-02-22T00:00:00.000Z'),
-        einsatzDetails: [],
-      };
-
-      mockGetBefehlMetrikenQueryHandler.execute.mockResolvedValue(Result.ok(mockMetriken));
-
-      const result = await controller.getMetriken();
-
-      expect(result).toBeDefined();
-      expect(result.erfassungszeitMedianSekunden).toBe(8);
-      expect(result.quittierungszeitMedianSekunden).toBe(4);
-      expect(result.adoptionsrateProzent).toBe(90);
-      expect(mockGetBefehlMetrikenQueryHandler.execute).toHaveBeenCalledTimes(1);
-    });
-
-    it('sollte Custom-Zeitraum korrekt an Handler weitergeben', async () => {
-      mockGetBefehlMetrikenQueryHandler.execute.mockResolvedValue(
-        Result.ok({
-          erfassungszeitMedianSekunden: null,
-          quittierungszeitMedianSekunden: null,
-          papierRueckfallquoteProzent: 0,
-          adoptionsrateProzent: 0,
-          dokumentationsqualitaetProzent: 0,
-          gesamtEinsaetze: 0,
-          einsaetzeMitBefehlen: 0,
-          gesamtBefehle: 0,
-          vonDatum: new Date('2026-02-01T00:00:00.000Z'),
-          bisDatum: new Date('2026-02-15T00:00:00.000Z'),
-          einsatzDetails: [],
-        }),
-      );
-
-      await controller.getMetriken('2026-02-01T00:00:00.000Z', '2026-02-15T00:00:00.000Z');
-
-      const calledQuery = mockGetBefehlMetrikenQueryHandler.execute.mock.calls[0]?.[0];
-      expect(calledQuery.vonDatum).toEqual(new Date('2026-02-01T00:00:00.000Z'));
-      expect(calledQuery.bisDatum).toEqual(new Date('2026-02-15T00:00:00.000Z'));
-    });
-
-    it('sollte BadRequestException werfen bei ungueltigem von-Datum', async () => {
-      const error = await controller.getMetriken('not-a-date').catch((e) => e);
-      expect(error).toBeInstanceOf(BadRequestException);
-      const response = (error as BadRequestException).getResponse() as { message: string };
-      expect(response.message).toContain("'von'");
-
-      expect(mockGetBefehlMetrikenQueryHandler.execute).not.toHaveBeenCalled();
-    });
-
-    it('sollte BadRequestException werfen bei ungueltigem bis-Datum', async () => {
-      const error = await controller.getMetriken(undefined, 'invalid').catch((e) => e);
-      expect(error).toBeInstanceOf(BadRequestException);
-      const response = (error as BadRequestException).getResponse() as { message: string };
-      expect(response.message).toContain("'bis'");
-
-      expect(mockGetBefehlMetrikenQueryHandler.execute).not.toHaveBeenCalled();
-    });
-
-    it('sollte BadRequestException werfen wenn bis vor von liegt', async () => {
-      await expect(controller.getMetriken('2026-02-28T00:00:00.000Z', '2026-02-01T00:00:00.000Z')).rejects.toThrow(BadRequestException);
-
-      expect(mockGetBefehlMetrikenQueryHandler.execute).not.toHaveBeenCalled();
-    });
-
-    it('sollte BadRequestException werfen wenn Zeitraum mehr als 365 Tage umfasst', async () => {
-      const error = await controller.getMetriken('2024-01-01T00:00:00.000Z', '2026-02-22T00:00:00.000Z').catch((e) => e);
-      expect(error).toBeInstanceOf(BadRequestException);
-      const response = (error as BadRequestException).getResponse() as { message: string };
-      expect(response.message).toContain('365 Tage');
-
-      expect(mockGetBefehlMetrikenQueryHandler.execute).not.toHaveBeenCalled();
-    });
-
-    it('sollte InternalServerErrorException werfen wenn Handler fehlschlaegt', async () => {
-      mockGetBefehlMetrikenQueryHandler.execute.mockResolvedValue(Result.fail('Datenbankfehler'));
-
-      await expect(controller.getMetriken()).rejects.toThrow(InternalServerErrorException);
-    });
-
-    it('sollte InternalServerErrorException werfen wenn Handler kein Result zurueckgibt', async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Test edge case
-      mockGetBefehlMetrikenQueryHandler.execute.mockResolvedValue(Result.ok(undefined as any));
-
-      await expect(controller.getMetriken()).rejects.toThrow(InternalServerErrorException);
-    });
-  });
 });
 
 describe('BefehlController Guard-Decorators (Story 5.4 AC1, AC5)', () => {
@@ -1285,10 +1181,10 @@ describe('BefehlController Guard-Decorators (Story 5.4 AC1, AC5)', () => {
     expect(rollen).toEqual(['ERSTELLER', 'BEFEHLSGEBER']);
   });
 
-  // --- Befehle quittieren: EMPFAENGER ---
-  it('sollte @RequiresBefehlRolle(EMPFAENGER) auf quittieren() haben', () => {
+  // --- Befehle quittieren: BEFEHLSGEBER, ERSTELLER, EMPFAENGER ---
+  it('sollte @RequiresBefehlRolle(BEFEHLSGEBER, ERSTELLER, EMPFAENGER) auf quittieren() haben', () => {
     const rollen = Reflect.getMetadata(BEFEHL_ROLLEN_KEY, BefehlController.prototype.quittieren);
-    expect(rollen).toEqual(['EMPFAENGER']);
+    expect(rollen).toEqual(['BEFEHLSGEBER', 'ERSTELLER', 'EMPFAENGER']);
   });
 
   // --- Befehle korrigieren: ERSTELLER, BEFEHLSGEBER ---
@@ -1315,12 +1211,6 @@ describe('BefehlController Guard-Decorators (Story 5.4 AC1, AC5)', () => {
     expect(rollen).toEqual(['BEFEHLSGEBER', 'ERSTELLER']);
   });
 
-  // --- Metriken: BEFEHLSGEBER ---
-  it('sollte @RequiresBefehlRolle(BEFEHLSGEBER) auf getMetriken() haben', () => {
-    const rollen = Reflect.getMetadata(BEFEHL_ROLLEN_KEY, BefehlController.prototype.getMetriken);
-    expect(rollen).toEqual(['BEFEHLSGEBER']);
-  });
-
   // --- Historie: ALLE ---
   it('sollte @RequiresBefehlRolle(ALLE) auf getHistorie() haben', () => {
     const rollen = Reflect.getMetadata(BEFEHL_ROLLEN_KEY, BefehlController.prototype.getHistorie);
@@ -1336,7 +1226,7 @@ describe('BefehlController Guard-Decorators (Story 5.4 AC1, AC5)', () => {
   // --- Vollstaendigkeits-Check: KEIN Endpoint ohne Guard ---
   it('sollte auf ALLEN public Endpoints einen @RequiresBefehlRolle Decorator haben (Vollstaendigkeits-Check)', () => {
     // Given - alle public Methoden des Controllers
-    const publicMethods = ['create', 'quittieren', 'korrigieren', 'findByEinsatz', 'addKommentar', 'exportBefehle', 'getMetriken', 'getHistorie', 'empfaengerSuche'];
+    const publicMethods = ['create', 'quittieren', 'korrigieren', 'findByEinsatz', 'addKommentar', 'exportBefehle', 'getHistorie', 'empfaengerSuche'];
 
     // When & Then - jede Methode hat Rollen-Metadata
     for (const method of publicMethods) {
@@ -1429,10 +1319,11 @@ describe('BefehlController Guard-Enforcement (Integration)', () => {
         { provide: CreateBefehlHandler, useValue: { execute: jest.fn() } },
         { provide: KorrigiereBefehlHandler, useValue: { execute: jest.fn() } },
         { provide: QuittierenBefehlHandler, useValue: { execute: jest.fn() } },
+        { provide: AendereEmpfaengerStatusHandler, useValue: { execute: jest.fn() } },
         { provide: GetBefehlHistorieQueryHandler, useValue: { execute: jest.fn() } },
         { provide: ExportBefehleQueryHandler, useValue: { execute: jest.fn() } },
-        { provide: GetBefehlMetrikenQueryHandler, useValue: { execute: jest.fn() } },
         { provide: EmpfaengerSucheQueryHandler, useValue: { execute: jest.fn() } },
+        { provide: BefehlsgeberSucheQueryHandler, useValue: { execute: jest.fn() } },
       ],
     })
       .overrideGuard(JwtAuthGuard)
@@ -1519,7 +1410,7 @@ describe('BefehlController Guard-Enforcement (Integration)', () => {
       expect(response.body.message).toContain('nicht berechtigt');
     });
 
-    it('sollte ERSTELLER mit 403 ablehnen (nur EMPFAENGER erlaubt)', async () => {
+    it('sollte ERSTELLER beim quittieren durchlassen (BEFEHLSGEBER, ERSTELLER, EMPFAENGER erlaubt)', async () => {
       // Given - Befehl-Lookup liefert einsatzId, User hat ERSTELLER-Rolle
       setBefehlLookup(TEST_EINSATZ_ID);
       setUserRolle('ERSTELLER');
@@ -1530,10 +1421,8 @@ describe('BefehlController Guard-Enforcement (Integration)', () => {
         quittierungArt: 'VERSTANDEN',
       });
 
-      // Then - 403 Forbidden
-      expect(response.status).toBe(403);
-      expect(response.body.message).toContain('ERSTELLER');
-      expect(response.body.message).toContain('nicht berechtigt');
+      // Then - 500 (Guard laesst durch, Handler-Mock nicht konfiguriert)
+      expect(response.status).toBe(500);
     });
   });
 
@@ -1639,9 +1528,9 @@ describe('BefehlController Guard-Enforcement (Integration)', () => {
         quittierungArt: 'VERSTANDEN',
       });
 
-      // Then - 403 Forbidden (keine passende Rolle in einem Einsatz)
+      // Then - 403 Forbidden (Befehl nicht gefunden)
       expect(response.status).toBe(403);
-      expect(response.body.message).toContain('Keine passende Rolle');
+      expect(response.body.message).toContain('Befehl nicht gefunden');
     });
   });
 

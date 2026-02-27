@@ -144,7 +144,7 @@ export interface ErinnerungIntensifiedPayload {
  * **Security (C1, C2, C3):**
  * - CORS: Nur FRONTEND_URL erlaubt (kein wildcard '*')
  * - Authentication: JWT Token bei Connection erforderlich (WsJwtAuthGuard)
- * - Authorization: einsatzId wird validiert (UUID v4 Format)
+ * - Authorization: einsatzId wird validiert (CUID2 Format)
  * - Input Validation: JoinEinsatzDto mit class-validator
  *
  * **Room Pattern:**
@@ -198,7 +198,7 @@ export class ErinnerungGateway implements OnGatewayConnection, OnGatewayDisconne
    * Client joined einen Einsatz-Room fuer Erinnerungen.
    *
    * **Security (C3):** Input Validation via JoinEinsatzDto.
-   * - einsatzId MUSS UUID v4 Format sein (verhindert Room Traversal)
+   * - einsatzId MUSS CUID2 Format sein (verhindert Room Traversal)
    * - ValidationPipe validiert automatisch vor Room-Join
    *
    * **Authorization (C2):** Pruefen ob User Zugriff auf Einsatz hat.

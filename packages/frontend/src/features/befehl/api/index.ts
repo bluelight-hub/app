@@ -9,9 +9,9 @@ export { BEFEHL_QUERY_KEYS, calculateRetryDelay, hasActiveQueryFilters, toQueryF
 
 // Query Hooks
 export { useBefehlHistorie } from './use-befehl-historie';
-export { useBefehlMetriken } from './use-befehl-metriken';
 export { useBefehleByEinsatz } from './use-befehle-by-einsatz';
 export { useEmpfaengerSuche } from './use-empfaenger-suche';
+export { useBefehlsgeberSuche } from './use-befehlsgeber-suche';
 export { useMeineBefehle } from './use-meine-befehle';
 
 // Filtered Query Hooks
@@ -19,6 +19,7 @@ export { useOffeneRueckfragen } from './use-offene-rueckfragen';
 
 // Mutation Hooks
 export { useAddBefehlKommentar } from './use-add-befehl-kommentar';
+export { useAendereEmpfaengerStatus, type AendereEmpfaengerStatusInput } from './use-aendere-empfaenger-status';
 export { useCreateBefehl } from './use-create-befehl';
 export { useKorrigiereBefehl } from './use-korrigiere-befehl';
 export { useQuittierenBefehl } from './use-quittieren-befehl';
@@ -26,10 +27,12 @@ export { useQuittierenBefehl } from './use-quittieren-befehl';
 // WebSocket Hook & Types
 export {
   useBefehlWebSocket,
+  useBefehlWebSocketStatus,
   type BefehlErstelltPayload,
   type BefehlZugestelltPayload,
   type BefehlKommentarHinzugefuegtPayload,
   type BefehlQuittiertPayload,
+  type BefehlStatusGeaendertPayload,
   type WebSocketStatus,
   type UseBefehlWebSocketOptions,
   type UseBefehlWebSocketReturn,

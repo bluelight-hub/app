@@ -261,6 +261,11 @@ export const EVENT_HANDLER = {
   /** BefehlQuittiert ETB-Eintrag Handler Token (Story 4.3) */
   BEFEHL_QUITTIERT_ETB: Symbol('IEventHandler<BefehlQuittiertEvent>:EtbEintrag'),
 
+  /** BefehlStatusGeaendert ETB-Eintrag Handler Token */
+  BEFEHL_STATUS_GEAENDERT_ETB: Symbol('IEventHandler<BefehlStatusGeaendertEvent>:EtbEintrag'),
+  /** BefehlZugestellt ETB-Eintrag Handler Token */
+  BEFEHL_ZUGESTELLT_ETB: Symbol('IEventHandler<BefehlZugestelltEvent>:EtbEintrag'),
+
   /** BefehlAnonymisiert ETB-Eintrag Handler Token (Story 5.5) */
   BEFEHL_ANONYMISIERT_ETB: Symbol('IEventHandler<BefehlAnonymisiertEvent>:EtbEintrag'),
   /** BefehlGeloescht ETB-Eintrag Handler Token (Story 5.5) */
@@ -325,10 +330,6 @@ export const METRICS = {
   WS_CONNECTIONS: Symbol('WebSocketConnectionsGauge'),
   /** Outbox Queue Depth Gauge */
   OUTBOX_QUEUE_DEPTH: Symbol('OutboxQueueDepthGauge'),
-  /** Befehl Domain Counters */
-  BEFEHL_ERSTELLT_COUNTER: Symbol('BefehlErstelltCounter'),
-  BEFEHL_QUITTIERT_COUNTER: Symbol('BefehlQuittiertCounter'),
-  BEFEHL_KORRIGIERT_COUNTER: Symbol('BefehlKorrigiertCounter'),
 } as const;
 
 /**

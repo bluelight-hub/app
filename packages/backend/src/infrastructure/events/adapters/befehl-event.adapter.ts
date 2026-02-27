@@ -73,6 +73,7 @@ export class BefehlEventAdapter {
         befehlsgeberName: befehl.befehlsgeberName ?? befehl.befehlsgeber?.username ?? '',
         erstellerId: befehl.erstellerId ?? '',
         empfaenger: event.empfaenger,
+        empfaengerIds: event.empfaengerIds ?? [],
         status: befehl.status,
         erteiltAm: befehl.erteiltAm.toISOString(),
       });
@@ -87,7 +88,7 @@ export class BefehlEventAdapter {
   /**
    * Empfaengt BefehlZugestelltEvent und emittiert WebSocket Event.
    *
-   * DB-Lookup fuer einsatzId, da das Domain Event diese nicht enthaelt.
+   * Rich Data aus Event (kein DB-Lookup noetig dank Event-Carried State Transfer).
    *
    * @param event - Das empfangene Domain Event
    */
@@ -98,19 +99,9 @@ export class BefehlEventAdapter {
     await new Promise((resolve) => setTimeout(resolve, 50));
 
     try {
-      const befehl = await this.prisma.befehl.findUnique({
-        where: { id: event.befehlId.value },
-        select: { einsatzId: true },
-      });
-
-      if (!befehl) {
-        this.logger.error(`Befehl not found for WebSocket event: befehlId=${event.befehlId.value}`, 'BefehlEventAdapter');
-        return;
-      }
-
       this.gateway.emitBefehlZugestellt({
         befehlId: event.befehlId.value,
-        einsatzId: befehl.einsatzId,
+        einsatzId: event.einsatzId.value,
         empfaengerId: event.empfaengerId,
         zugestelltAm: event.zugestelltAm.toISOString(),
       });
@@ -125,7 +116,7 @@ export class BefehlEventAdapter {
   /**
    * Empfaengt BefehlStatusGeaendertEvent und emittiert WebSocket Event.
    *
-   * DB-Lookup fuer einsatzId, da das Domain Event diese nicht enthaelt.
+   * Rich Data aus Event (kein DB-Lookup noetig dank Event-Carried State Transfer).
    *
    * @param event - Das empfangene Domain Event
    */
@@ -136,22 +127,16 @@ export class BefehlEventAdapter {
     await new Promise((resolve) => setTimeout(resolve, 50));
 
     try {
-      const befehl = await this.prisma.befehl.findUnique({
-        where: { id: event.befehlId.value },
-        select: { einsatzId: true },
-      });
-
-      if (!befehl) {
-        this.logger.error(`Befehl not found for WebSocket event: befehlId=${event.befehlId.value}`, 'BefehlEventAdapter');
-        return;
-      }
-
       this.gateway.emitBefehlStatusGeaendert({
         befehlId: event.befehlId.value,
-        einsatzId: befehl.einsatzId,
+        einsatzId: event.einsatzId.value,
         oldStatus: event.oldStatus.value,
         newStatus: event.newStatus.value,
         timestamp: new Date().toISOString(),
+        nummer: event.nummer,
+        erstellerId: event.erstellerId?.value,
+        befehlsgeberId: event.befehlsgeberId?.value,
+        empfaengerIds: event.empfaengerIds,
       });
 
       this.logger.log(`WebSocket event emitted for BefehlStatusGeaendert: befehlId=${event.befehlId.value}`, 'BefehlEventAdapter');
@@ -232,6 +217,9 @@ export class BefehlEventAdapter {
         quittierungArt: event.quittierungArt,
         nummer: event.nummer,
         quittiertAm: event.quittiertAm.toISOString(),
+        quittierungKommentar: event.quittierungKommentar,
+        erstellerId: event.erstellerId?.value,
+        befehlsgeberId: event.befehlsgeberId?.value,
       });
 
       this.logger.log(`WebSocket event emitted for BefehlQuittiert: befehlId=${event.befehlId.value}`, 'BefehlEventAdapter');

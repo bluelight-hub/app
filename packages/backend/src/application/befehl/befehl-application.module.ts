@@ -9,10 +9,11 @@ import { AddBefehlKommentarHandler } from './commands/add-befehl-kommentar/add-b
 import { CreateBefehlHandler } from './commands/create-befehl/create-befehl.handler';
 import { KorrigiereBefehlHandler } from './commands/korrigiere-befehl/korrigiere-befehl.handler';
 import { QuittierenBefehlHandler } from './commands/quittieren-befehl/quittieren-befehl.handler';
+import { AendereEmpfaengerStatusHandler } from './commands/aendere-empfaenger-status/aendere-empfaenger-status.handler';
 import { GetBefehlHistorieQueryHandler } from './queries/get-befehl-historie/get-befehl-historie.handler';
 import { ExportBefehleQueryHandler } from './queries/export-befehle/export-befehle.handler';
-import { GetBefehlMetrikenQueryHandler } from './queries/get-befehl-metriken/get-befehl-metriken.handler';
 import { EmpfaengerSucheQueryHandler } from './queries/empfaenger-suche/empfaenger-suche.handler';
+import { BefehlsgeberSucheQueryHandler } from './queries/befehlsgeber-suche/befehlsgeber-suche.handler';
 
 /**
  * NestJS-Modul für Application Layer - Befehl Bounded Context.
@@ -70,11 +71,12 @@ import { EmpfaengerSucheQueryHandler } from './queries/empfaenger-suche/empfaeng
     CreateBefehlHandler,
     KorrigiereBefehlHandler,
     QuittierenBefehlHandler,
+    AendereEmpfaengerStatusHandler,
     // Query Handlers
     GetBefehlHistorieQueryHandler,
     ExportBefehleQueryHandler,
-    GetBefehlMetrikenQueryHandler,
     EmpfaengerSucheQueryHandler,
+    BefehlsgeberSucheQueryHandler,
     // Infrastructure Services (via DI Token fuer Hexagonale Architektur)
     {
       provide: BEFEHL_CSV_SERVICE,
@@ -87,10 +89,11 @@ import { EmpfaengerSucheQueryHandler } from './queries/empfaenger-suche/empfaeng
     CreateBefehlHandler,
     KorrigiereBefehlHandler,
     QuittierenBefehlHandler,
+    AendereEmpfaengerStatusHandler,
     GetBefehlHistorieQueryHandler,
     ExportBefehleQueryHandler,
-    GetBefehlMetrikenQueryHandler,
     EmpfaengerSucheQueryHandler,
+    BefehlsgeberSucheQueryHandler,
     // Infrastructure Services (via DI Token)
     BEFEHL_CSV_SERVICE,
     // Export repository token for use in BefehlController (findById after create)

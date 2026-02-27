@@ -44,7 +44,7 @@ export interface EmpfaengerSucheResultDto {
      */
     qualifikation?: string;
     /**
-     * Verknuepfter User-ID (fuer In-App-Quittierung) – derzeit nicht befuellt, erfordert Schema-Migration
+     * Verknuepfter User-ID (fuer In-App-Quittierung)
      * @type {string}
      * @memberof EmpfaengerSucheResultDto
      */

@@ -32,6 +32,9 @@ export * from './badge.atom';
 export * from './alert.atom';
 export * from './image.atom';
 
+// Placeholder
+export * from './coming-soon.atom';
+
 // Feedback & Progress
 export * from './spinner.atom';
 export * from './progress-bar.atom';

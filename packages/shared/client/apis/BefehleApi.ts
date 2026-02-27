@@ -16,11 +16,12 @@
 import * as runtime from '../runtime';
 import type {
   AddBefehlKommentarDto,
+  AendereEmpfaengerStatusDto,
+  BefehlControllerBefehlsgeberSucheVAlpha200Response,
   BefehlControllerCreateVAlpha201Response,
   BefehlControllerEmpfaengerSucheVAlpha200Response,
   BefehlControllerFindByEinsatzVAlpha200Response,
   BefehlControllerGetHistorieVAlpha200Response,
-  BefehlControllerGetMetrikenVAlpha200Response,
   CreateBefehlDto,
   KorrigiereBefehlDto,
   QuittierenBefehlDto,
@@ -28,6 +29,10 @@ import type {
 import {
     AddBefehlKommentarDtoFromJSON,
     AddBefehlKommentarDtoToJSON,
+    AendereEmpfaengerStatusDtoFromJSON,
+    AendereEmpfaengerStatusDtoToJSON,
+    BefehlControllerBefehlsgeberSucheVAlpha200ResponseFromJSON,
+    BefehlControllerBefehlsgeberSucheVAlpha200ResponseToJSON,
     BefehlControllerCreateVAlpha201ResponseFromJSON,
     BefehlControllerCreateVAlpha201ResponseToJSON,
     BefehlControllerEmpfaengerSucheVAlpha200ResponseFromJSON,
@@ -36,8 +41,6 @@ import {
     BefehlControllerFindByEinsatzVAlpha200ResponseToJSON,
     BefehlControllerGetHistorieVAlpha200ResponseFromJSON,
     BefehlControllerGetHistorieVAlpha200ResponseToJSON,
-    BefehlControllerGetMetrikenVAlpha200ResponseFromJSON,
-    BefehlControllerGetMetrikenVAlpha200ResponseToJSON,
     CreateBefehlDtoFromJSON,
     CreateBefehlDtoToJSON,
     KorrigiereBefehlDtoFromJSON,
@@ -54,6 +57,28 @@ export interface BefehlControllerAddKommentarV1Request {
 export interface BefehlControllerAddKommentarVAlphaRequest {
     id: string;
     addBefehlKommentarDto: AddBefehlKommentarDto;
+}
+
+export interface BefehlControllerAendereEmpfaengerStatusV1Request {
+    id: string;
+    empfaengerEntityId: string;
+    aendereEmpfaengerStatusDto: AendereEmpfaengerStatusDto;
+}
+
+export interface BefehlControllerAendereEmpfaengerStatusVAlphaRequest {
+    id: string;
+    empfaengerEntityId: string;
+    aendereEmpfaengerStatusDto: AendereEmpfaengerStatusDto;
+}
+
+export interface BefehlControllerBefehlsgeberSucheV1Request {
+    einsatzId: string;
+    q?: string;
+}
+
+export interface BefehlControllerBefehlsgeberSucheVAlphaRequest {
+    einsatzId: string;
+    q?: string;
 }
 
 export interface BefehlControllerCreateV1Request {
@@ -114,16 +139,6 @@ export interface BefehlControllerGetHistorieV1Request {
 
 export interface BefehlControllerGetHistorieVAlphaRequest {
     id: string;
-}
-
-export interface BefehlControllerGetMetrikenV1Request {
-    von?: string;
-    bis?: string;
-}
-
-export interface BefehlControllerGetMetrikenVAlphaRequest {
-    von?: string;
-    bis?: string;
 }
 
 export interface BefehlControllerKorrigierenV1Request {
@@ -238,6 +253,196 @@ export class BefehleApi extends runtime.BaseAPI {
      */
     async befehlControllerAddKommentarVAlpha(requestParameters: BefehlControllerAddKommentarVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BefehlControllerCreateVAlpha201Response> {
         const response = await this.befehlControllerAddKommentarVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Ändert den Status eines Empfängers: Zustellen, stellvertretend Quittieren oder Zurücksetzen.
+     * Empfänger-Status ändern
+     */
+    async befehlControllerAendereEmpfaengerStatusV1Raw(requestParameters: BefehlControllerAendereEmpfaengerStatusV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BefehlControllerCreateVAlpha201Response>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling befehlControllerAendereEmpfaengerStatusV1().'
+            );
+        }
+
+        if (requestParameters['empfaengerEntityId'] == null) {
+            throw new runtime.RequiredError(
+                'empfaengerEntityId',
+                'Required parameter "empfaengerEntityId" was null or undefined when calling befehlControllerAendereEmpfaengerStatusV1().'
+            );
+        }
+
+        if (requestParameters['aendereEmpfaengerStatusDto'] == null) {
+            throw new runtime.RequiredError(
+                'aendereEmpfaengerStatusDto',
+                'Required parameter "aendereEmpfaengerStatusDto" was null or undefined when calling befehlControllerAendereEmpfaengerStatusV1().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/api/v-1/befehle/{id}/empfaenger/{empfaengerEntityId}/status`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))).replace(`{${"empfaengerEntityId"}}`, encodeURIComponent(String(requestParameters['empfaengerEntityId']))),
+            method: 'PATCH',
+            headers: headerParameters,
+            query: queryParameters,
+            body: AendereEmpfaengerStatusDtoToJSON(requestParameters['aendereEmpfaengerStatusDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => BefehlControllerCreateVAlpha201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Ändert den Status eines Empfängers: Zustellen, stellvertretend Quittieren oder Zurücksetzen.
+     * Empfänger-Status ändern
+     */
+    async befehlControllerAendereEmpfaengerStatusV1(requestParameters: BefehlControllerAendereEmpfaengerStatusV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BefehlControllerCreateVAlpha201Response> {
+        const response = await this.befehlControllerAendereEmpfaengerStatusV1Raw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Ändert den Status eines Empfängers: Zustellen, stellvertretend Quittieren oder Zurücksetzen.
+     * Empfänger-Status ändern
+     */
+    async befehlControllerAendereEmpfaengerStatusVAlphaRaw(requestParameters: BefehlControllerAendereEmpfaengerStatusVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BefehlControllerCreateVAlpha201Response>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling befehlControllerAendereEmpfaengerStatusVAlpha().'
+            );
+        }
+
+        if (requestParameters['empfaengerEntityId'] == null) {
+            throw new runtime.RequiredError(
+                'empfaengerEntityId',
+                'Required parameter "empfaengerEntityId" was null or undefined when calling befehlControllerAendereEmpfaengerStatusVAlpha().'
+            );
+        }
+
+        if (requestParameters['aendereEmpfaengerStatusDto'] == null) {
+            throw new runtime.RequiredError(
+                'aendereEmpfaengerStatusDto',
+                'Required parameter "aendereEmpfaengerStatusDto" was null or undefined when calling befehlControllerAendereEmpfaengerStatusVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/api/v-alpha/befehle/{id}/empfaenger/{empfaengerEntityId}/status`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))).replace(`{${"empfaengerEntityId"}}`, encodeURIComponent(String(requestParameters['empfaengerEntityId']))),
+            method: 'PATCH',
+            headers: headerParameters,
+            query: queryParameters,
+            body: AendereEmpfaengerStatusDtoToJSON(requestParameters['aendereEmpfaengerStatusDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => BefehlControllerCreateVAlpha201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Ändert den Status eines Empfängers: Zustellen, stellvertretend Quittieren oder Zurücksetzen.
+     * Empfänger-Status ändern
+     */
+    async befehlControllerAendereEmpfaengerStatusVAlpha(requestParameters: BefehlControllerAendereEmpfaengerStatusVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BefehlControllerCreateVAlpha201Response> {
+        const response = await this.befehlControllerAendereEmpfaengerStatusVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Durchsucht konfigurierte Befehlsgeber-Vorschlaege und EinsatzPersonen fuer das Befehlsgeber-Feld.
+     * Befehlsgeber-Vorschlaege und Kraefte suchen
+     */
+    async befehlControllerBefehlsgeberSucheV1Raw(requestParameters: BefehlControllerBefehlsgeberSucheV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BefehlControllerBefehlsgeberSucheVAlpha200Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling befehlControllerBefehlsgeberSucheV1().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['einsatzId'] != null) {
+            queryParameters['einsatzId'] = requestParameters['einsatzId'];
+        }
+
+        if (requestParameters['q'] != null) {
+            queryParameters['q'] = requestParameters['q'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-1/befehle/befehlsgeber-suche`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => BefehlControllerBefehlsgeberSucheVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Durchsucht konfigurierte Befehlsgeber-Vorschlaege und EinsatzPersonen fuer das Befehlsgeber-Feld.
+     * Befehlsgeber-Vorschlaege und Kraefte suchen
+     */
+    async befehlControllerBefehlsgeberSucheV1(requestParameters: BefehlControllerBefehlsgeberSucheV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BefehlControllerBefehlsgeberSucheVAlpha200Response> {
+        const response = await this.befehlControllerBefehlsgeberSucheV1Raw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Durchsucht konfigurierte Befehlsgeber-Vorschlaege und EinsatzPersonen fuer das Befehlsgeber-Feld.
+     * Befehlsgeber-Vorschlaege und Kraefte suchen
+     */
+    async befehlControllerBefehlsgeberSucheVAlphaRaw(requestParameters: BefehlControllerBefehlsgeberSucheVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BefehlControllerBefehlsgeberSucheVAlpha200Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling befehlControllerBefehlsgeberSucheVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['einsatzId'] != null) {
+            queryParameters['einsatzId'] = requestParameters['einsatzId'];
+        }
+
+        if (requestParameters['q'] != null) {
+            queryParameters['q'] = requestParameters['q'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/befehle/befehlsgeber-suche`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => BefehlControllerBefehlsgeberSucheVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Durchsucht konfigurierte Befehlsgeber-Vorschlaege und EinsatzPersonen fuer das Befehlsgeber-Feld.
+     * Befehlsgeber-Vorschlaege und Kraefte suchen
+     */
+    async befehlControllerBefehlsgeberSucheVAlpha(requestParameters: BefehlControllerBefehlsgeberSucheVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BefehlControllerBefehlsgeberSucheVAlpha200Response> {
+        const response = await this.befehlControllerBefehlsgeberSucheVAlphaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -724,78 +929,6 @@ export class BefehleApi extends runtime.BaseAPI {
      */
     async befehlControllerGetHistorieVAlpha(requestParameters: BefehlControllerGetHistorieVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BefehlControllerGetHistorieVAlpha200Response> {
         const response = await this.befehlControllerGetHistorieVAlphaRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Gibt aggregierte Adoptionsmetriken und Dokumentationsqualitaet ueber alle Einsaetze eines Zeitraums zurueck.
-     * Befehl-Metriken aggregiert abrufen
-     */
-    async befehlControllerGetMetrikenV1Raw(requestParameters: BefehlControllerGetMetrikenV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BefehlControllerGetMetrikenVAlpha200Response>> {
-        const queryParameters: any = {};
-
-        if (requestParameters['von'] != null) {
-            queryParameters['von'] = requestParameters['von'];
-        }
-
-        if (requestParameters['bis'] != null) {
-            queryParameters['bis'] = requestParameters['bis'];
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        const response = await this.request({
-            path: `/api/v-1/befehle/metriken`,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => BefehlControllerGetMetrikenVAlpha200ResponseFromJSON(jsonValue));
-    }
-
-    /**
-     * Gibt aggregierte Adoptionsmetriken und Dokumentationsqualitaet ueber alle Einsaetze eines Zeitraums zurueck.
-     * Befehl-Metriken aggregiert abrufen
-     */
-    async befehlControllerGetMetrikenV1(requestParameters: BefehlControllerGetMetrikenV1Request = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BefehlControllerGetMetrikenVAlpha200Response> {
-        const response = await this.befehlControllerGetMetrikenV1Raw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * Gibt aggregierte Adoptionsmetriken und Dokumentationsqualitaet ueber alle Einsaetze eines Zeitraums zurueck.
-     * Befehl-Metriken aggregiert abrufen
-     */
-    async befehlControllerGetMetrikenVAlphaRaw(requestParameters: BefehlControllerGetMetrikenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BefehlControllerGetMetrikenVAlpha200Response>> {
-        const queryParameters: any = {};
-
-        if (requestParameters['von'] != null) {
-            queryParameters['von'] = requestParameters['von'];
-        }
-
-        if (requestParameters['bis'] != null) {
-            queryParameters['bis'] = requestParameters['bis'];
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        const response = await this.request({
-            path: `/api/v-alpha/befehle/metriken`,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => BefehlControllerGetMetrikenVAlpha200ResponseFromJSON(jsonValue));
-    }
-
-    /**
-     * Gibt aggregierte Adoptionsmetriken und Dokumentationsqualitaet ueber alle Einsaetze eines Zeitraums zurueck.
-     * Befehl-Metriken aggregiert abrufen
-     */
-    async befehlControllerGetMetrikenVAlpha(requestParameters: BefehlControllerGetMetrikenVAlphaRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BefehlControllerGetMetrikenVAlpha200Response> {
-        const response = await this.befehlControllerGetMetrikenVAlphaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

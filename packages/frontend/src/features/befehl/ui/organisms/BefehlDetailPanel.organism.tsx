@@ -8,32 +8,64 @@
 
 import { Dialog as HeadlessDialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import { format } from 'date-fns';
-import { useState } from 'react';
-import { PiPencilSimpleLine, PiX } from 'react-icons/pi';
+import { useCallback, useState } from 'react';
+import { PiCheckCircle, PiPencilSimpleLine, PiX } from 'react-icons/pi';
 import { cn } from '@/shared/ui/cn';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Tooltip } from '@/shared/ui/atoms/tooltip.atom';
-import { type BefehlDto, BefehlDtoStatusEnum } from '@bluelight-hub/shared/client';
+import { type BefehlDto, BefehlDtoStatusEnum, type BefehlEmpfaengerDtoQuittierungArtEnum } from '@bluelight-hub/shared/client';
+import { useAendereEmpfaengerStatus } from '../../api/use-aendere-empfaenger-status';
+import type { AendereEmpfaengerStatusInput } from '../../api/use-aendere-empfaenger-status';
 import { useBefehlPermissions } from '../../hooks/use-befehl-permissions';
 import { BefehlStatusBadge } from '../atoms/BefehlStatusBadge.atom';
 import { ZustellstatusAnzeige } from '../molecules/ZustellstatusAnzeige.molecule';
+import { getEigenerEmpfaengerStatus } from '../../lib/befehl-utils';
 import { BefehlHistorieTimeline } from './BefehlHistorieTimeline.organism';
 import { KorrekturBefehlDialog } from './KorrekturBefehlDialog.organism';
+
+/** Labels fuer Quittierungsarten */
+const QUITTIERUNG_ART_LABELS: Record<BefehlEmpfaengerDtoQuittierungArtEnum, string> = {
+  VERSTANDEN: 'Verstanden',
+  RUECKFRAGE: 'Rückfrage',
+  NICHT_VERSTANDEN: 'Nicht verstanden',
+};
 
 interface BefehlDetailPanelProps {
   befehl: BefehlDto | null;
   isOpen: boolean;
   onClose: () => void;
   einsatzId: string;
+  /** Callback fuer Quittierung */
+  onQuittieren?: (befehlId: string) => void;
+  /** ID des aktuellen Users (fuer Quittierungs-Anzeige) */
+  currentUserId?: string;
+  /** RBAC: Darf der aktuelle User quittieren? */
+  canQuittieren?: boolean;
 }
 
-export function BefehlDetailPanel({ befehl, isOpen, onClose, einsatzId }: BefehlDetailPanelProps) {
-  const { canKorrigieren } = useBefehlPermissions(einsatzId);
+export function BefehlDetailPanel({ befehl, isOpen, onClose, einsatzId, onQuittieren, currentUserId, canQuittieren }: BefehlDetailPanelProps) {
+  const { canKorrigieren, canManageStatus } = useBefehlPermissions(einsatzId);
   const [isKorrekturDialogOpen, setIsKorrekturDialogOpen] = useState(false);
+  const statusMutation = useAendereEmpfaengerStatus(einsatzId);
+
+  const handleStatusChange = useCallback(
+    (input: AendereEmpfaengerStatusInput) => {
+      statusMutation.mutate(input);
+    },
+    [statusMutation],
+  );
 
   return (
     <>
-      <HeadlessDialog open={isOpen && befehl != null} as="div" className="relative z-50" onClose={onClose}>
+      <HeadlessDialog
+        open={isOpen && befehl != null}
+        as="div"
+        className="relative z-50"
+        onClose={onClose}
+        // Keep global overlays (e.g. Sonner toasts) interactive while the flyout is open.
+        // Headless UI's default inert behavior blocks clicks on visible toast actions.
+        __demoMode
+      >
         {/* Backdrop */}
         <DialogBackdrop transition className="fixed inset-0 bg-black/30 duration-300 ease-in-out data-[closed]:opacity-0 motion-reduce:duration-0" />
 
@@ -60,6 +92,38 @@ export function BefehlDetailPanel({ befehl, isOpen, onClose, einsatzId }: Befehl
                       <BefehlStatusBadge status={befehl.status} className="mt-2" />
                     </div>
 
+                    {/* Quittierungs-Banner fuer Empfaenger */}
+                    {(() => {
+                      const eigenerStatus = getEigenerEmpfaengerStatus(befehl.empfaenger, currentUserId);
+                      if (!eigenerStatus.istEmpfaenger) return null;
+
+                      if (eigenerStatus.status === 'QUITTIERT' && eigenerStatus.quittierungArt) {
+                        return (
+                          <div className="flex items-center gap-2 border-b border-green-200 bg-green-50 px-6 py-3 dark:border-green-800 dark:bg-green-900/20">
+                            <PiCheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" aria-hidden="true" />
+                            <span className="text-sm font-medium text-green-800 dark:text-green-300">Quittiert: {QUITTIERUNG_ART_LABELS[eigenerStatus.quittierungArt]}</span>
+                          </div>
+                        );
+                      }
+
+                      if (canQuittieren && onQuittieren && befehl.status !== BefehlDtoStatusEnum.Korrigiert) {
+                        return (
+                          <div className="border-b border-yellow-200 bg-yellow-50 px-6 py-3 dark:border-yellow-800 dark:bg-yellow-900/20">
+                            <button
+                              type="button"
+                              onClick={() => onQuittieren(befehl.id)}
+                              className="flex w-full items-center justify-center gap-2 rounded-lg bg-yellow-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-yellow-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 focus-visible:ring-offset-2 dark:bg-yellow-600 dark:hover:bg-yellow-700"
+                            >
+                              <PiCheckCircle className="h-5 w-5" aria-hidden="true" />
+                              Befehl quittieren
+                            </button>
+                          </div>
+                        );
+                      }
+
+                      return null;
+                    })()}
+
                     {/* Body */}
                     <div className="flex-1 overflow-y-auto px-6 py-5">
                       <div className="space-y-5">
@@ -85,7 +149,14 @@ export function BefehlDetailPanel({ befehl, isOpen, onClose, einsatzId }: Befehl
                         <section>
                           <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Empfänger</h3>
                           <div className="mt-2">
-                            <ZustellstatusAnzeige empfaenger={befehl.empfaenger} variant="expanded" />
+                            <ZustellstatusAnzeige
+                              empfaenger={befehl.empfaenger}
+                              variant="expanded"
+                              interactive={canManageStatus}
+                              befehlId={befehl.id}
+                              onStatusChange={handleStatusChange}
+                              isKorrigiert={befehl.status === BefehlDtoStatusEnum.Korrigiert}
+                            />
                           </div>
                         </section>
 

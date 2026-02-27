@@ -1,13 +1,6 @@
+import { ComingSoon } from '@/shared/ui/atoms';
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/app/einsatz/$einsatzId/führung/protokoll')({
-  component: RouteComponent,
+  component: () => <ComingSoon title="Führungsprotokoll" description="Protokollierung der Führungsentscheidungen im Einsatz." />,
 });
-
-/**
- * Platzhalteransicht für Führungsprotokoll.
- * @returns {JSX.Element}
- */
-function RouteComponent() {
-  return <div>Hello "/app/einsatz/$einsatzId/führung/protokoll"!</div>;
-}

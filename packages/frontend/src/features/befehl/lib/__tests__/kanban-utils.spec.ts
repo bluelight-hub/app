@@ -112,7 +112,7 @@ describe('getKanbanSpalte', () => {
     expect(result).toBe('ZUGESTELLT');
   });
 
-  it('nicht-quittierbare Empfaenger werden NICHT mitgezaehlt', () => {
+  it('nicht-quittierbare Empfaenger werden mitgezaehlt (alle Empfaenger zaehlen)', () => {
     const result = getKanbanSpalte({
       status: 'ZUGESTELLT',
       empfaenger: [
@@ -122,8 +122,8 @@ describe('getKanbanSpalte', () => {
       ],
     });
 
-    // 1/1 quittierbar quittiert → VOLLSTAENDIG, nicht 1/3
-    expect(result).toBe('VOLLSTAENDIG_QUITTIERT');
+    // 1/3 quittiert → TEILWEISE_QUITTIERT (alle Empfaenger zaehlen)
+    expect(result).toBe('TEILWEISE_QUITTIERT');
   });
 
   it('nur nicht-quittierbare Empfaenger → ZUGESTELLT (0/0)', () => {

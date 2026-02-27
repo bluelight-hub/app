@@ -31,6 +31,8 @@ import {
   NotizGeloeschtEtbHandler,
   BefehlErstelltEtbHandler,
   BefehlQuittiertEtbHandler,
+  BefehlStatusGeaendertEtbHandler,
+  BefehlZugestelltEtbHandler,
   RolleGeaendertEtbHandler,
   BefehlAnonymisiertEtbHandler,
   BefehlGeloeschtEtbHandler,
@@ -238,6 +240,16 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
       provide: EVENT_HANDLER.BEFEHL_QUITTIERT_ETB,
       useClass: BefehlQuittiertEtbHandler,
     },
+    // BefehlStatusGeaendert ETB Event Handler - ETB-Eintrag bei Status-Aenderung
+    {
+      provide: EVENT_HANDLER.BEFEHL_STATUS_GEAENDERT_ETB,
+      useClass: BefehlStatusGeaendertEtbHandler,
+    },
+    // BefehlZugestellt ETB Event Handler - ETB-Eintrag bei Zustellung
+    {
+      provide: EVENT_HANDLER.BEFEHL_ZUGESTELLT_ETB,
+      useClass: BefehlZugestelltEtbHandler,
+    },
     // RolleGeaendert ETB Event Handler (Story 5.4 AC4) - ETB-Eintrag bei Rollenänderung
     {
       provide: EVENT_HANDLER.ROLLE_GEAENDERT_ETB,
@@ -299,6 +311,8 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
     EVENT_HANDLER.NOTIZ_GELOESCHT_ETB,
     EVENT_HANDLER.BEFEHL_ERSTELLT_ETB,
     EVENT_HANDLER.BEFEHL_QUITTIERT_ETB,
+    EVENT_HANDLER.BEFEHL_STATUS_GEAENDERT_ETB,
+    EVENT_HANDLER.BEFEHL_ZUGESTELLT_ETB,
     EVENT_HANDLER.ROLLE_GEAENDERT_ETB,
     EVENT_HANDLER.BEFEHL_ANONYMISIERT_ETB,
     EVENT_HANDLER.BEFEHL_GELOESCHT_ETB,

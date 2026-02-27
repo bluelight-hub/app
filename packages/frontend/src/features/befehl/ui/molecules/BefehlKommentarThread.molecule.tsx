@@ -1,8 +1,8 @@
 /**
  * BefehlKommentarThread - Kommentar-Thread für Befehle
  *
- * Zeigt chronologische Kommentare mit Rückfrage-Badge,
- * Thread-Einrückung und Inline-Eingabe am Ende.
+ * Zeigt chronologische Kommentare mit Rückfrage-Badge
+ * und Inline-Eingabe am Ende.
  */
 
 import type { BefehlKommentarDto } from '@bluelight-hub/shared/client';
@@ -15,7 +15,7 @@ import { useForm } from '@tanstack/react-form';
 import { zodValidator } from '@tanstack/zod-form-adapter';
 import { format } from 'date-fns';
 import { useRef } from 'react';
-import { PiArrowBendUpLeft, PiChatCircleDots, PiPaperPlaneRight, PiX } from 'react-icons/pi';
+import { PiChatCircleDots, PiPaperPlaneRight } from 'react-icons/pi';
 
 interface BefehlKommentarThreadProps {
   befehlId: string;
@@ -27,7 +27,7 @@ interface BefehlKommentarThreadProps {
  * Kommentar-Thread Komponente
  *
  * Zeigt alle Kommentare eines Befehls in chronologischer Reihenfolge.
- * Rückfragen werden mit einem Badge markiert, Antworten eingerückt.
+ * Rückfragen werden mit einem Badge markiert.
  * Am Ende ein Inline-Formular zum Hinzufügen neuer Kommentare.
  */
 export function BefehlKommentarThread({ befehlId, einsatzId, kommentare }: BefehlKommentarThreadProps) {
@@ -41,7 +41,6 @@ export function BefehlKommentarThread({ befehlId, einsatzId, kommentare }: Befeh
     defaultValues: {
       text: '',
       isRueckfrage: false,
-      parentId: undefined as string | undefined,
     },
     validatorAdapter: zodValidator(),
     validators: {
@@ -53,7 +52,6 @@ export function BefehlKommentarThread({ befehlId, einsatzId, kommentare }: Befeh
         dto: {
           text: value.text,
           isRueckfrage: value.isRueckfrage,
-          parentId: value.parentId,
         },
       });
       form.reset();
@@ -63,20 +61,20 @@ export function BefehlKommentarThread({ befehlId, einsatzId, kommentare }: Befeh
   const sortedKommentare = [...kommentare].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
   return (
-    <div id={threadId} tabIndex={-1} className="mt-3 border-t border-gray-100 pt-3 dark:border-gray-800 focus:outline-none">
+    // biome-ignore lint/a11y/noStaticElementInteractions: Container blocks bubbling to parent card and is not directly user-actionable.
+    <div id={threadId} tabIndex={-1} className="mt-3 border-t border-gray-100 pt-3 dark:border-gray-800 focus:outline-none" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
       {/* Kommentar-Liste */}
       {sortedKommentare.length > 0 && (
         <ul className="flex flex-col gap-2 mb-3" aria-label="Kommentare">
           {sortedKommentare.map((kommentar) => {
-            const isAntwort = !!kommentar.parentId;
             const isOwn = kommentar.authorId === user?.id;
             const createdAt = typeof kommentar.createdAt === 'string' ? new Date(kommentar.createdAt) : kommentar.createdAt;
 
             return (
-              <li key={kommentar.id} className={cn('rounded-md px-3 py-2 text-sm', 'bg-gray-50 dark:bg-gray-800/50', isAntwort && 'ml-6 border-l-2 border-gray-200 dark:border-gray-700')}>
+              <li key={kommentar.id} className="rounded-md px-3 py-2 text-sm bg-gray-50 dark:bg-gray-800/50">
                 <div className="flex items-center gap-2">
                   <span className={cn('font-medium text-xs', isOwn ? 'text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300')}>
-                    {isOwn ? 'Du' : kommentar.authorId.substring(0, 8)}
+                    {isOwn ? 'Du' : (kommentar.authorId?.substring(0, 8) ?? 'Anonym')}
                   </span>
                   <time dateTime={createdAt.toISOString()} className="text-xs text-gray-400 dark:text-gray-500">
                     {format(createdAt, 'dd.MM. HH:mm')}
@@ -89,17 +87,6 @@ export function BefehlKommentarThread({ befehlId, einsatzId, kommentare }: Befeh
                   )}
                 </div>
                 <p className="mt-1 text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{kommentar.text}</p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    form.setFieldValue('parentId', kommentar.id);
-                    textareaRef.current?.focus();
-                  }}
-                  className="mt-1 inline-flex items-center gap-0.5 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-400"
-                >
-                  <PiArrowBendUpLeft className="h-3 w-3" />
-                  Antworten
-                </button>
               </li>
             );
           })}
@@ -114,28 +101,6 @@ export function BefehlKommentarThread({ befehlId, einsatzId, kommentare }: Befeh
           form.handleSubmit();
         }}
       >
-        {/* Antwort-Indikator (C1) */}
-        <form.Subscribe selector={(state) => state.values.parentId}>
-          {(parentId) => {
-            if (!parentId) return null;
-            const parentKommentar = sortedKommentare.find((k) => k.id === parentId);
-            return (
-              <div className="mb-1 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                <PiArrowBendUpLeft className="h-3 w-3 shrink-0" />
-                <span className="truncate">Antwort auf: {parentKommentar?.text.substring(0, 40) ?? '...'}</span>
-                <button
-                  type="button"
-                  onClick={() => form.setFieldValue('parentId', undefined)}
-                  className="ml-auto shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-400"
-                  aria-label="Antwort aufheben"
-                >
-                  <PiX className="h-3 w-3" />
-                </button>
-              </div>
-            );
-          }}
-        </form.Subscribe>
-
         <div className="flex items-start gap-2">
           <form.Field name="text">
             {(field) => (
@@ -151,7 +116,7 @@ export function BefehlKommentarThread({ befehlId, einsatzId, kommentare }: Befeh
                   }}
                   onBlur={field.handleBlur}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
                       form.handleSubmit();
                     }

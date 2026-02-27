@@ -111,18 +111,16 @@ export function useBefehlNotifications({ einsatzId, enabled = true }: UseBefehlN
     (event: BefehlErstelltPayload) => {
       if (!enabled || !currentUser?.id) return;
 
-      // Filter: Nur wenn aktueller User Empfänger ist (empfaenger enthält Display-Namen,
-      // Matching funktioniert nur wenn Name-to-User-Resolution im Backend implementiert ist)
-      if (!event.empfaenger.includes(currentUser.id)) return;
+      // Filter: Nur wenn aktueller User Empfänger ist
+      // Auch Selbst-Zuweisungen beruecksichtigen (Ersteller = Empfaenger)
+      if (!event.empfaengerIds?.includes(currentUser.id)) return;
 
-      // Filter: Keine Notification für eigene erstellte Befehle
-      if (event.erstellerId === currentUser.id) return;
-
-      logger.info('Befehl-Notifications: Sending notification', {
+      logger.info('Befehl-Notifications: Sending OS notification', {
         befehlId: event.befehlId,
         nummer: event.nummer,
       });
 
+      // OS-Notification (wichtig bei minimierter App; Alarm-Toast + Sound kommen via WebSocket-Hook)
       notificationService.sendBefehlNotification({
         befehlId: event.befehlId,
         einsatzId: event.einsatzId,
