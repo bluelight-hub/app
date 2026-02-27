@@ -43,7 +43,12 @@ export class ExportBefehleQueryHandler {
    * @returns Result.ok(ExportBefehleResult) bei Erfolg, Result.fail() bei Fehler
    */
   async execute(query: ExportBefehleQuery): Promise<Result<ExportBefehleResult>> {
-    const einsatzIdResult = EinsatzId.create(query.einsatzId);
+    const rawEinsatzId = query.einsatzId;
+    if (typeof rawEinsatzId !== 'string') {
+      return Result.fail<ExportBefehleResult>('Ungueltige EinsatzId');
+    }
+
+    const einsatzIdResult = EinsatzId.create(rawEinsatzId);
     if (einsatzIdResult.isFailure) {
       return Result.fail<ExportBefehleResult>(einsatzIdResult.error ?? 'Ungueltige EinsatzId');
     }
@@ -56,7 +61,7 @@ export class ExportBefehleQueryHandler {
     }
 
     const befehle = befehleResult.value ?? [];
-    const einsatzIdShort = query.einsatzId.slice(-8);
+    const einsatzIdShort = rawEinsatzId.slice(-8);
     const dateStr = this.formatDateForFilename(new Date());
 
     if (query.format === 'csv') {

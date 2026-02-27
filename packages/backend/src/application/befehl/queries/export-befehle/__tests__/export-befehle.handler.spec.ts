@@ -132,6 +132,15 @@ describe('ExportBefehleQueryHandler', () => {
   });
 
   describe('Fehlerbehandlung', () => {
+    it('sollte Result.fail zurueckgeben wenn einsatzId kein String ist (Parameter Tampering)', async () => {
+      const tamperedQuery = { einsatzId: ['cm5einsatzid123'], format: 'csv' } as unknown as ExportBefehleQuery;
+      const result = await handler.execute(tamperedQuery);
+
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Ungueltige EinsatzId');
+      expect(mockBefehlRepository.findByEinsatzId).not.toHaveBeenCalled();
+    });
+
     it('sollte Result.fail zurueckgeben bei ungueltiger einsatzId', async () => {
       const query = new ExportBefehleQuery('x', 'csv');
       const result = await handler.execute(query);

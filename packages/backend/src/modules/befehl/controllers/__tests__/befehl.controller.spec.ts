@@ -1068,6 +1068,22 @@ describe('BefehlController (Integration Tests - AC10)', () => {
       expect(mockExportBefehleQueryHandler.execute).not.toHaveBeenCalled();
     });
 
+    it('sollte BadRequestException werfen wenn einsatzId als Array uebergeben wird', async () => {
+      const mockRes = createMockResponse();
+
+      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      await expect(controller.exportBefehle(['cm5einsatzid123', 'cm5einsatzid456'], 'csv', mockRes as any)).rejects.toThrow(BadRequestException);
+      expect(mockExportBefehleQueryHandler.execute).not.toHaveBeenCalled();
+    });
+
+    it('sollte BadRequestException werfen wenn format als Array uebergeben wird', async () => {
+      const mockRes = createMockResponse();
+
+      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      await expect(controller.exportBefehle('cm5einsatzid123', ['csv', 'json'], mockRes as any)).rejects.toThrow(BadRequestException);
+      expect(mockExportBefehleQueryHandler.execute).not.toHaveBeenCalled();
+    });
+
     it('sollte BadRequestException werfen wenn format ungueltig ist', async () => {
       const mockRes = createMockResponse();
 
