@@ -1,6 +1,5 @@
 import { Befehl } from '@domain/aggregates/befehl.aggregate';
 import { BefehlEmpfaenger } from '@domain/entities/befehl-empfaenger.entity';
-import { BefehlKommentar } from '@domain/entities/befehl-kommentar.entity';
 import { BefehlErstelltEvent } from '@domain/events/befehl-erstellt.event';
 import { BefehlKommentarHinzugefuegtEvent } from '@domain/events/befehl-kommentar-hinzugefuegt.event';
 import { BefehlQuittiertEvent } from '@domain/events/befehl-quittiert.event';
@@ -559,7 +558,7 @@ describe('Befehl Aggregate', () => {
       expect(event.newStatus.value).toBe('KORRIGIERT');
     });
 
-    it('sollte fehlschlagen bei Status QUITTIERT', () => {
+    it('sollte auch bei Status QUITTIERT funktionieren (Korrektur nach Quittierung erlaubt)', () => {
       const { befehl, empfaengerIds } = createBefehlWithUserIds();
       for (const id of empfaengerIds) befehl.markAlsZugestellt(id);
       for (const id of empfaengerIds) befehl.quittieren(id, 'VERSTANDEN');
@@ -567,8 +566,8 @@ describe('Befehl Aggregate', () => {
 
       const result = befehl.korrigieren();
 
-      expect(result.isFailure).toBe(true);
-      expect(result.error).toContain('Ungültige Status-Transition');
+      expect(result.isSuccess).toBe(true);
+      expect(befehl.status.value).toBe('KORRIGIERT');
     });
 
     it('sollte fehlschlagen bei Status KORRIGIERT (bereits korrigiert)', () => {

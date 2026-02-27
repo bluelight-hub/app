@@ -309,7 +309,8 @@ describe('PrismaBefehlMapper', () => {
       expect(persistence.originalBefehlId).toBeNull();
       expect(persistence.empfaenger).toHaveLength(1);
       expect(persistence.empfaenger[0].name).toBe('ZF Nord');
-      expect(persistence.empfaenger[0].empfaengerId).toBeNull();
+      // Funk-Empfaenger ohne empfaengerId: kein 'empfaenger' Relation-Connect
+      expect(persistence.empfaenger[0]).not.toHaveProperty('empfaenger');
       expect(persistence.kommentare).toHaveLength(0);
     });
 

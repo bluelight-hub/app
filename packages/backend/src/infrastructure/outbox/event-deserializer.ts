@@ -1755,6 +1755,7 @@ function deserializeBefehlErstellt(payload: Record<string, unknown>, aggregateId
     payload.nummer as string,
     (payload.empfaenger ?? payload.empfaengerIds) as string[],
     aggregateId,
+    (payload.empfaengerIds as string[]) ?? [],
   );
 
   return Result.ok<DomainEvent>(event);
@@ -1769,9 +1770,22 @@ function deserializeBefehlZugestellt(payload: Record<string, unknown>, aggregate
     return Result.fail<DomainEvent>(`Invalid befehlId: ${payload.befehlId}`);
   }
 
+  const einsatzIdResult = EinsatzId.create(payload.einsatzId as string);
+  if (einsatzIdResult.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid einsatzId: ${payload.einsatzId}`);
+  }
+
   const zugestelltAm = new Date(payload.zugestelltAm as string);
 
-  const event = new BefehlZugestelltEvent(befehlIdResult.value! as BefehlId, payload.empfaengerId as string, zugestelltAm, aggregateId);
+  const event = new BefehlZugestelltEvent(
+    befehlIdResult.value! as BefehlId,
+    payload.empfaengerId as string,
+    zugestelltAm,
+    einsatzIdResult.value! as EinsatzId,
+    (payload.empfaengerName as string) ?? '',
+    (payload.nummer as string) ?? '',
+    aggregateId,
+  );
 
   return Result.ok<DomainEvent>(event);
 }
@@ -1795,7 +1809,26 @@ function deserializeBefehlStatusGeaendert(payload: Record<string, unknown>, aggr
     return Result.fail<DomainEvent>(`Invalid newStatus: ${payload.newStatus}`);
   }
 
-  const event = new BefehlStatusGeaendertEvent(befehlIdResult.value! as BefehlId, oldStatusResult.value! as BefehlStatus, newStatusResult.value! as BefehlStatus, aggregateId);
+  const einsatzIdResult = EinsatzId.create(payload.einsatzId as string);
+  if (einsatzIdResult.isFailure) {
+    return Result.fail<DomainEvent>(`Invalid einsatzId: ${payload.einsatzId}`);
+  }
+
+  const erstellerIdResult = payload.erstellerId ? UserId.create(payload.erstellerId as string) : null;
+  const befehlsgeberIdResult = payload.befehlsgeberId ? UserId.create(payload.befehlsgeberId as string) : null;
+  const empfaengerIds = Array.isArray(payload.empfaengerIds) ? (payload.empfaengerIds as string[]) : [];
+
+  const event = new BefehlStatusGeaendertEvent(
+    befehlIdResult.value! as BefehlId,
+    oldStatusResult.value! as BefehlStatus,
+    newStatusResult.value! as BefehlStatus,
+    einsatzIdResult.value! as EinsatzId,
+    (payload.nummer as string) ?? '',
+    aggregateId,
+    erstellerIdResult?.isSuccess ? (erstellerIdResult.value as UserId) : undefined,
+    befehlsgeberIdResult?.isSuccess ? (befehlsgeberIdResult.value as UserId) : undefined,
+    empfaengerIds,
+  );
 
   return Result.ok<DomainEvent>(event);
 }
@@ -1848,6 +1881,9 @@ function deserializeBefehlQuittiert(payload: Record<string, unknown>, aggregateI
 
   const quittiertAm = new Date(payload.quittiertAm as string);
 
+  const erstellerIdResult = payload.erstellerId ? UserId.create(payload.erstellerId as string) : null;
+  const befehlsgeberIdResult = payload.befehlsgeberId ? UserId.create(payload.befehlsgeberId as string) : null;
+
   const event = new BefehlQuittiertEvent(
     befehlIdResult.value! as BefehlId,
     einsatzIdResult.value! as EinsatzId,
@@ -1855,6 +1891,9 @@ function deserializeBefehlQuittiert(payload: Record<string, unknown>, aggregateI
     payload.quittierungArt as QuittierungArt,
     payload.nummer as string,
     quittiertAm,
+    (payload.quittierungKommentar as string | undefined) ?? undefined,
+    erstellerIdResult?.isSuccess ? (erstellerIdResult.value as UserId) : undefined,
+    befehlsgeberIdResult?.isSuccess ? (befehlsgeberIdResult.value as UserId) : undefined,
     aggregateId,
   );
   return Result.ok<DomainEvent>(event);

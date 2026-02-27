@@ -15,10 +15,11 @@ import { AddBefehlKommentarHandler } from '@/application/befehl/commands/add-bef
 import { CreateBefehlHandler } from '@/application/befehl/commands/create-befehl/create-befehl.handler';
 import { KorrigiereBefehlHandler } from '@/application/befehl/commands/korrigiere-befehl/korrigiere-befehl.handler';
 import { QuittierenBefehlHandler } from '@/application/befehl/commands/quittieren-befehl/quittieren-befehl.handler';
+import { AendereEmpfaengerStatusHandler } from '@/application/befehl/commands/aendere-empfaenger-status/aendere-empfaenger-status.handler';
 import { GetBefehlHistorieQueryHandler } from '@/application/befehl/queries/get-befehl-historie/get-befehl-historie.handler';
-import { GetBefehlMetrikenQueryHandler } from '@/application/befehl/queries/get-befehl-metriken/get-befehl-metriken.handler';
 import { ExportBefehleQueryHandler } from '@/application/befehl/queries/export-befehle/export-befehle.handler';
 import { EmpfaengerSucheQueryHandler } from '@/application/befehl/queries/empfaenger-suche/empfaenger-suche.handler';
+import { BefehlsgeberSucheQueryHandler } from '@/application/befehl/queries/befehlsgeber-suche/befehlsgeber-suche.handler';
 import { BEFEHL_REPOSITORY, LOGGER, SERVER_ACCESS_TOKEN_REPOSITORY, SERVER_CONFIG_REPOSITORY, RESILIENCE } from '@infrastructure/di-tokens';
 
 // --- Einsatz Controller + Dependencies ---
@@ -55,10 +56,11 @@ function createMockProviders() {
     { provide: CreateBefehlHandler, useValue: { execute: jest.fn() } },
     { provide: KorrigiereBefehlHandler, useValue: { execute: jest.fn() } },
     { provide: QuittierenBefehlHandler, useValue: { execute: jest.fn() } },
+    { provide: AendereEmpfaengerStatusHandler, useValue: { execute: jest.fn() } },
     { provide: GetBefehlHistorieQueryHandler, useValue: { execute: jest.fn() } },
-    { provide: GetBefehlMetrikenQueryHandler, useValue: { execute: jest.fn() } },
     { provide: ExportBefehleQueryHandler, useValue: { execute: jest.fn() } },
     { provide: EmpfaengerSucheQueryHandler, useValue: { execute: jest.fn() } },
+    { provide: BefehlsgeberSucheQueryHandler, useValue: { execute: jest.fn() } },
     { provide: BEFEHL_REPOSITORY, useValue: {} },
 
     // --- Einsatz Dependencies ---
@@ -88,15 +90,19 @@ function createMockProviders() {
  * @returns Initialisierte NestJS Application fuer OpenAPI-Generierung
  */
 async function createContractTestApp(): Promise<INestApplication> {
+  // biome-ignore lint/correctness/useHookAtTopLevel: NestJS testing module API uses "useValue" method names.
   const moduleRef = await Test.createTestingModule({
     controllers: [BefehlController, EinsatzController, HealthController],
     providers: createMockProviders(),
   })
     .overrideGuard(JwtAuthGuard)
+    // biome-ignore lint/correctness/useHookAtTopLevel: Nest testing builder API uses "useValue" method name.
     .useValue(mockGuard)
     .overrideGuard(RolesGuard)
+    // biome-ignore lint/correctness/useHookAtTopLevel: Nest testing builder API uses "useValue" method name.
     .useValue(mockGuard)
     .overrideGuard(BefehlRollenGuard)
+    // biome-ignore lint/correctness/useHookAtTopLevel: Nest testing builder API uses "useValue" method name.
     .useValue(mockGuard)
     .compile();
 
@@ -214,7 +220,6 @@ describe('API Contract Tests', () => {
     // Befehle v-alpha Endpunkte (version: ['alpha', '1'])
     expect(paths).toContain('/api/v-alpha/befehle');
     expect(paths).toContain('/api/v-alpha/befehle/export');
-    expect(paths).toContain('/api/v-alpha/befehle/metriken');
     expect(paths).toContain('/api/v-alpha/befehle/empfaenger-suche');
     expect(paths).toContain('/api/v-alpha/befehle/{id}/quittieren');
     expect(paths).toContain('/api/v-alpha/befehle/{id}/korrigieren');
@@ -224,7 +229,6 @@ describe('API Contract Tests', () => {
     // Befehle v-1 Endpunkte (Dual-Version: selber Controller, version: ['alpha', '1'])
     expect(paths).toContain('/api/v-1/befehle');
     expect(paths).toContain('/api/v-1/befehle/export');
-    expect(paths).toContain('/api/v-1/befehle/metriken');
     expect(paths).toContain('/api/v-1/befehle/empfaenger-suche');
     expect(paths).toContain('/api/v-1/befehle/{id}/quittieren');
     expect(paths).toContain('/api/v-1/befehle/{id}/korrigieren');
@@ -262,7 +266,6 @@ describe('API Contract Tests', () => {
     expect(schemaNames).toContain('BefehlDto');
     expect(schemaNames).toContain('BefehlEmpfaengerDto');
     expect(schemaNames).toContain('CreateBefehlDto');
-    expect(schemaNames).toContain('BefehlMetrikenDto');
     expect(schemaNames).toContain('BefehlHistorieTimelineDto');
 
     // Einsatz-Schemas

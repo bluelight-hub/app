@@ -31,6 +31,12 @@ export interface QuittierenBefehlDto {
      * @memberof QuittierenBefehlDto
      */
     quittierungArt: QuittierenBefehlDtoQuittierungArtEnum;
+    /**
+     * Optionaler Kommentar zur Quittierung (z.B. Rueckfrage-Text)
+     * @type {string}
+     * @memberof QuittierenBefehlDto
+     */
+    kommentar?: string;
 }
 
 
@@ -66,6 +72,7 @@ export function QuittierenBefehlDtoFromJSONTyped(json: any, ignoreDiscriminator:
         
         'empfaengerId': json['empfaengerId'],
         'quittierungArt': json['quittierungArt'],
+        'kommentar': json['kommentar'] == null ? undefined : json['kommentar'],
     };
 }
 
@@ -82,6 +89,7 @@ export function QuittierenBefehlDtoToJSONTyped(value?: QuittierenBefehlDto | nul
         
         'empfaengerId': value['empfaengerId'],
         'quittierungArt': value['quittierungArt'],
+        'kommentar': value['kommentar'],
     };
 }
 

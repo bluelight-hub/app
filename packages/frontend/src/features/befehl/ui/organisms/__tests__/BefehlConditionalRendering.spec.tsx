@@ -23,7 +23,7 @@ const mockPermissions: BefehlPermissions = {
   canQuittieren: false,
   canKorrigieren: true,
   canExport: true,
-  canViewMetriken: true,
+
   canViewAll: true,
   isBeobachter: false,
   rolle: 'BEFEHLSGEBER',
@@ -60,7 +60,7 @@ describe('BefehlDetailPanel RBAC (Story 5.4 AC2)', () => {
       canQuittieren: false,
       canKorrigieren: true,
       canExport: true,
-      canViewMetriken: true,
+
       canViewAll: true,
       isBeobachter: false,
       rolle: 'BEFEHLSGEBER',
@@ -81,7 +81,7 @@ describe('BefehlDetailPanel RBAC (Story 5.4 AC2)', () => {
       canCreate: false,
       canKorrigieren: false,
       canExport: false,
-      canViewMetriken: false,
+
       rolle: 'EMPFAENGER',
     });
 

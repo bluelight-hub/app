@@ -65,7 +65,8 @@ function createEvent(overrides: Partial<BefehlErstelltPayload> = {}): BefehlErst
     auftrag: 'Wasser marsch',
     befehlsgeberName: 'Max Mustermann',
     erstellerId: 'ersteller-1',
-    empfaenger: ['user-1', 'user-2'],
+    empfaenger: ['User 1', 'User 2'],
+    empfaengerIds: ['user-1', 'user-2'],
     status: 'ERTEILT',
     erteiltAm: '2026-01-15T10:00:00Z',
     ...overrides,
@@ -111,7 +112,7 @@ describe('useBefehlNotifications', () => {
       const useBefehlNotifications = await importHook();
       const { result } = renderHook(() => useBefehlNotifications({ einsatzId: 'einsatz-1' }));
 
-      const event = createEvent({ empfaenger: ['user-1'] });
+      const event = createEvent({ empfaengerIds: ['user-1'] });
       result.current.onBefehlErstellt(event);
 
       expect(mockSendBefehlNotification).toHaveBeenCalledWith({
@@ -127,27 +128,33 @@ describe('useBefehlNotifications', () => {
       const useBefehlNotifications = await importHook();
       const { result } = renderHook(() => useBefehlNotifications({ einsatzId: 'einsatz-1' }));
 
-      const event = createEvent({ empfaenger: ['user-99'] });
+      const event = createEvent({ empfaengerIds: ['user-99'] });
       result.current.onBefehlErstellt(event);
 
       expect(mockSendBefehlNotification).not.toHaveBeenCalled();
     });
 
-    it('sollte KEINE Notification für eigene erstellte Befehle senden', async () => {
+    it('sollte Notification auch für eigene erstellte Befehle senden (Selbst-Zuweisung)', async () => {
       const useBefehlNotifications = await importHook();
       const { result } = renderHook(() => useBefehlNotifications({ einsatzId: 'einsatz-1' }));
 
-      const event = createEvent({ erstellerId: 'user-1', empfaenger: ['user-1'] });
+      const event = createEvent({ erstellerId: 'user-1', empfaengerIds: ['user-1'] });
       result.current.onBefehlErstellt(event);
 
-      expect(mockSendBefehlNotification).not.toHaveBeenCalled();
+      expect(mockSendBefehlNotification).toHaveBeenCalledWith({
+        befehlId: 'befehl-1',
+        einsatzId: 'einsatz-1',
+        nummer: 'B2026-abc12345',
+        befehlsgeber: 'Max Mustermann',
+        inhalt: 'Wasser marsch',
+      });
     });
 
     it('sollte KEINE Notification senden wenn disabled', async () => {
       const useBefehlNotifications = await importHook();
       const { result } = renderHook(() => useBefehlNotifications({ einsatzId: 'einsatz-1', enabled: false }));
 
-      const event = createEvent({ empfaenger: ['user-1'] });
+      const event = createEvent({ empfaengerIds: ['user-1'] });
       result.current.onBefehlErstellt(event);
 
       expect(mockSendBefehlNotification).not.toHaveBeenCalled();

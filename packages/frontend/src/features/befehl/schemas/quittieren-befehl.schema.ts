@@ -12,6 +12,7 @@ export const quittierenBefehlSchema = z.object({
   quittierungArt: z.nativeEnum(QuittierenBefehlDtoQuittierungArtEnum, {
     required_error: 'Quittierungsart ist erforderlich',
   }),
+  kommentar: z.string().max(2000).optional(),
 });
 
 export type QuittierenBefehlFormData = z.infer<typeof quittierenBefehlSchema>;

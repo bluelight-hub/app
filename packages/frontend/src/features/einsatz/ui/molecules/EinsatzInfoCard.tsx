@@ -25,6 +25,7 @@ export function EinsatzInfoCard({ einsatz, isArchived, isEditing, form }: Einsat
       <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center space-x-2">
           {isArchived && <PiArchive className="h-6 w-6 text-amber-500" />}
+          <span className="rounded bg-gray-100 px-2 py-0.5 font-mono font-semibold text-gray-600 text-sm dark:bg-gray-700 dark:text-gray-300">{einsatz.nummer}</span>
           <h1 className="font-bold text-2xl text-gray-900 dark:text-white">{einsatz.alarmstichwort || 'Kein Alarmstichwort'}</h1>
         </div>
         <div className="mt-2 flex items-center space-x-4 sm:mt-0">

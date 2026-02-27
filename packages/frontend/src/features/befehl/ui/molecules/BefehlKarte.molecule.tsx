@@ -13,6 +13,7 @@ import { ZustellHaekchen } from '../atoms/ZustellHaekchen.atom';
 import { BefehlKommentarThread } from './BefehlKommentarThread.molecule';
 import { ZustellstatusAnzeige } from './ZustellstatusAnzeige.molecule';
 import type { BefehlDto, BefehlEmpfaengerDto, BefehlKommentarDto } from '@bluelight-hub/shared/client';
+import type { AendereEmpfaengerStatusInput } from '../../api/use-aendere-empfaenger-status';
 
 interface BefehlKarteProps {
   nummer: string;
@@ -36,6 +37,12 @@ interface BefehlKarteProps {
   allBefehle?: BefehlDto[];
   /** RBAC: Darf der aktuelle User quittieren? (Einsatz-Rolle EMPFAENGER) */
   canQuittieren?: boolean;
+  /** Klick-Handler fuer Detail-Panel (Karte anklicken) */
+  onClick?: () => void;
+  /** Callback fuer Empfaenger-Status-Aenderung (inline auf der Karte) */
+  onStatusChange?: (input: AendereEmpfaengerStatusInput) => void;
+  /** RBAC: Darf der aktuelle User Empfaenger-Status verwalten? */
+  canManageStatus?: boolean;
 }
 
 /** Labels fuer Empfaenger-Status (WCAG: Text zusaetzlich zur Farbe) */
@@ -94,6 +101,9 @@ export function BefehlKarte({
   originalBefehlId,
   allBefehle,
   canQuittieren = false,
+  onClick,
+  onStatusChange,
+  canManageStatus = false,
 }: BefehlKarteProps) {
   const zugestelltCount = empfaenger.filter((e) => e.zugestelltAm != null).length;
   const erteiltAmDate = typeof erteiltAm === 'string' ? new Date(erteiltAm) : erteiltAm;
@@ -161,10 +171,24 @@ export function BefehlKarte({
   return (
     <article
       aria-label={baseAriaLabel}
+      onClick={onClick}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
+      tabIndex={onClick ? 0 : undefined}
+      role={onClick ? 'button' : undefined}
       className={cn(
         'relative rounded-lg border p-4 transition-colors',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
         'dark:focus-visible:ring-offset-gray-900',
+        onClick && 'cursor-pointer',
         // Kritikalitaets-Styling hat Vorrang vor Quittierungs-Styling
         istKritisch && !zeigeQuittierung && ['border-red-400 ring-2 ring-red-500/40', 'dark:border-red-500 dark:ring-red-500/30'],
         istWarnung && !zeigeQuittierung && !meineBefehleStyles && ['border-yellow-300 ring-2 ring-yellow-300/40', 'dark:border-yellow-600 dark:ring-yellow-500/30'],
@@ -229,9 +253,9 @@ export function BefehlKarte({
       {/* Auftrag */}
       <p className="mt-2 line-clamp-2 text-sm text-gray-700 dark:text-gray-300">{auftrag}</p>
 
-      {/* Quittierungsfortschritt */}
+      {/* Quittierungsfortschritt mit interaktiven Empfaenger-Chips */}
       <div className="mt-3">
-        <ZustellstatusAnzeige variant="compact" empfaenger={empfaenger} />
+        <ZustellstatusAnzeige variant="expanded" empfaenger={empfaenger} interactive={canManageStatus} befehlId={befehlId} onStatusChange={onStatusChange} isKorrigiert={status === 'KORRIGIERT'} />
       </div>
 
       {/* Untere Zeile: Zeitstempel + Kommentar-Toggle */}
@@ -294,22 +318,24 @@ export function BefehlKarte({
         (canQuittieren ? (
           <button
             type="button"
-            onClick={() => onQuittieren(befehlId)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onQuittieren(befehlId);
+            }}
             className="mt-3 w-full rounded-md bg-yellow-100 py-2 text-sm font-medium text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:hover:bg-yellow-900/50"
           >
             Quittieren
           </button>
         ) : (
-          <span title="Nur Empfänger dürfen Befehle quittieren">
-            <button
-              type="button"
-              disabled
-              aria-disabled="true"
-              className="mt-3 w-full rounded-md bg-gray-100 py-2 text-sm font-medium text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600"
-            >
-              Quittieren
-            </button>
-          </span>
+          <button
+            type="button"
+            disabled
+            aria-disabled="true"
+            title="Nur Empfänger dürfen Befehle quittieren"
+            className="mt-3 w-full cursor-not-allowed rounded-md bg-gray-100 py-2 text-sm font-medium text-gray-400 dark:bg-gray-800 dark:text-gray-600"
+          >
+            Quittieren
+          </button>
         ))}
 
       {/* Kommentar-Thread (expandierbar) */}

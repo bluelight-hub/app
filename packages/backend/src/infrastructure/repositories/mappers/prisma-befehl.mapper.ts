@@ -80,6 +80,7 @@ export class PrismaBefehlMapper {
         e.zugestelltAm ?? undefined,
         e.quittiertAm ?? undefined,
         (e.quittierungArt as QuittierungArt) ?? undefined,
+        (e as PrismaBefehlEmpfaenger & { quittierungKommentar: string | null }).quittierungKommentar ?? undefined,
         e.createdAt,
       );
     });
@@ -162,18 +163,19 @@ export class PrismaBefehlMapper {
       empfaenger: befehl.empfaenger.map((e) => ({
         id: e.id,
         name: e.name,
-        empfaengerId: e.empfaengerId?.value ?? null,
+        ...(e.empfaengerId ? { empfaenger: { connect: { id: e.empfaengerId.value } } } : {}),
         zugestelltAm: e.zugestelltAm ?? null,
         quittiertAm: e.quittiertAm ?? null,
         quittierungArt: e.quittierungArt ?? null,
+        quittierungKommentar: e.quittierungKommentar ?? null,
         createdAt: e.createdAt,
       })),
       kommentare: befehl.kommentare.map((k) => ({
         id: k.id,
-        authorId: k.authorId?.value ?? null,
+        ...(k.authorId ? { author: { connect: { id: k.authorId.value } } } : {}),
         text: k.text,
         isRueckfrage: k.isRueckfrage,
-        parentId: k.parentId ?? null,
+        ...(k.parentId ? { parent: { connect: { id: k.parentId } } } : {}),
         createdAt: k.createdAt,
       })),
     };

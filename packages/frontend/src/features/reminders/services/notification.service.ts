@@ -1,3 +1,4 @@
+import { router } from '@/main';
 import { isTauri } from '@tauri-apps/api/core';
 import { logger } from '@/shared/lib/logger';
 
@@ -533,7 +534,11 @@ class NotificationService {
       if (einsatzId) {
         notification.onclick = () => {
           window.focus();
-          window.location.href = `/app/einsatz/${einsatzId}/führung/befehle?befehlId=${befehlId}`;
+          router.navigate({
+            to: '/app/einsatz/$einsatzId/führung/befehle',
+            params: { einsatzId },
+            search: { befehlId },
+          });
         };
       }
 

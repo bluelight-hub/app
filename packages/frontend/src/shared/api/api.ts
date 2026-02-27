@@ -8,6 +8,7 @@ import { logger } from '@/shared/lib/logger';
 let hasLoggedNoServerWarning = false;
 import {
   AdminApi,
+  AdminBefehleBefehlsgeberVorschlaegeApi,
   AdminIntegrationsHiorgApi,
   AdminKraefteQualifikationenApi,
   AdminKraefteRollenApi,
@@ -96,6 +97,7 @@ export const getBaseUrl = (): string => {
 class BackendApi {
   private readonly configuration: Configuration;
   private readonly adminApi: AdminApi;
+  private readonly adminBefehleBefehlsgeberVorschlaegeApi: AdminBefehleBefehlsgeberVorschlaegeApi;
   private readonly aufbewahrungApi: AufbewahrungApi;
   private readonly healthApi: HealthApi;
   private readonly authApi: AuthApi;
@@ -145,6 +147,7 @@ class BackendApi {
 
     // API-Instanzen werden einmalig erstellt und gecacht
     this.adminApi = new AdminApi(this.configuration);
+    this.adminBefehleBefehlsgeberVorschlaegeApi = new AdminBefehleBefehlsgeberVorschlaegeApi(this.configuration);
     this.aufbewahrungApi = new AufbewahrungApi(this.configuration);
     this.healthApi = new HealthApi(this.configuration);
     this.authApi = new AuthApi(this.configuration);
@@ -185,6 +188,15 @@ class BackendApi {
    */
   admin(): AdminApi {
     return this.adminApi;
+  }
+
+  /**
+   * Gibt die gecachte AdminBefehleBefehlsgeberVorschlaege-API-Instanz zurueck
+   *
+   * @returns Die AdminBefehleBefehlsgeberVorschlaege-API-Instanz fuer Befehlsgeber-Vorschlaege-Management
+   */
+  adminBefehleBefehlsgeberVorschlaege(): AdminBefehleBefehlsgeberVorschlaegeApi {
+    return this.adminBefehleBefehlsgeberVorschlaegeApi;
   }
 
   /**

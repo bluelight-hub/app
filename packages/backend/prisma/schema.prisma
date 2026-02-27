@@ -204,6 +204,10 @@ model User {
   befehlEmpfaenger BefehlEmpfaenger[] @relation("BefehlEmpfaengerUser")
   befehlKommentare BefehlKommentar[]  @relation("BefehlKommentarAuthor")
 
+  // BefehlsgeberVorschlag Relations
+  createdBefehlsgeberVorschlaege BefehlsgeberVorschlag[] @relation("BefehlsgeberVorschlagCreator")
+  updatedBefehlsgeberVorschlaege BefehlsgeberVorschlag[] @relation("BefehlsgeberVorschlagUpdater")
+
   // ========================================
   // Aufbewahrungs-Konfiguration Relations (Story 5.5)
   // ========================================
@@ -1743,7 +1747,8 @@ model BefehlEmpfaenger {
   empfaengerId   String?         @map("empfaenger_id") @db.VarChar(100)
   zugestelltAm   DateTime?       @map("zugestellt_am")
   quittiertAm    DateTime?       @map("quittiert_am")
-  quittierungArt QuittierungArt? @map("quittierung_art")
+  quittierungArt       QuittierungArt? @map("quittierung_art")
+  quittierungKommentar String?         @map("quittierung_kommentar") @db.Text
 
   // Timestamps
   createdAt DateTime @default(now()) @map("created_at")
@@ -1876,4 +1881,27 @@ model ComplianceReport {
   @@index([einsatzId], map: "idx_compliance_report_einsatz")
   @@index([anonymisiertAm], map: "idx_compliance_report_anonymisiert")
   @@map("compliance_report")
+}
+
+/// BefehlsgeberVorschlag: Konfigurierbare Vorschläge für das Befehlsgeber-Feld
+/// - Admin-CRUD über Admin-Panel
+/// - Werden im Dropdown gruppiert mit EinsatzPersonen angezeigt
+/// - Soft-Deactivation statt Hard-Delete
+model BefehlsgeberVorschlag {
+  id        String  @id @default(cuid())
+  kuerzel   String  @unique @db.VarChar(20)
+  label     String  @db.VarChar(100)
+  istAktiv  Boolean @default(true) @map("ist_aktiv")
+  sortOrder Int     @default(0) @map("sort_order")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String   @map("created_by") @db.VarChar(100)
+  updatedBy String?  @map("updated_by") @db.VarChar(100)
+
+  creator User  @relation("BefehlsgeberVorschlagCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  updater User? @relation("BefehlsgeberVorschlagUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
+
+  @@index([istAktiv, sortOrder])
+  @@map("befehlsgeber_vorschlaege")
 }

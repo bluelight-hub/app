@@ -63,7 +63,7 @@ export class QuittierenBefehlHandler extends TransactionalCommandHandler<Quittie
     }
 
     // 4. Execute Domain Logic
-    const quittierungResult = befehl.quittieren(empfaengerId, command.quittierungArt);
+    const quittierungResult = befehl.quittieren(empfaengerId, command.quittierungArt, command.kommentar);
     if (quittierungResult.isFailure) {
       return Result.fail(quittierungResult.error ?? 'Quittierung fehlgeschlagen');
     }

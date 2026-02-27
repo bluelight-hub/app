@@ -11,6 +11,12 @@ export { CreateUserDialog } from './CreateUserDialog';
 export { EditUserDialog } from './EditUserDialog';
 export { UsersTable } from './UsersTable';
 
+// Befehlsgeber-Vorschlaege Management
+export { BefehlsgeberVorschlaegeTable } from './BefehlsgeberVorschlaegeTable';
+export { CreateBefehlsgeberVorschlagDialog } from './CreateBefehlsgeberVorschlagDialog';
+export { EditBefehlsgeberVorschlagDialog } from './EditBefehlsgeberVorschlagDialog';
+export { DeleteBefehlsgeberVorschlagDialog } from './DeactivateBefehlsgeberVorschlagDialog';
+
 // Qualifikationen Management
 export { QualifikationenTable } from './QualifikationenTable';
 export { CreateQualifikationDialog } from './CreateQualifikationDialog';

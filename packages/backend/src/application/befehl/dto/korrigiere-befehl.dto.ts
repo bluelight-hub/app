@@ -66,4 +66,9 @@ export class KorrigiereBefehlDto {
   @IsOptional()
   @IsString()
   weg?: string;
+
+  @ApiPropertyOptional({ description: 'Befehlsgeber User-ID (optional, wenn Person als Befehlsgeber gewaehlt)', example: 'clw3h8x9y0005qwertyuiopas' })
+  @IsOptional()
+  @IsString()
+  befehlsgeberId?: string;
 }

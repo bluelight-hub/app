@@ -26,6 +26,12 @@ export interface EinsatzResponseDto {
      */
     id: string;
     /**
+     * Auto-generierte Einsatznummer (Format: E{YEAR}-{SEQ})
+     * @type {string}
+     * @memberof EinsatzResponseDto
+     */
+    nummer: string;
+    /**
      * Das Alarmstichwort des Einsatzes
      * @type {object}
      * @memberof EinsatzResponseDto
@@ -141,6 +147,7 @@ export type EinsatzResponseDtoStatusEnum = typeof EinsatzResponseDtoStatusEnum[k
  */
 export function instanceOfEinsatzResponseDto(value: object): value is EinsatzResponseDto {
     if (!('id' in value) || value['id'] === undefined) return false;
+    if (!('nummer' in value) || value['nummer'] === undefined) return false;
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
     if (!('updatedAt' in value) || value['updatedAt'] === undefined) return false;
@@ -160,6 +167,7 @@ export function EinsatzResponseDtoFromJSONTyped(json: any, ignoreDiscriminator: 
     return {
         
         'id': json['id'],
+        'nummer': json['nummer'],
         'alarmstichwort': json['alarmstichwort'] == null ? undefined : json['alarmstichwort'],
         'einsatzort': json['einsatzort'] == null ? undefined : json['einsatzort'],
         'beschreibung': json['beschreibung'] == null ? undefined : json['beschreibung'],
@@ -191,6 +199,7 @@ export function EinsatzResponseDtoToJSONTyped(value?: EinsatzResponseDto | null,
     return {
         
         'id': value['id'],
+        'nummer': value['nummer'],
         'alarmstichwort': value['alarmstichwort'],
         'einsatzort': value['einsatzort'],
         'beschreibung': value['beschreibung'],

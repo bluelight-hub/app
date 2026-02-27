@@ -3,8 +3,11 @@
  */
 
 export { useBefehlNotificationNavigation } from './use-befehl-notification-navigation';
+export { useMissedBefehlAlerts, markAlertSeen } from './use-missed-befehl-alerts';
 export { useBefehlPermissions, type BefehlPermissions } from './use-befehl-permissions';
+export { useUnquittierteBefehleCount } from './use-unquittierte-befehle-count';
 export { useBefehlTabelle } from './use-befehl-tabelle';
+export { useHandlungsbedarf, getKritischGrund, getRueckfrageInfo, type HandlungsbedarfResult } from './use-handlungsbedarf';
 export { useKanbanGruppierung, type KanbanBefehl, type KanbanGruppierung } from './use-kanban-gruppierung';
 export {
   useMeineBefehleFilter,

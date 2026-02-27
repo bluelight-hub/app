@@ -4,6 +4,8 @@
  * Tabellen-Darstellung der Befehle mit Sortierung, Filterung und Pagination.
  * Nutzt useBefehlTabelle() fuer @tanstack/react-table Logik und
  * shared Table.* Komponenten fuer die Darstellung.
+ *
+ * Row-Tinting: Zeilen werden farbig hinterlegt basierend auf Kritikalitaet/Status.
  */
 
 import { type BefehlDto, BefehlDtoStatusEnum } from '@bluelight-hub/shared/client';
@@ -15,10 +17,10 @@ import { Table } from '@/shared/ui/molecules/table.molecule';
 import { useBefehleByEinsatz } from '../../api/use-befehle-by-einsatz';
 import { useBefehlTabelle } from '../../hooks/use-befehl-tabelle';
 import { getBefehlKritikalitaet } from '../../lib/befehl-priority';
-import { BefehlStatusBadge } from '../atoms/BefehlStatusBadge.atom';
-import { KritikalitaetBadge } from '../atoms/KritikalitaetBadge.atom';
-import { BefehlPagination } from '../molecules/BefehlPagination.molecule';
+import { getQuittierungsfortschritt } from '../../lib/befehl-utils';
+import { AlarmDot } from '../atoms/AlarmDot.atom';
 import { ZustellstatusAnzeige } from '../molecules/ZustellstatusAnzeige.molecule';
+import { BefehlPagination } from '../molecules/BefehlPagination.molecule';
 
 /** Spalten-IDs die auf Tablet (< lg) ausgeblendet werden */
 const HIDDEN_ON_TABLET = new Set(['befehlsgeberName', 'empfaengerCount']);
@@ -32,7 +34,18 @@ interface BefehlTabellenViewProps {
   selectedBefehlId?: string;
 }
 
-/** Rendert eine einzelne Tabellenzelle mit Custom-Rendering fuer Status und Fortschritt */
+/** Berechnet Row-Tinting CSS-Klassen basierend auf Kritikalitaet und Status */
+function getRowTintClass(befehl: BefehlDto): string | undefined {
+  if (befehl.status === BefehlDtoStatusEnum.Korrigiert) return undefined; // opacity-60 wird separat behandelt
+  const kritikalitaet = getBefehlKritikalitaet(befehl);
+  if (kritikalitaet === 'KRITISCH') return 'bg-red-50 dark:bg-red-950/20';
+  if (kritikalitaet === 'WARNUNG') return 'bg-yellow-50 dark:bg-yellow-950/20';
+  const fortschritt = getQuittierungsfortschritt(befehl.empfaenger);
+  if (fortschritt.gesamt > 0 && fortschritt.quittiert === fortschritt.gesamt) return 'bg-green-50 dark:bg-green-950/20';
+  return undefined;
+}
+
+/** Rendert eine einzelne Tabellenzelle mit Custom-Rendering fuer Prioritaet, Fortschritt, etc. */
 function renderCell(cell: Cell<BefehlDto, unknown>) {
   const row = cell.row.original;
 
@@ -40,37 +53,31 @@ function renderCell(cell: Cell<BefehlDto, unknown>) {
     case 'prioritaet': {
       const kritikalitaet = getBefehlKritikalitaet(row);
       if (kritikalitaet === 'KRITISCH') {
-        const hatNichtVerstanden = row.empfaenger.some((e) => e.quittierungArt === 'NICHT_VERSTANDEN');
-        return <KritikalitaetBadge type={hatNichtVerstanden ? 'nicht-verstanden' : 'ueberfaellig'} />;
+        return <AlarmDot />;
       }
       if (kritikalitaet === 'WARNUNG') {
-        return <KritikalitaetBadge type="rueckfrage" />;
+        return <span role="img" className="inline-block h-2.5 w-2.5 rounded-full bg-yellow-400" aria-label="Warnung" />;
       }
-      return <span className="text-xs text-gray-400 dark:text-gray-500">Normal</span>;
+      return <span role="img" className="inline-block h-2.5 w-2.5 rounded-full bg-gray-300 dark:bg-gray-600" aria-label="Normal" />;
     }
     case 'nummer':
-      return <span className="font-mono font-bold">{row.nummer}</span>;
-    case 'status':
-      return (
-        <div className="flex items-center gap-1.5">
-          <BefehlStatusBadge status={row.status} />
-          {row.status === BefehlDtoStatusEnum.Korrigiert && (
-            <span className="inline-flex items-center rounded bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">Korrigiert</span>
-          )}
-        </div>
-      );
+      return <span className="font-mono text-sm font-bold text-gray-900 dark:text-gray-100">{row.nummer}</span>;
     case 'fortschritt':
       return <ZustellstatusAnzeige empfaenger={row.empfaenger} variant="compact" />;
     case 'empfaengerCount': {
       const count = row.empfaenger?.length ?? 0;
-      return <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">{count} Empf.</span>;
+      return <span className="text-sm text-gray-600 dark:text-gray-400">{count} Empf.</span>;
     }
     case 'erteiltAm':
-      return <time dateTime={row.erteiltAm.toISOString()}>{format(row.erteiltAm, 'dd.MM. HH:mm')}</time>;
+      return (
+        <time dateTime={row.erteiltAm.toISOString()} className="text-sm text-gray-500 dark:text-gray-400">
+          {format(row.erteiltAm, 'dd.MM. HH:mm')}
+        </time>
+      );
     case 'auftrag':
       return (
-        <span className="line-clamp-2" title={row.auftrag}>
-          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+        <span className="line-clamp-1 text-sm" title={row.auftrag}>
+          {row.auftrag}
         </span>
       );
     default:
@@ -78,7 +85,7 @@ function renderCell(cell: Cell<BefehlDto, unknown>) {
   }
 }
 
-const COLUMN_HEADERS = ['Priorität', 'Nummer', 'Befehlsgeber', 'Auftrag', 'Empfänger', 'Status', 'Fortschritt', 'Zeitpunkt'];
+const COLUMN_HEADERS = ['Prio', 'Nr.', 'Befehlsgeber', 'Auftrag', 'Empf.', 'Fortschritt', 'Zeit'];
 
 export function BefehlTabellenView({ einsatzId, befehle: externalBefehle, className, onBefehlSelect, selectedBefehlId }: BefehlTabellenViewProps) {
   const { data: fetchedBefehle, isLoading } = useBefehleByEinsatz(einsatzId);
@@ -95,7 +102,7 @@ export function BefehlTabellenView({ einsatzId, befehle: externalBefehle, classN
             ))}
           </Table.Row>
         </Table.Header>
-        <Table.Skeleton rows={10} columns={8} />
+        <Table.Skeleton rows={10} columns={7} />
       </Table.Root>
     );
   }
@@ -144,6 +151,7 @@ export function BefehlTabellenView({ einsatzId, befehle: externalBefehle, classN
                 onBefehlSelect && 'cursor-pointer',
                 selectedBefehlId === row.original.id && 'bg-primary-50 dark:bg-primary-900/20',
                 row.original.status === BefehlDtoStatusEnum.Korrigiert && 'opacity-60',
+                selectedBefehlId !== row.original.id && row.original.status !== BefehlDtoStatusEnum.Korrigiert && getRowTintClass(row.original),
               )}
             >
               {row.getVisibleCells().map((cell) => (

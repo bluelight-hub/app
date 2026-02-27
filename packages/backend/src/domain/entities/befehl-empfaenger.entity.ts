@@ -23,15 +23,26 @@ export class BefehlEmpfaenger {
   private _zugestelltAm: Date | undefined;
   private _quittiertAm: Date | undefined;
   private _quittierungArt: QuittierungArt | undefined;
+  private _quittierungKommentar: string | undefined;
   private readonly _createdAt: Date;
 
-  protected constructor(id: string, name: string, empfaengerId: UserId | undefined, zugestelltAm?: Date, quittiertAm?: Date, quittierungArt?: QuittierungArt, createdAt?: Date) {
+  protected constructor(
+    id: string,
+    name: string,
+    empfaengerId: UserId | undefined,
+    zugestelltAm?: Date,
+    quittiertAm?: Date,
+    quittierungArt?: QuittierungArt,
+    quittierungKommentar?: string,
+    createdAt?: Date,
+  ) {
     this._id = id;
     this._name = name;
     this._empfaengerId = empfaengerId;
     this._zugestelltAm = zugestelltAm;
     this._quittiertAm = quittiertAm;
     this._quittierungArt = quittierungArt;
+    this._quittierungKommentar = quittierungKommentar;
     this._createdAt = createdAt ?? new Date();
   }
 
@@ -46,8 +57,17 @@ export class BefehlEmpfaenger {
   /**
    * Rekonstruiert einen BefehlEmpfaenger aus DB-Daten.
    */
-  public static reconstitute(id: string, name: string, empfaengerId: UserId | undefined, zugestelltAm?: Date, quittiertAm?: Date, quittierungArt?: QuittierungArt, createdAt?: Date): BefehlEmpfaenger {
-    return new BefehlEmpfaenger(id, name, empfaengerId, zugestelltAm, quittiertAm, quittierungArt, createdAt);
+  public static reconstitute(
+    id: string,
+    name: string,
+    empfaengerId: UserId | undefined,
+    zugestelltAm?: Date,
+    quittiertAm?: Date,
+    quittierungArt?: QuittierungArt,
+    quittierungKommentar?: string,
+    createdAt?: Date,
+  ): BefehlEmpfaenger {
+    return new BefehlEmpfaenger(id, name, empfaengerId, zugestelltAm, quittiertAm, quittierungArt, quittierungKommentar, createdAt);
   }
 
   get id(): string {
@@ -72,6 +92,10 @@ export class BefehlEmpfaenger {
 
   get quittierungArt(): QuittierungArt | undefined {
     return this._quittierungArt;
+  }
+
+  get quittierungKommentar(): string | undefined {
+    return this._quittierungKommentar;
   }
 
   get createdAt(): Date {
@@ -104,15 +128,38 @@ export class BefehlEmpfaenger {
    * Quittiert den Befehl durch diesen Empfänger.
    * Validiert dass der Befehl zugestellt wurde (DDD: Entity schützt ihre Invarianten).
    */
-  public quittieren(art: QuittierungArt, quittiertAm?: Date): Result<void> {
+  public quittieren(art: QuittierungArt, quittiertAm?: Date, kommentar?: string): Result<void> {
     if (!this._zugestelltAm) {
       return Result.fail<void>('Empfänger wurde noch nicht zugestellt');
     }
 
     this._quittiertAm = quittiertAm ?? new Date();
     this._quittierungArt = art;
+    this._quittierungKommentar = kommentar;
 
     return Result.ok<void>(undefined);
+  }
+
+  /**
+   * Setzt den Empfänger-Status auf ERTEILT zurück.
+   * Reset: zugestelltAm, quittiertAm, quittierungArt, quittierungKommentar → undefined
+   */
+  public zuruecksetzenAufErteilt(): void {
+    this._zugestelltAm = undefined;
+    this._quittiertAm = undefined;
+    this._quittierungArt = undefined;
+    this._quittierungKommentar = undefined;
+  }
+
+  /**
+   * Setzt den Empfänger-Status auf ZUGESTELLT zurück.
+   * Reset: quittiertAm, quittierungArt, quittierungKommentar → undefined
+   * zugestelltAm bleibt erhalten.
+   */
+  public zuruecksetzenAufZugestellt(): void {
+    this._quittiertAm = undefined;
+    this._quittierungArt = undefined;
+    this._quittierungKommentar = undefined;
   }
 
   /**

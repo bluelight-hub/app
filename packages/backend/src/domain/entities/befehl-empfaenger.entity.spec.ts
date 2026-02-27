@@ -64,7 +64,7 @@ describe('BefehlEmpfaenger', () => {
       const quittiert = new Date('2026-01-15T10:05:00Z');
       const created = new Date('2026-01-15T09:00:00Z');
 
-      const empfaenger = BefehlEmpfaenger.reconstitute('test-id-123', 'ZF Nord', userId, zugestellt, quittiert, 'VERSTANDEN', created);
+      const empfaenger = BefehlEmpfaenger.reconstitute('test-id-123', 'ZF Nord', userId, zugestellt, quittiert, 'VERSTANDEN', undefined, created);
 
       expect(empfaenger.id).toBe('test-id-123');
       expect(empfaenger.name).toBe('ZF Nord');
@@ -72,6 +72,7 @@ describe('BefehlEmpfaenger', () => {
       expect(empfaenger.zugestelltAm).toBe(zugestellt);
       expect(empfaenger.quittiertAm).toBe(quittiert);
       expect(empfaenger.quittierungArt).toBe('VERSTANDEN');
+      expect(empfaenger.quittierungKommentar).toBeUndefined();
       expect(empfaenger.createdAt).toBe(created);
     });
 

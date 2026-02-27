@@ -59,6 +59,7 @@ export const useKorrigiereBefehl = (befehlId: string, einsatzId: string) => {
           einsatzId,
           auftrag: korrekturData.auftrag,
           befehlsgeberName: korrekturData.befehlsgeber,
+          befehlsgeberId: korrekturData.befehlsgeberId,
           erstellerId: korrekturData.erstellerId,
           status: BefehlDtoStatusEnum.Erteilt,
           befehlstyp: BefehlDtoBefehlstypEnum.Kurzbefehl,

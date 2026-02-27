@@ -112,8 +112,8 @@ describe('BefehlStatus', () => {
         expect(BefehlStatus.ZUGESTELLT().canTransitionTo(BefehlStatus.KORRIGIERT())).toBe(true);
       });
 
-      it('should block ZUGESTELLT → ERTEILT (backward)', () => {
-        expect(BefehlStatus.ZUGESTELLT().canTransitionTo(BefehlStatus.ERTEILT())).toBe(false);
+      it('should allow ZUGESTELLT → ERTEILT (backward transition for undo)', () => {
+        expect(BefehlStatus.ZUGESTELLT().canTransitionTo(BefehlStatus.ERTEILT())).toBe(true);
       });
 
       it('should block ZUGESTELLT → ZUGESTELLT (self)', () => {
@@ -121,14 +121,21 @@ describe('BefehlStatus', () => {
       });
     });
 
-    describe('Transitions from QUITTIERT (final)', () => {
-      it('should block all transitions from QUITTIERT', () => {
-        const quittiert = BefehlStatus.QUITTIERT();
+    describe('Transitions from QUITTIERT', () => {
+      it('should allow QUITTIERT → ZUGESTELLT (backward transition for undo)', () => {
+        expect(BefehlStatus.QUITTIERT().canTransitionTo(BefehlStatus.ZUGESTELLT())).toBe(true);
+      });
 
-        expect(quittiert.canTransitionTo(BefehlStatus.ERTEILT())).toBe(false);
-        expect(quittiert.canTransitionTo(BefehlStatus.ZUGESTELLT())).toBe(false);
-        expect(quittiert.canTransitionTo(BefehlStatus.QUITTIERT())).toBe(false);
-        expect(quittiert.canTransitionTo(BefehlStatus.KORRIGIERT())).toBe(false);
+      it('should allow QUITTIERT → KORRIGIERT', () => {
+        expect(BefehlStatus.QUITTIERT().canTransitionTo(BefehlStatus.KORRIGIERT())).toBe(true);
+      });
+
+      it('should block QUITTIERT → ERTEILT (skip not allowed)', () => {
+        expect(BefehlStatus.QUITTIERT().canTransitionTo(BefehlStatus.ERTEILT())).toBe(false);
+      });
+
+      it('should block QUITTIERT → QUITTIERT (self)', () => {
+        expect(BefehlStatus.QUITTIERT().canTransitionTo(BefehlStatus.QUITTIERT())).toBe(false);
       });
     });
 

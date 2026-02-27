@@ -28,7 +28,7 @@ vi.mock('../../../hooks/use-befehl-permissions', () => ({
     canQuittieren: false,
     canKorrigieren: true,
     canExport: true,
-    canViewMetriken: true,
+
     canViewAll: true,
     isBeobachter: false,
     rolle: 'BEFEHLSGEBER',

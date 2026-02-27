@@ -2,10 +2,10 @@
  * useBefehlTabelle Hook - Tabellen-Logik fuer Befehlsuebersicht
  *
  * Kapselt @tanstack/react-table Konfiguration:
- * - 7 Spalten (Nummer, Befehlsgeber, Auftrag, Empfaenger-Count, Status, Fortschritt, Zeitpunkt)
+ * - 7 Spalten (Prio, Nr., Befehlsgeber, Auftrag, Empf., Fortschritt, Zeit)
  * - Client-seitige Sortierung, Filterung, Pagination
- * - Default: Nummer DESC, pageSize=20
- * - Reset auf Seite 1 bei Sortier-/Filter-Aenderung
+ * - Default: Prioritaet DESC, pageSize=20
+ * - Status-Spalte entfernt (Status wird durch Row-Tinting kommuniziert)
  */
 
 import type { BefehlDto, BefehlDtoStatusEnum } from '@bluelight-hub/shared/client';
@@ -13,16 +13,8 @@ import type { ColumnFiltersState, PaginationState, SortingState } from '@tanstac
 import { createColumnHelper, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { useCallback, useMemo, useState } from 'react';
-import { getBefehlKritikalitaet, getSortWeight } from '../lib/befehl-priority';
+import { getSortWeight } from '../lib/befehl-priority';
 import { getQuittierungsfortschritt } from '../lib/befehl-utils';
-
-/** Label fuer die Prioritaets-Anzeige */
-function getPriorityLabel(befehl: BefehlDto): string {
-  const kritikalitaet = getBefehlKritikalitaet(befehl);
-  if (kritikalitaet === 'KRITISCH') return 'Kritisch';
-  if (kritikalitaet === 'WARNUNG') return 'Warnung';
-  return 'Normal';
-}
 
 const columnHelper = createColumnHelper<BefehlDto>();
 
@@ -57,12 +49,11 @@ export function useBefehlTabelle(befehle: BefehlDto[]) {
     () => [
       columnHelper.accessor((row) => getSortWeight(row), {
         id: 'prioritaet',
-        header: 'Priorität',
+        header: 'Prio',
         enableSorting: true,
-        cell: (info) => getPriorityLabel(info.row.original),
       }),
       columnHelper.accessor('nummer', {
-        header: 'Nummer',
+        header: 'Nr.',
         enableSorting: true,
       }),
       columnHelper.accessor('befehlsgeberName', {
@@ -76,12 +67,14 @@ export function useBefehlTabelle(befehle: BefehlDto[]) {
       }),
       columnHelper.accessor((row) => row.empfaenger?.length ?? 0, {
         id: 'empfaengerCount',
-        header: 'Empfänger',
+        header: 'Empf.',
         enableSorting: true,
       }),
+      /** Versteckter Status-Accessor fuer Column-Filter (nicht als sichtbare Spalte) */
       columnHelper.accessor('status', {
         header: 'Status',
-        enableSorting: true,
+        enableSorting: false,
+        enableHiding: true,
         filterFn: (row, columnId, filterValue: BefehlDtoStatusEnum[]) => {
           if (!filterValue || filterValue.length === 0) return true;
           return filterValue.includes(row.getValue(columnId));
@@ -97,7 +90,7 @@ export function useBefehlTabelle(befehle: BefehlDto[]) {
         },
       }),
       columnHelper.accessor('erteiltAm', {
-        header: 'Zeitpunkt',
+        header: 'Zeit',
         enableSorting: true,
         cell: (info) => format(info.getValue(), 'dd.MM. HH:mm'),
       }),
@@ -113,6 +106,7 @@ export function useBefehlTabelle(befehle: BefehlDto[]) {
       columnFilters,
       globalFilter,
       pagination,
+      columnVisibility: { status: false },
     },
     onSortingChange: (updater) => {
       setSorting(updater);

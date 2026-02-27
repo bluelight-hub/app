@@ -11,7 +11,7 @@ import { BefehlZugestelltEvent } from '@domain/events/befehl-zugestellt.event';
 import { BefehlId } from '@domain/value-objects/befehl-id';
 import { BefehlStatus } from '@domain/value-objects/befehl-status';
 import type { EinsatzId } from '@domain/value-objects/einsatz-id';
-import type { UserId } from '@domain/value-objects/user-id';
+import { UserId } from '@domain/value-objects/user-id';
 
 /**
  * Properties für die Befehl-Erstellung.
@@ -21,6 +21,7 @@ interface CreateBefehlProps {
   einsatzId: EinsatzId;
   auftrag: string;
   befehlsgeber: string;
+  befehlsgeberId?: UserId;
   erstellerId: UserId;
   nummer: string;
   empfaenger: { name: string; empfaengerId?: UserId }[];
@@ -271,7 +272,7 @@ export class Befehl extends AggregateRoot<BefehlId> {
       props.einsatzId,
       props.auftrag.trim(),
       props.befehlsgeber.trim(),
-      undefined,
+      props.befehlsgeberId,
       props.erstellerId,
       initialStatus,
       erteiltAm,
@@ -293,6 +294,7 @@ export class Befehl extends AggregateRoot<BefehlId> {
         props.nummer,
         props.empfaenger.map((e) => e.name),
         id.value,
+        empfaenger.flatMap((empfaengerEintrag) => (empfaengerEintrag.empfaengerId ? [empfaengerEintrag.empfaengerId.value] : [])),
       ),
     );
 
@@ -356,6 +358,53 @@ export class Befehl extends AggregateRoot<BefehlId> {
   }
 
   /**
+   * Berechnet den Befehl-Status neu basierend auf ALLEN Empfaengern.
+   *
+   * Regel:
+   * - KORRIGIERT wird nie überschrieben
+   * - Alle Empfaenger quittiert → QUITTIERT
+   * - Alle Empfaenger zugestellt → ZUGESTELLT
+   * - Sonst → ERTEILT
+   */
+  private recomputeStatus(): void {
+    if (this._status.value === 'KORRIGIERT') return;
+
+    const alle = this._empfaenger;
+    if (alle.length === 0) return;
+
+    let neuerStatus: BefehlStatus;
+
+    const alleQuittiert = alle.every((e) => e.quittiertAm !== undefined);
+    const alleZugestellt = alle.every((e) => e.zugestelltAm !== undefined);
+
+    if (alleQuittiert) {
+      neuerStatus = BefehlStatus.QUITTIERT();
+    } else if (alleZugestellt) {
+      neuerStatus = BefehlStatus.ZUGESTELLT();
+    } else {
+      neuerStatus = BefehlStatus.ERTEILT();
+    }
+
+    if (neuerStatus.value !== this._status.value && this._status.canTransitionTo(neuerStatus)) {
+      const oldStatus = this._status;
+      this._status = neuerStatus;
+      this.addDomainEvent(
+        new BefehlStatusGeaendertEvent(
+          this.id,
+          oldStatus,
+          this._status,
+          this._einsatzId,
+          this._nummer,
+          this.id.value,
+          this._erstellerId,
+          this._befehlsgeberId,
+          this._empfaenger.flatMap((empfaengerEintrag) => (empfaengerEintrag.empfaengerId ? [empfaengerEintrag.empfaengerId.value] : [])),
+        ),
+      );
+    }
+  }
+
+  /**
    * Markiert einen Empfänger als zugestellt.
    * Wenn alle Empfänger zugestellt sind, wechselt der Befehl-Status zu ZUGESTELLT.
    */
@@ -374,17 +423,14 @@ export class Befehl extends AggregateRoot<BefehlId> {
     }
 
     empfaenger.markAlsZugestellt();
-
-    this.addDomainEvent(new BefehlZugestelltEvent(this.id, empfaengerId.value, empfaenger.zugestelltAm!, this.id.value));
-
-    // Prüfe ob alle quittierbare Empfänger zugestellt → Status-Transition zu ZUGESTELLT
-    const quittierbare = this._empfaenger.filter((e) => e.istQuittierbar);
-    const alleZugestellt = quittierbare.length > 0 && quittierbare.every((e) => e.zugestelltAm !== undefined);
-    if (alleZugestellt && this._status.canTransitionTo(BefehlStatus.ZUGESTELLT())) {
-      const oldStatus = this._status;
-      this._status = BefehlStatus.ZUGESTELLT();
-      this.addDomainEvent(new BefehlStatusGeaendertEvent(this.id, oldStatus, this._status, this.id.value));
+    const zugestelltAm = empfaenger.zugestelltAm;
+    if (!zugestelltAm) {
+      return Result.fail<void>('Empfänger-Zustellzeit konnte nicht gesetzt werden');
     }
+
+    this.addDomainEvent(new BefehlZugestelltEvent(this.id, empfaengerId.value, zugestelltAm, this._einsatzId, empfaenger.name, this._nummer, this.id.value));
+
+    this.recomputeStatus();
 
     return Result.ok<void>(undefined);
   }
@@ -393,7 +439,7 @@ export class Befehl extends AggregateRoot<BefehlId> {
    * Empfänger quittiert den Befehl mit einer QuittierungArt.
    * Wenn alle Empfänger quittiert haben, wechselt der Status zu QUITTIERT.
    */
-  public quittieren(empfaengerId: UserId, quittierungArt: 'VERSTANDEN' | 'RUECKFRAGE' | 'NICHT_VERSTANDEN'): Result<void> {
+  public quittieren(empfaengerId: UserId, quittierungArt: 'VERSTANDEN' | 'RUECKFRAGE' | 'NICHT_VERSTANDEN', kommentar?: string): Result<void> {
     if (this._status.value === 'KORRIGIERT') {
       return Result.fail<void>('Ein korrigierter Befehl kann nicht quittiert werden');
     }
@@ -415,22 +461,147 @@ export class Befehl extends AggregateRoot<BefehlId> {
       return Result.fail<void>('Empfänger hat bereits quittiert');
     }
 
-    const quittierungResult = empfaenger.quittieren(quittierungArt);
+    const quittierungResult = empfaenger.quittieren(quittierungArt, undefined, kommentar);
     if (quittierungResult.isFailure) {
       return Result.fail<void>(quittierungResult.error ?? 'Quittierung fehlgeschlagen');
     }
+    const quittiertAm = empfaenger.quittiertAm;
+    if (!quittiertAm) {
+      return Result.fail<void>('Empfänger-Quittierungszeit konnte nicht gesetzt werden');
+    }
 
     // Story 2.1 AC2: BefehlQuittiertEvent emittieren nach erfolgreicher Quittierung
-    this.addDomainEvent(new BefehlQuittiertEvent(this.id, this._einsatzId, empfaengerId, quittierungArt, this._nummer, empfaenger.quittiertAm!, this.id.value));
+    this.addDomainEvent(
+      new BefehlQuittiertEvent(
+        this.id,
+        this._einsatzId,
+        empfaengerId,
+        quittierungArt,
+        this._nummer,
+        quittiertAm,
+        empfaenger.quittierungKommentar,
+        this._erstellerId,
+        this._befehlsgeberId,
+        this.id.value,
+      ),
+    );
 
-    // Prüfe ob alle quittierbare Empfänger quittiert → Status-Transition zu QUITTIERT
-    const quittierbare = this._empfaenger.filter((e) => e.istQuittierbar);
-    const alleQuittiert = quittierbare.length > 0 && quittierbare.every((e) => e.quittiertAm !== undefined);
-    if (alleQuittiert && this._status.canTransitionTo(BefehlStatus.QUITTIERT())) {
-      const oldStatus = this._status;
-      this._status = BefehlStatus.QUITTIERT();
-      this.addDomainEvent(new BefehlStatusGeaendertEvent(this.id, oldStatus, this._status, this.id.value));
+    this.recomputeStatus();
+
+    return Result.ok<void>(undefined);
+  }
+
+  /**
+   * Markiert einen Empfänger manuell als zugestellt (per Entity-ID, nicht UserId).
+   * Für Funk-Empfänger oder stellvertretende Zustellung.
+   */
+  public manuellZustellen(empfaengerEntityId: string): Result<void> {
+    if (this._status.value === 'KORRIGIERT') {
+      return Result.fail<void>('Ein korrigierter Befehl kann nicht mehr zugestellt werden');
     }
+
+    const empfaenger = this._empfaenger.find((e) => e.id === empfaengerEntityId);
+    if (!empfaenger) {
+      return Result.fail<void>('Empfänger nicht gefunden');
+    }
+
+    if (empfaenger.zugestelltAm) {
+      return Result.fail<void>('Empfänger wurde bereits als zugestellt markiert');
+    }
+
+    empfaenger.markAlsZugestellt();
+    const zugestelltAm = empfaenger.zugestelltAm;
+    if (!zugestelltAm) {
+      return Result.fail<void>('Empfänger-Zustellzeit konnte nicht gesetzt werden');
+    }
+
+    this.addDomainEvent(new BefehlZugestelltEvent(this.id, empfaenger.empfaengerId?.value ?? empfaengerEntityId, zugestelltAm, this._einsatzId, empfaenger.name, this._nummer, this.id.value));
+
+    this.recomputeStatus();
+
+    return Result.ok<void>(undefined);
+  }
+
+  /**
+   * Quittiert einen Empfänger stellvertretend (per Entity-ID, nicht UserId).
+   * Für Funk-Empfänger oder wenn Ersteller/Befehlsgeber für den Empfänger quittiert.
+   */
+  public stellvertretendQuittieren(empfaengerEntityId: string, art: 'VERSTANDEN' | 'RUECKFRAGE' | 'NICHT_VERSTANDEN', kommentar?: string): Result<void> {
+    if (this._status.value === 'KORRIGIERT') {
+      return Result.fail<void>('Ein korrigierter Befehl kann nicht quittiert werden');
+    }
+
+    if (this._status.value === 'QUITTIERT') {
+      return Result.fail<void>('Ein bereits vollständig quittierter Befehl kann nicht erneut quittiert werden');
+    }
+
+    const empfaenger = this._empfaenger.find((e) => e.id === empfaengerEntityId);
+    if (!empfaenger) {
+      return Result.fail<void>('Empfänger nicht gefunden');
+    }
+
+    if (!empfaenger.zugestelltAm) {
+      return Result.fail<void>('Empfänger wurde noch nicht zugestellt');
+    }
+
+    if (empfaenger.quittiertAm) {
+      return Result.fail<void>('Empfänger hat bereits quittiert');
+    }
+
+    const quittierungResult = empfaenger.quittieren(art, undefined, kommentar);
+    if (quittierungResult.isFailure) {
+      return Result.fail<void>(quittierungResult.error ?? 'Quittierung fehlgeschlagen');
+    }
+    const quittiertAm = empfaenger.quittiertAm;
+    if (!quittiertAm) {
+      return Result.fail<void>('Empfänger-Quittierungszeit konnte nicht gesetzt werden');
+    }
+
+    let eventEmpfaengerId = empfaenger.empfaengerId;
+    if (!eventEmpfaengerId) {
+      const userIdResult = UserId.create(empfaengerEntityId);
+      if (userIdResult.isFailure || !userIdResult.value) {
+        return Result.fail<void>(userIdResult.error ?? 'Empfänger-ID konnte nicht in UserId umgewandelt werden');
+      }
+      eventEmpfaengerId = userIdResult.value as UserId;
+    }
+
+    this.addDomainEvent(
+      new BefehlQuittiertEvent(this.id, this._einsatzId, eventEmpfaengerId, art, this._nummer, quittiertAm, empfaenger.quittierungKommentar, this._erstellerId, this._befehlsgeberId, this.id.value),
+    );
+
+    this.recomputeStatus();
+
+    return Result.ok<void>(undefined);
+  }
+
+  /**
+   * Setzt den Status eines Empfängers zurück (per Entity-ID).
+   * Ziel kann ERTEILT oder ZUGESTELLT sein.
+   */
+  public empfaengerStatusZuruecksetzen(empfaengerEntityId: string, zielStatus: 'ERTEILT' | 'ZUGESTELLT'): Result<void> {
+    if (this._status.value === 'KORRIGIERT') {
+      return Result.fail<void>('Ein korrigierter Befehl kann nicht zurückgesetzt werden');
+    }
+
+    const empfaenger = this._empfaenger.find((e) => e.id === empfaengerEntityId);
+    if (!empfaenger) {
+      return Result.fail<void>('Empfänger nicht gefunden');
+    }
+
+    if (zielStatus === 'ERTEILT') {
+      if (!empfaenger.zugestelltAm) {
+        return Result.fail<void>('Empfänger ist bereits im Status ERTEILT');
+      }
+      empfaenger.zuruecksetzenAufErteilt();
+    } else if (zielStatus === 'ZUGESTELLT') {
+      if (!empfaenger.quittiertAm) {
+        return Result.fail<void>('Empfänger ist bereits im Status ZUGESTELLT oder niedriger');
+      }
+      empfaenger.zuruecksetzenAufZugestellt();
+    }
+
+    this.recomputeStatus();
 
     return Result.ok<void>(undefined);
   }
@@ -447,7 +618,19 @@ export class Befehl extends AggregateRoot<BefehlId> {
     const oldStatus = this._status;
     this._status = BefehlStatus.KORRIGIERT();
 
-    this.addDomainEvent(new BefehlStatusGeaendertEvent(this.id, oldStatus, this._status, this.id.value));
+    this.addDomainEvent(
+      new BefehlStatusGeaendertEvent(
+        this.id,
+        oldStatus,
+        this._status,
+        this._einsatzId,
+        this._nummer,
+        this.id.value,
+        this._erstellerId,
+        this._befehlsgeberId,
+        this._empfaenger.flatMap((empfaengerEintrag) => (empfaengerEintrag.empfaengerId ? [empfaengerEintrag.empfaengerId.value] : [])),
+      ),
+    );
 
     return Result.ok<void>(undefined);
   }

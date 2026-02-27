@@ -87,14 +87,28 @@ export class KorrigiereBefehlHandler extends TransactionalCommandHandler<Korrigi
     if (seqResult.isFailure) {
       return Result.fail(seqResult.error ?? 'Sequenznummer konnte nicht ermittelt werden');
     }
+    const sequenceNumber = seqResult.value;
+    if (sequenceNumber == null) {
+      return Result.fail('Sequenznummer konnte nicht ermittelt werden');
+    }
     const namingService = new BefehlNamingService();
-    const nummer = namingService.generateBefehlNummer(seqResult.value!);
+    const nummer = namingService.generateBefehlNummer(sequenceNumber);
+
+    // 5c. Validate optional BefehlsgeberId
+    let befehlsgeberId: UserId | undefined;
+    if (command.befehlsgeberId) {
+      const bgIdResult = UserId.create(command.befehlsgeberId);
+      if (bgIdResult.isSuccess) {
+        befehlsgeberId = bgIdResult.value as UserId;
+      }
+    }
 
     // 6. Create new Korrekturbefehl with originalBefehlId reference
     const neuerBefehlResult = Befehl.create({
       einsatzId: original.einsatzId,
       empfaenger,
       befehlsgeber: command.befehlsgeber,
+      befehlsgeberId,
       erstellerId,
       nummer,
       auftrag: command.auftrag,

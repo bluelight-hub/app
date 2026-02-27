@@ -1053,6 +1053,7 @@ export class EventSerializer {
       auftrag: event.auftrag,
       nummer: event.nummer,
       empfaenger: event.empfaenger,
+      empfaengerIds: event.empfaengerIds,
     };
   }
 
@@ -1061,6 +1062,9 @@ export class EventSerializer {
       befehlId: event.befehlId.value,
       empfaengerId: event.empfaengerId,
       zugestelltAm: event.zugestelltAm.toISOString(),
+      einsatzId: event.einsatzId.value,
+      empfaengerName: event.empfaengerName,
+      nummer: event.nummer,
     };
   }
 
@@ -1069,6 +1073,11 @@ export class EventSerializer {
       befehlId: event.befehlId.value,
       oldStatus: event.oldStatus.value,
       newStatus: event.newStatus.value,
+      einsatzId: event.einsatzId.value,
+      nummer: event.nummer,
+      erstellerId: event.erstellerId?.value ?? null,
+      befehlsgeberId: event.befehlsgeberId?.value ?? null,
+      empfaengerIds: event.empfaengerIds ?? [],
     };
   }
 
@@ -1091,6 +1100,9 @@ export class EventSerializer {
       quittierungArt: event.quittierungArt,
       nummer: event.nummer,
       quittiertAm: event.quittiertAm.toISOString(),
+      quittierungKommentar: event.quittierungKommentar ?? null,
+      erstellerId: event.erstellerId?.value ?? null,
+      befehlsgeberId: event.befehlsgeberId?.value ?? null,
     };
   }
 

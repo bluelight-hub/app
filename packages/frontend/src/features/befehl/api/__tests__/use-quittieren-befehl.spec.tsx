@@ -226,6 +226,36 @@ describe('useQuittierenBefehl', () => {
     expect(mockToast.success).toHaveBeenCalledWith('Befehl quittiert');
   });
 
+  it('should invalidate list and detail queries after quittierung', async () => {
+    // Given
+    mockQuittieren.mockResolvedValue({ data: { id: befehlId } });
+    seedCache();
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+    const { result } = renderHook(() => useQuittierenBefehl(einsatzId), {
+      wrapper: createWrapper(),
+    });
+
+    // When
+    result.current.mutate({
+      befehlId,
+      empfaengerId,
+      quittierungArt: QuittierenBefehlDtoQuittierungArtEnum.Verstanden,
+    });
+
+    // Then
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: ['befehl', 'list', einsatzId],
+    });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: ['befehl', 'detail', befehlId],
+    });
+  });
+
   it('should show error toast on failed quittierung', async () => {
     // Given
     mockQuittieren.mockRejectedValue(new Error('Server error'));

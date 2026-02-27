@@ -34,6 +34,15 @@ export const ADMIN_QUERY_KEYS = {
       detail: (id: string) => [...ADMIN_QUERY_KEYS.kraefte.rollenDefinitionen.all(), 'detail', id] as const,
     },
   },
+  befehle: {
+    all: ['admin', 'befehle'] as const,
+    befehlsgeberVorschlaege: {
+      all: () => [...ADMIN_QUERY_KEYS.befehle.all, 'befehlsgeber-vorschlaege'] as const,
+      list: (filters?: { istAktiv?: boolean }) =>
+        filters ? ([...ADMIN_QUERY_KEYS.befehle.befehlsgeberVorschlaege.all(), 'list', filters] as const) : ([...ADMIN_QUERY_KEYS.befehle.befehlsgeberVorschlaege.all(), 'list'] as const),
+      detail: (id: string) => [...ADMIN_QUERY_KEYS.befehle.befehlsgeberVorschlaege.all(), 'detail', id] as const,
+    },
+  },
   stammdaten: {
     all: ['admin', 'stammdaten'] as const,
     fahrzeuge: {

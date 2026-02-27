@@ -2,10 +2,10 @@
  * Unit Tests fuer BefehleViewToggle Molecule
  *
  * Verifiziert:
- * - Rendert zwei Buttons (Kanban, Tabelle)
- * - Kanban-Button ist initial aktiv (aria-checked="true")
- * - Click auf Tabelle-Button wechselt View
- * - Accessibility: role="radiogroup", aria-label
+ * - Rendert drei Buttons (Kanban, Tabelle, Liste)
+ * - Kanban-Button ist initial aktiv (aria-pressed="true")
+ * - Click auf anderen Button wechselt View
+ * - Accessibility: role="toolbar", aria-label
  * - className Prop wird weitergegeben
  */
 
@@ -24,18 +24,19 @@ describe('BefehleViewToggle', () => {
   // ============================================
 
   describe('Rendering', () => {
-    it('rendert zwei Radio-Buttons', () => {
+    it('rendert drei Buttons', () => {
       render(<BefehleViewToggle />);
 
-      const radios = screen.getAllByRole('radio');
-      expect(radios).toHaveLength(2);
+      const buttons = screen.getAllByRole('button');
+      expect(buttons).toHaveLength(3);
     });
 
-    it('rendert Kanban- und Tabellen-Button mit korrekten Labels', () => {
+    it('rendert Kanban-, Tabellen- und Listen-Button mit korrekten Labels', () => {
       render(<BefehleViewToggle />);
 
       expect(screen.getByLabelText('Kanban-Ansicht')).toBeInTheDocument();
       expect(screen.getByLabelText('Tabellen-Ansicht')).toBeInTheDocument();
+      expect(screen.getByLabelText('Listenansicht')).toBeInTheDocument();
     });
   });
 
@@ -44,14 +45,12 @@ describe('BefehleViewToggle', () => {
   // ============================================
 
   describe('Initial State', () => {
-    it('Kanban-Button ist initial aktiv (aria-checked="true")', () => {
+    it('Kanban-Button ist initial aktiv (aria-pressed="true")', () => {
       render(<BefehleViewToggle />);
 
-      const kanbanButton = screen.getByLabelText('Kanban-Ansicht');
-      const tabelleButton = screen.getByLabelText('Tabellen-Ansicht');
-
-      expect(kanbanButton).toHaveAttribute('aria-checked', 'true');
-      expect(tabelleButton).toHaveAttribute('aria-checked', 'false');
+      expect(screen.getByLabelText('Kanban-Ansicht')).toHaveAttribute('aria-pressed', 'true');
+      expect(screen.getByLabelText('Tabellen-Ansicht')).toHaveAttribute('aria-pressed', 'false');
+      expect(screen.getByLabelText('Listenansicht')).toHaveAttribute('aria-pressed', 'false');
     });
   });
 
@@ -63,23 +62,29 @@ describe('BefehleViewToggle', () => {
     it('Click auf Tabelle-Button wechselt View', () => {
       render(<BefehleViewToggle />);
 
-      const tabelleButton = screen.getByLabelText('Tabellen-Ansicht');
-      fireEvent.click(tabelleButton);
+      fireEvent.click(screen.getByLabelText('Tabellen-Ansicht'));
 
-      expect(tabelleButton).toHaveAttribute('aria-checked', 'true');
-      expect(screen.getByLabelText('Kanban-Ansicht')).toHaveAttribute('aria-checked', 'false');
+      expect(screen.getByLabelText('Tabellen-Ansicht')).toHaveAttribute('aria-pressed', 'true');
+      expect(screen.getByLabelText('Kanban-Ansicht')).toHaveAttribute('aria-pressed', 'false');
+    });
+
+    it('Click auf Listen-Button wechselt View', () => {
+      render(<BefehleViewToggle />);
+
+      fireEvent.click(screen.getByLabelText('Listenansicht'));
+
+      expect(screen.getByLabelText('Listenansicht')).toHaveAttribute('aria-pressed', 'true');
+      expect(screen.getByLabelText('Kanban-Ansicht')).toHaveAttribute('aria-pressed', 'false');
     });
 
     it('Click auf Kanban-Button wechselt zurueck', () => {
       render(<BefehleViewToggle />);
 
-      // Erst auf Tabelle wechseln
       fireEvent.click(screen.getByLabelText('Tabellen-Ansicht'));
-      // Dann zurueck auf Kanban
       fireEvent.click(screen.getByLabelText('Kanban-Ansicht'));
 
-      expect(screen.getByLabelText('Kanban-Ansicht')).toHaveAttribute('aria-checked', 'true');
-      expect(screen.getByLabelText('Tabellen-Ansicht')).toHaveAttribute('aria-checked', 'false');
+      expect(screen.getByLabelText('Kanban-Ansicht')).toHaveAttribute('aria-pressed', 'true');
+      expect(screen.getByLabelText('Tabellen-Ansicht')).toHaveAttribute('aria-pressed', 'false');
     });
 
     it('aktualisiert den Store bei Click', () => {
@@ -87,6 +92,9 @@ describe('BefehleViewToggle', () => {
 
       fireEvent.click(screen.getByLabelText('Tabellen-Ansicht'));
       expect(befehleViewStore.state.view).toBe('tabelle');
+
+      fireEvent.click(screen.getByLabelText('Listenansicht'));
+      expect(befehleViewStore.state.view).toBe('liste');
 
       fireEvent.click(screen.getByLabelText('Kanban-Ansicht'));
       expect(befehleViewStore.state.view).toBe('kanban');
@@ -98,25 +106,25 @@ describe('BefehleViewToggle', () => {
   // ============================================
 
   describe('Accessibility', () => {
-    it('hat role="radiogroup" auf dem Container', () => {
+    it('hat role="toolbar" auf dem Container', () => {
       render(<BefehleViewToggle />);
 
-      expect(screen.getByRole('radiogroup')).toBeInTheDocument();
+      expect(screen.getByRole('toolbar')).toBeInTheDocument();
     });
 
     it('hat aria-label="Ansicht wechseln" auf dem Container', () => {
       render(<BefehleViewToggle />);
 
-      const radiogroup = screen.getByRole('radiogroup');
-      expect(radiogroup).toHaveAttribute('aria-label', 'Ansicht wechseln');
+      const toolbar = screen.getByRole('toolbar');
+      expect(toolbar).toHaveAttribute('aria-label', 'Ansicht wechseln');
     });
 
     it('Buttons haben type="button"', () => {
       render(<BefehleViewToggle />);
 
-      const radios = screen.getAllByRole('radio');
-      for (const radio of radios) {
-        expect(radio).toHaveAttribute('type', 'button');
+      const buttons = screen.getAllByRole('button');
+      for (const button of buttons) {
+        expect(button).toHaveAttribute('type', 'button');
       }
     });
   });
@@ -129,8 +137,8 @@ describe('BefehleViewToggle', () => {
     it('uebergibt className an den Container', () => {
       render(<BefehleViewToggle className="my-custom-class" />);
 
-      const radiogroup = screen.getByRole('radiogroup');
-      expect(radiogroup.className).toContain('my-custom-class');
+      const toolbar = screen.getByRole('toolbar');
+      expect(toolbar.className).toContain('my-custom-class');
     });
   });
 });

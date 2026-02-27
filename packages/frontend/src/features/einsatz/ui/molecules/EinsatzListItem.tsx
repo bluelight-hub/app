@@ -22,7 +22,11 @@ export const EinsatzListItem = ({ einsatz }: EinsatzListItemProps) => {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex items-start justify-between gap-2 sm:mb-2 sm:items-center">
-            <h3 className="line-clamp-2 font-medium text-base text-gray-900 sm:line-clamp-1 sm:text-lg dark:text-white">{einsatz.alarmstichwort || 'Kein Alarmstichwort'}</h3>
+            <h3 className="line-clamp-2 font-medium text-base text-gray-900 sm:line-clamp-1 sm:text-lg dark:text-white">
+              <span className="font-mono text-gray-500 text-sm dark:text-gray-400">{einsatz.nummer}</span>
+              <span className="mx-1.5 text-gray-300 dark:text-gray-600">|</span>
+              {einsatz.alarmstichwort || 'Kein Alarmstichwort'}
+            </h3>
             <div className="flex items-center gap-2">
               {isCurrentlyActive && (
                 <span className="inline-flex items-center gap-1 font-medium text-green-600 text-xs dark:text-green-400">

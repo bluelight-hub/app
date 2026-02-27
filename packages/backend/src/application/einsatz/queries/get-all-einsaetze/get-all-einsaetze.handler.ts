@@ -224,6 +224,7 @@ export class GetAllEinsaetzeQueryHandler implements IQueryHandler<GetAllEinsaetz
     // Domain Aggregate → Response DTO Mapping
     const response: EinsatzResponseDto = {
       id: aggregate.id.value,
+      nummer: aggregate.nummer,
       alarmstichwort: aggregate.alarmstichwort,
       einsatzort: aggregate.einsatzort?.toString() ?? null, // Address Value Object → String
       beschreibung: aggregate.bemerkung ?? null,

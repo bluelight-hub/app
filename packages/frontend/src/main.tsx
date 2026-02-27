@@ -45,7 +45,7 @@ initEtbOfflineStore()
   .then(() => logger.info('[App-Startup] ETB Offline Store initialisiert'))
   .catch((error) => logger.error('[App-Startup] ETB Offline Store Init fehlgeschlagen', { error }));
 
-const router = createRouter({
+export const router = createRouter({
   routeTree,
   defaultPreload: 'intent',
 });

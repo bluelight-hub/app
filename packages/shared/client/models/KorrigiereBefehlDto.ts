@@ -81,6 +81,12 @@ export interface KorrigiereBefehlDto {
      * @memberof KorrigiereBefehlDto
      */
     weg?: string;
+    /**
+     * Befehlsgeber User-ID (optional, wenn Person als Befehlsgeber gewaehlt)
+     * @type {string}
+     * @memberof KorrigiereBefehlDto
+     */
+    befehlsgeberId?: string;
 }
 
 /**
@@ -113,6 +119,7 @@ export function KorrigiereBefehlDtoFromJSONTyped(json: any, ignoreDiscriminator:
         'mittel': json['mittel'] == null ? undefined : json['mittel'],
         'ziel': json['ziel'] == null ? undefined : json['ziel'],
         'weg': json['weg'] == null ? undefined : json['weg'],
+        'befehlsgeberId': json['befehlsgeberId'] == null ? undefined : json['befehlsgeberId'],
     };
 }
 
@@ -136,6 +143,7 @@ export function KorrigiereBefehlDtoToJSONTyped(value?: KorrigiereBefehlDto | nul
         'mittel': value['mittel'],
         'ziel': value['ziel'],
         'weg': value['weg'],
+        'befehlsgeberId': value['befehlsgeberId'],
     };
 }
 

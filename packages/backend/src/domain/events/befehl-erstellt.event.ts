@@ -16,6 +16,8 @@ export class BefehlErstelltEvent extends DomainEvent {
     public readonly nummer: string,
     public readonly empfaenger: string[],
     aggregateId?: string,
+    /** User-IDs der Empfänger (für gezielte Benachrichtigungen) */
+    public readonly empfaengerIds: string[] = [],
   ) {
     super(aggregateId);
   }

@@ -9,12 +9,19 @@ import { PiCaretDown, PiX } from 'react-icons/pi';
 export interface ComboboxItem {
   value: string;
   label: string;
+  meta?: Record<string, unknown>;
+}
+
+export interface ComboboxGroup {
+  label: string;
+  items: ComboboxItem[];
 }
 
 export interface ComboboxProps {
   items?: Array<ComboboxItem>;
+  groups?: Array<ComboboxGroup>;
   value?: string;
-  onChange?: (value: string) => void;
+  onChange?: (value: string, item?: ComboboxItem) => void;
   onInputChange?: (value: string) => void;
   /** Callback bei Blur Event (fuer Form-Integration) */
   onBlur?: () => void;
@@ -31,6 +38,7 @@ export interface ComboboxProps {
 
 export function Combobox({
   items = [],
+  groups,
   value: controlledValue,
   onChange,
   onInputChange,
@@ -48,26 +56,57 @@ export function Combobox({
   const [query, setQuery] = useState('');
   const [selectedItem, setSelectedItem] = useState<ComboboxItem | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const shouldShowOptions = openOnFocus || query.length > 0;
+
+  /** Alle Items (flach oder aus Gruppen zusammengefuehrt) */
+  const allItems = useMemo(() => {
+    if (groups) return groups.flatMap((g) => g.items);
+    return items;
+  }, [items, groups]);
 
   // Handle controlled value
   useEffect(() => {
     if (controlledValue !== undefined) {
-      const item = items.find((i) => i.value === controlledValue);
-      setSelectedItem(item || (allowCustomValue && controlledValue ? { value: controlledValue, label: controlledValue } : null));
+      if (query.length > 0) return;
+      const item = allItems.find((i) => i.value === controlledValue);
+      const nextSelected = item || (allowCustomValue && controlledValue ? { value: controlledValue, label: controlledValue } : null);
+      setSelectedItem((prev) => {
+        if (prev?.value === nextSelected?.value && prev?.label === nextSelected?.label) {
+          return prev;
+        }
+        return nextSelected;
+      });
     }
-  }, [controlledValue, items, allowCustomValue]);
+  }, [controlledValue, allItems, allowCustomValue, query]);
 
   const filteredItems = useMemo(() => {
+    if (!shouldShowOptions) return [];
     return query === ''
-      ? items
-      : items.filter((item) => {
+      ? allItems
+      : allItems.filter((item) => {
           return item.label.toLowerCase().includes(query.toLowerCase());
         });
-  }, [query, items]);
+  }, [query, allItems, shouldShowOptions]);
+
+  /** Gruppen gefiltert (nur nicht-leere Gruppen) */
+  const filteredGroups = useMemo(() => {
+    if (!shouldShowOptions) return undefined;
+    if (!groups) return undefined;
+    const q = query.toLowerCase();
+    return groups
+      .map((g) => ({
+        ...g,
+        items: q === '' ? g.items : g.items.filter((item) => item.label.toLowerCase().includes(q)),
+      }))
+      .filter((g) => g.items.length > 0);
+  }, [groups, query, shouldShowOptions]);
 
   const handleQueryChange = useCallback(
     (value: string) => {
       setQuery(value);
+      if (value.length > 0) {
+        setSelectedItem(null);
+      }
       onInputChange?.(value);
     },
     [onInputChange],
@@ -76,8 +115,11 @@ export function Combobox({
   const handleSelectionChange = (item: ComboboxItem | null) => {
     setSelectedItem(item);
     if (item) {
-      onChange?.(item.value);
+      onChange?.(item.value, item);
       setQuery('');
+      onInputChange?.('');
+    } else {
+      onChange?.('');
     }
   };
 
@@ -126,14 +168,25 @@ export function Combobox({
             placeholder={placeholder}
             onChange={(event) => handleQueryChange(event.target.value)}
             onBlur={() => {
-              if (!allowCustomValue) {
+              const queryValue = query.trim();
+
+              if (allowCustomValue && queryValue.length > 0) {
+                const match = allItems.find((item) => item.label.toLowerCase() === queryValue.toLowerCase() || item.value.toLowerCase() === queryValue.toLowerCase());
+                const nextItem = match ?? { value: queryValue, label: queryValue };
+                setSelectedItem(nextItem);
+                onChange?.(nextItem.value, nextItem);
                 setQuery('');
+                onInputChange?.('');
+              } else if (!allowCustomValue) {
+                setQuery('');
+                onInputChange?.('');
               }
               onBlur?.();
             }}
             displayValue={(item: ComboboxItem | null) => {
+              if (query.length > 0) return query;
               if (item) return item.label;
-              return query;
+              return '';
             }}
             disabled={disabled}
           />
@@ -170,6 +223,7 @@ export function Combobox({
             className={cn(
               'absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white py-1 text-base shadow-lg',
               'border border-gray-200',
+              'data-[closed]:hidden data-[closed]:pointer-events-none',
               'data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in',
               'sm:text-sm',
               'dark:border-gray-700 dark:bg-gray-800 dark:shadow-none',
@@ -177,6 +231,25 @@ export function Combobox({
           >
             {filteredItems.length === 0 && query !== '' ? (
               <div className="px-3 py-2 text-gray-500 text-sm dark:text-gray-400">{allowCustomValue ? `Keine Übereinstimmung für "${query}"` : 'Keine Ergebnisse gefunden'}</div>
+            ) : filteredGroups ? (
+              filteredGroups.map((group) => (
+                <div key={group.label}>
+                  <div className="px-3 py-1.5 font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">{group.label}</div>
+                  {group.items.map((item) => (
+                    <ComboboxOption
+                      key={item.value}
+                      value={item}
+                      className={cn(
+                        'cursor-default select-none px-3 py-2 text-gray-900',
+                        'data-[focus]:bg-primary-600 data-[focus]:text-white data-[focus]:outline-none',
+                        'dark:text-gray-300 dark:data-[focus]:bg-primary-500',
+                      )}
+                    >
+                      <span className="block truncate">{item.label}</span>
+                    </ComboboxOption>
+                  ))}
+                </div>
+              ))
             ) : (
               filteredItems.map((item) => (
                 <ComboboxOption
@@ -192,7 +265,7 @@ export function Combobox({
                 </ComboboxOption>
               ))
             )}
-            {allowCustomValue && query.length > 0 && !items.some((item) => item.label.toLowerCase() === query.toLowerCase()) && (
+            {allowCustomValue && query.length > 0 && !allItems.some((item) => item.label.toLowerCase() === query.toLowerCase()) && (
               <ComboboxOption
                 value={{ value: query, label: query }}
                 className={cn(

@@ -48,7 +48,7 @@ export function BefehlQuittierenDialog({ isOpen, onClose, befehlId, befehlNummer
 
     setActiveAction(art);
     quittieren(
-      { befehlId, empfaengerId, quittierungArt: art },
+      { befehlId, empfaengerId, quittierungArt: art, kommentar: rueckfrageText || undefined },
       {
         onSuccess: () => {
           handleClose();
@@ -141,7 +141,6 @@ export function BefehlQuittierenDialog({ isOpen, onClose, befehlId, befehlNummer
 
             {/* Rückfrage-Textarea (inline, animiert) */}
             <div className={cn('motion-safe:transition-all motion-safe:duration-300 overflow-hidden', showRueckfrageText ? 'mt-4 max-h-60 opacity-100' : 'max-h-0 opacity-0')}>
-              {/* TODO: Backend um kommentar-Feld in QuittierenBefehlDto erweitern, dann rueckfrageText durchreichen */}
               <Textarea
                 ref={rueckfrageTextareaRef}
                 textareaSize="sm"
@@ -150,7 +149,6 @@ export function BefehlQuittierenDialog({ isOpen, onClose, befehlId, befehlNummer
                 onChange={(e) => setRueckfrageText(e.target.value)}
                 aria-label="Rückfrage-Text eingeben"
               />
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Hinweis: Der Rückfrage-Text wird aktuell nicht an den Befehlsgeber übermittelt.</p>
               <div className="mt-2 flex items-center gap-2">
                 <Button
                   intent="warning"

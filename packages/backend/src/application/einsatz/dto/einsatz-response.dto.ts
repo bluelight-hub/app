@@ -100,6 +100,12 @@ export class EinsatzResponseDto {
   })
   id!: string;
 
+  @ApiProperty({
+    description: 'Auto-generierte Einsatznummer (Format: E{YEAR}-{SEQ})',
+    example: 'E2026-001',
+  })
+  nummer!: string;
+
   @ApiPropertyOptional({
     description: 'Das Alarmstichwort des Einsatzes',
     example: 'Wohnungsbrand',

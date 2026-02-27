@@ -1,28 +1,22 @@
 /**
  * Permission Hook für Befehl-Aktionen
  *
- * Bestimmt basierend auf der Einsatz-Rolle des aktuellen Users,
- * welche Befehl-Aktionen erlaubt sind.
- *
- * Story 5.2 AC8
+ * Gibt aktuell alle Berechtigungen frei - Rollen-Checks werden
+ * später mit dem Einsatzrollen-System re-aktiviert.
  */
 
-import { useCurrentUser } from '@/features/auth';
-import { useEinsatzRollen } from '@/features/einsatz';
-import { EinsatzRolleDtoRolleEnum } from '@/shared';
-
 export interface BefehlPermissions {
-  /** Darf Befehle erstellen (BEFEHLSGEBER oder ERSTELLER) */
+  /** Darf Befehle erstellen */
   canCreate: boolean;
-  /** Darf Befehle quittieren (EMPFAENGER) */
+  /** Darf Befehle quittieren */
   canQuittieren: boolean;
-  /** Darf Befehle korrigieren (BEFEHLSGEBER oder ERSTELLER) */
+  /** Darf Befehle korrigieren */
   canKorrigieren: boolean;
-  /** Darf Befehle exportieren (BEFEHLSGEBER oder ERSTELLER) */
+  /** Darf Empfaenger-Status verwalten */
+  canManageStatus: boolean;
+  /** Darf Befehle exportieren */
   canExport: boolean;
-  /** Darf Metriken einsehen (nur BEFEHLSGEBER) */
-  canViewMetriken: boolean;
-  /** Darf alle Befehle einsehen (alle Rollen) */
+  /** Darf alle Befehle einsehen */
   canViewAll: boolean;
   /** Ist nur Beobachter (read-only) */
   isBeobachter: boolean;
@@ -35,28 +29,22 @@ export interface BefehlPermissions {
 /**
  * Hook zur Bestimmung der Befehl-Berechtigungen des aktuellen Users
  *
- * @param einsatzId - Einsatz-ID für Rollen-Abfrage
- * @returns Berechtigungs-Flags basierend auf der Einsatz-Rolle
+ * Aktuell: Alle Aktionen erlaubt (Passthrough).
+ * Wird mit dem Einsatzrollen-System später eingeschränkt.
+ *
+ * @param _einsatzId - Einsatz-ID (aktuell nicht verwendet)
+ * @returns Alle Berechtigungen als true
  */
-export function useBefehlPermissions(einsatzId: string): BefehlPermissions {
-  const { user, isLoading: isUserLoading } = useCurrentUser();
-  const { data: rollen, isLoading: isRollenLoading } = useEinsatzRollen(einsatzId);
-
-  const isLoading = isUserLoading || isRollenLoading;
-
-  const meineRolle = rollen?.find((r) => r.userId === user?.id)?.rolle ?? null;
-
-  const istBefehlsgeberOderErsteller = meineRolle === EinsatzRolleDtoRolleEnum.Befehlsgeber || meineRolle === EinsatzRolleDtoRolleEnum.Ersteller;
-
+export function useBefehlPermissions(_einsatzId: string): BefehlPermissions {
   return {
-    canCreate: istBefehlsgeberOderErsteller,
-    canQuittieren: meineRolle === EinsatzRolleDtoRolleEnum.Empfaenger,
-    canKorrigieren: istBefehlsgeberOderErsteller,
-    canExport: istBefehlsgeberOderErsteller,
-    canViewMetriken: meineRolle === EinsatzRolleDtoRolleEnum.Befehlsgeber,
-    canViewAll: meineRolle !== null,
-    isBeobachter: meineRolle === EinsatzRolleDtoRolleEnum.Beobachter,
-    rolle: meineRolle,
-    isLoading,
+    canCreate: true,
+    canQuittieren: true,
+    canKorrigieren: true,
+    canManageStatus: true,
+    canExport: true,
+    canViewAll: true,
+    isBeobachter: false,
+    rolle: null,
+    isLoading: false,
   };
 }

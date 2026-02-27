@@ -25,11 +25,8 @@ export class EmpfaengerSucheResultDto {
   @ApiPropertyOptional({ description: 'Qualifikation', example: 'Sanitätshelfer' })
   qualifikation?: string;
 
-  /**
-   * Derzeit immer undefined - EinsatzPerson/StammPerson haben kein userId-Feld
-   * im Schema. Benoetigt Schema-Migration (siehe AC5).
-   */
-  @ApiPropertyOptional({ description: 'Verknuepfter User-ID (fuer In-App-Quittierung) – derzeit nicht befuellt, erfordert Schema-Migration' })
+  /** Verknuepfter User-ID, aufgeloest via EinsatzTeilnehmer-Mapping (fuer In-App-Quittierung). */
+  @ApiPropertyOptional({ description: 'Verknuepfter User-ID (fuer In-App-Quittierung)' })
   userId?: string;
 
   @ApiProperty({ description: 'Datenquelle', enum: EmpfaengerQuelle, example: EmpfaengerQuelle.EINSATZ })

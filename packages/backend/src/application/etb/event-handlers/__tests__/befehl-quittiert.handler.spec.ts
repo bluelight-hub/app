@@ -110,7 +110,7 @@ describe('BefehlQuittiertEtbHandler (Story 4.3)', () => {
 
       // Then
       const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      expect(receivedCommand.kategorie).toBe('BEFEHL');
+      expect(receivedCommand.kategorie).toBe('SYSTEM');
     });
 
     it('should pass einsatzId from event to ETB command', async () => {
@@ -294,11 +294,11 @@ describe('BefehlQuittiertEtbHandler (Story 4.3)', () => {
     it('should call Logger.error() and early exit when befehlId is missing', async () => {
       // Given: Event mit null befehlId
       const event = createTestEvent();
-      (event as any).befehlId = null;
+      const invalidEvent = { ...event, befehlId: null } as unknown as BefehlQuittiertEvent;
       mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
 
       // When
-      await handler.handle(event);
+      await handler.handle(invalidEvent);
 
       // Then
       expect(mockLogger.error).toHaveBeenCalledWith(expect.stringMatching(/BefehlQuittiert event has missing required fields/), 'BefehlQuittiertEtbHandler');
@@ -308,11 +308,11 @@ describe('BefehlQuittiertEtbHandler (Story 4.3)', () => {
     it('should call Logger.error() and early exit when empfaengerId is missing', async () => {
       // Given: Event mit null empfaengerId
       const event = createTestEvent();
-      (event as any).empfaengerId = null;
+      const invalidEvent = { ...event, empfaengerId: null } as unknown as BefehlQuittiertEvent;
       mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
 
       // When
-      await handler.handle(event);
+      await handler.handle(invalidEvent);
 
       // Then
       expect(mockLogger.error).toHaveBeenCalledWith(expect.stringMatching(/BefehlQuittiert event has missing required fields/), 'BefehlQuittiertEtbHandler');

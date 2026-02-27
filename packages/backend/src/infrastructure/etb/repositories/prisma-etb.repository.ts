@@ -117,24 +117,37 @@ export class PrismaEtbRepository implements IEtbRepository {
     const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
 
     // Aggregate → Prisma Data Mapping
-    // HINWEIS: createdBy wird aus dem ersten Eintrag extrahiert oder als 'SYSTEM' Default verwendet
-    // updatedBy wird ebenfalls aus dem letzten Eintrag extrahiert (falls vorhanden)
+    // HINWEIS: 'system'/'SYSTEM' sind keine gültigen User-IDs in der DB (FK constraint auf users).
+    // Automatische ETB-Eintraege (z.B. Befehl-Events) verwenden 'system' als userId.
+    // Wir ersetzen dies durch den Ersteller des Einsatzes, damit FK constraints erfüllt sind.
+    const isSystemUserId = (userId: string): boolean => userId === 'system' || userId === 'SYSTEM';
+
+    // Einsatz-Ersteller als Fallback für System-UserIds und leere createdBy
+    const einsatzCreatorId = (
+      await client.einsatz.findUnique({
+        select: { createdBy: true },
+        where: { id: aggregate.einsatzId.value },
+      })
+    )?.createdBy;
+
     const firstEintrag = aggregate.eintraege[0];
     const lastEintrag = aggregate.eintraege[aggregate.eintraege.length - 1];
-    // Fallback: wenn Aggregate noch keine Eintraege hat (z.B. auto-creation bei Einsatz),
-    // nutze den Ersteller des Einsatzes als createdBy, damit FK constraint erfüllt ist.
-    const createdByUser =
-      firstEintrag?.createdBy.value ??
-      (
-        await client.einsatz.findUnique({
-          select: { createdBy: true },
-          where: { id: aggregate.einsatzId.value },
-        })
-      )?.createdBy ??
-      'SYSTEM';
-    const updatedByUser = lastEintrag?.createdBy.value;
+
+    // createdBy für ETB-Tabelle: erster Eintrag oder Einsatz-Ersteller als Fallback
+    const rawCreatedBy = firstEintrag?.createdBy.value;
+    const createdByUser = rawCreatedBy && !isSystemUserId(rawCreatedBy) ? rawCreatedBy : (einsatzCreatorId ?? 'SYSTEM');
+
+    // updatedBy für ETB-Tabelle: letzter Eintrag, null bei System-UserIds
+    const rawUpdatedBy = lastEintrag?.createdBy.value;
+    const updatedByUser = rawUpdatedBy && !isSystemUserId(rawUpdatedBy) ? rawUpdatedBy : undefined;
 
     const { etb, eintraege } = PrismaEtbMapper.toPersistence(aggregate, createdByUser, updatedByUser);
+
+    // Resolve System-UserIds in Eintraegen zu Einsatz-Ersteller
+    const resolvedEintraege = eintraege.map((e) => ({
+      ...e,
+      createdBy: isSystemUserId(e.createdBy) ? (einsatzCreatorId ?? e.createdBy) : e.createdBy,
+    }));
     const etbId = aggregate.id.value;
 
     // Transaction Closure: ETB Upsert + Eintrag INSERT + Snapshot Persistence
@@ -174,10 +187,10 @@ export class PrismaEtbRepository implements IEtbRepository {
       // - Bestehende Einträge werden aktualisiert (ON CONFLICT DO UPDATE)
       // - "Gelöschte" Einträge werden soft-deleted (deletedAt != null)
       // Dies respektiert den NO-DELETE Trigger und die 10-Jahres-Aufbewahrungspflicht.
-      if (eintraege.length > 0) {
+      if (resolvedEintraege.length > 0) {
         // Verwende Raw SQL mit ON CONFLICT DO UPDATE für Upsert-Semantik
         // Der Unique Constraint (etbId, sequenceNumber) ermöglicht Updates
-        for (const eintrag of eintraege) {
+        for (const eintrag of resolvedEintraege) {
           await prismaClient.$executeRaw`
             INSERT INTO etb_eintraege (
               "id", "etbId", "sequenceNumber", "text", "createdBy", "createdAt",

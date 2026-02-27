@@ -25,16 +25,13 @@ export interface Quittierungsfortschritt {
 /**
  * Berechnet den Quittierungsfortschritt fuer eine Empfaenger-Liste.
  *
- * Zaehlt NUR quittierbare Empfaenger (mit User verknuepft) fuer den Fortschritt.
- * Empfaenger ohne User-Link (z.B. "Polizei", "Leitstelle") werden nicht mitgezaehlt,
- * da sie nicht in-app quittieren koennen.
+ * Zaehlt ALLE Empfaenger fuer den Fortschritt (inkl. Funk-Empfaenger).
  * RUECKFRAGE zaehlt als quittiert (Empfaenger hat reagiert).
  * Division-by-Zero sicher bei leerer Liste.
  */
 export function getQuittierungsfortschritt(empfaenger: BefehlEmpfaengerDto[]): Quittierungsfortschritt {
-  const quittierbare = empfaenger.filter((e) => e.istQuittierbar);
-  const gesamt = quittierbare.length;
-  const quittierte = quittierbare.filter((e) => e.quittiertAm != null);
+  const gesamt = empfaenger.length;
+  const quittierte = empfaenger.filter((e) => e.quittiertAm != null);
   const quittiert = quittierte.length;
   const prozent = gesamt > 0 ? Math.round((quittiert / gesamt) * 100) : 0;
 
@@ -320,9 +317,8 @@ export function getKanbanSpalte(befehl: { status: string; empfaenger: BefehlEmpf
   if (befehl.status === 'ERTEILT') return 'ERTEILT';
   if (befehl.status === 'QUITTIERT') return 'VOLLSTAENDIG_QUITTIERT';
 
-  const quittierbare = befehl.empfaenger.filter((e) => e.istQuittierbar);
-  const quittiert = quittierbare.filter((e) => e.quittiertAm != null).length;
-  const gesamt = quittierbare.length;
+  const quittiert = befehl.empfaenger.filter((e) => e.quittiertAm != null).length;
+  const gesamt = befehl.empfaenger.length;
 
   if (quittiert === 0) return 'ZUGESTELLT';
   if (quittiert < gesamt) return 'TEILWEISE_QUITTIERT';

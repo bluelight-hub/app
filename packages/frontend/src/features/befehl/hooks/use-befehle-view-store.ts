@@ -11,7 +11,7 @@ import { Store, useStore } from '@tanstack/react-store';
 // Store State & Instance
 // ============================================
 
-export type BefehleView = 'kanban' | 'tabelle';
+export type BefehleView = 'kanban' | 'tabelle' | 'liste';
 
 export interface BefehleViewStoreState {
   /** Aktuelle Ansicht der Befehlsliste */

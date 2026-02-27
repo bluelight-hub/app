@@ -4,6 +4,7 @@
  * Barrel export für Admin-Page-Komponenten
  */
 
+export { AdminBefehlsgeberVorschlaege } from './AdminBefehlsgeberVorschlaege';
 export { AdminDashboard } from './AdminDashboard';
 export { AdminHiOrgIntegration } from './AdminHiOrgIntegration';
 export { AdminInvites } from './AdminInvites';

@@ -100,7 +100,7 @@ export function useEinsatzModules(): Module[] {
           name: 'Rollen',
           href: '/app/einsatz/$einsatzId/führung/rollen',
           icon: PiUserCheck,
-          description: 'Befehlsrollen verwalten',
+          description: 'Rollen im Einsatz',
         },
         {
           name: 'Protokoll',

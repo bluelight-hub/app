@@ -47,8 +47,8 @@ export const BEFEHL_QUERY_KEYS = {
   details: () => [...BEFEHL_QUERY_KEYS.all, 'detail'] as const,
   detail: (id: string) => [...BEFEHL_QUERY_KEYS.details(), id] as const,
   historie: (id: string) => [...BEFEHL_QUERY_KEYS.detail(id), 'historie'] as const,
-  metriken: (von?: string, bis?: string) => [...BEFEHL_QUERY_KEYS.all, 'metriken', von, bis] as const,
   empfaengerSuche: (einsatzId: string, q: string) => [...BEFEHL_QUERY_KEYS.all, 'empfaenger-suche', einsatzId, q] as const,
+  befehlsgeberSuche: (einsatzId: string, q: string) => [...BEFEHL_QUERY_KEYS.all, 'befehlsgeber-suche', einsatzId, q] as const,
 } as const;
 
 /**

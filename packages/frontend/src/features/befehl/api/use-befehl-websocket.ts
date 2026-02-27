@@ -7,21 +7,34 @@
  *
  * - Verbindung zum Namespace `/ws/v-alpha/befehl`
  * - Room: `einsatz:{einsatzId}:befehle`
- * - Events: `befehl.erstellt`, `befehl.zugestellt`, `befehl.quittiert`, `befehl.kommentarHinzugefuegt`, `rolle.geaendert` (Story 5.4 AC3), `integration.status_changed` (Story 5.3 AC6)
- * - Toast-Notification bei Team-Member Events
+ * - Events: `befehl.erstellt`, `befehl.zugestellt`, `befehl.quittiert`, `befehl.statusGeaendert`, `befehl.kommentarHinzugefuegt`, `rolle.geaendert` (Story 5.4 AC3), `integration.status_changed` (Story 5.3 AC6)
+ * - Notification-Entscheidungslogik via pure Resolver Functions
  */
 
 import { useCurrentUser } from '@/features/auth/api';
 import { getBaseUrl } from '@/shared/api/client';
 import { logger } from '@/shared/lib/logger';
+import type { QueryClient } from '@tanstack/react-query';
 import { useQueryClient } from '@tanstack/react-query';
+import { Store, useStore } from '@tanstack/react-store';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import { toast } from 'sonner';
-import type { BefehlDto } from '@bluelight-hub/shared/client';
+import { showBefehlAlarmToast, showKorrekturAlarmToast, showQuittierungAlarmToast } from '../ui/atoms/BefehlAlarmToast.atom';
+import { markAlertSeen } from '../hooks/use-missed-befehl-alerts';
+import { soundService } from '@/features/reminders/services/sound.service';
+import { resolveErstelltNotification, resolveQuittiertNotification, resolveStatusGeaendertNotification } from '../lib/notification-resolver';
 import { BEFEHL_QUERY_KEYS } from './queries';
 import { EINSATZ_QUERY_KEYS } from '@/features/einsatz/api/queries';
 import { updateIntegrationStatus, resetIntegrationStatus, type IntegrationStatus } from './use-integration-status';
+
+/** Globaler Store fuer WebSocket-Verbindungsstatus (lesbar von jeder Komponente) */
+const befehlWsStatusStore = new Store<{ isConnected: boolean }>({ isConnected: false });
+
+/** Hook zum Lesen des WebSocket-Verbindungsstatus (ohne eigene Verbindung) */
+export function useBefehlWebSocketStatus() {
+  return useStore(befehlWsStatusStore, (s) => s.isConnected);
+}
 
 /** WebSocket Server URL - dynamisch aus Server-Store (wie REST-API) */
 const getWsUrl = (): string => getBaseUrl() || 'http://localhost:3091';
@@ -51,6 +64,13 @@ function addToProcessedEvents(set: Set<string>, key: string): void {
   }
 }
 
+/** Prüft ob eine Mutation mit den gegebenen Key-Teilen pending ist */
+function hasPendingMutation(queryClient: QueryClient, ...keys: string[]): boolean {
+  return !!queryClient.getMutationCache().find({
+    predicate: (m) => m.state.status === 'pending' && keys.every((k, i) => m.options.mutationKey?.[i] === k),
+  });
+}
+
 /**
  * WebSocket Event Payload: Befehl erstellt
  */
@@ -63,6 +83,7 @@ export interface BefehlErstelltPayload {
   befehlsgeberId?: string | null;
   erstellerId: string;
   empfaenger: string[];
+  empfaengerIds?: string[];
   status: string;
   erteiltAm: string;
 }
@@ -86,6 +107,24 @@ export interface BefehlQuittiertPayload {
   empfaengerId: string;
   quittierungArt: string;
   quittiertAm: string;
+  nummer?: string;
+  erstellerId?: string;
+  befehlsgeberId?: string;
+}
+
+/**
+ * WebSocket Event Payload: Befehl Status geaendert
+ */
+export interface BefehlStatusGeaendertPayload {
+  befehlId: string;
+  einsatzId: string;
+  oldStatus: string;
+  newStatus: string;
+  timestamp: string;
+  nummer?: string;
+  erstellerId?: string;
+  befehlsgeberId?: string;
+  empfaengerIds?: string[];
 }
 
 /**
@@ -137,33 +176,70 @@ export interface UseBefehlWebSocketReturn {
 }
 
 /**
+ * Wendet ein Notification-Result an (Sound + Toast/Alarm).
+ */
+function applyNotification(
+  result: ReturnType<typeof resolveErstelltNotification>,
+  context: {
+    event: {
+      befehlId: string;
+      einsatzId: string;
+      nummer?: string;
+      befehlsgeberName?: string;
+      auftrag?: string;
+      erteiltAm?: string;
+      quittiertAm?: string;
+      quittierungArt?: string;
+      timestamp?: string;
+      empfaengerId?: string;
+    };
+  },
+): void {
+  const { event } = context;
+  if (result.kind === 'alarm') {
+    if (result.alarmKind === 'befehl-erstellt') {
+      soundService.playAlarm('info').catch(() => {
+        /* non-critical */
+      });
+      showBefehlAlarmToast(event.befehlId, event.einsatzId, event.nummer ?? '', event.befehlsgeberName ?? '', event.auftrag ?? '', event.erteiltAm ?? '');
+    } else if (result.alarmKind === 'quittierung-kritisch') {
+      soundService.playAlarm('warning').catch(() => {
+        /* non-critical */
+      });
+      showQuittierungAlarmToast(event.befehlId, event.einsatzId, event.nummer ?? '', event.quittierungArt as 'RUECKFRAGE' | 'NICHT_VERSTANDEN', event.quittiertAm ?? '');
+      // Als gesehen markieren, damit useMissedBefehlAlerts bei Reload keinen Doppel-Toast zeigt
+      markAlertSeen(`quittierung:${event.befehlId}:${event.empfaengerId}:${event.quittiertAm}`);
+    } else if (result.alarmKind === 'befehl-korrigiert') {
+      soundService.playAlarm('info').catch(() => {
+        /* non-critical */
+      });
+      showKorrekturAlarmToast(event.befehlId, event.einsatzId, event.nummer ?? '', event.timestamp ?? new Date().toISOString());
+      markAlertSeen(`korrektur:${event.befehlId}`);
+    }
+  } else if (result.kind === 'toast') {
+    toast[result.level](result.title, { description: result.description });
+  }
+}
+
+/**
  * WebSocket Hook für Echtzeit-Befehl-Updates
  *
  * Verbindet automatisch beim Mount und invalidiert Query-Cache
- * bei relevanten Events.
- *
- * @example
- * ```tsx
- * function BefehlePage({ einsatzId }: Props) {
- *   const { status, isConnected } = useBefehlWebSocket({
- *     einsatzId,
- *   });
- *
- *   return (
- *     <div>
- *       <StatusIndicator connected={isConnected} />
- *       <BefehleList einsatzId={einsatzId} />
- *     </div>
- *   );
- * }
- * ```
+ * bei relevanten Events. Notification-Entscheidungslogik via
+ * pure Resolver Functions (notification-resolver.ts).
  */
 export function useBefehlWebSocket({ einsatzId, enabled = true, onBefehlErstellt, onBefehlQuittiert, onKommentarHinzugefuegt }: UseBefehlWebSocketOptions): UseBefehlWebSocketReturn {
   const queryClient = useQueryClient();
   const { user: currentUser } = useCurrentUser();
   const currentUserId = currentUser?.id;
   const socketRef = useRef<Socket | null>(null);
-  const [status, setStatus] = useState<WebSocketStatus>('disconnected');
+  const [status, _setStatus] = useState<WebSocketStatus>('disconnected');
+
+  // Status-Setter der auch den globalen Store aktualisiert
+  const setStatus = useCallback((newStatus: WebSocketStatus) => {
+    _setStatus(newStatus);
+    befehlWsStatusStore.setState(() => ({ isConnected: newStatus === 'connected' }));
+  }, []);
 
   // Ref für aktuelle einsatzId um stale Closures im connect Handler zu vermeiden
   const currentEinsatzIdRef = useRef(einsatzId);
@@ -185,21 +261,26 @@ export function useBefehlWebSocket({ einsatzId, enabled = true, onBefehlErstellt
   const processedEventIdsRef = useRef<Set<string>>(new Set());
 
   /**
-   * Invalidiert den Befehle-Query-Cache
+   * Invalidiert den Befehle-Query-Cache.
+   * Bei befehlId wird zusätzlich Detail/Verlauf invalidiert.
    */
-  const invalidateCache = useCallback(() => {
-    logger.debug('WebSocket: Invalidating befehle cache', { einsatzId });
-    // Invalidiert ALLE list-Queries fuer diesen Einsatz (inkl. gefilterter Varianten)
-    // listPrefix matcht: ['befehl', 'list', einsatzId, ...filters]
-    queryClient.invalidateQueries({
-      queryKey: BEFEHL_QUERY_KEYS.listPrefix(einsatzId),
-    });
-  }, [queryClient, einsatzId]);
+  const invalidateCache = useCallback(
+    (befehlId?: string) => {
+      logger.debug('WebSocket: Invalidating befehle cache', { einsatzId, befehlId });
+      queryClient.invalidateQueries({
+        queryKey: BEFEHL_QUERY_KEYS.listPrefix(einsatzId),
+      });
+      if (befehlId) {
+        queryClient.invalidateQueries({
+          queryKey: BEFEHL_QUERY_KEYS.detail(befehlId),
+        });
+      }
+    },
+    [queryClient, einsatzId],
+  );
 
   /**
    * Handler für 'befehl.erstellt' Event
-   *
-   * Toast nur bei Events von anderen Usern anzeigen (nicht bei eigenen Actions)
    */
   const handleBefehlErstellt = useCallback(
     (event: BefehlErstelltPayload) => {
@@ -212,46 +293,20 @@ export function useBefehlWebSocket({ einsatzId, enabled = true, onBefehlErstellt
 
       // Deduplizierung
       const eventKey = `${event.befehlId}:erstellt:${event.erteiltAm}`;
-      if (processedEventIdsRef.current.has(eventKey)) {
-        logger.debug('WebSocket: Skipping duplicate befehl.erstellt event', { eventKey });
-        return;
-      }
+      if (processedEventIdsRef.current.has(eventKey)) return;
       addToProcessedEvents(processedEventIdsRef.current, eventKey);
 
-      // Nutze Ref statt Closure für aktuelle userId
-      const userId = currentUserIdRef.current;
-      const isOwnEvent = userId && event.erstellerId === userId;
-
-      // C7: Check if mutation is pending for this befehl
-      const mutationCache = queryClient.getMutationCache();
-      const pendingMutation = mutationCache.find({
-        predicate: (mutation) => mutation.state.status === 'pending' && mutation.options.mutationKey?.[0] === 'befehl' && mutation.options.mutationKey?.[1] === 'create',
-      });
-
-      // Callback fuer Notification Hook IMMER aufrufen (nach Deduplizierung),
-      // auch bei pending Mutation - andere User-Events sollen Notifications erzeugen
+      // Callback fuer Notification Hook
       onBefehlErstelltRef.current?.(event);
 
-      if (pendingMutation) {
-        logger.debug('WebSocket: Skipping cache invalidation - mutation pending', {
-          befehlId: event.befehlId,
-        });
-        // Toast trotzdem bei Team-Events anzeigen
-        if (!isOwnEvent) {
-          toast.info(`Neuer Befehl #${event.nummer}`, {
-            description: (event.auftrag ?? '').substring(0, 80),
-          });
-        }
-        return;
-      }
+      // Notification via Resolver
+      const userId = currentUserIdRef.current;
+      const result = resolveErstelltNotification(event, userId);
+      applyNotification(result, { event });
 
-      invalidateCache();
-
-      // Toast nur bei Team-Events (nicht eigene Actions)
-      if (!isOwnEvent) {
-        toast.info(`Neuer Befehl #${event.nummer}`, {
-          description: (event.auftrag ?? '').substring(0, 80),
-        });
+      // Cache invalidieren (skip bei pending Mutation)
+      if (!hasPendingMutation(queryClient, 'befehl', 'create')) {
+        invalidateCache(event.befehlId);
       }
     },
     [invalidateCache, queryClient],
@@ -259,8 +314,6 @@ export function useBefehlWebSocket({ einsatzId, enabled = true, onBefehlErstellt
 
   /**
    * Handler für 'befehl.zugestellt' Event
-   *
-   * Toast nur bei Events von anderen Usern anzeigen (nicht bei eigenen Actions)
    */
   const handleBefehlZugestellt = useCallback(
     (event: BefehlZugestelltPayload) => {
@@ -273,56 +326,26 @@ export function useBefehlWebSocket({ einsatzId, enabled = true, onBefehlErstellt
 
       // Deduplizierung
       const eventKey = `${event.befehlId}:zugestellt:${event.zugestelltAm}`;
-      if (processedEventIdsRef.current.has(eventKey)) {
-        logger.debug('WebSocket: Skipping duplicate befehl.zugestellt event', { eventKey });
-        return;
-      }
+      if (processedEventIdsRef.current.has(eventKey)) return;
       addToProcessedEvents(processedEventIdsRef.current, eventKey);
 
-      // C7: Check if mutation is pending for this befehl
-      const mutationCache = queryClient.getMutationCache();
-      const pendingMutation = mutationCache.find({
-        predicate: (mutation) => mutation.state.status === 'pending' && mutation.options.mutationKey?.[0] === 'befehl' && mutation.options.mutationKey?.[1] === 'create',
-      });
-
-      if (pendingMutation) {
-        logger.debug('WebSocket: Skipping cache invalidation - zustellung mutation pending', {
-          befehlId: event.befehlId,
-        });
-        // Toast trotzdem bei Team-Events anzeigen
-        const userId = currentUserIdRef.current;
-        const isOwnZustellung = userId && event.empfaengerId === userId;
-        if (!isOwnZustellung) {
-          toast.info('Befehl zugestellt', {
-            description: `Befehl wurde an Empfänger zugestellt`,
-          });
-        }
-        return;
+      // Cache invalidieren (skip bei pending Mutation)
+      if (!hasPendingMutation(queryClient, 'befehl', 'create')) {
+        invalidateCache(event.befehlId);
       }
 
-      invalidateCache();
-
-      // Toast für Team-Events: Andere Teammitglieder informieren
+      // Toast
       const userId = currentUserIdRef.current;
       const isOwnZustellung = userId && event.empfaengerId === userId;
-
-      if (isOwnZustellung) {
-        toast.info('Befehl zugestellt', {
-          description: 'Ein Befehl wurde dir zugestellt',
-        });
-      } else {
-        toast.info('Befehl zugestellt', {
-          description: `Befehl wurde an Empfänger zugestellt`,
-        });
-      }
+      toast.info('Befehl zugestellt', {
+        description: isOwnZustellung ? 'Ein Befehl wurde dir zugestellt' : 'Befehl wurde an Empfänger zugestellt',
+      });
     },
     [invalidateCache, queryClient],
   );
 
   /**
    * Handler für 'befehl.quittiert' Event
-   *
-   * Toast nur bei Events von anderen Usern anzeigen (nicht bei eigener Quittierung)
    */
   const handleBefehlQuittiert = useCallback(
     (event: BefehlQuittiertPayload) => {
@@ -335,70 +358,55 @@ export function useBefehlWebSocket({ einsatzId, enabled = true, onBefehlErstellt
 
       // Deduplizierung
       const eventKey = `${event.befehlId}:quittiert:${event.quittiertAm}`;
-      if (processedEventIdsRef.current.has(eventKey)) {
-        logger.debug('WebSocket: Skipping duplicate befehl.quittiert event', { eventKey });
-        return;
-      }
+      if (processedEventIdsRef.current.has(eventKey)) return;
       addToProcessedEvents(processedEventIdsRef.current, eventKey);
 
-      // Callback fuer Badge-Update IMMER aufrufen (nach Deduplizierung)
+      // Callback fuer Badge-Update
       onBefehlQuittiertRef.current?.(event);
 
-      // C7: Check if mutation is pending for this befehl
-      const mutationCache = queryClient.getMutationCache();
-      const pendingMutation = mutationCache.find({
-        predicate: (mutation) => mutation.state.status === 'pending' && mutation.options.mutationKey?.[0] === 'befehl' && mutation.options.mutationKey?.[1] === 'quittieren',
-      });
+      // Notification via Resolver
+      const userId = currentUserIdRef.current;
+      const result = resolveQuittiertNotification(event, userId);
+      applyNotification(result, { event });
 
-      if (pendingMutation) {
-        logger.debug('WebSocket: Skipping cache invalidation - quittierung mutation pending', {
-          befehlId: event.befehlId,
-        });
-        // Toast trotzdem bei Team-Events anzeigen
-        const userId = currentUserIdRef.current;
-        const isOwnQuittierung = userId && event.empfaengerId === userId;
-        if (!isOwnQuittierung) {
-          toast.info('Befehl quittiert', {
-            description: 'Ein Empfänger hat den Befehl quittiert',
-          });
-        }
+      // Cache invalidieren (skip bei pending Mutation)
+      if (!hasPendingMutation(queryClient, 'befehl', 'quittieren')) {
+        invalidateCache(event.befehlId);
+      }
+    },
+    [invalidateCache, queryClient],
+  );
+
+  /**
+   * Handler für 'befehl.statusGeaendert' Event
+   */
+  const handleBefehlStatusGeaendert = useCallback(
+    (event: BefehlStatusGeaendertPayload) => {
+      if (!event?.befehlId || !event?.einsatzId) {
+        logger.warn('WebSocket: Invalid befehl.statusGeaendert payload', event);
         return;
       }
 
-      invalidateCache();
+      logger.info('WebSocket: Befehl Status geändert', event);
 
-      // Toast nur bei Team-Events (nicht eigene Quittierung)
+      // Deduplizierung
+      const eventKey = `${event.befehlId}:statusGeaendert:${event.timestamp}`;
+      if (processedEventIdsRef.current.has(eventKey)) return;
+      addToProcessedEvents(processedEventIdsRef.current, eventKey);
+
+      // Notification via Resolver
       const userId = currentUserIdRef.current;
-      const isOwnQuittierung = userId && event.empfaengerId === userId;
+      const result = resolveStatusGeaendertNotification(event, userId);
+      applyNotification(result, { event });
 
-      if (!isOwnQuittierung) {
-        // Warnung bei NICHT_VERSTANDEN - Befehl wird kritisch
-        if (event.quittierungArt === 'NICHT_VERSTANDEN') {
-          // Versuche Befehlsnummer aus Cache zu laden
-          let befehlNummer = '';
-          const cachedBefehle = queryClient.getQueryData<BefehlDto[]>(BEFEHL_QUERY_KEYS.listPrefix(einsatzId));
-          if (Array.isArray(cachedBefehle)) {
-            const cachedBefehl = cachedBefehle.find((b) => b.id === event.befehlId);
-            if (cachedBefehl) befehlNummer = ` #${cachedBefehl.nummer}`;
-          }
-
-          toast.warning(`Befehl${befehlNummer} nicht verstanden`, {
-            description: 'Ein Empfänger hat einen Befehl als "Nicht verstanden" quittiert',
-          });
-        } else {
-          toast.info('Befehl quittiert', {
-            description: 'Ein Empfänger hat den Befehl quittiert',
-          });
-        }
-      }
+      // Cache immer invalidieren bei Status-Aenderungen
+      invalidateCache(event.befehlId);
     },
-    [invalidateCache, queryClient, einsatzId],
+    [invalidateCache],
   );
 
   /**
    * Handler für 'befehl.kommentarHinzugefuegt' Event
-   *
-   * Toast nur bei Rückfragen von anderen Usern anzeigen
    */
   const handleKommentarHinzugefuegt = useCallback(
     (event: BefehlKommentarHinzugefuegtPayload) => {
@@ -411,35 +419,19 @@ export function useBefehlWebSocket({ einsatzId, enabled = true, onBefehlErstellt
 
       // Deduplizierung
       const eventKey = `${event.befehlId}:kommentar:${event.kommentarId}`;
-      if (processedEventIdsRef.current.has(eventKey)) {
-        logger.debug('WebSocket: Skipping duplicate befehl.kommentarHinzugefuegt event', { eventKey });
-        return;
-      }
+      if (processedEventIdsRef.current.has(eventKey)) return;
       addToProcessedEvents(processedEventIdsRef.current, eventKey);
 
-      // Callback IMMER aufrufen (nach Deduplizierung)
+      // Callback
       onKommentarHinzugefuegtRef.current?.(event);
 
       const userId = currentUserIdRef.current;
       const isOwnKommentar = userId && event.authorId === userId;
 
-      // Mutation-Pending Check (analog zu anderen Handlern)
-      const mutationCache = queryClient.getMutationCache();
-      const pendingMutation = mutationCache.find({
-        predicate: (mutation) => mutation.state.status === 'pending' && mutation.options.mutationKey?.[0] === 'befehl' && mutation.options.mutationKey?.[1] === 'kommentar',
-      });
-
-      if (pendingMutation) {
-        logger.debug('WebSocket: Skipping cache invalidation - kommentar mutation pending', { befehlId: event.befehlId });
-        if (!isOwnKommentar && event.isRueckfrage) {
-          toast.info('Neue Rückfrage', {
-            description: (event.text ?? '').substring(0, 80),
-          });
-        }
-        return;
+      // Cache invalidieren (skip bei pending Mutation)
+      if (!hasPendingMutation(queryClient, 'befehl', 'kommentar')) {
+        invalidateCache();
       }
-
-      invalidateCache();
 
       // Toast nur bei Rückfragen von anderen Usern
       if (!isOwnKommentar && event.isRueckfrage) {
@@ -458,6 +450,8 @@ export function useBefehlWebSocket({ einsatzId, enabled = true, onBefehlErstellt
   handleBefehlZugestelltRef.current = handleBefehlZugestellt;
   const handleBefehlQuittiertRef = useRef(handleBefehlQuittiert);
   handleBefehlQuittiertRef.current = handleBefehlQuittiert;
+  const handleBefehlStatusGeaendertRef = useRef(handleBefehlStatusGeaendert);
+  handleBefehlStatusGeaendertRef.current = handleBefehlStatusGeaendert;
   const handleKommentarHinzugefuegtRef = useRef(handleKommentarHinzugefuegt);
   handleKommentarHinzugefuegtRef.current = handleKommentarHinzugefuegt;
 
@@ -470,10 +464,7 @@ export function useBefehlWebSocket({ einsatzId, enabled = true, onBefehlErstellt
       return;
     }
 
-    if (!enabled || !einsatzId) {
-      logger.debug('WebSocket: Not connecting (disabled or no einsatzId)');
-      return;
-    }
+    if (!enabled || !einsatzId) return;
 
     setStatus('connecting');
     const wsUrl = getWsUrl();
@@ -489,24 +480,17 @@ export function useBefehlWebSocket({ einsatzId, enabled = true, onBefehlErstellt
     });
 
     socket.on('connect', () => {
-      // Nutze currentEinsatzIdRef.current statt einsatzId aus Closure
       const currentEinsatzId = currentEinsatzIdRef.current;
-      const currentRoomName = `einsatz:${currentEinsatzId}:befehle`;
-
-      logger.info('WebSocket: Connected, joining room', { room: currentRoomName });
+      logger.info('WebSocket: Connected, joining room', { room: `einsatz:${currentEinsatzId}:befehle` });
       setStatus('connected');
       processedEventIdsRef.current.clear();
-
-      // Room beitreten mit aktueller einsatzId
       socket.emit('join:einsatz', { einsatzId: currentEinsatzId });
     });
 
     socket.on('disconnect', (reason) => {
       logger.warn('WebSocket: Disconnected', { reason });
       setStatus('disconnected');
-      // Processed Events bei Disconnect leeren
       processedEventIdsRef.current.clear();
-      // Integration Status zuruecksetzen (kein WS = kein Live-Status)
       resetIntegrationStatus();
     });
 
@@ -519,7 +503,22 @@ export function useBefehlWebSocket({ einsatzId, enabled = true, onBefehlErstellt
     socket.on('befehl.erstellt', (event) => handleBefehlErstelltRef.current(event));
     socket.on('befehl.zugestellt', (event) => handleBefehlZugestelltRef.current(event));
     socket.on('befehl.quittiert', (event) => handleBefehlQuittiertRef.current(event));
+    socket.on('befehl.statusGeaendert', (event) => handleBefehlStatusGeaendertRef.current(event));
     socket.on('befehl.kommentarHinzugefuegt', (event) => handleKommentarHinzugefuegtRef.current(event));
+
+    // Empfaenger-Status-Aenderung (WP3.4) - Cache invalidieren
+    socket.on('befehl.empfaengerStatusGeaendert', (payload: { befehlId: string; empfaengerEntityId: string; aktion: string; timestamp: string }) => {
+      if (!payload?.befehlId) {
+        logger.warn('WebSocket: Invalid befehl.empfaengerStatusGeaendert payload', payload);
+        return;
+      }
+      const dedupeKey = `empfaengerStatus:${payload.befehlId}:${payload.empfaengerEntityId}:${payload.timestamp}`;
+      if (processedEventIdsRef.current.has(dedupeKey)) return;
+      addToProcessedEvents(processedEventIdsRef.current, dedupeKey);
+
+      logger.info('WebSocket: Empfaenger-Status geaendert', payload);
+      invalidateCache(payload.befehlId);
+    });
 
     // Rollen-Aenderung Events (Story 5.4 AC3) - Rollen-Cache invalidieren
     socket.on('rolle.geaendert', (payload: { einsatzId: string; timestamp: string }) => {
@@ -528,16 +527,11 @@ export function useBefehlWebSocket({ einsatzId, enabled = true, onBefehlErstellt
         return;
       }
 
-      // Deduplizierung (L2-Fix)
       const dedupeKey = `rolle.geaendert:${payload.einsatzId}:${payload.timestamp}`;
-      if (processedEventIdsRef.current.has(dedupeKey)) {
-        logger.debug('WebSocket: Duplicate rolle.geaendert event, skipping', payload);
-        return;
-      }
+      if (processedEventIdsRef.current.has(dedupeKey)) return;
       addToProcessedEvents(processedEventIdsRef.current, dedupeKey);
 
       logger.info('WebSocket: Rolle geändert', payload);
-      // Rollen-Cache invalidieren → useEinsatzRollen und useBefehlPermissions aktualisieren sich
       queryClient.invalidateQueries({
         queryKey: EINSATZ_QUERY_KEYS.rollen(payload.einsatzId),
       });
@@ -546,7 +540,7 @@ export function useBefehlWebSocket({ einsatzId, enabled = true, onBefehlErstellt
       });
     });
 
-    // Integration Status Events (Story 5.3 AC5/AC6) - ueber bestehende WebSocket-Verbindung
+    // Integration Status Events (Story 5.3 AC5/AC6)
     socket.on('integration.status_changed', (payload: IntegrationStatus) => {
       if (!payload?.serviceName || !payload?.state) {
         logger.warn('WebSocket: Invalid integration.status_changed payload', payload);
@@ -557,7 +551,7 @@ export function useBefehlWebSocket({ einsatzId, enabled = true, onBefehlErstellt
     });
 
     socketRef.current = socket;
-  }, [enabled, einsatzId, queryClient]);
+  }, [enabled, einsatzId, queryClient, invalidateCache, setStatus]);
 
   /**
    * Verbindung trennen
@@ -574,7 +568,7 @@ export function useBefehlWebSocket({ einsatzId, enabled = true, onBefehlErstellt
       processedEventIdsRef.current.clear();
       resetIntegrationStatus();
     }
-  }, [einsatzId]);
+  }, [einsatzId, setStatus]);
 
   // Auto-Connect beim Mount
   useEffect(() => {

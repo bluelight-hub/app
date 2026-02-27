@@ -64,14 +64,31 @@ export class EmpfaengerSucheQueryHandler {
         take: EmpfaengerSucheQueryHandler.MAX_RESULTS,
       });
 
+      // userId via EinsatzTeilnehmer-Mapping aufloesen (fuer In-App-Quittierung)
+      const einsatzPersonIds = einsatzPersonen.map((ep) => ep.id);
+      const teilnehmerMap = new Map<string, string>();
+      if (einsatzPersonIds.length > 0) {
+        const teilnehmer = await this.prisma.einsatzTeilnehmer.findMany({
+          where: {
+            einsatzId,
+            einsatzPersonId: { in: einsatzPersonIds },
+            leftAt: null,
+          },
+          select: { einsatzPersonId: true, userId: true },
+        });
+        for (const t of teilnehmer) {
+          teilnehmerMap.set(t.einsatzPersonId, t.userId);
+        }
+      }
+
       // EinsatzPerson -> DTO
-      // KNOWN GAP: userId nicht verfuegbar im EinsatzPerson-Schema (AC5 partial)
       const einsatzResults: EmpfaengerSucheResultDto[] = einsatzPersonen.map((ep) => {
         const dto = new EmpfaengerSucheResultDto();
         dto.id = ep.id;
         dto.name = ep.funkrufname ?? `${ep.nachname}, ${ep.vorname}`;
         dto.rolle = ep.funktion;
         dto.qualifikation = ep.qualifikationen?.[0]?.qualifikation?.name;
+        dto.userId = teilnehmerMap.get(ep.id);
         dto.quelle = EmpfaengerQuelle.EINSATZ;
         return dto;
       });

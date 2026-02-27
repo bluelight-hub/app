@@ -2,7 +2,6 @@ import { Global, Module } from '@nestjs/common';
 import * as client from 'prom-client';
 import { METRICS } from '@/infrastructure/di-tokens';
 import { MetricsController } from './metrics.controller';
-import { BefehlMetricsService } from './befehl-metrics.service';
 
 /**
  * Metriken-Modul fuer Prometheus-kompatibles Monitoring.
@@ -15,7 +14,6 @@ import { BefehlMetricsService } from './befehl-metrics.service';
  * - HTTP Request Duration Histogram (via MetricsInterceptor)
  * - WebSocket Active Connections Gauge
  * - Outbox Queue Depth Gauge
- * - Befehl Domain Counters (erstellt, quittiert, korrigiert)
  *
  * **Endpoint:**
  * GET /metrics - Prometheus Scraping Endpoint (ohne Auth)
@@ -27,7 +25,6 @@ import { BefehlMetricsService } from './befehl-metrics.service';
 @Module({
   controllers: [MetricsController],
   providers: [
-    BefehlMetricsService,
     {
       provide: METRICS.REGISTRY,
       useFactory: () => {
@@ -63,39 +60,7 @@ import { BefehlMetricsService } from './befehl-metrics.service';
           help: 'Number of pending events in the outbox',
         }),
     },
-    {
-      provide: METRICS.BEFEHL_ERSTELLT_COUNTER,
-      useFactory: () =>
-        new client.Counter({
-          name: 'befehl_erstellt_total',
-          help: 'Total number of Befehle created',
-        }),
-    },
-    {
-      provide: METRICS.BEFEHL_QUITTIERT_COUNTER,
-      useFactory: () =>
-        new client.Counter({
-          name: 'befehl_quittiert_total',
-          help: 'Total number of Befehle quittiert',
-        }),
-    },
-    {
-      provide: METRICS.BEFEHL_KORRIGIERT_COUNTER,
-      useFactory: () =>
-        new client.Counter({
-          name: 'befehl_korrigiert_total',
-          help: 'Total number of Befehle korrigiert',
-        }),
-    },
   ],
-  exports: [
-    METRICS.REGISTRY,
-    METRICS.HTTP_REQUEST_DURATION,
-    METRICS.WS_CONNECTIONS,
-    METRICS.OUTBOX_QUEUE_DEPTH,
-    METRICS.BEFEHL_ERSTELLT_COUNTER,
-    METRICS.BEFEHL_QUITTIERT_COUNTER,
-    METRICS.BEFEHL_KORRIGIERT_COUNTER,
-  ],
+  exports: [METRICS.REGISTRY, METRICS.HTTP_REQUEST_DURATION, METRICS.WS_CONNECTIONS, METRICS.OUTBOX_QUEUE_DEPTH],
 })
 export class MetricsModule {}

@@ -6,6 +6,8 @@ import { PiListChecks, PiQuestion, PiUser, PiWarningCircle } from 'react-icons/p
 import { useNavigate } from '@tanstack/react-router';
 import { cn } from '@/shared/ui/cn';
 import { Tooltip } from '@/shared/ui/atoms/tooltip.atom';
+import { useAendereEmpfaengerStatus } from '../../api/use-aendere-empfaenger-status';
+import type { AendereEmpfaengerStatusInput } from '../../api/use-aendere-empfaenger-status';
 import { useBefehleByEinsatz } from '../../api/use-befehle-by-einsatz';
 import { useMeineBefehle } from '../../api/use-meine-befehle';
 import { useMeineBefehleFilter, useOffeneRueckfragenFilter, setShowMeineBefehle, setShowOffeneRueckfragen } from '../../hooks/use-meine-befehle-filter';
@@ -52,7 +54,11 @@ export function BefehlsListeMitEingabe({ einsatzId, initialBefehlId }: BefehlsLi
   const [showEingabeRow, setShowEingabeRow] = useState(false);
   const { user: currentUser } = useCurrentUser();
   const navigate = useNavigate();
-  const { canCreate, canQuittieren, canViewAll, isLoading: isPermissionsLoading } = useBefehlPermissions(einsatzId);
+  const { canCreate, canQuittieren, canManageStatus, canViewAll, isLoading: isPermissionsLoading } = useBefehlPermissions(einsatzId);
+  const statusMutation = useAendereEmpfaengerStatus(einsatzId);
+  const handleStatusChange = (input: AendereEmpfaengerStatusInput) => {
+    statusMutation.mutate(input);
+  };
   const hasBefehlAccess = !isPermissionsLoading && canViewAll;
   const [showMeineBefehle, toggleMeineBefehle] = useMeineBefehleFilter();
   const [showOffeneRueckfragen, toggleOffeneRueckfragen] = useOffeneRueckfragenFilter();
@@ -348,6 +354,8 @@ export function BefehlsListeMitEingabe({ einsatzId, initialBefehlId }: BefehlsLi
                   originalBefehlId={befehl.originalBefehlId}
                   allBefehle={alleBefehleQuery.data}
                   canQuittieren={canQuittieren}
+                  onStatusChange={handleStatusChange}
+                  canManageStatus={canManageStatus}
                 />
               </li>
             ))}

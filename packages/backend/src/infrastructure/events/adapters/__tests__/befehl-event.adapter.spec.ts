@@ -105,6 +105,7 @@ describe('BefehlEventAdapter', () => {
         befehlsgeberName: 'Max Mustermann',
         erstellerId: 'ersteller-456',
         empfaenger,
+        empfaengerIds: expect.any(Array),
         status: 'ERTEILT',
         erteiltAm: erteiltAm.toISOString(),
       });
@@ -190,16 +191,14 @@ describe('BefehlEventAdapter', () => {
   });
 
   describe('onBefehlZugestellt', () => {
-    it('should emit WebSocket event with einsatzId from DB-lookup', async () => {
-      // Given: BefehlZugestelltEvent und DB liefert einsatzId
+    it('should emit WebSocket event with einsatzId from enriched event', async () => {
+      // Given: BefehlZugestelltEvent mit enriched data (kein DB-Lookup noetig)
       const befehlId = generateValidBefehlId();
+      const einsatzId = generateValidEinsatzId();
       const empfaengerId = generateValidUserId().value;
       const zugestelltAm = new Date('2026-02-17T10:05:00.000Z');
 
-      const event = new BefehlZugestelltEvent(befehlId, empfaengerId, zugestelltAm, befehlId.value);
-
-      const einsatzId = generateValidEinsatzId().value;
-      mockPrisma.befehl.findUnique.mockResolvedValue({ einsatzId });
+      const event = new BefehlZugestelltEvent(befehlId, empfaengerId, zugestelltAm, einsatzId, 'ZF Nord', 'B-001', befehlId.value);
 
       // When: onBefehlZugestellt aufgerufen
       await adapter.onBefehlZugestellt(event);
@@ -208,32 +207,22 @@ describe('BefehlEventAdapter', () => {
       expect(mockGateway.emitBefehlZugestellt).toHaveBeenCalledTimes(1);
       expect(mockGateway.emitBefehlZugestellt).toHaveBeenCalledWith({
         befehlId: befehlId.value,
-        einsatzId,
+        einsatzId: einsatzId.value,
         empfaengerId,
         zugestelltAm: zugestelltAm.toISOString(),
       });
-    });
-
-    it('should log error and return when befehl not found in DB', async () => {
-      // Given: Befehl nicht in DB
-      const befehlId = generateValidBefehlId();
-      const event = new BefehlZugestelltEvent(befehlId, 'empfaenger-1', new Date(), befehlId.value);
-
-      mockPrisma.befehl.findUnique.mockResolvedValue(null);
-
-      // When: Handler aufgerufen
-      await adapter.onBefehlZugestellt(event);
-
-      // Then: logger.error aufgerufen, gateway nicht aufgerufen
-      expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining('Befehl not found'), 'BefehlEventAdapter');
-      expect(mockGateway.emitBefehlZugestellt).not.toHaveBeenCalled();
+      // Kein DB-Lookup mehr noetig
+      expect(mockPrisma.befehl.findUnique).not.toHaveBeenCalled();
     });
 
     it('should log and not propagate errors (Fire-and-Forget)', async () => {
-      // Given: DB-Query wirft Fehler
-      const event = new BefehlZugestelltEvent(generateValidBefehlId(), 'empfaenger-1', new Date());
+      // Given: Gateway emit wirft Fehler
+      const einsatzId = generateValidEinsatzId();
+      const event = new BefehlZugestelltEvent(generateValidBefehlId(), 'empfaenger-1', new Date(), einsatzId, 'ZF Nord', 'B-001');
 
-      mockPrisma.befehl.findUnique.mockRejectedValue(new Error('DB error'));
+      mockGateway.emitBefehlZugestellt.mockImplementation(() => {
+        throw new Error('Socket error');
+      });
 
       // When: Handler aufgerufen - sollte nicht throwen
       await expect(adapter.onBefehlZugestellt(event)).resolves.not.toThrow();
@@ -244,16 +233,14 @@ describe('BefehlEventAdapter', () => {
   });
 
   describe('onBefehlStatusGeaendert', () => {
-    it('should emit WebSocket event with correct status fields', async () => {
-      // Given: BefehlStatusGeaendertEvent und DB liefert einsatzId
+    it('should emit WebSocket event with correct status fields from enriched event', async () => {
+      // Given: BefehlStatusGeaendertEvent mit enriched data (kein DB-Lookup noetig)
       const befehlId = generateValidBefehlId();
+      const einsatzId = generateValidEinsatzId();
       const oldStatus = BefehlStatus.ERTEILT();
       const newStatus = BefehlStatus.ZUGESTELLT();
 
-      const event = new BefehlStatusGeaendertEvent(befehlId, oldStatus, newStatus, befehlId.value);
-
-      const einsatzId = generateValidEinsatzId().value;
-      mockPrisma.befehl.findUnique.mockResolvedValue({ einsatzId });
+      const event = new BefehlStatusGeaendertEvent(befehlId, oldStatus, newStatus, einsatzId, 'B-001', befehlId.value);
 
       // When: onBefehlStatusGeaendert aufgerufen
       await adapter.onBefehlStatusGeaendert(event);
@@ -262,32 +249,27 @@ describe('BefehlEventAdapter', () => {
       expect(mockGateway.emitBefehlStatusGeaendert).toHaveBeenCalledTimes(1);
       expect(mockGateway.emitBefehlStatusGeaendert).toHaveBeenCalledWith({
         befehlId: befehlId.value,
-        einsatzId,
+        einsatzId: einsatzId.value,
         oldStatus: 'ERTEILT',
         newStatus: 'ZUGESTELLT',
         timestamp: expect.any(String),
+        nummer: 'B-001',
+        erstellerId: undefined,
+        befehlsgeberId: undefined,
+        empfaengerIds: undefined,
       });
-    });
-
-    it('should log error and return when befehl not found in DB', async () => {
-      // Given: Befehl nicht in DB
-      const event = new BefehlStatusGeaendertEvent(generateValidBefehlId(), BefehlStatus.ERTEILT(), BefehlStatus.ZUGESTELLT());
-
-      mockPrisma.befehl.findUnique.mockResolvedValue(null);
-
-      // When: Handler aufgerufen
-      await adapter.onBefehlStatusGeaendert(event);
-
-      // Then: logger.error aufgerufen, gateway nicht aufgerufen
-      expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining('Befehl not found'), 'BefehlEventAdapter');
-      expect(mockGateway.emitBefehlStatusGeaendert).not.toHaveBeenCalled();
+      // Kein DB-Lookup mehr noetig
+      expect(mockPrisma.befehl.findUnique).not.toHaveBeenCalled();
     });
 
     it('should log and not propagate errors (Fire-and-Forget)', async () => {
-      // Given: DB-Query wirft Fehler
-      const event = new BefehlStatusGeaendertEvent(generateValidBefehlId(), BefehlStatus.ERTEILT(), BefehlStatus.ZUGESTELLT());
+      // Given: Gateway emit wirft Fehler
+      const einsatzId = generateValidEinsatzId();
+      const event = new BefehlStatusGeaendertEvent(generateValidBefehlId(), BefehlStatus.ERTEILT(), BefehlStatus.ZUGESTELLT(), einsatzId, 'B-001');
 
-      mockPrisma.befehl.findUnique.mockRejectedValue(new Error('DB error'));
+      mockGateway.emitBefehlStatusGeaendert.mockImplementation(() => {
+        throw new Error('Socket error');
+      });
 
       // When: Handler aufgerufen - sollte nicht throwen
       await expect(adapter.onBefehlStatusGeaendert(event)).resolves.not.toThrow();
@@ -381,7 +363,7 @@ describe('BefehlEventAdapter', () => {
       const empfaengerId = generateValidUserId();
       const quittiertAm = new Date('2026-02-18T10:00:00.000Z');
 
-      const event = new BefehlQuittiertEvent(befehlId, einsatzId, empfaengerId, 'VERSTANDEN', 'B-001', quittiertAm, befehlId.value);
+      const event = new BefehlQuittiertEvent(befehlId, einsatzId, empfaengerId, 'VERSTANDEN', 'B-001', quittiertAm, undefined, befehlId.value);
 
       // When: onBefehlQuittiert aufgerufen
       await adapter.onBefehlQuittiert(event);
@@ -395,6 +377,7 @@ describe('BefehlEventAdapter', () => {
         quittierungArt: 'VERSTANDEN',
         nummer: 'B-001',
         quittiertAm: quittiertAm.toISOString(),
+        quittierungKommentar: undefined,
       });
       // Kein DB-Lookup noetig (Event-Carried State Transfer)
       expect(mockPrisma.befehl.findUnique).not.toHaveBeenCalled();

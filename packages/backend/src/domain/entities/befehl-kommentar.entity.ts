@@ -1,6 +1,5 @@
 import { createId } from '@paralleldrive/cuid2';
 import type { UserId } from '@domain/value-objects/user-id';
-import { anonymisiereString } from '@domain/common/anonymisierung';
 
 /**
  * BefehlKommentar Child Entity.

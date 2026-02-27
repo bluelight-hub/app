@@ -49,7 +49,12 @@ export const useCreateBefehl = (einsatzId: string) => {
           id: `temp-${Date.now()}`,
           nummer: '...',
           status: BefehlDtoStatusEnum.Erteilt,
-          befehlstyp: BefehlDtoBefehlstypEnum.Kurzbefehl,
+          befehlstyp:
+            newBefehl.ereignis && newBefehl.mittel && newBefehl.ziel && newBefehl.weg
+              ? BefehlDtoBefehlstypEnum.Eamzw
+              : newBefehl.ereignis || newBefehl.mittel || newBefehl.ziel || newBefehl.weg
+                ? BefehlDtoBefehlstypEnum.Erweitert
+                : BefehlDtoBefehlstypEnum.Kurzbefehl,
           befehlsgeberName: newBefehl.befehlsgeber,
           erteiltAm: new Date(),
           empfaenger: newBefehl.empfaenger.map((e) => ({
@@ -58,6 +63,10 @@ export const useCreateBefehl = (einsatzId: string) => {
             empfaengerId: e.empfaengerId,
             istQuittierbar: !!e.empfaengerId,
           })),
+          ereignis: newBefehl.ereignis,
+          mittel: newBefehl.mittel,
+          ziel: newBefehl.ziel,
+          weg: newBefehl.weg,
           kommentare: [],
           createdAt: new Date(),
           updatedAt: new Date(),
