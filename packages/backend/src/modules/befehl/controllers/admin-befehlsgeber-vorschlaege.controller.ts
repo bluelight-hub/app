@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, HttpCode, HttpStatus, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, HttpCode, HttpStatus, ValidationPipe, BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -62,7 +62,13 @@ export class AdminBefehlsgeberVorschlaegeController {
     if (istAktiv === 'false') istAktivFilter = false;
 
     const query = new GetAllBefehlsgeberVorschlaegeQuery(istAktivFilter);
-    return this.getAllHandler.execute(query);
+    const result = await this.getAllHandler.execute(query);
+
+    if (result.isFailure) {
+      throw new BadRequestException(result.error);
+    }
+
+    return result.value ?? [];
   }
 
   @Post()
@@ -74,7 +80,20 @@ export class AdminBefehlsgeberVorschlaegeController {
   @ApiBadRequestResponse({ description: 'Validierungsfehler' })
   async create(@CurrentUser() user: ValidatedUser, @Body(new ValidationPipe({ transform: true, whitelist: true })) dto: CreateBefehlsgeberVorschlagDto): Promise<BefehlsgeberVorschlagDto> {
     const command = new CreateBefehlsgeberVorschlagCommand(dto.kuerzel, dto.label, user.userId, dto.sortOrder);
-    return this.createHandler.execute(command);
+    const result = await this.createHandler.execute(command);
+
+    if (result.isFailure) {
+      if (result.error?.includes('bereits vergeben')) {
+        throw new ConflictException(result.error);
+      }
+      throw new BadRequestException(result.error);
+    }
+
+    if (!result.value) {
+      throw new BadRequestException('Befehlsgeber-Vorschlag konnte nicht erstellt werden');
+    }
+
+    return result.value;
   }
 
   @Delete(':id')
@@ -84,7 +103,14 @@ export class AdminBefehlsgeberVorschlaegeController {
   @ApiNotFoundResponse({ description: 'Befehlsgeber-Vorschlag nicht gefunden' })
   async remove(@Param('id', ParseCuidPipe) id: string): Promise<void> {
     const command = new DeleteBefehlsgeberVorschlagCommand(id);
-    await this.deleteHandler.execute(command);
+    const result = await this.deleteHandler.execute(command);
+
+    if (result.isFailure) {
+      if (result.error?.includes('nicht gefunden')) {
+        throw new NotFoundException(result.error);
+      }
+      throw new BadRequestException(result.error);
+    }
   }
 
   @Patch(':id')
@@ -100,6 +126,22 @@ export class AdminBefehlsgeberVorschlaegeController {
     @Body(new ValidationPipe({ transform: true, whitelist: true })) dto: UpdateBefehlsgeberVorschlagDto,
   ): Promise<BefehlsgeberVorschlagDto> {
     const command = new UpdateBefehlsgeberVorschlagCommand(id, user.userId, dto.kuerzel, dto.label, dto.sortOrder, dto.istAktiv);
-    return this.updateHandler.execute(command);
+    const result = await this.updateHandler.execute(command);
+
+    if (result.isFailure) {
+      if (result.error?.includes('nicht gefunden')) {
+        throw new NotFoundException(result.error);
+      }
+      if (result.error?.includes('bereits vergeben')) {
+        throw new ConflictException(result.error);
+      }
+      throw new BadRequestException(result.error);
+    }
+
+    if (!result.value) {
+      throw new BadRequestException('Befehlsgeber-Vorschlag konnte nicht aktualisiert werden');
+    }
+
+    return result.value;
   }
 }

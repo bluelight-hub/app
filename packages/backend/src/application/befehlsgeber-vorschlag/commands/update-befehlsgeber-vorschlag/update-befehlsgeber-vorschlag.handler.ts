@@ -1,4 +1,5 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { Result } from '@domain/common/result';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { BefehlsgeberVorschlagDto } from '../../dto/befehlsgeber-vorschlag.dto';
 import { UpdateBefehlsgeberVorschlagCommand } from './update-befehlsgeber-vorschlag.command';
@@ -8,13 +9,13 @@ import { UpdateBefehlsgeberVorschlagCommand } from './update-befehlsgeber-vorsch
 export class UpdateBefehlsgeberVorschlagHandler {
   constructor(private readonly prisma: PrismaService) {}
 
-  async execute(command: UpdateBefehlsgeberVorschlagCommand): Promise<BefehlsgeberVorschlagDto> {
+  async execute(command: UpdateBefehlsgeberVorschlagCommand): Promise<Result<BefehlsgeberVorschlagDto>> {
     const existing = await this.prisma.befehlsgeberVorschlag.findUnique({
       where: { id: command.id },
     });
 
     if (!existing) {
-      throw new NotFoundException(`BefehlsgeberVorschlag mit ID "${command.id}" nicht gefunden`);
+      return Result.fail(`BefehlsgeberVorschlag mit ID "${command.id}" nicht gefunden`);
     }
 
     if (command.kuerzel && command.kuerzel !== existing.kuerzel) {
@@ -22,7 +23,7 @@ export class UpdateBefehlsgeberVorschlagHandler {
         where: { kuerzel: command.kuerzel },
       });
       if (duplicate) {
-        throw new ConflictException(`Kuerzel "${command.kuerzel}" ist bereits vergeben`);
+        return Result.fail(`Kuerzel "${command.kuerzel}" ist bereits vergeben`);
       }
     }
 
@@ -37,7 +38,7 @@ export class UpdateBefehlsgeberVorschlagHandler {
       data,
     });
 
-    return this.toDto(updated);
+    return Result.ok(this.toDto(updated));
   }
 
   private toDto(entity: {

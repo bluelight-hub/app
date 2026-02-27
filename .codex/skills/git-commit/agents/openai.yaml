@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git Commit"
+  short_description: "Create safe, convention-aligned git commits"
+  default_prompt: "Use $git-commit to stage selected files and create a compliant commit."

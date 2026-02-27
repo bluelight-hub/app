@@ -44,6 +44,11 @@ export interface EinsatzTeilnehmerDto {
  */
 export interface IEinsatzTeilnehmerRepository {
   /**
+   * Prüft ob eine EinsatzPerson existiert und zum Einsatz gehört.
+   */
+  existsEinsatzPerson(einsatzId: string, einsatzPersonId: string, tx?: TransactionContext): Promise<boolean>;
+
+  /**
    * Findet den aktiven Teilnehmer-Eintrag für einen User in einem Einsatz.
    */
   findByEinsatzAndUser(einsatzId: string, userId: string, tx?: TransactionContext): Promise<EinsatzTeilnehmerDto | null>;

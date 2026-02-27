@@ -3,7 +3,6 @@ import { Result } from '@domain/common/result';
 import type { EinsatzTeilnehmerDto, IEinsatzTeilnehmerRepository } from '@domain/repositories/i-einsatz-teilnehmer.repository';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { EINSATZ_TEILNEHMER_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
-import { PrismaService } from '@infrastructure/database/prisma.service';
 import type { JoinEinsatzCommand } from './join-einsatz.command';
 
 /**
@@ -19,22 +18,15 @@ export class JoinEinsatzHandler {
     private readonly repository: IEinsatzTeilnehmerRepository,
     @Inject(LOGGER)
     private readonly logger: ILogger,
-    private readonly prisma: PrismaService,
   ) {}
 
   async execute(command: JoinEinsatzCommand): Promise<Result<EinsatzTeilnehmerDto>> {
     this.logger.log(`User ${command.userId} joining Einsatz ${command.einsatzId} with EinsatzPerson "${command.einsatzPersonId}"`);
 
     // 1. Validiere: EinsatzPerson existiert und gehört zum Einsatz
-    const person = await this.prisma.einsatzPerson.findFirst({
-      where: {
-        id: command.einsatzPersonId,
-        einsatzId: command.einsatzId,
-      },
-      select: { id: true },
-    });
+    const personExists = await this.repository.existsEinsatzPerson(command.einsatzId, command.einsatzPersonId);
 
-    if (!person) {
+    if (!personExists) {
       return Result.fail('EinsatzPerson existiert nicht oder gehört nicht zu diesem Einsatz');
     }
 

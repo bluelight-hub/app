@@ -7,7 +7,6 @@ describe('JoinEinsatzHandler', () => {
   let handler: JoinEinsatzHandler;
   let mockRepository: jest.Mocked<IEinsatzTeilnehmerRepository>;
   let mockLogger: jest.Mocked<ILogger>;
-  let mockPrisma: { einsatzPerson: { findFirst: jest.Mock } };
 
   const mockTeilnehmerDto = (overrides = {}) => ({
     id: 'teilnehmer-789',
@@ -27,6 +26,7 @@ describe('JoinEinsatzHandler', () => {
     jest.clearAllMocks();
 
     mockRepository = {
+      existsEinsatzPerson: jest.fn(),
       findByEinsatzAndUser: jest.fn(),
       findActiveByEinsatz: jest.fn(),
       isPersonAlreadyLinked: jest.fn(),
@@ -42,11 +42,7 @@ describe('JoinEinsatzHandler', () => {
       debug: jest.fn(),
     };
 
-    mockPrisma = {
-      einsatzPerson: { findFirst: jest.fn() },
-    };
-
-    handler = new JoinEinsatzHandler(mockRepository, mockLogger, mockPrisma as any);
+    handler = new JoinEinsatzHandler(mockRepository, mockLogger);
   });
 
   describe('execute - Insert Case', () => {
@@ -59,7 +55,7 @@ describe('JoinEinsatzHandler', () => {
 
       const expectedTeilnehmer = mockTeilnehmerDto();
 
-      mockPrisma.einsatzPerson.findFirst.mockResolvedValue({ id: einsatzPersonId });
+      mockRepository.existsEinsatzPerson.mockResolvedValue(true);
       mockRepository.findByEinsatzAndUser.mockResolvedValue(null);
       mockRepository.isPersonAlreadyLinked.mockResolvedValue(false);
       mockRepository.create.mockResolvedValue(expectedTeilnehmer);
@@ -70,10 +66,7 @@ describe('JoinEinsatzHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toEqual(expectedTeilnehmer);
-      expect(mockPrisma.einsatzPerson.findFirst).toHaveBeenCalledWith({
-        where: { id: einsatzPersonId, einsatzId },
-        select: { id: true },
-      });
+      expect(mockRepository.existsEinsatzPerson).toHaveBeenCalledWith(einsatzId, einsatzPersonId);
       expect(mockRepository.findByEinsatzAndUser).toHaveBeenCalledWith(einsatzId, userId);
       expect(mockRepository.isPersonAlreadyLinked).toHaveBeenCalledWith(einsatzId, einsatzPersonId);
       expect(mockRepository.create).toHaveBeenCalledWith({
@@ -89,7 +82,7 @@ describe('JoinEinsatzHandler', () => {
       // Given (Arrange)
       const command = JoinEinsatzCommand.create('einsatz-123', 'user-456', 'person-abc').value!;
 
-      mockPrisma.einsatzPerson.findFirst.mockResolvedValue({ id: 'person-abc' });
+      mockRepository.existsEinsatzPerson.mockResolvedValue(true);
       mockRepository.findByEinsatzAndUser.mockResolvedValue(null);
       mockRepository.isPersonAlreadyLinked.mockResolvedValue(false);
       mockRepository.create.mockResolvedValue(mockTeilnehmerDto());
@@ -98,17 +91,14 @@ describe('JoinEinsatzHandler', () => {
       await handler.execute(command);
 
       // Then (Assert)
-      expect(mockPrisma.einsatzPerson.findFirst).toHaveBeenCalledWith({
-        where: { id: 'person-abc', einsatzId: 'einsatz-123' },
-        select: { id: true },
-      });
+      expect(mockRepository.existsEinsatzPerson).toHaveBeenCalledWith('einsatz-123', 'person-abc');
     });
 
     it('should reject when EinsatzPerson not found', async () => {
       // Given (Arrange)
       const command = JoinEinsatzCommand.create('einsatz-123', 'user-456', 'nonexistent-person').value!;
 
-      mockPrisma.einsatzPerson.findFirst.mockResolvedValue(null);
+      mockRepository.existsEinsatzPerson.mockResolvedValue(false);
 
       // When (Act)
       const result = await handler.execute(command);
@@ -124,7 +114,7 @@ describe('JoinEinsatzHandler', () => {
       // Given (Arrange)
       const command = JoinEinsatzCommand.create('einsatz-123', 'user-456', 'person-abc').value!;
 
-      mockPrisma.einsatzPerson.findFirst.mockResolvedValue({ id: 'person-abc' });
+      mockRepository.existsEinsatzPerson.mockResolvedValue(true);
       mockRepository.findByEinsatzAndUser.mockResolvedValue(null);
       mockRepository.isPersonAlreadyLinked.mockResolvedValue(true);
 
@@ -150,7 +140,7 @@ describe('JoinEinsatzHandler', () => {
       const existingTeilnehmer = mockTeilnehmerDto({ einsatzPersonId: 'person-abc' });
       const updatedTeilnehmer = mockTeilnehmerDto({ einsatzPersonId: newPersonId });
 
-      mockPrisma.einsatzPerson.findFirst.mockResolvedValue({ id: newPersonId });
+      mockRepository.existsEinsatzPerson.mockResolvedValue(true);
       mockRepository.findByEinsatzAndUser.mockResolvedValue(existingTeilnehmer);
       mockRepository.isPersonAlreadyLinked.mockResolvedValue(false);
       mockRepository.updateEinsatzPerson.mockResolvedValue(updatedTeilnehmer);
@@ -172,7 +162,7 @@ describe('JoinEinsatzHandler', () => {
       // Given (Arrange)
       const command = JoinEinsatzCommand.create('einsatz-123', 'user-456', 'nonexistent-person').value!;
 
-      mockPrisma.einsatzPerson.findFirst.mockResolvedValue(null);
+      mockRepository.existsEinsatzPerson.mockResolvedValue(false);
 
       // When (Act)
       const result = await handler.execute(command);
@@ -193,7 +183,7 @@ describe('JoinEinsatzHandler', () => {
 
       const existingTeilnehmer = mockTeilnehmerDto({ einsatzPersonId: 'person-abc' });
 
-      mockPrisma.einsatzPerson.findFirst.mockResolvedValue({ id: newPersonId });
+      mockRepository.existsEinsatzPerson.mockResolvedValue(true);
       mockRepository.findByEinsatzAndUser.mockResolvedValue(existingTeilnehmer);
       mockRepository.isPersonAlreadyLinked.mockResolvedValue(true);
 
@@ -216,7 +206,7 @@ describe('JoinEinsatzHandler', () => {
 
       const existingTeilnehmer = mockTeilnehmerDto({ einsatzPersonId: 'person-abc' });
 
-      mockPrisma.einsatzPerson.findFirst.mockResolvedValue({ id: newPersonId });
+      mockRepository.existsEinsatzPerson.mockResolvedValue(true);
       mockRepository.findByEinsatzAndUser.mockResolvedValue(existingTeilnehmer);
       mockRepository.isPersonAlreadyLinked.mockResolvedValue(false);
       mockRepository.updateEinsatzPerson.mockResolvedValue(null);
@@ -239,7 +229,7 @@ describe('JoinEinsatzHandler', () => {
       const einsatzPersonId = 'person-abc';
       const command = JoinEinsatzCommand.create(einsatzId, userId, einsatzPersonId).value!;
 
-      mockPrisma.einsatzPerson.findFirst.mockResolvedValue({ id: einsatzPersonId });
+      mockRepository.existsEinsatzPerson.mockResolvedValue(true);
       mockRepository.findByEinsatzAndUser.mockResolvedValue(null);
       mockRepository.isPersonAlreadyLinked.mockResolvedValue(false);
       mockRepository.create.mockRejectedValue(new Error('Database connection error'));

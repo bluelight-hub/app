@@ -71,6 +71,20 @@ export class PrismaEinsatzTeilnehmerRepository implements IEinsatzTeilnehmerRepo
     };
   }
 
+  async existsEinsatzPerson(einsatzId: string, einsatzPersonId: string, tx?: TransactionContext): Promise<boolean> {
+    const client = this.getClient(tx);
+
+    const person = await client.einsatzPerson.findFirst({
+      where: {
+        id: einsatzPersonId,
+        einsatzId,
+      },
+      select: { id: true },
+    });
+
+    return !!person;
+  }
+
   async findByEinsatzAndUser(einsatzId: string, userId: string, tx?: TransactionContext): Promise<EinsatzTeilnehmerDto | null> {
     const client = this.getClient(tx);
 
