@@ -105,8 +105,8 @@ export class BefehlController {
     summary: 'Befehle exportieren',
     description: 'Exportiert alle Befehle eines Einsatzes als CSV- oder JSON-Datei fuer die Nachbereitung.',
   })
-  @ApiQuery({ name: 'einsatzId', description: 'ID des Einsatzes', type: String, required: true })
   @ApiQuery({ name: 'format', description: 'Export-Format', enum: ['csv', 'json'], required: true })
+  @ApiQuery({ name: 'einsatzId', description: 'ID des Einsatzes', type: String, required: true })
   @ApiProduces('text/csv', 'application/json')
   // HINWEIS: @ApiOkResponse statt @ApiWrappedResponse, da File-Download keinen JSON-Envelope nutzt.
   // CLAUDE.md AC7 Exception: File-Downloads verwenden Stream-Response, kein Standard-Wrapper.
