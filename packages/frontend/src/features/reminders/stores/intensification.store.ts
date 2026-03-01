@@ -10,7 +10,7 @@
  * - Helper Functions: setIntensityLevel, clearIntensity
  */
 
-import { Store, useStore } from '@tanstack/react-store';
+import { createStore, useStore } from '@tanstack/react-store';
 
 /**
  * Intensivierungs-Level
@@ -70,7 +70,7 @@ const initialState: IntensificationStoreState = {
 /**
  * Intensification Store Instance
  */
-export const intensificationStore = new Store<IntensificationStoreState>(initialState);
+export const intensificationStore = createStore<IntensificationStoreState>(initialState);
 
 // ============================================
 // Store Actions (Helper Functions)

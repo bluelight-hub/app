@@ -12,7 +12,7 @@
  * - Helpers: kategorieFilterToValue, createKategorieFilter
  */
 
-import { Store, useStore } from '@tanstack/react-store';
+import { createStore, useStore } from '@tanstack/react-store';
 
 /**
  * Kategorie-Filter Type (Tagged Union)
@@ -44,7 +44,7 @@ const initialState: KategorieFilterStoreState = {
 /**
  * Kategorie-Filter Store Instance
  */
-export const kategorieFilterStore = new Store<KategorieFilterStoreState>(initialState);
+export const kategorieFilterStore = createStore<KategorieFilterStoreState>(initialState);
 
 // ============================================
 // Store Actions (Helper Functions)

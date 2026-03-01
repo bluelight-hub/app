@@ -5,7 +5,7 @@
  * Persistiert ueber Seitenwechsel via TanStack Store Lifecycle.
  */
 
-import { Store, useStore } from '@tanstack/react-store';
+import { createStore, useStore } from '@tanstack/react-store';
 
 // ============================================
 // Store State & Instance
@@ -18,7 +18,7 @@ export interface BefehleViewStoreState {
   view: BefehleView;
 }
 
-export const befehleViewStore = new Store<BefehleViewStoreState>({ view: 'kanban' });
+export const befehleViewStore = createStore<BefehleViewStoreState>({ view: 'kanban' });
 
 // ============================================
 // Store Actions

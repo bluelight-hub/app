@@ -15,7 +15,7 @@
  * - Sort-Types: 'faelligkeit' | 'erstellt' | 'status'
  */
 
-import { Store, useStore } from '@tanstack/react-store';
+import { createStore, useStore } from '@tanstack/react-store';
 
 /**
  * Team-Filter Type (Tagged Union)
@@ -75,7 +75,7 @@ const initialState: TeamFilterStoreState = {
 /**
  * Team-Filter Store Instance
  */
-export const teamFilterStore = new Store<TeamFilterStoreState>(initialState);
+export const teamFilterStore = createStore<TeamFilterStoreState>(initialState);
 
 // ============================================
 // Store Actions (Helper Functions)

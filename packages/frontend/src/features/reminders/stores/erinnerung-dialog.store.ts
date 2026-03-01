@@ -7,7 +7,7 @@
  */
 
 import type { ErinnerungResponseDto, ErinnerungsvorlageResponseDto } from '@/shared';
-import { Store, useStore } from '@tanstack/react-store';
+import { createStore, useStore } from '@tanstack/react-store';
 
 /**
  * Erinnerung Dialog State Interface
@@ -71,7 +71,7 @@ const initialState: ErinnerungDialogState = {
  *
  * Zentrale Store-Instanz fuer Erinnerungs-Dialog-State.
  */
-export const erinnerungDialogStore = new Store<ErinnerungDialogState>(initialState);
+export const erinnerungDialogStore = createStore<ErinnerungDialogState>(initialState);
 
 // ============================================
 // Store Actions (Helper Functions)

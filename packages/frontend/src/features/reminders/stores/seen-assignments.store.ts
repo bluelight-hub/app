@@ -12,7 +12,7 @@
  */
 
 import { LazyStore } from '@tauri-apps/plugin-store';
-import { Store, useStore } from '@tanstack/react-store';
+import { createStore, useStore } from '@tanstack/react-store';
 import { isTauri } from '@tauri-apps/api/core';
 
 /**
@@ -47,7 +47,7 @@ const initialState: SeenAssignmentsStoreState = {
 /**
  * Seen Assignments Store Instance
  */
-export const seenAssignmentsStore = new Store<SeenAssignmentsStoreState>(initialState);
+export const seenAssignmentsStore = createStore<SeenAssignmentsStoreState>(initialState);
 
 // ============================================
 // Tauri Store Persistence

@@ -14,7 +14,7 @@
  * - Helpers: statusFilterToValue, createStatusFilter, isStatusFilter
  */
 
-import { Store, useStore } from '@tanstack/react-store';
+import { createStore, useStore } from '@tanstack/react-store';
 import { ErinnerungResponseDtoStatusEnum } from '@bluelight-hub/shared/client';
 
 /**
@@ -59,7 +59,7 @@ const initialState: StatusFilterStoreState = {
 /**
  * Status-Filter Store Instance
  */
-export const statusFilterStore = new Store<StatusFilterStoreState>(initialState);
+export const statusFilterStore = createStore<StatusFilterStoreState>(initialState);
 
 // ============================================
 // Store Actions (Helper Functions)
