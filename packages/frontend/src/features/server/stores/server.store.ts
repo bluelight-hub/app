@@ -1,4 +1,4 @@
-import { Store } from '@tanstack/react-store';
+import { createStore } from '@tanstack/react-store';
 import type { ConnectionStatus, ServerConfig, ServerState } from '../types/server-config';
 import { loadServers, saveServers } from './server-persistence';
 import { setServerAccessToken, clearServerAccessToken } from '@/shared/lib/server-access-token';
@@ -34,7 +34,7 @@ const initialState: ServerState = {
  * const currentState = serverStore.state;
  * ```
  */
-export const serverStore = new Store<ServerState>(initialState);
+export const serverStore = createStore<ServerState>(initialState);
 
 /**
  * Sanitisiert Server-Namen um XSS-Angriffe zu verhindern (Defense in Depth).

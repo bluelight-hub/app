@@ -12,7 +12,7 @@
  */
 
 import { LazyStore } from '@tauri-apps/plugin-store';
-import { Store, useStore } from '@tanstack/react-store';
+import { createStore, useStore } from '@tanstack/react-store';
 
 /**
  * Tauri Store Keys fuer Offline Persistence
@@ -103,7 +103,7 @@ const initialState: OfflineStoreState = {
 /**
  * Offline Store Instance
  */
-export const offlineStore = new Store<OfflineStoreState>(initialState);
+export const offlineStore = createStore<OfflineStoreState>(initialState);
 
 // ============================================
 // Tauri Store Persistence

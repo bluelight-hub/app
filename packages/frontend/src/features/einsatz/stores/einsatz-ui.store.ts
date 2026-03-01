@@ -6,7 +6,7 @@
  */
 
 import type { EinsatzControllerFindAllVAlphaOrderByEnum, EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzControllerFindAllVAlphaStatusEnum } from '@/shared';
-import { Store } from '@tanstack/react-store';
+import { createStore } from '@tanstack/react-store';
 
 /**
  * Einsatz UI State Interface
@@ -52,7 +52,7 @@ const initialState: EinsatzUIState = {
  * Zentrale Store-Instanz für Einsatz-UI-State.
  * Nutze die bereitgestellten Helper-Funktionen für State-Updates.
  */
-export const einsatzUIStore = new Store<EinsatzUIState>(initialState);
+export const einsatzUIStore = createStore<EinsatzUIState>(initialState);
 
 // ============================================
 // Store Actions (Helper Functions)

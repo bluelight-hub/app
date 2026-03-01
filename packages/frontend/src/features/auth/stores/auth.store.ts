@@ -1,4 +1,4 @@
-import { Store } from '@tanstack/react-store';
+import { createStore } from '@tanstack/react-store';
 
 /**
  * Auth Store State Interface
@@ -55,7 +55,7 @@ const initialState: AuthStoreState = {
  * }));
  * ```
  */
-export const authStore = new Store<AuthStoreState>(initialState);
+export const authStore = createStore<AuthStoreState>(initialState);
 
 /**
  * Helper: Auth-Status setzen

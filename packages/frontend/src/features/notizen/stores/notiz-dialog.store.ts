@@ -5,7 +5,7 @@
  * Pattern analog zu erinnerung-dialog.store.ts.
  */
 
-import { Store, useStore } from '@tanstack/react-store';
+import { createStore, useStore } from '@tanstack/react-store';
 
 interface NotizDialogState {
   /** Ob der Quick-Create Dialog geoeffnet ist */
@@ -19,7 +19,7 @@ const initialState: NotizDialogState = {
   einsatzId: null,
 };
 
-export const notizDialogStore = new Store<NotizDialogState>(initialState);
+export const notizDialogStore = createStore<NotizDialogState>(initialState);
 
 // ============================================
 // Store Actions (Helper Functions)

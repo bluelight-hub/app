@@ -12,7 +12,7 @@
 
 import { isTauri } from '@tauri-apps/api/core';
 import { LazyStore } from '@tauri-apps/plugin-store';
-import { Store, useStore } from '@tanstack/react-store';
+import { createStore, useStore } from '@tanstack/react-store';
 
 /**
  * Tauri Store Keys fuer Offline Persistence
@@ -89,7 +89,7 @@ const initialState: EtbOfflineStoreState = {
 /**
  * ETB Offline Store Instance
  */
-export const etbOfflineStore = new Store<EtbOfflineStoreState>(initialState);
+export const etbOfflineStore = createStore<EtbOfflineStoreState>(initialState);
 
 // ============================================
 // Tauri Store Persistence
