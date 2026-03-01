@@ -110,7 +110,7 @@ jobs:
           touch "${{ runner.temp }}/digests/${digest#sha256:}"
 
       - name: Upload digest
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: digests-${{ matrix.variant }}-${{ matrix.runner }}
           path: ${{ runner.temp }}/digests/*
@@ -188,14 +188,14 @@ jobs:
 
       - name: Upload Backend Image Tags
         if: matrix.variant == 'app'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: backend-image-tags
           path: backend-image-tags.txt
 
       - name: Upload Migrations Image Tags
         if: matrix.variant == 'migrations'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: migrations-image-tags
           path: migrations-image-tags.txt
@@ -284,7 +284,7 @@ jobs:
           ls -la "$BUNDLE_PATH"
 
       - name: Upload Frontend Artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: frontend-artifact-${{ matrix.artifact_suffix }}
           path: ${{ steps.bundle.outputs.path }}
