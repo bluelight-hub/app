@@ -1,3 +1,8 @@
+## Interne Verbesserungen
+
+- **Backend-Stabilität**: Fehlerbehandlung bei Befehlsausführung verbessert – verhindert Serverabstürze bei fehlenden Handler-Rückgaben
+- **Abhängigkeiten aktualisiert**: NestJS-Pakete auf Version 11.1.14 aktualisiert, tailwind-merge auf 3.5.0
+
 ## Befehlsmanagement
 
 - **Komplettes Befehlsmanagement für Einsatzführung**: Erstellen, Zustellung und Quittierung von Führungsbefehlen mit Kanban- und Tabellenansicht, Detail-Panel, Filtern und Echtzeit-Updates
