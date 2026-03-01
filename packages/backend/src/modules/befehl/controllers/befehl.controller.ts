@@ -263,6 +263,10 @@ export class BefehlController {
 
     const result = await this.createBefehlHandler.execute(command);
 
+    if (!result) {
+      throw new InternalServerErrorException('Befehl-Erstellung lieferte kein Ergebnis');
+    }
+
     if (result.isFailure) {
       throw new BadRequestException(result.error);
     }
@@ -293,6 +297,10 @@ export class BefehlController {
     const command = new QuittierenBefehlCommand(id, dto.empfaengerId, dto.quittierungArt, dto.kommentar);
 
     const result = await this.quittierenBefehlHandler.execute(command);
+
+    if (!result) {
+      throw new InternalServerErrorException('Befehl-Quittierung lieferte kein Ergebnis');
+    }
 
     if (result.isFailure) {
       if (result.error === BEFEHL_ERROR_CODES.NOT_FOUND) {
@@ -335,6 +343,10 @@ export class BefehlController {
 
     const result = await this.aendereEmpfaengerStatusHandler.execute(command);
 
+    if (!result) {
+      throw new InternalServerErrorException('Empfänger-Status-Änderung lieferte kein Ergebnis');
+    }
+
     if (result.isFailure) {
       if (result.error === BEFEHL_ERROR_CODES.NOT_FOUND) {
         throw new NotFoundException(result.error);
@@ -368,6 +380,10 @@ export class BefehlController {
     const command = new KorrigiereBefehlCommand(id, dto.empfaenger, dto.befehlsgeber, dto.erstellerId, dto.auftrag, dto.zeitvorgabe, dto.ereignis, dto.mittel, dto.ziel, dto.weg, dto.befehlsgeberId);
 
     const result = await this.korrigiereBefehlHandler.execute(command);
+
+    if (!result) {
+      throw new InternalServerErrorException('Korrekturbefehl-Erstellung lieferte kein Ergebnis');
+    }
 
     if (result.isFailure) {
       if (result.error === BEFEHL_ERROR_CODES.NOT_FOUND) {
