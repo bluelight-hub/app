@@ -71,7 +71,7 @@
     "@prisma/adapter-pg": "^7.4.2",
     "@prisma/client": "^7.4.2",
     "@willsoto/nestjs-prometheus": "^6.0.2",
-    "axios": "^1.13.5",
+    "axios": "^1.13.6",
     "bcrypt": "^6.0.0",
     "cache-manager": "^7.2.8",
     "class-transformer": "^0.5.1",
