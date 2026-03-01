@@ -131,7 +131,7 @@ jobs:
             image_suffix: "/migrations"
     steps:
       - name: Download digests
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           path: ${{ runner.temp }}/digests
           pattern: digests-${{ matrix.variant }}-*
@@ -316,17 +316,17 @@ jobs:
           skip-frontend-build: 'true'
 
       - name: Download Backend Image Tags
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: backend-image-tags
 
       - name: Download Migrations Image Tags
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: migrations-image-tags
 
       - name: Download Frontend Artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           path: frontend-artifacts
           pattern: frontend-artifact-*
