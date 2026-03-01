@@ -8,7 +8,7 @@
 
 use rodio::source::{SineWave, Source};
 use rodio::mixer::Mixer;
-use rodio::{Decoder, OutputStreamBuilder, Sink};
+use rodio::{Decoder, DeviceSinkBuilder, Sink};
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
@@ -158,7 +158,7 @@ fn play_sound_internal(
     // Sound in separatem Thread abspielen um nicht zu blockieren
     thread::spawn(move || {
         // OutputStream muss im gleichen Thread wie Sink leben
-        let stream = match OutputStreamBuilder::open_default_stream() {
+        let stream = match DeviceSinkBuilder::open_default_sink() {
             Ok(stream) => stream,
             Err(e) => {
                 log::error!("Konnte Audio-Output nicht initialisieren: {}", e);
@@ -232,7 +232,7 @@ pub fn test_audio(app_handle: AppHandle) -> Result<String, String> {
     log::info!("Audio-Test gestartet");
 
     // Audio-System prüfen
-    let audio_available = match OutputStreamBuilder::open_default_stream() {
+    let audio_available = match DeviceSinkBuilder::open_default_sink() {
         Ok(_) => {
             log::info!("Audio-System verfügbar");
             true
