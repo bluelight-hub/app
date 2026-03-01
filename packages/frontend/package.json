@@ -25,7 +25,7 @@
     "@geoman-io/leaflet-geoman-free": "^2.19.2",
     "@headlessui/react": "^2.2.9",
     "@hookform/resolvers": "^5.2.2",
-    "@tailwindcss/vite": "^4.1.18",
+    "@tailwindcss/vite": "^4.2.1",
     "@tanstack/pacer": "^0.18.0",
     "@tanstack/react-devtools": "^0.9.5",
     "@tanstack/react-form": "^1.28.2",
