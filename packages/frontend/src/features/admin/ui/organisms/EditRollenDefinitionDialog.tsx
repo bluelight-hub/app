@@ -107,8 +107,6 @@ export const EditRollenDefinitionDialog = ({ isOpen, onClose, onSubmit, isSubmit
   // - `form` ist eine instabile Referenz (aendert sich bei jedem Render)
   // - useCallback mit `form` als Dependency wuerde Callback bei jedem Render neu erstellen
   // - Stattdessen: form.reset direkt im useEffect aufrufen, lastLoadedIdRef verhindert unnoetige Resets
-  // - biome-ignore ist sicher: form.reset ist stabil (interne TanStack Form Implementierung)
-  // biome-ignore lint/correctness/useExhaustiveDependencies: form.reset ist stabil, lastLoadedIdRef verhindert Race Conditions
   useEffect(() => {
     if (rollenDefinition && isOpen && lastLoadedIdRef.current !== rollenDefinition.id) {
       lastLoadedIdRef.current = rollenDefinition.id;

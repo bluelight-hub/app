@@ -92,7 +92,7 @@ describe('DeleteNotizHandler', () => {
 
     const commandResult = DeleteNotizCommand.create({
       notizId: notiz.id.toString(),
-      geloeschtVon: UserId.create().value!.toString(),
+      geloeschtVon: UserId.create().value?.toString(),
     });
     expect(commandResult.isSuccess).toBe(true);
 
@@ -113,7 +113,7 @@ describe('DeleteNotizHandler', () => {
 
     const commandResult = DeleteNotizCommand.create({
       notizId: 'nonexistent-id',
-      geloeschtVon: UserId.create().value!.toString(),
+      geloeschtVon: UserId.create().value?.toString(),
     });
     expect(commandResult.isSuccess).toBe(true);
 
@@ -133,7 +133,7 @@ describe('DeleteNotizHandler', () => {
 
     const commandResult = DeleteNotizCommand.create({
       notizId: deletedNotiz.id.toString(),
-      geloeschtVon: UserId.create().value!.toString(),
+      geloeschtVon: UserId.create().value?.toString(),
     });
     expect(commandResult.isSuccess).toBe(true);
 
@@ -153,7 +153,7 @@ describe('DeleteNotizHandler', () => {
 
     const commandResult = DeleteNotizCommand.create({
       notizId: notiz.id.toString(),
-      geloeschtVon: UserId.create().value!.toString(),
+      geloeschtVon: UserId.create().value?.toString(),
     });
 
     // When (Act)
@@ -205,8 +205,8 @@ describe('DeleteNotizHandler', () => {
         geloeschtVon: 'user-123',
       });
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.notizId).toBe('notiz-id');
-      expect(result.value!.geloeschtVon).toBe('user-123');
+      expect(result.value?.notizId).toBe('notiz-id');
+      expect(result.value?.geloeschtVon).toBe('user-123');
     });
 
     it('should trim notizId and geloeschtVon', () => {
@@ -215,8 +215,8 @@ describe('DeleteNotizHandler', () => {
         geloeschtVon: '  user-123  ',
       });
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.notizId).toBe('notiz-id');
-      expect(result.value!.geloeschtVon).toBe('user-123');
+      expect(result.value?.notizId).toBe('notiz-id');
+      expect(result.value?.geloeschtVon).toBe('user-123');
     });
   });
 });

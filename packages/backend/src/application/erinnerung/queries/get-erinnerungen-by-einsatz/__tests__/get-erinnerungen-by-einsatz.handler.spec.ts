@@ -56,7 +56,7 @@ function createMockErinnerung(overrides?: {
  * Generiert eine gültige CUID2 ID für Tests.
  * Nutzt EinsatzId.create() um eine echte CUID2 zu generieren.
  */
-const generateValidCuid = () => EinsatzId.create().value!.toString();
+const generateValidCuid = () => EinsatzId.create().value?.toString();
 
 /**
  * Unit Tests für GetErinnerungenByEinsatzHandler.
@@ -179,7 +179,7 @@ describe('GetErinnerungenByEinsatzHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toEqual([]);
-      expect(result.value!.length).toBe(0);
+      expect(result.value?.length).toBe(0);
       expect(mockRepository.findByEinsatzId).toHaveBeenCalledTimes(1);
     });
 
@@ -280,7 +280,7 @@ describe('GetErinnerungenByEinsatzHandler', () => {
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(1);
 
-      const dto = result.value![0];
+      const dto = result.value?.[0];
       expect(dto.id).toBe(erinnerung.id.toString());
       expect(dto.einsatzId).toBe(einsatzId.toString());
       expect(dto.titel).toBe('Wichtige Besprechung');
@@ -313,7 +313,7 @@ describe('GetErinnerungenByEinsatzHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value![0].beschreibung).toBeNull();
+      expect(result.value?.[0].beschreibung).toBeNull();
     });
   });
 
@@ -391,7 +391,7 @@ describe('GetErinnerungenByEinsatzHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.einsatzId).toBe(validEinsatzId);
+      expect(result.value?.einsatzId).toBe(validEinsatzId);
     });
 
     it('should reject short einsatzId', () => {
@@ -427,7 +427,7 @@ describe('GetErinnerungenByEinsatzHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.einsatzId).not.toContain(' ');
+      expect(result.value?.einsatzId).not.toContain(' ');
     });
   });
 
@@ -507,7 +507,7 @@ describe('GetErinnerungenByEinsatzHandler', () => {
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(3);
 
-      const statuses = result.value!.map((dto) => dto.status);
+      const statuses = result.value?.map((dto) => dto.status);
       expect(statuses).toContain('GEPLANT');
       expect(statuses).toContain('AUSGELOEST');
       expect(statuses).toContain('ERLEDIGT');

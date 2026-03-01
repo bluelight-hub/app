@@ -60,7 +60,6 @@ export class BefehlGeloeschtEtbHandler implements IEventHandler<BefehlGeloeschtE
         return;
       }
 
-      // biome-ignore lint/style/noNonNullAssertion: Safe - already checked isFailure above
       const result = await this.addEintragHandler.execute(commandResult.value!);
 
       if (result.isFailure) {

@@ -57,7 +57,7 @@ describe('RotateAccessTokenHandler', () => {
       isExpired: boolean;
     }> = {},
   ): ServerAccessToken => {
-    const tokenHash = TokenHash.create('$2a$10$abcdefghijklmnopqrstuvwxyz123456789012345678901234').value!;
+    const tokenHash = TokenHash.create('$2a$10$abcdefghijklmnopqrstuvwxyz123456789012345678901234').value;
 
     // Create token with optional expiration
     const expiresAt = overrides.isExpired ? new Date(Date.now() - 1000) : undefined;
@@ -66,7 +66,7 @@ describe('RotateAccessTokenHandler', () => {
       tokenHash,
       name: overrides.name ?? 'Test Token',
       expiresAt,
-    }).value!;
+    }).value;
 
     // Clear creation event first
     token.clearDomainEvents();
@@ -138,7 +138,7 @@ describe('RotateAccessTokenHandler', () => {
       tokenId: tokenId ?? 'blh_abc123def456ghi789jkl0',
       newName,
       requestedById: 'user_abc123def456',
-    }).value!;
+    }).value;
   }
 
   describe('execute() - Success Cases', () => {
@@ -154,8 +154,8 @@ describe('RotateAccessTokenHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.token).toBeDefined();
-      expect(result.value!.rotatedFromId).toBe(mockToken.id.toString());
+      expect(result.value.token).toBeDefined();
+      expect(result.value.rotatedFromId).toBe(mockToken.id.toString());
     });
 
     it('should generate new token with blh_ prefix and 28 characters', async () => {
@@ -169,7 +169,7 @@ describe('RotateAccessTokenHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      const newToken = result.value!.token;
+      const newToken = result.value.token;
 
       // Token Format: blh_ + cuid2 (24 Zeichen) = 28 Zeichen
       expect(newToken).toMatch(/^blh_[a-z0-9]{24}$/);
@@ -188,8 +188,8 @@ describe('RotateAccessTokenHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      const prefix = result.value!.prefix;
-      const token = result.value!.token;
+      const prefix = result.value.prefix;
+      const token = result.value.token;
 
       expect(prefix).toHaveLength(12);
       expect(prefix).toBe(token.substring(0, 12));
@@ -207,7 +207,7 @@ describe('RotateAccessTokenHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.name).toBe('Original Name');
+      expect(result.value.name).toBe('Original Name');
     });
 
     it('should update name when newName is provided', async () => {
@@ -221,7 +221,7 @@ describe('RotateAccessTokenHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.name).toBe('New Rotated Name');
+      expect(result.value.name).toBe('New Rotated Name');
     });
 
     it('should return rotatedFromId pointing to old token', async () => {
@@ -235,7 +235,7 @@ describe('RotateAccessTokenHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.rotatedFromId).toBe(mockToken.id.toString());
+      expect(result.value.rotatedFromId).toBe(mockToken.id.toString());
     });
 
     it('should return createdAt in ISO format', async () => {
@@ -249,9 +249,9 @@ describe('RotateAccessTokenHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.createdAt).toBeDefined();
-      expect(() => new Date(result.value!.createdAt)).not.toThrow();
-      expect(result.value!.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+      expect(result.value.createdAt).toBeDefined();
+      expect(() => new Date(result.value.createdAt)).not.toThrow();
+      expect(result.value.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
     });
   });
 
@@ -425,7 +425,7 @@ describe('RotateAccessTokenHandler', () => {
       expect(hashValue).toHaveLength(60);
 
       // Hash should verify against raw token
-      const rawToken = result.value!.token;
+      const rawToken = result.value.token;
       const isValid = await bcrypt.compare(rawToken, hashValue);
       expect(isValid).toBe(true);
     });
@@ -531,7 +531,7 @@ describe('RotateAccessTokenHandler', () => {
       const command = RotateAccessTokenCommand.create({
         tokenId: mockToken.id.toString(),
         requestedById: 'admin_user_abc123',
-      }).value!;
+      }).value;
 
       // When (Act)
       const result = await handler.execute(command);
@@ -620,7 +620,7 @@ describe('RotateAccessTokenHandler', () => {
       const command = RotateAccessTokenCommand.create({
         tokenId: mockToken.id.toString(),
         requestedById: 'admin_user_123456',
-      }).value!;
+      }).value;
 
       // When (Act)
       const result = await handler.execute(command);
@@ -646,7 +646,7 @@ describe('RotateAccessTokenHandler', () => {
       expect(result.isSuccess).toBe(true);
       // T3 Fix: Verify call count before accessing mock.calls
       expect(mockLogger.log).toHaveBeenCalledTimes(1);
-      const rawToken = result.value!.token;
+      const rawToken = result.value.token;
       const logMessage = mockLogger.log.mock.calls[0][0];
 
       // Full token should NOT appear in log
@@ -666,7 +666,7 @@ describe('RotateAccessTokenHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      const response = result.value!;
+      const response = result.value;
 
       expect(response.token).toBeDefined();
       expect(response.name).toBeDefined();
@@ -727,14 +727,14 @@ describe('RotateAccessTokenHandler', () => {
       const commandAtoB = RotateAccessTokenCommand.create({
         tokenId: tokenAId,
         requestedById: 'user-123',
-      }).value!;
+      }).value;
 
       // When - Rotate A -> B
       const resultB = await handler.execute(commandAtoB);
 
       // Then
       expect(resultB.isSuccess).toBe(true);
-      expect(resultB.value!.rotatedFromId).toBe(tokenAId);
+      expect(resultB.value.rotatedFromId).toBe(tokenAId);
 
       // T3 Fix: Verify call count before accessing mock.calls
       expect(mockTokenRepository.save).toHaveBeenCalledTimes(2);
@@ -772,12 +772,12 @@ describe('RotateAccessTokenHandler', () => {
       const command1 = RotateAccessTokenCommand.create({
         tokenId,
         requestedById: 'user-1',
-      }).value!;
+      }).value;
 
       const command2 = RotateAccessTokenCommand.create({
         tokenId,
         requestedById: 'user-2',
-      }).value!;
+      }).value;
 
       // When - Sequential rotation attempts (simulates race where second starts after first query)
       const result1 = await handler.execute(command1);

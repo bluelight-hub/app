@@ -89,7 +89,6 @@ export const TokenRotationModal = ({ isOpen, onClose, tokenToRotate, onTokenRota
   });
 
   // Reset Form wenn tokenToRotate sich aendert
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Intentionally only re-run when token ID changes, not the entire object
   useEffect(() => {
     if (tokenToRotate && isOpen) {
       form.reset();
@@ -174,7 +173,6 @@ export const TokenRotationModal = ({ isOpen, onClose, tokenToRotate, onTokenRota
             </div>
 
             {/* Token-Anzeige mit Copy-Button */}
-            {/* biome-ignore lint/a11y/useSemanticElements: div with role="status" is intentional for live region styling */}
             <div role="status" aria-live="polite" aria-atomic="true" className="rounded-lg border-2 border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950">
               <div className="mb-2 font-medium text-gray-700 text-sm dark:text-gray-300">Neues Access-Token:</div>
               <div className="flex items-center gap-2">

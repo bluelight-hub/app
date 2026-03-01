@@ -70,7 +70,7 @@ export function FuehrungsrhythmusTemplateCard({ id, name, beschreibung, eintraeg
 
       {/* Eintraege-Liste (aufklappbar) */}
       {isExpanded && (
-        <div className="border-gray-200 border-t px-4 pb-4 pt-3 dark:border-gray-700">
+        <div className="border-gray-200 border-t px-4 pt-3 pb-4 dark:border-gray-700">
           <div className="space-y-2">
             {eintraege
               .sort((a, b) => a.sortOrder - b.sortOrder)

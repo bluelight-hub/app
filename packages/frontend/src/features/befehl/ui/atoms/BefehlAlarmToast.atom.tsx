@@ -396,7 +396,7 @@ export function KorrekturAlarmToast({ toastId, befehlId, einsatzId, nummer, time
       </div>
 
       {/* Info */}
-      <p className="mb-3 text-sm leading-snug text-violet-100">Dieser Befehl wurde durch eine Korrektur ersetzt</p>
+      <p className="mb-3 text-sm text-violet-100 leading-snug">Dieser Befehl wurde durch eine Korrektur ersetzt</p>
 
       {/* Status */}
       <div className="mb-3 flex items-center gap-3 text-sm text-violet-100">
@@ -437,7 +437,7 @@ export function KorrekturAlarmToast({ toastId, befehlId, einsatzId, nummer, time
       </div>
 
       {/* Keyboard Hint */}
-      <div className="mt-2 text-center text-xs text-violet-200">Enter: Zum Befehl | Esc: Schließen</div>
+      <div className="mt-2 text-center text-violet-200 text-xs">Enter: Zum Befehl | Esc: Schließen</div>
     </div>
   );
 }

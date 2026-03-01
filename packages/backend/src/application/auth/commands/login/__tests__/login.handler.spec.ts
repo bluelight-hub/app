@@ -93,7 +93,7 @@ describe('LoginHandler', () => {
   describe('execute()', () => {
     it('sollte JWT Token zurückgeben bei gültigem USER Login (PASSWORDLESS)', async () => {
       // Given
-      const command = LoginCommand.create('testuser').value!;
+      const command = LoginCommand.create('testuser').value;
       const mockUser = createMockUser({ username: 'testuser', role: UserRole.USER() });
       const expectedToken = 'mock.jwt.token';
 
@@ -115,7 +115,7 @@ describe('LoginHandler', () => {
     it('sollte JWT Token zurückgeben bei gültigem ADMIN Login mit Passwort', async () => {
       // Given
       const password = 'secure_password';
-      const command = LoginCommand.create('adminuser', password).value!;
+      const command = LoginCommand.create('adminuser', password).value;
       const mockUser = createMockUser({ username: 'adminuser', role: UserRole.ADMIN() });
       const expectedToken = 'admin.jwt.token';
       // Hash das gleiche Passwort wie im Command für echte bcrypt Validierung
@@ -138,7 +138,7 @@ describe('LoginHandler', () => {
 
     it('sollte Fehler zurückgeben wenn User nicht existiert', async () => {
       // Given
-      const command = LoginCommand.create('nonexistent').value!;
+      const command = LoginCommand.create('nonexistent').value;
       mockUserRepository.findByUsername.mockResolvedValue(Result.ok(null));
 
       // When
@@ -152,7 +152,7 @@ describe('LoginHandler', () => {
 
     it('sollte Fehler zurückgeben wenn Account gesperrt ist (isLocked)', async () => {
       // Given
-      const command = LoginCommand.create('lockeduser').value!;
+      const command = LoginCommand.create('lockeduser').value;
       const mockUser = createMockUser({ username: 'lockeduser', isLocked: true });
 
       mockUserRepository.findByUsername.mockResolvedValue(Result.ok(mockUser));
@@ -168,7 +168,7 @@ describe('LoginHandler', () => {
 
     it('sollte Fehler zurückgeben wenn ADMIN ohne Passwort einloggt', async () => {
       // Given
-      const command = LoginCommand.create('adminuser').value!; // Kein Passwort
+      const command = LoginCommand.create('adminuser').value; // Kein Passwort
       const mockUser = createMockUser({ username: 'adminuser', role: UserRole.ADMIN() });
 
       mockUserRepository.findByUsername.mockResolvedValue(Result.ok(mockUser));
@@ -184,7 +184,7 @@ describe('LoginHandler', () => {
 
     it('sollte Fehler zurückgeben bei falschem Passwort', async () => {
       // Given
-      const command = LoginCommand.create('adminuser', 'wrong_password').value!;
+      const command = LoginCommand.create('adminuser', 'wrong_password').value;
       const mockUser = createMockUser({ username: 'adminuser', role: UserRole.ADMIN() });
       const passwordHash = await bcrypt.hash('correct_password', BCRYPT_COST_FACTOR_PASSWORD);
 
@@ -192,7 +192,6 @@ describe('LoginHandler', () => {
       mockUserRepository.getPasswordHash.mockResolvedValue(Result.ok(passwordHash));
 
       // Mock bcrypt.compare → false (falsches Passwort)
-      // biome-ignore lint/suspicious/noExplicitAny: Jest mock requires any for bcrypt implementation signature
       jest.spyOn(bcrypt, 'compare').mockImplementation((() => Promise.resolve(false)) as any);
 
       // When
@@ -206,7 +205,7 @@ describe('LoginHandler', () => {
 
     it('sollte Username case-insensitive behandeln', async () => {
       // Given
-      const command = LoginCommand.create('TestUser').value!; // Mixed Case
+      const command = LoginCommand.create('TestUser').value; // Mixed Case
       // LoginCommand.create() normalisiert zu lowercase → "testuser"
       const mockUser = createMockUser({ username: 'testuser', role: UserRole.USER() });
       const expectedToken = 'mock.jwt.token';
@@ -226,7 +225,7 @@ describe('LoginHandler', () => {
 
     it('sollte Fehler zurückgeben bei ungültigem Username-Format', async () => {
       // Given
-      const command = LoginCommand.create('ab').value!; // Zu kurz (min 3 Zeichen)
+      const command = LoginCommand.create('ab').value; // Zu kurz (min 3 Zeichen)
 
       // When
       const result = await handler.execute(command);
@@ -239,7 +238,7 @@ describe('LoginHandler', () => {
 
     it('sollte Fehler zurückgeben wenn Repository Fehler wirft', async () => {
       // Given
-      const command = LoginCommand.create('testuser').value!;
+      const command = LoginCommand.create('testuser').value;
       mockUserRepository.findByUsername.mockResolvedValue(Result.fail('Database connection failed'));
 
       // When
@@ -253,7 +252,7 @@ describe('LoginHandler', () => {
 
     it('sollte Fehler zurückgeben wenn getPasswordHash fehlschlägt', async () => {
       // Given
-      const command = LoginCommand.create('adminuser', 'password').value!;
+      const command = LoginCommand.create('adminuser', 'password').value;
       const mockUser = createMockUser({ username: 'adminuser', role: UserRole.ADMIN() });
 
       mockUserRepository.findByUsername.mockResolvedValue(Result.ok(mockUser));
@@ -270,7 +269,7 @@ describe('LoginHandler', () => {
 
     it('sollte Fehler zurückgeben wenn JWT Token Generierung fehlschlägt', async () => {
       // Given
-      const command = LoginCommand.create('testuser').value!;
+      const command = LoginCommand.create('testuser').value;
       const mockUser = createMockUser({ username: 'testuser', role: UserRole.USER() });
 
       mockUserRepository.findByUsername.mockResolvedValue(Result.ok(mockUser));
@@ -287,7 +286,7 @@ describe('LoginHandler', () => {
     it('sollte JWT Token zurückgeben bei gültigem SUPER_ADMIN Login mit Passwort', async () => {
       // Given
       const password = 'super_secure_password';
-      const command = LoginCommand.create('superadmin', password).value!;
+      const command = LoginCommand.create('superadmin', password).value;
       const mockUser = createMockUser({ username: 'superadmin', role: UserRole.SUPER_ADMIN() });
       const expectedToken = 'super.jwt.token';
       // Hash das gleiche Passwort wie im Command für echte bcrypt Validierung
@@ -310,7 +309,7 @@ describe('LoginHandler', () => {
 
     it('sollte Fehler zurückgeben wenn SUPER_ADMIN ohne Passwort einloggt', async () => {
       // Given
-      const command = LoginCommand.create('superadmin').value!; // Kein Passwort
+      const command = LoginCommand.create('superadmin').value; // Kein Passwort
       const mockUser = createMockUser({ username: 'superadmin', role: UserRole.SUPER_ADMIN() });
 
       mockUserRepository.findByUsername.mockResolvedValue(Result.ok(mockUser));

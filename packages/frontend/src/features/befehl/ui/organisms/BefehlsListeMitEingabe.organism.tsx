@@ -135,7 +135,7 @@ export function BefehlsListeMitEingabe({ einsatzId, initialBefehlId }: BefehlsLi
   return (
     <div className="flex flex-1 flex-col">
       {/* Kopfzeile */}
-      <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+      <div className="flex items-center justify-between border-gray-200 border-b px-6 py-4 dark:border-gray-700">
         <h2 className="font-semibold text-gray-900 text-lg dark:text-white">Befehle</h2>
         <div className="flex items-center gap-2">
           {/* Desktop: Toggle-Button "Meine Befehle" */}
@@ -152,7 +152,7 @@ export function BefehlsListeMitEingabe({ einsatzId, initialBefehlId }: BefehlsLi
             {unquittiertCount > 0 && (
               <span
                 className={cn(
-                  'ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-bold',
+                  'ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 font-bold text-xs',
                   showMeineBefehle ? 'bg-white/20 text-white' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
                 )}
               >
@@ -175,7 +175,7 @@ export function BefehlsListeMitEingabe({ einsatzId, initialBefehlId }: BefehlsLi
             {offeneRueckfragenCount > 0 && (
               <span
                 className={cn(
-                  'ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-bold',
+                  'ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 font-bold text-xs',
                   showOffeneRueckfragen ? 'bg-white/20 text-white' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
                 )}
               >
@@ -202,7 +202,7 @@ export function BefehlsListeMitEingabe({ einsatzId, initialBefehlId }: BefehlsLi
       <IntegrationStatusBanner />
 
       {/* Mobile: Tabs "Alle Befehle" | "Meine Befehle (n)" | "Rückfragen (n)" */}
-      <div className="flex border-b border-gray-200 md:hidden dark:border-gray-700" role="tablist" aria-label="Befehlsfilter">
+      <div className="flex border-gray-200 border-b md:hidden dark:border-gray-700" role="tablist" aria-label="Befehlsfilter">
         <button
           type="button"
           role="tab"
@@ -213,10 +213,10 @@ export function BefehlsListeMitEingabe({ einsatzId, initialBefehlId }: BefehlsLi
             setShowOffeneRueckfragen(false);
           }}
           className={cn(
-            'flex-1 px-4 py-3 text-center text-sm font-medium transition-colors',
+            'flex-1 px-4 py-3 text-center font-medium text-sm transition-colors',
             'min-h-[48px]',
             !showMeineBefehle && !showOffeneRueckfragen
-              ? 'border-b-2 border-primary-500 text-primary-600 dark:text-primary-400'
+              ? 'border-primary-500 border-b-2 text-primary-600 dark:text-primary-400'
               : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200',
           )}
         >
@@ -232,14 +232,14 @@ export function BefehlsListeMitEingabe({ einsatzId, initialBefehlId }: BefehlsLi
             setShowOffeneRueckfragen(false);
           }}
           className={cn(
-            'flex-1 px-4 py-3 text-center text-sm font-medium transition-colors',
+            'flex-1 px-4 py-3 text-center font-medium text-sm transition-colors',
             'min-h-[48px]',
-            showMeineBefehle ? 'border-b-2 border-primary-500 text-primary-600 dark:text-primary-400' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200',
+            showMeineBefehle ? 'border-primary-500 border-b-2 text-primary-600 dark:text-primary-400' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200',
           )}
         >
           Meine
           {unquittiertCount > 0 && (
-            <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-yellow-100 px-1 text-xs font-bold text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+            <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-yellow-100 px-1 font-bold text-xs text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
               {unquittiertCount}
             </span>
           )}
@@ -254,14 +254,14 @@ export function BefehlsListeMitEingabe({ einsatzId, initialBefehlId }: BefehlsLi
             setShowMeineBefehle(false);
           }}
           className={cn(
-            'flex-1 px-4 py-3 text-center text-sm font-medium transition-colors',
+            'flex-1 px-4 py-3 text-center font-medium text-sm transition-colors',
             'min-h-[48px]',
-            showOffeneRueckfragen ? 'border-b-2 border-primary-500 text-primary-600 dark:text-primary-400' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200',
+            showOffeneRueckfragen ? 'border-primary-500 border-b-2 text-primary-600 dark:text-primary-400' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200',
           )}
         >
           Rückfragen
           {offeneRueckfragenCount > 0 && (
-            <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-yellow-100 px-1 text-xs font-bold text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+            <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-yellow-100 px-1 font-bold text-xs text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
               {offeneRueckfragenCount}
             </span>
           )}
@@ -281,14 +281,13 @@ export function BefehlsListeMitEingabe({ einsatzId, initialBefehlId }: BefehlsLi
         {!isPermissionsLoading && !canViewAll && (
           <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
             <PiWarningCircle className="mb-4 h-12 w-12 text-yellow-400 dark:text-yellow-500" />
-            <p className="text-lg font-medium text-gray-900 dark:text-gray-100">Keine Befehl-Rolle zugewiesen</p>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Bitten Sie einen Administrator, Ihnen eine Rolle in diesem Einsatz zuzuweisen.</p>
+            <p className="font-medium text-gray-900 text-lg dark:text-gray-100">Keine Befehl-Rolle zugewiesen</p>
+            <p className="mt-1 text-gray-500 text-sm dark:text-gray-400">Bitten Sie einen Administrator, Ihnen eine Rolle in diesem Einsatz zuzuweisen.</p>
           </div>
         )}
 
         {/* Loading State */}
         {isLoading && (
-          /* biome-ignore lint/a11y/useSemanticElements: role="status" auf div ist Standard-Pattern fuer Skeleton Loading */
           <div className="flex flex-col gap-3 p-6" role="status" aria-label="Befehle werden geladen">
             <BefehlKarteSkeleton />
             <BefehlKarteSkeleton />
@@ -300,8 +299,8 @@ export function BefehlsListeMitEingabe({ einsatzId, initialBefehlId }: BefehlsLi
         {isError && (
           <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
             <PiWarningCircle className="mb-4 h-12 w-12 text-red-400 dark:text-red-500" />
-            <p className="text-lg font-medium text-gray-900 dark:text-gray-100">Fehler beim Laden der Befehle</p>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Die Befehle konnten nicht geladen werden.</p>
+            <p className="font-medium text-gray-900 text-lg dark:text-gray-100">Fehler beim Laden der Befehle</p>
+            <p className="mt-1 text-gray-500 text-sm dark:text-gray-400">Die Befehle konnten nicht geladen werden.</p>
             <Button intent="secondary" size="sm" className="mt-4" onClick={() => refetch()}>
               Erneut versuchen
             </Button>
@@ -312,17 +311,17 @@ export function BefehlsListeMitEingabe({ einsatzId, initialBefehlId }: BefehlsLi
         {!isLoading && !isError && befehle?.length === 0 && (
           <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
             <PiListChecks className="mb-4 h-12 w-12 text-gray-400 dark:text-gray-600" />
-            <p className="text-lg font-medium text-gray-900 dark:text-gray-100">
+            <p className="font-medium text-gray-900 text-lg dark:text-gray-100">
               {showOffeneRueckfragen ? 'Keine offenen Rückfragen' : showMeineBefehle ? 'Keine eigenen Befehle' : 'Noch keine Befehle erteilt'}
             </p>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            <p className="mt-1 text-gray-500 text-sm dark:text-gray-400">
               {showOffeneRueckfragen ? (
                 'Aktuell gibt es keine Befehle mit unbeantworteten Rückfragen.'
               ) : showMeineBefehle ? (
                 'Du bist derzeit bei keinem Befehl als Empfänger eingetragen.'
               ) : (
                 <>
-                  Erstelle den ersten Befehl mit <kbd className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">Ctrl+N</kbd>
+                  Erstelle den ersten Befehl mit <kbd className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-700 text-xs dark:bg-gray-800 dark:text-gray-300">Ctrl+N</kbd>
                 </>
               )}
             </p>

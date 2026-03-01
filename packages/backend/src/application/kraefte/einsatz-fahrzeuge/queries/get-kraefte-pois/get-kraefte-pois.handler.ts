@@ -140,7 +140,6 @@ export class GetKraeftePoisHandler {
    */
   private mapToFeature(fahrzeug: EinsatzFahrzeug, statusConfigCache: Map<number, FunkStatusConfig>, fahrzeugtypCache: Map<string, Fahrzeugtyp>): KraeftePoisFeatureDto {
     // Position ist garantiert vorhanden (bereits in execute() gefiltert)
-    // biome-ignore lint/style/noNonNullAssertion: Fahrzeuge ohne Position wurden bereits herausgefiltert
     const position = fahrzeug.position!;
     const statusConfig = statusConfigCache.get(fahrzeug.fmsStatus);
     const fahrzeugtyp = fahrzeugtypCache.get(fahrzeug.fahrzeugtypId);

@@ -132,7 +132,6 @@ export class PrismaBefehlRepository implements IBefehlRepository {
     try {
       const client = (tx as PrismaClient | undefined) ?? this.prisma;
 
-      // biome-ignore lint/suspicious/noExplicitAny: Dynamische Prisma WHERE-Clause Konstruktion
       const where: any = { einsatzId: einsatzId.value, isDeleted: false };
 
       if (filters.status && filters.status.length > 0) {
@@ -253,7 +252,7 @@ export class PrismaBefehlRepository implements IBefehlRepository {
     }
   }
 
-  async bulkAnonymisiere(einsatzId: EinsatzId, befehle: Befehl[], tx?: TransactionContext): Promise<Result<void>> {
+  async bulkAnonymisiere(_einsatzId: EinsatzId, befehle: Befehl[], tx?: TransactionContext): Promise<Result<void>> {
     try {
       const client = (tx as PrismaClient | undefined) ?? this.prisma;
       const now = new Date();

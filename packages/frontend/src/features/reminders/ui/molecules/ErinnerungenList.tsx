@@ -186,9 +186,7 @@ function ErinnerungenListInner({ einsatzId, className, compact = false, currentU
       // Story 3.6 Task 4.4: Fallback - Teilnehmer aus Erinnerungen extrahieren
       const teilnehmerMap = new Map<string, string>();
       for (const e of erinnerungen) {
-        // biome-ignore lint/suspicious/noExplicitAny: DTO missing fields
         if (e.erstelltVon && (e as any).erstellerName) {
-          // biome-ignore lint/suspicious/noExplicitAny: DTO missing fields
           teilnehmerMap.set(e.erstelltVon, sanitizeName((e as any).erstellerName));
         }
         if (e.assignedToId && e.assignedToName) {

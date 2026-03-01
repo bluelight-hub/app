@@ -52,7 +52,6 @@ function WaveSpinner({ size = 'md', className, label = 'Laden...' }: SpecificSpi
   const waves = Array.from({ length: 10 }, (_, i) => i);
 
   return (
-    // biome-ignore lint/a11y/useSemanticElements: Spinner uses div for layout stability
     <div role="status" aria-label={label} className={cn('flex items-center justify-center', config.gap, className)}>
       {waves.map((index) => (
         <div
@@ -87,7 +86,6 @@ function DotsSpinner({ size = 'md', className, label = 'Laden...' }: SpecificSpi
   const hasTextColor = className?.includes('text-');
 
   return (
-    // biome-ignore lint/a11y/useSemanticElements: Spinner uses div for layout stability
     <div role="status" aria-label={label} className={cn('flex gap-1', className)}>
       {[0, 1, 2].map((i) => (
         <div
@@ -122,7 +120,6 @@ function RingSpinner({ size = 'md', className, label = 'Laden...' }: SpecificSpi
 
   if (hasTextColor) {
     return (
-      // biome-ignore lint/a11y/useSemanticElements: Spinner uses div for layout stability
       <div role="status" aria-label={label} className={cn('relative', ringSize, className)}>
         <div className={cn('absolute inset-0 rounded-full border-2', ringSize)} style={{ borderColor: 'currentColor', opacity: 0.25 }} />
         <div className={cn('absolute inset-0 animate-spin rounded-full border-2', ringSize)} style={{ borderColor: 'transparent', borderTopColor: 'currentColor' }} />
@@ -131,7 +128,6 @@ function RingSpinner({ size = 'md', className, label = 'Laden...' }: SpecificSpi
   }
 
   return (
-    // biome-ignore lint/a11y/useSemanticElements: Spinner uses div for layout stability
     <div role="status" aria-label={label} className={cn('relative', ringSize, className)}>
       <div className={cn('absolute inset-0 rounded-full border-2 border-gray-200 dark:border-gray-700', ringSize)} />
       <div className={cn('absolute inset-0 animate-spin rounded-full border-2 border-t-primary-600 dark:border-t-primary-500', ringSize)} />
@@ -156,7 +152,6 @@ function PulseSpinner({ size = 'md', className, label = 'Laden...' }: SpecificSp
   const hasTextColor = className?.includes('text-');
 
   return (
-    // biome-ignore lint/a11y/useSemanticElements: Spinner uses div for layout stability
     <div role="status" aria-label={label} className={cn('relative', pulseSize, className)}>
       <div
         className={cn('absolute inset-0 animate-ping rounded-full opacity-75', !hasTextColor && 'bg-primary-600 dark:bg-primary-500', pulseSize)}

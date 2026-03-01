@@ -577,7 +577,6 @@ describe('FmsStatusGeaendertEventHandler', () => {
       const corruptedEvent = new FmsStatusGeaendertEvent(
         generateTestCuid(), // einsatzFahrzeugId
         generateTestUuid(), // einsatzId
-        // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of corrupted event data
         undefined as any, // funkrufname: undefined (corrupt data - sollte durch Domain validiert sein)
         2, // previousStatus
         4, // neuerStatus
@@ -613,7 +612,6 @@ describe('FmsStatusGeaendertEventHandler', () => {
         generateTestUuid(), // einsatzId
         'Florian 1/46', // funkrufname
         2, // previousStatus
-        // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of corrupted event data with null status
         null as any, // neuerStatus: null (corrupt data)
         generateTestCuid(), // geaendertVon
       );
@@ -642,7 +640,6 @@ describe('FmsStatusGeaendertEventHandler', () => {
         generateTestUuid(),
         'Florian 1/46',
         2, // previousStatus: valid
-        // biome-ignore lint/suspicious/noExplicitAny: Test validates rejection of invalid status code above maximum
         10 as any, // neuerStatus: 10 (invalid - above max)
         generateTestCuid(),
       );
@@ -669,7 +666,6 @@ describe('FmsStatusGeaendertEventHandler', () => {
         generateTestCuid(),
         generateTestUuid(),
         'Florian 1/46',
-        // biome-ignore lint/suspicious/noExplicitAny: Test validates rejection of invalid status code below minimum
         -1 as any, // previousStatus: -1 (invalid - below min)
         4, // neuerStatus: valid
         generateTestCuid(),
@@ -697,7 +693,6 @@ describe('FmsStatusGeaendertEventHandler', () => {
         generateTestUuid(),
         'Florian 1/46',
         2, // previousStatus: valid
-        // biome-ignore lint/suspicious/noExplicitAny: Test validates rejection of NaN as invalid status code
         Number.NaN as any, // neuerStatus: NaN (invalid)
         generateTestCuid(),
       );

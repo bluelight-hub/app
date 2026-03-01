@@ -22,7 +22,6 @@ describe('EmpfaengerSucheQueryHandler', () => {
     jest.clearAllMocks();
     // Default: keine Teilnehmer-Verknuepfung (wird in spezifischen Tests ueberschrieben)
     mockPrisma.einsatzTeilnehmer.findMany.mockResolvedValue([]);
-    // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     handler = new EmpfaengerSucheQueryHandler(mockPrisma as any);
   });
 
@@ -35,7 +34,7 @@ describe('EmpfaengerSucheQueryHandler', () => {
 
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(1);
-      expect(result.value![0]).toMatchObject({
+      expect(result.value?.[0]).toMatchObject({
         id: 'ep-1',
         name: 'ZF Meier',
         rolle: 'Zugführer',
@@ -50,7 +49,7 @@ describe('EmpfaengerSucheQueryHandler', () => {
       const result = await handler.execute(new EmpfaengerSucheQuery('Schmidt', 'einsatz-1'));
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value![0].name).toBe('Schmidt, Anna');
+      expect(result.value?.[0].name).toBe('Schmidt, Anna');
     });
 
     it('sollte funktion als rolle mappen', async () => {
@@ -59,7 +58,7 @@ describe('EmpfaengerSucheQueryHandler', () => {
 
       const result = await handler.execute(new EmpfaengerSucheQuery('Weber', 'einsatz-1'));
 
-      expect(result.value![0].rolle).toBe('Gruppenführer');
+      expect(result.value?.[0].rolle).toBe('Gruppenführer');
     });
 
     it('sollte EinsatzPerson-Qualifikation korrekt mappen (F2)', async () => {
@@ -80,8 +79,8 @@ describe('EmpfaengerSucheQueryHandler', () => {
 
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(1);
-      expect(result.value![0].qualifikation).toBe('Rettungssanitäter');
-      expect(result.value![0].quelle).toBe(EmpfaengerQuelle.EINSATZ);
+      expect(result.value?.[0].qualifikation).toBe('Rettungssanitäter');
+      expect(result.value?.[0].quelle).toBe(EmpfaengerQuelle.EINSATZ);
     });
   });
 
@@ -101,9 +100,9 @@ describe('EmpfaengerSucheQueryHandler', () => {
 
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(2);
-      expect(result.value![0].quelle).toBe(EmpfaengerQuelle.EINSATZ);
-      expect(result.value![1].quelle).toBe(EmpfaengerQuelle.STAMMDATEN);
-      expect(result.value![1]).toEqual({
+      expect(result.value?.[0].quelle).toBe(EmpfaengerQuelle.EINSATZ);
+      expect(result.value?.[1].quelle).toBe(EmpfaengerQuelle.STAMMDATEN);
+      expect(result.value?.[1]).toEqual({
         id: 'sp-1',
         name: 'Meier, Hans',
         qualifikation: 'Notfallsanitäter',
@@ -124,7 +123,7 @@ describe('EmpfaengerSucheQueryHandler', () => {
 
       const result = await handler.execute(new EmpfaengerSucheQuery('Fischer', 'einsatz-1'));
 
-      expect(result.value![0].qualifikation).toBeUndefined();
+      expect(result.value?.[0].qualifikation).toBeUndefined();
     });
   });
 
@@ -136,7 +135,7 @@ describe('EmpfaengerSucheQueryHandler', () => {
       const result = await handler.execute(new EmpfaengerSucheQuery('Meier', 'einsatz-1'));
 
       expect(result.value).toHaveLength(1);
-      expect(result.value![0].quelle).toBe(EmpfaengerQuelle.EINSATZ);
+      expect(result.value?.[0].quelle).toBe(EmpfaengerQuelle.EINSATZ);
 
       // Verify stammPerson was queried with notIn filter
       const stammCall = mockPrisma.stammPerson.findMany.mock.calls[0][0];
@@ -214,7 +213,7 @@ describe('EmpfaengerSucheQueryHandler', () => {
 
       const result = await handler.execute(new EmpfaengerSucheQuery('Meier', 'einsatz-1'));
 
-      expect(result.value![0].quelle).toBe(EmpfaengerQuelle.EINSATZ);
+      expect(result.value?.[0].quelle).toBe(EmpfaengerQuelle.EINSATZ);
     });
 
     it('sollte quelle STAMMDATEN fuer StammPerson setzen', async () => {
@@ -223,7 +222,7 @@ describe('EmpfaengerSucheQueryHandler', () => {
 
       const result = await handler.execute(new EmpfaengerSucheQuery('Meier', 'einsatz-1'));
 
-      expect(result.value![0].quelle).toBe(EmpfaengerQuelle.STAMMDATEN);
+      expect(result.value?.[0].quelle).toBe(EmpfaengerQuelle.STAMMDATEN);
     });
   });
 
@@ -234,8 +233,8 @@ describe('EmpfaengerSucheQueryHandler', () => {
 
       const result = await handler.execute(new EmpfaengerSucheQuery('Meier', 'einsatz-1'));
 
-      expect(result.value![0].quelle).toBe(EmpfaengerQuelle.EINSATZ);
-      expect(result.value![1].quelle).toBe(EmpfaengerQuelle.STAMMDATEN);
+      expect(result.value?.[0].quelle).toBe(EmpfaengerQuelle.EINSATZ);
+      expect(result.value?.[1].quelle).toBe(EmpfaengerQuelle.STAMMDATEN);
     });
   });
 
@@ -247,7 +246,7 @@ describe('EmpfaengerSucheQueryHandler', () => {
 
       const result = await handler.execute(new EmpfaengerSucheQuery('Meier', 'einsatz-1'));
 
-      expect(result.value![0].userId).toBe('user-123');
+      expect(result.value?.[0].userId).toBe('user-123');
     });
 
     it('sollte userId undefined lassen wenn kein EinsatzTeilnehmer existiert', async () => {
@@ -256,7 +255,7 @@ describe('EmpfaengerSucheQueryHandler', () => {
 
       const result = await handler.execute(new EmpfaengerSucheQuery('Meier', 'einsatz-1'));
 
-      expect(result.value![0].userId).toBeUndefined();
+      expect(result.value?.[0].userId).toBeUndefined();
     });
 
     it('sollte nur aktive Teilnehmer abfragen (leftAt null)', async () => {

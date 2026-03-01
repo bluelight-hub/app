@@ -93,7 +93,7 @@ describe('GetActiveEinsaetzeQueryHandler', () => {
       // Then: Leeres Array ist valides Resultat (NICHT Fehler)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toEqual([]);
-      expect(result.value!.length).toBe(0);
+      expect(result.value?.length).toBe(0);
       expect(mockRepository.findActive).toHaveBeenCalledTimes(1);
     });
 
@@ -168,7 +168,7 @@ describe('GetActiveEinsaetzeQueryHandler', () => {
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(3);
 
-      const statuses = result.value!.map((dto) => dto.status);
+      const statuses = result.value?.map((dto) => dto.status);
       expect(statuses).toContain('ANGELEGT');
       expect(statuses).toContain('IN_BEARBEITUNG');
       expect(statuses).toContain('ABGESCHLOSSEN');
@@ -220,7 +220,7 @@ describe('GetActiveEinsaetzeQueryHandler', () => {
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(1);
 
-      const dto = result.value![0];
+      const dto = result.value?.[0];
       expect(dto.id).toBe(einsatz.id.value);
       expect(dto.nummer).toBe(einsatz.nummer);
       expect(dto.alarmstichwort).toBe('Grossbrand');
@@ -232,10 +232,10 @@ describe('GetActiveEinsaetzeQueryHandler', () => {
 
       // Einsatzort-DTO verifizieren
       expect(dto.einsatzort).toBeDefined();
-      expect(dto.einsatzort!.strasse).toBe('Musterstr.');
-      expect(dto.einsatzort!.hausnummer).toBe('42');
-      expect(dto.einsatzort!.plz).toBe('80331');
-      expect(dto.einsatzort!.ort).toBe('München');
+      expect(dto.einsatzort?.strasse).toBe('Musterstr.');
+      expect(dto.einsatzort?.hausnummer).toBe('42');
+      expect(dto.einsatzort?.plz).toBe('80331');
+      expect(dto.einsatzort?.ort).toBe('München');
     });
   });
 
@@ -331,7 +331,7 @@ describe('GetActiveEinsaetzeQueryHandler', () => {
       // Then: Beide DTOs sind vorhanden (Reihenfolge bei gleichen Timestamps undefiniert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(2);
-      expect(result.value!.map((dto) => dto.alarmstichwort).sort()).toEqual(['Brand A', 'Brand B']);
+      expect(result.value?.map((dto) => dto.alarmstichwort).sort()).toEqual(['Brand A', 'Brand B']);
     });
 
     it('should preserve immutability of repository result', async () => {

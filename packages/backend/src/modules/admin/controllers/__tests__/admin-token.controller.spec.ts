@@ -110,27 +110,22 @@ describe('AdminTokenController', () => {
     // Create mock handlers (Direct Instantiation Pattern)
     mockCreateAccessTokenHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     mockGetTokenListHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     mockRevokeAccessTokenHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     mockReactivateAccessTokenHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     mockRotateAccessTokenHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     // Instantiate controller with mocks
@@ -383,7 +378,6 @@ describe('AdminTokenController', () => {
           name: 'Test Token',
         };
 
-        // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
         mockCreateAccessTokenHandler.execute.mockResolvedValue(Result.ok(undefined as any));
 
         // When (Act) & Then (Assert)
@@ -705,7 +699,6 @@ describe('AdminTokenController', () => {
 
       it('sollte InternalServerErrorException werfen wenn Handler null value zurueckgibt', async () => {
         // Given (Arrange)
-        // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
         mockGetTokenListHandler.execute.mockResolvedValue(Result.ok(null as any));
 
         // When (Act) & Then (Assert)
@@ -733,7 +726,6 @@ describe('AdminTokenController', () => {
       it('sollte PaginatedData mit undefined items zurueckgeben wenn Handler undefined data zurueckgibt', async () => {
         // Given (Arrange)
         const invalidResponse: TokenListDto = {
-          // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
           data: undefined as any,
           meta: {
             page: 1,
@@ -1056,7 +1048,6 @@ describe('AdminTokenController', () => {
       it('sollte Exception werfen wenn Handler undefined value zurueckgibt', async () => {
         // Given (Arrange)
         const tokenId = 'blh_validtoken123456789012';
-        // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
         mockRevokeAccessTokenHandler.execute.mockResolvedValue(Result.ok(undefined as any));
 
         // When (Act) & Then (Assert)
@@ -1274,7 +1265,6 @@ describe('AdminTokenController', () => {
       it('sollte Exception werfen wenn Handler undefined value zurueckgibt', async () => {
         // Given (Arrange)
         const tokenId = 'blh_validtoken123456789012';
-        // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
         mockReactivateAccessTokenHandler.execute.mockResolvedValue(Result.ok(undefined as any));
 
         // When (Act) & Then (Assert)
@@ -1597,7 +1587,6 @@ describe('AdminTokenController', () => {
         // Given (Arrange)
         const tokenId = 'blh_validtoken123456789012';
         const dto: RotateAccessTokenRequestDto = {};
-        // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
         mockRotateAccessTokenHandler.execute.mockResolvedValue(Result.ok(undefined as any));
 
         // When (Act) & Then (Assert)

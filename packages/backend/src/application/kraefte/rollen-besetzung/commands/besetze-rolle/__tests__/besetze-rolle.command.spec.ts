@@ -26,10 +26,10 @@ describe('BesetzeRolleCommand', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.einsatzId).toBe(validEinsatzId);
-      expect(result.value!.einsatzPersonId).toBe(validEinsatzPersonId);
-      expect(result.value!.rollenDefinitionId).toBe(validRollenDefinitionId);
-      expect(result.value!.besetztVon).toBe(validBesetztVon);
+      expect(result.value?.einsatzId).toBe(validEinsatzId);
+      expect(result.value?.einsatzPersonId).toBe(validEinsatzPersonId);
+      expect(result.value?.rollenDefinitionId).toBe(validRollenDefinitionId);
+      expect(result.value?.besetztVon).toBe(validBesetztVon);
     });
 
     it('sollte Whitespace in IDs trimmen', () => {
@@ -46,8 +46,8 @@ describe('BesetzeRolleCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.einsatzId).toBe(validEinsatzId);
-      expect(result.value!.einsatzPersonId).toBe(validEinsatzPersonId);
+      expect(result.value?.einsatzId).toBe(validEinsatzId);
+      expect(result.value?.einsatzPersonId).toBe(validEinsatzPersonId);
     });
   });
 

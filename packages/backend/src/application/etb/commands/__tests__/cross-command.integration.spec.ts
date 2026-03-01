@@ -94,7 +94,7 @@ function generateTestCuid(): string {
       const addCommand = AddEintragCommand.create(etb.id.value, 'Ursprünglicher Text', testUserId).value!;
       const addResult = await addEintragHandler.execute(addCommand);
       expect(addResult.isSuccess).toBe(true);
-      const eintragId = addResult.value!.id.value;
+      const eintragId = addResult.value?.id.value;
 
       // Act 2: UpdateEintrag
       const updateCommand = UpdateEintragCommand.create(etb.id.value, eintragId, 'Aktualisierter Text', testUserId).value!;
@@ -146,7 +146,7 @@ function generateTestCuid(): string {
 
       const addCommand = AddEintragCommand.create(etb.id.value, 'Test Eintrag', testUserId).value!;
       const addResult = await addEintragHandler.execute(addCommand);
-      const eintragId = addResult.value!.id.value;
+      const eintragId = addResult.value?.id.value;
 
       // Act 1: Lock ETB
       const lockCommand = LockEtbCommand.create(etb.id.value, testUserId, 'ADMIN').value!;
@@ -170,7 +170,7 @@ function generateTestCuid(): string {
 
       const addCommand = AddEintragCommand.create(etb.id.value, 'Test Eintrag', testUserId).value!;
       const addResult = await addEintragHandler.execute(addCommand);
-      const eintragId = addResult.value!.id.value;
+      const eintragId = addResult.value?.id.value;
 
       // Act 1: Lock ETB
       const lockCommand = LockEtbCommand.create(etb.id.value, testUserId, 'SUPER_ADMIN').value!;
@@ -196,7 +196,7 @@ function generateTestCuid(): string {
       // 1. AddEintrag (creates 1 snapshot)
       const addCommand = AddEintragCommand.create(etb.id.value, 'Eintrag 1', testUserId).value!;
       const addResult = await addEintragHandler.execute(addCommand);
-      const eintragId = addResult.value!.id.value;
+      const eintragId = addResult.value?.id.value;
 
       // 2. UpdateEintrag (creates 1 snapshot)
       const updateCommand = UpdateEintragCommand.create(etb.id.value, eintragId, 'Eintrag 1 (aktualisiert)', testUserId).value!;

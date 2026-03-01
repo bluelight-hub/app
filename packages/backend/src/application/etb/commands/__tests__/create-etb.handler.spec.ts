@@ -205,8 +205,8 @@ describe('CreateEtbHandler', () => {
       // InMemoryEtbRepository stores domain events in etb._domainEvents before clearing them
       // Since events are cleared after save, we verify indirectly through successful save
       // The event will be in the outbox (PrismaEtbRepository handles this)
-      expect(savedEtb!.id.value).toBe(result.value!.value);
-      expect(savedEtb!.einsatzId.equals(testEinsatzId)).toBe(true);
+      expect(savedEtb?.id.value).toBe(result.value?.value);
+      expect(savedEtb?.einsatzId.equals(testEinsatzId)).toBe(true);
     });
 
     it('should NOT save ETB when creation fails', async () => {

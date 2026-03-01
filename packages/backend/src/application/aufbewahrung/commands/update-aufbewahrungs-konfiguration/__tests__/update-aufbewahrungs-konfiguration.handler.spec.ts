@@ -23,7 +23,7 @@ describe('UpdateAufbewahrungsKonfigurationHandler', () => {
       save: jest.fn(),
     };
 
-    handler = new UpdateAufbewahrungsKonfigurationHandler(mockPrisma as any, mockOutboxRepository as any, mockKonfigurationRepository as any);
+    handler = new UpdateAufbewahrungsKonfigurationHandler(mockPrisma as unknown, mockOutboxRepository as unknown, mockKonfigurationRepository as unknown);
   });
 
   describe('execute', () => {
@@ -31,7 +31,7 @@ describe('UpdateAufbewahrungsKonfigurationHandler', () => {
       const command = new UpdateAufbewahrungsKonfigurationCommand(10, 30, true, 'admin-user');
 
       // Mock: Transaction fuehrt Callback direkt aus
-      mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) => {
         return callback({});
       });
 
@@ -48,7 +48,7 @@ describe('UpdateAufbewahrungsKonfigurationHandler', () => {
     it('sollte Default-Konfiguration verwenden wenn keine existiert', async () => {
       const command = new UpdateAufbewahrungsKonfigurationCommand(5, 60, false, 'admin-user');
 
-      mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) => {
         return callback({});
       });
 
@@ -64,7 +64,7 @@ describe('UpdateAufbewahrungsKonfigurationHandler', () => {
     it('sollte bei ungueltiger Frist fehlschlagen', async () => {
       const command = new UpdateAufbewahrungsKonfigurationCommand(0, 30, true, 'admin-user');
 
-      mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) => {
         return callback({});
       });
 
@@ -79,7 +79,7 @@ describe('UpdateAufbewahrungsKonfigurationHandler', () => {
     it('sollte bei ungueltiger Freigabeperiode fehlschlagen', async () => {
       const command = new UpdateAufbewahrungsKonfigurationCommand(10, 0, true, 'admin-user');
 
-      mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) => {
         return callback({});
       });
 
@@ -93,7 +93,7 @@ describe('UpdateAufbewahrungsKonfigurationHandler', () => {
     it('sollte bei Repository-Fehler fehlschlagen', async () => {
       const command = new UpdateAufbewahrungsKonfigurationCommand(10, 30, true, 'admin-user');
 
-      mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) => {
         return callback({});
       });
 

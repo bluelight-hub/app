@@ -237,6 +237,6 @@ describe('GetReaktionszeitStatistikHandler', () => {
     const result = GetReaktionszeitStatistikQuery.create({ einsatzId: EINSATZ_ID });
     // Then - Ergebnis ist ein Success mit korrekter einsatzId
     expect(result.isSuccess).toBe(true);
-    expect(result.value!.einsatzId).toBe(EINSATZ_ID);
+    expect(result.value?.einsatzId).toBe(EINSATZ_ID);
   });
 });

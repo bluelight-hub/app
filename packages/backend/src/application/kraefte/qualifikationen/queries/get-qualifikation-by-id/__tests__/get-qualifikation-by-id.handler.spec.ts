@@ -70,10 +70,10 @@ describe('GetQualifikationByIdHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).not.toBeNull();
-      expect(result.value!.id).toBe(id);
-      expect(result.value!.name).toBe('Zugführer');
-      expect(result.value!.abkuerzung).toBe('ZFÜ');
-      expect(result.value!.kategorie).toBe('FUEHRUNG');
+      expect(result.value?.id).toBe(id);
+      expect(result.value?.name).toBe('Zugführer');
+      expect(result.value?.abkuerzung).toBe('ZFÜ');
+      expect(result.value?.kategorie).toBe('FUEHRUNG');
       expect(mockRepository.findById).toHaveBeenCalledWith(expect.objectContaining({ value: id }));
     });
 
@@ -223,7 +223,7 @@ describe('GetQualifikationByIdHandler', () => {
 
         // Then (Assert)
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.kategorie).toBe(kategorie);
+        expect(result.value?.kategorie).toBe(kategorie);
       }
     });
   });

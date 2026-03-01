@@ -66,7 +66,6 @@ describe('EinsatztagebuchAggregate', () => {
     });
 
     it('should reject null/undefined einsatzId', () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Test verifies null/undefined handling
       const result = EinsatztagebuchAggregate.create(null as any);
       expect(result.isFailure).toBe(true);
       expect(result.error).toContain('EinsatzId');
@@ -126,7 +125,6 @@ describe('EinsatztagebuchAggregate', () => {
       // Sequence number is readonly via ValueObject immutability
       expect(entry.sequenceNumber.value).toBe(1);
       expect(() => {
-        // biome-ignore lint/suspicious/noExplicitAny: Test verifies immutability
         (entry.sequenceNumber as any).props.value = 999;
       }).toThrow();
     });
@@ -160,8 +158,8 @@ describe('EinsatztagebuchAggregate', () => {
       expect(result.isSuccess).toBe(true);
       const createdAt = result.value?.createdAt;
       expect(createdAt).toBeDefined();
-      expect(createdAt!.getTime()).toBeGreaterThanOrEqual(before.getTime());
-      expect(createdAt!.getTime()).toBeLessThanOrEqual(after.getTime());
+      expect(createdAt?.getTime()).toBeGreaterThanOrEqual(before.getTime());
+      expect(createdAt?.getTime()).toBeLessThanOrEqual(after.getTime());
     });
 
     it('should preserve occurredAt millisecond precision', () => {

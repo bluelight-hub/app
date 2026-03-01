@@ -118,7 +118,6 @@ export const ServerStatusDot = forwardRef<HTMLSpanElement, ServerStatusDotProps>
     lg: 'h-3 w-3',
   };
 
-  // biome-ignore lint/a11y/useSemanticElements: <span role="status"> ist das semantisch korrekte HTML-Element für Live-Status-Indikatoren laut ARIA 1.2 Spec. <output> ist für Formular-Berechnungsergebnisse gedacht, nicht für visuelle Status-Anzeigen.
   return <span ref={ref} role="status" aria-label={ariaLabel} className={cn('inline-block flex-shrink-0 rounded-full', sizeClasses[size], colorClass, className)} />;
 });
 

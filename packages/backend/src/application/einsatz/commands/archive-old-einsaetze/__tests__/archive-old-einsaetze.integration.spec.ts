@@ -178,9 +178,9 @@ const TEST_USER_NAME = 'admin_archive_integration_test';
       // Then
       expect(result.isSuccess).toBe(true);
       // eligible count should increase by 5 (our new ones)
-      expect(result.value!.eligible).toBe(eligibleBeforeCreate + 5);
-      expect(result.value!.archived).toBe(0);
-      expect(result.value!.dryRun).toBe(true);
+      expect(result.value?.eligible).toBe(eligibleBeforeCreate + 5);
+      expect(result.value?.archived).toBe(0);
+      expect(result.value?.dryRun).toBe(true);
 
       // Verify no database changes - our created Einsätze should NOT be archived
       const ourArchivedEinsaetze = await prisma.einsatz.findMany({
@@ -218,8 +218,8 @@ const TEST_USER_NAME = 'admin_archive_integration_test';
 
       // Then - eligible count should NOT change (our new ones are too young)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.eligible).toBe(existingEligibleBefore);
-      expect(result.value!.archived).toBe(0);
+      expect(result.value?.eligible).toBe(existingEligibleBefore);
+      expect(result.value?.archived).toBe(0);
     });
   });
 
@@ -247,9 +247,9 @@ const TEST_USER_NAME = 'admin_archive_integration_test';
 
       // Then - should archive all eligible (previous + our 3 new ones)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.eligible).toBe(eligibleBeforeCreate + 3);
-      expect(result.value!.archived).toBe(eligibleBeforeCreate + 3);
-      expect(result.value!.failed).toHaveLength(0);
+      expect(result.value?.eligible).toBe(eligibleBeforeCreate + 3);
+      expect(result.value?.archived).toBe(eligibleBeforeCreate + 3);
+      expect(result.value?.failed).toHaveLength(0);
 
       // Verify our created Einsätze are archived
       const ourArchivedEinsaetze = await prisma.einsatz.findMany({
@@ -304,9 +304,9 @@ const TEST_USER_NAME = 'admin_archive_integration_test';
 
       // Then - should archive all eligible (previous + our 150 new ones)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.eligible).toBe(eligibleBeforeCreate + 150);
-      expect(result.value!.archived).toBe(eligibleBeforeCreate + 150);
-      expect(result.value!.failed).toHaveLength(0);
+      expect(result.value?.eligible).toBe(eligibleBeforeCreate + 150);
+      expect(result.value?.archived).toBe(eligibleBeforeCreate + 150);
+      expect(result.value?.failed).toHaveLength(0);
 
       // Verify all our created Einsätze are archived
       const ourArchivedCount = await prisma.einsatz.count({
@@ -364,9 +364,9 @@ const TEST_USER_NAME = 'admin_archive_integration_test';
       expect(result.isSuccess).toBe(true);
 
       // All eligible ABGESCHLOSSEN einsätze should be archived (previous + our 5 new ones)
-      expect(result.value!.eligible).toBe(eligibleBeforeCreate + 5);
-      expect(result.value!.archived).toBe(eligibleBeforeCreate + 5);
-      expect(result.value!.failed).toHaveLength(0);
+      expect(result.value?.eligible).toBe(eligibleBeforeCreate + 5);
+      expect(result.value?.archived).toBe(eligibleBeforeCreate + 5);
+      expect(result.value?.failed).toHaveLength(0);
 
       // Verify our 5 ABGESCHLOSSEN einsätze were archived
       const ourArchivedCount = await prisma.einsatz.count({
@@ -420,7 +420,7 @@ const TEST_USER_NAME = 'admin_archive_integration_test';
       // Then - Should only count the ABGESCHLOSSEN ones (not ARCHIVIERT)
       expect(result.isSuccess).toBe(true);
       // eligible = previous + our 3 ABGESCHLOSSEN (the 2 ARCHIVIERT are not counted)
-      expect(result.value!.eligible).toBe(eligibleBeforeCreate + 3);
+      expect(result.value?.eligible).toBe(eligibleBeforeCreate + 3);
     });
 
     it('should skip ANGELEGT and IN_BEARBEITUNG einsätze', async () => {
@@ -449,7 +449,7 @@ const TEST_USER_NAME = 'admin_archive_integration_test';
       // Then - Should only count ABGESCHLOSSEN ones
       expect(result.isSuccess).toBe(true);
       // eligible = previous + our 3 ABGESCHLOSSEN (ANGELEGT/IN_BEARBEITUNG are not counted)
-      expect(result.value!.eligible).toBe(eligibleBeforeCreate + 3);
+      expect(result.value?.eligible).toBe(eligibleBeforeCreate + 3);
     });
   });
 
@@ -473,9 +473,9 @@ const TEST_USER_NAME = 'admin_archive_integration_test';
 
       // Then - archives whatever was already eligible
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.eligible).toBe(existingEligibleCount);
-      expect(result.value!.archived).toBe(existingEligibleCount);
-      expect(result.value!.failed).toHaveLength(0);
+      expect(result.value?.eligible).toBe(existingEligibleCount);
+      expect(result.value?.archived).toBe(existingEligibleCount);
+      expect(result.value?.failed).toHaveLength(0);
     });
 
     it('should respect custom olderThanYears threshold', async () => {
@@ -502,7 +502,7 @@ const TEST_USER_NAME = 'admin_archive_integration_test';
 
       // Then - Should find previous + our 3 new 6-year-old einsätze
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.eligible).toBe(eligibleBeforeCreate + 3);
+      expect(result.value?.eligible).toBe(eligibleBeforeCreate + 3);
     });
 
     it('should not archive einsätze when threshold not met', async () => {
@@ -530,7 +530,7 @@ const TEST_USER_NAME = 'admin_archive_integration_test';
       // Then - Should NOT find our 6-year-old einsätze (only existing 10+ year old ones)
       expect(result.isSuccess).toBe(true);
       // eligible count should not change (our 6-year-old ones are not old enough)
-      expect(result.value!.eligible).toBe(eligibleBeforeCreate);
+      expect(result.value?.eligible).toBe(eligibleBeforeCreate);
     });
   });
 });

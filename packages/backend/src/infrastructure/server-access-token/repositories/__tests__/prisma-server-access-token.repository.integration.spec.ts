@@ -245,8 +245,8 @@ describe('PrismaServerAccessTokenRepository - Integration Tests', () => {
       expect(result.isSuccess).toBe(true);
       const found = result.value;
       expect(found).not.toBeNull();
-      expect(found!.id.value).toBe(token.id.value);
-      expect(found!.name).toBe('Find Me Token');
+      expect(found?.id.value).toBe(token.id.value);
+      expect(found?.name).toBe('Find Me Token');
     });
 
     it('should return null when not found', async () => {
@@ -285,8 +285,8 @@ describe('PrismaServerAccessTokenRepository - Integration Tests', () => {
       expect(result.isSuccess).toBe(true);
       const found = result.value;
       expect(found).not.toBeNull();
-      expect(found!.id.value).toBe(token.id.value);
-      expect(found!.name).toBe('Hash Search Token');
+      expect(found?.id.value).toBe(token.id.value);
+      expect(found?.name).toBe('Hash Search Token');
     });
 
     it('should return null when hash not found', async () => {

@@ -97,7 +97,6 @@ export class LagekarteAutoCreationHandler implements IEventHandler<EinsatzCreate
       }
 
       // Command ausführen via injiziertem Handler
-      // biome-ignore lint/style/noNonNullAssertion: Safe - already checked isFailure above
       const result = await this.createLagekarteHandler.execute(commandResult.value!);
 
       if (result.isFailure) {
@@ -121,7 +120,6 @@ export class LagekarteAutoCreationHandler implements IEventHandler<EinsatzCreate
       }
 
       // Erfolg: Lagekarte wurde erstellt
-      // biome-ignore lint/style/noNonNullAssertion: Safe - already checked isFailure above
       const lagekarteId = result.value!;
       this.logger.log(`Lagekarte created successfully`, {
         einsatzId: einsatzIdValue,

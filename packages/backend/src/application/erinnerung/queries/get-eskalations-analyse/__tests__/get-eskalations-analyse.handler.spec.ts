@@ -215,8 +215,8 @@ describe('GetEskalationsAnalyseHandler', () => {
     const result = await handler.execute(query);
 
     // Then
-    expect(result.value!.eskalationsRate).toBe(0.333);
-    expect(result.value!.totalErinnerungen).toBe(15);
+    expect(result.value?.eskalationsRate).toBe(0.333);
+    expect(result.value?.totalErinnerungen).toBe(15);
   });
 
   // --- Error Handling ---
@@ -280,6 +280,6 @@ describe('GetEskalationsAnalyseHandler', () => {
   it('should accept valid einsatzId in query creation', () => {
     const result = GetEskalationsAnalyseQuery.create({ einsatzId: EINSATZ_ID });
     expect(result.isSuccess).toBe(true);
-    expect(result.value!.einsatzId).toBe(EINSATZ_ID);
+    expect(result.value?.einsatzId).toBe(EINSATZ_ID);
   });
 });

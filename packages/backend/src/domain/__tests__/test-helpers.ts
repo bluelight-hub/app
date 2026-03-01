@@ -318,12 +318,7 @@ export function expectAggregateToHaveEvents(aggregate: { getDomainEvents(): unkn
  * @param eventType - Erwarteter Event-Konstruktor
  * @param index - Optional: Index des Events (default: 0)
  */
-export function expectAggregateToHaveEmittedEvent<T>(
-  aggregate: { getDomainEvents(): unknown[] },
-  // biome-ignore lint/suspicious/noExplicitAny: Generic constructor type needed for instanceof check
-  eventType: new (...args: any[]) => T,
-  index = 0,
-): void {
+export function expectAggregateToHaveEmittedEvent<T>(aggregate: { getDomainEvents(): unknown[] }, eventType: new (...args: any[]) => T, index = 0): void {
   const events = aggregate.getDomainEvents();
   expect(events[index]).toBeInstanceOf(eventType);
 }

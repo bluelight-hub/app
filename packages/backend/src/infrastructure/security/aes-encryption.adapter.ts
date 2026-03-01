@@ -17,7 +17,6 @@
  * @see IEncryptionPort - Domain Port Interface
  */
 
-// biome-ignore lint/style/noRestrictedImports: Logger in Adapter ist erlaubt
 import { Injectable, Logger, type OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'node:crypto';

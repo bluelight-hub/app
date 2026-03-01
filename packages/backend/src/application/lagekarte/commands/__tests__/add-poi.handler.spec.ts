@@ -62,7 +62,6 @@ describe('AddPoiCommandHandler', () => {
       error: jest.fn(),
       warn: jest.fn(),
       debug: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     // Create mock repository with all required methods
@@ -71,13 +70,11 @@ describe('AddPoiCommandHandler', () => {
       findById: jest.fn(),
       findByEinsatzId: jest.fn(),
       exists: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     mockEventPublisher = {
       publish: jest.fn(),
       publishAll: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     // Instantiate handler with mocks (Direct Instantiation Pattern)
@@ -403,7 +400,6 @@ describe('AddPoiCommandHandler', () => {
       const existingLagekarteId = LagekarteId.create(lagekarteId).value!;
 
       // Add initial POI
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing - LagekarteId used as UserId
       aggregate.addPoi('Duplicate POI', berlinMgrs, category, existingLagekarteId as any);
 
       // Mock: Lagekarte exists with POI

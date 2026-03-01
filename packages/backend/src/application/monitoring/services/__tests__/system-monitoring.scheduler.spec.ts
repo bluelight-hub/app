@@ -61,12 +61,7 @@ describe('SystemMonitoringScheduler', () => {
       debug: jest.fn(),
     };
 
-    scheduler = new SystemMonitoringScheduler(
-      mockMetricsCollector,
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
-      mockEventEmitter as any,
-      mockLogger,
-    );
+    scheduler = new SystemMonitoringScheduler(mockMetricsCollector, mockEventEmitter as any, mockLogger);
   });
 
   describe('checkSchwellwerte', () => {
@@ -223,7 +218,7 @@ describe('SystemMonitoringScheduler', () => {
       expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining('ueberspringe'), 'SystemMonitoringScheduler');
 
       // Cleanup
-      resolveZustellrate!(98);
+      resolveZustellrate?.(98);
       await Promise.all([firstCheck, secondCheck]);
     });
   });

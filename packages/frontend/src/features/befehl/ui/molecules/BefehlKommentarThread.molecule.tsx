@@ -61,32 +61,31 @@ export function BefehlKommentarThread({ befehlId, einsatzId, kommentare }: Befeh
   const sortedKommentare = [...kommentare].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: Container blocks bubbling to parent card and is not directly user-actionable.
-    <div id={threadId} tabIndex={-1} className="mt-3 border-t border-gray-100 pt-3 dark:border-gray-800 focus:outline-none" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+    <div id={threadId} tabIndex={-1} className="mt-3 border-gray-100 border-t pt-3 focus:outline-none dark:border-gray-800" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
       {/* Kommentar-Liste */}
       {sortedKommentare.length > 0 && (
-        <ul className="flex flex-col gap-2 mb-3" aria-label="Kommentare">
+        <ul className="mb-3 flex flex-col gap-2" aria-label="Kommentare">
           {sortedKommentare.map((kommentar) => {
             const isOwn = kommentar.authorId === user?.id;
             const createdAt = typeof kommentar.createdAt === 'string' ? new Date(kommentar.createdAt) : kommentar.createdAt;
 
             return (
-              <li key={kommentar.id} className="rounded-md px-3 py-2 text-sm bg-gray-50 dark:bg-gray-800/50">
+              <li key={kommentar.id} className="rounded-md bg-gray-50 px-3 py-2 text-sm dark:bg-gray-800/50">
                 <div className="flex items-center gap-2">
                   <span className={cn('font-medium text-xs', isOwn ? 'text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300')}>
                     {isOwn ? 'Du' : (kommentar.authorId?.substring(0, 8) ?? 'Anonym')}
                   </span>
-                  <time dateTime={createdAt.toISOString()} className="text-xs text-gray-400 dark:text-gray-500">
+                  <time dateTime={createdAt.toISOString()} className="text-gray-400 text-xs dark:text-gray-500">
                     {format(createdAt, 'dd.MM. HH:mm')}
                   </time>
                   {kommentar.isRueckfrage && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 font-medium text-amber-800 text-xs dark:bg-amber-900/30 dark:text-amber-300">
                       <PiChatCircleDots className="h-3 w-3" />
                       Rückfrage
                     </span>
                   )}
                 </div>
-                <p className="mt-1 text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{kommentar.text}</p>
+                <p className="mt-1 whitespace-pre-wrap text-gray-700 dark:text-gray-300">{kommentar.text}</p>
               </li>
             );
           })}
@@ -130,11 +129,11 @@ export function BefehlKommentarThread({ befehlId, einsatzId, kommentare }: Befeh
                     'text-gray-900 dark:text-gray-100',
                     'placeholder:text-gray-400 dark:placeholder:text-gray-500',
                     'border-gray-200 hover:border-gray-300 focus:border-primary-500 focus:ring-1 focus:ring-primary-500',
-                    'dark:border-gray-700 dark:hover:border-gray-600 dark:focus:border-primary-500',
+                    'dark:border-gray-700 dark:focus:border-primary-500 dark:hover:border-gray-600',
                     'focus:outline-none',
                   )}
                 />
-                {field.state.meta.errors?.length > 0 && <p className="text-xs text-red-600 dark:text-red-400 mt-1">{field.state.meta.errors[0]}</p>}
+                {field.state.meta.errors?.length > 0 && <p className="mt-1 text-red-600 text-xs dark:text-red-400">{field.state.meta.errors[0]}</p>}
               </div>
             )}
           </form.Field>

@@ -21,8 +21,8 @@ describe('CreateLagekarteCommand', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.einsatzId).toBe(einsatzId);
-      expect(result.value!.initialPoi).toBeUndefined();
+      expect(result.value?.einsatzId).toBe(einsatzId);
+      expect(result.value?.initialPoi).toBeUndefined();
     });
 
     it('should create command with einsatzId + initialPoi (Lat/Lng)', () => {
@@ -40,11 +40,11 @@ describe('CreateLagekarteCommand', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.einsatzId).toBe(einsatzId);
-      expect(result.value!.initialPoi).toEqual(initialPoi);
-      expect(result.value!.initialPoi?.name).toBe('Brandenburger Tor');
-      expect(result.value!.initialPoi?.coordinate).toEqual({ lat: 52.5163, lng: 13.3777 });
-      expect(result.value!.initialPoi?.category).toBe('EINSATZSTELLE');
+      expect(result.value?.einsatzId).toBe(einsatzId);
+      expect(result.value?.initialPoi).toEqual(initialPoi);
+      expect(result.value?.initialPoi?.name).toBe('Brandenburger Tor');
+      expect(result.value?.initialPoi?.coordinate).toEqual({ lat: 52.5163, lng: 13.3777 });
+      expect(result.value?.initialPoi?.category).toBe('EINSATZSTELLE');
     });
 
     it('should create command with einsatzId + initialPoi (MGRS)', () => {
@@ -62,11 +62,11 @@ describe('CreateLagekarteCommand', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.einsatzId).toBe(einsatzId);
-      expect(result.value!.initialPoi).toEqual(initialPoi);
-      expect(result.value!.initialPoi?.name).toBe('Rathaus Hamburg');
-      expect(result.value!.initialPoi?.coordinate).toEqual({ mgrs: '33UUU89060199' });
-      expect(result.value!.initialPoi?.category).toBe('BEREITSTELLUNGSRAUM');
+      expect(result.value?.einsatzId).toBe(einsatzId);
+      expect(result.value?.initialPoi).toEqual(initialPoi);
+      expect(result.value?.initialPoi?.name).toBe('Rathaus Hamburg');
+      expect(result.value?.initialPoi?.coordinate).toEqual({ mgrs: '33UUU89060199' });
+      expect(result.value?.initialPoi?.category).toBe('BEREITSTELLUNGSRAUM');
     });
 
     it('should accept einsatzId with leading/trailing spaces (not trimmed in factory)', () => {
@@ -79,14 +79,13 @@ describe('CreateLagekarteCommand', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.einsatzId).toBe(einsatzId); // Factory does NOT trim (trimming happens in EinsatzId.create())
+      expect(result.value?.einsatzId).toBe(einsatzId); // Factory does NOT trim (trimming happens in EinsatzId.create())
     });
   });
 
   describe('Invalid Commands - einsatzId validation', () => {
     it('should return failure when einsatzId is undefined', () => {
       // Given/When
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
       const result = CreateLagekarteCommand.create(undefined as any);
 
       // Then
@@ -96,7 +95,6 @@ describe('CreateLagekarteCommand', () => {
 
     it('should return failure when einsatzId is null', () => {
       // Given/When
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
       const result = CreateLagekarteCommand.create(null as any);
 
       // Then
@@ -134,7 +132,6 @@ describe('CreateLagekarteCommand', () => {
       };
 
       // When
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
       const result = CreateLagekarteCommand.create(einsatzId, invalidPoi as any);
 
       // Then
@@ -152,7 +149,6 @@ describe('CreateLagekarteCommand', () => {
       };
 
       // When
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
       const result = CreateLagekarteCommand.create(einsatzId, invalidPoi as any);
 
       // Then
@@ -165,7 +161,6 @@ describe('CreateLagekarteCommand', () => {
       const einsatzId = 'einsatz-123';
       const invalidPoi = {
         name: 'Brandenburger Tor',
-        // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
         coordinate: undefined as any,
         category: 'EINSATZSTELLE',
       };
@@ -183,7 +178,6 @@ describe('CreateLagekarteCommand', () => {
       const einsatzId = 'einsatz-123';
       const invalidPoi = {
         name: 'Brandenburger Tor',
-        // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
         coordinate: null as any,
         category: 'EINSATZSTELLE',
       };
@@ -206,7 +200,6 @@ describe('CreateLagekarteCommand', () => {
       };
 
       // When
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
       const result = CreateLagekarteCommand.create(einsatzId, invalidPoi as any);
 
       // Then
@@ -224,7 +217,6 @@ describe('CreateLagekarteCommand', () => {
       };
 
       // When
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
       const result = CreateLagekarteCommand.create(einsatzId, invalidPoi as any);
 
       // Then
@@ -248,7 +240,7 @@ describe('CreateLagekarteCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.initialPoi?.name).toBe('POI "Hauptstraße" (Südseite) – Besondere Lage!');
+      expect(result.value?.initialPoi?.name).toBe('POI "Hauptstraße" (Südseite) – Besondere Lage!');
     });
 
     it('should accept initialPoi with very long name (no length restriction in command)', () => {
@@ -266,8 +258,8 @@ describe('CreateLagekarteCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.initialPoi?.name).toBe(veryLongName);
-      expect(result.value!.initialPoi?.name.length).toBe(1000);
+      expect(result.value?.initialPoi?.name).toBe(veryLongName);
+      expect(result.value?.initialPoi?.name.length).toBe(1000);
     });
 
     it('should accept initialPoi with boundary latitude values', () => {
@@ -284,7 +276,7 @@ describe('CreateLagekarteCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.initialPoi?.coordinate).toEqual({ lat: 90, lng: 0 });
+      expect(result.value?.initialPoi?.coordinate).toEqual({ lat: 90, lng: 0 });
     });
 
     it('should accept initialPoi with boundary longitude values', () => {
@@ -301,7 +293,7 @@ describe('CreateLagekarteCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.initialPoi?.coordinate).toEqual({ lat: 0, lng: 180 });
+      expect(result.value?.initialPoi?.coordinate).toEqual({ lat: 0, lng: 180 });
     });
   });
 });

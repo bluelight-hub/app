@@ -111,7 +111,7 @@ describe('UpdateFahrzeugtypHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.bezeichnung).toBe('HLF 20');
+      expect(result.value?.bezeichnung).toBe('HLF 20');
       expect(mockRepository.findById).toHaveBeenCalledWith(expect.anything(), expect.any(Object));
       expect(mockRepository.save).toHaveBeenCalledTimes(1);
     });
@@ -148,7 +148,7 @@ describe('UpdateFahrzeugtypHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.code).toBe('HLF20');
+      expect(result.value?.code).toBe('HLF20');
     });
 
     it('sollte Sollbesatzung aktualisieren', async () => {
@@ -441,7 +441,7 @@ describe('UpdateFahrzeugtypHandler', () => {
 
         // Then (Assert)
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.code).toBe('RTW');
+        expect(result.value?.code).toBe('RTW');
       });
 
       it('sollte Whitespaces in Bezeichnung trimmen', async () => {

@@ -132,10 +132,10 @@ describe('ErfasseTemporalesFahrzeugHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.funkrufname).toBe('RTW 1');
-      expect(result.value!.stammId).toBeUndefined(); // WICHTIG: kein stammId bei temporär!
-      expect(result.value!.fmsStatus).toBe(2); // Initial: Einsatzbereit
-      expect(result.value!.einsatzId).toBe(validEinsatzId);
+      expect(result.value?.funkrufname).toBe('RTW 1');
+      expect(result.value?.stammId).toBeUndefined(); // WICHTIG: kein stammId bei temporär!
+      expect(result.value?.fmsStatus).toBe(2); // Initial: Einsatzbereit
+      expect(result.value?.einsatzId).toBe(validEinsatzId);
       expect(mockEinsatzFahrzeugRepository.save).toHaveBeenCalledTimes(1);
     });
 
@@ -177,7 +177,7 @@ describe('ErfasseTemporalesFahrzeugHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.kennzeichen).toBe('DA-RK 101');
+      expect(result.value?.kennzeichen).toBe('DA-RK 101');
     });
 
     it('sollte temporäres EinsatzFahrzeug mit Position erfassen', async () => {
@@ -195,7 +195,7 @@ describe('ErfasseTemporalesFahrzeugHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.position).toEqual({ lat: 49.8728, lng: 8.6512 });
+      expect(result.value?.position).toEqual({ lat: 49.8728, lng: 8.6512 });
     });
 
     it('sollte $transaction aufrufen (Transaktions-Pattern)', async () => {
@@ -489,7 +489,7 @@ describe('ErfasseTemporalesFahrzeugHandler', () => {
 
       // Then (Assert)
       expect(commandResult.isSuccess).toBe(true);
-      expect(commandResult.value!.position).toEqual({ lat: 49.8728, lng: 8.6512 });
+      expect(commandResult.value?.position).toEqual({ lat: 49.8728, lng: 8.6512 });
     });
   });
 
@@ -553,7 +553,7 @@ describe('ErfasseTemporalesFahrzeugHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.stammId).toBeUndefined();
+      expect(result.value?.stammId).toBeUndefined();
 
       const savedAggregate = mockEinsatzFahrzeugRepository.save.mock.calls[0][0];
       expect(savedAggregate.stammId).toBeUndefined();
@@ -601,7 +601,7 @@ describe('ErfasseTemporalesFahrzeugHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.fmsStatus).toBe(2);
+      expect(result.value?.fmsStatus).toBe(2);
 
       const savedAggregate = mockEinsatzFahrzeugRepository.save.mock.calls[0][0];
       expect(savedAggregate.fmsStatus).toBe(2);

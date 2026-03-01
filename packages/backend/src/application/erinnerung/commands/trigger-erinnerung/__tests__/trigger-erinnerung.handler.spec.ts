@@ -43,7 +43,7 @@ describe('TriggerErinnerungHandler', () => {
   /**
    * Generiert gueltige CUID2 IDs fuer Tests.
    */
-  const generateValidErinnerungId = () => ErinnerungId.create().value!.toString();
+  const generateValidErinnerungId = () => ErinnerungId.create().value?.toString();
 
   /**
    * Erstellt ein gueltiges Erinnerung Aggregate fuer Tests.
@@ -183,8 +183,8 @@ describe('TriggerErinnerungHandler', () => {
 
       // Then (Assert)
       expect(savedErinnerung).toBeDefined();
-      expect(savedErinnerung!.status.isAusgeloest()).toBe(true);
-      expect(savedErinnerung!.ausgeloestAm).toBeInstanceOf(Date);
+      expect(savedErinnerung?.status.isAusgeloest()).toBe(true);
+      expect(savedErinnerung?.ausgeloestAm).toBeInstanceOf(Date);
     });
 
     it('should log successful trigger', async () => {

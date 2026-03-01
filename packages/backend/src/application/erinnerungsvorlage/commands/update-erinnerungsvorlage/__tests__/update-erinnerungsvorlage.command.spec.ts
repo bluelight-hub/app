@@ -16,10 +16,10 @@ describe('UpdateErinnerungsvorlageCommand', () => {
       });
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.vorlageId).toBe(validVorlageId);
-      expect(result.value!.titel).toBe('Neuer Titel');
-      expect(result.value!.minuten).toBe(45);
-      expect(result.value!.beschreibung).toBe('Neue Beschreibung');
+      expect(result.value?.vorlageId).toBe(validVorlageId);
+      expect(result.value?.titel).toBe('Neuer Titel');
+      expect(result.value?.minuten).toBe(45);
+      expect(result.value?.beschreibung).toBe('Neue Beschreibung');
     });
 
     it('should create command with only titel', () => {
@@ -30,9 +30,9 @@ describe('UpdateErinnerungsvorlageCommand', () => {
       });
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.titel).toBe('Nur Titel');
-      expect(result.value!.minuten).toBeUndefined();
-      expect(result.value!.beschreibung).toBeUndefined();
+      expect(result.value?.titel).toBe('Nur Titel');
+      expect(result.value?.minuten).toBeUndefined();
+      expect(result.value?.beschreibung).toBeUndefined();
     });
 
     it('should create command with only minuten', () => {
@@ -43,7 +43,7 @@ describe('UpdateErinnerungsvorlageCommand', () => {
       });
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.minuten).toBe(60);
+      expect(result.value?.minuten).toBe(60);
     });
 
     it('should create command with beschreibung set to null (remove)', () => {
@@ -54,7 +54,7 @@ describe('UpdateErinnerungsvorlageCommand', () => {
       });
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.beschreibung).toBeNull();
+      expect(result.value?.beschreibung).toBeNull();
     });
 
     it('should fail when no fields are provided', () => {
@@ -130,7 +130,7 @@ describe('UpdateErinnerungsvorlageCommand', () => {
       });
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.titel).toBe('Trimmed');
+      expect(result.value?.titel).toBe('Trimmed');
     });
 
     it('should accept titel with exactly 100 characters', () => {
@@ -161,7 +161,7 @@ describe('UpdateErinnerungsvorlageCommand', () => {
       });
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.beschreibung).toBeNull();
+      expect(result.value?.beschreibung).toBeNull();
     });
   });
 });

@@ -87,7 +87,6 @@ export class SpyEventPublisher implements IEventPublisher {
    * @param eventType - Event-Klasse (z.B. EintragAddedEvent)
    * @returns Array der gefundenen Events (typisiert)
    */
-  // biome-ignore lint/suspicious/noExplicitAny: Generic constructor type requires any[] for arbitrary argument lists
   getEventsByType<T extends DomainEvent>(eventType: new (...args: any[]) => T): T[] {
     return this.publishedEvents.filter((e) => e instanceof eventType) as T[];
   }
@@ -191,14 +190,12 @@ export interface EtbTestModuleContext {
   // module: TestingModule; // Uncomment when @nestjs/testing is available
 
   /** In-Memory Repository fuer ETB - Placeholder fuer InMemoryEtbRepository */
-  // biome-ignore lint/suspicious/noExplicitAny: Placeholder - wird mit InMemoryEtbRepository typisiert wenn verfuegbar
   repository: any;
 
   /** Spy Event Publisher fuer Event Verification */
   eventPublisher: SpyEventPublisher;
 
   /** Handler-Instanz (generic, wird je nach Test spezifiziert) */
-  // biome-ignore lint/suspicious/noExplicitAny: Placeholder - Handler-Typ variiert je nach Test-Kontext
   handler: any;
 }
 

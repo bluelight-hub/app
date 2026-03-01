@@ -581,7 +581,6 @@ export class PrismaEtbMapper {
    */
   private static getNextSequenceNumber(aggregate: EinsatztagebuchAggregate): number {
     // Direkter Zugriff auf private field (unsafe but necessary for mapper)
-    // biome-ignore lint/suspicious/noExplicitAny: Mapper benoetigt Zugriff auf private field
     const nextSeq = (aggregate as any)._nextSequenceNumber;
     if (typeof nextSeq === 'number' && nextSeq >= 1) {
       return nextSeq;

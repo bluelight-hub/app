@@ -28,7 +28,7 @@ describe('PrismaKategorieMapper', () => {
    * Erzeugt einen gueltigen Prisma Kategorie Record fuer Tests.
    */
   const createValidPrismaRecord = (overrides: Partial<PrismaKategorie> = {}): PrismaKategorie => ({
-    id: KategorieId.create().value!.toString(),
+    id: KategorieId.create().value?.toString(),
     einsatzId: 'einsatz-123',
     name: 'Lage',
     farbe: '#FF5733',
@@ -76,7 +76,7 @@ describe('PrismaKategorieMapper', () => {
       // Then: Soft-Delete Felder korrekt gemapped
       expect(kategorie.geloeschtAm).toEqual(geloeschtAm);
       expect(kategorie.geloeschtVon).toBeDefined();
-      expect(kategorie.geloeschtVon!.toString()).toBe(geloeschtVonId);
+      expect(kategorie.geloeschtVon?.toString()).toBe(geloeschtVonId);
     });
 
     it('should throw an error for invalid KategorieId', () => {

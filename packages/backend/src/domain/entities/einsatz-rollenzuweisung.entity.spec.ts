@@ -12,11 +12,11 @@ describe('EinsatzRollenzuweisung', () => {
 
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.einsatzId).toBe(validEinsatzId);
-      expect(result.value!.userId).toBe(validUserId);
-      expect(result.value!.rolle.equals(rolle)).toBe(true);
-      expect(result.value!.id).toBeDefined();
-      expect(result.value!.zugewiesenAm).toBeInstanceOf(Date);
+      expect(result.value?.einsatzId).toBe(validEinsatzId);
+      expect(result.value?.userId).toBe(validUserId);
+      expect(result.value?.rolle.equals(rolle)).toBe(true);
+      expect(result.value?.id).toBeDefined();
+      expect(result.value?.zugewiesenAm).toBeInstanceOf(Date);
     });
 
     it('should create with all rolle types', () => {
@@ -25,7 +25,7 @@ describe('EinsatzRollenzuweisung', () => {
       for (const rolle of rollen) {
         const result = EinsatzRollenzuweisung.create(validEinsatzId, validUserId, rolle);
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.rolle.value).toBe(rolle.value);
+        expect(result.value?.rolle.value).toBe(rolle.value);
       }
     });
 
@@ -66,7 +66,7 @@ describe('EinsatzRollenzuweisung', () => {
       const result1 = EinsatzRollenzuweisung.create(validEinsatzId, validUserId, rolle);
       const result2 = EinsatzRollenzuweisung.create(validEinsatzId, validUserId, rolle);
 
-      expect(result1.value!.id).not.toBe(result2.value!.id);
+      expect(result1.value?.id).not.toBe(result2.value?.id);
     });
   });
 
@@ -108,13 +108,13 @@ describe('EinsatzRollenzuweisung', () => {
     it('should return false when comparing with undefined', () => {
       const rolle = EinsatzRolle.ERSTELLER();
       const result = EinsatzRollenzuweisung.create(validEinsatzId, validUserId, rolle);
-      expect(result.value!.equals(undefined)).toBe(false);
+      expect(result.value?.equals(undefined)).toBe(false);
     });
 
     it('should return true when comparing with itself', () => {
       const rolle = EinsatzRolle.ERSTELLER();
       const result = EinsatzRollenzuweisung.create(validEinsatzId, validUserId, rolle);
-      expect(result.value!.equals(result.value!)).toBe(true);
+      expect(result.value?.equals(result.value!)).toBe(true);
     });
   });
 });

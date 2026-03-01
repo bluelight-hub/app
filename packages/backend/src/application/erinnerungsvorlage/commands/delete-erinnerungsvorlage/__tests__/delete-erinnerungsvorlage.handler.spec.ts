@@ -85,7 +85,7 @@ describe('DeleteErinnerungsvorlageHandler', () => {
 
       const commandResult = DeleteErinnerungsvorlageCommand.create({
         vorlageId: vorlage.id.toString(),
-        deletedBy: UserId.create().value!.toString(),
+        deletedBy: UserId.create().value?.toString(),
       });
 
       // When
@@ -102,7 +102,7 @@ describe('DeleteErinnerungsvorlageHandler', () => {
       mockVorlageRepository.findById.mockResolvedValue(null);
       const commandResult = DeleteErinnerungsvorlageCommand.create({
         vorlageId: 'non-existent',
-        deletedBy: UserId.create().value!.toString(),
+        deletedBy: UserId.create().value?.toString(),
       });
 
       // When
@@ -189,7 +189,7 @@ describe('DeleteErinnerungsvorlageHandler', () => {
 
       const commandResult = DeleteErinnerungsvorlageCommand.create({
         vorlageId: vorlage.id.toString(),
-        deletedBy: UserId.create().value!.toString(),
+        deletedBy: UserId.create().value?.toString(),
       });
 
       // When

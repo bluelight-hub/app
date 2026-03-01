@@ -102,7 +102,6 @@ export function EditFuehrungsrhythmusTemplateDialog({ isOpen, onClose, template 
   });
 
   // Reset form when template changes (only react to open state and template identity change)
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Intentionally only reacting to isOpen and template.id to avoid infinite loops from form/template object references
   useEffect(() => {
     if (isOpen) {
       form.reset();
@@ -208,8 +207,8 @@ export function EditFuehrungsrhythmusTemplateDialog({ isOpen, onClose, template 
             <form.Field name="eintraege" mode="array">
               {(field) => (
                 <div className="space-y-4">
-                  {field.state.value.map((_: unknown, index: number) => (
-                    <EditEintragRow key={index} form={form} index={index} isPending={isPending} canRemove={field.state.value.length > 1} onRemove={() => field.removeValue(index)} />
+                  {field.state.value.map((eintrag: unknown, index: number) => (
+                    <EditEintragRow key={JSON.stringify(eintrag)} form={form} index={index} isPending={isPending} canRemove={field.state.value.length > 1} onRemove={() => field.removeValue(index)} />
                   ))}
 
                   {/* Erinnerung hinzufuegen Button */}
@@ -217,7 +216,7 @@ export function EditFuehrungsrhythmusTemplateDialog({ isOpen, onClose, template 
                     type="button"
                     onClick={() => field.pushValue({ titel: '', intervallMinuten: 30, offsetMinuten: 0 })}
                     disabled={isPending}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 px-4 py-2.5 text-gray-500 text-sm transition-colors hover:border-amber-400 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-400 dark:hover:border-amber-500 dark:hover:text-amber-400"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-gray-300 border-dashed px-4 py-2.5 text-gray-500 text-sm transition-colors hover:border-amber-400 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-400 dark:hover:border-amber-500 dark:hover:text-amber-400"
                   >
                     <PiPlus className="h-4 w-4" />
                     Erinnerung hinzufuegen
@@ -303,7 +302,9 @@ function EditEintragRow({
           <form.Field name={`eintraege[${index}].intervallMinuten`}>
             {(field) => (
               <div className="flex-1">
-                <label className="mb-1 block text-gray-500 text-xs dark:text-gray-400">Intervall (Min)</label>
+                <label htmlFor={`intervall-${index}`} className="mb-1 block text-gray-500 text-xs dark:text-gray-400">
+                  Intervall (Min)
+                </label>
                 <div className="flex items-center gap-1.5">
                   {INTERVALL_PRESETS.map((preset) => (
                     <button
@@ -323,6 +324,7 @@ function EditEintragRow({
                     </button>
                   ))}
                   <Input
+                    id={`intervall-${index}`}
                     type="number"
                     value={field.state.value as number}
                     onChange={(e) => field.handleChange(Number(e.target.value))}
@@ -343,8 +345,11 @@ function EditEintragRow({
           <form.Field name={`eintraege[${index}].offsetMinuten`}>
             {(field) => (
               <div className="w-24">
-                <label className="mb-1 block text-gray-500 text-xs dark:text-gray-400">Offset (Min)</label>
+                <label htmlFor={`offset-${index}`} className="mb-1 block text-gray-500 text-xs dark:text-gray-400">
+                  Offset (Min)
+                </label>
                 <Input
+                  id={`offset-${index}`}
                   type="number"
                   value={(field.state.value as number | undefined) ?? 0}
                   onChange={(e) => field.handleChange(Number(e.target.value))}

@@ -67,20 +67,24 @@ export class GetAufbewahrungsVorschauQueryHandler {
 
     // 4. DTOs erstellen
     let gesamtBefehlCount = 0;
-    const einsaetze: AufbewahrungsVorschauEinsatzDto[] = betroffeneEinsaetze.map((e) => {
+    const einsaetze: AufbewahrungsVorschauEinsatzDto[] = betroffeneEinsaetze.flatMap((e) => {
       const dto = new AufbewahrungsVorschauEinsatzDto();
       dto.einsatzId = e.id;
       dto.einsatzNummer = e.alarmstichwort ?? e.id;
       dto.befehlCount = e._count.befehle;
-      dto.archiviertAm = e.archivedAt!;
+      if (!e.archivedAt) {
+        return [];
+      }
+
+      dto.archiviertAm = e.archivedAt;
 
       // Anonymisierung faellig: archivedAt + Aufbewahrungsfrist
-      const faelligAm = new Date(e.archivedAt!);
+      const faelligAm = new Date(e.archivedAt);
       faelligAm.setFullYear(faelligAm.getFullYear() + konfig.aufbewahrungsfristJahre);
       dto.anonymisierungFaelligAm = faelligAm;
 
       gesamtBefehlCount += e._count.befehle;
-      return dto;
+      return [dto];
     });
 
     const vorschau = new AufbewahrungsVorschauDto();

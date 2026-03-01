@@ -21,7 +21,6 @@
  * @see IHiOrgServerPort - Domain Port Interface
  */
 
-// biome-ignore lint/style/noRestrictedImports: Logger in Adapter ist erlaubt
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { Result } from '@domain/common/result';
 import type { IHiOrgServerPort, HiOrgConnectionInfo, HiOrgPersonDto, HiOrgFetchOptions, HiOrgQualifikation, HiOrgAusbildung } from '@domain/ports/i-hiorg-server.port';
@@ -111,7 +110,7 @@ export class HiOrgServerAdapter implements IHiOrgServerPort {
         throw new Error(response.error!);
       }
 
-      const data = response.value!.data;
+      const data = response.value?.data;
       const attributes = Array.isArray(data) ? data[0]?.attributes : data.attributes;
 
       return {
@@ -148,7 +147,7 @@ export class HiOrgServerAdapter implements IHiOrgServerPort {
           throw new Error(response.error!);
         }
 
-        const data = response.value!.data;
+        const data = response.value?.data;
         const resources = Array.isArray(data) ? data : [data];
 
         // Personen mit Ausbildungen laden (separate Requests pro Person)

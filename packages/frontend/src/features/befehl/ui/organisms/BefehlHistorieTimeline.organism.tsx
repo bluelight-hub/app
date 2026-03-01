@@ -79,8 +79,8 @@ export function BefehlHistorieTimeline({ befehlId }: BefehlHistorieTimelineProps
   if (isError) {
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-800 dark:bg-red-900/20" data-testid="historie-error">
-        <p className="text-sm text-red-600 dark:text-red-400">Historie konnte nicht geladen werden</p>
-        <button type="button" onClick={() => refetch()} className="mt-2 text-sm font-medium text-red-700 underline hover:text-red-800 dark:text-red-300 dark:hover:text-red-200">
+        <p className="text-red-600 text-sm dark:text-red-400">Historie konnte nicht geladen werden</p>
+        <button type="button" onClick={() => refetch()} className="mt-2 font-medium text-red-700 text-sm underline hover:text-red-800 dark:text-red-300 dark:hover:text-red-200">
           Erneut versuchen
         </button>
       </div>
@@ -89,7 +89,7 @@ export function BefehlHistorieTimeline({ befehlId }: BefehlHistorieTimelineProps
 
   if (!timeline || timeline.events.length === 0) {
     return (
-      <p className="text-center text-sm text-gray-500 dark:text-gray-400" data-testid="historie-leer">
+      <p className="text-center text-gray-500 text-sm dark:text-gray-400" data-testid="historie-leer">
         Keine Historie vorhanden
       </p>
     );
@@ -121,19 +121,19 @@ export function BefehlHistorieTimeline({ befehlId }: BefehlHistorieTimelineProps
                   </div>
                   <div className="flex min-w-0 flex-1 justify-between space-x-4">
                     <div>
-                      <p className={cn('text-sm font-medium', event.status === StatusEnum.Ausstehend ? 'text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-gray-100')}>
+                      <p className={cn('font-medium text-sm', event.status === StatusEnum.Ausstehend ? 'text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-gray-100')}>
                         {event.beschreibung}
                         {event.akteur && <span className="ml-1 font-normal text-gray-500 dark:text-gray-400">durch {event.akteur}</span>}
                       </p>
-                      {isExpanded && event.details && <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{event.details}</p>}
+                      {isExpanded && event.details && <p className="mt-1 text-gray-500 text-sm dark:text-gray-400">{event.details}</p>}
                       {isExpanded && event.korrekturBefehlNummer && (
-                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        <p className="mt-1 text-gray-500 text-sm dark:text-gray-400">
                           Korrektur: <span className="font-mono">{event.korrekturBefehlNummer}</span>
                         </p>
                       )}
                     </div>
                     {zeitpunktDate && (
-                      <div className="shrink-0 whitespace-nowrap text-right text-sm text-gray-500 dark:text-gray-400">
+                      <div className="shrink-0 whitespace-nowrap text-right text-gray-500 text-sm dark:text-gray-400">
                         <time dateTime={zeitpunktDate.toISOString()}>{format(zeitpunktDate, 'dd.MM.yyyy HH:mm')}</time>
                       </div>
                     )}

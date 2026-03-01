@@ -64,13 +64,13 @@ export function KanbanSpalte({ config, befehle, einsatzId, className, onStatusCh
     >
       {/* Spalten-Header mit Count-Badge */}
       <div className={cn('flex items-center justify-between rounded-t-lg px-3 py-2', config.headerBg)}>
-        <h3 className={cn('text-sm font-semibold', config.headerText)}>{config.label}</h3>
-        <span className={cn('rounded-full bg-white/80 px-2 py-0.5 text-xs font-bold dark:bg-black/20', config.headerText)}>{befehle.length}</span>
+        <h3 className={cn('font-semibold text-sm', config.headerText)}>{config.label}</h3>
+        <span className={cn('rounded-full bg-white/80 px-2 py-0.5 font-bold text-xs dark:bg-black/20', config.headerText)}>{befehle.length}</span>
       </div>
 
       {/* Karten-Liste (nach Prioritaet sortiert) */}
       <div className="flex flex-1 flex-col gap-2 overflow-y-auto p-2">
-        {sortierteBefehle.length === 0 && <p className="py-4 text-center text-sm text-gray-400 dark:text-gray-500">Keine Befehle</p>}
+        {sortierteBefehle.length === 0 && <p className="py-4 text-center text-gray-400 text-sm dark:text-gray-500">Keine Befehle</p>}
         {sortierteBefehle.map(({ befehl, istKorrigiert }) => (
           <div key={befehl.id} className={cn(istKorrigiert && 'opacity-60')}>
             <BefehlKarte
@@ -91,7 +91,7 @@ export function KanbanSpalte({ config, befehle, einsatzId, className, onStatusCh
               canQuittieren={canQuittieren}
             />
             {istKorrigiert && (
-              <span className="mt-1 inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-400">Korrigiert</span>
+              <span className="mt-1 inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 font-medium text-gray-600 text-xs dark:bg-gray-700 dark:text-gray-400">Korrigiert</span>
             )}
           </div>
         ))}

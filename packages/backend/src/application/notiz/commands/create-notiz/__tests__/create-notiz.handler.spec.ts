@@ -1,7 +1,6 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { CreateNotizHandler } from '../create-notiz.handler';
 import { CreateNotizCommand } from '../create-notiz.command';
-import { Result } from '@domain/common/result';
 import { NotizErstelltEvent } from '@domain/notiz/events/notiz-erstellt.event';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { UserId } from '@domain/value-objects/user-id';
@@ -38,12 +37,12 @@ describe('CreateNotizHandler', () => {
   /**
    * Generiert eine gueltige CUID2 ID fuer Tests.
    */
-  const generateValidEinsatzId = () => EinsatzId.create().value!.toString();
+  const generateValidEinsatzId = () => EinsatzId.create().value?.toString();
 
   /**
    * Generiert eine gueltige CUID2 UserId fuer Tests.
    */
-  const generateValidUserId = () => UserId.create().value!.toString();
+  const generateValidUserId = () => UserId.create().value?.toString();
 
   /**
    * Erstellt einen gueltigen CreateNotizCommand fuer Tests.
@@ -149,9 +148,9 @@ describe('CreateNotizHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.id).toBeDefined();
-      expect(result.value!.titel).toBe('Test Notiz');
-      expect(result.value!.inhalt).toBe('Test Inhalt');
+      expect(result.value?.id).toBeDefined();
+      expect(result.value?.titel).toBe('Test Notiz');
+      expect(result.value?.inhalt).toBe('Test Inhalt');
       expect(mockNotizRepository.save).toHaveBeenCalledTimes(1);
       expect(mockOutboxRepository.save).toHaveBeenCalledTimes(1);
       expect(mockPrismaService.$transaction).toHaveBeenCalledTimes(1);
@@ -296,7 +295,7 @@ describe('CreateNotizHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.kategorieId).toBeNull();
+      expect(result.value?.kategorieId).toBeNull();
     });
 
     it('should create command with valid kategorieId', () => {
@@ -311,7 +310,7 @@ describe('CreateNotizHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.kategorieId).toBe(kategorieId);
+      expect(result.value?.kategorieId).toBe(kategorieId);
     });
   });
 

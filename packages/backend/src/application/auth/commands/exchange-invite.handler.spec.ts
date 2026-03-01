@@ -78,8 +78,8 @@ describe('ExchangeInviteHandler', () => {
     const futureDate = new Date();
     futureDate.setHours(futureDate.getHours() + 24); // 1 Tag in Zukunft
 
-    const inviteCodeId = InviteCodeId.create().value!;
-    const inviteCodeValue = InviteCodeValue.generate().value!;
+    const inviteCodeId = InviteCodeId.create().value;
+    const inviteCodeValue = InviteCodeValue.generate().value;
 
     return InviteCode.reconstruct({
       id: inviteCodeId,

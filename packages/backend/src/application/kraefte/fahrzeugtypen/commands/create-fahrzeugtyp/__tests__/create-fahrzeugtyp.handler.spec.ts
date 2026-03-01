@@ -98,10 +98,10 @@ describe('CreateFahrzeugtypHandler', () => {
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
       expect(typeof result.value).toBe('object');
-      expect(result.value!.id).toBeDefined();
-      expect(result.value!.code).toBe('HLF');
-      expect(result.value!.bezeichnung).toBe('Hilfeleistungslöschfahrzeug');
-      expect(result.value!.kategorie).toBe('RETTUNGSDIENST');
+      expect(result.value?.id).toBeDefined();
+      expect(result.value?.code).toBe('HLF');
+      expect(result.value?.bezeichnung).toBe('Hilfeleistungslöschfahrzeug');
+      expect(result.value?.kategorie).toBe('RETTUNGSDIENST');
       expect(mockRepository.findByCode).toHaveBeenCalledWith('HLF', expect.any(Object));
       expect(mockRepository.save).toHaveBeenCalledTimes(1);
     });
@@ -141,7 +141,7 @@ describe('CreateFahrzeugtypHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.code).toBe('NEF');
+      expect(result.value?.code).toBe('NEF');
       expect(mockRepository.findByCode).toHaveBeenCalledWith('NEF', expect.any(Object));
     });
 

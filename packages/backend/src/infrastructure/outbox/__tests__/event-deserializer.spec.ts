@@ -92,15 +92,15 @@ describe('EventDeserializer', () => {
 
   beforeAll(() => {
     // Create valid Nanoid IDs
-    befehlIdValue = BefehlId.create().value!.value;
-    einsatzIdValue = EinsatzId.create().value!.value;
-    userIdValue = UserId.create().value!.value;
-    userId2Value = UserId.create().value!.value;
-    etbIdValue = EtbId.create().value!.value;
-    eintragIdValue = EintragId.create().value!.value;
-    erinnerungIdValue = ErinnerungId.create().value!.value;
-    lagekarteIdValue = LagekarteId.create().value!.value;
-    poiIdValue = PoiId.create().value!.value;
+    befehlIdValue = BefehlId.create().value?.value;
+    einsatzIdValue = EinsatzId.create().value?.value;
+    userIdValue = UserId.create().value?.value;
+    userId2Value = UserId.create().value?.value;
+    etbIdValue = EtbId.create().value?.value;
+    eintragIdValue = EintragId.create().value?.value;
+    erinnerungIdValue = ErinnerungId.create().value?.value;
+    lagekarteIdValue = LagekarteId.create().value?.value;
+    poiIdValue = PoiId.create().value?.value;
   });
 
   beforeEach(async () => {

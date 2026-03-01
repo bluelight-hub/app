@@ -88,7 +88,6 @@ export function EditVorlageDialog({ isOpen, onClose, vorlage }: EditVorlageDialo
   //
   // `form` ist eine instabile Referenz (aendert sich bei jedem Render).
   // Stattdessen: form.reset direkt im useEffect aufrufen, lastLoadedIdRef verhindert unnoetige Resets.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: form.reset ist stabil, lastLoadedIdRef verhindert Race Conditions
   useEffect(() => {
     if (vorlage && isOpen && lastLoadedIdRef.current !== vorlage.id) {
       lastLoadedIdRef.current = vorlage.id;
@@ -100,7 +99,6 @@ export function EditVorlageDialog({ isOpen, onClose, vorlage }: EditVorlageDialo
     }
   }, [vorlage, isOpen]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: form.reset ist stabil (interne TanStack Form Implementierung)
   const handleClose = useCallback(() => {
     if (!isPending) {
       setApiErrorMessage(null);

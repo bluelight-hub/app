@@ -263,7 +263,7 @@ describe('UpdateEinsatzStatusHandler', () => {
   describe('execute - Fehlerbehandlung', () => {
     it('sollte Result.fail zurückgeben wenn Einsatz nicht gefunden', async () => {
       // Given (Arrange)
-      const validEinsatzId = EinsatzId.create().value!.value;
+      const validEinsatzId = EinsatzId.create().value?.value;
       const command = UpdateEinsatzStatusCommand.create(validEinsatzId, 'IN_BEARBEITUNG').value!;
       mockRepository.findById.mockResolvedValue(Result.ok(null));
 
@@ -471,7 +471,7 @@ describe('UpdateEinsatzStatusHandler', () => {
     describe('Entity Not Found', () => {
       it('sollte Result.fail zurückgeben wenn Einsatz nicht existiert', async () => {
         // Given (Arrange)
-        const validEinsatzId = EinsatzId.create().value!.value;
+        const validEinsatzId = EinsatzId.create().value?.value;
         const command = UpdateEinsatzStatusCommand.create(validEinsatzId, 'IN_BEARBEITUNG').value!;
         mockRepository.findById.mockResolvedValue(Result.ok(null));
 

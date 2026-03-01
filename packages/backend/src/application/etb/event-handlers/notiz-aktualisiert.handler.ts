@@ -94,7 +94,6 @@ export class NotizAktualisiertEtbHandler implements IEventHandler<NotizAktualisi
       }
 
       // Command ausfuehren via injiziertem Handler
-      // biome-ignore lint/style/noNonNullAssertion: Safe - already checked isFailure above
       const result = await this.addEintragHandler.execute(commandResult.value!);
 
       if (result.isFailure) {

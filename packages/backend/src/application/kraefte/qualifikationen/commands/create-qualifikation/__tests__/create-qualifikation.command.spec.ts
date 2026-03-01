@@ -44,11 +44,11 @@ describe('CreateQualifikationCommand', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.name).toBe('Notfallsanitäter');
-      expect(result.value!.abkuerzung).toBe('NotSan');
-      expect(result.value!.kategorie).toBe('SANITAET');
-      expect(result.value!.createdBy).toBe('cm1234567890abcdef12345');
-      expect(result.value!.beschreibung).toBe('Höchste nichtärztliche Qualifikation');
+      expect(result.value?.name).toBe('Notfallsanitäter');
+      expect(result.value?.abkuerzung).toBe('NotSan');
+      expect(result.value?.kategorie).toBe('SANITAET');
+      expect(result.value?.createdBy).toBe('cm1234567890abcdef12345');
+      expect(result.value?.beschreibung).toBe('Höchste nichtärztliche Qualifikation');
     });
 
     it('sollte Command ohne optionale Beschreibung erstellen', () => {
@@ -65,7 +65,7 @@ describe('CreateQualifikationCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.beschreibung).toBeUndefined();
+      expect(result.value?.beschreibung).toBeUndefined();
     });
 
     describe('Validation: Name', () => {
@@ -134,7 +134,7 @@ describe('CreateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.name).toBe('ABC');
+        expect(result.value?.name).toBe('ABC');
       });
 
       it('sollte führende und nachfolgende Whitespaces in Name trimmen', () => {
@@ -151,7 +151,7 @@ describe('CreateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.name).toBe('Notfallsanitäter');
+        expect(result.value?.name).toBe('Notfallsanitäter');
       });
     });
 
@@ -221,7 +221,7 @@ describe('CreateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.abkuerzung).toBe('TQ');
+        expect(result.value?.abkuerzung).toBe('TQ');
       });
 
       it('sollte Whitespaces in Abkürzung trimmen', () => {
@@ -238,7 +238,7 @@ describe('CreateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.abkuerzung).toBe('NotSan');
+        expect(result.value?.abkuerzung).toBe('NotSan');
       });
     });
 
@@ -275,7 +275,7 @@ describe('CreateQualifikationCommand', () => {
           };
           const result = CreateQualifikationCommand.create(props);
           expect(result.isSuccess).toBe(true);
-          expect(result.value!.kategorie).toBe(kategorie);
+          expect(result.value?.kategorie).toBe(kategorie);
         }
       });
     });
@@ -329,7 +329,7 @@ describe('CreateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.createdBy).toBe('cm1234567890abcdef12345');
+        expect(result.value?.createdBy).toBe('cm1234567890abcdef12345');
       });
     });
 
@@ -381,7 +381,7 @@ describe('CreateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.name.length).toBe(100);
+        expect(result.value?.name.length).toBe(100);
       });
 
       it('sollte zu lange Namen ablehnen (Defense-in-Depth)', () => {
@@ -417,7 +417,7 @@ describe('CreateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.abkuerzung.length).toBe(20);
+        expect(result.value?.abkuerzung.length).toBe(20);
       });
 
       it('sollte zu lange Abkürzungen ablehnen (Defense-in-Depth)', () => {
@@ -454,7 +454,7 @@ describe('CreateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.beschreibung!.length).toBe(1000);
+        expect(result.value?.beschreibung?.length).toBe(1000);
       });
 
       it('sollte zu lange Beschreibungen ablehnen (Defense-in-Depth)', () => {
@@ -493,7 +493,7 @@ describe('CreateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.beschreibung).toBe('Beschreibung mit Whitespace');
+        expect(result.value?.beschreibung).toBe('Beschreibung mit Whitespace');
       });
 
       it('sollte leere Beschreibung (nur Whitespace) als undefined speichern', () => {
@@ -511,7 +511,7 @@ describe('CreateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.beschreibung).toBeUndefined();
+        expect(result.value?.beschreibung).toBeUndefined();
       });
     });
 
@@ -530,8 +530,8 @@ describe('CreateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.name).toBe('Ärztlicher Leiter Rettungsdienst');
-        expect(result.value!.abkuerzung).toBe('ÄLRD');
+        expect(result.value?.name).toBe('Ärztlicher Leiter Rettungsdienst');
+        expect(result.value?.abkuerzung).toBe('ÄLRD');
       });
 
       it('sollte Sonderzeichen in Abkürzung akzeptieren', () => {
@@ -548,7 +548,7 @@ describe('CreateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.abkuerzung).toBe('T-1');
+        expect(result.value?.abkuerzung).toBe('T-1');
       });
 
       it('sollte Zahlen in Name und Abkürzung akzeptieren', () => {
@@ -565,8 +565,8 @@ describe('CreateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.name).toBe('Stufe 123');
-        expect(result.value!.abkuerzung).toBe('S123');
+        expect(result.value?.name).toBe('Stufe 123');
+        expect(result.value?.abkuerzung).toBe('S123');
       });
     });
   });

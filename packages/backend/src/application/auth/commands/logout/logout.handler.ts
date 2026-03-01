@@ -35,7 +35,7 @@ import type { LogoutCommand } from './logout.command';
  * @example
  * ```typescript
  * // Logout (MVP: No-Op)
- * const command = LogoutCommand.create('eyJhbGc...').value!;
+ * const command = LogoutCommand.create('eyJhbGc...').value;
  * const result = await handler.execute(command);
  * if (result.isSuccess) {
  *   console.log('Logout successful (Client muss Token löschen!)');

@@ -317,11 +317,8 @@ function parseUrlFormat(data: string): ParseResult<DrkQrData> {
 
   // All required params validated above, non-null assertions are safe
   const result: DrkQrData = {
-    // biome-ignore lint/style/noNonNullAssertion: validated above in REQUIRED_PARAMS loop
     personalnummer: params.get('mnr')!.trim(),
-    // biome-ignore lint/style/noNonNullAssertion: validated above in REQUIRED_PARAMS loop
     vorname: params.get('vn')!.trim(),
-    // biome-ignore lint/style/noNonNullAssertion: validated above in REQUIRED_PARAMS loop
     nachname: params.get('nn')!.trim(),
   };
 

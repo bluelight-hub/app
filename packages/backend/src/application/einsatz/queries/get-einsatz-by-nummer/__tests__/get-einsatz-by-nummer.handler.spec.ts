@@ -64,7 +64,6 @@ describe('GetEinsatzByNummerQueryHandler', () => {
       findActive: jest.fn(),
       save: jest.fn(),
       exists: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     mockLogger = {
@@ -107,11 +106,11 @@ describe('GetEinsatzByNummerQueryHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.nummer).toBe(einsatzNummer);
-      expect(result.value!.alarmstichwort).toBe('Wohnungsbrand');
-      expect(result.value!.status).toBe('ANGELEGT');
-      expect(result.value!.createdBy).toBe(userId.value);
-      expect(result.value!.bemerkung).toBe('Dachstuhl brennt');
+      expect(result.value?.nummer).toBe(einsatzNummer);
+      expect(result.value?.alarmstichwort).toBe('Wohnungsbrand');
+      expect(result.value?.status).toBe('ANGELEGT');
+      expect(result.value?.createdBy).toBe(userId.value);
+      expect(result.value?.bemerkung).toBe('Dachstuhl brennt');
 
       // Verify repository called with correct nummer
       expect(mockRepo.findByNummer).toHaveBeenCalledWith(einsatzNummer);
@@ -174,10 +173,10 @@ describe('GetEinsatzByNummerQueryHandler', () => {
 
       // Verify optional fields
       expect(dto.einsatzort).toBeDefined();
-      expect(dto.einsatzort!.strasse).toBe('Musterstr.');
-      expect(dto.einsatzort!.hausnummer).toBe('42');
-      expect(dto.einsatzort!.plz).toBe('80331');
-      expect(dto.einsatzort!.ort).toBe('München');
+      expect(dto.einsatzort?.strasse).toBe('Musterstr.');
+      expect(dto.einsatzort?.hausnummer).toBe('42');
+      expect(dto.einsatzort?.plz).toBe('80331');
+      expect(dto.einsatzort?.ort).toBe('München');
 
       expect(dto.bemerkung).toBeUndefined();
       expect(dto.abgeschlossenAt).toBeUndefined();
@@ -205,7 +204,7 @@ describe('GetEinsatzByNummerQueryHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.bemerkung).toBe('Person vermisst');
+      expect(result.value?.bemerkung).toBe('Person vermisst');
     });
 
     it('should map aggregate without einsatzort correctly', async () => {
@@ -228,7 +227,7 @@ describe('GetEinsatzByNummerQueryHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.einsatzort).toBeUndefined();
+      expect(result.value?.einsatzort).toBeUndefined();
     });
   });
 
@@ -393,7 +392,7 @@ describe('GetEinsatzByNummerQueryHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.nummer).toBe(einsatzNummer);
+      expect(result.value?.nummer).toBe(einsatzNummer);
     });
 
     it('should handle valid nummer format correctly', async () => {
@@ -419,7 +418,7 @@ describe('GetEinsatzByNummerQueryHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.nummer).toBe(einsatzNummer);
+      expect(result.value?.nummer).toBe(einsatzNummer);
     });
   });
 
@@ -442,7 +441,6 @@ describe('GetEinsatzByNummerQueryHandler', () => {
 
     it('should throw error when nummer is undefined', () => {
       // Given
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
       const undefinedNummer = undefined as any;
 
       // When/Then
@@ -451,7 +449,6 @@ describe('GetEinsatzByNummerQueryHandler', () => {
 
     it('should throw error when nummer is null', () => {
       // Given
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
       const nullNummer = null as any;
 
       // When/Then

@@ -205,7 +205,6 @@ describe('RollenBesetzungId Value Object', () => {
 
       // When: Attempt to modify (TypeScript prevents this, but test runtime behavior)
       try {
-        // biome-ignore lint/suspicious/noExplicitAny: Testing runtime immutability
         (id as any).value = 'modified-value';
       } catch {
         // Expected: Property is readonly

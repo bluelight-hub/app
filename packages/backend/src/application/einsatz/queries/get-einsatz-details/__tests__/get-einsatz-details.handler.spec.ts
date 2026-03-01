@@ -367,7 +367,7 @@ describe('GetEinsatzDetailsQueryHandler', () => {
         // Simulate what handler does: EinsatzId.create() fails
         mockEinsatzRepository.findById.mockResolvedValue(Result.ok(null));
 
-        const query = new GetEinsatzDetailsQuery(EinsatzId.create().value!.value); // Use valid ID for query construction
+        const query = new GetEinsatzDetailsQuery(EinsatzId.create().value?.value); // Use valid ID for query construction
         const result = await handler.execute(query);
 
         // Then: Handler validates ID successfully but repo returns null

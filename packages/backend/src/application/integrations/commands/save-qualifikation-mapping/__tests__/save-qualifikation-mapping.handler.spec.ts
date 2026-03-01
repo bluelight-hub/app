@@ -114,9 +114,9 @@ describe('SaveQualifikationMappingHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.id).toBe(testMappingId);
-      expect(result.value!.qualifikationId).toBe(testQualifikationId);
-      expect(result.value!.isAutoMatched).toBe(false); // Manuelles Update setzt auf false
+      expect(result.value?.id).toBe(testMappingId);
+      expect(result.value?.qualifikationId).toBe(testQualifikationId);
+      expect(result.value?.isAutoMatched).toBe(false); // Manuelles Update setzt auf false
       expect(mockMappingRepo.save).toHaveBeenCalled();
       expect(mockLogger.log).toHaveBeenCalledWith(expect.stringContaining(testMappingId));
     });
@@ -178,7 +178,7 @@ describe('SaveQualifikationMappingHandler', () => {
 
       // Then: Leerer String wird wie null behandelt (Unmapping)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.qualifikationId).toBe(''); // Der Wert bleibt ''
+      expect(result.value?.qualifikationId).toBe(''); // Der Wert bleibt ''
       expect(mockQualifikationRepo.findById).not.toHaveBeenCalled();
     });
 
@@ -201,8 +201,8 @@ describe('SaveQualifikationMappingHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.qualifikationId).toBeNull();
-      expect(result.value!.isAutoMatched).toBe(false);
+      expect(result.value?.qualifikationId).toBeNull();
+      expect(result.value?.isAutoMatched).toBe(false);
       expect(mockMappingRepo.save).toHaveBeenCalled();
       // Qualifikation-Repository sollte nicht abgefragt werden bei null
       expect(mockQualifikationRepo.findById).not.toHaveBeenCalled();
@@ -317,7 +317,7 @@ describe('SaveQualifikationMappingHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.isAutoMatched).toBe(false);
+      expect(result.value?.isAutoMatched).toBe(false);
       // Verify save was called with updated mapping
       expect(mockMappingRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -364,7 +364,7 @@ describe('SaveQualifikationMappingHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.qualifikationId).toBeNull();
+      expect(result.value?.qualifikationId).toBeNull();
     });
   });
 });

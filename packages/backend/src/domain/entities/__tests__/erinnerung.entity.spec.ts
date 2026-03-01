@@ -506,8 +506,8 @@ describe('Erinnerung Entity', () => {
         // Then
         const afterDelete = new Date();
         expect(erinnerung.deletedAt).not.toBeNull();
-        expect(erinnerung.deletedAt!.getTime()).toBeGreaterThanOrEqual(beforeDelete.getTime());
-        expect(erinnerung.deletedAt!.getTime()).toBeLessThanOrEqual(afterDelete.getTime());
+        expect(erinnerung.deletedAt?.getTime()).toBeGreaterThanOrEqual(beforeDelete.getTime());
+        expect(erinnerung.deletedAt?.getTime()).toBeLessThanOrEqual(afterDelete.getTime());
       });
 
       it('sollte deletedBy setzen', () => {
@@ -533,7 +533,7 @@ describe('Erinnerung Entity', () => {
 
         // Then: Verschiedene Objekte, gleicher Wert
         expect(deletedAt1).not.toBe(deletedAt2);
-        expect(deletedAt1!.getTime()).toBe(deletedAt2!.getTime());
+        expect(deletedAt1?.getTime()).toBe(deletedAt2?.getTime());
       });
     });
 
@@ -770,8 +770,8 @@ describe('Erinnerung Entity', () => {
         // Then
         const afterAcknowledge = new Date();
         expect(erinnerung.acknowledgedAm).not.toBeNull();
-        expect(erinnerung.acknowledgedAm!.getTime()).toBeGreaterThanOrEqual(beforeAcknowledge.getTime());
-        expect(erinnerung.acknowledgedAm!.getTime()).toBeLessThanOrEqual(afterAcknowledge.getTime());
+        expect(erinnerung.acknowledgedAm?.getTime()).toBeGreaterThanOrEqual(beforeAcknowledge.getTime());
+        expect(erinnerung.acknowledgedAm?.getTime()).toBeLessThanOrEqual(afterAcknowledge.getTime());
       });
 
       it('sollte acknowledgedBy setzen', () => {
@@ -797,7 +797,7 @@ describe('Erinnerung Entity', () => {
 
         // Then: Verschiedene Objekte, gleicher Wert
         expect(acknowledgedAm1).not.toBe(acknowledgedAm2);
-        expect(acknowledgedAm1!.getTime()).toBe(acknowledgedAm2!.getTime());
+        expect(acknowledgedAm1?.getTime()).toBe(acknowledgedAm2?.getTime());
       });
 
       it('sollte bei Eskalation die Zuweisung auf den Acknowledger uebertragen (Story 4.6)', () => {
@@ -1052,8 +1052,8 @@ describe('Erinnerung Entity', () => {
         // Then
         const afterTrigger = new Date();
         expect(erinnerung.ausgeloestAm).not.toBeNull();
-        expect(erinnerung.ausgeloestAm!.getTime()).toBeGreaterThanOrEqual(beforeTrigger.getTime());
-        expect(erinnerung.ausgeloestAm!.getTime()).toBeLessThanOrEqual(afterTrigger.getTime());
+        expect(erinnerung.ausgeloestAm?.getTime()).toBeGreaterThanOrEqual(beforeTrigger.getTime());
+        expect(erinnerung.ausgeloestAm?.getTime()).toBeLessThanOrEqual(afterTrigger.getTime());
       });
     });
 
@@ -1251,8 +1251,8 @@ describe('Erinnerung Entity', () => {
         // Then
         const afterErledigt = new Date();
         expect(erinnerung.erledigtAm).not.toBeNull();
-        expect(erinnerung.erledigtAm!.getTime()).toBeGreaterThanOrEqual(beforeErledigt.getTime());
-        expect(erinnerung.erledigtAm!.getTime()).toBeLessThanOrEqual(afterErledigt.getTime());
+        expect(erinnerung.erledigtAm?.getTime()).toBeGreaterThanOrEqual(beforeErledigt.getTime());
+        expect(erinnerung.erledigtAm?.getTime()).toBeLessThanOrEqual(afterErledigt.getTime());
       });
 
       it('sollte erledigtBy setzen', () => {
@@ -1763,7 +1763,7 @@ describe('Erinnerung Entity', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.requiresNote).toBe(true);
+      expect(result.value?.requiresNote).toBe(true);
     });
 
     it('sollte Erinnerung mit requiresNote=false erstellen', () => {
@@ -1782,7 +1782,7 @@ describe('Erinnerung Entity', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.requiresNote).toBe(false);
+      expect(result.value?.requiresNote).toBe(false);
     });
 
     it('sollte Erinnerung mit Default requiresNote=false erstellen wenn nicht angegeben', () => {
@@ -1801,7 +1801,7 @@ describe('Erinnerung Entity', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.requiresNote).toBe(false);
+      expect(result.value?.requiresNote).toBe(false);
     });
   });
   // ============================================================
@@ -1845,7 +1845,7 @@ describe('Erinnerung Entity', () => {
       });
 
       // Then
-      const event = result.value!.getDomainEvents()[0] as unknown as { eskalationsPersonId: UserId }; // Cast due to potential type mismatch in older event definitions
+      const event = result.value?.getDomainEvents()[0] as unknown as { eskalationsPersonId: UserId }; // Cast due to potential type mismatch in older event definitions
       expect(event.eskalationsPersonId).toBe(eskalationsPersonId);
     });
 
@@ -2067,7 +2067,7 @@ describe('Erinnerung Entity', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.eskalationNurAnErsteller).toBe(true);
+      expect(result.value?.eskalationNurAnErsteller).toBe(true);
     });
 
     it('sollte Eskalation auf Ersteller erzwingen wenn Flag true ist', () => {
@@ -2253,7 +2253,7 @@ describe('Erinnerung Entity', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.notizId).toBe(notizId);
+      expect(result.value?.notizId).toBe(notizId);
     });
 
     it('sollte Erinnerung ohne notizId erstellen (default null)', () => {
@@ -2270,7 +2270,7 @@ describe('Erinnerung Entity', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.notizId).toBeNull();
+      expect(result.value?.notizId).toBeNull();
     });
 
     it('sollte Erinnerung mit notizId rekonstruieren', () => {
@@ -2342,11 +2342,11 @@ describe('Erinnerung Entity', () => {
         });
 
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.isRecurring).toBe(true);
-        expect(result.value!.recurringIntervalMinutes).toBe(30);
-        expect(result.value!.recurringCurrentCount).toBe(0);
-        expect(result.value!.parentErinnerungId).toBeNull();
-        expect(result.value!.recurringSequenceNumber).toBeNull();
+        expect(result.value?.isRecurring).toBe(true);
+        expect(result.value?.recurringIntervalMinutes).toBe(30);
+        expect(result.value?.recurringCurrentCount).toBe(0);
+        expect(result.value?.parentErinnerungId).toBeNull();
+        expect(result.value?.recurringSequenceNumber).toBeNull();
       });
 
       it('sollte eine wiederkehrende Erinnerung mit maxCount erstellen', () => {
@@ -2358,7 +2358,7 @@ describe('Erinnerung Entity', () => {
         });
 
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.recurringMaxCount).toBe(5);
+        expect(result.value?.recurringMaxCount).toBe(5);
       });
 
       it('sollte eine wiederkehrende Erinnerung mit endDate erstellen', () => {
@@ -2371,7 +2371,7 @@ describe('Erinnerung Entity', () => {
         });
 
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.recurringEndDate).toEqual(endDate);
+        expect(result.value?.recurringEndDate).toEqual(endDate);
       });
 
       it('sollte fehlschlagen wenn isRecurring=true ohne Intervall', () => {
@@ -2450,8 +2450,8 @@ describe('Erinnerung Entity', () => {
         });
 
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.isRecurring).toBe(false);
-        expect(result.value!.recurringIntervalMinutes).toBeNull();
+        expect(result.value?.isRecurring).toBe(false);
+        expect(result.value?.recurringIntervalMinutes).toBeNull();
       });
 
       it('sollte Recurring-Felder ignorieren wenn isRecurring=false', () => {
@@ -2462,8 +2462,8 @@ describe('Erinnerung Entity', () => {
         });
 
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.isRecurring).toBe(false);
-        expect(result.value!.recurringIntervalMinutes).toBeNull();
+        expect(result.value?.isRecurring).toBe(false);
+        expect(result.value?.recurringIntervalMinutes).toBeNull();
       });
     });
 
@@ -2563,10 +2563,10 @@ describe('Erinnerung Entity', () => {
         const props = erinnerung.getNextOccurrenceProps();
 
         expect(props).not.toBeNull();
-        expect(props!.isRecurring).toBe(false);
-        expect(props!.parentErinnerungId).toBeDefined();
-        expect(props!.recurringSequenceNumber).toBe(1);
-        expect(props!.titel).toBe(erinnerung.titel.value);
+        expect(props?.isRecurring).toBe(false);
+        expect(props?.parentErinnerungId).toBeDefined();
+        expect(props?.recurringSequenceNumber).toBe(1);
+        expect(props?.titel).toBe(erinnerung.titel.value);
       });
 
       it('sollte requiresNote vom Parent erben', () => {
@@ -2577,7 +2577,7 @@ describe('Erinnerung Entity', () => {
         });
 
         const props = erinnerung.getNextOccurrenceProps();
-        expect(props!.requiresNote).toBe(true);
+        expect(props?.requiresNote).toBe(true);
       });
 
       it('sollte null zurückgeben wenn keine Wiederholung nötig', () => {
@@ -2599,7 +2599,7 @@ describe('Erinnerung Entity', () => {
         });
 
         const props = erinnerung.getNextOccurrenceProps();
-        expect(props!.recurringSequenceNumber).toBe(4);
+        expect(props?.recurringSequenceNumber).toBe(4);
       });
     });
 

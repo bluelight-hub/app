@@ -86,7 +86,7 @@ describe('FuehrungsrhythmusTemplate Entity', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.beschreibung).toBeNull();
+      expect(result.value?.beschreibung).toBeNull();
     });
 
     it('should create template with multiple eintraege', () => {
@@ -106,7 +106,7 @@ describe('FuehrungsrhythmusTemplate Entity', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.eintraege).toHaveLength(3);
+      expect(result.value?.eintraege).toHaveLength(3);
     });
 
     it('should emit FuehrungsrhythmusTemplateErstelltEvent on create', () => {
@@ -231,7 +231,7 @@ describe('FuehrungsrhythmusTemplate Entity', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.beschreibung).toBe(maxBeschreibung);
+      expect(result.value?.beschreibung).toBe(maxBeschreibung);
     });
 
     it('should trim name and beschreibung whitespace', () => {
@@ -245,8 +245,8 @@ describe('FuehrungsrhythmusTemplate Entity', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.name.value).toBe('Standard Fuehrungsrhythmus');
-      expect(result.value!.beschreibung).toBe('Im ELW');
+      expect(result.value?.name.value).toBe('Standard Fuehrungsrhythmus');
+      expect(result.value?.beschreibung).toBe('Im ELW');
     });
 
     it('should fail when scope is EINSATZ but einsatzId is missing', () => {
@@ -295,9 +295,9 @@ describe('FuehrungsrhythmusTemplate Entity', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.scope).toBe(FuehrungsrhythmusTemplateScope.EINSATZ);
-      expect(result.value!.einsatzId).toBeDefined();
-      expect(result.value!.einsatzId!.equals(einsatzId)).toBe(true);
+      expect(result.value?.scope).toBe(FuehrungsrhythmusTemplateScope.EINSATZ);
+      expect(result.value?.einsatzId).toBeDefined();
+      expect(result.value?.einsatzId?.equals(einsatzId)).toBe(true);
     });
 
     it('should create template with scope GLOBAL and no einsatzId', () => {
@@ -314,8 +314,8 @@ describe('FuehrungsrhythmusTemplate Entity', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.scope).toBe(FuehrungsrhythmusTemplateScope.GLOBAL);
-      expect(result.value!.einsatzId).toBeNull();
+      expect(result.value?.scope).toBe(FuehrungsrhythmusTemplateScope.GLOBAL);
+      expect(result.value?.einsatzId).toBeNull();
     });
 
     it('should return defensive copy of eintraege (no mutation)', () => {
@@ -409,7 +409,7 @@ describe('FuehrungsrhythmusTemplate Entity', () => {
       // Then (Assert)
       expect(template.isDeleted).toBe(true);
       expect(template.deletedAt).toEqual(deletedAt);
-      expect(template.deletedBy!.equals(deletedBy)).toBe(true);
+      expect(template.deletedBy?.equals(deletedBy)).toBe(true);
 
       // CRITICAL: reconstruct() darf KEINE Domain Events emittieren
       expect(template.getDomainEvents().length).toBe(0);
@@ -628,7 +628,7 @@ describe('FuehrungsrhythmusTemplate Entity', () => {
       expect(result.isSuccess).toBe(true);
       expect(template.deletedAt).toBeDefined();
       expect(template.deletedAt).toBeInstanceOf(Date);
-      expect(template.deletedAt!.getTime()).toBeGreaterThanOrEqual(beforeDelete.getTime());
+      expect(template.deletedAt?.getTime()).toBeGreaterThanOrEqual(beforeDelete.getTime());
     });
 
     it('should set deletedBy', () => {
@@ -642,7 +642,7 @@ describe('FuehrungsrhythmusTemplate Entity', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(template.deletedBy).toBeDefined();
-      expect(template.deletedBy!.equals(userId)).toBe(true);
+      expect(template.deletedBy?.equals(userId)).toBe(true);
     });
 
     it('should fail when already deleted (ALREADY_DELETED)', () => {

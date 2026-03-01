@@ -142,7 +142,6 @@ export class UpdateUserHandler extends TransactionalCommandHandler<UpdateUserCom
       // WICHTIG: Username direkt ändern (User Aggregate hat keine updateUsername() Methode)
       // Username-Änderung wird im Repository.save() persistiert
       // HACK: Private Property Update via Type Assertion (Domain Model hat keinen Setter)
-      // biome-ignore lint/suspicious/noExplicitAny: Domain Model hat keinen Setter für username
       (user as any)._username = newUsernameResult.value;
     }
 

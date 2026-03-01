@@ -650,7 +650,6 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
           <form.Field name="kategorieId">
             {(field) => (
               <div>
-                {/* biome-ignore lint/a11y/noLabelWithoutControl: KategorieSelector ist Custom-Komponente mit internem Select */}
                 <label className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
                   Kategorie <span className="text-gray-400 text-xs">(optional)</span>
                 </label>
@@ -732,7 +731,6 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                     <form.Field name="recurringIntervalMinutes">
                       {(intervalField) => (
                         <div>
-                          {/* biome-ignore lint/a11y/noLabelWithoutControl: Label fuer Button-Chip-Gruppe, kein Input-Element */}
                           <label className="mb-2 block font-medium text-gray-700 text-sm dark:text-gray-300">
                             Intervall <span className="text-red-500">*</span>
                           </label>
@@ -801,7 +799,6 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                     <form.Field name="recurringEndMode">
                       {(endModeField) => (
                         <div>
-                          {/* biome-ignore lint/a11y/noLabelWithoutControl: Label fuer Radio-Button-Gruppe */}
                           <label className="mb-2 block font-medium text-gray-700 text-sm dark:text-gray-300">Ende</label>
                           <div className="space-y-2">
                             <label className="flex items-center gap-2">

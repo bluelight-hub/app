@@ -230,7 +230,6 @@ vi.mock('@/shared/ui/cn', () => ({
 // ============================================
 // Importiere Route-Datei (triggert createFileRoute-Aufruf)
 // ============================================
-// biome-ignore lint: dynamic import nach Mocks
 import '../befehle';
 
 /** Helper: Rendert die gecapturete BefehleSeite-Komponente */

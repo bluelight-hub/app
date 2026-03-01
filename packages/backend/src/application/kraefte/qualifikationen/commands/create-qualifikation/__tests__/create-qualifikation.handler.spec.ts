@@ -98,9 +98,9 @@ describe('CreateQualifikationHandler', () => {
       expect(result.value).toBeDefined();
       // Handler gibt jetzt QualifikationDto statt string zurück (N+1 Query Fix)
       expect(typeof result.value).toBe('object');
-      expect(result.value!.id).toBeDefined();
-      expect(result.value!.name).toBe('Zugführer');
-      expect(result.value!.abkuerzung).toBe('ZFÜ');
+      expect(result.value?.id).toBeDefined();
+      expect(result.value?.name).toBe('Zugführer');
+      expect(result.value?.abkuerzung).toBe('ZFÜ');
       expect(mockRepository.findByAbkuerzung).toHaveBeenCalledWith('ZFÜ', expect.any(Object));
       expect(mockRepository.save).toHaveBeenCalledTimes(1);
     });

@@ -122,7 +122,7 @@ describe('CreateInviteHandler', () => {
       createdById: 'user_abc123def456ghi789jkl012',
       label: 'Test Invite',
       ...overrides,
-    }).value!;
+    }).value;
   }
 
   describe('execute() - Success Cases', () => {
@@ -136,11 +136,11 @@ describe('CreateInviteHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.id).toBeDefined();
-      expect(result.value!.code).toBeDefined();
-      expect(result.value!.code).toHaveLength(8);
-      expect(result.value!.maxUses).toBe(10);
-      expect(result.value!.useCount).toBe(0);
+      expect(result.value.id).toBeDefined();
+      expect(result.value.code).toBeDefined();
+      expect(result.value.code).toHaveLength(8);
+      expect(result.value.maxUses).toBe(10);
+      expect(result.value.useCount).toBe(0);
     });
 
     it('should return response with correct deepLink format', async () => {
@@ -152,11 +152,11 @@ describe('CreateInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.deepLink).toBeDefined();
-      expect(result.value!.deepLink).toContain('bluelight://connect?');
-      expect(result.value!.deepLink).toContain('url=');
-      expect(result.value!.deepLink).toContain('invite=');
-      expect(result.value!.deepLink).toContain('expires=');
+      expect(result.value.deepLink).toBeDefined();
+      expect(result.value.deepLink).toContain('bluelight://connect?');
+      expect(result.value.deepLink).toContain('url=');
+      expect(result.value.deepLink).toContain('invite=');
+      expect(result.value.deepLink).toContain('expires=');
     });
 
     it('should return response with correct webLink format', async () => {
@@ -168,10 +168,10 @@ describe('CreateInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.webLink).toBeDefined();
-      expect(result.value!.webLink).toContain('http://localhost:3090');
-      expect(result.value!.webLink).toContain('server=');
-      expect(result.value!.webLink).toContain('invite=');
+      expect(result.value.webLink).toBeDefined();
+      expect(result.value.webLink).toContain('http://localhost:3090');
+      expect(result.value.webLink).toContain('server=');
+      expect(result.value.webLink).toContain('invite=');
     });
 
     it('should include code in deepLink and webLink', async () => {
@@ -183,9 +183,9 @@ describe('CreateInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      const code = result.value!.code;
-      expect(result.value!.deepLink).toContain(`invite=${code}`);
-      expect(result.value!.webLink).toContain(`invite=${code}`);
+      const code = result.value.code;
+      expect(result.value.deepLink).toContain(`invite=${code}`);
+      expect(result.value.webLink).toContain(`invite=${code}`);
     });
 
     it('should return correct expiresAt in ISO format', async () => {
@@ -199,7 +199,7 @@ describe('CreateInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.expiresAt).toBe(futureDate.toISOString());
+      expect(result.value.expiresAt).toBe(futureDate.toISOString());
     });
 
     it('should return createdAt in ISO format', async () => {
@@ -211,9 +211,9 @@ describe('CreateInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.createdAt).toBeDefined();
+      expect(result.value.createdAt).toBeDefined();
       // ISO Format prüfen
-      expect(() => new Date(result.value!.createdAt)).not.toThrow();
+      expect(() => new Date(result.value.createdAt)).not.toThrow();
     });
 
     it('should include label in response when provided', async () => {
@@ -225,7 +225,7 @@ describe('CreateInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.label).toBe('Onboarding Team Nord');
+      expect(result.value.label).toBe('Onboarding Team Nord');
     });
 
     it('should have undefined label when not provided', async () => {
@@ -237,7 +237,7 @@ describe('CreateInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.label).toBeUndefined();
+      expect(result.value.label).toBeUndefined();
     });
   });
 
@@ -351,7 +351,7 @@ describe('CreateInviteHandler', () => {
 
       // Code sollte maskiert sein (z.B. "ABC1****")
       expect(event.codeMasked).toMatch(/^[A-Z0-9]{4}\*{4}$/);
-      expect(event.codeMasked).not.toBe(result.value!.code);
+      expect(event.codeMasked).not.toBe(result.value.code);
     });
 
     it('should save events with transaction context', async () => {
@@ -474,7 +474,7 @@ describe('CreateInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      const rawCode = result.value!.code;
+      const rawCode = result.value.code;
       const logMessage = mockLogger.log.mock.calls[0][0];
 
       // Der volle Code sollte NICHT im Log erscheinen
@@ -497,7 +497,7 @@ describe('CreateInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.deepLink).toContain(encodeURIComponent('https://api.example.de'));
+      expect(result.value.deepLink).toContain(encodeURIComponent('https://api.example.de'));
     });
 
     it('should use FRONTEND_URL from config for webLink', async () => {
@@ -514,7 +514,7 @@ describe('CreateInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.webLink).toContain('https://app.example.de');
+      expect(result.value.webLink).toContain('https://app.example.de');
     });
 
     it('should fail when APP_URL is not configured', async () => {
@@ -578,7 +578,7 @@ describe('CreateInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      const response = result.value!;
+      const response = result.value;
 
       // Prüfe alle erforderlichen Felder
       expect(response.id).toBeDefined();
@@ -600,7 +600,7 @@ describe('CreateInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.id).toMatch(/^inv_[a-z0-9]{24}$/);
+      expect(result.value.id).toMatch(/^inv_[a-z0-9]{24}$/);
     });
 
     it('should have code as 8-character uppercase alphanumeric', async () => {
@@ -612,7 +612,7 @@ describe('CreateInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.code).toMatch(/^[A-Z0-9]{8}$/);
+      expect(result.value.code).toMatch(/^[A-Z0-9]{8}$/);
     });
 
     it('should have useCount as 0 for new invites', async () => {
@@ -624,7 +624,7 @@ describe('CreateInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.useCount).toBe(0);
+      expect(result.value.useCount).toBe(0);
     });
   });
 
@@ -638,7 +638,7 @@ describe('CreateInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.maxUses).toBe(1);
+      expect(result.value.maxUses).toBe(1);
     });
 
     it('should handle maximum maxUses (100)', async () => {
@@ -650,7 +650,7 @@ describe('CreateInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.maxUses).toBe(100);
+      expect(result.value.maxUses).toBe(100);
     });
 
     it('should handle long label (100 characters)', async () => {
@@ -663,7 +663,7 @@ describe('CreateInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.label).toBe(longLabel);
+      expect(result.value.label).toBe(longLabel);
     });
 
     it('should handle special characters in label', async () => {
@@ -676,7 +676,7 @@ describe('CreateInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.label).toBe(specialLabel);
+      expect(result.value.label).toBe(specialLabel);
     });
 
     it('should handle far future expiresAt', async () => {
@@ -690,7 +690,7 @@ describe('CreateInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.expiresAt).toBe(farFuture.toISOString());
+      expect(result.value.expiresAt).toBe(farFuture.toISOString());
     });
   });
 
@@ -710,7 +710,7 @@ describe('CreateInviteHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       // URL sollte encoded sein
-      expect(result.value!.deepLink).toContain(encodeURIComponent('https://api.example.de:8080/path'));
+      expect(result.value.deepLink).toContain(encodeURIComponent('https://api.example.de:8080/path'));
     });
 
     it('should properly encode expiresAt in deepLink', async () => {
@@ -723,7 +723,7 @@ describe('CreateInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.deepLink).toContain(encodeURIComponent(futureDate.toISOString()));
+      expect(result.value.deepLink).toContain(encodeURIComponent(futureDate.toISOString()));
     });
 
     it('should properly encode server URL in webLink', async () => {
@@ -740,7 +740,7 @@ describe('CreateInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.webLink).toContain(encodeURIComponent('https://api.example.de:8080/path'));
+      expect(result.value.webLink).toContain(encodeURIComponent('https://api.example.de:8080/path'));
     });
   });
 });

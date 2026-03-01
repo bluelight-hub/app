@@ -601,7 +601,6 @@ describe('AdminJwtStrategy (via AdminJwtAuthGuard)', () => {
       };
 
       // Spy auf private constantTimeDelay Methode
-      // biome-ignore lint/suspicious/noExplicitAny: Test benötigt Zugriff auf private Methode
       const delaySpy = jest.spyOn(strategy as any, 'constantTimeDelay');
 
       // When: Validierung schlägt fehl
@@ -638,7 +637,6 @@ describe('AdminJwtStrategy (via AdminJwtAuthGuard)', () => {
       });
 
       // Spy auf private constantTimeDelay Methode
-      // biome-ignore lint/suspicious/noExplicitAny: Test benötigt Zugriff auf private Methode
       const delaySpy = jest.spyOn(strategy as any, 'constantTimeDelay');
 
       // When: Validierung erfolgreich

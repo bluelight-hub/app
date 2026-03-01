@@ -228,7 +228,6 @@ export function TokenList({ onCreateToken }: TokenListProps) {
         {/* Skeleton List */}
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, index) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: Skeleton items have static order
             <div key={`skeleton-${index}`} className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
               <div className="flex items-center gap-4">
                 <Skeleton className="h-10 w-10 rounded-lg" />

@@ -41,7 +41,7 @@ describe('InviteCodeValue', () => {
       for (let i = 0; i < 10; i++) {
         const result = InviteCodeValue.generate();
         expect(result.isSuccess).toBe(true);
-        codes.push(result.value!.value);
+        codes.push(result.value?.value);
       }
 
       // Then: Alle Codes sollten einzigartig sein

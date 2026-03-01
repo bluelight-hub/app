@@ -38,7 +38,7 @@ describe('CreateErinnerungsvorlageHandler', () => {
       titel: 'Lagebesprechung',
       minuten: 30,
       beschreibung: 'Regelmäßige Lagebesprechung',
-      createdBy: UserId.create().value!.toString(),
+      createdBy: UserId.create().value?.toString(),
     });
   };
 
@@ -122,10 +122,10 @@ describe('CreateErinnerungsvorlageHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.id).toBeDefined();
-      expect(result.value!.titel).toBe('Lagebesprechung');
-      expect(result.value!.minuten).toBe(30);
-      expect(result.value!.beschreibung).toBe('Regelmäßige Lagebesprechung');
+      expect(result.value?.id).toBeDefined();
+      expect(result.value?.titel).toBe('Lagebesprechung');
+      expect(result.value?.minuten).toBe(30);
+      expect(result.value?.beschreibung).toBe('Regelmäßige Lagebesprechung');
       expect(mockVorlageRepository.save).toHaveBeenCalledTimes(1);
       expect(mockOutboxRepository.save).toHaveBeenCalledTimes(1);
       expect(mockPrismaService.$transaction).toHaveBeenCalledTimes(1);
@@ -185,7 +185,7 @@ describe('CreateErinnerungsvorlageHandler', () => {
       const commandResult = CreateErinnerungsvorlageCommand.create({
         titel: 'Ablösung',
         minuten: 60,
-        createdBy: UserId.create().value!.toString(),
+        createdBy: UserId.create().value?.toString(),
       });
       expect(commandResult.isSuccess).toBe(true);
       const command = commandResult.value!;
@@ -195,7 +195,7 @@ describe('CreateErinnerungsvorlageHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.beschreibung).toBeNull();
+      expect(result.value?.beschreibung).toBeNull();
     });
   });
 
@@ -279,7 +279,7 @@ describe('CreateErinnerungsvorlageHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      const vorlageId = result.value!.id;
+      const vorlageId = result.value?.id;
       const savedEvents = mockOutboxRepository.save.mock.calls[0][0];
       const createdEvent = savedEvents[0] as ErinnerungsvorlageErstelltEvent;
       expect(createdEvent.vorlageId.toString()).toBe(vorlageId);
@@ -289,7 +289,7 @@ describe('CreateErinnerungsvorlageHandler', () => {
   describe('Response DTO Mapping', () => {
     it('should return correctly mapped ErinnerungsvorlageResponseDto', async () => {
       // Given (Arrange)
-      const createdBy = UserId.create().value!.toString();
+      const createdBy = UserId.create().value?.toString();
       const commandResult = CreateErinnerungsvorlageCommand.create({
         titel: 'Test Vorlage',
         minuten: 45,

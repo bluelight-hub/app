@@ -201,7 +201,7 @@ describe('JsonExportService', () => {
       expect(parsed[0]['Snoozed-Am']).toBeNull();
       expect(parsed[0]['Snoozed-Von']).toBeNull();
       expect(parsed[0]['Eskaliert-Am']).toBeNull();
-      expect(parsed[0]['Eskalationsperson']).toBeNull();
+      expect(parsed[0].Eskalationsperson).toBeNull();
       expect(parsed[0]['Vorheriger-Zugewiesener']).toBeNull();
     });
 

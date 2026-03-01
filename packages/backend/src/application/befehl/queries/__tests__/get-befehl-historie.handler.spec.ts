@@ -99,11 +99,11 @@ describe('GetBefehlHistorieQueryHandler', () => {
 
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.befehlId).toBe(befehlId);
-      expect(result.value!.befehlNummer).toBe('B-001');
-      expect(result.value!.aktuellerStatus).toBe('KORRIGIERT');
+      expect(result.value?.befehlId).toBe(befehlId);
+      expect(result.value?.befehlNummer).toBe('B-001');
+      expect(result.value?.aktuellerStatus).toBe('KORRIGIERT');
 
-      const events = result.value!.events;
+      const events = result.value?.events;
       // ERTEILT, ZUGESTELLT, KOMMENTAR, QUITTIERT, KORRIGIERT (chronologisch)
       expect(events).toHaveLength(5);
 
@@ -143,7 +143,7 @@ describe('GetBefehlHistorieQueryHandler', () => {
       const result = await handler.execute(query);
 
       expect(result.isSuccess).toBe(true);
-      const events = result.value!.events;
+      const events = result.value?.events;
 
       // 1 ERTEILT (AKTUELL) + 2 ZUGESTELLT AUSSTEHEND
       expect(events).toHaveLength(3);
@@ -182,7 +182,7 @@ describe('GetBefehlHistorieQueryHandler', () => {
       const result = await handler.execute(query);
 
       expect(result.isSuccess).toBe(true);
-      const events = result.value!.events;
+      const events = result.value?.events;
 
       // Completed: ERTEILT, ZUGESTELLT (Meier), ZUGESTELLT (Schmidt), QUITTIERT (Meier)
       // Pending: QUITTIERT (Schmidt)
@@ -212,7 +212,7 @@ describe('GetBefehlHistorieQueryHandler', () => {
       const result = await handler.execute(query);
 
       expect(result.isSuccess).toBe(true);
-      const events = result.value!.events;
+      const events = result.value?.events;
 
       // ERTEILT, ZUGESTELLT, QUITTIERT — alle ABGESCHLOSSEN, letzter AKTUELL
       expect(events).toHaveLength(3);
@@ -242,13 +242,13 @@ describe('GetBefehlHistorieQueryHandler', () => {
       const result = await handler.execute(query);
 
       expect(result.isSuccess).toBe(true);
-      const events = result.value!.events;
+      const events = result.value?.events;
 
       const korrigiertEvent = events.find((e) => e.typ === BefehlHistorieEventTyp.KORRIGIERT);
       expect(korrigiertEvent).toBeDefined();
-      expect(korrigiertEvent!.korrekturBefehlNummer).toBe('B-003');
-      expect(korrigiertEvent!.beschreibung).toContain('B-003');
-      expect(korrigiertEvent!.zeitpunkt).toEqual(korrekturAm);
+      expect(korrigiertEvent?.korrekturBefehlNummer).toBe('B-003');
+      expect(korrigiertEvent?.beschreibung).toContain('B-003');
+      expect(korrigiertEvent?.zeitpunkt).toEqual(korrekturAm);
     });
   });
 
@@ -270,7 +270,7 @@ describe('GetBefehlHistorieQueryHandler', () => {
       const result = await handler.execute(query);
 
       expect(result.isSuccess).toBe(true);
-      const kommentarEvents = result.value!.events.filter((e) => e.typ === BefehlHistorieEventTyp.KOMMENTAR);
+      const kommentarEvents = result.value?.events.filter((e) => e.typ === BefehlHistorieEventTyp.KOMMENTAR);
       expect(kommentarEvents).toHaveLength(2);
       expect(kommentarEvents[0].details).toBe('Welches Material soll verwendet werden?');
       expect(kommentarEvents[1].details).toBe('Wo genau ist der Sammelplatz?');
@@ -307,7 +307,7 @@ describe('GetBefehlHistorieQueryHandler', () => {
       const result = await handler.execute(query);
 
       expect(result.isSuccess).toBe(true);
-      const events = result.value!.events;
+      const events = result.value?.events;
 
       // ERTEILT und ZUGESTELLT sind ABGESCHLOSSEN, ZUGESTELLT ist der letzte → AKTUELL
       const completedEvents = events.filter((e) => e.status !== BefehlHistorieEventStatus.AUSSTEHEND);
@@ -337,7 +337,7 @@ describe('GetBefehlHistorieQueryHandler', () => {
       const result = await handler.execute(query);
 
       expect(result.isSuccess).toBe(true);
-      const events = result.value!.events;
+      const events = result.value?.events;
 
       // Finde Index des letzten Nicht-AUSSTEHEND und des ersten AUSSTEHEND
       const lastNonPendingIdx = events.findLastIndex((e) => e.status !== BefehlHistorieEventStatus.AUSSTEHEND);
@@ -364,9 +364,9 @@ describe('GetBefehlHistorieQueryHandler', () => {
       const result = await handler.execute(query);
 
       expect(result.isSuccess).toBe(true);
-      const rueckfrageEvent = result.value!.events.find((e) => e.typ === BefehlHistorieEventTyp.RUECKFRAGE);
+      const rueckfrageEvent = result.value?.events.find((e) => e.typ === BefehlHistorieEventTyp.RUECKFRAGE);
       expect(rueckfrageEvent).toBeDefined();
-      expect(rueckfrageEvent!.beschreibung).toContain('Rückfrage');
+      expect(rueckfrageEvent?.beschreibung).toContain('Rückfrage');
     });
 
     it('sollte NICHT_VERSTANDEN als Event-Typ korrekt mappen', async () => {
@@ -383,9 +383,9 @@ describe('GetBefehlHistorieQueryHandler', () => {
       const result = await handler.execute(query);
 
       expect(result.isSuccess).toBe(true);
-      const nichtVerstandenEvent = result.value!.events.find((e) => e.typ === BefehlHistorieEventTyp.NICHT_VERSTANDEN);
+      const nichtVerstandenEvent = result.value?.events.find((e) => e.typ === BefehlHistorieEventTyp.NICHT_VERSTANDEN);
       expect(nichtVerstandenEvent).toBeDefined();
-      expect(nichtVerstandenEvent!.beschreibung).toContain('Nicht verstanden');
+      expect(nichtVerstandenEvent?.beschreibung).toContain('Nicht verstanden');
     });
   });
 

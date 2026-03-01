@@ -457,7 +457,6 @@ describe('ServerAccessGuard', () => {
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
       // Access private method via type assertion
-      // biome-ignore lint/suspicious/noExplicitAny: Accessing private method in unit test
       const result = await (guard as any).validateToken(rawToken);
 
       // Then: returns matching ServerAccessToken
@@ -473,7 +472,6 @@ describe('ServerAccessGuard', () => {
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
       // When: validateToken is called
-      // biome-ignore lint/suspicious/noExplicitAny: Accessing private method in unit test
       const result = await (guard as any).validateToken(rawToken);
 
       // Then: returns null
@@ -488,7 +486,6 @@ describe('ServerAccessGuard', () => {
       (bcrypt.compare as jest.Mock).mockResolvedValueOnce(true);
 
       // When: validateToken is called
-      // biome-ignore lint/suspicious/noExplicitAny: Accessing private method in unit test
       const result = await (guard as any).validateToken('any-token');
 
       // Then: only compares until first match
@@ -511,7 +508,6 @@ describe('ServerAccessGuard', () => {
         .mockResolvedValueOnce(true); // Second token also matches
 
       // When: validateToken is called
-      // biome-ignore lint/suspicious/noExplicitAny: Accessing private method in unit test
       const result = await (guard as any).validateToken('any-token');
 
       // Then: Returns valid token (skips invalid one)
@@ -596,7 +592,6 @@ describe('ServerAccessGuard', () => {
       mockServerConfigRepo.isInsecureMode.mockResolvedValue(Result.ok(true));
 
       // When: checkInsecureMode is called
-      // biome-ignore lint/suspicious/noExplicitAny: Accessing private method in unit test
       const result = await (guard as any).checkInsecureMode();
 
       // Then: returns true
@@ -608,7 +603,6 @@ describe('ServerAccessGuard', () => {
       mockServerConfigRepo.isInsecureMode.mockResolvedValue(Result.ok(false));
 
       // When: checkInsecureMode is called
-      // biome-ignore lint/suspicious/noExplicitAny: Accessing private method in unit test
       const result = await (guard as any).checkInsecureMode();
 
       // Then: returns false
@@ -623,7 +617,6 @@ describe('ServerAccessGuard', () => {
       mockConfigService.get.mockReturnValue('true');
 
       // When: checkInsecureMode is called
-      // biome-ignore lint/suspicious/noExplicitAny: Accessing private method in unit test
       const result = await (guard as any).checkInsecureMode();
 
       // Then: ENV fallback is used
@@ -637,7 +630,6 @@ describe('ServerAccessGuard', () => {
       mockConfigService.get.mockReturnValue('false');
 
       // When: checkInsecureMode is called
-      // biome-ignore lint/suspicious/noExplicitAny: Accessing private method in unit test
       await (guard as any).checkInsecureMode();
 
       // Then: error message is logged
@@ -649,9 +641,7 @@ describe('ServerAccessGuard', () => {
       mockServerConfigRepo.isInsecureMode.mockResolvedValue(Result.ok(false));
 
       // When: checkInsecureMode is called twice
-      // biome-ignore lint/suspicious/noExplicitAny: Accessing private method in unit test
       await (guard as any).checkInsecureMode();
-      // biome-ignore lint/suspicious/noExplicitAny: Accessing private method in unit test
       await (guard as any).checkInsecureMode();
 
       // Then: DB is queried twice (no caching)

@@ -47,8 +47,8 @@ describe('DeactivateQualifikationCommand', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.id).toBe(validId);
-      expect(result.value!.updatedBy).toBe(validUpdatedBy);
+      expect(result.value?.id).toBe(validId);
+      expect(result.value?.updatedBy).toBe(validUpdatedBy);
     });
 
     describe('Validation: ID', () => {
@@ -124,7 +124,7 @@ describe('DeactivateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.id).toBe(validId);
+        expect(result.value?.id).toBe(validId);
       });
 
       it('sollte führende Whitespaces in ID trimmen', () => {
@@ -139,7 +139,7 @@ describe('DeactivateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.id).toBe(validId);
+        expect(result.value?.id).toBe(validId);
       });
 
       it('sollte nachfolgende Whitespaces in ID trimmen', () => {
@@ -154,7 +154,7 @@ describe('DeactivateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.id).toBe(validId);
+        expect(result.value?.id).toBe(validId);
       });
     });
 
@@ -231,7 +231,7 @@ describe('DeactivateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.updatedBy).toBe(validUpdatedBy);
+        expect(result.value?.updatedBy).toBe(validUpdatedBy);
       });
 
       it('sollte führende Whitespaces in updatedBy trimmen', () => {
@@ -246,7 +246,7 @@ describe('DeactivateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.updatedBy).toBe(validUpdatedBy);
+        expect(result.value?.updatedBy).toBe(validUpdatedBy);
       });
 
       it('sollte nachfolgende Whitespaces in updatedBy trimmen', () => {
@@ -261,7 +261,7 @@ describe('DeactivateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.updatedBy).toBe(validUpdatedBy);
+        expect(result.value?.updatedBy).toBe(validUpdatedBy);
       });
     });
 
@@ -278,8 +278,8 @@ describe('DeactivateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.id).toBe(validId);
-        expect(result.value!.updatedBy).toBe(validUpdatedBy);
+        expect(result.value?.id).toBe(validId);
+        expect(result.value?.updatedBy).toBe(validUpdatedBy);
       });
 
       it('sollte sehr kurze gültige IDs akzeptieren', () => {
@@ -295,7 +295,7 @@ describe('DeactivateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.id).toBe(shortId);
+        expect(result.value?.id).toBe(shortId);
       });
 
       it('sollte sehr lange IDs akzeptieren', () => {
@@ -311,7 +311,7 @@ describe('DeactivateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.id).toBe(longId);
+        expect(result.value?.id).toBe(longId);
       });
 
       it('sollte IDs mit Sonderzeichen akzeptieren', () => {
@@ -327,7 +327,7 @@ describe('DeactivateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.id).toBe(specialId);
+        expect(result.value?.id).toBe(specialId);
       });
     });
 
@@ -447,7 +447,7 @@ describe('DeactivateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.id).toBe(validId);
+        expect(result.value?.id).toBe(validId);
       });
 
       it('sollte Mixed Whitespace in updatedBy trimmen', () => {
@@ -462,7 +462,7 @@ describe('DeactivateQualifikationCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.updatedBy).toBe(validUpdatedBy);
+        expect(result.value?.updatedBy).toBe(validUpdatedBy);
       });
 
       it('sollte Unicode Whitespace (Non-Breaking Space) behandeln', () => {
@@ -479,7 +479,7 @@ describe('DeactivateQualifikationCommand', () => {
         // Then
         // JavaScript trim() entfernt auch Unicode Whitespace wie Non-Breaking Space
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.id).toBe(validId);
+        expect(result.value?.id).toBe(validId);
       });
     });
   });

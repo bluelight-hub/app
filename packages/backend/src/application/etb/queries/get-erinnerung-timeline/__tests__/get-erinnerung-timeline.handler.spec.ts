@@ -124,12 +124,12 @@ describe('GetErinnerungTimelineQueryHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.events).toHaveLength(3);
+      expect(result.value?.events).toHaveLength(3);
 
       // Chronologische Reihenfolge (aelteste zuerst)
-      expect(result.value!.events[0].timestamp).toEqual(twoHoursAgo);
-      expect(result.value!.events[1].timestamp).toEqual(oneHourAgo);
-      expect(result.value!.events[2].timestamp).toEqual(now);
+      expect(result.value?.events[0].timestamp).toEqual(twoHoursAgo);
+      expect(result.value?.events[1].timestamp).toEqual(oneHourAgo);
+      expect(result.value?.events[2].timestamp).toEqual(now);
 
       // Verify orderBy ASC in Prisma-Call
       expect(mockPrisma.etbEintrag.findMany).toHaveBeenCalledWith(
@@ -204,9 +204,9 @@ describe('GetErinnerungTimelineQueryHandler', () => {
 
       // Then: createdBy mit username ist enthalten
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.events[0].createdBy).toBeDefined();
-      expect(result.value!.events[0].createdBy.id).toBe(userId);
-      expect(result.value!.events[0].createdBy.username).toBe('max.mustermann');
+      expect(result.value?.events[0].createdBy).toBeDefined();
+      expect(result.value?.events[0].createdBy.id).toBe(userId);
+      expect(result.value?.events[0].createdBy.username).toBe('max.mustermann');
 
       // Verify include in Prisma-Call
       expect(mockPrisma.etbEintrag.findMany).toHaveBeenCalledWith(
@@ -240,10 +240,10 @@ describe('GetErinnerungTimelineQueryHandler', () => {
       // Then: Leeres Array ist valide Response (KEIN FEHLER!)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.events).toEqual([]);
-      expect(result.value!.totalCount).toBe(0);
-      expect(result.value!.erinnerungId).toBe(erinnerungId);
-      expect(result.value!.titel).toBe('Follow-up Leitstelle');
+      expect(result.value?.events).toEqual([]);
+      expect(result.value?.totalCount).toBe(0);
+      expect(result.value?.erinnerungId).toBe(erinnerungId);
+      expect(result.value?.titel).toBe('Follow-up Leitstelle');
     });
 
     it('should extract eventType from metadata correctly', async () => {
@@ -292,12 +292,12 @@ describe('GetErinnerungTimelineQueryHandler', () => {
 
       // Then: eventType wird korrekt aus metadata extrahiert
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.events[0].eventType).toBe('ErinnerungErstellt');
-      expect(result.value!.events[1].eventType).toBe('ErinnerungSnoozed');
-      expect(result.value!.events[2].eventType).toBe('ErinnerungEskaliert');
+      expect(result.value?.events[0].eventType).toBe('ErinnerungErstellt');
+      expect(result.value?.events[1].eventType).toBe('ErinnerungSnoozed');
+      expect(result.value?.events[2].eventType).toBe('ErinnerungEskaliert');
 
       // Metadata wird vollstaendig uebernommen
-      expect(result.value!.events[0].metadata).toEqual({
+      expect(result.value?.events[0].metadata).toEqual({
         eventType: 'ErinnerungErstellt',
         erinnerungId,
         faelligAm: '2024-01-15T14:00:00Z',
@@ -342,8 +342,8 @@ describe('GetErinnerungTimelineQueryHandler', () => {
 
       // Then: Fallback auf 'Unknown'
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.events[0].eventType).toBe('Unknown');
-      expect(result.value!.events[1].eventType).toBe('Unknown');
+      expect(result.value?.events[0].eventType).toBe('Unknown');
+      expect(result.value?.events[1].eventType).toBe('Unknown');
     });
   });
 
@@ -487,7 +487,7 @@ describe('GetErinnerungTimelineQueryHandler', () => {
       // Then: DTO-Struktur verifizieren
       expect(result.isSuccess).toBe(true);
 
-      const event = result.value!.events[0];
+      const event = result.value?.events[0];
       expect(event.id).toBe(createValidTestId('entry010'));
       expect(event.eventType).toBe('ErinnerungErstellt');
       expect(event.timestamp).toEqual(timestamp);
@@ -537,10 +537,10 @@ describe('GetErinnerungTimelineQueryHandler', () => {
 
       // Then: Timeline-DTO Struktur
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.erinnerungId).toBe(erinnerungId);
-      expect(result.value!.titel).toBe('Follow-up Leitstelle');
-      expect(result.value!.events).toHaveLength(2);
-      expect(result.value!.totalCount).toBe(2);
+      expect(result.value?.erinnerungId).toBe(erinnerungId);
+      expect(result.value?.titel).toBe('Follow-up Leitstelle');
+      expect(result.value?.events).toHaveLength(2);
+      expect(result.value?.totalCount).toBe(2);
     });
   });
 

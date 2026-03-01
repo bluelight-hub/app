@@ -1,8 +1,6 @@
 import { PrismaBefehlRepository } from '../prisma-befehl.repository';
-import { PrismaBefehlMapper } from '../mappers/prisma-befehl.mapper';
 import { Befehl } from '@domain/aggregates/befehl.aggregate';
 import { BefehlId } from '@domain/value-objects/befehl-id';
-import { BefehlStatus } from '@domain/value-objects/befehl-status';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { UserId } from '@domain/value-objects/user-id';
 import type { Befehl as PrismaBefehl, BefehlEmpfaenger as PrismaBefehlEmpfaenger, BefehlKommentar as PrismaBefehlKommentar } from '@/generated/prisma/client';
@@ -102,7 +100,6 @@ describe('PrismaBefehlRepository', () => {
       },
     };
 
-    // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     repository = new PrismaBefehlRepository(mockPrismaService as any);
   });
 
@@ -175,7 +172,7 @@ describe('PrismaBefehlRepository', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeInstanceOf(Befehl);
-      expect(result.value!.id.value).toBe(befehlId.value);
+      expect(result.value?.id.value).toBe(befehlId.value);
 
       // Verify correct prisma call with include
       expect(mockPrismaService.befehl.findUnique).toHaveBeenCalledWith({
@@ -225,7 +222,7 @@ describe('PrismaBefehlRepository', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(2);
-      expect(result.value![0]).toBeInstanceOf(Befehl);
+      expect(result.value?.[0]).toBeInstanceOf(Befehl);
 
       // Verify correct prisma call with orderBy and include
       expect(mockPrismaService.befehl.findMany).toHaveBeenCalledWith({
@@ -332,7 +329,7 @@ describe('PrismaBefehlRepository', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(2);
-      expect(result.value![0]).toBeInstanceOf(Befehl);
+      expect(result.value?.[0]).toBeInstanceOf(Befehl);
     });
 
     it('should return empty array when no matches', async () => {
@@ -430,7 +427,7 @@ describe('PrismaBefehlRepository', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(2);
-      expect(result.value![0]).toBeInstanceOf(Befehl);
+      expect(result.value?.[0]).toBeInstanceOf(Befehl);
     });
 
     it('should return empty array when no matches', async () => {
@@ -676,7 +673,7 @@ describe('PrismaBefehlRepository', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(1);
-      expect(result.value![0]).toBeInstanceOf(Befehl);
+      expect(result.value?.[0]).toBeInstanceOf(Befehl);
     });
 
     it('should return empty array when no matches', async () => {

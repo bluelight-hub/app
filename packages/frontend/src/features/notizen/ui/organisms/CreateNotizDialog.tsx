@@ -187,7 +187,7 @@ export function CreateNotizDialog({ isOpen, onClose, einsatzId }: CreateNotizDia
                 >
                   <span className={cn('inline-block h-4 w-4 transform rounded-full bg-white transition-transform', field.state.value ? 'translate-x-6' : 'translate-x-1')} />
                 </Switch>
-                <label className="flex items-center gap-1.5 text-sm text-slate-700 dark:text-slate-300">
+                <label className="flex items-center gap-1.5 text-slate-700 text-sm dark:text-slate-300">
                   <PiUsersThree className="h-4 w-4" />
                   Für das Team sichtbar
                 </label>

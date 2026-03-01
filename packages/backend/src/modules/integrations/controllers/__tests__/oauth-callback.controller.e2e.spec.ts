@@ -611,7 +611,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       const messageMatch = location.match(/message=([^&]+)/);
       expect(messageMatch).not.toBeNull();
 
-      const message = decodeURIComponent(messageMatch![1]);
+      const message = decodeURIComponent(messageMatch?.[1]);
 
       // Verify message ist sanitized (keine internen Details)
       expect(message).not.toContain('OAUTH_CODE_EXCHANGE_FAILED'); // Kein Error Code

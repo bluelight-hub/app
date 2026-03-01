@@ -202,7 +202,7 @@ describe('GetErinnerungStatistikHandler', () => {
     const result = await handler.execute(query);
 
     expect(result.isSuccess).toBe(true);
-    expect(result.value!.statusCounts).toEqual(expectedStatusCounts);
-    expect(result.value!.activeCount).toBe(21);
+    expect(result.value?.statusCounts).toEqual(expectedStatusCounts);
+    expect(result.value?.activeCount).toBe(21);
   });
 });

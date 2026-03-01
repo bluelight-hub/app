@@ -222,7 +222,6 @@ export function ServerEditForm({ server, onSuccess, onCancel, className }: Serve
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-    // biome-ignore lint/correctness/useExhaustiveDependencies: handleTestConnection ist bewusst in Dependencies (F4 Feature)
   }, [isSubmitting, healthCheck.isPending, handleTestConnection]);
 
   return (
@@ -338,7 +337,6 @@ export function ServerEditForm({ server, onSuccess, onCancel, className }: Serve
         <form.Field name="color">
           {(field) => (
             <div className="space-y-2" data-testid="color-picker-section">
-              {/* biome-ignore lint/a11y/noLabelWithoutControl: ServerColorPicker ist ein radiogroup, kein einzelnes Input */}
               <label className="block font-medium text-gray-700 text-sm dark:text-gray-300">Farbe auswählen</label>
               <ServerColorPicker value={field.state.value} onChange={(color) => field.handleChange(color)} disabled={isSubmitting} aria-label="Farbe auswählen" />
             </div>

@@ -142,7 +142,7 @@ function generateTestCuid(): string {
       const createCmd = CreateEtbCommand.create(testEinsatzId).value!;
       const createResult = await createEtbHandler.execute(createCmd);
       expect(createResult.isSuccess).toBe(true);
-      const etbId = createResult.value!.value;
+      const etbId = createResult.value?.value;
 
       // Act: Eintrag hinzufuegen
       const addCmd = AddEintragCommand.create(etbId, 'Fahrzeug W1 eingetroffen', testUserId).value!;
@@ -155,16 +155,16 @@ function generateTestCuid(): string {
 
       expect(result.isSuccess).toBe(true);
       expect(result.value).not.toBeNull();
-      expect(result.value!.eintraege).toHaveLength(1);
-      expect(result.value!.eintraege[0].text).toBe('Fahrzeug W1 eingetroffen');
-      expect(result.value!.eintraege[0].isDeleted).toBe(false);
+      expect(result.value?.eintraege).toHaveLength(1);
+      expect(result.value?.eintraege[0].text).toBe('Fahrzeug W1 eingetroffen');
+      expect(result.value?.eintraege[0].isDeleted).toBe(false);
     });
 
     it('sollte mehrere Eintraege korrekt zurueckgeben', async () => {
       // Arrange: ETB mit mehreren Eintraegen erstellen
       const createCmd = CreateEtbCommand.create(testEinsatzId).value!;
       const createResult = await createEtbHandler.execute(createCmd);
-      const etbId = createResult.value!.value;
+      const etbId = createResult.value?.value;
 
       // Act: Mehrere Eintraege hinzufuegen
       const texts = ['Alarmierung erhalten', 'Ausgerueckt', 'Am Einsatzort eingetroffen'];
@@ -178,9 +178,9 @@ function generateTestCuid(): string {
       const result = await getEtbHandler.execute(query);
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.eintraege).toHaveLength(3);
+      expect(result.value?.eintraege).toHaveLength(3);
       // Verifizieren dass Texte korrekt sind
-      const returnedTexts = result.value!.eintraege.map((e) => e.text);
+      const returnedTexts = result.value?.eintraege.map((e) => e.text);
       expect(returnedTexts).toContain('Alarmierung erhalten');
       expect(returnedTexts).toContain('Ausgerueckt');
       expect(returnedTexts).toContain('Am Einsatzort eingetroffen');
@@ -196,7 +196,7 @@ function generateTestCuid(): string {
       // Eintrag hinzufuegen
       const addCmd = AddEintragCommand.create(etb.id.value, 'Wird geloescht', testUserId).value!;
       const addResult = await addEintragHandler.execute(addCmd);
-      const eintragId = addResult.value!.id.value;
+      const eintragId = addResult.value?.id.value;
 
       // Zweiten Eintrag hinzufuegen (bleibt aktiv)
       const addCmd2 = AddEintragCommand.create(etb.id.value, 'Bleibt aktiv', testUserId).value!;
@@ -211,8 +211,8 @@ function generateTestCuid(): string {
       const result = await getEtbHandler.execute(query);
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.eintraege).toHaveLength(1);
-      expect(result.value!.eintraege[0].text).toBe('Bleibt aktiv');
+      expect(result.value?.eintraege).toHaveLength(1);
+      expect(result.value?.eintraege[0].text).toBe('Bleibt aktiv');
     });
 
     it('sollte geloeschten Eintrag mit includeDeleted=true einschliessen', async () => {
@@ -223,7 +223,7 @@ function generateTestCuid(): string {
       // Eintrag hinzufuegen
       const addCmd = AddEintragCommand.create(etb.id.value, 'Wird geloescht', testUserId).value!;
       const addResult = await addEintragHandler.execute(addCmd);
-      const eintragId = addResult.value!.id.value;
+      const eintragId = addResult.value?.id.value;
 
       // Eintrag loeschen (soft-delete)
       const deleteCmd = DeleteEintragCommand.create(etb.id.value, eintragId, testUserId).value!;
@@ -234,9 +234,9 @@ function generateTestCuid(): string {
       const result = await getEtbHandler.execute(query);
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.eintraege).toHaveLength(1);
-      expect(result.value!.eintraege[0].text).toBe('Wird geloescht');
-      expect(result.value!.eintraege[0].isDeleted).toBe(true);
+      expect(result.value?.eintraege).toHaveLength(1);
+      expect(result.value?.eintraege[0].text).toBe('Wird geloescht');
+      expect(result.value?.eintraege[0].isDeleted).toBe(true);
     });
   });
 
@@ -262,14 +262,14 @@ function generateTestCuid(): string {
       expect(result.value).toHaveLength(3);
 
       // Sequenznummern muessen aufsteigend sein
-      expect(result.value![0].sequenceNumber).toBe(1);
-      expect(result.value![1].sequenceNumber).toBe(2);
-      expect(result.value![2].sequenceNumber).toBe(3);
+      expect(result.value?.[0].sequenceNumber).toBe(1);
+      expect(result.value?.[1].sequenceNumber).toBe(2);
+      expect(result.value?.[2].sequenceNumber).toBe(3);
 
       // Texte muessen der Reihenfolge entsprechen
-      expect(result.value![0].text).toBe('Erster Eintrag');
-      expect(result.value![1].text).toBe('Zweiter Eintrag');
-      expect(result.value![2].text).toBe('Dritter Eintrag');
+      expect(result.value?.[0].text).toBe('Erster Eintrag');
+      expect(result.value?.[1].text).toBe('Zweiter Eintrag');
+      expect(result.value?.[2].text).toBe('Dritter Eintrag');
     });
 
     it('sollte Result.fail() zurueckgeben wenn ETB nicht existiert', async () => {
@@ -382,9 +382,9 @@ function generateTestCuid(): string {
       // Assert: Aufsteigende Sortierung (aelteste zuerst)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(3);
-      expect(result.value![0].version).toBe(1);
-      expect(result.value![1].version).toBe(2);
-      expect(result.value![2].version).toBe(3);
+      expect(result.value?.[0].version).toBe(1);
+      expect(result.value?.[1].version).toBe(2);
+      expect(result.value?.[2].version).toBe(3);
     });
 
     it('sollte leeres Array zurueckgeben wenn keine Historie vorhanden', async () => {
@@ -408,13 +408,13 @@ function generateTestCuid(): string {
       const createCmd = CreateEtbCommand.create(testEinsatzId).value!;
       const createResult = await createEtbHandler.execute(createCmd);
       expect(createResult.isSuccess).toBe(true);
-      const etbId = createResult.value!.value;
+      const etbId = createResult.value?.value;
 
       // Phase 2: Eintrag hinzufuegen
       const addCmd = AddEintragCommand.create(etbId, 'Urspruenglicher Text', testUserId).value!;
       const addResult = await addEintragHandler.execute(addCmd);
       expect(addResult.isSuccess).toBe(true);
-      const eintragId = addResult.value!.id.value;
+      const eintragId = addResult.value?.id.value;
 
       // Phase 3: Eintrag aktualisieren
       const updateCmd = UpdateEintragCommand.create(etbId, eintragId, 'Aktualisierter Text', testUserId).value!;
@@ -424,7 +424,7 @@ function generateTestCuid(): string {
       // Phase 4: Zweiten Eintrag hinzufuegen und loeschen
       const addCmd2 = AddEintragCommand.create(etbId, 'Wird geloescht', testUserId).value!;
       const addResult2 = await addEintragHandler.execute(addCmd2);
-      const eintragId2 = addResult2.value!.id.value;
+      const eintragId2 = addResult2.value?.id.value;
 
       const deleteCmd = DeleteEintragCommand.create(etbId, eintragId2, testUserId).value!;
       await deleteEintragHandler.execute(deleteCmd);
@@ -440,31 +440,31 @@ function generateTestCuid(): string {
 
       expect(etbResult.isSuccess).toBe(true);
       expect(etbResult.value).not.toBeNull();
-      expect(etbResult.value!.status).toBe('LOCKED');
+      expect(etbResult.value?.status).toBe('LOCKED');
       // Nur aktiver Eintrag (geloeschter ausgeschlossen)
-      expect(etbResult.value!.eintraege).toHaveLength(1);
-      expect(etbResult.value!.eintraege[0].text).toBe('Aktualisierter Text');
+      expect(etbResult.value?.eintraege).toHaveLength(1);
+      expect(etbResult.value?.eintraege[0].text).toBe('Aktualisierter Text');
 
       // Assert Phase 2: GetEtb mit includeDeleted zeigt geloeschten Eintrag
       const getEtbQueryWithDeleted = new GetEtbQuery(testEinsatzId, true);
       const etbResultWithDeleted = await getEtbHandler.execute(getEtbQueryWithDeleted);
 
-      expect(etbResultWithDeleted.value!.eintraege).toHaveLength(2);
-      const deletedEntry = etbResultWithDeleted.value!.eintraege.find((e) => e.isDeleted);
+      expect(etbResultWithDeleted.value?.eintraege).toHaveLength(2);
+      const deletedEntry = etbResultWithDeleted.value?.eintraege.find((e) => e.isDeleted);
       expect(deletedEntry).toBeDefined();
-      expect(deletedEntry!.text).toBe('Wird geloescht');
+      expect(deletedEntry?.text).toBe('Wird geloescht');
     });
 
     it('sollte Event-Sequenz nach vollstaendigem Lifecycle korrekt sein', async () => {
       // ETB erstellen
       const createCmd = CreateEtbCommand.create(testEinsatzId).value!;
       const createResult = await createEtbHandler.execute(createCmd);
-      const etbId = createResult.value!.value;
+      const etbId = createResult.value?.value;
 
       // Eintrag hinzufuegen
       const addCmd = AddEintragCommand.create(etbId, 'Test', testUserId).value!;
       const addResult = await addEintragHandler.execute(addCmd);
-      const eintragId = addResult.value!.id.value;
+      const eintragId = addResult.value?.id.value;
 
       // Eintrag aktualisieren
       const updateCmd = UpdateEintragCommand.create(etbId, eintragId, 'Updated', testUserId).value!;

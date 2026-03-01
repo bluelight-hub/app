@@ -158,7 +158,7 @@ describe('UpdateFmsStatusHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.fmsStatus).toBe(4);
+      expect(result.value?.fmsStatus).toBe(4);
       expect(mockEinsatzFahrzeugRepository.findById).toHaveBeenCalledWith(expect.objectContaining({ value: testFahrzeugId }), expect.any(Object));
       expect(mockEinsatzFahrzeugRepository.save).toHaveBeenCalledTimes(1);
     });
@@ -206,7 +206,7 @@ describe('UpdateFmsStatusHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.position).toEqual({ lat: 52.52, lng: 13.405 });
+      expect(result.value?.position).toEqual({ lat: 52.52, lng: 13.405 });
       expect(mockEinsatzFahrzeugRepository.save).toHaveBeenCalled();
     });
 
@@ -500,7 +500,7 @@ describe('UpdateFmsStatusHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.position).toEqual({ lat: 52.52, lng: 13.405 });
+      expect(result.value?.position).toEqual({ lat: 52.52, lng: 13.405 });
     });
   });
 
@@ -619,7 +619,7 @@ describe('UpdateFmsStatusHandler', () => {
       expect(events.length).toBe(1);
       expect(events[0].constructor.name).toBe('FmsStatusGeaendertEvent');
       // Position ist im DTO gespeichert, nicht im Event
-      expect(result.value!.position).toEqual({ lat: 52.52, lng: 13.405 });
+      expect(result.value?.position).toEqual({ lat: 52.52, lng: 13.405 });
     });
 
     it('sollte bei gleichem Status erfolgreich sein aber KEIN Event emittieren (Idempotenz)', async () => {
@@ -640,7 +640,7 @@ describe('UpdateFmsStatusHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.fmsStatus).toBe(currentStatus);
+      expect(result.value?.fmsStatus).toBe(currentStatus);
 
       // KRITISCHES IDEMPOTENZ-VERHALTEN:
       // Bei unverändertem Status emittiert Aggregate KEIN Event (getDomainEvents() = []).

@@ -68,8 +68,8 @@ describe('ExportRohdatenHandler', () => {
     const result = await handler.execute(query);
 
     expect(result.isSuccess).toBe(true);
-    expect(result.value!.contentType).toBe('text/csv');
-    expect(result.value!.filename).toMatch(/^Rohdaten_Export_E2026-001_\d{4}-\d{2}-\d{2}_\d{6}\.csv$/);
+    expect(result.value?.contentType).toBe('text/csv');
+    expect(result.value?.filename).toMatch(/^Rohdaten_Export_E2026-001_\d{4}-\d{2}-\d{2}_\d{6}\.csv$/);
     expect(mockCsvService.generateRawExport).toHaveBeenCalledWith([sampleItem]);
   });
 
@@ -81,8 +81,8 @@ describe('ExportRohdatenHandler', () => {
     const result = await handler.execute(query);
 
     expect(result.isSuccess).toBe(true);
-    expect(result.value!.contentType).toBe('application/json');
-    expect(result.value!.filename).toMatch(/^Rohdaten_Export_E2026-001_\d{4}-\d{2}-\d{2}_\d{6}\.json$/);
+    expect(result.value?.contentType).toBe('application/json');
+    expect(result.value?.filename).toMatch(/^Rohdaten_Export_E2026-001_\d{4}-\d{2}-\d{2}_\d{6}\.json$/);
     expect(mockJsonService.generateRawExport).toHaveBeenCalledWith([sampleItem]);
   });
 

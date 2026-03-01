@@ -136,11 +136,11 @@ export function EinsatzVergleich({ einsatzId, className }: EinsatzVergleichProps
                       <thead>
                         <tr className="text-left text-slate-600 dark:text-slate-400">
                           <th className="px-3 py-2 font-medium">Einsatz</th>
-                          <th className="px-3 py-2 font-medium text-right">Erinnerungen</th>
-                          <th className="px-3 py-2 font-medium text-right">Erinn./h</th>
-                          <th className="px-3 py-2 font-medium text-right">Eskalationsrate</th>
-                          <th className="px-3 py-2 font-medium text-right">Ø Reaktionszeit</th>
-                          <th className="px-3 py-2 font-medium text-right">Dauer</th>
+                          <th className="px-3 py-2 text-right font-medium">Erinnerungen</th>
+                          <th className="px-3 py-2 text-right font-medium">Erinn./h</th>
+                          <th className="px-3 py-2 text-right font-medium">Eskalationsrate</th>
+                          <th className="px-3 py-2 text-right font-medium">Ø Reaktionszeit</th>
+                          <th className="px-3 py-2 text-right font-medium">Dauer</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 dark:divide-slate-800">

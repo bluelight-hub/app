@@ -166,7 +166,7 @@ describe('AcknowledgeErinnerungHandler', () => {
         // Then (Assert)
         expect(result.isSuccess).toBe(true);
         expect(result.value).toBeDefined();
-        expect(result.value!.status).toBe('ACKNOWLEDGED');
+        expect(result.value?.status).toBe('ACKNOWLEDGED');
         expect(mockRepository.save).toHaveBeenCalledTimes(1);
         expect(mockOutboxRepository.save).toHaveBeenCalledTimes(1);
       });
@@ -241,7 +241,7 @@ describe('AcknowledgeErinnerungHandler', () => {
 
         // Then (Assert)
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.status).toBe('ACKNOWLEDGED');
+        expect(result.value?.status).toBe('ACKNOWLEDGED');
         expect(mockRepository.save).toHaveBeenCalledTimes(1);
       });
 

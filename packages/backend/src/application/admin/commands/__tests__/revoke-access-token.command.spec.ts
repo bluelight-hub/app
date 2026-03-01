@@ -16,8 +16,8 @@ describe('RevokeAccessTokenCommand', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.tokenId).toBe('blh_abc123def456ghi789jkl012');
-      expect(result.value!.requestedById).toBe('user_abc123');
+      expect(result.value.tokenId).toBe('blh_abc123def456ghi789jkl012');
+      expect(result.value.requestedById).toBe('user_abc123');
     });
 
     it('should trim whitespace from tokenId and requestedById', () => {
@@ -32,8 +32,8 @@ describe('RevokeAccessTokenCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.tokenId).toBe('blh_abc123def456ghi789jkl012');
-      expect(result.value!.requestedById).toBe('user_abc123');
+      expect(result.value.tokenId).toBe('blh_abc123def456ghi789jkl012');
+      expect(result.value.requestedById).toBe('user_abc123');
     });
 
     it('should accept minimum tokenId length (24 characters)', () => {
@@ -48,7 +48,7 @@ describe('RevokeAccessTokenCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.tokenId).toHaveLength(24);
+      expect(result.value.tokenId).toHaveLength(24);
     });
 
     it('should accept minimum requestedById length (8 characters)', () => {
@@ -63,7 +63,7 @@ describe('RevokeAccessTokenCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.requestedById).toHaveLength(8);
+      expect(result.value.requestedById).toHaveLength(8);
     });
   });
 
@@ -197,7 +197,7 @@ describe('RevokeAccessTokenCommand', () => {
         requestedById: 'user_abc123',
       };
       const result = RevokeAccessTokenCommand.create(props);
-      const command = result.value!;
+      const command = result.value;
 
       // When (Act) - Attempt to modify (TypeScript prevents this at compile time)
       // This test documents the intended behavior

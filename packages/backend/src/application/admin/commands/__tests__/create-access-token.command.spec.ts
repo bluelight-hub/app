@@ -33,8 +33,8 @@ describe('CreateAccessTokenCommand', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.name).toBe(props.name);
-      expect(result.value!.createdById).toBe(props.createdById);
+      expect(result.value.name).toBe(props.name);
+      expect(result.value.createdById).toBe(props.createdById);
     });
 
     it('should trim whitespace from name', () => {
@@ -46,7 +46,7 @@ describe('CreateAccessTokenCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.name).toBe('Test Token');
+      expect(result.value.name).toBe('Test Token');
     });
 
     it('should succeed with minimum name length (3 characters)', () => {
@@ -58,7 +58,7 @@ describe('CreateAccessTokenCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.name).toBe('ABC');
+      expect(result.value.name).toBe('ABC');
     });
 
     it('should succeed with maximum name length (50 characters)', () => {
@@ -71,7 +71,7 @@ describe('CreateAccessTokenCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.name).toBe(maxName);
+      expect(result.value.name).toBe(maxName);
     });
 
     it('should succeed with 49 characters (just under max)', () => {
@@ -84,7 +84,7 @@ describe('CreateAccessTokenCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.name).toBe(name49);
+      expect(result.value.name).toBe(name49);
     });
 
     it('should succeed with 4 characters (just over min)', () => {
@@ -96,7 +96,7 @@ describe('CreateAccessTokenCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.name).toBe('ABCD');
+      expect(result.value.name).toBe('ABCD');
     });
   });
 
@@ -246,7 +246,7 @@ describe('CreateAccessTokenCommand', () => {
       // Given (Arrange)
       const props = createValidProps();
       const result = CreateAccessTokenCommand.create(props);
-      const command = result.value!;
+      const command = result.value;
 
       // Then (Assert)
       // TypeScript sollte verhindern, dass diese Properties geaendert werden
@@ -264,7 +264,7 @@ describe('CreateAccessTokenCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.name).toBe('My Token');
+      expect(result.value.name).toBe('My Token');
     });
   });
 
@@ -314,7 +314,7 @@ describe('CreateAccessTokenCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.name).toBe(specialName);
+      expect(result.value.name).toBe(specialName);
     });
 
     it('should handle emoji in name', () => {
@@ -327,7 +327,7 @@ describe('CreateAccessTokenCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.name).toBe(emojiName);
+      expect(result.value.name).toBe(emojiName);
     });
 
     it('should handle newlines in name (trim should remove leading/trailing)', () => {
@@ -341,7 +341,7 @@ describe('CreateAccessTokenCommand', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       // Nur fuehrende/nachfolgende Whitespaces werden entfernt
-      expect(result.value!.name).toBe('Test\nToken');
+      expect(result.value.name).toBe('Test\nToken');
     });
 
     it('should handle tab characters in name', () => {
@@ -355,7 +355,7 @@ describe('CreateAccessTokenCommand', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       // Trim entfernt Tabs am Anfang und Ende
-      expect(result.value!.name).toBe('Test\tToken');
+      expect(result.value.name).toBe('Test\tToken');
     });
 
     it('should handle very long createdById', () => {
@@ -368,7 +368,7 @@ describe('CreateAccessTokenCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.createdById).toBe(longCreatedById);
+      expect(result.value.createdById).toBe(longCreatedById);
     });
 
     it('should handle typical token names', () => {
@@ -381,7 +381,7 @@ describe('CreateAccessTokenCommand', () => {
 
         // Then (Assert)
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.name).toBe(name);
+        expect(result.value.name).toBe(name);
       }
     });
   });

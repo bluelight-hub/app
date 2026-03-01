@@ -37,7 +37,7 @@ describe('AufbewahrungsCronService', () => {
       execute: jest.fn(),
     };
 
-    service = new AufbewahrungsCronService(mockLogger as any, mockAnonymisiereHandler as any, mockLoescheHandler as any, mockKonfigurationHandler as any);
+    service = new AufbewahrungsCronService(mockLogger as unknown, mockAnonymisiereHandler as unknown, mockLoescheHandler as unknown, mockKonfigurationHandler as unknown);
   });
 
   describe('handleAnonymisierung', () => {

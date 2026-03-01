@@ -76,12 +76,12 @@ export function MonitoringDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-white">System-Monitoring</h1>
-          <p className="text-sm text-gray-400">Echtzeit-Systemzustand und Schwellwert-Warnungen</p>
+          <h1 className="font-semibold text-white text-xl">System-Monitoring</h1>
+          <p className="text-gray-400 text-sm">Echtzeit-Systemzustand und Schwellwert-Warnungen</p>
         </div>
         <div className="flex items-center gap-2">
           <div className={`h-2 w-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} role="img" aria-label={isConnected ? 'WebSocket verbunden' : 'WebSocket getrennt'} />
-          <span className="text-sm text-gray-400">{isConnected ? 'Live' : 'Getrennt'}</span>
+          <span className="text-gray-400 text-sm">{isConnected ? 'Live' : 'Getrennt'}</span>
         </div>
       </div>
 
@@ -117,7 +117,7 @@ export function MonitoringDashboard() {
         </div>
       )}
 
-      {error && <div className="rounded-lg border border-red-500/30 bg-red-500/5 p-4 text-sm text-red-400">Fehler beim Laden der System-Metriken: {error.message}</div>}
+      {error && <div className="rounded-lg border border-red-500/30 bg-red-500/5 p-4 text-red-400 text-sm">Fehler beim Laden der System-Metriken: {error.message}</div>}
 
       {/* Metrics Grid */}
       {health && (
@@ -131,7 +131,7 @@ export function MonitoringDashboard() {
 
           {/* API Response Times */}
           <div>
-            <h2 className="mb-3 text-sm font-medium text-gray-400">API Response Times</h2>
+            <h2 className="mb-3 font-medium text-gray-400 text-sm">API Response Times</h2>
             <div className="grid grid-cols-3 gap-4">
               <MetricCard label="p50 (Median)" value={Math.round(health.apiResponseTime.p50)} einheit="ms" status="ok" />
               <MetricCard label="p95" value={Math.round(health.apiResponseTime.p95)} einheit="ms" status={getLatenzStatus(health.apiResponseTime.p95)} />
@@ -142,7 +142,7 @@ export function MonitoringDashboard() {
           {/* Circuit Breaker Status */}
           {health.circuitBreakerStatus.length > 0 && (
             <div>
-              <h2 className="mb-3 text-sm font-medium text-gray-400">Circuit Breaker Status</h2>
+              <h2 className="mb-3 font-medium text-gray-400 text-sm">Circuit Breaker Status</h2>
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
                 {health.circuitBreakerStatus.map((cb) => (
                   <MetricCard key={cb.serviceName} label={cb.serviceName} value={cb.state} status={cb.state === 'CLOSED' ? 'ok' : cb.state === 'HALF_OPEN' ? 'warnung' : 'kritisch'} />

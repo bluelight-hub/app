@@ -15,7 +15,7 @@ describe('ArchiveOldEinsaetzeCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.dryRun).toBe(true);
+      expect(result.value?.dryRun).toBe(true);
     });
 
     it('should create command with default olderThanYears=10', () => {
@@ -27,7 +27,7 @@ describe('ArchiveOldEinsaetzeCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.olderThanYears).toBe(10);
+      expect(result.value?.olderThanYears).toBe(10);
     });
 
     it('should calculate olderThan date correctly for 10 years', () => {
@@ -41,7 +41,7 @@ describe('ArchiveOldEinsaetzeCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.olderThan.getFullYear()).toBe(expectedYear);
+      expect(result.value?.olderThan.getFullYear()).toBe(expectedYear);
     });
 
     it('should allow explicit dryRun=false', () => {
@@ -53,7 +53,7 @@ describe('ArchiveOldEinsaetzeCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.dryRun).toBe(false);
+      expect(result.value?.dryRun).toBe(false);
     });
 
     it('should allow custom olderThanYears', () => {
@@ -65,7 +65,7 @@ describe('ArchiveOldEinsaetzeCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.olderThanYears).toBe(5);
+      expect(result.value?.olderThanYears).toBe(5);
     });
 
     it('should calculate olderThan date correctly for custom years', () => {
@@ -79,12 +79,11 @@ describe('ArchiveOldEinsaetzeCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.olderThan.getFullYear()).toBe(expectedYear);
+      expect(result.value?.olderThan.getFullYear()).toBe(expectedYear);
     });
 
     it('should fail when archivedBy is missing', () => {
       // Given
-      // biome-ignore lint/suspicious/noExplicitAny: Testing invalid input without required fields
       const dto = {} as any;
 
       // When
@@ -129,7 +128,7 @@ describe('ArchiveOldEinsaetzeCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.archivedBy).toBe('admin-123');
+      expect(result.value?.archivedBy).toBe('admin-123');
     });
 
     it('should fail when olderThanYears is less than 1', () => {
@@ -167,7 +166,7 @@ describe('ArchiveOldEinsaetzeCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.olderThanYears).toBe(1);
+      expect(result.value?.olderThanYears).toBe(1);
     });
 
     it('should accept olderThanYears at boundary value 100', () => {
@@ -179,7 +178,7 @@ describe('ArchiveOldEinsaetzeCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.olderThanYears).toBe(100);
+      expect(result.value?.olderThanYears).toBe(100);
     });
 
     it('should handle dryRun=true explicitly set', () => {
@@ -191,7 +190,7 @@ describe('ArchiveOldEinsaetzeCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.dryRun).toBe(true);
+      expect(result.value?.dryRun).toBe(true);
     });
 
     it('should calculate olderThan preserving time of day', () => {
@@ -204,7 +203,7 @@ describe('ArchiveOldEinsaetzeCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      const olderThan = result.value!.olderThan;
+      const olderThan = result.value?.olderThan;
 
       // Check that month and day are similar to current date (within same execution)
       expect(olderThan.getMonth()).toBe(beforeCreate.getMonth());

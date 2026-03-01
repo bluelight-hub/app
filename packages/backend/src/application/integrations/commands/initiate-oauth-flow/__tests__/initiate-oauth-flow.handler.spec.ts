@@ -143,7 +143,7 @@ describe('InitiateOAuthFlowHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.authorizationUrl).toBe(validAuthResponse.authorizationUrl);
+      expect(result.value?.authorizationUrl).toBe(validAuthResponse.authorizationUrl);
 
       // Pruefen, dass generateAuthorizationUrl mit korrekten Parametern aufgerufen wurde
       expect(mockOAuth2.generateAuthorizationUrl).toHaveBeenCalledWith({

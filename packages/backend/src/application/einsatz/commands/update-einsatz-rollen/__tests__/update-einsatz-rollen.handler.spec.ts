@@ -3,8 +3,8 @@ import { UpdateEinsatzRollenCommand } from '../update-einsatz-rollen.command';
 
 describe('UpdateEinsatzRollenHandler', () => {
   let handler: UpdateEinsatzRollenHandler;
-  let mockPrisma: any;
-  let mockTx: any;
+  let mockPrisma: unknown;
+  let mockTx: unknown;
 
   const einsatzId = 'einsatz-123';
   const userId1 = 'user-1';
@@ -32,7 +32,7 @@ describe('UpdateEinsatzRollenHandler', () => {
         deleteMany: jest.fn(),
         createMany: jest.fn(),
       },
-      $transaction: jest.fn((fn: (tx: any) => Promise<void>) => fn(mockTx)),
+      $transaction: jest.fn((fn: (tx: unknown) => Promise<void>) => fn(mockTx)),
     };
 
     handler = new UpdateEinsatzRollenHandler(mockPrisma);

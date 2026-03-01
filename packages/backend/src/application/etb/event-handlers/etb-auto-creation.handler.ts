@@ -97,7 +97,6 @@ export class EtbAutoCreationHandler implements IEventHandler<EinsatzCreatedEvent
       }
 
       // Command ausführen via injiziertem Handler
-      // biome-ignore lint/style/noNonNullAssertion: Safe - already checked isFailure above
       const result = await this.createEtbHandler.execute(commandResult.value!);
 
       if (result.isFailure) {
@@ -121,7 +120,6 @@ export class EtbAutoCreationHandler implements IEventHandler<EinsatzCreatedEvent
       }
 
       // Erfolg: ETB wurde erstellt
-      // biome-ignore lint/style/noNonNullAssertion: Safe - already checked isFailure above
       const etbId = result.value!;
       this.logger.log(`ETB created successfully`, {
         einsatzId: einsatzIdValue,

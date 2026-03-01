@@ -10,8 +10,8 @@ describe('DeleteErinnerungsvorlageCommand', () => {
       });
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.vorlageId).toBe('valid-id');
-      expect(result.value!.deletedBy).toBe('user-id');
+      expect(result.value?.vorlageId).toBe('valid-id');
+      expect(result.value?.deletedBy).toBe('user-id');
     });
 
     it('should fail when vorlageId is empty', () => {
@@ -61,8 +61,8 @@ describe('DeleteErinnerungsvorlageCommand', () => {
       });
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.vorlageId).toBe('valid-id');
-      expect(result.value!.deletedBy).toBe('user-id');
+      expect(result.value?.vorlageId).toBe('valid-id');
+      expect(result.value?.deletedBy).toBe('user-id');
     });
   });
 });

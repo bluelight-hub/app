@@ -330,9 +330,9 @@ describe('LockEtbHandler', () => {
       // Assert
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.etbId).toBe(testEinsatzId);
-      expect(result.value!.userId).toBe(testUserId);
-      expect(result.value!.userRole).toBe('ADMIN');
+      expect(result.value?.etbId).toBe(testEinsatzId);
+      expect(result.value?.userId).toBe(testUserId);
+      expect(result.value?.userRole).toBe('ADMIN');
     });
   });
 });

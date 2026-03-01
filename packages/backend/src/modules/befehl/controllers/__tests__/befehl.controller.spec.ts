@@ -86,47 +86,38 @@ describe('BefehlController (Integration Tests - AC10)', () => {
     // Create mock handlers (Direct Instantiation Pattern)
     mockAddBefehlKommentarHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     mockCreateBefehlHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     mockKorrigiereBefehlHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     mockQuittierenBefehlHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     mockAendereEmpfaengerStatusHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     mockGetBefehlHistorieQueryHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     mockExportBefehleQueryHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     mockEmpfaengerSucheQueryHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     mockBefehlsgeberSucheQueryHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     // Create mock repository
@@ -137,7 +128,6 @@ describe('BefehlController (Integration Tests - AC10)', () => {
       findByEmpfaengerId: jest.fn(),
       findWithOpenRueckfragen: jest.fn(),
       findFiltered: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     // Instantiate controller with mocks
@@ -344,7 +334,6 @@ describe('BefehlController (Integration Tests - AC10)', () => {
     });
 
     it('sollte InternalServerErrorException werfen wenn Handler kein Result zurueckgibt', async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Test edge case
       mockQuittierenBefehlHandler.execute.mockResolvedValue(Result.ok(undefined as any));
 
       await expect(controller.quittieren('some-id', validDto)).rejects.toThrow(InternalServerErrorException);
@@ -414,7 +403,6 @@ describe('BefehlController (Integration Tests - AC10)', () => {
     });
 
     it('sollte InternalServerErrorException werfen wenn Handler kein Result zurueckgibt', async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Test edge case
       mockKorrigiereBefehlHandler.execute.mockResolvedValue(Result.ok(undefined as any));
 
       await expect(controller.korrigieren('some-id', validDto)).rejects.toThrow(InternalServerErrorException);
@@ -466,7 +454,6 @@ describe('BefehlController (Integration Tests - AC10)', () => {
     });
 
     it('sollte InternalServerErrorException werfen wenn Handler kein Result zurueckgibt', async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Test edge case
       mockAddBefehlKommentarHandler.execute.mockResolvedValue(Result.ok(undefined as any));
 
       await expect(controller.addKommentar('some-id', validDto, mockReq)).rejects.toThrow(InternalServerErrorException);
@@ -769,7 +756,6 @@ describe('BefehlController (Integration Tests - AC10)', () => {
     });
 
     it('sollte InternalServerErrorException werfen wenn Handler kein Result zurueckgibt', async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Test edge case
       mockGetBefehlHistorieQueryHandler.execute.mockResolvedValue(Result.ok(undefined as any));
 
       await expect(controller.getHistorie('test-befehl-id')).rejects.toThrow(InternalServerErrorException);
@@ -1034,7 +1020,6 @@ describe('BefehlController (Integration Tests - AC10)', () => {
         }),
       );
 
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
       await controller.exportBefehle('cm5einsatzid123', 'csv', mockRes as any);
 
       expect(mockRes.setHeader).toHaveBeenCalledWith('Content-Type', 'text/csv; charset=utf-8');
@@ -1052,7 +1037,6 @@ describe('BefehlController (Integration Tests - AC10)', () => {
         }),
       );
 
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
       await controller.exportBefehle('cm5einsatzid123', 'json', mockRes as any);
 
       expect(mockRes.setHeader).toHaveBeenCalledWith('Content-Type', 'application/json; charset=utf-8');
@@ -1063,7 +1047,6 @@ describe('BefehlController (Integration Tests - AC10)', () => {
     it('sollte BadRequestException werfen wenn einsatzId fehlt', async () => {
       const mockRes = createMockResponse();
 
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
       await expect(controller.exportBefehle('', 'csv', mockRes as any)).rejects.toThrow(BadRequestException);
       expect(mockExportBefehleQueryHandler.execute).not.toHaveBeenCalled();
     });
@@ -1071,7 +1054,6 @@ describe('BefehlController (Integration Tests - AC10)', () => {
     it('sollte BadRequestException werfen wenn einsatzId als Array uebergeben wird', async () => {
       const mockRes = createMockResponse();
 
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
       await expect(controller.exportBefehle(['cm5einsatzid123', 'cm5einsatzid456'], 'csv', mockRes as any)).rejects.toThrow(BadRequestException);
       expect(mockExportBefehleQueryHandler.execute).not.toHaveBeenCalled();
     });
@@ -1079,7 +1061,6 @@ describe('BefehlController (Integration Tests - AC10)', () => {
     it('sollte BadRequestException werfen wenn format als Array uebergeben wird', async () => {
       const mockRes = createMockResponse();
 
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
       await expect(controller.exportBefehle('cm5einsatzid123', ['csv', 'json'], mockRes as any)).rejects.toThrow(BadRequestException);
       expect(mockExportBefehleQueryHandler.execute).not.toHaveBeenCalled();
     });
@@ -1087,7 +1068,6 @@ describe('BefehlController (Integration Tests - AC10)', () => {
     it('sollte BadRequestException werfen wenn format ungueltig ist', async () => {
       const mockRes = createMockResponse();
 
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
       await expect(controller.exportBefehle('cm5einsatzid123', 'xml', mockRes as any)).rejects.toThrow(BadRequestException);
       expect(mockExportBefehleQueryHandler.execute).not.toHaveBeenCalled();
     });
@@ -1096,16 +1076,13 @@ describe('BefehlController (Integration Tests - AC10)', () => {
       const mockRes = createMockResponse();
       mockExportBefehleQueryHandler.execute.mockResolvedValue(Result.fail('Ungueltige EinsatzId'));
 
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
       await expect(controller.exportBefehle('invalid-id', 'csv', mockRes as any)).rejects.toThrow(BadRequestException);
     });
 
     it('sollte InternalServerErrorException werfen wenn Handler kein Result-Value zurueckgibt', async () => {
       const mockRes = createMockResponse();
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
       mockExportBefehleQueryHandler.execute.mockResolvedValue(Result.ok(undefined as any));
 
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
       await expect(controller.exportBefehle('cm5einsatzid123', 'csv', mockRes as any)).rejects.toThrow(InternalServerErrorException);
     });
   });
@@ -1286,9 +1263,7 @@ describe('BefehlController Guard-Decorators (Story 5.4 AC1, AC5)', () => {
 describe('BefehlController Guard-Enforcement (Integration)', () => {
   let app: INestApplication;
 
-  // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
   let mockPrisma: any;
-  // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
   let mockBefehlRepository: any;
 
   const TEST_USER_ID = 'guard-test-user-1';
@@ -1300,7 +1275,6 @@ describe('BefehlController Guard-Enforcement (Integration)', () => {
    * Simuliert erfolgreiche JWT-Authentifizierung ohne echtes Token.
    */
   const createMockJwtAuthGuard = () => ({
-    // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     canActivate: (context: any) => {
       const request = context.switchToHttp().getRequest();
       request.user = { userId: TEST_USER_ID, role: 'USER' };

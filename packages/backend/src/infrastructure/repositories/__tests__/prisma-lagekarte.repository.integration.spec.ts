@@ -347,11 +347,11 @@ describe('PrismaLagekarteRepository - Integration Tests', () => {
 
       // Then: Returns correct aggregate with POIs
       expect(result).not.toBeNull();
-      expect(result!.id.value).toBe(aggregate.id.value);
-      expect(result!.einsatzId.value).toBe(testEinsatzId);
-      expect(result!.pois).toHaveLength(2);
-      expect(result!.pois[0].name).toBe('POI A');
-      expect(result!.pois[1].name).toBe('POI B');
+      expect(result?.id.value).toBe(aggregate.id.value);
+      expect(result?.einsatzId.value).toBe(testEinsatzId);
+      expect(result?.pois).toHaveLength(2);
+      expect(result?.pois[0].name).toBe('POI A');
+      expect(result?.pois[1].name).toBe('POI B');
     });
 
     /**
@@ -397,8 +397,8 @@ describe('PrismaLagekarteRepository - Integration Tests', () => {
 
       // Then: Returns correct aggregate
       expect(result).not.toBeNull();
-      expect(result!.einsatzId.value).toBe(einsatzId.value);
-      expect(result!.id.value).toBe(aggregate.id.value);
+      expect(result?.einsatzId.value).toBe(einsatzId.value);
+      expect(result?.id.value).toBe(aggregate.id.value);
     });
 
     /**
@@ -527,10 +527,10 @@ describe('PrismaLagekarteRepository - Integration Tests', () => {
 
       // Then: MGRS coordinates match (exact string comparison)
       expect(retrieved).not.toBeNull();
-      expect(retrieved!.id.value).toBe(aggregate.id.value);
-      expect(retrieved!.pois[0].coordinate.value).toBe(berlinMgrs.value);
-      expect(retrieved!.pois[0].name).toBe('Brandenburger Tor');
-      expect(retrieved!.pois[0].beschreibung).toBe('Haupteinsatzort');
+      expect(retrieved?.id.value).toBe(aggregate.id.value);
+      expect(retrieved?.pois[0].coordinate.value).toBe(berlinMgrs.value);
+      expect(retrieved?.pois[0].name).toBe('Brandenburger Tor');
+      expect(retrieved?.pois[0].beschreibung).toBe('Haupteinsatzort');
     });
   });
 

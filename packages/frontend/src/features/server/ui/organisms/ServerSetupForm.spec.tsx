@@ -30,7 +30,6 @@ vi.mock('../../api/mutations', () => ({
 
 vi.mock('../../api/use-health-check', () => ({
   useHealthCheck: vi.fn(),
-  // biome-ignore lint/nursery/noShadow: Mock class intentionally shadows the real HealthCheckError
   HealthCheckError: class HealthCheckError extends Error {
     type: string;
     constructor(message: string, type: string) {
@@ -549,7 +548,6 @@ describe('ServerSetupForm', () => {
         setupComplete: true,
       });
 
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock type assertion
       render(<ServerSetupForm onSuccess={mockOnSuccess as any} />);
 
       // Step 1

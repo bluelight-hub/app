@@ -150,7 +150,7 @@ export class PrismaServerConfigRepository implements IServerConfigRepository {
         if (created.isFailure) {
           return Result.fail(created.error!);
         }
-        return Result.ok(created.value!.insecureMode);
+        return Result.ok(created.value?.insecureMode);
       }
 
       return Result.ok(record.insecureMode);
@@ -183,7 +183,7 @@ export class PrismaServerConfigRepository implements IServerConfigRepository {
         if (created.isFailure) {
           return Result.fail(created.error!);
         }
-        return Result.ok(created.value!.migratedAt !== null);
+        return Result.ok(created.value?.migratedAt !== null);
       }
 
       return Result.ok(record.migratedAt !== null);

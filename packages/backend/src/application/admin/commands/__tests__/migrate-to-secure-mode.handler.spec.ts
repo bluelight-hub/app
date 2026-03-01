@@ -148,7 +148,7 @@ describe('MigrateToSecureModeHandler', () => {
       tokenName: 'Admin Initial Token',
       requestedById: 'admin_test_123',
       ...overrides,
-    }).value!;
+    }).value;
   }
 
   describe('execute() - Success Cases', () => {
@@ -162,9 +162,9 @@ describe('MigrateToSecureModeHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.success).toBe(true);
-      expect(result.value!.previousMode).toBe('INSECURE');
-      expect(result.value!.newMode).toBe('SECURE');
+      expect(result.value.success).toBe(true);
+      expect(result.value.previousMode).toBe('INSECURE');
+      expect(result.value.newMode).toBe('SECURE');
     });
 
     it('should return token in response', async () => {
@@ -176,8 +176,8 @@ describe('MigrateToSecureModeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.token).toBeDefined();
-      expect(result.value!.token).toMatch(/^blh_[a-z0-9]{24}$/);
+      expect(result.value.token).toBeDefined();
+      expect(result.value.token).toMatch(/^blh_[a-z0-9]{24}$/);
     });
 
     it('should return correct tokenName in response', async () => {
@@ -189,7 +189,7 @@ describe('MigrateToSecureModeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.tokenName).toBe('My Admin Token');
+      expect(result.value.tokenName).toBe('My Admin Token');
     });
 
     it('should return tokenPrefix (first 12 characters)', async () => {
@@ -201,9 +201,9 @@ describe('MigrateToSecureModeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.tokenPrefix).toBeDefined();
-      expect(result.value!.tokenPrefix).toHaveLength(12);
-      expect(result.value!.tokenPrefix).toMatch(/^blh_[a-z0-9]{8}$/);
+      expect(result.value.tokenPrefix).toBeDefined();
+      expect(result.value.tokenPrefix).toHaveLength(12);
+      expect(result.value.tokenPrefix).toMatch(/^blh_[a-z0-9]{8}$/);
     });
 
     it('should return migratedAt in ISO format', async () => {
@@ -215,21 +215,21 @@ describe('MigrateToSecureModeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.migratedAt).toBeDefined();
-      expect(() => new Date(result.value!.migratedAt)).not.toThrow();
-      expect(result.value!.migratedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+      expect(result.value.migratedAt).toBeDefined();
+      expect(() => new Date(result.value.migratedAt)).not.toThrow();
+      expect(result.value.migratedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
     });
 
     it('should use default tokenName when not provided', async () => {
       // Given (Arrange)
-      const command = MigrateToSecureModeCommand.create({ requestedById: 'admin_test_123' }).value!;
+      const command = MigrateToSecureModeCommand.create({ requestedById: 'admin_test_123' }).value;
 
       // When (Act)
       const result = await handler.execute(command);
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.tokenName).toBe(MigrateToSecureModeCommand.DEFAULT_TOKEN_NAME);
+      expect(result.value.tokenName).toBe(MigrateToSecureModeCommand.DEFAULT_TOKEN_NAME);
     });
   });
 
@@ -243,7 +243,7 @@ describe('MigrateToSecureModeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      const token = result.value!.token!;
+      const token = result.value.token;
 
       expect(token).toMatch(/^blh_[a-z0-9]{24}$/);
       expect(token).toHaveLength(28);
@@ -259,8 +259,8 @@ describe('MigrateToSecureModeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      const prefix = result.value!.tokenPrefix!;
-      const token = result.value!.token!;
+      const prefix = result.value.tokenPrefix;
+      const token = result.value.token;
 
       expect(prefix).toHaveLength(12);
       expect(prefix).toBe(token.substring(0, 12));
@@ -297,7 +297,7 @@ describe('MigrateToSecureModeHandler', () => {
       expect(result.isSuccess).toBe(true);
       const savedToken = mockTokenRepository.save.mock.calls[0][0];
       const hashValue = savedToken.tokenHash.value;
-      const rawToken = result.value!.token!;
+      const rawToken = result.value.token;
 
       const isValid = await bcrypt.compare(rawToken, hashValue);
       expect(isValid).toBe(true);
@@ -679,7 +679,7 @@ describe('MigrateToSecureModeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      const rawToken = result.value!.token!;
+      const rawToken = result.value.token;
       const logMessage = mockLogger.log.mock.calls[0][0];
 
       expect(logMessage).not.toContain(rawToken);
@@ -696,7 +696,7 @@ describe('MigrateToSecureModeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      const response = result.value!;
+      const response = result.value;
 
       expect(response.success).toBeDefined();
       expect(response.previousMode).toBeDefined();
@@ -716,7 +716,7 @@ describe('MigrateToSecureModeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.success).toBe(true);
+      expect(result.value.success).toBe(true);
     });
 
     it('should have previousMode=INSECURE in response', async () => {
@@ -728,7 +728,7 @@ describe('MigrateToSecureModeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.previousMode).toBe('INSECURE');
+      expect(result.value.previousMode).toBe('INSECURE');
     });
 
     it('should have newMode=SECURE in response', async () => {
@@ -740,7 +740,7 @@ describe('MigrateToSecureModeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.newMode).toBe('SECURE');
+      expect(result.value.newMode).toBe('SECURE');
     });
   });
 
@@ -754,7 +754,7 @@ describe('MigrateToSecureModeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.tokenName).toBe('ABC');
+      expect(result.value.tokenName).toBe('ABC');
     });
 
     it('should handle maximum tokenName length (50 characters)', async () => {
@@ -767,7 +767,7 @@ describe('MigrateToSecureModeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.tokenName).toBe(longName);
+      expect(result.value.tokenName).toBe(longName);
     });
 
     it('should handle special characters in tokenName', async () => {
@@ -780,7 +780,7 @@ describe('MigrateToSecureModeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.tokenName).toBe(specialName);
+      expect(result.value.tokenName).toBe(specialName);
     });
   });
 });

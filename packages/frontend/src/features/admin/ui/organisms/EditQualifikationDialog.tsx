@@ -97,8 +97,6 @@ export const EditQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmittin
   // - `form` ist eine instabile Referenz (ändert sich bei jedem Render)
   // - useCallback mit `form` als Dependency würde Callback bei jedem Render neu erstellen
   // - Stattdessen: form.reset direkt im useEffect aufrufen, lastLoadedIdRef verhindert unnötige Resets
-  // - biome-ignore ist sicher: form.reset ist stabil (interne TanStack Form Implementierung)
-  // biome-ignore lint/correctness/useExhaustiveDependencies: form.reset ist stabil, lastLoadedIdRef verhindert Race Conditions
   useEffect(() => {
     if (qualifikation && isOpen && lastLoadedIdRef.current !== qualifikation.id) {
       lastLoadedIdRef.current = qualifikation.id;

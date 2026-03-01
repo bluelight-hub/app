@@ -6,7 +6,6 @@ import { PiTag } from 'react-icons/pi';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Input } from '@/shared/ui/atoms/input.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
-import { cn } from '@/shared/ui/cn';
 
 import { useCreateKategorie } from '../../api';
 import { kategorieSchema, type KategorieFormValues, KATEGORIE_FARB_PRESETS } from '../../schemas/kategorie.schema';

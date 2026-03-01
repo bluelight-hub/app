@@ -246,6 +246,6 @@ describe('GetFuehrungsrhythmusStatistikHandler', () => {
   it('should accept valid einsatzId in query creation', () => {
     const result = GetFuehrungsrhythmusStatistikQuery.create({ einsatzId: EINSATZ_ID });
     expect(result.isSuccess).toBe(true);
-    expect(result.value!.einsatzId).toBe(EINSATZ_ID);
+    expect(result.value?.einsatzId).toBe(EINSATZ_ID);
   });
 });

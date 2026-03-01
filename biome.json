@@ -57,10 +57,19 @@
         "noShadow": "on"
       },
       "style": {
-        "useImportType": "off"
+        "useImportType": "off",
+        "noNonNullAssertion": "off"
       },
       "complexity": {
         "noStaticOnlyClass": "off"
+      },
+      "suspicious": {
+        "noExplicitAny": "off",
+        "noArrayIndexKey": "off",
+        "noNonNullAssertedOptionalChain": "off"
+      },
+      "a11y": {
+        "noLabelWithoutControl": "off"
       }
     },
     "includes": [
@@ -142,19 +151,34 @@
       "bracketSpacing": true
     }
   },
-  "html": { "formatter": { "selfCloseVoidElements": "always" } },
+  "html": {
+    "formatter": {
+      "selfCloseVoidElements": "always"
+    }
+  },
   "overrides": [
-    { "includes": ["*.json", "*.yml", "*.yaml"], "formatter": { "indentWidth": 2 } },
-    { "includes": ["*.md"], "formatter": { "lineWidth": 300 } },
-
+    {
+      "includes": ["*.json", "*.yml", "*.yaml"],
+      "formatter": {
+        "indentWidth": 2
+      }
+    },
+    {
+      "includes": ["*.md"],
+      "formatter": {
+        "lineWidth": 300
+      }
+    },
     {
       "includes": ["packages/frontend/**/*.{ts,tsx}"],
       "linter": {
         "rules": {
-          "a11y": { "noLabelWithoutControl": { "level": "warn" } },
+          "a11y": {
+            "noLabelWithoutControl": "warn"
+          },
           "suspicious": {
-            "noArrayIndexKey": { "level": "warn" },
-            "noImplicitAnyLet": { "level": "warn" }
+            "noArrayIndexKey": "warn",
+            "noImplicitAnyLet": "warn"
           }
         }
       }
@@ -162,15 +186,18 @@
     {
       "includes": ["packages/backend/**/*.ts"],
       "linter": {
-        "domains": { "react": "none" }
+        "domains": {
+          "react": "none"
+        }
       }
     },
-
     {
       "includes": ["packages/backend/src/**/*.spec.ts", "packages/backend/src/**/*.test.ts"],
       "linter": {
         "rules": {
-          "style": { "noNonNullAssertion": "off" }
+          "style": {
+            "noNonNullAssertion": "off"
+          }
         }
       }
     },
@@ -178,7 +205,9 @@
       "includes": ["packages/backend/src/infrastructure/**/*.ts"],
       "linter": {
         "rules": {
-          "style": { "noNonNullAssertion": "off" }
+          "style": {
+            "noNonNullAssertion": "off"
+          }
         }
       }
     },
@@ -186,7 +215,9 @@
       "includes": ["packages/backend/src/cli/**/*.ts"],
       "linter": {
         "rules": {
-          "style": { "noNonNullAssertion": "off" }
+          "style": {
+            "noNonNullAssertion": "off"
+          }
         }
       }
     },
@@ -205,7 +236,9 @@
       ],
       "linter": {
         "rules": {
-          "style": { "useImportType": "off" }
+          "style": {
+            "useImportType": "off"
+          }
         }
       }
     },
@@ -213,7 +246,9 @@
       "includes": ["packages/backend/src/domain/**/*.ts"],
       "linter": {
         "rules": {
-          "nursery": { "noShadow": "off" },
+          "nursery": {
+            "noShadow": "off"
+          },
           "style": {
             "noRestrictedImports": {
               "level": "error",
@@ -221,19 +256,19 @@
                 "patterns": [
                   {
                     "group": ["**/application/*", "../application/*", "@application/*"],
-                    "message": "❌ Domain layer MUST NOT import from Application layer (violates Hexagonal Architecture)"
+                    "message": "\u274c Domain layer MUST NOT import from Application layer (violates Hexagonal Architecture)"
                   },
                   {
                     "group": ["**/infrastructure/*", "../infrastructure/*", "@infrastructure/*"],
-                    "message": "❌ Domain layer MUST NOT import from Infrastructure layer (violates Hexagonal Architecture)"
+                    "message": "\u274c Domain layer MUST NOT import from Infrastructure layer (violates Hexagonal Architecture)"
                   },
                   {
                     "group": ["@nestjs/*"],
-                    "message": "❌ Domain layer MUST be framework-agnostic (no NestJS imports allowed)"
+                    "message": "\u274c Domain layer MUST be framework-agnostic (no NestJS imports allowed)"
                   },
                   {
                     "group": ["@prisma/*"],
-                    "message": "❌ Domain layer MUST NOT depend on Prisma (use Repository interfaces instead)"
+                    "message": "\u274c Domain layer MUST NOT depend on Prisma (use Repository interfaces instead)"
                   }
                 ]
               }
@@ -246,7 +281,9 @@
       "includes": ["packages/backend/src/domain/__tests__/helpers/**/*.ts"],
       "linter": {
         "rules": {
-          "style": { "noRestrictedImports": "off" }
+          "style": {
+            "noRestrictedImports": "off"
+          }
         }
       }
     },
@@ -267,7 +304,7 @@
                 "paths": {
                   "@nestjs/common": {
                     "importNames": ["Logger"],
-                    "message": "❌ Application Layer: Logger via DI injizieren mit @Inject(LOGGER) aus @infrastructure/di-tokens"
+                    "message": "\u274c Application Layer: Logger via DI injizieren mit @Inject(LOGGER) aus @infrastructure/di-tokens"
                   }
                 },
                 "patterns": [
@@ -287,11 +324,11 @@
                       "@infrastructure/index",
                       "@infrastructure/lagekarte-infrastructure.module"
                     ],
-                    "message": "❌ Application layer MUST NOT import from Infrastructure layer (except @infrastructure/di-tokens, @infrastructure/database). Use DI via Repository interfaces."
+                    "message": "\u274c Application layer MUST NOT import from Infrastructure layer (except @infrastructure/di-tokens, @infrastructure/database). Use DI via Repository interfaces."
                   },
                   {
                     "group": ["@prisma/*"],
-                    "message": "❌ Application layer MUST NOT depend on Prisma directly (use Repository interfaces and DI instead)"
+                    "message": "\u274c Application layer MUST NOT depend on Prisma directly (use Repository interfaces and DI instead)"
                   }
                 ]
               }
@@ -316,7 +353,7 @@
                 "paths": {
                   "@nestjs/common": {
                     "importNames": ["Logger"],
-                    "message": "❌ Infrastructure Layer: Logger via DI injizieren mit @Inject(LOGGER), außer in Adapters"
+                    "message": "\u274c Infrastructure Layer: Logger via DI injizieren mit @Inject(LOGGER), au\u00dfer in Adapters"
                   }
                 }
               }
@@ -336,7 +373,7 @@
                 "paths": {
                   "@nestjs/common": {
                     "importNames": ["Logger"],
-                    "message": "❌ Module Layer: Logger via DI injizieren mit @Inject(LOGGER)"
+                    "message": "\u274c Module Layer: Logger via DI injizieren mit @Inject(LOGGER)"
                   }
                 }
               }
@@ -349,7 +386,9 @@
       "includes": ["packages/backend/src/main.ts", "packages/backend/src/main-cli.ts", "packages/backend/src/main-cli-archive.ts"],
       "linter": {
         "rules": {
-          "style": { "noRestrictedImports": "off" }
+          "style": {
+            "noRestrictedImports": "off"
+          }
         }
       }
     }

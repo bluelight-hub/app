@@ -85,7 +85,6 @@ describe('EinsatzCompletenessService', () => {
 
       // When: Manually set alarmstichwort to empty (bypassing factory validation)
       // This tests the Service's validation logic directly
-      // biome-ignore lint/suspicious/noExplicitAny: Test bypasses factory validation for testing edge case
       (einsatz as any)._alarmstichwort = '';
 
       // When: Check completeness

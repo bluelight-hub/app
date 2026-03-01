@@ -203,11 +203,11 @@ describe('PreviewHiOrgPersonsHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.totalCount).toBe(2);
-      expect(result.value!.persons).toHaveLength(2);
+      expect(result.value?.totalCount).toBe(2);
+      expect(result.value?.persons).toHaveLength(2);
 
       // Erste Person pruefen (mit Qualifikationen und Ausbildungen)
-      expect(result.value!.persons[0]).toMatchObject({
+      expect(result.value?.persons[0]).toMatchObject({
         username: 'jdoe',
         mitgliednr: '12345',
         vorname: 'John',
@@ -218,10 +218,10 @@ describe('PreviewHiOrgPersonsHandler', () => {
         existingStammPersonId: undefined,
       });
       // Qualifikationen-Array prüfen
-      expect(result.value!.persons[0].qualifikationen).toHaveLength(2);
+      expect(result.value?.persons[0].qualifikationen).toHaveLength(2);
 
       // Zweite Person pruefen (ohne Qualifikationen und Ausbildungen)
-      expect(result.value!.persons[1]).toMatchObject({
+      expect(result.value?.persons[1]).toMatchObject({
         username: 'mmueller',
         mitgliednr: undefined,
         vorname: 'Maria',
@@ -231,7 +231,7 @@ describe('PreviewHiOrgPersonsHandler', () => {
         isDuplicate: false,
         existingStammPersonId: undefined,
       });
-      expect(result.value!.persons[1].qualifikationen).toHaveLength(0);
+      expect(result.value?.persons[1].qualifikationen).toHaveLength(0);
     });
 
     it('should return empty array when no persons found', async () => {
@@ -248,8 +248,8 @@ describe('PreviewHiOrgPersonsHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.totalCount).toBe(0);
-      expect(result.value!.persons).toEqual([]);
+      expect(result.value?.totalCount).toBe(0);
+      expect(result.value?.persons).toEqual([]);
     });
 
     it('should fail when tokenResult value is undefined', async () => {
@@ -278,8 +278,8 @@ describe('PreviewHiOrgPersonsHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.totalCount).toBe(0);
-      expect(result.value!.persons).toEqual([]);
+      expect(result.value?.totalCount).toBe(0);
+      expect(result.value?.persons).toEqual([]);
     });
   });
 });

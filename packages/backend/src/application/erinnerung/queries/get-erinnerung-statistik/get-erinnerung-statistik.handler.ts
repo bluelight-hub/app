@@ -4,7 +4,6 @@ import type { ILogger } from '@domain/ports/i-logger.port';
 import type { IErinnerungRepository } from '@domain/repositories/i-erinnerung.repository';
 import type { IUserRepository } from '@domain/repositories/i-user.repository';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
-import { UserId } from '@domain/value-objects/user-id';
 import { ERINNERUNG_REPOSITORY, LOGGER, USER_REPOSITORY } from '@infrastructure/di-tokens';
 import type { ErinnerungStatistikDto } from '../../dto/erinnerung-statistik.dto';
 import { ERINNERUNG_ERROR_CODES } from '../../errors/erinnerung-error.codes';

@@ -106,7 +106,6 @@ export abstract class EntityId<TAggregateType extends string> extends ValueObjec
    * // result3.error === "Invalid CUID format"
    * ```
    */
-  // biome-ignore lint/suspicious/noExplicitAny: `this` parameter requires `any` type for subclass polymorphism
   static create<T extends string>(this: any, id?: string): Result<EntityId<T>> {
     // Auto-Generation via createId() wenn kein Parameter
     const actualId = id ?? createId();
@@ -117,8 +116,7 @@ export abstract class EntityId<TAggregateType extends string> extends ValueObjec
     }
 
     // Success: Erstelle neue EntityId Instanz
-    // biome-ignore lint/complexity/noThisInStatic: `this` refers to subclass constructor, not EntityId base class
-    return Result.ok<EntityId<T>>(new this(actualId));
+    return Result.ok<EntityId<T>>(new EntityId(actualId));
   }
 
   /**

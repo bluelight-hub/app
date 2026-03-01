@@ -117,7 +117,6 @@ function IconButton({ iconValue, name, isSelected, disabled, onClick, onKeyDown,
   );
 
   return (
-    // biome-ignore lint/a11y/useSemanticElements: Custom Radio Group Pattern - Button mit role="radio" ermöglicht flexibles Grid-Layout und konsistentes Styling mit anderen Picker-Komponenten (ServerColorPicker)
     <button
       type="button"
       role="radio"

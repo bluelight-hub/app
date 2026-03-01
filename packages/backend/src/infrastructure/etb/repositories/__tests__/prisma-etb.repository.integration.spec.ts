@@ -584,14 +584,14 @@ describe('PrismaEtbRepository - Integration Tests', () => {
 
       // Then: Returns correct aggregate with Eintraege sorted by sequenceNumber
       expect(result).not.toBeNull();
-      expect(result!.id.value).toBe(aggregate.id.value);
-      expect(result!.eintraege).toHaveLength(3);
-      expect(result!.eintraege[0].text).toBe('Entry A');
-      expect(result!.eintraege[0].sequenceNumber.value).toBe(1);
-      expect(result!.eintraege[1].text).toBe('Entry B');
-      expect(result!.eintraege[1].sequenceNumber.value).toBe(2);
-      expect(result!.eintraege[2].text).toBe('Entry C');
-      expect(result!.eintraege[2].sequenceNumber.value).toBe(3);
+      expect(result?.id.value).toBe(aggregate.id.value);
+      expect(result?.eintraege).toHaveLength(3);
+      expect(result?.eintraege[0].text).toBe('Entry A');
+      expect(result?.eintraege[0].sequenceNumber.value).toBe(1);
+      expect(result?.eintraege[1].text).toBe('Entry B');
+      expect(result?.eintraege[1].sequenceNumber.value).toBe(2);
+      expect(result?.eintraege[2].text).toBe('Entry C');
+      expect(result?.eintraege[2].sequenceNumber.value).toBe(3);
     });
 
     /**
@@ -643,8 +643,8 @@ describe('PrismaEtbRepository - Integration Tests', () => {
 
       // Then: Returns correct aggregate
       expect(result).not.toBeNull();
-      expect(result!.einsatzId.value).toBe(einsatzId.value);
-      expect(result!.id.value).toBe(aggregate.id.value);
+      expect(result?.einsatzId.value).toBe(einsatzId.value);
+      expect(result?.id.value).toBe(aggregate.id.value);
     });
 
     /**
@@ -884,12 +884,12 @@ describe('PrismaEtbRepository - Integration Tests', () => {
 
       // Then: All fields match
       expect(retrieved).not.toBeNull();
-      expect(retrieved!.id.value).toBe(aggregate.id.value);
-      expect(retrieved!.einsatzId.value).toBe(einsatzId.value);
-      expect(retrieved!.eintraege).toHaveLength(2);
-      expect(retrieved!.eintraege[0].text).toBe('Entry 1 with special chars: äöü ß €');
-      expect(retrieved!.eintraege[1].text).toBe('Entry 2');
-      expect(retrieved!.version.versionNumber).toBe(aggregate.version.versionNumber);
+      expect(retrieved?.id.value).toBe(aggregate.id.value);
+      expect(retrieved?.einsatzId.value).toBe(einsatzId.value);
+      expect(retrieved?.eintraege).toHaveLength(2);
+      expect(retrieved?.eintraege[0].text).toBe('Entry 1 with special chars: äöü ß €');
+      expect(retrieved?.eintraege[1].text).toBe('Entry 2');
+      expect(retrieved?.version.versionNumber).toBe(aggregate.version.versionNumber);
     });
 
     /**
@@ -920,9 +920,9 @@ describe('PrismaEtbRepository - Integration Tests', () => {
 
       // Then: Entry exists with isDeleted=true
       expect(retrieved).not.toBeNull();
-      expect(retrieved!.eintraege).toHaveLength(1);
-      expect(retrieved!.eintraege[0].isDeleted).toBe(true);
-      expect(retrieved!.eintraege[0].text).toBe('Entry to delete');
+      expect(retrieved?.eintraege).toHaveLength(1);
+      expect(retrieved?.eintraege[0].isDeleted).toBe(true);
+      expect(retrieved?.eintraege[0].text).toBe('Entry to delete');
     });
 
     /**
@@ -986,7 +986,7 @@ describe('PrismaEtbRepository - Integration Tests', () => {
 
       // Then: ETB exists with empty Eintraege
       expect(retrieved).not.toBeNull();
-      expect(retrieved!.eintraege).toHaveLength(0);
+      expect(retrieved?.eintraege).toHaveLength(0);
     });
   });
 

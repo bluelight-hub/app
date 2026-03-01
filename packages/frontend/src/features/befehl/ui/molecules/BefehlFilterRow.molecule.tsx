@@ -190,7 +190,7 @@ export function BefehlFilterRow({
             <PiUsers className={cn('ml-3 h-4 w-4 flex-shrink-0', empfaengerName ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400')} aria-hidden="true" />
             <ComboboxInput
               className={cn(
-                'w-full border-none bg-transparent py-2 pl-2 pr-8 text-sm font-medium focus:outline-none',
+                'w-full border-none bg-transparent py-2 pr-8 pl-2 font-medium text-sm focus:outline-none',
                 empfaengerName ? 'text-primary-700 placeholder:text-primary-400 dark:text-primary-300' : 'text-gray-700 placeholder:text-gray-400 dark:text-gray-300',
               )}
               placeholder="Empfänger..."
@@ -256,7 +256,7 @@ export function BefehlFilterRow({
             aria-label="Befehlsgeber filtern"
           >
             <PiUser className={cn('h-4 w-4 flex-shrink-0', befehlsgeberName ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400')} aria-hidden="true" />
-            <span className="font-medium truncate max-w-[120px]">{befehlsgeberButtonLabel}</span>
+            <span className="max-w-[120px] truncate font-medium">{befehlsgeberButtonLabel}</span>
             <PiCaretDown className={cn('h-4 w-4 flex-shrink-0', befehlsgeberName ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400')} aria-hidden="true" />
           </ListboxButton>
 
@@ -310,13 +310,13 @@ export function BefehlFilterRow({
             onChange={(e) => onVonChange(e.target.value)}
             aria-label="Befehle ab Datum"
             className={cn(
-              'border-none bg-transparent py-2 pl-2 pr-3 text-sm font-medium focus:outline-none',
+              'border-none bg-transparent py-2 pr-3 pl-2 font-medium text-sm focus:outline-none',
               von ? 'text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300',
               'dark:[color-scheme:dark]',
             )}
           />
         </div>
-        <span className="text-xs text-gray-400">–</span>
+        <span className="text-gray-400 text-xs">–</span>
         <div
           className={cn('relative flex items-center rounded-lg border text-sm', 'focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2', bis ? activeClasses : inactiveClasses)}
         >
@@ -327,7 +327,7 @@ export function BefehlFilterRow({
             onChange={(e) => onBisChange(e.target.value)}
             aria-label="Befehle bis Datum"
             className={cn(
-              'border-none bg-transparent py-2 pl-2 pr-3 text-sm font-medium focus:outline-none',
+              'border-none bg-transparent py-2 pr-3 pl-2 font-medium text-sm focus:outline-none',
               bis ? 'text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300',
               'dark:[color-scheme:dark]',
             )}
@@ -336,7 +336,7 @@ export function BefehlFilterRow({
       </div>
 
       {/* Freitext-Suche */}
-      <div className="relative flex-1 min-w-[180px]">
+      <div className="relative min-w-[180px] flex-1">
         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
           <PiMagnifyingGlass className="h-4 w-4 text-gray-400" aria-hidden="true" />
         </div>
@@ -347,7 +347,7 @@ export function BefehlFilterRow({
           placeholder="Suche in Befehlen..."
           aria-label="Befehle durchsuchen"
           className={cn(
-            'w-full rounded-lg border border-gray-300 py-2 pl-9 pr-3 text-sm',
+            'w-full rounded-lg border border-gray-300 py-2 pr-3 pl-9 text-sm',
             'placeholder:text-gray-400',
             'focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
             'dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500',
@@ -358,14 +358,14 @@ export function BefehlFilterRow({
       {/* Filter Badge + Reset */}
       {hasActiveFilters && (
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-900 dark:text-primary-300">
+          <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 font-medium text-primary-700 text-xs dark:bg-primary-900 dark:text-primary-300">
             Filter ({activeFilterCount})
           </span>
           <button
             type="button"
             onClick={onReset}
             className={cn(
-              'inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium',
+              'inline-flex items-center gap-1 rounded-lg px-2 py-1 font-medium text-xs',
               'text-gray-500 hover:bg-gray-100 hover:text-gray-700',
               'dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200',
             )}

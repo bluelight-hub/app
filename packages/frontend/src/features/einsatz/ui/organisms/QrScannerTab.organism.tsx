@@ -36,7 +36,6 @@ function sanitizeForLog(input: string): string {
     return `${input.substring(0, 100)}... [truncated, ${input.length} chars total]`;
   }
   // Remove control characters and potential injection patterns
-  // biome-ignore lint/suspicious/noControlCharactersInRegex: Needed for security - sanitizing untrusted QR input
   return input.replace(/[\x00-\x1F\x7F]/g, '?');
 }
 
@@ -609,7 +608,6 @@ export function QrScannerTab({ einsatzId, onSuccess, isActive = true }: QrScanne
   }, [cleanup]);
 
   // Auto-Start beim Mount (nur einmal!) und Cleanup bei Unmount
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Absichtlich nur beim Mount ausführen - Refs für stabile Funktionen
   useEffect(() => {
     // Verhindere doppelten Start durch StrictMode
     if (mountedRef.current) {

@@ -154,10 +154,8 @@ vi.mock('../../organisms/ServerList', () => ({
       </button>
       {/* Render mock servers for sorting test (AC2) */}
       {mockServersForList.length > 0 && (
-        // biome-ignore lint/a11y/useSemanticElements: Test mock element
         <div role="list" data-testid="server-list-items">
           {mockServersForList.map((server) => (
-            // biome-ignore lint/a11y/useSemanticElements: Test mock element
             <div key={server.id} role="listitem" data-testid={`server-item-${server.id}`}>
               {server.name}
             </div>

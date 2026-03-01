@@ -40,14 +40,20 @@ describe('LoescheAnonymisierteHandler', () => {
       erstelleLoeschungsReport: jest.fn().mockResolvedValue(undefined),
     };
 
-    handler = new LoescheAnonymisierteHandler(mockPrisma as any, mockOutboxRepository as any, mockBefehlRepository as any, mockKonfigurationRepository as any, mockComplianceReportService as any);
+    handler = new LoescheAnonymisierteHandler(
+      mockPrisma as unknown as ConstructorParameters<typeof LoescheAnonymisierteHandler>[0],
+      mockOutboxRepository as unknown as ConstructorParameters<typeof LoescheAnonymisierteHandler>[1],
+      mockBefehlRepository as unknown as ConstructorParameters<typeof LoescheAnonymisierteHandler>[2],
+      mockKonfigurationRepository as unknown as ConstructorParameters<typeof LoescheAnonymisierteHandler>[3],
+      mockComplianceReportService as unknown as ConstructorParameters<typeof LoescheAnonymisierteHandler>[4],
+    );
   });
 
   describe('execute', () => {
     it('sollte erfolgreich sein wenn keine anonymisierten Befehle existieren', async () => {
       const command = new LoescheAnonymisierteCommand('SYSTEM');
 
-      mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) => {
         return callback(mockPrismaTx);
       });
 
@@ -62,9 +68,9 @@ describe('LoescheAnonymisierteHandler', () => {
 
     it('sollte anonymisierte Befehle soft-deleten', async () => {
       const command = new LoescheAnonymisierteCommand('SYSTEM');
-      const einsatzId = EinsatzId.create().value!;
+      const einsatzId = EinsatzId.create().value;
 
-      mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) => {
         return callback(mockPrismaTx);
       });
 
@@ -79,18 +85,18 @@ describe('LoescheAnonymisierteHandler', () => {
 
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(1);
-      expect(result.value![0].einsatzId).toBe(einsatzId.value);
-      expect(result.value![0].befehlCount).toBe(2);
+      expect(result.value[0].einsatzId).toBe(einsatzId.value);
+      expect(result.value[0].befehlCount).toBe(2);
       expect(mockBefehlRepository.bulkSoftDelete).toHaveBeenCalledTimes(1);
       expect(mockComplianceReportService.erstelleLoeschungsReport).toHaveBeenCalledTimes(1);
     });
 
     it('sollte mehrere Einsaetze gruppiert verarbeiten', async () => {
       const command = new LoescheAnonymisierteCommand('SYSTEM');
-      const einsatzIdA = EinsatzId.create().value!;
-      const einsatzIdB = EinsatzId.create().value!;
+      const einsatzIdA = EinsatzId.create().value;
+      const einsatzIdB = EinsatzId.create().value;
 
-      mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) => {
         return callback(mockPrismaTx);
       });
 
@@ -112,7 +118,7 @@ describe('LoescheAnonymisierteHandler', () => {
     it('sollte bei Konfiguration-Ladefehler fehlschlagen', async () => {
       const command = new LoescheAnonymisierteCommand('SYSTEM');
 
-      mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) => {
         return callback(mockPrismaTx);
       });
 
@@ -125,9 +131,9 @@ describe('LoescheAnonymisierteHandler', () => {
 
     it('sollte bei bulkSoftDelete-Fehler fehlschlagen', async () => {
       const command = new LoescheAnonymisierteCommand('SYSTEM');
-      const einsatzId = EinsatzId.create().value!;
+      const einsatzId = EinsatzId.create().value;
 
-      mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) => {
         return callback(mockPrismaTx);
       });
 

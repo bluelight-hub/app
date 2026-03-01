@@ -1,4 +1,3 @@
-// biome-ignore-all lint/suspicious/noExplicitAny: Integration tests access dynamic event properties
 /**
  * Integration Tests fuer Lagekarte Event Publishing.
  *
@@ -306,7 +305,7 @@ class SpyEventPublisher implements IEventPublisher {
 
       const createdEvent = eventPublisher.publishedEvents[0];
       expect((createdEvent as any).einsatzId.value).toBe(einsatzId);
-      expect((createdEvent as any).lagekarteId.value).toBe(result.value!.value);
+      expect((createdEvent as any).lagekarteId.value).toBe(result.value?.value);
     });
   });
 
@@ -379,8 +378,8 @@ class SpyEventPublisher implements IEventPublisher {
       // Verify POI was added with beschreibung
       const savedAggregate = await lagekarteRepository.findById(aggregate.id);
       expect(savedAggregate).not.toBeNull();
-      expect(savedAggregate!.pois).toHaveLength(1);
-      expect(savedAggregate!.pois[0].beschreibung).toBe('Achtung: Ueberflutete Strasse');
+      expect(savedAggregate?.pois).toHaveLength(1);
+      expect(savedAggregate?.pois[0].beschreibung).toBe('Achtung: Ueberflutete Strasse');
     });
 
     it('should NOT emit events when Lagekarte not found', async () => {
@@ -699,14 +698,14 @@ class SpyEventPublisher implements IEventPublisher {
 
       const createResult = await createHandler.execute(createCmd);
       expect(createResult.isSuccess).toBe(true);
-      const lagekarteId = createResult.value!.value;
+      const lagekarteId = createResult.value?.value;
       expect(eventPublisher.getEventsByName('lagekarte.created')).toHaveLength(1);
 
       // Step 2: Add POI
       const addCmd = AddPoiCommand.create(lagekarteId, 'Einsatzstelle', { lat: 52.52, lng: 13.4 }, 'EINSATZSTELLE').value!;
       const addResult = await addPoiHandler.execute(addCmd);
       expect(addResult.isSuccess).toBe(true);
-      const poiId = addResult.value!.value;
+      const poiId = addResult.value?.value;
       expect(eventPublisher.getEventsByName('lagekarte.poi_added')).toHaveLength(1);
 
       // Step 3: Update POI Position

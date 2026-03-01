@@ -241,7 +241,6 @@ describe('OfflineDetectionService', () => {
       goOffline();
 
       // Simulate some time passing
-      // biome-ignore lint/style/noNonNullAssertion: Test-Assertion - offlineSince ist hier garantiert gesetzt
       const offlineSince = service.getState().offlineSince!;
 
       // When (Act)

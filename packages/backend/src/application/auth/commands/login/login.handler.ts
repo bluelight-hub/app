@@ -36,14 +36,14 @@ import * as bcrypt from 'bcrypt';
  * @example
  * ```typescript
  * // ADMIN Login (Passwort erforderlich)
- * const adminCommand = LoginCommand.create('admin', 'secure_password').value!;
+ * const adminCommand = LoginCommand.create('admin', 'secure_password').value;
  * const adminResult = await handler.execute(adminCommand);
  * if (adminResult.isSuccess) {
  *   const token = adminResult.value; // JWT Token String
  * }
  *
  * // USER Login (Passwortlos)
- * const userCommand = LoginCommand.create('ruben_user').value!;
+ * const userCommand = LoginCommand.create('ruben_user').value;
  * const userResult = await handler.execute(userCommand);
  * if (userResult.isSuccess) {
  *   const token = userResult.value; // JWT Token String

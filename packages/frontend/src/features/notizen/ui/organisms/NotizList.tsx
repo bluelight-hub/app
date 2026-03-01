@@ -167,7 +167,6 @@ export function NotizList({ einsatzId, className, mode = 'default' }: NotizListP
           {!isLoading && !error && filteredNotizen && filteredNotizen.length > 0 && (
             <>
               {filteredNotizen.slice(0, 5).map((notiz) => (
-                // biome-ignore lint/a11y/useSemanticElements: Div mit komplexem Inhalt
                 <div
                   key={notiz.id}
                   className="cursor-pointer border-gray-100 border-b px-4 py-3 transition-colors hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50"

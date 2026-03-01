@@ -140,10 +140,10 @@ describe('UpdateFunkStatusConfigHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.code).toBe(7);
-      expect(result.value!.customLabel).toBe('Anfahrt');
-      expect(result.value!.displayLabel).toBe('Anfahrt'); // customLabel überschreibt standardLabel
-      expect(result.value!.farbe).toBe('#FF5733');
+      expect(result.value?.code).toBe(7);
+      expect(result.value?.customLabel).toBe('Anfahrt');
+      expect(result.value?.displayLabel).toBe('Anfahrt'); // customLabel überschreibt standardLabel
+      expect(result.value?.farbe).toBe('#FF5733');
       expect(mockRepository.update).toHaveBeenCalledTimes(1);
     });
 
@@ -671,8 +671,8 @@ describe('UpdateFunkStatusConfigHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.code).toBe(code);
-      expect(result.value!.customLabel).toBe(`Custom Label ${code}`);
+      expect(result.value?.code).toBe(code);
+      expect(result.value?.customLabel).toBe(`Custom Label ${code}`);
       expect(mockRepository.update).toHaveBeenCalledTimes(1);
     });
   });

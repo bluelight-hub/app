@@ -92,8 +92,8 @@ describe('GetZeitverlaufStatistikHandler', () => {
 
     // Then
     expect(result.isSuccess).toBe(true);
-    expect(result.value!.intervalMinutes).toBe(60);
-    expect(result.value!.buckets).toEqual([]);
+    expect(result.value?.intervalMinutes).toBe(60);
+    expect(result.value?.buckets).toEqual([]);
   });
 
   it('should return failure on repository error', async () => {
@@ -146,7 +146,7 @@ describe('GetZeitverlaufStatistikHandler', () => {
 
     // Then
     expect(result.isSuccess).toBe(true);
-    expect(result.value!.buckets[0].timestamp).toBe('2026-02-01T14:30:00.000Z');
-    expect(typeof result.value!.buckets[0].timestamp).toBe('string');
+    expect(result.value?.buckets[0].timestamp).toBe('2026-02-01T14:30:00.000Z');
+    expect(typeof result.value?.buckets[0].timestamp).toBe('string');
   });
 });

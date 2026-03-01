@@ -23,9 +23,9 @@ describe('UpdatePoiPositionCommand', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.lagekarteId).toBe(lagekarteId);
-      expect(result.value!.poiId).toBe(poiId);
-      expect(result.value!.newCoordinate).toEqual(newCoordinate);
+      expect(result.value?.lagekarteId).toBe(lagekarteId);
+      expect(result.value?.poiId).toBe(poiId);
+      expect(result.value?.newCoordinate).toEqual(newCoordinate);
     });
 
     it('should create command with all required fields (MGRS coordinate)', () => {
@@ -40,9 +40,9 @@ describe('UpdatePoiPositionCommand', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.lagekarteId).toBe(lagekarteId);
-      expect(result.value!.poiId).toBe(poiId);
-      expect(result.value!.newCoordinate).toEqual(newCoordinate);
+      expect(result.value?.lagekarteId).toBe(lagekarteId);
+      expect(result.value?.poiId).toBe(poiId);
+      expect(result.value?.newCoordinate).toEqual(newCoordinate);
     });
 
     it('should accept lagekarteId with leading/trailing spaces (not trimmed in factory)', () => {
@@ -56,7 +56,7 @@ describe('UpdatePoiPositionCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.lagekarteId).toBe(lagekarteId); // Factory does NOT trim
+      expect(result.value?.lagekarteId).toBe(lagekarteId); // Factory does NOT trim
     });
 
     it('should accept poiId with leading/trailing spaces (not trimmed in factory)', () => {
@@ -70,14 +70,13 @@ describe('UpdatePoiPositionCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.poiId).toBe(poiId); // Factory does NOT trim
+      expect(result.value?.poiId).toBe(poiId); // Factory does NOT trim
     });
   });
 
   describe('Invalid Commands - lagekarteId validation', () => {
     it('should return failure when lagekarteId is undefined', () => {
       // Given/When
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
       const result = UpdatePoiPositionCommand.create(undefined as any, 'poi-456', { lat: 52.5163, lng: 13.3777 });
 
       // Then
@@ -87,7 +86,6 @@ describe('UpdatePoiPositionCommand', () => {
 
     it('should return failure when lagekarteId is null', () => {
       // Given/When
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
       const result = UpdatePoiPositionCommand.create(null as any, 'poi-456', { lat: 52.5163, lng: 13.3777 });
 
       // Then
@@ -117,7 +115,6 @@ describe('UpdatePoiPositionCommand', () => {
   describe('Invalid Commands - poiId validation', () => {
     it('should return failure when poiId is undefined', () => {
       // Given/When
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
       const result = UpdatePoiPositionCommand.create('lagekarte-123', undefined as any, { lat: 52.5163, lng: 13.3777 });
 
       // Then
@@ -127,7 +124,6 @@ describe('UpdatePoiPositionCommand', () => {
 
     it('should return failure when poiId is null', () => {
       // Given/When
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
       const result = UpdatePoiPositionCommand.create('lagekarte-123', null as any, { lat: 52.5163, lng: 13.3777 });
 
       // Then
@@ -157,7 +153,6 @@ describe('UpdatePoiPositionCommand', () => {
   describe('Invalid Commands - newCoordinate validation', () => {
     it('should return failure when newCoordinate is undefined', () => {
       // Given/When
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
       const result = UpdatePoiPositionCommand.create('lagekarte-123', 'poi-456', undefined as any);
 
       // Then
@@ -167,7 +162,6 @@ describe('UpdatePoiPositionCommand', () => {
 
     it('should return failure when newCoordinate is null', () => {
       // Given/When
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
       const result = UpdatePoiPositionCommand.create('lagekarte-123', 'poi-456', null as any);
 
       // Then
@@ -188,7 +182,7 @@ describe('UpdatePoiPositionCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.newCoordinate).toEqual({ lat: 90, lng: 0 });
+      expect(result.value?.newCoordinate).toEqual({ lat: 90, lng: 0 });
     });
 
     it('should accept boundary latitude values (South Pole)', () => {
@@ -202,7 +196,7 @@ describe('UpdatePoiPositionCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.newCoordinate).toEqual({ lat: -90, lng: 0 });
+      expect(result.value?.newCoordinate).toEqual({ lat: -90, lng: 0 });
     });
 
     it('should accept boundary longitude values (International Date Line)', () => {
@@ -216,7 +210,7 @@ describe('UpdatePoiPositionCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.newCoordinate).toEqual({ lat: 0, lng: 180 });
+      expect(result.value?.newCoordinate).toEqual({ lat: 0, lng: 180 });
     });
 
     it('should accept MGRS string with various precisions', () => {
@@ -230,7 +224,7 @@ describe('UpdatePoiPositionCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.newCoordinate).toEqual({ mgrs: '33UUU' });
+      expect(result.value?.newCoordinate).toEqual({ mgrs: '33UUU' });
     });
 
     it('should accept IDs with all valid nanoid characters', () => {
@@ -244,8 +238,8 @@ describe('UpdatePoiPositionCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.lagekarteId).toBe(lagekarteId);
-      expect(result.value!.poiId).toBe(poiId);
+      expect(result.value?.lagekarteId).toBe(lagekarteId);
+      expect(result.value?.poiId).toBe(poiId);
     });
   });
 });

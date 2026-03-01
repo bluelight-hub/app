@@ -19,7 +19,7 @@ describe('UpdateErinnerungsvorlageHandler', () => {
   let mockLogger: jest.Mocked<ILogger>;
 
   /** Generiert eine gueltige UserId als String fuer Command-Tests. */
-  const generateValidUserIdString = () => UserId.create().value!.toString();
+  const generateValidUserIdString = () => UserId.create().value?.toString();
 
   const createTestVorlage = () => {
     const userId = UserId.create().value!;
@@ -114,8 +114,8 @@ describe('UpdateErinnerungsvorlageHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.titel).toBe('Neuer Titel');
-      expect(result.value!.minuten).toBe(45);
+      expect(result.value?.titel).toBe('Neuer Titel');
+      expect(result.value?.minuten).toBe(45);
       expect(mockVorlageRepository.save).toHaveBeenCalledTimes(1);
       expect(mockOutboxRepository.save).toHaveBeenCalledTimes(1);
     });

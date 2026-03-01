@@ -729,7 +729,6 @@ export class AuthController {
       });
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Result pattern garantiert value nach isSuccess check
     return result.value!;
   }
 

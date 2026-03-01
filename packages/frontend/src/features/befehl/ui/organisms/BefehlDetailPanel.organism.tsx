@@ -77,9 +77,9 @@ export function BefehlDetailPanel({ befehl, isOpen, onClose, einsatzId, onQuitti
                 {befehl && (
                   <div className="flex h-full flex-col bg-white shadow-2xl dark:bg-gray-900">
                     {/* Header */}
-                    <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                    <div className="border-gray-200 border-b px-6 py-4 dark:border-gray-700">
                       <div className="flex items-center justify-between">
-                        <DialogTitle className="font-mono text-xl font-bold text-gray-900 dark:text-white">{befehl.nummer}</DialogTitle>
+                        <DialogTitle className="font-bold font-mono text-gray-900 text-xl dark:text-white">{befehl.nummer}</DialogTitle>
                         <button
                           type="button"
                           onClick={onClose}
@@ -99,20 +99,20 @@ export function BefehlDetailPanel({ befehl, isOpen, onClose, einsatzId, onQuitti
 
                       if (eigenerStatus.status === 'QUITTIERT' && eigenerStatus.quittierungArt) {
                         return (
-                          <div className="flex items-center gap-2 border-b border-green-200 bg-green-50 px-6 py-3 dark:border-green-800 dark:bg-green-900/20">
+                          <div className="flex items-center gap-2 border-green-200 border-b bg-green-50 px-6 py-3 dark:border-green-800 dark:bg-green-900/20">
                             <PiCheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" aria-hidden="true" />
-                            <span className="text-sm font-medium text-green-800 dark:text-green-300">Quittiert: {QUITTIERUNG_ART_LABELS[eigenerStatus.quittierungArt]}</span>
+                            <span className="font-medium text-green-800 text-sm dark:text-green-300">Quittiert: {QUITTIERUNG_ART_LABELS[eigenerStatus.quittierungArt]}</span>
                           </div>
                         );
                       }
 
                       if (canQuittieren && onQuittieren && befehl.status !== BefehlDtoStatusEnum.Korrigiert) {
                         return (
-                          <div className="border-b border-yellow-200 bg-yellow-50 px-6 py-3 dark:border-yellow-800 dark:bg-yellow-900/20">
+                          <div className="border-yellow-200 border-b bg-yellow-50 px-6 py-3 dark:border-yellow-800 dark:bg-yellow-900/20">
                             <button
                               type="button"
                               onClick={() => onQuittieren(befehl.id)}
-                              className="flex w-full items-center justify-center gap-2 rounded-lg bg-yellow-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-yellow-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 focus-visible:ring-offset-2 dark:bg-yellow-600 dark:hover:bg-yellow-700"
+                              className="flex w-full items-center justify-center gap-2 rounded-lg bg-yellow-500 px-4 py-2.5 font-semibold text-sm text-white shadow-sm transition-colors hover:bg-yellow-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 focus-visible:ring-offset-2 dark:bg-yellow-600 dark:hover:bg-yellow-700"
                             >
                               <PiCheckCircle className="h-5 w-5" aria-hidden="true" />
                               Befehl quittieren
@@ -129,25 +129,25 @@ export function BefehlDetailPanel({ befehl, isOpen, onClose, einsatzId, onQuitti
                       <div className="space-y-5">
                         {/* Auftrag */}
                         <section>
-                          <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Auftrag</h3>
-                          <p className="mt-1 whitespace-pre-wrap text-sm text-gray-900 dark:text-gray-100">{befehl.auftrag}</p>
+                          <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Auftrag</h3>
+                          <p className="mt-1 whitespace-pre-wrap text-gray-900 text-sm dark:text-gray-100">{befehl.auftrag}</p>
                         </section>
 
                         {/* Befehlsgeber */}
                         <section>
-                          <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Befehlsgeber</h3>
-                          <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{befehl.befehlsgeberName}</p>
+                          <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Befehlsgeber</h3>
+                          <p className="mt-1 text-gray-900 text-sm dark:text-gray-100">{befehl.befehlsgeberName}</p>
                         </section>
 
                         {/* Zeitstempel */}
                         <section>
-                          <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Erteilt am</h3>
-                          <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">{format(befehl.erteiltAm, 'dd.MM.yyyy, HH:mm')} Uhr</p>
+                          <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Erteilt am</h3>
+                          <p className="mt-1 text-gray-700 text-sm dark:text-gray-300">{format(befehl.erteiltAm, 'dd.MM.yyyy, HH:mm')} Uhr</p>
                         </section>
 
                         {/* Empfaenger */}
                         <section>
-                          <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Empfänger</h3>
+                          <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Empfänger</h3>
                           <div className="mt-2">
                             <ZustellstatusAnzeige
                               empfaenger={befehl.empfaenger}
@@ -162,7 +162,7 @@ export function BefehlDetailPanel({ befehl, isOpen, onClose, einsatzId, onQuitti
 
                         {/* Verlauf (Story 4.2) */}
                         <section>
-                          <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Verlauf</h3>
+                          <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Verlauf</h3>
                           <div className="mt-3">
                             <BefehlHistorieTimeline befehlId={befehl.id} />
                           </div>

@@ -150,7 +150,7 @@ describe('GetNotizenByEinsatzHandler', () => {
       // Then (Assert)
       expect(queryResult.isSuccess).toBe(true);
       expect(queryResult.value).toBeDefined();
-      expect(queryResult.value!.einsatzId).toBe('clw3h8x9y0000qwerty');
+      expect(queryResult.value?.einsatzId).toBe('clw3h8x9y0000qwerty');
     });
 
     it('should reject empty userId', () => {
@@ -184,7 +184,7 @@ describe('GetNotizenByEinsatzHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toEqual([]);
-      expect(result.value!.length).toBe(0);
+      expect(result.value?.length).toBe(0);
       expect(mockRepository.findByEinsatzId).toHaveBeenCalledTimes(1);
       expect(mockResponseFactory.create).not.toHaveBeenCalled();
     });
@@ -224,13 +224,13 @@ describe('GetNotizenByEinsatzHandler', () => {
       expect(mockResponseFactory.create).toHaveBeenCalledTimes(3);
 
       // Reihenfolge pruefen: neueste zuerst
-      expect(result.value![0].titel).toBe('Wetterlage');
-      expect(result.value![1].titel).toBe('Einsatzmittel Status');
-      expect(result.value![2].titel).toBe('Lagebericht Abschnitt A');
+      expect(result.value?.[0].titel).toBe('Wetterlage');
+      expect(result.value?.[1].titel).toBe('Einsatzmittel Status');
+      expect(result.value?.[2].titel).toBe('Lagebericht Abschnitt A');
 
       // Chronologisch korrekt: createdAt DESC
-      expect(new Date(result.value![0].createdAt).getTime()).toBeGreaterThan(new Date(result.value![1].createdAt).getTime());
-      expect(new Date(result.value![1].createdAt).getTime()).toBeGreaterThan(new Date(result.value![2].createdAt).getTime());
+      expect(new Date(result.value?.[0].createdAt).getTime()).toBeGreaterThan(new Date(result.value?.[1].createdAt).getTime());
+      expect(new Date(result.value?.[1].createdAt).getTime()).toBeGreaterThan(new Date(result.value?.[2].createdAt).getTime());
     });
 
     it('should pass einsatzId to repository', async () => {
@@ -268,7 +268,7 @@ describe('GetNotizenByEinsatzHandler', () => {
       // Story 8.2: Factory wird mit notiz und kategorieData (null wenn keine) aufgerufen
       expect(mockResponseFactory.create).toHaveBeenCalledWith(notiz, null);
 
-      const dto = result.value![0];
+      const dto = result.value?.[0];
       expect(dto.id).toBe(notiz.id.toString());
       expect(dto.einsatzId).toBe('einsatz-123');
       expect(dto.titel).toBe('Lagebericht');
@@ -327,8 +327,8 @@ describe('GetNotizenByEinsatzHandler', () => {
       // Then (Assert) - Handler gibt alle Repository-Ergebnisse zurueck ohne eigene Filterung
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(2);
-      expect(result.value![0].titel).toBe('Geteilte Lageinfo');
-      expect(result.value![1].titel).toBe('Meine private Notiz');
+      expect(result.value?.[0].titel).toBe('Geteilte Lageinfo');
+      expect(result.value?.[1].titel).toBe('Meine private Notiz');
       expect(mockResponseFactory.create).toHaveBeenCalledTimes(2);
     });
   });

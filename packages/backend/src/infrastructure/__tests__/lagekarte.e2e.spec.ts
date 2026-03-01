@@ -181,7 +181,6 @@ class SpyEventPublisher implements IEventPublisher {
       error: jest.fn(),
       warn: jest.fn(),
       debug: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Mock object für Tests benötigt any-Cast wegen partieller Implementierung
     } as any;
 
     // Mock EinsatzRepository
@@ -191,7 +190,6 @@ class SpyEventPublisher implements IEventPublisher {
       save: jest.fn(),
       findActive: jest.fn(),
       findByNummer: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Mock object für Tests benötigt any-Cast wegen partieller Implementierung
     } as any;
 
     // Default: Einsatz exists
@@ -270,7 +268,7 @@ class SpyEventPublisher implements IEventPublisher {
         // Verify in database
         const lagekarte = await lagekarteRepository.findById(lagekarteId);
         expect(lagekarte).not.toBeNull();
-        expect(lagekarte!.pois).toHaveLength(0);
+        expect(lagekarte?.pois).toHaveLength(0);
       });
 
       it('should create Lagekarte with initialPoi (Lat/Lng) → MGRS converted', async () => {
@@ -292,9 +290,9 @@ class SpyEventPublisher implements IEventPublisher {
         // Verify in database
         const lagekarte = await lagekarteRepository.findById(lagekarteId);
         expect(lagekarte).not.toBeNull();
-        expect(lagekarte!.pois).toHaveLength(1);
-        expect(lagekarte!.pois[0].name).toBe('Einsatzstelle Berlin');
-        expect(lagekarte!.pois[0].coordinate.gridZone).toBe('33U'); // Berlin zone
+        expect(lagekarte?.pois).toHaveLength(1);
+        expect(lagekarte?.pois[0].name).toBe('Einsatzstelle Berlin');
+        expect(lagekarte?.pois[0].coordinate.gridZone).toBe('33U'); // Berlin zone
       });
 
       it('should create Lagekarte with initialPoi (MGRS) → stored correctly', async () => {
@@ -316,7 +314,7 @@ class SpyEventPublisher implements IEventPublisher {
         // Verify in database
         const lagekarte = await lagekarteRepository.findById(lagekarteId);
         expect(lagekarte).not.toBeNull();
-        expect(lagekarte!.pois[0].coordinate.value).toBe('33UUU8991036003');
+        expect(lagekarte?.pois[0].coordinate.value).toBe('33UUU8991036003');
       });
 
       it('should return error for non-existent Einsatz', async () => {
@@ -365,10 +363,10 @@ class SpyEventPublisher implements IEventPublisher {
         // Then
         expect(result.isSuccess).toBe(true);
         expect(result.value).not.toBeNull();
-        expect(result.value!.pois).toHaveLength(1);
-        expect(result.value!.pois[0].coordinate).toHaveProperty('mgrs');
-        expect(result.value!.pois[0].coordinate).toHaveProperty('lat');
-        expect(result.value!.pois[0].coordinate).toHaveProperty('lng');
+        expect(result.value?.pois).toHaveLength(1);
+        expect(result.value?.pois[0].coordinate).toHaveProperty('mgrs');
+        expect(result.value?.pois[0].coordinate).toHaveProperty('lat');
+        expect(result.value?.pois[0].coordinate).toHaveProperty('lng');
       });
 
       it('should return null for non-existent Lagekarte', async () => {
@@ -389,7 +387,7 @@ class SpyEventPublisher implements IEventPublisher {
         // Create Lagekarte for POI tests
         const createCmd = CreateLagekarteCommand.create(testEinsatzId).value!;
         const createResult = await createHandler.execute(createCmd);
-        lagekarteId = createResult.value!.value;
+        lagekarteId = createResult.value?.value;
         eventPublisher.clear();
       });
 
@@ -405,8 +403,8 @@ class SpyEventPublisher implements IEventPublisher {
 
         // Verify in database
         const lagekarte = await lagekarteRepository.findById(LagekarteId.create(lagekarteId).value!);
-        expect(lagekarte!.pois).toHaveLength(1);
-        expect(lagekarte!.pois[0].coordinate.gridZone).toBe('33U');
+        expect(lagekarte?.pois).toHaveLength(1);
+        expect(lagekarte?.pois[0].coordinate.gridZone).toBe('33U');
       });
 
       it('should add POI with MGRS → stored correctly', async () => {
@@ -421,7 +419,7 @@ class SpyEventPublisher implements IEventPublisher {
 
         // Verify in database
         const lagekarte = await lagekarteRepository.findById(LagekarteId.create(lagekarteId).value!);
-        expect(lagekarte!.pois[0].coordinate.value).toBe('32UNE8934004990');
+        expect(lagekarte?.pois[0].coordinate.value).toBe('32UNE8934004990');
       });
 
       it('should add POI with beschreibung', async () => {
@@ -436,7 +434,7 @@ class SpyEventPublisher implements IEventPublisher {
 
         // Verify in database
         const lagekarte = await lagekarteRepository.findById(LagekarteId.create(lagekarteId).value!);
-        expect(lagekarte!.pois[0].beschreibung).toBe('Achtung: Gasleitung');
+        expect(lagekarte?.pois[0].beschreibung).toBe('Achtung: Gasleitung');
       });
 
       it('should return error for non-existent Lagekarte', async () => {
@@ -464,10 +462,10 @@ class SpyEventPublisher implements IEventPublisher {
           category: 'SONSTIGES',
         }).value!;
         const createResult = await createHandler.execute(createCmd);
-        lagekarteId = createResult.value!.value;
+        lagekarteId = createResult.value?.value;
 
         const lagekarte = await lagekarteRepository.findById(createResult.value!);
-        poiId = lagekarte!.pois[0].id.value;
+        poiId = lagekarte?.pois[0].id.value;
         eventPublisher.clear();
       });
 
@@ -483,7 +481,7 @@ class SpyEventPublisher implements IEventPublisher {
 
         // Verify in database
         const lagekarte = await lagekarteRepository.findById(LagekarteId.create(lagekarteId).value!);
-        expect(lagekarte!.pois).toHaveLength(0);
+        expect(lagekarte?.pois).toHaveLength(0);
       });
 
       it('should return error for non-existent POI', async () => {
@@ -511,10 +509,10 @@ class SpyEventPublisher implements IEventPublisher {
           category: 'EINSATZSTELLE',
         }).value!;
         const createResult = await createHandler.execute(createCmd);
-        lagekarteId = createResult.value!.value;
+        lagekarteId = createResult.value?.value;
 
         const lagekarte = await lagekarteRepository.findById(createResult.value!);
-        poiId = lagekarte!.pois[0].id.value;
+        poiId = lagekarte?.pois[0].id.value;
         eventPublisher.clear();
       });
 
@@ -530,7 +528,7 @@ class SpyEventPublisher implements IEventPublisher {
 
         // Verify in database
         const lagekarte = await lagekarteRepository.findById(LagekarteId.create(lagekarteId).value!);
-        expect(lagekarte!.pois[0].coordinate.gridZone).toBe('32U'); // Hamburg zone
+        expect(lagekarte?.pois[0].coordinate.gridZone).toBe('32U'); // Hamburg zone
       });
 
       it('should return error for non-existent POI', async () => {
@@ -557,7 +555,7 @@ class SpyEventPublisher implements IEventPublisher {
           category: 'EINSATZSTELLE',
         }).value!;
         const createResult = await createHandler.execute(createCmd);
-        lagekarteId = createResult.value!.value;
+        lagekarteId = createResult.value?.value;
 
         // Add more POIs
         await addPoiHandler.execute(AddPoiCommand.create(lagekarteId, 'Bereitstellungsraum', { lat: 52.53, lng: 13.41 }, 'BEREITSTELLUNGSRAUM').value!);
@@ -583,7 +581,7 @@ class SpyEventPublisher implements IEventPublisher {
         // Then
         expect(result.isSuccess).toBe(true);
         expect(result.value).toHaveLength(2);
-        expect(result.value!.every((poi) => poi.category === 'EINSATZSTELLE')).toBe(true);
+        expect(result.value?.every((poi) => poi.category === 'EINSATZSTELLE')).toBe(true);
       });
     });
   });
@@ -610,7 +608,7 @@ class SpyEventPublisher implements IEventPublisher {
       // Given: Create Lagekarte
       const createCmd = CreateLagekarteCommand.create(testEinsatzId).value!;
       const createResult = await createHandler.execute(createCmd);
-      const lagekarteId = createResult.value!.value;
+      const lagekarteId = createResult.value?.value;
       eventPublisher.clear();
 
       // When
@@ -630,10 +628,10 @@ class SpyEventPublisher implements IEventPublisher {
         category: 'SONSTIGES',
       }).value!;
       const createResult = await createHandler.execute(createCmd);
-      const lagekarteId = createResult.value!.value;
+      const lagekarteId = createResult.value?.value;
 
       const lagekarte = await lagekarteRepository.findById(createResult.value!);
-      const poiId = lagekarte!.pois[0].id.value;
+      const poiId = lagekarte?.pois[0].id.value;
       eventPublisher.clear();
 
       // When
@@ -653,10 +651,10 @@ class SpyEventPublisher implements IEventPublisher {
         category: 'EINSATZSTELLE',
       }).value!;
       const createResult = await createHandler.execute(createCmd);
-      const lagekarteId = createResult.value!.value;
+      const lagekarteId = createResult.value?.value;
 
       const lagekarte = await lagekarteRepository.findById(createResult.value!);
-      const poiId = lagekarte!.pois[0].id.value;
+      const poiId = lagekarte?.pois[0].id.value;
       eventPublisher.clear();
 
       // When
@@ -688,7 +686,7 @@ class SpyEventPublisher implements IEventPublisher {
       // Then
       expect(result.isSuccess).toBe(true);
       const lagekarte = await lagekarteRepository.findById(result.value!);
-      expect(lagekarte!.pois[0].coordinate.gridZone).toBe('33U');
+      expect(lagekarte?.pois[0].coordinate.gridZone).toBe('33U');
     });
 
     it('should correctly handle Hamburg coordinates (53.55, 10.0) → Zone 32U', async () => {
@@ -705,7 +703,7 @@ class SpyEventPublisher implements IEventPublisher {
       // Then
       expect(result.isSuccess).toBe(true);
       const lagekarte = await lagekarteRepository.findById(result.value!);
-      expect(lagekarte!.pois[0].coordinate.gridZone).toBe('32U');
+      expect(lagekarte?.pois[0].coordinate.gridZone).toBe('32U');
     });
 
     it('should maintain coordinate accuracy through Lat/Lng → API → Lat/Lng roundtrip (±0.001°)', async () => {
@@ -728,8 +726,8 @@ class SpyEventPublisher implements IEventPublisher {
       expect(getResult.isSuccess).toBe(true);
 
       // Then: Returned Lat/Lng should be within ±0.001° of original
-      const returnedLat = getResult.value!.pois[0].coordinate.lat;
-      const returnedLng = getResult.value!.pois[0].coordinate.lng;
+      const returnedLat = getResult.value?.pois[0].coordinate.lat;
+      const returnedLng = getResult.value?.pois[0].coordinate.lng;
 
       expect(Math.abs(returnedLat - originalLat)).toBeLessThan(0.001);
       expect(Math.abs(returnedLng - originalLng)).toBeLessThan(0.001);
@@ -743,12 +741,12 @@ class SpyEventPublisher implements IEventPublisher {
         category: 'EINSATZSTELLE',
       }).value!;
       const createResult = await createHandler.execute(createCmd);
-      const lagekarteId = createResult.value!.value;
+      const lagekarteId = createResult.value?.value;
 
       // Verify initial zone is 33U
       let lagekarte = await lagekarteRepository.findById(createResult.value!);
-      expect(lagekarte!.pois[0].coordinate.gridZone).toBe('33U');
-      const poiId = lagekarte!.pois[0].id.value;
+      expect(lagekarte?.pois[0].coordinate.gridZone).toBe('33U');
+      const poiId = lagekarte?.pois[0].id.value;
 
       // When: Move to Hamburg (32U)
       const updateCmd = UpdatePoiPositionCommand.create(lagekarteId, poiId, { lat: 53.55, lng: 10.0 }).value!;
@@ -756,7 +754,7 @@ class SpyEventPublisher implements IEventPublisher {
 
       // Then: New zone should be 32U
       lagekarte = await lagekarteRepository.findById(LagekarteId.create(lagekarteId).value!);
-      expect(lagekarte!.pois[0].coordinate.gridZone).toBe('32U');
+      expect(lagekarte?.pois[0].coordinate.gridZone).toBe('32U');
     });
   });
 });

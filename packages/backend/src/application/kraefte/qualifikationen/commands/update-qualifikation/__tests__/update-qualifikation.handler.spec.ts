@@ -123,8 +123,8 @@ describe('UpdateQualifikationHandler', () => {
       expect(result.isSuccess).toBe(true);
       // Handler gibt jetzt QualifikationDto statt string zurück (N+1 Query Fix)
       expect(result.value).toBeDefined();
-      expect(result.value!.id).toBe(testId);
-      expect(result.value!.name).toBe('Zugführer aktualisiert');
+      expect(result.value?.id).toBe(testId);
+      expect(result.value?.name).toBe('Zugführer aktualisiert');
       expect(mockRepository.save).toHaveBeenCalledTimes(1);
     });
 
@@ -294,7 +294,7 @@ describe('UpdateQualifikationHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.istAktiv).toBe(true);
+      expect(result.value?.istAktiv).toBe(true);
       const savedAggregate = mockRepository.save.mock.calls[0][0] as Qualifikation;
       expect(savedAggregate.istAktiv).toBe(true);
     });

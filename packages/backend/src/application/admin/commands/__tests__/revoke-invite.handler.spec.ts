@@ -107,7 +107,7 @@ describe('RevokeInviteHandler', () => {
       inviteCodeId: 'inv_abc123def456ghi789jkl012',
       revokedById: 'user_admin123def456ghi789j',
       ...overrides,
-    }).value!;
+    }).value;
   }
 
   /**
@@ -127,8 +127,8 @@ describe('RevokeInviteHandler', () => {
     const futureDate = new Date();
     futureDate.setHours(futureDate.getHours() + 24);
 
-    const inviteCodeId = InviteCodeId.create(overrides.id ?? 'inv_abc123def456ghi789jkl012').value!;
-    const inviteCodeValue = InviteCodeValue.fromString(overrides.code ?? 'ABCD1234').value!;
+    const inviteCodeId = InviteCodeId.create(overrides.id ?? 'inv_abc123def456ghi789jkl012').value;
+    const inviteCodeValue = InviteCodeValue.fromString(overrides.code ?? 'ABCD1234').value;
 
     return InviteCode.reconstruct({
       id: inviteCodeId,
@@ -158,10 +158,10 @@ describe('RevokeInviteHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.id).toBe('inv_abc123def456ghi789jkl012');
-      expect(result.value!.status).toBe(InviteCodeStatus.REVOKED);
-      expect(result.value!.revokedAt).toBeDefined();
-      expect(result.value!.revokedAt).not.toBeNull();
+      expect(result.value.id).toBe('inv_abc123def456ghi789jkl012');
+      expect(result.value.status).toBe(InviteCodeStatus.REVOKED);
+      expect(result.value.revokedAt).toBeDefined();
+      expect(result.value.revokedAt).not.toBeNull();
     });
 
     it('should return masked code in response', async () => {
@@ -175,8 +175,8 @@ describe('RevokeInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.code).toBe('TEST****');
-      expect(result.value!.code).not.toBe('TEST1234');
+      expect(result.value.code).toBe('TEST****');
+      expect(result.value.code).not.toBe('TEST1234');
     });
 
     it('should call repository.save with updated InviteCode', async () => {
@@ -249,7 +249,7 @@ describe('RevokeInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.status).toBe(InviteCodeStatus.REVOKED);
+      expect(result.value.status).toBe(InviteCodeStatus.REVOKED);
     });
 
     it('should not emit event for already revoked code', async () => {
@@ -285,7 +285,7 @@ describe('RevokeInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.revokedAt).toBe(originalRevokedAt.toISOString());
+      expect(result.value.revokedAt).toBe(originalRevokedAt.toISOString());
     });
   });
 
@@ -305,7 +305,7 @@ describe('RevokeInviteHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       // Status bleibt USED (nicht REVOKED)
-      expect(result.value!.status).toBe(InviteCodeStatus.USED);
+      expect(result.value.status).toBe(InviteCodeStatus.USED);
     });
 
     it('should not emit event for fully used code', async () => {
@@ -342,7 +342,7 @@ describe('RevokeInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.revokedAt).toBeNull();
+      expect(result.value.revokedAt).toBeNull();
     });
   });
 
@@ -528,7 +528,7 @@ describe('RevokeInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      const response = result.value!;
+      const response = result.value;
 
       expect(response.id).toBeDefined();
       expect(response.code).toBeDefined();
@@ -548,10 +548,10 @@ describe('RevokeInviteHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.revokedAt).toBeDefined();
-      expect(typeof result.value!.revokedAt).toBe('string');
+      expect(result.value.revokedAt).toBeDefined();
+      expect(typeof result.value.revokedAt).toBe('string');
       // ISO Format pruefen
-      expect(() => new Date(result.value!.revokedAt!)).not.toThrow();
+      expect(() => new Date(result.value.revokedAt)).not.toThrow();
     });
   });
 });
@@ -570,8 +570,8 @@ describe('RevokeInviteCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.inviteCodeId).toBe('inv_abc123def456ghi789jkl012');
-      expect(result.value!.revokedById).toBe('user_admin123');
+      expect(result.value.inviteCodeId).toBe('inv_abc123def456ghi789jkl012');
+      expect(result.value.revokedById).toBe('user_admin123');
     });
 
     it('should fail when inviteCodeId is empty', () => {
@@ -646,8 +646,8 @@ describe('RevokeInviteCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.inviteCodeId).toBe('inv_abc123def456ghi789jkl012');
-      expect(result.value!.revokedById).toBe('user_admin123');
+      expect(result.value.inviteCodeId).toBe('inv_abc123def456ghi789jkl012');
+      expect(result.value.revokedById).toBe('user_admin123');
     });
   });
 });

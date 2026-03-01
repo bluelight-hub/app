@@ -44,7 +44,6 @@ describe('GetLagekarteQueryHandler', () => {
       save: jest.fn(),
       findById: jest.fn(),
       exists: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     // Instantiate handler with mock (Direct Instantiation Pattern)
@@ -75,11 +74,11 @@ describe('GetLagekarteQueryHandler', () => {
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
       expect(result.value).not.toBeNull();
-      expect(result.value!.einsatzId).toBe(einsatzId);
-      expect(result.value!.id).toBe(aggregate.id.value);
-      expect(result.value!.pois).toBeInstanceOf(Array);
-      expect(result.value!.pois.length).toBe(0);
-      expect(result.value!.createdAt).toBeInstanceOf(Date);
+      expect(result.value?.einsatzId).toBe(einsatzId);
+      expect(result.value?.id).toBe(aggregate.id.value);
+      expect(result.value?.pois).toBeInstanceOf(Array);
+      expect(result.value?.pois.length).toBe(0);
+      expect(result.value?.createdAt).toBeInstanceOf(Date);
 
       // Verify repository called with correct EinsatzId
       expect(mockRepo.findByEinsatzId).toHaveBeenCalledWith(expect.objectContaining({ value: einsatzId }));
@@ -132,11 +131,11 @@ describe('GetLagekarteQueryHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.pois).toBeInstanceOf(Array);
-      expect(result.value!.pois.length).toBe(1);
+      expect(result.value?.pois).toBeInstanceOf(Array);
+      expect(result.value?.pois.length).toBe(1);
 
       // Verify POI DTO structure
-      const poiDto = result.value!.pois[0];
+      const poiDto = result.value?.pois[0];
       expect(poiDto.name).toBe('Brandenburger Tor');
       expect(poiDto.category).toBe('EINSATZSTELLE');
       expect(poiDto.coordinate).toBeDefined();
@@ -177,10 +176,10 @@ describe('GetLagekarteQueryHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.pois.length).toBe(2);
+      expect(result.value?.pois.length).toBe(2);
 
       // Verify each POI has both MGRS and Lat/Lng
-      for (const poi of result.value!.pois) {
+      for (const poi of result.value?.pois) {
         expect(poi.coordinate.mgrs).toBeDefined();
         expect(poi.coordinate.lat).toBeDefined();
         expect(poi.coordinate.lng).toBeDefined();
@@ -299,8 +298,8 @@ describe('GetLagekarteQueryHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.pois).toEqual([]);
-      expect(result.value!.pois.length).toBe(0);
+      expect(result.value?.pois).toEqual([]);
+      expect(result.value?.pois.length).toBe(0);
     });
 
     it('should handle Lagekarte with many POIs', async () => {
@@ -330,10 +329,10 @@ describe('GetLagekarteQueryHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.pois.length).toBe(10);
+      expect(result.value?.pois.length).toBe(10);
 
       // Verify all POIs have correct structure
-      result.value!.pois.forEach((poi, index) => {
+      result.value?.pois.forEach((poi, index) => {
         expect(poi.name).toBe(`POI ${index}`);
         expect(poi.coordinate.mgrs).toBeDefined();
         expect(poi.coordinate.lat).toBeDefined();
@@ -358,7 +357,7 @@ describe('GetLagekarteQueryHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.einsatzId).toBe(complexEinsatzId);
+      expect(result.value?.einsatzId).toBe(complexEinsatzId);
     });
   });
 });

@@ -211,7 +211,7 @@ describe('EinsatztagebuchAggregate Integration Tests', () => {
       const entryIds = [];
       for (let i = 0; i < 10; i++) {
         const result = etb.addEintrag(`Entry ${i}`, userId);
-        entryIds.push(result.value!.id);
+        entryIds.push(result.value?.id);
       }
 
       // Delete every other entry

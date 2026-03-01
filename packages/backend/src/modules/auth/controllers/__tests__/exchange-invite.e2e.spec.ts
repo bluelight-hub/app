@@ -235,7 +235,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
   async function createValidInviteCode(options?: { expiresAt?: Date; maxUses?: number; useCount?: number; code?: string }): Promise<{ id: string; code: string }> {
     // InviteCodeId Format: inv_{cuid2} (28 Zeichen total)
     const id = `inv_${createId()}`;
-    const code = options?.code ?? InviteCodeValue.generate().value!.value;
+    const code = options?.code ?? InviteCodeValue.generate().value?.value;
     const futureDate = new Date();
     futureDate.setHours(futureDate.getHours() + 24); // 24h gültig
 
@@ -287,15 +287,15 @@ const databaseAvailable = !!process.env.DATABASE_URL;
         where: { code },
       });
       expect(updatedInvite).not.toBeNull();
-      expect(updatedInvite!.useCount).toBe(1);
+      expect(updatedInvite?.useCount).toBe(1);
 
       // And: ServerAccessToken created
       const createdToken = await prisma.serverAccessToken.findFirst({
-        where: { inviteCodeId: updatedInvite!.id },
+        where: { inviteCodeId: updatedInvite?.id },
       });
       expect(createdToken).not.toBeNull();
-      expect(createdToken!.tokenHash).toMatch(/^\$2[aby]\$10\$/); // bcrypt format
-      expect(createdToken!.name).toContain('Invite Exchange:');
+      expect(createdToken?.tokenHash).toMatch(/^\$2[aby]\$10\$/); // bcrypt format
+      expect(createdToken?.name).toContain('Invite Exchange:');
     });
 
     it('should return unique tokens for each exchange', async () => {
@@ -338,7 +338,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
         where: { code },
       });
       expect(invite).not.toBeNull();
-      expect(invite!.useCount).toBe(0); // Nicht verwendet
+      expect(invite?.useCount).toBe(0); // Nicht verwendet
     });
 
     it('should reject code expiring exactly now', async () => {
@@ -394,7 +394,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       const invite = await prisma.inviteCode.findUnique({
         where: { code },
       });
-      expect(invite!.useCount).toBe(1);
+      expect(invite?.useCount).toBe(1);
     });
 
     it('should reject code exceeding maxUses', async () => {
@@ -514,7 +514,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       const finalInvite = await prisma.inviteCode.findUnique({
         where: { code },
       });
-      expect(finalInvite!.useCount).toBeLessThanOrEqual(1);
+      expect(finalInvite?.useCount).toBeLessThanOrEqual(1);
 
       // And: Verify höchstens 1 ServerAccessToken wurde erstellt (1:1 Relation)
       const tokens = await prisma.serverAccessToken.findMany({
@@ -541,15 +541,15 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       // And: Verify beide InviteCodes wurden verwendet
       const invite1 = await prisma.inviteCode.findUnique({ where: { id: inviteCodeId1 } });
       const invite2 = await prisma.inviteCode.findUnique({ where: { id: inviteCodeId2 } });
-      expect(invite1!.useCount).toBe(1);
-      expect(invite2!.useCount).toBe(1);
+      expect(invite1?.useCount).toBe(1);
+      expect(invite2?.useCount).toBe(1);
 
       // And: Verify 2 separate ServerAccessTokens wurden erstellt
       const token1 = await prisma.serverAccessToken.findFirst({ where: { inviteCodeId: inviteCodeId1 } });
       const token2 = await prisma.serverAccessToken.findFirst({ where: { inviteCodeId: inviteCodeId2 } });
       expect(token1).not.toBeNull();
       expect(token2).not.toBeNull();
-      expect(token1!.id).not.toBe(token2!.id);
+      expect(token1?.id).not.toBe(token2?.id);
     });
   });
 
@@ -585,7 +585,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
         include: { redeemedToken: true },
       });
 
-      const tokenHash = invite!.redeemedToken!.tokenHash;
+      const tokenHash = invite?.redeemedToken?.tokenHash;
       expect(tokenHash).toMatch(/^\$2[aby]\$10\$/); // bcrypt format
       expect(tokenHash).not.toBe(plainToken); // Kein Plaintext
       expect(tokenHash.length).toBe(60); // bcrypt hash length
@@ -604,7 +604,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       });
 
       expect(token).not.toBeNull();
-      expect(token!.inviteCodeId).toBe(inviteCodeId);
+      expect(token?.inviteCodeId).toBe(inviteCodeId);
     });
   });
 });

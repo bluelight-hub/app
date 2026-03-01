@@ -332,7 +332,7 @@ describe('ProcessOAuthCallbackHandler', () => {
       expect(result.isSuccess).toBe(true);
 
       const savedCredential = mockCredentialRepository.save.mock.calls[0][0] as IntegrationCredential;
-      const expiresAt = savedCredential.accessTokenExpiresAt!.getTime();
+      const expiresAt = savedCredential.accessTokenExpiresAt?.getTime();
 
       // expiresAt sollte ca. 1 Stunde (3600 Sekunden) in der Zukunft liegen
       const expectedExpiryMin = beforeExecution + 3600 * 1000;

@@ -89,10 +89,10 @@ describe('GetHiOrgCredentialsHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.hasOAuthTokens).toBe(true);
-      expect(result.value!.isActive).toBe(true);
-      expect(result.value!.lastTestedAt).toEqual(new Date('2024-01-10T12:00:00Z'));
-      expect(result.value!.lastSyncAt).toEqual(new Date('2024-01-14T08:00:00Z'));
+      expect(result.value?.hasOAuthTokens).toBe(true);
+      expect(result.value?.isActive).toBe(true);
+      expect(result.value?.lastTestedAt).toEqual(new Date('2024-01-10T12:00:00Z'));
+      expect(result.value?.lastSyncAt).toEqual(new Date('2024-01-14T08:00:00Z'));
     });
 
     it('should return DTO with hasOAuthTokens=false when no tokens', async () => {
@@ -107,7 +107,7 @@ describe('GetHiOrgCredentialsHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.hasOAuthTokens).toBe(false);
+      expect(result.value?.hasOAuthTokens).toBe(false);
     });
 
     it('should NEVER return actual token values (security!)', async () => {
@@ -175,7 +175,7 @@ describe('GetHiOrgCredentialsHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.isActive).toBe(false);
+      expect(result.value?.isActive).toBe(false);
     });
 
     it('should handle missing lastTestedAt and lastSyncAt', async () => {
@@ -198,8 +198,8 @@ describe('GetHiOrgCredentialsHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.lastTestedAt).toBeUndefined();
-      expect(result.value!.lastSyncAt).toBeUndefined();
+      expect(result.value?.lastTestedAt).toBeUndefined();
+      expect(result.value?.lastSyncAt).toBeUndefined();
     });
   });
 });

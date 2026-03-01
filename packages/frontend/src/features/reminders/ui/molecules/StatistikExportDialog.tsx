@@ -100,7 +100,7 @@ export function StatistikExportDialog({ einsatzId, isOpen, onClose }: StatistikE
               type="button"
               onClick={handleExport}
               disabled={exportMutation.isPending}
-              className={cn('inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white', 'bg-blue-600 hover:bg-blue-700', 'disabled:cursor-not-allowed disabled:opacity-50')}
+              className={cn('inline-flex items-center gap-2 rounded-lg px-4 py-2 font-medium text-sm text-white', 'bg-blue-600 hover:bg-blue-700', 'disabled:cursor-not-allowed disabled:opacity-50')}
             >
               {exportMutation.isPending ? (
                 <>

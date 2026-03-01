@@ -104,7 +104,7 @@ describe('CreateAccessTokenHandler', () => {
       name: 'CI/CD Pipeline Token',
       createdById: 'user_abc123def456ghi789jkl012',
       ...overrides,
-    }).value!;
+    }).value;
   }
 
   describe('execute() - Success Cases', () => {
@@ -118,10 +118,10 @@ describe('CreateAccessTokenHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.token).toBeDefined();
-      expect(result.value!.name).toBe('CI/CD Pipeline Token');
-      expect(result.value!.prefix).toBeDefined();
-      expect(result.value!.createdAt).toBeDefined();
+      expect(result.value.token).toBeDefined();
+      expect(result.value.name).toBe('CI/CD Pipeline Token');
+      expect(result.value.prefix).toBeDefined();
+      expect(result.value.createdAt).toBeDefined();
     });
 
     it('should generate token with blh_ prefix and 28 characters total', async () => {
@@ -133,7 +133,7 @@ describe('CreateAccessTokenHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      const token = result.value!.token;
+      const token = result.value.token;
 
       // Token Format: blh_ + cuid2 (24 Zeichen) = 28 Zeichen
       expect(token).toMatch(/^blh_[a-z0-9]{24}$/);
@@ -150,8 +150,8 @@ describe('CreateAccessTokenHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      const prefix = result.value!.prefix;
-      const token = result.value!.token;
+      const prefix = result.value.prefix;
+      const token = result.value.token;
 
       // Prefix sollte die ersten 12 Zeichen sein (blh_xxxxxxxx)
       expect(prefix).toHaveLength(12);
@@ -168,10 +168,10 @@ describe('CreateAccessTokenHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.createdAt).toBeDefined();
+      expect(result.value.createdAt).toBeDefined();
       // ISO Format pruefen
-      expect(() => new Date(result.value!.createdAt)).not.toThrow();
-      expect(result.value!.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+      expect(() => new Date(result.value.createdAt)).not.toThrow();
+      expect(result.value.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
     });
 
     it('should return name in response', async () => {
@@ -183,7 +183,7 @@ describe('CreateAccessTokenHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.name).toBe('HiOrg Integration Token');
+      expect(result.value.name).toBe('HiOrg Integration Token');
     });
   });
 
@@ -208,7 +208,7 @@ describe('CreateAccessTokenHandler', () => {
       expect(hashValue).toHaveLength(60);
 
       // Hash sollte gegen Raw-Token verifizierbar sein
-      const rawToken = result.value!.token;
+      const rawToken = result.value.token;
       const isValid = await bcrypt.compare(rawToken, hashValue);
       expect(isValid).toBe(true);
     });
@@ -441,7 +441,7 @@ describe('CreateAccessTokenHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       const logMessage = mockLogger.log.mock.calls[0][0];
-      const prefix = result.value!.prefix;
+      const prefix = result.value.prefix;
 
       // Prefix sollte im Log enthalten sein
       expect(logMessage).toContain(prefix);
@@ -456,7 +456,7 @@ describe('CreateAccessTokenHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      const rawToken = result.value!.token;
+      const rawToken = result.value.token;
       const logMessage = mockLogger.log.mock.calls[0][0];
 
       // Der volle Token sollte NICHT im Log erscheinen
@@ -487,7 +487,7 @@ describe('CreateAccessTokenHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      const response = result.value!;
+      const response = result.value;
 
       // Pruefe alle erforderlichen Felder
       expect(response.token).toBeDefined();
@@ -505,7 +505,7 @@ describe('CreateAccessTokenHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.token).toMatch(/^blh_[a-z0-9]{24}$/);
+      expect(result.value.token).toMatch(/^blh_[a-z0-9]{24}$/);
     });
 
     it('should have prefix as first 12 characters of token', async () => {
@@ -517,8 +517,8 @@ describe('CreateAccessTokenHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      const token = result.value!.token;
-      const prefix = result.value!.prefix;
+      const token = result.value.token;
+      const prefix = result.value.prefix;
 
       expect(token.startsWith(prefix)).toBe(true);
       expect(prefix).toHaveLength(12);
@@ -535,7 +535,7 @@ describe('CreateAccessTokenHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.name).toBe('ABC');
+      expect(result.value.name).toBe('ABC');
     });
 
     it('should handle maximum name length (50 characters)', async () => {
@@ -548,7 +548,7 @@ describe('CreateAccessTokenHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.name).toBe(longName);
+      expect(result.value.name).toBe(longName);
     });
 
     it('should handle special characters in name', async () => {
@@ -561,7 +561,7 @@ describe('CreateAccessTokenHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.name).toBe(specialName);
+      expect(result.value.name).toBe(specialName);
     });
   });
 

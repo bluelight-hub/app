@@ -586,8 +586,6 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
   if (variant === 'minimal') {
     return (
       <>
-        {/* biome-ignore lint/a11y/useSemanticElements: div mit role="group" ist hier korrekt, da Container interaktive Elemente enthaelt */}
-        {/* biome-ignore lint/a11y/useKeyWithClickEvents: Keyboard-Navigation via interaktive Kindelemente */}
         <div ref={cardRef} role="group" onClick={handleCardClick} aria-label={`Erinnerung "${erinnerung.titel}"`} className={cn(cardBaseClasses, 'group relative focus:outline-none')}>
           <div className="flex items-center gap-2">
             {/* Status-Dot */}
@@ -682,7 +680,6 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
         {/* Status-Badge und Inhalt */}
         <div className="flex items-start gap-3">
           {/* Story 1.7 AC1/AC6: AlarmStateBadge statt inline Icon */}
-          {/* biome-ignore lint/suspicious/noExplicitAny: DTO type mismatch */}
           <AlarmStateBadge status={erinnerung.status as any} minutesUntilDue={minutesUntilDue} size={variant === 'compact' ? 'sm' : 'md'} intensityLevel={intensityLevel} audioFailed={audioFailed} />
 
           <div className="min-w-0 flex-1">
@@ -994,8 +991,6 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
   // Acknowledge erfolgt NUR ueber explizite Buttons, nicht per Card-Klick.
   return (
     <>
-      {/* biome-ignore lint/a11y/useSemanticElements: div mit role="group" ist hier korrekt, da Container interaktive Elemente enthaelt */}
-      {/* biome-ignore lint/a11y/useKeyWithClickEvents: Keyboard-Navigation via interaktive Kindelemente */}
       <div
         ref={cardRef}
         role="group"

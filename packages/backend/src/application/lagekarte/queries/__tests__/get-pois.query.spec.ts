@@ -51,7 +51,6 @@ describe('GetPoisQuery', () => {
 
     it('should throw error when lagekarteId is undefined', () => {
       // Given
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
       const undefinedLagekarteId = undefined as any;
 
       // When & Then
@@ -60,7 +59,6 @@ describe('GetPoisQuery', () => {
 
     it('should throw error when lagekarteId is null', () => {
       // Given
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
       const nullLagekarteId = null as any;
 
       // When & Then

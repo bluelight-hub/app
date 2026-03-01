@@ -24,7 +24,7 @@ describe('BefehlId', () => {
 
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.value).toMatch(/^[a-z][a-z0-9]+$/);
+      expect(result.value?.value).toMatch(/^[a-z][a-z0-9]+$/);
     });
 
     it('should create from existing valid CUID', () => {
@@ -32,7 +32,7 @@ describe('BefehlId', () => {
       const result = BefehlId.create(validCuid);
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.value).toBe(validCuid);
+      expect(result.value?.value).toBe(validCuid);
     });
 
     it('should fail with invalid CUID format', () => {

@@ -516,8 +516,8 @@ describe('Einsatz Aggregate', () => {
 
       // Then: Timestamp set and within expected range
       expect(einsatz.abgeschlossenAt).toBeInstanceOf(Date);
-      expect(einsatz.abgeschlossenAt!.getTime()).toBeGreaterThanOrEqual(before.getTime());
-      expect(einsatz.abgeschlossenAt!.getTime()).toBeLessThanOrEqual(after.getTime());
+      expect(einsatz.abgeschlossenAt?.getTime()).toBeGreaterThanOrEqual(before.getTime());
+      expect(einsatz.abgeschlossenAt?.getTime()).toBeLessThanOrEqual(after.getTime());
     });
 
     it('should set archivedAt timestamp on archive()', () => {
@@ -532,8 +532,8 @@ describe('Einsatz Aggregate', () => {
 
       // Then: Timestamp set and within expected range
       expect(einsatz.archivedAt).toBeInstanceOf(Date);
-      expect(einsatz.archivedAt!.getTime()).toBeGreaterThanOrEqual(before.getTime());
-      expect(einsatz.archivedAt!.getTime()).toBeLessThanOrEqual(after.getTime());
+      expect(einsatz.archivedAt?.getTime()).toBeGreaterThanOrEqual(before.getTime());
+      expect(einsatz.archivedAt?.getTime()).toBeLessThanOrEqual(after.getTime());
     });
 
     it('should emit EinsatzCompletedEvent and EinsatzStatusChangedEvent on complete()', () => {
@@ -939,7 +939,6 @@ describe('Einsatz Aggregate', () => {
       // When: Getting events and mutating copy
       const events1 = einsatz.getDomainEvents();
       const originalLength = events1.length;
-      // biome-ignore lint/suspicious/noExplicitAny: Test verifies shallow copy behavior
       events1.push({} as any); // Mutate copy
 
       // Then: Original events unchanged
@@ -979,7 +978,6 @@ describe('Einsatz Aggregate', () => {
       const einsatz = createTestEinsatz();
 
       // When: Comparing with undefined
-      // biome-ignore lint/suspicious/noExplicitAny: Test verifies null-safety
       const areEqual = einsatz.equals(undefined as any);
 
       // Then: Returns false
@@ -991,7 +989,6 @@ describe('Einsatz Aggregate', () => {
       const einsatz = createTestEinsatz();
 
       // When: Comparing with null
-      // biome-ignore lint/suspicious/noExplicitAny: Test verifies null-safety
       const areEqual = einsatz.equals(null as any);
 
       // Then: Returns false
@@ -1070,8 +1067,8 @@ describe('Einsatz Aggregate', () => {
       expect(createdAt).toBeInstanceOf(Date);
       expect(abgeschlossenAt).toBeInstanceOf(Date);
       expect(archivedAt).toBeInstanceOf(Date);
-      expect(abgeschlossenAt!.getTime()).toBeGreaterThanOrEqual(createdAt.getTime());
-      expect(archivedAt!.getTime()).toBeGreaterThanOrEqual(abgeschlossenAt!.getTime());
+      expect(abgeschlossenAt?.getTime()).toBeGreaterThanOrEqual(createdAt.getTime());
+      expect(archivedAt?.getTime()).toBeGreaterThanOrEqual(abgeschlossenAt?.getTime());
     });
 
     it('should preserve all properties after status transitions', () => {

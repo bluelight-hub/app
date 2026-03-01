@@ -42,7 +42,6 @@ export function ModuleButton({ to, params, hotkey, colorClasses, children, class
     <Link
       ref={linkRef}
       to={to}
-      // biome-ignore lint/suspicious/noExplicitAny: params should be correctly typed
       params={params as any}
       className={cn('group relative flex items-center gap-2 whitespace-nowrap rounded-lg px-4 py-2 font-medium text-sm transition-all', colorClasses, className)}
       title={hotkey ? `Tastenkürzel: Alt+${formatHotkey(hotkey)}` : undefined}

@@ -34,7 +34,6 @@ const createMockEinsatz = (options: { status?: EinsatzStatus; abgeschlossenYears
     if (options.abgeschlossenYearsAgo !== undefined) {
       const pastDate = new Date();
       pastDate.setFullYear(pastDate.getFullYear() - options.abgeschlossenYearsAgo);
-      // biome-ignore lint/suspicious/noExplicitAny: Test benötigt Zugriff auf private Property
       (einsatz as any)._abgeschlossenAt = pastDate;
     }
   } else if (options.status) {
@@ -264,7 +263,7 @@ describe('ArchiveEinsatzHandler', () => {
       // Assert
       expect(result.isSuccess).toBe(true);
       expect(einsatz.archivedAt).toBeDefined();
-      expect(einsatz.archivedAt!.getTime()).toBeGreaterThanOrEqual(beforeArchive.getTime());
+      expect(einsatz.archivedAt?.getTime()).toBeGreaterThanOrEqual(beforeArchive.getTime());
     });
 
     it('sollte Result.fail zurückgeben bei Repository save Fehler', async () => {

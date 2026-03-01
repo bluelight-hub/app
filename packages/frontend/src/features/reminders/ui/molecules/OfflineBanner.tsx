@@ -92,7 +92,6 @@ export function OfflineBanner({ isOffline, pendingCount, isSyncing, offlineSince
   const ariaLabel = isOfflineVariant ? `Offline${pendingCount > 0 ? ` - ${formatPendingCount(pendingCount)}` : ''}` : `Synchronisiere ${pendingCount} ${pendingCount === 1 ? 'Aktion' : 'Aktionen'}`;
 
   return (
-    // biome-ignore lint/a11y/useSemanticElements: role="status" ist korrekt fuer ARIA Live-Region Status-Updates
     <div
       role="status"
       aria-live="polite"

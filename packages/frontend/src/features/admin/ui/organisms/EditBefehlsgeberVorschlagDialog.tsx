@@ -82,8 +82,6 @@ export const EditBefehlsgeberVorschlagDialog = ({ isOpen, onClose, onSubmit, isS
   // - `form` ist eine instabile Referenz (aendert sich bei jedem Render)
   // - useCallback mit `form` als Dependency wuerde Callback bei jedem Render neu erstellen
   // - Stattdessen: form.reset direkt im useEffect aufrufen, lastLoadedIdRef verhindert unnoetige Resets
-  // - biome-ignore ist sicher: form.reset ist stabil (interne TanStack Form Implementierung)
-  // biome-ignore lint/correctness/useExhaustiveDependencies: form.reset ist stabil, lastLoadedIdRef verhindert Race Conditions
   useEffect(() => {
     if (vorschlag && isOpen && lastLoadedIdRef.current !== vorschlag.id) {
       lastLoadedIdRef.current = vorschlag.id;

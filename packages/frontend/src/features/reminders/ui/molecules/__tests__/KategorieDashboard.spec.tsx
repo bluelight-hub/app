@@ -66,7 +66,7 @@ describe('KategorieDashboard', () => {
     render(<KategorieDashboard erinnerungen={defaultErinnerungen} kategorien={defaultKategorien} />);
 
     // Then (Assert)
-    const buttons = screen.getAllByRole('button', { pressed: false });
+    const _buttons = screen.getAllByRole('button', { pressed: false });
     // 2 Kategorien + 1 "Ohne Kategorie" + 1 Toggle-Button = 4 buttons
     // Stat Cards haben aria-pressed, pruefe per aria-label
     expect(screen.getByLabelText(/Kategorie Leitstelle/)).toBeInTheDocument();

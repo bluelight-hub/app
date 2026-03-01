@@ -50,12 +50,10 @@ describe('ExportBefehleQueryHandler', () => {
       findByEmpfaengerId: jest.fn(),
       findWithOpenRueckfragen: jest.fn(),
       findFiltered: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     mockCsvService = {
       generateCsv: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     handler = new ExportBefehleQueryHandler(mockBefehlRepository, mockCsvService);
@@ -102,7 +100,7 @@ describe('ExportBefehleQueryHandler', () => {
       expect(result.value?.contentType).toBe('application/json; charset=utf-8');
       expect(result.value?.filename).toMatch(/^befehle_[a-z0-9]{8}_\d{4}-\d{2}-\d{2}\.json$/);
 
-      const parsed = JSON.parse(result.value!.content);
+      const parsed = JSON.parse(result.value?.content);
       expect(parsed).toHaveLength(1);
       expect(parsed[0].id).toBeDefined();
       expect(parsed[0].nummer).toBe('B-001');
@@ -126,7 +124,7 @@ describe('ExportBefehleQueryHandler', () => {
       const result = await handler.execute(query);
 
       expect(result.isSuccess).toBe(true);
-      const parsed = JSON.parse(result.value!.content);
+      const parsed = JSON.parse(result.value?.content);
       expect(parsed).toEqual([]);
     });
   });

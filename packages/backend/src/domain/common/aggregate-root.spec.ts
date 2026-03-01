@@ -61,7 +61,7 @@ class TestAggregate extends AggregateRoot<TestId> {
     }
 
     const aggregate = new TestAggregate(idResult.value!, value);
-    aggregate.addDomainEvent(new TestEvent('created', idResult.value!.value));
+    aggregate.addDomainEvent(new TestEvent('created', idResult.value?.value));
     return Result.ok(aggregate);
   }
 

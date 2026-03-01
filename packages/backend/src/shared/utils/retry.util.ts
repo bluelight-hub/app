@@ -240,7 +240,6 @@ export class RetryUtil {
     try {
       return await Promise.race([fn(), timeoutPromise]);
     } finally {
-      // biome-ignore lint/style/noNonNullAssertion: timeoutId is always assigned before Promise.race
       clearTimeout(timeoutId!);
     }
   }

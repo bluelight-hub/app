@@ -41,7 +41,7 @@ describe('CreateFuehrungsrhythmusTemplateHandler', () => {
         { titel: 'Lagebeurteilung', intervallMinuten: 30, offsetMinuten: 0 },
         { titel: 'Funkmeldecheck', intervallMinuten: 15 },
       ],
-      createdBy: UserId.create().value!.toString(),
+      createdBy: UserId.create().value?.toString(),
     });
   };
 
@@ -131,10 +131,10 @@ describe('CreateFuehrungsrhythmusTemplateHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.id).toBeDefined();
-      expect(result.value!.name).toBe('Fuehrungsrhythmus 30min');
-      expect(result.value!.beschreibung).toBe('Standard-Fuehrungsrhythmus');
-      expect(result.value!.eintraege).toHaveLength(2);
+      expect(result.value?.id).toBeDefined();
+      expect(result.value?.name).toBe('Fuehrungsrhythmus 30min');
+      expect(result.value?.beschreibung).toBe('Standard-Fuehrungsrhythmus');
+      expect(result.value?.eintraege).toHaveLength(2);
       expect(mockTemplateRepository.save).toHaveBeenCalledTimes(1);
       expect(mockOutboxRepository.save).toHaveBeenCalledTimes(1);
       expect(mockPrismaService.$transaction).toHaveBeenCalledTimes(1);
@@ -193,7 +193,7 @@ describe('CreateFuehrungsrhythmusTemplateHandler', () => {
       const commandResult = CreateFuehrungsrhythmusTemplateCommand.create({
         name: 'Basis-Rhythmus',
         eintraege: [{ titel: 'Lagebeurteilung', intervallMinuten: 30 }],
-        createdBy: UserId.create().value!.toString(),
+        createdBy: UserId.create().value?.toString(),
       });
       expect(commandResult.isSuccess).toBe(true);
       const command = commandResult.value!;
@@ -203,7 +203,7 @@ describe('CreateFuehrungsrhythmusTemplateHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.beschreibung).toBeNull();
+      expect(result.value?.beschreibung).toBeNull();
     });
 
     it('should assign correct sortOrder to eintraege based on index', async () => {
@@ -216,8 +216,8 @@ describe('CreateFuehrungsrhythmusTemplateHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.eintraege[0].sortOrder).toBe(0);
-      expect(result.value!.eintraege[1].sortOrder).toBe(1);
+      expect(result.value?.eintraege[0].sortOrder).toBe(0);
+      expect(result.value?.eintraege[1].sortOrder).toBe(1);
     });
   });
 
@@ -301,7 +301,7 @@ describe('CreateFuehrungsrhythmusTemplateHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      const templateId = result.value!.id;
+      const templateId = result.value?.id;
       const savedEvents = mockOutboxRepository.save.mock.calls[0][0];
       const createdEvent = savedEvents[0] as FuehrungsrhythmusTemplateErstelltEvent;
       expect(createdEvent.templateId.toString()).toBe(templateId);
@@ -311,7 +311,7 @@ describe('CreateFuehrungsrhythmusTemplateHandler', () => {
   describe('Response DTO Mapping', () => {
     it('should return correctly mapped FuehrungsrhythmusTemplateResponseDto', async () => {
       // Given (Arrange)
-      const createdBy = UserId.create().value!.toString();
+      const createdBy = UserId.create().value?.toString();
       const commandResult = CreateFuehrungsrhythmusTemplateCommand.create({
         name: 'Test Template',
         beschreibung: 'Test Beschreibung',

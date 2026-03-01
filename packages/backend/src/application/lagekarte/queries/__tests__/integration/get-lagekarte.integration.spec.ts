@@ -162,15 +162,15 @@ jest.mock('@paralleldrive/cuid2', () => ({
       // Then: Should return DTO with all 3 POIs mapped correctly
       expect(result.isSuccess).toBe(true);
       expect(result.value).not.toBeNull();
-      expect(result.value!.pois).toHaveLength(3);
+      expect(result.value?.pois).toHaveLength(3);
 
       // Verify each POI category
-      const categories = result.value!.pois.map((p) => p.category);
+      const categories = result.value?.pois.map((p) => p.category);
       expect(categories).toEqual(['EINSATZSTELLE', 'BEREITSTELLUNGSRAUM', 'GEFAHRENSTELLE']);
 
       // Verify optional field handling (beschreibung)
       // POI entities created without beschreibung should have undefined
-      expect(result.value!.pois.every((p) => p.beschreibung === undefined)).toBe(true);
+      expect(result.value?.pois.every((p) => p.beschreibung === undefined)).toBe(true);
     });
 
     it('should handle POI with beschreibung field', async () => {
@@ -189,8 +189,8 @@ jest.mock('@paralleldrive/cuid2', () => ({
 
       // Then: Should include beschreibung in DTO
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.pois).toHaveLength(1);
-      expect(result.value!.pois[0]?.beschreibung).toBe('Achtung: Überflutete Straße');
+      expect(result.value?.pois).toHaveLength(1);
+      expect(result.value?.pois[0]?.beschreibung).toBe('Achtung: Überflutete Straße');
     });
 
     it('should validate EinsatzId format and return error for invalid ID', async () => {

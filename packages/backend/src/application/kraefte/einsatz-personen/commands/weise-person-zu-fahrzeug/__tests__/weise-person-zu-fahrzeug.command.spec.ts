@@ -162,10 +162,10 @@ describe('WeisePersonZuFahrzeugZuCommand', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.einsatzId).toBe(validEinsatzId);
-      expect(result.value!.personId).toBe(validPersonId);
-      expect(result.value!.fahrzeugId).toBe(validFahrzeugId);
-      expect(result.value!.updatedBy).toBe(validUpdatedBy);
+      expect(result.value?.einsatzId).toBe(validEinsatzId);
+      expect(result.value?.personId).toBe(validPersonId);
+      expect(result.value?.fahrzeugId).toBe(validFahrzeugId);
+      expect(result.value?.updatedBy).toBe(validUpdatedBy);
     });
 
     it('should trim whitespace from all fields', () => {
@@ -182,10 +182,10 @@ describe('WeisePersonZuFahrzeugZuCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.einsatzId).toBe(validEinsatzId);
-      expect(result.value!.personId).toBe(validPersonId);
-      expect(result.value!.fahrzeugId).toBe(validFahrzeugId);
-      expect(result.value!.updatedBy).toBe(validUpdatedBy);
+      expect(result.value?.einsatzId).toBe(validEinsatzId);
+      expect(result.value?.personId).toBe(validPersonId);
+      expect(result.value?.fahrzeugId).toBe(validFahrzeugId);
+      expect(result.value?.updatedBy).toBe(validUpdatedBy);
     });
   });
 });

@@ -30,9 +30,9 @@ describe('ActivateFuehrungsrhythmusTemplateCommand', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.templateId).toBe(validTemplateId);
-      expect(result.value!.einsatzId).toBe(validEinsatzId);
-      expect(result.value!.aktiviertVon).toBe(validAktiviertVon);
+      expect(result.value?.templateId).toBe(validTemplateId);
+      expect(result.value?.einsatzId).toBe(validEinsatzId);
+      expect(result.value?.aktiviertVon).toBe(validAktiviertVon);
     });
 
     // --- templateId Validierung ---

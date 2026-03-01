@@ -1,4 +1,3 @@
-// biome-ignore-all lint/suspicious/noExplicitAny: Test mocks and type casting
 import { UpdatePoiPositionCommandHandler } from '../update-poi-position.handler';
 import { UpdatePoiPositionCommand } from '../update-poi-position.command';
 import type { ILagekarteRepository } from '@domain/repositories';

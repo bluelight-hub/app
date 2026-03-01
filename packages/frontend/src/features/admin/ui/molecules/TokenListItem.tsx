@@ -267,7 +267,6 @@ export function TokenListItem({ token, onClick, onRevokeClick, onReactivateClick
   };
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: Interaktivitaet ist optional und role wird dynamisch gesetzt
     <div
       className={cn(
         'rounded-lg border border-gray-200 bg-white p-4 transition-colors',

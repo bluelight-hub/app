@@ -103,7 +103,7 @@ describe('EskaliereErinnerungHandler', () => {
 
     erinnerungRepository.findById.mockResolvedValue(Result.ok(erinnerung));
     erinnerungRepository.save.mockResolvedValue(Result.ok(undefined));
-    mockResponseFactory.create.mockResolvedValue({ id: testErinnerungId, status: 'ESKALIERT' } as any);
+    mockResponseFactory.create.mockResolvedValue({ id: testErinnerungId, status: 'ESKALIERT' } as unknown);
 
     const result = await handler.execute(command);
 
@@ -138,7 +138,7 @@ describe('EskaliereErinnerungHandler', () => {
 
     erinnerungRepository.findById.mockResolvedValue(Result.ok(erinnerung));
     erinnerungRepository.save.mockResolvedValue(Result.ok(undefined));
-    mockResponseFactory.create.mockResolvedValue({ id: testErinnerungId, status: 'AUSGELOEST' } as any);
+    mockResponseFactory.create.mockResolvedValue({ id: testErinnerungId, status: 'AUSGELOEST' } as unknown);
 
     const result = await handler.execute(command);
 
@@ -176,12 +176,12 @@ describe('EskaliereErinnerungHandler', () => {
       Result.ok({
         id: UserId.create(testAssigneeId).value!,
         defaultEscalationTargetId: UserId.create(testNextTargetId).value!,
-      } as any),
+      } as unknown),
     );
 
     erinnerungRepository.findById.mockResolvedValue(Result.ok(erinnerung));
     erinnerungRepository.save.mockResolvedValue(Result.ok(undefined));
-    mockResponseFactory.create.mockResolvedValue({ id: testErinnerungId, status: 'ESKALIERT' } as any);
+    mockResponseFactory.create.mockResolvedValue({ id: testErinnerungId, status: 'ESKALIERT' } as unknown);
 
     const result = await handler.execute(command);
 
@@ -231,12 +231,12 @@ describe('EskaliereErinnerungHandler', () => {
       Result.ok({
         id: UserId.create(testDelegateeId).value!,
         defaultEscalationTargetId: UserId.create(testDelegateeEscalationTargetId).value!,
-      } as any),
+      } as unknown),
     );
 
     erinnerungRepository.findById.mockResolvedValue(Result.ok(erinnerung));
     erinnerungRepository.save.mockResolvedValue(Result.ok(undefined));
-    mockResponseFactory.create.mockResolvedValue({ id: testErinnerungId, status: 'ESKALIERT' } as any);
+    mockResponseFactory.create.mockResolvedValue({ id: testErinnerungId, status: 'ESKALIERT' } as unknown);
 
     // When: Eskalation wird ausgelöst
     const result = await handler.execute(command);

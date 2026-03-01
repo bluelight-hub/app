@@ -39,9 +39,9 @@ describe('UpdateErinnerungHandler', () => {
   /**
    * Generiert eine gültige CUID2 ID für Tests.
    */
-  const generateValidErinnerungId = () => ErinnerungId.create().value!.toString();
-  const _generateValidEinsatzId = () => EinsatzId.create().value!.toString();
-  const generateValidUserId = () => UserId.create().value!.toString();
+  const generateValidErinnerungId = () => ErinnerungId.create().value?.toString();
+  const _generateValidEinsatzId = () => EinsatzId.create().value?.toString();
+  const generateValidUserId = () => UserId.create().value?.toString();
 
   /**
    * Erstellt ein gültiges Erinnerung Aggregate für Tests.
@@ -163,7 +163,7 @@ describe('UpdateErinnerungHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.titel).toBe('Neuer Titel');
+      expect(result.value?.titel).toBe('Neuer Titel');
       expect(mockErinnerungRepository.findById).toHaveBeenCalledTimes(1);
       expect(mockErinnerungRepository.save).toHaveBeenCalledTimes(1);
       expect(mockOutboxRepository.save).toHaveBeenCalledTimes(1);
@@ -376,9 +376,9 @@ describe('UpdateErinnerungHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.titel).toBe('Neuer Titel');
-      expect(result.value!.beschreibung).toBeUndefined();
-      expect(result.value!.faelligAm).toBeUndefined();
+      expect(result.value?.titel).toBe('Neuer Titel');
+      expect(result.value?.beschreibung).toBeUndefined();
+      expect(result.value?.faelligAm).toBeUndefined();
     });
 
     it('should succeed with only faelligAm change', () => {
@@ -392,8 +392,8 @@ describe('UpdateErinnerungHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.titel).toBeUndefined();
-      expect(result.value!.faelligAm).toEqual(futureDate);
+      expect(result.value?.titel).toBeUndefined();
+      expect(result.value?.faelligAm).toEqual(futureDate);
     });
 
     it('should succeed with only beschreibung change', () => {
@@ -406,7 +406,7 @@ describe('UpdateErinnerungHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.beschreibung).toBe('Neue Beschreibung');
+      expect(result.value?.beschreibung).toBe('Neue Beschreibung');
     });
 
     it('should allow null beschreibung to clear it', () => {
@@ -419,7 +419,7 @@ describe('UpdateErinnerungHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.beschreibung).toBeNull();
+      expect(result.value?.beschreibung).toBeNull();
     });
   });
 

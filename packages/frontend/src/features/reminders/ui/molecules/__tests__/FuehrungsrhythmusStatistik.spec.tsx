@@ -77,10 +77,10 @@ describe('FuehrungsrhythmusStatistik', () => {
     expect(screen.getByText('Abschlussrate')).toBeInTheDocument();
     expect(screen.getByText('Eskalationen')).toBeInTheDocument();
     // Card Values: Verify values appear within their correct card context
-    const zyklenCard = screen.getByText('Gesamt-Zyklen').closest('div')!.parentElement!;
+    const zyklenCard = screen.getByText('Gesamt-Zyklen').closest('div')?.parentElement!;
     expect(within(zyklenCard).getByText('12')).toBeInTheDocument();
 
-    const abschlussCard = screen.getByText('Abschlussrate').closest('div')!.parentElement!;
+    const abschlussCard = screen.getByText('Abschlussrate').closest('div')?.parentElement!;
     expect(within(abschlussCard).getByText('66.7%')).toBeInTheDocument();
   });
 

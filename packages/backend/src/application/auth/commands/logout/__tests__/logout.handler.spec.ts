@@ -58,7 +58,7 @@ describe('LogoutHandler', () => {
   describe('execute()', () => {
     it('sollte erfolgreich sein bei gültigem Token', async () => {
       // Given
-      const command = LogoutCommand.create('valid.jwt.token').value!;
+      const command = LogoutCommand.create('valid.jwt.token').value;
       mockJwtService.revokeToken.mockResolvedValue(undefined); // No-Op (MVP)
 
       // When
@@ -73,7 +73,7 @@ describe('LogoutHandler', () => {
 
     it('sollte Result.ok() zurückgeben (MVP: No-Op)', async () => {
       // Given
-      const command = LogoutCommand.create('any.jwt.token').value!;
+      const command = LogoutCommand.create('any.jwt.token').value;
       mockJwtService.revokeToken.mockResolvedValue(undefined); // No-Op
 
       // When
@@ -87,7 +87,7 @@ describe('LogoutHandler', () => {
 
     it('sollte Fehler zurückgeben wenn revokeToken wirft (Edge Case)', async () => {
       // Given
-      const command = LogoutCommand.create('problematic.token').value!;
+      const command = LogoutCommand.create('problematic.token').value;
       mockJwtService.revokeToken.mockRejectedValue(new Error('Redis connection failed'));
 
       // When
@@ -101,7 +101,7 @@ describe('LogoutHandler', () => {
 
     it('sollte mehrfache Logout-Aufrufe erlauben (Idempotenz)', async () => {
       // Given
-      const command = LogoutCommand.create('same.token').value!;
+      const command = LogoutCommand.create('same.token').value;
       mockJwtService.revokeToken.mockResolvedValue(undefined);
 
       // When
@@ -118,7 +118,7 @@ describe('LogoutHandler', () => {
     it('sollte Token Hash in Logs verwenden (Security)', async () => {
       // Given
       const fullToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
-      const command = LogoutCommand.create(fullToken).value!;
+      const command = LogoutCommand.create(fullToken).value;
       mockJwtService.revokeToken.mockResolvedValue(undefined);
 
       // When

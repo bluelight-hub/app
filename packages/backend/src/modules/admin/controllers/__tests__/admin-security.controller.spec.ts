@@ -72,12 +72,10 @@ describe('AdminSecurityController', () => {
     // Create mock handlers (Direct Instantiation Pattern)
     mockMigrateHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     mockStatusHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     // Instantiate controller with mocks

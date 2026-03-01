@@ -56,7 +56,6 @@ export class ExportErinnerungenHandler {
       return Result.fail<ExportResult>(exportResult.error ?? ERINNERUNG_ERROR_CODES.QUERY_FAILED);
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Result.value ist nach isFailure-Check garantiert
     const erinnerungen = exportResult.value!;
     const einsatzNummer = query.einsatzId.substring(0, 8);
 
@@ -68,13 +67,9 @@ export class ExportErinnerungenHandler {
       switch (query.format) {
         case 'pdf': {
           // Alle Statistiken parallel laden
-          // biome-ignore lint/style/noNonNullAssertion: Query.create() mit validem einsatzId gibt immer Ok zurueck
           const statistikQuery = GetErinnerungStatistikQuery.create({ einsatzId: query.einsatzId }).value!;
-          // biome-ignore lint/style/noNonNullAssertion: Query.create() mit validem einsatzId gibt immer Ok zurueck
           const personQuery = GetPersonStatistikQuery.create({ einsatzId: query.einsatzId }).value!;
-          // biome-ignore lint/style/noNonNullAssertion: Query.create() mit validem einsatzId gibt immer Ok zurueck
           const eskalationsQuery = GetEskalationsAnalyseQuery.create({ einsatzId: query.einsatzId }).value!;
-          // biome-ignore lint/style/noNonNullAssertion: Query.create() mit validem einsatzId gibt immer Ok zurueck
           const reaktionszeitQuery = GetReaktionszeitStatistikQuery.create({ einsatzId: query.einsatzId }).value!;
 
           const [statistikResult, personResult, eskalationsResult, reaktionszeitResult] = await Promise.all([
@@ -95,13 +90,9 @@ export class ExportErinnerungenHandler {
             return Result.fail<ExportResult>(ERINNERUNG_ERROR_CODES.QUERY_FAILED);
           }
 
-          // biome-ignore lint/style/noNonNullAssertion: Result.value ist nach isFailure-Check garantiert
           const statistik = statistikResult.value!;
-          // biome-ignore lint/style/noNonNullAssertion: Result.value ist nach isFailure-Check garantiert
           const person = personResult.value!;
-          // biome-ignore lint/style/noNonNullAssertion: Result.value ist nach isFailure-Check garantiert
           const eskalation = eskalationsResult.value!;
-          // biome-ignore lint/style/noNonNullAssertion: Result.value ist nach isFailure-Check garantiert
           const reaktionszeit = reaktionszeitResult.value!;
 
           buffer = await this.pdfService.generateExport(statistik, person, eskalation, reaktionszeit, erinnerungen, einsatzNummer);

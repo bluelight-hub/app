@@ -59,7 +59,6 @@ export function NotizCard({
   const hasActions = onConvertToErinnerung || (isOwner && onEdit) || (isOwner && onDelete);
 
   return (
-    // biome-ignore lint/a11y/useSemanticElements: Div mit komplexem Inhalt und interaktiven Kindelementen
     <div
       className={cn(
         'group cursor-pointer rounded-lg border-slate-300 border-l-4 bg-slate-50 p-4 transition-colors hover:bg-slate-100',

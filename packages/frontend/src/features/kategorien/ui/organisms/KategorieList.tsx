@@ -90,7 +90,7 @@ export function KategorieList({ einsatzId, className }: KategorieListProps) {
           ))}
         </div>
       ) : (
-        <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center dark:border-gray-700 dark:bg-gray-800/50">
+        <div className="rounded-lg border-2 border-gray-300 border-dashed bg-gray-50 p-8 text-center dark:border-gray-700 dark:bg-gray-800/50">
           <PiPlus className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600" />
           <p className="mt-2 text-gray-600 text-sm dark:text-gray-400">Noch keine Kategorien vorhanden</p>
           <p className="mt-1 text-gray-500 text-xs dark:text-gray-500">Erstellen Sie eine neue Kategorie mit dem Button oben</p>

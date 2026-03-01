@@ -74,9 +74,9 @@ describe('GetFahrzeugtypByIdHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.id).toBe(existingId);
-      expect(result.value!.code).toBe('HLF');
-      expect(result.value!.bezeichnung).toBe('Hilfeleistungslöschfahrzeug');
+      expect(result.value?.id).toBe(existingId);
+      expect(result.value?.code).toBe('HLF');
+      expect(result.value?.bezeichnung).toBe('Hilfeleistungslöschfahrzeug');
       expect(mockRepository.findById).toHaveBeenCalledWith(expect.anything());
     });
 
@@ -194,7 +194,7 @@ describe('GetFahrzeugtypByIdHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.istAktiv).toBe(false);
+      expect(result.value?.istAktiv).toBe(false);
     });
 
     it('sollte Fahrzeugtyp ohne Beschreibung zurückgeben', async () => {
@@ -218,7 +218,7 @@ describe('GetFahrzeugtypByIdHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.beschreibung).toBeUndefined();
+      expect(result.value?.beschreibung).toBeUndefined();
     });
 
     it('sollte Fahrzeugtyp ohne Sollbesatzung zurückgeben', async () => {
@@ -242,7 +242,7 @@ describe('GetFahrzeugtypByIdHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.sollbesatzung).toBeUndefined();
+      expect(result.value?.sollbesatzung).toBeUndefined();
     });
 
     it('sollte Fahrzeugtyp ohne updatedBy zurückgeben', async () => {
@@ -266,7 +266,7 @@ describe('GetFahrzeugtypByIdHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.updatedBy).toBeUndefined();
+      expect(result.value?.updatedBy).toBeUndefined();
     });
 
     it('sollte mit verschiedenen CUID-Formaten umgehen', async () => {
@@ -291,7 +291,7 @@ describe('GetFahrzeugtypByIdHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.id).toBe(validCuid);
+      expect(result.value?.id).toBe(validCuid);
     });
   });
 
@@ -317,7 +317,7 @@ describe('GetFahrzeugtypByIdHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.kategorie).toBe('RETTUNGSDIENST');
+      expect(result.value?.kategorie).toBe('RETTUNGSDIENST');
     });
 
     it('sollte Fahrzeugtyp mit Kategorie RETTUNGSFAHRZEUG zurückgeben', async () => {
@@ -341,7 +341,7 @@ describe('GetFahrzeugtypByIdHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.kategorie).toBe('TRANSPORT');
+      expect(result.value?.kategorie).toBe('TRANSPORT');
     });
 
     it('sollte Fahrzeugtyp mit Kategorie SONDERFAHRZEUG zurückgeben', async () => {
@@ -365,7 +365,7 @@ describe('GetFahrzeugtypByIdHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.kategorie).toBe('FUEHRUNG');
+      expect(result.value?.kategorie).toBe('FUEHRUNG');
     });
   });
 
@@ -398,7 +398,7 @@ describe('GetFahrzeugtypByIdHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.sollbesatzung).toEqual({
+      expect(result.value?.sollbesatzung).toEqual({
         fahrer: 1,
         sanitaeter: 2,
         notarzt: 0,
@@ -429,7 +429,7 @@ describe('GetFahrzeugtypByIdHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.sollbesatzung).toEqual({ fahrer: 1, notarzt: 1 });
+      expect(result.value?.sollbesatzung).toEqual({ fahrer: 1, notarzt: 1 });
     });
   });
 
@@ -497,8 +497,8 @@ describe('GetFahrzeugtypByIdHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.createdAt).toEqual(specificDate);
-      expect(result.value!.updatedAt).toEqual(specificDate);
+      expect(result.value?.createdAt).toEqual(specificDate);
+      expect(result.value?.updatedAt).toEqual(specificDate);
     });
   });
 });

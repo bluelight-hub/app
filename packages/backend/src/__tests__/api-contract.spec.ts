@@ -90,19 +90,15 @@ function createMockProviders() {
  * @returns Initialisierte NestJS Application fuer OpenAPI-Generierung
  */
 async function createContractTestApp(): Promise<INestApplication> {
-  // biome-ignore lint/correctness/useHookAtTopLevel: NestJS testing module API uses "useValue" method names.
   const moduleRef = await Test.createTestingModule({
     controllers: [BefehlController, EinsatzController, HealthController],
     providers: createMockProviders(),
   })
     .overrideGuard(JwtAuthGuard)
-    // biome-ignore lint/correctness/useHookAtTopLevel: Nest testing builder API uses "useValue" method name.
     .useValue(mockGuard)
     .overrideGuard(RolesGuard)
-    // biome-ignore lint/correctness/useHookAtTopLevel: Nest testing builder API uses "useValue" method name.
     .useValue(mockGuard)
     .overrideGuard(BefehlRollenGuard)
-    // biome-ignore lint/correctness/useHookAtTopLevel: Nest testing builder API uses "useValue" method name.
     .useValue(mockGuard)
     .compile();
 

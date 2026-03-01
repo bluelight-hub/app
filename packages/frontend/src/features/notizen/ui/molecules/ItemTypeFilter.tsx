@@ -78,7 +78,6 @@ export function ItemTypeFilterControl({ value, onChange, className }: ItemTypeFi
         const isFocusable = index === focusableIndex;
 
         return (
-          // biome-ignore lint/a11y/useSemanticElements: segmented control uses button-based radio pattern
           <button
             key={option.value}
             type="button"

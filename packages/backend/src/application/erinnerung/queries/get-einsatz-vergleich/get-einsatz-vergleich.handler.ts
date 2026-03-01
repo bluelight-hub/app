@@ -34,7 +34,6 @@ export class GetEinsatzVergleichHandler {
       return Result.fail<EinsatzVergleichDto>(vergleichResult.error ?? ERINNERUNG_ERROR_CODES.QUERY_FAILED);
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Result pattern - value guaranteed after isFailure check
     const vergleich = vergleichResult.value!;
 
     const dto: EinsatzVergleichDto = {

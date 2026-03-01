@@ -65,11 +65,11 @@ describe('RotateAccessTokenHandler - bcrypt Error Handling', () => {
    * Helper: Erstellt ein Mock ServerAccessToken
    */
   const createMockToken = (): ServerAccessToken => {
-    const tokenHash = TokenHash.create('$2a$10$abcdefghijklmnopqrstuvwxyz123456789012345678901234').value!;
+    const tokenHash = TokenHash.create('$2a$10$abcdefghijklmnopqrstuvwxyz123456789012345678901234').value;
     const token = ServerAccessToken.create({
       tokenHash,
       name: 'Test Token',
-    }).value!;
+    }).value;
     token.clearDomainEvents();
     return token;
   };
@@ -134,7 +134,7 @@ describe('RotateAccessTokenHandler - bcrypt Error Handling', () => {
     const command = RotateAccessTokenCommand.create({
       tokenId: mockToken.id.toString(),
       requestedById: 'user_abc123def456',
-    }).value!;
+    }).value;
 
     // When (Act)
     const result = await handler.execute(command);
@@ -156,7 +156,7 @@ describe('RotateAccessTokenHandler - bcrypt Error Handling', () => {
     const command = RotateAccessTokenCommand.create({
       tokenId: mockToken.id.toString(),
       requestedById: 'user_abc123def456',
-    }).value!;
+    }).value;
 
     // When (Act)
     const result = await handler.execute(command);
@@ -175,7 +175,7 @@ describe('RotateAccessTokenHandler - bcrypt Error Handling', () => {
     const command = RotateAccessTokenCommand.create({
       tokenId: mockToken.id.toString(),
       requestedById: 'user_abc123def456',
-    }).value!;
+    }).value;
 
     // When (Act)
     await handler.execute(command);

@@ -71,12 +71,12 @@ describe('useKanbanGruppierung', () => {
     // KORRIGIERT-Befehl in ZUGESTELLT mit istKorrigiert=true
     const korrigiert = result.current.ZUGESTELLT.find((kb) => kb.befehl.id === '1');
     expect(korrigiert).toBeDefined();
-    expect(korrigiert!.istKorrigiert).toBe(true);
+    expect(korrigiert?.istKorrigiert).toBe(true);
 
     // Normaler Befehl hat istKorrigiert=false
     const normal = result.current.ZUGESTELLT.find((kb) => kb.befehl.id === '2');
     expect(normal).toBeDefined();
-    expect(normal!.istKorrigiert).toBe(false);
+    expect(normal?.istKorrigiert).toBe(false);
   });
 
   it('leere Liste gibt leere Spalten', () => {

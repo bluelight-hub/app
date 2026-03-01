@@ -117,7 +117,7 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
       // Then: Leeres Array ist valides Resultat (NICHT Fehler)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toEqual([]);
-      expect(result.value!.length).toBe(0);
+      expect(result.value?.length).toBe(0);
       expect(mockPrismaService.einsatz.findMany).toHaveBeenCalledTimes(1);
     });
 
@@ -144,7 +144,7 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(1);
 
-      const dto = result.value![0];
+      const dto = result.value?.[0];
       expect(dto.id).toBe('einsatz-abc-123');
       expect(dto.nummer).toBe('E2026-010'); // Format: E{YEAR}-{SEQ} (DB column)
       expect(dto.alarmstichwort).toBe('Grossbrand');
@@ -187,7 +187,7 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(3);
 
-      const statuses = result.value!.map((dto) => dto.status);
+      const statuses = result.value?.map((dto) => dto.status);
       expect(statuses).toContain('ANGELEGT');
       expect(statuses).toContain('IN_BEARBEITUNG');
       expect(statuses).toContain('ABGESCHLOSSEN');
@@ -287,7 +287,7 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(1);
 
-      const dto = result.value![0];
+      const dto = result.value?.[0];
       expect(dto.id).toBe('einsatz-no-etb');
       expect(dto.etbEintraegeCount).toBe(0); // null ?? 0
       expect(dto.poisCount).toBe(5);
@@ -312,7 +312,7 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(1);
 
-      const dto = result.value![0];
+      const dto = result.value?.[0];
       expect(dto.id).toBe('einsatz-no-lagekarte');
       expect(dto.etbEintraegeCount).toBe(10);
       expect(dto.poisCount).toBe(0); // null ?? 0
@@ -338,7 +338,7 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(1);
 
-      const dto = result.value![0];
+      const dto = result.value?.[0];
       expect(dto.etbEintraegeCount).toBe(12); // Nur deletedAt: null
 
       // Verifiziere Prisma Query nutzt deletedAt Filter
@@ -379,7 +379,7 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(1);
 
-      const dto = result.value![0];
+      const dto = result.value?.[0];
       expect(dto.alarmstichwort).toBe(''); // null ?? ''
     });
 
@@ -403,7 +403,7 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(1);
 
-      const dto = result.value![0];
+      const dto = result.value?.[0];
       expect(dto.einsatzort).toBeUndefined();
     });
 
@@ -425,7 +425,7 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(1);
 
-      const dto = result.value![0];
+      const dto = result.value?.[0];
       expect(dto.nummer).toBe('E2026-042'); // E{YEAR}-{SEQ} from DB
     });
 
@@ -619,7 +619,7 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
       // Then: Beide DTOs sind vorhanden (Reihenfolge bei gleichen Timestamps undefiniert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(2);
-      expect(result.value!.map((dto) => dto.alarmstichwort).sort()).toEqual(['Brand A', 'Brand B']);
+      expect(result.value?.map((dto) => dto.alarmstichwort).sort()).toEqual(['Brand A', 'Brand B']);
     });
 
     it('should read nummer from DB regardless of ID length', async () => {
@@ -639,7 +639,7 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
       // Then: Nummer = E2026-022 (aus DB-Spalte)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(1);
-      expect(result.value![0].nummer).toBe('E2026-022');
+      expect(result.value?.[0].nummer).toBe('E2026-022');
     });
 
     it('should preserve exact createdAt timestamp in DTO', async () => {
@@ -657,8 +657,8 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
 
       // Then: createdAt wird exakt uebernommen (keine Umformatierung)
       expect(result.isSuccess).toBe(true);
-      expect(result.value![0].createdAt).toEqual(timestamp);
-      expect(result.value![0].createdAt.toISOString()).toBe('2024-01-15T14:23:45.678Z');
+      expect(result.value?.[0].createdAt).toEqual(timestamp);
+      expect(result.value?.[0].createdAt.toISOString()).toBe('2024-01-15T14:23:45.678Z');
     });
 
     it('should map all required DTO fields correctly', async () => {
@@ -682,7 +682,7 @@ describe('GetActiveEinsaetzeWithCountsQueryHandler', () => {
 
       // Then: Alle DTO-Felder korrekt gemapped
       expect(result.isSuccess).toBe(true);
-      const dto: EinsatzListItemDto = result.value![0];
+      const dto: EinsatzListItemDto = result.value?.[0];
 
       expect(dto.id).toBe('test-id-full');
       expect(dto.nummer).toBe('E2026-023');

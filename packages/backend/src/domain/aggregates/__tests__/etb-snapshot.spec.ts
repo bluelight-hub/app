@@ -428,7 +428,6 @@ describe('ETB Snapshot Lifecycle', () => {
       const fakeId = EinsatzId.create().value!; // Use any ID
 
       // When: Trying to update non-existent entry
-      // biome-ignore lint/suspicious/noExplicitAny: Test verifies error handling for wrong type
       const result = etb.updateEintrag(fakeId as any, 'Test', userId);
 
       // Then: No snapshot created
@@ -442,7 +441,6 @@ describe('ETB Snapshot Lifecycle', () => {
       const fakeId = EinsatzId.create().value!;
 
       // When: Trying to delete non-existent entry
-      // biome-ignore lint/suspicious/noExplicitAny: Test verifies error handling for wrong type
       const result = etb.deleteEintrag(fakeId as any, userId);
 
       // Then: No snapshot created

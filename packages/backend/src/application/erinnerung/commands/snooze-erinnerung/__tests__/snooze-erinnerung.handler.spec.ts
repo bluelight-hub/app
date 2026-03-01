@@ -148,7 +148,7 @@ describe('SnoozeErinnerungHandler', () => {
         // Then (Assert)
         expect(result.isSuccess).toBe(true);
         expect(result.value).toBeDefined();
-        expect(result.value!.status).toBe('SNOOZED');
+        expect(result.value?.status).toBe('SNOOZED');
         expect(mockRepository.save).toHaveBeenCalledTimes(1);
         expect(mockOutboxRepository.save).toHaveBeenCalledTimes(1);
       });
@@ -184,7 +184,7 @@ describe('SnoozeErinnerungHandler', () => {
 
         // Then (Assert)
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.status).toBe('SNOOZED');
+        expect(result.value?.status).toBe('SNOOZED');
       });
 
       it('sollte fehlschlagen wenn Status GEPLANT ist', async () => {
@@ -314,7 +314,7 @@ describe('SnoozeErinnerungHandler', () => {
 
         // Then (Assert)
         expect(result.isSuccess).toBe(true);
-        const newFaelligAm = new Date(result.value!.faelligAm);
+        const newFaelligAm = new Date(result.value?.faelligAm);
         // Neue Fälligkeit sollte in der Zukunft sein (snooze from now)
         expect(newFaelligAm.getTime()).toBeGreaterThan(originalFaelligAm.getTime());
       });

@@ -129,10 +129,10 @@ describe('ImportSelectedPersonsHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.totalProcessed).toBe(1);
-      expect(result.value!.created).toBe(1);
-      expect(result.value!.results[0].status).toBe('created');
-      expect(result.value!.results[0].qualifikationenMapped).toBe(1);
+      expect(result.value?.totalProcessed).toBe(1);
+      expect(result.value?.created).toBe(1);
+      expect(result.value?.results[0].status).toBe('created');
+      expect(result.value?.results[0].qualifikationenMapped).toBe(1);
       expect(mockStammPersonRepo.save).toHaveBeenCalled();
     });
 
@@ -157,8 +157,8 @@ describe('ImportSelectedPersonsHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.skipped).toBe(1);
-      expect(result.value!.results[0].status).toBe('skipped');
+      expect(result.value?.skipped).toBe(1);
+      expect(result.value?.results[0].status).toBe('skipped');
       expect(mockStammPersonRepo.save).not.toHaveBeenCalled();
     });
 
@@ -184,8 +184,8 @@ describe('ImportSelectedPersonsHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.updated).toBe(1);
-      expect(result.value!.results[0].status).toBe('updated');
+      expect(result.value?.updated).toBe(1);
+      expect(result.value?.results[0].status).toBe('updated');
       expect(mockStammPersonRepo.save).toHaveBeenCalled();
     });
 
@@ -263,8 +263,8 @@ describe('ImportSelectedPersonsHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.skipped).toBe(1);
-      expect(result.value!.results[0].error).toContain('Personalnummer');
+      expect(result.value?.skipped).toBe(1);
+      expect(result.value?.results[0].error).toContain('Personalnummer');
     });
 
     it('should map qualifications using short name as fallback', async () => {
@@ -291,7 +291,7 @@ describe('ImportSelectedPersonsHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.results[0].qualifikationenMapped).toBe(1);
+      expect(result.value?.results[0].qualifikationenMapped).toBe(1);
     });
 
     it('should count unmapped qualifications', async () => {
@@ -321,8 +321,8 @@ describe('ImportSelectedPersonsHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.results[0].qualifikationenMapped).toBe(1);
-      expect(result.value!.results[0].qualifikationenUnmapped).toBe(1);
+      expect(result.value?.results[0].qualifikationenMapped).toBe(1);
+      expect(result.value?.results[0].qualifikationenUnmapped).toBe(1);
     });
 
     it('should handle multiple persons with mixed results', async () => {
@@ -355,9 +355,9 @@ describe('ImportSelectedPersonsHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.totalProcessed).toBe(2); // unknown.person nicht in HiOrg
-      expect(result.value!.skipped).toBe(1); // Max
-      expect(result.value!.created).toBe(1); // Erika
+      expect(result.value?.totalProcessed).toBe(2); // unknown.person nicht in HiOrg
+      expect(result.value?.skipped).toBe(1); // Max
+      expect(result.value?.created).toBe(1); // Erika
     });
 
     it('should fail when person has no mitgliednr (personalnummer required)', async () => {
@@ -379,10 +379,10 @@ describe('ImportSelectedPersonsHandler', () => {
 
       // Then: Import erfolgreich, aber Person als "failed" markiert
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.failed).toBe(1);
-      expect(result.value!.created).toBe(0);
-      expect(result.value!.results[0].status).toBe('failed');
-      expect(result.value!.results[0].error).toContain('Personalnummer');
+      expect(result.value?.failed).toBe(1);
+      expect(result.value?.created).toBe(0);
+      expect(result.value?.results[0].status).toBe('failed');
+      expect(result.value?.results[0].error).toContain('Personalnummer');
       // Save sollte nicht aufgerufen worden sein
       expect(mockStammPersonRepo.save).not.toHaveBeenCalled();
     });

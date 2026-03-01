@@ -123,7 +123,7 @@ describe('DeactivateFahrzeugtypHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.istAktiv).toBe(false);
+      expect(result.value?.istAktiv).toBe(false);
       expect(mockRepository.findById).toHaveBeenCalledWith(expect.anything(), expect.any(Object));
       expect(mockRepository.save).toHaveBeenCalledTimes(1);
     });
@@ -253,7 +253,7 @@ describe('DeactivateFahrzeugtypHandler', () => {
 
       // Then (Assert)
       expect(commandResult.isSuccess).toBe(true);
-      expect(commandResult.value!.id).toBe('valid-id');
+      expect(commandResult.value?.id).toBe('valid-id');
     });
 
     it('sollte Whitespaces in updatedBy trimmen', () => {
@@ -265,7 +265,7 @@ describe('DeactivateFahrzeugtypHandler', () => {
 
       // Then (Assert)
       expect(commandResult.isSuccess).toBe(true);
-      expect(commandResult.value!.updatedBy).toBe('cm1234567890abcdef12345');
+      expect(commandResult.value?.updatedBy).toBe('cm1234567890abcdef12345');
     });
   });
 

@@ -21,7 +21,7 @@ describe('UpdateFuehrungsrhythmusTemplateHandler', () => {
   let mockLogger: jest.Mocked<ILogger>;
 
   /** Generiert eine gueltige UserId als String fuer Command-Tests. */
-  const generateValidUserIdString = () => UserId.create().value!.toString();
+  const generateValidUserIdString = () => UserId.create().value?.toString();
 
   /** Erstellt ein gueltiges FuehrungsrhythmusTemplate fuer Tests. */
   const createTestTemplate = () => {
@@ -131,8 +131,8 @@ describe('UpdateFuehrungsrhythmusTemplateHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.name).toBe('Neuer Name');
-      expect(result.value!.beschreibung).toBe('Neue Beschreibung');
+      expect(result.value?.name).toBe('Neuer Name');
+      expect(result.value?.beschreibung).toBe('Neue Beschreibung');
       expect(mockTemplateRepository.save).toHaveBeenCalledTimes(1);
       expect(mockOutboxRepository.save).toHaveBeenCalledTimes(1);
     });

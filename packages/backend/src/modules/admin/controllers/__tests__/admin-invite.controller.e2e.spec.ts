@@ -100,7 +100,7 @@ describe('AdminInviteController (e2e)', () => {
     label?: string;
   }): Promise<{ id: string; code: string }> => {
     const id = `inv_${createId().substring(0, 24)}`; // inv_ (4) + 24 = 28 Zeichen
-    const code = InviteCodeValue.generate().value!.value;
+    const code = InviteCodeValue.generate().value?.value;
     const futureDate = new Date();
     futureDate.setHours(futureDate.getHours() + 24);
 

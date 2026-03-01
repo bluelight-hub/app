@@ -152,7 +152,6 @@ export function ServerColorPicker({ value, onChange, disabled = false, className
         const isFocusable = index === focusableIndex;
 
         return (
-          // biome-ignore lint/a11y/useSemanticElements: Custom RadioGroup mit button ist hier beabsichtigt
           <button
             key={preset.value ?? 'none'}
             type="button"

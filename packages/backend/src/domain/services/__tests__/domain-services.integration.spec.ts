@@ -159,7 +159,6 @@ jest.mock('@paralleldrive/cuid2', () => ({
 
       // Create Einsatz with empty alarmstichwort (bypassing factory validation)
       const incompleteEinsatz1 = createTestEinsatz('Valid', true);
-      // biome-ignore lint/suspicious/noExplicitAny: Test bypasses factory validation for testing edge case
       (incompleteEinsatz1 as any)._alarmstichwort = ''; // Manually set to empty after creation
       incompleteEinsatz1.updateStatus(EinsatzStatus.IN_BEARBEITUNG());
 
@@ -197,7 +196,6 @@ jest.mock('@paralleldrive/cuid2', () => ({
         // Manually set abgeschlossenAt to simulate age
         const completedAt = new Date(currentDate);
         completedAt.setFullYear(completedAt.getFullYear() - yearsOld);
-        // biome-ignore lint/suspicious/noExplicitAny: Test bypasses factory for date simulation
         (einsatz as any)._abgeschlossenAt = completedAt;
 
         return einsatz;
@@ -223,7 +221,6 @@ jest.mock('@paralleldrive/cuid2', () => ({
         const yearsOld = einsaetze[index].yearsOld;
         const archivedAt = new Date(currentDate);
         archivedAt.setFullYear(archivedAt.getFullYear() - yearsOld);
-        // biome-ignore lint/suspicious/noExplicitAny: Test bypasses factory for date simulation
         (einsatz as any)._archivedAt = archivedAt;
       });
 
@@ -247,7 +244,6 @@ jest.mock('@paralleldrive/cuid2', () => ({
     it('should block archival if Einsatz is incomplete', () => {
       // GIVEN: Incomplete Einsatz (manually set empty alarmstichwort)
       const incompleteEinsatz = createTestEinsatz('Valid', true);
-      // biome-ignore lint/suspicious/noExplicitAny: Test bypasses factory validation for testing edge case
       (incompleteEinsatz as any)._alarmstichwort = ''; // Manually set to empty after creation
       incompleteEinsatz.updateStatus(EinsatzStatus.IN_BEARBEITUNG());
 
@@ -306,13 +302,11 @@ jest.mock('@paralleldrive/cuid2', () => ({
       const abgeschlossen = createTestEinsatz();
       abgeschlossen.updateStatus(EinsatzStatus.IN_BEARBEITUNG());
       abgeschlossen.complete(createTestUserId());
-      // biome-ignore lint/suspicious/noExplicitAny: Test bypasses factory for date simulation
       (abgeschlossen as any)._abgeschlossenAt = completedAt; // Simulate 10 years old
 
       const archiviert = createTestEinsatz();
       archiviert.updateStatus(EinsatzStatus.IN_BEARBEITUNG());
       archiviert.complete(createTestUserId());
-      // biome-ignore lint/suspicious/noExplicitAny: Test bypasses factory for date simulation
       (archiviert as any)._abgeschlossenAt = completedAt;
       archiviert.archive(); // Already archived
 

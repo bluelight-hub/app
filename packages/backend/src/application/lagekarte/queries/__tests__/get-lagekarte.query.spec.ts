@@ -38,7 +38,6 @@ describe('GetLagekarteQuery', () => {
 
     it('should throw when einsatzId is undefined', () => {
       // Given
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
       const undefinedEinsatzId = undefined as any;
 
       // When/Then
@@ -47,7 +46,6 @@ describe('GetLagekarteQuery', () => {
 
     it('should throw when einsatzId is null', () => {
       // Given
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
       const nullEinsatzId = null as any;
 
       // When/Then

@@ -100,8 +100,8 @@ describe('HiOrgTokenRefreshService', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.accessToken).toBe('decrypted-access-token');
-      expect(result.value!.wasRefreshed).toBe(false);
+      expect(result.value?.accessToken).toBe('decrypted-access-token');
+      expect(result.value?.wasRefreshed).toBe(false);
       expect(mockOAuth2.refreshAccessToken).not.toHaveBeenCalled();
     });
 
@@ -120,7 +120,7 @@ describe('HiOrgTokenRefreshService', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.wasRefreshed).toBe(true);
+      expect(result.value?.wasRefreshed).toBe(true);
       expect(mockOAuth2.refreshAccessToken).toHaveBeenCalledWith({
         refreshToken: expect.any(String),
         clientId: clientCredentials.clientId,

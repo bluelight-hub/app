@@ -74,7 +74,7 @@ describe('ListInvitesHandler', () => {
     return ListInvitesQuery.create({
       requestedById: 'admin_test123',
       ...overrides,
-    }).value!;
+    }).value;
   }
 
   /**
@@ -97,8 +97,8 @@ describe('ListInvitesHandler', () => {
     futureDate.setHours(futureDate.getHours() + 24);
 
     const defaults = {
-      id: InviteCodeId.create().value!,
-      code: InviteCodeValue.generate().value!,
+      id: InviteCodeId.create().value,
+      code: InviteCodeValue.generate().value,
       expiresAt: futureDate,
       maxUses: 10,
       usedCount: 0,
@@ -113,8 +113,8 @@ describe('ListInvitesHandler', () => {
     const props = { ...defaults, ...overrides };
 
     return InviteCode.reconstruct({
-      id: typeof props.id === 'string' ? InviteCodeId.fromString(props.id).value! : props.id,
-      code: typeof props.code === 'string' ? InviteCodeValue.fromString(props.code).value! : props.code,
+      id: typeof props.id === 'string' ? InviteCodeId.fromString(props.id).value : props.id,
+      code: typeof props.code === 'string' ? InviteCodeValue.fromString(props.code).value : props.code,
       expiresAt: props.expiresAt,
       maxUses: props.maxUses,
       usedCount: props.usedCount,
@@ -154,8 +154,8 @@ describe('ListInvitesHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.data).toHaveLength(2);
-      expect(result.value!.meta.total).toBe(2);
+      expect(result.value.data).toHaveLength(2);
+      expect(result.value.meta.total).toBe(2);
     });
 
     it('should return empty list when no codes exist', async () => {
@@ -168,8 +168,8 @@ describe('ListInvitesHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.data).toHaveLength(0);
-      expect(result.value!.meta.total).toBe(0);
+      expect(result.value.data).toHaveLength(0);
+      expect(result.value.meta.total).toBe(0);
     });
 
     it('should return masked codes in response', async () => {
@@ -183,7 +183,7 @@ describe('ListInvitesHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      const codeInResponse = result.value!.data[0].code;
+      const codeInResponse = result.value.data[0].code;
       // Code sollte maskiert sein (z.B. "ABC1****")
       expect(codeInResponse).toMatch(/^[A-Z0-9]{4}\*{4}$/);
     });
@@ -199,7 +199,7 @@ describe('ListInvitesHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.data[0].status).toBe(InviteCodeStatus.ACTIVE);
+      expect(result.value.data[0].status).toBe(InviteCodeStatus.ACTIVE);
     });
 
     it('should include correct pagination metadata', async () => {
@@ -215,10 +215,10 @@ describe('ListInvitesHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.meta.page).toBe(2);
-      expect(result.value!.meta.pageSize).toBe(5);
-      expect(result.value!.meta.total).toBe(25);
-      expect(result.value!.meta.totalPages).toBe(5);
+      expect(result.value.meta.page).toBe(2);
+      expect(result.value.meta.pageSize).toBe(5);
+      expect(result.value.meta.total).toBe(25);
+      expect(result.value.meta.totalPages).toBe(5);
     });
   });
 
@@ -355,7 +355,7 @@ describe('ListInvitesHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      const dto = result.value!.data[0];
+      const dto = result.value.data[0];
       expect(dto.expiresAt).toBe('2026-02-01T12:00:00.000Z');
       expect(dto.maxUses).toBe(5);
       expect(dto.useCount).toBe(2);
@@ -374,7 +374,7 @@ describe('ListInvitesHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.data[0].label).toBeNull();
+      expect(result.value.data[0].label).toBeNull();
     });
 
     it('should handle revokedAt correctly', async () => {
@@ -384,8 +384,8 @@ describe('ListInvitesHandler', () => {
 
       // Erstelle einen widerrufenen Code
       const mockInvite = InviteCode.reconstruct({
-        id: InviteCodeId.create().value!,
-        code: InviteCodeValue.generate().value!,
+        id: InviteCodeId.create().value,
+        code: InviteCodeValue.generate().value,
         expiresAt: new Date('2026-02-01'),
         maxUses: 10,
         usedCount: 0,
@@ -404,8 +404,8 @@ describe('ListInvitesHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.data[0].revokedAt).toBe('2026-01-05T10:00:00.000Z');
-      expect(result.value!.data[0].status).toBe(InviteCodeStatus.REVOKED);
+      expect(result.value.data[0].revokedAt).toBe('2026-01-05T10:00:00.000Z');
+      expect(result.value.data[0].status).toBe(InviteCodeStatus.REVOKED);
     });
 
     it('should return null revokedAt for non-revoked codes', async () => {
@@ -419,7 +419,7 @@ describe('ListInvitesHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.data[0].revokedAt).toBeNull();
+      expect(result.value.data[0].revokedAt).toBeNull();
     });
   });
 
@@ -442,7 +442,7 @@ describe('ListInvitesHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.data[0].status).toBe(InviteCodeStatus.ACTIVE);
+      expect(result.value.data[0].status).toBe(InviteCodeStatus.ACTIVE);
     });
 
     it('should return USED status when maxUses reached', async () => {
@@ -463,7 +463,7 @@ describe('ListInvitesHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.data[0].status).toBe(InviteCodeStatus.USED);
+      expect(result.value.data[0].status).toBe(InviteCodeStatus.USED);
     });
 
     it('should return EXPIRED status for expired codes', async () => {
@@ -473,8 +473,8 @@ describe('ListInvitesHandler', () => {
       pastDate.setDate(pastDate.getDate() - 1); // Gestern abgelaufen
 
       const mockInvite = InviteCode.reconstruct({
-        id: InviteCodeId.create().value!,
-        code: InviteCodeValue.generate().value!,
+        id: InviteCodeId.create().value,
+        code: InviteCodeValue.generate().value,
         expiresAt: pastDate,
         maxUses: 10,
         usedCount: 0,
@@ -493,7 +493,7 @@ describe('ListInvitesHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.data[0].status).toBe(InviteCodeStatus.EXPIRED);
+      expect(result.value.data[0].status).toBe(InviteCodeStatus.EXPIRED);
     });
 
     it('should return REVOKED status for revoked codes (highest priority)', async () => {
@@ -504,8 +504,8 @@ describe('ListInvitesHandler', () => {
 
       // Abgelaufen UND widerrufen - REVOKED sollte gewinnen
       const mockInvite = InviteCode.reconstruct({
-        id: InviteCodeId.create().value!,
-        code: InviteCodeValue.generate().value!,
+        id: InviteCodeId.create().value,
+        code: InviteCodeValue.generate().value,
         expiresAt: pastDate,
         maxUses: 10,
         usedCount: 10,
@@ -524,7 +524,7 @@ describe('ListInvitesHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.data[0].status).toBe(InviteCodeStatus.REVOKED);
+      expect(result.value.data[0].status).toBe(InviteCodeStatus.REVOKED);
     });
   });
 
@@ -568,11 +568,11 @@ describe('ListInvitesQuery', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.requestedById).toBe('admin_123');
-      expect(result.value!.pagination.page).toBe(1);
-      expect(result.value!.pagination.pageSize).toBe(20);
-      expect(result.value!.sort.field).toBe('createdAt');
-      expect(result.value!.sort.direction).toBe('desc');
+      expect(result.value.requestedById).toBe('admin_123');
+      expect(result.value.pagination.page).toBe(1);
+      expect(result.value.pagination.pageSize).toBe(20);
+      expect(result.value.sort.field).toBe('createdAt');
+      expect(result.value.sort.direction).toBe('desc');
     });
 
     it('should fail when requestedById is empty', () => {
@@ -643,7 +643,7 @@ describe('ListInvitesQuery', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.filters?.status).toBe(InviteCodeStatus.ACTIVE);
+      expect(result.value.filters?.status).toBe(InviteCodeStatus.ACTIVE);
     });
 
     it('should accept all valid sort fields', () => {
@@ -657,7 +657,7 @@ describe('ListInvitesQuery', () => {
           sort: { field, direction: 'asc' },
         });
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.sort.field).toBe(field);
+        expect(result.value.sort.field).toBe(field);
       }
     });
   });

@@ -4,7 +4,6 @@ import { Erinnerung } from '@domain/entities/erinnerung.entity';
 import { ErinnerungId } from '@domain/value-objects/erinnerung-id';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import type { PrismaClient } from '@/generated/prisma/client';
-// biome-ignore lint/style/noRestrictedImports: Logger wird direkt in Repository verwendet (kein DI-Context für statischen Logger)
 import { Injectable, Logger } from '@nestjs/common';
 import { Result } from '@domain/common/result';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
@@ -571,7 +570,6 @@ export class PrismaErinnerungRepository implements IErinnerungRepository {
       }
 
       // Einsatzdauer berechnen
-      // biome-ignore lint/style/noNonNullAssertion: length > 1 is guaranteed by early return above
       let minTime = erinnerungen[0]!.createdAt.getTime();
       let maxTime = minTime;
       for (const e of erinnerungen) {
@@ -732,11 +730,8 @@ export class PrismaErinnerungRepository implements IErinnerungRepository {
         return {
           erinnerungId: erinnerungIdResult.isSuccess ? erinnerungIdResult.value! : ErinnerungId.create('unknown').value!,
           titel: item.titel,
-          // biome-ignore lint/style/noNonNullAssertion: filtered above
           ausgeloestAm: item.ausgeloestAm!,
-          // biome-ignore lint/style/noNonNullAssertion: filtered above
           eskaliertAm: item.eskaliertAm!,
-          // biome-ignore lint/style/noNonNullAssertion: filtered above
           zeitBisEskalationSeconds: Math.max(0, (item.eskaliertAm!.getTime() - item.ausgeloestAm!.getTime()) / 1000),
           eskaliertAnId: eskaliertAnIdResult.isSuccess ? eskaliertAnIdResult.value! : UserId.create('SYSTEM').value!,
           previousAssigneeId: previousAssigneeIdResult?.isSuccess ? previousAssigneeIdResult.value! : null,
@@ -809,10 +804,8 @@ export class PrismaErinnerungRepository implements IErinnerungRepository {
       let medianMs: number;
       const mid = Math.floor(sorted.length / 2);
       if (sorted.length % 2 === 0) {
-        // biome-ignore lint/style/noNonNullAssertion: mid and mid-1 guaranteed by length check
         medianMs = (sorted[mid - 1]! + sorted[mid]!) / 2;
       } else {
-        // biome-ignore lint/style/noNonNullAssertion: mid guaranteed by length check
         medianMs = sorted[mid]!;
       }
       const medianReaktionszeitSeconds = Math.max(0, medianMs / 1000);
@@ -1116,7 +1109,7 @@ export class PrismaErinnerungRepository implements IErinnerungRepository {
         // Durchschnittliche Reaktionszeit in Sekunden
         const einsatzReaktionszeiten = reaktionszeiten
           .filter((r) => r.einsatzId === einsatz.id)
-          .map((r) => (r.acknowledgedAm!.getTime() - r.ausgeloestAm!.getTime()) / 1000)
+          .map((r) => (r.acknowledgedAm?.getTime() - r.ausgeloestAm?.getTime()) / 1000)
           .filter((seconds) => seconds >= 0);
 
         const durchschnittlicheReaktionszeit = einsatzReaktionszeiten.length > 0 ? einsatzReaktionszeiten.reduce((a, b) => a + b, 0) / einsatzReaktionszeiten.length : null;

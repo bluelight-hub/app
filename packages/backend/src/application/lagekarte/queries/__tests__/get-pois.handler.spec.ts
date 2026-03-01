@@ -45,7 +45,6 @@ describe('GetPoisQueryHandler', () => {
       save: jest.fn(),
       findByEinsatzId: jest.fn(),
       exists: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     // Instantiate handler with mock (Direct Instantiation Pattern)
@@ -84,10 +83,10 @@ describe('GetPoisQueryHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.length).toBe(2);
+      expect(result.value?.length).toBe(2);
 
       // Verify both POIs are in result
-      const poiNames = result.value!.map((p) => p.name);
+      const poiNames = result.value?.map((p) => p.name);
       expect(poiNames).toContain('Einsatzstelle Berlin');
       expect(poiNames).toContain('Bereitstellungsraum Hamburg');
 
@@ -124,14 +123,14 @@ describe('GetPoisQueryHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.length).toBe(2);
+      expect(result.value?.length).toBe(2);
 
       // Verify only EINSATZSTELLE POIs are returned
-      result.value!.forEach((poi) => {
+      result.value?.forEach((poi) => {
         expect(poi.category).toBe('EINSATZSTELLE');
       });
 
-      const poiNames = result.value!.map((p) => p.name);
+      const poiNames = result.value?.map((p) => p.name);
       expect(poiNames).toContain('Einsatzstelle 1');
       expect(poiNames).toContain('Einsatzstelle 2');
       expect(poiNames).not.toContain('Bereitstellungsraum 1');
@@ -162,7 +161,7 @@ describe('GetPoisQueryHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toEqual([]);
-      expect(result.value!.length).toBe(0);
+      expect(result.value?.length).toBe(0);
     });
 
     it('should return empty array when Lagekarte has no POIs', async () => {
@@ -184,7 +183,7 @@ describe('GetPoisQueryHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toEqual([]);
-      expect(result.value!.length).toBe(0);
+      expect(result.value?.length).toBe(0);
     });
 
     it('should return DTOs with both MGRS and Lat/Lng coordinates', async () => {
@@ -210,9 +209,9 @@ describe('GetPoisQueryHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.length).toBe(1);
+      expect(result.value?.length).toBe(1);
 
-      const poiDto = result.value![0];
+      const poiDto = result.value?.[0];
       expect(poiDto.name).toBe('Brandenburger Tor');
       expect(poiDto.category).toBe('EINSATZSTELLE');
       expect(poiDto.coordinate).toBeDefined();
@@ -250,7 +249,7 @@ describe('GetPoisQueryHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value![0].beschreibung).toBe('Rauchentwicklung im 2. OG');
+      expect(result.value?.[0].beschreibung).toBe('Rauchentwicklung im 2. OG');
     });
 
     it('should filter by multiple different categories independently', async () => {
@@ -274,22 +273,22 @@ describe('GetPoisQueryHandler', () => {
       const result1 = await handler.execute(new GetPoisQuery(lagekarteId, 'EINSATZSTELLE'));
 
       // Then
-      expect(result1.value!.length).toBe(2);
-      expect(result1.value!.every((p) => p.category === 'EINSATZSTELLE')).toBe(true);
+      expect(result1.value?.length).toBe(2);
+      expect(result1.value?.every((p) => p.category === 'EINSATZSTELLE')).toBe(true);
 
       // When - Query BEREITSTELLUNGSRAUM
       const result2 = await handler.execute(new GetPoisQuery(lagekarteId, 'BEREITSTELLUNGSRAUM'));
 
       // Then
-      expect(result2.value!.length).toBe(1);
-      expect(result2.value![0].category).toBe('BEREITSTELLUNGSRAUM');
+      expect(result2.value?.length).toBe(1);
+      expect(result2.value?.[0].category).toBe('BEREITSTELLUNGSRAUM');
 
       // When - Query GEFAHRENSTELLE
       const result3 = await handler.execute(new GetPoisQuery(lagekarteId, 'GEFAHRENSTELLE'));
 
       // Then
-      expect(result3.value!.length).toBe(1);
-      expect(result3.value![0].category).toBe('GEFAHRENSTELLE');
+      expect(result3.value?.length).toBe(1);
+      expect(result3.value?.[0].category).toBe('GEFAHRENSTELLE');
     });
   });
 
@@ -450,10 +449,10 @@ describe('GetPoisQueryHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.length).toBe(20);
+      expect(result.value?.length).toBe(20);
 
       // Verify all POIs have correct structure
-      result.value!.forEach((poi, index) => {
+      result.value?.forEach((poi, index) => {
         expect(poi.name).toBe(`POI ${index}`);
         expect(poi.coordinate.mgrs).toBeDefined();
         expect(poi.coordinate.lat).toBeDefined();
@@ -530,8 +529,8 @@ describe('GetPoisQueryHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.length).toBe(1); // Match due to case-insensitive normalization
-      expect(result.value![0].category).toBe('EINSATZSTELLE');
+      expect(result.value?.length).toBe(1); // Match due to case-insensitive normalization
+      expect(result.value?.[0].category).toBe('EINSATZSTELLE');
     });
   });
 

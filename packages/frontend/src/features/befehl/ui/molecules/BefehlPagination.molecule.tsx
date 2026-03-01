@@ -28,8 +28,8 @@ export function BefehlPagination({ currentPage, totalPages, totalItems, pageSize
   const rangeEnd = rangeStart + itemsOnPage - 1;
 
   return (
-    <nav className={cn('flex items-center justify-between border-t border-gray-200 px-2 py-3 dark:border-gray-700', className)} aria-label="Tabellen-Pagination">
-      <span className="text-sm text-gray-500 dark:text-gray-400">
+    <nav className={cn('flex items-center justify-between border-gray-200 border-t px-2 py-3 dark:border-gray-700', className)} aria-label="Tabellen-Pagination">
+      <span className="text-gray-500 text-sm dark:text-gray-400">
         {rangeStart}–{rangeEnd} von {totalItems} {totalItems === 1 ? 'Befehl' : 'Befehlen'}
       </span>
 
@@ -39,7 +39,7 @@ export function BefehlPagination({ currentPage, totalPages, totalItems, pageSize
           onClick={onPreviousPage}
           disabled={!canPreviousPage}
           className={cn(
-            'inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium',
+            'inline-flex items-center gap-1 rounded-md px-3 py-1.5 font-medium text-sm',
             'transition-colors motion-reduce:transition-none',
             canPreviousPage ? 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800' : 'cursor-not-allowed text-gray-300 dark:text-gray-600',
           )}
@@ -49,7 +49,7 @@ export function BefehlPagination({ currentPage, totalPages, totalItems, pageSize
           Zurück
         </button>
 
-        <span className="text-sm text-gray-700 dark:text-gray-300">
+        <span className="text-gray-700 text-sm dark:text-gray-300">
           Seite {currentPage} von {totalPages}
         </span>
 
@@ -58,7 +58,7 @@ export function BefehlPagination({ currentPage, totalPages, totalItems, pageSize
           onClick={onNextPage}
           disabled={!canNextPage}
           className={cn(
-            'inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium',
+            'inline-flex items-center gap-1 rounded-md px-3 py-1.5 font-medium text-sm',
             'transition-colors motion-reduce:transition-none',
             canNextPage ? 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800' : 'cursor-not-allowed text-gray-300 dark:text-gray-600',
           )}

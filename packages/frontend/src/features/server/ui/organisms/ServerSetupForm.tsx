@@ -85,7 +85,6 @@ function getZodError(result: { success: boolean; error?: { issues?: Array<{ mess
  *
  * Kann entfernt werden wenn @tanstack/store > 0.8.0 das Derived-Propagation-Problem behebt.
  */
-// biome-ignore lint/suspicious/noExplicitAny: Zugriff auf TanStack Store Internals nötig für Workaround
 function forceFieldStoreSync(form: any, fieldName: string): void {
   const fieldInfo = form.getFieldInfo(fieldName);
   const fieldStore = fieldInfo?.instance?.store;

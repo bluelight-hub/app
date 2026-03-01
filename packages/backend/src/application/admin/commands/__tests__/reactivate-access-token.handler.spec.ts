@@ -40,11 +40,11 @@ describe('ReactivateAccessTokenHandler', () => {
 
   // Helper: Create a mock ServerAccessToken (revoked by default for reactivate tests)
   const createMockToken = (overrides: Partial<{ isRevoked: boolean; name: string }> = {}): ServerAccessToken => {
-    const tokenHash = TokenHash.create('$2a$10$abcdefghijklmnopqrstuvwxyz123456789012345678901234').value!;
+    const tokenHash = TokenHash.create('$2a$10$abcdefghijklmnopqrstuvwxyz123456789012345678901234').value;
     const token = ServerAccessToken.create({
       tokenHash,
       name: overrides.name ?? 'Test Token',
-    }).value!;
+    }).value;
 
     // Clear creation event first
     token.clearDomainEvents();
@@ -114,7 +114,7 @@ describe('ReactivateAccessTokenHandler', () => {
     return ReactivateAccessTokenCommand.create({
       tokenId: tokenId ?? 'blh_abc123def456ghi789jkl012',
       requestedById: 'user_abc123def456',
-    }).value!;
+    }).value;
   }
 
   describe('execute() - Success Cases', () => {
@@ -130,7 +130,7 @@ describe('ReactivateAccessTokenHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.status).toBe('active');
+      expect(result.value.status).toBe('active');
     });
 
     it('should return TokenListItemDto with correct fields', async () => {
@@ -144,11 +144,11 @@ describe('ReactivateAccessTokenHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.id).toBe(mockToken.id.toString());
-      expect(result.value!.name).toBe('CI/CD Token');
-      expect(result.value!.prefix).toBeDefined();
-      expect(result.value!.createdAt).toBeDefined();
-      expect(result.value!.status).toBe('active');
+      expect(result.value.id).toBe(mockToken.id.toString());
+      expect(result.value.name).toBe('CI/CD Token');
+      expect(result.value.prefix).toBeDefined();
+      expect(result.value.createdAt).toBeDefined();
+      expect(result.value.status).toBe('active');
     });
 
     it('should be idempotent - reactivating already active token succeeds', async () => {
@@ -162,7 +162,7 @@ describe('ReactivateAccessTokenHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.status).toBe('active');
+      expect(result.value.status).toBe('active');
     });
 
     it('should save token to repository', async () => {
@@ -336,7 +336,7 @@ describe('ReactivateAccessTokenHandler', () => {
       const command = ReactivateAccessTokenCommand.create({
         tokenId: mockToken.id.toString(),
         requestedById: 'admin_user_123',
-      }).value!;
+      }).value;
 
       // When (Act)
       const result = await handler.execute(command);

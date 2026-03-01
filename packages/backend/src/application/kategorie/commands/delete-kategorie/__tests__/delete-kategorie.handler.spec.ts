@@ -89,7 +89,7 @@ describe('DeleteKategorieHandler', () => {
 
     const commandResult = DeleteKategorieCommand.create({
       kategorieId: kategorie.id.toString(),
-      geloeschtVon: UserId.create().value!.toString(),
+      geloeschtVon: UserId.create().value?.toString(),
     });
     expect(commandResult.isSuccess).toBe(true);
 
@@ -110,7 +110,7 @@ describe('DeleteKategorieHandler', () => {
 
     const commandResult = DeleteKategorieCommand.create({
       kategorieId: 'nonexistent-id',
-      geloeschtVon: UserId.create().value!.toString(),
+      geloeschtVon: UserId.create().value?.toString(),
     });
     expect(commandResult.isSuccess).toBe(true);
 
@@ -130,7 +130,7 @@ describe('DeleteKategorieHandler', () => {
 
     const commandResult = DeleteKategorieCommand.create({
       kategorieId: deletedKategorie.id.toString(),
-      geloeschtVon: UserId.create().value!.toString(),
+      geloeschtVon: UserId.create().value?.toString(),
     });
     expect(commandResult.isSuccess).toBe(true);
 
@@ -150,7 +150,7 @@ describe('DeleteKategorieHandler', () => {
 
     const commandResult = DeleteKategorieCommand.create({
       kategorieId: kategorie.id.toString(),
-      geloeschtVon: UserId.create().value!.toString(),
+      geloeschtVon: UserId.create().value?.toString(),
     });
 
     // When (Act)
@@ -202,8 +202,8 @@ describe('DeleteKategorieHandler', () => {
         geloeschtVon: 'user-123',
       });
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.kategorieId).toBe('kategorie-id');
-      expect(result.value!.geloeschtVon).toBe('user-123');
+      expect(result.value?.kategorieId).toBe('kategorie-id');
+      expect(result.value?.geloeschtVon).toBe('user-123');
     });
 
     it('should trim kategorieId and geloeschtVon', () => {
@@ -212,8 +212,8 @@ describe('DeleteKategorieHandler', () => {
         geloeschtVon: '  user-123  ',
       });
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.kategorieId).toBe('kategorie-id');
-      expect(result.value!.geloeschtVon).toBe('user-123');
+      expect(result.value?.kategorieId).toBe('kategorie-id');
+      expect(result.value?.geloeschtVon).toBe('user-123');
     });
   });
 });

@@ -10,7 +10,7 @@ describe('ComplianceReportService', () => {
       save: jest.fn().mockResolvedValue(Result.ok(undefined)),
     };
 
-    service = new ComplianceReportService(mockRepository as any);
+    service = new ComplianceReportService(mockRepository as unknown);
   });
 
   describe('erstelleAnonymisierungsReport', () => {

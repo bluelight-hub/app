@@ -876,7 +876,6 @@ describe('RegistrierePersonViaQrCodeCommand', () => {
     describe('edge cases', () => {
       it('should throw when props object is undefined', () => {
         // Given
-        // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of invalid input types
         const props = undefined as any;
 
         // When/Then - Implementation throws TypeError for undefined props
@@ -886,15 +885,10 @@ describe('RegistrierePersonViaQrCodeCommand', () => {
       it('should handle undefined props gracefully', () => {
         // Given
         const props = {
-          // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of invalid input types
           einsatzId: undefined as any,
-          // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of invalid input types
           personalnummer: undefined as any,
-          // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of invalid input types
           vorname: undefined as any,
-          // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of invalid input types
           nachname: undefined as any,
-          // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of invalid input types
           registriertVon: undefined as any,
         };
 
@@ -909,15 +903,10 @@ describe('RegistrierePersonViaQrCodeCommand', () => {
       it('should handle null props gracefully', () => {
         // Given
         const props = {
-          // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of invalid input types
           einsatzId: null as any,
-          // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of invalid input types
           personalnummer: null as any,
-          // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of invalid input types
           vorname: null as any,
-          // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of invalid input types
           nachname: null as any,
-          // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of invalid input types
           registriertVon: null as any,
         };
 
@@ -931,7 +920,6 @@ describe('RegistrierePersonViaQrCodeCommand', () => {
 
       it('should handle null field value in vorname', () => {
         // Given
-        // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of invalid input types
         const props = createValidProps({ vorname: null as any });
 
         // When
@@ -944,7 +932,6 @@ describe('RegistrierePersonViaQrCodeCommand', () => {
 
       it('should handle null field value in nachname', () => {
         // Given
-        // biome-ignore lint/suspicious/noExplicitAny: Test validates handling of invalid input types
         const props = createValidProps({ nachname: null as any });
 
         // When
@@ -1009,10 +996,10 @@ describe('RegistrierePersonViaQrCodeCommand', () => {
 
         // Then
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.personalnummer).toBe('87654321');
-        expect(result.value!.vorname).toBe('Erika');
-        expect(result.value!.nachname).toBe('Musterfrau');
-        expect(result.value!.funkkennung).toBe('4711');
+        expect(result.value?.personalnummer).toBe('87654321');
+        expect(result.value?.vorname).toBe('Erika');
+        expect(result.value?.nachname).toBe('Musterfrau');
+        expect(result.value?.funkkennung).toBe('4711');
       });
     });
 

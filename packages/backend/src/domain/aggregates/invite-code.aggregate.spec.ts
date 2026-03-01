@@ -74,12 +74,12 @@ describe('InviteCode Aggregate', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.id).toBeDefined();
-      expect(result.value!.code).toBeDefined();
-      expect(result.value!.expiresAt).toEqual(props.expiresAt);
-      expect(result.value!.maxUses).toBe(props.maxUses);
-      expect(result.value!.createdById).toBe(props.createdById);
-      expect(result.value!.label).toBe(props.label);
+      expect(result.value?.id).toBeDefined();
+      expect(result.value?.code).toBeDefined();
+      expect(result.value?.expiresAt).toEqual(props.expiresAt);
+      expect(result.value?.maxUses).toBe(props.maxUses);
+      expect(result.value?.createdById).toBe(props.createdById);
+      expect(result.value?.label).toBe(props.label);
     });
 
     it('should initialize usedCount to 0', () => {
@@ -91,7 +91,7 @@ describe('InviteCode Aggregate', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.usedCount).toBe(0);
+      expect(result.value?.usedCount).toBe(0);
     });
 
     it('should initialize isRevoked to false', () => {
@@ -103,8 +103,8 @@ describe('InviteCode Aggregate', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.isRevoked).toBe(false);
-      expect(result.value!.revokedAt).toBeNull();
+      expect(result.value?.isRevoked).toBe(false);
+      expect(result.value?.revokedAt).toBeNull();
     });
 
     it('should create without label when not provided', () => {
@@ -116,7 +116,7 @@ describe('InviteCode Aggregate', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.label).toBeNull();
+      expect(result.value?.label).toBeNull();
     });
 
     it('should generate unique InviteCodeId', () => {
@@ -131,7 +131,7 @@ describe('InviteCode Aggregate', () => {
       // Then (Assert)
       expect(result1.isSuccess).toBe(true);
       expect(result2.isSuccess).toBe(true);
-      expect(result1.value!.id.value).not.toBe(result2.value!.id.value);
+      expect(result1.value?.id.value).not.toBe(result2.value?.id.value);
     });
 
     it('should generate unique InviteCodeValue (8-character code)', () => {
@@ -146,9 +146,9 @@ describe('InviteCode Aggregate', () => {
       // Then (Assert)
       expect(result1.isSuccess).toBe(true);
       expect(result2.isSuccess).toBe(true);
-      expect(result1.value!.code.value).toHaveLength(8);
-      expect(result2.value!.code.value).toHaveLength(8);
-      expect(result1.value!.code.value).not.toBe(result2.value!.code.value);
+      expect(result1.value?.code.value).toHaveLength(8);
+      expect(result2.value?.code.value).toHaveLength(8);
+      expect(result1.value?.code.value).not.toBe(result2.value?.code.value);
     });
   });
 
@@ -267,7 +267,7 @@ describe('InviteCode Aggregate', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.maxUses).toBe(1);
+      expect(result.value?.maxUses).toBe(1);
     });
 
     it('should succeed when maxUses is 100 (maximum)', () => {
@@ -279,7 +279,7 @@ describe('InviteCode Aggregate', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.maxUses).toBe(100);
+      expect(result.value?.maxUses).toBe(100);
     });
 
     it('should succeed when maxUses is 50 (middle value)', () => {
@@ -291,7 +291,7 @@ describe('InviteCode Aggregate', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.maxUses).toBe(50);
+      expect(result.value?.maxUses).toBe(50);
     });
   });
 
@@ -319,8 +319,8 @@ describe('InviteCode Aggregate', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.label).toBe(maxLabel);
-      expect(result.value!.label!.length).toBe(100);
+      expect(result.value?.label).toBe(maxLabel);
+      expect(result.value?.label?.length).toBe(100);
     });
 
     it('should succeed when label is short', () => {
@@ -333,7 +333,7 @@ describe('InviteCode Aggregate', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.label).toBe(shortLabel);
+      expect(result.value?.label).toBe(shortLabel);
     });
 
     it('should succeed when label is empty string (treated as null)', () => {
@@ -346,7 +346,7 @@ describe('InviteCode Aggregate', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       // Leerer String wird als null behandelt oder bleibt leer
-      expect(result.value!.label === null || result.value!.label === '').toBe(true);
+      expect(result.value?.label === null || result.value?.label === '').toBe(true);
     });
   });
 
@@ -835,7 +835,7 @@ describe('InviteCode Aggregate', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      const events = result.value!.getDomainEvents();
+      const events = result.value?.getDomainEvents();
       expect(events).toHaveLength(1);
       expect(events[0]).toBeInstanceOf(InviteCodeCreatedEvent);
     });

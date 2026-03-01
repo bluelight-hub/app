@@ -129,7 +129,7 @@ describe('GetEinsatzTeilnehmerHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(2);
-      expect(result.value![0]).toEqual({
+      expect(result.value?.[0]).toEqual({
         userId: testUserId1,
         username: 'tschmidt',
         personVorname: 'Thomas',
@@ -138,7 +138,7 @@ describe('GetEinsatzTeilnehmerHandler', () => {
         personFunktion: 'Gruppenführer',
         joinedAt: joinedAt1.toISOString(),
       });
-      expect(result.value![1]).toEqual({
+      expect(result.value?.[1]).toEqual({
         userId: testUserId2,
         username: 'amueller',
         personVorname: 'Anna',

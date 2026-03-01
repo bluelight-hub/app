@@ -200,7 +200,7 @@ describe('RegistrierePersonViaQrCodeHandler', () => {
         expect(result.isSuccess).toBe(true);
         expect(result.value).toBeDefined();
         expect(typeof result.value).toBe('string'); // EinsatzPersonId (CUID2)
-        expect(result.value!.length).toBeGreaterThan(0);
+        expect(result.value?.length).toBeGreaterThan(0);
 
         // Verify repository call order (AC8)
         // CRITICAL Issue 11 Fix: Use expect.any(Object) for TX context
@@ -380,7 +380,7 @@ describe('RegistrierePersonViaQrCodeHandler', () => {
         expect(result.isSuccess).toBe(true);
         expect(result.value).toBeDefined();
         expect(typeof result.value).toBe('string'); // EinsatzPersonId (CUID2)
-        expect(result.value!.length).toBeGreaterThan(0);
+        expect(result.value?.length).toBeGreaterThan(0);
 
         // Verify repository call order
         expect(mockStammPersonRepository.findByPersonalnummer).toHaveBeenCalledWith('UNBEKANNT-123', expect.any(Object));

@@ -30,8 +30,8 @@ describe('RotateAccessTokenCommand', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.tokenId).toBe(props.tokenId);
-      expect(result.value!.requestedById).toBe(props.requestedById);
+      expect(result.value.tokenId).toBe(props.tokenId);
+      expect(result.value.requestedById).toBe(props.requestedById);
     });
 
     it('should create command with optional newName', () => {
@@ -43,7 +43,7 @@ describe('RotateAccessTokenCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.newName).toBe('Rotated Token');
+      expect(result.value.newName).toBe('Rotated Token');
     });
 
     it('should create command without newName (undefined)', () => {
@@ -56,7 +56,7 @@ describe('RotateAccessTokenCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.newName).toBeUndefined();
+      expect(result.value.newName).toBeUndefined();
     });
 
     it('should trim tokenId before validation', () => {
@@ -68,7 +68,7 @@ describe('RotateAccessTokenCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.tokenId).toBe('blh_abc123def456ghi789jkl012');
+      expect(result.value.tokenId).toBe('blh_abc123def456ghi789jkl012');
     });
 
     it('should trim newName before validation', () => {
@@ -80,7 +80,7 @@ describe('RotateAccessTokenCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.newName).toBe('Rotated Token');
+      expect(result.value.newName).toBe('Rotated Token');
     });
 
     it('should treat empty newName as undefined', () => {
@@ -92,7 +92,7 @@ describe('RotateAccessTokenCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.newName).toBeUndefined();
+      expect(result.value.newName).toBeUndefined();
     });
 
     it('should treat whitespace-only newName as undefined', () => {
@@ -104,7 +104,7 @@ describe('RotateAccessTokenCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.newName).toBeUndefined();
+      expect(result.value.newName).toBeUndefined();
     });
 
     it('should accept minimum tokenId length (24 characters)', () => {
@@ -127,7 +127,7 @@ describe('RotateAccessTokenCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.newName).toBe('ABC');
+      expect(result.value.newName).toBe('ABC');
     });
 
     it('should accept maximum newName length (50 characters)', () => {
@@ -140,7 +140,7 @@ describe('RotateAccessTokenCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.newName).toBe(longName);
+      expect(result.value.newName).toBe(longName);
     });
 
     it('should accept minimum requestedById length (8 characters)', () => {
@@ -300,7 +300,7 @@ describe('RotateAccessTokenCommand', () => {
 
       // When (Act)
       const result = RotateAccessTokenCommand.create(props);
-      const command = result.value!;
+      const command = result.value;
 
       // Then (Assert)
       // Properties should be readonly (TypeScript enforced, but verify values don't change)
@@ -321,7 +321,7 @@ describe('RotateAccessTokenCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.newName).toBe(specialName);
+      expect(result.value.newName).toBe(specialName);
     });
 
     it('should handle very long tokenId', () => {
@@ -334,7 +334,7 @@ describe('RotateAccessTokenCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.tokenId).toBe(longTokenId);
+      expect(result.value.tokenId).toBe(longTokenId);
     });
 
     it('should handle tokenId with blh_ prefix', () => {
@@ -346,7 +346,7 @@ describe('RotateAccessTokenCommand', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.tokenId.startsWith('blh_')).toBe(true);
+      expect(result.value.tokenId.startsWith('blh_')).toBe(true);
     });
   });
 });

@@ -14,7 +14,6 @@ export function FarbPresetPicker({ value, onChange, className }: FarbPresetPicke
   return (
     <div className={cn('flex flex-wrap gap-2', className)} role="radiogroup" aria-label="Farbauswahl">
       {KATEGORIE_FARB_PRESETS.map((preset) => (
-        // biome-ignore lint/a11y/useSemanticElements: button mit role=radio ist korrekt fuer Farbauswahl-Radiogroup
         <button
           key={preset.hex}
           type="button"
@@ -24,7 +23,7 @@ export function FarbPresetPicker({ value, onChange, className }: FarbPresetPicke
           title={preset.name}
           className={cn(
             'h-8 w-8 rounded-full border-2 transition-all',
-            value === preset.hex ? 'border-gray-900 ring-2 ring-offset-2 ring-gray-400 dark:border-white dark:ring-gray-500' : 'border-transparent hover:border-gray-300 dark:hover:border-gray-600',
+            value === preset.hex ? 'border-gray-900 ring-2 ring-gray-400 ring-offset-2 dark:border-white dark:ring-gray-500' : 'border-transparent hover:border-gray-300 dark:hover:border-gray-600',
           )}
           style={{ backgroundColor: preset.hex }}
           onClick={() => onChange(preset.hex)}

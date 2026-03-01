@@ -174,7 +174,6 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   const hasStartedRef = useRef(false);
 
   // Reset hasStartedRef when einsatzId changes (ref mutation doesn't require deps)
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Ref mutation doesn't require dependencies
   useEffect(() => {
     hasStartedRef.current = false;
   }, [einsatzId]);
@@ -204,7 +203,6 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   });
 
   // Automatisch Einsatz starten wenn Status ANGELEGT ist
-  // biome-ignore lint/correctness/useExhaustiveDependencies: startEinsatzMutation intentionally excluded to prevent re-trigger on mutation state changes
   useEffect(() => {
     console.log('Auto-start check:', {
       status: einsatz?.status,

@@ -265,10 +265,10 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
         // Then: Empty paginated result for this creator
         expect(result.isSuccess).toBe(true);
         expect(result.value).toBeDefined();
-        expect(result.value!.items).toEqual([]);
-        expect(result.value!.total).toBe(0);
-        expect(result.value!.page).toBe(1);
-        expect(result.value!.totalPages).toBe(0);
+        expect(result.value?.items).toEqual([]);
+        expect(result.value?.total).toBe(0);
+        expect(result.value?.page).toBe(1);
+        expect(result.value?.totalPages).toBe(0);
       });
     });
 
@@ -288,16 +288,16 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
 
         // Then: Default values applied
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.page).toBe(1);
-        expect(result.value!.pageSize).toBe(20);
-        expect(result.value!.items.length).toBe(3);
-        expect(result.value!.total).toBe(3);
-        expect(result.value!.totalPages).toBe(1);
+        expect(result.value?.page).toBe(1);
+        expect(result.value?.pageSize).toBe(20);
+        expect(result.value?.items.length).toBe(3);
+        expect(result.value?.total).toBe(3);
+        expect(result.value?.totalPages).toBe(1);
 
         // Default sort: createdAt desc (neueste zuerst)
-        expect(result.value!.items[0].label).toBe('Code 3');
-        expect(result.value!.items[1].label).toBe('Code 2');
-        expect(result.value!.items[2].label).toBe('Code 1');
+        expect(result.value?.items[0].label).toBe('Code 3');
+        expect(result.value?.items[1].label).toBe('Code 2');
+        expect(result.value?.items[2].label).toBe('Code 1');
       });
     });
 
@@ -316,27 +316,27 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
 
         // Then: Page 1 contains first 2 items
         expect(page1Result.isSuccess).toBe(true);
-        expect(page1Result.value!.items.length).toBe(2);
-        expect(page1Result.value!.total).toBe(5);
-        expect(page1Result.value!.page).toBe(1);
-        expect(page1Result.value!.pageSize).toBe(2);
-        expect(page1Result.value!.totalPages).toBe(3); // ceil(5/2) = 3
+        expect(page1Result.value?.items.length).toBe(2);
+        expect(page1Result.value?.total).toBe(5);
+        expect(page1Result.value?.page).toBe(1);
+        expect(page1Result.value?.pageSize).toBe(2);
+        expect(page1Result.value?.totalPages).toBe(3); // ceil(5/2) = 3
 
         // When: Query page 2
         const page2Result = await repository.findAll({ createdById: testUserId }, undefined, { page: 2, pageSize: 2 });
 
         // Then: Page 2 contains next 2 items
         expect(page2Result.isSuccess).toBe(true);
-        expect(page2Result.value!.items.length).toBe(2);
-        expect(page2Result.value!.page).toBe(2);
+        expect(page2Result.value?.items.length).toBe(2);
+        expect(page2Result.value?.page).toBe(2);
 
         // When: Query page 3 (last page)
         const page3Result = await repository.findAll({ createdById: testUserId }, undefined, { page: 3, pageSize: 2 });
 
         // Then: Page 3 contains remaining 1 item
         expect(page3Result.isSuccess).toBe(true);
-        expect(page3Result.value!.items.length).toBe(1);
-        expect(page3Result.value!.page).toBe(3);
+        expect(page3Result.value?.items.length).toBe(1);
+        expect(page3Result.value?.page).toBe(3);
       });
 
       it('should return empty array when page exceeds total pages', async () => {
@@ -352,9 +352,9 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
 
         // Then: Empty items but correct total
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.items).toEqual([]);
-        expect(result.value!.total).toBe(3);
-        expect(result.value!.page).toBe(100);
+        expect(result.value?.items).toEqual([]);
+        expect(result.value?.total).toBe(3);
+        expect(result.value?.page).toBe(100);
       });
 
       it('should limit pageSize to maximum 100', async () => {
@@ -369,7 +369,7 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
 
         // Then: pageSize capped at 100
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.pageSize).toBe(100);
+        expect(result.value?.pageSize).toBe(100);
       });
     });
 
@@ -389,17 +389,17 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
 
         // Then: Only user1 codes returned
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.items.length).toBe(3);
-        expect(result.value!.total).toBe(3);
-        expect(result.value!.items.every((code) => code.createdById === testUserId)).toBe(true);
+        expect(result.value?.items.length).toBe(3);
+        expect(result.value?.total).toBe(3);
+        expect(result.value?.items.every((code) => code.createdById === testUserId)).toBe(true);
 
         // When: Filter by user2
         const result2 = await repository.findAll({ createdById: testUserId2 });
 
         // Then: Only user2 codes returned
         expect(result2.isSuccess).toBe(true);
-        expect(result2.value!.items.length).toBe(2);
-        expect(result2.value!.total).toBe(2);
+        expect(result2.value?.items.length).toBe(2);
+        expect(result2.value?.total).toBe(2);
       });
 
       it('should return empty when createdById has no codes', async () => {
@@ -413,8 +413,8 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
 
         // Then: Empty result
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.items).toEqual([]);
-        expect(result.value!.total).toBe(0);
+        expect(result.value?.items).toEqual([]);
+        expect(result.value?.total).toBe(0);
       });
     });
 
@@ -436,9 +436,9 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
 
         // Then: Only active codes returned
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.items.length).toBe(1);
-        expect(result.value!.total).toBe(1);
-        expect(result.value!.items[0].computeStatus()).toBe(InviteCodeStatus.ACTIVE);
+        expect(result.value?.items.length).toBe(1);
+        expect(result.value?.total).toBe(1);
+        expect(result.value?.items[0].computeStatus()).toBe(InviteCodeStatus.ACTIVE);
       });
 
       it('should filter by USED status', async () => {
@@ -457,8 +457,8 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
 
         // Then: Only used codes returned
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.items.length).toBe(2);
-        expect(result.value!.items.every((code) => code.computeStatus() === InviteCodeStatus.USED)).toBe(true);
+        expect(result.value?.items.length).toBe(2);
+        expect(result.value?.items.every((code) => code.computeStatus() === InviteCodeStatus.USED)).toBe(true);
       });
 
       it('should filter by EXPIRED status', async () => {
@@ -474,8 +474,8 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
 
         // Then: Only expired codes returned
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.items.length).toBe(2);
-        expect(result.value!.items.every((code) => code.computeStatus() === InviteCodeStatus.EXPIRED)).toBe(true);
+        expect(result.value?.items.length).toBe(2);
+        expect(result.value?.items.every((code) => code.computeStatus() === InviteCodeStatus.EXPIRED)).toBe(true);
       });
 
       it('should filter by REVOKED status', async () => {
@@ -490,9 +490,9 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
 
         // Then: Only revoked codes returned
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.items.length).toBe(1);
-        expect(result.value!.items[0].isRevoked).toBe(true);
-        expect(result.value!.items[0].computeStatus()).toBe(InviteCodeStatus.REVOKED);
+        expect(result.value?.items.length).toBe(1);
+        expect(result.value?.items[0].isRevoked).toBe(true);
+        expect(result.value?.items[0].computeStatus()).toBe(InviteCodeStatus.REVOKED);
       });
 
       it('should combine status filter with pagination', async () => {
@@ -512,9 +512,9 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
 
         // Then: Pagination applied after status filter
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.items.length).toBe(2);
-        expect(result.value!.total).toBe(5); // Only 5 active
-        expect(result.value!.totalPages).toBe(3); // ceil(5/2) = 3
+        expect(result.value?.items.length).toBe(2);
+        expect(result.value?.total).toBe(5); // Only 5 active
+        expect(result.value?.totalPages).toBe(3); // ceil(5/2) = 3
       });
     });
 
@@ -534,9 +534,9 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
 
         // Then: Oldest first
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.items[0].label).toBe('First');
-        expect(result.value!.items[1].label).toBe('Second');
-        expect(result.value!.items[2].label).toBe('Third');
+        expect(result.value?.items[0].label).toBe('First');
+        expect(result.value?.items[1].label).toBe('Second');
+        expect(result.value?.items[2].label).toBe('Third');
       });
 
       it('should sort by createdAt descending', async () => {
@@ -554,9 +554,9 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
 
         // Then: Newest first
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.items[0].label).toBe('Third');
-        expect(result.value!.items[1].label).toBe('Second');
-        expect(result.value!.items[2].label).toBe('First');
+        expect(result.value?.items[0].label).toBe('Third');
+        expect(result.value?.items[1].label).toBe('Second');
+        expect(result.value?.items[2].label).toBe('First');
       });
 
       it('should sort by expiresAt ascending', async () => {
@@ -577,9 +577,9 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
 
         // Then: Soonest expiry first
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.items[0].label).toBe('Expires 1h');
-        expect(result.value!.items[1].label).toBe('Expires 2h');
-        expect(result.value!.items[2].label).toBe('Expires 3h');
+        expect(result.value?.items[0].label).toBe('Expires 1h');
+        expect(result.value?.items[1].label).toBe('Expires 2h');
+        expect(result.value?.items[2].label).toBe('Expires 3h');
       });
 
       it('should sort by expiresAt descending', async () => {
@@ -600,9 +600,9 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
 
         // Then: Latest expiry first
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.items[0].label).toBe('Expires 3h');
-        expect(result.value!.items[1].label).toBe('Expires 2h');
-        expect(result.value!.items[2].label).toBe('Expires 1h');
+        expect(result.value?.items[0].label).toBe('Expires 3h');
+        expect(result.value?.items[1].label).toBe('Expires 2h');
+        expect(result.value?.items[2].label).toBe('Expires 1h');
       });
 
       it('should sort by useCount ascending', async () => {
@@ -618,10 +618,10 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
 
         // Then: Least used first
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.items[0].label).toBe('Used 0');
-        expect(result.value!.items[0].usedCount).toBe(0);
-        expect(result.value!.items[1].label).toBe('Used 3');
-        expect(result.value!.items[2].label).toBe('Used 5');
+        expect(result.value?.items[0].label).toBe('Used 0');
+        expect(result.value?.items[0].usedCount).toBe(0);
+        expect(result.value?.items[1].label).toBe('Used 3');
+        expect(result.value?.items[2].label).toBe('Used 5');
       });
 
       it('should sort by useCount descending', async () => {
@@ -637,9 +637,9 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
 
         // Then: Most used first
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.items[0].label).toBe('Used 5');
-        expect(result.value!.items[1].label).toBe('Used 3');
-        expect(result.value!.items[2].label).toBe('Used 0');
+        expect(result.value?.items[0].label).toBe('Used 5');
+        expect(result.value?.items[1].label).toBe('Used 3');
+        expect(result.value?.items[2].label).toBe('Used 0');
       });
     });
 
@@ -658,9 +658,9 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
 
         // Then: Only user1 codes, sorted by expiresAt
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.items.length).toBe(2);
-        expect(result.value!.items[0].label).toBe('User1-Earlier');
-        expect(result.value!.items[1].label).toBe('User1-Later');
+        expect(result.value?.items.length).toBe(2);
+        expect(result.value?.items[0].label).toBe('User1-Earlier');
+        expect(result.value?.items[1].label).toBe('User1-Later');
       });
 
       it('should combine status filter with createdById filter', async () => {
@@ -679,9 +679,9 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
 
         // Then: Only active codes from testUserId
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.items.length).toBe(1);
-        expect(result.value!.items[0].createdById).toBe(testUserId);
-        expect(result.value!.items[0].computeStatus()).toBe(InviteCodeStatus.ACTIVE);
+        expect(result.value?.items.length).toBe(1);
+        expect(result.value?.items[0].createdById).toBe(testUserId);
+        expect(result.value?.items[0].computeStatus()).toBe(InviteCodeStatus.ACTIVE);
       });
     });
   });
@@ -718,8 +718,8 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
         where: { id: inviteCode.id.value },
       });
       expect(dbRecord).not.toBeNull();
-      expect(dbRecord!.label).toBe('Test Label');
-      expect(dbRecord!.maxUses).toBe(5);
+      expect(dbRecord?.label).toBe('Test Label');
+      expect(dbRecord?.maxUses).toBe(5);
     });
 
     it('should update existing InviteCode (UPSERT idempotency)', async () => {
@@ -751,7 +751,7 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
       const dbRecord = await prisma.inviteCode.findUnique({
         where: { id: inviteCode.id.value },
       });
-      expect(dbRecord!.label).toBe('Updated Label');
+      expect(dbRecord?.label).toBe('Updated Label');
     });
   });
 
@@ -772,8 +772,8 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
       // Then: Returns correct aggregate
       expect(result.isSuccess).toBe(true);
       expect(result.value).not.toBeNull();
-      expect(result.value!.id.value).toBe(saved.id.value);
-      expect(result.value!.label).toBe('FindById Test');
+      expect(result.value?.id.value).toBe(saved.id.value);
+      expect(result.value?.label).toBe('FindById Test');
     });
 
     it('should return null when not found', async () => {
@@ -804,7 +804,7 @@ describe('PrismaInviteCodeRepository - Integration Tests', () => {
       // Then: Returns correct aggregate
       expect(result.isSuccess).toBe(true);
       expect(result.value).not.toBeNull();
-      expect(result.value!.code.value).toBe(saved.code.value);
+      expect(result.value?.code.value).toBe(saved.code.value);
     });
 
     it('should return null when code not found', async () => {

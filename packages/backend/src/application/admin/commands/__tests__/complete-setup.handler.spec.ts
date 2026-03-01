@@ -150,7 +150,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       const result = await handler.execute(command);
@@ -158,18 +158,18 @@ describe('CompleteSetupHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.user).toBeDefined();
-      expect(result.value!.user.username).toBe('admin');
-      expect(result.value!.user.role).toBe('ADMIN');
-      expect(result.value!.accessToken).toBeDefined();
-      expect(result.value!.accessToken.token).toMatch(/^blh_/);
-      expect(result.value!.accessToken.name).toBe('Initial Setup Token');
+      expect(result.value.user).toBeDefined();
+      expect(result.value.user.username).toBe('admin');
+      expect(result.value.user.role).toBe('ADMIN');
+      expect(result.value.accessToken).toBeDefined();
+      expect(result.value.accessToken.token).toMatch(/^blh_/);
+      expect(result.value.accessToken.name).toBe('Initial Setup Token');
       // Invite Code assertions
-      expect(result.value!.inviteCode).toBeDefined();
-      expect(result.value!.inviteCode.code).toMatch(/^[A-Z0-9]{8}$/);
-      expect(result.value!.inviteCode.maxUses).toBe(10);
-      expect(result.value!.inviteCode.label).toBe('Initial Setup Invite');
-      expect(result.value!.inviteCode.expiresAt).toBeDefined();
+      expect(result.value.inviteCode).toBeDefined();
+      expect(result.value.inviteCode.code).toMatch(/^[A-Z0-9]{8}$/);
+      expect(result.value.inviteCode.maxUses).toBe(10);
+      expect(result.value.inviteCode.label).toBe('Initial Setup Invite');
+      expect(result.value.inviteCode.expiresAt).toBeDefined();
     });
 
     it('sollte countActiveByRoles mit korrekten Rollen aufrufen', async () => {
@@ -177,7 +177,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       await handler.execute(command);
@@ -193,7 +193,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       const result = await handler.execute(command);
@@ -212,7 +212,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       const result = await handler.execute(command);
@@ -227,7 +227,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       await handler.execute(command);
@@ -241,7 +241,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       await handler.execute(command);
@@ -259,14 +259,14 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       const result = await handler.execute(command);
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.accessToken.token).toMatch(/^blh_[a-z0-9]{24}$/);
+      expect(result.value.accessToken.token).toMatch(/^blh_[a-z0-9]{24}$/);
     });
 
     it('sollte Audit-Trail loggen mit User-Kontext und maskiertem Token-Prefix (AC4, 6.9 Fix)', async () => {
@@ -274,7 +274,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       await handler.execute(command);
@@ -369,7 +369,7 @@ describe('CompleteSetupHandler', () => {
 
       // Then (Assert)
       expect(commandResult.isSuccess).toBe(true);
-      expect(commandResult.value!.username).toBe('admin');
+      expect(commandResult.value.username).toBe('admin');
     });
 
     it('sollte Nutzername trimmen', () => {
@@ -381,7 +381,7 @@ describe('CompleteSetupHandler', () => {
 
       // Then (Assert)
       expect(commandResult.isSuccess).toBe(true);
-      expect(commandResult.value!.username).toBe('admin');
+      expect(commandResult.value.username).toBe('admin');
     });
   });
 
@@ -391,7 +391,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       await handler.execute(command);
@@ -405,7 +405,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       await handler.execute(command);
@@ -427,7 +427,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       const result = await handler.execute(command);
@@ -445,7 +445,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       const result = await handler.execute(command);
@@ -463,7 +463,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       const result = await handler.execute(command);
@@ -483,7 +483,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       const result = await handler.execute(command);
@@ -500,7 +500,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       const result = await handler.execute(command);
@@ -519,7 +519,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       await handler.execute(command);
@@ -535,7 +535,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       await handler.execute(command);
@@ -551,7 +551,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       await handler.execute(command);
@@ -569,14 +569,14 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       const result = await handler.execute(command);
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      const rawToken = result.value!.accessToken.token;
+      const rawToken = result.value.accessToken.token;
 
       // Pruefe ALLE Logger-Methoden auf Token-Leak (6.7 Security Fix)
       const allLogMethods = ['log', 'error', 'warn', 'debug'] as const;
@@ -597,7 +597,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       await handler.execute(command);
@@ -613,7 +613,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       await handler.execute(command);
@@ -632,7 +632,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       await handler.execute(command);
@@ -651,7 +651,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: longPassword,
-      }).value!;
+      }).value;
 
       // When (Act)
       const result = await handler.execute(command);
@@ -665,7 +665,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'P@$$w0rd!#%^&*()',
-      }).value!;
+      }).value;
 
       // When (Act)
       const result = await handler.execute(command);
@@ -679,14 +679,14 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin_user',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       const result = await handler.execute(command);
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.user.username).toBe('admin_user');
+      expect(result.value.user.username).toBe('admin_user');
     });
 
     it('sollte numerischen Nutzernamen akzeptieren', async () => {
@@ -694,14 +694,14 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin123',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       const result = await handler.execute(command);
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.user.username).toBe('admin123');
+      expect(result.value.user.username).toBe('admin123');
     });
   });
 
@@ -711,16 +711,16 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       const result = await handler.execute(command);
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.inviteCode).toBeDefined();
-      expect(result.value!.inviteCode.maxUses).toBe(10);
-      expect(result.value!.inviteCode.label).toBe('Initial Setup Invite');
+      expect(result.value.inviteCode).toBeDefined();
+      expect(result.value.inviteCode.maxUses).toBe(10);
+      expect(result.value.inviteCode.label).toBe('Initial Setup Invite');
     });
 
     it('sollte Invite-Code mit 7 Tagen Gueltigkeit erstellen', async () => {
@@ -728,7 +728,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       const beforeExecution = new Date();
 
@@ -737,7 +737,7 @@ describe('CompleteSetupHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      const expiresAt = new Date(result.value!.inviteCode.expiresAt);
+      const expiresAt = new Date(result.value.inviteCode.expiresAt);
       const expectedMin = new Date(beforeExecution);
       expectedMin.setDate(expectedMin.getDate() + 6); // Mindestens 6 Tage
       const expectedMax = new Date(beforeExecution);
@@ -752,7 +752,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       const result = await handler.execute(command);
@@ -760,7 +760,7 @@ describe('CompleteSetupHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       // InviteCodeValue generiert 8-stellige alphanumerische Codes (Grossbuchstaben + Zahlen)
-      expect(result.value!.inviteCode.code).toMatch(/^[A-Z0-9]{8}$/);
+      expect(result.value.inviteCode.code).toMatch(/^[A-Z0-9]{8}$/);
     });
 
     it('sollte Invite-Code im Audit-Log maskiert ausgeben', async () => {
@@ -768,14 +768,14 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       const result = await handler.execute(command);
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      const rawCode = result.value!.inviteCode.code;
+      const rawCode = result.value.inviteCode.code;
 
       // Der vollstaendige Code sollte NICHT in den Logs erscheinen
       const allLogMethods = ['log', 'error', 'warn', 'debug'] as const;
@@ -797,7 +797,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       await handler.execute(command);
@@ -816,7 +816,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       const result = await handler.execute(command);
@@ -825,7 +825,7 @@ describe('CompleteSetupHandler', () => {
       expect(result.isSuccess).toBe(true);
       const savedInviteCode = mockInviteCodeRepository.save.mock.calls[0][0];
       // Der createdById sollte die User-ID des Admin sein
-      expect(savedInviteCode.createdById).toBe(result.value!.user.id);
+      expect(savedInviteCode.createdById).toBe(result.value.user.id);
     });
   });
 
@@ -840,7 +840,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'password', // Bekanntes kompromittiertes Passwort
-      }).value!;
+      }).value;
 
       // When (Act)
       const result = await handler.execute(command);
@@ -862,7 +862,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'CompromisedPassword123',
-      }).value!;
+      }).value;
 
       // When (Act)
       await handler.execute(command);
@@ -883,14 +883,14 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       const result = await handler.execute(command);
 
       // Then (Assert): Setup sollte trotzdem erfolgreich sein
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.user.username).toBe('admin');
+      expect(result.value.user.username).toBe('admin');
       // Warning sollte geloggt werden
       expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining('HIBP check failed'));
     });
@@ -900,7 +900,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'MySecureTestPassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       await handler.execute(command);
@@ -925,7 +925,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'SecurePassword123!',
-      }).value!;
+      }).value;
 
       // When (Act)
       await handler.execute(command);
@@ -944,7 +944,7 @@ describe('CompleteSetupHandler', () => {
       const command = CompleteSetupCommand.create({
         username: 'admin',
         password: 'WeakPassword',
-      }).value!;
+      }).value;
 
       // When (Act)
       await handler.execute(command);

@@ -62,7 +62,7 @@ export function ZeitverlaufDiagramm({ einsatzId, className }: ZeitverlaufDiagram
           )}
 
           {!isLoading && !isError && (!chartData || chartData.length === 0) && (
-            <div className="flex h-[200px] items-center justify-center rounded-lg border border-dashed border-slate-300 dark:border-slate-600">
+            <div className="flex h-[200px] items-center justify-center rounded-lg border border-slate-300 border-dashed dark:border-slate-600">
               <div className="flex flex-col items-center gap-2 text-slate-500 dark:text-slate-400">
                 <PiChartLine className="h-8 w-8" />
                 <p className="text-sm">Noch keine Erinnerungen vorhanden</p>

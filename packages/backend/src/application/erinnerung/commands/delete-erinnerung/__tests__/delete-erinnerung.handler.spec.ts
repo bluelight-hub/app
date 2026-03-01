@@ -44,8 +44,8 @@ describe('DeleteErinnerungHandler', () => {
   /**
    * Generiert gültige CUID2 IDs für Tests.
    */
-  const generateValidErinnerungId = () => ErinnerungId.create().value!.toString();
-  const generateValidUserId = () => UserId.create().value!.toString();
+  const generateValidErinnerungId = () => ErinnerungId.create().value?.toString();
+  const generateValidUserId = () => UserId.create().value?.toString();
 
   /**
    * Erstellt ein gültiges Erinnerung Aggregate für Tests.
@@ -426,8 +426,8 @@ describe('DeleteErinnerungHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.erinnerungId).toBeDefined();
-      expect(result.value!.geloeschtVon).toBeDefined();
+      expect(result.value?.erinnerungId).toBeDefined();
+      expect(result.value?.geloeschtVon).toBeDefined();
     });
 
     it('should reject IDs with leading/trailing whitespace', () => {

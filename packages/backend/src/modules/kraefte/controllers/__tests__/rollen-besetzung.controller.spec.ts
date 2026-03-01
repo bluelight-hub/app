@@ -47,19 +47,16 @@ function createValidTestId(suffix = ''): string {
 const createMockBesetzeRolleHandler = (): jest.Mocked<BesetzeRolleHandler> =>
   ({
     execute: jest.fn().mockResolvedValue(Result.ok(createValidTestId('besetzung'))),
-    // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
   }) as any;
 
 const createMockGebeRolleFreiHandler = (): jest.Mocked<GebeRolleFreiHandler> =>
   ({
     execute: jest.fn().mockResolvedValue(Result.ok(undefined)),
-    // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
   }) as any;
 
 const createMockFindAllQueryHandler = (): jest.Mocked<FindAllRollenBesetzungQueryHandler> =>
   ({
     execute: jest.fn().mockResolvedValue(Result.ok([])),
-    // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
   }) as any;
 
 const createMockRepository = (): jest.Mocked<IRollenBesetzungRepository> =>
@@ -68,7 +65,6 @@ const createMockRepository = (): jest.Mocked<IRollenBesetzungRepository> =>
     findById: jest.fn().mockResolvedValue(Result.ok(null)),
     save: jest.fn().mockResolvedValue(Result.ok(undefined)),
     findByEinsatzIdAndRolleId: jest.fn().mockResolvedValue(Result.ok(null)),
-    // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
   }) as any;
 
 const createMockLogger = (): jest.Mocked<ILogger> => ({
@@ -108,7 +104,6 @@ const createMockRollenBesetzungAggregate = (overrides: Partial<{ id: string; ein
     isActive: true,
     freigegebenAm: undefined,
     freigegebenVon: undefined,
-    // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
   } as any;
 };
 

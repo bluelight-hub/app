@@ -8,7 +8,6 @@ import { FuehrungsrhythmusEintrag } from '@domain/fuehrungsrhythmus/value-object
 import { FuehrungsrhythmusTemplateId } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-template-id';
 import { FuehrungsrhythmusTemplateName } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-template-name';
 import { FuehrungsrhythmusTemplateScope } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-template-scope';
-import { ErinnerungErstelltEvent } from '@domain/events/erinnerung-erstellt.event';
 import { UserId } from '@domain/value-objects/user-id';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { ERINNERUNG_REPOSITORY, FUEHRUNGSRHYTHMUS_TEMPLATE_REPOSITORY, OUTBOX_REPOSITORY, LOGGER } from '@/infrastructure/di-tokens';
@@ -45,7 +44,7 @@ describe('ActivateFuehrungsrhythmusTemplateHandler', () => {
   const testUserIdString = testUserId.toString();
 
   /** Test Einsatz ID */
-  const testEinsatzIdString = UserId.create().value!.toString(); // CUID2 Format reicht
+  const testEinsatzIdString = UserId.create().value?.toString(); // CUID2 Format reicht
 
   /**
    * Erstellt ein rekonstruiertes Template mit den gegebenen Eintraegen.
@@ -136,10 +135,10 @@ describe('ActivateFuehrungsrhythmusTemplateHandler', () => {
     } as unknown as jest.Mocked<ILogger>;
 
     // Mock ErinnerungResponseFactory
-    let erinnerungCounter = 0;
+    let _erinnerungCounter = 0;
     mockErinnerungResponseFactory = {
       create: jest.fn().mockImplementation(async (erinnerung) => {
-        erinnerungCounter++;
+        _erinnerungCounter++;
         return {
           id: erinnerung.id.toString(),
           einsatzId: erinnerung.einsatzId.toString(),
@@ -221,9 +220,9 @@ describe('ActivateFuehrungsrhythmusTemplateHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.templateId).toBe(template.id.toString());
-      expect(result.value!.templateName).toBe('Test-Fuehrungsrhythmus');
-      expect(result.value!.erstellteErinnerungen).toHaveLength(3);
+      expect(result.value?.templateId).toBe(template.id.toString());
+      expect(result.value?.templateName).toBe('Test-Fuehrungsrhythmus');
+      expect(result.value?.erstellteErinnerungen).toHaveLength(3);
 
       // Erinnerungen wurden gespeichert
       expect(mockErinnerungRepository.save).toHaveBeenCalledTimes(3);
@@ -252,7 +251,7 @@ describe('ActivateFuehrungsrhythmusTemplateHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.erstellteErinnerungen).toHaveLength(1);
+      expect(result.value?.erstellteErinnerungen).toHaveLength(1);
 
       // ErinnerungResponseFactory.create wurde mit korrektem Erinnerung-Objekt aufgerufen
       expect(mockErinnerungResponseFactory.create).toHaveBeenCalledTimes(1);
@@ -335,7 +334,7 @@ describe('ActivateFuehrungsrhythmusTemplateHandler', () => {
       // Given (Arrange)
       mockTemplateRepository.findById.mockResolvedValue(null);
 
-      const templateId = FuehrungsrhythmusTemplateId.create().value!.toString();
+      const templateId = FuehrungsrhythmusTemplateId.create().value?.toString();
       const commandResult = createValidCommand(templateId);
       expect(commandResult.isSuccess).toBe(true);
       const command = commandResult.value!;

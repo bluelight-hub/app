@@ -44,7 +44,7 @@ export function KritikalitaetBadge({ type, className }: KritikalitaetBadgeProps)
   const config = BADGE_CONFIG[type];
 
   return (
-    <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium', config.bg, config.text, className)} title={config.ariaLabel}>
+    <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium text-xs', config.bg, config.text, className)} title={config.ariaLabel}>
       <config.Icon className="h-3.5 w-3.5" aria-hidden="true" />
       {config.label}
     </span>

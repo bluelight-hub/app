@@ -100,7 +100,7 @@ export function FuehrungsrhythmusStatistik({ einsatzId, className }: Fuehrungsrh
                     ? data.activations.map((activation, idx) => (
                         <Fragment key={activation.activationTimestamp}>
                           <Table.Row className="bg-slate-50 dark:bg-slate-800/50">
-                            <Table.Cell colSpan={4} className="font-medium text-xs text-slate-600 dark:text-slate-400">
+                            <Table.Cell colSpan={4} className="font-medium text-slate-600 text-xs dark:text-slate-400">
                               Aktivierung {idx + 1} — {new Date(activation.activationTimestamp).toLocaleString('de-DE')} (Zyklen: {activation.totalCycles}, Abschluss:{' '}
                               {(activation.completionRate * 100).toFixed(1)}%)
                             </Table.Cell>

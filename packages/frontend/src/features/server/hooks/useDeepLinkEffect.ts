@@ -37,7 +37,6 @@ export function useDeepLinkEffect() {
   const navigate = useNavigate();
   const exchangeInvite = useExchangeInvite();
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: exchangeInvite.mutateAsync causes re-registration on every mutation
   useEffect(() => {
     const deepLinkService = DeepLinkService.getInstance();
 

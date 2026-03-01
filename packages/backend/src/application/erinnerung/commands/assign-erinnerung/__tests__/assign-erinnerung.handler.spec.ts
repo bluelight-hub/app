@@ -40,17 +40,17 @@ describe('AssignErinnerungHandler', () => {
   /**
    * Generiert eine gültige CUID2 EinsatzId für Tests.
    */
-  const generateValidEinsatzId = () => EinsatzId.create().value!.toString();
+  const generateValidEinsatzId = () => EinsatzId.create().value?.toString();
 
   /**
    * Generiert eine gültige CUID2 UserId für Tests.
    */
-  const generateValidUserId = () => UserId.create().value!.toString();
+  const generateValidUserId = () => UserId.create().value?.toString();
 
   /**
    * Generiert eine gültige CUID2 ErinnerungId für Tests.
    */
-  const generateValidErinnerungId = () => ErinnerungId.create().value!.toString();
+  const generateValidErinnerungId = () => ErinnerungId.create().value?.toString();
 
   /**
    * Erstellt einen gültigen AssignErinnerungCommand für Tests.
@@ -200,8 +200,8 @@ describe('AssignErinnerungHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.id).toBe(erinnerungId);
-      expect(result.value!.assignedToId).toBe(assignedToId);
+      expect(result.value?.id).toBe(erinnerungId);
+      expect(result.value?.assignedToId).toBe(assignedToId);
       expect(mockErinnerungRepository.save).toHaveBeenCalledTimes(1);
       expect(mockOutboxRepository.save).toHaveBeenCalledTimes(1);
       expect(mockPrismaService.$transaction).toHaveBeenCalledTimes(1);
@@ -404,7 +404,7 @@ describe('AssignErinnerungHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.assignedToId).toBe(newTargetUserId);
+      expect(result.value?.assignedToId).toBe(newTargetUserId);
     });
 
     it('should emit correct event data when delegating (assignedBy is preserved)', async () => {

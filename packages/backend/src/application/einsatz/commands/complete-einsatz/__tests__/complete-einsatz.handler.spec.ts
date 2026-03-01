@@ -109,7 +109,6 @@ describe('CompleteEinsatzHandler', () => {
       findActive: jest.fn(),
       findByNummer: jest.fn(),
       exists: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
     mockPrismaService = {
@@ -210,15 +209,15 @@ describe('CompleteEinsatzHandler', () => {
       // Then
       const afterComplete = new Date();
       expect(einsatz.abgeschlossenAt).toBeDefined();
-      expect(einsatz.abgeschlossenAt!.getTime()).toBeGreaterThanOrEqual(beforeComplete.getTime());
-      expect(einsatz.abgeschlossenAt!.getTime()).toBeLessThanOrEqual(afterComplete.getTime());
+      expect(einsatz.abgeschlossenAt?.getTime()).toBeGreaterThanOrEqual(beforeComplete.getTime());
+      expect(einsatz.abgeschlossenAt?.getTime()).toBeLessThanOrEqual(afterComplete.getTime());
     });
   });
 
   describe('Failure Cases - Einsatz nicht gefunden', () => {
     it('sollte Exception werfen wenn Einsatz nicht gefunden', async () => {
       // Given
-      const command = CompleteEinsatzCommand.create(createValidTestId('ein123'), UserId.create().value!.value).value!;
+      const command = CompleteEinsatzCommand.create(createValidTestId('ein123'), UserId.create().value?.value).value!;
       mockRepository.findById.mockResolvedValue(Result.ok(null));
 
       // When
@@ -232,7 +231,7 @@ describe('CompleteEinsatzHandler', () => {
 
     it('sollte Exception werfen wenn Repository findById fehlschlägt', async () => {
       // Given
-      const command = CompleteEinsatzCommand.create(createValidTestId('ein123'), UserId.create().value!.value).value!;
+      const command = CompleteEinsatzCommand.create(createValidTestId('ein123'), UserId.create().value?.value).value!;
       mockRepository.findById.mockResolvedValue(Result.fail('Database connection error'));
 
       // When
@@ -311,7 +310,7 @@ describe('CompleteEinsatzHandler', () => {
       // Given
       const einsatz = createMockEinsatz({ status: EinsatzStatus.IN_BEARBEITUNG() });
       const userId = UserId.create().value!;
-      const command = CompleteEinsatzCommand.create(einsatz!.id.value, userId.value).value!;
+      const command = CompleteEinsatzCommand.create(einsatz?.id.value, userId.value).value!;
 
       mockRepository.findById.mockResolvedValue(Result.ok(einsatz));
       mockCompletenessService.canBeCompleted.mockReturnValue(Result.fail('Alarmstichwort fehlt'));
@@ -347,7 +346,7 @@ describe('CompleteEinsatzHandler', () => {
   describe('Failure Cases - Ungültige IDs', () => {
     it('sollte Exception werfen bei ungültiger EinsatzId', async () => {
       // Given - invalid format (too short)
-      const commandResult = CompleteEinsatzCommand.create('invalid-id', UserId.create().value!.value);
+      const commandResult = CompleteEinsatzCommand.create('invalid-id', UserId.create().value?.value);
       expect(commandResult.isSuccess).toBe(true); // Command validation passes
 
       // When
@@ -378,7 +377,7 @@ describe('CompleteEinsatzHandler', () => {
       // Given
       const einsatz = createMockEinsatz({ status: EinsatzStatus.IN_BEARBEITUNG() });
       const userId = UserId.create().value!;
-      const command = CompleteEinsatzCommand.create(einsatz!.id.value, userId.value).value!;
+      const command = CompleteEinsatzCommand.create(einsatz?.id.value, userId.value).value!;
 
       mockRepository.findById.mockResolvedValue(Result.ok(einsatz));
       mockCompletenessService.canBeCompleted.mockReturnValue(Result.ok(undefined));
@@ -436,7 +435,7 @@ describe('CompleteEinsatzHandler', () => {
 
     it('sollte KEINE Events publizieren wenn Einsatz nicht gefunden', async () => {
       // Given
-      const command = CompleteEinsatzCommand.create(createValidTestId('ein123'), UserId.create().value!.value).value!;
+      const command = CompleteEinsatzCommand.create(createValidTestId('ein123'), UserId.create().value?.value).value!;
       mockRepository.findById.mockResolvedValue(Result.ok(null));
 
       // When
@@ -564,7 +563,7 @@ describe('CompleteEinsatzHandler', () => {
     it('sollte UserId Value Object korrekt erstellen und verwenden', async () => {
       // Given
       const einsatz = createMockEinsatz({ status: EinsatzStatus.IN_BEARBEITUNG() });
-      const userIdValue = UserId.create().value!.value;
+      const userIdValue = UserId.create().value?.value;
       const command = CompleteEinsatzCommand.create(einsatz.id.value, userIdValue).value!;
 
       mockRepository.findById.mockResolvedValue(Result.ok(einsatz));
@@ -620,7 +619,7 @@ describe('CompleteEinsatzHandler', () => {
     describe('Validation Errors', () => {
       it('sollte EinsatzValidationException bei ungültiger EinsatzId werfen', async () => {
         // Given
-        const command = CompleteEinsatzCommand.create('invalid-id', UserId.create().value!.value).value!;
+        const command = CompleteEinsatzCommand.create('invalid-id', UserId.create().value?.value).value!;
 
         // When
         const result = await handler.execute(command);
@@ -658,7 +657,7 @@ describe('CompleteEinsatzHandler', () => {
     describe('Entity Not Found', () => {
       it('sollte EinsatzNotFoundException werfen wenn Einsatz nicht existiert', async () => {
         // Given
-        const command = CompleteEinsatzCommand.create(createValidTestId('ein123'), UserId.create().value!.value).value!;
+        const command = CompleteEinsatzCommand.create(createValidTestId('ein123'), UserId.create().value?.value).value!;
         mockRepository.findById.mockResolvedValue(Result.ok(null));
 
         // When
@@ -673,7 +672,7 @@ describe('CompleteEinsatzHandler', () => {
       it('sollte EinsatzNotFoundException mit einsatzId werfen', async () => {
         // Given
         const einsatzId = createValidTestId('ein456');
-        const command = CompleteEinsatzCommand.create(einsatzId, UserId.create().value!.value).value!;
+        const command = CompleteEinsatzCommand.create(einsatzId, UserId.create().value?.value).value!;
         mockRepository.findById.mockResolvedValue(Result.ok(null));
 
         // When
@@ -762,7 +761,7 @@ describe('CompleteEinsatzHandler', () => {
     describe('Repository/DB Errors', () => {
       it('sollte EinsatzPersistenceException bei Repository.findById Fehler werfen', async () => {
         // Given
-        const command = CompleteEinsatzCommand.create(createValidTestId('ein123'), UserId.create().value!.value).value!;
+        const command = CompleteEinsatzCommand.create(createValidTestId('ein123'), UserId.create().value?.value).value!;
         mockRepository.findById.mockResolvedValue(Result.fail('Database connection error'));
 
         // When

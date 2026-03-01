@@ -92,7 +92,7 @@ describe('BefehlEmpfaenger', () => {
       empfaenger.markAlsZugestellt();
 
       expect(empfaenger.zugestelltAm).toBeDefined();
-      expect(empfaenger.zugestelltAm!.getTime()).toBeGreaterThanOrEqual(before.getTime());
+      expect(empfaenger.zugestelltAm?.getTime()).toBeGreaterThanOrEqual(before.getTime());
       expect(empfaenger.istZugestellt).toBe(true);
     });
 

@@ -36,7 +36,6 @@ function createMockEinsatz(_id: string, abgeschlossenYearsAgo?: number): Einsatz
   if (abgeschlossenYearsAgo !== undefined) {
     const pastDate = new Date();
     pastDate.setFullYear(pastDate.getFullYear() - abgeschlossenYearsAgo);
-    // biome-ignore lint/suspicious/noExplicitAny: Test helper needs to modify readonly abgeschlossenAt
     (einsatz as any)._abgeschlossenAt = pastDate;
   }
 
@@ -74,12 +73,10 @@ describe('ArchiveOldEinsaetzeHandler', () => {
       exists: jest.fn(),
       countByStatus: jest.fn(),
       findAllPaginated: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Mock repository needs flexible typing
     } as any;
 
     mockOutboxRepository = {
       save: jest.fn().mockResolvedValue(undefined),
-      // biome-ignore lint/suspicious/noExplicitAny: Mock repository needs flexible typing
     } as any;
 
     mockLogger = {
@@ -108,16 +105,16 @@ describe('ArchiveOldEinsaetzeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.eligible).toBe(5);
-      expect(result.value!.archived).toBe(0);
-      expect(result.value!.dryRun).toBe(true);
+      expect(result.value?.eligible).toBe(5);
+      expect(result.value?.archived).toBe(0);
+      expect(result.value?.dryRun).toBe(true);
       expect(mockEinsatzRepository.save).not.toHaveBeenCalled();
     });
 
     it('should return zero eligible when no einsaetze qualify', async () => {
       // Given (Arrange)
       const command = ArchiveOldEinsaetzeCommand.create({
-        archivedBy: UserId.create().value!.value,
+        archivedBy: UserId.create().value?.value,
         dryRun: true,
       }).value!;
       mockEinsatzRepository.findEligibleForArchival.mockResolvedValue(Result.ok([]));
@@ -127,16 +124,16 @@ describe('ArchiveOldEinsaetzeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.eligible).toBe(0);
-      expect(result.value!.archived).toBe(0);
-      expect(result.value!.dryRun).toBe(true);
+      expect(result.value?.eligible).toBe(0);
+      expect(result.value?.archived).toBe(0);
+      expect(result.value?.dryRun).toBe(true);
     });
 
     it('should use olderThanYears to calculate threshold date', async () => {
       // Given (Arrange)
       const olderThanYears = 15;
       const command = ArchiveOldEinsaetzeCommand.create({
-        archivedBy: UserId.create().value!.value,
+        archivedBy: UserId.create().value?.value,
         dryRun: true,
         olderThanYears,
       }).value!;
@@ -155,7 +152,7 @@ describe('ArchiveOldEinsaetzeHandler', () => {
     it('should archive eligible einsaetze', async () => {
       // Given (Arrange)
       const command = ArchiveOldEinsaetzeCommand.create({
-        archivedBy: UserId.create().value!.value,
+        archivedBy: UserId.create().value?.value,
         dryRun: false,
       }).value!;
       const mockEinsaetze = createMockEinsaetze(3, 11);
@@ -167,15 +164,15 @@ describe('ArchiveOldEinsaetzeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.archived).toBe(3);
-      expect(result.value!.failed).toHaveLength(0);
+      expect(result.value?.archived).toBe(3);
+      expect(result.value?.failed).toHaveLength(0);
       expect(mockEinsatzRepository.save).toHaveBeenCalledTimes(3);
     });
 
     it('should archive einsaetze and verify status change', async () => {
       // Given (Arrange)
       const command = ArchiveOldEinsaetzeCommand.create({
-        archivedBy: UserId.create().value!.value,
+        archivedBy: UserId.create().value?.value,
         dryRun: false,
       }).value!;
       const mockEinsaetze = createMockEinsaetze(2, 11);
@@ -195,7 +192,7 @@ describe('ArchiveOldEinsaetzeHandler', () => {
     it('should return dryRun false in result', async () => {
       // Given (Arrange)
       const command = ArchiveOldEinsaetzeCommand.create({
-        archivedBy: UserId.create().value!.value,
+        archivedBy: UserId.create().value?.value,
         dryRun: false,
       }).value!;
       const mockEinsaetze = createMockEinsaetze(1, 11);
@@ -207,7 +204,7 @@ describe('ArchiveOldEinsaetzeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.dryRun).toBe(false);
+      expect(result.value?.dryRun).toBe(false);
     });
   });
 
@@ -215,7 +212,7 @@ describe('ArchiveOldEinsaetzeHandler', () => {
     it('should process einsaetze in batches of 100', async () => {
       // Given (Arrange)
       const command = ArchiveOldEinsaetzeCommand.create({
-        archivedBy: UserId.create().value!.value,
+        archivedBy: UserId.create().value?.value,
         dryRun: false,
       }).value!;
       const mockEinsaetze = createMockEinsaetze(250, 11); // 3 batches
@@ -227,14 +224,14 @@ describe('ArchiveOldEinsaetzeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.archived).toBe(250);
+      expect(result.value?.archived).toBe(250);
       expect(mockEinsatzRepository.save).toHaveBeenCalledTimes(250);
     });
 
     it('should process exactly 100 einsaetze in single batch', async () => {
       // Given (Arrange)
       const command = ArchiveOldEinsaetzeCommand.create({
-        archivedBy: UserId.create().value!.value,
+        archivedBy: UserId.create().value?.value,
         dryRun: false,
       }).value!;
       const mockEinsaetze = createMockEinsaetze(100, 11);
@@ -246,13 +243,13 @@ describe('ArchiveOldEinsaetzeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.archived).toBe(100);
+      expect(result.value?.archived).toBe(100);
     });
 
     it('should process less than 100 einsaetze in single batch', async () => {
       // Given (Arrange)
       const command = ArchiveOldEinsaetzeCommand.create({
-        archivedBy: UserId.create().value!.value,
+        archivedBy: UserId.create().value?.value,
         dryRun: false,
       }).value!;
       const mockEinsaetze = createMockEinsaetze(42, 11);
@@ -264,7 +261,7 @@ describe('ArchiveOldEinsaetzeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.archived).toBe(42);
+      expect(result.value?.archived).toBe(42);
     });
   });
 
@@ -272,7 +269,7 @@ describe('ArchiveOldEinsaetzeHandler', () => {
     it('should continue processing after individual failures', async () => {
       // Given (Arrange)
       const command = ArchiveOldEinsaetzeCommand.create({
-        archivedBy: UserId.create().value!.value,
+        archivedBy: UserId.create().value?.value,
         dryRun: false,
       }).value!;
       const mockEinsaetze = createMockEinsaetze(3, 11);
@@ -284,15 +281,15 @@ describe('ArchiveOldEinsaetzeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.archived).toBe(2);
-      expect(result.value!.failed).toHaveLength(1);
-      expect(result.value!.failed[0].error).toContain('DB Error');
+      expect(result.value?.archived).toBe(2);
+      expect(result.value?.failed).toHaveLength(1);
+      expect(result.value?.failed[0].error).toContain('DB Error');
     });
 
     it('should log failed einsatz details', async () => {
       // Given (Arrange)
       const command = ArchiveOldEinsaetzeCommand.create({
-        archivedBy: UserId.create().value!.value,
+        archivedBy: UserId.create().value?.value,
         dryRun: false,
       }).value!;
       const mockEinsatz = createMockEinsatz('einsatz-fail-id', 11);
@@ -304,7 +301,7 @@ describe('ArchiveOldEinsaetzeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.failed).toContainEqual({
+      expect(result.value?.failed).toContainEqual({
         id: mockEinsatz.id.value,
         error: 'Connection timeout',
       });
@@ -313,7 +310,7 @@ describe('ArchiveOldEinsaetzeHandler', () => {
     it('should handle archive() business rule failures', async () => {
       // Given (Arrange)
       const command = ArchiveOldEinsaetzeCommand.create({
-        archivedBy: UserId.create().value!.value,
+        archivedBy: UserId.create().value?.value,
         dryRun: false,
       }).value!;
 
@@ -333,17 +330,17 @@ describe('ArchiveOldEinsaetzeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.archived).toBe(0);
-      expect(result.value!.failed).toHaveLength(1);
+      expect(result.value?.archived).toBe(0);
+      expect(result.value?.failed).toHaveLength(1);
       // Error should be caught and logged (either from archive() or from try/catch)
-      expect(result.value!.failed[0].id).toBe(invalidEinsatz.id.value);
-      expect(result.value!.failed[0].error).toBeTruthy();
+      expect(result.value?.failed[0].id).toBe(invalidEinsatz.id.value);
+      expect(result.value?.failed[0].error).toBeTruthy();
     });
 
     it('should handle exceptions thrown during archiving', async () => {
       // Given (Arrange)
       const command = ArchiveOldEinsaetzeCommand.create({
-        archivedBy: UserId.create().value!.value,
+        archivedBy: UserId.create().value?.value,
         dryRun: false,
       }).value!;
       const mockEinsaetze = createMockEinsaetze(2, 11);
@@ -355,15 +352,15 @@ describe('ArchiveOldEinsaetzeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.archived).toBe(1);
-      expect(result.value!.failed).toHaveLength(1);
-      expect(result.value!.failed[0].error).toBe('Unexpected DB error');
+      expect(result.value?.archived).toBe(1);
+      expect(result.value?.failed).toHaveLength(1);
+      expect(result.value?.failed[0].error).toBe('Unexpected DB error');
     });
 
     it('should process all einsaetze despite multiple failures', async () => {
       // Given (Arrange)
       const command = ArchiveOldEinsaetzeCommand.create({
-        archivedBy: UserId.create().value!.value,
+        archivedBy: UserId.create().value?.value,
         dryRun: false,
       }).value!;
       const mockEinsaetze = createMockEinsaetze(5, 11);
@@ -380,8 +377,8 @@ describe('ArchiveOldEinsaetzeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.archived).toBe(3);
-      expect(result.value!.failed).toHaveLength(2);
+      expect(result.value?.archived).toBe(3);
+      expect(result.value?.failed).toHaveLength(2);
       expect(mockEinsatzRepository.save).toHaveBeenCalledTimes(5);
     });
   });
@@ -390,7 +387,7 @@ describe('ArchiveOldEinsaetzeHandler', () => {
     it('should return failure when repository query fails', async () => {
       // Given (Arrange)
       const command = ArchiveOldEinsaetzeCommand.create({
-        archivedBy: UserId.create().value!.value,
+        archivedBy: UserId.create().value?.value,
       }).value!;
       mockEinsatzRepository.findEligibleForArchival.mockResolvedValue(Result.fail('Database connection failed'));
 
@@ -422,7 +419,7 @@ describe('ArchiveOldEinsaetzeHandler', () => {
     it('should not call save when repository query fails', async () => {
       // Given (Arrange)
       const command = ArchiveOldEinsaetzeCommand.create({
-        archivedBy: UserId.create().value!.value,
+        archivedBy: UserId.create().value?.value,
       }).value!;
       mockEinsatzRepository.findEligibleForArchival.mockResolvedValue(Result.fail('Query error'));
 
@@ -438,7 +435,7 @@ describe('ArchiveOldEinsaetzeHandler', () => {
     it('should provide accurate statistics in result', async () => {
       // Given (Arrange)
       const command = ArchiveOldEinsaetzeCommand.create({
-        archivedBy: UserId.create().value!.value,
+        archivedBy: UserId.create().value?.value,
         dryRun: false,
       }).value!;
       const mockEinsaetze = createMockEinsaetze(10, 11);
@@ -461,16 +458,16 @@ describe('ArchiveOldEinsaetzeHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.eligible).toBe(10);
-      expect(result.value!.archived).toBe(7);
-      expect(result.value!.failed).toHaveLength(3);
-      expect(result.value!.dryRun).toBe(false);
+      expect(result.value?.eligible).toBe(10);
+      expect(result.value?.archived).toBe(7);
+      expect(result.value?.failed).toHaveLength(3);
+      expect(result.value?.dryRun).toBe(false);
     });
 
     it('should include error messages in failed array', async () => {
       // Given (Arrange)
       const command = ArchiveOldEinsaetzeCommand.create({
-        archivedBy: UserId.create().value!.value,
+        archivedBy: UserId.create().value?.value,
         dryRun: false,
       }).value!;
       const mockEinsaetze = createMockEinsaetze(2, 11);
@@ -481,7 +478,7 @@ describe('ArchiveOldEinsaetzeHandler', () => {
       const result = await handler.execute(command);
 
       // Then (Assert)
-      expect(result.value!.failed[0]).toEqual({
+      expect(result.value?.failed[0]).toEqual({
         id: expect.any(String),
         error: 'Specific error message',
       });
@@ -492,7 +489,7 @@ describe('ArchiveOldEinsaetzeHandler', () => {
     it('should save einsatz after successful archiving', async () => {
       // Given (Arrange)
       const command = ArchiveOldEinsaetzeCommand.create({
-        archivedBy: UserId.create().value!.value,
+        archivedBy: UserId.create().value?.value,
         dryRun: false,
       }).value!;
       const mockEinsatz = createMockEinsatz('test-id', 11);

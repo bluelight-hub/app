@@ -698,7 +698,7 @@ describe('RegistrierePersonHandler', () => {
 
       // Then (Assert)
       expect(commandResult.isSuccess).toBe(true);
-      expect(commandResult.value!.position).toEqual({ lat: 49.8728, lng: 8.6512 });
+      expect(commandResult.value?.position).toEqual({ lat: 49.8728, lng: 8.6512 });
     });
 
     it('sollte leere stammPersonId als undefined behandeln', () => {
@@ -714,7 +714,7 @@ describe('RegistrierePersonHandler', () => {
 
       // Then (Assert)
       expect(commandResult.isSuccess).toBe(true);
-      expect(commandResult.value!.stammPersonId).toBeUndefined();
+      expect(commandResult.value?.stammPersonId).toBeUndefined();
     });
   });
 

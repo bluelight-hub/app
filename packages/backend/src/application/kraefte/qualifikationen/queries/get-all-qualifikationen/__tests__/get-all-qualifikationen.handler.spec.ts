@@ -79,12 +79,12 @@ describe('GetAllQualifikationenHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(2);
-      expect(result.value![0].name).toBe('Zugführer');
-      expect(result.value![0].abkuerzung).toBe('ZFÜ');
-      expect(result.value![0].kategorie).toBe('FUEHRUNG');
-      expect(result.value![0].istAktiv).toBe(true);
-      expect(result.value![1].name).toBe('Rettungssanitäter');
-      expect(result.value![1].istAktiv).toBe(false);
+      expect(result.value?.[0].name).toBe('Zugführer');
+      expect(result.value?.[0].abkuerzung).toBe('ZFÜ');
+      expect(result.value?.[0].kategorie).toBe('FUEHRUNG');
+      expect(result.value?.[0].istAktiv).toBe(true);
+      expect(result.value?.[1].name).toBe('Rettungssanitäter');
+      expect(result.value?.[1].istAktiv).toBe(false);
       expect(mockRepository.findAll).toHaveBeenCalledWith(undefined);
     });
 
@@ -124,8 +124,8 @@ describe('GetAllQualifikationenHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(2);
-      expect(result.value![0].istAktiv).toBe(true);
-      expect(result.value![1].istAktiv).toBe(true);
+      expect(result.value?.[0].istAktiv).toBe(true);
+      expect(result.value?.[1].istAktiv).toBe(true);
       expect(mockRepository.findAll).toHaveBeenCalledWith({ istAktiv: true });
     });
 
@@ -153,7 +153,7 @@ describe('GetAllQualifikationenHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(1);
-      expect(result.value![0].istAktiv).toBe(false);
+      expect(result.value?.[0].istAktiv).toBe(false);
       expect(mockRepository.findAll).toHaveBeenCalledWith({ istAktiv: false });
     });
 
@@ -214,7 +214,7 @@ describe('GetAllQualifikationenHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(1);
-      const dto = result.value![0];
+      const dto = result.value?.[0];
       expect(dto.id).toBe(id);
       expect(dto.name).toBe('Notfallsanitäter');
       expect(dto.abkuerzung).toBe('NFS');
@@ -279,14 +279,14 @@ describe('GetAllQualifikationenHandler', () => {
       expect(result.value).toHaveLength(3);
 
       // Prüfe dass sortOrder aufsteigend sortiert ist
-      expect(result.value![0].sortOrder).toBe(5);
-      expect(result.value![0].name).toBe('Gruppenführer');
+      expect(result.value?.[0].sortOrder).toBe(5);
+      expect(result.value?.[0].name).toBe('Gruppenführer');
 
-      expect(result.value![1].sortOrder).toBe(10);
-      expect(result.value![1].name).toBe('Zugführer');
+      expect(result.value?.[1].sortOrder).toBe(10);
+      expect(result.value?.[1].name).toBe('Zugführer');
 
-      expect(result.value![2].sortOrder).toBe(15);
-      expect(result.value![2].name).toBe('Verbandführer');
+      expect(result.value?.[2].sortOrder).toBe(15);
+      expect(result.value?.[2].name).toBe('Verbandführer');
     });
 
     it('sollte Qualifikationen mit gleicher sortOrder nach Name sortieren', async () => {
@@ -328,8 +328,8 @@ describe('GetAllQualifikationenHandler', () => {
       expect(result.value).toHaveLength(2);
 
       // Prüfe dass bei gleicher sortOrder alphabetisch nach Name sortiert ist
-      expect(result.value![0].name).toBe('Atemschutzgeräteträger'); // 'A' kommt vor 'Z'
-      expect(result.value![1].name).toBe('Zugführer');
+      expect(result.value?.[0].name).toBe('Atemschutzgeräteträger'); // 'A' kommt vor 'Z'
+      expect(result.value?.[1].name).toBe('Zugführer');
     });
   });
 });

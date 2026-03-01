@@ -143,7 +143,6 @@ describe('PrismaEinsatzPersonRepository', () => {
       };
 
       // Mock Mapper toPersistence
-      // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
       jest.spyOn(PrismaEinsatzPersonMapper, 'toPersistence').mockReturnValue(persistenceData as any);
 
       // Mock DB upsert Success
@@ -211,7 +210,6 @@ describe('PrismaEinsatzPersonRepository', () => {
       };
 
       // Mock Mapper toPersistence (undefined → null)
-      // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
       jest.spyOn(PrismaEinsatzPersonMapper, 'toPersistence').mockReturnValue(persistenceData as any);
 
       // Mock DB upsert Success
@@ -275,7 +273,6 @@ describe('PrismaEinsatzPersonRepository', () => {
           updatedBy: null,
         };
 
-        // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
         jest.spyOn(PrismaEinsatzPersonMapper, 'toPersistence').mockReturnValue(persistenceData as any);
         mockPrismaService.einsatzPerson.upsert.mockResolvedValue(createMockPrismaData());
 
@@ -304,7 +301,6 @@ describe('PrismaEinsatzPersonRepository', () => {
       it('sollte Qualifikationen atomic replace durchführen bei Update', async () => {
         // Given: Aggregate mit Qualifikationen
         const aggregate = createMockAggregate();
-        // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
         (aggregate as any).qualifikationIds = ['qual_001', 'qual_002'];
 
         const persistenceData = {
@@ -321,7 +317,6 @@ describe('PrismaEinsatzPersonRepository', () => {
           updatedBy: null,
         };
 
-        // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
         jest.spyOn(PrismaEinsatzPersonMapper, 'toPersistence').mockReturnValue(persistenceData as any);
         mockPrismaService.einsatzPerson.upsert.mockResolvedValue(createMockPrismaData());
 
@@ -369,7 +364,6 @@ describe('PrismaEinsatzPersonRepository', () => {
           position: null,
           createdBy: mockUserId,
           updatedBy: null,
-          // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
         } as any);
 
         const dbError = new Error('Database connection failed');

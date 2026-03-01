@@ -47,14 +47,14 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     // When: Eintrag hinzufügen
     const retrieved = await ctx.repository.findByEinsatzId(einsatzId);
     expect(retrieved).not.toBeNull();
-    const result = retrieved!.addEintrag('Test entry', userId);
+    const result = retrieved?.addEintrag('Test entry', userId);
     expect(result.isSuccess).toBe(true);
     await ctx.repository.save(retrieved!);
 
     // Then: Version ist inkrementiert
     const updated = await ctx.repository.findByEinsatzId(einsatzId);
     expect(updated).not.toBeNull();
-    expect(updated!.version.versionNumber).toBe(2);
+    expect(updated?.version.versionNumber).toBe(2);
   });
 
   /**
@@ -75,14 +75,14 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     // When: Eintrag updaten
     const retrieved = await ctx.repository.findByEinsatzId(einsatzId);
     expect(retrieved).not.toBeNull();
-    expect(retrieved!.eintraege.length).toBe(1);
-    const eintragId = EintragId.create(retrieved!.eintraege[0].id.value).value!;
-    const updateResult = retrieved!.updateEintrag(eintragId, 'Updated text', userId);
+    expect(retrieved?.eintraege.length).toBe(1);
+    const eintragId = EintragId.create(retrieved?.eintraege[0].id.value).value!;
+    const updateResult = retrieved?.updateEintrag(eintragId, 'Updated text', userId);
     expect(updateResult.isSuccess).toBe(true);
     await ctx.repository.save(retrieved!);
 
     // Then: Snapshot enthält ALTEN Text (vor Mutation)
-    const history = await ctx.repository.getHistory(retrieved!.id);
+    const history = await ctx.repository.getHistory(retrieved?.id);
     expect(history.length).toBeGreaterThan(0);
     // Der letzte Snapshot (vor Update) sollte 'Original text' enthalten
     const lastSnapshot = history[history.length - 1];
@@ -107,16 +107,16 @@ const databaseAvailable = !!process.env.DATABASE_URL;
 
     const retrieved1 = await ctx.repository.findByEinsatzId(einsatzId);
     expect(retrieved1).not.toBeNull();
-    retrieved1!.addEintrag('Entry 2', userId);
+    retrieved1?.addEintrag('Entry 2', userId);
     await ctx.repository.save(retrieved1!);
 
     const retrieved2 = await ctx.repository.findByEinsatzId(einsatzId);
     expect(retrieved2).not.toBeNull();
-    retrieved2!.addEintrag('Entry 3', userId);
+    retrieved2?.addEintrag('Entry 3', userId);
     await ctx.repository.save(retrieved2!);
 
     // When + Then: History is ordered ASC
-    const history = await ctx.repository.getHistory(retrieved2!.id);
+    const history = await ctx.repository.getHistory(retrieved2?.id);
     expect(history.length).toBeGreaterThanOrEqual(3);
     for (let i = 1; i < history.length; i++) {
       expect(history[i].versionNumber).toBeGreaterThan(history[i - 1].versionNumber);
@@ -143,16 +143,16 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     // When: Eintrag 2 soft-deleten
     const retrieved = await ctx.repository.findByEinsatzId(einsatzId);
     expect(retrieved).not.toBeNull();
-    expect(retrieved!.eintraege.length).toBe(3);
-    const entry2Id = EintragId.create(retrieved!.eintraege[1].id.value).value!;
-    const deleteResult = retrieved!.deleteEintrag(entry2Id, userId);
+    expect(retrieved?.eintraege.length).toBe(3);
+    const entry2Id = EintragId.create(retrieved?.eintraege[1].id.value).value!;
+    const deleteResult = retrieved?.deleteEintrag(entry2Id, userId);
     expect(deleteResult.isSuccess).toBe(true);
     await ctx.repository.save(retrieved!);
 
     // Then: Sequence numbers sind unverändert
     const updated = await ctx.repository.findByEinsatzId(einsatzId);
     expect(updated).not.toBeNull();
-    const seqNums = updated!.eintraege.map((e) => e.sequenceNumber.value);
+    const seqNums = updated?.eintraege.map((e) => e.sequenceNumber.value);
     expect(seqNums).toEqual([1, 2, 3]); // Keine Renummerierung!
   });
 
@@ -174,7 +174,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     expect(current).not.toBeNull();
     current.addEintrag('Entry', userId);
     await ctx.repository.save(current);
-    expect((await ctx.repository.findByEinsatzId(einsatzId))!.version.versionNumber).toBe(2);
+    expect((await ctx.repository.findByEinsatzId(einsatzId))?.version.versionNumber).toBe(2);
 
     // v2 -> v3 (update)
     current = (await ctx.repository.findByEinsatzId(einsatzId))!;
@@ -183,14 +183,14 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     const eintragId = EintragId.create(current.eintraege[0].id.value).value!;
     current.updateEintrag(eintragId, 'Updated', userId);
     await ctx.repository.save(current);
-    expect((await ctx.repository.findByEinsatzId(einsatzId))!.version.versionNumber).toBe(3);
+    expect((await ctx.repository.findByEinsatzId(einsatzId))?.version.versionNumber).toBe(3);
 
     // v3 -> v4 (delete)
     current = (await ctx.repository.findByEinsatzId(einsatzId))!;
     expect(current).not.toBeNull();
     current.deleteEintrag(eintragId, userId);
     await ctx.repository.save(current);
-    expect((await ctx.repository.findByEinsatzId(einsatzId))!.version.versionNumber).toBe(4);
+    expect((await ctx.repository.findByEinsatzId(einsatzId))?.version.versionNumber).toBe(4);
   });
 
   /**
@@ -226,6 +226,6 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     expect(final).not.toBeNull();
     const entry2 = final.eintraege.find((e) => e.text === 'Entry 2');
     expect(entry2).toBeDefined();
-    expect(entry2!.sequenceNumber.value).toBe(2);
+    expect(entry2?.sequenceNumber.value).toBe(2);
   });
 });

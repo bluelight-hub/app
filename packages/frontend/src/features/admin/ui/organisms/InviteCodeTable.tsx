@@ -54,10 +54,8 @@ export function InviteCodeTable({ invites, isLoading, onPageChange, currentPage,
             </Table.Header>
             <Table.Body>
               {Array.from({ length: 5 }).map((_, rowIndex) => (
-                // biome-ignore lint/suspicious/noArrayIndexKey: Skeleton rows have static order
                 <Table.Row key={`skeleton-row-${rowIndex}`}>
                   {Array.from({ length: 7 }).map((__, colIndex) => (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: Skeleton cells have static order
                     <Table.Cell key={`skeleton-cell-${rowIndex}-${colIndex}`}>
                       <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
                     </Table.Cell>

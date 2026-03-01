@@ -70,7 +70,7 @@ describe('GetEintraegeQueryHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(3);
-      expect(result.value!.every((e) => !e.isDeleted)).toBe(true);
+      expect(result.value?.every((e) => !e.isDeleted)).toBe(true);
     });
 
     it('sollte Eintraege aufsteigend nach sequenceNumber sortieren', async () => {
@@ -89,8 +89,8 @@ describe('GetEintraegeQueryHandler', () => {
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(5);
 
-      for (let i = 1; i < result.value!.length; i++) {
-        expect(result.value![i].sequenceNumber).toBeGreaterThan(result.value![i - 1].sequenceNumber);
+      for (let i = 1; i < result.value?.length; i++) {
+        expect(result.value?.[i].sequenceNumber).toBeGreaterThan(result.value?.[i - 1].sequenceNumber);
       }
     });
 
@@ -117,7 +117,7 @@ describe('GetEintraegeQueryHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(2); // 4 - 2 geloescht = 2
-      expect(result.value!.every((e) => !e.isDeleted)).toBe(true);
+      expect(result.value?.every((e) => !e.isDeleted)).toBe(true);
     });
 
     it('sollte geloeschte Eintraege inkludieren wenn includeDeleted=true', async () => {
@@ -141,7 +141,7 @@ describe('GetEintraegeQueryHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(3); // Alle 3 inkl. geloeschter
-      expect(result.value!.some((e) => e.isDeleted)).toBe(true);
+      expect(result.value?.some((e) => e.isDeleted)).toBe(true);
     });
 
     it('sollte leeres Array fuer ETB ohne Eintraege zurueckgeben', async () => {
@@ -179,7 +179,7 @@ describe('GetEintraegeQueryHandler', () => {
       expect(result.value).toHaveLength(10);
 
       // Verifiziere chronologische Reihenfolge
-      result.value!.forEach((entry, index) => {
+      result.value?.forEach((entry, index) => {
         expect(entry.sequenceNumber).toBe(index + 1);
         expect(entry.text).toContain(`Eintrag ${index + 1}`);
       });
@@ -234,7 +234,7 @@ describe('GetEintraegeQueryHandler', () => {
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(2);
 
-      const dto = result.value![0];
+      const dto = result.value?.[0];
       expect(dto.id).toBeDefined();
       expect(typeof dto.id).toBe('string');
       expect(dto.sequenceNumber).toBeGreaterThanOrEqual(1);
@@ -296,8 +296,8 @@ describe('GetEintraegeQueryHandler', () => {
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(5);
 
-      for (let i = 1; i < result.value!.length; i++) {
-        expect(result.value![i].sequenceNumber).toBeGreaterThan(result.value![i - 1].sequenceNumber);
+      for (let i = 1; i < result.value?.length; i++) {
+        expect(result.value?.[i].sequenceNumber).toBeGreaterThan(result.value?.[i - 1].sequenceNumber);
       }
     });
   });
@@ -322,14 +322,14 @@ describe('GetEintraegeQueryHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      const linkedEntry = result.value!.find((e) => e.id === eintragId);
+      const linkedEntry = result.value?.find((e) => e.id === eintragId);
       expect(linkedEntry?.linkedErinnerung).toEqual({
         id: 'erinnerung-id-1',
         titel: 'Follow-up Test',
       });
 
       // Eintrag ohne Verknüpfung sollte null haben
-      const unlinkedEntry = result.value!.find((e) => e.id !== eintragId);
+      const unlinkedEntry = result.value?.find((e) => e.id !== eintragId);
       expect(unlinkedEntry?.linkedErinnerung).toBeNull();
     });
 
@@ -350,7 +350,7 @@ describe('GetEintraegeQueryHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value![0].linkedErinnerung).toBeNull();
+      expect(result.value?.[0].linkedErinnerung).toBeNull();
     });
 
     it('sollte einsatzId im where-Clause fuer linkedErinnerung Query enthalten', async () => {

@@ -218,7 +218,7 @@ describe('PrismaBefehlMapper', () => {
 
       // Then
       expect(befehl.originalBefehlId).toBeDefined();
-      expect(befehl.originalBefehlId!.value).toBe(originalId);
+      expect(befehl.originalBefehlId?.value).toBe(originalId);
     });
 
     it('should not emit domain events on reconstitute via toDomain', () => {

@@ -126,7 +126,6 @@ export class UpdateStammPersonHandler extends TransactionalCommandHandler<Update
           }
         }
 
-        // biome-ignore lint/style/noNonNullAssertion: Loop above ensures all results are successful, value guaranteed non-null
         const qualifikationIds = qualifikationIdResults.map((r) => r.value!);
 
         // Batch-Check: Existieren ALLE Qualifikationen?
@@ -139,7 +138,6 @@ export class UpdateStammPersonHandler extends TransactionalCommandHandler<Update
           return Result.fail(existsResult.error);
         }
 
-        // biome-ignore lint/style/noNonNullAssertion: isFailure check above guarantees value is non-null on success
         const { allExist, missing } = existsResult.value!;
         if (!allExist) {
           return Result.fail(QualifikationError.format(QUALIFIKATION_ERROR_CODES.NOT_FOUND, `Die folgenden Qualifikationen existieren nicht: ${missing.join(', ')}`));
@@ -168,7 +166,6 @@ export class UpdateStammPersonHandler extends TransactionalCommandHandler<Update
       const currentQualifikationIds = stammPerson.qualifikationIds
         .map((id) => QualifikationId.create(id))
         .filter((r) => r.isSuccess && r.value)
-        // biome-ignore lint/style/noNonNullAssertion: Filtered for isSuccess above, value guaranteed non-null
         .map((r) => r.value!);
 
       for (const id of currentQualifikationIds) {

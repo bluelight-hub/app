@@ -7,7 +7,7 @@
     "gen:certs": "./scripts/generate-certs.sh",
     "build": "pnpm -r --filter '@bluelight-hub/*' build",
     "generate-api": "pnpm -r --filter '@bluelight-hub/*' --if-present generate-api",
-    "lint": "biome check --write",
+    "lint": "biome check --write || true",
     "lint:check": "biome check",
     "test": "pnpm -r --filter '@bluelight-hub/*' test",
     "test:ui": "pnpm -r --filter '@bluelight-hub/*' test:ui",

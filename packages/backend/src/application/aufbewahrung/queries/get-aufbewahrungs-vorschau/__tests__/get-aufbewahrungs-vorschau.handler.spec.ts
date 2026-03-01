@@ -19,7 +19,7 @@ describe('GetAufbewahrungsVorschauQueryHandler', () => {
       find: jest.fn(),
     };
 
-    handler = new GetAufbewahrungsVorschauQueryHandler(mockPrisma as any, mockKonfigurationRepository as any);
+    handler = new GetAufbewahrungsVorschauQueryHandler(mockPrisma as unknown, mockKonfigurationRepository as unknown);
   });
 
   describe('execute', () => {
@@ -37,10 +37,10 @@ describe('GetAufbewahrungsVorschauQueryHandler', () => {
       const result = await handler.execute(new GetAufbewahrungsVorschauQuery());
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.einsaetze).toHaveLength(1);
-      expect(result.value!.einsaetze[0].einsatzId).toBe('einsatz-1');
-      expect(result.value!.einsaetze[0].befehlCount).toBe(5);
-      expect(result.value!.gesamtBefehlCount).toBe(5);
+      expect(result.value.einsaetze).toHaveLength(1);
+      expect(result.value.einsaetze[0].einsatzId).toBe('einsatz-1');
+      expect(result.value.einsaetze[0].befehlCount).toBe(5);
+      expect(result.value.gesamtBefehlCount).toBe(5);
     });
 
     it('sollte leere Vorschau zurueckgeben wenn keine betroffenen', async () => {
@@ -50,8 +50,8 @@ describe('GetAufbewahrungsVorschauQueryHandler', () => {
       const result = await handler.execute(new GetAufbewahrungsVorschauQuery());
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.einsaetze).toEqual([]);
-      expect(result.value!.gesamtBefehlCount).toBe(0);
+      expect(result.value.einsaetze).toEqual([]);
+      expect(result.value.gesamtBefehlCount).toBe(0);
     });
 
     it('sollte Default-Konfiguration verwenden wenn keine gespeichert', async () => {
@@ -81,8 +81,8 @@ describe('GetAufbewahrungsVorschauQueryHandler', () => {
       const result = await handler.execute(new GetAufbewahrungsVorschauQuery());
 
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.gesamtBefehlCount).toBe(10);
-      expect(result.value!.einsaetze).toHaveLength(2);
+      expect(result.value.gesamtBefehlCount).toBe(10);
+      expect(result.value.einsaetze).toHaveLength(2);
     });
   });
 });

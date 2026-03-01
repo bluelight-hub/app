@@ -109,7 +109,6 @@ export class ArchiveStammPersonHandler extends TransactionalCommandHandler<Archi
     const currentQualifikationIds = stammPerson.qualifikationIds
       .map((id) => QualifikationId.create(id))
       .filter((r) => r.isSuccess && r.value)
-      // biome-ignore lint/style/noNonNullAssertion: Filtered for isSuccess above, value guaranteed non-null
       .map((r) => r.value!);
 
     for (const id of currentQualifikationIds) {

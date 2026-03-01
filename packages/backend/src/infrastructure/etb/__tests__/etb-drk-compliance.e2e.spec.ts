@@ -51,8 +51,8 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     // Eintrag ID holen
     const retrieved = await ctx.repository.findByEinsatzId(einsatzId);
     expect(retrieved).not.toBeNull();
-    expect(retrieved!.eintraege).toHaveLength(1);
-    const eintragId = retrieved!.eintraege[0].id.value;
+    expect(retrieved?.eintraege).toHaveLength(1);
+    const eintragId = retrieved?.eintraege[0].id.value;
 
     // When + Then: DELETE wird blockiert
     await expect(ctx.prisma.$executeRawUnsafe(`DELETE FROM etb_eintraege WHERE id = '${eintragId}'`)).rejects.toThrow('DRK Compliance Violation');
@@ -74,7 +74,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     await ctx.repository.save(aggregate);
 
     const retrieved = await ctx.repository.findByEinsatzId(einsatzId);
-    const eintragId = retrieved!.eintraege[0].id.value;
+    const eintragId = retrieved?.eintraege[0].id.value;
 
     // When + Then: Error enthält spezifische Compliance Message
     try {
@@ -203,7 +203,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     await ctx.repository.save(aggregate);
 
     const retrieved = await ctx.repository.findByEinsatzId(einsatzId);
-    const eintragId = retrieved!.eintraege[0].id.value;
+    const eintragId = retrieved?.eintraege[0].id.value;
 
     // When: Trigger deaktivieren und DELETE ausführen
     await ctx.prisma.$executeRawUnsafe('SET session_replication_role = replica;');

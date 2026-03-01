@@ -95,7 +95,7 @@ describe('DeleteFuehrungsrhythmusTemplateHandler', () => {
 
       const commandResult = DeleteFuehrungsrhythmusTemplateCommand.create({
         templateId: template.id.toString(),
-        geloeschtVon: UserId.create().value!.toString(),
+        geloeschtVon: UserId.create().value?.toString(),
       });
       expect(commandResult.isSuccess).toBe(true);
 
@@ -116,7 +116,7 @@ describe('DeleteFuehrungsrhythmusTemplateHandler', () => {
 
       const commandResult = DeleteFuehrungsrhythmusTemplateCommand.create({
         templateId: template.id.toString(),
-        geloeschtVon: UserId.create().value!.toString(),
+        geloeschtVon: UserId.create().value?.toString(),
       });
 
       // When
@@ -186,7 +186,7 @@ describe('DeleteFuehrungsrhythmusTemplateHandler', () => {
 
       const commandResult = DeleteFuehrungsrhythmusTemplateCommand.create({
         templateId: template.id.toString(),
-        geloeschtVon: UserId.create().value!.toString(),
+        geloeschtVon: UserId.create().value?.toString(),
       });
 
       // When
@@ -224,7 +224,7 @@ describe('DeleteFuehrungsrhythmusTemplateHandler', () => {
 
       const commandResult = DeleteFuehrungsrhythmusTemplateCommand.create({
         templateId: template.id.toString(),
-        geloeschtVon: UserId.create().value!.toString(),
+        geloeschtVon: UserId.create().value?.toString(),
       });
 
       // When

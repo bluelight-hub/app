@@ -426,7 +426,7 @@ describe('ServerAccessGuard - Multi-Token-Validierung Integration Tests (Story 4
       expect(secondUsedAt).not.toBeNull();
 
       // Then: secondUsedAt sollte >= firstUsedAt sein
-      expect(secondUsedAt!.getTime()).toBeGreaterThanOrEqual(firstUsedAt!.getTime());
+      expect(secondUsedAt?.getTime()).toBeGreaterThanOrEqual(firstUsedAt?.getTime());
     });
   });
 
@@ -585,7 +585,7 @@ describe('ServerAccessGuard - Multi-Token-Validierung Integration Tests (Story 4
       expect(dbToken?.isRevoked).toBe(false);
 
       // Debug: Verify bcrypt hash matches
-      const hashMatches = await bcrypt.compare(token.rawToken, dbToken!.tokenHash);
+      const hashMatches = await bcrypt.compare(token.rawToken, dbToken?.tokenHash);
       expect(hashMatches).toBe(true);
 
       // Verify: Token funktioniert

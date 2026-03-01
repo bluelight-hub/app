@@ -166,10 +166,10 @@ describe('ErfasseFahrzeugAusStammdatenHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.funkrufname).toBe('Rotkreuz 83/1');
-      expect(result.value!.kennzeichen).toBe('DA-RK 101');
-      expect(result.value!.fmsStatus).toBe(2); // Initial: Einsatzbereit
-      expect(result.value!.einsatzId).toBe(validEinsatzId);
+      expect(result.value?.funkrufname).toBe('Rotkreuz 83/1');
+      expect(result.value?.kennzeichen).toBe('DA-RK 101');
+      expect(result.value?.fmsStatus).toBe(2); // Initial: Einsatzbereit
+      expect(result.value?.einsatzId).toBe(validEinsatzId);
       expect(mockEinsatzFahrzeugRepository.save).toHaveBeenCalledTimes(1);
     });
 
@@ -208,7 +208,7 @@ describe('ErfasseFahrzeugAusStammdatenHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.position).toEqual({ lat: 49.8728, lng: 8.6512 });
+      expect(result.value?.position).toEqual({ lat: 49.8728, lng: 8.6512 });
     });
 
     it('sollte $transaction aufrufen (Transaktions-Pattern)', async () => {
@@ -424,7 +424,7 @@ describe('ErfasseFahrzeugAusStammdatenHandler', () => {
 
       // Then (Assert)
       expect(commandResult.isSuccess).toBe(true);
-      expect(commandResult.value!.position).toEqual({ lat: 49.8728, lng: 8.6512 });
+      expect(commandResult.value?.position).toEqual({ lat: 49.8728, lng: 8.6512 });
     });
   });
 
@@ -488,7 +488,7 @@ describe('ErfasseFahrzeugAusStammdatenHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.funkrufname).toBe('Florian 12/83');
+      expect(result.value?.funkrufname).toBe('Florian 12/83');
 
       // Verifiziere, dass save mit dem kopierten Funkrufnamen aufgerufen wurde
       const savedAggregate = mockEinsatzFahrzeugRepository.save.mock.calls[0][0];
@@ -511,7 +511,7 @@ describe('ErfasseFahrzeugAusStammdatenHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.kennzeichen).toBe('F-RK 4711');
+      expect(result.value?.kennzeichen).toBe('F-RK 4711');
     });
 
     it('sollte fahrzeugtypId vom StammFahrzeug KOPIEREN', async () => {
@@ -529,7 +529,7 @@ describe('ErfasseFahrzeugAusStammdatenHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       // EinsatzFahrzeug sollte die fahrzeugtypId vom StammFahrzeug haben
-      expect(result.value!.fahrzeugtypId).toBe(validFahrzeugtypId);
+      expect(result.value?.fahrzeugtypId).toBe(validFahrzeugtypId);
     });
 
     it('sollte stammId im EinsatzFahrzeug referenzieren', async () => {
@@ -545,7 +545,7 @@ describe('ErfasseFahrzeugAusStammdatenHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.stammId).toBe(validStammId);
+      expect(result.value?.stammId).toBe(validStammId);
     });
   });
 
@@ -563,7 +563,7 @@ describe('ErfasseFahrzeugAusStammdatenHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.fmsStatus).toBe(2);
+      expect(result.value?.fmsStatus).toBe(2);
 
       const savedAggregate = mockEinsatzFahrzeugRepository.save.mock.calls[0][0];
       expect(savedAggregate.fmsStatus).toBe(2);
