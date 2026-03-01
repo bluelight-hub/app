@@ -139,13 +139,13 @@ export const useUnifiedAuth = () => {
 
 ```typescript
 // features/auth/stores/auth.store.ts
-import { Store } from '@tanstack/react-store';
+import { createStore } from '@tanstack/react-store';
 
 interface AuthStoreState {
   // UI-State, NICHT Server-State!
 }
 
-export const authStore = new Store<AuthStoreState>(initialState);
+export const authStore = createStore<AuthStoreState>(initialState);
 ```
 
 **Wann Store verwenden?**
