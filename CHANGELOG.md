@@ -1,3 +1,43 @@
+## Befehlsmanagement
+
+- **Komplettes Befehlsmanagement für Einsatzführung**: Erstellen, Zustellung und Quittierung von Führungsbefehlen mit Kanban- und Tabellenansicht, Detail-Panel, Filtern und Echtzeit-Updates
+- **Empfänger-Verwaltung**: Mehrere Freitext-Empfänger pro Befehl möglich, Empfänger-Suche und optimierte Combobox-Auswahl
+- **Quittierung und Korrektur**: Befehle können quittiert und nachträglich korrigiert werden, mit vollständiger Historie und Statusverfolgung
+- **Kommentare**: Kommentarfunktion für Befehle zur besseren Dokumentation und Kommunikation
+- **Kritikalitäts-System**: Befehle mit Prioritätskennzeichnung und entsprechenden Badges
+- **CSV-Export**: Export von Befehlen für Dokumentationszwecke
+
+## DSGVO & Datenschutz
+
+- **Automatische Anonymisierung**: DSGVO-konforme Anonymisierung und Löschung von Befehlen nach Aufbewahrungsfrist mit Cron-Jobs
+- **Aufbewahrungsfristen**: Konfigurierbare Aufbewahrungsrichtlinien für Einsatzdaten
+- **Monitoring**: Prometheus-Metriken und Circuit Breaker für Aufbewahrungsmodul
+
+## Einsatz-Teilnehmer
+
+- **Verknüpfung mit Einsatzpersonen**: Teilnehmer werden jetzt mit Einsatzpersonen verknüpft statt Freitext-Funkrufnamen – automatisches Ausfüllen von Personendaten im ETB und bei Erinnerungen
+- **Duplikat-Schutz**: Verhindert mehrfache Teilnahme derselben Person am gleichen Einsatz
+- **Person-Picker**: Komfortable Auswahl von Personen beim Beitritt zum Einsatz
+
+## Einsatz-Rollen
+
+- **Rollen-System**: ETB-Event-Handler für Rollenverwaltung mit Benachrichtigungen bei Rollenänderungen
+
+## Metriken & Monitoring
+
+- **Metriken-Dashboard**: Übersicht über Befehlsstatistiken und System-Performance
+- **WebSocket-Verbindung**: Dynamische WebSocket-URL aus Server-Konfiguration – behebt Verbindungsprobleme im Hosting
+- **Benachrichtigungen**: Echtzeit-Benachrichtigungen für Befehlserstellung, Quittierung und Anonymisierung
+
+## Sicherheit
+
+- **Export-Parameter-Validierung**: Härtung gegen manipulierte Query-Parameter – verhindert doppelte Parameter und ungültige IDs
+
+## CI/CD
+
+- **Parallele Test-Ausführung**: Backend-Datenbank-Tests werden auf drei parallele Runner verteilt für schnellere CI-Durchläufe
+- **Stabilere Snapshots**: Deterministische OpenAPI-Snapshot-Generierung verhindert fehlgeschlagene Builds
+
 ## Infrastruktur & Betrieb
 
 - Korrigierte Fehler bei leerer `TRUSTED_PROXIES` Umgebungsvariable, der zu Abstürzen der API führen konnte
