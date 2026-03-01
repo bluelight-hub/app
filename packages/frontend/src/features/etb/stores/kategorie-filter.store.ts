@@ -9,7 +9,7 @@
  * Standard: SYSTEM-Meldungen sind ausgeblendet.
  */
 
-import { Store, useStore } from '@tanstack/react-store';
+import { createStore, useStore } from '@tanstack/react-store';
 import type { EintragDtoKategorieEnum as EtbKategorie } from '@/shared';
 
 /**
@@ -51,7 +51,7 @@ export const ALLE_KATEGORIEN: EtbKategorie[] = [
 /**
  * TanStack Store fuer Kategorie-Filter State
  */
-export const kategorieFilterStore = new Store<KategorieFilterState>({
+export const kategorieFilterStore = createStore<KategorieFilterState>({
   excludedKategorien: new Set(DEFAULT_EXCLUDED),
   erinnerungFilterActive: false,
 });

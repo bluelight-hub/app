@@ -6,7 +6,7 @@
  * Persistiert ueber Seitenwechsel via TanStack Store Lifecycle.
  */
 
-import { Store, useStore } from '@tanstack/react-store';
+import { createStore, useStore } from '@tanstack/react-store';
 import type { BefehlDtoStatusEnum } from '@bluelight-hub/shared/client';
 
 // ============================================
@@ -37,7 +37,7 @@ const INITIAL_STATE: BefehleFilterState = {
   bis: '',
 };
 
-export const befehleFilterStore = new Store<BefehleFilterState>(INITIAL_STATE);
+export const befehleFilterStore = createStore<BefehleFilterState>(INITIAL_STATE);
 
 // ============================================
 // Store Actions

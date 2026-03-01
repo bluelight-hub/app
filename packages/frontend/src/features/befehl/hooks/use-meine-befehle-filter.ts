@@ -9,7 +9,7 @@
  * - Desktop: showMeineBefehle = false
  */
 
-import { Store, useStore } from '@tanstack/react-store';
+import { createStore, useStore } from '@tanstack/react-store';
 
 // ============================================
 // Store State & Instance
@@ -28,7 +28,7 @@ const getInitialState = (): MeineBefehleFilterStoreState => ({
   showOffeneRueckfragen: false,
 });
 
-export const meineBefehleFilterStore = new Store<MeineBefehleFilterStoreState>(getInitialState());
+export const meineBefehleFilterStore = createStore<MeineBefehleFilterStoreState>(getInitialState());
 
 // ============================================
 // Store Actions

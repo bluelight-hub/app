@@ -1,4 +1,4 @@
-import { Store } from '@tanstack/react-store';
+import { createStore } from '@tanstack/react-store';
 import type * as L from 'leaflet';
 import type * as GeoJSON from 'geojson';
 import type { DrawingTool } from '@/features/lagekarte/ui';
@@ -132,7 +132,7 @@ const initialState: LagekarteState = {
  *
  * Aktuell: Einfache Global Store Lösung ausreichend.
  */
-export const lagekarteStore = new Store<LagekarteState>(initialState);
+export const lagekarteStore = createStore<LagekarteState>(initialState);
 
 // ===== Store Actions =====
 

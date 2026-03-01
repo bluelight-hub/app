@@ -1,4 +1,4 @@
-import { Store, useStore } from '@tanstack/react-store';
+import { createStore, useStore } from '@tanstack/react-store';
 import type { EinsatzResponseDto } from '@/shared';
 import { saveActiveEinsatzId, subscribeToStorageChanges } from './persistence/einsatz-persistence';
 
@@ -22,7 +22,7 @@ interface EinsatzStoreState {
  * Unterstützt sowohl den legacy selectedEinsatzId als auch den neuen
  * vollständigen activeEinsatz State.
  */
-export const einsatzStore = new Store<EinsatzStoreState>({
+export const einsatzStore = createStore<EinsatzStoreState>({
   selectedEinsatzId: null,
   activeEinsatz: null,
   isLoadingActiveEinsatz: false,

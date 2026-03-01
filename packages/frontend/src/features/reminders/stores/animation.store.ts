@@ -8,7 +8,7 @@
  * **Story 3.2 Task 2.1:** Animation-Utility fuer Updates
  */
 
-import { Store, useStore } from '@tanstack/react-store';
+import { createStore, useStore } from '@tanstack/react-store';
 
 /**
  * Animation-Typ fuer verschiedene Effekte
@@ -40,7 +40,7 @@ const ANIMATION_DURATION_MS = 1500;
 /**
  * TanStack Store fuer Animation-State
  */
-export const animationStore = new Store<AnimationStoreState>({
+export const animationStore = createStore<AnimationStoreState>({
   animatedIds: new Map(),
 });
 

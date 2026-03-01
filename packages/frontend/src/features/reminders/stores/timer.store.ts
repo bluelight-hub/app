@@ -11,7 +11,7 @@
  */
 
 import type { ErinnerungResponseDto } from '@/shared';
-import { Store, useStore } from '@tanstack/react-store';
+import { createStore, useStore } from '@tanstack/react-store';
 
 /**
  * Timer State fuer eine einzelne Erinnerung
@@ -64,7 +64,7 @@ const initialState: TimerStoreState = {
 /**
  * Timer Store Instance
  */
-export const timerStore = new Store<TimerStoreState>(initialState);
+export const timerStore = createStore<TimerStoreState>(initialState);
 
 // ============================================
 // Store Actions (Helper Functions)

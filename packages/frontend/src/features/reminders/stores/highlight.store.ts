@@ -9,7 +9,7 @@
  * **Story 5.5:** ETB-Eintraege koennen ebenfalls hervorgehoben werden (Timeline-Navigation)
  */
 
-import { Store, useStore } from '@tanstack/react-store';
+import { createStore, useStore } from '@tanstack/react-store';
 
 /**
  * Highlight Store State
@@ -30,7 +30,7 @@ const HIGHLIGHT_DURATION_MS = 3000;
 /**
  * TanStack Store fuer Highlight-State
  */
-export const highlightStore = new Store<HighlightStoreState>({
+export const highlightStore = createStore<HighlightStoreState>({
   highlightedErinnerungId: null,
   highlightedEntryId: null,
 });

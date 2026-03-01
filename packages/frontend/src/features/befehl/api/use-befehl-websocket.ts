@@ -16,7 +16,7 @@ import { getBaseUrl } from '@/shared/api/client';
 import { logger } from '@/shared/lib/logger';
 import type { QueryClient } from '@tanstack/react-query';
 import { useQueryClient } from '@tanstack/react-query';
-import { Store, useStore } from '@tanstack/react-store';
+import { createStore, useStore } from '@tanstack/react-store';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import { toast } from 'sonner';
@@ -29,7 +29,7 @@ import { EINSATZ_QUERY_KEYS } from '@/features/einsatz/api/queries';
 import { updateIntegrationStatus, resetIntegrationStatus, type IntegrationStatus } from './use-integration-status';
 
 /** Globaler Store fuer WebSocket-Verbindungsstatus (lesbar von jeder Komponente) */
-const befehlWsStatusStore = new Store<{ isConnected: boolean }>({ isConnected: false });
+const befehlWsStatusStore = createStore<{ isConnected: boolean }>({ isConnected: false });
 
 /** Hook zum Lesen des WebSocket-Verbindungsstatus (ohne eigene Verbindung) */
 export function useBefehlWebSocketStatus() {

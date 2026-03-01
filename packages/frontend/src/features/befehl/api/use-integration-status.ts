@@ -12,7 +12,7 @@
  * @module features/befehl/api
  */
 
-import { Store, useStore } from '@tanstack/react-store';
+import { createStore, useStore } from '@tanstack/react-store';
 
 // ============================================
 // Types
@@ -35,7 +35,7 @@ export interface IntegrationStatusStoreState {
 // Store
 // ============================================
 
-export const integrationStatusStore = new Store<IntegrationStatusStoreState>({
+export const integrationStatusStore = createStore<IntegrationStatusStoreState>({
   integrations: {},
 });
 

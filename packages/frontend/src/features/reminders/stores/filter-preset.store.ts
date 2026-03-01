@@ -13,7 +13,7 @@
  * - Selektor: isPresetActive()
  */
 
-import { Store, useStore } from '@tanstack/react-store';
+import { createStore, useStore } from '@tanstack/react-store';
 
 import type { KategorieFilterType } from './kategorie-filter.store';
 import { setKategorieFilter, getKategorieFilter } from './kategorie-filter.store';
@@ -137,7 +137,7 @@ const initialState: FilterPresetStoreState = {
 /**
  * Filter-Preset Store Instance
  */
-export const filterPresetStore = new Store<FilterPresetStoreState>(initialState);
+export const filterPresetStore = createStore<FilterPresetStoreState>(initialState);
 
 // ============================================
 // Store Actions
