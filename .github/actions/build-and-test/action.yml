@@ -18,6 +18,10 @@ inputs:
     description: 'PostgreSQL connection string for integration tests'
     required: false
     default: ''
+  backend-test-script:
+    description: 'Optional backend package script to run instead of automatic test selection'
+    required: false
+    default: ''
 
 runs:
   using: 'composite'
@@ -80,9 +84,13 @@ runs:
         JWT_REFRESH_SECRET: test-refresh-secret
         NODE_ENV: test
         DATABASE_URL: ${{ inputs.database-url }}
+        BACKEND_TEST_SCRIPT: ${{ inputs.backend-test-script }}
       run: |
-        # Run all tests (including integration) if DATABASE_URL is set, otherwise unit tests only
-        if [ -n "$DATABASE_URL" ]; then
+        # Run custom script when provided, otherwise auto-select by DB availability.
+        if [ -n "$BACKEND_TEST_SCRIPT" ]; then
+          echo "🧪 Running custom backend test script: $BACKEND_TEST_SCRIPT"
+          pnpm --filter @bluelight-hub/backend "$BACKEND_TEST_SCRIPT"
+        elif [ -n "$DATABASE_URL" ]; then
           echo "🔗 DATABASE_URL set - running all tests including integration tests"
           pnpm --filter @bluelight-hub/backend test:cov
         else

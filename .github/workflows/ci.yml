@@ -43,15 +43,106 @@ jobs:
               - 'package.json'
               - 'packages/*/package.json'
 
-  # Linux build with PostgreSQL database
-  build-and-test-linux:
-    name: Build and Test (Linux)
+  # Linux quality gate: build + lint + architecture checks
+  linux-quality:
+    name: Linux Quality (Build + Lint)
     needs: [detect-changes]
     if: needs.detect-changes.outputs.code == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
 
-    # PostgreSQL service nur für Linux verfügbar
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: 'package.json'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm --filter @bluelight-hub/backend prisma:generate
+
+      - name: Build shared package
+        run: pnpm --filter @bluelight-hub/shared build:ci
+
+      - name: Build backend
+        run: pnpm --filter @bluelight-hub/backend build
+
+      - name: Build frontend
+        run: pnpm --filter @bluelight-hub/frontend build
+
+      - name: Run linter
+        run: pnpm lint:check
+
+      - name: Check circular dependencies
+        run: pnpm --filter @bluelight-hub/backend lint:deps:core
+
+  # Linux backend unit tests (fast lane, no DB)
+  linux-backend-unit:
+    name: Linux Backend Unit
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: 'package.json'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm --filter @bluelight-hub/backend prisma:generate
+
+      - name: Run backend unit tests with coverage
+        env:
+          JWT_SECRET: test-secret
+          JWT_REFRESH_SECRET: test-refresh-secret
+          NODE_ENV: test
+        run: pnpm --filter @bluelight-hub/backend test:unit
+
+      - uses: actions/upload-artifact@v6
+        if: failure()
+        with:
+          name: test-artifacts-linux-backend-unit
+          path: |
+            packages/backend/coverage/
+            **/trace.zip
+
+      - name: Upload backend coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: packages/backend/coverage/lcov.info
+          flags: backend-unit
+          name: codecov-linux-backend-unit
+          fail_ci_if_error: false
+
+  # Linux backend database tests split across shards
+  linux-backend-db:
+    name: Linux Backend DB (Shard ${{ matrix.shard }}/3)
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+
     services:
       postgres:
         image: postgres:17
@@ -70,72 +161,85 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      # Use our reusable build action (handles pnpm, node, deps, prisma generate + migrate, build, test)
-      - name: Build and Test
-        uses: ./.github/actions/build-and-test
-        with:
-          skip-tests: 'false'
-          database-url: 'postgresql://test:test@localhost:5432/testdb'
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
 
-      # Upload test artifacts on failure
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: 'package.json'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm --filter @bluelight-hub/backend prisma:generate
+
+      - name: Run Prisma migrations
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+        run: pnpm --filter @bluelight-hub/backend prisma:deploy
+
+      - name: Run backend DB tests (sharded)
+        env:
+          JWT_SECRET: test-secret
+          JWT_REFRESH_SECRET: test-refresh-secret
+          NODE_ENV: test
+          DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+        run: pnpm --filter @bluelight-hub/backend test:db -- --shard=${{ matrix.shard }}/3
+
       - uses: actions/upload-artifact@v6
         if: failure()
         with:
-          name: test-artifacts-linux
+          name: test-artifacts-linux-backend-db-shard-${{ matrix.shard }}
           path: |
-            packages/frontend/test-results/
             packages/backend/coverage/
-            packages/frontend/coverage/
             **/trace.zip
 
-      # Coverage upload
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          files: |
-            packages/backend/coverage/lcov.info
-            packages/frontend/coverage/lcov.info
-          flags: unittests
-          name: codecov-Linux
-          fail_ci_if_error: false
-
-  # macOS and Windows builds without database
-  build-and-test-other:
-    name: Build and Test (${{ matrix.os }})
+  # Linux frontend tests
+  linux-frontend:
+    name: Linux Frontend Tests
     needs: [detect-changes]
     if: needs.detect-changes.outputs.code == 'true'
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ macos-latest, windows-latest ]
-        include:
-          - os: macos-latest
-            platform_name: 'macOS'
-          - os: windows-latest
-            platform_name: 'Windows'
-
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
 
-      # Use our reusable build action
-      - name: Build and Test
-        uses: ./.github/actions/build-and-test
-        with:
-          skip-tests: ${{ matrix.os == 'windows-latest' && 'true' || 'false' }}
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
 
-      # Upload test artifacts on failure
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: 'package.json'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run frontend tests with coverage
+        env:
+          NODE_ENV: test
+        run: pnpm --filter @bluelight-hub/frontend test:cov
+
       - uses: actions/upload-artifact@v6
         if: failure()
         with:
-          name: test-artifacts-${{ matrix.os }}
+          name: test-artifacts-linux-frontend
           path: |
             packages/frontend/test-results/
-            packages/backend/coverage/
             packages/frontend/coverage/
             **/trace.zip
+
+      - name: Upload frontend coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: packages/frontend/coverage/lcov.info
+          flags: frontend
+          name: codecov-linux-frontend
+          fail_ci_if_error: false
 
   # Lightweight Checks (Lint + Docs, non-blocking)
   lightweight-checks:
@@ -200,26 +304,32 @@ jobs:
   # Summary job for branch protection
   summary:
     name: CI Pipeline Summary
-    needs: [detect-changes, build-and-test-linux, build-and-test-other, docker-build]
+    needs: [detect-changes, linux-quality, linux-backend-unit, linux-backend-db, linux-frontend, docker-build]
     runs-on: ubuntu-latest
     if: always()
     steps:
       - name: Check all matrix jobs
         run: |
           changes="${{ needs.detect-changes.result }}"
-          linux="${{ needs.build-and-test-linux.result }}"
-          other="${{ needs.build-and-test-other.result }}"
+          quality="${{ needs.linux-quality.result }}"
+          backend_unit="${{ needs.linux-backend-unit.result }}"
+          backend_db="${{ needs.linux-backend-db.result }}"
+          frontend="${{ needs.linux-frontend.result }}"
           docker="${{ needs.docker-build.result }}"
           if [[ "$changes" != "success" ]]; then
             echo "❌ Change detection failed: $changes"
             exit 1
           fi
-          if [[ "$linux" != "success" && "$linux" != "skipped" ]] || \
-             [[ "$other" != "success" && "$other" != "skipped" ]] || \
+          if [[ "$quality" != "success" && "$quality" != "skipped" ]] || \
+             [[ "$backend_unit" != "success" && "$backend_unit" != "skipped" ]] || \
+             [[ "$backend_db" != "success" && "$backend_db" != "skipped" ]] || \
+             [[ "$frontend" != "success" && "$frontend" != "skipped" ]] || \
              [[ "$docker" != "success" && "$docker" != "skipped" ]]; then
             echo "❌ One or more jobs failed"
-            echo "Linux: $linux"
-            echo "Other: $other"
+            echo "Linux Quality: $quality"
+            echo "Linux Backend Unit: $backend_unit"
+            echo "Linux Backend DB: $backend_db"
+            echo "Linux Frontend: $frontend"
             echo "Docker: $docker"
             exit 1
           fi
@@ -232,8 +342,10 @@ jobs:
           echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
 
-          linux="${{ needs.build-and-test-linux.result }}"
-          other="${{ needs.build-and-test-other.result }}"
+          quality="${{ needs.linux-quality.result }}"
+          backend_unit="${{ needs.linux-backend-unit.result }}"
+          backend_db="${{ needs.linux-backend-db.result }}"
+          frontend="${{ needs.linux-frontend.result }}"
           docker="${{ needs.docker-build.result }}"
 
           status_icon() {
@@ -244,13 +356,14 @@ jobs:
             esac
           }
 
-          echo "| Build & Test (Linux) | $(status_icon "$linux") $linux |" >> $GITHUB_STEP_SUMMARY
-          echo "| Build & Test (Other) | $(status_icon "$other") $other |" >> $GITHUB_STEP_SUMMARY
+          echo "| Linux Quality (Build + Lint) | $(status_icon "$quality") $quality |" >> $GITHUB_STEP_SUMMARY
+          echo "| Linux Backend Unit | $(status_icon "$backend_unit") $backend_unit |" >> $GITHUB_STEP_SUMMARY
+          echo "| Linux Backend DB (3 Shards) | $(status_icon "$backend_db") $backend_db |" >> $GITHUB_STEP_SUMMARY
+          echo "| Linux Frontend Tests | $(status_icon "$frontend") $frontend |" >> $GITHUB_STEP_SUMMARY
           echo "| Docker Build | $(status_icon "$docker") $docker |" >> $GITHUB_STEP_SUMMARY
           echo "| Lightweight Checks | ℹ️ non-blocking |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Platform Results" >> $GITHUB_STEP_SUMMARY
-          echo "- Linux: $linux (with PostgreSQL)" >> $GITHUB_STEP_SUMMARY
-          echo "- macOS: $other" >> $GITHUB_STEP_SUMMARY
-          echo "- Windows: $other (tests skipped)" >> $GITHUB_STEP_SUMMARY
+          echo "### Linux Test Strategy" >> $GITHUB_STEP_SUMMARY
+          echo "- Alle verpflichtenden Tests laufen auf Linux" >> $GITHUB_STEP_SUMMARY
+          echo "- Backend DB-Tests sind in 3 Shards parallelisiert" >> $GITHUB_STEP_SUMMARY
           echo "- Docker: $docker" >> $GITHUB_STEP_SUMMARY
