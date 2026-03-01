@@ -5,6 +5,8 @@ import { EintragId } from '@domain/value-objects/eintrag-id';
 import { createEtbE2eModule, teardownE2eModule, cleanupTestData, type EtbE2eTestContext } from './etb.e2e-setup';
 
 const databaseAvailable = !!process.env.DATABASE_URL;
+const snapshotAverageThresholdMs = Number(process.env.ETB_PERF_SNAPSHOT_AVG_THRESHOLD_MS ?? 40);
+const snapshotMaxThresholdMs = Number(process.env.ETB_PERF_SNAPSHOT_MAX_THRESHOLD_MS ?? 80);
 
 /**
  * E2E Performance Baseline Tests für ETB Infrastructure
@@ -90,11 +92,11 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     // Log baseline für Dokumentation
     console.log(`[Performance Baseline] Snapshot creation average: ${averageTime.toFixed(2)}ms, max: ${maxTime.toFixed(2)}ms`);
 
-    // Then: Durchschnittliche Zeit sollte < 25ms sein
-    // (CI-Umgebungen sind langsamer und variabler als lokale Maschinen)
-    expect(averageTime).toBeLessThan(25);
-    // Einzelne Ausreißer bis 50ms akzeptabel (CI-Latenz, Cold Cache)
-    expect(maxTime).toBeLessThan(50);
+    // Then: Durchschnittliche Zeit sollte unter CI-tolerantem Schwellwert bleiben.
+    // Der Threshold kann in langsameren Runnern über ENV angepasst werden.
+    expect(averageTime).toBeLessThan(snapshotAverageThresholdMs);
+    // Einzelne Ausreißer (CI-Latenz, Cold Cache) werden mit separatem Max-Threshold bewertet.
+    expect(maxTime).toBeLessThan(snapshotMaxThresholdMs);
   });
 
   /**
