@@ -115,7 +115,7 @@ jobs:
           NODE_ENV: test
         run: pnpm --filter @bluelight-hub/backend test:unit
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: test-artifacts-linux-backend-unit
@@ -189,7 +189,7 @@ jobs:
           DATABASE_URL: postgresql://test:test@localhost:5432/testdb
         run: pnpm --filter @bluelight-hub/backend test:db -- --shard=${{ matrix.shard }}/3
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: test-artifacts-linux-backend-db-shard-${{ matrix.shard }}
@@ -224,7 +224,7 @@ jobs:
           NODE_ENV: test
         run: pnpm --filter @bluelight-hub/frontend test:cov
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: test-artifacts-linux-frontend
