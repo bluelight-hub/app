@@ -1,3 +1,8 @@
+## Fahrzeugverwaltung
+
+- Fahrzeugtypen können nun zentral in der Admin-Oberfläche verwaltet werden
+- Fahrzeuge (Funkrufnamen) können jetzt als Empfänger für Befehle ausgewählt werden
+
 ## Stabilität & Performance
 
 - **ETB-Snapshots**: Verbesserte Performance-Tests für zuverlässigere Snapshot-Aktualisierungen im ETB-Modul
