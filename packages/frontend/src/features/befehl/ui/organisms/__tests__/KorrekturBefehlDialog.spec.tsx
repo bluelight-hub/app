@@ -74,6 +74,7 @@ describe('KorrekturBefehlDialog', () => {
     expect(screen.getByRole('button', { name: /einfach/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /erweitert/i })).toBeInTheDocument();
     expect(screen.getByText('Adressierung und Zeit')).toBeInTheDocument();
+    expect(screen.getByText(/Mindestens eine Einheit, z\.B\. RTW-Besatzung oder Rotkreuz 83\/1/)).toBeInTheDocument();
     expect(screen.getByLabelText('Empfänger suchen')).toBeInTheDocument();
   });
 

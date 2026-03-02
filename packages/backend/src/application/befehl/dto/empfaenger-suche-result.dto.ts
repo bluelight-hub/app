@@ -3,6 +3,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 /** Datenquelle fuer Empfaenger-Suchergebnisse */
 export enum EmpfaengerQuelle {
   EINSATZ = 'EINSATZ',
+  EINSATZ_FAHRZEUG = 'EINSATZ_FAHRZEUG',
   STAMMDATEN = 'STAMMDATEN',
 }
 
@@ -13,7 +14,7 @@ export enum EmpfaengerQuelle {
  * fuer die Empfaenger-Auswahl bei der Befehlserstellung.
  */
 export class EmpfaengerSucheResultDto {
-  @ApiProperty({ description: 'Person-ID (EinsatzPerson oder StammPerson ID)', example: 'clw3h...' })
+  @ApiProperty({ description: 'Treffer-ID (EinsatzPerson-, EinsatzFahrzeug- oder StammPerson-ID)', example: 'clw3h...' })
   id!: string;
 
   @ApiProperty({ description: 'Anzeigename (Nachname, Vorname oder Funkrufname)', example: 'ZF Meier' })

@@ -1338,7 +1338,7 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
       "EmpfaengerSucheResultDto": {
         "properties": {
           "id": {
-            "description": "Person-ID (EinsatzPerson oder StammPerson ID)",
+            "description": "Treffer-ID (EinsatzPerson-, EinsatzFahrzeug- oder StammPerson-ID)",
             "example": "clw3h...",
             "type": "string",
           },
@@ -1356,6 +1356,7 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
             "description": "Datenquelle",
             "enum": [
               "EINSATZ",
+              "EINSATZ_FAHRZEUG",
               "STAMMDATEN",
             ],
             "example": "EINSATZ",

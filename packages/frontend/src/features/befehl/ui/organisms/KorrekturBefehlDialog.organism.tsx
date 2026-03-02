@@ -229,7 +229,12 @@ export function KorrekturBefehlDialog({ isOpen, onClose, originalBefehl, einsatz
   const renderEinheitField = () => (
     <form.Field name="empfaenger">
       {(field) => (
-        <FormField label="Einheit" required helperText="Mindestens eine Einheit, z.B. RTW-Besatzung" error={field.state.meta.errors.length > 0 ? getFormErrors(field.state.meta.errors) : undefined}>
+        <FormField
+          label="Einheit"
+          required
+          helperText="Mindestens eine Einheit, z.B. RTW-Besatzung oder Rotkreuz 83/1"
+          error={field.state.meta.errors.length > 0 ? getFormErrors(field.state.meta.errors) : undefined}
+        >
           <EmpfaengerCombobox
             einsatzId={einsatzId}
             value={empfaengerChips}

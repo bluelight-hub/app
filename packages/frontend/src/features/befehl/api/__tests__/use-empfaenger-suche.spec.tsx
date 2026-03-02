@@ -96,7 +96,8 @@ describe('useEmpfaengerSuche', () => {
     it('gibt Ergebnisse korrekt zurueck', async () => {
       const mockResults = [
         { id: '1', name: 'Mueller', rolle: 'GF', quelle: 'EINSATZ' },
-        { id: '2', name: 'Musterfrau', rolle: 'ZF', userId: 'user-1', quelle: 'STAMMDATEN' },
+        { id: '2', name: 'Rotkreuz 83/1', rolle: 'Fahrzeug', quelle: 'EINSATZ_FAHRZEUG' },
+        { id: '3', name: 'Musterfrau', rolle: 'ZF', userId: 'user-1', quelle: 'STAMMDATEN' },
       ];
       mockEmpfaengerSuche.mockResolvedValue({ data: mockResults });
 
