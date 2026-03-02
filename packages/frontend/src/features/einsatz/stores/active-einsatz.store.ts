@@ -1,6 +1,7 @@
 import { createStore, useStore } from '@tanstack/react-store';
 import type { EinsatzResponseDto } from '@/shared';
 import { saveActiveEinsatzId, subscribeToStorageChanges } from './persistence/einsatz-persistence';
+import { useCallback } from 'react';
 
 // Type alias for better readability
 export type Einsatz = EinsatzResponseDto;
@@ -68,22 +69,22 @@ if (typeof window !== 'undefined') {
  * sowie Legacy-Support für selectedEinsatzId.
  */
 export function useEinsatzStore() {
-  const store = useStore(einsatzStore);
+  const store = useStore(einsatzStore, (state) => state);
 
   // Legacy actions (backward compatibility)
-  const setSelectedEinsatzId = (id: string | null) => {
+  const setSelectedEinsatzId = useCallback((id: string | null) => {
     einsatzStore.setState((state) => ({
       ...state,
       selectedEinsatzId: id,
     }));
-  };
+  }, []);
 
-  const clearSelectedEinsatzId = () => {
+  const clearSelectedEinsatzId = useCallback(() => {
     setSelectedEinsatzId(null);
-  };
+  }, [setSelectedEinsatzId]);
 
   // New actions for active Einsatz
-  const setActiveEinsatz = (einsatz: Einsatz | null) => {
+  const setActiveEinsatz = useCallback((einsatz: Einsatz | null) => {
     einsatzStore.setState((state) => ({
       ...state,
       activeEinsatz: einsatz,
@@ -91,9 +92,9 @@ export function useEinsatzStore() {
       selectedEinsatzId: einsatz?.id ?? null,
       activeEinsatzError: null,
     }));
-  };
+  }, []);
 
-  const clearActiveEinsatz = () => {
+  const clearActiveEinsatz = useCallback(() => {
     einsatzStore.setState((state) => ({
       ...state,
       activeEinsatz: null,
@@ -101,22 +102,22 @@ export function useEinsatzStore() {
       isLoadingActiveEinsatz: false,
       activeEinsatzError: null,
     }));
-  };
+  }, []);
 
-  const setLoadingState = (isLoading: boolean) => {
+  const setLoadingState = useCallback((isLoading: boolean) => {
     einsatzStore.setState((state) => ({
       ...state,
       isLoadingActiveEinsatz: isLoading,
     }));
-  };
+  }, []);
 
-  const setError = (error: string | null) => {
+  const setError = useCallback((error: string | null) => {
     einsatzStore.setState((state) => ({
       ...state,
       activeEinsatzError: error,
       isLoadingActiveEinsatz: false,
     }));
-  };
+  }, []);
 
   return {
     // Legacy exports

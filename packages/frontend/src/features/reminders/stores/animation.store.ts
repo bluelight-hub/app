@@ -157,5 +157,5 @@ export function useAnimationEntry(erinnerungId: string): AnimationEntry | undefi
  * @returns Kompletter Store State
  */
 export function useAnimationStoreState(): AnimationStoreState {
-  return useStore(animationStore);
+  return useStore(animationStore, (state) => state);
 }

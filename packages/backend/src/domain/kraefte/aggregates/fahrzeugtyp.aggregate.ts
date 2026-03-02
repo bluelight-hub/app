@@ -313,6 +313,11 @@ export class Fahrzeugtyp extends AggregateRoot<FahrzeugtypId> {
     const entries = Object.entries(sollbesatzung);
 
     for (const [key, value] of entries) {
+      // Undefined-Werte gelten als "nicht gesetzt" und sind für optionale Felder erlaubt.
+      if (value === undefined) {
+        continue;
+      }
+
       if (typeof value !== 'number' || !Number.isFinite(value) || !Number.isInteger(value)) {
         return Result.fail<void>(`Sollbesatzung.${key} muss eine ganze Zahl sein`);
       }

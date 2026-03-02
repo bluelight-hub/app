@@ -21,6 +21,12 @@ export const ADMIN_QUERY_KEYS = {
   users: ['admin', 'users'] as const,
   kraefte: {
     all: ['admin', 'kraefte'] as const,
+    fahrzeugtypen: {
+      all: () => [...ADMIN_QUERY_KEYS.kraefte.all, 'fahrzeugtypen'] as const,
+      list: (filters?: { istAktiv?: boolean }) =>
+        filters ? ([...ADMIN_QUERY_KEYS.kraefte.fahrzeugtypen.all(), 'list', filters] as const) : ([...ADMIN_QUERY_KEYS.kraefte.fahrzeugtypen.all(), 'list'] as const),
+      detail: (id: string) => [...ADMIN_QUERY_KEYS.kraefte.fahrzeugtypen.all(), 'detail', id] as const,
+    },
     qualifikationen: {
       all: () => [...ADMIN_QUERY_KEYS.kraefte.all, 'qualifikationen'] as const,
       list: (filters?: { istAktiv?: boolean }) =>
