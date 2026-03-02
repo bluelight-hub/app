@@ -1,3 +1,11 @@
+## Stabilität & Performance
+
+- **ETB-Snapshots**: Verbesserte Performance-Tests für zuverlässigere Snapshot-Aktualisierungen im ETB-Modul
+
+## Technische Verbesserungen
+
+- **Datenverwaltung**: Aktualisierung der internen Store-Verwaltung für verbesserte Kompatibilität und Wartbarkeit
+
 ## 🔧 Technische Verbesserungen
 
 ### Audio-Wiedergabe
