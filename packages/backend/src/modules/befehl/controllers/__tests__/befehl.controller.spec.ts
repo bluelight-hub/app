@@ -1114,6 +1114,7 @@ describe('BefehlController (Integration Tests - AC10)', () => {
     it('sollte Suchergebnisse erfolgreich zurueckgeben (200 OK)', async () => {
       const mockResults = [
         { id: 'ep-1', name: 'ZF Meier', rolle: 'Zugführer', quelle: 'EINSATZ' as const },
+        { id: 'ef-1', name: 'Rotkreuz 83/1', rolle: 'Fahrzeug', quelle: 'EINSATZ_FAHRZEUG' as const },
         { id: 'sp-1', name: 'Meier, Hans', qualifikation: 'Notfallsanitäter', quelle: 'STAMMDATEN' as const },
       ];
 
@@ -1121,9 +1122,10 @@ describe('BefehlController (Integration Tests - AC10)', () => {
 
       const result = await controller.empfaengerSuche('Meier', 'cm5einsatzid123');
 
-      expect(result).toHaveLength(2);
+      expect(result).toHaveLength(3);
       expect(result[0].quelle).toBe('EINSATZ');
-      expect(result[1].quelle).toBe('STAMMDATEN');
+      expect(result[1].quelle).toBe('EINSATZ_FAHRZEUG');
+      expect(result[2].quelle).toBe('STAMMDATEN');
       expect(mockEmpfaengerSucheQueryHandler.execute).toHaveBeenCalledTimes(1);
 
       const calledQuery = mockEmpfaengerSucheQueryHandler.execute.mock.calls[0]?.[0];

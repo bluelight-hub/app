@@ -14,9 +14,10 @@ import type { EmpfaengerSucheQuery } from './empfaenger-suche.query';
  *
  * **Suchlogik:**
  * 1. EinsatzPerson mit einsatzId: case-insensitive LIKE auf vorname, nachname, funkrufname
- * 2. Nur wenn weniger als 20 EinsatzPerson-Treffer: StammPerson als Fallback
- * 3. Deduplizierung: StammPerson-IDs ausschliessen die bereits als EinsatzPerson.stammId gemapped sind
- * 4. Limit: Max 20 Ergebnisse total
+ * 2. Nur wenn weniger als 20 EinsatzPerson-Treffer: EinsatzFahrzeuge nach funkrufname durchsuchen
+ * 3. Nur bei verbleibenden Slots: StammPerson als Fallback
+ * 4. Deduplizierung: StammPerson-IDs ausschliessen die bereits als EinsatzPerson.stammId gemapped sind
+ * 5. Limit: Max 20 Ergebnisse total
  *
  * **CQRS Query-Side Pattern:**
  * - Read-Only: Aendert niemals Domain State
@@ -93,12 +94,42 @@ export class EmpfaengerSucheQueryHandler {
         return dto;
       });
 
-      // 2. Nur wenn weniger als MAX_RESULTS EinsatzPerson-Treffer: StammPerson als Fallback
+      // 2. Nur wenn weniger als MAX_RESULTS EinsatzPerson-Treffer: EinsatzFahrzeuge als zweiter Suchraum
       if (einsatzResults.length >= EmpfaengerSucheQueryHandler.MAX_RESULTS) {
         return Result.ok(einsatzResults);
       }
 
-      const remaining = EmpfaengerSucheQueryHandler.MAX_RESULTS - einsatzResults.length;
+      const remainingForFahrzeuge = EmpfaengerSucheQueryHandler.MAX_RESULTS - einsatzResults.length;
+      const einsatzFahrzeuge = await this.prisma.einsatzFahrzeug.findMany({
+        where: {
+          einsatzId,
+          funkrufname: { contains: trimmedTerm, mode: 'insensitive' },
+        },
+        select: {
+          id: true,
+          funkrufname: true,
+        },
+        orderBy: {
+          funkrufname: 'asc',
+        },
+        take: remainingForFahrzeuge,
+      });
+
+      const fahrzeugResults: EmpfaengerSucheResultDto[] = einsatzFahrzeuge.map((fahrzeug) => {
+        const dto = new EmpfaengerSucheResultDto();
+        dto.id = fahrzeug.id;
+        dto.name = fahrzeug.funkrufname;
+        dto.rolle = 'Fahrzeug';
+        dto.quelle = EmpfaengerQuelle.EINSATZ_FAHRZEUG;
+        return dto;
+      });
+
+      const combinedWithFahrzeuge = [...einsatzResults, ...fahrzeugResults];
+      if (combinedWithFahrzeuge.length >= EmpfaengerSucheQueryHandler.MAX_RESULTS) {
+        return Result.ok(combinedWithFahrzeuge);
+      }
+
+      const remainingForStamm = EmpfaengerSucheQueryHandler.MAX_RESULTS - combinedWithFahrzeuge.length;
 
       // 3. Deduplizierung: StammPerson-IDs ausschliessen die bereits als EinsatzPerson.stammId vorhanden sind
       const mappedStammIds = einsatzPersonen.filter((ep) => ep.stammId !== null).map((ep) => ep.stammId as string);
@@ -115,7 +146,7 @@ export class EmpfaengerSucheQueryHandler {
             take: 1,
           },
         },
-        take: remaining,
+        take: remainingForStamm,
       });
 
       // StammPerson -> DTO
@@ -128,7 +159,7 @@ export class EmpfaengerSucheQueryHandler {
         return dto;
       });
 
-      return Result.ok([...einsatzResults, ...stammResults]);
+      return Result.ok([...combinedWithFahrzeuge, ...stammResults]);
     } catch (error) {
       return Result.fail(`Empfaenger-Suche fehlgeschlagen: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`);
     }

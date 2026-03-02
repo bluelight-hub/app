@@ -72,6 +72,8 @@ describe('BefehlEingabeRow', () => {
     const user = userEvent.setup();
     render(<BefehlEingabeRow einsatzId="einsatz-1" onClose={vi.fn()} />);
 
+    expect(screen.getByText(/Mindestens eine Einheit, z\.B\. RTW-Besatzung oder Rotkreuz 83\/1/)).toBeInTheDocument();
+
     const auftragTextarea = screen.getByPlaceholderText('z.B. RTW-Besatzung zur Patientenversorgung...');
     await user.type(auftragTextarea, 'Patient versorgen');
     expect(auftragTextarea).toHaveValue('Patient versorgen');

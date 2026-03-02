@@ -14,6 +14,7 @@ describe('EmpfaengerSucheQueryHandler', () => {
 
   const mockPrisma = {
     einsatzPerson: { findMany: jest.fn() },
+    einsatzFahrzeug: { findMany: jest.fn() },
     stammPerson: { findMany: jest.fn() },
     einsatzTeilnehmer: { findMany: jest.fn() },
   };
@@ -22,6 +23,8 @@ describe('EmpfaengerSucheQueryHandler', () => {
     jest.clearAllMocks();
     // Default: keine Teilnehmer-Verknuepfung (wird in spezifischen Tests ueberschrieben)
     mockPrisma.einsatzTeilnehmer.findMany.mockResolvedValue([]);
+    // Default: keine Fahrzeuge
+    mockPrisma.einsatzFahrzeug.findMany.mockResolvedValue([]);
     // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     handler = new EmpfaengerSucheQueryHandler(mockPrisma as any);
   });
@@ -128,6 +131,53 @@ describe('EmpfaengerSucheQueryHandler', () => {
     });
   });
 
+  describe('EinsatzFahrzeug-Suche', () => {
+    it('sollte EinsatzFahrzeug-Treffer nach EinsatzPersonen liefern', async () => {
+      mockPrisma.einsatzPerson.findMany.mockResolvedValue([]);
+      mockPrisma.einsatzFahrzeug.findMany.mockResolvedValue([{ id: 'ef-1', funkrufname: 'Rotkreuz 83/1' }]);
+      mockPrisma.stammPerson.findMany.mockResolvedValue([]);
+
+      const result = await handler.execute(new EmpfaengerSucheQuery('83/1', 'einsatz-1'));
+
+      expect(result.isSuccess).toBe(true);
+      expect(result.value).toHaveLength(1);
+      expect(result.value![0]).toEqual({
+        id: 'ef-1',
+        name: 'Rotkreuz 83/1',
+        rolle: 'Fahrzeug',
+        quelle: EmpfaengerQuelle.EINSATZ_FAHRZEUG,
+      });
+      expect(result.value![0].userId).toBeUndefined();
+    });
+
+    it('sollte Reihenfolge EINSATZ -> EINSATZ_FAHRZEUG -> STAMMDATEN einhalten', async () => {
+      mockPrisma.einsatzPerson.findMany.mockResolvedValue([{ id: 'ep-1', vorname: 'Max', nachname: 'Meier', funkrufname: 'ZF Meier', funktion: 'Zugführer', stammId: null, qualifikationen: [] }]);
+      mockPrisma.einsatzFahrzeug.findMany.mockResolvedValue([{ id: 'ef-1', funkrufname: 'Rotkreuz 83/1' }]);
+      mockPrisma.stammPerson.findMany.mockResolvedValue([{ id: 'sp-1', vorname: 'Hans', nachname: 'Meier', qualifikationen: [] }]);
+
+      const result = await handler.execute(new EmpfaengerSucheQuery('Meier', 'einsatz-1'));
+
+      expect(result.isSuccess).toBe(true);
+      expect(result.value).toHaveLength(3);
+      expect(result.value![0].quelle).toBe(EmpfaengerQuelle.EINSATZ);
+      expect(result.value![1].quelle).toBe(EmpfaengerQuelle.EINSATZ_FAHRZEUG);
+      expect(result.value![2].quelle).toBe(EmpfaengerQuelle.STAMMDATEN);
+    });
+
+    it('sollte Fahrzeug-Suche mit einsatzId und funkrufname-contains ausfuehren', async () => {
+      mockPrisma.einsatzPerson.findMany.mockResolvedValue([]);
+      mockPrisma.einsatzFahrzeug.findMany.mockResolvedValue([]);
+      mockPrisma.stammPerson.findMany.mockResolvedValue([]);
+
+      await handler.execute(new EmpfaengerSucheQuery('  RK 83  ', 'einsatz-1'));
+
+      const fahrzeugCall = mockPrisma.einsatzFahrzeug.findMany.mock.calls[0][0];
+      expect(fahrzeugCall.where.einsatzId).toBe('einsatz-1');
+      expect(fahrzeugCall.where.funkrufname.contains).toBe('RK 83');
+      expect(fahrzeugCall.where.funkrufname.mode).toBe('insensitive');
+    });
+  });
+
   describe('Deduplizierung', () => {
     it('sollte Person in beiden Quellen nur als EinsatzPerson zurueckgeben', async () => {
       mockPrisma.einsatzPerson.findMany.mockResolvedValue([{ id: 'ep-1', vorname: 'Max', nachname: 'Meier', funkrufname: null, funktion: 'Helfer', stammId: 'sp-1', qualifikationen: [] }]);
@@ -183,12 +233,13 @@ describe('EmpfaengerSucheQueryHandler', () => {
       const result = await handler.execute(new EmpfaengerSucheQuery('Meier', 'einsatz-1'));
 
       expect(result.value).toHaveLength(20);
+      expect(mockPrisma.einsatzFahrzeug.findMany).not.toHaveBeenCalled();
       expect(mockPrisma.stammPerson.findMany).not.toHaveBeenCalled();
     });
 
-    it('sollte remaining-Slots korrekt an StammPerson-Query uebergeben', async () => {
-      // 15 EinsatzPersonen -> StammPerson.take = 5
-      const fifteenPersons = Array.from({ length: 15 }, (_, i) => ({
+    it('sollte remaining-Slots korrekt auf Fahrzeug- und StammPerson-Query verteilen', async () => {
+      // 17 EinsatzPersonen -> Fahrzeuge.take = 3; bei 1 Fahrzeug -> StammPerson.take = 2
+      const seventeenPersons = Array.from({ length: 17 }, (_, i) => ({
         id: `ep-${i}`,
         vorname: `Vorname${i}`,
         nachname: 'Meier',
@@ -197,13 +248,17 @@ describe('EmpfaengerSucheQueryHandler', () => {
         stammId: null,
         qualifikationen: [],
       }));
-      mockPrisma.einsatzPerson.findMany.mockResolvedValue(fifteenPersons);
+      mockPrisma.einsatzPerson.findMany.mockResolvedValue(seventeenPersons);
+      mockPrisma.einsatzFahrzeug.findMany.mockResolvedValue([{ id: 'ef-1', funkrufname: 'Rotkreuz 83/1' }]);
       mockPrisma.stammPerson.findMany.mockResolvedValue([]);
 
       await handler.execute(new EmpfaengerSucheQuery('Meier', 'einsatz-1'));
 
+      const fahrzeugCall = mockPrisma.einsatzFahrzeug.findMany.mock.calls[0][0];
+      expect(fahrzeugCall.take).toBe(3);
+
       const stammCall = mockPrisma.stammPerson.findMany.mock.calls[0][0];
-      expect(stammCall.take).toBe(5);
+      expect(stammCall.take).toBe(2);
     });
   });
 

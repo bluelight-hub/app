@@ -63,6 +63,7 @@ export interface EmpfaengerSucheResultDto {
  */
 export const EmpfaengerSucheResultDtoQuelleEnum = {
     Einsatz: 'EINSATZ',
+    EinsatzFahrzeug: 'EINSATZ_FAHRZEUG',
     Stammdaten: 'STAMMDATEN'
 } as const;
 export type EmpfaengerSucheResultDtoQuelleEnum = typeof EmpfaengerSucheResultDtoQuelleEnum[keyof typeof EmpfaengerSucheResultDtoQuelleEnum];
@@ -116,4 +117,3 @@ export function EmpfaengerSucheResultDtoToJSONTyped(value?: EmpfaengerSucheResul
         'quelle': value['quelle'],
     };
 }
-

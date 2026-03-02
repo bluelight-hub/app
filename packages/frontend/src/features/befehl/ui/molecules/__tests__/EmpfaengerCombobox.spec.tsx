@@ -41,7 +41,8 @@ const EINSATZ_ID = 'einsatz-123';
 const mockResults = [
   { id: '1', name: 'Müller, Hans', rolle: 'GF', quelle: 'EINSATZ' as const },
   { id: '2', name: 'Schmidt, Anna', rolle: 'ZF', userId: 'user-2', quelle: 'STAMMDATEN' as const },
-  { id: '3', name: 'Weber, Klaus', quelle: 'EINSATZ' as const },
+  { id: '3', name: 'Rotkreuz 83/1', rolle: 'Fahrzeug', quelle: 'EINSATZ_FAHRZEUG' as const },
+  { id: '4', name: 'Weber, Klaus', quelle: 'EINSATZ' as const },
 ];
 
 function createQueryClient() {
@@ -135,6 +136,18 @@ describe('EmpfaengerCombobox', () => {
         expect(screen.getByLabelText('Verknüpfter Benutzer')).toBeInTheDocument();
       });
     });
+
+    it('zeigt Fahrzeugtreffer mit Fahrzeug-Badge', async () => {
+      const user = userEvent.setup();
+      renderWithQuery(<EmpfaengerCombobox einsatzId={EINSATZ_ID} value={[]} onChange={onChange} />);
+
+      await user.type(screen.getByPlaceholderText('Empfänger suchen...'), '83');
+
+      await waitFor(() => {
+        expect(screen.getByText('Rotkreuz 83/1')).toBeInTheDocument();
+        expect(screen.getByText('Fahrzeug')).toBeInTheDocument();
+      });
+    });
   });
 
   describe('Multi-Select & Chips', () => {
@@ -159,6 +172,21 @@ describe('EmpfaengerCombobox', () => {
       await user.click(screen.getByText('Müller, Hans'));
 
       expect(onChange).toHaveBeenCalledWith([{ name: 'Müller, Hans', empfaengerId: undefined }]);
+    });
+
+    it('waehlt Fahrzeugtreffer ohne empfaengerId aus', async () => {
+      const user = userEvent.setup();
+      renderWithQuery(<EmpfaengerCombobox einsatzId={EINSATZ_ID} value={[]} onChange={onChange} />);
+
+      await user.type(screen.getByPlaceholderText('Empfänger suchen...'), '83');
+
+      await waitFor(() => {
+        expect(screen.getByText('Rotkreuz 83/1')).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByText('Rotkreuz 83/1'));
+
+      expect(onChange).toHaveBeenCalledWith([{ name: 'Rotkreuz 83/1', empfaengerId: undefined }]);
     });
   });
 
