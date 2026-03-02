@@ -9,6 +9,7 @@ let hasLoggedNoServerWarning = false;
 import {
   AdminApi,
   AdminBefehleBefehlsgeberVorschlaegeApi,
+  AdminKraefteFahrzeugtypenApi,
   AdminIntegrationsHiorgApi,
   AdminKraefteQualifikationenApi,
   AdminKraefteRollenApi,
@@ -109,6 +110,7 @@ class BackendApi {
   private readonly lagekarteApi: LagekarteApi;
   private readonly lagekarteCqrsApi: LagekarteCQRSApi;
   private readonly geocodingApi: GeocodingApi;
+  private readonly adminKraefteFahrzeugtypenApi: AdminKraefteFahrzeugtypenApi;
   private readonly adminKraefteQualifikationenApi: AdminKraefteQualifikationenApi;
   private readonly adminStammdatenFahrzeugeApi: AdminStammdatenFahrzeugeApi;
   private readonly adminStammdatenPersonenApi: AdminStammdatenPersonenApi;
@@ -159,6 +161,7 @@ class BackendApi {
     this.lagekarteApi = new LagekarteApi(this.configuration);
     this.lagekarteCqrsApi = new LagekarteCQRSApi(this.configuration);
     this.geocodingApi = new GeocodingApi(this.configuration);
+    this.adminKraefteFahrzeugtypenApi = new AdminKraefteFahrzeugtypenApi(this.configuration);
     this.adminKraefteQualifikationenApi = new AdminKraefteQualifikationenApi(this.configuration);
     this.adminKraefteRollenApi = new AdminKraefteRollenApi(this.configuration);
     this.kraefteRollenDefinitionenApi = new KraefteRollenDefinitionenApi(this.configuration);
@@ -296,6 +299,15 @@ class BackendApi {
    */
   geocoding(): GeocodingApi {
     return this.geocodingApi;
+  }
+
+  /**
+   * Gibt die gecachte AdminKraefteFahrzeugtypen-API-Instanz zurück
+   *
+   * @returns Die AdminKraefteFahrzeugtypen-API-Instanz für Fahrzeugtypen-Management
+   */
+  adminKraefteFahrzeugtypen(): AdminKraefteFahrzeugtypenApi {
+    return this.adminKraefteFahrzeugtypenApi;
   }
 
   /**

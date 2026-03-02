@@ -37,6 +37,8 @@ import { UserDeletedEvent } from '@domain/events/user-deleted.event';
 import { UserRoleChangedEvent } from '@domain/events/user-role-changed.event';
 import { PermissionGrantedEvent } from '@domain/events/permission-granted.event';
 import { PermissionRevokedEvent } from '@domain/events/permission-revoked.event';
+import { FahrzeugtypCreatedEvent } from '@domain/kraefte/events/fahrzeugtyp-created.event';
+import { FahrzeugtypUpdatedEvent } from '@domain/kraefte/events/fahrzeugtyp-updated.event';
 
 // Kraefte RollenBesetzung Events (TD2.7)
 import { RolleBesetzt } from '@domain/kraefte/events/rolle-besetzt.event';
@@ -398,6 +400,48 @@ describe('EventSerializer', () => {
   });
 
   // ===== KRAEFTE ROLLEN-BESETZUNG EVENTS (TD2.7) =====
+
+  describe('Fahrzeugtyp Events', () => {
+    it('should serialize FahrzeugtypCreatedEvent correctly', () => {
+      const event = new FahrzeugtypCreatedEvent('cm5h8k2x1000008l87v8g3c5a', 'RTW', 'Rettungswagen', 'RETTUNGSDIENST', 'cm5h8k2x1000008l87v8g3c5b');
+
+      const serialized = serializer.serialize(event);
+
+      expectValidSerializedEvent(serialized, 'FahrzeugtypCreated');
+      expect(serialized.payload).toEqual({
+        fahrzeugtypId: 'cm5h8k2x1000008l87v8g3c5a',
+        code: 'RTW',
+        bezeichnung: 'Rettungswagen',
+        kategorie: 'RETTUNGSDIENST',
+        createdBy: 'cm5h8k2x1000008l87v8g3c5b',
+      });
+    });
+
+    it('should serialize FahrzeugtypUpdatedEvent correctly', () => {
+      const event = new FahrzeugtypUpdatedEvent(
+        'cm5h8k2x1000008l87v8g3c5a',
+        {
+          bezeichnung: 'Rettungswagen Typ B',
+          sollbesatzung: { fahrer: 1, sanitaeter: 2, notarzt: 0 },
+          istAktiv: true,
+        },
+        'cm5h8k2x1000008l87v8g3c5b',
+      );
+
+      const serialized = serializer.serialize(event);
+
+      expectValidSerializedEvent(serialized, 'FahrzeugtypUpdated');
+      expect(serialized.payload).toEqual({
+        fahrzeugtypId: 'cm5h8k2x1000008l87v8g3c5a',
+        changes: {
+          bezeichnung: 'Rettungswagen Typ B',
+          sollbesatzung: { fahrer: 1, sanitaeter: 2, notarzt: 0 },
+          istAktiv: true,
+        },
+        updatedBy: 'cm5h8k2x1000008l87v8g3c5b',
+      });
+    });
+  });
 
   describe('Kraefte RollenBesetzung Events (TD2.7 - AC2)', () => {
     // Test CUID2 values

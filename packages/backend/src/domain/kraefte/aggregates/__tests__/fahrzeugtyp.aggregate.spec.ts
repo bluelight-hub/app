@@ -143,6 +143,29 @@ describe('Fahrzeugtyp Aggregate', () => {
         expect(result.error).toContain('Sollbesatzung.fahrer muss eine ganze Zahl sein');
       });
 
+      it('should allow sollbesatzung with undefined optional fields', () => {
+        // Given (Arrange) - entspricht DTO/Class-Instanz-Verhalten mit optionalen undefined-Feldern
+        const props: CreateFahrzeugtypProps = {
+          code: 'NEF',
+          bezeichnung: 'Notarzteinsatzfahrzeug',
+          kategorie: 'RETTUNGSDIENST',
+          sollbesatzung: {
+            fahrer: 1,
+            sanitaeter: undefined,
+            notarzt: undefined,
+            funktrupp: undefined,
+            helfer: undefined,
+          },
+          createdBy: validCreatedBy,
+        };
+
+        // When (Act)
+        const result = Fahrzeugtyp.create(props);
+
+        // Then (Assert)
+        expect(result.isSuccess).toBe(true);
+      });
+
       it('should fail when createdBy is not a valid CUID', () => {
         // Given (Arrange)
         const props: CreateFahrzeugtypProps = {

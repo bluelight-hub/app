@@ -147,6 +147,13 @@ export function AdminDashboard() {
             onClick={() => navigate({ to: '/admin/kraefte/rollen-definitionen' })}
             accentColor="blue"
           />
+          <NavCard
+            icon={<PiTruck className="h-6 w-6" />}
+            title="Fahrzeugtypen"
+            description="Fahrzeugtypen verwalten"
+            onClick={() => navigate({ to: '/admin/kraefte/fahrzeugtypen' })}
+            accentColor="blue"
+          />
           <NavCard icon={<PiTicket className="h-6 w-6" />} title="Invite-Codes" description="Einladungen verwalten" onClick={() => navigate({ to: '/admin/invites' })} accentColor="blue" />
           <NavCard icon={<PiKey className="h-6 w-6" />} title="Access-Tokens" description="API-Zugriff verwalten" onClick={() => navigate({ to: '/admin/tokens' })} accentColor="blue" />
           <NavCard

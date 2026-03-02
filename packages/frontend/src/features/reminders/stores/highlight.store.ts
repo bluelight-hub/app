@@ -162,7 +162,7 @@ export function useHighlightedErinnerungId(): string | null {
  * @returns Kompletter Store State
  */
 export function useHighlightStoreState(): HighlightStoreState {
-  return useStore(highlightStore);
+  return useStore(highlightStore, (state) => state);
 }
 
 // ============================================================================

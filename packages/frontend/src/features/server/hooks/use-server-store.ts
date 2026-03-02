@@ -75,7 +75,7 @@ import { addServer, hydrateServerStore, removeServer, serverStore, setActiveServ
  * ```
  */
 export function useServerStore() {
-  const state = useStore(serverStore);
+  const state = useStore(serverStore, (storeState) => storeState);
 
   return {
     // State Selectors

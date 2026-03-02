@@ -21,6 +21,8 @@ import type { PermissionGrantedEvent } from '@domain/events/permission-granted.e
 import type { PermissionRevokedEvent } from '@domain/events/permission-revoked.event';
 import type { QualifikationCreatedEvent } from '@domain/kraefte/events/qualifikation-created.event';
 import type { QualifikationUpdatedEvent } from '@domain/kraefte/events/qualifikation-updated.event';
+import type { FahrzeugtypCreatedEvent } from '@domain/kraefte/events/fahrzeugtyp-created.event';
+import type { FahrzeugtypUpdatedEvent } from '@domain/kraefte/events/fahrzeugtyp-updated.event';
 import type { EinsatzPersonHinzugefuegtEvent } from '@domain/kraefte/events/einsatz-person-hinzugefuegt.event';
 import type { FahrzeugErfasstEvent } from '@domain/kraefte/events/fahrzeug-erfasst.event';
 import type { FmsStatusGeaendertEvent } from '@domain/kraefte/events/fms-status-geaendert.event';
@@ -225,6 +227,12 @@ export class EventSerializer {
         return this.serializeQualifikationCreated(event as unknown as QualifikationCreatedEvent);
       case 'QualifikationUpdated':
         return this.serializeQualifikationUpdated(event as unknown as QualifikationUpdatedEvent);
+
+      // ===== FAHRZEUGTYP EVENTS =====
+      case 'FahrzeugtypCreated':
+        return this.serializeFahrzeugtypCreated(event as unknown as FahrzeugtypCreatedEvent);
+      case 'FahrzeugtypUpdated':
+        return this.serializeFahrzeugtypUpdated(event as unknown as FahrzeugtypUpdatedEvent);
 
       // ===== EINSATZ PERSON EVENTS =====
       case 'einsatz_person.hinzugefuegt':
@@ -607,6 +615,26 @@ export class EventSerializer {
   private serializeQualifikationUpdated(event: QualifikationUpdatedEvent): Record<string, unknown> {
     return {
       qualifikationId: event.qualifikationId, // Already primitive string
+      changes: event.changes, // Already primitives
+      updatedBy: event.updatedBy,
+    };
+  }
+
+  // ===== FAHRZEUGTYP SERIALIZERS =====
+
+  private serializeFahrzeugtypCreated(event: FahrzeugtypCreatedEvent): Record<string, unknown> {
+    return {
+      fahrzeugtypId: event.fahrzeugtypId, // Already primitive string
+      code: event.code,
+      bezeichnung: event.bezeichnung,
+      kategorie: event.kategorie,
+      createdBy: event.createdBy,
+    };
+  }
+
+  private serializeFahrzeugtypUpdated(event: FahrzeugtypUpdatedEvent): Record<string, unknown> {
+    return {
+      fahrzeugtypId: event.fahrzeugtypId, // Already primitive string
       changes: event.changes, // Already primitives
       updatedBy: event.updatedBy,
     };

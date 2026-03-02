@@ -23,6 +23,12 @@ export { CreateQualifikationDialog } from './CreateQualifikationDialog';
 export { EditQualifikationDialog } from './EditQualifikationDialog';
 export { DeactivateQualifikationDialog } from './DeactivateQualifikationDialog';
 
+// Fahrzeugtypen Management
+export { FahrzeugtypenTable } from './FahrzeugtypenTable';
+export { CreateFahrzeugtypDialog } from './CreateFahrzeugtypDialog';
+export { EditFahrzeugtypDialog } from './EditFahrzeugtypDialog';
+export { DeactivateFahrzeugtypDialog } from './DeactivateFahrzeugtypDialog';
+
 // StammFahrzeuge Management
 export { StammFahrzeugeTable } from './StammFahrzeugeTable';
 export { CreateStammFahrzeugDialog } from './CreateStammFahrzeugDialog';
