@@ -1,10 +1,7 @@
 # BlueLight Hub
 
-<!-- Coverage temporarily disabled -->
-<!-- [![codecov](https://codecov.io/gh/rubenvitt/bluelight-hub/graph/badge.svg?token=I5Z3C0FSLL)](https://codecov.io/gh/rubenvitt/bluelight-hub) -->
-
 [![GitHub Actions](https://github.com/rubenvitt/bluelight-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/rubenvitt/bluelight-hub/actions/workflows/ci.yml)
-[![doccov](https://backend-docs.bluelight-hub.rubeen.dev/images/coverage-badge-documentation.svg)](https://backend-docs.bluelight-hub.rubeen.dev)
+[![codecov](https://codecov.io/gh/rubenvitt/bluelight-hub/graph/badge.svg?token=I5Z3C0FSLL)](https://codecov.io/gh/rubenvitt/bluelight-hub)
 
 ## Übersicht
 
@@ -12,12 +9,11 @@ BlueLight Hub ist eine moderne Anwendung, die mit einer Monorepo-Struktur entwic
 einem Frontend (Vite/React mit Tauri-Integration) und einem Backend (
 NestJS), die über ein gemeinsames Modul kommunizieren.
 
-<!-- Coverage temporarily disabled -->
-<!-- ## Charts
+## Charts
 
 ### Coverage
 
-![Coverage](https://codecov.io/gh/rubenvitt/bluelight-hub/graphs/sunburst.svg?token=I5Z3C0FSLL) -->
+![Coverage Sunburst](https://codecov.io/gh/rubenvitt/bluelight-hub/graphs/sunburst.svg?token=I5Z3C0FSLL)
 
 ## Projektstruktur
 

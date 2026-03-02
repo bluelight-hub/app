@@ -222,7 +222,7 @@ jobs:
       - name: Run frontend tests with coverage
         env:
           NODE_ENV: test
-        run: pnpm --filter @bluelight-hub/frontend test:cov
+        run: pnpm --filter @bluelight-hub/frontend vitest --coverage --reporter=default --reporter=junit --outputFile=test-report.junit.xml
 
       - uses: actions/upload-artifact@v7
         if: failure()
@@ -240,6 +240,13 @@ jobs:
           flags: frontend
           name: codecov-linux-frontend
           fail_ci_if_error: false
+
+      - name: Upload frontend test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: packages/frontend/test-report.junit.xml
 
   # Lightweight Checks (Lint + Docs, non-blocking)
   lightweight-checks:
