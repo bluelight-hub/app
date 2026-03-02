@@ -8,7 +8,7 @@
 
 use rodio::source::{SineWave, Source};
 use rodio::mixer::Mixer;
-use rodio::{Decoder, DeviceSinkBuilder, Sink};
+use rodio::{Decoder, DeviceSinkBuilder, Player};
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
@@ -103,7 +103,7 @@ fn try_resolve_sound_file(
 fn play_beep(sound_type: SoundType, mixer: &Mixer, volume: f32) {
     let (freq, duration_ms, repeats) = sound_type.beep_params();
 
-    let sink = Sink::connect_new(mixer);
+    let sink = Player::connect_new(mixer);
 
     sink.set_volume(volume);
 
@@ -134,7 +134,7 @@ fn play_audio_file(path: PathBuf, mixer: &Mixer, volume: f32) -> Result<(), Stri
     let source =
         Decoder::new(reader).map_err(|e| format!("Konnte Sound nicht dekodieren: {}", e))?;
 
-    let sink = Sink::connect_new(mixer);
+    let sink = Player::connect_new(mixer);
 
     sink.set_volume(volume);
     sink.append(source);

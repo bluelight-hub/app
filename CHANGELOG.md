@@ -1,3 +1,24 @@
+## 🔧 Technische Verbesserungen
+
+### Audio-Wiedergabe
+- Aktualisierung der Audio-Bibliothek (Rodio) auf Version 0.22.1 für verbesserte Stabilität und Kompatibilität der Tonausgabe in der Desktop-Anwendung
+
+### Performance-Tests
+- Optimierung der Leistungstests für zuverlässigere Ergebnisse in verschiedenen Ausführungsumgebungen
+
+## 📦 Dependency-Updates
+
+### Frontend-Bibliotheken
+- TailwindCSS auf Version 4.2.1 aktualisiert
+- TanStack-Bibliotheken aktualisiert (Router, Form, Store, Virtual und weitere)
+- React Hook Form auf Version 7.71.2 aktualisiert
+- Axios auf Version 1.13.6 aktualisiert
+
+### Backend-Bibliotheken
+- Prisma-Client und Adapter auf Version 7.4.1 aktualisiert
+- PostgreSQL-Treiber (pg) auf Version 8.19.0 aktualisiert
+- Multer auf Version 2.1.0 aktualisiert
+
 ## Interne Verbesserungen
 
 - **Backend-Stabilität**: Fehlerbehandlung bei Befehlsausführung verbessert – verhindert Serverabstürze bei fehlenden Handler-Rückgaben

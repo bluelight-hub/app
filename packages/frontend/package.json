@@ -1,7 +1,7 @@
 {
   "name": "@bluelight-hub/frontend",
   "private": true,
-  "version": "1.0.0-alpha.58",
+  "version": "1.0.0-alpha.59",
   "type": "module",
   "scripts": {
     "dev": "tauri dev",
@@ -61,7 +61,7 @@
     "react": "^19.2.4",
     "react-datepicker": "^9.1.0",
     "react-dom": "^19.2.4",
-    "react-hook-form": "^7.71.1",
+    "react-hook-form": "^7.71.2",
     "react-hotkeys-hook": "^5.2.4",
     "react-icons": "^5.5.0",
     "react-leaflet": "^5.0.0",
@@ -70,7 +70,7 @@
     "socket.io-client": "^4.8.3",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.5.0",
-    "tailwindcss": "^4.1.18",
+    "tailwindcss": "^4.2.1",
     "use-debounce": "^10.1.0",
     "vite-tsconfig-paths": "^6.1.1",
     "zod": "^4.3.6",

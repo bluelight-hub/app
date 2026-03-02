@@ -148,8 +148,8 @@ importers:
         specifier: ^2.1.0
         version: 2.1.0
       multer:
-        specifier: ^2.0.2
-        version: 2.0.2
+        specifier: ^2.1.0
+        version: 2.1.0
       passport:
         specifier: ^0.7.0
         version: 0.7.0
@@ -279,7 +279,7 @@ importers:
         version: 2.2.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@hookform/resolvers':
         specifier: ^5.2.2
-        version: 5.2.2(react-hook-form@7.71.1(react@19.2.4))
+        version: 5.2.2(react-hook-form@7.71.2(react@19.2.4))
       '@tailwindcss/vite':
         specifier: ^4.2.1
         version: 4.2.1(vite@7.3.1(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.1))
@@ -389,8 +389,8 @@ importers:
         specifier: ^19.2.4
         version: 19.2.4(react@19.2.4)
       react-hook-form:
-        specifier: ^7.71.1
-        version: 7.71.1(react@19.2.4)
+        specifier: ^7.71.2
+        version: 7.71.2(react@19.2.4)
       react-hotkeys-hook:
         specifier: ^5.2.4
         version: 5.2.4(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -416,8 +416,8 @@ importers:
         specifier: ^3.5.0
         version: 3.5.0
       tailwindcss:
-        specifier: ^4.1.18
-        version: 4.1.18
+        specifier: ^4.2.1
+        version: 4.2.1
       use-debounce:
         specifier: ^10.1.0
         version: 10.1.0(react@19.2.4)
@@ -8171,6 +8171,10 @@ packages:
     resolution: {integrity: sha512-u7f2xaZ/UG8oLXHvtF/oWTRvT44p9ecwBBqTwgJVq0+4BW1g8OW01TyMEGWBHbyMOYVHXslaut7qEQ1meATXgw==}
     engines: {node: '>= 10.16.0'}
 
+  multer@2.1.0:
+    resolution: {integrity: sha512-TBm6j41rxNohqawsxlsWsNNh/VdV4QFXcBvRcPhXaA05EZ79z0qJ2bQFpync6JBoHTeNY5Q1JpG7AlTjdlfAEA==}
+    engines: {node: '>= 10.16.0'}
+
   mute-stream@0.0.8:
     resolution: {integrity: sha512-nnbWWOkoWyUsTjKrhgD0dcz22mdkSnpYqbEjIm2nhwhuxlSkpywJmBo8h0ZqJdkp73mb90SssHkN4rsRaBAfAA==}
 
@@ -8975,8 +8979,8 @@ packages:
     peerDependencies:
       react: ^19.2.4
 
-  react-hook-form@7.71.1:
-    resolution: {integrity: sha512-9SUJKCGKo8HUSsCO+y0CtqkqI5nNuaDqTxyqPsZPqIwudpj4rCrAz/jZV+jn57bx5gtZKOh3neQu94DXMc+w5w==}
+  react-hook-form@7.71.2:
+    resolution: {integrity: sha512-1CHvcDYzuRUNOflt4MOq3ZM46AronNJtQ1S7tnX6YN4y72qhgiUItpacZUAQ0TyWYci3yz1X+rXaSxiuEm86PA==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       react: ^16.8.0 || ^17 || ^18 || ^19
@@ -9741,9 +9745,6 @@ packages:
 
   tailwind-merge@3.5.0:
     resolution: {integrity: sha512-I8K9wewnVDkL1NTGoqWmVEIlUcB9gFriAEkXkfCjX5ib8ezGxtR3xD7iZIxrfArjEsH7F1CHD4RFUtxefdqV/A==}
-
-  tailwindcss@4.1.18:
-    resolution: {integrity: sha512-4+Z+0yiYyEtUVCScyfHCxOYP06L5Ne+JiHhY2IjR2KWMIWhJOYZKLSGZaP5HkZ8+bY0cxfzwDE5uOmzFXyIwxw==}
 
   tailwindcss@4.2.1:
     resolution: {integrity: sha512-/tBrSQ36vCleJkAOsy9kbNTgaxvGbyOamC30PRePTQe/o1MFwEKHQk4Cn7BNGaPtjp+PuUrByJehM1hgxfq4sw==}
@@ -13313,10 +13314,10 @@ snapshots:
     dependencies:
       hono: 4.11.4
 
-  '@hookform/resolvers@5.2.2(react-hook-form@7.71.1(react@19.2.4))':
+  '@hookform/resolvers@5.2.2(react-hook-form@7.71.2(react@19.2.4))':
     dependencies:
       '@standard-schema/utils': 0.3.0
-      react-hook-form: 7.71.1(react@19.2.4)
+      react-hook-form: 7.71.2(react@19.2.4)
 
   '@humanfs/core@0.19.1': {}
 
@@ -20386,6 +20387,13 @@ snapshots:
       type-is: 1.6.18
       xtend: 4.0.2
 
+  multer@2.1.0:
+    dependencies:
+      append-field: 1.0.0
+      busboy: 1.6.0
+      concat-stream: 2.0.0
+      type-is: 1.6.18
+
   mute-stream@0.0.8: {}
 
   mute-stream@2.0.0: {}
@@ -21129,7 +21137,7 @@ snapshots:
       react: 19.2.4
       scheduler: 0.27.0
 
-  react-hook-form@7.71.1(react@19.2.4):
+  react-hook-form@7.71.2(react@19.2.4):
     dependencies:
       react: 19.2.4
 
@@ -21987,8 +21995,6 @@ snapshots:
   tagged-tag@1.0.0: {}
 
   tailwind-merge@3.5.0: {}
-
-  tailwindcss@4.1.18: {}
 
   tailwindcss@4.2.1: {}
 
