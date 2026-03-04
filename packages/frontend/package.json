@@ -4,8 +4,11 @@
   "version": "1.0.0-alpha.61",
   "type": "module",
   "scripts": {
+    "predev": "pnpm --filter @bluelight-hub/shared build",
     "dev": "tauri dev",
+    "predev:vite": "pnpm --filter @bluelight-hub/shared build",
     "dev:vite": "vite",
+    "prebuild": "pnpm --filter @bluelight-hub/shared build",
     "build": "tsc --skipLibCheck --noEmit && vite build",
     "lint": "biome check --write",
     "lint:check": "biome check",

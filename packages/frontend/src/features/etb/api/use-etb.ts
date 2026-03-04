@@ -22,6 +22,13 @@ export interface UseEtbOptions {
    * @default false
    */
   includeDeleted?: boolean;
+
+  /**
+   * Query aktivieren/deaktivieren
+   *
+   * @default true
+   */
+  enabled?: boolean;
 }
 
 /**
@@ -43,9 +50,9 @@ export interface UseEtbOptions {
  * return <EtbView etb={etb} />;
  * ```
  */
-export const useEtb = ({ einsatzId, includeDeleted = false }: UseEtbOptions) => {
+export const useEtb = ({ einsatzId, includeDeleted = false, enabled = true }: UseEtbOptions) => {
   return useQuery<EtbDto | undefined, ResponseError>({
-    enabled: !!einsatzId,
+    enabled: enabled && !!einsatzId,
     queryKey: ETB_QUERY_KEYS.byEinsatz(einsatzId, includeDeleted),
     queryFn: async () => {
       if (!einsatzId) {
@@ -75,9 +82,9 @@ export const useEtb = ({ einsatzId, includeDeleted = false }: UseEtbOptions) => 
     },
     staleTime: 30000,
     retry: (failureCount, error) => {
-      // Kein Retry bei 404
+      // Kein Retry bei 404 (ETB existiert noch nicht) oder Auth/Access-Fehlern
       const statusCode = (error as { status?: number })?.status || (error as { response?: { status?: number } })?.response?.status;
-      if (statusCode === 404) return false;
+      if (statusCode === 404 || statusCode === 401 || statusCode === 403) return false;
       return failureCount < 3;
     },
     retryDelay: calculateRetryDelay,
