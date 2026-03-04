@@ -240,6 +240,7 @@ Umgesetzt:
 - JWT- und HiOrg-Konfigurationspfade auf Runtime-Resolver umgestellt.
 - Admin-Endpunkte für Runtime-Config und Config-Doctor ergänzt.
 - `.env.example` auf Bootstrap/Infra + Override-Allowlist reduziert.
+- JWT-Konfigurationsauflösung für Nest `JwtModule`/Passport-Strategien auf Lazy-Runtime-Read umgestellt (kein `getOrThrow('...')` mehr während Modulregistrierung/Konstruktorphase).
 
 Offen für nächste Phase:
 

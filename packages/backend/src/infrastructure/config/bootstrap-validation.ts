@@ -7,6 +7,37 @@ export interface BootstrapConfig {
   masterSecretKey: Buffer | null;
 }
 
+type InsecureModeLogger = Pick<typeof Logger, 'warn' | 'error'>;
+
+/**
+ * Validiert INSECURE_MODE beim Bootstrap.
+ *
+ * Security-Regel:
+ * - Nur der exakte String "true" aktiviert den Modus.
+ * - In Produktion ist INSECURE_MODE strikt verboten (Startup-Abbruch).
+ * - In Development wird nur eine Warnbox ausgegeben.
+ */
+export function validateInsecureMode(insecureMode: string | undefined, isProduction: boolean, logger: InsecureModeLogger = Logger): void {
+  if (insecureMode !== 'true') {
+    return;
+  }
+
+  if (isProduction) {
+    logger.error('╔══════════════════════════════════════════════════════════╗', 'Bootstrap');
+    logger.error('║                        FATAL                             ║', 'Bootstrap');
+    logger.error('║             INSECURE_MODE IN PRODUCTION                  ║', 'Bootstrap');
+    logger.error('║              APPLICATION STARTUP ABORTED                 ║', 'Bootstrap');
+    logger.error('╚══════════════════════════════════════════════════════════╝', 'Bootstrap');
+    throw new Error('INSECURE_MODE is not allowed in production environment');
+  }
+
+  logger.warn('╔══════════════════════════════════════════════════════════╗', 'Bootstrap');
+  logger.warn('║                INSECURE_MODE ACTIVE                      ║', 'Bootstrap');
+  logger.warn('║            Token validation is DISABLED                  ║', 'Bootstrap');
+  logger.warn('║               DO NOT USE IN PRODUCTION                   ║', 'Bootstrap');
+  logger.warn('╚══════════════════════════════════════════════════════════╝', 'Bootstrap');
+}
+
 /**
  * Validiert Bootstrap-Pflichtvariablen fuer ADR-002.
  *

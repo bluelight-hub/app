@@ -84,7 +84,14 @@ export class AdminJwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') im
         },
       ]),
       ignoreExpiration: false,
-      secretOrKey: appConfig.getOrThrow<string>('ADMIN_JWT_SECRET'),
+      secretOrKeyProvider: (_request: Request, _rawJwtToken: string, done: (err: unknown, secretOrKey?: string | Buffer) => void) => {
+        const secret = appConfig.get<string>('ADMIN_JWT_SECRET');
+        if (!secret || secret.trim().length === 0) {
+          done(new UnauthorizedException('ADMIN_JWT_SECRET not configured'));
+          return;
+        }
+        done(null, secret);
+      },
       passReqToCallback: true, // Pass the request to the validate method
     } as never);
   }

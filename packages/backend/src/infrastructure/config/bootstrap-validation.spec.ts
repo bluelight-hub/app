@@ -268,7 +268,7 @@ describe('validateBootstrapConfig', () => {
     expect(mockLogger.warn).toHaveBeenCalledTimes(1);
   });
 
-  it('sollte bei ungültigem MASTER_SECRET_KEY nur warnen und weiterlaufen', () => {
+  it('sollte passphrase-basierten MASTER_SECRET_KEY akzeptieren', () => {
     // Given / When
     const result = validateBootstrapConfig(
       {
@@ -278,7 +278,8 @@ describe('validateBootstrapConfig', () => {
       mockLogger as unknown as typeof Logger,
     );
 
-    expect(result.masterSecretKey).toBe(null);
-    expect(mockLogger.warn).toHaveBeenCalledTimes(1);
+    expect(result.masterSecretKey).not.toBe(null);
+    expect(result.masterSecretKey?.length).toBe(32);
+    expect(mockLogger.warn).not.toHaveBeenCalled();
   });
 });
