@@ -67,7 +67,7 @@ export class PrismaServerConfigRepository implements IServerConfigRepository {
         where: { id: SINGLETON_ID },
         create: {
           id: SINGLETON_ID,
-          insecureMode: true,
+          insecureMode: false,
           migratedAt: null,
         },
         update: {

@@ -12,7 +12,7 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { AppConfigService } from '@/infrastructure/services/app-config.service';
 import type { IHiOrgOAuthConfigPort, HiOrgOAuthClientCredentials } from '@domain/ports/i-hiorg-oauth-config.port';
 
 /**
@@ -23,7 +23,7 @@ import type { IHiOrgOAuthConfigPort, HiOrgOAuthClientCredentials } from '@domain
  */
 @Injectable()
 export class HiOrgOAuthConfigAdapter implements IHiOrgOAuthConfigPort {
-  constructor(private readonly config: ConfigService) {}
+  constructor(private readonly config: AppConfigService) {}
 
   /**
    * Prüft ob OAuth2 für HiOrg-Server konfiguriert ist.

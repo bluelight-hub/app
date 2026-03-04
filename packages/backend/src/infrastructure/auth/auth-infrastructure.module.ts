@@ -3,6 +3,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { JWT_AUTH_SERVICE, LOGGER } from '../di-tokens';
 import { JwtTokenServiceAdapter } from './adapters/jwt-token-service.adapter';
 import { NestLoggerAdapter } from '../common/adapters/nest-logger.adapter';
+import { AppConfigService } from '../services/app-config.service';
+import { InfrastructureCommonModule } from '../common.module';
+import { toJwtExpiresIn } from './utils/jwt-expires-in.util';
 
 /**
  * NestJS Module für Auth Infrastructure Layer.
@@ -49,11 +52,15 @@ import { NestLoggerAdapter } from '../common/adapters/nest-logger.adapter';
  */
 @Module({
   imports: [
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
-      signOptions: {
-        expiresIn: '24h',
-      },
+    InfrastructureCommonModule,
+    JwtModule.registerAsync({
+      inject: [AppConfigService],
+      useFactory: (appConfig: AppConfigService) => ({
+        secret: appConfig.getOrThrow<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: toJwtExpiresIn(appConfig.get<string>('JWT_ACCESS_EXPIRES_IN', '24h')),
+        },
+      }),
     }),
   ],
   providers: [

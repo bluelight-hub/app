@@ -6,7 +6,8 @@ import { InviteCodeId } from '@/domain/value-objects/invite-code-id';
 import { InviteCodeValue } from '@/domain/value-objects/invite-code-value';
 import type { IInviteCodeRepository } from '@/domain/repositories/i-invite-code.repository';
 import type { IServerAccessTokenRepository } from '@/domain/repositories/i-server-access-token.repository';
-import { INVITE_CODE_REPOSITORY, SERVER_ACCESS_TOKEN_REPOSITORY } from '@/infrastructure/di-tokens';
+import type { IRuntimeConfigPort } from '@/domain/ports/i-runtime-config.port';
+import { INVITE_CODE_REPOSITORY, RUNTIME_CONFIG, SERVER_ACCESS_TOKEN_REPOSITORY } from '@/infrastructure/di-tokens';
 import { ExchangeInviteHandler } from './exchange-invite.handler';
 import type { ExchangeInviteDto } from './dto/exchange-invite.dto';
 
@@ -31,6 +32,7 @@ describe('ExchangeInviteHandler', () => {
   let handler: ExchangeInviteHandler;
   let mockInviteRepo: jest.Mocked<IInviteCodeRepository>;
   let mockTokenRepo: jest.Mocked<IServerAccessTokenRepository>;
+  let mockRuntimeConfig: jest.Mocked<IRuntimeConfigPort>;
 
   beforeEach(async () => {
     jest.clearAllMocks(); // WICHTIG: Mock Reset (AC6 Pattern)
@@ -61,11 +63,24 @@ describe('ExchangeInviteHandler', () => {
       updateLastUsed: jest.fn(),
     } as unknown as jest.Mocked<IServerAccessTokenRepository>;
 
+    mockRuntimeConfig = {
+      getString: jest.fn((key: string, fallback?: string) => {
+        if (key === 'SERVER_NAME') return 'Bluelight Hub';
+        if (key === 'APP_URL') return 'http://localhost:3091';
+        return fallback ?? '';
+      }),
+    };
+
     // Bcrypt Mock: Default Success (exakte 60 Zeichen bcrypt Format)
     mockedBcrypt.hash.mockResolvedValue('$2a$10$N9qo8uLOickgx2ZMRZoMye.IjqQBrkHx6Y.q8e8.mzYsYB1.qKWZS' as never);
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [ExchangeInviteHandler, { provide: INVITE_CODE_REPOSITORY, useValue: mockInviteRepo }, { provide: SERVER_ACCESS_TOKEN_REPOSITORY, useValue: mockTokenRepo }],
+      providers: [
+        ExchangeInviteHandler,
+        { provide: INVITE_CODE_REPOSITORY, useValue: mockInviteRepo },
+        { provide: SERVER_ACCESS_TOKEN_REPOSITORY, useValue: mockTokenRepo },
+        { provide: RUNTIME_CONFIG, useValue: mockRuntimeConfig },
+      ],
     }).compile();
 
     handler = module.get<ExchangeInviteHandler>(ExchangeInviteHandler);
@@ -441,18 +456,21 @@ describe('ExchangeInviteHandler', () => {
     });
   });
 
-  describe('execute() - Environment Variables', () => {
+  describe('execute() - Runtime Config', () => {
     const originalEnv = process.env;
 
     afterEach(() => {
       process.env = originalEnv;
     });
 
-    it('should use environment variables for serverInfo', async () => {
+    it('should use runtime config values for serverInfo', async () => {
       // Given (Arrange)
-      process.env.SERVER_NAME = 'Test Server';
+      mockRuntimeConfig.getString.mockImplementation((key: string, fallback?: string) => {
+        if (key === 'SERVER_NAME') return 'Test Server';
+        if (key === 'APP_URL') return 'https://test.example.com';
+        return fallback ?? '';
+      });
       process.env.npm_package_version = '2.0.0';
-      process.env.APP_URL = 'https://test.example.com';
 
       const dto = createValidDto('ABC12345');
       const inviteCodeId = 'inv_test123456789012345';
@@ -472,11 +490,10 @@ describe('ExchangeInviteHandler', () => {
       });
     });
 
-    it('should use default values when environment variables are missing', async () => {
+    it('should use fallback values when runtime config has no values', async () => {
       // Given (Arrange)
-      delete process.env.SERVER_NAME;
+      mockRuntimeConfig.getString.mockImplementation((_key: string, fallback?: string) => fallback ?? '');
       delete process.env.npm_package_version;
-      delete process.env.APP_URL;
 
       const dto = createValidDto('ABC12345');
       const inviteCodeId = 'inv_test123456789012345';

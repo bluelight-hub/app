@@ -26,6 +26,7 @@ import { AdminSetupController } from './controllers/admin-setup.controller';
 import { AdminInviteController } from './controllers/admin-invite.controller';
 import { AdminTokenController } from './controllers/admin-token.controller';
 import { AdminSecurityController } from './controllers/admin-security.controller';
+import { AdminRuntimeConfigController } from './controllers/admin-runtime-config.controller';
 
 /**
  * Admin-Modul fuer Server-Setup und Administration.
@@ -71,7 +72,7 @@ import { AdminSecurityController } from './controllers/admin-security.controller
  */
 @Module({
   imports: [PrismaModule, ServerAccessTokenInfrastructureModule, ServerConfigInfrastructureModule, UserInfrastructureModule, InviteCodeInfrastructureModule, OutboxModule, PasswordModule],
-  controllers: [AdminSetupController, AdminInviteController, AdminTokenController, AdminSecurityController],
+  controllers: [AdminSetupController, AdminInviteController, AdminTokenController, AdminSecurityController, AdminRuntimeConfigController],
   providers: [
     // Logger fuer Handler
     {

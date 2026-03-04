@@ -1,5 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { AppConfigService } from '@/infrastructure/services/app-config.service';
 import { PassportStrategy } from '@nestjs/passport';
 import type { UserRole } from '@/generated/prisma/client';
 import type { Request } from 'express';
@@ -33,7 +33,7 @@ export interface ValidatedUser {
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(
-    configService: ConfigService,
+    appConfig: AppConfigService,
     private readonly authService: AuthService,
   ) {
     super({
@@ -43,7 +43,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         },
       ]),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('JWT_SECRET') || 'fallback-secret',
+      secretOrKey: appConfig.getOrThrow<string>('JWT_SECRET'),
     });
   }
 

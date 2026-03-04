@@ -4,13 +4,14 @@ import { formatNatoDateTime } from '@/shared/utils/date.util';
 import { ConflictException, ForbiddenException, Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@/infrastructure/di-tokens';
-import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { isCuid } from '@paralleldrive/cuid2';
 import type { User } from '@/generated/prisma/client';
 import * as bcrypt from 'bcrypt';
 import { BCRYPT_COST_FACTOR_PASSWORD } from '@/infrastructure/config/security.constants';
 import { PasswordValidationService } from '@/infrastructure/password/password-validation.service';
+import { AppConfigService } from '@/infrastructure/services/app-config.service';
+import { toJwtExpiresIn } from '@/infrastructure/auth/utils/jwt-expires-in.util';
 import type { AdminSetupDto } from './dto/admin-setup.dto';
 import type { AuthRequestDto } from './dto/auth-request.dto';
 import type { AuthResponseDto } from './dto/auth-response.dto';
@@ -28,7 +29,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
+    private readonly appConfig: AppConfigService,
     @Inject(LOGGER) private readonly logger: ILogger,
     private readonly passwordValidation: PasswordValidationService,
   ) {}
@@ -125,7 +126,7 @@ export class AuthService {
       role: user.role, // Include a role in token payload
     };
     return this.jwtService.sign(payload, {
-      expiresIn: this.configService.get('JWT_ACCESS_EXPIRES_IN', '15m'),
+      expiresIn: toJwtExpiresIn(this.appConfig.get<string>('JWT_ACCESS_EXPIRES_IN', '15m')),
     });
   }
 
@@ -141,8 +142,8 @@ export class AuthService {
   signRefreshToken(user: User): string {
     const payload = { sub: user.id };
     return this.jwtService.sign(payload, {
-      secret: this.configService.get('JWT_REFRESH_SECRET'),
-      expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN', '7d'),
+      secret: this.appConfig.getOrThrow('JWT_REFRESH_SECRET'),
+      expiresIn: toJwtExpiresIn(this.appConfig.get<string>('JWT_REFRESH_EXPIRES_IN', '7d')),
     });
   }
 
@@ -193,7 +194,7 @@ export class AuthService {
    */
   async verifyRefreshToken(token: string): Promise<ValidatedUser> {
     const decoded = await this.jwtService.verifyAsync(token, {
-      secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+      secret: this.appConfig.getOrThrow<string>('JWT_REFRESH_SECRET'),
     });
 
     // Validate the decoded payload structure
@@ -373,8 +374,8 @@ export class AuthService {
    */
   private getAdminTokenConfig() {
     return {
-      secret: this.configService.getOrThrow<string>('ADMIN_JWT_SECRET'),
-      expiresIn: this.configService.get('JWT_ADMIN_EXPIRES_IN', '15m'),
+      secret: this.appConfig.getOrThrow<string>('ADMIN_JWT_SECRET'),
+      expiresIn: toJwtExpiresIn(this.appConfig.get<string>('JWT_ADMIN_EXPIRES_IN', '15m')),
     };
   }
 
