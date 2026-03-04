@@ -22,12 +22,17 @@ export class RuntimeConfigListDto {
 
 export class UpsertRuntimeConfigRequestDto {
   @ApiProperty({ description: 'Neuer Wert für den Konfigurationsschlüssel' })
+  @IsString()
   value!: string;
 
   @ApiPropertyOptional({ description: 'Erzwingt Speicherung als Secret' })
+  @IsOptional()
+  @IsBoolean()
   sensitive?: boolean;
 
   @ApiPropertyOptional({ description: 'Quellenhinweis für Audit (default: ui)', example: 'ui' })
+  @IsOptional()
+  @IsString()
   sourceHint?: string;
 }
 

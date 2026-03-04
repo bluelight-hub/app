@@ -169,6 +169,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       .overrideProvider(ConfigService)
       .useValue({
         get: jest.fn((key: string, defaultValue?: string) => {
+          if (key === 'DATABASE_URL') return process.env.DATABASE_URL;
           if (key === 'FRONTEND_URL') return 'http://localhost:3090';
           if (key === 'ALLOWED_FRONTEND_HOSTS') return 'localhost:3090';
           if (key === 'ADMIN_JWT_SECRET') return 'test-admin-jwt-secret';
@@ -178,6 +179,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
           return defaultValue;
         }),
         getOrThrow: jest.fn((key: string) => {
+          if (key === 'DATABASE_URL') return process.env.DATABASE_URL;
           if (key === 'FRONTEND_URL') return 'http://localhost:3090';
           if (key === 'ADMIN_JWT_SECRET') return 'test-admin-jwt-secret';
           if (key === 'JWT_SECRET') return 'test-jwt-secret';
@@ -196,8 +198,8 @@ const databaseAvailable = !!process.env.DATABASE_URL;
   }, 30000);
 
   afterAll(async () => {
-    await app.close();
-    await prisma.$disconnect();
+    await app?.close();
+    await prisma?.$disconnect();
   });
 
   beforeEach(async () => {
@@ -538,6 +540,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
         .overrideProvider(ConfigService)
         .useValue({
           get: jest.fn((key: string, defaultValue?: string) => {
+            if (key === 'DATABASE_URL') return process.env.DATABASE_URL;
             if (key === 'FRONTEND_URL') return 'http://evil.com'; // NICHT in Whitelist!
             if (key === 'ALLOWED_FRONTEND_HOSTS') return 'localhost:3090';
             if (key === 'INTEGRATION_ENCRYPTION_KEY') return '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
@@ -546,6 +549,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
             return defaultValue;
           }),
           getOrThrow: jest.fn((key: string) => {
+            if (key === 'DATABASE_URL') return process.env.DATABASE_URL;
             if (key === 'FRONTEND_URL') return 'http://evil.com';
             if (key === 'INTEGRATION_ENCRYPTION_KEY') return '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
             if (key === 'ADMIN_JWT_SECRET') return 'test-admin-jwt-secret';
