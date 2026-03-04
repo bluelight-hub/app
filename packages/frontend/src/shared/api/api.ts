@@ -23,6 +23,7 @@ import {
   EinsatzFahrzeugeApi,
   EinsatzPersonenApi,
   EinsatzTeilnehmerApi,
+  ErinnerungApi,
   ErinnerungenApi,
   ErinnerungsvorlagenApi,
   FuehrungsrhythmusTemplatesAdminApi,
@@ -125,6 +126,7 @@ class BackendApi {
   private readonly rollenBesetzungApi: RollenBesetzungApi;
   private readonly adminIntegrationsHiorgApi: AdminIntegrationsHiorgApi;
   private readonly einsatzTeilnehmerApi: EinsatzTeilnehmerApi;
+  private readonly erinnerungApi: ErinnerungApi;
   private readonly erinnerungenApi: ErinnerungenApi;
   private readonly erinnerungsvorlagenApi: ErinnerungsvorlagenApi;
   private readonly fuehrungsrhythmusTemplatesAdminApi: FuehrungsrhythmusTemplatesAdminApi;
@@ -176,6 +178,7 @@ class BackendApi {
     this.rollenBesetzungApi = new RollenBesetzungApi(this.configuration);
     this.adminIntegrationsHiorgApi = new AdminIntegrationsHiorgApi(this.configuration);
     this.einsatzTeilnehmerApi = new EinsatzTeilnehmerApi(this.configuration);
+    this.erinnerungApi = new ErinnerungApi(this.configuration);
     this.erinnerungenApi = new ErinnerungenApi(this.configuration);
     this.erinnerungsvorlagenApi = new ErinnerungsvorlagenApi(this.configuration);
     this.fuehrungsrhythmusTemplatesAdminApi = new FuehrungsrhythmusTemplatesAdminApi(this.configuration);
@@ -434,6 +437,15 @@ class BackendApi {
    */
   einsatzTeilnehmer(): EinsatzTeilnehmerApi {
     return this.einsatzTeilnehmerApi;
+  }
+
+  /**
+   * Gibt die gecachte Erinnerung-API-Instanz zurück
+   *
+   * @returns Die Erinnerung-API-Instanz für globale Erinnerungs-Konfiguration
+   */
+  erinnerung(): ErinnerungApi {
+    return this.erinnerungApi;
   }
 
   /**
