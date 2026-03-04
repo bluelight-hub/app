@@ -23,7 +23,7 @@
 import type { INestApplication } from '@nestjs/common';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
-import request from 'supertest';
+import request, { type Test as SupertestTest } from 'supertest';
 import cookieParser from 'cookie-parser';
 import * as jwt from 'jsonwebtoken';
 import type { PrismaClient } from '@/generated/prisma/client';
@@ -59,6 +59,8 @@ describe('AdminInviteController (e2e)', () => {
   let cachedAdminTokenRegular: string;
   /** Server Access Token ID (fuer Cleanup) */
   let serverAccessTokenId: string;
+  /** Server Access Token im Klartext fuer Header */
+  let serverAccessTokenRaw: string;
 
   /**
    * Generiert ein gueltiges Access-Token (regulaerer JWT).
@@ -89,6 +91,13 @@ describe('AdminInviteController (e2e)', () => {
       resolvedAdminJwtSecret,
       { expiresIn: '15m' },
     );
+  };
+
+  /**
+   * Fuegt den erforderlichen Server-Access-Token Header hinzu.
+   */
+  const withServerAccessToken = (httpRequest: SupertestTest): SupertestTest => {
+    return httpRequest.set('X-Server-Access-Token', serverAccessTokenRaw);
   };
 
   /**
@@ -146,9 +155,6 @@ describe('AdminInviteController (e2e)', () => {
     if (!process.env.ADMIN_JWT_SECRET) {
       process.env.ADMIN_JWT_SECRET = TEST_ADMIN_JWT_SECRET;
     }
-    // Enable INSECURE_MODE to bypass ServerAccessGuard in E2E tests
-    process.env.INSECURE_MODE = 'true';
-
     prisma = createTestPrismaClient();
     await prisma.$connect();
 
@@ -223,10 +229,9 @@ describe('AdminInviteController (e2e)', () => {
     cachedAccessTokenRegular = generateAccessToken(testRegularUser.id, testRegularUser.username, testRegularUser.role);
     cachedAdminTokenRegular = generateAdminToken(testRegularUser.id, testRegularUser.username, testRegularUser.role);
 
-    // ServerAccessToken erstellen (erforderlich fuer SetupPendingGuard)
-    // INSECURE_MODE umgeht nur ServerAccessGuard, NICHT SetupPendingGuard!
+    // ServerAccessToken erstellen (erforderlich fuer globale Guards)
     serverAccessTokenId = `blh_${createId()}`;
-    const serverAccessTokenRaw = `blh_test_${createId()}`;
+    serverAccessTokenRaw = `blh_test_${createId()}`;
     const tokenHash = await bcryptLib.hash(serverAccessTokenRaw, BCRYPT_COST_FACTOR_TOKEN);
     await prisma.serverAccessToken.create({
       data: {
@@ -283,9 +288,6 @@ describe('AdminInviteController (e2e)', () => {
     } catch {
       // Ignore prisma disconnect errors
     }
-
-    // Reset INSECURE_MODE
-    delete process.env.INSECURE_MODE;
   });
 
   // ========================================
@@ -296,10 +298,9 @@ describe('AdminInviteController (e2e)', () => {
     it('should return 401 without auth', async () => {
       if (!databaseAvailable) return;
 
-      const response = await request(app.getHttpServer()).get('/api/v-alpha/admin/invites').expect(401);
+      const response = await withServerAccessToken(request(app.getHttpServer()).get('/api/v-alpha/admin/invites')).expect(401);
 
       expect(response.body).toHaveProperty('statusCode', 401);
-      // With INSECURE_MODE=true, ServerAccessGuard bypasses, so AdminJwtAuthGuard throws 401
       expect(response.body.message).toBeTruthy();
     });
 
@@ -308,6 +309,7 @@ describe('AdminInviteController (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .get('/api/v-alpha/admin/invites')
+        .set('X-Server-Access-Token', serverAccessTokenRaw)
         .set('Cookie', [`accessToken=${cachedAccessTokenAdmin}`])
         .expect(401);
 
@@ -319,6 +321,7 @@ describe('AdminInviteController (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .get('/api/v-alpha/admin/invites')
+        .set('X-Server-Access-Token', serverAccessTokenRaw)
         .set('Cookie', [`accessToken=${cachedAccessTokenRegular}`, `adminToken=${cachedAdminTokenRegular}`])
         .expect(403);
 
@@ -336,6 +339,7 @@ describe('AdminInviteController (e2e)', () => {
       // When: Admin lists invites
       const response = await request(app.getHttpServer())
         .get('/api/v-alpha/admin/invites')
+        .set('X-Server-Access-Token', serverAccessTokenRaw)
         .set('Cookie', [`accessToken=${cachedAccessTokenAdmin}`, `adminToken=${cachedAdminTokenAdmin}`])
         .expect(200);
 
@@ -364,6 +368,7 @@ describe('AdminInviteController (e2e)', () => {
       const response = await request(app.getHttpServer())
         .get('/api/v-alpha/admin/invites')
         .query({ status: InviteCodeStatus.ACTIVE })
+        .set('X-Server-Access-Token', serverAccessTokenRaw)
         .set('Cookie', [`accessToken=${cachedAccessTokenAdmin}`, `adminToken=${cachedAdminTokenAdmin}`])
         .expect(200);
 
@@ -382,6 +387,7 @@ describe('AdminInviteController (e2e)', () => {
       const response = await request(app.getHttpServer())
         .get('/api/v-alpha/admin/invites')
         .query({ createdBy: testAdminUser.id })
+        .set('X-Server-Access-Token', serverAccessTokenRaw)
         .set('Cookie', [`accessToken=${cachedAccessTokenAdmin}`, `adminToken=${cachedAdminTokenAdmin}`])
         .expect(200);
 
@@ -410,6 +416,7 @@ describe('AdminInviteController (e2e)', () => {
       const response = await request(app.getHttpServer())
         .get('/api/v-alpha/admin/invites')
         .query({ sort: 'expiresAt:asc' })
+        .set('X-Server-Access-Token', serverAccessTokenRaw)
         .set('Cookie', [`accessToken=${cachedAccessTokenAdmin}`, `adminToken=${cachedAdminTokenAdmin}`])
         .expect(200);
 
@@ -424,6 +431,7 @@ describe('AdminInviteController (e2e)', () => {
       const response = await request(app.getHttpServer())
         .get('/api/v-alpha/admin/invites')
         .query({ status: 'invalid_status' })
+        .set('X-Server-Access-Token', serverAccessTokenRaw)
         .set('Cookie', [`accessToken=${cachedAccessTokenAdmin}`, `adminToken=${cachedAdminTokenAdmin}`])
         .expect(400);
 
@@ -437,6 +445,7 @@ describe('AdminInviteController (e2e)', () => {
       const response = await request(app.getHttpServer())
         .get('/api/v-alpha/admin/invites')
         .query({ sort: 'invalidField:asc' })
+        .set('X-Server-Access-Token', serverAccessTokenRaw)
         .set('Cookie', [`accessToken=${cachedAccessTokenAdmin}`, `adminToken=${cachedAdminTokenAdmin}`])
         .expect(400);
 
@@ -456,6 +465,7 @@ describe('AdminInviteController (e2e)', () => {
       const response = await request(app.getHttpServer())
         .get('/api/v-alpha/admin/invites')
         .query({ page: 1, pageSize: 2 })
+        .set('X-Server-Access-Token', serverAccessTokenRaw)
         .set('Cookie', [`accessToken=${cachedAccessTokenAdmin}`, `adminToken=${cachedAdminTokenAdmin}`])
         .expect(200);
 
@@ -474,7 +484,7 @@ describe('AdminInviteController (e2e)', () => {
 
       const { id } = await createInviteCodeInDb({ createdById: testAdminUser.id });
 
-      const response = await request(app.getHttpServer()).delete(`/api/v-alpha/admin/invites/${id}`).expect(401);
+      const response = await withServerAccessToken(request(app.getHttpServer()).delete(`/api/v-alpha/admin/invites/${id}`)).expect(401);
 
       expect(response.body).toHaveProperty('statusCode', 401);
     });
@@ -486,6 +496,7 @@ describe('AdminInviteController (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .delete(`/api/v-alpha/admin/invites/${id}`)
+        .set('X-Server-Access-Token', serverAccessTokenRaw)
         .set('Cookie', [`accessToken=${cachedAccessTokenRegular}`, `adminToken=${cachedAdminTokenRegular}`])
         .expect(403);
 
@@ -500,6 +511,7 @@ describe('AdminInviteController (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .delete(`/api/v-alpha/admin/invites/${fakeId}`)
+        .set('X-Server-Access-Token', serverAccessTokenRaw)
         .set('Cookie', [`accessToken=${cachedAccessTokenAdmin}`, `adminToken=${cachedAdminTokenAdmin}`])
         .expect(400);
 
@@ -516,6 +528,7 @@ describe('AdminInviteController (e2e)', () => {
       // When: Revoke
       const response = await request(app.getHttpServer())
         .delete(`/api/v-alpha/admin/invites/${id}`)
+        .set('X-Server-Access-Token', serverAccessTokenRaw)
         .set('Cookie', [`accessToken=${cachedAccessTokenAdmin}`, `adminToken=${cachedAdminTokenAdmin}`])
         .expect(200);
 
@@ -539,6 +552,7 @@ describe('AdminInviteController (e2e)', () => {
       // When: Revoke again
       const response = await request(app.getHttpServer())
         .delete(`/api/v-alpha/admin/invites/${id}`)
+        .set('X-Server-Access-Token', serverAccessTokenRaw)
         .set('Cookie', [`accessToken=${cachedAccessTokenAdmin}`, `adminToken=${cachedAdminTokenAdmin}`])
         .expect(200);
 
@@ -560,6 +574,7 @@ describe('AdminInviteController (e2e)', () => {
       // When: Try to revoke
       const response = await request(app.getHttpServer())
         .delete(`/api/v-alpha/admin/invites/${id}`)
+        .set('X-Server-Access-Token', serverAccessTokenRaw)
         .set('Cookie', [`accessToken=${cachedAccessTokenAdmin}`, `adminToken=${cachedAdminTokenAdmin}`])
         .expect(200);
 
@@ -576,6 +591,7 @@ describe('AdminInviteController (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .delete('/api/v-alpha/admin/invites/invalid-format')
+        .set('X-Server-Access-Token', serverAccessTokenRaw)
         .set('Cookie', [`accessToken=${cachedAccessTokenAdmin}`, `adminToken=${cachedAdminTokenAdmin}`])
         .expect(400);
 
