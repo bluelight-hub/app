@@ -3,7 +3,8 @@ import { WebSocketGateway, WebSocketServer, SubscribeMessage, type OnGatewayConn
 import type { Server, Socket } from 'socket.io';
 import { ConfigService } from '@nestjs/config';
 import { ILogger } from '@domain/ports/i-logger.port';
-import { LOGGER } from '@infrastructure/di-tokens';
+import type { IEinsatzTeilnehmerRepository } from '@domain/repositories/i-einsatz-teilnehmer.repository';
+import { EINSATZ_TEILNEHMER_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 import { WsJwtAuthGuard } from '../guards/ws-jwt-auth.guard';
 import type { JoinEinsatzDto } from '../dto/join-einsatz.dto';
 
@@ -135,6 +136,15 @@ export interface ErinnerungIntensifiedPayload {
 }
 
 /**
+ * Fehler-Payload fuer fehlgeschlagene `join:einsatz` Requests.
+ */
+export interface JoinEinsatzErrorPayload {
+  code: 'ERINNERUNG_WS_JOIN_FORBIDDEN' | 'ERINNERUNG_WS_JOIN_ACCESS_CHECK_FAILED';
+  message: string;
+  einsatzId: string;
+}
+
+/**
  * WebSocket Gateway fuer Erinnerungen.
  *
  * **Story 1.5 AC4: WebSocket Event fuer Team-Sync**
@@ -144,7 +154,7 @@ export interface ErinnerungIntensifiedPayload {
  * **Security (C1, C2, C3):**
  * - CORS: Nur FRONTEND_URL erlaubt (kein wildcard '*')
  * - Authentication: JWT Token bei Connection erforderlich (WsJwtAuthGuard)
- * - Authorization: einsatzId wird validiert (CUID2 Format)
+ * - Authorization: Nur aktive Einsatzteilnehmer duerfen `join:einsatz`
  * - Input Validation: JoinEinsatzDto mit class-validator
  *
  * **Room Pattern:**
@@ -156,6 +166,7 @@ export interface ErinnerungIntensifiedPayload {
  * - `erinnerung.created`: Neue Erinnerung erstellt
  * - `erinnerung.updated`: Erinnerung aktualisiert
  * - `erinnerung.deleted`: Erinnerung geloescht
+ * - `join:einsatz:error`: Room-Join abgelehnt (fehlende Berechtigung/Prueffehler)
  */
 import { corsConfig } from '@/infrastructure/config/security.config';
 
@@ -171,6 +182,8 @@ export class ErinnerungGateway implements OnGatewayConnection, OnGatewayDisconne
 
   constructor(
     @Inject(LOGGER) private readonly logger: ILogger,
+    @Inject(EINSATZ_TEILNEHMER_REPOSITORY)
+    private readonly einsatzTeilnehmerRepository: IEinsatzTeilnehmerRepository,
     readonly _configService: ConfigService,
   ) {}
 
@@ -201,25 +214,40 @@ export class ErinnerungGateway implements OnGatewayConnection, OnGatewayDisconne
    * - einsatzId MUSS CUID2 Format sein (verhindert Room Traversal)
    * - ValidationPipe validiert automatisch vor Room-Join
    *
-   * **Authorization (C2):** Pruefen ob User Zugriff auf Einsatz hat.
-   * TODO (Future Enhancement): Repository-Check ob User dem Einsatz zugeordnet ist.
+   * **Authorization (C2):** Nur aktive Einsatzteilnehmer duerfen joinen.
+   * Bei fehlender Berechtigung wird `join:einsatz:error` an den Client emittiert.
    *
    * @param dto - Validiertes JoinEinsatzDto mit einsatzId
    * @param client - WebSocket Client (authenticated)
    */
   @SubscribeMessage('join:einsatz')
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
-  handleJoinEinsatz(@MessageBody() dto: JoinEinsatzDto, @ConnectedSocket() client: Socket): void {
+  async handleJoinEinsatz(@MessageBody() dto: JoinEinsatzDto, @ConnectedSocket() client: Socket): Promise<void> {
     const { einsatzId } = dto;
     const userId = client.data.userId as string;
 
-    // TODO (Future Enhancement): Authorization Check
-    // Pruefen ob userId Zugriff auf einsatzId hat:
-    // const hasAccess = await this.einsatzRepository.userHasAccess(userId, einsatzId);
-    // if (!hasAccess) {
-    //   client.emit('error', { message: 'Forbidden: No access to this einsatz' });
-    //   return;
-    // }
+    const accessResult = await this.checkJoinAccess(userId, einsatzId);
+    if (!accessResult.allowed) {
+      const errorPayload: JoinEinsatzErrorPayload =
+        accessResult.reason === 'FORBIDDEN'
+          ? {
+              code: 'ERINNERUNG_WS_JOIN_FORBIDDEN',
+              message: 'Keine Berechtigung fuer diesen Einsatz',
+              einsatzId,
+            }
+          : {
+              code: 'ERINNERUNG_WS_JOIN_ACCESS_CHECK_FAILED',
+              message: 'Berechtigungspruefung fehlgeschlagen',
+              einsatzId,
+            };
+
+      this.emitJoinError(client, errorPayload);
+
+      if (accessResult.reason === 'FORBIDDEN') {
+        this.logger.warn(`Forbidden join:einsatz attempt by user ${userId} for einsatz ${einsatzId}`, 'ErinnerungGateway');
+      }
+      return;
+    }
 
     const roomName = this.getRoomName(einsatzId);
     client.join(roomName);
@@ -366,6 +394,29 @@ export class ErinnerungGateway implements OnGatewayConnection, OnGatewayDisconne
     const roomName = this.getRoomName(payload.einsatzId);
     this.server.to(roomName).emit('erinnerung.intensified', payload);
     this.logger.log(`Emitted erinnerung.intensified to room ${roomName}: erinnerungId=${payload.erinnerungId}`, 'ErinnerungGateway');
+  }
+
+  /**
+   * Prueft, ob ein User den Einsatz-Room betreten darf.
+   *
+   * Zugriff ist nur fuer aktive Einsatzteilnehmer erlaubt.
+   */
+  private async checkJoinAccess(userId: string, einsatzId: string): Promise<{ allowed: true } | { allowed: false; reason: 'FORBIDDEN' | 'CHECK_FAILED' }> {
+    try {
+      const teilnahme = await this.einsatzTeilnehmerRepository.findByEinsatzAndUser(einsatzId, userId);
+      return teilnahme ? { allowed: true } : { allowed: false, reason: 'FORBIDDEN' };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Join access check failed for user ${userId} on einsatz ${einsatzId}: ${errorMessage}`, 'ErinnerungGateway');
+      return { allowed: false, reason: 'CHECK_FAILED' };
+    }
+  }
+
+  /**
+   * Emittiert einen standardisierten Join-Fehler an den anfragenden Client.
+   */
+  private emitJoinError(client: Socket, payload: JoinEinsatzErrorPayload): void {
+    client.emit('join:einsatz:error', payload);
   }
 
   /**
