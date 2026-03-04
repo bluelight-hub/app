@@ -140,6 +140,9 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   // Auto-show dialog when user hasn't joined yet
   // Öffnet bei jedem Öffnen eines Einsatzes erneut, solange keine Teilnahme existiert.
   useEffect(() => {
+    // Re-run per Einsatz navigation.
+    if (!einsatzId) return;
+
     // Skip if still loading
     if (isTeilnahmeLoading) return;
 
@@ -147,7 +150,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
     if (!currentEinsatzPersonId) {
       setShowBeitrittDialog(true);
     }
-  }, [isTeilnahmeLoading, currentEinsatzPersonId]);
+  }, [einsatzId, isTeilnahmeLoading, currentEinsatzPersonId]);
 
   // Prüfe ob wir im Fullscreen/Presentation-Modus sind
   const currentSearch = router.state.location.search as { mode?: string };
