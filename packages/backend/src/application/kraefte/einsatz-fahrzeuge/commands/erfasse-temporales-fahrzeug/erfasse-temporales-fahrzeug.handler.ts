@@ -33,7 +33,7 @@ import type { ErfasseTemporalesFahrzeugCommand } from './erfasse-temporales-fahr
  *
  * **AC3 - Fahrzeugtyp-Validierung:**
  * - Lädt Fahrzeugtyp per fahrzeugtypId
- * - Prüft ob Fahrzeugtyp existiert (aktiv/inaktiv Status wird nicht geprüft)
+ * - Prüft ob Fahrzeugtyp existiert und aktiv ist
  *
  * **AC4 - Atomare Event-Persistierung (Outbox Pattern):**
  * - TransactionalCommandHandler sichert atomare Persistierung
@@ -85,6 +85,9 @@ export class ErfasseTemporalesFahrzeugHandler extends TransactionalCommandHandle
       return Result.fail(EinsatzFahrzeugError.format(EINSATZ_FAHRZEUG_ERROR_CODES.FAHRZEUGTYP_NOT_FOUND, `Fahrzeugtyp mit ID '${command.fahrzeugtypId}' nicht gefunden`));
     }
     const fahrzeugtyp = fahrzeugtypResult.value;
+    if (!fahrzeugtyp.istAktiv) {
+      return Result.fail(EinsatzFahrzeugError.format(EINSATZ_FAHRZEUG_ERROR_CODES.FAHRZEUGTYP_INACTIVE, `Fahrzeugtyp '${fahrzeugtyp.bezeichnung}' ist inaktiv und kann nicht verwendet werden`));
+    }
 
     // 3. Duplikat-Check: Funkrufname bereits im Einsatz? (AC2)
     const existsResult = await this.einsatzFahrzeugRepository.existsByEinsatzIdAndFunkrufname(command.einsatzId, command.funkrufname, tx);

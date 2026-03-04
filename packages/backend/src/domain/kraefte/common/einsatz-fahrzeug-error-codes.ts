@@ -37,6 +37,8 @@ export const EINSATZ_FAHRZEUG_ERROR_CODES = {
   EINSATZ_NOT_FOUND: 'EINSATZ_FAHRZEUG_EINSATZ_NOT_FOUND',
   /** Referenzierter Fahrzeugtyp nicht gefunden */
   FAHRZEUGTYP_NOT_FOUND: 'EINSATZ_FAHRZEUG_FAHRZEUGTYP_NOT_FOUND',
+  /** Referenzierter Fahrzeugtyp ist inaktiv */
+  FAHRZEUGTYP_INACTIVE: 'EINSATZ_FAHRZEUG_FAHRZEUGTYP_INACTIVE',
   /** EinsatzFahrzeug nicht gefunden */
   NOT_FOUND: 'EINSATZ_FAHRZEUG_NOT_FOUND',
   /** Allgemeiner Validierungsfehler */
