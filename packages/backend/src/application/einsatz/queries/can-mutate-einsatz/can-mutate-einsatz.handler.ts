@@ -1,7 +1,8 @@
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { Result } from '@domain/common/result';
 import { Injectable } from '@nestjs/common';
-import type { CanMutateEinsatzQuery } from './can-mutate-einsatz.query';
+import { type IQueryHandler, QueryHandler } from '@nestjs/cqrs';
+import { CanMutateEinsatzQuery } from './can-mutate-einsatz.query';
 
 /**
  * Handler für fachliche Autorisierung von Einsatz-Mutationen.
@@ -14,7 +15,8 @@ import type { CanMutateEinsatzQuery } from './can-mutate-einsatz.query';
  *   3) im Einsatz die Rolle ERSTELLER oder BEFEHLSGEBER hat
  */
 @Injectable()
-export class CanMutateEinsatzQueryHandler {
+@QueryHandler(CanMutateEinsatzQuery)
+export class CanMutateEinsatzQueryHandler implements IQueryHandler<CanMutateEinsatzQuery, Result<boolean>> {
   constructor(private readonly prisma: PrismaService) {}
 
   async execute(query: CanMutateEinsatzQuery): Promise<Result<boolean>> {
