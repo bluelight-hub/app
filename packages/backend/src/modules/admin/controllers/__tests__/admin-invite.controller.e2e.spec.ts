@@ -33,6 +33,7 @@ import { skipIfNoDatabase, createTestPrismaClient } from '@infrastructure/__test
 import { InviteCodeStatus } from '@domain/value-objects/invite-code-status';
 import { InviteCodeValue } from '@domain/value-objects/invite-code-value';
 import { BCRYPT_COST_FACTOR_PASSWORD, BCRYPT_COST_FACTOR_TOKEN } from '@infrastructure/config/security.constants';
+import { AppConfigService } from '@infrastructure/services/app-config.service';
 import * as bcryptLib from 'bcrypt';
 
 describe('AdminInviteController (e2e)', () => {
@@ -44,6 +45,8 @@ describe('AdminInviteController (e2e)', () => {
   // Test-Secrets fuer CI-Umgebung
   const TEST_JWT_SECRET = 'test-jwt-secret-for-e2e-tests';
   const TEST_ADMIN_JWT_SECRET = 'test-admin-jwt-secret-for-e2e-tests';
+  let resolvedJwtSecret = TEST_JWT_SECRET;
+  let resolvedAdminJwtSecret = TEST_ADMIN_JWT_SECRET;
 
   // Test-User Daten
   let testAdminUser: { id: string; username: string; role: 'ADMIN' | 'SUPER_ADMIN' | 'USER' };
@@ -67,7 +70,7 @@ describe('AdminInviteController (e2e)', () => {
         username,
         role,
       },
-      process.env.JWT_SECRET || TEST_JWT_SECRET,
+      resolvedJwtSecret,
       { expiresIn: '15m' },
     );
   };
@@ -83,7 +86,7 @@ describe('AdminInviteController (e2e)', () => {
         role,
         isAdmin: role !== 'USER',
       },
-      process.env.ADMIN_JWT_SECRET || TEST_ADMIN_JWT_SECRET,
+      resolvedAdminJwtSecret,
       { expiresIn: '15m' },
     );
   };
@@ -172,6 +175,9 @@ describe('AdminInviteController (e2e)', () => {
     );
 
     await app.init();
+    const appConfig = app.get(AppConfigService);
+    resolvedJwtSecret = appConfig.getOrThrow<string>('JWT_SECRET');
+    resolvedAdminJwtSecret = appConfig.getOrThrow<string>('ADMIN_JWT_SECRET');
 
     // Cleanup alte Test-Daten
     await prisma.$executeRawUnsafe('SET session_replication_role = replica;');

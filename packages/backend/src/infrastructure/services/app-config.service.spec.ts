@@ -151,4 +151,32 @@ describe('AppConfigService', () => {
       },
     });
   });
+
+  it('bevorzugt Legacy-ENV vor Runtime-Defaults, wenn kein DB-Wert existiert', () => {
+    const mockConfigService = createMockConfigService({
+      FRONTEND_URL: 'https://legacy-frontend.local',
+    });
+    const service = new AppConfigService(mockConfigService, createMockPrismaService());
+
+    expect(service.get<string>('FRONTEND_URL')).toBe('https://legacy-frontend.local');
+  });
+
+  it('bevorzugt DB-Werte vor Legacy-ENV-Fallback', () => {
+    const mockConfigService = createMockConfigService({
+      FRONTEND_URL: 'https://legacy-frontend.local',
+    });
+    const service = new AppConfigService(mockConfigService, createMockPrismaService());
+
+    const valuesMap = service as unknown as { dbRuntimeValues: Map<string, string> };
+    valuesMap.dbRuntimeValues = new Map([['FRONTEND_URL', 'https://db-frontend.local']]);
+
+    expect(service.get<string>('FRONTEND_URL')).toBe('https://db-frontend.local');
+  });
+
+  it('fällt auf Runtime-Defaults zurück, wenn weder DB noch Legacy-ENV gesetzt sind', () => {
+    const mockConfigService = createMockConfigService({});
+    const service = new AppConfigService(mockConfigService, createMockPrismaService());
+
+    expect(service.get<string>('FRONTEND_URL')).toBe('http://localhost:3090');
+  });
 });

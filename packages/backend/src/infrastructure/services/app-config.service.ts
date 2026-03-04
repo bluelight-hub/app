@@ -484,13 +484,13 @@ export class AppConfigService implements OnModuleInit {
       }
     }
 
-    if (RUNTIME_DEFAULTS[key] !== undefined) {
-      return RUNTIME_DEFAULTS[key];
-    }
-
     const legacyEnvValue = this.configService.get<string | undefined>(key);
     if (typeof legacyEnvValue === 'string' && legacyEnvValue.trim().length > 0) {
       return legacyEnvValue;
+    }
+
+    if (RUNTIME_DEFAULTS[key] !== undefined) {
+      return RUNTIME_DEFAULTS[key];
     }
 
     return undefined;
