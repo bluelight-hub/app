@@ -2,7 +2,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'node:crypto';
-import type { IEncryptionPort } from '@domain/ports/i-encryption.port';
+import { IEncryptionPort } from '@domain/ports/i-encryption.port';
 import { decryptV1String, encryptV1String, isLegacyCiphertextFormat, parseMasterSecretKey } from './master-key-crypto';
 
 const LEGACY_ENV_KEY_NAME = 'INTEGRATION_ENCRYPTION_KEY';
@@ -21,30 +21,25 @@ export class AesEncryptionAdapter implements IEncryptionPort, OnModuleInit {
   constructor(private readonly configService: ConfigService) {}
 
   onModuleInit(): void {
-    const masterSecret = this.configService.get<string>('MASTER_SECRET_KEY');
-
-    if (!masterSecret) {
-      throw new Error('[SECURITY] MASTER_SECRET_KEY ist nicht konfiguriert. Secret-Verschlüsselung kann nicht initialisiert werden.');
-    }
-
-    try {
-      this.masterKey = parseMasterSecretKey(masterSecret);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      throw new Error(`[SECURITY] MASTER_SECRET_KEY ist ungültig: ${message}`);
-    }
-
-    if (this.masterKey.length !== 32) {
-      throw new Error(`[SECURITY] MASTER_SECRET_KEY muss 32 Bytes ergeben (aktuell: ${this.masterKey.length}).`);
-    }
+    this.masterKey = this.tryLoadMasterKey();
 
     this.legacyKey = this.tryLoadLegacyKey();
 
-    if (this.legacyKey) {
+    if (this.masterKey && this.legacyKey) {
       this.logger.warn('[SECURITY] Legacy-Key INTEGRATION_ENCRYPTION_KEY erkannt. Dual-Read aktiv, neue Writes erfolgen nur als v1-Payload.');
     }
 
-    this.logger.log('[SECURITY] Secret-Verschlüsselung (v1) initialisiert');
+    if (this.masterKey) {
+      this.logger.log('[SECURITY] Secret-Verschlüsselung (v1) initialisiert');
+      return;
+    }
+
+    if (this.legacyKey) {
+      this.logger.warn('[SECURITY] MASTER_SECRET_KEY nicht verfügbar. Legacy-Dual-Read bleibt aktiv, neue Writes sind deaktiviert.');
+      return;
+    }
+
+    this.logger.warn('[SECURITY] Weder MASTER_SECRET_KEY noch INTEGRATION_ENCRYPTION_KEY verfügbar. Secret-Operationen sind deaktiviert.');
   }
 
   encrypt(plainText: string): string {
@@ -58,16 +53,37 @@ export class AesEncryptionAdapter implements IEncryptionPort, OnModuleInit {
   }
 
   decrypt(cipherText: string): string {
-    const masterKey = this.getMasterKeyOrThrow();
-
     if (isLegacyCiphertextFormat(cipherText)) {
       return this.decryptLegacy(cipherText);
     }
+
+    const masterKey = this.getMasterKeyOrThrow();
 
     return decryptV1String(cipherText, {
       masterKey,
       expectedScope: INTEGRATION_SECRET_SCOPE,
     });
+  }
+
+  private tryLoadMasterKey(): Buffer | null {
+    const masterSecret = this.configService.get<string>('MASTER_SECRET_KEY');
+    if (!masterSecret) {
+      return null;
+    }
+
+    try {
+      const parsedMasterKey = parseMasterSecretKey(masterSecret);
+      if (parsedMasterKey.length !== 32) {
+        this.logger.warn(`[SECURITY] MASTER_SECRET_KEY muss 32 Bytes ergeben (aktuell: ${parsedMasterKey.length}).`);
+        return null;
+      }
+
+      return parsedMasterKey;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn(`[SECURITY] MASTER_SECRET_KEY ist ungültig und wird ignoriert: ${message}`);
+      return null;
+    }
   }
 
   private decryptLegacy(cipherText: string): string {
@@ -120,7 +136,7 @@ export class AesEncryptionAdapter implements IEncryptionPort, OnModuleInit {
 
   private getMasterKeyOrThrow(): Buffer {
     if (!this.masterKey) {
-      throw new Error('Encryption nicht initialisiert: MASTER_SECRET_KEY fehlt oder ist ungültig.');
+      throw new Error('MASTER_SECRET_KEY ist nicht verfügbar. v1-Secret-Operation nicht möglich.');
     }
 
     return this.masterKey;

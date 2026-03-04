@@ -33,7 +33,8 @@ describe('AesEncryptionAdapter', () => {
       mockConfigService.get.mockReturnValue(undefined);
       adapter = new AesEncryptionAdapter(mockConfigService);
 
-      expect(() => adapter.onModuleInit()).toThrow(/MASTER_SECRET_KEY ist nicht konfiguriert/);
+      expect(() => adapter.onModuleInit()).not.toThrow();
+      expect(() => adapter.encrypt('hello')).toThrow(/MASTER_SECRET_KEY ist nicht verfügbar/);
     });
   });
 
@@ -100,6 +101,20 @@ describe('AesEncryptionAdapter', () => {
 
       const legacyCipher = encryptLegacy('legacy-token', LEGACY_KEY_HEX);
       expect(() => adapter.decrypt(legacyCipher)).toThrow(/Legacy-Ciphertext erkannt/);
+    });
+
+    it('sollte Legacy-Ciphertexte auch ohne MASTER_SECRET_KEY lesen können', () => {
+      mockConfigService.get.mockImplementation((key: string) => {
+        if (key === 'INTEGRATION_ENCRYPTION_KEY') return LEGACY_KEY_HEX;
+        return undefined;
+      });
+
+      adapter = new AesEncryptionAdapter(mockConfigService);
+      expect(() => adapter.onModuleInit()).not.toThrow();
+
+      const legacyCipher = encryptLegacy('legacy-token', LEGACY_KEY_HEX);
+      expect(adapter.decrypt(legacyCipher)).toBe('legacy-token');
+      expect(() => adapter.encrypt('new-secret')).toThrow(/MASTER_SECRET_KEY ist nicht verfügbar/);
     });
   });
 });

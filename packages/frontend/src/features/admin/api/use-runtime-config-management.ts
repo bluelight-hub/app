@@ -185,11 +185,12 @@ const normalizeApiResponse = async <T>(response: unknown, parser: (payload: unkn
 };
 
 const normalizeRuntimeConfigEntry = (entry: unknown): RuntimeConfigEntry | null => {
-  if (!entry || typeof entry !== 'object') {
+  const data = unwrapApiData<Record<string, unknown>>(entry);
+  if (!data) {
     return null;
   }
 
-  const raw = entry as Record<string, unknown>;
+  const raw = data;
   const key = typeof raw.key === 'string' ? raw.key : '';
 
   if (!key) {
@@ -497,11 +498,9 @@ const invokeUpsertRuntimeConfig = async (input: UpsertRuntimeConfigRequest): Pro
 
   if (response === null) {
     const requestPayload = {
-      upsertRuntimeConfigRequestDto: {
-        value: input.value,
-        sensitive: input.sensitive,
-        sourceHint: input.sourceHint,
-      },
+      value: input.value,
+      sensitive: input.sensitive,
+      sourceHint: input.sourceHint,
     };
 
     const endpointResponse = await invokeRuntimeConfigEndpoint<{
@@ -585,10 +584,8 @@ const invokeMigrateLegacyRuntimeConfig = async (input: MigrateLegacyRuntimeConfi
     }>('/api/v-alpha/admin/runtime-config/migrate-legacy', {
       method: 'POST',
       body: JSON.stringify({
-        migrateLegacyRuntimeConfigRequestDto: {
-          keys: input.keys,
-          dryRun: input.dryRun,
-        },
+        keys: input.keys,
+        dryRun: input.dryRun,
       }),
       headers: {
         Accept: 'application/json',
