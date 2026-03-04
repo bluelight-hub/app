@@ -1,5 +1,6 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import type { ConfigService } from '@nestjs/config';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import type { PrismaService } from '@/infrastructure/database/prisma.service';
 import { AppConfigService } from '@/infrastructure/services/app-config.service';
 
@@ -13,14 +14,25 @@ describe('AppConfigService', () => {
   const createMockPrismaService = (): jest.Mocked<PrismaService> => {
     return {
       appConfig: {
+        findMany: jest.fn().mockResolvedValue([]),
         upsert: jest.fn(),
         deleteMany: jest.fn(),
       },
       appConfigSecret: {
+        findMany: jest.fn().mockResolvedValue([]),
         upsert: jest.fn(),
         deleteMany: jest.fn(),
       },
     } as unknown as jest.Mocked<PrismaService>;
+  };
+
+  const createMockLogger = (): jest.Mocked<ILogger> => {
+    return {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    };
   };
 
   it('migrates nur Legacy-ENV-Fallback-Keys und markiert unbekannte Keys als failed', async () => {
@@ -28,7 +40,7 @@ describe('AppConfigService', () => {
       JWT_SECRET: 'legacy-jwt',
       FRONTEND_URL: 'https://legacy-frontend.local',
     });
-    const service = new AppConfigService(mockConfigService, createMockPrismaService());
+    const service = new AppConfigService(mockConfigService, createMockPrismaService(), createMockLogger());
 
     const upsertSpy = jest.spyOn(service, 'upsertRuntimeConfig').mockResolvedValue();
 
@@ -73,7 +85,7 @@ describe('AppConfigService', () => {
 
   it('überspringt Keys, die bereits in der Runtime-DB liegen', async () => {
     const mockConfigService = createMockConfigService({ JWT_SECRET: 'legacy-jwt' });
-    const service = new AppConfigService(mockConfigService, createMockPrismaService());
+    const service = new AppConfigService(mockConfigService, createMockPrismaService(), createMockLogger());
 
     const secretsMap = service as unknown as { dbRuntimeSecrets: Map<string, string> };
     secretsMap.dbRuntimeSecrets = new Map([['JWT_SECRET', 'already-from-db']]);
@@ -101,7 +113,7 @@ describe('AppConfigService', () => {
 
   it('kann im DRY-RUN-Mode laufen, ohne DB-Write', async () => {
     const mockConfigService = createMockConfigService({ JWT_SECRET: 'legacy-jwt-secret' });
-    const service = new AppConfigService(mockConfigService, createMockPrismaService());
+    const service = new AppConfigService(mockConfigService, createMockPrismaService(), createMockLogger());
 
     const upsertSpy = jest.spyOn(service, 'upsertRuntimeConfig').mockResolvedValue();
 
@@ -127,7 +139,7 @@ describe('AppConfigService', () => {
 
   it('liefert einen failed-Eintrag bei fehlendem MASTER_SECRET_KEY für Secret-Migration', async () => {
     const mockConfigService = createMockConfigService({ JWT_SECRET: 'legacy-jwt-secret' });
-    const service = new AppConfigService(mockConfigService, createMockPrismaService());
+    const service = new AppConfigService(mockConfigService, createMockPrismaService(), createMockLogger());
 
     const result = await service.migrateLegacyRuntimeKeysToDb({
       keys: ['JWT_SECRET'],
@@ -156,7 +168,7 @@ describe('AppConfigService', () => {
     const mockConfigService = createMockConfigService({
       FRONTEND_URL: 'https://legacy-frontend.local',
     });
-    const service = new AppConfigService(mockConfigService, createMockPrismaService());
+    const service = new AppConfigService(mockConfigService, createMockPrismaService(), createMockLogger());
 
     expect(service.get<string>('FRONTEND_URL')).toBe('https://legacy-frontend.local');
   });
@@ -165,7 +177,7 @@ describe('AppConfigService', () => {
     const mockConfigService = createMockConfigService({
       FRONTEND_URL: 'https://legacy-frontend.local',
     });
-    const service = new AppConfigService(mockConfigService, createMockPrismaService());
+    const service = new AppConfigService(mockConfigService, createMockPrismaService(), createMockLogger());
 
     const valuesMap = service as unknown as { dbRuntimeValues: Map<string, string> };
     valuesMap.dbRuntimeValues = new Map([['FRONTEND_URL', 'https://db-frontend.local']]);
@@ -175,8 +187,54 @@ describe('AppConfigService', () => {
 
   it('fällt auf Runtime-Defaults zurück, wenn weder DB noch Legacy-ENV gesetzt sind', () => {
     const mockConfigService = createMockConfigService({});
-    const service = new AppConfigService(mockConfigService, createMockPrismaService());
+    const service = new AppConfigService(mockConfigService, createMockPrismaService(), createMockLogger());
 
     expect(service.get<string>('FRONTEND_URL')).toBe('http://localhost:3090');
+  });
+
+  it('erzwingt für sensible Katalog-Keys die Secret-Tabelle trotz sensitive=false im Input', async () => {
+    const mockConfigService = createMockConfigService({
+      MASTER_SECRET_KEY: 'a'.repeat(64),
+    });
+    const mockPrismaService = createMockPrismaService();
+    const service = new AppConfigService(mockConfigService, mockPrismaService, createMockLogger());
+
+    await service.upsertRuntimeConfig({
+      key: 'JWT_SECRET',
+      value: 'runtime-secret',
+      sensitive: false,
+      updatedBy: 'admin-user',
+      sourceHint: 'ui',
+    });
+
+    expect(mockPrismaService.appConfigSecret.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { key: 'JWT_SECRET' },
+      }),
+    );
+    expect(mockPrismaService.appConfig.upsert).not.toHaveBeenCalled();
+    expect(mockPrismaService.appConfig.deleteMany).toHaveBeenCalledWith({ where: { key: 'JWT_SECRET' } });
+  });
+
+  it('erzwingt für nicht-sensible Katalog-Keys die Config-Tabelle trotz sensitive=true im Input', async () => {
+    const mockConfigService = createMockConfigService({});
+    const mockPrismaService = createMockPrismaService();
+    const service = new AppConfigService(mockConfigService, mockPrismaService, createMockLogger());
+
+    await service.upsertRuntimeConfig({
+      key: 'APP_URL',
+      value: 'https://runtime.example',
+      sensitive: true,
+      updatedBy: 'admin-user',
+      sourceHint: 'ui',
+    });
+
+    expect(mockPrismaService.appConfig.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { key: 'APP_URL' },
+      }),
+    );
+    expect(mockPrismaService.appConfigSecret.upsert).not.toHaveBeenCalled();
+    expect(mockPrismaService.appConfigSecret.deleteMany).toHaveBeenCalledWith({ where: { key: 'APP_URL' } });
   });
 });

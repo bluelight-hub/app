@@ -1,5 +1,5 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
-import type { ILogger } from '@domain/ports/i-logger.port';
+import { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@/generated/prisma/client';
@@ -259,7 +259,8 @@ export class AppConfigService implements OnModuleInit {
    */
   async upsertRuntimeConfig(input: { key: string; value: string; updatedBy?: string; sensitive?: boolean; sourceHint?: string }): Promise<void> {
     const key = input.key.trim();
-    const isSensitive = input.sensitive ?? SENSITIVE_RUNTIME_KEYS.has(key);
+    const catalogEntry = this.getCatalogEntry(key);
+    const isSensitive = catalogEntry ? catalogEntry.sensitive : (input.sensitive ?? SENSITIVE_RUNTIME_KEYS.has(key));
 
     if (isSensitive) {
       const masterKey = this.getMasterKeyOrThrow();
