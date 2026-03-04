@@ -236,7 +236,7 @@ describe('ErfasseTemporalesFahrzeugHandler', () => {
       expect(mockEinsatzFahrzeugRepository.save).not.toHaveBeenCalled();
     });
 
-    it('sollte fehlschlagen wenn Fahrzeugtyp inaktiv ist (AC3 - Missing Validation)', async () => {
+    it('sollte fehlschlagen wenn Fahrzeugtyp inaktiv ist (AC3)', async () => {
       // Given (Arrange)
       // Erstelle einen inaktiven Fahrzeugtyp
       const inactiveFahrzeugtyp = Fahrzeugtyp.reconstitute({
@@ -264,13 +264,10 @@ describe('ErfasseTemporalesFahrzeugHandler', () => {
       const result = await handler.execute(command);
 
       // Then (Assert)
-      // TODO: Dieser Test sollte fehlschlagen, tut es aber NICHT!
-      // Der Handler prüft aktuell nicht ob Fahrzeugtyp aktiv ist (siehe JSDoc Line 39).
-      // Erwartetes Verhalten: result.isFailure sollte true sein
-      // Aktuelles Verhalten: Handler akzeptiert inaktive Fahrzeugtypen
-      expect(result.isSuccess).toBe(true); // FIXME: sollte false sein wenn Validierung implementiert ist
-      // expect(result.error).toContain('FAHRZEUGTYP_INACTIVE'); // TODO: Error Code noch nicht definiert
-      // expect(mockEinsatzFahrzeugRepository.save).not.toHaveBeenCalled();
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain(EINSATZ_FAHRZEUG_ERROR_CODES.FAHRZEUGTYP_INACTIVE);
+      expect(result.error).toContain('inaktiv');
+      expect(mockEinsatzFahrzeugRepository.save).not.toHaveBeenCalled();
     });
 
     it('sollte fehlschlagen bei Duplikat-Funkrufname (AC2)', async () => {
