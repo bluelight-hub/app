@@ -186,6 +186,9 @@ dev-debug.log
 *.njsproj
 *.sln
 *.sw?
+*.bak
+*.orig
+*.rej
 # OS specific
 
 # Cursor MCP (enthält API-Schlüssel)

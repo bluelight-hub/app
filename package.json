@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "pnpm -r --filter '@bluelight-hub/*' dev",
     "gen:certs": "./scripts/generate-certs.sh",
+    "check:repo-hygiene": "bash ./scripts/check-repo-hygiene.sh",
     "build": "pnpm -r --filter '@bluelight-hub/*' build",
     "generate-api": "pnpm -r --filter '@bluelight-hub/*' --if-present generate-api",
     "lint": "biome check --write",

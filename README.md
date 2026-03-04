@@ -76,6 +76,15 @@ pnpm --filter @bluelight-hub/frontend dev
 pnpm --filter @bluelight-hub/backend dev
 ```
 
+## Repository-Hygiene
+
+Backup-/Merge-Artefakte wie `*.bak`, `*.orig` und `*.rej` sollen nicht im Source-Tree liegen.
+Für eine lokale Vorab-Prüfung:
+
+```bash
+pnpm check:repo-hygiene
+```
+
 ## API-Client generieren
 
 Das Frontend nutzt ausschließlich den generierten OpenAPI-Client aus `packages/shared/client/`.
