@@ -31,6 +31,7 @@ import {
   GetEinsatzTeilnehmerHandler,
   GetEinsatzRollenQuery,
   GetEinsatzRollenQueryHandler,
+  CanMutateEinsatzQuery,
 } from '@/application/einsatz/queries';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import { Roles } from '@/modules/auth/decorators/roles.decorator';
@@ -39,7 +40,23 @@ import { RolesGuard } from '@/modules/auth/guards/roles.guard';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ApiWrappedResponse, ApiWrappedCreatedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import type { PaginatedData } from '@/infrastructure/http/interceptors/transform.interceptor';
-import { BadRequestException, Body, Controller, Delete, Get, InternalServerErrorException, NotFoundException, Param, Patch, Post, Put, Query, UseGuards, ValidationPipe } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  ForbiddenException,
+  Get,
+  InternalServerErrorException,
+  NotFoundException,
+  Param,
+  Patch,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+  ValidationPipe,
+} from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 
@@ -363,8 +380,9 @@ export class EinsatzController {
   @ApiWrappedResponse(EinsatzDto, { description: 'Einsatz erfolgreich aktualisiert' })
   @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler in den Eingabedaten' })
-  async update(@Param('id') id: string, @Body(new ValidationPipe({ transform: true, whitelist: true })) dto: UpdateEinsatzDto, @CurrentUser() _user: ValidatedUser): Promise<EinsatzDto> {
-    // TODO: Implement user-ownership validation (siehe AC3 Security Issue)
+  async update(@Param('id') id: string, @Body(new ValidationPipe({ transform: true, whitelist: true })) dto: UpdateEinsatzDto, @CurrentUser() user: ValidatedUser): Promise<EinsatzDto> {
+    await this.ensureMutationAuthorized(id, user);
+
     const commandResult = UpdateEinsatzCommand.create(id, dto.alarmstichwort, dto.einsatzort, dto.beschreibung);
     if (commandResult.isFailure || !commandResult.value) throw new BadRequestException(commandResult.error);
 
@@ -384,7 +402,8 @@ export class EinsatzController {
   @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Einsatz kann nicht gestartet werden (z.B. bereits gestartet oder archiviert)' })
   async start(@Param('id') id: string, @CurrentUser() user: ValidatedUser): Promise<EinsatzDto> {
-    // TODO: Implement user-ownership validation (siehe AC3 Security Issue)
+    await this.ensureMutationAuthorized(id, user);
+
     const commandResult = StartEinsatzCommand.create(id, user.userId);
     if (commandResult.isFailure || !commandResult.value) throw new BadRequestException(commandResult.error);
 
@@ -404,7 +423,8 @@ export class EinsatzController {
   @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Einsatz kann nicht abgeschlossen werden (z.B. bereits abgeschlossen)' })
   async complete(@Param('id') id: string, @CurrentUser() user: ValidatedUser): Promise<EinsatzDto> {
-    // TODO: Implement user-ownership validation (siehe AC3 Security Issue)
+    await this.ensureMutationAuthorized(id, user);
+
     const commandResult = CompleteEinsatzCommand.create(id, user.userId);
     if (commandResult.isFailure || !commandResult.value) throw new BadRequestException(commandResult.error);
 
@@ -430,7 +450,8 @@ export class EinsatzController {
   @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler oder Einsatz kann nicht archiviert werden' })
   async archive(@Param('id') id: string, @CurrentUser() user: ValidatedUser): Promise<EinsatzDto> {
-    // TODO: Implement user-ownership validation (siehe AC3 Security Issue)
+    await this.ensureMutationAuthorized(id, user);
+
     const commandResult = ArchiveEinsatzCommand.create(id, user.userId);
     if (commandResult.isFailure || !commandResult.value) throw new BadRequestException(commandResult.error);
 
@@ -454,6 +475,24 @@ export class EinsatzController {
     throw new BadRequestException(
       'Einsätze können aus rechtlichen Gründen (Aufbewahrungspflicht) nicht gelöscht werden. ' + 'Nutze stattdessen die Archive-Funktion (POST /api/v-alpha/einsatz/:id/archive).',
     );
+  }
+
+  /**
+   * Prüft fachliche Mutationsberechtigung (Ownership/Membership-Regel).
+   */
+  private async ensureMutationAuthorized(einsatzId: string, user: ValidatedUser): Promise<void> {
+    const result = await this.queryBus.execute<CanMutateEinsatzQuery, Result<boolean>>(new CanMutateEinsatzQuery(einsatzId, user.userId, user.role));
+
+    if (result.isFailure) {
+      if (result.error?.includes('nicht gefunden') || result.error?.includes('not found')) {
+        throw new NotFoundException(result.error);
+      }
+      throw new BadRequestException(result.error ?? 'Fehler bei der Berechtigungsprüfung');
+    }
+
+    if (!result.value) {
+      throw new ForbiddenException('Keine Berechtigung für diese Einsatz-Mutation');
+    }
   }
 
   /**
