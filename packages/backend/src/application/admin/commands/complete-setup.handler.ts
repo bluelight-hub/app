@@ -160,6 +160,15 @@ export class CompleteSetupHandler extends TransactionalCommandHandler<CompleteSe
       return Result.fail<SetupResponseDto>(usernameResult.error ?? 'USERNAME_CREATION_FAILED');
     }
 
+    // Prüfe frühzeitig auf bestehenden Username, um rohe DB-Unique-Errors zu vermeiden.
+    const existsResult = await this.userRepository.existsByUsername(usernameResult.value, tx);
+    if (existsResult.isFailure || existsResult.value === undefined) {
+      return Result.fail<SetupResponseDto>(existsResult.error ?? 'USERNAME_CHECK_FAILED');
+    }
+    if (existsResult.value) {
+      return Result.fail<SetupResponseDto>('USERNAME_ALREADY_EXISTS');
+    }
+
     // UserAggregate erstellen
     const userResult = UserAggregate.create(usernameResult.value, UserRole.ADMIN());
     if (userResult.isFailure || !userResult.value) {
@@ -171,8 +180,21 @@ export class CompleteSetupHandler extends TransactionalCommandHandler<CompleteSe
     const passwordHash = await bcrypt.hash(command.password, BCRYPT_COST_FACTOR_PASSWORD);
 
     // User in Transaction speichern
-    const saveUserResult = await this.userRepository.save(user, tx);
+    let saveUserResult: Result<void>;
+    try {
+      saveUserResult = await this.userRepository.save(user, tx);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('Unique constraint failed') && errorMessage.includes('username')) {
+        return Result.fail<SetupResponseDto>('USERNAME_ALREADY_EXISTS');
+      }
+      return Result.fail<SetupResponseDto>(errorMessage || 'USER_SAVE_FAILED');
+    }
+
     if (saveUserResult.isFailure) {
+      if ((saveUserResult.error ?? '').includes('username')) {
+        return Result.fail<SetupResponseDto>('USERNAME_ALREADY_EXISTS');
+      }
       return Result.fail<SetupResponseDto>(saveUserResult.error ?? 'USER_SAVE_FAILED');
     }
 

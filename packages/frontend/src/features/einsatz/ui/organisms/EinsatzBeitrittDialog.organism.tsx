@@ -52,11 +52,16 @@ export function EinsatzBeitrittDialog({ einsatzId, isOpen, onClose }: EinsatzBei
   const handleSubmit = async () => {
     if (!selectedPersonId) return;
 
-    await joinEinsatz.mutateAsync({
-      einsatzId,
-      data: { einsatzPersonId: selectedPersonId },
-    });
-    onClose();
+    try {
+      await joinEinsatz.mutateAsync({
+        einsatzId,
+        data: { einsatzPersonId: selectedPersonId },
+      });
+      onClose();
+    } catch {
+      // Fehler-Toast wird bereits in useJoinEinsatz.onError behandelt.
+      // Hier bewusst schlucken, damit kein unhandled promise rejection im UI entsteht.
+    }
   };
 
   const handlePersonCreated = (person: { id: string }) => {

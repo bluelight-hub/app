@@ -210,6 +210,9 @@ function getContextSpecificMessage(status: number, errorData: ApiErrorResponse, 
         if (messageStr.includes('PASSWORD_COMPROMISED') || errorData.code === 'PASSWORD_COMPROMISED') {
           return 'Dieses Passwort wurde in bekannten Datenlecks gefunden. Bitte wählen Sie ein sicheres, einzigartiges Passwort.';
         }
+        if (messageStr.includes('USERNAME_ALREADY_EXISTS')) {
+          return 'Der Nutzername ist bereits vergeben. Bitte wählen Sie einen anderen.';
+        }
         if (messageStr.includes('zu häufig') || messageStr.includes('PASSWORD_BLOCKED')) {
           return 'Dieses Passwort ist zu häufig und nicht erlaubt. Bitte wählen Sie ein einzigartiges Passwort.';
         }
@@ -298,6 +301,20 @@ function getContextSpecificMessage(status: number, errorData: ApiErrorResponse, 
     case 'archiveEinsatz':
       if (status === 400) {
         return 'Beim Archivieren des Einsatzes ist ein Validierungsfehler aufgetreten.';
+      }
+      break;
+
+    case 'joinEinsatz':
+      if (status === 400) {
+        // Backend liefert hier bereits fachliche Meldungen
+        // (z.B. "Diese Person ist bereits einem anderen Bearbeiter zugeordnet").
+        if (errorData.message?.trim()) {
+          return errorData.message;
+        }
+        return 'Der Einsatzbeitritt konnte nicht durchgeführt werden.';
+      }
+      if (status === 404) {
+        return 'Der Einsatz oder die gewählte Person wurde nicht gefunden.';
       }
       break;
 

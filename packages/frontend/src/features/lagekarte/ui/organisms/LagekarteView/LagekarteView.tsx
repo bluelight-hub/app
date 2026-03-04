@@ -1,5 +1,6 @@
 import { api } from '@/shared';
 import { useLagekarte, usePois } from '@/features/lagekarte/api';
+import { useMyEinsatzTeilnahme } from '@/features/einsatz';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { type Layer, LayerToggle } from '../../molecules/LayerToggle/LayerToggle';
@@ -206,8 +207,12 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   // Lagekarte-Daten (für lagekarteId + State)
   const { data: lagekarte } = useLagekarte(einsatzId);
 
+  // ETB erst laden wenn User dem Einsatz beigetreten ist
+  const { data: teilnahmeData } = useMyEinsatzTeilnahme(einsatzId);
+  const hasActiveTeilnahme = !!teilnahmeData?.data?.einsatzPersonId;
+
   // ETB-Daten (für etbId beim Export)
-  const { data: etbData, refetch: refetchEtb, isLoading: isEtbLoading } = useEtb({ einsatzId });
+  const { data: etbData, refetch: refetchEtb, isLoading: isEtbLoading } = useEtb({ einsatzId, enabled: hasActiveTeilnahme });
 
   // Auto-Save Hook (debounced 2s)
   const { triggerAutoSave } = useLagekarteAutoSave(einsatzId);
