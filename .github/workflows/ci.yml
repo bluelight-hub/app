@@ -43,6 +43,16 @@ jobs:
               - 'package.json'
               - 'packages/*/package.json'
 
+  # Repository hygiene gate for backup/merge artifact files
+  repo-hygiene:
+    name: Repository Hygiene
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Check repository hygiene
+        run: bash ./scripts/check-repo-hygiene.sh
+
   # Linux quality gate: build + lint + architecture checks
   linux-quality:
     name: Linux Quality (Build + Lint)
@@ -311,13 +321,14 @@ jobs:
   # Summary job for branch protection
   summary:
     name: CI Pipeline Summary
-    needs: [detect-changes, linux-quality, linux-backend-unit, linux-backend-db, linux-frontend, docker-build]
+    needs: [detect-changes, repo-hygiene, linux-quality, linux-backend-unit, linux-backend-db, linux-frontend, docker-build]
     runs-on: ubuntu-latest
     if: always()
     steps:
       - name: Check all matrix jobs
         run: |
           changes="${{ needs.detect-changes.result }}"
+          hygiene="${{ needs.repo-hygiene.result }}"
           quality="${{ needs.linux-quality.result }}"
           backend_unit="${{ needs.linux-backend-unit.result }}"
           backend_db="${{ needs.linux-backend-db.result }}"
@@ -327,12 +338,17 @@ jobs:
             echo "❌ Change detection failed: $changes"
             exit 1
           fi
+          if [[ "$hygiene" != "success" ]]; then
+            echo "❌ Repository hygiene failed: $hygiene"
+            exit 1
+          fi
           if [[ "$quality" != "success" && "$quality" != "skipped" ]] || \
              [[ "$backend_unit" != "success" && "$backend_unit" != "skipped" ]] || \
              [[ "$backend_db" != "success" && "$backend_db" != "skipped" ]] || \
              [[ "$frontend" != "success" && "$frontend" != "skipped" ]] || \
              [[ "$docker" != "success" && "$docker" != "skipped" ]]; then
             echo "❌ One or more jobs failed"
+            echo "Repository Hygiene: $hygiene"
             echo "Linux Quality: $quality"
             echo "Linux Backend Unit: $backend_unit"
             echo "Linux Backend DB: $backend_db"
@@ -349,6 +365,7 @@ jobs:
           echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
 
+          hygiene="${{ needs.repo-hygiene.result }}"
           quality="${{ needs.linux-quality.result }}"
           backend_unit="${{ needs.linux-backend-unit.result }}"
           backend_db="${{ needs.linux-backend-db.result }}"
@@ -363,6 +380,7 @@ jobs:
             esac
           }
 
+          echo "| Repository Hygiene | $(status_icon "$hygiene") $hygiene |" >> $GITHUB_STEP_SUMMARY
           echo "| Linux Quality (Build + Lint) | $(status_icon "$quality") $quality |" >> $GITHUB_STEP_SUMMARY
           echo "| Linux Backend Unit | $(status_icon "$backend_unit") $backend_unit |" >> $GITHUB_STEP_SUMMARY
           echo "| Linux Backend DB (3 Shards) | $(status_icon "$backend_db") $backend_db |" >> $GITHUB_STEP_SUMMARY
