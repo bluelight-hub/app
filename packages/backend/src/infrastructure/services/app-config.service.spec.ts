@@ -1,0 +1,154 @@
+import { describe, expect, it, jest } from '@jest/globals';
+import type { ConfigService } from '@nestjs/config';
+import type { PrismaService } from '@/infrastructure/database/prisma.service';
+import { AppConfigService } from '@/infrastructure/services/app-config.service';
+
+describe('AppConfigService', () => {
+  const createMockConfigService = (values: Record<string, string | undefined>): jest.Mocked<ConfigService> => {
+    return {
+      get: jest.fn((key: string) => values[key]),
+    } as jest.Mocked<ConfigService>;
+  };
+
+  const createMockPrismaService = (): jest.Mocked<PrismaService> => {
+    return {
+      appConfig: {
+        upsert: jest.fn(),
+        deleteMany: jest.fn(),
+      },
+      appConfigSecret: {
+        upsert: jest.fn(),
+        deleteMany: jest.fn(),
+      },
+    } as unknown as jest.Mocked<PrismaService>;
+  };
+
+  it('migrates nur Legacy-ENV-Fallback-Keys und markiert unbekannte Keys als failed', async () => {
+    const mockConfigService = createMockConfigService({
+      JWT_SECRET: 'legacy-jwt',
+      FRONTEND_URL: 'https://legacy-frontend.local',
+    });
+    const service = new AppConfigService(mockConfigService, createMockPrismaService());
+
+    const upsertSpy = jest.spyOn(service, 'upsertRuntimeConfig').mockResolvedValue();
+
+    const result = await service.migrateLegacyRuntimeKeysToDb({
+      keys: ['JWT_SECRET', 'NICHT_BEARBEITBAR', 'JWT_SECRET', 'FRONTEND_URL'],
+      updatedBy: 'admin-user',
+    });
+
+    expect(result).toEqual({
+      migratedKeys: ['JWT_SECRET', 'FRONTEND_URL'],
+      skippedKeys: [],
+      failedKeys: [
+        {
+          key: 'NICHT_BEARBEITBAR',
+          reason: 'Migration abgelehnt für NICHT_BEARBEITBAR: Schlüssel ist nicht im Runtime-Katalog enthalten.',
+        },
+      ],
+      summary: {
+        requested: 3,
+        migrated: 2,
+        skipped: 0,
+        failed: 1,
+      },
+    });
+
+    expect(upsertSpy).toHaveBeenCalledWith({
+      key: 'JWT_SECRET',
+      value: 'legacy-jwt',
+      updatedBy: 'admin-user',
+      sensitive: true,
+      sourceHint: 'legacy_env_migration',
+    });
+    expect(upsertSpy).toHaveBeenCalledWith({
+      key: 'FRONTEND_URL',
+      value: 'https://legacy-frontend.local',
+      updatedBy: 'admin-user',
+      sensitive: false,
+      sourceHint: 'legacy_env_migration',
+    });
+    expect(upsertSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('überspringt Keys, die bereits in der Runtime-DB liegen', async () => {
+    const mockConfigService = createMockConfigService({ JWT_SECRET: 'legacy-jwt' });
+    const service = new AppConfigService(mockConfigService, createMockPrismaService());
+
+    const secretsMap = service as unknown as { dbRuntimeSecrets: Map<string, string> };
+    secretsMap.dbRuntimeSecrets = new Map([['JWT_SECRET', 'already-from-db']]);
+
+    const upsertSpy = jest.spyOn(service, 'upsertRuntimeConfig').mockResolvedValue();
+
+    const result = await service.migrateLegacyRuntimeKeysToDb({
+      keys: ['JWT_SECRET'],
+      updatedBy: 'admin-user',
+    });
+
+    expect(result).toEqual({
+      migratedKeys: [],
+      skippedKeys: ['JWT_SECRET'],
+      failedKeys: [],
+      summary: {
+        requested: 1,
+        migrated: 0,
+        skipped: 1,
+        failed: 0,
+      },
+    });
+    expect(upsertSpy).not.toHaveBeenCalled();
+  });
+
+  it('kann im DRY-RUN-Mode laufen, ohne DB-Write', async () => {
+    const mockConfigService = createMockConfigService({ JWT_SECRET: 'legacy-jwt-secret' });
+    const service = new AppConfigService(mockConfigService, createMockPrismaService());
+
+    const upsertSpy = jest.spyOn(service, 'upsertRuntimeConfig').mockResolvedValue();
+
+    const result = await service.migrateLegacyRuntimeKeysToDb({
+      keys: ['JWT_SECRET'],
+      dryRun: true,
+      updatedBy: 'admin-user',
+    });
+
+    expect(result).toEqual({
+      migratedKeys: ['JWT_SECRET'],
+      skippedKeys: [],
+      failedKeys: [],
+      summary: {
+        requested: 1,
+        migrated: 1,
+        skipped: 0,
+        failed: 0,
+      },
+    });
+    expect(upsertSpy).not.toHaveBeenCalled();
+  });
+
+  it('liefert einen failed-Eintrag bei fehlendem MASTER_SECRET_KEY für Secret-Migration', async () => {
+    const mockConfigService = createMockConfigService({ JWT_SECRET: 'legacy-jwt-secret' });
+    const service = new AppConfigService(mockConfigService, createMockPrismaService());
+
+    const result = await service.migrateLegacyRuntimeKeysToDb({
+      keys: ['JWT_SECRET'],
+      updatedBy: 'admin-user',
+    });
+
+    expect(result).toEqual({
+      migratedKeys: [],
+      skippedKeys: [],
+      failedKeys: [
+        {
+          key: 'JWT_SECRET',
+          reason: 'Migration fehlgeschlagen für JWT_SECRET: MASTER_SECRET_KEY ist nicht verfügbar, Secret-Operation nicht möglich.',
+        },
+      ],
+      summary: {
+        requested: 1,
+        migrated: 0,
+        skipped: 0,
+        failed: 1,
+      },
+    });
+  });
+});

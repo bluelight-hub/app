@@ -24,6 +24,7 @@ import { Route as AppEinsaetzeRouteImport } from './routes/app/einsaetze'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminTokensRouteImport } from './routes/admin/tokens'
 import { Route as AdminSetupRouteImport } from './routes/admin/setup'
+import { Route as AdminRuntimeKonfigurationRouteImport } from './routes/admin/runtime-konfiguration'
 import { Route as AdminInvitesRouteImport } from './routes/admin/invites'
 import { Route as AdminFuehrungsrhythmusTemplatesRouteImport } from './routes/admin/fuehrungsrhythmus-templates'
 import { Route as AdminErinnerungenRouteImport } from './routes/admin/erinnerungen'
@@ -149,6 +150,12 @@ const AdminSetupRoute = AdminSetupRouteImport.update({
   path: '/setup',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminRuntimeKonfigurationRoute =
+  AdminRuntimeKonfigurationRouteImport.update({
+    id: '/runtime-konfiguration',
+    path: '/runtime-konfiguration',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminInvitesRoute = AdminInvitesRouteImport.update({
   id: '/invites',
   path: '/invites',
@@ -446,6 +453,7 @@ export interface FileRoutesByFullPath {
   '/admin/erinnerungen': typeof AdminErinnerungenRoute
   '/admin/fuehrungsrhythmus-templates': typeof AdminFuehrungsrhythmusTemplatesRoute
   '/admin/invites': typeof AdminInvitesRoute
+  '/admin/runtime-konfiguration': typeof AdminRuntimeKonfigurationRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/tokens': typeof AdminTokensRoute
   '/admin/users': typeof AdminUsersRoute
@@ -511,6 +519,7 @@ export interface FileRoutesByTo {
   '/admin/erinnerungen': typeof AdminErinnerungenRoute
   '/admin/fuehrungsrhythmus-templates': typeof AdminFuehrungsrhythmusTemplatesRoute
   '/admin/invites': typeof AdminInvitesRoute
+  '/admin/runtime-konfiguration': typeof AdminRuntimeKonfigurationRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/tokens': typeof AdminTokensRoute
   '/admin/users': typeof AdminUsersRoute
@@ -575,6 +584,7 @@ export interface FileRoutesById {
   '/admin/erinnerungen': typeof AdminErinnerungenRoute
   '/admin/fuehrungsrhythmus-templates': typeof AdminFuehrungsrhythmusTemplatesRoute
   '/admin/invites': typeof AdminInvitesRoute
+  '/admin/runtime-konfiguration': typeof AdminRuntimeKonfigurationRoute
   '/admin/setup': typeof AdminSetupRoute
   '/admin/tokens': typeof AdminTokensRoute
   '/admin/users': typeof AdminUsersRoute
@@ -643,6 +653,7 @@ export interface FileRouteTypes {
     | '/admin/erinnerungen'
     | '/admin/fuehrungsrhythmus-templates'
     | '/admin/invites'
+    | '/admin/runtime-konfiguration'
     | '/admin/setup'
     | '/admin/tokens'
     | '/admin/users'
@@ -708,6 +719,7 @@ export interface FileRouteTypes {
     | '/admin/erinnerungen'
     | '/admin/fuehrungsrhythmus-templates'
     | '/admin/invites'
+    | '/admin/runtime-konfiguration'
     | '/admin/setup'
     | '/admin/tokens'
     | '/admin/users'
@@ -771,6 +783,7 @@ export interface FileRouteTypes {
     | '/admin/erinnerungen'
     | '/admin/fuehrungsrhythmus-templates'
     | '/admin/invites'
+    | '/admin/runtime-konfiguration'
     | '/admin/setup'
     | '/admin/tokens'
     | '/admin/users'
@@ -943,6 +956,13 @@ declare module '@tanstack/react-router' {
       path: '/setup'
       fullPath: '/admin/setup'
       preLoaderRoute: typeof AdminSetupRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/runtime-konfiguration': {
+      id: '/admin/runtime-konfiguration'
+      path: '/runtime-konfiguration'
+      fullPath: '/admin/runtime-konfiguration'
+      preLoaderRoute: typeof AdminRuntimeKonfigurationRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/invites': {
@@ -1297,6 +1317,7 @@ interface AdminRouteChildren {
   AdminErinnerungenRoute: typeof AdminErinnerungenRoute
   AdminFuehrungsrhythmusTemplatesRoute: typeof AdminFuehrungsrhythmusTemplatesRoute
   AdminInvitesRoute: typeof AdminInvitesRoute
+  AdminRuntimeKonfigurationRoute: typeof AdminRuntimeKonfigurationRoute
   AdminSetupRoute: typeof AdminSetupRoute
   AdminTokensRoute: typeof AdminTokensRoute
   AdminUsersRoute: typeof AdminUsersRoute
@@ -1315,6 +1336,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminErinnerungenRoute: AdminErinnerungenRoute,
   AdminFuehrungsrhythmusTemplatesRoute: AdminFuehrungsrhythmusTemplatesRoute,
   AdminInvitesRoute: AdminInvitesRoute,
+  AdminRuntimeKonfigurationRoute: AdminRuntimeKonfigurationRoute,
   AdminSetupRoute: AdminSetupRoute,
   AdminTokensRoute: AdminTokensRoute,
   AdminUsersRoute: AdminUsersRoute,

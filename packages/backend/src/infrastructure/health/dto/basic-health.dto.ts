@@ -33,10 +33,4 @@ export class BasicHealthDto {
     description: 'Aktuelle Server-Version',
   })
   version!: string;
-
-  @ApiProperty({
-    example: false,
-    description: 'Ob der Server im INSECURE_MODE läuft (Development only)',
-  })
-  insecureMode!: boolean;
 }

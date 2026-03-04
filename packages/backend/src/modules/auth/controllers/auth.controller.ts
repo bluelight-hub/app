@@ -20,7 +20,6 @@ import {
 } from '@nestjs/common';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@/infrastructure/di-tokens';
-import { ConfigService } from '@nestjs/config';
 import { ApiBody, ApiCookieAuth, ApiForbiddenResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse, ApiBadRequestResponse } from '@nestjs/swagger';
 import { ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
@@ -73,7 +72,6 @@ import { SkipSetupCheck } from '@/infrastructure/decorators/skip-setup-check.dec
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly configService: ConfigService,
     private readonly appConfig: AppConfigService,
     private readonly loginHandler: LoginHandler,
     private readonly logoutHandler: LogoutHandler,
@@ -300,7 +298,7 @@ export class AuthController {
     }
 
     const token = this.authService.signAdminToken(user);
-    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
+    const isProduction = this.appConfig.isProduction();
     const isHttps = this.appConfig.isHttpsEnabled();
     setAdminCookie(res, token, isProduction, isHttps);
 

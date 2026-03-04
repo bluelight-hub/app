@@ -2,6 +2,7 @@ import { BadRequestException, Body, ConflictException, Controller, Get, HttpCode
 import { ApiBadRequestResponse, ApiConflictResponse, ApiForbiddenResponse, ApiOperation, ApiTags, ApiTooManyRequestsResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 
+import { AppConfigService } from '@/infrastructure/services/app-config.service';
 import { AdminJwtAuthGuard } from '@/modules/auth/guards/admin-jwt-auth.guard';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
@@ -12,6 +13,7 @@ import { MigrateToSecureModeCommand } from '@/application/admin/commands/migrate
 import { GetSecurityStatusHandler } from '@/application/admin/queries/get-security-status.handler';
 import { GetSecurityStatusQuery } from '@/application/admin/queries/get-security-status.query';
 import { SecurityStatusDto } from '@/application/admin/dto/security-status.dto';
+import { ConfigDoctorDto } from '@/application/admin/dto/runtime-config.dto';
 import { MigrateToSecureModeRequestDto, MigrateToSecureModeResponseDto } from '@/application/admin/dto/migrate-to-secure-mode.dto';
 import { SECURITY_ERROR_CODES } from '@/application/admin/errors/security-error.codes';
 import { ACCESS_TOKEN_ERROR_CODES } from '@/application/admin/errors/access-token-error.codes';
@@ -62,7 +64,31 @@ export class AdminSecurityController {
   constructor(
     private readonly migrateHandler: MigrateToSecureModeHandler,
     private readonly statusHandler: GetSecurityStatusHandler,
+    private readonly appConfig: AppConfigService,
   ) {}
+
+  @Get('doctor')
+  @ApiOperation({
+    summary: 'Config-Doctor Diagnostik',
+    description: 'Prüft Runtime-Konfiguration: fehlende Pflichtkeys, aktive ENV-Overrides und Entschlüsselbarkeit. Keine Secret-Klartexte in der Antwort.',
+  })
+  @ApiWrappedResponse(ConfigDoctorDto, {
+    description: 'Diagnostik erfolgreich erstellt',
+  })
+  getConfigDoctor(): ConfigDoctorDto {
+    const report = this.appConfig.getConfigDoctorReport();
+    return {
+      dbAvailable: report.dbAvailable,
+      dbAvailabilityReasons: report.dbAvailabilityReasons,
+      missingRequiredKeys: report.missingRequiredKeys,
+      activeEnvOverrides: report.activeEnvOverrides,
+      legacyEnvFallbackKeys: report.legacyEnvFallbackKeys,
+      legacyEnvCleanupKeys: report.legacyEnvCleanupKeys,
+      decryptionErrors: report.decryptionErrors,
+      runtimeConfigCount: report.runtimeConfigCount,
+      runtimeSecretCount: report.runtimeSecretCount,
+    };
+  }
 
   /**
    * Ruft den aktuellen Security-Status des Servers ab.
