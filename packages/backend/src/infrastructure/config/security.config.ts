@@ -66,44 +66,37 @@ export const helmetConfig: HelmetOptions = {
  * @constant
  */
 /**
- * Dynamische Origin-Validierung für Tauri, Development und konfigurierbare Patterns
+ * Dynamische Origin-Validierung für Tauri, Development und konfigurierbare Patterns.
+ * Diese Policy ist der zentrale Entscheidungsort für CORS und PNA.
  *
  * Unterstützte Umgebungsvariablen:
  * - ALLOWED_ORIGINS: Komma-separierte Liste expliziter Origins
  *   Beispiel: "https://example.com,https://app.example.com"
  * - ALLOWED_ORIGIN_PATTERNS: Komma-separierte Liste von Regex-Patterns
- *   Beispiel: "[\w-]+\.bluelight-hub-app\.pages\.dev$,[\w-]+\.vercel\.app$"
+ *   Beispiel: "[\\w-]+\\.bluelight-hub-app\\.pages\\.dev$,[\\w-]+\\.vercel\\.app$"
  * - Wildcard "*" in ALLOWED_ORIGINS erlaubt alle Origins (NUR für Entwicklung!)
  */
-const corsOriginHandler = (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-  // Standard-Patterns für Tauri und Development
-  const builtInPatterns = [
-    /^https?:\/\/localhost(:\d+)?$/, // localhost mit beliebigem Port
-    /^https?:\/\/127\.0\.0\.1(:\d+)?$/, // 127.0.0.1 mit beliebigem Port
-    /^tauri:\/\/localhost/, // Tauri v1
-    /^https:\/\/tauri\.localhost/, // Tauri v2
-    /^https?:\/\/\[::1\](:\d+)?$/, // IPv6 localhost
-  ];
+const builtInOriginPatterns = [
+  /^https?:\/\/localhost(:\d+)?$/, // localhost mit beliebigem Port
+  /^https?:\/\/127\.0\.0\.1(:\d+)?$/, // 127.0.0.1 mit beliebigem Port
+  /^tauri:\/\/localhost/, // Tauri v1
+  /^https:\/\/tauri\.localhost/, // Tauri v2
+  /^https?:\/\/\[::1\](:\d+)?$/, // IPv6 localhost
+];
 
-  // Zusätzliche explizite Origins aus Umgebungsvariablen
-  const envOrigins =
-    process.env.ALLOWED_ORIGINS?.split(',')
-      .map((s) => s.trim())
-      .filter(Boolean) || [];
+const readAllowedOrigins = (): string[] =>
+  process.env.ALLOWED_ORIGINS?.split(',')
+    .map((s) => s.trim())
+    .filter(Boolean) || [];
 
-  // Wildcard-Check: "*" erlaubt alle Origins
-  if (envOrigins.includes('*')) {
-    callback(null, true);
-    return;
-  }
-
-  // Zusätzliche Patterns aus Umgebungsvariablen (Regex-Strings)
-  const envPatternStrings =
+const readAllowedOriginPatterns = (): RegExp[] => {
+  const patternStrings =
     process.env.ALLOWED_ORIGIN_PATTERNS?.split(',')
       .map((s) => s.trim())
       .filter(Boolean) || [];
+
   const envPatterns: RegExp[] = [];
-  for (const patternStr of envPatternStrings) {
+  for (const patternStr of patternStrings) {
     try {
       envPatterns.push(new RegExp(patternStr));
     } catch {
@@ -111,13 +104,32 @@ const corsOriginHandler = (origin: string | undefined, callback: (err: Error | n
     }
   }
 
-  // Alle Patterns kombinieren
-  const allPatterns = [...builtInPatterns, ...envPatterns];
+  return envPatterns;
+};
 
-  // Prüfe ob Origin erlaubt ist
-  const isAllowed = !origin || envOrigins.includes(origin) || allPatterns.some((pattern) => pattern.test(origin));
+export const isCorsOriginAllowed = (origin: string | undefined): boolean => {
+  const envOrigins = readAllowedOrigins();
 
-  callback(null, isAllowed);
+  // Wildcard-Check: "*" erlaubt alle Origins
+  if (envOrigins.includes('*')) {
+    return true;
+  }
+
+  // Kein Origin-Header bedeutet typischerweise same-origin oder server-to-server.
+  if (!origin) {
+    return true;
+  }
+
+  if (envOrigins.includes(origin)) {
+    return true;
+  }
+
+  const allPatterns = [...builtInOriginPatterns, ...readAllowedOriginPatterns()];
+  return allPatterns.some((pattern) => pattern.test(origin));
+};
+
+export const corsOriginHandler = (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+  callback(null, isCorsOriginAllowed(origin));
 };
 
 export const corsConfig = {
