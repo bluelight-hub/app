@@ -43,7 +43,14 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         },
       ]),
       ignoreExpiration: false,
-      secretOrKey: appConfig.getOrThrow<string>('JWT_SECRET'),
+      secretOrKeyProvider: (_request: Request, _rawJwtToken: string, done: (err: unknown, secretOrKey?: string | Buffer) => void) => {
+        const secret = appConfig.get<string>('JWT_SECRET');
+        if (!secret || secret.trim().length === 0) {
+          done(new UnauthorizedException('JWT_SECRET not configured'));
+          return;
+        }
+        done(null, secret);
+      },
     });
   }
 

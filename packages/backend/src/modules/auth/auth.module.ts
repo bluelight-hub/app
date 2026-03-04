@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { PrismaModule } from '@/infrastructure/database/prisma.module';
-import { AppConfigService } from '@/infrastructure/services/app-config.service';
 import { InfrastructureCommonModule } from '@/infrastructure/common.module';
 import { LOGGER } from '@/infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@/infrastructure/common/adapters/nest-logger.adapter';
@@ -17,7 +16,6 @@ import { ExchangeInviteHandler } from '@/application/auth/commands/exchange-invi
 import { InviteCodeInfrastructureModule } from '@/infrastructure/invite-code/invite-code-infrastructure.module';
 import { PasswordModule } from '@/infrastructure/password/password.module';
 import { ServerAccessTokenInfrastructureModule } from '@/infrastructure/server-access-token/server-access-token-infrastructure.module';
-import { toJwtExpiresIn } from '@/infrastructure/auth/utils/jwt-expires-in.util';
 
 /**
  * Authentifizierungsmodul für BlueLight Hub
@@ -38,13 +36,7 @@ import { toJwtExpiresIn } from '@/infrastructure/auth/utils/jwt-expires-in.util'
     PrismaModule,
     InfrastructureCommonModule,
     PassportModule,
-    JwtModule.registerAsync({
-      useFactory: (appConfig: AppConfigService) => ({
-        secret: appConfig.getOrThrow<string>('JWT_SECRET'),
-        signOptions: { expiresIn: toJwtExpiresIn(appConfig.get<string>('JWT_ACCESS_EXPIRES_IN', '15m')) },
-      }),
-      inject: [AppConfigService],
-    }),
+    JwtModule.register({}),
     // CQRS Application Layer für Auth Commands (Login, Logout)
     AuthApplicationModule,
     // Infrastructure Module für ExchangeInviteHandler Dependencies

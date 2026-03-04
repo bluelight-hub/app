@@ -126,6 +126,7 @@ export class AuthService {
       role: user.role, // Include a role in token payload
     };
     return this.jwtService.sign(payload, {
+      secret: this.appConfig.getOrThrow<string>('JWT_SECRET'),
       expiresIn: toJwtExpiresIn(this.appConfig.get<string>('JWT_ACCESS_EXPIRES_IN', '15m')),
     });
   }
@@ -178,7 +179,9 @@ export class AuthService {
    * @returns Die dekodierten Token-Daten
    */
   async verifyAccessToken(token: string): Promise<ValidatedUser> {
-    const decoded = await this.jwtService.verify(token);
+    const decoded = await this.jwtService.verify(token, {
+      secret: this.appConfig.getOrThrow<string>('JWT_SECRET'),
+    });
     // Map JWT payload to ValidatedUser format
     return {
       userId: decoded.sub,

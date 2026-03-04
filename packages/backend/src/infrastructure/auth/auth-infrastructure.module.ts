@@ -3,9 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { JWT_AUTH_SERVICE, LOGGER } from '../di-tokens';
 import { JwtTokenServiceAdapter } from './adapters/jwt-token-service.adapter';
 import { NestLoggerAdapter } from '../common/adapters/nest-logger.adapter';
-import { AppConfigService } from '../services/app-config.service';
 import { InfrastructureCommonModule } from '../common.module';
-import { toJwtExpiresIn } from './utils/jwt-expires-in.util';
 
 /**
  * NestJS Module für Auth Infrastructure Layer.
@@ -26,17 +24,14 @@ import { toJwtExpiresIn } from './utils/jwt-expires-in.util';
  * - Ermöglicht austauschbare Implementierungen (JWT, OAuth, Mock für Tests)
  *
  * **Module Dependencies:**
- * - JwtModule: NestJS JWT Service für Token-Operationen (mit registerAsync)
- * - ConfigService: Wird vom parent Module (AppModule) global bereitgestellt
+ * - JwtModule: NestJS JWT Service für Token-Operationen
  *
  * **JWT Configuration:**
- * - Secret wird aus JWT_SECRET Environment Variable gelesen
- * - Token Expiration: 24 Stunden
- * - JwtModule.registerAsync mit Factory (kein external dependency injection)
+ * - Secrets/Laufzeiten werden pro Operation im Adapter über AppConfigService aufgelöst
+ * - Kein Eager-Read beim Modul-Bootstrap
  *
  * **Module Scope:**
- * - ConfigService ist global registriert im AppModule
- * - JwtModule ist lokal registriert, wird aber über Factory konfiguriert
+ * - JwtModule ist lokal registriert; konkrete Signatur-Optionen kommen zur Laufzeit
  *
  * @example
  * ```typescript
@@ -51,18 +46,7 @@ import { toJwtExpiresIn } from './utils/jwt-expires-in.util';
  * ```
  */
 @Module({
-  imports: [
-    InfrastructureCommonModule,
-    JwtModule.registerAsync({
-      inject: [AppConfigService],
-      useFactory: (appConfig: AppConfigService) => ({
-        secret: appConfig.getOrThrow<string>('JWT_SECRET'),
-        signOptions: {
-          expiresIn: toJwtExpiresIn(appConfig.get<string>('JWT_ACCESS_EXPIRES_IN', '24h')),
-        },
-      }),
-    }),
-  ],
+  imports: [InfrastructureCommonModule, JwtModule.register({})],
   providers: [
     // Logger für Auth Infrastructure
     {
