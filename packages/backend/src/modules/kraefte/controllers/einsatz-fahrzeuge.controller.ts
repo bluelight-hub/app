@@ -291,7 +291,7 @@ export class EinsatzFahrzeugeController {
   @ApiOperation({ summary: 'Temporäres Fahrzeug für Einsatz erfassen' })
   @ApiParam({ name: 'einsatzId', type: String, format: 'cuid', description: 'Einsatz-ID (CUID)' })
   @ApiWrappedCreatedResponse(EinsatzFahrzeugDto, { description: 'Temporäres Fahrzeug erfolgreich erfasst' })
-  @ApiBadRequestResponse({ description: 'Validierungsfehler (z.B. ungültiger Funkrufname)' })
+  @ApiBadRequestResponse({ description: 'Validierungsfehler (z.B. ungültiger Funkrufname oder inaktiver Fahrzeugtyp)' })
   @ApiNotFoundResponse({ description: 'Fahrzeugtyp nicht gefunden' })
   @ApiConflictResponse({ description: 'Fahrzeug mit diesem Funkrufnamen bereits im Einsatz erfasst' })
   async erfasseTemporales(@Param('einsatzId', ParseCuidPipe) einsatzId: string, @CurrentUser() user: ValidatedUser, @Body() dto: ErfasseTemporalesFahrzeugDto): Promise<EinsatzFahrzeugDto> {
@@ -329,6 +329,9 @@ export class EinsatzFahrzeugeController {
       }
       if (EinsatzFahrzeugError.hasCode(error, EINSATZ_FAHRZEUG_ERROR_CODES.FAHRZEUGTYP_NOT_FOUND)) {
         throw new NotFoundException(EinsatzFahrzeugError.extractMessage(error));
+      }
+      if (EinsatzFahrzeugError.hasCode(error, EINSATZ_FAHRZEUG_ERROR_CODES.FAHRZEUGTYP_INACTIVE)) {
+        throw new BadRequestException(EinsatzFahrzeugError.extractMessage(error));
       }
 
       // Generic error
