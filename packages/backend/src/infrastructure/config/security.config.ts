@@ -42,13 +42,6 @@ export const helmetConfig: HelmetOptions = {
 };
 
 const builtInCorsPatterns = [/^https?:\/\/localhost(:\d+)?$/, /^https?:\/\/127\.0\.0\.1(:\d+)?$/, /^tauri:\/\/localhost/, /^https:\/\/tauri\.localhost/, /^https?:\/\/\[::1\](:\d+)?$/];
-const builtInCorsPatterns = [
-  /^https?:\/\/localhost(:\d+)?$/,
-  /^https?:\/\/127\.0\.0\.1(:\d+)?$/,
-  /^tauri:\/\/localhost/,
-  /^https:\/\/tauri\.localhost/,
-  /^https?:\/\/\[::1\](:\d+)?$/,
-];
 
 /**
  * Dynamische Origin-Validierung für Tauri, Development und konfigurierbare Patterns.
@@ -79,11 +72,9 @@ export function isCorsOriginAllowed(origin: string | undefined, runtimeConfig?: 
   return allPatterns.some((pattern) => pattern.test(origin));
 }
 
-const createCorsOriginHandler =
-  (runtimeConfig?: AppConfigService) =>
-  (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    callback(null, isCorsOriginAllowed(origin, runtimeConfig));
-  };
+const createCorsOriginHandler = (runtimeConfig?: AppConfigService) => (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+  callback(null, isCorsOriginAllowed(origin, runtimeConfig));
+};
 
 export const corsOriginHandler = createCorsOriginHandler();
 
