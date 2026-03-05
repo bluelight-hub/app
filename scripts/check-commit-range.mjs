@@ -63,6 +63,14 @@ function readCommitSubject(sha) {
   return runGit(['log', '--format=%s', '-n', '1', sha]);
 }
 
+function readCommitAuthor(sha) {
+  return runGit(['log', '--format=%an', '-n', '1', sha]);
+}
+
+function isDependabotCommit(sha) {
+  return readCommitAuthor(sha) === 'dependabot[bot]';
+}
+
 function isReleaseCommitSubject(subject) {
   return RELEASE_SUBJECT_PATTERN.test(subject.trim());
 }
@@ -80,8 +88,14 @@ async function main() {
 
   const invalidCommits = [];
   let releaseCommitCount = 0;
+  let dependabotCommitCount = 0;
 
   for (const sha of shas) {
+    if (isDependabotCommit(sha)) {
+      dependabotCommitCount += 1;
+      continue;
+    }
+
     const message = readCommitMessage(sha);
     const subject = readCommitSubject(sha);
     const isReleaseCommit = isReleaseCommitSubject(subject);
@@ -111,6 +125,10 @@ async function main() {
     }
 
     process.exit(1);
+  }
+
+  if (dependabotCommitCount > 0) {
+    console.log(`ℹ️ ${dependabotCommitCount} Dependabot-Commit(s) übersprungen.`);
   }
 
   if (releaseCommitCount > 0) {
