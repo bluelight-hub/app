@@ -1,13 +1,23 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { LoginWindow } from '@/features/auth/ui';
+import { sanitizeInternalRedirectPath } from '@/shared/lib/navigation/router-redirect';
 import { isSetupRedirectInProgress, setSetupRedirectInProgress } from '@/shared/lib/server-access-token';
 import { serverStore } from '@/features/server/stores/server.store';
+import { z } from 'zod';
+
+const searchSchema = z.object({
+  redirect: z
+    .string()
+    .optional()
+    .transform((value) => sanitizeInternalRedirectPath(value)),
+});
 
 // DEBUG: Module load log
 console.log('[auth.tsx] Module loaded at', new Date().toISOString());
 
 export const Route = createFileRoute('/auth')({
   component: LoginWindow,
+  validateSearch: searchSchema,
 
   /**
    * beforeLoad Guard:

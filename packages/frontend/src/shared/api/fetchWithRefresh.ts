@@ -1,4 +1,5 @@
 import { logger } from '@/shared/lib/logger';
+import { redirectWithRouter } from '@/shared/lib/navigation/router-redirect';
 import { clearServerAccessToken, getServerAccessToken, isSetupRedirectInProgress, isTokenErrorMessage, setSetupRedirectInProgress } from '@/shared/lib/server-access-token';
 import { AuthApi, Configuration } from '@/shared';
 import { getBaseUrl } from './api';
@@ -150,11 +151,8 @@ async function isServerNotSetupError(response: Response): Promise<boolean> {
  * Nutzt zentrales Flag um mehrfache Redirects bei parallelen Requests zu verhindern.
  */
 function handleServerNotSetup(): void {
-  console.log('[handleServerNotSetup] Called!', { currentPath: window.location.pathname });
-
   // Vermeide mehrfache Redirects bei parallelen Requests
   if (isSetupRedirectInProgress()) {
-    console.log('[handleServerNotSetup] Already in progress, skipping');
     return;
   }
   // Flag SOFORT setzen um Race Conditions zu verhindern
@@ -162,16 +160,17 @@ function handleServerNotSetup(): void {
 
   // Nicht redirecten wenn wir bereits auf der Setup-Seite sind
   if (window.location.pathname.startsWith('/server/setup')) {
-    console.log('[handleServerNotSetup] Already on setup page, skipping');
     setSetupRedirectInProgress(false);
     return;
   }
 
   // Clear old token - backend was reset, old token is invalid
   clearServerAccessToken();
-  console.log('[handleServerNotSetup] Redirecting to /server/setup');
   logger.info('Server requires setup, clearing old token and redirecting to /server/setup');
-  window.location.href = '/server/setup';
+  void redirectWithRouter({
+    to: '/server/setup',
+    replace: true,
+  });
 }
 
 /**
@@ -197,7 +196,11 @@ function handleInvalidServerToken(): void {
 
   clearServerAccessToken();
   logger.info('Invalid server token, redirecting to /server/manage');
-  window.location.href = '/server/manage?reason=token-invalid';
+  void redirectWithRouter({
+    to: '/server/manage',
+    search: { reason: 'token-invalid' },
+    replace: true,
+  });
 }
 
 /**

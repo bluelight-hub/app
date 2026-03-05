@@ -1,6 +1,7 @@
-import { useCurrentUser, useAdminLogin } from '@/features/auth';
+import { consumeRedirectAfterLogin, useCurrentUser, useAdminLogin } from '@/features/auth';
 import { useSystemHealth } from '@/features/system/api/use-system-health';
 import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
+import { getRedirectFromSearch, sanitizeInternalRedirectPath } from '@/shared/lib/navigation/router-redirect';
 import { Alert } from '@/shared/ui/atoms/alert.atom';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { FormField } from '@/shared/ui/atoms/form-field.atom';
@@ -13,7 +14,7 @@ import { PasswordInput } from '@/shared/ui/molecules/password-input.molecule';
 import { useForm } from '@tanstack/react-form';
 import { useNavigate } from '@tanstack/react-router';
 import { AuthLayout } from '@/shared/ui/templates/AuthLayout';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { PiWarning } from 'react-icons/pi';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -30,6 +31,29 @@ export function AdminLogin() {
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
   const [shouldShake, setShouldShake] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const redirectTargetRef = useRef<string | null>(null);
+
+  const resolveRedirectTarget = useCallback((fallbackTarget: string): string => {
+    if (redirectTargetRef.current) {
+      return redirectTargetRef.current;
+    }
+
+    const redirectFromSearch = getRedirectFromSearch(window.location.search);
+    if (redirectFromSearch) {
+      consumeRedirectAfterLogin();
+      redirectTargetRef.current = redirectFromSearch;
+      return redirectFromSearch;
+    }
+
+    const redirectFromStore = sanitizeInternalRedirectPath(consumeRedirectAfterLogin());
+    if (redirectFromStore) {
+      redirectTargetRef.current = redirectFromStore;
+      return redirectFromStore;
+    }
+
+    redirectTargetRef.current = fallbackTarget;
+    return fallbackTarget;
+  }, []);
 
   const form = useForm({
     defaultValues: {
@@ -48,7 +72,6 @@ export function AdminLogin() {
             toast.success('Anmeldung erfolgreich', {
               description: 'Sie wurden erfolgreich als Administrator angemeldet.',
             });
-            await navigate({ to: '/admin/dashboard' });
           },
           onError: async (error: Error) => {
             const message = await getApiErrorMessage(error, 'Ein unerwarteter Fehler ist aufgetreten.', 'adminLogin');
@@ -84,19 +107,29 @@ export function AdminLogin() {
     if (hasCheckedAuth) {
       // If user has an active admin session, redirect to dashboard
       if (user && isAdminAuthenticated) {
-        void navigate({ to: '/admin/dashboard' });
+        const redirectTarget = resolveRedirectTarget('/admin/dashboard');
+        void navigate({ to: redirectTarget as never, replace: true });
       }
       // If user is not logged in at all, redirect to auth
       else if (!user) {
-        void navigate({ to: '/auth' });
+        const redirectTarget = getRedirectFromSearch(window.location.search) ?? sanitizeInternalRedirectPath(consumeRedirectAfterLogin());
+        void navigate({
+          to: '/auth',
+          search: redirectTarget
+            ? {
+                redirect: redirectTarget,
+              }
+            : undefined,
+          replace: true,
+        });
       }
       // If user needs to set up admin password, redirect to setup
       else if (user && adminStatus?.adminSetupAvailable) {
-        void navigate({ to: '/admin/setup' });
+        void navigate({ to: '/admin/setup', replace: true });
       }
       // User is logged in but not admin authenticated - stay on this page
     }
-  }, [user, hasCheckedAuth, isAdminAuthenticated, adminStatus?.adminSetupAvailable, navigate]);
+  }, [user, hasCheckedAuth, isAdminAuthenticated, adminStatus?.adminSetupAvailable, navigate, resolveRedirectTarget]);
 
   // Don't render the form until we've checked authentication
   // This prevents flashing of the form before redirect

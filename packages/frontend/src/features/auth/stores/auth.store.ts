@@ -88,6 +88,17 @@ export const setRedirectAfterLogin = (url?: string) => {
 };
 
 /**
+ * Helper: Redirect-URL lesen und direkt verbrauchen
+ *
+ * Gibt den gespeicherten Redirect-Pfad zurueck und leert ihn anschliessend.
+ */
+export const consumeRedirectAfterLogin = (): string | undefined => {
+  const redirectPath = authStore.state.redirectAfterLogin;
+  setRedirectAfterLogin(undefined);
+  return redirectPath;
+};
+
+/**
  * Helper: Store zurücksetzen (z.B. bei Logout)
  */
 export const resetAuthStore = () => {
