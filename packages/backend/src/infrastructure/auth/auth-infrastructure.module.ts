@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { JWT_AUTH_SERVICE, LOGGER } from '../di-tokens';
 import { JwtTokenServiceAdapter } from './adapters/jwt-token-service.adapter';
 import { NestLoggerAdapter } from '../common/adapters/nest-logger.adapter';
+import { InfrastructureCommonModule } from '../common.module';
 
 /**
  * NestJS Module für Auth Infrastructure Layer.
@@ -23,17 +24,14 @@ import { NestLoggerAdapter } from '../common/adapters/nest-logger.adapter';
  * - Ermöglicht austauschbare Implementierungen (JWT, OAuth, Mock für Tests)
  *
  * **Module Dependencies:**
- * - JwtModule: NestJS JWT Service für Token-Operationen (mit registerAsync)
- * - ConfigService: Wird vom parent Module (AppModule) global bereitgestellt
+ * - JwtModule: NestJS JWT Service für Token-Operationen
  *
  * **JWT Configuration:**
- * - Secret wird aus JWT_SECRET Environment Variable gelesen
- * - Token Expiration: 24 Stunden
- * - JwtModule.registerAsync mit Factory (kein external dependency injection)
+ * - Secrets/Laufzeiten werden pro Operation im Adapter über AppConfigService aufgelöst
+ * - Kein Eager-Read beim Modul-Bootstrap
  *
  * **Module Scope:**
- * - ConfigService ist global registriert im AppModule
- * - JwtModule ist lokal registriert, wird aber über Factory konfiguriert
+ * - JwtModule ist lokal registriert; konkrete Signatur-Optionen kommen zur Laufzeit
  *
  * @example
  * ```typescript
@@ -48,14 +46,7 @@ import { NestLoggerAdapter } from '../common/adapters/nest-logger.adapter';
  * ```
  */
 @Module({
-  imports: [
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
-      signOptions: {
-        expiresIn: '24h',
-      },
-    }),
-  ],
+  imports: [InfrastructureCommonModule, JwtModule.register({})],
   providers: [
     // Logger für Auth Infrastructure
     {

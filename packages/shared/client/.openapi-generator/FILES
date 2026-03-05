@@ -68,6 +68,10 @@ models/AdminQualifikationenControllerCreateVAlpha201Response.ts
 models/AdminQualifikationenControllerFindAllVAlpha200Response.ts
 models/AdminRollenControllerCreateVAlpha201Response.ts
 models/AdminRollenControllerFindAllVAlpha200Response.ts
+models/AdminRuntimeConfigControllerListRuntimeConfigVAlpha200Response.ts
+models/AdminRuntimeConfigControllerMigrateLegacyRuntimeConfigVAlpha200Response.ts
+models/AdminRuntimeConfigControllerUpsertRuntimeConfigVAlpha200Response.ts
+models/AdminSecurityControllerGetConfigDoctorVAlpha200Response.ts
 models/AdminSecurityControllerGetStatusVAlpha200Response.ts
 models/AdminSecurityControllerMigrateToSecureVAlpha201Response.ts
 models/AdminSetupControllerCompleteSetupVAlpha201Response.ts
@@ -139,6 +143,7 @@ models/CircuitBreakerStatusEntryDto.ts
 models/CompleteSetupDto.ts
 models/CompletenessResponseDto.ts
 models/ComplianceReportDto.ts
+models/ConfigDoctorDto.ts
 models/CoordinateDto.ts
 models/CreateAccessTokenDto.ts
 models/CreateAccessTokenResponseDto.ts
@@ -284,6 +289,7 @@ models/LagekarteControllerSaveLagekarteStateVAlpha200Response.ts
 models/LagekarteCqrsControllerAddPoiVAlpha201Response.ts
 models/LagekarteCqrsControllerGetPoisVAlpha200Response.ts
 models/LagekarteDto.ts
+models/LegacyRuntimeConfigMigrationFailureDto.ts
 models/LockUserDto.ts
 models/LoginDto.ts
 models/LoginResponseDto.ts
@@ -291,6 +297,9 @@ models/LogoutResponseDto.ts
 models/ManagedUserResponse.ts
 models/ManagedUserResponseDto.ts
 models/MarkErledigtErinnerungDto.ts
+models/MigrateLegacyRuntimeConfigRequestDto.ts
+models/MigrateLegacyRuntimeConfigResultDto.ts
+models/MigrateLegacyRuntimeConfigResultSummaryDto.ts
 models/MigrateToSecureModeRequestDto.ts
 models/MigrateToSecureModeResponseDto.ts
 models/NavigationResponseDto.ts
@@ -328,6 +337,8 @@ models/RollenDefinitionDto.ts
 models/RollenZuweisungDto.ts
 models/RotateAccessTokenRequestDto.ts
 models/RotateAccessTokenResponseDto.ts
+models/RuntimeConfigEntryDto.ts
+models/RuntimeConfigListDto.ts
 models/SaveLagekarteStateDto.ts
 models/SaveQualifikationMappingRequestDto.ts
 models/SecurityStatusDto.ts
@@ -371,6 +382,7 @@ models/UpdateRollenDefinitionDto.ts
 models/UpdateStammFahrzeugDto.ts
 models/UpdateStammPersonDto.ts
 models/UpdateUserDto.ts
+models/UpsertRuntimeConfigRequestDto.ts
 models/UserBasicDto.ts
 models/UserControllerFindAllBasicVAlpha200Response.ts
 models/UserControllerFindAllBasicVAlpha200ResponsePagination.ts

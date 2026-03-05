@@ -94,5 +94,16 @@ export const ADMIN_QUERY_KEYS = {
   security: {
     all: () => [...ADMIN_QUERY_KEYS.all, 'security'] as const,
     status: () => [...ADMIN_QUERY_KEYS.all, 'security', 'status'] as const,
+    doctor: () => [...ADMIN_QUERY_KEYS.all, 'security', 'doctor'] as const,
+  },
+  runtimeConfig: {
+    all: () => [...ADMIN_QUERY_KEYS.all, 'runtime-config'] as const,
+    list: () => [...ADMIN_QUERY_KEYS.runtimeConfig.all(), 'list'] as const,
+    detail: (key: string) => [...ADMIN_QUERY_KEYS.runtimeConfig.all(), 'detail', key] as const,
+    migration: {
+      all: () => [...ADMIN_QUERY_KEYS.runtimeConfig.all(), 'migration'] as const,
+      result: (keyHint?: string) =>
+        keyHint ? ([...ADMIN_QUERY_KEYS.runtimeConfig.migration.all(), 'result', keyHint] as const) : ([...ADMIN_QUERY_KEYS.runtimeConfig.migration.all(), 'result'] as const),
+    },
   },
 } as const;

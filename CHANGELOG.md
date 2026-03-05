@@ -1,3 +1,19 @@
+## 🔒 Sicherheit & Konfiguration
+
+- **Verbesserte CORS-Sicherheit**: Die Handhabung von Cross-Origin-Anfragen wurde überarbeitet und gehärtet. Ursprünge werden nun zentral geprüft und nur noch explizit erlaubte Domains zugelassen.
+
+- **Robustere Konfigurationsverwaltung**: Die Laufzeit-Konfiguration arbeitet nun zuverlässiger mit Fallback-Werten aus Umgebungsvariablen. Beim Start ohne Master-Secret werden Legacy-Konfigurationen korrekt geladen.
+
+- **Verbesserte Authentifizierung**: JWT-Token-Handling wurde stabilisiert und die Server-Zugriffsprüfung in Tests nachgezogen.
+
+## 🚗 Fahrzeugverwaltung
+
+- **Fehlerbehandlung bei inaktiven Fahrzeugtypen**: Bei der temporären Fahrzeugerfassung werden inaktive Fahrzeugtypen nun korrekt abgelehnt und eine passende Fehlermeldung angezeigt.
+
+## 🛠️ Entwicklung & Wartung
+
+- **Repository-Hygiene**: Backup- und Merge-Artefakte (`.bak`, `.orig`, `.rej`) werden nun automatisch ignoriert und ein Hygiene-Check verhindert deren versehentliches Commit.
+
 ## Fahrzeugverwaltung
 
 - Fahrzeugtypen können nun zentral in der Admin-Oberfläche verwaltet werden

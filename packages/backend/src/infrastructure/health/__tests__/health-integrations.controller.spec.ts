@@ -2,11 +2,9 @@ import { CircuitBreakerService } from '@infrastructure/resilience/circuit-breake
 import { CircuitBreakerStateEnum } from '@infrastructure/resilience/circuit-breaker-state';
 import { HealthController } from '../health.controller';
 import type { HealthCheckService, MemoryHealthIndicator, DiskHealthIndicator } from '@nestjs/terminus';
-import type { ConfigService } from '@nestjs/config';
 import type { PrismaHealthIndicator } from '../prisma-health.indicator';
 import type { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { IServerAccessTokenRepository } from '@domain/repositories/i-server-access-token.repository';
-import type { IServerConfigRepository } from '@domain/repositories/i-server-config.repository';
 import { Result } from '@domain/common/result';
 import * as bcrypt from 'bcrypt';
 
@@ -60,11 +58,6 @@ describe('HealthController - getIntegrationHealth() (AC4)', () => {
       ),
       countActive: jest.fn().mockResolvedValue(Result.ok(1)),
     } as unknown as IServerAccessTokenRepository;
-    const mockConfigRepo = {
-      isInsecureMode: jest.fn().mockResolvedValue(Result.ok(false)),
-    } as unknown as IServerConfigRepository;
-    const mockConfigService = { get: jest.fn() } as unknown as ConfigService;
-
     const mockSystemHealthHandler = {
       execute: jest.fn().mockResolvedValue({
         isSuccess: true,
@@ -81,18 +74,7 @@ describe('HealthController - getIntegrationHealth() (AC4)', () => {
       }),
     } as any;
 
-    controller = new HealthController(
-      mockHealthCheckService,
-      mockMemory,
-      mockDisk,
-      mockPrismaHealth,
-      mockPrisma,
-      mockTokenRepo,
-      mockConfigRepo,
-      mockConfigService,
-      mockCircuitBreaker,
-      mockSystemHealthHandler,
-    );
+    controller = new HealthController(mockHealthCheckService, mockMemory, mockDisk, mockPrismaHealth, mockPrisma, mockTokenRepo, mockCircuitBreaker, mockSystemHealthHandler);
   });
 
   it('should return empty integrations when no token is provided', async () => {

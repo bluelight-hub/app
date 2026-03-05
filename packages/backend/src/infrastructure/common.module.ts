@@ -4,12 +4,12 @@ import { ConfigModule } from '@nestjs/config';
 import { CacheModule } from '@nestjs/cache-manager';
 import { APP_INTERCEPTOR, Reflector } from '@nestjs/core';
 import { AppConfigService } from './services/app-config.service';
-import { CacheConfigService, NestLoggerAdapter } from './common/adapters';
+import { CacheConfigService, NestLoggerAdapter, RuntimeConfigAdapter } from './common/adapters';
 import { cacheConfig } from './config/cache.config';
 import { CacheRateLimiterService } from './services/cache-rate-limiter.service';
 import { CacheDuplicateDetectionService } from './services/cache-duplicate-detection.service';
 import { TransformInterceptor } from './http/interceptors/transform.interceptor';
-import { LOGGER } from './di-tokens';
+import { LOGGER, RUNTIME_CONFIG } from './di-tokens';
 
 /**
  * Infrastructure Common Module
@@ -48,6 +48,11 @@ import { LOGGER } from './di-tokens';
       useFactory: () => new NestLoggerAdapter('InfrastructureCommon'),
     },
     AppConfigService,
+    RuntimeConfigAdapter,
+    {
+      provide: RUNTIME_CONFIG,
+      useExisting: RuntimeConfigAdapter,
+    },
     CacheConfigService,
     CacheRateLimiterService,
     CacheDuplicateDetectionService,
@@ -57,6 +62,6 @@ import { LOGGER } from './di-tokens';
       inject: [Reflector],
     },
   ],
-  exports: [AppConfigService, CacheConfigService, CacheRateLimiterService, CacheDuplicateDetectionService, CacheModule, LOGGER],
+  exports: [AppConfigService, RUNTIME_CONFIG, CacheConfigService, CacheRateLimiterService, CacheDuplicateDetectionService, CacheModule, LOGGER],
 })
 export class InfrastructureCommonModule {}

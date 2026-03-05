@@ -178,11 +178,6 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
       },
       "BasicHealthDto": {
         "properties": {
-          "insecureMode": {
-            "description": "Ob der Server im INSECURE_MODE läuft (Development only)",
-            "example": false,
-            "type": "boolean",
-          },
           "setupComplete": {
             "description": "Ob das Server-Setup abgeschlossen ist (Admin + Token existieren)",
             "example": true,
@@ -207,7 +202,6 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
           "status",
           "setupComplete",
           "version",
-          "insecureMode",
         ],
         "type": "object",
       },
@@ -787,11 +781,6 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
             "example": "connected",
             "type": "string",
           },
-          "insecureMode": {
-            "description": "Ob der Server im INSECURE_MODE läuft (Development only)",
-            "example": false,
-            "type": "boolean",
-          },
           "loadAverage": {
             "description": "CPU Load Average [1min, 5min, 15min] (optional)",
             "example": [
@@ -842,7 +831,6 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
           "status",
           "setupComplete",
           "version",
-          "insecureMode",
           "database",
           "uptime",
         ],

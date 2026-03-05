@@ -9,7 +9,22 @@ import { isTauri } from '@tauri-apps/api/core';
 import { AdminDashboardLayout } from '@/shared/ui/templates/AdminDashboardLayout';
 import { useCallback } from 'react';
 import type { ReactNode } from 'react';
-import { PiCertificate, PiIdentificationBadge, PiSignOut, PiUsers, PiTruck, PiUserList, PiPlugsConnected, PiTicket, PiKey, PiCaretRight, PiBell, PiMetronome, PiMegaphone } from 'react-icons/pi';
+import {
+  PiCertificate,
+  PiIdentificationBadge,
+  PiSignOut,
+  PiUsers,
+  PiTruck,
+  PiUserList,
+  PiPlugsConnected,
+  PiTicket,
+  PiKey,
+  PiCaretRight,
+  PiBell,
+  PiMetronome,
+  PiMegaphone,
+  PiSliders,
+} from 'react-icons/pi';
 
 /**
  * Navigation-Card für Admin-Dashboard
@@ -133,6 +148,13 @@ export function AdminDashboard() {
         <SectionHeader title="Admin-Funktionen" description="Benutzer verwalten, Einstellungen konfigurieren und mehr" />
         <div className="grid gap-4 sm:grid-cols-2">
           <NavCard icon={<PiUsers className="h-6 w-6" />} title="Benutzerverwaltung" description="Benutzerkonten verwalten" onClick={() => navigate({ to: '/admin/users' })} accentColor="blue" />
+          <NavCard
+            icon={<PiSliders className="h-6 w-6" />}
+            title="Runtime-Konfiguration"
+            description="DB-basierte Runtime-Config pflegen"
+            onClick={() => navigate({ to: '/admin/runtime-konfiguration' })}
+            accentColor="violet"
+          />
           <NavCard
             icon={<PiCertificate className="h-6 w-6" />}
             title="Qualifikationen"

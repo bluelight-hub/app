@@ -1,13 +1,11 @@
 import { type CanActivate, type ExecutionContext, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as bcrypt from 'bcrypt';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import type { IServerAccessTokenRepository } from '@domain/repositories/i-server-access-token.repository';
-import type { IServerConfigRepository } from '@domain/repositories/i-server-config.repository';
 import type { ServerAccessToken } from '@domain/aggregates/server-access-token.aggregate';
-import { LOGGER, SERVER_ACCESS_TOKEN_REPOSITORY, SERVER_CONFIG_REPOSITORY } from '@/infrastructure/di-tokens';
+import { LOGGER, SERVER_ACCESS_TOKEN_REPOSITORY } from '@/infrastructure/di-tokens';
 import { SKIP_SERVER_ACCESS_KEY } from '../decorators/skip-server-access.decorator';
 import { EVENT_NAMES } from '@domain/events/event-names';
 
@@ -38,8 +36,9 @@ import { EVENT_NAMES } from '@domain/events/event-names';
  * ## Check-Reihenfolge (innerhalb canActivate)
  *
  * 1. `@SkipServerAccess` Decorator Check (hoechste Prioritaet, sofort return)
- * 2. DB-Config Check: `ServerConfig.insecureMode` (Prioritaet 1)
- * 3. Fallback: `INSECURE_MODE` ENV Variable (Prioritaet 2, nur wenn kein DB-Eintrag/DB-Fehler)
+ * 2. Token-Extraktion aus `X-Server-Access-Token`
+ * 3. Token-Validierung gegen alle aktiven Hashes (bcrypt.compare)
+ * 4. lastUsedAt Update (asynchron, non-blocking)
  * 4. Token-Extraktion aus `X-Server-Access-Token` Header
  * 5. Token-Validierung gegen alle aktiven Hashes (bcrypt.compare)
  * 6. lastUsedAt Update (asynchron, non-blocking)
@@ -53,27 +52,21 @@ import { EVENT_NAMES } from '@domain/events/event-names';
  * ## Bypass
  *
  * - Endpoints mit `@SkipServerAccess()` Decorator ueberspringen die Pruefung
- * - `ServerConfig.insecureMode=true` in DB deaktiviert Token-Validierung (Prioritaet 1)
- * - `INSECURE_MODE=true` ENV Variable als Fallback (Prioritaet 2, nur bei DB-Fehler/kein DB-Eintrag)
+ * - Endpunkte mit `@SkipServerAccess()` Decorator ueberspringen die Pruefung
  *
  * ## Security
  *
  * - Token-Hashes werden mit bcrypt.compare() timing-safe validiert
  * - Tokens werden NIEMALS vollstaendig geloggt (nur erste 8 Zeichen bei Fehlern)
  * - lastUsedAt Update erfolgt asynchron (non-blocking)
- * - INSECURE_MODE ist standardmaessig false (Secure-by-Default)
- * - INSECURE_MODE in Production fuehrt zu sofortigem App-Crash (siehe main.ts)
  */
 @Injectable()
 export class ServerAccessGuard implements CanActivate {
   constructor(
     @Inject(SERVER_ACCESS_TOKEN_REPOSITORY)
     private readonly tokenRepo: IServerAccessTokenRepository,
-    @Inject(SERVER_CONFIG_REPOSITORY)
-    private readonly serverConfigRepo: IServerConfigRepository,
     private readonly reflector: Reflector,
     @Inject(LOGGER) private readonly logger: ILogger,
-    private readonly configService: ConfigService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -84,13 +77,7 @@ export class ServerAccessGuard implements CanActivate {
       return true;
     }
 
-    // 2. Check insecure mode (DB-Config hat Prioritaet ueber ENV)
-    const isInsecure = await this.checkInsecureMode();
-    if (isInsecure) {
-      return true;
-    }
-
-    // 3. Extract token from header
+    // 2. Extract token from header
     const request = context.switchToHttp().getRequest();
     const rawToken = request.headers['x-server-access-token'] as string | undefined;
 
@@ -98,7 +85,7 @@ export class ServerAccessGuard implements CanActivate {
       throw new UnauthorizedException('Server access token required');
     }
 
-    // 4. Validate token against all active tokens
+    // 3. Validate token against all active tokens
     const validToken = await this.validateToken(rawToken);
     if (!validToken) {
       const maskedPrefix = rawToken.length >= 8 ? rawToken.substring(0, 8) : rawToken.substring(0, Math.floor(rawToken.length / 2));
@@ -106,58 +93,11 @@ export class ServerAccessGuard implements CanActivate {
       throw new UnauthorizedException('Invalid or revoked server access token');
     }
 
-    // 5. Update lastUsedAt asynchronously (non-blocking)
+    // 4. Update lastUsedAt asynchronously (non-blocking)
     this.updateLastUsedAsync(validToken);
 
     this.logger.debug(`ServerAccessGuard: Token ${validToken.id.value} validated`);
     return true;
-  }
-
-  /**
-   * Prueft ob der Server im INSECURE Mode laeuft.
-   *
-   * **Prioritaetsreihenfolge:**
-   * 1. DB-Config (ServerConfig.insecureMode) - hoechste Prioritaet
-   * 2. ENV Variable (INSECURE_MODE) - Fallback bei DB-Fehler oder fehlendem Eintrag
-   *
-   * **Sicherheitshinweise:**
-   * - KEIN Caching: Security-Entscheidungen werden IMMER live aus DB gelesen
-   * - Bei DB-Fehlern: Fallback auf ENV (Backward Compatibility)
-   * - Separate Warnings fuer DB-Config vs ENV Bypass
-   *
-   * **Rationale fuer Fallback:**
-   * - Backward Compatibility: Bestehende Deployments ohne DB-Config funktionieren weiterhin
-   * - Graceful Degradation: DB-Ausfaelle blockieren nicht komplett
-   * - Migration: Erlaubt schrittweise Migration von ENV zu DB-Config
-   *
-   * @returns true wenn INSECURE Mode aktiv (Token-Validierung wird uebersprungen)
-   */
-  private async checkInsecureMode(): Promise<boolean> {
-    // Prioritaet 1: DB-Config abfragen
-    const dbConfigResult = await this.serverConfigRepo.isInsecureMode();
-
-    if (dbConfigResult.isSuccess) {
-      // DB-Config existiert - diese hat Prioritaet ueber ENV
-      const isInsecureFromDb = dbConfigResult.value!;
-      if (isInsecureFromDb) {
-        this.logger.warn('ServerAccessGuard: INSECURE_MODE enabled via DB config - bypassing token validation');
-        return true;
-      }
-      // DB sagt insecureMode=false -> Token erforderlich
-      return false;
-    }
-
-    // DB-Fehler: Log und Fallback auf ENV
-    this.logger.warn(`ServerAccessGuard: Failed to read DB config (${dbConfigResult.error}), falling back to ENV`);
-
-    // Prioritaet 2: Fallback auf INSECURE_MODE ENV Variable
-    const insecureModeEnv = this.configService.get<string>('INSECURE_MODE') === 'true';
-    if (insecureModeEnv) {
-      this.logger.warn('ServerAccessGuard: INSECURE_MODE enabled via ENV fallback - bypassing token validation');
-      return true;
-    }
-
-    return false;
   }
 
   /**

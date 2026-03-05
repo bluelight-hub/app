@@ -28,6 +28,9 @@ export const JWT_AUTH_SERVICE = Symbol('IJwtAuthServicePort');
 /** Logger Token für ILogger */
 export const LOGGER = Symbol('ILogger');
 
+/** Port Token für IRuntimeConfigPort */
+export const RUNTIME_CONFIG = Symbol('IRuntimeConfigPort');
+
 /** Repository Token für IEinsatzRepository (bereits in Story 4-5) */
 export const EINSATZ_REPOSITORY = Symbol('IEinsatzRepository');
 

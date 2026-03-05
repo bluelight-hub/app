@@ -1,5 +1,4 @@
 import { type ExecutionContext, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Test, type TestingModule } from '@nestjs/testing';
@@ -7,9 +6,8 @@ import * as bcrypt from 'bcrypt';
 import { Result } from '@domain/common/result';
 import type { ServerAccessToken } from '@domain/aggregates/server-access-token.aggregate';
 import type { IServerAccessTokenRepository } from '@domain/repositories/i-server-access-token.repository';
-import type { IServerConfigRepository } from '@domain/repositories/i-server-config.repository';
 import type { ILogger } from '@domain/ports/i-logger.port';
-import { LOGGER, SERVER_ACCESS_TOKEN_REPOSITORY, SERVER_CONFIG_REPOSITORY } from '@/infrastructure/di-tokens';
+import { LOGGER, SERVER_ACCESS_TOKEN_REPOSITORY } from '@/infrastructure/di-tokens';
 import { ServerAccessGuard } from './server-access.guard';
 import { SKIP_SERVER_ACCESS_KEY } from '../decorators/skip-server-access.decorator';
 
@@ -21,10 +19,8 @@ jest.mock('bcrypt', () => ({
 describe('ServerAccessGuard', () => {
   let guard: ServerAccessGuard;
   let mockTokenRepo: jest.Mocked<IServerAccessTokenRepository>;
-  let mockServerConfigRepo: jest.Mocked<IServerConfigRepository>;
   let mockLogger: jest.Mocked<ILogger>;
   let mockReflector: jest.Mocked<Reflector>;
-  let mockConfigService: jest.Mocked<ConfigService>;
   let mockEventEmitter: jest.Mocked<EventEmitter2>;
 
   // Helper to create mock execution context
@@ -75,13 +71,6 @@ describe('ServerAccessGuard', () => {
       updateLastUsed: jest.fn(),
     };
 
-    mockServerConfigRepo = {
-      getOrCreate: jest.fn(),
-      update: jest.fn(),
-      isInsecureMode: jest.fn().mockResolvedValue(Result.ok(false)), // Default: SECURE Mode
-      hasMigrated: jest.fn(),
-    };
-
     mockLogger = {
       log: jest.fn(),
       error: jest.fn(),
@@ -92,10 +81,6 @@ describe('ServerAccessGuard', () => {
     mockReflector = {
       getAllAndOverride: jest.fn(),
     } as unknown as jest.Mocked<Reflector>;
-
-    mockConfigService = {
-      get: jest.fn().mockReturnValue(undefined), // Default: INSECURE_MODE nicht gesetzt
-    } as unknown as jest.Mocked<ConfigService>;
 
     mockEventEmitter = {
       emit: jest.fn(),
@@ -109,20 +94,12 @@ describe('ServerAccessGuard', () => {
           useValue: mockTokenRepo,
         },
         {
-          provide: SERVER_CONFIG_REPOSITORY,
-          useValue: mockServerConfigRepo,
-        },
-        {
           provide: LOGGER,
           useValue: mockLogger,
         },
         {
           provide: Reflector,
           useValue: mockReflector,
-        },
-        {
-          provide: ConfigService,
-          useValue: mockConfigService,
         },
         {
           provide: EventEmitter2,
@@ -293,159 +270,6 @@ describe('ServerAccessGuard', () => {
         expect(mockLogger.error).toHaveBeenCalled();
       });
     });
-
-    describe('INSECURE_MODE (DB-Config Prioritaet)', () => {
-      describe('when DB-Config is available', () => {
-        it('should bypass token validation when DB insecureMode=true', async () => {
-          // Given: DB config says insecureMode=true
-          mockReflector.getAllAndOverride.mockReturnValue(false);
-          mockServerConfigRepo.isInsecureMode.mockResolvedValue(Result.ok(true));
-          const context = createMockExecutionContext({}); // No token
-
-          // When: canActivate is called
-          const result = await guard.canActivate(context);
-
-          // Then: returns true without checking token repository
-          expect(result).toBe(true);
-          expect(mockTokenRepo.findAllActive).not.toHaveBeenCalled();
-        });
-
-        it('should log warning mentioning DB config when insecureMode=true from DB', async () => {
-          // Given: DB config says insecureMode=true
-          mockReflector.getAllAndOverride.mockReturnValue(false);
-          mockServerConfigRepo.isInsecureMode.mockResolvedValue(Result.ok(true));
-          const context = createMockExecutionContext({});
-
-          // When: canActivate is called
-          await guard.canActivate(context);
-
-          // Then: warning mentions DB config source
-          expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining('via DB config'));
-        });
-
-        it('should require token when DB insecureMode=false', async () => {
-          // Given: DB config says insecureMode=false
-          mockReflector.getAllAndOverride.mockReturnValue(false);
-          mockServerConfigRepo.isInsecureMode.mockResolvedValue(Result.ok(false));
-          const context = createMockExecutionContext({}); // No token
-
-          // When/Then: throws UnauthorizedException
-          await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
-          await expect(guard.canActivate(context)).rejects.toThrow('Server access token required');
-        });
-
-        it('should prioritize DB config over ENV variable when DB says insecureMode=false', async () => {
-          // Given: DB says insecureMode=false, but ENV says true
-          mockReflector.getAllAndOverride.mockReturnValue(false);
-          mockServerConfigRepo.isInsecureMode.mockResolvedValue(Result.ok(false));
-          mockConfigService.get.mockReturnValue('true'); // ENV says INSECURE
-          const context = createMockExecutionContext({}); // No token
-
-          // When/Then: throws UnauthorizedException (DB wins)
-          await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
-          // ENV should NOT be checked when DB is successful
-          expect(mockConfigService.get).not.toHaveBeenCalled();
-        });
-
-        it('should prioritize DB config over ENV variable when DB says insecureMode=true', async () => {
-          // Given: DB says insecureMode=true, ENV says false
-          mockReflector.getAllAndOverride.mockReturnValue(false);
-          mockServerConfigRepo.isInsecureMode.mockResolvedValue(Result.ok(true));
-          mockConfigService.get.mockReturnValue('false'); // ENV says SECURE
-          const context = createMockExecutionContext({});
-
-          // When: canActivate is called
-          const result = await guard.canActivate(context);
-
-          // Then: returns true (DB wins, ENV not checked)
-          expect(result).toBe(true);
-          expect(mockConfigService.get).not.toHaveBeenCalled();
-        });
-      });
-
-      describe('when DB-Config fails (Fallback to ENV)', () => {
-        it('should fallback to ENV when DB query fails', async () => {
-          // Given: DB fails, ENV says INSECURE_MODE=true
-          mockReflector.getAllAndOverride.mockReturnValue(false);
-          mockServerConfigRepo.isInsecureMode.mockResolvedValue(Result.fail('Database connection error'));
-          mockConfigService.get.mockReturnValue('true');
-          const context = createMockExecutionContext({});
-
-          // When: canActivate is called
-          const result = await guard.canActivate(context);
-
-          // Then: returns true (fallback to ENV)
-          expect(result).toBe(true);
-          expect(mockConfigService.get).toHaveBeenCalledWith('INSECURE_MODE');
-        });
-
-        it('should log fallback warning when DB fails', async () => {
-          // Given: DB fails
-          mockReflector.getAllAndOverride.mockReturnValue(false);
-          mockServerConfigRepo.isInsecureMode.mockResolvedValue(Result.fail('Database connection error'));
-          mockConfigService.get.mockReturnValue('true');
-          const context = createMockExecutionContext({});
-
-          // When: canActivate is called
-          await guard.canActivate(context);
-
-          // Then: logs warning about DB failure and fallback
-          expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining('Failed to read DB config'));
-          expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining('falling back to ENV'));
-        });
-
-        it('should log ENV fallback source when bypassing via ENV', async () => {
-          // Given: DB fails, ENV says INSECURE_MODE=true
-          mockReflector.getAllAndOverride.mockReturnValue(false);
-          mockServerConfigRepo.isInsecureMode.mockResolvedValue(Result.fail('Database error'));
-          mockConfigService.get.mockReturnValue('true');
-          const context = createMockExecutionContext({});
-
-          // When: canActivate is called
-          await guard.canActivate(context);
-
-          // Then: logs warning mentioning ENV fallback
-          expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining('via ENV fallback'));
-        });
-
-        it('should require token when DB fails and ENV is false', async () => {
-          // Given: DB fails, ENV says INSECURE_MODE=false
-          mockReflector.getAllAndOverride.mockReturnValue(false);
-          mockServerConfigRepo.isInsecureMode.mockResolvedValue(Result.fail('Database error'));
-          mockConfigService.get.mockReturnValue('false');
-          const context = createMockExecutionContext({});
-
-          // When/Then: throws UnauthorizedException
-          await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
-        });
-
-        it('should require token when DB fails and ENV is not set', async () => {
-          // Given: DB fails, ENV not set
-          mockReflector.getAllAndOverride.mockReturnValue(false);
-          mockServerConfigRepo.isInsecureMode.mockResolvedValue(Result.fail('Database error'));
-          mockConfigService.get.mockReturnValue(undefined);
-          const context = createMockExecutionContext({});
-
-          // When/Then: throws UnauthorizedException
-          await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
-        });
-      });
-
-      describe('backward compatibility', () => {
-        it('should still check @SkipServerAccess before DB config', async () => {
-          // Given: @SkipServerAccess present
-          mockReflector.getAllAndOverride.mockReturnValue(true);
-          const context = createMockExecutionContext({});
-
-          // When: canActivate is called
-          const result = await guard.canActivate(context);
-
-          // Then: returns true via decorator skip (DB not queried)
-          expect(result).toBe(true);
-          expect(mockServerConfigRepo.isInsecureMode).not.toHaveBeenCalled();
-        });
-      });
-    });
   });
 
   describe('validateToken', () => {
@@ -587,75 +411,6 @@ describe('ServerAccessGuard', () => {
       expect(warnCall).toBeDefined();
       // Should not contain the full 'short' token
       expect(warnCall).not.toContain('short...');
-    });
-  });
-
-  describe('checkInsecureMode (private method)', () => {
-    it('should return true when DB says insecureMode=true', async () => {
-      // Given: DB config returns insecureMode=true
-      mockServerConfigRepo.isInsecureMode.mockResolvedValue(Result.ok(true));
-
-      // When: checkInsecureMode is called
-      // biome-ignore lint/suspicious/noExplicitAny: Accessing private method in unit test
-      const result = await (guard as any).checkInsecureMode();
-
-      // Then: returns true
-      expect(result).toBe(true);
-    });
-
-    it('should return false when DB says insecureMode=false', async () => {
-      // Given: DB config returns insecureMode=false
-      mockServerConfigRepo.isInsecureMode.mockResolvedValue(Result.ok(false));
-
-      // When: checkInsecureMode is called
-      // biome-ignore lint/suspicious/noExplicitAny: Accessing private method in unit test
-      const result = await (guard as any).checkInsecureMode();
-
-      // Then: returns false
-      expect(result).toBe(false);
-      // ENV should NOT be checked
-      expect(mockConfigService.get).not.toHaveBeenCalled();
-    });
-
-    it('should check ENV as fallback when DB fails', async () => {
-      // Given: DB fails
-      mockServerConfigRepo.isInsecureMode.mockResolvedValue(Result.fail('DB error'));
-      mockConfigService.get.mockReturnValue('true');
-
-      // When: checkInsecureMode is called
-      // biome-ignore lint/suspicious/noExplicitAny: Accessing private method in unit test
-      const result = await (guard as any).checkInsecureMode();
-
-      // Then: ENV fallback is used
-      expect(result).toBe(true);
-      expect(mockConfigService.get).toHaveBeenCalledWith('INSECURE_MODE');
-    });
-
-    it('should include error message in log when DB fails', async () => {
-      // Given: DB fails with specific error
-      mockServerConfigRepo.isInsecureMode.mockResolvedValue(Result.fail('Connection timeout'));
-      mockConfigService.get.mockReturnValue('false');
-
-      // When: checkInsecureMode is called
-      // biome-ignore lint/suspicious/noExplicitAny: Accessing private method in unit test
-      await (guard as any).checkInsecureMode();
-
-      // Then: error message is logged
-      expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining('Connection timeout'));
-    });
-
-    it('should not cache DB result (call DB each time)', async () => {
-      // Given: Multiple calls to checkInsecureMode
-      mockServerConfigRepo.isInsecureMode.mockResolvedValue(Result.ok(false));
-
-      // When: checkInsecureMode is called twice
-      // biome-ignore lint/suspicious/noExplicitAny: Accessing private method in unit test
-      await (guard as any).checkInsecureMode();
-      // biome-ignore lint/suspicious/noExplicitAny: Accessing private method in unit test
-      await (guard as any).checkInsecureMode();
-
-      // Then: DB is queried twice (no caching)
-      expect(mockServerConfigRepo.isInsecureMode).toHaveBeenCalledTimes(2);
     });
   });
 });

@@ -1,5 +1,5 @@
 import type { Logger } from '@nestjs/common';
-import { validateInsecureMode } from './bootstrap-validation';
+import { validateBootstrapConfig, validateInsecureMode } from './bootstrap-validation';
 
 /**
  * Mock Logger Type - nur die fuer validateInsecureMode benoetigten Methoden
@@ -204,5 +204,82 @@ describe('validateInsecureMode', () => {
       // Then: Keine Logs
       expect(mockLogger.warn).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('validateBootstrapConfig', () => {
+  let mockLogger: {
+    log: jest.Mock;
+    warn: jest.Mock;
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockLogger = {
+      log: jest.fn(),
+      warn: jest.fn(),
+    };
+  });
+
+  it('sollte DATABASE_URL und MASTER_SECRET_KEY erfolgreich validieren', () => {
+    // Given
+    const masterSecretKey = 'a'.repeat(64);
+    const databaseUrl = 'postgresql://test:test@localhost:5432/test';
+
+    // When
+    const result = validateBootstrapConfig(
+      {
+        databaseUrl,
+        masterSecretKey,
+      },
+      mockLogger as unknown as typeof Logger,
+    );
+
+    // Then
+    expect(result.databaseUrl).toBe(databaseUrl);
+    expect(result.masterSecretKey.length).toBe(32);
+    expect(mockLogger.log).toHaveBeenCalledTimes(1);
+  });
+
+  it('sollte Fehler werfen wenn DATABASE_URL fehlt', () => {
+    // Given / When / Then
+    expect(() =>
+      validateBootstrapConfig(
+        {
+          databaseUrl: undefined,
+          masterSecretKey: 'a'.repeat(64),
+        },
+        mockLogger as unknown as typeof Logger,
+      ),
+    ).toThrow('DATABASE_URL ist nicht gesetzt');
+  });
+
+  it('sollte bei fehlendem MASTER_SECRET_KEY nur warnen und weiterlaufen', () => {
+    // Given / When / Then
+    const result = validateBootstrapConfig(
+      {
+        databaseUrl: 'postgresql://test:test@localhost:5432/test',
+        masterSecretKey: undefined,
+      },
+      mockLogger as unknown as typeof Logger,
+    );
+
+    expect(result.masterSecretKey).toBe(null);
+    expect(mockLogger.warn).toHaveBeenCalledTimes(1);
+  });
+
+  it('sollte passphrase-basierten MASTER_SECRET_KEY akzeptieren', () => {
+    // Given / When
+    const result = validateBootstrapConfig(
+      {
+        databaseUrl: 'postgresql://test:test@localhost:5432/test',
+        masterSecretKey: 'not-a-hex-key',
+      },
+      mockLogger as unknown as typeof Logger,
+    );
+
+    expect(result.masterSecretKey).not.toBe(null);
+    expect(result.masterSecretKey?.length).toBe(32);
+    expect(mockLogger.warn).not.toHaveBeenCalled();
   });
 });

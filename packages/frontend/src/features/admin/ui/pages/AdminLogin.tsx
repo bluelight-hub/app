@@ -26,7 +26,7 @@ export function AdminLogin() {
   const navigate = useNavigate();
   const { user, isLoading, isAdminAuthenticated, adminStatus } = useCurrentUser();
   const loginAdmin = useAdminLogin();
-  const { connectionMode, insecureMode, version } = useSystemHealth();
+  const { connectionMode, version } = useSystemHealth();
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
   const [shouldShake, setShouldShake] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -133,15 +133,6 @@ export function AdminLogin() {
       dotColor: connectionMode === 'online' ? 'green' : connectionMode === 'error' ? 'red' : 'yellow',
     },
   ];
-
-  // Warnung wenn Server im INSECURE_MODE läuft
-  if (insecureMode) {
-    statusBadges.push({
-      label: 'Unsicherer Modus',
-      variant: 'warning',
-      dotColor: 'yellow',
-    });
-  }
 
   return (
     <AuthLayout>

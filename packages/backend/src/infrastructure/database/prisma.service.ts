@@ -1,4 +1,5 @@
 import { Injectable, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@/generated/prisma/client';
 
@@ -41,8 +42,9 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
    * initialisiert und ermöglicht eine direkte TCP-Verbindung zur
    * PostgreSQL-Datenbank ohne die Prisma Query Engine.
    */
-  constructor() {
-    const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+  constructor(private readonly configService: ConfigService) {
+    const databaseUrl = this.configService.getOrThrow<string>('DATABASE_URL');
+    const adapter = new PrismaPg({ connectionString: databaseUrl });
     this._client = new PrismaClient({ adapter });
   }
 
@@ -150,6 +152,12 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   }
   get serverConfig() {
     return this._client.serverConfig;
+  }
+  get appConfig() {
+    return this._client.appConfig;
+  }
+  get appConfigSecret() {
+    return this._client.appConfigSecret;
   }
   get einsatzTeilnehmer() {
     return this._client.einsatzTeilnehmer;
