@@ -51,6 +51,7 @@ If clean, proceed silently.
 ### 4) Create Commit
 
 - Format: `<emoji>(<context>): <title>`
+- Use only emojis allowed by `scripts/gitmojis.snapshot.json` (do not use a hardcoded list).
 - Keep message in English and imperative mood.
 - Keep title concise and convention-aligned.
 - Never use `--no-verify` or `HUSKY=0`.

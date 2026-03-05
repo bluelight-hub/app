@@ -20,12 +20,23 @@ Dies geschieht über das `prepare` Script in der `package.json`.
 
 **Was wird geprüft:**
 
-- ✅ Korrekte Emoji + Context Format: `✨(frontend): Beschreibung`
+- ✅ Korrektes Format: `<emoji>(<context>): Beschreibung`
+- ✅ Emoji ist in der offiziellen Gitmoji-Liste enthalten
 - ✅ Maximale Länge der ersten Zeile (72 Zeichen)
 - ⚠️ Warnung bei einzeiligen Commits für substantielle Änderungen
 - ❌ Lehnt falsche Formate komplett ab
 
-**Referenz:** Siehe `.cursor/rules/030-commit-rules.mdc`
+**Source of Truth:**
+
+- `https://raw.githubusercontent.com/carloscuesta/gitmoji/master/packages/gitmojis/src/gitmojis.json`
+- lokaler Snapshot: `scripts/gitmojis.snapshot.json`
+
+**Wichtige Befehle:**
+
+```bash
+pnpm gitmoji:sync   # Snapshot aktualisieren
+pnpm gitmoji:check  # Snapshot auf Drift prüfen
+```
 
 ### `pre-commit`
 
@@ -61,7 +72,12 @@ chmod +x .husky/commit-msg
 
 ```bash
 # Commit-msg Hook testen
-echo "test message" | .husky/commit-msg /dev/stdin
+cat > /tmp/commit-msg-test.txt <<'MSG'
+✨(tooling): Test commit message
+
+- Test entry
+MSG
+.husky/commit-msg /tmp/commit-msg-test.txt
 
 # Pre-commit Hook testen
 .husky/pre-commit
@@ -77,5 +93,5 @@ pnpx husky add .husky/pre-push "pnpm build"
 ## 📖 Weitere Informationen
 
 - **Husky Dokumentation:** https://typicode.github.io/husky/
-- **Commit Standards:** `.cursor/rules/030-commit-rules.mdc`
+- **Commit Validator:** `scripts/gitmoji-commit-validator.mjs`
 - **Commit Helper:** `git commit-helper` für interaktive Commits

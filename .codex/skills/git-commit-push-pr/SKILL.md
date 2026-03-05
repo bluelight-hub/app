@@ -86,6 +86,7 @@ fi
 - Stage only explicit file paths: `git add <file1> <file2> ...`
 - Never use `git add -A` or `git add .`
 - Use commit format `<emoji>(<context>): <title>`
+- Use only emojis allowed by `scripts/gitmojis.snapshot.json` (do not use a hardcoded list).
 - Keep message in English and imperative mood.
 - Never use `--no-verify` or `HUSKY=0`.
 - Never create empty commits.

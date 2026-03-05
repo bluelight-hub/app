@@ -1,0 +1,41 @@
+name: Sync Gitmoji Snapshot
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 7 * * 1'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync-gitmoji-snapshot:
+    name: Sync Gitmoji Snapshot
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: 'package.json'
+
+      - name: Sync snapshot from source of truth
+        run: node scripts/sync-gitmojis.mjs --write
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: '🔧(tooling): Aktualisiere Gitmoji-Snapshot'
+          title: '🔧(tooling): Aktualisiere Gitmoji-Snapshot'
+          body: |
+            Dieser Pull Request wurde automatisch erzeugt.
+
+            Er synchronisiert `scripts/gitmojis.snapshot.json` mit der offiziellen Quelle:
+            `https://raw.githubusercontent.com/carloscuesta/gitmoji/master/packages/gitmojis/src/gitmojis.json`.
+          branch: codex/automation/gitmoji-sync
+          delete-branch: true
+          add-paths: |
+            scripts/gitmojis.snapshot.json
