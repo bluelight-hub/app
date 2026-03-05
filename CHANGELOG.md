@@ -1,3 +1,11 @@
+## Sicherheit
+
+- **Zugriffskontrolle für Einsatz-Erinnerungen verbessert**: Nur noch berechtigte Einsatzteilnehmer können Erinnerungsräumen beitreten. Unberechtigte Zugriffsversuche werden blockiert und entsprechend gemeldet.
+
+## Abhängigkeiten
+
+- Sicherheitsupdate für Datei-Upload-Komponente (multer 2.1.1)
+
 ## Einsatz-Verwaltung
 
 - **Berechtigung für Einsatz-Änderungen**: Nur Einsatz-Ersteller, aktive Mitglieder und Führungskräfte können jetzt Einsätze bearbeiten – unbefugte Zugriffe werden verhindert
