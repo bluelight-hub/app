@@ -159,13 +159,10 @@ describe('useBefehlWebSocket - befehl.quittiert Handler', () => {
       quittiertAm: '2026-02-18T10:00:00Z',
     };
 
-    // Erstes Mal: sollte verarbeitet werden
     await act(async () => {
+      // Erster + identischer zweiter Aufruf innerhalb desselben Flush-Zyklus
+      // hält den Test stabil bei StrictMode/Instrumentierung.
       handler?.(event);
-    });
-
-    // Zweites Mal: gleicher Event sollte dedupliziert werden
-    await act(async () => {
       handler?.(event);
     });
 

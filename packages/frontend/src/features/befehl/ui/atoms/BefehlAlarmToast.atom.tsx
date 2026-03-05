@@ -11,8 +11,8 @@
  * - Keyboard Support (Enter/Escape)
  */
 
-import { router } from '@/main';
 import { cn } from '@/shared/ui/cn';
+import { logger } from '@/shared/lib/logger';
 import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useCallback, useEffect, useState } from 'react';
@@ -27,6 +27,23 @@ interface BefehlAlarmToastProps {
   befehlsgeber: string;
   auftrag: string;
   erteiltAm: string;
+}
+
+function navigateToBefehl(einsatzId: string, befehlId: string) {
+  void import('@/main')
+    .then(({ router }) => {
+      router.navigate({
+        to: '/app/einsatz/$einsatzId/führung/befehle',
+        params: { einsatzId },
+        search: { befehlId },
+      });
+    })
+    .catch((error) => {
+      logger.warn('Befehl-Navigation über Router fehlgeschlagen, fallback auf URL', { error });
+      if (typeof window !== 'undefined') {
+        window.location.href = `/app/einsatz/${einsatzId}/führung/befehle?befehlId=${befehlId}`;
+      }
+    });
 }
 
 /** Formatiert die vergangene Zeit seit Erteilung */
@@ -55,11 +72,7 @@ export function BefehlAlarmToast({ toastId, befehlId, einsatzId, nummer, befehls
 
   const handleNavigate = useCallback(() => {
     toast.dismiss(toastId);
-    router.navigate({
-      to: '/app/einsatz/$einsatzId/führung/befehle',
-      params: { einsatzId },
-      search: { befehlId },
-    });
+    navigateToBefehl(einsatzId, befehlId);
   }, [toastId, befehlId, einsatzId]);
 
   const handleDismiss = useCallback(() => {
@@ -225,11 +238,7 @@ export function QuittierungAlarmToast({ toastId, befehlId, einsatzId, nummer, qu
 
   const handleNavigate = useCallback(() => {
     toast.dismiss(toastId);
-    router.navigate({
-      to: '/app/einsatz/$einsatzId/führung/befehle',
-      params: { einsatzId },
-      search: { befehlId },
-    });
+    navigateToBefehl(einsatzId, befehlId);
   }, [toastId, befehlId, einsatzId]);
 
   const handleDismiss = useCallback(() => {
@@ -350,11 +359,7 @@ export function KorrekturAlarmToast({ toastId, befehlId, einsatzId, nummer, time
 
   const handleNavigate = useCallback(() => {
     toast.dismiss(toastId);
-    router.navigate({
-      to: '/app/einsatz/$einsatzId/führung/befehle',
-      params: { einsatzId },
-      search: { befehlId },
-    });
+    navigateToBefehl(einsatzId, befehlId);
   }, [toastId, befehlId, einsatzId]);
 
   const handleDismiss = useCallback(() => {
@@ -396,7 +401,7 @@ export function KorrekturAlarmToast({ toastId, befehlId, einsatzId, nummer, time
       </div>
 
       {/* Info */}
-      <p className="mb-3 text-sm leading-snug text-violet-100">Dieser Befehl wurde durch eine Korrektur ersetzt</p>
+      <p className="mb-3 text-sm text-violet-100 leading-snug">Dieser Befehl wurde durch eine Korrektur ersetzt</p>
 
       {/* Status */}
       <div className="mb-3 flex items-center gap-3 text-sm text-violet-100">
@@ -437,7 +442,7 @@ export function KorrekturAlarmToast({ toastId, befehlId, einsatzId, nummer, time
       </div>
 
       {/* Keyboard Hint */}
-      <div className="mt-2 text-center text-xs text-violet-200">Enter: Zum Befehl | Esc: Schließen</div>
+      <div className="mt-2 text-center text-violet-200 text-xs">Enter: Zum Befehl | Esc: Schließen</div>
     </div>
   );
 }

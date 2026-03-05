@@ -31,6 +31,12 @@ const { mockToast, mockRemoveServer, mockServerStore } = vi.hoisted(() => ({
       servers: [],
       activeServerId: 'delete-test-id', // Der erste Server ist aktiv für AC6 Tests
     },
+    get: vi.fn(function () {
+      return this.state;
+    }),
+    setState: vi.fn(function (updater: unknown) {
+      this.state = typeof updater === 'function' ? (updater as (prev: typeof this.state) => typeof this.state)(this.state) : updater;
+    }),
     subscribe: vi.fn(() => vi.fn()), // Returns unsubscribe function
   },
 }));
@@ -194,6 +200,10 @@ vi.mock('../../molecules/ServerDeleteConfirmDialog', () => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockServerStore.state = {
+    servers: [],
+    activeServerId: 'delete-test-id',
+  };
   mockServersForList = [];
   mockServerCount = 2; // Default: 2 Server für Tests (nicht letzter Server)
   mockRemoveServer.mockResolvedValue(undefined); // Default: erfolgreiche Löschung

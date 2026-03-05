@@ -87,6 +87,16 @@ vi.mock('@/features/etb/api/queries', () => ({
 // Noetig weil QuickCreateErinnerungDialog transitiv @/features/etb importiert,
 // das @/shared fuer AddEintragDtoKategorieEnum braucht.
 vi.mock('@/shared', () => ({
+  EinsatzRolleDtoRolleEnum: {
+    Befehlsgeber: 'BEFEHLSGEBER',
+    Empfaenger: 'EMPFAENGER',
+    Beobachter: 'BEOBACHTER',
+  },
+  ManagedUserResponseDtoRoleEnum: {
+    User: 'USER',
+    Admin: 'ADMIN',
+    SuperAdmin: 'SUPER_ADMIN',
+  },
   AddEintragDtoKategorieEnum: {
     Alarmierung: 'ALARMIERUNG',
     Ankunft: 'ANKUNFT',
