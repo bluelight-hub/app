@@ -8,6 +8,18 @@ export interface RouterRedirectOptions {
   replace?: boolean;
 }
 
+export interface RouterHistoryRedirectOptions {
+  replace?: boolean;
+}
+
+export interface RouterHistoryRedirectTarget {
+  history: {
+    push: (path: string) => void;
+    replace: (path: string) => void;
+    flush?: () => void;
+  };
+}
+
 const PROTOCOL_PREFIX_REGEX = /^[a-zA-Z][a-zA-Z\d+.-]*:/;
 
 /**
@@ -81,6 +93,32 @@ function buildFallbackHref(to: string, search?: RedirectSearch): string {
   const [pathAndQuery, hash = ''] = to.split('#', 2);
   const separator = pathAndQuery.includes('?') ? '&' : '?';
   return `${pathAndQuery}${separator}${queryString}${hash ? `#${hash}` : ''}`;
+}
+
+/**
+ * Navigiert ein bereits aufgelöstes internes Redirect-Ziel exakt inklusive Query und Hash.
+ */
+export function navigateToInternalRedirect(router: RouterHistoryRedirectTarget, target: string, options: RouterHistoryRedirectOptions = {}): void {
+  const safeTarget = sanitizeInternalRedirectPath(target);
+  if (!safeTarget) {
+    logger.warn('Unsicheres Redirect-Ziel blockiert', { to: target });
+    return;
+  }
+
+  try {
+    if (options.replace ?? true) {
+      router.history.replace(safeTarget);
+    } else {
+      router.history.push(safeTarget);
+    }
+    router.history.flush?.();
+  } catch (error) {
+    logger.warn('Redirect über Router-History fehlgeschlagen, verwende Hard-Redirect-Fallback', { to: safeTarget, error });
+
+    if (typeof window !== 'undefined') {
+      window.location.href = safeTarget;
+    }
+  }
 }
 
 /**
