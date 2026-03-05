@@ -64,8 +64,6 @@ export interface HealthCheckResult {
   setupComplete: boolean;
   /** Aktuelle Server-Version */
   version: string;
-  /** Ob Insecure Mode aktiv ist (kein HTTPS, kein Admin-Passwort etc.) */
-  insecureMode: boolean;
   /** Datenbank-Status (nur in DetailedHealthDto) */
   database?: 'connected' | 'disconnected';
   /** Uptime in Sekunden (nur in DetailedHealthDto) */
@@ -169,7 +167,6 @@ export function useHealthCheck() {
           status: response.status,
           setupComplete: response.setupComplete,
           version: response.version,
-          insecureMode: response.insecureMode,
         });
 
         // C2 FIX: Alle Fields durchreichen (BasicHealthDto + DetailedHealthDto Union Type)
@@ -178,7 +175,6 @@ export function useHealthCheck() {
           status: response.status,
           setupComplete: response.setupComplete,
           version: response.version,
-          insecureMode: response.insecureMode,
           // Optional fields (nur in DetailedHealthDto vorhanden)
           database: 'database' in response ? response.database : undefined,
           uptime: 'uptime' in response ? response.uptime : undefined,

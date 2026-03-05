@@ -1,5 +1,5 @@
 import { ForbiddenException, Inject, Injectable, type OnModuleDestroy, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { AppConfigService } from '@/infrastructure/services/app-config.service';
 import { PassportStrategy } from '@nestjs/passport';
 import type { UserRole } from '@/generated/prisma/client';
 import type { Request } from 'express';
@@ -68,7 +68,7 @@ export class AdminJwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') im
   private readonly pendingTimeouts = new Set<ReturnType<typeof setTimeout>>();
 
   constructor(
-    configService: ConfigService,
+    appConfig: AppConfigService,
     private readonly authService: AuthService,
     @Inject(LOGGER) private readonly logger: ILogger,
   ) {
@@ -84,7 +84,14 @@ export class AdminJwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') im
         },
       ]),
       ignoreExpiration: false,
-      secretOrKey: configService.getOrThrow<string>('ADMIN_JWT_SECRET'),
+      secretOrKeyProvider: (_request: Request, _rawJwtToken: string, done: (err: unknown, secretOrKey?: string | Buffer) => void) => {
+        const secret = appConfig.get<string>('ADMIN_JWT_SECRET');
+        if (!secret || secret.trim().length === 0) {
+          done(new UnauthorizedException('ADMIN_JWT_SECRET not configured'));
+          return;
+        }
+        done(null, secret);
+      },
       passReqToCallback: true, // Pass the request to the validate method
     } as never);
   }

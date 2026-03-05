@@ -1361,6 +1361,46 @@ model ServerConfig {
 }
 
 // ========================================
+// Runtime Configuration (ADR-002)
+// ========================================
+
+/// AppConfig: Nicht-sensitive Runtime-Konfiguration (DB Primary Source)
+/// - key ist eindeutig pro Konfigurationswert
+/// - valueJson speichert typisierte Runtime-Werte als Json
+/// - sourceHint hilft bei Audit/Import-Nachvollziehbarkeit
+model AppConfig {
+  id         String   @id @default(cuid())
+  key        String   @unique @db.VarChar(191)
+  valueJson  Json     @map("value_json")
+  sourceHint String   @default("ui") @map("source_hint") @db.VarChar(32)
+  version    Int      @default(1)
+  updatedBy  String?  @map("updated_by") @db.VarChar(100)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([sourceHint], map: "idx_app_config_source_hint")
+  @@map("app_config")
+}
+
+/// AppConfigSecret: Sensitive Runtime-Konfiguration (verschlüsselt, versioniert)
+/// - key ist eindeutig pro Secret
+/// - ciphertextPayload enthält v1-Envelope-Payload (JSON)
+/// - kekVersion markiert die verwendete Key-Version für Rotation
+model AppConfigSecret {
+  id                String   @id @default(cuid())
+  key               String   @unique @db.VarChar(191)
+  ciphertextPayload Json     @map("ciphertext_payload")
+  kekVersion        Int      @default(1) @map("kek_version")
+  version           Int      @default(1)
+  updatedBy         String?  @map("updated_by") @db.VarChar(100)
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@index([kekVersion], map: "idx_app_config_secret_kek_version")
+  @@map("app_config_secret")
+}
+
+// ========================================
 // Einsatz-Teilnehmer (Story 115)
 // User-Funkrufname pro Einsatz
 // ========================================

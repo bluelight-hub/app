@@ -59,6 +59,3 @@ export { TokenCreationModal } from './TokenCreationModal';
 export { TokenList } from './TokenList';
 export { TokenRevokeConfirmDialog } from './TokenRevokeConfirmDialog';
 export { TokenRotationModal } from './TokenRotationModal';
-
-// Security Management (INSECURE -> SECURE Migration)
-export { MigrationModal } from './MigrationModal';

@@ -1,5 +1,6 @@
 import type { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import type { HelmetOptions } from 'helmet';
+import { AppConfigService } from '@/infrastructure/services/app-config.service';
 
 /**
  * Sicherheitskonfiguration für die Anwendung.
@@ -7,16 +8,9 @@ import type { HelmetOptions } from 'helmet';
  */
 
 /**
- * Helmet-Konfiguration für sichere HTTP-Header
- *
- * Diese Konfiguration setzt verschiedene Sicherheits-Header,
- * um die Anwendung gegen gängige Webangriffe zu schützen.
- * Enthält CSP, HSTS, X-Frame-Options und weitere Schutzmaßnahmen.
- *
- * @constant {HelmetOptions}
+ * Helmet-Konfiguration für sichere HTTP-Header.
  */
 export const helmetConfig: HelmetOptions = {
-  // Content Security Policy - Verhindert XSS-Angriffe
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
@@ -31,91 +25,40 @@ export const helmetConfig: HelmetOptions = {
       frameAncestors: ["'none'"],
     },
   },
-  // Cross-Origin-Embedder-Policy
-  crossOriginEmbedderPolicy: false, // Für Swagger UI deaktiviert
-  // DNS Prefetch Control
+  crossOriginEmbedderPolicy: false,
   dnsPrefetchControl: { allow: false },
-  // Frameguard - Verhindert Clickjacking
   frameguard: { action: 'deny' },
-  // Hide Powered By - Versteckt X-Powered-By Header
   hidePoweredBy: true,
-  // HSTS - HTTP Strict Transport Security
   hsts: {
-    maxAge: 31536000, // 1 Jahr
+    maxAge: 31536000,
     includeSubDomains: true,
     preload: true,
   },
-  // IE No Open - Verhindert IE Downloads zu öffnen
   ieNoOpen: true,
-  // No Sniff - Verhindert MIME-Type Sniffing
   noSniff: true,
-  // Origin Agent Cluster
   originAgentCluster: true,
-  // Permitted Cross Domain Policies
   permittedCrossDomainPolicies: false,
-  // Referrer Policy
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
 };
 
-/**
- * CORS-Konfiguration für verschiedene Umgebungen
- *
- * Definiert Cross-Origin Resource Sharing Einstellungen
- * für Development- und Production-Umgebungen.
- *
- * @constant
- */
+const builtInCorsPatterns = [/^https?:\/\/localhost(:\d+)?$/, /^https?:\/\/127\.0\.0\.1(:\d+)?$/, /^tauri:\/\/localhost/, /^https:\/\/tauri\.localhost/, /^https?:\/\/\[::1\](:\d+)?$/];
+
 /**
  * Dynamische Origin-Validierung für Tauri, Development und konfigurierbare Patterns.
  * Diese Policy ist der zentrale Entscheidungsort für CORS und PNA.
  *
  * Unterstützte Umgebungsvariablen:
  * - ALLOWED_ORIGINS: Komma-separierte Liste expliziter Origins
- *   Beispiel: "https://example.com,https://app.example.com"
  * - ALLOWED_ORIGIN_PATTERNS: Komma-separierte Liste von Regex-Patterns
- *   Beispiel: "[\\w-]+\\.bluelight-hub-app\\.pages\\.dev$,[\\w-]+\\.vercel\\.app$"
  * - Wildcard "*" in ALLOWED_ORIGINS erlaubt alle Origins (NUR für Entwicklung!)
  */
-const builtInOriginPatterns = [
-  /^https?:\/\/localhost(:\d+)?$/, // localhost mit beliebigem Port
-  /^https?:\/\/127\.0\.0\.1(:\d+)?$/, // 127.0.0.1 mit beliebigem Port
-  /^tauri:\/\/localhost/, // Tauri v1
-  /^https:\/\/tauri\.localhost/, // Tauri v2
-  /^https?:\/\/\[::1\](:\d+)?$/, // IPv6 localhost
-];
+export function isCorsOriginAllowed(origin: string | undefined, runtimeConfig?: AppConfigService): boolean {
+  const envOrigins = splitCsv(getConfigValue('ALLOWED_ORIGINS', runtimeConfig));
 
-const readAllowedOrigins = (): string[] =>
-  process.env.ALLOWED_ORIGINS?.split(',')
-    .map((s) => s.trim())
-    .filter(Boolean) || [];
-
-const readAllowedOriginPatterns = (): RegExp[] => {
-  const patternStrings =
-    process.env.ALLOWED_ORIGIN_PATTERNS?.split(',')
-      .map((s) => s.trim())
-      .filter(Boolean) || [];
-
-  const envPatterns: RegExp[] = [];
-  for (const patternStr of patternStrings) {
-    try {
-      envPatterns.push(new RegExp(patternStr));
-    } catch {
-      console.warn(`[CORS] Ungültiges Pattern ignoriert: ${patternStr}`);
-    }
-  }
-
-  return envPatterns;
-};
-
-export const isCorsOriginAllowed = (origin: string | undefined): boolean => {
-  const envOrigins = readAllowedOrigins();
-
-  // Wildcard-Check: "*" erlaubt alle Origins
   if (envOrigins.includes('*')) {
     return true;
   }
 
-  // Kein Origin-Header bedeutet typischerweise same-origin oder server-to-server.
   if (!origin) {
     return true;
   }
@@ -124,27 +67,69 @@ export const isCorsOriginAllowed = (origin: string | undefined): boolean => {
     return true;
   }
 
-  const allPatterns = [...builtInOriginPatterns, ...readAllowedOriginPatterns()];
+  const patternStrings = splitCsv(getConfigValue('ALLOWED_ORIGIN_PATTERNS', runtimeConfig));
+  const allPatterns = [...builtInCorsPatterns, ...toRegExpPatterns(patternStrings)];
   return allPatterns.some((pattern) => pattern.test(origin));
+}
+
+const createCorsOriginHandler = (runtimeConfig?: AppConfigService) => (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+  callback(null, isCorsOriginAllowed(origin, runtimeConfig));
 };
 
-export const corsOriginHandler = (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-  callback(null, isCorsOriginAllowed(origin));
-};
+export const corsOriginHandler = createCorsOriginHandler();
 
-export const corsConfig = {
-  development: {
+export function createCorsConfig(runtimeConfig?: AppConfigService): {
+  development: CorsOptions;
+  production: CorsOptions;
+} {
+  const corsOriginHandler = createCorsOriginHandler(runtimeConfig);
+
+  const corsOptions: CorsOptions = {
     origin: corsOriginHandler,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'X-Server-Access-Token'],
     exposedHeaders: ['X-Total-Count'],
-  } satisfies CorsOptions,
-  production: {
-    origin: corsOriginHandler, // Gleiche Handler für Production wegen Tauri
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'X-Server-Access-Token'],
-    exposedHeaders: ['X-Total-Count'],
-  } satisfies CorsOptions,
-};
+  };
+
+  return {
+    development: corsOptions,
+    production: corsOptions,
+  };
+}
+
+// Backward-Compatibility fuer bestehende Imports ohne RuntimeConfig.
+export const corsConfig = createCorsConfig();
+
+function splitCsv(value: string | undefined): string[] {
+  if (!value) {
+    return [];
+  }
+
+  return value
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
+function toRegExpPatterns(values: string[]): RegExp[] {
+  const patterns: RegExp[] = [];
+
+  for (const value of values) {
+    try {
+      patterns.push(new RegExp(value));
+    } catch {
+      // Invalides Pattern ignorieren (bewusster Safe-Fallback)
+    }
+  }
+
+  return patterns;
+}
+
+function getConfigValue(key: string, runtimeConfig?: AppConfigService): string | undefined {
+  if (runtimeConfig) {
+    return runtimeConfig.get<string | undefined>(key);
+  }
+
+  return process.env[key];
+}

@@ -1,45 +1,96 @@
 // biome-ignore lint/style/noRestrictedImports: Bootstrap-Funktion laeuft vor DI-Container, Logger direkt verwenden
 import { Logger } from '@nestjs/common';
+import { parseMasterSecretKey } from '@/infrastructure/security/master-key-crypto';
+
+export interface BootstrapConfig {
+  databaseUrl: string;
+  masterSecretKey: Buffer | null;
+}
+
+type InsecureModeLogger = Pick<typeof Logger, 'warn' | 'error'>;
 
 /**
- * Validiert INSECURE_MODE Konfiguration beim App-Start.
+ * Validiert INSECURE_MODE beim Bootstrap.
  *
- * **Verhalten:**
- * - Development + INSECURE_MODE=true → Warning Log, App startet
- * - Production + INSECURE_MODE=true → Error Log + Exception (App crasht)
- * - INSECURE_MODE=false/undefined → Keine Aktion
- *
- * **Rationale:**
- * INSECURE_MODE deaktiviert die Token-Validierung komplett.
- * In Production ist das ein kritisches Sicherheitsrisiko und MUSS
- * zum sofortigen App-Crash fuehren.
- *
- * @param insecureMode - Wert von INSECURE_MODE Env-Variable ('true' | 'false' | undefined)
- * @param isProduction - true wenn NODE_ENV=production
- * @param logger - Optional: Custom Logger (fuer Tests)
- * @throws Error wenn INSECURE_MODE in Production aktiviert ist
+ * Security-Regel:
+ * - Nur der exakte String "true" aktiviert den Modus.
+ * - In Produktion ist INSECURE_MODE strikt verboten (Startup-Abbruch).
+ * - In Development wird nur eine Warnbox ausgegeben.
  */
-export function validateInsecureMode(insecureMode: string | undefined, isProduction: boolean, logger: typeof Logger = Logger): void {
-  const isInsecure = insecureMode === 'true';
-
-  if (!isInsecure) {
+export function validateInsecureMode(insecureMode: string | undefined, isProduction: boolean, logger: InsecureModeLogger = Logger): void {
+  if (insecureMode !== 'true') {
     return;
   }
 
-  // CRITICAL: In Production MUSS die App crashen - INSECURE_MODE ist NIEMALS erlaubt
   if (isProduction) {
-    logger.error('💀 ====================================', 'Bootstrap');
-    logger.error('💀 FATAL: INSECURE_MODE IN PRODUCTION', 'Bootstrap');
-    logger.error('💀 Token validation would be DISABLED', 'Bootstrap');
-    logger.error('💀 APPLICATION STARTUP ABORTED', 'Bootstrap');
-    logger.error('💀 ====================================', 'Bootstrap');
-    throw new Error('INSECURE_MODE is not allowed in production environment. Set INSECURE_MODE=false or remove the variable.');
+    logger.error('╔══════════════════════════════════════════════════════════╗', 'Bootstrap');
+    logger.error('║                        FATAL                             ║', 'Bootstrap');
+    logger.error('║             INSECURE_MODE IN PRODUCTION                  ║', 'Bootstrap');
+    logger.error('║              APPLICATION STARTUP ABORTED                 ║', 'Bootstrap');
+    logger.error('╚══════════════════════════════════════════════════════════╝', 'Bootstrap');
+    throw new Error('INSECURE_MODE is not allowed in production environment');
   }
 
-  // Development Warning
-  logger.warn('⚠️ ====================================', 'Bootstrap');
-  logger.warn('⚠️ INSECURE_MODE ACTIVE', 'Bootstrap');
-  logger.warn('⚠️ Token validation is DISABLED', 'Bootstrap');
-  logger.warn('⚠️ DO NOT USE IN PRODUCTION', 'Bootstrap');
-  logger.warn('⚠️ ====================================', 'Bootstrap');
+  logger.warn('╔══════════════════════════════════════════════════════════╗', 'Bootstrap');
+  logger.warn('║                INSECURE_MODE ACTIVE                      ║', 'Bootstrap');
+  logger.warn('║            Token validation is DISABLED                  ║', 'Bootstrap');
+  logger.warn('║               DO NOT USE IN PRODUCTION                   ║', 'Bootstrap');
+  logger.warn('╚══════════════════════════════════════════════════════════╝', 'Bootstrap');
+}
+
+/**
+ * Validiert Bootstrap-Pflichtvariablen fuer ADR-002.
+ *
+ * Pflichtwerte:
+ * - DATABASE_URL
+ * Optional für Laufzeit-Secret-Features:
+ * - MASTER_SECRET_KEY
+ */
+export function validateBootstrapConfig(
+  input: {
+    databaseUrl: string | undefined;
+    masterSecretKey: string | undefined;
+  },
+  logger: typeof Logger = Logger,
+): BootstrapConfig {
+  const databaseUrl = input.databaseUrl?.trim();
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL ist nicht gesetzt. Ohne Datenbank kann die Runtime-Konfiguration nicht geladen werden.');
+  }
+
+  let masterSecretKey: Buffer;
+  const rawMasterSecret = input.masterSecretKey?.trim();
+  if (!rawMasterSecret) {
+    logger.warn('[BOOTSTRAP] MASTER_SECRET_KEY ist nicht gesetzt. Secret-Migration und -Entschlüsselung laufen im ENV-Fallback-Modus.');
+    return {
+      databaseUrl,
+      masterSecretKey: null,
+    };
+  }
+
+  try {
+    masterSecretKey = parseMasterSecretKey(rawMasterSecret);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.warn(`[BOOTSTRAP] MASTER_SECRET_KEY ist ungültig: ${message}. Secret-Migration und -Entschlüsselung laufen im ENV-Fallback-Modus.`);
+    return {
+      databaseUrl,
+      masterSecretKey: null,
+    };
+  }
+
+  if (masterSecretKey.length !== 32) {
+    logger.warn(`[BOOTSTRAP] MASTER_SECRET_KEY hat die falsche Länge: ${masterSecretKey.length} Bytes. Secret-Migration und -Entschlüsselung laufen im ENV-Fallback-Modus.`);
+    return {
+      databaseUrl,
+      masterSecretKey: null,
+    };
+  }
+
+  logger.log('[BOOTSTRAP] Konfiguration validiert (DATABASE_URL). Optionales Secret ist nur für Secret-Features erforderlich.', 'Bootstrap');
+
+  return {
+    databaseUrl,
+    masterSecretKey,
+  };
 }

@@ -32,6 +32,21 @@ export {
   type MigrateToSecureModeResponse,
   type MigrateToSecureModeRequest,
 } from './use-security-management';
+export {
+  useRuntimeConfigManagement,
+  useRuntimeConfigList,
+  useConfigDoctor,
+  useUpsertRuntimeConfig,
+  useMigrateLegacyRuntimeConfig,
+  type RuntimeConfigEntry,
+  type RuntimeConfigListResponse,
+  type ConfigDoctorResponse,
+  type UpsertRuntimeConfigRequest,
+  type MigrateLegacyRuntimeConfigRequest,
+  type MigrateLegacyRuntimeConfigResult,
+  type MigrateLegacyRuntimeConfigFailure,
+  type MigrateLegacyRuntimeConfigSummary,
+} from './use-runtime-config-management';
 
 // Re-export generierte DTOs für Convenience
 export type { CreateQualifikationDto, QualifikationDto, UpdateQualifikationDto } from '@/shared';

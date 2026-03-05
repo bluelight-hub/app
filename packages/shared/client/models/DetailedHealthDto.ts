@@ -38,12 +38,6 @@ export interface DetailedHealthDto {
      */
     version: string;
     /**
-     * Ob der Server im INSECURE_MODE läuft (Development only)
-     * @type {boolean}
-     * @memberof DetailedHealthDto
-     */
-    insecureMode: boolean;
-    /**
      * Datenbank-Verbindungsstatus
      * @type {string}
      * @memberof DetailedHealthDto
@@ -96,7 +90,6 @@ export function instanceOfDetailedHealthDto(value: object): value is DetailedHea
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('setupComplete' in value) || value['setupComplete'] === undefined) return false;
     if (!('version' in value) || value['version'] === undefined) return false;
-    if (!('insecureMode' in value) || value['insecureMode'] === undefined) return false;
     if (!('database' in value) || value['database'] === undefined) return false;
     if (!('uptime' in value) || value['uptime'] === undefined) return false;
     return true;
@@ -115,7 +108,6 @@ export function DetailedHealthDtoFromJSONTyped(json: any, ignoreDiscriminator: b
         'status': json['status'],
         'setupComplete': json['setupComplete'],
         'version': json['version'],
-        'insecureMode': json['insecureMode'],
         'database': json['database'],
         'uptime': json['uptime'],
         'memory': json['memory'] == null ? undefined : json['memory'],
@@ -137,7 +129,6 @@ export function DetailedHealthDtoToJSONTyped(value?: DetailedHealthDto | null, i
         'status': value['status'],
         'setupComplete': value['setupComplete'],
         'version': value['version'],
-        'insecureMode': value['insecureMode'],
         'database': value['database'],
         'uptime': value['uptime'],
         'memory': value['memory'],

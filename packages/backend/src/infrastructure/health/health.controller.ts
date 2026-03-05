@@ -1,6 +1,5 @@
 import * as os from 'node:os';
 import { Controller, Get, Inject, Req, UseGuards, VERSION_NEUTRAL } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { ApiExtraModels, ApiOkResponse, ApiOperation, getSchemaPath } from '@nestjs/swagger';
 import { DiskHealthIndicator, HealthCheck, type HealthCheckResult, HealthCheckService, MemoryHealthIndicator } from '@nestjs/terminus';
 import type { Request } from 'express';
@@ -10,8 +9,7 @@ import { SkipServerAccess } from '@/infrastructure/decorators/skip-server-access
 import { SkipSetupCheck } from '@/infrastructure/decorators/skip-setup-check.decorator';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { IServerAccessTokenRepository } from '@domain/repositories/i-server-access-token.repository';
-import type { IServerConfigRepository } from '@domain/repositories/i-server-config.repository';
-import { SERVER_ACCESS_TOKEN_REPOSITORY, SERVER_CONFIG_REPOSITORY, RESILIENCE } from '@/infrastructure/di-tokens';
+import { SERVER_ACCESS_TOKEN_REPOSITORY, RESILIENCE } from '@/infrastructure/di-tokens';
 import { ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '@/modules/auth/guards/roles.guard';
@@ -64,8 +62,6 @@ export class HealthController {
    * @param {PrismaHealthIndicator} prismaDb - Indikator für Prisma-Datenbank-Gesundheitschecks
    * @param {PrismaService} prisma - Prisma Service für Setup-Status Abfragen
    * @param {IServerAccessTokenRepository} tokenRepo - Repository für Token-Validierung
-   * @param {IServerConfigRepository} configRepo - Repository für Server-Konfiguration (insecureMode)
-   * @param {ConfigService} configService - Service für Konfigurationswerte (Fallback für INSECURE_MODE)
    */
   constructor(
     private health: HealthCheckService,
@@ -74,8 +70,6 @@ export class HealthController {
     private prismaDb: PrismaHealthIndicator,
     private readonly prisma: PrismaService,
     @Inject(SERVER_ACCESS_TOKEN_REPOSITORY) private readonly tokenRepo: IServerAccessTokenRepository,
-    @Inject(SERVER_CONFIG_REPOSITORY) private readonly configRepo: IServerConfigRepository,
-    private readonly configService: ConfigService,
     @Inject(RESILIENCE.CIRCUIT_BREAKER) private readonly circuitBreaker: CircuitBreakerService,
     private readonly systemHealthHandler: GetSystemHealthQueryHandler,
   ) {}
@@ -352,37 +346,6 @@ export class HealthController {
   }
 
   /**
-   * Ermittelt den insecureMode aus der Datenbank mit Fallback auf ENV.
-   *
-   * **Prioritaet:**
-   * 1. Datenbank: ServerConfig.insecureMode (primaere Quelle)
-   * 2. Fallback: ENV Variable INSECURE_MODE (wenn DB nicht erreichbar)
-   *
-   * **Warum Fallback?**
-   * Der Health Endpoint muss IMMER funktionieren, auch wenn die DB nicht
-   * erreichbar ist. Daher nutzen wir den ENV-Wert als Fallback.
-   *
-   * **Story 4.6:**
-   * Nach Migration zu SECURE Mode wird der Wert in der DB gesetzt.
-   * Der Health Endpoint liest dann den korrekten Status aus der DB.
-   *
-   * @returns {Promise<boolean>} true wenn insecureMode aktiv
-   */
-  private async getInsecureMode(): Promise<boolean> {
-    try {
-      const result = await this.configRepo.isInsecureMode();
-      if (result.isSuccess && result.value !== undefined) {
-        return result.value;
-      }
-      // DB-Fehler: Fallback auf ENV
-      return this.configService.get<string>('INSECURE_MODE') === 'true';
-    } catch (_error) {
-      // Bei Exception: Fallback auf ENV
-      return this.configService.get<string>('INSECURE_MODE') === 'true';
-    }
-  }
-
-  /**
    * Erstellt eine minimale Health-Response fuer unauthentifizierte Requests.
    *
    * **Security:** Gibt IMMER 'ok' als Status zurueck um keine Database-Informationen
@@ -393,15 +356,10 @@ export class HealthController {
    * - status: IMMER 'ok' (keine Information Disclosure!)
    * - setupComplete: Admin + Token vorhanden?
    * - version: Server-Version aus package.json
-   * - insecureMode: Ob der Insecure-Modus aktiv ist (fuer Frontend-Warnung)
-   *
-   * **Story 4.6 Aenderung:**
-   * insecureMode wird jetzt aus der DB gelesen (mit ENV Fallback).
-   *
    * @returns {Promise<BasicHealthDto>} Minimale Health-Information
    */
   private async getBasicHealth(): Promise<BasicHealthDto> {
-    const [setupComplete, insecureMode] = await Promise.all([this.isSetupComplete(), this.getInsecureMode()]);
+    const setupComplete = await this.isSetupComplete();
 
     return {
       // Security: Immer 'ok' zurueckgeben, keine DB-Status Information leaken
@@ -410,7 +368,6 @@ export class HealthController {
       setupComplete,
       // Version dynamisch aus package.json (via npm_package_version)
       version: process.env.npm_package_version ?? '0.0.0-unknown',
-      insecureMode,
     };
   }
 
@@ -423,19 +380,15 @@ export class HealthController {
    * - status: Tatsaechlicher DB-Verbindungsstatus
    * - setupComplete: Admin + Token vorhanden?
    * - version: Server-Version
-   * - insecureMode: Ob der Insecure-Modus aktiv ist
    * - database: 'connected' | 'disconnected'
    * - uptime: Server-Uptime in Sekunden (process.uptime())
    * - memory: Heap und RSS Metriken (optional)
    * - loadAverage: CPU Load Average [1m, 5m, 15m] (optional)
    *
-   * **Story 4.6 Aenderung:**
-   * insecureMode wird jetzt aus der DB gelesen (mit ENV Fallback).
-   *
    * @returns {Promise<DetailedHealthDto>} Erweiterte Health-Information
    */
   private async getDetailedHealth(): Promise<DetailedHealthDto> {
-    const [setupComplete, insecureMode] = await Promise.all([this.isSetupComplete(), this.getInsecureMode()]);
+    const setupComplete = await this.isSetupComplete();
 
     // Database-Status pruefen
     let dbConnected = false;
@@ -453,7 +406,6 @@ export class HealthController {
       status: dbConnected ? 'ok' : 'error',
       setupComplete,
       version: process.env.npm_package_version ?? '0.0.0-unknown',
-      insecureMode,
       database: dbConnected ? 'connected' : 'disconnected',
       uptime: Math.floor(process.uptime()),
       memory: {

@@ -24,6 +24,8 @@ dotenvx.config({
 const TEST_SECRETS = {
   JWT_SECRET: 'test-jwt-secret-for-e2e-tests',
   ADMIN_JWT_SECRET: 'test-admin-jwt-secret-for-e2e-tests',
+  // 64 Hex-Zeichen (32 Bytes) für MASTER_SECRET_KEY
+  MASTER_SECRET_KEY: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
   // 64 Hex-Zeichen (32 Bytes) für AES-256 Encryption
   INTEGRATION_ENCRYPTION_KEY: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
 };
@@ -35,6 +37,10 @@ if (!process.env.JWT_SECRET) {
 }
 if (!process.env.ADMIN_JWT_SECRET) {
   process.env.ADMIN_JWT_SECRET = TEST_SECRETS.ADMIN_JWT_SECRET;
+}
+// Notwendig für AesEncryptionAdapter v1-Initialisierung
+if (!process.env.MASTER_SECRET_KEY) {
+  process.env.MASTER_SECRET_KEY = TEST_SECRETS.MASTER_SECRET_KEY;
 }
 // Notwendig für AesEncryptionAdapter (HiOrg Integration)
 if (!process.env.INTEGRATION_ENCRYPTION_KEY) {

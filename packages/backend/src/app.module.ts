@@ -89,13 +89,18 @@ import { MonitoringModule } from './modules/monitoring/monitoring.module';
         ];
       },
     }),
-    ServeStaticModule.forRoot({
-      rootPath: resolve(process.cwd(), process.env.UPLOADS_PATH || 'uploads'),
-      serveRoot: '/uploads',
-      serveStaticOptions: {
-        index: false,
-        fallthrough: false,
-      },
+    ServeStaticModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => [
+        {
+          rootPath: resolve(process.cwd(), configService.get<string>('UPLOADS_PATH', 'uploads')),
+          serveRoot: '/uploads',
+          serveStaticOptions: {
+            index: false,
+            fallthrough: false,
+          },
+        },
+      ],
     }),
     PrismaModule,
     HealthModule,

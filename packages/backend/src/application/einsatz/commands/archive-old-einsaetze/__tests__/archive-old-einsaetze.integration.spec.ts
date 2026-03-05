@@ -1,4 +1,5 @@
 import { Test, type TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { ArchiveOldEinsaetzeHandler } from '../archive-old-einsaetze.handler';
 import { ArchiveOldEinsaetzeCommand } from '../archive-old-einsaetze.command';
@@ -65,6 +66,21 @@ const TEST_USER_NAME = 'admin_archive_integration_test';
     module = await Test.createTestingModule({
       providers: [
         PrismaService,
+        {
+          provide: ConfigService,
+          useValue: {
+            getOrThrow: (key: string) => {
+              if (key === 'DATABASE_URL') {
+                const databaseUrl = process.env.DATABASE_URL;
+                if (!databaseUrl) {
+                  throw new Error('Missing test config key: DATABASE_URL');
+                }
+                return databaseUrl;
+              }
+              throw new Error(`Missing test config key: ${key}`);
+            },
+          },
+        },
         EventSerializer,
         ArchiveOldEinsaetzeHandler,
         {

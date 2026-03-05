@@ -26,7 +26,7 @@ describe('PrismaServerConfigRepository', () => {
   // Mock data
   const mockConfigDefault = {
     id: 'singleton',
-    insecureMode: true,
+    insecureMode: false,
     migratedAt: null,
     createdAt: new Date('2024-11-26T10:00:00.000Z'),
     updatedAt: new Date('2024-11-26T10:00:00.000Z'),
@@ -86,7 +86,7 @@ describe('PrismaServerConfigRepository', () => {
         where: { id: 'singleton' },
         create: {
           id: 'singleton',
-          insecureMode: true,
+          insecureMode: false,
           migratedAt: null,
         },
         update: {},
@@ -292,7 +292,7 @@ describe('PrismaServerConfigRepository', () => {
       expect(result.value).toBe(false);
     });
 
-    it('should create config with defaults when not exists and return true', async () => {
+    it('should create config with defaults when not exists and return false', async () => {
       // Given: Config does not exist
       (prismaService.serverConfig.findUnique as jest.Mock).mockResolvedValue(null);
       (prismaService.serverConfig.upsert as jest.Mock).mockResolvedValue(mockConfigDefault);
@@ -300,9 +300,9 @@ describe('PrismaServerConfigRepository', () => {
       // When: isInsecureMode is called
       const result = await repository.isInsecureMode();
 
-      // Then: Config is created and insecureMode defaults to true
+      // Then: Config is created and insecureMode defaults to false
       expect(result.isSuccess).toBe(true);
-      expect(result.value).toBe(true);
+      expect(result.value).toBe(false);
       expect(prismaService.serverConfig.upsert).toHaveBeenCalled();
     });
 

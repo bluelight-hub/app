@@ -37,12 +37,6 @@ export interface BasicHealthDto {
      * @memberof BasicHealthDto
      */
     version: string;
-    /**
-     * Ob der Server im INSECURE_MODE läuft (Development only)
-     * @type {boolean}
-     * @memberof BasicHealthDto
-     */
-    insecureMode: boolean;
 }
 
 
@@ -63,7 +57,6 @@ export function instanceOfBasicHealthDto(value: object): value is BasicHealthDto
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('setupComplete' in value) || value['setupComplete'] === undefined) return false;
     if (!('version' in value) || value['version'] === undefined) return false;
-    if (!('insecureMode' in value) || value['insecureMode'] === undefined) return false;
     return true;
 }
 
@@ -80,7 +73,6 @@ export function BasicHealthDtoFromJSONTyped(json: any, ignoreDiscriminator: bool
         'status': json['status'],
         'setupComplete': json['setupComplete'],
         'version': json['version'],
-        'insecureMode': json['insecureMode'],
     };
 }
 
@@ -98,7 +90,6 @@ export function BasicHealthDtoToJSONTyped(value?: BasicHealthDto | null, ignoreD
         'status': value['status'],
         'setupComplete': value['setupComplete'],
         'version': value['version'],
-        'insecureMode': value['insecureMode'],
     };
 }
 

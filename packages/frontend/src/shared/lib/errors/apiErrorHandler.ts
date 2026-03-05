@@ -40,6 +40,8 @@ export type ApiErrorContext =
   | 'rotateAccessToken'
   | 'migrateToSecureMode'
   | 'getSecurityStatus'
+  | 'upsertRuntimeConfig'
+  | 'migrateLegacyRuntimeConfig'
   | 'joinEinsatz';
 
 /**

@@ -7,7 +7,8 @@ import type { IServerAccessTokenRepository } from '@/domain/repositories/i-serve
 import { InviteCodeValue } from '@/domain/value-objects/invite-code-value';
 import { TokenHash } from '@/domain/value-objects/token-hash';
 import { ServerAccessToken } from '@/domain/aggregates/server-access-token.aggregate';
-import { INVITE_CODE_REPOSITORY, SERVER_ACCESS_TOKEN_REPOSITORY } from '@/infrastructure/di-tokens';
+import type { IRuntimeConfigPort } from '@/domain/ports/i-runtime-config.port';
+import { INVITE_CODE_REPOSITORY, RUNTIME_CONFIG, SERVER_ACCESS_TOKEN_REPOSITORY } from '@/infrastructure/di-tokens';
 import type { ExchangeInviteDto } from './dto/exchange-invite.dto';
 import type { ExchangeInviteResponseDto, ServerInfoDto } from './dto/exchange-invite-response.dto';
 
@@ -75,6 +76,8 @@ export class ExchangeInviteHandler {
     private readonly inviteRepo: IInviteCodeRepository,
     @Inject(SERVER_ACCESS_TOKEN_REPOSITORY)
     private readonly tokenRepo: IServerAccessTokenRepository,
+    @Inject(RUNTIME_CONFIG)
+    private readonly runtimeConfig: IRuntimeConfigPort,
   ) {}
 
   /**
@@ -162,9 +165,9 @@ export class ExchangeInviteHandler {
 
     // Step 6: Populate ServerInfo aus Environment Variables
     const serverInfo: ServerInfoDto = {
-      name: process.env.SERVER_NAME ?? 'Bluelight Hub',
+      name: this.runtimeConfig.getString('SERVER_NAME', 'Bluelight Hub'),
       version: process.env.npm_package_version ?? '1.0.0',
-      baseUrl: process.env.APP_URL ?? 'http://localhost:3091',
+      baseUrl: this.runtimeConfig.getString('APP_URL', 'http://localhost:3091'),
     };
 
     // Step 7: Return Response mit Plaintext-Token (nur einmal sichtbar!)

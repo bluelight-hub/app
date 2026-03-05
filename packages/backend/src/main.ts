@@ -1,6 +1,5 @@
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import type { HttpsOptions } from '@nestjs/common/interfaces/external/https-options.interface';
-import { ConfigService } from '@nestjs/config';
 import { NestFactory, Reflector } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -9,12 +8,13 @@ import helmet from 'helmet';
 import * as process from 'node:process';
 import * as packageJson from '../package.json';
 import { AppModule } from './app.module';
-import { validateInsecureMode } from './infrastructure/config/bootstrap-validation';
+import { validateBootstrapConfig } from './infrastructure/config/bootstrap-validation';
 import { HealthModule } from './infrastructure/health/health.module';
 import { PerformanceInterceptor } from './infrastructure/http/interceptors/performance.interceptor';
 import { TransformInterceptor } from './infrastructure/http/interceptors/transform.interceptor';
 import { createPrivateNetworkAccessMiddleware } from './infrastructure/config/private-network-access.middleware';
-import { corsConfig, helmetConfig, isCorsOriginAllowed } from './infrastructure/config/security.config';
+import { createCorsConfig, helmetConfig, isCorsOriginAllowed } from './infrastructure/config/security.config';
+import { AppConfigService } from './infrastructure/services/app-config.service';
 import { BefehlModule } from './modules/befehl/befehl.module';
 import { EinsatzModule } from './modules/einsatz/einsatz.module';
 
@@ -28,6 +28,14 @@ require('@dotenvx/dotenvx').config();
  */
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
+  validateBootstrapConfig(
+    {
+      databaseUrl: process.env.DATABASE_URL,
+      masterSecretKey: process.env.MASTER_SECRET_KEY,
+    },
+    Logger,
+  );
+
   const proxies =
     process.env.TRUSTED_PROXIES?.split(',')
       .map((v) => v.trim())
@@ -72,11 +80,14 @@ async function bootstrap() {
     httpsOptions,
   });
 
+  const appConfig = app.get(AppConfigService);
+  await appConfig.reload();
+
   app.set('trust proxy', trustProxy);
 
   // PNA-Header werden nur für valide Private-Network-Preflights gesetzt.
-  // Die eigentliche Origin-Freigabe bleibt zentral in der CORS-Policy (isCorsOriginAllowed + enableCors).
-  app.use(createPrivateNetworkAccessMiddleware(isCorsOriginAllowed));
+  // Die eigentliche Origin-Freigabe bleibt zentral in der CORS-Policy.
+  app.use(createPrivateNetworkAccessMiddleware((origin) => isCorsOriginAllowed(origin, appConfig)));
 
   app.enableVersioning({
     type: VersioningType.URI,
@@ -88,10 +99,8 @@ async function bootstrap() {
     exclude: ['/'],
   });
 
-  // Get config service to determine environment
-  const configService = app.get(ConfigService);
-  const isProduction = configService.get('NODE_ENV') === 'production';
-  const appUrl = configService.get('APP_URL', 'http://localhost:3091');
+  const isProduction = appConfig.isProduction();
+  const appUrl = appConfig.get<string>('APP_URL', 'http://localhost:3091');
   const serverEntry = { url: appUrl, description: isProduction ? 'Production Server' : 'Development Server' };
 
   /** Gemeinsame Auth-Schema-Konfiguration für beide Swagger-Dokumente */
@@ -180,13 +189,13 @@ X-Server-Access-Token: <plaintext_token>
 
   // Configure CORS based on environment.
   // Security rationale: Access-Control-Allow-Origin and credentials handling are emitted only by this central CORS config.
-
-  const corsOptions = isProduction ? corsConfig.production : corsConfig.development;
+  const runtimeCorsConfig = createCorsConfig(appConfig);
+  const corsOptions = isProduction ? runtimeCorsConfig.production : runtimeCorsConfig.development;
   app.enableCors(corsOptions);
 
   // Serve static files (for uploaded screenshots)
   // Use ENV-configured path or default (relative to dist/src/main.js)
-  const uploadsBase = configService.get<string>('UPLOADS_PATH') || '../../uploads';
+  const uploadsBase = appConfig.get<string>('UPLOADS_PATH', '../../uploads');
   const uploadsPath = require('node:path').resolve(__dirname, uploadsBase);
   logger.log(`Serving static files from: ${uploadsPath}`);
   app.useStaticAssets(uploadsPath, { prefix: '/uploads' });
@@ -204,16 +213,12 @@ X-Server-Access-Token: <plaintext_token>
   const reflector = app.get(Reflector);
   app.useGlobalInterceptors(new PerformanceInterceptor(), new TransformInterceptor(reflector));
 
-  const port = configService.get('BACKEND_PORT') || configService.get('PORT') || 3091;
+  const port = appConfig.get<number>('BACKEND_PORT', appConfig.get<number>('PORT', 3091));
 
   await app.listen(port);
   const url = await app.getUrl();
   Logger.log(`Application is running in ${isProduction ? 'production' : 'development'} mode`, 'Bootstrap');
   Logger.log(`Application is running on: ${url}`);
-
-  // INSECURE_MODE Validierung - Security Check VOR App-Start abschliessen
-  // Wirft Exception wenn INSECURE_MODE in Production aktiviert ist
-  validateInsecureMode(configService.get<string>('INSECURE_MODE'), isProduction);
 }
 
 bootstrap();

@@ -12,6 +12,7 @@ export { AdminInvites } from './AdminInvites';
 export { AdminLogin } from './AdminLogin';
 export { AdminQualifikationen } from './AdminQualifikationen';
 export { AdminRollenDefinitionen } from './AdminRollenDefinitionen';
+export { AdminRuntimeConfig } from './AdminRuntimeConfig';
 export { AdminSetup } from './AdminSetup';
 export { AdminStammFahrzeuge } from './AdminStammFahrzeuge';
 export { AdminStammPersonen } from './AdminStammPersonen';
