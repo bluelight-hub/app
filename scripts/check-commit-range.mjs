@@ -3,6 +3,8 @@
 import { execFileSync } from 'node:child_process';
 import { validateCommitMessage } from './gitmoji-commit-validator.mjs';
 
+const RELEASE_SUBJECT_PATTERN = /^🔖\(release\):\s+\S+(?:\s+\[skip ci\])?$/u;
+
 function runGit(args) {
   return execFileSync('git', args, {
     encoding: 'utf8',
@@ -61,6 +63,10 @@ function readCommitSubject(sha) {
   return runGit(['log', '--format=%s', '-n', '1', sha]);
 }
 
+function isReleaseCommitSubject(subject) {
+  return RELEASE_SUBJECT_PATTERN.test(subject.trim());
+}
+
 async function main() {
   const { range } = parseArgs(process.argv.slice(2));
   const shas = collectCommitShas(range);
@@ -73,14 +79,14 @@ async function main() {
   console.log(`🔍 Prüfe ${shas.length} Commit(s) im Range ${range}...`);
 
   const invalidCommits = [];
-  let skippedCommits = 0;
+  let releaseCommitCount = 0;
 
   for (const sha of shas) {
     const message = readCommitMessage(sha);
-
-    if (message.includes('[skip ci]')) {
-      skippedCommits += 1;
-      continue;
+    const subject = readCommitSubject(sha);
+    const isReleaseCommit = isReleaseCommitSubject(subject);
+    if (isReleaseCommit) {
+      releaseCommitCount += 1;
     }
 
     const result = await validateCommitMessage(message);
@@ -88,7 +94,7 @@ async function main() {
     if (!result.valid) {
       invalidCommits.push({
         sha,
-        subject: readCommitSubject(sha),
+        subject,
         errors: result.errors,
       });
     }
@@ -107,8 +113,8 @@ async function main() {
     process.exit(1);
   }
 
-  if (skippedCommits > 0) {
-    console.log(`ℹ️ ${skippedCommits} Commit(s) mit [skip ci] wurden übersprungen.`);
+  if (releaseCommitCount > 0) {
+    console.log(`ℹ️ ${releaseCommitCount} Release-Commit(s) erkannt und validiert.`);
   }
 
   console.log('✅ Alle Commit-Nachrichten im Range sind gültig.');
