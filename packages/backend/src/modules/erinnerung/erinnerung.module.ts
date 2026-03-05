@@ -32,6 +32,7 @@ import { PdfExportService } from '@infrastructure/export/pdf-export.service';
 import { CsvExportService } from '@infrastructure/export/csv-export.service';
 import { JsonExportService } from '@infrastructure/export/json-export.service';
 import { EinsatzInfrastructureModule } from '@infrastructure/einsatz/einsatz-infrastructure.module';
+import { EinsatzTeilnehmerModule } from '@/modules/einsatz-teilnehmer/einsatz-teilnehmer.module';
 import { GetErinnerungKonfigurationHandler } from '@application/erinnerung-konfiguration/queries/get-erinnerung-konfiguration.query';
 import { UpdateEskalationsTimeoutHandler } from '@application/erinnerung-konfiguration/commands/update-eskalations-timeout.command';
 import { ErinnerungKonfigurationController } from './controllers/erinnerung-konfiguration.controller';
@@ -56,6 +57,8 @@ import { ErinnerungWebSocketEventAdapter } from '@infrastructure/events/adapters
     forwardRef(() => KategorieModule),
     // Story 9.6: EinsatzRepository für Status-Validierung im Export-Endpoint
     EinsatzInfrastructureModule,
+    // Story 10.7: EinsatzTeilnehmer-Check fuer WebSocket Room-Authorization
+    EinsatzTeilnehmerModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
