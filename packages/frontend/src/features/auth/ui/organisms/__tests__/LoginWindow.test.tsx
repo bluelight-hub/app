@@ -16,6 +16,10 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 // Store-Mock muss VOR dem Import der Komponente definiert werden
 const mockConnectionStatus = new Map<string, string>();
+const mockNavigate = vi.fn();
+const mockRouterHistoryReplace = vi.fn();
+const mockRouterHistoryPush = vi.fn();
+const mockRouterHistoryFlush = vi.fn();
 
 // Mock @tanstack/react-store mit Store-Klasse
 vi.mock('@tanstack/react-store', () => ({
@@ -30,7 +34,8 @@ vi.mock('@tanstack/react-store', () => ({
 // Mock alle Hooks
 vi.mock('@/features/auth', () => ({
   AUTH_KEYS: { auth: { queries: { authCheck: ['auth', 'check'] } } },
-  useCurrentUser: vi.fn(() => ({ user: null, isLoading: false })),
+  consumeRedirectAfterLogin: vi.fn(() => undefined),
+  useCurrentUser: vi.fn(() => ({ user: null, authStatus: 'unauthenticated', isLoading: false })),
   useUnifiedAuth: () => ({ mutate: vi.fn(), isPending: false, error: null }),
   useLogout: vi.fn(() => ({ mutateAsync: vi.fn().mockResolvedValue(undefined), isPending: false })),
 }));
@@ -62,7 +67,14 @@ vi.mock('@/shared/lib/errors/apiErrorHandler', () => ({
 }));
 
 vi.mock('@tanstack/react-router', () => ({
-  useNavigate: () => vi.fn(),
+  useNavigate: () => mockNavigate,
+  useRouter: () => ({
+    history: {
+      replace: mockRouterHistoryReplace,
+      push: mockRouterHistoryPush,
+      flush: mockRouterHistoryFlush,
+    },
+  }),
 }));
 
 // Mock für QueryClient - wird in Tests überschrieben
@@ -182,7 +194,7 @@ import { LoginWindow } from '../LoginWindow';
 // Import mocks to control
 import { useRequireServer, useServerList, useActiveServer } from '@/features/server/hooks';
 import { setActiveServer } from '@/features/server/stores/server.store';
-import { useLogout, useCurrentUser } from '@/features/auth';
+import { consumeRedirectAfterLogin, useLogout, useCurrentUser } from '@/features/auth';
 import { toast } from 'sonner';
 import type { ServerConfig } from '@/features/server/types/server-config';
 
@@ -192,6 +204,7 @@ const mockUseActiveServer = vi.mocked(useActiveServer);
 const mockSetActiveServer = vi.mocked(setActiveServer);
 const mockUseLogout = vi.mocked(useLogout);
 const mockUseCurrentUser = vi.mocked(useCurrentUser);
+const mockConsumeRedirectAfterLogin = vi.mocked(consumeRedirectAfterLogin);
 
 /**
  * Factory für Mock-Server
@@ -218,6 +231,13 @@ describe('LoginWindow', () => {
     });
     mockUseServerList.mockReturnValue([createMockServer()]);
     mockUseActiveServer.mockReturnValue(createMockServer());
+    mockUseCurrentUser.mockReturnValue({
+      user: null,
+      authStatus: 'unauthenticated',
+      isLoading: false,
+    });
+    mockConsumeRedirectAfterLogin.mockReturnValue(undefined);
+    window.history.replaceState({}, '', '/auth');
   });
 
   // =====================================================
@@ -438,6 +458,30 @@ describe('LoginWindow', () => {
 
       // Then
       expect(screen.getByTestId('auth-footer')).toBeInTheDocument();
+    });
+  });
+
+  describe('Redirect Navigation', () => {
+    it('should preserve query and hash when redirecting after successful authentication', async () => {
+      const singleServer = createMockServer();
+      mockUseServerList.mockReturnValue([singleServer]);
+      mockUseActiveServer.mockReturnValue(singleServer);
+      mockUseCurrentUser.mockReturnValue({
+        user: { id: 'user-1' },
+        authStatus: 'authenticated',
+        isLoading: false,
+      });
+      window.history.pushState({}, '', '/auth?redirect=%2Fapp%2Feinsatz%2F42%3Ftab%3Dlagekarte%23karte');
+
+      render(<LoginWindow />);
+
+      await vi.waitFor(() => {
+        expect(mockRouterHistoryReplace).toHaveBeenCalledWith('/app/einsatz/42?tab=lagekarte#karte');
+      });
+
+      expect(mockRouterHistoryPush).not.toHaveBeenCalled();
+      expect(mockRouterHistoryFlush).toHaveBeenCalled();
+      expect(mockConsumeRedirectAfterLogin).toHaveBeenCalledTimes(1);
     });
   });
 

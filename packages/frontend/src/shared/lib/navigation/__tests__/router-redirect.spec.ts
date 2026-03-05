@@ -14,6 +14,12 @@ const { mockRouterNavigate } = vi.hoisted(() => ({
   mockRouterNavigate: vi.fn(),
 }));
 
+const { mockRouterHistoryReplace, mockRouterHistoryPush, mockRouterHistoryFlush } = vi.hoisted(() => ({
+  mockRouterHistoryReplace: vi.fn(),
+  mockRouterHistoryPush: vi.fn(),
+  mockRouterHistoryFlush: vi.fn(),
+}));
+
 vi.mock('@/shared/lib/logger', () => ({
   logger: mockLogger,
 }));
@@ -21,6 +27,11 @@ vi.mock('@/shared/lib/logger', () => ({
 vi.mock('@/main', () => ({
   router: {
     navigate: (...args: unknown[]) => mockRouterNavigate(...args),
+    history: {
+      replace: (...args: unknown[]) => mockRouterHistoryReplace(...args),
+      push: (...args: unknown[]) => mockRouterHistoryPush(...args),
+      flush: (...args: unknown[]) => mockRouterHistoryFlush(...args),
+    },
   },
 }));
 
@@ -64,6 +75,24 @@ describe('router-redirect', () => {
       replace: true,
     });
     expect(window.location.href).toBe('/start');
+  });
+
+  it('erhält Query und Hash bei vollständigen Redirect-Zielen über Router-History', () => {
+    routerRedirect.navigateToInternalRedirect(
+      {
+        history: {
+          replace: mockRouterHistoryReplace,
+          push: mockRouterHistoryPush,
+          flush: mockRouterHistoryFlush,
+        },
+      },
+      '/app/einsatz/42?tab=lagekarte#karte',
+      { replace: true },
+    );
+
+    expect(mockRouterHistoryReplace).toHaveBeenCalledWith('/app/einsatz/42?tab=lagekarte#karte');
+    expect(mockRouterHistoryPush).not.toHaveBeenCalled();
+    expect(mockRouterHistoryFlush).toHaveBeenCalled();
   });
 
   it('fällt bei fehlendem Router kontrolliert auf window.location.href zurück', async () => {

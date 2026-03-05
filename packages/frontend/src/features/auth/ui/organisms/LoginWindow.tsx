@@ -5,7 +5,7 @@ import { serverStore } from '@/features/server/stores/server.store';
 import { ServerSelector } from '@/features/server/ui/molecules';
 import { getIndicatorStatus, STATUS_DOT_COLORS, STATUS_LABELS, useSystemHealth, useSystemVersion } from '@/features/system';
 import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
-import { getRedirectFromSearch, sanitizeInternalRedirectPath } from '@/shared/lib/navigation/router-redirect';
+import { getRedirectFromSearch, navigateToInternalRedirect, sanitizeInternalRedirectPath } from '@/shared/lib/navigation/router-redirect';
 import { Heading } from '@/shared/ui/atoms/heading.atom';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { Text } from '@/shared/ui/atoms/text.atom';
@@ -15,7 +15,7 @@ import { LogoWithIndicator } from '@/shared/ui/molecules/logo-with-indicator.mol
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { AuthLayout } from '@/shared/ui/templates/AuthLayout';
 import type { AuthRequestDto } from '@/shared';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, useRouter } from '@tanstack/react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useStore } from '@tanstack/react-store';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -33,6 +33,7 @@ export type Props = Record<string, never>;
  */
 export function LoginWindow(_props: Props) {
   const navigate = useNavigate();
+  const router = useRouter();
   const queryClient = useQueryClient();
 
   // Server-Guard: Redirect zu /server/setup wenn kein Server konfiguriert
@@ -237,9 +238,9 @@ export function LoginWindow(_props: Props) {
   useEffect(() => {
     if (authStatus === 'authenticated' && user) {
       const redirectTarget = resolveRedirectTarget('/');
-      void navigate({ to: redirectTarget as never, replace: true });
+      navigateToInternalRedirect(router, redirectTarget, { replace: true });
     }
-  }, [authStatus, user, navigate, resolveRedirectTarget]);
+  }, [authStatus, user, router, resolveRedirectTarget]);
 
   // Early Returns NACH allen Hooks
   // H7: Loading-State während Server-Store Hydration ODER wenn kein Server (Redirect pending)

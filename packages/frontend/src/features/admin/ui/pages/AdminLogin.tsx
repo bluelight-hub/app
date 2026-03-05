@@ -1,7 +1,7 @@
 import { consumeRedirectAfterLogin, useCurrentUser, useAdminLogin } from '@/features/auth';
 import { useSystemHealth } from '@/features/system/api/use-system-health';
 import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
-import { getRedirectFromSearch, sanitizeInternalRedirectPath } from '@/shared/lib/navigation/router-redirect';
+import { getRedirectFromSearch, navigateToInternalRedirect, sanitizeInternalRedirectPath } from '@/shared/lib/navigation/router-redirect';
 import { Alert } from '@/shared/ui/atoms/alert.atom';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { FormField } from '@/shared/ui/atoms/form-field.atom';
@@ -12,7 +12,7 @@ import { AuthFooter } from '@/shared/ui/molecules/auth-footer.molecule';
 import { LogoWithIndicator } from '@/shared/ui/molecules/logo-with-indicator.molecule';
 import { PasswordInput } from '@/shared/ui/molecules/password-input.molecule';
 import { useForm } from '@tanstack/react-form';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, useRouter } from '@tanstack/react-router';
 import { AuthLayout } from '@/shared/ui/templates/AuthLayout';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { PiWarning } from 'react-icons/pi';
@@ -25,6 +25,7 @@ const adminLoginSchema = z.object({
 
 export function AdminLogin() {
   const navigate = useNavigate();
+  const router = useRouter();
   const { user, isLoading, isAdminAuthenticated, adminStatus } = useCurrentUser();
   const loginAdmin = useAdminLogin();
   const { connectionMode, version } = useSystemHealth();
@@ -108,7 +109,7 @@ export function AdminLogin() {
       // If user has an active admin session, redirect to dashboard
       if (user && isAdminAuthenticated) {
         const redirectTarget = resolveRedirectTarget('/admin/dashboard');
-        void navigate({ to: redirectTarget as never, replace: true });
+        navigateToInternalRedirect(router, redirectTarget, { replace: true });
       }
       // If user is not logged in at all, redirect to auth
       else if (!user) {
@@ -129,7 +130,7 @@ export function AdminLogin() {
       }
       // User is logged in but not admin authenticated - stay on this page
     }
-  }, [user, hasCheckedAuth, isAdminAuthenticated, adminStatus?.adminSetupAvailable, navigate, resolveRedirectTarget]);
+  }, [user, hasCheckedAuth, isAdminAuthenticated, adminStatus?.adminSetupAvailable, navigate, router, resolveRedirectTarget]);
 
   // Don't render the form until we've checked authentication
   // This prevents flashing of the form before redirect
