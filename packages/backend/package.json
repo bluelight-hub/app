@@ -80,7 +80,7 @@
     "date-fns": "^4.1.0",
     "helmet": "^8.1.0",
     "mgrs": "^2.1.0",
-    "multer": "^2.1.0",
+    "multer": "^2.1.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pdfkit": "^0.17.2",
