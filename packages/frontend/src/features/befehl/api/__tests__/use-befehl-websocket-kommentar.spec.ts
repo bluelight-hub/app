@@ -137,7 +137,7 @@ describe('useBefehlWebSocket - befehl.kommentarHinzugefuegt Handler', () => {
     };
 
     await act(async () => {
-      handler!(event);
+      handler?.(event);
     });
 
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
@@ -161,11 +161,8 @@ describe('useBefehlWebSocket - befehl.kommentarHinzugefuegt Handler', () => {
     };
 
     await act(async () => {
-      handler!(event);
-    });
-
-    await act(async () => {
-      handler!(event);
+      handler?.(event);
+      handler?.(event);
     });
 
     // 1 Aufruf pro Event (list invalidiert auch offeneRueckfragen via Prefix-Matching), nur fuer erstes Event
@@ -188,7 +185,7 @@ describe('useBefehlWebSocket - befehl.kommentarHinzugefuegt Handler', () => {
     };
 
     await act(async () => {
-      handler!(event);
+      handler?.(event);
     });
 
     expect(toast.info).toHaveBeenCalledWith('Neue Rückfrage', {
@@ -212,7 +209,7 @@ describe('useBefehlWebSocket - befehl.kommentarHinzugefuegt Handler', () => {
     };
 
     await act(async () => {
-      handler!(event);
+      handler?.(event);
     });
 
     // Cache invalidierung JA
@@ -237,7 +234,7 @@ describe('useBefehlWebSocket - befehl.kommentarHinzugefuegt Handler', () => {
     };
 
     await act(async () => {
-      handler!(event);
+      handler?.(event);
     });
 
     // Cache invalidierung JA
@@ -269,7 +266,7 @@ describe('useBefehlWebSocket - befehl.kommentarHinzugefuegt Handler', () => {
     };
 
     await act(async () => {
-      handler!(event);
+      handler?.(event);
     });
 
     expect(onKommentarHinzugefuegt).toHaveBeenCalledWith(event);
@@ -282,7 +279,7 @@ describe('useBefehlWebSocket - befehl.kommentarHinzugefuegt Handler', () => {
     const handler = getEventHandler('befehl.kommentarHinzugefuegt');
 
     await act(async () => {
-      handler!({ befehlId: '', kommentarId: '' } as BefehlKommentarHinzugefuegtPayload);
+      handler?.({ befehlId: '', kommentarId: '' } as BefehlKommentarHinzugefuegtPayload);
     });
 
     expect(mockInvalidateQueries).not.toHaveBeenCalled();

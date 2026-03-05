@@ -20,6 +20,16 @@ import { resetOfflineStore } from '../../stores/offline.store';
 
 // Mock the API
 vi.mock('@/shared', () => ({
+  EinsatzRolleDtoRolleEnum: {
+    Befehlsgeber: 'BEFEHLSGEBER',
+    Empfaenger: 'EMPFAENGER',
+    Beobachter: 'BEOBACHTER',
+  },
+  ManagedUserResponseDtoRoleEnum: {
+    User: 'USER',
+    Admin: 'ADMIN',
+    SuperAdmin: 'SUPER_ADMIN',
+  },
   api: {
     erinnerungen: () => ({
       erinnerungControllerCreateVAlpha: vi.fn(),

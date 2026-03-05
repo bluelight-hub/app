@@ -1,4 +1,3 @@
-import { router } from '@/main';
 import { isTauri } from '@tauri-apps/api/core';
 import { logger } from '@/shared/lib/logger';
 
@@ -86,6 +85,28 @@ class NotificationService {
 
   /** Cache ob Tauri Plugin funktionsfähig ist (null = nicht geprüft) */
   private tauriPluginAvailable: boolean | null = null;
+
+  /**
+   * Navigiert lazy zur Befehlsansicht.
+   *
+   * Vermeidet statischen Import von `@/main`, damit Tests ohne App-Bootstrap laufen.
+   */
+  private navigateToBefehl(einsatzId: string, befehlId: string): void {
+    void import('@/main')
+      .then(({ router }) => {
+        router.navigate({
+          to: '/app/einsatz/$einsatzId/führung/befehle',
+          params: { einsatzId },
+          search: { befehlId },
+        });
+      })
+      .catch((error) => {
+        logger.warn('Navigation über Router fehlgeschlagen, fallback auf URL', { error });
+        if (typeof window !== 'undefined') {
+          window.location.href = `/app/einsatz/${einsatzId}/führung/befehle?befehlId=${befehlId}`;
+        }
+      });
+  }
 
   /**
    * Prüft ob Benachrichtigungen grundsätzlich unterstützt werden
@@ -534,11 +555,7 @@ class NotificationService {
       if (einsatzId) {
         notification.onclick = () => {
           window.focus();
-          router.navigate({
-            to: '/app/einsatz/$einsatzId/führung/befehle',
-            params: { einsatzId },
-            search: { befehlId },
-          });
+          this.navigateToBefehl(einsatzId, befehlId);
         };
       }
 
