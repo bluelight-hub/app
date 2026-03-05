@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { PrismaModule } from '@/infrastructure/database/prisma.module';
+import { InfrastructureCommonModule } from '@/infrastructure/common.module';
 import { LOGGER } from '@/infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@/infrastructure/common/adapters/nest-logger.adapter';
 import { AuthController } from './controllers/auth.controller';
@@ -34,15 +34,9 @@ import { ServerAccessTokenInfrastructureModule } from '@/infrastructure/server-a
 @Module({
   imports: [
     PrismaModule,
+    InfrastructureCommonModule,
     PassportModule,
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '15m' },
-      }),
-      inject: [ConfigService],
-    }),
+    JwtModule.register({}),
     // CQRS Application Layer für Auth Commands (Login, Logout)
     AuthApplicationModule,
     // Infrastructure Module für ExchangeInviteHandler Dependencies

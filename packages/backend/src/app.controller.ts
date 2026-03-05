@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { Controller, Get, Logger, VERSION_NEUTRAL } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { SkipSetupCheck } from '@/infrastructure/decorators/skip-setup-check.decorator';
+import { AppConfigService } from '@/infrastructure/services/app-config.service';
 import { SkipTransform } from './modules/common/decorators/skip-transform.decorator';
 import { trimTrailingSlash } from '@/shared/utils/url.util';
 
@@ -30,12 +30,12 @@ export class AppController {
    * Konstruktor des AppControllers.
    * Initialisiert die Basis-URL der Anwendung und den Logger für diese Klasse.
    *
-   * @param configService - Service zum Abrufen von Konfigurationswerten aus der Umgebung
+   * @param appConfig - Zentraler Runtime-Konfigurationsservice
    * @param logger - Logger-Service für diese Klasse
    */
-  constructor(private readonly configService: ConfigService) {
+  constructor(private readonly appConfig: AppConfigService) {
     this.logger = new Logger(AppController.name);
-    const rawUrl = this.configService.get<string>('APP_URL', 'http://localhost:3091');
+    const rawUrl = this.appConfig.get<string>('APP_URL', 'http://localhost:3091');
     this.url = trimTrailingSlash(rawUrl);
     this.logger.debug(`AppController initialisiert mit URL: ${this.url}`);
   }

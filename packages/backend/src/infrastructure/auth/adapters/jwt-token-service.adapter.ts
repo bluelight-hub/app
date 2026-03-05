@@ -6,6 +6,7 @@ import { UserId } from '@domain/value-objects/user-id';
 import { UserRole } from '@domain/value-objects/user-role';
 import { Result } from '@domain/common/result';
 import { LOGGER } from '@infrastructure/di-tokens';
+import { AppConfigService } from '@/infrastructure/services/app-config.service';
 
 /**
  * JWT Payload Struktur.
@@ -71,6 +72,7 @@ interface JwtPayload {
 export class JwtTokenServiceAdapter implements IJwtAuthServicePort {
   constructor(
     private readonly jwtService: JwtService,
+    private readonly appConfig: AppConfigService,
     @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
 
@@ -112,7 +114,7 @@ export class JwtTokenServiceAdapter implements IJwtAuthServicePort {
       iat: Math.floor(Date.now() / 1000),
     };
 
-    const secret = process.env.JWT_SECRET;
+    const secret = this.appConfig.get<string>('JWT_SECRET');
     if (!secret) {
       throw new Error('JWT_SECRET not configured');
     }
@@ -153,7 +155,7 @@ export class JwtTokenServiceAdapter implements IJwtAuthServicePort {
    */
   async validateToken(token: string): Promise<Result<{ userId: UserId; role: UserRole }>> {
     try {
-      const secret = process.env.JWT_SECRET;
+      const secret = this.appConfig.get<string>('JWT_SECRET');
       if (!secret) {
         return Result.fail('JWT_SECRET not configured');
       }

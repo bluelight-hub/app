@@ -1,195 +1,144 @@
-/**
- * AES-256-GCM Encryption Adapter - Implementierung des IEncryptionPort.
- *
- * Verwendet AES-256-GCM für authentifizierte Verschlüsselung von sensiblen Daten
- * wie API-Tokens für externe Integrationen.
- *
- * **Sicherheitsmerkmale:**
- * - AES-256-GCM bietet sowohl Verschlüsselung als auch Authentifizierung (AEAD)
- * - IV wird pro Verschlüsselung zufällig generiert (16 bytes)
- * - Auth-Tag verhindert Manipulation des Cipher-Texts
- * - Key aus Umgebungsvariable (nicht im Code)
- *
- * **Format des verschlüsselten Outputs:**
- * `{iv}:{authTag}:{cipherText}` (alle Base64-kodiert)
- *
- * @module infrastructure/security
- * @see IEncryptionPort - Domain Port Interface
- */
-
 // biome-ignore lint/style/noRestrictedImports: Logger in Adapter ist erlaubt
-import { Injectable, Logger, type OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'node:crypto';
-import type { IEncryptionPort } from '@domain/ports/i-encryption.port';
+import { IEncryptionPort } from '@domain/ports/i-encryption.port';
+import { decryptV1String, encryptV1String, isLegacyCiphertextFormat, parseMasterSecretKey } from './master-key-crypto';
 
-/** Algorithmus: AES-256-GCM (Authenticated Encryption with Associated Data) */
-const ALGORITHM = 'aes-256-gcm';
+const LEGACY_ENV_KEY_NAME = 'INTEGRATION_ENCRYPTION_KEY';
+const LEGACY_EXPECTED_KEY_LENGTH = 64;
+const LEGACY_ALGORITHM = 'aes-256-gcm';
+const LEGACY_IV_LENGTH = 16;
+const LEGACY_AUTH_TAG_LENGTH = 16;
+const INTEGRATION_SECRET_SCOPE = 'bluelight-hub/integration-secrets/v1';
 
-/** IV Länge in Bytes (128 bit = 16 bytes, empfohlen für GCM) */
-const IV_LENGTH = 16;
-
-/** Auth Tag Länge in Bytes (128 bit = 16 bytes) */
-const AUTH_TAG_LENGTH = 16;
-
-/** Name der Umgebungsvariable für den Encryption Key */
-const ENV_KEY_NAME = 'INTEGRATION_ENCRYPTION_KEY';
-
-/** Erwartete Länge des Keys in Hex-Zeichen (64 hex chars = 32 bytes = 256 bit) */
-const EXPECTED_KEY_LENGTH = 64;
-
-/**
- * AES-256-GCM Encryption Adapter.
- *
- * **Initialisierung:**
- * Der Adapter validiert beim App-Start (OnModuleInit) dass der Encryption Key
- * korrekt konfiguriert ist. Bei fehlender/ungültiger Konfiguration wird die
- * App mit einem Fehler beendet (Hard-Fail für Security).
- *
- * **Verwendung:**
- * ```typescript
- * @Inject(INTEGRATIONS.ENCRYPTION_PORT) private readonly encryption: IEncryptionPort
- *
- * const encrypted = this.encryption.encrypt('secret-token');
- * const decrypted = this.encryption.decrypt(encrypted);
- * ```
- */
 @Injectable()
 export class AesEncryptionAdapter implements IEncryptionPort, OnModuleInit {
   private readonly logger = new Logger(AesEncryptionAdapter.name);
-  private encryptionKey: Buffer | null = null;
-  private isInitialized = false;
+  private masterKey: Buffer | null = null;
+  private legacyKey: Buffer | null = null;
 
   constructor(private readonly configService: ConfigService) {}
 
-  /**
-   * Validiert den Encryption Key beim App-Start.
-   *
-   * **Hard-Fail für Security:**
-   * - Fehlendes ENV: App-Start wird verhindert
-   * - Falsches Format: App-Start wird verhindert
-   * - Erfolgreich: Key als Buffer speichern
-   *
-   * @throws Error wenn der Encryption Key fehlt oder ungültig ist
-   */
   onModuleInit(): void {
-    const keyHex = this.configService.get<string>(ENV_KEY_NAME);
+    this.masterKey = this.tryLoadMasterKey();
 
-    if (!keyHex) {
-      const errorMsg = `[SECURITY] ${ENV_KEY_NAME} ist nicht konfiguriert. Die App kann ohne Encryption Key nicht starten. Generiere einen Key mit: openssl rand -hex 32`;
-      this.logger.error(errorMsg);
-      throw new Error(errorMsg);
+    this.legacyKey = this.tryLoadLegacyKey();
+
+    if (this.masterKey && this.legacyKey) {
+      this.logger.warn('[SECURITY] Legacy-Key INTEGRATION_ENCRYPTION_KEY erkannt. Dual-Read aktiv, neue Writes erfolgen nur als v1-Payload.');
     }
 
-    if (keyHex.length !== EXPECTED_KEY_LENGTH) {
-      const errorMsg =
-        `[SECURITY] ${ENV_KEY_NAME} hat ungültige Länge (${keyHex.length} statt ${EXPECTED_KEY_LENGTH} Zeichen). ` +
-        'Der Key muss 64 Hex-Zeichen (32 Bytes) haben. ' +
-        'Generiere einen neuen Key mit: openssl rand -hex 32';
-      this.logger.error(errorMsg);
-      throw new Error(errorMsg);
+    if (this.masterKey) {
+      this.logger.log('[SECURITY] Secret-Verschlüsselung (v1) initialisiert');
+      return;
     }
 
-    if (!/^[0-9a-fA-F]+$/.test(keyHex)) {
-      const errorMsg = `[SECURITY] ${ENV_KEY_NAME} enthält ungültige Zeichen (nur 0-9, a-f erlaubt). Generiere einen neuen Key mit: openssl rand -hex 32`;
-      this.logger.error(errorMsg);
-      throw new Error(errorMsg);
+    if (this.legacyKey) {
+      this.logger.warn('[SECURITY] MASTER_SECRET_KEY nicht verfügbar. Legacy-Dual-Read bleibt aktiv, neue Writes sind deaktiviert.');
+      return;
+    }
+
+    this.logger.warn('[SECURITY] Weder MASTER_SECRET_KEY noch INTEGRATION_ENCRYPTION_KEY verfügbar. Secret-Operationen sind deaktiviert.');
+  }
+
+  encrypt(plainText: string): string {
+    const masterKey = this.getMasterKeyOrThrow();
+
+    return encryptV1String(plainText, {
+      masterKey,
+      scope: INTEGRATION_SECRET_SCOPE,
+      key: 'integration_credential',
+    });
+  }
+
+  decrypt(cipherText: string): string {
+    if (isLegacyCiphertextFormat(cipherText)) {
+      return this.decryptLegacy(cipherText);
+    }
+
+    const masterKey = this.getMasterKeyOrThrow();
+
+    return decryptV1String(cipherText, {
+      masterKey,
+      expectedScope: INTEGRATION_SECRET_SCOPE,
+    });
+  }
+
+  private tryLoadMasterKey(): Buffer | null {
+    const masterSecret = this.configService.get<string>('MASTER_SECRET_KEY');
+    if (!masterSecret) {
+      return null;
     }
 
     try {
-      this.encryptionKey = Buffer.from(keyHex, 'hex');
-      this.isInitialized = true;
-      this.logger.log('[SECURITY] AES-256-GCM Encryption initialisiert');
+      const parsedMasterKey = parseMasterSecretKey(masterSecret);
+      if (parsedMasterKey.length !== 32) {
+        this.logger.warn(`[SECURITY] MASTER_SECRET_KEY muss 32 Bytes ergeben (aktuell: ${parsedMasterKey.length}).`);
+        return null;
+      }
+
+      return parsedMasterKey;
     } catch (error) {
-      const errorMsg = '[SECURITY] Fehler beim Parsen des Encryption Keys. Generiere einen neuen Key mit: openssl rand -hex 32';
-      this.logger.error(errorMsg, error);
-      throw new Error(errorMsg);
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn(`[SECURITY] MASTER_SECRET_KEY ist ungültig und wird ignoriert: ${message}`);
+      return null;
     }
   }
 
-  /**
-   * Verschlüsselt einen Klartext-String mit AES-256-GCM.
-   *
-   * @param plainText - Der zu verschlüsselnde Klartext
-   * @returns Der verschlüsselte Text im Format `{iv}:{authTag}:{cipherText}` (Base64)
-   * @throws Error wenn Encryption nicht initialisiert oder Verschlüsselung fehlschlägt
-   */
-  encrypt(plainText: string): string {
-    this.ensureInitialized();
-
-    // IV generieren (16 bytes, kryptografisch sicher)
-    const iv = crypto.randomBytes(IV_LENGTH);
-    if (iv.length !== IV_LENGTH) {
-      throw new Error('[SECURITY] Failed to generate secure IV - PRNG entropy exhausted');
+  private decryptLegacy(cipherText: string): string {
+    if (!this.legacyKey) {
+      throw new Error('[SECURITY] Legacy-Ciphertext erkannt, aber INTEGRATION_ENCRYPTION_KEY ist nicht verfügbar.');
     }
 
-    // Cipher erstellen
-    const cipher = crypto.createCipheriv(ALGORITHM, this.encryptionKey!, iv);
-
-    // Verschlüsseln
-    const encrypted = Buffer.concat([cipher.update(plainText, 'utf8'), cipher.final()]);
-
-    // Auth Tag abrufen
-    const authTag = cipher.getAuthTag();
-
-    // Format: iv:authTag:cipherText (alle Base64)
-    return `${iv.toString('base64')}:${authTag.toString('base64')}:${encrypted.toString('base64')}`;
-  }
-
-  /**
-   * Entschlüsselt einen verschlüsselten String.
-   *
-   * @param cipherText - Der verschlüsselte Text im Format `{iv}:{authTag}:{cipherText}`
-   * @returns Der entschlüsselte Klartext
-   * @throws Error wenn Format ungültig, Key falsch oder Daten manipuliert wurden
-   */
-  decrypt(cipherText: string): string {
-    this.ensureInitialized();
-
-    // Format parsen: iv:authTag:encrypted
     const parts = cipherText.split(':');
     if (parts.length !== 3) {
-      throw new Error('Ungültiges verschlüsseltes Format (erwartet iv:authTag:cipherText)');
+      throw new Error('Ungültiges Legacy-Ciphertext-Format (erwartet iv:authTag:ciphertext)');
     }
 
-    const ivB64 = parts[0]!;
-    const authTagB64 = parts[1]!;
-    const encryptedB64 = parts[2]!;
+    const iv = Buffer.from(parts[0]!, 'base64');
+    const authTag = Buffer.from(parts[1]!, 'base64');
+    const encrypted = Buffer.from(parts[2]!, 'base64');
 
-    // Base64 dekodieren
-    const iv = Buffer.from(ivB64, 'base64');
-    const authTag = Buffer.from(authTagB64, 'base64');
-    const encrypted = Buffer.from(encryptedB64, 'base64');
-
-    // Längen validieren
-    if (iv.length !== IV_LENGTH) {
-      throw new Error(`Ungültige IV Länge (${iv.length} statt ${IV_LENGTH} bytes)`);
-    }
-    if (authTag.length !== AUTH_TAG_LENGTH) {
-      throw new Error(`Ungültige Auth-Tag Länge (${authTag.length} statt ${AUTH_TAG_LENGTH} bytes)`);
+    if (iv.length !== LEGACY_IV_LENGTH) {
+      throw new Error(`Ungültige Legacy-IV Länge (${iv.length} statt ${LEGACY_IV_LENGTH} bytes)`);
     }
 
-    // Decipher erstellen
-    const decipher = crypto.createDecipheriv(ALGORITHM, this.encryptionKey!, iv);
+    if (authTag.length !== LEGACY_AUTH_TAG_LENGTH) {
+      throw new Error(`Ungültige Legacy-Auth-Tag Länge (${authTag.length} statt ${LEGACY_AUTH_TAG_LENGTH} bytes)`);
+    }
+
+    const decipher = crypto.createDecipheriv(LEGACY_ALGORITHM, this.legacyKey, iv);
     decipher.setAuthTag(authTag);
 
-    // Entschlüsseln
     const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
-
     return decrypted.toString('utf8');
   }
 
-  /**
-   * Prüft ob die Encryption initialisiert ist.
-   *
-   * @throws Error wenn nicht initialisiert
-   */
-  private ensureInitialized(): void {
-    if (!this.isInitialized || !this.encryptionKey) {
-      throw new Error(
-        `Encryption nicht initialisiert - ${ENV_KEY_NAME} Umgebungsvariable fehlt oder ungültig. ` +
-          "Generiere einen Key mit: node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"",
-      );
+  private tryLoadLegacyKey(): Buffer | null {
+    const legacyKey = this.configService.get<string>(LEGACY_ENV_KEY_NAME);
+    if (!legacyKey) {
+      return null;
     }
+
+    if (legacyKey.length !== LEGACY_EXPECTED_KEY_LENGTH) {
+      this.logger.warn(`[SECURITY] ${LEGACY_ENV_KEY_NAME} hat ungültige Länge und wird ignoriert.`);
+      return null;
+    }
+
+    if (!/^[0-9a-fA-F]+$/.test(legacyKey)) {
+      this.logger.warn(`[SECURITY] ${LEGACY_ENV_KEY_NAME} enthält ungültige Zeichen und wird ignoriert.`);
+      return null;
+    }
+
+    return Buffer.from(legacyKey, 'hex');
+  }
+
+  private getMasterKeyOrThrow(): Buffer {
+    if (!this.masterKey) {
+      throw new Error('MASTER_SECRET_KEY ist nicht verfügbar. v1-Secret-Operation nicht möglich.');
+    }
+
+    return this.masterKey;
   }
 }

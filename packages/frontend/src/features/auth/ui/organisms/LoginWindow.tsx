@@ -56,7 +56,7 @@ export function LoginWindow(_props: Props) {
   const unifiedAuth = useUnifiedAuth();
   const logout = useLogout();
 
-  const { connectionMode, isLoading: healthLoading, isError: healthError, insecureMode } = useSystemHealth();
+  const { connectionMode, isLoading: healthLoading, isError: healthError } = useSystemHealth();
   const { frontendVersion, mismatchSeverity } = useSystemVersion();
 
   // Alle Hooks MUESSEN vor Early Returns aufgerufen werden (React Rules of Hooks)
@@ -286,7 +286,6 @@ export function LoginWindow(_props: Props) {
                 variant: 'default',
                 dotColor: STATUS_DOT_COLORS[indicatorStatus],
               },
-              ...(insecureMode ? [{ label: 'Unsicherer Modus', variant: 'warning' as const, dotColor: 'yellow' as const }] : []),
               ...(mismatchSeverity === 'critical' ? [{ label: 'Update erforderlich', variant: 'error' as const, dotColor: 'red' as const }] : []),
             ]}
             version={`v${frontendVersion}`}

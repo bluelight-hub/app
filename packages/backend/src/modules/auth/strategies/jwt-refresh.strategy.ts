@@ -1,5 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { AppConfigService } from '@/infrastructure/services/app-config.service';
 import { PassportStrategy } from '@nestjs/passport';
 import type { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -15,7 +15,7 @@ import type { JwtPayload, ValidatedUser } from './jwt.strategy';
 @Injectable()
 export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
   constructor(
-    configService: ConfigService,
+    appConfig: AppConfigService,
     private readonly authService: AuthService,
   ) {
     super({
@@ -25,7 +25,14 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
         },
       ]),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('JWT_REFRESH_SECRET') || 'fallback-refresh-secret',
+      secretOrKeyProvider: (_request: Request, _rawJwtToken: string, done: (err: unknown, secretOrKey?: string | Buffer) => void) => {
+        const secret = appConfig.get<string>('JWT_REFRESH_SECRET');
+        if (!secret || secret.trim().length === 0) {
+          done(new UnauthorizedException('JWT_REFRESH_SECRET not configured'));
+          return;
+        }
+        done(null, secret);
+      },
     });
   }
 

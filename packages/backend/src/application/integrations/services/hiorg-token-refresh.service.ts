@@ -27,6 +27,7 @@ import type { IHiOrgOAuthConfigPort } from '@domain/ports/i-hiorg-oauth-config.p
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { INTEGRATIONS, LOGGER } from '@infrastructure/di-tokens';
 import { HIORG_OAUTH_CONFIG } from '@/infrastructure/config/hiorg-oauth.config';
+import { isLegacyCiphertextFormat } from '@/infrastructure/security/master-key-crypto';
 
 /**
  * Ergebnis des Token-Refresh-Service.
@@ -128,6 +129,10 @@ export class HiOrgTokenRefreshService {
       return Result.fail(IntegrationError.format(INTEGRATION_ERROR_CODES.DECRYPTION_FAILED, 'OAuth2 Access-Token Entschlüsselung fehlgeschlagen'));
     }
 
+    if (!wasRefreshed) {
+      activeCredential = await this.reEncryptLegacyTokensIfNeeded(activeCredential, accessToken);
+    }
+
     return Result.ok({
       accessToken,
       credential: activeCredential,
@@ -207,5 +212,41 @@ export class HiOrgTokenRefreshService {
 
     // biome-ignore lint/style/noNonNullAssertion: Result Pattern - value existiert bei isSuccess
     return Result.ok(saveResult.value!);
+  }
+
+  private async reEncryptLegacyTokensIfNeeded(credential: IntegrationCredential, decryptedAccessToken: string): Promise<IntegrationCredential> {
+    const hasLegacyAccessToken = credential.encryptedAccessToken ? isLegacyCiphertextFormat(credential.encryptedAccessToken) : false;
+    const hasLegacyRefreshToken = credential.encryptedRefreshToken ? isLegacyCiphertextFormat(credential.encryptedRefreshToken) : false;
+
+    if (!hasLegacyAccessToken && !hasLegacyRefreshToken) {
+      return credential;
+    }
+
+    let encryptedRefreshToken: string | undefined;
+    if (credential.encryptedRefreshToken) {
+      try {
+        const refreshToken = this.encryption.decrypt(credential.encryptedRefreshToken);
+        encryptedRefreshToken = this.encryption.encrypt(refreshToken);
+      } catch {
+        // Falls Refresh-Token nicht entschlüsselbar ist, behalten wir den bisherigen Wert bei.
+        encryptedRefreshToken = undefined;
+      }
+    }
+
+    const updatedCredential = credential.updateOAuthTokens({
+      encryptedAccessToken: this.encryption.encrypt(decryptedAccessToken),
+      encryptedRefreshToken,
+      accessTokenExpiresAt: credential.accessTokenExpiresAt ?? new Date(Date.now() + 60 * 1000),
+      updatedBy: 'system:legacy-reencrypt',
+    });
+
+    const saveResult = await this.repository.save(updatedCredential);
+    if (saveResult.isFailure || !saveResult.value) {
+      this.logger.warn('Legacy-Re-Encryption konnte nicht persistiert werden');
+      return credential;
+    }
+
+    this.logger.log('Legacy-Token wurden idempotent auf v1 re-encrypted');
+    return saveResult.value;
   }
 }

@@ -8,6 +8,7 @@ import type { MigrateToSecureModeRequestDto, MigrateToSecureModeResponseDto } fr
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { SECURITY_ERROR_CODES } from '@/application/admin/errors/security-error.codes';
 import { ACCESS_TOKEN_ERROR_CODES } from '@/application/admin/errors/access-token-error.codes';
+import type { AppConfigService } from '@/infrastructure/services/app-config.service';
 
 /**
  * Unit Tests fuer AdminSecurityController.
@@ -40,6 +41,7 @@ describe('AdminSecurityController', () => {
   let controller: AdminSecurityController;
   let mockMigrateHandler: jest.Mocked<MigrateToSecureModeHandler>;
   let mockStatusHandler: jest.Mocked<GetSecurityStatusHandler>;
+  let mockAppConfig: jest.Mocked<AppConfigService>;
 
   // Standard-Erfolgsantwort fuer Mock (getStatus)
   const mockSecurityStatus: SecurityStatusDto = {
@@ -80,8 +82,21 @@ describe('AdminSecurityController', () => {
       // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
+    mockAppConfig = {
+      getConfigDoctorReport: jest.fn(() => ({
+        dbAvailable: true,
+        missingRequiredKeys: [],
+        activeEnvOverrides: [],
+        legacyEnvFallbackKeys: [],
+        decryptionErrors: [],
+        runtimeConfigCount: 0,
+        runtimeSecretCount: 0,
+      })),
+      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+    } as any;
+
     // Instantiate controller with mocks
-    controller = new AdminSecurityController(mockMigrateHandler, mockStatusHandler);
+    controller = new AdminSecurityController(mockMigrateHandler, mockStatusHandler, mockAppConfig);
   });
 
   // ══════════════════════════════════════════════════════════════════════════════

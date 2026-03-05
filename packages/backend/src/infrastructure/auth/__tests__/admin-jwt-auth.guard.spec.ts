@@ -4,9 +4,9 @@ import { UserRole } from '@/generated/prisma/client';
 import type { Request } from 'express';
 import { AdminJwtStrategy, type AdminJwtPayload, type ValidatedAdminUser } from '@/modules/auth/strategies/admin-jwt.strategy';
 import { AuthService } from '@/modules/auth/auth.service';
-import { ConfigService } from '@nestjs/config';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@infrastructure/di-tokens';
+import { AppConfigService } from '@/infrastructure/services/app-config.service';
 
 /**
  * Unit Tests für AdminJwtStrategy (via AdminJwtAuthGuard).
@@ -46,7 +46,7 @@ import { LOGGER } from '@infrastructure/di-tokens';
 describe('AdminJwtStrategy (via AdminJwtAuthGuard)', () => {
   let strategy: AdminJwtStrategy;
   let mockAuthService: jest.Mocked<AuthService>;
-  let mockConfigService: jest.Mocked<ConfigService>;
+  let mockAppConfig: jest.Mocked<AppConfigService>;
   let mockLogger: jest.Mocked<ILogger>;
 
   const TEST_ADMIN_SECRET = 'test-admin-jwt-secret';
@@ -69,12 +69,10 @@ describe('AdminJwtStrategy (via AdminJwtAuthGuard)', () => {
       refreshToken: jest.fn(),
     } as jest.Mocked<AuthService>;
 
-    mockConfigService = {
+    mockAppConfig = {
       get: jest.fn().mockReturnValue(TEST_ADMIN_SECRET),
       getOrThrow: jest.fn().mockReturnValue(TEST_ADMIN_SECRET),
-      // Vollständige ConfigService Mock-Type-Definition
-      set: jest.fn(),
-    } as jest.Mocked<ConfigService>;
+    } as unknown as jest.Mocked<AppConfigService>;
 
     // Setup Logger Mock
     mockLogger = {
@@ -85,7 +83,7 @@ describe('AdminJwtStrategy (via AdminJwtAuthGuard)', () => {
     } as unknown as jest.Mocked<ILogger>;
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [AdminJwtStrategy, { provide: AuthService, useValue: mockAuthService }, { provide: ConfigService, useValue: mockConfigService }, { provide: LOGGER, useValue: mockLogger }],
+      providers: [AdminJwtStrategy, { provide: AuthService, useValue: mockAuthService }, { provide: AppConfigService, useValue: mockAppConfig }, { provide: LOGGER, useValue: mockLogger }],
     }).compile();
 
     strategy = module.get<AdminJwtStrategy>(AdminJwtStrategy);
