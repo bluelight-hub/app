@@ -1,3 +1,17 @@
+## Einsatz-Verwaltung
+
+- **Berechtigung für Einsatz-Änderungen**: Nur Einsatz-Ersteller, aktive Mitglieder und Führungskräfte können jetzt Einsätze bearbeiten – unbefugte Zugriffe werden verhindert
+- **Beitritts-Dialog**: Der automatische Beitritts-Dialog wird nun korrekt aktualisiert, wenn zwischen verschiedenen Einsätzen gewechselt wird
+- **ETB-Zugriff**: ETB-Daten werden erst geladen, nachdem die Teilnahme am Einsatz bestätigt wurde
+
+## Erinnerungen
+
+- **API-Anbindung modernisiert**: Die Erinnerungskonfiguration nutzt jetzt durchgängig die neue, typsichere API-Schnittstelle
+
+## Einrichtung & Benutzerverwaltung
+
+- **Robustere Benutzeranlage**: Fehler bei doppelten Benutzernamen während der Ersteinrichtung werden jetzt sauber abgefangen und mit klaren Meldungen angezeigt
+
 ## 🔒 Sicherheit & Konfiguration
 
 - **Verbesserte CORS-Sicherheit**: Die Handhabung von Cross-Origin-Anfragen wurde überarbeitet und gehärtet. Ursprünge werden nun zentral geprüft und nur noch explizit erlaubte Domains zugelassen.
