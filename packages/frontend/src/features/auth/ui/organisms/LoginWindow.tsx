@@ -1,10 +1,11 @@
-import { AUTH_KEYS, useCurrentUser, useUnifiedAuth, useLogout } from '@/features/auth';
+import { AUTH_KEYS, consumeRedirectAfterLogin, useCurrentUser, useUnifiedAuth, useLogout } from '@/features/auth';
 import { useRequireServer, useServerList, useActiveServer, useServerListHealth } from '@/features/server/hooks';
 import { setActiveServer, removeServer } from '@/features/server/stores/server.store';
 import { serverStore } from '@/features/server/stores/server.store';
 import { ServerSelector } from '@/features/server/ui/molecules';
 import { getIndicatorStatus, STATUS_DOT_COLORS, STATUS_LABELS, useSystemHealth, useSystemVersion } from '@/features/system';
 import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
+import { getRedirectFromSearch, sanitizeInternalRedirectPath } from '@/shared/lib/navigation/router-redirect';
 import { Heading } from '@/shared/ui/atoms/heading.atom';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { Text } from '@/shared/ui/atoms/text.atom';
@@ -17,7 +18,7 @@ import type { AuthRequestDto } from '@/shared';
 import { useNavigate } from '@tanstack/react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useStore } from '@tanstack/react-store';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { UnifiedAuthForm } from './UnifiedAuthForm';
 
@@ -51,8 +52,9 @@ export function LoginWindow(_props: Props) {
   const [isDeleting, setIsDeleting] = useState(false);
   // Issue 7 Fix: Loading-State beim Server-Wechsel um Race Conditions zu verhindern
   const [isSwitching, setIsSwitching] = useState(false);
+  const redirectTargetRef = useRef<string | null>(null);
 
-  const { user, isLoading } = useCurrentUser();
+  const { user, authStatus } = useCurrentUser();
   const unifiedAuth = useUnifiedAuth();
   const logout = useLogout();
 
@@ -182,6 +184,28 @@ export function LoginWindow(_props: Props) {
     setServerToDelete(null);
   }, []);
 
+  const resolveRedirectTarget = useCallback((fallbackTarget: string): string => {
+    if (redirectTargetRef.current) {
+      return redirectTargetRef.current;
+    }
+
+    const redirectFromSearch = getRedirectFromSearch(window.location.search);
+    if (redirectFromSearch) {
+      consumeRedirectAfterLogin();
+      redirectTargetRef.current = redirectFromSearch;
+      return redirectFromSearch;
+    }
+
+    const redirectFromStore = sanitizeInternalRedirectPath(consumeRedirectAfterLogin());
+    if (redirectFromStore) {
+      redirectTargetRef.current = redirectFromStore;
+      return redirectFromStore;
+    }
+
+    redirectTargetRef.current = fallbackTarget;
+    return fallbackTarget;
+  }, []);
+
   const handleAuth = useCallback(
     (authData: AuthRequestDto) => {
       unifiedAuth.mutate(authData, {
@@ -197,8 +221,6 @@ export function LoginWindow(_props: Props) {
           await queryClient.refetchQueries({
             queryKey: AUTH_KEYS.auth.queries.authCheck,
           });
-
-          await navigate({ to: '/' });
         },
         onError: async (error: Error) => {
           const message = await getApiErrorMessage(error, 'Ein unerwarteter Fehler ist aufgetreten.', 'userAuth');
@@ -209,14 +231,15 @@ export function LoginWindow(_props: Props) {
         },
       });
     },
-    [unifiedAuth, navigate, queryClient],
+    [unifiedAuth, queryClient],
   );
 
   useEffect(() => {
-    if (!isLoading && user) {
-      void navigate({ to: '/' });
+    if (authStatus === 'authenticated' && user) {
+      const redirectTarget = resolveRedirectTarget('/');
+      void navigate({ to: redirectTarget as never, replace: true });
     }
-  }, [isLoading, user, navigate]);
+  }, [authStatus, user, navigate, resolveRedirectTarget]);
 
   // Early Returns NACH allen Hooks
   // H7: Loading-State während Server-Store Hydration ODER wenn kein Server (Redirect pending)

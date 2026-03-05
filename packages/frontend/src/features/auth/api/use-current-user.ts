@@ -40,6 +40,9 @@ interface AuthCheckResponse {
   isAdminAuthenticated?: boolean;
 }
 
+export type AuthStatus = 'pending' | 'authenticated' | 'unauthenticated';
+export type AdminSessionStatus = 'pending' | 'authenticated' | 'unauthenticated';
+
 export const useCurrentUser = () => {
   // Warte auf Server-Store-Hydration bevor API-Calls gemacht werden
   // Verhindert Race Condition: API-Call → 401 Token Error → Redirect zu /server/setup
@@ -75,7 +78,7 @@ export const useCurrentUser = () => {
   const authData = authCheckQuery.data;
 
   // Admin-Status nur für eingeloggte Admins abfragen
-  const isAdmin = !!authData?.user && authData.user.role?.includes('ADMIN');
+  const isAdminRole = !!authData?.user?.role && ['ADMIN', 'SUPER_ADMIN'].includes(authData.user.role);
 
   const adminStatusQuery = useQuery({
     queryKey: AUTH_KEYS.auth.queries.adminStatus,
@@ -86,18 +89,44 @@ export const useCurrentUser = () => {
       return json as { adminSetupAvailable?: boolean };
     },
     staleTime: milliseconds({ seconds: 30 }),
-    refetchInterval: isAdmin ? milliseconds({ seconds: 30 }) : false,
+    refetchInterval: isAdminRole ? milliseconds({ seconds: 30 }) : false,
     throwOnError: false,
     refetchOnWindowFocus: true,
     retry: false,
-    enabled: isAdmin,
+    enabled: isAdminRole,
   });
+
+  const isAuthPending = !isServerReady || authCheckQuery.isPending;
+
+  const authStatus: AuthStatus = isAuthPending ? 'pending' : authData?.authenticated && !!authData.user ? 'authenticated' : 'unauthenticated';
+
+  const adminSessionStatus: AdminSessionStatus = authStatus === 'pending' ? 'pending' : authData?.isAdminAuthenticated ? 'authenticated' : 'unauthenticated';
+
+  const isResolved = authStatus !== 'pending';
+
+  // isLoading bleibt für bestehende Consumer kompatibel
+  const isLoading = isAuthPending || (isAdminRole && adminStatusQuery.isPending);
 
   return {
     /**
      * Loading-State (AuthCheck oder AdminStatus lädt)
      */
-    isLoading: authCheckQuery.isLoading || adminStatusQuery.isLoading,
+    isLoading,
+
+    /**
+     * Eindeutiger Auth-Status für Guard-Entscheidungen
+     */
+    authStatus,
+
+    /**
+     * Eindeutiger Admin-Session-Status
+     */
+    adminSessionStatus,
+
+    /**
+     * true sobald Auth-Status nicht mehr pending ist
+     */
+    isResolved,
 
     /**
      * Aktuell eingeloggter Benutzer (null wenn nicht eingeloggt)
@@ -142,13 +171,13 @@ export const useCurrentUser = () => {
  * ```
  */
 export const useAdminAuth = () => {
-  const { user, isAdminAuthenticated, isLoading } = useCurrentUser();
+  const { user, isAdminAuthenticated, isLoading, authStatus, adminSessionStatus, isResolved } = useCurrentUser();
 
-  // isAdmin prüft sowohl Admin-Auth als auch die Rolle
-  const isAdmin = isAdminAuthenticated && user?.role && ['ADMIN', 'SUPER_ADMIN'].includes(user.role);
+  // isAdmin prüft sowohl Admin-Session als auch die Rolle
+  const isAdmin = adminSessionStatus === 'authenticated' && !!user?.role && ['ADMIN', 'SUPER_ADMIN'].includes(user.role);
 
   // hasAdminSession prüft nur ob Admin-Token vorhanden ist (unabhängig von der Rolle)
-  const hasAdminSession = isAdminAuthenticated;
+  const hasAdminSession = adminSessionStatus === 'authenticated';
 
   return {
     /**
@@ -170,6 +199,21 @@ export const useAdminAuth = () => {
      * Loading-State
      */
     isLoading,
+
+    /**
+     * Eindeutiger Auth-Status
+     */
+    authStatus,
+
+    /**
+     * Eindeutiger Admin-Session-Status
+     */
+    adminSessionStatus,
+
+    /**
+     * true sobald Auth-Status aufgeloest ist
+     */
+    isResolved,
 
     /**
      * Aktueller User

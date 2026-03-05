@@ -1,4 +1,6 @@
-import { useCurrentUser, useAdminAuth } from '@/features/auth';
+import { useCurrentUser } from '@/features/auth';
+import { setRedirectAfterLogin } from '@/features/auth/stores/auth.store';
+import { getCurrentPathWithQueryAndHash, sanitizeInternalRedirectPath } from '@/shared/lib/navigation/router-redirect';
 import { logger } from '@/shared/lib/logger';
 import { CloseButton } from '@/shared/ui/atoms/close-button.atom';
 import { Container } from '@/shared/ui/atoms/container.atom';
@@ -19,12 +21,15 @@ import { PiArrowLeft } from 'react-icons/pi';
 export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useCurrentUser();
-  const { hasAdminSession, isLoading } = useAdminAuth();
+  const { user, authStatus, adminSessionStatus } = useCurrentUser();
+
+  const redirectTarget = useMemo(() => {
+    return sanitizeInternalRedirectPath(getCurrentPathWithQueryAndHash(location.pathname)) ?? '/';
+  }, [location.pathname]);
 
   // Prüfe Admin-Authentifizierung
   useEffect(() => {
-    if (isLoading) return;
+    if (authStatus === 'pending' || adminSessionStatus === 'pending') return;
 
     const isSetupPage = location.pathname.includes('/admin/setup');
 
@@ -32,7 +37,9 @@ export function AdminLayout() {
       return;
     }
 
-    if (!hasAdminSession) {
+    if (adminSessionStatus !== 'authenticated') {
+      setRedirectAfterLogin(redirectTarget);
+
       const handleNoAdminSession = async () => {
         if (isTauri()) {
           const { isInAdminWindow } = await import('@/services/windowService');
@@ -55,16 +62,28 @@ export function AdminLayout() {
         // Wir sind im Hauptfenster oder Browser
         if (user) {
           // Benutzer eingeloggt aber keine Admin-Session - zu Admin-Login
-          void navigate({ to: '/admin-login' });
+          void navigate({
+            to: '/admin-login',
+            search: {
+              redirect: redirectTarget,
+            },
+            replace: true,
+          });
         } else {
-          // Kein Benutzer eingeloggt - zur Startseite
-          void navigate({ to: '/' });
+          // Kein Benutzer eingeloggt - zu Login mit Redirect-Ziel
+          void navigate({
+            to: '/auth',
+            search: {
+              redirect: redirectTarget,
+            },
+            replace: true,
+          });
         }
       };
 
       void handleNoAdminSession();
     }
-  }, [isLoading, hasAdminSession, user, location.pathname, navigate]);
+  }, [authStatus, adminSessionStatus, user, location.pathname, navigate, redirectTarget]);
 
   // Hole Meta-Daten aus der aktuellen Route
   const routerState = useRouterState();
@@ -105,6 +124,7 @@ export function AdminLayout() {
   }, [navigate]);
 
   const matchRoute = useMatchRoute();
+  const isGuardPending = authStatus === 'pending' || adminSessionStatus === 'pending';
 
   return (
     <Container maxWidth="6xl" className="px-0 py-8">
@@ -131,7 +151,7 @@ export function AdminLayout() {
 
         {/* Content der jeweiligen Admin-Seite */}
         <div>
-          {isLoading ? (
+          {isGuardPending ? (
             <div className="flex flex-col items-center gap-4 py-12">
               <Spinner size="xl" />
               <p className="text-gray-600 text-lg dark:text-gray-400">Authentifizierung wird geprüft...</p>

@@ -16,6 +16,9 @@ export * from './url.util';
 // Error Handling
 export * from './errors';
 
+// Navigation Utilities
+export * from './navigation/router-redirect';
+
 // Storage Utilities
 export * from './storage';
 

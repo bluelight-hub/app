@@ -1,4 +1,5 @@
 import { logger } from '@/shared/lib/logger';
+import { getCurrentPathWithQueryAndHash, redirectWithRouter, sanitizeInternalRedirectPath } from '@/shared/lib/navigation/router-redirect';
 import { isSetupRedirectInProgress } from '@/shared/lib/server-access-token';
 import type { FetchError, ResponseError } from '@/shared';
 import { toast } from 'sonner';
@@ -264,6 +265,7 @@ export async function handleQueryError(error: unknown, _query?: unknown): Promis
       // Check if we're on pages that handle auth themselves
       const isOnAuthPage = window.location.pathname.startsWith('/auth');
       const isOnServerSetup = window.location.pathname.startsWith('/server/setup');
+      const redirectTarget = sanitizeInternalRedirectPath(getCurrentPathWithQueryAndHash()) ?? '/';
 
       // On server setup page, don't redirect - the page handles token errors itself
       if (isOnServerSetup) {
@@ -282,7 +284,11 @@ export async function handleQueryError(error: unknown, _query?: unknown): Promis
           // Delay redirect to avoid race conditions with other failing queries
           setTimeout(() => {
             if (!tokenRefreshQueue.getIsRefreshing()) {
-              window.location.href = '/auth';
+              void redirectWithRouter({
+                to: '/auth',
+                search: { redirect: redirectTarget },
+                replace: true,
+              });
             }
           }, 100);
         }
@@ -306,7 +312,11 @@ export async function handleQueryError(error: unknown, _query?: unknown): Promis
 
       // Small delay to let the toast show
       setTimeout(() => {
-        window.location.href = '/auth';
+        void redirectWithRouter({
+          to: '/auth',
+          search: { redirect: redirectTarget },
+          replace: true,
+        });
       }, 500);
       return;
     }
