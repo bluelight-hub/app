@@ -1,16 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getBaseUrl } from '@/shared/api/api';
-import { fetchWithRefresh } from '@/shared/api/fetchWithRefresh';
-
-// Temporary local DTOs until API generation works
-export interface ErinnerungKonfigurationDto {
-  eskalationsTimeoutSeconds: number;
-  eskalationsTimeoutMinutes: number;
-}
-
-export interface UpdateEskalationsTimeoutDto {
-  timeoutMinutes: number;
-}
+import { api } from '@/shared';
+import type { ErinnerungKonfigurationDto, UpdateEskalationsTimeoutDto } from '@bluelight-hub/shared/client';
 
 const QUERY_KEY = ['erinnerung-konfiguration'];
 
@@ -18,13 +8,8 @@ export function useErinnerungKonfiguration() {
   const queryClient = useQueryClient();
 
   const fetchConfig = async (): Promise<ErinnerungKonfigurationDto> => {
-    // TODO: Refactor to generated client once api is regenerated
-    const url = `${getBaseUrl()}/api/v-alpha/erinnerung/config`;
-    const response = await fetchWithRefresh(url);
-
-    if (!response.ok) throw new Error('Failed to fetch config');
-    const json = await response.json();
-    return json;
+    const response = await api.erinnerung().erinnerungKonfigurationControllerGetConfigVAlpha();
+    return response.data;
   };
 
   const query = useQuery({
@@ -34,16 +19,9 @@ export function useErinnerungKonfiguration() {
 
   const updateTimeoutMutation = useMutation({
     mutationFn: async (dto: UpdateEskalationsTimeoutDto) => {
-      // TODO: Refactor to generated client once api is regenerated
-      const url = `${getBaseUrl()}/api/v-alpha/erinnerung/config/timeout`;
-      const response = await fetchWithRefresh(url, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(dto),
+      await api.erinnerung().erinnerungKonfigurationControllerUpdateTimeoutVAlpha({
+        updateEskalationsTimeoutDto: dto,
       });
-      if (!response.ok) throw new Error('Failed to update timeout');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
