@@ -66,7 +66,7 @@ describe('useCurrentUser', () => {
     mockUseStore.mockImplementation((_store: unknown, selector: (state: typeof serverState) => unknown) => selector(serverState));
   });
 
-  it('liefert pending, wenn der Server-Store noch nicht bereit ist', () => {
+  it('liefert pending, wenn die Server-Hydration noch läuft', () => {
     mockQueryPair({}, {});
 
     const { result } = renderHook(() => useCurrentUser());
@@ -75,6 +75,33 @@ describe('useCurrentUser', () => {
     expect(result.current.adminSessionStatus).toBe('pending');
     expect(result.current.isResolved).toBe(false);
     expect(result.current.isLoading).toBe(true);
+  });
+
+  it('liefert unauthenticated, wenn hydriert aber kein aktiver Server gesetzt ist', () => {
+    serverState.isHydrated = true;
+    serverState.activeServerId = null;
+
+    mockQueryPair(
+      {
+        data: {
+          authenticated: true,
+          isAdminAuthenticated: true,
+          user: {
+            id: 'stale-user',
+            username: 'stale',
+            role: 'ADMIN',
+          },
+        },
+      },
+      {},
+    );
+
+    const { result } = renderHook(() => useCurrentUser());
+
+    expect(result.current.authStatus).toBe('unauthenticated');
+    expect(result.current.adminSessionStatus).toBe('unauthenticated');
+    expect(result.current.isResolved).toBe(true);
+    expect(result.current.isLoading).toBe(false);
   });
 
   it('liefert authenticated und admin authenticated bei erfolgreicher Session', () => {
