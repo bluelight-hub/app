@@ -42,7 +42,7 @@ function parseArgs(argv) {
 }
 
 function collectCommitShas(range) {
-  const output = runGit(['rev-list', '--reverse', range]);
+  const output = runGit(['rev-list', '--reverse', '--no-merges', range]);
   if (!output) {
     return [];
   }
@@ -66,7 +66,7 @@ async function main() {
   const shas = collectCommitShas(range);
 
   if (shas.length === 0) {
-    console.log(`✅ Keine Commits im Range ${range} gefunden.`);
+    console.log(`✅ Keine nicht-Merge-Commits im Range ${range} gefunden.`);
     return;
   }
 
