@@ -10,7 +10,7 @@ import { EtbTextInput } from './EtbTextInput';
 import { EtbAbsenderInput } from './EtbAbsenderInput';
 import { useEtbFormLogic } from '../../hooks/useEtbFormLogic';
 import { useForm } from '@tanstack/react-form';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -256,54 +256,96 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
       className={className}
     >
       <div className="space-y-4">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <form.Field name="kategorie">
-            {(field) => (
-              <EtbKategorieSelect
-                value={field.state.value as AddEintragDtoKategorieEnum}
-                onChange={(value) => {
-                  field.handleChange(value);
-                  setSelectedTextbaustein('');
-                }}
-                error={field.state.meta.errors?.[0]?.message}
-              />
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
+          <div className="space-y-4">
+            {!editingEntry && (
+              <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                <p className="mb-3 font-medium text-gray-900 text-sm dark:text-gray-100">1. Kommunikationsweg festlegen</p>
+                <form.Subscribe selector={(state) => ({ absender: state.values.absender, empfaenger: state.values.empfaenger })}>
+                  {({ absender, empfaenger }) => (
+                    <EtbAbsenderInput
+                      absenderValue={absender || ''}
+                      empfaengerValue={empfaenger || ''}
+                      onAbsenderChange={(value: string) => form.setFieldValue('absender', value)}
+                      onEmpfaengerChange={(value: string) => form.setFieldValue('empfaenger', value)}
+                      absenderSuggestions={funkrufnameVorschlaege}
+                      empfaengerSuggestions={funkrufnameVorschlaege}
+                    />
+                  )}
+                </form.Subscribe>
+              </div>
             )}
-          </form.Field>
 
-          <EtbTextbausteinSelect kategorie={selectedKategorie} value={selectedTextbaustein} onChange={handleTextbausteinChange} textbausteine={filteredTextbausteine(selectedKategorie)} />
-        </div>
+            <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+              <p className="mb-3 font-medium text-gray-900 text-sm dark:text-gray-100">2. Kontext auswählen</p>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <form.Field name="kategorie">
+                  {(field) => (
+                    <EtbKategorieSelect
+                      value={field.state.value as AddEintragDtoKategorieEnum}
+                      onChange={(value) => {
+                        field.handleChange(value);
+                        setSelectedTextbaustein('');
+                      }}
+                      error={field.state.meta.errors?.[0]?.message}
+                    />
+                  )}
+                </form.Field>
 
-        {/* Absender/Empfänger Felder (nur beim Erstellen neuer Einträge) */}
-        {!editingEntry && (
-          <form.Subscribe selector={(state) => ({ absender: state.values.absender, empfaenger: state.values.empfaenger })}>
-            {({ absender, empfaenger }) => (
-              <EtbAbsenderInput
-                absenderValue={absender || ''}
-                empfaengerValue={empfaenger || ''}
-                onAbsenderChange={(value: string) => form.setFieldValue('absender', value)}
-                onEmpfaengerChange={(value: string) => form.setFieldValue('empfaenger', value)}
-                absenderSuggestions={funkrufnameVorschlaege}
-                empfaengerSuggestions={funkrufnameVorschlaege}
-              />
-            )}
-          </form.Subscribe>
-        )}
+                <EtbTextbausteinSelect kategorie={selectedKategorie} value={selectedTextbaustein} onChange={handleTextbausteinChange} textbausteine={filteredTextbausteine(selectedKategorie)} />
+              </div>
+            </div>
 
-        {/* Preview Banner */}
-        {pendingTextbaustein && <EtbTextbausteinPreview text={pendingTextbaustein.text} onApply={applyPendingTextbaustein} onCancel={cancelPendingTextbaustein} />}
+            {pendingTextbaustein && <EtbTextbausteinPreview text={pendingTextbaustein.text} onApply={applyPendingTextbaustein} onCancel={cancelPendingTextbaustein} />}
 
-        <form.Field name="text">
-          {(field) => (
-            <EtbTextInput
-              value={field.state.value}
-              onChange={field.handleChange}
-              onBlur={field.handleBlur}
-              onSubmit={() => form.handleSubmit()}
-              error={field.state.meta.errors?.[0]?.message}
-              maxLength={2000}
-            />
+            <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+              <p className="mb-3 font-medium text-gray-900 text-sm dark:text-gray-100">3. Eintrag formulieren</p>
+              <form.Field name="text">
+                {(field) => (
+                  <EtbTextInput
+                    value={field.state.value}
+                    onChange={field.handleChange}
+                    onBlur={field.handleBlur}
+                    onSubmit={() => form.handleSubmit()}
+                    error={field.state.meta.errors?.[0]?.message}
+                    maxLength={2000}
+                  />
+                )}
+              </form.Field>
+            </div>
+          </div>
+
+          {!editingEntry && (
+            <form.Subscribe selector={(state) => ({ text: state.values.text, absender: state.values.absender, empfaenger: state.values.empfaenger, kategorie: state.values.kategorie })}>
+              {({ text, absender, empfaenger, kategorie }) => {
+                const items = [
+                  { label: 'Absender', done: !!absender?.trim() },
+                  { label: 'Empfänger', done: !!empfaenger?.trim() },
+                  { label: 'Kategorie', done: !!kategorie },
+                  { label: 'Text', done: !!text?.trim() },
+                ];
+                const completed = items.filter((item) => item.done).length;
+                return (
+                  <aside className="h-fit rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/40">
+                    <p className="font-medium text-gray-900 text-sm dark:text-gray-100">Ablaufstatus</p>
+                    <p className="mt-1 text-gray-600 text-xs dark:text-gray-400">
+                      {completed}/{items.length} Felder ausgefüllt
+                    </p>
+                    <ul className="mt-3 space-y-2 text-sm">
+                      {items.map((item) => (
+                        <li key={item.label} className="flex items-center justify-between rounded-md bg-white px-2.5 py-1.5 dark:bg-gray-800">
+                          <span className="text-gray-700 dark:text-gray-200">{item.label}</span>
+                          <span className={item.done ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500'}>{item.done ? 'Erfasst' : 'Offen'}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="mt-3 text-gray-500 text-xs dark:text-gray-400">Shortcut: Strg/Cmd + Enter speichert direkt.</p>
+                  </aside>
+                );
+              }}
+            </form.Subscribe>
           )}
-        </form.Field>
+        </div>
 
         <form.Subscribe
           selector={(state) => ({
