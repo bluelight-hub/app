@@ -165,16 +165,23 @@ import { CreateEinsatzCommand } from './create-einsatz.command';
 
 ### 5.2 Emojis
 
-| Emoji | Typ | Release |
-|-------|-----|---------|
-| ✨ | Feature | Minor |
-| 🐛 | Fix | Patch |
-| 🚑 | Hotfix | Patch |
-| 💥 | Breaking | Major |
-| ♻️ | Refactor | Patch |
-| 📝 | Docs | - |
-| 🧪 | Test | - |
-| 🔧 | Config | - |
+Erlaubte Emojis kommen ausschließlich aus der offiziellen Gitmoji-Quelle:
+
+- `https://raw.githubusercontent.com/carloscuesta/gitmoji/master/packages/gitmojis/src/gitmojis.json`
+
+Im Repository wird diese Liste lokal als Snapshot gepflegt:
+
+- `scripts/gitmojis.snapshot.json`
+
+Nützliche Befehle:
+
+```bash
+# Snapshot mit offizieller Quelle synchronisieren
+pnpm gitmoji:sync
+
+# Prüfen, ob der Snapshot aktuell ist (Exit-Code 1 bei Drift)
+pnpm gitmoji:check
+```
 
 ### 5.3 Beispiele
 

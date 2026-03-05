@@ -1,34 +1,28 @@
 <!-- Single Source of Truth for commit conventions. Referenced by /commit and /commit-push-pr -->
-<!-- Authoritative format defined in CLAUDE.md → Commit Format section -->
+<!-- Authoritative format defined in repository docs and enforced by .husky/commit-msg -->
 
 Format: `<emoji>(<context>): <title>`
 
-| Emoji | Type | Semver |
-|-------|------|--------|
-| 💥 | Breaking Changes | Major |
-| ✨ | New Features | Minor |
-| 🐛 | Bug Fixes | Patch |
-| 🚑 | Critical Hotfixes | Patch |
-| 🔒 | Security Fixes | Patch |
-| ♻️ | Code Refactoring | - |
-| 🔧 | Configuration | - |
-| 📝 | Documentation | - |
-| ✅ | Tests | - |
-| 🎨 | UI/Style Updates | - |
-| ⚡ | Performance | - |
-| 👷 | CI/CD Changes | - |
-| 🔨 | Build/Dev Tools | - |
-| 🚧 | Work in Progress | - |
-| ⏪ | Revert Changes | - |
-| 🔖 | Release | - |
+Emoji Source of Truth:
+- Allowed emojis are defined by `scripts/gitmojis.snapshot.json`.
+- The snapshot is synced from:
+  `https://raw.githubusercontent.com/carloscuesta/gitmoji/master/packages/gitmojis/src/gitmojis.json`
+- Sync/update command: `pnpm gitmoji:sync`
+- Drift check command: `pnpm gitmoji:check`
+- Validation is enforced by `.husky/commit-msg` via `scripts/gitmoji-commit-validator.mjs`.
+
+Release note:
+- Not every allowed gitmoji triggers a semantic-release bump.
+- Current release bump mapping is intentionally defined in `.releaserc.js`.
 
 Context mapping: frontend, backend, shared, db, auth, api, config, docs, tests, ci, release, docker
 
 Rules:
 - English commit messages, imperative mood ("Add" not "Added")
 - Title: 50-72 characters
+- Emoji must exist in `scripts/gitmojis.snapshot.json`
 - NEVER use `--no-verify` or `HUSKY=0`
 - NEVER create empty commits
 - NEVER commit secrets, API keys, or credentials
 - If pre-commit hooks fail: fix the issue and create a NEW commit (NEVER --amend the previous one)
-- Footer always includes Claude attribution
+- Footer always includes Codex attribution

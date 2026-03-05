@@ -1,7 +1,5 @@
 #!/bin/bash
-
-# Git Hook für Commit-Message Validation
-# Basierend auf 030-commit-rules
+set -euo pipefail
 
 COMMIT_MSG_FILE=$1
 COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
@@ -11,36 +9,15 @@ if echo "$COMMIT_MSG" | grep -q "\[skip ci\]"; then
     exit 0
 fi
 
-# Emoji-Pattern für erlaubte Commit-Typen
-EMOJI_PATTERN="^(💥|✨|🐛|🚑|🔒|🧹|♻️|🔧|📦|📝|💄|⚡|🗑|🛠|🚀|🎉|🧪)\([a-zA-Z0-9-]+\): .+"
-
-# Zähle Zeilen (ignoriere leere Zeilen am Ende)
-LINE_COUNT=$(echo "$COMMIT_MSG" | sed '/^$/d' | wc -l | tr -d ' ')
-
 echo "🔍 Validiere Commit-Nachricht..."
+
+LINE_COUNT=$(grep -cve '^[[:space:]]*$' "$COMMIT_MSG_FILE" || true)
 echo "📏 Anzahl Zeilen: $LINE_COUNT"
 
-# Prüfe Grundformat
-if ! echo "$COMMIT_MSG" | head -n1 | grep -qE "$EMOJI_PATTERN"; then
-    echo "❌ FEHLER: Commit-Nachricht entspricht nicht dem Format!"
-    echo "📋 Erwartetes Format: <emoji>(<context>): <kurze Beschreibung>"
-    echo "📚 Siehe .cursor/rules/030-commit-rules.mdc für Details"
-    echo ""
-    echo "📝 Erlaubte Emojis:"
-    echo "   💥 Breaking Changes    ✨ Neue Features      🐛 Bug Fixes         🚑 Hotfixes"
-    echo "   🔒 Security           🧹 Cleanup           ♻️  Refactoring       🔧 Configuration"
-    echo "   📦 Dependencies       📝 Documentation     💄 Styling/UI        ⚡ Performance"
-    echo "   🗑 Removal            🛠 Tooling           🚀 Deployment        🎉 Initial Commit"
-    echo "   🧪 Tests"
-    echo ""
-    echo "🔧 Beispiele:"
-    echo "   ✨(frontend): Neue Benutzeroberfläche für Dashboard"
-    echo "   🐛(backend): Korrigiere Auth-Fehler bei OAuth-Anmeldung"
-    echo "   🔧(config): Aktualisiere ESLint-Konfiguration"
+if ! node scripts/gitmoji-commit-validator.mjs --file "$COMMIT_MSG_FILE"; then
     exit 1
 fi
 
-# Prüfe ob Commit mehrzeilig ist (mindestens 3 Zeilen für substantielle Commits)
 if [ "$LINE_COUNT" -lt 3 ]; then
     echo "⚠️  WARNUNG: Einzeilige Commit-Nachricht erkannt!"
     echo "📋 Für substantielle Änderungen sind mehrzeilige Commits erwünscht:"
@@ -53,31 +30,15 @@ if [ "$LINE_COUNT" -lt 3 ]; then
     echo ""
     echo "🤔 Ist dies wirklich nur eine triviale Änderung?"
     echo "💡 Für komplexe Änderungen verwende: git commit (ohne -m) oder erstelle commit-message.txt"
-    echo ""
-    echo "⏭️  Trotzdem fortfahren? (Enter=Ja, Ctrl+C=Abbruch)"
-    read -r
-fi
 
-# Prüfe erste Zeile Länge
-FIRST_LINE=$(echo "$COMMIT_MSG" | head -n1)
-FIRST_LINE_LENGTH=${#FIRST_LINE}
-
-if [ "$FIRST_LINE_LENGTH" -gt 72 ]; then
-    echo "❌ FEHLER: Erste Zeile zu lang ($FIRST_LINE_LENGTH Zeichen, max. 72)"
-    echo "📏 Erste Zeile: $FIRST_LINE"
-    echo "💡 Verschiebe Details in nachfolgende Zeilen"
-    exit 1
+    if [ -t 0 ]; then
+        echo ""
+        echo "⏭️  Trotzdem fortfahren? (Enter=Ja, Ctrl+C=Abbruch)"
+        read -r
+    else
+        echo "ℹ️  Nicht-interaktive Umgebung erkannt, Warnung wird ohne Prompt akzeptiert."
+    fi
 fi
 
 echo "✅ Commit-Nachricht ist gültig!"
-
-#echo "🔍 Führe Tests aus..."
-#pnpm test:cov
-#TEST_RESULT=$?
-#
-## Wenn Tests fehlschlagen, verhindere den Commit
-#if [ $TEST_RESULT -ne 0 ]; then
-#    echo "❌ Tests fehlgeschlagen (Exit-Code: $TEST_RESULT), Commit wird abgebrochen"
-#    exit 1
-#fi
-exit 0 
+exit 0

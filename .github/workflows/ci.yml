@@ -53,6 +53,37 @@ jobs:
       - name: Check repository hygiene
         run: bash ./scripts/check-repo-hygiene.sh
 
+  # Commit message quality gate: validates all commits in PR/push ranges
+  commit-message-validation:
+    name: Commit Message Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: 'package.json'
+
+      - name: Determine commit range
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch --no-tags --prune --depth=200 origin "${{ github.base_ref }}"
+            echo "COMMIT_RANGE=origin/${{ github.base_ref }}..${{ github.sha }}" >> "$GITHUB_ENV"
+          elif [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
+            echo "COMMIT_RANGE=${{ github.event.before }}..${{ github.sha }}" >> "$GITHUB_ENV"
+          else
+            echo "COMMIT_RANGE=${{ github.sha }}" >> "$GITHUB_ENV"
+          fi
+
+      - name: Validate commit messages
+        run: node scripts/check-commit-range.mjs --range "$COMMIT_RANGE"
+
   # Linux quality gate: build + lint + architecture checks
   linux-quality:
     name: Linux Quality (Build + Lint)
