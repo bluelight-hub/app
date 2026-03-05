@@ -48,7 +48,8 @@ export const useCurrentUser = () => {
   // Verhindert Race Condition: API-Call → 401 Token Error → Redirect zu /server/setup
   const isHydrated = useStore(serverStore, (state) => state.isHydrated);
   const activeServerId = useStore(serverStore, (state) => state.activeServerId);
-  const isServerReady = isHydrated && activeServerId !== null;
+  const hasActiveServer = activeServerId !== null;
+  const isServerReady = isHydrated && hasActiveServer;
 
   const authCheckQuery = useQuery({
     queryKey: AUTH_KEYS.auth.queries.authCheck,
@@ -77,8 +78,13 @@ export const useCurrentUser = () => {
   // authCheckQuery.data ist jetzt direkt AuthCheckResponse (nicht gewrappt)
   const authData = authCheckQuery.data;
 
-  // Admin-Status nur für eingeloggte Admins abfragen
-  const isAdminRole = !!authData?.user?.role && ['ADMIN', 'SUPER_ADMIN'].includes(authData.user.role);
+  const isAuthPending = !isHydrated || (hasActiveServer && authCheckQuery.isPending);
+
+  const authStatus: AuthStatus = isAuthPending ? 'pending' : !hasActiveServer ? 'unauthenticated' : authData?.authenticated && !!authData.user ? 'authenticated' : 'unauthenticated';
+
+  // Nur bei bestätigter Authentifizierung als Admin evaluieren
+  const isAdminRole = authStatus === 'authenticated' && !!authData?.user?.role && ['ADMIN', 'SUPER_ADMIN'].includes(authData.user.role);
+  const isAdminAuthenticated = authStatus === 'authenticated' ? authData?.isAdminAuthenticated === true : false;
 
   const adminStatusQuery = useQuery({
     queryKey: AUTH_KEYS.auth.queries.adminStatus,
@@ -96,11 +102,7 @@ export const useCurrentUser = () => {
     enabled: isAdminRole,
   });
 
-  const isAuthPending = !isServerReady || authCheckQuery.isPending;
-
-  const authStatus: AuthStatus = isAuthPending ? 'pending' : authData?.authenticated && !!authData.user ? 'authenticated' : 'unauthenticated';
-
-  const adminSessionStatus: AdminSessionStatus = authStatus === 'pending' ? 'pending' : authData?.isAdminAuthenticated ? 'authenticated' : 'unauthenticated';
+  const adminSessionStatus: AdminSessionStatus = authStatus === 'pending' ? 'pending' : isAdminAuthenticated ? 'authenticated' : 'unauthenticated';
 
   const isResolved = authStatus !== 'pending';
 
@@ -131,21 +133,22 @@ export const useCurrentUser = () => {
     /**
      * Aktuell eingeloggter Benutzer (null wenn nicht eingeloggt)
      */
-    user: authData?.user,
+    user: authStatus === 'authenticated' ? authData?.user : null,
 
     /**
      * Ist der Benutzer als Admin authentifiziert?
      */
-    isAdminAuthenticated: authData?.isAdminAuthenticated,
+    isAdminAuthenticated,
 
     /**
      * Admin-Status (Setup verfügbar, etc.)
      */
-    adminStatus: adminStatusQuery.isFetched
-      ? {
-          adminSetupAvailable: adminStatusQuery.data?.adminSetupAvailable,
-        }
-      : undefined,
+    adminStatus:
+      isAdminRole && adminStatusQuery.isFetched
+        ? {
+            adminSetupAvailable: adminStatusQuery.data?.adminSetupAvailable,
+          }
+        : undefined,
 
     /**
      * Raw Query-Objekt für erweiterte Verwendung
