@@ -22,6 +22,7 @@ describe('CompleteSetupHandler', () => {
     save: jest.Mock;
     findById: jest.Mock;
     findByUsername: jest.Mock;
+    existsByUsername: jest.Mock;
     countByRoles: jest.Mock;
     countActiveByRoles: jest.Mock;
     setPasswordHash: jest.Mock;
@@ -73,6 +74,7 @@ describe('CompleteSetupHandler', () => {
       save: jest.fn().mockResolvedValue(Result.ok(undefined)),
       findById: jest.fn(),
       findByUsername: jest.fn(),
+      existsByUsername: jest.fn().mockResolvedValue(Result.ok(false)),
       countByRoles: jest.fn().mockResolvedValue(Result.ok(0)),
       countActiveByRoles: jest.fn().mockResolvedValue(Result.ok(0)), // Default: Kein AKTIVER Admin existiert
       setPasswordHash: jest.fn().mockResolvedValue(Result.ok(undefined)),
@@ -220,6 +222,25 @@ describe('CompleteSetupHandler', () => {
       // Then (Assert)
       expect(result.isFailure).toBe(true);
       expect(result.error).toBe('SETUP_ALREADY_COMPLETED');
+    });
+
+    it('sollte fehlschlagen wenn Username bereits existiert', async () => {
+      // Given (Arrange)
+      mockUserRepository.existsByUsername.mockResolvedValue(Result.ok(true));
+
+      const command = CompleteSetupCommand.create({
+        username: 'admin',
+        password: 'SecurePassword123!',
+      }).value!;
+
+      // When (Act)
+      const result = await handler.execute(command);
+
+      // Then (Assert)
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toBe('USERNAME_ALREADY_EXISTS');
+      expect(mockUserRepository.save).not.toHaveBeenCalled();
+      expect(mockTokenRepository.save).not.toHaveBeenCalled();
     });
 
     it('sollte Passwort mit bcrypt hashen (cost 10)', async () => {

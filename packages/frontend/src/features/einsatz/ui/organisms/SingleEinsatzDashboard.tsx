@@ -6,7 +6,7 @@ import { EinsatzStatsCard } from '@/features/einsatz/ui/molecules/EinsatzStatsCa
 import { EinsatzTimelineWidget } from '@/features/einsatz/ui/molecules/EinsatzTimelineWidget';
 import { FahrzeugHinzufuegenDialog } from '@/features/einsatz/ui/organisms/FahrzeugHinzufuegenDialog.organism';
 import { PersonHinzufuegenDialog } from '@/features/einsatz/ui/organisms/PersonHinzufuegenDialog.organism';
-import { useActiveEinsatz, EINSATZ_QUERY_KEYS, useEinsatzFahrzeuge, useUpdateFmsStatus } from '@/features/einsatz';
+import { useActiveEinsatz, EINSATZ_QUERY_KEYS, useEinsatzFahrzeuge, useMyEinsatzTeilnahme, useUpdateFmsStatus } from '@/features/einsatz';
 import type { FmsStatus } from '@/features/einsatz';
 import { useEtb } from '@/features/etb';
 import { useLagekarte } from '@/features/lagekarte';
@@ -55,8 +55,12 @@ export function SingleEinsatzDashboard() {
   // Lade EinsatzFahrzeuge (Story 3-3)
   const { data: fahrzeuge = [], isLoading: isLoadingFahrzeuge } = useEinsatzFahrzeuge(einsatzId);
 
+  // ETB erst laden wenn User dem Einsatz beigetreten ist
+  const { data: teilnahmeData } = useMyEinsatzTeilnahme(einsatzId);
+  const hasActiveTeilnahme = !!teilnahmeData?.data?.einsatzPersonId;
+
   // Lade ETB für Count-Anzeige
-  const { data: etb, isLoading: isLoadingEtb } = useEtb({ einsatzId });
+  const { data: etb, isLoading: isLoadingEtb } = useEtb({ einsatzId, enabled: hasActiveTeilnahme });
 
   // Lade Lagekarte für POI-Count
   const { data: lagekarte, isLoading: isLoadingLagekarte } = useLagekarte(einsatzId);

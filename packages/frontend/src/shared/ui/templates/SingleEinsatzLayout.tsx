@@ -137,21 +137,17 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   const { data: teilnahmeData, isLoading: isTeilnahmeLoading } = useMyEinsatzTeilnahme(einsatzId);
   const currentEinsatzPersonId = teilnahmeData?.data?.einsatzPersonId;
 
-  // Auto-show dialog when user hasn't joined yet (only once per session using sessionStorage)
+  // Auto-show dialog when user hasn't joined yet
+  // Öffnet bei jedem Öffnen eines Einsatzes erneut, solange keine Teilnahme existiert.
   useEffect(() => {
+    // Re-run per Einsatz navigation.
+    if (!einsatzId) return;
+
     // Skip if still loading
     if (isTeilnahmeLoading) return;
 
-    // Check if we've already shown the dialog for this einsatz in this session
-    const storageKey = `beitritt-dialog-shown-${einsatzId}`;
-    const hasShownInSession = sessionStorage.getItem(storageKey) === 'true';
-
-    // Only show if:
-    // 1. Query has finished loading
-    // 2. No funkrufname set (user hasn't joined)
-    // 3. Haven't shown dialog yet in this browser session
-    if (!currentEinsatzPersonId && !hasShownInSession) {
-      sessionStorage.setItem(storageKey, 'true');
+    // Nur anzeigen wenn User noch nicht beigetreten ist
+    if (!currentEinsatzPersonId) {
       setShowBeitrittDialog(true);
     }
   }, [einsatzId, isTeilnahmeLoading, currentEinsatzPersonId]);
@@ -206,12 +202,19 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   // Automatisch Einsatz starten wenn Status ANGELEGT ist
   // biome-ignore lint/correctness/useExhaustiveDependencies: startEinsatzMutation intentionally excluded to prevent re-trigger on mutation state changes
   useEffect(() => {
+    // Erst nach geladener Teilnahme entscheiden.
+    if (isTeilnahmeLoading) return;
+
+    // Ohne aktive Teilnahme kann der User den Einsatz nicht starten.
+    if (!currentEinsatzPersonId) return;
+
     console.log('Auto-start check:', {
       status: einsatz?.status,
       expected: EinsatzDtoStatusEnum.Angelegt,
       hasStarted: hasStartedRef.current,
       isPending: startEinsatzMutation.isPending,
       matches: einsatz?.status === EinsatzDtoStatusEnum.Angelegt,
+      hasTeilnahme: !!currentEinsatzPersonId,
     });
 
     if (einsatz && einsatz.status === EinsatzDtoStatusEnum.Angelegt && !hasStartedRef.current && !startEinsatzMutation.isPending) {
@@ -219,7 +222,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
       hasStartedRef.current = true;
       startEinsatzMutation.mutate();
     }
-  }, [einsatz]);
+  }, [einsatz, isTeilnahmeLoading, currentEinsatzPersonId]);
 
   // Modul-Konfiguration aus Hook
   const baseModules = useEinsatzModules();

@@ -21,6 +21,7 @@ import {
 } from './commands';
 import {
   GetActiveEinsaetzeQueryHandler,
+  CanMutateEinsatzQueryHandler,
   GetEinsatzByIdQueryHandler,
   GetEinsatzByNummerQueryHandler,
   GetEinsatzDetailsQueryHandler,
@@ -121,6 +122,8 @@ import {
     // Story 5.2: Rollen Command + Query Handlers
     UpdateEinsatzRollenHandler,
     GetEinsatzRollenQueryHandler,
+    // Security: Ownership/Membership-Check für Einsatz-Mutationen
+    CanMutateEinsatzQueryHandler,
   ],
   exports: [
     // Export handlers for use in Infrastructure Layer (Controllers)
@@ -152,6 +155,8 @@ import {
     // Story 5.2: Rollen Command + Query Handlers
     UpdateEinsatzRollenHandler,
     GetEinsatzRollenQueryHandler,
+    // Security: Ownership/Membership-Check für Einsatz-Mutationen
+    CanMutateEinsatzQueryHandler,
   ],
 })
 export class EinsatzApplicationModule {}
