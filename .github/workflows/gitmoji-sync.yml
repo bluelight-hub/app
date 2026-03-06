@@ -26,7 +26,7 @@ jobs:
         run: node scripts/sync-gitmojis.mjs --write
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: '🔧(tooling): Aktualisiere Gitmoji-Snapshot'
           title: '🔧(tooling): Aktualisiere Gitmoji-Snapshot'
