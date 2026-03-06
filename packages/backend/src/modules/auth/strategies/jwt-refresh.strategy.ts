@@ -28,7 +28,7 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
       secretOrKeyProvider: (_request: Request, _rawJwtToken: string, done: (err: unknown, secretOrKey?: string | Buffer) => void) => {
         const secret = appConfig.get<string>('JWT_REFRESH_SECRET');
         if (!secret || secret.trim().length === 0) {
-          done(new UnauthorizedException('JWT_REFRESH_SECRET not configured'));
+          done(new UnauthorizedException('JWT_REFRESH_SECRET ist nicht im zentralen Secret-System konfiguriert'));
           return;
         }
         done(null, secret);

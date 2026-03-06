@@ -35,11 +35,11 @@ export class AesEncryptionAdapter implements IEncryptionPort, OnModuleInit {
     }
 
     if (this.legacyKey) {
-      this.logger.warn('[SECURITY] MASTER_SECRET_KEY nicht verfügbar. Legacy-Dual-Read bleibt aktiv, neue Writes sind deaktiviert.');
+      this.logger.warn('[SECURITY] MASTER_SECRET nicht verfügbar. Legacy-Dual-Read bleibt aktiv, neue Writes sind deaktiviert.');
       return;
     }
 
-    this.logger.warn('[SECURITY] Weder MASTER_SECRET_KEY noch INTEGRATION_ENCRYPTION_KEY verfügbar. Secret-Operationen sind deaktiviert.');
+    this.logger.warn('[SECURITY] Weder MASTER_SECRET noch INTEGRATION_ENCRYPTION_KEY verfügbar. Secret-Operationen sind deaktiviert.');
   }
 
   encrypt(plainText: string): string {
@@ -66,7 +66,7 @@ export class AesEncryptionAdapter implements IEncryptionPort, OnModuleInit {
   }
 
   private tryLoadMasterKey(): Buffer | null {
-    const masterSecret = this.configService.get<string>('MASTER_SECRET_KEY');
+    const masterSecret = this.configService.get<string>('MASTER_SECRET') ?? this.configService.get<string>('MASTER_SECRET_KEY');
     if (!masterSecret) {
       return null;
     }
@@ -74,14 +74,14 @@ export class AesEncryptionAdapter implements IEncryptionPort, OnModuleInit {
     try {
       const parsedMasterKey = parseMasterSecretKey(masterSecret);
       if (parsedMasterKey.length !== 32) {
-        this.logger.warn(`[SECURITY] MASTER_SECRET_KEY muss 32 Bytes ergeben (aktuell: ${parsedMasterKey.length}).`);
+        this.logger.warn(`[SECURITY] MASTER_SECRET muss 32 Bytes ergeben (aktuell: ${parsedMasterKey.length}).`);
         return null;
       }
 
       return parsedMasterKey;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      this.logger.warn(`[SECURITY] MASTER_SECRET_KEY ist ungültig und wird ignoriert: ${message}`);
+      this.logger.warn(`[SECURITY] MASTER_SECRET ist ungültig und wird ignoriert: ${message}`);
       return null;
     }
   }
@@ -136,7 +136,7 @@ export class AesEncryptionAdapter implements IEncryptionPort, OnModuleInit {
 
   private getMasterKeyOrThrow(): Buffer {
     if (!this.masterKey) {
-      throw new Error('MASTER_SECRET_KEY ist nicht verfügbar. v1-Secret-Operation nicht möglich.');
+      throw new Error('MASTER_SECRET ist nicht verfügbar. v1-Secret-Operation nicht möglich.');
     }
 
     return this.masterKey;

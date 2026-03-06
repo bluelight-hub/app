@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@/generated/prisma/client';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { decryptV1String, encryptV1String, parseMasterSecretKey } from '@/infrastructure/security/master-key-crypto';
+import * as crypto from 'node:crypto';
 
 type RuntimeConfigSource = 'default' | 'db' | 'env_override';
 
@@ -13,6 +14,9 @@ export interface RuntimeConfigEntry {
   value: string | null;
   source: RuntimeConfigSource;
   sensitive: boolean;
+  category: 'runtime' | 'internal_secret' | 'external_secret';
+  editable: boolean;
+  configured: boolean;
 }
 
 export interface ConfigDoctorReport {
@@ -48,28 +52,31 @@ interface RuntimeConfigCatalogEntry {
   key: string;
   sensitive: boolean;
   scope: 'default' | 'db';
+  category: 'runtime' | 'internal_secret' | 'external_secret';
+  editable: boolean;
   runtimeDefault?: string;
 }
 
 const RUNTIME_CONFIG_CATALOG: readonly RuntimeConfigCatalogEntry[] = [
-  { key: 'APP_URL', sensitive: false, scope: 'default', runtimeDefault: 'http://localhost:3091' },
-  { key: 'FRONTEND_URL', sensitive: false, scope: 'default', runtimeDefault: 'http://localhost:3090' },
-  { key: 'SERVER_NAME', sensitive: false, scope: 'default', runtimeDefault: 'Bluelight Hub' },
-  { key: 'ALLOWED_ORIGINS', sensitive: false, scope: 'default', runtimeDefault: '' },
-  { key: 'ALLOWED_ORIGIN_PATTERNS', sensitive: false, scope: 'default', runtimeDefault: '' },
-  { key: 'CACHE_TTL', sensitive: false, scope: 'default', runtimeDefault: '60000' },
-  { key: 'CACHE_MAX_ITEMS', sensitive: false, scope: 'default', runtimeDefault: '100' },
-  { key: 'CACHE_STORE', sensitive: false, scope: 'default', runtimeDefault: 'memory' },
-  { key: 'CACHE_IS_GLOBAL', sensitive: false, scope: 'default', runtimeDefault: 'true' },
-  { key: 'JWT_ACCESS_EXPIRES_IN', sensitive: false, scope: 'default', runtimeDefault: '15m' },
-  { key: 'JWT_REFRESH_EXPIRES_IN', sensitive: false, scope: 'default', runtimeDefault: '7d' },
-  { key: 'JWT_ADMIN_EXPIRES_IN', sensitive: false, scope: 'default', runtimeDefault: '15m' },
-  { key: 'NOMINATIM_API_URL', sensitive: false, scope: 'default', runtimeDefault: 'https://nominatim.openstreetmap.org' },
-  { key: 'HIORG_OAUTH_CLIENT_ID', sensitive: false, scope: 'default' },
-  { key: 'HIORG_OAUTH_CLIENT_SECRET', sensitive: true, scope: 'db' },
-  { key: 'JWT_SECRET', sensitive: true, scope: 'db' },
-  { key: 'JWT_REFRESH_SECRET', sensitive: true, scope: 'db' },
-  { key: 'ADMIN_JWT_SECRET', sensitive: true, scope: 'db' },
+  { key: 'APP_URL', sensitive: false, scope: 'default', category: 'runtime', editable: true, runtimeDefault: 'http://localhost:3091' },
+  { key: 'FRONTEND_URL', sensitive: false, scope: 'default', category: 'runtime', editable: true, runtimeDefault: 'http://localhost:3090' },
+  { key: 'SERVER_NAME', sensitive: false, scope: 'default', category: 'runtime', editable: true, runtimeDefault: 'Bluelight Hub' },
+  { key: 'ALLOWED_ORIGINS', sensitive: false, scope: 'default', category: 'runtime', editable: true, runtimeDefault: '' },
+  { key: 'ALLOWED_ORIGIN_PATTERNS', sensitive: false, scope: 'default', category: 'runtime', editable: true, runtimeDefault: '' },
+  { key: 'CACHE_TTL', sensitive: false, scope: 'default', category: 'runtime', editable: true, runtimeDefault: '60000' },
+  { key: 'CACHE_MAX_ITEMS', sensitive: false, scope: 'default', category: 'runtime', editable: true, runtimeDefault: '100' },
+  { key: 'CACHE_STORE', sensitive: false, scope: 'default', category: 'runtime', editable: true, runtimeDefault: 'memory' },
+  { key: 'CACHE_IS_GLOBAL', sensitive: false, scope: 'default', category: 'runtime', editable: true, runtimeDefault: 'true' },
+  { key: 'JWT_ACCESS_EXPIRES_IN', sensitive: false, scope: 'default', category: 'runtime', editable: true, runtimeDefault: '15m' },
+  { key: 'JWT_REFRESH_EXPIRES_IN', sensitive: false, scope: 'default', category: 'runtime', editable: true, runtimeDefault: '7d' },
+  { key: 'JWT_ADMIN_EXPIRES_IN', sensitive: false, scope: 'default', category: 'runtime', editable: true, runtimeDefault: '15m' },
+  { key: 'NOMINATIM_API_URL', sensitive: false, scope: 'default', category: 'runtime', editable: true, runtimeDefault: 'https://nominatim.openstreetmap.org' },
+  { key: 'HIORG_OAUTH_CLIENT_ID', sensitive: false, scope: 'default', category: 'runtime', editable: true },
+  { key: 'HIORG_OAUTH_CLIENT_SECRET', sensitive: true, scope: 'db', category: 'external_secret', editable: true },
+  { key: 'JWT_SECRET', sensitive: true, scope: 'db', category: 'internal_secret', editable: false },
+  { key: 'JWT_REFRESH_SECRET', sensitive: true, scope: 'db', category: 'internal_secret', editable: false },
+  { key: 'ADMIN_JWT_SECRET', sensitive: true, scope: 'db', category: 'internal_secret', editable: false },
+  { key: 'INTEGRATION_ENCRYPTION_KEY', sensitive: true, scope: 'db', category: 'internal_secret', editable: false },
 ] as const;
 
 const RUNTIME_CONFIG_MAP = new Map<string, RuntimeConfigCatalogEntry>(RUNTIME_CONFIG_CATALOG.map((entry) => [entry.key, entry]));
@@ -90,6 +97,7 @@ const ENV_OVERRIDE_ALLOWLIST = new Set([
 ]);
 
 const REQUIRED_RUNTIME_KEYS = ['APP_URL', 'FRONTEND_URL', 'JWT_SECRET', 'JWT_REFRESH_SECRET', 'ADMIN_JWT_SECRET'];
+const AUTO_GENERATED_INTERNAL_SECRET_KEYS = ['JWT_SECRET', 'JWT_REFRESH_SECRET', 'ADMIN_JWT_SECRET', 'INTEGRATION_ENCRYPTION_KEY'] as const;
 
 @Injectable()
 export class AppConfigService implements OnModuleInit {
@@ -116,10 +124,15 @@ export class AppConfigService implements OnModuleInit {
     }
 
     try {
+      await this.ensureRequiredRuntimeSecrets({ updatedBy: 'system:boot' });
+      await this.reload();
       await this.importLegacyRuntimeEnvToDb({ updatedBy: 'system:boot' });
+      await this.reload();
+      this.assertNoLegacyEnvSecretsPendingCleanup();
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      this.logger.warn(`Automatische Legacy-ENV-Migration fehlgeschlagen: ${message}`);
+      this.logger.warn(`Automatische Secret-Initialisierung/Migration fehlgeschlagen: ${message}`);
+      throw error;
     }
   }
 
@@ -241,6 +254,7 @@ export class AppConfigService implements OnModuleInit {
     return [...allKeys]
       .sort((left, right) => left.localeCompare(right))
       .map((key) => {
+        const catalogEntry = this.getCatalogEntry(key);
         const source = this.resolveSource(key);
         const value = this.resolveValue(key);
         const sensitive = SENSITIVE_RUNTIME_KEYS.has(key);
@@ -249,6 +263,9 @@ export class AppConfigService implements OnModuleInit {
           key,
           source,
           sensitive,
+          category: catalogEntry?.category ?? (sensitive ? 'internal_secret' : 'runtime'),
+          editable: catalogEntry?.editable ?? !sensitive,
+          configured: Boolean(value && value.trim().length > 0),
           value: sensitive ? (value ? '********' : null) : (value ?? null),
         };
       });
@@ -261,6 +278,10 @@ export class AppConfigService implements OnModuleInit {
     const key = input.key.trim();
     const catalogEntry = this.getCatalogEntry(key);
     const isSensitive = catalogEntry ? catalogEntry.sensitive : (input.sensitive ?? SENSITIVE_RUNTIME_KEYS.has(key));
+
+    if (catalogEntry && !catalogEntry.editable && this.isManualSecretMutation(input.sourceHint)) {
+      throw new Error(`${key} ist ein internes Secret und kann nicht manuell geändert werden.`);
+    }
 
     if (isSensitive) {
       const masterKey = this.getMasterKeyOrThrow();
@@ -314,6 +335,19 @@ export class AppConfigService implements OnModuleInit {
       await this.prisma.appConfigSecret.deleteMany({ where: { key } });
     }
 
+    await this.reload();
+  }
+
+  async deleteRuntimeConfig(input: { key: string; updatedBy?: string; sourceHint?: string }): Promise<void> {
+    const key = input.key.trim();
+    const catalogEntry = this.getCatalogEntry(key);
+
+    if (catalogEntry && !catalogEntry.editable) {
+      throw new Error(`${key} ist ein internes Secret und kann nicht gelöscht werden.`);
+    }
+
+    await this.prisma.appConfig.deleteMany({ where: { key } });
+    await this.prisma.appConfigSecret.deleteMany({ where: { key } });
     await this.reload();
   }
 
@@ -634,7 +668,7 @@ export class AppConfigService implements OnModuleInit {
   }
 
   private tryLoadMasterKey(): Buffer | null {
-    const rawKey = this.configService.get<string | undefined>('MASTER_SECRET_KEY');
+    const rawKey = this.configService.get<string | undefined>('MASTER_SECRET') ?? this.configService.get<string | undefined>('MASTER_SECRET_KEY');
     if (!rawKey) {
       return null;
     }
@@ -643,7 +677,7 @@ export class AppConfigService implements OnModuleInit {
       return parseMasterSecretKey(rawKey);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      this.logger.error(`MASTER_SECRET_KEY konnte nicht geladen werden: ${message}`);
+      this.logger.error(`MASTER_SECRET konnte nicht geladen werden: ${message}`);
       return null;
     }
   }
@@ -655,9 +689,56 @@ export class AppConfigService implements OnModuleInit {
 
     this.masterKey = this.tryLoadMasterKey();
     if (!this.masterKey) {
-      throw new Error('MASTER_SECRET_KEY ist nicht verfügbar, Secret-Operation nicht möglich.');
+      throw new Error('MASTER_SECRET ist nicht verfügbar, Secret-Operation nicht möglich.');
     }
 
     return this.masterKey;
+  }
+
+  private async ensureRequiredRuntimeSecrets(input: { updatedBy: string }): Promise<void> {
+    if (!this.dbAvailable || !this.tryLoadMasterKey()) {
+      return;
+    }
+
+    for (const key of AUTO_GENERATED_INTERNAL_SECRET_KEYS) {
+      if (this.dbRuntimeSecrets.has(key)) {
+        continue;
+      }
+
+      const envValue = this.configService.get<string | undefined>(key);
+      if (typeof envValue === 'string' && envValue.trim().length > 0) {
+        continue;
+      }
+
+      await this.upsertRuntimeConfig({
+        key,
+        value: this.generateInternalSecretValue(key),
+        updatedBy: input.updatedBy,
+        sourceHint: 'system_generated',
+        sensitive: true,
+      });
+    }
+  }
+
+  private generateInternalSecretValue(key: (typeof AUTO_GENERATED_INTERNAL_SECRET_KEYS)[number]): string {
+    if (key === 'INTEGRATION_ENCRYPTION_KEY') {
+      return crypto.randomBytes(32).toString('hex');
+    }
+
+    return crypto.randomBytes(48).toString('base64url');
+  }
+
+  private assertNoLegacyEnvSecretsPendingCleanup(): void {
+    const blockingKeys = this.getLegacyEnvCleanupKeys().filter((key) => SENSITIVE_RUNTIME_KEYS.has(key));
+
+    if (blockingKeys.length === 0) {
+      return;
+    }
+
+    throw new Error(`Legacy-Secret-ENVs wurden bereits in die Datenbank übernommen. Bitte entferne diese Variablen aus dem Deployment und starte danach neu: ${blockingKeys.join(', ')}`);
+  }
+
+  private isManualSecretMutation(sourceHint?: string): boolean {
+    return !sourceHint || ['ui', 'api', 'admin'].includes(sourceHint);
   }
 }

@@ -13,13 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
-import type { InitiateOAuthResponseDto } from './InitiateOAuthResponseDto';
+import type { DeleteRuntimeConfigResultDto } from './DeleteRuntimeConfigResultDto';
 import {
-    InitiateOAuthResponseDtoFromJSON,
-    InitiateOAuthResponseDtoFromJSONTyped,
-    InitiateOAuthResponseDtoToJSON,
-    InitiateOAuthResponseDtoToJSONTyped,
-} from './InitiateOAuthResponseDto';
+    DeleteRuntimeConfigResultDtoFromJSON,
+    DeleteRuntimeConfigResultDtoFromJSONTyped,
+    DeleteRuntimeConfigResultDtoToJSON,
+    DeleteRuntimeConfigResultDtoToJSONTyped,
+} from './DeleteRuntimeConfigResultDto';
 import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
@@ -31,59 +31,59 @@ import {
 /**
  * 
  * @export
- * @interface AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200Response
+ * @interface AdminRuntimeConfigControllerDeleteRuntimeConfigVAlpha200Response
  */
-export interface AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200Response {
+export interface AdminRuntimeConfigControllerDeleteRuntimeConfigVAlpha200Response {
     /**
      * 
-     * @type {InitiateOAuthResponseDto}
-     * @memberof AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200Response
+     * @type {DeleteRuntimeConfigResultDto}
+     * @memberof AdminRuntimeConfigControllerDeleteRuntimeConfigVAlpha200Response
      */
-    data: InitiateOAuthResponseDto;
+    data: DeleteRuntimeConfigResultDto;
     /**
      * 
      * @type {HealthControllerGetIntegrationHealth200ResponseMeta}
-     * @memberof AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200Response
+     * @memberof AdminRuntimeConfigControllerDeleteRuntimeConfigVAlpha200Response
      */
     meta: HealthControllerGetIntegrationHealth200ResponseMeta;
 }
 
 /**
- * Check if a given object implements the AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200Response interface.
+ * Check if a given object implements the AdminRuntimeConfigControllerDeleteRuntimeConfigVAlpha200Response interface.
  */
-export function instanceOfAdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200Response(value: object): value is AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200Response {
+export function instanceOfAdminRuntimeConfigControllerDeleteRuntimeConfigVAlpha200Response(value: object): value is AdminRuntimeConfigControllerDeleteRuntimeConfigVAlpha200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
     if (!('meta' in value) || value['meta'] === undefined) return false;
     return true;
 }
 
-export function AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200ResponseFromJSON(json: any): AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200Response {
-    return AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200ResponseFromJSONTyped(json, false);
+export function AdminRuntimeConfigControllerDeleteRuntimeConfigVAlpha200ResponseFromJSON(json: any): AdminRuntimeConfigControllerDeleteRuntimeConfigVAlpha200Response {
+    return AdminRuntimeConfigControllerDeleteRuntimeConfigVAlpha200ResponseFromJSONTyped(json, false);
 }
 
-export function AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200Response {
+export function AdminRuntimeConfigControllerDeleteRuntimeConfigVAlpha200ResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): AdminRuntimeConfigControllerDeleteRuntimeConfigVAlpha200Response {
     if (json == null) {
         return json;
     }
     return {
         
-        'data': InitiateOAuthResponseDtoFromJSON(json['data']),
+        'data': DeleteRuntimeConfigResultDtoFromJSON(json['data']),
         'meta': HealthControllerGetIntegrationHealth200ResponseMetaFromJSON(json['meta']),
     };
 }
 
-export function AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200ResponseToJSON(json: any): AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200Response {
-    return AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200ResponseToJSONTyped(json, false);
+export function AdminRuntimeConfigControllerDeleteRuntimeConfigVAlpha200ResponseToJSON(json: any): AdminRuntimeConfigControllerDeleteRuntimeConfigVAlpha200Response {
+    return AdminRuntimeConfigControllerDeleteRuntimeConfigVAlpha200ResponseToJSONTyped(json, false);
 }
 
-export function AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200ResponseToJSONTyped(value?: AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200Response | null, ignoreDiscriminator: boolean = false): any {
+export function AdminRuntimeConfigControllerDeleteRuntimeConfigVAlpha200ResponseToJSONTyped(value?: AdminRuntimeConfigControllerDeleteRuntimeConfigVAlpha200Response | null, ignoreDiscriminator: boolean = false): any {
     if (value == null) {
         return value;
     }
 
     return {
         
-        'data': InitiateOAuthResponseDtoToJSON(value['data']),
+        'data': DeleteRuntimeConfigResultDtoToJSON(value['data']),
         'meta': HealthControllerGetIntegrationHealth200ResponseMetaToJSON(value['meta']),
     };
 }

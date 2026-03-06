@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards, ValidationPipe } from '@nestjs/common';
 import { ApiBody, ApiForbiddenResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { AppConfigService } from '@/infrastructure/services/app-config.service';
 import { AdminJwtAuthGuard } from '@/modules/auth/guards/admin-jwt-auth.guard';
@@ -8,6 +8,7 @@ import { ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-resp
 import {
   MigrateLegacyRuntimeConfigRequestDto,
   MigrateLegacyRuntimeConfigResultDto,
+  DeleteRuntimeConfigResultDto,
   RuntimeConfigEntryDto,
   RuntimeConfigListDto,
   UpsertRuntimeConfigRequestDto,
@@ -23,8 +24,8 @@ export class AdminRuntimeConfigController {
 
   @Get()
   @ApiOperation({
-    summary: 'Runtime-Konfiguration auflisten',
-    description: 'Liefert Runtime-Konfiguration inklusive Quelle (default|db|env_override). Sensitive Werte sind maskiert.',
+    summary: 'Secret- und Runtime-Konfiguration auflisten',
+    description: 'Liefert Runtime-Konfiguration inklusive Quelle, Kategorie, Bearbeitbarkeit und maskierter Secret-Werte.',
   })
   @ApiWrappedResponse(RuntimeConfigListDto, {
     description: 'Runtime-Konfiguration erfolgreich geladen',
@@ -73,6 +74,30 @@ export class AdminRuntimeConfigController {
       value: entry?.value ?? null,
       source: entry?.source ?? 'default',
       sensitive: entry?.sensitive ?? false,
+      category: entry?.category ?? 'runtime',
+      editable: entry?.editable ?? true,
+      configured: entry?.configured ?? false,
+    };
+  }
+
+  @Delete(':key')
+  @ApiOperation({
+    summary: 'Editierbares Secret löschen',
+    description: 'Löscht editierbare Runtime-/Secret-Einträge aus der Datenbank. Interne Secrets bleiben schreibgeschützt.',
+  })
+  @ApiWrappedResponse(DeleteRuntimeConfigResultDto, {
+    description: 'Runtime-Konfiguration erfolgreich gelöscht',
+  })
+  async deleteRuntimeConfig(@Param('key') key: string, @CurrentUser() user: ValidatedUser): Promise<DeleteRuntimeConfigResultDto> {
+    await this.appConfig.deleteRuntimeConfig({
+      key,
+      updatedBy: user.userId,
+      sourceHint: 'ui',
+    });
+
+    return {
+      key,
+      deleted: true,
     };
   }
 

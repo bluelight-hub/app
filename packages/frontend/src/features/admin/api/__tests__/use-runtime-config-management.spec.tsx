@@ -2,11 +2,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook } from '@testing-library/react';
 import type { PropsWithChildren } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useMigrateLegacyRuntimeConfig, useUpsertRuntimeConfig } from '../use-runtime-config-management';
+import { useDeleteRuntimeConfig, useMigrateLegacyRuntimeConfig, useUpsertRuntimeConfig } from '../use-runtime-config-management';
 
-const { mockUpsertRaw, mockMigrateRaw, mockFetchWithRefresh, toastSuccess, toastError, mockAdminApiFactory } = vi.hoisted(() => ({
+const { mockUpsertRaw, mockMigrateRaw, mockDeleteRaw, mockFetchWithRefresh, toastSuccess, toastError, mockAdminApiFactory } = vi.hoisted(() => ({
   mockUpsertRaw: vi.fn(),
   mockMigrateRaw: vi.fn(),
+  mockDeleteRaw: vi.fn(),
   mockFetchWithRefresh: vi.fn(),
   toastSuccess: vi.fn(),
   toastError: vi.fn(),
@@ -169,5 +170,42 @@ describe('useRuntimeConfigManagement Fallback Bodies', () => {
       keys: ['JWT_SECRET'],
       dryRun: true,
     });
+  });
+
+  it('sendet im Delete-Fallback einen DELETE-Request ohne Body-Wrapper', async () => {
+    mockAdminApiFactory.mockReturnValue({
+      adminRuntimeConfigControllerDeleteRuntimeConfigVAlphaRaw: mockDeleteRaw.mockRejectedValue(
+        new TypeError("Cannot read properties of undefined (reading 'adminRuntimeConfigControllerDeleteRuntimeConfigVAlphaRaw')"),
+      ),
+    });
+
+    mockFetchWithRefresh.mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          data: {
+            key: 'HIORG_OAUTH_CLIENT_SECRET',
+            deleted: true,
+          },
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
+
+    const { result } = renderHook(() => useDeleteRuntimeConfig(), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        key: 'HIORG_OAUTH_CLIENT_SECRET',
+      });
+    });
+
+    expect(mockFetchWithRefresh).toHaveBeenCalledTimes(1);
+    const [url, init] = mockFetchWithRefresh.mock.calls[0] as [string, RequestInit];
+
+    expect(url).toBe('http://localhost:3091/api/v-alpha/admin/runtime-config/HIORG_OAUTH_CLIENT_SECRET');
+    expect(init.method).toBe('DELETE');
+    expect(init.body).toBeUndefined();
   });
 });

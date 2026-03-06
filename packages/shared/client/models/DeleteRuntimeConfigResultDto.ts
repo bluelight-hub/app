@@ -16,70 +16,60 @@ import { mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface UpdateUserDto
+ * @interface DeleteRuntimeConfigResultDto
  */
-export interface UpdateUserDto {
+export interface DeleteRuntimeConfigResultDto {
     /**
-     * Neuer Benutzername (nur Buchstaben, Zahlen, Unterstriche und Punkte erlaubt)
+     * Konfigurationsschlüssel
      * @type {string}
-     * @memberof UpdateUserDto
+     * @memberof DeleteRuntimeConfigResultDto
      */
-    username?: string;
+    key: string;
     /**
-     * Neue Rolle des Benutzers (z.B. SUPER_ADMIN, ADMIN, USER)
-     * @type {string}
-     * @memberof UpdateUserDto
+     * Kennzeichnet erfolgreiche Löschung
+     * @type {boolean}
+     * @memberof DeleteRuntimeConfigResultDto
      */
-    role?: UpdateUserDtoRoleEnum;
+    deleted: boolean;
 }
 
-
 /**
- * @export
+ * Check if a given object implements the DeleteRuntimeConfigResultDto interface.
  */
-export const UpdateUserDtoRoleEnum = {
-    SuperAdmin: 'SUPER_ADMIN',
-    Admin: 'ADMIN',
-    User: 'USER'
-} as const;
-export type UpdateUserDtoRoleEnum = typeof UpdateUserDtoRoleEnum[keyof typeof UpdateUserDtoRoleEnum];
-
-
-/**
- * Check if a given object implements the UpdateUserDto interface.
- */
-export function instanceOfUpdateUserDto(value: object): value is UpdateUserDto {
+export function instanceOfDeleteRuntimeConfigResultDto(value: object): value is DeleteRuntimeConfigResultDto {
+    if (!('key' in value) || value['key'] === undefined) return false;
+    if (!('deleted' in value) || value['deleted'] === undefined) return false;
     return true;
 }
 
-export function UpdateUserDtoFromJSON(json: any): UpdateUserDto {
-    return UpdateUserDtoFromJSONTyped(json, false);
+export function DeleteRuntimeConfigResultDtoFromJSON(json: any): DeleteRuntimeConfigResultDto {
+    return DeleteRuntimeConfigResultDtoFromJSONTyped(json, false);
 }
 
-export function UpdateUserDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): UpdateUserDto {
+export function DeleteRuntimeConfigResultDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): DeleteRuntimeConfigResultDto {
     if (json == null) {
         return json;
     }
     return {
         
-        'username': json['username'] == null ? undefined : json['username'],
-        'role': json['role'] == null ? undefined : json['role'],
+        'key': json['key'],
+        'deleted': json['deleted'],
     };
 }
 
-export function UpdateUserDtoToJSON(json: any): UpdateUserDto {
-    return UpdateUserDtoToJSONTyped(json, false);
+export function DeleteRuntimeConfigResultDtoToJSON(json: any): DeleteRuntimeConfigResultDto {
+    return DeleteRuntimeConfigResultDtoToJSONTyped(json, false);
 }
 
-export function UpdateUserDtoToJSONTyped(value?: UpdateUserDto | null, ignoreDiscriminator: boolean = false): any {
+export function DeleteRuntimeConfigResultDtoToJSONTyped(value?: DeleteRuntimeConfigResultDto | null, ignoreDiscriminator: boolean = false): any {
     if (value == null) {
         return value;
     }
 
     return {
         
-        'username': value['username'],
-        'role': value['role'],
+        'key': value['key'],
+        'deleted': value['deleted'],
     };
 }
 

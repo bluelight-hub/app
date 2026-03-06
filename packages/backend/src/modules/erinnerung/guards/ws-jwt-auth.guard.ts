@@ -2,7 +2,7 @@ import { type CanActivate, Injectable, type ExecutionContext, UnauthorizedExcept
 import type { Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import type { JwtPayload } from '@/modules/auth/strategies/jwt.strategy';
-import { ConfigService } from '@nestjs/config';
+import { AppConfigService } from '@/infrastructure/services/app-config.service';
 
 /**
  * WebSocket JWT Authentication Guard.
@@ -56,7 +56,7 @@ import { ConfigService } from '@nestjs/config';
 export class WsJwtAuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
+    private readonly appConfig: AppConfigService,
   ) {}
 
   /**
@@ -103,10 +103,10 @@ export class WsJwtAuthGuard implements CanActivate {
     }
 
     try {
-      const secret = this.configService.get<string>('JWT_SECRET');
+      const secret = this.appConfig.get<string>('JWT_SECRET');
       if (!secret) {
         client.disconnect();
-        throw new UnauthorizedException('JWT_SECRET not configured');
+        throw new UnauthorizedException('JWT_SECRET ist nicht im zentralen Secret-System konfiguriert');
       }
 
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token, { secret });

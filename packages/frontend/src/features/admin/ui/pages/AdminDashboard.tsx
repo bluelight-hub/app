@@ -150,8 +150,8 @@ export function AdminDashboard() {
           <NavCard icon={<PiUsers className="h-6 w-6" />} title="Benutzerverwaltung" description="Benutzerkonten verwalten" onClick={() => navigate({ to: '/admin/users' })} accentColor="blue" />
           <NavCard
             icon={<PiSliders className="h-6 w-6" />}
-            title="Runtime-Konfiguration"
-            description="DB-basierte Runtime-Config pflegen"
+            title="Secret-Verwaltung"
+            description="Interne und externe App-Secrets verwalten"
             onClick={() => navigate({ to: '/admin/runtime-konfiguration' })}
             accentColor="violet"
           />
