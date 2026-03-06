@@ -203,18 +203,18 @@ env:
 > **Note:** `GITHUB_SHA` is auto-set by GitHub Actions, but `GITHUB_BRANCH` is **not** — it must be derived from `github.head_ref` (for PRs) or `github.ref_name` (for pushes). The pactjs-utils library reads both from `process.env`.
 
 1. **Consumer test + publish**: Run consumer contract tests, then publish pacts to broker
-   - `npm run test:contract:consumer`
-   - `npx pact-broker publish ./pacts --consumer-app-version=$GITHUB_SHA --branch=$GITHUB_BRANCH`
+   - `npm run test:pact:consumer`
+   - `npm run publish:pact`
    - Only publish on PR and main branch pushes
 
 2. **Provider verification**: Run provider verification against published pacts
-   - `npm run test:contract:provider`
+   - `npm run test:pact:provider:remote:contract`
    - `buildVerifierOptions` auto-reads `PACT_BROKER_BASE_URL`, `PACT_BROKER_TOKEN`, `GITHUB_SHA`, `GITHUB_BRANCH`
    - Verification results published to broker when `CI=true`
 
 3. **Can-I-Deploy gate**: Block deployment if contracts are incompatible
-   - `npx pact-broker can-i-deploy --pacticipant=<ServiceName> --version=$GITHUB_SHA --to-environment=production`
-   - Add `--retry-while-unknown 6 --retry-interval 10` for async verification
+   - `npm run can:i:deploy:provider`
+   - Ensure the script adds `--retry-while-unknown 6 --retry-interval 10` for async verification
 
 4. **Webhook job**: Add `repository_dispatch` trigger for `pact_changed` event
    - Provider verification runs when consumers publish new pacts
@@ -225,7 +225,7 @@ env:
    - Coordinate with consumer team before removing the flag
 
 6. **Record deployment**: After successful deployment, record version in broker
-   - `npx pact-broker record-deployment --pacticipant=<ServiceName> --version=$GITHUB_SHA --environment=production`
+   - `npm run record:provider:deployment --env=production`
 
 Required CI secrets: `PACT_BROKER_BASE_URL`, `PACT_BROKER_TOKEN`
 
