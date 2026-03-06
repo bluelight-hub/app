@@ -1,3 +1,17 @@
+## Authentifizierung & Navigation
+
+- **Verbesserte Weiterleitungen nach Login**: Nach der Anmeldung werden Sie nun zur ursprünglich angeforderten Seite weitergeleitet – inklusive Suchparameter und Anker-Links
+- **Stabilere Authentifizierungs-Prüfungen**: Behoben wurden mehrere Timing-Probleme beim Laden der App, die zu unnötigen Weiterleitungen oder hängenden Ladebildschirmen führen konnten
+- **Zuverlässigere Admin-Bereich-Navigation**: Der Zugriff auf Admin-Funktionen ist nun robuster gegen Race-Conditions beim Neuladen
+
+## ETB (Elektronisches Tagebuch)
+
+- **Optimiertes Eingabeformular**: Die ETB-Eingabe fokussiert sich nun vollständig auf den workflow-basierten Erfassungsprozess. Die alternative Inline-Ansicht wurde entfernt für eine konsistentere Nutzererfahrung
+
+## Stabilität & Zuverlässigkeit
+
+- **Verbesserte Test-Abdeckung**: Die Frontend-Tests laufen nun zuverlässiger in der CI-Umgebung, was eine höhere Code-Qualität gewährleistet
+
 ## Sicherheit
 
 - **Zugriffskontrolle für Einsatz-Erinnerungen verbessert**: Nur noch berechtigte Einsatzteilnehmer können Erinnerungsräumen beitreten. Unberechtigte Zugriffsversuche werden blockiert und entsprechend gemeldet.
