@@ -221,7 +221,7 @@ describe('validateBootstrapConfig', () => {
     };
   });
 
-  it('sollte DATABASE_URL und MASTER_SECRET_KEY erfolgreich validieren', () => {
+  it('sollte DATABASE_URL und MASTER_SECRET erfolgreich validieren', () => {
     // Given
     const masterSecretKey = 'a'.repeat(64);
     const databaseUrl = 'postgresql://test:test@localhost:5432/test';
@@ -230,7 +230,7 @@ describe('validateBootstrapConfig', () => {
     const result = validateBootstrapConfig(
       {
         databaseUrl,
-        masterSecretKey,
+        masterSecret: masterSecretKey,
       },
       mockLogger as unknown as typeof Logger,
     );
@@ -254,7 +254,7 @@ describe('validateBootstrapConfig', () => {
     ).toThrow('DATABASE_URL ist nicht gesetzt');
   });
 
-  it('sollte bei fehlendem MASTER_SECRET_KEY nur warnen und weiterlaufen', () => {
+  it('sollte bei fehlendem MASTER_SECRET nur warnen und weiterlaufen', () => {
     // Given / When / Then
     const result = validateBootstrapConfig(
       {
@@ -268,12 +268,12 @@ describe('validateBootstrapConfig', () => {
     expect(mockLogger.warn).toHaveBeenCalledTimes(1);
   });
 
-  it('sollte passphrase-basierten MASTER_SECRET_KEY akzeptieren', () => {
+  it('sollte passphrase-basierten MASTER_SECRET akzeptieren', () => {
     // Given / When
     const result = validateBootstrapConfig(
       {
         databaseUrl: 'postgresql://test:test@localhost:5432/test',
-        masterSecretKey: 'not-a-hex-key',
+        masterSecret: 'not-a-hex-key',
       },
       mockLogger as unknown as typeof Logger,
     );
@@ -281,5 +281,18 @@ describe('validateBootstrapConfig', () => {
     expect(result.masterSecretKey).not.toBe(null);
     expect(result.masterSecretKey?.length).toBe(32);
     expect(mockLogger.warn).not.toHaveBeenCalled();
+  });
+
+  it('sollte MASTER_SECRET_KEY als Legacy-Alias akzeptieren', () => {
+    const result = validateBootstrapConfig(
+      {
+        databaseUrl: 'postgresql://test:test@localhost:5432/test',
+        masterSecretKey: 'a'.repeat(64),
+      },
+      mockLogger as unknown as typeof Logger,
+    );
+
+    expect(result.masterSecretKey?.length).toBe(32);
+    expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining('Legacy-Alias MASTER_SECRET_KEY'));
   });
 });

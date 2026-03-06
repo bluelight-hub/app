@@ -31,6 +31,7 @@ async function bootstrap() {
   validateBootstrapConfig(
     {
       databaseUrl: process.env.DATABASE_URL,
+      masterSecret: process.env.MASTER_SECRET,
       masterSecretKey: process.env.MASTER_SECRET_KEY,
     },
     Logger,

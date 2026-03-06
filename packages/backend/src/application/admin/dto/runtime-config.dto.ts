@@ -13,6 +13,15 @@ export class RuntimeConfigEntryDto {
 
   @ApiProperty({ description: 'Kennzeichnet sensitive Werte' })
   sensitive!: boolean;
+
+  @ApiProperty({ description: 'Fachliche Kategorie', enum: ['runtime', 'internal_secret', 'external_secret'] })
+  category!: 'runtime' | 'internal_secret' | 'external_secret';
+
+  @ApiProperty({ description: 'Ob der Eintrag manuell bearbeitet werden darf' })
+  editable!: boolean;
+
+  @ApiProperty({ description: 'Ob aktuell ein Wert konfiguriert ist' })
+  configured!: boolean;
 }
 
 export class RuntimeConfigListDto {
@@ -34,6 +43,14 @@ export class UpsertRuntimeConfigRequestDto {
   @IsOptional()
   @IsString()
   sourceHint?: string;
+}
+
+export class DeleteRuntimeConfigResultDto {
+  @ApiProperty({ description: 'Konfigurationsschlüssel', example: 'HIORG_OAUTH_CLIENT_SECRET' })
+  key!: string;
+
+  @ApiProperty({ description: 'Kennzeichnet erfolgreiche Löschung' })
+  deleted!: boolean;
 }
 
 export class ConfigDoctorDto {

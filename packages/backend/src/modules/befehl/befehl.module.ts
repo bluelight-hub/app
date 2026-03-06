@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
 import { BefehlApplicationModule } from '@/application/befehl/befehl-application.module';
 import { BefehlsgeberVorschlagApplicationModule } from '@/application/befehlsgeber-vorschlag/befehlsgeber-vorschlag-application.module';
 import { PrismaModule } from '@/infrastructure/database/prisma.module';
@@ -10,6 +9,7 @@ import { AdminBefehlsgeberVorschlaegeController } from './controllers/admin-befe
 import { BefehlGateway } from './gateways/befehl.gateway';
 import { BefehlRollenGuard } from '@/modules/common/guards/befehl-rollen.guard';
 import { WsJwtAuthGuard } from '@/modules/erinnerung/guards/ws-jwt-auth.guard';
+import { AppConfigService } from '@/infrastructure/services/app-config.service';
 
 /**
  * Befehl-Modul für die Verwaltung von Befehlen (Hexagonal Architecture).
@@ -45,9 +45,9 @@ import { WsJwtAuthGuard } from '@/modules/erinnerung/guards/ws-jwt-auth.guard';
     PrismaModule,
     ResilienceModule,
     JwtModule.registerAsync({
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
+      inject: [AppConfigService],
+      useFactory: (appConfig: AppConfigService) => ({
+        secret: appConfig.get<string>('JWT_SECRET'),
       }),
     }),
   ],

@@ -18,6 +18,7 @@ describe('AdminRuntimeConfigController', () => {
     mockAppConfigService = {
       listRuntimeConfig: jest.fn(),
       upsertRuntimeConfig: jest.fn(),
+      deleteRuntimeConfig: jest.fn(),
       getConfigDoctorReport: jest.fn(),
       migrateLegacyRuntimeKeysToDb: jest.fn(),
       reload: jest.fn(),
@@ -39,6 +40,9 @@ describe('AdminRuntimeConfigController', () => {
             value: '********',
             source: 'db',
             sensitive: true,
+            category: 'internal_secret',
+            editable: false,
+            configured: true,
           },
         ],
       };
@@ -57,6 +61,9 @@ describe('AdminRuntimeConfigController', () => {
           value: 'https://example.local',
           source: 'db',
           sensitive: false,
+          category: 'runtime',
+          editable: true,
+          configured: true,
         },
       ]);
 
@@ -75,6 +82,24 @@ describe('AdminRuntimeConfigController', () => {
         value: 'https://example.local',
         source: 'db',
         sensitive: false,
+        category: 'runtime',
+        editable: true,
+        configured: true,
+      });
+    });
+  });
+
+  describe('deleteRuntimeConfig()', () => {
+    it('sollte ein editierbares Secret löschen', async () => {
+      await expect(controller.deleteRuntimeConfig('HIORG_OAUTH_CLIENT_SECRET', mockAdminUser)).resolves.toEqual({
+        key: 'HIORG_OAUTH_CLIENT_SECRET',
+        deleted: true,
+      });
+
+      expect(mockAppConfigService.deleteRuntimeConfig).toHaveBeenCalledWith({
+        key: 'HIORG_OAUTH_CLIENT_SECRET',
+        updatedBy: mockAdminUser.userId,
+        sourceHint: 'ui',
       });
     });
   });
@@ -114,7 +139,7 @@ describe('AdminRuntimeConfigController', () => {
       const serviceResult: MigrateLegacyRuntimeConfigResultDto = {
         migratedKeys: [],
         skippedKeys: ['FRONTEND_URL'],
-        failedKeys: [{ key: 'JWT_SECRET', reason: 'MASTER_SECRET_KEY fehlt' }],
+        failedKeys: [{ key: 'JWT_SECRET', reason: 'MASTER_SECRET fehlt' }],
         summary: {
           requested: 2,
           migrated: 0,

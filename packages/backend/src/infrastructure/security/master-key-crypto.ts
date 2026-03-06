@@ -21,7 +21,7 @@ export function parseMasterSecretKey(rawKey: string): Buffer {
   const trimmed = rawKey.trim();
 
   if (!trimmed) {
-    throw new Error('MASTER_SECRET_KEY darf nicht leer sein.');
+    throw new Error('MASTER_SECRET darf nicht leer sein.');
   }
 
   if (/^[0-9a-fA-F]+$/.test(trimmed) && trimmed.length === MASTER_KEY_HEX_LENGTH) {

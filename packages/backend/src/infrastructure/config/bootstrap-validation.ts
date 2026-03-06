@@ -7,6 +7,11 @@ export interface BootstrapConfig {
   masterSecretKey: Buffer | null;
 }
 
+interface MasterSecretInput {
+  masterSecret?: string;
+  masterSecretKey?: string;
+}
+
 type InsecureModeLogger = Pick<typeof Logger, 'warn' | 'error'>;
 
 /**
@@ -49,8 +54,7 @@ export function validateInsecureMode(insecureMode: string | undefined, isProduct
 export function validateBootstrapConfig(
   input: {
     databaseUrl: string | undefined;
-    masterSecretKey: string | undefined;
-  },
+  } & MasterSecretInput,
   logger: typeof Logger = Logger,
 ): BootstrapConfig {
   const databaseUrl = input.databaseUrl?.trim();
@@ -59,9 +63,9 @@ export function validateBootstrapConfig(
   }
 
   let masterSecretKey: Buffer;
-  const rawMasterSecret = input.masterSecretKey?.trim();
+  const rawMasterSecret = input.masterSecret?.trim() || input.masterSecretKey?.trim();
   if (!rawMasterSecret) {
-    logger.warn('[BOOTSTRAP] MASTER_SECRET_KEY ist nicht gesetzt. Secret-Migration und -Entschlüsselung laufen im ENV-Fallback-Modus.');
+    logger.warn('[BOOTSTRAP] MASTER_SECRET ist nicht gesetzt. Legacy-Alias: MASTER_SECRET_KEY. Secret-Migration und -Entschlüsselung laufen im Fallback-Modus.');
     return {
       databaseUrl,
       masterSecretKey: null,
@@ -72,7 +76,7 @@ export function validateBootstrapConfig(
     masterSecretKey = parseMasterSecretKey(rawMasterSecret);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    logger.warn(`[BOOTSTRAP] MASTER_SECRET_KEY ist ungültig: ${message}. Secret-Migration und -Entschlüsselung laufen im ENV-Fallback-Modus.`);
+    logger.warn(`[BOOTSTRAP] MASTER_SECRET ist ungültig: ${message}. Secret-Migration und -Entschlüsselung laufen im Fallback-Modus.`);
     return {
       databaseUrl,
       masterSecretKey: null,
@@ -80,14 +84,18 @@ export function validateBootstrapConfig(
   }
 
   if (masterSecretKey.length !== 32) {
-    logger.warn(`[BOOTSTRAP] MASTER_SECRET_KEY hat die falsche Länge: ${masterSecretKey.length} Bytes. Secret-Migration und -Entschlüsselung laufen im ENV-Fallback-Modus.`);
+    logger.warn(`[BOOTSTRAP] MASTER_SECRET hat die falsche Länge: ${masterSecretKey.length} Bytes. Secret-Migration und -Entschlüsselung laufen im Fallback-Modus.`);
     return {
       databaseUrl,
       masterSecretKey: null,
     };
   }
 
-  logger.log('[BOOTSTRAP] Konfiguration validiert (DATABASE_URL). Optionales Secret ist nur für Secret-Features erforderlich.', 'Bootstrap');
+  if (input.masterSecretKey && !input.masterSecret) {
+    logger.warn('[BOOTSTRAP] Verwende Legacy-Alias MASTER_SECRET_KEY. Bitte auf MASTER_SECRET umstellen.');
+  }
+
+  logger.log('[BOOTSTRAP] Konfiguration validiert (DATABASE_URL, MASTER_SECRET).', 'Bootstrap');
 
   return {
     databaseUrl,

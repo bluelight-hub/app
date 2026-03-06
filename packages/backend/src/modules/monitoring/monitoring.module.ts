@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LOGGER, MONITORING } from '@infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 import { MonitoringApplicationModule } from '@application/monitoring/monitoring-application.module';
 import { MonitoringGateway } from './gateways/monitoring.gateway';
+import { AppConfigService } from '@/infrastructure/services/app-config.service';
 
 /**
  * Monitoring-Modul fuer System-Ueberwachung und Echtzeit-Warnmeldungen.
@@ -23,10 +23,9 @@ import { MonitoringGateway } from './gateways/monitoring.gateway';
 @Module({
   imports: [
     JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
+      inject: [AppConfigService],
+      useFactory: (appConfig: AppConfigService) => ({
+        secret: appConfig.get<string>('JWT_SECRET'),
       }),
     }),
     MonitoringApplicationModule,

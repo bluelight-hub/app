@@ -1,7 +1,6 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { JwtModule } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
 import { PrismaModule } from '@infrastructure/database/prisma.module';
 import { InfrastructureCommonModule } from '@infrastructure/common.module';
 import { OutboxModule } from '@infrastructure/outbox/outbox.module';
@@ -45,6 +44,7 @@ import { ErinnerungResponseFactory } from '@/application/erinnerung/dto/erinneru
 import { EskaliereErinnerungHandler } from '@/application/erinnerung/commands/eskaliere-erinnerung/eskaliere-erinnerung.handler';
 import { StopRecurringSeriesHandler } from '@/application/erinnerung/commands/stop-recurring-series/stop-recurring-series.handler';
 import { ErinnerungWebSocketEventAdapter } from '@infrastructure/events/adapters/erinnerung-websocket-event.adapter';
+import { AppConfigService } from '@/infrastructure/services/app-config.service';
 
 @Module({
   imports: [
@@ -60,9 +60,9 @@ import { ErinnerungWebSocketEventAdapter } from '@infrastructure/events/adapters
     // Story 10.7: EinsatzTeilnehmer-Check fuer WebSocket Room-Authorization
     EinsatzTeilnehmerModule,
     JwtModule.registerAsync({
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
+      inject: [AppConfigService],
+      useFactory: (appConfig: AppConfigService) => ({
+        secret: appConfig.get<string>('JWT_SECRET'),
       }),
     }),
   ],

@@ -137,7 +137,7 @@ describe('AppConfigService', () => {
     expect(upsertSpy).not.toHaveBeenCalled();
   });
 
-  it('liefert einen failed-Eintrag bei fehlendem MASTER_SECRET_KEY für Secret-Migration', async () => {
+  it('liefert einen failed-Eintrag bei fehlendem MASTER_SECRET für Secret-Migration', async () => {
     const mockConfigService = createMockConfigService({ JWT_SECRET: 'legacy-jwt-secret' });
     const service = new AppConfigService(mockConfigService, createMockPrismaService(), createMockLogger());
 
@@ -152,7 +152,7 @@ describe('AppConfigService', () => {
       failedKeys: [
         {
           key: 'JWT_SECRET',
-          reason: 'Migration fehlgeschlagen für JWT_SECRET: MASTER_SECRET_KEY ist nicht verfügbar, Secret-Operation nicht möglich.',
+          reason: 'Migration fehlgeschlagen für JWT_SECRET: MASTER_SECRET ist nicht verfügbar, Secret-Operation nicht möglich.',
         },
       ],
       summary: {
@@ -194,7 +194,7 @@ describe('AppConfigService', () => {
 
   it('erzwingt für sensible Katalog-Keys die Secret-Tabelle trotz sensitive=false im Input', async () => {
     const mockConfigService = createMockConfigService({
-      MASTER_SECRET_KEY: 'a'.repeat(64),
+      MASTER_SECRET: 'a'.repeat(64),
     });
     const mockPrismaService = createMockPrismaService();
     const service = new AppConfigService(mockConfigService, mockPrismaService, createMockLogger());
@@ -204,7 +204,7 @@ describe('AppConfigService', () => {
       value: 'runtime-secret',
       sensitive: false,
       updatedBy: 'admin-user',
-      sourceHint: 'ui',
+      sourceHint: 'system_generated',
     });
 
     expect(mockPrismaService.appConfigSecret.upsert).toHaveBeenCalledWith(

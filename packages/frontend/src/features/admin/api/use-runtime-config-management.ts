@@ -13,6 +13,9 @@ export interface RuntimeConfigEntry {
   value: string | null;
   source: 'default' | 'db' | 'env_override';
   sensitive: boolean;
+  category: 'runtime' | 'internal_secret' | 'external_secret';
+  editable: boolean;
+  configured: boolean;
 }
 
 export interface RuntimeConfigListResponse {
@@ -60,6 +63,11 @@ export interface MigrateLegacyRuntimeConfigResult {
   skippedKeys: string[];
   failedKeys: MigrateLegacyRuntimeConfigFailure[];
   summary: MigrateLegacyRuntimeConfigSummary;
+}
+
+export interface DeleteRuntimeConfigResult {
+  key: string;
+  deleted: boolean;
 }
 
 type RawApiResponse = {
@@ -204,6 +212,9 @@ const normalizeRuntimeConfigEntry = (entry: unknown): RuntimeConfigEntry | null 
     value: typeof raw.value === 'string' ? raw.value : raw.value === null ? null : null,
     source,
     sensitive: raw.sensitive === true,
+    category: raw.category === 'internal_secret' || raw.category === 'external_secret' ? raw.category : 'runtime',
+    editable: raw.editable === true,
+    configured: raw.configured === true,
   };
 };
 
@@ -301,6 +312,8 @@ type RuntimeConfigAdminApi = {
       dryRun?: boolean;
     };
   }) => Promise<unknown>;
+  adminRuntimeConfigControllerDeleteRuntimeConfigVAlpha?: (params: { key: string }) => Promise<unknown>;
+  adminRuntimeConfigControllerDeleteRuntimeConfigVAlphaRaw?: (params: { key: string }) => Promise<unknown>;
 };
 
 const getAdminRuntimeApi = (): RuntimeConfigAdminApi => {
@@ -310,6 +323,7 @@ const getAdminRuntimeApi = (): RuntimeConfigAdminApi => {
 export interface RuntimeConfigApiCapabilities {
   list: boolean;
   upsert: boolean;
+  delete: boolean;
   configDoctor: boolean;
   migrateLegacy: boolean;
 }
@@ -327,12 +341,73 @@ export const getRuntimeConfigApiCapabilities = (): RuntimeConfigApiCapabilities 
       typeof runtimeApi.adminRuntimeConfigControllerUpsertRuntimeConfigVAlphaRaw === 'function' ||
       typeof runtimeApi.adminRuntimeConfigControllerUpsertRuntimeConfigVAlpha === 'function' ||
       hasRuntimeFallback,
+    delete:
+      typeof runtimeApi.adminRuntimeConfigControllerDeleteRuntimeConfigVAlphaRaw === 'function' ||
+      typeof runtimeApi.adminRuntimeConfigControllerDeleteRuntimeConfigVAlpha === 'function' ||
+      hasRuntimeFallback,
     configDoctor:
       typeof runtimeApi.adminSecurityControllerGetConfigDoctorVAlphaRaw === 'function' || typeof runtimeApi.adminSecurityControllerGetConfigDoctorVAlpha === 'function' || hasRuntimeFallback,
     migrateLegacy:
       typeof runtimeApi.adminRuntimeConfigControllerMigrateLegacyRuntimeConfigVAlphaRaw === 'function' ||
       typeof runtimeApi.adminRuntimeConfigControllerMigrateLegacyRuntimeConfigVAlpha === 'function' ||
       hasRuntimeFallback,
+  };
+};
+
+const invokeDeleteRuntimeConfig = async (key: string): Promise<DeleteRuntimeConfigResult> => {
+  const runtimeApi = getAdminRuntimeApi();
+  let response: unknown = null;
+
+  if (typeof runtimeApi.adminRuntimeConfigControllerDeleteRuntimeConfigVAlphaRaw === 'function') {
+    try {
+      response = await invokeAdminApiMethod(runtimeApi.adminRuntimeConfigControllerDeleteRuntimeConfigVAlphaRaw, runtimeApi, [{ key }]);
+      if (response !== undefined && response !== null) {
+        return normalizeApiResponse(response, (payload) => {
+          const data = unwrapApiData<Record<string, unknown>>(payload);
+          return {
+            key: typeof data?.key === 'string' ? data.key : key,
+            deleted: data?.deleted === true,
+          };
+        });
+      }
+    } catch (error) {
+      if (!isGeneratedClientBindingError(error, 'adminRuntimeConfigControllerDeleteRuntimeConfigVAlpha')) {
+        throw error;
+      }
+      response = null;
+    }
+  }
+
+  if (typeof runtimeApi.adminRuntimeConfigControllerDeleteRuntimeConfigVAlpha === 'function') {
+    try {
+      response = await invokeAdminApiMethod(runtimeApi.adminRuntimeConfigControllerDeleteRuntimeConfigVAlpha, runtimeApi, [{ key }]);
+      if (response !== undefined && response !== null) {
+        return normalizeApiResponse(response, (payload) => {
+          const data = unwrapApiData<Record<string, unknown>>(payload);
+          return {
+            key: typeof data?.key === 'string' ? data.key : key,
+            deleted: data?.deleted === true,
+          };
+        });
+      }
+    } catch (error) {
+      if (!isGeneratedClientBindingError(error, 'adminRuntimeConfigControllerDeleteRuntimeConfigVAlpha')) {
+        throw error;
+      }
+      response = null;
+    }
+  }
+
+  const fallbackResponse = await invokeRuntimeConfigEndpoint<{ data: DeleteRuntimeConfigResult }>(`/api/v-alpha/admin/runtime-config/${encodeURIComponent(key)}`, {
+    method: 'DELETE',
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+
+  return {
+    key: fallbackResponse.data.key,
+    deleted: fallbackResponse.data.deleted,
   };
 };
 
@@ -639,6 +714,28 @@ export const useUpsertRuntimeConfig = () => {
   });
 };
 
+export const useDeleteRuntimeConfig = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<DeleteRuntimeConfigResult, ResponseError, { key: string }>({
+    mutationFn: async ({ key }) => invokeDeleteRuntimeConfig(key),
+    onSuccess: async () => {
+      toast.success('Secret gelöscht');
+
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ADMIN_QUERY_KEYS.runtimeConfig.all() }),
+        queryClient.invalidateQueries({ queryKey: ADMIN_QUERY_KEYS.runtimeConfig.migration.all() }),
+        queryClient.invalidateQueries({ queryKey: ADMIN_QUERY_KEYS.security.all() }),
+      ]);
+    },
+    onError: async (error) => {
+      const message = await getApiErrorMessage(error, 'Secret konnte nicht gelöscht werden.', 'deleteRuntimeConfig');
+      logger.error('Failed to delete runtime config', error);
+      toast.error('Löschen fehlgeschlagen', { description: message });
+    },
+  });
+};
+
 export const useMigrateLegacyRuntimeConfig = () => {
   const queryClient = useQueryClient();
 
@@ -670,6 +767,7 @@ export const useRuntimeConfigManagement = () => {
     useList: useRuntimeConfigList,
     useDoctor: useConfigDoctor,
     useUpsert: useUpsertRuntimeConfig,
+    useDelete: useDeleteRuntimeConfig,
     useMigrateLegacy: useMigrateLegacyRuntimeConfig,
   };
 };

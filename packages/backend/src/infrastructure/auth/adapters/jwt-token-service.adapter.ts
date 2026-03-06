@@ -116,7 +116,7 @@ export class JwtTokenServiceAdapter implements IJwtAuthServicePort {
 
     const secret = this.appConfig.get<string>('JWT_SECRET');
     if (!secret) {
-      throw new Error('JWT_SECRET not configured');
+      throw new Error('JWT_SECRET ist nicht im zentralen Secret-System konfiguriert');
     }
 
     return this.jwtService.signAsync(payload, {
@@ -157,7 +157,7 @@ export class JwtTokenServiceAdapter implements IJwtAuthServicePort {
     try {
       const secret = this.appConfig.get<string>('JWT_SECRET');
       if (!secret) {
-        return Result.fail('JWT_SECRET not configured');
+        return Result.fail('JWT_SECRET ist nicht im zentralen Secret-System konfiguriert');
       }
 
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token, { secret });

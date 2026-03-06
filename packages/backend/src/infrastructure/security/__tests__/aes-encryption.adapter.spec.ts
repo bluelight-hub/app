@@ -17,9 +17,9 @@ describe('AesEncryptionAdapter', () => {
   });
 
   describe('onModuleInit', () => {
-    it('sollte mit gueltigem MASTER_SECRET_KEY initialisieren', () => {
+    it('sollte mit gueltigem MASTER_SECRET initialisieren', () => {
       mockConfigService.get.mockImplementation((key: string) => {
-        if (key === 'MASTER_SECRET_KEY') return MASTER_KEY_HEX;
+        if (key === 'MASTER_SECRET') return MASTER_KEY_HEX;
         return undefined;
       });
 
@@ -29,19 +29,19 @@ describe('AesEncryptionAdapter', () => {
       expect(() => adapter.encrypt('hello')).not.toThrow();
     });
 
-    it('sollte Fehler werfen wenn MASTER_SECRET_KEY fehlt', () => {
+    it('sollte Fehler werfen wenn MASTER_SECRET fehlt', () => {
       mockConfigService.get.mockReturnValue(undefined);
       adapter = new AesEncryptionAdapter(mockConfigService);
 
       expect(() => adapter.onModuleInit()).not.toThrow();
-      expect(() => adapter.encrypt('hello')).toThrow(/MASTER_SECRET_KEY ist nicht verfügbar/);
+      expect(() => adapter.encrypt('hello')).toThrow(/MASTER_SECRET ist nicht verfügbar/);
     });
   });
 
   describe('v1 encrypt/decrypt', () => {
     beforeEach(() => {
       mockConfigService.get.mockImplementation((key: string) => {
-        if (key === 'MASTER_SECRET_KEY') return MASTER_KEY_HEX;
+        if (key === 'MASTER_SECRET') return MASTER_KEY_HEX;
         return undefined;
       });
       adapter = new AesEncryptionAdapter(mockConfigService);
@@ -78,7 +78,7 @@ describe('AesEncryptionAdapter', () => {
   describe('legacy dual-read', () => {
     it('sollte Legacy-Ciphertexte lesen wenn Legacy-Key konfiguriert ist', () => {
       mockConfigService.get.mockImplementation((key: string) => {
-        if (key === 'MASTER_SECRET_KEY') return MASTER_KEY_HEX;
+        if (key === 'MASTER_SECRET') return MASTER_KEY_HEX;
         if (key === 'INTEGRATION_ENCRYPTION_KEY') return LEGACY_KEY_HEX;
         return undefined;
       });
@@ -92,7 +92,7 @@ describe('AesEncryptionAdapter', () => {
 
     it('sollte Legacy-Reads ohne Legacy-Key ablehnen', () => {
       mockConfigService.get.mockImplementation((key: string) => {
-        if (key === 'MASTER_SECRET_KEY') return MASTER_KEY_HEX;
+        if (key === 'MASTER_SECRET') return MASTER_KEY_HEX;
         return undefined;
       });
 
@@ -103,7 +103,7 @@ describe('AesEncryptionAdapter', () => {
       expect(() => adapter.decrypt(legacyCipher)).toThrow(/Legacy-Ciphertext erkannt/);
     });
 
-    it('sollte Legacy-Ciphertexte auch ohne MASTER_SECRET_KEY lesen können', () => {
+    it('sollte Legacy-Ciphertexte auch ohne MASTER_SECRET lesen können', () => {
       mockConfigService.get.mockImplementation((key: string) => {
         if (key === 'INTEGRATION_ENCRYPTION_KEY') return LEGACY_KEY_HEX;
         return undefined;
@@ -114,7 +114,7 @@ describe('AesEncryptionAdapter', () => {
 
       const legacyCipher = encryptLegacy('legacy-token', LEGACY_KEY_HEX);
       expect(adapter.decrypt(legacyCipher)).toBe('legacy-token');
-      expect(() => adapter.encrypt('new-secret')).toThrow(/MASTER_SECRET_KEY ist nicht verfügbar/);
+      expect(() => adapter.encrypt('new-secret')).toThrow(/MASTER_SECRET ist nicht verfügbar/);
     });
   });
 });

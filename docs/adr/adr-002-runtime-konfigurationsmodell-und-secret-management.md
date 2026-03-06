@@ -28,7 +28,7 @@ Wir führen ein **hybrides Modell mit DB als Primary Source of Truth** ein:
 
 1. **ENV für Bootstrap/Infra (minimal, stabil):**
    - `DATABASE_URL` (Pflicht)
-   - `MASTER_SECRET_KEY` (für Secret-Operationen erforderlich)
+   - `MASTER_SECRET` (für Secret-Operationen erforderlich, `MASTER_SECRET_KEY` nur als Legacy-Alias)
 2. **DB für App-Runtime-Konfiguration (Primary):**
    - Operative Konfiguration wird über Admin-UI/API gepflegt.
    - Sensitive Werte werden nur verschlüsselt gespeichert.
@@ -45,7 +45,7 @@ Wir führen ein **hybrides Modell mit DB als Primary Source of Truth** ein:
 ### Startup-Reihenfolge
 
 1. `DATABASE_URL` aus ENV lesen.
-2. `MASTER_SECRET_KEY` aus ENV lesen und validieren (fehlende/ungültige Werte führen zu kontrollierter Fallback-Entschlüsselung).
+2. `MASTER_SECRET` aus ENV lesen und validieren (`MASTER_SECRET_KEY` bleibt temporär als Legacy-Alias erlaubt; fehlende/ungültige Werte führen zu kontrollierter Fallback-Entschlüsselung).
 3. DB verbinden.
 4. Konfiguration aus DB laden.
 5. Secret-Werte mit Master-Key-basierten Schlüsseln entschlüsseln.
@@ -58,7 +58,7 @@ Wir führen ein **hybrides Modell mit DB als Primary Source of Truth** ein:
 
 1. `DATABASE_URL`  
    Grund: Ohne DB keine persistierte App-Config.
-2. `MASTER_SECRET_KEY` (für Secret-Werte)  
+2. `MASTER_SECRET` (für Secret-Werte)  
    Grund: Root-of-Trust für Entschlüsselung. Bei fehlender/ungültiger Konfiguration laufen Secret-Operationen im Fallback/Warnmodus.
 
 ### Soll ENV bleiben (infra-nah, optional)
@@ -93,7 +93,7 @@ Wir verwenden **versionierte Envelope Encryption** mit klarer Key-Separation.
 
 ### Kryptografische Bausteine
 
-1. **Root Key Input:** `MASTER_SECRET_KEY` (32 Bytes, Base64 oder Hex).
+1. **Root Key Input:** `MASTER_SECRET` (32 Bytes, Base64 oder Hex; `MASTER_SECRET_KEY` nur als Legacy-Alias).
 2. **Optionale Passphrase-Kompatibilität:** Falls kein 32-Byte-Key geliefert wird, Ableitung per `Argon2id` (dokumentierte feste Parameter).
 3. **Key Derivation für Scopes:** `HKDF-SHA-256` mit Info-Scopes, z. B.:
     - `bluelight-hub/config-secrets/v1`
@@ -114,7 +114,7 @@ Bestehende `integration_credentials` nutzen aktuell das Legacy-Format (`iv:authT
 Während der Migration gilt:
 
 - Reads unterstützen **legacy + v1**.
-- Neue Writes erfolgen nur noch in **v1** über `MASTER_SECRET_KEY`-abgeleitete Keys.
+- Neue Writes erfolgen nur noch in **v1** über `MASTER_SECRET`-abgeleitete Keys.
 - Bestehende Daten werden idempotent re-encrypted.
 
 ## Datenmodell (Zielbild)
@@ -153,7 +153,7 @@ Hinweis: Bestehende Tabellen wie `integration_credentials` bleiben erhalten und 
    - Runtime liest DB als Primary, ENV weiterhin als Override.
    - Config-Doctor unterscheidet zwischen offenen Legacy-Fallbacks und bereits migrierten, aber weiterhin gesetzten ENV-Keys (Cleanup-Hinweis).
 5. **Konkrete Legacy-Mappings**
-   - `INTEGRATION_ENCRYPTION_KEY` -> ersetzt durch `MASTER_SECRET_KEY` + HKDF-Scoped Key.
+   - `INTEGRATION_ENCRYPTION_KEY` -> ersetzt durch `MASTER_SECRET` + HKDF-Scoped Key.
    - `HIORG_OAUTH_CLIENT_ID/SECRET` -> `app_config(.secret)` Einträge.
    - `JWT_SECRET`, `JWT_REFRESH_SECRET`, `ADMIN_JWT_SECRET` -> DB-Secrets.
 6. **Cutover**
@@ -166,7 +166,7 @@ Hinweis: Bestehende Tabellen wie `integration_credentials` bleiben erhalten und 
 ## Developer Experience
 
 - **Minimaler Pflicht-Setup:** Nur `DATABASE_URL`.
-- **Hinweis:** `MASTER_SECRET_KEY` ist für Secret-Schlüssel (z. B. JWT-/OAuth-Secrets) erforderlich.
+- **Hinweis:** `MASTER_SECRET` ist für Secret-Schlüssel (z. B. JWT-/OAuth-Secrets) erforderlich.
 - **Sinnvolle Dev-Defaults** für nicht-sensitive Parameter.
 - **First-Run-Setup-Wizard** im Admin-Bereich für fehlende Pflicht-Konfiguration.
 - **Config-Doctor Endpoint/CLI**:
@@ -208,7 +208,7 @@ Hinweis: Bestehende Tabellen wie `integration_credentials` bleiben erhalten und 
 ### Negativ / Trade-offs
 
 - Höhere Implementierungs- und Betriebskomplexität (Crypto, Migration, UI).
-- Verlust/Fehlkonfiguration von `MASTER_SECRET_KEY` blockiert Secret-Reads.
+- Verlust/Fehlkonfiguration von `MASTER_SECRET` blockiert Secret-Reads.
 - Kurzfristig Dual-Read-Komplexität während Migration.
 
 ### Risiken und Mitigation
@@ -227,14 +227,14 @@ Hinweis: Bestehende Tabellen wie `integration_credentials` bleiben erhalten und 
 3. AES-GCM/HKDF Utility mit Versionierung + Tests einführen.
 4. Admin-UI für Runtime-Konfiguration und Secret-Pflege bereitstellen.
 5. Legacy-ENV Importer + Deprecation Logging ausrollen.
-6. Rotation/Backup/Restore für `MASTER_SECRET_KEY` dokumentieren.
+6. Rotation/Backup/Restore für `MASTER_SECRET` dokumentieren.
 
 ## Umsetzungsstand Phase 1 (2026-03-03)
 
 Umgesetzt:
 
 - Prisma-Tabellen `app_config` und `app_config_secret` inkl. Migration.
-- Bootstrap-Validierung für `DATABASE_URL` + `MASTER_SECRET_KEY`.
+- Bootstrap-Validierung für `DATABASE_URL` + `MASTER_SECRET`.
 - Zentraler Runtime-Resolver (`AppConfigService`) mit Priorität `env_override > db > default`.
 - `AesEncryptionAdapter` auf v1-Write mit Legacy-Dual-Read umgestellt.
 - JWT- und HiOrg-Konfigurationspfade auf Runtime-Resolver umgestellt.
@@ -250,14 +250,14 @@ Offen für nächste Phase:
 ## Betriebs-Runbook (Master Key)
 
 1. Rotation vorbereiten:
-   - Neue `MASTER_SECRET_KEY`-Version erzeugen.
+   - Neue `MASTER_SECRET`-Version erzeugen.
    - Geplantes Wartungsfenster für Re-Encryption festlegen.
 2. Backup:
    - Vor Rotation DB-Backup von `app_config_secret` und `integration_credentials` erstellen.
 3. Rotation durchführen:
    - Services stoppen.
    - Secrets mit neuem Key re-encrypten.
-   - Neue `MASTER_SECRET_KEY` deployen.
+   - Neue `MASTER_SECRET` deployen.
 4. Restore-Strategie:
    - Bei Entschlüsselungsfehlern auf vorherigen Key + DB-Backup zurückrollen.
    - Config-Doctor (`/api/v-alpha/admin/security/doctor`) zur Verifikation nutzen.
