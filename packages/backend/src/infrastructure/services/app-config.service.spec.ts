@@ -237,4 +237,39 @@ describe('AppConfigService', () => {
     expect(mockPrismaService.appConfigSecret.upsert).not.toHaveBeenCalled();
     expect(mockPrismaService.appConfigSecret.deleteMany).toHaveBeenCalledWith({ where: { key: 'APP_URL' } });
   });
+
+  it('erzwingt die Legacy-ENV-Cleanup-Blockade im Testmodus nicht', async () => {
+    const mockConfigService = createMockConfigService({
+      NODE_ENV: 'test',
+      MASTER_SECRET: 'a'.repeat(64),
+      JWT_SECRET: 'legacy-jwt-secret',
+      JWT_REFRESH_SECRET: 'legacy-refresh-secret',
+    });
+    const service = new AppConfigService(mockConfigService, createMockPrismaService(), createMockLogger());
+
+    await expect(service.onModuleInit()).resolves.toBeUndefined();
+  });
+
+  it('blockiert den Start nicht wegen INTEGRATION_ENCRYPTION_KEY allein', async () => {
+    const mockConfigService = createMockConfigService({
+      MASTER_SECRET: 'a'.repeat(64),
+      INTEGRATION_ENCRYPTION_KEY: 'b'.repeat(64),
+    });
+    const service = new AppConfigService(mockConfigService, createMockPrismaService(), createMockLogger());
+
+    await expect(service.onModuleInit()).resolves.toBeUndefined();
+  });
+
+  it('blockiert den Start weiter bei migrierten JWT-Legacy-Secrets', async () => {
+    const mockConfigService = createMockConfigService({
+      MASTER_SECRET: 'a'.repeat(64),
+      JWT_SECRET: 'legacy-jwt-secret',
+    });
+    const service = new AppConfigService(mockConfigService, createMockPrismaService(), createMockLogger());
+
+    const internals = service as unknown as { dbRuntimeSecrets: Map<string, string> };
+    internals.dbRuntimeSecrets = new Map([['JWT_SECRET', 'stored-jwt-secret']]);
+
+    expect(() => (service as unknown as { assertNoLegacyEnvSecretsPendingCleanup: () => void }).assertNoLegacyEnvSecretsPendingCleanup()).toThrow('JWT_SECRET');
+  });
 });
