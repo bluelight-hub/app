@@ -133,14 +133,14 @@ describe('JwtTokenServiceAdapter', () => {
       expect(options.secret).toBe(TEST_SECRET);
     });
 
-    it('should throw error if JWT_SECRET not configured', async () => {
+    it('should throw error if JWT_SECRET is not configured in the central secret system', async () => {
       // Given
       mockAppConfig.get.mockReturnValue(undefined);
       const userId = UserId.create().value as UserId;
       const role = UserRole.USER();
 
       // When/Then
-      await expect(adapter.generateToken(userId, role)).rejects.toThrow('JWT_SECRET not configured');
+      await expect(adapter.generateToken(userId, role)).rejects.toThrow('JWT_SECRET ist nicht im zentralen Secret-System konfiguriert');
     });
   });
 
@@ -232,7 +232,7 @@ describe('JwtTokenServiceAdapter', () => {
       expect(result.error).toContain('role');
     });
 
-    it('should return Result.fail if JWT_SECRET not configured', async () => {
+    it('should return Result.fail if JWT_SECRET is not configured in the central secret system', async () => {
       // Given
       mockAppConfig.get.mockReturnValue(undefined);
 
@@ -241,7 +241,7 @@ describe('JwtTokenServiceAdapter', () => {
 
       // Then
       expect(result.isFailure).toBe(true);
-      expect(result.error).toContain('JWT_SECRET not configured');
+      expect(result.error).toContain('JWT_SECRET ist nicht im zentralen Secret-System konfiguriert');
     });
   });
 
