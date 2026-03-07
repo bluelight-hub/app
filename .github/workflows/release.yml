@@ -65,7 +65,7 @@ jobs:
           ref: ${{ github.event.workflow_run.head_branch }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Log in to the Container registry
         if: github.event_name != 'pull_request'
@@ -86,7 +86,7 @@ jobs:
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ steps.image.outputs.name }}
 
@@ -145,7 +145,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Set image tags
         run: |
@@ -167,7 +167,7 @@ jobs:
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}${{ matrix.image_suffix }}
           tags: ${{ env.TAGS }}
@@ -373,7 +373,7 @@ jobs:
 
       - name: Set up Docker Buildx
         if: steps.version.outputs.released == 'true'
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Log in to the Container registry
         if: steps.version.outputs.released == 'true'
