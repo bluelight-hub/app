@@ -1,3 +1,21 @@
+## Sicherheit & Konfiguration
+
+- **Vereinfachtes Secret-Management**: Alle App-Secrets werden nun zentral über `MASTER_SECRET` verwaltet. Administratoren können den Status einsehen, Secrets aktualisieren und Cleanup-Prozesse durchführen
+- **Verbesserte Admin-Oberfläche**: Das Admin-UI zeigt nun Runtime-Konfiguration und Secret-Status übersichtlich an
+
+## Entwickler-Tools
+
+- **OpenCode-Integration**: Unterstützung für OpenCode-spezifische Commit-Workflows und Dokumentation hinzugefügt
+- **Aktualisierte Pact-Dokumentation**: Contract-Testing-Anleitungen für bessere Zusammenarbeit zwischen Teams überarbeitet
+
+## Abhängigkeiten
+
+- PostgreSQL-Treiber auf Version 8.20.0 aktualisiert
+- React Icons auf Version 5.6.0 aktualisiert
+- class-validator auf Version 0.15.1 aktualisiert
+- dotenvx auf Version 1.53.0 aktualisiert
+- Verschiedene Docker-Actions für verbesserte Build-Pipeline aktualisiert
+
 ## Authentifizierung & Navigation
 
 - **Verbesserte Weiterleitungen nach Login**: Nach der Anmeldung werden Sie nun zur ursprünglich angeforderten Seite weitergeleitet – inklusive Suchparameter und Anker-Links
