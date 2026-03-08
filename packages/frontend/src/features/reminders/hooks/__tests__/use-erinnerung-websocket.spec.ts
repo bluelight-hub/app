@@ -90,6 +90,27 @@ vi.mock('@/shared', () => ({
   AddEintragDtoKategorieEnum: {
     Alarmierung: 'Alarmierung',
   },
+  EintragDtoKategorieEnum: {
+    Alarmierung: 'ALARMIERUNG',
+    Ankunft: 'ANKUNFT',
+    Befehl: 'BEFEHL',
+    Erkundung: 'ERKUNDUNG',
+    Lage: 'LAGE',
+    Massnahme: 'MASSNAHME',
+    Personal: 'PERSONAL',
+    Fahrzeug: 'FAHRZEUG',
+    Material: 'MATERIAL',
+    Kommunikation: 'KOMMUNIKATION',
+    Wetter: 'WETTER',
+    Dokumentation: 'DOKUMENTATION',
+    Sonstiges: 'SONSTIGES',
+    System: 'SYSTEM',
+  },
+  EinsatzRolleDtoRolleEnum: {
+    Befehlsgeber: 'BEFEHLSGEBER',
+    Empfaenger: 'EMPFAENGER',
+    Beobachter: 'BEOBACHTER',
+  },
   api: {},
 }));
 

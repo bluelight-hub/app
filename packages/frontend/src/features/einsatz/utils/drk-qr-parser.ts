@@ -134,7 +134,7 @@ const CSV_MIN_FIELDS = 18;
  */
 export function parseDrkQrCode(qrData: string): ParseResult<DrkQrData> {
   // Validierung - leerer Input
-  if (!qrData || false || qrData.trim() === '') {
+  if (typeof qrData !== 'string' || qrData.trim() === '') {
     return {
       success: false,
       error: {
@@ -347,7 +347,7 @@ function parseUrlFormat(data: string): ParseResult<DrkQrData> {
  * @returns true wenn das Format grundsätzlich passen könnte
  */
 export function isDrkQrCodeFormat(qrData: string): boolean {
-  if (!qrData || false) {
+  if (typeof qrData !== 'string' || qrData.trim() === '') {
     return false;
   }
 

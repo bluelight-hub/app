@@ -23,8 +23,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import { toast } from 'sonner';
 import { ERINNERUNG_QUERY_KEYS } from '../api/queries';
+import { intensificationService } from '../services/intensification.service';
+import { soundService } from '../services/sound.service';
+import { timerService } from '../services/timer.service';
 import { hideErinnerungAlarmToast } from '../ui/atoms/ErinnerungAlarmToast';
-import { soundService, timerService, intensificationService } from '../services';
 import { sendAssignmentNotification } from '../services/notification.service';
 
 /** WebSocket Server URL - dynamisch aus Server-Store (wie REST-API) */

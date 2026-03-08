@@ -24,7 +24,7 @@ import {
   setLastSync,
   type SyncQueueAction,
   updateActionRetryCount,
-} from '@/features/reminders';
+} from '../stores/offline.store';
 import { offlineDetectionService } from './offline-detection.service';
 
 /** Maximale Anzahl Retry-Versuche */

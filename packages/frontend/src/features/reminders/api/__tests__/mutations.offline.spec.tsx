@@ -16,10 +16,42 @@ import type { PropsWithChildren } from 'react';
 import { useCreateErinnerung, useTriggerErinnerung, useAcknowledgeErinnerung, useSnoozeErinnerung, useMarkErledigtErinnerung } from '../mutations';
 import { offlineDetectionService } from '../../services/offline-detection.service';
 import { syncService } from '../../services/sync.service';
-import { resetOfflineStore } from '@/features/reminders';
+import { resetOfflineStore } from '../../stores/offline.store';
 
 // Mock the API
 vi.mock('@/shared', () => ({
+  AddEintragDtoKategorieEnum: {
+    Alarmierung: 'ALARMIERUNG',
+    Ankunft: 'ANKUNFT',
+    Befehl: 'BEFEHL',
+    Erkundung: 'ERKUNDUNG',
+    Lage: 'LAGE',
+    Massnahme: 'MASSNAHME',
+    Personal: 'PERSONAL',
+    Fahrzeug: 'FAHRZEUG',
+    Material: 'MATERIAL',
+    Kommunikation: 'KOMMUNIKATION',
+    Wetter: 'WETTER',
+    Dokumentation: 'DOKUMENTATION',
+    Sonstiges: 'SONSTIGES',
+    System: 'SYSTEM',
+  },
+  EintragDtoKategorieEnum: {
+    Alarmierung: 'ALARMIERUNG',
+    Ankunft: 'ANKUNFT',
+    Befehl: 'BEFEHL',
+    Erkundung: 'ERKUNDUNG',
+    Lage: 'LAGE',
+    Massnahme: 'MASSNAHME',
+    Personal: 'PERSONAL',
+    Fahrzeug: 'FAHRZEUG',
+    Material: 'MATERIAL',
+    Kommunikation: 'KOMMUNIKATION',
+    Wetter: 'WETTER',
+    Dokumentation: 'DOKUMENTATION',
+    Sonstiges: 'SONSTIGES',
+    System: 'SYSTEM',
+  },
   EinsatzRolleDtoRolleEnum: {
     Befehlsgeber: 'BEFEHLSGEBER',
     Empfaenger: 'EMPFAENGER',

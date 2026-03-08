@@ -65,7 +65,7 @@ describe('CreateKategorieDialog', () => {
       renderWithProviders(<CreateKategorieDialog {...defaultProps} />);
 
       // Then ist der Farb-Picker sichtbar
-      expect(screen.getByRole('radiogroup', { name: /Farbauswahl/ })).toBeInTheDocument();
+      expect(screen.getByRole('radiogroup', { name: /^Farbe/ })).toBeInTheDocument();
     });
 
     it('should have name input with placeholder', () => {

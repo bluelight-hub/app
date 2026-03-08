@@ -29,9 +29,11 @@ import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { logger } from '@/shared/lib/logger';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { intensificationService, soundService, timerService } from '../services';
 import { offlineDetectionService } from '../services/offline-detection.service';
+import { intensificationService } from '../services/intensification.service';
+import { soundService } from '../services/sound.service';
 import { syncService } from '../services/sync.service';
+import { timerService } from '../services/timer.service';
 import { hideErinnerungAlarmToast } from '../ui/atoms/ErinnerungAlarmToast';
 import { calculateRetryDelay, ERINNERUNG_QUERY_KEYS } from './queries';
 
