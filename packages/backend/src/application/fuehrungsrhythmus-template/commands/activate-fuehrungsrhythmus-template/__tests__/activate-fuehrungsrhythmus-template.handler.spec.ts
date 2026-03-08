@@ -16,6 +16,7 @@ import { FuehrungsrhythmusTemplateScope } from '@domain/fuehrungsrhythmus/value-
 import type { ILogger } from '@domain/ports/i-logger.port';
 import type { IErinnerungRepository } from '@domain/repositories/i-erinnerung.repository';
 import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
+import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { UserId } from '@domain/value-objects/user-id';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { FUEHRUNGSRHYTHMUS_TEMPLATE_ERROR_CODES } from '../../../errors/fuehrungsrhythmus-template-error.codes';
@@ -48,6 +49,7 @@ describe('ActivateFuehrungsrhythmusTemplateHandler', () => {
 
   /** Test Einsatz ID */
   const testEinsatzIdString = UserId.create().value?.toString(); // CUID2 Format reicht
+  const testEinsatzId = EinsatzId.create(testEinsatzIdString).value!;
 
   /**
    * Erstellt ein rekonstruiertes Template mit den gegebenen Eintraegen.
@@ -68,7 +70,7 @@ describe('ActivateFuehrungsrhythmusTemplateHandler', () => {
       isDeleted: options?.isDeleted ?? false,
       deletedAt: options?.isDeleted ? new Date() : null,
       deletedBy: options?.isDeleted ? testUserId : null,
-      einsatzId: null,
+      einsatzId: testEinsatzId,
     });
   };
 

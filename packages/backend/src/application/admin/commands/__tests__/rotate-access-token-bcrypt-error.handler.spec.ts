@@ -35,6 +35,7 @@ jest.mock('bcrypt', () => ({
 const bcrypt = require('bcrypt');
 
 describe('RotateAccessTokenHandler - bcrypt Error Handling', () => {
+  const VALID_BCRYPT_TOKEN_HASH = '$2a$10$N9qo8uLOickgx2ZMRZoMye.IjqQBrkHx6Y.q8e8.mzYsYB1.qKWZS';
   let handler: RotateAccessTokenHandler;
   let mockTokenRepository: {
     save: jest.Mock;
@@ -67,7 +68,7 @@ describe('RotateAccessTokenHandler - bcrypt Error Handling', () => {
    * Helper: Erstellt ein Mock ServerAccessToken
    */
   const createMockToken = (): ServerAccessToken => {
-    const tokenHash = expectSuccess(TokenHash.create('$2a$10$abcdefghijklmnopqrstuvwxyz123456789012345678901234'));
+    const tokenHash = expectSuccess(TokenHash.create(VALID_BCRYPT_TOKEN_HASH));
     const token = expectSuccess(
       ServerAccessToken.create({
         tokenHash,

@@ -16,6 +16,7 @@ import { expectDefined, expectSuccess, getMockCallArg, getRequiredLogMessage } f
 
 // Mock CUID2 fuer deterministische Tests (muss exakt 24 Zeichen haben!)
 const MOCK_CUID = 'newtokencuid1234567890ab';
+const VALID_BCRYPT_TOKEN_HASH = '$2a$10$N9qo8uLOickgx2ZMRZoMye.IjqQBrkHx6Y.q8e8.mzYsYB1.qKWZS';
 jest.mock('@paralleldrive/cuid2', () => ({
   createId: jest.fn(() => MOCK_CUID),
 }));
@@ -59,7 +60,7 @@ describe('RotateAccessTokenHandler', () => {
       isExpired: boolean;
     }> = {},
   ): ServerAccessToken => {
-    const tokenHash = expectSuccess(TokenHash.create('$2a$10$abcdefghijklmnopqrstuvwxyz123456789012345678901234'));
+    const tokenHash = expectSuccess(TokenHash.create(VALID_BCRYPT_TOKEN_HASH));
 
     // Create token with optional expiration
     const expiresAt = overrides.isExpired ? new Date(Date.now() - 1000) : undefined;

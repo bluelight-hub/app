@@ -9,9 +9,9 @@ import type { AddEintragHandler } from '@/application/etb/commands/add-eintrag/a
 import type { UpdateEintragHandler } from '@/application/etb/commands/update-eintrag/update-eintrag.handler';
 import type { DeleteEintragHandler } from '@/application/etb/commands/delete-eintrag/delete-eintrag.handler';
 import type { LockEtbHandler } from '@/application/etb/commands/lock-etb/lock-etb.handler';
-import type { GetEtbQueryHandler } from '@/application/etb/queries/get-etb/get-etb-query.handler';
-import type { GetEtbHistoryQueryHandler } from '@/application/etb/queries/get-etb-history/get-etb-history-query.handler';
-import type { GetTextbausteineHandler } from '@/application/etb/queries/get-textbausteine/get-textbausteine-query.handler';
+import type { GetEtbQueryHandler } from '@/application/etb/queries/get-etb/get-etb.handler';
+import type { GetEtbHistoryQueryHandler } from '@/application/etb/queries/get-etb-history/get-etb-history.handler';
+import type { GetTextbausteineHandler } from '@/application/etb/queries/get-textbausteine/get-textbausteine.handler';
 import type { IEtbRepository } from '@domain/repositories/i-etb.repository';
 import type { ILogger } from '@domain/ports/i-logger.port';
 
