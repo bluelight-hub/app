@@ -1,4 +1,4 @@
-import { DomainException } from '@domain/common';
+import { DomainException } from './domain.exception';
 
 /**
  * Wird geworfen wenn ein Einsatz nicht gefunden wurde.

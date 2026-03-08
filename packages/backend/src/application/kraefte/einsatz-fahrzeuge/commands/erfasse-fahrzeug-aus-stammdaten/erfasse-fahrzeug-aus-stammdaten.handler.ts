@@ -15,8 +15,8 @@ import { EINSATZ_FAHRZEUG_ERROR_CODES, EinsatzFahrzeugError } from '@domain/krae
 import { KRAEFTE_REPOSITORIES, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { EinsatzFahrzeugDto } from '../../dto';
-import { EinsatzFahrzeugQueryMapper } from '@application/kraefte/einsatz-fahrzeuge';
-import type { ErfasseFahrzeugAusStammdatenCommand } from '@application/kraefte/einsatz-fahrzeuge';
+import { EinsatzFahrzeugQueryMapper } from '../../queries/einsatz-fahrzeug-query.mapper';
+import type { ErfasseFahrzeugAusStammdatenCommand } from './erfasse-fahrzeug-aus-stammdaten.command';
 
 /**
  * Handler für ErfasseFahrzeugAusStammdatenCommand.

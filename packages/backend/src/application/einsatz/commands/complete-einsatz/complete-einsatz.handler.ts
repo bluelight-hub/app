@@ -5,7 +5,7 @@ import { UserId } from '@domain/value-objects/user-id';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { CommandHandler } from '@nestjs/cqrs';
 import { Inject, Injectable } from '@nestjs/common';
-import { CompleteEinsatzCommand } from '@application/einsatz';
+import { CompleteEinsatzCommand } from './complete-einsatz.command';
 import { TransactionalCommandHandler } from '@application/common/handlers/transactional-command.handler';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';

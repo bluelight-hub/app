@@ -12,6 +12,7 @@ import { ACCESS_TOKEN_ERROR_CODES } from '../../errors/access-token-error.codes'
 import { expectSuccess, getMockCallArg, getRequiredLogMessage } from './helpers/result-test.helper';
 
 describe('RevokeAccessTokenHandler', () => {
+  const VALID_BCRYPT_TOKEN_HASH = '$2a$10$N9qo8uLOickgx2ZMRZoMye.IjqQBrkHx6Y.q8e8.mzYsYB1.qKWZS';
   let handler: RevokeAccessTokenHandler;
   let mockTokenRepository: {
     save: jest.Mock;
@@ -42,7 +43,7 @@ describe('RevokeAccessTokenHandler', () => {
 
   // Helper: Create a mock ServerAccessToken
   const createMockToken = (overrides: Partial<{ isRevoked: boolean; name: string }> = {}): ServerAccessToken => {
-    const tokenHash = expectSuccess(TokenHash.create('$2a$10$abcdefghijklmnopqrstuvwxyz123456789012345678901234'));
+    const tokenHash = expectSuccess(TokenHash.create(VALID_BCRYPT_TOKEN_HASH));
     const token = expectSuccess(
       ServerAccessToken.create({
         tokenHash,
@@ -278,8 +279,7 @@ describe('RevokeAccessTokenHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       // No new events should be emitted for already revoked token
-      const savedEvents = getMockCallArg(mockOutboxRepository.save, 0, 0) ?? [];
-      expect(savedEvents.length).toBe(0);
+      expect(mockOutboxRepository.save).not.toHaveBeenCalled();
     });
   });
 

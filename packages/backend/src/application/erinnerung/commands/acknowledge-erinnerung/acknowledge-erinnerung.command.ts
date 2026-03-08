@@ -46,7 +46,7 @@ export class AcknowledgeErinnerungCommand {
    */
   static create(props: AcknowledgeErinnerungCommandProps): Result<AcknowledgeErinnerungCommand> {
     // Validierung: erinnerungId erforderlich und CUID2 Format
-    if (!props.erinnerungId || false) {
+    if (typeof props.erinnerungId !== 'string' || props.erinnerungId.length === 0) {
       return Result.fail<AcknowledgeErinnerungCommand>('ERINNERUNG_ID_REQUIRED');
     }
 
@@ -57,7 +57,7 @@ export class AcknowledgeErinnerungCommand {
     }
 
     // Validierung: acknowledgedBy erforderlich und CUID2 Format
-    if (!props.acknowledgedBy || false) {
+    if (typeof props.acknowledgedBy !== 'string' || props.acknowledgedBy.length === 0) {
       return Result.fail<AcknowledgeErinnerungCommand>('ACKNOWLEDGED_BY_REQUIRED');
     }
 
