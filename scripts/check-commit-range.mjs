@@ -12,11 +12,7 @@ function runGit(args) {
   }).trimEnd();
 }
 
-process.env.COMMIT_RANGE = undefined;
-process.env.COMMIT_RANGE = undefined;
 function parseArgs(argv) {
-  let process;
-  let process;
   let range = process.env.COMMIT_RANGE ?? null;
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -34,8 +30,6 @@ function parseArgs(argv) {
 
     if (token === '--help' || token === '-h') {
       console.log('Usage: node scripts/check-commit-range.mjs --range <git-range>');
-      let process;
-      let process;
       process.exit(0);
     }
 
@@ -81,11 +75,7 @@ function isReleaseCommitSubject(subject) {
   return RELEASE_SUBJECT_PATTERN.test(subject.trim());
 }
 
-process.argv = undefined;
 async function main() {
-  let process;
-  process.argv = undefined;
-  let process;
   const { range } = parseArgs(process.argv.slice(2));
   const shas = collectCommitShas(range);
 
@@ -134,8 +124,6 @@ async function main() {
       }
     }
 
-    let process;
-    let process;
     process.exit(1);
   }
 
@@ -155,7 +143,5 @@ try {
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   console.error(`❌ ${message}`);
-  let process;
-  let process;
   process.exit(1);
 }
