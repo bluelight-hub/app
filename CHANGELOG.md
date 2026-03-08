@@ -1,3 +1,22 @@
+## 🐛 Fehlerbehebungen
+
+### Backend
+- Behebung von Regressionstests im Backend-System
+- Korrektur von zirkulären Imports für stabilere Testausführung
+
+### Frontend
+- Behebung von Testfehlern in Erinnerungs-Modulen durch verbesserte Mock-Strategie
+- Robustere Verarbeitung von DRK-QR-Code-Eingaben
+- Aktualisierung der Barrierefreiheits-Tests für Dialoge
+
+## ⬆️ Aktualisierungen
+
+### TanStack-Bibliotheken
+- React DevTools auf Version 0.9.10 aktualisiert
+- React Form auf Version 1.28.4 aktualisiert
+- React Router und Router DevTools auf Version 1.166.2 aktualisiert
+- React Virtual auf Version 3.13.21 aktualisiert
+
 ## Sicherheit & Konfiguration
 
 - **Vereinfachtes Secret-Management**: Alle App-Secrets werden nun zentral über `MASTER_SECRET` verwaltet. Administratoren können den Status einsehen, Secrets aktualisieren und Cleanup-Prozesse durchführen
