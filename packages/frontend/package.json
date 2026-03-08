@@ -83,7 +83,7 @@
     "@eslint/js": "^10.0.1",
     "@tanstack/devtools-vite": "^0.5.3",
     "@tanstack/eslint-config": "^0.4.0",
-    "@tanstack/router-plugin": "^1.166.2",
+    "@tanstack/router-plugin": "^1.166.3",
     "@tauri-apps/cli": "^2.10.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
