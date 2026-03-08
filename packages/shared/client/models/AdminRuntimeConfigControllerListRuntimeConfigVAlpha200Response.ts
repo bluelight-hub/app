@@ -12,21 +12,15 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { RuntimeConfigListDto } from './RuntimeConfigListDto';
-import {
-    RuntimeConfigListDtoFromJSON,
-    RuntimeConfigListDtoFromJSONTyped,
-    RuntimeConfigListDtoToJSON,
-    RuntimeConfigListDtoToJSONTyped,
-} from './RuntimeConfigListDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {RuntimeConfigListDto} from './RuntimeConfigListDto';
+import {RuntimeConfigListDtoFromJSON, RuntimeConfigListDtoToJSON,} from './RuntimeConfigListDto';
 
 /**
  * 
@@ -53,8 +47,8 @@ export interface AdminRuntimeConfigControllerListRuntimeConfigVAlpha200Response 
  */
 export function instanceOfAdminRuntimeConfigControllerListRuntimeConfigVAlpha200Response(value: object): value is AdminRuntimeConfigControllerListRuntimeConfigVAlpha200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function AdminRuntimeConfigControllerListRuntimeConfigVAlpha200ResponseFromJSON(json: any): AdminRuntimeConfigControllerListRuntimeConfigVAlpha200Response {

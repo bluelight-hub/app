@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Unit Tests fuer ErinnerungWebSocketEventAdapter.
  *

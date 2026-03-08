@@ -4,7 +4,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { cn } from '@/shared/ui/cn';
 import { ItemTypeBadge } from './ItemTypeBadge';
-import { HighlightText } from '../utils/highlight-text';
+import { HighlightText } from '@/features/notizen';
 
 interface NotizCardProps {
   id: string;

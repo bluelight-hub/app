@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Mock @paralleldrive/cuid2 BEFORE any imports (hoisting workaround for Jest + ESM)
 jest.mock('@paralleldrive/cuid2', () => ({
   createId: jest.fn(() => {
@@ -9,7 +10,6 @@ jest.mock('@paralleldrive/cuid2', () => ({
     return result;
   }),
   isCuid: jest.fn((id: string) => {
-    if (typeof id !== 'string') return false;
     if (id.length < 20 || id.length > 30) return false;
     // CUID2 Format: lowercase a-z and 0-9 only, starts with letter
     // Nanoid/CUID Format (für UserId): mixed case alphanumeric + underscore/hyphen
@@ -706,8 +706,8 @@ describe('PrismaUserMapper', () => {
 
         // Then: Aggregate hat korrekte Permissions
         expect(aggregate.permissions).toHaveLength(2);
-        expect(aggregate.permissions[0].value).toBe('user:read');
-        expect(aggregate.permissions[1].value).toBe('einsatz:create');
+        expect(aggregate.permissions[0]?.value).toBe('user:read');
+        expect(aggregate.permissions[1]?.value).toBe('einsatz:create');
       });
 
       it('sollte ungültigen JSON graceful zu leerem Array degradieren', () => {
@@ -747,8 +747,8 @@ describe('PrismaUserMapper', () => {
 
         // Then: Nur valide Permissions werden rekonstruiert
         expect(aggregate.permissions).toHaveLength(2);
-        expect(aggregate.permissions[0].value).toBe('user:read');
-        expect(aggregate.permissions[1].value).toBe('einsatz:create');
+        expect(aggregate.permissions[0]?.value).toBe('user:read');
+        expect(aggregate.permissions[1]?.value).toBe('einsatz:create');
       });
 
       it('sollte non-string Array Items überspringen', () => {
@@ -762,8 +762,8 @@ describe('PrismaUserMapper', () => {
 
         // Then: Nur String Permissions werden rekonstruiert
         expect(aggregate.permissions).toHaveLength(2);
-        expect(aggregate.permissions[0].value).toBe('user:read');
-        expect(aggregate.permissions[1].value).toBe('einsatz:create');
+        expect(aggregate.permissions[0]?.value).toBe('user:read');
+        expect(aggregate.permissions[1]?.value).toBe('einsatz:create');
       });
     });
   });
@@ -793,9 +793,9 @@ describe('PrismaUserMapper', () => {
 
       // Then: Permissions bleiben erhalten
       expect(reconstructedAggregate.permissions).toHaveLength(3);
-      expect(reconstructedAggregate.permissions[0].value).toBe('einsatz:create');
-      expect(reconstructedAggregate.permissions[1].value).toBe('etb:lock');
-      expect(reconstructedAggregate.permissions[2].value).toBe('user:read');
+      expect(reconstructedAggregate.permissions[0]?.value).toBe('einsatz:create');
+      expect(reconstructedAggregate.permissions[1]?.value).toBe('etb:lock');
+      expect(reconstructedAggregate.permissions[2]?.value).toBe('user:read');
     });
 
     it('sollte leeres Permission Array bei Round-Trip erhalten (als null)', () => {

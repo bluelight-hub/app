@@ -40,7 +40,7 @@ export interface UpdateErinnerungsvorlageProps {
   titel?: string;
   minuten?: number;
   beschreibung?: string | null; // null = Beschreibung entfernen
-  updatedBy: string;
+  updatedBy?: string;
 }
 
 /**
@@ -203,7 +203,7 @@ export class Erinnerungsvorlage extends AggregateRoot<ErinnerungsvorlageId> {
     this.updateTimestamp();
 
     // Emit Domain Event
-    this.addDomainEvent(new ErinnerungsvorlageAktualisiertEvent(this.id, this._titel.value, this._minuten, this._beschreibung, props.updatedBy, this.id.toString()));
+    this.addDomainEvent(new ErinnerungsvorlageAktualisiertEvent(this.id, this._titel.value, this._minuten, this._beschreibung, props.updatedBy ?? this._createdBy.toString(), this.id.toString()));
 
     return Result.ok<void>(undefined);
   }

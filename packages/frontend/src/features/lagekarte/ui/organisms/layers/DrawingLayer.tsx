@@ -1,8 +1,8 @@
 import '@geoman-io/leaflet-geoman-free';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
-import type { DrawingTool } from '../toolbar/DrawingToolbar';
-import { ShapeContextMenu } from '../../molecules/ShapeContextMenu';
-import { SelectedShapeToolbar } from '../../molecules/SelectedShapeToolbar';
+import type { DrawingTool } from '@/features/lagekarte';
+import { ShapeContextMenu } from '@/features/lagekarte';
+import { SelectedShapeToolbar } from '@/features/lagekarte';
 import type React from 'react';
 import { memo, useCallback, useRef, useState } from 'react';
 import { useMap } from 'react-leaflet';

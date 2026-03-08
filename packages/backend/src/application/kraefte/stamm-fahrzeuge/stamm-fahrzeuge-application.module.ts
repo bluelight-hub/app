@@ -6,13 +6,13 @@ import { LOGGER } from '@infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 
 // Command Handlers
-import { CreateStammFahrzeugHandler } from './commands/create-stamm-fahrzeug/create-stamm-fahrzeug.handler';
-import { UpdateStammFahrzeugHandler } from './commands/update-stamm-fahrzeug/update-stamm-fahrzeug.handler';
-import { ArchiveStammFahrzeugHandler } from './commands/archive-stamm-fahrzeug/archive-stamm-fahrzeug.handler';
+import { CreateStammFahrzeugHandler } from '@application/kraefte/stamm-fahrzeuge/commands';
+import { UpdateStammFahrzeugHandler } from '@application/kraefte/stamm-fahrzeuge/commands';
+import { ArchiveStammFahrzeugHandler } from '@application/kraefte/stamm-fahrzeuge/commands';
 
 // Query Handlers
-import { GetAllStammFahrzeugeHandler } from './queries/get-all-stamm-fahrzeuge/get-all-stamm-fahrzeuge.handler';
-import { GetStammFahrzeugByIdHandler } from './queries/get-stamm-fahrzeug-by-id/get-stamm-fahrzeug-by-id.handler';
+import { GetAllStammFahrzeugeHandler } from '@application/kraefte/stamm-fahrzeuge/queries';
+import { GetStammFahrzeugByIdHandler } from '@application/kraefte/stamm-fahrzeuge/queries';
 
 // Query Mapper
 import { StammFahrzeugQueryMapper } from './queries/stamm-fahrzeug-query.mapper';

@@ -12,20 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { ErinnerungKonfigurationDto } from './ErinnerungKonfigurationDto';
-import {
-    ErinnerungKonfigurationDtoFromJSON,
-    ErinnerungKonfigurationDtoFromJSONTyped,
-    ErinnerungKonfigurationDtoToJSON,
-    ErinnerungKonfigurationDtoToJSONTyped,
-} from './ErinnerungKonfigurationDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {ErinnerungKonfigurationDto} from './ErinnerungKonfigurationDto';
+import {ErinnerungKonfigurationDtoFromJSON, ErinnerungKonfigurationDtoToJSON,} from './ErinnerungKonfigurationDto';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
 
 /**
@@ -53,8 +47,8 @@ export interface ErinnerungKonfigurationControllerGetConfigVAlpha200Response {
  */
 export function instanceOfErinnerungKonfigurationControllerGetConfigVAlpha200Response(value: object): value is ErinnerungKonfigurationControllerGetConfigVAlpha200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function ErinnerungKonfigurationControllerGetConfigVAlpha200ResponseFromJSON(json: any): ErinnerungKonfigurationControllerGetConfigVAlpha200Response {

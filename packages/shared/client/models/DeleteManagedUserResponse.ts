@@ -12,27 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { ApiMeta } from './ApiMeta';
-import {
-    ApiMetaFromJSON,
-    ApiMetaFromJSONTyped,
-    ApiMetaToJSON,
-    ApiMetaToJSONTyped,
-} from './ApiMeta';
-import type { ApiPagination } from './ApiPagination';
-import {
-    ApiPaginationFromJSON,
-    ApiPaginationFromJSONTyped,
-    ApiPaginationToJSON,
-    ApiPaginationToJSONTyped,
-} from './ApiPagination';
-import type { DeleteManagedUserResponseData } from './DeleteManagedUserResponseData';
+import type {ApiMeta} from './ApiMeta';
+import {ApiMetaFromJSON, ApiMetaToJSON,} from './ApiMeta';
+import type {ApiPagination} from './ApiPagination';
+import {ApiPaginationFromJSON, ApiPaginationToJSON,} from './ApiPagination';
+import type {DeleteManagedUserResponseData} from './DeleteManagedUserResponseData';
 import {
     DeleteManagedUserResponseDataFromJSON,
-    DeleteManagedUserResponseDataFromJSONTyped,
     DeleteManagedUserResponseDataToJSON,
-    DeleteManagedUserResponseDataToJSONTyped,
 } from './DeleteManagedUserResponseData';
 
 /**
@@ -72,8 +59,8 @@ export interface DeleteManagedUserResponse {
  */
 export function instanceOfDeleteManagedUserResponse(value: object): value is DeleteManagedUserResponse {
     if (!('meta' in value) || value['meta'] === undefined) return false;
-    if (!('data' in value) || value['data'] === undefined) return false;
-    return true;
+    return !(!('data' in value) || value['data'] === undefined);
+
 }
 
 export function DeleteManagedUserResponseFromJSON(json: any): DeleteManagedUserResponse {

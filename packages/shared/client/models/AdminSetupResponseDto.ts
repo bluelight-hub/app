@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { AdminSetupUserDto } from './AdminSetupUserDto';
-import {
-    AdminSetupUserDtoFromJSON,
-    AdminSetupUserDtoFromJSONTyped,
-    AdminSetupUserDtoToJSON,
-    AdminSetupUserDtoToJSONTyped,
-} from './AdminSetupUserDto';
+import type {AdminSetupUserDto} from './AdminSetupUserDto';
+import {AdminSetupUserDtoFromJSON, AdminSetupUserDtoToJSON,} from './AdminSetupUserDto';
 
 /**
  * 
@@ -46,8 +40,8 @@ export interface AdminSetupResponseDto {
  */
 export function instanceOfAdminSetupResponseDto(value: object): value is AdminSetupResponseDto {
     if (!('message' in value) || value['message'] === undefined) return false;
-    if (!('user' in value) || value['user'] === undefined) return false;
-    return true;
+    return !(!('user' in value) || value['user'] === undefined);
+
 }
 
 export function AdminSetupResponseDtoFromJSON(json: any): AdminSetupResponseDto {

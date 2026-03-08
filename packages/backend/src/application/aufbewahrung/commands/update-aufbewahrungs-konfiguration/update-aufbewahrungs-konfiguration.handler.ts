@@ -31,7 +31,7 @@ export class UpdateAufbewahrungsKonfigurationHandler extends TransactionalComman
     super(prisma, outboxRepository);
   }
 
-  protected async executeInTransaction(command: UpdateAufbewahrungsKonfigurationCommand, tx: TransactionContext): Promise<Result<void> | { result: void; events: DomainEvent[] }> {
+  protected async executeInTransaction(command: UpdateAufbewahrungsKonfigurationCommand, tx: TransactionContext): Promise<Result<void> | { result: undefined; events: DomainEvent[] }> {
     // 1. Alte Konfiguration laden (fuer Event-Vergleich)
     const alteKonfigResult = await this.konfigurationRepository.find(tx);
     if (alteKonfigResult.isFailure) {

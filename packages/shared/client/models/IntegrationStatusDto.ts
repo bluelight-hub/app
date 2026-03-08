@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -93,8 +92,8 @@ export type IntegrationStatusDtoStateEnum = typeof IntegrationStatusDtoStateEnum
 export function instanceOfIntegrationStatusDto(value: object): value is IntegrationStatusDto {
     if (!('serviceName' in value) || value['serviceName'] === undefined) return false;
     if (!('state' in value) || value['state'] === undefined) return false;
-    if (!('failureCount' in value) || value['failureCount'] === undefined) return false;
-    return true;
+    return !(!('failureCount' in value) || value['failureCount'] === undefined);
+
 }
 
 export function IntegrationStatusDtoFromJSON(json: any): IntegrationStatusDto {

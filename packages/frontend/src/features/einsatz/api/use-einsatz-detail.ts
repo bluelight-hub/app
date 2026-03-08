@@ -6,7 +6,7 @@
  */
 
 import { api } from '@/shared';
-import { useEinsatzStore } from '../stores/active-einsatz.store';
+import { useEinsatzStore } from '@/features/einsatz';
 import type { EinsatzControllerCreateVAlpha200Response, ResponseError } from '@/shared';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';

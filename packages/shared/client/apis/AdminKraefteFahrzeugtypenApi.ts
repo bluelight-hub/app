@@ -19,17 +19,13 @@ import type {
   AdminFahrzeugtypenControllerFindAllVAlpha200Response,
   CreateFahrzeugtypDto,
   UpdateFahrzeugtypDto,
-} from '../models/index';
+} from '../models';
 import {
     AdminFahrzeugtypenControllerCreateVAlpha201ResponseFromJSON,
-    AdminFahrzeugtypenControllerCreateVAlpha201ResponseToJSON,
     AdminFahrzeugtypenControllerFindAllVAlpha200ResponseFromJSON,
-    AdminFahrzeugtypenControllerFindAllVAlpha200ResponseToJSON,
-    CreateFahrzeugtypDtoFromJSON,
     CreateFahrzeugtypDtoToJSON,
-    UpdateFahrzeugtypDtoFromJSON,
     UpdateFahrzeugtypDtoToJSON,
-} from '../models/index';
+} from '../models';
 
 export interface AdminFahrzeugtypenControllerCreateVAlphaRequest {
     createFahrzeugtypDto: CreateFahrzeugtypDto;
@@ -125,7 +121,7 @@ export class AdminKraefteFahrzeugtypenApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/api/v-alpha/admin/kraefte/fahrzeugtypen/{id}/deactivate`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/admin/kraefte/fahrzeugtypen/{id}/deactivate`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'PATCH',
             headers: headerParameters,
             query: queryParameters,
@@ -204,7 +200,7 @@ export class AdminKraefteFahrzeugtypenApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/api/v-alpha/admin/kraefte/fahrzeugtypen/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/admin/kraefte/fahrzeugtypen/{id}`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -254,7 +250,7 @@ export class AdminKraefteFahrzeugtypenApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/api/v-alpha/admin/kraefte/fahrzeugtypen/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/admin/kraefte/fahrzeugtypen/{id}`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'PATCH',
             headers: headerParameters,
             query: queryParameters,

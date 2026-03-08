@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -45,8 +44,8 @@ export interface HiOrgConnectionInfoDto {
 export function instanceOfHiOrgConnectionInfoDto(value: object): value is HiOrgConnectionInfoDto {
     if (!('organisationName' in value) || value['organisationName'] === undefined) return false;
     if (!('connected' in value) || value['connected'] === undefined) return false;
-    if (!('testedAt' in value) || value['testedAt'] === undefined) return false;
-    return true;
+    return !(!('testedAt' in value) || value['testedAt'] === undefined);
+
 }
 
 export function HiOrgConnectionInfoDtoFromJSON(json: any): HiOrgConnectionInfoDto {

@@ -1,6 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
 import { LOGGER } from '@/infrastructure/di-tokens';
 import type { ILogger } from '@domain/ports/i-logger.port';
+import { Inject, Injectable } from '@nestjs/common';
 import { createHash } from 'node:crypto';
 
 /**
@@ -117,11 +117,10 @@ export class HibpService {
     const timeoutId = setTimeout(() => controller.abort(), this.TIMEOUT_MS);
 
     try {
-      const response = await fetch(url, {
+      return await fetch(url, {
         ...options,
         signal: controller.signal,
       });
-      return response;
     } finally {
       clearTimeout(timeoutId);
     }

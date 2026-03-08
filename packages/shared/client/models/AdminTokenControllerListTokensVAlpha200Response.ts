@@ -12,27 +12,21 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { TokenListItemDto } from './TokenListItemDto';
-import {
-    TokenListItemDtoFromJSON,
-    TokenListItemDtoFromJSONTyped,
-    TokenListItemDtoToJSON,
-    TokenListItemDtoToJSONTyped,
-} from './TokenListItemDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
-import type { UserControllerFindAllBasicVAlpha200ResponsePagination } from './UserControllerFindAllBasicVAlpha200ResponsePagination';
+import type {TokenListItemDto} from './TokenListItemDto';
+import {TokenListItemDtoFromJSON, TokenListItemDtoToJSON,} from './TokenListItemDto';
+import type {
+    UserControllerFindAllBasicVAlpha200ResponsePagination
+} from './UserControllerFindAllBasicVAlpha200ResponsePagination';
 import {
     UserControllerFindAllBasicVAlpha200ResponsePaginationFromJSON,
-    UserControllerFindAllBasicVAlpha200ResponsePaginationFromJSONTyped,
     UserControllerFindAllBasicVAlpha200ResponsePaginationToJSON,
-    UserControllerFindAllBasicVAlpha200ResponsePaginationToJSONTyped,
 } from './UserControllerFindAllBasicVAlpha200ResponsePagination';
 
 /**
@@ -66,8 +60,8 @@ export interface AdminTokenControllerListTokensVAlpha200Response {
  */
 export function instanceOfAdminTokenControllerListTokensVAlpha200Response(value: object): value is AdminTokenControllerListTokensVAlpha200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function AdminTokenControllerListTokensVAlpha200ResponseFromJSON(json: any): AdminTokenControllerListTokensVAlpha200Response {

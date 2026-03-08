@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -52,8 +51,8 @@ export function instanceOfApiPagination(value: object): value is ApiPagination {
     if (!('page' in value) || value['page'] === undefined) return false;
     if (!('limit' in value) || value['limit'] === undefined) return false;
     if (!('total' in value) || value['total'] === undefined) return false;
-    if (!('totalPages' in value) || value['totalPages'] === undefined) return false;
-    return true;
+    return !(!('totalPages' in value) || value['totalPages'] === undefined);
+
 }
 
 export function ApiPaginationFromJSON(json: any): ApiPagination {

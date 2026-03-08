@@ -118,7 +118,17 @@ export class CreateEinsatzHandler extends TransactionalCommandHandler<CreateEins
       return Result.fail(seqResult.error ?? 'Sequenznummer konnte nicht ermittelt werden');
     }
     const namingService = new EinsatzNamingService();
-    const nummer = namingService.generateEinsatzNummer(year, seqResult.value!);
+    const sequenceNumber = seqResult.value;
+    if (sequenceNumber == null) {
+      this.logger.error('Unexpected missing sequence number after successful lookup', {
+        year,
+        operation: 'createEinsatz',
+        phase: 'sequencing',
+      });
+      return Result.fail('Sequenznummer konnte nicht ermittelt werden');
+    }
+
+    const nummer = namingService.generateEinsatzNummer(year, sequenceNumber);
 
     // Step 2: Create Aggregate via Factory Method
     // Business Rules werden vom Aggregate enforced (alarmstichwort required, status = ANGELEGT)

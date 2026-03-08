@@ -4,9 +4,9 @@ import { Result } from '@domain/common/result';
 import { IRollenDefinitionRepository } from '@domain/kraefte/repositories/i-rollen-definition.repository';
 import { RolleId } from '@domain/kraefte/value-objects/rolle-id';
 import { KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';
-import type { RollenDefinitionDto } from '../../dto/rollen-definition.dto';
-import { RollenDefinitionQueryMapper } from '../rollen-definition-query.mapper';
-import type { GetRollenDefinitionByIdQuery } from './get-rollen-definition-by-id.query';
+import type { RollenDefinitionDto } from '@application/kraefte/rollen';
+import { RollenDefinitionQueryMapper } from '@application/kraefte/rollen';
+import type { GetRollenDefinitionByIdQuery } from '@application/kraefte/rollen';
 
 /**
  * Handler für GetRollenDefinitionByIdQuery.

@@ -13,7 +13,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { IntensificationService } from '../intensification.service';
+import { IntensificationService } from '@/features/reminders';
 
 // Mock fuer intensification.store
 vi.mock('../../stores/intensification.store', () => ({

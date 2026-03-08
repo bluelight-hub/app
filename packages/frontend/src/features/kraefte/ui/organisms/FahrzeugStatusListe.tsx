@@ -18,9 +18,9 @@
  */
 
 import { cn } from '@/shared/ui/cn';
-import { DashboardErrorCard } from '../molecules/DashboardErrorCard';
+import { DashboardErrorCard } from '@/features/kraefte/ui';
 import { FahrzeugCard, FahrzeugCardSkeleton } from '../molecules/FahrzeugCard';
-import { useEinsatzFahrzeuge } from '../../api/use-einsatz-fahrzeuge';
+import { useEinsatzFahrzeuge } from '@/features/kraefte';
 import { useDashboardMode, type DashboardMode } from '../../contexts';
 import { PiArrowClockwise, PiTruck } from 'react-icons/pi';
 import type { EinsatzFahrzeugDto } from '@/shared';

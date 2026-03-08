@@ -16,11 +16,11 @@
 import * as runtime from '../runtime';
 import type {
   AdminRollenControllerFindAllVAlpha200Response,
-} from '../models/index';
+} from '../models';
 import {
     AdminRollenControllerFindAllVAlpha200ResponseFromJSON,
-    AdminRollenControllerFindAllVAlpha200ResponseToJSON,
-} from '../models/index';
+
+} from '../models';
 
 /**
  * 

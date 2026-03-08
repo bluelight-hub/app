@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Test, type TestingModule } from '@nestjs/testing';
 import { EskaliereErinnerungHandler } from '../eskaliere-erinnerung.handler';
 import type { IErinnerungRepository } from '@domain/repositories/i-erinnerung.repository';

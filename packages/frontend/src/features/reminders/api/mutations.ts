@@ -8,32 +8,32 @@
  * **Story 1.8 AC1/AC2:** Offline-Support mit lokaler Speicherung und Sync-Queue
  */
 
-import { api } from '@/shared';
-import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
-import { logger } from '@/shared/lib/logger';
+import { useCurrentUser } from '@/features/auth/api/use-current-user';
+import { ETB_QUERY_KEYS } from '@/features/etb/api/queries';
+import { queueEtbAction } from '@/features/etb/stores/offline.store';
 import type {
+  AssignErinnerungDto,
   CreateErinnerungDto,
+  ErinnerungControllerAcknowledgeVAlphaRequest,
+  ErinnerungControllerAssignVAlphaRequest,
+  ErinnerungControllerDeleteVAlphaRequest,
+  ErinnerungControllerMarkErledigtVAlphaRequest,
+  ErinnerungControllerSnoozeVAlphaRequest,
+  ErinnerungControllerStopRecurringSeriesVAlphaRequest,
   ErinnerungResponseDto,
   ResponseError,
   UpdateErinnerungDto,
-  ErinnerungControllerDeleteVAlphaRequest,
-  ErinnerungControllerAcknowledgeVAlphaRequest,
-  ErinnerungControllerSnoozeVAlphaRequest,
-  ErinnerungControllerMarkErledigtVAlphaRequest,
-  AssignErinnerungDto,
-  ErinnerungControllerAssignVAlphaRequest,
-  ErinnerungControllerStopRecurringSeriesVAlphaRequest,
 } from '@/shared';
+import { api } from '@/shared';
+import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
+import { logger } from '@/shared/lib/logger';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ERINNERUNG_QUERY_KEYS, calculateRetryDelay } from './queries';
-import { ETB_QUERY_KEYS } from '@/features/etb/api/queries';
+import { intensificationService, soundService, timerService } from '../services';
 import { offlineDetectionService } from '../services/offline-detection.service';
 import { syncService } from '../services/sync.service';
-import { soundService, timerService, intensificationService } from '../services';
 import { hideErinnerungAlarmToast } from '../ui/atoms/ErinnerungAlarmToast';
-import { queueEtbAction } from '@/features/etb/stores/offline.store';
-import { useCurrentUser } from '@/features/auth/api/use-current-user';
+import { calculateRetryDelay, ERINNERUNG_QUERY_KEYS } from './queries';
 
 /**
  * Prueft ob ein Error ein Netzwerkfehler ist (Connection Lost, Timeout, etc.)
@@ -1509,10 +1509,7 @@ export const useStopRecurringSeries = () => {
               return false;
             }
             // AC2 Fall 2: Parent selbst entfernen wenn er aktiv ist und kein aktives Kind existiert
-            if (e.id === erinnerungId && !hasActiveChild && parentIsActive) {
-              return false;
-            }
-            return true;
+            return !(e.id === erinnerungId && !hasActiveChild && parentIsActive);
           })
           .map((e) => {
             // Parent: isRecurring = false (nur wenn er nicht entfernt wurde)

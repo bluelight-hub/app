@@ -12,21 +12,10 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { KraeftePoisPropertiesDto } from './KraeftePoisPropertiesDto';
-import {
-    KraeftePoisPropertiesDtoFromJSON,
-    KraeftePoisPropertiesDtoFromJSONTyped,
-    KraeftePoisPropertiesDtoToJSON,
-    KraeftePoisPropertiesDtoToJSONTyped,
-} from './KraeftePoisPropertiesDto';
-import type { GeoJsonPointDto } from './GeoJsonPointDto';
-import {
-    GeoJsonPointDtoFromJSON,
-    GeoJsonPointDtoFromJSONTyped,
-    GeoJsonPointDtoToJSON,
-    GeoJsonPointDtoToJSONTyped,
-} from './GeoJsonPointDto';
+import type {GeoJsonPointDto} from './GeoJsonPointDto';
+import {GeoJsonPointDtoFromJSON, GeoJsonPointDtoToJSON,} from './GeoJsonPointDto';
+import type {KraeftePoisPropertiesDto} from './KraeftePoisPropertiesDto';
+import {KraeftePoisPropertiesDtoFromJSON, KraeftePoisPropertiesDtoToJSON,} from './KraeftePoisPropertiesDto';
 
 /**
  * 
@@ -77,8 +66,8 @@ export function instanceOfKraeftePoisFeatureDto(value: object): value is Kraefte
     if (!('type' in value) || value['type'] === undefined) return false;
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('geometry' in value) || value['geometry'] === undefined) return false;
-    if (!('properties' in value) || value['properties'] === undefined) return false;
-    return true;
+    return !(!('properties' in value) || value['properties'] === undefined);
+
 }
 
 export function KraeftePoisFeatureDtoFromJSON(json: any): KraeftePoisFeatureDto {

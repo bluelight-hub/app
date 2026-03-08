@@ -16,8 +16,8 @@ import type { IQualifikationRepository } from '@domain/kraefte/repositories/i-qu
 import type { IQualifikationMappingRepository } from '@domain/integrations/repositories/i-qualifikation-mapping.repository';
 import { INTEGRATION_TYPES } from '@domain/integrations';
 import { INTEGRATIONS, KRAEFTE_REPOSITORIES } from '@infrastructure/di-tokens';
-import { HiOrgTokenRefreshService } from '../../services/hiorg-token-refresh.service';
-import type { PreviewHiOrgPersonsQuery } from './preview-hiorg-persons.query';
+import { HiOrgTokenRefreshService } from '@application/integrations';
+import type { PreviewHiOrgPersonsQuery } from '@application/integrations';
 
 /**
  * Qualifikation mit Mapping-Status für Vorschau.

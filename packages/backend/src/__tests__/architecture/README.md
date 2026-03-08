@@ -39,6 +39,7 @@ Diese Tests validieren die Clean/Hexagonal Architecture Dependency Rules automat
 **Status:** **MIGRATION TODO** - DI Tokens sollten zu Symbols migriert werden.
 
 **Betroffene Dateien:**
+
 ```typescript
 // ❌ AKTUELL (String-Literal):
 @Inject('IEtbRepository')
@@ -51,6 +52,7 @@ private readonly repository: IEtbRepository
 ```
 
 **Warum wichtig:**
+
 - Type Safety: TypeScript kann Symbol Types validieren
 - Keine Namenskollisionen: Jedes Symbol ist einzigartig
 - IDE-Unterstützung: Autocomplete und Refactoring
@@ -64,6 +66,7 @@ private readonly repository: IEtbRepository
 **Status:** **GRADUAL MIGRATION** - Handler werden schrittweise migriert.
 
 **Betroffene Handlers:**
+
 - `archive-einsatz.handler.ts`
 - `complete-einsatz.handler.ts`
 - `create-einsatz.handler.ts`
@@ -72,6 +75,7 @@ private readonly repository: IEtbRepository
 - `get-lagekarte-exists.handler.ts`
 
 **Migration Pattern:**
+
 ```typescript
 // ❌ AKTUELL (void/naked type):
 async execute(command: CreateEinsatzCommand): Promise<string> {
@@ -175,6 +179,7 @@ Diese sollten **schrittweise behoben** werden, aber **nicht** die CI Pipeline bl
 
 **Problem:** `@Inject('IEtbRepository')` statt Symbol-Token
 **Fix:**
+
 1. Token in `di-tokens.ts` definieren
 2. Import hinzufügen: `import { ETB_REPOSITORY } from '@infrastructure/di-tokens'`
 3. Inject ändern: `@Inject(ETB_REPOSITORY)`
@@ -183,6 +188,7 @@ Diese sollten **schrittweise behoben** werden, aber **nicht** die CI Pipeline bl
 
 **Problem:** Handler returned naked Type statt `Result<T>`
 **Fix:**
+
 1. Result importieren: `import { Result } from '@domain/common/result'`
 2. Return Type ändern: `Promise<Result<T>>`
 3. Success: `return Result.ok(value)`
@@ -190,7 +196,8 @@ Diese sollten **schrittweise behoben** werden, aber **nicht** die CI Pipeline bl
 
 ## Referenzen
 
-- **Clean Architecture:** [Uncle Bob's Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+- **Clean Architecture:
+  ** [Uncle Bob's Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
 - **Hexagonal Architecture:** [Alistair Cockburn](https://alistair.cockburn.us/hexagonal-architecture/)
 - **DDD Repository Pattern:** [Domain-Driven Design by Eric Evans](https://www.domainlanguage.com/ddd/)
 - **Result Pattern:** [Railway-Oriented Programming](https://fsharpforfunandprofit.com/rop/)

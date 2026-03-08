@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { BesatzungMemberDto } from './BesatzungMemberDto';
-import {
-    BesatzungMemberDtoFromJSON,
-    BesatzungMemberDtoFromJSONTyped,
-    BesatzungMemberDtoToJSON,
-    BesatzungMemberDtoToJSONTyped,
-} from './BesatzungMemberDto';
+import type {BesatzungMemberDto} from './BesatzungMemberDto';
+import {BesatzungMemberDtoFromJSON, BesatzungMemberDtoToJSON,} from './BesatzungMemberDto';
 
 /**
  * 
@@ -125,8 +119,8 @@ export function instanceOfEinsatzFahrzeugDto(value: object): value is EinsatzFah
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
     if (!('updatedAt' in value) || value['updatedAt'] === undefined) return false;
     if (!('createdBy' in value) || value['createdBy'] === undefined) return false;
-    if (!('fahrzeugtyp' in value) || value['fahrzeugtyp'] === undefined) return false;
-    return true;
+    return !(!('fahrzeugtyp' in value) || value['fahrzeugtyp'] === undefined);
+
 }
 
 export function EinsatzFahrzeugDtoFromJSON(json: any): EinsatzFahrzeugDto {

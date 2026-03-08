@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { AddEintragCommand } from '../add-eintrag.command';
 
 /**

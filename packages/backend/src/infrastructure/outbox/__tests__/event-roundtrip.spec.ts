@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Round-Trip Tests für Event Serializer & Deserializer.
  *

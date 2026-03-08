@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -38,8 +37,8 @@ export interface UserBasicDto {
  */
 export function instanceOfUserBasicDto(value: object): value is UserBasicDto {
     if (!('id' in value) || value['id'] === undefined) return false;
-    if (!('username' in value) || value['username'] === undefined) return false;
-    return true;
+    return !(!('username' in value) || value['username'] === undefined);
+
 }
 
 export function UserBasicDtoFromJSON(json: any): UserBasicDto {

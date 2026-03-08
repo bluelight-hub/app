@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { InitialPoiDto } from './InitialPoiDto';
-import {
-    InitialPoiDtoFromJSON,
-    InitialPoiDtoFromJSONTyped,
-    InitialPoiDtoToJSON,
-    InitialPoiDtoToJSONTyped,
-} from './InitialPoiDto';
+import type {InitialPoiDto} from './InitialPoiDto';
+import {InitialPoiDtoFromJSON, InitialPoiDtoToJSON,} from './InitialPoiDto';
 
 /**
  * 
@@ -45,8 +39,8 @@ export interface CreateLagekarteDto {
  * Check if a given object implements the CreateLagekarteDto interface.
  */
 export function instanceOfCreateLagekarteDto(value: object): value is CreateLagekarteDto {
-    if (!('einsatzId' in value) || value['einsatzId'] === undefined) return false;
-    return true;
+    return !(!('einsatzId' in value) || value['einsatzId'] === undefined);
+
 }
 
 export function CreateLagekarteDtoFromJSON(json: any): CreateLagekarteDto {

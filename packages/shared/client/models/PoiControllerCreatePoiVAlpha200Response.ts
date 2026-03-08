@@ -12,21 +12,15 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { PoiResponseDto } from './PoiResponseDto';
-import {
-    PoiResponseDtoFromJSON,
-    PoiResponseDtoFromJSONTyped,
-    PoiResponseDtoToJSON,
-    PoiResponseDtoToJSONTyped,
-} from './PoiResponseDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {PoiResponseDto} from './PoiResponseDto';
+import {PoiResponseDtoFromJSON, PoiResponseDtoToJSON,} from './PoiResponseDto';
 
 /**
  * 
@@ -53,8 +47,8 @@ export interface PoiControllerCreatePoiVAlpha200Response {
  */
 export function instanceOfPoiControllerCreatePoiVAlpha200Response(value: object): value is PoiControllerCreatePoiVAlpha200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function PoiControllerCreatePoiVAlpha200ResponseFromJSON(json: any): PoiControllerCreatePoiVAlpha200Response {

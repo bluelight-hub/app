@@ -9,7 +9,8 @@
 
 ## Overview
 
-Scaffold a production-ready CI/CD quality pipeline with test execution, burn-in loops for flaky detection, parallel sharding, artifact collection, and notifications.
+Scaffold a production-ready CI/CD quality pipeline with test execution, burn-in loops for flaky detection, parallel
+sharding, artifact collection, and notifications.
 
 ---
 

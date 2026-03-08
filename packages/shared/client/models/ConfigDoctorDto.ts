@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -85,8 +84,8 @@ export function instanceOfConfigDoctorDto(value: object): value is ConfigDoctorD
     if (!('legacyEnvFallbackKeys' in value) || value['legacyEnvFallbackKeys'] === undefined) return false;
     if (!('decryptionErrors' in value) || value['decryptionErrors'] === undefined) return false;
     if (!('runtimeConfigCount' in value) || value['runtimeConfigCount'] === undefined) return false;
-    if (!('runtimeSecretCount' in value) || value['runtimeSecretCount'] === undefined) return false;
-    return true;
+    return !(!('runtimeSecretCount' in value) || value['runtimeSecretCount'] === undefined);
+
 }
 
 export function ConfigDoctorDtoFromJSON(json: any): ConfigDoctorDto {

@@ -3,7 +3,7 @@ import { Result } from '@domain/common/result';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { ILogger } from '@domain/ports/i-logger.port';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
-import type { GetErinnerungTimelineQuery } from './get-erinnerung-timeline.query';
+import type { GetErinnerungTimelineQuery } from '@application/etb/queries';
 import type { ErinnerungTimelineDto, ErinnerungTimelineEventDto, TimelineUserDto } from '@application/etb/dto/erinnerung-timeline.dto';
 
 /**

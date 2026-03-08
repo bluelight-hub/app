@@ -1,7 +1,7 @@
+import type { PoiDto } from '@/shared';
+import L from 'leaflet';
 import { useEffect } from 'react';
 import { useMap } from 'react-leaflet';
-import L from 'leaflet';
-import type { PoiDto } from '@/shared';
 
 /**
  * Default-Zentrum für Deutschland
@@ -46,9 +46,7 @@ export const useMapBounds = (pois: PoiDto[] | undefined): void => {
     }
 
     // Filtere POIs mit gültigen Koordinaten
-    const validPois = pois.filter(
-      (poi) => poi.coordinate && typeof poi.coordinate.lat === 'number' && typeof poi.coordinate.lng === 'number' && !Number.isNaN(poi.coordinate.lat) && !Number.isNaN(poi.coordinate.lng),
-    );
+    const validPois = pois.filter((poi) => poi.coordinate && true && true && !Number.isNaN(poi.coordinate.lat) && !Number.isNaN(poi.coordinate.lng));
 
     // Keine gültigen POIs - Fallback zu Deutschland-Zentrum
     if (validPois.length === 0) {

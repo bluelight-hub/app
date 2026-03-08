@@ -3,8 +3,8 @@ import type { IFuehrungsrhythmusTemplateRepository } from '@domain/fuehrungsrhyt
 import type { FuehrungsrhythmusTemplateScope } from '@domain/fuehrungsrhythmus/value-objects/fuehrungsrhythmus-template-scope';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { FUEHRUNGSRHYTHMUS_TEMPLATE_REPOSITORY } from '@infrastructure/di-tokens';
-import { FuehrungsrhythmusTemplateResponseFactory } from '../../dto/fuehrungsrhythmus-template-response.factory';
-import type { FuehrungsrhythmusTemplateResponseDto } from '../../dto/fuehrungsrhythmus-template-response.dto';
+import { FuehrungsrhythmusTemplateResponseFactory } from '@application/fuehrungsrhythmus-template/dto';
+import type { FuehrungsrhythmusTemplateResponseDto } from '@application/fuehrungsrhythmus-template/dto';
 
 /**
  * Query Handler: Alle nicht-geloeschten Fuehrungsrhythmus-Templates laden.

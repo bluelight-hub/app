@@ -1,37 +1,40 @@
-import { api } from '@/shared';
-import { useLagekarte, usePois } from '@/features/lagekarte/api';
 import { useMyEinsatzTeilnahme } from '@/features/einsatz';
+import { useEtb } from '@/features/etb';
+import {
+  ClusteredPoiLayer,
+  DrawingLayer,
+  type DrawingTool,
+  DrawingToolbar,
+  FullscreenCloseButton,
+  LagekarteToolbar,
+  type Layer,
+  LayerErrorBoundary,
+  LayerToggle,
+  MapToolbarToggle,
+  OfflineRegionModal,
+  OfflineTileLayer,
+  PoiPlacementControl,
+  PoiPlacementModal,
+  ShapeLabelModal,
+} from '@/features/lagekarte';
+import { useLagekarte, usePois } from '@/features/lagekarte/api';
+import { useLagekarteAutoSave, useMapBounds, usePlacementMode } from '@/features/lagekarte/hooks';
+import type { PoiType, ShapeType } from '@/features/lagekarte/utils';
+import { captureMapScreenshot } from '@/features/lagekarte/utils';
+import { api } from '@/shared';
+import { useColorMode } from '@/shared/hooks/use-color-mode';
+import { logger } from '@/shared/lib/logger';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
-import { type Layer, LayerToggle } from '../../molecules/LayerToggle/LayerToggle';
-import { useColorMode } from '@/shared/hooks/use-color-mode';
-import { useEtb } from '@/features/etb';
-import { captureMapScreenshot } from '@/features/lagekarte/utils';
 import { cn } from '@/shared/ui/cn';
-import type { ShapeType } from '@/features/lagekarte/utils';
-import { logger } from '@/shared/lib/logger';
-import type { PoiType } from '@/features/lagekarte/utils';
 import type * as GeoJSON from 'geojson';
 import * as React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { PiWarning } from 'react-icons/pi';
 import { MapContainer, useMap, useMapEvents } from 'react-leaflet';
 import { toast } from 'sonner';
-import { MapToolbarToggle } from '../controls/MapToolbarToggle';
-import { PoiPlacementControl } from '../controls/PoiPlacementControl';
-import { FullscreenCloseButton } from '../FullscreenCloseButton/FullscreenCloseButton';
-import { ClusteredPoiLayer } from '../layers/ClusteredPoiLayer';
-import { DrawingLayer } from '../layers/DrawingLayer';
 import { FahrzeugPoiLayer } from '../layers/FahrzeugPoiLayer';
-import { LayerErrorBoundary } from '../layers/LayerErrorBoundary';
-import { OfflineTileLayer } from '../layers/OfflineTileLayer';
-import { OfflineRegionModal } from '../modals/OfflineRegionModal';
-import { PoiPlacementModal } from '../modals/PoiPlacementModal';
-import { ShapeLabelModal } from '../modals/ShapeLabelModal';
 import { PropertyPanel, type ShapeProperties } from '../PropertyPanel';
-import { type DrawingTool, DrawingToolbar } from '../toolbar/DrawingToolbar';
-import { LagekarteToolbar } from '../toolbar/LagekarteToolbar';
-import { useLagekarteAutoSave, useMapBounds, usePlacementMode } from '@/features/lagekarte/hooks';
 import './lagekarte-view.css';
 
 /**

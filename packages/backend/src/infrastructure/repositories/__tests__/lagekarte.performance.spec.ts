@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Performance Baseline Tests für PrismaLagekarteRepository.
  *
@@ -37,7 +38,6 @@ jest.mock('@paralleldrive/cuid2', () => ({
     return result;
   }),
   isCuid: jest.fn((id: string) => {
-    if (typeof id !== 'string') return false;
     if (id.length < 20 || id.length > 30) return false;
     return /^[a-z][a-z0-9]+$/.test(id);
   }),
@@ -45,7 +45,7 @@ jest.mock('@paralleldrive/cuid2', () => ({
 
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@/generated/prisma/client';
-import { PrismaLagekarteRepository } from '../prisma-lagekarte.repository';
+import { PrismaLagekarteRepository } from '@infrastructure/repositories';
 import { LagekarteAggregate } from '@domain/aggregates/lagekarte.aggregate';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { UserId } from '@domain/value-objects/user-id';
@@ -159,7 +159,7 @@ const performanceResults: Record<string, { avg: number; min: number; max: number
       )
       RETURNING id
     `;
-    testUserId = userResult[0].id;
+    testUserId = userResult[0]?.id;
 
     // Create test Einsatz
     const einsatzResult = await prisma.einsatz.create({

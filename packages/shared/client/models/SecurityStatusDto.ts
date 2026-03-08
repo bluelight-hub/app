@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -52,8 +51,8 @@ export function instanceOfSecurityStatusDto(value: object): value is SecuritySta
     if (!('insecureMode' in value) || value['insecureMode'] === undefined) return false;
     if (!('setupComplete' in value) || value['setupComplete'] === undefined) return false;
     if (!('activeTokenCount' in value) || value['activeTokenCount'] === undefined) return false;
-    if (!('migratedAt' in value) || value['migratedAt'] === undefined) return false;
-    return true;
+    return !(!('migratedAt' in value) || value['migratedAt'] === undefined);
+
 }
 
 export function SecurityStatusDtoFromJSON(json: any): SecurityStatusDto {

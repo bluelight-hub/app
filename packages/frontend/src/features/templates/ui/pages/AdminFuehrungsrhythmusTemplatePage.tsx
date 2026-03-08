@@ -6,8 +6,8 @@ import { Button } from '@/shared/ui/atoms/button.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 
 import { useGlobalFuehrungsrhythmusTemplates, useDeleteGlobalFuehrungsrhythmusTemplate } from '../../api';
-import { CreateFuehrungsrhythmusTemplateDialog } from '../organisms/CreateFuehrungsrhythmusTemplateDialog';
-import { EditFuehrungsrhythmusTemplateDialog } from '../organisms/EditFuehrungsrhythmusTemplateDialog';
+import { CreateFuehrungsrhythmusTemplateDialog } from '@/features/templates';
+import { EditFuehrungsrhythmusTemplateDialog } from '@/features/templates';
 
 interface TemplateForEdit {
   id: string;

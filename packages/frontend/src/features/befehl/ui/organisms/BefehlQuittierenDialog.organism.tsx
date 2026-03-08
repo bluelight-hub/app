@@ -140,7 +140,7 @@ export function BefehlQuittierenDialog({ isOpen, onClose, befehlId, befehlNummer
             </div>
 
             {/* Rückfrage-Textarea (inline, animiert) */}
-            <div className={cn('motion-safe:transition-all motion-safe:duration-300 overflow-hidden', showRueckfrageText ? 'mt-4 max-h-60 opacity-100' : 'max-h-0 opacity-0')}>
+            <div className={cn('overflow-hidden motion-safe:transition-all motion-safe:duration-300', showRueckfrageText ? 'mt-4 max-h-60 opacity-100' : 'max-h-0 opacity-0')}>
               <Textarea
                 ref={rueckfrageTextareaRef}
                 textareaSize="sm"

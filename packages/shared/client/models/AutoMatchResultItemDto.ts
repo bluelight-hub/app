@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -70,8 +69,8 @@ export type AutoMatchResultItemDtoMatchTypeEnum = typeof AutoMatchResultItemDtoM
 export function instanceOfAutoMatchResultItemDto(value: object): value is AutoMatchResultItemDto {
     if (!('externalName' in value) || value['externalName'] === undefined) return false;
     if (!('confidence' in value) || value['confidence'] === undefined) return false;
-    if (!('matchType' in value) || value['matchType'] === undefined) return false;
-    return true;
+    return !(!('matchType' in value) || value['matchType'] === undefined);
+
 }
 
 export function AutoMatchResultItemDtoFromJSON(json: any): AutoMatchResultItemDto {

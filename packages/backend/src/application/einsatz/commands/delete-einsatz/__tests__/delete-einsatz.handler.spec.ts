@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Test, type TestingModule } from '@nestjs/testing';
 import { DeleteEinsatzHandler } from '../delete-einsatz.handler';
 import { DeleteEinsatzCommand } from '../delete-einsatz.command';

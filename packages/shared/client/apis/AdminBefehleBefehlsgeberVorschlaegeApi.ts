@@ -19,17 +19,13 @@ import type {
   AdminBefehlsgeberVorschlaegeControllerFindAllVAlpha200Response,
   CreateBefehlsgeberVorschlagDto,
   UpdateBefehlsgeberVorschlagDto,
-} from '../models/index';
+} from '../models';
 import {
     AdminBefehlsgeberVorschlaegeControllerCreateVAlpha201ResponseFromJSON,
-    AdminBefehlsgeberVorschlaegeControllerCreateVAlpha201ResponseToJSON,
     AdminBefehlsgeberVorschlaegeControllerFindAllVAlpha200ResponseFromJSON,
-    AdminBefehlsgeberVorschlaegeControllerFindAllVAlpha200ResponseToJSON,
-    CreateBefehlsgeberVorschlagDtoFromJSON,
     CreateBefehlsgeberVorschlagDtoToJSON,
-    UpdateBefehlsgeberVorschlagDtoFromJSON,
     UpdateBefehlsgeberVorschlagDtoToJSON,
-} from '../models/index';
+} from '../models';
 
 export interface AdminBefehlsgeberVorschlaegeControllerCreateVAlphaRequest {
     createBefehlsgeberVorschlagDto: CreateBefehlsgeberVorschlagDto;
@@ -159,7 +155,7 @@ export class AdminBefehleBefehlsgeberVorschlaegeApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/api/v-alpha/admin/befehle/befehlsgeber-vorschlaege/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/admin/befehle/befehlsgeber-vorschlaege/{id}`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
@@ -208,7 +204,7 @@ export class AdminBefehleBefehlsgeberVorschlaegeApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/api/v-alpha/admin/befehle/befehlsgeber-vorschlaege/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/admin/befehle/befehlsgeber-vorschlaege/{id}`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'PATCH',
             headers: headerParameters,
             query: queryParameters,

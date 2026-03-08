@@ -17,13 +17,12 @@ import * as runtime from '../runtime';
 import type {
   GeocodeAddressDto,
   LagekarteControllerSaveLagekarteStateVAlpha200Response,
-} from '../models/index';
+} from '../models';
 import {
-    GeocodeAddressDtoFromJSON,
     GeocodeAddressDtoToJSON,
     LagekarteControllerSaveLagekarteStateVAlpha200ResponseFromJSON,
-    LagekarteControllerSaveLagekarteStateVAlpha200ResponseToJSON,
-} from '../models/index';
+
+} from '../models';
 
 export interface GeocodingControllerGeocodeAddressVAlphaRequest {
     einsatzId: string;
@@ -61,7 +60,7 @@ export class GeocodingApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/geocode`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/geocode`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,

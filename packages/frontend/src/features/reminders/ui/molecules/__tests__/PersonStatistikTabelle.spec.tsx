@@ -13,7 +13,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { PersonStatistikTabelle } from '../PersonStatistikTabelle';
+import { PersonStatistikTabelle } from '@/features/reminders';
 
 // Mock usePersonStatistik hook
 const mockUsePersonStatistik = vi.fn();

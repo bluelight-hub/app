@@ -19,17 +19,13 @@ import type {
   PoiControllerCreatePoiVAlpha200Response,
   PoiControllerGetPoisVAlpha200Response,
   UpdatePoiDto,
-} from '../models/index';
+} from '../models';
 import {
-    CreatePoiDtoFromJSON,
     CreatePoiDtoToJSON,
     PoiControllerCreatePoiVAlpha200ResponseFromJSON,
-    PoiControllerCreatePoiVAlpha200ResponseToJSON,
     PoiControllerGetPoisVAlpha200ResponseFromJSON,
-    PoiControllerGetPoisVAlpha200ResponseToJSON,
-    UpdatePoiDtoFromJSON,
     UpdatePoiDtoToJSON,
-} from '../models/index';
+} from '../models';
 
 export interface PoiControllerCreatePoiVAlphaRequest {
     createPoiDto: CreatePoiDto;
@@ -115,7 +111,7 @@ export class POIDEPRECATEDApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/lagekarte/pois/{poiId}`.replace(`{${"poiId"}}`, encodeURIComponent(String(requestParameters['poiId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/lagekarte/pois/{poiId}`.replace(`{poiId}`, encodeURIComponent(String(requestParameters['poiId']))),
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
@@ -152,7 +148,7 @@ export class POIDEPRECATEDApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/lagekarte/pois/{poiId}`.replace(`{${"poiId"}}`, encodeURIComponent(String(requestParameters['poiId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/lagekarte/pois/{poiId}`.replace(`{poiId}`, encodeURIComponent(String(requestParameters['poiId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -189,7 +185,7 @@ export class POIDEPRECATEDApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/lagekarte/pois`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/lagekarte/pois`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -235,7 +231,7 @@ export class POIDEPRECATEDApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/lagekarte/pois/{poiId}`.replace(`{${"poiId"}}`, encodeURIComponent(String(requestParameters['poiId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/lagekarte/pois/{poiId}`.replace(`{poiId}`, encodeURIComponent(String(requestParameters['poiId']))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,

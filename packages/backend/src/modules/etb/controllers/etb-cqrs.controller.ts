@@ -4,7 +4,7 @@ import { AddEintragHandler } from '@/application/etb/commands/add-eintrag/add-ei
 import { DeleteEintragHandler } from '@/application/etb/commands/delete-eintrag/delete-eintrag.handler';
 import { LockEtbHandler } from '@/application/etb/commands/lock-etb/lock-etb.handler';
 import { UpdateEintragHandler } from '@/application/etb/commands/update-eintrag/update-eintrag.handler';
-import { AddEintragDto, EintragDto, EtbDto, EtbSnapshotDto, TextbausteinDto, TextbausteinListResponse, UpdateEintragDto } from '@/application/etb/dto';
+import { AddEintragDto, EintragDto, EtbDto, EtbSnapshotDto, TextbausteinDto, UpdateEintragDto } from '@/application/etb/dto';
 import { EtbQueryMapper, type EtbSnapshotDto as EtbSnapshotDtoFromMapper } from '@/application/etb/mappers';
 import { GetEtbHistoryQuery, GetEtbHistoryQueryHandler, GetEtbQuery, GetEtbQueryHandler, GetTextbausteineHandler, GetTextbausteineQuery } from '@/application/etb/queries';
 import type { EtbKategorie } from '@/generated/prisma/client';

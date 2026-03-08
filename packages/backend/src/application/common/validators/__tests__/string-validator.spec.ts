@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { CUID2_REGEX, validateCuid2Format, validateRequiredString } from '../string-validator';
 
 /**

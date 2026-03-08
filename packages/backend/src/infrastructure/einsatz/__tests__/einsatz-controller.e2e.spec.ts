@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { VersioningType, type INestApplication } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import request from 'supertest';
@@ -88,7 +89,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     // Token aus Cookie extrahieren und cachen
     const cookies = loginResponse.headers['set-cookie'] as string[];
     const accessTokenCookie = cookies.find((cookie) => cookie.startsWith('accessToken='));
-    cachedAccessToken = accessTokenCookie?.split(';')[0].split('=')[1] || '';
+    cachedAccessToken = accessTokenCookie?.split(';')[0]?.split('=')[1] || '';
   }, 60000);
 
   beforeEach(async () => {

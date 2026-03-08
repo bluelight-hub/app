@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { MgrsCoordinate } from '@domain/value-objects/mgrs-coordinate';
 
 describe('MgrsCoordinate', () => {

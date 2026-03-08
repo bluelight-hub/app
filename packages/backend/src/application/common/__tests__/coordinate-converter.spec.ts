@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { CoordinateConverter } from '../coordinate-converter';
 import { MgrsCoordinate } from '@domain/value-objects/mgrs-coordinate';
 

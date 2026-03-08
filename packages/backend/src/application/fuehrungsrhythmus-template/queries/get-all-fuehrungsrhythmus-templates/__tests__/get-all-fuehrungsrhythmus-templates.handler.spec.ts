@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Test, type TestingModule } from '@nestjs/testing';
 import { GetAllFuehrungsrhythmusTemplatesHandler } from '../get-all-fuehrungsrhythmus-templates.handler';
 import { FuehrungsrhythmusTemplate } from '@domain/fuehrungsrhythmus/entities/fuehrungsrhythmus-template.entity';
@@ -8,7 +9,7 @@ import { FuehrungsrhythmusTemplateScope } from '@domain/fuehrungsrhythmus/value-
 import { UserId } from '@domain/value-objects/user-id';
 import { FUEHRUNGSRHYTHMUS_TEMPLATE_REPOSITORY } from '@/infrastructure/di-tokens';
 import type { IFuehrungsrhythmusTemplateRepository } from '@domain/fuehrungsrhythmus/repositories/i-fuehrungsrhythmus-template.repository';
-import { FuehrungsrhythmusTemplateResponseFactory } from '../../../dto/fuehrungsrhythmus-template-response.factory';
+import { FuehrungsrhythmusTemplateResponseFactory } from '@application/fuehrungsrhythmus-template/dto';
 
 /**
  * Helper: Erstellt ein rekonstruiertes FuehrungsrhythmusTemplate fuer Tests.
@@ -159,9 +160,9 @@ describe('GetAllFuehrungsrhythmusTemplatesHandler', () => {
       expect(mockTemplateRepository.findAll).toHaveBeenCalledTimes(1);
       expect(mockResponseFactory.create).toHaveBeenCalledTimes(3);
 
-      expect(result[0].name).toBe('Standard 30min');
-      expect(result[1].name).toBe('Erweitert 15min');
-      expect(result[2].name).toBe('Minimal');
+      expect(result[0]?.name).toBe('Standard 30min');
+      expect(result[1]?.name).toBe('Erweitert 15min');
+      expect(result[2]?.name).toBe('Minimal');
     });
 
     it('should use ResponseFactory correctly for mapping', async () => {
@@ -197,8 +198,8 @@ describe('GetAllFuehrungsrhythmusTemplatesHandler', () => {
       expect(typeof dto.createdAt).toBe('string');
       expect(typeof dto.updatedAt).toBe('string');
       expect(dto.eintraege).toHaveLength(1);
-      expect(dto.eintraege[0].titel).toBe('Lagebesprechung');
-      expect(dto.eintraege[0].intervallMinuten).toBe(30);
+      expect(dto.eintraege[0]?.titel).toBe('Lagebesprechung');
+      expect(dto.eintraege[0]?.intervallMinuten).toBe(30);
     });
 
     it('should return single template correctly', async () => {
@@ -211,7 +212,7 @@ describe('GetAllFuehrungsrhythmusTemplatesHandler', () => {
 
       // Then (Assert)
       expect(result).toHaveLength(1);
-      expect(result[0].name).toBe('Einzelnes Template');
+      expect(result[0]?.name).toBe('Einzelnes Template');
     });
 
     it('should handle templates with null beschreibung', async () => {
@@ -227,7 +228,7 @@ describe('GetAllFuehrungsrhythmusTemplatesHandler', () => {
 
       // Then (Assert)
       expect(result).toHaveLength(1);
-      expect(result[0].beschreibung).toBeNull();
+      expect(result[0]?.beschreibung).toBeNull();
     });
 
     it('should pass einsatzId filter to repository', async () => {
@@ -239,7 +240,7 @@ describe('GetAllFuehrungsrhythmusTemplatesHandler', () => {
 
       // Then (Assert)
       expect(mockTemplateRepository.findAll).toHaveBeenCalledTimes(1);
-      const calledFilter = mockTemplateRepository.findAll.mock.calls[0][0];
+      const calledFilter = mockTemplateRepository.findAll.mock.calls[0]?.[0]!;
       expect(calledFilter?.scope).toBe(FuehrungsrhythmusTemplateScope.EINSATZ);
       expect(calledFilter?.einsatzId).toBeDefined();
     });
@@ -253,7 +254,7 @@ describe('GetAllFuehrungsrhythmusTemplatesHandler', () => {
 
       // Then (Assert)
       expect(mockTemplateRepository.findAll).toHaveBeenCalledTimes(1);
-      const calledFilter = mockTemplateRepository.findAll.mock.calls[0][0];
+      const calledFilter = mockTemplateRepository.findAll.mock.calls[0]?.[0]!;
       expect(calledFilter?.includeGlobal).toBe(true);
       expect(calledFilter?.einsatzId).toBeDefined();
     });

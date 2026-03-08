@@ -6,7 +6,7 @@
  */
 
 import { useHotkeys } from 'react-hotkeys-hook';
-import { openQuickCreateNotizDialog } from '../stores/notiz-dialog.store';
+import { openQuickCreateNotizDialog } from '@/features/notizen';
 
 interface UseQuickCreateNotizHotkeysOptions {
   /** Einsatz-ID fuer den Dialog-Kontext */

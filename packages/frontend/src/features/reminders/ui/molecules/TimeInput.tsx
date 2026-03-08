@@ -12,7 +12,7 @@
 
 import { useCallback, useRef, useState } from 'react';
 import { cn } from '@/shared/ui/cn';
-import type { CustomTime } from '../../schemas/erinnerung.schema';
+import type { CustomTime } from '@/features/reminders';
 
 interface TimeInputProps {
   /** Aktueller Zeitwert */

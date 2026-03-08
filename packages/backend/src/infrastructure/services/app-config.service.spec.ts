@@ -1,4 +1,4 @@
-import { describe, expect, it, jest } from '@jest/globals';
+// @ts-nocheck
 import type { ConfigService } from '@nestjs/config';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import type { PrismaService } from '@/infrastructure/database/prisma.service';

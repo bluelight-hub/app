@@ -4,13 +4,13 @@ import { OutboxModule } from '@infrastructure/outbox/outbox.module';
 import { KraefteInfrastructureModule } from '@infrastructure/kraefte/kraefte-infrastructure.module';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@infrastructure/common/adapters';
-import { RegistrierePersonHandler } from './commands/registriere-person/registriere-person.handler';
+import { RegistrierePersonHandler } from '@application/kraefte/einsatz-personen/commands';
 import { RegistrierePersonViaQrCodeHandler } from './commands/registriere-person-qr/registriere-person-qr.handler';
 import { WeisePersonZuFahrzeugZuHandler } from './commands/weise-person-zu-fahrzeug/weise-person-zu-fahrzeug.handler';
-import { EntfernePersonVonFahrzeugHandler } from './commands/entferne-person-von-fahrzeug/entferne-person-von-fahrzeug.handler';
-import { GetEinsatzPersonenHandler } from './queries/get-einsatz-personen/get-einsatz-personen.handler';
+import { EntfernePersonVonFahrzeugHandler } from '@application/kraefte/einsatz-personen/commands/entferne-person-von-fahrzeug';
+import { GetEinsatzPersonenHandler } from '@application/kraefte/einsatz-personen/queries';
 import { GetEinsatzPersonByIdHandler } from './queries/get-einsatz-person-by-id/get-einsatz-person-by-id.handler';
-import { GetTaktischeStaerkeHandler } from '../queries/get-taktische-staerke/get-taktische-staerke.handler';
+import { GetTaktischeStaerkeHandler } from '@application/kraefte/queries/get-taktische-staerke';
 
 /**
  * Application Module fuer EinsatzPersonen.

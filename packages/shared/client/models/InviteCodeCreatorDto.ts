@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -38,8 +37,8 @@ export interface InviteCodeCreatorDto {
  */
 export function instanceOfInviteCodeCreatorDto(value: object): value is InviteCodeCreatorDto {
     if (!('id' in value) || value['id'] === undefined) return false;
-    if (!('displayName' in value) || value['displayName'] === undefined) return false;
-    return true;
+    return !(!('displayName' in value) || value['displayName'] === undefined);
+
 }
 
 export function InviteCodeCreatorDtoFromJSON(json: any): InviteCodeCreatorDto {

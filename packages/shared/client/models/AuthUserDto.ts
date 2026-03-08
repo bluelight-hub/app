@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -77,8 +76,8 @@ export function instanceOfAuthUserDto(value: object): value is AuthUserDto {
     if (!('username' in value) || value['username'] === undefined) return false;
     if (!('role' in value) || value['role'] === undefined) return false;
     if (!('isActive' in value) || value['isActive'] === undefined) return false;
-    if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
-    return true;
+    return !(!('createdAt' in value) || value['createdAt'] === undefined);
+
 }
 
 export function AuthUserDtoFromJSON(json: any): AuthUserDto {

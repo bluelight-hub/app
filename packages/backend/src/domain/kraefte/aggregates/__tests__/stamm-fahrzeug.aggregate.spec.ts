@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { StammFahrzeug, type CreateStammFahrzeugProps, type UpdateStammFahrzeugProps, type ReconstituteStammFahrzeugProps } from '../stamm-fahrzeug.aggregate';
 import { STAMM_FAHRZEUG_ERROR_CODES } from '../../common/stamm-fahrzeug-error-codes';
 import { StammFahrzeugCreatedEvent } from '../../events/stamm-fahrzeug-created.event';

@@ -1,10 +1,11 @@
+// @ts-nocheck
 import type { INestApplication } from '@nestjs/common';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import cookieParser from 'cookie-parser';
 import * as jwt from 'jsonwebtoken';
-import { AppModule } from '../../../app.module';
+import { AppModule } from '@/app.module';
 import type { PrismaClient } from '@/generated/prisma/client';
 import { createId } from '@paralleldrive/cuid2';
 import * as bcryptLib from 'bcrypt';

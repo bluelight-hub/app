@@ -137,15 +137,17 @@ function EinsatzDashboard() {
 Lädt paginierte Einsatz-Liste.
 
 **Parameters:**
+
 - `filters?: EinsatzQueryFilters`
-  - `status?: 'ANGELEGT' | 'AKTIV' | 'ARCHIVIERT'`
-  - `search?: string`
-  - `page?: number`
-  - `limit?: number`
-  - `orderBy?: 'createdAt' | 'updatedAt' | ...`
-  - `orderDirection?: 'asc' | 'desc'`
+    - `status?: 'ANGELEGT' | 'AKTIV' | 'ARCHIVIERT'`
+    - `search?: string`
+    - `page?: number`
+    - `limit?: number`
+    - `orderBy?: 'createdAt' | 'updatedAt' | ...`
+    - `orderDirection?: 'asc' | 'desc'`
 
 **Returns:**
+
 ```typescript
 {
   data?: {
@@ -165,6 +167,7 @@ Lädt Einsätze für Infinite Scrolling.
 **Parameters:** Wie `useEinsaetzeQuery`, ohne `page`
 
 **Returns:**
+
 ```typescript
 {
   data?: {
@@ -181,9 +184,11 @@ Lädt Einsätze für Infinite Scrolling.
 Lädt einzelnen Einsatz mit Store-Integration.
 
 **Parameters:**
+
 - `id: string | null` - Einsatz-ID (null = disabled)
 
 **Returns:**
+
 ```typescript
 {
   einsatz?: EinsatzResponseDto;
@@ -199,6 +204,7 @@ Lädt einzelnen Einsatz mit Store-Integration.
 Lädt aktive Einsätze mit ETB/POI-Counts (optimiert für Dashboard).
 
 **Returns:**
+
 ```typescript
 {
   data?: EinsatzListItemDto[]; // mit etbEintraegeCount, poisCount
@@ -214,9 +220,11 @@ Lädt aktive Einsätze mit ETB/POI-Counts (optimiert für Dashboard).
 Erstellt neuen Einsatz mit Optimistic Updates.
 
 **Parameters:**
+
 - `filters?: EinsatzQueryFilters` - Für Cache-Updates
 
 **Returns:**
+
 ```typescript
 {
   mutate: (data: CreateEinsatzDto) => void;
@@ -231,6 +239,7 @@ Erstellt neuen Einsatz mit Optimistic Updates.
 Aktualisiert bestehenden Einsatz.
 
 **Returns:**
+
 ```typescript
 {
   mutate: ({ id, data }: { id: string; data: UpdateEinsatzDto }) => void;
@@ -245,9 +254,11 @@ Aktualisiert bestehenden Einsatz.
 Archiviert Einsatz (setzt Status auf ARCHIVIERT).
 
 **Parameters:**
+
 - `filters?: EinsatzQueryFilters` - Für Cache-Updates
 
 **Returns:**
+
 ```typescript
 {
   mutate: ({ id }: { id: string }) => void;
@@ -264,6 +275,7 @@ Archiviert Einsatz (setzt Status auf ARCHIVIERT).
 TanStack Store für UI-State.
 
 **State:**
+
 ```typescript
 {
   selectedEinsatzId: string | null;
@@ -282,6 +294,7 @@ TanStack Store für UI-State.
 ```
 
 **Usage:**
+
 ```typescript
 import { useStore } from '@tanstack/react-store';
 import { einsatzUIStore } from '@/features/einsatz';

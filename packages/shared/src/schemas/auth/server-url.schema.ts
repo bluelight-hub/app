@@ -26,7 +26,7 @@ export const serverUrlSchema = z
       }
     },
     {
-      message: 'Server-URL muss mit http:// oder https:// beginnen',
+      message: 'Server-URL muss mit https:// beginnen',
     },
   );
 

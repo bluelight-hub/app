@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { PositionDto } from './PositionDto';
-import {
-    PositionDtoFromJSON,
-    PositionDtoFromJSONTyped,
-    PositionDtoToJSON,
-    PositionDtoToJSONTyped,
-} from './PositionDto';
+import type {PositionDto} from './PositionDto';
+import {PositionDtoFromJSON, PositionDtoToJSON,} from './PositionDto';
 
 /**
  * 
@@ -45,8 +39,8 @@ export interface ErfasseFahrzeugAusStammdatenDto {
  * Check if a given object implements the ErfasseFahrzeugAusStammdatenDto interface.
  */
 export function instanceOfErfasseFahrzeugAusStammdatenDto(value: object): value is ErfasseFahrzeugAusStammdatenDto {
-    if (!('stammId' in value) || value['stammId'] === undefined) return false;
-    return true;
+    return !(!('stammId' in value) || value['stammId'] === undefined);
+
 }
 
 export function ErfasseFahrzeugAusStammdatenDtoFromJSON(json: any): ErfasseFahrzeugAusStammdatenDto {

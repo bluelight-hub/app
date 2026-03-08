@@ -72,10 +72,14 @@ export class GetAufbewahrungsVorschauQueryHandler {
       dto.einsatzId = e.id;
       dto.einsatzNummer = e.alarmstichwort ?? e.id;
       dto.befehlCount = e._count.befehle;
-      dto.archiviertAm = e.archivedAt!;
+      if (!e.archivedAt) {
+        return dto;
+      }
+
+      dto.archiviertAm = e.archivedAt;
 
       // Anonymisierung faellig: archivedAt + Aufbewahrungsfrist
-      const faelligAm = new Date(e.archivedAt!);
+      const faelligAm = new Date(e.archivedAt);
       faelligAm.setFullYear(faelligAm.getFullYear() + konfig.aufbewahrungsfristJahre);
       dto.anonymisierungFaelligAm = faelligAm;
 

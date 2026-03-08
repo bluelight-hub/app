@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -80,8 +79,8 @@ export type AendereEmpfaengerStatusDtoZielStatusEnum = typeof AendereEmpfaengerS
  * Check if a given object implements the AendereEmpfaengerStatusDto interface.
  */
 export function instanceOfAendereEmpfaengerStatusDto(value: object): value is AendereEmpfaengerStatusDto {
-    if (!('aktion' in value) || value['aktion'] === undefined) return false;
-    return true;
+    return !(!('aktion' in value) || value['aktion'] === undefined);
+
 }
 
 export function AendereEmpfaengerStatusDtoFromJSON(json: any): AendereEmpfaengerStatusDto {

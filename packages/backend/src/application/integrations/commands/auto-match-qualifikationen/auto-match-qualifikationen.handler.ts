@@ -16,7 +16,7 @@ import type { IQualifikationRepository } from '@domain/kraefte/repositories/i-qu
 import type { Qualifikation } from '@domain/kraefte/aggregates/qualifikation.aggregate';
 import { INTEGRATIONS, DI_TOKENS, LOGGER } from '@infrastructure/di-tokens';
 import type { ILogger } from '@domain/ports/i-logger.port';
-import type { AutoMatchQualifikationenCommand } from './auto-match-qualifikationen.command';
+import type { AutoMatchQualifikationenCommand } from '@application/integrations';
 
 /**
  * DTO für ein einzelnes Match-Ergebnis.

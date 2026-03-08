@@ -3,9 +3,9 @@ import type { ILogger } from '@domain/ports/i-logger.port';
 import { Result } from '@domain/common/result';
 import { IRollenDefinitionRepository } from '@domain/kraefte/repositories/i-rollen-definition.repository';
 import { KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';
-import type { RollenDefinitionDto } from '../../dto/rollen-definition.dto';
-import { RollenDefinitionQueryMapper } from '../rollen-definition-query.mapper';
-import type { GetAllRollenDefinitionenQuery } from './get-all-rollen-definitionen.query';
+import type { RollenDefinitionDto } from '@application/kraefte/rollen';
+import { RollenDefinitionQueryMapper } from '@application/kraefte/rollen';
+import type { GetAllRollenDefinitionenQuery } from '@application/kraefte/rollen';
 
 /**
  * Handler für GetAllRollenDefinitionenQuery.

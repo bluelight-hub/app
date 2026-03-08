@@ -12,21 +12,15 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { ImportPersonsResponseDto } from './ImportPersonsResponseDto';
-import {
-    ImportPersonsResponseDtoFromJSON,
-    ImportPersonsResponseDtoFromJSONTyped,
-    ImportPersonsResponseDtoToJSON,
-    ImportPersonsResponseDtoToJSONTyped,
-} from './ImportPersonsResponseDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {ImportPersonsResponseDto} from './ImportPersonsResponseDto';
+import {ImportPersonsResponseDtoFromJSON, ImportPersonsResponseDtoToJSON,} from './ImportPersonsResponseDto';
 
 /**
  * 
@@ -53,8 +47,8 @@ export interface AdminHiOrgIntegrationControllerImportPersonsVAlpha200Response {
  */
 export function instanceOfAdminHiOrgIntegrationControllerImportPersonsVAlpha200Response(value: object): value is AdminHiOrgIntegrationControllerImportPersonsVAlpha200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function AdminHiOrgIntegrationControllerImportPersonsVAlpha200ResponseFromJSON(json: any): AdminHiOrgIntegrationControllerImportPersonsVAlpha200Response {

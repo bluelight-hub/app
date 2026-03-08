@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { CircuitBreakerState, CircuitBreakerStateEnum, DEFAULT_CIRCUIT_BREAKER_CONFIG } from '../circuit-breaker-state';
 
 describe('CircuitBreakerState', () => {

@@ -6,7 +6,7 @@ import type { IEinsatzPersonRepository } from '@domain/kraefte/repositories/i-ei
 import type { EinsatzPerson } from '@domain/kraefte/aggregates/einsatz-person.aggregate';
 import type { EinsatzPersonId } from '@domain/kraefte/value-objects/einsatz-person-id';
 import type { TransactionContext } from '@domain/kraefte/repositories/i-einsatz-person.repository';
-import { PrismaEinsatzPersonMapper } from '../mappers/prisma-einsatz-person.mapper';
+import { PrismaEinsatzPersonMapper } from '@infrastructure/kraefte';
 import { EINSATZ_PERSON_ERROR_CODES } from '@domain/kraefte/common/einsatz-person-error-codes';
 import { isPrismaError } from '@/shared/utils/prisma.util';
 import type { ILogger } from '@domain/ports/i-logger.port';

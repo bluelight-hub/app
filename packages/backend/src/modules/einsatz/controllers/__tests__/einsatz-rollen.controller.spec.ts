@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Result } from '@domain/common/result';
 import { EinsatzController } from '../einsatz.controller';

@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -79,8 +78,8 @@ export function instanceOfKategorieResponseDto(value: object): value is Kategori
     if (!('einsatzId' in value) || value['einsatzId'] === undefined) return false;
     if (!('erstelltVon' in value) || value['erstelltVon'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
-    if (!('updatedAt' in value) || value['updatedAt'] === undefined) return false;
-    return true;
+    return !(!('updatedAt' in value) || value['updatedAt'] === undefined);
+
 }
 
 export function KategorieResponseDtoFromJSON(json: any): KategorieResponseDto {

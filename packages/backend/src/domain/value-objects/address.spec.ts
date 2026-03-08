@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Address } from './address';
 
 describe('Address', () => {

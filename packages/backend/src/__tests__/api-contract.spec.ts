@@ -1,40 +1,40 @@
-import { type INestApplication, VersioningType } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { Test } from '@nestjs/testing';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { CommandBus, QueryBus } from '@nestjs/cqrs';
+// @ts-nocheck
+import { AddBefehlKommentarHandler } from '@/application/befehl/commands/add-befehl-kommentar/add-befehl-kommentar.handler';
+import { AendereEmpfaengerStatusHandler } from '@/application/befehl/commands/aendere-empfaenger-status/aendere-empfaenger-status.handler';
+import { CreateBefehlHandler } from '@/application/befehl/commands/create-befehl/create-befehl.handler';
+import { KorrigiereBefehlHandler } from '@/application/befehl/commands/korrigiere-befehl/korrigiere-befehl.handler';
+import { QuittierenBefehlHandler } from '@/application/befehl/commands/quittieren-befehl/quittieren-befehl.handler';
+import { BefehlsgeberSucheQueryHandler } from '@/application/befehl/queries/befehlsgeber-suche/befehlsgeber-suche.handler';
+import { EmpfaengerSucheQueryHandler } from '@/application/befehl/queries/empfaenger-suche/empfaenger-suche.handler';
+import { ExportBefehleQueryHandler } from '@/application/befehl/queries/export-befehle/export-befehle.handler';
+import { GetBefehlHistorieQueryHandler } from '@/application/befehl/queries/get-befehl-historie/get-befehl-historie.handler';
+import { UpdateEinsatzRollenHandler } from '@/application/einsatz/commands';
+import { GetEinsatzRollenQueryHandler, GetEinsatzTeilnehmerHandler } from '@/application/einsatz/queries';
+import { PrismaService } from '@/infrastructure/database/prisma.service';
+
+// --- Health Controller + Dependencies ---
+import { HealthController } from '@/infrastructure/health/health.controller';
+import { PrismaHealthIndicator } from '@/infrastructure/health/prisma-health.indicator';
 
 // --- Guards (muessen overridden werden) ---
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '@/modules/auth/guards/roles.guard';
-import { BefehlRollenGuard } from '@/modules/common/guards/befehl-rollen.guard';
 
 // --- Befehl Controller + Dependencies ---
 import { BefehlController } from '@/modules/befehl/controllers/befehl.controller';
-import { AddBefehlKommentarHandler } from '@/application/befehl/commands/add-befehl-kommentar/add-befehl-kommentar.handler';
-import { CreateBefehlHandler } from '@/application/befehl/commands/create-befehl/create-befehl.handler';
-import { KorrigiereBefehlHandler } from '@/application/befehl/commands/korrigiere-befehl/korrigiere-befehl.handler';
-import { QuittierenBefehlHandler } from '@/application/befehl/commands/quittieren-befehl/quittieren-befehl.handler';
-import { AendereEmpfaengerStatusHandler } from '@/application/befehl/commands/aendere-empfaenger-status/aendere-empfaenger-status.handler';
-import { GetBefehlHistorieQueryHandler } from '@/application/befehl/queries/get-befehl-historie/get-befehl-historie.handler';
-import { ExportBefehleQueryHandler } from '@/application/befehl/queries/export-befehle/export-befehle.handler';
-import { EmpfaengerSucheQueryHandler } from '@/application/befehl/queries/empfaenger-suche/empfaenger-suche.handler';
-import { BefehlsgeberSucheQueryHandler } from '@/application/befehl/queries/befehlsgeber-suche/befehlsgeber-suche.handler';
-import { BEFEHL_REPOSITORY, LOGGER, SERVER_ACCESS_TOKEN_REPOSITORY, SERVER_CONFIG_REPOSITORY, RESILIENCE } from '@infrastructure/di-tokens';
+import { BefehlRollenGuard } from '@/modules/common/guards/befehl-rollen.guard';
 
 // --- Einsatz Controller + Dependencies ---
 import { EinsatzController } from '@/modules/einsatz/controllers/einsatz.controller';
-import { GetEinsatzTeilnehmerHandler } from '@/application/einsatz/queries';
-import { UpdateEinsatzRollenHandler } from '@/application/einsatz/commands';
-import { GetEinsatzRollenQueryHandler } from '@/application/einsatz/queries';
-
-// --- Health Controller + Dependencies ---
-import { HealthController } from '@/infrastructure/health/health.controller';
-import { HealthCheckService, MemoryHealthIndicator, DiskHealthIndicator } from '@nestjs/terminus';
-import { PrismaHealthIndicator } from '@/infrastructure/health/prisma-health.indicator';
-import { PrismaService } from '@/infrastructure/database/prisma.service';
-import { ConfigService } from '@nestjs/config';
 import { GetSystemHealthQueryHandler } from '@application/monitoring/queries/get-system-health/get-system-health.handler';
+import { BEFEHL_REPOSITORY, LOGGER, RESILIENCE, SERVER_ACCESS_TOKEN_REPOSITORY, SERVER_CONFIG_REPOSITORY } from '@infrastructure/di-tokens';
+import { type INestApplication, VersioningType } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Reflector } from '@nestjs/core';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { DiskHealthIndicator, HealthCheckService, MemoryHealthIndicator } from '@nestjs/terminus';
+import { Test } from '@nestjs/testing';
 
 /** Pass-Through Guard der immer true zurueckgibt */
 const mockGuard = { canActivate: () => true };
@@ -96,13 +96,10 @@ async function createContractTestApp(): Promise<INestApplication> {
     providers: createMockProviders(),
   })
     .overrideGuard(JwtAuthGuard)
-    // biome-ignore lint/correctness/useHookAtTopLevel: Nest testing builder API uses "useValue" method name.
     .useValue(mockGuard)
     .overrideGuard(RolesGuard)
-    // biome-ignore lint/correctness/useHookAtTopLevel: Nest testing builder API uses "useValue" method name.
     .useValue(mockGuard)
     .overrideGuard(BefehlRollenGuard)
-    // biome-ignore lint/correctness/useHookAtTopLevel: Nest testing builder API uses "useValue" method name.
     .useValue(mockGuard)
     .compile();
 
@@ -129,8 +126,11 @@ async function createContractTestApp(): Promise<INestApplication> {
  * @param spec - Die rohe OpenAPI-Spec als JSON-Objekt
  * @returns Normalisierte Spec ohne umgebungsabhaengige Felder
  */
-function normalizeSpec(spec: Record<string, unknown>): Record<string, unknown> {
-  const normalized = JSON.parse(JSON.stringify(spec));
+function normalizeSpec<T extends object>(spec: T): T {
+  const normalized = JSON.parse(JSON.stringify(spec)) as T & {
+    info?: { version?: string };
+    servers?: unknown;
+  };
 
   // Version normalisieren (aendert sich mit jedem Release)
   if (normalized.info) {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Unit Tests fuer ProcessOAuthCallbackHandler.
  *
@@ -14,8 +15,8 @@ import type { IOAuth2Port, OAuth2TokenResponse } from '@domain/ports/i-oauth2.po
 import type { IEncryptionPort } from '@domain/ports/i-encryption.port';
 import type { IHiOrgOAuthConfigPort, HiOrgOAuthClientCredentials } from '@domain/ports/i-hiorg-oauth-config.port';
 import type { ILogger } from '@domain/ports/i-logger.port';
-import { ProcessOAuthCallbackHandler } from '../process-oauth-callback.handler';
-import { ProcessOAuthCallbackCommand } from '../process-oauth-callback.command';
+import { ProcessOAuthCallbackHandler } from '@application/integrations';
+import { ProcessOAuthCallbackCommand } from '@application/integrations';
 
 describe('ProcessOAuthCallbackHandler', () => {
   let handler: ProcessOAuthCallbackHandler;
@@ -82,7 +83,6 @@ describe('ProcessOAuthCallbackHandler', () => {
       error: jest.fn(),
       warn: jest.fn(),
       debug: jest.fn(),
-      verbose: jest.fn(),
     };
 
     mockOAuth2 = {
@@ -112,6 +112,8 @@ describe('ProcessOAuthCallbackHandler', () => {
     mockOAuthConfig = {
       isConfigured: jest.fn().mockReturnValue(true),
       getClientCredentials: jest.fn().mockReturnValue(clientCredentials),
+      getClientId: jest.fn().mockReturnValue(clientCredentials.clientId),
+      getRedirectUri: jest.fn().mockReturnValue('http://localhost:3091/api/oauth/hiorg/callback'),
     };
 
     handler = new ProcessOAuthCallbackHandler(mockLogger, mockOAuth2, mockStateRepository, mockCredentialRepository, mockEncryption, mockOAuthConfig);
@@ -225,7 +227,7 @@ describe('ProcessOAuthCallbackHandler', () => {
 
       // Pruefen, dass verschluesselte Tokens gespeichert wurden
       expect(mockCredentialRepository.save).toHaveBeenCalled();
-      const savedCredential = mockCredentialRepository.save.mock.calls[0][0] as IntegrationCredential;
+      const savedCredential = mockCredentialRepository.save.mock.calls[0]?.[0]! as IntegrationCredential;
       expect(savedCredential.encryptedAccessToken).toBe('encrypted:new-access-token');
       expect(savedCredential.encryptedRefreshToken).toBe('encrypted:new-refresh-token');
     });
@@ -249,7 +251,7 @@ describe('ProcessOAuthCallbackHandler', () => {
 
       // Pruefen, dass updateOAuthTokens aufgerufen wurde (nicht createFromOAuth)
       expect(mockCredentialRepository.save).toHaveBeenCalledTimes(1);
-      const savedCredential = mockCredentialRepository.save.mock.calls[0][0] as IntegrationCredential;
+      const savedCredential = mockCredentialRepository.save.mock.calls[0]?.[0]! as IntegrationCredential;
 
       // ID sollte von existierender Credential stammen
       expect(savedCredential.id).toBe('credential-id');
@@ -274,7 +276,7 @@ describe('ProcessOAuthCallbackHandler', () => {
       expect(result.isSuccess).toBe(true);
       expect(mockCredentialRepository.save).toHaveBeenCalledTimes(1);
 
-      const savedCredential = mockCredentialRepository.save.mock.calls[0][0] as IntegrationCredential;
+      const savedCredential = mockCredentialRepository.save.mock.calls[0]?.[0]! as IntegrationCredential;
       // Neue Credential hat leere ID (wird von Repository generiert)
       expect(savedCredential.id).toBe('');
       expect(savedCredential.type).toBe(INTEGRATION_TYPES.HIORG_SERVER);
@@ -331,8 +333,8 @@ describe('ProcessOAuthCallbackHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
 
-      const savedCredential = mockCredentialRepository.save.mock.calls[0][0] as IntegrationCredential;
-      const expiresAt = savedCredential.accessTokenExpiresAt!.getTime();
+      const savedCredential = mockCredentialRepository.save.mock.calls[0]?.[0]! as IntegrationCredential;
+      const expiresAt = savedCredential.accessTokenExpiresAt?.getTime();
 
       // expiresAt sollte ca. 1 Stunde (3600 Sekunden) in der Zukunft liegen
       const expectedExpiryMin = beforeExecution + 3600 * 1000;
@@ -388,7 +390,7 @@ describe('ProcessOAuthCallbackHandler', () => {
       expect(mockEncryption.encrypt).toHaveBeenCalledWith('new-access-token');
       expect(mockEncryption.encrypt).toHaveBeenCalledTimes(1);
 
-      const savedCredential = mockCredentialRepository.save.mock.calls[0][0] as IntegrationCredential;
+      const savedCredential = mockCredentialRepository.save.mock.calls[0]?.[0]! as IntegrationCredential;
       expect(savedCredential.encryptedRefreshToken).toBeUndefined();
     });
 

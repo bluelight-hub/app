@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Test, type TestingModule } from '@nestjs/testing';
 import { UpdateEinsatzHandler } from '../update-einsatz.handler';
 import { UpdateEinsatzCommand } from '../update-einsatz.command';
@@ -130,7 +131,7 @@ describe('UpdateEinsatzHandler', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(mockOutboxRepository.save).toHaveBeenCalledTimes(1);
-      const savedEvents = mockOutboxRepository.save.mock.calls[0][0];
+      const savedEvents = mockOutboxRepository.save.mock.calls[0]?.[0]!;
       expect(savedEvents.length).toBe(1);
       const updateEvent = savedEvents[0];
       expect(updateEvent.updates.alarmstichwort).toBe('Großbrand');

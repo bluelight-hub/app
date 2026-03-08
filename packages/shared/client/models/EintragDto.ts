@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -177,8 +176,8 @@ export function instanceOfEintragDto(value: object): value is EintragDto {
     if (!('isAutomatic' in value) || value['isAutomatic'] === undefined) return false;
     if (!('createdBy' in value) || value['createdBy'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
-    if (!('isDeleted' in value) || value['isDeleted'] === undefined) return false;
-    return true;
+    return !(!('isDeleted' in value) || value['isDeleted'] === undefined);
+
 }
 
 export function EintragDtoFromJSON(json: any): EintragDto {

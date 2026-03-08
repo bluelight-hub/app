@@ -44,9 +44,9 @@ function PresetChip({ preset, isActive, onApply, onRemove }: PresetChipProps) {
     <span
       className={cn(
         'group inline-flex items-center gap-1 rounded-full px-3 py-1 font-medium text-xs',
-        'transition-all duration-150 cursor-pointer select-none',
+        'cursor-pointer select-none transition-all duration-150',
         isActive
-          ? 'ring-2 ring-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300'
+          ? 'bg-primary-50 text-primary-700 ring-2 ring-primary-500 dark:bg-primary-900/20 dark:text-primary-300'
           : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700',
       )}
     >
@@ -61,9 +61,9 @@ function PresetChip({ preset, isActive, onApply, onRemove }: PresetChipProps) {
         }}
         className={cn(
           'inline-flex h-4 w-4 items-center justify-center rounded-full',
-          'opacity-0 group-hover:opacity-100 transition-opacity duration-150',
+          'opacity-0 transition-opacity duration-150 group-hover:opacity-100',
           'text-current hover:bg-black/10 dark:hover:bg-white/20',
-          'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:opacity-100',
+          'focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-primary-500',
         )}
         aria-label={`Preset "${preset.name}" loeschen`}
       >

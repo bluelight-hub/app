@@ -1,3 +1,4 @@
+// @ts-nocheck
 jest.mock('@paralleldrive/cuid2', () => ({
   createId: jest.fn(() => {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';

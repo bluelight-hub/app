@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -31,8 +30,8 @@ export interface ExchangeInviteDto {
  * Check if a given object implements the ExchangeInviteDto interface.
  */
 export function instanceOfExchangeInviteDto(value: object): value is ExchangeInviteDto {
-    if (!('inviteCode' in value) || value['inviteCode'] === undefined) return false;
-    return true;
+    return !(!('inviteCode' in value) || value['inviteCode'] === undefined);
+
 }
 
 export function ExchangeInviteDtoFromJSON(json: any): ExchangeInviteDto {

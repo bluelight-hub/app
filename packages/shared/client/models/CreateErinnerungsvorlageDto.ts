@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -44,8 +43,8 @@ export interface CreateErinnerungsvorlageDto {
  */
 export function instanceOfCreateErinnerungsvorlageDto(value: object): value is CreateErinnerungsvorlageDto {
     if (!('titel' in value) || value['titel'] === undefined) return false;
-    if (!('minuten' in value) || value['minuten'] === undefined) return false;
-    return true;
+    return !(!('minuten' in value) || value['minuten'] === undefined);
+
 }
 
 export function CreateErinnerungsvorlageDtoFromJSON(json: any): CreateErinnerungsvorlageDto {

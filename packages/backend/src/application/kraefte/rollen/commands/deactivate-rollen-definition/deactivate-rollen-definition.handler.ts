@@ -9,10 +9,10 @@ import { RolleId } from '@domain/kraefte/value-objects/rolle-id';
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import { KRAEFTE_REPOSITORIES, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
-import type { RollenDefinitionDto } from '../../dto/rollen-definition.dto';
-import { RollenDefinitionQueryMapper } from '../../queries/rollen-definition-query.mapper';
+import type { RollenDefinitionDto } from '@application/kraefte/rollen';
+import { RollenDefinitionQueryMapper } from '@application/kraefte/rollen';
 import { ROLLE_ERROR_CODES, RolleError } from '@domain/kraefte/common/rolle-error-codes';
-import type { DeactivateRollenDefinitionCommand } from './deactivate-rollen-definition.command';
+import type { DeactivateRollenDefinitionCommand } from '@application/kraefte/rollen';
 
 /**
  * Handler für DeactivateRollenDefinitionCommand.

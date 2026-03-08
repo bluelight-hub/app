@@ -257,12 +257,14 @@ pnpm --filter @bluelight-hub/shared build
 ## ⚠️ Wichtige Regeln
 
 ### ✅ DO
+
 - IMMER Shared Schemas für Auth-Felder verwenden
 - Backend: `@ValidateWithZod` Decorator nutzen
 - Frontend: `inviteCodeSchemaNormalized` für UX
 - TypeScript-Typen via `z.infer<typeof schema>` ableiten
 
 ### ❌ DON'T
+
 - NIEMALS manuelle Regex-Duplikation
 - NIEMALS unterschiedliche Frontend/Backend Validierung
 - NIEMALS Magic Numbers (nutze `*_CRITERIA` Konstanten)

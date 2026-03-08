@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -38,8 +37,8 @@ export interface SaveLagekarteStateDto {
  */
 export function instanceOfSaveLagekarteStateDto(value: object): value is SaveLagekarteStateDto {
     if (!('einsatzId' in value) || value['einsatzId'] === undefined) return false;
-    if (!('state' in value) || value['state'] === undefined) return false;
-    return true;
+    return !(!('state' in value) || value['state'] === undefined);
+
 }
 
 export function SaveLagekarteStateDtoFromJSON(json: any): SaveLagekarteStateDto {

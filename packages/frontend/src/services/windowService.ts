@@ -1,8 +1,8 @@
+import { logger } from '@/shared/lib/logger';
 import { isTauri } from '@tauri-apps/api/core';
 import { LogicalSize } from '@tauri-apps/api/dpi';
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { toast } from 'sonner';
-import { logger } from '@/shared/lib/logger';
 
 /**
  * Optionen für das Öffnen des Admin-Fensters
@@ -133,79 +133,6 @@ class WindowService {
   }
 
   /**
-   * Öffnet Admin-Dashboard in Tauri WebviewWindow
-   */
-  private async openAdminInTauri(opts?: OpenAdminOptions): Promise<void> {
-    // Prüfe ob Admin-Fenster bereits existiert
-    const existingWindow = await WebviewWindow.getByLabel(this.ADMIN_WINDOW_LABEL);
-
-    if (existingWindow) {
-      // Fenster existiert bereits - fokussiere es
-      await existingWindow.setFocus();
-      await existingWindow.unminimize();
-      return;
-    }
-
-    // Erstelle neues Admin-Fenster
-    // Navigiere direkt zu /admin-login - diese Seite kann die Auth prüfen
-    // und bei Bedarf weiterleiten, ohne dass die Index-Route dazwischenfunkt
-    const adminUrl = `${window.location.origin}/admin-login`;
-    logger.log('Öffne Admin-Fenster mit URL:', adminUrl);
-
-    const adminWindow = new WebviewWindow(this.ADMIN_WINDOW_LABEL, {
-      url: adminUrl,
-      title: 'BlueLight Hub - Admin Dashboard',
-      width: opts?.width ?? this.DEFAULT_WIDTH,
-      height: opts?.height ?? this.DEFAULT_HEIGHT,
-      resizable: true,
-      center: true,
-      decorations: true,
-      alwaysOnTop: false,
-      skipTaskbar: false,
-    });
-
-    // Warte bis Fenster erstellt wurde
-    await adminWindow.once('tauri://created', () => {
-      logger.log('Admin-Fenster erfolgreich erstellt');
-    });
-
-    // Error Handler für Fenster-Ereignisse
-    adminWindow.once('tauri://error', (error) => {
-      logger.error('Fehler beim Erstellen des Admin-Fensters:', error);
-      toast.error('Fehler', {
-        description: 'Das Admin-Fenster konnte nicht erstellt werden.',
-      });
-    });
-  }
-
-  /**
-   * Öffnet Admin-Dashboard in neuem Browser-Tab
-   */
-  private openAdminInBrowser(): void {
-    const adminUrl = '/admin-login';
-
-    try {
-      const newWindow = window.open(adminUrl, '_blank');
-
-      if (newWindow === null) {
-        logger.warn('Fenster konnte nicht geöffnet werden - möglicherweise durch Popup-Blocker verhindert');
-        toast.warning('Hinweis', {
-          description: 'Das Admin-Dashboard wird im aktuellen Fenster geöffnet.',
-        });
-
-        window.location.href = adminUrl;
-      } else {
-        // Neutralize window.opener to prevent reverse-tabnabbing
-        newWindow.opener = null;
-        logger.log('Admin-Dashboard in neuem Tab geöffnet');
-      }
-    } catch (error) {
-      logger.error('Fehler beim Öffnen des neuen Tabs:', error);
-      window.location.href = adminUrl;
-    }
-  }
-
-  /**
    * Holt das aktuelle Main-Window (nur in Tauri)
    * @returns WebviewWindow oder null wenn nicht verfügbar
    */
@@ -252,6 +179,79 @@ class WindowService {
     } catch (error) {
       logger.error('Fehler beim Ändern der Fenster-Größe:', error);
       // Kein Toast - soll im Hintergrund laufen ohne User zu stören
+    }
+  }
+
+  /**
+   * Öffnet Admin-Dashboard in Tauri WebviewWindow
+   */
+  private async openAdminInTauri(opts?: OpenAdminOptions): Promise<void> {
+    // Prüfe ob Admin-Fenster bereits existiert
+    const existingWindow = await WebviewWindow.getByLabel(this.ADMIN_WINDOW_LABEL);
+
+    if (existingWindow) {
+      // Fenster existiert bereits - fokussiere es
+      await existingWindow.setFocus();
+      await existingWindow.unminimize();
+      return;
+    }
+
+    // Erstelle neues Admin-Fenster
+    // Navigiere direkt zu /admin-login - diese Seite kann die Auth prüfen
+    // und bei Bedarf weiterleiten, ohne dass die Index-Route dazwischenfunkt
+    const adminUrl = `${window.location.origin}/admin-login`;
+    logger.log('Öffne Admin-Fenster mit URL:', adminUrl);
+
+    const adminWindow = new WebviewWindow(this.ADMIN_WINDOW_LABEL, {
+      url: adminUrl,
+      title: 'BlueLight Hub - Admin Dashboard',
+      width: opts?.width ?? this.DEFAULT_WIDTH,
+      height: opts?.height ?? this.DEFAULT_HEIGHT,
+      resizable: true,
+      center: true,
+      decorations: true,
+      alwaysOnTop: false,
+      skipTaskbar: false,
+    });
+
+    // Warte bis Fenster erstellt wurde
+    await adminWindow.once('tauri://created', () => {
+      logger.log('Admin-Fenster erfolgreich erstellt');
+    });
+
+    // Error Handler für Fenster-Ereignisse
+    await adminWindow.once('tauri://error', (error) => {
+      logger.error('Fehler beim Erstellen des Admin-Fensters:', error);
+      toast.error('Fehler', {
+        description: 'Das Admin-Fenster konnte nicht erstellt werden.',
+      });
+    });
+  }
+
+  /**
+   * Öffnet Admin-Dashboard in neuem Browser-Tab
+   */
+  private openAdminInBrowser(): void {
+    const adminUrl = '/admin-login';
+
+    try {
+      const newWindow = window.open(adminUrl, '_blank');
+
+      if (newWindow === null) {
+        logger.warn('Fenster konnte nicht geöffnet werden - möglicherweise durch Popup-Blocker verhindert');
+        toast.warning('Hinweis', {
+          description: 'Das Admin-Dashboard wird im aktuellen Fenster geöffnet.',
+        });
+
+        window.location.href = adminUrl;
+      } else {
+        // Neutralize window.opener to prevent reverse-tabnabbing
+        newWindow.opener = null;
+        logger.log('Admin-Dashboard in neuem Tab geöffnet');
+      }
+    } catch (error) {
+      logger.error('Fehler beim Öffnen des neuen Tabs:', error);
+      window.location.href = adminUrl;
     }
   }
 }

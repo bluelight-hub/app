@@ -82,10 +82,10 @@ export function createCorsConfig(runtimeConfig?: AppConfigService): {
   development: CorsOptions;
   production: CorsOptions;
 } {
-  const corsOriginHandler = createCorsOriginHandler(runtimeConfig);
+  const runtimeCorsOriginHandler = createCorsOriginHandler(runtimeConfig);
 
   const corsOptions: CorsOptions = {
-    origin: corsOriginHandler,
+    origin: runtimeCorsOriginHandler,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'X-Server-Access-Token'],

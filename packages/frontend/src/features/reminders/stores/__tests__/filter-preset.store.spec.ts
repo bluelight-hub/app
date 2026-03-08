@@ -13,7 +13,6 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
-  filterPresetStore,
   addPreset,
   removePreset,
   applyPreset,
@@ -23,10 +22,10 @@ import {
   isPresetActive,
   reloadPresetsFromStorage,
   type FilterPresetType,
-} from '../filter-preset.store';
+} from '@/features/reminders';
 import { teamFilterStore, getTeamFilter, getTeamSort } from '../team-filter.store';
-import { kategorieFilterStore, getKategorieFilter } from '../kategorie-filter.store';
-import { statusFilterStore, getStatusFilter, ErinnerungStatus } from '../status-filter.store';
+import { kategorieFilterStore, getKategorieFilter } from '@/features/reminders';
+import { statusFilterStore, getStatusFilter, ErinnerungStatus } from '@/features/reminders';
 
 describe('FilterPresetStore', () => {
   beforeEach(() => {

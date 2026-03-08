@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -93,8 +92,8 @@ export function instanceOfMigrateToSecureModeResponseDto(value: object): value i
     if (!('token' in value) || value['token'] === undefined) return false;
     if (!('tokenName' in value) || value['tokenName'] === undefined) return false;
     if (!('tokenPrefix' in value) || value['tokenPrefix'] === undefined) return false;
-    if (!('migratedAt' in value) || value['migratedAt'] === undefined) return false;
-    return true;
+    return !(!('migratedAt' in value) || value['migratedAt'] === undefined);
+
 }
 
 export function MigrateToSecureModeResponseDtoFromJSON(json: any): MigrateToSecureModeResponseDto {

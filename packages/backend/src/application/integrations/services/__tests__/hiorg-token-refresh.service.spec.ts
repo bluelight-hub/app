@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Unit Tests für HiOrgTokenRefreshService.
  *
@@ -13,7 +14,7 @@ import type { IEncryptionPort } from '@domain/ports/i-encryption.port';
 import type { IOAuth2Port, OAuth2TokenResponse } from '@domain/ports/i-oauth2.port';
 import type { IHiOrgOAuthConfigPort, HiOrgOAuthClientCredentials } from '@domain/ports/i-hiorg-oauth-config.port';
 import type { ILogger } from '@domain/ports/i-logger.port';
-import { HiOrgTokenRefreshService } from '../hiorg-token-refresh.service';
+import { HiOrgTokenRefreshService } from '@application/integrations';
 
 describe('HiOrgTokenRefreshService', () => {
   let service: HiOrgTokenRefreshService;
@@ -60,7 +61,6 @@ describe('HiOrgTokenRefreshService', () => {
       warn: jest.fn(),
       error: jest.fn(),
       debug: jest.fn(),
-      verbose: jest.fn(),
     };
 
     mockEncryption = {
@@ -83,6 +83,8 @@ describe('HiOrgTokenRefreshService', () => {
     mockOAuthConfig = {
       isConfigured: jest.fn().mockReturnValue(true),
       getClientCredentials: jest.fn().mockReturnValue(clientCredentials),
+      getClientId: jest.fn().mockReturnValue(clientCredentials.clientId),
+      getRedirectUri: jest.fn().mockReturnValue('http://localhost:3091/api/oauth/hiorg/callback'),
     };
 
     service = new HiOrgTokenRefreshService(mockLogger, mockEncryption, mockRepository, mockOAuth2, mockOAuthConfig);
@@ -100,8 +102,8 @@ describe('HiOrgTokenRefreshService', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.accessToken).toBe('decrypted-access-token');
-      expect(result.value!.wasRefreshed).toBe(false);
+      expect(result.value?.accessToken).toBe('decrypted-access-token');
+      expect(result.value?.wasRefreshed).toBe(false);
       expect(mockOAuth2.refreshAccessToken).not.toHaveBeenCalled();
     });
 
@@ -120,7 +122,7 @@ describe('HiOrgTokenRefreshService', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.wasRefreshed).toBe(true);
+      expect(result.value?.wasRefreshed).toBe(true);
       expect(mockOAuth2.refreshAccessToken).toHaveBeenCalledWith({
         refreshToken: expect.any(String),
         clientId: clientCredentials.clientId,

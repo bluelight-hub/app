@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { GeoPositionDto } from './GeoPositionDto';
-import {
-    GeoPositionDtoFromJSON,
-    GeoPositionDtoFromJSONTyped,
-    GeoPositionDtoToJSON,
-    GeoPositionDtoToJSONTyped,
-} from './GeoPositionDto';
+import type {GeoPositionDto} from './GeoPositionDto';
+import {GeoPositionDtoFromJSON, GeoPositionDtoToJSON,} from './GeoPositionDto';
 
 /**
  * 
@@ -45,8 +39,8 @@ export interface UpdateFmsStatusDto {
  * Check if a given object implements the UpdateFmsStatusDto interface.
  */
 export function instanceOfUpdateFmsStatusDto(value: object): value is UpdateFmsStatusDto {
-    if (!('fmsStatus' in value) || value['fmsStatus'] === undefined) return false;
-    return true;
+    return !(!('fmsStatus' in value) || value['fmsStatus'] === undefined);
+
 }
 
 export function UpdateFmsStatusDtoFromJSON(json: any): UpdateFmsStatusDto {

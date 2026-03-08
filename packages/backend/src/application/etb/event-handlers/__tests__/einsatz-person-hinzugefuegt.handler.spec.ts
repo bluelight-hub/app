@@ -1,13 +1,13 @@
+// @ts-nocheck
 import { Result } from '@domain/common/result';
 import { EinsatzPersonHinzugefuegtEvent } from '@domain/kraefte/events/einsatz-person-hinzugefuegt.event';
-import type { AddEintragHandler } from '../../commands/add-eintrag/add-eintrag.handler';
-import { EinsatzPersonHinzugefuegtEventHandler } from '../einsatz-person-hinzugefuegt.handler';
+import type { AddEintragHandler } from '@application/etb/commands';
+import { EinsatzPersonHinzugefuegtEventHandler } from '@application/etb/event-handlers';
 
 // Mock CUID2 fuer deterministische Tests
 jest.mock('@paralleldrive/cuid2', () => ({
   createId: jest.fn(() => 'c' + 'test123456789012345678'),
   isCuid: jest.fn((id: string) => {
-    if (typeof id !== 'string') return false;
     if (id.length < 20 || id.length > 30) return false;
     return /^[a-zA-Z][a-zA-Z0-9_-]*$/.test(id);
   }),
@@ -127,14 +127,14 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
         funktion: 'Einsatzleiter',
       });
 
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       await handler.handle(event);
 
       // Then (Assert)
       expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(1);
-      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0]?.[0]!;
       expect(receivedCommand.text).toBe('Person Max Mustermann registriert (Funktion: Einsatzleiter)');
     });
 
@@ -144,13 +144,13 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
         stammId: generateTestCuid(),
       });
 
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       await handler.handle(event);
 
       // Then (Assert)
-      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0]?.[0]!;
       expect(receivedCommand.kategorie).toBe('PERSONAL');
     });
 
@@ -159,13 +159,13 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
       const einsatzId = generateTestUuid();
       const event = createTestEvent({ einsatzId, stammId: generateTestCuid() });
 
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       await handler.handle(event);
 
       // Then (Assert)
-      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0]?.[0]!;
       expect(receivedCommand.einsatzId).toBe(einsatzId);
     });
 
@@ -174,13 +174,13 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
       const registriertVon = generateTestCuid();
       const event = createTestEvent({ stammId: generateTestCuid(), registriertVon });
 
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       await handler.handle(event);
 
       // Then (Assert)
-      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0]?.[0]!;
       expect(receivedCommand.userId).toBe(registriertVon);
     });
 
@@ -189,13 +189,13 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
       const einsatzId = generateTestUuid();
       const event = createTestEvent({ einsatzId, stammId: generateTestCuid() });
 
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       await handler.handle(event);
 
       // Then (Assert)
-      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0]?.[0]!;
       expect(receivedCommand.etbId).toBe(einsatzId);
     });
 
@@ -209,13 +209,13 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
         funktion: 'Gruppenführer',
       });
 
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       await handler.handle(event);
 
       // Then (Assert)
-      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0]?.[0]!;
       expect(receivedCommand.metadata).toEqual({
         eventType: 'EinsatzPersonHinzugefuegt',
         einsatzPersonId,
@@ -235,14 +235,14 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
         funktion: 'Helferin',
       });
 
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       await handler.handle(event);
 
       // Then (Assert)
       expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(1);
-      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0]?.[0]!;
       expect(receivedCommand.text).toBe('Person Anna Schmidt registriert (Funktion: Helferin)');
     });
 
@@ -252,13 +252,13 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
         stammId: undefined,
       });
 
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       await handler.handle(event);
 
       // Then (Assert)
-      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0]?.[0]!;
       expect(receivedCommand.kategorie).toBe('PERSONAL');
     });
 
@@ -271,13 +271,13 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
         funktion: 'Melder',
       });
 
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       await handler.handle(event);
 
       // Then (Assert)
-      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0]?.[0]!;
       expect(receivedCommand.metadata).toEqual({
         eventType: 'EinsatzPersonHinzugefuegt',
         einsatzPersonId,
@@ -299,7 +299,7 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
         nachname: 'Temp',
       });
 
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       await handler.handle(stammPersonEvent);
@@ -308,8 +308,8 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
       // Then (Assert)
       expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(2);
 
-      const stammPersonCommand = mockAddEintragHandler.execute.mock.calls[0][0];
-      const temporaryPersonCommand = mockAddEintragHandler.execute.mock.calls[1][0];
+      const stammPersonCommand = mockAddEintragHandler.execute.mock.calls[0]?.[0]!;
+      const temporaryPersonCommand = mockAddEintragHandler.execute.mock.calls[1]?.[0]!;
 
       // Beide nutzen jetzt einheitlich "Person" ohne Unterscheidung
       expect(stammPersonCommand.text).toContain('Person Max Stamm registriert');
@@ -322,7 +322,7 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
       // Given (Arrange)
       const event = createTestEvent();
 
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       await handler.handle(event);
@@ -340,7 +340,7 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
         stammId: generateTestCuid(),
       });
 
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       await handler.handle(event);
@@ -353,7 +353,7 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
       // Given (Arrange)
       const event = createTestEvent();
 
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       await handler.handle(event);
@@ -373,7 +373,7 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
         nachname: '',
       });
 
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       await handler.handle(event);
@@ -399,7 +399,7 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
     it('should NOT throw when command creation would hypothetically fail (Fire-and-Forget)', async () => {
       // Given (Arrange) - Fire-and-Forget Pattern garantiert keine Exception
       const event = createTestEvent();
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act & Assert) - Fire-and-Forget: keine Exception
       await expect(handler.handle(event)).resolves.toBeUndefined();
@@ -531,7 +531,7 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
     it('should return void (undefined) in all scenarios', async () => {
       // Given (Arrange) - Erfolgs-Szenario
       const event = createTestEvent();
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       const result = await handler.handle(event);
@@ -549,7 +549,7 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
         nachname: 'Mustermann',
       });
 
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       await handler.handle(event);
@@ -568,7 +568,7 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
         nachname: '',
       });
 
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       await handler.handle(event);
@@ -598,7 +598,7 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
         nachname: 'Mustermann',
       });
 
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       await handler.handle(event);
@@ -621,13 +621,13 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
         registriertVon: generateTestCuid(),
       });
 
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       await handler.handle(specificEvent);
 
       // Then (Assert)
-      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0]?.[0]!;
       expect(receivedCommand.etbId).toBe(specificEvent.einsatzId);
       expect(receivedCommand.einsatzId).toBe(specificEvent.einsatzId);
       expect(receivedCommand.userId).toBe(specificEvent.registriertVon);
@@ -648,13 +648,13 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
         registriertVon: generateTestCuid(),
       });
 
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       await handler.handle(specificEvent);
 
       // Then (Assert)
-      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0]?.[0]!;
       expect(receivedCommand.etbId).toBe(specificEvent.einsatzId);
       expect(receivedCommand.einsatzId).toBe(specificEvent.einsatzId);
       expect(receivedCommand.userId).toBe(specificEvent.registriertVon);
@@ -671,13 +671,13 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
         funktion: 'Gruppenführer (Feuerwehr)',
       });
 
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       await handler.handle(event);
 
       // Then (Assert)
-      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0]?.[0]!;
       expect(receivedCommand.text).toContain('Gruppenführer (Feuerwehr)');
     });
   });
@@ -688,7 +688,7 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
       const event1 = createTestEvent({ stammId: generateTestCuid() });
       const event2 = createTestEvent({ stammId: undefined });
 
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       await handler.handle(event1);
@@ -703,7 +703,7 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
       // Given (Arrange)
       const minimalEvent = createTestEvent();
 
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act & Assert)
       await expect(handler.handle(minimalEvent)).resolves.toBeUndefined();
@@ -717,13 +717,13 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
         nachname: 'Müller-König',
       });
 
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       await handler.handle(event);
 
       // Then (Assert)
-      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0]?.[0]!;
       expect(receivedCommand.text).toContain('Jürgen');
       expect(receivedCommand.text).toContain('Müller-König');
     });
@@ -739,13 +739,13 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
         funktion: 'Testfunktion',
       });
 
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       await handler.handle(event);
 
       // Then (Assert)
-      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0]?.[0]!;
       const expectedText = 'Person Test User registriert (Funktion: Testfunktion)';
       expect(receivedCommand.text).toBe(expectedText);
 
@@ -762,13 +762,13 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
         funktion: 'Helfer',
       });
 
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       await handler.handle(event);
 
       // Then (Assert)
-      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0]?.[0]!;
       const expectedText = 'Person Temp User registriert (Funktion: Helfer)';
       expect(receivedCommand.text).toBe(expectedText);
 
@@ -781,7 +781,7 @@ describe('EinsatzPersonHinzugefuegtEventHandler', () => {
     it('should return void (undefined) always', async () => {
       // Given (Arrange)
       const event = createTestEvent();
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When (Act)
       const result = await handler.handle(event);

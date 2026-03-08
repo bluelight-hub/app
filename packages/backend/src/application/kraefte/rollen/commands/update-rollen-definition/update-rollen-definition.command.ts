@@ -98,14 +98,11 @@ export class UpdateRollenDefinitionCommand {
       }
       // Validiere jedes Element im Array
       for (const qualifikation of props.erforderlicheQualifikationen) {
-        if (!qualifikation.qualifikationId || typeof qualifikation.qualifikationId !== 'string') {
+        if (!qualifikation.qualifikationId || false) {
           return Result.fail<UpdateRollenDefinitionCommand>('Jede Qualifikation muss eine gültige qualifikationId haben');
         }
         if (qualifikation.qualifikationId.trim().length === 0) {
           return Result.fail<UpdateRollenDefinitionCommand>('qualifikationId darf nicht leer sein');
-        }
-        if (typeof qualifikation.istPflicht !== 'boolean') {
-          return Result.fail<UpdateRollenDefinitionCommand>('istPflicht muss ein Boolean sein');
         }
       }
     }

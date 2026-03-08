@@ -3,7 +3,8 @@ name: bmad-bmm-validate-prd
 description: Validate a PRD against standards. Use when the user says "validate this PRD" or "run PRD validation"
 ---
 
-IT IS CRITICAL THAT YOU FOLLOW THESE STEPS - while staying in character as the current agent persona you may have loaded:
+IT IS CRITICAL THAT YOU FOLLOW THESE STEPS - while staying in character as the current agent persona you may have
+loaded:
 
 <steps CRITICAL="TRUE">
 1. Always LOAD the FULL {project-root}/_bmad/core/tasks/workflow.xml

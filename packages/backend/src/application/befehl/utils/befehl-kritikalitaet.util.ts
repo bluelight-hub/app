@@ -31,19 +31,34 @@ export function parseZeitvorgabe(zeitvorgabe: string | undefined | null): number
   // Stunden-Format: "1h", "1 h", "1.5h", "2 Stunde", "2 Stunden"
   const hoursMatch = trimmed.match(/^(\d+\.?\d*)\s*(h|stunde|stunden)$/);
   if (hoursMatch) {
-    return Math.round(Number.parseFloat(hoursMatch[1]!) * 60);
+    const hoursValue = hoursMatch[1];
+    if (hoursValue == null) {
+      return null;
+    }
+
+    return Math.round(Number.parseFloat(hoursValue) * 60);
   }
 
   // Minuten-Format: "15 min", "15min", "15 Minuten", "15 minuten"
   const minutesMatch = trimmed.match(/^(\d+)\s*(min|minuten|minutes?)$/);
   if (minutesMatch) {
-    return Number.parseInt(minutesMatch[1]!, 10);
+    const minutesValue = minutesMatch[1];
+    if (minutesValue == null) {
+      return null;
+    }
+
+    return Number.parseInt(minutesValue, 10);
   }
 
   // Nur Zahl → Default Minuten
   const numberMatch = trimmed.match(/^(\d+)$/);
   if (numberMatch) {
-    return Number.parseInt(numberMatch[1]!, 10);
+    const numberValue = numberMatch[1];
+    if (numberValue == null) {
+      return null;
+    }
+
+    return Number.parseInt(numberValue, 10);
   }
 
   return null;

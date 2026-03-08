@@ -40,6 +40,19 @@ export function CommandItem({ command, onSelect, isActive = true }: CommandItemP
         .join('+'),
     [command.shortcut],
   );
+  const shortcutKeys = useMemo(() => {
+    const shortcutCounts = new Map<string, number>();
+
+    return (command.shortcut ?? []).map((key) => {
+      const occurrence = (shortcutCounts.get(key) ?? 0) + 1;
+      shortcutCounts.set(key, occurrence);
+
+      return {
+        label: key,
+        reactKey: `${command.id}-${key}-${occurrence}`,
+      };
+    });
+  }, [command.id, command.shortcut]);
 
   // Register hotkey when command has a shortcut
   useHotkeys(
@@ -77,9 +90,9 @@ export function CommandItem({ command, onSelect, isActive = true }: CommandItemP
       <div className="flex items-center gap-2">
         {command.shortcut && (
           <div className="hidden items-center gap-1 sm:flex">
-            {command.shortcut.map((key, idx) => (
-              <kbd key={`${command.id}-${key}-${idx}`} className={commandItemClasses.kbd}>
-                {key}
+            {shortcutKeys.map((shortcut) => (
+              <kbd key={shortcut.reactKey} className={commandItemClasses.kbd}>
+                {shortcut.label}
               </kbd>
             ))}
           </div>

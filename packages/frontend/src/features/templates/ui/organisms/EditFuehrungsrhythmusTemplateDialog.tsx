@@ -29,6 +29,17 @@ function formatErrors(errors: unknown[]): string {
 /** Preset-Intervalle in Minuten */
 const INTERVALL_PRESETS = [15, 30, 45, 60] as const;
 
+let editEintragKeyCounter = 0;
+
+function createEditEintragKey(): string {
+  editEintragKeyCounter += 1;
+  return `edit-fr-eintrag-${editEintragKeyCounter}`;
+}
+
+function createEditEintragKeys(count: number): string[] {
+  return Array.from({ length: count }, () => createEditEintragKey());
+}
+
 interface EditFuehrungsrhythmusTemplateDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -47,6 +58,7 @@ interface EditFuehrungsrhythmusTemplateDialogProps {
  */
 export function EditFuehrungsrhythmusTemplateDialog({ isOpen, onClose, template }: EditFuehrungsrhythmusTemplateDialogProps) {
   const [apiErrorMessage, setApiErrorMessage] = useState<string | null>(null);
+  const [entryKeys, setEntryKeys] = useState<string[]>(() => createEditEintragKeys(template.eintraege.length));
   const globalMutation = useUpdateGlobalFuehrungsrhythmusTemplate();
   const einsatzMutation = useUpdateEinsatzFuehrungsrhythmusTemplate();
   const isEinsatz = template.scope === 'EINSATZ';
@@ -84,6 +96,7 @@ export function EditFuehrungsrhythmusTemplateDialog({ isOpen, onClose, template 
           toast.success('Template aktualisiert');
           setTimeout(() => {
             form.reset();
+            setEntryKeys(createEditEintragKeys(template.eintraege.length));
             onClose();
           }, 0);
         },
@@ -116,6 +129,7 @@ export function EditFuehrungsrhythmusTemplateDialog({ isOpen, onClose, template 
           offsetMinuten: e.offsetMinuten,
         })),
       );
+      setEntryKeys(createEditEintragKeys(template.eintraege.length));
       setApiErrorMessage(null);
     }
   }, [isOpen, template.id]);
@@ -124,9 +138,10 @@ export function EditFuehrungsrhythmusTemplateDialog({ isOpen, onClose, template 
     if (!isPending) {
       setApiErrorMessage(null);
       form.reset();
+      setEntryKeys(createEditEintragKeys(template.eintraege.length));
       onClose();
     }
-  }, [isPending, form, onClose]);
+  }, [isPending, form, onClose, template.eintraege.length]);
 
   return (
     <Dialog isOpen={isOpen} onClose={handleClose} size="lg">
@@ -209,15 +224,28 @@ export function EditFuehrungsrhythmusTemplateDialog({ isOpen, onClose, template 
               {(field) => (
                 <div className="space-y-4">
                   {field.state.value.map((_: unknown, index: number) => (
-                    <EditEintragRow key={index} form={form} index={index} isPending={isPending} canRemove={field.state.value.length > 1} onRemove={() => field.removeValue(index)} />
+                    <EditEintragRow
+                      key={entryKeys[index] ?? 'edit-fr-eintrag-fallback'}
+                      form={form}
+                      index={index}
+                      isPending={isPending}
+                      canRemove={field.state.value.length > 1}
+                      onRemove={() => {
+                        field.removeValue(index);
+                        setEntryKeys((prevKeys) => [...prevKeys.slice(0, index), ...prevKeys.slice(index + 1)]);
+                      }}
+                    />
                   ))}
 
                   {/* Erinnerung hinzufuegen Button */}
                   <button
                     type="button"
-                    onClick={() => field.pushValue({ titel: '', intervallMinuten: 30, offsetMinuten: 0 })}
+                    onClick={() => {
+                      field.pushValue({ titel: '', intervallMinuten: 30, offsetMinuten: 0 });
+                      setEntryKeys((prev) => [...prev, createEditEintragKey()]);
+                    }}
                     disabled={isPending}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 px-4 py-2.5 text-gray-500 text-sm transition-colors hover:border-amber-400 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-400 dark:hover:border-amber-500 dark:hover:text-amber-400"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-gray-300 border-dashed px-4 py-2.5 text-gray-500 text-sm transition-colors hover:border-amber-400 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-400 dark:hover:border-amber-500 dark:hover:text-amber-400"
                   >
                     <PiPlus className="h-4 w-4" />
                     Erinnerung hinzufuegen
@@ -261,6 +289,9 @@ function EditEintragRow({
   canRemove: boolean;
   onRemove: () => void;
 }) {
+  const intervallInputId = `edit-fr-eintrag-${index}-intervall`;
+  const offsetInputId = `edit-fr-eintrag-${index}-offset`;
+
   return (
     <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800/50">
       <div className="mb-2 flex items-center justify-between">
@@ -303,7 +334,9 @@ function EditEintragRow({
           <form.Field name={`eintraege[${index}].intervallMinuten`}>
             {(field) => (
               <div className="flex-1">
-                <label className="mb-1 block text-gray-500 text-xs dark:text-gray-400">Intervall (Min)</label>
+                <label htmlFor={intervallInputId} className="mb-1 block text-gray-500 text-xs dark:text-gray-400">
+                  Intervall (Min)
+                </label>
                 <div className="flex items-center gap-1.5">
                   {INTERVALL_PRESETS.map((preset) => (
                     <button
@@ -323,6 +356,7 @@ function EditEintragRow({
                     </button>
                   ))}
                   <Input
+                    id={intervallInputId}
                     type="number"
                     value={field.state.value as number}
                     onChange={(e) => field.handleChange(Number(e.target.value))}
@@ -343,8 +377,11 @@ function EditEintragRow({
           <form.Field name={`eintraege[${index}].offsetMinuten`}>
             {(field) => (
               <div className="w-24">
-                <label className="mb-1 block text-gray-500 text-xs dark:text-gray-400">Offset (Min)</label>
+                <label htmlFor={offsetInputId} className="mb-1 block text-gray-500 text-xs dark:text-gray-400">
+                  Offset (Min)
+                </label>
                 <Input
+                  id={offsetInputId}
                   type="number"
                   value={(field.state.value as number | undefined) ?? 0}
                   onChange={(e) => field.handleChange(Number(e.target.value))}

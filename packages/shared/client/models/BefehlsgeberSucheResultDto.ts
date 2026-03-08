@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -69,8 +68,8 @@ export function instanceOfBefehlsgeberSucheResultDto(value: object): value is Be
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('name' in value) || value['name'] === undefined) return false;
     if (!('label' in value) || value['label'] === undefined) return false;
-    if (!('quelle' in value) || value['quelle'] === undefined) return false;
-    return true;
+    return !(!('quelle' in value) || value['quelle'] === undefined);
+
 }
 
 export function BefehlsgeberSucheResultDtoFromJSON(json: any): BefehlsgeberSucheResultDto {

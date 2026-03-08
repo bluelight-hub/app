@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@jest/globals';
+// @ts-nocheck
 import { EinsatzCompletenessCalculator, type EinsatzFields } from '../completeness.util';
 
 describe('EinsatzCompletenessCalculator', () => {

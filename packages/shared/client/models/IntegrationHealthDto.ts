@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { IntegrationStatusDto } from './IntegrationStatusDto';
-import {
-    IntegrationStatusDtoFromJSON,
-    IntegrationStatusDtoFromJSONTyped,
-    IntegrationStatusDtoToJSON,
-    IntegrationStatusDtoToJSONTyped,
-} from './IntegrationStatusDto';
+import type {IntegrationStatusDto} from './IntegrationStatusDto';
+import {IntegrationStatusDtoFromJSON, IntegrationStatusDtoToJSON,} from './IntegrationStatusDto';
 
 /**
  * 
@@ -39,8 +33,8 @@ export interface IntegrationHealthDto {
  * Check if a given object implements the IntegrationHealthDto interface.
  */
 export function instanceOfIntegrationHealthDto(value: object): value is IntegrationHealthDto {
-    if (!('integrations' in value) || value['integrations'] === undefined) return false;
-    return true;
+    return !(!('integrations' in value) || value['integrations'] === undefined);
+
 }
 
 export function IntegrationHealthDtoFromJSON(json: any): IntegrationHealthDto {

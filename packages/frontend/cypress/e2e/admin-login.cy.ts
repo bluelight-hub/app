@@ -1,3 +1,5 @@
+/// <reference path="../../cypress.d.ts" />
+
 describe('Admin Login', () => {
   beforeEach(() => {
     // Visit the home page

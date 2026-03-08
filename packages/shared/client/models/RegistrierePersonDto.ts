@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -63,8 +62,8 @@ export interface RegistrierePersonDto {
 export function instanceOfRegistrierePersonDto(value: object): value is RegistrierePersonDto {
     if (!('vorname' in value) || value['vorname'] === undefined) return false;
     if (!('nachname' in value) || value['nachname'] === undefined) return false;
-    if (!('funktion' in value) || value['funktion'] === undefined) return false;
-    return true;
+    return !(!('funktion' in value) || value['funktion'] === undefined);
+
 }
 
 export function RegistrierePersonDtoFromJSON(json: any): RegistrierePersonDto {

@@ -6,12 +6,14 @@ Akzeptiert (2026-03-05)
 
 ## Kontext
 
-Bluelight Hub erzwingt ein strukturiertes Commit-Format über den `commit-msg`-Hook. Die erlaubten Emojis waren bisher mehrfach hart kodiert:
+Bluelight Hub erzwingt ein strukturiertes Commit-Format über den `commit-msg`-Hook. Die erlaubten Emojis waren bisher
+mehrfach hart kodiert:
 
 - `.husky/commit-msg`
 - `scripts/commit-helper.sh`
 
-Dadurch entstanden Pflegeaufwand und Drift-Risiken. Gleichzeitig soll der Check streng bleiben und nicht nur lokal, sondern auch in CI durchgesetzt werden.
+Dadurch entstanden Pflegeaufwand und Drift-Risiken. Gleichzeitig soll der Check streng bleiben und nicht nur lokal,
+sondern auch in CI durchgesetzt werden.
 
 Zusätzlich war offen, ob die Release-Logik in `.releaserc.js` angepasst werden muss.
 
@@ -20,24 +22,24 @@ Zusätzlich war offen, ob die Release-Logik in `.releaserc.js` angepasst werden 
 Wir führen eine zentrale, verbindliche Quelle für erlaubte Commit-Emojis ein.
 
 1. **Externe Source of Truth:**
-   - `https://raw.githubusercontent.com/carloscuesta/gitmoji/master/packages/gitmojis/src/gitmojis.json`
+    - `https://raw.githubusercontent.com/carloscuesta/gitmoji/master/packages/gitmojis/src/gitmojis.json`
 2. **Lokale Laufzeitquelle im Repository:**
-   - `scripts/gitmojis.snapshot.json`
+    - `scripts/gitmojis.snapshot.json`
 3. **Zentraler Validator:**
-   - `scripts/gitmoji-commit-validator.mjs`
-   - nutzt ausschließlich den lokalen Snapshot
-   - validiert Format `<emoji>(<scope>): <message>`
-   - behält Scope-Regel `[a-zA-Z0-9-]+`
-   - toleriert Unterschiede beim Variation Selector `\uFE0F` (z. B. `♻` und `♻️`)
-   - erzwingt weiterhin `max 72` Zeichen in der ersten Zeile
+    - `scripts/gitmoji-commit-validator.mjs`
+    - nutzt ausschließlich den lokalen Snapshot
+    - validiert Format `<emoji>(<scope>): <message>`
+    - behält Scope-Regel `[a-zA-Z0-9-]+`
+    - toleriert Unterschiede beim Variation Selector `\uFE0F` (z. B. `♻` und `♻️`)
+    - erzwingt weiterhin `max 72` Zeichen in der ersten Zeile
 4. **Durchsetzungsebenen:**
-   - lokal: `.husky/commit-msg`
-   - serverseitig: CI-Job für Commit-Range-Validierung
+    - lokal: `.husky/commit-msg`
+    - serverseitig: CI-Job für Commit-Range-Validierung
 5. **Automatische Aktualität:**
-   - wöchentlicher GitHub-Workflow erzeugt bei Snapshot-Änderungen automatisch einen PR
+    - wöchentlicher GitHub-Workflow erzeugt bei Snapshot-Änderungen automatisch einen PR
 6. **Release-Konfiguration bleibt unverändert:**
-   - `.releaserc.js` wird **nicht** angepasst
-   - zusätzliche zulässige Emojis erweitern nur die Commit-Validierung, nicht die Version-Bump-Logik
+    - `.releaserc.js` wird **nicht** angepasst
+    - zusätzliche zulässige Emojis erweitern nur die Commit-Validierung, nicht die Version-Bump-Logik
 
 ## Alternativen
 
@@ -86,18 +88,18 @@ Wir führen eine zentrale, verbindliche Quelle für erlaubte Commit-Emojis ein.
 ## Umsetzungsnotizen
 
 - Neue Skripte:
-  - `scripts/sync-gitmojis.mjs`
-  - `scripts/gitmoji-commit-validator.mjs`
-  - `scripts/check-commit-range.mjs`
-  - `scripts/commit-helper.mjs`
+    - `scripts/sync-gitmojis.mjs`
+    - `scripts/gitmoji-commit-validator.mjs`
+    - `scripts/check-commit-range.mjs`
+    - `scripts/commit-helper.mjs`
 - Neue CI-Automation:
-  - `.github/workflows/gitmoji-sync.yml`
+    - `.github/workflows/gitmoji-sync.yml`
 - Anpassungen:
-  - `.husky/commit-msg`
-  - `.github/workflows/ci.yml`
-  - `scripts/commit-helper.sh`
-  - `docs/project-documentation/05-entwicklungshandbuch.md`
-  - `.husky/README.md`
+    - `.husky/commit-msg`
+    - `.github/workflows/ci.yml`
+    - `scripts/commit-helper.sh`
+    - `docs/project-documentation/05-entwicklungshandbuch.md`
+    - `.husky/README.md`
 
 ## Referenzen
 

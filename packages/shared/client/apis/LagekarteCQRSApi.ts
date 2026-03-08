@@ -21,21 +21,15 @@ import type {
   LagekarteCqrsControllerAddPoiVAlpha201Response,
   LagekarteCqrsControllerGetPoisVAlpha200Response,
   UpdatePoiPositionDto,
-} from '../models/index';
+} from '../models';
 import {
-    AddPoiDtoFromJSON,
     AddPoiDtoToJSON,
-    CreateLagekarteDtoFromJSON,
     CreateLagekarteDtoToJSON,
     LagekarteControllerGetLagekarteVAlpha200ResponseFromJSON,
-    LagekarteControllerGetLagekarteVAlpha200ResponseToJSON,
     LagekarteCqrsControllerAddPoiVAlpha201ResponseFromJSON,
-    LagekarteCqrsControllerAddPoiVAlpha201ResponseToJSON,
     LagekarteCqrsControllerGetPoisVAlpha200ResponseFromJSON,
-    LagekarteCqrsControllerGetPoisVAlpha200ResponseToJSON,
-    UpdatePoiPositionDtoFromJSON,
     UpdatePoiPositionDtoToJSON,
-} from '../models/index';
+} from '../models';
 
 export interface LagekarteCqrsControllerAddPoiVAlphaRequest {
     lagekarteId: string;
@@ -97,7 +91,7 @@ export class LagekarteCQRSApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/lagekarte/{lagekarteId}/poi`.replace(`{${"lagekarteId"}}`, encodeURIComponent(String(requestParameters['lagekarteId']))),
+            path: `/api/v-alpha/lagekarte/{lagekarteId}/poi`.replace(`{lagekarteId}`, encodeURIComponent(String(requestParameters['lagekarteId']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -171,7 +165,7 @@ export class LagekarteCQRSApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/lagekarte/einsatz/{einsatzId}`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/lagekarte/einsatz/{einsatzId}`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -210,7 +204,7 @@ export class LagekarteCQRSApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/lagekarte/{lagekarteId}/pois`.replace(`{${"lagekarteId"}}`, encodeURIComponent(String(requestParameters['lagekarteId']))),
+            path: `/api/v-alpha/lagekarte/{lagekarteId}/pois`.replace(`{lagekarteId}`, encodeURIComponent(String(requestParameters['lagekarteId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -252,7 +246,7 @@ export class LagekarteCQRSApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/lagekarte/{lagekarteId}/poi/{poiId}`.replace(`{${"lagekarteId"}}`, encodeURIComponent(String(requestParameters['lagekarteId']))).replace(`{${"poiId"}}`, encodeURIComponent(String(requestParameters['poiId']))),
+            path: `/api/v-alpha/lagekarte/{lagekarteId}/poi/{poiId}`.replace(`{lagekarteId}`, encodeURIComponent(String(requestParameters['lagekarteId']))).replace(`{poiId}`, encodeURIComponent(String(requestParameters['poiId']))),
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
@@ -302,7 +296,7 @@ export class LagekarteCQRSApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/lagekarte/{lagekarteId}/poi/{poiId}`.replace(`{${"lagekarteId"}}`, encodeURIComponent(String(requestParameters['lagekarteId']))).replace(`{${"poiId"}}`, encodeURIComponent(String(requestParameters['poiId']))),
+            path: `/api/v-alpha/lagekarte/{lagekarteId}/poi/{poiId}`.replace(`{lagekarteId}`, encodeURIComponent(String(requestParameters['lagekarteId']))).replace(`{poiId}`, encodeURIComponent(String(requestParameters['poiId']))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,

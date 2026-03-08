@@ -19,10 +19,6 @@ import { isCuid } from '@paralleldrive/cuid2';
 @Injectable()
 export class ParseCuidPipe implements PipeTransform<string, string> {
   transform(value: string): string {
-    if (typeof value !== 'string') {
-      throw new BadRequestException('Validation failed (CUID string expected)');
-    }
-
     if (!isCuid(value)) {
       throw new BadRequestException('Validation failed (invalid CUID format)');
     }

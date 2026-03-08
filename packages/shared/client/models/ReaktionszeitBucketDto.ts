@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -52,8 +51,8 @@ export function instanceOfReaktionszeitBucketDto(value: object): value is Reakti
     if (!('label' in value) || value['label'] === undefined) return false;
     if (!('minSeconds' in value) || value['minSeconds'] === undefined) return false;
     if (!('maxSeconds' in value) || value['maxSeconds'] === undefined) return false;
-    if (!('count' in value) || value['count'] === undefined) return false;
-    return true;
+    return !(!('count' in value) || value['count'] === undefined);
+
 }
 
 export function ReaktionszeitBucketDtoFromJSON(json: any): ReaktionszeitBucketDto {

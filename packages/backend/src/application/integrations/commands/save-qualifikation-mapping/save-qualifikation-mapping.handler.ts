@@ -15,7 +15,7 @@ import { INTEGRATION_ERROR_CODES, IntegrationError, type IQualifikationMappingRe
 import type { IQualifikationRepository } from '@domain/kraefte/repositories/i-qualifikation.repository';
 import { INTEGRATIONS, DI_TOKENS, LOGGER } from '@infrastructure/di-tokens';
 import type { ILogger } from '@domain/ports/i-logger.port';
-import type { SaveQualifikationMappingCommand } from './save-qualifikation-mapping.command';
+import type { SaveQualifikationMappingCommand } from '@application/integrations';
 import { QualifikationId } from '@domain/kraefte/value-objects/qualifikation-id';
 
 /**

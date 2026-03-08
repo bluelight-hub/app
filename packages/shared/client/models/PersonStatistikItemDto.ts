@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -66,8 +65,8 @@ export function instanceOfPersonStatistikItemDto(value: object): value is Person
     if (!('zugewiesen' in value) || value['zugewiesen'] === undefined) return false;
     if (!('acknowledged' in value) || value['acknowledged'] === undefined) return false;
     if (!('eskalationen' in value) || value['eskalationen'] === undefined) return false;
-    if (!('avgReaktionszeitSeconds' in value) || value['avgReaktionszeitSeconds'] === undefined) return false;
-    return true;
+    return !(!('avgReaktionszeitSeconds' in value) || value['avgReaktionszeitSeconds'] === undefined);
+
 }
 
 export function PersonStatistikItemDtoFromJSON(json: any): PersonStatistikItemDto {

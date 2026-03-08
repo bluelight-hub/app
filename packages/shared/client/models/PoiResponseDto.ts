@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -125,8 +124,8 @@ export function instanceOfPoiResponseDto(value: object): value is PoiResponseDto
     if (!('latitude' in value) || value['latitude'] === undefined) return false;
     if (!('longitude' in value) || value['longitude'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
-    if (!('updatedAt' in value) || value['updatedAt'] === undefined) return false;
-    return true;
+    return !(!('updatedAt' in value) || value['updatedAt'] === undefined);
+
 }
 
 export function PoiResponseDtoFromJSON(json: any): PoiResponseDto {

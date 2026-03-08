@@ -6,13 +6,13 @@ import { LOGGER } from '@infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 
 // Command Handlers
-import { CreateRollenDefinitionHandler } from './commands/create-rollen-definition/create-rollen-definition.handler';
-import { UpdateRollenDefinitionHandler } from './commands/update-rollen-definition/update-rollen-definition.handler';
-import { DeactivateRollenDefinitionHandler } from './commands/deactivate-rollen-definition/deactivate-rollen-definition.handler';
+import { CreateRollenDefinitionHandler } from '@application/kraefte/rollen/commands';
+import { UpdateRollenDefinitionHandler } from '@application/kraefte/rollen/commands';
+import { DeactivateRollenDefinitionHandler } from '@application/kraefte/rollen/commands';
 
 // Query Handlers
-import { GetAllRollenDefinitionenQueryHandler } from './queries/get-all-rollen-definitionen/get-all-rollen-definitionen.handler';
-import { GetRollenDefinitionByIdQueryHandler } from './queries/get-rollen-definition-by-id/get-rollen-definition-by-id.handler';
+import { GetAllRollenDefinitionenQueryHandler } from '@application/kraefte/rollen/queries';
+import { GetRollenDefinitionByIdQueryHandler } from '@application/kraefte/rollen/queries';
 
 /**
  * Application Module für Rollen-Definitionen-Management.

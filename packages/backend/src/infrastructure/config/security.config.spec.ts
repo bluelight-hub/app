@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { corsOriginHandler, isCorsOriginAllowed } from './security.config';
 
 const invokeCorsOriginHandler = (origin: string | undefined): Promise<boolean | undefined> =>

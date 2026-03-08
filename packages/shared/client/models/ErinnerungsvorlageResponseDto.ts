@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -73,8 +72,8 @@ export function instanceOfErinnerungsvorlageResponseDto(value: object): value is
     if (!('beschreibung' in value) || value['beschreibung'] === undefined) return false;
     if (!('createdBy' in value) || value['createdBy'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
-    if (!('updatedAt' in value) || value['updatedAt'] === undefined) return false;
-    return true;
+    return !(!('updatedAt' in value) || value['updatedAt'] === undefined);
+
 }
 
 export function ErinnerungsvorlageResponseDtoFromJSON(json: any): ErinnerungsvorlageResponseDto {

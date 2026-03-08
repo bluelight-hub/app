@@ -92,7 +92,7 @@ export const DefaultConfig = new Configuration();
 export class BaseAPI {
 
     private static readonly jsonRegex = new RegExp('^(:?application\/json|[^;/ \t]+\/[^;/ \t]+[+]json)[ \t]*(:?;.*)?$', 'i');
-    private middleware: Middleware[];
+    private readonly middleware: Middleware[];
 
     constructor(protected configuration = DefaultConfig) {
         this.middleware = configuration.middleware;
@@ -247,7 +247,7 @@ export class BaseAPI {
         next.middleware = this.middleware.slice();
         return next;
     }
-};
+}
 
 function isBlob(value: any): value is Blob {
     return typeof Blob !== 'undefined' && value instanceof Blob;

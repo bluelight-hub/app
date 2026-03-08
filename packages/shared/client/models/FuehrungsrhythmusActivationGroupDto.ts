@@ -12,13 +12,10 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { FuehrungsrhythmusReminderTypeStatsDto } from './FuehrungsrhythmusReminderTypeStatsDto';
+import type {FuehrungsrhythmusReminderTypeStatsDto} from './FuehrungsrhythmusReminderTypeStatsDto';
 import {
     FuehrungsrhythmusReminderTypeStatsDtoFromJSON,
-    FuehrungsrhythmusReminderTypeStatsDtoFromJSONTyped,
     FuehrungsrhythmusReminderTypeStatsDtoToJSON,
-    FuehrungsrhythmusReminderTypeStatsDtoToJSONTyped,
 } from './FuehrungsrhythmusReminderTypeStatsDto';
 
 /**
@@ -81,8 +78,8 @@ export function instanceOfFuehrungsrhythmusActivationGroupDto(value: object): va
     if (!('completedParents' in value) || value['completedParents'] === undefined) return false;
     if (!('completionRate' in value) || value['completionRate'] === undefined) return false;
     if (!('escalatedCount' in value) || value['escalatedCount'] === undefined) return false;
-    if (!('reminderTypeStats' in value) || value['reminderTypeStats'] === undefined) return false;
-    return true;
+    return !(!('reminderTypeStats' in value) || value['reminderTypeStats'] === undefined);
+
 }
 
 export function FuehrungsrhythmusActivationGroupDtoFromJSON(json: any): FuehrungsrhythmusActivationGroupDto {

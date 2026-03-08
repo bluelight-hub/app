@@ -3,7 +3,8 @@ name: 'testarch-automate'
 description: 'Expand test automation coverage for codebase. Use when the user says "lets expand test coverage" or "I want to automate tests"'
 ---
 
-IT IS CRITICAL THAT YOU FOLLOW THESE STEPS - while staying in character as the current agent persona you may have loaded:
+IT IS CRITICAL THAT YOU FOLLOW THESE STEPS - while staying in character as the current agent persona you may have
+loaded:
 
 <steps CRITICAL="TRUE">
 1. Always LOAD the FULL {project-root}/_bmad/core/tasks/workflow.xml

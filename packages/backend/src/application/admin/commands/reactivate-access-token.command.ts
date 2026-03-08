@@ -1,5 +1,5 @@
 import { Result } from '@domain/common/result';
-import { ACCESS_TOKEN_ERROR_CODES } from '../errors/access-token-error.codes';
+import { ACCESS_TOKEN_ERROR_CODES } from '@application/admin/errors';
 
 /**
  * Props fuer die ReactivateAccessTokenCommand Erstellung.

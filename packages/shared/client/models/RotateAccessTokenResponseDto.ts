@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -59,8 +58,8 @@ export function instanceOfRotateAccessTokenResponseDto(value: object): value is 
     if (!('name' in value) || value['name'] === undefined) return false;
     if (!('prefix' in value) || value['prefix'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
-    if (!('rotatedFromId' in value) || value['rotatedFromId'] === undefined) return false;
-    return true;
+    return !(!('rotatedFromId' in value) || value['rotatedFromId'] === undefined);
+
 }
 
 export function RotateAccessTokenResponseDtoFromJSON(json: any): RotateAccessTokenResponseDto {

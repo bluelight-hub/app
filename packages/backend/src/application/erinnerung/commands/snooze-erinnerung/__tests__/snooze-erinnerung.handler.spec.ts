@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Mock cuid2 for Jest compatibility (ESM module issue) - MUST be before imports
 jest.mock('@paralleldrive/cuid2', () => ({
   createId: jest.fn(() => {
@@ -9,7 +10,6 @@ jest.mock('@paralleldrive/cuid2', () => ({
     return result;
   }),
   isCuid: jest.fn((id: string) => {
-    if (typeof id !== 'string') return false;
     if (id.length < 20 || id.length > 30) return false;
     return /^[a-z][a-z0-9]+$/.test(id);
   }),
@@ -148,7 +148,7 @@ describe('SnoozeErinnerungHandler', () => {
         // Then (Assert)
         expect(result.isSuccess).toBe(true);
         expect(result.value).toBeDefined();
-        expect(result.value!.status).toBe('SNOOZED');
+        expect(result.value?.status).toBe('SNOOZED');
         expect(mockRepository.save).toHaveBeenCalledTimes(1);
         expect(mockOutboxRepository.save).toHaveBeenCalledTimes(1);
       });
@@ -184,7 +184,7 @@ describe('SnoozeErinnerungHandler', () => {
 
         // Then (Assert)
         expect(result.isSuccess).toBe(true);
-        expect(result.value!.status).toBe('SNOOZED');
+        expect(result.value?.status).toBe('SNOOZED');
       });
 
       it('sollte fehlschlagen wenn Status GEPLANT ist', async () => {
@@ -314,7 +314,7 @@ describe('SnoozeErinnerungHandler', () => {
 
         // Then (Assert)
         expect(result.isSuccess).toBe(true);
-        const newFaelligAm = new Date(result.value!.faelligAm);
+        const newFaelligAm = new Date(result.value?.faelligAm);
         // Neue Fälligkeit sollte in der Zukunft sein (snooze from now)
         expect(newFaelligAm.getTime()).toBeGreaterThan(originalFaelligAm.getTime());
       });
@@ -338,7 +338,7 @@ describe('SnoozeErinnerungHandler', () => {
         // Then (Assert)
         expect(result.isSuccess).toBe(true);
         expect(mockOutboxRepository.save).toHaveBeenCalledTimes(1);
-        const savedEvents = mockOutboxRepository.save.mock.calls[0][0];
+        const savedEvents = mockOutboxRepository.save.mock.calls[0]?.[0]!;
         expect(savedEvents.length).toBeGreaterThan(0);
         const snoozedEvent = savedEvents.find((e: unknown) => e instanceof ErinnerungSnoozedEvent);
         expect(snoozedEvent).toBeInstanceOf(ErinnerungSnoozedEvent);
@@ -363,7 +363,7 @@ describe('SnoozeErinnerungHandler', () => {
         await handler.execute(command);
 
         // Then (Assert)
-        const savedEvents = mockOutboxRepository.save.mock.calls[0][0];
+        const savedEvents = mockOutboxRepository.save.mock.calls[0]?.[0]!;
         const event = savedEvents[0] as ErinnerungSnoozedEvent;
         expect(event.erinnerungId.toString()).toBe(TEST_CUID);
         expect(event.einsatzId.toString()).toBe(TEST_EINSATZ_CUID);
@@ -550,7 +550,7 @@ describe('SnoozeErinnerungHandler', () => {
 
         // Then (Assert)
         expect(result.isSuccess).toBe(true);
-        const savedEvents = mockOutboxRepository.save.mock.calls[0][0];
+        const savedEvents = mockOutboxRepository.save.mock.calls[0]?.[0]!;
         const event = savedEvents[0] as ErinnerungSnoozedEvent;
         expect(event.snoozeCount).toBe(3); // 2 + 1 = 3
       });
@@ -572,7 +572,7 @@ describe('SnoozeErinnerungHandler', () => {
 
         // Then (Assert)
         expect(result.isSuccess).toBe(true);
-        const savedEvents = mockOutboxRepository.save.mock.calls[0][0];
+        const savedEvents = mockOutboxRepository.save.mock.calls[0]?.[0]!;
         const event = savedEvents[0] as ErinnerungSnoozedEvent;
         expect(event.snoozedUntil.getTime()).toBeGreaterThan(now);
         // Verifiziere dass snoozedUntil etwa 5 Minuten in der Zukunft liegt

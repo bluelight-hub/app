@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -63,8 +62,8 @@ export interface CreateStammFahrzeugDto {
 export function instanceOfCreateStammFahrzeugDto(value: object): value is CreateStammFahrzeugDto {
     if (!('rufname' in value) || value['rufname'] === undefined) return false;
     if (!('funkrufname' in value) || value['funkrufname'] === undefined) return false;
-    if (!('fahrzeugtypId' in value) || value['fahrzeugtypId'] === undefined) return false;
-    return true;
+    return !(!('fahrzeugtypId' in value) || value['fahrzeugtypId'] === undefined);
+
 }
 
 export function CreateStammFahrzeugDtoFromJSON(json: any): CreateStammFahrzeugDto {

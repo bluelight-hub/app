@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { BefehlHistorieEventDto } from './BefehlHistorieEventDto';
-import {
-    BefehlHistorieEventDtoFromJSON,
-    BefehlHistorieEventDtoFromJSONTyped,
-    BefehlHistorieEventDtoToJSON,
-    BefehlHistorieEventDtoToJSONTyped,
-} from './BefehlHistorieEventDto';
+import type {BefehlHistorieEventDto} from './BefehlHistorieEventDto';
+import {BefehlHistorieEventDtoFromJSON, BefehlHistorieEventDtoToJSON,} from './BefehlHistorieEventDto';
 
 /**
  * 
@@ -60,8 +54,8 @@ export function instanceOfBefehlHistorieTimelineDto(value: object): value is Bef
     if (!('befehlId' in value) || value['befehlId'] === undefined) return false;
     if (!('befehlNummer' in value) || value['befehlNummer'] === undefined) return false;
     if (!('aktuellerStatus' in value) || value['aktuellerStatus'] === undefined) return false;
-    if (!('events' in value) || value['events'] === undefined) return false;
-    return true;
+    return !(!('events' in value) || value['events'] === undefined);
+
 }
 
 export function BefehlHistorieTimelineDtoFromJSON(json: any): BefehlHistorieTimelineDto {

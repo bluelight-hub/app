@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { CreateBefehlEmpfaengerDto } from './CreateBefehlEmpfaengerDto';
-import {
-    CreateBefehlEmpfaengerDtoFromJSON,
-    CreateBefehlEmpfaengerDtoFromJSONTyped,
-    CreateBefehlEmpfaengerDtoToJSON,
-    CreateBefehlEmpfaengerDtoToJSONTyped,
-} from './CreateBefehlEmpfaengerDto';
+import type {CreateBefehlEmpfaengerDto} from './CreateBefehlEmpfaengerDto';
+import {CreateBefehlEmpfaengerDtoFromJSON, CreateBefehlEmpfaengerDtoToJSON,} from './CreateBefehlEmpfaengerDto';
 
 /**
  * 
@@ -96,8 +90,8 @@ export function instanceOfKorrigiereBefehlDto(value: object): value is Korrigier
     if (!('empfaenger' in value) || value['empfaenger'] === undefined) return false;
     if (!('befehlsgeber' in value) || value['befehlsgeber'] === undefined) return false;
     if (!('erstellerId' in value) || value['erstellerId'] === undefined) return false;
-    if (!('auftrag' in value) || value['auftrag'] === undefined) return false;
-    return true;
+    return !(!('auftrag' in value) || value['auftrag'] === undefined);
+
 }
 
 export function KorrigiereBefehlDtoFromJSON(json: any): KorrigiereBefehlDto {

@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -31,8 +30,8 @@ export interface PublicUserDto {
  * Check if a given object implements the PublicUserDto interface.
  */
 export function instanceOfPublicUserDto(value: object): value is PublicUserDto {
-    if (!('username' in value) || value['username'] === undefined) return false;
-    return true;
+    return !(!('username' in value) || value['username'] === undefined);
+
 }
 
 export function PublicUserDtoFromJSON(json: any): PublicUserDto {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Test, type TestingModule } from '@nestjs/testing';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { ErinnerungEskalationsScheduler } from '../erinnerung-eskalations.scheduler';

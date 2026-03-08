@@ -46,7 +46,7 @@ export function KritischeBefehleCounter({ befehle, onClick, className }: Kritisc
       type="button"
       onClick={onClick}
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-colors',
+        'inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-semibold text-xs transition-colors',
         'bg-red-100 text-red-700 hover:bg-red-200',
         'dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2',

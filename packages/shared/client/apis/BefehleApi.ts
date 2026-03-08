@@ -25,29 +25,19 @@ import type {
   CreateBefehlDto,
   KorrigiereBefehlDto,
   QuittierenBefehlDto,
-} from '../models/index';
+} from '../models';
 import {
-    AddBefehlKommentarDtoFromJSON,
     AddBefehlKommentarDtoToJSON,
-    AendereEmpfaengerStatusDtoFromJSON,
     AendereEmpfaengerStatusDtoToJSON,
     BefehlControllerBefehlsgeberSucheVAlpha200ResponseFromJSON,
-    BefehlControllerBefehlsgeberSucheVAlpha200ResponseToJSON,
     BefehlControllerCreateVAlpha201ResponseFromJSON,
-    BefehlControllerCreateVAlpha201ResponseToJSON,
     BefehlControllerEmpfaengerSucheVAlpha200ResponseFromJSON,
-    BefehlControllerEmpfaengerSucheVAlpha200ResponseToJSON,
     BefehlControllerFindByEinsatzVAlpha200ResponseFromJSON,
-    BefehlControllerFindByEinsatzVAlpha200ResponseToJSON,
     BefehlControllerGetHistorieVAlpha200ResponseFromJSON,
-    BefehlControllerGetHistorieVAlpha200ResponseToJSON,
-    CreateBefehlDtoFromJSON,
     CreateBefehlDtoToJSON,
-    KorrigiereBefehlDtoFromJSON,
     KorrigiereBefehlDtoToJSON,
-    QuittierenBefehlDtoFromJSON,
     QuittierenBefehlDtoToJSON,
-} from '../models/index';
+} from '../models';
 
 export interface BefehlControllerAddKommentarV1Request {
     id: string;
@@ -192,7 +182,7 @@ export class BefehleApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-1/befehle/{id}/kommentare`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-1/befehle/{id}/kommentare`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -237,7 +227,7 @@ export class BefehleApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/befehle/{id}/kommentare`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/befehle/{id}/kommentare`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -289,7 +279,7 @@ export class BefehleApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-1/befehle/{id}/empfaenger/{empfaengerEntityId}/status`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))).replace(`{${"empfaengerEntityId"}}`, encodeURIComponent(String(requestParameters['empfaengerEntityId']))),
+            path: `/api/v-1/befehle/{id}/empfaenger/{empfaengerEntityId}/status`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))).replace(`{empfaengerEntityId}`, encodeURIComponent(String(requestParameters['empfaengerEntityId']))),
             method: 'PATCH',
             headers: headerParameters,
             query: queryParameters,
@@ -341,7 +331,7 @@ export class BefehleApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/befehle/{id}/empfaenger/{empfaengerEntityId}/status`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))).replace(`{${"empfaengerEntityId"}}`, encodeURIComponent(String(requestParameters['empfaengerEntityId']))),
+            path: `/api/v-alpha/befehle/{id}/empfaenger/{empfaengerEntityId}/status`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))).replace(`{empfaengerEntityId}`, encodeURIComponent(String(requestParameters['empfaengerEntityId']))),
             method: 'PATCH',
             headers: headerParameters,
             query: queryParameters,
@@ -879,7 +869,7 @@ export class BefehleApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-1/befehle/{id}/historie`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-1/befehle/{id}/historie`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -914,7 +904,7 @@ export class BefehleApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/befehle/{id}/historie`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/befehle/{id}/historie`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -958,7 +948,7 @@ export class BefehleApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-1/befehle/{id}/korrigieren`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-1/befehle/{id}/korrigieren`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -1003,7 +993,7 @@ export class BefehleApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/befehle/{id}/korrigieren`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/befehle/{id}/korrigieren`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -1048,7 +1038,7 @@ export class BefehleApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-1/befehle/{id}/quittieren`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-1/befehle/{id}/quittieren`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -1093,7 +1083,7 @@ export class BefehleApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/befehle/{id}/quittieren`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/befehle/{id}/quittieren`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,

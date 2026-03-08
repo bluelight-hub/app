@@ -3,7 +3,8 @@ name: 'testarch-framework'
 description: 'Initialize test framework with Playwright or Cypress. Use when the user says "lets setup test framework" or "I want to initialize testing framework"'
 ---
 
-IT IS CRITICAL THAT YOU FOLLOW THESE STEPS - while staying in character as the current agent persona you may have loaded:
+IT IS CRITICAL THAT YOU FOLLOW THESE STEPS - while staying in character as the current agent persona you may have
+loaded:
 
 <steps CRITICAL="TRUE">
 1. Always LOAD the FULL {project-root}/_bmad/core/tasks/workflow.xml

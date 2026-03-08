@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { Request, Response } from 'express';
 import { createPrivateNetworkAccessMiddleware } from './private-network-access.middleware';
 

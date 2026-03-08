@@ -13,7 +13,7 @@ import { EINSATZ_FAHRZEUG_ERROR_CODES, EinsatzFahrzeugError } from '@domain/krae
 import { KRAEFTE_REPOSITORIES, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { EinsatzFahrzeugDto } from '../../dto';
-import { EinsatzFahrzeugQueryMapper } from '../../queries/einsatz-fahrzeug-query.mapper';
+import { EinsatzFahrzeugQueryMapper } from '@application/kraefte/einsatz-fahrzeuge';
 import type { UpdateFmsStatusCommand } from './update-fms-status.command';
 
 /**

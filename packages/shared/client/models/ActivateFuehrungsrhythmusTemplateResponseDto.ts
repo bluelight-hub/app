@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { ErinnerungResponseDto } from './ErinnerungResponseDto';
-import {
-    ErinnerungResponseDtoFromJSON,
-    ErinnerungResponseDtoFromJSONTyped,
-    ErinnerungResponseDtoToJSON,
-    ErinnerungResponseDtoToJSONTyped,
-} from './ErinnerungResponseDto';
+import type {ErinnerungResponseDto} from './ErinnerungResponseDto';
+import {ErinnerungResponseDtoFromJSON, ErinnerungResponseDtoToJSON,} from './ErinnerungResponseDto';
 
 /**
  * 
@@ -53,8 +47,8 @@ export interface ActivateFuehrungsrhythmusTemplateResponseDto {
 export function instanceOfActivateFuehrungsrhythmusTemplateResponseDto(value: object): value is ActivateFuehrungsrhythmusTemplateResponseDto {
     if (!('templateId' in value) || value['templateId'] === undefined) return false;
     if (!('templateName' in value) || value['templateName'] === undefined) return false;
-    if (!('erstellteErinnerungen' in value) || value['erstellteErinnerungen'] === undefined) return false;
-    return true;
+    return !(!('erstellteErinnerungen' in value) || value['erstellteErinnerungen'] === undefined);
+
 }
 
 export function ActivateFuehrungsrhythmusTemplateResponseDtoFromJSON(json: any): ActivateFuehrungsrhythmusTemplateResponseDto {

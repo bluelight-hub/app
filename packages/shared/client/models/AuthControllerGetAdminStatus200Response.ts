@@ -12,20 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { AdminStatusDto } from './AdminStatusDto';
-import {
-    AdminStatusDtoFromJSON,
-    AdminStatusDtoFromJSONTyped,
-    AdminStatusDtoToJSON,
-    AdminStatusDtoToJSONTyped,
-} from './AdminStatusDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {AdminStatusDto} from './AdminStatusDto';
+import {AdminStatusDtoFromJSON, AdminStatusDtoToJSON,} from './AdminStatusDto';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
 
 /**
@@ -53,8 +47,8 @@ export interface AuthControllerGetAdminStatus200Response {
  */
 export function instanceOfAuthControllerGetAdminStatus200Response(value: object): value is AuthControllerGetAdminStatus200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function AuthControllerGetAdminStatus200ResponseFromJSON(json: any): AuthControllerGetAdminStatus200Response {

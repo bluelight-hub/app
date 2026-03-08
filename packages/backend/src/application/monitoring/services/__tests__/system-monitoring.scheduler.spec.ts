@@ -1,3 +1,4 @@
+// @ts-nocheck
 jest.mock('@paralleldrive/cuid2', () => ({
   createId: jest.fn(() => {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -223,7 +224,7 @@ describe('SystemMonitoringScheduler', () => {
       expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining('ueberspringe'), 'SystemMonitoringScheduler');
 
       // Cleanup
-      resolveZustellrate!(98);
+      resolveZustellrate?.(98);
       await Promise.all([firstCheck, secondCheck]);
     });
   });

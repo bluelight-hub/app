@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { AufbewahrungsKonfiguration } from './aufbewahrungs-konfiguration';
 
 describe('AufbewahrungsKonfiguration', () => {

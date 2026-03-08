@@ -1,4 +1,3 @@
-// biome-ignore lint/style/noRestrictedImports: Bootstrap-Funktion laeuft vor DI-Container, Logger direkt verwenden
 import { Logger } from '@nestjs/common';
 import { parseMasterSecretKey } from '@/infrastructure/security/master-key-crypto';
 

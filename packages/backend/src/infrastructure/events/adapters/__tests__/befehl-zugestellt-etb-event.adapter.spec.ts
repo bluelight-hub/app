@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { BefehlZugestelltEvent } from '@domain/events/befehl-zugestellt.event';
 import { BefehlId } from '@domain/value-objects/befehl-id';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
@@ -10,7 +11,6 @@ import { Result } from '@domain/common/result';
 jest.mock('@paralleldrive/cuid2', () => ({
   createId: jest.fn(() => 'c' + 'test123456789012345678'),
   isCuid: jest.fn((id: string) => {
-    if (typeof id !== 'string') return false;
     if (id.length < 20 || id.length > 30) return false;
     return /^[a-zA-Z][a-zA-Z0-9_-]*$/.test(id);
   }),

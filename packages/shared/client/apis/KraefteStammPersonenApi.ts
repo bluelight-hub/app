@@ -16,11 +16,11 @@
 import * as runtime from '../runtime';
 import type {
   AdminStammPersonenControllerFindAllVAlpha200Response,
-} from '../models/index';
+} from '../models';
 import {
     AdminStammPersonenControllerFindAllVAlpha200ResponseFromJSON,
-    AdminStammPersonenControllerFindAllVAlpha200ResponseToJSON,
-} from '../models/index';
+
+} from '../models';
 
 export interface StammPersonenControllerFindAllVAlphaRequest {
     includeArchived?: boolean;

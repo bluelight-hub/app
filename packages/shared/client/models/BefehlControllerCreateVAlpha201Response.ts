@@ -12,20 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { BefehlDto } from './BefehlDto';
-import {
-    BefehlDtoFromJSON,
-    BefehlDtoFromJSONTyped,
-    BefehlDtoToJSON,
-    BefehlDtoToJSONTyped,
-} from './BefehlDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {BefehlDto} from './BefehlDto';
+import {BefehlDtoFromJSON, BefehlDtoToJSON,} from './BefehlDto';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
 
 /**
@@ -53,8 +47,8 @@ export interface BefehlControllerCreateVAlpha201Response {
  */
 export function instanceOfBefehlControllerCreateVAlpha201Response(value: object): value is BefehlControllerCreateVAlpha201Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function BefehlControllerCreateVAlpha201ResponseFromJSON(json: any): BefehlControllerCreateVAlpha201Response {

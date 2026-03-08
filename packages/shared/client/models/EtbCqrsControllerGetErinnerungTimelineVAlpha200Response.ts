@@ -12,20 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { ErinnerungTimelineDto } from './ErinnerungTimelineDto';
-import {
-    ErinnerungTimelineDtoFromJSON,
-    ErinnerungTimelineDtoFromJSONTyped,
-    ErinnerungTimelineDtoToJSON,
-    ErinnerungTimelineDtoToJSONTyped,
-} from './ErinnerungTimelineDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {ErinnerungTimelineDto} from './ErinnerungTimelineDto';
+import {ErinnerungTimelineDtoFromJSON, ErinnerungTimelineDtoToJSON,} from './ErinnerungTimelineDto';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
 
 /**
@@ -53,8 +47,8 @@ export interface EtbCqrsControllerGetErinnerungTimelineVAlpha200Response {
  */
 export function instanceOfEtbCqrsControllerGetErinnerungTimelineVAlpha200Response(value: object): value is EtbCqrsControllerGetErinnerungTimelineVAlpha200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function EtbCqrsControllerGetErinnerungTimelineVAlpha200ResponseFromJSON(json: any): EtbCqrsControllerGetErinnerungTimelineVAlpha200Response {

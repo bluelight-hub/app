@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { EinsatzVergleichItemDto } from './EinsatzVergleichItemDto';
-import {
-    EinsatzVergleichItemDtoFromJSON,
-    EinsatzVergleichItemDtoFromJSONTyped,
-    EinsatzVergleichItemDtoToJSON,
-    EinsatzVergleichItemDtoToJSONTyped,
-} from './EinsatzVergleichItemDto';
+import type {EinsatzVergleichItemDto} from './EinsatzVergleichItemDto';
+import {EinsatzVergleichItemDtoFromJSON, EinsatzVergleichItemDtoToJSON,} from './EinsatzVergleichItemDto';
 
 /**
  * 
@@ -39,8 +33,8 @@ export interface EinsatzVergleichDto {
  * Check if a given object implements the EinsatzVergleichDto interface.
  */
 export function instanceOfEinsatzVergleichDto(value: object): value is EinsatzVergleichDto {
-    if (!('items' in value) || value['items'] === undefined) return false;
-    return true;
+    return !(!('items' in value) || value['items'] === undefined);
+
 }
 
 export function EinsatzVergleichDtoFromJSON(json: any): EinsatzVergleichDto {

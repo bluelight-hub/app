@@ -15,8 +15,10 @@ export class Result<T> {
    * Erstellt ein erfolgreiches Result mit einem Wert.
    * @param value - Der Erfolgs-Wert
    */
-  static ok<T>(value: T): Result<T> {
-    return new Result<T>(true, value);
+  static ok(): Result<void>;
+  static ok<T>(value: T): Result<T>;
+  static ok<T>(value?: T): Result<T | undefined> {
+    return new Result<T | undefined>(true, value);
   }
 
   /**

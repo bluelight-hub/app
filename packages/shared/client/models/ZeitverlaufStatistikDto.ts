@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { ZeitverlaufBucketDto } from './ZeitverlaufBucketDto';
-import {
-    ZeitverlaufBucketDtoFromJSON,
-    ZeitverlaufBucketDtoFromJSONTyped,
-    ZeitverlaufBucketDtoToJSON,
-    ZeitverlaufBucketDtoToJSONTyped,
-} from './ZeitverlaufBucketDto';
+import type {ZeitverlaufBucketDto} from './ZeitverlaufBucketDto';
+import {ZeitverlaufBucketDtoFromJSON, ZeitverlaufBucketDtoToJSON,} from './ZeitverlaufBucketDto';
 
 /**
  * 
@@ -46,8 +40,8 @@ export interface ZeitverlaufStatistikDto {
  */
 export function instanceOfZeitverlaufStatistikDto(value: object): value is ZeitverlaufStatistikDto {
     if (!('intervalMinutes' in value) || value['intervalMinutes'] === undefined) return false;
-    if (!('buckets' in value) || value['buckets'] === undefined) return false;
-    return true;
+    return !(!('buckets' in value) || value['buckets'] === undefined);
+
 }
 
 export function ZeitverlaufStatistikDtoFromJSON(json: any): ZeitverlaufStatistikDto {

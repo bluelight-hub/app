@@ -29,12 +29,14 @@ Run:
 Review all changed and untracked files for:
 
 1. Gitignore candidates:
+
 - `.env` files, credentials, API keys, certificates
 - Build artifacts, `node_modules`, `dist/`, coverage outputs
 - IDE/OS files (`.idea/`, `.vscode/`, `.DS_Store`)
 - Temporary/debug files and large binaries
 
-2. Accidental changes:
+1. Accidental changes:
+
 - Lockfile changes without matching dependency changes
 - Unrelated formatting-only changes
 - Debug leftovers (`console.log`, `debugger`)
@@ -51,13 +53,13 @@ If clean, proceed silently.
 BASE_BRANCH="$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')"
 ```
 
-2. If empty, fallback to `alpha`:
+1. If empty, fallback to `alpha`:
 
 ```bash
 [ -n "$BASE_BRANCH" ] || BASE_BRANCH="alpha"
 ```
 
-3. Validate base exists locally or on origin:
+1. Validate base exists locally or on origin:
 
 ```bash
 if ! git show-ref --verify --quiet "refs/heads/$BASE_BRANCH" \
@@ -119,10 +121,11 @@ git push -u origin "$(git branch --show-current)"
 ### 7) Create Pull Request
 
 1. Analyze branch scope against base:
+
 - `git log --oneline "${BASE_BRANCH}..HEAD"`
 - `git diff "${BASE_BRANCH}...HEAD"`
 
-2. Create PR:
+1. Create PR:
 
 ```bash
 gh pr create --base "$BASE_BRANCH" --title "<emoji>(<context>): <concise title>" --body "$(cat <<'EOF'

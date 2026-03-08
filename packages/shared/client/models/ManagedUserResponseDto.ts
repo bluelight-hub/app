@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -84,8 +83,8 @@ export function instanceOfManagedUserResponseDto(value: object): value is Manage
     if (!('role' in value) || value['role'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
     if (!('updatedAt' in value) || value['updatedAt'] === undefined) return false;
-    if (!('isLocked' in value) || value['isLocked'] === undefined) return false;
-    return true;
+    return !(!('isLocked' in value) || value['isLocked'] === undefined);
+
 }
 
 export function ManagedUserResponseDtoFromJSON(json: any): ManagedUserResponseDto {

@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { BatchSaveMappingItemDto } from './BatchSaveMappingItemDto';
-import {
-    BatchSaveMappingItemDtoFromJSON,
-    BatchSaveMappingItemDtoFromJSONTyped,
-    BatchSaveMappingItemDtoToJSON,
-    BatchSaveMappingItemDtoToJSONTyped,
-} from './BatchSaveMappingItemDto';
+import type {BatchSaveMappingItemDto} from './BatchSaveMappingItemDto';
+import {BatchSaveMappingItemDtoFromJSON, BatchSaveMappingItemDtoToJSON,} from './BatchSaveMappingItemDto';
 
 /**
  * 
@@ -39,8 +33,8 @@ export interface BatchSaveQualifikationMappingsRequestDto {
  * Check if a given object implements the BatchSaveQualifikationMappingsRequestDto interface.
  */
 export function instanceOfBatchSaveQualifikationMappingsRequestDto(value: object): value is BatchSaveQualifikationMappingsRequestDto {
-    if (!('mappings' in value) || value['mappings'] === undefined) return false;
-    return true;
+    return !(!('mappings' in value) || value['mappings'] === undefined);
+
 }
 
 export function BatchSaveQualifikationMappingsRequestDtoFromJSON(json: any): BatchSaveQualifikationMappingsRequestDto {

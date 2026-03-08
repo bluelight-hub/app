@@ -279,7 +279,7 @@ function VorschauTabelle() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
-                <thead className="border-b border-gray-200 text-gray-500 text-xs uppercase dark:border-gray-700 dark:text-gray-400">
+                <thead className="border-gray-200 border-b text-gray-500 text-xs uppercase dark:border-gray-700 dark:text-gray-400">
                   <tr>
                     <th className="px-4 py-3">Einsatz-Nr.</th>
                     <th className="px-4 py-3">Archiviert am</th>
@@ -336,50 +336,47 @@ function ComplianceReportsTabelle() {
 
       {error && <Alert status="error" title="Fehler" description="Die Compliance-Reports konnten nicht geladen werden." icon={<PiWarning />} />}
 
-      {reports && (
-        <>
-          {reports.length === 0 ? (
-            <div className="py-6 text-center">
-              <PiShieldCheck className="mx-auto mb-2 h-8 w-8 text-gray-400" />
-              <Text size="sm" color="muted">
-                Noch keine Anonymisierungen oder Loeschungen durchgefuehrt.
-              </Text>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="border-b border-gray-200 text-gray-500 text-xs uppercase dark:border-gray-700 dark:text-gray-400">
-                  <tr>
-                    <th className="px-4 py-3">Typ</th>
-                    <th className="px-4 py-3">Durchgefuehrt am</th>
-                    <th className="px-4 py-3">Durchgefuehrt von</th>
-                    <th className="px-4 py-3 text-right">Befehle</th>
-                    <th className="px-4 py-3 text-right">Empfaenger</th>
-                    <th className="px-4 py-3 text-right">Kommentare</th>
+      {reports &&
+        (reports.length === 0 ? (
+          <div className="py-6 text-center">
+            <PiShieldCheck className="mx-auto mb-2 h-8 w-8 text-gray-400" />
+            <Text size="sm" color="muted">
+              Noch keine Anonymisierungen oder Loeschungen durchgefuehrt.
+            </Text>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="border-gray-200 border-b text-gray-500 text-xs uppercase dark:border-gray-700 dark:text-gray-400">
+                <tr>
+                  <th className="px-4 py-3">Typ</th>
+                  <th className="px-4 py-3">Durchgefuehrt am</th>
+                  <th className="px-4 py-3">Durchgefuehrt von</th>
+                  <th className="px-4 py-3 text-right">Befehle</th>
+                  <th className="px-4 py-3 text-right">Empfaenger</th>
+                  <th className="px-4 py-3 text-right">Kommentare</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                {reports.map((report) => (
+                  <tr key={report.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                    <td className="px-4 py-3">
+                      <Badge variant={getReportTypBadgeVariant(report.typ)} size="sm">
+                        {report.typ === 'LOESCHUNG' && <PiTrash className="mr-1 inline h-3 w-3" />}
+                        {getReportTypLabel(report.typ)}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{formatDateTime(report.durchgefuehrtAm)}</td>
+                    <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{report.durchgefuehrtVon}</td>
+                    <td className="px-4 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{report.befehlCount}</td>
+                    <td className="px-4 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{report.empfaengerCount}</td>
+                    <td className="px-4 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{report.kommentarCount}</td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                  {reports.map((report) => (
-                    <tr key={report.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                      <td className="px-4 py-3">
-                        <Badge variant={getReportTypBadgeVariant(report.typ)} size="sm">
-                          {report.typ === 'LOESCHUNG' && <PiTrash className="mr-1 inline h-3 w-3" />}
-                          {getReportTypLabel(report.typ)}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{formatDateTime(report.durchgefuehrtAm)}</td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{report.durchgefuehrtVon}</td>
-                      <td className="px-4 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{report.befehlCount}</td>
-                      <td className="px-4 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{report.empfaengerCount}</td>
-                      <td className="px-4 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{report.kommentarCount}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </>
-      )}
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
     </Card>
   );
 }

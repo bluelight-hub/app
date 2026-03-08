@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -38,8 +37,8 @@ export interface RolleFreigegebenResponseDto {
  */
 export function instanceOfRolleFreigegebenResponseDto(value: object): value is RolleFreigegebenResponseDto {
     if (!('id' in value) || value['id'] === undefined) return false;
-    if (!('message' in value) || value['message'] === undefined) return false;
-    return true;
+    return !(!('message' in value) || value['message'] === undefined);
+
 }
 
 export function RolleFreigegebenResponseDtoFromJSON(json: any): RolleFreigegebenResponseDto {

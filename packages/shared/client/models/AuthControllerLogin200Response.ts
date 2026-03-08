@@ -12,21 +12,15 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { LoginResponseDto } from './LoginResponseDto';
-import {
-    LoginResponseDtoFromJSON,
-    LoginResponseDtoFromJSONTyped,
-    LoginResponseDtoToJSON,
-    LoginResponseDtoToJSONTyped,
-} from './LoginResponseDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {LoginResponseDto} from './LoginResponseDto';
+import {LoginResponseDtoFromJSON, LoginResponseDtoToJSON,} from './LoginResponseDto';
 
 /**
  * 
@@ -53,8 +47,8 @@ export interface AuthControllerLogin200Response {
  */
 export function instanceOfAuthControllerLogin200Response(value: object): value is AuthControllerLogin200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function AuthControllerLogin200ResponseFromJSON(json: any): AuthControllerLogin200Response {

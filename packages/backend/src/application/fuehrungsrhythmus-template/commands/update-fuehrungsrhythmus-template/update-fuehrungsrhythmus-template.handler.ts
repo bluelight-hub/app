@@ -11,10 +11,10 @@ import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository
 import { TransactionalCommandHandler } from '@/application/common/handlers/transactional-command.handler';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { FUEHRUNGSRHYTHMUS_TEMPLATE_REPOSITORY, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
-import { FuehrungsrhythmusTemplateResponseFactory } from '../../dto/fuehrungsrhythmus-template-response.factory';
+import { FuehrungsrhythmusTemplateResponseFactory } from '@application/fuehrungsrhythmus-template/dto';
 import type { UpdateFuehrungsrhythmusTemplateCommand } from './update-fuehrungsrhythmus-template.command';
 import { FUEHRUNGSRHYTHMUS_TEMPLATE_ERROR_CODES } from '../../errors/fuehrungsrhythmus-template-error.codes';
-import type { FuehrungsrhythmusTemplateResponseDto } from '../../dto/fuehrungsrhythmus-template-response.dto';
+import type { FuehrungsrhythmusTemplateResponseDto } from '@application/fuehrungsrhythmus-template/dto';
 
 /**
  * Handler zum Aktualisieren eines Fuehrungsrhythmus-Templates (Story 6.8).
@@ -54,8 +54,7 @@ export class UpdateFuehrungsrhythmusTemplateHandler extends TransactionalCommand
 
     // 3. Eintraege erstellen
     const eintraege: FuehrungsrhythmusEintrag[] = [];
-    for (let i = 0; i < command.eintraege.length; i++) {
-      const eintragProps = command.eintraege[i]!;
+    for (const [i, eintragProps] of command.eintraege.entries()) {
       const eintragResult = FuehrungsrhythmusEintrag.create({
         titel: eintragProps.titel,
         intervallMinuten: eintragProps.intervallMinuten,

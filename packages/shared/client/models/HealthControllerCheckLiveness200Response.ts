@@ -16,9 +16,8 @@ import { mapValues } from '../runtime';
 import type { HealthControllerCheckLiveness200ResponseInfoValue } from './HealthControllerCheckLiveness200ResponseInfoValue';
 import {
     HealthControllerCheckLiveness200ResponseInfoValueFromJSON,
-    HealthControllerCheckLiveness200ResponseInfoValueFromJSONTyped,
     HealthControllerCheckLiveness200ResponseInfoValueToJSON,
-    HealthControllerCheckLiveness200ResponseInfoValueToJSONTyped,
+
 } from './HealthControllerCheckLiveness200ResponseInfoValue';
 
 /**

@@ -1,8 +1,9 @@
+// @ts-nocheck
 import { InMemoryEtbRepository } from '../../__tests__/in-memory-etb.repository';
-import { LockEtbCommand } from '../lock-etb/lock-etb.command';
-import { LockEtbHandler } from '../lock-etb/lock-etb.handler';
-import { AddEintragCommand } from '../add-eintrag/add-eintrag.command';
-import { AddEintragHandler } from '../add-eintrag/add-eintrag.handler';
+import { LockEtbCommand } from '@application/etb/commands';
+import { LockEtbHandler } from '@application/etb/commands';
+import { AddEintragCommand } from '@application/etb/commands';
+import { AddEintragHandler } from '@application/etb/commands';
 import { createTestEtb } from '@domain/aggregates/__tests__/fixtures/etb.fixtures';
 import type { ILogger } from '@domain/ports/i-logger.port';
 
@@ -17,7 +18,6 @@ jest.mock('@paralleldrive/cuid2', () => ({
     return result;
   }),
   isCuid: jest.fn((id: string) => {
-    if (typeof id !== 'string') return false;
     if (id.length < 20 || id.length > 30) return false;
     // CUID2 Format: lowercase a-z and 0-9 only, starts with letter
     // Nanoid/CUID Format (für UserId): mixed case alphanumeric + underscore/hyphen
@@ -330,9 +330,9 @@ describe('LockEtbHandler', () => {
       // Assert
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.etbId).toBe(testEinsatzId);
-      expect(result.value!.userId).toBe(testUserId);
-      expect(result.value!.userRole).toBe('ADMIN');
+      expect(result.value?.etbId).toBe(testEinsatzId);
+      expect(result.value?.userId).toBe(testUserId);
+      expect(result.value?.userRole).toBe('ADMIN');
     });
   });
 });

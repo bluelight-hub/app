@@ -12,28 +12,12 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { ApiMeta } from './ApiMeta';
-import {
-    ApiMetaFromJSON,
-    ApiMetaFromJSONTyped,
-    ApiMetaToJSON,
-    ApiMetaToJSONTyped,
-} from './ApiMeta';
-import type { ApiPagination } from './ApiPagination';
-import {
-    ApiPaginationFromJSON,
-    ApiPaginationFromJSONTyped,
-    ApiPaginationToJSON,
-    ApiPaginationToJSONTyped,
-} from './ApiPagination';
-import type { ManagedUserResponseDto } from './ManagedUserResponseDto';
-import {
-    ManagedUserResponseDtoFromJSON,
-    ManagedUserResponseDtoFromJSONTyped,
-    ManagedUserResponseDtoToJSON,
-    ManagedUserResponseDtoToJSONTyped,
-} from './ManagedUserResponseDto';
+import type {ApiMeta} from './ApiMeta';
+import {ApiMetaFromJSON, ApiMetaToJSON,} from './ApiMeta';
+import type {ApiPagination} from './ApiPagination';
+import {ApiPaginationFromJSON, ApiPaginationToJSON,} from './ApiPagination';
+import type {ManagedUserResponseDto} from './ManagedUserResponseDto';
+import {ManagedUserResponseDtoFromJSON, ManagedUserResponseDtoToJSON,} from './ManagedUserResponseDto';
 
 /**
  * 
@@ -72,8 +56,8 @@ export interface ManagedUserResponse {
  */
 export function instanceOfManagedUserResponse(value: object): value is ManagedUserResponse {
     if (!('meta' in value) || value['meta'] === undefined) return false;
-    if (!('data' in value) || value['data'] === undefined) return false;
-    return true;
+    return !(!('data' in value) || value['data'] === undefined);
+
 }
 
 export function ManagedUserResponseFromJSON(json: any): ManagedUserResponse {

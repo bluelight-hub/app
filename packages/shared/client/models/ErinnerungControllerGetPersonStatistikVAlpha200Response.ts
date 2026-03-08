@@ -12,21 +12,15 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { PersonStatistikDto } from './PersonStatistikDto';
-import {
-    PersonStatistikDtoFromJSON,
-    PersonStatistikDtoFromJSONTyped,
-    PersonStatistikDtoToJSON,
-    PersonStatistikDtoToJSONTyped,
-} from './PersonStatistikDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {PersonStatistikDto} from './PersonStatistikDto';
+import {PersonStatistikDtoFromJSON, PersonStatistikDtoToJSON,} from './PersonStatistikDto';
 
 /**
  * 
@@ -53,8 +47,8 @@ export interface ErinnerungControllerGetPersonStatistikVAlpha200Response {
  */
 export function instanceOfErinnerungControllerGetPersonStatistikVAlpha200Response(value: object): value is ErinnerungControllerGetPersonStatistikVAlpha200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function ErinnerungControllerGetPersonStatistikVAlpha200ResponseFromJSON(json: any): ErinnerungControllerGetPersonStatistikVAlpha200Response {

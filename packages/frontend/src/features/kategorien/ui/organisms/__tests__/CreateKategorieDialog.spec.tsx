@@ -10,7 +10,7 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { renderWithProviders } from '@/test/utils';
-import { CreateKategorieDialog } from '../CreateKategorieDialog';
+import { CreateKategorieDialog } from '@/features/kategorien';
 
 // Mock API Hooks
 const mockMutate = vi.fn();

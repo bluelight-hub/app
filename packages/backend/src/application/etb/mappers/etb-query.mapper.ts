@@ -1,9 +1,9 @@
-import type { EinsatztagebuchAggregate } from '@domain/aggregates/einsatztagebuch.aggregate';
-import type { EtbEintrag } from '@domain/entities/etb-eintrag.entity';
-import type { EtbSnapshot, EtbEintragSnapshot } from '@domain/value-objects/etb-snapshot';
-import type { EtbDto } from '@application/etb/dto/etb.dto';
 import type { EintragDto } from '@application/etb/dto/eintrag.dto';
 import type { EtbVersionDto } from '@application/etb/dto/etb-version.dto';
+import type { EtbDto } from '@application/etb/dto/etb.dto';
+import type { EinsatztagebuchAggregate } from '@domain/aggregates/einsatztagebuch.aggregate';
+import type { EtbEintrag } from '@domain/entities/etb-eintrag.entity';
+import type { EtbEintragSnapshot, EtbSnapshot } from '@domain/value-objects/etb-snapshot';
 
 // Re-export DTOs from dto/ for consumers (backwards compatibility)
 export type { EtbDto, EintragDto, EtbVersionDto };
@@ -113,7 +113,13 @@ export class EtbQueryMapper {
     const status = aggregate.status.value as 'DRAFT' | 'ACTIVE' | 'LOCKED';
 
     // Base DTO ohne Lock-Informationen
-    const dto: EtbDto = {
+
+    // Lock-Informationen werden nicht aus dem Aggregate extrahiert,
+    // da sie dort nicht gespeichert sind. Diese wuerden typischerweise
+    // beim Reconstitute aus der Datenbank kommen (Epic 4).
+    // lockedAt und lockedBy bleiben undefined.
+
+    return {
       id: aggregate.id.value,
       einsatzId: aggregate.einsatzId.value,
       status,
@@ -124,13 +130,6 @@ export class EtbQueryMapper {
       },
       createdAt: aggregate.createdAt,
     };
-
-    // Lock-Informationen werden nicht aus dem Aggregate extrahiert,
-    // da sie dort nicht gespeichert sind. Diese wuerden typischerweise
-    // beim Reconstitute aus der Datenbank kommen (Epic 4).
-    // lockedAt und lockedBy bleiben undefined.
-
-    return dto;
   }
 
   /**

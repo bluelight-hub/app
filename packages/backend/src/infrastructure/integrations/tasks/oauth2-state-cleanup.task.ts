@@ -14,7 +14,6 @@
  * @module infrastructure/integrations/tasks
  */
 
-// biome-ignore lint/style/noRestrictedImports: Logger in Task ist erlaubt
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { INTEGRATIONS } from '@/infrastructure/di-tokens';

@@ -7,7 +7,7 @@
 
 import { useJoinEinsatz, useMyEinsatzTeilnahme, useEinsatzTeilnehmer } from '@/features/einsatz/api';
 import { EinsatzPersonenPicker } from '@/features/kraefte/ui/molecules/EinsatzPersonenPicker';
-import { PersonHinzufuegenDialog } from './PersonHinzufuegenDialog.organism';
+import { PersonHinzufuegenDialog } from '@/features/einsatz';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { useEffect, useMemo, useState } from 'react';

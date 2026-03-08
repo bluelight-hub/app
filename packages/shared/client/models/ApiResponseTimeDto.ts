@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -45,8 +44,8 @@ export interface ApiResponseTimeDto {
 export function instanceOfApiResponseTimeDto(value: object): value is ApiResponseTimeDto {
     if (!('p50' in value) || value['p50'] === undefined) return false;
     if (!('p95' in value) || value['p95'] === undefined) return false;
-    if (!('p99' in value) || value['p99'] === undefined) return false;
-    return true;
+    return !(!('p99' in value) || value['p99'] === undefined);
+
 }
 
 export function ApiResponseTimeDtoFromJSON(json: any): ApiResponseTimeDto {

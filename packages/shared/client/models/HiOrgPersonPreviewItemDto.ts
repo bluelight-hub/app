@@ -12,13 +12,10 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { HiOrgQualifikationPreviewItemDto } from './HiOrgQualifikationPreviewItemDto';
+import type {HiOrgQualifikationPreviewItemDto} from './HiOrgQualifikationPreviewItemDto';
 import {
     HiOrgQualifikationPreviewItemDtoFromJSON,
-    HiOrgQualifikationPreviewItemDtoFromJSONTyped,
     HiOrgQualifikationPreviewItemDtoToJSON,
-    HiOrgQualifikationPreviewItemDtoToJSONTyped,
 } from './HiOrgQualifikationPreviewItemDto';
 
 /**
@@ -93,8 +90,8 @@ export function instanceOfHiOrgPersonPreviewItemDto(value: object): value is HiO
     if (!('qualifikationenCount' in value) || value['qualifikationenCount'] === undefined) return false;
     if (!('qualifikationen' in value) || value['qualifikationen'] === undefined) return false;
     if (!('ausbildungenCount' in value) || value['ausbildungenCount'] === undefined) return false;
-    if (!('isDuplicate' in value) || value['isDuplicate'] === undefined) return false;
-    return true;
+    return !(!('isDuplicate' in value) || value['isDuplicate'] === undefined);
+
 }
 
 export function HiOrgPersonPreviewItemDtoFromJSON(json: any): HiOrgPersonPreviewItemDto {

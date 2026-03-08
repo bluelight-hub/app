@@ -42,6 +42,7 @@ function useEtbHistory(etbId: string | undefined) {
 function SnapshotCard({ snapshot, isFirst }: { snapshot: EtbSnapshotDto; isFirst: boolean }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const entryCount = snapshot.eintraege?.length ?? 0;
+  const entryKeyCounts = new Map<string, number>();
 
   return (
     <div
@@ -74,12 +75,20 @@ function SnapshotCard({ snapshot, isFirst }: { snapshot: EtbSnapshotDto; isFirst
 
           {isExpanded && (
             <div className="mt-2 max-h-64 space-y-2 overflow-y-auto rounded-md border border-gray-100 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-              {snapshot.eintraege.map((eintrag, index) => (
-                <div key={`entry-${snapshot.version}-${index}`} className="border-gray-200 border-b pb-2 text-gray-700 text-sm last:border-b-0 last:pb-0 dark:border-gray-700 dark:text-gray-300">
-                  {/* eintraege ist Array<Array<string>> - zeige als Text */}
-                  {Array.isArray(eintrag) ? eintrag.join(' | ') : String(eintrag)}
-                </div>
-              ))}
+              {snapshot.eintraege.map((eintrag) => {
+                const text = Array.isArray(eintrag) ? eintrag.join(' | ') : String(eintrag);
+                const occurrence = (entryKeyCounts.get(text) ?? 0) + 1;
+                entryKeyCounts.set(text, occurrence);
+
+                return (
+                  <div
+                    key={`entry-${snapshot.version}-${text}-${occurrence}`}
+                    className="border-gray-200 border-b pb-2 text-gray-700 text-sm last:border-b-0 last:pb-0 dark:border-gray-700 dark:text-gray-300"
+                  >
+                    {text}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

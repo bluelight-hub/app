@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { useQuickCreateNotizHotkeys } from '../use-quick-create-notiz-hotkeys';
+import { useQuickCreateNotizHotkeys } from '@/features/notizen';
 
 // Mock react-hotkeys-hook
 const mockUseHotkeys = vi.fn();

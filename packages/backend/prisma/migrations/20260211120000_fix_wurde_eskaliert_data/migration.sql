@@ -8,7 +8,7 @@
 -- Case 1: Erinnerungen mit Status ESKALIERT → definitiv eskaliert
 UPDATE "erinnerungen"
 SET "wurde_eskaliert" = true,
-    "eskaliert_am" = COALESCE("eskaliert_am", "escalated_at")
+    "eskaliert_am"    = COALESCE("eskaliert_am", "escalated_at")
 WHERE "status" = 'ESKALIERT'
   AND "wurde_eskaliert" = false;
 
@@ -16,6 +16,6 @@ WHERE "status" = 'ESKALIERT'
 -- (z.B. ACKNOWLEDGED, ERLEDIGT nach Eskalation) - erkennbar an escalated_at != null
 UPDATE "erinnerungen"
 SET "wurde_eskaliert" = true,
-    "eskaliert_am" = COALESCE("eskaliert_am", "escalated_at")
+    "eskaliert_am"    = COALESCE("eskaliert_am", "escalated_at")
 WHERE "escalated_at" IS NOT NULL
   AND "wurde_eskaliert" = false;

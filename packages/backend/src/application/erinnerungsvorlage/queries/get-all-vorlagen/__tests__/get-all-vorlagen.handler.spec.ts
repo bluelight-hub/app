@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Test, type TestingModule } from '@nestjs/testing';
 import { GetAllVorlagenHandler } from '../get-all-vorlagen.handler';
 import { Erinnerungsvorlage } from '@domain/erinnerungsvorlage/entities/erinnerungsvorlage.entity';
@@ -6,7 +7,7 @@ import { ErinnerungsvorlageTitel } from '@domain/erinnerungsvorlage/value-object
 import { UserId } from '@domain/value-objects/user-id';
 import { ERINNERUNGSVORLAGE_REPOSITORY } from '@/infrastructure/di-tokens';
 import type { IErinnerungsvorlageRepository } from '@domain/erinnerungsvorlage/repositories/i-erinnerungsvorlage.repository';
-import { ErinnerungsvorlageResponseFactory } from '../../../dto/erinnerungsvorlage-response.factory';
+import { ErinnerungsvorlageResponseFactory } from '@application/erinnerungsvorlage/dto';
 
 /**
  * Helper: Erstellt eine rekonstruierte Erinnerungsvorlage für Tests.
@@ -115,12 +116,12 @@ describe('GetAllVorlagenHandler', () => {
       expect(mockVorlageRepository.findAll).toHaveBeenCalledTimes(1);
       expect(mockResponseFactory.create).toHaveBeenCalledTimes(3);
 
-      expect(result[0].titel).toBe('Lagebesprechung');
-      expect(result[0].minuten).toBe(30);
-      expect(result[1].titel).toBe('Ablösung');
-      expect(result[1].minuten).toBe(60);
-      expect(result[2].titel).toBe('Funkprobe');
-      expect(result[2].minuten).toBe(15);
+      expect(result[0]?.titel).toBe('Lagebesprechung');
+      expect(result[0]?.minuten).toBe(30);
+      expect(result[1]?.titel).toBe('Ablösung');
+      expect(result[1]?.minuten).toBe(60);
+      expect(result[2]?.titel).toBe('Funkprobe');
+      expect(result[2]?.minuten).toBe(15);
     });
 
     it('should use ResponseFactory correctly for mapping', async () => {
@@ -161,8 +162,8 @@ describe('GetAllVorlagenHandler', () => {
 
       // Then (Assert)
       expect(result).toHaveLength(1);
-      expect(result[0].titel).toBe('Einzelne Vorlage');
-      expect(result[0].minuten).toBe(120);
+      expect(result[0]?.titel).toBe('Einzelne Vorlage');
+      expect(result[0]?.minuten).toBe(120);
     });
 
     it('should handle vorlagen with null beschreibung', async () => {
@@ -178,7 +179,7 @@ describe('GetAllVorlagenHandler', () => {
 
       // Then (Assert)
       expect(result).toHaveLength(1);
-      expect(result[0].beschreibung).toBeNull();
+      expect(result[0]?.beschreibung).toBeNull();
     });
 
     it('should NOT call save() method (Read-Only Query)', async () => {

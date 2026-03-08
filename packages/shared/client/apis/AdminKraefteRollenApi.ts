@@ -19,17 +19,13 @@ import type {
   AdminRollenControllerFindAllVAlpha200Response,
   CreateRollenDefinitionDto,
   UpdateRollenDefinitionDto,
-} from '../models/index';
+} from '../models';
 import {
     AdminRollenControllerCreateVAlpha201ResponseFromJSON,
-    AdminRollenControllerCreateVAlpha201ResponseToJSON,
     AdminRollenControllerFindAllVAlpha200ResponseFromJSON,
-    AdminRollenControllerFindAllVAlpha200ResponseToJSON,
-    CreateRollenDefinitionDtoFromJSON,
     CreateRollenDefinitionDtoToJSON,
-    UpdateRollenDefinitionDtoFromJSON,
     UpdateRollenDefinitionDtoToJSON,
-} from '../models/index';
+} from '../models';
 
 export interface AdminRollenControllerCreateVAlphaRequest {
     createRollenDefinitionDto: CreateRollenDefinitionDto;
@@ -125,7 +121,7 @@ export class AdminKraefteRollenApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/api/v-alpha/admin/kraefte/rollen/{id}/deactivate`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/admin/kraefte/rollen/{id}/deactivate`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'PATCH',
             headers: headerParameters,
             query: queryParameters,
@@ -204,7 +200,7 @@ export class AdminKraefteRollenApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/api/v-alpha/admin/kraefte/rollen/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/admin/kraefte/rollen/{id}`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -254,7 +250,7 @@ export class AdminKraefteRollenApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/api/v-alpha/admin/kraefte/rollen/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/admin/kraefte/rollen/{id}`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'PATCH',
             headers: headerParameters,
             query: queryParameters,

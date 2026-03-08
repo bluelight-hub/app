@@ -1,14 +1,14 @@
-import { Inject, Injectable } from '@nestjs/common';
-import type { ILogger } from '@domain/ports/i-logger.port';
-import { LOGGER } from '@infrastructure/di-tokens';
 import type { Prisma } from '@/generated/prisma/client';
-import { PrismaService } from '@infrastructure/database/prisma.service';
 import { Result } from '@domain/common/result';
 import type { Fahrzeugtyp } from '@domain/kraefte/aggregates/fahrzeugtyp.aggregate';
 import type { IFahrzeugtypRepository, TransactionContext } from '@domain/kraefte/repositories/i-fahrzeugtyp.repository';
 import type { FahrzeugtypId } from '@domain/kraefte/value-objects/fahrzeugtyp-id';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { PrismaService } from '@infrastructure/database/prisma.service';
+import { LOGGER } from '@infrastructure/di-tokens';
+import { Inject, Injectable } from '@nestjs/common';
+import { isPrismaError } from '@/shared/utils';
 import { PrismaFahrzeugtypMapper } from '../mappers/prisma-fahrzeugtyp.mapper';
-import { isPrismaError } from '../../../shared/utils/prisma.util';
 
 /**
  * Transaction Client Type Alias für bessere Lesbarkeit.
@@ -41,79 +41,6 @@ export class PrismaFahrzeugtypRepository implements IFahrzeugtypRepository {
     private readonly prisma: PrismaService,
     @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
-
-  /**
-   * Extrahiert Feldname aus Prisma Error Meta für Logging.
-   *
-   * **Use Case:** Wird für strukturierte Logger-Nachrichten verwendet.
-   *
-   * @param error - Prisma Error Objekt
-   * @param errorCode - Prisma Error Code (P2002, P2003, etc.)
-   * @returns Feldname als String (oder 'unknown')
-   */
-  private extractFieldNameFromMeta(error: unknown, errorCode: 'P2002' | 'P2003'): string {
-    const meta = typeof error === 'object' && error !== null && 'meta' in error && error.meta ? error.meta : undefined;
-
-    if (errorCode === 'P2002') {
-      // P2002: target ist ein Array von Feldnamen
-      const target = meta && typeof meta === 'object' && 'target' in meta ? meta.target : 'unknown';
-      return Array.isArray(target) ? target.join(', ') : String(target);
-    }
-
-    // P2003: field_name ist ein String
-    const fieldName = meta && typeof meta === 'object' && 'field_name' in meta ? meta.field_name : 'unknown';
-    return String(fieldName);
-  }
-
-  /**
-   * Formatiert Prisma-Fehler zu deutschen, benutzerfreundlichen Fehlermeldungen.
-   *
-   * **Unterstützte Error Codes:**
-   * - P2002: Unique Constraint Violation (Duplikat)
-   * - P2003: Foreign Key Constraint Failed (Referenzfehler)
-   * - P2025: Record Not Found
-   *
-   * **Meta Extraction:** Verwendet Type Guards für sichere Meta-Extraktion.
-   *
-   * @param error - Der Prisma-Fehler (unknown type)
-   * @param context - Kontextinformation für Fallback-Meldung (z.B. "Speichern")
-   * @param aggregateValue - Optional: Wert des betroffenen Feldes für kontextspezifische Meldungen
-   * @returns Formatierte deutsche Fehlermeldung
-   */
-  private formatPrismaError(error: unknown, context: string, aggregateValue?: string): string {
-    // Check if error is a Prisma error (has code property)
-    if (!(typeof error === 'object' && error !== null && 'code' in error)) {
-      return `Datenbankfehler bei ${context}`;
-    }
-
-    const code = isPrismaError(error, 'P2002') ? 'P2002' : isPrismaError(error, 'P2003') ? 'P2003' : isPrismaError(error, 'P2025') ? 'P2025' : 'UNKNOWN';
-
-    const meta = typeof error === 'object' && error !== null && 'meta' in error && error.meta ? error.meta : undefined;
-
-    switch (code) {
-      case 'P2002': {
-        // Unique Constraint Violation - extrahiere betroffene Felder
-        const target = meta && typeof meta === 'object' && 'target' in meta ? meta.target : 'unknown';
-        const fieldName = Array.isArray(target) ? target.join(', ') : String(target);
-        // Spezielle Meldung für code mit tatsächlichem Wert
-        if (fieldName.includes('code') && aggregateValue) {
-          return `Der Code "${aggregateValue}" ist bereits vergeben.`;
-        }
-        return `Eindeutiger Wert für Feld "${fieldName}" existiert bereits`;
-      }
-      case 'P2003': {
-        // Foreign Key Constraint Failed - extrahiere Feldname
-        const fieldName = meta && typeof meta === 'object' && 'field_name' in meta ? meta.field_name : 'unknown';
-        return `Referenzierter Benutzer (${fieldName}) existiert nicht`;
-      }
-      case 'P2025':
-        return 'Datensatz nicht gefunden';
-      default: {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        return `Datenbankfehler: ${errorMessage}`;
-      }
-    }
-  }
 
   /**
    * Speichert das Fahrzeugtyp-Aggregat (Upsert: Create oder Update).
@@ -343,6 +270,79 @@ export class PrismaFahrzeugtypRepository implements IFahrzeugtypRepository {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       this.logger.error(`Failed to check Fahrzeugtyp existence: ${errorMessage}`, { id: id.value, tx: !!tx, error });
       return Result.fail<boolean>(`Fehler bei der Existenzprüfung: ${errorMessage}`);
+    }
+  }
+
+  /**
+   * Extrahiert Feldname aus Prisma Error Meta für Logging.
+   *
+   * **Use Case:** Wird für strukturierte Logger-Nachrichten verwendet.
+   *
+   * @param error - Prisma Error Objekt
+   * @param errorCode - Prisma Error Code (P2002, P2003, etc.)
+   * @returns Feldname als String (oder 'unknown')
+   */
+  private extractFieldNameFromMeta(error: unknown, errorCode: 'P2002' | 'P2003'): string {
+    const meta = typeof error === 'object' && error !== null && 'meta' in error && error.meta ? error.meta : undefined;
+
+    if (errorCode === 'P2002') {
+      // P2002: target ist ein Array von Feldnamen
+      const target = meta && typeof meta === 'object' && 'target' in meta ? meta.target : 'unknown';
+      return Array.isArray(target) ? target.join(', ') : String(target);
+    }
+
+    // P2003: field_name ist ein String
+    const fieldName = meta && typeof meta === 'object' && 'field_name' in meta ? meta.field_name : 'unknown';
+    return String(fieldName);
+  }
+
+  /**
+   * Formatiert Prisma-Fehler zu deutschen, benutzerfreundlichen Fehlermeldungen.
+   *
+   * **Unterstützte Error Codes:**
+   * - P2002: Unique Constraint Violation (Duplikat)
+   * - P2003: Foreign Key Constraint Failed (Referenzfehler)
+   * - P2025: Record Not Found
+   *
+   * **Meta Extraction:** Verwendet Type Guards für sichere Meta-Extraktion.
+   *
+   * @param error - Der Prisma-Fehler (unknown type)
+   * @param context - Kontextinformation für Fallback-Meldung (z.B. "Speichern")
+   * @param aggregateValue - Optional: Wert des betroffenen Feldes für kontextspezifische Meldungen
+   * @returns Formatierte deutsche Fehlermeldung
+   */
+  private formatPrismaError(error: unknown, context: string, aggregateValue?: string): string {
+    // Check if error is a Prisma error (has code property)
+    if (!(typeof error === 'object' && error !== null && 'code' in error)) {
+      return `Datenbankfehler bei ${context}`;
+    }
+
+    const code = isPrismaError(error, 'P2002') ? 'P2002' : isPrismaError(error, 'P2003') ? 'P2003' : isPrismaError(error, 'P2025') ? 'P2025' : 'UNKNOWN';
+
+    const meta = typeof error === 'object' && true && 'meta' in error && error.meta ? error.meta : undefined;
+
+    switch (code) {
+      case 'P2002': {
+        // Unique Constraint Violation - extrahiere betroffene Felder
+        const target = meta && typeof meta === 'object' && 'target' in meta ? meta.target : 'unknown';
+        const fieldName = Array.isArray(target) ? target.join(', ') : String(target);
+        // Spezielle Meldung für code mit tatsächlichem Wert
+        if (fieldName.includes('code') && aggregateValue) {
+          return `Der Code "${aggregateValue}" ist bereits vergeben.`;
+        }
+        return `Eindeutiger Wert für Feld "${fieldName}" existiert bereits`;
+      }
+      case 'P2003': {
+        // Foreign Key Constraint Failed - extrahiere Feldname
+        const fieldName = meta && typeof meta === 'object' && 'field_name' in meta ? meta.field_name : 'unknown';
+        return `Referenzierter Benutzer (${fieldName}) existiert nicht`;
+      }
+      case 'P2025':
+        return 'Datensatz nicht gefunden';
+      default: {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return `Datenbankfehler: ${errorMessage}`;
+      }
     }
   }
 }

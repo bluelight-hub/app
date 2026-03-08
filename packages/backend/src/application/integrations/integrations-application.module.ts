@@ -11,21 +11,21 @@ import { LOGGER } from '@infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 
 // Services
-import { HiOrgTokenRefreshService } from './services/hiorg-token-refresh.service';
+import { HiOrgTokenRefreshService } from '@application/integrations/services';
 
 // Command Handlers
-import { TestHiOrgConnectionHandler } from './commands/test-hiorg-connection/test-hiorg-connection.handler';
-import { InitiateOAuthFlowHandler } from './commands/initiate-oauth-flow/initiate-oauth-flow.handler';
-import { ProcessOAuthCallbackHandler } from './commands/process-oauth-callback/process-oauth-callback.handler';
-import { SaveQualifikationMappingHandler } from './commands/save-qualifikation-mapping/save-qualifikation-mapping.handler';
-import { AutoMatchQualifikationenHandler } from './commands/auto-match-qualifikationen/auto-match-qualifikationen.handler';
-import { ImportSelectedPersonsHandler } from './commands/import-selected-persons/import-selected-persons.handler';
-import { BatchSaveQualifikationMappingsHandler } from './commands/batch-save-qualifikation-mappings/batch-save-qualifikation-mappings.handler';
+import { TestHiOrgConnectionHandler } from '@application/integrations/commands/test-hiorg-connection';
+import { InitiateOAuthFlowHandler } from '@application/integrations/commands/initiate-oauth-flow';
+import { ProcessOAuthCallbackHandler } from '@application/integrations/commands/process-oauth-callback';
+import { SaveQualifikationMappingHandler } from '@application/integrations/commands/save-qualifikation-mapping';
+import { AutoMatchQualifikationenHandler } from '@application/integrations/commands/auto-match-qualifikationen';
+import { ImportSelectedPersonsHandler } from '@application/integrations/commands/import-selected-persons';
+import { BatchSaveQualifikationMappingsHandler } from '@application/integrations/commands/batch-save-qualifikation-mappings';
 
 // Query Handlers
-import { GetHiOrgCredentialsHandler } from './queries/get-hiorg-credentials/get-hiorg-credentials.handler';
-import { PreviewHiOrgPersonsHandler } from './queries/preview-hiorg-persons/preview-hiorg-persons.handler';
-import { GetQualifikationMappingsHandler } from './queries/get-qualifikation-mappings/get-qualifikation-mappings.handler';
+import { GetHiOrgCredentialsHandler } from '@application/integrations/queries/get-hiorg-credentials';
+import { PreviewHiOrgPersonsHandler } from '@application/integrations/queries/preview-hiorg-persons';
+import { GetQualifikationMappingsHandler } from '@application/integrations/queries/get-qualifikation-mappings';
 
 /**
  * Application Module für Integrations-Features.

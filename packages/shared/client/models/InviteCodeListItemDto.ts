@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { InviteCodeCreatorDto } from './InviteCodeCreatorDto';
-import {
-    InviteCodeCreatorDtoFromJSON,
-    InviteCodeCreatorDtoFromJSONTyped,
-    InviteCodeCreatorDtoToJSON,
-    InviteCodeCreatorDtoToJSONTyped,
-} from './InviteCodeCreatorDto';
+import type {InviteCodeCreatorDto} from './InviteCodeCreatorDto';
+import {InviteCodeCreatorDtoFromJSON, InviteCodeCreatorDtoToJSON,} from './InviteCodeCreatorDto';
 
 /**
  * 
@@ -113,8 +107,8 @@ export function instanceOfInviteCodeListItemDto(value: object): value is InviteC
     if (!('useCount' in value) || value['useCount'] === undefined) return false;
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
-    if (!('createdBy' in value) || value['createdBy'] === undefined) return false;
-    return true;
+    return !(!('createdBy' in value) || value['createdBy'] === undefined);
+
 }
 
 export function InviteCodeListItemDtoFromJSON(json: any): InviteCodeListItemDto {

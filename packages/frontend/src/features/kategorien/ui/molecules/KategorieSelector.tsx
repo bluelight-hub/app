@@ -33,6 +33,8 @@ interface KategorieSelectorProps {
   className?: string;
   /** Platzhalter Text fuer leere Auswahl */
   placeholder?: string;
+  /** Sichtbarer Feldtitel fuer die interne Combobox-Label-Komponente */
+  label?: string;
 }
 
 /**
@@ -55,7 +57,7 @@ interface KategorieSelectorProps {
  * />
  * ```
  */
-export function KategorieSelector({ einsatzId, value, onChange, onBlur, disabled = false, error, className, placeholder = 'Kategorie waehlen (optional)' }: KategorieSelectorProps) {
+export function KategorieSelector({ einsatzId, value, onChange, onBlur, disabled = false, error, className, placeholder = 'Kategorie waehlen (optional)', label }: KategorieSelectorProps) {
   const { data: kategorien, isLoading, isError } = useKategorienByEinsatz(einsatzId);
 
   // Formatiere Kategorien fuer Combobox
@@ -107,6 +109,7 @@ export function KategorieSelector({ einsatzId, value, onChange, onBlur, disabled
         onChange={handleChange}
         onBlur={onBlur}
         placeholder={placeholder}
+        label={label}
         disabled={disabled || comboboxItems.length === 0}
         leadingIcon={<PiTag className="h-5 w-5" />}
         error={error}

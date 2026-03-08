@@ -2,13 +2,13 @@ import { useCreateEtbEntry, useTextbausteine, useUpdateEtbEntry } from '@/featur
 import { useMyEinsatzTeilnahme, useEinsatzFahrzeuge, useEinsatzPersonen, useEinsatzTeilnehmer } from '@/features/einsatz/api';
 import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { AddEintragDtoKategorieEnum, type EintragDto } from '@bluelight-hub/shared/client';
-import { EtbFormActions } from '../molecules/EtbFormActions';
-import { EtbTextbausteinPreview } from '../molecules/EtbTextbausteinPreview';
-import { EtbKategorieSelect } from './EtbKategorieSelect';
-import { EtbTextbausteinSelect } from './EtbTextbausteinSelect';
+import { EtbFormActions } from '@/features/etb';
+import { EtbTextbausteinPreview } from '@/features/etb';
+import { EtbKategorieSelect } from '@/features/etb';
+import { EtbTextbausteinSelect } from '@/features/etb';
 import { EtbTextInput } from './EtbTextInput';
 import { EtbAbsenderInput } from './EtbAbsenderInput';
-import { useEtbFormLogic } from '../../hooks/useEtbFormLogic';
+import { useEtbFormLogic } from '@/features/etb';
 import { useForm } from '@tanstack/react-form';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';

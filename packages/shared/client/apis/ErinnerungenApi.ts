@@ -31,41 +31,25 @@ import type {
   SnoozeErinnerungDto,
   StopRecurringSeriesDto,
   UpdateErinnerungDto,
-} from '../models/index';
+} from '../models';
 import {
-    AssignErinnerungDtoFromJSON,
     AssignErinnerungDtoToJSON,
-    CreateErinnerungDtoFromJSON,
     CreateErinnerungDtoToJSON,
     ErinnerungControllerCreateVAlpha201ResponseFromJSON,
-    ErinnerungControllerCreateVAlpha201ResponseToJSON,
     ErinnerungControllerGetByEinsatzVAlpha200ResponseFromJSON,
-    ErinnerungControllerGetByEinsatzVAlpha200ResponseToJSON,
     ErinnerungControllerGetEskalationsAnalyseVAlpha200ResponseFromJSON,
-    ErinnerungControllerGetEskalationsAnalyseVAlpha200ResponseToJSON,
     ErinnerungControllerGetEtbHistoryVAlpha200ResponseFromJSON,
-    ErinnerungControllerGetEtbHistoryVAlpha200ResponseToJSON,
     ErinnerungControllerGetFuehrungsrhythmusStatistikVAlpha200ResponseFromJSON,
-    ErinnerungControllerGetFuehrungsrhythmusStatistikVAlpha200ResponseToJSON,
     ErinnerungControllerGetPersonStatistikVAlpha200ResponseFromJSON,
-    ErinnerungControllerGetPersonStatistikVAlpha200ResponseToJSON,
     ErinnerungControllerGetReaktionszeitStatistikVAlpha200ResponseFromJSON,
-    ErinnerungControllerGetReaktionszeitStatistikVAlpha200ResponseToJSON,
     ErinnerungControllerGetStatistikVAlpha200ResponseFromJSON,
-    ErinnerungControllerGetStatistikVAlpha200ResponseToJSON,
     ErinnerungControllerGetVergleichVAlpha200ResponseFromJSON,
-    ErinnerungControllerGetVergleichVAlpha200ResponseToJSON,
     ErinnerungControllerGetZeitverlaufStatistikVAlpha200ResponseFromJSON,
-    ErinnerungControllerGetZeitverlaufStatistikVAlpha200ResponseToJSON,
-    MarkErledigtErinnerungDtoFromJSON,
     MarkErledigtErinnerungDtoToJSON,
-    SnoozeErinnerungDtoFromJSON,
     SnoozeErinnerungDtoToJSON,
-    StopRecurringSeriesDtoFromJSON,
     StopRecurringSeriesDtoToJSON,
-    UpdateErinnerungDtoFromJSON,
     UpdateErinnerungDtoToJSON,
-} from '../models/index';
+} from '../models';
 
 export interface ErinnerungControllerAcknowledgeVAlphaRequest {
     einsatzId: string;
@@ -194,7 +178,7 @@ export class ErinnerungenApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/{id}/acknowledge`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/{id}/acknowledge`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -245,7 +229,7 @@ export class ErinnerungenApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/{id}/assign`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/{id}/assign`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -290,7 +274,7 @@ export class ErinnerungenApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -333,7 +317,7 @@ export class ErinnerungenApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/{id}`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/{id}`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
@@ -378,7 +362,7 @@ export class ErinnerungenApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/export`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/export`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -424,7 +408,7 @@ export class ErinnerungenApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/export/rohdaten`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/export/rohdaten`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -459,7 +443,7 @@ export class ErinnerungenApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -494,7 +478,7 @@ export class ErinnerungenApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/statistik/eskalationen`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/statistik/eskalationen`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -536,7 +520,7 @@ export class ErinnerungenApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/{erinnerungId}/etb-history`.replace(`{${"erinnerungId"}}`, encodeURIComponent(String(requestParameters['erinnerungId']))).replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/{erinnerungId}/etb-history`.replace(`{erinnerungId}`, encodeURIComponent(String(requestParameters['erinnerungId']))).replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -571,7 +555,7 @@ export class ErinnerungenApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/statistik/fuehrungsrhythmus`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/statistik/fuehrungsrhythmus`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -606,7 +590,7 @@ export class ErinnerungenApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/statistik/personen`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/statistik/personen`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -641,7 +625,7 @@ export class ErinnerungenApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/statistik/reaktionszeiten`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/statistik/reaktionszeiten`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -676,7 +660,7 @@ export class ErinnerungenApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/statistik`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/statistik`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -715,7 +699,7 @@ export class ErinnerungenApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/statistik/vergleich`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/statistik/vergleich`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -750,7 +734,7 @@ export class ErinnerungenApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/statistik/zeitverlauf`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/statistik/zeitverlauf`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -801,7 +785,7 @@ export class ErinnerungenApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/{id}/mark-erledigt`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/{id}/mark-erledigt`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -853,7 +837,7 @@ export class ErinnerungenApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/{id}/snooze`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/{id}/snooze`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -905,7 +889,7 @@ export class ErinnerungenApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/{id}/stop-recurring`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/{id}/stop-recurring`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'PATCH',
             headers: headerParameters,
             query: queryParameters,
@@ -948,7 +932,7 @@ export class ErinnerungenApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/{id}/trigger`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/{id}/trigger`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -999,7 +983,7 @@ export class ErinnerungenApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/{id}`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/erinnerungen/{id}`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,

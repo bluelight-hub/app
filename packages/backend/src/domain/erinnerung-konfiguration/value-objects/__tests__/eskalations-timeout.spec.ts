@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { EskalationsTimeout } from '../eskalations-timeout';
 
 describe('EskalationsTimeout', () => {

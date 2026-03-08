@@ -3,7 +3,8 @@ name: 'testarch-test-design'
 description: 'Create system-level or epic-level test plans. Use when the user says "lets design test plan" or "I want to create test strategy"'
 ---
 
-IT IS CRITICAL THAT YOU FOLLOW THESE STEPS - while staying in character as the current agent persona you may have loaded:
+IT IS CRITICAL THAT YOU FOLLOW THESE STEPS - while staying in character as the current agent persona you may have
+loaded:
 
 <steps CRITICAL="TRUE">
 1. Always LOAD the FULL {project-root}/_bmad/core/tasks/workflow.xml

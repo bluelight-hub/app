@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -52,8 +51,8 @@ export function instanceOfMigrateLegacyRuntimeConfigResultSummaryDto(value: obje
     if (!('requested' in value) || value['requested'] === undefined) return false;
     if (!('migrated' in value) || value['migrated'] === undefined) return false;
     if (!('skipped' in value) || value['skipped'] === undefined) return false;
-    if (!('failed' in value) || value['failed'] === undefined) return false;
-    return true;
+    return !(!('failed' in value) || value['failed'] === undefined);
+
 }
 
 export function MigrateLegacyRuntimeConfigResultSummaryDtoFromJSON(json: any): MigrateLegacyRuntimeConfigResultSummaryDto {

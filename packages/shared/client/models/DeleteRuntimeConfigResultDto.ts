@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -38,8 +37,8 @@ export interface DeleteRuntimeConfigResultDto {
  */
 export function instanceOfDeleteRuntimeConfigResultDto(value: object): value is DeleteRuntimeConfigResultDto {
     if (!('key' in value) || value['key'] === undefined) return false;
-    if (!('deleted' in value) || value['deleted'] === undefined) return false;
-    return true;
+    return !(!('deleted' in value) || value['deleted'] === undefined);
+
 }
 
 export function DeleteRuntimeConfigResultDtoFromJSON(json: any): DeleteRuntimeConfigResultDto {

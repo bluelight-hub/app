@@ -25,8 +25,8 @@ import type { PersonZuFahrzeugZugewiesenEvent } from '@domain/kraefte/events/per
 import type { PersonVonFahrzeugEntferntEvent } from '@domain/kraefte/events/person-von-fahrzeug-entfernt.event';
 import { Result } from '@domain/common/result';
 import { LOGGER } from '@infrastructure/di-tokens';
-import { AddEintragCommand } from '../commands/add-eintrag/add-eintrag.command';
-import { AddEintragHandler } from '../commands/add-eintrag/add-eintrag.handler';
+import { AddEintragCommand } from '@application/etb/commands';
+import { AddEintragHandler } from '@application/etb/commands';
 
 /**
  * Retry-Konfiguration für Exponential Backoff.

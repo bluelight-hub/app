@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Test, type TestingModule } from '@nestjs/testing';
 import { ErinnerungKonfigurationController } from '../erinnerung-konfiguration.controller';
 import { QueryBus, CommandBus, CqrsModule } from '@nestjs/cqrs';

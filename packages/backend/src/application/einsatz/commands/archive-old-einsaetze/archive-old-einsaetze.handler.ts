@@ -5,7 +5,7 @@ import { IEinsatzRepository } from '@domain/repositories';
 import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import { UserId } from '@domain/value-objects/user-id';
 import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
-import type { ArchiveOldEinsaetzeCommand } from './archive-old-einsaetze.command';
+import type { ArchiveOldEinsaetzeCommand } from '@application/einsatz/commands';
 import type { BulkArchiveResult } from './bulk-archive-result';
 import type { Einsatz } from '@domain/aggregates/einsatz.aggregate';
 

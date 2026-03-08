@@ -109,9 +109,7 @@ export class GetTokenListHandler {
       // 3. Domain Aggregates zu DTOs mappen (OHNE Token-Hash!)
       // ════════════════════════════════════════════════════════════════════════
       // Sammle alle rotatedFromIds fuer den 'rotated' Status Check
-      const rotatedFromIds = new Set(
-        paginatedResult.items.filter((t): t is typeof t & { rotatedFromId: NonNullable<typeof t.rotatedFromId> } => t.rotatedFromId !== null).map((t) => t.rotatedFromId.value),
-      );
+      const rotatedFromIds = new Set<string>(paginatedResult.items.flatMap((token) => (token.rotatedFromId ? [token.rotatedFromId.value] : [])));
 
       const items: TokenListItemDto[] = paginatedResult.items.map((token) => this.mapToListItemDto(token, rotatedFromIds));
 

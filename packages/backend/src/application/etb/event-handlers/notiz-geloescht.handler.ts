@@ -15,8 +15,8 @@ import { ILogger } from '@domain/ports/i-logger.port';
 import type { EtbKategorieValue } from '@domain/value-objects/etb-kategorie';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { Inject, Injectable } from '@nestjs/common';
-import { AddEintragCommand } from '../commands/add-eintrag/add-eintrag.command';
-import { AddEintragHandler } from '../commands/add-eintrag/add-eintrag.handler';
+import { AddEintragCommand } from '@application/etb/commands';
+import { AddEintragHandler } from '@application/etb/commands';
 
 const ETB_KATEGORIE_NOTIZ: EtbKategorieValue = 'SYSTEM';
 

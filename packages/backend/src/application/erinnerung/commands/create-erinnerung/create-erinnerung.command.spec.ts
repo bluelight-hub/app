@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { CreateErinnerungCommand } from './create-erinnerung.command';
 import { ERINNERUNG_ERROR_CODES } from '../../errors/erinnerung-error.codes';
 

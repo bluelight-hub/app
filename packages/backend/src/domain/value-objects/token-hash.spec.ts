@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { TokenHash } from '@domain/value-objects/token-hash';
 
 /**

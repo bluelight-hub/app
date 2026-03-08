@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -52,8 +51,8 @@ export function instanceOfTaktischeStaerkeDto(value: object): value is Taktische
     if (!('fuehrung' in value) || value['fuehrung'] === undefined) return false;
     if (!('unterfuehrung' in value) || value['unterfuehrung'] === undefined) return false;
     if (!('mannschaft' in value) || value['mannschaft'] === undefined) return false;
-    if (!('gesamt' in value) || value['gesamt'] === undefined) return false;
-    return true;
+    return !(!('gesamt' in value) || value['gesamt'] === undefined);
+
 }
 
 export function TaktischeStaerkeDtoFromJSON(json: any): TaktischeStaerkeDto {

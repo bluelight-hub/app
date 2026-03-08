@@ -30,7 +30,10 @@ export class GetReaktionszeitStatistikHandler {
       return Result.fail<ReaktionszeitStatistikDto>(statistikResult.error ?? ERINNERUNG_ERROR_CODES.QUERY_FAILED);
     }
 
-    const statistik = statistikResult.value!;
+    const statistik = statistikResult.value;
+    if (!statistik) {
+      return Result.fail<ReaktionszeitStatistikDto>(ERINNERUNG_ERROR_CODES.QUERY_FAILED);
+    }
 
     const dto: ReaktionszeitStatistikDto = {
       totalAcknowledged: statistik.totalAcknowledged,

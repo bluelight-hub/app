@@ -1,7 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { PrismaModule } from '@/infrastructure/database/prisma.module';
 import { LOGGER, SERVER_ACCESS_TOKEN_REPOSITORY } from '@infrastructure/di-tokens';
-import { NestLoggerAdapter } from '../common/adapters/nest-logger.adapter';
+import { NestLoggerAdapter } from '@infrastructure/common/adapters';
 import { PrismaServerAccessTokenRepository } from './repositories/prisma-server-access-token.repository';
 import { ServerAccessGuard } from '../guards/server-access.guard';
 

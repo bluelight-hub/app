@@ -1,6 +1,7 @@
 # CIS Workflows
 
-Five interactive workflows facilitating creative and strategic processes through curated technique libraries and structured facilitation.
+Five interactive workflows facilitating creative and strategic processes through curated technique libraries and
+structured facilitation.
 
 ## Table of Contents
 

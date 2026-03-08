@@ -4,9 +4,9 @@ import { cn } from '@/shared/ui/cn';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { useVorlagen } from '../../api';
 import { VorlageCard } from '../atoms/VorlageCard';
-import { CreateVorlageDialog } from './CreateVorlageDialog';
+import { CreateVorlageDialog } from '@/features/templates';
 import { EditVorlageDialog } from './EditVorlageDialog';
-import { DeleteVorlageConfirm } from '../molecules/DeleteVorlageConfirm';
+import { DeleteVorlageConfirm } from '@/features/templates';
 
 interface VorlageListProps {
   className?: string;

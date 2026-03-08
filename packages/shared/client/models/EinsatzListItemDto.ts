@@ -12,13 +12,10 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { EinsatzListItemDtoEinsatzort } from './EinsatzListItemDtoEinsatzort';
+import type {EinsatzListItemDtoEinsatzort} from './EinsatzListItemDtoEinsatzort';
 import {
     EinsatzListItemDtoEinsatzortFromJSON,
-    EinsatzListItemDtoEinsatzortFromJSONTyped,
     EinsatzListItemDtoEinsatzortToJSON,
-    EinsatzListItemDtoEinsatzortToJSONTyped,
 } from './EinsatzListItemDtoEinsatzort';
 
 /**
@@ -100,8 +97,8 @@ export function instanceOfEinsatzListItemDto(value: object): value is EinsatzLis
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
     if (!('etbEintraegeCount' in value) || value['etbEintraegeCount'] === undefined) return false;
-    if (!('poisCount' in value) || value['poisCount'] === undefined) return false;
-    return true;
+    return !(!('poisCount' in value) || value['poisCount'] === undefined);
+
 }
 
 export function EinsatzListItemDtoFromJSON(json: any): EinsatzListItemDto {

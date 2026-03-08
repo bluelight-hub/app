@@ -4,7 +4,7 @@ import { Result } from '@domain/common/result';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER } from '@infrastructure/di-tokens';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
-import type { EinsatzListItemDto } from '../../dto/einsatz-list-item.dto';
+import type { EinsatzListItemDto } from '@application/einsatz/dto';
 import { GetActiveEinsaetzeWithCountsQuery } from './get-active-einsaetze-with-counts.query';
 
 /**
@@ -78,8 +78,8 @@ export class GetActiveEinsaetzeWithCountsQueryHandler implements IQueryHandler<G
    * - _count kann undefined sein (Prisma Quirk)
    * - Fallback: 0 (valider Count wenn Relation nicht existiert)
    *
-   * @param _query - GetActiveEinsaetzeWithCountsQuery (parameterlos, Underscore weil unused)
    * @returns Result<EinsatzListItemDto[]> - Success mit DTOs oder Failure mit Error Message
+   * @param query
    */
   async execute(query: GetActiveEinsaetzeWithCountsQuery): Promise<Result<EinsatzListItemDto[]>> {
     try {

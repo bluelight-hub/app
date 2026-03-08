@@ -22,7 +22,7 @@ import {
   createKategorieFilter,
   kategorieFilterToValue,
   type KategorieFilterType,
-} from '../kategorie-filter.store';
+} from '@/features/reminders';
 
 describe('KategorieFilterStore', () => {
   beforeEach(() => {

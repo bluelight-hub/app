@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { RuntimeConfigEntryDto } from './RuntimeConfigEntryDto';
-import {
-    RuntimeConfigEntryDtoFromJSON,
-    RuntimeConfigEntryDtoFromJSONTyped,
-    RuntimeConfigEntryDtoToJSON,
-    RuntimeConfigEntryDtoToJSONTyped,
-} from './RuntimeConfigEntryDto';
+import type {RuntimeConfigEntryDto} from './RuntimeConfigEntryDto';
+import {RuntimeConfigEntryDtoFromJSON, RuntimeConfigEntryDtoToJSON,} from './RuntimeConfigEntryDto';
 
 /**
  * 
@@ -39,8 +33,8 @@ export interface RuntimeConfigListDto {
  * Check if a given object implements the RuntimeConfigListDto interface.
  */
 export function instanceOfRuntimeConfigListDto(value: object): value is RuntimeConfigListDto {
-    if (!('entries' in value) || value['entries'] === undefined) return false;
-    return true;
+    return !(!('entries' in value) || value['entries'] === undefined);
+
 }
 
 export function RuntimeConfigListDtoFromJSON(json: any): RuntimeConfigListDto {

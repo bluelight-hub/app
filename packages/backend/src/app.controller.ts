@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { Controller, Get, Logger, VERSION_NEUTRAL } from '@nestjs/common';
 import { SkipSetupCheck } from '@/infrastructure/decorators/skip-setup-check.decorator';
 import { AppConfigService } from '@/infrastructure/services/app-config.service';
-import { SkipTransform } from './modules/common/decorators/skip-transform.decorator';
+import { SkipTransform } from '@/modules/common/decorators';
 import { trimTrailingSlash } from '@/shared/utils/url.util';
 
 const packageJson = (() => {
@@ -31,7 +31,6 @@ export class AppController {
    * Initialisiert die Basis-URL der Anwendung und den Logger für diese Klasse.
    *
    * @param appConfig - Zentraler Runtime-Konfigurationsservice
-   * @param logger - Logger-Service für diese Klasse
    */
   constructor(private readonly appConfig: AppConfigService) {
     this.logger = new Logger(AppController.name);

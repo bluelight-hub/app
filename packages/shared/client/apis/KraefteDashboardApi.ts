@@ -16,11 +16,11 @@
 import * as runtime from '../runtime';
 import type {
   KraefteDashboardControllerGetTaktischeStaerkeVAlpha200Response,
-} from '../models/index';
+} from '../models';
 import {
     KraefteDashboardControllerGetTaktischeStaerkeVAlpha200ResponseFromJSON,
-    KraefteDashboardControllerGetTaktischeStaerkeVAlpha200ResponseToJSON,
-} from '../models/index';
+
+} from '../models';
 
 export interface KraefteDashboardControllerGetTaktischeStaerkeVAlphaRequest {
     einsatzId: string;
@@ -47,7 +47,7 @@ export class KraefteDashboardApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsaetze/{einsatzId}/kraefte/staerke`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsaetze/{einsatzId}/kraefte/staerke`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,

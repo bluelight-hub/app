@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { PersonStatistikItemDto } from './PersonStatistikItemDto';
-import {
-    PersonStatistikItemDtoFromJSON,
-    PersonStatistikItemDtoFromJSONTyped,
-    PersonStatistikItemDtoToJSON,
-    PersonStatistikItemDtoToJSONTyped,
-} from './PersonStatistikItemDto';
+import type {PersonStatistikItemDto} from './PersonStatistikItemDto';
+import {PersonStatistikItemDtoFromJSON, PersonStatistikItemDtoToJSON,} from './PersonStatistikItemDto';
 
 /**
  * 
@@ -39,8 +33,8 @@ export interface PersonStatistikDto {
  * Check if a given object implements the PersonStatistikDto interface.
  */
 export function instanceOfPersonStatistikDto(value: object): value is PersonStatistikDto {
-    if (!('items' in value) || value['items'] === undefined) return false;
-    return true;
+    return !(!('items' in value) || value['items'] === undefined);
+
 }
 
 export function PersonStatistikDtoFromJSON(json: any): PersonStatistikDto {

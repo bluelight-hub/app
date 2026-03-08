@@ -12,27 +12,21 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { FunkStatusConfigDto } from './FunkStatusConfigDto';
-import {
-    FunkStatusConfigDtoFromJSON,
-    FunkStatusConfigDtoFromJSONTyped,
-    FunkStatusConfigDtoToJSON,
-    FunkStatusConfigDtoToJSONTyped,
-} from './FunkStatusConfigDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {FunkStatusConfigDto} from './FunkStatusConfigDto';
+import {FunkStatusConfigDtoFromJSON, FunkStatusConfigDtoToJSON,} from './FunkStatusConfigDto';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
-import type { UserControllerFindAllBasicVAlpha200ResponsePagination } from './UserControllerFindAllBasicVAlpha200ResponsePagination';
+import type {
+    UserControllerFindAllBasicVAlpha200ResponsePagination
+} from './UserControllerFindAllBasicVAlpha200ResponsePagination';
 import {
     UserControllerFindAllBasicVAlpha200ResponsePaginationFromJSON,
-    UserControllerFindAllBasicVAlpha200ResponsePaginationFromJSONTyped,
     UserControllerFindAllBasicVAlpha200ResponsePaginationToJSON,
-    UserControllerFindAllBasicVAlpha200ResponsePaginationToJSONTyped,
 } from './UserControllerFindAllBasicVAlpha200ResponsePagination';
 
 /**
@@ -66,8 +60,8 @@ export interface AdminFunkStatusControllerFindAllVAlpha200Response {
  */
 export function instanceOfAdminFunkStatusControllerFindAllVAlpha200Response(value: object): value is AdminFunkStatusControllerFindAllVAlpha200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function AdminFunkStatusControllerFindAllVAlpha200ResponseFromJSON(json: any): AdminFunkStatusControllerFindAllVAlpha200Response {

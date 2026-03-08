@@ -1,5 +1,5 @@
-import { isTauri } from '@tauri-apps/api/core';
 import { logger } from '@/shared/lib/logger';
+import { isTauri } from '@tauri-apps/api/core';
 
 /**
  * Notification Permission Status
@@ -87,28 +87,6 @@ class NotificationService {
   private tauriPluginAvailable: boolean | null = null;
 
   /**
-   * Navigiert lazy zur Befehlsansicht.
-   *
-   * Vermeidet statischen Import von `@/main`, damit Tests ohne App-Bootstrap laufen.
-   */
-  private navigateToBefehl(einsatzId: string, befehlId: string): void {
-    void import('@/main')
-      .then(({ router }) => {
-        router.navigate({
-          to: '/app/einsatz/$einsatzId/führung/befehle',
-          params: { einsatzId },
-          search: { befehlId },
-        });
-      })
-      .catch((error) => {
-        logger.warn('Navigation über Router fehlgeschlagen, fallback auf URL', { error });
-        if (typeof window !== 'undefined') {
-          window.location.href = `/app/einsatz/${einsatzId}/führung/befehle?befehlId=${befehlId}`;
-        }
-      });
-  }
-
-  /**
    * Prüft ob Benachrichtigungen grundsätzlich unterstützt werden
    *
    * @returns true wenn Tauri Notification Plugin oder Web Notifications verfügbar
@@ -120,33 +98,6 @@ class NotificationService {
 
     // Web: Prüfe Notification API
     return 'Notification' in window;
-  }
-
-  /**
-   * Prueft ob das Tauri Notification Plugin verfuegbar ist
-   *
-   * Prueft nur ob das JS-Modul importierbar ist und die erwarteten Exports hat.
-   * Kein IPC-Call um Mixed-Content-Fehler (https:// → ipc://) zu vermeiden.
-   * Die tatsaechliche Plugin-Verfuegbarkeit wird beim ersten Aufruf verifiziert.
-   */
-  private async isTauriPluginAvailable(): Promise<boolean> {
-    // Cached Ergebnis nutzen
-    if (this.tauriPluginAvailable !== null) {
-      return this.tauriPluginAvailable;
-    }
-
-    try {
-      const mod = await import('@tauri-apps/plugin-notification');
-      // Modul importierbar und erwartete Exports vorhanden → optimistisch verfuegbar
-      // Kein IPC-Probe-Call: Mixed-Content-Block (https→ipc) loest Browser-Fehler aus
-      // bevor unser catch greift. Tatsaechliche Verfuegbarkeit wird bei erstem Aufruf geprueft.
-      this.tauriPluginAvailable = typeof mod.isPermissionGranted === 'function';
-      return this.tauriPluginAvailable;
-    } catch {
-      logger.warn('Tauri Notification Plugin nicht verfügbar, nutze Web Notifications als Fallback');
-      this.tauriPluginAvailable = false;
-      return false;
-    }
   }
 
   /**
@@ -354,6 +305,55 @@ class NotificationService {
     return this.sendWebBefehlNotification(title, body, befehlId, einsatzId);
   }
 
+  /**
+   * Navigiert lazy zur Befehlsansicht.
+   *
+   * Vermeidet statischen Import von `@/main`, damit Tests ohne App-Bootstrap laufen.
+   */
+  private navigateToBefehl(einsatzId: string, befehlId: string): void {
+    void import('@/main')
+      .then(({ router }) => {
+        router.navigate({
+          to: '/app/einsatz/$einsatzId/führung/befehle',
+          params: { einsatzId },
+          search: { befehlId },
+        });
+      })
+      .catch((error) => {
+        logger.warn('Navigation über Router fehlgeschlagen, fallback auf URL', { error });
+        if (typeof window !== 'undefined') {
+          window.location.href = `/app/einsatz/${einsatzId}/führung/befehle?befehlId=${befehlId}`;
+        }
+      });
+  }
+
+  /**
+   * Prueft ob das Tauri Notification Plugin verfuegbar ist
+   *
+   * Prueft nur ob das JS-Modul importierbar ist und die erwarteten Exports hat.
+   * Kein IPC-Call um Mixed-Content-Fehler (https:// → ipc://) zu vermeiden.
+   * Die tatsaechliche Plugin-Verfuegbarkeit wird beim ersten Aufruf verifiziert.
+   */
+  private async isTauriPluginAvailable(): Promise<boolean> {
+    // Cached Ergebnis nutzen
+    if (this.tauriPluginAvailable !== null) {
+      return this.tauriPluginAvailable;
+    }
+
+    try {
+      const mod = await import('@tauri-apps/plugin-notification');
+      // Modul importierbar und erwartete Exports vorhanden → optimistisch verfuegbar
+      // Kein IPC-Probe-Call: Mixed-Content-Block (https→ipc) loest Browser-Fehler aus
+      // bevor unser catch greift. Tatsaechliche Verfuegbarkeit wird bei erstem Aufruf geprueft.
+      this.tauriPluginAvailable = typeof mod.isPermissionGranted === 'function';
+      return this.tauriPluginAvailable;
+    } catch {
+      logger.warn('Tauri Notification Plugin nicht verfügbar, nutze Web Notifications als Fallback');
+      this.tauriPluginAvailable = false;
+      return false;
+    }
+  }
+
   // ===================
   // Tauri Implementation
   // ===================
@@ -419,7 +419,7 @@ class NotificationService {
       const { sendNotification: tauriSendNotification } = await import('@tauri-apps/plugin-notification');
       const { ERINNERUNG_CHANNEL_ID, ERINNERUNG_ACTION_TYPE_ID } = await import('./notification-setup.service');
 
-      await tauriSendNotification({
+      tauriSendNotification({
         title,
         body,
         // High Importance Channel für prominente Anzeige
@@ -457,7 +457,7 @@ class NotificationService {
       const { sendNotification: tauriSendNotification } = await import('@tauri-apps/plugin-notification');
       const { BEFEHL_CHANNEL_ID, BEFEHL_ACTION_TYPE_ID } = await import('./notification-setup.service');
 
-      await tauriSendNotification({
+      tauriSendNotification({
         title,
         body,
         channelId: BEFEHL_CHANNEL_ID,

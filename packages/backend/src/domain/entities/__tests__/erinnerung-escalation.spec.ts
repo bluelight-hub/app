@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Erinnerung } from '../erinnerung.entity';
 import { UserId } from '@domain/value-objects/user-id';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';

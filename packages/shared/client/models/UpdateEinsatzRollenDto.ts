@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { RollenZuweisungDto } from './RollenZuweisungDto';
-import {
-    RollenZuweisungDtoFromJSON,
-    RollenZuweisungDtoFromJSONTyped,
-    RollenZuweisungDtoToJSON,
-    RollenZuweisungDtoToJSONTyped,
-} from './RollenZuweisungDto';
+import type {RollenZuweisungDto} from './RollenZuweisungDto';
+import {RollenZuweisungDtoFromJSON, RollenZuweisungDtoToJSON,} from './RollenZuweisungDto';
 
 /**
  * 
@@ -39,8 +33,8 @@ export interface UpdateEinsatzRollenDto {
  * Check if a given object implements the UpdateEinsatzRollenDto interface.
  */
 export function instanceOfUpdateEinsatzRollenDto(value: object): value is UpdateEinsatzRollenDto {
-    if (!('zuweisungen' in value) || value['zuweisungen'] === undefined) return false;
-    return true;
+    return !(!('zuweisungen' in value) || value['zuweisungen'] === undefined);
+
 }
 
 export function UpdateEinsatzRollenDtoFromJSON(json: any): UpdateEinsatzRollenDto {

@@ -12,21 +12,15 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { StammPersonDto } from './StammPersonDto';
-import {
-    StammPersonDtoFromJSON,
-    StammPersonDtoFromJSONTyped,
-    StammPersonDtoToJSON,
-    StammPersonDtoToJSONTyped,
-} from './StammPersonDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {StammPersonDto} from './StammPersonDto';
+import {StammPersonDtoFromJSON, StammPersonDtoToJSON,} from './StammPersonDto';
 
 /**
  * 
@@ -53,8 +47,8 @@ export interface AdminStammPersonenControllerCreateVAlpha201Response {
  */
 export function instanceOfAdminStammPersonenControllerCreateVAlpha201Response(value: object): value is AdminStammPersonenControllerCreateVAlpha201Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function AdminStammPersonenControllerCreateVAlpha201ResponseFromJSON(json: any): AdminStammPersonenControllerCreateVAlpha201Response {

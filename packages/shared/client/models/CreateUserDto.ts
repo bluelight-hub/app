@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -49,8 +48,8 @@ export type CreateUserDtoRoleEnum = typeof CreateUserDtoRoleEnum[keyof typeof Cr
  * Check if a given object implements the CreateUserDto interface.
  */
 export function instanceOfCreateUserDto(value: object): value is CreateUserDto {
-    if (!('username' in value) || value['username'] === undefined) return false;
-    return true;
+    return !(!('username' in value) || value['username'] === undefined);
+
 }
 
 export function CreateUserDtoFromJSON(json: any): CreateUserDto {

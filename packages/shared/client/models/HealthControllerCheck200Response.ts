@@ -15,14 +15,12 @@
 import type { BasicHealthDto } from './BasicHealthDto';
 import {
     instanceOfBasicHealthDto,
-    BasicHealthDtoFromJSON,
     BasicHealthDtoFromJSONTyped,
     BasicHealthDtoToJSON,
 } from './BasicHealthDto';
 import type { DetailedHealthDto } from './DetailedHealthDto';
 import {
     instanceOfDetailedHealthDto,
-    DetailedHealthDtoFromJSON,
     DetailedHealthDtoFromJSONTyped,
     DetailedHealthDtoToJSON,
 } from './DetailedHealthDto';

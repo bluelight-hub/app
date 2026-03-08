@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -37,8 +36,8 @@ export interface LoginDto {
  * Check if a given object implements the LoginDto interface.
  */
 export function instanceOfLoginDto(value: object): value is LoginDto {
-    if (!('username' in value) || value['username'] === undefined) return false;
-    return true;
+    return !(!('username' in value) || value['username'] === undefined);
+
 }
 
 export function LoginDtoFromJSON(json: any): LoginDto {

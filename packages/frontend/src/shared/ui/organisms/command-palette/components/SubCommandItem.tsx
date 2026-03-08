@@ -41,6 +41,19 @@ export function SubCommandItem({ subCommand, onSelect, currentValue, isActive = 
         .join('+'),
     [subCommand.shortcut],
   );
+  const shortcutKeys = useMemo(() => {
+    const shortcutCounts = new Map<string, number>();
+
+    return (subCommand.shortcut ?? []).map((key) => {
+      const occurrence = (shortcutCounts.get(key) ?? 0) + 1;
+      shortcutCounts.set(key, occurrence);
+
+      return {
+        label: key,
+        reactKey: `${subCommand.id}-${key}-${occurrence}`,
+      };
+    });
+  }, [subCommand.id, subCommand.shortcut]);
 
   // Register hotkey
   useHotkeys(
@@ -67,9 +80,9 @@ export function SubCommandItem({ subCommand, onSelect, currentValue, isActive = 
           <span className="font-medium text-gray-900 dark:text-gray-100">{subCommand.name}</span>
           {subCommand.shortcut && (
             <div className="hidden items-center gap-1 sm:flex">
-              {subCommand.shortcut.map((key, idx) => (
-                <kbd key={`${subCommand.id}-${key}-${idx}`} className={commandItemClasses.kbd}>
-                  {key}
+              {shortcutKeys.map((shortcut) => (
+                <kbd key={shortcut.reactKey} className={commandItemClasses.kbd}>
+                  {shortcut.label}
                 </kbd>
               ))}
             </div>

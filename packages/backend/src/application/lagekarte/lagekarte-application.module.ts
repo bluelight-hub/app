@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { EVENT_HANDLER, LOGGER } from '@infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
-import { CreateLagekarteCommandHandler } from './commands/create-lagekarte.handler';
+import { CreateLagekarteCommandHandler } from '@application/lagekarte/commands';
 import { AddPoiCommandHandler } from './commands/add-poi.handler';
 import { RemovePoiCommandHandler } from './commands/remove-poi.handler';
-import { UpdatePoiPositionCommandHandler } from './commands/update-poi-position.handler';
-import { GetLagekarteQueryHandler } from './queries/get-lagekarte.handler';
+import { UpdatePoiPositionCommandHandler } from '@application/lagekarte/commands';
+import { GetLagekarteQueryHandler } from '@application/lagekarte/queries';
 import { GetPoisQueryHandler } from './queries/get-pois.handler';
-import { GetLagekarteExistsQueryHandler } from './queries/get-lagekarte-exists.handler';
+import { GetLagekarteExistsQueryHandler } from '@application/lagekarte/queries';
 import { LagekarteMapper } from './mappers/lagekarte.mapper';
 import { PoiMapper } from './mappers/poi.mapper';
 import { EventInfrastructureModule } from '@infrastructure/events/event-infrastructure.module';

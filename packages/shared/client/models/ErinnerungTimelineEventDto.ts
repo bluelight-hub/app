@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { TimelineUserDto } from './TimelineUserDto';
-import {
-    TimelineUserDtoFromJSON,
-    TimelineUserDtoFromJSONTyped,
-    TimelineUserDtoToJSON,
-    TimelineUserDtoToJSONTyped,
-} from './TimelineUserDto';
+import type {TimelineUserDto} from './TimelineUserDto';
+import {TimelineUserDtoFromJSON, TimelineUserDtoToJSON,} from './TimelineUserDto';
 
 /**
  * 
@@ -80,8 +74,8 @@ export function instanceOfErinnerungTimelineEventDto(value: object): value is Er
     if (!('timestamp' in value) || value['timestamp'] === undefined) return false;
     if (!('sequenceNumber' in value) || value['sequenceNumber'] === undefined) return false;
     if (!('createdBy' in value) || value['createdBy'] === undefined) return false;
-    if (!('text' in value) || value['text'] === undefined) return false;
-    return true;
+    return !(!('text' in value) || value['text'] === undefined);
+
 }
 
 export function ErinnerungTimelineEventDtoFromJSON(json: any): ErinnerungTimelineEventDto {

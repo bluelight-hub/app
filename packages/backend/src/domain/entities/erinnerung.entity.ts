@@ -133,7 +133,7 @@ export interface ReconstructErinnerungProps {
   /** Story 7.6: Referenz zur Quell-Notiz */
   notizId?: string | null;
   /** Story 8.2: Kategorie-Referenz */
-  kategorieId: string | null;
+  kategorieId?: string | null;
   /** Story 6.4: Wiederkehrende Erinnerung */
   isRecurring?: boolean;
   /** Story 6.4: Intervall in Minuten */

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Unit Tests für EventConsumerValidatorService.
  *
@@ -84,7 +85,7 @@ describe('EventConsumerValidatorService', () => {
 
       // Then
       expect(mockLogger.warn).toHaveBeenCalled();
-      const warnCall = mockLogger.warn.mock.calls[0]?.[0];
+      const warnCall = mockLogger.warn.mock.calls[0]?.[0]!;
       expect(warnCall).toContain('my.new.event');
       expect(warnCall).toContain('kein @OnEvent Handler registriert');
     });

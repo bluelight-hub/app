@@ -28,7 +28,7 @@ import type { ILogger } from '@domain/ports/i-logger.port';
 import { StammPerson } from '@domain/kraefte/aggregates/stamm-person.aggregate';
 import { INTEGRATION_ERROR_CODES, IntegrationError, INTEGRATION_TYPES } from '@domain/integrations';
 import { INTEGRATIONS, KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';
-import { HiOrgTokenRefreshService } from '../../services/hiorg-token-refresh.service';
+import { HiOrgTokenRefreshService } from '@application/integrations';
 import type { ImportSelectedPersonsCommand } from './import-selected-persons.command';
 
 /**

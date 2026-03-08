@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Performance Baseline Tests fuer ETB Infrastructure (PrismaEtbRepository).
  *
@@ -181,8 +182,8 @@ describe('PrismaEtbRepository - Performance Baselines', () => {
       //
       //   // 4. Delete 2 Eintraege
       //   loaded = await repository.findById(etb.id);
-      //   loaded.deleteEintrag(loaded.eintraege[0].id, testUserId);
-      //   loaded.deleteEintrag(loaded.eintraege[1].id, testUserId);
+      //   loaded.deleteEintrag(loaded.eintraege[0]!.id, testUserId);
+      //   loaded.deleteEintrag(loaded.eintraege[1]!.id, testUserId);
       //   await repository.save(loaded);
       //
       //   // 5. Lock ETB

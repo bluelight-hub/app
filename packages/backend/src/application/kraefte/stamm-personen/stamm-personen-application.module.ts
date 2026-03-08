@@ -6,14 +6,14 @@ import { LOGGER } from '@infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 
 // Command Handlers
-import { CreateStammPersonHandler } from './commands/create-stamm-person/create-stamm-person.handler';
-import { UpdateStammPersonHandler } from './commands/update-stamm-person/update-stamm-person.handler';
-import { ArchiveStammPersonHandler } from './commands/archive-stamm-person/archive-stamm-person.handler';
-import { RestoreStammPersonHandler } from './commands/restore-stamm-person/restore-stamm-person.handler';
+import { CreateStammPersonHandler } from '@application/kraefte/stamm-personen/commands';
+import { UpdateStammPersonHandler } from '@application/kraefte/stamm-personen/commands';
+import { ArchiveStammPersonHandler } from '@application/kraefte/stamm-personen/commands';
+import { RestoreStammPersonHandler } from '@application/kraefte/stamm-personen/commands';
 
 // Query Handlers
-import { GetAllStammPersonenHandler } from './queries/get-all-stamm-personen/get-all-stamm-personen.handler';
-import { GetStammPersonByIdHandler } from './queries/get-stamm-person-by-id/get-stamm-person-by-id.handler';
+import { GetAllStammPersonenHandler } from '@application/kraefte/stamm-personen/queries';
+import { GetStammPersonByIdHandler } from '@application/kraefte/stamm-personen/queries';
 
 // Query Mapper
 import { StammPersonQueryMapper } from './queries/stamm-person-query.mapper';

@@ -26,7 +26,6 @@ import type {
   AdminSecurityControllerGetStatusVAlpha200Response,
   AdminSecurityControllerMigrateToSecureVAlpha201Response,
   AdminSetupControllerCompleteSetupVAlpha201Response,
-  AdminSetupControllerCompleteSetupVAlpha400Response,
   AdminTokenControllerCreateTokenVAlpha201Response,
   AdminTokenControllerListTokensVAlpha200Response,
   AdminTokenControllerRevokeTokenVAlpha200Response,
@@ -38,55 +37,31 @@ import type {
   MigrateToSecureModeRequestDto,
   RotateAccessTokenRequestDto,
   UpsertRuntimeConfigRequestDto,
-} from '../models/index';
+} from '../models';
 import {
     AdminInviteControllerCreateInviteVAlpha201ResponseFromJSON,
-    AdminInviteControllerCreateInviteVAlpha201ResponseToJSON,
     AdminInviteControllerListInvitesVAlpha200ResponseFromJSON,
-    AdminInviteControllerListInvitesVAlpha200ResponseToJSON,
     AdminInviteControllerRevokeInviteVAlpha200ResponseFromJSON,
-    AdminInviteControllerRevokeInviteVAlpha200ResponseToJSON,
     AdminRuntimeConfigControllerDeleteRuntimeConfigVAlpha200ResponseFromJSON,
-    AdminRuntimeConfigControllerDeleteRuntimeConfigVAlpha200ResponseToJSON,
     AdminRuntimeConfigControllerListRuntimeConfigVAlpha200ResponseFromJSON,
-    AdminRuntimeConfigControllerListRuntimeConfigVAlpha200ResponseToJSON,
     AdminRuntimeConfigControllerMigrateLegacyRuntimeConfigVAlpha200ResponseFromJSON,
-    AdminRuntimeConfigControllerMigrateLegacyRuntimeConfigVAlpha200ResponseToJSON,
     AdminRuntimeConfigControllerUpsertRuntimeConfigVAlpha200ResponseFromJSON,
-    AdminRuntimeConfigControllerUpsertRuntimeConfigVAlpha200ResponseToJSON,
     AdminSecurityControllerGetConfigDoctorVAlpha200ResponseFromJSON,
-    AdminSecurityControllerGetConfigDoctorVAlpha200ResponseToJSON,
     AdminSecurityControllerGetStatusVAlpha200ResponseFromJSON,
-    AdminSecurityControllerGetStatusVAlpha200ResponseToJSON,
     AdminSecurityControllerMigrateToSecureVAlpha201ResponseFromJSON,
-    AdminSecurityControllerMigrateToSecureVAlpha201ResponseToJSON,
     AdminSetupControllerCompleteSetupVAlpha201ResponseFromJSON,
-    AdminSetupControllerCompleteSetupVAlpha201ResponseToJSON,
-    AdminSetupControllerCompleteSetupVAlpha400ResponseFromJSON,
-    AdminSetupControllerCompleteSetupVAlpha400ResponseToJSON,
     AdminTokenControllerCreateTokenVAlpha201ResponseFromJSON,
-    AdminTokenControllerCreateTokenVAlpha201ResponseToJSON,
     AdminTokenControllerListTokensVAlpha200ResponseFromJSON,
-    AdminTokenControllerListTokensVAlpha200ResponseToJSON,
     AdminTokenControllerRevokeTokenVAlpha200ResponseFromJSON,
-    AdminTokenControllerRevokeTokenVAlpha200ResponseToJSON,
     AdminTokenControllerRotateTokenVAlpha201ResponseFromJSON,
-    AdminTokenControllerRotateTokenVAlpha201ResponseToJSON,
-    CompleteSetupDtoFromJSON,
     CompleteSetupDtoToJSON,
-    CreateAccessTokenDtoFromJSON,
     CreateAccessTokenDtoToJSON,
-    CreateInviteDtoFromJSON,
     CreateInviteDtoToJSON,
-    MigrateLegacyRuntimeConfigRequestDtoFromJSON,
     MigrateLegacyRuntimeConfigRequestDtoToJSON,
-    MigrateToSecureModeRequestDtoFromJSON,
     MigrateToSecureModeRequestDtoToJSON,
-    RotateAccessTokenRequestDtoFromJSON,
     RotateAccessTokenRequestDtoToJSON,
-    UpsertRuntimeConfigRequestDtoFromJSON,
     UpsertRuntimeConfigRequestDtoToJSON,
-} from '../models/index';
+} from '../models';
 
 export interface AdminInviteControllerCreateInviteVAlphaRequest {
     createInviteDto: CreateInviteDto;
@@ -258,7 +233,7 @@ export class AdminApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/admin/invites/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/admin/invites/{id}`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
@@ -293,7 +268,7 @@ export class AdminApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/admin/runtime-config/{key}`.replace(`{${"key"}}`, encodeURIComponent(String(requestParameters['key']))),
+            path: `/api/v-alpha/admin/runtime-config/{key}`.replace(`{key}`, encodeURIComponent(String(requestParameters['key']))),
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
@@ -403,7 +378,7 @@ export class AdminApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/admin/runtime-config/{key}`.replace(`{${"key"}}`, encodeURIComponent(String(requestParameters['key']))),
+            path: `/api/v-alpha/admin/runtime-config/{key}`.replace(`{key}`, encodeURIComponent(String(requestParameters['key']))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
@@ -657,7 +632,7 @@ export class AdminApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/admin/tokens/{id}/reactivate`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/admin/tokens/{id}/reactivate`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -692,7 +667,7 @@ export class AdminApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/admin/tokens/{id}/revoke`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/admin/tokens/{id}/revoke`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -736,7 +711,7 @@ export class AdminApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/admin/tokens/{id}/rotate`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/admin/tokens/{id}/rotate`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,

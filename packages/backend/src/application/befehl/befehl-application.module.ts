@@ -10,9 +10,9 @@ import { CreateBefehlHandler } from './commands/create-befehl/create-befehl.hand
 import { KorrigiereBefehlHandler } from './commands/korrigiere-befehl/korrigiere-befehl.handler';
 import { QuittierenBefehlHandler } from './commands/quittieren-befehl/quittieren-befehl.handler';
 import { AendereEmpfaengerStatusHandler } from './commands/aendere-empfaenger-status/aendere-empfaenger-status.handler';
-import { GetBefehlHistorieQueryHandler } from './queries/get-befehl-historie/get-befehl-historie.handler';
-import { ExportBefehleQueryHandler } from './queries/export-befehle/export-befehle.handler';
-import { EmpfaengerSucheQueryHandler } from './queries/empfaenger-suche/empfaenger-suche.handler';
+import { GetBefehlHistorieQueryHandler } from '@application/befehl/queries/get-befehl-historie';
+import { ExportBefehleQueryHandler } from '@application/befehl/queries/export-befehle';
+import { EmpfaengerSucheQueryHandler } from '@application/befehl/queries/empfaenger-suche';
 import { BefehlsgeberSucheQueryHandler } from './queries/befehlsgeber-suche/befehlsgeber-suche.handler';
 
 /**

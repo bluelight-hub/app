@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -38,8 +37,8 @@ export interface GeoPositionDto {
  */
 export function instanceOfGeoPositionDto(value: object): value is GeoPositionDto {
     if (!('lat' in value) || value['lat'] === undefined) return false;
-    if (!('lng' in value) || value['lng'] === undefined) return false;
-    return true;
+    return !(!('lng' in value) || value['lng'] === undefined);
+
 }
 
 export function GeoPositionDtoFromJSON(json: any): GeoPositionDto {

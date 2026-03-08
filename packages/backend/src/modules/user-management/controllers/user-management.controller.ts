@@ -258,7 +258,7 @@ export class UserManagementController {
    * - User nicht gefunden → NotFoundException (404)
    * - Username bereits vergeben → BadRequestException (409-ähnlich)
    *
-   * @param user - Authentifizierter Admin aus JWT
+   * @param currentUser
    * @param id - User-ID (CUID format)
    * @param dto - UpdateUserDto (optional username, optional role)
    * @returns ManagedUserResponseDto - Aktualisierter Benutzer
@@ -342,7 +342,7 @@ export class UserManagementController {
    * - User nicht gefunden → NotFoundException (404)
    * - Letzter SUPER_ADMIN → ForbiddenException (403)
    *
-   * @param user - Authentifizierter Admin aus JWT
+   * @param currentUser
    * @param id - User-ID (CUID format)
    * @param dto - DeleteUserDto (optional downgradeAdmin flag)
    * @returns DeleteUserResponseDto - Bestätigung mit ID und deleted=true
@@ -427,7 +427,7 @@ export class UserManagementController {
    * - Bereits gesperrt → BadRequestException (400)
    * - Letzter SUPER_ADMIN → ForbiddenException (403)
    *
-   * @param user - Authentifizierter Admin aus JWT
+   * @param currentUser
    * @param id - User-ID (CUID format)
    * @param dto - LockUserDto (optional reason)
    * @returns ManagedUserResponseDto - Gesperrter Benutzer mit isLocked=true
@@ -516,7 +516,7 @@ export class UserManagementController {
    * - User nicht gefunden → NotFoundException (404)
    * - Nicht gesperrt → BadRequestException (400)
    *
-   * @param user - Authentifizierter Admin aus JWT
+   * @param currentUser
    * @param id - User-ID (CUID format)
    * @returns ManagedUserResponseDto - Entsperrter Benutzer mit isLocked=false
    */

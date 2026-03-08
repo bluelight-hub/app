@@ -39,7 +39,8 @@ completionDate: 2026-01-27 10:24:01
 
 ### Config Variables (Exceptions)
 
-Standard BMAD config variables treated as valid exceptions: bmb_creations_output_folder, communication_language, document_output_language, output_folder, planning_artifacts, project-root, project_name, test_artifacts, user_name
+Standard BMAD config variables treated as valid exceptions: bmb_creations_output_folder, communication_language,
+document_output_language, output_folder, planning_artifacts, project-root, project_name, test_artifacts, user_name
 
 - No {project-root} hardcoded paths detected in body
 
@@ -66,8 +67,8 @@ Standard BMAD config variables treated as valid exceptions: bmb_creations_output
 
 - Templates present: NONE
 - Steps with outputFile in frontmatter:
-  - steps-c/step-04-docs-and-scripts.md
-  - steps-v/step-01-validate.md
+    - steps-c/step-04-docs-and-scripts.md
+    - steps-v/step-01-validate.md
 - checklist.md present: YES
 
 ## Validation Design Check

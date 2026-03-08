@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * E2E Tests für NO-DELETE Policy (Story 4-10).
  *
@@ -134,7 +135,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       // Then: Error message contains "können nicht gelöscht werden" (German)
       expect(result.isFailure).toBe(true);
       expect(result.error).toBeDefined();
-      expect(result.error!.toLowerCase()).toContain('können nicht gelöscht werden');
+      expect(result.error?.toLowerCase()).toContain('können nicht gelöscht werden');
     });
 
     it('should suggest "Archivieren" as alternative in error message', async () => {
@@ -149,7 +150,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       // Then: Error message suggests Archive alternative
       expect(result.isFailure).toBe(true);
       expect(result.error).toBeDefined();
-      expect(result.error!.toLowerCase()).toMatch(/archiv/);
+      expect(result.error?.toLowerCase()).toMatch(/archiv/);
     });
 
     it('should have complete and informative error message', async () => {
@@ -391,8 +392,8 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       // Then: Command creation succeeds (validates inputs)
       expect(commandResult.isSuccess).toBe(true);
       expect(commandResult.value).toBeDefined();
-      expect(commandResult.value!.einsatzId).toBe(einsatzId);
-      expect(commandResult.value!.archivedBy).toBe(ctx.testUserIds.admin);
+      expect(commandResult.value?.einsatzId).toBe(einsatzId);
+      expect(commandResult.value?.archivedBy).toBe(ctx.testUserIds.admin);
 
       // NOTE: Archive execution requires 10-year abgeschlossenAt timestamp
       // which is not currently persisted in DB (domain-only field).

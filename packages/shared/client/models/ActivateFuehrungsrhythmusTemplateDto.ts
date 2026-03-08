@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -31,8 +30,8 @@ export interface ActivateFuehrungsrhythmusTemplateDto {
  * Check if a given object implements the ActivateFuehrungsrhythmusTemplateDto interface.
  */
 export function instanceOfActivateFuehrungsrhythmusTemplateDto(value: object): value is ActivateFuehrungsrhythmusTemplateDto {
-    if (!('einsatzId' in value) || value['einsatzId'] === undefined) return false;
-    return true;
+    return !(!('einsatzId' in value) || value['einsatzId'] === undefined);
+
 }
 
 export function ActivateFuehrungsrhythmusTemplateDtoFromJSON(json: any): ActivateFuehrungsrhythmusTemplateDto {

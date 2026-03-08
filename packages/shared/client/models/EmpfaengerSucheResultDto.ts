@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -75,8 +74,8 @@ export type EmpfaengerSucheResultDtoQuelleEnum = typeof EmpfaengerSucheResultDto
 export function instanceOfEmpfaengerSucheResultDto(value: object): value is EmpfaengerSucheResultDto {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('name' in value) || value['name'] === undefined) return false;
-    if (!('quelle' in value) || value['quelle'] === undefined) return false;
-    return true;
+    return !(!('quelle' in value) || value['quelle'] === undefined);
+
 }
 
 export function EmpfaengerSucheResultDtoFromJSON(json: any): EmpfaengerSucheResultDto {

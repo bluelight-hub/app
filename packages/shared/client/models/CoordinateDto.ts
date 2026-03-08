@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -45,8 +44,8 @@ export interface CoordinateDto {
 export function instanceOfCoordinateDto(value: object): value is CoordinateDto {
     if (!('mgrs' in value) || value['mgrs'] === undefined) return false;
     if (!('lat' in value) || value['lat'] === undefined) return false;
-    if (!('lng' in value) || value['lng'] === undefined) return false;
-    return true;
+    return !(!('lng' in value) || value['lng'] === undefined);
+
 }
 
 export function CoordinateDtoFromJSON(json: any): CoordinateDto {

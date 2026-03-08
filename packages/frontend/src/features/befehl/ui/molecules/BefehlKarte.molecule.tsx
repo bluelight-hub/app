@@ -216,12 +216,12 @@ export function BefehlKarte({
 
         {/* Quittierungs-Badge (Standard-Modus) */}
         {!showMeineBefehle && zeigeQuittierung && (
-          <span className="ml-auto inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+          <span className="ml-auto inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 font-medium text-xs text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
             Quittierung ausstehend
           </span>
         )}
         {!showMeineBefehle && bereitsQuittiert && meineEmpfaengerInfo?.quittierungArt && (
-          <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300">
+          <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 font-medium text-green-800 text-xs dark:bg-green-900/30 dark:text-green-300">
             <PiCheckCircle className="h-3.5 w-3.5" />
             {QUITTIERUNG_LABELS[meineEmpfaengerInfo.quittierungArt] ?? 'Quittiert'}
           </span>
@@ -229,7 +229,7 @@ export function BefehlKarte({
 
         {/* Empfaenger-Status-Badge (Meine Befehle-Modus, WCAG: Icon + Text) */}
         {MeineBefehleStatusIcon && meineBefehleFarben && meineBefehleLabel && (
-          <span className={cn('ml-auto inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium', meineBefehleFarben.bg, meineBefehleFarben.text)}>
+          <span className={cn('ml-auto inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-medium text-xs', meineBefehleFarben.bg, meineBefehleFarben.text)}>
             <MeineBefehleStatusIcon className="h-3.5 w-3.5" />
             {meineBefehleLabel}
           </span>
@@ -238,20 +238,20 @@ export function BefehlKarte({
 
       {/* Korrektur-Hinweise */}
       {status === 'KORRIGIERT' && (
-        <div className="mt-2 flex items-center gap-1.5 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-800 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
+        <div className="mt-2 flex items-center gap-1.5 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1.5 font-medium text-amber-800 text-xs dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
           <PiPencilSimpleLine className="h-3.5 w-3.5 flex-shrink-0" />
           {korrekturBefehlLabel}
         </div>
       )}
       {originalBefehlId && (
-        <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+        <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 font-medium text-blue-700 text-xs dark:bg-blue-900/30 dark:text-blue-300">
           <PiArrowBendUpRight className="h-3 w-3 flex-shrink-0" />
           {originalBefehlLabel}
         </div>
       )}
 
       {/* Auftrag */}
-      <p className="mt-2 line-clamp-2 text-sm text-gray-700 dark:text-gray-300">{auftrag}</p>
+      <p className="mt-2 line-clamp-2 text-gray-700 text-sm dark:text-gray-300">{auftrag}</p>
 
       {/* Quittierungsfortschritt mit interaktiven Empfaenger-Chips */}
       <div className="mt-3">
@@ -259,7 +259,7 @@ export function BefehlKarte({
       </div>
 
       {/* Untere Zeile: Zeitstempel + Kommentar-Toggle */}
-      <div className="mt-2 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+      <div className="mt-2 flex items-center gap-3 text-gray-500 text-xs dark:text-gray-400">
         <time dateTime={erteiltAmDate.toISOString()}>{format(erteiltAmDate, 'dd.MM.yyyy HH:mm')}</time>
 
         {/* Kommentar-Toggle */}
@@ -294,8 +294,8 @@ export function BefehlKarte({
                 }}
                 className={cn(
                   'inline-flex items-center gap-1 rounded-full',
-                  'bg-yellow-100 text-yellow-800 border border-yellow-300 px-2 py-0.5',
-                  'dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700',
+                  'border border-yellow-300 bg-yellow-100 px-2 py-0.5 text-yellow-800',
+                  'dark:border-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
                   'hover:bg-yellow-200 dark:hover:bg-yellow-900/50',
                   'min-h-[48px] min-w-[48px] [@media(pointer:fine)]:min-h-0 [@media(pointer:fine)]:min-w-0',
                 )}
@@ -322,7 +322,7 @@ export function BefehlKarte({
               e.stopPropagation();
               onQuittieren(befehlId);
             }}
-            className="mt-3 w-full rounded-md bg-yellow-100 py-2 text-sm font-medium text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:hover:bg-yellow-900/50"
+            className="mt-3 w-full rounded-md bg-yellow-100 py-2 font-medium text-sm text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:hover:bg-yellow-900/50"
           >
             Quittieren
           </button>
@@ -332,7 +332,7 @@ export function BefehlKarte({
             disabled
             aria-disabled="true"
             title="Nur Empfänger dürfen Befehle quittieren"
-            className="mt-3 w-full cursor-not-allowed rounded-md bg-gray-100 py-2 text-sm font-medium text-gray-400 dark:bg-gray-800 dark:text-gray-600"
+            className="mt-3 w-full cursor-not-allowed rounded-md bg-gray-100 py-2 font-medium text-gray-400 text-sm dark:bg-gray-800 dark:text-gray-600"
           >
             Quittieren
           </button>

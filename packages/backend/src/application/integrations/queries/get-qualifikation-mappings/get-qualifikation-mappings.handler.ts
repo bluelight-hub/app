@@ -14,7 +14,7 @@ import { Result } from '@domain/common/result';
 import type { IQualifikationMappingRepository } from '@domain/integrations';
 import type { IQualifikationRepository } from '@domain/kraefte/repositories/i-qualifikation.repository';
 import { INTEGRATIONS, DI_TOKENS } from '@infrastructure/di-tokens';
-import type { GetQualifikationMappingsQuery } from './get-qualifikation-mappings.query';
+import type { GetQualifikationMappingsQuery } from '@application/integrations';
 import type { QualifikationId } from '@domain/kraefte/value-objects/qualifikation-id';
 
 /**

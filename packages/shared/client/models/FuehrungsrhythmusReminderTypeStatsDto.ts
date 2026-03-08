@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -66,8 +65,8 @@ export function instanceOfFuehrungsrhythmusReminderTypeStatsDto(value: object): 
     if (!('snoozeCount' in value) || value['snoozeCount'] === undefined) return false;
     if (!('snoozeRate' in value) || value['snoozeRate'] === undefined) return false;
     if (!('escalationCount' in value) || value['escalationCount'] === undefined) return false;
-    if (!('escalationRate' in value) || value['escalationRate'] === undefined) return false;
-    return true;
+    return !(!('escalationRate' in value) || value['escalationRate'] === undefined);
+
 }
 
 export function FuehrungsrhythmusReminderTypeStatsDtoFromJSON(json: any): FuehrungsrhythmusReminderTypeStatsDto {

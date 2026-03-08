@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import * as L from 'leaflet';
 import type * as GeoJSON from 'geojson';
-import { highlightLayer, unhighlightLayer } from '../../utils/shape-helpers';
-import { getShapeIdFromLayer } from '../../utils/layer-utils';
+import { highlightLayer, unhighlightLayer } from '@/features/lagekarte';
+import { getShapeIdFromLayer } from '@/features/lagekarte';
 import type { OriginalStyle } from '../../utils/types';
 
 interface UseShapeSelectionProps {

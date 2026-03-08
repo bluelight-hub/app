@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -50,8 +49,8 @@ export interface CreateRollenDefinitionDto {
  */
 export function instanceOfCreateRollenDefinitionDto(value: object): value is CreateRollenDefinitionDto {
     if (!('name' in value) || value['name'] === undefined) return false;
-    if (!('qualifikationIds' in value) || value['qualifikationIds'] === undefined) return false;
-    return true;
+    return !(!('qualifikationIds' in value) || value['qualifikationIds'] === undefined);
+
 }
 
 export function CreateRollenDefinitionDtoFromJSON(json: any): CreateRollenDefinitionDto {

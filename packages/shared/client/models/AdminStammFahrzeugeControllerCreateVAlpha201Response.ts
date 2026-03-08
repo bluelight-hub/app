@@ -12,21 +12,15 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { StammFahrzeugDto } from './StammFahrzeugDto';
-import {
-    StammFahrzeugDtoFromJSON,
-    StammFahrzeugDtoFromJSONTyped,
-    StammFahrzeugDtoToJSON,
-    StammFahrzeugDtoToJSONTyped,
-} from './StammFahrzeugDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {StammFahrzeugDto} from './StammFahrzeugDto';
+import {StammFahrzeugDtoFromJSON, StammFahrzeugDtoToJSON,} from './StammFahrzeugDto';
 
 /**
  * 
@@ -53,8 +47,8 @@ export interface AdminStammFahrzeugeControllerCreateVAlpha201Response {
  */
 export function instanceOfAdminStammFahrzeugeControllerCreateVAlpha201Response(value: object): value is AdminStammFahrzeugeControllerCreateVAlpha201Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function AdminStammFahrzeugeControllerCreateVAlpha201ResponseFromJSON(json: any): AdminStammFahrzeugeControllerCreateVAlpha201Response {

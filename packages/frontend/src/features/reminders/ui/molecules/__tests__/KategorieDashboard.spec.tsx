@@ -16,7 +16,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { KategorieDashboard } from '../KategorieDashboard';
+import { KategorieDashboard } from '@/features/reminders';
 import { resetKategorieFilterStore, setKategorieFilter, getKategorieFilter } from '../../../stores';
 import type { ErinnerungResponseDto } from '@/shared';
 import type { KategorieResponseDto } from '@bluelight-hub/shared/client';
@@ -66,7 +66,7 @@ describe('KategorieDashboard', () => {
     render(<KategorieDashboard erinnerungen={defaultErinnerungen} kategorien={defaultKategorien} />);
 
     // Then (Assert)
-    const buttons = screen.getAllByRole('button', { pressed: false });
+    const _buttons = screen.getAllByRole('button', { pressed: false });
     // 2 Kategorien + 1 "Ohne Kategorie" + 1 Toggle-Button = 4 buttons
     // Stat Cards haben aria-pressed, pruefe per aria-label
     expect(screen.getByLabelText(/Kategorie Leitstelle/)).toBeInTheDocument();

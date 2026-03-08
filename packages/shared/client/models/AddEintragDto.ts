@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -90,8 +89,8 @@ export type AddEintragDtoKategorieEnum = typeof AddEintragDtoKategorieEnum[keyof
  * Check if a given object implements the AddEintragDto interface.
  */
 export function instanceOfAddEintragDto(value: object): value is AddEintragDto {
-    if (!('text' in value) || value['text'] === undefined) return false;
-    return true;
+    return !(!('text' in value) || value['text'] === undefined);
+
 }
 
 export function AddEintragDtoFromJSON(json: any): AddEintragDto {

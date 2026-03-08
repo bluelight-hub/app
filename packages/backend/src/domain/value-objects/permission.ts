@@ -62,19 +62,12 @@ export class Permission extends ValueObject<PermissionProps> {
   }
 
   /**
-   * Validiert das Permission Format.
+   * Gibt den Permission Value zurück.
    *
-   * Erlaubt NUR lowercase Buchstaben und Underscores, getrennt durch Doppelpunkt.
-   * Wildcards (*) sind erlaubt für Wildcard-Matching.
-   *
-   * @param value - Zu validierender Permission String
-   * @returns true wenn Format valide ist
+   * @returns Permission String im Format "resource:action"
    */
-  private static isValid(value: string): boolean {
-    // Regex: lowercase letters + underscore OR wildcard, colon separator
-    // ^[a-z_*]+:[a-z_*]+$
-    // Beispiele: "user:read", "einsatz_detail:create", "user:*", "*:*"
-    return /^[a-z_*]+:[a-z_*]+$/.test(value);
+  get value(): string {
+    return this.props.value;
   }
 
   /**
@@ -171,12 +164,19 @@ export class Permission extends ValueObject<PermissionProps> {
   }
 
   /**
-   * Gibt den Permission Value zurück.
+   * Validiert das Permission Format.
    *
-   * @returns Permission String im Format "resource:action"
+   * Erlaubt NUR lowercase Buchstaben und Underscores, getrennt durch Doppelpunkt.
+   * Wildcards (*) sind erlaubt für Wildcard-Matching.
+   *
+   * @param value - Zu validierender Permission String
+   * @returns true wenn Format valide ist
    */
-  get value(): string {
-    return this.props.value;
+  private static isValid(value: string): boolean {
+    // Regex: lowercase letters + underscore OR wildcard, colon separator
+    // ^[a-z_*]+:[a-z_*]+$
+    // Beispiele: "user:read", "einsatz_detail:create", "user:*", "*:*"
+    return /^[a-z_*]+:[a-z_*]+$/.test(value);
   }
 
   /**
@@ -235,10 +235,6 @@ export class Permission extends ValueObject<PermissionProps> {
 
     // "*:action" matcht alle Resources für die Action
     // Beispiel: "*:read" matcht "user:read", "einsatz:read", "system:read"
-    if (patternResource === '*' && patternAction === thisAction) {
-      return true;
-    }
-
-    return false;
+    return patternResource === '*' && patternAction === thisAction;
   }
 }

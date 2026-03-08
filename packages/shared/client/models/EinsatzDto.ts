@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { AddressDto } from './AddressDto';
-import {
-    AddressDtoFromJSON,
-    AddressDtoFromJSONTyped,
-    AddressDtoToJSON,
-    AddressDtoToJSONTyped,
-} from './AddressDto';
+import type {AddressDto} from './AddressDto';
+import {AddressDtoFromJSON, AddressDtoToJSON,} from './AddressDto';
 
 /**
  * 
@@ -111,8 +105,8 @@ export function instanceOfEinsatzDto(value: object): value is EinsatzDto {
     if (!('alarmstichwort' in value) || value['alarmstichwort'] === undefined) return false;
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('createdBy' in value) || value['createdBy'] === undefined) return false;
-    if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
-    return true;
+    return !(!('createdAt' in value) || value['createdAt'] === undefined);
+
 }
 
 export function EinsatzDtoFromJSON(json: any): EinsatzDto {

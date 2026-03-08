@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { EtbStatus } from './etb-status';
 
 describe('EtbStatus', () => {

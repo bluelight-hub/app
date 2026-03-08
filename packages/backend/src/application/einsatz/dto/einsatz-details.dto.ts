@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { EinsatzDto } from './einsatz.dto';
-import { EtbDto } from '../../etb/dto/etb.dto';
-import { LagekarteDto } from '../../lagekarte/dtos/lagekarte.dto';
+import { EtbDto } from '@application/etb/dto';
+import { LagekarteDto } from '@application/lagekarte/dtos';
 
 /**
  * Kombiniertes DTO für Einsatz mit zugehörigem ETB und Lagekarte.

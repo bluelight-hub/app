@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -31,8 +30,8 @@ export interface PersonRegisteredResponseDto {
  * Check if a given object implements the PersonRegisteredResponseDto interface.
  */
 export function instanceOfPersonRegisteredResponseDto(value: object): value is PersonRegisteredResponseDto {
-    if (!('id' in value) || value['id'] === undefined) return false;
-    return true;
+    return !(!('id' in value) || value['id'] === undefined);
+
 }
 
 export function PersonRegisteredResponseDtoFromJSON(json: any): PersonRegisteredResponseDto {

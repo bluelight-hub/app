@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -43,8 +42,8 @@ export interface BatchSaveMappingItemDto {
  * Check if a given object implements the BatchSaveMappingItemDto interface.
  */
 export function instanceOfBatchSaveMappingItemDto(value: object): value is BatchSaveMappingItemDto {
-    if (!('externalName' in value) || value['externalName'] === undefined) return false;
-    return true;
+    return !(!('externalName' in value) || value['externalName'] === undefined);
+
 }
 
 export function BatchSaveMappingItemDtoFromJSON(json: any): BatchSaveMappingItemDto {

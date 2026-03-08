@@ -15,7 +15,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import type { PropsWithChildren } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { EINSATZ_QUERY_KEYS } from '../queries';
-import { useEinsatzRollen } from '../use-einsatz-rollen';
+import { useEinsatzRollen } from '@/features/einsatz';
 
 const { mockGetRollen } = vi.hoisted(() => ({
   mockGetRollen: vi.fn(),

@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -45,8 +44,8 @@ export interface SetupTokenDto {
 export function instanceOfSetupTokenDto(value: object): value is SetupTokenDto {
     if (!('token' in value) || value['token'] === undefined) return false;
     if (!('name' in value) || value['name'] === undefined) return false;
-    if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
-    return true;
+    return !(!('createdAt' in value) || value['createdAt'] === undefined);
+
 }
 
 export function SetupTokenDtoFromJSON(json: any): SetupTokenDto {

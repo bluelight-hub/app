@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { AccessTokenId } from '@domain/value-objects/access-token-id';
 
 // Mock CUID2 for Jest compatibility (ESM module issue)

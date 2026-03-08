@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { NotificationService } from '../notification.service';
+import { NotificationService } from '@/features/reminders';
 
 // Mock isTauri
 vi.mock('@tauri-apps/api/core', () => ({

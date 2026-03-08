@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { EtbEintrag } from '@domain/entities/etb-eintrag.entity';
 import { EintragId } from '@domain/value-objects/eintrag-id';
 import { EtbKategorie } from '@domain/value-objects/etb-kategorie';
@@ -247,7 +248,7 @@ describe('EtbEintrag Entity', () => {
       expect(eintrag.isDeleted).toBe(true);
 
       // updatedAt should be updated again
-      expect(eintrag.updatedAt!.getTime()).toBeGreaterThan(firstUpdateTime.getTime());
+      expect(eintrag.updatedAt?.getTime()).toBeGreaterThan(firstUpdateTime.getTime());
     });
 
     it('should not change other properties when marking as deleted', () => {

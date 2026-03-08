@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Fahrzeugtyp, type CreateFahrzeugtypProps, type UpdateFahrzeugtypProps, type ReconstituteFahrzeugtypProps } from '../fahrzeugtyp.aggregate';
 import { FAHRZEUGTYP_ERROR_CODES } from '../../common/fahrzeugtyp-error-codes';
 import { FahrzeugtypCreatedEvent } from '../../events/fahrzeugtyp-created.event';

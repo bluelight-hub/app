@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -37,8 +36,8 @@ export interface SaveQualifikationMappingRequestDto {
  * Check if a given object implements the SaveQualifikationMappingRequestDto interface.
  */
 export function instanceOfSaveQualifikationMappingRequestDto(value: object): value is SaveQualifikationMappingRequestDto {
-    if (!('id' in value) || value['id'] === undefined) return false;
-    return true;
+    return !(!('id' in value) || value['id'] === undefined);
+
 }
 
 export function SaveQualifikationMappingRequestDtoFromJSON(json: any): SaveQualifikationMappingRequestDto {

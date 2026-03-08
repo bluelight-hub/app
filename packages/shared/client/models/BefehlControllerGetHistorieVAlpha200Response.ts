@@ -12,20 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { BefehlHistorieTimelineDto } from './BefehlHistorieTimelineDto';
-import {
-    BefehlHistorieTimelineDtoFromJSON,
-    BefehlHistorieTimelineDtoFromJSONTyped,
-    BefehlHistorieTimelineDtoToJSON,
-    BefehlHistorieTimelineDtoToJSONTyped,
-} from './BefehlHistorieTimelineDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {BefehlHistorieTimelineDto} from './BefehlHistorieTimelineDto';
+import {BefehlHistorieTimelineDtoFromJSON, BefehlHistorieTimelineDtoToJSON,} from './BefehlHistorieTimelineDto';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
 
 /**
@@ -53,8 +47,8 @@ export interface BefehlControllerGetHistorieVAlpha200Response {
  */
 export function instanceOfBefehlControllerGetHistorieVAlpha200Response(value: object): value is BefehlControllerGetHistorieVAlpha200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function BefehlControllerGetHistorieVAlpha200ResponseFromJSON(json: any): BefehlControllerGetHistorieVAlpha200Response {

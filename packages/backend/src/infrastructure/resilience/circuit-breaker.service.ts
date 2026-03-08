@@ -144,7 +144,7 @@ export class CircuitBreakerService {
       if (fallback) {
         try {
           return Result.ok(await fallback());
-        } catch (fallbackError) {
+        } catch (_fallbackError) {
           return Result.fail(`${serviceName}: ${error instanceof Error ? error.message : 'Unbekannt'}`);
         }
       }
@@ -249,7 +249,7 @@ export class CircuitBreakerService {
       this.logger.log(`Circuit Breaker ${serviceName}: Half-Open Test erfolgreich → CLOSED`, 'CircuitBreakerService');
 
       return Result.ok(result);
-    } catch (error) {
+    } catch (_error) {
       const prevState = circuit.currentState;
       circuit.recordFailure();
 

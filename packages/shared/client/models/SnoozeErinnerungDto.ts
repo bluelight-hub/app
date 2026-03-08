@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -43,8 +42,8 @@ export type SnoozeErinnerungDtoSnoozeMinutesEnum = typeof SnoozeErinnerungDtoSno
  * Check if a given object implements the SnoozeErinnerungDto interface.
  */
 export function instanceOfSnoozeErinnerungDto(value: object): value is SnoozeErinnerungDto {
-    if (!('snoozeMinutes' in value) || value['snoozeMinutes'] === undefined) return false;
-    return true;
+    return !(!('snoozeMinutes' in value) || value['snoozeMinutes'] === undefined);
+
 }
 
 export function SnoozeErinnerungDtoFromJSON(json: any): SnoozeErinnerungDto {

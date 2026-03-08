@@ -12,21 +12,15 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { PoiDto } from './PoiDto';
-import {
-    PoiDtoFromJSON,
-    PoiDtoFromJSONTyped,
-    PoiDtoToJSON,
-    PoiDtoToJSONTyped,
-} from './PoiDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {PoiDto} from './PoiDto';
+import {PoiDtoFromJSON, PoiDtoToJSON,} from './PoiDto';
 
 /**
  * 
@@ -53,8 +47,8 @@ export interface LagekarteCqrsControllerAddPoiVAlpha201Response {
  */
 export function instanceOfLagekarteCqrsControllerAddPoiVAlpha201Response(value: object): value is LagekarteCqrsControllerAddPoiVAlpha201Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function LagekarteCqrsControllerAddPoiVAlpha201ResponseFromJSON(json: any): LagekarteCqrsControllerAddPoiVAlpha201Response {

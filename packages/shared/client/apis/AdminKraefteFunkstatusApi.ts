@@ -18,15 +18,12 @@ import type {
   AdminFunkStatusControllerFindAllVAlpha200Response,
   AdminFunkStatusControllerFindByCodeVAlpha200Response,
   UpdateFunkStatusConfigDto,
-} from '../models/index';
+} from '../models';
 import {
     AdminFunkStatusControllerFindAllVAlpha200ResponseFromJSON,
-    AdminFunkStatusControllerFindAllVAlpha200ResponseToJSON,
     AdminFunkStatusControllerFindByCodeVAlpha200ResponseFromJSON,
-    AdminFunkStatusControllerFindByCodeVAlpha200ResponseToJSON,
-    UpdateFunkStatusConfigDtoFromJSON,
     UpdateFunkStatusConfigDtoToJSON,
-} from '../models/index';
+} from '../models';
 
 export interface AdminFunkStatusControllerFindByCodeVAlphaRequest {
     code: number;
@@ -100,7 +97,7 @@ export class AdminKraefteFunkstatusApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/api/v-alpha/admin/kraefte/funkstatus/{code}`.replace(`{${"code"}}`, encodeURIComponent(String(requestParameters['code']))),
+            path: `/api/v-alpha/admin/kraefte/funkstatus/{code}`.replace(`{code}`, encodeURIComponent(String(requestParameters['code']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -150,7 +147,7 @@ export class AdminKraefteFunkstatusApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/api/v-alpha/admin/kraefte/funkstatus/{code}`.replace(`{${"code"}}`, encodeURIComponent(String(requestParameters['code']))),
+            path: `/api/v-alpha/admin/kraefte/funkstatus/{code}`.replace(`{code}`, encodeURIComponent(String(requestParameters['code']))),
             method: 'PATCH',
             headers: headerParameters,
             query: queryParameters,

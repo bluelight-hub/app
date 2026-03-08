@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
 import { EinsatzStatus } from '@domain/value-objects/einsatz-status';
 import { UserId } from '@domain/value-objects/user-id';

@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -64,8 +63,8 @@ export type RevokeInviteResponseDtoStatusEnum = typeof RevokeInviteResponseDtoSt
 export function instanceOfRevokeInviteResponseDto(value: object): value is RevokeInviteResponseDto {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('code' in value) || value['code'] === undefined) return false;
-    if (!('status' in value) || value['status'] === undefined) return false;
-    return true;
+    return !(!('status' in value) || value['status'] === undefined);
+
 }
 
 export function RevokeInviteResponseDtoFromJSON(json: any): RevokeInviteResponseDto {

@@ -15,7 +15,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
-import { ArchiveConfirmationModal } from './ArchiveConfirmationModal';
+import { ArchiveConfirmationModal } from '@/features/einsatz';
 
 export function EinsatzDetailView() {
   const { einsatzId } = useParams({ from: '/app/einsaetze/$einsatzId' });

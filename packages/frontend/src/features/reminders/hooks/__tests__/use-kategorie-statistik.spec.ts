@@ -14,7 +14,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import type { ErinnerungResponseDto } from '@/shared';
 import type { KategorieResponseDto } from '@bluelight-hub/shared/client';
-import { calculateKategorieStatistik, useKategorieStatistik } from '../use-kategorie-statistik';
+import { calculateKategorieStatistik, useKategorieStatistik } from '@/features/reminders';
 
 // ============================================
 // Test Factory Helpers

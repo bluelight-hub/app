@@ -17,10 +17,10 @@ import type { IEventHandler } from '@domain/ports/i-event-handler.port';
 import { ILogger } from '@domain/ports/i-logger.port';
 import type { ErinnerungSnoozedEvent } from '@domain/events/erinnerung-snoozed.event';
 import { LOGGER } from '@infrastructure/di-tokens';
-import { AddEintragCommand } from '../commands/add-eintrag/add-eintrag.command';
-import { AddEintragHandler } from '../commands/add-eintrag/add-eintrag.handler';
+import { AddEintragCommand } from '@application/etb/commands';
+import { AddEintragHandler } from '@application/etb/commands';
 import type { EtbKategorieValue } from '@domain/value-objects/etb-kategorie';
-import { ERINNERUNG_ETB_TEMPLATES } from '../constants/erinnerung-etb-templates';
+import { ERINNERUNG_ETB_TEMPLATES } from '@application/etb/constants';
 
 /**
  * ETB Kategorie fuer Erinnerungen (Story 5.1 AC2).

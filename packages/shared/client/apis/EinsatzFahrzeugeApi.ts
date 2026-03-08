@@ -21,21 +21,15 @@ import type {
   ErfasseFahrzeugAusStammdatenDto,
   ErfasseTemporalesFahrzeugDto,
   UpdateFmsStatusDto,
-} from '../models/index';
+} from '../models';
 import {
     EinsatzFahrzeugeControllerErfasseAusStammdatenVAlpha201ResponseFromJSON,
-    EinsatzFahrzeugeControllerErfasseAusStammdatenVAlpha201ResponseToJSON,
     EinsatzFahrzeugeControllerFindAllVAlpha200ResponseFromJSON,
-    EinsatzFahrzeugeControllerFindAllVAlpha200ResponseToJSON,
     EinsatzFahrzeugeControllerGetKraeftePoisVAlpha200ResponseFromJSON,
-    EinsatzFahrzeugeControllerGetKraeftePoisVAlpha200ResponseToJSON,
-    ErfasseFahrzeugAusStammdatenDtoFromJSON,
     ErfasseFahrzeugAusStammdatenDtoToJSON,
-    ErfasseTemporalesFahrzeugDtoFromJSON,
     ErfasseTemporalesFahrzeugDtoToJSON,
-    UpdateFmsStatusDtoFromJSON,
     UpdateFmsStatusDtoToJSON,
-} from '../models/index';
+} from '../models';
 
 export interface EinsatzFahrzeugeControllerErfasseAusStammdatenVAlphaRequest {
     einsatzId: string;
@@ -91,7 +85,7 @@ export class EinsatzFahrzeugeApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/einsaetze/{einsatzId}/fahrzeuge`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsaetze/{einsatzId}/fahrzeuge`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -134,7 +128,7 @@ export class EinsatzFahrzeugeApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/einsaetze/{einsatzId}/fahrzeuge/temporary`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsaetze/{einsatzId}/fahrzeuge/temporary`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -168,7 +162,7 @@ export class EinsatzFahrzeugeApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsaetze/{einsatzId}/fahrzeuge`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsaetze/{einsatzId}/fahrzeuge`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -201,7 +195,7 @@ export class EinsatzFahrzeugeApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsaetze/{einsatzId}/fahrzeuge/pois`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsaetze/{einsatzId}/fahrzeuge/pois`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -250,7 +244,7 @@ export class EinsatzFahrzeugeApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/einsaetze/{einsatzId}/fahrzeuge/{id}/status`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/einsaetze/{einsatzId}/fahrzeuge/{id}/status`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'PATCH',
             headers: headerParameters,
             query: queryParameters,

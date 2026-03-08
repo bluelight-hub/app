@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -45,8 +44,8 @@ export interface TopSourceDto {
 export function instanceOfTopSourceDto(value: object): value is TopSourceDto {
     if (!('userId' in value) || value['userId'] === undefined) return false;
     if (!('userName' in value) || value['userName'] === undefined) return false;
-    if (!('count' in value) || value['count'] === undefined) return false;
-    return true;
+    return !(!('count' in value) || value['count'] === undefined);
+
 }
 
 export function TopSourceDtoFromJSON(json: any): TopSourceDto {

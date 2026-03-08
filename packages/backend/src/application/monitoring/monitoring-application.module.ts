@@ -5,7 +5,7 @@ import { PrometheusMetricsCollector } from '@infrastructure/metrics/prometheus-m
 import { ResilienceModule } from '@infrastructure/resilience/resilience.module';
 import { PrismaModule } from '@infrastructure/database/prisma.module';
 import { MONITORING_TOKENS } from './monitoring-tokens';
-import { GetSystemHealthQueryHandler } from './queries/get-system-health/get-system-health.handler';
+import { GetSystemHealthQueryHandler } from '@application/monitoring/queries/get-system-health';
 import { SystemMonitoringScheduler } from './services/system-monitoring.scheduler';
 
 /**

@@ -1,5 +1,4 @@
 import tailwindcss from '@tailwindcss/vite';
-import { devtools } from '@tanstack/devtools-vite';
 import tanstackRouter from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react-swc';
 import { existsSync, readFileSync } from 'node:fs';
@@ -21,10 +20,10 @@ export default defineConfig({
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
   plugins: [
-    devtools(),
     tanstackRouter({
       target: 'react',
       autoCodeSplitting: true,
+      routeFileIgnorePattern: '(^|/)__tests__/',
     }),
     tailwindcss(),
     react(),

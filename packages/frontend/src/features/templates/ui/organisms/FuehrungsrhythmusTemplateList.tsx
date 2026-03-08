@@ -4,10 +4,10 @@ import { cn } from '@/shared/ui/cn';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { useGlobalFuehrungsrhythmusTemplates, useEinsatzFuehrungsrhythmusTemplates, useDeleteEinsatzFuehrungsrhythmusTemplate } from '../../api';
-import { FuehrungsrhythmusTemplateCard } from '../atoms/FuehrungsrhythmusTemplateCard';
-import { CreateFuehrungsrhythmusTemplateDialog } from './CreateFuehrungsrhythmusTemplateDialog';
-import { EditFuehrungsrhythmusTemplateDialog } from './EditFuehrungsrhythmusTemplateDialog';
-import { ActivateFuehrungsrhythmusDialog } from './ActivateFuehrungsrhythmusDialog';
+import { FuehrungsrhythmusTemplateCard } from '@/features/templates';
+import { CreateFuehrungsrhythmusTemplateDialog } from '@/features/templates';
+import { EditFuehrungsrhythmusTemplateDialog } from '@/features/templates';
+import { ActivateFuehrungsrhythmusDialog } from '@/features/templates';
 
 interface FuehrungsrhythmusTemplateListProps {
   /** Einsatz-ID fuer die Aktivierung. Wenn null, wird der Aktivieren-Button deaktiviert. */
@@ -25,9 +25,10 @@ export function FuehrungsrhythmusTemplateList({ einsatzId = null, context = 'adm
   const [activateTemplateId, setActivateTemplateId] = useState<string | null>(null);
   const [editTemplateId, setEditTemplateId] = useState<string | null>(null);
   const [deleteTemplateId, setDeleteTemplateId] = useState<string | null>(null);
+  const resolvedEinsatzId = einsatzId ?? '';
 
   const globalQuery = useGlobalFuehrungsrhythmusTemplates({ enabled: context === 'admin' });
-  const einsatzQuery = useEinsatzFuehrungsrhythmusTemplates(einsatzId!, { enabled: context === 'einsatz' && !!einsatzId });
+  const einsatzQuery = useEinsatzFuehrungsrhythmusTemplates(resolvedEinsatzId, { enabled: context === 'einsatz' && !!einsatzId });
   const { mutate: deleteEinsatzTemplate, isPending: isDeleting } = useDeleteEinsatzFuehrungsrhythmusTemplate();
 
   const { data: templates, isLoading, error } = context === 'admin' ? globalQuery : einsatzQuery;

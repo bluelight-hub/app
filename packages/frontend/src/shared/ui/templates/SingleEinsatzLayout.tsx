@@ -1,52 +1,51 @@
-import { api } from '@/shared';
-import { CommandTrigger } from '@/shared/ui/atoms/command-trigger.atom';
-import { Container } from '@/shared/ui/atoms/container.atom';
-import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
+import { useCurrentUser } from '@/features/auth';
+import { useBefehlNotifications, useBefehlWebSocket, useMissedBefehlAlerts, useUnquittierteBefehleCount } from '@/features/befehl';
+import { EINSATZ_QUERY_KEYS, useEinsatzDetails, useEinsatzModules, useMyEinsatzTeilnahme } from '@/features/einsatz';
 import { EinsatzStatusBadge } from '@/features/einsatz/ui/molecules/einsatz-status-badge.molecule';
+import { EinsatzSwitcher } from '@/features/einsatz/ui/molecules/EinsatzSwitcher.molecule';
 import { ModuleButton } from '@/features/einsatz/ui/molecules/ModuleButton';
 import { ModuleOverviewCard } from '@/features/einsatz/ui/molecules/ModuleOverviewCard';
 import { EinsatzBeitrittDialog } from '@/features/einsatz/ui/organisms';
-import { EinsatzSwitcher } from '@/features/einsatz/ui/molecules/EinsatzSwitcher.molecule';
+import { closeQuickCreateNotizDialog, CreateNotizDialog, useQuickCreateNotizDialogState, useQuickCreateNotizHotkeys } from '@/features/notizen';
 import {
-  QuickCreateErinnerungDialog,
-  ErinnerungEditDialog,
-  ErinnerungDeleteDialog,
-  ErinnerungMarkErledigtDialog,
-  StopRecurringErinnerungDialog,
-  closeQuickCreateDialog,
-  closeEditDialog,
   closeDeleteDialog,
+  closeEditDialog,
   closeMarkErledigtDialog,
+  closeQuickCreateDialog,
   closeStopRecurringDialog,
-  useQuickCreateDialogStateWithEtb,
-  useEditDialogState,
-  useDeleteDialogState,
-  useMarkErledigtDialogState,
-  useStopRecurringDialogState,
-  useQuickCreateErinnerungHotkeys,
+  ErinnerungDeleteDialog,
+  ErinnerungEditDialog,
+  ErinnerungMarkErledigtDialog,
+  QuickCreateErinnerungDialog,
+  StopRecurringErinnerungDialog,
   useAlarmTrigger,
+  useDeleteDialogState,
+  useEditDialogState,
   useErinnerungenByEinsatz,
+  useMarkErledigtDialogState,
+  useQuickCreateDialogStateWithEtb,
+  useQuickCreateErinnerungHotkeys,
+  useStopRecurringDialogState,
 } from '@/features/reminders';
 import { filterMyErinnerungen } from '@/features/reminders/utils/erinnerung-ownership';
-import { CreateNotizDialog, useQuickCreateNotizDialogState, closeQuickCreateNotizDialog, useQuickCreateNotizHotkeys } from '@/features/notizen';
-import { AudioSettingsDialog } from '@/features/settings';
-import { useCurrentUser } from '@/features/auth';
-import { toast } from 'sonner';
-import { CommandPalette } from '@/shared/ui/organisms/command-palette';
-import { CommandPaletteErrorBoundary } from '@/shared/ui/organisms/command-palette/CommandPaletteErrorBoundary';
-import { useUnquittierteBefehleCount, useBefehlNotifications, useBefehlWebSocket, useMissedBefehlAlerts } from '@/features/befehl';
-import { EINSATZ_QUERY_KEYS, useEinsatzDetails, useEinsatzModules, useMyEinsatzTeilnahme } from '@/features/einsatz';
 import { useActiveServer } from '@/features/server/hooks';
 import { ServerNameBadge } from '@/features/server/ui/atoms';
+import { AudioSettingsDialog } from '@/features/settings';
+import { api, EinsatzDtoStatusEnum } from '@/shared';
 import { cn, getModuleActiveColor, getModuleColor } from '@/shared/ui';
 import { Button } from '@/shared/ui/atoms/button.atom';
-import { EinsatzDtoStatusEnum } from '@/shared';
+import { CommandTrigger } from '@/shared/ui/atoms/command-trigger.atom';
+import { Container } from '@/shared/ui/atoms/container.atom';
+import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
+import { CommandPalette } from '@/shared/ui/organisms/command-palette';
+import { CommandPaletteErrorBoundary } from '@/shared/ui/organisms/command-palette/CommandPaletteErrorBoundary';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, Outlet, useMatchRoute, useNavigate, useParams, useRouter } from '@tanstack/react-router';
 import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { PiArrowLeft, PiArrowsOut, PiClock, PiGridFour, PiQuestion, PiRadio, PiSiren, PiSpeakerHigh, PiWarning } from 'react-icons/pi';
+import { toast } from 'sonner';
 
 interface SingleEinsatzLayoutProps {
   className?: string;
@@ -276,7 +275,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
         queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.activeWithCounts() }),
       ]);
       // Navigate back to overview
-      router.navigate({ to: '/app/einsaetze' });
+      await router.navigate({ to: '/app/einsaetze' });
     },
     onError: (error) => {
       console.error('Fehler beim Beenden des Einsatzes:', error);

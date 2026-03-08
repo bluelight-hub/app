@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Unit Tests für GetHiOrgCredentialsHandler.
  *
@@ -11,8 +12,8 @@
 import { Result } from '@domain/common/result';
 import { IntegrationCredential, INTEGRATION_TYPES } from '@domain/integrations';
 import type { IIntegrationCredentialRepository } from '@domain/integrations/repositories/i-integration-credential.repository';
-import { GetHiOrgCredentialsHandler, type HiOrgCredentialsDto } from '../get-hiorg-credentials.handler';
-import { GetHiOrgCredentialsQuery } from '../get-hiorg-credentials.query';
+import { GetHiOrgCredentialsHandler, type HiOrgCredentialsDto } from '@application/integrations';
+import { GetHiOrgCredentialsQuery } from '@application/integrations';
 
 describe('GetHiOrgCredentialsHandler', () => {
   let handler: GetHiOrgCredentialsHandler;
@@ -89,10 +90,10 @@ describe('GetHiOrgCredentialsHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.hasOAuthTokens).toBe(true);
-      expect(result.value!.isActive).toBe(true);
-      expect(result.value!.lastTestedAt).toEqual(new Date('2024-01-10T12:00:00Z'));
-      expect(result.value!.lastSyncAt).toEqual(new Date('2024-01-14T08:00:00Z'));
+      expect(result.value?.hasOAuthTokens).toBe(true);
+      expect(result.value?.isActive).toBe(true);
+      expect(result.value?.lastTestedAt).toEqual(new Date('2024-01-10T12:00:00Z'));
+      expect(result.value?.lastSyncAt).toEqual(new Date('2024-01-14T08:00:00Z'));
     });
 
     it('should return DTO with hasOAuthTokens=false when no tokens', async () => {
@@ -107,7 +108,7 @@ describe('GetHiOrgCredentialsHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.hasOAuthTokens).toBe(false);
+      expect(result.value?.hasOAuthTokens).toBe(false);
     });
 
     it('should NEVER return actual token values (security!)', async () => {
@@ -175,7 +176,7 @@ describe('GetHiOrgCredentialsHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.isActive).toBe(false);
+      expect(result.value?.isActive).toBe(false);
     });
 
     it('should handle missing lastTestedAt and lastSyncAt', async () => {
@@ -198,8 +199,8 @@ describe('GetHiOrgCredentialsHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.lastTestedAt).toBeUndefined();
-      expect(result.value!.lastSyncAt).toBeUndefined();
+      expect(result.value?.lastTestedAt).toBeUndefined();
+      expect(result.value?.lastSyncAt).toBeUndefined();
     });
   });
 });

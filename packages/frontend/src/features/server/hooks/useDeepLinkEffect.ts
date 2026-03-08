@@ -11,14 +11,14 @@
  * Usage: In App.tsx oder __root.tsx als Top-Level Hook
  */
 
-import { useEffect } from 'react';
+import { logger } from '@/shared/lib/logger';
 import { useNavigate } from '@tanstack/react-router';
+import { useEffect } from 'react';
 import { toast } from 'sonner';
-import { DeepLinkService } from '../services/deep-link.service';
 import { useExchangeInvite } from '../api/mutations';
+import { DeepLinkService } from '../services/deep-link.service';
 import type { DeepLinkParams } from '../types/deep-link';
 import { DeepLinkError } from '../types/deep-link';
-import { logger } from '@/shared/lib/logger';
 
 /**
  * Deep Link Effect Hook
@@ -105,7 +105,7 @@ export function useDeepLinkEffect() {
 
         // Navigate to Login Screen (Route: /auth)
         // NOTE: setActiveServer() wird bereits in useExchangeInvite.onSuccess aufgerufen
-        navigate({ to: '/auth' });
+        await navigate({ to: '/auth' });
       } catch (error) {
         // Error Toast
         const errorMessage = error instanceof Error ? error.message : 'Ein unbekannter Fehler ist aufgetreten';

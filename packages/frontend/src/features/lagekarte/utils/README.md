@@ -9,6 +9,7 @@ Die `mgrs.ts` Utility-Datei bietet vollständige MGRS (Military Grid Reference S
 ### Verfügbare Funktionen
 
 #### `latLngToMgrs(lat, lng, precision?)`
+
 Konvertiert Lat/Lng Koordinaten zu MGRS Format.
 
 ```typescript
@@ -28,21 +29,23 @@ const mgrs = latLngToMgrs(52.5200, 13.4050, 5);
 ```
 
 **Parameter:**
+
 - `lat`: Breitengrad (-90 bis 90)
 - `lng`: Längengrad (-180 bis 180)
 - `precision`: MGRS Precision Level (0-5, default: 5)
-  - 0 = 100km
-  - 1 = 10km
-  - 2 = 1km
-  - 3 = 100m
-  - 4 = 10m
-  - 5 = 1m
+    - 0 = 100km
+    - 1 = 10km
+    - 2 = 1km
+    - 3 = 100m
+    - 4 = 10m
+    - 5 = 1m
 
 **Returns:** MGRS String oder `null` bei Fehler
 
 ---
 
 #### `mgrsToLatLng(mgrs)`
+
 Konvertiert MGRS Koordinaten zu Lat/Lng.
 
 ```typescript
@@ -58,6 +61,7 @@ const coords2 = mgrsToLatLng("31UDQ4825111932");
 ```
 
 **Parameter:**
+
 - `mgrs`: MGRS String (mit oder ohne Leerzeichen)
 
 **Returns:** `{ lat: number, lng: number }` oder `null` bei Fehler
@@ -65,6 +69,7 @@ const coords2 = mgrsToLatLng("31UDQ4825111932");
 ---
 
 #### `isValidMgrs(mgrs)`
+
 Validiert MGRS Format.
 
 ```typescript
@@ -77,6 +82,7 @@ isValidMgrs("");                   // false
 ```
 
 **Parameter:**
+
 - `mgrs`: MGRS String
 
 **Returns:** `boolean`
@@ -84,6 +90,7 @@ isValidMgrs("");                   // false
 ---
 
 #### `formatMgrs(mgrs)`
+
 Formatiert MGRS String für bessere Lesbarkeit.
 
 ```typescript
@@ -96,11 +103,13 @@ formatMgrs("33U VU 12345 67890");   // "33U VU 12345 67890" (bereits formatiert)
 ```
 
 **Parameter:**
+
 - `mgrs`: MGRS String (mit oder ohne Leerzeichen)
 
 **Returns:** Formatierter MGRS String mit Leerzeichen
 
 **Format:**
+
 - Grid Zone Designator (z.B. "33U")
 - 100km Square ID (z.B. "VU")
 - Easting (z.B. "12345")
@@ -109,6 +118,7 @@ formatMgrs("33U VU 12345 67890");   // "33U VU 12345 67890" (bereits formatiert)
 ---
 
 #### `isMgrsCoordinate(value)`
+
 Type Guard für MGRS Koordinaten (TypeScript).
 
 ```typescript
@@ -124,6 +134,7 @@ if (isMgrsCoordinate(userInput)) {
 ```
 
 **Parameter:**
+
 - `value`: Zu prüfender Wert
 
 **Returns:** `value is string` (TypeScript Type Guard)
@@ -131,6 +142,7 @@ if (isMgrsCoordinate(userInput)) {
 ---
 
 #### `getMgrsPrecision(mgrs)`
+
 Berechnet die Precision eines MGRS Strings.
 
 ```typescript
@@ -143,11 +155,13 @@ getMgrsPrecision("33U VU");             // 0 (100km)
 ```
 
 **Parameter:**
+
 - `mgrs`: MGRS String
 
 **Returns:** Precision Level (0-5) oder `null` bei Fehler
 
 **Precision Levels:**
+
 - 0 = 100km
 - 1 = 10km
 - 2 = 1km
@@ -237,10 +251,13 @@ function processMgrsOrLatLng(input: unknown) {
 ## Weitere Utilities
 
 ### Layer Utils (`layer-utils.ts`)
+
 Hilfsfunktionen für Leaflet Layer Manipulation.
 
 ### Shape Helpers (`shape-helpers.ts`)
+
 Funktionen für Shape-Erstellung und -Management.
 
 ### Types (`types.ts`)
+
 TypeScript Type Definitions für Lagekarte-Komponenten.

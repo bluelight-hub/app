@@ -27,6 +27,7 @@ function App() {
 ## Usage in Deep Link Integration (Task 5)
 
 ### Success Toast
+
 Wird angezeigt wenn Server erfolgreich hinzugefügt wurde:
 
 ```typescript
@@ -39,6 +40,7 @@ toast.success(`Server '${serverName}' hinzugefügt`, {
 ```
 
 ### Error Toast
+
 Wird angezeigt wenn Einladungslink abgelaufen ist:
 
 ```typescript
@@ -51,6 +53,7 @@ toast.error('Dieser Einladungslink ist abgelaufen.', {
 ```
 
 ### Loading Toast (Optional)
+
 Falls längere Verbindungszeiten erwartet werden:
 
 ```typescript
@@ -69,9 +72,11 @@ toast.error('Verbindung fehlgeschlagen.', { id: toastId });
 ## Konfiguration
 
 ### Position
+
 Default: `top-right`
 
 Weitere Optionen:
+
 - `top-left`
 - `top-center`
 - `bottom-left`
@@ -79,6 +84,7 @@ Weitere Optionen:
 - `bottom-right`
 
 ### Theme
+
 Unterstützt Dark Mode automatisch via `theme` prop:
 
 ```tsx
@@ -88,6 +94,7 @@ Unterstützt Dark Mode automatisch via `theme` prop:
 ## Accessibility
 
 Sonner unterstützt ARIA Live Regions automatisch:
+
 - Success/Info: `aria-live="polite"`
 - Error/Warning: `aria-live="assertive"`
 - Loading: `role="status"`

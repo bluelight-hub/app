@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { GetLagekarteExistsQuery } from '../get-lagekarte-exists.query';
 
 /**

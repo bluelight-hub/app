@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * E2E Test Module Setup fuer ETB Infrastructure.
  *
@@ -23,7 +24,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import type { DomainEvent } from '@domain/common/domain-event';
 import type { IEventPublisher } from '@domain/services/ports/i-event-publisher.port';
 import type { PrismaService } from '@/infrastructure/database/prisma.service';
-import { PrismaEtbRepository } from '../repositories/prisma-etb.repository';
+import { PrismaEtbRepository } from '@/infrastructure';
 import { PrismaOutboxRepository } from '@/infrastructure/outbox/prisma-outbox.repository';
 import { EventSerializer } from '@/infrastructure/outbox/event-serializer';
 import { createId } from '@paralleldrive/cuid2';

@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -37,8 +36,8 @@ export interface CreateBefehlEmpfaengerDto {
  * Check if a given object implements the CreateBefehlEmpfaengerDto interface.
  */
 export function instanceOfCreateBefehlEmpfaengerDto(value: object): value is CreateBefehlEmpfaengerDto {
-    if (!('name' in value) || value['name'] === undefined) return false;
-    return true;
+    return !(!('name' in value) || value['name'] === undefined);
+
 }
 
 export function CreateBefehlEmpfaengerDtoFromJSON(json: any): CreateBefehlEmpfaengerDto {

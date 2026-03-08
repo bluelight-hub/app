@@ -12,7 +12,7 @@ services:
     ports:
       - "${DATABASE_PORT:-3092}:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bluelight"]
+      test: [ "CMD-SHELL", "pg_isready -U bluelight" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -60,7 +60,7 @@ services:
       - full-app
     healthcheck:
       test:
-        ["CMD", "wget", "--spider", "-q", "http://localhost:3091/api/health"]
+        [ "CMD", "wget", "--spider", "-q", "http://localhost:3091/api/health" ]
       interval: 30s
       timeout: 10s
       retries: 3

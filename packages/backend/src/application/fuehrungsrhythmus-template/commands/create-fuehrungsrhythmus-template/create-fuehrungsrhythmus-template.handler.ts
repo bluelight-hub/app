@@ -13,10 +13,10 @@ import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { TransactionalCommandHandler } from '@/application/common/handlers/transactional-command.handler';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { FUEHRUNGSRHYTHMUS_TEMPLATE_REPOSITORY, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
-import { FuehrungsrhythmusTemplateResponseFactory } from '../../dto/fuehrungsrhythmus-template-response.factory';
+import { FuehrungsrhythmusTemplateResponseFactory } from '@application/fuehrungsrhythmus-template/dto';
 import type { CreateFuehrungsrhythmusTemplateCommand } from './create-fuehrungsrhythmus-template.command';
 import { FUEHRUNGSRHYTHMUS_TEMPLATE_ERROR_CODES } from '../../errors/fuehrungsrhythmus-template-error.codes';
-import type { FuehrungsrhythmusTemplateResponseDto } from '../../dto/fuehrungsrhythmus-template-response.dto';
+import type { FuehrungsrhythmusTemplateResponseDto } from '@application/fuehrungsrhythmus-template/dto';
 
 /**
  * Handler zum Erstellen eines neuen Fuehrungsrhythmus-Templates.
@@ -47,8 +47,7 @@ export class CreateFuehrungsrhythmusTemplateHandler extends TransactionalCommand
 
     // 2. FuehrungsrhythmusEintrag Value Objects erstellen
     const eintraege: FuehrungsrhythmusEintrag[] = [];
-    for (let i = 0; i < command.eintraege.length; i++) {
-      const eintragProps = command.eintraege[i]!;
+    for (const [i, eintragProps] of command.eintraege.entries()) {
       const eintragResult = FuehrungsrhythmusEintrag.create({
         titel: eintragProps.titel,
         intervallMinuten: eintragProps.intervallMinuten,

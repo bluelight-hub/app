@@ -69,7 +69,7 @@ describe('Password Validation (NIST SP 800-63B-4)', () => {
       });
 
       it('should accept passwords at minimum length', () => {
-        const result = validatePasswordCriteria('12345678');
+        const _result = validatePasswordCriteria('12345678');
         // Note: This might fail blocklist if it's a common password
         // Let's use a unique 8-char password
         const result2 = validatePasswordCriteria('abXy12Zq');

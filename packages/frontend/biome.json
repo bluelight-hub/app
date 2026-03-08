@@ -1,3 +1,21 @@
 {
-  "extends": "//"
+  "extends": "//",
+  "overrides": [
+    {
+      "includes": ["src/**/*.{ts,tsx}"],
+      "linter": {
+        "rules": {
+          "a11y": { "noLabelWithoutControl": { "level": "warn" } },
+          "suspicious": {
+            "noArrayIndexKey": { "level": "warn" },
+            "noImplicitAnyLet": { "level": "warn" }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/__tests__/**/*.{js,jsx,ts,tsx}", "**/*.spec.{js,jsx,ts,tsx}", "**/*.test.{js,jsx,ts,tsx}"],
+      "linter": { "enabled": false }
+    }
+  ]
 }

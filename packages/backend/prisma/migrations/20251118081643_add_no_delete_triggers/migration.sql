@@ -9,17 +9,19 @@
 -- Alternative: status = 'ARCHIVIERT' + archivedAt timestamp
 
 CREATE OR REPLACE FUNCTION prevent_einsatz_delete()
-RETURNS TRIGGER AS $$
+    RETURNS TRIGGER AS
+$$
 BEGIN
-  RAISE EXCEPTION 'DRK Compliance Violation: Einsatz cannot be deleted. Use status=ARCHIVIERT instead.';
+    RAISE EXCEPTION 'DRK Compliance Violation: Einsatz cannot be deleted. Use status=ARCHIVIERT instead.';
 END;
 $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS einsatz_no_delete ON einsaetze;
 CREATE TRIGGER einsatz_no_delete
-  BEFORE DELETE ON einsaetze
-  FOR EACH ROW
-  EXECUTE FUNCTION prevent_einsatz_delete();
+    BEFORE DELETE
+    ON einsaetze
+    FOR EACH ROW
+EXECUTE FUNCTION prevent_einsatz_delete();
 
 
 -- ========================================
@@ -29,17 +31,19 @@ CREATE TRIGGER einsatz_no_delete
 -- Alternative: deletedAt + deletedBy (soft-delete pattern)
 
 CREATE OR REPLACE FUNCTION prevent_etb_eintrag_delete()
-RETURNS TRIGGER AS $$
+    RETURNS TRIGGER AS
+$$
 BEGIN
-  RAISE EXCEPTION 'DRK Compliance Violation: ETB Einträge cannot be deleted. Use is_deleted=true instead.';
+    RAISE EXCEPTION 'DRK Compliance Violation: ETB Einträge cannot be deleted. Use is_deleted=true instead.';
 END;
 $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS etb_eintrag_no_delete ON etb_eintraege;
 CREATE TRIGGER etb_eintrag_no_delete
-  BEFORE DELETE ON etb_eintraege
-  FOR EACH ROW
-  EXECUTE FUNCTION prevent_etb_eintrag_delete();
+    BEFORE DELETE
+    ON etb_eintraege
+    FOR EACH ROW
+EXECUTE FUNCTION prevent_etb_eintrag_delete();
 
 
 -- ========================================
@@ -49,17 +53,19 @@ CREATE TRIGGER etb_eintrag_no_delete
 -- Kein soft-delete oder archival - strikt durch Domain Layer kontrolliert
 
 CREATE OR REPLACE FUNCTION prevent_lagekarte_poi_delete()
-RETURNS TRIGGER AS $$
+    RETURNS TRIGGER AS
+$$
 BEGIN
-  RAISE EXCEPTION 'DRK Compliance Violation: POIs cannot be permanently deleted. Use removal via Aggregate only.';
+    RAISE EXCEPTION 'DRK Compliance Violation: POIs cannot be permanently deleted. Use removal via Aggregate only.';
 END;
 $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS lagekarte_poi_no_delete ON lagekarte_poi;
 CREATE TRIGGER lagekarte_poi_no_delete
-  BEFORE DELETE ON lagekarte_poi
-  FOR EACH ROW
-  EXECUTE FUNCTION prevent_lagekarte_poi_delete();
+    BEFORE DELETE
+    ON lagekarte_poi
+    FOR EACH ROW
+EXECUTE FUNCTION prevent_lagekarte_poi_delete();
 
 
 -- ========================================
@@ -69,14 +75,16 @@ CREATE TRIGGER lagekarte_poi_no_delete
 -- Alternative: isLocked = true + lockedManuallyAt
 
 CREATE OR REPLACE FUNCTION prevent_user_delete()
-RETURNS TRIGGER AS $$
+    RETURNS TRIGGER AS
+$$
 BEGIN
-  RAISE EXCEPTION 'DRK Compliance Violation: Users cannot be deleted. Use is_locked=true instead.';
+    RAISE EXCEPTION 'DRK Compliance Violation: Users cannot be deleted. Use is_locked=true instead.';
 END;
 $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS user_no_delete ON "User";
 CREATE TRIGGER user_no_delete
-  BEFORE DELETE ON "User"
-  FOR EACH ROW
-  EXECUTE FUNCTION prevent_user_delete();
+    BEFORE DELETE
+    ON "User"
+    FOR EACH ROW
+EXECUTE FUNCTION prevent_user_delete();

@@ -7,7 +7,7 @@ import { UpdateProfileDto } from '@/modules/user-management/dtos/update-profile.
 import { ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { UpdateProfileHandler } from '@application/user-management/commands/update-profile/update-profile.handler';
 import { UpdateProfileCommand } from '@application/user-management/commands/update-profile/update-profile.command';
-import { BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 
 // Dummy DTO for response (void) or UserDto?
 // For now void / success message.
@@ -36,8 +36,12 @@ export class ProfileController {
     if (commandResult.isFailure) {
       throw new BadRequestException(commandResult.error);
     }
+    const command = commandResult.value;
+    if (!command) {
+      throw new BadRequestException(commandResult.error ?? 'Ungültige Profildaten');
+    }
 
-    const result = await this.updateProfileHandler.execute(commandResult.value!);
+    const result = await this.updateProfileHandler.execute(command);
     if (result.isFailure) {
       throw new BadRequestException(result.error);
     }

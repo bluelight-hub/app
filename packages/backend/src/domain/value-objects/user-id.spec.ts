@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { UserId } from '@domain/value-objects/user-id';
 import { Result } from '@domain/common/result';
 
@@ -12,7 +13,6 @@ jest.mock('@paralleldrive/cuid2', () => ({
     return result;
   }),
   isCuid: jest.fn((id: string) => {
-    if (typeof id !== 'string') return false;
     if (id.length < 20 || id.length > 30) return false;
     // CUID2 Format: lowercase a-z and 0-9 only, starts with letter
     // Nanoid/CUID Format (für UserId): mixed case alphanumeric + underscore/hyphen

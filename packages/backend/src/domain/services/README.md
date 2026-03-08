@@ -1,6 +1,7 @@
 # Domain Services (domain/services/)
 
-Domain Services enthalten Business Logic, die **NICHT zu einem einzelnen Aggregate gehört** und framework-unabhängig bleibt.
+Domain Services enthalten Business Logic, die **NICHT zu einem einzelnen Aggregate gehört** und framework-unabhängig
+bleibt.
 
 ---
 
@@ -9,22 +10,22 @@ Domain Services enthalten Business Logic, die **NICHT zu einem einzelnen Aggrega
 ### Domain Services sind für:
 
 - **Cross-Aggregate Logic:** Koordination zwischen mehreren Aggregates
-  - Beispiel: `EinsatzCompletenessService` prüft Einsatz-Vollständigkeit (könnte später auch andere Aggregates prüfen)
+    - Beispiel: `EinsatzCompletenessService` prüft Einsatz-Vollständigkeit (könnte später auch andere Aggregates prüfen)
 - **Komplexe Berechnungen:** Domänen-Logik, die nicht zu einem Aggregate gehört
-  - Beispiel: `EinsatzNamingService` generiert Einsatznummern (verwendet Jahr + Sequenznummer)
+    - Beispiel: `EinsatzNamingService` generiert Einsatznummern (verwendet Jahr + Sequenznummer)
 - **Domain Policies:** System-weite Regeln und Richtlinien
-  - Beispiel: `EinsatzArchivalPolicy` implementiert DRK 10-Jahres-Archivierungspflicht
+    - Beispiel: `EinsatzArchivalPolicy` implementiert DRK 10-Jahres-Archivierungspflicht
 - **External Integrations (Ports):** Schnittstellen für Infrastructure-Adapter
-  - Beispiel: `IGeocodingPort` definiert Contract für Geocoding-Services (Nominatim)
+    - Beispiel: `IGeocodingPort` definiert Contract für Geocoding-Services (Nominatim)
 
 ### Aggregate Methods sind für:
 
 - **Aggregate-spezifische Business Logic:** Zustandsänderungen innerhalb des Aggregates
-  - Beispiel: `EinsatzAggregate.complete(userId)` (Statusübergang IN_BEARBEITUNG → ABGESCHLOSSEN)
+    - Beispiel: `EinsatzAggregate.complete(userId)` (Statusübergang IN_BEARBEITUNG → ABGESCHLOSSEN)
 - **Invarianten-Sicherung:** Konsistenz-Regeln des Aggregates
-  - Beispiel: `UserAggregate.updateRole()` prüft "Min-1-SUPER_ADMIN" Regel
+    - Beispiel: `UserAggregate.updateRole()` prüft "Min-1-SUPER_ADMIN" Regel
 - **State Transitions:** Zustandsübergänge mit Guards
-  - Beispiel: `EinsatzAggregate.archive()` prüft Status = ABGESCHLOSSEN
+    - Beispiel: `EinsatzAggregate.archive()` prüft Status = ABGESCHLOSSEN
 
 ---
 
@@ -49,21 +50,25 @@ Domain Services enthalten Business Logic, die **NICHT zu einem einzelnen Aggrega
 **Location:** `domain/services/einsatz-naming.service.ts`
 
 **Method:**
+
 ```typescript
 generateEinsatzNummer(year: number, sequenceNumber: number): string
 ```
 
 **Business Rules:**
+
 - Format: `E{JAHR}-{LAUFNUMMER}` (Beispiel: `E2024-001`)
 - Laufnummer wird jährlich zurückgesetzt (000-999 pro Jahr)
 - Zero-Padding auf 3 Stellen für einheitliche Sortierung
 
 **Warum Service statt Aggregate?**
+
 - Einsatznummerngenerierung ist **keine** Zustandsänderung des Einsatz-Aggregates
 - Application Layer holt Sequenznummer vom Repository (externe Abhängigkeit)
 - Service bleibt framework-agnostic und testbar
 
 **Usage Example:**
+
 ```typescript
 // Application Layer (Command Handler)
 const year = new Date().getFullYear();
@@ -85,23 +90,27 @@ const einsatz = EinsatzAggregate.create(nummer, alarmstichwort, ort);
 **Location:** `domain/services/einsatz-completeness.service.ts`
 
 **Methods:**
+
 ```typescript
 canBeCompleted(einsatz: EinsatzAggregate, requireOrt = true): Result<void>
 getMissingRequirements(einsatz: EinsatzAggregate, requireOrt = true): string[]
 ```
 
 **Business Rules:**
+
 - Einsatz kann nur abgeschlossen werden wenn:
-  - `alarmstichwort` ist gesetzt (Pflichteingabe)
-  - `einsatzort` ist gesetzt (optional, konfigurierbar via `requireOrt`)
-  - Status ist IN_BEARBEITUNG (nicht ANGELEGT, ABGESCHLOSSEN, ARCHIVIERT)
+    - `alarmstichwort` ist gesetzt (Pflichteingabe)
+    - `einsatzort` ist gesetzt (optional, konfigurierbar via `requireOrt`)
+    - Status ist IN_BEARBEITUNG (nicht ANGELEGT, ABGESCHLOSSEN, ARCHIVIERT)
 
 **Warum Service statt Aggregate?**
+
 - Vollständigkeitsprüfung ist **nicht** der Abschluss selbst (Separation of Concerns)
 - Wird in mehreren Kontexten benötigt (UI, API, Batch-Jobs)
 - Ermöglicht frühzeitige Validierung (Fail-Fast-Prinzip)
 
 **Usage Example:**
+
 ```typescript
 // Application Layer (Command Handler)
 const completenessService = new EinsatzCompletenessService();
@@ -127,24 +136,28 @@ const completeResult = einsatz.complete(userId);
 **Location:** `domain/services/einsatz-archival.policy.ts`
 
 **Methods:**
+
 ```typescript
 canBeArchived(einsatz: EinsatzAggregate, currentDate: Date): boolean
 getArchivalDate(einsatz: EinsatzAggregate): Date
 ```
 
 **Business Rules:**
+
 - Einsatz kann archiviert werden wenn:
-  - Status ist ABGESCHLOSSEN (nicht ANGELEGT, IN_BEARBEITUNG, ARCHIVIERT)
-  - `abgeschlossenAt` ist mindestens 10 Jahre vor `currentDate`
+    - Status ist ABGESCHLOSSEN (nicht ANGELEGT, IN_BEARBEITUNG, ARCHIVIERT)
+    - `abgeschlossenAt` ist mindestens 10 Jahre vor `currentDate`
 - Nach Archivierung (Status → ARCHIVIERT) ist Einsatz immutable
 
 **Warum Policy statt Aggregate?**
+
 - Archivierung ist zeitbasierte Regel, nicht Zustandsänderung
 - Application Layer entscheidet **WANN** archiviert wird (Batch-Job, User-Trigger)
 - Domain Layer definiert nur **REGELN**, nicht den Zeitpunkt
 - Separation of Concerns: Timing (Application) ≠ Rules (Domain)
 
 **Usage Example:**
+
 ```typescript
 // Application Layer (Batch-Job: Archiviere alte Einsätze)
 const allCompleted = await einsatzRepo.findByStatus(EinsatzStatus.ABGESCHLOSSEN);
@@ -172,18 +185,21 @@ for (const einsatz of allCompleted) {
 **Location:** `domain/services/ports/i-geocoding.port.ts`
 
 **Methods:**
+
 ```typescript
 geocodeAddress(address: Address): Promise<Result<GeoCoordinate>>
 reverseGeocode(coordinate: GeoCoordinate): Promise<Result<Address>>
 ```
 
 **Warum Port Pattern?**
+
 - Domain Layer hat **KEINE** Abhängigkeit zur konkreten Geocoding-API
 - Infrastructure Layer kann Nominatim, Google Maps, oder andere Services nutzen
 - Austausch der Geocoding-Provider ohne Domain-Änderungen möglich
 - Unit Tests können Mock-Implementierung nutzen
 
 **Usage Example:**
+
 ```typescript
 // Application Layer (Command Handler)
 const addressResult = Address.create({ strasse: 'Brandenburger Tor', ort: 'Berlin' });
@@ -276,6 +292,7 @@ it('should return true when Einsatz is 10 years old', () => {
 ```
 
 **Warum currentDate als Parameter?**
+
 - Deterministische Tests (kein Flaky-Test durch `new Date()`)
 - Batch-Jobs können festes Datum übergeben (z.B. Monatsende)
 - NO Side Effects in Domain Layer
@@ -312,6 +329,7 @@ domain/services/
 | **IGeocodingPort** | Port | Geocoding Interface (Nominatim) | `ports/i-geocoding.port.ts` | NO (Interface Only) |
 
 **Alle Domain Services sind:**
+
 - ✅ Framework-agnostic (NO NestJS decorators)
 - ✅ Stateless (Pure Functions)
 - ✅ German JSDoc mit "Warum"-Erklärung

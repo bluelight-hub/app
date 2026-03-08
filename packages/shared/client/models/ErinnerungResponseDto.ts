@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -268,8 +267,8 @@ export function instanceOfErinnerungResponseDto(value: object): value is Erinner
     if (!('snoozeCount' in value) || value['snoozeCount'] === undefined) return false;
     if (!('requiresNote' in value) || value['requiresNote'] === undefined) return false;
     if (!('isRecurring' in value) || value['isRecurring'] === undefined) return false;
-    if (!('recurringCurrentCount' in value) || value['recurringCurrentCount'] === undefined) return false;
-    return true;
+    return !(!('recurringCurrentCount' in value) || value['recurringCurrentCount'] === undefined);
+
 }
 
 export function ErinnerungResponseDtoFromJSON(json: any): ErinnerungResponseDto {

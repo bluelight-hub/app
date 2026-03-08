@@ -12,14 +12,7 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { A } from './A';
-import {
-    AFromJSON,
-    AFromJSONTyped,
-    AToJSON,
-    AToJSONTyped,
-} from './A';
+import type {A} from './A';
 
 /**
  * 
@@ -60,8 +53,8 @@ export function instanceOfLagekarteDto(value: object): value is LagekarteDto {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('einsatzId' in value) || value['einsatzId'] === undefined) return false;
     if (!('pois' in value) || value['pois'] === undefined) return false;
-    if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
-    return true;
+    return !(!('createdAt' in value) || value['createdAt'] === undefined);
+
 }
 
 export function LagekarteDtoFromJSON(json: any): LagekarteDto {

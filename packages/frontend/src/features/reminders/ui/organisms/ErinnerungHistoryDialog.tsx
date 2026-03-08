@@ -34,6 +34,10 @@ interface TimelineEvent {
   user?: string;
 }
 
+function getTimelineEventKeyBase(event: TimelineEvent): string {
+  return [event.date, event.title, event.description ?? 'keine-beschreibung', event.user ?? 'kein-user', event.color].join('|');
+}
+
 export function ErinnerungHistoryDialog({ isOpen, onClose, erinnerung, einsatzId }: ErinnerungHistoryDialogProps) {
   const navigate = useNavigate();
 
@@ -114,6 +118,7 @@ export function ErinnerungHistoryDialog({ isOpen, onClose, erinnerung, einsatzId
 
   // Sort by date desc
   events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const eventKeyCounts = new Map<string, number>();
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -145,41 +150,47 @@ export function ErinnerungHistoryDialog({ isOpen, onClose, erinnerung, einsatzId
 
                 <div className="mt-4 flow-root">
                   <ul className="-mb-8">
-                    {events.map((event, eventIdx) => (
-                      <li key={`${event.date}-${eventIdx}`}>
-                        <div className="relative pb-8">
-                          {eventIdx !== events.length - 1 ? <span className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200 dark:bg-gray-700" aria-hidden="true" /> : null}
-                          <div className="relative flex space-x-3">
-                            <div>
-                              <span
-                                className={cn(
-                                  'flex h-8 w-8 items-center justify-center rounded-full ring-8 ring-white dark:ring-gray-800',
-                                  event.color === 'blue' && 'bg-blue-500',
-                                  event.color === 'red' && 'bg-red-500',
-                                  event.color === 'green' && 'bg-green-500',
-                                  event.color === 'yellow' && 'bg-yellow-500',
-                                  event.color === 'gray' && 'bg-gray-500',
-                                )}
-                              >
-                                <event.icon className="h-5 w-5 text-white" aria-hidden="true" />
-                              </span>
-                            </div>
-                            <div className="flex min-w-0 flex-1 justify-between space-x-4">
+                    {events.map((event, eventIdx) => {
+                      const eventKeyBase = getTimelineEventKeyBase(event);
+                      const occurrence = (eventKeyCounts.get(eventKeyBase) ?? 0) + 1;
+                      eventKeyCounts.set(eventKeyBase, occurrence);
+
+                      return (
+                        <li key={`${eventKeyBase}|${occurrence}`}>
+                          <div className="relative pb-8">
+                            {eventIdx !== events.length - 1 ? <span className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200 dark:bg-gray-700" aria-hidden="true" /> : null}
+                            <div className="relative flex space-x-3">
                               <div>
-                                <p className="font-medium text-gray-900 text-sm dark:text-gray-100">
-                                  {event.title} {event.user && <span className="font-normal text-gray-500 dark:text-gray-400">durch {event.user}</span>}
-                                </p>
-                                {event.description && <p className="mt-0.5 text-gray-500 text-sm dark:text-gray-400">{event.description}</p>}
+                                <span
+                                  className={cn(
+                                    'flex h-8 w-8 items-center justify-center rounded-full ring-8 ring-white dark:ring-gray-800',
+                                    event.color === 'blue' && 'bg-blue-500',
+                                    event.color === 'red' && 'bg-red-500',
+                                    event.color === 'green' && 'bg-green-500',
+                                    event.color === 'yellow' && 'bg-yellow-500',
+                                    event.color === 'gray' && 'bg-gray-500',
+                                  )}
+                                >
+                                  <event.icon className="h-5 w-5 text-white" aria-hidden="true" />
+                                </span>
                               </div>
-                              <div className="whitespace-nowrap text-right text-gray-500 text-sm dark:text-gray-400">
-                                <time dateTime={event.date}>{format(new Date(event.date), 'HH:mm')}</time>
-                                <div className="text-xs">{format(new Date(event.date), 'dd.MM.')}</div>
+                              <div className="flex min-w-0 flex-1 justify-between space-x-4">
+                                <div>
+                                  <p className="font-medium text-gray-900 text-sm dark:text-gray-100">
+                                    {event.title} {event.user && <span className="font-normal text-gray-500 dark:text-gray-400">durch {event.user}</span>}
+                                  </p>
+                                  {event.description && <p className="mt-0.5 text-gray-500 text-sm dark:text-gray-400">{event.description}</p>}
+                                </div>
+                                <div className="whitespace-nowrap text-right text-gray-500 text-sm dark:text-gray-400">
+                                  <time dateTime={event.date}>{format(new Date(event.date), 'HH:mm')}</time>
+                                  <div className="text-xs">{format(new Date(event.date), 'dd.MM.')}</div>
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      </li>
-                    ))}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
 

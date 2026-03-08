@@ -30,7 +30,10 @@ export class GetFuehrungsrhythmusStatistikHandler {
       return Result.fail<FuehrungsrhythmusStatistikDto>(statistikResult.error ?? ERINNERUNG_ERROR_CODES.QUERY_FAILED);
     }
 
-    const statistik = statistikResult.value!;
+    const statistik = statistikResult.value;
+    if (!statistik) {
+      return Result.fail<FuehrungsrhythmusStatistikDto>(ERINNERUNG_ERROR_CODES.QUERY_FAILED);
+    }
 
     const activations: FuehrungsrhythmusActivationGroupDto[] = statistik.activations.map((activation) => {
       const reminderTypeStats: FuehrungsrhythmusReminderTypeStatsDto[] = activation.reminderTypeStats.map((ts) => ({

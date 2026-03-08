@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -73,8 +72,8 @@ export function instanceOfErinnerungStatusCountsDto(value: object): value is Eri
     if (!('acknowledged' in value) || value['acknowledged'] === undefined) return false;
     if (!('snoozed' in value) || value['snoozed'] === undefined) return false;
     if (!('eskaliert' in value) || value['eskaliert'] === undefined) return false;
-    if (!('erledigt' in value) || value['erledigt'] === undefined) return false;
-    return true;
+    return !(!('erledigt' in value) || value['erledigt'] === undefined);
+
 }
 
 export function ErinnerungStatusCountsDtoFromJSON(json: any): ErinnerungStatusCountsDto {

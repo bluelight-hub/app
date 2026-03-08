@@ -337,31 +337,33 @@ import { ZodSchema } from 'zod';
  *   username!: string;
  * }
  * ```
- */
+
+*/
 export function ValidateWithZod(schema: ZodSchema, validationOptions?: ValidationOptions) {
-  return function (object: object, propertyName: string) {
-    registerDecorator({
-      name: 'validateWithZod',
-      target: object.constructor,
-      propertyName: propertyName,
-      options: validationOptions,
-      validator: {
-        validate(value: unknown, args: ValidationArguments) {
-          const result = schema.safeParse(value);
-          return result.success;
-        },
-        defaultMessage(args: ValidationArguments) {
-          const result = schema.safeParse(args.value);
-          if (!result.success) {
-            // Nutze erste Zod-Error-Message
-            return result.error.errors[0]?.message || 'Validierung fehlgeschlagen';
-          }
-          return 'Validierung fehlgeschlagen';
-        },
-      },
-    });
-  };
+return function (object: object, propertyName: string) {
+registerDecorator({
+name: 'validateWithZod',
+target: object.constructor,
+propertyName: propertyName,
+options: validationOptions,
+validator: {
+validate(value: unknown, args: ValidationArguments) {
+const result = schema.safeParse(value);
+return result.success;
+},
+defaultMessage(args: ValidationArguments) {
+const result = schema.safeParse(args.value);
+if (!result.success) {
+// Nutze erste Zod-Error-Message
+return result.error.errors[0]?.message || 'Validierung fehlgeschlagen';
 }
+return 'Validierung fehlgeschlagen';
+},
+},
+});
+};
+}
+
 ```
 
 **File:** `packages/backend/src/application/common/validation/index.ts`

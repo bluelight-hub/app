@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -31,8 +30,8 @@ export interface UpdateEintragDto {
  * Check if a given object implements the UpdateEintragDto interface.
  */
 export function instanceOfUpdateEintragDto(value: object): value is UpdateEintragDto {
-    if (!('newText' in value) || value['newText'] === undefined) return false;
-    return true;
+    return !(!('newText' in value) || value['newText'] === undefined);
+
 }
 
 export function UpdateEintragDtoFromJSON(json: any): UpdateEintragDto {

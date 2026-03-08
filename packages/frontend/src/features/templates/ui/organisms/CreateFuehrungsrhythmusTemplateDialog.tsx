@@ -28,6 +28,17 @@ function formatErrors(errors: unknown[]): string {
 /** Preset-Intervalle in Minuten */
 const INTERVALL_PRESETS = [15, 30, 45, 60] as const;
 
+let createEintragKeyCounter = 0;
+
+function createEintragKey(): string {
+  createEintragKeyCounter += 1;
+  return `create-fr-eintrag-${createEintragKeyCounter}`;
+}
+
+function createEintragKeys(count: number): string[] {
+  return Array.from({ length: count }, () => createEintragKey());
+}
+
 interface CreateFuehrungsrhythmusTemplateDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -40,6 +51,7 @@ interface CreateFuehrungsrhythmusTemplateDialogProps {
  */
 export function CreateFuehrungsrhythmusTemplateDialog({ isOpen, onClose, defaultScope, einsatzId }: CreateFuehrungsrhythmusTemplateDialogProps) {
   const [apiErrorMessage, setApiErrorMessage] = useState<string | null>(null);
+  const [entryKeys, setEntryKeys] = useState<string[]>(() => createEintragKeys(1));
   const globalMutation = useCreateGlobalFuehrungsrhythmusTemplate();
   const einsatzMutation = useCreateEinsatzFuehrungsrhythmusTemplate();
   const isEinsatz = defaultScope === 'EINSATZ';
@@ -77,6 +89,7 @@ export function CreateFuehrungsrhythmusTemplateDialog({ isOpen, onClose, default
             toast.success('Fuehrungsrhythmus-Template erstellt');
             setTimeout(() => {
               form.reset();
+              setEntryKeys(createEintragKeys(1));
               onClose();
             }, 0);
           },
@@ -92,6 +105,7 @@ export function CreateFuehrungsrhythmusTemplateDialog({ isOpen, onClose, default
     if (!isPending) {
       setApiErrorMessage(null);
       form.reset();
+      setEntryKeys(createEintragKeys(1));
       onClose();
     }
   }, [isPending, form, onClose]);
@@ -177,15 +191,28 @@ export function CreateFuehrungsrhythmusTemplateDialog({ isOpen, onClose, default
               {(field) => (
                 <div className="space-y-4">
                   {field.state.value.map((_: unknown, index: number) => (
-                    <EintragRow key={index} form={form} index={index} isPending={isPending} canRemove={field.state.value.length > 1} onRemove={() => field.removeValue(index)} />
+                    <EintragRow
+                      key={entryKeys[index] ?? 'create-fr-eintrag-fallback'}
+                      form={form}
+                      index={index}
+                      isPending={isPending}
+                      canRemove={field.state.value.length > 1}
+                      onRemove={() => {
+                        field.removeValue(index);
+                        setEntryKeys((prevKeys) => [...prevKeys.slice(0, index), ...prevKeys.slice(index + 1)]);
+                      }}
+                    />
                   ))}
 
                   {/* Erinnerung hinzufuegen Button */}
                   <button
                     type="button"
-                    onClick={() => field.pushValue({ titel: '', intervallMinuten: 30, offsetMinuten: 0 })}
+                    onClick={() => {
+                      field.pushValue({ titel: '', intervallMinuten: 30, offsetMinuten: 0 });
+                      setEntryKeys((prev) => [...prev, createEintragKey()]);
+                    }}
                     disabled={isPending}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 px-4 py-2.5 text-gray-500 text-sm transition-colors hover:border-amber-400 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-400 dark:hover:border-amber-500 dark:hover:text-amber-400"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-gray-300 border-dashed px-4 py-2.5 text-gray-500 text-sm transition-colors hover:border-amber-400 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-400 dark:hover:border-amber-500 dark:hover:text-amber-400"
                   >
                     <PiPlus className="h-4 w-4" />
                     Erinnerung hinzufuegen
@@ -229,6 +256,9 @@ function EintragRow({
   canRemove: boolean;
   onRemove: () => void;
 }) {
+  const intervallInputId = `fr-eintrag-${index}-intervall`;
+  const offsetInputId = `fr-eintrag-${index}-offset`;
+
   return (
     <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800/50">
       <div className="mb-2 flex items-center justify-between">
@@ -271,7 +301,9 @@ function EintragRow({
           <form.Field name={`eintraege[${index}].intervallMinuten`}>
             {(field) => (
               <div className="flex-1">
-                <label className="mb-1 block text-gray-500 text-xs dark:text-gray-400">Intervall (Min)</label>
+                <label htmlFor={intervallInputId} className="mb-1 block text-gray-500 text-xs dark:text-gray-400">
+                  Intervall (Min)
+                </label>
                 <div className="flex items-center gap-1.5">
                   {INTERVALL_PRESETS.map((preset) => (
                     <button
@@ -291,6 +323,7 @@ function EintragRow({
                     </button>
                   ))}
                   <Input
+                    id={intervallInputId}
                     type="number"
                     value={field.state.value as number}
                     onChange={(e) => field.handleChange(Number(e.target.value))}
@@ -311,8 +344,11 @@ function EintragRow({
           <form.Field name={`eintraege[${index}].offsetMinuten`}>
             {(field) => (
               <div className="w-24">
-                <label className="mb-1 block text-gray-500 text-xs dark:text-gray-400">Offset (Min)</label>
+                <label htmlFor={offsetInputId} className="mb-1 block text-gray-500 text-xs dark:text-gray-400">
+                  Offset (Min)
+                </label>
                 <Input
+                  id={offsetInputId}
                   type="number"
                   value={(field.state.value as number | undefined) ?? 0}
                   onChange={(e) => field.handleChange(Number(e.target.value))}

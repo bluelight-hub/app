@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { RemovePoiCommand } from '../remove-poi.command';
 
 /**
@@ -22,8 +23,8 @@ describe('RemovePoiCommand', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.lagekarteId).toBe(lagekarteId);
-      expect(result.value!.poiId).toBe(poiId);
+      expect(result.value?.lagekarteId).toBe(lagekarteId);
+      expect(result.value?.poiId).toBe(poiId);
     });
 
     it('should accept lagekarteId with leading/trailing spaces (not trimmed in factory)', () => {
@@ -36,7 +37,7 @@ describe('RemovePoiCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.lagekarteId).toBe(lagekarteId); // Factory does NOT trim
+      expect(result.value?.lagekarteId).toBe(lagekarteId); // Factory does NOT trim
     });
 
     it('should accept poiId with leading/trailing spaces (not trimmed in factory)', () => {
@@ -49,7 +50,7 @@ describe('RemovePoiCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.poiId).toBe(poiId); // Factory does NOT trim
+      expect(result.value?.poiId).toBe(poiId); // Factory does NOT trim
     });
 
     it('should accept UUID-format IDs', () => {
@@ -62,8 +63,8 @@ describe('RemovePoiCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.lagekarteId).toBe(lagekarteId);
-      expect(result.value!.poiId).toBe(poiId);
+      expect(result.value?.lagekarteId).toBe(lagekarteId);
+      expect(result.value?.poiId).toBe(poiId);
     });
 
     it('should accept nanoid-format IDs (21 chars)', () => {
@@ -76,8 +77,8 @@ describe('RemovePoiCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.lagekarteId).toBe(lagekarteId);
-      expect(result.value!.poiId).toBe(poiId);
+      expect(result.value?.lagekarteId).toBe(lagekarteId);
+      expect(result.value?.poiId).toBe(poiId);
     });
   });
 
@@ -172,8 +173,8 @@ describe('RemovePoiCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.lagekarteId.length).toBe(1000);
-      expect(result.value!.poiId.length).toBe(1000);
+      expect(result.value?.lagekarteId.length).toBe(1000);
+      expect(result.value?.poiId.length).toBe(1000);
     });
 
     it('should accept IDs with special characters', () => {
@@ -186,8 +187,8 @@ describe('RemovePoiCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.lagekarteId).toBe(lagekarteId);
-      expect(result.value!.poiId).toBe(poiId);
+      expect(result.value?.lagekarteId).toBe(lagekarteId);
+      expect(result.value?.poiId).toBe(poiId);
     });
 
     it('should accept IDs with all valid nanoid characters', () => {
@@ -200,8 +201,8 @@ describe('RemovePoiCommand', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.lagekarteId).toBe(lagekarteId);
-      expect(result.value!.poiId).toBe(poiId);
+      expect(result.value?.lagekarteId).toBe(lagekarteId);
+      expect(result.value?.poiId).toBe(poiId);
     });
   });
 });

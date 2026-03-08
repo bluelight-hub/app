@@ -9,7 +9,8 @@ outputFile: '/tmp/tea-automate-backend-tests-{{timestamp}}.json'
 
 ## SUBAGENT CONTEXT
 
-This is an **isolated subagent** running in parallel with API test generation (and optionally E2E test generation for fullstack projects).
+This is an **isolated subagent** running in parallel with API test generation (and optionally E2E test generation for
+fullstack projects).
 
 **What you have from parent workflow:**
 

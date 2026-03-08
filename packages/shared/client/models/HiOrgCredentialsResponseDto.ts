@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -57,8 +56,8 @@ export interface HiOrgCredentialsResponseDto {
 export function instanceOfHiOrgCredentialsResponseDto(value: object): value is HiOrgCredentialsResponseDto {
     if (!('hasOAuthTokens' in value) || value['hasOAuthTokens'] === undefined) return false;
     if (!('isActive' in value) || value['isActive'] === undefined) return false;
-    if (!('isOAuthConfigured' in value) || value['isOAuthConfigured'] === undefined) return false;
-    return true;
+    return !(!('isOAuthConfigured' in value) || value['isOAuthConfigured'] === undefined);
+
 }
 
 export function HiOrgCredentialsResponseDtoFromJSON(json: any): HiOrgCredentialsResponseDto {

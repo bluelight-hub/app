@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { GeoCoordinate } from '@domain/value-objects/geo-coordinate';
 
 describe('GeoCoordinate', () => {

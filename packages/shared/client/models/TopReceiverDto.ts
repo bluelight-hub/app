@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -45,8 +44,8 @@ export interface TopReceiverDto {
 export function instanceOfTopReceiverDto(value: object): value is TopReceiverDto {
     if (!('userId' in value) || value['userId'] === undefined) return false;
     if (!('userName' in value) || value['userName'] === undefined) return false;
-    if (!('count' in value) || value['count'] === undefined) return false;
-    return true;
+    return !(!('count' in value) || value['count'] === undefined);
+
 }
 
 export function TopReceiverDtoFromJSON(json: any): TopReceiverDto {

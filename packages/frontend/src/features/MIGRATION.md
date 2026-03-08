@@ -5,6 +5,7 @@ Dieser Guide beschreibt die schrittweise Migration von Legacy-Hooks zur TanStack
 ## Überblick
 
 ### Alte Struktur (Legacy)
+
 ```
 packages/frontend/src/
 ├── hooks/                # Monolithische Hooks
@@ -18,6 +19,7 @@ packages/frontend/src/
 ```
 
 ### Neue Struktur (Feature Modules)
+
 ```
 packages/frontend/src/
 ├── features/            # Feature-based Architecture
@@ -40,11 +42,13 @@ packages/frontend/src/
 ### ✅ Auth Feature (ABGESCHLOSSEN)
 
 **Migrierte Hooks:**
+
 - `useAuth()` → `useCurrentUser()`, `useUnifiedAuth()`, `useLogout()`
 - `useAdminAuth()` → `useAdminAuth()` (neue API)
 - `useUsers()` → `useUsers()`, `useUser()`, `useUserNames()`
 
 **Neue Features:**
+
 - `useAdminLogin()` - Separate Admin-Login Mutation
 - `useAdminLogout()` - Separate Admin-Logout Mutation
 - `useAdminSetup()` - Admin Setup Mutation
@@ -53,6 +57,7 @@ packages/frontend/src/
 - `authStore` - TanStack Store für UI-State
 
 **Files:**
+
 - ✅ `/features/auth/api/use-current-user.ts`
 - ✅ `/features/auth/api/use-login.ts`
 - ✅ `/features/auth/api/use-logout.ts`
@@ -64,18 +69,21 @@ packages/frontend/src/
 ### 🚧 Einsatz Feature (IN PROGRESS)
 
 **Migrierte Hooks:**
+
 - Basic structure vorhanden
 - Migration von `useEinsatz()` geplant
 
 ### 🚧 ETB Feature (IN PROGRESS)
 
 **Migrierte Hooks:**
+
 - Basic structure vorhanden
 - Migration von `useETB()` geplant
 
 ### 🚧 Lagekarte Feature (GEPLANT)
 
 **Zu migrieren:**
+
 - `useLagekarte()`
 - `usePOIs()`
 
@@ -84,6 +92,7 @@ packages/frontend/src/
 ### 1. Feature Analysieren
 
 Bestehendes Feature analysieren:
+
 ```bash
 # Hooks finden
 find packages/frontend/src/hooks -name "use*.ts"
@@ -101,6 +110,7 @@ mkdir -p packages/frontend/src/features/{feature-name}/{api,stores,guards}
 ### 3. API Hooks migrieren
 
 **Vorher:**
+
 ```typescript
 // hooks/useAuth.ts
 export const useAuth = () => {
@@ -111,6 +121,7 @@ export const useAuth = () => {
 ```
 
 **Nachher:**
+
 ```typescript
 // features/auth/api/use-current-user.ts
 export const useCurrentUser = () => {
@@ -130,6 +141,7 @@ export const useUnifiedAuth = () => {
 ```
 
 **Regeln:**
+
 - Ein Hook pro Funktion (nicht alles in einem Hook!)
 - Query Keys aus `queries.ts` importieren
 - `onSuccess` für Query Invalidation
@@ -149,11 +161,13 @@ export const authStore = new Store<AuthStoreState>(initialState);
 ```
 
 **Wann Store verwenden?**
+
 - UI-State (z.B. Modal-Status, Sidebar-State)
 - Client-Only State (z.B. Theme, Preferences)
 - Temp State für Multi-Step Forms
 
 **Wann NICHT Store verwenden?**
+
 - Server-State → TanStack Query verwenden
 - Token-Storage → HTTP-Only Cookies verwenden
 
@@ -240,6 +254,7 @@ describe('useCurrentUser', () => {
 ### Query Keys
 
 **Zentralisiert in `queries.ts`:**
+
 ```typescript
 export const AUTH_KEYS = {
   auth: {
@@ -255,6 +270,7 @@ export const AUTH_KEYS = {
 ### Error Handling
 
 Nutze globalen Error Handler:
+
 ```typescript
 // utils/error-handler.ts (bereits vorhanden)
 export async function handleQueryError(error: unknown) {
@@ -265,6 +281,7 @@ export async function handleQueryError(error: unknown) {
 ### Loading States
 
 **IMMER prüfen:**
+
 ```typescript
 const { data, isLoading, error } = useCurrentUser();
 
@@ -278,6 +295,7 @@ return <UserProfile user={data} />;
 ### Type Safety
 
 **Vollständige TypeScript-Typen:**
+
 ```typescript
 import type { UserDto } from '@bluelight-hub/shared/client';
 
@@ -293,6 +311,7 @@ export const useCurrentUser = (): {
 ### Mutation Callbacks
 
 **onSuccess für Invalidation:**
+
 ```typescript
 const { mutate: updateUser } = useMutation({
   mutationFn: (dto) => api.users().update(dto),
@@ -338,6 +357,7 @@ pnpm --filter @bluelight-hub/frontend test features/{name}
 ## Fragen?
 
 Bei Unklarheiten zur Migration:
+
 1. Schaue ins `/features/auth/` (vollständiges Beispiel)
 2. Lies `/features/auth/README.md` (API-Dokumentation)
 3. Prüfe `/features/einsatz/` oder `/features/etb/` (andere Beispiele)

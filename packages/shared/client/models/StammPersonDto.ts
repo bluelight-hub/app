@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { StammPersonQualifikationDto } from './StammPersonQualifikationDto';
-import {
-    StammPersonQualifikationDtoFromJSON,
-    StammPersonQualifikationDtoFromJSONTyped,
-    StammPersonQualifikationDtoToJSON,
-    StammPersonQualifikationDtoToJSONTyped,
-} from './StammPersonQualifikationDto';
+import type {StammPersonQualifikationDto} from './StammPersonQualifikationDto';
+import {StammPersonQualifikationDtoFromJSON, StammPersonQualifikationDtoToJSON,} from './StammPersonQualifikationDto';
 
 /**
  * 
@@ -111,8 +105,8 @@ export function instanceOfStammPersonDto(value: object): value is StammPersonDto
     if (!('personalnummer' in value) || value['personalnummer'] === undefined) return false;
     if (!('qualifikationen' in value) || value['qualifikationen'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
-    if (!('createdBy' in value) || value['createdBy'] === undefined) return false;
-    return true;
+    return !(!('createdBy' in value) || value['createdBy'] === undefined);
+
 }
 
 export function StammPersonDtoFromJSON(json: any): StammPersonDto {

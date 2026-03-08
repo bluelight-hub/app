@@ -1,12 +1,12 @@
-import { api } from '@/shared';
-import { EINSATZ_QUERY_KEYS } from '../api';
-import { einsatzStore, useEinsatzStore } from '../stores/active-einsatz.store';
-import { clearActiveEinsatz as clearPersistedEinsatz, loadActiveEinsatzId, rehydrateActiveEinsatz } from '../stores/persistence/einsatz-persistence';
-import { logger } from '@/shared/lib/logger';
 import type { EinsatzControllerFindOneVAlpha200Response, ResponseError } from '@/shared';
+import { api } from '@/shared';
+import { logger } from '@/shared/lib/logger';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { milliseconds } from 'date-fns';
 import { useCallback, useEffect } from 'react';
+import { EINSATZ_QUERY_KEYS } from '../api';
+import { einsatzStore, useEinsatzStore } from '../stores/active-einsatz.store';
+import { clearActiveEinsatz as clearPersistedEinsatz, loadActiveEinsatzId, rehydrateActiveEinsatz } from '../stores/persistence/einsatz-persistence';
 
 /**
  * Hook für aktiven Einsatz-Management
@@ -48,11 +48,9 @@ export function useActiveEinsatz() {
       }
 
       try {
-        const response = await api.einsatz().einsatzControllerFindOneVAlpha({
+        return await api.einsatz().einsatzControllerFindOneVAlpha({
           id: selectedEinsatzId,
         });
-
-        return response;
       } catch (error) {
         logger.error('Failed to fetch active Einsatz', error);
         throw error;

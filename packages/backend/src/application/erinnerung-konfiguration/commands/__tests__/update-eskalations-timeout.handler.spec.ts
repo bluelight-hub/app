@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Test, type TestingModule } from '@nestjs/testing';
 import { UpdateEskalationsTimeoutHandler } from '../update-eskalations-timeout.command';
 import { UpdateEskalationsTimeoutCommand } from '../update-eskalations-timeout.command';

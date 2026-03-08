@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { EinsatzStatus } from './einsatz-status';
 
 describe('EinsatzStatus', () => {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { GebeRolleFreiCommand } from '../gebe-rolle-frei.command';
 
 describe('GebeRolleFreiCommand', () => {

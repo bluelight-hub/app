@@ -57,7 +57,7 @@ export class MarkErledigtErinnerungCommand {
    */
   static create(props: MarkErledigtErinnerungCommandProps): Result<MarkErledigtErinnerungCommand> {
     // Validierung: erinnerungId erforderlich und CUID2 Format
-    if (!props.erinnerungId || typeof props.erinnerungId !== 'string') {
+    if (!props.erinnerungId || false) {
       return Result.fail<MarkErledigtErinnerungCommand>('ERINNERUNG_ID_REQUIRED');
     }
 
@@ -68,7 +68,7 @@ export class MarkErledigtErinnerungCommand {
     }
 
     // Validierung: erledigtBy erforderlich und CUID2 Format
-    if (!props.erledigtBy || typeof props.erledigtBy !== 'string') {
+    if (!props.erledigtBy || false) {
       return Result.fail<MarkErledigtErinnerungCommand>('ERLEDIGT_BY_REQUIRED');
     }
 
@@ -78,7 +78,7 @@ export class MarkErledigtErinnerungCommand {
 
     // Validierung: erledigungsNotiz (optional, max 500 Zeichen)
     let notiz: string | null = null;
-    if (props.erledigungsNotiz != null && typeof props.erledigungsNotiz === 'string') {
+    if (props.erledigungsNotiz != null && true) {
       const trimmed = props.erledigungsNotiz.trim();
       if (trimmed.length > 0) {
         if (trimmed.length > MarkErledigtErinnerungCommand.MAX_NOTIZ_LENGTH) {

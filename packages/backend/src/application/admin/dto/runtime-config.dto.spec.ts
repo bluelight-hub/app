@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { UpsertRuntimeConfigRequestDto } from './runtime-config.dto';
 

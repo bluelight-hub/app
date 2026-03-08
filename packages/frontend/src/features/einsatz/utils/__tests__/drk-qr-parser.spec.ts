@@ -1,5 +1,7 @@
-import { describe, it, expect } from 'vitest';
-import { isDrkQrCodeFormat, parseDrkQrCode, DrkQrParseErrorCode } from '../drk-qr-parser';
+// noinspection DuplicatedCode
+
+import { describe, expect, it } from 'vitest';
+import { DrkQrParseErrorCode, isDrkQrCodeFormat, parseDrkQrCode } from '../drk-qr-parser';
 
 describe('DRK QR Parser', () => {
   describe('isDrkQrCodeFormat', () => {

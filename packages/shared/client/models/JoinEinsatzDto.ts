@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -31,8 +30,8 @@ export interface JoinEinsatzDto {
  * Check if a given object implements the JoinEinsatzDto interface.
  */
 export function instanceOfJoinEinsatzDto(value: object): value is JoinEinsatzDto {
-    if (!('einsatzPersonId' in value) || value['einsatzPersonId'] === undefined) return false;
-    return true;
+    return !(!('einsatzPersonId' in value) || value['einsatzPersonId'] === undefined);
+
 }
 
 export function JoinEinsatzDtoFromJSON(json: any): JoinEinsatzDto {

@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import type * as L from 'leaflet';
 import { calculateToolbarPosition } from '../utils/layer-utils';
-import { setToolbarPosition } from '../stores/lagekarte-state.store';
-import { useSelectedShapeId, useLayers } from './use-lagekarte-state';
+import { setToolbarPosition } from '@/features/lagekarte';
+import { useSelectedShapeId, useLayers } from '@/features/lagekarte';
 
 /**
  * Hook für Toolbar-Positionierung relativ zu selektiertem Shape

@@ -17,22 +17,16 @@ import * as runtime from '../runtime';
 import type {
   HealthControllerCheck200Response,
   HealthControllerCheckLiveness200Response,
-  HealthControllerCheckLiveness503Response,
   HealthControllerGetIntegrationHealth200Response,
   HealthControllerGetSystemHealth200Response,
-} from '../models/index';
+} from '../models';
 import {
     HealthControllerCheck200ResponseFromJSON,
-    HealthControllerCheck200ResponseToJSON,
     HealthControllerCheckLiveness200ResponseFromJSON,
-    HealthControllerCheckLiveness200ResponseToJSON,
-    HealthControllerCheckLiveness503ResponseFromJSON,
-    HealthControllerCheckLiveness503ResponseToJSON,
     HealthControllerGetIntegrationHealth200ResponseFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseToJSON,
     HealthControllerGetSystemHealth200ResponseFromJSON,
-    HealthControllerGetSystemHealth200ResponseToJSON,
-} from '../models/index';
+
+} from '../models';
 
 /**
  * 

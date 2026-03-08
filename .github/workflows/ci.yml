@@ -98,7 +98,7 @@ jobs:
   # Linux quality gate: build + lint + architecture checks
   linux-quality:
     name: Linux Quality (Build + Lint)
-    needs: [detect-changes]
+    needs: [ detect-changes ]
     if: needs.detect-changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -138,7 +138,7 @@ jobs:
   # Linux backend unit tests (fast lane, no DB)
   linux-backend-unit:
     name: Linux Backend Unit
-    needs: [detect-changes]
+    needs: [ detect-changes ]
     if: needs.detect-changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -186,14 +186,14 @@ jobs:
   # Linux backend database tests split across shards
   linux-backend-db:
     name: Linux Backend DB (Shard ${{ matrix.shard }}/3)
-    needs: [detect-changes]
+    needs: [ detect-changes ]
     if: needs.detect-changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3]
+        shard: [ 1, 2, 3 ]
 
     services:
       postgres:
@@ -252,7 +252,7 @@ jobs:
   # Linux frontend tests
   linux-frontend:
     name: Linux Frontend Tests
-    needs: [detect-changes]
+    needs: [ detect-changes ]
     if: needs.detect-changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -335,7 +335,7 @@ jobs:
   # Docker build smoke test (no push)
   docker-build:
     name: Docker Build
-    needs: [detect-changes]
+    needs: [ detect-changes ]
     if: needs.detect-changes.outputs.docker == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -366,7 +366,7 @@ jobs:
   # Summary job for branch protection
   summary:
     name: CI Pipeline Summary
-    needs: [detect-changes, repo-hygiene, linux-quality, linux-backend-unit, linux-backend-db, linux-frontend, docker-build]
+    needs: [ detect-changes, repo-hygiene, linux-quality, linux-backend-unit, linux-backend-db, linux-frontend, docker-build ]
     runs-on: ubuntu-latest
     if: always()
     steps:

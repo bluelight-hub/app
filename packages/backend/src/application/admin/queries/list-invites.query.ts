@@ -85,13 +85,13 @@ export interface ListInvitesQueryProps {
  */
 export class ListInvitesQuery {
   /** Erlaubte Sortier-Felder */
-  private static readonly ALLOWED_SORT_FIELDS: ReadonlySet<InviteCodeSortField> = new Set(['createdAt', 'expiresAt', 'useCount']);
+  private static readonly ALLOWED_SORT_FIELDS: ReadonlySet<InviteCodeSortField> = new Set<InviteCodeSortField>(['createdAt', 'expiresAt', 'useCount']);
 
   /** Erlaubte Sortier-Richtungen */
-  private static readonly ALLOWED_SORT_DIRECTIONS: ReadonlySet<InviteCodeSortDirection> = new Set(['asc', 'desc']);
+  private static readonly ALLOWED_SORT_DIRECTIONS: ReadonlySet<InviteCodeSortDirection> = new Set<InviteCodeSortDirection>(['asc', 'desc']);
 
   /** Erlaubte Status-Werte */
-  private static readonly ALLOWED_STATUS_VALUES: ReadonlySet<InviteCodeStatus> = new Set(Object.values(InviteCodeStatus));
+  private static readonly ALLOWED_STATUS_VALUES: ReadonlySet<InviteCodeStatus> = new Set<InviteCodeStatus>(Object.values(InviteCodeStatus) as InviteCodeStatus[]);
 
   /** Minimale Seitennummer */
   private static readonly MIN_PAGE = 1;

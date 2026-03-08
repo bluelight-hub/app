@@ -12,20 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { EintragDto } from './EintragDto';
-import {
-    EintragDtoFromJSON,
-    EintragDtoFromJSONTyped,
-    EintragDtoToJSON,
-    EintragDtoToJSONTyped,
-} from './EintragDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {EintragDto} from './EintragDto';
+import {EintragDtoFromJSON, EintragDtoToJSON,} from './EintragDto';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
 
 /**
@@ -53,8 +47,8 @@ export interface EtbCqrsControllerAddEintragVAlpha201Response {
  */
 export function instanceOfEtbCqrsControllerAddEintragVAlpha201Response(value: object): value is EtbCqrsControllerAddEintragVAlpha201Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function EtbCqrsControllerAddEintragVAlpha201ResponseFromJSON(json: any): EtbCqrsControllerAddEintragVAlpha201Response {

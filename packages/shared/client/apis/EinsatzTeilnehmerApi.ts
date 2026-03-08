@@ -18,15 +18,12 @@ import type {
   EinsatzTeilnehmerControllerGetAllTeilnehmerVAlpha200Response,
   EinsatzTeilnehmerControllerJoinEinsatzVAlpha201Response,
   JoinEinsatzDto,
-} from '../models/index';
+} from '../models';
 import {
     EinsatzTeilnehmerControllerGetAllTeilnehmerVAlpha200ResponseFromJSON,
-    EinsatzTeilnehmerControllerGetAllTeilnehmerVAlpha200ResponseToJSON,
     EinsatzTeilnehmerControllerJoinEinsatzVAlpha201ResponseFromJSON,
-    EinsatzTeilnehmerControllerJoinEinsatzVAlpha201ResponseToJSON,
-    JoinEinsatzDtoFromJSON,
     JoinEinsatzDtoToJSON,
-} from '../models/index';
+} from '../models';
 
 export interface EinsatzTeilnehmerControllerGetAllTeilnehmerVAlphaRequest {
     einsatzId: string;
@@ -63,7 +60,7 @@ export class EinsatzTeilnehmerApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/teilnahme`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/teilnahme`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -98,7 +95,7 @@ export class EinsatzTeilnehmerApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/teilnahme/me`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/teilnahme/me`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -142,7 +139,7 @@ export class EinsatzTeilnehmerApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/teilnahme`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/teilnahme`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,

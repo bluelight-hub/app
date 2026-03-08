@@ -12,27 +12,21 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { ComplianceReportDto } from './ComplianceReportDto';
-import {
-    ComplianceReportDtoFromJSON,
-    ComplianceReportDtoFromJSONTyped,
-    ComplianceReportDtoToJSON,
-    ComplianceReportDtoToJSONTyped,
-} from './ComplianceReportDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {ComplianceReportDto} from './ComplianceReportDto';
+import {ComplianceReportDtoFromJSON, ComplianceReportDtoToJSON,} from './ComplianceReportDto';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
-import type { UserControllerFindAllBasicVAlpha200ResponsePagination } from './UserControllerFindAllBasicVAlpha200ResponsePagination';
+import type {
+    UserControllerFindAllBasicVAlpha200ResponsePagination
+} from './UserControllerFindAllBasicVAlpha200ResponsePagination';
 import {
     UserControllerFindAllBasicVAlpha200ResponsePaginationFromJSON,
-    UserControllerFindAllBasicVAlpha200ResponsePaginationFromJSONTyped,
     UserControllerFindAllBasicVAlpha200ResponsePaginationToJSON,
-    UserControllerFindAllBasicVAlpha200ResponsePaginationToJSONTyped,
 } from './UserControllerFindAllBasicVAlpha200ResponsePagination';
 
 /**
@@ -66,8 +60,8 @@ export interface AufbewahrungControllerGetReportsVAlpha200Response {
  */
 export function instanceOfAufbewahrungControllerGetReportsVAlpha200Response(value: object): value is AufbewahrungControllerGetReportsVAlpha200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function AufbewahrungControllerGetReportsVAlpha200ResponseFromJSON(json: any): AufbewahrungControllerGetReportsVAlpha200Response {

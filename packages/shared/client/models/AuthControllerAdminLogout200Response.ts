@@ -12,21 +12,15 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { LogoutResponseDto } from './LogoutResponseDto';
-import {
-    LogoutResponseDtoFromJSON,
-    LogoutResponseDtoFromJSONTyped,
-    LogoutResponseDtoToJSON,
-    LogoutResponseDtoToJSONTyped,
-} from './LogoutResponseDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {LogoutResponseDto} from './LogoutResponseDto';
+import {LogoutResponseDtoFromJSON, LogoutResponseDtoToJSON,} from './LogoutResponseDto';
 
 /**
  * 
@@ -53,8 +47,8 @@ export interface AuthControllerAdminLogout200Response {
  */
 export function instanceOfAuthControllerAdminLogout200Response(value: object): value is AuthControllerAdminLogout200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function AuthControllerAdminLogout200ResponseFromJSON(json: any): AuthControllerAdminLogout200Response {

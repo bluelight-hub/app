@@ -33,7 +33,7 @@ vi.mock('../../../lib/download-export', () => ({
   downloadExport: (...args: unknown[]) => mockDownloadExport(...args),
 }));
 
-import { StatistikExportDialog } from '../StatistikExportDialog';
+import { StatistikExportDialog } from '@/features/reminders';
 
 const defaultProps = {
   einsatzId: 'einsatz-123',

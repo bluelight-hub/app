@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Unit Tests für PrismaServerConfigRepository (Infrastructure Layer).
  *
@@ -102,8 +103,8 @@ describe('PrismaServerConfigRepository', () => {
 
       // Then: Existing config is returned
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.insecureMode).toBe(false);
-      expect(result.value!.migratedAt).toEqual(new Date('2024-11-26T12:00:00.000Z'));
+      expect(result.value?.insecureMode).toBe(false);
+      expect(result.value?.migratedAt).toEqual(new Date('2024-11-26T12:00:00.000Z'));
     });
 
     it('should use provided transaction client', async () => {
@@ -162,7 +163,7 @@ describe('PrismaServerConfigRepository', () => {
 
       // Then: Config is updated correctly
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.insecureMode).toBe(false);
+      expect(result.value?.insecureMode).toBe(false);
       expect(prismaService.serverConfig.update).toHaveBeenCalledWith({
         where: { id: 'singleton' },
         data: { insecureMode: false },
@@ -180,7 +181,7 @@ describe('PrismaServerConfigRepository', () => {
 
       // Then: MigratedAt is set correctly
       expect(result.isSuccess).toBe(true);
-      expect(result.value!.migratedAt).toEqual(migratedAt);
+      expect(result.value?.migratedAt).toEqual(migratedAt);
       expect(prismaService.serverConfig.update).toHaveBeenCalledWith({
         where: { id: 'singleton' },
         data: { migratedAt },

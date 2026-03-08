@@ -94,21 +94,8 @@ export class InviteCode extends AggregateRoot<InviteCodeId> {
 
   /** Maximale Anzahl erlaubter Nutzungen */
   private readonly _maxUses: number;
-
-  /** Aktuelle Anzahl der Nutzungen */
-  private _usedCount: number;
-
   /** ID des Erstellers (Admin) */
   private readonly _createdById: string;
-
-  /** Optionales Label zur Identifizierung */
-  private _label: string | null;
-
-  /** Ob der Code widerrufen wurde */
-  private _isRevoked: boolean;
-
-  /** Zeitpunkt des Widerrufs */
-  private _revokedAt: Date | null;
 
   /**
    * Private Constructor erzwingt Factory Method Nutzung.
@@ -137,9 +124,49 @@ export class InviteCode extends AggregateRoot<InviteCodeId> {
     this._revokedAt = revokedAt;
   }
 
+  /** Aktuelle Anzahl der Nutzungen */
+  private _usedCount: number;
+
+  /**
+   * Readonly getter für aktuelle Nutzungen.
+   */
+  get usedCount(): number {
+    return this._usedCount;
+  }
+
+  /** Optionales Label zur Identifizierung */
+  private _label: string | null;
+
+  /**
+   * Readonly getter für das Label.
+   */
+  get label(): string | null {
+    return this._label;
+  }
+
   // ============================================================
   // Readonly Getters
   // ============================================================
+
+  /** Ob der Code widerrufen wurde */
+  private _isRevoked: boolean;
+
+  /**
+   * Readonly getter für den Widerruf-Status.
+   */
+  get isRevoked(): boolean {
+    return this._isRevoked;
+  }
+
+  /** Zeitpunkt des Widerrufs */
+  private _revokedAt: Date | null;
+
+  /**
+   * Readonly getter für den Widerruf-Zeitpunkt.
+   */
+  get revokedAt(): Date | null {
+    return this._revokedAt;
+  }
 
   /**
    * Readonly getter für den Invite-Code.
@@ -163,38 +190,10 @@ export class InviteCode extends AggregateRoot<InviteCodeId> {
   }
 
   /**
-   * Readonly getter für aktuelle Nutzungen.
-   */
-  get usedCount(): number {
-    return this._usedCount;
-  }
-
-  /**
    * Readonly getter für die Ersteller-ID.
    */
   get createdById(): string {
     return this._createdById;
-  }
-
-  /**
-   * Readonly getter für das Label.
-   */
-  get label(): string | null {
-    return this._label;
-  }
-
-  /**
-   * Readonly getter für den Widerruf-Status.
-   */
-  get isRevoked(): boolean {
-    return this._isRevoked;
-  }
-
-  /**
-   * Readonly getter für den Widerruf-Zeitpunkt.
-   */
-  get revokedAt(): Date | null {
-    return this._revokedAt;
   }
 
   // ============================================================
@@ -296,11 +295,7 @@ export class InviteCode extends AggregateRoot<InviteCodeId> {
       return false;
     }
 
-    if (this._usedCount >= this._maxUses) {
-      return false;
-    }
-
-    return true;
+    return this._usedCount < this._maxUses;
   }
 
   /**

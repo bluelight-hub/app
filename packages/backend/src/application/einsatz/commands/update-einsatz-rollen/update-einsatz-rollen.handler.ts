@@ -42,7 +42,7 @@ export class UpdateEinsatzRollenHandler {
       for (const z of command.zuweisungen) {
         const rolleResult = EinsatzRolle.create(z.rolle);
         if (rolleResult.isFailure) {
-          return Result.fail<void>(rolleResult.error!);
+          return Result.fail<void>(rolleResult.error ?? 'Ungültige Einsatzrolle');
         }
       }
 

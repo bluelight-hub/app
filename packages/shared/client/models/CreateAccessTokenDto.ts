@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -31,8 +30,8 @@ export interface CreateAccessTokenDto {
  * Check if a given object implements the CreateAccessTokenDto interface.
  */
 export function instanceOfCreateAccessTokenDto(value: object): value is CreateAccessTokenDto {
-    if (!('name' in value) || value['name'] === undefined) return false;
-    return true;
+    return !(!('name' in value) || value['name'] === undefined);
+
 }
 
 export function CreateAccessTokenDtoFromJSON(json: any): CreateAccessTokenDto {

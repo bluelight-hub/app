@@ -30,7 +30,10 @@ export class GetZeitverlaufStatistikHandler {
       return Result.fail<ZeitverlaufStatistikDto>(statsResult.error ?? ERINNERUNG_ERROR_CODES.QUERY_FAILED);
     }
 
-    const stats = statsResult.value!;
+    const stats = statsResult.value;
+    if (!stats) {
+      return Result.fail<ZeitverlaufStatistikDto>(ERINNERUNG_ERROR_CODES.QUERY_FAILED);
+    }
 
     const dto: ZeitverlaufStatistikDto = {
       intervalMinutes: stats.intervalMinutes,

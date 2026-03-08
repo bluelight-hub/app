@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -74,8 +73,8 @@ export interface HiOrgQualifikationPreviewItemDto {
  */
 export function instanceOfHiOrgQualifikationPreviewItemDto(value: object): value is HiOrgQualifikationPreviewItemDto {
     if (!('name' in value) || value['name'] === undefined) return false;
-    if (!('isMapped' in value) || value['isMapped'] === undefined) return false;
-    return true;
+    return !(!('isMapped' in value) || value['isMapped'] === undefined);
+
 }
 
 export function HiOrgQualifikationPreviewItemDtoFromJSON(json: any): HiOrgQualifikationPreviewItemDto {

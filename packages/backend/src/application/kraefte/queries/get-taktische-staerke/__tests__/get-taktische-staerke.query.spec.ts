@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { GetTaktischeStaerkeQuery } from '../get-taktische-staerke.query';
 
 describe('GetTaktischeStaerkeQuery', () => {

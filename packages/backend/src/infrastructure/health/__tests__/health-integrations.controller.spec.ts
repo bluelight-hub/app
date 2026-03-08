@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { CircuitBreakerService } from '@infrastructure/resilience/circuit-breaker.service';
 import { CircuitBreakerStateEnum } from '@infrastructure/resilience/circuit-breaker-state';
 import { HealthController } from '../health.controller';

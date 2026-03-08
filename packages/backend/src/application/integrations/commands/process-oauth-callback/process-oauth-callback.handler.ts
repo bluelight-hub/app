@@ -24,7 +24,7 @@ import { type IOAuth2StateRepository, type IIntegrationCredentialRepository, INT
 import type { IOAuth2Port } from '@domain/ports/i-oauth2.port';
 import type { IEncryptionPort } from '@domain/ports/i-encryption.port';
 import { HIORG_OAUTH_CONFIG } from '@/infrastructure/config/hiorg-oauth.config';
-import type { ProcessOAuthCallbackCommand } from './process-oauth-callback.command';
+import type { ProcessOAuthCallbackCommand } from '@application/integrations';
 
 /**
  * Handler für ProcessOAuthCallbackCommand.

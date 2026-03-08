@@ -2,11 +2,13 @@
 
 ## Übersicht
 
-Dieses Dokument erklärt das **MGRS (Military Grid Reference System)** Koordinatensystem, das in Bluelight Hub als primärer Koordinatentyp für DRK-Einsatzleitung verwendet wird.
+Dieses Dokument erklärt das **MGRS (Military Grid Reference System)** Koordinatensystem, das in Bluelight Hub als
+primärer Koordinatentyp für DRK-Einsatzleitung verwendet wird.
 
 ## Warum MGRS?
 
-MGRS ist der NATO-Standard für militärische und zivile Hilfsorganisationen. Gegenüber Lat/Lng bietet MGRS mehrere Vorteile:
+MGRS ist der NATO-Standard für militärische und zivile Hilfsorganisationen. Gegenüber Lat/Lng bietet MGRS mehrere
+Vorteile:
 
 - **Kompakt:** Weniger fehleranfällig bei Funkdurchsagen (z.B. "33 Uniform Uniform 123 456")
 - **Metrisch:** Distanzen sind direkt in Metern ablesbar
@@ -34,6 +36,7 @@ MGRS-Koordinaten folgen dem NATO-Standard:
 - **Buchstabe:** Breitenband (8° Höhe, Buchstaben C-X ohne I und O)
 
 **Deutsche MGRS-Zonen:**
+
 - `32U`: Western/Northern Germany (Hamburg, Köln)
 - `33U`: Eastern Germany (Berlin, Leipzig, Dresden)
 - `33N`: Central/Southern Germany (Frankfurt, Stuttgart, München)
@@ -49,12 +52,12 @@ MGRS-Koordinaten folgen dem NATO-Standard:
 - **Easting:** Ost-West Position in Metern (0-99999)
 - **Northing:** Nord-Süd Position in Metern (0-99999)
 - **Präzision:** Anzahl der Ziffern bestimmt die Genauigkeit
-  - 10 Ziffern (5+5): 1m Genauigkeit (z.B. `12345 67890`)
-  - 8 Ziffern (4+4): 10m Genauigkeit (z.B. `1234 6789`)
-  - 6 Ziffern (3+3): 100m Genauigkeit (z.B. `123 678`)
-  - 4 Ziffern (2+2): 1km Genauigkeit (z.B. `12 67`)
-  - 2 Ziffern (1+1): 10km Genauigkeit (z.B. `1 6`)
-  - 0 Ziffern: 100km Genauigkeit (nur Grid Square)
+    - 10 Ziffern (5+5): 1m Genauigkeit (z.B. `12345 67890`)
+    - 8 Ziffern (4+4): 10m Genauigkeit (z.B. `1234 6789`)
+    - 6 Ziffern (3+3): 100m Genauigkeit (z.B. `123 678`)
+    - 4 Ziffern (2+2): 1km Genauigkeit (z.B. `12 67`)
+    - 2 Ziffern (1+1): 10km Genauigkeit (z.B. `1 6`)
+    - 0 Ziffern: 100km Genauigkeit (nur Grid Square)
 
 **Wichtig:** Easting und Northing müssen immer die gleiche Anzahl Ziffern haben!
 
@@ -111,35 +114,38 @@ if (mgrsResult.isSuccess) {
 
 ## Genauigkeit
 
-MGRS bietet eine **±11m Genauigkeit**, die dem **DRK-Standard** entspricht und für Einsatzleitung vollkommen ausreichend ist:
+MGRS bietet eine **±11m Genauigkeit**, die dem **DRK-Standard** entspricht und für Einsatzleitung vollkommen ausreichend
+ist:
 
 - **±11m Radius:** Typische GPS-Genauigkeit (ohne DGPS/RTK)
 - **Einsatztauglich:** Lokalisierung von Einsatzorten, Fahrzeugen und Personal
 - **Optimiert:** 1m Präzision (5-stellig) für maximale Genauigkeit bei kompakter Darstellung
 
 **Vergleich:**
+
 - MGRS 1m Präzision: `33UUU8990317936` (15 Zeichen)
 - Lat/Lng 6 Dezimalstellen: `52.516300, 13.377700` (21 Zeichen)
 
 ## Fallback-Strategie: Wann Lat/Lng nutzen?
 
-Obwohl MGRS das primäre Speicherformat in der Datenbank ist, gibt es Situationen, in denen **GeoCoordinate (Lat/Lng)** verwendet werden muss:
+Obwohl MGRS das primäre Speicherformat in der Datenbank ist, gibt es Situationen, in denen **GeoCoordinate (Lat/Lng)**
+verwendet werden muss:
 
 ### Verwendung von GeoCoordinate (Lat/Lng)
 
 1. **Externe APIs:**
-   - Geocoding-APIs (Nominatim, Google Maps Geocoding)
-   - Map-Rendering (Leaflet, Google Maps, Mapbox)
-   - Routing-APIs (OSRM, Google Directions)
+    - Geocoding-APIs (Nominatim, Google Maps Geocoding)
+    - Map-Rendering (Leaflet, Google Maps, Mapbox)
+    - Routing-APIs (OSRM, Google Directions)
 
 2. **Frontend-Anzeige:**
-   - Kartenanzeige (Leaflet erwartet Lat/Lng)
-   - Marker-Positionierung
-   - Polyline/Polygon-Zeichnung
+    - Kartenanzeige (Leaflet erwartet Lat/Lng)
+    - Marker-Positionierung
+    - Polyline/Polygon-Zeichnung
 
 3. **API-Integration:**
-   - Externe Dienste geben fast immer Lat/Lng zurück
-   - Standards wie GeoJSON nutzen Lat/Lng
+    - Externe Dienste geben fast immer Lat/Lng zurück
+    - Standards wie GeoJSON nutzen Lat/Lng
 
 ### Workflow
 
@@ -217,16 +223,17 @@ Die MGRS-Implementierung ist umfassend getestet:
 - **391 Tests** für MGRS-Koordinaten-Konvertierung (Epic 1)
 - **97.1% Line Coverage**
 - **Alle Edge Cases abgedeckt:**
-  - Polregionen (werden gracefully behandelt)
-  - UTM-Zonengrenzen
-  - Format-Validierung (ungerade Ziffernanzahl, ungültige Zeichen)
-  - Deutsche Zonen-Validierung (32U, 33U, 33N)
-  - Präzisions-Varianten (0-10 Ziffern)
+    - Polregionen (werden gracefully behandelt)
+    - UTM-Zonengrenzen
+    - Format-Validierung (ungerade Ziffernanzahl, ungültige Zeichen)
+    - Deutsche Zonen-Validierung (32U, 33U, 33N)
+    - Präzisions-Varianten (0-10 Ziffern)
 
 **Test-Datei für Entwickler:**
 `packages/backend/src/domain/value-objects/mgrs-coordinate.spec.ts`
 
 Diese Datei enthält:
+
 - Format-Validierungs-Tests
 - Konvertierungs-Tests (MGRS ↔ Lat/Lng)
 - Distanzberechnungs-Tests
@@ -270,11 +277,13 @@ it('should create MgrsCoordinate from valid Berlin MGRS string', () => {
 Erstellt MGRS-Koordinate aus String.
 
 **Parameter:**
+
 - `mgrsString`: MGRS-String (z.B. `"33UUU8990317936"`)
 
 **Returns:** `Result<MgrsCoordinate>` (Success oder Failure)
 
 **Validierungen:**
+
 - Format-Regex: `^\d{1,2}[C-HJ-NP-X]{3}(\d{10}|\d{8}|\d{6}|\d{4}|\d{2})?$`
 - Deutsche Zonen: `32U`, `33U`, `33N`
 - Parseability via `mgrs.inverse()`
@@ -284,6 +293,7 @@ Erstellt MGRS-Koordinate aus String.
 Erstellt MGRS-Koordinate aus Lat/Lng.
 
 **Parameter:**
+
 - `lat`: Latitude (-90 bis 90)
 - `lng`: Longitude (-180 bis 180)
 - `precision`: MGRS-Genauigkeit (0-5, wobei 5 = 1m). Default: 5

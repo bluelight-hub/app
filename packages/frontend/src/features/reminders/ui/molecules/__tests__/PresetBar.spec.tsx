@@ -14,7 +14,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { PresetBar } from '../PresetBar';
-import type { FilterPresetType } from '../../../stores/filter-preset.store';
+import type { FilterPresetType } from '@/features/reminders';
 
 // Store mocken
 vi.mock('../../../stores/filter-preset.store', () => ({
@@ -25,7 +25,7 @@ vi.mock('../../../stores/filter-preset.store', () => ({
   isPresetActive: vi.fn(),
 }));
 
-import { useFilterPresets, useActivePresetId, applyPreset, removePreset, isPresetActive } from '../../../stores/filter-preset.store';
+import { useFilterPresets, useActivePresetId, applyPreset, removePreset, isPresetActive } from '@/features/reminders';
 
 const mockUseFilterPresets = vi.mocked(useFilterPresets);
 const mockUseActivePresetId = vi.mocked(useActivePresetId);

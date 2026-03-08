@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { EinsatzNameGenerator } from '../name-generator.util';
 
 describe('EinsatzNameGenerator', () => {

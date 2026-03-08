@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -59,8 +58,8 @@ export function instanceOfRollenBesetzungListItemDto(value: object): value is Ro
     if (!('rollenName' in value) || value['rollenName'] === undefined) return false;
     if (!('personName' in value) || value['personName'] === undefined) return false;
     if (!('rollenDefinitionId' in value) || value['rollenDefinitionId'] === undefined) return false;
-    if (!('einsatzPersonId' in value) || value['einsatzPersonId'] === undefined) return false;
-    return true;
+    return !(!('einsatzPersonId' in value) || value['einsatzPersonId'] === undefined);
+
 }
 
 export function RollenBesetzungListItemDtoFromJSON(json: any): RollenBesetzungListItemDto {

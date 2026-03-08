@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from './prisma.module';
 import { PrismaTransactionManager } from './prisma-transaction-manager';
 import { LOGGER, TRANSACTION_MANAGER } from '../di-tokens';
-import { NestLoggerAdapter } from '../common/adapters/nest-logger.adapter';
+import { NestLoggerAdapter } from '@infrastructure/common/adapters';
 
 /**
  * Database Infrastructure Module.

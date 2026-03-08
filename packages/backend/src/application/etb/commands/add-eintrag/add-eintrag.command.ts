@@ -47,7 +47,7 @@ export class AddEintragCommand {
     public readonly einsatzId?: string,
     public readonly absender?: string,
     public readonly empfaenger?: string,
-    public readonly metadata?: Record<string, unknown>,
+    public readonly metadata: Record<string, unknown> = {},
     public readonly occurredAt?: Date,
   ) {}
 
@@ -76,7 +76,7 @@ export class AddEintragCommand {
     einsatzId?: string,
     absender?: string,
     empfaenger?: string,
-    metadata?: Record<string, unknown>,
+    metadata: Record<string, unknown> = {},
     occurredAt?: Date,
   ): Result<AddEintragCommand> {
     // Validation: etbId required

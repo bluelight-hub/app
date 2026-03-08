@@ -27,33 +27,21 @@ import type {
   BatchSaveQualifikationMappingsRequestDto,
   ImportPersonsRequestDto,
   SaveQualifikationMappingRequestDto,
-} from '../models/index';
+} from '../models';
 import {
     AdminHiOrgIntegrationControllerAutoMatchQualifikationenVAlpha200ResponseFromJSON,
-    AdminHiOrgIntegrationControllerAutoMatchQualifikationenVAlpha200ResponseToJSON,
     AdminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlpha200ResponseFromJSON,
-    AdminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlpha200ResponseToJSON,
     AdminHiOrgIntegrationControllerGetCredentialsVAlpha200ResponseFromJSON,
-    AdminHiOrgIntegrationControllerGetCredentialsVAlpha200ResponseToJSON,
     AdminHiOrgIntegrationControllerGetQualifikationMappingsVAlpha200ResponseFromJSON,
-    AdminHiOrgIntegrationControllerGetQualifikationMappingsVAlpha200ResponseToJSON,
     AdminHiOrgIntegrationControllerImportPersonsVAlpha200ResponseFromJSON,
-    AdminHiOrgIntegrationControllerImportPersonsVAlpha200ResponseToJSON,
     AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200ResponseFromJSON,
-    AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200ResponseToJSON,
     AdminHiOrgIntegrationControllerPreviewPersonsVAlpha200ResponseFromJSON,
-    AdminHiOrgIntegrationControllerPreviewPersonsVAlpha200ResponseToJSON,
     AdminHiOrgIntegrationControllerTestConnectionVAlpha200ResponseFromJSON,
-    AdminHiOrgIntegrationControllerTestConnectionVAlpha200ResponseToJSON,
-    AutoMatchRequestDtoFromJSON,
     AutoMatchRequestDtoToJSON,
-    BatchSaveQualifikationMappingsRequestDtoFromJSON,
     BatchSaveQualifikationMappingsRequestDtoToJSON,
-    ImportPersonsRequestDtoFromJSON,
     ImportPersonsRequestDtoToJSON,
-    SaveQualifikationMappingRequestDtoFromJSON,
     SaveQualifikationMappingRequestDtoToJSON,
-} from '../models/index';
+} from '../models';
 
 export interface AdminHiOrgIntegrationControllerAutoMatchQualifikationenVAlphaRequest {
     autoMatchRequestDto: AutoMatchRequestDto;
