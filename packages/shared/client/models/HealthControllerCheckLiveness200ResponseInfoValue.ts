@@ -12,28 +12,28 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
  * @interface HealthControllerCheckLiveness200ResponseInfoValue
  */
 export interface HealthControllerCheckLiveness200ResponseInfoValue {
-    [key: string]: any | any;
     /**
-     * 
+     *
      * @type {string}
      * @memberof HealthControllerCheckLiveness200ResponseInfoValue
      */
     status: string;
+
+    [key: string]: any | any;
 }
 
 /**
  * Check if a given object implements the HealthControllerCheckLiveness200ResponseInfoValue interface.
  */
 export function instanceOfHealthControllerCheckLiveness200ResponseInfoValue(value: object): value is HealthControllerCheckLiveness200ResponseInfoValue {
-    if (!('status' in value) || value['status'] === undefined) return false;
-    return true;
+    return !(!('status' in value) || value['status'] === undefined);
+
 }
 
 export function HealthControllerCheckLiveness200ResponseInfoValueFromJSON(json: any): HealthControllerCheckLiveness200ResponseInfoValue {

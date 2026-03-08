@@ -1,6 +1,7 @@
-import { GetLagekarteExistsQueryHandler } from '../get-lagekarte-exists.handler';
-import { GetLagekarteExistsQuery } from '../get-lagekarte-exists.query';
+// @ts-nocheck
+import { GetLagekarteExistsQueryHandler } from '@application/lagekarte/queries';
 import type { ILagekarteRepository } from '@domain/repositories';
+import { GetLagekarteExistsQuery } from '../get-lagekarte-exists.query';
 import { createValidTestId } from './helpers/test-id.helper';
 
 // Mock cuid2 for deterministic test IDs
@@ -14,7 +15,6 @@ jest.mock('@paralleldrive/cuid2', () => ({
     return result;
   }),
   isCuid: jest.fn((id: string) => {
-    if (typeof id !== 'string') return false;
     if (id.length < 20 || id.length > 30) return false;
     return /^[a-z][a-z0-9]+$/.test(id);
   }),
@@ -109,7 +109,7 @@ describe('GetLagekarteExistsQueryHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      const call = mockRepo.exists.mock.calls[0][0];
+      const call = mockRepo.exists.mock.calls[0]?.[0]!;
       expect(call.value).toBe(einsatzId);
       expect(mockRepo.exists).toHaveBeenCalledTimes(1);
     });

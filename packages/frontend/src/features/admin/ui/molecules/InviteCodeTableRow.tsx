@@ -1,7 +1,7 @@
 import { InviteStatusBadge } from '@/features/admin/ui/atoms/InviteStatusBadge';
 import { Table } from '@/shared/ui/molecules/table.molecule';
 import type { InviteCodeListItemDto } from '@/shared';
-import { RevokeInviteButton } from './RevokeInviteButton';
+import { RevokeInviteButton } from '@/features/admin';
 
 interface InviteCodeTableRowProps {
   invite: InviteCodeListItemDto;

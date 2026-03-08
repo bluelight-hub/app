@@ -13,7 +13,6 @@
  * @module infrastructure/integrations
  */
 
-// biome-ignore lint/style/noRestrictedImports: Logger in Adapter ist erlaubt
 import { Injectable, Logger } from '@nestjs/common';
 import { createHash, randomBytes } from 'node:crypto';
 import { Result } from '@domain/common/result';

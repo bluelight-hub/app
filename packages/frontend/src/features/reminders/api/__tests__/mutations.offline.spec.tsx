@@ -16,7 +16,7 @@ import type { PropsWithChildren } from 'react';
 import { useCreateErinnerung, useTriggerErinnerung, useAcknowledgeErinnerung, useSnoozeErinnerung, useMarkErledigtErinnerung } from '../mutations';
 import { offlineDetectionService } from '../../services/offline-detection.service';
 import { syncService } from '../../services/sync.service';
-import { resetOfflineStore } from '../../stores/offline.store';
+import { resetOfflineStore } from '@/features/reminders';
 
 // Mock the API
 vi.mock('@/shared', () => ({

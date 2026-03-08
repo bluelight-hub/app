@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { PositionDto } from './PositionDto';
-import {
-    PositionDtoFromJSON,
-    PositionDtoFromJSONTyped,
-    PositionDtoToJSON,
-    PositionDtoToJSONTyped,
-} from './PositionDto';
+import type {PositionDto} from './PositionDto';
+import {PositionDtoFromJSON, PositionDtoToJSON,} from './PositionDto';
 
 /**
  * 
@@ -58,8 +52,8 @@ export interface ErfasseTemporalesFahrzeugDto {
  */
 export function instanceOfErfasseTemporalesFahrzeugDto(value: object): value is ErfasseTemporalesFahrzeugDto {
     if (!('funkrufname' in value) || value['funkrufname'] === undefined) return false;
-    if (!('fahrzeugtypId' in value) || value['fahrzeugtypId'] === undefined) return false;
-    return true;
+    return !(!('fahrzeugtypId' in value) || value['fahrzeugtypId'] === undefined);
+
 }
 
 export function ErfasseTemporalesFahrzeugDtoFromJSON(json: any): ErfasseTemporalesFahrzeugDto {

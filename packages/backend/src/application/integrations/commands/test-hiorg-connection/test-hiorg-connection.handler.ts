@@ -12,8 +12,8 @@ import { Result } from '@domain/common/result';
 import type { IIntegrationCredentialRepository } from '@domain/integrations';
 import type { IHiOrgServerPort, HiOrgConnectionInfo } from '@domain/ports/i-hiorg-server.port';
 import { INTEGRATIONS } from '@infrastructure/di-tokens';
-import { HiOrgTokenRefreshService } from '../../services/hiorg-token-refresh.service';
-import type { TestHiOrgConnectionCommand } from './test-hiorg-connection.command';
+import { HiOrgTokenRefreshService } from '@application/integrations';
+import type { TestHiOrgConnectionCommand } from '@application/integrations';
 
 /**
  * Handler für TestHiOrgConnectionCommand.

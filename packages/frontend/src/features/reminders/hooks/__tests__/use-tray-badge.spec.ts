@@ -30,7 +30,7 @@ vi.mock('../../services', () => ({
 }));
 
 import { useTrayBadge } from '../use-tray-badge';
-import { timerStore, markTimerAsTriggered, startTimerForErinnerung, resetTimerStore } from '../../stores/timer.store';
+import { timerStore, markTimerAsTriggered, startTimerForErinnerung, resetTimerStore } from '@/features/reminders';
 import { trayService } from '../../services';
 
 const mockUpdateBadge = vi.mocked(trayService.updateBadge);

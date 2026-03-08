@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { IErinnerungsvorlageRepository } from '@domain/erinnerungsvorlage/repositories/i-erinnerungsvorlage.repository';
 import { ERINNERUNGSVORLAGE_REPOSITORY } from '@infrastructure/di-tokens';
-import { ErinnerungsvorlageResponseFactory } from '../../dto/erinnerungsvorlage-response.factory';
-import type { ErinnerungsvorlageResponseDto } from '../../dto/erinnerungsvorlage-response.dto';
+import { ErinnerungsvorlageResponseFactory } from '@application/erinnerungsvorlage/dto';
+import type { ErinnerungsvorlageResponseDto } from '@application/erinnerungsvorlage/dto';
 
 /**
  * Query Handler: Alle nicht-gelöschten Erinnerungsvorlagen laden.

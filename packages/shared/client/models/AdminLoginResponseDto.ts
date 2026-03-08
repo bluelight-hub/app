@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { AdminUserDto } from './AdminUserDto';
-import {
-    AdminUserDtoFromJSON,
-    AdminUserDtoFromJSONTyped,
-    AdminUserDtoToJSON,
-    AdminUserDtoToJSONTyped,
-} from './AdminUserDto';
+import type {AdminUserDto} from './AdminUserDto';
+import {AdminUserDtoFromJSON, AdminUserDtoToJSON,} from './AdminUserDto';
 
 /**
  * 
@@ -39,8 +33,8 @@ export interface AdminLoginResponseDto {
  * Check if a given object implements the AdminLoginResponseDto interface.
  */
 export function instanceOfAdminLoginResponseDto(value: object): value is AdminLoginResponseDto {
-    if (!('user' in value) || value['user'] === undefined) return false;
-    return true;
+    return !(!('user' in value) || value['user'] === undefined);
+
 }
 
 export function AdminLoginResponseDtoFromJSON(json: any): AdminLoginResponseDto {

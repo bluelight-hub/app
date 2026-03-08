@@ -21,7 +21,7 @@ import {
   openQuickCreateDialog,
   openEditDialog,
   openDeleteDialog,
-} from '../erinnerung-dialog.store';
+} from '@/features/reminders';
 
 // Test-Daten
 const createMockErinnerung = (overrides?: Partial<ErinnerungResponseDto>): ErinnerungResponseDto => ({

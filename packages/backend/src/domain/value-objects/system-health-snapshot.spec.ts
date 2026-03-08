@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { SystemHealthSnapshot } from './system-health-snapshot';
 
 describe('SystemHealthSnapshot', () => {

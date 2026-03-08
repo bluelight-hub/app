@@ -88,8 +88,8 @@ export class OfflineDetectionService {
   private onOfflineCallback: OnOfflineCallback | null = null;
 
   /** Bound Event Handler fuer cleanup */
-  private boundHandleOnline: () => void;
-  private boundHandleOffline: () => void;
+  private readonly boundHandleOnline: () => void;
+  private readonly boundHandleOffline: () => void;
 
   /** Flag ob Service zerstoert wurde */
   private destroyed = false;

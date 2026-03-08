@@ -23,7 +23,8 @@ Time:        0.171 s
 - ✅ `should not import NestJS (except @Injectable for value objects/aggregates)`
 - ✅ `should not import Prisma directly`
 
-**Interpretation:** Domain Layer ist vollständig framework-agnostisch und hält alle Clean Architecture Dependency Rules ein.
+**Interpretation:** Domain Layer ist vollständig framework-agnostisch und hält alle Clean Architecture Dependency Rules
+ein.
 
 ### Application Layer (2/4) ✅
 
@@ -32,7 +33,8 @@ Time:        0.171 s
 - ❌ `should only use allowed NestJS decorators in handlers (no Controllers)`
 - ❌ `should not import Prisma directly (except for DTOs, queries, commands, and test files)`
 
-**Interpretation:** Haupt-Dependency-Rules werden eingehalten. Prisma Imports sind in Query/Command Files erlaubt (CQRS Read-Side Optimization).
+**Interpretation:** Haupt-Dependency-Rules werden eingehalten. Prisma Imports sind in Query/Command Files erlaubt (CQRS
+Read-Side Optimization).
 
 ### Repository Interfaces (3/3) ✅
 
@@ -69,6 +71,7 @@ private readonly repository: IEtbRepository
 ```
 
 **Betroffene Dateien (17):**
+
 - `application/einsatz/queries/get-einsatz-details/get-einsatz-details.handler.ts`
 - `application/etb/commands/add-eintrag/add-eintrag.handler.ts`
 - `application/etb/commands/create-etb/create-etb.handler.ts`
@@ -87,6 +90,7 @@ private readonly repository: IEtbRepository
 - `application/lagekarte/queries/get-pois.handler.ts`
 
 **Fix:**
+
 1. Add missing DI Tokens to `infrastructure/di-tokens.ts`:
    ```typescript
    export const ETB_REPOSITORY = Symbol('IEtbRepository');
@@ -114,9 +118,11 @@ private readonly repository: IEtbRepository
 `transactional-command.handler.ts` verwendet Symbol-Token ohne Import von `di-tokens.ts`.
 
 **Betroffene Dateien (1):**
+
 - `application/common/handlers/transactional-command.handler.ts`
 
 **Fix:**
+
 ```typescript
 import { TRANSACTION_MANAGER } from '@infrastructure/di-tokens';
 ```
@@ -131,6 +137,7 @@ import { TRANSACTION_MANAGER } from '@infrastructure/di-tokens';
 7 Handler returnen noch nicht `Promise<Result<T>>`.
 
 **Betroffene Dateien (7):**
+
 - `application/einsatz/commands/archive-einsatz/archive-einsatz.handler.ts`
 - `application/einsatz/commands/complete-einsatz/complete-einsatz.handler.ts`
 - `application/einsatz/commands/create-einsatz/create-einsatz.handler.ts`
@@ -140,6 +147,7 @@ import { TRANSACTION_MANAGER } from '@infrastructure/di-tokens';
 - `application/lagekarte/queries/get-lagekarte-exists.handler.ts`
 
 **Migration Pattern:**
+
 ```typescript
 // ❌ BEFORE:
 async execute(command: CreateEinsatzCommand): Promise<string> {
@@ -169,6 +177,7 @@ async execute(command: CreateEinsatzCommand): Promise<Result<string>> {
 10 Handler werfen noch Exceptions statt Result.fail() zu verwenden.
 
 **Betroffene Dateien (10):**
+
 - `application/common/handlers/transactional-command.handler.ts`
 - `application/einsatz/queries/get-einsatz-by-id/get-einsatz-by-id.handler.ts`
 - `application/einsatz/queries/get-einsatz-completeness/get-einsatz-completeness.handler.ts`
@@ -180,7 +189,8 @@ async execute(command: CreateEinsatzCommand): Promise<Result<string>> {
 - `application/etb/commands/lock-etb/lock-etb.handler.ts`
 - `application/etb/commands/update-eintrag/update-eintrag.handler.ts`
 
-**Note:** Dieser Test schlägt **NICHT fehl**, sondern protokolliert nur eine Warning. Graduelle Migration zu Result Pattern.
+**Note:** Dieser Test schlägt **NICHT fehl**, sondern protokolliert nur eine Warning. Graduelle Migration zu Result
+Pattern.
 
 ## Migration Roadmap
 
@@ -189,16 +199,18 @@ async execute(command: CreateEinsatzCommand): Promise<Result<string>> {
 **Goal:** Alle String-Tokens zu Symbol-Tokens migrieren
 
 **Tasks:**
+
 1. ✅ Define DI Tokens in `di-tokens.ts`
-   - ✅ `ETB_REPOSITORY`
-   - ✅ `LAGEKARTE_REPOSITORY`
-   - ⏳ `EVENT_PUBLISHER` (optional)
+    - ✅ `ETB_REPOSITORY`
+    - ✅ `LAGEKARTE_REPOSITORY`
+    - ⏳ `EVENT_PUBLISHER` (optional)
 
 2. ⏳ Migrate ETB handlers to Symbol tokens (9 files)
 3. ⏳ Migrate Lagekarte handlers to Symbol tokens (7 files)
 4. ⏳ Fix TransactionalCommandHandler import (1 file)
 
 **Success Criteria:**
+
 - ✅ Test `should use Symbol-based DI tokens` passes
 - ✅ Test `should import DI tokens from infrastructure/di-tokens` passes
 
@@ -209,11 +221,13 @@ async execute(command: CreateEinsatzCommand): Promise<Result<string>> {
 **Goal:** Handler returnen `Result<T>` statt naked types
 
 **Tasks:**
+
 1. ⏳ Migrate Command Handlers (5 files)
 2. ⏳ Migrate Query Handlers (2 files)
 3. ⏳ Update Controller Error Handling
 
 **Success Criteria:**
+
 - ✅ Test `should use Result<T> in Application Layer handlers` passes
 - ✅ No exceptions thrown in Application Layer (Warning verschwindet)
 
@@ -224,11 +238,13 @@ async execute(command: CreateEinsatzCommand): Promise<Result<string>> {
 **Goal:** Vollständige Framework-Agnostizität in Core Layers
 
 **Tasks:**
+
 1. ✅ Domain Layer framework-agnostisch (DONE)
 2. ⏳ Application Layer nur erlaubte Decorators
 3. ⏳ Prisma Imports auf DTOs/Queries beschränken
 
 **Success Criteria:**
+
 - ✅ 16/16 Tests pass
 - ✅ Alle Architecture Rules werden eingehalten
 
@@ -246,6 +262,7 @@ async execute(command: CreateEinsatzCommand): Promise<Result<string>> {
 ```
 
 **Next Steps:**
+
 1. Phase 1 abschließen (DI Token Migration)
 2. Tests in CI/CD mit `continue-on-error: true` aktivieren
 3. Phase 2 abschließen (Result Pattern)
@@ -256,15 +273,18 @@ async execute(command: CreateEinsatzCommand): Promise<Result<string>> {
 Die Architecture Validation Tests zeigen, dass:
 
 ✅ **Hauptarchitektur-Regeln werden eingehalten:**
+
 - Domain Layer ist vollständig framework-agnostisch
 - Repository Pattern wird korrekt verwendet
 - Dependency Rules werden größtenteils befolgt
 
 ⚠️ **Technische Schulden identifiziert:**
+
 - DI Token Migration (String → Symbol)
 - Result Pattern Migration (Exception → Result)
 
 🎯 **Nächste Schritte:**
+
 1. DI Token Migration (HIGH Priority, 2-3h)
 2. Result Pattern Migration (MEDIUM Priority, 4-6h)
 3. CI/CD Integration aktivieren

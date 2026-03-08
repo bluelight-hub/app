@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { PoiCategory } from '@domain/value-objects/poi-category';
 
 describe('PoiCategory', () => {

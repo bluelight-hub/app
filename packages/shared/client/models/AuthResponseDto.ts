@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { AuthUserDto } from './AuthUserDto';
-import {
-    AuthUserDtoFromJSON,
-    AuthUserDtoFromJSONTyped,
-    AuthUserDtoToJSON,
-    AuthUserDtoToJSONTyped,
-} from './AuthUserDto';
+import type {AuthUserDto} from './AuthUserDto';
+import {AuthUserDtoFromJSON, AuthUserDtoToJSON,} from './AuthUserDto';
 
 /**
  * 
@@ -46,8 +40,8 @@ export interface AuthResponseDto {
  */
 export function instanceOfAuthResponseDto(value: object): value is AuthResponseDto {
     if (!('isNewUser' in value) || value['isNewUser'] === undefined) return false;
-    if (!('user' in value) || value['user'] === undefined) return false;
-    return true;
+    return !(!('user' in value) || value['user'] === undefined);
+
 }
 
 export function AuthResponseDtoFromJSON(json: any): AuthResponseDto {

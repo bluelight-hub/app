@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -44,8 +43,8 @@ export interface FuehrungsrhythmusEintragDto {
  */
 export function instanceOfFuehrungsrhythmusEintragDto(value: object): value is FuehrungsrhythmusEintragDto {
     if (!('titel' in value) || value['titel'] === undefined) return false;
-    if (!('intervallMinuten' in value) || value['intervallMinuten'] === undefined) return false;
-    return true;
+    return !(!('intervallMinuten' in value) || value['intervallMinuten'] === undefined);
+
 }
 
 export function FuehrungsrhythmusEintragDtoFromJSON(json: any): FuehrungsrhythmusEintragDto {

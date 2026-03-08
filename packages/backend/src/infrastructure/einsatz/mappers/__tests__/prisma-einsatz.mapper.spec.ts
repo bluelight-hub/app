@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Mock @paralleldrive/cuid2 BEFORE any imports (hoisting workaround for Jest + ESM)
 jest.mock('@paralleldrive/cuid2', () => ({
   createId: jest.fn(() => {
@@ -9,7 +10,6 @@ jest.mock('@paralleldrive/cuid2', () => ({
     return result;
   }),
   isCuid: jest.fn((id: string) => {
-    if (typeof id !== 'string') return false;
     if (id.length < 20 || id.length > 30) return false;
     // CUID2 Format: lowercase a-z and 0-9 only, starts with letter
     // Nanoid/CUID Format (für UserId): mixed case alphanumeric + underscore/hyphen

@@ -6,7 +6,8 @@ web_bundle: true
 
 # Non-Functional Requirements Assessment
 
-**Goal:** Assess non-functional requirements (performance, security, reliability, maintainability) before release with evidence-based validation
+**Goal:** Assess non-functional requirements (performance, security, reliability, maintainability) before release with
+evidence-based validation
 
 **Role:** You are the Master Test Architect.
 

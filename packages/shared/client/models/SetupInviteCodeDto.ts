@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -52,8 +51,8 @@ export function instanceOfSetupInviteCodeDto(value: object): value is SetupInvit
     if (!('code' in value) || value['code'] === undefined) return false;
     if (!('expiresAt' in value) || value['expiresAt'] === undefined) return false;
     if (!('maxUses' in value) || value['maxUses'] === undefined) return false;
-    if (!('label' in value) || value['label'] === undefined) return false;
-    return true;
+    return !(!('label' in value) || value['label'] === undefined);
+
 }
 
 export function SetupInviteCodeDtoFromJSON(json: any): SetupInviteCodeDto {

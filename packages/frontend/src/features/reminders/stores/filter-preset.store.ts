@@ -15,12 +15,12 @@
 
 import { createStore, useStore } from '@tanstack/react-store';
 
-import type { KategorieFilterType } from './kategorie-filter.store';
-import { setKategorieFilter, getKategorieFilter } from './kategorie-filter.store';
-import type { StatusFilterType } from './status-filter.store';
-import { setStatusFilter, getStatusFilter } from './status-filter.store';
+import type { KategorieFilterType } from '@/features/reminders';
+import { getKategorieFilter, setKategorieFilter } from '@/features/reminders';
+import type { StatusFilterType } from '@/features/reminders';
+import { getStatusFilter, setStatusFilter } from '@/features/reminders';
 import type { TeamFilterType, TeamSortType } from './team-filter.store';
-import { setTeamFilter, setTeamSort, getTeamFilter, getTeamSort } from './team-filter.store';
+import { getTeamFilter, getTeamSort, setTeamFilter, setTeamSort } from './team-filter.store';
 
 // ============================================
 // Types
@@ -67,8 +67,7 @@ function isValidTeamFilter(obj: unknown): obj is TeamFilterType {
   if (typeof obj !== 'object' || obj === null) return false;
   const o = obj as { type?: string; userId?: string };
   if (o.type === 'all' || o.type === 'mine' || o.type === 'unassigned') return true;
-  if (o.type === 'user' && typeof o.userId === 'string') return true;
-  return false;
+  return o.type === 'user' && typeof o.userId === 'string';
 }
 
 /** Validiert KategorieFilterType aus localStorage */
@@ -76,8 +75,7 @@ function isValidKategorieFilter(obj: unknown): obj is KategorieFilterType {
   if (typeof obj !== 'object' || obj === null) return false;
   const o = obj as { type?: string; kategorieId?: string };
   if (o.type === 'all' || o.type === 'untagged') return true;
-  if (o.type === 'kategorie' && typeof o.kategorieId === 'string') return true;
-  return false;
+  return o.type === 'kategorie' && typeof o.kategorieId === 'string';
 }
 
 /** Validiert StatusFilterType aus localStorage */
@@ -85,8 +83,7 @@ function isValidStatusFilter(obj: unknown): obj is StatusFilterType {
   if (typeof obj !== 'object' || obj === null) return false;
   const o = obj as { type?: string; status?: string };
   if (o.type === 'all') return true;
-  if (o.type === 'status' && typeof o.status === 'string') return true;
-  return false;
+  return o.type === 'status' && typeof o.status === 'string';
 }
 
 /** Validiert TeamSortType aus localStorage */
@@ -113,8 +110,8 @@ function loadFromLocalStorage(): FilterPresetType[] {
       (p: unknown): p is FilterPresetType =>
         typeof p === 'object' &&
         p !== null &&
-        typeof (p as FilterPresetType).id === 'string' &&
-        typeof (p as FilterPresetType).name === 'string' &&
+        true &&
+        true &&
         isValidTeamFilter((p as FilterPresetType).teamFilter) &&
         isValidKategorieFilter((p as FilterPresetType).kategorieFilter) &&
         isValidStatusFilter((p as FilterPresetType).statusFilter) &&

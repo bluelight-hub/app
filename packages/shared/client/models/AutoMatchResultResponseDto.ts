@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { AutoMatchResultItemDto } from './AutoMatchResultItemDto';
-import {
-    AutoMatchResultItemDtoFromJSON,
-    AutoMatchResultItemDtoFromJSONTyped,
-    AutoMatchResultItemDtoToJSON,
-    AutoMatchResultItemDtoToJSONTyped,
-} from './AutoMatchResultItemDto';
+import type {AutoMatchResultItemDto} from './AutoMatchResultItemDto';
+import {AutoMatchResultItemDtoFromJSON, AutoMatchResultItemDtoToJSON,} from './AutoMatchResultItemDto';
 
 /**
  * 
@@ -60,8 +54,8 @@ export function instanceOfAutoMatchResultResponseDto(value: object): value is Au
     if (!('matches' in value) || value['matches'] === undefined) return false;
     if (!('totalMatched' in value) || value['totalMatched'] === undefined) return false;
     if (!('totalUnmatched' in value) || value['totalUnmatched'] === undefined) return false;
-    if (!('averageConfidence' in value) || value['averageConfidence'] === undefined) return false;
-    return true;
+    return !(!('averageConfidence' in value) || value['averageConfidence'] === undefined);
+
 }
 
 export function AutoMatchResultResponseDtoFromJSON(json: any): AutoMatchResultResponseDto {

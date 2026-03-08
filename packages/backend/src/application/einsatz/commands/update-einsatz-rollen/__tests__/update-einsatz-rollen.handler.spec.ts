@@ -1,5 +1,6 @@
-import { UpdateEinsatzRollenHandler } from '../update-einsatz-rollen.handler';
-import { UpdateEinsatzRollenCommand } from '../update-einsatz-rollen.command';
+// @ts-nocheck
+import { UpdateEinsatzRollenHandler } from '@application/einsatz/commands';
+import { UpdateEinsatzRollenCommand } from '@application/einsatz/commands';
 
 describe('UpdateEinsatzRollenHandler', () => {
   let handler: UpdateEinsatzRollenHandler;

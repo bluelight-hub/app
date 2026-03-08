@@ -1,22 +1,22 @@
-import { adminRoles, isAdmin } from './utils/auth.utils';
-import { PrismaService } from '@/infrastructure/database/prisma.service';
-import { formatNatoDateTime } from '@/shared/utils/date.util';
-import { ConflictException, ForbiddenException, Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import type { ILogger } from '@domain/ports/i-logger.port';
-import { LOGGER } from '@/infrastructure/di-tokens';
-import { JwtService } from '@nestjs/jwt';
-import { isCuid } from '@paralleldrive/cuid2';
 import type { User } from '@/generated/prisma/client';
-import * as bcrypt from 'bcrypt';
+import { toJwtExpiresIn } from '@/infrastructure/auth/utils/jwt-expires-in.util';
 import { BCRYPT_COST_FACTOR_PASSWORD } from '@/infrastructure/config/security.constants';
+import { PrismaService } from '@/infrastructure/database/prisma.service';
+import { LOGGER } from '@/infrastructure/di-tokens';
 import { PasswordValidationService } from '@/infrastructure/password/password-validation.service';
 import { AppConfigService } from '@/infrastructure/services/app-config.service';
-import { toJwtExpiresIn } from '@/infrastructure/auth/utils/jwt-expires-in.util';
+import { formatNatoDateTime } from '@/shared/utils/date.util';
+import type { ILogger } from '@domain/ports/i-logger.port';
+import { ConflictException, ForbiddenException, Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { isCuid } from '@paralleldrive/cuid2';
+import * as bcrypt from 'bcrypt';
 import type { AdminSetupDto } from './dto/admin-setup.dto';
 import type { AuthRequestDto } from './dto/auth-request.dto';
 import type { AuthResponseDto } from './dto/auth-response.dto';
 import type { AuthUserDto, Role } from './dto/auth-user.dto';
 import type { ValidatedUser } from './strategies/jwt.strategy';
+import { adminRoles, isAdmin } from './utils/auth.utils';
 
 /**
  * Service für Authentifizierungslogik
@@ -357,7 +357,7 @@ export class AuthService {
    */
   async getPublicUsers(): Promise<Pick<User, 'username'>[]> {
     // Entferne passwordHash von jedem User und filtere gelöschte User
-    return await this.prisma.user.findMany({
+    return this.prisma.user.findMany({
       select: {
         username: true,
       },

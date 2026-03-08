@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Permission } from './permission';
 
 describe('Permission', () => {

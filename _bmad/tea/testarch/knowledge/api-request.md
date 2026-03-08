@@ -2,7 +2,9 @@
 
 ## Principle
 
-Use typed HTTP client with built-in schema validation and automatic retry for server errors. The utility handles URL resolution, header management, response parsing, and single-line response validation with proper TypeScript support. **Works without a browser** - ideal for pure API/service testing.
+Use typed HTTP client with built-in schema validation and automatic retry for server errors. The utility handles URL
+resolution, header management, response parsing, and single-line response validation with proper TypeScript support. *
+*Works without a browser** - ideal for pure API/service testing.
 
 ## Rationale
 
@@ -373,7 +375,10 @@ test.describe('GraphQL API', () => {
 
 ### Example 8: Operation-Based Overload (OpenAPI / Code Generators)
 
-**Context**: When using a code generator (orval, openapi-generator, custom scripts) that produces typed operation definitions from an OpenAPI spec, pass the operation object directly to `apiRequest`. This eliminates manual `method`/`path` extraction and `typeof` assertions while preserving full type inference for request body, response, and query parameters. Available since v3.14.0.
+**Context**: When using a code generator (orval, openapi-generator, custom scripts) that produces typed operation
+definitions from an OpenAPI spec, pass the operation object directly to `apiRequest`. This eliminates manual `method`/
+`path` extraction and `typeof` assertions while preserving full type inference for request body, response, and query
+parameters. Available since v3.14.0.
 
 **Implementation**:
 
@@ -454,7 +459,8 @@ test('should create movie with schema validation', async ({ apiRequest }) => {
 
 - Pass `operation` instead of `method` + `path` — mutually exclusive at compile time
 - Response body, request body, and query types inferred from operation definition
-- Uses structural typing (duck typing) — works with any code generator producing `{ path, method, response, request, query? }`
+- Uses structural typing (duck typing) — works with any code generator producing
+  `{ path, method, response, request, query? }`
 - `query` field auto-serializes to bracket notation (`filters[type]=pep`, `ids[0]=10`)
 - `params` escape hatch for pre-formatted strings — wins over `query` on conflict
 - Fully composable with `recurse`, `validateSchema`, and all existing features

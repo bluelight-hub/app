@@ -21,7 +21,7 @@ import { CircuitBreakerService } from '@infrastructure/resilience/circuit-breake
 @Injectable()
 export class PrometheusMetricsCollector implements IMetricsCollector {
   constructor(
-    @Inject(METRICS.REGISTRY) private readonly registry: Registry,
+    @Inject(METRICS.REGISTRY) readonly _registry: Registry,
     @Inject(METRICS.HTTP_REQUEST_DURATION) private readonly httpDuration: Histogram<string>,
     @Inject(METRICS.WS_CONNECTIONS) private readonly wsConnections: Gauge<string>,
     @Inject(METRICS.OUTBOX_QUEUE_DEPTH) private readonly outboxDepth: Gauge<string>,

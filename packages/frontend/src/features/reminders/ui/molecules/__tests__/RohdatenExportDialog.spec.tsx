@@ -27,7 +27,7 @@ vi.mock('../../../lib/download-export', () => ({
   downloadExport: (...args: unknown[]) => mockDownloadExport(...args),
 }));
 
-import { RohdatenExportDialog } from '../RohdatenExportDialog';
+import { RohdatenExportDialog } from '@/features/reminders';
 
 const defaultProps = {
   einsatzId: 'einsatz-123',

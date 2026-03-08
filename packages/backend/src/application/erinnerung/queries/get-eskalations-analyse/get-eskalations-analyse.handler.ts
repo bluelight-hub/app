@@ -33,7 +33,10 @@ export class GetEskalationsAnalyseHandler {
       return Result.fail<EskalationsAnalyseDto>(analyseResult.error ?? ERINNERUNG_ERROR_CODES.QUERY_FAILED);
     }
 
-    const analyse = analyseResult.value!;
+    const analyse = analyseResult.value;
+    if (!analyse) {
+      return Result.fail<EskalationsAnalyseDto>(ERINNERUNG_ERROR_CODES.QUERY_FAILED);
+    }
 
     // Resolve User Names parallel
     const [topReceiversWithNames, topSourcesWithNames, itemsWithNames] = await Promise.all([

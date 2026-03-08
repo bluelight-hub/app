@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -45,8 +44,8 @@ export interface ServerInfoDto {
 export function instanceOfServerInfoDto(value: object): value is ServerInfoDto {
     if (!('name' in value) || value['name'] === undefined) return false;
     if (!('version' in value) || value['version'] === undefined) return false;
-    if (!('baseUrl' in value) || value['baseUrl'] === undefined) return false;
-    return true;
+    return !(!('baseUrl' in value) || value['baseUrl'] === undefined);
+
 }
 
 export function ServerInfoDtoFromJSON(json: any): ServerInfoDto {

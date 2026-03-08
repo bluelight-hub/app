@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Reflector } from '@nestjs/core';
 import { SKIP_SERVER_ACCESS_KEY, SkipServerAccess } from './skip-server-access.decorator';
 

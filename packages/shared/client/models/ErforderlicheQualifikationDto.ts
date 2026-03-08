@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -52,8 +51,8 @@ export function instanceOfErforderlicheQualifikationDto(value: object): value is
     if (!('qualifikationId' in value) || value['qualifikationId'] === undefined) return false;
     if (!('qualifikationName' in value) || value['qualifikationName'] === undefined) return false;
     if (!('qualifikationAbkuerzung' in value) || value['qualifikationAbkuerzung'] === undefined) return false;
-    if (!('istPflicht' in value) || value['istPflicht'] === undefined) return false;
-    return true;
+    return !(!('istPflicht' in value) || value['istPflicht'] === undefined);
+
 }
 
 export function ErforderlicheQualifikationDtoFromJSON(json: any): ErforderlicheQualifikationDto {

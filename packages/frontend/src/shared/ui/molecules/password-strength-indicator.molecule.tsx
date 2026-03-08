@@ -1,10 +1,10 @@
 import { cn } from '@/shared/ui/cn';
-import { ProgressBar } from '../atoms/progress-bar.atom';
-import { Text, type TextProps } from '../atoms/text.atom';
-import { PASSWORD_MIN_SCORE, PASSWORD_CRITERIA, isPasswordBlocked } from '@bluelight-hub/shared';
+import { isPasswordBlocked, PASSWORD_CRITERIA, PASSWORD_MIN_SCORE } from '@bluelight-hub/shared';
 import { useMemo } from 'react';
 import { PiWarning } from 'react-icons/pi';
 import zxcvbn from 'zxcvbn';
+import { ProgressBar } from '../atoms/progress-bar.atom';
+import { Text, type TextProps } from '../atoms/text.atom';
 
 interface PasswordStrengthIndicatorProps {
   password: string;
@@ -111,7 +111,7 @@ export function calculatePasswordStrength(password: string): {
  * - Mindestlänge-Indikator
  */
 export function PasswordStrengthIndicator({ password, className, showLabel = true, showCriteria: _showCriteria = false, minScore = PASSWORD_MIN_SCORE }: PasswordStrengthIndicatorProps) {
-  if (_showCriteria === true) {
+  if (_showCriteria) {
     console.warn(
       '[PasswordStrengthIndicator] showCriteria prop is deprecated and will be removed in a future version. ' +
         'NIST SP 800-63B-4 prohibits composition rules. The criteria checklist has been replaced with a strength indicator.',

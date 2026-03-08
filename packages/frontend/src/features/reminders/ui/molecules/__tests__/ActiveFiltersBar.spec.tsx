@@ -13,7 +13,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ActiveFiltersBar } from '../ActiveFiltersBar';
-import type { TeamFilterType, KategorieFilterType, StatusFilterType, Teilnehmer, ErinnerungStatus } from '../../stores';
+import type { Teilnehmer, ErinnerungStatus } from '../../stores';
 import type { KategorieResponseDto } from '@bluelight-hub/shared/client';
 
 // Mock-Daten

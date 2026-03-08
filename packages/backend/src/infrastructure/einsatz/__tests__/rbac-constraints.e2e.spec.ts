@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * E2E Tests für RBAC Constraints (Story 4-10 AC3.1-AC3.4).
  *

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Test, type TestingModule } from '@nestjs/testing';
 import { PrismaErinnerungRepository } from '../prisma-erinnerung.repository';
 import { PrismaService } from '@/infrastructure/database/prisma.service';

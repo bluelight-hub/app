@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { QualifikationMappingItemDto } from './QualifikationMappingItemDto';
-import {
-    QualifikationMappingItemDtoFromJSON,
-    QualifikationMappingItemDtoFromJSONTyped,
-    QualifikationMappingItemDtoToJSON,
-    QualifikationMappingItemDtoToJSONTyped,
-} from './QualifikationMappingItemDto';
+import type {QualifikationMappingItemDto} from './QualifikationMappingItemDto';
+import {QualifikationMappingItemDtoFromJSON, QualifikationMappingItemDtoToJSON,} from './QualifikationMappingItemDto';
 
 /**
  * 
@@ -60,8 +54,8 @@ export function instanceOfQualifikationMappingsResponseDto(value: object): value
     if (!('mappings' in value) || value['mappings'] === undefined) return false;
     if (!('total' in value) || value['total'] === undefined) return false;
     if (!('mapped' in value) || value['mapped'] === undefined) return false;
-    if (!('unmapped' in value) || value['unmapped'] === undefined) return false;
-    return true;
+    return !(!('unmapped' in value) || value['unmapped'] === undefined);
+
 }
 
 export function QualifikationMappingsResponseDtoFromJSON(json: any): QualifikationMappingsResponseDto {

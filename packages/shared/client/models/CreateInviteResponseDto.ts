@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -86,8 +85,8 @@ export function instanceOfCreateInviteResponseDto(value: object): value is Creat
     if (!('useCount' in value) || value['useCount'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
     if (!('deepLink' in value) || value['deepLink'] === undefined) return false;
-    if (!('webLink' in value) || value['webLink'] === undefined) return false;
-    return true;
+    return !(!('webLink' in value) || value['webLink'] === undefined);
+
 }
 
 export function CreateInviteResponseDtoFromJSON(json: any): CreateInviteResponseDto {

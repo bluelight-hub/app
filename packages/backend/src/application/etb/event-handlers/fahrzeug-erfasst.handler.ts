@@ -21,8 +21,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import type { IEventHandler } from '@domain/ports/i-event-handler.port';
 import type { FahrzeugErfasstEvent } from '@domain/kraefte/events/fahrzeug-erfasst.event';
-import { AddEintragCommand } from '../commands/add-eintrag/add-eintrag.command';
-import { AddEintragHandler } from '../commands/add-eintrag/add-eintrag.handler';
+import { AddEintragCommand } from '@application/etb/commands';
+import { AddEintragHandler } from '@application/etb/commands';
 import { FMS_STATUS_LABELS } from '@domain/kraefte/constants/einsatz-fahrzeug-validation.constants';
 import { LOGGER } from '@infrastructure/di-tokens';
 

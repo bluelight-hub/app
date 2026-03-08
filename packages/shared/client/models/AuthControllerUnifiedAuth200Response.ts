@@ -12,20 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { AuthResponseDto } from './AuthResponseDto';
-import {
-    AuthResponseDtoFromJSON,
-    AuthResponseDtoFromJSONTyped,
-    AuthResponseDtoToJSON,
-    AuthResponseDtoToJSONTyped,
-} from './AuthResponseDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {AuthResponseDto} from './AuthResponseDto';
+import {AuthResponseDtoFromJSON, AuthResponseDtoToJSON,} from './AuthResponseDto';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
 
 /**
@@ -53,8 +47,8 @@ export interface AuthControllerUnifiedAuth200Response {
  */
 export function instanceOfAuthControllerUnifiedAuth200Response(value: object): value is AuthControllerUnifiedAuth200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function AuthControllerUnifiedAuth200ResponseFromJSON(json: any): AuthControllerUnifiedAuth200Response {

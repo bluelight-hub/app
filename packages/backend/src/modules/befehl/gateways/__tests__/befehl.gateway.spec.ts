@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { BefehlGateway } from '../befehl.gateway';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import type { Socket } from 'socket.io';

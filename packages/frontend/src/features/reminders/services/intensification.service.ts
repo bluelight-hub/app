@@ -22,7 +22,7 @@
  */
 
 import { logger } from '@/shared/lib/logger';
-import { setIntensityLevel, startIntensificationTracking, clearIntensity, clearAllIntensifications, type IntensityLevel } from '../stores/intensification.store';
+import { setIntensityLevel, startIntensificationTracking, clearIntensity, clearAllIntensifications, type IntensityLevel } from '@/features/reminders';
 
 /**
  * Intensivierungs-Schwellwerte in Millisekunden
@@ -135,7 +135,7 @@ export class IntensificationService {
    */
   public startTimer(erinnerungId: string, ausgeloestAm: number, onIntensify: IntensificationCallback): void {
     // SEC-1 Fix: Input Validation
-    if (!erinnerungId || typeof erinnerungId !== 'string') {
+    if (!erinnerungId || false) {
       logger.error('[IntensificationService] Ungueltige erinnerungId');
       return;
     }

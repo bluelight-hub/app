@@ -12,13 +12,10 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { ErforderlicheQualifikationDto } from './ErforderlicheQualifikationDto';
+import type {ErforderlicheQualifikationDto} from './ErforderlicheQualifikationDto';
 import {
     ErforderlicheQualifikationDtoFromJSON,
-    ErforderlicheQualifikationDtoFromJSONTyped,
     ErforderlicheQualifikationDtoToJSON,
-    ErforderlicheQualifikationDtoToJSONTyped,
 } from './ErforderlicheQualifikationDto';
 
 /**
@@ -106,8 +103,8 @@ export function instanceOfRollenDefinitionDto(value: object): value is RollenDef
     if (!('erforderlicheQualifikationen' in value) || value['erforderlicheQualifikationen'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
     if (!('createdBy' in value) || value['createdBy'] === undefined) return false;
-    if (!('updatedAt' in value) || value['updatedAt'] === undefined) return false;
-    return true;
+    return !(!('updatedAt' in value) || value['updatedAt'] === undefined);
+
 }
 
 export function RollenDefinitionDtoFromJSON(json: any): RollenDefinitionDto {

@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { AuthUserResponseDto } from './AuthUserResponseDto';
-import {
-    AuthUserResponseDtoFromJSON,
-    AuthUserResponseDtoFromJSONTyped,
-    AuthUserResponseDtoToJSON,
-    AuthUserResponseDtoToJSONTyped,
-} from './AuthUserResponseDto';
+import type {AuthUserResponseDto} from './AuthUserResponseDto';
+import {AuthUserResponseDtoFromJSON, AuthUserResponseDtoToJSON,} from './AuthUserResponseDto';
 
 /**
  * 
@@ -51,8 +45,8 @@ export interface AuthCheckResponseDto {
  * Check if a given object implements the AuthCheckResponseDto interface.
  */
 export function instanceOfAuthCheckResponseDto(value: object): value is AuthCheckResponseDto {
-    if (!('authenticated' in value) || value['authenticated'] === undefined) return false;
-    return true;
+    return !(!('authenticated' in value) || value['authenticated'] === undefined);
+
 }
 
 export function AuthCheckResponseDtoFromJSON(json: any): AuthCheckResponseDto {

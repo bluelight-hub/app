@@ -2,9 +2,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { IKategorieRepository } from '@domain/kategorie/repositories/i-kategorie.repository';
 import { Result } from '@domain/common/result';
 import { KATEGORIE_REPOSITORY } from '@infrastructure/di-tokens';
-import { KategorieResponseFactory } from '../../dto/kategorie-response.factory';
-import type { KategorieResponseDto } from '../../dto/kategorie-response.dto';
-import type { GetKategorienByEinsatzQuery } from './get-kategorien-by-einsatz.query';
+import { KategorieResponseFactory } from '@application/kategorie/dto';
+import type { KategorieResponseDto } from '@application/kategorie/dto';
+import type { GetKategorienByEinsatzQuery } from '@application/kategorie/queries';
 
 /**
  * Query Handler: Alle Kategorien eines Einsatzes laden (inkl. geloeschter).

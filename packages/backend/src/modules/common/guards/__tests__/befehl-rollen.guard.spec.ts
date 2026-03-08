@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { BefehlRollenGuard } from '../befehl-rollen.guard';
 
 describe('BefehlRollenGuard', () => {

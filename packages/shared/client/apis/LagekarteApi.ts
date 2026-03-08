@@ -18,15 +18,12 @@ import type {
   LagekarteControllerGetLagekarteVAlpha200Response,
   LagekarteControllerSaveLagekarteStateVAlpha200Response,
   SaveLagekarteStateDto,
-} from '../models/index';
+} from '../models';
 import {
     LagekarteControllerGetLagekarteVAlpha200ResponseFromJSON,
-    LagekarteControllerGetLagekarteVAlpha200ResponseToJSON,
     LagekarteControllerSaveLagekarteStateVAlpha200ResponseFromJSON,
-    LagekarteControllerSaveLagekarteStateVAlpha200ResponseToJSON,
-    SaveLagekarteStateDtoFromJSON,
     SaveLagekarteStateDtoToJSON,
-} from '../models/index';
+} from '../models';
 
 export interface LagekarteControllerDeleteLagekarteVAlphaRequest {
     einsatzId: string;
@@ -74,7 +71,7 @@ export class LagekarteApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/lagekarte`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/lagekarte`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
@@ -116,7 +113,7 @@ export class LagekarteApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/lagekarte/screenshot/{filename}`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"filename"}}`, encodeURIComponent(String(requestParameters['filename']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/lagekarte/screenshot/{filename}`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{filename}`, encodeURIComponent(String(requestParameters['filename']))),
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
@@ -151,7 +148,7 @@ export class LagekarteApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/lagekarte`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/lagekarte`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -195,7 +192,7 @@ export class LagekarteApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/lagekarte`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/lagekarte`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -244,7 +241,7 @@ export class LagekarteApi extends runtime.BaseAPI {
         const canConsumeForm = runtime.canConsumeForm(consumes);
 
         let formParams: { append(param: string, value: any): any };
-        let useForm = false;
+        let useForm: boolean;
         // use FormData to transmit files using content-type "multipart/form-data"
         useForm = canConsumeForm;
         if (useForm) {
@@ -258,7 +255,7 @@ export class LagekarteApi extends runtime.BaseAPI {
         }
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/lagekarte/screenshot`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/lagekarte/screenshot`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,

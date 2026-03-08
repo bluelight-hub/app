@@ -1,5 +1,5 @@
 import type { RollenDefinition } from '@domain/kraefte/aggregates/rollen-definition.aggregate';
-import type { RollenDefinitionDto } from '../dto/rollen-definition.dto';
+import type { RollenDefinitionDto } from '@application/kraefte/rollen';
 
 /**
  * Mapper von RollenDefinition Aggregate zu RollenDefinitionDto.

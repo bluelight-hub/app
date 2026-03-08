@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -43,8 +42,8 @@ export interface ApiMeta {
  * Check if a given object implements the ApiMeta interface.
  */
 export function instanceOfApiMeta(value: object): value is ApiMeta {
-    if (!('timestamp' in value) || value['timestamp'] === undefined) return false;
-    return true;
+    return !(!('timestamp' in value) || value['timestamp'] === undefined);
+
 }
 
 export function ApiMetaFromJSON(json: any): ApiMeta {

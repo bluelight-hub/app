@@ -27,6 +27,6 @@
       "@pages/*": ["src/components/pages/*"]
     }
   },
-  "include": ["src", "e2e"],
+  "include": ["src", "e2e", "cypress", "cypress.d.ts"],
   "exclude": ["../shared/client/**/*.ts"]
 }

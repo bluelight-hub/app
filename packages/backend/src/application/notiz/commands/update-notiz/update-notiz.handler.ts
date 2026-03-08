@@ -11,10 +11,10 @@ import { KategorieId } from '@domain/kategorie/value-objects/kategorie-id';
 import { TransactionalCommandHandler } from '@/application/common/handlers/transactional-command.handler';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { NOTIZ_REPOSITORY, KATEGORIE_REPOSITORY, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
-import { NotizResponseFactory } from '../../dto/notiz-response.factory';
+import { NotizResponseFactory } from '@application/notiz/dto';
 import type { UpdateNotizCommand } from './update-notiz.command';
 import { NOTIZ_ERROR_CODES } from '../../errors/notiz-error.codes';
-import type { NotizResponseDto } from '../../dto/notiz-response.dto';
+import type { NotizResponseDto } from '@application/notiz/dto';
 import type { Prisma } from '@/generated/prisma/client';
 
 /**

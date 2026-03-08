@@ -12,21 +12,15 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { RolleFreigegebenResponseDto } from './RolleFreigegebenResponseDto';
-import {
-    RolleFreigegebenResponseDtoFromJSON,
-    RolleFreigegebenResponseDtoFromJSONTyped,
-    RolleFreigegebenResponseDtoToJSON,
-    RolleFreigegebenResponseDtoToJSONTyped,
-} from './RolleFreigegebenResponseDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {RolleFreigegebenResponseDto} from './RolleFreigegebenResponseDto';
+import {RolleFreigegebenResponseDtoFromJSON, RolleFreigegebenResponseDtoToJSON,} from './RolleFreigegebenResponseDto';
 
 /**
  * 
@@ -53,8 +47,8 @@ export interface RollenBesetzungControllerFreigebenRolleVAlpha200Response {
  */
 export function instanceOfRollenBesetzungControllerFreigebenRolleVAlpha200Response(value: object): value is RollenBesetzungControllerFreigebenRolleVAlpha200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function RollenBesetzungControllerFreigebenRolleVAlpha200ResponseFromJSON(json: any): RollenBesetzungControllerFreigebenRolleVAlpha200Response {

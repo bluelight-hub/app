@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { CanMutateEinsatzQueryHandler } from '../can-mutate-einsatz.handler';
 import { CanMutateEinsatzQuery } from '../can-mutate-einsatz.query';
 

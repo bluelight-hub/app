@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -52,8 +51,8 @@ export function instanceOfStatusCountsDto(value: object): value is StatusCountsD
     if (!('angelegt' in value) || value['angelegt'] === undefined) return false;
     if (!('inBearbeitung' in value) || value['inBearbeitung'] === undefined) return false;
     if (!('abgeschlossen' in value) || value['abgeschlossen'] === undefined) return false;
-    if (!('archiviert' in value) || value['archiviert'] === undefined) return false;
-    return true;
+    return !(!('archiviert' in value) || value['archiviert'] === undefined);
+
 }
 
 export function StatusCountsDtoFromJSON(json: any): StatusCountsDto {

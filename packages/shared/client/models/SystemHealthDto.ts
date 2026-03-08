@@ -12,21 +12,13 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { CircuitBreakerStatusEntryDto } from './CircuitBreakerStatusEntryDto';
+import type {ApiResponseTimeDto} from './ApiResponseTimeDto';
+import {ApiResponseTimeDtoFromJSON, ApiResponseTimeDtoToJSON,} from './ApiResponseTimeDto';
+import type {CircuitBreakerStatusEntryDto} from './CircuitBreakerStatusEntryDto';
 import {
     CircuitBreakerStatusEntryDtoFromJSON,
-    CircuitBreakerStatusEntryDtoFromJSONTyped,
     CircuitBreakerStatusEntryDtoToJSON,
-    CircuitBreakerStatusEntryDtoToJSONTyped,
 } from './CircuitBreakerStatusEntryDto';
-import type { ApiResponseTimeDto } from './ApiResponseTimeDto';
-import {
-    ApiResponseTimeDtoFromJSON,
-    ApiResponseTimeDtoFromJSONTyped,
-    ApiResponseTimeDtoToJSON,
-    ApiResponseTimeDtoToJSONTyped,
-} from './ApiResponseTimeDto';
 
 /**
  * 
@@ -88,8 +80,8 @@ export function instanceOfSystemHealthDto(value: object): value is SystemHealthD
     if (!('apiResponseTime' in value) || value['apiResponseTime'] === undefined) return false;
     if (!('circuitBreakerStatus' in value) || value['circuitBreakerStatus'] === undefined) return false;
     if (!('dbConnectionPoolUsage' in value) || value['dbConnectionPoolUsage'] === undefined) return false;
-    if (!('uptime' in value) || value['uptime'] === undefined) return false;
-    return true;
+    return !(!('uptime' in value) || value['uptime'] === undefined);
+
 }
 
 export function SystemHealthDtoFromJSON(json: any): SystemHealthDto {

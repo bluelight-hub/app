@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { FahrzeugtypSollbesatzungDto } from './FahrzeugtypSollbesatzungDto';
-import {
-    FahrzeugtypSollbesatzungDtoFromJSON,
-    FahrzeugtypSollbesatzungDtoFromJSONTyped,
-    FahrzeugtypSollbesatzungDtoToJSON,
-    FahrzeugtypSollbesatzungDtoToJSONTyped,
-} from './FahrzeugtypSollbesatzungDto';
+import type {FahrzeugtypSollbesatzungDto} from './FahrzeugtypSollbesatzungDto';
+import {FahrzeugtypSollbesatzungDtoFromJSON, FahrzeugtypSollbesatzungDtoToJSON,} from './FahrzeugtypSollbesatzungDto';
 
 /**
  * 
@@ -78,8 +72,8 @@ export type CreateFahrzeugtypDtoKategorieEnum = typeof CreateFahrzeugtypDtoKateg
 export function instanceOfCreateFahrzeugtypDto(value: object): value is CreateFahrzeugtypDto {
     if (!('code' in value) || value['code'] === undefined) return false;
     if (!('bezeichnung' in value) || value['bezeichnung'] === undefined) return false;
-    if (!('kategorie' in value) || value['kategorie'] === undefined) return false;
-    return true;
+    return !(!('kategorie' in value) || value['kategorie'] === undefined);
+
 }
 
 export function CreateFahrzeugtypDtoFromJSON(json: any): CreateFahrzeugtypDto {

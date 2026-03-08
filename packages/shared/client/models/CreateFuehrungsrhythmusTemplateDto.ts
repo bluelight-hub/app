@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { FuehrungsrhythmusEintragDto } from './FuehrungsrhythmusEintragDto';
-import {
-    FuehrungsrhythmusEintragDtoFromJSON,
-    FuehrungsrhythmusEintragDtoFromJSONTyped,
-    FuehrungsrhythmusEintragDtoToJSON,
-    FuehrungsrhythmusEintragDtoToJSONTyped,
-} from './FuehrungsrhythmusEintragDto';
+import type {FuehrungsrhythmusEintragDto} from './FuehrungsrhythmusEintragDto';
+import {FuehrungsrhythmusEintragDtoFromJSON, FuehrungsrhythmusEintragDtoToJSON,} from './FuehrungsrhythmusEintragDto';
 
 /**
  * 
@@ -75,8 +69,8 @@ export type CreateFuehrungsrhythmusTemplateDtoScopeEnum = typeof CreateFuehrungs
  */
 export function instanceOfCreateFuehrungsrhythmusTemplateDto(value: object): value is CreateFuehrungsrhythmusTemplateDto {
     if (!('name' in value) || value['name'] === undefined) return false;
-    if (!('eintraege' in value) || value['eintraege'] === undefined) return false;
-    return true;
+    return !(!('eintraege' in value) || value['eintraege'] === undefined);
+
 }
 
 export function CreateFuehrungsrhythmusTemplateDtoFromJSON(json: any): CreateFuehrungsrhythmusTemplateDto {

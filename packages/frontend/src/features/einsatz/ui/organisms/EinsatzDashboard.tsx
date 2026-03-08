@@ -1,13 +1,13 @@
-import { MobileStatusBar } from '@/shared/ui/organisms/dashboard/MobileStatusBar';
-import { StatusCard } from '@/shared/ui/organisms/dashboard/StatusCard';
+import { useActiveEinsaetzeWithCounts, useEinsatzStatusCounts } from '@/features/einsatz';
 import { EinsatzListItem } from '@/features/einsatz/ui/molecules/EinsatzListItem';
+import { EinsatzCreateForm } from '@/features/einsatz/ui/organisms/EinsatzCreateForm';
+import { EinsatzControllerFindAllVAlphaOrderByEnum, EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzResponseDtoStatusEnum } from '@/shared';
+import { Button } from '@/shared/ui/atoms/button.atom';
 import { SearchInput } from '@/shared/ui/molecules/search-input.molecule';
 import { FilterPanel } from '@/shared/ui/organisms/dashboard/FilterPanel';
 import { MobileFilterDialog } from '@/shared/ui/organisms/dashboard/MobileFilterDialog';
-import { EinsatzCreateForm } from '@/features/einsatz/ui/organisms/EinsatzCreateForm';
-import { useActiveEinsaetzeWithCounts, useEinsatzStatusCounts } from '@/features/einsatz';
-import { Button } from '@/shared/ui/atoms/button.atom';
-import { EinsatzControllerFindAllVAlphaOrderByEnum, EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzResponseDtoStatusEnum } from '@/shared';
+import { MobileStatusBar } from '@/shared/ui/organisms/dashboard/MobileStatusBar';
+import { StatusCard } from '@/shared/ui/organisms/dashboard/StatusCard';
 import { Link } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
@@ -57,7 +57,8 @@ export function EinsatzDashboard() {
     }
 
     // Sort
-    const sorted = [...filtered].sort((a, b) => {
+
+    return [...filtered].sort((a, b) => {
       let aValue: string | number | Date = a.createdAt;
       let bValue: string | number | Date = b.createdAt;
 
@@ -75,8 +76,6 @@ export function EinsatzDashboard() {
       const comparison = aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
       return sortOption.direction === EinsatzControllerFindAllVAlphaOrderDirectionEnum.Desc ? -comparison : comparison;
     });
-
-    return sorted;
   }, [rawEinsaetze, statusFilter, showArchived, searchTerm, sortOption]);
 
   const { total, counts } = useEinsatzStatusCounts(true);

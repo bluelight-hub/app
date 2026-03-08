@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -38,8 +37,8 @@ export interface EtbVersionDto {
  */
 export function instanceOfEtbVersionDto(value: object): value is EtbVersionDto {
     if (!('versionNumber' in value) || value['versionNumber'] === undefined) return false;
-    if (!('timestamp' in value) || value['timestamp'] === undefined) return false;
-    return true;
+    return !(!('timestamp' in value) || value['timestamp'] === undefined);
+
 }
 
 export function EtbVersionDtoFromJSON(json: any): EtbVersionDto {

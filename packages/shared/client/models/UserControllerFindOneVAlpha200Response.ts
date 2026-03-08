@@ -12,21 +12,15 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { ManagedUserResponse } from './ManagedUserResponse';
-import {
-    ManagedUserResponseFromJSON,
-    ManagedUserResponseFromJSONTyped,
-    ManagedUserResponseToJSON,
-    ManagedUserResponseToJSONTyped,
-} from './ManagedUserResponse';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {ManagedUserResponse} from './ManagedUserResponse';
+import {ManagedUserResponseFromJSON, ManagedUserResponseToJSON,} from './ManagedUserResponse';
 
 /**
  * 
@@ -53,8 +47,8 @@ export interface UserControllerFindOneVAlpha200Response {
  */
 export function instanceOfUserControllerFindOneVAlpha200Response(value: object): value is UserControllerFindOneVAlpha200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function UserControllerFindOneVAlpha200ResponseFromJSON(json: any): UserControllerFindOneVAlpha200Response {

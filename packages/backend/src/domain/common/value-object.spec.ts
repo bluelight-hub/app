@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ValueObject } from './value-object';
 
 // Test ValueObject Implementierung

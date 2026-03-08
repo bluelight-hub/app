@@ -12,21 +12,15 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { TaktischeStaerkeDto } from './TaktischeStaerkeDto';
-import {
-    TaktischeStaerkeDtoFromJSON,
-    TaktischeStaerkeDtoFromJSONTyped,
-    TaktischeStaerkeDtoToJSON,
-    TaktischeStaerkeDtoToJSONTyped,
-} from './TaktischeStaerkeDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {TaktischeStaerkeDto} from './TaktischeStaerkeDto';
+import {TaktischeStaerkeDtoFromJSON, TaktischeStaerkeDtoToJSON,} from './TaktischeStaerkeDto';
 
 /**
  * 
@@ -53,8 +47,8 @@ export interface KraefteDashboardControllerGetTaktischeStaerkeVAlpha200Response 
  */
 export function instanceOfKraefteDashboardControllerGetTaktischeStaerkeVAlpha200Response(value: object): value is KraefteDashboardControllerGetTaktischeStaerkeVAlpha200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function KraefteDashboardControllerGetTaktischeStaerkeVAlpha200ResponseFromJSON(json: any): KraefteDashboardControllerGetTaktischeStaerkeVAlpha200Response {

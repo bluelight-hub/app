@@ -6,11 +6,10 @@ import { PiTag } from 'react-icons/pi';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Input } from '@/shared/ui/atoms/input.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
-import { cn } from '@/shared/ui/cn';
 
 import { useCreateKategorie } from '../../api';
-import { kategorieSchema, type KategorieFormValues, KATEGORIE_FARB_PRESETS } from '../../schemas/kategorie.schema';
-import { FarbPresetPicker } from '../atoms/FarbPresetPicker';
+import { kategorieSchema, type KategorieFormValues, KATEGORIE_FARB_PRESETS } from '@/features/kategorien';
+import { FarbPresetPicker } from '@/features/kategorien';
 
 /**
  * Extrahiert Fehlermeldungen aus TanStack Form Errors.
@@ -127,10 +126,10 @@ export function CreateKategorieDialog({ isOpen, onClose, einsatzId }: CreateKate
           <form.Field name="farbe">
             {(field) => (
               <div>
-                <label className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
+                <p id="kategorie-farbe-label" className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
                   Farbe <span className="text-red-500">*</span>
-                </label>
-                <FarbPresetPicker value={field.state.value} onChange={(farbe) => field.handleChange(farbe)} />
+                </p>
+                <FarbPresetPicker value={field.state.value} onChange={(farbe) => field.handleChange(farbe)} ariaLabelledBy="kategorie-farbe-label" />
                 {field.state.meta.errors.length > 0 && <p className="mt-1 text-red-600 text-sm dark:text-red-400">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}

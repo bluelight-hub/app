@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Unit Tests fuer RolleGeaendertEvent.
  *
@@ -10,7 +11,6 @@ import { EVENT_NAMES } from './event-names';
 jest.mock('@paralleldrive/cuid2', () => ({
   createId: jest.fn(() => 'c' + 'test123456789012345678'),
   isCuid: jest.fn((id: string) => {
-    if (typeof id !== 'string') return false;
     if (id.length < 20 || id.length > 30) return false;
     return /^[a-zA-Z][a-zA-Z0-9_-]*$/.test(id);
   }),

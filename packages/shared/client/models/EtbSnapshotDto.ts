@@ -12,14 +12,7 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { A } from './A';
-import {
-    AFromJSON,
-    AFromJSONTyped,
-    AToJSON,
-    AToJSONTyped,
-} from './A';
+import type {A} from './A';
 
 /**
  * 
@@ -53,8 +46,8 @@ export interface EtbSnapshotDto {
 export function instanceOfEtbSnapshotDto(value: object): value is EtbSnapshotDto {
     if (!('version' in value) || value['version'] === undefined) return false;
     if (!('snapshotAt' in value) || value['snapshotAt'] === undefined) return false;
-    if (!('eintraege' in value) || value['eintraege'] === undefined) return false;
-    return true;
+    return !(!('eintraege' in value) || value['eintraege'] === undefined);
+
 }
 
 export function EtbSnapshotDtoFromJSON(json: any): EtbSnapshotDto {

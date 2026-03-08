@@ -24,7 +24,7 @@ export function EinsatzSwitcher() {
   if (isLoading) {
     return (
       <div className="mb-4">
-        <output className="animate-pulse h-9 bg-gray-700 rounded-lg block" aria-label="Einsatz wird geladen" />
+        <output className="block h-9 animate-pulse rounded-lg bg-gray-700" aria-label="Einsatz wird geladen" />
       </div>
     );
   }

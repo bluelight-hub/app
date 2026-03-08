@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -91,8 +90,8 @@ export function instanceOfComplianceReportDto(value: object): value is Complianc
     if (!('empfaengerCount' in value) || value['empfaengerCount'] === undefined) return false;
     if (!('kommentarCount' in value) || value['kommentarCount'] === undefined) return false;
     if (!('durchgefuehrtAm' in value) || value['durchgefuehrtAm'] === undefined) return false;
-    if (!('durchgefuehrtVon' in value) || value['durchgefuehrtVon'] === undefined) return false;
-    return true;
+    return !(!('durchgefuehrtVon' in value) || value['durchgefuehrtVon'] === undefined);
+
 }
 
 export function ComplianceReportDtoFromJSON(json: any): ComplianceReportDto {

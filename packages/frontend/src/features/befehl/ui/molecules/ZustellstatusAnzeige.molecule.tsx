@@ -105,7 +105,7 @@ function EmpfaengerChip({
           <MenuItem>
             <button
               type="button"
-              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 data-[focus]:bg-gray-100 dark:text-gray-300 dark:data-[focus]:bg-gray-700"
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-gray-700 text-sm data-[focus]:bg-gray-100 dark:text-gray-300 dark:data-[focus]:bg-gray-700"
               onClick={() =>
                 onStatusChange({
                   befehlId,
@@ -125,7 +125,7 @@ function EmpfaengerChip({
             <MenuItem>
               <button
                 type="button"
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 data-[focus]:bg-gray-100 dark:text-gray-300 dark:data-[focus]:bg-gray-700"
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-gray-700 text-sm data-[focus]:bg-gray-100 dark:text-gray-300 dark:data-[focus]:bg-gray-700"
                 onClick={() =>
                   onStatusChange({
                     befehlId,
@@ -142,7 +142,7 @@ function EmpfaengerChip({
             <MenuItem>
               <button
                 type="button"
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 data-[focus]:bg-gray-100 dark:text-gray-300 dark:data-[focus]:bg-gray-700"
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-gray-700 text-sm data-[focus]:bg-gray-100 dark:text-gray-300 dark:data-[focus]:bg-gray-700"
                 onClick={() =>
                   onStatusChange({
                     befehlId,
@@ -159,7 +159,7 @@ function EmpfaengerChip({
             <MenuItem>
               <button
                 type="button"
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 data-[focus]:bg-gray-100 dark:text-gray-300 dark:data-[focus]:bg-gray-700"
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-gray-700 text-sm data-[focus]:bg-gray-100 dark:text-gray-300 dark:data-[focus]:bg-gray-700"
                 onClick={() =>
                   onStatusChange({
                     befehlId,
@@ -173,11 +173,11 @@ function EmpfaengerChip({
                 Nicht verstanden
               </button>
             </MenuItem>
-            <div className="my-1 border-t border-gray-200 dark:border-gray-700" />
+            <div className="my-1 border-gray-200 border-t dark:border-gray-700" />
             <MenuItem>
               <button
                 type="button"
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-500 data-[focus]:bg-gray-100 dark:text-gray-400 dark:data-[focus]:bg-gray-700"
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-gray-500 text-sm data-[focus]:bg-gray-100 dark:text-gray-400 dark:data-[focus]:bg-gray-700"
                 onClick={() =>
                   onStatusChange({
                     befehlId,
@@ -198,7 +198,7 @@ function EmpfaengerChip({
           <MenuItem>
             <button
               type="button"
-              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-500 data-[focus]:bg-gray-100 dark:text-gray-400 dark:data-[focus]:bg-gray-700"
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-gray-500 text-sm data-[focus]:bg-gray-100 dark:text-gray-400 dark:data-[focus]:bg-gray-700"
               onClick={() =>
                 onStatusChange({
                   befehlId,
@@ -246,7 +246,7 @@ export function ZustellstatusAnzeige({ empfaenger, variant = 'compact', classNam
         </div>
         <span
           className={cn(
-            'shrink-0 text-xs font-medium',
+            'shrink-0 font-medium text-xs',
             prozent === 0 && 'text-gray-500 dark:text-gray-400',
             prozent > 0 && prozent < 100 && 'text-yellow-700 dark:text-yellow-300',
             prozent === 100 && 'text-green-700 dark:text-green-300',
@@ -268,7 +268,7 @@ export function ZustellstatusAnzeige({ empfaenger, variant = 'compact', classNam
       {/* Nicht-quittierbare Empfaenger (via Funk) - jetzt ebenfalls interaktiv */}
       {variant === 'expanded' && nichtQuittierbar.length > 0 && (
         <div className="flex flex-wrap items-center gap-1">
-          <span className="text-xs text-gray-400 dark:text-gray-500">Via Funk:</span>
+          <span className="text-gray-400 text-xs dark:text-gray-500">Via Funk:</span>
           {nichtQuittierbar.map((e) => (
             <EmpfaengerChip key={e.id} empfaenger={e} interactive={interactive} befehlId={befehlId} onStatusChange={onStatusChange} isKorrigiert={isKorrigiert} isFunk />
           ))}
@@ -276,7 +276,7 @@ export function ZustellstatusAnzeige({ empfaenger, variant = 'compact', classNam
       )}
 
       {/* Compact: Nicht-quittierbare Anzahl anzeigen wenn vorhanden */}
-      {variant === 'compact' && nichtQuittierbar.length > 0 && <span className="text-xs text-gray-400 dark:text-gray-500">+ {nichtQuittierbar.length} via Funk</span>}
+      {variant === 'compact' && nichtQuittierbar.length > 0 && <span className="text-gray-400 text-xs dark:text-gray-500">+ {nichtQuittierbar.length} via Funk</span>}
     </div>
   );
 }

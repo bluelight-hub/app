@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -44,8 +43,8 @@ export interface TimelineUserDto {
  */
 export function instanceOfTimelineUserDto(value: object): value is TimelineUserDto {
     if (!('id' in value) || value['id'] === undefined) return false;
-    if (!('username' in value) || value['username'] === undefined) return false;
-    return true;
+    return !(!('username' in value) || value['username'] === undefined);
+
 }
 
 export function TimelineUserDtoFromJSON(json: any): TimelineUserDto {

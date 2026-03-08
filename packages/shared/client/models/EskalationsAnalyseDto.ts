@@ -12,28 +12,12 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { TopSourceDto } from './TopSourceDto';
-import {
-    TopSourceDtoFromJSON,
-    TopSourceDtoFromJSONTyped,
-    TopSourceDtoToJSON,
-    TopSourceDtoToJSONTyped,
-} from './TopSourceDto';
-import type { EskalationsAnalyseItemDto } from './EskalationsAnalyseItemDto';
-import {
-    EskalationsAnalyseItemDtoFromJSON,
-    EskalationsAnalyseItemDtoFromJSONTyped,
-    EskalationsAnalyseItemDtoToJSON,
-    EskalationsAnalyseItemDtoToJSONTyped,
-} from './EskalationsAnalyseItemDto';
-import type { TopReceiverDto } from './TopReceiverDto';
-import {
-    TopReceiverDtoFromJSON,
-    TopReceiverDtoFromJSONTyped,
-    TopReceiverDtoToJSON,
-    TopReceiverDtoToJSONTyped,
-} from './TopReceiverDto';
+import type {EskalationsAnalyseItemDto} from './EskalationsAnalyseItemDto';
+import {EskalationsAnalyseItemDtoFromJSON, EskalationsAnalyseItemDtoToJSON,} from './EskalationsAnalyseItemDto';
+import type {TopReceiverDto} from './TopReceiverDto';
+import {TopReceiverDtoFromJSON, TopReceiverDtoToJSON,} from './TopReceiverDto';
+import type {TopSourceDto} from './TopSourceDto';
+import {TopSourceDtoFromJSON, TopSourceDtoToJSON,} from './TopSourceDto';
 
 /**
  * 
@@ -95,8 +79,8 @@ export function instanceOfEskalationsAnalyseDto(value: object): value is Eskalat
     if (!('avgZeitBisEskalationSeconds' in value) || value['avgZeitBisEskalationSeconds'] === undefined) return false;
     if (!('topReceivers' in value) || value['topReceivers'] === undefined) return false;
     if (!('topSources' in value) || value['topSources'] === undefined) return false;
-    if (!('items' in value) || value['items'] === undefined) return false;
-    return true;
+    return !(!('items' in value) || value['items'] === undefined);
+
 }
 
 export function EskalationsAnalyseDtoFromJSON(json: any): EskalationsAnalyseDto {

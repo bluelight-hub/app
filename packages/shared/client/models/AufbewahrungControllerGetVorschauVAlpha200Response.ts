@@ -12,20 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { AufbewahrungsVorschauDto } from './AufbewahrungsVorschauDto';
-import {
-    AufbewahrungsVorschauDtoFromJSON,
-    AufbewahrungsVorschauDtoFromJSONTyped,
-    AufbewahrungsVorschauDtoToJSON,
-    AufbewahrungsVorschauDtoToJSONTyped,
-} from './AufbewahrungsVorschauDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {AufbewahrungsVorschauDto} from './AufbewahrungsVorschauDto';
+import {AufbewahrungsVorschauDtoFromJSON, AufbewahrungsVorschauDtoToJSON,} from './AufbewahrungsVorschauDto';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
 
 /**
@@ -53,8 +47,8 @@ export interface AufbewahrungControllerGetVorschauVAlpha200Response {
  */
 export function instanceOfAufbewahrungControllerGetVorschauVAlpha200Response(value: object): value is AufbewahrungControllerGetVorschauVAlpha200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function AufbewahrungControllerGetVorschauVAlpha200ResponseFromJSON(json: any): AufbewahrungControllerGetVorschauVAlpha200Response {

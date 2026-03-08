@@ -12,13 +12,10 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { FuehrungsrhythmusEintragResponseDto } from './FuehrungsrhythmusEintragResponseDto';
+import type {FuehrungsrhythmusEintragResponseDto} from './FuehrungsrhythmusEintragResponseDto';
 import {
     FuehrungsrhythmusEintragResponseDtoFromJSON,
-    FuehrungsrhythmusEintragResponseDtoFromJSONTyped,
     FuehrungsrhythmusEintragResponseDtoToJSON,
-    FuehrungsrhythmusEintragResponseDtoToJSONTyped,
 } from './FuehrungsrhythmusEintragResponseDto';
 
 /**
@@ -106,8 +103,8 @@ export function instanceOfFuehrungsrhythmusTemplateResponseDto(value: object): v
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
     if (!('updatedAt' in value) || value['updatedAt'] === undefined) return false;
     if (!('scope' in value) || value['scope'] === undefined) return false;
-    if (!('einsatzId' in value) || value['einsatzId'] === undefined) return false;
-    return true;
+    return !(!('einsatzId' in value) || value['einsatzId'] === undefined);
+
 }
 
 export function FuehrungsrhythmusTemplateResponseDtoFromJSON(json: any): FuehrungsrhythmusTemplateResponseDto {

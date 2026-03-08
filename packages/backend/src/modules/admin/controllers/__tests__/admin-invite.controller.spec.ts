@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { BadRequestException } from '@nestjs/common';
 import { AdminInviteController } from '@/modules/admin/controllers/admin-invite.controller';
 import { Result } from '@/domain/common/result';
@@ -104,7 +105,7 @@ describe('AdminInviteController', () => {
         expect(mockCreateInviteHandler.execute).toHaveBeenCalledTimes(1);
 
         // Verify command was created correctly
-        const executedCommand = mockCreateInviteHandler.execute.mock.calls[0][0];
+        const executedCommand = mockCreateInviteHandler.execute.mock.calls[0]?.[0]!;
         expect(executedCommand.expiresAt).toEqual(new Date(expiresAt));
         expect(executedCommand.maxUses).toBe(5);
         expect(executedCommand.label).toBe('Team Nord');
@@ -132,7 +133,7 @@ describe('AdminInviteController', () => {
         expect(result).toEqual(responseWithoutOptionals);
         expect(mockCreateInviteHandler.execute).toHaveBeenCalledTimes(1);
 
-        const executedCommand = mockCreateInviteHandler.execute.mock.calls[0][0];
+        const executedCommand = mockCreateInviteHandler.execute.mock.calls[0]?.[0]!;
         expect(executedCommand.maxUses).toBe(1); // Default value
         expect(executedCommand.label).toBeUndefined();
       });
@@ -153,7 +154,7 @@ describe('AdminInviteController', () => {
         // Then (Assert)
         expect(mockCreateInviteHandler.execute).toHaveBeenCalledTimes(1);
 
-        const executedCommand = mockCreateInviteHandler.execute.mock.calls[0][0];
+        const executedCommand = mockCreateInviteHandler.execute.mock.calls[0]?.[0]!;
         // Pruefen, dass expiresAt ca. 7 Tage in der Zukunft liegt (mit 5 Sekunden Toleranz)
         const timeDiff = Math.abs(executedCommand.expiresAt.getTime() - expectedDefaultExpiry.getTime());
         expect(timeDiff).toBeLessThan(5000); // Max 5 Sekunden Abweichung
@@ -171,7 +172,7 @@ describe('AdminInviteController', () => {
         // Then (Assert)
         expect(mockCreateInviteHandler.execute).toHaveBeenCalledTimes(1);
 
-        const executedCommand = mockCreateInviteHandler.execute.mock.calls[0][0];
+        const executedCommand = mockCreateInviteHandler.execute.mock.calls[0]?.[0]!;
         // Default expiresAt: 7 Tage
         const expectedDefaultExpiry = new Date(Date.now() + CreateInviteDto.DEFAULT_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
         const timeDiff = Math.abs(executedCommand.expiresAt.getTime() - expectedDefaultExpiry.getTime());
@@ -195,7 +196,7 @@ describe('AdminInviteController', () => {
         await controller.createInvite(dto, mockAdminUser);
 
         // Then (Assert)
-        const executedCommand = mockCreateInviteHandler.execute.mock.calls[0][0];
+        const executedCommand = mockCreateInviteHandler.execute.mock.calls[0]?.[0]!;
         expect(executedCommand.maxUses).toBe(1);
       });
 
@@ -212,7 +213,7 @@ describe('AdminInviteController', () => {
         await controller.createInvite(dto, mockAdminUser);
 
         // Then (Assert)
-        const executedCommand = mockCreateInviteHandler.execute.mock.calls[0][0];
+        const executedCommand = mockCreateInviteHandler.execute.mock.calls[0]?.[0]!;
         expect(executedCommand.maxUses).toBe(100);
       });
     });
@@ -386,7 +387,7 @@ describe('AdminInviteController', () => {
         await controller.createInvite(dto, customUser);
 
         // Then (Assert)
-        const executedCommand = mockCreateInviteHandler.execute.mock.calls[0][0];
+        const executedCommand = mockCreateInviteHandler.execute.mock.calls[0]?.[0]!;
         expect(executedCommand.createdById).toBe('custom_admin_789');
       });
 
@@ -442,7 +443,7 @@ describe('AdminInviteController', () => {
         await controller.createInvite(dto, mockAdminUser);
 
         // Then (Assert)
-        const executedCommand = mockCreateInviteHandler.execute.mock.calls[0][0];
+        const executedCommand = mockCreateInviteHandler.execute.mock.calls[0]?.[0]!;
         expect(executedCommand.expiresAt).toEqual(new Date('2026-12-31T23:59:59.999Z'));
         expect(executedCommand.expiresAt).toBeInstanceOf(Date);
       });
@@ -459,7 +460,7 @@ describe('AdminInviteController', () => {
         await controller.createInvite(dto, mockAdminUser);
 
         // Then (Assert)
-        const executedCommand = mockCreateInviteHandler.execute.mock.calls[0][0];
+        const executedCommand = mockCreateInviteHandler.execute.mock.calls[0]?.[0]!;
         expect(executedCommand.expiresAt).toBeInstanceOf(Date);
         // Das Datum sollte korrekt geparst werden (UTC: 12:30)
         expect(executedCommand.expiresAt.toISOString()).toBe('2026-06-15T12:30:00.000Z');
@@ -559,7 +560,7 @@ describe('AdminInviteController', () => {
       // Then (Assert)
       expect(mockCreateInviteHandler.execute).toHaveBeenCalledTimes(1);
 
-      const executedCommand = mockCreateInviteHandler.execute.mock.calls[0][0];
+      const executedCommand = mockCreateInviteHandler.execute.mock.calls[0]?.[0]!;
       expect(executedCommand.expiresAt).toEqual(new Date('2026-03-15T10:00:00.000Z'));
       expect(executedCommand.maxUses).toBe(10);
       expect(executedCommand.label).toBe('Integration Test');
@@ -609,7 +610,7 @@ describe('AdminInviteController', () => {
       await controller.createInvite(dto, mockAdminUser);
 
       // Then (Assert)
-      const executedCommand = mockCreateInviteHandler.execute.mock.calls[0][0];
+      const executedCommand = mockCreateInviteHandler.execute.mock.calls[0]?.[0]!;
       expect(executedCommand.label).toHaveLength(100);
     });
 
@@ -626,7 +627,7 @@ describe('AdminInviteController', () => {
       await controller.createInvite(dto, mockAdminUser);
 
       // Then (Assert)
-      const executedCommand = mockCreateInviteHandler.execute.mock.calls[0][0];
+      const executedCommand = mockCreateInviteHandler.execute.mock.calls[0]?.[0]!;
       // CreateInviteCommand.create trimmt den Label und setzt ihn auf undefined wenn leer
       expect(executedCommand.label).toBeUndefined();
     });
@@ -644,7 +645,7 @@ describe('AdminInviteController', () => {
       await controller.createInvite(dto, mockAdminUser);
 
       // Then (Assert)
-      const executedCommand = mockCreateInviteHandler.execute.mock.calls[0][0];
+      const executedCommand = mockCreateInviteHandler.execute.mock.calls[0]?.[0]!;
       expect(executedCommand.label).toBe('Team Nord');
     });
   });

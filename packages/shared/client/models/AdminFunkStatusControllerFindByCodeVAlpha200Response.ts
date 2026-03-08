@@ -12,20 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { FunkStatusConfigDto } from './FunkStatusConfigDto';
-import {
-    FunkStatusConfigDtoFromJSON,
-    FunkStatusConfigDtoFromJSONTyped,
-    FunkStatusConfigDtoToJSON,
-    FunkStatusConfigDtoToJSONTyped,
-} from './FunkStatusConfigDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {FunkStatusConfigDto} from './FunkStatusConfigDto';
+import {FunkStatusConfigDtoFromJSON, FunkStatusConfigDtoToJSON,} from './FunkStatusConfigDto';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
 
 /**
@@ -53,8 +47,8 @@ export interface AdminFunkStatusControllerFindByCodeVAlpha200Response {
  */
 export function instanceOfAdminFunkStatusControllerFindByCodeVAlpha200Response(value: object): value is AdminFunkStatusControllerFindByCodeVAlpha200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function AdminFunkStatusControllerFindByCodeVAlpha200ResponseFromJSON(json: any): AdminFunkStatusControllerFindByCodeVAlpha200Response {

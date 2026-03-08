@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -31,8 +30,8 @@ export interface UpdatePoiPositionDto {
  * Check if a given object implements the UpdatePoiPositionDto interface.
  */
 export function instanceOfUpdatePoiPositionDto(value: object): value is UpdatePoiPositionDto {
-    if (!('newCoordinate' in value) || value['newCoordinate'] === undefined) return false;
-    return true;
+    return !(!('newCoordinate' in value) || value['newCoordinate'] === undefined);
+
 }
 
 export function UpdatePoiPositionDtoFromJSON(json: any): UpdatePoiPositionDto {

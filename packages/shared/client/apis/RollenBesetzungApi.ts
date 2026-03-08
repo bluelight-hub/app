@@ -19,17 +19,14 @@ import type {
   RollenBesetzungControllerBesetzeRolleVAlpha201Response,
   RollenBesetzungControllerFindAllVAlpha200Response,
   RollenBesetzungControllerFreigebenRolleVAlpha200Response,
-} from '../models/index';
+} from '../models';
 import {
-    BesetzeRolleDtoFromJSON,
     BesetzeRolleDtoToJSON,
     RollenBesetzungControllerBesetzeRolleVAlpha201ResponseFromJSON,
-    RollenBesetzungControllerBesetzeRolleVAlpha201ResponseToJSON,
     RollenBesetzungControllerFindAllVAlpha200ResponseFromJSON,
-    RollenBesetzungControllerFindAllVAlpha200ResponseToJSON,
     RollenBesetzungControllerFreigebenRolleVAlpha200ResponseFromJSON,
-    RollenBesetzungControllerFreigebenRolleVAlpha200ResponseToJSON,
-} from '../models/index';
+
+} from '../models';
 
 export interface RollenBesetzungControllerBesetzeRolleVAlphaRequest {
     einsatzId: string;
@@ -75,7 +72,7 @@ export class RollenBesetzungApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/einsaetze/{einsatzId}/rollen-besetzung`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsaetze/{einsatzId}/rollen-besetzung`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -109,7 +106,7 @@ export class RollenBesetzungApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsaetze/{einsatzId}/rollen-besetzung`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsaetze/{einsatzId}/rollen-besetzung`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -149,7 +146,7 @@ export class RollenBesetzungApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsaetze/{einsatzId}/rollen-besetzung/{rollenBesetzungId}`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"rollenBesetzungId"}}`, encodeURIComponent(String(requestParameters['rollenBesetzungId']))),
+            path: `/api/v-alpha/einsaetze/{einsatzId}/rollen-besetzung/{rollenBesetzungId}`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{rollenBesetzungId}`, encodeURIComponent(String(requestParameters['rollenBesetzungId']))),
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,

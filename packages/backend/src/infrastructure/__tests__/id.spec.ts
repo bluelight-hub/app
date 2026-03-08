@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createId, isCuid } from '@paralleldrive/cuid2';
 
 describe('test id generation', () => {

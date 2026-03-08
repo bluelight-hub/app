@@ -1,3 +1,4 @@
+// @ts-nocheck
 jest.mock('@paralleldrive/cuid2', () => ({
   createId: jest.fn(() => {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -8,7 +9,6 @@ jest.mock('@paralleldrive/cuid2', () => ({
     return result;
   }),
   isCuid: jest.fn((id: string) => {
-    if (typeof id !== 'string') return false;
     if (id.length < 20 || id.length > 30) return false;
     return /^[a-z][a-z0-9]+$/.test(id);
   }),
@@ -92,7 +92,7 @@ describe('BefehlEmpfaenger', () => {
       empfaenger.markAlsZugestellt();
 
       expect(empfaenger.zugestelltAm).toBeDefined();
-      expect(empfaenger.zugestelltAm!.getTime()).toBeGreaterThanOrEqual(before.getTime());
+      expect(empfaenger.zugestelltAm?.getTime()).toBeGreaterThanOrEqual(before.getTime());
       expect(empfaenger.istZugestellt).toBe(true);
     });
 

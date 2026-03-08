@@ -12,13 +12,11 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 import type { FahrzeugtypSollbesatzungDto } from './FahrzeugtypSollbesatzungDto';
 import {
     FahrzeugtypSollbesatzungDtoFromJSON,
-    FahrzeugtypSollbesatzungDtoFromJSONTyped,
     FahrzeugtypSollbesatzungDtoToJSON,
-    FahrzeugtypSollbesatzungDtoToJSONTyped,
+
 } from './FahrzeugtypSollbesatzungDto';
 
 /**

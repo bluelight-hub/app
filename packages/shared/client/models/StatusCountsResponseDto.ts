@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { StatusCountsDto } from './StatusCountsDto';
-import {
-    StatusCountsDtoFromJSON,
-    StatusCountsDtoFromJSONTyped,
-    StatusCountsDtoToJSON,
-    StatusCountsDtoToJSONTyped,
-} from './StatusCountsDto';
+import type {StatusCountsDto} from './StatusCountsDto';
+import {StatusCountsDtoFromJSON, StatusCountsDtoToJSON,} from './StatusCountsDto';
 
 /**
  * 
@@ -46,8 +40,8 @@ export interface StatusCountsResponseDto {
  */
 export function instanceOfStatusCountsResponseDto(value: object): value is StatusCountsResponseDto {
     if (!('total' in value) || value['total'] === undefined) return false;
-    if (!('counts' in value) || value['counts'] === undefined) return false;
-    return true;
+    return !(!('counts' in value) || value['counts'] === undefined);
+
 }
 
 export function StatusCountsResponseDtoFromJSON(json: any): StatusCountsResponseDto {

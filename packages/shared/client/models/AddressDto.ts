@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -57,8 +56,8 @@ export interface AddressDto {
 export function instanceOfAddressDto(value: object): value is AddressDto {
     if (!('strasse' in value) || value['strasse'] === undefined) return false;
     if (!('plz' in value) || value['plz'] === undefined) return false;
-    if (!('ort' in value) || value['ort'] === undefined) return false;
-    return true;
+    return !(!('ort' in value) || value['ort'] === undefined);
+
 }
 
 export function AddressDtoFromJSON(json: any): AddressDto {

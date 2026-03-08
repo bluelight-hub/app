@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * Einsatzort (nur Ort-Feld für kompakte Anzeige)
  * @export

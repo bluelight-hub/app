@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -59,8 +58,8 @@ export function instanceOfAufbewahrungsVorschauEinsatzDto(value: object): value 
     if (!('einsatzNummer' in value) || value['einsatzNummer'] === undefined) return false;
     if (!('befehlCount' in value) || value['befehlCount'] === undefined) return false;
     if (!('archiviertAm' in value) || value['archiviertAm'] === undefined) return false;
-    if (!('anonymisierungFaelligAm' in value) || value['anonymisierungFaelligAm'] === undefined) return false;
-    return true;
+    return !(!('anonymisierungFaelligAm' in value) || value['anonymisierungFaelligAm'] === undefined);
+
 }
 
 export function AufbewahrungsVorschauEinsatzDtoFromJSON(json: any): AufbewahrungsVorschauEinsatzDto {

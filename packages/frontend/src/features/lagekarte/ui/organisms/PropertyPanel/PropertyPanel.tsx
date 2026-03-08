@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import type * as GeoJSON from 'geojson';
 import { CloseButton } from '@/shared/ui/atoms/close-button.atom';
-import { PropertyPanelContent } from './PropertyPanelContent';
+import { PropertyPanelContent } from '@/features/lagekarte';
 
 /**
  * Shape-Properties Interface

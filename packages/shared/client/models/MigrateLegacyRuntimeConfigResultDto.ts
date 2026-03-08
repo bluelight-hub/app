@@ -12,27 +12,16 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { A } from './A';
-import {
-    AFromJSON,
-    AFromJSONTyped,
-    AToJSON,
-    AToJSONTyped,
-} from './A';
-import type { LegacyRuntimeConfigMigrationFailureDto } from './LegacyRuntimeConfigMigrationFailureDto';
+import type {A} from './A';
+import type {LegacyRuntimeConfigMigrationFailureDto} from './LegacyRuntimeConfigMigrationFailureDto';
 import {
     LegacyRuntimeConfigMigrationFailureDtoFromJSON,
-    LegacyRuntimeConfigMigrationFailureDtoFromJSONTyped,
     LegacyRuntimeConfigMigrationFailureDtoToJSON,
-    LegacyRuntimeConfigMigrationFailureDtoToJSONTyped,
 } from './LegacyRuntimeConfigMigrationFailureDto';
-import type { MigrateLegacyRuntimeConfigResultSummaryDto } from './MigrateLegacyRuntimeConfigResultSummaryDto';
+import type {MigrateLegacyRuntimeConfigResultSummaryDto} from './MigrateLegacyRuntimeConfigResultSummaryDto';
 import {
     MigrateLegacyRuntimeConfigResultSummaryDtoFromJSON,
-    MigrateLegacyRuntimeConfigResultSummaryDtoFromJSONTyped,
     MigrateLegacyRuntimeConfigResultSummaryDtoToJSON,
-    MigrateLegacyRuntimeConfigResultSummaryDtoToJSONTyped,
 } from './MigrateLegacyRuntimeConfigResultSummaryDto';
 
 /**
@@ -74,8 +63,8 @@ export function instanceOfMigrateLegacyRuntimeConfigResultDto(value: object): va
     if (!('migratedKeys' in value) || value['migratedKeys'] === undefined) return false;
     if (!('skippedKeys' in value) || value['skippedKeys'] === undefined) return false;
     if (!('failedKeys' in value) || value['failedKeys'] === undefined) return false;
-    if (!('summary' in value) || value['summary'] === undefined) return false;
-    return true;
+    return !(!('summary' in value) || value['summary'] === undefined);
+
 }
 
 export function MigrateLegacyRuntimeConfigResultDtoFromJSON(json: any): MigrateLegacyRuntimeConfigResultDto {

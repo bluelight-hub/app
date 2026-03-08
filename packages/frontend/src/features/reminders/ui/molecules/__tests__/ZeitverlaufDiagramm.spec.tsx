@@ -11,7 +11,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { ZeitverlaufDiagramm } from '../ZeitverlaufDiagramm';
+import { ZeitverlaufDiagramm } from '@/features/reminders';
 
 // Mock recharts - SVG rendering ist in jsdom schwierig
 vi.mock('recharts', () => ({

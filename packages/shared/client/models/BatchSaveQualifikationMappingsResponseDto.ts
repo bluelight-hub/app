@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -38,8 +37,8 @@ export interface BatchSaveQualifikationMappingsResponseDto {
  */
 export function instanceOfBatchSaveQualifikationMappingsResponseDto(value: object): value is BatchSaveQualifikationMappingsResponseDto {
     if (!('saved' in value) || value['saved'] === undefined) return false;
-    if (!('ignored' in value) || value['ignored'] === undefined) return false;
-    return true;
+    return !(!('ignored' in value) || value['ignored'] === undefined);
+
 }
 
 export function BatchSaveQualifikationMappingsResponseDtoFromJSON(json: any): BatchSaveQualifikationMappingsResponseDto {

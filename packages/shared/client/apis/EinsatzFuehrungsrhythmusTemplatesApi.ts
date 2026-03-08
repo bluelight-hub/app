@@ -20,19 +20,14 @@ import type {
   FuehrungsrhythmusTemplateControllerCreateVAlpha201Response,
   FuehrungsrhythmusTemplateControllerGetAllVAlpha200Response,
   UpdateFuehrungsrhythmusTemplateDto,
-} from '../models/index';
+} from '../models';
 import {
-    CreateFuehrungsrhythmusTemplateDtoFromJSON,
     CreateFuehrungsrhythmusTemplateDtoToJSON,
     FuehrungsrhythmusTemplateControllerActivateVAlpha201ResponseFromJSON,
-    FuehrungsrhythmusTemplateControllerActivateVAlpha201ResponseToJSON,
     FuehrungsrhythmusTemplateControllerCreateVAlpha201ResponseFromJSON,
-    FuehrungsrhythmusTemplateControllerCreateVAlpha201ResponseToJSON,
     FuehrungsrhythmusTemplateControllerGetAllVAlpha200ResponseFromJSON,
-    FuehrungsrhythmusTemplateControllerGetAllVAlpha200ResponseToJSON,
-    UpdateFuehrungsrhythmusTemplateDtoFromJSON,
     UpdateFuehrungsrhythmusTemplateDtoToJSON,
-} from '../models/index';
+} from '../models';
 
 export interface EinsatzFuehrungsrhythmusTemplateControllerActivateVAlphaRequest {
     einsatzId: string;
@@ -87,7 +82,7 @@ export class EinsatzFuehrungsrhythmusTemplatesApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsaetze/{einsatzId}/fuehrungsrhythmus-templates/{id}/activate`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/einsaetze/{einsatzId}/fuehrungsrhythmus-templates/{id}/activate`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -129,7 +124,7 @@ export class EinsatzFuehrungsrhythmusTemplatesApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/einsaetze/{einsatzId}/fuehrungsrhythmus-templates`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsaetze/{einsatzId}/fuehrungsrhythmus-templates`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -163,7 +158,7 @@ export class EinsatzFuehrungsrhythmusTemplatesApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsaetze/{einsatzId}/fuehrungsrhythmus-templates`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsaetze/{einsatzId}/fuehrungsrhythmus-templates`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -203,7 +198,7 @@ export class EinsatzFuehrungsrhythmusTemplatesApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsaetze/{einsatzId}/fuehrungsrhythmus-templates/{id}`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/einsaetze/{einsatzId}/fuehrungsrhythmus-templates/{id}`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
@@ -252,7 +247,7 @@ export class EinsatzFuehrungsrhythmusTemplatesApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/einsaetze/{einsatzId}/fuehrungsrhythmus-templates/{id}`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/einsaetze/{einsatzId}/fuehrungsrhythmus-templates/{id}`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'PATCH',
             headers: headerParameters,
             query: queryParameters,

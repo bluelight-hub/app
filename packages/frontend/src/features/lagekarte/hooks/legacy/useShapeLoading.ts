@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import type * as L from 'leaflet';
 import type * as GeoJSON from 'geojson';
-import { createTextMarker } from '../../utils/shape-helpers';
-import { createGeoJSONLayer, setShapeIdOnLayer } from '../../utils/layer-utils';
+import { createTextMarker } from '@/features/lagekarte';
+import { createGeoJSONLayer, setShapeIdOnLayer } from '@/features/lagekarte';
 
 interface UseShapeLoadingProps {
   map: L.Map;
@@ -46,7 +46,7 @@ export const useShapeLoading = ({ map, initialState, layersRef, onLayerClick, on
       // Check if this is a Text marker (Point geometry with text property)
       const isTextMarker = feature.geometry.type === 'Point' && feature.properties?.text;
 
-      let layer: L.Layer | null = null;
+      let layer: L.Layer | null;
 
       if (isTextMarker) {
         // Create Text marker using helper

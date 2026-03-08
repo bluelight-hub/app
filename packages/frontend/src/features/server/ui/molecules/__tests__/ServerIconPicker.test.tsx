@@ -9,7 +9,7 @@
 
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SERVER_ICON_PRESETS } from '../../../constants/server-icons';
 import { isValidServerIcon } from '../../../utils/server-icon.utils';
 import { ServerIconPicker } from '../ServerIconPicker';
@@ -461,12 +461,12 @@ describe('ServerIconPicker', () => {
 
       // When
       render(<ServerIconPicker value={undefined} onChange={onChange} />);
-      const gebäudeButton = screen.getByRole('radio', { name: /gebäude/i });
+      const gebaeudeButton = screen.getByRole('radio', { name: /gebäude/i });
       const schildButton = screen.getByRole('radio', { name: /schild/i });
 
-      await user.click(gebäudeButton);
+      await user.click(gebaeudeButton);
       await user.click(schildButton);
-      await user.click(gebäudeButton);
+      await user.click(gebaeudeButton);
 
       // Then
       expect(onChange).toHaveBeenCalledTimes(3);

@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -31,8 +30,8 @@ export interface AssignErinnerungDto {
  * Check if a given object implements the AssignErinnerungDto interface.
  */
 export function instanceOfAssignErinnerungDto(value: object): value is AssignErinnerungDto {
-    if (!('assignedToId' in value) || value['assignedToId'] === undefined) return false;
-    return true;
+    return !(!('assignedToId' in value) || value['assignedToId'] === undefined);
+
 }
 
 export function AssignErinnerungDtoFromJSON(json: any): AssignErinnerungDto {

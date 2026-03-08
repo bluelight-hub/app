@@ -9,7 +9,8 @@ description: Commit, push, and create a PR with descriptive summary
 - Staged and unstaged changes: !`git diff HEAD`
 - Current branch: !`git branch --show-current`
 - Recent commits for style reference: !`git log --oneline -10`
-- Commits since base branch: !`git log --oneline alpha..HEAD 2>/dev/null || echo "(no divergence from alpha or branch not found)"`
+- Commits since base branch: !
+  `git log --oneline alpha..HEAD 2>/dev/null || echo "(no divergence from alpha or branch not found)"`
 
 ## Commit Conventions
 
@@ -24,16 +25,16 @@ Execute automatically. Only stop to ask if a safety check triggers.
 Analyze ALL changed/untracked files:
 
 1. **Gitignore candidates** - Files that likely should NOT be committed:
-   - `.env` files, credentials, API keys, certificates
-   - Build artifacts, `node_modules`, `dist/`, coverage reports
-   - IDE configs (`.idea/`, `.vscode/`), OS files (`.DS_Store`)
-   - Temp/debug files, large binaries
+    - `.env` files, credentials, API keys, certificates
+    - Build artifacts, `node_modules`, `dist/`, coverage reports
+    - IDE configs (`.idea/`, `.vscode/`), OS files (`.DS_Store`)
+    - Temp/debug files, large binaries
 
 2. **Accidental changes** - Files that look unintentionally modified:
-   - Lock files changed without corresponding dependency changes
-   - Unrelated formatting-only changes in files you didn't work on
-   - Debug statements (`console.log`, `debugger`) left in production code
-   - Changes in completely unrelated features/modules
+    - Lock files changed without corresponding dependency changes
+    - Unrelated formatting-only changes in files you didn't work on
+    - Debug statements (`console.log`, `debugger`) left in production code
+    - Changes in completely unrelated features/modules
 
 **If probability >30% that something is wrong**: STOP, explain the concern, and ask the user before proceeding.
 **If clean**: Proceed silently.
@@ -63,7 +64,8 @@ EOF
 
 ### Step 4: Create PR
 
-1. Analyze ALL commits on this branch since diverging from `alpha` (use `git log --oneline alpha..HEAD` and `git diff alpha...HEAD`)
+1. Analyze ALL commits on this branch since diverging from `alpha` (use `git log --oneline alpha..HEAD` and
+   `git diff alpha...HEAD`)
 2. Determine the overall theme/purpose of the branch
 3. Create PR:
 
@@ -87,6 +89,7 @@ EOF
 ```
 
 PR guidelines:
+
 - Title follows same emoji convention as commits (under 70 chars)
 - Summary explains the "why", Changes list the "what"
 - Group changes by area (Frontend, Backend, Shared, Config, etc.)

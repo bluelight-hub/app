@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -50,8 +49,8 @@ export type CircuitBreakerStatusEntryDtoStateEnum = typeof CircuitBreakerStatusE
  */
 export function instanceOfCircuitBreakerStatusEntryDto(value: object): value is CircuitBreakerStatusEntryDto {
     if (!('serviceName' in value) || value['serviceName'] === undefined) return false;
-    if (!('state' in value) || value['state'] === undefined) return false;
-    return true;
+    return !(!('state' in value) || value['state'] === undefined);
+
 }
 
 export function CircuitBreakerStatusEntryDtoFromJSON(json: any): CircuitBreakerStatusEntryDto {

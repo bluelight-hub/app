@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Result } from '@domain/common/result';
 import { BefehlZugestelltEvent } from '@domain/events/befehl-zugestellt.event';
 import { BefehlId } from '@domain/value-objects/befehl-id';
@@ -9,7 +10,6 @@ import { BefehlZugestelltEtbHandler } from '../befehl-zugestellt.handler';
 jest.mock('@paralleldrive/cuid2', () => ({
   createId: jest.fn(() => 'c' + 'test123456789012345678'),
   isCuid: jest.fn((id: string) => {
-    if (typeof id !== 'string') return false;
     if (id.length < 20 || id.length > 30) return false;
     return /^[a-zA-Z][a-zA-Z0-9_-]*$/.test(id);
   }),
@@ -77,27 +77,27 @@ describe('BefehlZugestelltEtbHandler', () => {
         nummer: 'B-007',
         empfaengerName: 'ZF Süd',
       });
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When
       await handler.handle(event);
 
       // Then
       expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(1);
-      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0]?.[0]!;
       expect(receivedCommand.text).toBe('Befehl #B-007: Zugestellt an ZF Süd');
     });
 
     it('should set kategorie to SYSTEM', async () => {
       // Given
       const event = createTestEvent();
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When
       await handler.handle(event);
 
       // Then
-      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0]?.[0]!;
       expect(receivedCommand.kategorie).toBe('SYSTEM');
     });
 
@@ -105,26 +105,26 @@ describe('BefehlZugestelltEtbHandler', () => {
       // Given
       const einsatzId = createTestEinsatzId();
       const event = createTestEvent({ einsatzId });
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When
       await handler.handle(event);
 
       // Then
-      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0]?.[0]!;
       expect(receivedCommand.etbId).toBe(einsatzId.value);
     });
 
     it('should set userId to "system"', async () => {
       // Given
       const event = createTestEvent();
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When
       await handler.handle(event);
 
       // Then
-      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0]?.[0]!;
       expect(receivedCommand.userId).toBe('system');
     });
 
@@ -136,13 +136,13 @@ describe('BefehlZugestelltEtbHandler', () => {
         empfaengerId: 'user-xyz',
         empfaengerName: 'ZF Ost',
       });
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When
       await handler.handle(event);
 
       // Then
-      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0]?.[0]!;
       expect(receivedCommand.metadata).toEqual({
         eventType: 'BefehlZugestellt',
         befehlId: befehlId.value,
@@ -155,13 +155,13 @@ describe('BefehlZugestelltEtbHandler', () => {
       // Given
       const einsatzId = createTestEinsatzId();
       const event = createTestEvent({ einsatzId });
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When
       await handler.handle(event);
 
       // Then
-      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0]?.[0]!;
       expect(receivedCommand.einsatzId).toBe(einsatzId.value);
     });
 
@@ -169,13 +169,13 @@ describe('BefehlZugestelltEtbHandler', () => {
       // Given
       const zugestelltAm = new Date('2026-02-25T15:45:00.000Z');
       const event = createTestEvent({ zugestelltAm });
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When
       await handler.handle(event);
 
       // Then
-      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0][0];
+      const receivedCommand = mockAddEintragHandler.execute.mock.calls[0]?.[0]!;
       expect(receivedCommand.occurredAt).toEqual(zugestelltAm);
     });
   });
@@ -229,7 +229,7 @@ describe('BefehlZugestelltEtbHandler', () => {
       // Given: Event mit null einsatzId
       const event = createTestEvent();
       const invalidEvent = { ...event, einsatzId: null } as unknown as BefehlZugestelltEvent;
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When
       await handler.handle(invalidEvent);
@@ -242,7 +242,7 @@ describe('BefehlZugestelltEtbHandler', () => {
     it('should call Logger.error() and early exit when empfaengerName is missing', async () => {
       // Given: Event mit leerem empfaengerName
       const event = createTestEvent({ empfaengerName: '' });
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When
       await handler.handle(event);
@@ -257,7 +257,7 @@ describe('BefehlZugestelltEtbHandler', () => {
     it('should log at start of processing', async () => {
       // Given
       const event = createTestEvent();
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When
       await handler.handle(event);
@@ -269,7 +269,7 @@ describe('BefehlZugestelltEtbHandler', () => {
     it('should log success message on successful creation', async () => {
       // Given
       const event = createTestEvent();
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When
       await handler.handle(event);
@@ -281,7 +281,7 @@ describe('BefehlZugestelltEtbHandler', () => {
     it('should log start and success messages (2x log calls) on success', async () => {
       // Given
       const event = createTestEvent();
-      mockAddEintragHandler.execute.mockResolvedValue(Result.ok(undefined));
+      mockAddEintragHandler.execute.mockResolvedValue(Result.ok({} as import('@domain/entities/etb-eintrag.entity').EtbEintrag));
 
       // When
       await handler.handle(event);

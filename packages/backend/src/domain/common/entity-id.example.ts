@@ -83,7 +83,7 @@ if (result.isSuccess && result.value) {
   const id = result.value; // Safe because isSuccess === true
   console.log('✅ Success:', id.toString());
   console.log('   isSuccess:', result.isSuccess);
-  console.log('   value defined:', result.value !== undefined);
+  console.log('   value defined:', true);
   console.log('   error undefined:', result.error === undefined);
 } else {
   console.log('❌ Failure:', result.error);

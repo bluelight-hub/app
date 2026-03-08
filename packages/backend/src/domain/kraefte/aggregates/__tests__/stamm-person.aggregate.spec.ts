@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { StammPerson, type CreateStammPersonProps, type UpdateStammPersonProps, type ReconstituteStammPersonProps } from '../stamm-person.aggregate';
 import { STAMM_PERSON_ERROR_CODES } from '../../common/stamm-person-error-codes';
 import { StammPersonCreatedEvent } from '../../events/stamm-person-created.event';

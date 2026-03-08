@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -38,8 +37,8 @@ export interface ErinnerungKonfigurationDto {
  */
 export function instanceOfErinnerungKonfigurationDto(value: object): value is ErinnerungKonfigurationDto {
     if (!('eskalationsTimeoutSeconds' in value) || value['eskalationsTimeoutSeconds'] === undefined) return false;
-    if (!('eskalationsTimeoutMinutes' in value) || value['eskalationsTimeoutMinutes'] === undefined) return false;
-    return true;
+    return !(!('eskalationsTimeoutMinutes' in value) || value['eskalationsTimeoutMinutes'] === undefined);
+
 }
 
 export function ErinnerungKonfigurationDtoFromJSON(json: any): ErinnerungKonfigurationDto {

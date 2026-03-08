@@ -17,13 +17,11 @@ import * as runtime from '../runtime';
 import type {
   ErinnerungKonfigurationControllerGetConfigVAlpha200Response,
   UpdateEskalationsTimeoutDto,
-} from '../models/index';
+} from '../models';
 import {
     ErinnerungKonfigurationControllerGetConfigVAlpha200ResponseFromJSON,
-    ErinnerungKonfigurationControllerGetConfigVAlpha200ResponseToJSON,
-    UpdateEskalationsTimeoutDtoFromJSON,
     UpdateEskalationsTimeoutDtoToJSON,
-} from '../models/index';
+} from '../models';
 
 export interface ErinnerungKonfigurationControllerUpdateTimeoutVAlphaRequest {
     updateEskalationsTimeoutDto: UpdateEskalationsTimeoutDto;

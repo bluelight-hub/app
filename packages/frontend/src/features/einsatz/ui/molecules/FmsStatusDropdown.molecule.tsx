@@ -1,6 +1,6 @@
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react';
 import { PiCheck, PiCaretUpDown } from 'react-icons/pi';
-import { FMS_STATUS_LABELS, FMS_STATUS_OPTIONS, getStatusBgClasses, getStatusClasses, type FmsStatus } from '../../constants/fms-status.constants';
+import { FMS_STATUS_LABELS, FMS_STATUS_OPTIONS, getStatusBgClasses, getStatusClasses, type FmsStatus } from '@/features/einsatz';
 
 interface FmsStatusDropdownProps {
   /** Aktueller FMS-Status */

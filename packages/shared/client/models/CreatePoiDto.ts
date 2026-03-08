@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -102,8 +101,8 @@ export type CreatePoiDtoTypeEnum = typeof CreatePoiDtoTypeEnum[keyof typeof Crea
  */
 export function instanceOfCreatePoiDto(value: object): value is CreatePoiDto {
     if (!('lagekarteId' in value) || value['lagekarteId'] === undefined) return false;
-    if (!('type' in value) || value['type'] === undefined) return false;
-    return true;
+    return !(!('type' in value) || value['type'] === undefined);
+
 }
 
 export function CreatePoiDtoFromJSON(json: any): CreatePoiDto {

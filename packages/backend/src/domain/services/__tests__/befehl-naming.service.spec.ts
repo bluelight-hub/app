@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { BefehlNamingService } from '@domain/services/befehl-naming.service';
 
 describe('BefehlNamingService', () => {

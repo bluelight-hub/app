@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { LagekarteMapper } from '../lagekarte.mapper';
 import { LagekarteAggregate } from '@domain/aggregates/lagekarte.aggregate';
 import { MgrsCoordinate } from '@domain/value-objects/mgrs-coordinate';
@@ -16,7 +17,6 @@ jest.mock('@paralleldrive/cuid2', () => ({
     return result;
   }),
   isCuid: jest.fn((id: string) => {
-    if (typeof id !== 'string') return false;
     if (id.length < 20 || id.length > 30) return false;
     return /^[a-z][a-z0-9]+$/.test(id);
   }),

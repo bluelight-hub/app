@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -31,8 +30,8 @@ export interface NavigationResponseDto {
  * Check if a given object implements the NavigationResponseDto interface.
  */
 export function instanceOfNavigationResponseDto(value: object): value is NavigationResponseDto {
-    if (!('id' in value) || value['id'] === undefined) return false;
-    return true;
+    return !(!('id' in value) || value['id'] === undefined);
+
 }
 
 export function NavigationResponseDtoFromJSON(json: any): NavigationResponseDto {

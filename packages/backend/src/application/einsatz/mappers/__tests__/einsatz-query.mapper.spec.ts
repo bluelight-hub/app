@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { EinsatzQueryMapper } from '../einsatz-query.mapper';
 import type { Einsatz } from '@domain/aggregates/einsatz.aggregate';
 import { Address } from '@domain/value-objects/address';

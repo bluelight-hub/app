@@ -223,7 +223,7 @@ export function Combobox({
             className={cn(
               'absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white py-1 text-base shadow-lg',
               'border border-gray-200',
-              'data-[closed]:hidden data-[closed]:pointer-events-none',
+              'data-[closed]:pointer-events-none data-[closed]:hidden',
               'data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in',
               'sm:text-sm',
               'dark:border-gray-700 dark:bg-gray-800 dark:shadow-none',

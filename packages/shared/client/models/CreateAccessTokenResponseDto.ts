@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -52,8 +51,8 @@ export function instanceOfCreateAccessTokenResponseDto(value: object): value is 
     if (!('token' in value) || value['token'] === undefined) return false;
     if (!('name' in value) || value['name'] === undefined) return false;
     if (!('prefix' in value) || value['prefix'] === undefined) return false;
-    if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
-    return true;
+    return !(!('createdAt' in value) || value['createdAt'] === undefined);
+
 }
 
 export function CreateAccessTokenResponseDtoFromJSON(json: any): CreateAccessTokenResponseDto {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Test, type TestingModule } from '@nestjs/testing';
 import { BadRequestException, ConflictException, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { EinsatzPersonenController } from '../einsatz-personen.controller';

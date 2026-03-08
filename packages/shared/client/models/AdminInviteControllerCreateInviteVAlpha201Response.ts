@@ -12,20 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { CreateInviteResponseDto } from './CreateInviteResponseDto';
-import {
-    CreateInviteResponseDtoFromJSON,
-    CreateInviteResponseDtoFromJSONTyped,
-    CreateInviteResponseDtoToJSON,
-    CreateInviteResponseDtoToJSONTyped,
-} from './CreateInviteResponseDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {CreateInviteResponseDto} from './CreateInviteResponseDto';
+import {CreateInviteResponseDtoFromJSON, CreateInviteResponseDtoToJSON,} from './CreateInviteResponseDto';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
 
 /**
@@ -53,8 +47,8 @@ export interface AdminInviteControllerCreateInviteVAlpha201Response {
  */
 export function instanceOfAdminInviteControllerCreateInviteVAlpha201Response(value: object): value is AdminInviteControllerCreateInviteVAlpha201Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function AdminInviteControllerCreateInviteVAlpha201ResponseFromJSON(json: any): AdminInviteControllerCreateInviteVAlpha201Response {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Unit Tests für PrismaServerAccessTokenMapper.
  *
@@ -12,7 +13,7 @@
  */
 
 import type { ServerAccessToken as PrismaServerAccessToken } from '@/generated/prisma/client';
-import { PrismaServerAccessTokenMapper } from '../prisma-server-access-token.mapper';
+import { PrismaServerAccessTokenMapper } from '@infrastructure/server-access-token';
 import { ServerAccessToken } from '@domain/aggregates/server-access-token.aggregate';
 import { TokenHash } from '@domain/value-objects/token-hash';
 

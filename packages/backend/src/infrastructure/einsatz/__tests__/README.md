@@ -1,10 +1,12 @@
 # Einsatz E2E Integration Tests
 
-Dieser Ordner enthält End-to-End Integration Tests für das Einsatz-Modul. Die Tests validieren das Zusammenspiel von Domain Layer, Application Layer und Infrastructure Layer gegen eine echte PostgreSQL Datenbank.
+Dieser Ordner enthält End-to-End Integration Tests für das Einsatz-Modul. Die Tests validieren das Zusammenspiel von
+Domain Layer, Application Layer und Infrastructure Layer gegen eine echte PostgreSQL Datenbank.
 
 ## 📋 Übersicht
 
 **Test-Strategie:**
+
 - **Real Database**: PostgreSQL 17 (KEINE Mocks!)
 - **Direct Handler Invocation**: CQRS Handlers direkt aufrufen
 - **Given-When-Then BDD**: Strukturierter Test-Stil
@@ -13,6 +15,7 @@ Dieser Ordner enthält End-to-End Integration Tests für das Einsatz-Modul. Die 
 - **Performance Baselines**: Kritische Operationen monitoren
 
 **Warum E2E Tests?**
+
 - Validieren vollständige Persistierung über alle Layer hinweg
 - Testen echte PostgreSQL Constraints und Triggers
 - Verifizieren Domain Events und Event Handler Integration
@@ -36,6 +39,7 @@ Dieser Ordner enthält End-to-End Integration Tests für das Einsatz-Modul. Die 
 ### Acceptance Criteria Mapping
 
 **AC1 - Outbox Integration (1.1-1.7):**
+
 - Einsatz-Events werden in Outbox persistiert
 - PENDING Events werden korrekt tracked
 - Event Publish Workflow funktioniert
@@ -45,6 +49,7 @@ Dieser Ordner enthält End-to-End Integration Tests für das Einsatz-Modul. Die 
 - Outbox Cleanup funktioniert
 
 **AC2 - NO-DELETE Policy (2.1-2.5):**
+
 - DELETE-Operationen werden blockiert
 - Soft-Delete Flag wird verwendet
 - isDeleted wird in Queries berücksichtigt
@@ -52,18 +57,21 @@ Dieser Ordner enthält End-to-End Integration Tests für das Einsatz-Modul. Die 
 - PostgreSQL Trigger enforcement
 
 **AC3 - RBAC Constraints (3.1-3.4):**
+
 - USER kann nur eigene Einsätze ändern
 - ADMIN kann alle Einsätze ändern
 - SUPER_ADMIN hat maximale Rechte
 - Unauthorized Operationen werden blockiert
 
 **AC4 - Performance (4.1-4.4):**
+
 - List Active Einsätze: < 55ms
 - Get Einsatz Details: < 88ms
 - Create Einsatz: < 165ms
 - Combined Query Overhead: < 50ms
 
 **AC5 - HTTP Integration (5.1-5.4):**
+
 - REST Endpoints funktionieren
 - Authentication via JWT funktioniert
 - Response Format ist konsistent
@@ -145,6 +153,7 @@ beforeAll(async () => {
 ```
 
 **Was passiert intern:**
+
 1. PrismaClient wird erstellt
 2. Alte Test-Daten (> 1 Stunde) werden aufgeräumt
 3. Drei Test User werden angelegt (USER, ADMIN, SUPER_ADMIN)
@@ -204,6 +213,7 @@ it('should work with separate Einsatz', async () => {
 ```
 
 **Options Interface:**
+
 ```typescript
 interface CreateTestEinsatzOptions {
   status?: 'ANGELEGT' | 'IN_BEARBEITUNG' | 'ABGESCHLOSSEN' | 'ARCHIVIERT';
@@ -304,6 +314,7 @@ try {
 ```
 
 **Wichtig:**
+
 - `cleanupTestData()` und `teardownE2eModule()` nutzen dieses Pattern automatisch
 - In Produktion NIEMALS `session_replication_role` ändern!
 - Pattern ist dokumentiert in `no-delete-policy.e2e.spec.ts`

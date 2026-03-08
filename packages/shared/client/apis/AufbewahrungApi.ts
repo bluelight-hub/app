@@ -19,17 +19,13 @@ import type {
   AufbewahrungControllerGetReportsVAlpha200Response,
   AufbewahrungControllerGetVorschauVAlpha200Response,
   UpdateAufbewahrungsKonfigurationDto,
-} from '../models/index';
+} from '../models';
 import {
     AufbewahrungControllerGetConfigVAlpha200ResponseFromJSON,
-    AufbewahrungControllerGetConfigVAlpha200ResponseToJSON,
     AufbewahrungControllerGetReportsVAlpha200ResponseFromJSON,
-    AufbewahrungControllerGetReportsVAlpha200ResponseToJSON,
     AufbewahrungControllerGetVorschauVAlpha200ResponseFromJSON,
-    AufbewahrungControllerGetVorschauVAlpha200ResponseToJSON,
-    UpdateAufbewahrungsKonfigurationDtoFromJSON,
     UpdateAufbewahrungsKonfigurationDtoToJSON,
-} from '../models/index';
+} from '../models';
 
 export interface AufbewahrungControllerGetReportsVAlphaRequest {
     einsatzId?: string;

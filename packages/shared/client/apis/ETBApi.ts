@@ -22,23 +22,16 @@ import type {
   EtbCqrsControllerGetEtbHistoryVAlpha200Response,
   EtbCqrsControllerGetTextbausteineVAlpha200Response,
   UpdateEintragDto,
-} from '../models/index';
+} from '../models';
 import {
-    AddEintragDtoFromJSON,
     AddEintragDtoToJSON,
     EtbCqrsControllerAddEintragVAlpha201ResponseFromJSON,
-    EtbCqrsControllerAddEintragVAlpha201ResponseToJSON,
     EtbCqrsControllerGetErinnerungTimelineVAlpha200ResponseFromJSON,
-    EtbCqrsControllerGetErinnerungTimelineVAlpha200ResponseToJSON,
     EtbCqrsControllerGetEtbByEinsatzIdVAlpha200ResponseFromJSON,
-    EtbCqrsControllerGetEtbByEinsatzIdVAlpha200ResponseToJSON,
     EtbCqrsControllerGetEtbHistoryVAlpha200ResponseFromJSON,
-    EtbCqrsControllerGetEtbHistoryVAlpha200ResponseToJSON,
     EtbCqrsControllerGetTextbausteineVAlpha200ResponseFromJSON,
-    EtbCqrsControllerGetTextbausteineVAlpha200ResponseToJSON,
-    UpdateEintragDtoFromJSON,
     UpdateEintragDtoToJSON,
-} from '../models/index';
+} from '../models';
 
 export interface EtbCqrsControllerAddEintragVAlphaRequest {
     etbId: string;
@@ -110,7 +103,7 @@ export class ETBApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/etb/{etbId}/eintrag`.replace(`{${"etbId"}}`, encodeURIComponent(String(requestParameters['etbId']))),
+            path: `/api/v-alpha/etb/{etbId}/eintrag`.replace(`{etbId}`, encodeURIComponent(String(requestParameters['etbId']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -153,7 +146,7 @@ export class ETBApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/etb/{etbId}/eintrag/{eintragId}`.replace(`{${"etbId"}}`, encodeURIComponent(String(requestParameters['etbId']))).replace(`{${"eintragId"}}`, encodeURIComponent(String(requestParameters['eintragId']))),
+            path: `/api/v-alpha/etb/{etbId}/eintrag/{eintragId}`.replace(`{etbId}`, encodeURIComponent(String(requestParameters['etbId']))).replace(`{eintragId}`, encodeURIComponent(String(requestParameters['eintragId']))),
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
@@ -194,7 +187,7 @@ export class ETBApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/etb/{etbId}/erinnerungen/{erinnerungId}/timeline`.replace(`{${"etbId"}}`, encodeURIComponent(String(requestParameters['etbId']))).replace(`{${"erinnerungId"}}`, encodeURIComponent(String(requestParameters['erinnerungId']))),
+            path: `/api/v-alpha/etb/{etbId}/erinnerungen/{erinnerungId}/timeline`.replace(`{etbId}`, encodeURIComponent(String(requestParameters['etbId']))).replace(`{erinnerungId}`, encodeURIComponent(String(requestParameters['erinnerungId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -233,7 +226,7 @@ export class ETBApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/etb/einsatz/{einsatzId}`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/etb/einsatz/{einsatzId}`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -268,7 +261,7 @@ export class ETBApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/etb/{etbId}/history`.replace(`{${"etbId"}}`, encodeURIComponent(String(requestParameters['etbId']))),
+            path: `/api/v-alpha/etb/{etbId}/history`.replace(`{etbId}`, encodeURIComponent(String(requestParameters['etbId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -339,7 +332,7 @@ export class ETBApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/etb/{etbId}/lock`.replace(`{${"etbId"}}`, encodeURIComponent(String(requestParameters['etbId']))),
+            path: `/api/v-alpha/etb/{etbId}/lock`.replace(`{etbId}`, encodeURIComponent(String(requestParameters['etbId']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -389,7 +382,7 @@ export class ETBApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/etb/{etbId}/eintrag/{eintragId}`.replace(`{${"etbId"}}`, encodeURIComponent(String(requestParameters['etbId']))).replace(`{${"eintragId"}}`, encodeURIComponent(String(requestParameters['eintragId']))),
+            path: `/api/v-alpha/etb/{etbId}/eintrag/{eintragId}`.replace(`{etbId}`, encodeURIComponent(String(requestParameters['etbId']))).replace(`{eintragId}`, encodeURIComponent(String(requestParameters['eintragId']))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,

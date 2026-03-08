@@ -18,10 +18,10 @@
 
 import { isDuplicatePersonError, useRegistrierePersonViaQr } from '@/features/einsatz/api';
 import { type DrkQrData, DrkQrParseErrorCode, isDrkQrCodeFormat, parseDrkQrCode } from '@/features/einsatz/utils';
+import type { ResponseError } from '@/shared';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { InlineSpinner } from '@/shared/ui/atoms/spinner.atom';
 import { cn } from '@/shared/ui/cn';
-import type { ResponseError } from '@/shared';
 import { isTauri } from '@tauri-apps/api/core';
 import jsQR from 'jsqr';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -452,7 +452,7 @@ export function QrScannerTab({ einsatzId, onSuccess, isActive = true }: QrScanne
         }
       };
 
-      scanLoop();
+      await scanLoop();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Scanner konnte nicht gestartet werden';
       setState({ status: 'permission-denied', error: errorMessage });

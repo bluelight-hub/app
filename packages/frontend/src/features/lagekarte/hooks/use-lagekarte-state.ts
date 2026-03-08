@@ -1,5 +1,5 @@
 import { useStore } from '@tanstack/react-store';
-import { lagekarteStore } from '../stores/lagekarte-state.store';
+import { lagekarteStore } from '@/features/lagekarte';
 
 /**
  * Hook zum Lesen der Shapes (GeoJSON FeatureCollection)

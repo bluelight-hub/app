@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -57,8 +56,8 @@ export interface StammPersonQualifikationDto {
 export function instanceOfStammPersonQualifikationDto(value: object): value is StammPersonQualifikationDto {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('name' in value) || value['name'] === undefined) return false;
-    if (!('kuerzel' in value) || value['kuerzel'] === undefined) return false;
-    return true;
+    return !(!('kuerzel' in value) || value['kuerzel'] === undefined);
+
 }
 
 export function StammPersonQualifikationDtoFromJSON(json: any): StammPersonQualifikationDto {

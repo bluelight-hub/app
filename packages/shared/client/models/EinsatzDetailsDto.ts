@@ -12,28 +12,12 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { LagekarteDto } from './LagekarteDto';
-import {
-    LagekarteDtoFromJSON,
-    LagekarteDtoFromJSONTyped,
-    LagekarteDtoToJSON,
-    LagekarteDtoToJSONTyped,
-} from './LagekarteDto';
-import type { EtbDto } from './EtbDto';
-import {
-    EtbDtoFromJSON,
-    EtbDtoFromJSONTyped,
-    EtbDtoToJSON,
-    EtbDtoToJSONTyped,
-} from './EtbDto';
-import type { EinsatzDto } from './EinsatzDto';
-import {
-    EinsatzDtoFromJSON,
-    EinsatzDtoFromJSONTyped,
-    EinsatzDtoToJSON,
-    EinsatzDtoToJSONTyped,
-} from './EinsatzDto';
+import type {EinsatzDto} from './EinsatzDto';
+import {EinsatzDtoFromJSON, EinsatzDtoToJSON,} from './EinsatzDto';
+import type {EtbDto} from './EtbDto';
+import {EtbDtoFromJSON, EtbDtoToJSON,} from './EtbDto';
+import type {LagekarteDto} from './LagekarteDto';
+import {LagekarteDtoFromJSON, LagekarteDtoToJSON,} from './LagekarteDto';
 
 /**
  * 
@@ -65,8 +49,8 @@ export interface EinsatzDetailsDto {
  * Check if a given object implements the EinsatzDetailsDto interface.
  */
 export function instanceOfEinsatzDetailsDto(value: object): value is EinsatzDetailsDto {
-    if (!('einsatz' in value) || value['einsatz'] === undefined) return false;
-    return true;
+    return !(!('einsatz' in value) || value['einsatz'] === undefined);
+
 }
 
 export function EinsatzDetailsDtoFromJSON(json: any): EinsatzDetailsDto {

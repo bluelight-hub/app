@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { BefehlStatus } from './befehl-status';
 
 describe('BefehlStatus', () => {

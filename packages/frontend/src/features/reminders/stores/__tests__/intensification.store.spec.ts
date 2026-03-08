@@ -21,7 +21,7 @@ import {
   resetIntensificationStore,
   setAudioFailed,
   type IntensityLevel,
-} from '../intensification.store';
+} from '@/features/reminders';
 
 describe('IntensificationStore', () => {
   beforeEach(() => {

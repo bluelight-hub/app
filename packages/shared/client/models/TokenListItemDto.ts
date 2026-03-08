@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -113,8 +112,8 @@ export function instanceOfTokenListItemDto(value: object): value is TokenListIte
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('lastUsedAt' in value) || value['lastUsedAt'] === undefined) return false;
     if (!('expiresAt' in value) || value['expiresAt'] === undefined) return false;
-    if (!('revokedAt' in value) || value['revokedAt'] === undefined) return false;
-    return true;
+    return !(!('revokedAt' in value) || value['revokedAt'] === undefined);
+
 }
 
 export function TokenListItemDtoFromJSON(json: any): TokenListItemDto {

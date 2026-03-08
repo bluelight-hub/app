@@ -12,21 +12,15 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {EskalationsAnalyseDto} from './EskalationsAnalyseDto';
+import {EskalationsAnalyseDtoFromJSON, EskalationsAnalyseDtoToJSON,} from './EskalationsAnalyseDto';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
-import type { EskalationsAnalyseDto } from './EskalationsAnalyseDto';
-import {
-    EskalationsAnalyseDtoFromJSON,
-    EskalationsAnalyseDtoFromJSONTyped,
-    EskalationsAnalyseDtoToJSON,
-    EskalationsAnalyseDtoToJSONTyped,
-} from './EskalationsAnalyseDto';
 
 /**
  * 
@@ -53,8 +47,8 @@ export interface ErinnerungControllerGetEskalationsAnalyseVAlpha200Response {
  */
 export function instanceOfErinnerungControllerGetEskalationsAnalyseVAlpha200Response(value: object): value is ErinnerungControllerGetEskalationsAnalyseVAlpha200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function ErinnerungControllerGetEskalationsAnalyseVAlpha200ResponseFromJSON(json: any): ErinnerungControllerGetEskalationsAnalyseVAlpha200Response {

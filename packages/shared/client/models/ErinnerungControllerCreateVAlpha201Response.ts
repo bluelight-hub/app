@@ -12,20 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { ErinnerungResponseDto } from './ErinnerungResponseDto';
-import {
-    ErinnerungResponseDtoFromJSON,
-    ErinnerungResponseDtoFromJSONTyped,
-    ErinnerungResponseDtoToJSON,
-    ErinnerungResponseDtoToJSONTyped,
-} from './ErinnerungResponseDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {ErinnerungResponseDto} from './ErinnerungResponseDto';
+import {ErinnerungResponseDtoFromJSON, ErinnerungResponseDtoToJSON,} from './ErinnerungResponseDto';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
 
 /**
@@ -53,8 +47,8 @@ export interface ErinnerungControllerCreateVAlpha201Response {
  */
 export function instanceOfErinnerungControllerCreateVAlpha201Response(value: object): value is ErinnerungControllerCreateVAlpha201Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function ErinnerungControllerCreateVAlpha201ResponseFromJSON(json: any): ErinnerungControllerCreateVAlpha201Response {

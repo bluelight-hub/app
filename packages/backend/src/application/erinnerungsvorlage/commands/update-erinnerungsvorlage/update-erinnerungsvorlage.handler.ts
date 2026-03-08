@@ -9,9 +9,9 @@ import { ErinnerungsvorlageId } from '@domain/erinnerungsvorlage/value-objects/e
 import { TransactionalCommandHandler } from '@/application/common/handlers/transactional-command.handler';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { ERINNERUNGSVORLAGE_REPOSITORY, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
-import { ErinnerungsvorlageResponseFactory } from '../../dto/erinnerungsvorlage-response.factory';
+import { ErinnerungsvorlageResponseFactory } from '@application/erinnerungsvorlage/dto';
 import { ERINNERUNGSVORLAGE_ERROR_CODES } from '../../errors/erinnerungsvorlage-error.codes';
-import type { ErinnerungsvorlageResponseDto } from '../../dto/erinnerungsvorlage-response.dto';
+import type { ErinnerungsvorlageResponseDto } from '@application/erinnerungsvorlage/dto';
 import type { UpdateErinnerungsvorlageCommand } from './update-erinnerungsvorlage.command';
 
 /**

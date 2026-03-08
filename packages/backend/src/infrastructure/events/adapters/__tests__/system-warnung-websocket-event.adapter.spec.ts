@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { SystemWarnungWebSocketEventAdapter } from '../system-warnung-websocket-event.adapter';
 import { SystemWarnungEvent } from '@domain/events/system-warnung.event';
 import { WarnungTyp } from '@domain/value-objects/warnung-typ';

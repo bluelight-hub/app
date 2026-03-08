@@ -270,11 +270,13 @@ nicht mehr genutzt werden:
 - ⚠️ `useToolbarPositioning` → `hooks/legacy/`
 
 **Import-Pfad für Legacy-Hooks:**
+
 ```tsx
 import { useShapeSelection } from '@/features/lagekarte/hooks/legacy';
 ```
 
 **Neue Hooks (empfohlen):**
+
 - ✅ `useLagekarteState` (State lesen)
 - ✅ `useShapeActions` (Shape Operations)
 - ✅ `useDrawingTools` (Drawing Tools)

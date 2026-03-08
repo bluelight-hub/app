@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/infrastructure/database/prisma.module';
-import { PrismaEtbRepository } from './repositories/prisma-etb.repository';
 import { PrismaOutboxRepository } from '@/infrastructure/outbox/prisma-outbox.repository';
 import { EventSerializer } from '@/infrastructure/outbox/event-serializer';
 import { ETB_REPOSITORY, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
-import { NestLoggerAdapter } from '../common/adapters/nest-logger.adapter';
+import { NestLoggerAdapter } from '@infrastructure/common/adapters';
+import { PrismaEtbRepository } from './repositories/prisma-etb.repository';
 
 /**
  * NestJS Module für ETB Infrastructure Layer.

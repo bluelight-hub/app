@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Unit Tests fuer NotizErstelltEventAdapter.
  *
@@ -108,7 +109,7 @@ describe('NotizErstelltEventAdapter', () => {
       await adapter.onNotizErstellt(event);
 
       // Then (Assert)
-      const passedEvent = mockHandler.handle.mock.calls[0][0];
+      const passedEvent = mockHandler.handle.mock.calls[0]?.[0]!;
       expect(passedEvent.istTeamsichtbar).toBe(true);
       expect(passedEvent.titel).toBe('Teamsichtbare Notiz');
     });

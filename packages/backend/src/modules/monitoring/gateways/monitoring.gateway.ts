@@ -1,5 +1,5 @@
 import { Inject, Injectable, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
-import { WebSocketGateway, WebSocketServer, SubscribeMessage, type OnGatewayConnection, type OnGatewayDisconnect, ConnectedSocket, MessageBody } from '@nestjs/websockets';
+import { WebSocketGateway, WebSocketServer, SubscribeMessage, type OnGatewayConnection, type OnGatewayDisconnect, ConnectedSocket } from '@nestjs/websockets';
 import type { Server, Socket } from 'socket.io';
 import { ILogger } from '@domain/ports/i-logger.port';
 import { LOGGER, METRICS } from '@infrastructure/di-tokens';

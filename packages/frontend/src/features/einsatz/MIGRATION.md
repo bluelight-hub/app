@@ -26,12 +26,14 @@ src/features/einsatz/
 ### 1. Imports aktualisieren
 
 #### Vorher (alte Hooks):
+
 ```typescript
 import { useEinsaetze, useEinsatz, useActiveEinsaetzeWithCounts } from '@/hooks/useEinsaetze';
 import { QUERY_KEYS } from '@/queryKeys';
 ```
 
 #### Nachher (neues Feature):
+
 ```typescript
 // Alles aus einem Feature-Import
 import {
@@ -58,6 +60,7 @@ import {
 #### A) Paginated List Query
 
 **Vorher:**
+
 ```typescript
 const { einsaetze, total, isLoading, createEinsatz, updateEinsatz } = useEinsaetze({
   status: 'AKTIV',
@@ -67,6 +70,7 @@ const { einsaetze, total, isLoading, createEinsatz, updateEinsatz } = useEinsaet
 ```
 
 **Nachher:**
+
 ```typescript
 // 1. Query für Daten
 const { data, isLoading } = useEinsaetzeQuery({
@@ -86,6 +90,7 @@ const updateEinsatz = useUpdateEinsatz();
 #### B) Infinite Scroll Query
 
 **Vorher:**
+
 ```typescript
 const {
   einsaetze,
@@ -100,6 +105,7 @@ const {
 ```
 
 **Nachher:**
+
 ```typescript
 const {
   data,
@@ -118,11 +124,13 @@ const einsaetze = data?.pages.flatMap(page => page.data || []) || [];
 #### C) Single Detail Query
 
 **Vorher:**
+
 ```typescript
 const { einsatz, completeness, isLoading, updateEinsatz } = useEinsatz(id);
 ```
 
 **Nachher:**
+
 ```typescript
 // 1. Detail Query
 const { einsatz, completeness, isLoading } = useEinsatzDetail(id);
@@ -140,11 +148,13 @@ updateEinsatz.mutate({
 #### D) Dashboard Query mit Counts
 
 **Vorher:**
+
 ```typescript
 const { data: einsaetze, isLoading } = useActiveEinsaetzeWithCounts();
 ```
 
 **Nachher:**
+
 ```typescript
 // Unverändert - Hook bleibt gleich!
 const { data: einsaetze, isLoading } = useActiveEinsaetzeWithCounts();
@@ -232,24 +242,29 @@ function EinsatzList() {
 ## Vorteile der neuen Struktur
 
 ### 1. Separation of Concerns
+
 - **Query Logic** (api/) - Nur Daten laden
 - **Mutation Logic** (api/) - Nur Daten ändern
 - **UI State** (stores/) - Nur UI-Zustand
 
 ### 2. Tree Shaking
+
 - Komponenten importieren nur benötigte Hooks
 - Kleinere Bundle-Größe
 
 ### 3. Testbarkeit
+
 - Jeder Hook ist isoliert testbar
 - Queries und Mutations getrennt mockbar
 
 ### 4. Wartbarkeit
+
 - Einzelne Dateien < 200 Zeilen
 - Klare Verantwortlichkeiten
 - Einfache Navigation
 
 ### 5. Wiederverwendbarkeit
+
 - Query Keys Factory (`EINSATZ_QUERY_KEYS`)
 - Retry Logic (`calculateRetryDelay`)
 - UI State Actions (`setStatusFilter`, etc.)
@@ -267,11 +282,13 @@ function EinsatzList() {
 ### 2. Return-Struktur geändert
 
 **Vorher (alles in einem Objekt):**
+
 ```typescript
 const { einsaetze, createEinsatz, updateEinsatz } = useEinsaetze();
 ```
 
 **Nachher (Query + Mutations getrennt):**
+
 ```typescript
 const { data } = useEinsaetzeQuery();
 const createEinsatz = useCreateEinsatz();
@@ -281,12 +298,14 @@ const updateEinsatz = useUpdateEinsatz();
 ### 3. Mutation-Signatur geändert
 
 **Vorher:**
+
 ```typescript
 createEinsatz.mutate(data);
 updateEinsatz.mutate({ id, data });
 ```
 
 **Nachher (unverändert für Update, vereinfacht für Create):**
+
 ```typescript
 createEinsatz.mutate(data); // Gleich
 updateEinsatz.mutate({ id, data }); // Gleich
@@ -302,6 +321,7 @@ updateEinsatz.mutate({ id, data }); // Gleich
 ## Beispiel: Vollständige Komponenten-Migration
 
 **Vorher:**
+
 ```typescript
 // src/components/pages/EinsatzListPage.tsx
 import { useEinsaetze } from '@/hooks/useEinsaetze';
@@ -322,6 +342,7 @@ function EinsatzListPage() {
 ```
 
 **Nachher:**
+
 ```typescript
 // src/components/pages/EinsatzListPage.tsx
 import { useStore } from '@tanstack/react-store';
@@ -369,6 +390,7 @@ function EinsatzListPage() {
 ## Cheatsheet
 
 ### Queries
+
 ```typescript
 // Paginated List
 useEinsaetzeQuery({ status, search, page, limit, orderBy, orderDirection })
@@ -384,6 +406,7 @@ useActiveEinsaetzeWithCounts()
 ```
 
 ### Mutations
+
 ```typescript
 // Create
 const create = useCreateEinsatz(filters?);
@@ -399,6 +422,7 @@ archive.mutate({ id });
 ```
 
 ### Store Actions
+
 ```typescript
 setSelectedEinsatzId(id)
 setStatusFilter(status)
@@ -413,6 +437,7 @@ getEinsatzQueryFilters() // Returns combined filters + sorting
 ```
 
 ### Query Keys
+
 ```typescript
 EINSATZ_QUERY_KEYS.all // ['einsatz']
 EINSATZ_QUERY_KEYS.list({ status: 'AKTIV' }) // ['einsatz', 'list', { status: 'AKTIV' }]

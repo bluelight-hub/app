@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -65,8 +64,8 @@ export type CreateQualifikationDtoKategorieEnum = typeof CreateQualifikationDtoK
 export function instanceOfCreateQualifikationDto(value: object): value is CreateQualifikationDto {
     if (!('name' in value) || value['name'] === undefined) return false;
     if (!('abkuerzung' in value) || value['abkuerzung'] === undefined) return false;
-    if (!('kategorie' in value) || value['kategorie'] === undefined) return false;
-    return true;
+    return !(!('kategorie' in value) || value['kategorie'] === undefined);
+
 }
 
 export function CreateQualifikationDtoFromJSON(json: any): CreateQualifikationDto {

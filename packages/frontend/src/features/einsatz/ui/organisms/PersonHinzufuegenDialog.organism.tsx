@@ -41,7 +41,7 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import { PiCaretDown, PiCheck, PiQrCode, PiUser } from 'react-icons/pi';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { QrScannerTab } from './QrScannerTab.organism';
+import { QrScannerTab } from '@/features/einsatz';
 
 /**
  * Extrahiert Fehlermeldungen aus TanStack Form Errors (Zod-Validierung).

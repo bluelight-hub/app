@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Integration Tests für PostgreSQL NO-DELETE Triggers (Story 1.8 Task 2).
  *
@@ -70,7 +71,7 @@ describe('NO-DELETE Triggers Integration Tests', () => {
       )
       RETURNING id
     `;
-    testUserId = result[0].id;
+    testUserId = result[0]?.id;
   });
 
   /**

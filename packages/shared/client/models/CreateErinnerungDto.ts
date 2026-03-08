@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -110,8 +109,8 @@ export interface CreateErinnerungDto {
  */
 export function instanceOfCreateErinnerungDto(value: object): value is CreateErinnerungDto {
     if (!('titel' in value) || value['titel'] === undefined) return false;
-    if (!('faelligAm' in value) || value['faelligAm'] === undefined) return false;
-    return true;
+    return !(!('faelligAm' in value) || value['faelligAm'] === undefined);
+
 }
 
 export function CreateErinnerungDtoFromJSON(json: any): CreateErinnerungDto {

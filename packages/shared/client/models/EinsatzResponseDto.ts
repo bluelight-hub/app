@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -152,8 +151,8 @@ export function instanceOfEinsatzResponseDto(value: object): value is EinsatzRes
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
     if (!('updatedAt' in value) || value['updatedAt'] === undefined) return false;
     if (!('createdBy' in value) || value['createdBy'] === undefined) return false;
-    if (!('name' in value) || value['name'] === undefined) return false;
-    return true;
+    return !(!('name' in value) || value['name'] === undefined);
+
 }
 
 export function EinsatzResponseDtoFromJSON(json: any): EinsatzResponseDto {

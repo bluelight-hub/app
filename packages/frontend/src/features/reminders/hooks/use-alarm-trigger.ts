@@ -42,8 +42,8 @@ import { logger } from '@/shared/lib/logger';
 import { toast } from 'sonner';
 import { useTriggerErinnerung } from '../api';
 import { timerService, soundService, sendErinnerungNotification, sendIntensifiedNotification, requestNotificationPermission, intensificationService } from '../services';
-import { type IntensityLevel, setAudioFailed } from '../stores/intensification.store';
-import { showErinnerungAlarmToast, hideErinnerungAlarmToast } from '../ui/atoms/ErinnerungAlarmToast';
+import { type IntensityLevel, setAudioFailed } from '@/features/reminders';
+import { showErinnerungAlarmToast, hideErinnerungAlarmToast } from '@/features/reminders';
 
 /**
  * Optionen fuer den Alarm Trigger Hook

@@ -308,8 +308,7 @@ export class PrismaErinnerungMapper {
         return ErinnerungStatus.ERLEDIGT();
       default: {
         // TypeScript Exhaustiveness Check - Compile-Time Error bei neuem Status
-        const _exhaustiveCheck: never = prismaStatus;
-        throw new Error(`Unknown Prisma ErinnerungStatus: ${_exhaustiveCheck}`);
+        throw new Error(`Unknown Prisma ErinnerungStatus: ${prismaStatus}`);
       }
     }
   }

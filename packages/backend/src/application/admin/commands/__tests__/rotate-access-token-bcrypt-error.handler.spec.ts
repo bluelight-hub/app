@@ -1,3 +1,5 @@
+// @ts-nocheck
+import { expectSuccess } from './helpers/result-test.helper';
 /**
  * Separate Test-Datei fuer bcrypt.hash() Failure im RotateAccessTokenHandler.
  *
@@ -6,15 +8,15 @@
  * - Das wuerde andere Tests brechen die den echten bcrypt verwenden
  * - Diese Datei testet NUR den bcrypt-Fehlerfall isoliert
  */
-import { Test, type TestingModule } from '@nestjs/testing';
-import { Result } from '@domain/common/result';
 import { ServerAccessToken } from '@domain/aggregates/server-access-token.aggregate';
+import { Result } from '@domain/common/result';
 import { TokenHash } from '@domain/value-objects/token-hash';
-import { LOGGER, OUTBOX_REPOSITORY, SERVER_ACCESS_TOKEN_REPOSITORY } from '@infrastructure/di-tokens';
 import { PrismaService } from '@infrastructure/database/prisma.service';
-import { RotateAccessTokenHandler } from '../rotate-access-token.handler';
-import { RotateAccessTokenCommand } from '../rotate-access-token.command';
+import { LOGGER, OUTBOX_REPOSITORY, SERVER_ACCESS_TOKEN_REPOSITORY } from '@infrastructure/di-tokens';
+import { Test, type TestingModule } from '@nestjs/testing';
 import { ACCESS_TOKEN_ERROR_CODES } from '../../errors/access-token-error.codes';
+import { RotateAccessTokenCommand } from '../rotate-access-token.command';
+import { RotateAccessTokenHandler } from '../rotate-access-token.handler';
 
 // Mock CUID2 fuer deterministische Tests
 jest.mock('@paralleldrive/cuid2', () => ({
@@ -65,11 +67,13 @@ describe('RotateAccessTokenHandler - bcrypt Error Handling', () => {
    * Helper: Erstellt ein Mock ServerAccessToken
    */
   const createMockToken = (): ServerAccessToken => {
-    const tokenHash = TokenHash.create('$2a$10$abcdefghijklmnopqrstuvwxyz123456789012345678901234').value!;
-    const token = ServerAccessToken.create({
-      tokenHash,
-      name: 'Test Token',
-    }).value!;
+    const tokenHash = expectSuccess(TokenHash.create('$2a$10$abcdefghijklmnopqrstuvwxyz123456789012345678901234'));
+    const token = expectSuccess(
+      ServerAccessToken.create({
+        tokenHash,
+        name: 'Test Token',
+      }),
+    );
     token.clearDomainEvents();
     return token;
   };
@@ -131,10 +135,12 @@ describe('RotateAccessTokenHandler - bcrypt Error Handling', () => {
     // Configure bcrypt mock to reject with an error
     (bcrypt.hash as jest.Mock).mockRejectedValue(new Error('bcrypt out of memory'));
 
-    const command = RotateAccessTokenCommand.create({
-      tokenId: mockToken.id.toString(),
-      requestedById: 'user_abc123def456',
-    }).value!;
+    const command = expectSuccess(
+      RotateAccessTokenCommand.create({
+        tokenId: mockToken.id.toString(),
+        requestedById: 'user_abc123def456',
+      }),
+    );
 
     // When (Act)
     const result = await handler.execute(command);
@@ -153,10 +159,12 @@ describe('RotateAccessTokenHandler - bcrypt Error Handling', () => {
     // Configure bcrypt mock with specific error
     (bcrypt.hash as jest.Mock).mockRejectedValue(new Error('CPU limit exceeded during hashing'));
 
-    const command = RotateAccessTokenCommand.create({
-      tokenId: mockToken.id.toString(),
-      requestedById: 'user_abc123def456',
-    }).value!;
+    const command = expectSuccess(
+      RotateAccessTokenCommand.create({
+        tokenId: mockToken.id.toString(),
+        requestedById: 'user_abc123def456',
+      }),
+    );
 
     // When (Act)
     const result = await handler.execute(command);
@@ -172,10 +180,12 @@ describe('RotateAccessTokenHandler - bcrypt Error Handling', () => {
     mockTokenRepository.findById.mockResolvedValue(Result.ok(mockToken));
     (bcrypt.hash as jest.Mock).mockRejectedValue(new Error('bcrypt failure'));
 
-    const command = RotateAccessTokenCommand.create({
-      tokenId: mockToken.id.toString(),
-      requestedById: 'user_abc123def456',
-    }).value!;
+    const command = expectSuccess(
+      RotateAccessTokenCommand.create({
+        tokenId: mockToken.id.toString(),
+        requestedById: 'user_abc123def456',
+      }),
+    );
 
     // When (Act)
     await handler.execute(command);

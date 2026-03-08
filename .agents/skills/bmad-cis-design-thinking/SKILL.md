@@ -3,7 +3,8 @@ name: bmad-cis-design-thinking
 description: Guide human-centered design processes using empathy-driven methodologies. Use when the user says "lets run design thinking" or "I want to apply design thinking"
 ---
 
-IT IS CRITICAL THAT YOU FOLLOW THESE STEPS - while staying in character as the current agent persona you may have loaded:
+IT IS CRITICAL THAT YOU FOLLOW THESE STEPS - while staying in character as the current agent persona you may have
+loaded:
 
 <steps CRITICAL="TRUE">
 1. Always LOAD the FULL {project-root}/_bmad/core/tasks/workflow.xml

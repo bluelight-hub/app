@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { ServerInfoDto } from './ServerInfoDto';
-import {
-    ServerInfoDtoFromJSON,
-    ServerInfoDtoFromJSONTyped,
-    ServerInfoDtoToJSON,
-    ServerInfoDtoToJSONTyped,
-} from './ServerInfoDto';
+import type {ServerInfoDto} from './ServerInfoDto';
+import {ServerInfoDtoFromJSON, ServerInfoDtoToJSON,} from './ServerInfoDto';
 
 /**
  * 
@@ -46,8 +40,8 @@ export interface ExchangeInviteResponseDto {
  */
 export function instanceOfExchangeInviteResponseDto(value: object): value is ExchangeInviteResponseDto {
     if (!('accessToken' in value) || value['accessToken'] === undefined) return false;
-    if (!('serverInfo' in value) || value['serverInfo'] === undefined) return false;
-    return true;
+    return !(!('serverInfo' in value) || value['serverInfo'] === undefined);
+
 }
 
 export function ExchangeInviteResponseDtoFromJSON(json: any): ExchangeInviteResponseDto {

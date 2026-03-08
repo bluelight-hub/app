@@ -1,5 +1,5 @@
 import { useCurrentUser } from '../api';
-import { setRedirectAfterLogin } from '../stores/auth.store';
+import { setRedirectAfterLogin } from '@/features/auth';
 import { Navigate, useLocation } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 

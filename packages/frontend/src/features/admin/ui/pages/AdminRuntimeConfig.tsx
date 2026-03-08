@@ -237,11 +237,7 @@ export function AdminRuntimeConfig() {
         return false;
       }
 
-      if (sourceFilter !== 'all' && entry.source !== sourceFilter) {
-        return false;
-      }
-
-      return true;
+      return !(sourceFilter !== 'all' && entry.source !== sourceFilter);
     });
   }, [allSecretEntries, searchTerm, sourceFilter]);
 
@@ -255,11 +251,7 @@ export function AdminRuntimeConfig() {
         return false;
       }
 
-      if (sourceFilter !== 'all' && entry.source !== sourceFilter) {
-        return false;
-      }
-
-      return true;
+      return !(sourceFilter !== 'all' && entry.source !== sourceFilter);
     });
   }, [allRuntimeEntries, searchTerm, sourceFilter]);
 

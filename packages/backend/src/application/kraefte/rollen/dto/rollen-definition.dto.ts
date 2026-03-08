@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ErforderlicheQualifikationDto } from './erforderliche-qualifikation.dto';
+import { ErforderlicheQualifikationDto } from '@application/kraefte/rollen';
 
 /**
  * Response DTO für RollenDefinition.

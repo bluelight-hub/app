@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -44,8 +43,8 @@ export interface AddBefehlKommentarDto {
  */
 export function instanceOfAddBefehlKommentarDto(value: object): value is AddBefehlKommentarDto {
     if (!('text' in value) || value['text'] === undefined) return false;
-    if (!('isRueckfrage' in value) || value['isRueckfrage'] === undefined) return false;
-    return true;
+    return !(!('isRueckfrage' in value) || value['isRueckfrage'] === undefined);
+
 }
 
 export function AddBefehlKommentarDtoFromJSON(json: any): AddBefehlKommentarDto {

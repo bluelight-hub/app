@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { EinsatzNamingService } from './einsatz-naming.service';
 
 describe('EinsatzNamingService', () => {

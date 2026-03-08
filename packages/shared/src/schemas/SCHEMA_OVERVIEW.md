@@ -32,22 +32,26 @@ import {
 ### 1. Username Schema
 
 **Import:**
+
 ```typescript
 import { usernameSchema, type Username } from '@bluelight-hub/shared/schemas';
 ```
 
 **Validierung:**
+
 - **Min Length:** 3 Zeichen
 - **Max Length:** 20 Zeichen
 - **Erlaubte Zeichen:** `a-z`, `A-Z`, `0-9`, `_`, `-`
 - **Regex:** `/^[a-zA-Z0-9_-]+$/`
 
 **Error Messages:**
+
 - Zu kurz: `"Benutzername muss mindestens 3 Zeichen lang sein"`
 - Zu lang: `"Benutzername darf maximal 20 Zeichen lang sein"`
 - Ungültige Zeichen: `"Benutzername darf nur Buchstaben, Zahlen, Unterstriche und Bindestriche enthalten"`
 
 **Beispiele:**
+
 ```typescript
 usernameSchema.parse('admin');      // ✅ OK
 usernameSchema.parse('user_123');   // ✅ OK
@@ -57,6 +61,7 @@ usernameSchema.parse('user@test');  // ❌ Error: Ungültige Zeichen
 ```
 
 **Verwendung:**
+
 - Backend: Admin-Setup, User-Management, Auth
 - Frontend: Setup-Formular, Register-Formular, User-Profile
 
@@ -65,20 +70,23 @@ usernameSchema.parse('user@test');  // ❌ Error: Ungültige Zeichen
 ### 2. Password Schema
 
 **Import:**
+
 ```typescript
 import { passwordSchema, PASSWORD_CRITERIA, type Password } from '@bluelight-hub/shared/schemas';
 ```
 
 **Validierung:**
+
 - **Min Length:** 8 Zeichen
 - **Max Length:** 128 Zeichen
 - **Komplexitätsregeln:**
-  - Mind. 1 Kleinbuchstabe (`a-z`)
-  - Mind. 1 Großbuchstabe (`A-Z`)
-  - Mind. 1 Zahl (`0-9`)
-  - Mind. 1 Sonderzeichen (alles außer `a-zA-Z0-9`)
+    - Mind. 1 Kleinbuchstabe (`a-z`)
+    - Mind. 1 Großbuchstabe (`A-Z`)
+    - Mind. 1 Zahl (`0-9`)
+    - Mind. 1 Sonderzeichen (alles außer `a-zA-Z0-9`)
 
 **PASSWORD_CRITERIA:**
+
 ```typescript
 {
   minLength: 8,
@@ -91,6 +99,7 @@ import { passwordSchema, PASSWORD_CRITERIA, type Password } from '@bluelight-hub
 ```
 
 **Error Messages:**
+
 - Zu kurz: `"Passwort muss mindestens 8 Zeichen lang sein"`
 - Zu lang: `"Passwort darf maximal 128 Zeichen lang sein"`
 - Fehlender Kleinbuchstabe: `"Das Passwort muss mindestens einen Kleinbuchstaben enthalten"`
@@ -99,6 +108,7 @@ import { passwordSchema, PASSWORD_CRITERIA, type Password } from '@bluelight-hub
 - Fehlendes Sonderzeichen: `"Das Passwort muss mindestens ein Sonderzeichen enthalten"`
 
 **Beispiele:**
+
 ```typescript
 passwordSchema.parse('MyPass123!');       // ✅ OK
 passwordSchema.parse('SecureP@ss1');      // ✅ OK
@@ -110,16 +120,19 @@ passwordSchema.parse('NoSymbol123');      // ❌ Error: Mind. ein Sonderzeichen
 ```
 
 **Verwendung:**
+
 - Backend: Admin-Setup, Password-Change, User-Creation
 - Frontend: Setup-Formular, Password-Change-Formular, Admin-User-Creation
 
-**Hinweis:** Das Schema nutzt die bestehende `validatePasswordCriteria()` Funktion aus `@bluelight-hub/shared/validation/password.schema.ts` für konsistente Passwort-Validierung.
+**Hinweis:** Das Schema nutzt die bestehende `validatePasswordCriteria()` Funktion aus
+`@bluelight-hub/shared/validation/password.schema.ts` für konsistente Passwort-Validierung.
 
 ---
 
 ### 3. Invite-Code Schema
 
 **Import:**
+
 ```typescript
 import {
   inviteCodeSchema,
@@ -130,12 +143,14 @@ import {
 ```
 
 **Validierung:**
+
 - **Length:** Exakt 8 Zeichen
 - **Erlaubte Zeichen:** `A-Z` (Großbuchstaben), `0-9` (Ziffern)
 - **Regex:** `/^[A-Z0-9]{8}$/`
 - **Format:** NUR Uppercase (Kleinbuchstaben werden automatisch konvertiert in `inviteCodeSchemaNormalized`)
 
 **INVITE_CODE_CRITERIA:**
+
 ```typescript
 {
   length: 8,
@@ -145,6 +160,7 @@ import {
 ```
 
 **Error Messages:**
+
 - Fehlend: `"Invite-Code wird benötigt"`
 - Ungültiger Typ: `"Invite-Code muss ein Text sein"`
 - Falsche Länge: `"Invite-Code muss exakt 8 Zeichen lang sein"`
@@ -181,6 +197,7 @@ inviteCodeSchemaNormalized.parse('aBc123De'); // ✅ OK → 'ABC123DE'
 **Verwendung:** Frontend Forms (bessere UX, User kann Kleinbuchstaben eingeben)
 
 **Beispiele:**
+
 ```typescript
 // Frontend: Auto-Normalisierung für UX
 const form = useForm({
@@ -199,30 +216,36 @@ export class RegisterDto {
 ```
 
 **Verwendung:**
+
 - Backend: Register DTO, Invite-Code-Validierung
 - Frontend: Register-Formular, Admin-Invite-Creation
 
-**Synchronisation:** Dieses Schema ist synchronisiert mit `InviteCodeValue` Value Object aus `@backend/domain/value-objects/invite-code-value.ts` (8 Zeichen, A-Z0-9).
+**Synchronisation:** Dieses Schema ist synchronisiert mit `InviteCodeValue` Value Object aus
+`@backend/domain/value-objects/invite-code-value.ts` (8 Zeichen, A-Z0-9).
 
 ---
 
 ### 4. Server-URL Schema
 
 **Import:**
+
 ```typescript
 import { serverUrlSchema, type ServerUrl } from '@bluelight-hub/shared/schemas';
 ```
 
 **Validierung:**
+
 - **Format:** Gültige URL
 - **Erlaubte Protokolle:** `http://`, `https://`
 - **Entwicklung:** `localhost` und `127.0.0.1` erlaubt
 
 **Error Messages:**
+
 - Ungültige URL: `"Ungültige Server-URL"`
 - Falsches Protokoll: `"Server-URL muss mit http:// oder https:// beginnen"`
 
 **Beispiele:**
+
 ```typescript
 serverUrlSchema.parse('https://api.example.com');  // ✅ OK
 serverUrlSchema.parse('http://localhost:3091');    // ✅ OK
@@ -233,6 +256,7 @@ serverUrlSchema.parse('example.com');              // ❌ Error: Ungültige URL 
 ```
 
 **Verwendung:**
+
 - Frontend: Server-Setup-Formular, Multi-Server-Configuration
 
 ---
@@ -304,6 +328,7 @@ export class RegisterDto {
 ## 🔗 Related Files
 
 ### Schemas
+
 - `packages/shared/src/schemas/auth/username.schema.ts`
 - `packages/shared/src/schemas/auth/password.schema.ts`
 - `packages/shared/src/schemas/auth/invite-code.schema.ts`
@@ -311,16 +336,20 @@ export class RegisterDto {
 - `packages/shared/src/schemas/auth/index.ts`
 
 ### Validation (Plain Functions)
+
 - `packages/shared/src/validation/password.schema.ts`
 
 ### Backend Value Objects
+
 - `packages/backend/src/domain/value-objects/invite-code-value.ts`
 
 ### Backend DTOs (Beispiele)
+
 - `packages/backend/src/application/admin/dto/complete-setup.dto.ts`
 - `packages/backend/src/application/auth/dto/register.dto.ts`
 
 ### Frontend Schemas (Beispiele)
+
 - `packages/frontend/src/features/auth/schemas/setup-form.schema.ts`
 - `packages/frontend/src/features/auth/schemas/register-form.schema.ts`
 

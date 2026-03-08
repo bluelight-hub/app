@@ -31,7 +31,7 @@ vi.mock('@/features/einsatz/ui/molecules/EinsatzStatsCard', () => ({
   ),
 }));
 
-import { ReaktionszeitStatistik } from '../ReaktionszeitStatistik';
+import { ReaktionszeitStatistik } from '@/features/reminders';
 
 // --- Test Data ---
 

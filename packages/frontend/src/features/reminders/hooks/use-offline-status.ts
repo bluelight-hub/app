@@ -62,11 +62,9 @@ export function useOfflineStatus(): UseOfflineStatusReturn {
 
   // Subscribe to Offline Detection Service
   useEffect(() => {
-    const unsubscribe = offlineDetectionService.subscribe((state) => {
+    return offlineDetectionService.subscribe((state) => {
       setOfflineState(state);
     });
-
-    return unsubscribe;
   }, []);
 
   // Sync Queue Count (via TanStack Store's useStore hook)

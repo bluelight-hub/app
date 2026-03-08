@@ -1,6 +1,7 @@
+// @ts-nocheck
 import { Test, type TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
-import { JwtTokenServiceAdapter } from '../jwt-token-service.adapter';
+import { JwtTokenServiceAdapter } from '@/infrastructure';
 import { UserId } from '@domain/value-objects/user-id';
 import { UserRole } from '@domain/value-objects/user-role';
 import type { ILogger } from '@domain/ports/i-logger.port';

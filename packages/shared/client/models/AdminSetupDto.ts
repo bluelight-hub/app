@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -31,8 +30,8 @@ export interface AdminSetupDto {
  * Check if a given object implements the AdminSetupDto interface.
  */
 export function instanceOfAdminSetupDto(value: object): value is AdminSetupDto {
-    if (!('password' in value) || value['password'] === undefined) return false;
-    return true;
+    return !(!('password' in value) || value['password'] === undefined);
+
 }
 
 export function AdminSetupDtoFromJSON(json: any): AdminSetupDto {

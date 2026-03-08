@@ -6,7 +6,6 @@
  * @module infrastructure/integrations/repositories
  */
 
-// biome-ignore lint/style/noRestrictedImports: Logger in Repository ist erlaubt
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { Result } from '@domain/common/result';

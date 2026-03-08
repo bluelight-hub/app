@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -43,8 +42,8 @@ export interface UpsertRuntimeConfigRequestDto {
  * Check if a given object implements the UpsertRuntimeConfigRequestDto interface.
  */
 export function instanceOfUpsertRuntimeConfigRequestDto(value: object): value is UpsertRuntimeConfigRequestDto {
-    if (!('value' in value) || value['value'] === undefined) return false;
-    return true;
+    return !(!('value' in value) || value['value'] === undefined);
+
 }
 
 export function UpsertRuntimeConfigRequestDtoFromJSON(json: any): UpsertRuntimeConfigRequestDto {

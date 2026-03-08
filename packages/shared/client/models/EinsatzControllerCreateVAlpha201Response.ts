@@ -12,20 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { EinsatzDto } from './EinsatzDto';
-import {
-    EinsatzDtoFromJSON,
-    EinsatzDtoFromJSONTyped,
-    EinsatzDtoToJSON,
-    EinsatzDtoToJSONTyped,
-} from './EinsatzDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {EinsatzDto} from './EinsatzDto';
+import {EinsatzDtoFromJSON, EinsatzDtoToJSON,} from './EinsatzDto';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
 
 /**
@@ -53,8 +47,8 @@ export interface EinsatzControllerCreateVAlpha201Response {
  */
 export function instanceOfEinsatzControllerCreateVAlpha201Response(value: object): value is EinsatzControllerCreateVAlpha201Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function EinsatzControllerCreateVAlpha201ResponseFromJSON(json: any): EinsatzControllerCreateVAlpha201Response {

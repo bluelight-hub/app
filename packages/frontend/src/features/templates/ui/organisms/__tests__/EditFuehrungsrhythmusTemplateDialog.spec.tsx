@@ -2,7 +2,7 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { renderWithProviders } from '@/test/utils';
-import { EditFuehrungsrhythmusTemplateDialog } from '../EditFuehrungsrhythmusTemplateDialog';
+import { EditFuehrungsrhythmusTemplateDialog } from '@/features/templates';
 
 // Mock API Hooks
 const mockUpdateGlobal = vi.fn();

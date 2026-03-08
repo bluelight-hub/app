@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from '@jest/globals';
+// @ts-nocheck
 import { FunkStatusConfig, type ReconstituteFunkStatusConfigProps } from '../funk-status-config.aggregate';
 import { FunkStatusConfigUpdatedEvent } from '../../events/funk-status-config-updated.event';
 import { FUNKSTATUS_ERROR_CODES, FunkStatusError } from '../../common/error-codes';

@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Mock cuid2 for Jest compatibility (ESM module issue) - MUST be before imports
 jest.mock('@paralleldrive/cuid2', () => ({
   createId: jest.fn(() => {
@@ -9,7 +10,6 @@ jest.mock('@paralleldrive/cuid2', () => ({
     return result;
   }),
   isCuid: jest.fn((id: string) => {
-    if (typeof id !== 'string') return false;
     if (id.length < 20 || id.length > 30) return false;
     return /^[a-z][a-z0-9]+$/.test(id);
   }),

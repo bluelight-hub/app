@@ -12,13 +12,10 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { AufbewahrungsVorschauEinsatzDto } from './AufbewahrungsVorschauEinsatzDto';
+import type {AufbewahrungsVorschauEinsatzDto} from './AufbewahrungsVorschauEinsatzDto';
 import {
     AufbewahrungsVorschauEinsatzDtoFromJSON,
-    AufbewahrungsVorschauEinsatzDtoFromJSONTyped,
     AufbewahrungsVorschauEinsatzDtoToJSON,
-    AufbewahrungsVorschauEinsatzDtoToJSONTyped,
 } from './AufbewahrungsVorschauEinsatzDto';
 
 /**
@@ -46,8 +43,8 @@ export interface AufbewahrungsVorschauDto {
  */
 export function instanceOfAufbewahrungsVorschauDto(value: object): value is AufbewahrungsVorschauDto {
     if (!('einsaetze' in value) || value['einsaetze'] === undefined) return false;
-    if (!('gesamtBefehlCount' in value) || value['gesamtBefehlCount'] === undefined) return false;
-    return true;
+    return !(!('gesamtBefehlCount' in value) || value['gesamtBefehlCount'] === undefined);
+
 }
 
 export function AufbewahrungsVorschauDtoFromJSON(json: any): AufbewahrungsVorschauDto {

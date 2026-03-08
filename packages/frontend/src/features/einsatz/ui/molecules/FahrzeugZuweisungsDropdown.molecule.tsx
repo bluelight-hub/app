@@ -1,6 +1,6 @@
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react';
 import { PiTruck, PiCheck, PiCaretUpDown } from 'react-icons/pi';
-import { FmsStatusBadge } from '../atoms/FmsStatusBadge.atom';
+import { FmsStatusBadge } from '@/features/einsatz';
 import { cn } from '@/shared/ui/cn';
 
 interface FahrzeugZuweisungsDropdownProps {

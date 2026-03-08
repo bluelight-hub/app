@@ -6,7 +6,7 @@
  * - Falls die Zeit heute bereits vorbei ist, wird morgen verwendet
  */
 
-import type { CustomTime } from '../schemas/erinnerung.schema';
+import type { CustomTime } from '@/features/reminders';
 
 /**
  * Berechnet faelligAm basierend auf absoluter Uhrzeit.

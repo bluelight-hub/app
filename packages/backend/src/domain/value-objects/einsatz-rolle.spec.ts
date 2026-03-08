@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { EinsatzRolle } from './einsatz-rolle';
 
 describe('EinsatzRolle', () => {

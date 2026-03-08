@@ -12,20 +12,17 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { ActivateFuehrungsrhythmusTemplateResponseDto } from './ActivateFuehrungsrhythmusTemplateResponseDto';
+import type {ActivateFuehrungsrhythmusTemplateResponseDto} from './ActivateFuehrungsrhythmusTemplateResponseDto';
 import {
     ActivateFuehrungsrhythmusTemplateResponseDtoFromJSON,
-    ActivateFuehrungsrhythmusTemplateResponseDtoFromJSONTyped,
     ActivateFuehrungsrhythmusTemplateResponseDtoToJSON,
-    ActivateFuehrungsrhythmusTemplateResponseDtoToJSONTyped,
 } from './ActivateFuehrungsrhythmusTemplateResponseDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
 
 /**
@@ -53,8 +50,8 @@ export interface FuehrungsrhythmusTemplateControllerActivateVAlpha201Response {
  */
 export function instanceOfFuehrungsrhythmusTemplateControllerActivateVAlpha201Response(value: object): value is FuehrungsrhythmusTemplateControllerActivateVAlpha201Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function FuehrungsrhythmusTemplateControllerActivateVAlpha201ResponseFromJSON(json: any): FuehrungsrhythmusTemplateControllerActivateVAlpha201Response {

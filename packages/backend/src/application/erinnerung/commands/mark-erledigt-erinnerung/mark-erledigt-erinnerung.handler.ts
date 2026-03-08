@@ -13,8 +13,8 @@ import { TransactionalCommandHandler } from '@/application/common/handlers/trans
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { ERINNERUNG_REPOSITORY, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
 import type { MarkErledigtErinnerungCommand } from './mark-erledigt-erinnerung.command';
-import { ERINNERUNG_ERROR_CODES } from '../../errors/erinnerung-error.codes';
-import type { ErinnerungResponseDto } from '../../dto/erinnerung-response.dto';
+import { ERINNERUNG_ERROR_CODES } from '@application/erinnerung';
+import type { ErinnerungResponseDto } from '@application/erinnerung';
 
 /**
  * Handler zum Markieren einer Erinnerung als erledigt.

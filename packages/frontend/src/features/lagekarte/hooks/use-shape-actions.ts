@@ -3,8 +3,8 @@ import type * as L from 'leaflet';
 import type * as GeoJSON from 'geojson';
 import { toast } from 'sonner';
 import { selectShape, addShape, updateShape as updateShapeAction, removeShape, registerLayer, saveOriginalStyle, clearOriginalStyle, setShapes } from '../stores/lagekarte-state.store';
-import { lagekarteStore } from '../stores/lagekarte-state.store';
-import { highlightLayer, unhighlightLayer } from '../utils/shape-helpers';
+import { lagekarteStore } from '@/features/lagekarte';
+import { highlightLayer, unhighlightLayer } from '@/features/lagekarte';
 import { setShapeIdOnLayer } from '../utils/layer-utils';
 import type { LayerWithStyle } from '../utils/types';
 

@@ -30,6 +30,7 @@ const originalStylesRef = useRef<Map<string, OriginalStyle>>(new Map());
 ### Identifizierte Hook-Gruppen
 
 #### 1. **Shape State Management** (fragmentiert über useState + Refs)
+
 - `shapes` (State)
 - `selectedShapeId` (State)
 - `layersRef` (Ref)
@@ -39,6 +40,7 @@ const originalStylesRef = useRef<Map<string, OriginalStyle>>(new Map());
 **Problem:** State ist über 5 verschiedene Variablen verteilt, keine zentrale Quelle der Wahrheit
 
 #### 2. **Selection & Highlighting** (3 Hooks)
+
 - `useShapeSelection` - Click-Handler für Shape-Selektion
 - `useShapeHighlighting` - Visuelle Highlight-Logik
 - `useToolbarPositioning` - Toolbar-Position relativ zu selektiertem Shape
@@ -46,12 +48,14 @@ const originalStylesRef = useRef<Map<string, OriginalStyle>>(new Map());
 **Problem:** Alle 3 benötigen `selectedShapeId`, `layersRef`, `originalStylesRef` → Prop-Drilling
 
 #### 3. **Drawing Tools & PM Controls** (2 Hooks)
+
 - `useLeafletPMControls` - PM Toolbar Init
 - `useDrawingToolSelection` - Tool-Switch Logic (Polygon/Line/Text/Edit/Delete)
 
 **Problem:** `useDrawingToolSelection` benötigt `setSelectedShapeId` → implizite Dependency
 
 #### 4. **Shape CRUD** (3 Hooks)
+
 - `useShapeLoading` - Initial Load from Backend
 - `useShapeEventHandlers` - pm:create, pm:edit, pm:remove Events
 - `useShapeStyleUpdates` - External Shape Updates (z.B. Label-Änderung)
@@ -59,12 +63,14 @@ const originalStylesRef = useRef<Map<string, OriginalStyle>>(new Map());
 **Problem:** Alle 3 benötigen `shapesRef`, `setShapes`, `onShapesChange` → Redundante Prop-Übergabe
 
 #### 5. **Keyboard & Context Menu** (2 Hooks)
+
 - `useKeyboardShortcuts` - Delete/Backspace Handler
 - Context Menu (inline in DrawingLayer)
 
 **Problem:** Benötigen ALLE Refs/State → 8+ Props pro Hook
 
 #### 6. **Text Marker Spezial-Logik** (1 Hook)
+
 - `useTextMarkerHandling` - Debounced Textarea Input Handler
 
 **Problem:** Komplexe Event-Listener-Logik mit manuellem Cleanup
@@ -72,13 +78,16 @@ const originalStylesRef = useRef<Map<string, OriginalStyle>>(new Map());
 ## Kern-Probleme
 
 ### 1. State-Fragmentierung
+
 - `shapes` und `shapesRef` müssen synchron gehalten werden
 - `originalStylesRef` trackt Highlight-State manuell
 - `layersRef` trackt Layer-Instanzen manuell
 - Kein zentraler State Container
 
 ### 2. Prop-Drilling
+
 Jeder Hook benötigt durchschnittlich 6-8 Props:
+
 ```typescript
 useShapeEventHandlers({
   map,
@@ -94,11 +103,13 @@ useShapeEventHandlers({
 ```
 
 ### 3. Implizite Dependencies
+
 - `useDrawingToolSelection` ruft `setSelectedShapeId(null)` auf (Side Effect!)
 - `useShapeSelection` benötigt `onShapeSelected` Callback → Parent-Notification
 - `useShapeEventHandlers` benötigt `onLayerClick` → Circular Dependency mit `useShapeSelection`
 
 ### 4. Keine klare Verantwortlichkeit
+
 - `useShapeSelection` UND `useShapeHighlighting` manipulieren beide Layers
 - `useShapeLoading` UND `useShapeEventHandlers` beide adden Layers zur Map
 - `useKeyboardShortcuts` UND `useShapeEventHandlers` beide können Shapes löschen
@@ -106,6 +117,7 @@ useShapeEventHandlers({
 ## Lösungsansatz: Feature-based Architecture
 
 ### Zentral: TanStack Store (`lagekarte-state.store.ts`)
+
 ```typescript
 interface LagekarteState {
   // Shape Data
@@ -139,28 +151,32 @@ interface LagekarteState {
 ### Konsolidierte Hooks (3 statt 10+)
 
 #### 1. `use-lagekarte-state.ts` - State Container Hook
+
 - Zentrale Schnittstelle zum Store
 - Selektoren für effizienten Re-Render
 - Keine Business Logic
 
 #### 2. `use-shape-actions.ts` - Shape Operations
+
 - **Konsolidiert:**
-  - `useShapeSelection` → `selectShape()`
-  - `useShapeHighlighting` → `highlightShape()`
-  - `useShapeEventHandlers` → `createShape()`, `updateShape()`, `deleteShape()`
-  - `useKeyboardShortcuts` → `deleteSelectedShape()`
-  - `useTextMarkerHandling` → `updateTextMarker()`
-  - `useShapeStyleUpdates` → `updateShapeStyle()`
+    - `useShapeSelection` → `selectShape()`
+    - `useShapeHighlighting` → `highlightShape()`
+    - `useShapeEventHandlers` → `createShape()`, `updateShape()`, `deleteShape()`
+    - `useKeyboardShortcuts` → `deleteSelectedShape()`
+    - `useTextMarkerHandling` → `updateTextMarker()`
+    - `useShapeStyleUpdates` → `updateShapeStyle()`
 
 #### 3. `use-drawing-tools.ts` - Drawing Tool Management
+
 - **Konsolidiert:**
-  - `useLeafletPMControls` → `initializePm()`
-  - `useDrawingToolSelection` → `activateTool()`
-  - `useToolbarPositioning` → `updateToolbarPosition()`
+    - `useLeafletPMControls` → `initializePm()`
+    - `useDrawingToolSelection` → `activateTool()`
+    - `useToolbarPositioning` → `updateToolbarPosition()`
 
 ### API Separation
 
 #### `api/use-lagekarte.ts` - Read Operations
+
 ```typescript
 export const useLagekarte = (einsatzId: string) => {
   return useQuery({
@@ -171,6 +187,7 @@ export const useLagekarte = (einsatzId: string) => {
 ```
 
 #### `api/use-shapes.ts` - Write Operations
+
 ```typescript
 export const useSaveShapes = (einsatzId: string) => {
   return useMutation({
@@ -186,6 +203,7 @@ export const useSaveShapes = (einsatzId: string) => {
 ## Vorher/Nachher Vergleich
 
 ### Vorher (DrawingLayer.tsx)
+
 - 10+ Hook Imports
 - 5 State/Ref Variablen
 - 50+ Lines Setup Code
@@ -193,6 +211,7 @@ export const useSaveShapes = (einsatzId: string) => {
 - Implizite Dependencies
 
 ### Nachher (DrawingLayer.tsx)
+
 ```typescript
 import { useLagekarteState } from '@/features/lagekarte/hooks';
 import { useShapeActions } from '@/features/lagekarte/hooks';

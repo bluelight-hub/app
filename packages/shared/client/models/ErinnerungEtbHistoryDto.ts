@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { EtbEntryPreviewDto } from './EtbEntryPreviewDto';
-import {
-    EtbEntryPreviewDtoFromJSON,
-    EtbEntryPreviewDtoFromJSONTyped,
-    EtbEntryPreviewDtoToJSON,
-    EtbEntryPreviewDtoToJSONTyped,
-} from './EtbEntryPreviewDto';
+import type {EtbEntryPreviewDto} from './EtbEntryPreviewDto';
+import {EtbEntryPreviewDtoFromJSON, EtbEntryPreviewDtoToJSON,} from './EtbEntryPreviewDto';
 
 /**
  * 
@@ -46,8 +40,8 @@ export interface ErinnerungEtbHistoryDto {
  */
 export function instanceOfErinnerungEtbHistoryDto(value: object): value is ErinnerungEtbHistoryDto {
     if (!('entries' in value) || value['entries'] === undefined) return false;
-    if (!('totalCount' in value) || value['totalCount'] === undefined) return false;
-    return true;
+    return !(!('totalCount' in value) || value['totalCount'] === undefined);
+
 }
 
 export function ErinnerungEtbHistoryDtoFromJSON(json: any): ErinnerungEtbHistoryDto {

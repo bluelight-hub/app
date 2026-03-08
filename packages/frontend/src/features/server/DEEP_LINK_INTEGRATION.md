@@ -2,7 +2,8 @@
 
 ## Overview
 
-Deep Link Integration ermöglicht das Hinzufügen von neuen Servern via `bluelight://connect` URLs direkt aus einem Webbrowser in die Desktop App. Diese Dokumentation beschreibt die vollständige End-to-End Integration.
+Deep Link Integration ermöglicht das Hinzufügen von neuen Servern via `bluelight://connect` URLs direkt aus einem
+Webbrowser in die Desktop App. Diese Dokumentation beschreibt die vollständige End-to-End Integration.
 
 ## Architecture
 
@@ -27,9 +28,11 @@ TanStack Router Navigation to /auth
 ## Components
 
 ### 1. DeepLinkService (Event Layer)
+
 **Location:** `src/features/server/services/deep-link.service.ts`
 
 **Responsibilities:**
+
 - Tauri Plugin Integration (Cold Start + Warm Start)
 - URL Parsing (`bluelight://connect?url=...&invite=...&expires=...`)
 - Client-side Validation (Protocol, Parameters, Expiry)
@@ -38,6 +41,7 @@ TanStack Router Navigation to /auth
 **Pattern:** Singleton with Event Emitter
 
 **Example:**
+
 ```typescript
 const deepLinkService = DeepLinkService.getInstance();
 
@@ -51,15 +55,18 @@ deepLinkService.initialize();
 ```
 
 ### 2. useExchangeInvite (API Layer)
+
 **Location:** `src/features/server/api/mutations.ts`
 
 **Responsibilities:**
+
 - API Call: POST `/auth/exchange-invite`
 - Server Store Updates (addServer, setActiveServer)
 - Query Cache Invalidation
 - Error Handling
 
 **Integration:**
+
 ```typescript
 const exchangeInvite = useExchangeInvite();
 
@@ -76,9 +83,11 @@ exchangeInvite.mutate('INV_12345678', {
 ```
 
 ### 3. useDeepLinkEffect (Integration Layer)
+
 **Location:** `src/features/server/hooks/useDeepLinkEffect.ts`
 
 **Responsibilities:**
+
 - App Lifecycle Hook Integration
 - Event Listener Registration
 - Orchestration (DeepLinkService → useExchangeInvite → Navigation)
@@ -86,6 +95,7 @@ exchangeInvite.mutate('INV_12345678', {
 - Error Handling
 
 **Integration:**
+
 ```typescript
 // In __root.tsx
 function RootComponent() {
@@ -96,6 +106,7 @@ function RootComponent() {
 ```
 
 **Features:**
+
 - ✅ Loading UI (Toast Notification)
 - ✅ Client-side Expiry Check
 - ✅ API Call via useExchangeInvite
@@ -111,11 +122,13 @@ bluelight://connect?url=<SERVER_URL>&invite=<INVITE_CODE>&expires=<ISO_8601_TIME
 ```
 
 **Parameters:**
+
 - `url` (required): Backend API Base URL (z.B. `https://api.feuerwehr.de`)
 - `invite` (required): Zeitlich begrenzter Invite Code (z.B. `INV_12345678`)
 - `expires` (optional): ISO 8601 Timestamp für Link-Ablauf
 
 **Examples:**
+
 ```
 bluelight://connect?url=https://api.test.de&invite=INV_12345678
 
@@ -125,6 +138,7 @@ bluelight://connect?url=https://api.test.de&invite=INV_12345678&expires=2025-01-
 ## Flow Diagrams
 
 ### Success Flow
+
 ```
 1. User clicks Deep Link in Browser
    ↓
@@ -150,6 +164,7 @@ bluelight://connect?url=https://api.test.de&invite=INV_12345678&expires=2025-01-
 ```
 
 ### Error Flow: Expired Link (Client-side)
+
 ```
 1. User clicks Deep Link with old expires parameter
    ↓
@@ -163,6 +178,7 @@ bluelight://connect?url=https://api.test.de&invite=INV_12345678&expires=2025-01-
 ```
 
 ### Error Flow: Invalid Invite Code
+
 ```
 1. User clicks Deep Link
    ↓
@@ -180,6 +196,7 @@ bluelight://connect?url=https://api.test.de&invite=INV_12345678&expires=2025-01-
 ## Error Handling
 
 ### Client-side Validation Errors
+
 | Error Type | Toast Message | Description |
 |------------|---------------|-------------|
 | `INVALID_PROTOCOL` | "Ungültiger Link" | Protocol nicht `bluelight://` |
@@ -188,6 +205,7 @@ bluelight://connect?url=https://api.test.de&invite=INV_12345678&expires=2025-01-
 | `PARSE_ERROR` | "Fehler beim Verarbeiten" | URL parsing fehlgeschlagen |
 
 ### API Call Errors
+
 - **Network Error:** Toast mit Retry-Suggestion
 - **Invalid Invite Code:** Toast mit "Bitte neuen Link anfordern"
 - **Server Error:** Toast mit Error Message
@@ -196,6 +214,7 @@ bluelight://connect?url=https://api.test.de&invite=INV_12345678&expires=2025-01-
 ## Toast Notifications
 
 ### Loading State
+
 ```typescript
 toast.loading('Verbinde mit Server...', {
   description: 'Tausche Einladungscode ein'
@@ -203,6 +222,7 @@ toast.loading('Verbinde mit Server...', {
 ```
 
 ### Success State
+
 ```typescript
 toast.success("Server 'Test Server' hinzugefügt", {
   description: 'Du wirst zur Anmeldung weitergeleitet',
@@ -211,6 +231,7 @@ toast.success("Server 'Test Server' hinzugefügt", {
 ```
 
 ### Error State
+
 ```typescript
 toast.error('Fehler beim Verbinden mit Server', {
   description: error.message,
@@ -221,20 +242,24 @@ toast.error('Fehler beim Verbinden mit Server', {
 ## Testing
 
 ### Unit Tests
+
 **Location:** `src/features/server/hooks/useDeepLinkEffect.spec.tsx`
 
 **Test Suites:**
+
 1. **Success Flow:** Deep Link → Exchange → Navigate
 2. **Error Handling:** Expired Links, Invalid Codes, Network Errors
 3. **Deep Link Error Events:** Protocol, Parameters, Parsing Errors
 4. **Cleanup:** Event Listener removal on unmount
 
 **Run Tests:**
+
 ```bash
 pnpm --filter @bluelight-hub/frontend test useDeepLinkEffect
 ```
 
 ### Integration Test Example
+
 ```typescript
 // Given: Valid Deep Link
 const mockResponse = {
@@ -265,6 +290,7 @@ await waitFor(() => {
 ## Backend Integration
 
 ### API Endpoint
+
 ```
 POST /auth/exchange-invite
 Content-Type: application/json
@@ -275,6 +301,7 @@ Content-Type: application/json
 ```
 
 ### Response Format
+
 ```json
 {
   "data": {
@@ -295,6 +322,7 @@ Content-Type: application/json
 ## Server Store Integration
 
 ### Automatic Server Addition
+
 ```typescript
 // In useExchangeInvite.onSuccess
 const newServer = {
@@ -309,12 +337,14 @@ await addServer(newServer); // Persisted to storage
 ```
 
 ### Automatic Active Server Selection
+
 ```typescript
 // In useExchangeInvite.onSuccess (after addServer)
 await setActiveServer(addedServer.id);
 ```
 
 **Result:**
+
 - Server erscheint in Server List UI
 - Server ist als aktiv markiert
 - Alle API Calls verwenden neuen Server
@@ -323,6 +353,7 @@ await setActiveServer(addedServer.id);
 ## Navigation
 
 ### Target Route
+
 ```
 /auth
 ```
@@ -332,10 +363,12 @@ await setActiveServer(addedServer.id);
 **Component:** `LoginWindow`
 
 **Before Load Guard:**
+
 - Check `isSetupRedirectInProgress()`
 - Redirect zu `/setup` falls Server nicht konfiguriert
 
 ### Navigation Call
+
 ```typescript
 navigate({ to: '/auth' });
 ```
@@ -345,25 +378,33 @@ navigate({ to: '/auth' });
 ## Troubleshooting
 
 ### Problem: Deep Link startet App nicht
+
 **Lösung:**
+
 1. Check Tauri Plugin Configuration (`tauri.conf.json`)
 2. Verify Protocol Registration (`bluelight://`)
 3. Rebuild Desktop App (`pnpm --filter @bluelight-hub/frontend tauri:build`)
 
 ### Problem: Toast Notifications nicht sichtbar
+
 **Lösung:**
+
 1. Verify `<Toaster />` in `__root.tsx`
 2. Check Z-Index Conflicts
 3. Verify sonner CSS Import
 
 ### Problem: Navigation funktioniert nicht
+
 **Lösung:**
+
 1. Check Route exists (`/auth` in `src/routes/auth.tsx`)
 2. Verify TanStack Router Setup
 3. Check Browser Console for Navigation Errors
 
 ### Problem: Server erscheint nicht in Liste
+
 **Lösung:**
+
 1. Check `addServer()` in `useExchangeInvite.onSuccess`
 2. Verify Storage Persistence (`localStorage` oder Tauri Store)
 3. Check Query Cache Invalidation

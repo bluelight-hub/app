@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -31,8 +30,8 @@ export interface UpdateEskalationsTimeoutDto {
  * Check if a given object implements the UpdateEskalationsTimeoutDto interface.
  */
 export function instanceOfUpdateEskalationsTimeoutDto(value: object): value is UpdateEskalationsTimeoutDto {
-    if (!('timeoutMinutes' in value) || value['timeoutMinutes'] === undefined) return false;
-    return true;
+    return !(!('timeoutMinutes' in value) || value['timeoutMinutes'] === undefined);
+
 }
 
 export function UpdateEskalationsTimeoutDtoFromJSON(json: any): UpdateEskalationsTimeoutDto {

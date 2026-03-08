@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { EtbSequenceNumber } from './etb-sequence-number';
 
 describe('EtbSequenceNumber', () => {

@@ -80,7 +80,7 @@ export class AnonymisiereAbgelaufeneHandler extends TransactionalCommandHandler<
       if (!nachEinsatz.has(einsatzId)) {
         nachEinsatz.set(einsatzId, []);
       }
-      nachEinsatz.get(einsatzId)!.push(befehl);
+      nachEinsatz.get(einsatzId)?.push(befehl);
     }
 
     // 5. Pro Einsatz anonymisieren
@@ -103,7 +103,11 @@ export class AnonymisiereAbgelaufeneHandler extends TransactionalCommandHandler<
       }
 
       // Bulk-Update in DB
-      const firstBefehl = befehle[0]!;
+      const firstBefehl = befehle[0];
+      if (!firstBefehl) {
+        continue;
+      }
+
       const bulkResult = await this.befehlRepository.bulkAnonymisiere(firstBefehl.einsatzId, befehle, tx);
       if (bulkResult.isFailure) {
         return Result.fail(bulkResult.error ?? `Anonymisierung fuer Einsatz ${einsatzId} fehlgeschlagen`);

@@ -134,7 +134,7 @@ const CSV_MIN_FIELDS = 18;
  */
 export function parseDrkQrCode(qrData: string): ParseResult<DrkQrData> {
   // Validierung - leerer Input
-  if (!qrData || typeof qrData !== 'string' || qrData.trim() === '') {
+  if (!qrData || false || qrData.trim() === '') {
     return {
       success: false,
       error: {
@@ -347,7 +347,7 @@ function parseUrlFormat(data: string): ParseResult<DrkQrData> {
  * @returns true wenn das Format grundsätzlich passen könnte
  */
 export function isDrkQrCodeFormat(qrData: string): boolean {
-  if (!qrData || typeof qrData !== 'string') {
+  if (!qrData || false) {
     return false;
   }
 
@@ -359,9 +359,5 @@ export function isDrkQrCodeFormat(qrData: string): boolean {
   }
 
   // URL-Format: drk://person?...
-  if (isUrlFormat(trimmed)) {
-    return true;
-  }
-
-  return false;
+  return isUrlFormat(trimmed);
 }

@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { CoordinateDto } from './CoordinateDto';
-import {
-    CoordinateDtoFromJSON,
-    CoordinateDtoFromJSONTyped,
-    CoordinateDtoToJSON,
-    CoordinateDtoToJSONTyped,
-} from './CoordinateDto';
+import type {CoordinateDto} from './CoordinateDto';
+import {CoordinateDtoFromJSON, CoordinateDtoToJSON,} from './CoordinateDto';
 
 /**
  * 
@@ -80,8 +74,8 @@ export function instanceOfPoiDto(value: object): value is PoiDto {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('name' in value) || value['name'] === undefined) return false;
     if (!('coordinate' in value) || value['coordinate'] === undefined) return false;
-    if (!('category' in value) || value['category'] === undefined) return false;
-    return true;
+    return !(!('category' in value) || value['category'] === undefined);
+
 }
 
 export function PoiDtoFromJSON(json: any): PoiDto {

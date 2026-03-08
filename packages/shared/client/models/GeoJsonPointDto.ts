@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -48,8 +47,8 @@ export type GeoJsonPointDtoTypeEnum = typeof GeoJsonPointDtoTypeEnum[keyof typeo
  */
 export function instanceOfGeoJsonPointDto(value: object): value is GeoJsonPointDto {
     if (!('type' in value) || value['type'] === undefined) return false;
-    if (!('coordinates' in value) || value['coordinates'] === undefined) return false;
-    return true;
+    return !(!('coordinates' in value) || value['coordinates'] === undefined);
+
 }
 
 export function GeoJsonPointDtoFromJSON(json: any): GeoJsonPointDto {

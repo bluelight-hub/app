@@ -9,7 +9,8 @@
 
 ## Overview
 
-Initialize a production-ready test framework (Playwright or Cypress) with fixtures, helpers, configuration, and best practices.
+Initialize a production-ready test framework (Playwright or Cypress) with fixtures, helpers, configuration, and best
+practices.
 
 ---
 

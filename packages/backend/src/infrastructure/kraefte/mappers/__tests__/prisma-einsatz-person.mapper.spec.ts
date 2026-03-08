@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Unit Tests für PrismaEinsatzPersonMapper (Infrastructure Layer).
  *

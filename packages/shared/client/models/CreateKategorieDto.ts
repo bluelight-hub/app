@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -38,8 +37,8 @@ export interface CreateKategorieDto {
  */
 export function instanceOfCreateKategorieDto(value: object): value is CreateKategorieDto {
     if (!('name' in value) || value['name'] === undefined) return false;
-    if (!('farbe' in value) || value['farbe'] === undefined) return false;
-    return true;
+    return !(!('farbe' in value) || value['farbe'] === undefined);
+
 }
 
 export function CreateKategorieDtoFromJSON(json: any): CreateKategorieDto {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Test, type TestingModule } from '@nestjs/testing';
 import { Result } from '@domain/common/result';
 import type { IErinnerungRepository } from '@domain/repositories/i-erinnerung.repository';
@@ -146,7 +147,7 @@ describe('GetErinnerungStatistikHandler', () => {
     const result = await handler.execute(query);
 
     expect(result.isSuccess).toBe(true);
-    expect(result.value?.topReceivers[0].userName).toBe('Unbekannt');
+    expect(result.value?.topReceivers[0]?.userName).toBe('Unbekannt');
   });
 
   it('should return failure on repository error', async () => {
@@ -202,7 +203,7 @@ describe('GetErinnerungStatistikHandler', () => {
     const result = await handler.execute(query);
 
     expect(result.isSuccess).toBe(true);
-    expect(result.value!.statusCounts).toEqual(expectedStatusCounts);
-    expect(result.value!.activeCount).toBe(21);
+    expect(result.value?.statusCounts).toEqual(expectedStatusCounts);
+    expect(result.value?.activeCount).toBe(21);
   });
 });

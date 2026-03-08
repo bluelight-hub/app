@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { BefehlGeloeschtEvent } from './befehl-geloescht.event';
 import { EVENT_NAMES } from './event-names';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';

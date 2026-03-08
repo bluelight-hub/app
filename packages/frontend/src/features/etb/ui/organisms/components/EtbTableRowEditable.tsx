@@ -64,7 +64,7 @@ export const EtbTableRowEditable: React.FC<EtbTableRowEditableProps> = ({ row, s
         row.original.deletedAt ? 'border-l-2 border-l-red-500 bg-red-50/30 opacity-60 dark:bg-red-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-900/50',
         isEditing && 'bg-blue-50 dark:bg-blue-900/20',
         // Story 5.5: Highlight-Animation wenn Entry hervorgehoben ist
-        isHighlighted && 'ring-2 ring-primary-500 ring-offset-2 bg-primary-50 dark:bg-primary-900/20',
+        isHighlighted && 'bg-primary-50 ring-2 ring-primary-500 ring-offset-2 dark:bg-primary-900/20',
         className,
       )}
       style={style}

@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { EtbHistoryUserDto } from './EtbHistoryUserDto';
-import {
-    EtbHistoryUserDtoFromJSON,
-    EtbHistoryUserDtoFromJSONTyped,
-    EtbHistoryUserDtoToJSON,
-    EtbHistoryUserDtoToJSONTyped,
-} from './EtbHistoryUserDto';
+import type {EtbHistoryUserDto} from './EtbHistoryUserDto';
+import {EtbHistoryUserDtoFromJSON, EtbHistoryUserDtoToJSON,} from './EtbHistoryUserDto';
 
 /**
  * 
@@ -74,8 +68,8 @@ export function instanceOfEtbEntryPreviewDto(value: object): value is EtbEntryPr
     if (!('text' in value) || value['text'] === undefined) return false;
     if (!('eventType' in value) || value['eventType'] === undefined) return false;
     if (!('timestamp' in value) || value['timestamp'] === undefined) return false;
-    if (!('createdBy' in value) || value['createdBy'] === undefined) return false;
-    return true;
+    return !(!('createdBy' in value) || value['createdBy'] === undefined);
+
 }
 
 export function EtbEntryPreviewDtoFromJSON(json: any): EtbEntryPreviewDto {

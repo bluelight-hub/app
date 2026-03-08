@@ -12,7 +12,7 @@
 import { useEffect, useRef } from 'react';
 import { logger } from '@/shared/lib/logger';
 import { trayService } from '../services';
-import { useTriggeredTimerCount } from '../stores/timer.store';
+import { useTriggeredTimerCount } from '@/features/reminders';
 
 /**
  * Hook der das Tray-Badge mit dem Timer Store synchronisiert.

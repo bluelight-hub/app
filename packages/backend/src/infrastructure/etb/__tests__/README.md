@@ -1,16 +1,19 @@
 # ETB E2E Integration Tests
 
-Dieser Ordner enthält End-to-End Integration Tests für das ETB (Einsatztagebuch) Modul. Die Tests validieren das Zusammenspiel von Domain Layer, Application Layer und Infrastructure Layer gegen eine echte PostgreSQL Datenbank.
+Dieser Ordner enthält End-to-End Integration Tests für das ETB (Einsatztagebuch) Modul. Die Tests validieren das
+Zusammenspiel von Domain Layer, Application Layer und Infrastructure Layer gegen eine echte PostgreSQL Datenbank.
 
 ## 📋 Übersicht
 
 **Test-Strategie:**
+
 - **Real Database**: PostgreSQL 17 (KEINE Mocks!)
 - **Direct Handler Invocation**: CQRS Handlers direkt aufrufen
 - **Given-When-Then BDD**: Strukturierter Test-Stil
 - **DRK Compliance**: NO-DELETE Trigger-Enforcement
 
 **Warum E2E Tests?**
+
 - Validieren vollständige Persistierung über alle Layer hinweg
 - Testen echte PostgreSQL Trigger (NO-DELETE Compliance)
 - Verifizieren Domain Events und Event Handler Integration
@@ -34,35 +37,43 @@ Dieser Ordner enthält End-to-End Integration Tests für das ETB (Einsatztagebuc
 ### Acceptance Criteria Mapping
 
 **AC1 - Auto-Creation:**
+
 - ETB wird automatisch bei Einsatz-Erstellung angelegt
 - Event Handler `EtbAutoCreationHandler` wird getestet
 
 **AC2 - Versioning:**
+
 - Jede Mutation erhöht ETB Version
 - Snapshots werden bei Änderungen erstellt
 
 **AC3 - Snapshot History:**
+
 - Snapshot-Speicherung in `etb_snapshots` Tabelle
 - Historical Queries funktionieren
 
 **AC4 - Lock Prevention:**
+
 - Locked ETB verhindert Mutations (add/update/delete Eintrag)
 - Lock-Status wird persistiert
 
 **AC5 - Soft Delete:**
+
 - `isDeleted` Flag statt physischem DELETE
 - Soft-deleted Einträge werden in Queries ausgeschlossen
 
 **AC6/AC7 - DRK Compliance:**
+
 - PostgreSQL Trigger `etb_eintrag_no_delete` blockiert DELETE
 - PostgreSQL Trigger `einsatz_no_delete` blockiert DELETE
 - Exception Message: "DRK Compliance Violation"
 
 **AC8 - Concurrency:**
+
 - Optimistic Locking via `version` Field
 - Concurrent Updates werfen Exception
 
 **AC9 - Performance:**
+
 - Baseline: < 100ms für Create ETB
 - Baseline: < 50ms für Add Eintrag
 - Baseline: < 200ms für 100 Einträge laden
@@ -142,6 +153,7 @@ beforeAll(async () => {
 ```
 
 **Was passiert intern:**
+
 1. PrismaClient wird erstellt
 2. Alte Test-Daten (> 1 Stunde) werden aufgeräumt
 3. Test User wird angelegt (CUID2 ID)
@@ -232,7 +244,8 @@ ctx.eventPublisher.clear();
 
 ### Problem: DRK Compliance Triggers
 
-PostgreSQL Triggers (`etb_eintrag_no_delete`, `einsatz_no_delete`) blockieren physisches DELETE. Tests müssen aber Daten aufräumen.
+PostgreSQL Triggers (`etb_eintrag_no_delete`, `einsatz_no_delete`) blockieren physisches DELETE. Tests müssen aber Daten
+aufräumen.
 
 ### Lösung: Session Replication Role
 
@@ -250,6 +263,7 @@ try {
 ```
 
 **Wichtig:**
+
 - `cleanupTestData()` und `teardownE2eModule()` nutzen dieses Pattern automatisch
 - In Produktion NIEMALS `session_replication_role` ändern!
 - Pattern ist dokumentiert in `etb-drk-compliance.e2e.spec.ts`

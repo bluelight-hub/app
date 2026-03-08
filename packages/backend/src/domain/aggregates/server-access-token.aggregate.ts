@@ -107,22 +107,8 @@ export class ServerAccessToken extends AggregateRoot<AccessTokenId> {
 
   /** bcrypt Token Hash (validiert via TokenHash Value Object) */
   private readonly _tokenHash: TokenHash;
-
-  /** Optionaler Name für das Token (z.B. "HiOrg Integration") */
-  private _name: string | null;
-
-  /** Zeitpunkt der letzten Nutzung (null wenn nie genutzt) */
-  private _lastUsedAt: Date | null;
-
   /** Ablaufdatum des Tokens (null = kein Ablauf) */
   private readonly _expiresAt: Date | null;
-
-  /** Ob das Token widerrufen wurde */
-  private _isRevoked: boolean;
-
-  /** Zeitpunkt des Widerrufs (null wenn nicht widerrufen) */
-  private _revokedAt: Date | null;
-
   /** ID des ursprünglichen Tokens, falls dieses Token durch Rotation erstellt wurde */
   private readonly _rotatedFromId: AccessTokenId | null;
 
@@ -152,17 +138,8 @@ export class ServerAccessToken extends AggregateRoot<AccessTokenId> {
     this._rotatedFromId = rotatedFromId;
   }
 
-  // ============================================================
-  // Readonly Getters
-  // ============================================================
-
-  /**
-   * Readonly getter für Token Hash.
-   * WICHTIG: Niemals vollständig loggen - nutze tokenHash.toMaskedString()
-   */
-  get tokenHash(): TokenHash {
-    return this._tokenHash;
-  }
+  /** Optionaler Name für das Token (z.B. "HiOrg Integration") */
+  private _name: string | null;
 
   /**
    * Readonly getter für Token Name.
@@ -172,12 +149,49 @@ export class ServerAccessToken extends AggregateRoot<AccessTokenId> {
     return this._name;
   }
 
+  /** Zeitpunkt der letzten Nutzung (null wenn nie genutzt) */
+  private _lastUsedAt: Date | null;
+
   /**
    * Readonly getter für letzten Nutzungszeitpunkt.
    * @returns Zeitpunkt der letzten Nutzung oder null wenn nie genutzt
    */
   get lastUsedAt(): Date | null {
     return this._lastUsedAt;
+  }
+
+  // ============================================================
+  // Readonly Getters
+  // ============================================================
+
+  /** Ob das Token widerrufen wurde */
+  private _isRevoked: boolean;
+
+  /**
+   * Readonly getter für Widerrufs-Status.
+   * @returns true wenn Token widerrufen wurde
+   */
+  get isRevoked(): boolean {
+    return this._isRevoked;
+  }
+
+  /** Zeitpunkt des Widerrufs (null wenn nicht widerrufen) */
+  private _revokedAt: Date | null;
+
+  /**
+   * Readonly getter für Widerrufs-Zeitpunkt.
+   * @returns Zeitpunkt des Widerrufs oder null wenn nicht widerrufen
+   */
+  get revokedAt(): Date | null {
+    return this._revokedAt;
+  }
+
+  /**
+   * Readonly getter für Token Hash.
+   * WICHTIG: Niemals vollständig loggen - nutze tokenHash.toMaskedString()
+   */
+  get tokenHash(): TokenHash {
+    return this._tokenHash;
   }
 
   /**
@@ -189,73 +203,12 @@ export class ServerAccessToken extends AggregateRoot<AccessTokenId> {
   }
 
   /**
-   * Readonly getter für Widerrufs-Status.
-   * @returns true wenn Token widerrufen wurde
-   */
-  get isRevoked(): boolean {
-    return this._isRevoked;
-  }
-
-  /**
-   * Readonly getter für Widerrufs-Zeitpunkt.
-   * @returns Zeitpunkt des Widerrufs oder null wenn nicht widerrufen
-   */
-  get revokedAt(): Date | null {
-    return this._revokedAt;
-  }
-
-  /**
    * Readonly getter für die ID des ursprünglichen Tokens bei Rotation.
    * @returns AccessTokenId des ursprünglichen Tokens oder null wenn nicht rotiert
    */
   get rotatedFromId(): AccessTokenId | null {
     return this._rotatedFromId;
   }
-
-  /**
-   * Prüft ob dieses Token durch Rotation eines anderen Tokens erstellt wurde.
-   * @returns true wenn dieses Token durch Rotation erstellt wurde
-   */
-  public wasRotated(): boolean {
-    return this._rotatedFromId !== null;
-  }
-
-  /**
-   * Ermittelt den aktuellen Status des Tokens.
-   *
-   * **Status-Logik:**
-   * - revoked: Token wurde widerrufen (hoechste Prioritaet)
-   * - expired: Token ist abgelaufen (expiresAt < now)
-   * - active: Token ist gueltig und kann verwendet werden
-   *
-   * @returns TokenStatus - 'active' | 'revoked' | 'expired'
-   */
-  public getStatus(): TokenStatus {
-    if (this._isRevoked) {
-      return 'revoked';
-    }
-    if (this._expiresAt && this._expiresAt < new Date()) {
-      return 'expired';
-    }
-    return 'active';
-  }
-
-  /**
-   * Gibt den Anzeige-Prefix des Tokens zurueck.
-   * Format: blh_ + erste 8 Zeichen = 12 Zeichen total.
-   *
-   * Wird fuer Logging und UI-Anzeige verwendet, um das Token
-   * identifizierbar zu machen ohne den vollstaendigen Wert zu zeigen.
-   *
-   * @returns String mit den ersten 12 Zeichen der Token-ID
-   */
-  public getDisplayPrefix(): string {
-    return this.id.toString().substring(0, TOKEN_PREFIX_DISPLAY_LENGTH);
-  }
-
-  // ============================================================
-  // Factory Methods
-  // ============================================================
 
   /**
    * Factory Method zur Erstellung eines neuen ServerAccessTokens.
@@ -316,6 +269,51 @@ export class ServerAccessToken extends AggregateRoot<AccessTokenId> {
     return new ServerAccessToken(props.id, props.tokenHash, props.name, props.lastUsedAt, props.expiresAt, props.isRevoked, props.revokedAt, props.rotatedFromId, props.createdAt, props.updatedAt);
   }
 
+  /**
+   * Prüft ob dieses Token durch Rotation eines anderen Tokens erstellt wurde.
+   * @returns true wenn dieses Token durch Rotation erstellt wurde
+   */
+  public wasRotated(): boolean {
+    return this._rotatedFromId !== null;
+  }
+
+  // ============================================================
+  // Factory Methods
+  // ============================================================
+
+  /**
+   * Ermittelt den aktuellen Status des Tokens.
+   *
+   * **Status-Logik:**
+   * - revoked: Token wurde widerrufen (hoechste Prioritaet)
+   * - expired: Token ist abgelaufen (expiresAt < now)
+   * - active: Token ist gueltig und kann verwendet werden
+   *
+   * @returns TokenStatus - 'active' | 'revoked' | 'expired'
+   */
+  public getStatus(): TokenStatus {
+    if (this._isRevoked) {
+      return 'revoked';
+    }
+    if (this._expiresAt && this._expiresAt < new Date()) {
+      return 'expired';
+    }
+    return 'active';
+  }
+
+  /**
+   * Gibt den Anzeige-Prefix des Tokens zurueck.
+   * Format: blh_ + erste 8 Zeichen = 12 Zeichen total.
+   *
+   * Wird fuer Logging und UI-Anzeige verwendet, um das Token
+   * identifizierbar zu machen ohne den vollstaendigen Wert zu zeigen.
+   *
+   * @returns String mit den ersten 12 Zeichen der Token-ID
+   */
+  public getDisplayPrefix(): string {
+    return this.id.toString().substring(0, TOKEN_PREFIX_DISPLAY_LENGTH);
+  }
+
   // ============================================================
   // Business Methods
   // ============================================================
@@ -336,11 +334,7 @@ export class ServerAccessToken extends AggregateRoot<AccessTokenId> {
     }
 
     // Prüfe Ablaufdatum
-    if (this._expiresAt !== null && this._expiresAt < new Date()) {
-      return false;
-    }
-
-    return true;
+    return !(this._expiresAt !== null && this._expiresAt < new Date());
   }
 
   /**

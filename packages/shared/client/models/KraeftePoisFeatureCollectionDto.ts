@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { KraeftePoisFeatureDto } from './KraeftePoisFeatureDto';
-import {
-    KraeftePoisFeatureDtoFromJSON,
-    KraeftePoisFeatureDtoFromJSONTyped,
-    KraeftePoisFeatureDtoToJSON,
-    KraeftePoisFeatureDtoToJSONTyped,
-} from './KraeftePoisFeatureDto';
+import type {KraeftePoisFeatureDto} from './KraeftePoisFeatureDto';
+import {KraeftePoisFeatureDtoFromJSON, KraeftePoisFeatureDtoToJSON,} from './KraeftePoisFeatureDto';
 
 /**
  * 
@@ -56,8 +50,8 @@ export type KraeftePoisFeatureCollectionDtoTypeEnum = typeof KraeftePoisFeatureC
  */
 export function instanceOfKraeftePoisFeatureCollectionDto(value: object): value is KraeftePoisFeatureCollectionDto {
     if (!('type' in value) || value['type'] === undefined) return false;
-    if (!('features' in value) || value['features'] === undefined) return false;
-    return true;
+    return !(!('features' in value) || value['features'] === undefined);
+
 }
 
 export function KraeftePoisFeatureCollectionDtoFromJSON(json: any): KraeftePoisFeatureCollectionDto {

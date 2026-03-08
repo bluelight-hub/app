@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { FuehrungsrhythmusTemplateCard } from '../FuehrungsrhythmusTemplateCard';
+import { FuehrungsrhythmusTemplateCard } from '@/features/templates';
 
 const mockEintraege = [
   { id: 'e1', titel: 'Lagebeurteilung', intervallMinuten: 30, offsetMinuten: 0, sortOrder: 0 },

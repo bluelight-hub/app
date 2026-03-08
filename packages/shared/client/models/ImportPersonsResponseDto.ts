@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { ImportPersonResultItemDto } from './ImportPersonResultItemDto';
-import {
-    ImportPersonResultItemDtoFromJSON,
-    ImportPersonResultItemDtoFromJSONTyped,
-    ImportPersonResultItemDtoToJSON,
-    ImportPersonResultItemDtoToJSONTyped,
-} from './ImportPersonResultItemDto';
+import type {ImportPersonResultItemDto} from './ImportPersonResultItemDto';
+import {ImportPersonResultItemDtoFromJSON, ImportPersonResultItemDtoToJSON,} from './ImportPersonResultItemDto';
 
 /**
  * 
@@ -74,8 +68,8 @@ export function instanceOfImportPersonsResponseDto(value: object): value is Impo
     if (!('updated' in value) || value['updated'] === undefined) return false;
     if (!('skipped' in value) || value['skipped'] === undefined) return false;
     if (!('failed' in value) || value['failed'] === undefined) return false;
-    if (!('results' in value) || value['results'] === undefined) return false;
-    return true;
+    return !(!('results' in value) || value['results'] === undefined);
+
 }
 
 export function ImportPersonsResponseDtoFromJSON(json: any): ImportPersonsResponseDto {

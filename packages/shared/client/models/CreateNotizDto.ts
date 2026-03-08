@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -55,8 +54,8 @@ export interface CreateNotizDto {
  * Check if a given object implements the CreateNotizDto interface.
  */
 export function instanceOfCreateNotizDto(value: object): value is CreateNotizDto {
-    if (!('titel' in value) || value['titel'] === undefined) return false;
-    return true;
+    return !(!('titel' in value) || value['titel'] === undefined);
+
 }
 
 export function CreateNotizDtoFromJSON(json: any): CreateNotizDto {

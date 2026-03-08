@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import type * as L from 'leaflet';
 import type * as GeoJSON from 'geojson';
-import { generateShapeId, extractTextContent } from '../../utils/shape-helpers';
-import { setShapeIdOnLayer } from '../../utils/layer-utils';
+import { generateShapeId, extractTextContent } from '@/features/lagekarte';
+import { setShapeIdOnLayer } from '@/features/lagekarte';
 import type { LayerWithGeoJSON } from '../../utils/types';
 
 /**

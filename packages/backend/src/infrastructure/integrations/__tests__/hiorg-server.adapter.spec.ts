@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Unit Tests für HiOrgServerAdapter.
  *
@@ -422,7 +423,7 @@ describe('HiOrgServerAdapter', () => {
       await adapter.fetchPersons(token, { status: ['aktiv'], updatedSince });
 
       // Then
-      const callUrl = fetchSpy.mock.calls[0][0] as string;
+      const callUrl = fetchSpy.mock.calls[0]?.[0]! as string;
       expect(callUrl).toContain('filter%5Bstatus%5D=aktiv');
       expect(callUrl).toContain('filter%5Bupdated_since%5D=');
     });

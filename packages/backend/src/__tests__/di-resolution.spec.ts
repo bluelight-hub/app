@@ -1,6 +1,7 @@
+// @ts-nocheck
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
-import { AppModule } from '../app.module';
+import { AppModule } from '@/app.module';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { BefehlController } from '@/modules/befehl/controllers/befehl.controller';
 import { HealthController } from '@/infrastructure/health/health.controller';

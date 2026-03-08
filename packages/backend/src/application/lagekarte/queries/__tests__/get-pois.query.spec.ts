@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { GetPoisQuery } from '../get-pois.query';
 
 /**

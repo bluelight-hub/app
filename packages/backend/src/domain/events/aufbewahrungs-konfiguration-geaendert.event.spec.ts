@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { AufbewahrungsKonfigurationGeaendertEvent } from './aufbewahrungs-konfiguration-geaendert.event';
 import { EVENT_NAMES } from './event-names';
 

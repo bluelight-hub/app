@@ -1,6 +1,17 @@
-import { toAdminLoginResponseDto, toAdminSetupResponseDto, toAdminStatusResponseDto, toAdminTokenVerificationDto, toLogoutResponseDto, toRefreshResponseDto, toUserResponseDto } from '../mappers';
-import { SkipTransform } from '@/modules/common/decorators/skip-transform.decorator';
+import { ExchangeInviteResponseDto } from '@/application/auth/commands/dto/exchange-invite-response.dto';
+import { ExchangeInviteDto } from '@/application/auth/commands/dto/exchange-invite.dto';
+import { ExchangeInviteHandler } from '@/application/auth/commands/exchange-invite.handler';
+import { LoginCommand } from '@/application/auth/commands/login/login.command';
+import { LoginHandler } from '@/application/auth/commands/login/login.handler';
+import { LogoutCommand } from '@/application/auth/commands/logout/logout.command';
+import { LogoutHandler } from '@/application/auth/commands/logout/logout.handler';
+import { SkipServerAccess } from '@/infrastructure/decorators/skip-server-access.decorator';
+import { SkipSetupCheck } from '@/infrastructure/decorators/skip-setup-check.decorator';
+import { LOGGER } from '@/infrastructure/di-tokens';
 import { AppConfigService } from '@/infrastructure/services/app-config.service';
+import { ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
+import { SkipTransform } from '@/modules/common/decorators/skip-transform.decorator';
+import type { ILogger } from '@domain/ports/i-logger.port';
 import {
   BadRequestException,
   Body,
@@ -18,14 +29,10 @@ import {
   UseGuards,
   VERSION_NEUTRAL,
 } from '@nestjs/common';
-import type { ILogger } from '@domain/ports/i-logger.port';
-import { LOGGER } from '@/infrastructure/di-tokens';
-import { ApiBody, ApiCookieAuth, ApiForbiddenResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse, ApiBadRequestResponse } from '@nestjs/swagger';
-import { ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
+import { ApiBadRequestResponse, ApiBody, ApiCookieAuth, ApiForbiddenResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 import { AuthService } from '../auth.service';
-import { clearAdminCookie, clearAuthCookies, setAdminCookie, setAuthCookies } from '../utils/cookies.utils';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { AdminLoginResponseDto } from '../dto/admin-login-response.dto';
 import { AdminPasswordDto } from '../dto/admin-password.dto';
@@ -36,25 +43,18 @@ import { AdminTokenVerificationDto } from '../dto/admin-token-verification.dto';
 import { AuthCheckResponseDto } from '../dto/auth-check-response.dto';
 import { AuthRequestDto } from '../dto/auth-request.dto';
 import { AuthResponseDto } from '../dto/auth-response.dto';
-import { LoginDto } from '../dto/login.dto';
 import { LoginResponseDto } from '../dto/login-response.dto';
+import { LoginDto } from '../dto/login.dto';
 import { LogoutResponseDto } from '../dto/logout-response.dto';
 import { PublicUsersResponseDto } from '../dto/public-users-response.dto';
 import { RefreshResponseDto } from '../dto/refresh-response.dto';
 import { AdminJwtAuthGuard } from '../guards/admin-jwt-auth.guard';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { JwtRefreshGuard } from '../guards/jwt-refresh.guard';
+import { toAdminLoginResponseDto, toAdminSetupResponseDto, toAdminStatusResponseDto, toAdminTokenVerificationDto, toLogoutResponseDto, toRefreshResponseDto, toUserResponseDto } from '../mappers';
 import type { ValidatedUser } from '../strategies/jwt.strategy';
 import { isAdmin } from '../utils/auth.utils';
-import { LoginHandler } from '@/application/auth/commands/login/login.handler';
-import { LogoutHandler } from '@/application/auth/commands/logout/logout.handler';
-import { LoginCommand } from '@/application/auth/commands/login/login.command';
-import { LogoutCommand } from '@/application/auth/commands/logout/logout.command';
-import { ExchangeInviteHandler } from '@/application/auth/commands/exchange-invite.handler';
-import { ExchangeInviteDto } from '@/application/auth/commands/dto/exchange-invite.dto';
-import { ExchangeInviteResponseDto } from '@/application/auth/commands/dto/exchange-invite-response.dto';
-import { SkipServerAccess } from '@/infrastructure/decorators/skip-server-access.decorator';
-import { SkipSetupCheck } from '@/infrastructure/decorators/skip-setup-check.decorator';
+import { clearAdminCookie, clearAuthCookies, setAdminCookie, setAuthCookies } from '../utils/cookies.utils';
 
 /**
  * Controller für Authentifizierung-Endpunkte
@@ -744,7 +744,7 @@ export class AuthController {
 
     try {
       const adminPayload = await this.authService.verifyAdminToken(adminToken);
-      if (adminPayload?.isAdmin === true) {
+      if (adminPayload?.isAdmin) {
         this.logger.debug('Admin-Token verifiziert', { payload: adminPayload });
         return true;
       }

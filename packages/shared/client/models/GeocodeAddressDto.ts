@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -31,8 +30,8 @@ export interface GeocodeAddressDto {
  * Check if a given object implements the GeocodeAddressDto interface.
  */
 export function instanceOfGeocodeAddressDto(value: object): value is GeocodeAddressDto {
-    if (!('address' in value) || value['address'] === undefined) return false;
-    return true;
+    return !(!('address' in value) || value['address'] === undefined);
+
 }
 
 export function GeocodeAddressDtoFromJSON(json: any): GeocodeAddressDto {

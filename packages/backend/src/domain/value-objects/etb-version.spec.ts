@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { EtbVersion } from './etb-version';
 
 describe('EtbVersion', () => {

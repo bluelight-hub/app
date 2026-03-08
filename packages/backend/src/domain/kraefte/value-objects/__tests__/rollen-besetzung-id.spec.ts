@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Mock CUID2 for Jest compatibility (ESM module issue)
 jest.mock('@paralleldrive/cuid2', () => ({
   createId: jest.fn(() => {

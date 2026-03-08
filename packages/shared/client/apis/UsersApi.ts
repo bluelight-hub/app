@@ -19,17 +19,14 @@ import type {
   UpdateProfileDto,
   UserControllerFindAllBasicVAlpha200Response,
   UserControllerFindOneVAlpha200Response,
-} from '../models/index';
+} from '../models';
 import {
     ProfileControllerUpdateProfileV1200ResponseFromJSON,
-    ProfileControllerUpdateProfileV1200ResponseToJSON,
-    UpdateProfileDtoFromJSON,
     UpdateProfileDtoToJSON,
     UserControllerFindAllBasicVAlpha200ResponseFromJSON,
-    UserControllerFindAllBasicVAlpha200ResponseToJSON,
     UserControllerFindOneVAlpha200ResponseFromJSON,
-    UserControllerFindOneVAlpha200ResponseToJSON,
-} from '../models/index';
+
+} from '../models';
 
 export interface ProfileControllerUpdateProfileV1Request {
     updateProfileDto: UpdateProfileDto;
@@ -122,7 +119,7 @@ export class UsersApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/users/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/users/{id}`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,

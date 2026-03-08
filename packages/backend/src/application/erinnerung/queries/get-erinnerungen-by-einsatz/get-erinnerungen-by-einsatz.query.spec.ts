@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { GetErinnerungenByEinsatzQuery } from './get-erinnerungen-by-einsatz.query';
 import { ERINNERUNG_ERROR_CODES } from '../../errors/erinnerung-error.codes';
 

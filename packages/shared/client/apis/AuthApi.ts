@@ -22,7 +22,6 @@ import type {
   AuthControllerAdminSetup200Response,
   AuthControllerCheckAuth200Response,
   AuthControllerExchangeInvite200Response,
-  AuthControllerExchangeInvite400Response,
   AuthControllerGetAdminStatus200Response,
   AuthControllerLogin200Response,
   AuthControllerRefresh200Response,
@@ -32,43 +31,26 @@ import type {
   ExchangeInviteDto,
   LoginDto,
   PublicUsersResponseDto,
-} from '../models/index';
+} from '../models';
 import {
-    AdminPasswordDtoFromJSON,
     AdminPasswordDtoToJSON,
-    AdminSetupDtoFromJSON,
     AdminSetupDtoToJSON,
     AuthControllerAdminLogin200ResponseFromJSON,
-    AuthControllerAdminLogin200ResponseToJSON,
     AuthControllerAdminLogout200ResponseFromJSON,
-    AuthControllerAdminLogout200ResponseToJSON,
     AuthControllerAdminSetup200ResponseFromJSON,
-    AuthControllerAdminSetup200ResponseToJSON,
     AuthControllerCheckAuth200ResponseFromJSON,
-    AuthControllerCheckAuth200ResponseToJSON,
     AuthControllerExchangeInvite200ResponseFromJSON,
-    AuthControllerExchangeInvite200ResponseToJSON,
-    AuthControllerExchangeInvite400ResponseFromJSON,
-    AuthControllerExchangeInvite400ResponseToJSON,
     AuthControllerGetAdminStatus200ResponseFromJSON,
-    AuthControllerGetAdminStatus200ResponseToJSON,
     AuthControllerLogin200ResponseFromJSON,
-    AuthControllerLogin200ResponseToJSON,
     AuthControllerRefresh200ResponseFromJSON,
-    AuthControllerRefresh200ResponseToJSON,
     AuthControllerUnifiedAuth200ResponseFromJSON,
-    AuthControllerUnifiedAuth200ResponseToJSON,
     AuthControllerVerifyAdminToken200ResponseFromJSON,
-    AuthControllerVerifyAdminToken200ResponseToJSON,
-    AuthRequestDtoFromJSON,
     AuthRequestDtoToJSON,
-    ExchangeInviteDtoFromJSON,
     ExchangeInviteDtoToJSON,
-    LoginDtoFromJSON,
     LoginDtoToJSON,
     PublicUsersResponseDtoFromJSON,
-    PublicUsersResponseDtoToJSON,
-} from '../models/index';
+
+} from '../models';
 
 export interface AuthControllerAdminLoginRequest {
     adminPasswordDto: AdminPasswordDto;

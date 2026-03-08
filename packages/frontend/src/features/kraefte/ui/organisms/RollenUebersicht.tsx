@@ -18,8 +18,8 @@ import { cn } from '@/shared/ui/cn';
 
 import { useRollenBesetzungen } from '../../api';
 import { type DashboardMode, useDashboardMode } from '../../contexts';
-import { DashboardErrorCard } from '../molecules/DashboardErrorCard';
-import { RollenKarte, RollenKarteSkeleton } from '../molecules/RollenKarte';
+import { DashboardErrorCard } from '@/features/kraefte/ui';
+import { RollenKarte, RollenKarteSkeleton } from '@/features/kraefte';
 
 interface RollenUebersichtProps {
   /** Einsatz ID */

@@ -16,11 +16,11 @@
 import * as runtime from '../runtime';
 import type {
   AdminFahrzeugtypenControllerFindAllVAlpha200Response,
-} from '../models/index';
+} from '../models';
 import {
     AdminFahrzeugtypenControllerFindAllVAlpha200ResponseFromJSON,
-    AdminFahrzeugtypenControllerFindAllVAlpha200ResponseToJSON,
-} from '../models/index';
+
+} from '../models';
 
 /**
  * 

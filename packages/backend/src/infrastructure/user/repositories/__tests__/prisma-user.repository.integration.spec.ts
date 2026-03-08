@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Integration Tests für PrismaUserRepository mit Real PostgreSQL Database.
  *

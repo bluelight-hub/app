@@ -17,12 +17,18 @@ import { BEFEHL_QUERY_KEYS } from './queries';
  * @returns TanStack Query Result mit BefehlHistorieTimelineDto
  */
 export function useBefehlHistorie(befehlId: string | undefined) {
+  const resolvedBefehlId = befehlId ?? '';
+
   return useQuery<BefehlHistorieTimelineDto>({
-    queryKey: BEFEHL_QUERY_KEYS.historie(befehlId!),
+    queryKey: BEFEHL_QUERY_KEYS.historie(resolvedBefehlId),
     queryFn: async () => {
-      const response = await api.befehle().befehlControllerGetHistorieVAlpha({ id: befehlId! });
+      if (!befehlId) {
+        throw new Error('Befehl-ID fehlt für Historie-Abfrage');
+      }
+
+      const response = await api.befehle().befehlControllerGetHistorieVAlpha({ id: befehlId });
       return response.data;
     },
-    enabled: !!befehlId,
+    enabled: Boolean(befehlId),
   });
 }

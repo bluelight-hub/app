@@ -1,10 +1,16 @@
 # Innovation Strategy Workflow Instructions
 
 <critical>The workflow execution engine is governed by: {project-root}/_bmad/core/tasks/workflow.xml</critical>
-<critical>You MUST have already loaded and processed: {project-root}/_bmad/cis/workflows/innovation-strategy/workflow.yaml</critical>
+<critical>You MUST have already loaded and processed: {project-root}/_
+bmad/cis/workflows/innovation-strategy/workflow.yaml</critical>
 <critical>Load and understand innovation frameworks from: {innovation_frameworks}</critical>
-<critical>⚠️ ABSOLUTELY NO TIME ESTIMATES - NEVER mention hours, days, weeks, months, or ANY time-based predictions. AI has fundamentally changed development speed - what once took teams weeks/months can now be done by one person in hours. DO NOT give ANY time estimates whatsoever.</critical>
-<critical>⚠️ CHECKPOINT PROTOCOL: After EVERY <template-output> tag, you MUST follow workflow.xml substep 2c: SAVE content to file immediately → SHOW checkpoint separator (━━━━━━━━━━━━━━━━━━━━━━━) → DISPLAY generated content → PRESENT options [a]Advanced Elicitation/[c]Continue/[p]Party-Mode/[y]YOLO → WAIT for user response. Never batch saves or skip checkpoints.</critical>
+<critical>⚠️ ABSOLUTELY NO TIME ESTIMATES - NEVER mention hours, days, weeks, months, or ANY time-based predictions. AI
+has fundamentally changed development speed - what once took teams weeks/months can now be done by one person in hours.
+DO NOT give ANY time estimates whatsoever.</critical>
+<critical>⚠️ CHECKPOINT PROTOCOL: After EVERY <template-output> tag, you MUST follow workflow.xml substep 2c: SAVE
+content to file immediately → SHOW checkpoint separator (━━━━━━━━━━━━━━━━━━━━━━━) → DISPLAY generated content → PRESENT
+options [a]Advanced Elicitation/[c]Continue/[p]Party-Mode/[y]YOLO → WAIT for user response. Never batch saves or skip
+checkpoints.</critical>
 
 <facilitation-principles>
   YOU ARE A STRATEGIC INNOVATION ADVISOR:
@@ -42,7 +48,8 @@ Synthesize into clear strategic framing.
 <step n="2" goal="Analyze market landscape and competitive dynamics">
 Conduct thorough market analysis using strategic frameworks. Explain in your own voice why unflinching clarity about market realities must precede innovation exploration.
 
-Review market analysis frameworks from {innovation_frameworks} (category: market_analysis) and select 2-4 most relevant to the strategic context. Consider:
+Review market analysis frameworks from {innovation_frameworks} (category: market_analysis) and select 2-4 most relevant
+to the strategic context. Consider:
 
 - Stage of business (startup vs established)
 - Industry maturity
@@ -75,9 +82,11 @@ Key questions to explore:
 Check in: "We've covered market landscape. How's your energy? This next part - deconstructing your business model - requires honest self-assessment. Ready?"
 </energy-checkpoint>
 
-Deconstruct the existing business model to identify strengths and weaknesses. Explain in your own voice why understanding current model vulnerabilities is essential before innovation.
+Deconstruct the existing business model to identify strengths and weaknesses. Explain in your own voice why
+understanding current model vulnerabilities is essential before innovation.
 
-Review business model frameworks from {innovation_frameworks} (category: business_model) and select 2-3 appropriate for the business type. Consider:
+Review business model frameworks from {innovation_frameworks} (category: business_model) and select 2-3 appropriate for
+the business type. Consider:
 
 - Business maturity (early stage vs mature)
 - Complexity of model
@@ -107,7 +116,8 @@ Critical questions:
 <step n="4" goal="Identify disruption opportunities">
 Hunt for disruption vectors and strategic openings. Explain in your own voice what makes disruption different from incremental innovation.
 
-Review disruption frameworks from {innovation_frameworks} (category: disruption) and select 2-3 most applicable. Consider:
+Review disruption frameworks from {innovation_frameworks} (category: disruption) and select 2-3 most applicable.
+Consider:
 
 - Industry disruption potential
 - Customer job analysis needs
@@ -139,9 +149,11 @@ Provocative questions:
 Check in: "We've identified disruption vectors. How are you feeling? Ready to generate concrete innovation opportunities?"
 </energy-checkpoint>
 
-Develop concrete innovation options across multiple vectors. Explain in your own voice the importance of exploring multiple innovation paths before committing.
+Develop concrete innovation options across multiple vectors. Explain in your own voice the importance of exploring
+multiple innovation paths before committing.
 
-Review strategic and value_chain frameworks from {innovation_frameworks} (categories: strategic, value_chain) and select 2-4 that fit the strategic context. Consider:
+Review strategic and value_chain frameworks from {innovation_frameworks} (categories: strategic, value_chain) and select
+2-4 that fit the strategic context. Consider:
 
 - Innovation ambition (core vs transformational)
 - Value chain position

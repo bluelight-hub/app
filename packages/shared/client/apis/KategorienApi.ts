@@ -18,15 +18,13 @@ import type {
   CreateKategorieDto,
   KategorieControllerCreateVAlpha201Response,
   KategorieControllerGetByEinsatzVAlpha200Response,
-} from '../models/index';
+} from '../models';
 import {
-    CreateKategorieDtoFromJSON,
     CreateKategorieDtoToJSON,
     KategorieControllerCreateVAlpha201ResponseFromJSON,
-    KategorieControllerCreateVAlpha201ResponseToJSON,
     KategorieControllerGetByEinsatzVAlpha200ResponseFromJSON,
-    KategorieControllerGetByEinsatzVAlpha200ResponseToJSON,
-} from '../models/index';
+
+} from '../models';
 
 export interface KategorieControllerCreateVAlphaRequest {
     einsatzId: string;
@@ -109,7 +107,7 @@ export class KategorienApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/kategorien/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/kategorien/{id}`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,

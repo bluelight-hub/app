@@ -171,29 +171,39 @@ Architektur-Übersicht des Shared Zod Schemas Package für konsistente Frontend/
 │ Feature: Auth                                                  │
 │                                                                │
 │ ┌──────────────────────────────────────────────────┐           │
-│ │ schemas/                                         │           │
-│ │   register-form.schema.ts                        │           │
+│ │ schemas /                                         │           │
+│ │   register - form.schema.ts                        │           │
 │ │                                                  │           │
-│ │   import { inviteCodeSchemaNormalized,          │           │
-│ │            usernameSchema }                      │           │
-│ │     from '@bluelight-hub/shared/schemas';       │           │
+│ │   import {inviteCodeSchemaNormalized,
+
+│           │
+│ │            usernameSchema
+}                      │           │
+│ │     from
+'@bluelight-hub/shared/schemas';       │           │
 │ │                                                  │           │
 │ │   export const registerFormSchema = z.object({  │           │
 │ │     inviteCode: inviteCodeSchemaNormalized,     │           │
 │ │     username: usernameSchema,                   │           │
-│ │   });                                           │           │
+│ │
+})
+;                                           │           │
 │ └──────────────┬───────────────────────────────────┘           │
 │                │                                               │
 │                ▼                                               │
 │ ┌──────────────────────────────────────────────────┐           │
-│ │ ui/organisms/                                    │           │
+│ │ ui / organisms /                                    │           │
 │ │   RegisterForm.tsx                               │           │
 │ │                                                  │           │
 │ │   const form = useForm({                        │           │
 │ │     validators: {                                │           │
 │ │       onChange: registerFormSchema,             │           │
-│ │     },                                           │           │
-│ │   });                                            │           │
+│ │
+}
+,                                           │           │
+│ │
+})
+;                                            │           │
 │ └──────────────────────────────────────────────────┘           │
 └────────────────────────────────────────────────────────────────┘
 ```
@@ -202,45 +212,65 @@ Architektur-Übersicht des Shared Zod Schemas Package für konsistente Frontend/
 
 ```typescript
 ┌────────────────────────────────────────────────────────────────┐
-│ Application Layer                                              │
+│ Application
+Layer                                              │
 │                                                                │
 │ ┌──────────────────────────────────────────────────┐           │
-│ │ common/validation/                               │           │
-│ │   validate-with-zod.decorator.ts                 │           │
+│ │ common / validation /                               │           │
+│ │   validate -
+with-zod.decorator.ts                 │           │
 │ │                                                  │           │
 │ │   export function ValidateWithZod(schema) {      │           │
 │ │     // Custom class-validator Decorator          │           │
 │ │     // für Zod-Schema-Validierung                │           │
-│ │   }                                              │           │
+│ │
+}                                              │           │
 │ └──────────────┬───────────────────────────────────┘           │
 │                │                                               │
 │                ▼                                               │
 │ ┌──────────────────────────────────────────────────┐           │
-│ │ auth/dto/                                        │           │
+│ │ auth / dto /                                        │           │
 │ │   register.dto.ts                                │           │
 │ │                                                  │           │
-│ │   import { inviteCodeSchema, usernameSchema }   │           │
-│ │     from '@bluelight-hub/shared/schemas';       │           │
-│ │   import { ValidateWithZod } from '@/common...  │           │
+│ │   import {inviteCodeSchema, usernameSchema}
+
+│           │
+│ │     from
+'@bluelight-hub/shared/schemas';       │           │
+│ │   import {ValidateWithZod} from '@/common...  │           │
+
 │ │                                                  │           │
-│ │   export class RegisterDto {                    │           │
-│ │     @ValidateWithZod(inviteCodeSchema)          │           │
-│ │     inviteCode!: string;                        │           │
+│ │   export class RegisterDto {
+│           │
+│ │
+@ValidateWithZod(inviteCodeSchema)          │           │
+│ │
+    inviteCode!: string;
+│           │
 │ │                                                  │           │
-│ │     @ValidateWithZod(usernameSchema)            │           │
-│ │     username!: string;                          │           │
-│ │   }                                              │           │
+│ │
+@ValidateWithZod(usernameSchema)            │           │
+│ │
+    username!: string;
+│           │
+│ │
+}                                              │           │
 │ └──────────────┬───────────────────────────────────┘           │
 │                │                                               │
 │                ▼                                               │
 │ ┌──────────────────────────────────────────────────┐           │
-│ │ modules/auth/controllers/                        │           │
+│ │ modules / auth / controllers /                        │           │
 │ │   auth.controller.ts                             │           │
 │ │                                                  │           │
 │ │   @Post('register')                              │           │
-│ │   async register(@Body() dto: RegisterDto) {     │           │
+│ │   async
+register(@Body()
+dto: RegisterDto
+)
+{     │           │
 │ │     // DTO wurde bereits via Zod validiert!      │           │
-│ │   }                                               │           │
+│ │
+}                                               │           │
 │ └──────────────────────────────────────────────────┘           │
 └────────────────────────────────────────────────────────────────┘
 ```
@@ -316,20 +346,42 @@ Architektur-Übersicht des Shared Zod Schemas Package für konsistente Frontend/
 ```typescript
 // packages/shared/package.json
 {
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    },
-    "./client": {
-      "types": "./client/index.ts",
-      "import": "./client/index.ts"
-    },
-    "./schemas": {                        // 👈 Schemas-Export
-      "types": "./dist/schemas/index.d.ts",
-      "import": "./dist/schemas/index.js"
+    "exports"
+:
+    {
+        "."
+    :
+        {
+            "types"
+        :
+            "./dist/index.d.ts",
+                "import"
+        :
+            "./dist/index.js"
+        }
+    ,
+        "./client"
+    :
+        {
+            "types"
+        :
+            "./client/index.ts",
+                "import"
+        :
+            "./client/index.ts"
+        }
+    ,
+        "./schemas"
+    :
+        {                        // 👈 Schemas-Export
+            "types"
+        :
+            "./dist/schemas/index.d.ts",
+                "import"
+        :
+            "./dist/schemas/index.js"
+        }
     }
-  }
 }
 ```
 
@@ -337,10 +389,10 @@ Architektur-Übersicht des Shared Zod Schemas Package für konsistente Frontend/
 
 ```typescript
 // ✅ Korrekt: Via /schemas Export
-import { inviteCodeSchema } from '@bluelight-hub/shared/schemas';
+import {inviteCodeSchema} from '@bluelight-hub/shared/schemas';
 
 // ❌ Falsch: Direkter Import (funktioniert nicht)
-import { inviteCodeSchema } from '@bluelight-hub/shared/src/schemas/auth/invite-code.schema';
+import {inviteCodeSchema} from '@bluelight-hub/shared/src/schemas/auth/invite-code.schema';
 ```
 
 ## 🔄 Synchronisation Strategy
@@ -391,21 +443,25 @@ WICHTIG: Bei Änderungen an InviteCodeValue muss inviteCodeSchema
 ## 🎯 Design Principles
 
 ### 1. Single Source of Truth
+
 - **Schemas:** Definiert in `@bluelight-hub/shared/schemas`
 - **Wiederverwendung:** Frontend und Backend nutzen identische Schemas
 - **Keine Duplikation:** Validierungsregeln nur einmal definiert
 
 ### 2. Type Safety
+
 - **TypeScript Types:** Via `z.infer<typeof schema>` abgeleitet
 - **Compile-Time:** TypeScript prüft Typen
 - **Runtime:** Zod validiert Daten
 
 ### 3. Developer Experience
+
 - **Frontend:** Auto-Uppercase für bessere UX (`inviteCodeSchemaNormalized`)
 - **Backend:** Strikte Validierung (`inviteCodeSchema`)
 - **Error Messages:** Deutsche, benutzerfreundliche Fehlermeldungen
 
 ### 4. Maintainability
+
 - **Zentrale Dokumentation:** README, SCHEMA_OVERVIEW, INTEGRATION_EXAMPLES
 - **Versionierung:** Über `@bluelight-hub/shared` Package
 - **Testing:** Unit Tests für alle Schemas

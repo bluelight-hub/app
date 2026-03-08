@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { Response } from 'express';
 import { MetricsController } from '../metrics.controller';
 

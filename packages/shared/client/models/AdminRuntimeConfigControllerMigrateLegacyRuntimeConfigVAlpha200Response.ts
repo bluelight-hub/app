@@ -12,21 +12,18 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { MigrateLegacyRuntimeConfigResultDto } from './MigrateLegacyRuntimeConfigResultDto';
-import {
-    MigrateLegacyRuntimeConfigResultDtoFromJSON,
-    MigrateLegacyRuntimeConfigResultDtoFromJSONTyped,
-    MigrateLegacyRuntimeConfigResultDtoToJSON,
-    MigrateLegacyRuntimeConfigResultDtoToJSONTyped,
-} from './MigrateLegacyRuntimeConfigResultDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {MigrateLegacyRuntimeConfigResultDto} from './MigrateLegacyRuntimeConfigResultDto';
+import {
+    MigrateLegacyRuntimeConfigResultDtoFromJSON,
+    MigrateLegacyRuntimeConfigResultDtoToJSON,
+} from './MigrateLegacyRuntimeConfigResultDto';
 
 /**
  * 
@@ -53,8 +50,8 @@ export interface AdminRuntimeConfigControllerMigrateLegacyRuntimeConfigVAlpha200
  */
 export function instanceOfAdminRuntimeConfigControllerMigrateLegacyRuntimeConfigVAlpha200Response(value: object): value is AdminRuntimeConfigControllerMigrateLegacyRuntimeConfigVAlpha200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function AdminRuntimeConfigControllerMigrateLegacyRuntimeConfigVAlpha200ResponseFromJSON(json: any): AdminRuntimeConfigControllerMigrateLegacyRuntimeConfigVAlpha200Response {

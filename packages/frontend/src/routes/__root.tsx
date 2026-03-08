@@ -21,11 +21,10 @@ import { useBefehlNotificationNavigation } from '@/features/befehl';
 if (!window.location.pathname.startsWith('/server/setup') && !window.location.pathname.startsWith('/server/manage')) {
   setSetupRedirectInProgress(false);
 }
-import { TanStackDevtools } from '@tanstack/react-devtools';
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtoolsPanel } from '@tanstack/react-query-devtools';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
+import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { Toaster } from 'sonner';
 
 interface RootContext {
@@ -121,20 +120,8 @@ function RootComponent() {
       <QueryClientProvider client={queryClient}>
         <ConfirmProvider>
           <Outlet />
-          <div className="absolute">
-            <TanStackDevtools
-              plugins={[
-                {
-                  name: 'Tanstack Query',
-                  render: <ReactQueryDevtoolsPanel />,
-                },
-                {
-                  name: 'Tanstack Router',
-                  render: <TanStackRouterDevtoolsPanel />,
-                },
-              ]}
-            />
-          </div>
+          <ReactQueryDevtools initialIsOpen={false} />
+          <TanStackRouterDevtools />
           <Toaster duration={4000} position="bottom-right" closeButton theme="system" richColors />
         </ConfirmProvider>
       </QueryClientProvider>

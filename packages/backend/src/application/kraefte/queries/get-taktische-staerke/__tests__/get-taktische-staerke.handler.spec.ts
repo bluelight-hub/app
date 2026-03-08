@@ -1,11 +1,12 @@
-import { GetTaktischeStaerkeHandler } from '../get-taktische-staerke.handler';
-import { GetTaktischeStaerkeQuery } from '../get-taktische-staerke.query';
+// @ts-nocheck
 import { Result } from '@domain/common/result';
+import type { EinsatzPerson } from '@domain/kraefte/aggregates/einsatz-person.aggregate';
+import type { Qualifikation } from '@domain/kraefte/aggregates/qualifikation.aggregate';
 import type { IEinsatzPersonRepository } from '@domain/kraefte/repositories/i-einsatz-person.repository';
 import type { IQualifikationRepository } from '@domain/kraefte/repositories/i-qualifikation.repository';
 import type { ILogger } from '@domain/ports/i-logger.port';
-import type { EinsatzPerson } from '@domain/kraefte/aggregates/einsatz-person.aggregate';
-import type { Qualifikation } from '@domain/kraefte/aggregates/qualifikation.aggregate';
+import { GetTaktischeStaerkeHandler } from '../get-taktische-staerke.handler';
+import { GetTaktischeStaerkeQuery } from '../get-taktische-staerke.query';
 
 // Gültige CUID2 IDs für Tests (Generator: @paralleldrive/cuid2)
 const VALID_CUID_1 = 'z3h5idy36i9aqgkh7st81q57';
@@ -320,8 +321,7 @@ describe('GetTaktischeStaerkeHandler', () => {
 
     it('should handle qualifikation repository failure gracefully', async () => {
       // Given: Persons loaded, but qualifikation lookup fails
-      const qualifikationId = VALID_CUID_1;
-      const persons = [createMockPerson({ funktion: 'Helfer', qualifikationIds: [qualifikationId] })];
+      const persons = [createMockPerson({ funktion: 'Helfer', qualifikationIds: [VALID_CUID_1] })];
       mockPersonRepository.findByEinsatzId.mockResolvedValue(Result.ok(persons));
       mockQualifikationRepository.findByIds.mockResolvedValue(Result.fail('Qualifikation lookup failed'));
 

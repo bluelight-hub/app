@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -57,8 +56,8 @@ export type SetupUserDtoRoleEnum = typeof SetupUserDtoRoleEnum[keyof typeof Setu
 export function instanceOfSetupUserDto(value: object): value is SetupUserDto {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('username' in value) || value['username'] === undefined) return false;
-    if (!('role' in value) || value['role'] === undefined) return false;
-    return true;
+    return !(!('role' in value) || value['role'] === undefined);
+
 }
 
 export function SetupUserDtoFromJSON(json: any): SetupUserDto {

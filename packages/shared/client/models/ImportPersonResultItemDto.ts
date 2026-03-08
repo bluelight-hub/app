@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -91,8 +90,8 @@ export function instanceOfImportPersonResultItemDto(value: object): value is Imp
     if (!('nachname' in value) || value['nachname'] === undefined) return false;
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('qualifikationenMapped' in value) || value['qualifikationenMapped'] === undefined) return false;
-    if (!('qualifikationenUnmapped' in value) || value['qualifikationenUnmapped'] === undefined) return false;
-    return true;
+    return !(!('qualifikationenUnmapped' in value) || value['qualifikationenUnmapped'] === undefined);
+
 }
 
 export function ImportPersonResultItemDtoFromJSON(json: any): ImportPersonResultItemDto {

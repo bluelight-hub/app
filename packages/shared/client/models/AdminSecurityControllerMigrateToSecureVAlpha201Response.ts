@@ -12,21 +12,18 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { MigrateToSecureModeResponseDto } from './MigrateToSecureModeResponseDto';
-import {
-    MigrateToSecureModeResponseDtoFromJSON,
-    MigrateToSecureModeResponseDtoFromJSONTyped,
-    MigrateToSecureModeResponseDtoToJSON,
-    MigrateToSecureModeResponseDtoToJSONTyped,
-} from './MigrateToSecureModeResponseDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {MigrateToSecureModeResponseDto} from './MigrateToSecureModeResponseDto';
+import {
+    MigrateToSecureModeResponseDtoFromJSON,
+    MigrateToSecureModeResponseDtoToJSON,
+} from './MigrateToSecureModeResponseDto';
 
 /**
  * 
@@ -53,8 +50,8 @@ export interface AdminSecurityControllerMigrateToSecureVAlpha201Response {
  */
 export function instanceOfAdminSecurityControllerMigrateToSecureVAlpha201Response(value: object): value is AdminSecurityControllerMigrateToSecureVAlpha201Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function AdminSecurityControllerMigrateToSecureVAlpha201ResponseFromJSON(json: any): AdminSecurityControllerMigrateToSecureVAlpha201Response {

@@ -33,7 +33,10 @@ export class GetPersonStatistikHandler {
       return Result.fail<PersonStatistikDto>(statsResult.error ?? ERINNERUNG_ERROR_CODES.QUERY_FAILED);
     }
 
-    const stats = statsResult.value!;
+    const stats = statsResult.value;
+    if (!stats) {
+      return Result.fail<PersonStatistikDto>(ERINNERUNG_ERROR_CODES.QUERY_FAILED);
+    }
 
     // Resolve User Names (parallel)
     const itemsWithNames = await Promise.all(

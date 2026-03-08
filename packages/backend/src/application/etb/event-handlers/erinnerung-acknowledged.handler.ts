@@ -18,10 +18,10 @@ import { ILogger } from '@domain/ports/i-logger.port';
 import type { ErinnerungAcknowledgedEvent } from '@domain/events/erinnerung-acknowledged.event';
 import { IUserRepository } from '@domain/repositories/i-user.repository';
 import { LOGGER, USER_REPOSITORY } from '@infrastructure/di-tokens';
-import { AddEintragCommand } from '../commands/add-eintrag/add-eintrag.command';
-import { AddEintragHandler } from '../commands/add-eintrag/add-eintrag.handler';
+import { AddEintragCommand } from '@application/etb/commands';
+import { AddEintragHandler } from '@application/etb/commands';
 import type { EtbKategorieValue } from '@domain/value-objects/etb-kategorie';
-import { ERINNERUNG_ETB_TEMPLATES } from '../constants/erinnerung-etb-templates';
+import { ERINNERUNG_ETB_TEMPLATES } from '@application/etb/constants';
 import { UserId } from '@domain/value-objects/user-id';
 
 /**

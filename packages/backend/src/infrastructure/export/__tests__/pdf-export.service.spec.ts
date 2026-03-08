@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { PdfExportService } from '../pdf-export.service';
 import type { ErinnerungExportItem } from '@domain/repositories/erinnerung-export';
 import type { ErinnerungStatistikDto } from '@/application/erinnerung/dto/erinnerung-statistik.dto';

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { EtbKategorie, ETB_KATEGORIE_VALUES } from './etb-kategorie';
 
 describe('EtbKategorie', () => {

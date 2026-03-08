@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -72,8 +71,8 @@ export function instanceOfAktiveTeilnehmerResponseDto(value: object): value is A
     if (!('personVorname' in value) || value['personVorname'] === undefined) return false;
     if (!('personNachname' in value) || value['personNachname'] === undefined) return false;
     if (!('personFunktion' in value) || value['personFunktion'] === undefined) return false;
-    if (!('joinedAt' in value) || value['joinedAt'] === undefined) return false;
-    return true;
+    return !(!('joinedAt' in value) || value['joinedAt'] === undefined);
+
 }
 
 export function AktiveTeilnehmerResponseDtoFromJSON(json: any): AktiveTeilnehmerResponseDto {

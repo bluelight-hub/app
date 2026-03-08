@@ -18,6 +18,7 @@
 **Ziel:** Vollständiger CRUD-Zyklus über IPC Boundary
 
 **Pre-Conditions:**
+
 - Tauri App gestartet: `pnpm --filter @bluelight-hub/frontend dev`
 - Browser DevTools geöffnet (Console)
 
@@ -80,6 +81,7 @@ console.log('✅ GET after CLEAR:', { after1, after2, after3 });
 ```
 
 **Expected Result:**
+
 - Alle Console Assertions bestehen
 - Keine Fehler in Browser Console
 - Keine Rust Panics in Tauri Terminal
@@ -93,6 +95,7 @@ console.log('✅ GET after CLEAR:', { after1, after2, after3 });
 **Ziel:** Verifizieren dass Storage NICHT persistent ist (In-Memory)
 
 **Pre-Conditions:**
+
 - TC1 erfolgreich durchgeführt
 - Tauri App läuft
 
@@ -119,6 +122,7 @@ console.log('✅ Data lost after restart (expected):', afterRestart);
 ```
 
 **Expected Result:**
+
 - Data nach App-Restart NICHT mehr vorhanden (RAM-only Storage)
 - `afterRestart === null`
 
@@ -164,6 +168,7 @@ console.log('✅ Double clear succeeded');
 ```
 
 **Expected Result:**
+
 - Keine Exceptions/Panics
 - Edge Cases werden korrekt behandelt
 
@@ -187,8 +192,8 @@ console.log('✅ Double clear succeeded');
    ```
 
 3. Open Browser DevTools:
-   - Right-click → "Inspect Element"
-   - Switch to Console tab
+    - Right-click → "Inspect Element"
+    - Switch to Console tab
 
 ### Running Tests
 
@@ -201,15 +206,18 @@ console.log('✅ Double clear succeeded');
 ### Troubleshooting
 
 **IPC Errors:**
+
 - Check Rust Commands sind registriert in `lib.rs`
 - Verify `StorageState` ist managed: `.manage(storage::StorageState::default())`
 - Check Command Names match: `storage_get`, `storage_set`, etc.
 
 **Type Errors:**
+
 - Ensure `@tauri-apps/api` ist installed
 - Check `tsconfig.json` includes Tauri types
 
 **Runtime Panics:**
+
 - Check Rust Terminal Output
 - Verify Mutex Lock wird korrekt released
 
@@ -245,5 +253,6 @@ console.log('✅ Double clear succeeded');
 ---
 
 **Sign-Off:**
+
 - Developer: Claude Sonnet 4.5
 - Reviewer: (Pending manual execution by human tester)

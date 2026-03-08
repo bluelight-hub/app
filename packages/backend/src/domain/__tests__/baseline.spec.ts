@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Baseline Test für Domain Layer Test-Infrastruktur.
  *

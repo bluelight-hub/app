@@ -30,7 +30,7 @@ vi.mock('@/shared', () => ({
   },
 }));
 
-import { useCurrentUser } from '../use-current-user';
+import { useCurrentUser } from '@/features/auth';
 
 const createAuthQueryResult = (overrides: Record<string, unknown> = {}) => ({
   data: undefined,

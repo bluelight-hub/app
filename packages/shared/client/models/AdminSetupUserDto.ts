@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -71,8 +70,8 @@ export function instanceOfAdminSetupUserDto(value: object): value is AdminSetupU
     if (!('username' in value) || value['username'] === undefined) return false;
     if (!('role' in value) || value['role'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
-    if (!('updatedAt' in value) || value['updatedAt'] === undefined) return false;
-    return true;
+    return !(!('updatedAt' in value) || value['updatedAt'] === undefined);
+
 }
 
 export function AdminSetupUserDtoFromJSON(json: any): AdminSetupUserDto {

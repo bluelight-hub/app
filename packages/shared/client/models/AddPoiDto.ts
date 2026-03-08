@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -65,8 +64,8 @@ export type AddPoiDtoCategoryEnum = typeof AddPoiDtoCategoryEnum[keyof typeof Ad
 export function instanceOfAddPoiDto(value: object): value is AddPoiDto {
     if (!('name' in value) || value['name'] === undefined) return false;
     if (!('coordinate' in value) || value['coordinate'] === undefined) return false;
-    if (!('category' in value) || value['category'] === undefined) return false;
-    return true;
+    return !(!('category' in value) || value['category'] === undefined);
+
 }
 
 export function AddPoiDtoFromJSON(json: any): AddPoiDto {

@@ -21,21 +21,15 @@ import type {
   RegistrierePersonDto,
   RegistrierePersonViaQrCodeDto,
   WeisePersonZuFahrzeugZuDto,
-} from '../models/index';
+} from '../models';
 import {
     EinsatzPersonenControllerFindAllVAlpha200ResponseFromJSON,
-    EinsatzPersonenControllerFindAllVAlpha200ResponseToJSON,
     EinsatzPersonenControllerRegistrierePersonVAlpha201ResponseFromJSON,
-    EinsatzPersonenControllerRegistrierePersonVAlpha201ResponseToJSON,
     EinsatzPersonenControllerWeiseZuFahrzeugVAlpha200ResponseFromJSON,
-    EinsatzPersonenControllerWeiseZuFahrzeugVAlpha200ResponseToJSON,
-    RegistrierePersonDtoFromJSON,
     RegistrierePersonDtoToJSON,
-    RegistrierePersonViaQrCodeDtoFromJSON,
     RegistrierePersonViaQrCodeDtoToJSON,
-    WeisePersonZuFahrzeugZuDtoFromJSON,
     WeisePersonZuFahrzeugZuDtoToJSON,
-} from '../models/index';
+} from '../models';
 
 export interface EinsatzPersonenControllerEntferneVonFahrzeugVAlphaRequest {
     einsatzId: string;
@@ -90,7 +84,7 @@ export class EinsatzPersonenApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsaetze/{einsatzId}/personen/{personId}/fahrzeug`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"personId"}}`, encodeURIComponent(String(requestParameters['personId']))),
+            path: `/api/v-alpha/einsaetze/{einsatzId}/personen/{personId}/fahrzeug`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{personId}`, encodeURIComponent(String(requestParameters['personId']))),
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
@@ -122,7 +116,7 @@ export class EinsatzPersonenApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsaetze/{einsatzId}/personen`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsaetze/{einsatzId}/personen`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -164,7 +158,7 @@ export class EinsatzPersonenApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/einsaetze/{einsatzId}/personen`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsaetze/{einsatzId}/personen`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -207,7 +201,7 @@ export class EinsatzPersonenApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/einsaetze/{einsatzId}/personen/qr`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsaetze/{einsatzId}/personen/qr`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -257,7 +251,7 @@ export class EinsatzPersonenApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/einsaetze/{einsatzId}/personen/{personId}/fahrzeug`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"personId"}}`, encodeURIComponent(String(requestParameters['personId']))),
+            path: `/api/v-alpha/einsaetze/{einsatzId}/personen/{personId}/fahrzeug`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{personId}`, encodeURIComponent(String(requestParameters['personId']))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,

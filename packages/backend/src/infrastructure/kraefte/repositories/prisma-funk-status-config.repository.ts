@@ -8,7 +8,7 @@ import type { FunkStatusConfig } from '@domain/kraefte/aggregates/funk-status-co
 import type { IFunkStatusConfigRepository, TransactionContext } from '@domain/kraefte/repositories/i-funk-status-config.repository';
 import type { FunkStatusConfigId } from '@domain/kraefte/value-objects/funk-status-config-id';
 import { PrismaFunkStatusConfigMapper } from '../mappers/prisma-funk-status-config.mapper';
-import { isPrismaError } from '../../../shared/utils/prisma.util';
+import { isPrismaError } from '@/shared/utils';
 import { FUNKSTATUS_ERROR_CODES, FunkStatusError } from '@domain/kraefte/common/error-codes';
 
 /**

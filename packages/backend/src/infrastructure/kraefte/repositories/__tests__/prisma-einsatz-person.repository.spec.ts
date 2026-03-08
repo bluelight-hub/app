@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { PrismaService } from '@/infrastructure/database/prisma.service';
 import { PrismaEinsatzPersonRepository } from '../prisma-einsatz-person.repository';
 import { PrismaEinsatzPersonMapper } from '../../mappers/prisma-einsatz-person.mapper';

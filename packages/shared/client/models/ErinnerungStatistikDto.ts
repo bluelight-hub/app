@@ -12,21 +12,10 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { ErinnerungStatusCountsDto } from './ErinnerungStatusCountsDto';
-import {
-    ErinnerungStatusCountsDtoFromJSON,
-    ErinnerungStatusCountsDtoFromJSONTyped,
-    ErinnerungStatusCountsDtoToJSON,
-    ErinnerungStatusCountsDtoToJSONTyped,
-} from './ErinnerungStatusCountsDto';
-import type { TopReceiverDto } from './TopReceiverDto';
-import {
-    TopReceiverDtoFromJSON,
-    TopReceiverDtoFromJSONTyped,
-    TopReceiverDtoToJSON,
-    TopReceiverDtoToJSONTyped,
-} from './TopReceiverDto';
+import type {ErinnerungStatusCountsDto} from './ErinnerungStatusCountsDto';
+import {ErinnerungStatusCountsDtoFromJSON, ErinnerungStatusCountsDtoToJSON,} from './ErinnerungStatusCountsDto';
+import type {TopReceiverDto} from './TopReceiverDto';
+import {TopReceiverDtoFromJSON, TopReceiverDtoToJSON,} from './TopReceiverDto';
 
 /**
  * 
@@ -74,8 +63,8 @@ export function instanceOfErinnerungStatistikDto(value: object): value is Erinne
     if (!('avgEscalationTimeSeconds' in value) || value['avgEscalationTimeSeconds'] === undefined) return false;
     if (!('topReceivers' in value) || value['topReceivers'] === undefined) return false;
     if (!('statusCounts' in value) || value['statusCounts'] === undefined) return false;
-    if (!('activeCount' in value) || value['activeCount'] === undefined) return false;
-    return true;
+    return !(!('activeCount' in value) || value['activeCount'] === undefined);
+
 }
 
 export function ErinnerungStatistikDtoFromJSON(json: any): ErinnerungStatistikDto {

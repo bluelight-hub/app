@@ -12,21 +12,15 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { StatusCountsResponseDto } from './StatusCountsResponseDto';
-import {
-    StatusCountsResponseDtoFromJSON,
-    StatusCountsResponseDtoFromJSONTyped,
-    StatusCountsResponseDtoToJSON,
-    StatusCountsResponseDtoToJSONTyped,
-} from './StatusCountsResponseDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {StatusCountsResponseDto} from './StatusCountsResponseDto';
+import {StatusCountsResponseDtoFromJSON, StatusCountsResponseDtoToJSON,} from './StatusCountsResponseDto';
 
 /**
  * 
@@ -53,8 +47,8 @@ export interface EinsatzControllerGetStatusCountsVAlpha200Response {
  */
 export function instanceOfEinsatzControllerGetStatusCountsVAlpha200Response(value: object): value is EinsatzControllerGetStatusCountsVAlpha200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function EinsatzControllerGetStatusCountsVAlpha200ResponseFromJSON(json: any): EinsatzControllerGetStatusCountsVAlpha200Response {

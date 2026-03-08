@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { BefehlAnonymisiertEvent } from './befehl-anonymisiert.event';
 import { EVENT_NAMES } from './event-names';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';

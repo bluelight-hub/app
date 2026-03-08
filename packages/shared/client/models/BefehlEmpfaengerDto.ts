@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -87,8 +86,8 @@ export type BefehlEmpfaengerDtoQuittierungArtEnum = typeof BefehlEmpfaengerDtoQu
 export function instanceOfBefehlEmpfaengerDto(value: object): value is BefehlEmpfaengerDto {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('name' in value) || value['name'] === undefined) return false;
-    if (!('istQuittierbar' in value) || value['istQuittierbar'] === undefined) return false;
-    return true;
+    return !(!('istQuittierbar' in value) || value['istQuittierbar'] === undefined);
+
 }
 
 export function BefehlEmpfaengerDtoFromJSON(json: any): BefehlEmpfaengerDto {

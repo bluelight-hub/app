@@ -19,17 +19,13 @@ import type {
   AdminStammPersonenControllerFindAllVAlpha200Response,
   CreateStammPersonDto,
   UpdateStammPersonDto,
-} from '../models/index';
+} from '../models';
 import {
     AdminStammPersonenControllerCreateVAlpha201ResponseFromJSON,
-    AdminStammPersonenControllerCreateVAlpha201ResponseToJSON,
     AdminStammPersonenControllerFindAllVAlpha200ResponseFromJSON,
-    AdminStammPersonenControllerFindAllVAlpha200ResponseToJSON,
-    CreateStammPersonDtoFromJSON,
     CreateStammPersonDtoToJSON,
-    UpdateStammPersonDtoFromJSON,
     UpdateStammPersonDtoToJSON,
-} from '../models/index';
+} from '../models';
 
 export interface AdminStammPersonenControllerArchiveVAlphaRequest {
     id: string;
@@ -85,7 +81,7 @@ export class AdminStammdatenPersonenApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/api/v-alpha/admin/stammdaten/personen/{id}/archive`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/admin/stammdaten/personen/{id}/archive`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'PATCH',
             headers: headerParameters,
             query: queryParameters,
@@ -208,7 +204,7 @@ export class AdminStammdatenPersonenApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/api/v-alpha/admin/stammdaten/personen/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/admin/stammdaten/personen/{id}`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -249,7 +245,7 @@ export class AdminStammdatenPersonenApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/api/v-alpha/admin/stammdaten/personen/{id}/restore`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/admin/stammdaten/personen/{id}/restore`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'PATCH',
             headers: headerParameters,
             query: queryParameters,
@@ -299,7 +295,7 @@ export class AdminStammdatenPersonenApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/api/v-alpha/admin/stammdaten/personen/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/admin/stammdaten/personen/{id}`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'PATCH',
             headers: headerParameters,
             query: queryParameters,

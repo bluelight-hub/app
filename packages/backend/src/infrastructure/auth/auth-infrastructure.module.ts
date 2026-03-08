@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { JWT_AUTH_SERVICE, LOGGER } from '../di-tokens';
-import { JwtTokenServiceAdapter } from './adapters/jwt-token-service.adapter';
-import { NestLoggerAdapter } from '../common/adapters/nest-logger.adapter';
+import { JwtTokenServiceAdapter } from '@/infrastructure';
+import { NestLoggerAdapter } from '@infrastructure/common/adapters';
 import { InfrastructureCommonModule } from '../common.module';
 
 /**

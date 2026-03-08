@@ -10,7 +10,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FarbPresetPicker } from '../FarbPresetPicker';
-import { KATEGORIE_FARB_PRESETS } from '../../../schemas/kategorie.schema';
+import { KATEGORIE_FARB_PRESETS } from '@/features/kategorien';
 
 describe('FarbPresetPicker', () => {
   const defaultProps = {

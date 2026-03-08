@@ -1,2 +1,3 @@
 -- AlterTable
-ALTER TABLE "erinnerungen" ADD COLUMN     "intensivierungs_count" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "erinnerungen"
+    ADD COLUMN "intensivierungs_count" INTEGER NOT NULL DEFAULT 0;

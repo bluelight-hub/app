@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -87,8 +86,8 @@ export function instanceOfRollenBesetzungDto(value: object): value is RollenBese
     if (!('personVorname' in value) || value['personVorname'] === undefined) return false;
     if (!('personNachname' in value) || value['personNachname'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
-    if (!('createdBy' in value) || value['createdBy'] === undefined) return false;
-    return true;
+    return !(!('createdBy' in value) || value['createdBy'] === undefined);
+
 }
 
 export function RollenBesetzungDtoFromJSON(json: any): RollenBesetzungDto {

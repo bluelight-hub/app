@@ -12,21 +12,15 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {AutoMatchResultResponseDto} from './AutoMatchResultResponseDto';
+import {AutoMatchResultResponseDtoFromJSON, AutoMatchResultResponseDtoToJSON,} from './AutoMatchResultResponseDto';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
-import type { AutoMatchResultResponseDto } from './AutoMatchResultResponseDto';
-import {
-    AutoMatchResultResponseDtoFromJSON,
-    AutoMatchResultResponseDtoFromJSONTyped,
-    AutoMatchResultResponseDtoToJSON,
-    AutoMatchResultResponseDtoToJSONTyped,
-} from './AutoMatchResultResponseDto';
 
 /**
  * 
@@ -53,8 +47,8 @@ export interface AdminHiOrgIntegrationControllerAutoMatchQualifikationenVAlpha20
  */
 export function instanceOfAdminHiOrgIntegrationControllerAutoMatchQualifikationenVAlpha200Response(value: object): value is AdminHiOrgIntegrationControllerAutoMatchQualifikationenVAlpha200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function AdminHiOrgIntegrationControllerAutoMatchQualifikationenVAlpha200ResponseFromJSON(json: any): AdminHiOrgIntegrationControllerAutoMatchQualifikationenVAlpha200Response {

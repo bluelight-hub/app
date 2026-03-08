@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -56,8 +55,8 @@ export type BasicHealthDtoStatusEnum = typeof BasicHealthDtoStatusEnum[keyof typ
 export function instanceOfBasicHealthDto(value: object): value is BasicHealthDto {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('setupComplete' in value) || value['setupComplete'] === undefined) return false;
-    if (!('version' in value) || value['version'] === undefined) return false;
-    return true;
+    return !(!('version' in value) || value['version'] === undefined);
+
 }
 
 export function BasicHealthDtoFromJSON(json: any): BasicHealthDto {

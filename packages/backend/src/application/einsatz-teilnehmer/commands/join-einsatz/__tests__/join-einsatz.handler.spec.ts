@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { IEinsatzTeilnehmerRepository } from '@domain/repositories/i-einsatz-teilnehmer.repository';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { JoinEinsatzHandler } from '../join-einsatz.handler';

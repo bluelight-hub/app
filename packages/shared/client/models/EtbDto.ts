@@ -12,21 +12,10 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { EintragDto } from './EintragDto';
-import {
-    EintragDtoFromJSON,
-    EintragDtoFromJSONTyped,
-    EintragDtoToJSON,
-    EintragDtoToJSONTyped,
-} from './EintragDto';
-import type { EtbVersionDto } from './EtbVersionDto';
-import {
-    EtbVersionDtoFromJSON,
-    EtbVersionDtoFromJSONTyped,
-    EtbVersionDtoToJSON,
-    EtbVersionDtoToJSONTyped,
-} from './EtbVersionDto';
+import type {EintragDto} from './EintragDto';
+import {EintragDtoFromJSON, EintragDtoToJSON,} from './EintragDto';
+import type {EtbVersionDto} from './EtbVersionDto';
+import {EtbVersionDtoFromJSON, EtbVersionDtoToJSON,} from './EtbVersionDto';
 
 /**
  * 
@@ -105,8 +94,8 @@ export function instanceOfEtbDto(value: object): value is EtbDto {
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('eintraege' in value) || value['eintraege'] === undefined) return false;
     if (!('version' in value) || value['version'] === undefined) return false;
-    if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
-    return true;
+    return !(!('createdAt' in value) || value['createdAt'] === undefined);
+
 }
 
 export function EtbDtoFromJSON(json: any): EtbDto {

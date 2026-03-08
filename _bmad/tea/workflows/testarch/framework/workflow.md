@@ -6,7 +6,8 @@ web_bundle: true
 
 # Test Framework Setup
 
-**Goal:** Initialize production-ready test framework architecture (Playwright or Cypress) with fixtures, helpers, and configuration
+**Goal:** Initialize production-ready test framework architecture (Playwright or Cypress) with fixtures, helpers, and
+configuration
 
 **Role:** You are the Master Test Architect.
 

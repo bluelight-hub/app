@@ -2,7 +2,8 @@
 
 ## Übersicht
 
-Der `usePoiForm` Hook wurde erweitert, um MGRS-Koordinaten zu unterstützen. Dies ermöglicht es Benutzern, zwischen MGRS- und Lat/Lng-Koordinaten zu wechseln.
+Der `usePoiForm` Hook wurde erweitert, um MGRS-Koordinaten zu unterstützen. Dies ermöglicht es Benutzern, zwischen MGRS-
+und Lat/Lng-Koordinaten zu wechseln.
 
 ## Hook API
 
@@ -32,12 +33,14 @@ const {
 ### Lat/Lng → MGRS (Automatisch)
 
 Wenn `latitude` oder `longitude` sich ändern:
+
 1. Hook konvertiert automatisch zu MGRS
 2. `mgrsInput` State wird aktualisiert
 3. Form-Field `mgrs` wird gesetzt
 4. MGRS wird formatiert (mit Leerzeichen für Lesbarkeit)
 
 **Beispiel:**
+
 ```typescript
 form.setFieldValue('latitude', 52.52);
 form.setFieldValue('longitude', 13.405);
@@ -47,12 +50,14 @@ form.setFieldValue('longitude', 13.405);
 ### MGRS → Lat/Lng (Manual via handleMgrsChange)
 
 Wenn User MGRS-Koordinaten eingibt:
+
 1. Modal ruft `handleMgrsChange(mgrsValue)` auf
 2. Hook validiert MGRS-Format
 3. Bei gültigem MGRS: Konvertierung zu Lat/Lng
 4. `latitude` und `longitude` Form-Fields werden aktualisiert
 
 **Beispiel:**
+
 ```typescript
 handleMgrsChange("33U UU 41831 83221");
 // → latitude = 52.52, longitude = 13.405
@@ -267,8 +272,8 @@ await createPoiMutation.mutateAsync({
    ```
 
 3. **Service erweitern** (`poi.service.ts`):
-   - MGRS zu Lat/Lng Konvertierung (mit `mgrs` NPM package)
-   - MGRS-Speicherung in DB
+    - MGRS zu Lat/Lng Konvertierung (mit `mgrs` NPM package)
+    - MGRS-Speicherung in DB
 
 ## Testing
 

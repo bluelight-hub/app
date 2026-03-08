@@ -30,7 +30,7 @@ import { FullscreenCloseButton } from '@/features/lagekarte/ui/organisms/Fullscr
 import { useTaktischeStaerke } from '../../api';
 import { DashboardModeProvider, type DashboardMode } from '../../contexts';
 import { StaerkeCard } from '../molecules';
-import { DashboardErrorCard } from '../molecules/DashboardErrorCard';
+import { DashboardErrorCard } from '@/features/kraefte/ui';
 import { BesetzeRolleDialog, FahrzeugStatusListe, FreigebeRolleDialog, RollenUebersicht } from '../organisms';
 
 interface KraefteDashboardProps {

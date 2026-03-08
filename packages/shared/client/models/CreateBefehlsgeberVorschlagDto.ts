@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -44,8 +43,8 @@ export interface CreateBefehlsgeberVorschlagDto {
  */
 export function instanceOfCreateBefehlsgeberVorschlagDto(value: object): value is CreateBefehlsgeberVorschlagDto {
     if (!('kuerzel' in value) || value['kuerzel'] === undefined) return false;
-    if (!('label' in value) || value['label'] === undefined) return false;
-    return true;
+    return !(!('label' in value) || value['label'] === undefined);
+
 }
 
 export function CreateBefehlsgeberVorschlagDtoFromJSON(json: any): CreateBefehlsgeberVorschlagDto {

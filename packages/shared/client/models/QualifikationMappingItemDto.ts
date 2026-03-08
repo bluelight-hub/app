@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -84,8 +83,8 @@ export function instanceOfQualifikationMappingItemDto(value: object): value is Q
     if (!('externalSource' in value) || value['externalSource'] === undefined) return false;
     if (!('isAutoMatched' in value) || value['isAutoMatched'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
-    if (!('updatedAt' in value) || value['updatedAt'] === undefined) return false;
-    return true;
+    return !(!('updatedAt' in value) || value['updatedAt'] === undefined);
+
 }
 
 export function QualifikationMappingItemDtoFromJSON(json: any): QualifikationMappingItemDto {

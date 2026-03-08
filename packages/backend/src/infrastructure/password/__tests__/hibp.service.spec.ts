@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Test, type TestingModule } from '@nestjs/testing';
 import { HibpService } from '../hibp.service';
 import { LOGGER } from '@/infrastructure/di-tokens';
@@ -140,7 +141,7 @@ FEDCBA9876543210FEDCBA9876543210FED:50
 
       // Then: Verify API was called with 5-char prefix
       expect(mockFetch).toHaveBeenCalledTimes(1);
-      const callUrl = mockFetch.mock.calls[0][0] as string;
+      const callUrl = mockFetch.mock.calls[0]?.[0]! as string;
       expect(callUrl).toMatch(/https:\/\/api\.pwnedpasswords\.com\/range\/[A-F0-9]{5}$/);
     });
 

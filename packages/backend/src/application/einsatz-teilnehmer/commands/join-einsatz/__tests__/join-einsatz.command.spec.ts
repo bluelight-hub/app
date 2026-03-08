@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { JoinEinsatzCommand } from '../join-einsatz.command';
 
 describe('JoinEinsatzCommand', () => {

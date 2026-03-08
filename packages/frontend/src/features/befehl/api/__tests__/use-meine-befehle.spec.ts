@@ -6,7 +6,7 @@
  * - useMeineBefehle: Query-Key und enabled-Logik
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { sortMeineBefehle } from '../use-meine-befehle';
 import { BEFEHL_QUERY_KEYS } from '../queries';
 import type { BefehlDto, BefehlEmpfaengerDto } from '@bluelight-hub/shared/client';

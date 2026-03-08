@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -95,8 +94,8 @@ export type BefehlHistorieEventDtoStatusEnum = typeof BefehlHistorieEventDtoStat
 export function instanceOfBefehlHistorieEventDto(value: object): value is BefehlHistorieEventDto {
     if (!('typ' in value) || value['typ'] === undefined) return false;
     if (!('status' in value) || value['status'] === undefined) return false;
-    if (!('beschreibung' in value) || value['beschreibung'] === undefined) return false;
-    return true;
+    return !(!('beschreibung' in value) || value['beschreibung'] === undefined);
+
 }
 
 export function BefehlHistorieEventDtoFromJSON(json: any): BefehlHistorieEventDto {

@@ -28,35 +28,22 @@ import type {
   EinsatzControllerGetTeilnehmerVAlpha200Response,
   UpdateEinsatzDto,
   UpdateEinsatzRollenDto,
-} from '../models/index';
+} from '../models';
 import {
-    CreateEinsatzDtoFromJSON,
     CreateEinsatzDtoToJSON,
     EinsatzControllerCreateVAlpha201ResponseFromJSON,
-    EinsatzControllerCreateVAlpha201ResponseToJSON,
     EinsatzControllerFindAllVAlpha200ResponseFromJSON,
-    EinsatzControllerFindAllVAlpha200ResponseToJSON,
     EinsatzControllerFindOneVAlpha200ResponseFromJSON,
-    EinsatzControllerFindOneVAlpha200ResponseToJSON,
     EinsatzControllerGetActiveEinsaetzeWithCountsVAlpha200ResponseFromJSON,
-    EinsatzControllerGetActiveEinsaetzeWithCountsVAlpha200ResponseToJSON,
     EinsatzControllerGetCompletenessVAlpha200ResponseFromJSON,
-    EinsatzControllerGetCompletenessVAlpha200ResponseToJSON,
     EinsatzControllerGetEinsatzDetailsVAlpha200ResponseFromJSON,
-    EinsatzControllerGetEinsatzDetailsVAlpha200ResponseToJSON,
     EinsatzControllerGetPreviousVAlpha200ResponseFromJSON,
-    EinsatzControllerGetPreviousVAlpha200ResponseToJSON,
     EinsatzControllerGetRollenVAlpha200ResponseFromJSON,
-    EinsatzControllerGetRollenVAlpha200ResponseToJSON,
     EinsatzControllerGetStatusCountsVAlpha200ResponseFromJSON,
-    EinsatzControllerGetStatusCountsVAlpha200ResponseToJSON,
     EinsatzControllerGetTeilnehmerVAlpha200ResponseFromJSON,
-    EinsatzControllerGetTeilnehmerVAlpha200ResponseToJSON,
-    UpdateEinsatzDtoFromJSON,
     UpdateEinsatzDtoToJSON,
-    UpdateEinsatzRollenDtoFromJSON,
     UpdateEinsatzRollenDtoToJSON,
-} from '../models/index';
+} from '../models';
 
 export interface EinsatzControllerArchiveV1Request {
     id: string;
@@ -236,7 +223,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-1/einsatz/{id}/archive`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-1/einsatz/{id}/archive`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -271,7 +258,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{id}/archive`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/einsatz/{id}/archive`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -306,7 +293,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-1/einsatz/{id}/complete`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-1/einsatz/{id}/complete`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -341,7 +328,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{id}/complete`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/einsatz/{id}/complete`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -452,7 +439,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-1/einsatz/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-1/einsatz/{id}`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
@@ -486,7 +473,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/einsatz/{id}`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
@@ -640,7 +627,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-1/einsatz/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-1/einsatz/{id}`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -675,7 +662,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/einsatz/{id}`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -778,7 +765,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-1/einsatz/{id}/completeness`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-1/einsatz/{id}/completeness`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -817,7 +804,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{id}/completeness`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/einsatz/{id}/completeness`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -852,7 +839,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-1/einsatz/{id}/details`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-1/einsatz/{id}/details`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -887,7 +874,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{id}/details`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/einsatz/{id}/details`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -922,7 +909,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-1/einsatz/{id}/navigation/next`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-1/einsatz/{id}/navigation/next`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -957,7 +944,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{id}/navigation/next`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/einsatz/{id}/navigation/next`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -992,7 +979,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-1/einsatz/{id}/navigation/previous`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-1/einsatz/{id}/navigation/previous`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1027,7 +1014,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{id}/navigation/previous`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/einsatz/{id}/navigation/previous`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1062,7 +1049,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-1/einsatz/{id}/rollen`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-1/einsatz/{id}/rollen`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1097,7 +1084,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{id}/rollen`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/einsatz/{id}/rollen`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1196,7 +1183,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-1/einsatz/{id}/teilnehmer`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-1/einsatz/{id}/teilnehmer`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1231,7 +1218,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{id}/teilnehmer`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/einsatz/{id}/teilnehmer`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -1266,7 +1253,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-1/einsatz/{id}/start`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-1/einsatz/{id}/start`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -1301,7 +1288,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{id}/start`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/einsatz/{id}/start`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -1345,7 +1332,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-1/einsatz/{id}/rollen`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-1/einsatz/{id}/rollen`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
@@ -1390,7 +1377,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{id}/rollen`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/einsatz/{id}/rollen`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'PUT',
             headers: headerParameters,
             query: queryParameters,
@@ -1435,7 +1422,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-1/einsatz/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-1/einsatz/{id}`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'PATCH',
             headers: headerParameters,
             query: queryParameters,
@@ -1480,7 +1467,7 @@ export class EinsatzApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            path: `/api/v-alpha/einsatz/{id}`.replace(`{id}`, encodeURIComponent(String(requestParameters['id']))),
             method: 'PATCH',
             headers: headerParameters,
             query: queryParameters,

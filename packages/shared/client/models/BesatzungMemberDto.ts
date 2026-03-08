@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -45,8 +44,8 @@ export interface BesatzungMemberDto {
 export function instanceOfBesatzungMemberDto(value: object): value is BesatzungMemberDto {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('vorname' in value) || value['vorname'] === undefined) return false;
-    if (!('nachname' in value) || value['nachname'] === undefined) return false;
-    return true;
+    return !(!('nachname' in value) || value['nachname'] === undefined);
+
 }
 
 export function BesatzungMemberDtoFromJSON(json: any): BesatzungMemberDto {

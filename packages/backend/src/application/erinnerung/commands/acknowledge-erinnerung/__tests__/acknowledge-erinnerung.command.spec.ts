@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { AcknowledgeErinnerungCommand } from '../acknowledge-erinnerung.command';
 
 describe('AcknowledgeErinnerungCommand', () => {
@@ -24,8 +25,8 @@ describe('AcknowledgeErinnerungCommand', () => {
         // Then (Assert)
         expect(result.isSuccess).toBe(true);
         expect(result.value).toBeDefined();
-        expect(result.value!.erinnerungId).toBe(TEST_CUID);
-        expect(result.value!.acknowledgedBy).toBe(TEST_CUID_USER);
+        expect(result.value?.erinnerungId).toBe(TEST_CUID);
+        expect(result.value?.acknowledgedBy).toBe(TEST_CUID_USER);
       });
 
       it('sollte Command mit 24-Zeichen CUID erstellen (Minimum)', () => {

@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -86,8 +85,8 @@ export function instanceOfBefehlsgeberVorschlagDto(value: object): value is Befe
     if (!('sortOrder' in value) || value['sortOrder'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
     if (!('updatedAt' in value) || value['updatedAt'] === undefined) return false;
-    if (!('createdBy' in value) || value['createdBy'] === undefined) return false;
-    return true;
+    return !(!('createdBy' in value) || value['createdBy'] === undefined);
+
 }
 
 export function BefehlsgeberVorschlagDtoFromJSON(json: any): BefehlsgeberVorschlagDto {

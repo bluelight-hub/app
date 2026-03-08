@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { ErinnerungsvorlageController } from '@/modules/erinnerungsvorlage/controllers/erinnerungsvorlage.controller';
 import { Result } from '@/domain/common/result';

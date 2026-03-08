@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -111,8 +110,8 @@ export function instanceOfNotizResponseDto(value: object): value is NotizRespons
     if (!('istTeamsichtbar' in value) || value['istTeamsichtbar'] === undefined) return false;
     if (!('erstelltVon' in value) || value['erstelltVon'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
-    if (!('updatedAt' in value) || value['updatedAt'] === undefined) return false;
-    return true;
+    return !(!('updatedAt' in value) || value['updatedAt'] === undefined);
+
 }
 
 export function NotizResponseDtoFromJSON(json: any): NotizResponseDto {

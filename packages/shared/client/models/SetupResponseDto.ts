@@ -12,28 +12,12 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { SetupUserDto } from './SetupUserDto';
-import {
-    SetupUserDtoFromJSON,
-    SetupUserDtoFromJSONTyped,
-    SetupUserDtoToJSON,
-    SetupUserDtoToJSONTyped,
-} from './SetupUserDto';
-import type { SetupTokenDto } from './SetupTokenDto';
-import {
-    SetupTokenDtoFromJSON,
-    SetupTokenDtoFromJSONTyped,
-    SetupTokenDtoToJSON,
-    SetupTokenDtoToJSONTyped,
-} from './SetupTokenDto';
-import type { SetupInviteCodeDto } from './SetupInviteCodeDto';
-import {
-    SetupInviteCodeDtoFromJSON,
-    SetupInviteCodeDtoFromJSONTyped,
-    SetupInviteCodeDtoToJSON,
-    SetupInviteCodeDtoToJSONTyped,
-} from './SetupInviteCodeDto';
+import type {SetupInviteCodeDto} from './SetupInviteCodeDto';
+import {SetupInviteCodeDtoFromJSON, SetupInviteCodeDtoToJSON,} from './SetupInviteCodeDto';
+import type {SetupTokenDto} from './SetupTokenDto';
+import {SetupTokenDtoFromJSON, SetupTokenDtoToJSON,} from './SetupTokenDto';
+import type {SetupUserDto} from './SetupUserDto';
+import {SetupUserDtoFromJSON, SetupUserDtoToJSON,} from './SetupUserDto';
 
 /**
  * 
@@ -67,8 +51,8 @@ export interface SetupResponseDto {
 export function instanceOfSetupResponseDto(value: object): value is SetupResponseDto {
     if (!('user' in value) || value['user'] === undefined) return false;
     if (!('accessToken' in value) || value['accessToken'] === undefined) return false;
-    if (!('inviteCode' in value) || value['inviteCode'] === undefined) return false;
-    return true;
+    return !(!('inviteCode' in value) || value['inviteCode'] === undefined);
+
 }
 
 export function SetupResponseDtoFromJSON(json: any): SetupResponseDto {

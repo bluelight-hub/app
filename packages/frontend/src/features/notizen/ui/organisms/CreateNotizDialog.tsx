@@ -11,7 +11,7 @@ import { cn } from '@/shared/ui/cn';
 import { KategorieSelector } from '@/features/kategorien';
 
 import { useCreateNotiz } from '../../api';
-import { createNotizSchema, type CreateNotizFormValues } from '../../schemas/notiz.schema';
+import { createNotizSchema, type CreateNotizFormValues } from '@/features/notizen';
 
 /**
  * Extrahiert Fehlermeldungen aus TanStack Form Errors.
@@ -163,10 +163,14 @@ export function CreateNotizDialog({ isOpen, onClose, einsatzId }: CreateNotizDia
           <form.Field name="kategorieId">
             {(field) => (
               <div>
-                <label className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
-                  Kategorie <span className="text-gray-400 text-xs">(optional)</span>
-                </label>
-                <KategorieSelector einsatzId={einsatzId} value={field.state.value} onChange={(kategorieId) => field.handleChange(kategorieId)} onBlur={field.handleBlur} disabled={isPending} />
+                <KategorieSelector
+                  einsatzId={einsatzId}
+                  value={field.state.value}
+                  onChange={(kategorieId) => field.handleChange(kategorieId)}
+                  onBlur={field.handleBlur}
+                  disabled={isPending}
+                  label="Kategorie (optional)"
+                />
               </div>
             )}
           </form.Field>
@@ -179,6 +183,7 @@ export function CreateNotizDialog({ isOpen, onClose, einsatzId }: CreateNotizDia
                   checked={field.state.value ?? false}
                   onChange={(checked) => field.handleChange(checked)}
                   disabled={isPending}
+                  aria-label="Für das Team sichtbar"
                   className={cn(
                     'relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors',
                     'disabled:cursor-not-allowed disabled:opacity-50',
@@ -187,10 +192,10 @@ export function CreateNotizDialog({ isOpen, onClose, einsatzId }: CreateNotizDia
                 >
                   <span className={cn('inline-block h-4 w-4 transform rounded-full bg-white transition-transform', field.state.value ? 'translate-x-6' : 'translate-x-1')} />
                 </Switch>
-                <label className="flex items-center gap-1.5 text-sm text-slate-700 dark:text-slate-300">
+                <span className="flex items-center gap-1.5 text-slate-700 text-sm dark:text-slate-300">
                   <PiUsersThree className="h-4 w-4" />
                   Für das Team sichtbar
-                </label>
+                </span>
               </div>
             )}
           </form.Field>

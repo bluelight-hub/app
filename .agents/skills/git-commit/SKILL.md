@@ -29,12 +29,14 @@ Run:
 Review all changed and untracked files for:
 
 1. Gitignore candidates:
+
 - `.env` files, credentials, API keys, certificates
 - Build artifacts, `node_modules`, `dist/`, coverage outputs
 - IDE/OS files (`.idea/`, `.vscode/`, `.DS_Store`)
 - Temporary/debug files and large binaries
 
-2. Accidental changes:
+1. Accidental changes:
+
 - Lockfile changes without matching dependency changes
 - Unrelated formatting-only changes
 - Debug leftovers (`console.log`, `debugger`)

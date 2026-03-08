@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -59,8 +58,8 @@ export function instanceOfFuehrungsrhythmusEintragResponseDto(value: object): va
     if (!('titel' in value) || value['titel'] === undefined) return false;
     if (!('intervallMinuten' in value) || value['intervallMinuten'] === undefined) return false;
     if (!('offsetMinuten' in value) || value['offsetMinuten'] === undefined) return false;
-    if (!('sortOrder' in value) || value['sortOrder'] === undefined) return false;
-    return true;
+    return !(!('sortOrder' in value) || value['sortOrder'] === undefined);
+
 }
 
 export function FuehrungsrhythmusEintragResponseDtoFromJSON(json: any): FuehrungsrhythmusEintragResponseDto {

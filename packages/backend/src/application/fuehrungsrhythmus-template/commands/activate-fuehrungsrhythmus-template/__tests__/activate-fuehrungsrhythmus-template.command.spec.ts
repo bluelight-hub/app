@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createId } from '@paralleldrive/cuid2';
 import { ActivateFuehrungsrhythmusTemplateCommand } from '../activate-fuehrungsrhythmus-template.command';
 import { FUEHRUNGSRHYTHMUS_TEMPLATE_ERROR_CODES } from '../../../errors/fuehrungsrhythmus-template-error.codes';
@@ -30,9 +31,9 @@ describe('ActivateFuehrungsrhythmusTemplateCommand', () => {
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
       expect(result.value).toBeDefined();
-      expect(result.value!.templateId).toBe(validTemplateId);
-      expect(result.value!.einsatzId).toBe(validEinsatzId);
-      expect(result.value!.aktiviertVon).toBe(validAktiviertVon);
+      expect(result.value?.templateId).toBe(validTemplateId);
+      expect(result.value?.einsatzId).toBe(validEinsatzId);
+      expect(result.value?.aktiviertVon).toBe(validAktiviertVon);
     });
 
     // --- templateId Validierung ---

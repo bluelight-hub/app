@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -31,8 +30,8 @@ export interface RefreshResponseDto {
  * Check if a given object implements the RefreshResponseDto interface.
  */
 export function instanceOfRefreshResponseDto(value: object): value is RefreshResponseDto {
-    if (!('success' in value) || value['success'] === undefined) return false;
-    return true;
+    return !(!('success' in value) || value['success'] === undefined);
+
 }
 
 export function RefreshResponseDtoFromJSON(json: any): RefreshResponseDto {

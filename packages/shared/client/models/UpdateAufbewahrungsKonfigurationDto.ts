@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -45,8 +44,8 @@ export interface UpdateAufbewahrungsKonfigurationDto {
 export function instanceOfUpdateAufbewahrungsKonfigurationDto(value: object): value is UpdateAufbewahrungsKonfigurationDto {
     if (!('aufbewahrungsfristJahre' in value) || value['aufbewahrungsfristJahre'] === undefined) return false;
     if (!('freigabeperiodeTage' in value) || value['freigabeperiodeTage'] === undefined) return false;
-    if (!('automatischLoeschenAktiv' in value) || value['automatischLoeschenAktiv'] === undefined) return false;
-    return true;
+    return !(!('automatischLoeschenAktiv' in value) || value['automatischLoeschenAktiv'] === undefined);
+
 }
 
 export function UpdateAufbewahrungsKonfigurationDtoFromJSON(json: any): UpdateAufbewahrungsKonfigurationDto {

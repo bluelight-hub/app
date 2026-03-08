@@ -172,6 +172,7 @@ const RegionSelectionMap: React.FC<RegionSelectionMapProps> = ({ initialBounds, 
  * @param onClose - Callback zum Schließen
  * @param currentMapBounds - Aktuelle Map-Bounds (initial bounds)
  *
+ * @param map
  * @remarks
  * - Accessibility: WCAG 2.1 AA compliant
  * - Keyboard: Esc to close, Tab for navigation

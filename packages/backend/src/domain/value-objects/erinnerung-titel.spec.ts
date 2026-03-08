@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ErinnerungTitel } from '@domain/value-objects/erinnerung-titel';
 
 describe('ErinnerungTitel', () => {

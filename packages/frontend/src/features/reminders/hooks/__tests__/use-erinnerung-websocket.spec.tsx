@@ -34,7 +34,7 @@ vi.mock('../../services/notification.service', () => ({
 }));
 
 import { ERINNERUNG_QUERY_KEYS } from '../../api/queries';
-import { useErinnerungWebSocket } from '../use-erinnerung-websocket';
+import { useErinnerungWebSocket } from '@/features/reminders';
 
 describe('useErinnerungWebSocket - Cache-Invalidierung', () => {
   let queryClient: QueryClient;

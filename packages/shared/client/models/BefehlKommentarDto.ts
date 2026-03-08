@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -64,8 +63,8 @@ export function instanceOfBefehlKommentarDto(value: object): value is BefehlKomm
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('text' in value) || value['text'] === undefined) return false;
     if (!('isRueckfrage' in value) || value['isRueckfrage'] === undefined) return false;
-    if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
-    return true;
+    return !(!('createdAt' in value) || value['createdAt'] === undefined);
+
 }
 
 export function BefehlKommentarDtoFromJSON(json: any): BefehlKommentarDto {

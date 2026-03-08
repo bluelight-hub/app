@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { PublicUserDto } from './PublicUserDto';
-import {
-    PublicUserDtoFromJSON,
-    PublicUserDtoFromJSONTyped,
-    PublicUserDtoToJSON,
-    PublicUserDtoToJSONTyped,
-} from './PublicUserDto';
+import type {PublicUserDto} from './PublicUserDto';
+import {PublicUserDtoFromJSON, PublicUserDtoToJSON,} from './PublicUserDto';
 
 /**
  * 
@@ -39,8 +33,8 @@ export interface PublicUsersResponseDto {
  * Check if a given object implements the PublicUsersResponseDto interface.
  */
 export function instanceOfPublicUsersResponseDto(value: object): value is PublicUsersResponseDto {
-    if (!('users' in value) || value['users'] === undefined) return false;
-    return true;
+    return !(!('users' in value) || value['users'] === undefined);
+
 }
 
 export function PublicUsersResponseDtoFromJSON(json: any): PublicUsersResponseDto {

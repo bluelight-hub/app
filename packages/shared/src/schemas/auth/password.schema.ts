@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PASSWORD_CRITERIA, validatePasswordCriteria, isPasswordBlocked, PASSWORD_BLOCKLIST } from '../../validation/password.schema.js';
+import { PASSWORD_CRITERIA, validatePasswordCriteria, isPasswordBlocked, PASSWORD_BLOCKLIST } from '../../validation';
 
 /**
  * Zod-Schema für die Validierung von Passwörtern gemäß NIST SP 800-63B-4.

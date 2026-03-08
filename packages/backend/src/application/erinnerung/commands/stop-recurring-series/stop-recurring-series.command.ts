@@ -1,5 +1,5 @@
 import { Result } from '@domain/common/result';
-import { ERINNERUNG_ERROR_CODES } from '../../errors/erinnerung-error.codes';
+import { ERINNERUNG_ERROR_CODES } from '@application/erinnerung';
 
 /**
  * Props Interface für typsichere Command-Erstellung.

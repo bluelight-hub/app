@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -31,8 +30,8 @@ export interface AdminTokenVerificationDto {
  * Check if a given object implements the AdminTokenVerificationDto interface.
  */
 export function instanceOfAdminTokenVerificationDto(value: object): value is AdminTokenVerificationDto {
-    if (!('ok' in value) || value['ok'] === undefined) return false;
-    return true;
+    return !(!('ok' in value) || value['ok'] === undefined);
+
 }
 
 export function AdminTokenVerificationDtoFromJSON(json: any): AdminTokenVerificationDto {

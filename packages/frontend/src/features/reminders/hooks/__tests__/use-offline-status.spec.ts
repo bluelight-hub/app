@@ -11,9 +11,9 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useOfflineStatus } from '../use-offline-status';
+import { useOfflineStatus } from '@/features/reminders';
 import { offlineDetectionService } from '../../services/offline-detection.service';
-import { resetOfflineStore, queueSyncAction } from '../../stores/offline.store';
+import { resetOfflineStore, queueSyncAction } from '@/features/reminders';
 
 // Mock the offline detection service
 vi.mock('../../services/offline-detection.service', () => {

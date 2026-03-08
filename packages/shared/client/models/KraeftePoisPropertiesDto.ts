@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -73,8 +72,8 @@ export function instanceOfKraeftePoisPropertiesDto(value: object): value is Krae
     if (!('statusFarbe' in value) || value['statusFarbe'] === undefined) return false;
     if (!('staerke' in value) || value['staerke'] === undefined) return false;
     if (!('fahrzeugtypCode' in value) || value['fahrzeugtypCode'] === undefined) return false;
-    if (!('positionTimestamp' in value) || value['positionTimestamp'] === undefined) return false;
-    return true;
+    return !(!('positionTimestamp' in value) || value['positionTimestamp'] === undefined);
+
 }
 
 export function KraeftePoisPropertiesDtoFromJSON(json: any): KraeftePoisPropertiesDto {

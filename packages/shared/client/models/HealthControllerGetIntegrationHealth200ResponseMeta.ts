@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -45,8 +44,8 @@ export interface HealthControllerGetIntegrationHealth200ResponseMeta {
 export function instanceOfHealthControllerGetIntegrationHealth200ResponseMeta(value: object): value is HealthControllerGetIntegrationHealth200ResponseMeta {
     if (!('timestamp' in value) || value['timestamp'] === undefined) return false;
     if (!('version' in value) || value['version'] === undefined) return false;
-    if (!('requestId' in value) || value['requestId'] === undefined) return false;
-    return true;
+    return !(!('requestId' in value) || value['requestId'] === undefined);
+
 }
 
 export function HealthControllerGetIntegrationHealth200ResponseMetaFromJSON(json: any): HealthControllerGetIntegrationHealth200ResponseMeta {

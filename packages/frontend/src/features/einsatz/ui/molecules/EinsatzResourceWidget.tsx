@@ -1,8 +1,8 @@
 import { cn } from '@/shared/ui/cn';
 import { Button } from '@/shared/ui/atoms/button.atom';
-import { FmsStatusDropdown } from './FmsStatusDropdown.molecule';
+import { FmsStatusDropdown } from '@/features/einsatz';
 import type { EinsatzFahrzeugDto, BesatzungMemberDto } from '@/shared';
-import { isFmsStatus, type FmsStatus } from '../../constants/fms-status.constants';
+import { isFmsStatus, type FmsStatus } from '@/features/einsatz';
 import { PiTruck, PiUserPlus, PiUsers } from 'react-icons/pi';
 import type { ReactNode } from 'react';
 

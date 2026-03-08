@@ -12,21 +12,10 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { BefehlEmpfaengerDto } from './BefehlEmpfaengerDto';
-import {
-    BefehlEmpfaengerDtoFromJSON,
-    BefehlEmpfaengerDtoFromJSONTyped,
-    BefehlEmpfaengerDtoToJSON,
-    BefehlEmpfaengerDtoToJSONTyped,
-} from './BefehlEmpfaengerDto';
-import type { BefehlKommentarDto } from './BefehlKommentarDto';
-import {
-    BefehlKommentarDtoFromJSON,
-    BefehlKommentarDtoFromJSONTyped,
-    BefehlKommentarDtoToJSON,
-    BefehlKommentarDtoToJSONTyped,
-} from './BefehlKommentarDto';
+import type {BefehlEmpfaengerDto} from './BefehlEmpfaengerDto';
+import {BefehlEmpfaengerDtoFromJSON, BefehlEmpfaengerDtoToJSON,} from './BefehlEmpfaengerDto';
+import type {BefehlKommentarDto} from './BefehlKommentarDto';
+import {BefehlKommentarDtoFromJSON, BefehlKommentarDtoToJSON,} from './BefehlKommentarDto';
 
 /**
  * 
@@ -232,8 +221,8 @@ export function instanceOfBefehlDto(value: object): value is BefehlDto {
     if (!('hatOffeneRueckfrage' in value) || value['hatOffeneRueckfrage'] === undefined) return false;
     if (!('kritikalitaet' in value) || value['kritikalitaet'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
-    if (!('updatedAt' in value) || value['updatedAt'] === undefined) return false;
-    return true;
+    return !(!('updatedAt' in value) || value['updatedAt'] === undefined);
+
 }
 
 export function BefehlDtoFromJSON(json: any): BefehlDto {

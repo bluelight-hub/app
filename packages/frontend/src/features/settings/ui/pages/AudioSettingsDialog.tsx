@@ -5,8 +5,8 @@ import { Button } from '@/shared/ui/atoms/button.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { useAudioSettings } from '../../hooks';
 import { ALARM_LEVELS, DEFAULT_AUDIO_SETTINGS, type AlarmLevel, type AudioLevelConfig as AudioLevelConfigType, type AudioSettings } from '../../schemas';
-import { AudioLevelConfig } from '../molecules/AudioLevelConfig';
-import { AudioToggle } from '../molecules/AudioToggle';
+import { AudioLevelConfig } from '@/features/settings/ui';
+import { AudioToggle } from '@/features/settings';
 
 /**
  * Props für AudioSettingsDialog

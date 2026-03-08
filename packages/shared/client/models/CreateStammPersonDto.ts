@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -57,8 +56,8 @@ export interface CreateStammPersonDto {
 export function instanceOfCreateStammPersonDto(value: object): value is CreateStammPersonDto {
     if (!('vorname' in value) || value['vorname'] === undefined) return false;
     if (!('nachname' in value) || value['nachname'] === undefined) return false;
-    if (!('personalnummer' in value) || value['personalnummer'] === undefined) return false;
-    return true;
+    return !(!('personalnummer' in value) || value['personalnummer'] === undefined);
+
 }
 
 export function CreateStammPersonDtoFromJSON(json: any): CreateStammPersonDto {

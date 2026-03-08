@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -31,8 +30,8 @@ export interface InitiateOAuthResponseDto {
  * Check if a given object implements the InitiateOAuthResponseDto interface.
  */
 export function instanceOfInitiateOAuthResponseDto(value: object): value is InitiateOAuthResponseDto {
-    if (!('authorizationUrl' in value) || value['authorizationUrl'] === undefined) return false;
-    return true;
+    return !(!('authorizationUrl' in value) || value['authorizationUrl'] === undefined);
+
 }
 
 export function InitiateOAuthResponseDtoFromJSON(json: any): InitiateOAuthResponseDto {

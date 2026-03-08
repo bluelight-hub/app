@@ -8,18 +8,27 @@ export function HighlightText({ text, query }: { text: string; query: string }) 
 
   const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const parts = text.split(new RegExp(`(${escaped})`, 'gi'));
+  const normalizedQuery = query.toLowerCase();
+  let currentOffset = 0;
 
   return (
     <>
-      {parts.map((part, index) =>
-        part.toLowerCase() === query.toLowerCase() ? (
-          <mark key={index} className="bg-yellow-100 dark:bg-yellow-800/40 rounded-sm px-0.5">
+      {parts.map((part) => {
+        const startOffset = currentOffset;
+        currentOffset += part.length;
+
+        if (!part) {
+          return null;
+        }
+
+        return part.toLowerCase() === normalizedQuery ? (
+          <mark key={`${startOffset}-${part}`} className="rounded-sm bg-yellow-100 px-0.5 dark:bg-yellow-800/40">
             {part}
           </mark>
         ) : (
-          <span key={index}>{part}</span>
-        ),
-      )}
+          <span key={`${startOffset}-${part}`}>{part}</span>
+        );
+      })}
     </>
   );
 }

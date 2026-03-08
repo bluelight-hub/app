@@ -12,20 +12,14 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { EinsatzPersonResponseDto } from './EinsatzPersonResponseDto';
-import {
-    EinsatzPersonResponseDtoFromJSON,
-    EinsatzPersonResponseDtoFromJSONTyped,
-    EinsatzPersonResponseDtoToJSON,
-    EinsatzPersonResponseDtoToJSONTyped,
-} from './EinsatzPersonResponseDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {EinsatzPersonResponseDto} from './EinsatzPersonResponseDto';
+import {EinsatzPersonResponseDtoFromJSON, EinsatzPersonResponseDtoToJSON,} from './EinsatzPersonResponseDto';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
 
 /**
@@ -53,8 +47,8 @@ export interface EinsatzPersonenControllerWeiseZuFahrzeugVAlpha200Response {
  */
 export function instanceOfEinsatzPersonenControllerWeiseZuFahrzeugVAlpha200Response(value: object): value is EinsatzPersonenControllerWeiseZuFahrzeugVAlpha200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function EinsatzPersonenControllerWeiseZuFahrzeugVAlpha200ResponseFromJSON(json: any): EinsatzPersonenControllerWeiseZuFahrzeugVAlpha200Response {

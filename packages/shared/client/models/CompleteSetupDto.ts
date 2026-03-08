@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -38,8 +37,8 @@ export interface CompleteSetupDto {
  */
 export function instanceOfCompleteSetupDto(value: object): value is CompleteSetupDto {
     if (!('username' in value) || value['username'] === undefined) return false;
-    if (!('password' in value) || value['password'] === undefined) return false;
-    return true;
+    return !(!('password' in value) || value['password'] === undefined);
+
 }
 
 export function CompleteSetupDtoFromJSON(json: any): CompleteSetupDto {

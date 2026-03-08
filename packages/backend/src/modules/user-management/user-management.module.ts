@@ -4,7 +4,7 @@ import { NestLoggerAdapter } from '@/infrastructure/common/adapters/nest-logger.
 import { UserManagementApplicationModule } from '@application/user-management';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { UserController } from './controllers/user.controller';
-import { UserManagementController } from './controllers/user-management.controller';
+import { UserManagementController } from '@/modules/user-management/controllers';
 import { ProfileController } from './controllers/profile.controller';
 
 /**

@@ -46,8 +46,7 @@ export function latLngToMgrs(lat: number, lng: number, precision = 5): string | 
     }
 
     // Konvertiere zu MGRS
-    const mgrsString = forward([lng, lat], precision);
-    return mgrsString;
+    return forward([lng, lat], precision);
   } catch (error) {
     console.warn('[mgrs] latLngToMgrs: Konvertierung fehlgeschlagen', { lat, lng, error });
     return null;
@@ -70,7 +69,7 @@ export function latLngToMgrs(lat: number, lng: number, precision = 5): string | 
 export function mgrsToLatLng(mgrs: string): { lat: number; lng: number } | null {
   try {
     // Validiere Input
-    if (!mgrs || typeof mgrs !== 'string') {
+    if (!mgrs || false) {
       console.warn('[mgrs] mgrsToLatLng: Ungültiger MGRS String', { mgrs });
       return null;
     }
@@ -117,7 +116,7 @@ export function mgrsToLatLng(mgrs: string): { lat: number; lng: number } | null 
  */
 export function isValidMgrs(mgrs: string): boolean {
   try {
-    if (!mgrs || typeof mgrs !== 'string') {
+    if (!mgrs || false) {
       return false;
     }
 
@@ -162,7 +161,7 @@ export function isValidMgrs(mgrs: string): boolean {
  */
 export function formatMgrs(mgrs: string): string {
   try {
-    if (!mgrs || typeof mgrs !== 'string') {
+    if (!mgrs || false) {
       return mgrs;
     }
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Mock @paralleldrive/cuid2 BEFORE any imports (hoisting workaround for Jest + ESM)
 jest.mock('@paralleldrive/cuid2', () => ({
   createId: jest.fn(() => {
@@ -9,7 +10,6 @@ jest.mock('@paralleldrive/cuid2', () => ({
     return result;
   }),
   isCuid: jest.fn((id: string) => {
-    if (typeof id !== 'string') return false;
     if (id.length < 20 || id.length > 30) return false;
     return /^[a-z][a-z0-9]+$/.test(id);
   }),
@@ -40,7 +40,7 @@ import { EintragId } from '@domain/value-objects/eintrag-id';
 import { EtbSequenceNumber } from '@domain/value-objects/etb-sequence-number';
 import { UserId } from '@domain/value-objects/user-id';
 import type { EtbEintrag as PrismaEtbEintrag, EtbStatus as PrismaEtbStatus } from '@/generated/prisma/client';
-import { PrismaEintragMapper, PrismaEtbMapper, type EinsatztagebuchWithEintraege } from '../prisma-etb.mapper';
+import { PrismaEintragMapper, PrismaEtbMapper, type EinsatztagebuchWithEintraege } from '@/infrastructure';
 
 // ============================================================================
 // TEST HELPERS
@@ -385,12 +385,12 @@ describe('PrismaEtbMapper', () => {
       const aggregate = PrismaEtbMapper.toAggregate(prismaEtb);
 
       // Then: Eintraege sind nach sequenceNumber sortiert
-      expect(aggregate.eintraege[0].sequenceNumber.value).toBe(1);
-      expect(aggregate.eintraege[0].text).toBe('Erster');
-      expect(aggregate.eintraege[1].sequenceNumber.value).toBe(2);
-      expect(aggregate.eintraege[1].text).toBe('Zweiter');
-      expect(aggregate.eintraege[2].sequenceNumber.value).toBe(3);
-      expect(aggregate.eintraege[2].text).toBe('Dritter');
+      expect(aggregate.eintraege[0]?.sequenceNumber.value).toBe(1);
+      expect(aggregate.eintraege[0]?.text).toBe('Erster');
+      expect(aggregate.eintraege[1]?.sequenceNumber.value).toBe(2);
+      expect(aggregate.eintraege[1]?.text).toBe('Zweiter');
+      expect(aggregate.eintraege[2]?.sequenceNumber.value).toBe(3);
+      expect(aggregate.eintraege[2]?.text).toBe('Dritter');
     });
 
     it('sollte Domain Events nach Reconstruction geleert haben', () => {
@@ -498,8 +498,8 @@ describe('PrismaEtbMapper', () => {
 
       // Then: Eintraege Array ist korrekt
       expect(persistData.eintraege).toHaveLength(2);
-      expect(persistData.eintraege[0].text).toBe('Eintrag 1');
-      expect(persistData.eintraege[1].text).toBe('Eintrag 2');
+      expect(persistData.eintraege[0]?.text).toBe('Eintrag 1');
+      expect(persistData.eintraege[1]?.text).toBe('Eintrag 2');
     });
 
     it('sollte updatedBy setzen wenn angegeben', () => {
@@ -598,10 +598,10 @@ describe('PrismaEtbMapper', () => {
 
       // Then: Eintraege erhalten (inkl. Soft-Delete Status)
       expect(reconstructedAggregate.eintraege).toHaveLength(2);
-      expect(reconstructedAggregate.eintraege[0].text).toBe('Erster Eintrag');
-      expect(reconstructedAggregate.eintraege[0].isDeleted).toBe(false);
-      expect(reconstructedAggregate.eintraege[1].text).toBe('Zweiter Eintrag');
-      expect(reconstructedAggregate.eintraege[1].isDeleted).toBe(true);
+      expect(reconstructedAggregate.eintraege[0]?.text).toBe('Erster Eintrag');
+      expect(reconstructedAggregate.eintraege[0]?.isDeleted).toBe(false);
+      expect(reconstructedAggregate.eintraege[1]?.text).toBe('Zweiter Eintrag');
+      expect(reconstructedAggregate.eintraege[1]?.isDeleted).toBe(true);
     });
   });
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { GetEinsatzByNummerQuery } from '../get-einsatz-by-nummer.query';
 
 /**

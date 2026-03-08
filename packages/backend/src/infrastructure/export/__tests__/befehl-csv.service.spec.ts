@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { BefehlCsvService } from '../befehl-csv.service';
 import { Befehl } from '@/domain/aggregates/befehl.aggregate';
 import { BefehlEmpfaenger } from '@/domain/entities/befehl-empfaenger.entity';

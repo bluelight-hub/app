@@ -22,8 +22,10 @@ export class UpdateProfileHandler implements ICommandHandler<UpdateProfileComman
       // 1. User laden
       const userIdVO = UserId.create(userId);
       if (userIdVO.isFailure) return Result.fail('Invalid UserId');
+      const parsedUserId = userIdVO.value;
+      if (!parsedUserId) return Result.fail('Invalid UserId');
 
-      const userResult = await this.userRepository.findById(userIdVO.value!);
+      const userResult = await this.userRepository.findById(parsedUserId);
       if (userResult.isFailure) {
         return Result.fail(userResult.error ?? 'Failed to load user');
       }
@@ -43,7 +45,9 @@ export class UpdateProfileHandler implements ICommandHandler<UpdateProfileComman
 
         const targetIdResult = UserId.create(defaultEscalationTargetId);
         if (targetIdResult.isFailure) return Result.fail('Invalid Escalation Target ID');
-        targetIdVO = targetIdResult.value!;
+        const parsedTargetId = targetIdResult.value;
+        if (!parsedTargetId) return Result.fail('Invalid Escalation Target ID');
+        targetIdVO = parsedTargetId;
 
         const targetResult = await this.userRepository.findById(targetIdVO);
         if (targetResult.isFailure || !targetResult.value) {

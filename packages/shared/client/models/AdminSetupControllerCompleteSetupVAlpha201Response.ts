@@ -12,21 +12,15 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
-import type { SetupResponseDto } from './SetupResponseDto';
-import {
-    SetupResponseDtoFromJSON,
-    SetupResponseDtoFromJSONTyped,
-    SetupResponseDtoToJSON,
-    SetupResponseDtoToJSONTyped,
-} from './SetupResponseDto';
+import type {SetupResponseDto} from './SetupResponseDto';
+import {SetupResponseDtoFromJSON, SetupResponseDtoToJSON,} from './SetupResponseDto';
 
 /**
  * 
@@ -53,8 +47,8 @@ export interface AdminSetupControllerCompleteSetupVAlpha201Response {
  */
 export function instanceOfAdminSetupControllerCompleteSetupVAlpha201Response(value: object): value is AdminSetupControllerCompleteSetupVAlpha201Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function AdminSetupControllerCompleteSetupVAlpha201ResponseFromJSON(json: any): AdminSetupControllerCompleteSetupVAlpha201Response {

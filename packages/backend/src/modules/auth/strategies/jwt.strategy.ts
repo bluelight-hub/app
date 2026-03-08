@@ -21,6 +21,7 @@ export interface JwtPayload {
  */
 export interface ValidatedUser {
   userId: string;
+  email?: string;
   role?: UserRole;
 }
 

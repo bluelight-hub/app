@@ -4,7 +4,6 @@ import type { ILogger } from '@domain/ports/i-logger.port';
 import type { IErinnerungRepository } from '@domain/repositories/i-erinnerung.repository';
 import type { IUserRepository } from '@domain/repositories/i-user.repository';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
-import { UserId } from '@domain/value-objects/user-id';
 import { ERINNERUNG_REPOSITORY, LOGGER, USER_REPOSITORY } from '@infrastructure/di-tokens';
 import type { ErinnerungStatistikDto } from '../../dto/erinnerung-statistik.dto';
 import { ERINNERUNG_ERROR_CODES } from '../../errors/erinnerung-error.codes';
@@ -34,7 +33,10 @@ export class GetErinnerungStatistikHandler {
       return Result.fail<ErinnerungStatistikDto>(statsResult.error ?? ERINNERUNG_ERROR_CODES.QUERY_FAILED);
     }
 
-    const stats = statsResult.value!;
+    const stats = statsResult.value;
+    if (!stats) {
+      return Result.fail<ErinnerungStatistikDto>(ERINNERUNG_ERROR_CODES.QUERY_FAILED);
+    }
 
     // Resolve User Names
     // Optimization: For Top 3 players, parallel individual lookups are acceptable performance-wise.

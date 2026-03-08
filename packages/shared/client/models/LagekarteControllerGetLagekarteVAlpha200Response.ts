@@ -12,21 +12,15 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { LagekarteDto } from './LagekarteDto';
-import {
-    LagekarteDtoFromJSON,
-    LagekarteDtoFromJSONTyped,
-    LagekarteDtoToJSON,
-    LagekarteDtoToJSONTyped,
-} from './LagekarteDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {LagekarteDto} from './LagekarteDto';
+import {LagekarteDtoFromJSON, LagekarteDtoToJSON,} from './LagekarteDto';
 
 /**
  * 
@@ -53,8 +47,8 @@ export interface LagekarteControllerGetLagekarteVAlpha200Response {
  */
 export function instanceOfLagekarteControllerGetLagekarteVAlpha200Response(value: object): value is LagekarteControllerGetLagekarteVAlpha200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function LagekarteControllerGetLagekarteVAlpha200ResponseFromJSON(json: any): LagekarteControllerGetLagekarteVAlpha200Response {

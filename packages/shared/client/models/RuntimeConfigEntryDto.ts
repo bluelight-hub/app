@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -94,8 +93,8 @@ export function instanceOfRuntimeConfigEntryDto(value: object): value is Runtime
     if (!('sensitive' in value) || value['sensitive'] === undefined) return false;
     if (!('category' in value) || value['category'] === undefined) return false;
     if (!('editable' in value) || value['editable'] === undefined) return false;
-    if (!('configured' in value) || value['configured'] === undefined) return false;
-    return true;
+    return !(!('configured' in value) || value['configured'] === undefined);
+
 }
 
 export function RuntimeConfigEntryDtoFromJSON(json: any): RuntimeConfigEntryDto {

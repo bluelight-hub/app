@@ -44,9 +44,6 @@ export class ExportBefehleQueryHandler {
    */
   async execute(query: ExportBefehleQuery): Promise<Result<ExportBefehleResult>> {
     const rawEinsatzId = query.einsatzId;
-    if (typeof rawEinsatzId !== 'string') {
-      return Result.fail<ExportBefehleResult>('Ungueltige EinsatzId');
-    }
 
     const einsatzIdResult = EinsatzId.create(rawEinsatzId);
     if (einsatzIdResult.isFailure) {

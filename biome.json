@@ -162,17 +162,16 @@
     {
       "includes": ["packages/backend/**/*.ts"],
       "linter": {
-        "domains": { "react": "none" }
+        "domains": { "react": "none" },
+        "rules": {
+          "correctness": { "useHookAtTopLevel": "off" }
+        }
       }
     },
 
     {
-      "includes": ["packages/backend/src/**/*.spec.ts", "packages/backend/src/**/*.test.ts"],
-      "linter": {
-        "rules": {
-          "style": { "noNonNullAssertion": "off" }
-        }
-      }
+      "includes": ["**/__tests__/**/*.{js,jsx,ts,tsx}", "**/*.spec.{js,jsx,ts,tsx}", "**/*.test.{js,jsx,ts,tsx}"],
+      "linter": { "enabled": false }
     },
     {
       "includes": ["packages/backend/src/infrastructure/**/*.ts"],

@@ -14,17 +14,17 @@
 import { api } from '@/shared';
 import { logger } from '@/shared/lib/logger';
 import {
-  offlineStore,
   addPendingErinnerung,
-  removePendingErinnerung,
-  queueSyncAction,
   clearProcessedActions,
-  updateActionRetryCount,
+  offlineStore,
+  type PendingErinnerung,
+  queueSyncAction,
+  removePendingErinnerung,
   replaceIdInQueue,
   setLastSync,
-  type PendingErinnerung,
   type SyncQueueAction,
-} from '../stores/offline.store';
+  updateActionRetryCount,
+} from '@/features/reminders';
 import { offlineDetectionService } from './offline-detection.service';
 
 /** Maximale Anzahl Retry-Versuche */
@@ -268,7 +268,7 @@ export class SyncService {
       results.push(...queueResults);
 
       // Update lastSync timestamp
-      setLastSync(new Date().toISOString());
+      await setLastSync(new Date().toISOString());
 
       const successCount = results.filter((r) => r.success).length;
       const failureCount = results.filter((r) => !r.success).length;
@@ -307,13 +307,13 @@ export class SyncService {
         // Issue #8 Fix: Atomic update - update queue FIRST, then mapping
         // This ensures no actions can reference the old temp ID during the window
         // between mapping update and queue update
-        replaceIdInQueue(tempId, serverId);
+        await replaceIdInQueue(tempId, serverId);
 
         // Now update the ID mapping (for any future lookups)
         this.idMapping.set(tempId, serverId);
 
         // Finally remove from pendingErinnerungen
-        removePendingErinnerung(tempId);
+        await removePendingErinnerung(tempId);
 
         results.push({
           actionId: pending.id,
@@ -389,7 +389,7 @@ export class SyncService {
           });
         } else {
           // Erhoehe Retry-Count
-          updateActionRetryCount(action.id, action.retryCount + 1);
+          await updateActionRetryCount(action.id, action.retryCount + 1);
           results.push({
             actionId: action.id,
             success: false,
@@ -406,7 +406,7 @@ export class SyncService {
 
     // Entferne verarbeitete Aktionen
     if (processedIds.length > 0) {
-      clearProcessedActions(processedIds);
+      await clearProcessedActions(processedIds);
     }
 
     return results;

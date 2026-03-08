@@ -7,18 +7,21 @@ Dieses Verzeichnis enthält die Audio-Dateien für die Alarm-Töne.
 Das System benötigt 12 MP3-Dateien (3 Level × 4 Sound-Optionen):
 
 ### Info-Alarm (Standard-Erinnerungen)
+
 - `alarm-info-default.mp3` - Standard-Info-Ton
 - `alarm-info-chime.mp3` - Glockenspiel
 - `alarm-info-bell.mp3` - Klingel
 - `alarm-info-alert.mp3` - Kurzer Signalton
 
 ### Warning-Alarm (Eskalation nach 30s)
+
 - `alarm-warning-default.mp3` - Standard-Warning-Ton
 - `alarm-warning-chime.mp3` - Glockenspiel (intensiver)
 - `alarm-warning-bell.mp3` - Klingel (intensiver)
 - `alarm-warning-alert.mp3` - Signalton (intensiver)
 
 ### Urgent-Alarm (Eskalation nach 60s)
+
 - `alarm-urgent-default.mp3` - Standard-Urgent-Ton
 - `alarm-urgent-chime.mp3` - Glockenspiel (dringend)
 - `alarm-urgent-bell.mp3` - Klingel (dringend)
@@ -27,6 +30,7 @@ Das System benötigt 12 MP3-Dateien (3 Level × 4 Sound-Optionen):
 ## Fallback-Verhalten
 
 Wenn Sound-Dateien fehlen:
+
 - **Desktop (Tauri):** Das Rust-Backend generiert synthetische Beep-Töne
 - **Browser (Testing):** Graceful Degradation mit Console-Log
 

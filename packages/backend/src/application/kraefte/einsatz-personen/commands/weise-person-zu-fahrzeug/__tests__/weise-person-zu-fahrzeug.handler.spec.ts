@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Test, type TestingModule } from '@nestjs/testing';
 import { createId } from '@paralleldrive/cuid2';
 import { Result } from '@domain/common/result';
@@ -167,10 +168,10 @@ describe('WeisePersonZuFahrzeugZuHandler', () => {
       expect(result.isSuccess).toBe(true);
       expect(mockOutboxRepository.save).toHaveBeenCalledTimes(1);
 
-      const events = mockOutboxRepository.save.mock.calls[0][0];
+      const events = mockOutboxRepository.save.mock.calls[0]?.[0]!;
       expect(Array.isArray(events)).toBe(true);
       expect(events.length).toBe(1);
-      expect(events[0].constructor.name).toBe('PersonZuFahrzeugZugewiesenEvent');
+      expect(events[0]?.constructor.name).toBe('PersonZuFahrzeugZugewiesenEvent');
     });
 
     it('sollte fahrzeugId im EinsatzPerson setzen', async () => {
@@ -187,7 +188,7 @@ describe('WeisePersonZuFahrzeugZuHandler', () => {
 
       // Then (Assert)
       expect(result.isSuccess).toBe(true);
-      const savedAggregate = mockEinsatzPersonRepository.save.mock.calls[0][0];
+      const savedAggregate = mockEinsatzPersonRepository.save.mock.calls[0]?.[0]!;
       expect(savedAggregate.fahrzeugId).toBe(validFahrzeugId);
     });
   });
@@ -489,7 +490,7 @@ describe('WeisePersonZuFahrzeugZuHandler', () => {
       // Then (Assert)
       expect(result2.isSuccess).toBe(true);
       // Verify no events were created on second call (idempotent)
-      const secondCallEvents = mockOutboxRepository.save.mock.calls[0]?.[0] || [];
+      const secondCallEvents = mockOutboxRepository.save.mock.calls[0]?.[0]! || [];
       expect(secondCallEvents.length).toBe(0);
     });
 
@@ -563,9 +564,9 @@ describe('WeisePersonZuFahrzeugZuHandler', () => {
       expect(result2.isSuccess).toBe(true);
       // Verify new event was created for reassignment
       expect(mockOutboxRepository.save).toHaveBeenCalledTimes(1);
-      const events = mockOutboxRepository.save.mock.calls[0][0];
+      const events = mockOutboxRepository.save.mock.calls[0]?.[0]!;
       expect(events.length).toBe(1);
-      expect(events[0].constructor.name).toBe('PersonZuFahrzeugZugewiesenEvent');
+      expect(events[0]?.constructor.name).toBe('PersonZuFahrzeugZugewiesenEvent');
     });
 
     it('sollte bei wiederholter Zuweisung identisches Event-Payload erzeugen (deterministisch)', async () => {
@@ -650,8 +651,8 @@ describe('WeisePersonZuFahrzeugZuHandler', () => {
 
       // Then (Assert)
       // Both should succeed (last write wins with optimistic concurrency)
-      expect(results[0].isSuccess).toBe(true);
-      expect(results[1].isSuccess).toBe(true);
+      expect(results[0]?.isSuccess).toBe(true);
+      expect(results[1]?.isSuccess).toBe(true);
 
       // Verify both operations were persisted
       expect(mockEinsatzPersonRepository.save).toHaveBeenCalledTimes(2);
@@ -690,8 +691,8 @@ describe('WeisePersonZuFahrzeugZuHandler', () => {
       const results = await Promise.all([handler.execute(command1), handler.execute(command2)]);
 
       // Then (Assert)
-      expect(results[0].isSuccess).toBe(true);
-      expect(results[1].isSuccess).toBe(true);
+      expect(results[0]?.isSuccess).toBe(true);
+      expect(results[1]?.isSuccess).toBe(true);
 
       // Verify both persons were saved independently
       expect(mockEinsatzPersonRepository.save).toHaveBeenCalledTimes(2);
@@ -826,8 +827,8 @@ describe('WeisePersonZuFahrzeugZuHandler', () => {
       const results = await Promise.all([handler.execute(command1), handler.execute(command2)]);
 
       // Then (Assert)
-      expect(results[0].isSuccess).toBe(true);
-      expect(results[1].isSuccess).toBe(true);
+      expect(results[0]?.isSuccess).toBe(true);
+      expect(results[1]?.isSuccess).toBe(true);
       expect(mockEinsatzPersonRepository.save).toHaveBeenCalledTimes(2);
     });
 

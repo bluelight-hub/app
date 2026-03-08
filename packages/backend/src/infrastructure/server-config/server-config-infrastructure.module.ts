@@ -2,7 +2,7 @@ import { Global, Module } from '@nestjs/common';
 import { PrismaServerConfigRepository } from './repositories/prisma-server-config.repository';
 import { LOGGER, SERVER_CONFIG_REPOSITORY } from '@/infrastructure/di-tokens';
 import { PrismaModule } from '@/infrastructure/database/prisma.module';
-import { NestLoggerAdapter } from '../common/adapters/nest-logger.adapter';
+import { NestLoggerAdapter } from '@infrastructure/common/adapters';
 
 /**
  * Infrastructure Module fuer Server-Konfiguration.

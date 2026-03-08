@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -45,8 +44,8 @@ export interface AdminStatusDto {
 export function instanceOfAdminStatusDto(value: object): value is AdminStatusDto {
     if (!('adminSetupAvailable' in value) || value['adminSetupAvailable'] === undefined) return false;
     if (!('adminExists' in value) || value['adminExists'] === undefined) return false;
-    if (!('userEligible' in value) || value['userEligible'] === undefined) return false;
-    return true;
+    return !(!('userEligible' in value) || value['userEligible'] === undefined);
+
 }
 
 export function AdminStatusDtoFromJSON(json: any): AdminStatusDto {

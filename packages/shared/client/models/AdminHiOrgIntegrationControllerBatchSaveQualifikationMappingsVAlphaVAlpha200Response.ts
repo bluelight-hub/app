@@ -12,20 +12,17 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { BatchSaveQualifikationMappingsResponseDto } from './BatchSaveQualifikationMappingsResponseDto';
+import type {BatchSaveQualifikationMappingsResponseDto} from './BatchSaveQualifikationMappingsResponseDto';
 import {
     BatchSaveQualifikationMappingsResponseDtoFromJSON,
-    BatchSaveQualifikationMappingsResponseDtoFromJSONTyped,
     BatchSaveQualifikationMappingsResponseDtoToJSON,
-    BatchSaveQualifikationMappingsResponseDtoToJSONTyped,
 } from './BatchSaveQualifikationMappingsResponseDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
 
 /**
@@ -53,8 +50,8 @@ export interface AdminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVA
  */
 export function instanceOfAdminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlpha200Response(value: object): value is AdminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlpha200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function AdminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlpha200ResponseFromJSON(json: any): AdminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlpha200Response {

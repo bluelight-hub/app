@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { Result } from '@domain/common/result';
 import type { TextbausteinDto } from '@application/etb/dto';
-import type { GetTextbausteineQuery } from './get-textbausteine.query';
+import type { GetTextbausteineQuery } from '@application/etb/queries';
 import type { Prisma } from '@/generated/prisma/client';
 
 /**

@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -80,8 +79,8 @@ export function instanceOfEinsatzVergleichItemDto(value: object): value is Einsa
     if (!('eskalationsrate' in value) || value['eskalationsrate'] === undefined) return false;
     if (!('durchschnittlicheReaktionszeit' in value) || value['durchschnittlicheReaktionszeit'] === undefined) return false;
     if (!('gesamtErinnerungen' in value) || value['gesamtErinnerungen'] === undefined) return false;
-    if (!('dauer' in value) || value['dauer'] === undefined) return false;
-    return true;
+    return !(!('dauer' in value) || value['dauer'] === undefined);
+
 }
 
 export function EinsatzVergleichItemDtoFromJSON(json: any): EinsatzVergleichItemDto {

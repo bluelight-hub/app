@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -91,8 +90,8 @@ export function instanceOfDetailedHealthDto(value: object): value is DetailedHea
     if (!('setupComplete' in value) || value['setupComplete'] === undefined) return false;
     if (!('version' in value) || value['version'] === undefined) return false;
     if (!('database' in value) || value['database'] === undefined) return false;
-    if (!('uptime' in value) || value['uptime'] === undefined) return false;
-    return true;
+    return !(!('uptime' in value) || value['uptime'] === undefined);
+
 }
 
 export function DetailedHealthDtoFromJSON(json: any): DetailedHealthDto {

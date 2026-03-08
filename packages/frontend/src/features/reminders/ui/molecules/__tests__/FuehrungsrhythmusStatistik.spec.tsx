@@ -13,7 +13,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
-import { FuehrungsrhythmusStatistik } from '../FuehrungsrhythmusStatistik';
+import { FuehrungsrhythmusStatistik } from '@/features/reminders';
 
 // Mock useFuehrungsrhythmusStatistik hook
 const mockUseFuehrungsrhythmusStatistik = vi.fn();
@@ -77,10 +77,10 @@ describe('FuehrungsrhythmusStatistik', () => {
     expect(screen.getByText('Abschlussrate')).toBeInTheDocument();
     expect(screen.getByText('Eskalationen')).toBeInTheDocument();
     // Card Values: Verify values appear within their correct card context
-    const zyklenCard = screen.getByText('Gesamt-Zyklen').closest('div')!.parentElement!;
+    const zyklenCard = screen.getByText('Gesamt-Zyklen').closest('div')?.parentElement!;
     expect(within(zyklenCard).getByText('12')).toBeInTheDocument();
 
-    const abschlussCard = screen.getByText('Abschlussrate').closest('div')!.parentElement!;
+    const abschlussCard = screen.getByText('Abschlussrate').closest('div')?.parentElement!;
     expect(within(abschlussCard).getByText('66.7%')).toBeInTheDocument();
   });
 

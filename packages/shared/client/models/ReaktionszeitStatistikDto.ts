@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { ReaktionszeitBucketDto } from './ReaktionszeitBucketDto';
-import {
-    ReaktionszeitBucketDtoFromJSON,
-    ReaktionszeitBucketDtoFromJSONTyped,
-    ReaktionszeitBucketDtoToJSON,
-    ReaktionszeitBucketDtoToJSONTyped,
-} from './ReaktionszeitBucketDto';
+import type {ReaktionszeitBucketDto} from './ReaktionszeitBucketDto';
+import {ReaktionszeitBucketDtoFromJSON, ReaktionszeitBucketDtoToJSON,} from './ReaktionszeitBucketDto';
 
 /**
  * 
@@ -74,8 +68,8 @@ export function instanceOfReaktionszeitStatistikDto(value: object): value is Rea
     if (!('medianReaktionszeitSeconds' in value) || value['medianReaktionszeitSeconds'] === undefined) return false;
     if (!('minReaktionszeitSeconds' in value) || value['minReaktionszeitSeconds'] === undefined) return false;
     if (!('maxReaktionszeitSeconds' in value) || value['maxReaktionszeitSeconds'] === undefined) return false;
-    if (!('buckets' in value) || value['buckets'] === undefined) return false;
-    return true;
+    return !(!('buckets' in value) || value['buckets'] === undefined);
+
 }
 
 export function ReaktionszeitStatistikDtoFromJSON(json: any): ReaktionszeitStatistikDto {

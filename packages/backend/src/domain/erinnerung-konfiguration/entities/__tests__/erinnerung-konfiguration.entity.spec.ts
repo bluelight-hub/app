@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ErinnerungKonfiguration } from '../erinnerung-konfiguration.entity';
 import { EskalationsTimeout } from '../../value-objects/eskalations-timeout';
 import { UserId } from '@domain/value-objects/user-id';

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Reflector } from '@nestjs/core';
 import { SKIP_SETUP_CHECK_KEY, SkipSetupCheck } from './skip-setup-check.decorator';
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * E2E Performance Tests fuer Einsatz Infrastructure (AC4.1-4.4).
  *

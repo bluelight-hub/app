@@ -12,14 +12,7 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { A } from './A';
-import {
-    AFromJSON,
-    AFromJSONTyped,
-    AToJSON,
-    AToJSONTyped,
-} from './A';
+import type {A} from './A';
 
 /**
  * 
@@ -53,8 +46,8 @@ export interface CompletenessResponseDto {
 export function instanceOfCompletenessResponseDto(value: object): value is CompletenessResponseDto {
     if (!('score' in value) || value['score'] === undefined) return false;
     if (!('isComplete' in value) || value['isComplete'] === undefined) return false;
-    if (!('missingFields' in value) || value['missingFields'] === undefined) return false;
-    return true;
+    return !(!('missingFields' in value) || value['missingFields'] === undefined);
+
 }
 
 export function CompletenessResponseDtoFromJSON(json: any): CompletenessResponseDto {

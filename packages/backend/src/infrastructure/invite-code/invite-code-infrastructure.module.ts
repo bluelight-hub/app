@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/infrastructure/database/prisma.module';
 import { INVITE_CODE_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
-import { NestLoggerAdapter } from '../common/adapters/nest-logger.adapter';
+import { NestLoggerAdapter } from '@infrastructure/common/adapters';
 import { PrismaInviteCodeRepository } from './repositories/prisma-invite-code.repository';
 
 /**

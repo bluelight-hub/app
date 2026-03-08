@@ -2,7 +2,7 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { renderWithProviders } from '@/test/utils';
-import { ActivateFuehrungsrhythmusDialog } from '../ActivateFuehrungsrhythmusDialog';
+import { ActivateFuehrungsrhythmusDialog } from '@/features/templates';
 
 // Mock sonner toast
 vi.mock('sonner', () => ({

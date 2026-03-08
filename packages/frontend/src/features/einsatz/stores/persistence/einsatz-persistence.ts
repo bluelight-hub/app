@@ -99,7 +99,7 @@ export function subscribeToStorageChanges(callback: (einsatzId: string | null) =
  * Diese Funktion sollte beim App-Start aufgerufen werden,
  * um den gespeicherten aktiven Einsatz wiederherzustellen.
  *
- * @param id - Die zu validierende Einsatz-ID (wenn nicht übergeben, wird sie aus dem Storage geladen)
+ * @param idOrCallback
  * @param validateCallback - Optional: Callback zur Validierung der ID
  * @returns Promise mit der validierten Einsatz-ID oder null
  */

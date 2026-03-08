@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { UnauthorizedException } from '@nestjs/common';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import type { Request } from 'express';

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { notizDialogStore, openQuickCreateNotizDialog, closeQuickCreateNotizDialog, resetNotizDialogStore } from '../notiz-dialog.store';
+import { notizDialogStore, openQuickCreateNotizDialog, closeQuickCreateNotizDialog, resetNotizDialogStore } from '@/features/notizen';
 
 describe('notiz-dialog.store', () => {
   beforeEach(() => {

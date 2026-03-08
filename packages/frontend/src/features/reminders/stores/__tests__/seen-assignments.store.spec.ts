@@ -18,7 +18,7 @@ import {
   isUnseen,
   getSeenTimestamp,
   initSeenAssignmentsStore,
-} from '../seen-assignments.store';
+} from '@/features/reminders';
 
 // Mock Tauri LazyStore als Klasse
 vi.mock('@tauri-apps/plugin-store', () => {

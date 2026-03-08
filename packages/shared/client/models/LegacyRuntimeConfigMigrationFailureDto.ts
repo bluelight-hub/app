@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -38,8 +37,8 @@ export interface LegacyRuntimeConfigMigrationFailureDto {
  */
 export function instanceOfLegacyRuntimeConfigMigrationFailureDto(value: object): value is LegacyRuntimeConfigMigrationFailureDto {
     if (!('key' in value) || value['key'] === undefined) return false;
-    if (!('reason' in value) || value['reason'] === undefined) return false;
-    return true;
+    return !(!('reason' in value) || value['reason'] === undefined);
+
 }
 
 export function LegacyRuntimeConfigMigrationFailureDtoFromJSON(json: any): LegacyRuntimeConfigMigrationFailureDto {

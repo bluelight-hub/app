@@ -1410,9 +1410,9 @@ model AppConfigSecret {
 /// - Funkrufname wird für ETB-Absender Auto-Fill verwendet
 /// - leftAt wird gesetzt wenn User den Einsatz verlässt (Soft-Leave)
 model EinsatzTeilnehmer {
-  id          String    @id @default(cuid())
-  einsatzId   String    @map("einsatz_id")
-  userId      String    @map("user_id")
+  id              String    @id @default(cuid())
+  einsatzId       String    @map("einsatz_id")
+  userId          String    @map("user_id")
   einsatzPersonId String    @map("einsatz_person_id")
   joinedAt        DateTime  @default(now()) @map("joined_at")
   leftAt          DateTime? @map("left_at")
@@ -1781,12 +1781,12 @@ model Befehl {
 /// - Zustellungs- und Quittierungszeitpunkte pro Empfänger individuell
 /// - Cascade-Delete mit Befehl
 model BefehlEmpfaenger {
-  id             String          @id @default(cuid())
-  befehlId       String          @map("befehl_id")
-  name           String          @db.VarChar(255)
-  empfaengerId   String?         @map("empfaenger_id") @db.VarChar(100)
-  zugestelltAm   DateTime?       @map("zugestellt_am")
-  quittiertAm    DateTime?       @map("quittiert_am")
+  id                   String          @id @default(cuid())
+  befehlId             String          @map("befehl_id")
+  name                 String          @db.VarChar(255)
+  empfaengerId         String?         @map("empfaenger_id") @db.VarChar(100)
+  zugestelltAm         DateTime?       @map("zugestellt_am")
+  quittiertAm          DateTime?       @map("quittiert_am")
   quittierungArt       QuittierungArt? @map("quittierung_art")
   quittierungKommentar String?         @map("quittierung_kommentar") @db.Text
 

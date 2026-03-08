@@ -12,13 +12,10 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { FuehrungsrhythmusActivationGroupDto } from './FuehrungsrhythmusActivationGroupDto';
+import type {FuehrungsrhythmusActivationGroupDto} from './FuehrungsrhythmusActivationGroupDto';
 import {
     FuehrungsrhythmusActivationGroupDtoFromJSON,
-    FuehrungsrhythmusActivationGroupDtoFromJSONTyped,
     FuehrungsrhythmusActivationGroupDtoToJSON,
-    FuehrungsrhythmusActivationGroupDtoToJSONTyped,
 } from './FuehrungsrhythmusActivationGroupDto';
 
 /**
@@ -74,8 +71,8 @@ export function instanceOfFuehrungsrhythmusStatistikDto(value: object): value is
     if (!('totalCycles' in value) || value['totalCycles'] === undefined) return false;
     if (!('avgCompletionRate' in value) || value['avgCompletionRate'] === undefined) return false;
     if (!('totalEscalations' in value) || value['totalEscalations'] === undefined) return false;
-    if (!('overallSnoozeRate' in value) || value['overallSnoozeRate'] === undefined) return false;
-    return true;
+    return !(!('overallSnoozeRate' in value) || value['overallSnoozeRate'] === undefined);
+
 }
 
 export function FuehrungsrhythmusStatistikDtoFromJSON(json: any): FuehrungsrhythmusStatistikDto {

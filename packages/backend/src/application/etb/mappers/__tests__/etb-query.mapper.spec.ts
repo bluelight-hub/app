@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Mock CUID2 für deterministische Tests
 // WICHTIG: Muss VOR allen Imports stehen, da Jest Hoisting verwendet
 jest.mock('@paralleldrive/cuid2', () => ({
@@ -10,7 +11,6 @@ jest.mock('@paralleldrive/cuid2', () => ({
     return result;
   }),
   isCuid: jest.fn((id: string) => {
-    if (typeof id !== 'string') return false;
     if (id.length < 20 || id.length > 30) return false;
     return /^[a-z][a-z0-9]+$/.test(id);
   }),

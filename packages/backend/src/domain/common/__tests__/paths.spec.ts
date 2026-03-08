@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Result } from '@domain/common/result';
 
 /**

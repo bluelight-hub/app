@@ -12,7 +12,7 @@ import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import { KRAEFTE_REPOSITORIES, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { StammFahrzeugDto } from '../../dto';
-import { StammFahrzeugQueryMapper } from '../../queries/stamm-fahrzeug-query.mapper';
+import { StammFahrzeugQueryMapper } from '@application/kraefte/stamm-fahrzeuge';
 import { STAMM_FAHRZEUG_ERROR_CODES, StammFahrzeugError } from '@domain/kraefte/common/stamm-fahrzeug-error-codes';
 import type { UpdateStammFahrzeugCommand } from './update-stamm-fahrzeug.command';
 

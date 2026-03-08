@@ -19,17 +19,13 @@ import type {
   NotizControllerCreateVAlpha201Response,
   NotizControllerGetByEinsatzVAlpha200Response,
   UpdateNotizDto,
-} from '../models/index';
+} from '../models';
 import {
-    CreateNotizDtoFromJSON,
     CreateNotizDtoToJSON,
     NotizControllerCreateVAlpha201ResponseFromJSON,
-    NotizControllerCreateVAlpha201ResponseToJSON,
     NotizControllerGetByEinsatzVAlpha200ResponseFromJSON,
-    NotizControllerGetByEinsatzVAlpha200ResponseToJSON,
-    UpdateNotizDtoFromJSON,
     UpdateNotizDtoToJSON,
-} from '../models/index';
+} from '../models';
 
 export interface NotizControllerCreateVAlphaRequest {
     einsatzId: string;
@@ -81,7 +77,7 @@ export class NotizenApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/notizen`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/notizen`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
@@ -122,7 +118,7 @@ export class NotizenApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/notizen/{notizId}`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"notizId"}}`, encodeURIComponent(String(requestParameters['notizId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/notizen/{notizId}`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{notizId}`, encodeURIComponent(String(requestParameters['notizId']))),
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
@@ -154,7 +150,7 @@ export class NotizenApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/notizen`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/notizen`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -203,7 +199,7 @@ export class NotizenApi extends runtime.BaseAPI {
         headerParameters['Content-Type'] = 'application/json';
 
         const response = await this.request({
-            path: `/api/v-alpha/einsatz/{einsatzId}/notizen/{notizId}`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"notizId"}}`, encodeURIComponent(String(requestParameters['notizId']))),
+            path: `/api/v-alpha/einsatz/{einsatzId}/notizen/{notizId}`.replace(`{einsatzId}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{notizId}`, encodeURIComponent(String(requestParameters['notizId']))),
             method: 'PATCH',
             headers: headerParameters,
             query: queryParameters,

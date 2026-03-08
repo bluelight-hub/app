@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -52,8 +51,8 @@ export function instanceOfZeitverlaufBucketDto(value: object): value is Zeitverl
     if (!('timestamp' in value) || value['timestamp'] === undefined) return false;
     if (!('erstellt' in value) || value['erstellt'] === undefined) return false;
     if (!('ausgeloest' in value) || value['ausgeloest'] === undefined) return false;
-    if (!('eskaliert' in value) || value['eskaliert'] === undefined) return false;
-    return true;
+    return !(!('eskaliert' in value) || value['eskaliert'] === undefined);
+
 }
 
 export function ZeitverlaufBucketDtoFromJSON(json: any): ZeitverlaufBucketDto {

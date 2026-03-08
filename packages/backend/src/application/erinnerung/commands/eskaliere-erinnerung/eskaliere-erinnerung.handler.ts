@@ -1,21 +1,21 @@
-import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
-import { Inject, Injectable } from '@nestjs/common';
+import { TransactionalCommandHandler } from '@/application/common/handlers/transactional-command.handler';
+import { PrismaService } from '@/infrastructure/database/prisma.service';
+import type { ErinnerungResponseDto } from '@application/erinnerung';
+import { ERINNERUNG_ERROR_CODES } from '@application/erinnerung';
 import type { DomainEvent } from '@domain/common/domain-event';
 import { Result } from '@domain/common/result';
 import type { TransactionContext } from '@domain/common/transaction';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import type { IErinnerungRepository } from '@domain/repositories/i-erinnerung.repository';
-import type { IUserRepository } from '@domain/repositories/i-user.repository';
 import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
-import { UserId } from '@domain/value-objects/user-id';
+import type { IUserRepository } from '@domain/repositories/i-user.repository';
 import { ErinnerungId } from '@domain/value-objects/erinnerung-id';
-import { TransactionalCommandHandler } from '@/application/common/handlers/transactional-command.handler';
-import { PrismaService } from '@/infrastructure/database/prisma.service';
+import { UserId } from '@domain/value-objects/user-id';
 import { ERINNERUNG_REPOSITORY, LOGGER, OUTBOX_REPOSITORY, USER_REPOSITORY } from '@infrastructure/di-tokens';
-import { EskaliereErinnerungCommand } from './eskaliere-erinnerung.command';
-import { ERINNERUNG_ERROR_CODES } from '../../errors/erinnerung-error.codes';
-import type { ErinnerungResponseDto } from '../../dto/erinnerung-response.dto';
+import { Inject, Injectable } from '@nestjs/common';
+import { CommandHandler, type ICommandHandler } from '@nestjs/cqrs';
 import { ErinnerungResponseFactory } from '../../dto/erinnerung-response.factory';
+import { EskaliereErinnerungCommand } from './eskaliere-erinnerung.command';
 
 /**
  * Handler zum Eskalieren einer Erinnerung.
@@ -153,7 +153,7 @@ export class EskaliereErinnerungHandler extends TransactionalCommandHandler<Eska
       let eskalationsPersonName: string | null = null;
       let assignedToName: string | null = null;
       let previousAssigneeName: string | null = null;
-      let _erledigtByName: string | null = null;
+      const _erledigtByName: string | null = null;
 
       try {
         const userIds = [
@@ -180,7 +180,7 @@ export class EskaliereErinnerungHandler extends TransactionalCommandHandler<Eska
           eskalationsPersonName = getName(erinnerung.eskalationsPersonId?.value);
           assignedToName = getName(erinnerung.assignedToId?.value);
           previousAssigneeName = getName(erinnerung.previousAssigneeId?.value);
-          _erledigtByName = getName(erinnerung.erledigtBy?.value);
+          getName(erinnerung.erledigtBy?.value);
         }
       } catch (innerError) {
         this.logger.error(`Partial recovery failed: ${innerError}`, 'EskaliereErinnerungHandler');

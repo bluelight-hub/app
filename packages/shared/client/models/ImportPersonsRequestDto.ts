@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -48,8 +47,8 @@ export type ImportPersonsRequestDtoDuplicateStrategyEnum = typeof ImportPersonsR
  * Check if a given object implements the ImportPersonsRequestDto interface.
  */
 export function instanceOfImportPersonsRequestDto(value: object): value is ImportPersonsRequestDto {
-    if (!('usernames' in value) || value['usernames'] === undefined) return false;
-    return true;
+    return !(!('usernames' in value) || value['usernames'] === undefined);
+
 }
 
 export function ImportPersonsRequestDtoFromJSON(json: any): ImportPersonsRequestDto {

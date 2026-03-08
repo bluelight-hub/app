@@ -12,27 +12,21 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { BefehlsgeberVorschlagDto } from './BefehlsgeberVorschlagDto';
-import {
-    BefehlsgeberVorschlagDtoFromJSON,
-    BefehlsgeberVorschlagDtoFromJSONTyped,
-    BefehlsgeberVorschlagDtoToJSON,
-    BefehlsgeberVorschlagDtoToJSONTyped,
-} from './BefehlsgeberVorschlagDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {BefehlsgeberVorschlagDto} from './BefehlsgeberVorschlagDto';
+import {BefehlsgeberVorschlagDtoFromJSON, BefehlsgeberVorschlagDtoToJSON,} from './BefehlsgeberVorschlagDto';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
-import type { UserControllerFindAllBasicVAlpha200ResponsePagination } from './UserControllerFindAllBasicVAlpha200ResponsePagination';
+import type {
+    UserControllerFindAllBasicVAlpha200ResponsePagination
+} from './UserControllerFindAllBasicVAlpha200ResponsePagination';
 import {
     UserControllerFindAllBasicVAlpha200ResponsePaginationFromJSON,
-    UserControllerFindAllBasicVAlpha200ResponsePaginationFromJSONTyped,
     UserControllerFindAllBasicVAlpha200ResponsePaginationToJSON,
-    UserControllerFindAllBasicVAlpha200ResponsePaginationToJSONTyped,
 } from './UserControllerFindAllBasicVAlpha200ResponsePagination';
 
 /**
@@ -66,8 +60,8 @@ export interface AdminBefehlsgeberVorschlaegeControllerFindAllVAlpha200Response 
  */
 export function instanceOfAdminBefehlsgeberVorschlaegeControllerFindAllVAlpha200Response(value: object): value is AdminBefehlsgeberVorschlaegeControllerFindAllVAlpha200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function AdminBefehlsgeberVorschlaegeControllerFindAllVAlpha200ResponseFromJSON(json: any): AdminBefehlsgeberVorschlaegeControllerFindAllVAlpha200Response {

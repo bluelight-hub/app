@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -102,8 +101,8 @@ export function instanceOfTextbausteinDto(value: object): value is TextbausteinD
     if (!('volltext' in value) || value['volltext'] === undefined) return false;
     if (!('isActive' in value) || value['isActive'] === undefined) return false;
     if (!('sortOrder' in value) || value['sortOrder'] === undefined) return false;
-    if (!('verwendungen' in value) || value['verwendungen'] === undefined) return false;
-    return true;
+    return !(!('verwendungen' in value) || value['verwendungen'] === undefined);
+
 }
 
 export function TextbausteinDtoFromJSON(json: any): TextbausteinDto {

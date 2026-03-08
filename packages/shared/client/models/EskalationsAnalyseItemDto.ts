@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -73,8 +72,8 @@ export function instanceOfEskalationsAnalyseItemDto(value: object): value is Esk
     if (!('eskaliertAm' in value) || value['eskaliertAm'] === undefined) return false;
     if (!('zeitBisEskalationSeconds' in value) || value['zeitBisEskalationSeconds'] === undefined) return false;
     if (!('eskaliertAn' in value) || value['eskaliertAn'] === undefined) return false;
-    if (!('previousAssignee' in value) || value['previousAssignee'] === undefined) return false;
-    return true;
+    return !(!('previousAssignee' in value) || value['previousAssignee'] === undefined);
+
 }
 
 export function EskalationsAnalyseItemDtoFromJSON(json: any): EskalationsAnalyseItemDto {

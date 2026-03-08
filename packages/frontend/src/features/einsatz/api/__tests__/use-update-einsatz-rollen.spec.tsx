@@ -13,7 +13,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import type { PropsWithChildren } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useUpdateEinsatzRollen } from '../use-update-einsatz-rollen';
+import { useUpdateEinsatzRollen } from '@/features/einsatz';
 
 const { mockUpdateRollen, mockToast } = vi.hoisted(() => ({
   mockUpdateRollen: vi.fn(),

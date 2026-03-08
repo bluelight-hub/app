@@ -62,7 +62,7 @@ export class CsvExportService {
       return fields.map((f) => this.escapeCsvField(f)).join(SEPARATOR);
     });
 
-    const csv = BOM + [headerLine, ...dataLines].join('\r\n') + '\r\n';
+    const csv = `${BOM + [headerLine, ...dataLines].join('\r\n')}\r\n`;
 
     return Buffer.from(csv, 'utf-8');
   }
@@ -103,7 +103,7 @@ export class CsvExportService {
       return fields.map((f) => this.escapeCsvField(f)).join(SEPARATOR);
     });
 
-    const csv = BOM + [headerLine, ...dataLines].join('\r\n') + '\r\n';
+    const csv = `${BOM + [headerLine, ...dataLines].join('\r\n')}\r\n`;
 
     return Buffer.from(csv, 'utf-8');
   }

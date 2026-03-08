@@ -12,21 +12,15 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { SecurityStatusDto } from './SecurityStatusDto';
-import {
-    SecurityStatusDtoFromJSON,
-    SecurityStatusDtoFromJSONTyped,
-    SecurityStatusDtoToJSON,
-    SecurityStatusDtoToJSONTyped,
-} from './SecurityStatusDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {SecurityStatusDto} from './SecurityStatusDto';
+import {SecurityStatusDtoFromJSON, SecurityStatusDtoToJSON,} from './SecurityStatusDto';
 
 /**
  * 
@@ -53,8 +47,8 @@ export interface AdminSecurityControllerGetStatusVAlpha200Response {
  */
 export function instanceOfAdminSecurityControllerGetStatusVAlpha200Response(value: object): value is AdminSecurityControllerGetStatusVAlpha200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function AdminSecurityControllerGetStatusVAlpha200ResponseFromJSON(json: any): AdminSecurityControllerGetStatusVAlpha200Response {

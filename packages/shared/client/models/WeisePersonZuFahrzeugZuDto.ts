@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -31,8 +30,8 @@ export interface WeisePersonZuFahrzeugZuDto {
  * Check if a given object implements the WeisePersonZuFahrzeugZuDto interface.
  */
 export function instanceOfWeisePersonZuFahrzeugZuDto(value: object): value is WeisePersonZuFahrzeugZuDto {
-    if (!('fahrzeugId' in value) || value['fahrzeugId'] === undefined) return false;
-    return true;
+    return !(!('fahrzeugId' in value) || value['fahrzeugId'] === undefined);
+
 }
 
 export function WeisePersonZuFahrzeugZuDtoFromJSON(json: any): WeisePersonZuFahrzeugZuDto {

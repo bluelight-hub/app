@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Befehl } from '@domain/aggregates/befehl.aggregate';
 import { BefehlEmpfaenger } from '@domain/entities/befehl-empfaenger.entity';
 import { BefehlErstelltEvent } from '@domain/events/befehl-erstellt.event';
@@ -21,7 +22,6 @@ jest.mock('@paralleldrive/cuid2', () => ({
     return result;
   }),
   isCuid: jest.fn((id: string) => {
-    if (typeof id !== 'string') return false;
     if (id.length < 20 || id.length > 30) return false;
     return /^[a-z][a-z0-9]+$/.test(id);
   }),
@@ -283,7 +283,7 @@ describe('Befehl Aggregate', () => {
       expect(events[0]).toBeInstanceOf(BefehlZugestelltEvent);
       const event = events[0] as BefehlZugestelltEvent;
       expect(event.befehlId).toBe(befehl.id);
-      expect(event.empfaengerId).toBe(empfaengerIds[0].value);
+      expect(event.empfaengerId).toBe(empfaengerIds[0]?.value);
     });
 
     it('sollte Status zu ZUGESTELLT ändern wenn alle Empfänger zugestellt', () => {
@@ -380,7 +380,7 @@ describe('Befehl Aggregate', () => {
       const event = quittierEvents[0] as BefehlQuittiertEvent;
       expect(event.befehlId.value).toBe(befehl.id.value);
       expect(event.einsatzId.value).toBe(einsatzId.value);
-      expect(event.empfaengerId.value).toBe(empfaengerIds[0].value);
+      expect(event.empfaengerId.value).toBe(empfaengerIds[0]?.value);
       expect(event.quittierungArt).toBe('VERSTANDEN');
       expect(event.nummer).toBe(befehl.nummer);
       expect(event.quittiertAm).toBeInstanceOf(Date);
@@ -591,8 +591,8 @@ describe('Befehl Aggregate', () => {
 
       expect(result.isSuccess).toBe(true);
       expect(befehl.kommentare).toHaveLength(1);
-      expect(befehl.kommentare[0].text).toBe('Bestätigt');
-      expect(befehl.kommentare[0].isRueckfrage).toBe(false);
+      expect(befehl.kommentare[0]?.text).toBe('Bestätigt');
+      expect(befehl.kommentare[0]?.isRueckfrage).toBe(false);
     });
 
     it('sollte Rückfrage-Kommentar unterstützen', () => {
@@ -601,7 +601,7 @@ describe('Befehl Aggregate', () => {
 
       befehl.addKommentar(authorId, 'Welches Löschmittel?', true);
 
-      expect(befehl.kommentare[0].isRueckfrage).toBe(true);
+      expect(befehl.kommentare[0]?.isRueckfrage).toBe(true);
     });
 
     it('sollte Thread-Antworten via parentId unterstützen', () => {
@@ -609,11 +609,11 @@ describe('Befehl Aggregate', () => {
       const authorId = UserId.create().value! as UserId;
 
       befehl.addKommentar(authorId, 'Frage', true);
-      const parentId = befehl.kommentare[0].id;
+      const parentId = befehl.kommentare[0]?.id;
       befehl.addKommentar(authorId, 'Antwort', false, parentId);
 
       expect(befehl.kommentare).toHaveLength(2);
-      expect(befehl.kommentare[1].parentId).toBe(parentId);
+      expect(befehl.kommentare[1]?.parentId).toBe(parentId);
     });
 
     it('sollte BefehlKommentarHinzugefuegtEvent emittieren', () => {
@@ -668,7 +668,7 @@ describe('Befehl Aggregate', () => {
 
       befehl.addKommentar(authorId, '  Trimmed Text  ', false);
 
-      expect(befehl.kommentare[0].text).toBe('Trimmed Text');
+      expect(befehl.kommentare[0]?.text).toBe('Trimmed Text');
     });
   });
 

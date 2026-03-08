@@ -15,7 +15,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { ErinnerungUebersicht } from '../ErinnerungUebersicht';
+import { ErinnerungUebersicht } from '@/features/reminders';
 import type { ErinnerungResponseDto } from '@/shared';
 
 /** Minimale Erinnerung-Testdaten */

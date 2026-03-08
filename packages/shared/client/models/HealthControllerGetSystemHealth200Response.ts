@@ -12,21 +12,15 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { SystemHealthDto } from './SystemHealthDto';
-import {
-    SystemHealthDtoFromJSON,
-    SystemHealthDtoFromJSONTyped,
-    SystemHealthDtoToJSON,
-    SystemHealthDtoToJSONTyped,
-} from './SystemHealthDto';
-import type { HealthControllerGetIntegrationHealth200ResponseMeta } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {
+    HealthControllerGetIntegrationHealth200ResponseMeta
+} from './HealthControllerGetIntegrationHealth200ResponseMeta';
 import {
     HealthControllerGetIntegrationHealth200ResponseMetaFromJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaFromJSONTyped,
     HealthControllerGetIntegrationHealth200ResponseMetaToJSON,
-    HealthControllerGetIntegrationHealth200ResponseMetaToJSONTyped,
 } from './HealthControllerGetIntegrationHealth200ResponseMeta';
+import type {SystemHealthDto} from './SystemHealthDto';
+import {SystemHealthDtoFromJSON, SystemHealthDtoToJSON,} from './SystemHealthDto';
 
 /**
  * 
@@ -53,8 +47,8 @@ export interface HealthControllerGetSystemHealth200Response {
  */
 export function instanceOfHealthControllerGetSystemHealth200Response(value: object): value is HealthControllerGetSystemHealth200Response {
     if (!('data' in value) || value['data'] === undefined) return false;
-    if (!('meta' in value) || value['meta'] === undefined) return false;
-    return true;
+    return !(!('meta' in value) || value['meta'] === undefined);
+
 }
 
 export function HealthControllerGetSystemHealth200ResponseFromJSON(json: any): HealthControllerGetSystemHealth200Response {

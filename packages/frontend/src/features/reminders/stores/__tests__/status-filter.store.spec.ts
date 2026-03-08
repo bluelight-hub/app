@@ -23,7 +23,7 @@ import {
   statusFilterToValue,
   ErinnerungStatus,
   type StatusFilterType,
-} from '../status-filter.store';
+} from '@/features/reminders';
 
 describe('StatusFilterStore', () => {
   beforeEach(() => {

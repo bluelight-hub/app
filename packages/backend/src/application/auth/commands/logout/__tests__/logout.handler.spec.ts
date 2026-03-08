@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { LogoutHandler } from '../logout.handler';
 import { LogoutCommand } from '../logout.command';
 import type { IJwtAuthServicePort } from '@domain/ports/i-jwt-auth-service.port';

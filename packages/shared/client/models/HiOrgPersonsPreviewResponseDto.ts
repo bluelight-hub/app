@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { HiOrgPersonPreviewItemDto } from './HiOrgPersonPreviewItemDto';
-import {
-    HiOrgPersonPreviewItemDtoFromJSON,
-    HiOrgPersonPreviewItemDtoFromJSONTyped,
-    HiOrgPersonPreviewItemDtoToJSON,
-    HiOrgPersonPreviewItemDtoToJSONTyped,
-} from './HiOrgPersonPreviewItemDto';
+import type {HiOrgPersonPreviewItemDto} from './HiOrgPersonPreviewItemDto';
+import {HiOrgPersonPreviewItemDtoFromJSON, HiOrgPersonPreviewItemDtoToJSON,} from './HiOrgPersonPreviewItemDto';
 
 /**
  * 
@@ -46,8 +40,8 @@ export interface HiOrgPersonsPreviewResponseDto {
  */
 export function instanceOfHiOrgPersonsPreviewResponseDto(value: object): value is HiOrgPersonsPreviewResponseDto {
     if (!('totalCount' in value) || value['totalCount'] === undefined) return false;
-    if (!('persons' in value) || value['persons'] === undefined) return false;
-    return true;
+    return !(!('persons' in value) || value['persons'] === undefined);
+
 }
 
 export function HiOrgPersonsPreviewResponseDtoFromJSON(json: any): HiOrgPersonsPreviewResponseDto {

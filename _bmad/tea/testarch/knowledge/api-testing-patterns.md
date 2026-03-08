@@ -2,7 +2,9 @@
 
 ## Principle
 
-Test APIs and backend services directly without browser overhead. Use Playwright's `request` context for HTTP operations, `apiRequest` utility for enhanced features, and `recurse` for async operations. Pure API tests run faster, are more stable, and provide better coverage for service-layer logic.
+Test APIs and backend services directly without browser overhead. Use Playwright's `request` context for HTTP
+operations, `apiRequest` utility for enhanced features, and `recurse` for async operations. Pure API tests run faster,
+are more stable, and provide better coverage for service-layer logic.
 
 ## Rationale
 
@@ -197,7 +199,9 @@ test.describe('Orders API', () => {
 - `validateSchema` throws if response doesn't match
 - Built-in retry for transient failures
 - Type-safe `body` access
-- **Note**: If your project uses code-generated operations from an OpenAPI spec, see [Example 8](#example-8-operation-based-api-testing-openapi--code-generators) for the preferred `operation`-based overload (v3.14.0+)
+- **Note**: If your project uses code-generated operations from an OpenAPI spec,
+  see [Example 8](#example-8-operation-based-api-testing-openapi--code-generators) for the preferred `operation`-based
+  overload (v3.14.0+)
 
 ### Example 3: Microservice-to-Microservice Testing
 
@@ -716,7 +720,9 @@ test.describe('Authenticated API Tests', () => {
 
 ### Example 8: Operation-Based API Testing (OpenAPI / Code Generators)
 
-**Context**: When your project uses code-generated operation definitions from an OpenAPI spec, leverage the operation-based overload of `apiRequest` (v3.14.0+) instead of manual `method`/`path` extraction. This eliminates `typeof` assertions and provides full type inference for request body, response, and query parameters.
+**Context**: When your project uses code-generated operation definitions from an OpenAPI spec, leverage the
+operation-based overload of `apiRequest` (v3.14.0+) instead of manual `method`/`path` extraction. This eliminates
+`typeof` assertions and provides full type inference for request body, response, and query parameters.
 
 **Implementation**:
 

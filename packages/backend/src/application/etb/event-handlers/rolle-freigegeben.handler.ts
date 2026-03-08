@@ -17,8 +17,8 @@ import type { IEventHandler } from '@domain/ports/i-event-handler.port';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { RolleFreigegeben } from '@domain/kraefte/events/rolle-freigegeben.event';
 import { LOGGER } from '@infrastructure/di-tokens';
-import { AddEintragCommand } from '../commands/add-eintrag/add-eintrag.command';
-import { AddEintragHandler } from '../commands/add-eintrag/add-eintrag.handler';
+import { AddEintragCommand } from '@application/etb/commands';
+import { AddEintragHandler } from '@application/etb/commands';
 
 /**
  * Event Handler für automatischen ETB-Eintrag bei Rollenfreigabe.

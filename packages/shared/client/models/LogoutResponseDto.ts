@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -31,8 +30,8 @@ export interface LogoutResponseDto {
  * Check if a given object implements the LogoutResponseDto interface.
  */
 export function instanceOfLogoutResponseDto(value: object): value is LogoutResponseDto {
-    if (!('message' in value) || value['message'] === undefined) return false;
-    return true;
+    return !(!('message' in value) || value['message'] === undefined);
+
 }
 
 export function LogoutResponseDtoFromJSON(json: any): LogoutResponseDto {

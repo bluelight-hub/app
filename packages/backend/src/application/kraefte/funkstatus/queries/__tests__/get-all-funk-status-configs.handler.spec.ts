@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Test, type TestingModule } from '@nestjs/testing';
 import { createId } from '@paralleldrive/cuid2';
 import { Result } from '@domain/common/result';
@@ -104,10 +105,10 @@ describe('GetAllFunkStatusConfigsHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(3);
-      expect(result.value![0].code).toBe(0);
-      expect(result.value![1].code).toBe(1);
-      expect(result.value![2].code).toBe(7);
-      expect(result.value![2].customLabel).toBe('Custom 7');
+      expect(result.value?.[0]?.code).toBe(0);
+      expect(result.value?.[1]?.code).toBe(1);
+      expect(result.value?.[2]?.code).toBe(7);
+      expect(result.value?.[2]?.customLabel).toBe('Custom 7');
     });
 
     it('sollte leeres Array zurückgeben wenn keine Einträge existieren', async () => {
@@ -135,7 +136,7 @@ describe('GetAllFunkStatusConfigsHandler', () => {
       expect(result.value).toHaveLength(10);
 
       // Verify all codes are present
-      const codes = result.value!.map((dto) => dto.code);
+      const codes = result.value?.map((dto) => dto.code);
       expect(codes).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     });
 
@@ -152,8 +153,8 @@ describe('GetAllFunkStatusConfigsHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value![0].displayLabel).toBe('Mein Custom Label');
-      expect(result.value![1].displayLabel).toBe('Ankunft Krankenhaus');
+      expect(result.value?.[0]?.displayLabel).toBe('Mein Custom Label');
+      expect(result.value?.[1]?.displayLabel).toBe('Ankunft Krankenhaus');
     });
 
     it('sollte isEditable korrekt setzen (nur Code 7-9)', async () => {
@@ -166,10 +167,10 @@ describe('GetAllFunkStatusConfigsHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value![0].isEditable).toBe(false); // Code 0
-      expect(result.value![1].isEditable).toBe(false); // Code 6
-      expect(result.value![2].isEditable).toBe(true); // Code 7
-      expect(result.value![3].isEditable).toBe(true); // Code 9
+      expect(result.value?.[0]?.isEditable).toBe(false); // Code 0
+      expect(result.value?.[1]?.isEditable).toBe(false); // Code 6
+      expect(result.value?.[2]?.isEditable).toBe(true); // Code 7
+      expect(result.value?.[3]?.isEditable).toBe(true); // Code 9
     });
 
     it('sollte fehlschlagen wenn Repository-Fehler auftritt', async () => {

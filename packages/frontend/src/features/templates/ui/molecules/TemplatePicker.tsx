@@ -35,7 +35,7 @@ export function TemplatePicker({ vorlagen, isLoading, onSelect, disabled }: Temp
       <ListboxButton
         disabled={disabled || isLoading}
         className={cn(
-          'flex items-center gap-2 rounded-lg border-2 border-dashed border-gray-300 px-3 py-2 text-sm transition-colors',
+          'flex items-center gap-2 rounded-lg border-2 border-gray-300 border-dashed px-3 py-2 text-sm transition-colors',
           'hover:border-amber-400 hover:bg-amber-50 dark:border-gray-600 dark:hover:border-amber-500 dark:hover:bg-amber-900/10',
           'focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800',
           'disabled:cursor-not-allowed disabled:opacity-50',

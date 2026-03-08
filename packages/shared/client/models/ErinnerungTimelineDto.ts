@@ -12,14 +12,8 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
-import type { ErinnerungTimelineEventDto } from './ErinnerungTimelineEventDto';
-import {
-    ErinnerungTimelineEventDtoFromJSON,
-    ErinnerungTimelineEventDtoFromJSONTyped,
-    ErinnerungTimelineEventDtoToJSON,
-    ErinnerungTimelineEventDtoToJSONTyped,
-} from './ErinnerungTimelineEventDto';
+import type {ErinnerungTimelineEventDto} from './ErinnerungTimelineEventDto';
+import {ErinnerungTimelineEventDtoFromJSON, ErinnerungTimelineEventDtoToJSON,} from './ErinnerungTimelineEventDto';
 
 /**
  * 
@@ -60,8 +54,8 @@ export function instanceOfErinnerungTimelineDto(value: object): value is Erinner
     if (!('erinnerungId' in value) || value['erinnerungId'] === undefined) return false;
     if (!('titel' in value) || value['titel'] === undefined) return false;
     if (!('events' in value) || value['events'] === undefined) return false;
-    if (!('totalCount' in value) || value['totalCount'] === undefined) return false;
-    return true;
+    return !(!('totalCount' in value) || value['totalCount'] === undefined);
+
 }
 
 export function ErinnerungTimelineDtoFromJSON(json: any): ErinnerungTimelineDto {

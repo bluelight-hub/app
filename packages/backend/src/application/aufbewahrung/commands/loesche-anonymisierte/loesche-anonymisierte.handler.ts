@@ -86,7 +86,7 @@ export class LoescheAnonymisierteHandler extends TransactionalCommandHandler<Loe
       if (!nachEinsatz.has(befehl.einsatzId)) {
         nachEinsatz.set(befehl.einsatzId, []);
       }
-      nachEinsatz.get(befehl.einsatzId)!.push(befehl.id);
+      nachEinsatz.get(befehl.einsatzId)?.push(befehl.id);
     }
 
     // 5. Pro Einsatz soft-deleten via Repository

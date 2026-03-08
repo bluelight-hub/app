@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-import { mapValues } from '../runtime';
 /**
  * 
  * @export
@@ -58,8 +57,8 @@ export type EinsatzRolleDtoRolleEnum = typeof EinsatzRolleDtoRolleEnum[keyof typ
 export function instanceOfEinsatzRolleDto(value: object): value is EinsatzRolleDto {
     if (!('userId' in value) || value['userId'] === undefined) return false;
     if (!('userName' in value) || value['userName'] === undefined) return false;
-    if (!('rolle' in value) || value['rolle'] === undefined) return false;
-    return true;
+    return !(!('rolle' in value) || value['rolle'] === undefined);
+
 }
 
 export function EinsatzRolleDtoFromJSON(json: any): EinsatzRolleDto {
