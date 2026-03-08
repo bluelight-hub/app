@@ -13,9 +13,13 @@ vi.mock('@tanstack/react-query', () => ({
   useQuery: (...args: unknown[]) => mockUseQuery(...args),
 }));
 
-vi.mock('@tanstack/react-store', () => ({
-  useStore: (...args: unknown[]) => mockUseStore(...args),
-}));
+vi.mock('@tanstack/react-store', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@tanstack/react-store')>();
+  return {
+    ...actual,
+    useStore: (...args: unknown[]) => mockUseStore(...args),
+  };
+});
 
 vi.mock('@/features/server/stores/server.store', () => ({
   serverStore: {},
@@ -30,7 +34,7 @@ vi.mock('@/shared', () => ({
   },
 }));
 
-import { useCurrentUser } from '@/features/auth';
+import { useCurrentUser } from '../use-current-user';
 
 const createAuthQueryResult = (overrides: Record<string, unknown> = {}) => ({
   data: undefined,
