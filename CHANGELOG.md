@@ -1,3 +1,7 @@
+## Technische Verbesserungen
+
+- **Router-Bibliothek:** Aktualisierung der TanStack Router-Abhängigkeiten für verbesserte Stabilität und Kompatibilität
+
 ## 🐛 Fehlerbehebungen
 
 ### Backend
