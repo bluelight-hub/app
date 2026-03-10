@@ -1,3 +1,7 @@
+## Teilnehmerverwaltung
+
+- Fehler bei der Datenbankmigration für bestehende Teilnehmer behoben, um Datenkonsistenz sicherzustellen
+
 ## Technische Verbesserungen
 
 - **Router-Bibliothek:** Aktualisierung der TanStack Router-Abhängigkeiten für verbesserte Stabilität und Kompatibilität
