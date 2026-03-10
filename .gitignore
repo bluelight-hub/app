@@ -227,3 +227,6 @@ _bmad-output
 .gemini/
 gha-creds-*.json
 .serena/
+
+# Husky runtime shim files
+.husky/_/
