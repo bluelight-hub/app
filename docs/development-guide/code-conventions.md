@@ -16,7 +16,7 @@ Bluelight Hub nutzt das **Port-Adapter Pattern** (Hexagonal Architecture) für p
 - ✅ **Erweiterbar:** Neue Platforms ohne Breaking Changes
 - ✅ **Type Safe:** TypeScript Generics für Storage-Operationen
 
-**Architektur-Entscheidung:** Siehe [ADR-010: Platform Storage Adapter Pattern](../project-documentation/ADR-010-platform-storage-adapter-pattern.md)
+**Architektur-Entscheidung:** Siehe [ADR-005: Platform Storage Adapter Pattern](../adr/adr-005-platform-storage-adapter-pattern.md)
 
 ---
 
@@ -264,7 +264,7 @@ pub fn run() {
 | **Offline** | ✅ Vollständig | ✅ Vollständig |
 | **Cross-Origin** | N/A | Same-Origin Policy |
 
-**Hinweis:** Verschlüsselung für Tokens/Secrets siehe [ADR-001: Platform Storage Strategy](../project-documentation/ADR-001-platform-storage-strategy.md)
+**Hinweis:** Verschlüsselung für Tokens/Secrets siehe [ADR-004: Platform Storage Strategy](../adr/adr-004-platform-storage-strategy.md)
 
 ---
 
@@ -404,10 +404,10 @@ await storage.set('key', value);
 
 ### Related Documentation
 
-- **ADR:** [ADR-010: Platform Storage Adapter Pattern](../project-documentation/ADR-010-platform-storage-adapter-pattern.md)
+- **ADR:** [ADR-005: Platform Storage Adapter Pattern](../adr/adr-005-platform-storage-adapter-pattern.md)
 - **Frontend Architecture:** [Platform Storage Abstraction](../project-documentation/03-frontend-architektur.md#5-platform-storage-abstraction-port-adapter-pattern)
 - **Tauri Plugins:** [Store Plugin v2.4.1](./tauri-plugins.md#store-plugin-v241)
-- **Strategy Decision:** [ADR-001: Platform Storage Strategy](../project-documentation/ADR-001-platform-storage-strategy.md)
+- **Strategy Decision:** [ADR-004: Platform Storage Strategy](../adr/adr-004-platform-storage-strategy.md)
 
 ---
 

@@ -32,7 +32,8 @@ pnpm -r dev
 | 3 | [Frontend-Architektur](./03-frontend-architektur.md) | React + TanStack Ecosystem, Atomic Design, Tauri |
 | 4 | [API-Referenz](./04-api-referenz.md) | REST Endpoints, DTOs, WebSocket Events |
 | 5 | [Entwicklungshandbuch](./05-entwicklungshandbuch.md) | Setup, Commands, Konventionen, Troubleshooting |
-| ADR | [ADR-001: Platform Storage Strategy](./ADR-001-platform-storage-strategy.md) | Browser vs. Desktop Encryption, localStorage vs. IndexedDB, Tauri Stronghold |
+| ADR | [ADR-004: Platform Storage Strategy](../adr/adr-004-platform-storage-strategy.md) | Browser vs. Desktop Encryption, localStorage vs. IndexedDB, Tauri Stronghold |
+| ADR | [ADR-005: Platform Storage Adapter Pattern](../adr/adr-005-platform-storage-adapter-pattern.md) | Port-Adapter + Factory Singleton für plattformübergreifenden Storage |
 
 ---
 
@@ -128,7 +129,8 @@ Detaillierte exhaustive Analysen spezifischer Bereiche:
 
 | Dokument | Status | Kontext | Beschreibung |
 |----------|--------|---------|--------------|
-| [ADR-001: Platform Storage Strategy](./ADR-001-platform-storage-strategy.md) | Decided | Story 2.1 | Browser (localStorage+Web Crypto) vs Desktop (Tauri Stronghold) Encryption |
+| [ADR-004: Platform Storage Strategy](../adr/adr-004-platform-storage-strategy.md) | Decided | Story 2.1 | Browser (localStorage+Web Crypto) vs Desktop (Tauri Stronghold) Encryption |
+| [ADR-005: Platform Storage Adapter Pattern](../adr/adr-005-platform-storage-adapter-pattern.md) | Accepted | Story 2.1 | Port-Adapter + Factory Singleton für plattformübergreifenden Storage |
 
 ## Story-Spezifische Guides
 

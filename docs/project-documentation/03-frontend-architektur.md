@@ -170,7 +170,7 @@ Bluelight Hub läuft auf **zwei Platforms** (Desktop/Tauri + Web/Browser) und be
 - ✅ **Erweiterbar:** Neue Platforms ohne Breaking Changes
 - ✅ **Type Safe:** TypeScript Generics für Storage-Operationen
 
-**Architektur-Entscheidung:** Siehe [ADR-010: Platform Storage Adapter Pattern](./ADR-010-platform-storage-adapter-pattern.md)
+**Architektur-Entscheidung:** Siehe [ADR-005: Platform Storage Adapter Pattern](../adr/adr-005-platform-storage-adapter-pattern.md)
 
 ### 5.2 Komponenten
 
@@ -404,7 +404,7 @@ test('should save server config', async () => {
 | **Offline** | ✅ Vollständig | ✅ Vollständig |
 | **Cross-Origin** | N/A | Same-Origin Policy |
 
-**Hinweis:** Verschlüsselung für Tokens/Secrets siehe [ADR-001: Platform Storage Strategy](./ADR-001-platform-storage-strategy.md)
+**Hinweis:** Verschlüsselung für Tokens/Secrets siehe [ADR-004: Platform Storage Strategy](../adr/adr-004-platform-storage-strategy.md)
 
 ---
 

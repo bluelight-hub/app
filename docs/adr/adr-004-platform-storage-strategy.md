@@ -1,4 +1,4 @@
-# ADR-001: Platform Storage Strategy - Browser vs. Desktop Encryption
+# ADR-004: Platform Storage Strategy - Browser vs. Desktop Encryption
 
 **Status:** Decided
 **Date:** 2026-01-08

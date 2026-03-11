@@ -1,17 +1,18 @@
-# ADR-010: Platform Storage Adapter Pattern (Port-Adapter + Factory Singleton)
+# ADR-005: Platform Storage Adapter Pattern (Port-Adapter + Factory Singleton)
 
 **Status:** Accepted
 **Date:** 2026-01-08
 **Author:** Rubeen
 **Context:** Story 2.1 - Multi-Server Configuration (Technical Implementation)
-**Supersedes:** ADR-001 (Strategy-Level Decision)
-**Related:** ADR-001-platform-storage-strategy.md
+**Supersedes:** ADR-004 (Strategy-Level Decision)
+**Related:** adr-004-platform-storage-strategy.md
 
 ---
 
 ## Problem Statement
 
-Nach der strategischen Entscheidung in ADR-001 (Browser: localStorage + Web Crypto API, Desktop: Tauri Stronghold) benötigen wir ein **konkretes Implementierungsmuster** für die Platform Storage Abstraction im Frontend.
+Nach der strategischen Entscheidung in ADR-004 (Browser: localStorage + Web Crypto API, Desktop: Tauri Stronghold)
+benötigen wir ein **konkretes Implementierungsmuster** für die Platform Storage Abstraction im Frontend.
 
 **Herausforderungen:**
 
@@ -63,26 +64,26 @@ Nach der strategischen Entscheidung in ADR-001 (Browser: localStorage + Web Cryp
 ```typescript
 // packages/frontend/src/shared/services/storage/IStoragePort.ts
 export interface IStoragePort {
-  /**
-   * Retrieves a value from storage
-   * @returns The stored value or null if not found
-   */
-  get<T>(key: string): Promise<T | null>;
+    /**
+     * Retrieves a value from storage
+     * @returns The stored value or null if not found
+     */
+    get<T>(key: string): Promise<T | null>;
 
-  /**
-   * Stores a value in storage
-   */
-  set<T>(key: string, value: T): Promise<void>;
+    /**
+     * Stores a value in storage
+     */
+    set<T>(key: string, value: T): Promise<void>;
 
-  /**
-   * Removes a value from storage
-   */
-  remove(key: string): Promise<void>;
+    /**
+     * Removes a value from storage
+     */
+    remove(key: string): Promise<void>;
 
-  /**
-   * Clears all storage (use with caution!)
-   */
-  clear(): Promise<void>;
+    /**
+     * Clears all storage (use with caution!)
+     */
+    clear(): Promise<void>;
 }
 ```
 
@@ -92,26 +93,26 @@ export interface IStoragePort {
 
 ```typescript
 // packages/frontend/src/shared/services/storage/adapters/TauriStorageAdapter.ts
-import { invoke } from '@tauri-apps/api/core';
-import type { IStoragePort } from '../IStoragePort';
+import {invoke} from '@tauri-apps/api/core';
+import type {IStoragePort} from '../IStoragePort';
 
 export class TauriStorageAdapter implements IStoragePort {
-  async get<T>(key: string): Promise<T | null> {
-    const value = await invoke<string | null>('plugin:store|get', { key });
-    return value ? JSON.parse(value) : null;
-  }
+    async get<T>(key: string): Promise<T | null> {
+        const value = await invoke<string | null>('plugin:store|get', {key});
+        return value ? JSON.parse(value) : null;
+    }
 
-  async set<T>(key: string, value: T): Promise<void> {
-    await invoke('plugin:store|set', { key, value: JSON.stringify(value) });
-  }
+    async set<T>(key: string, value: T): Promise<void> {
+        await invoke('plugin:store|set', {key, value: JSON.stringify(value)});
+    }
 
-  async remove(key: string): Promise<void> {
-    await invoke('plugin:store|delete', { key });
-  }
+    async remove(key: string): Promise<void> {
+        await invoke('plugin:store|delete', {key});
+    }
 
-  async clear(): Promise<void> {
-    await invoke('plugin:store|clear');
-  }
+    async clear(): Promise<void> {
+        await invoke('plugin:store|clear');
+    }
 }
 ```
 
@@ -119,25 +120,25 @@ export class TauriStorageAdapter implements IStoragePort {
 
 ```typescript
 // packages/frontend/src/shared/services/storage/adapters/WebStorageAdapter.ts
-import type { IStoragePort } from '../IStoragePort';
+import type {IStoragePort} from '../IStoragePort';
 
 export class WebStorageAdapter implements IStoragePort {
-  async get<T>(key: string): Promise<T | null> {
-    const value = localStorage.getItem(key);
-    return value ? JSON.parse(value) : null;
-  }
+    async get<T>(key: string): Promise<T | null> {
+        const value = localStorage.getItem(key);
+        return value ? JSON.parse(value) : null;
+    }
 
-  async set<T>(key: string, value: T): Promise<void> {
-    localStorage.setItem(key, JSON.stringify(value));
-  }
+    async set<T>(key: string, value: T): Promise<void> {
+        localStorage.setItem(key, JSON.stringify(value));
+    }
 
-  async remove(key: string): Promise<void> {
-    localStorage.removeItem(key);
-  }
+    async remove(key: string): Promise<void> {
+        localStorage.removeItem(key);
+    }
 
-  async clear(): Promise<void> {
-    localStorage.clear();
-  }
+    async clear(): Promise<void> {
+        localStorage.clear();
+    }
 }
 ```
 
@@ -145,9 +146,9 @@ export class WebStorageAdapter implements IStoragePort {
 
 ```typescript
 // packages/frontend/src/shared/services/storage/storage-factory.ts
-import type { IStoragePort } from './IStoragePort';
-import { TauriStorageAdapter } from './adapters/TauriStorageAdapter';
-import { WebStorageAdapter } from './adapters/WebStorageAdapter';
+import type {IStoragePort} from './IStoragePort';
+import {TauriStorageAdapter} from './adapters/TauriStorageAdapter';
+import {WebStorageAdapter} from './adapters/WebStorageAdapter';
 
 let storageInstance: IStoragePort | null = null;
 
@@ -155,7 +156,7 @@ let storageInstance: IStoragePort | null = null;
  * Platform Detection (Tauri-spezifisch)
  */
 function isTauriEnvironment(): boolean {
-  return '__TAURI_INTERNALS__' in window;
+    return '__TAURI_INTERNALS__' in window;
 }
 
 /**
@@ -163,13 +164,13 @@ function isTauriEnvironment(): boolean {
  * @returns IStoragePort-Implementierung basierend auf Runtime-Platform
  */
 export function getStorageAdapter(): IStoragePort {
-  if (storageInstance === null) {
-    storageInstance = isTauriEnvironment()
-      ? new TauriStorageAdapter()
-      : new WebStorageAdapter();
-  }
+    if (storageInstance === null) {
+        storageInstance = isTauriEnvironment()
+            ? new TauriStorageAdapter()
+            : new WebStorageAdapter();
+    }
 
-  return storageInstance;
+    return storageInstance;
 }
 
 /**
@@ -177,10 +178,10 @@ export function getStorageAdapter(): IStoragePort {
  * ⚠️ NEVER use in production code!
  */
 export function resetStorageAdapter(): void {
-  if (import.meta.env.MODE !== 'test') {
-    throw new Error('resetStorageAdapter() is only allowed in test mode');
-  }
-  storageInstance = null;
+    if (import.meta.env.MODE !== 'test') {
+        throw new Error('resetStorageAdapter() is only allowed in test mode');
+    }
+    storageInstance = null;
 }
 ```
 
@@ -188,17 +189,17 @@ export function resetStorageAdapter(): void {
 
 ```typescript
 // features/admin/api/mutations.ts
-import { getStorageAdapter } from '@/shared/services/storage/storage-factory';
-import { useMutation } from '@tanstack/react-query';
+import {getStorageAdapter} from '@/shared/services/storage/storage-factory';
+import {useMutation} from '@tanstack/react-query';
 
 export const useSaveServerConfig = () => {
-  const storage = getStorageAdapter();
+    const storage = getStorageAdapter();
 
-  return useMutation({
-    mutationFn: async (servers: ServerConfig[]) => {
-      await storage.set('bluelight:servers', servers);
-    },
-  });
+    return useMutation({
+        mutationFn: async (servers: ServerConfig[]) => {
+            await storage.set('bluelight:servers', servers);
+        },
+    });
 };
 ```
 
@@ -208,30 +209,30 @@ export const useSaveServerConfig = () => {
 
 ### Positive
 
-| Vorteil | Impact |
-|---------|--------|
-| **Platform-Agnostisch** | Features kennen keine Platform-Details (Web vs. Desktop) |
-| **Testbarkeit** | Mock `IStoragePort` in Unit Tests → keine Storage-Zugriffe |
-| **Type Safety** | Generics `get<T>` / `set<T>` garantieren korrekten Typ |
-| **Erweiterbarkeit** | Neue Platforms durch zusätzliche Adapter ohne Breaking Changes |
+| Vorteil                   | Impact                                                           |
+|---------------------------|------------------------------------------------------------------|
+| **Platform-Agnostisch**   | Features kennen keine Platform-Details (Web vs. Desktop)         |
+| **Testbarkeit**           | Mock `IStoragePort` in Unit Tests → keine Storage-Zugriffe       |
+| **Type Safety**           | Generics `get<T>` / `set<T>` garantieren korrekten Typ           |
+| **Erweiterbarkeit**       | Neue Platforms durch zusätzliche Adapter ohne Breaking Changes   |
 | **Singleton Performance** | Platform Detection nur einmalig, nicht bei jedem Storage-Zugriff |
-| **Dependency Inversion** | Features abhängig von Interface, nicht Implementierung (SOLID) |
+| **Dependency Inversion**  | Features abhängig von Interface, nicht Implementierung (SOLID)   |
 
 ### Negative
 
-| Nachteil | Mitigation |
-|----------|-----------|
-| **Abstraktionsschicht-Overhead** | Minimal (1 Interface + Factory), kein Performance-Impact |
-| **Keine Platform-spezifischen Features** | Bewusste Entscheidung für Portabilität |
-| **Singleton State (Testing)** | `resetStorageAdapter()` für Test-Isolation |
+| Nachteil                                 | Mitigation                                               |
+|------------------------------------------|----------------------------------------------------------|
+| **Abstraktionsschicht-Overhead**         | Minimal (1 Interface + Factory), kein Performance-Impact |
+| **Keine Platform-spezifischen Features** | Bewusste Entscheidung für Portabilität                   |
+| **Singleton State (Testing)**            | `resetStorageAdapter()` für Test-Isolation               |
 
 ### Risiken
 
-| Risk | Probability | Impact | Mitigation |
-|------|-------------|--------|-----------|
-| **Platform Detection fehlerhaft** | Low | High | `isTauriEnvironment()` Check ist Tauri-Standard (`__TAURI_INTERNALS__`) |
-| **Adapter-Bug betrifft alle Features** | Low | High | Umfangreiche Adapter-Tests (Unit + E2E) |
-| **Singleton Memory Leak** | Very Low | Low | JavaScript GC managed, kein manuelles Cleanup nötig |
+| Risk                                   | Probability | Impact | Mitigation                                                              |
+|----------------------------------------|-------------|--------|-------------------------------------------------------------------------|
+| **Platform Detection fehlerhaft**      | Low         | High   | `isTauriEnvironment()` Check ist Tauri-Standard (`__TAURI_INTERNALS__`) |
+| **Adapter-Bug betrifft alle Features** | Low         | High   | Umfangreiche Adapter-Tests (Unit + E2E)                                 |
+| **Singleton Memory Leak**              | Very Low    | Low    | JavaScript GC managed, kein manuelles Cleanup nötig                     |
 
 ---
 
@@ -243,8 +244,8 @@ export const useSaveServerConfig = () => {
 
 ```typescript
 export function usePlatformStorage() {
-  const isTauri = useTauriContext();
-  return isTauri ? new TauriStorageAdapter() : new WebStorageAdapter();
+    const isTauri = useTauriContext();
+    return isTauri ? new TauriStorageAdapter() : new WebStorageAdapter();
 }
 ```
 
@@ -260,13 +261,13 @@ export function usePlatformStorage() {
 
 ```typescript
 export class PlatformStorage {
-  async get<T>(key: string): Promise<T | null> {
-    if (isTauriEnvironment()) {
-      return await invoke('get', { key });
-    } else {
-      return JSON.parse(localStorage.getItem(key));
+    async get<T>(key: string): Promise<T | null> {
+        if (isTauriEnvironment()) {
+            return await invoke('get', {key});
+        } else {
+            return JSON.parse(localStorage.getItem(key));
+        }
     }
-  }
 }
 ```
 
@@ -283,7 +284,7 @@ export class PlatformStorage {
 ```typescript
 // IoC Container (z.B. InversifyJS)
 container.bind<IStoragePort>('IStoragePort').toDynamicValue(() => {
-  return isTauriEnvironment() ? new TauriStorageAdapter() : new WebStorageAdapter();
+    return isTauriEnvironment() ? new TauriStorageAdapter() : new WebStorageAdapter();
 });
 
 const storage = container.get<IStoragePort>('IStoragePort');
@@ -303,27 +304,27 @@ const storage = container.get<IStoragePort>('IStoragePort');
 
 ```typescript
 // packages/frontend/src/shared/services/storage/adapters/__tests__/WebStorageAdapter.test.ts
-import { describe, it, expect, beforeEach } from 'vitest';
-import { WebStorageAdapter } from '../WebStorageAdapter';
+import {describe, it, expect, beforeEach} from 'vitest';
+import {WebStorageAdapter} from '../WebStorageAdapter';
 
 describe('WebStorageAdapter', () => {
-  let adapter: WebStorageAdapter;
+    let adapter: WebStorageAdapter;
 
-  beforeEach(() => {
-    localStorage.clear();
-    adapter = new WebStorageAdapter();
-  });
+    beforeEach(() => {
+        localStorage.clear();
+        adapter = new WebStorageAdapter();
+    });
 
-  it('should store and retrieve data', async () => {
-    await adapter.set('test-key', { value: 123 });
-    const result = await adapter.get<{ value: number }>('test-key');
-    expect(result).toEqual({ value: 123 });
-  });
+    it('should store and retrieve data', async () => {
+        await adapter.set('test-key', {value: 123});
+        const result = await adapter.get<{ value: number }>('test-key');
+        expect(result).toEqual({value: 123});
+    });
 
-  it('should return null for non-existent keys', async () => {
-    const result = await adapter.get('non-existent');
-    expect(result).toBeNull();
-  });
+    it('should return null for non-existent keys', async () => {
+        const result = await adapter.get('non-existent');
+        expect(result).toBeNull();
+    });
 });
 ```
 
@@ -331,31 +332,31 @@ describe('WebStorageAdapter', () => {
 
 ```typescript
 // packages/frontend/src/shared/services/storage/__tests__/storage-factory.test.ts
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { getStorageAdapter, resetStorageAdapter } from '../storage-factory';
+import {describe, it, expect, beforeEach, vi} from 'vitest';
+import {getStorageAdapter, resetStorageAdapter} from '../storage-factory';
 
 describe('getStorageAdapter', () => {
-  beforeEach(() => {
-    resetStorageAdapter(); // Test-Isolation
-  });
+    beforeEach(() => {
+        resetStorageAdapter(); // Test-Isolation
+    });
 
-  it('should return WebStorageAdapter in browser environment', () => {
-    vi.stubGlobal('__TAURI_INTERNALS__', undefined);
-    const adapter = getStorageAdapter();
-    expect(adapter).toBeInstanceOf(WebStorageAdapter);
-  });
+    it('should return WebStorageAdapter in browser environment', () => {
+        vi.stubGlobal('__TAURI_INTERNALS__', undefined);
+        const adapter = getStorageAdapter();
+        expect(adapter).toBeInstanceOf(WebStorageAdapter);
+    });
 
-  it('should return TauriStorageAdapter in Tauri environment', () => {
-    vi.stubGlobal('__TAURI_INTERNALS__', {});
-    const adapter = getStorageAdapter();
-    expect(adapter).toBeInstanceOf(TauriStorageAdapter);
-  });
+    it('should return TauriStorageAdapter in Tauri environment', () => {
+        vi.stubGlobal('__TAURI_INTERNALS__', {});
+        const adapter = getStorageAdapter();
+        expect(adapter).toBeInstanceOf(TauriStorageAdapter);
+    });
 
-  it('should return singleton instance on multiple calls', () => {
-    const adapter1 = getStorageAdapter();
-    const adapter2 = getStorageAdapter();
-    expect(adapter1).toBe(adapter2); // Same instance
-  });
+    it('should return singleton instance on multiple calls', () => {
+        const adapter1 = getStorageAdapter();
+        const adapter2 = getStorageAdapter();
+        expect(adapter1).toBe(adapter2); // Same instance
+    });
 });
 ```
 
@@ -363,22 +364,22 @@ describe('getStorageAdapter', () => {
 
 ```typescript
 // packages/frontend/src/features/admin/__tests__/server-config.e2e.test.ts
-import { test, expect } from '@playwright/test';
+import {test, expect} from '@playwright/test';
 
-test('should save server config to storage', async ({ page }) => {
-  await page.goto('/admin/server-setup');
+test('should save server config to storage', async ({page}) => {
+    await page.goto('/admin/server-setup');
 
-  await page.fill('input[name="url"]', 'https://api.example.com');
-  await page.fill('input[name="token"]', 'blh_test_token');
-  await page.click('button[type="submit"]');
+    await page.fill('input[name="url"]', 'https://api.example.com');
+    await page.fill('input[name="token"]', 'blh_test_token');
+    await page.click('button[type="submit"]');
 
-  await expect(page.locator('.success-message')).toBeVisible();
+    await expect(page.locator('.success-message')).toBeVisible();
 
-  // Verify localStorage persistence (Web)
-  const storage = await page.evaluate(() => {
-    return localStorage.getItem('bluelight:servers');
-  });
-  expect(storage).toContain('api.example.com');
+    // Verify localStorage persistence (Web)
+    const storage = await page.evaluate(() => {
+        return localStorage.getItem('bluelight:servers');
+    });
+    expect(storage).toContain('api.example.com');
 });
 ```
 
@@ -403,7 +404,7 @@ test('should save server config to storage', async ({ page }) => {
 
 ### Phase 3: Documentation (Current)
 
-- [ ] ADR-010: Port-Adapter Pattern Decision
+- [ ] ADR-005: Port-Adapter Pattern Decision
 - [ ] Arc42 Update: Querschnittliche Konzepte
 - [ ] Development Guide: Storage Adapter Usage
 
@@ -420,7 +421,7 @@ test('should save server config to storage', async ({ page }) => {
 - **Pattern:** [Hexagonal Architecture (Ports & Adapters)](https://alistair.cockburn.us/hexagonal-architecture/)
 - **Pattern:** [Factory Pattern](https://refactoring.guru/design-patterns/factory-method)
 - **Pattern:** [Singleton Pattern](https://refactoring.guru/design-patterns/singleton)
-- **Related ADR:** ADR-001-platform-storage-strategy.md
+- **Related ADR:** adr-004-platform-storage-strategy.md
 - **Implementation:** `packages/frontend/src/shared/services/storage/`
 - **Tests:** 37/37 passing (see `pnpm --filter @bluelight-hub/frontend test`)
 
