@@ -20,6 +20,12 @@ const mockNavigate = vi.fn();
 const mockRouterHistoryReplace = vi.fn();
 const mockRouterHistoryPush = vi.fn();
 const mockRouterHistoryFlush = vi.fn();
+const mockUnifiedAuthState = {
+  mutate: vi.fn(),
+  isPending: false,
+  error: null as Error | null,
+  reset: vi.fn(),
+};
 const mockSystemHealthReturn = {
   connectionMode: 'online',
   setupComplete: true,
@@ -50,7 +56,7 @@ vi.mock('@/features/auth', () => ({
   AUTH_KEYS: { auth: { queries: { authCheck: ['auth', 'check'] } } },
   consumeRedirectAfterLogin: vi.fn(() => undefined),
   useCurrentUser: vi.fn(() => ({ user: null, authStatus: 'unauthenticated', isLoading: false })),
-  useUnifiedAuth: () => ({ mutate: vi.fn(), isPending: false, error: null }),
+  useUnifiedAuth: () => mockUnifiedAuthState,
   useLogout: vi.fn(() => ({ mutateAsync: vi.fn().mockResolvedValue(undefined), isPending: false })),
 }));
 
@@ -118,6 +124,11 @@ vi.mock('@/features/system', () => ({
 let capturedOnServerChange: ((serverId: string) => void) | null = null;
 let capturedOnLogoutAndSwitch: ((serverId: string) => Promise<void>) | null = null;
 let capturedIsAuthenticated: boolean | undefined;
+let capturedUnifiedAuthFormProps: {
+  errorMessage?: string | null;
+  onValueChange?: () => void;
+  onSubmit?: (values: AuthRequestDto) => Promise<void> | void;
+} | null = null;
 
 // Mock Server Molecules
 vi.mock('@/features/server/ui/molecules', () => ({
@@ -204,7 +215,21 @@ vi.mock('@/shared/ui/templates/AuthLayout', () => ({
 }));
 
 vi.mock('@/features/auth/ui/organisms/UnifiedAuthForm', () => ({
-  UnifiedAuthForm: () => <form data-testid="unified-auth-form">Login Form</form>,
+  UnifiedAuthForm: (props: { errorMessage?: string | null; onValueChange?: () => void; onSubmit?: (values: AuthRequestDto) => Promise<void> | void }) => {
+    capturedUnifiedAuthFormProps = props;
+
+    return (
+      <form data-testid="unified-auth-form">
+        Login Form
+        {props.errorMessage ? <p>{props.errorMessage}</p> : null}
+        {props.onValueChange ? (
+          <button type="button" onClick={props.onValueChange}>
+            Change auth value
+          </button>
+        ) : null}
+      </form>
+    );
+  },
 }));
 
 vi.mock('sonner', () => ({
@@ -223,8 +248,10 @@ import { LoginWindow } from '../LoginWindow';
 import { useRequireServer, useServerList, useActiveServer } from '@/features/server/hooks';
 import { setActiveServer } from '@/features/server/stores/server.store';
 import { consumeRedirectAfterLogin, useLogout, useCurrentUser } from '@/features/auth';
+import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { toast } from 'sonner';
 import type { ServerConfig } from '@/features/server/types/server-config';
+import type { AuthRequestDto } from '@/shared';
 
 const mockUseRequireServer = vi.mocked(useRequireServer);
 const mockUseServerList = vi.mocked(useServerList);
@@ -233,6 +260,7 @@ const mockSetActiveServer = vi.mocked(setActiveServer);
 const mockUseLogout = vi.mocked(useLogout);
 const mockUseCurrentUser = vi.mocked(useCurrentUser);
 const mockConsumeRedirectAfterLogin = vi.mocked(consumeRedirectAfterLogin);
+const mockGetApiErrorMessage = vi.mocked(getApiErrorMessage);
 
 /**
  * Factory für Mock-Server
@@ -250,6 +278,11 @@ const createMockServer = (overrides: Partial<ServerConfig> = {}): ServerConfig =
 describe('LoginWindow', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUnifiedAuthState.mutate.mockReset();
+    mockUnifiedAuthState.reset.mockReset();
+    mockUnifiedAuthState.isPending = false;
+    mockUnifiedAuthState.error = null;
+    capturedUnifiedAuthFormProps = null;
     Object.assign(mockSystemHealthReturn, {
       connectionMode: 'online',
       setupComplete: true,
@@ -264,6 +297,7 @@ describe('LoginWindow', () => {
       isLoading: false,
       isError: false,
     });
+    mockGetApiErrorMessage.mockResolvedValue('Ein unerwarteter Fehler ist aufgetreten.');
 
     // Default Mocks: Server vorhanden, hydriert
     mockUseRequireServer.mockReturnValue({
@@ -620,6 +654,83 @@ describe('LoginWindow', () => {
       expect(mockRouterHistoryPush).not.toHaveBeenCalled();
       expect(mockRouterHistoryFlush).toHaveBeenCalled();
       expect(mockConsumeRedirectAfterLogin).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Authentication Errors', () => {
+    it('should keep the user in the login context when unified auth reports an error', async () => {
+      const singleServer = createMockServer({ name: 'Leitstelle Ost' });
+      mockUseServerList.mockReturnValue([singleServer]);
+      mockUseActiveServer.mockReturnValue(singleServer);
+      mockGetApiErrorMessage.mockResolvedValue('Benutzerprofil konnte nicht angemeldet werden.');
+      mockUnifiedAuthState.mutate.mockImplementation((_authData, callbacks) => {
+        void callbacks?.onError?.(new Error('Response returned an error code'));
+      });
+
+      render(<LoginWindow />);
+
+      await act(async () => {
+        await capturedUnifiedAuthFormProps?.onSubmit?.({ username: 'einsatzleitung' });
+      });
+
+      expect(screen.getByText('Arbeitsfähigkeit prüfen')).toBeInTheDocument();
+      expect(screen.getByText('Benutzerprofil konnte nicht angemeldet werden.')).toBeInTheDocument();
+      expect(screen.getByTestId('server-selector')).toBeInTheDocument();
+      expect(mockRouterHistoryReplace).not.toHaveBeenCalled();
+    });
+
+    it('should render the normalized inline error message after a failed login attempt', async () => {
+      const singleServer = createMockServer();
+      mockUseServerList.mockReturnValue([singleServer]);
+      mockUseActiveServer.mockReturnValue(singleServer);
+      mockGetApiErrorMessage.mockResolvedValue('Benutzerprofil ist derzeit gesperrt.');
+      mockUnifiedAuthState.mutate.mockImplementation((_authData, callbacks) => {
+        void callbacks?.onError?.(new Error('Response returned an error code'));
+      });
+
+      render(<LoginWindow />);
+
+      await act(async () => {
+        await capturedUnifiedAuthFormProps?.onSubmit?.({ username: 'einsatzleitung' });
+      });
+
+      await vi.waitFor(() => {
+        expect(screen.getByText('Benutzerprofil ist derzeit gesperrt.')).toBeInTheDocument();
+      });
+
+      expect(mockGetApiErrorMessage).toHaveBeenCalledTimes(1);
+    });
+
+    it('should clear a stale auth error only after the username changes', async () => {
+      const singleServer = createMockServer();
+      mockUseServerList.mockReturnValue([singleServer]);
+      mockUseActiveServer.mockReturnValue(singleServer);
+      mockGetApiErrorMessage.mockResolvedValue('Vorheriger Fehler');
+      mockUnifiedAuthState.mutate.mockImplementation((_authData, callbacks) => {
+        mockUnifiedAuthState.error = new Error('Response returned an error code');
+        void callbacks?.onError?.(new Error('Response returned an error code'));
+      });
+
+      render(<LoginWindow />);
+
+      await act(async () => {
+        await capturedUnifiedAuthFormProps?.onSubmit?.({ username: 'einsatzleitung' });
+      });
+
+      await vi.waitFor(() => {
+        expect(screen.getByText('Vorheriger Fehler')).toBeInTheDocument();
+      });
+
+      expect(capturedUnifiedAuthFormProps?.onValueChange).toBeDefined();
+
+      await act(async () => {
+        capturedUnifiedAuthFormProps?.onValueChange?.();
+      });
+
+      expect(mockUnifiedAuthState.reset).toHaveBeenCalledTimes(1);
+      await vi.waitFor(() => {
+        expect(screen.queryByText('Vorheriger Fehler')).not.toBeInTheDocument();
+      });
     });
   });
 

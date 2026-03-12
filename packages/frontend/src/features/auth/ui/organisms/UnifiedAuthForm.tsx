@@ -35,6 +35,7 @@ interface UsernameComboboxProps {
   value: string;
   items: UsernameOption[];
   onChange: (value: string) => void;
+  onValueChange?: () => void;
   placeholder: string;
   label: string;
   disabled?: boolean;
@@ -42,7 +43,7 @@ interface UsernameComboboxProps {
   leadingIcon?: React.ReactNode;
 }
 
-function UsernameCombobox({ id, value, items, onChange, placeholder, label, disabled = false, error, leadingIcon }: UsernameComboboxProps) {
+function UsernameCombobox({ id, value, items, onChange, onValueChange, placeholder, label, disabled = false, error, leadingIcon }: UsernameComboboxProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState(value);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -109,6 +110,9 @@ function UsernameCombobox({ id, value, items, onChange, placeholder, label, disa
   };
 
   const handleSelect = (nextValue: string) => {
+    if (nextValue !== value) {
+      onValueChange?.();
+    }
     setQuery(nextValue);
     onChange(nextValue);
     setOpen(false);
@@ -159,6 +163,9 @@ function UsernameCombobox({ id, value, items, onChange, placeholder, label, disa
               value={query}
               placeholder={placeholder}
               autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="none"
+              spellCheck={false}
               disabled={disabled}
               role="combobox"
               aria-haspopup="listbox"
@@ -174,6 +181,9 @@ function UsernameCombobox({ id, value, items, onChange, placeholder, label, disa
               }}
               onChange={(event) => {
                 const nextValue = event.target.value;
+                if (nextValue !== value) {
+                  onValueChange?.();
+                }
                 setQuery(nextValue);
                 onChange(nextValue);
                 if (!open) {
@@ -290,6 +300,8 @@ export interface UnifiedAuthFormProps {
   onSubmit: (values: AuthRequestDto) => Promise<void> | void;
   isLoading?: boolean;
   error?: Error | null;
+  errorMessage?: string | null;
+  onValueChange?: () => void;
   className?: string;
 }
 
@@ -299,9 +311,11 @@ export interface UnifiedAuthFormProps {
  * Ermöglicht sowohl die Auswahl bestehender Benutzer als auch
  * die Eingabe neuer Benutzernamen für automatische Registrierung.
  */
-export function UnifiedAuthForm({ onSubmit, isLoading = false, error, className }: UnifiedAuthFormProps) {
+export function UnifiedAuthForm({ onSubmit, isLoading = false, error, errorMessage, onValueChange, className }: UnifiedAuthFormProps) {
   const { data: usersData } = usePublicUsers();
   const usernameInputId = useId();
+  const hasSubmissionError = Boolean(errorMessage || error);
+  const submissionErrorMessage = errorMessage?.trim() || error?.message?.trim() || 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.';
 
   const comboboxItems = useMemo(
     () =>
@@ -350,7 +364,7 @@ export function UnifiedAuthForm({ onSubmit, isLoading = false, error, className 
           <form.Field name="username">
             {(field) => {
               const fieldError = field.state.meta.errors[0];
-              const errorMessage = typeof fieldError === 'string' ? fieldError : fieldError?.message;
+              const validationMessage = typeof fieldError === 'string' ? fieldError : fieldError?.message;
 
               return (
                 <UsernameCombobox
@@ -358,11 +372,12 @@ export function UnifiedAuthForm({ onSubmit, isLoading = false, error, className 
                   items={comboboxItems}
                   value={field.state.value}
                   onChange={(nextValue) => field.handleChange(nextValue)}
+                  onValueChange={onValueChange}
                   placeholder="Benutzername eingeben oder auswählen..."
                   label="Benutzername"
                   disabled={isLoading || form.state.isSubmitting}
                   leadingIcon={<PiUser className="h-4 w-4" />}
-                  error={errorMessage || (error ? 'Anmeldung fehlgeschlagen' : undefined)}
+                  error={validationMessage || (hasSubmissionError ? submissionErrorMessage : undefined)}
                 />
               );
             }}
@@ -380,7 +395,7 @@ export function UnifiedAuthForm({ onSubmit, isLoading = false, error, className 
           )}
         </form.Subscribe>
 
-        {error && <Alert status="error" title="Anmeldung fehlgeschlagen" description={error.message || 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.'} />}
+        {hasSubmissionError && <Alert status="error" title="Anmeldung fehlgeschlagen" description={submissionErrorMessage} />}
       </form>
     </div>
   );

@@ -180,6 +180,7 @@ export function LoginWindow(_props: Props) {
   const [isDeleting, setIsDeleting] = useState(false);
   // Loading-State beim Server-Wechsel um Race Conditions zu verhindern
   const [isSwitching, setIsSwitching] = useState(false);
+  const [authErrorMessage, setAuthErrorMessage] = useState<string | null>(null);
   const redirectTargetRef = useRef<string | null>(null);
 
   const { user, authStatus } = useCurrentUser();
@@ -347,10 +348,12 @@ export function LoginWindow(_props: Props) {
 
   const handleAuth = useCallback(
     (authData: AuthRequestDto) => {
+      setAuthErrorMessage(null);
       unifiedAuth.mutate(authData, {
         onSuccess: async (response) => {
           const successMessage = response.isNewUser ? 'Willkommen! Ihr Account wurde erfolgreich erstellt.' : 'Sie wurden erfolgreich angemeldet.';
 
+          setAuthErrorMessage(null);
           toast.success('Erfolgreich', {
             description: successMessage,
           });
@@ -362,6 +365,7 @@ export function LoginWindow(_props: Props) {
         onError: async (error: Error) => {
           const message = await getApiErrorMessage(error, 'Ein unerwarteter Fehler ist aufgetreten.', 'userAuth');
 
+          setAuthErrorMessage(message);
           toast.error('Authentifizierung fehlgeschlagen', {
             description: message,
           });
@@ -370,6 +374,16 @@ export function LoginWindow(_props: Props) {
     },
     [unifiedAuth, queryClient],
   );
+
+  const handleAuthFormValueChange = useCallback(() => {
+    if (authErrorMessage) {
+      setAuthErrorMessage(null);
+    }
+
+    if (unifiedAuth.error) {
+      unifiedAuth.reset?.();
+    }
+  }, [authErrorMessage, unifiedAuth]);
 
   useEffect(() => {
     if (authStatus === 'authenticated' && user) {
@@ -622,7 +636,8 @@ export function LoginWindow(_props: Props) {
                 <UnifiedAuthForm
                   onSubmit={handleAuth}
                   isLoading={unifiedAuth.isPending}
-                  error={unifiedAuth.error ?? null}
+                  errorMessage={authErrorMessage}
+                  onValueChange={handleAuthFormValueChange}
                   className="border-slate-200/80 bg-slate-50/75 shadow-none dark:border-slate-800/80 dark:bg-slate-900/40"
                 />
               </div>
