@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useForm } from '@tanstack/react-form';
 import { toast } from 'sonner';
-import { PiDatabase, PiKey, PiFloppyDisk, PiX, PiPlugsConnected, PiPalette } from 'react-icons/pi';
+import { PiDatabase, PiKey, PiFloppyDisk, PiX, PiPlugsConnected, PiPalette, PiSpinner } from 'react-icons/pi';
 import { z } from 'zod';
 
-import { Button } from '@/shared/ui/atoms/button.atom';
-import { Input } from '@/shared/ui/atoms/input.atom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/shared/ui/cn';
 
 import { serverUrlSchema, serverNameSchema } from '../../schemas/url-params.schema';
@@ -41,6 +41,12 @@ interface ServerEditFormProps {
   /** CSS className */
   className?: string;
 }
+
+const EDIT_FORM_INPUT_CLASS =
+  'h-11 rounded-lg border-slate-300 bg-white/95 text-slate-900 shadow-sm transition focus-visible:border-sky-500 focus-visible:ring-sky-500/35 dark:border-slate-700 dark:bg-slate-900/75 dark:text-slate-100';
+
+const EDIT_FORM_OUTLINE_BUTTON_CLASS = '!rounded-md h-10 text-sm shadow-sm';
+const EDIT_FORM_PRIMARY_BUTTON_CLASS = '!rounded-md h-10 text-sm shadow-sm';
 
 /**
  * Formular zum Bearbeiten eines existierenden Servers.
@@ -232,159 +238,181 @@ export function ServerEditForm({ server, onSuccess, onCancel, className }: Serve
         e.stopPropagation();
         form.handleSubmit();
       }}
-      className={cn('space-y-4', className)}
+      className={cn('flex min-h-0 flex-col overflow-hidden', className)}
       data-testid="server-edit-form"
     >
-      {/* Server Name Field */}
-      <form.Field
-        name="serverName"
-        validators={{
-          // C4: Direkte Zod-Schema Verwendung mit zodValidator()
-          onChange: serverNameWithDuplicateCheck,
-          onBlur: serverNameWithDuplicateCheck,
-        }}
-      >
-        {(field) => {
-          // zodValidator gibt Objekte zurück, daher getFieldError nutzen
-          const fieldError = getFieldError(field.state.meta.errors);
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-2" data-testid="server-edit-scroll-body" style={{ scrollbarGutter: 'stable' }}>
+        <div className="grid gap-3">
+          {/* Server Name Field */}
+          <form.Field
+            name="serverName"
+            validators={{
+              // C4: Direkte Zod-Schema Verwendung mit zodValidator()
+              onChange: serverNameWithDuplicateCheck,
+              onBlur: serverNameWithDuplicateCheck,
+            }}
+          >
+            {(field) => {
+              // zodValidator gibt Objekte zurück, daher getFieldError nutzen
+              const fieldError = getFieldError(field.state.meta.errors);
 
-          return (
-            <div className="space-y-1">
-              <label htmlFor="serverName" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
-                Server-Name
-              </label>
-              <Input
-                id="serverName"
-                type="text"
-                placeholder="z.B. Produktiv-Server"
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-                onBlur={field.handleBlur}
-                variant={fieldError ? 'error' : 'default'}
-                leftIcon={<PiDatabase className="size-4" />}
-                aria-label="Server-Name"
-                aria-invalid={!!fieldError}
-                aria-describedby={fieldError ? 'serverName-error' : undefined}
-              />
-              {/* H2: ARIA Live-Region für Screen-Reader */}
-              {fieldError && (
-                <p id="serverName-error" className="text-red-600 text-sm dark:text-red-400" role="alert" aria-live="assertive">
-                  {fieldError}
-                </p>
-              )}
-            </div>
-          );
-        }}
-      </form.Field>
+              return (
+                <div className="space-y-1.5">
+                  <label htmlFor="serverName" className="block font-medium text-slate-700 text-sm dark:text-slate-200">
+                    Server-Name
+                  </label>
+                  <div className="relative">
+                    <PiDatabase className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+                    <Input
+                      id="serverName"
+                      type="text"
+                      placeholder="z.B. Produktiv-Server"
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                      aria-label="Server-Name"
+                      aria-invalid={!!fieldError}
+                      aria-describedby={fieldError ? 'serverName-error' : undefined}
+                      className={cn(EDIT_FORM_INPUT_CLASS, 'pl-10', fieldError && 'border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/30')}
+                    />
+                  </div>
+                  {/* H2: ARIA Live-Region für Screen-Reader */}
+                  {fieldError && (
+                    <p id="serverName-error" className="text-destructive text-sm" role="alert" aria-live="assertive">
+                      {fieldError}
+                    </p>
+                  )}
+                </div>
+              );
+            }}
+          </form.Field>
 
-      {/* Server URL Field */}
-      <form.Field
-        name="serverUrl"
-        validators={{
-          // C4: Direkte Zod-Schema Verwendung mit zodValidator()
-          onChange: serverUrlSchema,
-          onBlur: serverUrlSchema,
-        }}
-      >
-        {(field) => {
-          // zodValidator gibt Objekte zurück, daher getFieldError nutzen
-          const fieldError = getFieldError(field.state.meta.errors);
+          {/* Server URL Field */}
+          <form.Field
+            name="serverUrl"
+            validators={{
+              // C4: Direkte Zod-Schema Verwendung mit zodValidator()
+              onChange: serverUrlSchema,
+              onBlur: serverUrlSchema,
+            }}
+          >
+            {(field) => {
+              // zodValidator gibt Objekte zurück, daher getFieldError nutzen
+              const fieldError = getFieldError(field.state.meta.errors);
 
-          return (
-            <div className="space-y-1">
-              <label htmlFor="serverUrl" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
-                Server-URL
-              </label>
-              <Input
-                id="serverUrl"
-                type="url"
-                placeholder="https://api.example.com"
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-                onBlur={field.handleBlur}
-                variant={fieldError ? 'error' : 'default'}
-                leftIcon={<PiPlugsConnected className="size-4" />}
-                aria-label="Server-URL"
-                aria-invalid={!!fieldError}
-                aria-describedby={fieldError ? 'serverUrl-error' : undefined}
-              />
-              {/* H2: ARIA Live-Region für Screen-Reader */}
-              {fieldError && (
-                <p id="serverUrl-error" className="text-red-600 text-sm dark:text-red-400" role="alert" aria-live="assertive">
-                  {fieldError}
-                </p>
-              )}
-            </div>
-          );
-        }}
-      </form.Field>
-
-      {/* Token-Hinweis (nicht editierbar) */}
-      <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800" data-testid="token-hint">
-        <p className="flex items-center text-gray-600 text-sm dark:text-gray-400">
-          <PiKey className="mr-2 size-4" />
-          {server.accessToken ? 'Access-Token gespeichert' : 'Kein Access-Token konfiguriert'}
-        </p>
-      </div>
-
-      {/* Visuelle Unterscheidung - Icon und Farbe */}
-      <div className="space-y-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700" data-testid="visual-settings-section">
-        <div className="flex items-center gap-2">
-          <PiPalette className="size-5 text-gray-600 dark:text-gray-400" />
-          <h3 className="font-medium text-gray-900 text-sm dark:text-gray-100">Visuelle Unterscheidung</h3>
+              return (
+                <div className="space-y-1.5">
+                  <label htmlFor="serverUrl" className="block font-medium text-slate-700 text-sm dark:text-slate-200">
+                    Server-URL
+                  </label>
+                  <div className="relative">
+                    <PiPlugsConnected className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+                    <Input
+                      id="serverUrl"
+                      type="url"
+                      placeholder="https://api.example.com"
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                      aria-label="Server-URL"
+                      aria-invalid={!!fieldError}
+                      aria-describedby={fieldError ? 'serverUrl-error' : undefined}
+                      className={cn(EDIT_FORM_INPUT_CLASS, 'pl-10', fieldError && 'border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/30')}
+                    />
+                  </div>
+                  {/* H2: ARIA Live-Region für Screen-Reader */}
+                  {fieldError && (
+                    <p id="serverUrl-error" className="text-destructive text-sm" role="alert" aria-live="assertive">
+                      {fieldError}
+                    </p>
+                  )}
+                </div>
+              );
+            }}
+          </form.Field>
         </div>
 
-        {/* Farb-Auswahl - Validierung erfolgt durch den Picker selbst (nur gültige Presets) */}
-        <form.Field name="color">
-          {(field) => (
-            <div className="space-y-2" data-testid="color-picker-section">
-              {/* biome-ignore lint/a11y/noLabelWithoutControl: ServerColorPicker ist ein radiogroup, kein einzelnes Input */}
-              <label className="block font-medium text-gray-700 text-sm dark:text-gray-300">Farbe auswählen</label>
-              <ServerColorPicker value={field.state.value} onChange={(color) => field.handleChange(color)} disabled={isSubmitting} aria-label="Farbe auswählen" />
+        {/* Token-Hinweis (nicht editierbar) */}
+        <div className="rounded-2xl border border-slate-200/80 bg-white/85 p-3.5 shadow-sm dark:border-slate-800/80 dark:bg-slate-950/45 dark:shadow-none" data-testid="token-hint">
+          <div className="flex items-start gap-3">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-slate-200/80 bg-slate-50 text-slate-600 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/80 dark:text-slate-300">
+              <PiKey className="size-4" />
             </div>
-          )}
-        </form.Field>
+            <div className="space-y-1">
+              <p className="font-medium text-slate-900 text-sm dark:text-slate-50">Zugangstoken</p>
+              <p className="text-slate-600 text-sm dark:text-slate-300">{server.accessToken ? 'Access-Token gespeichert' : 'Kein Access-Token konfiguriert'}</p>
+            </div>
+          </div>
+        </div>
 
-        {/* Icon-Auswahl - Validierung erfolgt durch den Picker selbst (nur gültige Presets) */}
-        <form.Field name="icon">
-          {(field) => (
-            <div className="space-y-2" data-testid="icon-picker-section">
-              <ServerIconPicker value={field.state.value} onChange={(icon) => field.handleChange(icon)} disabled={isSubmitting} aria-label="Icon auswählen" />
+        {/* Visuelle Unterscheidung - Icon und Farbe */}
+        <div
+          className="space-y-3 rounded-2xl border border-slate-200/80 bg-white/85 p-3.5 shadow-sm dark:border-slate-800/80 dark:bg-slate-950/45 dark:shadow-none"
+          data-testid="visual-settings-section"
+        >
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <PiPalette className="size-5 text-slate-600 dark:text-slate-300" />
+              <h3 className="font-medium text-slate-900 text-sm dark:text-slate-50">Visuelle Unterscheidung</h3>
             </div>
-          )}
-        </form.Field>
+            <p className="text-slate-600 text-sm dark:text-slate-300">Kompakte Marker für die Server-Auswahl im Login.</p>
+          </div>
+
+          <div className="grid gap-3">
+            {/* Farb-Auswahl - Validierung erfolgt durch den Picker selbst (nur gültige Presets) */}
+            <form.Field name="color">
+              {(field) => (
+                <div className="space-y-1.5" data-testid="color-picker-section">
+                  {/* biome-ignore lint/a11y/noLabelWithoutControl: ServerColorPicker ist ein radiogroup, kein einzelnes Input */}
+                  <label className="block font-medium text-slate-700 text-sm dark:text-slate-200">Farbe auswählen</label>
+                  <ServerColorPicker value={field.state.value} onChange={(color) => field.handleChange(color)} disabled={isSubmitting} aria-label="Farbe auswählen" />
+                </div>
+              )}
+            </form.Field>
+
+            {/* Icon-Auswahl - Validierung erfolgt durch den Picker selbst (nur gültige Presets) */}
+            <form.Field name="icon">
+              {(field) => (
+                <div className="space-y-1.5" data-testid="icon-picker-section">
+                  <ServerIconPicker value={field.state.value} onChange={(icon) => field.handleChange(icon)} disabled={isSubmitting} aria-label="Icon auswählen" />
+                </div>
+              )}
+            </form.Field>
+          </div>
+        </div>
       </div>
 
-      {/* Verbindung testen Button - H3: Disabled auch während Submit, H4: Keyboard-Shortcut Hinweis */}
-      <Button
-        type="button"
-        appearance="outline"
-        size="sm"
-        onClick={handleTestConnection}
-        loading={healthCheck.isPending}
-        disabled={isSubmitting || healthCheck.isPending}
-        className="w-full"
-        data-testid="test-connection-button"
-        title="Verbindung testen (Ctrl+T / Cmd+T)"
-      >
-        <PiPlugsConnected className="mr-2 size-4" />
-        Verbindung testen
-      </Button>
-
       {/* Actions */}
-      <div className="flex gap-3 pt-2">
-        <Button type="button" appearance="outline" onClick={onCancel} disabled={isSubmitting} className="flex-1" data-testid="cancel-button">
-          <PiX className="mr-2 size-4" />
-          Abbrechen
+      <div className="mt-5 flex flex-col gap-3 border-slate-200/80 border-t pt-4 dark:border-slate-800/80">
+        {/* Verbindung testen Button - H3: Disabled auch während Submit, H4: Keyboard-Shortcut Hinweis */}
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          onClick={handleTestConnection}
+          disabled={isSubmitting || healthCheck.isPending}
+          className={cn(EDIT_FORM_OUTLINE_BUTTON_CLASS, 'w-full')}
+          data-testid="test-connection-button"
+          title="Verbindung testen (Ctrl+T / Cmd+T)"
+        >
+          {healthCheck.isPending ? <PiSpinner className="size-4 animate-spin" /> : <PiPlugsConnected className="size-4" />}
+          Verbindung testen
         </Button>
-        <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-          {([canSubmit]) => (
-            <Button type="submit" loading={isSubmitting} disabled={!canSubmit || isSubmitting} className="flex-1" data-testid="save-button">
-              <PiFloppyDisk className="mr-2 size-4" />
-              Speichern
-            </Button>
-          )}
-        </form.Subscribe>
+
+        <div className="flex flex-col-reverse gap-3 sm:flex-row">
+          <Button type="button" variant="outline" size="lg" onClick={onCancel} disabled={isSubmitting} className={cn(EDIT_FORM_OUTLINE_BUTTON_CLASS, 'flex-1')} data-testid="cancel-button">
+            <PiX className="size-4" />
+            Abbrechen
+          </Button>
+          <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
+            {([canSubmit]) => (
+              <Button type="submit" size="lg" disabled={!canSubmit || isSubmitting} className={cn(EDIT_FORM_PRIMARY_BUTTON_CLASS, 'flex-1')} data-testid="save-button">
+                {isSubmitting ? <PiSpinner className="size-4 animate-spin" /> : <PiFloppyDisk className="size-4" />}
+                Speichern
+              </Button>
+            )}
+          </form.Subscribe>
+        </div>
       </div>
     </form>
   );

@@ -1,6 +1,6 @@
-import { ColorModeButton } from '@/shared/ui/molecules/color-mode-button.molecule';
 import { BrowserSecurityBanner } from '@/features/server/ui/molecules/BrowserSecurityBanner';
 import { cn, useTimeBasedBackground } from '@/shared/ui';
+import { ColorModeButton } from '@/shared/ui/molecules/color-mode-button.molecule';
 import type { ReactNode } from 'react';
 import { useEffect } from 'react';
 
@@ -33,23 +33,25 @@ export function AuthLayout({ children, className }: AuthLayoutProps) {
   const backgroundStyle = backgroundImage ? { backgroundImage: `url(${backgroundImage})` } : undefined;
 
   return (
-    <div className={cn('login-background relative min-h-screen overflow-hidden', className)}>
-      {/* Background with blur effect */}
-      <div className="absolute inset-0 -z-20 bg-center bg-cover bg-no-repeat blur-md" style={backgroundStyle} />
+    <div className={cn('auth-theme login-background relative min-h-screen overflow-hidden bg-slate-100 text-slate-950 dark:bg-slate-950 dark:text-slate-50', className)}>
+      <div className="absolute inset-0 -z-30 bg-slate-100 dark:bg-slate-950" />
+      <div className="absolute inset-0 -z-20 bg-center bg-cover bg-no-repeat opacity-8 blur-[1px] dark:opacity-12" style={backgroundStyle} />
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,rgba(14,165,233,0.14),transparent_34%),linear-gradient(180deg,rgba(248,250,252,0.96),rgba(241,245,249,0.98))] dark:bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.12),_transparent_30%),linear-gradient(180deg,_rgba(2,6,23,0.96),_rgba(15,23,42,0.98))]" />
+      <div className="absolute inset-x-0 top-0 -z-10 h-px bg-sky-400/40 dark:bg-sky-300/20" />
 
-      {/* Background overlay */}
-      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-blue-800/80 via-blue-800/40 to-red-600/30 dark:from-blue-900/40 dark:via-blue-900/20 dark:to-red-900/15" />
+      <div className="relative z-10 flex min-h-screen flex-col">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-end px-4 pt-4 sm:px-6 lg:px-8">
+          <ColorModeButton />
+        </div>
 
-      {/* Browser Security Banner - oben fixiert, nur im Browser sichtbar (AC4/AC5) */}
-      <BrowserSecurityBanner />
+        <div className="mx-auto w-full max-w-7xl px-4 pt-3 sm:px-6 lg:px-8">
+          <BrowserSecurityBanner className="mx-auto max-w-5xl" />
+        </div>
 
-      {/* Dark Mode Switch */}
-      <div className="absolute top-6 right-6 z-10">
-        <ColorModeButton />
+        <main className="flex flex-1 items-center justify-center px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+          <div className="w-full">{children}</div>
+        </main>
       </div>
-
-      {/* Content - zentriert */}
-      <div className="flex min-h-screen items-center justify-center">{children}</div>
     </div>
   );
 }

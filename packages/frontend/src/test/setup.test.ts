@@ -30,4 +30,15 @@ describe('Test Setup', () => {
     expect(observer).toBeDefined();
     expect(typeof observer.observe).toBe('function');
   });
+
+  it('should expose browser storage globals from jsdom', () => {
+    expect(localStorage).toBeDefined();
+    expect(sessionStorage).toBeDefined();
+    expect(typeof localStorage.getItem).toBe('function');
+    expect(typeof localStorage.setItem).toBe('function');
+    expect(typeof localStorage.clear).toBe('function');
+    expect(typeof sessionStorage.getItem).toBe('function');
+    expect(typeof sessionStorage.setItem).toBe('function');
+    expect(typeof sessionStorage.clear).toBe('function');
+  });
 });

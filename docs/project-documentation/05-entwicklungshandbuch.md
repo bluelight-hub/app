@@ -238,14 +238,16 @@ const fetchEinsaetze = () => fetch('/api/einsaetze');
 ### 7.2 Styling
 
 ```typescript
-// ✅ RICHTIG: Tailwind CSS + Headless UI
-<Dialog open={isOpen} onClose={close}>
-  <DialogPanel className="bg-white rounded-lg p-6">
+// ✅ RICHTIG: Tailwind CSS + shadcn/ui
+<Dialog open={isOpen} onOpenChange={setOpen}>
+  <DialogContent className="rounded-lg bg-white p-6">
 
 // ❌ FALSCH: Andere CSS-in-JS oder Frameworks
 <StyledDialog>  // styled-components
 <Modal>         // MUI, Chakra, etc.
 ```
+
+Neue oder grundlegend überarbeitete Komponenten müssen auf `shadcn/ui` basieren. Bereits vorhandene Headless-UI-Komponenten sind Legacy-Bestand und werden nur noch im Rahmen gezielter Migrationen weitergeführt.
 
 ### 7.3 Forms
 

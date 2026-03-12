@@ -16,20 +16,21 @@
  * - OnboardingErrorCard (Story 2.4) - Error state
  */
 
-import { useUrlParams } from '@/features/server/hooks/use-url-params';
 import { useServerList } from '@/features/server/hooks/use-server-list';
-import { ServerConnectLoading } from '../molecules/ServerConnectLoading';
-import { OnboardingErrorCard } from '../molecules/OnboardingErrorCard';
-import { ServerSetupForm } from '../organisms/ServerSetupForm';
-import { AuthLayout } from '@/shared/ui/templates/AuthLayout';
+import { useUrlParams } from '@/features/server/hooks/use-url-params';
+import { setSetupRedirectInProgress } from '@/shared/lib/server-access-token';
+import { Heading } from '@/shared/ui/atoms/heading.atom';
+import { Text } from '@/shared/ui/atoms/text.atom';
 import { AuthCard } from '@/shared/ui/molecules/auth-card.molecule';
 import { AuthFooter } from '@/shared/ui/molecules/auth-footer.molecule';
 import { LogoWithIndicator } from '@/shared/ui/molecules/logo-with-indicator.molecule';
-import { Heading } from '@/shared/ui/atoms/heading.atom';
-import { Text } from '@/shared/ui/atoms/text.atom';
+import { AuthLayout } from '@/shared/ui/templates/AuthLayout';
 import { useNavigate } from '@tanstack/react-router';
 import { PiArrowLeft, PiGear, PiInfo } from 'react-icons/pi';
-import { setSetupRedirectInProgress } from '@/shared/lib/server-access-token';
+import { OnboardingErrorCard } from '../molecules/OnboardingErrorCard';
+import { ServerConnectLoading } from '../molecules/ServerConnectLoading';
+import { ServerNavigationActions } from '../molecules/ServerNavigationActions';
+import { ServerSetupForm } from '../organisms/ServerSetupForm';
 
 /**
  * Server Onboarding Page
@@ -46,6 +47,15 @@ export function ServerOnboardingPage() {
   const hasExistingServers = servers.length > 0;
   const { prefillServerUrl, isExchanging, error } = useUrlParams();
 
+  const setupStatus = isExchanging ? 'Verbindung wird aufgebaut' : error ? 'Verbindung fehlgeschlagen' : prefillServerUrl ? 'Einladungslink erkannt' : 'Server-Setup bereit';
+  const setupDescription = isExchanging
+    ? 'Wir tauschen gerade Verbindungsinformationen aus und bereiten den Einstieg für diesen Server vor.'
+    : error
+      ? 'Der automatische Einstieg konnte nicht abgeschlossen werden. Du kannst die Verbindung direkt darunter manuell fortsetzen.'
+      : prefillServerUrl
+        ? 'Die Server-URL wurde übernommen. Ergänze nur noch die fehlenden Zugangsdaten oder richte den Server neu ein.'
+        : 'Wenn noch kein Server hinterlegt ist, richtest du die Verbindung hier Schritt für Schritt ein. Bei Problemen siehst du direkt, was als Nächstes zu tun ist.';
+
   /**
    * Callback bei erfolgreichem Server-Setup
    * Navigiert zur Login-Seite nach erfolgreichem Hinzufügen
@@ -54,112 +64,163 @@ export function ServerOnboardingPage() {
    * wieder normal arbeiten können (z.B. useRequireServer)
    */
   const handleSuccess = () => {
-    setSetupRedirectInProgress(false); // Reset flag
+    setSetupRedirectInProgress(false);
     navigate({ to: '/auth' });
   };
 
   return (
     <AuthLayout>
-      <AuthCard className="mx-5 w-full max-w-md">
-        <div className="space-y-8">
-          {/* Navigation Links - nur anzeigen wenn bereits Server konfiguriert sind */}
-          {hasExistingServers && (
-            <div className="flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => {
-                  // Reset Setup-Redirect-Flag damit /auth nicht wieder hierher redirectet
-                  setSetupRedirectInProgress(false);
-                  navigate({ to: '/auth' });
-                }}
-                className="flex cursor-pointer items-center gap-2 text-gray-500 text-sm transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                <PiArrowLeft className="h-4 w-4" />
-                Zurück zur Anmeldung
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setSetupRedirectInProgress(false);
-                  navigate({ to: '/server/manage' });
-                }}
-                className="flex cursor-pointer items-center gap-2 text-gray-500 text-sm transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                <PiGear className="h-4 w-4" />
-                Server verwalten
-              </button>
-            </div>
-          )}
+      <AuthCard className="mx-auto w-full max-w-6xl" padding="none">
+        <div className="grid lg:grid-cols-[320px_minmax(0,1fr)]">
+          <aside className="flex h-full flex-col border-slate-200/80 border-b bg-slate-50/85 p-6 lg:border-r lg:border-b-0 lg:p-8 dark:border-slate-800/80 dark:bg-slate-900/60">
+            <div className="flex h-full flex-col gap-6">
+              <div className="space-y-3">
+                <Text as="span" size="xs" className="font-semibold text-sky-700 uppercase tracking-[0.2em] dark:text-sky-300">
+                  Server-Setup
+                </Text>
+                <Heading as="h1" size="2xl">
+                  Verbindung vorbereiten
+                </Heading>
+              </div>
 
-          {/* Logo Section */}
-          <div className="space-y-4 text-center">
-            <LogoWithIndicator size="lg" status={isExchanging ? 'checking' : error ? 'error' : undefined} showIndicator={isExchanging} />
-            <div className="space-y-2">
-              <Heading size="2xl" className="text-gray-900 dark:text-white">
-                Bluelight Hub
-              </Heading>
-              <Text size="md" color="muted">
-                {isExchanging ? 'Verbinde mit Server...' : error ? 'Fehler beim Verbinden' : 'Server verbinden'}
-              </Text>
-            </div>
-          </div>
-
-          {/* Content Section */}
-          <div className="w-full">
-            {/* Loading State: Exchange läuft (beide URL-Parameter vorhanden) */}
-            {isExchanging && <ServerConnectLoading message="Tausche Einladungscode ein..." />}
-
-            {/* Error State: Exchange fehlgeschlagen */}
-            {!isExchanging && error && (
-              <div className="space-y-6">
-                <OnboardingErrorCard errorCode="INVITE_EXPIRED" />
-                <div className="space-y-4">
-                  <Text size="sm" color="muted" className="text-center">
-                    Du kannst es manuell versuchen:
+              <section className="space-y-5 rounded-2xl border border-sky-200/80 bg-sky-50/85 p-5 dark:border-sky-950/60 dark:bg-sky-950/25">
+                <div className="space-y-1.5">
+                  <Text as="span" size="xs" className="font-semibold text-slate-500 uppercase tracking-[0.18em] dark:text-slate-400">
+                    Setup-Status
                   </Text>
-                  <ServerSetupForm prefillServerUrl={prefillServerUrl || undefined} onSuccess={handleSuccess} />
+                  <Heading as="h2" size="xl">
+                    {setupStatus}
+                  </Heading>
+                  <Text size="sm" className="text-slate-600 dark:text-slate-300">
+                    {setupDescription}
+                  </Text>
+                </div>
+
+                <div className="rounded-xl border border-slate-200/80 bg-white/80 px-4 py-3 dark:border-slate-800/80 dark:bg-slate-950/50">
+                  <Text as="span" size="xs" className="font-semibold text-slate-500 uppercase tracking-[0.16em] dark:text-slate-400">
+                    Gespeicherte Server
+                  </Text>
+                  <Text size="sm" className="mt-2 text-slate-700 dark:text-slate-200">
+                    {hasExistingServers
+                      ? `${servers.length} vorhandene Verbindung${servers.length === 1 ? '' : 'en'} können weiter genutzt oder verwaltet werden.`
+                      : 'Noch kein Server gespeichert. Die Verbindung kann direkt hier eingerichtet werden.'}
+                  </Text>
+                </div>
+              </section>
+
+              <ServerNavigationActions
+                className="mt-auto pt-2"
+                actions={[
+                  {
+                    id: 'onboarding-auth',
+                    label: 'Zurück zur Anmeldung',
+                    icon: PiArrowLeft,
+                    onClick: () => {
+                      setSetupRedirectInProgress(false);
+                      navigate({ to: '/auth' });
+                    },
+                    disabled: !hasExistingServers,
+                  },
+                  {
+                    id: 'onboarding-manage',
+                    label: 'Server verwalten',
+                    icon: PiGear,
+                    onClick: () => {
+                      setSetupRedirectInProgress(false);
+                      navigate({ to: '/server/manage' });
+                    },
+                    disabled: !hasExistingServers,
+                  },
+                ]}
+              />
+            </div>
+          </aside>
+
+          <section className="p-6 lg:p-8">
+            <div className="mx-auto flex h-full max-w-xl flex-col">
+              <div className="space-y-6">
+                <div className="flex items-start gap-4">
+                  <LogoWithIndicator size="lg" status={isExchanging ? 'checking' : error ? 'error' : 'online'} showIndicator animateIndicator={false} />
+                  <div className="space-y-2">
+                    <Text as="span" size="xs" className="font-semibold text-sky-700 uppercase tracking-[0.2em] dark:text-sky-300">
+                      Bluelight Hub
+                    </Text>
+                    <Heading size="2xl" as="h2">
+                      Server verbinden
+                    </Heading>
+                    <Text size="sm" color="muted">
+                      Richte eine neue Verbindung ein oder setze einen bestehenden Serverkontext kontrolliert fort.
+                    </Text>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  {isExchanging && (
+                    <div className="rounded-2xl border border-slate-200/80 bg-slate-50/75 p-5 shadow-none dark:border-slate-800/80 dark:bg-slate-900/40">
+                      <ServerConnectLoading message="Tausche Einladungscode ein..." />
+                    </div>
+                  )}
+
+                  {!isExchanging && error && (
+                    <div className="space-y-6">
+                      <OnboardingErrorCard errorCode="INVITE_EXPIRED" />
+                      <div className="space-y-4">
+                        <Text size="sm" color="muted" className="text-center">
+                          Du kannst die Verbindung direkt manuell fortsetzen:
+                        </Text>
+                        <ServerSetupForm
+                          prefillServerUrl={prefillServerUrl || undefined}
+                          onSuccess={handleSuccess}
+                          className="border-slate-200/80 bg-slate-50/75 shadow-none dark:border-slate-800/80 dark:bg-slate-900/40"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {!isExchanging && !error && (
+                    <div className="space-y-6">
+                      {!prefillServerUrl && (
+                        <div className="flex items-start gap-3 rounded-2xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/50">
+                          <PiInfo className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400" />
+                          <div className="space-y-1">
+                            <p className="font-medium text-blue-800 text-sm dark:text-blue-200">Willkommen bei Bluelight Hub</p>
+                            <p className="text-blue-700 text-sm dark:text-blue-300">Gib die Server-URL ein, verbinde dich mit einem Einladungscode oder richte einen neuen Server ein.</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {prefillServerUrl && (
+                        <div className="flex items-start gap-3 rounded-2xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/50">
+                          <PiInfo className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400" />
+                          <p className="text-blue-700 text-sm dark:text-blue-300">
+                            Server-URL wurde aus dem Link übernommen. Ergänze jetzt nur noch den Einladungscode oder richte den Server neu ein.
+                          </p>
+                        </div>
+                      )}
+
+                      <ServerSetupForm
+                        prefillServerUrl={prefillServerUrl || undefined}
+                        onSuccess={handleSuccess}
+                        className="border-slate-200/80 bg-slate-50/75 shadow-none dark:border-slate-800/80 dark:bg-slate-900/40"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
 
-            {/* Form State: Prefill oder leer */}
-            {!isExchanging && !error && (
-              <div className="space-y-6">
-                {/* Info Text */}
-                {!prefillServerUrl && (
-                  <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/50">
-                    <PiInfo className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400" />
-                    <div className="space-y-1">
-                      <p className="font-medium text-blue-800 text-sm dark:text-blue-200">Willkommen bei Bluelight Hub</p>
-                      <p className="text-blue-700 text-sm dark:text-blue-300">Gib die Server-URL ein und verbinde dich mit einem Einladungscode oder richte einen neuen Server ein.</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Prefill Info */}
-                {prefillServerUrl && (
-                  <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/50">
-                    <PiInfo className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400" />
-                    <p className="text-blue-700 text-sm dark:text-blue-300">Server-URL wurde aus dem Link übernommen. Bitte gib deinen Einladungscode ein.</p>
-                  </div>
-                )}
-
-                <ServerSetupForm prefillServerUrl={prefillServerUrl || undefined} onSuccess={handleSuccess} />
+              <div className="mt-8">
+                <AuthFooter
+                  badges={[
+                    {
+                      label: isExchanging ? 'Verbinde...' : error ? 'Fehler' : prefillServerUrl ? 'Link übernommen' : 'Bereit',
+                      variant: isExchanging ? 'info' : error ? 'error' : 'success',
+                      dotColor: isExchanging ? 'blue' : error ? 'red' : 'green',
+                    },
+                  ]}
+                />
               </div>
-            )}
-          </div>
-
-          {/* Footer */}
-          <AuthFooter
-            badges={[
-              {
-                label: isExchanging ? 'Verbinde...' : error ? 'Fehler' : 'Bereit',
-                variant: 'default',
-                dotColor: isExchanging ? 'yellow' : error ? 'red' : 'green',
-              },
-            ]}
-            copyright={`© ${new Date().getFullYear()} BlueLight Hub`}
-          />
+            </div>
+          </section>
         </div>
       </AuthCard>
     </AuthLayout>

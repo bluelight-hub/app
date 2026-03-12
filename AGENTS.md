@@ -37,7 +37,9 @@ Nicht erlaubt:
 
 ### Frontend Stack Guardrails
 
-- UI: Tailwind CSS + Headless UI
+- UI: Tailwind CSS + `shadcn/ui`
+- Bestehende Headless-UI-Komponenten gelten als Legacy-Bestand im Migrationspfad und werden nicht als Standard für neue Arbeit erweitert.
+- Neue oder grundlegend überarbeitete UI-Komponenten müssen auf `shadcn/ui`-Primitiven und dem daraus abgeleiteten `shared/ui`-System aufbauen.
 - Forms: `@tanstack/react-form` + Zod
 - State: `@tanstack/react-query` (Server), `@tanstack/react-store` (Client)
 - Lint/Format: Biome

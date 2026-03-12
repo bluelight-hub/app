@@ -32,9 +32,11 @@
 | Technologie | Verwendung |
 |-------------|------------|
 | Tailwind CSS 4.x | Utility-First CSS |
-| Headless UI | Accessible UI Primitives |
+| `shadcn/ui` | Verbindliches Fundament für neue UI-Primitives und Komponenten |
 | Heroicons | Icon Library |
 | motion (Framer) | Animationen |
+
+Bestehende Headless-UI-Bausteine bleiben bis zur Migration im Codebestand, gelten aber nicht mehr als Zielstandard. Neue oder grundlegend refaktorierte Komponenten müssen auf `shadcn/ui` aufbauen.
 
 ---
 
@@ -648,7 +650,7 @@ test('should render einsatz list', async () => {
 
 ### IMMER:
 - TanStack Ecosystem für State/Forms/Routing
-- Tailwind CSS + Headless UI für Styling
+- Tailwind CSS + `shadcn/ui` für Styling; Headless UI nur noch als Legacy-Migrationsbestand
 - Generierter API Client aus `@bluelight-hub/shared`
 - Feature-basierte Modul-Struktur
 

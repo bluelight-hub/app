@@ -157,6 +157,19 @@ describe('ServerEditForm', () => {
       expect(screen.getByTestId('cancel-button')).toBeInTheDocument();
       expect(screen.getByTestId('test-connection-button')).toBeInTheDocument();
     });
+
+    it('should render a dedicated scroll body for long dialog content', () => {
+      // Given
+      const server = createMockServer();
+
+      // When
+      render(<ServerEditForm server={server} />);
+
+      // Then
+      const scrollBody = screen.getByTestId('server-edit-scroll-body');
+      expect(scrollBody).toHaveClass('flex-1', 'overflow-y-auto');
+      expect(scrollBody).toHaveStyle({ scrollbarGutter: 'stable' });
+    });
   });
 
   // =====================================================

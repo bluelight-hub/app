@@ -50,6 +50,14 @@ export interface ServerListProps {
    */
   onDeleteServer?: (serverId: string) => void;
   /**
+   * Die Server-ID, die gerade auf die zweite Lösch-Bestätigung wartet.
+   */
+  pendingDeleteServerId?: string | null;
+  /**
+   * Die Server-ID, die aktuell gelöscht wird.
+   */
+  isDeletingServerId?: string | null;
+  /**
    * Callback wenn ein Server ausgewählt wird.
    * Erhält die Server-ID als Parameter.
    */
@@ -84,49 +92,53 @@ export interface ServerListProps {
  * />
  * ```
  */
-export const ServerList = forwardRef<HTMLDivElement, ServerListProps>(({ onAddServer, onEditServer, onDeleteServer, onSelectServer, className }, ref) => {
-  // Aktiviere Health-Checks für alle Server
-  useServerListHealth();
+export const ServerList = forwardRef<HTMLDivElement, ServerListProps>(
+  ({ onAddServer, onEditServer, onDeleteServer, pendingDeleteServerId = null, isDeletingServerId = null, onSelectServer, className }, ref) => {
+    // Aktiviere Health-Checks für alle Server
+    useServerListHealth();
 
-  // Store State
-  const isHydrated = useStore(serverStore, (state) => state.isHydrated);
-  const connectionStatus = useStore(serverStore, (state) => state.connectionStatus);
+    // Store State
+    const isHydrated = useStore(serverStore, (state) => state.isHydrated);
+    const connectionStatus = useStore(serverStore, (state) => state.connectionStatus);
 
-  // Hooks für Server-Daten
-  const servers = useServerList(); // Bereits sortiert nach lastUsedAt DESC
-  const activeServer = useActiveServer();
+    // Hooks für Server-Daten
+    const servers = useServerList(); // Bereits sortiert nach lastUsedAt DESC
+    const activeServer = useActiveServer();
 
-  // Loading State während Hydration
-  if (!isHydrated) {
+    // Loading State während Hydration
+    if (!isHydrated) {
+      return (
+        <div ref={ref} data-testid="server-list-loading" className={cn('flex items-center justify-center py-12', className)}>
+          <Spinner size="lg" type="ring" />
+        </div>
+      );
+    }
+
+    // Empty State
+    if (servers.length === 0) {
+      return <ServerListEmptyState ref={ref} onAddServer={onAddServer} className={className} />;
+    }
+
+    // Server Liste
     return (
-      <div ref={ref} data-testid="server-list-loading" className={cn('flex items-center justify-center py-12', className)}>
-        <Spinner size="lg" type="ring" />
+      // biome-ignore lint/a11y/useSemanticElements: <ul> erfordert <li> children, aber ServerListItem nutzt role="listitem" auf <div> für flexible Verwendung
+      <div ref={ref} role="list" data-testid="server-list" className={cn('divide-y divide-slate-200/80 dark:divide-slate-800/80', className)}>
+        {servers.map((server) => (
+          <ServerListItem
+            key={server.id}
+            server={server}
+            isActive={activeServer?.id === server.id}
+            status={connectionStatus.get(server.id)}
+            onClick={onSelectServer}
+            onEdit={onEditServer}
+            onDelete={onDeleteServer}
+            isDeleteConfirmationPending={pendingDeleteServerId === server.id}
+            isDeleting={isDeletingServerId === server.id}
+          />
+        ))}
       </div>
     );
-  }
-
-  // Empty State
-  if (servers.length === 0) {
-    return <ServerListEmptyState ref={ref} onAddServer={onAddServer} className={className} />;
-  }
-
-  // Server Liste
-  return (
-    // biome-ignore lint/a11y/useSemanticElements: <ul> erfordert <li> children, aber ServerListItem nutzt role="listitem" auf <div> für flexible Verwendung
-    <div ref={ref} role="list" data-testid="server-list" className={cn('divide-y divide-gray-200 dark:divide-gray-700', className)}>
-      {servers.map((server) => (
-        <ServerListItem
-          key={server.id}
-          server={server}
-          isActive={activeServer?.id === server.id}
-          status={connectionStatus.get(server.id)}
-          onClick={onSelectServer}
-          onEdit={onEditServer}
-          onDelete={onDeleteServer}
-        />
-      ))}
-    </div>
-  );
-});
+  },
+);
 
 ServerList.displayName = 'ServerList';

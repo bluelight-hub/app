@@ -42,6 +42,18 @@ interface AuthCheckResponse {
 
 export type AuthStatus = 'pending' | 'authenticated' | 'unauthenticated';
 export type AdminSessionStatus = 'pending' | 'authenticated' | 'unauthenticated';
+const AUTH_CHECK_TIMEOUT_MS = milliseconds({ seconds: 8 });
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMessage: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timeoutId = setTimeout(() => reject(new Error(errorMessage)), timeoutMs);
+
+    promise
+      .then((value) => resolve(value))
+      .catch((error) => reject(error))
+      .finally(() => clearTimeout(timeoutId));
+  });
+}
 
 export const useCurrentUser = () => {
   // Warte auf Server-Store-Hydration bevor API-Calls gemacht werden
@@ -57,7 +69,7 @@ export const useCurrentUser = () => {
       // Der generierte API-Client erwartet { data, meta } Format,
       // aber AuthController verwendet @SkipTransform() und gibt die Daten direkt zurück.
       // Wir müssen die Raw-Response selbst parsen.
-      const response = await api.auth().authControllerCheckAuthRaw();
+      const response = await withTimeout(api.auth().authControllerCheckAuthRaw(), AUTH_CHECK_TIMEOUT_MS, 'Auth-Check Timeout');
       const json = await response.raw.json();
       return json as AuthCheckResponse;
     },
@@ -65,6 +77,9 @@ export const useCurrentUser = () => {
       // Bei 503 SERVER_NOT_SETUP nicht retrien - Setup-Status aendert sich nicht automatisch
       const status = (error as { response?: { status?: number } })?.response?.status;
       if (status === 503) {
+        return false;
+      }
+      if (error instanceof Error && error.message === 'Auth-Check Timeout') {
         return false;
       }
       // Fuer andere Fehler maximal 2 Retries

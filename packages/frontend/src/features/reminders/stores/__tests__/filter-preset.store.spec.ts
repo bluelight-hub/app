@@ -113,7 +113,7 @@ describe('FilterPresetStore', () => {
 
     it('should persist to localStorage', () => {
       // Given (Arrange)
-      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
+      const setItemSpy = vi.spyOn(localStorage, 'setItem');
 
       // When (Act)
       addPreset({
@@ -559,7 +559,7 @@ describe('FilterPresetStore', () => {
 
     it('should handle localStorage quota errors gracefully', () => {
       // Given (Arrange)
-      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      const setItemSpy = vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
         throw new DOMException('QuotaExceededError');
       });
 

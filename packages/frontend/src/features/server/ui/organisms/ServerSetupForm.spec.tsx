@@ -177,7 +177,7 @@ describe('ServerSetupForm', () => {
   });
 
   describe('Server Name Validation (Pflichtfeld)', () => {
-    it('should show error when server name is empty on blur', async () => {
+    it('should not show required error when server name is empty on blur', async () => {
       // Given (Arrange)
       const user = userEvent.setup();
 
@@ -191,7 +191,7 @@ describe('ServerSetupForm', () => {
 
       // Then (Assert)
       await waitFor(() => {
-        expect(screen.getByText(/Server-Name ist ein Pflichtfeld/i)).toBeInTheDocument();
+        expect(screen.queryByText(/Server-Name ist ein Pflichtfeld/i)).not.toBeInTheDocument();
       });
     });
 
@@ -321,6 +321,24 @@ describe('ServerSetupForm', () => {
   });
 
   describe('URL Validation', () => {
+    it('should not show error when server URL is empty on blur', async () => {
+      // Given (Arrange)
+      const user = userEvent.setup();
+
+      render(<ServerSetupForm />);
+
+      const serverUrlInput = screen.getByLabelText(/Server-URL/i);
+
+      // When (Act)
+      await user.click(serverUrlInput);
+      await user.tab();
+
+      // Then (Assert)
+      await waitFor(() => {
+        expect(screen.queryByText(/Ungültige Server-URL/i)).not.toBeInTheDocument();
+      });
+    });
+
     it('should show error for invalid server URL', async () => {
       // Given (Arrange)
       const user = userEvent.setup();
@@ -353,6 +371,25 @@ describe('ServerSetupForm', () => {
 
       // Then (Assert)
       await waitFor(() => {
+        expect(screen.queryByText(/Ungültige Server-URL/i)).not.toBeInTheDocument();
+      });
+    });
+
+    it('should trim server URL on blur before validation', async () => {
+      // Given (Arrange)
+      const user = userEvent.setup();
+
+      render(<ServerSetupForm />);
+
+      const serverUrlInput = screen.getByLabelText(/Server-URL/i);
+
+      // When (Act)
+      await user.type(serverUrlInput, 'https://api.example.de ');
+      await user.tab();
+
+      // Then (Assert)
+      await waitFor(() => {
+        expect(serverUrlInput).toHaveValue('https://api.example.de');
         expect(screen.queryByText(/Ungültige Server-URL/i)).not.toBeInTheDocument();
       });
     });

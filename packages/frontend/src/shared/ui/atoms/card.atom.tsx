@@ -31,3 +31,4 @@ export const Card = memo(
 );
 
 Card.displayName = 'Card';
+export type { CardProps };

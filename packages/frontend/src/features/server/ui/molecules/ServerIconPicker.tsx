@@ -16,6 +16,7 @@
 
 import { useCallback, useMemo, useRef, type KeyboardEvent } from 'react';
 import { PiX } from 'react-icons/pi';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/shared/ui/cn';
 import { SERVER_ICON_PRESETS, type ServerIconValue } from '../../constants/server-icons';
 import { getServerIconComponent } from '../../utils/server-icon.utils';
@@ -45,7 +46,7 @@ export interface ServerIconPickerProps {
 }
 
 /** Anzahl der Spalten im Grid */
-const GRID_COLUMNS = 4;
+const GRID_COLUMNS = 5;
 
 /**
  * Einzelner Icon-Button im Picker
@@ -117,37 +118,28 @@ function IconButton({ iconValue, name, isSelected, disabled, onClick, onKeyDown,
   );
 
   return (
-    // biome-ignore lint/a11y/useSemanticElements: Custom Radio Group Pattern - Button mit role="radio" ermöglicht flexibles Grid-Layout und konsistentes Styling mit anderen Picker-Komponenten (ServerColorPicker)
-    <button
+    <Button
       type="button"
+      variant="outline"
+      size="icon-sm"
       role="radio"
       aria-checked={isSelected}
       aria-disabled={disabled}
       aria-label={name}
+      title={name}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       tabIndex={disabled ? -1 : isFocusable ? 0 : -1}
+      disabled={disabled}
       className={cn(
-        // Base styles
-        'flex flex-col items-center justify-center gap-1 rounded-lg p-3',
-        'transition-all duration-150',
-        // Border
-        'border border-gray-200 dark:border-gray-700',
-        // Hover (when not disabled)
-        !disabled && 'hover:bg-gray-100 dark:hover:bg-gray-700',
-        // Focus visible
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
-        // Selected state
-        isSelected && 'bg-primary-50 ring-2 ring-primary-500 ring-offset-2 dark:bg-primary-900/20',
-        // Disabled state
-        disabled && 'cursor-not-allowed opacity-50',
-        // Normal cursor when enabled
-        !disabled && 'cursor-pointer',
+        '!rounded-xl size-9 border-slate-200/80 bg-white/90 p-0 text-slate-600 shadow-sm disabled:cursor-not-allowed dark:border-slate-800/80 dark:bg-slate-950/80 dark:text-slate-300',
+        'focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2',
+        isSelected && 'border-sky-500 bg-sky-50 text-sky-700 ring-2 ring-sky-500/35 ring-offset-2 dark:border-sky-400 dark:bg-sky-950/40 dark:text-sky-100 dark:ring-sky-400/30',
       )}
     >
-      {IconComponent ? <IconComponent className="size-6 text-gray-700 dark:text-gray-300" /> : <PiX className="size-6 text-gray-700 dark:text-gray-300" />}
-      <span className="text-gray-600 text-xs dark:text-gray-400">{name}</span>
-    </button>
+      {IconComponent ? <IconComponent className="size-[18px]" /> : <PiX className="size-[18px]" />}
+      <span className="sr-only">{name}</span>
+    </Button>
   );
 }
 
@@ -251,8 +243,8 @@ export function ServerIconPicker({ value, onChange, disabled = false, className 
 
   return (
     <div className={cn('flex flex-col gap-2', className)}>
-      <span className="font-medium text-gray-700 text-sm dark:text-gray-300">Icon auswählen</span>
-      <div ref={containerRef} role="radiogroup" aria-label="Server-Icon auswählen" className="grid grid-cols-4 gap-2">
+      <span className="font-medium text-slate-700 text-sm dark:text-slate-200">Icon auswählen</span>
+      <div ref={containerRef} role="radiogroup" aria-label="Server-Icon auswählen" className="grid grid-cols-5 gap-2">
         {options.map((option, index) => {
           const isSelected = isValidValue && normalizedValue === option.value;
           const IconComponent = option.value ? getServerIconComponent(option.value) : undefined;

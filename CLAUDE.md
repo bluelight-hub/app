@@ -31,10 +31,12 @@ Backend-Endpoint → pnpm run generate-api → TanStack Query Hook → Komponent
 
 | Bereich | Erlaubt                                                        | Verboten                     |
 |---------|----------------------------------------------------------------|------------------------------|
-| UI      | Tailwind CSS + Headless UI                                     | CSS-in-JS, andere Frameworks |
+| UI      | Tailwind CSS + `shadcn/ui`                                     | CSS-in-JS, andere Frameworks |
 | Forms   | @tanstack/react-form + Zod                                     | HTML Forms, Formik           |
 | State   | @tanstack/react-query (Server), @tanstack/react-store (Client) | Redux                        |
 | Linting | Biome                                                          | ESLint, Prettier             |
+
+Neue oder grundlegend überarbeitete UI-Komponenten müssen `shadcn/ui` verwenden. Bestehende Headless-UI-Bausteine sind Legacy-Bestand und werden nur im Rahmen gezielter Migrationen weiter angefasst.
 
 ### Backend DI Import (AC1)
 

@@ -15,8 +15,9 @@
  */
 
 import { forwardRef } from 'react';
+import { PiPlus } from 'react-icons/pi';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/shared/ui/cn';
-import { Button } from '@/shared/ui/atoms/button.atom';
 
 /**
  * Server-Icon Komponente
@@ -25,7 +26,7 @@ import { Button } from '@/shared/ui/atoms/button.atom';
  * Nutzt Heroicons-Stil mit angepassten Größen und Farben.
  */
 const ServerIcon = () => (
-  <svg className="h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+  <svg className="h-12 w-12 text-slate-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -80,14 +81,15 @@ export const ServerListEmptyState = forwardRef<HTMLDivElement, ServerListEmptySt
       <ServerIcon />
 
       {/* Überschrift */}
-      <h3 className="mt-4 font-medium text-gray-900 text-lg dark:text-white">Keine Server konfiguriert</h3>
+      <h3 className="mt-4 font-medium text-lg text-slate-900 dark:text-slate-100">Keine Server konfiguriert</h3>
 
       {/* Hilfstext */}
-      <p className="mt-2 text-gray-500 text-sm dark:text-gray-400">Füge einen Server hinzu, um loszulegen.</p>
+      <p className="mt-2 text-slate-500 text-sm dark:text-slate-400">Füge einen Server hinzu, um loszulegen.</p>
 
       {/* CTA-Button */}
       {onAddServer && (
-        <Button intent="primary" appearance="filled" className="mt-6" onClick={onAddServer}>
+        <Button type="button" size="sm" className="mt-6 rounded-md" onClick={onAddServer}>
+          <PiPlus className="size-4" aria-hidden="true" />
           Server hinzufügen
         </Button>
       )}

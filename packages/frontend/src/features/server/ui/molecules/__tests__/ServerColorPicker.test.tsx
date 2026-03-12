@@ -67,7 +67,7 @@ describe('ServerColorPicker', () => {
       expect(screen.getByRole('radio', { name: /grau/i })).toBeInTheDocument();
     });
 
-    it('should render "Keine Farbe" reset option', () => {
+    it('should render reset button when a color is selected', () => {
       // Given
       const onChange = vi.fn();
 
@@ -75,10 +75,10 @@ describe('ServerColorPicker', () => {
       render(<ServerColorPicker value="sky" onChange={onChange} />);
 
       // Then
-      expect(screen.getByRole('radio', { name: /keine farbe/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /farbe zurücksetzen/i })).toBeInTheDocument();
     });
 
-    it('should not render reset option when value is undefined', () => {
+    it('should not render reset button when value is undefined', () => {
       // Given
       const onChange = vi.fn();
 
@@ -86,10 +86,10 @@ describe('ServerColorPicker', () => {
       render(<ServerColorPicker value={undefined} onChange={onChange} />);
 
       // Then
-      expect(screen.queryByRole('radio', { name: /keine farbe/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /farbe zurücksetzen/i })).not.toBeInTheDocument();
     });
 
-    it('should render in 3-column grid layout', () => {
+    it('should render in 5-column grid layout', () => {
       // Given
       const onChange = vi.fn();
 
@@ -98,7 +98,7 @@ describe('ServerColorPicker', () => {
 
       // Then
       const radioGroup = screen.getByRole('radiogroup');
-      expect(radioGroup).toHaveClass('grid-cols-3');
+      expect(radioGroup).toHaveClass('grid-cols-5');
     });
   });
 
@@ -190,14 +190,14 @@ describe('ServerColorPicker', () => {
       expect(onChange).toHaveBeenCalledWith('emerald');
     });
 
-    it('should call onChange with undefined when reset clicked', async () => {
+    it('should call onChange with undefined when reset button is clicked', async () => {
       // Given
       const user = userEvent.setup();
       const onChange = vi.fn();
 
       // When
       render(<ServerColorPicker value="sky" onChange={onChange} />);
-      await user.click(screen.getByRole('radio', { name: /keine farbe/i }));
+      await user.click(screen.getByRole('button', { name: /farbe zurücksetzen/i }));
 
       // Then
       expect(onChange).toHaveBeenCalledTimes(1);
@@ -297,9 +297,8 @@ describe('ServerColorPicker', () => {
       await user.keyboard('{ArrowDown}');
 
       // Then
-      // In 3-column grid, down from first row goes to 4th item (index 3)
-      const roseButton = screen.getByRole('radio', { name: /rose/i });
-      expect(document.activeElement).toBe(roseButton);
+      const cyanButton = screen.getByRole('radio', { name: /cyan/i });
+      expect(document.activeElement).toBe(cyanButton);
     });
 
     it('should navigate with ArrowUp key', async () => {
@@ -308,9 +307,9 @@ describe('ServerColorPicker', () => {
       const onChange = vi.fn();
 
       // When
-      render(<ServerColorPicker value="rose" onChange={onChange} />);
-      const roseButton = screen.getByRole('radio', { name: /rose/i });
-      roseButton.focus();
+      render(<ServerColorPicker value="cyan" onChange={onChange} />);
+      const cyanButton = screen.getByRole('radio', { name: /cyan/i });
+      cyanButton.focus();
       await user.keyboard('{ArrowUp}');
 
       // Then
@@ -379,7 +378,7 @@ describe('ServerColorPicker', () => {
 
       // Then
       const radioGroup = screen.getByRole('radiogroup');
-      expect(radioGroup).toHaveClass('opacity-50');
+      expect(radioGroup.parentElement).toHaveClass('opacity-50');
     });
 
     it('should not be keyboard navigable when disabled', () => {
@@ -514,7 +513,7 @@ describe('ServerColorPicker', () => {
 
       // Then
       const skyButton = screen.getByRole('radio', { name: /himmelblau/i });
-      expect(skyButton).toHaveClass('bg-sky-500');
+      expect(skyButton.querySelector('span')).toHaveClass('bg-sky-500');
     });
 
     it('should have rounded styling', () => {
@@ -526,10 +525,10 @@ describe('ServerColorPicker', () => {
 
       // Then
       const options = screen.getAllByRole('radio');
-      expect(options[0]).toHaveClass('rounded-full');
+      expect(options[0]).toHaveClass('!rounded-xl');
     });
 
-    it('should have hover scale effect', () => {
+    it('should have hover border styling', () => {
       // Given
       const onChange = vi.fn();
 
@@ -538,7 +537,7 @@ describe('ServerColorPicker', () => {
 
       // Then
       const options = screen.getAllByRole('radio');
-      expect(options[0]).toHaveClass('hover:scale-110');
+      expect(options[0]).toHaveClass('hover:border-slate-300');
     });
 
     it('should have focus-visible ring styling', () => {
@@ -562,7 +561,7 @@ describe('ServerColorPicker', () => {
 
       // Then
       const options = screen.getAllByRole('radio');
-      expect(options[0]).toHaveClass('transition-transform');
+      expect(options[0]).toHaveClass('transition-all');
     });
   });
 
@@ -610,8 +609,8 @@ describe('ServerColorPicker', () => {
 
       // Then
       const radioGroup = screen.getByRole('radiogroup');
-      expect(radioGroup).toHaveClass('custom-class');
-      expect(radioGroup).toHaveClass('mt-4');
+      expect(radioGroup.parentElement).toHaveClass('custom-class');
+      expect(radioGroup.parentElement).toHaveClass('mt-4');
     });
   });
 });

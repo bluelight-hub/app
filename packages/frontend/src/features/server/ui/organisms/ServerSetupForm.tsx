@@ -29,9 +29,12 @@
 
 import { useForm } from '@tanstack/react-form';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Button } from '@/shared/ui/atoms/button.atom';
-import { Input } from '@/shared/ui/atoms/input.atom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Alert } from '@/shared/ui/atoms/alert.atom';
+import { Heading } from '@/shared/ui/atoms/heading.atom';
+import { InlineSpinner } from '@/shared/ui/atoms/spinner.atom';
+import { Text } from '@/shared/ui/atoms/text.atom';
 import { cn } from '@/shared/ui/cn';
 import { serverUrlSchema, inviteCodeSchema, serverNameSchema, adminUsernameSchema, adminPasswordSchema } from '../../schemas/url-params.schema';
 import { useExchangeInvite } from '../../api/mutations';
@@ -61,6 +64,36 @@ type FormMode = 'idle' | 'invite' | 'admin-setup' | 'token-display';
  */
 type SubmitPhase = 'idle' | 'health-check' | 'exchange' | 'admin-setup';
 
+const FORM_SURFACE_CLASSNAME = 'w-full rounded-2xl border border-slate-200/80 bg-white/80 p-5 shadow-sm dark:border-slate-800/80 dark:bg-slate-950/50 dark:shadow-none';
+const FIELD_LABEL_CLASSNAME = 'block font-medium text-slate-700 text-sm dark:text-slate-200';
+const FIELD_HINT_CLASSNAME = 'text-slate-500 text-xs dark:text-slate-400';
+const FIELD_ERROR_CLASSNAME = 'text-red-600 text-sm dark:text-red-400';
+
+const FORM_MODE_COPY: Record<
+  Exclude<FormMode, 'token-display'>,
+  {
+    eyebrow: string;
+    title: string;
+    description: string;
+  }
+> = {
+  idle: {
+    eyebrow: 'Verbindung',
+    title: 'Server prüfen und verbinden',
+    description: 'Trage die Server-Adresse ein. Danach führen wir dich abhängig vom Zustand des Systems direkt zum passenden nächsten Schritt.',
+  },
+  invite: {
+    eyebrow: 'Einladung',
+    title: 'Einladungscode bestätigen',
+    description: 'Die Verbindung steht. Ergänze jetzt nur noch den Einladungscode, damit der Server sauber in deinen Einstieg übernommen wird.',
+  },
+  'admin-setup': {
+    eyebrow: 'Initiales Setup',
+    title: 'Admin-Zugang anlegen',
+    description: 'Dieser Server ist noch nicht eingerichtet. Erstelle den ersten Admin-Zugang, um die Verbindung und den Zugriff abzuschließen.',
+  },
+};
+
 /**
  * Helper function to extract Zod validation error message
  */
@@ -68,6 +101,77 @@ function getZodError(result: { success: boolean; error?: { issues?: Array<{ mess
   if (result.success) return undefined;
   const firstIssue = result.error?.issues?.[0];
   return firstIssue?.message || fallback;
+}
+
+function getDeferredZodError(value: string, validate: (nextValue: string) => { success: boolean; error?: { issues?: Array<{ message?: string }> } }, fallback: string): string | undefined {
+  if (value.trim().length === 0) {
+    return undefined;
+  }
+
+  return getZodError(validate(value), fallback);
+}
+
+function validateServerUrl(value: string): string | undefined {
+  const normalizedValue = value.trim();
+  return getDeferredZodError(normalizedValue, (nextValue) => serverUrlSchema.safeParse(nextValue), 'Ungültige Server-URL');
+}
+
+function validateRequiredServerUrl(value: string): string | undefined {
+  return getZodError(serverUrlSchema.safeParse(value.trim()), 'Ungültige Server-URL');
+}
+
+function validateServerNameDeferred(value: string): string | undefined {
+  if (value.trim().length === 0) {
+    return undefined;
+  }
+
+  const schemaResult = serverNameSchema.safeParse(value);
+  if (!schemaResult.success) {
+    return getZodError(schemaResult, 'Ungültiger Server-Name');
+  }
+
+  if (isServerNameTaken(value)) {
+    return 'Ein Server mit diesem Namen existiert bereits';
+  }
+
+  return undefined;
+}
+
+function validateRequiredServerName(value: string): string | undefined {
+  const schemaResult = serverNameSchema.safeParse(value);
+  if (!schemaResult.success) {
+    return getZodError(schemaResult, 'Ungültiger Server-Name');
+  }
+
+  if (isServerNameTaken(value)) {
+    return 'Ein Server mit diesem Namen existiert bereits';
+  }
+
+  return undefined;
+}
+
+interface ServerSetupInputProps extends React.ComponentProps<typeof Input> {
+  icon?: React.ReactNode;
+  hasError?: boolean;
+  containerClassName?: string;
+}
+
+function ServerSetupInput({ icon, hasError = false, className, containerClassName, ...props }: ServerSetupInputProps) {
+  return (
+    <div className={cn('relative w-full', containerClassName)}>
+      {icon && <div className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-slate-400 dark:text-slate-500">{icon}</div>}
+      <Input
+        className={cn(
+          'h-11 rounded-lg border-slate-300 bg-white/95 text-slate-900 shadow-sm transition focus-visible:border-sky-500 focus-visible:ring-sky-500/35 dark:border-slate-700 dark:bg-slate-900/75 dark:text-slate-100',
+          icon && 'pl-10',
+          hasError && 'border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/30',
+          className,
+        )}
+        aria-invalid={hasError}
+        {...props}
+      />
+    </div>
+  );
 }
 
 /**
@@ -188,6 +292,10 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
       password: '',
     },
     onSubmit: async ({ value }) => {
+      const normalizedServerUrl = value.serverUrl.trim();
+      const normalizedServerName = value.serverName.trim();
+      const normalizedInviteCode = value.inviteCode.trim();
+
       // Reset Fehler
       setHealthCheckError(null);
       setAdminSetupError(null);
@@ -195,7 +303,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
 
       // M4 FIX: TOCTOU Re-Validierung - Server-Name Duplikat-Check direkt vor Submit
       // Verhindert Race Condition zwischen onChange-Validierung und Submit
-      const serverName = value.serverName;
+      const serverName = normalizedServerName;
       if (serverName && isServerNameTaken(serverName)) {
         form.setFieldMeta('serverName', (prev) => ({
           ...prev,
@@ -210,11 +318,11 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
           setSubmitPhase('health-check');
 
           const healthResult = await healthCheck.mutateAsync({
-            serverUrl: value.serverUrl,
+            serverUrl: normalizedServerUrl,
           });
 
           // Speichere verifizierte URL
-          setVerifiedServerUrl(value.serverUrl);
+          setVerifiedServerUrl(normalizedServerUrl);
 
           // Bestimme Modus basierend auf setupComplete
           if (healthResult.setupComplete) {
@@ -238,12 +346,12 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
           setSubmitPhase('exchange');
 
           const response = await exchangeInvite.mutateAsync({
-            inviteCode: value.inviteCode,
-            serverUrl: verifiedServerUrl || value.serverUrl || undefined,
-            serverName: value.serverName || undefined,
+            inviteCode: normalizedInviteCode,
+            serverUrl: verifiedServerUrl || normalizedServerUrl || undefined,
+            serverName: normalizedServerName || undefined,
           });
 
-          const displayName = value.serverName || response.data.serverInfo.name;
+          const displayName = normalizedServerName || response.data.serverInfo.name;
 
           toast.success(`Server '${displayName}' hinzugefügt`, {
             description: 'Du wirst weitergeleitet...',
@@ -258,7 +366,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
           setSubmitPhase('admin-setup');
           setIsAdminSetupLoading(true);
 
-          const serverUrl = verifiedServerUrl || value.serverUrl;
+          const serverUrl = verifiedServerUrl || normalizedServerUrl;
 
           // Temporärer API-Client für den Ziel-Server
           const normalizedUrl = serverUrl.endsWith('/') ? serverUrl.slice(0, -1) : serverUrl;
@@ -283,7 +391,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
           });
 
           // Server zum Store hinzufügen
-          const displayServerName = value.serverName || new URL(serverUrl).hostname;
+          const displayServerName = normalizedServerName || new URL(serverUrl).hostname;
           const accessToken = response.data.accessToken.token;
           const newServerId = await addServer({
             name: displayServerName,
@@ -474,40 +582,56 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
     onSuccess?.();
   }, [onSuccess]);
 
+  const formCopyKey: Exclude<FormMode, 'token-display'> = formMode === 'token-display' ? 'invite' : formMode;
+  const formCopy = FORM_MODE_COPY[formCopyKey];
+
   // Token-Anzeige nach erfolgreichem Admin-Setup
   if (formMode === 'token-display' && generatedToken) {
     return (
-      <div className={cn('space-y-6', className)}>
-        {/* Success Header */}
+      <div className={cn(FORM_SURFACE_CLASSNAME, 'space-y-6', className)}>
         <div className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
             <svg className="h-6 w-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="font-semibold text-gray-900 text-xl dark:text-white">Setup abgeschlossen!</h2>
-          <p className="mt-1 text-gray-600 text-sm dark:text-gray-400">Der Server ist jetzt einsatzbereit.</p>
+          <Text as="span" size="xs" className="font-semibold text-emerald-700 uppercase tracking-[0.18em] dark:text-emerald-300">
+            Setup abgeschlossen
+          </Text>
+          <Heading as="h2" size="lg" className="mt-2">
+            Server ist einsatzbereit
+          </Heading>
+          <Text size="sm" color="muted" className="mt-2">
+            Der Access-Token wird nur jetzt angezeigt. Speichere ihn sicher, bevor du zur Anmeldung wechselst.
+          </Text>
         </div>
 
-        {/* Warning Banner */}
         <Alert
           status="warning"
           icon={<PiWarning className="h-5 w-5" />}
           title="Wichtig - Nur einmal sichtbar!"
           description="Speichere diesen Token sicher. Er wird nach Verlassen dieser Seite nicht erneut angezeigt und kann nicht wiederhergestellt werden."
+          className="border-amber-200/80 bg-amber-50/90 dark:border-amber-950/60 dark:bg-amber-950/30 dark:text-amber-100"
         />
 
-        {/* Token Display Box */}
-        <div className="rounded-lg border-2 border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50" aria-live="polite">
-          <div className="mb-2 font-medium text-gray-700 text-sm dark:text-gray-300">Server Access Token</div>
-          <div className="flex items-center gap-3">
-            <code className="flex-1 break-all rounded bg-white px-3 py-2 font-mono text-gray-900 text-sm dark:bg-gray-900 dark:text-gray-100">{generatedToken}</code>
+        <div className="rounded-xl border border-slate-200/80 bg-slate-50/80 p-4 dark:border-slate-800/80 dark:bg-slate-900/40" aria-live="polite">
+          <div className="mb-3 space-y-1">
+            <Text as="span" size="xs" className="font-semibold text-slate-500 uppercase tracking-[0.16em] dark:text-slate-400">
+              Server Access Token
+            </Text>
+            <Text size="sm" color="muted">
+              Dieser Token verbindet die Desktop-App mit dem soeben eingerichteten Server.
+            </Text>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <code className="flex-1 break-all rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-slate-900 text-sm dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100">
+              {generatedToken}
+            </code>
             <CopyButton text={generatedToken} size="sm" />
           </div>
         </div>
 
-        {/* Continue Button */}
-        <Button type="button" intent="primary" appearance="heavy" className="w-full gap-2" onClick={handleContinueAfterTokenDisplay}>
+        <Button type="button" size="lg" className="h-10 w-full rounded-md text-sm" onClick={handleContinueAfterTokenDisplay}>
           <span>Weiter zur Anmeldung</span>
           <PiArrowRight className="h-4 w-4" />
         </Button>
@@ -516,31 +640,42 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
   }
 
   return (
-    <div className={cn('w-full space-y-6', className)}>
-      {/* Error Card (reuse from Story 2.4) */}
-      {showErrorCard && <OnboardingErrorCard errorCode="INVITE_EXPIRED" className="mb-4" />}
+    <div className={cn(FORM_SURFACE_CLASSNAME, className)}>
+      <div className="space-y-2">
+        <Text as="span" size="xs" className="font-semibold text-slate-500 uppercase tracking-[0.18em] dark:text-slate-400">
+          {formCopy.eyebrow}
+        </Text>
+        <Heading size="lg" as="h2">
+          {formCopy.title}
+        </Heading>
+        <Text size="sm" color="muted">
+          {formCopy.description}
+        </Text>
+      </div>
 
-      {/* Admin-Setup Info Banner */}
-      {formMode === 'admin-setup' && (
-        <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/50">
-          <PiWarning className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
-          <div className="space-y-1">
-            <p className="font-medium text-amber-800 text-sm dark:text-amber-200">Server nicht eingerichtet</p>
-            <p className="text-amber-700 text-sm dark:text-amber-300">Dieser Server wurde noch nicht konfiguriert. Erstelle einen Admin-Account, um den Server zu initialisieren.</p>
-          </div>
-        </div>
-      )}
+      <div className="mt-6 space-y-4">
+        {showErrorCard && <OnboardingErrorCard errorCode="INVITE_EXPIRED" />}
 
-      {/* Server gefunden Banner */}
-      {formMode === 'invite' && (
-        <div className="flex items-start gap-3 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950/50">
-          <PiCheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400" />
-          <div className="space-y-1">
-            <p className="font-medium text-green-800 text-sm dark:text-green-200">Server gefunden</p>
-            <p className="text-green-700 text-sm dark:text-green-300">Der Server ist erreichbar und eingerichtet. Gib deinen Einladungscode ein, um dich zu verbinden.</p>
+        {formMode === 'admin-setup' && (
+          <div className="flex items-start gap-3 rounded-xl border border-amber-200/80 bg-amber-50/90 p-4 dark:border-amber-950/60 dark:bg-amber-950/30">
+            <PiWarning className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+            <div className="space-y-1">
+              <p className="font-medium text-amber-800 text-sm dark:text-amber-200">Server nicht eingerichtet</p>
+              <p className="text-amber-700 text-sm dark:text-amber-300">Dieser Server wurde noch nicht konfiguriert. Erstelle einen Admin-Account, um den Server zu initialisieren.</p>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {formMode === 'invite' && (
+          <div className="flex items-start gap-3 rounded-xl border border-emerald-200/80 bg-emerald-50/90 p-4 dark:border-emerald-950/60 dark:bg-emerald-950/30">
+            <PiCheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
+            <div className="space-y-1">
+              <p className="font-medium text-emerald-800 text-sm dark:text-emerald-200">Server gefunden</p>
+              <p className="text-emerald-700 text-sm dark:text-emerald-300">Der Server ist erreichbar und eingerichtet. Gib deinen Einladungscode ein, um dich zu verbinden.</p>
+            </div>
+          </div>
+        )}
+      </div>
 
       <form
         onSubmit={async (e) => {
@@ -548,20 +683,18 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
           e.stopPropagation();
           await form.handleSubmit();
         }}
-        className="space-y-4"
+        className="mt-6 space-y-6"
       >
-        {/* Server URL Field */}
         <div className="space-y-2">
-          <label htmlFor="serverUrl" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
+          <label htmlFor="serverUrl" className={FIELD_LABEL_CLASSNAME}>
             Server-URL
           </label>
           <form.Field
             name="serverUrl"
             validators={{
-              // onChange: Nur validieren wenn Wert vorhanden (verhindert Fehler bei leerem Feld)
-              onChange: ({ value }) => (value ? getZodError(serverUrlSchema.safeParse(value), 'Ungültige Server-URL') : undefined),
-              // onBlur: Immer validieren (zeigt Fehler nach Verlassen des Feldes)
-              onBlur: ({ value }) => getZodError(serverUrlSchema.safeParse(value), 'Ungültige Server-URL'),
+              onChange: ({ value }) => validateServerUrl(value),
+              onBlur: ({ value }) => validateServerUrl(value),
+              onSubmit: ({ value }) => validateRequiredServerUrl(value),
             }}
           >
             {(field) => {
@@ -570,7 +703,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
               return (
                 <div className="space-y-1">
                   <div className="flex w-full gap-2">
-                    <Input
+                    <ServerSetupInput
                       id="serverUrl"
                       type="url"
                       placeholder="https://api.example.de"
@@ -587,27 +720,38 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
                         // H5: Auto-Fill Server-Name aus URL (debounced für Race Condition Prevention)
                         debouncedAutoFill(newValue);
                       }}
-                      onBlur={field.handleBlur}
-                      variant={fieldError ? 'error' : 'default'}
-                      leftIcon={<PiDatabase className="h-5 w-5" />}
+                      onBlur={() => {
+                        const trimmedValue = field.state.value.trim();
+                        if (trimmedValue !== field.state.value) {
+                          field.handleChange(trimmedValue);
+                        }
+                        field.handleBlur();
+                      }}
+                      hasError={Boolean(fieldError)}
+                      icon={<PiDatabase className="h-4 w-4" />}
                       autoComplete="url"
                       autoFocus={!prefillServerUrl}
                       disabled={formMode !== 'idle'}
-                      className="min-w-0 flex-1"
+                      containerClassName="min-w-0 flex-1"
                     />
                     {formMode !== 'idle' && (
-                      <Button type="button" appearance="outline" onClick={handleResetMode}>
+                      <Button type="button" variant="outline" className="h-11 rounded-md px-3 text-sm" onClick={handleResetMode}>
                         Ändern
                       </Button>
                     )}
                   </div>
-                  {fieldError && <p className="text-red-600 text-sm dark:text-red-400">{fieldError}</p>}
+                  {fieldError && <p className={FIELD_ERROR_CLASSNAME}>{fieldError}</p>}
                   {healthCheckError && !fieldError && (
                     <div className="space-y-2">
-                      <p className="text-red-600 text-sm dark:text-red-400">{healthCheckError}</p>
-                      <button type="button" onClick={() => setHealthCheckError(null)} className="font-medium text-blue-600 text-sm hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                      <p className={FIELD_ERROR_CLASSNAME}>{healthCheckError}</p>
+                      <Button
+                        type="button"
+                        variant="link"
+                        className="h-auto justify-start p-0 text-sky-700 text-sm hover:text-sky-800 dark:text-sky-300 dark:hover:text-sky-200"
+                        onClick={() => setHealthCheckError(null)}
+                      >
                         Erneut versuchen
-                      </button>
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -616,17 +760,17 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
           </form.Field>
         </div>
 
-        {/* Invite Code Field (nur bei setupComplete: true) */}
         {formMode === 'invite' && (
           <div className="space-y-2">
-            <label htmlFor="inviteCode" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
+            <label htmlFor="inviteCode" className={FIELD_LABEL_CLASSNAME}>
               Einladungscode
             </label>
             <form.Field
               name="inviteCode"
               validators={{
-                onChange: ({ value }) => getZodError(inviteCodeSchema.safeParse(value), 'Ungültiger Invite-Code'),
-                onBlur: ({ value }) => getZodError(inviteCodeSchema.safeParse(value), 'Ungültiger Invite-Code'),
+                onChange: ({ value }) => getDeferredZodError(value, (nextValue) => inviteCodeSchema.safeParse(nextValue), 'Ungültiger Invite-Code'),
+                onBlur: ({ value }) => getDeferredZodError(value, (nextValue) => inviteCodeSchema.safeParse(nextValue), 'Ungültiger Invite-Code'),
+                onSubmit: ({ value }) => getZodError(inviteCodeSchema.safeParse(value), 'Ungültiger Invite-Code'),
               }}
             >
               {(field) => {
@@ -634,19 +778,19 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
 
                 return (
                   <div className="space-y-1">
-                    <Input
+                    <ServerSetupInput
                       id="inviteCode"
                       type="text"
                       placeholder="ABC12345"
                       value={field.state.value}
                       onChange={(e) => field.handleChange(e.target.value)}
                       onBlur={field.handleBlur}
-                      variant={fieldError ? 'error' : 'default'}
-                      leftIcon={<PiKey className="h-5 w-5" />}
+                      hasError={Boolean(fieldError)}
+                      icon={<PiKey className="h-4 w-4" />}
                       autoComplete="off"
                       autoFocus
                     />
-                    {fieldError && <p className="text-red-600 text-sm dark:text-red-400">{fieldError}</p>}
+                    {fieldError && <p className={FIELD_ERROR_CLASSNAME}>{fieldError}</p>}
                   </div>
                 );
               }}
@@ -654,19 +798,18 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
           </div>
         )}
 
-        {/* Admin Setup Fields (nur bei setupComplete: false) */}
         {formMode === 'admin-setup' && (
           <>
-            {/* Username Field */}
             <div className="space-y-2">
-              <label htmlFor="username" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
+              <label htmlFor="username" className={FIELD_LABEL_CLASSNAME}>
                 Admin-Nutzername
               </label>
               <form.Field
                 name="username"
                 validators={{
-                  onChange: ({ value }) => getZodError(adminUsernameSchema.safeParse(value), 'Ungültiger Nutzername'),
-                  onBlur: ({ value }) => getZodError(adminUsernameSchema.safeParse(value), 'Ungültiger Nutzername'),
+                  onChange: ({ value }) => getDeferredZodError(value, (nextValue) => adminUsernameSchema.safeParse(nextValue), 'Ungültiger Nutzername'),
+                  onBlur: ({ value }) => getDeferredZodError(value, (nextValue) => adminUsernameSchema.safeParse(nextValue), 'Ungültiger Nutzername'),
+                  onSubmit: ({ value }) => getZodError(adminUsernameSchema.safeParse(value), 'Ungültiger Nutzername'),
                 }}
               >
                 {(field) => {
@@ -674,36 +817,36 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
 
                   return (
                     <div className="space-y-1">
-                      <Input
+                      <ServerSetupInput
                         id="username"
                         type="text"
                         placeholder="admin"
                         value={field.state.value}
                         onChange={(e) => field.handleChange(e.target.value)}
                         onBlur={field.handleBlur}
-                        variant={fieldError ? 'error' : 'default'}
-                        leftIcon={<PiUser className="h-5 w-5" />}
+                        hasError={Boolean(fieldError)}
+                        icon={<PiUser className="h-4 w-4" />}
                         autoComplete="username"
                         autoFocus
                       />
-                      {fieldError && <p className="text-red-600 text-sm dark:text-red-400">{fieldError}</p>}
-                      <p className="text-gray-500 text-xs dark:text-gray-400">3-20 Zeichen, nur Buchstaben, Zahlen, - und _</p>
+                      {fieldError && <p className={FIELD_ERROR_CLASSNAME}>{fieldError}</p>}
+                      <p className={FIELD_HINT_CLASSNAME}>3-20 Zeichen, nur Buchstaben, Zahlen, - und _</p>
                     </div>
                   );
                 }}
               </form.Field>
             </div>
 
-            {/* Password Field */}
             <div className="space-y-2">
-              <label htmlFor="password" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
+              <label htmlFor="password" className={FIELD_LABEL_CLASSNAME}>
                 Admin-Passwort
               </label>
               <form.Field
                 name="password"
                 validators={{
-                  onChange: ({ value }) => getZodError(adminPasswordSchema.safeParse(value), 'Ungültiges Passwort'),
-                  onBlur: ({ value }) => getZodError(adminPasswordSchema.safeParse(value), 'Ungültiges Passwort'),
+                  onChange: ({ value }) => getDeferredZodError(value, (nextValue) => adminPasswordSchema.safeParse(nextValue), 'Ungültiges Passwort'),
+                  onBlur: ({ value }) => getDeferredZodError(value, (nextValue) => adminPasswordSchema.safeParse(nextValue), 'Ungültiges Passwort'),
+                  onSubmit: ({ value }) => getZodError(adminPasswordSchema.safeParse(value), 'Ungültiges Passwort'),
                 }}
               >
                 {(field) => {
@@ -711,19 +854,18 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
 
                   return (
                     <div className="space-y-2">
-                      <Input
+                      <ServerSetupInput
                         id="password"
                         type="password"
                         placeholder="Sicheres Passwort"
                         value={field.state.value}
                         onChange={(e) => field.handleChange(e.target.value)}
                         onBlur={field.handleBlur}
-                        variant={fieldError ? 'error' : 'default'}
-                        leftIcon={<PiLock className="h-5 w-5" />}
+                        hasError={Boolean(fieldError)}
+                        icon={<PiLock className="h-4 w-4" />}
                         autoComplete="new-password"
                       />
-                      {fieldError && <p className="text-red-600 text-sm dark:text-red-400">{fieldError}</p>}
-                      {/* Password Strength Indicator */}
+                      {fieldError && <p className={FIELD_ERROR_CLASSNAME}>{fieldError}</p>}
                       <PasswordStrengthIndicator password={field.state.value} showLabel={true} />
                     </div>
                   );
@@ -731,45 +873,24 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
               </form.Field>
             </div>
 
-            {/* Admin Setup Error */}
             {adminSetupError && (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-900 dark:bg-red-950/50">
-                <p className="text-red-600 text-sm dark:text-red-400">{adminSetupError}</p>
+              <div className="rounded-xl border border-red-200/80 bg-red-50/90 p-3 dark:border-red-950/60 dark:bg-red-950/30">
+                <p className={FIELD_ERROR_CLASSNAME}>{adminSetupError}</p>
               </div>
             )}
           </>
         )}
 
-        {/* Server Name Field (immer sichtbar, Pflichtfeld) */}
         <div className="space-y-2">
-          <label htmlFor="serverName" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
+          <label htmlFor="serverName" className={FIELD_LABEL_CLASSNAME}>
             Server-Name
           </label>
           <form.Field
             name="serverName"
             validators={{
-              onChange: ({ value }) => {
-                // Schema-Validierung (Pflichtfeld, min 1, max 100)
-                const schemaResult = serverNameSchema.safeParse(value);
-                if (!schemaResult.success) {
-                  return getZodError(schemaResult, 'Ungültiger Server-Name');
-                }
-                // Duplikat-Check (case-insensitive)
-                if (isServerNameTaken(value)) {
-                  return 'Ein Server mit diesem Namen existiert bereits';
-                }
-                return undefined;
-              },
-              onBlur: ({ value }) => {
-                const schemaResult = serverNameSchema.safeParse(value);
-                if (!schemaResult.success) {
-                  return getZodError(schemaResult, 'Ungültiger Server-Name');
-                }
-                if (isServerNameTaken(value)) {
-                  return 'Ein Server mit diesem Namen existiert bereits';
-                }
-                return undefined;
-              },
+              onChange: ({ value }) => validateServerNameDeferred(value),
+              onBlur: ({ value }) => validateServerNameDeferred(value),
+              onSubmit: ({ value }) => validateRequiredServerName(value),
             }}
           >
             {(field) => {
@@ -777,7 +898,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
 
               return (
                 <div className="space-y-1">
-                  <Input
+                  <ServerSetupInput
                     id="serverName"
                     type="text"
                     placeholder="z.B. Produktiv-Server"
@@ -792,35 +913,39 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
                       field.handleChange(e.target.value);
                     }}
                     onBlur={field.handleBlur}
-                    variant={fieldError ? 'error' : 'default'}
-                    leftIcon={<PiBuildings className="h-5 w-5" />}
+                    hasError={Boolean(fieldError)}
+                    icon={<PiBuildings className="h-4 w-4" />}
                     autoComplete="off"
                   />
-                  {fieldError && <p className="text-red-600 text-sm dark:text-red-400">{fieldError}</p>}
-                  <p className="text-gray-500 text-xs dark:text-gray-400">{hasManuallyEditedName ? 'Eindeutiger Anzeigename für diesen Server.' : 'Wird automatisch aus der URL befüllt.'}</p>
+                  {fieldError && <p className={FIELD_ERROR_CLASSNAME}>{fieldError}</p>}
+                  <p className={FIELD_HINT_CLASSNAME}>{hasManuallyEditedName ? 'Eindeutiger Anzeigename für diesen Server.' : 'Wird automatisch aus der URL befüllt.'}</p>
                 </div>
               );
             }}
           </form.Field>
         </div>
 
-        {/* Inline Network Error Alert (Story 2.7, AC3) */}
         {inlineNetworkError && (
           <div data-testid="inline-network-error">
-            <Alert status="error" title="Server nicht erreichbar" description={inlineNetworkError}>
-              <button
+            <Alert
+              status="error"
+              title="Server nicht erreichbar"
+              description={inlineNetworkError}
+              className="border-red-200/80 bg-red-50/90 dark:border-red-950/60 dark:bg-red-950/30 dark:text-red-100"
+            >
+              <Button
                 type="button"
+                variant="link"
                 onClick={handleRetryNetworkError}
-                className="mt-2 font-medium text-red-800 text-sm underline hover:text-red-900 dark:text-red-300 dark:hover:text-red-200"
+                className="mt-2 h-auto p-0 text-red-800 text-sm underline hover:text-red-900 dark:text-red-200 dark:hover:text-red-100"
                 data-testid="retry-network-error-button"
               >
                 Erneut versuchen
-              </button>
+              </Button>
             </Alert>
           </div>
         )}
 
-        {/* Submit Button */}
         <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
           {([canSubmit, isSubmitting]) => {
             const isLoading = isSubmitting || healthCheck.isPending || exchangeInvite.isPending || isAdminSetupLoading;
@@ -844,7 +969,8 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
             };
 
             return (
-              <Button type="submit" size="lg" className="w-full" loading={isLoading} disabled={!canSubmit || isLoading}>
+              <Button type="submit" size="lg" className="h-10 w-full rounded-md text-sm" disabled={!canSubmit || isLoading}>
+                {isLoading && <InlineSpinner size="sm" className="mr-1.5 text-current" label={getButtonText()} />}
                 {getButtonText()}
               </Button>
             );

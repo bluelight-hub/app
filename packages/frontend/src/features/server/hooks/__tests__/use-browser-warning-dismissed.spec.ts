@@ -159,8 +159,8 @@ describe('useBrowserWarningDismissed', () => {
     });
 
     it('should handle sessionStorage.setItem errors gracefully', () => {
-      // Given: Mock setItem to throw an error using spyOn
-      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      // Given: Mock den tatsächlich aufgerufenen sessionStorage setter
+      const setItemSpy = vi.spyOn(sessionStorage, 'setItem').mockImplementation(() => {
         throw new Error('QuotaExceededError');
       });
 

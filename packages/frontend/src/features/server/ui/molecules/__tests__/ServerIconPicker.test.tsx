@@ -81,7 +81,7 @@ describe('ServerIconPicker', () => {
       expect(screen.getByRole('radio', { name: /kein icon/i })).toBeInTheDocument();
     });
 
-    it('should render in a 4-column grid layout', () => {
+    it('should render in a 5-column grid layout', () => {
       // Given
       const onChange = vi.fn();
 
@@ -90,7 +90,7 @@ describe('ServerIconPicker', () => {
 
       // Then
       const radiogroup = screen.getByRole('radiogroup');
-      expect(radiogroup).toHaveClass('grid-cols-4');
+      expect(radiogroup).toHaveClass('grid-cols-5');
     });
   });
 
@@ -145,7 +145,7 @@ describe('ServerIconPicker', () => {
       // Then
       const shieldButton = screen.getByRole('radio', { name: /schild/i });
       expect(shieldButton).toHaveClass('ring-2');
-      expect(shieldButton).toHaveClass('ring-primary-500');
+      expect(shieldButton).toHaveClass('ring-sky-500/35');
     });
 
     it('should not apply ring styling to unselected icons', () => {
@@ -282,8 +282,8 @@ describe('ServerIconPicker', () => {
       // Then
       const buttons = screen.getAllByRole('radio');
       for (const button of buttons) {
-        expect(button).toHaveClass('cursor-not-allowed');
-        expect(button).toHaveClass('opacity-50');
+        expect(button).toHaveClass('disabled:cursor-not-allowed');
+        expect(button).toHaveClass('disabled:opacity-50');
       }
     });
 
@@ -491,7 +491,7 @@ describe('ServerIconPicker', () => {
       // Then
       const buttons = screen.getAllByRole('radio');
       for (const button of buttons) {
-        expect(button).toHaveClass('hover:bg-gray-100');
+        expect(button).toHaveClass('hover:bg-muted');
       }
     });
 
@@ -517,7 +517,7 @@ describe('ServerIconPicker', () => {
       // Then
       const buttons = screen.getAllByRole('radio');
       for (const button of buttons) {
-        expect(button).toHaveClass('dark:hover:bg-gray-700');
+        expect(button).toHaveClass('dark:hover:bg-input/50');
       }
     });
 

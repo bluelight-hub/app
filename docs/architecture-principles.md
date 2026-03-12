@@ -414,11 +414,13 @@ Backend Endpoint -> pnpm run generate-api -> shared/client/ -> TanStack Query Ho
 
 | Bereich | Erlaubt | Verboten |
 |---------|---------|----------|
-| UI | Tailwind CSS + Headless UI | CSS-in-JS, andere Frameworks |
+| UI | Tailwind CSS + `shadcn/ui` | CSS-in-JS, andere Frameworks |
 | Forms | @tanstack/react-form + Zod | HTML Forms, Formik |
 | Server State | @tanstack/react-query | Redux, manuelles fetch |
 | Client State | @tanstack/react-store | Redux, Zustand |
 | Linting | Biome | ESLint, Prettier |
+
+Bestehende Headless-UI-Bausteine gelten als Legacy-Bestand. Neue oder grundlegend modernisierte Komponenten muessen auf `shadcn/ui` und dem daraus abgeleiteten `shared/ui`-System aufbauen.
 
 ---
 

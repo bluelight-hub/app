@@ -60,7 +60,7 @@
         "routing": "TanStack Router 1.120.13",
         "state": "TanStack Query 5.81.0 + TanStack Store",
         "forms": "TanStack Form + Zod",
-        "styling": "Tailwind CSS 4.1.10 + Headless UI",
+        "styling": "Tailwind CSS 4.1.10 + shadcn/ui (Legacy-Bestand: Headless UI)",
         "testing": "Vitest 3.2.3"
       },
       "shared": {

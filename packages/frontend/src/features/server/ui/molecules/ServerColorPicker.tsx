@@ -7,15 +7,11 @@
  * @module features/server/ui/molecules/ServerColorPicker
  */
 
-import { useCallback, useMemo, useRef, type KeyboardEvent } from 'react';
+import { useCallback, useRef, type KeyboardEvent, type AriaAttributes } from 'react';
+import { PiCheck, PiX } from 'react-icons/pi';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/shared/ui/cn';
 import { SERVER_COLOR_PRESETS, getServerColorClass, type ServerColorValue } from '../../utils/server-color.utils';
-
-/**
- * L3 Fix: Statische Reset-Option als Konstante definiert,
- * um Array-Mutation bei jedem Render zu vermeiden.
- */
-const RESET_OPTION = Object.freeze({ name: 'Keine Farbe', value: undefined as string | undefined, hex: 'transparent' });
 
 /**
  * Props für die ServerColorPicker Komponente.
@@ -29,10 +25,12 @@ export interface ServerColorPickerProps {
   disabled?: boolean;
   /** Zusätzliche CSS-Klassen */
   className?: string;
+  /** Accessibility-Label für die Radiogroup */
+  'aria-label'?: AriaAttributes['aria-label'];
 }
 
 /** Anzahl der Spalten im Grid */
-const GRID_COLUMNS = 3;
+const GRID_COLUMNS = 5;
 
 /**
  * ServerColorPicker - Farb-Auswahl für Server-Konfigurationen
@@ -50,15 +48,12 @@ const GRID_COLUMNS = 3;
  * />
  * ```
  */
-export function ServerColorPicker({ value, onChange, disabled = false, className }: ServerColorPickerProps) {
+export function ServerColorPicker({ value, onChange, disabled = false, className, 'aria-label': ariaLabel = 'Farbe auswählen' }: ServerColorPickerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Prüft ob der aktuelle Wert eine gültige Farbe aus den Presets ist
   const isValidPresetColor = SERVER_COLOR_PRESETS.some((p) => p.value === value);
   const hasValue = value !== undefined && isValidPresetColor;
-
-  // L3 Fix: useMemo um Array-Erstellung bei jedem Render zu vermeiden
-  const allItems = useMemo(() => (hasValue ? [...SERVER_COLOR_PRESETS, RESET_OPTION] : SERVER_COLOR_PRESETS), [hasValue]);
 
   // Bestimmt welches Item den Fokus-TabIndex haben soll
   const getFocusableIndex = useCallback(() => {
@@ -87,7 +82,7 @@ export function ServerColorPicker({ value, onChange, disabled = false, className
     (event: KeyboardEvent<HTMLButtonElement>, index: number, colorValue: string | undefined) => {
       if (disabled) return;
 
-      const totalItems = allItems.length;
+      const totalItems = SERVER_COLOR_PRESETS.length;
 
       // Auswahl mit Enter oder Space
       if (event.key === 'Enter' || event.key === ' ') {
@@ -139,50 +134,63 @@ export function ServerColorPicker({ value, onChange, disabled = false, className
         buttons[nextIndex]?.focus();
       }
     },
-    [allItems.length, disabled, onChange, value],
+    [disabled, onChange, value],
   );
 
   const focusableIndex = getFocusableIndex();
 
   return (
-    <div ref={containerRef} role="radiogroup" aria-label="Farbe auswählen" className={cn('grid grid-cols-3 gap-3', disabled && 'cursor-not-allowed opacity-50', className)}>
-      {allItems.map((preset, index) => {
-        const isSelected = preset.value === value;
-        const isResetButton = preset.value === undefined;
-        const isFocusable = index === focusableIndex;
+    <div className={cn('flex flex-col items-start gap-2', disabled && 'cursor-not-allowed opacity-50', className)}>
+      <div ref={containerRef} role="radiogroup" aria-label={ariaLabel} className="grid w-fit grid-cols-5 gap-2">
+        {SERVER_COLOR_PRESETS.map((preset, index) => {
+          const isSelected = preset.value === value;
+          const isFocusable = index === focusableIndex;
 
-        return (
-          // biome-ignore lint/a11y/useSemanticElements: Custom RadioGroup mit button ist hier beabsichtigt
-          <button
-            key={preset.value ?? 'none'}
-            type="button"
-            role="radio"
-            aria-checked={isSelected}
-            aria-disabled={disabled}
-            aria-label={preset.name}
-            // L1 Fix: Native Tooltip für Farbname bei Hover
-            title={preset.name}
-            tabIndex={disabled ? -1 : isFocusable ? 0 : -1}
-            onClick={() => handleColorClick(preset.value as ServerColorValue | undefined)}
-            onKeyDown={(e) => handleKeyDown(e, index, preset.value as ServerColorValue | undefined)}
-            className={cn(
-              // Basis-Styling
-              'h-8 w-8 rounded-full transition-transform',
-              // Hover-Effekt
-              !disabled && 'hover:scale-110',
-              // Focus-Styling
-              'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
-              // Selection-Styling (ring-blue-500 für Dark Mode bessere Sichtbarkeit)
-              // Ring nur wenn nicht fokussiert, um Konflikt mit focus-visible Ring zu vermeiden
-              isSelected && 'ring-2 ring-gray-900 ring-offset-2 focus-visible:ring-blue-500 dark:ring-blue-500',
-              // Farbe oder Reset-Button
-              isResetButton ? 'border-2 border-gray-400 border-dashed bg-gray-200 dark:border-gray-500 dark:bg-gray-700' : getServerColorClass(preset.value, 'bg'),
-              // Cursor
-              disabled ? 'cursor-not-allowed' : 'cursor-pointer',
-            )}
-          />
-        );
-      })}
+          return (
+            <Button
+              key={preset.value}
+              type="button"
+              variant="outline"
+              size="icon-lg"
+              role="radio"
+              aria-checked={isSelected}
+              aria-disabled={disabled}
+              aria-label={preset.name}
+              // L1 Fix: Native Tooltip für Farbname bei Hover
+              title={preset.name}
+              tabIndex={disabled ? -1 : isFocusable ? 0 : -1}
+              disabled={disabled}
+              onClick={() => handleColorClick(preset.value as ServerColorValue)}
+              onKeyDown={(e) => handleKeyDown(e, index, preset.value as ServerColorValue)}
+              className={cn(
+                '!rounded-xl size-9 border-slate-200/80 bg-white/90 p-1 text-white shadow-sm transition-all hover:border-slate-300 hover:bg-white disabled:cursor-not-allowed dark:border-slate-800/80 dark:bg-slate-950/80 dark:hover:border-slate-700 dark:hover:bg-slate-950',
+                'focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2',
+                isSelected && 'border-sky-500 bg-sky-50 text-sky-700 ring-2 ring-sky-500/25 ring-offset-2 dark:border-sky-400 dark:bg-sky-950/30 dark:text-sky-100 dark:ring-sky-400/30',
+              )}
+            >
+              <span className={cn('relative flex size-full items-center justify-center rounded-[0.8rem] shadow-inner', getServerColorClass(preset.value, 'bg'))}>
+                {isSelected && <PiCheck className="size-3 drop-shadow-sm" />}
+              </span>
+            </Button>
+          );
+        })}
+      </div>
+
+      {hasValue && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          disabled={disabled}
+          onClick={() => handleColorClick(undefined)}
+          aria-label="Farbe zurücksetzen"
+          title="Farbe zurücksetzen"
+          className="!rounded-md h-7 px-2 text-slate-500 text-xs hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+        >
+          <PiX className="size-4" />
+          Zurücksetzen
+        </Button>
+      )}
     </div>
   );
 }

@@ -78,7 +78,7 @@ pnpm -r dev
 ## Breaking Rules (NIEMALS umgehen!)
 
 1. **API Client:** NUR generierter Client + TanStack Query
-2. **Styling:** NUR Tailwind CSS + Headless UI
+2. **Styling:** NUR Tailwind CSS + `shadcn/ui`; bestehende Headless-UI-Bausteine nur als Legacy im Migrationspfad
 3. **Forms:** NUR TanStack Form + Zod
 4. **State:** NUR TanStack Query/Store
 5. **Git:** NIEMALS `--no-verify`
@@ -131,6 +131,7 @@ Detaillierte exhaustive Analysen spezifischer Bereiche:
 |----------|--------|---------|--------------|
 | [ADR-004: Platform Storage Strategy](../adr/adr-004-platform-storage-strategy.md) | Decided | Story 2.1 | Browser (localStorage+Web Crypto) vs Desktop (Tauri Stronghold) Encryption |
 | [ADR-005: Platform Storage Adapter Pattern](../adr/adr-005-platform-storage-adapter-pattern.md) | Accepted | Story 2.1 | Port-Adapter + Factory Singleton für plattformübergreifenden Storage |
+| [ADR-006: UI-System-Migration zu shadcn/ui](../adr/adr-006-ui-system-migration-zu-shadcn-ui.md) | Accepted | Frontend Modernisierung | `shadcn/ui` ist verbindliches Fundament für neue Komponenten; Headless UI bleibt nur Legacy-Bestand |
 
 ## Story-Spezifische Guides
 

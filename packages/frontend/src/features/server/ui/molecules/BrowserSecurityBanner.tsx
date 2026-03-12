@@ -45,17 +45,25 @@ export const BrowserSecurityBanner: React.FC<BrowserSecurityBannerProps> = ({ cl
   }
 
   return (
-    <div className={cn('sticky top-0 z-50 border-yellow-200 border-b bg-yellow-50 px-4 py-3', className)} role="alert" aria-live="polite" aria-labelledby="browser-security-warning-text">
-      <div className="flex items-center gap-3">
-        <PiWarningFill className="h-5 w-5 flex-shrink-0 text-yellow-600" aria-hidden="true" />
-        <p id="browser-security-warning-text" className="flex-1 text-sm text-yellow-800">
+    <div
+      className={cn(
+        'rounded-2xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 shadow-slate-950/5 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-amber-50/80 dark:border-amber-900/60 dark:bg-amber-950/35 dark:shadow-transparent',
+        className,
+      )}
+      role="alert"
+      aria-live="polite"
+      aria-labelledby="browser-security-warning-text"
+    >
+      <div className="flex items-start gap-3">
+        <PiWarningFill className="h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+        <p id="browser-security-warning-text" className="flex-1 text-amber-900 text-sm dark:text-amber-100">
           Im Browser werden Server-Daten unverschlüsselt gespeichert. Für maximale Sicherheit nutze die Desktop-App.
         </p>
         <button
           type="button"
           onClick={dismiss}
-          className="flex-shrink-0 rounded p-1 text-yellow-600 hover:bg-yellow-100 hover:text-yellow-800 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-          aria-label="Browser-Sicherheitswarnung dauerhaft ausblenden"
+          className="flex-shrink-0 rounded p-1 text-amber-600 hover:bg-amber-100 hover:text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:text-amber-300 dark:hover:bg-amber-950/50 dark:hover:text-amber-100"
+          aria-label="Browser-Sicherheitswarnung für diese Sitzung ausblenden"
         >
           <PiX className="h-5 w-5" aria-hidden="true" />
         </button>

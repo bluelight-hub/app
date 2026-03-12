@@ -22,7 +22,7 @@ Das Frontend von BlueLight Hub ist eine **Desktop-Anwendung** basierend auf:
 | **TanStack Store** | 0.7.0 | Client-State Management |
 | **TanStack Form** | 1.x | Formulare mit Zod-Validierung |
 | **Tailwind CSS** | 4.1.10 | Styling |
-| **Headless UI** | 2.x | Accessible UI-Komponenten |
+| **shadcn/ui** | laufende Migration | Verbindliches Fundament für neue UI-Komponenten |
 
 ### Architektur-Pattern
 
@@ -31,6 +31,7 @@ Das Frontend von BlueLight Hub ist eine **Desktop-Anwendung** basierend auf:
 - **Generated API Client**: OpenAPI-generierter Client aus `@bluelight-hub/shared/client`
 - **Cookie-based Auth**: HTTP-Only Cookies mit automatischem Token-Refresh
 - **WebSocket-Integration**: Echtzeit-Updates via Socket.IO (Befehl-Feature)
+- **UI-Migrationsziel**: Neue oder grundlegend refaktorierte UI-Komponenten werden auf `shadcn/ui` aufgebaut; bestehende Headless-UI-Bausteine bleiben nur als Legacy-Bestand bis zur Migration
 
 ---
 
@@ -94,7 +95,7 @@ packages/frontend/src/
         ├── molecules/          # Kombinierte Komponenten
         ├── organisms/          # Komplexe Komponenten
         ├── templates/          # Page-Layouts
-        └── headless/           # Headless UI Wrapper
+        └── headless/           # Legacy-Wrapper und Übergangsadapter im Migrationspfad zu shadcn/ui
 ```
 
 ---
@@ -481,7 +482,7 @@ type DashboardMode = 'standard' | 'fullscreen' | 'compact'
 | `Input` | Text-Eingabe | default/error, sm/md/lg |
 | `Textarea` | Mehrzeilige Eingabe | default/error |
 | `Select` | Dropdown | Native mit Custom-Styling |
-| `Checkbox` | Boolean Toggle | Headless UI |
+| `Checkbox` | Boolean Toggle | Legacy-Wrapper, mittelfristig `shadcn/ui`-basiert |
 | `Switch` | Toggle Switch | Animiert |
 | `Badge` | Status-Label | 5 Variants + Dot |
 | `Card` | Container | 5 Padding-Stufen |
@@ -742,7 +743,7 @@ useBefehlNotifications → NotificationService.sendBefehlNotification()
 | `@tanstack/react-virtual` | 3.x | Virtualisierung |
 | `@tanstack/pacer` | 0.x | Debounce/Throttle |
 | `tailwindcss` | 4.1.10 | Styling |
-| `@headlessui/react` | 2.x | UI Components |
+| `@headlessui/react` | 2.x | Legacy UI-Bestand im Migrationspfad zu `shadcn/ui` |
 | `zod` | 3.x | Validation |
 | `socket.io-client` | - | WebSocket (Befehl-Feature) |
 
@@ -839,7 +840,7 @@ const form = useForm({
 ### Styling
 
 ```typescript
-// RICHTIG: Tailwind CSS + cn() Helper
+// RICHTIG: Tailwind CSS + shadcn/ui Patterns + cn() Helper
 <div className={cn(
   "flex items-center gap-4",
   isActive && "bg-blue-100"

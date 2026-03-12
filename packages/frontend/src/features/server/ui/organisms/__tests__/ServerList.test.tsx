@@ -264,6 +264,18 @@ describe('ServerList', () => {
       const statusDot = screen.getByRole('status');
       expect(statusDot).toHaveClass('bg-green-500');
     });
+
+    it('should surface inline delete confirmation for the matching server', () => {
+      // Given
+      const server = createMockServer({ id: 'server-delete-pending', name: 'Löschkandidat' });
+      mockUseServerList.mockReturnValue([server]);
+
+      // When
+      render(<ServerList pendingDeleteServerId="server-delete-pending" onDeleteServer={vi.fn()} />);
+
+      // Then
+      expect(screen.getByRole('button', { name: /wirklich löschen/i })).toBeInTheDocument();
+    });
   });
 
   // =====================================================
@@ -420,8 +432,8 @@ describe('ServerList', () => {
       // Then
       const list = screen.getByTestId('server-list');
       expect(list).toHaveClass('divide-y');
-      expect(list).toHaveClass('divide-gray-200');
-      expect(list).toHaveClass('dark:divide-gray-700');
+      expect(list).toHaveClass('divide-slate-200/80');
+      expect(list).toHaveClass('dark:divide-slate-800/80');
     });
 
     it('should merge custom className', () => {

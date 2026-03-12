@@ -11,7 +11,7 @@
  * @module features/auth/ui/organisms/__tests__/LoginWindow
  */
 
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 // Store-Mock muss VOR dem Import der Komponente definiert werden
@@ -20,6 +20,20 @@ const mockNavigate = vi.fn();
 const mockRouterHistoryReplace = vi.fn();
 const mockRouterHistoryPush = vi.fn();
 const mockRouterHistoryFlush = vi.fn();
+const mockSystemHealthReturn = {
+  connectionMode: 'online',
+  setupComplete: true,
+  isLoading: false,
+  isError: false,
+  error: null,
+};
+const mockSystemVersionReturn = {
+  frontendVersion: '1.0.0',
+  backendVersion: '1.0.0',
+  mismatchSeverity: 'none',
+  isLoading: false,
+  isError: false,
+};
 
 // Mock @tanstack/react-store mit Store-Klasse
 vi.mock('@tanstack/react-store', () => ({
@@ -80,11 +94,15 @@ vi.mock('@tanstack/react-router', () => ({
 // Mock für QueryClient - wird in Tests überschrieben
 const mockInvalidateQueriesGlobal = vi.fn().mockResolvedValue(undefined);
 const mockRefetchQueriesGlobal = vi.fn().mockResolvedValue(undefined);
+const mockCancelQueriesGlobal = vi.fn().mockResolvedValue(undefined);
+const mockRemoveQueriesGlobal = vi.fn();
 
 vi.mock('@tanstack/react-query', () => ({
   useQueryClient: vi.fn(() => ({
     invalidateQueries: mockInvalidateQueriesGlobal,
     refetchQueries: mockRefetchQueriesGlobal,
+    cancelQueries: mockCancelQueriesGlobal,
+    removeQueries: mockRemoveQueriesGlobal,
   })),
 }));
 
@@ -92,16 +110,8 @@ vi.mock('@/features/system', () => ({
   getIndicatorStatus: () => 'connected',
   STATUS_DOT_COLORS: { connected: 'green' },
   STATUS_LABELS: { connected: 'Verbunden' },
-  useSystemHealth: () => ({
-    connectionMode: 'online',
-    isLoading: false,
-    isError: false,
-    insecureMode: false,
-  }),
-  useSystemVersion: () => ({
-    frontendVersion: '1.0.0',
-    mismatchSeverity: null,
-  }),
+  useSystemHealth: () => mockSystemHealthReturn,
+  useSystemVersion: () => mockSystemVersionReturn,
 }));
 
 // Capture for onServerChange and onLogoutAndSwitch handlers
@@ -111,6 +121,24 @@ let capturedIsAuthenticated: boolean | undefined;
 
 // Mock Server Molecules
 vi.mock('@/features/server/ui/molecules', () => ({
+  ServerNavigationActions: ({
+    actions,
+  }: {
+    actions: Array<{
+      id: string;
+      label: string;
+      onClick?: () => void;
+      disabled?: boolean;
+    }>;
+  }) => (
+    <div data-testid="server-navigation-actions">
+      {actions.map((action) => (
+        <button key={action.id} type="button" onClick={action.onClick} disabled={action.disabled}>
+          {action.label}
+        </button>
+      ))}
+    </div>
+  ),
   ServerSelector: ({
     servers,
     onServerChange,
@@ -222,6 +250,20 @@ const createMockServer = (overrides: Partial<ServerConfig> = {}): ServerConfig =
 describe('LoginWindow', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    Object.assign(mockSystemHealthReturn, {
+      connectionMode: 'online',
+      setupComplete: true,
+      isLoading: false,
+      isError: false,
+      error: null,
+    });
+    Object.assign(mockSystemVersionReturn, {
+      frontendVersion: '1.0.0',
+      backendVersion: '1.0.0',
+      mismatchSeverity: 'none',
+      isLoading: false,
+      isError: false,
+    });
 
     // Default Mocks: Server vorhanden, hydriert
     mockUseRequireServer.mockReturnValue({
@@ -447,6 +489,23 @@ describe('LoginWindow', () => {
       expect(screen.getByText('Bluelight Hub')).toBeInTheDocument();
     });
 
+    it('should render the new login workspace copy and persistent status panel', () => {
+      // Given
+      const singleServer = createMockServer({ name: 'Leitstelle West' });
+      mockUseServerList.mockReturnValue([singleServer]);
+      mockUseActiveServer.mockReturnValue(singleServer);
+
+      // When
+      render(<LoginWindow />);
+
+      // Then
+      expect(screen.getByText('Arbeitsfähigkeit prüfen')).toBeInTheDocument();
+      expect(screen.getByText('Systemstatus')).toBeInTheDocument();
+      expect(screen.getByText('Server bereit')).toBeInTheDocument();
+      expect(screen.queryByText(/Leitstelle West/)).not.toBeInTheDocument();
+      expect(screen.queryByText('Aktiver Server')).not.toBeInTheDocument();
+    });
+
     it('should show footer with status', () => {
       // Given
       const singleServer = createMockServer();
@@ -458,6 +517,85 @@ describe('LoginWindow', () => {
 
       // Then
       expect(screen.getByTestId('auth-footer')).toBeInTheDocument();
+    });
+  });
+
+  describe('Status Surface', () => {
+    it('should expose a live status region for assistive technologies', () => {
+      // Given
+      const singleServer = createMockServer({ name: 'Leitstelle Nord' });
+      mockUseServerList.mockReturnValue([singleServer]);
+      mockUseActiveServer.mockReturnValue(singleServer);
+
+      // When
+      render(<LoginWindow />);
+
+      // Then
+      const statusRegion = screen.getByRole('status');
+      expect(statusRegion).toHaveAttribute('aria-live', 'polite');
+      expect(statusRegion).toHaveTextContent('Server bereit');
+    });
+
+    it('should show recoverable actions when the active server is unreachable', () => {
+      // Given
+      const singleServer = createMockServer({ name: 'Leitstelle Süd' });
+      mockUseServerList.mockReturnValue([singleServer]);
+      mockUseActiveServer.mockReturnValue(singleServer);
+      Object.assign(mockSystemHealthReturn, {
+        isError: true,
+        error: new Error('Network error'),
+      });
+
+      // When
+      render(<LoginWindow />);
+
+      // Then
+      expect(screen.getByText('Server nicht erreichbar')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Erneut prüfen' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Server neu einrichten' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Server verwalten' })).toBeInTheDocument();
+    });
+
+    it('should navigate to setup with server prefill when "Server neu einrichten" is clicked', () => {
+      // Given
+      const singleServer = createMockServer({ id: 'server-1', name: 'Leitstelle Süd', url: 'https://leitstelle-sued.example.com' });
+      mockUseServerList.mockReturnValue([singleServer]);
+      mockUseActiveServer.mockReturnValue(singleServer);
+      Object.assign(mockSystemHealthReturn, {
+        isError: true,
+        error: new Error('Network error'),
+      });
+
+      // When
+      render(<LoginWindow />);
+      screen.getByRole('button', { name: 'Server neu einrichten' }).click();
+
+      // Then
+      expect(mockCancelQueriesGlobal).toHaveBeenCalledWith({ queryKey: ['auth', 'check'] });
+      expect(mockRemoveQueriesGlobal).toHaveBeenCalledWith({ queryKey: ['auth', 'check'] });
+      expect(mockNavigate).toHaveBeenCalledWith({
+        to: '/server/setup',
+        search: { server: 'https://leitstelle-sued.example.com' },
+      });
+    });
+
+    it('should prioritize a critical version mismatch as update-required state', () => {
+      // Given
+      const singleServer = createMockServer({ name: 'Leitstelle Mitte' });
+      mockUseServerList.mockReturnValue([singleServer]);
+      mockUseActiveServer.mockReturnValue(singleServer);
+      Object.assign(mockSystemVersionReturn, {
+        backendVersion: '2.0.0',
+        mismatchSeverity: 'critical',
+      });
+
+      // When
+      render(<LoginWindow />);
+
+      // Then
+      expect(screen.getByRole('heading', { name: 'Update erforderlich' })).toBeInTheDocument();
+      expect(screen.getByText(/Frontend 1\.0\.0/)).toBeInTheDocument();
+      expect(screen.getByText(/Backend 2\.0\.0/)).toBeInTheDocument();
     });
   });
 
@@ -517,9 +655,9 @@ describe('LoginWindow', () => {
       expect(capturedOnServerChange).toBeDefined();
 
       // Trigger server change via captured callback
-      if (capturedOnServerChange) {
-        capturedOnServerChange('server-2');
-      }
+      await act(async () => {
+        await capturedOnServerChange?.('server-2');
+      });
 
       // Then
       expect(mockSetActiveServer).toHaveBeenCalledWith('server-2');
@@ -540,14 +678,11 @@ describe('LoginWindow', () => {
       // When
       render(<LoginWindow />);
 
-      if (capturedOnServerChange) {
-        capturedOnServerChange('server-2');
-      }
-
-      // Wait for async operations
-      await vi.waitFor(() => {
-        expect(vi.mocked(toast.success)).toHaveBeenCalledWith('Server gewechselt', expect.any(Object));
+      await act(async () => {
+        await capturedOnServerChange?.('server-2');
       });
+
+      expect(vi.mocked(toast.success)).toHaveBeenCalledWith('Server gewechselt', expect.any(Object));
     });
 
     it('should keep login form visible during server change (no unmount)', async () => {
@@ -568,9 +703,9 @@ describe('LoginWindow', () => {
       // Then - Login form should be visible before and after
       expect(screen.getByTestId('unified-auth-form')).toBeInTheDocument();
 
-      if (capturedOnServerChange) {
-        capturedOnServerChange('server-2');
-      }
+      await act(async () => {
+        await capturedOnServerChange?.('server-2');
+      });
 
       // Form still visible after server change
       expect(screen.getByTestId('unified-auth-form')).toBeInTheDocument();
@@ -592,14 +727,11 @@ describe('LoginWindow', () => {
       // When
       render(<LoginWindow />);
 
-      if (capturedOnServerChange) {
-        capturedOnServerChange('server-2');
-      }
-
-      // Wait for async operations and error handling
-      await vi.waitFor(() => {
-        expect(vi.mocked(toast.error)).toHaveBeenCalledWith('Serverwechsel fehlgeschlagen', expect.any(Object));
+      await act(async () => {
+        await capturedOnServerChange?.('server-2');
       });
+
+      expect(vi.mocked(toast.error)).toHaveBeenCalledWith('Serverwechsel fehlgeschlagen', expect.any(Object));
     });
   });
 

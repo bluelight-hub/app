@@ -111,6 +111,19 @@ describe('ServerListItem', () => {
       expect(screen.getByRole('button', { name: /löschen/i })).toBeInTheDocument();
     });
 
+    it('should render confirmation button when delete confirmation is pending', () => {
+      // Given
+      const server = createMockServer();
+      const onDelete = vi.fn();
+
+      // When
+      render(<ServerListItem server={server} isActive={false} status="connected" onDelete={onDelete} isDeleteConfirmationPending={true} />);
+
+      // Then
+      expect(screen.getByRole('button', { name: /wirklich löschen/i })).toBeInTheDocument();
+      expect(screen.getByText('Wirklich löschen?')).toBeInTheDocument();
+    });
+
     it('should not render action buttons when no callbacks provided', () => {
       // Given
       const server = createMockServer();
@@ -266,6 +279,20 @@ describe('ServerListItem', () => {
       expect(onClick).not.toHaveBeenCalled(); // Event propagation stopped
     });
 
+    it('should disable confirmation and edit actions while delete is running', () => {
+      // Given
+      const server = createMockServer();
+      const onEdit = vi.fn();
+      const onDelete = vi.fn();
+
+      // When
+      render(<ServerListItem server={server} isActive={false} status="connected" onEdit={onEdit} onDelete={onDelete} isDeleteConfirmationPending={true} isDeleting={true} />);
+
+      // Then
+      expect(screen.getByRole('button', { name: /wird entfernt/i })).toBeDisabled();
+      expect(screen.getByRole('button', { name: /bearbeiten/i })).toBeDisabled();
+    });
+
     it('should not call onClick when no handler provided', async () => {
       // Given
       const user = userEvent.setup();
@@ -377,17 +404,18 @@ describe('ServerListItem', () => {
   // =====================================================
 
   describe('Styling', () => {
-    it('should have hover styles class', () => {
+    it('should have hover styles class when item is interactive', () => {
       // Given
       const server = createMockServer();
+      const onClick = vi.fn();
 
       // When
-      render(<ServerListItem server={server} isActive={false} status="connected" />);
+      render(<ServerListItem server={server} isActive={false} status="connected" onClick={onClick} />);
 
       // Then
       const listItem = screen.getByRole('listitem');
-      expect(listItem).toHaveClass('hover:bg-gray-50');
-      expect(listItem).toHaveClass('dark:hover:bg-gray-700/50');
+      expect(listItem).toHaveClass('hover:bg-slate-100/80');
+      expect(listItem).toHaveClass('dark:hover:bg-slate-900/50');
     });
 
     it('should have cursor-pointer when onClick provided', () => {

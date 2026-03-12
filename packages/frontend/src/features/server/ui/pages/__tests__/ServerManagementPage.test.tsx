@@ -9,7 +9,7 @@
  * @module features/server/ui/pages/__tests__/ServerManagementPage
  */
 
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { ServerManagementPage } from '../ServerManagementPage';
@@ -132,8 +132,8 @@ vi.mock('../../../hooks', () => ({
 
 // Mock für ServerEditForm - isoliert von TanStack Query (vermeidet Provider-Dependency)
 vi.mock('../../organisms/ServerEditForm', () => ({
-  ServerEditForm: vi.fn(({ server, onSuccess, onCancel }) => (
-    <div data-testid="mock-server-edit-form">
+  ServerEditForm: vi.fn(({ server, onSuccess, onCancel, className }) => (
+    <div data-testid="mock-server-edit-form" className={className}>
       <span data-testid="edit-form-server-name">{server?.name}</span>
       <button type="button" onClick={onSuccess} data-testid="edit-form-save-btn">
         Speichern
@@ -147,7 +147,7 @@ vi.mock('../../organisms/ServerEditForm', () => ({
 
 // Mock für ServerList
 vi.mock('../../organisms/ServerList', () => ({
-  ServerList: vi.fn(({ onAddServer, onEditServer, onDeleteServer }) => (
+  ServerList: vi.fn(({ onAddServer, onEditServer, onDeleteServer, pendingDeleteServerId, isDeletingServerId }) => (
     <div data-testid="mock-server-list">
       <button type="button" onClick={onAddServer} data-testid="add-server-btn">
         Add Server
@@ -155,8 +155,8 @@ vi.mock('../../organisms/ServerList', () => ({
       <button type="button" onClick={() => onEditServer?.('test-id')} data-testid="edit-server-btn">
         Edit Server
       </button>
-      <button type="button" onClick={() => onDeleteServer?.('delete-test-id')} data-testid="delete-server-btn">
-        Delete Server
+      <button type="button" onClick={() => onDeleteServer?.('delete-test-id')} data-testid="delete-server-btn" disabled={isDeletingServerId === 'delete-test-id'}>
+        {isDeletingServerId === 'delete-test-id' ? 'Wird entfernt...' : pendingDeleteServerId === 'delete-test-id' ? 'Wirklich löschen?' : 'Delete Server'}
       </button>
       {/* Render mock servers for sorting test (AC2) */}
       {mockServersForList.length > 0 && (
@@ -174,32 +174,13 @@ vi.mock('../../organisms/ServerList', () => ({
   )),
 }));
 
-// Mock für ServerDeleteConfirmDialog
-vi.mock('../../molecules/ServerDeleteConfirmDialog', () => ({
-  ServerDeleteConfirmDialog: vi.fn(({ server, open, onConfirm, onCancel, isLoading }) => {
-    if (!open) return null;
-    return (
-      <div data-testid="delete-server-dialog" role="dialog" aria-label={`Server "${server?.name}" entfernen`}>
-        <span data-testid="delete-dialog-server-name">{server?.name}</span>
-        <p>Möchtest du den Server wirklich entfernen?</p>
-        <button type="button" onClick={onCancel} data-testid="delete-cancel-btn" disabled={isLoading}>
-          Abbrechen
-        </button>
-        <button type="button" onClick={onConfirm} data-testid="delete-confirm-btn" disabled={isLoading}>
-          {isLoading ? 'Wird entfernt...' : 'Entfernen'}
-        </button>
-        {isLoading && <span data-testid="delete-loading-indicator">Loading...</span>}
-      </div>
-    );
-  }),
-}));
-
 // =====================================================
 // Test Setup
 // =====================================================
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.useRealTimers();
   mockServerStore.state = {
     servers: [],
     activeServerId: 'delete-test-id',
@@ -238,7 +219,7 @@ describe('ServerManagementPage', () => {
       render(<ServerManagementPage />);
 
       // Then (Assert)
-      expect(screen.getByText('Verwalte deine konfigurierten Server und Verbindungen.')).toBeInTheDocument();
+      expect(screen.getByText('Verwalte deine konfigurierten Server und halte den Einstieg stabil.')).toBeInTheDocument();
     });
 
     it('should render ServerList component', () => {
@@ -302,7 +283,7 @@ describe('ServerManagementPage', () => {
       const { container } = render(<ServerManagementPage />);
 
       // Then (Assert)
-      const innerContainer = container.querySelector('.max-w-3xl');
+      const innerContainer = container.querySelector('.max-w-6xl');
       expect(innerContainer).toBeInTheDocument();
     });
 
@@ -311,13 +292,12 @@ describe('ServerManagementPage', () => {
       // - Standard Page Rendering ohne Parameter
 
       // When (Act)
-      const { container } = render(<ServerManagementPage />);
+      render(<ServerManagementPage />);
 
       // Then (Assert)
-      // Nach AuthLayout-Refactoring: border-white/20 statt border-gray-200
-      const listContainer = container.querySelector('.border');
+      const listContainer = screen.getByTestId('mock-server-list').closest('[data-slot="card"]');
       expect(listContainer).toBeInTheDocument();
-      expect(listContainer).toHaveClass('rounded-lg');
+      expect(listContainer).toHaveClass('rounded-xl');
     });
 
     it('should have glass-morphism styles for AuthLayout integration', () => {
@@ -328,12 +308,12 @@ describe('ServerManagementPage', () => {
       const { container } = render(<ServerManagementPage />);
 
       // Then (Assert)
-      // AuthLayout nutzt backdrop-blur und semi-transparente Farben
-      const listContainer = container.querySelector('.backdrop-blur-sm');
-      expect(listContainer).toBeInTheDocument();
+      const authCard = container.querySelector('.animate-card-entry');
+      expect(authCard).toBeInTheDocument();
+      expect(authCard).toHaveClass('backdrop-blur');
 
       const heading = screen.getByRole('heading', { level: 1 });
-      expect(heading).toHaveClass('text-white');
+      expect(heading).toHaveClass('text-gray-900');
     });
   });
 
@@ -408,17 +388,18 @@ describe('ServerManagementPage', () => {
   describe('Callbacks', () => {
     it('should open edit modal when edit button clicked (Story 3.3)', async () => {
       // Given (Arrange)
+      const user = userEvent.setup();
       const { getByTestId, findByTestId } = render(<ServerManagementPage />);
 
       // When (Act)
-      getByTestId('edit-server-btn').click();
+      await user.click(getByTestId('edit-server-btn'));
 
       // Then (Assert) - Modal sollte geöffnet sein
       const dialog = await findByTestId('edit-server-dialog');
       expect(dialog).toBeInTheDocument();
     });
 
-    it('should open delete confirmation dialog when delete button clicked (Story 3.4)', async () => {
+    it('should arm inline delete confirmation when delete button clicked (Story 3.4)', async () => {
       // Given (Arrange)
       const user = userEvent.setup();
       render(<ServerManagementPage />);
@@ -426,9 +407,8 @@ describe('ServerManagementPage', () => {
       // When (Act)
       await user.click(screen.getByTestId('delete-server-btn'));
 
-      // Then (Assert) - Dialog sollte geöffnet sein
-      const dialog = await screen.findByTestId('delete-server-dialog');
-      expect(dialog).toBeInTheDocument();
+      // Then (Assert)
+      expect(screen.getByTestId('delete-server-btn')).toHaveTextContent('Wirklich löschen?');
     });
   });
 
@@ -491,6 +471,34 @@ describe('ServerManagementPage', () => {
         expect(screen.queryByTestId('edit-server-dialog')).not.toBeInTheDocument();
       });
     });
+
+    it('should render the edit dialog inside the auth theme container', async () => {
+      // Given
+      const user = userEvent.setup();
+      const { container } = render(<ServerManagementPage />);
+
+      // When
+      await user.click(screen.getByTestId('edit-server-btn'));
+      const dialog = await screen.findByTestId('edit-server-dialog');
+
+      // Then
+      const authTheme = container.querySelector('.auth-theme');
+      expect(authTheme).toBeInTheDocument();
+      expect(authTheme?.contains(dialog)).toBe(true);
+    });
+
+    it('should keep the edit dialog body in a flex column layout with a flexible form area', async () => {
+      // Given
+      const user = userEvent.setup();
+      render(<ServerManagementPage />);
+
+      // When
+      await user.click(screen.getByTestId('edit-server-btn'));
+
+      // Then
+      expect(await screen.findByTestId('edit-server-dialog')).toHaveClass('flex', 'flex-col');
+      expect(screen.getByTestId('mock-server-edit-form')).toHaveClass('flex-1');
+    });
   });
 
   // =====================================================
@@ -536,8 +544,7 @@ describe('ServerManagementPage', () => {
   // =====================================================
 
   describe('Delete Flow (Story 3.4)', () => {
-    // Test 1: Delete-Button öffnet Confirm-Dialog
-    it('should open delete confirmation dialog when delete button is clicked', async () => {
+    it('should require a second click before deleting', async () => {
       // Given (Arrange)
       const user = userEvent.setup();
       render(<ServerManagementPage />);
@@ -546,21 +553,18 @@ describe('ServerManagementPage', () => {
       await user.click(screen.getByTestId('delete-server-btn'));
 
       // Then (Assert)
-      const dialog = await screen.findByTestId('delete-server-dialog');
-      expect(dialog).toBeInTheDocument();
-      expect(screen.getByTestId('delete-dialog-server-name')).toHaveTextContent('Delete Test Server');
+      expect(mockRemoveServer).not.toHaveBeenCalled();
+      expect(screen.getByTestId('delete-server-btn')).toHaveTextContent('Wirklich löschen?');
     });
 
-    // Test 2: Confirm löscht Server und zeigt Toast
-    it('should delete server and show success toast when confirmed', async () => {
+    it('should delete server and show success toast on second click', async () => {
       // Given (Arrange)
       const user = userEvent.setup();
       render(<ServerManagementPage />);
 
-      // When (Act) - Dialog öffnen und bestätigen
+      // When (Act)
       await user.click(screen.getByTestId('delete-server-btn'));
-      await screen.findByTestId('delete-server-dialog');
-      await user.click(screen.getByTestId('delete-confirm-btn'));
+      await user.click(screen.getByTestId('delete-server-btn'));
 
       // Then (Assert)
       await waitFor(() => {
@@ -571,85 +575,8 @@ describe('ServerManagementPage', () => {
       });
     });
 
-    // Test 3: Cancel schließt Dialog ohne Löschung
-    it('should close dialog without deletion when cancel is clicked', async () => {
+    it('should show loading state on the confirmation button during deletion', async () => {
       // Given (Arrange)
-      const user = userEvent.setup();
-      render(<ServerManagementPage />);
-
-      // When (Act) - Dialog öffnen und abbrechen
-      await user.click(screen.getByTestId('delete-server-btn'));
-      await screen.findByTestId('delete-server-dialog');
-      await user.click(screen.getByTestId('delete-cancel-btn'));
-
-      // Then (Assert)
-      await waitFor(() => {
-        expect(screen.queryByTestId('delete-server-dialog')).not.toBeInTheDocument();
-      });
-      expect(mockRemoveServer).not.toHaveBeenCalled();
-    });
-
-    // Test 4: Escape schließt Dialog ohne Löschung (via onCancel)
-    it('should close dialog without deletion when Escape is pressed (via onCancel)', async () => {
-      // Given (Arrange)
-      // Note: Der Mock ruft onCancel auf, was closeDeleteModal entspricht
-      const user = userEvent.setup();
-      render(<ServerManagementPage />);
-
-      // When (Act) - Dialog öffnen
-      await user.click(screen.getByTestId('delete-server-btn'));
-      await screen.findByTestId('delete-server-dialog');
-
-      // When - Cancel klicken (simuliert Escape, da Mock onClose → onCancel mapped)
-      await user.click(screen.getByTestId('delete-cancel-btn'));
-
-      // Then (Assert)
-      await waitFor(() => {
-        expect(screen.queryByTestId('delete-server-dialog')).not.toBeInTheDocument();
-      });
-      expect(mockRemoveServer).not.toHaveBeenCalled();
-    });
-
-    // Test 5: Letzter Server → Redirect zu /server/setup
-    it('should redirect to /server/setup when last server is deleted', async () => {
-      // Given (Arrange) - Nur 1 Server
-      mockServerCount = 1;
-      const user = userEvent.setup();
-      render(<ServerManagementPage />);
-
-      // When (Act) - Dialog öffnen und bestätigen
-      await user.click(screen.getByTestId('delete-server-btn'));
-      await screen.findByTestId('delete-server-dialog');
-      await user.click(screen.getByTestId('delete-confirm-btn'));
-
-      // Then (Assert)
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith({ to: '/server/setup' });
-      });
-    });
-
-    // Test 6: Letzter Server → zeigt beide Toasts (success + info)
-    it('should show success and info toast when last server is deleted', async () => {
-      // Given (Arrange) - Nur 1 Server
-      mockServerCount = 1;
-      const user = userEvent.setup();
-      render(<ServerManagementPage />);
-
-      // When (Act) - Dialog öffnen und bestätigen
-      await user.click(screen.getByTestId('delete-server-btn'));
-      await screen.findByTestId('delete-server-dialog');
-      await user.click(screen.getByTestId('delete-confirm-btn'));
-
-      // Then (Assert) - Beide Toasts sollten erscheinen
-      await waitFor(() => {
-        expect(mockToast.success).toHaveBeenCalledWith("Server 'Delete Test Server' entfernt");
-        expect(mockToast.info).toHaveBeenCalledWith('Du brauchst mindestens einen Server');
-      });
-    });
-
-    // Test 7: Loading-State während Deletion (Buttons disabled)
-    it('should show loading state and disable buttons during deletion', async () => {
-      // Given (Arrange) - Langsame Deletion simulieren
       let resolveDelete: () => void = () => {};
       mockRemoveServer.mockImplementation(
         () =>
@@ -660,33 +587,30 @@ describe('ServerManagementPage', () => {
       const user = userEvent.setup();
       render(<ServerManagementPage />);
 
-      // When (Act) - Dialog öffnen und bestätigen
+      // When (Act)
       await user.click(screen.getByTestId('delete-server-btn'));
-      await screen.findByTestId('delete-server-dialog');
-      await user.click(screen.getByTestId('delete-confirm-btn'));
+      await user.click(screen.getByTestId('delete-server-btn'));
 
-      // Then (Assert) - Loading State sollte aktiv sein
+      // Then (Assert)
       await waitFor(() => {
-        expect(screen.getByTestId('delete-loading-indicator')).toBeInTheDocument();
+        expect(screen.getByTestId('delete-server-btn')).toHaveTextContent('Wird entfernt...');
       });
-      expect(screen.getByTestId('delete-confirm-btn')).toBeDisabled();
-      expect(screen.getByTestId('delete-cancel-btn')).toBeDisabled();
+      expect(screen.getByTestId('delete-server-btn')).toBeDisabled();
 
-      // Cleanup: Deletion abschließen
-      resolveDelete();
+      await act(async () => {
+        resolveDelete();
+      });
     });
 
-    // Test 8: Error-Handling mit Toast bei Fehler
-    it('should show error toast when deletion fails', async () => {
-      // Given (Arrange) - Fehler bei Deletion
+    it('should reset the inline confirmation after a deletion error', async () => {
+      // Given (Arrange)
       mockRemoveServer.mockRejectedValue(new Error('Network error'));
       const user = userEvent.setup();
       render(<ServerManagementPage />);
 
-      // When (Act) - Dialog öffnen und bestätigen
+      // When (Act)
       await user.click(screen.getByTestId('delete-server-btn'));
-      await screen.findByTestId('delete-server-dialog');
-      await user.click(screen.getByTestId('delete-confirm-btn'));
+      await user.click(screen.getByTestId('delete-server-btn'));
 
       // Then (Assert)
       await waitFor(() => {
@@ -694,100 +618,88 @@ describe('ServerManagementPage', () => {
           description: 'Network error',
         });
       });
+      await waitFor(() => {
+        expect(screen.getByTestId('delete-server-btn')).toHaveTextContent('Delete Server');
+      });
     });
 
-    // Test 9: Dialog schließt nach erfolgreicher Löschung
-    it('should close dialog after successful deletion', async () => {
+    it('should redirect to /server/setup when last server is deleted', async () => {
+      // Given (Arrange) - Nur 1 Server
+      vi.useFakeTimers();
+      mockServerCount = 1;
+      render(<ServerManagementPage />);
+
+      // When (Act)
+      await act(async () => {
+        screen.getByTestId('delete-server-btn').click();
+      });
+      await act(async () => {
+        screen.getByTestId('delete-server-btn').click();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(60);
+      });
+
+      // Then (Assert)
+      expect(mockNavigate).toHaveBeenCalledWith({ to: '/server/setup' });
+    });
+
+    it('should show success and info toast when last server is deleted', async () => {
+      // Given (Arrange) - Nur 1 Server
+      vi.useFakeTimers();
+      mockServerCount = 1;
+      render(<ServerManagementPage />);
+
+      // When (Act)
+      await act(async () => {
+        screen.getByTestId('delete-server-btn').click();
+      });
+      await act(async () => {
+        screen.getByTestId('delete-server-btn').click();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(60);
+      });
+
+      // Then (Assert) - Beide Toasts sollten erscheinen
+      expect(mockToast.success).toHaveBeenCalledWith("Server 'Delete Test Server' entfernt");
+      expect(mockToast.info).toHaveBeenCalledWith('Du brauchst mindestens einen Server');
+    });
+
+    it('should not redirect when deleting a non-last server', async () => {
       // Given (Arrange)
-      const user = userEvent.setup();
-      render(<ServerManagementPage />);
-
-      // When (Act) - Dialog öffnen und bestätigen
-      await user.click(screen.getByTestId('delete-server-btn'));
-      await screen.findByTestId('delete-server-dialog');
-      await user.click(screen.getByTestId('delete-confirm-btn'));
-
-      // Then (Assert) - Dialog sollte geschlossen sein
-      await waitFor(() => {
-        expect(screen.queryByTestId('delete-server-dialog')).not.toBeInTheDocument();
-      });
-    });
-
-    // Test 10: Dialog schließt auch bei Fehler
-    it('should close dialog even when deletion fails', async () => {
-      // Given (Arrange) - Fehler bei Deletion
-      mockRemoveServer.mockRejectedValue(new Error('Network error'));
-      const user = userEvent.setup();
-      render(<ServerManagementPage />);
-
-      // When (Act) - Dialog öffnen und bestätigen
-      await user.click(screen.getByTestId('delete-server-btn'));
-      await screen.findByTestId('delete-server-dialog');
-      await user.click(screen.getByTestId('delete-confirm-btn'));
-
-      // Then (Assert) - Dialog sollte trotzdem geschlossen sein
-      await waitFor(() => {
-        expect(screen.queryByTestId('delete-server-dialog')).not.toBeInTheDocument();
-      });
-    });
-
-    // Test 11: Server wird aus Liste entfernt nach Confirm
-    it('should remove server from list after confirmation', async () => {
-      // Given (Arrange)
-      const user = userEvent.setup();
-      render(<ServerManagementPage />);
-
-      // When (Act) - Dialog öffnen und bestätigen
-      await user.click(screen.getByTestId('delete-server-btn'));
-      await screen.findByTestId('delete-server-dialog');
-      await user.click(screen.getByTestId('delete-confirm-btn'));
-
-      // Then (Assert) - removeServer wurde mit korrekter ID aufgerufen
-      await waitFor(() => {
-        expect(mockRemoveServer).toHaveBeenCalledWith('delete-test-id');
-        expect(mockRemoveServer).toHaveBeenCalledTimes(1);
-      });
-    });
-
-    // Test 12: Multiple Server → kein Redirect nach Löschung
-    it('should not redirect when deleting non-last server', async () => {
-      // Given (Arrange) - 2 Server (nicht letzter)
       mockServerCount = 2;
       const user = userEvent.setup();
       render(<ServerManagementPage />);
 
-      // When (Act) - Dialog öffnen und bestätigen
+      // When (Act)
       await user.click(screen.getByTestId('delete-server-btn'));
-      await screen.findByTestId('delete-server-dialog');
-      await user.click(screen.getByTestId('delete-confirm-btn'));
+      await user.click(screen.getByTestId('delete-server-btn'));
 
-      // Then (Assert) - Kein Redirect
+      // Then (Assert)
       await waitFor(() => {
         expect(mockRemoveServer).toHaveBeenCalled();
       });
-      // Navigate sollte NICHT zu /server/setup navigieren
       expect(mockNavigate).not.toHaveBeenCalledWith({ to: '/server/setup' });
     });
 
-    // Test 13: AC6 - Auth-State wird bei aktivem Server gecleared
-    it('should clear auth state when deleting active server (AC6)', async () => {
-      // Given (Arrange) - Server ist der aktive Server
-      // Der Mock liefert 'delete-test-id' als ersten Server, der auch aktiv ist
+    it('should clear auth-related state when deleting the active server (AC6)', async () => {
+      // Given (Arrange)
       const user = userEvent.setup();
       render(<ServerManagementPage />);
 
-      // When (Act) - Aktiven Server löschen
+      // When (Act)
       await user.click(screen.getByTestId('delete-server-btn'));
-      await screen.findByTestId('delete-server-dialog');
-      await user.click(screen.getByTestId('delete-confirm-btn'));
+      await user.click(screen.getByTestId('delete-server-btn'));
 
-      // Then (Assert) - removeServer sollte aufgerufen worden sein
-      // Auth-State cleanup erfolgt im Handler wenn wasActiveServer true ist
+      // Then (Assert)
       await waitFor(() => {
         expect(mockRemoveServer).toHaveBeenCalledWith('delete-test-id');
       });
-      // Note: Vollständiger Auth-State Test würde Mocks für resetAuthStore und queryClient erfordern
-      // Das ist ein Integration-Test auf höherer Ebene
     });
   });
 });

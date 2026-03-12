@@ -1,6 +1,7 @@
 import mobileLogo from '@/assets/brandbook/mobile-logo.png';
 import mobileLogoWhite from '@/assets/brandbook/mobile-white.png';
 import { useColorModeValue } from '@/shared/hooks/use-color-mode';
+import { cn } from '@/shared/ui/cn';
 
 /**
  * Status-Typen für den Verbindungs-Indikator
@@ -16,13 +17,14 @@ interface LogoWithIndicatorProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   showIndicator?: boolean;
   status?: IndicatorStatus;
+  animateIndicator?: boolean;
 }
 
 const statusColorClasses: Record<IndicatorStatus, string> = {
-  online: 'bg-green-400 animate-pulse-shadow',
+  online: 'bg-green-400',
   offline: 'bg-yellow-400',
   error: 'bg-red-500',
-  checking: 'bg-gray-400 animate-pulse',
+  checking: 'bg-gray-400',
 };
 
 /**
@@ -35,7 +37,7 @@ const statusColorClasses: Record<IndicatorStatus, string> = {
  * @param showIndicator - Ob der Indikator angezeigt werden soll
  * @param status - Verbindungsstatus für Indikator-Farbe
  */
-export function LogoWithIndicator({ size = 'lg', showIndicator = true, status = 'online' }: LogoWithIndicatorProps) {
+export function LogoWithIndicator({ size = 'lg', showIndicator = true, status = 'online', animateIndicator = true }: LogoWithIndicatorProps) {
   const logoSrc = useColorModeValue(mobileLogo, mobileLogoWhite);
 
   const sizeClasses = {
@@ -48,7 +50,16 @@ export function LogoWithIndicator({ size = 'lg', showIndicator = true, status = 
   return (
     <div className="relative inline-block">
       <img src={logoSrc} alt="Bluelight Hub Logo" className={`${sizeClasses[size]} object-contain drop-shadow-[0_10px_30px_rgba(0,61,122,0.3)]`} />
-      {showIndicator && <div className={`absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full border-[3px] border-white dark:border-gray-800 ${statusColorClasses[status]}`} />}
+      {showIndicator && (
+        <div
+          className={cn(
+            'absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full border-[3px] border-white dark:border-gray-800',
+            statusColorClasses[status],
+            animateIndicator && status === 'online' && 'animate-pulse-shadow',
+            animateIndicator && status === 'checking' && 'animate-pulse',
+          )}
+        />
+      )}
     </div>
   );
 }

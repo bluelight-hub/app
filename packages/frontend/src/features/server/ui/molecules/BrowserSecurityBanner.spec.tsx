@@ -61,7 +61,7 @@ describe('BrowserSecurityBanner', () => {
       // Then (Assert)
       const icon = container.querySelector('svg');
       expect(icon).toBeInTheDocument();
-      expect(icon).toHaveClass('text-yellow-600');
+      expect(icon).toHaveClass('text-amber-600');
       expect(icon).toHaveAttribute('aria-hidden', 'true');
     });
 
@@ -74,7 +74,7 @@ describe('BrowserSecurityBanner', () => {
 
       // Then (Assert)
       const dismissButton = screen.getByRole('button', {
-        name: 'Browser-Sicherheitswarnung dauerhaft ausblenden',
+        name: 'Browser-Sicherheitswarnung für diese Sitzung ausblenden',
       });
       expect(dismissButton).toBeInTheDocument();
     });
@@ -157,7 +157,7 @@ describe('BrowserSecurityBanner', () => {
       render(<BrowserSecurityBanner />);
 
       const dismissButton = screen.getByRole('button', {
-        name: 'Browser-Sicherheitswarnung dauerhaft ausblenden',
+        name: 'Browser-Sicherheitswarnung für diese Sitzung ausblenden',
       });
 
       // When (Act)
@@ -175,8 +175,8 @@ describe('BrowserSecurityBanner', () => {
       render(<BrowserSecurityBanner />);
 
       // Then (Assert)
-      const button = screen.getByRole('button', { name: 'Browser-Sicherheitswarnung dauerhaft ausblenden' });
-      expect(button).toHaveAttribute('aria-label', 'Browser-Sicherheitswarnung dauerhaft ausblenden');
+      const button = screen.getByRole('button', { name: 'Browser-Sicherheitswarnung für diese Sitzung ausblenden' });
+      expect(button).toHaveAttribute('aria-label', 'Browser-Sicherheitswarnung für diese Sitzung ausblenden');
     });
 
     it('should be keyboard accessible', async () => {
@@ -187,7 +187,7 @@ describe('BrowserSecurityBanner', () => {
       render(<BrowserSecurityBanner />);
 
       const dismissButton = screen.getByRole('button', {
-        name: 'Browser-Sicherheitswarnung dauerhaft ausblenden',
+        name: 'Browser-Sicherheitswarnung für diese Sitzung ausblenden',
       });
 
       // When (Act)
@@ -209,11 +209,11 @@ describe('BrowserSecurityBanner', () => {
 
       // Then (Assert)
       const wrapper = container.firstChild as HTMLElement;
-      expect(wrapper).toHaveClass('bg-yellow-50');
-      expect(wrapper).toHaveClass('border-yellow-200');
+      expect(wrapper).toHaveClass('bg-amber-50/90');
+      expect(wrapper).toHaveClass('border-amber-200/80');
     });
 
-    it('should have sticky positioning', () => {
+    it('should keep the banner layout inline instead of sticky', () => {
       // Given (Arrange)
       vi.mocked(useIsTauri).mockReturnValue({ isTauri: false });
 
@@ -222,9 +222,8 @@ describe('BrowserSecurityBanner', () => {
 
       // Then (Assert)
       const wrapper = container.firstChild as HTMLElement;
-      expect(wrapper).toHaveClass('sticky');
-      expect(wrapper).toHaveClass('top-0');
-      expect(wrapper).toHaveClass('z-50');
+      expect(wrapper).not.toHaveClass('sticky');
+      expect(wrapper).toHaveClass('rounded-2xl');
     });
 
     it('should have correct text styling', () => {
@@ -237,7 +236,7 @@ describe('BrowserSecurityBanner', () => {
       // Then (Assert)
       const text = screen.getByText(/Im Browser werden Server-Daten/);
       expect(text).toHaveClass('text-sm');
-      expect(text).toHaveClass('text-yellow-800');
+      expect(text).toHaveClass('text-amber-900');
     });
   });
 
@@ -268,9 +267,9 @@ describe('BrowserSecurityBanner', () => {
       // Custom class
       expect(wrapper).toHaveClass('shadow-lg');
       // Default classes should remain
-      expect(wrapper).toHaveClass('sticky');
-      expect(wrapper).toHaveClass('bg-yellow-50');
-      expect(wrapper).toHaveClass('border-yellow-200');
+      expect(wrapper).toHaveClass('rounded-2xl');
+      expect(wrapper).toHaveClass('bg-amber-50/90');
+      expect(wrapper).toHaveClass('border-amber-200/80');
     });
   });
 
@@ -282,12 +281,12 @@ describe('BrowserSecurityBanner', () => {
       // When (Act)
       render(<BrowserSecurityBanner />);
 
-      const button = screen.getByRole('button', { name: 'Browser-Sicherheitswarnung dauerhaft ausblenden' });
+      const button = screen.getByRole('button', { name: 'Browser-Sicherheitswarnung für diese Sitzung ausblenden' });
 
       // Then (Assert)
       expect(button).toHaveClass('focus:outline-none');
       expect(button).toHaveClass('focus:ring-2');
-      expect(button).toHaveClass('focus:ring-yellow-500');
+      expect(button).toHaveClass('focus:ring-amber-500');
     });
 
     it('should have hidden icon for screen readers', () => {

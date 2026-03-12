@@ -264,6 +264,23 @@ describe('ServerSelector', () => {
   // =====================================================
 
   describe('Offline Label', () => {
+    it('should not render per-server action buttons in dropdown', async () => {
+      const user = userEvent.setup();
+      const server = createMockServer({ id: 'single-server', name: 'Single Server' });
+
+      render(
+        <ServerSelector servers={[server]} activeServer={server} connectionStatus={new Map()} onServerChange={vi.fn()} onAddServer={vi.fn()} onReconfigureServer={vi.fn()} onDeleteServer={vi.fn()} />,
+      );
+
+      await user.click(screen.getByRole('button', { name: /single server/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('option', { name: /single server/i })).toBeInTheDocument();
+      });
+
+      expect(screen.queryByRole('button', { name: /aktionen für single server/i })).not.toBeInTheDocument();
+    });
+
     it('should show "Offline" label for disconnected servers in dropdown', async () => {
       // Given
       const user = userEvent.setup();
