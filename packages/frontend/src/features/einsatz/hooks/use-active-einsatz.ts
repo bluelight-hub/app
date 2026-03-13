@@ -1,12 +1,54 @@
 import type { EinsatzControllerFindOneVAlpha200Response, ResponseError } from '@/shared';
-import { api } from '@/shared';
+import { useCurrentUser } from '@/features/auth';
+import { serverStore } from '@/features/server/stores/server.store';
 import { logger } from '@/shared/lib/logger';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useStore } from '@tanstack/react-store';
 import { milliseconds } from 'date-fns';
 import { useCallback, useEffect } from 'react';
 import { EINSATZ_QUERY_KEYS } from '../api';
-import { einsatzStore, useEinsatzStore } from '../stores/active-einsatz.store';
-import { clearActiveEinsatz as clearPersistedEinsatz, loadActiveEinsatzId, rehydrateActiveEinsatz } from '../stores/persistence/einsatz-persistence';
+import { type ActiveEinsatzResumeReason, useEinsatzStore } from '../stores/active-einsatz.store';
+import { clearPersistedResumeContext, isLocalStorageAvailable, loadActiveEinsatzId, rehydrateActiveEinsatz } from '../stores/persistence/einsatz-persistence';
+import { ensureSingleRehydration, fetchActiveEinsatzOnce, getActiveEinsatzRuntimeGeneration, invalidateActiveEinsatzRuntime, isActiveEinsatzRuntimeGenerationCurrent } from './active-einsatz-runtime';
+
+function resolveResumeReason(error: unknown): ActiveEinsatzResumeReason {
+  const status = (error as { response?: { status?: number } })?.response?.status;
+
+  if (status === 401 || status === 403) {
+    return 'unauthorized';
+  }
+
+  if (status === 404) {
+    return 'invalid-context';
+  }
+
+  return 'unknown';
+}
+
+class ActiveEinsatzRuntimeStaleError extends Error {
+  constructor() {
+    super('Active Einsatz runtime is stale');
+    this.name = 'ActiveEinsatzRuntimeStaleError';
+  }
+}
+
+function isActiveEinsatzRuntimeCurrent(serverId: string | null, generation: number): boolean {
+  return isActiveEinsatzRuntimeGenerationCurrent(generation) && serverStore.state.activeServerId === serverId;
+}
+
+function assertActiveEinsatzRuntimeCurrent(serverId: string | null, generation: number): void {
+  if (!isActiveEinsatzRuntimeCurrent(serverId, generation)) {
+    throw new ActiveEinsatzRuntimeStaleError();
+  }
+}
+
+function isActiveEinsatzRuntimeStaleError(error: unknown): error is ActiveEinsatzRuntimeStaleError {
+  return error instanceof ActiveEinsatzRuntimeStaleError;
+}
+
+function getResumeQueryKey(serverId: string | null, einsatzId: string | null) {
+  return [...EINSATZ_QUERY_KEYS.detail(einsatzId), 'resume-context', serverId ?? 'global'] as const;
+}
 
 /**
  * Hook für aktiven Einsatz-Management
@@ -23,16 +65,30 @@ import { clearActiveEinsatz as clearPersistedEinsatz, loadActiveEinsatzId, rehyd
  */
 export function useActiveEinsatz() {
   const queryClient = useQueryClient();
+  const currentServerId = useStore(serverStore, (state) => state.activeServerId);
+  const { authStatus } = useCurrentUser();
   const {
-    activeEinsatz,
+    activeEinsatz: storedActiveEinsatz,
     isLoadingActiveEinsatz,
     activeEinsatzError,
     setActiveEinsatz: storeSetActiveEinsatz,
-    clearActiveEinsatz: storeClearActiveEinsatz,
+    clearActiveEinsatz: clearActiveEinsatzState,
     setLoadingState,
     setError,
-    selectedEinsatzId,
+    selectedEinsatzId: storedSelectedEinsatzId,
+    setSelectedEinsatzId,
+    runtimeServerId,
+    resumeStatus: storedResumeStatus,
+    resumeReason: storedResumeReason,
+    setResumeState,
+    resetRuntimeState,
   } = useEinsatzStore();
+  const isCurrentServerContext = runtimeServerId === currentServerId;
+  const activeEinsatz = isCurrentServerContext ? storedActiveEinsatz : null;
+  const selectedEinsatzId = isCurrentServerContext ? storedSelectedEinsatzId : null;
+  const resumeStatus = isCurrentServerContext ? storedResumeStatus : 'idle';
+  const resumeReason = isCurrentServerContext ? storedResumeReason : null;
+  const activeEinsatzQueryKey = getResumeQueryKey(currentServerId, selectedEinsatzId);
 
   // Query für aktiven Einsatz basierend auf selectedEinsatzId
   const {
@@ -41,103 +97,186 @@ export function useActiveEinsatz() {
     error: queryError,
     refetch,
   } = useQuery<EinsatzControllerFindOneVAlpha200Response, ResponseError>({
-    queryKey: EINSATZ_QUERY_KEYS.detail(selectedEinsatzId),
+    queryKey: activeEinsatzQueryKey,
     queryFn: async () => {
       if (!selectedEinsatzId) {
         throw new Error('No Einsatz ID selected');
       }
 
       try {
-        return await api.einsatz().einsatzControllerFindOneVAlpha({
-          id: selectedEinsatzId,
-        });
+        return await fetchActiveEinsatzOnce(currentServerId, selectedEinsatzId);
       } catch (error) {
         logger.error('Failed to fetch active Einsatz', error);
         throw error;
       }
     },
-    enabled: !!selectedEinsatzId && !activeEinsatz, // Only fetch if we have an ID but no data
+    enabled: authStatus === 'authenticated' && !!selectedEinsatzId && !isLoadingActiveEinsatz && (!activeEinsatz || activeEinsatz.id !== selectedEinsatzId),
     staleTime: milliseconds({ minutes: 5 }),
-    retry: 3,
+    retry: (failureCount, error) => {
+      const resumeErrorReason = resolveResumeReason(error);
+
+      if (resumeErrorReason === 'invalid-context' || resumeErrorReason === 'unauthorized') {
+        return false;
+      }
+
+      return failureCount < 3;
+    },
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   // Update store when query data changes
   useEffect(() => {
-    if (fetchedEinsatz?.data && selectedEinsatzId) {
-      storeSetActiveEinsatz(fetchedEinsatz.data);
+    if (fetchedEinsatz?.data && selectedEinsatzId && currentServerId) {
+      storeSetActiveEinsatz(fetchedEinsatz.data, {
+        serverId: currentServerId,
+        resumeStatus: 'ready',
+        resumeReason: null,
+      });
     }
-  }, [fetchedEinsatz, selectedEinsatzId, storeSetActiveEinsatz]);
+  }, [currentServerId, fetchedEinsatz, selectedEinsatzId, storeSetActiveEinsatz]);
 
   // Handle query errors
   useEffect(() => {
-    if (queryError) {
-      setError(queryError.message || 'Fehler beim Laden des Einsatzes');
+    if (!queryError || !currentServerId || !selectedEinsatzId) {
+      return;
     }
-  }, [queryError, setError]);
 
-  // Rehydration beim App-Start
+    const resumeErrorReason = resolveResumeReason(queryError);
+
+    if (resumeErrorReason === 'invalid-context' || resumeErrorReason === 'unauthorized') {
+      clearPersistedResumeContext(selectedEinsatzId, { serverId: currentServerId });
+      clearActiveEinsatzState({
+        serverId: currentServerId,
+        resumeStatus: 'unavailable',
+        resumeReason: resumeErrorReason,
+      });
+      setError(queryError.message || 'Fehler beim Laden des Einsatzes', {
+        serverId: currentServerId,
+        resumeStatus: 'unavailable',
+        resumeReason: resumeErrorReason,
+      });
+      return;
+    }
+
+    setError(queryError.message || 'Fehler beim Laden des Einsatzes', {
+      serverId: currentServerId,
+      resumeStatus: activeEinsatz ? 'ready' : 'unavailable',
+      resumeReason: activeEinsatz ? null : 'unknown',
+    });
+  }, [activeEinsatz, clearActiveEinsatzState, currentServerId, queryError, selectedEinsatzId, setError]);
+
+  // Session-Wechsel, Logout und Serverwechsel räumen nur den Laufzeitzustand auf.
   useEffect(() => {
-    // Skip if activeEinsatz already exists
-    if (activeEinsatz) return;
+    if (authStatus === 'authenticated' && currentServerId && (!runtimeServerId || runtimeServerId === currentServerId)) {
+      return;
+    }
 
-    const initializeActiveEinsatz = async () => {
-      // Read storage once
-      const storedId = loadActiveEinsatzId();
+    invalidateActiveEinsatzRuntime();
+    resetRuntimeState(currentServerId ?? null);
+  }, [authStatus, currentServerId, resetRuntimeState, runtimeServerId]);
 
-      if (storedId) {
-        setLoadingState(true);
+  // Rehydration beim App-Start und nach Session-Wiederaufnahme
+  useEffect(() => {
+    if (authStatus !== 'authenticated' || !currentServerId) {
+      return;
+    }
 
-        try {
-          // Validiere die gespeicherte ID durch API-Aufruf
-          const validateId = async (id: string): Promise<boolean> => {
+    if (activeEinsatz) {
+      if (resumeStatus !== 'ready') {
+        setResumeState('ready', null, { serverId: currentServerId });
+      }
+      return;
+    }
+
+    const sessionKey = `${currentServerId}`;
+    const runtimeGeneration = getActiveEinsatzRuntimeGeneration();
+
+    void ensureSingleRehydration(sessionKey, async () => {
+      if (!isLocalStorageAvailable()) {
+        setResumeState('unavailable', 'storage-unavailable', { serverId: currentServerId });
+        return;
+      }
+
+      const storedId = loadActiveEinsatzId({ serverId: currentServerId });
+      if (!storedId) {
+        setResumeState('unavailable', 'no-context', { serverId: currentServerId });
+        return;
+      }
+
+      setLoadingState(true, {
+        serverId: currentServerId,
+        resumeStatus: 'checking',
+      });
+
+      let validationReason: ActiveEinsatzResumeReason = 'unknown';
+
+      try {
+        const validatedId = await rehydrateActiveEinsatz(
+          storedId,
+          async (id) => {
             try {
-              const response = await api.einsatz().einsatzControllerFindOneVAlpha({ id });
-              // Wenn erfolgreich, setze den Einsatz direkt
-              if (response.data) {
-                // Synchronize both the activeEinsatz and selectedEinsatzId
-                storeSetActiveEinsatz(response.data);
-                // Ensure the selectedEinsatzId is also set in the store
-                einsatzStore.setState((state) => ({
-                  ...state,
-                  selectedEinsatzId: id,
-                }));
-                // Cache the data in query client
-                queryClient.setQueryData(EINSATZ_QUERY_KEYS.detail(id), response);
-                return true;
+              const response = await fetchActiveEinsatzOnce(currentServerId, id);
+              assertActiveEinsatzRuntimeCurrent(currentServerId, runtimeGeneration);
+
+              if (!response.data) {
+                validationReason = 'invalid-context';
+                return false;
               }
-              return false;
-            } catch {
-              return false;
+
+              storeSetActiveEinsatz(response.data, {
+                serverId: currentServerId,
+                resumeStatus: 'ready',
+                resumeReason: null,
+              });
+              queryClient.setQueryData(getResumeQueryKey(currentServerId, id), response);
+              return true;
+            } catch (error) {
+              if (isActiveEinsatzRuntimeStaleError(error)) {
+                throw error;
+              }
+
+              const resumeErrorReason = resolveResumeReason(error);
+
+              if (resumeErrorReason === 'invalid-context' || resumeErrorReason === 'unauthorized') {
+                validationReason = resumeErrorReason;
+                return false;
+              }
+
+              throw error;
             }
-          };
+          },
+          { serverId: currentServerId },
+        );
 
-          // Pass the storedId directly instead of having rehydrateActiveEinsatz read it again
-          const validatedId = await rehydrateActiveEinsatz(storedId, validateId);
+        assertActiveEinsatzRuntimeCurrent(currentServerId, runtimeGeneration);
 
-          // If validation failed, clear the persisted ID
-          if (!validatedId) {
-            clearPersistedEinsatz();
-          }
-        } catch (error) {
-          logger.error('Failed to rehydrate active Einsatz', error);
-          setError('Gespeicherter Einsatz konnte nicht geladen werden');
-          clearPersistedEinsatz();
-        } finally {
-          setLoadingState(false);
+        if (!validatedId) {
+          clearPersistedResumeContext(storedId, { serverId: currentServerId });
+          clearActiveEinsatzState({
+            preserveResumeState: true,
+            serverId: currentServerId,
+          });
+          setResumeState('unavailable', validationReason, { serverId: currentServerId });
+          return;
+        }
+      } catch (error) {
+        if (isActiveEinsatzRuntimeStaleError(error)) {
+          return;
+        }
+
+        logger.error('Failed to rehydrate active Einsatz', error);
+        setError('Gespeicherter Einsatz konnte nicht geladen werden', {
+          serverId: currentServerId,
+          resumeStatus: 'unavailable',
+          resumeReason: 'unknown',
+        });
+      } finally {
+        if (isActiveEinsatzRuntimeCurrent(currentServerId, runtimeGeneration)) {
+          setLoadingState(false, { serverId: currentServerId });
         }
       }
-    };
-
-    // Nur beim ersten Mount ausführen
-    void initializeActiveEinsatz();
-  }, [
-    activeEinsatz,
-    queryClient,
-    setError,
-    setLoadingState, // Synchronize both the activeEinsatz and selectedEinsatzId
-    storeSetActiveEinsatz,
-  ]); // Only re-run if activeEinsatz changes (for early return check)
+    });
+  }, [activeEinsatz, authStatus, clearActiveEinsatzState, currentServerId, queryClient, setError, setLoadingState, setResumeState, storeSetActiveEinsatz, resumeStatus]);
 
   /**
    * Setzt einen neuen aktiven Einsatz
@@ -146,56 +285,100 @@ export function useActiveEinsatz() {
    */
   const setActiveEinsatz = useCallback(
     async (id: string) => {
-      setLoadingState(true);
-      setError(null);
+      if (!currentServerId) {
+        throw new Error('Kein aktiver Serverkontext verfügbar');
+      }
+
+      const runtimeGeneration = getActiveEinsatzRuntimeGeneration();
+
+      setLoadingState(true, {
+        serverId: currentServerId,
+        resumeStatus: 'checking',
+      });
+      setError(null, {
+        serverId: currentServerId,
+      });
 
       try {
         // Optimistic Update - setze ID sofort
-        einsatzStore.setState((state) => ({
-          ...state,
-          selectedEinsatzId: id,
-        }));
+        setSelectedEinsatzId(id, {
+          serverId: currentServerId,
+          resumeStatus: 'checking',
+          resumeReason: null,
+        });
 
         // Prüfe ob Daten im Cache vorhanden sind
-        const cachedData = queryClient.getQueryData<EinsatzControllerFindOneVAlpha200Response>(EINSATZ_QUERY_KEYS.detail(id));
+        const cachedData = queryClient.getQueryData<EinsatzControllerFindOneVAlpha200Response>(getResumeQueryKey(currentServerId, id));
 
         if (cachedData?.data) {
+          assertActiveEinsatzRuntimeCurrent(currentServerId, runtimeGeneration);
+
           // Verwende gecachte Daten
-          storeSetActiveEinsatz(cachedData.data);
-          setLoadingState(false);
+          storeSetActiveEinsatz(cachedData.data, {
+            serverId: currentServerId,
+            resumeStatus: 'ready',
+            resumeReason: null,
+          });
         } else {
           // Lade Daten vom Server
-          const response = await api.einsatz().einsatzControllerFindOneVAlpha({ id });
+          const response = await fetchActiveEinsatzOnce(currentServerId, id);
+          assertActiveEinsatzRuntimeCurrent(currentServerId, runtimeGeneration);
 
           if (response.data) {
-            storeSetActiveEinsatz(response.data);
+            storeSetActiveEinsatz(response.data, {
+              serverId: currentServerId,
+              resumeStatus: 'ready',
+              resumeReason: null,
+            });
             // Cache die Daten
-            queryClient.setQueryData(EINSATZ_QUERY_KEYS.detail(id), response);
+            queryClient.setQueryData(getResumeQueryKey(currentServerId, id), response);
           } else {
             throw new Error('Einsatz nicht gefunden');
           }
         }
       } catch (error) {
+        if (isActiveEinsatzRuntimeStaleError(error)) {
+          return;
+        }
+
         const errorMessage = error instanceof Error ? error.message : 'Unbekannter Fehler';
         logger.error('Failed to set active Einsatz', error);
-        setError(errorMessage);
+        setError(errorMessage, {
+          serverId: currentServerId,
+          resumeStatus: 'unavailable',
+          resumeReason: 'unknown',
+        });
         // Rollback bei Fehler
-        storeClearActiveEinsatz();
+        clearActiveEinsatzState({
+          preserveResumeState: true,
+          serverId: currentServerId,
+        });
         throw error;
       } finally {
-        setLoadingState(false);
+        if (isActiveEinsatzRuntimeCurrent(currentServerId, runtimeGeneration)) {
+          setLoadingState(false, {
+            serverId: currentServerId,
+          });
+        }
       }
     },
-    [queryClient, storeSetActiveEinsatz, storeClearActiveEinsatz, setLoadingState, setError],
+    [clearActiveEinsatzState, currentServerId, queryClient, setError, setLoadingState, setSelectedEinsatzId, storeSetActiveEinsatz],
   );
 
   /**
    * Löscht den aktiven Einsatz
    */
   const clearActiveEinsatz = useCallback(() => {
-    storeClearActiveEinsatz();
-    clearPersistedEinsatz();
-  }, [storeClearActiveEinsatz]);
+    clearActiveEinsatzState({
+      serverId: currentServerId,
+      resumeStatus: 'unavailable',
+      resumeReason: 'no-context',
+    });
+
+    if (activeEinsatz?.id) {
+      clearPersistedResumeContext(activeEinsatz.id, { serverId: currentServerId });
+    }
+  }, [activeEinsatz?.id, clearActiveEinsatzState, currentServerId]);
 
   /**
    * Aktualisiert die Daten des aktiven Einsatzes
@@ -218,6 +401,8 @@ export function useActiveEinsatz() {
     isLoading,
     error: activeEinsatzError || (queryError?.message ?? null),
     isEinsatzActive,
+    resumeStatus,
+    resumeReason,
 
     // Actions
     setActiveEinsatz,

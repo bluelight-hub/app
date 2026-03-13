@@ -655,6 +655,27 @@ describe('LoginWindow', () => {
       expect(mockRouterHistoryFlush).toHaveBeenCalled();
       expect(mockConsumeRedirectAfterLogin).toHaveBeenCalledTimes(1);
     });
+
+    it('should use a stored internal redirect when no redirect query is present', async () => {
+      const singleServer = createMockServer();
+      mockUseServerList.mockReturnValue([singleServer]);
+      mockUseActiveServer.mockReturnValue(singleServer);
+      mockUseCurrentUser.mockReturnValue({
+        user: { id: 'user-1' },
+        authStatus: 'authenticated',
+        isLoading: false,
+      });
+      mockConsumeRedirectAfterLogin.mockReturnValue('/app/einsatz/42?tab=lagekarte#karte');
+      window.history.pushState({}, '', '/auth');
+
+      render(<LoginWindow />);
+
+      await vi.waitFor(() => {
+        expect(mockRouterHistoryReplace).toHaveBeenCalledWith('/app/einsatz/42?tab=lagekarte#karte');
+      });
+
+      expect(mockRouterHistoryFlush).toHaveBeenCalled();
+    });
   });
 
   describe('Authentication Errors', () => {

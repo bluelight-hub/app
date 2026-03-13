@@ -1,4 +1,7 @@
 import { api } from '@/shared';
+import { serverStore } from '@/features/server/stores/server.store';
+import { resetActiveEinsatzRuntime } from '@/features/einsatz/stores/active-einsatz.store';
+import { invalidateActiveEinsatzRuntime } from '@/features/einsatz/hooks/active-einsatz-runtime';
 import { resetTokenRefreshHandler } from '@/shared/lib/errors/error-handler';
 import { AUTH_KEYS } from './queries';
 import type { LogoutResponseDto } from '@/shared';
@@ -33,6 +36,8 @@ export const useLogout = () => {
     onSuccess: async () => {
       // Reset Token-Refresh-Handler bei Logout
       resetTokenRefreshHandler();
+      invalidateActiveEinsatzRuntime();
+      resetActiveEinsatzRuntime(serverStore.state.activeServerId);
 
       // Alle laufenden Queries abbrechen
       await queryClient.cancelQueries();

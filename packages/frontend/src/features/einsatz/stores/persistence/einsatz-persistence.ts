@@ -4,39 +4,90 @@
  * Verwaltet die localStorage-Persistierung des aktiven Einsatzes
  * und Cross-Tab-Synchronisation
  */
+import { serverStore } from '@/features/server/stores/server.store';
 
 // Constants
+const STORAGE_NAMESPACE = 'bluelight-hub';
 const STORAGE_KEY = 'activeEinsatzId';
 const STORAGE_EVENT_KEY = 'activeEinsatzSync';
 const WORKSPACE_HREF_KEY_PREFIX = 'einsatzWorkspaceHref:';
+
+interface PersistenceScopeOptions {
+  serverId?: string | null;
+}
+
+function resolveServerId(options?: PersistenceScopeOptions): string | null {
+  if (options && 'serverId' in options) {
+    return options.serverId ?? null;
+  }
+
+  return serverStore.state.activeServerId;
+}
+
+function buildScopedStorageKey(baseKey: string, serverId: string | null): string {
+  return serverId ? `${STORAGE_NAMESPACE}:${serverId}:${baseKey}` : baseKey;
+}
+
+function getActiveEinsatzStorageKey(options?: PersistenceScopeOptions): string {
+  return buildScopedStorageKey(STORAGE_KEY, resolveServerId(options));
+}
+
+function getWorkspaceHrefStorageKey(einsatzId: string, options?: PersistenceScopeOptions): string {
+  return buildScopedStorageKey(`${WORKSPACE_HREF_KEY_PREFIX}${einsatzId}`, resolveServerId(options));
+}
+
+function dispatchActiveEinsatzSync(newValue: string | null): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    window.dispatchEvent(
+      new StorageEvent('storage', {
+        key: STORAGE_EVENT_KEY,
+        newValue,
+      }),
+    );
+  } catch {
+    window.dispatchEvent(new Event('storage'));
+  }
+}
+
+function loadScopedValue(storageKey: string, legacyKey: string, options?: PersistenceScopeOptions): string | null {
+  const scopedValue = localStorage.getItem(storageKey);
+  if (scopedValue) {
+    return scopedValue;
+  }
+
+  const serverId = resolveServerId(options);
+  if (serverId) {
+    return null;
+  }
+
+  return localStorage.getItem(legacyKey);
+}
 
 /**
  * Speichert die aktive Einsatz-ID im localStorage
  *
  * @param id - Die zu speichernde Einsatz-ID oder null zum Löschen
  */
-export function saveActiveEinsatzId(id: string | null): void {
+export function saveActiveEinsatzId(id: string | null, options?: PersistenceScopeOptions): void {
   try {
+    const storageKey = getActiveEinsatzStorageKey(options);
+
     if (id === null) {
+      localStorage.removeItem(storageKey);
       localStorage.removeItem(STORAGE_KEY);
-      // Trigger storage event für Cross-Tab-Sync
-      window.dispatchEvent(
-        new StorageEvent('storage', {
-          key: STORAGE_EVENT_KEY,
-          newValue: null,
-          storageArea: localStorage,
-        }),
-      );
+      dispatchActiveEinsatzSync(null);
     } else {
-      localStorage.setItem(STORAGE_KEY, id);
-      // Trigger storage event für Cross-Tab-Sync
-      window.dispatchEvent(
-        new StorageEvent('storage', {
-          key: STORAGE_EVENT_KEY,
-          newValue: id,
-          storageArea: localStorage,
-        }),
-      );
+      localStorage.setItem(storageKey, id);
+
+      if (resolveServerId(options)) {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+
+      dispatchActiveEinsatzSync(id);
     }
   } catch (error) {
     // Silent fail bei localStorage-Problemen (z.B. Private Mode)
@@ -49,9 +100,9 @@ export function saveActiveEinsatzId(id: string | null): void {
  *
  * @returns Die gespeicherte Einsatz-ID oder null
  */
-export function loadActiveEinsatzId(): string | null {
+export function loadActiveEinsatzId(options?: PersistenceScopeOptions): string | null {
   try {
-    const storedId = localStorage.getItem(STORAGE_KEY);
+    const storedId = loadScopedValue(getActiveEinsatzStorageKey(options), STORAGE_KEY, options);
     return storedId || null;
   } catch (error) {
     // Silent fail bei localStorage-Problemen
@@ -63,8 +114,8 @@ export function loadActiveEinsatzId(): string | null {
 /**
  * Löscht die aktive Einsatz-ID aus dem localStorage
  */
-export function clearActiveEinsatz(): void {
-  saveActiveEinsatzId(null);
+export function clearActiveEinsatz(options?: PersistenceScopeOptions): void {
+  saveActiveEinsatzId(null, options);
 }
 
 /**
@@ -73,19 +124,34 @@ export function clearActiveEinsatz(): void {
  * @param einsatzId - Die Einsatz-ID
  * @param href - Interner App-Pfad inkl. Query oder null zum Löschen
  */
-export function saveEinsatzWorkspaceHref(einsatzId: string, href: string | null): void {
+export function saveEinsatzWorkspaceHref(einsatzId: string, href: string | null, options?: PersistenceScopeOptions): void {
   try {
-    const storageKey = `${WORKSPACE_HREF_KEY_PREFIX}${einsatzId}`;
+    const storageKey = getWorkspaceHrefStorageKey(einsatzId, options);
+    const legacyStorageKey = `${WORKSPACE_HREF_KEY_PREFIX}${einsatzId}`;
 
     if (!href) {
       localStorage.removeItem(storageKey);
+      localStorage.removeItem(legacyStorageKey);
       return;
     }
 
     localStorage.setItem(storageKey, href);
+
+    if (resolveServerId(options)) {
+      localStorage.removeItem(legacyStorageKey);
+    }
   } catch (error) {
     console.error('Failed to save Einsatz workspace href to localStorage:', error);
   }
+}
+
+export function clearEinsatzWorkspaceHref(einsatzId: string, options?: PersistenceScopeOptions): void {
+  saveEinsatzWorkspaceHref(einsatzId, null, options);
+}
+
+export function clearPersistedResumeContext(einsatzId: string, options?: PersistenceScopeOptions): void {
+  clearActiveEinsatz(options);
+  clearEinsatzWorkspaceHref(einsatzId, options);
 }
 
 /**
@@ -94,16 +160,20 @@ export function saveEinsatzWorkspaceHref(einsatzId: string, href: string | null)
  * @param einsatzId - Die Einsatz-ID
  * @returns Interner App-Pfad inkl. Query oder null
  */
-export function loadEinsatzWorkspaceHref(einsatzId: string): string | null {
+export function loadEinsatzWorkspaceHref(einsatzId: string, options?: PersistenceScopeOptions): string | null {
   try {
-    const storageKey = `${WORKSPACE_HREF_KEY_PREFIX}${einsatzId}`;
-    const href = localStorage.getItem(storageKey);
+    const href = loadScopedValue(getWorkspaceHrefStorageKey(einsatzId, options), `${WORKSPACE_HREF_KEY_PREFIX}${einsatzId}`, options);
 
     if (!href) {
       return null;
     }
 
-    return href.startsWith(`/app/einsatz/${einsatzId}`) ? href : null;
+    if (href.startsWith(`/app/einsatz/${einsatzId}`)) {
+      return href;
+    }
+
+    clearEinsatzWorkspaceHref(einsatzId, options);
+    return null;
   } catch (error) {
     console.error('Failed to load Einsatz workspace href from localStorage:', error);
     return null;
@@ -119,12 +189,13 @@ export function loadEinsatzWorkspaceHref(einsatzId: string): string | null {
  * @param callback - Callback-Funktion, die bei Änderungen aufgerufen wird
  * @returns Cleanup-Funktion zum Entfernen des Listeners
  */
-export function subscribeToStorageChanges(callback: (einsatzId: string | null) => void): () => void {
+export function subscribeToStorageChanges(callback: (einsatzId: string | null) => void, options?: PersistenceScopeOptions): () => void {
   const handleStorageChange = (event: StorageEvent) => {
+    const scopedStorageKey = getActiveEinsatzStorageKey(options);
+
     // Nur auf relevante Storage-Events reagieren
-    if (event.key === STORAGE_KEY || event.key === STORAGE_EVENT_KEY) {
-      const newId = event.newValue;
-      callback(newId);
+    if (event.key === scopedStorageKey || event.key === STORAGE_KEY || event.key === STORAGE_EVENT_KEY || event.key === null) {
+      callback(loadActiveEinsatzId(options));
     }
   };
 
@@ -147,7 +218,11 @@ export function subscribeToStorageChanges(callback: (einsatzId: string | null) =
  * @param validateCallback - Optional: Callback zur Validierung der ID
  * @returns Promise mit der validierten Einsatz-ID oder null
  */
-export async function rehydrateActiveEinsatz(idOrCallback?: string | ((id: string) => Promise<boolean>), validateCallback?: (id: string) => Promise<boolean>): Promise<string | null> {
+export async function rehydrateActiveEinsatz(
+  idOrCallback?: string | ((id: string) => Promise<boolean>),
+  validateCallback?: (id: string) => Promise<boolean>,
+  options?: PersistenceScopeOptions,
+): Promise<string | null> {
   // Handle overloaded parameters for backward compatibility
   let storedId: string | null;
   let validationFn: ((id: string) => Promise<boolean>) | undefined;
@@ -158,7 +233,7 @@ export async function rehydrateActiveEinsatz(idOrCallback?: string | ((id: strin
     validationFn = validateCallback;
   } else {
     // Legacy signature: callback only, read ID from storage
-    storedId = loadActiveEinsatzId();
+    storedId = loadActiveEinsatzId(options);
     validationFn = idOrCallback;
   }
 
@@ -173,11 +248,15 @@ export async function rehydrateActiveEinsatz(idOrCallback?: string | ((id: strin
       if (!isValid) {
         // Ungültige ID aus Storage entfernen - only if we're using stored ID
         if (typeof idOrCallback !== 'string') {
-          clearActiveEinsatz();
+          clearPersistedResumeContext(storedId, options);
         }
         return null;
       }
     } catch (error) {
+      if (error instanceof Error && error.name === 'ActiveEinsatzRuntimeStaleError') {
+        throw error;
+      }
+
       console.error('Failed to validate stored Einsatz ID:', error);
       // Bei Validierungs-Fehler ID behalten (könnte temporäres Netzwerk-Problem sein)
       return storedId;

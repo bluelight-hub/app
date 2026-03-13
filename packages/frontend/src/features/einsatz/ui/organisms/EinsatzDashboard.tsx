@@ -93,7 +93,7 @@ export function EinsatzDashboard() {
   const dashboardState = useStore(einsatzUIStore, (state) => state.dashboard);
   const [isCreatePanelOpen, setIsCreatePanelOpen] = useState(false);
   const deferredSearchTerm = useDeferredValue(dashboardState.searchTerm);
-  const { activeEinsatz } = useActiveEinsatz();
+  const { activeEinsatz, resumeStatus, resumeReason } = useActiveEinsatz();
 
   const { data: rawEinsaetze = [], isLoading, error, refetch } = useActiveEinsaetzeWithCounts(dashboardState.showArchived);
   const { counts } = useEinsatzStatusCounts(true);
@@ -184,6 +184,14 @@ export function EinsatzDashboard() {
   const activeLocationLabel = getLocationLabel(activeWorkspaceEinsatz?.einsatzort);
   const activeEtbCount = activeWorkspaceEinsatz && 'etbEintraegeCount' in activeWorkspaceEinsatz ? activeWorkspaceEinsatz.etbEintraegeCount : undefined;
   const activePoiCount = activeWorkspaceEinsatz && 'poisCount' in activeWorkspaceEinsatz ? activeWorkspaceEinsatz.poisCount : undefined;
+  const showResumeValidationState = resumeStatus === 'checking' && !activeWorkspaceEinsatz;
+  const showResumeFallbackState = resumeStatus === 'unavailable' && resumeReason !== null && resumeReason !== 'no-context';
+  const resumeFallbackDescription =
+    resumeReason === 'unauthorized'
+      ? 'Dein letzter Einsatzkontext ist nicht mehr verfügbar oder dein Zugriff hat sich geändert. Die Einsatzauswahl bleibt deshalb als sicherer Fallback geöffnet.'
+      : resumeReason === 'storage-unavailable'
+        ? 'Direkte Fortsetzung konnte auf diesem Gerät nicht aus dem lokalen Speicher geladen werden. Du kannst sicher über die Einsatzauswahl weiterarbeiten.'
+        : 'Der zuletzt gespeicherte Einsatzkontext war nicht mehr gültig. Wähle unten einen verfügbaren Einsatz, um die Arbeit sicher fortzusetzen.';
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-5">
@@ -234,6 +242,19 @@ export function EinsatzDashboard() {
             ) : null}
           </CardContent>
         </Card>
+      ) : null}
+
+      {showResumeValidationState ? (
+        <EinsatzSelectionState
+          eyebrow="Wiedereinstieg"
+          title="Letzter Arbeitskontext wird geprüft"
+          description="Sobald der gespeicherte Einsatz belastbar validiert ist, erscheint hier wieder der direkte Weiterarbeiten-Einstieg."
+          icon={<PiClockCountdown className="size-6" />}
+        />
+      ) : null}
+
+      {showResumeFallbackState ? (
+        <EinsatzSelectionState eyebrow="Fortsetzung" title="Direkte Fortsetzung ist gerade nicht möglich" description={resumeFallbackDescription} icon={<PiSealWarning className="size-6" />} />
       ) : null}
 
       <Card className="flex min-h-0 flex-1 flex-col overflow-hidden border-white/70 bg-white/82 shadow-[0_28px_80px_-52px_rgba(15,23,42,0.34)] backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-950/58 dark:shadow-none">

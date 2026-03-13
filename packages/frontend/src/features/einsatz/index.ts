@@ -59,6 +59,7 @@ export {
   type UseEinsatzDetailsResult,
   useEinsatzModules,
   type Module,
+  useResumeEinsatzContext,
 } from './hooks';
 
 // ============================================

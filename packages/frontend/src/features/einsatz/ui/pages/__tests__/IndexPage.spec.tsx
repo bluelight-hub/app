@@ -8,6 +8,7 @@ const mockOpenAdminWindow = vi.fn().mockResolvedValue(undefined);
 const mockUseCurrentUser = vi.fn();
 const mockUseLogout = vi.fn();
 const mockUseActiveServer = vi.fn();
+const mockUseResumeEinsatzContext = vi.fn();
 
 vi.mock('@/features/auth', () => ({
   isAdmin: (role?: string) => role === 'ADMIN' || role === 'SUPER_ADMIN',
@@ -17,6 +18,10 @@ vi.mock('@/features/auth', () => ({
 
 vi.mock('@/features/einsatz/ui/organisms/EinsatzDashboard', () => ({
   EinsatzDashboard: () => <div data-testid="einsatz-dashboard">Dashboard</div>,
+}));
+
+vi.mock('@/features/einsatz/hooks/use-resume-einsatz-context', () => ({
+  useResumeEinsatzContext: () => mockUseResumeEinsatzContext(),
 }));
 
 vi.mock('@/features/server/hooks', () => ({
@@ -67,6 +72,10 @@ describe('IndexPage', () => {
       mutateAsync: vi.fn().mockResolvedValue(undefined),
     });
     mockUseActiveServer.mockReturnValue({ name: 'Leitstelle Nord' });
+    mockUseResumeEinsatzContext.mockReturnValue({
+      resumeStatus: 'idle',
+      resumeReason: null,
+    });
   });
 
   it('zeigt den kompakten Sitzungskontext und delegiert die Admin-Aktion direkt im Header', async () => {
@@ -91,5 +100,16 @@ describe('IndexPage', () => {
     expect(screen.getByRole('heading', { name: /welchen einsatz willst du jetzt öffnen/i })).toBeInTheDocument();
     expect(screen.getByText(/wähle einen einsatz oder lege einen neuen an\. du landest direkt im workspace/i)).toBeInTheDocument();
     expect(screen.getByTestId('einsatz-dashboard')).toBeInTheDocument();
+  });
+
+  it('kommuniziert einen sicheren Fallback, wenn der letzte Kontext nicht fortgesetzt werden konnte', () => {
+    mockUseResumeEinsatzContext.mockReturnValue({
+      resumeStatus: 'unavailable',
+      resumeReason: 'unauthorized',
+    });
+
+    render(<IndexPage />);
+
+    expect(screen.getByText(/der letzte einsatzkontext konnte nicht direkt fortgesetzt werden/i)).toBeInTheDocument();
   });
 });

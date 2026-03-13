@@ -74,6 +74,8 @@ function setupDashboardState(overrides?: {
     archiviert: number;
   };
   activeEinsatzId?: string | null;
+  resumeStatus?: 'idle' | 'checking' | 'ready' | 'unavailable';
+  resumeReason?: 'no-context' | 'invalid-context' | 'unauthorized' | 'storage-unavailable' | 'unknown' | null;
 }) {
   mockUseActiveEinsaetzeWithCounts.mockReturnValue({
     data: overrides?.einsaetze ?? [einsatzFixture],
@@ -97,6 +99,8 @@ function setupDashboardState(overrides?: {
 
   mockUseActiveEinsatz.mockReturnValue({
     activeEinsatz: overrides?.activeEinsatzId ? { id: overrides.activeEinsatzId } : null,
+    resumeStatus: overrides?.resumeStatus ?? (overrides?.activeEinsatzId ? 'ready' : 'idle'),
+    resumeReason: overrides?.resumeReason ?? null,
   });
 }
 
@@ -220,6 +224,19 @@ describe('EinsatzDashboard', () => {
 
     expect(screen.getByText(/direkter wiedereinstieg öffnet den zuletzt genutzten arbeitsbereich/i)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /weiterarbeiten/i })).toHaveAttribute('data-to', '/app/einsatz/$einsatzId');
+  });
+
+  it('erklärt inline, wenn ein gespeicherter Kontext nicht mehr fortgesetzt werden kann', () => {
+    setupDashboardState({
+      resumeStatus: 'unavailable',
+      resumeReason: 'unauthorized',
+    });
+
+    renderDashboard();
+
+    expect(screen.getByText(/direkte fortsetzung ist gerade nicht möglich/i)).toBeInTheDocument();
+    expect(screen.getByText(/nicht mehr verfügbar oder dein zugriff hat sich geändert/i)).toBeInTheDocument();
+    expect(screen.getByText(/öffne einen bestehenden arbeitskontext oder starte einen neuen einsatz/i)).toBeInTheDocument();
   });
 
   it('stellt archiv-only als eigenen Zugriffskontext dar', () => {

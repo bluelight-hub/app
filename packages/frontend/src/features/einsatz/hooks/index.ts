@@ -7,3 +7,4 @@
 export { useActiveEinsatz } from './use-active-einsatz';
 export { useEinsatzDetails, type UseEinsatzDetailsResult } from './use-einsatz-details';
 export { useEinsatzModules, type Module } from './use-einsatz-modules';
+export { useResumeEinsatzContext } from './use-resume-einsatz-context';

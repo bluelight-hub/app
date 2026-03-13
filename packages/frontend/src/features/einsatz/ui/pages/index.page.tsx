@@ -9,6 +9,7 @@ import { isAdmin, useCurrentUser, useLogout } from '@/features/auth';
 import { Badge } from '@/components/ui/badge';
 import { Button as UiButton } from '@/components/ui/button';
 import { EinsatzDashboard } from '@/features/einsatz/ui/organisms/EinsatzDashboard';
+import { useResumeEinsatzContext } from '@/features/einsatz/hooks/use-resume-einsatz-context';
 import { useActiveServer } from '@/features/server/hooks';
 import { Heading } from '@/shared/ui/atoms/heading.atom';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
@@ -31,8 +32,21 @@ function formatWorkspaceRoleLabel(role?: string): string {
   return ROLE_LABELS[role] ?? role;
 }
 
+function getWorkspaceIntroCopy(resumeStatus: 'idle' | 'checking' | 'ready' | 'unavailable', resumeReason: string | null): string {
+  if (resumeStatus === 'checking') {
+    return 'Der letzte Arbeitskontext wird gerade geprüft. Sobald er belastbar ist, erscheint der direkte Wiedereinstieg prominent im Arbeitsstart.';
+  }
+
+  if (resumeStatus === 'unavailable' && resumeReason && resumeReason !== 'no-context') {
+    return 'Der letzte Einsatzkontext konnte nicht direkt fortgesetzt werden. Die Einsatzauswahl ist als sicherer Fallback geöffnet.';
+  }
+
+  return 'Wähle einen Einsatz oder lege einen neuen an. Du landest direkt im Workspace.';
+}
+
 export function IndexPage() {
   const { isLoading, user, adminSessionStatus, adminStatus } = useCurrentUser();
+  const { resumeStatus, resumeReason } = useResumeEinsatzContext();
   const logout = useLogout();
   const { navigate } = useRouter();
   const activeServer = useActiveServer();
@@ -40,6 +54,7 @@ export function IndexPage() {
   const roleLabel = formatWorkspaceRoleLabel(user?.role);
   const adminBadgeLabel = adminSessionStatus === 'authenticated' ? 'Admin aktiv' : adminStatus?.adminSetupAvailable ? 'Admin bereit' : 'Admin inaktiv';
   const adminButtonLabel = adminSessionStatus === 'authenticated' ? 'Admin öffnen' : adminStatus?.adminSetupAvailable ? 'Admin-Setup' : 'Admin-Bereich';
+  const workspaceIntroCopy = getWorkspaceIntroCopy(resumeStatus, resumeReason);
 
   // Admin-Fenster öffnen Handler
   const handleOpenAdminWindow = async () => {
@@ -84,7 +99,7 @@ export function IndexPage() {
                   Welchen Einsatz willst du jetzt öffnen?
                 </Heading>
                 <Text color="muted" className="max-w-3xl text-balance">
-                  Wähle einen Einsatz oder lege einen neuen an. Du landest direkt im Workspace.
+                  {workspaceIntroCopy}
                 </Text>
               </div>
 
