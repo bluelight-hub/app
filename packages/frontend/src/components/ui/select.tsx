@@ -3,9 +3,27 @@ import { Select as SelectPrimitive } from 'radix-ui';
 import { PiCaretDown, PiCheck } from 'react-icons/pi';
 
 import { cn } from '@/lib/utils';
+import { resolveActiveThemeScope, resolveThemeScope } from '@/components/ui/theme-scope';
+
+interface SelectContextValue {
+  triggerElement: HTMLElement | null;
+  setTriggerElement: (element: HTMLElement | null) => void;
+}
+
+const SelectContext = React.createContext<SelectContextValue | null>(null);
+
+function useSelectContext() {
+  return React.useContext(SelectContext);
+}
 
 function Select({ ...props }: React.ComponentProps<typeof SelectPrimitive.Root>) {
-  return <SelectPrimitive.Root data-slot="select" {...props} />;
+  const [triggerElement, setTriggerElement] = React.useState<HTMLElement | null>(null);
+
+  return (
+    <SelectContext.Provider value={{ triggerElement, setTriggerElement }}>
+      <SelectPrimitive.Root data-slot="select" {...props} />
+    </SelectContext.Provider>
+  );
 }
 
 function SelectGroup({ ...props }: React.ComponentProps<typeof SelectPrimitive.Group>) {
@@ -17,9 +35,14 @@ function SelectValue({ ...props }: React.ComponentProps<typeof SelectPrimitive.V
 }
 
 function SelectTrigger({ className, children, ...props }: React.ComponentProps<typeof SelectPrimitive.Trigger>) {
+  const context = useSelectContext();
+
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
+      ref={(node) => {
+        context?.setTriggerElement(node);
+      }}
       className={cn(
         'flex h-9 w-full items-center justify-between gap-2 rounded-lg border border-input bg-background px-3 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 data-[placeholder]:text-muted-foreground [&>span]:line-clamp-1',
         className,
@@ -38,17 +61,12 @@ type SelectContentProps = React.ComponentProps<typeof SelectPrimitive.Content> &
   portalProps?: React.ComponentProps<typeof SelectPrimitive.Portal>;
 };
 
-function resolveThemePortalContainer(): HTMLElement | undefined {
-  if (typeof document === 'undefined' || !(document.activeElement instanceof HTMLElement)) {
-    return undefined;
-  }
-
-  const container = document.activeElement.closest('.auth-theme, .workspace-start-theme');
-  return container instanceof HTMLElement ? container : undefined;
-}
-
 function SelectContent({ className, children, position = 'popper', portalProps, ...props }: SelectContentProps) {
-  const portalContainer = portalProps?.container ?? resolveThemePortalContainer();
+  const context = useSelectContext();
+  const activeThemeScope = resolveActiveThemeScope();
+  const triggerThemeScope = resolveThemeScope(context?.triggerElement);
+  const portalContainer = portalProps?.container ?? triggerThemeScope.container ?? activeThemeScope.container;
+  const themeScopeClassName = resolveThemeScope(portalContainer).className ?? triggerThemeScope.className ?? activeThemeScope.className;
 
   return (
     <SelectPrimitive.Portal {...portalProps} container={portalContainer}>
@@ -56,6 +74,7 @@ function SelectContent({ className, children, position = 'popper', portalProps, 
         data-slot="select-content"
         position={position}
         className={cn(
+          themeScopeClassName,
           'relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-xl',
           position === 'popper' && 'data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=bottom]:translate-y-1 data-[side=top]:-translate-y-1',
           className,

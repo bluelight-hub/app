@@ -47,15 +47,17 @@ export const EinsatzListItem = ({ einsatz }: EinsatzListItemProps) => {
     <Link aria-label={`Einsatz ${einsatz.nummer} öffnen`} params={{ einsatzId: einsatz.id }} to="/app/einsatz/$einsatzId" className="group block focus-visible:outline-none">
       <article
         className={cn(
-          'grid gap-4 px-5 py-5 transition-[background-color,color] duration-150 focus-within:bg-slate-50/85 hover:bg-slate-50/85 sm:px-6 lg:grid-cols-[minmax(0,2.6fr)_minmax(0,1.4fr)_auto] lg:items-center dark:hover:bg-slate-900/55 dark:focus-within:bg-slate-900/55',
-          isCurrentlyActive && 'bg-sky-50/70 dark:bg-sky-950/18',
+          'relative isolate grid gap-4 overflow-hidden px-5 py-5 transition-[background-color,color,box-shadow] duration-150',
+          'focus-within:bg-slate-50/85 hover:bg-slate-50/85 sm:px-6 lg:grid-cols-[minmax(0,2.6fr)_minmax(0,1.4fr)_auto] lg:items-center dark:hover:bg-slate-900/55 dark:focus-within:bg-slate-900/55',
+          'before:absolute before:top-4 before:bottom-4 before:left-0 before:w-1 before:rounded-r-full before:bg-primary before:opacity-0 before:transition-opacity',
+          isCurrentlyActive && 'bg-accent/80 ring-1 ring-primary/20 ring-inset before:opacity-100 dark:bg-accent/55 dark:ring-primary/25',
         )}
       >
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-mono text-[11px] text-slate-500 uppercase tracking-[0.18em] dark:text-slate-400">{einsatz.nummer}</span>
             {isCurrentlyActive ? (
-              <Badge variant="secondary" className="gap-1 border-sky-200/70 bg-white/85 text-sky-800 shadow-none dark:border-sky-900/60 dark:bg-sky-950/45 dark:text-sky-200">
+              <Badge variant="outline" className="gap-1 border-primary/25 bg-background/85 text-primary shadow-xs dark:bg-background/60">
                 <PiRadio className="size-3.5" />
                 Aktiver Kontext
               </Badge>
@@ -85,13 +87,13 @@ export const EinsatzListItem = ({ einsatz }: EinsatzListItemProps) => {
 
         <div className="flex flex-wrap gap-2 lg:justify-end">
           {hasEtbCount ? (
-            <Badge variant="outline" className="gap-1 bg-white/72 dark:bg-slate-950/25">
+            <Badge variant="outline" className="gap-1 bg-background/75 dark:bg-background/20">
               <PiBookOpen className="size-3.5" />
               {etbEintraegeCount} ETB
             </Badge>
           ) : null}
           {hasPoiCount ? (
-            <Badge variant="outline" className="gap-1 bg-white/72 dark:bg-slate-950/25">
+            <Badge variant="outline" className="gap-1 bg-background/75 dark:bg-background/20">
               <PiMapPin className="size-3.5" />
               {poisCount} POI
             </Badge>
@@ -99,7 +101,7 @@ export const EinsatzListItem = ({ einsatz }: EinsatzListItemProps) => {
         </div>
 
         <div className="flex items-center justify-between text-sm lg:min-w-[10rem] lg:justify-end">
-          <span className="text-muted-foreground">{isCurrentlyActive ? 'Letzter Arbeitsbereich' : 'Direkter Einstieg'}</span>
+          <span className={cn('text-muted-foreground', isCurrentlyActive && 'font-medium text-foreground/80')}>{isCurrentlyActive ? 'Aktiver Arbeitsbereich' : 'Direkter Einstieg'}</span>
           <span className="ml-4 inline-flex items-center gap-2 font-semibold text-foreground transition-colors group-hover:text-primary">
             {actionLabel}
             <PiArrowRight className="size-4 transition-transform duration-150 group-hover:translate-x-0.5" />

@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Issue erstellen"
+  short_description: "Strukturiert GitHub-Issues per gh anlegen"
+  default_prompt: "Nutze $create-gh-issue, um aus rohen Notizen ein strukturiertes GitHub-Issue mit Emoji-Titel und passenden Labels zu erzeugen."
