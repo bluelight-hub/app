@@ -1,7 +1,8 @@
 import type { ColorMode } from '@/shared/ui/headless/color-mode';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useColorMode } from '@/shared/hooks/use-color-mode';
 import { cn } from '@/shared/ui/cn';
-import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { useEffect, useState } from 'react';
 import { PiCaretDown, PiCheck, PiDesktop, PiMoon, PiSun } from 'react-icons/pi';
 
@@ -69,79 +70,53 @@ export function ColorModeMenu({ placement = 'bottom', align = 'right' }: ColorMo
 
   const currentOption = colorModeOptions.find((opt) => opt.value === colorMode) || colorModeOptions[2];
   const CurrentIcon = currentOption.icon;
+  const resolvedModeLabel = resolvedColorMode === 'dark' ? 'Dunkel' : 'Hell';
 
   return (
-    <Menu as="div" className="relative">
-      <MenuButton
-        className={cn(
-          'inline-flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2',
-          'border border-gray-200 bg-white text-gray-700',
-          'hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset',
-          'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700',
-          'transition-colors duration-200',
-        )}
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button type="button" variant="outline" size="lg" className="min-w-[9.5rem] justify-between gap-2 bg-white/72 backdrop-blur-sm dark:bg-slate-950/50">
+          <span className="inline-flex items-center gap-2">
+            <CurrentIcon className="size-4" />
+            <span className="font-medium text-sm">{currentOption.label}</span>
+          </span>
+          <PiCaretDown className="size-3.5 text-muted-foreground" />
+        </Button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent
+        align={align}
+        side={placement}
+        className="w-64 rounded-2xl border-white/70 bg-white/96 p-2 shadow-[0_22px_60px_-36px_rgba(15,23,42,0.45)] backdrop-blur-sm dark:border-slate-800/80 dark:bg-slate-950/92"
       >
-        <CurrentIcon className="h-4 w-4" />
-        <span className="font-medium text-sm">{currentOption.label}</span>
-        <PiCaretDown className="h-3 w-3" />
-      </MenuButton>
+        {colorModeOptions.map((option) => {
+          const Icon = option.icon;
+          const isSelected = colorMode === option.value;
+          const description = option.value === 'system' && isSelected ? `${option.description} (${resolvedModeLabel})` : option.description;
 
-      <MenuItems
-        anchor={`${placement} ${align === 'left' ? 'start' : 'end'}` as const}
-        className={cn(
-          'z-50 min-w-max rounded-xl [--anchor-gap:8px]',
-          'border border-gray-200 bg-white shadow-xl ring-1 ring-black/5',
-          'dark:border-gray-700 dark:bg-gray-900 dark:ring-white/10',
-          'focus:outline-none',
-        )}
-      >
-        <div className="p-2">
-          {colorModeOptions.map((option) => {
-            const Icon = option.icon;
-            const isSelected = colorMode === option.value;
-            const isSystemActive = option.value === 'system' && isSelected;
+          return (
+            <DropdownMenuItem key={option.value} onSelect={() => setColorMode(option.value)} className={cn('rounded-xl px-3 py-3', isSelected && 'bg-accent/80 text-accent-foreground')}>
+              <div className="flex w-full items-center gap-3">
+                <div
+                  className={cn(
+                    'flex size-9 items-center justify-center rounded-xl border bg-muted/70',
+                    isSelected && 'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900/60 dark:bg-sky-950/50 dark:text-sky-200',
+                  )}
+                >
+                  <Icon className="size-4" />
+                </div>
 
-            return (
-              <MenuItem key={option.value}>
-                {({ focus }) => (
-                  <button
-                    type="button"
-                    onClick={() => setColorMode(option.value)}
-                    className={cn(
-                      'flex w-full cursor-pointer items-center gap-4 rounded-lg px-3 py-2.5',
-                      'transition-all duration-150',
-                      focus && 'bg-gray-100 dark:bg-gray-800',
-                      isSelected && 'bg-blue-50 dark:bg-blue-950/50',
-                    )}
-                  >
-                    {/* Icon Container */}
-                    <div
-                      className={cn(
-                        'flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg',
-                        isSelected ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
-                      )}
-                    >
-                      <Icon className="h-5 w-5" />
-                    </div>
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium text-sm">{option.label}</div>
+                  <div className="truncate text-muted-foreground text-xs">{description}</div>
+                </div>
 
-                    {/* Text Content */}
-                    <div className="flex flex-1 flex-col items-start">
-                      <span className={cn('font-medium text-sm', isSelected ? 'text-blue-700 dark:text-blue-300' : 'text-gray-900 dark:text-gray-100')}>{option.label}</span>
-                      <span className={cn('whitespace-nowrap text-xs', isSelected ? 'text-blue-600/70 dark:text-blue-400/70' : 'text-gray-500 dark:text-gray-400')}>
-                        {option.description}
-                        {isSystemActive && ` (${resolvedColorMode === 'dark' ? 'Dunkel' : 'Hell'})`}
-                      </span>
-                    </div>
-
-                    {/* Checkmark */}
-                    <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center">{isSelected && <PiCheck className="h-5 w-5 text-blue-600 dark:text-blue-400" />}</div>
-                  </button>
-                )}
-              </MenuItem>
-            );
-          })}
-        </div>
-      </MenuItems>
-    </Menu>
+                <div className="flex size-4 items-center justify-center text-sky-600 dark:text-sky-300">{isSelected ? <PiCheck className="size-4" /> : null}</div>
+              </div>
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

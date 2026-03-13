@@ -431,6 +431,28 @@ body {
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+.workspace-start-theme {
+  --background: oklch(0.978 0.008 247.915);
+  --foreground: oklch(0.239 0.026 264.292);
+  --card: oklch(0.995 0.003 247.858 / 94%);
+  --card-foreground: oklch(0.239 0.026 264.292);
+  --popover: oklch(0.995 0.003 247.858);
+  --popover-foreground: oklch(0.239 0.026 264.292);
+  --primary: oklch(0.312 0.037 260.031);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.952 0.01 250.902);
+  --secondary-foreground: oklch(0.278 0.03 262.244);
+  --muted: oklch(0.96 0.008 255.435);
+  --muted-foreground: oklch(0.504 0.02 263.916);
+  --accent: oklch(0.951 0.018 235.223);
+  --accent-foreground: oklch(0.278 0.03 262.244);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.903 0.014 255.508);
+  --input: oklch(0.903 0.014 255.508);
+  --ring: oklch(0.685 0.104 233.12);
+  --radius: 0.875rem;
+}
+
 .dark .auth-theme {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
@@ -463,6 +485,27 @@ body {
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+}
+
+.dark .workspace-start-theme {
+  --background: oklch(0.177 0.018 263.919);
+  --foreground: oklch(0.967 0.003 264.542);
+  --card: oklch(0.22 0.021 264.14 / 92%);
+  --card-foreground: oklch(0.967 0.003 264.542);
+  --popover: oklch(0.206 0.02 264.182);
+  --popover-foreground: oklch(0.967 0.003 264.542);
+  --primary: oklch(0.87 0.023 248.021);
+  --primary-foreground: oklch(0.223 0.02 264.182);
+  --secondary: oklch(0.262 0.018 265.507);
+  --secondary-foreground: oklch(0.967 0.003 264.542);
+  --muted: oklch(0.261 0.014 264.797);
+  --muted-foreground: oklch(0.73 0.016 263.79);
+  --accent: oklch(0.294 0.026 238.47);
+  --accent-foreground: oklch(0.967 0.003 264.542);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.62 0.07 234.865);
 }
 
 @theme inline {
@@ -513,5 +556,22 @@ body {
   }
   .auth-theme * {
     @apply border-border outline-ring/50;
+  }
+
+  .workspace-start-theme {
+    @apply bg-background text-foreground;
+  }
+  .workspace-start-theme * {
+    @apply border-border outline-ring/50;
+  }
+
+  .workspace-start-theme [data-slot='button'],
+  .workspace-start-theme [data-slot='input'],
+  .workspace-start-theme [data-slot='select-trigger'] {
+    border-radius: var(--radius-xl);
+  }
+
+  .workspace-start-theme [data-slot='card'] {
+    border-radius: var(--radius-2xl);
   }
 }

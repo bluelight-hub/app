@@ -8,6 +8,7 @@
 // Constants
 const STORAGE_KEY = 'activeEinsatzId';
 const STORAGE_EVENT_KEY = 'activeEinsatzSync';
+const WORKSPACE_HREF_KEY_PREFIX = 'einsatzWorkspaceHref:';
 
 /**
  * Speichert die aktive Einsatz-ID im localStorage
@@ -64,6 +65,49 @@ export function loadActiveEinsatzId(): string | null {
  */
 export function clearActiveEinsatz(): void {
   saveActiveEinsatzId(null);
+}
+
+/**
+ * Speichert den zuletzt genutzten Arbeitsbereich eines Einsatzes.
+ *
+ * @param einsatzId - Die Einsatz-ID
+ * @param href - Interner App-Pfad inkl. Query oder null zum Löschen
+ */
+export function saveEinsatzWorkspaceHref(einsatzId: string, href: string | null): void {
+  try {
+    const storageKey = `${WORKSPACE_HREF_KEY_PREFIX}${einsatzId}`;
+
+    if (!href) {
+      localStorage.removeItem(storageKey);
+      return;
+    }
+
+    localStorage.setItem(storageKey, href);
+  } catch (error) {
+    console.error('Failed to save Einsatz workspace href to localStorage:', error);
+  }
+}
+
+/**
+ * Lädt den zuletzt genutzten Arbeitsbereich eines Einsatzes.
+ *
+ * @param einsatzId - Die Einsatz-ID
+ * @returns Interner App-Pfad inkl. Query oder null
+ */
+export function loadEinsatzWorkspaceHref(einsatzId: string): string | null {
+  try {
+    const storageKey = `${WORKSPACE_HREF_KEY_PREFIX}${einsatzId}`;
+    const href = localStorage.getItem(storageKey);
+
+    if (!href) {
+      return null;
+    }
+
+    return href.startsWith(`/app/einsatz/${einsatzId}`) ? href : null;
+  } catch (error) {
+    console.error('Failed to load Einsatz workspace href from localStorage:', error);
+    return null;
+  }
 }
 
 /**

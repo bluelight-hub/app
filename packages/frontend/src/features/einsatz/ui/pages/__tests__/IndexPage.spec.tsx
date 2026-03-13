@@ -15,18 +15,6 @@ vi.mock('@/features/auth', () => ({
   useLogout: () => mockUseLogout(),
 }));
 
-vi.mock('@/features/auth/ui', () => ({
-  SessionContextCard: ({ onAdminAction }: { onAdminAction?: () => void | Promise<void> }) => (
-    <div data-testid="session-context-card">
-      {onAdminAction ? (
-        <button type="button" onClick={onAdminAction}>
-          Session CTA
-        </button>
-      ) : null}
-    </div>
-  ),
-}));
-
 vi.mock('@/features/einsatz/ui/organisms/EinsatzDashboard', () => ({
   EinsatzDashboard: () => <div data-testid="einsatz-dashboard">Dashboard</div>,
 }));
@@ -81,17 +69,27 @@ describe('IndexPage', () => {
     mockUseActiveServer.mockReturnValue({ name: 'Leitstelle Nord' });
   });
 
-  it('zeigt keine separaten Footer-Admin-Aktionen mehr und delegiert die Aktion an die Sitzungskarte', async () => {
+  it('zeigt den kompakten Sitzungskontext und delegiert die Admin-Aktion direkt im Header', async () => {
     render(<IndexPage />);
 
     expect(screen.queryByText(/Sie arbeiten wieder im authentifizierten Bereich/i)).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Admin-Bereich/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Admin-Setup/i })).not.toBeInTheDocument();
+    expect(screen.getByText(/einsatzleitung/i)).toBeInTheDocument();
+    expect(screen.getByText(/administrationszugang/i)).toBeInTheDocument();
+    expect(screen.getByText(/server leitstelle nord/i)).toBeInTheDocument();
+    expect(screen.getByText(/admin inaktiv/i)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /Session CTA/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Admin-Bereich/i }));
 
     await waitFor(() => {
       expect(mockOpenAdminWindow).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it('ordnet Sitzungskontext und Einsatzauswahl als gemeinsamen Arbeitsstart', () => {
+    render(<IndexPage />);
+
+    expect(screen.getByRole('heading', { name: /welchen einsatz willst du jetzt öffnen/i })).toBeInTheDocument();
+    expect(screen.getByText(/wähle einen einsatz oder lege einen neuen an\. du landest direkt im workspace/i)).toBeInTheDocument();
+    expect(screen.getByTestId('einsatz-dashboard')).toBeInTheDocument();
   });
 });

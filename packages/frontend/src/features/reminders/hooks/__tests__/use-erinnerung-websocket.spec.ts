@@ -86,33 +86,54 @@ vi.mock('../api/queries', () => ({
 }));
 
 // Mock @/shared to prevent crash in implicitly loaded ETB types
-vi.mock('@/shared', () => ({
-  AddEintragDtoKategorieEnum: {
-    Alarmierung: 'Alarmierung',
-  },
-  EintragDtoKategorieEnum: {
-    Alarmierung: 'ALARMIERUNG',
-    Ankunft: 'ANKUNFT',
-    Befehl: 'BEFEHL',
-    Erkundung: 'ERKUNDUNG',
-    Lage: 'LAGE',
-    Massnahme: 'MASSNAHME',
-    Personal: 'PERSONAL',
-    Fahrzeug: 'FAHRZEUG',
-    Material: 'MATERIAL',
-    Kommunikation: 'KOMMUNIKATION',
-    Wetter: 'WETTER',
-    Dokumentation: 'DOKUMENTATION',
-    Sonstiges: 'SONSTIGES',
-    System: 'SYSTEM',
-  },
-  EinsatzRolleDtoRolleEnum: {
-    Befehlsgeber: 'BEFEHLSGEBER',
-    Empfaenger: 'EMPFAENGER',
-    Beobachter: 'BEOBACHTER',
-  },
-  api: {},
-}));
+vi.mock('@/shared', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/shared')>();
+
+  return {
+    ...actual,
+    AddEintragDtoKategorieEnum: {
+      Alarmierung: 'Alarmierung',
+    },
+    EintragDtoKategorieEnum: {
+      Alarmierung: 'ALARMIERUNG',
+      Ankunft: 'ANKUNFT',
+      Befehl: 'BEFEHL',
+      Erkundung: 'ERKUNDUNG',
+      Lage: 'LAGE',
+      Massnahme: 'MASSNAHME',
+      Personal: 'PERSONAL',
+      Fahrzeug: 'FAHRZEUG',
+      Material: 'MATERIAL',
+      Kommunikation: 'KOMMUNIKATION',
+      Wetter: 'WETTER',
+      Dokumentation: 'DOKUMENTATION',
+      Sonstiges: 'SONSTIGES',
+      System: 'SYSTEM',
+    },
+    EinsatzRolleDtoRolleEnum: {
+      Befehlsgeber: 'BEFEHLSGEBER',
+      Empfaenger: 'EMPFAENGER',
+      Beobachter: 'BEOBACHTER',
+    },
+    EinsatzControllerFindAllVAlphaOrderByEnum: {
+      CreatedAt: 'createdAt',
+      Nummer: 'nummer',
+      Alarmstichwort: 'alarmstichwort',
+      Status: 'status',
+    },
+    EinsatzControllerFindAllVAlphaOrderDirectionEnum: {
+      Asc: 'asc',
+      Desc: 'desc',
+    },
+    EinsatzResponseDtoStatusEnum: {
+      Angelegt: 'ANGELEGT',
+      InBearbeitung: 'IN_BEARBEITUNG',
+      Abgeschlossen: 'ABGESCHLOSSEN',
+      Archiviert: 'ARCHIVIERT',
+    },
+    api: {},
+  };
+});
 
 vi.mock('../../services/notification.service', () => ({
   sendAssignmentNotification: vi.fn().mockResolvedValue({ success: true }),

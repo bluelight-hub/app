@@ -1,5 +1,6 @@
-import { Button } from '../atoms/button.atom';
-import { Input } from '../atoms/input.atom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 import { debounce } from '@tanstack/pacer';
 import { forwardRef, useCallback, useEffect, useState } from 'react';
 import { PiMagnifyingGlass, PiX } from 'react-icons/pi';
@@ -78,7 +79,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
       <div className="relative">
         {showSearchIcon && (
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <PiMagnifyingGlass className="h-5 w-5 text-gray-400" />
+            <PiMagnifyingGlass className="h-5 w-5 text-slate-400 dark:text-slate-500" />
           </div>
         )}
 
@@ -88,17 +89,22 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
           value={localValue}
           onChange={handleChange}
           placeholder={placeholder}
-          className={`${showSearchIcon ? 'pl-10' : ''} ${showClearButton && localValue ? 'pr-10' : ''} ${className || ''}`}
+          className={cn(
+            '!rounded-2xl h-11 border-slate-200 bg-white text-slate-900 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.4)] transition focus-visible:border-sky-500 focus-visible:ring-sky-500/35 dark:border-slate-700 dark:bg-slate-900/75 dark:text-slate-100',
+            showSearchIcon && 'pl-10',
+            showClearButton && localValue && 'pr-10',
+            className,
+          )}
           autoFocus={autoFocus}
           disabled={disabled}
         />
 
         {showClearButton && localValue && !disabled && (
           <Button
-            appearance="minimal"
-            size="icon"
+            variant="ghost"
+            size="icon-sm"
             onClick={handleClear}
-            className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            className="!rounded-full absolute top-1/2 right-1.5 -translate-y-1/2 text-muted-foreground shadow-none hover:bg-muted hover:text-foreground"
             aria-label="Suche löschen"
           >
             <PiX className="h-5 w-5" />

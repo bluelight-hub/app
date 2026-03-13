@@ -1,73 +1,142 @@
-import { useActiveEinsaetzeWithCounts, useEinsatzStatusCounts } from '@/features/einsatz';
+import {
+  einsatzUIStore,
+  resetDashboardState,
+  setDashboardSearchTerm,
+  setDashboardShowArchived,
+  setDashboardSortOption,
+  setDashboardStatusFilter,
+  useActiveEinsatz,
+  useActiveEinsaetzeWithCounts,
+  useEinsatzStatusCounts,
+  type EinsatzDashboardSortOptionId,
+} from '@/features/einsatz';
+import { EinsatzSelectionState } from '@/features/einsatz/ui/molecules/EinsatzSelectionState';
 import { EinsatzListItem } from '@/features/einsatz/ui/molecules/EinsatzListItem';
+import { EinsatzStatusBadge } from '@/features/einsatz/ui/molecules/einsatz-status-badge.molecule';
 import { EinsatzCreateForm } from '@/features/einsatz/ui/organisms/EinsatzCreateForm';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EinsatzControllerFindAllVAlphaOrderByEnum, EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzResponseDtoStatusEnum } from '@/shared';
-import { Button } from '@/shared/ui/atoms/button.atom';
 import { SearchInput } from '@/shared/ui/molecules/search-input.molecule';
-import { FilterPanel } from '@/shared/ui/organisms/dashboard/FilterPanel';
-import { MobileFilterDialog } from '@/shared/ui/organisms/dashboard/MobileFilterDialog';
-import { MobileStatusBar } from '@/shared/ui/organisms/dashboard/MobileStatusBar';
-import { StatusCard } from '@/shared/ui/organisms/dashboard/StatusCard';
 import { Link } from '@tanstack/react-router';
-import { useMemo, useState } from 'react';
+import { useStore } from '@tanstack/react-store';
+import { useDeferredValue, useMemo, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { PiFunnel, PiFunnelX, PiPlus } from 'react-icons/pi';
+import { PiArrowsClockwise, PiClockCountdown, PiFunnelX, PiMapPin, PiPlus, PiRadio, PiRows, PiSealWarning, PiStackSimple } from 'react-icons/pi';
 
 interface SortOption {
+  id: EinsatzDashboardSortOptionId;
+  label: string;
   key: EinsatzControllerFindAllVAlphaOrderByEnum;
   direction: EinsatzControllerFindAllVAlphaOrderDirectionEnum;
 }
 
+const DEFAULT_SORT_OPTION: SortOption = {
+  id: 'recent',
+  label: 'Neueste zuerst',
+  key: EinsatzControllerFindAllVAlphaOrderByEnum.CreatedAt,
+  direction: EinsatzControllerFindAllVAlphaOrderDirectionEnum.Desc,
+};
+
+const STATUS_FILTER_OPTIONS = [
+  {
+    label: 'Alle',
+    value: undefined,
+  },
+  {
+    label: 'Angelegt',
+    value: EinsatzResponseDtoStatusEnum.Angelegt,
+  },
+  {
+    label: 'In Bearbeitung',
+    value: EinsatzResponseDtoStatusEnum.InBearbeitung,
+  },
+  {
+    label: 'Abgeschlossen',
+    value: EinsatzResponseDtoStatusEnum.Abgeschlossen,
+  },
+] as const;
+
+const SORT_OPTIONS: SortOption[] = [
+  DEFAULT_SORT_OPTION,
+  {
+    id: 'number',
+    key: EinsatzControllerFindAllVAlphaOrderByEnum.Nummer,
+    direction: EinsatzControllerFindAllVAlphaOrderDirectionEnum.Asc,
+    label: 'Nummer A-Z',
+  },
+  {
+    id: 'status',
+    key: EinsatzControllerFindAllVAlphaOrderByEnum.Status,
+    direction: EinsatzControllerFindAllVAlphaOrderDirectionEnum.Asc,
+    label: 'Status A-Z',
+  },
+];
+
+const ALL_STATUS_FILTER_VALUE = '__all__';
+
+function getAlarmstichwortLabel(alarmstichwort: unknown): string {
+  return typeof alarmstichwort === 'string' && alarmstichwort.trim().length > 0 ? alarmstichwort : 'Aktueller Einsatz';
+}
+
+function getLocationLabel(einsatzort: unknown): string {
+  if (einsatzort && typeof einsatzort === 'object' && 'ort' in einsatzort && typeof einsatzort.ort === 'string' && einsatzort.ort.trim().length > 0) {
+    return einsatzort.ort;
+  }
+
+  return 'Ort wird nachgereicht';
+}
+
 export function EinsatzDashboard() {
-  const [statusFilter, setStatusFilter] = useState<EinsatzResponseDtoStatusEnum | undefined>(undefined);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortOption, setSortOption] = useState<SortOption>({
-    key: EinsatzControllerFindAllVAlphaOrderByEnum.CreatedAt,
-    direction: EinsatzControllerFindAllVAlphaOrderDirectionEnum.Desc,
-  });
-  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
-  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const dashboardState = useStore(einsatzUIStore, (state) => state.dashboard);
   const [isCreatePanelOpen, setIsCreatePanelOpen] = useState(false);
-  const [showArchived, setShowArchived] = useState(false);
+  const deferredSearchTerm = useDeferredValue(dashboardState.searchTerm);
+  const { activeEinsatz } = useActiveEinsatz();
 
-  // Use optimized hook with counts - includeArchived wenn Archiv-Filter aktiv
-  const { data: rawEinsaetze = [], isLoading, error, refetch } = useActiveEinsaetzeWithCounts(showArchived);
+  const { data: rawEinsaetze = [], isLoading, error, refetch } = useActiveEinsaetzeWithCounts(dashboardState.showArchived);
+  const { counts } = useEinsatzStatusCounts(true);
+  const sortOption = SORT_OPTIONS.find((option) => option.id === dashboardState.sortOptionId) ?? DEFAULT_SORT_OPTION;
 
-  // Apply client-side filtering and sorting
   const einsaetze = useMemo(() => {
+    const normalizedSearchTerm = deferredSearchTerm.trim().toLowerCase();
+    const activeEinsatzId = activeEinsatz?.id;
+
     let filtered = rawEinsaetze;
 
-    // Filter by status
-    if (statusFilter) {
-      filtered = filtered.filter((e) => e.status === statusFilter);
-    } else if (!showArchived) {
-      filtered = filtered.filter((e) => e.status !== EinsatzResponseDtoStatusEnum.Archiviert);
+    if (dashboardState.statusFilter) {
+      filtered = filtered.filter((einsatz) => einsatz.status === dashboardState.statusFilter);
+    } else if (!dashboardState.showArchived) {
+      filtered = filtered.filter((einsatz) => einsatz.status !== EinsatzResponseDtoStatusEnum.Archiviert);
     }
 
-    // Filter by search term
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (e) =>
-          e.alarmstichwort.toLowerCase().includes(term) ||
-          e.nummer.toLowerCase().includes(term) ||
-          e.einsatzort?.ort?.toLowerCase().includes(term) ||
-          e.einsatzort?.strasse?.toLowerCase().includes(term),
-      );
-    }
+    if (normalizedSearchTerm) {
+      filtered = filtered.filter((einsatz) => {
+        const alarmstichwort = einsatz.alarmstichwort?.toLowerCase() ?? '';
+        const nummer = einsatz.nummer.toLowerCase();
+        const ort = einsatz.einsatzort?.ort?.toLowerCase() ?? '';
+        const strasse = einsatz.einsatzort?.strasse?.toLowerCase() ?? '';
 
-    // Sort
+        return alarmstichwort.includes(normalizedSearchTerm) || nummer.includes(normalizedSearchTerm) || ort.includes(normalizedSearchTerm) || strasse.includes(normalizedSearchTerm);
+      });
+    }
 
     return [...filtered].sort((a, b) => {
-      let aValue: string | number | Date = a.createdAt;
-      let bValue: string | number | Date = b.createdAt;
+      if (activeEinsatzId && a.id === activeEinsatzId && b.id !== activeEinsatzId) {
+        return -1;
+      }
+
+      if (activeEinsatzId && b.id === activeEinsatzId && a.id !== activeEinsatzId) {
+        return 1;
+      }
+
+      let aValue: string | Date = a.createdAt;
+      let bValue: string | Date = b.createdAt;
 
       if (sortOption.key === EinsatzControllerFindAllVAlphaOrderByEnum.Nummer) {
         aValue = a.nummer;
         bValue = b.nummer;
-      } else if (sortOption.key === EinsatzControllerFindAllVAlphaOrderByEnum.Alarmstichwort) {
-        aValue = a.alarmstichwort;
-        bValue = b.alarmstichwort;
       } else if (sortOption.key === EinsatzControllerFindAllVAlphaOrderByEnum.Status) {
         aValue = a.status;
         bValue = b.status;
@@ -76,9 +145,9 @@ export function EinsatzDashboard() {
       const comparison = aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
       return sortOption.direction === EinsatzControllerFindAllVAlphaOrderDirectionEnum.Desc ? -comparison : comparison;
     });
-  }, [rawEinsaetze, statusFilter, showArchived, searchTerm, sortOption]);
+  }, [activeEinsatz?.id, dashboardState.showArchived, dashboardState.statusFilter, deferredSearchTerm, rawEinsaetze, sortOption.direction, sortOption.key]);
 
-  const { total, counts } = useEinsatzStatusCounts(true);
+  const activeWorkspaceEinsatz = useMemo(() => rawEinsaetze.find((einsatz) => einsatz.id === activeEinsatz?.id) ?? activeEinsatz ?? null, [activeEinsatz, rawEinsaetze]);
 
   useHotkeys(
     'mod+n',
@@ -89,162 +158,260 @@ export function EinsatzDashboard() {
     { preventDefault: true },
   );
 
-  const handleSort = (key: SortOption['key']) => {
-    setSortOption((prev) => ({
-      key,
-      direction:
-        prev.key === key && prev.direction === EinsatzControllerFindAllVAlphaOrderDirectionEnum.Asc
-          ? EinsatzControllerFindAllVAlphaOrderDirectionEnum.Desc
-          : EinsatzControllerFindAllVAlphaOrderDirectionEnum.Asc,
-    }));
-  };
-
-  const handleCreateSuccess = (_einsatzId: string) => {
+  const handleCreateSuccess = () => {
     setIsCreatePanelOpen(false);
-    refetch();
+    void refetch();
   };
 
   const handleArchiveToggle = () => {
-    setShowArchived(!showArchived);
-    if (!showArchived) {
-      setStatusFilter(EinsatzResponseDtoStatusEnum.Archiviert);
-    } else {
-      setStatusFilter(undefined);
-    }
+    setDashboardShowArchived(!dashboardState.showArchived);
   };
 
   const handleFilterReset = () => {
-    setStatusFilter(undefined);
-    setSortOption({
-      key: EinsatzControllerFindAllVAlphaOrderByEnum.CreatedAt,
-      direction: EinsatzControllerFindAllVAlphaOrderDirectionEnum.Desc,
-    });
+    resetDashboardState();
   };
 
-  if (error) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="text-center">
-          <p className="mb-4 text-red-600">Fehler beim Laden der Einsätze</p>
-          <Button onClick={() => refetch()} className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
-            Erneut versuchen
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  const isDefaultSort = sortOption.id === DEFAULT_SORT_OPTION.id;
+  const hasActiveFilters = Boolean(dashboardState.statusFilter) || dashboardState.showArchived || dashboardState.searchTerm.trim().length > 0 || !isDefaultSort;
+  const hasArchivedItems = counts.archiviert > 0;
+  const isArchiveOnlyContext = !dashboardState.showArchived && rawEinsaetze.length === 0 && hasArchivedItems;
+  const isFilterEmptyState = !isLoading && !error && rawEinsaetze.length > 0 && einsaetze.length === 0;
+  const isUnavailableState = !isLoading && !error && rawEinsaetze.length === 0 && !isArchiveOnlyContext;
+  const sichtbareEinsaetzeLabel = einsaetze.length === 1 ? '1 Einsatz sichtbar' : `${einsaetze.length} Einsätze sichtbar`;
+  const activeContextLabel = counts.inBearbeitung === 1 ? '1 aktiver Kontext' : `${counts.inBearbeitung} aktive Kontexte`;
+  const archivedContextLabel = dashboardState.showArchived ? `${counts.archiviert} Archivfälle eingeblendet` : `${counts.archiviert} im Archiv`;
+  const selectedStatusLabel = STATUS_FILTER_OPTIONS.find((option) => option.value === dashboardState.statusFilter)?.label;
+  const activeLocationLabel = getLocationLabel(activeWorkspaceEinsatz?.einsatzort);
+  const activeEtbCount = activeWorkspaceEinsatz && 'etbEintraegeCount' in activeWorkspaceEinsatz ? activeWorkspaceEinsatz.etbEintraegeCount : undefined;
+  const activePoiCount = activeWorkspaceEinsatz && 'poisCount' in activeWorkspaceEinsatz ? activeWorkspaceEinsatz.poisCount : undefined;
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      {/* Header - fixed height */}
-      <div className="flex-shrink-0 border-gray-200 border-b bg-white px-2 py-3 sm:px-4 sm:py-4 lg:px-6 dark:border-gray-700 dark:bg-gray-800">
-        <div className="flex items-center justify-between">
-          <h1 className="font-bold text-2xl text-gray-900 dark:text-white">Einsatz-Dashboard</h1>
-          <Button onClick={() => setIsCreatePanelOpen(true)} title="Neuer Einsatz (Cmd+N)" kbd="Cmd+N">
-            <PiPlus className="mr-2 h-5 w-5" />
-            Neuer Einsatz
-          </Button>
-        </div>
+    <div className="flex h-full min-h-0 flex-col gap-5">
+      {activeWorkspaceEinsatz ? (
+        <Card className="overflow-hidden border-sky-200/70 bg-[linear-gradient(135deg,rgba(240,249,255,0.96),rgba(255,255,255,0.94)_42%,rgba(238,242,255,0.94))] shadow-[0_28px_70px_-46px_rgba(14,116,144,0.42)] dark:border-sky-900/50 dark:bg-[linear-gradient(135deg,rgba(12,24,42,0.92),rgba(15,23,42,0.92)_45%,rgba(30,41,59,0.9))] dark:shadow-none">
+          <CardHeader className="gap-5 pb-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="secondary" className="gap-1 border-sky-200/70 bg-white/85 text-sky-800 shadow-none dark:border-sky-900/60 dark:bg-sky-950/50 dark:text-sky-200">
+                <PiRadio className="size-3.5" />
+                Aktiver Kontext
+              </Badge>
+              <span className="font-mono text-[11px] text-slate-500 uppercase tracking-[0.18em] dark:text-slate-400">{activeWorkspaceEinsatz.nummer}</span>
+            </div>
 
-        <MobileStatusBar total={total} counts={counts} />
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div className="space-y-1">
+                <CardTitle className="text-balance text-xl">{getAlarmstichwortLabel(activeWorkspaceEinsatz.alarmstichwort)}</CardTitle>
+                <CardDescription className="max-w-2xl text-slate-600 dark:text-slate-300">
+                  Direkter Wiedereinstieg öffnet den zuletzt genutzten Arbeitsbereich und hält deinen aktiven Kontext stabil.
+                </CardDescription>
+              </div>
 
-        <div className="mt-4 hidden gap-4 sm:grid sm:grid-cols-5">
-          <StatusCard label="Gesamt" value={total} variant="default" />
-          <StatusCard label="Angelegt" value={counts.angelegt} variant="blue" />
-          <StatusCard label="In Bearbeitung" value={counts.inBearbeitung} variant="yellow" />
-          <StatusCard label="Abgeschlossen" value={counts.abgeschlossen} variant="green" />
-          <StatusCard label="Archiviert" value={counts.archiviert} variant="gray" />
-        </div>
-      </div>
-
-      {/* Filter & Search Bar - fixed height */}
-      <div className="flex-shrink-0 border-gray-200 border-b bg-white px-2 py-2 sm:px-4 sm:py-3 lg:px-6 dark:border-gray-700 dark:bg-gray-800">
-        <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
-          <div className="flex-1">
-            <SearchInput placeholder="Einsätze durchsuchen..." onDebouncedChange={setSearchTerm} delay={300} />
-          </div>
-          {/* Desktop Filter Button */}
-          <Button onClick={() => setIsFilterPanelOpen(!isFilterPanelOpen)} intent="secondary" appearance="outline" className="hidden sm:flex">
-            <PiFunnel className="mr-2 h-5 w-5" />
-            Filter & Sortierung
-          </Button>
-          {/* Mobile Filter Button */}
-          <Button onClick={() => setIsMobileFilterOpen(true)} intent="secondary" appearance="outline" className="sm:hidden">
-            <PiFunnel className="mr-2 h-5 w-5" />
-            Filter
-          </Button>
-        </div>
-      </div>
-
-      <div className="flex min-h-0 flex-1">
-        {isFilterPanelOpen && (
-          <FilterPanel
-            statusFilter={statusFilter}
-            sortOption={sortOption}
-            showArchived={showArchived}
-            onStatusFilterChange={setStatusFilter}
-            onSortChange={handleSort}
-            onArchiveToggle={handleArchiveToggle}
-            className="hidden sm:block"
-          />
-        )}
-
-        <div className="flex-1 overflow-y-auto overscroll-contain bg-gray-100 dark:bg-gray-950">
-          {isLoading ? (
-            <div className="flex h-full items-center justify-center">
-              <div className="text-center">
-                <div className="mx-auto h-12 w-12 animate-spin rounded-full border-blue-600 border-b-2"></div>
-                <p className="mt-4 text-gray-600 dark:text-gray-400">Lade Einsätze...</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <EinsatzStatusBadge status={activeWorkspaceEinsatz.status} size="sm" />
+                <Button asChild size="lg" className="shadow-[0_18px_40px_-24px_rgba(15,23,42,0.45)]">
+                  <Link params={{ einsatzId: activeWorkspaceEinsatz.id }} to="/app/einsatz/$einsatzId">
+                    Weiterarbeiten
+                  </Link>
+                </Button>
               </div>
             </div>
-          ) : einsaetze.length === 0 ? (
-            <div className="flex h-full items-center justify-center">
-              <div className="text-center">
-                <p className="mb-4 text-gray-600 dark:text-gray-400">Keine Einsätze gefunden</p>
-                {!statusFilter ? (
-                  <Button onClick={() => setIsCreatePanelOpen(true)}>
-                    <PiPlus className="mr-2 h-5 w-5" />
-                    Ersten Einsatz erstellen
+          </CardHeader>
+
+          <CardContent className="flex flex-wrap gap-2 pt-5">
+            <Badge variant="outline" className="gap-1 bg-white/72 dark:bg-slate-950/30">
+              <PiMapPin className="size-3.5" />
+              {activeLocationLabel}
+            </Badge>
+            {typeof activeEtbCount === 'number' ? (
+              <Badge variant="outline" className="bg-white/72 dark:bg-slate-950/30">
+                {activeEtbCount} ETB
+              </Badge>
+            ) : null}
+            {typeof activePoiCount === 'number' ? (
+              <Badge variant="outline" className="bg-white/72 dark:bg-slate-950/30">
+                {activePoiCount} POI
+              </Badge>
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      <Card className="flex min-h-0 flex-1 flex-col overflow-hidden border-white/70 bg-white/82 shadow-[0_28px_80px_-52px_rgba(15,23,42,0.34)] backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-950/58 dark:shadow-none">
+        <CardHeader className="gap-5 border-slate-200/70 border-b pb-5 dark:border-slate-800/70">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <CardTitle className="text-base">Einsatzliste</CardTitle>
+                <Badge variant="outline" className="bg-white/72 dark:bg-slate-950/30">
+                  {sichtbareEinsaetzeLabel}
+                </Badge>
+                {counts.inBearbeitung > 0 ? (
+                  <Badge variant="outline" className="bg-white/72 dark:bg-slate-950/30">
+                    {activeContextLabel}
+                  </Badge>
+                ) : null}
+                {counts.archiviert > 0 ? (
+                  <Badge variant="outline" className="bg-white/72 dark:bg-slate-950/30">
+                    {archivedContextLabel}
+                  </Badge>
+                ) : null}
+                {selectedStatusLabel ? (
+                  <Badge variant="outline" className="bg-white/72 dark:bg-slate-950/30">
+                    Filter: {selectedStatusLabel}
+                  </Badge>
+                ) : null}
+              </div>
+              <CardDescription className="max-w-2xl text-slate-600 dark:text-slate-300">Öffne einen bestehenden Arbeitskontext oder starte einen neuen Einsatz.</CardDescription>
+            </div>
+
+            <Button onClick={() => setIsCreatePanelOpen(true)} size="lg" className="shadow-[0_18px_40px_-24px_rgba(15,23,42,0.45)]">
+              <PiPlus className="size-4" />
+              Neuen Einsatz
+            </Button>
+          </div>
+
+          <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_11rem_12rem_auto]">
+            <SearchInput placeholder="Einsätze durchsuchen..." value={dashboardState.searchTerm} onChange={setDashboardSearchTerm} />
+
+            <Select
+              onValueChange={(value) => setDashboardStatusFilter(value === ALL_STATUS_FILTER_VALUE ? undefined : (value as EinsatzResponseDtoStatusEnum))}
+              value={dashboardState.statusFilter ?? ALL_STATUS_FILTER_VALUE}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Status filtern" />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_FILTER_OPTIONS.map((option) => (
+                  <SelectItem key={option.label} value={option.value ?? ALL_STATUS_FILTER_VALUE}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select onValueChange={(value) => setDashboardSortOption(value as EinsatzDashboardSortOptionId)} value={sortOption.id}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sortierung" />
+              </SelectTrigger>
+              <SelectContent>
+                {SORT_OPTIONS.map((option) => (
+                  <SelectItem key={option.id} value={option.id}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <div className="flex flex-wrap items-center gap-2 xl:justify-end">
+              <Button onClick={handleArchiveToggle} type="button" variant={dashboardState.showArchived ? 'secondary' : 'outline'} size="lg">
+                <PiStackSimple className="size-4" />
+                {dashboardState.showArchived ? 'Archiv ausblenden' : 'Archiv'}
+              </Button>
+
+              {hasActiveFilters ? (
+                <Button onClick={handleFilterReset} type="button" variant="ghost" size="lg">
+                  <PiFunnelX className="size-4" />
+                  Zurücksetzen
+                </Button>
+              ) : null}
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent className="min-h-0 flex-1 p-0">
+          {isLoading ? (
+            <div className="p-6 sm:p-8">
+              <EinsatzSelectionState
+                eyebrow="Ladezustand"
+                title="Einsatzauswahl wird geladen"
+                description="Arbeitskontext wird vorbereitet. Verfügbare Einsätze und der direkte Wiedereinstieg werden gerade synchronisiert."
+                icon={<PiClockCountdown className="size-6" />}
+                className="border-transparent bg-transparent shadow-none"
+              />
+            </div>
+          ) : error ? (
+            <div className="p-6 sm:p-8">
+              <EinsatzSelectionState
+                eyebrow="Technischer Fehler"
+                title="Einsätze konnten nicht geladen werden"
+                description="Die Auswahlfläche hat gerade keine aktuellen Einsatzdaten erhalten. Der direkte Arbeitsstart bleibt erst nach einem erfolgreichen Reload wieder verfügbar."
+                icon={<PiSealWarning className="size-6" />}
+                className="border-transparent bg-transparent shadow-none"
+                actions={
+                  <Button onClick={() => void refetch()} type="button" variant="outline" size="lg">
+                    <PiArrowsClockwise className="size-4" />
+                    Erneut laden
                   </Button>
-                ) : (
-                  <Button appearance="ghost" onClick={() => setStatusFilter(undefined)}>
-                    <PiFunnelX className="mr-2 h-5 w-5" />
+                }
+              />
+            </div>
+          ) : isFilterEmptyState ? (
+            <div className="p-6 sm:p-8">
+              <EinsatzSelectionState
+                eyebrow="Filter ohne Treffer"
+                title="Keine Treffer für die aktuelle Auswahl"
+                description="Die vorhandenen Einsätze passen gerade nicht zu Suche oder Filterkontext. Entferne die Filter, um wieder direkt in den Arbeitsbereich zu springen."
+                icon={<PiRows className="size-6" />}
+                className="border-transparent bg-transparent shadow-none"
+                actions={
+                  <Button onClick={handleFilterReset} type="button" variant="outline" size="lg">
+                    <PiFunnelX className="size-4" />
                     Filter entfernen
                   </Button>
-                )}
-              </div>
+                }
+              />
+            </div>
+          ) : isArchiveOnlyContext ? (
+            <div className="p-6 sm:p-8">
+              <EinsatzSelectionState
+                eyebrow="Zugriffskontext"
+                title="Aktuell sind nur archivierte Einsätze verfügbar"
+                description="Im aktiven Arbeitskontext gibt es gerade keine offenen Einsätze. Du kannst das Archiv einblenden oder einen neuen Einsatz starten."
+                icon={<PiStackSimple className="size-6" />}
+                className="border-transparent bg-transparent shadow-none"
+                actions={
+                  <>
+                    <Button onClick={handleArchiveToggle} type="button" variant="outline" size="lg">
+                      <PiStackSimple className="size-4" />
+                      Archiv einblenden
+                    </Button>
+                    <Button onClick={() => setIsCreatePanelOpen(true)} type="button" size="lg">
+                      <PiPlus className="size-4" />
+                      Neuen Einsatz anlegen
+                    </Button>
+                  </>
+                }
+              />
+            </div>
+          ) : isUnavailableState ? (
+            <div className="p-6 sm:p-8">
+              <EinsatzSelectionState
+                eyebrow="Leerzustand"
+                title="Keine verfügbaren Einsätze"
+                description="Sobald ein Einsatz für deinen aktuellen Zugriff bereitsteht, erscheint er hier als direkter Einstieg in den Workspace."
+                icon={<PiRows className="size-6" />}
+                className="border-transparent bg-transparent shadow-none"
+                actions={
+                  <Button onClick={() => setIsCreatePanelOpen(true)} type="button" size="lg">
+                    <PiPlus className="size-4" />
+                    Ersten Einsatz erstellen
+                  </Button>
+                }
+              />
             </div>
           ) : (
-            <div className="min-h-0 space-y-2 p-3 sm:p-4">
-              {einsaetze.map((einsatz) => (
-                <Link
-                  key={einsatz.id}
-                  to="/app/einsaetze/$einsatzId"
-                  params={{ einsatzId: einsatz.id }}
-                  className="block rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
-                >
-                  <EinsatzListItem einsatz={einsatz} />
-                </Link>
-              ))}
-              {einsaetze.length > 0 && <div className="p-4 text-center text-gray-500 text-sm dark:text-gray-400">{einsaetze.length} Einsätze geladen</div>}
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+              <div className="divide-y divide-slate-200/70 dark:divide-slate-800/80">
+                {einsaetze.map((einsatz) => (
+                  <EinsatzListItem key={einsatz.id} einsatz={einsatz} />
+                ))}
+              </div>
             </div>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       <EinsatzCreateForm isOpen={isCreatePanelOpen} onClose={() => setIsCreatePanelOpen(false)} onSuccess={handleCreateSuccess} />
-
-      <MobileFilterDialog
-        isOpen={isMobileFilterOpen}
-        onClose={() => setIsMobileFilterOpen(false)}
-        statusFilter={statusFilter}
-        sortOption={sortOption}
-        showArchived={showArchived}
-        onStatusFilterChange={setStatusFilter}
-        onSortChange={handleSort}
-        onArchiveToggle={handleArchiveToggle}
-        onReset={handleFilterReset}
-      />
     </div>
   );
 }

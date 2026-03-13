@@ -1,5 +1,6 @@
 import { cn } from '@/shared/ui/cn';
 import { forwardRef, type ComponentRef } from 'react';
+import { de } from 'date-fns/locale';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { PiCalendar } from 'react-icons/pi';
@@ -58,7 +59,7 @@ export const DateInput = forwardRef<ComponentRef<typeof DatePicker>, DateInputPr
           minDate={min}
           maxDate={max}
           disabled={disabled}
-          locale="de"
+          locale={de}
           placeholderText={placeholder}
           wrapperClassName="w-full"
           timeCaption="Zeit"

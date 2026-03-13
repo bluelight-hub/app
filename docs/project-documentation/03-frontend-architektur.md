@@ -38,6 +38,16 @@
 
 Bestehende Headless-UI-Bausteine bleiben bis zur Migration im Codebestand, gelten aber nicht mehr als Zielstandard. Neue oder grundlegend refaktorierte Komponenten müssen auf `shadcn/ui` aufbauen.
 
+### 1.4 UX-Leitplanken
+
+Die verbindlichen Produkt- und Interaktionsleitlinien sind in [06-ux-guidelines.md](./06-ux-guidelines.md) dokumentiert. Für Frontend-Arbeit sind insbesondere diese Regeln maßgeblich:
+
+- Bluelight Hub ist ein `desktop-first` Einsatz-Workspace und keine Sammlung isolierter Seiten.
+- Übersicht, ETB und Lagekarte müssen Kontextwechsel ohne Eingabeverlust ermöglichen.
+- Neue Flächen priorisieren Lagekontext, klare Folgeaktionen und eine ruhige, informationsdichte Darstellung.
+- Inline-Feedback, sichtbare Draft-/Sync-Zustände und robuste Tastaturbedienung sind Standard.
+- Accessibility-Zielstandard ist `WCAG 2.1 AA`.
+
 ---
 
 ## 2. Projekt-Struktur

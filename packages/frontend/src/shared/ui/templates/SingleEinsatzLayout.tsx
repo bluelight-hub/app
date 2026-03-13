@@ -1,6 +1,7 @@
 import { useCurrentUser } from '@/features/auth';
 import { useBefehlNotifications, useBefehlWebSocket, useMissedBefehlAlerts, useUnquittierteBefehleCount } from '@/features/befehl';
 import { EINSATZ_QUERY_KEYS, useEinsatzDetails, useEinsatzModules, useMyEinsatzTeilnahme } from '@/features/einsatz';
+import { saveEinsatzWorkspaceHref } from '@/features/einsatz/stores/persistence/einsatz-persistence';
 import { EinsatzStatusBadge } from '@/features/einsatz/ui/molecules/einsatz-status-badge.molecule';
 import { EinsatzSwitcher } from '@/features/einsatz/ui/molecules/EinsatzSwitcher.molecule';
 import { ModuleButton } from '@/features/einsatz/ui/molecules/ModuleButton';
@@ -61,6 +62,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   const [showEndConfirmation, setShowEndConfirmation] = useState(false);
   const [showBeitrittDialog, setShowBeitrittDialog] = useState(false);
   const [showAudioDialog, setShowAudioDialog] = useState(false);
+  const lastPersistedWorkspaceKeyRef = useRef<string | null>(null);
   const activeServer = useActiveServer();
 
   // Quick-Create Erinnerung Dialog State und Hotkeys (Story 1.1 AC1, Story 5.4)
@@ -153,7 +155,31 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
 
   // Prüfe ob wir im Fullscreen/Presentation-Modus sind
   const currentSearch = router.state.location.search as { mode?: string };
+  const currentPathname = router.state.location.pathname;
+  const workspacePersistenceKey = `${einsatzId}:${currentPathname}:${JSON.stringify(currentSearch)}`;
   const isFullscreenMode = currentSearch?.mode === 'fullscreen' || currentSearch?.mode === 'presentation';
+
+  useEffect(() => {
+    if (lastPersistedWorkspaceKeyRef.current === workspacePersistenceKey) {
+      return;
+    }
+
+    lastPersistedWorkspaceKeyRef.current = workspacePersistenceKey;
+
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const currentHref = `${window.location.pathname}${window.location.search}`;
+    const rootHref = `/app/einsatz/${einsatzId}`;
+    const rootHrefWithSlash = `${rootHref}/`;
+
+    if (currentHref === rootHref || currentHref === rootHrefWithSlash) {
+      return;
+    }
+
+    saveEinsatzWorkspaceHref(einsatzId, currentHref);
+  });
 
   // Prüfe ob die aktuelle Route Fullscreen unterstützt (/karte, /etb und /kräfte/dashboard Routes)
   const isOnKarteRoute = !!matchRoute({ to: '/app/einsatz/$einsatzId/übersicht/karte', fuzzy: false });

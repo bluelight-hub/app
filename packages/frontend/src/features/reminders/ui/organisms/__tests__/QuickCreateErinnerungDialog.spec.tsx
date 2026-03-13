@@ -86,58 +86,79 @@ vi.mock('@/features/etb/api/queries', () => ({
 // Mock @/shared (vorbestehendes Problem: EtbKategorie Enum nicht auflösbar in Vitest)
 // Noetig weil QuickCreateErinnerungDialog transitiv @/features/etb importiert,
 // das @/shared fuer AddEintragDtoKategorieEnum braucht.
-vi.mock('@/shared', () => ({
-  EinsatzRolleDtoRolleEnum: {
-    Befehlsgeber: 'BEFEHLSGEBER',
-    Empfaenger: 'EMPFAENGER',
-    Beobachter: 'BEOBACHTER',
-  },
-  ManagedUserResponseDtoRoleEnum: {
-    User: 'USER',
-    Admin: 'ADMIN',
-    SuperAdmin: 'SUPER_ADMIN',
-  },
-  AddEintragDtoKategorieEnum: {
-    Alarmierung: 'ALARMIERUNG',
-    Ankunft: 'ANKUNFT',
-    Befehl: 'BEFEHL',
-    Erkundung: 'ERKUNDUNG',
-    Lage: 'LAGE',
-    Massnahme: 'MASSNAHME',
-    Personal: 'PERSONAL',
-    Fahrzeug: 'FAHRZEUG',
-    Material: 'MATERIAL',
-    Kommunikation: 'KOMMUNIKATION',
-    Wetter: 'WETTER',
-    Dokumentation: 'DOKUMENTATION',
-    Sonstiges: 'SONSTIGES',
-    System: 'SYSTEM',
-  },
-  EintragDtoKategorieEnum: {
-    Alarmierung: 'ALARMIERUNG',
-    Ankunft: 'ANKUNFT',
-    Befehl: 'BEFEHL',
-    Erkundung: 'ERKUNDUNG',
-    Lage: 'LAGE',
-    Massnahme: 'MASSNAHME',
-    Personal: 'PERSONAL',
-    Fahrzeug: 'FAHRZEUG',
-    Material: 'MATERIAL',
-    Kommunikation: 'KOMMUNIKATION',
-    Wetter: 'WETTER',
-    Dokumentation: 'DOKUMENTATION',
-    Sonstiges: 'SONSTIGES',
-    System: 'SYSTEM',
-  },
-  api: {},
-  ResponseError: class ResponseError extends Error {
-    response: Response;
-    constructor(response: Response, msg?: string) {
-      super(msg);
-      this.response = response;
-    }
-  },
-}));
+vi.mock('@/shared', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/shared')>();
+
+  return {
+    ...actual,
+    EinsatzRolleDtoRolleEnum: {
+      Befehlsgeber: 'BEFEHLSGEBER',
+      Empfaenger: 'EMPFAENGER',
+      Beobachter: 'BEOBACHTER',
+    },
+    EinsatzControllerFindAllVAlphaOrderByEnum: {
+      CreatedAt: 'createdAt',
+      Nummer: 'nummer',
+      Alarmstichwort: 'alarmstichwort',
+      Status: 'status',
+    },
+    EinsatzControllerFindAllVAlphaOrderDirectionEnum: {
+      Asc: 'asc',
+      Desc: 'desc',
+    },
+    EinsatzResponseDtoStatusEnum: {
+      Angelegt: 'ANGELEGT',
+      InBearbeitung: 'IN_BEARBEITUNG',
+      Abgeschlossen: 'ABGESCHLOSSEN',
+      Archiviert: 'ARCHIVIERT',
+    },
+    ManagedUserResponseDtoRoleEnum: {
+      User: 'USER',
+      Admin: 'ADMIN',
+      SuperAdmin: 'SUPER_ADMIN',
+    },
+    AddEintragDtoKategorieEnum: {
+      Alarmierung: 'ALARMIERUNG',
+      Ankunft: 'ANKUNFT',
+      Befehl: 'BEFEHL',
+      Erkundung: 'ERKUNDUNG',
+      Lage: 'LAGE',
+      Massnahme: 'MASSNAHME',
+      Personal: 'PERSONAL',
+      Fahrzeug: 'FAHRZEUG',
+      Material: 'MATERIAL',
+      Kommunikation: 'KOMMUNIKATION',
+      Wetter: 'WETTER',
+      Dokumentation: 'DOKUMENTATION',
+      Sonstiges: 'SONSTIGES',
+      System: 'SYSTEM',
+    },
+    EintragDtoKategorieEnum: {
+      Alarmierung: 'ALARMIERUNG',
+      Ankunft: 'ANKUNFT',
+      Befehl: 'BEFEHL',
+      Erkundung: 'ERKUNDUNG',
+      Lage: 'LAGE',
+      Massnahme: 'MASSNAHME',
+      Personal: 'PERSONAL',
+      Fahrzeug: 'FAHRZEUG',
+      Material: 'MATERIAL',
+      Kommunikation: 'KOMMUNIKATION',
+      Wetter: 'WETTER',
+      Dokumentation: 'DOKUMENTATION',
+      Sonstiges: 'SONSTIGES',
+      System: 'SYSTEM',
+    },
+    api: {},
+    ResponseError: class ResponseError extends Error {
+      response: Response;
+      constructor(response: Response, msg?: string) {
+        super(msg);
+        this.response = response;
+      }
+    },
+  };
+});
 
 // Mock der Zeit-Berechnung für deterministische Tests
 vi.mock('../../../utils/time-calculation', () => ({

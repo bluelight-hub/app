@@ -32,6 +32,7 @@ pnpm -r dev
 | 3 | [Frontend-Architektur](./03-frontend-architektur.md) | React + TanStack Ecosystem, Atomic Design, Tauri |
 | 4 | [API-Referenz](./04-api-referenz.md) | REST Endpoints, DTOs, WebSocket Events |
 | 5 | [Entwicklungshandbuch](./05-entwicklungshandbuch.md) | Setup, Commands, Konventionen, Troubleshooting |
+| 6 | [UX-Guidelines](./06-ux-guidelines.md) | Verbindliche UX-Prinzipien, Interaktionsmuster und Accessibility-Leitplanken |
 | ADR | [ADR-004: Platform Storage Strategy](../adr/adr-004-platform-storage-strategy.md) | Browser vs. Desktop Encryption, localStorage vs. IndexedDB, Tauri Stronghold |
 | ADR | [ADR-005: Platform Storage Adapter Pattern](../adr/adr-005-platform-storage-adapter-pattern.md) | Port-Adapter + Factory Singleton für plattformübergreifenden Storage |
 
@@ -47,6 +48,7 @@ pnpm -r dev
 | **Shared** | Generierter TypeScript API Client |
 | **Architektur (Backend)** | Hexagonal + CQRS + DDD |
 | **Architektur (Frontend)** | Feature-based + Atomic Design |
+| **UX-Modell** | Desktop-first Einsatz-Workspace mit priorisiertem Lagekontext |
 
 ---
 

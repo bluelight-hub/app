@@ -5,8 +5,17 @@
  * Verwaltet UI-spezifische Zustände wie Filter, Sorting, Selected Items.
  */
 
-import type { EinsatzControllerFindAllVAlphaOrderByEnum, EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzControllerFindAllVAlphaStatusEnum } from '@/shared';
+import type { EinsatzControllerFindAllVAlphaOrderByEnum, EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzControllerFindAllVAlphaStatusEnum, EinsatzResponseDtoStatusEnum } from '@/shared';
 import { createStore } from '@tanstack/react-store';
+
+export type EinsatzDashboardSortOptionId = 'recent' | 'number' | 'status';
+
+interface EinsatzDashboardState {
+  searchTerm: string;
+  statusFilter?: EinsatzResponseDtoStatusEnum;
+  sortOptionId: EinsatzDashboardSortOptionId;
+  showArchived: boolean;
+}
 
 /**
  * Einsatz UI State Interface
@@ -31,6 +40,56 @@ export interface EinsatzUIState {
 
   // View Mode State
   viewMode: 'list' | 'grid' | 'infinite';
+
+  // Dashboard / Startseite
+  dashboard: EinsatzDashboardState;
+}
+
+const DASHBOARD_STORAGE_KEY = 'einsatzDashboardState';
+
+const initialDashboardState: EinsatzDashboardState = {
+  searchTerm: '',
+  statusFilter: undefined,
+  sortOptionId: 'recent',
+  showArchived: false,
+};
+
+function loadDashboardState(): EinsatzDashboardState {
+  if (typeof window === 'undefined') {
+    return initialDashboardState;
+  }
+
+  try {
+    const rawValue = localStorage.getItem(DASHBOARD_STORAGE_KEY);
+
+    if (!rawValue) {
+      return initialDashboardState;
+    }
+
+    const parsed = JSON.parse(rawValue) as Partial<EinsatzDashboardState>;
+    const sortOptionId = parsed.sortOptionId;
+
+    return {
+      searchTerm: typeof parsed.searchTerm === 'string' ? parsed.searchTerm : '',
+      statusFilter: typeof parsed.statusFilter === 'string' ? (parsed.statusFilter as EinsatzResponseDtoStatusEnum) : undefined,
+      sortOptionId: sortOptionId === 'number' || sortOptionId === 'status' || sortOptionId === 'recent' ? sortOptionId : 'recent',
+      showArchived: parsed.showArchived === true,
+    };
+  } catch {
+    return initialDashboardState;
+  }
+}
+
+function persistDashboardState(state: EinsatzDashboardState): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    localStorage.setItem(DASHBOARD_STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // Fallback: Dashboard bleibt ohne Persistenz trotzdem nutzbar.
+  }
 }
 
 /**
@@ -44,6 +103,7 @@ const initialState: EinsatzUIState = {
   },
   sorting: {},
   viewMode: 'list',
+  dashboard: loadDashboardState(),
 };
 
 /**
@@ -53,6 +113,10 @@ const initialState: EinsatzUIState = {
  * Nutze die bereitgestellten Helper-Funktionen für State-Updates.
  */
 export const einsatzUIStore = createStore<EinsatzUIState>(initialState);
+
+einsatzUIStore.subscribe(() => {
+  persistDashboardState(einsatzUIStore.state.dashboard);
+});
 
 // ============================================
 // Store Actions (Helper Functions)
@@ -157,11 +221,62 @@ export const resetFilters = () => {
   }));
 };
 
+export const setDashboardSearchTerm = (searchTerm: string) => {
+  einsatzUIStore.setState((state) => ({
+    ...state,
+    dashboard: {
+      ...state.dashboard,
+      searchTerm,
+    },
+  }));
+};
+
+export const setDashboardStatusFilter = (statusFilter?: EinsatzResponseDtoStatusEnum) => {
+  einsatzUIStore.setState((state) => ({
+    ...state,
+    dashboard: {
+      ...state.dashboard,
+      statusFilter,
+    },
+  }));
+};
+
+export const setDashboardSortOption = (sortOptionId: EinsatzDashboardSortOptionId) => {
+  einsatzUIStore.setState((state) => ({
+    ...state,
+    dashboard: {
+      ...state.dashboard,
+      sortOptionId,
+    },
+  }));
+};
+
+export const setDashboardShowArchived = (showArchived: boolean) => {
+  einsatzUIStore.setState((state) => ({
+    ...state,
+    dashboard: {
+      ...state.dashboard,
+      showArchived,
+      statusFilter: showArchived ? undefined : state.dashboard.statusFilter,
+    },
+  }));
+};
+
+export const resetDashboardState = () => {
+  einsatzUIStore.setState((state) => ({
+    ...state,
+    dashboard: initialDashboardState,
+  }));
+};
+
 /**
  * Setzt den kompletten Store zurück
  */
 export const resetEinsatzUIStore = () => {
-  einsatzUIStore.setState(initialState);
+  einsatzUIStore.setState({
+    ...initialState,
+    dashboard: initialDashboardState,
+  });
 };
 
 // ============================================

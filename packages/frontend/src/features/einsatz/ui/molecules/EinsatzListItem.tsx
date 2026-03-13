@@ -1,71 +1,111 @@
-import { EinsatzCompletenessBar } from '@/features/einsatz/ui/molecules/einsatz-completeness-bar.molecule';
 import { EinsatzStatus, EinsatzStatusBadge } from '@/features/einsatz/ui/molecules/einsatz-status-badge.molecule';
 import { useActiveEinsatz } from '@/features/einsatz';
-import { formatNatoDateTime } from '@/shared/lib/dateFormatter';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { formatDisplayDateTime } from '@/shared/lib/dateFormatter';
 import type { EinsatzListItemDto, EinsatzResponseDto } from '@/shared';
-import { PiBookOpen, PiMapPin } from 'react-icons/pi';
+import { Link } from '@tanstack/react-router';
+import { formatDistanceToNow, isValid, parseISO } from 'date-fns';
+import { de } from 'date-fns/locale';
+import { PiArrowRight, PiBookOpen, PiClock, PiMapPin, PiRadio } from 'react-icons/pi';
 
 interface EinsatzListItemProps {
   einsatz: EinsatzResponseDto | EinsatzListItemDto;
+}
+
+function getAlarmstichwortLabel(einsatz: EinsatzResponseDto | EinsatzListItemDto): string {
+  return typeof einsatz.alarmstichwort === 'string' && einsatz.alarmstichwort.trim().length > 0 ? einsatz.alarmstichwort : 'Kein Alarmstichwort';
+}
+
+function getLocationLabel(einsatz: EinsatzResponseDto | EinsatzListItemDto): string {
+  const einsatzort = einsatz.einsatzort;
+
+  if (einsatzort && typeof einsatzort === 'object' && 'ort' in einsatzort && typeof einsatzort.ort === 'string' && einsatzort.ort.trim().length > 0) {
+    return einsatzort.ort;
+  }
+
+  return 'Ort wird nachgereicht';
 }
 
 export const EinsatzListItem = ({ einsatz }: EinsatzListItemProps) => {
   const { activeEinsatz } = useActiveEinsatz();
   const isCurrentlyActive = activeEinsatz?.id === einsatz.id;
 
-  // Extract counts if available (present in EinsatzListItemDto)
   const etbEintraegeCount = 'etbEintraegeCount' in einsatz ? einsatz.etbEintraegeCount : undefined;
   const poisCount = 'poisCount' in einsatz ? einsatz.poisCount : undefined;
+  const hasEtbCount = typeof etbEintraegeCount === 'number' && etbEintraegeCount > 0;
+  const hasPoiCount = typeof poisCount === 'number' && poisCount > 0;
+  const createdAt = typeof einsatz.createdAt === 'string' ? parseISO(einsatz.createdAt) : einsatz.createdAt;
+  const hasValidCreatedAt = isValid(createdAt);
+  const relativeTimestamp = hasValidCreatedAt ? formatDistanceToNow(createdAt, { addSuffix: true, locale: de }) : 'Zeitpunkt unbekannt';
+  const absoluteTimestamp = formatDisplayDateTime(einsatz.createdAt) || 'Zeitpunkt unbekannt';
+  const locationLabel = getLocationLabel(einsatz);
+  const alarmstichwortLabel = getAlarmstichwortLabel(einsatz);
+  const actionLabel = isCurrentlyActive ? 'Weiterarbeiten' : 'Öffnen';
 
   return (
-    <div className="cursor-pointer px-3 py-3 transition-all hover:bg-gray-50 sm:px-4 sm:py-4 dark:hover:bg-gray-700/50">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0 flex-1">
-          <div className="mb-1 flex items-start justify-between gap-2 sm:mb-2 sm:items-center">
-            <h3 className="line-clamp-2 font-medium text-base text-gray-900 sm:line-clamp-1 sm:text-lg dark:text-white">
-              <span className="font-mono text-gray-500 text-sm dark:text-gray-400">{einsatz.nummer}</span>
-              <span className="mx-1.5 text-gray-300 dark:text-gray-600">|</span>
-              {einsatz.alarmstichwort || 'Kein Alarmstichwort'}
-            </h3>
-            <div className="flex items-center gap-2">
-              {isCurrentlyActive && (
-                <span className="inline-flex items-center gap-1 font-medium text-green-600 text-xs dark:text-green-400">
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500"></span>
-                  </span>
-                  AKTIV
-                </span>
-              )}
-              <EinsatzStatusBadge status={einsatz.status || EinsatzStatus.ANGELEGT} size="sm" className="flex-shrink-0" />
-            </div>
+    <Link aria-label={`Einsatz ${einsatz.nummer} öffnen`} params={{ einsatzId: einsatz.id }} to="/app/einsatz/$einsatzId" className="group block focus-visible:outline-none">
+      <article
+        className={cn(
+          'grid gap-4 px-5 py-5 transition-[background-color,color] duration-150 focus-within:bg-slate-50/85 hover:bg-slate-50/85 sm:px-6 lg:grid-cols-[minmax(0,2.6fr)_minmax(0,1.4fr)_auto] lg:items-center dark:hover:bg-slate-900/55 dark:focus-within:bg-slate-900/55',
+          isCurrentlyActive && 'bg-sky-50/70 dark:bg-sky-950/18',
+        )}
+      >
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-mono text-[11px] text-slate-500 uppercase tracking-[0.18em] dark:text-slate-400">{einsatz.nummer}</span>
+            {isCurrentlyActive ? (
+              <Badge variant="secondary" className="gap-1 border-sky-200/70 bg-white/85 text-sky-800 shadow-none dark:border-sky-900/60 dark:bg-sky-950/45 dark:text-sky-200">
+                <PiRadio className="size-3.5" />
+                Aktiver Kontext
+              </Badge>
+            ) : null}
           </div>
-          <div className="flex flex-col gap-1 text-gray-500 text-xs sm:flex-row sm:items-center sm:gap-2 sm:space-x-2 sm:text-sm dark:text-gray-400">
-            <span className="font-mono">{formatNatoDateTime(einsatz.createdAt)}</span>
 
-            {/* ETB & POI Counts */}
-            {(etbEintraegeCount !== undefined || poisCount !== undefined) && (
-              <div className="flex items-center gap-2">
-                {etbEintraegeCount !== undefined && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 font-medium text-blue-800 text-xs dark:bg-blue-900/30 dark:text-blue-400">
-                    <PiBookOpen className="h-3 w-3" />
-                    {etbEintraegeCount}
-                  </span>
-                )}
-                {poisCount !== undefined && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 font-medium text-purple-800 text-xs dark:bg-purple-900/30 dark:text-purple-400">
-                    <PiMapPin className="h-3 w-3" />
-                    {poisCount}
-                  </span>
-                )}
-              </div>
-            )}
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="font-semibold text-base text-foreground transition-colors group-hover:text-primary">{alarmstichwortLabel}</h3>
+            <EinsatzStatusBadge status={einsatz.status || EinsatzStatus.ANGELEGT} size="sm" />
           </div>
-          <div className="mt-2">
-            <EinsatzCompletenessBar einsatz={einsatz} showTooltip={false} showPercentage={true} size="sm" className="max-w-full sm:max-w-xs" />
+
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-muted-foreground text-sm">
+            <span className="inline-flex items-center gap-2">
+              <PiMapPin className="size-4" />
+              <span className="font-medium text-foreground">{locationLabel}</span>
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <PiClock className="size-4" />
+              <span>
+                {relativeTimestamp}
+                <span className="mx-2 text-border">•</span>
+                {absoluteTimestamp}
+              </span>
+            </span>
           </div>
         </div>
-      </div>
-    </div>
+
+        <div className="flex flex-wrap gap-2 lg:justify-end">
+          {hasEtbCount ? (
+            <Badge variant="outline" className="gap-1 bg-white/72 dark:bg-slate-950/25">
+              <PiBookOpen className="size-3.5" />
+              {etbEintraegeCount} ETB
+            </Badge>
+          ) : null}
+          {hasPoiCount ? (
+            <Badge variant="outline" className="gap-1 bg-white/72 dark:bg-slate-950/25">
+              <PiMapPin className="size-3.5" />
+              {poisCount} POI
+            </Badge>
+          ) : null}
+        </div>
+
+        <div className="flex items-center justify-between text-sm lg:min-w-[10rem] lg:justify-end">
+          <span className="text-muted-foreground">{isCurrentlyActive ? 'Letzter Arbeitsbereich' : 'Direkter Einstieg'}</span>
+          <span className="ml-4 inline-flex items-center gap-2 font-semibold text-foreground transition-colors group-hover:text-primary">
+            {actionLabel}
+            <PiArrowRight className="size-4 transition-transform duration-150 group-hover:translate-x-0.5" />
+          </span>
+        </div>
+      </article>
+    </Link>
   );
 };

@@ -1,16 +1,15 @@
 import { useCreateEinsatz } from '@/features/einsatz';
-import { Button } from '@/shared/ui/atoms/button.atom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { DateInput } from '@/shared/ui/atoms/date-input.atom';
-import { Input } from '@/shared/ui/atoms/input.atom';
 import { Textarea } from '@/shared/ui/atoms/textarea.atom';
 import type { CreateEinsatzDto } from '@/shared';
 import { FormFieldWrapper } from '@/shared/ui/molecules/form/FormFieldWrapper';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { useForm } from '@tanstack/react-form';
 import { useNavigate } from '@tanstack/react-router';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { toast } from 'sonner';
 import { z } from 'zod'; // Schema für minimale Einsatz-Erstellung (alle Felder optional)
 
 // Schema für minimale Einsatz-Erstellung (alle Felder optional)
@@ -33,6 +32,7 @@ interface EinsatzCreateFormProps {
 export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateFormProps) {
   const navigate = useNavigate();
   const createEinsatz = useCreateEinsatz();
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const form = useForm({
     defaultValues: {
@@ -43,8 +43,7 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
     } as CreateEinsatzFormData,
     onSubmit: async ({ value }) => {
       try {
-        // Optimistic UI: Toast zeigt sofort Erfolg
-        const toastId = toast.loading('Einsatz wird erstellt…');
+        setSubmitError(null);
 
         // Werte für API-Payload aufbereiten (Trim + Typwandlung)
         const payload: CreateEinsatzDto = {};
@@ -69,12 +68,9 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
           onSuccess(result.id);
         }
 
-        toast.success('Einsatz erfolgreich erstellt!', {
-          id: toastId,
-          action: {
-            label: 'Bearbeiten',
-            onClick: () => navigate({ to: `/app/einsaetze/${result.id}` }),
-          },
+        await navigate({
+          to: '/app/einsatz/$einsatzId/übersicht',
+          params: { einsatzId: result.id },
         });
 
         // Reset form und schließe Panel (nach success callbacks)
@@ -84,16 +80,20 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
           onClose();
         }, 0);
       } catch (error) {
-        toast.error('Fehler beim Erstellen des Einsatzes', {
-          description: error instanceof Error ? error.message : 'Unbekannter Fehler',
-        });
+        setSubmitError(error instanceof Error ? error.message : 'Unbekannter Fehler beim Erstellen des Einsatzes');
       }
     },
   });
 
-  useHotkeys('esc', () => {
-    onClose();
-  });
+  useHotkeys(
+    'esc',
+    () => {
+      onClose();
+    },
+    {
+      enabled: isOpen,
+    },
+  );
 
   useHotkeys(
     'mod+enter',
@@ -102,21 +102,15 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
     },
     [form],
     {
+      enabled: isOpen,
       preventDefault: true,
     },
   );
 
-  // Reset form wenn Panel geschlossen wird
-  useEffect(() => {
-    if (!isOpen) {
-      form.reset();
-    }
-  }, [isOpen, form]);
-
   const handleClose = useCallback(() => {
-    form.reset();
+    setSubmitError(null);
     onClose();
-  }, [form, onClose]);
+  }, [onClose]);
 
   return (
     <Dialog.SlideIn
@@ -145,7 +139,7 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
                 value={field.state.value}
                 onBlur={field.handleBlur}
                 onChange={(e) => field.handleChange(e.target.value)}
-                className="mt-1"
+                className="mt-1 h-11 rounded-lg border-slate-300 bg-white/95 text-slate-900 shadow-sm transition focus-visible:border-sky-500 focus-visible:ring-sky-500/35 dark:border-slate-700 dark:bg-slate-900/75 dark:text-slate-100"
                 autoFocus
               />
             </FormFieldWrapper>
@@ -163,7 +157,7 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
                 value={field.state.value}
                 onBlur={field.handleBlur}
                 onChange={(e) => field.handleChange(e.target.value)}
-                className="mt-1"
+                className="mt-1 h-11 rounded-lg border-slate-300 bg-white/95 text-slate-900 shadow-sm transition focus-visible:border-sky-500 focus-visible:ring-sky-500/35 dark:border-slate-700 dark:bg-slate-900/75 dark:text-slate-100"
               />
             </FormFieldWrapper>
           )}
@@ -204,13 +198,19 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
           )}
         </form.Field>
 
+        {submitError ? (
+          <p role="alert" className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-destructive text-sm">
+            {submitError}
+          </p>
+        ) : null}
+
         {/* Actions */}
         <div className="flex justify-end gap-3 border-t pt-6">
-          <Button onClick={handleClose} intent="secondary" appearance="ghost">
+          <Button onClick={handleClose} type="button" variant="outline" size="lg">
             Abbrechen
           </Button>
-          <Button type="submit" disabled={form.state.isSubmitting}>
-            {form.state.isSubmitting ? 'Erstelle...' : 'Einsatz erstellen'}
+          <Button type="submit" size="lg" disabled={form.state.isSubmitting}>
+            {form.state.isSubmitting ? 'Arbeitskontext wird geöffnet...' : 'Einsatz erstellen und öffnen'}
           </Button>
         </div>
 
