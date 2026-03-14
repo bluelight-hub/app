@@ -42,7 +42,7 @@ describe('FilterPresetStore', () => {
     statusFilterStore.setState({
       selectedFilter: { type: 'all' },
     });
-    localStorage.clear();
+    window.localStorage.clear();
   });
 
   describe('initial state', () => {
@@ -113,7 +113,7 @@ describe('FilterPresetStore', () => {
 
     it('should persist to localStorage', () => {
       // Given (Arrange)
-      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
+      const setItemSpy = vi.spyOn(window.localStorage, 'setItem');
 
       // When (Act)
       addPreset({
@@ -126,7 +126,7 @@ describe('FilterPresetStore', () => {
 
       // Then (Assert)
       expect(setItemSpy).toHaveBeenCalledWith('bluelight-hub:filter-presets', expect.any(String));
-      const stored = JSON.parse(localStorage.getItem('bluelight-hub:filter-presets') ?? '[]');
+      const stored = JSON.parse(window.localStorage.getItem('bluelight-hub:filter-presets') ?? '[]');
       expect(stored).toHaveLength(1);
 
       setItemSpy.mockRestore();
@@ -188,7 +188,7 @@ describe('FilterPresetStore', () => {
       removePreset(presetId);
 
       // Then (Assert)
-      const stored = JSON.parse(localStorage.getItem('bluelight-hub:filter-presets') ?? '[]');
+      const stored = JSON.parse(window.localStorage.getItem('bluelight-hub:filter-presets') ?? '[]');
       expect(stored).toHaveLength(0);
     });
 
@@ -443,7 +443,7 @@ describe('FilterPresetStore', () => {
           sortierung: 'faelligkeit',
         },
       ];
-      localStorage.setItem('bluelight-hub:filter-presets', JSON.stringify(presets));
+      window.localStorage.setItem('bluelight-hub:filter-presets', JSON.stringify(presets));
 
       // When (Act)
       reloadPresetsFromStorage();
@@ -456,7 +456,7 @@ describe('FilterPresetStore', () => {
 
     it('should handle empty localStorage', () => {
       // Given (Arrange)
-      localStorage.removeItem('bluelight-hub:filter-presets');
+      window.localStorage.removeItem('bluelight-hub:filter-presets');
 
       // When (Act)
       reloadPresetsFromStorage();
@@ -467,7 +467,7 @@ describe('FilterPresetStore', () => {
 
     it('should handle corrupt localStorage data', () => {
       // Given (Arrange)
-      localStorage.setItem('bluelight-hub:filter-presets', 'invalid-json{{{');
+      window.localStorage.setItem('bluelight-hub:filter-presets', 'invalid-json{{{');
 
       // When (Act)
       reloadPresetsFromStorage();
@@ -484,7 +484,7 @@ describe('FilterPresetStore', () => {
         null,
         'string',
       ];
-      localStorage.setItem('bluelight-hub:filter-presets', JSON.stringify(mixed));
+      window.localStorage.setItem('bluelight-hub:filter-presets', JSON.stringify(mixed));
 
       // When (Act)
       reloadPresetsFromStorage();
@@ -497,7 +497,7 @@ describe('FilterPresetStore', () => {
 
     it('should handle non-array localStorage data', () => {
       // Given (Arrange)
-      localStorage.setItem('bluelight-hub:filter-presets', JSON.stringify({ not: 'array' }));
+      window.localStorage.setItem('bluelight-hub:filter-presets', JSON.stringify({ not: 'array' }));
 
       // When (Act)
       reloadPresetsFromStorage();
