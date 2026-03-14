@@ -24,10 +24,17 @@
 
 ## Swagger & API-Client
 
-- Swagger: `http://localhost:3091/api` (JSON: `/api-json`)
+- Lokaler Default mit `.env.example`: `https://localhost:3091`
+- Swagger UI:
+    1) Alpha: `https://localhost:3091/api` oder `https://localhost:3091/api/alpha`
+    2) v1: `https://localhost:3091/api/v1`
+- OpenAPI JSON:
+    1) Alpha: `https://localhost:3091/api/alpha-json` (`/api-json` bleibt als Alias verfügbar)
+    2) v1: `https://localhost:3091/api/v1-json`
 - Der TypeScript-Fetch-Client wird aus `packages/shared` generiert. Nach API-Änderungen:
     1) Backend starten
-    2) `pnpm --filter @bluelight-hub/shared generate-api`
+    2) Bei HTTP-only lokal optional `BLUELIGHT_OPENAPI_BASE_URL=http://localhost:3091` setzen
+    3) `pnpm --filter @bluelight-hub/shared generate-api`
 
 ## Datenbank
 
@@ -76,12 +83,22 @@ Infrastructure Layer (Domain + Application Layer)
 Vor jedem Commit werden automatisch folgende Checks ausgeführt:
 
 1. **TypeScript Smoke Test** (~1.5s)
-   - Kommando: `pnpm --filter @bluelight-hub/backend exec tsc --noEmit`
-   - Prüft: TypeScript-Kompilierung ohne Code-Generierung
+   - Kommando: `pnpm --filter @bluelight-hub/backend exec tsc --noEmit --project tsconfig.build.json`
+   - Prüft: TypeScript-Kompilierung des Backend-Builds ohne Code-Generierung
    - Verhindert: Commits mit Type-Errors (z.B. fehlende Imports, Type-Mismatches)
    - Bei Fehler: Commit wird abgebrochen mit klarer Fehlermeldung
 
-2. **Code Quality Checks** (Biome Linter)
+2. **DI Import Pattern Check**
+   - Kommando: `pnpm --filter @bluelight-hub/backend check:di:imports`
+   - Prüft: `@Injectable()`-Klassen verwenden normale `import`-Statements statt `import type`
+   - Verhindert: DI-Fehler durch entfernte Runtime-Imports
+
+3. **Architektur-Check für Kern-Layer**
+   - Kommando: `pnpm --filter @bluelight-hub/backend lint:deps:core`
+   - Prüft: Keine zirkulären Abhängigkeiten in Domain- und Application-Layer
+   - Verhindert: Architekturverletzungen im Kern der Hexagonal Architecture
+
+4. **Code Quality Checks** (Biome Linter)
    - Kommando: `pnpm lint-staged`
    - Prüft: Code-Style, Imports, Formatting
    - Auto-Fix: Viele Probleme werden automatisch korrigiert
@@ -90,7 +107,7 @@ Vor jedem Commit werden automatisch folgende Checks ausgeführt:
 
 **Hinweise:**
 - Hooks laufen automatisch - keine manuelle Aktion erforderlich
-- Gesamtlaufzeit: ~2-3 Sekunden (akzeptabel für schnelles Feedback)
+- Gesamtlaufzeit: abhängig von den geänderten Dateien und den zusätzlichen Architektur-Checks
 - **Niemals `--no-verify` verwenden** - würde wichtige Checks überspringen
 
 ## Policies & Architektur
@@ -109,4 +126,3 @@ Vor jedem Commit werden automatisch folgende Checks ausgeführt:
 
 - Fehlende ENV-Variablen: `.env.example` als Vorlage verwenden
 - Datenbankfehler: Verbindung prüfen, Prisma `generate/migrate` ausführen
-

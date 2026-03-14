@@ -115,13 +115,18 @@ Der Versions-Prefix ist `v-` (mit Bindestrich). Das unterscheidet sich von gaeng
 
 ## 4. Swagger UI
 
-Die interaktive API-Dokumentation (Swagger UI) ist erreichbar unter:
+Mit der lokalen Default-Konfiguration (`HTTPS_ENABLED=true`) ist die interaktive API-Dokumentation unter folgenden URLs erreichbar:
 
 ```
-http://localhost:3091/api
+https://localhost:3091/api
+https://localhost:3091/api/alpha
+https://localhost:3091/api/v1
 ```
 
-Swagger zeigt alle versionierten Endpoints in einem einzigen Dokument. Die Versions-Prefixe sind in den Endpoint-Pfaden sichtbar.
+- `/api` und `/api/alpha` zeigen dieselbe Alpha-Spec
+- `/api/v1` zeigt ausschließlich die stabile v1-Spec
+- Die zugehörigen JSON-Specs liegen unter `/api/alpha-json` und `/api/v1-json`
+- `/api-json` bleibt als Rückwärtskompatibilitäts-Alias für die Alpha-Spec verfügbar
 
 **Authentifizierung in Swagger:**
 
@@ -132,12 +137,18 @@ Swagger zeigt alle versionierten Endpoints in einem einzigen Dokument. Die Versi
 
 ## 5. Client-SDK
 
-Der generierte API-Client liegt in `packages/shared/client/` und wird automatisch aus der OpenAPI-Spezifikation generiert.
+Die generierten API-Clients liegen in `packages/shared/client/` (Alpha) und `packages/shared/client-v1/` (stabil) und werden automatisch aus den versionierten OpenAPI-Spezifikationen generiert.
 
 ### Generierung
 
 ```bash
 pnpm run generate-api
+```
+
+Für lokale HTTP-Setups ohne TLS kann die Basis-URL vor dem Generieren überschrieben werden:
+
+```bash
+BLUELIGHT_OPENAPI_BASE_URL=http://localhost:3091 pnpm run generate-api
 ```
 
 ### Nutzung
@@ -153,7 +164,8 @@ import { BefehleApi } from '@bluelight-hub/shared-client';
 
 - `packages/shared/client/` wird **NIEMALS manuell bearbeitet**
 - Nach jeder Backend-API-Aenderung: `pnpm run generate-api` ausfuehren
-- Der Client spiegelt aktuell die `v-alpha` Endpoints wider (Default-Export)
+- `packages/shared/client/` spiegelt die `v-alpha` Endpoints wider
+- `packages/shared/client-v1/` spiegelt die stabile `v1` API wider
 
 ---
 

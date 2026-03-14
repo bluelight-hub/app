@@ -60,8 +60,8 @@ export const useKraeftePois = (einsatzId: string | undefined, options?: UseKraef
       // Extract data from wrapped response
       return response.data;
     },
-    // Hinweis: Fehler werden vom globalen QueryCache.onError Handler in __root.tsx
-    // behandelt (Logging + Toast-Notification nach allen Retries)
+    // Hinweis: Fehler werden vom globalen QueryCache.onError Handler
+    // im zentralen QueryClient behandelt.
     enabled: !!einsatzId,
     staleTime: 10_000, // 10 Sekunden
     refetchInterval: options?.refetchInterval ?? 30_000, // AC4: 30s Polling
