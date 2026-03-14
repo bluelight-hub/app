@@ -331,8 +331,8 @@ function updateTooltipPosition(e, tooltip) {
     y = e.clientY - rect.height - offset;
   }
 
-  tooltip.style.left = x + 'px';
-  tooltip.style.top = y + 'px';
+  tooltip.style.left = `${x}px`;
+  tooltip.style.top = `${y}px`;
 }
 
 function copyToClipboard(text) {
@@ -373,7 +373,7 @@ function fallbackCopy(text) {
 function showCopyFeedback(element, objectId) {
   // Create feedback overlay
   const feedback = document.createElement('div');
-  feedback.textContent = '✓ Copied: ' + objectId;
+  feedback.textContent = `✓ Copied: ${objectId}`;
   feedback.style.cssText = `
         position: fixed;
         top: 50%;
