@@ -1,3 +1,16 @@
+## 📦 Abhängigkeiten & Infrastruktur
+
+- **TanStack-Bibliotheken aktualisiert**: React Router, React Form, React Store, React Virtual und DevTools auf neueste Versionen aktualisiert für verbesserte Performance und Stabilität
+- **Prisma-Datenbank-Adapter aktualisiert**: Prisma Client und PostgreSQL-Adapter auf Version 7.5.0 aktualisiert
+- **Recharts-Bibliothek aktualisiert**: Diagramm-Komponente auf Version 3.8.0 aktualisiert
+- **dotenvx-ops aktualisiert**: Umgebungsvariablen-Management auf Version 0.35.1 aktualisiert
+
+## 🔧 Entwickler-Verbesserungen
+
+- **OpenAPI-SDK neu generiert**: Frontend-API-Client wurde mit der neuesten Swagger-Spezifikation aktualisiert und die Dokumentation für versionierte Endpunkte erweitert
+- **Test-Stabilität verbessert**: Frontend-Tests nutzen jetzt zuverlässigere Mocks für localStorage und sessionStorage
+- **AI-Assistenz-Workflows erweitert**: Neue strukturierte Vorlagen für GitHub-Issue-Erstellung und erweiterte Skill-Packs für Entwickler-Workflows hinzugefügt
+
 ## Teilnehmerverwaltung
 
 - Fehler bei der Datenbankmigration für bestehende Teilnehmer behoben, um Datenkonsistenz sicherzustellen
