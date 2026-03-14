@@ -418,15 +418,15 @@ describe('Movies API Consumer Contract', () => {
       )
       .willRespondWith(
         200,
-        setJsonContent({
-          body: like({
+        setJsonBody(
+          like({
             id: integer(1),
             name: string('The Matrix'),
             year: integer(1999),
             rating: like(8.7),
             director: string('Wachowskis'),
           }),
-        }),
+        ),
       )
       .executeTest(async (mockServer: V3MockServer) => {
         // Inject mock server URL into the REAL consumer code
@@ -463,6 +463,7 @@ describe('Movies API Consumer Contract', () => {
 - Consumer code MUST expose a URL injection mechanism: `setApiUrl()`, env var override, or constructor parameter
 - If the consumer code doesn't support URL injection, add it — this is a design prerequisite for CDC testing
 - Use PactV4 `addInteraction()` builder (not PactV3 fluent API with `withRequest({...})` object)
+- **Interaction naming convention**: Use the pattern `"a request to <action> <resource> [<condition>]"` for `uponReceiving()`. Examples: `"a request to get a movie by ID"`, `"a request to delete a non-existing movie"`, `"a request to create a movie that already exists"`. These names appear in Pact Broker UI and verification logs — keep them descriptive and unique within the consumer-provider pair.
 - Use `setJsonContent` for request/response builder callbacks with query/header/body concerns; use `setJsonBody` for body-only response callbacks
 - Provider state factory functions (`movieExists`) return `ProviderStateInput` objects
 - `createProviderState` converts to `[stateName, stateParams]` tuple for `.given()`
@@ -616,7 +617,10 @@ Before presenting the consumer CDC framework to the user, verify:
 - [ ] `.github/actions/detect-breaking-change/action.yml` exists
 - [ ] Consumer tests use `.pacttest.ts` extension
 - [ ] Consumer tests use PactV4 `addInteraction()` builder
+- [ ] `uponReceiving()` names follow `"a request to <action> <resource> [<condition>]"` pattern and are unique within the consumer-provider pair
 - [ ] Interaction callbacks use `setJsonContent` for query/header/body and `setJsonBody` for body-only responses
+- [ ] Request bodies use exact values (no `like()` wrapper) — Postel's Law: be strict in what you send
+- [ ] `like()`, `eachLike()`, `string()`, `integer()` matchers are only used in `willRespondWith` (responses), not in `withRequest` (requests) — matchers check type/shape, not exact values
 - [ ] Consumer tests call REAL consumer code (actual API client functions), NOT raw `fetch()`
 - [ ] Consumer code exposes URL injection mechanism (`setApiUrl()`, env var, or constructor param)
 - [ ] Local consumer-helpers shim present if pactjs-utils not installed

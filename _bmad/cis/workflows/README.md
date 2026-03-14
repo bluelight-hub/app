@@ -1,7 +1,6 @@
 # CIS Workflows
 
-Five interactive workflows facilitating creative and strategic processes through curated technique libraries and
-structured facilitation.
+Five interactive workflows facilitating creative and strategic processes through curated technique libraries and structured facilitation.
 
 ## Table of Contents
 
@@ -22,7 +21,7 @@ structured facilitation.
 
 **Selection Modes:** User-selected, AI-recommended, random, or progressive
 
-### [Design Thinking](./design-thinking)
+### [Design Thinking](./bmad-cis-design-thinking)
 
 **Purpose:** Human-centered design through five phases
 
@@ -32,7 +31,7 @@ structured facilitation.
 
 **Output:** User empathy insights and rapid prototypes
 
-### [Innovation Strategy](./innovation-strategy)
+### [Innovation Strategy](./bmad-cis-innovation-strategy)
 
 **Purpose:** Identify disruption opportunities and business model innovation
 
@@ -42,7 +41,7 @@ structured facilitation.
 
 **Output:** Strategic innovation roadmap
 
-### [Problem Solving](./problem-solving)
+### [Problem Solving](./bmad-cis-problem-solving)
 
 **Purpose:** Systematic challenge resolution
 
@@ -52,7 +51,7 @@ structured facilitation.
 
 **Output:** Root cause identification and solution strategies
 
-### [Storytelling](./storytelling)
+### [Storytelling](./bmad-cis-storytelling)
 
 **Purpose:** Craft compelling narratives
 
@@ -109,14 +108,50 @@ Edit `/_bmad/cis/config.yaml`:
 
 ## Workflow Structure
 
-Each workflow contains:
+Source workflows currently use two shapes during the native-skill transition:
 
-```
-workflow-name/
+```text
+legacy-workflow/
 ├── workflow.yaml      # Configuration
 ├── instructions.md    # Facilitation guide
 ├── techniques.csv     # Method library
-└── README.md         # Documentation
+└── README.md          # Documentation
+```
+
+```text
+bmad-cis-design-thinking/
+├── SKILL.md
+├── workflow.md
+├── bmad-skill-manifest.yaml
+├── design-methods.csv
+└── template.md
+```
+
+```text
+bmad-cis-innovation-strategy/
+├── SKILL.md
+├── workflow.md
+├── bmad-skill-manifest.yaml
+├── innovation-frameworks.csv
+└── template.md
+```
+
+```text
+bmad-cis-problem-solving/
+├── SKILL.md
+├── workflow.md
+├── bmad-skill-manifest.yaml
+├── solving-methods.csv
+└── template.md
+```
+
+```text
+bmad-cis-storytelling/
+├── SKILL.md
+├── workflow.md
+├── bmad-skill-manifest.yaml
+├── story-types.csv
+└── template.md
 ```
 
 ## Best Practices

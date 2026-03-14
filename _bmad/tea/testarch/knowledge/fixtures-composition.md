@@ -2,8 +2,7 @@
 
 ## Principle
 
-Combine multiple Playwright fixtures using `mergeTests` to create a unified test object with all capabilities. Build
-composable test infrastructure by merging playwright-utils fixtures with custom project fixtures.
+Combine multiple Playwright fixtures using `mergeTests` to create a unified test object with all capabilities. Build composable test infrastructure by merging playwright-utils fixtures with custom project fixtures.
 
 ## Rationale
 

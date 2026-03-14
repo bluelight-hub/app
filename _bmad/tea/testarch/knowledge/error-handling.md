@@ -2,18 +2,11 @@
 
 ## Principle
 
-Treat expected failures explicitly: intercept network errors, assert UI fallbacks (error messages visible, retries
-triggered), and use scoped exception handling to ignore known errors while catching regressions. Test retry/backoff
-logic by forcing sequential failures (500 → timeout → success) and validate telemetry logging. Log captured errors with
-context (request payload, user/session) but redact secrets to keep artifacts safe for sharing.
+Treat expected failures explicitly: intercept network errors, assert UI fallbacks (error messages visible, retries triggered), and use scoped exception handling to ignore known errors while catching regressions. Test retry/backoff logic by forcing sequential failures (500 → timeout → success) and validate telemetry logging. Log captured errors with context (request payload, user/session) but redact secrets to keep artifacts safe for sharing.
 
 ## Rationale
 
-Tests fail for two reasons: genuine bugs or poor error handling in the test itself. Without explicit error handling
-patterns, tests become noisy (uncaught exceptions cause false failures) or silent (swallowing all errors hides real
-bugs). Scoped exception handling (Cypress.on('uncaught:exception'), page.on('pageerror')) allows tests to ignore
-documented, expected errors while surfacing unexpected ones. Resilience testing (retry logic, graceful degradation)
-ensures applications handle failures gracefully in production.
+Tests fail for two reasons: genuine bugs or poor error handling in the test itself. Without explicit error handling patterns, tests become noisy (uncaught exceptions cause false failures) or silent (swallowing all errors hides real bugs). Scoped exception handling (Cypress.on('uncaught:exception'), page.on('pageerror')) allows tests to ignore documented, expected errors while surfacing unexpected ones. Resilience testing (retry logic, graceful degradation) ensures applications handle failures gracefully in production.
 
 ## Pattern Examples
 
@@ -729,4 +722,4 @@ Before shipping error handling code, verify:
 - Related fragments: `network-first.md`, `test-quality.md`, `contract-testing.md`
 - Monitoring tools: Sentry, Datadog, LogRocket
 
-_Source: Murat error-handling patterns, Pact resilience guidance, SEON production error handling_
+_Source: Murat error-handling patterns, Pact resilience guidance, enterprise production error handling_
