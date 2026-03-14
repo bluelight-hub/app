@@ -142,7 +142,10 @@
       "bracketSpacing": true
     }
   },
-  "html": { "formatter": { "selfCloseVoidElements": "always" } },
+  "html": {
+    "formatter": { "selfCloseVoidElements": "always" },
+    "parser": { "interpolation": true }
+  },
   "overrides": [
     { "includes": ["*.json", "*.yml", "*.yaml"], "formatter": { "indentWidth": 2 } },
     { "includes": ["*.md"], "formatter": { "lineWidth": 300 } },
