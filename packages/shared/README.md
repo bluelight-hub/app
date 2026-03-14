@@ -12,9 +12,23 @@
 
 ## API-Client generieren
 
-1) Backend lokal starten (Swagger unter `http://localhost:3091/api-json` erreichbar)
-2) Ausführen: `pnpm --filter @bluelight-hub/shared generate-api`
-3) Linter formatiert den Output automatisch
+1) Backend lokal starten
+2) Standardmäßig wird die Alpha-Spec von `https://localhost:3091/api/alpha-json` geladen
+3) Für lokale HTTP-Setups ohne TLS die Basis-URL überschreiben:
+
+```bash
+BLUELIGHT_OPENAPI_BASE_URL=http://localhost:3091 pnpm --filter @bluelight-hub/shared generate-api
+```
+
+4) Ausführen: `pnpm --filter @bluelight-hub/shared generate-api`
+5) Linter formatiert den Output automatisch
+
+Versionierte Specs:
+
+- Alpha UI: `https://localhost:3091/api` oder `https://localhost:3091/api/alpha`
+- Alpha JSON: `https://localhost:3091/api/alpha-json` (`/api-json` bleibt als Alias verfügbar)
+- v1 UI: `https://localhost:3091/api/v1`
+- v1 JSON: `https://localhost:3091/api/v1-json`
 
 ## Build/CI
 

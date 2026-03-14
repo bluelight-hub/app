@@ -166,7 +166,6 @@ export * from './EintragDto';
 export * from './EmpfaengerSucheResultDto';
 export * from './ErfasseFahrzeugAusStammdatenDto';
 export * from './ErfasseTemporalesFahrzeugDto';
-export * from './ErforderlicheQualifikationDto';
 export * from './ErinnerungControllerCreateVAlpha201Response';
 export * from './ErinnerungControllerGetByEinsatzVAlpha200Response';
 export * from './ErinnerungControllerGetEskalationsAnalyseVAlpha200Response';

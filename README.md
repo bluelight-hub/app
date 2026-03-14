@@ -89,12 +89,26 @@ pnpm check:repo-hygiene
 
 Das Frontend nutzt ausschließlich den generierten OpenAPI-Client aus `packages/shared/client/`.
 
-1. Backend starten (Swagger verfügbar unter `http://localhost:3091/api-json`)
-2. Client generieren:
+1. Backend starten.
+2. Standardmäßig generiert `packages/shared` gegen die versionierte Alpha-Spec unter `https://localhost:3091/api/alpha-json`.
+3. Für lokale HTTP-Setups ohne TLS kann die Basis-URL temporär überschrieben werden:
+
+```bash
+BLUELIGHT_OPENAPI_BASE_URL=http://localhost:3091 pnpm --filter @bluelight-hub/shared generate-api
+```
+
+4. Client generieren:
 
 ```bash
 pnpm --filter @bluelight-hub/shared generate-api
 ```
+
+Weitere Specs:
+
+- Alpha UI: `https://localhost:3091/api` oder `https://localhost:3091/api/alpha`
+- Alpha JSON: `https://localhost:3091/api/alpha-json` (`/api-json` bleibt als Alias verfügbar)
+- v1 UI: `https://localhost:3091/api/v1`
+- v1 JSON: `https://localhost:3091/api/v1-json`
 
 ## Authentication
 
@@ -159,20 +173,11 @@ if (response.isNewUser) {
 const userData = await api.users.getCurrentUser();
 ```
 
-## Tests
+## Tests & Quality
 
-> ⚠️ **WICHTIG: Test-Infrastruktur entfernt**
->
-> Stand: 2025-01-28 - Alle Tests wurden temporär entfernt (siehe [PR #257](https://github.com/rubenvitt/bluelight-hub/pull/257))
->
-> - `pnpm test` funktioniert nicht mehr
-> - `pnpm test:cov` funktioniert nicht mehr
-> - `pnpm test:ui` funktioniert nicht mehr
->
-> **Migration für Entwickler:**
-> - Wenn Sie Tests lokal laufen hatten, müssen diese neu implementiert werden
-> - Zukünftige Test-Strategie: TBD
-> - Bei Fragen zur Test-Strategie siehe Issue [#XXX](https://github.com/rubenvitt/bluelight-hub/issues/XXX)
+- Repository-weit: `pnpm test`, `pnpm test:cov`, `pnpm test:ui`, `pnpm lint`
+- CI führt Build, Lint, Backend-Unit-Tests sowie sharded Backend-DB-Tests aus.
+- Der Pre-Commit-Hook blockiert Commits bei Backend-TypeScript-Fehlern, DI-Import-Verstößen, zirkulären Kern-Abhängigkeiten und Lint-Problemen.
 
 ## Docker
 
