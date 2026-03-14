@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Issue anlegen"
+  short_description: "Strukturierte GitHub-Issues mit passenden Labels"
+  default_prompt: "Nutze $create-gh-issue, um ein strukturiertes GitHub-Issue mit deutschem Titel, passenden Labels und geeignetem Issue-Typ anzulegen."
