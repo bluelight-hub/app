@@ -2,25 +2,17 @@
 
 ## Principle
 
-Start every UI change with a failing component test (`cy.mount`, Playwright component test, or RTL `render`). Follow the
-Red-Green-Refactor cycle: write a failing test (red), make it pass with minimal code (green), then improve the
-implementation (refactor). Ship only after the cycle completes. Keep component tests under 100 lines, isolated with
-fresh providers per test, and validate accessibility alongside functionality.
+Start every UI change with a failing component test (`cy.mount`, Playwright component test, or RTL `render`). Follow the Red-Green-Refactor cycle: write a failing test (red), make it pass with minimal code (green), then improve the implementation (refactor). Ship only after the cycle completes. Keep component tests under 100 lines, isolated with fresh providers per test, and validate accessibility alongside functionality.
 
 ## Rationale
 
-Component TDD provides immediate feedback during development. Failing tests (red) clarify requirements before writing
-code. Minimal implementations (green) prevent over-engineering. Refactoring with passing tests ensures changes don't
-break functionality. Isolated tests with fresh providers prevent state bleed in parallel runs. Accessibility assertions
-catch usability issues early. Visual debugging (Cypress runner, Storybook, Playwright trace viewer) accelerates
-diagnosis when tests fail.
+Component TDD provides immediate feedback during development. Failing tests (red) clarify requirements before writing code. Minimal implementations (green) prevent over-engineering. Refactoring with passing tests ensures changes don't break functionality. Isolated tests with fresh providers prevent state bleed in parallel runs. Accessibility assertions catch usability issues early. Visual debugging (Cypress runner, Storybook, Playwright trace viewer) accelerates diagnosis when tests fail.
 
 ## Pattern Examples
 
 ### Example 1: Red-Green-Refactor Loop
 
-**Context**: When building a new component, start with a failing test that describes the desired behavior. Implement
-just enough to pass, then refactor for quality.
+**Context**: When building a new component, start with a failing test that describes the desired behavior. Implement just enough to pass, then refactor for quality.
 
 **Implementation**:
 
@@ -156,8 +148,7 @@ test.describe('Button Component', () => {
 
 ### Example 2: Provider Isolation Pattern
 
-**Context**: When testing components that depend on context providers (React Query, Auth, Router), wrap them with
-required providers in each test to prevent state bleed between tests.
+**Context**: When testing components that depend on context providers (React Query, Auth, Router), wrap them with required providers in each test to prevent state bleed between tests.
 
 **Implementation**:
 
@@ -269,8 +260,7 @@ test.describe('UserProfile Component', () => {
 
 ### Example 3: Accessibility Assertions
 
-**Context**: When testing components, validate accessibility alongside functionality using axe-core, ARIA roles, labels,
-and keyboard navigation.
+**Context**: When testing components, validate accessibility alongside functionality using axe-core, ARIA roles, labels, and keyboard navigation.
 
 **Implementation**:
 
@@ -375,8 +365,7 @@ test.describe('Form Component Accessibility', () => {
 
 ### Example 4: Visual Regression Test
 
-**Context**: When testing components, capture screenshots to detect unintended visual changes. Use Playwright visual
-comparison or Cypress snapshot plugins.
+**Context**: When testing components, capture screenshots to detect unintended visual changes. Use Playwright visual comparison or Cypress snapshot plugins.
 
 **Implementation**:
 
@@ -468,13 +457,12 @@ export default defineConfig({
 
 ## Integration Points
 
-- **Used in workflows**: `*atdd` (component test generation), `*automate` (component test expansion), `*framework` (
-  component testing setup)
+- **Used in workflows**: `*atdd` (component test generation), `*automate` (component test expansion), `*framework` (component testing setup)
 - **Related fragments**:
-    - `test-quality.md` - Keep component tests <100 lines, isolated, focused
-    - `fixture-architecture.md` - Provider wrapping patterns, custom mount commands
-    - `data-factories.md` - Factory functions for component props
-    - `test-levels-framework.md` - When to use component tests vs E2E tests
+  - `test-quality.md` - Keep component tests <100 lines, isolated, focused
+  - `fixture-architecture.md` - Provider wrapping patterns, custom mount commands
+  - `data-factories.md` - Factory functions for component props
+  - `test-levels-framework.md` - When to use component tests vs E2E tests
 
 ## TDD Workflow Summary
 

@@ -4,7 +4,7 @@
 
 Inject the Pact mock server URL into consumer code via an optional `baseUrl` field on the API context type instead of using raw `fetch()` inside `executeTest()`. This ensures contract tests exercise the real consumer HTTP client — including retry logic, header assembly, timeout configuration, error handling, and metrics — rather than testing Pact itself.
 
-The base URL is typically a module-level constant evaluated at import time (`export const API_BASE_URL = env.SEON_API_URL`), but `mockServer.url` is only available at runtime inside `executeTest()`. Dependency injection solves this timing mismatch cleanly: add one optional field to the context type, use nullish coalescing in the HTTP client factory, and inject the mock server URL in tests.
+The base URL is typically a module-level constant evaluated at import time (`export const API_BASE_URL = env.API_BASE_URL`), but `mockServer.url` is only available at runtime inside `executeTest()`. Dependency injection solves this timing mismatch cleanly: add one optional field to the context type, use nullish coalescing in the HTTP client factory, and inject the mock server URL in tests.
 
 ## Rationale
 
@@ -124,7 +124,7 @@ export function createTestContext(mockServerUrl: string): ApiContext {
 
 ```typescript
 .executeTest(async (mockServer: V3MockServer) => {
-  const api = createSeonApi(createTestContext(mockServer.url));
+  const api = createApiClient(createTestContext(mockServer.url));
   const result = await api.getFilterFields();
   expect(result).toEqual(
     expect.arrayContaining([
@@ -277,7 +277,7 @@ expect(response.status).toBe(200);
 
 ```typescript
 // GOOD: Exercises real client, validates parsed return value
-const api = createSeonApi(createTestContext(mockServer.url));
+const api = createApiClient(createTestContext(mockServer.url));
 const result = await api.searchTransactions(request);
 expect(result.transactions).toBeDefined();
 ```
@@ -307,4 +307,4 @@ Used in workflows:
 
 ## Source
 
-Pattern derived from seon-mcp-server Pact consumer test refactor (March 2026). Implements dependency injection for testability as described in Pact.js best practices.
+Pattern derived from my-consumer-app Pact consumer test refactor (March 2026). Implements dependency injection for testability as described in Pact.js best practices.

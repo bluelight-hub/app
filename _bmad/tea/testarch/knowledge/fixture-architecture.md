@@ -2,14 +2,11 @@
 
 ## Principle
 
-Build test helpers as pure functions first, then wrap them in framework-specific fixtures. Compose capabilities using
-`mergeTests` (Playwright) or layered commands (Cypress) instead of inheritance. Each fixture should solve one isolated
-concern (auth, API, logs, network).
+Build test helpers as pure functions first, then wrap them in framework-specific fixtures. Compose capabilities using `mergeTests` (Playwright) or layered commands (Cypress) instead of inheritance. Each fixture should solve one isolated concern (auth, API, logs, network).
 
 ## Rationale
 
-Traditional Page Object Models create tight coupling through inheritance chains (`BasePage → LoginPage → AdminPage`).
-When base classes change, all descendants break. Pure functions with fixture wrappers provide:
+Traditional Page Object Models create tight coupling through inheritance chains (`BasePage → LoginPage → AdminPage`). When base classes change, all descendants break. Pure functions with fixture wrappers provide:
 
 - **Testability**: Pure functions run in unit tests without framework overhead
 - **Composability**: Mix capabilities freely via `mergeTests`, no inheritance constraints
@@ -20,8 +17,7 @@ When base classes change, all descendants break. Pure functions with fixture wra
 
 ### Example 1: Pure Function → Fixture Pattern
 
-**Context**: When building any test helper, always start with a pure function that accepts all dependencies explicitly.
-Then wrap it in a Playwright fixture or Cypress command.
+**Context**: When building any test helper, always start with a pure function that accepts all dependencies explicitly. Then wrap it in a Playwright fixture or Cypress command.
 
 **Implementation**:
 
@@ -90,8 +86,7 @@ export const test = base.extend<{ apiRequest: typeof apiRequest }>({
 
 ### Example 2: Composable Fixture System with mergeTests
 
-**Context**: When building comprehensive test capabilities, compose multiple focused fixtures instead of creating
-monolithic helper classes. Each fixture provides one capability.
+**Context**: When building comprehensive test capabilities, compose multiple focused fixtures instead of creating monolithic helper classes. Each fixture provides one capability.
 
 **Implementation**:
 
@@ -174,8 +169,7 @@ export const test = base.extend({
 
 ### Example 3: Framework-Agnostic HTTP Helper
 
-**Context**: When building HTTP helpers, keep them framework-agnostic. Accept all params explicitly so they work in unit
-tests, Playwright, Cypress, or any context.
+**Context**: When building HTTP helpers, keep them framework-agnostic. Accept all params explicitly so they work in unit tests, Playwright, Cypress, or any context.
 
 **Implementation**:
 
@@ -245,8 +239,7 @@ Cypress.Commands.add('apiRequest', (params) => {
 
 ### Example 4: Fixture Cleanup Pattern
 
-**Context**: When fixtures create resources (data, files, connections), ensure automatic cleanup in fixture teardown.
-Tests must not leak state.
+**Context**: When fixtures create resources (data, files, connections), ensure automatic cleanup in fixture teardown. Tests must not leak state.
 
 **Implementation**:
 
@@ -392,9 +385,9 @@ export const test = base.extend({
 
 - **Used in workflows**: `*atdd` (test generation), `*automate` (test expansion), `*framework` (initial setup)
 - **Related fragments**:
-    - `data-factories.md` - Factory functions for test data
-    - `network-first.md` - Network interception patterns
-    - `test-quality.md` - Deterministic test design principles
+  - `data-factories.md` - Factory functions for test data
+  - `network-first.md` - Network interception patterns
+  - `test-quality.md` - Deterministic test design principles
 
 ## Helper Function Reuse Guidelines
 
@@ -405,4 +398,4 @@ When deciding whether to create a fixture, follow these rules:
 - **1 use** → Keep inline (avoid premature abstraction)
 - **Complex logic** → Factory function pattern (dynamic data generation)
 
-_Source: Murat Testing Philosophy (lines 74-122), SEON production patterns, Playwright fixture docs._
+_Source: Murat Testing Philosophy (lines 74-122), enterprise production patterns, Playwright fixture docs._

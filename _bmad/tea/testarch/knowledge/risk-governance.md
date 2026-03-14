@@ -2,18 +2,13 @@
 
 ## Principle
 
-Risk governance transforms subjective "should we ship?" debates into objective, data-driven decisions. By scoring risk (
-probability × impact), classifying by category (TECH, SEC, PERF, etc.), and tracking mitigation ownership, teams create
-transparent quality gates that balance speed with safety.
+Risk governance transforms subjective "should we ship?" debates into objective, data-driven decisions. By scoring risk (probability × impact), classifying by category (TECH, SEC, PERF, etc.), and tracking mitigation ownership, teams create transparent quality gates that balance speed with safety.
 
 ## Rationale
 
-**The Problem**: Without formal risk governance, releases become political—loud voices win, quiet risks hide, and teams
-discover critical issues in production. "We thought it was fine" isn't a release strategy.
+**The Problem**: Without formal risk governance, releases become political—loud voices win, quiet risks hide, and teams discover critical issues in production. "We thought it was fine" isn't a release strategy.
 
-**The Solution**: Risk scoring (1-3 scale for probability and impact, total 1-9) creates shared language. Scores ≥6
-demand documented mitigation. Scores = 9 mandate gate failure. Every acceptance criterion maps to a test, and gaps
-require explicit waivers with owners and expiry dates.
+**The Solution**: Risk scoring (1-3 scale for probability and impact, total 1-9) creates shared language. Scores ≥6 demand documented mitigation. Scores = 9 mandate gate failure. Every acceptance criterion maps to a test, and gaps require explicit waivers with owners and expiry dates.
 
 **Why This Matters**:
 
@@ -613,12 +608,8 @@ Before deploying to production, ensure:
 
 ## Integration Points
 
-- **Used in workflows**: `*trace` (Phase 2: gate decision), `*nfr-assess` (risk scoring), `*test-design` (risk
-  identification)
-- **Related fragments**: `probability-impact.md` (scoring definitions), `test-priorities-matrix.md` (P0-P3
-  classification), `nfr-criteria.md` (non-functional risks)
-- **Tools**: Risk tracking dashboards (Jira, Linear), gate automation (CI/CD), traceability reports (Markdown,
-  Confluence)
+- **Used in workflows**: `*trace` (Phase 2: gate decision), `*nfr-assess` (risk scoring), `*test-design` (risk identification)
+- **Related fragments**: `probability-impact.md` (scoring definitions), `test-priorities-matrix.md` (P0-P3 classification), `nfr-criteria.md` (non-functional risks)
+- **Tools**: Risk tracking dashboards (Jira, Linear), gate automation (CI/CD), traceability reports (Markdown, Confluence)
 
-_Source: Murat risk governance notes, gate schema guidance, SEON production gate workflows, ISO 31000 risk management
-standards_
+_Source: Murat risk governance notes, gate schema guidance, enterprise production gate workflows, ISO 31000 risk management standards_

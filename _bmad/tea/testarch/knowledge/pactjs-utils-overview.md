@@ -2,23 +2,16 @@
 
 ## Principle
 
-Use production-ready utilities from `@seontechnologies/pactjs-utils` to eliminate boilerplate in consumer-driven
-contract testing. The library wraps `@pact-foundation/pact` with type-safe helpers for provider state creation, PactV4
-JSON interaction builders, verifier configuration, and request filter injection — working equally well for HTTP and
-message (async/Kafka) contracts.
+Use production-ready utilities from `@seontechnologies/pactjs-utils` to eliminate boilerplate in consumer-driven contract testing. The library wraps `@pact-foundation/pact` with type-safe helpers for provider state creation, PactV4 JSON interaction builders, verifier configuration, and request filter injection — working equally well for HTTP and message (async/Kafka) contracts.
 
 ## Rationale
 
 ### Problems with raw @pact-foundation/pact
 
-- **JsonMap casting**: Provider state parameters require `JsonMap` type — manually casting every value is error-prone
-  and verbose
-- **Repeated builder lambdas**: PactV4 interactions often repeat inline callbacks with `builder.query(...)`,
-  `builder.headers(...)`, and `builder.jsonBody(...)`
-- **Verifier configuration sprawl**: `VerifierOptions` requires 30+ lines of scattered configuration (broker URL,
-  selectors, state handlers, request filters, version tags)
-- **Environment variable juggling**: Different env vars for local vs remote flows, breaking change coordination, payload
-  URL matching
+- **JsonMap casting**: Provider state parameters require `JsonMap` type — manually casting every value is error-prone and verbose
+- **Repeated builder lambdas**: PactV4 interactions often repeat inline callbacks with `builder.query(...)`, `builder.headers(...)`, and `builder.jsonBody(...)`
+- **Verifier configuration sprawl**: `VerifierOptions` requires 30+ lines of scattered configuration (broker URL, selectors, state handlers, request filters, version tags)
+- **Environment variable juggling**: Different env vars for local vs remote flows, breaking change coordination, payload URL matching
 - **Express middleware types**: Request filter requires Express types that aren't re-exported from Pact
 - **Bearer prefix bugs**: Easy to double-prefix tokens as `Bearer Bearer ...` in request filters
 - **CI version tagging**: Manual logic to extract branch/tag info from CI environment
@@ -27,14 +20,11 @@ message (async/Kafka) contracts.
 
 - **`createProviderState`**: One-call tuple builder for `.given()` — handles all JsonMap conversion automatically
 - **`toJsonMap`**: Explicit type coercion (null→"null", Date→ISO string, nested objects flattened)
-- **`setJsonContent`**: Curried callback helper for PactV4 `.withRequest(...)` / `.willRespondWith(...)` builders (
-  query/headers/body)
+- **`setJsonContent`**: Curried callback helper for PactV4 `.withRequest(...)` / `.willRespondWith(...)` builders (query/headers/body)
 - **`setJsonBody`**: Body-only shorthand alias of `setJsonContent({ body })`
-- **`buildVerifierOptions`**: Single function assembles complete VerifierOptions from minimal inputs — handles
-  local/remote/BDCT flows
+- **`buildVerifierOptions`**: Single function assembles complete VerifierOptions from minimal inputs — handles local/remote/BDCT flows
 - **`buildMessageVerifierOptions`**: Same as above but for message/Kafka provider verification
-- **`handlePactBrokerUrlAndSelectors`**: Resolves broker URL and consumer version selectors from env vars with breaking
-  change awareness
+- **`handlePactBrokerUrlAndSelectors`**: Resolves broker URL and consumer version selectors from env vars with breaking change awareness
 - **`getProviderVersionTags`**: CI-aware version tagging (extracts branch/tag from GitHub Actions, GitLab CI, etc.)
 - **`createRequestFilter`**: Pluggable token generator pattern — prevents double-Bearer bugs by contract
 - **`noOpRequestFilter`**: Pass-through for providers that don't require auth injection
@@ -154,12 +144,9 @@ await new Verifier(opts).verifyProvider();
 - **Peer dependency**: `@pact-foundation/pact` must be installed separately
 - **Local flow**: No broker needed — set `pactUrls` in verifier options pointing to local pact files
 - **Remote flow**: Set `PACT_BROKER_BASE_URL` and `PACT_BROKER_TOKEN` env vars
-- **Breaking changes**: Set `includeMainAndDeployed: false` when coordinating breaking changes (verifies only
-  matchingBranch)
-- **Builder helpers**: Use `setJsonContent` when you need query/headers/body together; use `setJsonBody` for body-only
-  callbacks
-- **Type exports**: Library exports `StateHandlers`, `RequestFilter`, `JsonMap`, `JsonContentInput`,
-  `ConsumerVersionSelector` types
+- **Breaking changes**: Set `includeMainAndDeployed: false` when coordinating breaking changes (verifies only matchingBranch)
+- **Builder helpers**: Use `setJsonContent` when you need query/headers/body together; use `setJsonBody` for body-only callbacks
+- **Type exports**: Library exports `StateHandlers`, `RequestFilter`, `JsonMap`, `JsonContentInput`, `ConsumerVersionSelector` types
 
 ## Related Fragments
 

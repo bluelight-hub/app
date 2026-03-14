@@ -1,7 +1,6 @@
 # ADR Quality Readiness Checklist
 
-**Purpose:** Standardized 8-category, 29-criteria framework for evaluating system testability and NFR compliance during
-architecture review (Phase 3) and NFR assessment.
+**Purpose:** Standardized 8-category, 29-criteria framework for evaluating system testability and NFR compliance during architecture review (Phase 3) and NFR assessment.
 
 **When to Use:**
 
