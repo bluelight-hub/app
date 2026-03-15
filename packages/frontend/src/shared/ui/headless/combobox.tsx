@@ -32,6 +32,7 @@ export interface ComboboxProps {
   allowCustomValue?: boolean;
   leadingIcon?: React.ReactNode;
   className?: string;
+  inputClassName?: string;
   error?: string;
   openOnFocus?: boolean;
   autoFocus?: boolean;
@@ -51,6 +52,7 @@ export function Combobox({
   allowCustomValue = false,
   leadingIcon,
   className,
+  inputClassName,
   error,
   openOnFocus = false,
   autoFocus = false,
@@ -161,6 +163,7 @@ export function Combobox({
               leadingIcon && 'pl-12',
               showClearButton && 'pr-20',
               error && 'border-red-300 focus:border-red-500 focus:ring-red-500 dark:border-red-700 dark:focus:border-red-400 dark:focus:ring-red-400',
+              inputClassName,
             )}
             autoCorrect={'off'}
             autoComplete={'off'}
