@@ -7,7 +7,7 @@
  * **Features:**
  * - Server-Auswahl via Dropdown
  * - "Server hinzufügen" Option
- * - Aktionen pro Server (Neu einrichten, Löschen)
+ * - Direkter Wechsel zur Server-Verwaltung
  * - Warnung bei Server-Wechsel wenn User eingeloggt ist
  *
  * @module features/server/ui/molecules/ServerSelector
@@ -15,8 +15,8 @@
 
 import { cn } from '@/shared/ui/cn';
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react';
-import { PiCaretUpDown, PiCheck, PiDotsThreeVertical, PiPlus, PiTrash, PiArrowsClockwise, PiGear } from 'react-icons/pi';
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { PiCaretUpDown, PiCheck, PiPlus, PiGear } from 'react-icons/pi';
+import { useState, useCallback, useMemo } from 'react';
 import type { ServerConfig, ConnectionStatus } from '../../types/server-config';
 import { sortServersByLastUsed } from '../../stores/server.store';
 import { getHostSafe } from '../../utils/url';
@@ -34,10 +34,6 @@ export interface ServerSelectorProps {
   onServerChange: (serverId: string) => void;
   /** Callback für "Server hinzufügen" */
   onAddServer: () => void;
-  /** Callback für "Server neu einrichten" (Re-Auth) */
-  onReconfigureServer: (serverId: string) => void;
-  /** Callback für "Server löschen" */
-  onDeleteServer: (serverId: string) => void;
   /** Callback für "Server verwalten" (öffnet Verwaltungs-Seite) */
   onManageServers?: () => void;
   /** Deaktiviert die Komponente */
@@ -77,7 +73,7 @@ function getStatusColor(status: ConnectionStatus | undefined): string {
  * ServerSelector Komponente
  *
  * Ermöglicht die Auswahl zwischen konfigurierten Servern
- * und bietet Verwaltungsoptionen (Hinzufügen, Neu einrichten, Löschen).
+ * und bietet Verwaltungsoptionen (Hinzufügen, Server verwalten).
  */
 export function ServerSelector({
   servers,
@@ -85,20 +81,12 @@ export function ServerSelector({
   connectionStatus,
   onServerChange,
   onAddServer,
-  onReconfigureServer,
-  onDeleteServer,
   onManageServers,
   disabled = false,
   className,
   isAuthenticated = false,
   onLogoutAndSwitch,
 }: ServerSelectorProps) {
-  // State für das Aktionen-Menu (welcher Server's Menu ist offen)
-  const [openMenuServerId, setOpenMenuServerId] = useState<string | null>(null);
-  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
-  const menuButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
-  const menuRef = useRef<HTMLDivElement>(null);
-
   // State für Server-Wechsel-Warndialog
   const [switchTargetId, setSwitchTargetId] = useState<string | null>(null);
   const [isSwitchLoading, setIsSwitchLoading] = useState(false);
@@ -164,88 +152,6 @@ export function ServerSelector({
     return servers.find((s) => s.id === switchTargetId) ?? null;
   }, [switchTargetId, servers]);
 
-  // Schließe Menu bei Klick außerhalb
-  // Issue 1 Fix: Memory Leak Prevention mit mounted Flag
-  useEffect(() => {
-    if (!openMenuServerId) return;
-
-    let mounted = true;
-
-    const handleClickOutside = (e: MouseEvent) => {
-      if (!mounted) return;
-      const target = e.target as Node;
-      const menuButton = menuButtonRefs.current.get(openMenuServerId);
-
-      if (menuRef.current && !menuRef.current.contains(target) && menuButton && !menuButton.contains(target)) {
-        if (mounted) {
-          setOpenMenuServerId(null);
-        }
-      }
-    };
-
-    // Delay um den initialen Klick nicht zu fangen
-    const timeoutId = setTimeout(() => {
-      if (mounted) {
-        document.addEventListener('mousedown', handleClickOutside);
-      }
-    }, 0);
-
-    return () => {
-      mounted = false;
-      clearTimeout(timeoutId);
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [openMenuServerId]);
-
-  // Schließe Menu bei Escape
-  useEffect(() => {
-    if (!openMenuServerId) return;
-
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setOpenMenuServerId(null);
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [openMenuServerId]);
-
-  const handleMenuButtonClick = useCallback((e: React.MouseEvent | React.KeyboardEvent, serverId: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const button = menuButtonRefs.current.get(serverId);
-    if (button) {
-      const rect = button.getBoundingClientRect();
-      // Issue 6 Fix: Viewport Boundary Check für Menu-Positionierung
-      const menuWidth = 192; // w-48
-      const left = Math.max(8, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 8));
-      setMenuPosition({
-        top: rect.bottom + 4,
-        left,
-      });
-    }
-
-    setOpenMenuServerId((prev) => (prev === serverId ? null : serverId));
-  }, []);
-
-  const handleReconfigure = useCallback(
-    (serverId: string) => {
-      setOpenMenuServerId(null);
-      onReconfigureServer(serverId);
-    },
-    [onReconfigureServer],
-  );
-
-  const handleDelete = useCallback(
-    (serverId: string) => {
-      setOpenMenuServerId(null);
-      onDeleteServer(serverId);
-    },
-    [onDeleteServer],
-  );
-
   return (
     <div className={cn('w-full', className)}>
       <Listbox as="div" value={activeServer} onChange={handleChange} disabled={disabled}>
@@ -299,7 +205,7 @@ export function ServerSelector({
               <ListboxOption
                 key={server.id}
                 value={server}
-                className={cn('group relative cursor-pointer select-none py-3 pr-12 pl-4', 'text-gray-900 dark:text-gray-100', 'data-[focus]:bg-primary-50 dark:data-[focus]:bg-primary-900/20')}
+                className={cn('relative cursor-pointer select-none py-3 pr-10 pl-4', 'text-gray-900 dark:text-gray-100', 'data-[focus]:bg-primary-50 dark:data-[focus]:bg-primary-900/20')}
               >
                 {({ selected }) => (
                   <div className="flex items-center justify-between">
@@ -324,48 +230,10 @@ export function ServerSelector({
 
                     {/* Check Icon für ausgewählten Server */}
                     {selected && (
-                      <span className="absolute inset-y-0 right-10 flex items-center text-primary-600 dark:text-primary-400">
+                      <span className="absolute inset-y-0 right-3 flex items-center text-primary-600 dark:text-primary-400">
                         <PiCheck className="h-5 w-5" aria-hidden="true" />
                       </span>
                     )}
-
-                    {/* Aktionen-Button - öffnet externes Menu */}
-                    {/* Issue 3 + 9 Fix: Keyboard Navigation + ARIA Labels */}
-                    <button
-                      type="button"
-                      ref={(el) => {
-                        if (el) {
-                          menuButtonRefs.current.set(server.id, el);
-                        } else {
-                          menuButtonRefs.current.delete(server.id);
-                        }
-                      }}
-                      onClick={(e) => handleMenuButtonClick(e, server.id)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleMenuButtonClick(e, server.id);
-                        }
-                      }}
-                      onPointerDown={(e) => {
-                        // Verhindert dass Listbox das Event als Selection interpretiert
-                        e.stopPropagation();
-                      }}
-                      aria-label={`Aktionen für ${server.name}`}
-                      aria-haspopup="menu"
-                      aria-expanded={openMenuServerId === server.id}
-                      className={cn(
-                        'absolute inset-y-0 right-2 flex items-center',
-                        'rounded-md p-1.5 text-gray-400 opacity-0 transition-opacity',
-                        'hover:bg-gray-100 hover:text-gray-600',
-                        'focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-primary-500',
-                        'group-hover:opacity-100 group-data-[focus]:opacity-100',
-                        'dark:hover:bg-gray-700 dark:hover:text-gray-300',
-                      )}
-                    >
-                      <PiDotsThreeVertical className="h-5 w-5" aria-hidden="true" />
-                    </button>
                   </div>
                 )}
               </ListboxOption>
@@ -398,35 +266,6 @@ export function ServerSelector({
           </ListboxOptions>
         </div>
       </Listbox>
-
-      {/* Externes Aktionen-Menu - gerendert außerhalb der Listbox via Portal */}
-      {openMenuServerId && menuPosition && (
-        <div
-          ref={menuRef}
-          className={cn('fixed z-50 w-48 rounded-lg bg-white p-1 shadow-lg', 'border border-gray-200', 'dark:border-gray-700 dark:bg-gray-800')}
-          style={{
-            top: menuPosition.top,
-            left: menuPosition.left,
-          }}
-        >
-          <button
-            type="button"
-            onClick={() => handleReconfigure(openMenuServerId)}
-            className={cn('flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm', 'text-gray-700 dark:text-gray-200', 'hover:bg-gray-100 dark:hover:bg-gray-700')}
-          >
-            <PiArrowsClockwise className="h-4 w-4" />
-            Neu einrichten
-          </button>
-          <button
-            type="button"
-            onClick={() => handleDelete(openMenuServerId)}
-            className={cn('flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm', 'text-red-600 dark:text-red-400', 'hover:bg-red-50 dark:hover:bg-red-900/20')}
-          >
-            <PiTrash className="h-4 w-4" />
-            Löschen
-          </button>
-        </div>
-      )}
 
       {/* Server-Wechsel Warndialog - nur wenn User eingeloggt ist */}
       {activeServer && switchTargetServer && (

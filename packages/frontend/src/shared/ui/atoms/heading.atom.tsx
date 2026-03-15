@@ -1,4 +1,4 @@
-import { cn } from '@/shared/ui/cn';
+import { clsx } from 'clsx';
 import type { ReactNode } from 'react';
 
 interface HeadingProps {
@@ -15,14 +15,14 @@ interface HeadingProps {
  */
 export function Heading({ size = 'md', as: Component = 'h2', children, className }: HeadingProps) {
   const sizeClasses = {
-    xs: 'text-xs font-semibold',
-    sm: 'text-sm font-semibold',
-    md: 'text-base font-semibold',
-    lg: 'text-lg font-semibold',
-    xl: 'text-xl font-bold',
-    '2xl': 'text-2xl font-bold',
-    '3xl': 'text-3xl font-bold',
+    xs: 'text-body-xs font-semibold uppercase tracking-[0.16em]',
+    sm: 'text-title-sm font-semibold',
+    md: 'text-title-sm font-semibold',
+    lg: 'text-title-md font-semibold',
+    xl: 'text-title-lg font-semibold',
+    '2xl': 'text-title-lg font-bold',
+    '3xl': 'text-title-lg font-bold tracking-tight',
   };
 
-  return <Component className={cn('text-gray-900 dark:text-white', sizeClasses[size], className)}>{children}</Component>;
+  return <Component className={clsx('font-sans text-text-primary', sizeClasses[size], className)}>{children}</Component>;
 }

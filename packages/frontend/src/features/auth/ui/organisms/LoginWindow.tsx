@@ -1,6 +1,6 @@
 import { AUTH_KEYS, consumeRedirectAfterLogin, useCurrentUser, useUnifiedAuth, useLogout } from '@/features/auth';
 import { useRequireServer, useServerList, useActiveServer, useServerListHealth } from '@/features/server/hooks';
-import { setActiveServer, removeServer } from '@/features/server/stores/server.store';
+import { setActiveServer } from '@/features/server/stores/server.store';
 import { serverStore } from '@/features/server/stores/server.store';
 import { ServerSelector } from '@/features/server/ui/molecules';
 import { getIndicatorStatus, STATUS_DOT_COLORS, STATUS_LABELS, useSystemHealth, useSystemVersion } from '@/features/system';
@@ -12,7 +12,6 @@ import { Text } from '@/shared/ui/atoms/text.atom';
 import { AuthCard } from '@/shared/ui/molecules/auth-card.molecule';
 import { AuthFooter } from '@/shared/ui/molecules/auth-footer.molecule';
 import { LogoWithIndicator } from '@/shared/ui/molecules/logo-with-indicator.molecule';
-import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { AuthLayout } from '@/shared/ui/templates/AuthLayout';
 import type { AuthRequestDto } from '@/shared';
 import { useNavigate, useRouter } from '@tanstack/react-router';
@@ -47,10 +46,6 @@ export function LoginWindow(_props: Props) {
   // Health-Checks für alle Server in der Liste aktivieren
   useServerListHealth();
 
-  // State für Lösch-Dialog
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [serverToDelete, setServerToDelete] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   // Issue 7 Fix: Loading-State beim Server-Wechsel um Race Conditions zu verhindern
   const [isSwitching, setIsSwitching] = useState(false);
   const redirectTargetRef = useRef<string | null>(null);
@@ -101,89 +96,6 @@ export function LoginWindow(_props: Props) {
   const handleManageServers = useCallback(() => {
     navigate({ to: '/server/manage' });
   }, [navigate]);
-
-  const handleReconfigureServer = useCallback(
-    (serverId: string) => {
-      const server = servers.find((s) => s.id === serverId);
-      if (server) {
-        // Navigiere zu /server/setup mit der Server-URL als Query-Parameter
-        navigate({ to: '/server/setup', search: { server: server.url } });
-      }
-    },
-    [navigate, servers],
-  );
-
-  const handleDeleteServer = useCallback(
-    (serverId: string) => {
-      // F6-Fix: Validierung ob Server noch existiert (Multi-Tab Szenario)
-      const server = servers.find((s) => s.id === serverId);
-      if (!server) {
-        toast.error('Server nicht gefunden', {
-          description: 'Dieser Server wurde bereits gelöscht',
-        });
-        return;
-      }
-
-      setServerToDelete(serverId);
-      setDeleteDialogOpen(true);
-    },
-    [servers],
-  );
-
-  const handleConfirmDelete = useCallback(async () => {
-    if (!serverToDelete) return;
-
-    // F1-Fix: Prüfe ob aktiver Server gelöscht wird
-    const isActiveServer = serverToDelete === activeServer?.id;
-    // F8-Fix: Prüfe ob letzter Server gelöscht wird (für Redirect-Handling)
-    const willBeLastServer = servers.length === 1;
-    const serverName = servers.find((s) => s.id === serverToDelete)?.name;
-
-    if (isActiveServer) {
-      toast.warning('Aktiver Server', {
-        description: 'Du wirst von diesem Server abgemeldet.',
-      });
-    }
-
-    setIsDeleting(true);
-    try {
-      // F1-Fix: Auth-State invalidieren wenn aktiver Server gelöscht wird
-      if (isActiveServer) {
-        await queryClient.invalidateQueries({ queryKey: AUTH_KEYS.auth.queries.authCheck });
-      }
-
-      await removeServer(serverToDelete);
-
-      // F8-Fix: Dialog sofort schließen um Memory Leaks bei Redirect zu vermeiden
-      setDeleteDialogOpen(false);
-      setServerToDelete(null);
-
-      // H6: Early return BEFORE toast wenn letzter Server geloescht wird
-      // useRequireServer wird automatisch redirecten - kein Toast noetig
-      if (willBeLastServer) {
-        return; // Early return - skip toast, redirect pending
-      }
-
-      // Toast nur wenn nicht redirected wird
-      toast.success('Server gelöscht', {
-        description: `"${serverName}" wurde entfernt`,
-      });
-      // F7-Fix: Nur auth-bezogene Queries invalidieren
-      await queryClient.invalidateQueries({ queryKey: AUTH_KEYS.auth.queries.authCheck });
-      await queryClient.invalidateQueries({ queryKey: ['system-health'] });
-    } catch (error) {
-      toast.error('Löschen fehlgeschlagen', {
-        description: error instanceof Error ? error.message : 'Unbekannter Fehler',
-      });
-    } finally {
-      setIsDeleting(false);
-    }
-  }, [serverToDelete, servers, queryClient, activeServer]);
-
-  const handleCancelDelete = useCallback(() => {
-    setDeleteDialogOpen(false);
-    setServerToDelete(null);
-  }, []);
 
   const resolveRedirectTarget = useCallback((fallbackTarget: string): string => {
     if (redirectTargetRef.current) {
@@ -281,8 +193,6 @@ export function LoginWindow(_props: Props) {
                 connectionStatus={connectionStatus}
                 onServerChange={handleServerChange}
                 onAddServer={handleAddServer}
-                onReconfigureServer={handleReconfigureServer}
-                onDeleteServer={handleDeleteServer}
                 onManageServers={handleManageServers}
                 disabled={isSwitching}
                 isAuthenticated={!!user}
@@ -316,19 +226,6 @@ export function LoginWindow(_props: Props) {
           />
         </div>
       </AuthCard>
-
-      {/* Lösch-Bestätigungs-Dialog */}
-      <Dialog.Confirm
-        isOpen={deleteDialogOpen}
-        onClose={handleCancelDelete}
-        onConfirm={handleConfirmDelete}
-        title="Server löschen"
-        message={`Möchtest du "${servers.find((s) => s.id === serverToDelete)?.name ?? 'diesen Server'}" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`}
-        confirmLabel="Löschen"
-        cancelLabel="Abbrechen"
-        variant="danger"
-        isProcessing={isDeleting}
-      />
     </AuthLayout>
   );
 }

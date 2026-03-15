@@ -309,7 +309,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   // Wenn Fullscreen-Modus aktiv ist, nur Content ohne Layout rendern
   if (isFullscreenMode) {
     return (
-      <div className={cn('min-h-screen bg-gray-50 dark:bg-gray-900', className)}>
+      <div className={cn('min-h-screen bg-surface-canvas text-text-primary', className)}>
         <Outlet />
       </div>
     );
@@ -320,9 +320,9 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
       {/* Module Overview Modal */}
       <ModuleOverviewCard modules={modules} currentModuleId={currentModule.id} einsatzId={einsatzId} open={showModuleOverview} onClose={() => setShowModuleOverview(false)} />
 
-      <div className={cn('min-h-screen bg-gray-50 dark:bg-gray-900', className)}>
+      <div className={cn('min-h-screen bg-surface-canvas text-text-primary', className)}>
         {/* Fixed Header */}
-        <header className="sticky top-0 z-30 border-gray-200 border-b bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <header className="sticky top-0 z-30 border-border-subtle border-b bg-surface-panel shadow-raised">
           <Container maxWidth="full">
             <div className="flex h-16 items-center justify-between px-4">
               {/* Left: Back and Title */}
@@ -334,19 +334,19 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
                   </Button>
                 </Link>
 
-                <div className="h-8 w-px bg-gray-300 dark:bg-gray-600" />
+                <div className="h-8 w-px bg-border-subtle" />
 
                 {einsatz && (
                   <div className="flex items-center gap-3">
-                    <PiSiren className="h-5 w-5 text-red-500" />
+                    <PiSiren className="h-5 w-5 text-status-danger-text" />
                     <div>
-                      <h1 className="font-semibold text-gray-900 text-lg dark:text-gray-100">
-                        <span className="font-mono text-gray-500 text-sm dark:text-gray-400">{einsatz.nummer}</span>
-                        <span className="mx-1.5 text-gray-300 dark:text-gray-600">|</span>
+                      <h1 className="font-semibold text-text-primary text-title-sm">
+                        <span className="font-mono text-body-sm text-text-secondary">{einsatz.nummer}</span>
+                        <span className="mx-1.5 text-border-strong">|</span>
                         {einsatz.name}
                       </h1>
                       {einsatz.alarmstichwort && (
-                        <p className="text-gray-500 text-xs dark:text-gray-400">
+                        <p className="text-body-xs text-text-secondary">
                           {einsatz.alarmstichwort}
                           {einsatz.einsatzort && ` • ${einsatz.einsatzort}`}
                         </p>
@@ -371,9 +371,9 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
                   )}
 
                   {duration && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <PiClock className="h-4 w-4 text-gray-400" />
-                      <span className="text-gray-600 dark:text-gray-400">{duration}</span>
+                    <div className="flex items-center gap-2 text-body-sm">
+                      <PiClock className="h-4 w-4 text-text-muted" />
+                      <span className="text-text-secondary">{duration}</span>
                     </div>
                   )}
                   <EinsatzStatusBadge status={einsatz.status} size="sm" />
@@ -384,7 +384,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
         </header>
 
         {/* Module Navigation (Horizontal) */}
-        <nav className="sticky top-16 z-20 border-gray-200 border-b bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <nav className="sticky top-16 z-20 border-border-subtle border-b bg-surface-panel shadow-raised">
           <Container maxWidth="full">
             <div className="px-4 py-3">
               <div className="flex items-center justify-between">
@@ -435,7 +435,9 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
                         appearance="ghost"
                         size="sm"
                         onClick={() => setShowModuleOverview(true)}
-                        className={cn('px-3', modules.slice(3).some((m) => m.id === currentModule.id) && 'ring-2 ring-blue-500')}
+                        aria-label="Modulübersicht öffnen"
+                        title="Modulübersicht öffnen"
+                        className={cn('px-3', modules.slice(3).some((m) => m.id === currentModule.id) && 'bg-action-secondary ring-2 ring-focus-ring')}
                       >
                         <PiGridFour className="h-4 w-4" />
                         <span className="ml-2 hidden md:inline">Mehr</span>
@@ -470,7 +472,9 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
                         appearance="ghost"
                         size="sm"
                         onClick={() => setShowModuleOverview(true)}
-                        className={cn('px-3', modules.slice(3).some((m) => m.id === currentModule.id) && 'ring-2 ring-blue-500')}
+                        aria-label="Modulübersicht öffnen"
+                        title="Modulübersicht öffnen"
+                        className={cn('px-3', modules.slice(3).some((m) => m.id === currentModule.id) && 'bg-action-secondary ring-2 ring-focus-ring')}
                       >
                         <PiGridFour className="h-4 w-4" />
                         <span className="ml-2 hidden md:inline">Mehr</span>
@@ -482,13 +486,18 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
                 {/* Mobile: Nur Icons oder kompakter Dropdown */}
                 <div className="flex flex-1 items-center gap-2 sm:hidden">
                   {/* Aktives Modul prominent */}
-                  <div className={cn('flex items-center gap-2 rounded-lg px-3 py-2 font-medium text-sm', getModuleActiveColor(currentModule.color))}>
+                  <div
+                    className={cn(
+                      'flex items-center gap-2 rounded-control border border-border-subtle bg-action-secondary px-3 py-2 font-medium text-body-sm text-text-primary',
+                      getModuleActiveColor(currentModule.color),
+                    )}
+                  >
                     <currentModule.icon className="h-4 w-4" />
                     <span>{currentModule.name}</span>
                   </div>
 
                   {/* Module-Wechsler als Dropdown */}
-                  <Button appearance="ghost" size="sm" onClick={() => setShowModuleOverview(true)} className="ml-auto">
+                  <Button appearance="ghost" size="sm" onClick={() => setShowModuleOverview(true)} className="ml-auto" aria-label="Modulübersicht öffnen" title="Modulübersicht öffnen">
                     <PiGridFour className="h-5 w-5" />
                   </Button>
                 </div>
@@ -500,8 +509,8 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
               </div>
               {/* Module Description with Help - nur auf Desktop */}
               <div className="mt-2 hidden items-center justify-between lg:flex">
-                <p className="text-gray-500 text-xs dark:text-gray-400">{currentModule.description}</p>
-                <Button appearance="ghost" size="sm" className="h-6 w-6 p-0" title="Modulübersicht anzeigen" onClick={() => setShowModuleOverview(true)}>
+                <p className="text-body-xs text-text-secondary">{currentModule.description}</p>
+                <Button appearance="ghost" size="sm" className="h-6 w-6 p-0" title="Modulübersicht anzeigen" aria-label="Modulübersicht anzeigen" onClick={() => setShowModuleOverview(true)}>
                   <PiQuestion className="h-4 w-4" />
                 </Button>
               </div>
@@ -515,9 +524,9 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
             <div className="flex gap-6">
               {/* Sidebar with Sub-Pages */}
               <aside className="hidden w-64 flex-shrink-0 pt-6 lg:block">
-                <div className="sticky top-36 space-y-1">
+                <div className="sticky top-36 space-y-1 rounded-panel border border-border-subtle bg-surface-panel p-3 shadow-panel">
                   <EinsatzSwitcher />
-                  <h3 className="mb-2 px-3 font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">{currentModule.name} Navigation</h3>
+                  <h3 className="mb-2 px-3 font-semibold text-body-xs text-text-secondary uppercase tracking-[0.16em]">{currentModule.name} Navigation</h3>
                   {currentModule.subPages.map((page) => {
                     const isActive = !!matchRoute({ to: page.href });
                     return (
@@ -526,36 +535,31 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
                         to={page.href}
                         params={{ einsatzId }}
                         className={cn(
-                          'group flex items-start gap-3 rounded-lg px-3 py-2 transition-colors',
-                          isActive ? 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-gray-100' : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800',
+                          'group flex items-start gap-3 rounded-control px-3 py-2 transition-colors',
+                          isActive ? 'bg-action-secondary text-text-primary' : 'text-text-secondary hover:bg-action-secondary',
                         )}
                       >
-                        <page.icon
-                          className={cn(
-                            'mt-0.5 h-5 w-5 flex-shrink-0 transition-colors',
-                            isActive ? 'text-gray-700 dark:text-gray-200' : 'text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300',
-                          )}
-                        />
+                        <page.icon className={cn('mt-0.5 h-5 w-5 flex-shrink-0 transition-colors', isActive ? 'text-text-primary' : 'text-text-muted group-hover:text-text-secondary')} />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-medium text-sm">{page.name}</span>
-                            {page.badge && <span className="rounded bg-blue-500 px-1.5 py-0.5 font-semibold text-white text-xs">{page.badge}</span>}
+                            <span className="font-medium text-body-sm">{page.name}</span>
+                            {page.badge && <span className="rounded-pill bg-action-primary px-1.5 py-0.5 font-semibold text-body-xs text-text-inverse">{page.badge}</span>}
                           </div>
-                          {page.description && <p className="mt-0.5 text-gray-500 text-xs dark:text-gray-400">{page.description}</p>}
+                          {page.description && <p className="mt-0.5 text-body-xs text-text-secondary">{page.description}</p>}
                         </div>
                       </Link>
                     );
                   })}
 
                   {/* Quick Actions */}
-                  <div className="mt-6 border-gray-200 border-t pt-6 dark:border-gray-700">
+                  <div className="mt-6 border-border-subtle border-t pt-6">
                     {/* Funkrufname / Einsatz-Beitritt */}
                     <Button appearance="ghost" size="sm" className="mb-2 w-full justify-start" onClick={() => setShowBeitrittDialog(true)}>
                       <PiRadio className="mr-2 h-4 w-4" />
                       {currentEinsatzPersonId ? (
                         <span className="truncate">{teilnahmeData?.data?.personFunkrufname || `${teilnahmeData?.data?.personVorname} ${teilnahmeData?.data?.personNachname}`}</span>
                       ) : (
-                        <span className="text-blue-600 dark:text-blue-400">Person wählen</span>
+                        <span className="text-action-primary">Person wählen</span>
                       )}
                     </Button>
                     <Button appearance="ghost" size="sm" className="mb-2 w-full justify-start" onClick={() => setShowAudioDialog(true)} aria-haspopup="dialog">
@@ -576,7 +580,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
               </aside>
 
               {/* Mobile Sub-Navigation */}
-              <div className="fixed right-0 bottom-0 left-0 z-20 border-gray-200 border-t bg-white p-4 lg:hidden dark:border-gray-700 dark:bg-gray-800">
+              <div className="fixed right-0 bottom-0 left-0 z-20 border-border-subtle border-t bg-surface-panel p-4 shadow-raised lg:hidden">
                 <div className="flex gap-2 overflow-x-auto">
                   {currentModule.subPages.map((page) => {
                     const isActive = !!matchRoute({ to: page.href });
@@ -585,10 +589,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
                         key={page.href}
                         to={page.href}
                         params={{ einsatzId }}
-                        className={cn(
-                          'flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm',
-                          isActive ? 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-gray-100' : 'text-gray-600 dark:text-gray-400',
-                        )}
+                        className={cn('flex items-center gap-2 whitespace-nowrap rounded-control px-3 py-2 text-body-sm', isActive ? 'bg-action-secondary text-text-primary' : 'text-text-secondary')}
                       >
                         <page.icon className="h-4 w-4" />
                         {page.name}
@@ -628,19 +629,19 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
 
         <div className="flex items-start gap-4">
           <div className="flex-shrink-0">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
-              <PiWarning className="h-6 w-6 text-red-600 dark:text-red-400" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-status-danger-surface">
+              <PiWarning className="h-6 w-6 text-status-danger-text" />
             </div>
           </div>
 
           <div className="flex-1">
-            <Dialog.Title className="font-semibold text-gray-900 text-lg dark:text-white">Einsatz beenden?</Dialog.Title>
+            <Dialog.Title className="font-semibold text-text-primary text-title-sm">Einsatz beenden?</Dialog.Title>
 
             <Dialog.Body className="mt-2">
-              <p className="text-gray-600 text-sm dark:text-gray-400">
+              <p className="text-body-sm text-text-secondary">
                 Möchten Sie den Einsatz <span className="font-semibold">"{einsatz?.name}"</span> wirklich beenden?
               </p>
-              <p className="mt-2 text-gray-600 text-sm dark:text-gray-400">Der Status wird auf "Abgeschlossen" gesetzt. Diese Aktion kann nicht direkt rückgängig gemacht werden.</p>
+              <p className="mt-2 text-body-sm text-text-secondary">Der Status wird auf "Abgeschlossen" gesetzt. Diese Aktion kann nicht direkt rückgängig gemacht werden.</p>
             </Dialog.Body>
           </div>
         </div>

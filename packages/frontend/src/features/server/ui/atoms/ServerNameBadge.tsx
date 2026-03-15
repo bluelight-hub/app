@@ -54,7 +54,11 @@ export interface ServerNameBadgeProps {
  */
 export function ServerNameBadge({ name, size = 'md', className }: ServerNameBadgeProps) {
   return (
-    <output className={cn('flex items-center gap-2 text-gray-500 text-sm dark:text-gray-400', className)} title={name} aria-label={`Aktiver Server: ${name}`}>
+    <output
+      className={cn('flex items-center gap-2 rounded-pill border border-border-subtle bg-surface-panel px-3 py-1 font-medium text-body-sm text-text-secondary shadow-raised', className)}
+      title={name}
+      aria-label={`Aktiver Server: ${name}`}
+    >
       <PiCloudArrowUp className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
       <span className={cn('truncate', sizeClasses[size])}>{name}</span>
     </output>

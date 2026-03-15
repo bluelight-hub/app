@@ -1,15 +1,17 @@
 import { cn } from '@/shared/ui/cn';
+import { getModuleActiveColor, getModuleColor } from '@/shared/ui/module-colors';
 import { CloseButton } from '@/shared/ui/atoms/close-button.atom';
 import { Link } from '@tanstack/react-router';
 import type { ComponentType } from 'react';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
+import type { ModuleColor } from '@/shared/ui/organisms/command-palette';
 
 interface Module {
   id: string;
   name: string;
   icon: ComponentType<{ className?: string }>;
   description?: string;
-  color: string;
+  color: ModuleColor;
   subPages: Array<{
     name: string;
     href: string;
@@ -26,28 +28,13 @@ interface ModuleOverviewCardProps {
 }
 
 export function ModuleOverviewCard({ modules, currentModuleId, einsatzId, open, onClose }: ModuleOverviewCardProps) {
-  const getModuleColor = (color: string) => {
-    const colors = {
-      blue: 'bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50',
-      purple: 'bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:hover:bg-purple-900/50',
-      green: 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50',
-      orange: 'bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:hover:bg-orange-900/50',
-      red: 'bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50',
-      emerald: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-900/50',
-      cyan: 'bg-cyan-100 text-cyan-700 hover:bg-cyan-200 dark:bg-cyan-900/30 dark:text-cyan-400 dark:hover:bg-cyan-900/50',
-      indigo: 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-900/50',
-      sky: 'bg-sky-100 text-sky-700 hover:bg-sky-200 dark:bg-sky-900/30 dark:text-sky-400 dark:hover:bg-sky-900/50',
-    };
-    return colors[color as keyof typeof colors] || colors.blue;
-  };
-
   return (
     <Dialog isOpen={open} onClose={onClose} className="z-50 max-w-2xl p-0">
       <div className="relative">
         {/* Header */}
-        <div className="flex items-center justify-between border-gray-200 border-b p-4 dark:border-gray-700">
-          <h2 className="font-semibold text-gray-900 text-lg dark:text-gray-100">Module wählen</h2>
-          <CloseButton onClick={onClose} />
+        <div className="flex items-center justify-between border-border-subtle border-b p-4">
+          <h2 className="font-semibold text-text-primary text-title-sm">Module wählen</h2>
+          <CloseButton onClick={onClose} className="text-text-muted hover:bg-action-secondary hover:text-text-primary" />
         </div>
 
         {/* Module Grid */}
@@ -62,19 +49,23 @@ export function ModuleOverviewCard({ modules, currentModuleId, einsatzId, open, 
                 to={module.subPages[0].href}
                 params={{ einsatzId }}
                 onClick={onClose}
-                className={cn('relative flex flex-col items-center gap-2 rounded-lg p-4 transition-all', getModuleColor(module.color), isActive && 'ring-2 ring-blue-500 ring-offset-2')}
+                className={cn(
+                  'relative flex flex-col items-center gap-2 rounded-panel border p-4 text-center transition-[background-color,border-color,color,box-shadow]',
+                  isActive ? getModuleActiveColor(module.color) : getModuleColor(module.color),
+                  isActive && 'ring-2 ring-focus-ring ring-offset-2 ring-offset-focus-ring-offset',
+                )}
               >
                 {/* Hotkey Badge */}
-                {hotkey && <span className="absolute top-2 right-2 font-mono text-xs opacity-50">⌥{hotkey}</span>}
+                {hotkey && <span className="absolute top-2 right-2 rounded-pill bg-surface-overlay px-1.5 py-0.5 font-mono text-body-xs opacity-80">⌥{hotkey}</span>}
 
                 {/* Icon */}
                 <module.icon className="h-8 w-8" />
 
                 {/* Name */}
-                <span className="text-center font-medium text-sm">{module.name}</span>
+                <span className="font-medium text-body-sm">{module.name}</span>
 
                 {/* Description */}
-                {module.description && <span className="line-clamp-2 text-center text-xs opacity-75">{module.description}</span>}
+                {module.description && <span className="line-clamp-2 text-body-xs opacity-80">{module.description}</span>}
               </Link>
             );
           })}

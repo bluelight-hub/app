@@ -41,6 +41,7 @@ Nicht erlaubt:
 - Forms: `@tanstack/react-form` + Zod
 - State: `@tanstack/react-query` (Server), `@tanstack/react-store` (Client)
 - Lint/Format: Biome
+- Im Produkt keine Komponenten oder Texte anzeigen, die Implementierungsdetails, technische Entscheidungen oder interne Architektur erklären. Solche Inhalte gehören in Dokumentation, nicht in die produktive UI.
 
 ### Backend DI-Regel
 

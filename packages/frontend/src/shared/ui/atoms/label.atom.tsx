@@ -1,4 +1,4 @@
-import { cn } from '@/shared/ui/cn';
+import { clsx } from 'clsx';
 import * as React from 'react';
 
 export interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
@@ -12,9 +12,9 @@ export interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> 
  */
 export const Label = React.forwardRef<HTMLLabelElement, LabelProps>(({ className, required, children, ...props }, ref) => {
   return (
-    <label htmlFor={props.htmlFor} ref={ref} className={cn('block font-medium text-gray-700 text-sm dark:text-gray-300', className)} {...props}>
+    <label htmlFor={props.htmlFor} ref={ref} className={clsx('block font-medium font-sans text-body-sm text-text-secondary', className)} {...props}>
       {children}
-      {required && <span className="ml-1 text-red-500">*</span>}
+      {required && <span className="ml-1 text-status-danger">*</span>}
     </label>
   );
 });

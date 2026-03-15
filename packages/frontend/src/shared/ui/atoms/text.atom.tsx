@@ -1,4 +1,4 @@
-import { cn } from '@/shared/ui/cn';
+import { clsx } from 'clsx';
 import { type ReactNode, memo } from 'react';
 
 export interface TextProps {
@@ -10,19 +10,19 @@ export interface TextProps {
 }
 
 const SIZE_CLASSES = {
-  xs: 'text-xs',
-  sm: 'text-sm',
-  md: 'text-base',
-  lg: 'text-lg',
-  xl: 'text-xl',
+  xs: 'text-body-xs',
+  sm: 'text-body-sm',
+  md: 'text-body-md',
+  lg: 'text-title-sm',
+  xl: 'text-title-md',
 };
 
 const COLOR_CLASSES = {
-  default: 'text-gray-900 dark:text-white',
-  muted: 'text-gray-500 dark:text-gray-400',
-  success: 'text-green-600 dark:text-green-400',
-  error: 'text-red-600 dark:text-red-400',
-  warning: 'text-yellow-600 dark:text-yellow-400',
+  default: 'text-text-primary',
+  muted: 'text-text-muted',
+  success: 'text-status-success',
+  error: 'text-status-danger',
+  warning: 'text-status-warning',
 };
 
 /**
@@ -31,7 +31,7 @@ const COLOR_CLASSES = {
  * Bietet konsistente Text-Stile und Farben.
  */
 export const Text = memo(({ children, size = 'md', color = 'default', className, as: Component = 'p' }: TextProps) => {
-  return <Component className={cn(SIZE_CLASSES[size], COLOR_CLASSES[color], className)}>{children}</Component>;
+  return <Component className={clsx('font-sans', SIZE_CLASSES[size], COLOR_CLASSES[color], className)}>{children}</Component>;
 });
 
 Text.displayName = 'Text';
