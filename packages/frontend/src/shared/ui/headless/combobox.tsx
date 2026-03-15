@@ -34,6 +34,7 @@ export interface ComboboxProps {
   className?: string;
   error?: string;
   openOnFocus?: boolean;
+  autoFocus?: boolean;
 }
 
 export function Combobox({
@@ -52,6 +53,7 @@ export function Combobox({
   className,
   error,
   openOnFocus = false,
+  autoFocus = false,
 }: ComboboxProps) {
   const [query, setQuery] = useState('');
   const [selectedItem, setSelectedItem] = useState<ComboboxItem | null>(null);
@@ -162,6 +164,7 @@ export function Combobox({
             )}
             autoCorrect={'off'}
             autoComplete={'off'}
+            autoFocus={autoFocus}
             data-1p-ignore="true"
             data-lpignore="true"
             data-form-type="other"

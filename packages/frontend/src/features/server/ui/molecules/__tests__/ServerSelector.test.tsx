@@ -51,17 +51,7 @@ describe('ServerSelector', () => {
       });
 
       // When - Array wird NICHT nach lastUsedAt sortiert übergeben
-      render(
-        <ServerSelector
-          servers={[oldServer, middleServer, recentServer]}
-          activeServer={oldServer}
-          connectionStatus={new Map()}
-          onServerChange={vi.fn()}
-          onAddServer={vi.fn()}
-          onReconfigureServer={vi.fn()}
-          onDeleteServer={vi.fn()}
-        />,
-      );
+      render(<ServerSelector servers={[oldServer, middleServer, recentServer]} activeServer={oldServer} connectionStatus={new Map()} onServerChange={vi.fn()} onAddServer={vi.fn()} />);
 
       // Öffne Dropdown
       const button = screen.getByRole('button', { name: /old server/i });
@@ -94,17 +84,7 @@ describe('ServerSelector', () => {
       });
 
       // When - Server ohne lastUsedAt kommt zuerst im Array
-      render(
-        <ServerSelector
-          servers={[serverWithoutUsage, serverWithUsage]}
-          activeServer={serverWithoutUsage}
-          connectionStatus={new Map()}
-          onServerChange={vi.fn()}
-          onAddServer={vi.fn()}
-          onReconfigureServer={vi.fn()}
-          onDeleteServer={vi.fn()}
-        />,
-      );
+      render(<ServerSelector servers={[serverWithoutUsage, serverWithUsage]} activeServer={serverWithoutUsage} connectionStatus={new Map()} onServerChange={vi.fn()} onAddServer={vi.fn()} />);
 
       // Öffne Dropdown
       const button = screen.getByRole('button', { name: /server without usage/i });
@@ -133,17 +113,7 @@ describe('ServerSelector', () => {
       });
 
       // When
-      render(
-        <ServerSelector
-          servers={[serverA, serverB]}
-          activeServer={serverA}
-          connectionStatus={new Map()}
-          onServerChange={vi.fn()}
-          onAddServer={vi.fn()}
-          onReconfigureServer={vi.fn()}
-          onDeleteServer={vi.fn()}
-        />,
-      );
+      render(<ServerSelector servers={[serverA, serverB]} activeServer={serverA} connectionStatus={new Map()} onServerChange={vi.fn()} onAddServer={vi.fn()} />);
 
       // Öffne Dropdown
       const button = screen.getByRole('button', { name: /server a/i });
@@ -175,17 +145,7 @@ describe('ServerSelector', () => {
       });
 
       // When
-      render(
-        <ServerSelector
-          servers={[serverA, serverB]}
-          activeServer={serverA}
-          connectionStatus={new Map()}
-          onServerChange={vi.fn()}
-          onAddServer={vi.fn()}
-          onReconfigureServer={vi.fn()}
-          onDeleteServer={vi.fn()}
-        />,
-      );
+      render(<ServerSelector servers={[serverA, serverB]} activeServer={serverA} connectionStatus={new Map()} onServerChange={vi.fn()} onAddServer={vi.fn()} />);
 
       // Öffne Dropdown
       const button = screen.getByRole('button', { name: /server a/i });
@@ -229,17 +189,7 @@ describe('ServerSelector', () => {
       ];
 
       // When
-      render(
-        <ServerSelector
-          servers={servers}
-          activeServer={servers[0]}
-          connectionStatus={new Map()}
-          onServerChange={vi.fn()}
-          onAddServer={vi.fn()}
-          onReconfigureServer={vi.fn()}
-          onDeleteServer={vi.fn()}
-        />,
-      );
+      render(<ServerSelector servers={servers} activeServer={servers[0]} connectionStatus={new Map()} onServerChange={vi.fn()} onAddServer={vi.fn()} />);
 
       // Öffne Dropdown
       const button = screen.getByRole('button', { name: /no usage 1/i });
@@ -271,17 +221,7 @@ describe('ServerSelector', () => {
       const connectionStatus = new Map<string, ConnectionStatus>([['offline-server', 'disconnected']]);
 
       // When
-      render(
-        <ServerSelector
-          servers={[server]}
-          activeServer={server}
-          connectionStatus={connectionStatus}
-          onServerChange={vi.fn()}
-          onAddServer={vi.fn()}
-          onReconfigureServer={vi.fn()}
-          onDeleteServer={vi.fn()}
-        />,
-      );
+      render(<ServerSelector servers={[server]} activeServer={server} connectionStatus={connectionStatus} onServerChange={vi.fn()} onAddServer={vi.fn()} />);
 
       // Öffne Dropdown durch Klick auf den Button
       const button = screen.getByRole('button', { name: /offline server/i });
@@ -300,17 +240,7 @@ describe('ServerSelector', () => {
       const connectionStatus = new Map<string, ConnectionStatus>([['connected-server', 'connected']]);
 
       // When
-      render(
-        <ServerSelector
-          servers={[server]}
-          activeServer={server}
-          connectionStatus={connectionStatus}
-          onServerChange={vi.fn()}
-          onAddServer={vi.fn()}
-          onReconfigureServer={vi.fn()}
-          onDeleteServer={vi.fn()}
-        />,
-      );
+      render(<ServerSelector servers={[server]} activeServer={server} connectionStatus={connectionStatus} onServerChange={vi.fn()} onAddServer={vi.fn()} />);
 
       // Öffne Dropdown
       const button = screen.getByRole('button', { name: /connected server/i });
@@ -330,17 +260,7 @@ describe('ServerSelector', () => {
       const connectionStatus = new Map<string, ConnectionStatus>([['checking-server', 'checking']]);
 
       // When
-      render(
-        <ServerSelector
-          servers={[server]}
-          activeServer={server}
-          connectionStatus={connectionStatus}
-          onServerChange={vi.fn()}
-          onAddServer={vi.fn()}
-          onReconfigureServer={vi.fn()}
-          onDeleteServer={vi.fn()}
-        />,
-      );
+      render(<ServerSelector servers={[server]} activeServer={server} connectionStatus={connectionStatus} onServerChange={vi.fn()} onAddServer={vi.fn()} />);
 
       // Öffne Dropdown
       const button = screen.getByRole('button', { name: /checking server/i });
@@ -359,9 +279,7 @@ describe('ServerSelector', () => {
       const server = createMockServer({ id: 'no-status-server', name: 'No Status Server' });
 
       // When
-      render(
-        <ServerSelector servers={[server]} activeServer={server} connectionStatus={undefined} onServerChange={vi.fn()} onAddServer={vi.fn()} onReconfigureServer={vi.fn()} onDeleteServer={vi.fn()} />,
-      );
+      render(<ServerSelector servers={[server]} activeServer={server} connectionStatus={undefined} onServerChange={vi.fn()} onAddServer={vi.fn()} />);
 
       // Öffne Dropdown
       const button = screen.getByRole('button', { name: /no status server/i });
@@ -385,17 +303,7 @@ describe('ServerSelector', () => {
       ]);
 
       // When
-      render(
-        <ServerSelector
-          servers={[connectedServer, disconnectedServer]}
-          activeServer={connectedServer}
-          connectionStatus={connectionStatus}
-          onServerChange={vi.fn()}
-          onAddServer={vi.fn()}
-          onReconfigureServer={vi.fn()}
-          onDeleteServer={vi.fn()}
-        />,
-      );
+      render(<ServerSelector servers={[connectedServer, disconnectedServer]} activeServer={connectedServer} connectionStatus={connectionStatus} onServerChange={vi.fn()} onAddServer={vi.fn()} />);
 
       // Öffne Dropdown
       const button = screen.getByRole('button', { name: /connected server/i });
@@ -431,8 +339,6 @@ describe('ServerSelector', () => {
           connectionStatus={new Map()}
           onServerChange={vi.fn()}
           onAddServer={vi.fn()}
-          onReconfigureServer={vi.fn()}
-          onDeleteServer={vi.fn()}
           isAuthenticated={true}
           onLogoutAndSwitch={onLogoutAndSwitch}
         />,
@@ -468,8 +374,6 @@ describe('ServerSelector', () => {
           connectionStatus={new Map()}
           onServerChange={onServerChange}
           onAddServer={vi.fn()}
-          onReconfigureServer={vi.fn()}
-          onDeleteServer={vi.fn()}
           isAuthenticated={false}
         />,
       );
@@ -503,8 +407,6 @@ describe('ServerSelector', () => {
           connectionStatus={new Map()}
           onServerChange={vi.fn()}
           onAddServer={vi.fn()}
-          onReconfigureServer={vi.fn()}
-          onDeleteServer={vi.fn()}
           isAuthenticated={true}
           onLogoutAndSwitch={onLogoutAndSwitch}
         />,
@@ -544,9 +446,7 @@ describe('ServerSelector', () => {
       });
 
       // When
-      render(
-        <ServerSelector servers={[server]} activeServer={server} connectionStatus={new Map()} onServerChange={vi.fn()} onAddServer={vi.fn()} onReconfigureServer={vi.fn()} onDeleteServer={vi.fn()} />,
-      );
+      render(<ServerSelector servers={[server]} activeServer={server} connectionStatus={new Map()} onServerChange={vi.fn()} onAddServer={vi.fn()} />);
 
       // Then - Badge sollte im geschlossenen Button sichtbar sein
       expect(screen.getByRole('img', { name: /Server: Visual Server/i })).toBeInTheDocument();
@@ -569,17 +469,7 @@ describe('ServerSelector', () => {
       });
 
       // When
-      render(
-        <ServerSelector
-          servers={[server1, server2]}
-          activeServer={server1}
-          connectionStatus={new Map()}
-          onServerChange={vi.fn()}
-          onAddServer={vi.fn()}
-          onReconfigureServer={vi.fn()}
-          onDeleteServer={vi.fn()}
-        />,
-      );
+      render(<ServerSelector servers={[server1, server2]} activeServer={server1} connectionStatus={new Map()} onServerChange={vi.fn()} onAddServer={vi.fn()} />);
 
       // Öffne Dropdown
       await user.click(screen.getByRole('button', { name: /server one/i }));
@@ -600,9 +490,7 @@ describe('ServerSelector', () => {
       });
 
       // When
-      render(
-        <ServerSelector servers={[server]} activeServer={server} connectionStatus={new Map()} onServerChange={vi.fn()} onAddServer={vi.fn()} onReconfigureServer={vi.fn()} onDeleteServer={vi.fn()} />,
-      );
+      render(<ServerSelector servers={[server]} activeServer={server} connectionStatus={new Map()} onServerChange={vi.fn()} onAddServer={vi.fn()} />);
 
       // Then - Badge sollte auch ohne Icon/Color gerendert werden (Fallback)
       expect(screen.getByRole('img', { name: /Server: Default Style Server/i })).toBeInTheDocument();
@@ -613,9 +501,7 @@ describe('ServerSelector', () => {
       const server = createMockServer({ icon: 'server', color: 'sky' });
 
       // When
-      render(
-        <ServerSelector servers={[server]} activeServer={server} connectionStatus={new Map()} onServerChange={vi.fn()} onAddServer={vi.fn()} onReconfigureServer={vi.fn()} onDeleteServer={vi.fn()} />,
-      );
+      render(<ServerSelector servers={[server]} activeServer={server} connectionStatus={new Map()} onServerChange={vi.fn()} onAddServer={vi.fn()} />);
 
       // Then - Badge sollte size-6 Klasse haben (sm = 24px)
       const badge = screen.getByRole('img', { name: /Server:/i });

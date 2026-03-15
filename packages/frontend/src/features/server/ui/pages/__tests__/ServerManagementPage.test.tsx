@@ -9,9 +9,9 @@
  * @module features/server/ui/pages/__tests__/ServerManagementPage
  */
 
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ServerManagementPage } from '../ServerManagementPage';
 import type { ServerConfig } from '../../../types/server-config';
 
@@ -198,6 +198,22 @@ vi.mock('../../molecules/ServerDeleteConfirmDialog', () => ({
 // Test Setup
 // =====================================================
 
+const originalGetAnimations = Element.prototype.getAnimations;
+
+beforeAll(() => {
+  Element.prototype.getAnimations = vi.fn(() => []);
+});
+
+afterAll(() => {
+  if (originalGetAnimations) {
+    Element.prototype.getAnimations = originalGetAnimations;
+    return;
+  }
+
+  // biome-ignore lint/performance/noDelete: Restore test environment to original shape
+  delete Element.prototype.getAnimations;
+});
+
 beforeEach(() => {
   vi.clearAllMocks();
   mockServerStore.state = {
@@ -227,7 +243,7 @@ describe('ServerManagementPage', () => {
       render(<ServerManagementPage />);
 
       // Then (Assert)
-      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Server verwalten');
+      expect(screen.getByRole('heading', { name: 'Server verwalten' })).toHaveTextContent('Server verwalten');
     });
 
     it('should render description text', () => {
@@ -260,10 +276,11 @@ describe('ServerManagementPage', () => {
   describe('Navigation', () => {
     it('should navigate to /server/setup when onAddServer is called', async () => {
       // Given (Arrange)
-      const { getByTestId } = render(<ServerManagementPage />);
+      const user = userEvent.setup();
+      render(<ServerManagementPage />);
 
       // When (Act)
-      getByTestId('add-server-btn').click();
+      await user.click(screen.getByTestId('add-server-btn'));
 
       // Then (Assert)
       expect(mockNavigate).toHaveBeenCalledWith({ to: '/server/setup' });
@@ -283,7 +300,7 @@ describe('ServerManagementPage', () => {
       render(<ServerManagementPage />);
 
       // Then (Assert)
-      const heading = screen.getByRole('heading', { level: 1 });
+      const heading = screen.getByRole('heading', { name: 'Server verwalten' });
       expect(heading).toBeInTheDocument();
       expect(heading.tagName).toBe('H1');
     });
@@ -311,29 +328,28 @@ describe('ServerManagementPage', () => {
       // - Standard Page Rendering ohne Parameter
 
       // When (Act)
-      const { container } = render(<ServerManagementPage />);
+      render(<ServerManagementPage />);
 
       // Then (Assert)
-      // Nach AuthLayout-Refactoring: border-white/20 statt border-gray-200
-      const listContainer = container.querySelector('.border');
+      const listContainer = screen.getByTestId('mock-server-list').parentElement;
       expect(listContainer).toBeInTheDocument();
-      expect(listContainer).toHaveClass('rounded-lg');
+      expect(listContainer).toHaveClass('overflow-hidden', 'rounded-panel', 'border', 'border-border-subtle');
     });
 
-    it('should have glass-morphism styles for AuthLayout integration', () => {
+    it('should render page content inside the AuthLayout shell', () => {
       // Given (Arrange)
       // - Standard Page Rendering mit AuthLayout
 
       // When (Act)
-      const { container } = render(<ServerManagementPage />);
+      render(<ServerManagementPage />);
 
       // Then (Assert)
-      // AuthLayout nutzt backdrop-blur und semi-transparente Farben
-      const listContainer = container.querySelector('.backdrop-blur-sm');
+      const listContainer = screen.getByTestId('mock-server-list').parentElement;
       expect(listContainer).toBeInTheDocument();
+      expect(listContainer).toHaveClass('bg-surface-panel', 'shadow-panel');
 
-      const heading = screen.getByRole('heading', { level: 1 });
-      expect(heading).toHaveClass('text-white');
+      expect(screen.queryByTestId('auth-layout-helper-panel')).not.toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Server verwalten' })).toBeInTheDocument();
     });
   });
 
@@ -408,13 +424,14 @@ describe('ServerManagementPage', () => {
   describe('Callbacks', () => {
     it('should open edit modal when edit button clicked (Story 3.3)', async () => {
       // Given (Arrange)
-      const { getByTestId, findByTestId } = render(<ServerManagementPage />);
+      const user = userEvent.setup();
+      render(<ServerManagementPage />);
 
       // When (Act)
-      getByTestId('edit-server-btn').click();
+      await user.click(screen.getByTestId('edit-server-btn'));
 
       // Then (Assert) - Modal sollte geöffnet sein
-      const dialog = await findByTestId('edit-server-dialog');
+      const dialog = await screen.findByTestId('edit-server-dialog');
       expect(dialog).toBeInTheDocument();
     });
 
@@ -437,6 +454,22 @@ describe('ServerManagementPage', () => {
   // =====================================================
 
   describe('Edit Modal Close Behavior', () => {
+    it('should render edit modal with Ring-1 surface tokens', async () => {
+      // Given
+      const user = userEvent.setup();
+      render(<ServerManagementPage />);
+
+      // When
+      await user.click(screen.getByTestId('edit-server-btn'));
+
+      // Then
+      const panel = await screen.findByTestId('edit-server-dialog-panel');
+      expect(panel).toHaveClass('rounded-panel', 'border-border-subtle', 'bg-surface-panel', 'shadow-panel');
+      expect(panel).not.toHaveClass('bg-white');
+      expect(screen.getByText('Test Server bearbeiten')).toHaveClass('text-text-primary', 'text-title-sm');
+      expect(screen.getByLabelText('Modal schließen')).toHaveClass('text-text-muted');
+    });
+
     it('should close modal when Escape key pressed', async () => {
       // Given
       const user = userEvent.setup();
@@ -673,7 +706,9 @@ describe('ServerManagementPage', () => {
       expect(screen.getByTestId('delete-cancel-btn')).toBeDisabled();
 
       // Cleanup: Deletion abschließen
-      resolveDelete();
+      await act(async () => {
+        resolveDelete();
+      });
     });
 
     // Test 8: Error-Handling mit Toast bei Fehler

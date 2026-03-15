@@ -81,6 +81,7 @@ export function UnifiedAuthForm({ onSubmit, isLoading = false, error, className 
                 items={comboboxItems}
                 value={field.state.value}
                 onChange={(value) => field.handleChange(value)}
+                autoFocus
                 placeholder="Benutzername eingeben oder auswählen..."
                 label="Benutzername"
                 helperText="Wählen Sie einen bestehenden Benutzer oder geben Sie einen neuen Namen ein"

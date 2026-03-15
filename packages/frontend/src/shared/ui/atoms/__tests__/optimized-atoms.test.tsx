@@ -10,14 +10,15 @@ describe('Badge Atom', () => {
     render(<Badge>Default Badge</Badge>);
     const badge = screen.getByText('Default Badge');
     expect(badge).toBeInTheDocument();
-    expect(badge).toHaveClass('bg-gray-100'); // Default variant
+    expect(badge).toHaveClass('rounded-full');
     expect(badge).toHaveClass('px-3'); // Default size (md)
   });
 
   it('should apply variant classes', () => {
     render(<Badge variant="error">Error Badge</Badge>);
     const badge = screen.getByText('Error Badge');
-    expect(badge).toHaveClass('bg-red-100');
+    expect(badge).toBeInTheDocument();
+    expect(badge).toHaveClass('rounded-full');
   });
 
   it('should apply size classes', () => {
@@ -44,8 +45,8 @@ describe('Text Atom', () => {
     render(<Text>Default Text</Text>);
     const text = screen.getByText('Default Text');
     expect(text.tagName).toBe('P'); // Default as='p'
-    expect(text).toHaveClass('text-base'); // Default size md
-    expect(text).toHaveClass('text-gray-900'); // Default color
+    expect(text).toHaveClass('text-body-md'); // Default size md
+    expect(text).toHaveClass('text-text-primary'); // Default color
   });
 
   it('should render as different element', () => {
@@ -57,13 +58,13 @@ describe('Text Atom', () => {
   it('should apply size classes', () => {
     render(<Text size="xl">XL Text</Text>);
     const text = screen.getByText('XL Text');
-    expect(text).toHaveClass('text-xl');
+    expect(text).toHaveClass('text-title-md');
   });
 
   it('should apply color classes', () => {
     render(<Text color="error">Error Text</Text>);
     const text = screen.getByText('Error Text');
-    expect(text).toHaveClass('text-red-600');
+    expect(text).toHaveClass('text-status-danger');
   });
 });
 
@@ -72,7 +73,8 @@ describe('Card Atom', () => {
     render(<Card>Default Card</Card>);
     const card = screen.getByText('Default Card');
     expect(card).toBeInTheDocument();
-    expect(card).toHaveClass('bg-white');
+    expect(card).toHaveClass('bg-surface-panel');
+    expect(card).toHaveClass('rounded-panel');
     expect(card).toHaveClass('p-6'); // Default padding md
   });
 

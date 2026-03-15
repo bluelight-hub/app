@@ -1,8 +1,7 @@
 import { ColorModeButton } from '@/shared/ui/molecules/color-mode-button.molecule';
 import { BrowserSecurityBanner } from '@/features/server/ui/molecules/BrowserSecurityBanner';
-import { cn, useTimeBasedBackground } from '@/shared/ui';
+import { cn } from '@/shared/ui';
 import type { ReactNode } from 'react';
-import { useEffect } from 'react';
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -13,43 +12,29 @@ interface AuthLayoutProps {
  * Layout-Template für Authentifizierungs-Seiten
  *
  * Bietet:
- * - Zeitbasiertes Hintergrundbild mit Blur-Effekt
- * - Gradient Overlay
+ * - ruhige Ring-1-Einstiegsfläche mit klarer Produktidentität
  * - Color Mode Button in der oberen rechten Ecke
- * - Zentriertes Layout für Auth-Cards
  * - Browser Security Banner (nur im Browser sichtbar, nicht in Tauri)
  */
 export function AuthLayout({ children, className }: AuthLayoutProps) {
-  const backgroundImage = useTimeBasedBackground();
-
-  // Add class to HTML element for login pages
-  useEffect(() => {
-    document.documentElement.classList.add('has-background-image');
-    return () => {
-      document.documentElement.classList.remove('has-background-image');
-    };
-  }, []);
-
-  const backgroundStyle = backgroundImage ? { backgroundImage: `url(${backgroundImage})` } : undefined;
-
   return (
-    <div className={cn('login-background relative min-h-screen overflow-hidden', className)}>
-      {/* Background with blur effect */}
-      <div className="absolute inset-0 -z-20 bg-center bg-cover bg-no-repeat blur-md" style={backgroundStyle} />
+    <div className={cn('relative min-h-screen overflow-hidden bg-surface-canvas text-text-primary', className)} data-testid="auth-layout-shell">
+      <div className="absolute inset-0 -z-20 ring-1-auth-ambient" data-testid="auth-layout-ambient" />
+      <div className="absolute inset-x-0 top-0 -z-10 h-64 ring-1-auth-top-glow" data-testid="auth-layout-top-glow" />
 
-      {/* Background overlay */}
-      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-blue-800/80 via-blue-800/40 to-red-600/30 dark:from-blue-900/40 dark:via-blue-900/20 dark:to-red-900/15" />
-
-      {/* Browser Security Banner - oben fixiert, nur im Browser sichtbar (AC4/AC5) */}
       <BrowserSecurityBanner />
 
-      {/* Dark Mode Switch */}
-      <div className="absolute top-6 right-6 z-10">
-        <ColorModeButton />
-      </div>
+      <div className="relative flex min-h-screen flex-col">
+        <header className="px-4 pt-6 sm:px-6">
+          <div className="mx-auto flex w-full max-w-6xl justify-end">
+            <ColorModeButton />
+          </div>
+        </header>
 
-      {/* Content - zentriert */}
-      <div className="flex min-h-screen items-center justify-center">{children}</div>
+        <main className="flex flex-1 items-center justify-center px-4 py-10 sm:px-6">
+          <div className="mx-auto flex w-full max-w-6xl items-center justify-center">{children}</div>
+        </main>
+      </div>
     </div>
   );
 }

@@ -23,7 +23,7 @@ const PADDING_CLASSES = {
 export const Card = memo(
   forwardRef<HTMLDivElement, CardProps>(({ children, className, padding = 'md' }, ref) => {
     return (
-      <div ref={ref} className={cn('relative rounded-2xl bg-white shadow-xl dark:bg-gray-800', 'border border-gray-200 dark:border-gray-700', PADDING_CLASSES[padding], className)}>
+      <div ref={ref} className={cn('relative rounded-panel border border-border-subtle bg-surface-panel shadow-panel', PADDING_CLASSES[padding], className)}>
         {children}
       </div>
     );

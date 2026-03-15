@@ -12,19 +12,16 @@ interface CommandTriggerProps {
 export function CommandTrigger({ onClick, className, variant = 'default', 'aria-label': ariaLabel = 'Befehle und Navigation' }: CommandTriggerProps) {
   return (
     <Button
-      intent="info"
+      intent="secondary"
       appearance="outline"
       kbd="cmd+K"
       onClick={onClick}
       aria-label={ariaLabel}
+      title={ariaLabel}
       className={cn(
-        'inline-flex items-center gap-2 px-3 py-1.5 font-medium text-sm',
-        'text-gray-700 dark:text-gray-200',
-        'rounded-lg bg-white dark:bg-gray-800',
-        'border border-gray-200 dark:border-gray-700',
-        'hover:bg-gray-50 dark:hover:bg-gray-700/50',
-        'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-        'transition-colors',
+        'inline-flex items-center gap-2 rounded-control border-border-subtle bg-surface-panel px-3 py-1.5 font-medium text-body-sm text-text-secondary shadow-raised transition-[background-color,border-color,color,box-shadow]',
+        'hover:bg-action-secondary hover:text-text-primary',
+        'focus-visible:shadow-focus-ring',
         className,
       )}
     >

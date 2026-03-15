@@ -22,5 +22,5 @@ import type { ColorModeProviderProps } from '@/shared/ui/headless/color-mode';
  * @returns Die gewrappten Komponenten mit Theme-Kontext
  */
 export function ColorModeProvider(props: ColorModeProviderProps) {
-  return <ThemeProvider attribute="class" defaultTheme="system" enableSystem={true} disableTransitionOnChange {...props} />;
+  return <ThemeProvider attribute="class" defaultTheme="system" enableSystem={true} enableColorScheme={true} storageKey="theme" disableTransitionOnChange {...props} />;
 }

@@ -1,4 +1,4 @@
-import '@fontsource-variable/nunito/index.css';
+import '@fontsource-variable/inter/index.css';
 import './index.tailwind.css';
 import 'leaflet/dist/leaflet.css';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';

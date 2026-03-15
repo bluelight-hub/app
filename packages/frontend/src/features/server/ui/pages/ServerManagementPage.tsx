@@ -180,29 +180,33 @@ export function ServerManagementPage() {
     <AuthLayout>
       <div className="w-full max-w-3xl p-4 sm:p-6 lg:p-8">
         {/* Back Button */}
-        <button type="button" onClick={() => navigate({ to: '/auth' })} className="mb-4 flex cursor-pointer items-center gap-2 text-sm text-white/70 transition-colors hover:text-white">
+        <button
+          type="button"
+          onClick={() => navigate({ to: '/auth' })}
+          className="mb-4 flex cursor-pointer items-center gap-2 text-body-sm text-text-secondary transition-colors hover:text-text-primary"
+        >
           <PiArrowLeft className="h-4 w-4" />
           Zurück zur Anmeldung
         </button>
 
         {/* Page Header */}
         <div className="mb-6">
-          <h1 className="font-bold text-2xl text-white">Server verwalten</h1>
-          <p className="mt-1 text-sm text-white/70">Verwalte deine konfigurierten Server und Verbindungen.</p>
+          <h1 className="font-semibold text-text-primary text-title-lg">Server verwalten</h1>
+          <p className="mt-1 text-body-sm text-text-secondary">Verwalte deine konfigurierten Server und Verbindungen.</p>
         </div>
 
         {/* Token-Invalid Warning Banner */}
         {reason === 'token-invalid' && (
-          <div className="mb-4 flex items-start gap-3 rounded-lg border border-amber-400/30 bg-amber-500/10 p-4">
-            <PiWarning className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-400" />
-            <p className="text-amber-200 text-sm">
+          <div className="mb-4 flex items-start gap-3 rounded-panel border border-status-warning-border bg-status-warning-surface px-panel py-cluster shadow-panel">
+            <PiWarning className="mt-0.5 h-5 w-5 flex-shrink-0 text-status-warning-text" />
+            <p className="text-body-sm text-status-warning-text">
               Der Zugangstoken ist nicht mehr gültig (z.B. weil der Server zurückgesetzt wurde). Bitte entferne den betroffenen Server und füge ihn erneut hinzu.
             </p>
           </div>
         )}
 
         {/* Server List Container */}
-        <div className="overflow-hidden rounded-lg border border-white/20 bg-white/10 backdrop-blur-sm">
+        <div className="overflow-hidden rounded-panel border border-border-subtle bg-surface-panel shadow-panel">
           <ServerList onAddServer={handleAddServer} onEditServer={handleEditServer} onDeleteServer={handleDeleteServer} />
         </div>
       </div>
@@ -218,22 +222,26 @@ export function ServerManagementPage() {
         aria-label={editingServer ? `Server "${editingServer.name}" bearbeiten` : 'Server bearbeiten'}
       >
         {/* Backdrop */}
-        <DialogBackdrop transition className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity data-[closed]:opacity-0" data-testid="dialog-backdrop" />
+        <DialogBackdrop transition className="fixed inset-0 bg-surface-inverse/60 backdrop-blur-sm transition-opacity data-[closed]:opacity-0" data-testid="dialog-backdrop" />
 
         {/* Modal Container */}
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <DialogPanel transition className="mx-auto w-full max-w-md transform rounded-xl bg-white p-6 shadow-xl transition-all data-[closed]:scale-95 data-[closed]:opacity-0 dark:bg-gray-800">
+          <DialogPanel
+            transition
+            className="mx-auto w-full max-w-md transform rounded-panel border border-border-subtle bg-surface-panel p-6 shadow-panel transition-all data-[closed]:scale-95 data-[closed]:opacity-0"
+            data-testid="edit-server-dialog-panel"
+          >
             {/* Modal Header */}
             <div className="mb-4 flex items-center justify-between">
               {/* H6 Fix: DialogTitle mit dynamischem Server-Namen */}
-              <DialogTitle className="flex items-center gap-2 font-semibold text-gray-900 text-lg dark:text-white">
+              <DialogTitle className="flex items-center gap-2 font-semibold text-text-primary text-title-sm">
                 <PiPencilSimple className="size-5" />
                 {editingServer?.name ?? 'Server'} bearbeiten
               </DialogTitle>
               <button
                 type="button"
                 onClick={closeEditModal}
-                className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                className="rounded-control p-1 text-text-muted transition-colors hover:bg-action-secondary hover:text-text-primary"
                 aria-label="Modal schließen"
               >
                 <PiX className="size-5" />
