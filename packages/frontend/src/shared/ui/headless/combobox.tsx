@@ -32,7 +32,6 @@ export interface ComboboxProps {
   allowCustomValue?: boolean;
   leadingIcon?: React.ReactNode;
   className?: string;
-  inputClassName?: string;
   error?: string;
   openOnFocus?: boolean;
   autoFocus?: boolean;
@@ -52,7 +51,6 @@ export function Combobox({
   allowCustomValue = false,
   leadingIcon,
   className,
-  inputClassName,
   error,
   openOnFocus = false,
   autoFocus = false,
@@ -151,19 +149,18 @@ export function Combobox({
           <ComboboxInput
             ref={inputRef}
             className={cn(
-              'block w-full rounded-lg border-2 bg-gray-50 px-4 py-3 pr-12 font-medium text-base text-gray-900',
+              'block w-full rounded-lg border-2 bg-white px-4 py-3 pr-12 font-medium text-base text-gray-900',
               'transition-all duration-200',
-              'border-gray-200',
+              'border-gray-200 hover:border-gray-300',
               'placeholder:text-gray-400',
-              'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary-500 focus:ring-opacity-20',
+              'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary-500/20',
               'sm:text-sm/6',
-              'dark:border-gray-700 dark:bg-gray-900 dark:text-white',
-              'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400 dark:placeholder:text-gray-500',
+              'dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:hover:border-gray-600',
+              'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400/20 dark:placeholder:text-gray-500',
               'disabled:cursor-not-allowed disabled:opacity-50',
               leadingIcon && 'pl-12',
               showClearButton && 'pr-20',
               error && 'border-red-300 focus:border-red-500 focus:ring-red-500 dark:border-red-700 dark:focus:border-red-400 dark:focus:ring-red-400',
-              inputClassName,
             )}
             autoCorrect={'off'}
             autoComplete={'off'}
