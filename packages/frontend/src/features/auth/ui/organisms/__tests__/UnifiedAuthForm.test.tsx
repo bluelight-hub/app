@@ -12,7 +12,7 @@ describe('UnifiedAuthForm', () => {
   it('should autofocus the username input on render', () => {
     render(<UnifiedAuthForm onSubmit={vi.fn()} />);
 
-    const usernameInput = screen.getByLabelText('Benutzername');
+    const usernameInput = screen.getByRole('combobox', { name: 'Benutzername' });
 
     expect(usernameInput).toHaveFocus();
   });
