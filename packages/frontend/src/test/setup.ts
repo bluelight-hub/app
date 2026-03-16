@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import { afterEach } from 'vitest';
+import { createMatchMediaList, resetTestViewport } from './viewport';
 
 function createStorageMock(): Storage {
   const data = new Map<string, string>();
@@ -55,21 +56,13 @@ afterEach(() => {
   cleanup();
   window.localStorage.clear();
   window.sessionStorage.clear();
+  resetTestViewport();
 });
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: (query: string) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: () => {}, // deprecated
-    removeListener: () => {}, // deprecated
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    dispatchEvent: () => {},
-  }),
+  value: (query: string) => createMatchMediaList(query),
 });
 
 // Mock IntersectionObserver
@@ -92,3 +85,5 @@ global.ResizeObserver = class ResizeObserver implements globalThis.ResizeObserve
   observe(_target: Element, _options?: ResizeObserverOptions): void {}
   unobserve(_target: Element): void {}
 };
+
+resetTestViewport();
