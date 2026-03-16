@@ -220,6 +220,7 @@ export function EtbEntryList({
     getScrollElement: () => tableContainerRef.current,
     estimateSize: useCallback(() => 80, []), // Erhöhte Größe für bessere Lesbarkeit mehrzeiliger Texte
     overscan: 10, // Weniger overscan für bessere Performance
+    useFlushSync: false, // React 19: verhindert flushSync-Warnungen im Lifecycle des Virtualizers
   });
 
   const virtualRows = rowVirtualizer.getVirtualItems();

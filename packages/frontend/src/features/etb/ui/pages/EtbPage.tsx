@@ -33,16 +33,10 @@ export function EtbPage({ einsatzId, mode }: EtbPageProps) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
-  /* State for artificial delay on reload button */
-  const [isReloading, setIsReloading] = useState(false);
-  const isRefreshPending = isRefetching || isReloading;
+  const isRefreshPending = isRefetching;
 
   const handleReload = async () => {
-    setIsReloading(true);
-    // Promise.all ensures we wait for BOTH the refetch AND the artificial delay
-    // This prevents "flickering" if the API is too fast
-    await Promise.all([refetch(), new Promise((resolve) => setTimeout(resolve, 600))]);
-    setIsReloading(false);
+    await refetch();
   };
 
   const etb = data?.pages?.[0]?.data;

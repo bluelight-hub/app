@@ -97,7 +97,10 @@ export function buildOverviewDashboardFixture(count = RING_2_PERFORMANCE_SCENARI
     fahrzeuge: Array.from({ length: resourceCount }, (_, index) => ({
       id: `fahrzeug-${index + 1}`,
       name: `LF ${index + 1}`,
+      funkrufname: `Florian 1/${index + 1}`,
+      kennzeichen: `BL-${String(index + 1).padStart(2, '0')}`,
       fmsStatus: index % 4 === 0 ? 4 : 3,
+      besatzung: [],
     })),
     pois: Array.from({ length: poiCount }, (_, index) => ({
       id: `poi-${index + 1}`,
