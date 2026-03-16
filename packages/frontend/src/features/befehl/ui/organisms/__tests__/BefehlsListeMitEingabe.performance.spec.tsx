@@ -182,21 +182,26 @@ describe('BefehlsListeMitEingabe Performance-Gates', () => {
   it('reagiert auf Filterwechsel innerhalb des 200-ms-Gates', async () => {
     const samples = await runIterations({
       iterations: RING_2_PERFORMANCE_THRESHOLDS.iterations,
-      measure: () =>
-        measureRenderCycle(
-          () => renderWithProviders(<BefehlsListeMitEingabe einsatzId="einsatz-1" />),
-          async () => {
-            const toggleButton = screen.getByRole('button', { name: /Meine Befehle/i });
+      measure: async () => {
+        const renderResult = renderWithProviders(<BefehlsListeMitEingabe einsatzId="einsatz-1" />);
 
-            await measureInteractionCycle(() => {
+        try {
+          const toggleButton = screen.getByRole('button', { name: /Meine Befehle/i });
+
+          return await measureInteractionCycle(
+            () => {
               fireEvent.click(toggleButton);
-            });
-
-            await waitFor(() => {
-              expect(screen.getByLabelText('Meine Befehlsliste')).toBeInTheDocument();
-            });
-          },
-        ),
+            },
+            async () => {
+              await waitFor(() => {
+                expect(screen.getByLabelText('Meine Befehlsliste')).toBeInTheDocument();
+              });
+            },
+          );
+        } finally {
+          renderResult.unmount();
+        }
+      },
     });
 
     const report = createStructuredPerformanceReport({

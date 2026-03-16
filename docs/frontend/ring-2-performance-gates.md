@@ -44,6 +44,8 @@ Die maschinenlesbaren Reports verwenden mindestens:
 - `browser`
 - `pass`
 
+`pass` und `pass-rate` werden gegen die ungerundeten Rohwerte entschieden. Die ausgegebenen Zahlen sind nur für die Lesbarkeit gerundet.
+
 Die Report-Logik liegt unter [`packages/frontend/src/test/performance/ring-2-performance-metrics.ts`](/Users/rubeen/dev/personal/bluelight-hub/packages/frontend/src/test/performance/ring-2-performance-metrics.ts).
 
 ## Statusfeedback über 300 ms
@@ -70,12 +72,14 @@ Zusätzlicher Bench-Pfad für lokale Diagnose:
 
 - [`packages/frontend/src/test/performance/ring-2-performance.bench.tsx`](/Users/rubeen/dev/personal/bluelight-hub/packages/frontend/src/test/performance/ring-2-performance.bench.tsx)
 
+Der Bench-Pfad kombiniert eine leichte Überblicks-Proxy-Baseline mit echten Anchor-Render-Benchmarks für `EtbEntryList` und `BefehlsListeMitEingabe` unter denselben Referenzlasten. Die vertragliche Story-Evidenz bleibt trotzdem in den Guardrail-Specs; Benchmarks ersetzen keine Flächen- oder Journey-Abnahme.
+
 ## Lokale Diagnose vs. manueller Review
 
 ### Lokal im Repo
 
 - Guardrail-Specs liefern die vertraglichen `30`-Lauf-Reports und brechen bei verfehlten Gates.
-- Benchmarks liefern zusätzliche lokale Render-Baselines im offiziellen `vitest bench`-Flow.
+- Benchmarks liefern zusätzliche lokale Diagnosewerte im offiziellen `vitest bench`-Flow, inklusive echter Anchor-Render-Baselines für `ETB` und `Befehle`.
 
 ### Weiterhin manuell zu prüfen
 

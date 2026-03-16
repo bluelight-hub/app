@@ -53,4 +53,19 @@ describe('Ring-2-Performance-Grundlage', () => {
     expect(parsed.browser).toBe('Chrome 146');
     expect(parsed.pass).toBe(true);
   });
+
+  it('entscheidet Pass/Fail gegen Rohwerte statt gegen gerundete Anzeigewerte', () => {
+    const report = createStructuredPerformanceReport({
+      scenario: 'etb',
+      metric: 'interaction-feedback',
+      thresholdMs: 200,
+      samples: [199.99, 200.004, 200.004, 200.004, 200.004],
+      device: 'Desktop >= 1024px',
+      browser: 'Chrome 146',
+      requiredPassRate: 0.8,
+    });
+
+    expect(report.measured).toBe(200);
+    expect(report.pass).toBe(false);
+  });
 });

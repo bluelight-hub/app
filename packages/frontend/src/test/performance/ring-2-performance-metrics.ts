@@ -31,6 +31,12 @@ interface RunIterationsInput {
   measure: (iteration: number) => Promise<number> | number;
 }
 
+interface MeasureMountedInteractionCycleInput {
+  render: () => RenderResult;
+  action: (result: RenderResult) => Promise<void> | void;
+  ready?: (result: RenderResult) => Promise<void> | void;
+}
+
 export function calculatePercentile(samples: number[], percentile: number): number {
   if (samples.length === 0) {
     return 0;
@@ -63,9 +69,13 @@ export function createStructuredPerformanceReport({
   browser,
   requiredPassRate = 0.95,
 }: CreateStructuredPerformanceReportInput): StructuredPerformanceReport {
-  const roundedSamples = samples.map((sample) => round(sample));
-  const p95 = round(calculatePercentile(roundedSamples, 95));
-  const passRate = round(calculatePassRate(roundedSamples, thresholdMs), 4);
+  const roundedSamples = samples.map((sample) => roundForDisplay(sample));
+  const rawP95 = calculatePercentile(samples, 95);
+  const rawPassRate = calculatePassRate(samples, thresholdMs);
+  const p95 = roundForDisplay(rawP95);
+  const passRate = roundForDisplay(rawPassRate, 4);
+  const min = samples.length > 0 ? roundForDisplay(Math.min(...samples)) : 0;
+  const max = samples.length > 0 ? roundForDisplay(Math.max(...samples)) : 0;
 
   return {
     scenario,
@@ -75,11 +85,11 @@ export function createStructuredPerformanceReport({
     iterations: roundedSamples.length,
     device,
     browser,
-    pass: p95 <= thresholdMs && passRate >= requiredPassRate,
+    pass: rawP95 <= thresholdMs && rawPassRate >= requiredPassRate,
     passRate,
     p95,
-    min: round(Math.min(...roundedSamples)),
-    max: round(Math.max(...roundedSamples)),
+    min,
+    max,
     samples: roundedSamples,
   };
 }
@@ -104,7 +114,7 @@ export async function measureRenderCycle(render: () => RenderResult, ready?: (re
 
   try {
     await ready?.(result);
-    return round(performance.now() - start);
+    return roundForDisplay(performance.now() - start);
   } finally {
     result.unmount();
   }
@@ -114,10 +124,23 @@ export async function measureInteractionCycle(action: () => Promise<void> | void
   const start = performance.now();
   await action();
   await ready?.();
-  return round(performance.now() - start);
+  return roundForDisplay(performance.now() - start);
 }
 
-function round(value: number, fractionDigits = 2): number {
+export async function measureMountedInteractionCycle({ render, action, ready }: MeasureMountedInteractionCycleInput): Promise<number> {
+  const result = render();
+
+  try {
+    return await measureInteractionCycle(
+      () => action(result),
+      () => ready?.(result),
+    );
+  } finally {
+    result.unmount();
+  }
+}
+
+function roundForDisplay(value: number, fractionDigits = 2): number {
   const multiplier = 10 ** fractionDigits;
   return Math.round(value * multiplier) / multiplier;
 }
