@@ -103,36 +103,46 @@ export function EtbTableBody({
 
       {/* Loading Overlay innerhalb der Tabelle */}
       {isLoading && entries.length === 0 ? (
-        // Initial Loading - Skeleton Rows
-        SKELETON_KEYS.map((key) => (
-          <tr key={key} className="animate-pulse">
-            <td className="px-3 py-2">
-              <div className="h-4 w-4 rounded bg-gray-200 dark:bg-gray-700" />
-            </td>
-            <td className="px-3 py-2">
-              <div className="h-4 w-8 rounded bg-gray-200 dark:bg-gray-700" />
-            </td>
-            <td className="px-3 py-2">
-              <div className="h-4 w-16 rounded bg-gray-200 dark:bg-gray-700" />
-            </td>
-            <td className="px-3 py-2">
-              <div className="h-4 w-20 rounded bg-gray-200 dark:bg-gray-700" />
-            </td>
-            <td className="px-3 py-2">
-              <div className="h-4 w-48 rounded bg-gray-200 dark:bg-gray-700" />
-            </td>
-            <td className="px-3 py-2">
-              <div className="h-4 w-16 rounded bg-gray-200 dark:bg-gray-700" />
+        <>
+          <tr>
+            <td colSpan={columns.length} className="px-4 pt-4">
+              <output className="flex items-center gap-2 text-gray-500 text-sm dark:text-gray-400" aria-live="polite" aria-atomic="true">
+                <PiCircleNotch className="h-4 w-4 animate-spin" />
+                <span>ETB-Einträge werden geladen…</span>
+              </output>
             </td>
           </tr>
-        ))
+          {SKELETON_KEYS.map((key) => (
+            <tr key={key} className="animate-pulse">
+              <td className="px-3 py-2">
+                <div className="h-4 w-4 rounded bg-gray-200 dark:bg-gray-700" />
+              </td>
+              <td className="px-3 py-2">
+                <div className="h-4 w-8 rounded bg-gray-200 dark:bg-gray-700" />
+              </td>
+              <td className="px-3 py-2">
+                <div className="h-4 w-16 rounded bg-gray-200 dark:bg-gray-700" />
+              </td>
+              <td className="px-3 py-2">
+                <div className="h-4 w-20 rounded bg-gray-200 dark:bg-gray-700" />
+              </td>
+              <td className="px-3 py-2">
+                <div className="h-4 w-48 rounded bg-gray-200 dark:bg-gray-700" />
+              </td>
+              <td className="px-3 py-2">
+                <div className="h-4 w-16 rounded bg-gray-200 dark:bg-gray-700" />
+              </td>
+            </tr>
+          ))}
+        </>
       ) : virtualRows.length === 0 && entries.length > 0 ? (
         // Fallback während Virtualizer initialisiert
         <tr>
           <td colSpan={columns.length} className="h-[500px]">
-            <div className="flex h-full items-center justify-center">
+            <output className="flex h-full flex-col items-center justify-center gap-2" aria-live="polite" aria-atomic="true">
               <PiCircleNotch className="h-6 w-6 animate-spin text-primary-500" />
-            </div>
+              <span className="text-gray-500 text-sm dark:text-gray-400">Einträge werden aktualisiert…</span>
+            </output>
           </td>
         </tr>
       ) : (

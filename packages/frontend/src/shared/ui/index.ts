@@ -26,7 +26,10 @@ export * from './headless';
 // Import direkt: import { AuthLayout } from '@/shared/ui/templates';
 // import { SingleEinsatzLayout } from '@/shared/ui/templates/SingleEinsatzLayout';
 
-// Organisms werden NICHT re-exportiert, da aktuell alle feature-spezifisch sind
+// Feature-neutrale Organisms für Shell- und Workspace-Primitives
+export * from './organisms/workspace';
+
+// Weitere Organisms werden NICHT re-exportiert, da sie aktuell feature-spezifisch sind
 // (admin, auth, command-palette, dashboard, einsaetze, einsatz, etb, lagekarte)
 
 // UI Utilities

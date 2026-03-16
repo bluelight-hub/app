@@ -35,6 +35,7 @@ export function EtbPage({ einsatzId, mode }: EtbPageProps) {
 
   /* State for artificial delay on reload button */
   const [isReloading, setIsReloading] = useState(false);
+  const isRefreshPending = isRefetching || isReloading;
 
   const handleReload = async () => {
     setIsReloading(true);
@@ -105,15 +106,15 @@ export function EtbPage({ einsatzId, mode }: EtbPageProps) {
             <button
               type="button"
               onClick={handleReload}
-              disabled={isRefetching || isReloading}
+              disabled={isRefreshPending}
               className={cn(
                 'inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-2 text-gray-700 text-sm shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600',
-                (isRefetching || isReloading) && 'cursor-not-allowed opacity-50',
+                isRefreshPending && 'cursor-not-allowed opacity-50',
               )}
               title="Aktualisieren"
             >
-              <PiArrowsClockwise className={cn('h-4 w-4', (isRefetching || isReloading) && 'animate-spin')} />
-              Aktualisieren
+              <PiArrowsClockwise className={cn('h-4 w-4', isRefreshPending && 'animate-spin')} />
+              {isRefreshPending ? 'Aktualisiere ETB…' : 'Aktualisieren'}
             </button>
             <button
               type="button"

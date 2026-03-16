@@ -1,9 +1,8 @@
 import { useCurrentUser } from '@/features/auth';
 import { useBefehlNotifications, useBefehlWebSocket, useMissedBefehlAlerts, useUnquittierteBefehleCount } from '@/features/befehl';
-import { EINSATZ_QUERY_KEYS, useEinsatzDetails, useEinsatzModules, useMyEinsatzTeilnahme } from '@/features/einsatz';
+import { EINSATZ_QUERY_KEYS, useEinsatzDetails, useMyEinsatzTeilnahme } from '@/features/einsatz';
 import { EinsatzStatusBadge } from '@/features/einsatz/ui/molecules/einsatz-status-badge.molecule';
 import { EinsatzSwitcher } from '@/features/einsatz/ui/molecules/EinsatzSwitcher.molecule';
-import { ModuleButton } from '@/features/einsatz/ui/molecules/ModuleButton';
 import { ModuleOverviewCard } from '@/features/einsatz/ui/molecules/ModuleOverviewCard';
 import { EinsatzBeitrittDialog } from '@/features/einsatz/ui/organisms';
 import { closeQuickCreateNotizDialog, CreateNotizDialog, useQuickCreateNotizDialogState, useQuickCreateNotizHotkeys } from '@/features/notizen';
@@ -31,21 +30,21 @@ import { filterMyErinnerungen } from '@/features/reminders/utils/erinnerung-owne
 import { useActiveServer } from '@/features/server/hooks';
 import { ServerNameBadge } from '@/features/server/ui/atoms';
 import { AudioSettingsDialog } from '@/features/settings';
+import { useWorkspaceModules, WorkspaceShell } from '@/features/workspace';
 import { api, EinsatzDtoStatusEnum } from '@/shared';
-import { cn, getModuleActiveColor, getModuleColor } from '@/shared/ui';
+import { cn } from '@/shared/ui';
 import { Button } from '@/shared/ui/atoms/button.atom';
-import { CommandTrigger } from '@/shared/ui/atoms/command-trigger.atom';
-import { Container } from '@/shared/ui/atoms/container.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { CommandPalette } from '@/shared/ui/organisms/command-palette';
 import { CommandPaletteErrorBoundary } from '@/shared/ui/organisms/command-palette/CommandPaletteErrorBoundary';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link, Outlet, useMatchRoute, useNavigate, useParams, useRouter } from '@tanstack/react-router';
+import { Outlet, useMatchRoute, useNavigate, useParams, useRouter } from '@tanstack/react-router';
 import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { PiArrowLeft, PiArrowsOut, PiClock, PiGridFour, PiQuestion, PiRadio, PiSiren, PiSpeakerHigh, PiWarning } from 'react-icons/pi';
+import { PiArrowsOut, PiClock, PiRadio, PiSiren, PiSpeakerHigh, PiWarning } from 'react-icons/pi';
 import { toast } from 'sonner';
+import { hasBlockingWorkspaceOverlay, shouldBlockWorkspaceHotkey } from './single-einsatz-layout.utils';
 
 interface SingleEinsatzLayoutProps {
   className?: string;
@@ -58,6 +57,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [showModuleOverview, setShowModuleOverview] = useState(false);
   const [showEndConfirmation, setShowEndConfirmation] = useState(false);
   const [showBeitrittDialog, setShowBeitrittDialog] = useState(false);
   const [showAudioDialog, setShowAudioDialog] = useState(false);
@@ -77,8 +77,19 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   // Quick-Create Notiz Dialog State und Hotkeys
   const [isQuickCreateNotizOpen, quickCreateNotizEinsatzId] = useQuickCreateNotizDialogState();
 
-  const anyDialogOpen =
-    commandPaletteOpen || showEndConfirmation || showBeitrittDialog || isQuickCreateOpen || isEditDialogOpen || isDeleteDialogOpen || isMarkErledigtDialogOpen || isQuickCreateNotizOpen;
+  const anyDialogOpen = hasBlockingWorkspaceOverlay({
+    commandPaletteOpen,
+    showModuleOverview,
+    showEndConfirmation,
+    showBeitrittDialog,
+    showAudioDialog,
+    isQuickCreateOpen,
+    isEditDialogOpen,
+    isDeleteDialogOpen,
+    isMarkErledigtDialogOpen,
+    isStopRecurringDialogOpen,
+    isQuickCreateNotizOpen,
+  });
 
   useQuickCreateErinnerungHotkeys({
     einsatzId,
@@ -207,24 +218,14 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
     // Ohne aktive Teilnahme kann der User den Einsatz nicht starten.
     if (!currentEinsatzPersonId) return;
 
-    console.log('Auto-start check:', {
-      status: einsatz?.status,
-      expected: EinsatzDtoStatusEnum.Angelegt,
-      hasStarted: hasStartedRef.current,
-      isPending: startEinsatzMutation.isPending,
-      matches: einsatz?.status === EinsatzDtoStatusEnum.Angelegt,
-      hasTeilnahme: !!currentEinsatzPersonId,
-    });
-
     if (einsatz && einsatz.status === EinsatzDtoStatusEnum.Angelegt && !hasStartedRef.current && !startEinsatzMutation.isPending) {
-      console.log('Starting einsatz automatically...');
       hasStartedRef.current = true;
       startEinsatzMutation.mutate();
     }
   }, [einsatz, isTeilnahmeLoading, currentEinsatzPersonId]);
 
   // Modul-Konfiguration aus Hook
-  const baseModules = useEinsatzModules();
+  const baseModules = useWorkspaceModules();
 
   // Badge-Counter fuer unquittierte Befehle (WP4.3)
   const unquittiertCount = useUnquittierteBefehleCount(einsatzId);
@@ -244,19 +245,40 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
     [baseModules, unquittiertCount],
   );
 
-  // Finde das aktuelle Modul basierend auf der URL
-  const currentModule = useMemo(
-    () =>
-      modules.find((module) =>
-        module.subPages.some((page) => {
-          // Nutze TanStack Router's matchRoute für sauberes Matching
-          return matchRoute({ to: page.href, fuzzy: true });
-        }),
-      ) || modules[0],
-    [modules, matchRoute],
-  );
+  useEffect(() => {
+    if (!anyDialogOpen) {
+      return;
+    }
 
-  const [showModuleOverview, setShowModuleOverview] = useState(false);
+    function handleBlockedWorkspaceHotkey(event: KeyboardEvent) {
+      if (event.defaultPrevented || !shouldBlockWorkspaceHotkey(event, modules)) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+    }
+
+    window.addEventListener('keydown', handleBlockedWorkspaceHotkey, true);
+
+    return () => {
+      window.removeEventListener('keydown', handleBlockedWorkspaceHotkey, true);
+    };
+  }, [anyDialogOpen, modules]);
+
+  const visibleModules = useMemo(() => modules.filter((module) => module.visibility.default !== 'hidden'), [modules]);
+
+  // Finde das aktuelle Modul basierend auf der URL
+  const currentModule =
+    visibleModules.find((module) =>
+      module.subPages.some((page) => {
+        // Nutze TanStack Router's matchRoute für sauberes Matching
+        return matchRoute({ to: page.href, fuzzy: true });
+      }),
+    ) ??
+    visibleModules[0] ??
+    null;
 
   // Mutation für Einsatz beenden
   const endEinsatzMutation = useMutation({
@@ -293,6 +315,29 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
 
   const duration = startTime ? formatDistanceToNow(startTime, { locale: de, addSuffix: false }) : null;
 
+  const activePageHref = currentModule?.subPages.find((page) => matchRoute({ to: page.href, fuzzy: true }))?.href;
+
+  const moduleOverviewModules = useMemo(
+    () =>
+      modules.map((module) => ({
+        id: module.id,
+        name: module.label,
+        icon: module.icon,
+        description: module.description,
+        color: module.color,
+        visibility: module.visibility,
+        routeTarget: module.routeTarget,
+        shortcut: module.shortcut,
+        badgeHint: module.badgeHint,
+        subPages: module.subPages.map((page) => ({
+          name: page.label,
+          href: page.href,
+          icon: page.icon,
+        })),
+      })),
+    [modules],
+  );
+
   /**
    * Handler für Fullscreen-Toggle
    * Navigiert zur aktuellen Route mit mode=fullscreen
@@ -317,305 +362,105 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
 
   return (
     <>
-      {/* Module Overview Modal */}
-      <ModuleOverviewCard modules={modules} currentModuleId={currentModule.id} einsatzId={einsatzId} open={showModuleOverview} onClose={() => setShowModuleOverview(false)} />
-
-      <div className={cn('min-h-screen bg-surface-canvas text-text-primary', className)}>
-        {/* Fixed Header */}
-        <header className="sticky top-0 z-30 border-border-subtle border-b bg-surface-panel shadow-raised">
-          <Container maxWidth="full">
-            <div className="flex h-16 items-center justify-between px-4">
-              {/* Left: Back and Title */}
-              <div className="flex items-center gap-4">
-                <Link to="/app/einsaetze">
-                  <Button appearance="ghost" size="sm">
-                    <PiArrowLeft className="mr-2 h-4 w-4" />
-                    Übersicht
-                  </Button>
-                </Link>
-
-                <div className="h-8 w-px bg-border-subtle" />
-
-                {einsatz && (
-                  <div className="flex items-center gap-3">
-                    <PiSiren className="h-5 w-5 text-status-danger-text" />
-                    <div>
-                      <h1 className="font-semibold text-text-primary text-title-sm">
-                        <span className="font-mono text-body-sm text-text-secondary">{einsatz.nummer}</span>
-                        <span className="mx-1.5 text-border-strong">|</span>
-                        {einsatz.name}
-                      </h1>
-                      {einsatz.alarmstichwort && (
-                        <p className="text-body-xs text-text-secondary">
-                          {einsatz.alarmstichwort}
-                          {einsatz.einsatzort && ` • ${einsatz.einsatzort}`}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Right: Server Name, Fullscreen, Status and Timer */}
-              {einsatz && (
-                <div className="flex items-center gap-4">
-                  {/* Server Name Badge */}
-                  {activeServer && <ServerNameBadge name={activeServer.name} className="hidden md:flex" />}
-
-                  {/* Fullscreen-Button (für /karte und /etb Routes) */}
-                  {supportsFullscreen && (
-                    <Button appearance="ghost" size="sm" onClick={handleFullscreenToggle} className="gap-2" title="Vollbildmodus aktivieren">
-                      <PiArrowsOut className="h-4 w-4" />
-                      <span className="hidden lg:inline">Vollbild</span>
-                    </Button>
-                  )}
-
-                  {duration && (
-                    <div className="flex items-center gap-2 text-body-sm">
-                      <PiClock className="h-4 w-4 text-text-muted" />
-                      <span className="text-text-secondary">{duration}</span>
-                    </div>
-                  )}
-                  <EinsatzStatusBadge status={einsatz.status} size="sm" />
+      <WorkspaceShell
+        className={className}
+        contextBar={{
+          icon: einsatz ? PiSiren : undefined,
+          title: einsatz ? (
+            <span className="truncate">
+              <span className="font-mono text-body-sm text-text-secondary">{einsatz.nummer}</span>
+              <span className="mx-1.5 text-border-strong">|</span>
+              {einsatz.name}
+            </span>
+          ) : (
+            'Einsatz'
+          ),
+          subtitle: einsatz?.alarmstichwort ? (
+            <>
+              {einsatz.alarmstichwort}
+              {einsatz.einsatzort && ` • ${einsatz.einsatzort}`}
+            </>
+          ) : undefined,
+          backAction: {
+            href: '/app/einsaetze',
+            label: 'Übersicht',
+          },
+          endSlot: einsatz ? (
+            <>
+              {activeServer && <ServerNameBadge name={activeServer.name} className="hidden md:flex" />}
+              {supportsFullscreen && (
+                <Button appearance="ghost" size="sm" onClick={handleFullscreenToggle} className="gap-2" title="Vollbildmodus aktivieren">
+                  <PiArrowsOut className="h-4 w-4" />
+                  <span className="hidden lg:inline">Vollbild</span>
+                </Button>
+              )}
+              {duration && (
+                <div className="flex items-center gap-2 text-body-sm">
+                  <PiClock className="h-4 w-4 text-text-muted" />
+                  <span className="text-text-secondary">{duration}</span>
                 </div>
               )}
-            </div>
-          </Container>
-        </header>
-
-        {/* Module Navigation (Horizontal) */}
-        <nav className="sticky top-16 z-20 border-border-subtle border-b bg-surface-panel shadow-raised">
-          <Container maxWidth="full">
-            <div className="px-4 py-3">
-              <div className="flex items-center justify-between">
-                {/* Desktop: Alle Module mit Text */}
-                <div className="hidden gap-3 overflow-x-auto 2xl:flex">
-                  {modules.map((module, index) => {
-                    const isActive = module.id === currentModule.id;
-                    const hotkey = index < 9 ? `alt+${index + 1}` : undefined;
-                    return (
-                      <ModuleButton
-                        key={module.id}
-                        to={module.subPages[0].href}
-                        params={{ einsatzId }}
-                        hotkey={hotkey}
-                        isActive={isActive}
-                        colorClasses={isActive ? getModuleActiveColor(module.color) : getModuleColor(module.color)}
-                      >
-                        <module.icon className="h-4 w-4" />
-                        {module.name}
-                      </ModuleButton>
-                    );
-                  })}
-                </div>
-
-                {/* Smaller Desktop: Icons + erste 6 wichtigsten, Rest in Dropdown */}
-                <div className="hidden items-center gap-2 lg:flex 2xl:hidden">
-                  {modules.slice(0, 5).map((module, index) => {
-                    const isActive = module.id === currentModule.id;
-                    const hotkey = index < 5 ? `alt+${index + 1}` : undefined;
-                    return (
-                      <ModuleButton
-                        key={module.id}
-                        to={module.subPages[0].href}
-                        params={{ einsatzId }}
-                        hotkey={hotkey}
-                        isActive={isActive}
-                        colorClasses={isActive ? getModuleActiveColor(module.color) : getModuleColor(module.color)}
-                        className="px-3"
-                      >
-                        <module.icon className="h-4 w-4" />
-                        <span className="hidden md:inline">{module.name}</span>
-                      </ModuleButton>
-                    );
-                  })}
-                  {modules.length > 5 && (
-                    <div className="relative">
-                      <Button
-                        appearance="ghost"
-                        size="sm"
-                        onClick={() => setShowModuleOverview(true)}
-                        aria-label="Modulübersicht öffnen"
-                        title="Modulübersicht öffnen"
-                        className={cn('px-3', modules.slice(3).some((m) => m.id === currentModule.id) && 'bg-action-secondary ring-2 ring-focus-ring')}
-                      >
-                        <PiGridFour className="h-4 w-4" />
-                        <span className="ml-2 hidden md:inline">Mehr</span>
-                      </Button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Tablet: Icons + erste 3-4 wichtigsten, Rest in Dropdown */}
-                <div className="hidden items-center gap-2 sm:flex lg:hidden">
-                  {modules.slice(0, 3).map((module, index) => {
-                    const isActive = module.id === currentModule.id;
-                    const hotkey = index < 3 ? `alt+${index + 1}` : undefined;
-                    return (
-                      <ModuleButton
-                        key={module.id}
-                        to={module.subPages[0].href}
-                        params={{ einsatzId }}
-                        hotkey={hotkey}
-                        isActive={isActive}
-                        colorClasses={isActive ? getModuleActiveColor(module.color) : getModuleColor(module.color)}
-                        className="px-3"
-                      >
-                        <module.icon className="h-4 w-4" />
-                        <span className="hidden md:inline">{module.name}</span>
-                      </ModuleButton>
-                    );
-                  })}
-                  {modules.length > 3 && (
-                    <div className="relative">
-                      <Button
-                        appearance="ghost"
-                        size="sm"
-                        onClick={() => setShowModuleOverview(true)}
-                        aria-label="Modulübersicht öffnen"
-                        title="Modulübersicht öffnen"
-                        className={cn('px-3', modules.slice(3).some((m) => m.id === currentModule.id) && 'bg-action-secondary ring-2 ring-focus-ring')}
-                      >
-                        <PiGridFour className="h-4 w-4" />
-                        <span className="ml-2 hidden md:inline">Mehr</span>
-                      </Button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Mobile: Nur Icons oder kompakter Dropdown */}
-                <div className="flex flex-1 items-center gap-2 sm:hidden">
-                  {/* Aktives Modul prominent */}
-                  <div
-                    className={cn(
-                      'flex items-center gap-2 rounded-control border border-border-subtle bg-action-secondary px-3 py-2 font-medium text-body-sm text-text-primary',
-                      getModuleActiveColor(currentModule.color),
-                    )}
-                  >
-                    <currentModule.icon className="h-4 w-4" />
-                    <span>{currentModule.name}</span>
-                  </div>
-
-                  {/* Module-Wechsler als Dropdown */}
-                  <Button appearance="ghost" size="sm" onClick={() => setShowModuleOverview(true)} className="ml-auto" aria-label="Modulübersicht öffnen" title="Modulübersicht öffnen">
-                    <PiGridFour className="h-5 w-5" />
-                  </Button>
-                </div>
-
-                {/* Command Palette Trigger */}
-                <div className="ml-4">
-                  <CommandTrigger onClick={() => setCommandPaletteOpen(true)} />
-                </div>
-              </div>
-              {/* Module Description with Help - nur auf Desktop */}
-              <div className="mt-2 hidden items-center justify-between lg:flex">
-                <p className="text-body-xs text-text-secondary">{currentModule.description}</p>
-                <Button appearance="ghost" size="sm" className="h-6 w-6 p-0" title="Modulübersicht anzeigen" aria-label="Modulübersicht anzeigen" onClick={() => setShowModuleOverview(true)}>
-                  <PiQuestion className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </Container>
-        </nav>
-
-        {/* Main Content */}
-        <main className="flex-1">
-          <Container maxWidth="full">
-            <div className="flex gap-6">
-              {/* Sidebar with Sub-Pages */}
-              <aside className="hidden w-64 flex-shrink-0 pt-6 lg:block">
-                <div className="sticky top-36 space-y-1 rounded-panel border border-border-subtle bg-surface-panel p-3 shadow-panel">
-                  <EinsatzSwitcher />
-                  <h3 className="mb-2 px-3 font-semibold text-body-xs text-text-secondary uppercase tracking-[0.16em]">{currentModule.name} Navigation</h3>
-                  {currentModule.subPages.map((page) => {
-                    const isActive = !!matchRoute({ to: page.href });
-                    return (
-                      <Link
-                        key={page.href}
-                        to={page.href}
-                        params={{ einsatzId }}
-                        className={cn(
-                          'group flex items-start gap-3 rounded-control px-3 py-2 transition-colors',
-                          isActive ? 'bg-action-secondary text-text-primary' : 'text-text-secondary hover:bg-action-secondary',
-                        )}
-                      >
-                        <page.icon className={cn('mt-0.5 h-5 w-5 flex-shrink-0 transition-colors', isActive ? 'text-text-primary' : 'text-text-muted group-hover:text-text-secondary')} />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-body-sm">{page.name}</span>
-                            {page.badge && <span className="rounded-pill bg-action-primary px-1.5 py-0.5 font-semibold text-body-xs text-text-inverse">{page.badge}</span>}
-                          </div>
-                          {page.description && <p className="mt-0.5 text-body-xs text-text-secondary">{page.description}</p>}
-                        </div>
-                      </Link>
-                    );
-                  })}
-
-                  {/* Quick Actions */}
-                  <div className="mt-6 border-border-subtle border-t pt-6">
-                    {/* Funkrufname / Einsatz-Beitritt */}
-                    <Button appearance="ghost" size="sm" className="mb-2 w-full justify-start" onClick={() => setShowBeitrittDialog(true)}>
-                      <PiRadio className="mr-2 h-4 w-4" />
-                      {currentEinsatzPersonId ? (
-                        <span className="truncate">{teilnahmeData?.data?.personFunkrufname || `${teilnahmeData?.data?.personVorname} ${teilnahmeData?.data?.personNachname}`}</span>
-                      ) : (
-                        <span className="text-action-primary">Person wählen</span>
-                      )}
-                    </Button>
-                    <Button appearance="ghost" size="sm" className="mb-2 w-full justify-start" onClick={() => setShowAudioDialog(true)} aria-haspopup="dialog">
-                      <PiSpeakerHigh className="mr-2 h-4 w-4" />
-                      Audio-Einstellungen
-                    </Button>
-                    <Button
-                      intent="danger"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => setShowEndConfirmation(true)}
-                      disabled={einsatz?.status === EinsatzDtoStatusEnum.Abgeschlossen || einsatz?.status === EinsatzDtoStatusEnum.Archiviert}
-                    >
-                      Einsatz beenden
-                    </Button>
-                  </div>
-                </div>
-              </aside>
-
-              {/* Mobile Sub-Navigation */}
-              <div className="fixed right-0 bottom-0 left-0 z-20 border-border-subtle border-t bg-surface-panel p-4 shadow-raised lg:hidden">
-                <div className="flex gap-2 overflow-x-auto">
-                  {currentModule.subPages.map((page) => {
-                    const isActive = !!matchRoute({ to: page.href });
-                    return (
-                      <Link
-                        key={page.href}
-                        to={page.href}
-                        params={{ einsatzId }}
-                        className={cn('flex items-center gap-2 whitespace-nowrap rounded-control px-3 py-2 text-body-sm', isActive ? 'bg-action-secondary text-text-primary' : 'text-text-secondary')}
-                      >
-                        <page.icon className="h-4 w-4" />
-                        {page.name}
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Content Area */}
-              <div className="min-w-0 flex-1 py-6 pb-24 lg:pb-6">
-                <Outlet />
-              </div>
-            </div>
-          </Container>
-        </main>
-      </div>
+              <EinsatzStatusBadge status={einsatz.status} size="sm" />
+            </>
+          ) : null,
+        }}
+        modules={modules}
+        activeModuleId={currentModule?.id ?? ''}
+        activePageHref={activePageHref}
+        routeParams={{ einsatzId }}
+        blockingOverlay={{ isBlocking: anyDialogOpen }}
+        commandTriggerLabel="Befehle und Navigation"
+        moduleOverviewLabel="Modulübersicht öffnen"
+        onCommandTriggerClick={() => setCommandPaletteOpen(true)}
+        onOpenModuleOverview={() => setShowModuleOverview(true)}
+        sidebarHeader={<EinsatzSwitcher />}
+        sidebarFooter={
+          <div className="border-border-subtle border-t pt-4">
+            <Button appearance="ghost" size="sm" className="mb-2 w-full justify-start" onClick={() => setShowBeitrittDialog(true)}>
+              <PiRadio className="mr-2 h-4 w-4" />
+              {currentEinsatzPersonId ? (
+                <span className="truncate">{teilnahmeData?.data?.personFunkrufname || `${teilnahmeData?.data?.personVorname} ${teilnahmeData?.data?.personNachname}`}</span>
+              ) : (
+                <span className="text-action-primary">Person wählen</span>
+              )}
+            </Button>
+            <Button appearance="ghost" size="sm" className="mb-2 w-full justify-start" onClick={() => setShowAudioDialog(true)} aria-haspopup="dialog">
+              <PiSpeakerHigh className="mr-2 h-4 w-4" />
+              Audio-Einstellungen
+            </Button>
+            <Button
+              intent="danger"
+              size="sm"
+              className="w-full"
+              onClick={() => setShowEndConfirmation(true)}
+              disabled={einsatz?.status === EinsatzDtoStatusEnum.Abgeschlossen || einsatz?.status === EinsatzDtoStatusEnum.Archiviert}
+            >
+              Einsatz beenden
+            </Button>
+          </div>
+        }
+        overlaySlot={
+          <ModuleOverviewCard modules={moduleOverviewModules} currentModuleId={currentModule?.id} einsatzId={einsatzId} open={showModuleOverview} onClose={() => setShowModuleOverview(false)} />
+        }
+      >
+        <Outlet />
+      </WorkspaceShell>
 
       {/* Command Palette Modal */}
       <CommandPaletteErrorBoundary>
         <CommandPalette
           modules={modules.map((module) => ({
-            ...module,
+            id: module.id,
+            name: module.label,
+            color: module.color,
+            icon: module.icon,
             subPages: module.subPages.map((page) => ({
-              ...page,
-              badge: page.badge?.toString(), // Convert number to string if needed
+              id: page.id,
+              name: page.label,
+              href: page.href,
+              icon: page.icon,
+              description: page.description,
+              badge: page.badge?.toString(),
             })),
           }))}
           open={commandPaletteOpen}

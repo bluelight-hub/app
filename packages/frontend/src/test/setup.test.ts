@@ -1,4 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { resetTestViewport, setTestViewport } from './viewport';
+import { afterEach, describe, expect, it } from 'vitest';
+
+afterEach(() => {
+  resetTestViewport();
+});
 
 describe('Test Setup', () => {
   it('should run basic assertions', () => {
@@ -12,9 +17,19 @@ describe('Test Setup', () => {
   });
 
   it('should have mocked matchMedia', () => {
-    const mediaQuery = window.matchMedia('(min-width: 768px)');
-    expect(mediaQuery).toBeDefined();
-    expect(mediaQuery.matches).toBe(false);
+    setTestViewport({ width: 1280 });
+
+    const desktopQuery = window.matchMedia('(min-width: 768px)');
+    const mobileQuery = window.matchMedia('(max-width: 639px)');
+
+    expect(desktopQuery).toBeDefined();
+    expect(desktopQuery.matches).toBe(true);
+    expect(mobileQuery.matches).toBe(false);
+
+    setTestViewport({ width: 390 });
+
+    expect(desktopQuery.matches).toBe(false);
+    expect(mobileQuery.matches).toBe(true);
   });
 
   it('should have mocked IntersectionObserver', () => {
