@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { AdminSetupController } from '@/modules/admin/controllers/admin-setup.controller';
 import { Result } from '@/domain/common/result';
 import { CompleteSetupCommand } from '@/application/admin/commands/complete-setup.command';
@@ -125,7 +125,7 @@ describe('AdminSetupController', () => {
       }
     });
 
-    it('sollte BadRequestException werfen wenn Handler mit generischem Fehler fehlschlaegt', async () => {
+    it('sollte InternalServerErrorException werfen wenn Handler mit generischem Fehler fehlschlaegt', async () => {
       // Given (Arrange)
       const dto: CompleteSetupDto = {
         username: 'admin',
@@ -135,18 +135,43 @@ describe('AdminSetupController', () => {
       mockCompleteSetupHandler.execute.mockResolvedValue(Result.fail('DATABASE_ERROR'));
 
       // When (Act) & Then (Assert)
-      await expect(controller.completeSetup(dto)).rejects.toThrow(BadRequestException);
+      await expect(controller.completeSetup(dto)).rejects.toThrow(InternalServerErrorException);
 
       try {
         await controller.completeSetup(dto);
       } catch (error) {
-        expect(error).toBeInstanceOf(BadRequestException);
-        const badRequestError = error as BadRequestException;
-        const response = badRequestError.getResponse() as { statusCode: number; error: string; message: string };
-        // Neues Format: statusCode + error + message (6.5 Fix)
-        expect(response.statusCode).toBe(400);
-        expect(response.error).toBe('Bad Request');
-        expect(response.message).toBe('DATABASE_ERROR');
+        expect(error).toBeInstanceOf(InternalServerErrorException);
+        const internalError = error as InternalServerErrorException;
+        const response = internalError.getResponse() as { statusCode: number; error: string; message: string; code: string };
+        expect(response.statusCode).toBe(500);
+        expect(response.error).toBe('Internal Server Error');
+        expect(response.message).toBe('SETUP_EXECUTION_FAILED');
+        expect(response.code).toBe('DATABASE_ERROR');
+      }
+    });
+
+    it('sollte leere Handler-Fehler auf einen stabilen InternalServerError mappen', async () => {
+      // Given (Arrange)
+      const dto: CompleteSetupDto = {
+        username: 'admin',
+        password: 'SecurePassword123!',
+      };
+
+      mockCompleteSetupHandler.execute.mockResolvedValue(Result.fail(''));
+
+      // When (Act) & Then (Assert)
+      await expect(controller.completeSetup(dto)).rejects.toThrow(InternalServerErrorException);
+
+      try {
+        await controller.completeSetup(dto);
+      } catch (error) {
+        expect(error).toBeInstanceOf(InternalServerErrorException);
+        const internalError = error as InternalServerErrorException;
+        const response = internalError.getResponse() as { statusCode: number; error: string; message: string; code: string };
+        expect(response.statusCode).toBe(500);
+        expect(response.error).toBe('Internal Server Error');
+        expect(response.message).toBe('SETUP_EXECUTION_FAILED');
+        expect(response.code).toBe('UNEXPECTED_ERROR');
       }
     });
 

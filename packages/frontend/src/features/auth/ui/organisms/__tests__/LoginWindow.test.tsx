@@ -11,7 +11,8 @@
  * @module features/auth/ui/organisms/__tests__/LoginWindow
  */
 
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 // Store-Mock muss VOR dem Import der Komponente definiert werden
@@ -20,6 +21,7 @@ const mockNavigate = vi.fn();
 const mockRouterHistoryReplace = vi.fn();
 const mockRouterHistoryPush = vi.fn();
 const mockRouterHistoryFlush = vi.fn();
+const mockAuthMutate = vi.fn();
 
 // Mock @tanstack/react-store mit Store-Klasse
 vi.mock('@tanstack/react-store', () => ({
@@ -33,10 +35,9 @@ vi.mock('@tanstack/react-store', () => ({
 
 // Mock alle Hooks
 vi.mock('@/features/auth', () => ({
-  AUTH_KEYS: { auth: { queries: { authCheck: ['auth', 'check'] } } },
   consumeRedirectAfterLogin: vi.fn(() => undefined),
   useCurrentUser: vi.fn(() => ({ user: null, authStatus: 'unauthenticated', isLoading: false })),
-  useUnifiedAuth: () => ({ mutate: vi.fn(), isPending: false, error: null }),
+  useUnifiedAuth: vi.fn(() => ({ mutate: mockAuthMutate, isPending: false, error: null })),
   useLogout: vi.fn(() => ({ mutateAsync: vi.fn().mockResolvedValue(undefined), isPending: false })),
 }));
 
@@ -80,6 +81,8 @@ vi.mock('@tanstack/react-router', () => ({
 // Mock für QueryClient - wird in Tests überschrieben
 const mockInvalidateQueriesGlobal = vi.fn().mockResolvedValue(undefined);
 const mockRefetchQueriesGlobal = vi.fn().mockResolvedValue(undefined);
+const mockHealthRefetch = vi.fn().mockResolvedValue(undefined);
+const mockVersionRefetch = vi.fn().mockResolvedValue(undefined);
 
 vi.mock('@tanstack/react-query', () => ({
   useQueryClient: vi.fn(() => ({
@@ -88,26 +91,50 @@ vi.mock('@tanstack/react-query', () => ({
   })),
 }));
 
+const mockUseSystemHealth = vi.fn(() => ({
+  connectionMode: 'online',
+  isLoading: false,
+  isError: false,
+  setupComplete: true,
+  version: '1.0.0',
+  query: {
+    refetch: mockHealthRefetch,
+  },
+}));
+
+const mockUseSystemVersion = vi.fn(() => ({
+  frontendVersion: '1.0.0',
+  backendVersion: '1.0.0',
+  mismatchSeverity: 'none',
+  isLoading: false,
+  isError: false,
+  query: {
+    refetch: mockVersionRefetch,
+  },
+}));
+
 vi.mock('@/features/system', () => ({
-  getIndicatorStatus: () => 'connected',
-  STATUS_DOT_COLORS: { connected: 'green' },
-  STATUS_LABELS: { connected: 'Verbunden' },
-  useSystemHealth: () => ({
-    connectionMode: 'online',
-    isLoading: false,
-    isError: false,
-    insecureMode: false,
-  }),
-  useSystemVersion: () => ({
-    frontendVersion: '1.0.0',
-    mismatchSeverity: null,
-  }),
+  getIndicatorStatus: (isLoading: boolean, isError: boolean, connectionMode: 'checking' | 'online' | 'offline' | 'error') => {
+    if (isLoading) return 'checking';
+    if (isError) return 'error';
+    return connectionMode;
+  },
+  STATUS_DOT_COLORS: { online: 'green', offline: 'yellow', error: 'red', checking: 'blue' },
+  STATUS_LABELS: {
+    online: 'System online',
+    offline: 'Eingeschränkter Modus',
+    error: 'Keine Verbindung zum Server',
+    checking: 'Verbindung wird geprüft...',
+  },
+  useSystemHealth: () => mockUseSystemHealth(),
+  useSystemVersion: () => mockUseSystemVersion(),
 }));
 
 // Capture for onServerChange and onLogoutAndSwitch handlers
 let capturedOnServerChange: ((serverId: string) => void) | null = null;
 let capturedOnLogoutAndSwitch: ((serverId: string) => Promise<void>) | null = null;
 let capturedIsAuthenticated: boolean | undefined;
+let capturedAuthSubmit: ((values: { username: string }) => void) | null = null;
 
 // Mock Server Molecules
 vi.mock('@/features/server/ui/molecules', () => ({
@@ -176,7 +203,10 @@ vi.mock('@/shared/ui/templates/AuthLayout', () => ({
 }));
 
 vi.mock('@/features/auth/ui/organisms/UnifiedAuthForm', () => ({
-  UnifiedAuthForm: () => <form data-testid="unified-auth-form">Login Form</form>,
+  UnifiedAuthForm: ({ onSubmit }: { onSubmit: (values: { username: string }) => void }) => {
+    capturedAuthSubmit = onSubmit;
+    return <form data-testid="unified-auth-form">Login Form</form>;
+  },
 }));
 
 vi.mock('sonner', () => ({
@@ -192,9 +222,10 @@ vi.mock('sonner', () => ({
 import { LoginWindow } from '../LoginWindow';
 
 // Import mocks to control
+import { consumeRedirectAfterLogin, useCurrentUser, useLogout, useUnifiedAuth } from '@/features/auth';
+import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { useRequireServer, useServerList, useActiveServer } from '@/features/server/hooks';
 import { setActiveServer } from '@/features/server/stores/server.store';
-import { consumeRedirectAfterLogin, useLogout, useCurrentUser } from '@/features/auth';
 import { toast } from 'sonner';
 import type { ServerConfig } from '@/features/server/types/server-config';
 
@@ -204,7 +235,9 @@ const mockUseActiveServer = vi.mocked(useActiveServer);
 const mockSetActiveServer = vi.mocked(setActiveServer);
 const mockUseLogout = vi.mocked(useLogout);
 const mockUseCurrentUser = vi.mocked(useCurrentUser);
+const mockUseUnifiedAuth = vi.mocked(useUnifiedAuth);
 const mockConsumeRedirectAfterLogin = vi.mocked(consumeRedirectAfterLogin);
+const mockGetApiErrorMessage = vi.mocked(getApiErrorMessage);
 
 /**
  * Factory für Mock-Server
@@ -222,6 +255,12 @@ const createMockServer = (overrides: Partial<ServerConfig> = {}): ServerConfig =
 describe('LoginWindow', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockConnectionStatus.clear();
+    mockConnectionStatus.set('server-1', 'connected');
+    mockAuthMutate.mockReset();
+    mockHealthRefetch.mockResolvedValue(undefined);
+    mockVersionRefetch.mockResolvedValue(undefined);
+    capturedAuthSubmit = null;
 
     // Default Mocks: Server vorhanden, hydriert
     mockUseRequireServer.mockReturnValue({
@@ -236,7 +275,33 @@ describe('LoginWindow', () => {
       authStatus: 'unauthenticated',
       isLoading: false,
     });
+    mockUseUnifiedAuth.mockReturnValue({
+      mutate: mockAuthMutate,
+      isPending: false,
+      error: null,
+    } as ReturnType<typeof useUnifiedAuth>);
+    mockUseSystemHealth.mockReturnValue({
+      connectionMode: 'online',
+      isLoading: false,
+      isError: false,
+      setupComplete: true,
+      version: '1.0.0',
+      query: {
+        refetch: mockHealthRefetch,
+      },
+    });
+    mockUseSystemVersion.mockReturnValue({
+      frontendVersion: '1.0.0',
+      backendVersion: '1.0.0',
+      mismatchSeverity: 'none',
+      isLoading: false,
+      isError: false,
+      query: {
+        refetch: mockVersionRefetch,
+      },
+    });
     mockConsumeRedirectAfterLogin.mockReturnValue(undefined);
+    mockGetApiErrorMessage.mockResolvedValue('Ein unerwarteter Fehler ist aufgetreten.');
     window.history.replaceState({}, '', '/auth');
   });
 
@@ -459,9 +524,204 @@ describe('LoginWindow', () => {
       // Then
       expect(screen.getByTestId('auth-footer')).toBeInTheDocument();
     });
+
+    it('should keep the healthy state compact without an extra context alert', () => {
+      // Given
+      const singleServer = createMockServer({
+        name: 'Leitstelle Nord',
+        url: 'https://nord.bluelight.test',
+      });
+      mockUseServerList.mockReturnValue([singleServer]);
+      mockUseActiveServer.mockReturnValue(singleServer);
+
+      // When
+      render(<LoginWindow />);
+
+      // Then
+      expect(screen.getByTestId('server-selector')).toBeInTheDocument();
+      expect(screen.getByTestId('unified-auth-form')).toBeInTheDocument();
+      expect(screen.getByTestId('auth-footer')).toBeInTheDocument();
+      expect(screen.queryByText('Aktiver Server nicht erreichbar')).not.toBeInTheDocument();
+      expect(screen.queryByText('Versionen weichen ab')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Erneut prüfen' })).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Status Actions', () => {
+    it('should offer direct follow-up actions and allow retry when the active server is unavailable', async () => {
+      // Given
+      const user = userEvent.setup();
+      const singleServer = createMockServer({
+        name: 'Leitstelle Süd',
+        url: 'https://sued.bluelight.test',
+      });
+      mockConnectionStatus.clear();
+      mockConnectionStatus.set(singleServer.id, 'disconnected');
+      mockUseServerList.mockReturnValue([singleServer]);
+      mockUseActiveServer.mockReturnValue(singleServer);
+      mockUseSystemHealth.mockReturnValue({
+        connectionMode: 'error',
+        isLoading: false,
+        isError: true,
+        setupComplete: true,
+        version: '1.0.0',
+        query: {
+          refetch: mockHealthRefetch,
+        },
+      });
+
+      // When
+      render(<LoginWindow />);
+
+      // Then
+      expect(screen.getByText('Aktiver Server nicht erreichbar')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Erneut prüfen' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Server wechseln' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Server verwalten' })).toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: 'Erneut prüfen' }));
+
+      expect(mockHealthRefetch).toHaveBeenCalledTimes(1);
+      expect(mockVersionRefetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should prioritize unreachable server feedback over setup hints when the backend is down', () => {
+      // Given
+      const singleServer = createMockServer({
+        name: 'Leitstelle Süd',
+      });
+      mockUseServerList.mockReturnValue([singleServer]);
+      mockUseActiveServer.mockReturnValue(singleServer);
+      mockUseSystemHealth.mockReturnValue({
+        connectionMode: 'error',
+        isLoading: false,
+        isError: true,
+        setupComplete: false,
+        version: null,
+        query: {
+          refetch: mockHealthRefetch,
+        },
+      });
+
+      // When
+      render(<LoginWindow />);
+
+      // Then
+      expect(screen.getByText('Aktiver Server nicht erreichbar')).toBeInTheDocument();
+      expect(screen.queryByText('Servereinrichtung unvollständig')).not.toBeInTheDocument();
+    });
+
+    it('should show a compact warning when frontend and backend versions differ', () => {
+      // Given
+      const singleServer = createMockServer({
+        name: 'Leitstelle West',
+      });
+      mockUseServerList.mockReturnValue([singleServer]);
+      mockUseActiveServer.mockReturnValue(singleServer);
+      mockUseSystemVersion.mockReturnValue({
+        frontendVersion: '1.0.0',
+        backendVersion: '1.1.0',
+        mismatchSeverity: 'warning',
+        isLoading: false,
+        isError: false,
+        query: {
+          refetch: mockVersionRefetch,
+        },
+      });
+
+      // When
+      render(<LoginWindow />);
+
+      // Then
+      expect(screen.getByText('Versionen weichen ab')).toBeInTheDocument();
+      expect(screen.getByText(/Frontend 1\.0\.0 und Backend 1\.1\.0 unterscheiden sich/)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Server wechseln' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Server verwalten' })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Erneut prüfen' })).not.toBeInTheDocument();
+    });
+
+    it('should suppress redundant auth toasts for connection errors when the page already shows a server alert', async () => {
+      // Given
+      const singleServer = createMockServer({
+        name: 'Leitstelle Süd',
+      });
+      mockUseServerList.mockReturnValue([singleServer]);
+      mockUseActiveServer.mockReturnValue(singleServer);
+      mockUseSystemHealth.mockReturnValue({
+        connectionMode: 'error',
+        isLoading: false,
+        isError: true,
+        setupComplete: true,
+        version: '1.0.0',
+        query: {
+          refetch: mockHealthRefetch,
+        },
+      });
+      mockGetApiErrorMessage.mockResolvedValue('Verbindungsfehler: Der Server konnte nicht erreicht werden.');
+      mockAuthMutate.mockImplementation((_values, callbacks) => {
+        void callbacks?.onError?.(new Error('Network error'));
+      });
+
+      // When
+      render(<LoginWindow />);
+
+      await act(async () => {
+        capturedAuthSubmit?.({ username: 'alice' });
+      });
+
+      // Then
+      await vi.waitFor(() => {
+        expect(mockGetApiErrorMessage).toHaveBeenCalled();
+      });
+      expect(vi.mocked(toast.error)).not.toHaveBeenCalled();
+    });
   });
 
   describe('Redirect Navigation', () => {
+    it('sollte auf die finalisierte Login-Erfolgs-Validierung warten und erst danach navigieren', async () => {
+      const singleServer = createMockServer();
+      mockUseServerList.mockReturnValue([singleServer]);
+      mockUseActiveServer.mockReturnValue(singleServer);
+
+      mockUseCurrentUser.mockReturnValue({
+        user: null,
+        authStatus: 'pending',
+        isLoading: true,
+      });
+
+      mockUseUnifiedAuth.mockReturnValue({
+        mutate: (_values: Parameters<typeof mockAuthMutate>[0], callbacks?: Parameters<typeof mockAuthMutate>[1]) => {
+          callbacks?.onSuccess?.({ isNewUser: false });
+        },
+        isPending: false,
+        error: null,
+      } as ReturnType<typeof useUnifiedAuth>);
+
+      const { rerender } = render(<LoginWindow />);
+
+      await act(async () => {
+        await capturedAuthSubmit?.({ username: 'alice' });
+      });
+
+      expect(mockRouterHistoryReplace).not.toHaveBeenCalled();
+
+      mockUseCurrentUser.mockReturnValue({
+        user: { id: 'user-1', username: 'alice' },
+        authStatus: 'authenticated',
+        isLoading: false,
+      });
+
+      await act(async () => {
+        rerender(<LoginWindow />);
+      });
+
+      await vi.waitFor(() => {
+        expect(mockRouterHistoryReplace).toHaveBeenCalledWith('/app/einsaetze');
+      });
+      expect(mockRouterHistoryPush).not.toHaveBeenCalled();
+      expect(mockRouterHistoryFlush).toHaveBeenCalled();
+    });
+
     it('should preserve query and hash when redirecting after successful authentication', async () => {
       const singleServer = createMockServer();
       mockUseServerList.mockReturnValue([singleServer]);
@@ -517,9 +777,9 @@ describe('LoginWindow', () => {
       expect(capturedOnServerChange).toBeDefined();
 
       // Trigger server change via captured callback
-      if (capturedOnServerChange) {
-        capturedOnServerChange('server-2');
-      }
+      await act(async () => {
+        await capturedOnServerChange?.('server-2');
+      });
 
       // Then
       expect(mockSetActiveServer).toHaveBeenCalledWith('server-2');
@@ -540,9 +800,9 @@ describe('LoginWindow', () => {
       // When
       render(<LoginWindow />);
 
-      if (capturedOnServerChange) {
-        capturedOnServerChange('server-2');
-      }
+      await act(async () => {
+        await capturedOnServerChange?.('server-2');
+      });
 
       // Wait for async operations
       await vi.waitFor(() => {
@@ -568,9 +828,9 @@ describe('LoginWindow', () => {
       // Then - Login form should be visible before and after
       expect(screen.getByTestId('unified-auth-form')).toBeInTheDocument();
 
-      if (capturedOnServerChange) {
-        capturedOnServerChange('server-2');
-      }
+      await act(async () => {
+        await capturedOnServerChange?.('server-2');
+      });
 
       // Form still visible after server change
       expect(screen.getByTestId('unified-auth-form')).toBeInTheDocument();
@@ -592,9 +852,9 @@ describe('LoginWindow', () => {
       // When
       render(<LoginWindow />);
 
-      if (capturedOnServerChange) {
-        capturedOnServerChange('server-2');
-      }
+      await act(async () => {
+        await capturedOnServerChange?.('server-2');
+      });
 
       // Wait for async operations and error handling
       await vi.waitFor(() => {
@@ -762,9 +1022,12 @@ describe('LoginWindow', () => {
       render(<LoginWindow />);
       await capturedOnLogoutAndSwitch?.('server-2');
 
-      // Then - Auth-Queries sollten invalidiert werden
+      // Then - Auth- und Public-User-Queries sollten servergescopt invalidiert werden
       expect(mockInvalidateQueriesGlobal).toHaveBeenCalledWith({
-        queryKey: ['auth', 'check'],
+        queryKey: ['auth', 'check', 'https://test.example.com'],
+      });
+      expect(mockInvalidateQueriesGlobal).toHaveBeenCalledWith({
+        queryKey: ['auth', 'public-users', 'https://test.example.com'],
       });
     });
 
@@ -804,7 +1067,7 @@ describe('LoginWindow', () => {
       await capturedOnLogoutAndSwitch?.('server-2');
 
       // Then - Die Reihenfolge muss logout → setActiveServer → invalidateQueries sein
-      expect(callOrder).toEqual(['logout', 'setActiveServer', 'invalidateQueries']);
+      expect(callOrder).toEqual(['logout', 'setActiveServer', 'invalidateQueries', 'invalidateQueries']);
     });
 
     it('should handle logout failure gracefully', async () => {

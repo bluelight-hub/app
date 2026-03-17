@@ -2,7 +2,7 @@ import { cn } from '@/shared/ui/cn';
 import type * as React from 'react';
 import { PiCheckCircleFill, PiInfoFill, PiWarningFill, PiXCircleFill } from 'react-icons/pi';
 
-interface AlertProps {
+interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
   status?: 'info' | 'warning' | 'error' | 'success';
   title?: string;
   description?: string;
@@ -21,7 +21,7 @@ interface AlertProps {
  *
  * Komponente für Benachrichtigungen und Warnungen
  */
-function Alert({ status = 'info', title, description, icon, className, children, role }: AlertProps) {
+function Alert({ status = 'info', title, description, icon, className, children, role, ...props }: AlertProps) {
   const statusStyles = {
     info: 'bg-blue-50 border-blue-200 text-blue-800',
     warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
@@ -40,7 +40,7 @@ function Alert({ status = 'info', title, description, icon, className, children,
   const defaultRole = status === 'error' ? 'alert' : 'status';
 
   return (
-    <div role={role || defaultRole} className={cn('flex gap-3 rounded-lg border p-4', statusStyles[status], className)}>
+    <div role={role || defaultRole} className={cn('flex gap-3 rounded-lg border p-4', statusStyles[status], className)} {...props}>
       <div className="flex-shrink-0">{icon || defaultIcons[status]}</div>
       <div className="flex-1">
         {title && <h3 className="mb-1 font-medium text-sm">{title}</h3>}

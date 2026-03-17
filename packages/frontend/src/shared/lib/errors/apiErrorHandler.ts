@@ -206,12 +206,16 @@ function getContextSpecificMessage(status: number, errorData: ApiErrorResponse, 
         // NIST SP 800-63B-4: Spezifische Fehlermeldungen für Passwort-Validierung
         // Hinweis: message kann String oder Array sein (je nach Fehlerquelle)
         const messageStr = Array.isArray(errorData.message) ? errorData.message.join(' ') : (errorData.message ?? '');
+        const errorCode = errorData.code ?? '';
 
         if (messageStr.includes('PASSWORD_COMPROMISED') || errorData.code === 'PASSWORD_COMPROMISED') {
           return 'Dieses Passwort wurde in bekannten Datenlecks gefunden. Bitte wählen Sie ein sicheres, einzigartiges Passwort.';
         }
-        if (messageStr.includes('USERNAME_ALREADY_EXISTS')) {
+        if (messageStr.includes('USERNAME_ALREADY_EXISTS') || errorCode === 'USERNAME_ALREADY_EXISTS') {
           return 'Der Nutzername ist bereits vergeben. Bitte wählen Sie einen anderen.';
+        }
+        if (messageStr.includes('SETUP_ALREADY_COMPLETED') || errorCode === 'SETUP_ALREADY_COMPLETED') {
+          return 'Ein Administrator wurde bereits eingerichtet. Bitte melde dich mit dem bestehenden Admin-Konto an.';
         }
         if (messageStr.includes('zu häufig') || messageStr.includes('PASSWORD_BLOCKED')) {
           return 'Dieses Passwort ist zu häufig und nicht erlaubt. Bitte wählen Sie ein einzigartiges Passwort.';
@@ -224,6 +228,12 @@ function getContextSpecificMessage(status: number, errorData: ApiErrorResponse, 
           return messageStr;
         }
         return 'Ungültige Eingabe. Bitte überprüfen Sie das Passwort.';
+      }
+      if (status === 500) {
+        if (errorData.code === 'DATABASE_ERROR' || errorData.code === 'SETUP_EXECUTION_FAILED') {
+          return 'Der Server konnte das Setup aktuell nicht abschließen. Bitte prüfe Backend und Datenbank und versuche es erneut.';
+        }
+        return 'Der Server konnte das Setup aktuell nicht abschließen. Bitte versuche es erneut.';
       }
       if (status === 409) {
         return 'Ein Administrator wurde bereits eingerichtet. Bitte melden Sie sich mit dem bestehenden Admin-Konto an.';

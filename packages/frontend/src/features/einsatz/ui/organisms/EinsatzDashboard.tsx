@@ -139,8 +139,10 @@ export function EinsatzDashboard() {
       {/* Header - fixed height */}
       <div className="flex-shrink-0 border-gray-200 border-b bg-white px-2 py-3 sm:px-4 sm:py-4 lg:px-6 dark:border-gray-700 dark:bg-gray-800">
         <div className="flex items-center justify-between">
-          <h1 className="font-bold text-2xl text-gray-900 dark:text-white">Einsatz-Dashboard</h1>
-          <Button onClick={() => setIsCreatePanelOpen(true)} title="Neuer Einsatz (Cmd+N)" kbd="Cmd+N">
+          <h2 id="einsatz-dashboard-title" className="font-bold text-2xl text-gray-900 dark:text-white">
+            Einsatz-Dashboard
+          </h2>
+          <Button id="einsatz-dashboard-primary-action" onClick={() => setIsCreatePanelOpen(true)} title="Neuer Einsatz (Cmd+N)" kbd="Cmd+N">
             <PiPlus className="mr-2 h-5 w-5" />
             Neuer Einsatz
           </Button>

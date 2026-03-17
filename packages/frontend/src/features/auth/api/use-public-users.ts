@@ -2,8 +2,9 @@ import type { PublicUserDto } from '@/shared';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useStore } from '@tanstack/react-store';
-import { api } from '@/shared';
 import { serverStore } from '@/features/server/stores/server.store';
+import { createServerScopedAuthApi, normalizeServerBaseUrl } from '@/shared/api/server-scoped-clients';
+import { fetchWithRefresh } from '@/shared/api/fetchWithRefresh';
 import { AUTH_KEYS } from './queries';
 
 /**
@@ -28,13 +29,23 @@ export function usePublicUsers(): UseQueryResult<Array<PublicUserDto>, Error> {
   // Warte auf Server-Store-Hydration bevor API-Calls gemacht werden
   // Verhindert Race Condition: API-Call → 401 Token Error → Redirect zu /server/setup
   const isHydrated = useStore(serverStore, (state) => state.isHydrated);
-  const activeServerId = useStore(serverStore, (state) => state.activeServerId);
-  const isServerReady = isHydrated && activeServerId !== null;
+  const activeServerUrl = useStore(serverStore, (state) => {
+    if (!state.activeServerId) {
+      return null;
+    }
+
+    const activeServer = state.servers.find((server) => server.id === state.activeServerId);
+    return activeServer ? normalizeServerBaseUrl(activeServer.url) : null;
+  });
+  const serverScope = activeServerUrl ?? 'unconfigured';
+  const isServerReady = isHydrated && activeServerUrl !== null;
 
   return useQuery({
-    queryKey: AUTH_KEYS.publicUsers,
+    queryKey: AUTH_KEYS.auth.queries.publicUsersScoped(serverScope),
     queryFn: async () => {
-      const response = await api.auth().authControllerGetPublicUsers();
+      const response = await createServerScopedAuthApi(activeServerUrl ?? serverScope, {
+        fetchApi: fetchWithRefresh,
+      }).authControllerGetPublicUsers();
       return response.users;
     },
     staleTime: 30000,

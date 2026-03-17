@@ -1,16 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { QueryFunctionContext } from '@tanstack/react-query';
 import { JsonResponseParseError } from '../json-response';
 
 const mockCheckAuthRaw = vi.fn();
 const mockAdminStatusRaw = vi.fn();
+const mockCreateServerScopedAuthApi = vi.fn();
 
-vi.mock('@/shared/api/api', () => ({
-  api: {
-    auth: () => ({
-      authControllerCheckAuthRaw: mockCheckAuthRaw,
-      authControllerGetAdminStatusRaw: mockAdminStatusRaw,
-    }),
-  },
+vi.mock('@/shared/api/server-scoped-clients', () => ({
+  createServerScopedAuthApi: (...args: unknown[]) => mockCreateServerScopedAuthApi(...args),
 }));
 
 import { fetchAdminStatus, fetchAuthCheck } from '../auth-session';
@@ -18,6 +15,10 @@ import { fetchAdminStatus, fetchAuthCheck } from '../auth-session';
 describe('auth-session helpers', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockCreateServerScopedAuthApi.mockReturnValue({
+      authControllerCheckAuthRaw: mockCheckAuthRaw,
+      authControllerGetAdminStatusRaw: mockAdminStatusRaw,
+    });
   });
 
   it('parst auth/check zentral über den Raw-Wrapper', async () => {
@@ -41,7 +42,11 @@ describe('auth-session helpers', () => {
       ),
     });
 
-    await expect(fetchAuthCheck()).resolves.toEqual({
+    await expect(
+      fetchAuthCheck({
+        queryKey: ['auth', 'check', 'https://server-1.example.com'],
+      } as QueryFunctionContext<readonly unknown[]>),
+    ).resolves.toEqual({
       authenticated: true,
       isAdminAuthenticated: false,
       user: {
@@ -50,6 +55,12 @@ describe('auth-session helpers', () => {
         role: 'USER',
       },
     });
+    expect(mockCreateServerScopedAuthApi).toHaveBeenCalledWith(
+      'https://server-1.example.com',
+      expect.objectContaining({
+        fetchApi: expect.any(Function),
+      }),
+    );
   });
 
   it('wirft bei ungültiger admin/status-Antwort einen Parse-Fehler', async () => {
@@ -67,6 +78,24 @@ describe('auth-session helpers', () => {
       ),
     });
 
-    await expect(fetchAdminStatus()).rejects.toBeInstanceOf(JsonResponseParseError);
+    await expect(
+      fetchAdminStatus({
+        queryKey: ['auth', 'admin', 'status', 'https://server-1.example.com'],
+      } as QueryFunctionContext<readonly unknown[]>),
+    ).rejects.toBeInstanceOf(JsonResponseParseError);
+    expect(mockCreateServerScopedAuthApi).toHaveBeenCalledWith(
+      'https://server-1.example.com',
+      expect.objectContaining({
+        fetchApi: expect.any(Function),
+      }),
+    );
+  });
+
+  it('verlangt einen gültigen Server-Scope im Query-Key', async () => {
+    await expect(
+      fetchAuthCheck({
+        queryKey: ['auth', 'check', 'unconfigured'],
+      } as QueryFunctionContext<readonly unknown[]>),
+    ).rejects.toThrow('gültigen Server-Scope');
   });
 });
