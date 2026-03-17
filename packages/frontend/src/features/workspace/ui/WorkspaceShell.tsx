@@ -141,8 +141,8 @@ export function WorkspaceShell({
       <main className="flex-1">
         <Container maxWidth="full">
           <div className="flex gap-4 xl:gap-5">
-            <aside className="hidden w-56 flex-shrink-0 pt-6 lg:block xl:w-60">
-              <div className="sticky top-36 max-h-[calc(100vh-10rem)] space-y-3 overflow-y-auto rounded-panel border border-border-subtle bg-surface-panel p-2.5 shadow-panel">
+            <aside className="hidden w-56 flex-shrink-0 py-2 lg:block xl:w-60">
+              <div className="sticky top-28 h-[calc(100vh-9.5rem)] space-y-3 overflow-y-auto rounded-panel border border-border-subtle bg-surface-panel p-2.5 shadow-panel">
                 {sidebarHeader}
                 {onCommandTriggerClick ? (
                   <div className="px-0.5">
