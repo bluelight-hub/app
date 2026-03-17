@@ -17,7 +17,8 @@
     "version": "node scripts/sync-tauri-version.js",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "test:performance": "vitest run src/features/befehl/ui/organisms/__tests__/BefehlsListeMitEingabe.performance.spec.tsx src/features/einsatz/ui/organisms/__tests__/SingleEinsatzDashboard.performance.spec.tsx src/features/etb/ui/organisms/__tests__/EtbEntryList.performance.spec.tsx"
   },
   "dependencies": {
     "@bluelight-hub/shared": "workspace:*",

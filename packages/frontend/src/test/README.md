@@ -33,6 +33,9 @@ pnpm test:ui
 
 # Coverage Report generieren
 pnpm test:coverage
+
+# Performance-Gates ohne Coverage-Instrumentierung
+pnpm test:performance
 ```
 
 ## Test-Struktur
@@ -178,6 +181,11 @@ Ausgeschlossene Dateien:
 - `**/src-tauri/**` (Tauri Backend)
 - `**/.tauri/**`
 - `**/routeTree.gen.ts` (Generated Routes)
+
+Hinweis:
+
+- `*.performance.spec.tsx` werden bei Coverage-Läufen bewusst nicht ausgeführt, weil V8-Instrumentierung Timing-Messungen verfälscht.
+- Performance-Gates laufen stattdessen separat über `pnpm test:performance`.
 
 ## CI Integration
 

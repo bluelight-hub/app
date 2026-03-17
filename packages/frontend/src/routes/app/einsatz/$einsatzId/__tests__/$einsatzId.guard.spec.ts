@@ -3,6 +3,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mockCreateFileRoute = vi.fn(() => (config: unknown) => config);
 const mockRedirect = vi.fn((options: unknown) => ({ redirect: options }));
 
+vi.mock('@/shared/ui/templates/SingleEinsatzLayout', () => ({
+  // Der Guard-Test validiert nur beforeLoad; das Layout würde sonst unnötig
+  // die komplette Einsatz-Shell samt Seiteneffekten importieren.
+  SingleEinsatzLayout: () => null,
+}));
+
 vi.mock('@tanstack/react-router', async () => {
   const actual = await vi.importActual<typeof import('@tanstack/react-router')>('@tanstack/react-router');
 
