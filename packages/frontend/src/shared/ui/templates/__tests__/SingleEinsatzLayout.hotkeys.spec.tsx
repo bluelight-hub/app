@@ -250,14 +250,17 @@ vi.mock('@/shared', () => ({
 }));
 
 vi.mock('@/shared/ui/organisms/command-palette', () => ({
-  CommandPalette: ({ modules, open }: { modules: Array<{ name: string; subPages: Array<{ name: string }> }>; open: boolean }) =>
+  CommandPalette: ({ modules, open }: { modules: Array<{ name: string; subPages: Array<{ name: string; disabled?: boolean; disabledReason?: string }> }>; open: boolean }) =>
     open ? (
       <div data-testid="command-palette">
         {modules.map((module) => (
           <div key={module.name}>
             <span>{module.name}</span>
             {module.subPages.map((page) => (
-              <span key={`${module.name}-${page.name}`}>{page.name}</span>
+              <span key={`${module.name}-${page.name}`}>
+                {page.name}
+                {page.disabled ? ` (${page.disabledReason})` : ''}
+              </span>
             ))}
           </div>
         ))}
@@ -321,10 +324,11 @@ describe('SingleEinsatzLayout workspace hotkeys', () => {
     expect(navigateSpy).toHaveBeenCalledWith({
       to: '/app/einsatz/$einsatzId/übersicht',
       params: { einsatzId: 'einsatz-42' },
+      search: expect.any(Function),
     });
   });
 
-  it('schließt deaktivierte Module und Unterseiten aus der Command Palette aus', async () => {
+  it('zeigt deaktivierte Module und Unterseiten in der Command Palette nur mit verständlicher Sperrbegründung', async () => {
     const user = userEvent.setup();
     renderLayout();
 
@@ -335,8 +339,8 @@ describe('SingleEinsatzLayout workspace hotkeys', () => {
     expect(palette).toHaveTextContent('Übersicht');
     expect(palette).toHaveTextContent('Führung');
     expect(palette).toHaveTextContent('ETB');
-    expect(palette).not.toHaveTextContent('Kommunikation');
-    expect(palette).not.toHaveTextContent('Protokoll');
+    expect(palette).toHaveTextContent('Kommunikation');
+    expect(palette).toHaveTextContent('Protokoll (Später)');
   });
 
   it('blockiert Workspace-Modul-Hotkeys, sobald ein Overlay aktiv ist', () => {

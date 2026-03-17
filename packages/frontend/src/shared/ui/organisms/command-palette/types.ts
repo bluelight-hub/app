@@ -23,6 +23,9 @@ export interface NavigationCommand {
   icon?: ComponentType<{ className?: string }>;
   shortcut?: string[];
   badge?: string;
+  description?: string;
+  disabled?: boolean;
+  disabledReason?: string;
   external?: boolean;
   destructive?: boolean;
   subCommands?: SubCommand[];
@@ -37,6 +40,9 @@ export interface ModuleSubPage {
   icon?: ComponentType<{ className?: string }>;
   shortcut?: string[];
   badge?: string;
+  description?: string;
+  disabled?: boolean;
+  disabledReason?: string;
   external?: boolean;
   destructive?: boolean;
   subCommands?: SubCommand[];

@@ -14,6 +14,7 @@ interface CommandItemProps {
 
 export function CommandItem({ command, onSelect, isActive = true }: CommandItemProps) {
   const Icon = command.icon || PiCaretRight;
+  const isDisabled = Boolean(command.disabled);
 
   // Convert shortcut array to hotkey string (e.g., ['⌘', 'K'] -> 'mod+k')
   const hotkeyString = useMemo(
@@ -61,15 +62,21 @@ export function CommandItem({ command, onSelect, isActive = true }: CommandItemP
       onSelect(command);
     },
     {
-      enabled: isActive && !!hotkeyString,
+      enabled: isActive && !!hotkeyString && !isDisabled,
       enableOnFormTags: ['INPUT', 'TEXTAREA', 'SELECT'],
       preventDefault: true,
     },
-    [command, onSelect, isActive],
+    [command, onSelect, isActive, isDisabled],
   );
 
   return (
-    <Command.Item value={`${command.module} ${command.name}`} onSelect={() => onSelect(command)} className={cn(commandItemClasses.base, command.destructive && commandItemClasses.destructive)}>
+    <Command.Item
+      value={`${command.module} ${command.name}`}
+      onSelect={isDisabled ? undefined : () => onSelect(command)}
+      disabled={isDisabled}
+      aria-disabled={isDisabled}
+      className={cn(commandItemClasses.base, command.destructive && commandItemClasses.destructive, isDisabled && 'cursor-not-allowed opacity-60')}
+    >
       {/* Icon with background */}
       <div className={cn(commandItemClasses.iconContainer, getModuleColorClass(command.moduleColor, 'bg'))}>
         <Icon className={cn('h-4 w-4', command.destructive ? 'text-red-600 dark:text-red-400' : getModuleColorClass(command.moduleColor))} />
@@ -80,10 +87,11 @@ export function CommandItem({ command, onSelect, isActive = true }: CommandItemP
         <div className="flex items-center gap-2">
           <span className={cn('font-medium', command.destructive ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-gray-100')}>{command.name}</span>
           {command.badge && <span className={commandItemClasses.badge}>{command.badge}</span>}
+          {isDisabled && <span className={commandItemClasses.badge}>Gesperrt</span>}
           {command.subCommands && command.subCommands.length > 0 && <span className="text-gray-400 text-xs dark:text-gray-500">→</span>}
           {command.external && <PiArrowUpRight className="h-3 w-3 text-gray-400" />}
         </div>
-        <p className="mt-0.5 text-gray-500 text-xs dark:text-gray-400">in {command.module}</p>
+        <p className="mt-0.5 text-gray-500 text-xs dark:text-gray-400">{command.disabledReason ?? command.description ?? `in ${command.module}`}</p>
       </div>
 
       {/* Actions/Shortcuts */}

@@ -227,6 +227,12 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
     () =>
       baseModules.map((module) => ({
         ...module,
+        badgeHint: module.badgeHint
+          ? {
+              ...module.badgeHint,
+              value: module.badgeHint.kind === 'status' && unquittiertCount > 0 ? unquittiertCount : module.badgeHint.value,
+            }
+          : module.badgeHint,
         subPages: module.subPages.map((page) => {
           if (page.href.includes('/führung/befehle') && unquittiertCount > 0) {
             return { ...page, badge: unquittiertCount };
@@ -339,14 +345,14 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   const commandPaletteModules = useMemo(
     () =>
       modules
-        .filter((module) => !isHiddenVisibility(module.visibility) && !isDisabledVisibility(module.visibility))
+        .filter((module) => !isHiddenVisibility(module.visibility))
         .map((module) => ({
           id: module.id,
           name: module.label,
           color: module.color,
           icon: module.icon,
           subPages: module.subPages
-            .filter((page) => !isHiddenVisibility(page.visibility) && !isDisabledVisibility(page.visibility))
+            .filter((page) => !isHiddenVisibility(page.visibility))
             .map((page) => ({
               id: page.id,
               name: page.label,
@@ -354,6 +360,8 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
               icon: page.icon,
               description: page.description,
               badge: page.badge?.toString(),
+              disabled: isDisabledVisibility(module.visibility) || isDisabledVisibility(page.visibility),
+              disabledReason: page.visibility.reason ?? module.visibility.reason,
             })),
         }))
         .filter((module) => module.subPages.length > 0),
@@ -441,7 +449,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
         onCommandTriggerClick={() => setCommandPaletteOpen(true)}
         onOpenModuleOverview={() => setShowModuleOverview(true)}
         sidebarHeader={<EinsatzSwitcher />}
-        sidebarFooter={
+        quickActionsSlot={
           <div className="border-border-subtle border-t pt-4">
             <Button appearance="ghost" size="sm" className="mb-2 w-full justify-start" onClick={() => setShowBeitrittDialog(true)}>
               <PiRadio className="mr-2 h-4 w-4" />
@@ -466,6 +474,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
             </Button>
           </div>
         }
+        sidebarFooter={null}
         overlaySlot={
           <ModuleOverviewCard modules={moduleOverviewModules} currentModuleId={currentModule?.id} einsatzId={einsatzId} open={showModuleOverview} onClose={() => setShowModuleOverview(false)} />
         }

@@ -28,6 +28,18 @@ function getShortcutBadge(module: WorkspaceModuleDefinition): string | undefined
   return [...module.shortcut.modifiers, module.shortcut.key].join('+');
 }
 
+function getBadgeText(module: WorkspaceModuleDefinition): string | undefined {
+  if (!module.badgeHint) {
+    return undefined;
+  }
+
+  if (module.badgeHint.value === undefined) {
+    return module.badgeHint.label;
+  }
+
+  return `${module.badgeHint.label}: ${module.badgeHint.value}`;
+}
+
 function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(() => (typeof window !== 'undefined' ? window.matchMedia(query).matches : false));
 
@@ -70,6 +82,7 @@ export interface WorkspaceShellProps {
   overlaySlot?: ReactNode;
   className?: string;
   children: ReactNode;
+  quickActionsSlot?: ReactNode;
 }
 
 export function WorkspaceShell({
@@ -84,6 +97,7 @@ export function WorkspaceShell({
   moduleOverviewLabel,
   onCommandTriggerClick,
   onOpenModuleOverview,
+  quickActionsSlot,
   sidebarHeader,
   sidebarFooter,
   overlaySlot,
@@ -105,7 +119,7 @@ export function WorkspaceShell({
     }))
     .filter((module) => module.visibleSubPages.length > 0 || isDisabled(module.visibility));
   const resolvedActivePageHref = activePageHref ?? currentPage.href;
-  const hasMobileHelperActions = Boolean(onCommandTriggerClick || onOpenModuleOverview || sidebarFooter);
+  const hasMobileHelperActions = Boolean(onCommandTriggerClick || onOpenModuleOverview || quickActionsSlot || sidebarFooter);
   const showMobileHelperArea = isSmallViewport && (statusItems.length > 0 || hasMobileHelperActions);
 
   return (
@@ -164,6 +178,8 @@ export function WorkspaceShell({
                             'group flex items-center gap-2 rounded-control px-2.5 py-2 transition-colors focus:outline-none focus-visible:shadow-focus-ring',
                             module.id === currentModule.id ? 'bg-action-secondary text-text-primary' : 'text-text-secondary hover:bg-action-secondary',
                           )}
+                          search={(prev) => prev}
+                          aria-description={getBadgeText(module)}
                           title={
                             module.shortcut
                               ? `Tastenkürzel: ${module.shortcut.modifiers.join('+').toLowerCase() === 'alt' ? `Alt+${module.shortcut.key}` : [...module.shortcut.modifiers, module.shortcut.key].join('+')}`
@@ -191,6 +207,14 @@ export function WorkspaceShell({
                         : module.visibleSubPages.map((page) => {
                             const isActive = page.href === resolvedActivePageHref;
                             const pageIsDisabled = isDisabled(page.visibility);
+                            module.badgeHint ? (
+                              <div className="ml-2.5 flex items-center gap-2 px-2.5 py-1 text-body-xs text-text-secondary">
+                                <span className="font-medium">{module.badgeHint.label}</span>
+                                {module.badgeHint.value !== undefined ? (
+                                  <span className="rounded-pill bg-action-secondary px-1.5 py-0.5 font-semibold text-body-xs text-text-primary">{module.badgeHint.value}</span>
+                                ) : null}
+                              </div>
+                            ) : null;
 
                             if (pageIsDisabled) {
                               return (
@@ -222,6 +246,7 @@ export function WorkspaceShell({
                                   isActive ? 'bg-action-secondary text-text-primary' : 'text-text-secondary hover:bg-action-secondary',
                                 )}
                               >
+                                search={(prev) => prev}
                                 <page.icon className={cn('mt-0.5 h-5 w-5 flex-shrink-0 transition-colors', isActive ? 'text-text-primary' : 'text-text-muted group-hover:text-text-secondary')} />
                                 <div className="min-w-0 flex-1">
                                   <div className="flex items-center gap-2">
@@ -243,6 +268,13 @@ export function WorkspaceShell({
             </aside>
 
             <div className="fixed right-0 bottom-0 left-0 z-20 border-border-subtle border-t bg-surface-panel p-4 shadow-raised lg:hidden">
+              {quickActionsSlot ? (
+                <section aria-label="Schnellaktionen" className="space-y-2 border-border-subtle border-t pt-4">
+                  <h2 className="px-2.5 font-semibold text-body-xs text-text-secondary uppercase tracking-[0.16em]">Schnellaktionen</h2>
+                  {quickActionsSlot}
+                </section>
+              ) : null}
+
               <nav aria-label="Modulseiten mobil" className="flex gap-2 overflow-x-auto">
                 {currentModuleSubPages.map((page) => {
                   const isActive = page.href === resolvedActivePageHref;
@@ -300,6 +332,12 @@ export function WorkspaceShell({
               ) : null}
 
               {children}
+              {quickActionsSlot ? (
+                <section aria-label="Schnellaktionen" className="space-y-2 border-border-subtle border-t pt-3">
+                  <h2 className="font-semibold text-body-xs text-text-secondary uppercase tracking-[0.16em]">Schnellaktionen</h2>
+                  {quickActionsSlot}
+                </section>
+              ) : null}
             </div>
           </div>
         </Container>

@@ -19,6 +19,10 @@ export const useCommandHandlers = ({ onOpenChange, selectCommand }: UseCommandHa
         return;
       }
 
+      if (command.disabled) {
+        return;
+      }
+
       // If it has subcommands, they will be shown
       if (command.subCommands && command.subCommands.length > 0) {
         return;
@@ -28,7 +32,10 @@ export const useCommandHandlers = ({ onOpenChange, selectCommand }: UseCommandHa
       if (command.action) {
         command.action();
       } else if (command.href) {
-        navigate({ to: command.href });
+        navigate({
+          to: command.href,
+          search: (prev) => prev,
+        });
       }
 
       onOpenChange(false);

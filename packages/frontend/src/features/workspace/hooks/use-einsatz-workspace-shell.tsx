@@ -6,6 +6,7 @@ interface UseEinsatzWorkspaceShellOptions {
   isLoading: boolean;
   requiresAssignment: boolean;
   isRemindersDegraded: boolean;
+  isReadonly?: boolean;
 }
 
 function useDelayedFlag(isActive: boolean, delayMs: number): boolean {
@@ -47,7 +48,7 @@ function useOnlineState(): boolean {
   return isOnline;
 }
 
-export function useEinsatzWorkspaceShell({ isLoading, requiresAssignment, isRemindersDegraded }: UseEinsatzWorkspaceShellOptions): {
+export function useEinsatzWorkspaceShell({ isLoading, requiresAssignment, isRemindersDegraded, isReadonly = false }: UseEinsatzWorkspaceShellOptions): {
   statusItems: WorkspaceStatusItem[];
 } {
   const delayedLoading = useDelayedFlag(isLoading, 300);
@@ -62,6 +63,8 @@ export function useEinsatzWorkspaceShell({ isLoading, requiresAssignment, isRemi
         description: 'Teilnahme, Konto und Einsatzkontext werden geladen und bleiben währenddessen transparent sichtbar.',
         tone: 'loading',
         icon: PiRadio,
+        nextActionLabel: 'Nächster Schritt',
+        nextActionDescription: 'Bitte kurz warten. Navigation und Arbeitskontext bleiben erhalten.',
       });
       return items;
     }
@@ -74,6 +77,8 @@ export function useEinsatzWorkspaceShell({ isLoading, requiresAssignment, isRemi
         tone: 'blocked',
         icon: PiWarning,
         role: 'alert',
+        nextActionLabel: 'Nächster Schritt',
+        nextActionDescription: 'Jetzt eine Person auswählen, damit die Kernflächen entsperrt werden.',
       });
       return items;
     }
@@ -86,6 +91,8 @@ export function useEinsatzWorkspaceShell({ isLoading, requiresAssignment, isRemi
         tone: 'warning',
         icon: PiWifiSlash,
         role: 'alert',
+        nextActionLabel: 'Nächster Schritt',
+        nextActionDescription: 'Netzwerk oder Serververbindung prüfen und danach erneut synchronisieren.',
       });
       return items;
     }
@@ -98,12 +105,37 @@ export function useEinsatzWorkspaceShell({ isLoading, requiresAssignment, isRemi
         tone: 'warning',
         icon: PiWarning,
         role: 'alert',
+        nextActionLabel: 'Nächster Schritt',
+        nextActionDescription: 'Kontext erneut prüfen und eingeschränkte Hinweise später noch einmal laden.',
       });
       return items;
     }
 
+    if (isReadonly) {
+      items.push({
+        id: 'workspace-continuity',
+        label: 'Arbeitsraum schreibgeschützt',
+        description: 'Sie können den Einsatzkontext sehen, aber aktuell keine Änderungen speichern.',
+        tone: 'readonly',
+        icon: PiWarning,
+        nextActionLabel: 'Nächster Schritt',
+        nextActionDescription: 'Schreibrechte oder Sperrzustand prüfen, bevor Sie weiterarbeiten.',
+      });
+      return items;
+    }
+
+    items.push({
+      id: 'workspace-continuity',
+      label: 'Arbeitsraum bereit',
+      description: 'Navigation, Statusführung und Einsatzkontext sind synchron verfügbar.',
+      tone: 'active',
+      icon: PiRadio,
+      nextActionLabel: 'Nächster Schritt',
+      nextActionDescription: 'Mit Sidebar, Shortcuts oder Befehle & Navigation in den nächsten Bereich wechseln.',
+    });
+
     return items;
-  }, [delayedLoading, isOnline, isRemindersDegraded, requiresAssignment]);
+  }, [delayedLoading, isOnline, isReadonly, isRemindersDegraded, requiresAssignment]);
 
   return {
     statusItems,

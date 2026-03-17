@@ -10,6 +10,8 @@ export interface StatusRailItem {
   tone: WorkspaceStatusTone;
   icon?: ComponentType<{ className?: string }>;
   value?: ReactNode;
+  nextActionLabel?: string;
+  nextActionDescription?: string;
   role?: 'status' | 'alert';
 }
 
@@ -51,6 +53,11 @@ export function StatusRail({ items = [], className, title = 'Workspace-Status' }
                   {item.value ? <span className="text-body-xs">{item.value}</span> : null}
                 </div>
                 {item.description ? <p className="mt-0.5 text-body-xs opacity-90">{item.description}</p> : null}
+                {item.nextActionDescription ? (
+                  <p className="mt-1 text-body-xs font-medium opacity-90">
+                    {item.nextActionLabel ?? 'Nächster Schritt'}: {item.nextActionDescription}
+                  </p>
+                ) : null}
               </div>
             </div>
           </div>
