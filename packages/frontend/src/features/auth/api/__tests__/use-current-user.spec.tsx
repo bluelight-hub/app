@@ -254,4 +254,99 @@ describe('useCurrentUser', () => {
     expect(authQueryOptions.queryKey).toEqual(['auth', 'check', 'https://server-2.example.com']);
     expect(adminQueryOptions.queryKey).toEqual(['auth', 'admin', 'status', 'https://server-2.example.com']);
   });
+
+  it('leitet den Admin-Sessionstatus nur aus Rolle UND Admin-Session-Flag ab', () => {
+    serverState.isHydrated = true;
+    serverState.activeServerId = 'server-1';
+    serverState.servers = [{ id: 'server-1', url: 'https://server-1.example.com/' }];
+
+    mockQueryPair(
+      {
+        data: {
+          authenticated: true,
+          isAdminAuthenticated: true,
+          user: {
+            id: 'user-1',
+            username: 'reader',
+            role: 'USER',
+          },
+        },
+      },
+      {},
+    );
+
+    const { result } = renderHook(() => useCurrentUser());
+
+    expect(result.current.authStatus).toBe('authenticated');
+    expect(result.current.adminSessionStatus).toBe('unauthenticated');
+    expect(result.current.user?.role).toBe('USER');
+    expect(result.current.adminStatus).toBeUndefined();
+  });
+
+  it('markiert User mit ADMIN-Rolle als nicht admin-authentifiziert, wenn isAdminAuthenticated false ist', () => {
+    serverState.isHydrated = true;
+    serverState.activeServerId = 'server-1';
+    serverState.servers = [{ id: 'server-1', url: 'https://server-1.example.com/' }];
+
+    mockQueryPair(
+      {
+        data: {
+          authenticated: true,
+          isAdminAuthenticated: false,
+          user: {
+            id: 'user-2',
+            username: 'admin',
+            role: 'ADMIN',
+          },
+        },
+      },
+      {
+        isFetched: true,
+        data: {
+          adminSetupAvailable: false,
+        },
+      },
+    );
+
+    const { result } = renderHook(() => useCurrentUser());
+
+    expect(result.current.authStatus).toBe('authenticated');
+    expect(result.current.adminSessionStatus).toBe('unauthenticated');
+    expect(result.current.adminStatus).toEqual({ adminSetupAvailable: false });
+  });
+
+  it('liefert einen zentralen Rollen- und Berechtigungskontext für konsumierende UI-Schichten', () => {
+    serverState.isHydrated = true;
+    serverState.activeServerId = 'server-1';
+    serverState.servers = [{ id: 'server-1', url: 'https://server-1.example.com/' }];
+
+    mockQueryPair(
+      {
+        data: {
+          authenticated: true,
+          isAdminAuthenticated: true,
+          user: {
+            id: 'user-1',
+            username: 'admin',
+            role: 'ADMIN',
+          },
+        },
+      },
+      {
+        isFetched: true,
+        data: {
+          adminSetupAvailable: true,
+        },
+      },
+    );
+
+    const { result } = renderHook(() => useCurrentUser());
+
+    expect((result.current as { authContext?: unknown }).authContext).toMatchObject({
+      roleLabel: expect.any(String),
+      permissionLevelLabel: expect.any(String),
+      permissionHint: expect.any(String),
+      primaryActionLabel: expect.any(String),
+    });
+  });
 });

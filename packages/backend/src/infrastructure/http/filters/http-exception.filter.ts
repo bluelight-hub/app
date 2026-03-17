@@ -10,6 +10,38 @@ interface RequestWithStartTime extends Request {
   startTime?: number;
 }
 
+function normalizeMessage(value: unknown): string | null {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+
+  if (Array.isArray(value)) {
+    const messages = value.map((entry) => (typeof entry === 'string' ? entry.trim() : '')).filter((entry) => entry.length > 0);
+
+    return messages.length > 0 ? messages.join(' ') : null;
+  }
+
+  return null;
+}
+
+function getDefaultClientErrorMessage(status: number): string {
+  switch (status) {
+    case HttpStatus.BAD_REQUEST:
+      return 'Ungültige Anfrage';
+    case HttpStatus.UNAUTHORIZED:
+      return 'Unauthorized';
+    case HttpStatus.FORBIDDEN:
+      return 'Forbidden';
+    case HttpStatus.NOT_FOUND:
+      return 'Nicht gefunden';
+    case HttpStatus.CONFLICT:
+      return 'Konflikt';
+    default:
+      return 'Ein unerwarteter Fehler ist aufgetreten';
+  }
+}
+
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
   constructor(@Inject(LOGGER) private readonly logger: ILogger) {}
@@ -27,6 +59,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
     // Determine error details based on status code
     let message: string;
     let errorDetails: unknown = null;
+    let errorCode: unknown = null;
+    let allowClientCode = false;
 
     if (status >= 500) {
       // Log the actual error internally for debugging
@@ -40,8 +74,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
         if (typeof errorResponse === 'object' && errorResponse !== null) {
           const responseObj = errorResponse as Record<string, unknown>;
           if (responseObj.error === 'SERVER_NOT_SETUP') {
-            message = (responseObj.message as string) || 'Server setup required';
+            message = normalizeMessage(responseObj.message) || 'Server setup required';
             errorDetails = 'SERVER_NOT_SETUP';
+            errorCode = responseObj.code || null;
+            allowClientCode = true;
+          } else if (normalizeMessage(responseObj.message) === 'SETUP_EXECUTION_FAILED') {
+            message = 'Ein interner Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
+            errorCode = responseObj.code || 'SETUP_EXECUTION_FAILED';
+            allowClientCode = true;
           } else {
             // Default: don't expose sensitive information
             message = 'Ein interner Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.';
@@ -57,13 +97,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
       if (exception instanceof HttpException) {
         const errorResponse = exception.getResponse();
         if (typeof errorResponse === 'string') {
-          message = errorResponse;
+          message = normalizeMessage(errorResponse) || getDefaultClientErrorMessage(status);
         } else if (typeof errorResponse === 'object' && errorResponse !== null) {
           const responseObj = errorResponse as Record<string, unknown>;
-          message = (responseObj.message as string) || exception.message;
+          message = normalizeMessage(responseObj.message) || normalizeMessage(exception.message) || normalizeMessage(responseObj.error) || getDefaultClientErrorMessage(status);
           errorDetails = responseObj.error || null;
+          errorCode = responseObj.code || null;
         } else {
-          message = exception.message;
+          message = normalizeMessage(exception.message) || getDefaultClientErrorMessage(status);
         }
       } else {
         message = 'Ein unerwarteter Fehler ist aufgetreten';
@@ -88,6 +129,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
     // Include error details for non-5xx errors, or for whitelisted 5xx errors (SERVER_NOT_SETUP)
     if (errorDetails && (status < 500 || errorDetails === 'SERVER_NOT_SETUP')) {
       responseBody.error = errorDetails;
+    }
+    if (errorCode && (status < 500 || allowClientCode)) {
+      responseBody.code = errorCode;
     }
 
     // Set request ID header for client correlation

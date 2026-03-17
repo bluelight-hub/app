@@ -24,6 +24,8 @@ import { ServerSwitchWarningDialog } from './ServerSwitchWarningDialog';
 import { ServerVisualBadge } from '../atoms/ServerVisualBadge';
 
 export interface ServerSelectorProps {
+  /** Optionale ID für den Trigger-Button */
+  buttonId?: string;
   /** Liste aller konfigurierten Server */
   servers: ServerConfig[];
   /** Aktuell ausgewählter Server */
@@ -76,6 +78,7 @@ function getStatusColor(status: ConnectionStatus | undefined): string {
  * und bietet Verwaltungsoptionen (Hinzufügen, Server verwalten).
  */
 export function ServerSelector({
+  buttonId,
   servers,
   activeServer,
   connectionStatus,
@@ -157,6 +160,7 @@ export function ServerSelector({
       <Listbox as="div" value={activeServer} onChange={handleChange} disabled={disabled}>
         <div className="relative">
           <ListboxButton
+            id={buttonId}
             className={cn(
               'relative w-full cursor-pointer rounded-lg border-2 bg-white py-3 pr-10 pl-4 text-left',
               'transition-all duration-200',

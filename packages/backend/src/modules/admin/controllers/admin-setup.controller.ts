@@ -1,5 +1,5 @@
-import { BadRequestException, Body, Controller, Post, ValidationPipe } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { BadRequestException, Body, Controller, InternalServerErrorException, Post, ValidationPipe } from '@nestjs/common';
+import { ApiBadRequestResponse, ApiInternalServerErrorResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { CompleteSetupCommand, CompleteSetupHandler } from '@/application/admin/commands';
 import { CompleteSetupDto, SetupResponseDto } from '@/application/admin/dto';
@@ -34,6 +34,35 @@ import { SkipSetupCheck } from '@/infrastructure/decorators/skip-setup-check.dec
 @ApiTags('admin')
 export class AdminSetupController {
   constructor(private readonly completeSetupHandler: CompleteSetupHandler) {}
+
+  private normalizeSetupErrorCode(error: string | null | undefined): string {
+    const normalized = error?.trim();
+    return normalized && normalized.length > 0 ? normalized : 'UNEXPECTED_ERROR';
+  }
+
+  private throwSetupFailure(error: string | null | undefined): never {
+    const errorCode = this.normalizeSetupErrorCode(error);
+
+    switch (errorCode) {
+      case 'SETUP_ALREADY_COMPLETED':
+      case 'USERNAME_ALREADY_EXISTS':
+      case 'PASSWORD_COMPROMISED':
+        throw new BadRequestException({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: errorCode,
+          code: errorCode,
+        });
+
+      default:
+        throw new InternalServerErrorException({
+          statusCode: 500,
+          error: 'Internal Server Error',
+          message: 'SETUP_EXECUTION_FAILED',
+          code: errorCode,
+        });
+    }
+  }
 
   /**
    * Fuehrt den initialen Server-Setup durch.
@@ -70,6 +99,9 @@ export class AdminSetupController {
       },
     },
   })
+  @ApiInternalServerErrorResponse({
+    description: 'Unerwarteter Setup-Fehler',
+  })
   async completeSetup(
     @Body(
       new ValidationPipe({
@@ -93,13 +125,9 @@ export class AdminSetupController {
     // Handler ausfuehren
     const result = await this.completeSetupHandler.execute(commandResult.value);
 
-    // Error Handling - Format passend zum OpenAPI Schema (statusCode, error, message)
+    // Error Handling - leere oder technische Fehler nicht als leeres 400 maskieren
     if (result.isFailure || !result.value) {
-      throw new BadRequestException({
-        statusCode: 400,
-        error: 'Bad Request',
-        message: result.error === 'SETUP_ALREADY_COMPLETED' ? 'SETUP_ALREADY_COMPLETED' : (result.error ?? 'UNEXPECTED_ERROR'),
-      });
+      this.throwSetupFailure(result.error);
     }
 
     // Success Response (wird durch TransformInterceptor automatisch gewrappt)

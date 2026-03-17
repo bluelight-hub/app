@@ -15,7 +15,11 @@ vi.mock('@/features/auth/stores/auth.store', () => ({
 }));
 
 vi.mock('@/features/auth/ui', () => ({
-  AuthLoading: () => <div data-testid="auth-loading">loading</div>,
+  AuthLoading: () => (
+    <div role="status" aria-live="polite">
+      Authentifizierung wird geladen...
+    </div>
+  ),
 }));
 
 vi.mock('@tanstack/react-router', () => ({
@@ -43,7 +47,7 @@ describe('AppGuard', () => {
 
     render(<AppGuard />);
 
-    expect(screen.getByTestId('auth-loading')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Authentifizierung wird geladen...');
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockSetRedirectAfterLogin).not.toHaveBeenCalled();
   });
@@ -67,7 +71,7 @@ describe('AppGuard', () => {
     });
 
     expect(mockSetRedirectAfterLogin).toHaveBeenCalledWith('/app/einsatz/42?tab=lagekarte#karte');
-    expect(screen.getByTestId('auth-loading')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Authentifizierung wird geladen...');
   });
 
   it('rendert Outlet für authentifizierte Nutzer', () => {

@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useStore } from '@tanstack/react-store';
 import { milliseconds } from 'date-fns';
 import { serverStore } from '@/features/server/stores/server.store';
+import { getAuthContextSummary } from '@/features/auth/utils';
 
 /**
  * Hook zum Abrufen des aktuell eingeloggten Benutzers
@@ -44,7 +45,7 @@ export const useCurrentUser = () => {
   const isServerReady = isHydrated && activeServerUrl !== null;
 
   const authCheckQuery = useQuery({
-    queryKey: [...AUTH_KEYS.auth.queries.authCheck, serverScope] as const,
+    queryKey: AUTH_KEYS.auth.queries.authCheckScoped(serverScope),
     queryFn: fetchAuthCheck,
     retry: (failureCount, error) => {
       // Bei 503 SERVER_NOT_SETUP nicht retrien - Setup-Status aendert sich nicht automatisch
@@ -72,7 +73,7 @@ export const useCurrentUser = () => {
   const isAdminAuthenticated = authStatus === 'authenticated' ? authData?.isAdminAuthenticated === true : false;
 
   const adminStatusQuery = useQuery({
-    queryKey: [...AUTH_KEYS.auth.queries.adminStatus, serverScope] as const,
+    queryKey: AUTH_KEYS.auth.queries.adminStatusScoped(serverScope),
     queryFn: fetchAdminStatus,
     staleTime: milliseconds({ seconds: 30 }),
     refetchInterval: isAdminRole ? milliseconds({ seconds: 30 }) : false,
@@ -82,7 +83,8 @@ export const useCurrentUser = () => {
     enabled: isAdminRole,
   });
 
-  const adminSessionStatus: AdminSessionStatus = authStatus === 'pending' ? 'pending' : isAdminAuthenticated ? 'authenticated' : 'unauthenticated';
+  const adminSessionStatus: AdminSessionStatus = authStatus === 'pending' ? 'pending' : isAdminRole && isAdminAuthenticated ? 'authenticated' : 'unauthenticated';
+  const authContext = authStatus === 'authenticated' && authData?.user ? getAuthContextSummary(authData.user.role, isAdminAuthenticated) : null;
 
   const isResolved = authStatus !== 'pending';
 
@@ -114,6 +116,11 @@ export const useCurrentUser = () => {
      * Aktuell eingeloggter Benutzer (null wenn nicht eingeloggt)
      */
     user: authStatus === 'authenticated' ? authData?.user : null,
+
+    /**
+     * Zentral abgeleiteter Rollen- und Berechtigungskontext für die UI
+     */
+    authContext,
 
     /**
      * Ist der Benutzer als Admin authentifiziert?

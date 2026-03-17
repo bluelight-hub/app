@@ -133,6 +133,10 @@ Journey-spezifische Ergänzungen dürfen die universellen Gates verschärfen, ab
   - Ein Live-Status ist technisch ein falsches semantisches Element.
   - Warnungen oder Blocker sind visuell sichtbar, aber nicht vorgelesen oder beschrieben.
 
+Die Review-Gates gelten auch für den unauthentifizierten Einstieg: Der Server-, System- und Versionskontext muss immer sichtbar sein, eigene Statusflächen dürfen keine neuen API- oder Redirect-Pfade einführen, sondern basieren auf den zentralen Hooks (`useServerListHealth`, `useSystemHealth`, `useSystemVersion`, `ServerSelector`, `UnifiedAuthForm`). Ein semantischer Ladehinweis erscheint frühestens nach 300 ms, begleitet von `aria-live="polite"`-Text und klaren Folgeaktionen wie `Erneut prüfen`, `Server wechseln` oder `Server verwalten`. Die Reihenfolge `Banner → Kontextflächen → Primäraktion` darf nicht in eine alternative Navigationswelt abgleiten.
+
+Dasselbe Gate gilt für die bestätigte Startfläche nach dem Login: Die Reihenfolge `Orientierung → bestätigter Konto-/Rollen-/Berechtigungskontext → Primäraktion → Einsatzliste/-anlage` muss in Desktop und Web gleich bleiben. Pending- oder Fehlerzustände im Login- und Startflächenpfad müssen als `role="status"` bzw. `role="alert"` verständlich lesbar sein; nicht zulässige Folgeaktionen werden verborgen oder deaktiviert und textlich eingeordnet, statt erst in einem späteren Fehler zu scheitern.
+
 ### 6. Browser-, Zoom- und Responsive-Freigabe
 
 - Prüffragen:

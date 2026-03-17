@@ -5,20 +5,20 @@
  *
  * @returns Die Index-Page-Komponente
  */
-import { isAdmin, useCurrentUser, useLogout } from '@/features/auth';
+import { getAuthContextSummary, isAdmin, useCurrentUser, useLogout } from '@/features/auth';
+import { AuthContextSummary, AuthLoading } from '@/features/auth/ui';
 import { EinsatzDashboard } from '@/features/einsatz/ui/organisms/EinsatzDashboard';
 import { useActiveServer } from '@/features/server/hooks';
 import { ServerNameBadge } from '@/features/server/ui/atoms';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Heading } from '@/shared/ui/atoms/heading.atom';
-import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { Text } from '@/shared/ui/atoms/text.atom';
 import { ColorModeMenu } from '@/shared/ui/molecules/color-mode-menu.molecule';
 import { useRouter } from '@tanstack/react-router';
 import { PiShieldCheck, PiSignIn } from 'react-icons/pi';
 
 export function IndexPage() {
-  const { isLoading, user, adminStatus } = useCurrentUser();
+  const { isLoading, user, adminStatus, authContext, isAdminAuthenticated } = useCurrentUser();
   const logout = useLogout();
   const { navigate } = useRouter();
   const activeServer = useActiveServer();
@@ -32,12 +32,7 @@ export function IndexPage() {
   // WICHTIG: Warte immer auf den initialen Auth-Check bevor wir weiterleiten
   // Dies verhindert Race Conditions beim Page Reload
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-        <Spinner size="lg" className="text-red-500" />
-        <Text color="muted">Authentifizierung wird geladen...</Text>
-      </div>
-    );
+    return <AuthLoading />;
   }
 
   // Nach dem Loading: Prüfe, ob der User vorhanden ist.
@@ -49,19 +44,42 @@ export function IndexPage() {
     return null;
   }
 
+  const resolvedAuthContext = authContext ?? getAuthContextSummary(user.role, isAdminAuthenticated);
+
   return (
     <div className="flex h-screen flex-col overflow-hidden p-4 sm:p-6 lg:p-8">
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
-        <div className="flex-shrink-0">
-          <div className="flex items-start justify-between">
+        <div className="flex-shrink-0 space-y-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <Heading size="2xl" as="h1">
                 Willkommen bei BlueLight Hub
               </Heading>
               <Text color="muted">Sie sind angemeldet als: {user.username}</Text>
             </div>
-            {activeServer && <ServerNameBadge name={activeServer.name} />}
+
+            <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+              {/* Admin Setup Link - nur anzeigen wenn adminSetupAvailable true ist */}
+              {adminStatus?.adminSetupAvailable && (
+                <Button intent="primary" size="sm" onClick={handleOpenAdminWindow}>
+                  <PiShieldCheck className="mr-2" />
+                  Admin-Setup
+                </Button>
+              )}
+
+              {/* Admin-Bereich Button für berechtigte Benutzer */}
+              {isAdmin(user.role) && !adminStatus?.adminSetupAvailable && (
+                <Button appearance="outline" intent="secondary" size="sm" onClick={handleOpenAdminWindow} title="Admin-Dashboard in separatem Fenster öffnen">
+                  <PiSignIn className="mr-2" />
+                  Admin-Bereich
+                </Button>
+              )}
+
+              {activeServer && <ServerNameBadge name={activeServer.name} />}
+            </div>
           </div>
+
+          <AuthContextSummary username={user.username} serverName={activeServer?.name} authContext={resolvedAuthContext} />
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden lg:grid lg:gap-6">
@@ -76,24 +94,6 @@ export function IndexPage() {
               Abmelden
             </Button>
             <ColorModeMenu placement="top" />
-          </div>
-
-          <div className="flex gap-2">
-            {/* Admin Setup Link - nur anzeigen wenn adminSetupAvailable true ist */}
-            {adminStatus?.adminSetupAvailable && (
-              <Button intent="primary" size="sm" onClick={handleOpenAdminWindow}>
-                <PiShieldCheck className="mr-2" />
-                Admin-Setup
-              </Button>
-            )}
-
-            {/* Admin-Bereich Button für berechtigte Benutzer */}
-            {isAdmin(user.role) && !adminStatus?.adminSetupAvailable && (
-              <Button appearance="outline" intent="secondary" size="sm" onClick={handleOpenAdminWindow} title="Admin-Dashboard in separatem Fenster öffnen">
-                <PiSignIn className="mr-2" />
-                Admin-Bereich
-              </Button>
-            )}
           </div>
         </div>
       </div>

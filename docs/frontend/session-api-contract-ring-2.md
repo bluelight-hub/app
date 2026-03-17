@@ -21,11 +21,20 @@ Regel:
 - Komponenten in `features/*/ui` und `shared/ui/*` konsumieren nur Hooks, Query-Flows oder zentrale API-Wrapper.
 - Direkte `fetch()`-Aufrufe für Einstieg und Shell sind nicht erlaubt.
 
+## Sichtbarer Einstiegskontext
+
+Der unauthentifizierte Einstieg darf keinen Parallelpfad außerhalb der zentralen Hooks implementieren. `LoginWindow` kompiliert Server-Guard, `useServerListHealth`, `useSystemHealth`, `useSystemVersion`, `ServerSelector` und `UnifiedAuthForm` zur einzigen sichtbaren Einstiegsschicht zusammen. Die Sichtbarkeit von Server-, System- und Versionskontext erfolgt explizit über diesen Mix aus Hooks und gemeinsamen UI-Atoms; keine Story darf auf zusätzliche API-Aufrufe oder hybride Statusmaschinen setzen.
+
+Die Statuskommunikation muss textlich verständlich nicht nur in Badges, sondern in einer dedizierten Statusfläche erscheinen, von der aus die nächste Aktion (z. B. `retry`, `server wechseln`, `server verwalten`, `setup öffnen`) abzulesen ist. Dabei genügt ein sichtbarer Ladehinweis erst nach etwa `300 Millisekunden`, solange `UnifiedAuthForm` den `isLoading`-State semantisch als `aria-live="polite"`-Hinweis nachliefert. Die zugehörigen Aktionen greifen nur auf die zentralen Hooks, Refetches und Navigationspfade zu.
+
+Nach erfolgreicher Anmeldung bleibt derselbe Vertrag erhalten: Die bestätigte Startfläche unter `/app/einsaetze` nutzt weiterhin `useUnifiedAuth`, `useCurrentUser`, `AppGuard` und die kanonischen Redirect-Helfer. Es gibt keine zusätzliche „Login erfolgreich“-Zwischenroute. Stattdessen bestätigt die Startfläche Konto, Rolle, Berechtigungsstufe und aktiven Server in einem persistenten Kontextblock, bevor die eigentliche Einsatzarbeit beginnt.
+
 ## Erlaubte Ausnahmen und Generator-Gaps
 
 Einige Backend-Verträge sind mit dem generierten Client nicht vollständig oder nicht passend typisiert. Diese Ausnahmen sind nur erlaubt, wenn sie zentral gekapselt bleiben:
 
 - **Raw-Responses:** `auth/check` und `auth/admin/status` liefern wegen `@SkipTransform()` keine regulär gewrappten `{ data }`-Antworten. Parsing und Validierung gehören deshalb in einen zentralen Wrapper unter `shared/api/`, nicht in einzelne Hooks.
+- **Server-Scope:** `auth/check`, `auth/admin/status` und `public-users` müssen query-seitig auf den aktiven Server gescopt sein. Broad invalidations oder Refetches ohne Server-Scope sind nicht zulässig, weil sie Auth- oder Benutzercaches anderer Server überschreiben könnten.
 - **Root-Response:** Informationen wie die Backend-Version aus dem Root-Endpoint dürfen über einen zentralen Helper unter `shared/api/` geladen werden, solange kein passender generierter Typ existiert.
 - **Servergebundene Setup-/Invite-Clients:** Temporäre Clients für Invite-Exchange oder initiales Admin-Setup sind zulässig, wenn sie zentral dokumentiert und gekapselt bleiben. Sie sind eine begründete Ausnahme für den Weg vor einer aktiven Serverbindung.
 

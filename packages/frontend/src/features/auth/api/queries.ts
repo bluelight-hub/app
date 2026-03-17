@@ -8,9 +8,12 @@ const AUTH_QUERY_KEYS = (base: [string]) =>
   ({
     users: [...base, 'users'] as const,
     authCheck: [...base, 'check'] as const,
+    authCheckScoped: (serverScope: string) => [...base, 'check', serverScope] as const,
     adminStatus: [...base, 'admin', 'status'] as const,
+    adminStatusScoped: (serverScope: string) => [...base, 'admin', 'status', serverScope] as const,
     adminPresence: [...base, 'admin', 'presence'] as const,
     publicUsers: [...base, 'public-users'] as const,
+    publicUsersScoped: (serverScope: string) => [...base, 'public-users', serverScope] as const,
   }) as const;
 
 export const USERS_QUERY_KEYS = {

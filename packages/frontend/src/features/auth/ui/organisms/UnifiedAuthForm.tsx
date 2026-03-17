@@ -2,7 +2,7 @@
 
 import type { AuthRequestDto } from '@/shared';
 import { useForm } from '@tanstack/react-form';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { PiUser } from 'react-icons/pi';
 import { z } from 'zod';
 import { Button } from '@/shared/ui/atoms/button.atom';
@@ -23,7 +23,7 @@ const authSchema = z.object({
 export interface UnifiedAuthFormProps {
   onSubmit: (values: AuthRequestDto) => Promise<void> | void;
   isLoading?: boolean;
-  error?: Error | null;
+  error?: Error | string | null;
   className?: string;
 }
 
@@ -60,6 +60,25 @@ export function UnifiedAuthForm({ onSubmit, isLoading = false, error, className 
     },
   });
 
+  const isBusy = isLoading || form.state.isSubmitting;
+  const [showPendingNotice, setShowPendingNotice] = useState(false);
+  const errorMessage = typeof error === 'string' ? error : error?.message;
+
+  useEffect(() => {
+    if (!isBusy) {
+      setShowPendingNotice(false);
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setShowPendingNotice(true);
+    }, 300);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [isBusy]);
+
   return (
     <form
       onSubmit={async (e) => {
@@ -67,6 +86,7 @@ export function UnifiedAuthForm({ onSubmit, isLoading = false, error, className 
         e.stopPropagation();
         await form.handleSubmit();
       }}
+      aria-busy={isBusy}
       className={cn('space-y-6', className)}
     >
       <div className="space-y-4">
@@ -74,7 +94,7 @@ export function UnifiedAuthForm({ onSubmit, isLoading = false, error, className 
           {(field) => {
             // Extract error message string from validation error
             const fieldError = field.state.meta.errors[0];
-            const errorMessage = typeof fieldError === 'string' ? fieldError : fieldError?.message;
+            const fieldErrorMessage = typeof fieldError === 'string' ? fieldError : fieldError?.message;
 
             return (
               <Combobox
@@ -85,10 +105,10 @@ export function UnifiedAuthForm({ onSubmit, isLoading = false, error, className 
                 placeholder="Benutzername eingeben oder auswählen..."
                 label="Benutzername"
                 helperText="Wählen Sie einen bestehenden Benutzer oder geben Sie einen neuen Namen ein"
-                disabled={isLoading || form.state.isSubmitting}
+                disabled={isBusy}
                 allowCustomValue={true}
                 leadingIcon={<PiUser className="h-5 w-5" />}
-                error={errorMessage || (error ? 'Anmeldung fehlgeschlagen' : undefined)}
+                error={fieldErrorMessage ?? errorMessage}
               />
             );
           }}
@@ -103,9 +123,19 @@ export function UnifiedAuthForm({ onSubmit, isLoading = false, error, className 
         )}
       </form.Subscribe>
 
-      {error && (
-        <div className="rounded-lg bg-red-50 p-4 dark:bg-red-900/20">
-          <p className="text-red-800 text-sm dark:text-red-200">{error.message || 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.'}</p>
+      {showPendingNotice && (
+        <output
+          aria-live="polite"
+          aria-atomic="true"
+          className="block w-full break-words rounded-lg border border-blue-200 bg-blue-50 p-4 text-blue-800 text-sm dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-100"
+        >
+          Anmeldung wird verarbeitet. Ihre Eingaben bleiben erhalten.
+        </output>
+      )}
+
+      {errorMessage && (
+        <div role="alert" className="rounded-lg bg-red-50 p-4 dark:bg-red-900/20">
+          <p className="text-red-800 text-sm dark:text-red-200">{errorMessage}</p>
         </div>
       )}
     </form>

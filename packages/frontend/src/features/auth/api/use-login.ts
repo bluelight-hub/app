@@ -2,6 +2,9 @@ import { api } from '@/shared';
 import { AUTH_KEYS } from './queries';
 import type { AdminLoginResponseDto, AdminPasswordDto, AuthRequestDto, AuthResponseDto } from '@/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useStore } from '@tanstack/react-store';
+import { normalizeServerBaseUrl } from '@/shared/api/server-scoped-clients';
+import { serverStore } from '@/features/server/stores/server.store';
 
 /**
  * Hook für Unified Authentication (Login/Register)
@@ -24,14 +27,26 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
  */
 export const useUnifiedAuth = () => {
   const queryClient = useQueryClient();
+  const activeServerUrl = useStore(serverStore, (state) => {
+    if (!state.activeServerId) {
+      return null;
+    }
+
+    const activeServer = state.servers.find((server) => server.id === state.activeServerId);
+    return activeServer ? normalizeServerBaseUrl(activeServer.url) : null;
+  });
+  const serverScope = activeServerUrl ?? 'unconfigured';
 
   return useMutation<AuthResponseDto, Error, AuthRequestDto>({
     mutationFn: (authRequestDto: AuthRequestDto) => api.auth().authControllerUnifiedAuth({ authRequestDto }),
     onSuccess: async () => {
-      // AuthCheck refetchen, damit neuer User geladen wird
-      // Wichtig: refetchQueries wartet auf das Refetch, invalidateQueries nicht
+      if (!activeServerUrl) {
+        return;
+      }
+
+      // Nur den exakten aktiven Server-Key refetchen, damit keine fremden Server-Caches überschrieben werden.
       await queryClient.refetchQueries({
-        queryKey: AUTH_KEYS.auth.queries.authCheck,
+        queryKey: AUTH_KEYS.auth.queries.authCheckScoped(serverScope),
       });
     },
   });
@@ -58,13 +73,26 @@ export const useUnifiedAuth = () => {
  */
 export const useAdminLogin = () => {
   const queryClient = useQueryClient();
+  const activeServerUrl = useStore(serverStore, (state) => {
+    if (!state.activeServerId) {
+      return null;
+    }
+
+    const activeServer = state.servers.find((server) => server.id === state.activeServerId);
+    return activeServer ? normalizeServerBaseUrl(activeServer.url) : null;
+  });
+  const serverScope = activeServerUrl ?? 'unconfigured';
 
   return useMutation<AdminLoginResponseDto, Error, AdminPasswordDto>({
     mutationFn: (adminPasswordDto: AdminPasswordDto) => api.auth().authControllerAdminLogin({ adminPasswordDto }),
     onSuccess: async () => {
-      // AuthCheck invalidieren, damit Admin-Status aktualisiert wird
+      if (!activeServerUrl) {
+        return;
+      }
+
+      // Nur den aktiven Auth-Check invalidieren.
       await queryClient.invalidateQueries({
-        queryKey: AUTH_KEYS.auth.queries.authCheck,
+        queryKey: AUTH_KEYS.auth.queries.authCheckScoped(serverScope),
       });
     },
   });

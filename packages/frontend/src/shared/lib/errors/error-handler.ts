@@ -234,6 +234,20 @@ function getErrorContext(error: unknown): { status?: number; url?: string; reque
   return {};
 }
 
+function shouldSuppressRouteToast(category: string): boolean {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  const currentPath = window.location.pathname;
+
+  if (currentPath !== '/auth') {
+    return false;
+  }
+
+  return category === 'network' || category === 'server';
+}
+
 /**
  * Global error handler for React Query
  *
@@ -265,11 +279,12 @@ export async function handleQueryError(error: unknown, _query?: unknown): Promis
       // Check if we're on pages that handle auth themselves
       const isOnAuthPage = window.location.pathname.startsWith('/auth');
       const isOnServerSetup = window.location.pathname.startsWith('/server/setup');
+      const isOnServerManage = window.location.pathname.startsWith('/server/manage');
       const redirectTarget = sanitizeInternalRedirectPath(getCurrentPathWithQueryAndHash()) ?? '/';
 
-      // On server setup page, don't redirect - the page handles token errors itself
-      if (isOnServerSetup) {
-        logger.debug('On server setup page, skipping 401 handling');
+      // On server access pages, don't redirect - these routes handle token issues themselves
+      if (isOnServerSetup || isOnServerManage) {
+        logger.debug('On server access page, skipping 401 handling');
         return;
       }
 
@@ -327,6 +342,11 @@ export async function handleQueryError(error: unknown, _query?: unknown): Promis
 
   const category = getErrorCategory(error);
   const context = getErrorContext(error);
+
+  if (shouldSuppressRouteToast(category)) {
+    logger.debug('Suppressing global toast for route-level auth feedback', { category, ...context });
+    return;
+  }
 
   // Mark error as shown
   if (error instanceof Error) {
