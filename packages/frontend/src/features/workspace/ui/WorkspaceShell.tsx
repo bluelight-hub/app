@@ -1,16 +1,16 @@
 import { Button } from '@/shared/ui/atoms/button.atom';
-import { Container } from '@/shared/ui/atoms/container.atom';
 import { CommandTrigger } from '@/shared/ui/atoms/command-trigger.atom';
+import { Container } from '@/shared/ui/atoms/container.atom';
 import { cn } from '@/shared/ui/cn';
 import { Link } from '@tanstack/react-router';
+import type { ReactNode } from 'react';
+import { useEffect, useState } from 'react';
+import { PiGridFour } from 'react-icons/pi';
 import { useWorkspaceModuleSelection } from '../hooks';
 import type { WorkspaceBlockingOverlayState, WorkspaceContextBarModel, WorkspaceModuleDefinition, WorkspaceRouteParams, WorkspaceStatusItem } from '../types';
 import { ModuleRail } from './ModuleRail';
 import { StatusRail } from './StatusRail';
 import { WorkspaceContextBar } from './WorkspaceContextBar';
-import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
-import { PiGridFour } from 'react-icons/pi';
 
 function isVisible(state: WorkspaceModuleDefinition['visibility'] | WorkspaceModuleDefinition['subPages'][number]['visibility']): boolean {
   return state.default !== 'hidden';
@@ -126,22 +126,22 @@ export function WorkspaceShell({
 
       <main className="flex-1">
         <Container maxWidth="full">
-          <div className="flex gap-6">
-            <aside className="hidden w-64 flex-shrink-0 pt-6 lg:block">
-              <div className="sticky top-36 max-h-[calc(100vh-10rem)] space-y-4 overflow-y-auto rounded-panel border border-border-subtle bg-surface-panel p-3 shadow-panel">
+          <div className="flex gap-4 xl:gap-5">
+            <aside className="hidden w-56 flex-shrink-0 pt-6 lg:block xl:w-60">
+              <div className="sticky top-36 max-h-[calc(100vh-10rem)] space-y-3 overflow-y-auto rounded-panel border border-border-subtle bg-surface-panel p-2.5 shadow-panel">
                 {sidebarHeader}
                 {onCommandTriggerClick ? (
-                  <div className="px-1">
+                  <div className="px-0.5">
                     <CommandTrigger onClick={onCommandTriggerClick} label={commandTriggerLabel} />
                   </div>
                 ) : null}
 
-                <nav aria-label="Modulseiten" className="space-y-1">
-                  <h2 className="px-3 font-semibold text-body-xs text-text-secondary uppercase tracking-[0.16em]">Navigation</h2>
+                <nav aria-label="Modulseiten" className="mt-4 space-y-1">
+                  <h2 className="px-2.5 font-semibold text-body-xs text-text-secondary uppercase tracking-[0.16em]">Navigation</h2>
                   {navigationGroups.map((module) => (
                     <div key={module.id} className="space-y-1 pb-2 last:pb-0">
                       {isDisabled(module.visibility) ? (
-                        <div aria-disabled="true" className="flex items-center gap-2 rounded-control px-3 py-2 text-text-muted" title={module.visibility.reason}>
+                        <div aria-disabled="true" className="flex items-center gap-2 rounded-control px-2.5 py-2 text-text-muted" title={module.visibility.reason}>
                           <module.icon className="h-4 w-4 flex-shrink-0 text-text-muted" aria-hidden="true" />
                           <h3 className="font-medium text-body-sm">{module.label}</h3>
                           {getShortcutBadge(module) ? (
@@ -161,7 +161,7 @@ export function WorkspaceShell({
                           aria-label={module.label}
                           aria-keyshortcuts={module.shortcut ? [...module.shortcut.modifiers, module.shortcut.key].join('+') : undefined}
                           className={cn(
-                            'group flex items-center gap-2 rounded-control px-3 py-2 transition-colors focus:outline-none focus-visible:shadow-focus-ring',
+                            'group flex items-center gap-2 rounded-control px-2.5 py-2 transition-colors focus:outline-none focus-visible:shadow-focus-ring',
                             module.id === currentModule.id ? 'bg-action-secondary text-text-primary' : 'text-text-secondary hover:bg-action-secondary',
                           )}
                           title={
@@ -194,7 +194,7 @@ export function WorkspaceShell({
 
                             if (pageIsDisabled) {
                               return (
-                                <div key={page.id} aria-disabled="true" className="ml-3 rounded-control px-3 py-2 text-text-muted" title={page.visibility.reason}>
+                                <div key={page.id} aria-disabled="true" className="ml-2.5 rounded-control px-2.5 py-2 text-text-muted" title={page.visibility.reason}>
                                   <div className="flex items-start gap-3">
                                     <page.icon className="mt-0.5 h-5 w-5 flex-shrink-0" aria-hidden="true" />
                                     <div className="min-w-0 flex-1">
@@ -218,7 +218,7 @@ export function WorkspaceShell({
                                 params={routeParams as any}
                                 aria-current={isActive ? 'page' : undefined}
                                 className={cn(
-                                  'group ml-3 flex items-start gap-3 rounded-control px-3 py-2 transition-colors',
+                                  'group ml-2.5 flex items-start gap-3 rounded-control px-2.5 py-2 transition-colors',
                                   isActive ? 'bg-action-secondary text-text-primary' : 'text-text-secondary hover:bg-action-secondary',
                                 )}
                               >

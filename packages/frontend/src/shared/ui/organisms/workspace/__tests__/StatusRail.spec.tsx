@@ -37,8 +37,9 @@ describe('StatusRail', () => {
     expect(screen.getByText('Arbeitszugriff blockiert')).toBeInTheDocument();
     expect(screen.getByText('Person auswählen, um den Einsatz zu bearbeiten')).toBeInTheDocument();
     expect(region).toBeInTheDocument();
-    expect(status).toHaveAccessibleName(/Degradierte Verbindung.*3 min/);
-    expect(status).toHaveAccessibleDescription('Verbindung instabil');
+    expect(status).toHaveTextContent('Degradierte Verbindung');
+    expect(status).toHaveTextContent('3 min');
+    expect(status).toHaveTextContent('Verbindung instabil');
     expect(status).toHaveAttribute('aria-live', 'polite');
     expect(status).toHaveAttribute('aria-atomic', 'true');
     expect(status.tagName).not.toBe('OUTPUT');

@@ -18,6 +18,10 @@ const myTeilnahmeState = {
   },
   isLoading: false,
 };
+const currentUserState = {
+  user: { id: 'user-1', username: 'einsatz-user' },
+  isLoading: false,
+};
 
 const workspaceModules = [
   {
@@ -58,6 +62,39 @@ const workspaceModules = [
         icon: PiClipboard,
         visibility: { default: 'visible' as const },
       },
+      {
+        id: 'protokoll',
+        label: 'Protokoll',
+        href: '/app/einsatz/$einsatzId/führung/protokoll',
+        icon: PiClipboard,
+        visibility: {
+          default: 'disabled' as const,
+          reason: 'Später',
+        },
+      },
+    ],
+  },
+  {
+    id: 'kommunikation',
+    label: 'Kommunikation',
+    description: 'Funk und Alarmierung',
+    routeTarget: '/app/einsatz/$einsatzId/kommunikation/funk',
+    icon: PiClipboard,
+    color: 'green' as const,
+    priority: 30,
+    visibility: {
+      default: 'disabled' as const,
+      reason: 'Später',
+    },
+    shortcut: { modifiers: ['alt'], key: '3' },
+    subPages: [
+      {
+        id: 'funk',
+        label: 'Funk',
+        href: '/app/einsatz/$einsatzId/kommunikation/funk',
+        icon: PiClipboard,
+        visibility: { default: 'visible' as const },
+      },
     ],
   },
 ];
@@ -86,10 +123,7 @@ vi.mock('@tanstack/react-router', () => ({
 }));
 
 vi.mock('@/features/auth', () => ({
-  useCurrentUser: () => ({
-    user: { id: 'user-1' },
-    isLoading: false,
-  }),
+  useCurrentUser: () => currentUserState,
 }));
 
 vi.mock('@/features/befehl', () => ({
@@ -119,6 +153,7 @@ vi.mock('@/features/einsatz', () => ({
       status: 'Laufend',
       createdAt: '2026-03-16T10:00:00.000Z',
     },
+    isLoading: false,
   }),
   useMyEinsatzTeilnahme: () => ({
     data: myTeilnahmeState.data,
@@ -187,14 +222,6 @@ vi.mock('@/features/reminders/utils/erinnerung-ownership', () => ({
   filterMyErinnerungen: () => [],
 }));
 
-vi.mock('@/features/server/hooks', () => ({
-  useActiveServer: () => null,
-}));
-
-vi.mock('@/features/server/ui/atoms', () => ({
-  ServerNameBadge: ({ name }: { name: string }) => <div data-testid="server-name-badge">{name}</div>,
-}));
-
 vi.mock('@/features/settings', () => ({
   AudioSettingsDialog: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div data-testid="audio-settings-dialog">Audio</div> : null),
 }));
@@ -223,7 +250,19 @@ vi.mock('@/shared', () => ({
 }));
 
 vi.mock('@/shared/ui/organisms/command-palette', () => ({
-  CommandPalette: ({ open }: { open: boolean }) => (open ? <div data-testid="command-palette">Command Palette</div> : null),
+  CommandPalette: ({ modules, open }: { modules: Array<{ name: string; subPages: Array<{ name: string }> }>; open: boolean }) =>
+    open ? (
+      <div data-testid="command-palette">
+        {modules.map((module) => (
+          <div key={module.name}>
+            <span>{module.name}</span>
+            {module.subPages.map((page) => (
+              <span key={`${module.name}-${page.name}`}>{page.name}</span>
+            ))}
+          </div>
+        ))}
+      </div>
+    ) : null,
 }));
 
 vi.mock('@/shared/ui/organisms/command-palette/CommandPaletteErrorBoundary', () => ({
@@ -242,6 +281,8 @@ describe('SingleEinsatzLayout workspace hotkeys', () => {
     navigateSpy.mockReset();
     routerNavigateSpy.mockReset();
     clearActiveEinsatzSpy.mockReset();
+    currentUserState.user = { id: 'user-1', username: 'einsatz-user' };
+    currentUserState.isLoading = false;
     myTeilnahmeState.data = {
       data: {
         einsatzPersonId: 'teilnahme-1',
@@ -281,6 +322,21 @@ describe('SingleEinsatzLayout workspace hotkeys', () => {
       to: '/app/einsatz/$einsatzId/übersicht',
       params: { einsatzId: 'einsatz-42' },
     });
+  });
+
+  it('schließt deaktivierte Module und Unterseiten aus der Command Palette aus', async () => {
+    const user = userEvent.setup();
+    renderLayout();
+
+    await user.click(screen.getAllByRole('button', { name: /befehle und navigation/i })[0]);
+
+    const palette = screen.getByTestId('command-palette');
+
+    expect(palette).toHaveTextContent('Übersicht');
+    expect(palette).toHaveTextContent('Führung');
+    expect(palette).toHaveTextContent('ETB');
+    expect(palette).not.toHaveTextContent('Kommunikation');
+    expect(palette).not.toHaveTextContent('Protokoll');
   });
 
   it('blockiert Workspace-Modul-Hotkeys, sobald ein Overlay aktiv ist', () => {

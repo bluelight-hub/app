@@ -1,4 +1,4 @@
-import { EINSATZ_WORKSPACE_MODULES, getWorkspacePrimaryRoute } from '../einsatz-workspace.registry';
+import { EINSATZ_WORKSPACE_MODULES, getCanonicalWorkspaceRoute, getWorkspacePrimaryRoute, isWorkspaceRouteAccessible } from '../einsatz-workspace.registry';
 import { PiClipboard } from 'react-icons/pi';
 import { describe, expect, it } from 'vitest';
 
@@ -35,7 +35,32 @@ describe('einsatz workspace registry', () => {
       href: '/app/einsatz/$einsatzId/übersicht',
     });
     expect(overviewModule?.priority).toBeTypeOf('number');
-    expect(overviewModule?.subPages.every((page) => page.visibility.default === 'visible')).toBe(true);
+    expect(overviewModule?.subPages.find((page) => page.id === 'dashboard')?.visibility.default).toBe('visible');
+    expect(overviewModule?.subPages.find((page) => page.id === 'karte')?.visibility.default).toBe('visible');
+    expect(overviewModule?.subPages.find((page) => page.id === 'statistik')?.visibility).toMatchObject({
+      default: 'disabled',
+    });
+  });
+
+  it('begrenzt Story 1.6 auf sichtbare Kernziele und markiert spätere Bereiche bewusst als deaktiviert', () => {
+    const visibleModules = EINSATZ_WORKSPACE_MODULES.filter((module) => module.visibility.default === 'visible');
+    const disabledModules = EINSATZ_WORKSPACE_MODULES.filter((module) => module.visibility.default === 'disabled');
+    const fuehrungModule = EINSATZ_WORKSPACE_MODULES.find((module) => module.id === 'führung');
+    const kraefteModule = EINSATZ_WORKSPACE_MODULES.find((module) => module.id === 'kräfte');
+
+    expect(visibleModules.map((module) => module.id)).toEqual(['übersicht', 'führung', 'kräfte']);
+    expect(disabledModules.map((module) => module.id)).toEqual(['kommunikation', 'sicherheit', 'patienten', 'betreuung', 'logistik', 'drohne']);
+    expect(disabledModules.every((module) => module.visibility.reason)).toBe(true);
+    expect(fuehrungModule?.subPages.find((page) => page.id === 'etb')?.visibility.default).toBe('visible');
+    expect(fuehrungModule?.subPages.find((page) => page.id === 'pinnwand')?.visibility.default).toBe('visible');
+    expect(fuehrungModule?.subPages.find((page) => page.id === 'befehle')?.visibility.default).toBe('visible');
+    expect(fuehrungModule?.subPages.find((page) => page.id === 'rhythmus')?.visibility.default).toBe('visible');
+    expect(kraefteModule?.subPages.find((page) => page.id === 'dashboard')?.visibility.default).toBe('visible');
+    expect(kraefteModule?.subPages.find((page) => page.id === 'personal')?.visibility.default).toBe('visible');
+    expect(kraefteModule?.subPages.find((page) => page.id === 'fahrzeuge')?.visibility.default).toBe('visible');
+    expect(kraefteModule?.subPages.find((page) => page.id === 'einheiten')?.visibility).toMatchObject({
+      default: 'disabled',
+    });
   });
 
   it('respektiert bewusst modellierte routeTargets statt implizit die erste Unterseite zu verwenden', () => {
@@ -60,5 +85,17 @@ describe('einsatz workspace registry', () => {
         ],
       }),
     ).toBe('/app/einsatz/$einsatzId/führung/berichte');
+  });
+
+  it('gibt eine kanonische Fallback-Route für den aktiven Workspace zurück', () => {
+    expect(getCanonicalWorkspaceRoute()).toBe('/app/einsatz/$einsatzId/übersicht');
+  });
+
+  it('erlaubt nur sichtbare Module und Unterseiten für Direktaufrufe', () => {
+    expect(isWorkspaceRouteAccessible('/app/einsatz/einsatz-42/führung/etb', 'einsatz-42')).toBe(true);
+    expect(isWorkspaceRouteAccessible('/app/einsatz/einsatz-42/führung/protokoll', 'einsatz-42')).toBe(false);
+    expect(isWorkspaceRouteAccessible('/app/einsatz/einsatz-42/kommunikation/funk', 'einsatz-42')).toBe(false);
+    expect(isWorkspaceRouteAccessible('/app/einsatz/einsatz-42/übersicht', 'einsatz-42')).toBe(true);
+    expect(isWorkspaceRouteAccessible('/app/einsatz/einsatz-42/übersicht/', 'einsatz-42')).toBe(true);
   });
 });
