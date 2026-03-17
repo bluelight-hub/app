@@ -1,7 +1,15 @@
 import { cn } from '@/shared/ui/cn';
-import type { ComponentType, ReactNode } from 'react';
+import { useEffect, useRef, type ComponentType, type ReactNode } from 'react';
 
 type WorkspaceStatusTone = 'neutral' | 'info' | 'active' | 'loading' | 'warning' | 'blocked' | 'readonly';
+
+export interface StatusRailAction {
+  label: string;
+  onClick: () => void;
+  autoFocus?: boolean;
+  ariaLabel?: string;
+  disabled?: boolean;
+}
 
 export interface StatusRailItem {
   id: string;
@@ -12,6 +20,7 @@ export interface StatusRailItem {
   value?: ReactNode;
   nextActionLabel?: string;
   nextActionDescription?: string;
+  primaryAction?: StatusRailAction;
   role?: 'status' | 'alert';
 }
 
@@ -29,6 +38,34 @@ export interface StatusRailProps {
   items?: StatusRailItem[];
   className?: string;
   title?: string;
+}
+
+function StatusRailActionButton({ action }: { action: StatusRailAction }) {
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    if (!action.autoFocus || action.disabled) {
+      return;
+    }
+
+    buttonRef.current?.focus();
+  }, [action.autoFocus, action.disabled]);
+
+  return (
+    <button
+      type="button"
+      ref={buttonRef}
+      aria-label={action.ariaLabel}
+      disabled={action.disabled}
+      onClick={action.onClick}
+      className={cn(
+        'inline-flex items-center justify-center rounded-control border border-action-primary/35 bg-action-primary px-3 py-1.5 font-medium text-body-sm text-text-inverse shadow-button-primary transition-colors',
+        'hover:bg-action-primary-hover focus:outline-none focus-visible:shadow-focus-ring disabled:cursor-not-allowed disabled:opacity-50',
+      )}
+    >
+      {action.label}
+    </button>
+  );
 }
 
 export function StatusRail({ items = [], className, title = 'Workspace-Status' }: StatusRailProps) {
@@ -57,6 +94,11 @@ export function StatusRail({ items = [], className, title = 'Workspace-Status' }
                   <p className="mt-1 font-medium text-body-xs opacity-90">
                     {item.nextActionLabel ?? 'Nächster Schritt'}: {item.nextActionDescription}
                   </p>
+                ) : null}
+                {item.primaryAction ? (
+                  <div className="mt-3">
+                    <StatusRailActionButton action={item.primaryAction} />
+                  </div>
                 ) : null}
               </div>
             </div>

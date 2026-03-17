@@ -1,8 +1,13 @@
+import { useCurrentUser } from '@/features/auth/api/use-current-user';
+import { einsatzStore } from '@/features/einsatz/stores/active-einsatz.store';
+import { clearActiveEinsatz as clearPersistedActiveEinsatz } from '@/features/einsatz/stores/persistence/einsatz-persistence';
+import { serverStore } from '@/features/server/stores/server.store';
 import { api } from '@/shared';
 import { resetTokenRefreshHandler } from '@/shared/lib/errors/error-handler';
-import { AUTH_KEYS } from './queries';
 import type { LogoutResponseDto } from '@/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useStore } from '@tanstack/react-store';
+import { AUTH_KEYS } from './queries';
 
 /**
  * Hook für User-Logout
@@ -27,6 +32,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
  */
 export const useLogout = () => {
   const queryClient = useQueryClient();
+  const activeServerId = useStore(serverStore, (state) => state.activeServerId);
+  const { authStatus, user } = useCurrentUser();
 
   return useMutation<LogoutResponseDto, Error, void>({
     mutationFn: () => api.auth().authControllerLogout(),
@@ -36,6 +43,22 @@ export const useLogout = () => {
 
       // Alle laufenden Queries abbrechen
       await queryClient.cancelQueries();
+
+      if (authStatus === 'authenticated' && activeServerId && user?.id && user.role) {
+        await clearPersistedActiveEinsatz({
+          serverId: activeServerId,
+          userId: user.id,
+          role: user.role,
+        });
+      }
+
+      einsatzStore.setState((state) => ({
+        ...state,
+        activeEinsatz: null,
+        selectedEinsatzId: null,
+        isLoadingActiveEinsatz: false,
+        activeEinsatzError: null,
+      }));
 
       // Alle Queries löschen (inkl. Cache)
       queryClient.clear();

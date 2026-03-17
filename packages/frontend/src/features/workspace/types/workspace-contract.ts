@@ -76,6 +76,13 @@ export interface WorkspaceStatusItem {
   nextActionLabel?: string;
   nextActionDescription?: string;
   role?: 'status' | 'alert';
+  primaryAction?: {
+    label: string;
+    onClick: () => void;
+    autoFocus?: boolean;
+    ariaLabel?: string;
+    disabled?: boolean;
+  };
 }
 
 export interface WorkspaceModuleSelection {

@@ -1,12 +1,16 @@
+import { useCurrentUser } from '@/features/auth';
+import { serverStore } from '@/features/server/stores/server.store';
 import type { EinsatzControllerFindOneVAlpha200Response, ResponseError } from '@/shared';
 import { api } from '@/shared';
 import { logger } from '@/shared/lib/logger';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useStore } from '@tanstack/react-store';
 import { milliseconds } from 'date-fns';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { EINSATZ_QUERY_KEYS } from '../api';
 import { einsatzStore, useEinsatzStore } from '../stores/active-einsatz.store';
-import { clearActiveEinsatz as clearPersistedEinsatz, loadActiveEinsatzId, rehydrateActiveEinsatz } from '../stores/persistence/einsatz-persistence';
+import type { ActiveEinsatzStorageScope } from '../stores/persistence/einsatz-persistence';
+import { clearActiveEinsatz as clearPersistedEinsatz, loadActiveEinsatzId, rehydrateActiveEinsatz, saveActiveEinsatzId, subscribeToStorageChanges } from '../stores/persistence/einsatz-persistence';
 
 /**
  * Hook für aktiven Einsatz-Management
@@ -23,6 +27,8 @@ import { clearActiveEinsatz as clearPersistedEinsatz, loadActiveEinsatzId, rehyd
  */
 export function useActiveEinsatz() {
   const queryClient = useQueryClient();
+  const activeServerId = useStore(serverStore, (state) => state.activeServerId);
+  const { user, authStatus } = useCurrentUser();
   const {
     activeEinsatz,
     isLoadingActiveEinsatz,
@@ -33,6 +39,18 @@ export function useActiveEinsatz() {
     setError,
     selectedEinsatzId,
   } = useEinsatzStore();
+
+  const persistenceScope = useMemo<ActiveEinsatzStorageScope | null>(() => {
+    if (authStatus !== 'authenticated' || !activeServerId || !user?.id || !user.role) {
+      return null;
+    }
+
+    return {
+      serverId: activeServerId,
+      userId: user.id,
+      role: user.role,
+    };
+  }, [activeServerId, authStatus, user?.id, user?.role]);
 
   // Query für aktiven Einsatz basierend auf selectedEinsatzId
   const {
@@ -78,12 +96,13 @@ export function useActiveEinsatz() {
 
   // Rehydration beim App-Start
   useEffect(() => {
+    if (authStatus !== 'authenticated' || !persistenceScope) return;
     // Skip if activeEinsatz already exists
     if (activeEinsatz) return;
 
     const initializeActiveEinsatz = async () => {
       // Read storage once
-      const storedId = loadActiveEinsatzId();
+      const storedId = await loadActiveEinsatzId(persistenceScope);
 
       if (storedId) {
         setLoadingState(true);
@@ -113,16 +132,16 @@ export function useActiveEinsatz() {
           };
 
           // Pass the storedId directly instead of having rehydrateActiveEinsatz read it again
-          const validatedId = await rehydrateActiveEinsatz(storedId, validateId);
+          const validatedId = await rehydrateActiveEinsatz(persistenceScope, storedId, validateId);
 
           // If validation failed, clear the persisted ID
           if (!validatedId) {
-            clearPersistedEinsatz();
+            await clearPersistedEinsatz(persistenceScope);
           }
         } catch (error) {
           logger.error('Failed to rehydrate active Einsatz', error);
           setError('Gespeicherter Einsatz konnte nicht geladen werden');
-          clearPersistedEinsatz();
+          await clearPersistedEinsatz(persistenceScope);
         } finally {
           setLoadingState(false);
         }
@@ -133,11 +152,50 @@ export function useActiveEinsatz() {
     void initializeActiveEinsatz();
   }, [
     activeEinsatz,
+    authStatus,
+    persistenceScope,
     queryClient,
     setError,
     setLoadingState, // Synchronize both the activeEinsatz and selectedEinsatzId
     storeSetActiveEinsatz,
   ]); // Only re-run if activeEinsatz changes (for early return check)
+
+  useEffect(() => {
+    if (authStatus !== 'unauthenticated') {
+      return;
+    }
+
+    storeClearActiveEinsatz();
+  }, [authStatus, storeClearActiveEinsatz]);
+
+  useEffect(() => {
+    if (!persistenceScope || typeof window === 'undefined') {
+      return;
+    }
+
+    return subscribeToStorageChanges(persistenceScope, (einsatzId) => {
+      if (einsatzId === einsatzStore.state.activeEinsatz?.id) {
+        return;
+      }
+
+      if (!einsatzId) {
+        einsatzStore.setState((state) => ({
+          ...state,
+          activeEinsatz: null,
+          selectedEinsatzId: null,
+          activeEinsatzError: null,
+        }));
+        return;
+      }
+
+      einsatzStore.setState((state) => ({
+        ...state,
+        activeEinsatz: null,
+        selectedEinsatzId: einsatzId,
+        activeEinsatzError: null,
+      }));
+    });
+  }, [persistenceScope]);
 
   /**
    * Setzt einen neuen aktiven Einsatz
@@ -162,6 +220,7 @@ export function useActiveEinsatz() {
         if (cachedData?.data) {
           // Verwende gecachte Daten
           storeSetActiveEinsatz(cachedData.data);
+          await saveActiveEinsatzId(id, persistenceScope);
           setLoadingState(false);
         } else {
           // Lade Daten vom Server
@@ -171,6 +230,7 @@ export function useActiveEinsatz() {
             storeSetActiveEinsatz(response.data);
             // Cache die Daten
             queryClient.setQueryData(EINSATZ_QUERY_KEYS.detail(id), response);
+            await saveActiveEinsatzId(id, persistenceScope);
           } else {
             throw new Error('Einsatz nicht gefunden');
           }
@@ -181,12 +241,13 @@ export function useActiveEinsatz() {
         setError(errorMessage);
         // Rollback bei Fehler
         storeClearActiveEinsatz();
+        await clearPersistedEinsatz(persistenceScope);
         throw error;
       } finally {
         setLoadingState(false);
       }
     },
-    [queryClient, storeSetActiveEinsatz, storeClearActiveEinsatz, setLoadingState, setError],
+    [persistenceScope, queryClient, setError, setLoadingState, storeClearActiveEinsatz, storeSetActiveEinsatz],
   );
 
   /**
@@ -194,8 +255,8 @@ export function useActiveEinsatz() {
    */
   const clearActiveEinsatz = useCallback(() => {
     storeClearActiveEinsatz();
-    clearPersistedEinsatz();
-  }, [storeClearActiveEinsatz]);
+    void clearPersistedEinsatz(persistenceScope);
+  }, [persistenceScope, storeClearActiveEinsatz]);
 
   /**
    * Aktualisiert die Daten des aktiven Einsatzes

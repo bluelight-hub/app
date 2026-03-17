@@ -268,30 +268,57 @@ function matchesWorkspaceRoute(pathnameTemplate: string, routeTemplate: string):
   return pathnameTemplate === routeTemplate || pathnameTemplate.startsWith(`${routeTemplate}/`);
 }
 
-export function isWorkspaceRouteAccessible(pathname: string, einsatzId: string): boolean {
+function isWorkspaceParentRoute(pathnameTemplate: string): boolean {
+  return pathnameTemplate === '/app/einsatz/$einsatzId';
+}
+
+export function getWorkspaceRouteMeta(
+  pathname: string,
+  einsatzId: string,
+): {
+  module: WorkspaceModuleDefinition;
+  page?: WorkspaceSubPage;
+} | null {
   const pathnameTemplate = toWorkspaceTemplatePath(pathname, einsatzId);
 
-  for (const module of EINSATZ_WORKSPACE_MODULES) {
-    const moduleIsVisible = module.visibility.default === 'visible';
+  if (isWorkspaceParentRoute(pathnameTemplate)) {
+    return null;
+  }
 
-    if (matchesWorkspaceRoute(pathnameTemplate, module.routeTarget)) {
-      return moduleIsVisible;
+  for (const module of EINSATZ_WORKSPACE_MODULES) {
+    const page = module.subPages.find((candidate) => matchesWorkspaceRoute(pathnameTemplate, candidate.href));
+
+    if (page) {
+      return { module, page };
     }
 
-    for (const subPage of module.subPages) {
-      if (!matchesWorkspaceRoute(pathnameTemplate, subPage.href)) {
-        continue;
-      }
-
-      return moduleIsVisible && subPage.visibility.default === 'visible';
+    if (pathnameTemplate === module.routeTarget) {
+      return { module };
     }
   }
 
-  // Routen außerhalb des Workspace-Contracts bleiben unangetastet.
-  return true;
+  return null;
+}
+
+export function isWorkspaceRouteAccessible(pathname: string, einsatzId: string): boolean {
+  const routeMeta = getWorkspaceRouteMeta(pathname, einsatzId);
+
+  if (!routeMeta) {
+    return false;
+  }
+
+  if (!routeMeta.page) {
+    return false;
+  }
+
+  return routeMeta.module.visibility.default === 'visible' && routeMeta.page.visibility.default === 'visible';
 }
 
 export function getCanonicalWorkspaceRoute(): string {
   const firstVisibleModule = EINSATZ_WORKSPACE_MODULES.find((module) => module.visibility.default === 'visible');
   return getWorkspacePrimaryRoute(firstVisibleModule) ?? CANONICAL_WORKSPACE_ROUTE;
+}
+
+export function getAccessibleWorkspacePath(pathname: string, einsatzId: string): string {
+  return isWorkspaceRouteAccessible(pathname, einsatzId) ? pathname : getCanonicalWorkspaceRoute().replace('$einsatzId', einsatzId);
 }

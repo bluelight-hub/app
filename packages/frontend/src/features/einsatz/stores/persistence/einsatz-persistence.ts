@@ -1,120 +1,169 @@
-/**
- * Persistierungs-Layer für aktiven Einsatz
- *
- * Verwaltet die localStorage-Persistierung des aktiven Einsatzes
- * und Cross-Tab-Synchronisation
- */
+import { getStorageAdapter } from '@/shared/services/storage/storage-adapter.factory';
 
-// Constants
-const STORAGE_KEY = 'activeEinsatzId';
-const STORAGE_EVENT_KEY = 'activeEinsatzSync';
+const LEGACY_STORAGE_KEY = 'activeEinsatzId';
+const ACTIVE_EINSATZ_SCOPE_FALLBACK = 'unscoped';
 
-/**
- * Speichert die aktive Einsatz-ID im localStorage
- *
- * @param id - Die zu speichernde Einsatz-ID oder null zum Löschen
- */
-export function saveActiveEinsatzId(id: string | null): void {
+export interface ActiveEinsatzStorageScope {
+  serverId: string;
+  userId: string;
+  role: string;
+}
+
+function getActiveEinsatzStorageKey(scope?: ActiveEinsatzStorageScope | null): string {
+  return `bluelight:server:${scope?.serverId ?? ACTIVE_EINSATZ_SCOPE_FALLBACK}:user:${scope?.userId ?? ACTIVE_EINSATZ_SCOPE_FALLBACK}:role:${scope?.role ?? ACTIVE_EINSATZ_SCOPE_FALLBACK}:feature:einsatz:active`;
+}
+
+function isBrowserRuntime(): boolean {
+  return typeof window !== 'undefined';
+}
+
+function createWebStoragePayload(value: string): string {
+  return JSON.stringify({
+    data: value,
+    storageType: 'insecure',
+  });
+}
+
+function extractStoredValue(rawValue: string | null): string | null {
+  if (!rawValue) {
+    return null;
+  }
+
   try {
-    if (id === null) {
-      localStorage.removeItem(STORAGE_KEY);
-      // Trigger storage event für Cross-Tab-Sync
-      window.dispatchEvent(
-        new StorageEvent('storage', {
-          key: STORAGE_EVENT_KEY,
-          newValue: null,
-          storageArea: localStorage,
-        }),
-      );
-    } else {
-      localStorage.setItem(STORAGE_KEY, id);
-      // Trigger storage event für Cross-Tab-Sync
-      window.dispatchEvent(
-        new StorageEvent('storage', {
-          key: STORAGE_EVENT_KEY,
-          newValue: id,
-          storageArea: localStorage,
-        }),
-      );
-    }
-  } catch (error) {
-    // Silent fail bei localStorage-Problemen (z.B. Private Mode)
-    console.error('Failed to save active Einsatz ID to localStorage:', error);
+    const parsed = JSON.parse(rawValue) as { data?: string };
+    return typeof parsed.data === 'string' ? parsed.data : null;
+  } catch {
+    return rawValue;
   }
 }
 
-/**
- * Lädt die aktive Einsatz-ID aus dem localStorage
- *
- * @returns Die gespeicherte Einsatz-ID oder null
- */
-export function loadActiveEinsatzId(): string | null {
+function dispatchSameTabStorageSync(storageKey: string, einsatzId: string | null): void {
+  if (!isBrowserRuntime()) {
+    return;
+  }
+
+  let event: StorageEvent;
+
   try {
-    const storedId = localStorage.getItem(STORAGE_KEY);
-    return storedId || null;
+    event = new StorageEvent('storage', {
+      key: storageKey,
+      newValue: einsatzId,
+    });
+  } catch {
+    event = new Event('storage') as StorageEvent;
+    Object.defineProperties(event, {
+      key: { value: storageKey },
+      newValue: { value: einsatzId },
+    });
+  }
+
+  window.dispatchEvent(event);
+}
+
+async function migrateLegacyStoredActiveEinsatzId(): Promise<string | null> {
+  if (!isBrowserRuntime()) {
+    return null;
+  }
+
+  const legacyStoredId = window.localStorage.getItem(LEGACY_STORAGE_KEY);
+
+  if (!legacyStoredId) {
+    return null;
+  }
+
+  try {
+    window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+    console.info('Removed legacy unscoped active Einsatz ID during scoped storage migration');
+    return null;
   } catch (error) {
-    // Silent fail bei localStorage-Problemen
-    console.error('Failed to load active Einsatz ID from localStorage:', error);
+    console.error('Failed to clear legacy active Einsatz ID:', error);
     return null;
   }
 }
 
-/**
- * Löscht die aktive Einsatz-ID aus dem localStorage
- */
-export function clearActiveEinsatz(): void {
-  saveActiveEinsatzId(null);
+export async function saveActiveEinsatzId(id: string | null, scope?: ActiveEinsatzStorageScope | null): Promise<void> {
+  if (!scope) {
+    return;
+  }
+
+  const storageKey = getActiveEinsatzStorageKey(scope);
+
+  try {
+    const adapter = getStorageAdapter();
+
+    if (id === null) {
+      await adapter.removeItem(storageKey);
+    } else {
+      await adapter.setItem(storageKey, id);
+    }
+
+    dispatchSameTabStorageSync(storageKey, id);
+  } catch (error) {
+    console.error('Failed to persist active Einsatz ID:', error);
+  }
 }
 
-/**
- * Listener für Cross-Tab-Synchronisation
- *
- * Registriert einen Event-Listener für Storage-Events zur
- * Synchronisation zwischen Browser-Tabs
- *
- * @param callback - Callback-Funktion, die bei Änderungen aufgerufen wird
- * @returns Cleanup-Funktion zum Entfernen des Listeners
- */
-export function subscribeToStorageChanges(callback: (einsatzId: string | null) => void): () => void {
-  const handleStorageChange = (event: StorageEvent) => {
-    // Nur auf relevante Storage-Events reagieren
-    if (event.key === STORAGE_KEY || event.key === STORAGE_EVENT_KEY) {
-      const newId = event.newValue;
-      callback(newId);
+export async function loadActiveEinsatzId(scope?: ActiveEinsatzStorageScope | null): Promise<string | null> {
+  if (!scope) {
+    return null;
+  }
+
+  const storageKey = getActiveEinsatzStorageKey(scope);
+
+  try {
+    const adapter = getStorageAdapter();
+    const storedId = await adapter.getItem(storageKey);
+
+    if (storedId) {
+      return storedId;
     }
+
+    return await migrateLegacyStoredActiveEinsatzId();
+  } catch (error) {
+    console.error('Failed to load active Einsatz ID:', error);
+    return null;
+  }
+}
+
+export async function clearActiveEinsatz(scope?: ActiveEinsatzStorageScope | null): Promise<void> {
+  await saveActiveEinsatzId(null, scope);
+}
+
+export function subscribeToStorageChanges(scope: ActiveEinsatzStorageScope, callback: (einsatzId: string | null) => void): () => void {
+  if (!isBrowserRuntime()) {
+    return () => undefined;
+  }
+
+  const scopedStorageKey = getActiveEinsatzStorageKey(scope);
+
+  const handleStorageChange = (event: StorageEvent) => {
+    if (event.key !== scopedStorageKey) {
+      return;
+    }
+
+    callback(extractStoredValue(event.newValue));
   };
 
-  // Storage event für Cross-Tab-Sync und Same-Tab-Sync (via dispatchEvent)
   window.addEventListener('storage', handleStorageChange);
 
-  // Cleanup-Funktion
   return () => {
     window.removeEventListener('storage', handleStorageChange);
   };
 }
 
-/**
- * Initialisiert die Rehydration des aktiven Einsatzes
- *
- * Diese Funktion sollte beim App-Start aufgerufen werden,
- * um den gespeicherten aktiven Einsatz wiederherzustellen.
- *
- * @param idOrCallback
- * @param validateCallback - Optional: Callback zur Validierung der ID
- * @returns Promise mit der validierten Einsatz-ID oder null
- */
-export async function rehydrateActiveEinsatz(idOrCallback?: string | ((id: string) => Promise<boolean>), validateCallback?: (id: string) => Promise<boolean>): Promise<string | null> {
-  // Handle overloaded parameters for backward compatibility
+export async function rehydrateActiveEinsatz(
+  scope: ActiveEinsatzStorageScope,
+  idOrCallback?: string | ((id: string) => Promise<boolean>),
+  validateCallback?: (id: string) => Promise<boolean>,
+): Promise<string | null> {
   let storedId: string | null;
   let validationFn: ((id: string) => Promise<boolean>) | undefined;
 
   if (typeof idOrCallback === 'string') {
-    // New signature: ID passed directly
     storedId = idOrCallback;
     validationFn = validateCallback;
   } else {
-    // Legacy signature: callback only, read ID from storage
-    storedId = loadActiveEinsatzId();
+    storedId = await loadActiveEinsatzId(scope);
     validationFn = idOrCallback;
   }
 
@@ -122,20 +171,17 @@ export async function rehydrateActiveEinsatz(idOrCallback?: string | ((id: strin
     return null;
   }
 
-  // Wenn Validierungs-Callback vorhanden, ID validieren
   if (validationFn) {
     try {
       const isValid = await validationFn(storedId);
       if (!isValid) {
-        // Ungültige ID aus Storage entfernen - only if we're using stored ID
         if (typeof idOrCallback !== 'string') {
-          clearActiveEinsatz();
+          await clearActiveEinsatz(scope);
         }
         return null;
       }
     } catch (error) {
       console.error('Failed to validate stored Einsatz ID:', error);
-      // Bei Validierungs-Fehler ID behalten (könnte temporäres Netzwerk-Problem sein)
       return storedId;
     }
   }
@@ -143,41 +189,34 @@ export async function rehydrateActiveEinsatz(idOrCallback?: string | ((id: strin
   return storedId;
 }
 
-/**
- * Hilfsfunktion zum Prüfen, ob localStorage verfügbar ist
- *
- * @returns true wenn localStorage verfügbar und nutzbar ist
- */
 export function isLocalStorageAvailable(): boolean {
+  if (!isBrowserRuntime()) {
+    return false;
+  }
+
   try {
     const testKey = '__localStorage_test__';
-    localStorage.setItem(testKey, 'test');
-    localStorage.removeItem(testKey);
+    window.localStorage.setItem(testKey, createWebStoragePayload('test'));
+    window.localStorage.removeItem(testKey);
     return true;
   } catch {
     return false;
   }
 }
 
-/**
- * Migration von alten Storage-Keys (falls vorhanden)
- *
- * Diese Funktion kann genutzt werden, um von älteren
- * Storage-Formaten zu migrieren.
- */
 export function migrateOldStorageFormat(): void {
+  if (!isBrowserRuntime()) {
+    return;
+  }
+
   try {
-    // Check for old format keys
     const oldKeys = ['selectedEinsatz', 'currentEinsatz', 'einsatz_active'];
 
     for (const oldKey of oldKeys) {
-      const oldValue = localStorage.getItem(oldKey);
+      const oldValue = window.localStorage.getItem(oldKey);
       if (oldValue) {
-        // Migrate to new format
-        saveActiveEinsatzId(oldValue);
-        // Remove old key
-        localStorage.removeItem(oldKey);
-        console.info(`Migrated old storage key "${oldKey}" to new format`);
+        window.localStorage.removeItem(oldKey);
+        console.info(`Removed legacy active Einsatz key "${oldKey}" during scoped storage migration`);
       }
     }
   } catch (error) {
