@@ -1,6 +1,6 @@
 import { useCurrentUser } from '@/features/auth';
 import { useBefehlNotifications, useBefehlWebSocket, useMissedBefehlAlerts, useUnquittierteBefehleCount } from '@/features/befehl';
-import { EINSATZ_QUERY_KEYS, useEinsatzDetails, useMyEinsatzTeilnahme } from '@/features/einsatz';
+import { EINSATZ_QUERY_KEYS, useActiveEinsatz, useEinsatzDetails, useMyEinsatzTeilnahme } from '@/features/einsatz';
 import { EinsatzStatusBadge } from '@/features/einsatz/ui/molecules/einsatz-status-badge.molecule';
 import { EinsatzSwitcher } from '@/features/einsatz/ui/molecules/EinsatzSwitcher.molecule';
 import { ModuleOverviewCard } from '@/features/einsatz/ui/molecules/ModuleOverviewCard';
@@ -56,6 +56,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   const router = useRouter();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { clearActiveEinsatz } = useActiveEinsatz();
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [showModuleOverview, setShowModuleOverview] = useState(false);
   const [showEndConfirmation, setShowEndConfirmation] = useState(false);
@@ -76,12 +77,16 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
 
   // Quick-Create Notiz Dialog State und Hotkeys
   const [isQuickCreateNotizOpen, quickCreateNotizEinsatzId] = useQuickCreateNotizDialogState();
+  const { data: teilnahmeData, isLoading: isTeilnahmeLoading } = useMyEinsatzTeilnahme(einsatzId);
+  const currentEinsatzPersonId = teilnahmeData?.data?.einsatzPersonId;
+  const requiresAssignment = !isTeilnahmeLoading && !currentEinsatzPersonId;
+  const beitrittDialogOpen = showBeitrittDialog || requiresAssignment;
 
   const anyDialogOpen = hasBlockingWorkspaceOverlay({
     commandPaletteOpen,
     showModuleOverview,
     showEndConfirmation,
-    showBeitrittDialog,
+    showBeitrittDialog: beitrittDialogOpen,
     showAudioDialog,
     isQuickCreateOpen,
     isEditDialogOpen,
@@ -90,14 +95,15 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
     isStopRecurringDialogOpen,
     isQuickCreateNotizOpen,
   });
+  const workspaceIsBlocked = anyDialogOpen || isTeilnahmeLoading;
 
   useQuickCreateErinnerungHotkeys({
     einsatzId,
-    enabled: !anyDialogOpen,
+    enabled: !workspaceIsBlocked,
   });
   useQuickCreateNotizHotkeys({
     einsatzId,
-    enabled: !anyDialogOpen,
+    enabled: !workspaceIsBlocked,
   });
 
   // Story App-weite Erinnerungsprüfung: Globaler Alarm-Trigger für den aktiven Einsatz
@@ -142,25 +148,6 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   // Quittierung-Alerts: Zeigt persistente Alarm-Toasts fuer verpasste
   // RUECKFRAGE/NICHT_VERSTANDEN Quittierungen (z.B. nach erneutem Login).
   useMissedBefehlAlerts(einsatzId);
-
-  // Prüfe ob User bereits dem Einsatz beigetreten ist (Funkrufname gesetzt)
-  const { data: teilnahmeData, isLoading: isTeilnahmeLoading } = useMyEinsatzTeilnahme(einsatzId);
-  const currentEinsatzPersonId = teilnahmeData?.data?.einsatzPersonId;
-
-  // Auto-show dialog when user hasn't joined yet
-  // Öffnet bei jedem Öffnen eines Einsatzes erneut, solange keine Teilnahme existiert.
-  useEffect(() => {
-    // Re-run per Einsatz navigation.
-    if (!einsatzId) return;
-
-    // Skip if still loading
-    if (isTeilnahmeLoading) return;
-
-    // Nur anzeigen wenn User noch nicht beigetreten ist
-    if (!currentEinsatzPersonId) {
-      setShowBeitrittDialog(true);
-    }
-  }, [einsatzId, isTeilnahmeLoading, currentEinsatzPersonId]);
 
   // Prüfe ob wir im Fullscreen/Presentation-Modus sind
   const currentSearch = router.state.location.search as { mode?: string };
@@ -246,7 +233,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   );
 
   useEffect(() => {
-    if (!anyDialogOpen) {
+    if (!workspaceIsBlocked) {
       return;
     }
 
@@ -265,7 +252,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
     return () => {
       window.removeEventListener('keydown', handleBlockedWorkspaceHotkey, true);
     };
-  }, [anyDialogOpen, modules]);
+  }, [modules, workspaceIsBlocked]);
 
   const visibleModules = useMemo(() => modules.filter((module) => module.visibility.default !== 'hidden'), [modules]);
 
@@ -351,6 +338,11 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
     });
   };
 
+  const handleReturnToEinsatzliste = async () => {
+    clearActiveEinsatz();
+    await navigate({ to: '/app/einsaetze' });
+  };
+
   // Wenn Fullscreen-Modus aktiv ist, nur Content ohne Layout rendern
   if (isFullscreenMode) {
     return (
@@ -408,7 +400,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
         activeModuleId={currentModule?.id ?? ''}
         activePageHref={activePageHref}
         routeParams={{ einsatzId }}
-        blockingOverlay={{ isBlocking: anyDialogOpen }}
+        blockingOverlay={{ isBlocking: workspaceIsBlocked }}
         commandTriggerLabel="Befehle und Navigation"
         moduleOverviewLabel="Modulübersicht öffnen"
         onCommandTriggerClick={() => setCommandPaletteOpen(true)}
@@ -443,7 +435,26 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
           <ModuleOverviewCard modules={moduleOverviewModules} currentModuleId={currentModule?.id} einsatzId={einsatzId} open={showModuleOverview} onClose={() => setShowModuleOverview(false)} />
         }
       >
-        <Outlet />
+        {isTeilnahmeLoading ? (
+          <div className="rounded-panel border border-border-subtle bg-surface-panel p-6 shadow-panel">
+            <output aria-live="polite" className="block">
+              <span className="block font-semibold text-text-primary text-title-sm">Arbeitsraum wird vorbereitet</span>
+              <span className="mt-2 block text-body-sm text-text-secondary">Teilnahme und Einsatzkontext werden geprüft. Der Arbeitsraum bleibt bis zur Entscheidung blockiert.</span>
+            </output>
+          </div>
+        ) : requiresAssignment ? (
+          <div className="rounded-panel border border-amber-300 bg-amber-50 p-6 shadow-panel dark:border-amber-900/40 dark:bg-amber-950/40" role="alert">
+            <p className="font-semibold text-amber-900 text-title-sm dark:text-amber-100">Zuordnung erforderlich</p>
+            <p className="mt-2 text-amber-900/90 text-body-sm dark:text-amber-200">
+              Der Einsatz bleibt gesperrt, bis Sie sich eindeutig zuordnen. Nutzen Sie den geöffneten AssignmentGate, um eine vorhandene Person auszuwählen oder direkt neu anzulegen.
+            </p>
+            <Button appearance="ghost" size="sm" className="mt-4" onClick={() => void handleReturnToEinsatzliste()}>
+              Zur Einsatzliste
+            </Button>
+          </div>
+        ) : (
+          <Outlet />
+        )}
       </WorkspaceShell>
 
       {/* Command Palette Modal */}
@@ -509,7 +520,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
       </Dialog>
 
       {/* Einsatz Beitritt / Funkrufname Dialog */}
-      <EinsatzBeitrittDialog einsatzId={einsatzId} isOpen={showBeitrittDialog} onClose={() => setShowBeitrittDialog(false)} />
+      <EinsatzBeitrittDialog einsatzId={einsatzId} isOpen={beitrittDialogOpen} onClose={() => setShowBeitrittDialog(false)} onReturnToOverview={handleReturnToEinsatzliste} />
 
       {/* Quick-Create Erinnerung Dialog (Story 1.1 AC1, Story 5.4) */}
       <QuickCreateErinnerungDialog

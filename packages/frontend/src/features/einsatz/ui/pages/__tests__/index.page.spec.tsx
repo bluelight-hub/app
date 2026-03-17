@@ -11,27 +11,6 @@ vi.mock('@/features/auth', () => ({
     isPending: false,
   })),
   isAdmin: vi.fn(),
-  getAuthContextSummary: vi.fn((role: string) =>
-    role === 'USER'
-      ? {
-          roleLabel: 'Einsatzkraft',
-          permissionLevelLabel: 'Operativer Zugriff',
-          permissionHint: 'Dieses Konto kann Einsätze öffnen und neue Einsätze anlegen.',
-          primaryActionLabel: 'Einsatz auswählen oder neu anlegen',
-          nextActionLabel: 'Öffnen Sie einen bestehenden Einsatz oder legen Sie direkt einen neuen Einsatz an.',
-          restrictedActionLabel: 'Verwaltungsfunktionen',
-          restrictedActionHint: 'Verwaltungsfunktionen sind für dieses Konto nicht freigegeben.',
-        }
-      : {
-          roleLabel: 'Administrator',
-          permissionLevelLabel: 'Operativer Zugriff aktiv',
-          permissionHint: 'Verwaltungsfunktionen benötigen eine zusätzliche Administrator-Anmeldung.',
-          primaryActionLabel: 'Einsatz auswählen oder neu anlegen',
-          nextActionLabel: 'Arbeiten Sie operativ weiter oder öffnen Sie den Admin-Login für Verwaltungsaufgaben.',
-          restrictedActionLabel: 'Admin-Bereich',
-          restrictedActionHint: 'Für Verwaltungsfunktionen zuerst den Admin-Login öffnen.',
-        },
-  ),
 }));
 
 vi.mock('@/features/server/hooks', () => ({
@@ -103,7 +82,7 @@ describe('IndexPage', () => {
 
     render(<IndexPage />);
 
-    expect(screen.getByRole('status')).toHaveTextContent('Authentifizierung wird geladen...');
+    expect(screen.getByText('Authentifizierung wird geladen...')).toBeInTheDocument();
     expect(screen.getByText('Spinner')).toBeInTheDocument();
   });
 
@@ -156,11 +135,7 @@ describe('IndexPage', () => {
 
     expect(screen.getByRole('heading', { name: 'Willkommen bei BlueLight Hub' })).toBeInTheDocument();
     expect(screen.getByText('Sie sind angemeldet als: anna')).toBeInTheDocument();
-    expect(screen.getByRole('region', { name: 'Konto-, Rollen- und Berechtigungskontext bestätigt' })).toBeInTheDocument();
-    expect(screen.getByText('Primäraktion')).toBeInTheDocument();
-    expect(screen.getByText('Einsatz auswählen oder neu anlegen')).toBeInTheDocument();
-    expect(screen.getByText('Administrator')).toBeInTheDocument();
-    expect(screen.getByText('Operativer Zugriff aktiv')).toBeInTheDocument();
+    expect(screen.getByTestId('einsatz-dashboard')).toBeInTheDocument();
     expect(screen.getByTestId('server-badge')).toHaveTextContent('Zentrale Ost');
     expect(screen.getByRole('button', { name: 'Admin-Bereich' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Abmelden' })).toBeInTheDocument();
@@ -194,10 +169,7 @@ describe('IndexPage', () => {
     render(<IndexPage />);
 
     expect(screen.getByText('Sie sind angemeldet als: bjoern')).toBeInTheDocument();
-    expect(screen.getByText('Einsatzkraft')).toBeInTheDocument();
-    expect(screen.getByText('Operativer Zugriff')).toBeInTheDocument();
-    expect(screen.getByText('Verwaltungsfunktionen')).toBeInTheDocument();
-    expect(screen.getByText('Verwaltungsfunktionen sind für dieses Konto nicht freigegeben.')).toBeInTheDocument();
+    expect(screen.getByTestId('einsatz-dashboard')).toBeInTheDocument();
     expect(screen.getByTestId('server-badge')).toHaveTextContent('Zentrale West');
     expect(screen.queryByRole('button', { name: 'Admin-Bereich' })).not.toBeInTheDocument();
   });
@@ -232,7 +204,7 @@ describe('IndexPage', () => {
     expect(screen.queryByRole('button', { name: 'Admin-Bereich' })).not.toBeInTheDocument();
   });
 
-  it('fällt auf den zentralen Auth-Kontext-Fallback zurück, wenn der Hook nur den Nutzer liefert', () => {
+  it('rendert den operativen Arbeitsbereich auch dann, wenn der Hook nur den Nutzer liefert', () => {
     mockUseCurrentUser.mockReturnValue({
       isLoading: false,
       isAdminAuthenticated: false,
@@ -251,8 +223,8 @@ describe('IndexPage', () => {
 
     render(<IndexPage />);
 
-    expect(screen.getByText('Einsatzkraft')).toBeInTheDocument();
-    expect(screen.getByText('Operativer Zugriff')).toBeInTheDocument();
-    expect(screen.getByText('Öffnen Sie einen bestehenden Einsatz oder legen Sie direkt einen neuen Einsatz an.')).toBeInTheDocument();
+    expect(screen.getByText('Sie sind angemeldet als: charlie')).toBeInTheDocument();
+    expect(screen.getByTestId('einsatz-dashboard')).toBeInTheDocument();
+    expect(screen.getByTestId('server-badge')).toHaveTextContent('Zentrale Nord');
   });
 });

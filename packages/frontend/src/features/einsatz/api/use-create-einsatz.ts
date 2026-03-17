@@ -70,7 +70,7 @@ export const useCreateEinsatz = (filters?: EinsatzQueryFilters) => {
       const optimisticEinsatz: EinsatzDto = {
         id: `temp-${Date.now()}`,
         nummer: 'E{YEAR}-{ID}',
-        alarmstichwort: newEinsatz.alarmstichwort || 'Neuer Einsatz',
+        alarmstichwort: newEinsatz.alarmstichwort?.trim() || '',
         status: EinsatzDtoStatusEnum.Angelegt,
         createdBy: 'current-user',
         createdAt: new Date(),

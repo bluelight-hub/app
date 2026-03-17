@@ -137,6 +137,13 @@ Die Review-Gates gelten auch für den unauthentifizierten Einstieg: Der Server-,
 
 Dasselbe Gate gilt für die bestätigte Startfläche nach dem Login: Die Reihenfolge `Orientierung → bestätigter Konto-/Rollen-/Berechtigungskontext → Primäraktion → Einsatzliste/-anlage` muss in Desktop und Web gleich bleiben. Pending- oder Fehlerzustände im Login- und Startflächenpfad müssen als `role="status"` bzw. `role="alert"` verständlich lesbar sein; nicht zulässige Folgeaktionen werden verborgen oder deaktiviert und textlich eingeordnet, statt erst in einem späteren Fehler zu scheitern.
 
+Ab Story `1.5` gilt zusätzlich:
+
+- `/app/einsaetze` bleibt die einzige bestätigte Auswahl- und Anlagefläche vor dem Arbeitsraum.
+- Das Öffnen oder Anlegen eines Einsatzes führt immer in denselben kanonischen Arbeitsraum `/app/einsatz/$einsatzId`; Legacy-Detailpfade dürfen keine konkurrierende Primärnavigation bilden.
+- Falls eine gültige Teilnahme fehlt, blockiert ein `AssignmentGate` den Arbeitsraum sichtbar und tastaturbedienbar, bis die Zuordnung abgeschlossen ist.
+- Feldnahe Validierung, Fokusführung und verständliche Disabled-/Hinweistexte auf der Startfläche sind Freigabekriterien, keine nachgelagerte UX-Verbesserung.
+
 ### 6. Browser-, Zoom- und Responsive-Freigabe
 
 - Prüffragen:

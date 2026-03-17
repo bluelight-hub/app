@@ -85,6 +85,7 @@ export const useCurrentUser = () => {
 
   const adminSessionStatus: AdminSessionStatus = authStatus === 'pending' ? 'pending' : isAdminRole && isAdminAuthenticated ? 'authenticated' : 'unauthenticated';
   const authContext = authStatus === 'authenticated' && authData?.user ? getAuthContextSummary(authData.user.role, isAdminAuthenticated) : null;
+  const authContextWithCapabilities = authContext;
 
   const isResolved = authStatus !== 'pending';
 
@@ -121,6 +122,11 @@ export const useCurrentUser = () => {
      * Zentral abgeleiteter Rollen- und Berechtigungskontext für die UI
      */
     authContext,
+
+    /**
+     * Alias für task-orientierte Consumer, die explizit auf Capability-Flags zugreifen.
+     */
+    authContextWithCapabilities,
 
     /**
      * Ist der Benutzer als Admin authentifiziert?

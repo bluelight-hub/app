@@ -5,7 +5,7 @@
  *
  * @returns Die Index-Page-Komponente
  */
-import { getAuthContextSummary, isAdmin, useCurrentUser, useLogout } from '@/features/auth';
+import { isAdmin, useCurrentUser, useLogout } from '@/features/auth';
 import { AuthLoading } from '@/features/auth/ui';
 import { EinsatzDashboard } from '@/features/einsatz/ui/organisms/EinsatzDashboard';
 import { useActiveServer } from '@/features/server/hooks';
@@ -18,7 +18,7 @@ import { useRouter } from '@tanstack/react-router';
 import { PiShieldCheck, PiSignIn } from 'react-icons/pi';
 
 export function IndexPage() {
-  const { isLoading, user, adminStatus, authContext, isAdminAuthenticated } = useCurrentUser();
+  const { isLoading, user, adminStatus } = useCurrentUser();
   const logout = useLogout();
   const { navigate } = useRouter();
   const activeServer = useActiveServer();
@@ -43,8 +43,6 @@ export function IndexPage() {
     });
     return null;
   }
-
-  const resolvedAuthContext = authContext ?? getAuthContextSummary(user.role, isAdminAuthenticated);
 
   return (
     <div className="flex h-screen flex-col overflow-hidden p-4 sm:p-6 lg:p-8">
@@ -80,8 +78,8 @@ export function IndexPage() {
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden lg:grid lg:gap-6">
-          <div className="flex h-full min-h-0 flex-col overflow-hidden lg:col-span-2">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <EinsatzDashboard />
           </div>
         </div>

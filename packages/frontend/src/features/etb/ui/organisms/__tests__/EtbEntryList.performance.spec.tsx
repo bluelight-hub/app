@@ -138,6 +138,7 @@ describe('EtbEntryList Performance-Gates', () => {
     });
   }
 
+  // Die P95-Schwelle bleibt unverändert; der höhere Test-Timeout fängt nur Suite-Last bei 30 Iterationen ab.
   it('liefert einen P95-Gate-Report für den nutzbaren ETB-Zustand mit 200 Einträgen', async () => {
     const samples = await runIterations({
       iterations: RING_2_PERFORMANCE_THRESHOLDS.iterations,
@@ -161,7 +162,7 @@ describe('EtbEntryList Performance-Gates', () => {
     console.info(formatStructuredPerformanceReport(report));
 
     expect(report.pass).toBe(true);
-  });
+  }, 15000);
 
   it('reagiert beim Scrollen innerhalb des 200-ms-Gates', async () => {
     const samples = await runIterations({
@@ -211,7 +212,7 @@ describe('EtbEntryList Performance-Gates', () => {
     console.info(formatStructuredPerformanceReport(report));
 
     expect(report.pass).toBe(true);
-  });
+  }, 15000);
 
   it('markiert Wiederaufnahme-Hinweise innerhalb des 200-ms-Gates', async () => {
     const samples = await runIterations({
@@ -266,5 +267,5 @@ describe('EtbEntryList Performance-Gates', () => {
     console.info(formatStructuredPerformanceReport(report));
 
     expect(report.pass).toBe(true);
-  });
+  }, 15000);
 });

@@ -15,9 +15,8 @@
  * @module features/kraefte/ui/molecules
  */
 
-import { useMemo } from 'react';
-
 import { Combobox, type ComboboxItem } from '@/shared/ui/headless/combobox';
+import { useMemo } from 'react';
 
 import { useEinsatzPersonen } from '../../api';
 
@@ -93,7 +92,7 @@ export function EinsatzPersonenPicker({ einsatzId, value, onChange, onBlur, disa
       <div className="space-y-1">
         {label && <span className="block font-medium text-gray-700 text-sm dark:text-gray-300">{label}</span>}
         <output className="block rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-amber-700 text-sm dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
-          Keine Personen registriert. Registrieren Sie zuerst Einsatzkraefte.
+          Keine Personen registriert. Registrieren Sie zuerst Einsatzkräfte.
         </output>
       </div>
     );

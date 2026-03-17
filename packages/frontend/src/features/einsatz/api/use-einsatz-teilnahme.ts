@@ -102,19 +102,20 @@ export const useJoinEinsatz = () => {
       logger.error('Failed to join Einsatz', error);
       toast.error('Fehler', { description: message });
     },
-    onSuccess: (_data, { einsatzId }) => {
+    onSuccess: (data, { einsatzId }) => {
+      queryClient.setQueryData(TEILNAHME_QUERY_KEYS.byEinsatz(einsatzId), data);
       toast.success('Einsatz beigetreten', {
         description: 'Du nimmst jetzt am Einsatz teil.',
       });
       // Teilnahme-Query invalidieren
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: TEILNAHME_QUERY_KEYS.byEinsatz(einsatzId),
       });
     },
     onSettled: (_data, _error, { einsatzId }) => {
       // Einsatz-bezogene Queries invalidieren für UI-Updates
-      queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.all });
-      queryClient.invalidateQueries({ queryKey: TEILNAHME_QUERY_KEYS.byEinsatz(einsatzId) });
+      void queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.all });
+      void queryClient.invalidateQueries({ queryKey: TEILNAHME_QUERY_KEYS.byEinsatz(einsatzId) });
     },
     retry: 3,
     retryDelay: calculateRetryDelay,

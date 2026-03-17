@@ -27,7 +27,17 @@ Der unauthentifizierte Einstieg darf keinen Parallelpfad außerhalb der zentrale
 
 Die Statuskommunikation muss textlich verständlich nicht nur in Badges, sondern in einer dedizierten Statusfläche erscheinen, von der aus die nächste Aktion (z. B. `retry`, `server wechseln`, `server verwalten`, `setup öffnen`) abzulesen ist. Dabei genügt ein sichtbarer Ladehinweis erst nach etwa `300 Millisekunden`, solange `UnifiedAuthForm` den `isLoading`-State semantisch als `aria-live="polite"`-Hinweis nachliefert. Die zugehörigen Aktionen greifen nur auf die zentralen Hooks, Refetches und Navigationspfade zu.
 
-Nach erfolgreicher Anmeldung bleibt derselbe Vertrag erhalten: Die bestätigte Startfläche unter `/app/einsaetze` nutzt weiterhin `useUnifiedAuth`, `useCurrentUser`, `AppGuard` und die kanonischen Redirect-Helfer. Es gibt keine zusätzliche „Login erfolgreich“-Zwischenroute. Stattdessen bestätigt die Startfläche Konto, Rolle, Berechtigungsstufe und aktiven Server in einem persistenten Kontextblock, bevor die eigentliche Einsatzarbeit beginnt.
+Nach erfolgreicher Anmeldung bleibt derselbe Vertrag erhalten: Die bestätigte Startfläche unter `/app/einsaetze` nutzt weiterhin `useUnifiedAuth`, `useCurrentUser`, `AppGuard` und die kanonischen Redirect-Helfer. Es gibt keine zusätzliche „Login erfolgreich“-Zwischenroute. Stattdessen bleibt `/app/einsaetze` die einzige operative Auswahl- und Anlagefläche vor dem aktiven Einsatzkontext.
+
+### Operativer Einsatzkontext ab Story `1.5`
+
+Für den Wechsel aus der bestätigten Startfläche in die eigentliche Arbeit gilt ab Story `1.5` ein eindeutiger Frontend-Vertrag:
+
+- Bestehende Einsätze werden zentral über den aktiven Einsatz-Store geöffnet und anschließend auf den kanonischen Arbeitsraum `/app/einsatz/$einsatzId` geführt.
+- Ein neu angelegter Einsatz verlangt mindestens die explizite Pflichtangabe `alarmstichwort`; nach erfolgreicher Anlage wird derselbe Einsatz sofort als aktiver Kontext geöffnet.
+- Der Legacy-Pfad `/app/einsaetze/$einsatzId` ist kein konkurrierender Primärpfad mehr, sondern nur noch Redirect-Kompatibilität auf `/app/einsatz/$einsatzId`.
+- Falls für den geöffneten Einsatz noch keine gültige Teilnahme vorliegt, blockiert ein `AssignmentGate` denselben Arbeitsraum, bis eine eindeutige Zuordnung erfolgt ist; der Nutzer verliert dabei weder Sitzung noch Einsatzkontext.
+- Sichtbarkeit und Disabled-States für `Einsatz öffnen` und `Einsatz anlegen` kommen aus dem zentralen Auth-/Capability-Kontext. Komponenten erraten diese Freigaben nicht lokal.
 
 ## Erlaubte Ausnahmen und Generator-Gaps
 
