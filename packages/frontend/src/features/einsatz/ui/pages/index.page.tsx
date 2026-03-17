@@ -6,7 +6,7 @@
  * @returns Die Index-Page-Komponente
  */
 import { getAuthContextSummary, isAdmin, useCurrentUser, useLogout } from '@/features/auth';
-import { AuthContextSummary, AuthLoading } from '@/features/auth/ui';
+import { AuthLoading } from '@/features/auth/ui';
 import { EinsatzDashboard } from '@/features/einsatz/ui/organisms/EinsatzDashboard';
 import { useActiveServer } from '@/features/server/hooks';
 import { ServerNameBadge } from '@/features/server/ui/atoms';
@@ -78,8 +78,6 @@ export function IndexPage() {
               {activeServer && <ServerNameBadge name={activeServer.name} />}
             </div>
           </div>
-
-          <AuthContextSummary username={user.username} serverName={activeServer?.name} authContext={resolvedAuthContext} />
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden lg:grid lg:gap-6">

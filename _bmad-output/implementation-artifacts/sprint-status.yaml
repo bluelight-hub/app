@@ -1,5 +1,5 @@
 # generated: 2026-03-15T11:37:19+01:00
-# last_updated: 2026-03-17T12:48:00+0100
+# last_updated: 2026-03-17T13:32:09+0100
 # project: bluelight-hub
 # project_key: NOKEY
 # tracking_system: file-system
@@ -35,7 +35,7 @@
 # - Dev moves story to "review", then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-03-15T11:37:19+01:00
-last_updated: 2026-03-17T12:48:00+0100
+last_updated: 2026-03-17T13:32:09+0100
 project: bluelight-hub
 project_key: NOKEY
 tracking_system: file-system
@@ -48,9 +48,9 @@ development_status:
   1-2a-accessibility-browser-und-responsive-review-gates-fur-ring-2-festlegen: done
   1-2b-performance-gates-fur-ring-2-kernflachen-messbar-festlegen: done
   1-2c-zentrale-session-und-api-anbindung-fur-einstieg-und-shell-absichern: done
-  1-3-einstieg-mit-sichtbarem-server-und-statuskontext: in-progress
+  1-3-einstieg-mit-sichtbarem-server-und-statuskontext: done
   1-4-authentifizieren-und-rollen-kontokontext-bestatigt-sehen: done
-  1-5-einsatz-auswahlen-neu-anlegen-und-per-assignmentgate-arbeitsfahig-offnen: backlog
+  1-5-einsatz-auswahlen-neu-anlegen-und-per-assignmentgate-arbeitsfahig-offnen: ready-for-dev
   1-6-mit-stabiler-shell-und-kontextleiste-in-den-kernarbeitsraum-wechseln: backlog
   1-7-sidebar-command-palette-und-globale-statusfuhrung-im-workspace-nutzen: backlog
   1-8-letzten-einsatz-und-arbeitskontext-plattformubergreifend-wiederaufnehmen: backlog
