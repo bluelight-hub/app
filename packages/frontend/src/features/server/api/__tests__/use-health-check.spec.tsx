@@ -18,14 +18,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { HealthCheckError, HEALTH_CHECK_TIMEOUT_MS } from '../use-health-check';
 
-// Mock the API Client und HealthApi
 const mockHealthControllerCheck = vi.fn();
+const mockCreateServerScopedHealthApi = vi.fn(() => ({
+  healthControllerCheck: mockHealthControllerCheck,
+}));
 
-vi.mock('@bluelight-hub/shared/client', () => ({
-  Configuration: vi.fn(),
-  HealthApi: vi.fn().mockImplementation(() => ({
-    healthControllerCheck: mockHealthControllerCheck,
-  })),
+vi.mock('@/shared/api/server-scoped-clients', () => ({
+  createServerScopedHealthApi: (...args: unknown[]) => mockCreateServerScopedHealthApi(...args),
+  normalizeServerBaseUrl: (serverUrl: string) => (serverUrl.endsWith('/') ? serverUrl.slice(0, -1) : serverUrl),
 }));
 
 vi.mock('@/shared/lib/logger', () => ({
@@ -142,13 +142,6 @@ describe('useHealthCheck', () => {
     });
 
     it('should return health check result on success', async () => {
-      // Given: Mock returns successful health check
-      mockHealthControllerCheck.mockResolvedValueOnce({
-        status: 'ok',
-        setupComplete: true,
-        version: '1.0.0',
-      });
-
       // When: Hook is rendered and mutation called
       const { result } = renderHook(() => useHealthCheck(), { wrapper: createWrapper() });
 
@@ -163,14 +156,26 @@ describe('useHealthCheck', () => {
         status: 'ok',
         setupComplete: true,
         version: '1.0.0',
+        database: 'connected',
       });
 
       // When: Render hook
       const { result } = renderHook(() => useHealthCheck(), { wrapper: createWrapper() });
 
-      // Then: Initial state
-      expect(result.current.isIdle).toBe(true);
-      expect(result.current.isError).toBe(false);
+      await expect(result.current.mutateAsync({ serverUrl: 'https://test.example.com/' })).resolves.toEqual({
+        isHealthy: true,
+        status: 'ok',
+        setupComplete: true,
+        version: '1.0.0',
+        database: 'connected',
+        uptime: undefined,
+        memory: undefined,
+        loadAverage: undefined,
+      });
+      expect(mockCreateServerScopedHealthApi).toHaveBeenCalledWith('https://test.example.com');
+      expect(mockHealthControllerCheck).toHaveBeenCalledWith({
+        signal: expect.any(AbortSignal),
+      });
     });
 
     it('should throw HealthCheckError with type NETWORK on fetch error', async () => {
@@ -182,14 +187,16 @@ describe('useHealthCheck', () => {
       const { result } = renderHook(() => useHealthCheck(), { wrapper: createWrapper() });
 
       // Then: Mutation should throw HealthCheckError with type NETWORK
-      await expect(result.current.mutateAsync({ serverUrl: 'https://test.example.com' })).rejects.toThrow(HealthCheckError);
-
       try {
         await result.current.mutateAsync({ serverUrl: 'https://test.example.com' });
+        throw new Error('Expected mutateAsync to reject');
       } catch (error) {
         if (error instanceof HealthCheckError) {
           expect(error.type).toBe('NETWORK');
+          return;
         }
+
+        throw error;
       }
     });
 
@@ -234,7 +241,17 @@ describe('useHealthCheck', () => {
       const { result } = renderHook(() => useHealthCheck(), { wrapper: createWrapper() });
 
       // Then: Mutation should throw HealthCheckError with type TIMEOUT
-      await expect(result.current.mutateAsync({ serverUrl: 'https://test.example.com' })).rejects.toThrow(HealthCheckError);
+      try {
+        await result.current.mutateAsync({ serverUrl: 'https://test.example.com' });
+        throw new Error('Expected mutateAsync to reject');
+      } catch (error) {
+        if (error instanceof HealthCheckError) {
+          expect(error.type).toBe('TIMEOUT');
+          return;
+        }
+
+        throw error;
+      }
     });
 
     it('should cleanup timeout and abort controller on unmount', async () => {
@@ -255,7 +272,7 @@ describe('useHealthCheck', () => {
       const { result, unmount } = renderHook(() => useHealthCheck(), { wrapper: createWrapper() });
 
       // Start mutation (will be pending)
-      const mutationPromise = result.current.mutateAsync({ serverUrl: 'https://test.example.com' });
+      void result.current.mutateAsync({ serverUrl: 'https://test.example.com' });
 
       // Unmount while mutation is pending
       unmount();
@@ -266,13 +283,6 @@ describe('useHealthCheck', () => {
 
       // Cleanup
       globalThis.clearTimeout = originalClearTimeout;
-
-      // Allow the promise to settle (it will be aborted)
-      try {
-        await mutationPromise;
-      } catch {
-        // Expected - mutation was aborted or never completed
-      }
     });
   });
 });

@@ -26,6 +26,13 @@ import { toast } from 'sonner';
 // Mock dependencies
 vi.mock('../../api/mutations', () => ({
   useExchangeInvite: vi.fn(),
+  // biome-ignore lint/nursery/noShadow: Mock class intentionally shadows the real error export
+  ExchangeInvitePersistenceError: class ExchangeInvitePersistenceError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = 'ExchangeInvitePersistenceError';
+    }
+  },
 }));
 
 vi.mock('../../api/use-health-check', () => ({
@@ -65,7 +72,7 @@ vi.mock('@bluelight-hub/shared/client', () => ({
 }));
 
 // Import nach mock setup
-import { useExchangeInvite } from '../../api/mutations';
+import { ExchangeInvitePersistenceError, useExchangeInvite } from '../../api/mutations';
 import { useHealthCheck, HealthCheckError } from '../../api/use-health-check';
 import { isServerNameTaken } from '../../stores/server.store';
 
@@ -750,6 +757,34 @@ describe('ServerSetupForm', () => {
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalledWith('Fehler beim Hinzufügen des Servers', {
           description: 'Network error',
+        });
+      });
+    });
+
+    it('should show storage-specific toast when local persistence fails after exchange', async () => {
+      const user = userEvent.setup();
+      mockHealthCheckMutateAsync.mockResolvedValueOnce({
+        isHealthy: true,
+        status: 'ok',
+        setupComplete: true,
+      });
+      mockMutateAsync.mockRejectedValueOnce(new ExchangeInvitePersistenceError('Store failed'));
+
+      render(<ServerSetupForm />);
+
+      await user.type(screen.getByLabelText(/Server-URL/i), 'https://api.example.de');
+      await user.type(screen.getByLabelText(/Server-Name/i), 'Test Server');
+      await user.click(screen.getByRole('button', { name: /Mit Server verbinden/i }));
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/Einladungscode/i)).toBeInTheDocument();
+      });
+      await user.type(screen.getByLabelText(/Einladungscode/i), 'ABC12345');
+      await user.click(screen.getByRole('button', { name: /Server hinzufügen/i }));
+
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith('Server lokal nicht gespeichert', {
+          description: 'Der Server wurde bestätigt, konnte aber auf diesem Gerät nicht konsistent gespeichert werden. Bitte prüfe Speicherrechte und versuche es erneut.',
         });
       });
     });

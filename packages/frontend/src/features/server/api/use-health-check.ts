@@ -17,8 +17,8 @@
 
 import { useEffect, useRef } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Configuration, HealthApi } from '@bluelight-hub/shared/client';
 import { logger } from '@/shared/lib/logger';
+import { createServerScopedHealthApi, normalizeServerBaseUrl } from '@/shared/api/server-scoped-clients';
 
 /** Timeout in Millisekunden (NFR-P4: 5 Sekunden) */
 const HEALTH_CHECK_TIMEOUT_MS = 5000;
@@ -152,10 +152,8 @@ export function useHealthCheck() {
       timeoutIdRef.current = timeoutId;
 
       try {
-        // Temporärer API-Client für die angegebene Server-URL
-        const normalizedUrl = serverUrl.endsWith('/') ? serverUrl.slice(0, -1) : serverUrl;
-        const tempConfig = new Configuration({ basePath: normalizedUrl });
-        const healthApi = new HealthApi(tempConfig);
+        const normalizedUrl = normalizeServerBaseUrl(serverUrl);
+        const healthApi = createServerScopedHealthApi(normalizedUrl);
 
         // Health-Check Request mit AbortSignal
         const response = await healthApi.healthControllerCheck({
@@ -195,14 +193,15 @@ export function useHealthCheck() {
           }
         }
 
+        const errorName = error && typeof error === 'object' && 'name' in error ? String(error.name) : undefined;
+
+        if (errorName === 'AbortError') {
+          logger.warn('Health check timeout', { serverUrl, timeoutMs: HEALTH_CHECK_TIMEOUT_MS });
+          throw new HealthCheckError('Server antwortet nicht (Timeout)', 'TIMEOUT');
+        }
+
         // Fehlertyp bestimmen
         if (error instanceof Error) {
-          // AbortError = Timeout (AbortController.abort() wurde aufgerufen)
-          if (error.name === 'AbortError') {
-            logger.warn('Health check timeout', { serverUrl, timeoutMs: HEALTH_CHECK_TIMEOUT_MS });
-            throw new HealthCheckError('Server antwortet nicht (Timeout)', 'TIMEOUT');
-          }
-
           // TypeError bei Netzwerkproblemen (fetch failed, CORS, etc.)
           if (error.name === 'TypeError') {
             logger.warn('Health check network error', { serverUrl, error: error.message });

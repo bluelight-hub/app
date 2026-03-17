@@ -146,7 +146,6 @@ class BackendApi {
     this.configuration = new Configuration({
       basePath: getBaseUrl(),
       fetchApi: fetchWithRefresh, // Use our custom fetch with refresh logic
-      credentials: 'include',
     });
 
     // API-Instanzen werden einmalig erstellt und gecacht

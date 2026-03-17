@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { clearLegacyServerAccessTokenShadow } from '@/shared/lib/server-access-token';
 import { hydrateServerStore } from '../stores/server.store';
 
 /**
@@ -27,7 +28,8 @@ export function useLoadServers(): { isLoading: boolean; error: Error | null } {
 
   useEffect(() => {
     hydrateServerStore()
-      .then(() => {
+      .then(async () => {
+        await clearLegacyServerAccessTokenShadow();
         setIsLoading(false);
       })
       .catch((err) => {

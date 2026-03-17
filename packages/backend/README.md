@@ -21,6 +21,16 @@
 - `test`, `test:watch`, `test:cov`: Jest Unit-Tests
 - Prisma: `prisma:migrate`, `prisma:deploy`, `prisma:seed`, `prisma:studio`
 - Docs: `docs:build` (Compodoc), `docs:serve`
+- CLI: `admin:reset`, `cli:archive`, `cli:invite-once`
+
+### CLI-Beispiele
+
+- Admin-Passwort zurücksetzen: `pnpm --filter @bluelight-hub/backend admin:reset <username> <newPassword>`
+- Alte Einsätze archivieren: `pnpm --filter @bluelight-hub/backend cli:archive --user <userId> [--execute]`
+- Einmal-Einladungscode erzeugen:
+  `pnpm --filter @bluelight-hub/backend cli:invite-once --username admin [--label "Ring 2 Zugang"] [--days 3]`
+  oder
+  `pnpm --filter @bluelight-hub/backend cli:invite-once --user-id <userId> [--expires-at 2026-03-20T12:00:00.000Z]`
 
 ## Swagger & API-Client
 

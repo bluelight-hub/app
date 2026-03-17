@@ -6,6 +6,15 @@ import { z } from 'zod';
  * Storage-Key für die Server-Liste im persistenten Storage.
  */
 export const STORAGE_KEY_SERVERS = 'bluelight:servers';
+export const SERVER_ACCESS_TOKEN_STORAGE_KEY_PREFIX = 'bluelight:server-access-token:';
+export const STORED_SERVER_ACCESS_TOKEN_MARKER = '__blh_server_access_token_stored__';
+
+export class ServerPersistenceError extends Error {
+  constructor(operation: string, options?: ErrorOptions) {
+    super(`Server-Persistenz fehlgeschlagen: ${operation}`, options);
+    this.name = 'ServerPersistenceError';
+  }
+}
 
 /**
  * Zod-Schema zur Validierung von ServerConfig-Objekten.
@@ -34,6 +43,26 @@ const ServerConfigSchema = z.object({
     .nullable(),
 });
 
+function getServerAccessTokenStorageKey(serverId: string): string {
+  return `${SERVER_ACCESS_TOKEN_STORAGE_KEY_PREFIX}${serverId}`;
+}
+
+export function hasStoredServerAccessToken(server: Pick<ServerConfig, 'accessToken'>): boolean {
+  return server.accessToken === STORED_SERVER_ACCESS_TOKEN_MARKER;
+}
+
+function sanitizeServerForPersistence(server: ServerConfig): ServerConfig {
+  return server.accessToken
+    ? {
+        ...server,
+        accessToken: STORED_SERVER_ACCESS_TOKEN_MARKER,
+      }
+    : {
+        ...server,
+        accessToken: undefined,
+      };
+}
+
 /**
  * Speichert die Server-Liste im persistenten Storage.
  *
@@ -54,9 +83,37 @@ const ServerConfigSchema = z.object({
 export async function saveServers(servers: ServerConfig[]): Promise<void> {
   try {
     const adapter = getStorageAdapter();
-    await adapter.setItem(STORAGE_KEY_SERVERS, JSON.stringify(servers));
+    await adapter.setItem(STORAGE_KEY_SERVERS, JSON.stringify(servers.map((server) => sanitizeServerForPersistence(server))));
   } catch (error) {
     console.warn('Failed to save servers to storage:', error);
+    throw new ServerPersistenceError('Serverliste speichern', { cause: error });
+  }
+}
+
+export async function saveServerAccessToken(serverId: string, token: string): Promise<void> {
+  try {
+    const adapter = getStorageAdapter();
+    await adapter.setItem(getServerAccessTokenStorageKey(serverId), token);
+  } catch (error) {
+    throw new ServerPersistenceError(`Server-Access-Token für ${serverId} speichern`, { cause: error });
+  }
+}
+
+export async function loadServerAccessToken(serverId: string): Promise<string | null> {
+  try {
+    const adapter = getStorageAdapter();
+    return await adapter.getItem(getServerAccessTokenStorageKey(serverId));
+  } catch (error) {
+    throw new ServerPersistenceError(`Server-Access-Token für ${serverId} laden`, { cause: error });
+  }
+}
+
+export async function removeServerAccessToken(serverId: string): Promise<void> {
+  try {
+    const adapter = getStorageAdapter();
+    await adapter.removeItem(getServerAccessTokenStorageKey(serverId));
+  } catch (error) {
+    throw new ServerPersistenceError(`Server-Access-Token für ${serverId} entfernen`, { cause: error });
   }
 }
 
@@ -92,15 +149,31 @@ export async function loadServers(): Promise<ServerConfig[]> {
     }
 
     // Validiere jedes Server-Objekt und filtere ungültige Einträge
-    const validServers = parsed.filter((item) => {
+    const validServers: ServerConfig[] = [];
+    let migrationRequired = false;
+
+    for (const item of parsed) {
       try {
-        ServerConfigSchema.parse(item);
-        return true;
+        const server = ServerConfigSchema.parse(item);
+        if (server.accessToken && !hasStoredServerAccessToken(server)) {
+          await saveServerAccessToken(server.id, server.accessToken);
+          validServers.push({
+            ...server,
+            accessToken: STORED_SERVER_ACCESS_TOKEN_MARKER,
+          });
+          migrationRequired = true;
+          continue;
+        }
+
+        validServers.push(server);
       } catch (_error) {
         console.warn('Invalid server config in storage, skipping:', item);
-        return false;
       }
-    });
+    }
+
+    if (migrationRequired) {
+      await saveServers(validServers);
+    }
 
     return validServers;
   } catch (error) {

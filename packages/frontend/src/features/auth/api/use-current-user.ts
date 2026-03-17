@@ -1,4 +1,5 @@
-import { api } from '@/shared';
+import { fetchAdminStatus, fetchAuthCheck } from '@/shared/api/auth-session';
+import { normalizeServerBaseUrl } from '@/shared/api/server-scoped-clients';
 import { AUTH_KEYS } from './queries';
 import { useQuery } from '@tanstack/react-query';
 import { useStore } from '@tanstack/react-store';
@@ -22,24 +23,6 @@ import { serverStore } from '@/features/server/stores/server.store';
  * return <UserProfile user={user} />;
  * ```
  */
-/**
- * AuthCheckResponse Typ - das Backend gibt dies direkt zurück (ohne Wrapping)
- * weil AuthController @SkipTransform() verwendet
- */
-interface AuthCheckResponse {
-  user?: {
-    id: string;
-    username: string;
-    role?: string;
-    isActive?: boolean;
-    lastLoginAt?: string;
-    createdAt?: string;
-    updatedAt?: string;
-  } | null;
-  authenticated: boolean;
-  isAdminAuthenticated?: boolean;
-}
-
 export type AuthStatus = 'pending' | 'authenticated' | 'unauthenticated';
 export type AdminSessionStatus = 'pending' | 'authenticated' | 'unauthenticated';
 
@@ -48,19 +31,21 @@ export const useCurrentUser = () => {
   // Verhindert Race Condition: API-Call → 401 Token Error → Redirect zu /server/setup
   const isHydrated = useStore(serverStore, (state) => state.isHydrated);
   const activeServerId = useStore(serverStore, (state) => state.activeServerId);
+  const activeServerUrl = useStore(serverStore, (state) => {
+    if (!state.activeServerId) {
+      return null;
+    }
+
+    const activeServer = state.servers.find((server) => server.id === state.activeServerId);
+    return activeServer ? normalizeServerBaseUrl(activeServer.url) : null;
+  });
   const hasActiveServer = activeServerId !== null;
-  const isServerReady = isHydrated && hasActiveServer;
+  const serverScope = activeServerUrl ?? 'unconfigured';
+  const isServerReady = isHydrated && activeServerUrl !== null;
 
   const authCheckQuery = useQuery({
-    queryKey: AUTH_KEYS.auth.queries.authCheck,
-    queryFn: async (): Promise<AuthCheckResponse> => {
-      // Der generierte API-Client erwartet { data, meta } Format,
-      // aber AuthController verwendet @SkipTransform() und gibt die Daten direkt zurück.
-      // Wir müssen die Raw-Response selbst parsen.
-      const response = await api.auth().authControllerCheckAuthRaw();
-      const json = await response.raw.json();
-      return json as AuthCheckResponse;
-    },
+    queryKey: [...AUTH_KEYS.auth.queries.authCheck, serverScope] as const,
+    queryFn: fetchAuthCheck,
     retry: (failureCount, error) => {
       // Bei 503 SERVER_NOT_SETUP nicht retrien - Setup-Status aendert sich nicht automatisch
       const status = (error as { response?: { status?: number } })?.response?.status;
@@ -87,13 +72,8 @@ export const useCurrentUser = () => {
   const isAdminAuthenticated = authStatus === 'authenticated' ? authData?.isAdminAuthenticated === true : false;
 
   const adminStatusQuery = useQuery({
-    queryKey: AUTH_KEYS.auth.queries.adminStatus,
-    queryFn: async (): Promise<{ adminSetupAvailable?: boolean }> => {
-      // AuthController verwendet @SkipTransform() - Raw Response parsen
-      const response = await api.auth().authControllerGetAdminStatusRaw();
-      const json = await response.raw.json();
-      return json as { adminSetupAvailable?: boolean };
-    },
+    queryKey: [...AUTH_KEYS.auth.queries.adminStatus, serverScope] as const,
+    queryFn: fetchAdminStatus,
     staleTime: milliseconds({ seconds: 30 }),
     refetchInterval: isAdminRole ? milliseconds({ seconds: 30 }) : false,
     throwOnError: false,

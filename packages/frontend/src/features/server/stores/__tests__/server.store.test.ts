@@ -27,6 +27,10 @@ vi.mock('@/shared/services/storage/storage-adapter.factory', () => ({
 vi.mock('../server-persistence', () => ({
   saveServers: vi.fn(),
   loadServers: vi.fn(),
+  saveServerAccessToken: vi.fn(),
+  loadServerAccessToken: vi.fn(),
+  removeServerAccessToken: vi.fn(),
+  STORED_SERVER_ACCESS_TOKEN_MARKER: '__blh_server_access_token_stored__',
 }));
 
 describe('serverStore', () => {
@@ -41,6 +45,7 @@ describe('serverStore', () => {
 
     // Clear all mocks
     vi.clearAllMocks();
+    vi.mocked(persistence.loadServerAccessToken).mockResolvedValue(null);
   });
 
   describe('addServer()', () => {
@@ -100,6 +105,22 @@ describe('serverStore', () => {
       expect(serverStore.state.servers).toHaveLength(1);
       expect(serverStore.state.servers[0].name).toBe('Test Server');
       expect(serverStore.state.servers[0].name).not.toContain('<script>');
+    });
+
+    it('should persist raw access tokens outside the server store', async () => {
+      const config = {
+        name: 'Token Server',
+        url: 'https://token.test',
+        accessToken: 'secret-token-123',
+        isDefault: false,
+        lastUsedAt: null,
+      };
+
+      const serverId = await addServer(config);
+
+      expect(serverStore.state.servers[0].accessToken).toBe(persistence.STORED_SERVER_ACCESS_TOKEN_MARKER);
+      expect(persistence.saveServerAccessToken).toHaveBeenCalledWith(serverId, 'secret-token-123');
+      expect(persistence.saveServers).toHaveBeenCalledWith(serverStore.state.servers);
     });
 
     it('should sanitize XSS img onerror tags from server name', async () => {
@@ -459,7 +480,7 @@ describe('serverStore', () => {
       isDefault: true,
       createdAt: '2025-01-01T00:00:00.000Z',
       lastUsedAt: '2025-01-01T00:00:00.000Z',
-      accessToken: 'original-token',
+      accessToken: persistence.STORED_SERVER_ACCESS_TOKEN_MARKER,
       ...overrides,
     });
 
@@ -529,7 +550,7 @@ describe('serverStore', () => {
 
     it('should preserve token when not provided in updates', async () => {
       // Given
-      const server = createMockServer({ accessToken: 'secret-token-123' });
+      const server = createMockServer({ accessToken: persistence.STORED_SERVER_ACCESS_TOKEN_MARKER });
       serverStore.setState((state) => ({
         ...state,
         servers: [server],
@@ -540,7 +561,7 @@ describe('serverStore', () => {
       await updateServer('1', { name: 'Neuer Name' });
 
       // Then - Token bleibt erhalten
-      expect(serverStore.state.servers[0].accessToken).toBe('secret-token-123');
+      expect(serverStore.state.servers[0].accessToken).toBe(persistence.STORED_SERVER_ACCESS_TOKEN_MARKER);
       expect(serverStore.state.servers[0].name).toBe('Neuer Name');
     });
 
@@ -596,7 +617,21 @@ describe('serverStore', () => {
       // Then
       expect(serverStore.state.servers[0].name).toBe('Produktiv-Server');
       expect(serverStore.state.servers[0].url).toBe('https://prod.api.com');
-      expect(serverStore.state.servers[0].accessToken).toBe('original-token'); // Token erhalten
+      expect(serverStore.state.servers[0].accessToken).toBe(persistence.STORED_SERVER_ACCESS_TOKEN_MARKER); // Marker bleibt erhalten
+    });
+
+    it('should remove persisted token when accessToken is explicitly cleared', async () => {
+      const server = createMockServer();
+      serverStore.setState((state) => ({
+        ...state,
+        servers: [server],
+        activeServerId: '1',
+      }));
+
+      await updateServer('1', { accessToken: undefined });
+
+      expect(persistence.removeServerAccessToken).toHaveBeenCalledWith('1');
+      expect(serverStore.state.servers[0].accessToken).toBeUndefined();
     });
 
     it('should sanitize XSS script tags when updating server name (Defense in Depth)', async () => {
@@ -1339,7 +1374,7 @@ describe('serverStore', () => {
       const server = createMockServer({
         name: 'Produktiv-Server',
         url: 'https://prod.example.com',
-        accessToken: 'secret-token',
+        accessToken: persistence.STORED_SERVER_ACCESS_TOKEN_MARKER,
       });
       serverStore.setState((state) => ({
         ...state,
@@ -1354,7 +1389,7 @@ describe('serverStore', () => {
       const updatedServer = serverStore.state.servers[0];
       expect(updatedServer.name).toBe('Produktiv-Server');
       expect(updatedServer.url).toBe('https://prod.example.com');
-      expect(updatedServer.accessToken).toBe('secret-token');
+      expect(updatedServer.accessToken).toBe(persistence.STORED_SERVER_ACCESS_TOKEN_MARKER);
       expect(updatedServer.icon).toBe('server');
     });
 

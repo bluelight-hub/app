@@ -546,8 +546,9 @@ describe('AdminInviteController', () => {
   describe('Handler Integration', () => {
     it('sollte Handler mit korrektem Command aufrufen', async () => {
       // Given (Arrange)
+      const expiresAt = futureIsoDate();
       const dto: CreateInviteDto = {
-        expiresAt: '2026-03-15T10:00:00.000Z',
+        expiresAt,
         maxUses: 10,
         label: 'Integration Test',
       };
@@ -561,7 +562,7 @@ describe('AdminInviteController', () => {
       expect(mockCreateInviteHandler.execute).toHaveBeenCalledTimes(1);
 
       const executedCommand = mockCreateInviteHandler.execute.mock.calls[0]?.[0]!;
-      expect(executedCommand.expiresAt).toEqual(new Date('2026-03-15T10:00:00.000Z'));
+      expect(executedCommand.expiresAt).toEqual(new Date(expiresAt));
       expect(executedCommand.maxUses).toBe(10);
       expect(executedCommand.label).toBe('Integration Test');
       expect(executedCommand.createdById).toBe(mockAdminUser.userId);

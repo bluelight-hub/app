@@ -12,9 +12,6 @@ const searchSchema = z.object({
     .transform((value) => sanitizeInternalRedirectPath(value)),
 });
 
-// DEBUG: Module load log
-console.log('[auth.tsx] Module loaded at', new Date().toISOString());
-
 export const Route = createFileRoute('/auth')({
   component: LoginWindow,
   validateSearch: searchSchema,
@@ -35,28 +32,21 @@ export const Route = createFileRoute('/auth')({
     const { isHydrated, servers } = serverStore.state;
     const hasServers = servers.length > 0;
 
-    console.log('[/auth beforeLoad] isSetupRedirectInProgress:', inProgress, 'isHydrated:', isHydrated, 'hasServers:', hasServers);
-
     // Nur redirecten wenn Flag gesetzt UND tatsächlich keine Server existieren
     // Oder wenn Store noch nicht hydriert ist (dann Flag vertrauen)
     if (inProgress) {
       if (!isHydrated) {
         // Store nicht hydriert - dem Flag vertrauen
-        console.log('[/auth beforeLoad] Store not hydrated, trusting redirect flag');
         throw redirect({ to: '/server/setup' });
       }
 
       if (!hasServers) {
         // Keine Server konfiguriert - Redirect korrekt
-        console.log('[/auth beforeLoad] No servers configured, redirecting to /server/setup');
         throw redirect({ to: '/server/setup' });
       }
 
       // Server existieren aber Flag ist gesetzt - Race-Condition, Flag zurücksetzen
-      console.log('[/auth beforeLoad] Servers exist but flag was set (race condition), resetting flag');
       setSetupRedirectInProgress(false);
     }
-
-    console.log('[/auth beforeLoad] No redirect needed, rendering LoginWindow');
   },
 });

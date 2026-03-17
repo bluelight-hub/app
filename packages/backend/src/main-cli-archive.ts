@@ -64,25 +64,29 @@ async function bootstrap() {
     await command.run(args);
     await app.close();
     process.exit(0);
-  } catch (error) {
-    logger.error('Command execution failed:', (error as Error).stack);
-    logger.error(`❌ Fehler: ${(error as Error).message}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    const stack = error instanceof Error ? error.stack : undefined;
+
+    console.error(`❌ Fehler: ${message}`);
+    if (stack) {
+      logger.error('Command execution failed:', stack);
+    }
 
     // Ensure app is closed properly, even if it fails
     try {
       await app.close();
       logger.debug('Application closed successfully');
     } catch (closeError) {
-      logger.error('Failed to close application gracefully:', closeError);
+      console.error('❌ Fehler beim Schließen des CLI-Kontexts:', closeError);
     }
 
-    // Re-throw the original error to let the shell wrapper handle the exit code
-    throw error;
+    process.exit(1);
   }
 }
 
-bootstrap().catch((error) => {
-  logger.error('❌ CLI Bootstrap failed:', error);
-  // Let the process exit naturally with the error code
-  throw error;
+bootstrap().catch((error: unknown) => {
+  console.error('❌ CLI Bootstrap failed:');
+  console.error(error);
+  process.exit(1);
 });

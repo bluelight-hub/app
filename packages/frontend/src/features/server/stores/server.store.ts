@@ -1,7 +1,6 @@
 import { createStore } from '@tanstack/react-store';
 import type { ConnectionStatus, ServerConfig, ServerState } from '../types/server-config';
-import { loadServers, saveServers } from './server-persistence';
-import { setServerAccessToken, clearServerAccessToken } from '@/shared/lib/server-access-token';
+import { loadServerAccessToken, loadServers, removeServerAccessToken, saveServerAccessToken, saveServers, STORED_SERVER_ACCESS_TOKEN_MARKER } from './server-persistence';
 import { isValidServerIcon, type ServerIconValue } from '../utils/server-icon.utils';
 import { isValidServerColor, type ServerColorValue } from '../utils/server-color.utils';
 
@@ -83,6 +82,17 @@ function generateServerId(): string {
     return crypto.randomUUID();
   }
   return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+}
+
+function toStoredAccessTokenMarker(accessToken?: string): string | undefined {
+  return accessToken ? STORED_SERVER_ACCESS_TOKEN_MARKER : undefined;
+}
+
+function sanitizeServerConfigForState(server: ServerConfig): ServerConfig {
+  return {
+    ...server,
+    accessToken: toStoredAccessTokenMarker(server.accessToken),
+  };
 }
 
 /**
@@ -267,22 +277,40 @@ export async function addServer(config: Omit<ServerConfig, 'id' | 'createdAt'>):
   // Auto-generierte Felder
   const now = new Date().toISOString();
   const serverId = generateServerId();
+  const rawAccessToken = config.accessToken;
   const newServer: ServerConfig = {
-    ...config,
+    ...sanitizeServerConfigForState(config as ServerConfig),
     name: sanitizedName, // Sanitisierten Namen verwenden
     id: serverId,
     createdAt: now,
     lastUsedAt: now,
   };
 
-  // Immutable Store Update
+  const nextServers = [...serverStore.state.servers.map((server) => sanitizeServerConfigForState(server)), newServer];
+
+  try {
+    if (rawAccessToken) {
+      await saveServerAccessToken(serverId, rawAccessToken);
+    }
+
+    await saveServers(nextServers);
+  } catch (error) {
+    if (rawAccessToken) {
+      try {
+        await removeServerAccessToken(serverId);
+      } catch {
+        // Best effort Rollback für partiell gespeicherte Tokens.
+      }
+    }
+
+    throw error;
+  }
+
+  // Immutable Store Update erst nach erfolgreicher Persistenz
   serverStore.setState((state) => ({
     ...state,
-    servers: [...state.servers, newServer],
+    servers: nextServers,
   }));
-
-  // Storage Sync
-  await saveServers(serverStore.state.servers);
 
   return serverId;
 }
@@ -316,37 +344,26 @@ export async function setActiveServer(serverId: string): Promise<void> {
   // Immutable Update: isDefault und lastUsedAt für alle Server
   const updatedServers = state.servers.map((s) => {
     if (s.id === serverId) {
-      return {
+      return sanitizeServerConfigForState({
         ...s,
         isDefault: true,
         lastUsedAt: now,
-      };
+      });
     }
-    return {
+    return sanitizeServerConfigForState({
       ...s,
       isDefault: false,
-    };
+    });
   });
 
-  // Store Update
+  await saveServers(updatedServers);
+
+  // Store Update erst nach erfolgreicher Persistenz
   serverStore.setState((prevState) => ({
     ...prevState,
     servers: updatedServers,
     activeServerId: serverId,
   }));
-
-  // Token-Synchronisation: Server-Access-Token aus Server-Config in globalen Storage kopieren
-  // Damit fetchWithRefresh den korrekten Token für API-Requests verwendet
-  if (server.accessToken) {
-    console.log('[ServerStore] Syncing access token for server:', server.name);
-    setServerAccessToken(server.accessToken);
-  } else {
-    console.log('[ServerStore] No access token for server:', server.name, '- clearing global token');
-    clearServerAccessToken();
-  }
-
-  // Storage Sync
-  await saveServers(serverStore.state.servers);
 }
 
 /**
@@ -378,31 +395,26 @@ export async function removeServer(serverId: string): Promise<void> {
     newActiveServerId = filteredServers[0].id;
 
     // Immutable update
-    updatedServers = filteredServers.map((server, index) => (index === 0 ? { ...server, isDefault: true, lastUsedAt: new Date().toISOString() } : server));
+    updatedServers = filteredServers.map((server, index) => sanitizeServerConfigForState(index === 0 ? { ...server, isDefault: true, lastUsedAt: new Date().toISOString() } : server));
   } else if (state.activeServerId === serverId) {
     // Keine Server übrig
     newActiveServerId = null;
   }
 
-  // Store Update
+  await saveServers(updatedServers);
+
+  // Store Update erst nach erfolgreicher Persistenz
   serverStore.setState((prevState) => ({
     ...prevState,
     servers: updatedServers,
     activeServerId: newActiveServerId,
   }));
 
-  // Token-Synchronisation: Wenn aktiver Server gewechselt hat, Token entsprechend setzen
-  if (state.activeServerId === serverId) {
-    const newActiveServer = serverStore.state.servers.find((s) => s.id === serverStore.state.activeServerId);
-    if (newActiveServer?.accessToken) {
-      setServerAccessToken(newActiveServer.accessToken);
-    } else {
-      clearServerAccessToken();
-    }
+  try {
+    await removeServerAccessToken(serverId);
+  } catch {
+    // Orphaned Tokens sind unangenehm, blockieren aber nicht die Server-Entfernung.
   }
-
-  // Storage Sync NACH setState mit aktuellem State (verhindert Race Condition)
-  await saveServers(serverStore.state.servers);
 }
 
 /**
@@ -441,6 +453,9 @@ export async function updateServer(serverId: string, updates: Partial<Omit<Serve
     throw new Error(`Server with id "${serverId}" does not exist`);
   }
 
+  const updatesContainAccessToken = Object.hasOwn(updates, 'accessToken');
+  const previousStoredToken = updatesContainAccessToken ? await loadServerAccessToken(serverId).catch(() => null) : null;
+
   // Name-Validierung mit Ausnahme für aktuellen Server + XSS-Sanitization
   let sanitizedName: string | undefined;
   if (updates.name !== undefined) {
@@ -462,27 +477,45 @@ export async function updateServer(serverId: string, updates: Partial<Omit<Serve
   // Immutable Update: Nur angegebene Felder ändern, Token bleibt erhalten wenn nicht überschrieben
   // Sanitisierten Namen verwenden falls vorhanden
   const sanitizedUpdates = sanitizedName !== undefined ? { ...updates, name: sanitizedName } : updates;
-  const updatedServers = state.servers.map((s) => (s.id === serverId ? { ...s, ...sanitizedUpdates } : s));
+  const persistedUpdates = updatesContainAccessToken
+    ? {
+        ...sanitizedUpdates,
+        accessToken: toStoredAccessTokenMarker(sanitizedUpdates.accessToken),
+      }
+    : sanitizedUpdates;
+  const persistedServers = state.servers.map((s) => sanitizeServerConfigForState(s.id === serverId ? { ...s, ...persistedUpdates } : s));
 
-  // Store Update
-  serverStore.setState((prevState) => ({
-    ...prevState,
-    servers: updatedServers,
-  }));
-
-  // Token-Synchronisation: IMMER wenn aktiver Server geändert wird (nicht nur bei Token-Änderung)
-  // Nutzt aktuellen State NACH setState für konsistente Token-Synchronisation
-  if (serverStore.state.activeServerId === serverId) {
-    const updatedServer = serverStore.state.servers.find((s) => s.id === serverId);
-    if (updatedServer?.accessToken) {
-      setServerAccessToken(updatedServer.accessToken);
-    } else {
-      clearServerAccessToken();
+  try {
+    if (updatesContainAccessToken) {
+      if (updates.accessToken) {
+        await saveServerAccessToken(serverId, updates.accessToken);
+      } else {
+        await removeServerAccessToken(serverId);
+      }
     }
+
+    await saveServers(persistedServers);
+  } catch (error) {
+    if (updatesContainAccessToken) {
+      try {
+        if (previousStoredToken) {
+          await saveServerAccessToken(serverId, previousStoredToken);
+        } else {
+          await removeServerAccessToken(serverId);
+        }
+      } catch {
+        // Best effort Rollback der Token-Persistenz.
+      }
+    }
+
+    throw error;
   }
 
-  // Storage Sync NACH setState mit aktuellem State (verhindert Race Condition)
-  await saveServers(serverStore.state.servers);
+  // Store Update erst nach erfolgreicher Persistenz
+  serverStore.setState((prevState) => ({
+    ...prevState,
+    servers: persistedServers,
+  }));
 }
 
 /**
@@ -532,21 +565,10 @@ export async function hydrateServerStore(): Promise<void> {
     isHydrated: true,
   }));
 
-  // Token-Synchronisation: Server-Access-Token aus aktiver Server-Config in globalen Storage kopieren
-  // WICHTIG: Muss NACH dem Store-Update passieren, damit API-Requests den Token haben
-  if (defaultServer?.accessToken) {
-    console.log('[ServerStore] Syncing access token for default server:', defaultServer.name);
-    setServerAccessToken(defaultServer.accessToken);
-  } else if (defaultServer) {
-    console.log('[ServerStore] No access token for default server:', defaultServer.name, '- clearing global token');
-    clearServerAccessToken();
-  }
-
   console.log('[ServerStore] Hydration complete. Store state:', {
     serverCount: serverStore.state.servers.length,
     isHydrated: serverStore.state.isHydrated,
     activeServerId: serverStore.state.activeServerId,
-    hasAccessToken: !!defaultServer?.accessToken,
   });
 }
 
@@ -602,23 +624,24 @@ export async function updateServerVisuals(serverId: string, visuals: { icon?: Se
   // L5 Fix: Explizit nur icon und color übernehmen - verhindert unerwünschte Key-Überschreibungen
   // Nutze "in" Operator um zu prüfen ob Property angegeben wurde (auch bei undefined)
   const updatedServers = state.servers.map((s) =>
-    s.id === serverId
-      ? {
-          ...s,
-          icon: 'icon' in visuals ? visuals.icon : s.icon,
-          color: 'color' in visuals ? visuals.color : s.color,
-        }
-      : s,
+    sanitizeServerConfigForState(
+      s.id === serverId
+        ? {
+            ...s,
+            icon: 'icon' in visuals ? visuals.icon : s.icon,
+            color: 'color' in visuals ? visuals.color : s.color,
+          }
+        : s,
+    ),
   );
 
-  // Store Update
+  await saveServers(updatedServers);
+
+  // Store Update erst nach erfolgreicher Persistenz
   serverStore.setState((currentState) => ({
     ...currentState,
     servers: updatedServers,
   }));
-
-  // Storage Sync NACH setState mit aktuellem State
-  await saveServers(serverStore.state.servers);
 }
 
 /**

@@ -39,6 +39,7 @@
     "check:arch": "pnpm lint:deps:core && pnpm lint:arch",
     "admin:reset": "ts-node -r tsconfig-paths/register src/main-cli.ts",
     "cli:archive": "ts-node -r tsconfig-paths/register src/main-cli-archive.ts",
+    "cli:invite-once": "ts-node -r tsconfig-paths/register src/main-cli-invite-once.ts",
     "test:perf": "artillery run artillery/artillery-performance.yml --output artillery/results/results.json",
     "test:perf:quick": "artillery run artillery/artillery-quick.yml --output artillery/results/quick-results.json",
     "test:perf:ci": "artillery run artillery/artillery-performance.yml --output artillery/results/ci-results.json --quiet",

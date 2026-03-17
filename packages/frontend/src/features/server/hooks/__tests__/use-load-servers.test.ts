@@ -3,6 +3,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { useLoadServers } from '../use-load-servers';
 import { serverStore } from '../../stores/server.store';
 import * as serverStoreModule from '../../stores/server.store';
+import * as serverAccessTokenModule from '@/shared/lib/server-access-token';
 
 // Mock hydrateServerStore
 vi.mock('../../stores/server.store', async (importOriginal) => {
@@ -12,6 +13,10 @@ vi.mock('../../stores/server.store', async (importOriginal) => {
     hydrateServerStore: vi.fn(),
   };
 });
+
+vi.mock('@/shared/lib/server-access-token', () => ({
+  clearLegacyServerAccessTokenShadow: vi.fn().mockResolvedValue(undefined),
+}));
 
 describe('useLoadServers', () => {
   beforeEach(() => {
@@ -45,6 +50,7 @@ describe('useLoadServers', () => {
 
     // Then - Hydration called
     expect(serverStoreModule.hydrateServerStore).toHaveBeenCalledTimes(1);
+    expect(serverAccessTokenModule.clearLegacyServerAccessTokenShadow).toHaveBeenCalledTimes(1);
     expect(result.current.error).toBeNull();
   });
 
