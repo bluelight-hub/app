@@ -5,14 +5,19 @@ import type { AnchorHTMLAttributes } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { WorkspaceShell } from '../WorkspaceShell';
 
-vi.mock('@tanstack/react-router', () => ({
-  Link: ({ children, to, search, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { to?: string; search?: unknown }) => (
-    <a href={to} data-preserves-search={typeof search === 'function' ? 'true' : undefined} {...props}>
-      {children}
-    </a>
-  ),
-  useNavigate: () => vi.fn(),
-}));
+vi.mock('@tanstack/react-router', async () => {
+  const actual = await vi.importActual<typeof import('@tanstack/react-router')>('@tanstack/react-router');
+
+  return {
+    ...actual,
+    Link: ({ children, to, search, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { to?: string; search?: unknown }) => (
+      <a href={to} data-preserves-search={typeof search === 'function' ? 'true' : undefined} {...props}>
+        {children}
+      </a>
+    ),
+    useNavigate: () => vi.fn(),
+  };
+});
 
 describe('WorkspaceShell contract', () => {
   function renderWorkspaceShell() {

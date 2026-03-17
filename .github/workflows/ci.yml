@@ -279,6 +279,11 @@ jobs:
           NODE_ENV: test
         run: pnpm --filter @bluelight-hub/frontend exec vitest --run --coverage --reporter=default --reporter=junit --outputFile=test-report.junit.xml
 
+      - name: Run frontend performance gates
+        env:
+          NODE_ENV: test
+        run: pnpm --filter @bluelight-hub/frontend test:performance
+
       - uses: actions/upload-artifact@v7
         if: failure()
         with:

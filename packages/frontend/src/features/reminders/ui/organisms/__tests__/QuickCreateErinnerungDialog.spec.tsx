@@ -86,58 +86,63 @@ vi.mock('@/features/etb/api/queries', () => ({
 // Mock @/shared (vorbestehendes Problem: EtbKategorie Enum nicht auflösbar in Vitest)
 // Noetig weil QuickCreateErinnerungDialog transitiv @/features/etb importiert,
 // das @/shared fuer AddEintragDtoKategorieEnum braucht.
-vi.mock('@/shared', () => ({
-  EinsatzRolleDtoRolleEnum: {
-    Befehlsgeber: 'BEFEHLSGEBER',
-    Empfaenger: 'EMPFAENGER',
-    Beobachter: 'BEOBACHTER',
-  },
-  ManagedUserResponseDtoRoleEnum: {
-    User: 'USER',
-    Admin: 'ADMIN',
-    SuperAdmin: 'SUPER_ADMIN',
-  },
-  AddEintragDtoKategorieEnum: {
-    Alarmierung: 'ALARMIERUNG',
-    Ankunft: 'ANKUNFT',
-    Befehl: 'BEFEHL',
-    Erkundung: 'ERKUNDUNG',
-    Lage: 'LAGE',
-    Massnahme: 'MASSNAHME',
-    Personal: 'PERSONAL',
-    Fahrzeug: 'FAHRZEUG',
-    Material: 'MATERIAL',
-    Kommunikation: 'KOMMUNIKATION',
-    Wetter: 'WETTER',
-    Dokumentation: 'DOKUMENTATION',
-    Sonstiges: 'SONSTIGES',
-    System: 'SYSTEM',
-  },
-  EintragDtoKategorieEnum: {
-    Alarmierung: 'ALARMIERUNG',
-    Ankunft: 'ANKUNFT',
-    Befehl: 'BEFEHL',
-    Erkundung: 'ERKUNDUNG',
-    Lage: 'LAGE',
-    Massnahme: 'MASSNAHME',
-    Personal: 'PERSONAL',
-    Fahrzeug: 'FAHRZEUG',
-    Material: 'MATERIAL',
-    Kommunikation: 'KOMMUNIKATION',
-    Wetter: 'WETTER',
-    Dokumentation: 'DOKUMENTATION',
-    Sonstiges: 'SONSTIGES',
-    System: 'SYSTEM',
-  },
-  api: {},
-  ResponseError: class ResponseError extends Error {
-    response: Response;
-    constructor(response: Response, msg?: string) {
-      super(msg);
-      this.response = response;
-    }
-  },
-}));
+vi.mock('@/shared', async () => {
+  const actual = await vi.importActual<typeof import('@/shared')>('@/shared');
+
+  return {
+    ...actual,
+    EinsatzRolleDtoRolleEnum: {
+      Befehlsgeber: 'BEFEHLSGEBER',
+      Empfaenger: 'EMPFAENGER',
+      Beobachter: 'BEOBACHTER',
+    },
+    ManagedUserResponseDtoRoleEnum: {
+      User: 'USER',
+      Admin: 'ADMIN',
+      SuperAdmin: 'SUPER_ADMIN',
+    },
+    AddEintragDtoKategorieEnum: {
+      Alarmierung: 'ALARMIERUNG',
+      Ankunft: 'ANKUNFT',
+      Befehl: 'BEFEHL',
+      Erkundung: 'ERKUNDUNG',
+      Lage: 'LAGE',
+      Massnahme: 'MASSNAHME',
+      Personal: 'PERSONAL',
+      Fahrzeug: 'FAHRZEUG',
+      Material: 'MATERIAL',
+      Kommunikation: 'KOMMUNIKATION',
+      Wetter: 'WETTER',
+      Dokumentation: 'DOKUMENTATION',
+      Sonstiges: 'SONSTIGES',
+      System: 'SYSTEM',
+    },
+    EintragDtoKategorieEnum: {
+      Alarmierung: 'ALARMIERUNG',
+      Ankunft: 'ANKUNFT',
+      Befehl: 'BEFEHL',
+      Erkundung: 'ERKUNDUNG',
+      Lage: 'LAGE',
+      Massnahme: 'MASSNAHME',
+      Personal: 'PERSONAL',
+      Fahrzeug: 'FAHRZEUG',
+      Material: 'MATERIAL',
+      Kommunikation: 'KOMMUNIKATION',
+      Wetter: 'WETTER',
+      Dokumentation: 'DOKUMENTATION',
+      Sonstiges: 'SONSTIGES',
+      System: 'SYSTEM',
+    },
+    api: {},
+    ResponseError: class ResponseError extends Error {
+      response: Response;
+      constructor(response: Response, msg?: string) {
+        super(msg);
+        this.response = response;
+      }
+    },
+  };
+});
 
 // Mock der Zeit-Berechnung für deterministische Tests
 vi.mock('../../../utils/time-calculation', () => ({
