@@ -175,7 +175,7 @@ export function WorkspaceShell({
                           aria-label={module.label}
                           aria-keyshortcuts={module.shortcut ? [...module.shortcut.modifiers, module.shortcut.key].join('+') : undefined}
                           className={cn(
-                            'group flex items-center gap-2 rounded-control px-2.5 py-2 transition-colors focus:outline-none focus-visible:shadow-focus-ring',
+                            'group flex cursor-pointer items-center gap-2 rounded-control px-2.5 py-2 transition-colors focus:outline-none focus-visible:shadow-focus-ring',
                             module.id === currentModule.id ? 'bg-action-secondary text-text-primary' : 'text-text-secondary hover:bg-action-secondary',
                           )}
                           search={(prev) => prev}
@@ -202,19 +202,20 @@ export function WorkspaceShell({
                         </Link>
                       )}
 
+                      {module.badgeHint ? (
+                        <div className="ml-2.5 flex items-center gap-2 px-2.5 py-1 text-body-xs text-text-secondary">
+                          <span className="font-medium">{module.badgeHint.label}</span>
+                          {module.badgeHint.value !== undefined ? (
+                            <span className="rounded-pill bg-action-secondary px-1.5 py-0.5 font-semibold text-body-xs text-text-primary">{module.badgeHint.value}</span>
+                          ) : null}
+                        </div>
+                      ) : null}
+
                       {module.id !== currentModule.id || isDisabled(module.visibility)
                         ? null
                         : module.visibleSubPages.map((page) => {
                             const isActive = page.href === resolvedActivePageHref;
                             const pageIsDisabled = isDisabled(page.visibility);
-                            module.badgeHint ? (
-                              <div className="ml-2.5 flex items-center gap-2 px-2.5 py-1 text-body-xs text-text-secondary">
-                                <span className="font-medium">{module.badgeHint.label}</span>
-                                {module.badgeHint.value !== undefined ? (
-                                  <span className="rounded-pill bg-action-secondary px-1.5 py-0.5 font-semibold text-body-xs text-text-primary">{module.badgeHint.value}</span>
-                                ) : null}
-                              </div>
-                            ) : null;
 
                             if (pageIsDisabled) {
                               return (
@@ -240,14 +241,14 @@ export function WorkspaceShell({
                                 to={page.href}
                                 // biome-ignore lint/suspicious/noExplicitAny: Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
                                 params={routeParams as any}
+                                search={(prev) => prev}
                                 aria-current={isActive ? 'page' : undefined}
                                 className={cn(
-                                  'group ml-2.5 flex items-start gap-3 rounded-control px-2.5 py-2 transition-colors',
+                                  'group ml-2.5 flex cursor-pointer items-start gap-3 rounded-control px-2.5 py-2 transition-colors',
                                   isActive ? 'bg-action-secondary text-text-primary' : 'text-text-secondary hover:bg-action-secondary',
                                 )}
                               >
-                                search={(prev) => prev}
-                                <page.icon className={cn('mt-0.5 h-5 w-5 flex-shrink-0 transition-colors', isActive ? 'text-text-primary' : 'text-text-muted group-hover:text-text-secondary')} />
+                                <page.icon className={cn('mt-0.5 h-5 w-5 shrink-0 transition-colors', isActive ? 'text-text-primary' : 'text-text-muted group-hover:text-text-secondary')} />
                                 <div className="min-w-0 flex-1">
                                   <div className="flex items-center gap-2">
                                     <span className="font-medium text-body-sm">{page.label}</span>
@@ -261,6 +262,13 @@ export function WorkspaceShell({
                     </div>
                   ))}
                 </nav>
+
+                {quickActionsSlot ? (
+                  <section aria-label="Schnellaktionen" className="space-y-2 border-border-subtle border-t pt-3">
+                    <h2 className="px-2.5 font-semibold text-body-xs text-text-secondary uppercase tracking-[0.16em]">Schnellaktionen</h2>
+                    {quickActionsSlot}
+                  </section>
+                ) : null}
 
                 <StatusRail items={statusItems} />
                 {sidebarFooter}
@@ -300,8 +308,12 @@ export function WorkspaceShell({
                       to={page.href}
                       // biome-ignore lint/suspicious/noExplicitAny: Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
                       params={routeParams as any}
+                      search={(prev) => prev}
                       aria-current={isActive ? 'page' : undefined}
-                      className={cn('flex items-center gap-2 whitespace-nowrap rounded-control px-3 py-2 text-body-sm', isActive ? 'bg-action-secondary text-text-primary' : 'text-text-secondary')}
+                      className={cn(
+                        'flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-control px-3 py-2 text-body-sm',
+                        isActive ? 'bg-action-secondary text-text-primary' : 'text-text-secondary',
+                      )}
                     >
                       <page.icon className="h-4 w-4" />
                       {page.label}
@@ -332,12 +344,6 @@ export function WorkspaceShell({
               ) : null}
 
               {children}
-              {quickActionsSlot ? (
-                <section aria-label="Schnellaktionen" className="space-y-2 border-border-subtle border-t pt-3">
-                  <h2 className="font-semibold text-body-xs text-text-secondary uppercase tracking-[0.16em]">Schnellaktionen</h2>
-                  {quickActionsSlot}
-                </section>
-              ) : null}
             </div>
           </div>
         </Container>
