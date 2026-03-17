@@ -1,11 +1,11 @@
+import { cn, getModuleActiveColor, getModuleColor } from '@/shared/ui';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { CommandTrigger } from '@/shared/ui/atoms/command-trigger.atom';
 import { Container } from '@/shared/ui/atoms/container.atom';
-import { cn, getModuleActiveColor, getModuleColor } from '@/shared/ui';
 import { Link, useNavigate } from '@tanstack/react-router';
-import type { WorkspaceBlockingOverlayState, WorkspaceModuleDefinition, WorkspaceRouteParams } from '../types';
 import { useEffect } from 'react';
 import { PiGridFour, PiQuestion } from 'react-icons/pi';
+import type { WorkspaceBlockingOverlayState, WorkspaceModuleDefinition, WorkspaceRouteParams } from '../types';
 
 export interface ModuleRailProps {
   modules: WorkspaceModuleDefinition[];
@@ -138,11 +138,11 @@ export function ModuleRail({
   }
 
   return (
-    <nav aria-label="Workspace-Module" className={cn('sticky top-16 z-20 border-border-subtle border-b bg-surface-panel shadow-raised', className)}>
+    <nav aria-label="Workspace-Module" className={cn('sticky top-14 z-20 border-border-subtle border-b bg-surface-panel shadow-raised', className)}>
       <Container maxWidth="full">
-        <div className="py-3">
-          <div className="flex items-center justify-between gap-4">
-            <div className="hidden gap-3 overflow-x-auto 2xl:flex">
+        <div className="py-2">
+          <div className="flex items-center justify-between gap-3">
+            <div className="hidden gap-2.5 overflow-x-auto 2xl:flex">
               {railModules.map((module) => {
                 const isActive = module.id === currentModule.id;
                 const moduleIsDisabled = isDisabled(module.visibility);
@@ -152,7 +152,7 @@ export function ModuleRail({
                     <div
                       key={module.id}
                       aria-disabled="true"
-                      className={cn('flex items-center gap-2 whitespace-nowrap rounded-control border px-4 py-2 font-medium text-body-sm text-text-muted', getModuleColor(module.color))}
+                      className={cn('flex items-center gap-2 whitespace-nowrap rounded-control border px-3 py-1.5 font-medium text-body-sm text-text-muted', getModuleColor(module.color))}
                       title={module.visibility.reason}
                     >
                       <module.icon className="h-4 w-4" aria-hidden="true" />
@@ -171,7 +171,7 @@ export function ModuleRail({
                     aria-current={isActive ? 'page' : undefined}
                     aria-keyshortcuts={getShortcutLabel(module)}
                     className={cn(
-                      'group relative flex items-center gap-2 whitespace-nowrap rounded-control border px-4 py-2 font-medium text-body-sm transition-[background-color,border-color,color,box-shadow] focus:outline-none focus-visible:shadow-focus-ring',
+                      'group relative flex items-center gap-2 whitespace-nowrap rounded-control border px-3 py-1.5 font-medium text-body-sm transition-[background-color,border-color,color,box-shadow] focus:outline-none focus-visible:shadow-focus-ring',
                       isActive ? getModuleActiveColor(module.color) : getModuleColor(module.color),
                     )}
                     title={getShortcutLabel(module) ? `Tastenkürzel: ${getShortcutLabel(module)}` : undefined}
@@ -194,7 +194,7 @@ export function ModuleRail({
                     <div
                       key={module.id}
                       aria-disabled="true"
-                      className={cn('flex items-center gap-2 rounded-control border px-3 py-2 font-medium text-body-sm text-text-muted', getModuleColor(module.color))}
+                      className={cn('flex items-center gap-2 rounded-control border px-2.5 py-1.5 font-medium text-body-sm text-text-muted', getModuleColor(module.color))}
                       title={module.visibility.reason}
                     >
                       <module.icon className="h-4 w-4" aria-hidden="true" />
@@ -214,7 +214,7 @@ export function ModuleRail({
                     aria-keyshortcuts={getShortcutLabel(module)}
                     title={getShortcutLabel(module) ? `Tastenkürzel: ${getShortcutLabel(module)}` : undefined}
                     className={cn(
-                      'flex items-center gap-2 rounded-control border px-3 py-2 font-medium text-body-sm transition-[background-color,border-color,color,box-shadow] focus:outline-none focus-visible:shadow-focus-ring',
+                      'flex items-center gap-2 rounded-control border px-2.5 py-1.5 font-medium text-body-sm transition-[background-color,border-color,color,box-shadow] focus:outline-none focus-visible:shadow-focus-ring',
                       isActive ? getModuleActiveColor(module.color) : getModuleColor(module.color),
                     )}
                   >
@@ -226,7 +226,7 @@ export function ModuleRail({
               })}
 
               {railModules.length > 5 && onOpenModuleOverview ? (
-                <Button appearance="ghost" size="sm" onClick={onOpenModuleOverview} aria-label={moduleOverviewLabel} title={moduleOverviewLabel} className="px-3">
+                <Button appearance="ghost" size="sm" onClick={onOpenModuleOverview} aria-label={moduleOverviewLabel} title={moduleOverviewLabel} className="px-2.5">
                   <PiGridFour className="h-4 w-4" />
                   <span className="ml-2 hidden md:inline">Mehr</span>
                 </Button>
@@ -301,7 +301,7 @@ export function ModuleRail({
             </div>
 
             {onCommandTriggerClick ? (
-              <div className="ml-4">
+              <div className="ml-44">
                 <CommandTrigger onClick={onCommandTriggerClick} aria-label={commandTriggerLabel} />
               </div>
             ) : null}

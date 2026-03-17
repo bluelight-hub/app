@@ -278,9 +278,6 @@ export function EinsatzDashboard() {
               <h2 id="einsatz-dashboard-title" className="font-bold text-2xl text-gray-900 dark:text-white">
                 Einsätze
               </h2>
-              <p className="mt-1 max-w-2xl text-gray-600 text-sm dark:text-gray-400">
-                Aktive Einsätze bleiben im Fokus. Das Archiv ist getrennt, damit laufende Arbeit und spätere Recherche sich nicht gegenseitig ausbremsen.
-              </p>
             </div>
 
             <div className="inline-flex rounded-2xl bg-gray-100 p-1 dark:bg-gray-800">

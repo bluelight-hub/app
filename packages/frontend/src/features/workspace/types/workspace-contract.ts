@@ -73,6 +73,7 @@ export interface WorkspaceStatusItem {
   tone: WorkspaceStatusTone;
   icon?: ComponentType<{ className?: string }>;
   value?: ReactNode;
+  role?: 'status' | 'alert';
 }
 
 export interface WorkspaceModuleSelection {

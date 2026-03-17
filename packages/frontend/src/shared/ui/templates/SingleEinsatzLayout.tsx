@@ -27,10 +27,8 @@ import {
   useStopRecurringDialogState,
 } from '@/features/reminders';
 import { filterMyErinnerungen } from '@/features/reminders/utils/erinnerung-ownership';
-import { useActiveServer } from '@/features/server/hooks';
-import { ServerNameBadge } from '@/features/server/ui/atoms';
 import { AudioSettingsDialog } from '@/features/settings';
-import { useWorkspaceModules, WorkspaceShell } from '@/features/workspace';
+import { useEinsatzWorkspaceShell, useWorkspaceModules, WorkspaceShell } from '@/features/workspace';
 import { api, EinsatzDtoStatusEnum } from '@/shared';
 import { cn } from '@/shared/ui';
 import { Button } from '@/shared/ui/atoms/button.atom';
@@ -50,6 +48,14 @@ interface SingleEinsatzLayoutProps {
   className?: string;
 }
 
+function isHiddenVisibility(state: { default: 'visible' | 'hidden' | 'disabled' }): boolean {
+  return state.default === 'hidden';
+}
+
+function isDisabledVisibility(state: { default: 'visible' | 'hidden' | 'disabled' }): boolean {
+  return state.default === 'disabled';
+}
+
 export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   const { einsatzId } = useParams({ from: '/app/einsatz/$einsatzId' });
   const matchRoute = useMatchRoute();
@@ -62,7 +68,6 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   const [showEndConfirmation, setShowEndConfirmation] = useState(false);
   const [showBeitrittDialog, setShowBeitrittDialog] = useState(false);
   const [showAudioDialog, setShowAudioDialog] = useState(false);
-  const activeServer = useActiveServer();
 
   // Quick-Create Erinnerung Dialog State und Hotkeys (Story 1.1 AC1, Story 5.4)
   const { isOpen: isQuickCreateOpen, einsatzId: quickCreateEinsatzId, etbEintragId, etbEintragText, fromTemplate } = useQuickCreateDialogStateWithEtb();
@@ -161,7 +166,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
 
   // Lade kombinierte Einsatzdaten (Einsatz + ETB + Lagekarte)
   // ETB und Lagekarte werden im Cache vorgeladen, sodass Child-Routes diese nutzen können
-  const { einsatz } = useEinsatzDetails(einsatzId);
+  const { einsatz, isLoading: isEinsatzLoading } = useEinsatzDetails(einsatzId);
 
   // Track if we've already started this einsatz to avoid duplicate API calls
   const hasStartedRef = useRef(false);
@@ -254,7 +259,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
     };
   }, [modules, workspaceIsBlocked]);
 
-  const visibleModules = useMemo(() => modules.filter((module) => module.visibility.default !== 'hidden'), [modules]);
+  const visibleModules = useMemo(() => modules.filter((module) => !isHiddenVisibility(module.visibility)), [modules]);
 
   // Finde das aktuelle Modul basierend auf der URL
   const currentModule =
@@ -304,6 +309,12 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
 
   const activePageHref = currentModule?.subPages.find((page) => matchRoute({ to: page.href, fuzzy: true }))?.href;
 
+  const { statusItems } = useEinsatzWorkspaceShell({
+    isLoading: isTeilnahmeLoading || isUserLoading || isEinsatzLoading,
+    requiresAssignment,
+    isRemindersDegraded: Boolean(erinnerungenError),
+  });
+
   const moduleOverviewModules = useMemo(
     () =>
       modules.map((module) => ({
@@ -322,6 +333,30 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
           icon: page.icon,
         })),
       })),
+    [modules],
+  );
+
+  const commandPaletteModules = useMemo(
+    () =>
+      modules
+        .filter((module) => !isHiddenVisibility(module.visibility) && !isDisabledVisibility(module.visibility))
+        .map((module) => ({
+          id: module.id,
+          name: module.label,
+          color: module.color,
+          icon: module.icon,
+          subPages: module.subPages
+            .filter((page) => !isHiddenVisibility(page.visibility) && !isDisabledVisibility(page.visibility))
+            .map((page) => ({
+              id: page.id,
+              name: page.label,
+              href: page.href,
+              icon: page.icon,
+              description: page.description,
+              badge: page.badge?.toString(),
+            })),
+        }))
+        .filter((module) => module.subPages.length > 0),
     [modules],
   );
 
@@ -379,7 +414,6 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
           },
           endSlot: einsatz ? (
             <>
-              {activeServer && <ServerNameBadge name={activeServer.name} className="hidden md:flex" />}
               {supportsFullscreen && (
                 <Button appearance="ghost" size="sm" onClick={handleFullscreenToggle} className="gap-2" title="Vollbildmodus aktivieren">
                   <PiArrowsOut className="h-4 w-4" />
@@ -400,6 +434,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
         activeModuleId={currentModule?.id ?? ''}
         activePageHref={activePageHref}
         routeParams={{ einsatzId }}
+        statusItems={statusItems}
         blockingOverlay={{ isBlocking: workspaceIsBlocked }}
         commandTriggerLabel="Befehle und Navigation"
         moduleOverviewLabel="Modulübersicht öffnen"
@@ -459,24 +494,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
 
       {/* Command Palette Modal */}
       <CommandPaletteErrorBoundary>
-        <CommandPalette
-          modules={modules.map((module) => ({
-            id: module.id,
-            name: module.label,
-            color: module.color,
-            icon: module.icon,
-            subPages: module.subPages.map((page) => ({
-              id: page.id,
-              name: page.label,
-              href: page.href,
-              icon: page.icon,
-              description: page.description,
-              badge: page.badge?.toString(),
-            })),
-          }))}
-          open={commandPaletteOpen}
-          onOpenChange={setCommandPaletteOpen}
-        />
+        <CommandPalette modules={commandPaletteModules} open={commandPaletteOpen} onOpenChange={setCommandPaletteOpen} />
       </CommandPaletteErrorBoundary>
 
       {/* Einsatz beenden Confirmation Dialog */}

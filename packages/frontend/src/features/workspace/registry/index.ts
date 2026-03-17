@@ -1,1 +1,1 @@
-export { EINSATZ_WORKSPACE_MODULES, getWorkspacePrimaryRoute } from './einsatz-workspace.registry';
+export { EINSATZ_WORKSPACE_MODULES, getCanonicalWorkspaceRoute, getWorkspacePrimaryRoute, isWorkspaceRouteAccessible } from './einsatz-workspace.registry';

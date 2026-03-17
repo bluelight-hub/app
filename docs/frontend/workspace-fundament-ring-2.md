@@ -86,12 +86,14 @@ Jeder Registry-Eintrag soll mindestens enthalten:
 - `routeTarget` ist der kanonische Haupteinstieg eines Moduls.
 - Das Feld darf nicht implizit aus dem ersten Array-Element geraten, sondern muss bewusst modelliert werden.
 - Wenn ein Modul mehrere Unterseiten hat, bleibt `routeTarget` trotzdem eindeutig.
+- Im aktiven Einsatz zeigt `routeTarget` immer auf den kanonischen Arbeitsraum-Pfad des Moduls. Redirects aus Legacy-Pfaden bleiben erlaubt, aber sie enden auf demselben Shell-Pfad.
 
 ### Regeln für `shortcut`
 
 - Shortcuts gehören in die Registry, nicht in JSX-Strings oder Tooltips.
 - Die Shell liest Shortcut-Metadaten aus dem Contract und rendert Anzeige, Hilfe und Hotkeys daraus.
 - Fachflächen dürfen keine eigene konkurrierende Shortcut-Notation einführen.
+- Disabled- oder versteckte Ziele dürfen nicht über Command Palette, Shortcut-Hilfe oder Schnellnavigation so erscheinen, als wären sie aktiv nutzbar.
 
 ### Regeln für `badgeHint`
 
@@ -139,6 +141,7 @@ Der Status Slot ist für sichtbare Arbeitszustände reserviert:
 - Verbindungs- oder Sync-Zustände
 - Warnungen oder eingeschränkte Zustände
 - Blockierungen, `readonly` oder Recovery-Hinweise
+- ein nicht-fehlerhafter Basiszustand, damit die Statusfläche im Normalbetrieb nicht verschwindet
 - Shell-nahe Meta-Informationen, wenn sie für den Arbeitsfluss relevant sind
 - kein Status-Rail-Einsatz für Informationen, die im aktuellen Kontext bereits redundant sichtbar sind
 
@@ -162,6 +165,7 @@ Workspace-Status ist nur dann vollständig, wenn er sowohl visuell als auch sema
 
 - Status niemals nur über Farbe vermitteln.
 - Jeder sichtbare Status braucht mindestens Text, Icon, Zähler oder eine gleichwertige Beschriftung.
+- Die Statusfläche bleibt auch im gesunden Standardzustand sichtbar und fällt nicht auf `null` zurück.
 - Interaktive Statusflächen brauchen sinnvolle `aria`-Texte.
 - Fokus und aktiver Zustand folgen demselben Produktvokabular wie der restliche Ring-1-Vertrag.
 
@@ -209,6 +213,7 @@ Workspace-Status ist nur dann vollständig, wenn er sowohl visuell als auch sema
 - Fachfeatures dürfen innerhalb des Content Slots eigene UI-Kompositionen haben, aber keine konkurrierende Shell.
 - `shared/ui` bleibt die einzige generische sichtbare UI-Schicht.
 - `features/workspace` ist der richtige Ort für Shell-Orchestrierung, nicht für Fachlogik.
+- Disabled- oder später freizugebende Registry-Ziele müssen nicht nur in Navigation und Command Palette ausgeblendet oder deaktiviert sein, sondern auch per Routing-Guard auf einen freigegebenen kanonischen Workspace-Pfad zurückführen.
 
 ## Mindestprüfung für Story `1.2`
 

@@ -27,7 +27,17 @@ const visible: WorkspaceVisibilityRule = {
   default: 'visible',
 };
 
-function createSubPage(index: number, page: Omit<WorkspaceSubPage, 'id' | 'visibility'> & { id?: string }): WorkspaceSubPage {
+function disabled(reason: string): WorkspaceVisibilityRule {
+  return {
+    default: 'disabled',
+    reason,
+  };
+}
+
+const LATER_RING_REASON = 'Wird nach dem stabilen Ring-2-Arbeitsrahmen schrittweise freigeschaltet.';
+const COMING_SOON_REASON = 'Diese Fläche ist im aktiven Ring-2-Arbeitsrahmen noch nicht belastbar freigegeben.';
+
+function createSubPage(index: number, page: Omit<WorkspaceSubPage, 'id' | 'visibility'> & { id?: string; visibility?: WorkspaceVisibilityRule }): WorkspaceSubPage {
   return {
     id: page.id ?? `page-${index + 1}`,
     visibility: visible,
@@ -35,13 +45,18 @@ function createSubPage(index: number, page: Omit<WorkspaceSubPage, 'id' | 'visib
   };
 }
 
-function createModule(index: number, module: Omit<WorkspaceModuleDefinition, 'priority' | 'visibility' | 'shortcut'>): WorkspaceModuleDefinition {
+function createModule(
+  index: number,
+  module: Omit<WorkspaceModuleDefinition, 'priority' | 'visibility' | 'shortcut'> & {
+    visibility?: WorkspaceVisibilityRule;
+  },
+): WorkspaceModuleDefinition {
   const priority = (index + 1) * 10;
 
   return {
     ...module,
     priority,
-    visibility: visible,
+    visibility: module.visibility ?? visible,
     shortcut: {
       modifiers: ['alt'],
       key: String(index + 1),
@@ -60,7 +75,14 @@ export const EINSATZ_WORKSPACE_MODULES: WorkspaceModuleDefinition[] = [
     subPages: [
       createSubPage(0, { id: 'dashboard', label: 'Dashboard', href: '/app/einsatz/$einsatzId/übersicht', icon: PiHouse, description: 'Hauptübersicht' }),
       createSubPage(1, { id: 'karte', label: 'Lagekarte', href: '/app/einsatz/$einsatzId/übersicht/karte', icon: PiMapTrifold, description: 'Interaktive Karte' }),
-      createSubPage(2, { id: 'statistik', label: 'Statistik', href: '/app/einsatz/$einsatzId/übersicht/statistik', icon: PiChartBar, description: 'Live-Auswertungen' }),
+      createSubPage(2, {
+        id: 'statistik',
+        label: 'Statistik',
+        href: '/app/einsatz/$einsatzId/übersicht/statistik',
+        icon: PiChartBar,
+        description: 'Live-Auswertungen',
+        visibility: disabled(COMING_SOON_REASON),
+      }),
     ],
   }),
   createModule(1, {
@@ -78,9 +100,30 @@ export const EINSATZ_WORKSPACE_MODULES: WorkspaceModuleDefinition[] = [
       createSubPage(0, { id: 'etb', label: 'ETB', href: '/app/einsatz/$einsatzId/führung/etb', icon: PiClipboard, description: 'Einsatztagebuch', badge: 'NEU' }),
       createSubPage(1, { id: 'pinnwand', label: 'Pinnwand', href: '/app/einsatz/$einsatzId/führung/pinnwand', icon: PiNotepad, description: 'Erinnerungen & Notizen' }),
       createSubPage(2, { id: 'befehle', label: 'Befehle', href: '/app/einsatz/$einsatzId/führung/befehle', icon: PiFileText, description: 'Einsatzbefehle' }),
-      createSubPage(3, { id: 'rollen', label: 'Rollen', href: '/app/einsatz/$einsatzId/führung/rollen', icon: PiUserCheck, description: 'Rollen im Einsatz' }),
-      createSubPage(4, { id: 'protokoll', label: 'Protokoll', href: '/app/einsatz/$einsatzId/führung/protokoll', icon: PiFileText, description: 'Führungsprotokoll' }),
-      createSubPage(5, { id: 'berichte', label: 'Berichte', href: '/app/einsatz/$einsatzId/führung/berichte', icon: PiFileText, description: 'Einsatzberichte' }),
+      createSubPage(3, {
+        id: 'rollen',
+        label: 'Rollen',
+        href: '/app/einsatz/$einsatzId/führung/rollen',
+        icon: PiUserCheck,
+        description: 'Rollen im Einsatz',
+        visibility: disabled(COMING_SOON_REASON),
+      }),
+      createSubPage(4, {
+        id: 'protokoll',
+        label: 'Protokoll',
+        href: '/app/einsatz/$einsatzId/führung/protokoll',
+        icon: PiFileText,
+        description: 'Führungsprotokoll',
+        visibility: disabled(COMING_SOON_REASON),
+      }),
+      createSubPage(5, {
+        id: 'berichte',
+        label: 'Berichte',
+        href: '/app/einsatz/$einsatzId/führung/berichte',
+        icon: PiFileText,
+        description: 'Einsatzberichte',
+        visibility: disabled(COMING_SOON_REASON),
+      }),
       createSubPage(6, { id: 'rhythmus', label: 'Führungsrhythmus', href: '/app/einsatz/$einsatzId/führung/rhythmus', icon: PiMetronome, description: 'Wiederkehrende Erinnerungen' }),
     ],
   }),
@@ -91,6 +134,7 @@ export const EINSATZ_WORKSPACE_MODULES: WorkspaceModuleDefinition[] = [
     icon: PiRadio,
     color: 'green',
     description: 'Funk und Alarmierung',
+    visibility: disabled(LATER_RING_REASON),
     subPages: [
       createSubPage(0, { id: 'funk', label: 'Funkverkehr', href: '/app/einsatz/$einsatzId/kommunikation/funk', icon: PiRadio, description: 'Funkprotokoll' }),
       createSubPage(1, { id: 'alarmierung', label: 'Alarmierung', href: '/app/einsatz/$einsatzId/kommunikation/alarmierung', icon: PiMegaphone, description: 'Nachalarmierung' }),
@@ -104,9 +148,17 @@ export const EINSATZ_WORKSPACE_MODULES: WorkspaceModuleDefinition[] = [
     icon: PiUsers,
     color: 'orange',
     description: 'Personal und Einheiten',
+    visibility: visible,
     subPages: [
       createSubPage(0, { id: 'dashboard', label: 'Dashboard', href: '/app/einsatz/$einsatzId/kräfte/dashboard', icon: PiChartBar, description: 'Kräfte-Übersicht' }),
-      createSubPage(1, { id: 'einheiten', label: 'Einheiten', href: '/app/einsatz/$einsatzId/kräfte/einheiten', icon: PiUsers, description: 'Einheitenübersicht' }),
+      createSubPage(1, {
+        id: 'einheiten',
+        label: 'Einheiten',
+        href: '/app/einsatz/$einsatzId/kräfte/einheiten',
+        icon: PiUsers,
+        description: 'Einheitenübersicht',
+        visibility: disabled(COMING_SOON_REASON),
+      }),
       createSubPage(2, { id: 'personal', label: 'Personal', href: '/app/einsatz/$einsatzId/kräfte/personal', icon: PiUserCheck, description: 'Personalverwaltung' }),
       createSubPage(3, { id: 'fahrzeuge', label: 'Fahrzeuge', href: '/app/einsatz/$einsatzId/kräfte/fahrzeuge', icon: PiTruck, description: 'Fahrzeugstatus' }),
     ],
@@ -118,6 +170,7 @@ export const EINSATZ_WORKSPACE_MODULES: WorkspaceModuleDefinition[] = [
     icon: PiWarning,
     color: 'red',
     description: 'Gefahren und Schutzmaßnahmen',
+    visibility: disabled(LATER_RING_REASON),
     subPages: [
       createSubPage(0, { id: 'gefahren', label: 'Gefahren', href: '/app/einsatz/$einsatzId/sicherheit/gefahren', icon: PiWarning, description: 'Gefahren an EST' }),
       createSubPage(1, { id: 'eigenschutz', label: 'Eigenschutz', href: '/app/einsatz/$einsatzId/sicherheit/eigenschutz', icon: PiShieldWarning, description: 'Arbeitsschutz' }),
@@ -131,6 +184,7 @@ export const EINSATZ_WORKSPACE_MODULES: WorkspaceModuleDefinition[] = [
     icon: PiFirstAid,
     color: 'emerald',
     description: 'Patientenverwaltung und Triage',
+    visibility: disabled(LATER_RING_REASON),
     subPages: [
       createSubPage(0, { id: 'übersicht', label: 'Übersicht', href: '/app/einsatz/$einsatzId/patienten', icon: PiFirstAid, description: 'Patientenübersicht' }),
       createSubPage(1, { id: 'triage', label: 'Triage', href: '/app/einsatz/$einsatzId/patienten/triage', icon: PiFirstAid, description: 'Sichtung' }),
@@ -144,6 +198,7 @@ export const EINSATZ_WORKSPACE_MODULES: WorkspaceModuleDefinition[] = [
     icon: PiCoffee,
     color: 'cyan',
     description: 'Verpflegung und Betreuung',
+    visibility: disabled(LATER_RING_REASON),
     subPages: [
       createSubPage(0, { id: 'verpflegung', label: 'Verpflegung', href: '/app/einsatz/$einsatzId/betreuung/verpflegung', icon: PiCoffee, description: 'Essen & Trinken' }),
       createSubPage(1, { id: 'betroffene', label: 'Betroffene', href: '/app/einsatz/$einsatzId/betreuung/betroffene', icon: PiUsers, description: 'Betreuung Betroffene' }),
@@ -157,6 +212,7 @@ export const EINSATZ_WORKSPACE_MODULES: WorkspaceModuleDefinition[] = [
     icon: PiPackage,
     color: 'violet',
     description: 'Material und Versorgung',
+    visibility: disabled(LATER_RING_REASON),
     subPages: [
       createSubPage(0, { id: 'material', label: 'Material', href: '/app/einsatz/$einsatzId/logistik/material', icon: PiPackage, description: 'Materialverwaltung' }),
       createSubPage(1, { id: 'verbrauch', label: 'Verbrauch', href: '/app/einsatz/$einsatzId/logistik/verbrauch', icon: PiClipboard, description: 'Verbrauchsmaterial' }),
@@ -170,6 +226,7 @@ export const EINSATZ_WORKSPACE_MODULES: WorkspaceModuleDefinition[] = [
     icon: PiAirplaneTilt,
     color: 'secondary',
     description: 'Luftaufklärung',
+    visibility: disabled(LATER_RING_REASON),
     subPages: [
       createSubPage(0, { id: 'steuerung', label: 'Steuerung', href: '/app/einsatz/$einsatzId/drohne/steuerung', icon: PiAirplaneTilt, description: 'Drohnensteuerung' }),
       createSubPage(1, { id: 'luftbilder', label: 'Luftbilder', href: '/app/einsatz/$einsatzId/drohne/luftbilder', icon: PiCamera, description: 'Aufnahmen' }),
@@ -180,4 +237,61 @@ export const EINSATZ_WORKSPACE_MODULES: WorkspaceModuleDefinition[] = [
 
 export function getWorkspacePrimaryRoute(module?: Pick<WorkspaceModuleDefinition, 'routeTarget' | 'subPages'>): string | undefined {
   return module?.routeTarget ?? module?.subPages[0]?.href;
+}
+
+const CANONICAL_WORKSPACE_ROUTE = '/app/einsatz/$einsatzId/übersicht';
+
+function normalizePathname(pathname: string): string {
+  if (pathname.length > 1 && pathname.endsWith('/')) {
+    return pathname.slice(0, -1);
+  }
+
+  return pathname;
+}
+
+function toWorkspaceTemplatePath(pathname: string, einsatzId: string): string {
+  const normalizedPathname = normalizePathname(pathname);
+  const einsatzPrefix = `/app/einsatz/${einsatzId}`;
+
+  if (normalizedPathname === einsatzPrefix) {
+    return '/app/einsatz/$einsatzId';
+  }
+
+  if (!normalizedPathname.startsWith(`${einsatzPrefix}/`)) {
+    return normalizedPathname;
+  }
+
+  return normalizedPathname.replace(einsatzPrefix, '/app/einsatz/$einsatzId');
+}
+
+function matchesWorkspaceRoute(pathnameTemplate: string, routeTemplate: string): boolean {
+  return pathnameTemplate === routeTemplate || pathnameTemplate.startsWith(`${routeTemplate}/`);
+}
+
+export function isWorkspaceRouteAccessible(pathname: string, einsatzId: string): boolean {
+  const pathnameTemplate = toWorkspaceTemplatePath(pathname, einsatzId);
+
+  for (const module of EINSATZ_WORKSPACE_MODULES) {
+    const moduleIsVisible = module.visibility.default === 'visible';
+
+    if (matchesWorkspaceRoute(pathnameTemplate, module.routeTarget)) {
+      return moduleIsVisible;
+    }
+
+    for (const subPage of module.subPages) {
+      if (!matchesWorkspaceRoute(pathnameTemplate, subPage.href)) {
+        continue;
+      }
+
+      return moduleIsVisible && subPage.visibility.default === 'visible';
+    }
+  }
+
+  // Routen außerhalb des Workspace-Contracts bleiben unangetastet.
+  return true;
+}
+
+export function getCanonicalWorkspaceRoute(): string {
+  const firstVisibleModule = EINSATZ_WORKSPACE_MODULES.find((module) => module.visibility.default === 'visible');
+  return getWorkspacePrimaryRoute(firstVisibleModule) ?? CANONICAL_WORKSPACE_ROUTE;
 }

@@ -10,6 +10,7 @@ export interface StatusRailItem {
   tone: WorkspaceStatusTone;
   icon?: ComponentType<{ className?: string }>;
   value?: ReactNode;
+  role?: 'status' | 'alert';
 }
 
 const TONE_CLASSES: Record<WorkspaceStatusTone, string> = {
@@ -37,32 +38,19 @@ export function StatusRail({ items = [], className, title = 'Workspace-Status' }
     <section aria-label={title} className={cn('space-y-2', className)}>
       {items.map((item) => {
         const Icon = item.icon;
-        const statusLabelId = `${item.id}-status-label`;
-        const statusDescriptionId = item.description ? `${item.id}-status-description` : undefined;
+        const role = item.role ?? 'status';
+        const liveMode = role === 'alert' ? 'assertive' : 'polite';
 
         return (
-          /* biome-ignore lint/a11y/useSemanticElements: role="status" modelliert hier bewusst einen Live-Status und kein Formular-Output. */
-          <div
-            key={item.id}
-            role="status"
-            aria-live="polite"
-            aria-atomic="true"
-            aria-labelledby={statusLabelId}
-            aria-describedby={statusDescriptionId}
-            className={cn('block rounded-panel border px-3 py-2 shadow-panel', TONE_CLASSES[item.tone])}
-          >
+          <div key={item.id} role={role} aria-live={liveMode} aria-atomic="true" className={cn('block rounded-panel border px-3 py-2 shadow-panel', TONE_CLASSES[item.tone])}>
             <div className="flex items-start gap-3">
               {Icon ? <Icon className="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden="true" /> : null}
               <div className="min-w-0 flex-1">
-                <div id={statusLabelId} className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
                   <span className="font-medium text-body-sm">{item.label}</span>
                   {item.value ? <span className="text-body-xs">{item.value}</span> : null}
                 </div>
-                {item.description ? (
-                  <p id={statusDescriptionId} className="mt-0.5 text-body-xs opacity-90">
-                    {item.description}
-                  </p>
-                ) : null}
+                {item.description ? <p className="mt-0.5 text-body-xs opacity-90">{item.description}</p> : null}
               </div>
             </div>
           </div>

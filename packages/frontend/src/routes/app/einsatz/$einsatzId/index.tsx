@@ -1,6 +1,10 @@
-import { SingleEinsatzDashboard } from '@/features/einsatz/ui/organisms/SingleEinsatzDashboard';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/app/einsatz/$einsatzId/')({
-  component: SingleEinsatzDashboard,
+  beforeLoad: ({ params }) => {
+    throw redirect({
+      to: '/app/einsatz/$einsatzId/übersicht',
+      params,
+    });
+  },
 });
