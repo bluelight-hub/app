@@ -25,8 +25,8 @@ export interface ServerConfig {
   url: string;
 
   /**
-   * Optionales Access Token für Server-zu-Server Authentifizierung.
-   * Wird verwendet wenn der Server ein API-Token benötigt.
+   * Reduzierter Marker für einen zentral persistierten Server-Access-Token.
+   * Der rohe Token liegt bewusst NICHT im Feature-Store.
    */
   accessToken?: string;
 

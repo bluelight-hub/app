@@ -1,39 +1,10 @@
-import { getBaseUrl } from '@/shared/api/api';
-import { fetchWithRefresh } from '@/shared/api/fetchWithRefresh';
+import { fetchBackendVersion } from '@/shared/api/backend-root';
+import { serverStore } from '@/features/server/stores/server.store';
+import { normalizeServerBaseUrl } from '@/shared/api/server-scoped-clients';
 import { useQuery } from '@tanstack/react-query';
+import { useStore } from '@tanstack/react-store';
 import { getMismatchSeverity, type MismatchSeverity } from '../utils/version';
 import { SYSTEM_QUERY_KEYS } from './queries';
-
-/**
- * Response-Struktur vom Root-Endpoint
- */
-interface RootResponse {
-  message: string;
-  version?: string;
-  endpoints: {
-    api: string;
-  };
-}
-
-/**
- * Ruft die Backend-Version vom Root-Endpoint ab
- *
- * Der generierte API-Client typisiert die Root-Response als void,
- * daher nutzen wir hier einen direkten fetch mit korrekter Typisierung.
- * fetchWithRefresh wird verwendet um den Server Access Token Header mitzuschicken.
- *
- * @param baseUrl - Die Server-URL vom Aufrufer (vermeidet doppelten getBaseUrl() Aufruf)
- */
-async function fetchBackendVersion(baseUrl: string): Promise<string | undefined> {
-  const response = await fetchWithRefresh(baseUrl);
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch backend version: ${response.status}`);
-  }
-
-  const data: RootResponse = await response.json();
-  return data.version;
-}
 
 /**
  * Hook zum Abrufen und Vergleichen von Frontend- und Backend-Version
@@ -53,14 +24,21 @@ async function fetchBackendVersion(baseUrl: string): Promise<string | undefined>
  * ```
  */
 export const useSystemVersion = () => {
-  // Query nur ausführen wenn ein Server konfiguriert ist
-  const baseUrl = getBaseUrl();
-  const isServerConfigured = !!baseUrl;
+  const isHydrated = useStore(serverStore, (state) => state.isHydrated);
+  const activeServerUrl = useStore(serverStore, (state) => {
+    if (!state.activeServerId) {
+      return null;
+    }
+
+    const activeServer = state.servers.find((server) => server.id === state.activeServerId);
+    return activeServer ? normalizeServerBaseUrl(activeServer.url) : null;
+  });
+  const serverScope = activeServerUrl ?? 'unconfigured';
+  const isServerConfigured = isHydrated && activeServerUrl !== null;
 
   const query = useQuery({
-    queryKey: SYSTEM_QUERY_KEYS.version(),
-    // baseUrl ist garantiert truthy wenn enabled=true, daher as string statt non-null assertion
-    queryFn: () => fetchBackendVersion(baseUrl as string),
+    queryKey: SYSTEM_QUERY_KEYS.version(serverScope),
+    queryFn: () => fetchBackendVersion(activeServerUrl as string),
     // Nur ausführen wenn Server konfiguriert - verhindert SyntaxError bei leerem URL
     enabled: isServerConfigured,
     // Version ändert sich nicht während einer Session, daher nie als stale markieren

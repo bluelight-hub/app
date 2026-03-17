@@ -6,13 +6,13 @@
  */
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactElement, ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { OnboardingErrorCode } from '../constants/error-codes.constants';
-import { addServer, setActiveServer } from '../stores/server.store';
+import { addServer, removeServer, setActiveServer } from '../stores/server.store';
 import { SERVER_QUERY_KEYS } from './query-keys';
-import { getExchangeErrorCode, useExchangeInvite } from './mutations';
+import { ExchangeInvitePersistenceError, getExchangeErrorCode, useExchangeInvite } from './mutations';
 
 // Use vi.hoisted to create mock functions that can be used in vi.mock
 const mocks = vi.hoisted(() => ({
@@ -46,6 +46,11 @@ vi.mock('@/shared/api/api', () => ({
   },
 }));
 
+vi.mock('@/shared/api/server-scoped-clients', () => ({
+  createServerScopedAuthApi: vi.fn(() => mockAuthApiInstance),
+  normalizeServerBaseUrl: (serverUrl: string) => (serverUrl.endsWith('/') ? serverUrl.slice(0, -1) : serverUrl),
+}));
+
 // Mock Logger
 vi.mock('@/shared/lib/logger', () => ({
   logger: {
@@ -58,6 +63,7 @@ vi.mock('@/shared/lib/logger', () => ({
 // Mock Server Store with factory
 vi.mock('../stores/server.store', () => ({
   addServer: vi.fn(),
+  removeServer: vi.fn(),
   setActiveServer: vi.fn(),
 }));
 
@@ -71,6 +77,9 @@ describe('useExchangeInvite', () => {
 
     // Configure addServer mock to return server ID (Fix #3: Race condition fix)
     vi.mocked(addServer).mockResolvedValue('server-1');
+    vi.mocked(removeServer).mockResolvedValue(undefined);
+    vi.mocked(setActiveServer).mockResolvedValue(undefined);
+    vi.mocked(removeServer).mockResolvedValue(undefined);
 
     // Create fresh QueryClient for each test
     // Note: We don't disable mutations.retry globally because useExchangeInvite
@@ -297,7 +306,7 @@ describe('useExchangeInvite', () => {
   });
 
   describe('Error Handling', () => {
-    it('should handle store errors after successful API call gracefully', async () => {
+    it('should reject when local server persistence fails after a successful API response', async () => {
       // Given (Arrange)
       const mockResponse = {
         data: {
@@ -324,20 +333,64 @@ describe('useExchangeInvite', () => {
       // When (Act)
       const { result } = renderHook(() => useExchangeInvite(), { wrapper });
 
-      result.current.mutate({ inviteCode: 'INV_STORE_ERR' });
+      let thrownError: unknown;
+      await act(async () => {
+        try {
+          await result.current.mutateAsync({ inviteCode: 'INV_STORE_ERR' });
+        } catch (error) {
+          thrownError = error;
+        }
+      });
 
       // Then (Assert)
-      // Should still be success because API call succeeded
-      await waitFor(() => expect(result.current.isSuccess).toBe(true));
-
-      // Verify API was called successfully
+      expect(thrownError).toBeInstanceOf(ExchangeInvitePersistenceError);
+      expect((thrownError as Error).message).toBe("Server 'Store Error Server' konnte lokal nicht gespeichert werden.");
+      await waitFor(() => expect(result.current.isError).toBe(true));
       expect(mocks.authControllerExchangeInvite).toHaveBeenCalled();
-
-      // Verify store was attempted
       expect(addServer).toHaveBeenCalled();
+      expect(removeServer).not.toHaveBeenCalled();
+      expect(result.current.error).toBeInstanceOf(ExchangeInvitePersistenceError);
+    });
 
-      // No error state (error is only logged, not propagated)
-      expect(result.current.error).toBeNull();
+    it('rolls back the locally added server when activation fails after persistence', async () => {
+      const mockResponse = {
+        data: {
+          accessToken: 'token_activation_error',
+          serverInfo: {
+            name: 'Activation Error Server',
+            baseUrl: 'https://api.activation-error.test',
+            version: '1.0.0',
+          },
+        },
+        meta: {
+          timestamp: new Date().toISOString(),
+          version: 'alpha',
+          requestId: 'req_activation_err',
+        },
+      };
+
+      mocks.authControllerExchangeInvite.mockResolvedValue(mockResponse);
+      vi.mocked(addServer).mockResolvedValue('server-activation');
+      vi.mocked(setActiveServer).mockRejectedValue(new Error('Failed to activate server'));
+
+      const { result } = renderHook(() => useExchangeInvite(), { wrapper });
+
+      let thrownError: unknown;
+      await act(async () => {
+        try {
+          await result.current.mutateAsync({ inviteCode: 'INV_ACTIVATION_ERR' });
+        } catch (error) {
+          thrownError = error;
+        }
+      });
+
+      expect(thrownError).toBeInstanceOf(ExchangeInvitePersistenceError);
+      expect((thrownError as Error).message).toBe("Server 'Activation Error Server' konnte lokal nicht gespeichert werden.");
+      await waitFor(() => expect(result.current.isError).toBe(true));
+      expect(addServer).toHaveBeenCalled();
+      expect(setActiveServer).toHaveBeenCalledWith('server-activation');
+      expect(removeServer).toHaveBeenCalledWith('server-activation');
+      expect(result.current.error).toBeInstanceOf(ExchangeInvitePersistenceError);
     });
   });
 
@@ -411,16 +464,13 @@ describe('useExchangeInvite', () => {
       // When (Act)
       const { result } = renderHook(() => useExchangeInvite(), { wrapper });
 
-      const responsePromise = result.current.mutateAsync({ inviteCode: 'INV_ASYNC' });
-
-      // Then (Assert)
-      const response = await responsePromise;
+      let response: Awaited<ReturnType<typeof result.current.mutateAsync>> | undefined;
+      await act(async () => {
+        response = await result.current.mutateAsync({ inviteCode: 'INV_ASYNC' });
+      });
 
       expect(response).toEqual(mockResponse);
-
-      // Wait for mutation to complete
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
-
       expect(addServer).toHaveBeenCalled();
     });
   });

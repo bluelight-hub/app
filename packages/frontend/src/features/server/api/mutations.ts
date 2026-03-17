@@ -6,13 +6,13 @@
  */
 
 import type { AuthControllerExchangeInvite200Response } from '@/shared';
-import type { ResponseError } from '@bluelight-hub/shared/client';
-import { AuthApi, Configuration } from '@bluelight-hub/shared/client';
+import type { AuthApi, ResponseError } from '@bluelight-hub/shared/client';
 import { api } from '@/shared/api/api';
+import { createServerScopedAuthApi, normalizeServerBaseUrl } from '@/shared/api/server-scoped-clients';
 import { logger } from '@/shared/lib/logger';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { type OnboardingErrorCode, parseOnboardingErrorCode } from '../constants/error-codes.constants';
-import { addServer, setActiveServer } from '../stores/server.store';
+import { addServer, removeServer, setActiveServer } from '../stores/server.store';
 import { SERVER_QUERY_KEYS } from './query-keys';
 
 /**
@@ -29,6 +29,13 @@ import { SERVER_QUERY_KEYS } from './query-keys';
  * - 422: Unprocessable Entity (Validierungsfehler)
  */
 const NON_RETRYABLE_STATUS_CODES = [400, 401, 403, 404, 409, 410, 422];
+
+export class ExchangeInvitePersistenceError extends Error {
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'ExchangeInvitePersistenceError';
+  }
+}
 
 /**
  * Extrahiert den Onboarding-Fehlercode aus einem Exchange-Fehler.
@@ -123,8 +130,8 @@ export interface ExchangeInviteInput {
 export const useExchangeInvite = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<AuthControllerExchangeInvite200Response, ResponseError, ExchangeInviteInput>({
-    mutationFn: async ({ inviteCode, serverUrl }: ExchangeInviteInput) => {
+  return useMutation<AuthControllerExchangeInvite200Response, ResponseError | ExchangeInvitePersistenceError, ExchangeInviteInput>({
+    mutationFn: async ({ inviteCode, serverUrl, serverName }: ExchangeInviteInput) => {
       logger.debug('Exchanging invite code', { inviteCode, serverUrl: serverUrl ?? '(active server)' });
 
       // Falls serverUrl angegeben, temporäre API-Instanz erstellen
@@ -133,12 +140,7 @@ export const useExchangeInvite = () => {
       let authApi: AuthApi;
 
       if (serverUrl) {
-        // Temporäre Configuration für den Ziel-Server
-        const tempConfig = new Configuration({
-          basePath: serverUrl.endsWith('/') ? serverUrl.slice(0, -1) : serverUrl,
-          credentials: 'include',
-        });
-        authApi = new AuthApi(tempConfig);
+        authApi = createServerScopedAuthApi(serverUrl);
         logger.debug('Using temporary AuthApi for target server', { serverUrl });
       } else {
         // Fallback auf den aktuell aktiven Server
@@ -150,69 +152,75 @@ export const useExchangeInvite = () => {
         exchangeInviteDto: { inviteCode },
       });
 
+      const { accessToken, serverInfo } = response.data;
+      const displayName = serverName || serverInfo.name;
+      const resolvedServerUrl = serverUrl ? normalizeServerBaseUrl(serverUrl) : serverInfo.baseUrl;
+
+      let newServerId: string | null = null;
+
+      try {
+        newServerId = await addServer({
+          name: displayName,
+          url: resolvedServerUrl,
+          accessToken,
+          isDefault: false,
+          lastUsedAt: new Date().toISOString(),
+        });
+
+        await setActiveServer(newServerId);
+      } catch (error) {
+        if (newServerId) {
+          try {
+            await removeServer(newServerId);
+          } catch (rollbackError) {
+            logger.error('Rollback after exchange invite persistence failure failed', {
+              rollbackError,
+              serverId: newServerId,
+            });
+          }
+        }
+
+        logger.error('Failed to persist exchanged server locally', {
+          error,
+          serverName: displayName,
+          serverUrl: resolvedServerUrl,
+        });
+
+        throw new ExchangeInvitePersistenceError(`Server '${displayName}' konnte lokal nicht gespeichert werden.`, {
+          cause: error instanceof Error ? error : undefined,
+        });
+      }
+
       return response;
     },
 
     onSuccess: async (response, variables) => {
-      try {
-        // Extract data from wrapped response
-        const { accessToken, serverInfo } = response.data;
+      const displayName = variables.serverName || response.data.serverInfo.name;
+      const resolvedServerUrl = variables.serverUrl ? normalizeServerBaseUrl(variables.serverUrl) : response.data.serverInfo.baseUrl;
 
-        // Nutze den vom User angegebenen Server-Namen oder fallback auf serverInfo.name (AC5)
-        const displayName = variables.serverName || serverInfo.name;
+      logger.debug('Invite exchange successful', {
+        serverName: displayName,
+        serverUrl: resolvedServerUrl,
+        originalServerUrl: response.data.serverInfo.baseUrl,
+        customName: !!variables.serverName,
+        customUrl: !!variables.serverUrl,
+      });
 
-        // Nutze die vom User angegebene Server-URL (normalisiert) oder fallback auf Backend-Response
-        // WICHTIG: User-Input hat Vorrang, da Backend-URL oft intern/falsch sein kann (z.B. Docker-Container URL)
-        let serverUrl = serverInfo.baseUrl;
-        if (variables.serverUrl) {
-          serverUrl = variables.serverUrl.endsWith('/') ? variables.serverUrl.slice(0, -1) : variables.serverUrl;
-        }
+      await queryClient.invalidateQueries({ queryKey: SERVER_QUERY_KEYS.list() });
 
-        logger.debug('Invite exchange successful', {
-          serverName: displayName,
-          serverUrl,
-          originalServerUrl: serverInfo.baseUrl,
-          customName: !!variables.serverName,
-          customUrl: !!variables.serverUrl,
-        });
-
-        // Create new server config with optional custom name
-        const newServer = {
-          name: displayName,
-          url: serverUrl,
-          accessToken,
-          isDefault: false,
-          lastUsedAt: new Date().toISOString(),
-        };
-
-        // Add to store (automatically persists to storage)
-        // Returns the generated server ID to avoid race condition
-        const newServerId = await addServer(newServer);
-
-        // Set as active server using the returned ID (updates lastUsedAt and isDefault)
-        await setActiveServer(newServerId);
-
-        // Invalidate server list query to refresh cache
-        await queryClient.invalidateQueries({ queryKey: SERVER_QUERY_KEYS.list() });
-
-        logger.info('Server added and activated successfully', {
-          serverName: displayName,
-        });
-      } catch (error) {
-        // Log error but don't re-throw - mutation was successful at API level
-        // We don't want to trigger onError callback for store errors
-        logger.error('Failed to add server to store after successful API call', error);
-        // Note: User should see toast notification about partial success
-      }
+      logger.info('Server added and activated successfully', {
+        serverName: displayName,
+      });
     },
 
-    onError: (error: ResponseError) => {
+    onError: (error) => {
       // Extract error message from ResponseError
       const errorMessage = error.message || 'Unknown error during invite exchange';
+      const status = error instanceof ExchangeInvitePersistenceError ? undefined : error.response?.status;
 
       logger.error('Failed to exchange invite code', {
         error: errorMessage,
-        status: error.response?.status,
+        status,
       });
 
       // Error handling (toast notification in component layer)

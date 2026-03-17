@@ -5,6 +5,6 @@
  */
 export const SYSTEM_QUERY_KEYS = {
   all: ['system'] as const,
-  health: () => [...SYSTEM_QUERY_KEYS.all, 'health'] as const,
-  version: () => [...SYSTEM_QUERY_KEYS.all, 'version'] as const,
+  health: (serverScope: string) => [...SYSTEM_QUERY_KEYS.all, 'health', serverScope] as const,
+  version: (serverScope: string) => [...SYSTEM_QUERY_KEYS.all, 'version', serverScope] as const,
 } as const;

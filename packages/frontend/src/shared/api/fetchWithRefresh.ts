@@ -1,7 +1,7 @@
 import { logger } from '@/shared/lib/logger';
 import { redirectWithRouter } from '@/shared/lib/navigation/router-redirect';
 import { clearServerAccessToken, getServerAccessToken, isSetupRedirectInProgress, isTokenErrorMessage, setSetupRedirectInProgress } from '@/shared/lib/server-access-token';
-import { AuthApi, Configuration } from '@/shared';
+import { createServerScopedAuthApi } from './server-scoped-clients';
 import { getBaseUrl } from './api';
 
 /**
@@ -55,14 +55,9 @@ const tokenRefreshQueue = new TokenRefreshQueue();
  */
 async function refreshAccessToken(): Promise<boolean> {
   try {
-    // Use the generated API client for refresh
-    const authApi = new AuthApi(
-      new Configuration({
-        basePath: getBaseUrl(),
-        fetchApi: fetch, // Use standard fetch for refresh to avoid recursion
-        credentials: 'include',
-      }),
-    );
+    const authApi = createServerScopedAuthApi(getBaseUrl(), {
+      fetchApi: fetch,
+    });
 
     await authApi.authControllerRefresh();
     logger.debug('Token refresh successful');
@@ -79,8 +74,8 @@ async function refreshAccessToken(): Promise<boolean> {
  * @param init - Bestehende RequestInit-Optionen
  * @returns Erweiterte RequestInit mit Server Access Token Header
  */
-function addServerAccessTokenHeader(init: RequestInit): RequestInit {
-  const token = getServerAccessToken();
+async function addServerAccessTokenHeader(init: RequestInit): Promise<RequestInit> {
+  const token = await getServerAccessToken();
   if (!token) {
     return init;
   }
@@ -150,7 +145,7 @@ async function isServerNotSetupError(response: Response): Promise<boolean> {
  * Cleart den alten Token (falls vorhanden) und redirectet zur Setup-Seite.
  * Nutzt zentrales Flag um mehrfache Redirects bei parallelen Requests zu verhindern.
  */
-function handleServerNotSetup(): void {
+async function handleServerNotSetup(): Promise<void> {
   // Vermeide mehrfache Redirects bei parallelen Requests
   if (isSetupRedirectInProgress()) {
     return;
@@ -165,7 +160,7 @@ function handleServerNotSetup(): void {
   }
 
   // Clear old token - backend was reset, old token is invalid
-  clearServerAccessToken();
+  await clearServerAccessToken();
   logger.info('Server requires setup, clearing old token and redirecting to /server/setup');
   void redirectWithRouter({
     to: '/server/setup',
@@ -181,7 +176,7 @@ function handleServerNotSetup(): void {
  * Unterschied zu handleServerNotSetup: Token existiert aber ist ungueltig
  * (z.B. weil der Server zurueckgesetzt wurde).
  */
-function handleInvalidServerToken(): void {
+async function handleInvalidServerToken(): Promise<void> {
   // Vermeide mehrfache Redirects bei parallelen Requests
   if (isSetupRedirectInProgress()) {
     return;
@@ -194,7 +189,7 @@ function handleInvalidServerToken(): void {
     return;
   }
 
-  clearServerAccessToken();
+  await clearServerAccessToken();
   logger.info('Invalid server token, redirecting to /server/manage');
   void redirectWithRouter({
     to: '/server/manage',
@@ -221,7 +216,7 @@ export async function fetchWithRefresh(input: RequestInfo | URL, init?: RequestI
   };
 
   // Add Server Access Token header if available
-  const enhancedInit = addServerAccessTokenHeader(baseInit);
+  const enhancedInit = await addServerAccessTokenHeader(baseInit);
 
   // Make the initial request
   let response = await fetch(input, enhancedInit);
@@ -230,7 +225,7 @@ export async function fetchWithRefresh(input: RequestInfo | URL, init?: RequestI
   if (response.status === 503) {
     const isSetupRequired = await isServerNotSetupError(response);
     if (isSetupRequired) {
-      handleServerNotSetup();
+      await handleServerNotSetup();
       // Response zurueckgeben damit Caller wissen dass Request fehlschlug
       return response;
     }
@@ -248,7 +243,7 @@ export async function fetchWithRefresh(input: RequestInfo | URL, init?: RequestI
     const tokenRequired = await isServerAccessTokenRequired(response);
     if (tokenRequired) {
       logger.warn('Server access token invalid - redirecting to server manage');
-      handleInvalidServerToken();
+      await handleInvalidServerToken();
       return response;
     }
 

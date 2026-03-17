@@ -34,16 +34,16 @@ import { Input } from '@/shared/ui/atoms/input.atom';
 import { Alert } from '@/shared/ui/atoms/alert.atom';
 import { cn } from '@/shared/ui/cn';
 import { serverUrlSchema, inviteCodeSchema, serverNameSchema, adminUsernameSchema, adminPasswordSchema } from '../../schemas/url-params.schema';
-import { useExchangeInvite } from '../../api/mutations';
+import { ExchangeInvitePersistenceError, useExchangeInvite } from '../../api/mutations';
 import { useHealthCheck, HealthCheckError } from '../../api/use-health-check';
 import { OnboardingErrorCard } from '../molecules/OnboardingErrorCard';
 import { toast } from 'sonner';
 import { PiDatabase, PiKey, PiBuildings, PiUser, PiLock, PiWarning, PiCheckCircle, PiArrowRight } from 'react-icons/pi';
-import { Configuration, AdminApi } from '@bluelight-hub/shared/client';
 import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
+import { ServerPersistenceError } from '../../stores/server-persistence';
 import { addServer, setActiveServer, isServerNameTaken } from '../../stores/server.store';
 import { logger } from '@/shared/lib/logger';
-import { setServerAccessToken } from '@/shared/lib/server-access-token';
+import { createServerScopedAdminApi, normalizeServerBaseUrl } from '@/shared/api/server-scoped-clients';
 import { PasswordStrengthIndicator } from '@/shared/ui/molecules/password-strength-indicator.molecule';
 import { CopyButton } from '@/shared/ui/molecules';
 
@@ -261,12 +261,8 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
           const serverUrl = verifiedServerUrl || value.serverUrl;
 
           // Temporärer API-Client für den Ziel-Server
-          const normalizedUrl = serverUrl.endsWith('/') ? serverUrl.slice(0, -1) : serverUrl;
-          const tempConfig = new Configuration({
-            basePath: normalizedUrl,
-            credentials: 'include',
-          });
-          const adminApi = new AdminApi(tempConfig);
+          const normalizedUrl = normalizeServerBaseUrl(serverUrl);
+          const adminApi = createServerScopedAdminApi(normalizedUrl);
 
           logger.debug('Starting admin setup', { serverUrl: normalizedUrl });
 
@@ -292,9 +288,6 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
             isDefault: false,
             lastUsedAt: new Date().toISOString(),
           });
-
-          // Token auch im globalen Storage speichern für fetchWithRefresh
-          setServerAccessToken(accessToken);
 
           // Als aktiven Server setzen
           await setActiveServer(newServerId);
@@ -335,6 +328,13 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
         if (error instanceof Error && error.message.includes('existiert bereits')) {
           toast.error('Server-Name bereits vergeben', {
             description: 'Bitte wähle einen anderen Namen für diesen Server.',
+          });
+          return;
+        }
+
+        if (error instanceof ServerPersistenceError || error instanceof ExchangeInvitePersistenceError) {
+          toast.error('Server lokal nicht gespeichert', {
+            description: 'Der Server wurde bestätigt, konnte aber auf diesem Gerät nicht konsistent gespeichert werden. Bitte prüfe Speicherrechte und versuche es erneut.',
           });
           return;
         }

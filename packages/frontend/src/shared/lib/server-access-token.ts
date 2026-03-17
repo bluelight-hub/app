@@ -1,17 +1,9 @@
-/**
- * Server Access Token Storage und Management
- *
- * Speichert den Server Access Token persistent (localStorage).
- * Der Token wird bei jedem API-Request als X-Server-Access-Token Header mitgesendet.
- *
- * **Wichtig:** Der Token wird beim Server-Setup via Invite Code erhalten
- * und automatisch gespeichert. Bei Token-Problemen wird der User zur
- * Server-Setup-Seite weitergeleitet.
- */
-
+import { serverStore, updateServer } from '@/features/server/stores/server.store';
+import { loadServerAccessToken, STORED_SERVER_ACCESS_TOKEN_MARKER } from '@/features/server/stores/server-persistence';
+import { getStorageAdapter } from '@/shared/services/storage/storage-adapter.factory';
 import { logger } from './logger';
 
-const STORAGE_KEY = 'bluelight-hub-server-access-token';
+const LEGACY_STORAGE_KEY = 'bluelight-hub-server-access-token';
 
 /**
  * Backend Error-Messages fuer Server-Access-Token Probleme
@@ -66,42 +58,68 @@ export function setSetupRedirectInProgress(value: boolean): void {
   isSetupRedirectActive = value;
 }
 
-/**
- * Speichert den Server Access Token persistent
- *
- * @param token - Der Server Access Token (z.B. "blh_xxx...")
- */
-export function setServerAccessToken(token: string): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, token);
-    logger.info('Server access token saved');
-  } catch (error) {
-    logger.error('Failed to save server access token', { error });
-  }
+function getActiveServer() {
+  const { activeServerId, servers } = serverStore.state;
+  return activeServerId ? servers.find((server) => server.id === activeServerId) : undefined;
 }
 
 /**
- * Liest den gespeicherten Server Access Token
+ * Liest den aktiven Server-Access-Token aus der zentralen, servergebundenen Persistenz.
  *
- * @returns Der Token oder null wenn nicht vorhanden
+ * Ein Legacy-Shadow-Storage wird nur noch als Fallback vor abgeschlossener
+ * Hydration berücksichtigt, damit alte lokale Spiegel schrittweise verschwinden.
  */
-export function getServerAccessToken(): string | null {
+export async function getServerAccessToken(): Promise<string | null> {
+  const activeServer = getActiveServer();
+  if (activeServer?.accessToken) {
+    if (activeServer.accessToken !== STORED_SERVER_ACCESS_TOKEN_MARKER) {
+      return activeServer.accessToken;
+    }
+
+    try {
+      return await loadServerAccessToken(activeServer.id);
+    } catch (error) {
+      logger.error('Failed to read stored server access token', { error, serverId: activeServer.id });
+      return null;
+    }
+  }
+
+  if (serverStore.state.isHydrated) {
+    return null;
+  }
+
   try {
-    return localStorage.getItem(STORAGE_KEY);
+    return await getStorageAdapter().getItem(LEGACY_STORAGE_KEY);
   } catch (error) {
-    logger.error('Failed to read server access token', { error });
+    logger.error('Failed to read legacy server access token shadow', { error });
     return null;
   }
 }
 
-/**
- * Loescht den gespeicherten Server Access Token
- */
-export function clearServerAccessToken(): void {
+export async function clearLegacyServerAccessTokenShadow(): Promise<void> {
   try {
-    localStorage.removeItem(STORAGE_KEY);
-    logger.info('Server access token cleared');
+    await getStorageAdapter().removeItem(LEGACY_STORAGE_KEY);
   } catch (error) {
-    logger.error('Failed to clear server access token', { error });
+    logger.error('Failed to clear legacy server access token shadow', { error });
+  }
+}
+
+/**
+ * Entfernt den aktiven Token aus der autorisierten Server-Quelle und räumt
+ * parallel alte Shadow-Speicherpfade auf.
+ */
+export async function clearServerAccessToken(): Promise<void> {
+  await clearLegacyServerAccessTokenShadow();
+
+  const activeServer = getActiveServer();
+  if (!activeServer?.accessToken) {
+    return;
+  }
+
+  try {
+    await updateServer(activeServer.id, { accessToken: undefined });
+    logger.info('Server access token cleared from active server persistence');
+  } catch (error) {
+    logger.error('Failed to clear server access token from active server persistence', { error });
   }
 }
