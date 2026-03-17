@@ -16,6 +16,7 @@ export * from './password-strength-indicator.lazy';
 export * from './form';
 
 // Interactive Components
+export * from './confirm-button.molecule';
 export * from './copy-button.molecule';
 export * from './dialog.molecule';
 export * from './search-input.molecule';

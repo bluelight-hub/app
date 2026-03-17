@@ -2,6 +2,11 @@ import type { AuthUserResponseDtoRoleEnum, ManagedUserResponseDtoRoleEnum } from
 
 export type AuthRole = AuthUserResponseDtoRoleEnum | ManagedUserResponseDtoRoleEnum | string | undefined;
 
+export interface EinsatzCapabilities {
+  canOpenEinsatz: boolean;
+  canCreateEinsatz: boolean;
+}
+
 export interface AuthContextSummary {
   roleLabel: string;
   permissionLevelLabel: string;
@@ -10,11 +15,29 @@ export interface AuthContextSummary {
   nextActionLabel: string;
   restrictedActionLabel?: string;
   restrictedActionHint?: string;
+  capabilities: EinsatzCapabilities;
 }
 
 const USER_ROLE = 'USER';
 const ADMIN_ROLE = 'ADMIN';
 const SUPER_ADMIN_ROLE = 'SUPER_ADMIN';
+
+function deriveEinsatzCapabilities(role: AuthRole, _isAdminAuthenticated: boolean): EinsatzCapabilities {
+  switch (role) {
+    case USER_ROLE:
+    case ADMIN_ROLE:
+    case SUPER_ADMIN_ROLE:
+      return {
+        canOpenEinsatz: true,
+        canCreateEinsatz: true,
+      };
+    default:
+      return {
+        canOpenEinsatz: false,
+        canCreateEinsatz: false,
+      };
+  }
+}
 
 /**
  * Prüft ob die gegebene Rolle eine Admin-Rolle ist.
@@ -29,6 +52,8 @@ export const isAdmin = (role: AuthRole): boolean => {
 };
 
 export function getAuthContextSummary(role: AuthRole, isAdminAuthenticated: boolean): AuthContextSummary {
+  const capabilities = deriveEinsatzCapabilities(role, isAdminAuthenticated);
+
   switch (role) {
     case SUPER_ADMIN_ROLE:
       return isAdminAuthenticated
@@ -38,6 +63,7 @@ export function getAuthContextSummary(role: AuthRole, isAdminAuthenticated: bool
             permissionHint: 'Dieses Konto kann operative und administrative Aufgaben vollständig ausführen.',
             primaryActionLabel: 'Einsatz auswählen oder neu anlegen',
             nextActionLabel: 'Öffnen Sie einen Einsatz im Dashboard oder wechseln Sie bei Bedarf in den Admin-Bereich.',
+            capabilities,
           }
         : {
             roleLabel: 'Super-Administrator',
@@ -47,6 +73,7 @@ export function getAuthContextSummary(role: AuthRole, isAdminAuthenticated: bool
             nextActionLabel: 'Arbeiten Sie operativ weiter oder öffnen Sie den Admin-Login für Verwaltungsaufgaben.',
             restrictedActionLabel: 'Admin-Bereich',
             restrictedActionHint: 'Für System- und Verwaltungsfunktionen zuerst den Admin-Login öffnen.',
+            capabilities,
           };
 
     case ADMIN_ROLE:
@@ -57,6 +84,7 @@ export function getAuthContextSummary(role: AuthRole, isAdminAuthenticated: bool
             permissionHint: 'Dieses Konto kann operative Arbeit und Verwaltungsaufgaben ausführen.',
             primaryActionLabel: 'Einsatz auswählen oder neu anlegen',
             nextActionLabel: 'Öffnen Sie einen Einsatz im Dashboard oder wechseln Sie bei Bedarf in den Admin-Bereich.',
+            capabilities,
           }
         : {
             roleLabel: 'Administrator',
@@ -66,6 +94,7 @@ export function getAuthContextSummary(role: AuthRole, isAdminAuthenticated: bool
             nextActionLabel: 'Arbeiten Sie operativ weiter oder öffnen Sie den Admin-Login für Verwaltungsaufgaben.',
             restrictedActionLabel: 'Admin-Bereich',
             restrictedActionHint: 'Für Verwaltungsfunktionen zuerst den Admin-Login öffnen.',
+            capabilities,
           };
 
     case USER_ROLE:
@@ -77,6 +106,7 @@ export function getAuthContextSummary(role: AuthRole, isAdminAuthenticated: bool
         nextActionLabel: 'Öffnen Sie einen bestehenden Einsatz oder legen Sie direkt einen neuen Einsatz an.',
         restrictedActionLabel: 'Verwaltungsfunktionen',
         restrictedActionHint: 'Verwaltungsfunktionen sind für dieses Konto nicht freigegeben.',
+        capabilities,
       };
 
     default:
@@ -86,6 +116,7 @@ export function getAuthContextSummary(role: AuthRole, isAdminAuthenticated: bool
         permissionHint: 'Die Rolle konnte noch nicht eindeutig zugeordnet werden.',
         primaryActionLabel: 'Einsatz auswählen oder neu anlegen',
         nextActionLabel: 'Prüfen Sie den sichtbaren Kontext und melden Sie sich bei Bedarf erneut an.',
+        capabilities,
       };
   }
 }

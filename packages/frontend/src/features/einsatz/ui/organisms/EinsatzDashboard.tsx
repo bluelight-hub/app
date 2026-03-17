@@ -1,252 +1,505 @@
-import { useActiveEinsaetzeWithCounts, useEinsatzStatusCounts } from '@/features/einsatz';
+import { getAuthContextSummary, useCurrentUser } from '@/features/auth';
+import { useActiveEinsaetzeWithCounts, useActiveEinsatz, useArchiveEinsatz, useEinsaetzeInfiniteQuery, useEinsatzStatusCounts } from '@/features/einsatz';
 import { EinsatzListItem } from '@/features/einsatz/ui/molecules/EinsatzListItem';
 import { EinsatzCreateForm } from '@/features/einsatz/ui/organisms/EinsatzCreateForm';
-import { EinsatzControllerFindAllVAlphaOrderByEnum, EinsatzControllerFindAllVAlphaOrderDirectionEnum, EinsatzResponseDtoStatusEnum } from '@/shared';
+import {
+  EinsatzControllerFindAllVAlphaOrderByEnum,
+  EinsatzControllerFindAllVAlphaOrderDirectionEnum,
+  EinsatzControllerFindAllVAlphaStatusEnum,
+  type EinsatzListItemDto,
+  EinsatzListItemDtoStatusEnum,
+} from '@/shared';
 import { Button } from '@/shared/ui/atoms/button.atom';
+import { Select } from '@/shared/ui/atoms/select.atom';
+import { cn } from '@/shared/ui/cn';
+import { ConfirmButton } from '@/shared/ui/molecules';
 import { SearchInput } from '@/shared/ui/molecules/search-input.molecule';
-import { FilterPanel } from '@/shared/ui/organisms/dashboard/FilterPanel';
-import { MobileFilterDialog } from '@/shared/ui/organisms/dashboard/MobileFilterDialog';
-import { MobileStatusBar } from '@/shared/ui/organisms/dashboard/MobileStatusBar';
-import { StatusCard } from '@/shared/ui/organisms/dashboard/StatusCard';
-import { Link } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { PiFunnel, PiFunnelX, PiPlus } from 'react-icons/pi';
+import { PiArchive, PiCheckCircle, PiPlus, PiSpinner } from 'react-icons/pi';
+
+type DashboardView = 'active' | 'archive';
 
 interface SortOption {
   key: EinsatzControllerFindAllVAlphaOrderByEnum;
   direction: EinsatzControllerFindAllVAlphaOrderDirectionEnum;
 }
 
+interface ActiveSection {
+  status: EinsatzListItemDtoStatusEnum;
+  title: string;
+  description: string;
+  badgeClassName: string;
+}
+
+const ACTIVE_SECTIONS: ActiveSection[] = [
+  {
+    status: EinsatzListItemDtoStatusEnum.InBearbeitung,
+    title: 'In Bearbeitung',
+    description: 'Laufende Einsätze mit aktuellem Arbeitsbedarf.',
+    badgeClassName: 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200',
+  },
+  {
+    status: EinsatzListItemDtoStatusEnum.Angelegt,
+    title: 'Neu angelegt',
+    description: 'Einsätze, die als Nächstes übernommen werden können.',
+    badgeClassName: 'border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-200',
+  },
+  {
+    status: EinsatzListItemDtoStatusEnum.Abgeschlossen,
+    title: 'Abgeschlossen',
+    description: 'Dokumentation ist fertig, Archivierung steht noch aus.',
+    badgeClassName: 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200',
+  },
+];
+
+const ARCHIVE_SORT_OPTIONS: Array<SortOption & { label: string; value: string }> = [
+  {
+    key: EinsatzControllerFindAllVAlphaOrderByEnum.CreatedAt,
+    direction: EinsatzControllerFindAllVAlphaOrderDirectionEnum.Desc,
+    label: 'Neueste zuerst',
+    value: `${EinsatzControllerFindAllVAlphaOrderByEnum.CreatedAt}:${EinsatzControllerFindAllVAlphaOrderDirectionEnum.Desc}`,
+  },
+  {
+    key: EinsatzControllerFindAllVAlphaOrderByEnum.CreatedAt,
+    direction: EinsatzControllerFindAllVAlphaOrderDirectionEnum.Asc,
+    label: 'Älteste zuerst',
+    value: `${EinsatzControllerFindAllVAlphaOrderByEnum.CreatedAt}:${EinsatzControllerFindAllVAlphaOrderDirectionEnum.Asc}`,
+  },
+  {
+    key: EinsatzControllerFindAllVAlphaOrderByEnum.UpdatedAt,
+    direction: EinsatzControllerFindAllVAlphaOrderDirectionEnum.Desc,
+    label: 'Zuletzt geändert',
+    value: `${EinsatzControllerFindAllVAlphaOrderByEnum.UpdatedAt}:${EinsatzControllerFindAllVAlphaOrderDirectionEnum.Desc}`,
+  },
+  {
+    key: EinsatzControllerFindAllVAlphaOrderByEnum.Alarmstichwort,
+    direction: EinsatzControllerFindAllVAlphaOrderDirectionEnum.Asc,
+    label: 'Alarmstichwort A-Z',
+    value: `${EinsatzControllerFindAllVAlphaOrderByEnum.Alarmstichwort}:${EinsatzControllerFindAllVAlphaOrderDirectionEnum.Asc}`,
+  },
+];
+
 export function EinsatzDashboard() {
-  const [statusFilter, setStatusFilter] = useState<EinsatzResponseDtoStatusEnum | undefined>(undefined);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortOption, setSortOption] = useState<SortOption>({
+  const navigate = useNavigate();
+  const { setActiveEinsatz } = useActiveEinsatz();
+  const { user, authContext, isAdminAuthenticated } = useCurrentUser();
+  const [currentView, setCurrentView] = useState<DashboardView>('active');
+  const [archiveSearchInput, setArchiveSearchInput] = useState('');
+  const [archiveSearchTerm, setArchiveSearchTerm] = useState('');
+  const [archiveSortOption, setArchiveSortOption] = useState<SortOption>({
     key: EinsatzControllerFindAllVAlphaOrderByEnum.CreatedAt,
     direction: EinsatzControllerFindAllVAlphaOrderDirectionEnum.Desc,
   });
-  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
-  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isCreatePanelOpen, setIsCreatePanelOpen] = useState(false);
-  const [showArchived, setShowArchived] = useState(false);
+  const [openingEinsatzId, setOpeningEinsatzId] = useState<string | null>(null);
+  const [openError, setOpenError] = useState<string | null>(null);
+  const resolvedAuthContext = authContext ?? (user ? getAuthContextSummary(user.role, isAdminAuthenticated ?? false) : null);
+  const einsatzCapabilities = resolvedAuthContext?.capabilities ?? {
+    canOpenEinsatz: false,
+    canCreateEinsatz: false,
+  };
+  const restrictionHint = !einsatzCapabilities.canOpenEinsatz || !einsatzCapabilities.canCreateEinsatz ? (resolvedAuthContext?.restrictedActionHint ?? resolvedAuthContext?.nextActionLabel) : null;
 
-  // Use optimized hook with counts - includeArchived wenn Archiv-Filter aktiv
-  const { data: rawEinsaetze = [], isLoading, error, refetch } = useActiveEinsaetzeWithCounts(showArchived);
+  const { data: activeEinsaetze = [], isLoading: isActiveLoading, error: activeError, refetch: refetchActive } = useActiveEinsaetzeWithCounts();
+  const archiveEinsatz = useArchiveEinsatz();
+  const {
+    data: archiveQueryData,
+    isLoading: isArchiveLoading,
+    error: archiveError,
+    refetch: refetchArchive,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useEinsaetzeInfiniteQuery(
+    {
+      status: EinsatzControllerFindAllVAlphaStatusEnum.Archiviert,
+      search: archiveSearchTerm || undefined,
+      limit: 25,
+      orderBy: archiveSortOption.key,
+      orderDirection: archiveSortOption.direction,
+    },
+    { enabled: currentView === 'archive' },
+  );
+  const { counts } = useEinsatzStatusCounts(true);
+  const activeCount = activeEinsaetze.length;
 
-  // Apply client-side filtering and sorting
-  const einsaetze = useMemo(() => {
-    let filtered = rawEinsaetze;
+  const activeSections = useMemo(
+    () =>
+      ACTIVE_SECTIONS.map((section) => ({
+        ...section,
+        einsaetze: [...activeEinsaetze].filter((einsatz) => einsatz.status === section.status).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()),
+      })).filter((section) => section.einsaetze.length > 0),
+    [activeEinsaetze],
+  );
 
-    // Filter by status
-    if (statusFilter) {
-      filtered = filtered.filter((e) => e.status === statusFilter);
-    } else if (!showArchived) {
-      filtered = filtered.filter((e) => e.status !== EinsatzResponseDtoStatusEnum.Archiviert);
-    }
-
-    // Filter by search term
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (e) =>
-          e.alarmstichwort.toLowerCase().includes(term) ||
-          e.nummer.toLowerCase().includes(term) ||
-          e.einsatzort?.ort?.toLowerCase().includes(term) ||
-          e.einsatzort?.strasse?.toLowerCase().includes(term),
-      );
-    }
-
-    // Sort
-
-    return [...filtered].sort((a, b) => {
-      let aValue: string | number | Date = a.createdAt;
-      let bValue: string | number | Date = b.createdAt;
-
-      if (sortOption.key === EinsatzControllerFindAllVAlphaOrderByEnum.Nummer) {
-        aValue = a.nummer;
-        bValue = b.nummer;
-      } else if (sortOption.key === EinsatzControllerFindAllVAlphaOrderByEnum.Alarmstichwort) {
-        aValue = a.alarmstichwort;
-        bValue = b.alarmstichwort;
-      } else if (sortOption.key === EinsatzControllerFindAllVAlphaOrderByEnum.Status) {
-        aValue = a.status;
-        bValue = b.status;
-      }
-
-      const comparison = aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
-      return sortOption.direction === EinsatzControllerFindAllVAlphaOrderDirectionEnum.Desc ? -comparison : comparison;
-    });
-  }, [rawEinsaetze, statusFilter, showArchived, searchTerm, sortOption]);
-
-  const { total, counts } = useEinsatzStatusCounts(true);
+  const archivedEinsaetze = useMemo(() => archiveQueryData?.pages.flatMap((page) => page.data ?? []) ?? [], [archiveQueryData]);
+  const archiveTotal = archiveQueryData?.pages[0]?.pagination?.total ?? counts.archiviert;
 
   useHotkeys(
     'mod+n',
     () => {
-      setIsCreatePanelOpen(true);
+      if (einsatzCapabilities.canCreateEinsatz) {
+        setIsCreatePanelOpen(true);
+      }
     },
-    [setIsCreatePanelOpen],
+    [einsatzCapabilities.canCreateEinsatz, setIsCreatePanelOpen],
     { preventDefault: true },
   );
 
-  const handleSort = (key: SortOption['key']) => {
-    setSortOption((prev) => ({
-      key,
-      direction:
-        prev.key === key && prev.direction === EinsatzControllerFindAllVAlphaOrderDirectionEnum.Asc
-          ? EinsatzControllerFindAllVAlphaOrderDirectionEnum.Desc
-          : EinsatzControllerFindAllVAlphaOrderDirectionEnum.Asc,
-    }));
-  };
+  const handleCreateSuccess = async (einsatzId: string) => {
+    setOpenError(null);
 
-  const handleCreateSuccess = (_einsatzId: string) => {
-    setIsCreatePanelOpen(false);
-    refetch();
-  };
-
-  const handleArchiveToggle = () => {
-    setShowArchived(!showArchived);
-    if (!showArchived) {
-      setStatusFilter(EinsatzResponseDtoStatusEnum.Archiviert);
-    } else {
-      setStatusFilter(undefined);
+    try {
+      await setActiveEinsatz(einsatzId);
+      setCurrentView('active');
+      setIsCreatePanelOpen(false);
+      void refetchActive();
+      await navigate({
+        to: '/app/einsatz/$einsatzId',
+        params: { einsatzId },
+      });
+    } catch {
+      setOpenError('Der neue Einsatz konnte nicht direkt geöffnet werden. Bitte versuchen Sie es erneut.');
     }
   };
 
-  const handleFilterReset = () => {
-    setStatusFilter(undefined);
-    setSortOption({
-      key: EinsatzControllerFindAllVAlphaOrderByEnum.CreatedAt,
-      direction: EinsatzControllerFindAllVAlphaOrderDirectionEnum.Desc,
+  const handleOpenEinsatz = async (einsatzId: string) => {
+    setOpeningEinsatzId(einsatzId);
+    setOpenError(null);
+
+    try {
+      await setActiveEinsatz(einsatzId);
+      await navigate({
+        to: '/app/einsatz/$einsatzId',
+        params: { einsatzId },
+      });
+    } catch {
+      setOpenError('Der Einsatz konnte nicht geöffnet werden. Bitte versuchen Sie es erneut.');
+    } finally {
+      setOpeningEinsatzId((currentId) => (currentId === einsatzId ? null : currentId));
+    }
+  };
+
+  const handleArchiveSortChange = (value: string) => {
+    const selectedOption = ARCHIVE_SORT_OPTIONS.find((option) => option.value === value);
+    if (!selectedOption) {
+      return;
+    }
+
+    setArchiveSortOption({
+      key: selectedOption.key,
+      direction: selectedOption.direction,
     });
   };
 
-  if (error) {
+  const handleArchiveFromList = async (einsatzId: string) => {
+    await archiveEinsatz.mutateAsync({ id: einsatzId });
+  };
+
+  const renderEinsatzCard = (einsatz: EinsatzListItemDto) => {
+    const canArchive = einsatz.status === EinsatzListItemDtoStatusEnum.Abgeschlossen;
+    const isArchivingCurrent = archiveEinsatz.isPending && archiveEinsatz.variables?.id === einsatz.id;
+
     return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="text-center">
-          <p className="mb-4 text-red-600">Fehler beim Laden der Einsätze</p>
-          <Button onClick={() => refetch()} className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
-            Erneut versuchen
-          </Button>
-        </div>
+      <div
+        key={einsatz.id}
+        className={cn(
+          'group overflow-hidden rounded-panel border border-border-subtle bg-surface-panel shadow-panel transition-[border-color,box-shadow]',
+          'hover:border-border-strong hover:shadow-raised',
+        )}
+      >
+        <button
+          type="button"
+          aria-label={`Einsatz ${einsatz.nummer} öffnen`}
+          aria-busy={openingEinsatzId === einsatz.id}
+          disabled={openingEinsatzId === einsatz.id || !einsatzCapabilities.canOpenEinsatz}
+          title={!einsatzCapabilities.canOpenEinsatz ? (restrictionHint ?? 'Einsatzöffnung ist für Ihre Rolle aktuell nicht freigegeben.') : undefined}
+          onClick={() => void handleOpenEinsatz(einsatz.id)}
+          className={cn('block w-full cursor-pointer text-left focus:outline-none focus-visible:shadow-focus-ring', 'disabled:cursor-not-allowed')}
+        >
+          <EinsatzListItem einsatz={einsatz} />
+        </button>
+
+        {canArchive ? (
+          <div className="flex flex-col gap-3 border-border-subtle border-t bg-surface-raised/60 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+            <div className="min-w-0">
+              <p className="font-medium text-body-sm text-text-primary">Abgeschlossen und bereit fürs Archiv</p>
+              <p className="mt-1 text-body-xs text-text-secondary">Einmal klicken, dann erneut bestätigen. Danach verschwindet der Einsatz direkt aus der aktiven Liste.</p>
+            </div>
+            <ConfirmButton
+              size="sm"
+              intent="warning"
+              appearance="outline"
+              confirmAppearance="filled"
+              confirmLabel="Archivierung bestätigen"
+              loading={isArchivingCurrent}
+              disabled={isArchivingCurrent}
+              onConfirm={() => handleArchiveFromList(einsatz.id)}
+            >
+              <PiArchive className="h-4 w-4" />
+              Archivieren
+            </ConfirmButton>
+          </div>
+        ) : null}
       </div>
     );
-  }
+  };
+
+  const renderErrorState = (onRetry: () => Promise<unknown>) => (
+    <div className="flex h-full items-center justify-center p-6">
+      <div role="alert" className="max-w-md rounded-2xl border border-red-200 bg-white p-6 text-center shadow-sm dark:border-red-900/40 dark:bg-gray-900">
+        <p className="mb-4 font-medium text-red-700 dark:text-red-300">Fehler beim Laden der Einsätze</p>
+        <Button onClick={() => void onRetry()} className="rounded-md">
+          Erneut versuchen
+        </Button>
+      </div>
+    </div>
+  );
+
+  const renderLoadingState = (label: string) => (
+    <div className="flex h-full items-center justify-center p-6">
+      <output aria-live="polite" className="flex flex-col items-center text-center">
+        <span aria-hidden="true" className="mx-auto h-12 w-12 animate-spin rounded-full border-blue-600 border-b-2" />
+        <span className="mt-4 text-gray-600 dark:text-gray-400">{label}</span>
+      </output>
+    </div>
+  );
+
+  const archiveSortValue = `${archiveSortOption.key}:${archiveSortOption.direction}`;
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      {/* Header - fixed height */}
-      <div className="flex-shrink-0 border-gray-200 border-b bg-white px-2 py-3 sm:px-4 sm:py-4 lg:px-6 dark:border-gray-700 dark:bg-gray-800">
-        <div className="flex items-center justify-between">
-          <h2 id="einsatz-dashboard-title" className="font-bold text-2xl text-gray-900 dark:text-white">
-            Einsatz-Dashboard
-          </h2>
-          <Button id="einsatz-dashboard-primary-action" onClick={() => setIsCreatePanelOpen(true)} title="Neuer Einsatz (Cmd+N)" kbd="Cmd+N">
-            <PiPlus className="mr-2 h-5 w-5" />
-            Neuer Einsatz
-          </Button>
-        </div>
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="flex-shrink-0 border-gray-200 border-b bg-white px-3 py-4 sm:px-4 lg:px-6 dark:border-gray-800 dark:bg-gray-900">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+          <div className="space-y-4">
+            <div>
+              <h2 id="einsatz-dashboard-title" className="font-bold text-2xl text-gray-900 dark:text-white">
+                Einsätze
+              </h2>
+              <p className="mt-1 max-w-2xl text-gray-600 text-sm dark:text-gray-400">
+                Aktive Einsätze bleiben im Fokus. Das Archiv ist getrennt, damit laufende Arbeit und spätere Recherche sich nicht gegenseitig ausbremsen.
+              </p>
+            </div>
 
-        <MobileStatusBar total={total} counts={counts} />
-
-        <div className="mt-4 hidden gap-4 sm:grid sm:grid-cols-5">
-          <StatusCard label="Gesamt" value={total} variant="default" />
-          <StatusCard label="Angelegt" value={counts.angelegt} variant="blue" />
-          <StatusCard label="In Bearbeitung" value={counts.inBearbeitung} variant="yellow" />
-          <StatusCard label="Abgeschlossen" value={counts.abgeschlossen} variant="green" />
-          <StatusCard label="Archiviert" value={counts.archiviert} variant="gray" />
-        </div>
-      </div>
-
-      {/* Filter & Search Bar - fixed height */}
-      <div className="flex-shrink-0 border-gray-200 border-b bg-white px-2 py-2 sm:px-4 sm:py-3 lg:px-6 dark:border-gray-700 dark:bg-gray-800">
-        <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
-          <div className="flex-1">
-            <SearchInput placeholder="Einsätze durchsuchen..." onDebouncedChange={setSearchTerm} delay={300} />
+            <div className="inline-flex rounded-2xl bg-gray-100 p-1 dark:bg-gray-800">
+              <DashboardViewButton isActive={currentView === 'active'} count={activeCount} label="Aktive Einsätze" onClick={() => setCurrentView('active')} />
+              <DashboardViewButton isActive={currentView === 'archive'} count={counts.archiviert} label="Archiv" onClick={() => setCurrentView('archive')} />
+            </div>
           </div>
-          {/* Desktop Filter Button */}
-          <Button onClick={() => setIsFilterPanelOpen(!isFilterPanelOpen)} intent="secondary" appearance="outline" className="hidden sm:flex">
-            <PiFunnel className="mr-2 h-5 w-5" />
-            Filter & Sortierung
-          </Button>
-          {/* Mobile Filter Button */}
-          <Button onClick={() => setIsMobileFilterOpen(true)} intent="secondary" appearance="outline" className="sm:hidden">
-            <PiFunnel className="mr-2 h-5 w-5" />
-            Filter
-          </Button>
-        </div>
-      </div>
 
-      <div className="flex min-h-0 flex-1">
-        {isFilterPanelOpen && (
-          <FilterPanel
-            statusFilter={statusFilter}
-            sortOption={sortOption}
-            showArchived={showArchived}
-            onStatusFilterChange={setStatusFilter}
-            onSortChange={handleSort}
-            onArchiveToggle={handleArchiveToggle}
-            className="hidden sm:block"
-          />
+          <div className="flex flex-col gap-3 xl:items-end">
+            <div className="flex flex-wrap gap-2">
+              <SummaryChip label="In Bearbeitung" value={counts.inBearbeitung} tone="amber" />
+              <SummaryChip label="Neu angelegt" value={counts.angelegt} tone="sky" />
+              <SummaryChip label="Abgeschlossen" value={counts.abgeschlossen} tone="emerald" />
+            </div>
+
+            <Button
+              id="einsatz-dashboard-primary-action"
+              onClick={() => setIsCreatePanelOpen(true)}
+              title={einsatzCapabilities.canCreateEinsatz ? 'Neuer Einsatz (Cmd+N)' : (restrictionHint ?? 'Einsatzanlage ist für Ihre Rolle aktuell nicht freigegeben.')}
+              kbd="Cmd+N"
+              disabled={!einsatzCapabilities.canCreateEinsatz}
+            >
+              <PiPlus className="h-5 w-5" />
+              Neuer Einsatz
+            </Button>
+          </div>
+        </div>
+
+        {restrictionHint && (
+          <output aria-live="polite" className="mt-3 block text-amber-700 text-sm dark:text-amber-300">
+            {restrictionHint}
+          </output>
         )}
 
-        <div className="flex-1 overflow-y-auto overscroll-contain bg-gray-100 dark:bg-gray-950">
-          {isLoading ? (
-            <div className="flex h-full items-center justify-center">
-              <div className="text-center">
-                <div className="mx-auto h-12 w-12 animate-spin rounded-full border-blue-600 border-b-2"></div>
-                <p className="mt-4 text-gray-600 dark:text-gray-400">Lade Einsätze...</p>
+        {openError && (
+          <p role="alert" className="mt-3 text-red-600 text-sm dark:text-red-400">
+            {openError}
+          </p>
+        )}
+      </div>
+
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        {currentView === 'active' ? (
+          <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6">
+            {activeError ? (
+              renderErrorState(refetchActive)
+            ) : isActiveLoading ? (
+              renderLoadingState('Lade aktive Einsätze...')
+            ) : activeEinsaetze.length === 0 ? (
+              <div className="flex h-full items-center justify-center">
+                <div className="max-w-md rounded-2xl border border-gray-300 border-dashed bg-white p-8 text-center shadow-sm dark:border-gray-700 dark:bg-gray-900">
+                  <p className="font-medium text-gray-900 dark:text-white">Keine aktiven Einsätze vorhanden</p>
+                  <p className="mt-2 text-gray-600 text-sm dark:text-gray-400">Sobald ein Einsatz angelegt oder noch nicht archiviert ist, erscheint er hier als Arbeitsliste.</p>
+                  <div className="mt-6 flex flex-wrap justify-center gap-2">
+                    <Button onClick={() => setIsCreatePanelOpen(true)} disabled={!einsatzCapabilities.canCreateEinsatz}>
+                      <PiPlus className="h-5 w-5" />
+                      Einsatz anlegen
+                    </Button>
+                    {counts.archiviert > 0 && (
+                      <Button appearance="outline" intent="secondary" onClick={() => setCurrentView('archive')}>
+                        <PiArchive className="h-5 w-5" />
+                        Archiv öffnen
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          ) : einsaetze.length === 0 ? (
-            <div className="flex h-full items-center justify-center">
-              <div className="text-center">
-                <p className="mb-4 text-gray-600 dark:text-gray-400">Keine Einsätze gefunden</p>
-                {!statusFilter ? (
-                  <Button onClick={() => setIsCreatePanelOpen(true)}>
-                    <PiPlus className="mr-2 h-5 w-5" />
-                    Ersten Einsatz erstellen
-                  </Button>
-                ) : (
-                  <Button appearance="ghost" onClick={() => setStatusFilter(undefined)}>
-                    <PiFunnelX className="mr-2 h-5 w-5" />
-                    Filter entfernen
-                  </Button>
-                )}
+            ) : (
+              <div className="space-y-8">
+                {activeSections.map((section) => (
+                  <section key={section.status} className="space-y-3">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-text-primary text-title-sm">{section.title}</h3>
+                          <span className={cn('inline-flex rounded-full border px-2.5 py-1 font-medium text-xs', section.badgeClassName)}>{section.einsaetze.length}</span>
+                        </div>
+                        <p className="mt-1 text-body-sm text-text-secondary">{section.description}</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">{section.einsaetze.map((einsatz) => renderEinsatzCard(einsatz))}</div>
+                  </section>
+                ))}
               </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className="flex-shrink-0 border-gray-200 border-b bg-white px-3 py-4 sm:px-4 lg:px-6 dark:border-gray-800 dark:bg-gray-900">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                <div className="flex-1">
+                  <SearchInput
+                    value={archiveSearchInput}
+                    onChange={setArchiveSearchInput}
+                    placeholder="Archiv nach Nummer, Stichwort oder Ort durchsuchen..."
+                    onDebouncedChange={setArchiveSearchTerm}
+                    delay={250}
+                  />
+                </div>
+                <div className="w-full lg:w-64">
+                  <Select
+                    aria-label="Archiv sortieren"
+                    value={archiveSortValue}
+                    onChange={(event) => handleArchiveSortChange(event.target.value)}
+                    options={ARCHIVE_SORT_OPTIONS.map((option) => ({
+                      value: option.value,
+                      label: option.label,
+                    }))}
+                    fullWidth
+                  />
+                </div>
+              </div>
+              <p className="mt-3 text-gray-600 text-sm dark:text-gray-400">
+                {archiveTotal} archivierte Einsätze
+                {archiveSearchTerm ? `, davon ${archivedEinsaetze.length} Treffer für „${archiveSearchTerm}“` : ''}
+              </p>
             </div>
-          ) : (
-            <div className="min-h-0 space-y-2 p-3 sm:p-4">
-              {einsaetze.map((einsatz) => (
-                <Link
-                  key={einsatz.id}
-                  to="/app/einsaetze/$einsatzId"
-                  params={{ einsatzId: einsatz.id }}
-                  className="block rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
-                >
-                  <EinsatzListItem einsatz={einsatz} />
-                </Link>
-              ))}
-              {einsaetze.length > 0 && <div className="p-4 text-center text-gray-500 text-sm dark:text-gray-400">{einsaetze.length} Einsätze geladen</div>}
+
+            <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6">
+              {archiveError ? (
+                renderErrorState(refetchArchive)
+              ) : isArchiveLoading && archivedEinsaetze.length === 0 ? (
+                renderLoadingState('Lade Archiv...')
+              ) : archivedEinsaetze.length === 0 ? (
+                <div className="flex h-full items-center justify-center">
+                  <div className="max-w-md rounded-2xl border border-gray-300 border-dashed bg-white p-8 text-center shadow-sm dark:border-gray-700 dark:bg-gray-900">
+                    <p className="font-medium text-gray-900 dark:text-white">Keine Archivtreffer</p>
+                    <p className="mt-2 text-gray-600 text-sm dark:text-gray-400">
+                      {archiveSearchTerm ? 'Passen Sie Suche oder Sortierung an.' : 'Archivierte Einsätze erscheinen hier, sobald sie archiviert wurden.'}
+                    </p>
+                    {archiveSearchTerm && (
+                      <Button
+                        appearance="outline"
+                        intent="secondary"
+                        onClick={() => {
+                          setArchiveSearchInput('');
+                          setArchiveSearchTerm('');
+                        }}
+                        className="mt-6"
+                      >
+                        Suche zurücksetzen
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {archivedEinsaetze.map((einsatz) => renderEinsatzCard(einsatz))}
+
+                  {hasNextPage && (
+                    <div className="pt-2 text-center">
+                      <Button appearance="outline" intent="secondary" onClick={() => void fetchNextPage()} loading={isFetchingNextPage}>
+                        {isFetchingNextPage ? <PiSpinner className="h-5 w-5 animate-spin" /> : <PiArchive className="h-5 w-5" />}
+                        Weitere Archiv-Einsätze laden
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       <EinsatzCreateForm isOpen={isCreatePanelOpen} onClose={() => setIsCreatePanelOpen(false)} onSuccess={handleCreateSuccess} />
+    </div>
+  );
+}
 
-      <MobileFilterDialog
-        isOpen={isMobileFilterOpen}
-        onClose={() => setIsMobileFilterOpen(false)}
-        statusFilter={statusFilter}
-        sortOption={sortOption}
-        showArchived={showArchived}
-        onStatusFilterChange={setStatusFilter}
-        onSortChange={handleSort}
-        onArchiveToggle={handleArchiveToggle}
-        onReset={handleFilterReset}
-      />
+interface DashboardViewButtonProps {
+  count: number;
+  isActive: boolean;
+  label: string;
+  onClick: () => void;
+}
+
+function DashboardViewButton({ count, isActive, label, onClick }: DashboardViewButtonProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={isActive}
+      className={cn(
+        'inline-flex items-center gap-2 rounded-xl px-3 py-2 font-medium text-sm transition-colors',
+        isActive ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white' : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white',
+      )}
+    >
+      <span>{label}</span>
+      <span
+        className={cn(
+          'inline-flex min-w-6 items-center justify-center rounded-full px-2 py-0.5 text-xs',
+          isActive ? 'bg-gray-100 text-gray-700 dark:bg-gray-600 dark:text-gray-100' : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200',
+        )}
+      >
+        {count}
+      </span>
+    </button>
+  );
+}
+
+interface SummaryChipProps {
+  label: string;
+  tone: 'amber' | 'emerald' | 'sky';
+  value: number;
+}
+
+function SummaryChip({ label, tone, value }: SummaryChipProps) {
+  const toneClassName = {
+    amber: 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200',
+    emerald: 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200',
+    sky: 'border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-200',
+  }[tone];
+
+  return (
+    <div className={cn('inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm', toneClassName)}>
+      <PiCheckCircle className="h-4 w-4" />
+      <span>{label}</span>
+      <span className="font-semibold">{value}</span>
     </div>
   );
 }

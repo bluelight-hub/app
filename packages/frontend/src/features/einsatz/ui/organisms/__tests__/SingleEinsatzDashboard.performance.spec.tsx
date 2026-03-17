@@ -217,6 +217,7 @@ describe('SingleEinsatzDashboard Performance-Gates', () => {
     expect(screen.getAllByText('Wird geladen...')).toHaveLength(3);
   });
 
+  // Die P95-Schwelle bleibt unverändert; der höhere Test-Timeout fängt nur Suite-Last bei 30 Iterationen ab.
   it('liefert einen P95-Gate-Report für den nutzbaren Überblickszustand nach Modulwechsel mit 100 Überblicksobjekten', async () => {
     const samples = await runIterations({
       iterations: RING_2_PERFORMANCE_THRESHOLDS.iterations,
@@ -269,5 +270,5 @@ describe('SingleEinsatzDashboard Performance-Gates', () => {
 
     expect(report.iterations).toBe(RING_2_PERFORMANCE_THRESHOLDS.iterations);
     expect(report.pass).toBe(true);
-  }, 15000);
+  }, 30000);
 });

@@ -7,15 +7,16 @@ import type { CreateEinsatzDto } from '@/shared';
 import { FormFieldWrapper } from '@/shared/ui/molecules/form/FormFieldWrapper';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { useForm } from '@tanstack/react-form';
-import { useNavigate } from '@tanstack/react-router';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { toast } from 'sonner';
-import { z } from 'zod'; // Schema für minimale Einsatz-Erstellung (alle Felder optional)
+import { z } from 'zod';
 
-// Schema für minimale Einsatz-Erstellung (alle Felder optional)
+const alarmstichwortSchema = z.string().trim().min(1, 'Alarmstichwort ist erforderlich.');
+
+// Schema für minimale Einsatz-Erstellung mit fachlicher Pflichtangabe
 const createEinsatzSchema = z.object({
-  alarmstichwort: z.string().optional(),
+  alarmstichwort: z.string(),
   beschreibung: z.string().optional(),
   einsatzort: z.string().optional(),
   // Im Formular als ISO-String, später in Date konvertiert
@@ -27,12 +28,12 @@ type CreateEinsatzFormData = z.infer<typeof createEinsatzSchema>;
 interface EinsatzCreateFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: (einsatzId: string) => void;
+  onSuccess?: (einsatzId: string) => void | Promise<void>;
 }
 
 export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateFormProps) {
-  const navigate = useNavigate();
   const createEinsatz = useCreateEinsatz();
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const form = useForm({
     defaultValues: {
@@ -41,14 +42,18 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
       einsatzort: '',
       alarmierungszeit: new Date().toISOString(),
     } as CreateEinsatzFormData,
+    validators: {
+      onSubmit: createEinsatzSchema,
+    },
     onSubmit: async ({ value }) => {
       try {
+        setSubmitError(null);
         // Optimistic UI: Toast zeigt sofort Erfolg
         const toastId = toast.loading('Einsatz wird erstellt…');
 
         // Werte für API-Payload aufbereiten (Trim + Typwandlung)
         const payload: CreateEinsatzDto = {};
-        if (value.alarmstichwort && value.alarmstichwort.trim() !== '') payload.alarmstichwort = value.alarmstichwort.trim();
+        payload.alarmstichwort = value.alarmstichwort.trim();
         if (value.beschreibung && value.beschreibung.trim() !== '') payload.beschreibung = value.beschreibung.trim();
         if (value.einsatzort && value.einsatzort.trim() !== '') payload.einsatzort = value.einsatzort.trim();
         if (value.alarmierungszeit && value.alarmierungszeit !== '') {
@@ -56,7 +61,7 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
           if (!Number.isNaN(d.valueOf())) payload.alarmierungszeit = d;
         }
 
-        const result = await createEinsatz.mutateAsync(payload.alarmstichwort ? payload : { ...payload, alarmstichwort: 'Neuer Einsatz' });
+        const result = await createEinsatz.mutateAsync(payload);
 
         // Validierung: Prüfe ob result und result.id existieren
         if (!result || !result.id) {
@@ -66,33 +71,37 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
 
         // Optional: Callback für Navigation
         if (onSuccess) {
-          onSuccess(result.id);
+          await onSuccess(result.id);
         }
 
-        toast.success('Einsatz erfolgreich erstellt!', {
-          id: toastId,
-          action: {
-            label: 'Bearbeiten',
-            onClick: () => navigate({ to: `/app/einsaetze/${result.id}` }),
-          },
-        });
+        toast.success('Einsatz erfolgreich erstellt.', { id: toastId });
 
         // Reset form und schließe Panel (nach success callbacks)
         // setTimeout verhindert "Editor disposed" Fehler
         setTimeout(() => {
+          setSubmitError(null);
           form.reset();
           onClose();
         }, 0);
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unbekannter Fehler';
+        setSubmitError(errorMessage);
         toast.error('Fehler beim Erstellen des Einsatzes', {
-          description: error instanceof Error ? error.message : 'Unbekannter Fehler',
+          description: errorMessage,
         });
       }
     },
   });
 
-  useHotkeys('esc', () => {
+  const handleClose = useCallback(() => {
+    setSubmitError(null);
+    form.reset();
     onClose();
+  }, [form, onClose]);
+
+  useHotkeys('esc', handleClose, {
+    enabled: isOpen,
+    preventDefault: true,
   });
 
   useHotkeys(
@@ -102,6 +111,7 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
     },
     [form],
     {
+      enabled: isOpen,
       preventDefault: true,
     },
   );
@@ -109,21 +119,17 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
   // Reset form wenn Panel geschlossen wird
   useEffect(() => {
     if (!isOpen) {
+      setSubmitError(null);
       form.reset();
     }
   }, [isOpen, form]);
-
-  const handleClose = useCallback(() => {
-    form.reset();
-    onClose();
-  }, [form, onClose]);
 
   return (
     <Dialog.SlideIn
       isOpen={isOpen}
       onClose={handleClose}
       title="Neuen Einsatz erstellen"
-      description="Erstelle schnell einen neuen Einsatz. Alle Felder sind optional - Details können später ergänzt werden."
+      description="Erstelle schnell einen neuen Einsatz. Das Alarmstichwort ist verpflichtend; weitere Details können direkt danach ergänzt werden."
       size="lg"
     >
       <form
@@ -135,9 +141,21 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
         className="space-y-6"
       >
         {/* Alarmstichwort */}
-        <form.Field name="alarmstichwort">
+        <form.Field
+          name="alarmstichwort"
+          validators={{
+            onBlur: ({ value }) => {
+              const result = alarmstichwortSchema.safeParse(value);
+              return result.success ? undefined : result.error.issues[0]?.message;
+            },
+            onSubmit: ({ value }) => {
+              const result = alarmstichwortSchema.safeParse(value);
+              return result.success ? undefined : result.error.issues[0]?.message;
+            },
+          }}
+        >
           {(field) => (
-            <FormFieldWrapper field={field} label="Alarmstichwort" optional>
+            <FormFieldWrapper field={field} label="Alarmstichwort" required>
               <Input
                 id={field.name}
                 type="text"
@@ -203,6 +221,21 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
             </FormFieldWrapper>
           )}
         </form.Field>
+
+        {(form.state.isSubmitting || submitError) && (
+          <div className="space-y-2">
+            {form.state.isSubmitting && (
+              <output aria-live="polite" className="block text-gray-600 text-sm dark:text-gray-300">
+                Einsatz wird erstellt…
+              </output>
+            )}
+            {submitError && (
+              <p role="alert" className="text-red-600 text-sm dark:text-red-400">
+                {submitError}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex justify-end gap-3 border-t pt-6">

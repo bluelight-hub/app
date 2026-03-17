@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createEvent, fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { PiClipboard, PiHouse } from 'react-icons/pi';
 import type { AnchorHTMLAttributes, ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -7,6 +8,16 @@ import { SingleEinsatzLayout } from '../SingleEinsatzLayout';
 
 const navigateSpy = vi.fn();
 const routerNavigateSpy = vi.fn();
+const clearActiveEinsatzSpy = vi.fn();
+const myTeilnahmeState = {
+  data: {
+    data: {
+      einsatzPersonId: 'teilnahme-1',
+      personFunkrufname: 'FL Florian 1',
+    },
+  },
+  isLoading: false,
+};
 
 const workspaceModules = [
   {
@@ -110,13 +121,11 @@ vi.mock('@/features/einsatz', () => ({
     },
   }),
   useMyEinsatzTeilnahme: () => ({
-    data: {
-      data: {
-        einsatzPersonId: 'teilnahme-1',
-        personFunkrufname: 'FL Florian 1',
-      },
-    },
-    isLoading: false,
+    data: myTeilnahmeState.data,
+    isLoading: myTeilnahmeState.isLoading,
+  }),
+  useActiveEinsatz: () => ({
+    clearActiveEinsatz: clearActiveEinsatzSpy,
   }),
 }));
 
@@ -232,6 +241,14 @@ describe('SingleEinsatzLayout workspace hotkeys', () => {
   beforeEach(() => {
     navigateSpy.mockReset();
     routerNavigateSpy.mockReset();
+    clearActiveEinsatzSpy.mockReset();
+    myTeilnahmeState.data = {
+      data: {
+        einsatzPersonId: 'teilnahme-1',
+        personFunkrufname: 'FL Florian 1',
+      },
+    };
+    myTeilnahmeState.isLoading = false;
   });
 
   function renderLayout() {
@@ -278,5 +295,30 @@ describe('SingleEinsatzLayout workspace hotkeys', () => {
 
     expect(event.defaultPrevented).toBe(true);
     expect(navigateSpy).not.toHaveBeenCalled();
+  });
+
+  it('blockiert Workspace-Modul-Hotkeys, solange die Teilnahme noch unklar ist', () => {
+    myTeilnahmeState.isLoading = true;
+    myTeilnahmeState.data = null;
+
+    renderLayout();
+
+    const event = createEvent.keyDown(window, { key: '1', altKey: true });
+    fireEvent(window, event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(navigateSpy).not.toHaveBeenCalled();
+  });
+
+  it('lässt aus dem blockierten Zuordnungszustand zurück in die Einsatzliste navigieren', async () => {
+    const user = userEvent.setup();
+    myTeilnahmeState.data = null;
+
+    renderLayout();
+
+    await user.click(screen.getByRole('button', { name: /zur einsatzliste/i }));
+
+    expect(clearActiveEinsatzSpy).toHaveBeenCalledTimes(1);
+    expect(navigateSpy).toHaveBeenCalledWith({ to: '/app/einsaetze' });
   });
 });

@@ -13,6 +13,10 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { EINSATZ_QUERY_KEYS, calculateRetryDelay, type EinsatzQueryFilters } from './queries';
 
+interface UseEinsaetzeInfiniteQueryOptions {
+  enabled?: boolean;
+}
+
 /**
  * Hook für Infinite Scroll Einsatz-Liste
  *
@@ -33,12 +37,13 @@ import { EINSATZ_QUERY_KEYS, calculateRetryDelay, type EinsatzQueryFilters } fro
  * const allEinsaetze = data?.pages.flatMap(page => page.data || []) || [];
  * ```
  */
-export const useEinsaetzeInfiniteQuery = (filters?: EinsatzQueryFilters) => {
+export const useEinsaetzeInfiniteQuery = (filters?: EinsatzQueryFilters, options?: UseEinsaetzeInfiniteQueryOptions) => {
   const limit = filters?.limit || 20;
 
   return useInfiniteQuery<EinsatzControllerFindAllVAlpha200Response, ResponseError>({
     queryKey: EINSATZ_QUERY_KEYS.infinite(filters),
     initialPageParam: 1,
+    enabled: options?.enabled ?? true,
     queryFn: async ({ pageParam }) => {
       try {
         const response = await api.einsatz().einsatzControllerFindAllVAlpha({

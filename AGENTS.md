@@ -7,7 +7,8 @@ Diese Datei enthält die wichtigsten, praxisnahen Regeln für Coding-Agents in d
 - Antworte auf Deutsch.
 - Code bleibt Englisch.
 - Kommentare/JSDoc können Deutsch sein (wie im bestehenden Code).
-- In allen Texten (insbesondere Dokumentation) müssen echte Umlaute verwendet werden: `ä`, `ö`, `ü` (bzw. `Ä`, `Ö`, `Ü`) statt `ae`, `oe`, `ue`.
+- WICHTIG In allen Texten (insbesondere Dokumentation) müssen echte Umlaute verwendet werden: `ä`, `ö`, `ü` (bzw. `Ä`,
+  `Ö`, `Ü`) statt `ae`, `oe`, `ue`.
 
 ## Projektüberblick
 
@@ -41,7 +42,8 @@ Nicht erlaubt:
 - Forms: `@tanstack/react-form` + Zod
 - State: `@tanstack/react-query` (Server), `@tanstack/react-store` (Client)
 - Lint/Format: Biome
-- Im Produkt keine Komponenten oder Texte anzeigen, die Implementierungsdetails, technische Entscheidungen oder interne Architektur erklären. Solche Inhalte gehören in Dokumentation, nicht in die produktive UI.
+- Im Produkt keine Komponenten oder Texte anzeigen, die Implementierungsdetails, technische Entscheidungen oder interne
+  Architektur erklären. Solche Inhalte gehören in Dokumentation, nicht in die produktive UI.
 
 ### Backend DI-Regel
 
@@ -50,12 +52,13 @@ Bei `@Injectable()` Klassen **kein** `import type` verwenden, sondern normales `
 Beispiel:
 
 ```ts
-import { MyService } from './my.service'; // korrekt
+import {MyService} from './my.service'; // korrekt
 ```
 
 ### Controller Response Decorators
 
-In Backend-Controllern die projektspezifischen Wrapper-Decorators nutzen (z. B. `@ApiWrappedResponse`, `@ApiWrappedCreatedResponse`) und keine Standard-`@ApiOkResponse`-Muster, wenn diese den Client-Generator brechen.
+In Backend-Controllern die projektspezifischen Wrapper-Decorators nutzen (z. B. `@ApiWrappedResponse`,
+`@ApiWrappedCreatedResponse`) und keine Standard-`@ApiOkResponse`-Muster, wenn diese den Client-Generator brechen.
 
 ## Architekturgrenzen (Backend)
 

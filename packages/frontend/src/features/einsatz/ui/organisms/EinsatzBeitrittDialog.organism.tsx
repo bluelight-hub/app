@@ -5,18 +5,19 @@
  * Die Person-Daten werden dann für ETB-Einträge automatisch vorausgefüllt.
  */
 
-import { useJoinEinsatz, useMyEinsatzTeilnahme, useEinsatzTeilnehmer } from '@/features/einsatz/api';
-import { EinsatzPersonenPicker } from '@/features/kraefte/ui/molecules/EinsatzPersonenPicker';
 import { PersonHinzufuegenDialog } from '@/features/einsatz';
+import { useEinsatzTeilnehmer, useJoinEinsatz, useMyEinsatzTeilnahme } from '@/features/einsatz/api';
+import { EinsatzPersonenPicker } from '@/features/kraefte/ui/molecules/EinsatzPersonenPicker';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
-import { useEffect, useMemo, useState } from 'react';
-import { PiPlus, PiUser } from 'react-icons/pi';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { PiArrowLeft, PiPlus, PiUser } from 'react-icons/pi';
 
 interface EinsatzBeitrittDialogProps {
   einsatzId: string;
   isOpen: boolean;
   onClose: () => void;
+  onReturnToOverview?: () => void | Promise<void>;
 }
 
 /**
@@ -25,16 +26,20 @@ interface EinsatzBeitrittDialogProps {
  * Zeigt einen Person-Picker (bestehende EinsatzPerson auswählen) und
  * eine Option zum Erstellen einer neuen Person.
  */
-export function EinsatzBeitrittDialog({ einsatzId, isOpen, onClose }: EinsatzBeitrittDialogProps) {
+export function EinsatzBeitrittDialog({ einsatzId, isOpen, onClose, onReturnToOverview }: EinsatzBeitrittDialogProps) {
   const { data: teilnahmeData, isLoading: isTeilnahmeLoading } = useMyEinsatzTeilnahme(einsatzId);
   const { data: alleTeilnehmer } = useEinsatzTeilnehmer(einsatzId);
   const joinEinsatz = useJoinEinsatz();
 
   const currentEinsatzPersonId = teilnahmeData?.data?.einsatzPersonId || '';
   const isAlreadyJoined = !!teilnahmeData?.data;
+  const requiresAssignment = !isAlreadyJoined;
 
   const [selectedPersonId, setSelectedPersonId] = useState('');
   const [showPersonDialog, setShowPersonDialog] = useState(false);
+  const [selectionError, setSelectionError] = useState<string | undefined>(undefined);
+  const [pendingCloseAfterJoin, setPendingCloseAfterJoin] = useState(false);
+  const gateTitleRef = useRef<HTMLHeadingElement>(null);
 
   // IDs der Personen die bereits von anderen Bearbeitern verknüpft sind (ausschließen)
   const excludePersonIds = useMemo(() => {
@@ -46,19 +51,53 @@ export function EinsatzBeitrittDialog({ einsatzId, isOpen, onClose }: EinsatzBei
   useEffect(() => {
     if (isOpen) {
       setSelectedPersonId(currentEinsatzPersonId);
+      setSelectionError(undefined);
+      setPendingCloseAfterJoin(false);
     }
   }, [isOpen, currentEinsatzPersonId]);
 
+  useEffect(() => {
+    if (isOpen && requiresAssignment) {
+      gateTitleRef.current?.focus();
+    }
+  }, [isOpen, requiresAssignment]);
+
+  useEffect(() => {
+    if (!isOpen || !pendingCloseAfterJoin) {
+      return;
+    }
+
+    if (!currentEinsatzPersonId || currentEinsatzPersonId !== selectedPersonId) {
+      return;
+    }
+
+    setPendingCloseAfterJoin(false);
+    onClose();
+  }, [currentEinsatzPersonId, isOpen, onClose, pendingCloseAfterJoin, selectedPersonId]);
+
+  const handleDialogClose = () => {
+    if (requiresAssignment || joinEinsatz.isPending) {
+      return;
+    }
+
+    onClose();
+  };
+
   const handleSubmit = async () => {
-    if (!selectedPersonId) return;
+    if (!selectedPersonId) {
+      setSelectionError('Bitte wählen Sie zuerst eine Person aus.');
+      return;
+    }
 
     try {
+      setSelectionError(undefined);
       await joinEinsatz.mutateAsync({
         einsatzId,
         data: { einsatzPersonId: selectedPersonId },
       });
-      onClose();
+      setPendingCloseAfterJoin(true);
     } catch {
+      setPendingCloseAfterJoin(false);
       // Fehler-Toast wird bereits in useJoinEinsatz.onError behandelt.
       // Hier bewusst schlucken, damit kein unhandled promise rejection im UI entsteht.
     }
@@ -66,13 +105,14 @@ export function EinsatzBeitrittDialog({ einsatzId, isOpen, onClose }: EinsatzBei
 
   const handlePersonCreated = (person: { id: string }) => {
     setSelectedPersonId(person.id);
+    setSelectionError(undefined);
     setShowPersonDialog(false);
   };
 
   return (
     <>
-      <Dialog isOpen={isOpen} onClose={onClose} className="max-w-md">
-        <Dialog.CloseButton onClose={onClose} />
+      <Dialog isOpen={isOpen} onClose={handleDialogClose} className="max-w-lg" closeOnEscape={!requiresAssignment} closeOnClickOutside={!requiresAssignment}>
+        {!requiresAssignment && <Dialog.CloseButton onClose={handleDialogClose} />}
 
         <div className="flex items-start gap-4">
           <div className="flex-shrink-0">
@@ -82,22 +122,33 @@ export function EinsatzBeitrittDialog({ einsatzId, isOpen, onClose }: EinsatzBei
           </div>
 
           <div className="flex-1">
-            <Dialog.Title className="font-semibold text-gray-900 text-lg dark:text-white">{isAlreadyJoined ? 'Person ändern' : 'Einsatz beitreten'}</Dialog.Title>
+            <div className="mb-2 flex items-center gap-2">
+              {requiresAssignment && <span className="rounded-full bg-amber-100 px-2 py-1 font-medium text-amber-800 text-xs dark:bg-amber-900/30 dark:text-amber-300">Pflichtschritt</span>}
+            </div>
+            <h2 ref={gateTitleRef} tabIndex={-1} className="font-semibold text-gray-900 text-lg dark:text-white">
+              {requiresAssignment ? 'Zuordnung erforderlich' : 'Zuordnung ändern'}
+            </h2>
 
             <Dialog.Body className="mt-2">
-              <p className="text-gray-600 text-sm dark:text-gray-400">
-                {isAlreadyJoined
-                  ? 'Ändern Sie Ihre verknüpfte Person für diesen Einsatz.'
-                  : 'Wählen Sie Ihre Person für diesen Einsatz. Die Person-Daten werden für ETB-Einträge automatisch vorausgefüllt.'}
-              </p>
+              <div className="space-y-3">
+                <output aria-live="polite" className="block text-gray-600 text-sm dark:text-gray-400">
+                  {requiresAssignment
+                    ? 'Arbeitsraum bleibt gesperrt, bis Sie sich diesem Einsatz eindeutig zuordnen. Danach arbeiten Sie ohne Kontextverlust direkt im aktiven Einsatz weiter.'
+                    : 'Ändern Sie Ihre verknüpfte Person für diesen Einsatz.'}
+                </output>
+              </div>
 
               <div className="mt-4 space-y-3">
                 <EinsatzPersonenPicker
                   einsatzId={einsatzId}
                   value={selectedPersonId}
-                  onChange={setSelectedPersonId}
+                  onChange={(personId) => {
+                    setSelectedPersonId(personId);
+                    setSelectionError(undefined);
+                  }}
                   disabled={isTeilnahmeLoading || joinEinsatz.isPending}
-                  label="Person"
+                  error={selectionError}
+                  label={requiresAssignment ? 'Einsatzkraft auswählen' : 'Person'}
                   placeholder="Person auswählen..."
                   excludePersonIds={excludePersonIds}
                 />
@@ -118,19 +169,27 @@ export function EinsatzBeitrittDialog({ einsatzId, isOpen, onClose }: EinsatzBei
         </div>
 
         <Dialog.Footer>
-          <Button appearance="ghost" size="sm" onClick={onClose} disabled={joinEinsatz.isPending}>
-            Abbrechen
-          </Button>
-          <Button intent="primary" size="sm" onClick={handleSubmit} disabled={joinEinsatz.isPending || isTeilnahmeLoading || !selectedPersonId}>
+          {requiresAssignment && onReturnToOverview ? (
+            <Button appearance="ghost" size="sm" onClick={() => void onReturnToOverview()} disabled={joinEinsatz.isPending}>
+              <PiArrowLeft className="mr-2 h-4 w-4" />
+              Zur Einsatzliste
+            </Button>
+          ) : null}
+          {!requiresAssignment && (
+            <Button appearance="ghost" size="sm" onClick={handleDialogClose} disabled={joinEinsatz.isPending}>
+              Abbrechen
+            </Button>
+          )}
+          <Button intent="primary" size="sm" onClick={handleSubmit} disabled={joinEinsatz.isPending || isTeilnahmeLoading}>
             {joinEinsatz.isPending ? (
               <>
                 <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                Speichern...
+                Zuordnung wird gespeichert...
               </>
-            ) : isAlreadyJoined ? (
-              'Ändern'
+            ) : requiresAssignment ? (
+              'Zuordnung bestätigen'
             ) : (
-              'Beitreten'
+              'Änderung speichern'
             )}
           </Button>
         </Dialog.Footer>
