@@ -409,7 +409,7 @@ describe('WorkspaceShell contract', () => {
     );
 
     const navigation = screen.getByRole('navigation', { name: 'Modulseiten' });
-    const quickActions = screen.getByRole('region', { name: 'Schnellaktionen' });
+    const [quickActions] = screen.getAllByRole('region', { name: 'Schnellaktionen' });
 
     expect(within(navigation).getByText('Unquittierte Befehle')).toBeInTheDocument();
     expect(within(navigation).getByText('3')).toBeInTheDocument();
