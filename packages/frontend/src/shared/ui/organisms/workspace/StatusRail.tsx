@@ -54,7 +54,7 @@ export function StatusRail({ items = [], className, title = 'Workspace-Status' }
                 </div>
                 {item.description ? <p className="mt-0.5 text-body-xs opacity-90">{item.description}</p> : null}
                 {item.nextActionDescription ? (
-                  <p className="mt-1 text-body-xs font-medium opacity-90">
+                  <p className="mt-1 font-medium text-body-xs opacity-90">
                     {item.nextActionLabel ?? 'Nächster Schritt'}: {item.nextActionDescription}
                   </p>
                 ) : null}

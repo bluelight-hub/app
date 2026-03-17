@@ -1,5 +1,5 @@
 # generated: 2026-03-15T11:37:19+01:00
-# last_updated: 2026-03-17T18:06:19+0100
+# last_updated: 2026-03-17T18:44:00+0100
 # project: bluelight-hub
 # project_key: NOKEY
 # tracking_system: file-system
@@ -35,7 +35,7 @@
 # - Dev moves story to "review", then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-03-15T11:37:19+01:00
-last_updated: 2026-03-17T18:20:00+0100
+last_updated: 2026-03-17T18:44:00+0100
 project: bluelight-hub
 project_key: NOKEY
 tracking_system: file-system
@@ -52,7 +52,7 @@ development_status:
   1-4-authentifizieren-und-rollen-kontokontext-bestatigt-sehen: done
   1-5-einsatz-auswahlen-neu-anlegen-und-per-assignmentgate-arbeitsfahig-offnen: done
   1-6-mit-stabiler-shell-und-kontextleiste-in-den-kernarbeitsraum-wechseln: done
-  1-7-sidebar-command-palette-und-globale-statusfuhrung-im-workspace-nutzen: in-progress
+  1-7-sidebar-command-palette-und-globale-statusfuhrung-im-workspace-nutzen: done
   1-8-letzten-einsatz-und-arbeitskontext-plattformubergreifend-wiederaufnehmen: backlog
   epic-1-retrospective: optional
 

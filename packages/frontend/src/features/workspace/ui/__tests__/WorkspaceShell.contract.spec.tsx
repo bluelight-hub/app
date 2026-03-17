@@ -6,8 +6,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { WorkspaceShell } from '../WorkspaceShell';
 
 vi.mock('@tanstack/react-router', () => ({
-  Link: ({ children, to, search: _search, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { to?: string; search?: unknown }) => (
-    <a href={to} {...props}>
+  Link: ({ children, to, search, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { to?: string; search?: unknown }) => (
+    <a href={to} data-preserves-search={typeof search === 'function' ? 'true' : undefined} {...props}>
       {children}
     </a>
   ),
@@ -160,6 +160,7 @@ describe('WorkspaceShell contract', () => {
 
     expect(moduleLinks.some((link) => link.getAttribute('aria-current') === 'page' && link.getAttribute('aria-keyshortcuts') === 'Alt+2')).toBe(true);
     expect(pageLinks.some((link) => link.getAttribute('aria-current') === 'page' && link.textContent?.includes('ETB'))).toBe(true);
+    expect(pageLinks.every((link) => link.getAttribute('data-preserves-search') === 'true')).toBe(true);
   });
 
   it('stellt zentrale responsive Review-Buckets über den Test-Viewport reproduzierbar bereit', () => {

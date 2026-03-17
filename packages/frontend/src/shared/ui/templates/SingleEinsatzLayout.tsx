@@ -266,15 +266,17 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   }, [modules, workspaceIsBlocked]);
 
   const visibleModules = useMemo(() => modules.filter((module) => !isHiddenVisibility(module.visibility)), [modules]);
+  const matchesCurrentPath = (href: string) => !!matchRoute({ to: href, fuzzy: true });
 
   // Finde das aktuelle Modul basierend auf der URL
   const currentModule =
-    visibleModules.find((module) =>
-      module.subPages.some((page) => {
-        // Nutze TanStack Router's matchRoute für sauberes Matching
-        return matchRoute({ to: page.href, fuzzy: true });
-      }),
-    ) ??
+    [...visibleModules]
+      .map((module) => ({
+        module,
+        matchedPage: [...module.subPages].filter((page) => matchesCurrentPath(page.href)).sort((left, right) => right.href.length - left.href.length)[0],
+      }))
+      .filter((entry) => entry.matchedPage)
+      .sort((left, right) => (right.matchedPage?.href.length ?? 0) - (left.matchedPage?.href.length ?? 0))[0]?.module ??
     visibleModules[0] ??
     null;
 
@@ -313,7 +315,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
 
   const duration = startTime ? formatDistanceToNow(startTime, { locale: de, addSuffix: false }) : null;
 
-  const activePageHref = currentModule?.subPages.find((page) => matchRoute({ to: page.href, fuzzy: true }))?.href;
+  const activePageHref = currentModule ? [...currentModule.subPages].filter((page) => matchesCurrentPath(page.href)).sort((left, right) => right.href.length - left.href.length)[0]?.href : undefined;
 
   const { statusItems } = useEinsatzWorkspaceShell({
     isLoading: isTeilnahmeLoading || isUserLoading || isEinsatzLoading,
