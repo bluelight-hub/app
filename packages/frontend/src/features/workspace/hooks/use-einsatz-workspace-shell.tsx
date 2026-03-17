@@ -124,16 +124,6 @@ export function useEinsatzWorkspaceShell({ isLoading, requiresAssignment, isRemi
       return items;
     }
 
-    items.push({
-      id: 'workspace-continuity',
-      label: 'Arbeitsraum bereit',
-      description: 'Navigation, Statusführung und Einsatzkontext sind synchron verfügbar.',
-      tone: 'active',
-      icon: PiRadio,
-      nextActionLabel: 'Nächster Schritt',
-      nextActionDescription: 'Mit Sidebar, Shortcuts oder Befehle & Navigation in den nächsten Bereich wechseln.',
-    });
-
     return items;
   }, [delayedLoading, isOnline, isReadonly, isRemindersDegraded, requiresAssignment]);
 

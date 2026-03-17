@@ -1,11 +1,5 @@
 import { serverStore } from '@/features/server/stores/server.store';
 import { logger } from '@/shared/lib/logger';
-
-/**
- * Flag um mehrfache "No server configured" Warnungen zu verhindern.
- * Wird beim ersten fehlenden Server gesetzt und bei Server-Konfiguration zurückgesetzt.
- */
-let hasLoggedNoServerWarning = false;
 import {
   AdminApi,
   AdminBefehleBefehlsgeberVorschlaegeApi,
@@ -47,6 +41,17 @@ import {
 import { fetchWithRefresh } from './fetchWithRefresh';
 
 /**
+ * Flag um mehrfache "No server configured" Warnungen zu verhindern.
+ * Wird beim ersten fehlenden Server gesetzt und bei Server-Konfiguration zurückgesetzt.
+ */
+let hasLoggedNoServerWarning = false;
+
+/**
+ * Merkt sich den zuletzt geloggten aktiven Server um Debug-Spam zu vermeiden.
+ */
+let lastLoggedActiveServerKey: string | null = null;
+
+/**
  * Ermittelt die Basis-URL für die API basierend auf dem aktiven Server.
  *
  * WICHTIG: Es muss ein Server konfiguriert sein. Ohne konfigurierten Server
@@ -66,17 +71,23 @@ export const getBaseUrl = (): string => {
   if (state.isHydrated && state.activeServerId) {
     const activeServer = state.servers.find((s) => s.id === state.activeServerId);
     if (activeServer) {
+      const normalizedUrl = activeServer.url.endsWith('/') ? activeServer.url.slice(0, -1) : activeServer.url;
+      const activeServerKey = `${activeServer.id}:${activeServer.name}:${normalizedUrl}`;
+
       // Server gefunden - Warning-Flag zurücksetzen für nächsten Server-Wechsel
       hasLoggedNoServerWarning = false;
-      logger.debug('Using active server URL', { url: activeServer.url, serverName: activeServer.name });
-      // URL normalisieren (trailing slash entfernen)
-      return activeServer.url.endsWith('/') ? activeServer.url.slice(0, -1) : activeServer.url;
+      if (lastLoggedActiveServerKey !== activeServerKey) {
+        logger.debug('Using active server URL', { url: normalizedUrl, serverName: activeServer.name });
+        lastLoggedActiveServerKey = activeServerKey;
+      }
+      return normalizedUrl;
     }
   }
 
   // Kein Server konfiguriert - leerer String führt zu fehlgeschlagenen Requests
   // useRequireServer Hook wird User zur Server-Setup-Seite leiten
   // Nur einmal warnen um Console-Spam zu vermeiden
+  lastLoggedActiveServerKey = null;
   if (!hasLoggedNoServerWarning) {
     logger.warn('No server configured - API requests will fail');
     hasLoggedNoServerWarning = true;
@@ -555,6 +566,8 @@ export function getApi(): BackendApi {
 export function clearApiCache(): void {
   apiCache.clear();
   lastUsedUrl = null;
+  lastLoggedActiveServerKey = null;
+  hasLoggedNoServerWarning = false;
   logger.debug('API cache cleared');
 }
 

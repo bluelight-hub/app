@@ -28,7 +28,7 @@ import {
 } from '@/features/reminders';
 import { filterMyErinnerungen } from '@/features/reminders/utils/erinnerung-ownership';
 import { AudioSettingsDialog } from '@/features/settings';
-import { useEinsatzWorkspaceShell, useWorkspaceModules, WorkspaceShell } from '@/features/workspace';
+import { useEinsatzWorkspaceShell, useWorkspaceModules, useWorkspaceResume, WorkspaceShell } from '@/features/workspace';
 import { api, EinsatzDtoStatusEnum } from '@/shared';
 import { cn } from '@/shared/ui';
 import { Button } from '@/shared/ui/atoms/button.atom';
@@ -156,6 +156,15 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
 
   // Prüfe ob wir im Fullscreen/Presentation-Modus sind
   const currentSearch = router.state.location.search as { mode?: string };
+  const currentPathname = router.state.location.pathname;
+
+  useWorkspaceResume({
+    einsatzId,
+    pathname: currentPathname,
+    search: currentSearch as Record<string, unknown>,
+    requiresAssignment,
+  });
+
   const isFullscreenMode = currentSearch?.mode === 'fullscreen' || currentSearch?.mode === 'presentation';
 
   // Prüfe ob die aktuelle Route Fullscreen unterstützt (/karte, /etb und /kräfte/dashboard Routes)

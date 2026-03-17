@@ -150,8 +150,8 @@ export function WorkspaceShell({
                   </div>
                 ) : null}
 
-                <nav aria-label="Modulseiten" className="mt-4 space-y-1">
-                  <h2 className="px-2.5 font-semibold text-body-xs text-text-secondary uppercase tracking-[0.16em]">Navigation</h2>
+                <nav aria-label="Modulseiten" className="-mt-1 space-y-1 pb-4">
+                  <h2 className="mb-4 px-2.5 font-semibold text-body-xs text-text-secondary uppercase tracking-[0.16em]">Navigation</h2>
                   {navigationGroups.map((module) => (
                     <div key={module.id} className="space-y-1 pb-2 last:pb-0">
                       {isDisabled(module.visibility) ? (

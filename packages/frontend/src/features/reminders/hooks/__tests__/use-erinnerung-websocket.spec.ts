@@ -85,34 +85,15 @@ vi.mock('../api/queries', () => ({
   },
 }));
 
-// Mock @/shared to prevent crash in implicitly loaded ETB types
-vi.mock('@/shared', () => ({
-  AddEintragDtoKategorieEnum: {
-    Alarmierung: 'Alarmierung',
-  },
-  EintragDtoKategorieEnum: {
-    Alarmierung: 'ALARMIERUNG',
-    Ankunft: 'ANKUNFT',
-    Befehl: 'BEFEHL',
-    Erkundung: 'ERKUNDUNG',
-    Lage: 'LAGE',
-    Massnahme: 'MASSNAHME',
-    Personal: 'PERSONAL',
-    Fahrzeug: 'FAHRZEUG',
-    Material: 'MATERIAL',
-    Kommunikation: 'KOMMUNIKATION',
-    Wetter: 'WETTER',
-    Dokumentation: 'DOKUMENTATION',
-    Sonstiges: 'SONSTIGES',
-    System: 'SYSTEM',
-  },
-  EinsatzRolleDtoRolleEnum: {
-    Befehlsgeber: 'BEFEHLSGEBER',
-    Empfaenger: 'EMPFAENGER',
-    Beobachter: 'BEOBACHTER',
-  },
-  api: {},
-}));
+// Teil-Mock für @/shared: echte Enums/Typen behalten, nur API-Proxy neutralisieren
+vi.mock('@/shared', async () => {
+  const actual = await vi.importActual<typeof import('@/shared')>('@/shared');
+
+  return {
+    ...actual,
+    api: {},
+  };
+});
 
 vi.mock('../../services/notification.service', () => ({
   sendAssignmentNotification: vi.fn().mockResolvedValue({ success: true }),

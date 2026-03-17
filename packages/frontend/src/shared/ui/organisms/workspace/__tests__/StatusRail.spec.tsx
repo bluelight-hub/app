@@ -1,6 +1,6 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { PiWarning } from 'react-icons/pi';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { StatusRail } from '../StatusRail';
 
 describe('StatusRail', () => {
@@ -51,5 +51,38 @@ describe('StatusRail', () => {
     expect(statuses).toHaveLength(1);
     expect(within(region).getByText('Arbeitszugriff blockiert')).toBeInTheDocument();
     expect(container.querySelector('output')).toBeNull();
+  });
+
+  it('rendert eine primäre Aktion pro Statuseintrag und fokussiert sie optional initial', () => {
+    const onClick = vi.fn();
+
+    render(
+      <StatusRail
+        items={[
+          {
+            id: 'action',
+            label: 'Aktion verfügbar',
+            description: 'Die nächste Aktion kann jetzt direkt ausgeführt werden.',
+            tone: 'active',
+            icon: PiWarning,
+            primaryAction: {
+              label: 'Aktion starten',
+              ariaLabel: 'Statusaktion ausführen',
+              autoFocus: true,
+              onClick,
+            },
+          },
+        ]}
+      />,
+    );
+
+    const button = screen.getByRole('button', { name: 'Statusaktion ausführen' });
+
+    expect(button).toBeInTheDocument();
+    expect(button).toHaveFocus();
+
+    fireEvent.click(button);
+
+    expect(onClick).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,6 +1,5 @@
-import { createStore, useStore } from '@tanstack/react-store';
 import type { EinsatzResponseDto } from '@/shared';
-import { saveActiveEinsatzId, subscribeToStorageChanges } from './persistence/einsatz-persistence';
+import { createStore, useStore } from '@tanstack/react-store';
 import { useCallback } from 'react';
 
 // Type alias for better readability
@@ -29,38 +28,6 @@ export const einsatzStore = createStore<EinsatzStoreState>({
   isLoadingActiveEinsatz: false,
   activeEinsatzError: null,
 });
-
-// Subscribe to store changes for auto-persistence
-einsatzStore.subscribe(() => {
-  const state = einsatzStore.state;
-  if (state.activeEinsatz?.id !== undefined) {
-    saveActiveEinsatzId(state.activeEinsatz.id);
-  }
-});
-
-// Setup cross-tab synchronization
-if (typeof window !== 'undefined') {
-  subscribeToStorageChanges((einsatzId) => {
-    // Only update if the ID actually changed
-    if (einsatzId !== einsatzStore.state.activeEinsatz?.id) {
-      // Clear active Einsatz when ID is removed
-      if (!einsatzId) {
-        einsatzStore.setState((state) => ({
-          ...state,
-          activeEinsatz: null,
-          selectedEinsatzId: null,
-          activeEinsatzError: null,
-        }));
-      } else {
-        // Note: The actual Einsatz data will be loaded by the useActiveEinsatz hook
-        einsatzStore.setState((state) => ({
-          ...state,
-          selectedEinsatzId: einsatzId,
-        }));
-      }
-    }
-  });
-}
 
 /**
  * Hook für Zugriff auf den Einsatz Store

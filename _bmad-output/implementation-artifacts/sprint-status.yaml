@@ -53,7 +53,7 @@ development_status:
   1-5-einsatz-auswahlen-neu-anlegen-und-per-assignmentgate-arbeitsfahig-offnen: done
   1-6-mit-stabiler-shell-und-kontextleiste-in-den-kernarbeitsraum-wechseln: done
   1-7-sidebar-command-palette-und-globale-statusfuhrung-im-workspace-nutzen: done
-  1-8-letzten-einsatz-und-arbeitskontext-plattformubergreifend-wiederaufnehmen: backlog
+  1-8-letzten-einsatz-und-arbeitskontext-plattformubergreifend-wiederaufnehmen: review
   epic-1-retrospective: optional
 
   epic-2: backlog

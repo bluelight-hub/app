@@ -11,7 +11,7 @@ describe('useEinsatzWorkspaceShell', () => {
     vi.useRealTimers();
   });
 
-  it('zeigt einen stabilen Normalzustand, wenn kein anderer Shell-Status aktiv ist', () => {
+  it('zeigt im stabilen Normalzustand keine zusätzliche Status-Karte', () => {
     const { result } = renderHook(() =>
       useEinsatzWorkspaceShell({
         isLoading: false,
@@ -20,12 +20,7 @@ describe('useEinsatzWorkspaceShell', () => {
       }),
     );
 
-    expect(result.current.statusItems).toHaveLength(1);
-    expect(result.current.statusItems[0]).toMatchObject({
-      tone: 'active',
-      label: 'Arbeitsraum bereit',
-      nextActionLabel: 'Nächster Schritt',
-    });
+    expect(result.current.statusItems).toHaveLength(0);
   });
 
   it('wartet 300 Millisekunden, bevor der globale Ladezustand sichtbar wird', async () => {
@@ -37,7 +32,7 @@ describe('useEinsatzWorkspaceShell', () => {
       }),
     );
 
-    expect(result.current.statusItems[0]?.label).toBe('Arbeitsraum bereit');
+    expect(result.current.statusItems).toHaveLength(0);
 
     act(() => {
       vi.advanceTimersByTime(300);
@@ -62,6 +57,23 @@ describe('useEinsatzWorkspaceShell', () => {
     expect(result.current.statusItems[0]).toMatchObject({
       label: 'Verbindung unterbrochen',
       role: 'alert',
+      nextActionLabel: 'Nächster Schritt',
+    });
+  });
+
+  it('markiert schreibgeschützte Arbeitsräume klar als readonly', () => {
+    const { result } = renderHook(() =>
+      useEinsatzWorkspaceShell({
+        isLoading: false,
+        requiresAssignment: false,
+        isRemindersDegraded: false,
+        isReadonly: true,
+      }),
+    );
+
+    expect(result.current.statusItems[0]).toMatchObject({
+      label: 'Arbeitsraum schreibgeschützt',
+      tone: 'readonly',
       nextActionLabel: 'Nächster Schritt',
     });
   });

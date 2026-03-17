@@ -51,4 +51,26 @@ describe('Route /app/einsatz/$einsatzId Guard', () => {
       },
     });
   });
+
+  it('leitet unbekannte Workspace-Subpfade kontrolliert auf den kanonischen Pfad zurück', async () => {
+    const { Route } = await import('../../$einsatzId');
+    const beforeLoad = (Route as { beforeLoad: (args: { location: { pathname: string }; params: { einsatzId: string } }) => void }).beforeLoad;
+    let thrownValue: unknown;
+
+    try {
+      beforeLoad({
+        location: { pathname: '/app/einsatz/einsatz-42/führung/unbekannt' },
+        params: { einsatzId: 'einsatz-42' },
+      });
+    } catch (error) {
+      thrownValue = error;
+    }
+
+    expect(thrownValue).toEqual({
+      redirect: {
+        to: '/app/einsatz/$einsatzId/übersicht',
+        params: { einsatzId: 'einsatz-42' },
+      },
+    });
+  });
 });

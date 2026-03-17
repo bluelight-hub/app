@@ -232,6 +232,7 @@ vi.mock('@/features/workspace', async () => {
   return {
     ...actual,
     useWorkspaceModules: () => workspaceModules,
+    useWorkspaceResume: () => undefined,
   };
 });
 
