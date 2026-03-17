@@ -7,7 +7,7 @@ import { ModuleRail } from '../ModuleRail';
 const navigateSpy = vi.fn();
 
 vi.mock('@tanstack/react-router', () => ({
-  Link: ({ children, to, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { to: string }) => (
+  Link: ({ children, to, search: _search, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { to: string; search?: unknown }) => (
     <a href={to} {...props}>
       {children}
     </a>
@@ -63,6 +63,7 @@ describe('ModuleRail', () => {
     expect(navigateSpy).toHaveBeenCalledWith({
       to: '/app/einsatz/$einsatzId/führung',
       params: { einsatzId: 'einsatz-42' },
+      search: expect.any(Function),
     });
 
     const overviewLinks = screen.getAllByRole('link', { name: 'Übersicht' });
@@ -160,6 +161,7 @@ describe('ModuleRail', () => {
     expect(navigateSpy).toHaveBeenCalledWith({
       to: '/app/einsatz/$einsatzId/führung',
       params: { einsatzId: 'einsatz-42' },
+      search: expect.any(Function),
     });
   });
 

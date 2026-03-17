@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { WorkspaceShell } from '../WorkspaceShell';
 
 vi.mock('@tanstack/react-router', () => ({
-  Link: ({ children, to, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { to?: string }) => (
+  Link: ({ children, to, search: _search, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { to?: string; search?: unknown }) => (
     <a href={to} {...props}>
       {children}
     </a>
@@ -363,5 +363,59 @@ describe('WorkspaceShell contract', () => {
     expect(etbLink).toHaveClass('bg-action-secondary');
     expect(etbLink).toHaveAttribute('aria-current', 'page');
     expect(lagekarteLink).not.toHaveClass('bg-action-secondary');
+  });
+
+  it('priorisiert in der Sidebar Navigation vor Schnellaktionen und zeigt Badge-Hinweise sichtbar an', () => {
+    render(
+      <WorkspaceShell
+        contextBar={{
+          title: 'Einsatz 98-76 | Gefahrgut',
+          subtitle: 'ABC 2 • Industriepark',
+        }}
+        modules={[
+          {
+            id: 'führung',
+            label: 'Führung',
+            description: 'Einsatzleitung und Dokumentation',
+            routeTarget: '/app/einsatz/$einsatzId/führung/etb',
+            icon: PiClipboard,
+            color: 'purple',
+            priority: 20,
+            visibility: { default: 'visible' },
+            shortcut: { modifiers: ['alt'], key: '2' },
+            badgeHint: { kind: 'count', label: 'Unquittierte Befehle', value: 3 },
+            subPages: [
+              {
+                id: 'etb',
+                label: 'ETB',
+                href: '/app/einsatz/$einsatzId/führung/etb',
+                icon: PiClipboard,
+                visibility: { default: 'visible' },
+              },
+            ],
+          },
+        ]}
+        activeModuleId="führung"
+        activePageHref="/app/einsatz/$einsatzId/führung/etb"
+        routeParams={{ einsatzId: 'einsatz-98-76' }}
+        quickActionsSlot={
+          <div>
+            <button type="button">Audio-Einstellungen</button>
+          </div>
+        }
+      >
+        <div>Arbeitsbereich</div>
+      </WorkspaceShell>,
+    );
+
+    const navigation = screen.getByRole('navigation', { name: 'Modulseiten' });
+    const quickActions = screen.getByRole('region', { name: 'Schnellaktionen' });
+
+    expect(within(navigation).getByText('Unquittierte Befehle')).toBeInTheDocument();
+    expect(within(navigation).getByText('3')).toBeInTheDocument();
+    expect(within(quickActions).getByRole('button', { name: 'Audio-Einstellungen' })).toBeInTheDocument();
+
+    const navigationPosition = navigation.compareDocumentPosition(quickActions);
+    expect(navigationPosition & Node.DOCUMENT_POSITION_FOLLOWING).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 });

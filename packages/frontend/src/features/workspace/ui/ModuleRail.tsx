@@ -124,6 +124,7 @@ export function ModuleRail({
         to: matchedModule.routeTarget,
         // biome-ignore lint/suspicious/noExplicitAny: Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
         params: routeParams as any,
+        search: (prev) => prev,
       });
     }
 
@@ -167,6 +168,7 @@ export function ModuleRail({
                     to={module.routeTarget}
                     // biome-ignore lint/suspicious/noExplicitAny: Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
                     params={routeParams as any}
+                    search={(prev) => prev}
                     aria-label={module.label}
                     aria-current={isActive ? 'page' : undefined}
                     aria-keyshortcuts={getShortcutLabel(module)}
@@ -209,6 +211,7 @@ export function ModuleRail({
                     to={module.routeTarget}
                     // biome-ignore lint/suspicious/noExplicitAny: Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
                     params={routeParams as any}
+                    search={(prev) => prev}
                     aria-label={module.label}
                     aria-current={isActive ? 'page' : undefined}
                     aria-keyshortcuts={getShortcutLabel(module)}
@@ -258,6 +261,7 @@ export function ModuleRail({
                     to={module.routeTarget}
                     // biome-ignore lint/suspicious/noExplicitAny: Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
                     params={routeParams as any}
+                    search={(prev) => prev}
                     aria-label={module.label}
                     aria-current={isActive ? 'page' : undefined}
                     aria-keyshortcuts={getShortcutLabel(module)}
