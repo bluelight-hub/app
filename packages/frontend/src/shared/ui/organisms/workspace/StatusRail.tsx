@@ -74,14 +74,14 @@ export function StatusRail({ items = [], className, title = 'Workspace-Status' }
   }
 
   return (
-    <section aria-label={title} className={cn('space-y-2', className)}>
+    <section aria-label={title} className={cn('space-y-1.5', className)}>
       {items.map((item) => {
         const Icon = item.icon;
         const role = item.role ?? 'status';
         const liveMode = role === 'alert' ? 'assertive' : 'polite';
 
         return (
-          <div key={item.id} role={role} aria-live={liveMode} aria-atomic="true" className={cn('block rounded-panel border px-3 py-2 shadow-panel', TONE_CLASSES[item.tone])}>
+          <div key={item.id} role={role} aria-live={liveMode} aria-atomic="true" className={cn('block rounded-panel border px-2.5 py-1.5 shadow-panel', TONE_CLASSES[item.tone])}>
             <div className="flex items-start gap-3">
               {Icon ? <Icon className="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden="true" /> : null}
               <div className="min-w-0 flex-1">
@@ -96,7 +96,7 @@ export function StatusRail({ items = [], className, title = 'Workspace-Status' }
                   </p>
                 ) : null}
                 {item.primaryAction ? (
-                  <div className="mt-3">
+                  <div className="mt-2">
                     <StatusRailActionButton action={item.primaryAction} />
                   </div>
                 ) : null}

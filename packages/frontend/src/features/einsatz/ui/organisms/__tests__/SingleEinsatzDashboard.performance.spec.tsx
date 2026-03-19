@@ -1,13 +1,27 @@
+import { SingleEinsatzDashboard } from '@/features/einsatz/ui/organisms/SingleEinsatzDashboard';
 import { EINSATZ_WORKSPACE_MODULES, WorkspaceShell, type WorkspaceContextBarModel, type WorkspaceStatusItem } from '@/features/workspace';
+import { createStructuredPerformanceReport, formatStructuredPerformanceReport, measureInteractionCycle, runIterations } from '@/test/performance/ring-2-performance-metrics';
+import { RING_2_PERFORMANCE_SCENARIOS, RING_2_PERFORMANCE_THRESHOLDS, buildOverviewDashboardFixture } from '@/test/performance/ring-2-performance-fixtures';
 import { act, renderWithProviders, screen, waitFor, within } from '@/test/utils';
 import type { AnchorHTMLAttributes } from 'react';
 import { PiPulse, PiWarning } from 'react-icons/pi';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { SingleEinsatzDashboard } from '../SingleEinsatzDashboard';
-import { RING_2_PERFORMANCE_SCENARIOS, RING_2_PERFORMANCE_THRESHOLDS, buildOverviewDashboardFixture } from '@/test/performance/ring-2-performance-fixtures';
-import { createStructuredPerformanceReport, formatStructuredPerformanceReport, measureInteractionCycle, runIterations } from '@/test/performance/ring-2-performance-metrics';
 
-const mockSetActiveEinsatz = vi.fn();
+const { mockSetActiveEinsatz, mockIsWorkspaceRouteAccessible, mockOverviewState } = vi.hoisted(() => ({
+  mockSetActiveEinsatz: vi.fn(),
+  mockIsWorkspaceRouteAccessible: vi.fn(() => true),
+  mockOverviewState: {
+    isLoading: false,
+    isFetching: false,
+    error: null as Error | null,
+    einsatz: undefined as unknown,
+    etb: undefined as unknown,
+    lagekarte: undefined as unknown,
+    fahrzeuge: [] as unknown[],
+    isLoadingFahrzeuge: false,
+    isFetchingFahrzeuge: false,
+  },
+}));
 
 const overviewFixture = buildOverviewDashboardFixture();
 const overviewWarningCount = overviewFixture.statusObjects.filter((item) => item.state === 'warning').length;
@@ -40,18 +54,6 @@ const overviewStatusItems: WorkspaceStatusItem[] = [
   },
 ];
 
-const mockOverviewState = {
-  isLoading: false,
-  error: null as Error | null,
-  einsatz: overviewFixture.einsatz,
-  fahrzeuge: overviewFixture.fahrzeuge,
-  etbEntries: overviewFixture.etbEntries,
-  pois: overviewFixture.pois,
-  isLoadingFahrzeuge: false,
-  isLoadingEtb: false,
-  isLoadingLagekarte: false,
-};
-
 interface OverviewWorkspaceHarnessProps {
   activeModuleId: string;
   activePageHref: string;
@@ -62,14 +64,15 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
 
   return {
     ...actual,
-    Link: ({ children, to, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { to?: string }) => (
-      <a href={to} {...props}>
+    Link: ({ children, to, search, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { to?: string; search?: unknown }) => (
+      <a href={to} data-preserves-search={typeof search === 'function' ? 'true' : undefined} {...props}>
         {children}
       </a>
     ),
-    useNavigate: () => vi.fn(),
     useParams: () => ({ einsatzId: 'einsatz-1' }),
     useRouter: () => ({
+      isServer: false,
+      options: {},
       history: {
         location: {
           pathname: '/app/einsatz/einsatz-1/übersicht',
@@ -87,78 +90,47 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
   };
 });
 
-vi.mock('@tanstack/react-query', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@tanstack/react-query')>();
-
-  return {
-    ...actual,
-    useQuery: () => ({
-      data: mockOverviewState.einsatz ? { data: mockOverviewState.einsatz } : undefined,
-      isLoading: mockOverviewState.isLoading,
-      error: mockOverviewState.error,
-    }),
-  };
-});
-
-vi.mock('@/features/einsatz', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/features/einsatz')>();
-
-  return {
-    ...actual,
-    EINSATZ_QUERY_KEYS: {
-      detail: (einsatzId: string) => ['einsatz', einsatzId],
-    },
-    useActiveEinsatz: () => ({
-      activeEinsatz: null,
-      setActiveEinsatz: mockSetActiveEinsatz,
-      isEinsatzActive: false,
-    }),
-    useEinsatzFahrzeuge: () => ({
-      data: mockOverviewState.fahrzeuge,
-      isLoading: mockOverviewState.isLoadingFahrzeuge,
-    }),
-    useMyEinsatzTeilnahme: () => ({
-      data: {
-        data: {
-          einsatzPersonId: 'einsatz-person-1',
-        },
-      },
-    }),
-    useUpdateFmsStatus: () => ({
-      mutate: vi.fn(),
-    }),
-  };
-});
-
-vi.mock('@/features/etb', () => ({
-  useEtb: () => ({
-    data: {
-      eintraege: mockOverviewState.etbEntries,
-    },
-    isLoading: mockOverviewState.isLoadingEtb,
+vi.mock('@/features/auth/api/use-users', () => ({
+  useUserNames: () => ({
+    getUserName: (id: string) => `TestUser-${id.slice(0, 4)}`,
+    getUserNames: (ids: string | string[]) => (typeof ids === 'string' ? `TestUser-${ids.slice(0, 4)}` : ids.map((id) => `TestUser-${id.slice(0, 4)}`)),
+    userMap: new Map(),
   }),
 }));
 
-vi.mock('@/features/lagekarte', () => ({
-  useLagekarte: () => ({
-    data: {
-      pois: mockOverviewState.pois,
-    },
-    isLoading: mockOverviewState.isLoadingLagekarte,
+vi.mock('@/features/workspace', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/features/workspace')>();
+
+  return {
+    ...actual,
+    isWorkspaceRouteAccessible: mockIsWorkspaceRouteAccessible,
+  };
+});
+
+vi.mock('@/features/einsatz', () => ({
+  FMS_STATUS_LABELS: {
+    3: 'Einsatzbereit auf Wache',
+    4: 'Ankunft an Einsatzstelle',
+  },
+  useActiveEinsatz: () => ({
+    activeEinsatz: null,
+    setActiveEinsatz: mockSetActiveEinsatz,
+    isEinsatzActive: false,
   }),
-}));
-
-vi.mock('@/features/einsatz/ui/organisms/FahrzeugHinzufuegenDialog.organism', () => ({
-  FahrzeugHinzufuegenDialog: () => null,
-}));
-
-vi.mock('@/features/einsatz/ui/organisms/PersonHinzufuegenDialog.organism', () => ({
-  PersonHinzufuegenDialog: () => null,
-}));
-
-vi.mock('@/features/reminders', () => ({
-  DashboardErinnerungen: () => <div data-testid="dashboard-erinnerungen" />,
-  ErinnerungStatistik: () => <div data-testid="erinnerung-statistik" />,
+  useEinsatzDetails: () => ({
+    einsatz: mockOverviewState.einsatz,
+    etb: mockOverviewState.etb,
+    lagekarte: mockOverviewState.lagekarte,
+    isLoading: mockOverviewState.isLoading,
+    isFetching: mockOverviewState.isFetching,
+    error: mockOverviewState.error,
+    data: undefined,
+  }),
+  useEinsatzFahrzeuge: () => ({
+    data: mockOverviewState.fahrzeuge,
+    isLoading: mockOverviewState.isLoadingFahrzeuge,
+    isFetching: mockOverviewState.isFetchingFahrzeuge,
+  }),
 }));
 
 function OverviewWorkspaceHarness({ activeModuleId, activePageHref }: OverviewWorkspaceHarnessProps) {
@@ -185,17 +157,49 @@ function OverviewWorkspaceHarness({ activeModuleId, activePageHref }: OverviewWo
 
 describe('SingleEinsatzDashboard Performance-Gates', () => {
   beforeEach(() => {
+    vi.useRealTimers();
     vi.clearAllMocks();
+    mockIsWorkspaceRouteAccessible.mockReturnValue(true);
+
     Object.assign(mockOverviewState, {
       isLoading: false,
+      isFetching: false,
       error: null,
-      einsatz: overviewFixture.einsatz,
-      fahrzeuge: overviewFixture.fahrzeuge,
-      etbEntries: overviewFixture.etbEntries,
-      pois: overviewFixture.pois,
+      einsatz: {
+        ...overviewFixture.einsatz,
+        createdAt: new Date(overviewFixture.einsatz.createdAt),
+        einsatzort: {
+          strasse: 'Musterstraße',
+          hausnummer: '7',
+          plz: '12345',
+          ort: 'Teststadt',
+        },
+      },
+      etb: {
+        id: 'etb-1',
+        einsatzId: 'einsatz-1',
+        status: 'ACTIVE',
+        eintraege: overviewFixture.etbEntries,
+        version: {},
+        createdAt: new Date('2026-03-16T11:45:00.000Z'),
+      },
+      lagekarte: {
+        id: 'lage-1',
+        einsatzId: 'einsatz-1',
+        pois: overviewFixture.pois,
+        createdAt: new Date('2026-03-16T11:50:00.000Z'),
+      },
+      fahrzeuge: overviewFixture.fahrzeuge.map((fahrzeug) => ({
+        ...fahrzeug,
+        einsatzId: 'einsatz-1',
+        fahrzeugtypId: 'typ-1',
+        createdAt: '2026-03-16T11:45:00.000Z',
+        updatedAt: '2026-03-16T11:50:00.000Z',
+        createdBy: 'user-1',
+        fahrzeugtyp: {},
+      })),
       isLoadingFahrzeuge: false,
-      isLoadingEtb: false,
-      isLoadingLagekarte: false,
+      isFetchingFahrzeuge: false,
     });
   });
 
@@ -204,20 +208,24 @@ describe('SingleEinsatzDashboard Performance-Gates', () => {
 
     renderWithProviders(<SingleEinsatzDashboard />);
 
-    expect(screen.getByRole('status')).toHaveTextContent('Lade Einsatzdaten...');
+    expect(screen.getByRole('status')).toHaveTextContent('Lade priorisierte Lageübersicht...');
   });
 
-  it('zeigt Kartenzustände mit textlichem Status für verzögerte Teilabfragen', () => {
-    mockOverviewState.isLoadingFahrzeuge = true;
-    mockOverviewState.isLoadingEtb = true;
-    mockOverviewState.isLoadingLagekarte = true;
+  it('zeigt textliches Aktualisierungsfeedback für verzögerte Refreshes nach 300 Millisekunden', () => {
+    vi.useFakeTimers();
+    mockOverviewState.isFetching = true;
 
     renderWithProviders(<SingleEinsatzDashboard />);
 
-    expect(screen.getAllByText('Wird geladen...')).toHaveLength(3);
+    expect(screen.queryByText(/Lageübersicht wird aktualisiert/i)).not.toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(screen.getByText(/Lageübersicht wird aktualisiert/i)).toBeInTheDocument();
   });
 
-  // Die P95-Schwelle bleibt unverändert; der höhere Test-Timeout fängt nur Suite-Last bei 30 Iterationen ab.
   it('liefert einen P95-Gate-Report für den nutzbaren Überblickszustand nach Modulwechsel mit 100 Überblicksobjekten', async () => {
     const samples = await runIterations({
       iterations: RING_2_PERFORMANCE_THRESHOLDS.iterations,
@@ -235,19 +243,26 @@ describe('SingleEinsatzDashboard Performance-Gates', () => {
             },
             async () => {
               await waitFor(() => {
-                expect(screen.getByRole('heading', { name: 'Schnellzugriffe' })).toBeInTheDocument();
+                expect(screen.getByRole('region', { name: 'Einsatz-Dashboard' })).toBeInTheDocument();
                 expect(screen.getByRole('region', { name: 'Workspace-Status' })).toBeInTheDocument();
               });
 
               const workspaceStatus = screen.getByRole('region', { name: 'Workspace-Status' });
+              const dashboardRegion = screen.getByRole('region', { name: 'Einsatz-Dashboard' });
 
               expect(within(workspaceStatus).getByText('Überblicksobjekte')).toBeInTheDocument();
               expect(within(workspaceStatus).getByText(String(overviewFixture.statusObjects.length))).toBeInTheDocument();
               expect(within(workspaceStatus).getByText(`${overviewFixture.fahrzeuge.length} Ressourcen · ${overviewFixture.pois.length} Ortsmarken`)).toBeInTheDocument();
               expect(within(workspaceStatus).getByText('Warnsignale')).toBeInTheDocument();
               expect(within(workspaceStatus).getByText(String(overviewWarningCount))).toBeInTheDocument();
-              expect(screen.getAllByText(String(overviewFixture.fahrzeuge.length)).length).toBeGreaterThan(0);
-              expect(screen.getAllByText(String(overviewFixture.pois.length)).length).toBeGreaterThan(0);
+              expect(within(dashboardRegion).getByRole('heading', { name: 'Lagebild' })).toBeInTheDocument();
+              expect(within(dashboardRegion).getByRole('heading', { name: 'Direktzugriffe' })).toBeInTheDocument();
+              expect(screen.getByRole('heading', { name: 'Einsatzinformationen' })).toBeInTheDocument();
+              expect(screen.getByRole('heading', { name: 'Ressourcenlage' })).toBeInTheDocument();
+              expect(within(dashboardRegion).getByRole('img', { name: 'ETB-Aktivität' })).toBeInTheDocument();
+              expect(screen.getByRole('img', { name: 'Ressourcenverteilung' })).toBeInTheDocument();
+              expect(screen.getByText(String(overviewFixture.etbEntries.length))).toBeInTheDocument();
+              expect(screen.getAllByText(`${overviewFixture.pois.length} Ortsmarken`).length).toBeGreaterThan(0);
             },
           );
         } finally {

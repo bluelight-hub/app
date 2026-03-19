@@ -87,7 +87,7 @@ export function UnifiedAuthForm({ onSubmit, isLoading = false, error, className 
         await form.handleSubmit();
       }}
       aria-busy={isBusy}
-      className={cn('space-y-6', className)}
+      className={cn('space-y-4', className)}
     >
       <div className="space-y-4">
         <form.Field name="username">

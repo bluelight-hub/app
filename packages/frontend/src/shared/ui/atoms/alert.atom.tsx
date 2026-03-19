@@ -40,7 +40,7 @@ function Alert({ status = 'info', title, description, icon, className, children,
   const defaultRole = status === 'error' ? 'alert' : 'status';
 
   return (
-    <div role={role || defaultRole} className={cn('flex gap-3 rounded-lg border p-4', statusStyles[status], className)} {...props}>
+    <div role={role || defaultRole} className={cn('flex gap-3 rounded-md border p-3', statusStyles[status], className)} {...props}>
       <div className="flex-shrink-0">{icon || defaultIcons[status]}</div>
       <div className="flex-1">
         {title && <h3 className="mb-1 font-medium text-sm">{title}</h3>}

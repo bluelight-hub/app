@@ -364,13 +364,13 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
             'rounded-xl border border-gray-200/50 bg-white/95 shadow-2xl backdrop-blur-lg',
             'dark:border-gray-700/50 dark:bg-gray-900/95',
             // Padding
-            'p-6',
+            'p-4',
             // Mobile: Full-screen
-            'md:p-8',
+            'md:p-6',
           )}
         >
           {/* Header */}
-          <div className="mb-6 flex items-start justify-between">
+          <div className="mb-4 flex items-start justify-between">
             <DialogTitle className="font-semibold text-gray-900 text-xl dark:text-gray-100">Offline-Region auswählen</DialogTitle>
             <Button type="button" onClick={onClose} intent="secondary" appearance="ghost" size="icon" className="p-2" aria-label="Modal schließen" disabled={isDownloading}>
               <PiX size={20} aria-hidden="true" />
@@ -378,7 +378,7 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
           </div>
 
           {/* Content */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Map-Preview Section */}
             <div>
               <h3 className="mb-2 font-medium text-gray-900 text-sm dark:text-gray-100">Karten-Region</h3>

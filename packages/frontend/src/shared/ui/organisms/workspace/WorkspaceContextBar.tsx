@@ -27,7 +27,7 @@ export function WorkspaceContextBar({ title, subtitle, icon: ContextIcon, backAc
     <header className={cn('sticky top-0 z-30 border-border-subtle border-b bg-surface-panel shadow-raised', className)}>
       <Container maxWidth="full">
         <div className="py-2">
-          <div className="flex min-h-14 items-center justify-between gap-3">
+          <div className="flex min-h-12 items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               {backAction ? (
                 <Link

@@ -206,4 +206,35 @@ describe('useWorkspaceResume', () => {
 
     expect(mockNavigate).not.toHaveBeenCalled();
   });
+
+  it('stellt freigegebene Überblicks-Unterseiten inklusive Search-Kontext wieder her', async () => {
+    mockLoadWorkspaceResumeState.mockResolvedValueOnce({
+      version: 1,
+      serverId: 'server-1',
+      userId: 'user-1',
+      role: 'DISPATCHER',
+      einsatzId: 'einsatz-7',
+      moduleId: 'übersicht',
+      pathname: '/app/einsatz/einsatz-7/übersicht/karte',
+      search: { mode: 'fullscreen' },
+      updatedAt: '2026-03-17T10:00:00.000Z',
+    });
+
+    renderHook(() =>
+      useWorkspaceResume({
+        einsatzId: 'einsatz-7',
+        pathname: '/app/einsatz/einsatz-7/übersicht',
+        search: {},
+        requiresAssignment: false,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith({
+        to: '/app/einsatz/einsatz-7/übersicht/karte',
+        search: { mode: 'fullscreen' },
+        replace: true,
+      });
+    });
+  });
 });

@@ -71,10 +71,10 @@ const BORDER_STYLES = {
 };
 
 const SIZES = {
-  sm: 'px-3 py-1.5',
+  sm: 'px-2.5 py-1',
   md: 'px-control-x py-control-y',
-  lg: 'px-5 py-3',
-  icon: 'p-2',
+  lg: 'px-4 py-2',
+  icon: 'p-1.5',
 };
 
 const CONTENT_SIZES = {

@@ -22,9 +22,9 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(({ appe
       size="icon"
       className={cn(
         // Icon-specific size adjustments
-        size === 'sm' && 'h-8 w-8 p-1.5',
-        size === 'md' && 'h-9 w-9 p-2',
-        size === 'lg' && 'h-11 w-11 p-2.5',
+        size === 'sm' && 'h-7 w-7 p-1',
+        size === 'md' && 'h-8 w-8 p-1.5',
+        size === 'lg' && 'h-9 w-9 p-2',
         className,
       )}
       {...props}

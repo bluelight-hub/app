@@ -8,7 +8,7 @@ export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElemen
 }
 
 const BASE_STYLES =
-  'block w-full rounded-lg border-2 bg-white font-medium text-gray-900 transition-colors duration-200 placeholder:text-gray-400 focus:outline-none focus:ring-4 focus:ring-opacity-20 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-500 resize-none';
+  'block w-full rounded-lg border bg-white font-medium text-gray-900 transition-colors duration-200 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-opacity-20 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-500 resize-none';
 
 const VARIANTS = {
   default:
@@ -18,8 +18,8 @@ const VARIANTS = {
 
 const SIZES = {
   sm: 'px-3 py-1.5 text-sm min-h-[80px]',
-  md: 'px-4 py-2.5 text-base min-h-[100px]',
-  lg: 'px-4 py-3.5 text-base min-h-[120px]',
+  md: 'px-3 py-1.5 text-sm min-h-[100px]',
+  lg: 'px-3 py-2 text-sm min-h-[120px]',
 };
 
 /**

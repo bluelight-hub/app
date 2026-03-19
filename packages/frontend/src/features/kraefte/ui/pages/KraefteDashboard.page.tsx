@@ -220,7 +220,7 @@ export function KraefteDashboard({ einsatzId, className, mode = 'standard' }: Kr
 
   return (
     <DashboardModeProvider value={mode}>
-      <div className={cn('space-y-6', mode === 'fullscreen' && 'p-6 lg:p-8', className)}>
+      <div className={cn('space-y-4', mode === 'fullscreen' && 'p-4 lg:p-6', className)}>
         {/* AC4: Exit-Button in FullScreen */}
         {mode === 'fullscreen' && <FullscreenCloseButton onClose={handleExitFullscreen} />}
 

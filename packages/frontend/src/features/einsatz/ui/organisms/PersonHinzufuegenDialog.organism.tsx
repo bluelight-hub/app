@@ -388,11 +388,11 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                           disabled={registrierePerson.isPending}
                           placeholder="z.B. Max"
                           className={cn(
-                            'block w-full rounded-lg border-2 bg-gray-50 px-4 py-3 font-medium text-base text-gray-900',
+                            'block w-full rounded-lg border bg-gray-50 px-4 py-3 font-medium text-base text-gray-900',
                             'transition-all duration-200',
                             'border-gray-200',
                             'placeholder:text-gray-400',
-                            'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary-500 focus:ring-opacity-20',
+                            'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20',
                             'sm:text-sm',
                             'dark:border-gray-700 dark:bg-gray-900 dark:text-white',
                             'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400 dark:placeholder:text-gray-500',
@@ -413,11 +413,11 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                             <ComboboxInput
                               aria-label="Nachname suchen"
                               className={cn(
-                                'block w-full rounded-lg border-2 bg-gray-50 px-4 py-3 pr-12 font-medium text-base text-gray-900',
+                                'block w-full rounded-lg border bg-gray-50 px-4 py-3 pr-12 font-medium text-base text-gray-900',
                                 'transition-all duration-200',
                                 'border-gray-200',
                                 'placeholder:text-gray-400',
-                                'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary-500 focus:ring-opacity-20',
+                                'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20',
                                 'sm:text-sm',
                                 'dark:border-gray-700 dark:bg-gray-900 dark:text-white',
                                 'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400 dark:placeholder:text-gray-500',
@@ -528,10 +528,10 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                             <ListboxButton
                               aria-label="Funktion auswählen"
                               className={cn(
-                                'relative w-full cursor-default rounded-lg border-2 bg-gray-50 py-3 pr-10 pl-4 text-left font-medium text-base text-gray-900',
+                                'relative w-full cursor-default rounded-lg border bg-gray-50 py-3 pr-10 pl-4 text-left font-medium text-base text-gray-900',
                                 'transition-all duration-200',
                                 'border-gray-200',
-                                'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary-500 focus:ring-opacity-20',
+                                'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20',
                                 'sm:text-sm',
                                 'dark:border-gray-700 dark:bg-gray-900 dark:text-white',
                                 'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400',
@@ -595,11 +595,11 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                           disabled={registrierePerson.isPending}
                           placeholder="z.B. GF"
                           className={cn(
-                            'block w-full rounded-lg border-2 bg-gray-50 px-4 py-3 font-medium text-base text-gray-900',
+                            'block w-full rounded-lg border bg-gray-50 px-4 py-3 font-medium text-base text-gray-900',
                             'transition-all duration-200',
                             'border-gray-200',
                             'placeholder:text-gray-400',
-                            'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary-500 focus:ring-opacity-20',
+                            'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20',
                             'sm:text-sm',
                             'dark:border-gray-700 dark:bg-gray-900 dark:text-white',
                             'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400 dark:placeholder:text-gray-500',

@@ -286,7 +286,7 @@ export function getWorkspaceRouteMeta(
   }
 
   for (const module of EINSATZ_WORKSPACE_MODULES) {
-    const page = module.subPages.find((candidate) => matchesWorkspaceRoute(pathnameTemplate, candidate.href));
+    const page = [...module.subPages].filter((candidate) => matchesWorkspaceRoute(pathnameTemplate, candidate.href)).sort((left, right) => right.href.length - left.href.length)[0];
 
     if (page) {
       return { module, page };

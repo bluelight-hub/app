@@ -39,7 +39,7 @@ interface FahrzeugCardProps {
 const getModeClasses = (mode: DashboardMode) => ({
   container: {
     standard: 'rounded-lg border p-4 shadow-sm',
-    fullscreen: 'rounded-lg border p-5 lg:p-6 shadow-sm',
+    fullscreen: 'rounded-lg border p-4 lg:p-4 shadow-sm',
     compact: 'rounded border p-2',
   }[mode],
   funkrufname: {

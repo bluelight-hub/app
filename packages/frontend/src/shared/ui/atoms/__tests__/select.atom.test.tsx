@@ -14,7 +14,7 @@ describe('Select Atom', () => {
     const select = screen.getByTestId('select');
     expect(select).toBeInTheDocument();
     expect(select).toHaveClass('border-gray-300'); // Default variant
-    expect(select).toHaveClass('px-4'); // Default size (md)
+    expect(select).toHaveClass('px-3'); // Default size (md)
   });
 
   it('should render options', () => {
@@ -39,7 +39,7 @@ describe('Select Atom', () => {
   it('should apply size classes', () => {
     render(<Select options={options} selectSize="lg" data-testid="select" />);
     const select = screen.getByTestId('select');
-    expect(select).toHaveClass('py-3.5');
+    expect(select).toHaveClass('py-2');
   });
 
   it('should apply fullWidth class', () => {

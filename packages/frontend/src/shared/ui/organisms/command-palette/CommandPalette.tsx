@@ -94,7 +94,7 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
           transition
           className={cn(
             'mx-auto mt-[10vh] max-w-2xl transform',
-            'overflow-hidden rounded-2xl',
+            'overflow-hidden rounded-lg',
             'bg-white/95 backdrop-blur-xl dark:bg-gray-900/95',
             'shadow-2xl ring-1 ring-gray-900/10 dark:ring-white/10',
             'duration-200 ease-out data-[closed]:scale-95 data-[closed]:opacity-0',
@@ -121,7 +121,7 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
                 value={state.immediateSearch}
                 onValueChange={actions.setSearch}
                 className={cn(
-                  'w-full bg-transparent py-4 pr-12 pl-12',
+                  'w-full bg-transparent py-3 pr-10 pl-10',
                   'text-base text-gray-900 dark:text-gray-100',
                   'placeholder-gray-400 dark:placeholder-gray-500',
                   'focus:outline-none',
@@ -142,7 +142,7 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
 
             {/* Command List */}
             <Command.List className="max-h-[calc(100vh-24rem)] overflow-y-auto scroll-smooth p-2">
-              <Command.Empty className="flex flex-col items-center justify-center px-4 py-12">
+              <Command.Empty className="flex flex-col items-center justify-center px-4 py-8">
                 <PiWarning className="mb-3 h-10 w-10 text-gray-300 dark:text-gray-600" />
                 <p className="text-gray-500 text-sm dark:text-gray-400">Keine Ergebnisse für "{state.immediateSearch}"</p>
               </Command.Empty>

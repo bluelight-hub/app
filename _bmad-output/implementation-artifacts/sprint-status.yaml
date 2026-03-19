@@ -1,5 +1,5 @@
 # generated: 2026-03-15T11:37:19+01:00
-# last_updated: 2026-03-17T18:44:00+0100
+# last_updated: 2026-03-18T00:00:05+0100
 # project: bluelight-hub
 # project_key: NOKEY
 # tracking_system: file-system
@@ -35,7 +35,7 @@
 # - Dev moves story to "review", then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-03-15T11:37:19+01:00
-last_updated: 2026-03-17T18:44:00+0100
+last_updated: 2026-03-19T02:00:00+0100
 project: bluelight-hub
 project_key: NOKEY
 tracking_system: file-system
@@ -56,11 +56,11 @@ development_status:
   1-8-letzten-einsatz-und-arbeitskontext-plattformubergreifend-wiederaufnehmen: done
   epic-1-retrospective: optional
 
-  epic-2: backlog
-  2-1-priorisierte-lageubersicht-fur-operative-nutzer-anzeigen: backlog
-  2-2-fuhrungssicht-mit-kritischen-entwicklungen-und-offenen-entscheidungen-bereitstellen: backlog
-  2-3-statusanderungen-mit-zeitbezug-und-herkunft-nachvollziehbar-machen: backlog
-  2-4-aus-priorisierten-ubersichtselementen-direkt-in-den-passenden-arbeitsbereich-springen: backlog
+  epic-2: in-progress
+  2-1-priorisierte-lageubersicht-fur-operative-nutzer-anzeigen: done
+  2-2-fuhrungssicht-mit-kritischen-entwicklungen-und-offenen-entscheidungen-bereitstellen: blocked
+  2-3-statusanderungen-mit-zeitbezug-und-herkunft-nachvollziehbar-machen: done
+  2-4-aus-priorisierten-ubersichtselementen-direkt-in-den-passenden-arbeitsbereich-springen: done
   epic-2-retrospective: optional
 
   epic-3: backlog

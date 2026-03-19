@@ -171,11 +171,11 @@ export function EmpfaengerCombobox({ einsatzId, value, onChange, error }: Empfae
             ref={inputRef}
             aria-label="Empfänger suchen"
             className={cn(
-              'block w-full rounded-lg border-2 bg-gray-50 px-4 py-3 font-medium text-base text-gray-900',
+              'block w-full rounded-lg border bg-gray-50 px-4 py-3 font-medium text-base text-gray-900',
               'transition-all duration-200',
               'border-gray-200',
               'placeholder:text-gray-400',
-              'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary-500 focus:ring-opacity-20',
+              'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20',
               'sm:text-sm/6',
               'dark:border-gray-700 dark:bg-gray-900 dark:text-white',
               'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400 dark:placeholder:text-gray-500',

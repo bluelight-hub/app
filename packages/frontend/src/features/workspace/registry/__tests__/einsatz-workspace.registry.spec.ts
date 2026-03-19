@@ -97,5 +97,7 @@ describe('einsatz workspace registry', () => {
     expect(isWorkspaceRouteAccessible('/app/einsatz/einsatz-42/kommunikation/funk', 'einsatz-42')).toBe(false);
     expect(isWorkspaceRouteAccessible('/app/einsatz/einsatz-42/übersicht', 'einsatz-42')).toBe(true);
     expect(isWorkspaceRouteAccessible('/app/einsatz/einsatz-42/übersicht/', 'einsatz-42')).toBe(true);
+    expect(isWorkspaceRouteAccessible('/app/einsatz/einsatz-42/übersicht/karte', 'einsatz-42')).toBe(true);
+    expect(isWorkspaceRouteAccessible('/app/einsatz/einsatz-42/übersicht/statistik', 'einsatz-42')).toBe(false);
   });
 });

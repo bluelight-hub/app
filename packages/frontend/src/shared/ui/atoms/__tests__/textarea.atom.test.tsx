@@ -10,7 +10,7 @@ describe('Textarea Atom', () => {
     expect(textarea).toBeInTheDocument();
     expect(textarea.tagName).toBe('TEXTAREA');
     expect(textarea).toHaveClass('border-gray-300'); // Default variant
-    expect(textarea).toHaveClass('px-4'); // Default size (md)
+    expect(textarea).toHaveClass('px-3'); // Default size (md)
   });
 
   it('should apply variant classes', () => {

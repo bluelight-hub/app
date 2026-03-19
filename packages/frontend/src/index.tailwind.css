@@ -63,24 +63,24 @@
   --ring-1-color-status-danger-border: #f5bbb6;
   --ring-1-color-status-danger-text: #a23834;
 
-  --ring-1-spacing-cluster: 0.75rem;
-  --ring-1-spacing-panel: 1.5rem;
-  --ring-1-spacing-shell: 2rem;
-  --ring-1-spacing-control-x: 1rem;
-  --ring-1-spacing-control-y: 0.625rem;
+  --ring-1-spacing-cluster: 0.5rem;
+  --ring-1-spacing-panel: 1rem;
+  --ring-1-spacing-shell: 1.25rem;
+  --ring-1-spacing-control-x: 0.75rem;
+  --ring-1-spacing-control-y: 0.5rem;
   --ring-1-spacing-density-0: 0.25rem;
-  --ring-1-spacing-density-1: 0.5rem;
-  --ring-1-spacing-density-2: 0.75rem;
-  --ring-1-spacing-density-3: 1rem;
-  --ring-1-spacing-density-4: 1.5rem;
+  --ring-1-spacing-density-1: 0.375rem;
+  --ring-1-spacing-density-2: 0.5rem;
+  --ring-1-spacing-density-3: 0.75rem;
+  --ring-1-spacing-density-4: 1rem;
 
-  --ring-1-radius-control: 0.875rem;
-  --ring-1-radius-panel: 1.25rem;
+  --ring-1-radius-control: 0.375rem;
+  --ring-1-radius-panel: 0.5rem;
   --ring-1-radius-pill: 9999px;
 
-  --ring-1-shadow-panel: 0 24px 48px -32px rgb(15 23 42 / 0.28);
-  --ring-1-shadow-raised: 0 14px 28px -20px rgb(15 23 42 / 0.2);
-  --ring-1-shadow-button-primary: 0 18px 32px -24px rgb(37 90 169 / 0.42);
+  --ring-1-shadow-panel: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --ring-1-shadow-raised: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --ring-1-shadow-button-primary: 0 1px 2px 0 rgb(37 90 169 / 0.15);
   --ring-1-shadow-focus: 0 0 0 1px var(--ring-1-color-focus-ring), 0 0 0 4px rgb(78 132 213 / 0.22);
   --ring-1-shadow-alarm-glow-soft: 0 0 5px rgb(162 56 52 / 0.5);
   --ring-1-shadow-alarm-glow-strong: 0 0 15px rgb(162 56 52 / 1), 0 0 25px rgb(162 56 52 / 0.5);
@@ -142,9 +142,9 @@
   --ring-1-color-status-danger-border: rgb(245 187 182 / 0.38);
   --ring-1-color-status-danger-text: #ffe0dd;
 
-  --ring-1-shadow-panel: 0 30px 56px -38px rgb(2 6 23 / 0.66);
-  --ring-1-shadow-raised: 0 18px 34px -24px rgb(2 6 23 / 0.54);
-  --ring-1-shadow-button-primary: 0 22px 38px -26px rgb(37 90 169 / 0.5);
+  --ring-1-shadow-panel: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.2);
+  --ring-1-shadow-raised: 0 1px 2px 0 rgb(0 0 0 / 0.15);
+  --ring-1-shadow-button-primary: 0 1px 2px 0 rgb(37 90 169 / 0.25);
   --ring-1-shadow-focus: 0 0 0 1px var(--ring-1-color-focus-ring), 0 0 0 4px rgb(127 176 255 / 0.2);
   --ring-1-shadow-alarm-glow-soft: 0 0 6px rgb(245 187 182 / 0.45);
   --ring-1-shadow-alarm-glow-strong: 0 0 18px rgb(245 187 182 / 0.9), 0 0 28px rgb(162 56 52 / 0.55);
@@ -565,6 +565,32 @@ body {
   }
 }
 
+/* Story 2.3: Grüner Pulse für neue Einträge */
+@keyframes highlight-new {
+  0% {
+    background-color: transparent;
+  }
+  30% {
+    background-color: var(--ring-1-color-status-success-surface);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+/* Story 2.3: Amber Pulse für aktualisierte Einträge */
+@keyframes highlight-updated {
+  0% {
+    background-color: transparent;
+  }
+  30% {
+    background-color: var(--ring-1-color-status-warning-surface);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
 @keyframes slide-in-right {
   0% {
     opacity: 0;
@@ -578,6 +604,14 @@ body {
 
 .animate-highlight {
   animation: highlight 1.5s ease-out forwards;
+}
+
+.animate-highlight-new {
+  animation: highlight-new 2s ease-out forwards;
+}
+
+.animate-highlight-updated {
+  animation: highlight-updated 2s ease-out forwards;
 }
 
 .animate-slide-in-right {
@@ -599,6 +633,8 @@ body {
   .animate-floating-pill-entrance,
   .animate-floating-pill-exit,
   .animate-highlight,
+  .animate-highlight-new,
+  .animate-highlight-updated,
   .animate-slide-in-right {
     animation: none;
     transition: none;

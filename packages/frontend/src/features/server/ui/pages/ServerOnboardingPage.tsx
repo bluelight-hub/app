@@ -111,7 +111,7 @@ export function ServerOnboardingPage() {
 
             {/* Error State: Exchange fehlgeschlagen */}
             {!isExchanging && error && (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <OnboardingErrorCard errorCode="INVITE_EXPIRED" />
                 <div className="space-y-4">
                   <Text size="sm" color="muted" className="text-center">
@@ -124,7 +124,7 @@ export function ServerOnboardingPage() {
 
             {/* Form State: Prefill oder leer */}
             {!isExchanging && !error && (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {/* Info Text */}
                 {!prefillServerUrl && (
                   <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/50">

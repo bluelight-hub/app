@@ -48,8 +48,8 @@ export function TimeInput({ value, onChange, disabled = false, error = false, cl
   const [minutesInput, setMinutesInput] = useState<string | null>(null);
 
   const baseInputStyles = cn(
-    'w-14 rounded-lg border-2 bg-white px-2 py-2.5 text-center font-medium text-gray-900 transition-colors duration-200',
-    'focus:outline-none focus:ring-4 focus:ring-opacity-20',
+    'w-14 rounded-lg border bg-white px-2 py-2.5 text-center font-medium text-gray-900 transition-colors duration-200',
+    'focus:outline-none focus:ring-2 focus:ring-opacity-20',
     'disabled:cursor-not-allowed disabled:opacity-50',
     'dark:bg-gray-900 dark:text-white',
     error
