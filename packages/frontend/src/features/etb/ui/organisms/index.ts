@@ -3,6 +3,8 @@
  */
 
 export { EditEtbEntryModal } from './EditEtbEntryModal';
+export { EtbComposerWorkspace } from './EtbComposerWorkspace';
+export { EtbComposerSkeleton } from './EtbComposerSkeleton';
 export { EtbEntryForm } from './EtbEntryForm';
 export { EtbEntryList } from './EtbEntryList';
 export { EtbKategorieSelect } from './EtbKategorieSelect';

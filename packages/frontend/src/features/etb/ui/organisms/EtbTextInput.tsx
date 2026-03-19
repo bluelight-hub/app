@@ -1,5 +1,6 @@
 import { Textarea } from '@/shared/ui/atoms/textarea.atom';
 import { cn } from '@/shared/ui/cn';
+import { useId } from 'react';
 
 interface EtbTextInputProps {
   value: string;
@@ -17,6 +18,10 @@ interface EtbTextInputProps {
  * Unterstützt CMD+Enter (Mac) / CTRL+Enter (Windows/Linux) zum Absenden.
  */
 export function EtbTextInput({ value, onChange, onBlur, onSubmit, error, maxLength = 2000, disabled = false }: EtbTextInputProps) {
+  const id = useId();
+  const textareaId = `${id}-etb-text`;
+  const errorId = `${id}-etb-text-error`;
+
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onChange(e.target.value);
   };
@@ -30,12 +35,13 @@ export function EtbTextInput({ value, onChange, onBlur, onSubmit, error, maxLeng
 
   return (
     <div className="space-y-1">
-      <label htmlFor="etb-text" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
+      <label htmlFor={textareaId} className="block font-medium text-gray-700 text-sm dark:text-gray-300">
         Text
+        <span className="sr-only"> — Strg/Cmd + Enter zum Speichern</span>
       </label>
 
       <Textarea
-        id="etb-text"
+        id={textareaId}
         value={value}
         onChange={handleChange}
         onBlur={onBlur}
@@ -46,12 +52,15 @@ export function EtbTextInput({ value, onChange, onBlur, onSubmit, error, maxLeng
         textareaSize="sm"
         placeholder="Beschreiben Sie das Ereignis oder die Maßnahme..."
         maxLength={maxLength}
+        aria-describedby={error ? errorId : undefined}
+        aria-invalid={!!error}
+        className="focus-visible:shadow-focus-ring"
       />
 
       <div className="flex items-start justify-between">
         <div className="flex-1">
           {error && (
-            <p className="text-red-600 text-sm dark:text-red-400" role="alert">
+            <p id={errorId} className="text-red-600 text-sm dark:text-red-400" aria-live="polite">
               {error}
             </p>
           )}

@@ -31,12 +31,18 @@ interface EtbAbsenderInputProps {
   empfaengerValue: string;
   onAbsenderChange: (value: string) => void;
   onEmpfaengerChange: (value: string) => void;
+  /** Blur-Handler fuer Absender-Feld (Form-Validation) */
+  onAbsenderBlur?: () => void;
+  /** Blur-Handler fuer Empfaenger-Feld (Form-Validation) */
+  onEmpfaengerBlur?: () => void;
   absenderError?: string;
   empfaengerError?: string;
   /** Vorschläge für Absender (z.B. aus EinsatzTeilnehmer) */
   absenderSuggestions?: ComboboxItem[];
   /** Zusätzliche Vorschläge für Empfänger */
   empfaengerSuggestions?: ComboboxItem[];
+  /** Auto-Fokus auf dem Absender-Feld beim Mount */
+  autoFocusAbsender?: boolean;
   className?: string;
 }
 
@@ -54,10 +60,13 @@ export function EtbAbsenderInput({
   empfaengerValue,
   onAbsenderChange,
   onEmpfaengerChange,
+  onAbsenderBlur,
+  onEmpfaengerBlur,
   absenderError,
   empfaengerError,
   absenderSuggestions = [],
   empfaengerSuggestions = [],
+  autoFocusAbsender = false,
   className,
 }: EtbAbsenderInputProps) {
   // Kombiniere übergebene Vorschläge mit Standard-Rollen (ohne Duplikate)
@@ -88,9 +97,11 @@ export function EtbAbsenderInput({
         items={allAbsenderSuggestions}
         value={absenderValue}
         onChange={onAbsenderChange}
+        onBlur={onAbsenderBlur}
         placeholder="z.B. Florian Musterstadt 11/1"
         allowCustomValue
         error={absenderError}
+        autoFocus={autoFocusAbsender}
       />
 
       <Combobox
@@ -98,6 +109,7 @@ export function EtbAbsenderInput({
         items={allEmpfaengerSuggestions}
         value={empfaengerValue}
         onChange={onEmpfaengerChange}
+        onBlur={onEmpfaengerBlur}
         placeholder="z.B. Leitstelle"
         allowCustomValue
         error={empfaengerError}

@@ -17,7 +17,7 @@ import { z } from 'zod';
 // Zod Schema mit Kategorie als String-Union (Enum-Werte)
 const KATEGORIE_VALUES = Object.values(AddEintragDtoKategorieEnum) as [string, ...string[]];
 
-const etbEntrySchema = z.object({
+export const etbEntrySchema = z.object({
   kategorie: z.enum(KATEGORIE_VALUES),
   text: z.string().min(1, 'Text ist erforderlich').max(2000, 'Maximal 2000 Zeichen'),
   absender: z.string().max(100, 'Maximal 100 Zeichen').optional(),
@@ -26,6 +26,21 @@ const etbEntrySchema = z.object({
 
 type EtbEntryFormData = z.infer<typeof etbEntrySchema>;
 
+/** Extrahiert die erste Fehlermeldung (kompatibel mit Zod-Issues und String-Errors) */
+function getFieldError(errors: Array<unknown>): string | undefined {
+  const err = errors[0];
+  if (!err) return undefined;
+  if (typeof err === 'string') return err;
+  if (typeof err === 'object' && err !== null) {
+    if ('message' in err) return (err as { message: string }).message;
+    if ('issues' in err) {
+      const issues = (err as { issues: Array<{ message: string }> }).issues;
+      return issues[0]?.message;
+    }
+  }
+  return undefined;
+}
+
 interface EtbEntryFormProps {
   etbId: string;
   einsatzId?: string;
@@ -33,6 +48,12 @@ interface EtbEntryFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
   className?: string;
+  /** Auto-Fokus auf erstes Eingabeelement beim Mount */
+  autoFocus?: boolean;
+  /** aria-labelledby für das Form-Element */
+  'aria-labelledby'?: string;
+  /** Ref für Fokus nach Speichern — wird auf den Kontext-Abschnitt gesetzt */
+  afterSaveFocusRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 /**
@@ -41,7 +62,7 @@ interface EtbEntryFormProps {
  * Unterstützt automatisches Ausfüllen des Absender-Feldes basierend auf
  * dem Funkrufnamen des Users für diesen Einsatz (via EinsatzTeilnehmer).
  */
-export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCancel, className }: EtbEntryFormProps) {
+export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCancel, className, autoFocus, 'aria-labelledby': ariaLabelledBy, afterSaveFocusRef }: EtbEntryFormProps) {
   const createEintrag = useCreateEtbEntry();
   const updateEintrag = useUpdateEtbEntry();
   const { data: textbausteineData } = useTextbausteine();
@@ -254,6 +275,7 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
         form.handleSubmit();
       }}
       className={className}
+      aria-labelledby={ariaLabelledBy}
     >
       <div className="space-y-4">
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
@@ -261,22 +283,42 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
             {!editingEntry && (
               <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
                 <p className="mb-3 font-medium text-gray-900 text-sm dark:text-gray-100">1. Kommunikationsweg festlegen</p>
-                <form.Subscribe selector={(state) => ({ absender: state.values.absender, empfaenger: state.values.empfaenger })}>
-                  {({ absender, empfaenger }) => (
-                    <EtbAbsenderInput
-                      absenderValue={absender || ''}
-                      empfaengerValue={empfaenger || ''}
-                      onAbsenderChange={(value: string) => form.setFieldValue('absender', value)}
-                      onEmpfaengerChange={(value: string) => form.setFieldValue('empfaenger', value)}
-                      absenderSuggestions={funkrufnameVorschlaege}
-                      empfaengerSuggestions={funkrufnameVorschlaege}
-                    />
+                {/* Verschachtelte form.Field: EtbAbsenderInput benötigt beide Feld-States gleichzeitig */}
+                <form.Field
+                  name="absender"
+                  validators={{
+                    onBlur: ({ value }) => (value && value.length > 100 ? 'Maximal 100 Zeichen' : undefined),
+                  }}
+                >
+                  {(absenderField) => (
+                    <form.Field
+                      name="empfaenger"
+                      validators={{
+                        onBlur: ({ value }) => (value && value.length > 100 ? 'Maximal 100 Zeichen' : undefined),
+                      }}
+                    >
+                      {(empfaengerField) => (
+                        <EtbAbsenderInput
+                          absenderValue={absenderField.state.value || ''}
+                          empfaengerValue={empfaengerField.state.value || ''}
+                          onAbsenderChange={absenderField.handleChange}
+                          onEmpfaengerChange={empfaengerField.handleChange}
+                          onAbsenderBlur={absenderField.handleBlur}
+                          onEmpfaengerBlur={empfaengerField.handleBlur}
+                          absenderError={getFieldError(absenderField.state.meta.errors)}
+                          empfaengerError={getFieldError(empfaengerField.state.meta.errors)}
+                          absenderSuggestions={funkrufnameVorschlaege}
+                          empfaengerSuggestions={funkrufnameVorschlaege}
+                          autoFocusAbsender={autoFocus}
+                        />
+                      )}
+                    </form.Field>
                   )}
-                </form.Subscribe>
+                </form.Field>
               </div>
             )}
 
-            <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+            <div ref={afterSaveFocusRef} className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
               <p className="mb-3 font-medium text-gray-900 text-sm dark:text-gray-100">2. Kontext auswählen</p>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <form.Field name="kategorie">
@@ -287,7 +329,8 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
                         field.handleChange(value);
                         setSelectedTextbaustein('');
                       }}
-                      error={field.state.meta.errors?.[0]?.message}
+                      onBlur={field.handleBlur}
+                      error={getFieldError(field.state.meta.errors)}
                     />
                   )}
                 </form.Field>
@@ -300,14 +343,24 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
 
             <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
               <p className="mb-3 font-medium text-gray-900 text-sm dark:text-gray-100">3. Eintrag formulieren</p>
-              <form.Field name="text">
+              <form.Field
+                name="text"
+                validators={{
+                  onBlur: ({ value }) => {
+                    if (!value?.trim()) return 'Text ist erforderlich';
+                    if (value.length > 2000) return 'Maximal 2000 Zeichen';
+                    return undefined;
+                  },
+                  onChange: ({ value }) => (!value?.trim() ? 'Text ist erforderlich' : undefined),
+                }}
+              >
                 {(field) => (
                   <EtbTextInput
                     value={field.state.value}
                     onChange={field.handleChange}
                     onBlur={field.handleBlur}
                     onSubmit={() => form.handleSubmit()}
-                    error={field.state.meta.errors?.[0]?.message}
+                    error={getFieldError(field.state.meta.errors)}
                     maxLength={2000}
                   />
                 )}

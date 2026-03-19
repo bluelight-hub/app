@@ -3,7 +3,7 @@
 import { cn } from '@/shared/ui/cn';
 import { Combobox as HeadlessCombobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions, Label } from '@headlessui/react';
 import type * as React from 'react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { PiCaretDown, PiX } from 'react-icons/pi';
 
 export interface ComboboxItem {
@@ -58,6 +58,8 @@ export function Combobox({
   const [query, setQuery] = useState('');
   const [selectedItem, setSelectedItem] = useState<ComboboxItem | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const generatedId = useId();
+  const errorId = `${generatedId}-error`;
   const shouldShowOptions = openOnFocus || query.length > 0;
 
   /** Alle Items (flach oder aus Gruppen zusammengefuehrt) */
@@ -168,6 +170,8 @@ export function Combobox({
             data-1p-ignore="true"
             data-lpignore="true"
             data-form-type="other"
+            aria-invalid={!!error}
+            aria-describedby={error ? errorId : undefined}
             placeholder={placeholder}
             onChange={(event) => handleQueryChange(event.target.value)}
             onBlur={() => {
@@ -210,7 +214,7 @@ export function Combobox({
                   }
                 }}
                 className="rounded p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 dark:hover:text-gray-300"
-                aria-label="Clear selection"
+                aria-label="Auswahl löschen"
                 tabIndex={0}
               >
                 <PiX className="h-4 w-4" />
@@ -284,7 +288,11 @@ export function Combobox({
         </div>
       </HeadlessCombobox>
 
-      {(helperText || error) && <p className={cn('mt-2 text-sm', error ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400')}>{error || helperText}</p>}
+      {(helperText || error) && (
+        <p id={error ? errorId : undefined} aria-live={error ? 'polite' : undefined} className={cn('mt-2 text-sm', error ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400')}>
+          {error || helperText}
+        </p>
+      )}
     </div>
   );
 }
