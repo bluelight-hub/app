@@ -101,7 +101,7 @@ function RouteComponent() {
   const personenOhneFahrzeug = personen.filter((p) => !p.fahrzeugId);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -116,7 +116,7 @@ function RouteComponent() {
 
       {/* Statistiken */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
+        <div className="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-primary-100 p-3 dark:bg-primary-900/20">
               <PiUsers className="h-6 w-6 text-primary-600 dark:text-primary-400" />
@@ -128,7 +128,7 @@ function RouteComponent() {
           </div>
         </div>
 
-        <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
+        <div className="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-blue-100 p-3 dark:bg-blue-900/20">
               <PiTruck className="h-6 w-6 text-blue-600 dark:text-blue-400" />
@@ -140,7 +140,7 @@ function RouteComponent() {
           </div>
         </div>
 
-        <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
+        <div className="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-amber-100 p-3 dark:bg-amber-900/20">
               <PiUser className="h-6 w-6 text-amber-600 dark:text-amber-400" />

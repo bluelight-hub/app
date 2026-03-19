@@ -14,9 +14,11 @@ interface EtbTableRowEditableProps {
   onDelete?: (entry: EintragDto) => void;
   /** Einsatz-ID fuer Erinnerung-Erstellung (Story 5.4) */
   einsatzId: string;
+  /** ETB-ID fuer Eintrag-Update */
+  etbId: string;
 }
 
-export const EtbTableRowEditable: React.FC<EtbTableRowEditableProps> = ({ row, style, className = '', onDelete, einsatzId }) => {
+export const EtbTableRowEditable: React.FC<EtbTableRowEditableProps> = ({ row, style, className = '', onDelete, einsatzId, etbId }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(row.original.text);
   const updateEintrag = useUpdateEtbEntry();
@@ -28,9 +30,10 @@ export const EtbTableRowEditable: React.FC<EtbTableRowEditableProps> = ({ row, s
 
     updateEintrag.mutate(
       {
+        etbId,
         eintragId: row.original.id,
         data: {
-          text: editText,
+          newText: editText,
         },
       },
       {

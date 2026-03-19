@@ -162,10 +162,10 @@ export function ServerSelector({
           <ListboxButton
             id={buttonId}
             className={cn(
-              'relative w-full cursor-pointer rounded-lg border-2 bg-white py-3 pr-10 pl-4 text-left',
+              'relative w-full cursor-pointer rounded-lg border bg-white py-3 pr-10 pl-4 text-left',
               'transition-all duration-200',
               'border-gray-200 hover:border-gray-300',
-              'focus:border-primary-500 focus:outline-none focus:ring-4 focus:ring-primary-500/20',
+              'focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20',
               'dark:border-gray-700 dark:bg-gray-900 dark:hover:border-gray-600',
               'dark:focus:border-primary-400 dark:focus:ring-primary-400/20',
               'disabled:cursor-not-allowed disabled:opacity-50',

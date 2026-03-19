@@ -98,7 +98,7 @@ export function AudioSettingsDialog({ isOpen, onClose }: AudioSettingsDialogProp
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent" />
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* Globaler Toggle */}
               <AudioToggle enabled={settings.enabled} onChange={handleToggleChange} />
 

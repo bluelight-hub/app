@@ -17,7 +17,7 @@ export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectE
 }
 
 const BASE_STYLES =
-  'block w-full appearance-none rounded-lg border-2 bg-white font-medium text-gray-900 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-opacity-20 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-900 dark:text-white';
+  'block w-full appearance-none rounded-lg border bg-white font-medium text-gray-900 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-opacity-20 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-900 dark:text-white';
 
 const VARIANTS = {
   default:
@@ -27,14 +27,14 @@ const VARIANTS = {
 
 const SIZES = {
   sm: 'px-3 pr-8 py-1.5 text-sm',
-  md: 'px-4 pr-10 py-2.5 text-base',
-  lg: 'px-4 pr-10 py-3.5 text-base',
+  md: 'px-3 pr-8 py-1.5 text-sm',
+  lg: 'px-3 pr-8 py-2 text-sm',
 };
 
 const ICON_SIZES = {
   sm: 'h-4 w-4',
-  md: 'h-5 w-5',
-  lg: 'h-5 w-5',
+  md: 'h-4 w-4',
+  lg: 'h-4 w-4',
 };
 
 /**

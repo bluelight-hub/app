@@ -228,7 +228,7 @@ export function ServerManagementPage() {
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <DialogPanel
             transition
-            className="mx-auto w-full max-w-md transform rounded-panel border border-border-subtle bg-surface-panel p-6 shadow-panel transition-all data-[closed]:scale-95 data-[closed]:opacity-0"
+            className="mx-auto w-full max-w-md transform rounded-panel border border-border-subtle bg-surface-panel p-4 shadow-panel transition-all data-[closed]:scale-95 data-[closed]:opacity-0"
             data-testid="edit-server-dialog-panel"
           >
             {/* Modal Header */}

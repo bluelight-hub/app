@@ -9,6 +9,7 @@ export interface UseEinsatzDetailsResult {
   etb: EtbDto | null | undefined;
   lagekarte: LagekarteDto | null | undefined;
   isLoading: boolean;
+  isFetching: boolean;
   error: Error | null;
   data: EinsatzDetailsDto | undefined;
 }
@@ -34,7 +35,7 @@ export interface UseEinsatzDetailsResult {
  * ```
  */
 export function useEinsatzDetails(einsatzId: string): UseEinsatzDetailsResult {
-  const { data, isLoading, error } = useQuery<EinsatzDetailsDto, ResponseError>({
+  const { data, isLoading, isFetching, error } = useQuery<EinsatzDetailsDto, ResponseError>({
     queryKey: EINSATZ_QUERY_KEYS.detailsCombined(einsatzId),
     queryFn: async () => {
       if (!einsatzId) throw new Error('ID is required');
@@ -57,6 +58,7 @@ export function useEinsatzDetails(einsatzId: string): UseEinsatzDetailsResult {
     etb: data?.etb,
     lagekarte: data?.lagekarte,
     isLoading,
+    isFetching,
     error: error as Error | null,
     data,
   };

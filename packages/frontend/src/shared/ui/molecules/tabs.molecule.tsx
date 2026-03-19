@@ -22,13 +22,13 @@ interface TabsProps {
 export function Tabs({ items, defaultIndex = 0, onChange, className }: TabsProps) {
   return (
     <TabGroup defaultIndex={defaultIndex} onChange={onChange}>
-      <TabList className={cn('flex space-x-1 rounded-xl bg-gray-100 p-1 dark:bg-gray-900', className)}>
+      <TabList className={cn('flex space-x-1 rounded-lg bg-gray-100 p-1 dark:bg-gray-900', className)}>
         {items.map((item) => (
           <Tab
             key={item.label}
             className={({ selected }) =>
               cn(
-                'w-full rounded-lg py-2.5 font-medium text-sm leading-5',
+                'w-full rounded-md py-1.5 font-medium text-sm leading-5',
                 'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
                 selected ? 'bg-white text-blue-700 shadow dark:bg-gray-800 dark:text-blue-400' : 'text-gray-600 hover:bg-white/[0.12] hover:text-gray-800 dark:text-gray-400 dark:hover:text-white',
               )
@@ -38,9 +38,9 @@ export function Tabs({ items, defaultIndex = 0, onChange, className }: TabsProps
           </Tab>
         ))}
       </TabList>
-      <TabPanels className="mt-2">
+      <TabPanels className="mt-1.5">
         {items.map((item) => (
-          <TabPanel key={item.label} className={cn('rounded-xl p-3', 'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2')}>
+          <TabPanel key={item.label} className={cn('rounded-lg p-2', 'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2')}>
             {item.content}
           </TabPanel>
         ))}

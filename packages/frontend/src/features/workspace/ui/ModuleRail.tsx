@@ -139,7 +139,7 @@ export function ModuleRail({
   }
 
   return (
-    <nav aria-label="Workspace-Module" className={cn('sticky top-14 z-20 border-border-subtle border-b bg-surface-panel shadow-raised', className)}>
+    <nav aria-label="Workspace-Module" className={cn('sticky top-12 z-20 border-border-subtle border-b bg-surface-panel shadow-raised', className)}>
       <Container maxWidth="full">
         <div className="py-2">
           <div className="flex items-center justify-between gap-3">

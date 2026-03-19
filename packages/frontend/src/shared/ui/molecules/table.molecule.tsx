@@ -86,7 +86,7 @@ export const TableHead = forwardRef<HTMLTableCellElement, TableHeadProps>(({ cla
     <th
       ref={ref}
       className={cn(
-        'h-12 px-4 text-left align-middle font-medium text-gray-500 dark:text-gray-400 [&:has([role=checkbox])]:pr-0',
+        'h-9 px-3 text-left align-middle font-medium text-gray-500 dark:text-gray-400 [&:has([role=checkbox])]:pr-0',
         sortable && 'cursor-pointer select-none hover:text-gray-900 dark:hover:text-gray-100',
         className,
       )}
@@ -111,7 +111,7 @@ interface TableCellProps extends TdHTMLAttributes<HTMLTableCellElement> {
 
 export const TableCell = forwardRef<HTMLTableCellElement, TableCellProps>(({ className, children, ...props }, ref) => {
   return (
-    <td ref={ref} className={cn('p-4 align-middle [&:has([role=checkbox])]:pr-0', className)} {...props}>
+    <td ref={ref} className={cn('px-3 py-2 align-middle [&:has([role=checkbox])]:pr-0', className)} {...props}>
       {children}
     </td>
   );

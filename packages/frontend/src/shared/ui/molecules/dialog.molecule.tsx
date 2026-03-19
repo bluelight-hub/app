@@ -123,7 +123,7 @@ export const Dialog = ({ isOpen, onClose, children, className, size = 'md', clos
           <DialogPanel
             transition
             className={cn(
-              'w-full transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-800',
+              'w-full transform overflow-hidden rounded-lg bg-white p-5 shadow-xl dark:bg-gray-800',
               'duration-300 ease-out data-[closed]:scale-95 data-[closed]:opacity-0',
               sizeClasses[size],
               className,
@@ -139,19 +139,19 @@ export const Dialog = ({ isOpen, onClose, children, className, size = 'md', clos
 
 Dialog.Title = ({ children, className }: DialogTitleProps) => {
   return (
-    <DialogTitle as="h3" className={cn('font-semibold text-gray-900 text-lg leading-6 dark:text-white', className)}>
+    <DialogTitle as="h3" className={cn('font-semibold text-gray-900 text-base leading-6 dark:text-white', className)}>
       {children}
     </DialogTitle>
   );
 };
 
 Dialog.Body = ({ children, className }: DialogBodyProps) => {
-  return <div className={cn('mt-4', className)}>{children}</div>;
+  return <div className={cn('mt-3', className)}>{children}</div>;
 };
 
 Dialog.Footer = ({ children, className, loading }: DialogFooterProps) => {
   return (
-    <div className={cn('mt-6 flex items-center justify-end gap-3', className)}>
+    <div className={cn('mt-4 flex items-center justify-end gap-3', className)}>
       {loading && (
         <div className="mr-auto flex items-center gap-2 text-gray-500 text-sm dark:text-gray-400">
           <InlineSpinner size="sm" />
@@ -362,7 +362,7 @@ Dialog.SlideIn = ({ isOpen, onClose, title, description, children, size = 'lg', 
   return (
     <HeadlessDialog open={isOpen} as="div" className="relative z-50" onClose={closeOnBackdropClick ? onClose : () => {}}>
       {/* Backdrop */}
-      <DialogBackdrop transition className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm duration-300 ease-in-out data-[closed]:opacity-0" />
+      <DialogBackdrop transition className="fixed inset-0 bg-black/25 backdrop-blur-sm duration-300 ease-in-out data-[closed]:opacity-0" />
 
       {/* Panel */}
       <div className="fixed inset-0 overflow-hidden">
@@ -371,10 +371,10 @@ Dialog.SlideIn = ({ isOpen, onClose, title, description, children, size = 'lg', 
             <DialogPanel transition className={cn('pointer-events-auto relative w-screen transform', 'duration-300 ease-in-out', slideClosedClass, sizeClasses[size], className)}>
               <div className="flex h-full flex-col bg-white shadow-2xl dark:bg-gray-900">
                 {/* Header */}
-                <div className="border-gray-200 border-b px-6 py-4 dark:border-gray-700">
+                <div className="border-gray-200 border-b px-5 py-3 dark:border-gray-700">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <DialogTitle className="font-semibold text-gray-900 text-xl leading-6 dark:text-white">{title}</DialogTitle>
+                      <DialogTitle className="font-semibold text-gray-900 text-base leading-6 dark:text-white">{title}</DialogTitle>
                       {description && <p className="mt-1 text-gray-500 text-sm dark:text-gray-400">{description}</p>}
                     </div>
                     {showCloseButton && <CloseButton onClick={onClose} size="lg" appearance="minimal" className="ml-4" />}
@@ -382,7 +382,7 @@ Dialog.SlideIn = ({ isOpen, onClose, title, description, children, size = 'lg', 
                 </div>
 
                 {/* Content */}
-                <div className="relative flex-1 overflow-y-auto px-6 py-6">{children}</div>
+                <div className="relative flex-1 overflow-y-auto px-5 py-4">{children}</div>
               </div>
             </DialogPanel>
           </div>

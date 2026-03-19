@@ -40,14 +40,14 @@ export const DateInput = forwardRef<ComponentRef<typeof DatePicker>, DateInputPr
           onBlur={onBlur}
           // customInput={<CustomInput />}
           className={cn(
-            'block w-full rounded-lg border-2 bg-gray-50 font-medium text-gray-900',
+            'block w-full rounded-lg border bg-gray-50 font-medium text-gray-900',
             'transition-all duration-200 placeholder:text-gray-400',
-            'focus:outline-none focus:ring-4 focus:ring-opacity-20',
+            'focus:outline-none focus:ring-2 focus:ring-opacity-20',
             'disabled:cursor-not-allowed disabled:opacity-50',
             'dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-500',
             'border-gray-200 focus:border-blue-500 focus:bg-white focus:ring-blue-500',
             'dark:border-gray-700 dark:focus:border-blue-400 dark:focus:bg-gray-800 dark:focus:ring-blue-400',
-            'px-4 py-3 text-base',
+            'px-3 py-1.5 text-sm',
             showIcon && 'pr-12',
             className,
           )}

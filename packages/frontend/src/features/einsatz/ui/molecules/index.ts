@@ -14,3 +14,4 @@ export { FmsStatusDropdown } from './FmsStatusDropdown.molecule';
 export { ModuleButton } from './ModuleButton';
 export { ModuleOverviewCard } from './ModuleOverviewCard';
 export { PlaceholderModule } from './PlaceholderModule';
+export { StatusChangeMeta } from './StatusChangeMeta';

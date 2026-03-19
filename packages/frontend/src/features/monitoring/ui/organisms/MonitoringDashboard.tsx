@@ -76,7 +76,7 @@ export function MonitoringDashboard() {
   const { isConnected, warnungen } = useMonitoringWebSocket(true);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-6">
+    <div className="mx-auto max-w-6xl space-y-4 p-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -134,7 +134,7 @@ export function MonitoringDashboard() {
       {/* Metrics Grid */}
       {health && (
         <>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             <MetricCard label="Zustellrate" value={health.zustellrate.toFixed(1)} einheit="%" status={getZustellrateStatus(health.zustellrate)} description="Ziel: >99%" />
             <MetricCard label="WebSocket-Verbindungen" value={health.websocketConnections} status="ok" />
             <MetricCard label="Outbox Queue" value={health.outboxQueueDepth} einheit="Events" status={getOutboxStatus(health.outboxQueueDepth)} />
@@ -144,7 +144,7 @@ export function MonitoringDashboard() {
           {/* API Response Times */}
           <div>
             <h2 className="mb-3 font-medium text-gray-400 text-sm">API Response Times</h2>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-3">
               <MetricCard label="p50 (Median)" value={Math.round(health.apiResponseTime.p50)} einheit="ms" status="ok" />
               <MetricCard label="p95" value={Math.round(health.apiResponseTime.p95)} einheit="ms" status={getLatenzStatus(health.apiResponseTime.p95)} />
               <MetricCard label="p99" value={Math.round(health.apiResponseTime.p99)} einheit="ms" status={getLatenzStatus(health.apiResponseTime.p99)} />
@@ -155,7 +155,7 @@ export function MonitoringDashboard() {
           {health.circuitBreakerStatus.length > 0 && (
             <div>
               <h2 className="mb-3 font-medium text-gray-400 text-sm">Circuit Breaker Status</h2>
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
                 {health.circuitBreakerStatus.map((cb) => (
                   <MetricCard key={cb.serviceName} label={cb.serviceName} value={cb.state} status={cb.state === 'CLOSED' ? 'ok' : cb.state === 'HALF_OPEN' ? 'warnung' : 'kritisch'} />
                 ))}
@@ -164,7 +164,7 @@ export function MonitoringDashboard() {
           )}
 
           {/* DB Pool */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <MetricCard label="DB Connection Pool" value={health.dbConnectionPoolUsage} einheit="%" status={getDbPoolStatus(health.dbConnectionPoolUsage)} />
           </div>
         </>

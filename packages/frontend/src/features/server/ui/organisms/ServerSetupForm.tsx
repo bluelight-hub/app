@@ -477,7 +477,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
   // Token-Anzeige nach erfolgreichem Admin-Setup
   if (formMode === 'token-display' && generatedToken) {
     return (
-      <div className={cn('space-y-6', className)}>
+      <div className={cn('space-y-4', className)}>
         {/* Success Header */}
         <div className="text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
@@ -498,7 +498,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
         />
 
         {/* Token Display Box */}
-        <div className="rounded-lg border-2 border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50" aria-live="polite">
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50" aria-live="polite">
           <div className="mb-2 font-medium text-gray-700 text-sm dark:text-gray-300">Server Access Token</div>
           <div className="flex items-center gap-3">
             <code className="flex-1 break-all rounded bg-white px-3 py-2 font-mono text-gray-900 text-sm dark:bg-gray-900 dark:text-gray-100">{generatedToken}</code>
@@ -516,7 +516,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
   }
 
   return (
-    <div className={cn('w-full space-y-6', className)}>
+    <div className={cn('w-full space-y-4', className)}>
       {/* Error Card (reuse from Story 2.4) */}
       {showErrorCard && <OnboardingErrorCard errorCode="INVITE_EXPIRED" className="mb-4" />}
 

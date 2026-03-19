@@ -240,7 +240,7 @@ export function AdminHiOrgIntegration() {
   }
 
   return (
-    <Container className="space-y-6 py-8">
+    <Container className="space-y-4 py-8">
       {/* Header */}
       <div>
         <Heading level={1}>HiOrg-Server Integration</Heading>
@@ -249,7 +249,7 @@ export function AdminHiOrgIntegration() {
 
       {/* Status Card - Zeige wenn Credentials vorhanden sind */}
       {credentials && (
-        <Card className="p-6">
+        <Card className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {/* Status Icon: Grün wenn OAuth oder getestet, Gelb wenn Token vorhanden aber nicht getestet, Rot wenn nichts konfiguriert */}
@@ -293,7 +293,7 @@ export function AdminHiOrgIntegration() {
       )}
 
       {/* OAuth Connect Card */}
-      <Card className="p-6">
+      <Card className="p-4">
         <Heading level={3} className="mb-4">
           HiOrg-Server verbinden
         </Heading>
@@ -336,7 +336,7 @@ export function AdminHiOrgIntegration() {
 
       {/* Preview Section - Zeige wenn Token oder OAuth vorhanden */}
       {(credentials?.hasToken || credentials?.hasOAuthTokens) && (
-        <Card className="p-6">
+        <Card className="p-4">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <Heading level={3}>Personen-Vorschau & Import</Heading>

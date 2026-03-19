@@ -27,5 +27,5 @@ export function Container({ children, maxWidth = '6xl', className }: ContainerPr
     full: 'max-w-full',
   };
 
-  return <div className={cn('mx-auto w-full px-4 sm:px-6 lg:px-8', maxWidthClasses[maxWidth], className)}>{children}</div>;
+  return <div className={cn('mx-auto w-full px-3 sm:px-4 lg:px-6', maxWidthClasses[maxWidth], className)}>{children}</div>;
 }

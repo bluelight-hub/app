@@ -138,7 +138,7 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
           e.stopPropagation();
           form.handleSubmit();
         }}
-        className="space-y-6"
+        className="space-y-4"
       >
         {/* Alarmstichwort */}
         <form.Field
@@ -238,7 +238,7 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
         )}
 
         {/* Actions */}
-        <div className="flex justify-end gap-3 border-t pt-6">
+        <div className="flex justify-end gap-3 border-t pt-4">
           <Button onClick={handleClose} intent="secondary" appearance="ghost">
             Abbrechen
           </Button>

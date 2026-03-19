@@ -325,11 +325,11 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                   <div className="relative mt-2">
                     <ComboboxInput
                       className={cn(
-                        'block w-full rounded-lg border-2 bg-gray-50 px-4 py-3 pr-12 font-medium text-base text-gray-900',
+                        'block w-full rounded-lg border bg-gray-50 px-4 py-3 pr-12 font-medium text-base text-gray-900',
                         'transition-all duration-200',
                         'border-gray-200',
                         'placeholder:text-gray-400',
-                        'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary-500 focus:ring-opacity-20',
+                        'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20',
                         'sm:text-sm',
                         'dark:border-gray-700 dark:bg-gray-900 dark:text-white',
                         'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400 dark:placeholder:text-gray-500',
@@ -449,11 +449,11 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                           disabled={erfasseTemporales.isPending}
                           placeholder="z.B. Florian Stuttgart 44-1"
                           className={cn(
-                            'block w-full rounded-lg border-2 bg-gray-50 px-4 py-3 font-medium text-base text-gray-900',
+                            'block w-full rounded-lg border bg-gray-50 px-4 py-3 font-medium text-base text-gray-900',
                             'transition-all duration-200',
                             'border-gray-200',
                             'placeholder:text-gray-400',
-                            'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary-500 focus:ring-opacity-20',
+                            'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20',
                             'sm:text-sm',
                             'dark:border-gray-700 dark:bg-gray-900 dark:text-white',
                             'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400 dark:placeholder:text-gray-500',
@@ -475,10 +475,10 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                           onBlur={field.handleBlur}
                           disabled={erfasseTemporales.isPending || isLoadingFahrzeugtypen}
                           className={cn(
-                            'block w-full rounded-lg border-2 bg-gray-50 px-4 py-3 font-medium text-base text-gray-900',
+                            'block w-full rounded-lg border bg-gray-50 px-4 py-3 font-medium text-base text-gray-900',
                             'transition-all duration-200',
                             'border-gray-200',
-                            'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary-500 focus:ring-opacity-20',
+                            'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20',
                             'sm:text-sm',
                             'dark:border-gray-700 dark:bg-gray-900 dark:text-white',
                             'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400',
@@ -509,11 +509,11 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                           disabled={erfasseTemporales.isPending}
                           placeholder="z.B. S-FW 1234"
                           className={cn(
-                            'block w-full rounded-lg border-2 bg-gray-50 px-4 py-3 font-medium text-base text-gray-900',
+                            'block w-full rounded-lg border bg-gray-50 px-4 py-3 font-medium text-base text-gray-900',
                             'transition-all duration-200',
                             'border-gray-200',
                             'placeholder:text-gray-400',
-                            'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary-500 focus:ring-opacity-20',
+                            'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20',
                             'sm:text-sm',
                             'dark:border-gray-700 dark:bg-gray-900 dark:text-white',
                             'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400 dark:placeholder:text-gray-500',

@@ -11,7 +11,7 @@ describe('Badge Atom', () => {
     const badge = screen.getByText('Default Badge');
     expect(badge).toBeInTheDocument();
     expect(badge).toHaveClass('rounded-full');
-    expect(badge).toHaveClass('px-3'); // Default size (md)
+    expect(badge).toHaveClass('px-2.5'); // Default size (md)
   });
 
   it('should apply variant classes', () => {
@@ -24,7 +24,7 @@ describe('Badge Atom', () => {
   it('should apply size classes', () => {
     render(<Badge size="lg">Large Badge</Badge>);
     const badge = screen.getByText('Large Badge');
-    expect(badge).toHaveClass('px-4');
+    expect(badge).toHaveClass('px-3');
   });
 
   it('should render with dot', () => {
@@ -75,13 +75,13 @@ describe('Card Atom', () => {
     expect(card).toBeInTheDocument();
     expect(card).toHaveClass('bg-surface-panel');
     expect(card).toHaveClass('rounded-panel');
-    expect(card).toHaveClass('p-6'); // Default padding md
+    expect(card).toHaveClass('p-4'); // Default padding md
   });
 
   it('should apply padding classes', () => {
     render(<Card padding="none">No Padding Card</Card>);
     const card = screen.getByText('No Padding Card');
-    expect(card).not.toHaveClass('p-6');
+    expect(card).not.toHaveClass('p-4');
   });
 
   it('should forward ref', () => {

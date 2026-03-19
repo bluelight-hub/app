@@ -152,7 +152,7 @@ export function EtbTableBody({
             <Fragment key={row.id}>
               {/* Main Row */}
               {enableInlineEdit && einsatzId ? (
-                <EtbTableRowEditable row={row} style={{ height: `${virtualRow.size}px` }} onDelete={onDelete} einsatzId={einsatzId} />
+                <EtbTableRowEditable row={row} style={{ height: `${virtualRow.size}px` }} onDelete={onDelete} einsatzId={einsatzId} etbId={etbId ?? ''} />
               ) : (
                 <EtbTableRow row={row} virtualRowSize={virtualRow.size} />
               )}

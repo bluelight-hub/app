@@ -223,7 +223,7 @@ export function EinsatzDashboard() {
         </button>
 
         {canArchive ? (
-          <div className="flex flex-col gap-3 border-border-subtle border-t bg-surface-raised/60 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <div className="flex flex-col gap-3 border-border-subtle border-t bg-surface-raised/60 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
             <div className="min-w-0">
               <p className="font-medium text-body-sm text-text-primary">Abgeschlossen und bereit fürs Archiv</p>
               <p className="mt-1 text-body-xs text-text-secondary">Einmal klicken, dann erneut bestätigen. Danach verschwindet der Einsatz direkt aus der aktiven Liste.</p>
@@ -249,7 +249,7 @@ export function EinsatzDashboard() {
 
   const renderErrorState = (onRetry: () => Promise<unknown>) => (
     <div className="flex h-full items-center justify-center p-6">
-      <div role="alert" className="max-w-md rounded-2xl border border-red-200 bg-white p-6 text-center shadow-sm dark:border-red-900/40 dark:bg-gray-900">
+      <div role="alert" className="max-w-md rounded-lg border border-red-200 bg-white p-4 text-center shadow-sm dark:border-red-900/40 dark:bg-gray-900">
         <p className="mb-4 font-medium text-red-700 dark:text-red-300">Fehler beim Laden der Einsätze</p>
         <Button onClick={() => void onRetry()} className="rounded-md">
           Erneut versuchen
@@ -280,7 +280,7 @@ export function EinsatzDashboard() {
               </h2>
             </div>
 
-            <div className="inline-flex rounded-2xl bg-gray-100 p-1 dark:bg-gray-800">
+            <div className="inline-flex rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
               <DashboardViewButton isActive={currentView === 'active'} count={activeCount} label="Aktive Einsätze" onClick={() => setCurrentView('active')} />
               <DashboardViewButton isActive={currentView === 'archive'} count={counts.archiviert} label="Archiv" onClick={() => setCurrentView('archive')} />
             </div>
@@ -328,7 +328,7 @@ export function EinsatzDashboard() {
               renderLoadingState('Lade aktive Einsätze...')
             ) : activeEinsaetze.length === 0 ? (
               <div className="flex h-full items-center justify-center">
-                <div className="max-w-md rounded-2xl border border-gray-300 border-dashed bg-white p-8 text-center shadow-sm dark:border-gray-700 dark:bg-gray-900">
+                <div className="max-w-md rounded-lg border border-gray-300 border-dashed bg-white p-8 text-center shadow-sm dark:border-gray-700 dark:bg-gray-900">
                   <p className="font-medium text-gray-900 dark:text-white">Keine aktiven Einsätze vorhanden</p>
                   <p className="mt-2 text-gray-600 text-sm dark:text-gray-400">Sobald ein Einsatz angelegt oder noch nicht archiviert ist, erscheint er hier als Arbeitsliste.</p>
                   <div className="mt-6 flex flex-wrap justify-center gap-2">
@@ -404,7 +404,7 @@ export function EinsatzDashboard() {
                 renderLoadingState('Lade Archiv...')
               ) : archivedEinsaetze.length === 0 ? (
                 <div className="flex h-full items-center justify-center">
-                  <div className="max-w-md rounded-2xl border border-gray-300 border-dashed bg-white p-8 text-center shadow-sm dark:border-gray-700 dark:bg-gray-900">
+                  <div className="max-w-md rounded-lg border border-gray-300 border-dashed bg-white p-8 text-center shadow-sm dark:border-gray-700 dark:bg-gray-900">
                     <p className="font-medium text-gray-900 dark:text-white">Keine Archivtreffer</p>
                     <p className="mt-2 text-gray-600 text-sm dark:text-gray-400">
                       {archiveSearchTerm ? 'Passen Sie Suche oder Sortierung an.' : 'Archivierte Einsätze erscheinen hier, sobald sie archiviert wurden.'}

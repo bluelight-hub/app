@@ -43,7 +43,7 @@ export const Checkbox = ({ checked, onChange, id, name, disabled = false, classN
       id={id}
       name={name}
       className={cn(
-        'group flex h-5 w-5 items-center justify-center rounded border transition-colors',
+        'group flex h-4 w-4 items-center justify-center rounded border transition-colors',
         'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
         'border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-800',
         'data-[checked]:border-blue-600 data-[checked]:bg-blue-600',

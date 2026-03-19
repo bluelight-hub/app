@@ -140,9 +140,9 @@ export function WorkspaceShell({
 
       <main className="flex-1">
         <Container maxWidth="full">
-          <div className="flex gap-4 xl:gap-5">
-            <aside className="hidden w-56 flex-shrink-0 py-2 lg:block xl:w-60">
-              <div className="sticky top-28 h-[calc(100vh-9.5rem)] space-y-3 overflow-y-auto rounded-panel border border-border-subtle bg-surface-panel p-2.5 shadow-panel">
+          <div className="flex gap-3 xl:gap-4">
+            <aside className="hidden w-52 flex-shrink-0 py-2 lg:block xl:w-56">
+              <div className="sticky top-24 h-[calc(100vh-8rem)] space-y-2 overflow-y-auto rounded-panel border border-border-subtle bg-surface-panel p-2 shadow-panel">
                 {sidebarHeader}
                 {onCommandTriggerClick ? (
                   <div className="px-0.5">
@@ -150,8 +150,8 @@ export function WorkspaceShell({
                   </div>
                 ) : null}
 
-                <nav aria-label="Modulseiten" className="-mt-1 space-y-1 pb-4">
-                  <h2 className="mb-4 px-2.5 font-semibold text-body-xs text-text-secondary uppercase tracking-[0.16em]">Navigation</h2>
+                <nav aria-label="Modulseiten" className="-mt-1 space-y-0.5 pb-3">
+                  <h2 className="mb-3 px-2.5 font-semibold text-body-xs text-text-secondary uppercase tracking-[0.16em]">Navigation</h2>
                   {navigationGroups.map((module) => (
                     <div key={module.id} className="space-y-1 pb-2 last:pb-0">
                       {isDisabled(module.visibility) ? (
@@ -275,7 +275,7 @@ export function WorkspaceShell({
               </div>
             </aside>
 
-            <div className="fixed right-0 bottom-0 left-0 z-20 border-border-subtle border-t bg-surface-panel p-4 shadow-raised lg:hidden">
+            <div className="fixed right-0 bottom-0 left-0 z-20 border-border-subtle border-t bg-surface-panel p-3 shadow-raised lg:hidden">
               {quickActionsSlot ? (
                 <section aria-label="Schnellaktionen" className="space-y-2 border-border-subtle border-t pt-4">
                   <h2 className="px-2.5 font-semibold text-body-xs text-text-secondary uppercase tracking-[0.16em]">Schnellaktionen</h2>
@@ -323,9 +323,9 @@ export function WorkspaceShell({
               </nav>
             </div>
 
-            <div className="min-w-0 flex-1 py-6 pb-24 lg:pb-6">
+            <div className="min-w-0 flex-1 py-4 pb-20 lg:pb-4">
               {showMobileHelperArea ? (
-                <aside aria-label="Workspace-Hilfe" className="mb-4 space-y-3 rounded-panel border border-border-subtle bg-surface-panel p-3 shadow-panel lg:hidden">
+                <aside aria-label="Workspace-Hilfe" className="mb-3 space-y-2 rounded-panel border border-border-subtle bg-surface-panel p-2.5 shadow-panel lg:hidden">
                   {onCommandTriggerClick || onOpenModuleOverview ? (
                     <div className="grid gap-2 sm:grid-cols-2">
                       {onCommandTriggerClick ? <CommandTrigger onClick={onCommandTriggerClick} label={commandTriggerLabel} /> : null}

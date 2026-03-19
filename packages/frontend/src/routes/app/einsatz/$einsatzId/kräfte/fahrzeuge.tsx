@@ -68,7 +68,7 @@ function RouteComponent() {
   const fahrzeugeAndere = fahrzeuge.filter((f) => f.fmsStatus < 2 || f.fmsStatus > 4);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -83,7 +83,7 @@ function RouteComponent() {
 
       {/* Statistiken */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
+        <div className="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-primary-100 p-3 dark:bg-primary-900/20">
               <PiTruck className="h-6 w-6 text-primary-600 dark:text-primary-400" />
@@ -95,7 +95,7 @@ function RouteComponent() {
           </div>
         </div>
 
-        <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
+        <div className="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-green-100 p-3 dark:bg-green-900/20">
               <PiGauge className="h-6 w-6 text-green-600 dark:text-green-400" />
@@ -107,7 +107,7 @@ function RouteComponent() {
           </div>
         </div>
 
-        <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
+        <div className="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-blue-100 p-3 dark:bg-blue-900/20">
               <PiUsers className="h-6 w-6 text-blue-600 dark:text-blue-400" />
@@ -119,7 +119,7 @@ function RouteComponent() {
           </div>
         </div>
 
-        <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
+        <div className="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-amber-100 p-3 dark:bg-amber-900/20">
               <PiUser className="h-6 w-6 text-amber-600 dark:text-amber-400" />
@@ -141,12 +141,12 @@ function RouteComponent() {
           {/* Im Einsatz (FMS 3-4) */}
           {fahrzeugeImEinsatz.length > 0 && (
             <div className="rounded-lg bg-white shadow-sm dark:bg-gray-800">
-              <div className="border-gray-200 border-b bg-green-50 px-6 py-3 dark:border-gray-700 dark:bg-green-900/10">
+              <div className="border-gray-200 border-b bg-green-50 px-4 py-3 dark:border-gray-700 dark:bg-green-900/10">
                 <h3 className="font-semibold text-green-900 text-sm dark:text-green-100">Im Einsatz ({fahrzeugeImEinsatz.length})</h3>
               </div>
               <div className="divide-y divide-gray-200 dark:divide-gray-700">
                 {fahrzeugeImEinsatz.map((fahrzeug) => (
-                  <div key={fahrzeug.id} className="px-6 py-4">
+                  <div key={fahrzeug.id} className="px-4 py-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3">
@@ -180,12 +180,12 @@ function RouteComponent() {
           {/* Bereit (FMS 2) */}
           {fahrzeugeBereit.length > 0 && (
             <div className="rounded-lg bg-white shadow-sm dark:bg-gray-800">
-              <div className="border-gray-200 border-b bg-blue-50 px-6 py-3 dark:border-gray-700 dark:bg-blue-900/10">
+              <div className="border-gray-200 border-b bg-blue-50 px-4 py-3 dark:border-gray-700 dark:bg-blue-900/10">
                 <h3 className="font-semibold text-blue-900 text-sm dark:text-blue-100">Einsatzbereit ({fahrzeugeBereit.length})</h3>
               </div>
               <div className="divide-y divide-gray-200 dark:divide-gray-700">
                 {fahrzeugeBereit.map((fahrzeug) => (
-                  <div key={fahrzeug.id} className="px-6 py-4">
+                  <div key={fahrzeug.id} className="px-4 py-4">
                     <div className="flex items-center gap-3">
                       <PiTruck className="h-5 w-5 text-gray-400" />
                       <div>
@@ -202,12 +202,12 @@ function RouteComponent() {
           {/* Andere Status */}
           {fahrzeugeAndere.length > 0 && (
             <div className="rounded-lg bg-white shadow-sm dark:bg-gray-800">
-              <div className="border-gray-200 border-b bg-gray-50 px-6 py-3 dark:border-gray-700 dark:bg-gray-900/50">
+              <div className="border-gray-200 border-b bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-900/50">
                 <h3 className="font-semibold text-gray-900 text-sm dark:text-gray-100">Weitere Fahrzeuge ({fahrzeugeAndere.length})</h3>
               </div>
               <div className="divide-y divide-gray-200 dark:divide-gray-700">
                 {fahrzeugeAndere.map((fahrzeug) => (
-                  <div key={fahrzeug.id} className="px-6 py-4">
+                  <div key={fahrzeug.id} className="px-4 py-4">
                     <div className="flex items-center gap-3">
                       <PiTruck className="h-5 w-5 text-gray-400" />
                       <div>

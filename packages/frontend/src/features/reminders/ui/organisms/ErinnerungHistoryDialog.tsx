@@ -138,7 +138,7 @@ export function ErinnerungHistoryDialog({ isOpen, onClose, erinnerung, einsatzId
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all dark:bg-gray-800">
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-lg bg-white p-4 text-left align-middle shadow-xl transition-all dark:bg-gray-800">
                 <div className="flex items-center justify-between border-b pb-4 dark:border-gray-700">
                   <Dialog.Title as="h3" className="font-medium text-gray-900 text-lg leading-6 dark:text-white">
                     Verlauf

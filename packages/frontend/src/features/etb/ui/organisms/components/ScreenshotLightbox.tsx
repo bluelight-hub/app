@@ -80,7 +80,7 @@ export function ScreenshotLightbox({ isOpen, onClose, screenshotUrl, title = 'La
 
       {/* Full-screen Modal */}
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel className="relative flex max-h-[90vh] max-w-[95vw] flex-col rounded-2xl bg-white shadow-2xl dark:bg-gray-900">
+        <DialogPanel className="relative flex max-h-[90vh] max-w-[95vw] flex-col rounded-lg bg-white shadow-2xl dark:bg-gray-900">
           {/* Header */}
           <div className="flex items-center justify-between border-gray-200 border-b p-4 dark:border-gray-700">
             <DialogTitle className="font-semibold text-gray-900 text-lg dark:text-white">{title}</DialogTitle>

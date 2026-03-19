@@ -1,288 +1,728 @@
-import { api } from '@/shared';
+import { useUserNames } from '@/features/auth/api/use-users';
+import { FMS_STATUS_LABELS, useActiveEinsatz, useEinsatzDetails, useEinsatzFahrzeuge } from '@/features/einsatz';
+import { isWorkspaceRouteAccessible } from '@/features/workspace';
+import type { AddressDto, EintragDto, EinsatzDetailsDto, EinsatzFahrzeugDto } from '@/shared';
 import { ErrorState } from '@/shared/ui/atoms/ErrorState';
 import { LoadingState } from '@/shared/ui/atoms/LoadingState';
-import { EinsatzResourceWidget } from '@/features/einsatz/ui/molecules/EinsatzResourceWidget';
-import { EinsatzStatsCard } from '@/features/einsatz/ui/molecules/EinsatzStatsCard';
-import { EinsatzTimelineWidget } from '@/features/einsatz/ui/molecules/EinsatzTimelineWidget';
-import { FahrzeugHinzufuegenDialog } from '@/features/einsatz/ui/organisms/FahrzeugHinzufuegenDialog.organism';
-import { PersonHinzufuegenDialog } from '@/features/einsatz/ui/organisms/PersonHinzufuegenDialog.organism';
-import { useActiveEinsatz, EINSATZ_QUERY_KEYS, useEinsatzFahrzeuge, useMyEinsatzTeilnahme, useUpdateFmsStatus } from '@/features/einsatz';
-import type { FmsStatus } from '@/features/einsatz';
-import { useEtb } from '@/features/etb';
-import { useLagekarte } from '@/features/lagekarte';
-import { DashboardErinnerungen, ErinnerungStatistik } from '@/features/reminders';
-import { formatNatoDateTime } from '@/shared/lib/dateFormatter';
-import { Button } from '@/shared/ui/atoms/button.atom';
-import { useQuery } from '@tanstack/react-query';
-import { useParams } from '@tanstack/react-router';
-import { addMinutes, format, formatDistanceToNow, milliseconds } from 'date-fns';
+import { cn, type PriorityPanelTone } from '@/shared/ui';
+import { Link, useNavigate, useParams } from '@tanstack/react-router';
+import { format, formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
-import { useCallback, useEffect, useState } from 'react';
-import { PiClipboard, PiClock, PiFileText, PiMapPin, PiPhone, PiRadio, PiTruck, PiUsers } from 'react-icons/pi';
+import { useEffect, useRef, useState, type ComponentType } from 'react';
+import { PiArrowRight, PiClipboard, PiClock, PiMapPin, PiPulse, PiTruck, PiWarning } from 'react-icons/pi';
+import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { toast } from 'sonner';
+import { StatusChangeMeta } from '../molecules/StatusChangeMeta';
+import { deriveStatusChangeMeta } from '../../utils/status-change-meta';
+import { consumeKeyboardNavigationFlag, resolveNavigationTarget } from '../../utils/navigation-target';
 
-/**
- * Dashboard für einen einzelnen aktiven Einsatz
- *
- * Hauptarbeitsansicht mit allen relevanten Informationen und Schnellzugriffen
- */
+const PRIORITY_ROUTE_TARGETS = {
+  etb: '/app/einsatz/$einsatzId/führung/etb',
+  lagekarte: '/app/einsatz/$einsatzId/übersicht/karte',
+  kraefte: '/app/einsatz/$einsatzId/kräfte/dashboard',
+} as const;
+
+const ETB_CHART_FILLS = ['#3b82f6', '#f59e0b', '#22c55e', '#64748b', '#ef4444', '#9ca3af'];
+
+type OverviewRouteTarget = (typeof PRIORITY_ROUTE_TARGETS)[keyof typeof PRIORITY_ROUTE_TARGETS];
+
+type DashboardEinsatz = EinsatzDetailsDto['einsatz'] & {
+  name?: string;
+  alarmierungszeit?: Date | string;
+  beschreibung?: string;
+  einsatzort?: AddressDto | string;
+};
+
+interface KpiItem {
+  label: string;
+  value: string;
+  tone: PriorityPanelTone;
+  icon: ComponentType<{ className?: string }>;
+}
+
+interface QuickLink {
+  id: string;
+  label: string;
+  count: string;
+  icon: ComponentType<{ className?: string }>;
+  to?: OverviewRouteTarget;
+  available: boolean;
+}
+
+interface EtbCategoryDatum {
+  kategorie: string;
+  count: number;
+  fill: string;
+}
+
+interface FmsStatusDatum {
+  name: string;
+  value: number;
+  fill: string;
+}
+
+function useDelayedFlag(isActive: boolean, delayMs: number): boolean {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    if (!isActive) {
+      setIsVisible(false);
+      return;
+    }
+
+    const timer = window.setTimeout(() => setIsVisible(true), delayMs);
+    return () => window.clearTimeout(timer);
+  }, [delayMs, isActive]);
+
+  return isVisible;
+}
+
+function parseDate(value: Date | string | null | undefined): Date | null {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function formatEinsatzort(einsatzort: DashboardEinsatz['einsatzort']): string {
+  if (!einsatzort) {
+    return 'Ort wird nachgereicht';
+  }
+
+  if (typeof einsatzort === 'string') {
+    return einsatzort;
+  }
+
+  const street = [einsatzort.strasse, einsatzort.hausnummer].filter(Boolean).join(' ');
+  const locality = [einsatzort.plz, einsatzort.ort].filter(Boolean).join(' ');
+
+  return [street, locality].filter(Boolean).join(', ');
+}
+
+function getEinsatzDisplayName(einsatz: DashboardEinsatz): string {
+  return einsatz.name?.trim() || einsatz.alarmstichwort || 'Aktiver Einsatz';
+}
+
+function getEinsatzStartTime(einsatz: DashboardEinsatz): Date {
+  return parseDate(einsatz.alarmierungszeit) ?? parseDate(einsatz.createdAt) ?? new Date();
+}
+
+function getEntryCategoryLabel(category: EintragDto['kategorie'] | undefined): string {
+  switch (category) {
+    case 'ALARMIERUNG':
+      return 'Alarmierung';
+    case 'ANKUNFT':
+      return 'Ankunft';
+    case 'BEFEHL':
+      return 'Befehl';
+    case 'ERKUNDUNG':
+      return 'Erkundung';
+    case 'LAGE':
+      return 'Lage';
+    case 'MASSNAHME':
+      return 'Maßnahme';
+    case 'PERSONAL':
+      return 'Personal';
+    case 'FAHRZEUG':
+      return 'Fahrzeug';
+    case 'MATERIAL':
+      return 'Material';
+    case 'KOMMUNIKATION':
+      return 'Kommunikation';
+    case 'WETTER':
+      return 'Wetter';
+    case 'DOKUMENTATION':
+      return 'Dokumentation';
+    case 'SYSTEM':
+      return 'System';
+    case 'SONSTIGES':
+      return 'Sonstiges';
+    default:
+      return 'Eintrag';
+  }
+}
+
+function trimText(text: string | undefined, maxLength = 88): string {
+  if (!text) {
+    return 'Keine Lageänderung dokumentiert.';
+  }
+
+  return text.length > maxLength ? `${text.slice(0, maxLength - 1).trimEnd()}…` : text;
+}
+
+function resolveActionAvailability(target: OverviewRouteTarget, einsatzId: string): boolean {
+  return isWorkspaceRouteAccessible(target.replace('$einsatzId', einsatzId), einsatzId);
+}
+
+function getSurfaceToneClasses(tone: PriorityPanelTone): string {
+  switch (tone) {
+    case 'active':
+      return 'border-status-info-border bg-status-info-surface text-status-info-text';
+    case 'warning':
+      return 'border-status-warning-border bg-status-warning-surface text-status-warning-text';
+    case 'critical':
+      return 'border-status-danger-border bg-status-danger-surface text-status-danger-text';
+    case 'observing':
+      return 'border-border-subtle bg-surface-raised text-text-primary';
+    default:
+      return 'border-border-subtle bg-surface-panel text-text-primary';
+  }
+}
+
+function getMetricToneClasses(tone: PriorityPanelTone): string {
+  switch (tone) {
+    case 'active':
+      return 'border-status-info-border bg-surface-panel';
+    case 'warning':
+      return 'border-status-warning-border bg-surface-panel';
+    case 'critical':
+      return 'border-status-danger-border bg-surface-panel';
+    case 'observing':
+      return 'border-border-subtle bg-surface-canvas';
+    default:
+      return 'border-border-subtle bg-surface-panel';
+  }
+}
+
+function formatFeedTime(value: Date | string | null | undefined): string {
+  const date = parseDate(value);
+  return date ? format(date, 'dd.MM. HH:mm', { locale: de }) : 'Zeit offen';
+}
+
+function getVehicleSortScore(fahrzeug: EinsatzFahrzeugDto): number {
+  if (fahrzeug.fmsStatus >= 3 && fahrzeug.fmsStatus <= 4) {
+    return 0;
+  }
+
+  if (fahrzeug.fmsStatus === 2 || fahrzeug.fmsStatus === 1) {
+    return 1;
+  }
+
+  return 2;
+}
+
+function KpiCard({ item }: { item: KpiItem }) {
+  const Icon = item.icon;
+
+  return (
+    <div className={cn('rounded-panel border px-3 py-2 shadow-sm', getMetricToneClasses(item.tone))}>
+      <div className="flex items-center gap-2 text-text-secondary">
+        <Icon className="h-4 w-4" aria-hidden="true" />
+        <span className="font-medium text-body-xs uppercase tracking-[0.08em]">{item.label}</span>
+      </div>
+      <p className="mt-2 font-semibold text-text-primary text-title-md">{item.value}</p>
+    </div>
+  );
+}
+
+function QuickLinkCard({ link, einsatzId }: { link: QuickLink; einsatzId: string }) {
+  const Icon = link.icon;
+  const stateLabel = link.available ? 'Direkt verfügbar' : 'Weiter beobachten';
+
+  const content = (
+    <div className="flex items-center gap-3">
+      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-panel border border-border-subtle bg-surface-raised">
+        <Icon className="h-4 w-4" aria-hidden="true" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="font-medium text-body-sm text-text-primary">{link.label}</p>
+        <p className="text-body-xs text-text-secondary">{stateLabel}</p>
+      </div>
+      <span className="rounded-pill border border-border-subtle bg-surface-raised px-2 py-0.5 font-medium text-body-xs text-text-secondary">{link.count}</span>
+      {link.to ? <PiArrowRight className="h-4 w-4 flex-shrink-0 text-text-secondary" aria-hidden="true" /> : null}
+    </div>
+  );
+
+  const cardClassName = cn(
+    'rounded-panel border border-border-subtle bg-surface-panel px-4 py-3 shadow-sm',
+    link.to ? 'block transition-colors hover:border-border-strong focus:outline-none focus-visible:shadow-focus-ring' : 'block',
+  );
+
+  if (!link.to) {
+    return <div className={cardClassName}>{content}</div>;
+  }
+
+  return (
+    <Link
+      to={link.to}
+      // biome-ignore lint/suspicious/noExplicitAny: Workspace-Aktionen binden kanonische Route-Templates mit Einsatz-Parametern.
+      params={{ einsatzId } as any}
+      search={(prev) => prev}
+      className={cardClassName}
+    >
+      {content}
+    </Link>
+  );
+}
+
+function EtbBarChart({ data }: { data: EtbCategoryDatum[] }) {
+  if (data.length === 0) {
+    return <div className="rounded-panel border border-border-subtle border-dashed bg-surface-raised px-4 py-3 text-body-sm text-text-secondary">Noch keine ETB-Aktivität vorhanden.</div>;
+  }
+
+  return (
+    <div role="img" aria-label="ETB-Aktivität">
+      <ResponsiveContainer width="100%" height={220}>
+        <BarChart data={data} accessibilityLayer>
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-subtle, #e2e8f0)" />
+          <XAxis dataKey="kategorie" tick={{ fontSize: 11, fill: 'var(--color-text-secondary)' }} />
+          <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: 'var(--color-text-secondary)' }} />
+          <Tooltip
+            formatter={(value: number) => [`${value} Einträge`, 'Anzahl']}
+            contentStyle={{ backgroundColor: 'var(--color-surface-panel)', borderColor: 'var(--color-border-subtle)', borderRadius: '0.375rem' }}
+            labelStyle={{ color: 'var(--color-text-secondary)' }}
+            itemStyle={{ color: 'var(--color-text-primary)' }}
+          />
+          <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+            {data.map((entry) => (
+              <Cell key={entry.kategorie} fill={entry.fill} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+function FmsDonutChart({ data, total }: { data: FmsStatusDatum[]; total: number }) {
+  if (total === 0) {
+    return <div className="rounded-panel border border-border-subtle border-dashed bg-surface-raised px-4 py-3 text-body-sm text-text-secondary">Noch keine Ressourcen im Überblick verfügbar.</div>;
+  }
+
+  const visibleData = data.filter((d) => d.value > 0);
+
+  return (
+    <div role="img" aria-label="Ressourcenverteilung" className="relative">
+      <ResponsiveContainer width="100%" height={200}>
+        <PieChart>
+          <Pie data={visibleData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={75} paddingAngle={2}>
+            {visibleData.map((entry) => (
+              <Cell key={entry.name} fill={entry.fill} />
+            ))}
+          </Pie>
+          <Tooltip
+            formatter={(value: number, name: string) => [`${value} Fzg.`, name]}
+            contentStyle={{ backgroundColor: 'var(--color-surface-panel)', borderColor: 'var(--color-border-subtle)', borderRadius: '0.375rem' }}
+            labelStyle={{ color: 'var(--color-text-secondary)' }}
+            itemStyle={{ color: 'var(--color-text-primary)' }}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+        <span className="font-semibold text-text-primary text-title-md">{total}</span>
+      </div>
+    </div>
+  );
+}
+
 export function SingleEinsatzDashboard() {
   const { einsatzId } = useParams({ from: '/app/einsatz/$einsatzId' });
   const { activeEinsatz, setActiveEinsatz, isEinsatzActive } = useActiveEinsatz();
+  const { einsatz: einsatzData, etb, lagekarte, isLoading, isFetching, error } = useEinsatzDetails(einsatzId);
+  const { data: fahrzeuge = [], isLoading: isLoadingFahrzeuge, isFetching: isFetchingFahrzeuge } = useEinsatzFahrzeuge(einsatzId);
+  const { getUserName } = useUserNames();
+  const navigate = useNavigate();
 
-  // Dialog State für Fahrzeug hinzufügen (Story 3-1)
-  const [showFahrzeugDialog, setShowFahrzeugDialog] = useState(false);
-  const handleOpenFahrzeugDialog = useCallback(() => setShowFahrzeugDialog(true), []);
-  const handleCloseFahrzeugDialog = useCallback(() => setShowFahrzeugDialog(false), []);
+  const einsatz = einsatzData as DashboardEinsatz | undefined;
 
-  // Dialog State für Person hinzufügen (Story 4-1)
-  const [showPersonDialog, setShowPersonDialog] = useState(false);
-  const handleOpenPersonDialog = useCallback(() => setShowPersonDialog(true), []);
-  const handleClosePersonDialog = useCallback(() => setShowPersonDialog(false), []);
+  // Story 2.3 AC4: Highlight-Tracking bei Daten-Updates
+  const prevEntryIdsRef = useRef<string>('');
+  const [highlightedEntryIds, setHighlightedEntryIds] = useState<Set<string>>(new Set());
 
-  // Lade Einsatzdaten
-  const {
-    data: einsatzResponse,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: EINSATZ_QUERY_KEYS.detail(einsatzId),
-    queryFn: () => api.einsatz().einsatzControllerFindOneVAlpha({ id: einsatzId }),
-    staleTime: milliseconds({ seconds: 5 }),
-  });
+  const etbEntries = etb?.eintraege.filter((entry) => !entry.isDeleted) ?? [];
+  const currentEntryIds = etbEntries.map((e) => e.id).join(',');
 
-  const einsatz = einsatzResponse?.data;
+  useEffect(() => {
+    const prev = prevEntryIdsRef.current;
+    prevEntryIdsRef.current = currentEntryIds;
 
-  // Lade EinsatzFahrzeuge (Story 3-3)
-  const { data: fahrzeuge = [], isLoading: isLoadingFahrzeuge } = useEinsatzFahrzeuge(einsatzId);
+    if (prev && currentEntryIds !== prev) {
+      const prevIds = new Set(prev.split(','));
+      const currentIds = currentEntryIds.split(',');
+      const newIds = new Set<string>();
+      for (const id of currentIds) {
+        if (id && !prevIds.has(id)) {
+          newIds.add(id);
+        }
+      }
+      if (newIds.size > 0) {
+        setHighlightedEntryIds(newIds);
+        const timer = window.setTimeout(() => setHighlightedEntryIds(new Set()), 2000);
+        return () => window.clearTimeout(timer);
+      }
+    }
+  }, [currentEntryIds]);
 
-  // ETB erst laden wenn User dem Einsatz beigetreten ist
-  const { data: teilnahmeData } = useMyEinsatzTeilnahme(einsatzId);
-  const hasActiveTeilnahme = !!teilnahmeData?.data?.einsatzPersonId;
-
-  // Lade ETB für Count-Anzeige
-  const { data: etb, isLoading: isLoadingEtb } = useEtb({ einsatzId, enabled: hasActiveTeilnahme });
-
-  // Lade Lagekarte für POI-Count
-  const { data: lagekarte, isLoading: isLoadingLagekarte } = useLagekarte(einsatzId);
-
-  // Hook zum Aktualisieren des FMS-Status (Story 3-3)
-  const updateFmsStatus = useUpdateFmsStatus(einsatzId);
-
-  // Handler für FMS-Status Änderungen
-  const handleStatusChange = useCallback(
-    (fahrzeugId: string, newStatus: FmsStatus) => {
-      updateFmsStatus.mutate({ fahrzeugId, fmsStatus: newStatus });
-    },
-    [updateFmsStatus],
-  );
-
-  // ETB-Einträge Count aus geladenen Daten
-  const etbEintraegeCount = etb?.eintraege?.length;
-
-  // POI-Count aus Lagekarte DTO
-  const poisCount = lagekarte?.pois?.length;
-
-  // Setze diesen Einsatz automatisch als aktiv
   useEffect(() => {
     if (einsatz && (!isEinsatzActive || activeEinsatz?.id !== einsatz.id)) {
       setActiveEinsatz(einsatz.id);
     }
-  }, [einsatz, isEinsatzActive, activeEinsatz, setActiveEinsatz]);
+  }, [activeEinsatz, einsatz, isEinsatzActive, setActiveEinsatz]);
+
+  /** Story 2.4 Task 5.4: Fokus auf erstes interaktives Element nach Keyboard-Navigation */
+  const dashboardRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (dashboardRef.current && consumeKeyboardNavigationFlag()) {
+      const firstFocusable = dashboardRef.current.querySelector<HTMLElement>('a[href], button:not([disabled])');
+      firstFocusable?.focus();
+    }
+  }, []);
+
+  // Story 2.4 AC5: Keyboard-Interaktion tracken für Fokus-Management nach Navigation
+  const lastInteractionRef = useRef<'keyboard' | 'mouse'>('mouse');
+
+  useEffect(() => {
+    const trackKeyboard = () => {
+      lastInteractionRef.current = 'keyboard';
+    };
+    const trackMouse = () => {
+      lastInteractionRef.current = 'mouse';
+    };
+    document.addEventListener('keydown', trackKeyboard);
+    document.addEventListener('mousedown', trackMouse);
+    return () => {
+      document.removeEventListener('keydown', trackKeyboard);
+      document.removeEventListener('mousedown', trackMouse);
+    };
+  }, []);
+
+  /** Story 2.4 AC4: Pre-flight Check bei Link-Klick — Toast bei Fehlschlag + AC5 Fokus-Management */
+  function guardNavigation(event: React.MouseEvent, route: string) {
+    const resolvedRoute = route.replace('$einsatzId', einsatzId);
+    if (!isWorkspaceRouteAccessible(resolvedRoute, einsatzId)) {
+      event.preventDefault();
+      toast.error('Bereich nicht zugänglich', {
+        description: 'Der Zielbereich ist derzeit nicht verfügbar.',
+        action: {
+          label: 'Zur Übersicht',
+          onClick: () =>
+            navigate({
+              to: '/app/einsatz/$einsatzId/übersicht',
+              // biome-ignore lint/suspicious/noExplicitAny: Workspace-Aktionen binden kanonische Route-Templates mit Einsatz-Parametern.
+              params: { einsatzId } as any,
+              search: (prev: Record<string, unknown>) => prev,
+            }),
+        },
+      });
+      return;
+    }
+
+    // AC5: Fokus auf erstes interaktives Element im Zielbereich bei Keyboard-Navigation
+    if (lastInteractionRef.current === 'keyboard') {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const focusable = document.querySelector<HTMLElement>('main a, main button, main input, main [tabindex="0"]');
+          focusable?.focus();
+        });
+      });
+    }
+  }
+
+  /** Story 2.4 AC5: Space-Taste auf Links aktivieren (nativ nur bei Buttons) */
+  function handleLinkSpace(event: React.KeyboardEvent) {
+    if (event.key === ' ') {
+      event.preventDefault();
+      (event.currentTarget as HTMLElement).click();
+    }
+  }
+
+  const delayedOverviewRefresh = useDelayedFlag((isFetching && !isLoading) || (isFetchingFahrzeuge && !isLoadingFahrzeuge), 300);
+  const delayedResourceLoading = useDelayedFlag(isLoadingFahrzeuge && !isLoading, 300);
 
   if (isLoading) {
     return (
       <div className="flex h-96 items-center justify-center">
-        <LoadingState message="Lade Einsatzdaten..." />
+        <LoadingState message="Lade priorisierte Lageübersicht..." fullScreen={false} />
       </div>
     );
   }
 
   if (error) {
-    return <ErrorState title="Fehler beim Laden" description="Der Einsatz konnte nicht geladen werden." />;
+    return <ErrorState title="Fehler beim Laden" description="Die priorisierte Lageübersicht konnte nicht geladen werden." />;
   }
 
   if (!einsatz) {
     return <ErrorState title="Einsatz nicht gefunden" description="Der angeforderte Einsatz existiert nicht." />;
   }
 
-  // Berechne Zeiten und Statistiken
-  const startTime = einsatz.alarmierungszeit ? new Date(einsatz.alarmierungszeit) : new Date(einsatz.createdAt);
+  const startTime = getEinsatzStartTime(einsatz);
+  const einsatzName = getEinsatzDisplayName(einsatz);
+  const einsatzort = formatEinsatzort(einsatz.einsatzort);
   const duration = formatDistanceToNow(startTime, { locale: de, addSuffix: false });
+  const latestEntry = etbEntries.at(-1);
+  const pois = Array.isArray(lagekarte?.pois) ? (lagekarte.pois as Array<Record<string, unknown>>) : [];
+  const poisCount = pois.length;
+  const activeVehicleCount = fahrzeuge.filter((fahrzeug) => fahrzeug.fmsStatus >= 3 && fahrzeug.fmsStatus <= 4).length;
+  const readyVehicleCount = fahrzeuge.filter((fahrzeug) => fahrzeug.fmsStatus === 1 || fahrzeug.fmsStatus === 2).length;
+  const unavailableVehicleCount = fahrzeuge.filter((fahrzeug) => fahrzeug.fmsStatus === 0 || fahrzeug.fmsStatus === 6).length;
+  const specialVehicleCount = fahrzeuge.filter((fahrzeug) => ![0, 1, 2, 3, 4, 6].includes(fahrzeug.fmsStatus)).length;
+  const resourcePreview = [...fahrzeuge].sort((left, right) => getVehicleSortScore(left) - getVehicleSortScore(right)).slice(0, 4);
+  const recentEntries = [...etbEntries].slice(-4).reverse();
+  const needsEtbAttention = !latestEntry;
+  const needsMapAttention = poisCount === 0;
+  const needsResourceAttention = fahrzeuge.length === 0 || activeVehicleCount === 0;
+  const displayNumber = einsatz.nummer ? `${einsatz.nummer} · ${einsatzName}` : einsatzName;
 
-  // Mock Timeline Events (würde aus ETB kommen)
-  const timelineEvents = [
+  let heroTone: PriorityPanelTone = 'active';
+  let focusLabel = 'Lage stabil';
+  let focusIcon: ComponentType<{ className?: string }> = PiPulse;
+
+  if (needsEtbAttention) {
+    heroTone = 'critical';
+    focusLabel = 'Dokumentation offen';
+    focusIcon = PiWarning;
+  } else if (needsMapAttention) {
+    heroTone = 'warning';
+    focusLabel = 'Karte unvollständig';
+    focusIcon = PiMapPin;
+  } else if (needsResourceAttention) {
+    heroTone = 'warning';
+    focusLabel = 'Kräfte prüfen';
+    focusIcon = PiTruck;
+  }
+
+  const kpis: KpiItem[] = [
+    { label: 'Dauer', value: duration, tone: 'active', icon: PiClock },
+    { label: 'ETB', value: String(etbEntries.length), tone: needsEtbAttention ? 'critical' : 'observing', icon: PiClipboard },
+    { label: 'Ortsmarken', value: String(poisCount), tone: needsMapAttention ? 'warning' : 'active', icon: PiMapPin },
+    { label: 'Kräfte', value: `${activeVehicleCount}/${fahrzeuge.length || 0}`, tone: needsResourceAttention ? 'warning' : 'active', icon: PiTruck },
+  ];
+
+  const etbActionAvailable = resolveActionAvailability(PRIORITY_ROUTE_TARGETS.etb, einsatzId);
+  const lagekarteActionAvailable = resolveActionAvailability(PRIORITY_ROUTE_TARGETS.lagekarte, einsatzId);
+  const kraefteActionAvailable = resolveActionAvailability(PRIORITY_ROUTE_TARGETS.kraefte, einsatzId);
+
+  const quickLinks: QuickLink[] = [
     {
-      id: '1',
-      time: startTime,
-      title: 'Alarmierung',
-      description: einsatz.alarmstichwort || 'Einsatz angelegt',
-      type: 'alarm' as const,
+      id: 'etb',
+      label: 'ETB',
+      count: `${etbEntries.length} Einträge`,
+      icon: PiClipboard,
+      to: etbActionAvailable ? PRIORITY_ROUTE_TARGETS.etb : undefined,
+      available: etbActionAvailable,
     },
     {
-      id: '2',
-      time: addMinutes(startTime, 5),
-      title: 'Ausrückung',
-      description: 'Erste Einheiten rücken aus',
-      type: 'arrival' as const,
+      id: 'lagekarte',
+      label: 'Lagekarte',
+      count: `${poisCount} Ortsmarken`,
+      icon: PiMapPin,
+      to: lagekarteActionAvailable ? PRIORITY_ROUTE_TARGETS.lagekarte : undefined,
+      available: lagekarteActionAvailable,
     },
     {
-      id: '3',
-      time: addMinutes(startTime, 12),
-      title: 'Ankunft Einsatzstelle',
-      description: einsatz.einsatzort || 'Einsatzort erreicht',
-      type: 'info' as const,
+      id: 'kraefte',
+      label: 'Kräfte-Dashboard',
+      count: `${activeVehicleCount}/${fahrzeuge.length || 0} aktiv`,
+      icon: PiTruck,
+      to: kraefteActionAvailable ? PRIORITY_ROUTE_TARGETS.kraefte : undefined,
+      available: kraefteActionAvailable,
     },
   ];
 
+  const activityCountMap = new Map<string, number>();
+  for (const entry of etbEntries) {
+    const label = getEntryCategoryLabel(entry.kategorie);
+    activityCountMap.set(label, (activityCountMap.get(label) ?? 0) + 1);
+  }
+
+  const etbChartData: EtbCategoryDatum[] = [...activityCountMap.entries()]
+    .sort((left, right) => right[1] - left[1])
+    .slice(0, 6)
+    .map(([kategorie, count], index) => ({
+      kategorie,
+      count,
+      fill: ETB_CHART_FILLS[index % ETB_CHART_FILLS.length],
+    }));
+
+  const fmsChartData: FmsStatusDatum[] = [
+    { name: 'Im Einsatz', value: activeVehicleCount, fill: '#3b82f6' },
+    { name: 'Bereit', value: readyVehicleCount, fill: '#22c55e' },
+    { name: 'Sonderstatus', value: specialVehicleCount, fill: '#f59e0b' },
+    { name: 'Nicht bereit', value: unavailableVehicleCount, fill: '#ef4444' },
+  ];
+
+  const FocusIcon = focusIcon;
+  const vehicleTarget = resolveNavigationTarget('kraefte-status', einsatzId, isWorkspaceRouteAccessible);
+  const entryTarget = resolveNavigationTarget('etb-entry', einsatzId, isWorkspaceRouteAccessible);
+
   return (
-    <div className="space-y-6">
-      {/* Wichtige Statistiken */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <EinsatzStatsCard title="Einsatzdauer" value={duration} icon={<PiClock className="h-8 w-8" />} description={`Seit ${formatNatoDateTime(startTime)}`} />
-        <EinsatzStatsCard
-          title="Fahrzeuge"
-          value={isLoadingFahrzeuge ? '-' : String(fahrzeuge.length)}
-          icon={<PiTruck className="h-8 w-8" />}
-          description={isLoadingFahrzeuge ? 'Wird geladen...' : `${fahrzeuge.filter((f) => f.fmsStatus >= 3 && f.fmsStatus <= 4).length} im Einsatz`}
-          variant="success"
-        />
-        <EinsatzStatsCard
-          title="ETB-Einträge"
-          value={isLoadingEtb ? '-' : String(etbEintraegeCount ?? 0)}
-          icon={<PiClipboard className="h-8 w-8" />}
-          description={isLoadingEtb ? 'Wird geladen...' : 'Dokumentierte Einträge'}
-        />
-        <EinsatzStatsCard
-          title="POIs"
-          value={isLoadingLagekarte ? '-' : String(poisCount ?? 0)}
-          icon={<PiMapPin className="h-8 w-8" />}
-          description={isLoadingLagekarte ? 'Wird geladen...' : 'Markierungen auf Karte'}
-          variant="info"
-        />
-      </div>
-
-      {/* Schnellzugriffe */}
-      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-primary-800 dark:bg-primary-900/20">
-        <h2 className="mb-3 font-semibold text-primary-900 text-sm dark:text-primary-100">Schnellzugriffe</h2>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <Button intent="secondary" size="sm" className="justify-start">
-            <PiClipboard className="mr-2 h-4 w-4" />
-            Neuer ETB-Eintrag
-          </Button>
-          <Button intent="secondary" size="sm" className="justify-start">
-            <PiRadio className="mr-2 h-4 w-4" />
-            Funkmeldung
-          </Button>
-          <Button intent="secondary" size="sm" className="justify-start" onClick={handleOpenPersonDialog}>
-            <PiUsers className="mr-2 h-4 w-4" />
-            Person hinzufügen
-          </Button>
-          <Button intent="secondary" size="sm" className="justify-start">
-            <PiFileText className="mr-2 h-4 w-4" />
-            Bericht erstellen
-          </Button>
+    <section ref={dashboardRef} aria-label="Einsatz-Dashboard" className="space-y-4">
+      <div className="space-y-2">
+        <div className={cn('flex items-center gap-2 rounded-panel border px-3 py-1.5', getSurfaceToneClasses(heroTone))}>
+          <FocusIcon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+          <span className="font-medium text-body-xs uppercase tracking-[0.05em] opacity-80">Fokus</span>
+          <span className="rounded-pill border border-current/15 bg-surface-panel/70 px-2.5 py-0.5 font-medium text-body-xs">{focusLabel}</span>
         </div>
+
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+          {kpis.map((kpi) => (
+            <KpiCard key={kpi.label} item={kpi} />
+          ))}
+        </div>
+
+        {delayedOverviewRefresh || delayedResourceLoading ? (
+          <output aria-live="polite" aria-atomic="true" className="block rounded-panel border border-border-subtle bg-surface-panel px-3 py-2 text-body-sm text-text-secondary">
+            Lageübersicht wird aktualisiert.
+          </output>
+        ) : null}
       </div>
 
-      {/* Hauptinhalt Grid */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Linke Spalte - Timeline und Details */}
-        <div className="space-y-6 lg:col-span-2">
-          {/* Einsatzverlauf */}
-          <EinsatzTimelineWidget events={timelineEvents} />
+      <div className="grid gap-3 xl:grid-cols-2">
+        <section className="rounded-panel border border-border-subtle bg-surface-panel p-4 shadow-panel">
+          <h3 className="font-semibold text-body-lg text-text-primary">Lagebild</h3>
+          <div className="mt-3">
+            <EtbBarChart data={etbChartData} />
+          </div>
+        </section>
 
-          {/* Einsatzdetails */}
-          <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
-            <h3 className="mb-4 font-semibold text-gray-900 text-lg dark:text-gray-100">Einsatzdetails</h3>
-            <dl className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div>
-                <dt className="font-medium text-gray-500 text-sm dark:text-gray-400">Bezeichnung</dt>
-                <dd className="mt-1 text-gray-900 text-sm dark:text-gray-100">{einsatz.name}</dd>
-              </div>
-              <div>
-                <dt className="font-medium text-gray-500 text-sm dark:text-gray-400">Alarmstichwort</dt>
-                <dd className="mt-1 text-gray-900 text-sm dark:text-gray-100">{einsatz.alarmstichwort || '-'}</dd>
-              </div>
-              <div>
-                <dt className="font-medium text-gray-500 text-sm dark:text-gray-400">Einsatzort</dt>
-                <dd className="mt-1 text-gray-900 text-sm dark:text-gray-100">{einsatz.einsatzort || '-'}</dd>
-              </div>
-              <div>
-                <dt className="font-medium text-gray-500 text-sm dark:text-gray-400">Alarmierung</dt>
-                <dd className="mt-1 text-gray-900 text-sm dark:text-gray-100">{format(startTime, 'dd.MM.yyyy HH:mm', { locale: de })} Uhr</dd>
-              </div>
-              {einsatz.beschreibung && (
-                <div className="md:col-span-2">
-                  <dt className="font-medium text-gray-500 text-sm dark:text-gray-400">Beschreibung</dt>
-                  <dd className="mt-1 text-gray-900 text-sm dark:text-gray-100">{einsatz.beschreibung}</dd>
-                </div>
-              )}
-            </dl>
+        <section className="rounded-panel border border-border-subtle bg-surface-panel p-4 shadow-panel">
+          <h3 className="font-semibold text-body-lg text-text-primary">Ressourcenlage</h3>
+          <div className="mt-3">
+            <FmsDonutChart data={fmsChartData} total={fahrzeuge.length} />
+          </div>
+          {resourcePreview.length > 0 ? (
+            <ul className="mt-3 space-y-1.5">
+              {resourcePreview.map((fahrzeug) => {
+                const fmsLabel = FMS_STATUS_LABELS[fahrzeug.fmsStatus] ?? `Status ${fahrzeug.fmsStatus}`;
 
-            {/* Karte Placeholder */}
-            <div className="mt-6 flex h-48 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
-              <div className="text-center text-gray-500 dark:text-gray-400">
-                <PiMapPin className="mx-auto mb-2 h-12 w-12 opacity-50" />
-                <p className="text-sm">Lagekarte</p>
-                <Button appearance="outline" size="sm" className="mt-2">
-                  Vollbild öffnen
-                </Button>
-              </div>
+                const vehicleContent = (
+                  <>
+                    <span className="truncate font-medium text-body-sm text-text-primary">{fahrzeug.funkrufname}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-pill border border-border-subtle bg-surface-panel px-2 py-0.5 font-medium text-body-xs text-text-secondary">{fmsLabel}</span>
+                      {vehicleTarget.available ? <PiArrowRight className="h-3.5 w-3.5 flex-shrink-0 text-text-secondary" aria-hidden="true" /> : null}
+                    </div>
+                  </>
+                );
+
+                return (
+                  <li key={fahrzeug.id}>
+                    {vehicleTarget.available && vehicleTarget.route ? (
+                      <Link
+                        to={vehicleTarget.route}
+                        // biome-ignore lint/suspicious/noExplicitAny: Workspace-Aktionen binden kanonische Route-Templates mit Einsatz-Parametern.
+                        params={{ einsatzId } as any}
+                        search={(prev) => prev}
+                        onClick={(e) => guardNavigation(e, vehicleTarget.route as string)}
+                        onKeyDown={handleLinkSpace}
+                        className="flex items-center justify-between gap-3 rounded-panel border border-border-subtle bg-surface-raised px-3 py-2 transition-colors hover:bg-muted/50 focus:outline-none focus-visible:shadow-focus-ring"
+                      >
+                        <span className="sr-only">{vehicleTarget.label}</span>
+                        {vehicleContent}
+                      </Link>
+                    ) : (
+                      <div className="flex items-center justify-between gap-3 rounded-panel border border-border-subtle bg-surface-raised px-3 py-2 opacity-70">{vehicleContent}</div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
+        </section>
+      </div>
+
+      <section className="rounded-panel border border-border-subtle bg-surface-panel p-4 shadow-panel">
+        <h3 className="font-semibold text-body-lg text-text-primary">Einsatzinformationen</h3>
+        <dl className="mt-3 flex flex-wrap gap-x-8 gap-y-3">
+          <div>
+            <dt className="font-medium text-body-xs text-text-secondary uppercase tracking-[0.08em]">Einsatz</dt>
+            <dd className="mt-0.5 text-body-sm text-text-primary">{displayNumber}</dd>
+          </div>
+          <div>
+            <dt className="font-medium text-body-xs text-text-secondary uppercase tracking-[0.08em]">Alarmstichwort</dt>
+            <dd className="mt-0.5 text-body-sm text-text-primary">{einsatz.alarmstichwort}</dd>
+          </div>
+          <div>
+            <dt className="font-medium text-body-xs text-text-secondary uppercase tracking-[0.08em]">Ort</dt>
+            <dd className="mt-0.5 text-body-sm text-text-primary">{einsatzort}</dd>
+          </div>
+          <div>
+            <dt className="font-medium text-body-xs text-text-secondary uppercase tracking-[0.08em]">Alarmierung</dt>
+            <dd className="mt-0.5 text-body-sm text-text-primary">{format(startTime, 'dd.MM.yyyy HH:mm', { locale: de })} Uhr</dd>
+          </div>
+          <div>
+            <dt className="font-medium text-body-xs text-text-secondary uppercase tracking-[0.08em]">Hinweis</dt>
+            <dd className="mt-0.5 text-body-sm text-text-primary">{einsatz.beschreibung?.trim() || einsatz.bemerkung?.trim() || 'Keine zusätzliche Lagemitteilung hinterlegt.'}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section className="rounded-panel border border-border-subtle bg-surface-panel p-4 shadow-panel">
+        <h3 className="font-semibold text-body-lg text-text-primary">Direktzugriffe</h3>
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          {quickLinks.map((link) => (
+            <QuickLinkCard key={link.id} link={link} einsatzId={einsatzId} />
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-panel border border-border-subtle bg-surface-panel p-4 shadow-panel" aria-label="Letzte Meldungen">
+        <h3 className="font-semibold text-body-lg text-text-primary">Letzte Meldungen</h3>
+        <output aria-live="polite" aria-atomic="false" className="mt-3 block">
+          {isFetching && !isLoading && recentEntries.length > 0 ? (
+            <div className="mb-2 flex gap-2">
+              {[1, 2, 3].map((i) => (
+                <span key={i} className="h-3 w-16 animate-pulse rounded bg-surface-raised" />
+              ))}
             </div>
-          </div>
-        </div>
+          ) : null}
+          {recentEntries.length > 0 ? (
+            <ul className="divide-y divide-border-subtle">
+              {recentEntries.map((entry, index) => {
+                const meta = deriveStatusChangeMeta(entry, getUserName);
+                const isNewest = index === 0;
+                const isHighlighted = highlightedEntryIds.has(entry.id);
 
-        {/* Rechte Spalte - Ressourcen und Status */}
-        <div className="space-y-6">
-          {/* Eingesetzte Fahrzeuge (Story 3-3: FMS-Status Update) */}
-          <EinsatzResourceWidget fahrzeuge={fahrzeuge} onStatusChange={handleStatusChange} onAddResource={handleOpenFahrzeugDialog} />
+                const entryContent = (
+                  <>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <span className={cn('font-medium text-body-sm text-text-primary', isNewest && 'font-semibold')}>{getEntryCategoryLabel(entry.kategorie)}</span>
+                        <span className="ml-2 text-body-sm text-text-secondary">{trimText(entry.text, 110)}</span>
+                      </div>
+                      <div className="flex flex-shrink-0 items-center gap-2">
+                        <span className="text-body-xs text-text-secondary">{formatFeedTime(entry.timestamp)}</span>
+                        {entryTarget.available ? <PiArrowRight className="h-3.5 w-3.5 text-text-secondary" aria-hidden="true" /> : null}
+                      </div>
+                    </div>
+                    <div className="mt-1">
+                      <StatusChangeMeta meta={meta} isNewest={isNewest} />
+                    </div>
+                  </>
+                );
 
-          {/* Wichtige Kontakte */}
-          <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
-            <h3 className="mb-4 font-semibold text-gray-900 text-lg dark:text-gray-100">Wichtige Kontakte</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-gray-700/50">
-                <div className="flex items-center gap-3">
-                  <PiPhone className="h-5 w-5 text-gray-400" />
-                  <div>
-                    <p className="font-medium text-gray-900 text-sm dark:text-gray-100">Einsatzleitung</p>
-                    <p className="text-gray-500 text-xs dark:text-gray-400">Florian 1/10</p>
-                  </div>
-                </div>
-                <Button appearance="ghost" size="sm">
-                  <PiRadio className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-gray-700/50">
-                <div className="flex items-center gap-3">
-                  <PiPhone className="h-5 w-5 text-gray-400" />
-                  <div>
-                    <p className="font-medium text-gray-900 text-sm dark:text-gray-100">Leitstelle</p>
-                    <p className="text-gray-500 text-xs dark:text-gray-400">112</p>
-                  </div>
-                </div>
-                <Button appearance="ghost" size="sm">
-                  <PiPhone className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Eskalations-Statistik (Story 4.9) */}
-          <div className="rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
-            <ErinnerungStatistik einsatzId={einsatzId} />
-          </div>
-
-          {/* Erinnerungen - Kompakte Dashboard-Ansicht */}
-          <DashboardErinnerungen einsatzId={einsatzId} />
-        </div>
-      </div>
-
-      {/* Fahrzeug hinzufügen Dialog (Story 3-1) */}
-      <FahrzeugHinzufuegenDialog isOpen={showFahrzeugDialog} onClose={handleCloseFahrzeugDialog} einsatzId={einsatzId} />
-
-      {/* Person hinzufügen Dialog (Story 4-1) */}
-      <PersonHinzufuegenDialog isOpen={showPersonDialog} onClose={handleClosePersonDialog} einsatzId={einsatzId} />
-    </div>
+                return (
+                  <li key={entry.id} className={cn('py-2.5 first:pt-0 last:pb-0', isNewest ? 'opacity-100' : 'opacity-70', isHighlighted && 'animate-highlight-new rounded-panel')}>
+                    {entryTarget.available && entryTarget.route ? (
+                      <Link
+                        to={entryTarget.route}
+                        // biome-ignore lint/suspicious/noExplicitAny: Workspace-Aktionen binden kanonische Route-Templates mit Einsatz-Parametern.
+                        params={{ einsatzId } as any}
+                        search={(prev) => prev}
+                        onClick={(e) => guardNavigation(e, entryTarget.route as string)}
+                        onKeyDown={handleLinkSpace}
+                        className="block rounded-panel px-2 py-1 -mx-2 -my-1 transition-colors hover:bg-muted/50 focus:outline-none focus-visible:shadow-focus-ring"
+                      >
+                        <span className="sr-only">{entryTarget.label}</span>
+                        {entryContent}
+                      </Link>
+                    ) : (
+                      <div className="px-2 py-1 -mx-2 -my-1">
+                        {entryContent}
+                        {!entryTarget.available ? <p className="mt-1 text-body-xs text-text-secondary italic">{entryTarget.fallbackAction}</p> : null}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <div className="rounded-panel border border-border-subtle border-dashed bg-surface-raised px-4 py-3 text-body-sm text-text-secondary">Noch keine Meldungen im ETB vorhanden.</div>
+          )}
+        </output>
+      </section>
+    </section>
   );
 }

@@ -127,7 +127,7 @@ export function CreateFuehrungsrhythmusTemplateDialog({ isOpen, onClose, default
             e.stopPropagation();
             form.handleSubmit();
           }}
-          className="space-y-5"
+          className="space-y-4"
         >
           {/* Name */}
           <form.Field name="name">
@@ -168,8 +168,8 @@ export function CreateFuehrungsrhythmusTemplateDialog({ isOpen, onClose, default
                   maxLength={500}
                   rows={2}
                   className={cn(
-                    'block w-full rounded-lg border-2 bg-white px-4 py-2.5 font-medium text-gray-900 transition-colors duration-200',
-                    'placeholder:text-gray-400 focus:outline-none focus:ring-4 focus:ring-opacity-20',
+                    'block w-full rounded-lg border bg-white px-4 py-2.5 font-medium text-gray-900 transition-colors duration-200',
+                    'placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-opacity-20',
                     'disabled:cursor-not-allowed disabled:opacity-50',
                     'dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-500',
                     'resize-none',

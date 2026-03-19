@@ -97,7 +97,7 @@ export function CreateKategorieDialog({ isOpen, onClose, einsatzId }: CreateKate
             e.stopPropagation();
             form.handleSubmit();
           }}
-          className="space-y-5"
+          className="space-y-4"
         >
           {/* Name */}
           <form.Field name="name">

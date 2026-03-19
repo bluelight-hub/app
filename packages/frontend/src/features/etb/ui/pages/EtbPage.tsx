@@ -86,7 +86,7 @@ export function EtbPage({ einsatzId, mode }: EtbPageProps) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
@@ -125,11 +125,11 @@ export function EtbPage({ einsatzId, mode }: EtbPageProps) {
 
         {/* Eingabeformular */}
         {etb.status === 'LOCKED' ? (
-          <div className="rounded-lg border-2 border-red-200 bg-red-50 p-6 dark:border-red-800 dark:bg-red-900/20">
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
             <p className="text-center text-red-700 dark:text-red-400">Das ETB ist gesperrt. Neue Einträge können nicht hinzugefügt werden.</p>
           </div>
         ) : (
-          <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+          <div className="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
             <div className="mb-4">
               <h2 className="font-medium text-gray-900 text-lg dark:text-gray-100">Neuer Eintrag</h2>
             </div>
@@ -139,7 +139,7 @@ export function EtbPage({ einsatzId, mode }: EtbPageProps) {
 
         {/* Eintragliste mit Infinite Scrolling */}
         <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
-          <div className="border-gray-200 border-b px-6 py-4 dark:border-gray-700">
+          <div className="border-gray-200 border-b px-4 py-4 dark:border-gray-700">
             <h2 className="font-medium text-gray-900 text-lg dark:text-gray-100">
               Einträge
               {data?.pages?.[0]?.pagination?.total ? (
@@ -151,7 +151,7 @@ export function EtbPage({ einsatzId, mode }: EtbPageProps) {
               )}
             </h2>
           </div>
-          <div className="p-6" style={{ minHeight: '700px' }}>
+          <div className="p-4" style={{ minHeight: '700px' }}>
             <EtbEntryList
               entries={allEntries}
               einsatzId={einsatzId}

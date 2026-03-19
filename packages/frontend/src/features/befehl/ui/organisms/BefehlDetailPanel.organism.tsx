@@ -126,7 +126,7 @@ export function BefehlDetailPanel({ befehl, isOpen, onClose, einsatzId, onQuitti
 
                     {/* Body */}
                     <div className="flex-1 overflow-y-auto px-6 py-5">
-                      <div className="space-y-5">
+                      <div className="space-y-4">
                         {/* Auftrag */}
                         <section>
                           <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Auftrag</h3>
