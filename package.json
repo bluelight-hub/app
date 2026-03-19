@@ -43,7 +43,8 @@
     }
   },
   "lint-staged": {
-    "**/*.{js,ts,tsx,json,md,yml,yaml}": ["biome check --write --no-errors-on-unmatched"],
+    "**/*.{js,ts,tsx,json,yml,yaml}": ["biome check --write --no-errors-on-unmatched"],
+    "**/*.md": ["biome check --no-errors-on-unmatched"],
     "packages/backend/**/*.ts": ["pnpm --filter @bluelight-hub/backend lint"],
     "packages/backend/src/domain/**/*.ts": ["pnpm --filter @bluelight-hub/backend lint:domain"],
     "packages/frontend/**/!(*.gen).{ts,tsx}": ["pnpm --filter @bluelight-hub/frontend lint"]
