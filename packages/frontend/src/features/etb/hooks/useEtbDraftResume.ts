@@ -59,6 +59,13 @@ export function useEtbDraftResume({ einsatzId, etbId, etbStatus }: UseEtbDraftRe
   /** Ref um den aktuellen Scope stabil zu halten */
   const scopeRef = useRef<EtbDraftScope | null>(null);
 
+  const cancelPendingDraftSave = useCallback(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+  }, []);
+
   // Scope ableiten
   const scope: EtbDraftScope | null = activeServerId && user?.id && user?.role ? { serverId: activeServerId, userId: user.id, role: user.role, einsatzId } : null;
 
@@ -140,12 +147,8 @@ export function useEtbDraftResume({ einsatzId, etbId, etbStatus }: UseEtbDraftRe
 
   // Cleanup Debounce-Timer bei Unmount
   useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, []);
+    return cancelPendingDraftSave;
+  }, [cancelPendingDraftSave]);
 
   const restoreDraft = useCallback((): EtbDraftState => {
     if (!pendingDraft) {
@@ -157,46 +160,60 @@ export function useEtbDraftResume({ einsatzId, etbId, etbStatus }: UseEtbDraftRe
   }, [pendingDraft]);
 
   const discardDraft = useCallback(async (): Promise<void> => {
+    cancelPendingDraftSave();
+
     if (scopeRef.current) {
       await clearEtbDraft(scopeRef.current);
     }
     setPendingDraft(null);
-  }, []);
+  }, [cancelPendingDraftSave]);
 
   const clearDraftFn = useCallback(async (): Promise<void> => {
+    cancelPendingDraftSave();
+
     if (scopeRef.current) {
       await clearEtbDraft(scopeRef.current);
     }
-  }, []);
+  }, [cancelPendingDraftSave]);
 
   const saveDraft = useCallback(
     (values: EtbDraftFormValues) => {
-      // Keine leeren Formulare persistieren
-      if (!values.text.trim()) return;
-      // Kein Scope verfügbar
-      if (!scopeRef.current) return;
+      cancelPendingDraftSave();
 
-      // Debounce 1000ms
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
+      const currentScope = scopeRef.current;
+
+      // Kein Scope verfügbar
+      if (!currentScope) return;
+
+      // Leerer Text verwirft einen bestehenden Draft explizit
+      if (!values.text.trim()) {
+        clearEtbDraft(currentScope).catch((error) => {
+          console.warn('ETB-Draft konnte nach leerem Formular nicht gelöscht werden:', error);
+        });
+        return;
       }
 
+      // Debounce 1000ms
       debounceTimerRef.current = setTimeout(() => {
-        const currentScope = scopeRef.current;
-        if (!currentScope) return;
+        const latestScope = scopeRef.current;
+        if (!latestScope) return;
 
-        saveEtbDraft(currentScope, {
+        saveEtbDraft(latestScope, {
           kategorie: values.kategorie as EtbDraftState['kategorie'],
           text: values.text,
           absender: values.absender,
           empfaenger: values.empfaenger,
           etbId: values.etbId,
-        }).catch((error) => {
-          console.warn('ETB-Draft auto-save fehlgeschlagen:', error);
-        });
+        })
+          .catch((error) => {
+            console.warn('ETB-Draft auto-save fehlgeschlagen:', error);
+          })
+          .finally(() => {
+            debounceTimerRef.current = null;
+          });
       }, 1000);
     },
-    [], // scopeRef ist stabil
+    [cancelPendingDraftSave], // scopeRef ist stabil
   );
 
   return {

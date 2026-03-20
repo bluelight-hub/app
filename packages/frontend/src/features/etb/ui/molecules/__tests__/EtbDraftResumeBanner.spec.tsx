@@ -63,17 +63,17 @@ describe('EtbDraftResumeBanner', () => {
     expect(onDiscard).toHaveBeenCalledOnce();
   });
 
-  it('hat role="region" mit aria-label und aria-live="polite"', () => {
+  it('hat role="status" mit aria-label und aria-live="polite"', () => {
     renderWithProviders(<EtbDraftResumeBanner draft={mockDraft} onRestore={onRestore} onDiscard={onDiscard} />);
 
-    const banner = screen.getByRole('region', { name: 'Ungespeicherter Entwurf' });
+    const banner = screen.getByRole('status', { name: 'Ungespeicherter Entwurf' });
     expect(banner).toHaveAttribute('aria-live', 'polite');
   });
 
   it('Banner ist fokussierbar (tabIndex={-1})', () => {
     renderWithProviders(<EtbDraftResumeBanner draft={mockDraft} onRestore={onRestore} onDiscard={onDiscard} />);
 
-    const banner = screen.getByRole('region', { name: 'Ungespeicherter Entwurf' });
+    const banner = screen.getByRole('status', { name: 'Ungespeicherter Entwurf' });
     expect(banner).toHaveAttribute('tabindex', '-1');
   });
 

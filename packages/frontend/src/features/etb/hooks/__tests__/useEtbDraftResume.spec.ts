@@ -183,7 +183,7 @@ describe('useEtbDraftResume', () => {
     expect(mockSaveEtbDraft).toHaveBeenCalledWith(expect.objectContaining({ serverId: 'server-1', userId: 'user-1' }), expect.objectContaining({ text: 'ABC' }));
   });
 
-  it('saveDraft ignoriert leere Texte', async () => {
+  it('saveDraft löscht existierende Drafts bei leerem Text', async () => {
     const { result } = renderHook(() => useEtbDraftResume({ einsatzId: 'einsatz-1', etbId: 'etb-1' }));
 
     await waitFor(() => {
@@ -193,6 +193,16 @@ describe('useEtbDraftResume', () => {
     vi.useFakeTimers();
 
     act(() => {
+      result.current.saveDraft({ text: 'Gespeicherter Entwurf', kategorie: 'LAGE', etbId: 'etb-1' });
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    expect(mockSaveEtbDraft).toHaveBeenCalledOnce();
+
+    act(() => {
       result.current.saveDraft({ text: '  ', kategorie: 'LAGE', etbId: 'etb-1' });
     });
 
@@ -200,7 +210,30 @@ describe('useEtbDraftResume', () => {
       vi.advanceTimersByTime(1000);
     });
 
+    expect(mockSaveEtbDraft).toHaveBeenCalledOnce();
+    expect(mockClearEtbDraft).toHaveBeenCalledOnce();
+  });
+
+  it('saveDraft cancelt ausstehende Saves bei leerem Text', async () => {
+    const { result } = renderHook(() => useEtbDraftResume({ einsatzId: 'einsatz-1', etbId: 'etb-1' }));
+
+    await waitFor(() => {
+      expect(result.current.isLoadingDraft).toBe(false);
+    });
+
+    vi.useFakeTimers();
+
+    act(() => {
+      result.current.saveDraft({ text: 'Noch nicht persistiert', kategorie: 'LAGE', etbId: 'etb-1' });
+      result.current.saveDraft({ text: '   ', kategorie: 'LAGE', etbId: 'etb-1' });
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
     expect(mockSaveEtbDraft).not.toHaveBeenCalled();
+    expect(mockClearEtbDraft).toHaveBeenCalledOnce();
   });
 
   it('clearDraft löscht den Draft aus dem Storage', async () => {
@@ -214,6 +247,31 @@ describe('useEtbDraftResume', () => {
       await result.current.clearDraft();
     });
 
+    expect(mockClearEtbDraft).toHaveBeenCalledOnce();
+  });
+
+  it('clearDraft cancelt ausstehende Autosaves vor dem Löschen', async () => {
+    const { result } = renderHook(() => useEtbDraftResume({ einsatzId: 'einsatz-1', etbId: 'etb-1' }));
+
+    await waitFor(() => {
+      expect(result.current.isLoadingDraft).toBe(false);
+    });
+
+    vi.useFakeTimers();
+
+    act(() => {
+      result.current.saveDraft({ text: 'Noch nicht persistiert', kategorie: 'LAGE', etbId: 'etb-1' });
+    });
+
+    await act(async () => {
+      await result.current.clearDraft();
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    expect(mockSaveEtbDraft).not.toHaveBeenCalled();
     expect(mockClearEtbDraft).toHaveBeenCalledOnce();
   });
 
