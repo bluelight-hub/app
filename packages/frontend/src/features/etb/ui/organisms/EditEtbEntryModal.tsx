@@ -25,6 +25,10 @@ interface EditEtbEntryModalProps {
   entry: (EintragDto & { etbId: string }) | null;
   isOpen: boolean;
   onClose: () => void;
+  /** Callback nach erfolgreicher Bearbeitung (Story 3.4) */
+  onEditSuccess?: (entry: EintragDto) => void;
+  /** Geteilte Update-Mutation vom Workspace (für Sync-Status-Integration) */
+  updateMutation?: ReturnType<typeof useUpdateEtbEntry>;
 }
 
 function formatTimestampInput(timestamp: string | Date | null | undefined) {
@@ -41,8 +45,9 @@ function formatTimestampInput(timestamp: string | Date | null | undefined) {
  * - Zeitstempel
  * - Kategorie
  */
-export function EditEtbEntryModal({ entry, isOpen, onClose }: EditEtbEntryModalProps) {
-  const updateEintrag = useUpdateEtbEntry();
+export function EditEtbEntryModal({ entry, isOpen, onClose, onEditSuccess, updateMutation }: EditEtbEntryModalProps) {
+  const internalUpdateEintrag = useUpdateEtbEntry();
+  const updateEintrag = updateMutation ?? internalUpdateEintrag;
 
   const form = useForm({
     defaultValues: {
@@ -66,6 +71,7 @@ export function EditEtbEntryModal({ entry, isOpen, onClose }: EditEtbEntryModalP
           },
         });
 
+        onEditSuccess?.(entry);
         onClose();
       } catch (_error) {
         // Error handling durch TanStack Query

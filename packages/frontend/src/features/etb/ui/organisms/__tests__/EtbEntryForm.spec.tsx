@@ -10,14 +10,6 @@ vi.mock('@/features/einsatz/api', () => ({
   useEinsatzTeilnehmer: () => ({ data: null }),
 }));
 
-vi.mock('@/shared/lib/errors/apiErrorHandler', () => ({
-  getApiErrorMessage: vi.fn().mockResolvedValue('Fehler'),
-}));
-
-vi.mock('sonner', () => ({
-  toast: { error: vi.fn(), success: vi.fn() },
-}));
-
 // Mock non-validation UI Komponenten aus dem Barrel
 vi.mock('@/features/etb', () => ({
   useCreateEtbEntry: () => ({ mutateAsync: vi.fn().mockResolvedValue({}), isPending: false }),
@@ -428,6 +420,42 @@ describe('EtbEntryForm — Feldnahe Validierung (Story 3.2)', () => {
         },
         { timeout: 200 },
       );
+    });
+  });
+
+  // === Story 3.5: Draft-Wiederaufnahme ===
+
+  describe('Story 3.5: Draft-Wiederaufnahme via restoredDraftValues', () => {
+    it('befüllt Formularfelder mit wiederhergestellten Draft-Werten', async () => {
+      // Given — Draft-Werte vorhanden
+      const onDraftRestored = vi.fn();
+      const draftValues = {
+        text: 'Hochwasser steigt weiter',
+        kategorie: 'LAGE',
+        absender: 'EL Musterstadt',
+        empfaenger: 'Leitstelle',
+      };
+
+      renderWithProviders(<EtbEntryForm etbId="etb-1" einsatzId="einsatz-1" restoredDraftValues={draftValues} onDraftRestored={onDraftRestored} />);
+
+      // Then — Text-Feld enthält den Draft-Text
+      await waitFor(() => {
+        const textarea = screen.getByPlaceholderText('Beschreiben Sie das Ereignis oder die Maßnahme...');
+        expect(textarea).toHaveValue('Hochwasser steigt weiter');
+      });
+
+      // Then — onDraftRestored wurde aufgerufen
+      expect(onDraftRestored).toHaveBeenCalledOnce();
+    });
+
+    it('setzt keine Draft-Werte wenn restoredDraftValues null ist', () => {
+      // Given — keine Draft-Werte
+      const onDraftRestored = vi.fn();
+
+      renderWithProviders(<EtbEntryForm etbId="etb-1" einsatzId="einsatz-1" restoredDraftValues={null} onDraftRestored={onDraftRestored} />);
+
+      // Then — onDraftRestored wird nicht aufgerufen
+      expect(onDraftRestored).not.toHaveBeenCalled();
     });
   });
 });

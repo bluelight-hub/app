@@ -1,11 +1,10 @@
 import tailwindcss from '@tailwindcss/vite';
 import tanstackRouter from '@tanstack/router-plugin/vite';
-import react from '@vitejs/plugin-react-swc';
+import react from '@vitejs/plugin-react';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import * as process from 'node:process';
 import { defineConfig } from 'vite';
-import tsconfigPaths from 'vite-tsconfig-paths';
 
 const pkg = JSON.parse(readFileSync('./package.json', 'utf8'));
 const host = process.env.TAURI_DEV_HOST;
@@ -23,12 +22,14 @@ export default defineConfig({
     tanstackRouter({
       target: 'react',
       autoCodeSplitting: true,
-      routeFileIgnorePattern: '(^|/)__tests__/',
+      routeFileIgnorePattern: '.(test|spec).(ts|tsx)$',
     }),
     tailwindcss(),
     react(),
-    tsconfigPaths(),
   ],
+  devtools: {
+    enabled: true,
+  },
   clearScreen: false,
   server: {
     strictPort: true,
@@ -61,6 +62,7 @@ export default defineConfig({
     sourcemap: !!process.env.TAURI_ENV_DEBUG,
   },
   resolve: {
+    tsconfigPaths: true,
     alias: {
       '@': path.resolve(__dirname, './src'),
       '@atoms': path.resolve(__dirname, './src/components/atoms'),
