@@ -464,9 +464,6 @@ importers:
       '@types/zxcvbn':
         specifier: ^4.4.5
         version: 4.4.5
-      '@vitejs/devtools':
-        specifier: ^0.1.3
-        version: 0.1.3(@azure/identity@4.13.0)(@azure/storage-blob@12.31.0)(@pnpm/logger@1001.0.1)(@upstash/redis@1.36.2)(typescript@5.9.3)(vite@8.0.1)(vue@3.5.30(typescript@5.9.3))
       '@vitejs/plugin-react':
         specifier: ^6.0.1
         version: 6.0.1(vite@8.0.1)
@@ -13722,6 +13719,7 @@ snapshots:
   '@floating-ui/core@1.7.5':
     dependencies:
       '@floating-ui/utils': 0.2.11
+    optional: true
 
   '@floating-ui/dom@1.7.3':
     dependencies:
@@ -13732,6 +13730,7 @@ snapshots:
     dependencies:
       '@floating-ui/core': 1.7.5
       '@floating-ui/utils': 0.2.11
+    optional: true
 
   '@floating-ui/react-dom@2.1.5(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
@@ -13757,7 +13756,8 @@ snapshots:
 
   '@floating-ui/utils@0.2.10': {}
 
-  '@floating-ui/utils@0.2.11': {}
+  '@floating-ui/utils@0.2.11':
+    optional: true
 
   '@fontsource-variable/inter@5.2.8': {}
 
@@ -13787,7 +13787,8 @@ snapshots:
       protobufjs: 7.5.4
       yargs: 17.7.2
 
-  '@gwhitney/detect-indent@7.0.1': {}
+  '@gwhitney/detect-indent@7.0.1':
+    optional: true
 
   '@hapi/hoek@9.3.0': {}
 
@@ -15034,25 +15035,30 @@ snapshots:
 
   '@pnpm/config.env-replace@1.1.0': {}
 
-  '@pnpm/constants@1001.3.1': {}
+  '@pnpm/constants@1001.3.1':
+    optional: true
 
   '@pnpm/core-loggers@1001.0.9(@pnpm/logger@1001.0.1)':
     dependencies:
       '@pnpm/logger': 1001.0.1
       '@pnpm/types': 1001.3.0
+    optional: true
 
   '@pnpm/error@1000.0.5':
     dependencies:
       '@pnpm/constants': 1001.3.1
+    optional: true
 
   '@pnpm/graceful-fs@1000.1.0':
     dependencies:
       graceful-fs: 4.2.11
+    optional: true
 
   '@pnpm/logger@1001.0.1':
     dependencies:
       bole: 5.0.28
       split2: 4.2.0
+    optional: true
 
   '@pnpm/manifest-utils@1002.0.4(@pnpm/logger@1001.0.1)':
     dependencies:
@@ -15062,6 +15068,7 @@ snapshots:
       '@pnpm/semver.peer-range': 1000.0.0
       '@pnpm/types': 1001.3.0
       semver: 7.7.4
+    optional: true
 
   '@pnpm/network.ca-file@1.0.2':
     dependencies:
@@ -15089,16 +15096,20 @@ snapshots:
       parse-json: 5.2.0
       read-yaml-file: 2.1.0
       strip-bom: 4.0.0
+    optional: true
 
   '@pnpm/semver.peer-range@1000.0.0':
     dependencies:
       semver: 7.7.4
+    optional: true
 
   '@pnpm/text.comments-parser@1000.0.0':
     dependencies:
       strip-comments-strings: 1.2.0
+    optional: true
 
-  '@pnpm/types@1001.3.0': {}
+  '@pnpm/types@1001.3.0':
+    optional: true
 
   '@pnpm/write-project-manifest@1000.0.16':
     dependencies:
@@ -15107,6 +15118,7 @@ snapshots:
       json5: 2.2.3
       write-file-atomic: 5.0.1
       write-yaml-file: 5.0.0
+    optional: true
 
   '@polka/send-type@0.5.2': {}
 
@@ -15225,11 +15237,13 @@ snapshots:
 
   '@protobufjs/utf8@1.1.0': {}
 
-  '@publint/pack@0.1.4': {}
+  '@publint/pack@0.1.4':
+    optional: true
 
   '@quansync/fs@1.0.0':
     dependencies:
       quansync: 1.0.0
+    optional: true
 
   '@radix-ui/primitive@1.1.3': {}
 
@@ -15488,7 +15502,8 @@ snapshots:
   '@rolldown/binding-win32-x64-msvc@1.0.0-rc.10':
     optional: true
 
-  '@rolldown/debug@1.0.0-rc.10': {}
+  '@rolldown/debug@1.0.0-rc.10':
+    optional: true
 
   '@rolldown/pluginutils@1.0.0-rc.10': {}
 
@@ -17145,6 +17160,7 @@ snapshots:
     transitivePeerDependencies:
       - typescript
       - ws
+    optional: true
 
   '@vitejs/devtools-rolldown@0.1.3(@azure/identity@4.13.0)(@azure/storage-blob@12.31.0)(@pnpm/logger@1001.0.1)(@upstash/redis@1.36.2)(typescript@5.9.3)(vite@8.0.1)(vue@3.5.30(typescript@5.9.3))':
     dependencies:
@@ -17200,6 +17216,7 @@ snapshots:
       - utf-8-validate
       - vite
       - vue
+    optional: true
 
   '@vitejs/devtools-rpc@0.1.3(typescript@5.9.3)(ws@8.19.0)':
     dependencies:
@@ -17212,6 +17229,7 @@ snapshots:
       ws: 8.19.0
     transitivePeerDependencies:
       - typescript
+    optional: true
 
   '@vitejs/devtools@0.1.3(@azure/identity@4.13.0)(@azure/storage-blob@12.31.0)(@pnpm/logger@1001.0.1)(@upstash/redis@1.36.2)(typescript@5.9.3)(vite@8.0.1)(vue@3.5.30(typescript@5.9.3))':
     dependencies:
@@ -17257,6 +17275,7 @@ snapshots:
       - uploadthing
       - utf-8-validate
       - vue
+    optional: true
 
   '@vitejs/plugin-react-swc@4.3.0(@swc/helpers@0.5.17)(vite@8.0.1)':
     dependencies:
@@ -17352,6 +17371,7 @@ snapshots:
       entities: 7.0.1
       estree-walker: 2.0.2
       source-map-js: 1.2.1
+    optional: true
 
   '@vue/compiler-dom@3.5.24':
     dependencies:
@@ -17362,6 +17382,7 @@ snapshots:
     dependencies:
       '@vue/compiler-core': 3.5.30
       '@vue/shared': 3.5.30
+    optional: true
 
   '@vue/compiler-sfc@3.5.24':
     dependencies:
@@ -17386,6 +17407,7 @@ snapshots:
       magic-string: 0.30.21
       postcss: 8.5.8
       source-map-js: 1.2.1
+    optional: true
 
   '@vue/compiler-ssr@3.5.24':
     dependencies:
@@ -17396,15 +17418,18 @@ snapshots:
     dependencies:
       '@vue/compiler-dom': 3.5.30
       '@vue/shared': 3.5.30
+    optional: true
 
   '@vue/reactivity@3.5.30':
     dependencies:
       '@vue/shared': 3.5.30
+    optional: true
 
   '@vue/runtime-core@3.5.30':
     dependencies:
       '@vue/reactivity': 3.5.30
       '@vue/shared': 3.5.30
+    optional: true
 
   '@vue/runtime-dom@3.5.30':
     dependencies:
@@ -17412,16 +17437,19 @@ snapshots:
       '@vue/runtime-core': 3.5.30
       '@vue/shared': 3.5.30
       csstype: 3.2.3
+    optional: true
 
   '@vue/server-renderer@3.5.30(vue@3.5.30(typescript@5.9.3))':
     dependencies:
       '@vue/compiler-ssr': 3.5.30
       '@vue/shared': 3.5.30
       vue: 3.5.30(typescript@5.9.3)
+    optional: true
 
   '@vue/shared@3.5.24': {}
 
-  '@vue/shared@3.5.30': {}
+  '@vue/shared@3.5.30':
+    optional: true
 
   '@webassemblyjs/ast@1.14.1':
     dependencies:
@@ -17993,7 +18021,8 @@ snapshots:
 
   bintrees@1.0.2: {}
 
-  birpc@4.0.0: {}
+  birpc@4.0.0:
+    optional: true
 
   bl@4.1.0:
     dependencies:
@@ -18019,6 +18048,7 @@ snapshots:
     dependencies:
       fast-safe-stringify: 2.1.1
       individual: 3.0.0
+    optional: true
 
   boolbase@1.0.0: {}
 
@@ -18112,7 +18142,8 @@ snapshots:
     optionalDependencies:
       magicast: 0.3.5
 
-  cac@7.0.0: {}
+  cac@7.0.0:
+    optional: true
 
   cache-manager@7.2.8:
     dependencies:
@@ -18435,7 +18466,8 @@ snapshots:
       pkg-up: 3.1.0
       semver: 7.7.4
 
-  confbox@0.1.8: {}
+  confbox@0.1.8:
+    optional: true
 
   confbox@0.2.4: {}
 
@@ -18491,7 +18523,8 @@ snapshots:
 
   convert-source-map@2.0.0: {}
 
-  cookie-es@1.2.2: {}
+  cookie-es@1.2.2:
+    optional: true
 
   cookie-es@2.0.0: {}
 
@@ -18564,6 +18597,7 @@ snapshots:
   crossws@0.3.5:
     dependencies:
       uncrypto: 0.1.3
+    optional: true
 
   crypto-js@4.2.0: {}
 
@@ -19007,7 +19041,8 @@ snapshots:
 
   entities@6.0.1: {}
 
-  entities@7.0.1: {}
+  entities@7.0.1:
+    optional: true
 
   env-ci@11.2.0:
     dependencies:
@@ -19819,6 +19854,7 @@ snapshots:
       radix3: 1.1.2
       ufo: 1.6.3
       uncrypto: 0.1.3
+    optional: true
 
   handlebars@4.7.8:
     dependencies:
@@ -20030,7 +20066,8 @@ snapshots:
 
   index-to-position@1.1.0: {}
 
-  individual@3.0.0: {}
+  individual@3.0.0:
+    optional: true
 
   inherits@2.0.3: {}
 
@@ -20049,7 +20086,8 @@ snapshots:
 
   ipaddr.js@1.9.1: {}
 
-  iron-webcrypto@1.2.1: {}
+  iron-webcrypto@1.2.1:
+    optional: true
 
   is-arrayish@0.2.1: {}
 
@@ -20079,7 +20117,8 @@ snapshots:
     dependencies:
       is-extglob: 2.1.1
 
-  is-in-ssh@1.0.0: {}
+  is-in-ssh@1.0.0:
+    optional: true
 
   is-inside-container@1.0.0:
     dependencies:
@@ -20123,7 +20162,8 @@ snapshots:
 
   is-url@1.2.4: {}
 
-  is-windows@1.0.2: {}
+  is-windows@1.0.2:
+    optional: true
 
   is-wsl@2.2.0:
     dependencies:
@@ -21126,7 +21166,8 @@ snapshots:
 
   minipass@7.1.3: {}
 
-  mitt@2.1.0: {}
+  mitt@2.1.0:
+    optional: true
 
   mixpanel@0.18.1:
     dependencies:
@@ -21142,6 +21183,7 @@ snapshots:
       pathe: 2.0.3
       pkg-types: 1.3.1
       ufo: 1.6.3
+    optional: true
 
   modern-screenshot@4.6.8: {}
 
@@ -21169,7 +21211,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  mri@1.2.0: {}
+  mri@1.2.0:
+    optional: true
 
   mrmime@2.0.1: {}
 
@@ -21265,7 +21308,8 @@ snapshots:
 
   node-int64@0.4.0: {}
 
-  node-mock-http@1.0.4: {}
+  node-mock-http@1.0.4:
+    optional: true
 
   node-releases@2.0.27: {}
 
@@ -21333,6 +21377,7 @@ snapshots:
       destr: 2.0.5
       node-fetch-native: 1.6.7
       ufo: 1.6.3
+    optional: true
 
   ohash@2.0.11: {}
 
@@ -21377,6 +21422,7 @@ snapshots:
       is-inside-container: 1.0.0
       powershell-utils: 0.1.0
       wsl-utils: 0.3.1
+    optional: true
 
   open@8.4.0:
     dependencies:
@@ -21468,6 +21514,7 @@ snapshots:
   p-limit@7.3.0:
     dependencies:
       yocto-queue: 1.2.2
+    optional: true
 
   p-locate@2.0.0:
     dependencies:
@@ -21515,7 +21562,8 @@ snapshots:
 
   package-json-from-dist@1.0.1: {}
 
-  package-manager-detector@1.6.0: {}
+  package-manager-detector@1.6.0:
+    optional: true
 
   pako@0.2.9: {}
 
@@ -21639,7 +21687,8 @@ snapshots:
 
   perfect-debounce@1.0.0: {}
 
-  perfect-debounce@2.1.0: {}
+  perfect-debounce@2.1.0:
+    optional: true
 
   pg-cloudflare@1.3.0:
     optional: true
@@ -21714,6 +21763,7 @@ snapshots:
       confbox: 0.1.8
       mlly: 1.8.2
       pathe: 2.0.3
+    optional: true
 
   pkg-types@2.3.0:
     dependencies:
@@ -21802,7 +21852,8 @@ snapshots:
 
   postgres@3.4.7: {}
 
-  powershell-utils@0.1.0: {}
+  powershell-utils@0.1.0:
+    optional: true
 
   precinct@12.2.0:
     dependencies:
@@ -21938,6 +21989,7 @@ snapshots:
       package-manager-detector: 1.6.0
       picocolors: 1.1.1
       sade: 1.8.1
+    optional: true
 
   pump@3.0.3:
     dependencies:
@@ -21958,7 +22010,8 @@ snapshots:
     dependencies:
       side-channel: 1.1.0
 
-  quansync@1.0.0: {}
+  quansync@1.0.0:
+    optional: true
 
   queue-microtask@1.2.3: {}
 
@@ -21968,7 +22021,8 @@ snapshots:
 
   quote-unquote@1.0.0: {}
 
-  radix3@1.1.2: {}
+  radix3@1.1.2:
+    optional: true
 
   randombytes@2.1.0:
     dependencies:
@@ -22115,6 +22169,7 @@ snapshots:
     dependencies:
       js-yaml: 4.1.1
       strip-bom: 4.0.0
+    optional: true
 
   readable-stream@2.3.8:
     dependencies:
@@ -22326,6 +22381,7 @@ snapshots:
   sade@1.8.1:
     dependencies:
       mri: 1.2.0
+    optional: true
 
   safe-buffer@5.1.2: {}
 
@@ -22780,7 +22836,8 @@ snapshots:
 
   strip-bom@4.0.0: {}
 
-  strip-comments-strings@1.2.0: {}
+  strip-comments-strings@1.2.0:
+    optional: true
 
   strip-final-newline@2.0.0: {}
 
@@ -22802,7 +22859,8 @@ snapshots:
     dependencies:
       '@tokenizer/token': 0.3.0
 
-  structured-clone-es@1.0.0: {}
+  structured-clone-es@1.0.0:
+    optional: true
 
   stylus-lookup@6.1.0:
     dependencies:
@@ -23163,7 +23221,8 @@ snapshots:
 
   typescript@5.9.3: {}
 
-  ufo@1.6.3: {}
+  ufo@1.6.3:
+    optional: true
 
   uglify-js@3.19.3:
     optional: true
@@ -23178,6 +23237,7 @@ snapshots:
     dependencies:
       '@quansync/fs': 1.0.0
       quansync: 1.0.0
+    optional: true
 
   unconfig@7.5.0:
     dependencies:
@@ -23186,6 +23246,7 @@ snapshots:
       jiti: 2.6.1
       quansync: 1.0.0
       unconfig-core: 7.5.0
+    optional: true
 
   uncrypto@0.1.3: {}
 
@@ -23293,6 +23354,7 @@ snapshots:
       '@azure/identity': 4.13.0
       '@azure/storage-blob': 12.31.0
       '@upstash/redis': 1.36.2
+    optional: true
 
   update-browserslist-db@1.2.3(browserslist@4.28.1):
     dependencies:
@@ -23471,6 +23533,7 @@ snapshots:
     dependencies:
       mitt: 2.1.0
       vue: 3.5.30(typescript@5.9.3)
+    optional: true
 
   vue@3.5.30(typescript@5.9.3):
     dependencies:
@@ -23481,6 +23544,7 @@ snapshots:
       '@vue/shared': 3.5.30
     optionalDependencies:
       typescript: 5.9.3
+    optional: true
 
   w3c-xmlserializer@5.0.0:
     dependencies:
@@ -23670,6 +23734,7 @@ snapshots:
     dependencies:
       js-yaml: 4.1.1
       write-file-atomic: 5.0.1
+    optional: true
 
   ws@7.5.10: {}
 
@@ -23685,6 +23750,7 @@ snapshots:
     dependencies:
       is-wsl: 3.1.1
       powershell-utils: 0.1.0
+    optional: true
 
   xml-name-validator@5.0.0: {}
 
@@ -23741,7 +23807,8 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  yocto-queue@1.2.2: {}
+  yocto-queue@1.2.2:
+    optional: true
 
   yoctocolors-cjs@2.1.3: {}
 
