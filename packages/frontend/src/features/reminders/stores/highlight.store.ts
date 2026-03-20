@@ -27,6 +27,10 @@ export interface HighlightStoreState {
  */
 const HIGHLIGHT_DURATION_MS = 3000;
 
+/** Aktive Auto-Cleanup Timer - werden bei erneutem Setzen gecancelt */
+let erinnerungTimerId: ReturnType<typeof setTimeout> | null = null;
+let entryTimerId: ReturnType<typeof setTimeout> | null = null;
+
 /**
  * TanStack Store fuer Highlight-State
  */
@@ -46,12 +50,15 @@ export const highlightStore = createStore<HighlightStoreState>({
  * @param erinnerungId - ID der hervorzuhebenden Erinnerung
  */
 export function setHighlightedErinnerung(erinnerungId: string): void {
+  if (erinnerungTimerId !== null) clearTimeout(erinnerungTimerId);
+
   highlightStore.setState(() => ({
     highlightedErinnerungId: erinnerungId,
   }));
 
   // Auto-Cleanup nach Highlight-Dauer
-  setTimeout(() => {
+  erinnerungTimerId = setTimeout(() => {
+    erinnerungTimerId = null;
     // Nur entfernen wenn noch dieselbe Erinnerung hervorgehoben ist
     if (highlightStore.state.highlightedErinnerungId === erinnerungId) {
       clearHighlightedErinnerung();
@@ -63,6 +70,10 @@ export function setHighlightedErinnerung(erinnerungId: string): void {
  * Entfernt die aktuelle Hervorhebung.
  */
 export function clearHighlightedErinnerung(): void {
+  if (erinnerungTimerId !== null) {
+    clearTimeout(erinnerungTimerId);
+    erinnerungTimerId = null;
+  }
   highlightStore.setState((state) => ({
     ...state,
     highlightedErinnerungId: null,
@@ -76,13 +87,16 @@ export function clearHighlightedErinnerung(): void {
  * @param entryId - ID des hervorzuhebenden ETB-Eintrags
  */
 export function setHighlightedEntry(entryId: string): void {
+  if (entryTimerId !== null) clearTimeout(entryTimerId);
+
   highlightStore.setState((state) => ({
     ...state,
     highlightedEntryId: entryId,
   }));
 
   // Auto-Cleanup nach Highlight-Dauer
-  setTimeout(() => {
+  entryTimerId = setTimeout(() => {
+    entryTimerId = null;
     // Nur entfernen wenn noch derselbe Eintrag hervorgehoben ist
     if (highlightStore.state.highlightedEntryId === entryId) {
       clearHighlightedEntry();
@@ -94,6 +108,10 @@ export function setHighlightedEntry(entryId: string): void {
  * Entfernt die Hervorhebung des ETB-Eintrags (Story 5.5).
  */
 export function clearHighlightedEntry(): void {
+  if (entryTimerId !== null) {
+    clearTimeout(entryTimerId);
+    entryTimerId = null;
+  }
   highlightStore.setState((state) => ({
     ...state,
     highlightedEntryId: null,
@@ -104,6 +122,14 @@ export function clearHighlightedEntry(): void {
  * Resettet den Highlight-Store auf Initialzustand.
  */
 export function resetHighlightStore(): void {
+  if (erinnerungTimerId !== null) {
+    clearTimeout(erinnerungTimerId);
+    erinnerungTimerId = null;
+  }
+  if (entryTimerId !== null) {
+    clearTimeout(entryTimerId);
+    entryTimerId = null;
+  }
   highlightStore.setState(() => ({
     highlightedErinnerungId: null,
     highlightedEntryId: null,
