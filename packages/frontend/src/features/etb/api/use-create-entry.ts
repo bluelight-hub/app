@@ -5,11 +5,9 @@
  */
 
 import { api } from '@/shared';
-import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { logger } from '@/shared/lib/logger';
 import type { AddEintragDto, EintragDto, ResponseError } from '@/shared';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
 import { ETB_QUERY_KEYS, calculateRetryDelay } from './queries';
 
 export interface CreateEtbEntryVariables {
@@ -62,15 +60,8 @@ export const useCreateEtbEntry = () => {
 
       return { etbId };
     },
-    onError: async (error: ResponseError) => {
-      const message = await getApiErrorMessage(error, 'Der ETB-Eintrag konnte nicht erstellt werden.', 'createEtbEintrag');
+    onError: (error: ResponseError) => {
       logger.error('Failed to create ETB entry', error);
-      toast.error('Fehler', { description: message });
-    },
-    onSuccess: () => {
-      toast.success('Eintrag hinzugefügt', {
-        description: 'Der ETB-Eintrag wurde erfolgreich erstellt.',
-      });
     },
     onSettled: async () => {
       // Invalidate all ETB queries to ensure consistency

@@ -1,5 +1,5 @@
 import type React from 'react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { flexRender, type Row } from '@tanstack/react-table';
 import type { EintragDto } from '@/shared';
 import { useUpdateEtbEntry } from '@/features/etb';
@@ -16,14 +16,30 @@ interface EtbTableRowEditableProps {
   einsatzId: string;
   /** ETB-ID fuer Eintrag-Update */
   etbId: string;
+  /** 1-basierter Index fuer aria-rowindex (Accessibility) */
+  ariaRowIndex?: number;
 }
 
-export const EtbTableRowEditable: React.FC<EtbTableRowEditableProps> = ({ row, style, className = '', onDelete, einsatzId, etbId }) => {
+export const EtbTableRowEditable: React.FC<EtbTableRowEditableProps> = ({ row, style, className = '', onDelete, einsatzId, etbId, ariaRowIndex }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(row.original.text);
   const updateEintrag = useUpdateEtbEntry();
   // Story 5.5: Highlight-Support fuer Inline-Editing Zeilen
   const isHighlighted = useIsEntryHighlighted(row.original.id);
+
+  /** Enter/Space toggelt Expand/Collapse (Accessibility, analog zu EtbTableRow) */
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTableRowElement>) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        // Nur reagieren wenn das Event direkt auf der Zeile ausgeloest wurde, nicht in Child-Buttons/Inputs
+        if (e.target === e.currentTarget) {
+          e.preventDefault();
+          row.toggleExpanded();
+        }
+      }
+    },
+    [row],
+  );
 
   const handleSave = () => {
     if (!row.original.id) return;
@@ -62,8 +78,12 @@ export const EtbTableRowEditable: React.FC<EtbTableRowEditableProps> = ({ row, s
   return (
     <tr
       id={`etb-entry-${row.original.id}`}
+      tabIndex={0}
+      aria-rowindex={ariaRowIndex}
+      aria-expanded={row.getIsExpanded()}
+      onKeyDown={handleKeyDown}
       className={cn(
-        'transition-all duration-300',
+        'transition-all duration-300 focus-visible:shadow-focus-ring focus-visible:outline-none',
         row.original.deletedAt ? 'border-l-2 border-l-red-500 bg-red-50/30 opacity-60 dark:bg-red-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-900/50',
         isEditing && 'bg-blue-50 dark:bg-blue-900/20',
         // Story 5.5: Highlight-Animation wenn Entry hervorgehoben ist

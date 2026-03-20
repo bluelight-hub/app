@@ -1,6 +1,6 @@
 import { useCreateEtbEntry, useTextbausteine, useUpdateEtbEntry } from '@/features/etb';
 import { useMyEinsatzTeilnahme, useEinsatzFahrzeuge, useEinsatzPersonen, useEinsatzTeilnehmer } from '@/features/einsatz/api';
-import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
+import { logger } from '@/shared/lib/logger';
 import { AddEintragDtoKategorieEnum, type EintragDto } from '@bluelight-hub/shared/client';
 import { EtbFormActions } from '@/features/etb';
 import { EtbTextbausteinPreview } from '@/features/etb';
@@ -10,8 +10,7 @@ import { EtbTextInput } from './EtbTextInput';
 import { EtbAbsenderInput } from './EtbAbsenderInput';
 import { useEtbFormLogic } from '@/features/etb';
 import { useForm } from '@tanstack/react-form';
-import { useEffect, useMemo, useState } from 'react';
-import { toast } from 'sonner';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { z } from 'zod';
 
 // Zod Schema mit Kategorie als String-Union (Enum-Werte)
@@ -54,6 +53,16 @@ interface EtbEntryFormProps {
   'aria-labelledby'?: string;
   /** Ref für Fokus nach Speichern — wird auf den Kontext-Abschnitt gesetzt */
   afterSaveFocusRef?: React.RefObject<HTMLDivElement | null>;
+  /** Geteilte Create-Mutation vom Workspace (für Sync-Status-Integration) */
+  createMutation?: ReturnType<typeof useCreateEtbEntry>;
+  /** Geteilte Update-Mutation vom Workspace (für Sync-Status-Integration) */
+  updateMutation?: ReturnType<typeof useUpdateEtbEntry>;
+  /** Story 3.5: Callback bei Formular-Wert-Änderung (für Auto-Save) */
+  onFormValuesChange?: (values: { text: string; kategorie: string; absender?: string; empfaenger?: string }) => void;
+  /** Story 3.5: Wiederhergestellte Draft-Werte (einmalig setzen) */
+  restoredDraftValues?: { text: string; kategorie: string; absender?: string; empfaenger?: string } | null;
+  /** Story 3.5: Callback nachdem Draft-Werte in Form gesetzt wurden */
+  onDraftRestored?: () => void;
 }
 
 /**
@@ -62,9 +71,26 @@ interface EtbEntryFormProps {
  * Unterstützt automatisches Ausfüllen des Absender-Feldes basierend auf
  * dem Funkrufnamen des Users für diesen Einsatz (via EinsatzTeilnehmer).
  */
-export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCancel, className, autoFocus, 'aria-labelledby': ariaLabelledBy, afterSaveFocusRef }: EtbEntryFormProps) {
-  const createEintrag = useCreateEtbEntry();
-  const updateEintrag = useUpdateEtbEntry();
+export function EtbEntryForm({
+  etbId,
+  einsatzId,
+  editingEntry,
+  onSuccess,
+  onCancel,
+  className,
+  autoFocus,
+  'aria-labelledby': ariaLabelledBy,
+  afterSaveFocusRef,
+  createMutation,
+  updateMutation,
+  onFormValuesChange,
+  restoredDraftValues,
+  onDraftRestored,
+}: EtbEntryFormProps) {
+  const internalCreateEintrag = useCreateEtbEntry();
+  const internalUpdateEintrag = useUpdateEtbEntry();
+  const createEintrag = createMutation ?? internalCreateEintrag;
+  const updateEintrag = updateMutation ?? internalUpdateEintrag;
   const { data: textbausteineData } = useTextbausteine();
   const { data: teilnahmeData } = useMyEinsatzTeilnahme(einsatzId);
   const { data: fahrzeuge } = useEinsatzFahrzeuge(einsatzId ?? null);
@@ -133,6 +159,14 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
       onChange: ({ formApi }) => {
         const kategorieValue = formApi.getFieldValue('kategorie') as AddEintragDtoKategorieEnum;
         setSelectedKategorie(kategorieValue);
+
+        // Story 3.5: Auto-Save Callback
+        onFormValuesChangeRef.current?.({
+          text: formApi.getFieldValue('text'),
+          kategorie: kategorieValue,
+          absender: formApi.getFieldValue('absender'),
+          empfaenger: formApi.getFieldValue('empfaenger'),
+        });
       },
     },
     onSubmit: async ({ value }) => {
@@ -167,16 +201,8 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
         setLastAppliedTextbausteinText(null);
         onSuccess?.();
       } catch (error) {
-        console.error('Failed to save ETB entry:', error);
-
-        const context = editingEntry ? 'updateEtbEintrag' : 'createEtbEintrag';
-        const fallbackMessage = editingEntry ? 'Beim Aktualisieren des ETB-Eintrags ist ein Fehler aufgetreten.' : 'Beim Erstellen des ETB-Eintrags ist ein Fehler aufgetreten.';
-
-        const errorMessage = await getApiErrorMessage(error, fallbackMessage, context);
-
-        toast.error(editingEntry ? 'Aktualisierung fehlgeschlagen' : 'Erstellung fehlgeschlagen', {
-          description: errorMessage,
-        });
+        // Fehler wird inline via ContinuityStatusRail angezeigt (kein Toast)
+        logger.error('Failed to save ETB entry:', error);
       }
     },
   });
@@ -216,6 +242,26 @@ export function EtbEntryForm({ etbId, einsatzId, editingEntry, onSuccess, onCanc
     setLastAppliedTextbausteinText(null);
     setShowResetConfirm(false);
   }, [editingEntry, form, resetSelection, autoFillAbsender]);
+
+  // Story 3.5: Draft-Werte wiederherstellen (einmalig)
+  useEffect(() => {
+    if (!restoredDraftValues) return;
+
+    form.setFieldValue('kategorie', restoredDraftValues.kategorie);
+    form.setFieldValue('text', restoredDraftValues.text);
+    if (restoredDraftValues.absender !== undefined) {
+      form.setFieldValue('absender', restoredDraftValues.absender);
+    }
+    if (restoredDraftValues.empfaenger !== undefined) {
+      form.setFieldValue('empfaenger', restoredDraftValues.empfaenger);
+    }
+    setSelectedKategorie(restoredDraftValues.kategorie as AddEintragDtoKategorieEnum);
+    onDraftRestored?.();
+  }, [restoredDraftValues, form, onDraftRestored]);
+
+  // Story 3.5: Stable ref für onFormValuesChange
+  const onFormValuesChangeRef = useRef(onFormValuesChange);
+  onFormValuesChangeRef.current = onFormValuesChange;
 
   const handleTextbausteinChange = (textbausteinId: string) => {
     setSelectedTextbaustein(textbausteinId);

@@ -16,7 +16,7 @@ import { EtbTableBody } from '../molecules/EtbTableBody';
 import { EtbTableHeader } from '../molecules/EtbTableHeader';
 import { EtbHistoryModal } from './components/EtbHistoryModal';
 import { useEtbColumns } from '../../hooks/useEtbColumns';
-import { useExcludedKategorien, useHasActiveFilter, useErinnerungFilterActive } from '../../stores';
+import { useExcludedKategorien, useHasActiveFilter, useErinnerungFilterActive, resetKategorieFilter } from '../../stores';
 
 interface EtbEntryListProps {
   entries: EintragDto[];
@@ -274,6 +274,36 @@ export function EtbEntryList({
     );
   }
 
+  // Story 3.4 Task 1.2: Alle Einträge durch Kategorie-/Erinnerungs-Filter ausgeblendet
+  if (filteredEntries.length === 0 && entries.length > 0) {
+    return (
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="min-w-[200px] flex-1">
+            <EtbSearchBar value={globalFilter} onChange={setGlobalFilter} />
+          </div>
+          <div className="w-48">
+            <KategorieFilterSelect />
+          </div>
+          {onShowDeletedChange && <EtbFilterControls showDeleted={showDeleted} onShowDeletedChange={onShowDeletedChange} />}
+        </div>
+
+        <div className="flex h-[600px] items-center justify-center overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700" role="status">
+          <div className="flex flex-col items-center gap-3">
+            <p className="text-gray-500 text-sm dark:text-gray-400">Alle Einträge durch Filter ausgeblendet</p>
+            <button
+              type="button"
+              onClick={() => resetKategorieFilter()}
+              className="rounded-md bg-primary-50 px-3 py-1.5 font-medium text-primary-700 text-sm hover:bg-primary-100 dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/40"
+            >
+              Filter zurücksetzen
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {/* Story 5.6: Filter-Controls - Suche, Kategorie-Filter, Geloeschte anzeigen */}
@@ -291,6 +321,7 @@ export function EtbEntryList({
       <div
         ref={tableContainerRef}
         className="relative isolate overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
+        aria-busy={!!isLoading || !!isFetchingNextPage}
         style={{
           height: '600px',
           minHeight: '600px',
@@ -301,7 +332,7 @@ export function EtbEntryList({
           scrollbarGutter: 'stable', // Verhindert Layout-Shift durch Scrollbar
         }}
       >
-        <table className="w-full">
+        <table className="w-full" aria-label="ETB-Einträge" aria-rowcount={filteredEntries.length}>
           <EtbTableHeader headerGroups={table.getHeaderGroups()} />
 
           <EtbTableBody
@@ -318,6 +349,7 @@ export function EtbEntryList({
             onDelete={handleDelete}
             getUserName={getUserName}
             onEntryClick={handleScrollToEntry}
+            globalFilter={globalFilter}
           />
         </table>
 
