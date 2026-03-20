@@ -1,3 +1,72 @@
+## Einsatz-Arbeitsbereich
+
+Das neue **Einsatz-Workspace-Modul** ermöglicht strukturiertes Arbeiten in aktiven Einsätzen:
+
+- Kontextbezogener Arbeitsbereich mit Einsatz-Header und automatischer Fokus-Steuerung
+- Zugriff nur für zugewiesene Nutzer – Zuweisung ist vor Betreten des Workspace verpflichtend
+- Arbeitsbereich wird sitzungsübergreifend gespeichert (pro Server, Nutzer, Rolle und Einsatz)
+- Verbesserte Navigation mit Sidebar-Status-Hinweisen und Suchparameter-Erhaltung
+- Offline- und Blockier-Zustände werden explizit angezeigt
+
+## Lageübersicht
+
+Neue **priorisierte Lageübersicht** für operative Kräfte und Führung:
+
+- Tonbasierte Situationsdarstellung mit Prioritäts-Panels
+- Status-Änderungen mit Zeitstempel und Quellen-Attribution
+- Deep-Linking von Übersichts-Elementen zu spezifischen Arbeitsbereichen
+- Verfeinerte UI-Komponenten mit konsistentem Design-Token-System
+
+## ETB (Elektronisches Tagebuch)
+
+### Eingabe & Validierung
+
+- Neuer **ETB Composer Workspace** mit semantischem Lade-Skeleton (300ms Schwellwert)
+- Live-Region Status-Ansagen für Barrierefreiheit
+- Feldvalidierung beim Verlassen (Blur):
+  - Text: Pflichtfeld, max. 2000 Zeichen
+  - Absender/Empfänger: max. 100 Zeichen
+- WCAG 2.1 AA-konforme Fehlermeldungen mit `aria-invalid` und `aria-live`
+
+### Kontinuität & Synchronisation
+
+- **Synchronisationsstatus-Anzeige** in der Seitenleiste (ersetzt Toast-Benachrichtigungen)
+- **Entwurfs-Wiederaufnahme**: Ungespeicherte ETB-Einträge werden automatisch im Browser gespeichert
+- Auto-Save bei Formular-Änderungen mit Abbruch bei leerem Text
+- Navigation-Guards warnen vor ungespeicherten Änderungen (Browser + Router)
+- **Bearbeitungshistorie**: Fokus-Rückkehr nach Modal-Schließen, Tastatur-Navigation in Tabellen
+- Leerzustände für Such- und Filter-Ergebnisse
+- Fehler- und Erfolgs-Toasts bei Eintrags-Updates
+- Behoben: Timer-Leck in Highlight-Store verursachte instabile Performance-Tests
+- Behoben: Entwurfs-Speicherung wird bei leerem Text korrekt abgebrochen
+
+## Authentifizierung
+
+- **Zentralisierter Auth-Session-Flow** mit dediziertem CLI-Entrypoint für Einladungen
+- Auth-Kontext-Zusammenfassung auf `/app/einsaetze`
+- Verbesserte Session-Behandlung für Frontend-Server-basierte Flows
+- Behoben: Doppelte Auth-Context-Exporte, die das Laden verhinderten
+- Behoben: 5xx-Codes werden korrekt im Frontend-Handler behandelt
+
+## Design & Benutzeroberfläche
+
+- **Aufgefrischtes Design-System** (Ring 1) mit überarbeiteten Theme-Tokens
+- Vereinheitlichte Auth-Oberflächen und Komponenten-Styling
+- Straffere Workspace-Sidebar-Abstände und Sticky-Offset
+- Vereinfachtes Combobox-Focus-Styling
+- Dokumentierte Design-Tokens
+
+## Entwicklung & Tooling
+
+- Pnpm aktualisiert: 10.28.0 → 10.32.1
+- Vite aktualisiert: 7.3.1 → 8.0.1
+- Claude-Befehl für strukturierte GitHub-Issue-Erstellung hinzugefügt
+- Vite-Plugin zu `@vitejs/plugin-react` gewechselt mit nativer `tsconfigPaths`-Unterstützung
+- Behoben: Vite DevTools entfernt (blockierte CI-Builds durch Port 9999)
+- Erweiterte Test-Coverage für Workspace-Shell, Command-Palette und Performance-Gates
+- Aufgeteilte Coverage- und Performance-Gates in CI-Pipeline
+- 12 Dependencies aktualisiert (Biome, lint-staged, Jest, Vitest, TanStack, TypeScript-ESLint u.a.)
+
 ## 📦 Abhängigkeiten & Infrastruktur
 
 - **TanStack-Bibliotheken aktualisiert**: React Router, React Form, React Store, React Virtual und DevTools auf neueste Versionen aktualisiert für verbesserte Performance und Stabilität
