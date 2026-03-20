@@ -27,9 +27,6 @@ export default defineConfig({
     tailwindcss(),
     react(),
   ],
-  devtools: {
-    enabled: true,
-  },
   clearScreen: false,
   server: {
     strictPort: true,
