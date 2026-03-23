@@ -6,10 +6,10 @@ import { LOGGER } from '@infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 
 // Command Handlers
-import { CreateUserHandler, UpdateUserHandler, DeleteUserHandler, LockUserHandler, UnlockUserHandler, UpdateProfileHandler } from './commands';
+import { CreateUserHandler, UpdateUserHandler, DeleteUserHandler, LockUserHandler, UnlockUserHandler, UpdateProfileHandler, GrantPermissionHandler, RevokePermissionHandler } from './commands';
 
 // Query Handlers
-import { GetAllUsersQueryHandler, GetUserByIdQueryHandler, GetNavigationPermissionsQueryHandler } from './queries';
+import { GetAllUsersQueryHandler, GetUserByIdQueryHandler, GetNavigationPermissionsQueryHandler, GetUserPermissionsQueryHandler, GetAvailablePermissionsQueryHandler } from './queries';
 
 /**
  * NestJS-Modul für Application Layer - User Management Bounded Context.
@@ -74,10 +74,14 @@ import { GetAllUsersQueryHandler, GetUserByIdQueryHandler, GetNavigationPermissi
     LockUserHandler,
     UnlockUserHandler,
     UpdateProfileHandler,
+    GrantPermissionHandler,
+    RevokePermissionHandler,
     // Query Handlers
     GetAllUsersQueryHandler,
     GetUserByIdQueryHandler,
     GetNavigationPermissionsQueryHandler,
+    GetUserPermissionsQueryHandler,
+    GetAvailablePermissionsQueryHandler,
   ],
   exports: [
     // Export handlers for use in Infrastructure Layer (Controllers)
@@ -88,10 +92,14 @@ import { GetAllUsersQueryHandler, GetUserByIdQueryHandler, GetNavigationPermissi
     LockUserHandler,
     UnlockUserHandler,
     UpdateProfileHandler,
+    GrantPermissionHandler,
+    RevokePermissionHandler,
     // Query Handlers
     GetAllUsersQueryHandler,
     GetUserByIdQueryHandler,
     GetNavigationPermissionsQueryHandler,
+    GetUserPermissionsQueryHandler,
+    GetAvailablePermissionsQueryHandler,
   ],
 })
 export class UserManagementApplicationModule {}

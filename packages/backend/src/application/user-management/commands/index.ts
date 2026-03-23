@@ -24,3 +24,11 @@ export { UnlockUserHandler } from './unlock-user/unlock-user.handler';
 // Update Profile (Self-Service)
 export { UpdateProfileCommand } from './update-profile/update-profile.command';
 export { UpdateProfileHandler } from './update-profile/update-profile.handler';
+
+// Grant Permission
+export { GrantPermissionCommand } from './grant-permission/grant-permission.command';
+export { GrantPermissionHandler } from './grant-permission/grant-permission.handler';
+
+// Revoke Permission
+export { RevokePermissionCommand } from './revoke-permission/revoke-permission.command';
+export { RevokePermissionHandler } from './revoke-permission/revoke-permission.handler';

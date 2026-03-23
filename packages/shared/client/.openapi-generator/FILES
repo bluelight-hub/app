@@ -35,6 +35,7 @@ apis/LagekarteCQRSApi.ts
 apis/NavigationApi.ts
 apis/NotizenApi.ts
 apis/POIDEPRECATEDApi.ts
+apis/PermissionsApi.ts
 apis/RollenBesetzungApi.ts
 apis/UserManagementApi.ts
 apis/UsersApi.ts
@@ -65,6 +66,7 @@ models/AdminInviteControllerListInvitesVAlpha200Response.ts
 models/AdminInviteControllerRevokeInviteVAlpha200Response.ts
 models/AdminLoginResponseDto.ts
 models/AdminPasswordDto.ts
+models/AdminPermissionsControllerGetAvailablePermissionsVAlpha200Response.ts
 models/AdminQualifikationenControllerCreateVAlpha201Response.ts
 models/AdminQualifikationenControllerFindAllVAlpha200Response.ts
 models/AdminRollenControllerCreateVAlpha201Response.ts
@@ -123,6 +125,7 @@ models/AuthUserResponseDto.ts
 models/AutoMatchRequestDto.ts
 models/AutoMatchResultItemDto.ts
 models/AutoMatchResultResponseDto.ts
+models/AvailablePermissionDto.ts
 models/BasicHealthDto.ts
 models/BatchSaveMappingItemDto.ts
 models/BatchSaveQualifikationMappingsRequestDto.ts
@@ -258,6 +261,7 @@ models/FunkStatusConfigDto.ts
 models/GeoJsonPointDto.ts
 models/GeoPositionDto.ts
 models/GeocodeAddressDto.ts
+models/GrantPermissionDto.ts
 models/HealthControllerCheck200Response.ts
 models/HealthControllerCheckLiveness200Response.ts
 models/HealthControllerCheckLiveness200ResponseInfoValue.ts
@@ -396,7 +400,9 @@ models/UserControllerFindAllBasicVAlpha200ResponsePagination.ts
 models/UserControllerFindOneVAlpha200Response.ts
 models/UserManagementControllerCreateVAlpha201Response.ts
 models/UserManagementControllerFindAllVAlpha200Response.ts
+models/UserManagementControllerGetUserPermissionsVAlpha200Response.ts
 models/UserManagementControllerRemoveVAlpha200Response.ts
+models/UserPermissionDto.ts
 models/WeisePersonZuFahrzeugZuDto.ts
 models/ZeitverlaufBucketDto.ts
 models/ZeitverlaufStatistikDto.ts

@@ -41,6 +41,7 @@ export * from './progress-bar.atom';
 export * from './skeleton';
 export * from './LoadingState';
 export * from './ErrorState';
+export * from './InlineConfirmation.atom';
 
 // Theme
 export * from './color-mode-icon.atom';

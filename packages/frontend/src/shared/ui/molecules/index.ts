@@ -29,5 +29,8 @@ export * from './color-mode-button.molecule';
 export * from './color-mode-menu.molecule';
 export * from './logo-with-indicator.molecule';
 
+// Status Display
+export * from './EntityStatusBadge.molecule';
+
 // Domain-specific (but shared across features)
 export * from './poi-type-dropdown.molecule';

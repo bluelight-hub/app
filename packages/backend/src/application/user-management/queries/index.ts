@@ -13,3 +13,11 @@ export { GetUserByIdQueryHandler } from './get-user-by-id/get-user-by-id.handler
 export { GetNavigationPermissionsQuery } from './get-navigation-permissions/get-navigation-permissions.query';
 export type { NavigationUserRole } from './get-navigation-permissions/get-navigation-permissions.query';
 export { GetNavigationPermissionsQueryHandler } from './get-navigation-permissions/get-navigation-permissions.handler';
+
+// Get User Permissions
+export { GetUserPermissionsQuery } from './get-user-permissions/get-user-permissions.query';
+export { GetUserPermissionsQueryHandler } from './get-user-permissions/get-user-permissions.handler';
+
+// Get Available Permissions
+export { GetAvailablePermissionsQuery } from './get-available-permissions/get-available-permissions.query';
+export { GetAvailablePermissionsQueryHandler } from './get-available-permissions/get-available-permissions.handler';

@@ -17,11 +17,14 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { ApiWrappedResponse, ApiWrappedCreatedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import { AdminJwtAuthGuard } from '@/modules/auth/guards/admin-jwt-auth.guard';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ParseCuidPipe } from '@/infrastructure/http/pipes/parse-cuid.pipe';
+import { ParsePermissionPipe } from '@/modules/common/pipes/parse-permission.pipe';
+import { ADMIN_RATE_LIMIT, ADMIN_MUTATION_RATE_LIMIT } from '@/infrastructure/http/constants/rate-limit.constants';
 import {
   CreateUserCommand,
   CreateUserHandler,
@@ -33,16 +36,24 @@ import {
   LockUserHandler,
   UnlockUserCommand,
   UnlockUserHandler,
+  GrantPermissionCommand,
+  GrantPermissionHandler,
+  RevokePermissionCommand,
+  RevokePermissionHandler,
   GetAllUsersQuery,
   GetAllUsersQueryHandler,
   GetUserByIdQuery,
   GetUserByIdQueryHandler,
+  GetUserPermissionsQuery,
+  GetUserPermissionsQueryHandler,
   CreateUserDto,
   UpdateUserDto,
   DeleteUserDto,
   LockUserDto,
+  GrantPermissionDto,
   ManagedUserResponseDto,
   DeleteManagedUserResponse,
+  UserPermissionDto,
   toDeleteUserResponseDto,
 } from '@application/user-management';
 import { UserRole as PrismaUserRole } from '@/generated/prisma/client';
@@ -109,8 +120,11 @@ export class UserManagementController {
     private readonly deleteUserHandler: DeleteUserHandler,
     private readonly lockUserHandler: LockUserHandler,
     private readonly unlockUserHandler: UnlockUserHandler,
+    private readonly grantPermissionHandler: GrantPermissionHandler,
+    private readonly revokePermissionHandler: RevokePermissionHandler,
     private readonly getAllUsersHandler: GetAllUsersQueryHandler,
     private readonly getUserByIdHandler: GetUserByIdQueryHandler,
+    private readonly getUserPermissionsHandler: GetUserPermissionsQueryHandler,
   ) {}
 
   /**
@@ -398,7 +412,12 @@ export class UserManagementController {
       }
       // "last SUPER_ADMIN" → 403
       if (result.error?.includes('SUPER_ADMIN') || result.error?.includes('letzter')) {
-        throw new ForbiddenException(result.error);
+        throw new ForbiddenException({
+          statusCode: 403,
+          error: 'Forbidden',
+          message: result.error,
+          suggestedAction: 'Kontaktieren Sie einen anderen Administrator oder weisen Sie einem anderen Benutzer die SUPER_ADMIN-Rolle zu.',
+        });
       }
       throw new BadRequestException(result.error ?? 'Failed to delete user');
     }
@@ -484,7 +503,12 @@ export class UserManagementController {
       }
       // "last SUPER_ADMIN" → 403
       if (result.error?.includes('SUPER_ADMIN') || result.error?.includes('letzter')) {
-        throw new ForbiddenException(result.error);
+        throw new ForbiddenException({
+          statusCode: 403,
+          error: 'Forbidden',
+          message: result.error,
+          suggestedAction: 'Kontaktieren Sie einen anderen Administrator oder weisen Sie einem anderen Benutzer die SUPER_ADMIN-Rolle zu.',
+        });
       }
       throw new BadRequestException(result.error ?? 'Failed to lock user');
     }
@@ -560,6 +584,134 @@ export class UserManagementController {
     const userResult = await this.getUserByIdHandler.execute(new GetUserByIdQuery(id));
     if (userResult.isFailure || !userResult.value) {
       throw new NotFoundException('User unlocked but could not be loaded');
+    }
+
+    return mapToApiUserDto(userResult.value);
+  }
+
+  // ========== Permission Endpoints ==========
+
+  /**
+   * Custom Permissions eines Benutzers abrufen.
+   */
+  @Get(':id/permissions')
+  @Throttle({ default: ADMIN_RATE_LIMIT })
+  @ApiOperation({ summary: 'Custom Permissions eines Benutzers abrufen' })
+  @ApiWrappedResponse(UserPermissionDto, {
+    isArray: true,
+    description: 'Liste der Custom Permissions',
+  })
+  @ApiResponse({ status: 404, description: 'Benutzer nicht gefunden' })
+  async getUserPermissions(@CurrentUser() _currentUser: ValidatedUser, @Param('id', ParseCuidPipe) id: string): Promise<UserPermissionDto[]> {
+    const result = await this.getUserPermissionsHandler.execute(new GetUserPermissionsQuery(id));
+
+    if (result.isFailure) {
+      if (result.error?.includes('not found') || result.error?.includes('nicht gefunden')) {
+        throw new NotFoundException(result.error);
+      }
+      throw new InternalServerErrorException(result.error ?? 'Failed to fetch permissions');
+    }
+
+    const permissions = result.value ?? [];
+    return permissions.map((p) => ({ permission: p }));
+  }
+
+  /**
+   * Custom Permission einem Benutzer gewaehren.
+   */
+  @Put(':id/permissions')
+  @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Custom Permission gewaehren' })
+  @ApiBody({ type: GrantPermissionDto, description: 'Permission die gewaehrt werden soll' })
+  @ApiWrappedResponse(ManagedUserResponseDto, {
+    description: 'Benutzer mit aktualisierter Permission',
+  })
+  @ApiResponse({ status: 400, description: 'Ungueltiges Permission-Format oder Permission bereits vergeben' })
+  @ApiResponse({ status: 404, description: 'Benutzer nicht gefunden' })
+  async grantPermission(
+    @CurrentUser() currentUser: ValidatedUser,
+    @Param('id', ParseCuidPipe) id: string,
+    @Body(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    )
+    dto: GrantPermissionDto,
+  ): Promise<ManagedUserResponseDto> {
+    const commandResult = GrantPermissionCommand.create({
+      userId: id,
+      permission: dto.permission,
+      grantedBy: currentUser.userId,
+    });
+    if (commandResult.isFailure) {
+      throw new BadRequestException(commandResult.error ?? 'Invalid command data');
+    }
+
+    const command = commandResult.value;
+    if (!command) {
+      throw new BadRequestException('Failed to create command');
+    }
+
+    const result = await this.grantPermissionHandler.execute(command);
+    if (result.isFailure) {
+      if (result.error?.includes('not found') || result.error?.includes('nicht gefunden')) {
+        throw new NotFoundException(result.error);
+      }
+      throw new BadRequestException(result.error ?? 'Failed to grant permission');
+    }
+
+    const userResult = await this.getUserByIdHandler.execute(new GetUserByIdQuery(id));
+    if (userResult.isFailure || !userResult.value) {
+      throw new NotFoundException('Permission granted but user could not be loaded');
+    }
+
+    return mapToApiUserDto(userResult.value);
+  }
+
+  /**
+   * Custom Permission eines Benutzers entziehen.
+   */
+  @Delete(':id/permissions/:permission')
+  @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
+  @ApiOperation({ summary: 'Custom Permission entziehen' })
+  @ApiWrappedResponse(ManagedUserResponseDto, {
+    description: 'Benutzer mit aktualisierter Permission',
+  })
+  @ApiResponse({ status: 400, description: 'Permission nicht vergeben' })
+  @ApiResponse({ status: 404, description: 'Benutzer nicht gefunden' })
+  async revokePermission(
+    @CurrentUser() currentUser: ValidatedUser,
+    @Param('id', ParseCuidPipe) id: string,
+    @Param('permission', ParsePermissionPipe) permission: string,
+  ): Promise<ManagedUserResponseDto> {
+    const commandResult = RevokePermissionCommand.create({
+      userId: id,
+      permission,
+      revokedBy: currentUser.userId,
+    });
+    if (commandResult.isFailure) {
+      throw new BadRequestException(commandResult.error ?? 'Invalid command data');
+    }
+
+    const command = commandResult.value;
+    if (!command) {
+      throw new BadRequestException('Failed to create command');
+    }
+
+    const result = await this.revokePermissionHandler.execute(command);
+    if (result.isFailure) {
+      if (result.error?.includes('not found') || result.error?.includes('nicht gefunden')) {
+        throw new NotFoundException(result.error);
+      }
+      throw new BadRequestException(result.error ?? 'Failed to revoke permission');
+    }
+
+    const userResult = await this.getUserByIdHandler.execute(new GetUserByIdQuery(id));
+    if (userResult.isFailure || !userResult.value) {
+      throw new NotFoundException('Permission revoked but user could not be loaded');
     }
 
     return mapToApiUserDto(userResult.value);

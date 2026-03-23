@@ -36,6 +36,7 @@ export * from './LagekarteCQRSApi';
 export * from './NavigationApi';
 export * from './NotizenApi';
 export * from './POIDEPRECATEDApi';
+export * from './PermissionsApi';
 export * from './RollenBesetzungApi';
 export * from './UserManagementApi';
 export * from './UsersApi';
