@@ -1,3 +1,24 @@
+## Befehle & Berechtigungen
+
+- **Neuer Befehl-Workspace**: Vollständig überarbeitete Befehlsansicht mit rollenbasierter Zugriffskontrolle und Weitergabe-Statusübersicht
+- **Verbesserte Sicherheit**: EMPFÄNGER können nur noch ihre eigenen Befehle einsehen – keine unbefugte Einsicht in fremde Befehle mehr möglich
+- **Bessere Navigation**: Deep-Links zu spezifischen Befehlen funktionieren jetzt zuverlässig und scrollen automatisch zum richtigen Eintrag
+
+## Dependency-Updates
+
+- TanStack-Bibliotheken (React Query, Router, Devtools, Virtual) auf neueste Versionen aktualisiert
+- NestJS-Framework von 11.1.16 auf 11.1.17 aktualisiert
+- Tailwind CSS von 4.2.1 auf 4.2.2 aktualisiert
+- PDFKit von 0.17.2 auf 0.18.0 aktualisiert
+- dotenvx von 1.54.1 auf 1.57.0 aktualisiert
+- jsdom von 28.1.0 auf 29.0.1 aktualisiert (Major Update)
+- Sicherheitsupdate: rustls-webpki von 0.103.9 auf 0.103.10
+- Diverse Entwicklungstools aktualisiert (Biome, TypeScript-ESLint, baseline-browser-mapping)
+
+## Infrastruktur
+
+- GitHub Actions aktualisiert (pnpm/action-setup v5, actions/create-github-app-token v3)
+
 ## Einsatz-Arbeitsbereich
 
 Das neue **Einsatz-Workspace-Modul** ermöglicht strukturiertes Arbeiten in aktiven Einsätzen:
