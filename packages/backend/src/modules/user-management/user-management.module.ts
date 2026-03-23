@@ -7,6 +7,7 @@ import { UserController } from './controllers/user.controller';
 import { UserManagementController } from '@/modules/user-management/controllers';
 import { NavigationPermissionsController } from './controllers/navigation-permissions.controller';
 import { ProfileController } from './controllers/profile.controller';
+import { AdminPermissionsController } from './controllers/admin-permissions.controller';
 
 /**
  * NestJS Module für User Management Infrastructure Layer.
@@ -76,6 +77,8 @@ import { ProfileController } from './controllers/profile.controller';
     NavigationPermissionsController,
     // Self-Service Profile Endpoints (/users/profile)
     ProfileController,
+    // Admin Permissions (/admin/permissions)
+    AdminPermissionsController,
   ],
   providers: [
     // Logger für UserManagementModule Guards/Services

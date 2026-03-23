@@ -15,6 +15,10 @@ export {
   LockUserHandler,
   UnlockUserCommand,
   UnlockUserHandler,
+  GrantPermissionCommand,
+  GrantPermissionHandler,
+  RevokePermissionCommand,
+  RevokePermissionHandler,
 } from './commands';
 
 // Queries
@@ -25,6 +29,10 @@ export {
   GetUserByIdQueryHandler,
   GetNavigationPermissionsQuery,
   GetNavigationPermissionsQueryHandler,
+  GetUserPermissionsQuery,
+  GetUserPermissionsQueryHandler,
+  GetAvailablePermissionsQuery,
+  GetAvailablePermissionsQueryHandler,
 } from './queries';
 export type { NavigationUserRole } from './queries';
 
@@ -35,6 +43,7 @@ export {
   UpdateUserDto,
   DeleteUserDto,
   LockUserDto,
+  GrantPermissionDto,
   DeleteUserResponseDto,
   UserBasicDto,
   UserBasicListResponse,
@@ -43,6 +52,9 @@ export {
   ManagedUserResponse,
   DeleteManagedUserResponse,
   NavigationPermissionDto,
+  AvailablePermissionDto,
+  UserPermissionDto,
+  UserPermissionsListResponse,
 } from './dto';
 
 // Mappers

@@ -35,6 +35,7 @@ import {
   LagekarteApi,
   LagekarteCQRSApi,
   NavigationApi,
+  PermissionsApi,
   RollenBesetzungApi,
   UserManagementApi,
   UsersApi,
@@ -146,6 +147,7 @@ class BackendApi {
   private readonly notizenApi: NotizenApi;
   private readonly kategorienApi: KategorienApi;
   private readonly navigationApi: NavigationApi;
+  private readonly permissionsApi: PermissionsApi;
 
   /**
    * Erstellt eine neue Instanz der BackendApi-Klasse
@@ -198,6 +200,7 @@ class BackendApi {
     this.notizenApi = new NotizenApi(this.configuration);
     this.kategorienApi = new KategorienApi(this.configuration);
     this.navigationApi = new NavigationApi(this.configuration);
+    this.permissionsApi = new PermissionsApi(this.configuration);
   }
 
   /**
@@ -517,6 +520,15 @@ class BackendApi {
    */
   navigation(): NavigationApi {
     return this.navigationApi;
+  }
+
+  /**
+   * Gibt die gecachte Permissions-API-Instanz zurueck
+   *
+   * @returns Die Permissions-API-Instanz fuer verfuegbare Berechtigungen
+   */
+  permissions(): PermissionsApi {
+    return this.permissionsApi;
   }
 }
 

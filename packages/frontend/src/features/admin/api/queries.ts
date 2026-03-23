@@ -106,4 +106,9 @@ export const ADMIN_QUERY_KEYS = {
         keyHint ? ([...ADMIN_QUERY_KEYS.runtimeConfig.migration.all(), 'result', keyHint] as const) : ([...ADMIN_QUERY_KEYS.runtimeConfig.migration.all(), 'result'] as const),
     },
   },
+  permissions: {
+    all: ['admin', 'permissions'] as const,
+    available: () => [...ADMIN_QUERY_KEYS.permissions.all, 'available'] as const,
+    byUser: (userId: string) => [...ADMIN_QUERY_KEYS.permissions.all, 'user', userId] as const,
+  },
 } as const;

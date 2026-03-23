@@ -3,8 +3,9 @@ import { RoleField, UsernameField } from '@/features/admin/ui/molecules/UserForm
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { type ManagedUserResponseDto, ManagedUserResponseDtoRoleEnum } from '@/shared';
 import { useForm } from '@tanstack/react-form';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { z } from 'zod';
+import { UserPermissionsPanel } from './UserPermissionsPanel.organism';
 
 const _editUserSchema = z.object({
   username: z
@@ -25,7 +26,11 @@ interface EditUserDialogProps {
   user: ManagedUserResponseDto | null;
 }
 
+type TabId = 'details' | 'permissions';
+
 export const EditUserDialog = ({ isOpen, onClose, onSubmit, isSubmitting, user }: EditUserDialogProps) => {
+  const [activeTab, setActiveTab] = useState<TabId>('details');
+
   const form = useForm({
     defaultValues: {
       username: user?.username || '',
@@ -52,46 +57,86 @@ export const EditUserDialog = ({ isOpen, onClose, onSubmit, isSubmitting, user }
       return;
     }
     form.reset();
+    setActiveTab('details');
     onClose();
   };
 
   return (
-    <Dialog isOpen={isOpen} onClose={handleClose}>
+    <Dialog isOpen={isOpen} onClose={handleClose} size="lg">
       <div className="relative">
         <Dialog.Title>Benutzer bearbeiten</Dialog.Title>
       </div>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          form.handleSubmit();
-        }}
-      >
-        <Dialog.Body>
-          <div className="space-y-4">
-            <form.Field name="username">{(field) => <UsernameField field={field} />}</form.Field>
+      {/* Tab Navigation */}
+      <div className="flex border-gray-200 border-b px-6 dark:border-gray-700" role="tablist" aria-label="Benutzer-Abschnitte">
+        <button
+          type="button"
+          role="tab"
+          id="tab-details"
+          aria-controls="panel-details"
+          aria-selected={activeTab === 'details'}
+          onClick={() => setActiveTab('details')}
+          className={`border-b-2 px-4 py-2 font-medium text-sm transition-colors ${activeTab === 'details' ? 'border-action-primary text-action-primary' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}
+        >
+          Details
+        </button>
+        <button
+          type="button"
+          role="tab"
+          id="tab-permissions"
+          aria-controls="panel-permissions"
+          aria-selected={activeTab === 'permissions'}
+          onClick={() => setActiveTab('permissions')}
+          className={`border-b-2 px-4 py-2 font-medium text-sm transition-colors ${activeTab === 'permissions' ? 'border-action-primary text-action-primary' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}
+        >
+          Berechtigungen
+        </button>
+      </div>
 
-            <form.Field name="role">{(field) => <RoleField field={field} />}</form.Field>
-          </div>
-        </Dialog.Body>
-
-        <Dialog.Footer>
-          <Button intent="secondary" appearance="ghost" onClick={handleClose} disabled={isSubmitting}>
-            Abbrechen
-          </Button>
-          <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-            {([canSubmit, isFormSubmitting]) => {
-              const submitting = isFormSubmitting || isSubmitting;
-              return (
-                <Button type="submit" disabled={!canSubmit || submitting} loading={submitting}>
-                  Änderungen speichern
-                </Button>
-              );
+      {activeTab === 'details' ? (
+        <div id="panel-details" role="tabpanel" aria-labelledby="tab-details">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              form.handleSubmit();
             }}
-          </form.Subscribe>
-        </Dialog.Footer>
-      </form>
+          >
+            <Dialog.Body>
+              <div className="space-y-4">
+                <form.Field name="username">{(field) => <UsernameField field={field} />}</form.Field>
+
+                <form.Field name="role">{(field) => <RoleField field={field} />}</form.Field>
+              </div>
+            </Dialog.Body>
+
+            <Dialog.Footer>
+              <Button intent="secondary" appearance="ghost" onClick={handleClose} disabled={isSubmitting}>
+                Abbrechen
+              </Button>
+              <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
+                {([canSubmit, isFormSubmitting]) => {
+                  const submitting = isFormSubmitting || isSubmitting;
+                  return (
+                    <Button type="submit" disabled={!canSubmit || submitting} loading={submitting}>
+                      Änderungen speichern
+                    </Button>
+                  );
+                }}
+              </form.Subscribe>
+            </Dialog.Footer>
+          </form>
+        </div>
+      ) : (
+        <div id="panel-permissions" role="tabpanel" aria-labelledby="tab-permissions">
+          <Dialog.Body>{user && <UserPermissionsPanel userId={user.id} username={user.username} />}</Dialog.Body>
+          <Dialog.Footer>
+            <Button intent="secondary" appearance="ghost" onClick={handleClose}>
+              Schließen
+            </Button>
+          </Dialog.Footer>
+        </div>
+      )}
     </Dialog>
   );
 };

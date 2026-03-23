@@ -8,6 +8,11 @@ export { CreateUserDto } from './create-user.dto';
 export { UpdateUserDto } from './update-user.dto';
 export { DeleteUserDto } from './delete-user.dto';
 export { LockUserDto } from './lock-user.dto';
+export { GrantPermissionDto } from './grant-permission.dto';
+
+// Permission DTOs
+export { AvailablePermissionDto } from './available-permission.dto';
+export { UserPermissionDto, UserPermissionsListResponse } from './user-permission-response.dto';
 
 // Navigation DTOs
 export { NavigationPermissionDto } from './navigation-permission.dto';

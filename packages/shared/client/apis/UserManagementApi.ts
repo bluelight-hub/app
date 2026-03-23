@@ -17,10 +17,12 @@ import * as runtime from '../runtime';
 import type {
   CreateUserDto,
   DeleteUserDto,
+  GrantPermissionDto,
   LockUserDto,
   UpdateUserDto,
   UserManagementControllerCreateVAlpha201Response,
   UserManagementControllerFindAllVAlpha200Response,
+  UserManagementControllerGetUserPermissionsVAlpha200Response,
   UserManagementControllerRemoveVAlpha200Response,
 } from '../models/index';
 import {
@@ -28,6 +30,8 @@ import {
     CreateUserDtoToJSON,
     DeleteUserDtoFromJSON,
     DeleteUserDtoToJSON,
+    GrantPermissionDtoFromJSON,
+    GrantPermissionDtoToJSON,
     LockUserDtoFromJSON,
     LockUserDtoToJSON,
     UpdateUserDtoFromJSON,
@@ -36,12 +40,23 @@ import {
     UserManagementControllerCreateVAlpha201ResponseToJSON,
     UserManagementControllerFindAllVAlpha200ResponseFromJSON,
     UserManagementControllerFindAllVAlpha200ResponseToJSON,
+    UserManagementControllerGetUserPermissionsVAlpha200ResponseFromJSON,
+    UserManagementControllerGetUserPermissionsVAlpha200ResponseToJSON,
     UserManagementControllerRemoveVAlpha200ResponseFromJSON,
     UserManagementControllerRemoveVAlpha200ResponseToJSON,
 } from '../models/index';
 
 export interface UserManagementControllerCreateVAlphaRequest {
     createUserDto: CreateUserDto;
+}
+
+export interface UserManagementControllerGetUserPermissionsVAlphaRequest {
+    id: string;
+}
+
+export interface UserManagementControllerGrantPermissionVAlphaRequest {
+    id: string;
+    grantPermissionDto: GrantPermissionDto;
 }
 
 export interface UserManagementControllerLockVAlphaRequest {
@@ -52,6 +67,11 @@ export interface UserManagementControllerLockVAlphaRequest {
 export interface UserManagementControllerRemoveVAlphaRequest {
     id: string;
     deleteUserDto?: DeleteUserDto;
+}
+
+export interface UserManagementControllerRevokePermissionVAlphaRequest {
+    id: string;
+    permission: string;
 }
 
 export interface UserManagementControllerUnlockVAlphaRequest {
@@ -147,6 +167,98 @@ export class UserManagementApi extends runtime.BaseAPI {
     }
 
     /**
+     * Custom Permissions eines Benutzers abrufen
+     */
+    async userManagementControllerGetUserPermissionsVAlphaRaw(requestParameters: UserManagementControllerGetUserPermissionsVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserManagementControllerGetUserPermissionsVAlpha200Response>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling userManagementControllerGetUserPermissionsVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("admin-jwt", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/api/v-alpha/admin/users/{id}/permissions`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => UserManagementControllerGetUserPermissionsVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Custom Permissions eines Benutzers abrufen
+     */
+    async userManagementControllerGetUserPermissionsVAlpha(requestParameters: UserManagementControllerGetUserPermissionsVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserManagementControllerGetUserPermissionsVAlpha200Response> {
+        const response = await this.userManagementControllerGetUserPermissionsVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Custom Permission gewaehren
+     */
+    async userManagementControllerGrantPermissionVAlphaRaw(requestParameters: UserManagementControllerGrantPermissionVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserManagementControllerCreateVAlpha201Response>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling userManagementControllerGrantPermissionVAlpha().'
+            );
+        }
+
+        if (requestParameters['grantPermissionDto'] == null) {
+            throw new runtime.RequiredError(
+                'grantPermissionDto',
+                'Required parameter "grantPermissionDto" was null or undefined when calling userManagementControllerGrantPermissionVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("admin-jwt", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/api/v-alpha/admin/users/{id}/permissions`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: GrantPermissionDtoToJSON(requestParameters['grantPermissionDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => UserManagementControllerCreateVAlpha201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Custom Permission gewaehren
+     */
+    async userManagementControllerGrantPermissionVAlpha(requestParameters: UserManagementControllerGrantPermissionVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserManagementControllerCreateVAlpha201Response> {
+        const response = await this.userManagementControllerGrantPermissionVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Benutzer manuell sperren
      */
     async userManagementControllerLockVAlphaRaw(requestParameters: UserManagementControllerLockVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserManagementControllerCreateVAlpha201Response>> {
@@ -231,6 +343,54 @@ export class UserManagementApi extends runtime.BaseAPI {
      */
     async userManagementControllerRemoveVAlpha(requestParameters: UserManagementControllerRemoveVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserManagementControllerRemoveVAlpha200Response> {
         const response = await this.userManagementControllerRemoveVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Custom Permission entziehen
+     */
+    async userManagementControllerRevokePermissionVAlphaRaw(requestParameters: UserManagementControllerRevokePermissionVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserManagementControllerCreateVAlpha201Response>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling userManagementControllerRevokePermissionVAlpha().'
+            );
+        }
+
+        if (requestParameters['permission'] == null) {
+            throw new runtime.RequiredError(
+                'permission',
+                'Required parameter "permission" was null or undefined when calling userManagementControllerRevokePermissionVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("admin-jwt", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/api/v-alpha/admin/users/{id}/permissions/{permission}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))).replace(`{${"permission"}}`, encodeURIComponent(String(requestParameters['permission']))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => UserManagementControllerCreateVAlpha201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Custom Permission entziehen
+     */
+    async userManagementControllerRevokePermissionVAlpha(requestParameters: UserManagementControllerRevokePermissionVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserManagementControllerCreateVAlpha201Response> {
+        const response = await this.userManagementControllerRevokePermissionVAlphaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
