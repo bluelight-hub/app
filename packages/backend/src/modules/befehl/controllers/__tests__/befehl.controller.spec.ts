@@ -1197,6 +1197,61 @@ describe('BefehlController (Integration Tests - AC10)', () => {
       expect(mockEmpfaengerSucheQueryHandler.execute).not.toHaveBeenCalled();
     });
   });
+
+  describe('befehlsgeberSuche() - GET /api/v-alpha/befehle/befehlsgeber-suche (Story 4.2 C4)', () => {
+    it('sollte Befehlsgeber-Suchergebnisse erfolgreich zurueckgeben (200 OK)', async () => {
+      const mockResults = [
+        { name: 'EL Mueller', quelle: 'VORSCHLAG' as const },
+        { name: 'ZF Meier', rolle: 'Zugführer', quelle: 'EINSATZ_PERSON' as const },
+      ];
+
+      mockBefehlsgeberSucheQueryHandler.execute.mockResolvedValue(Result.ok(mockResults));
+
+      const result = await controller.befehlsgeberSuche('cm5einsatzid123', 'Mueller');
+
+      expect(result).toHaveLength(2);
+      expect(result[0]?.quelle).toBe('VORSCHLAG');
+      expect(result[1]?.quelle).toBe('EINSATZ_PERSON');
+      expect(mockBefehlsgeberSucheQueryHandler.execute).toHaveBeenCalledTimes(1);
+
+      const calledQuery = mockBefehlsgeberSucheQueryHandler.execute.mock.calls[0]?.[0]!;
+      expect(calledQuery.einsatzId).toBe('cm5einsatzid123');
+      expect(calledQuery.searchTerm).toBe('Mueller');
+    });
+
+    it('sollte BadRequestException werfen wenn einsatzId fehlt', async () => {
+      await expect(controller.befehlsgeberSuche('', 'Mueller')).rejects.toThrow(BadRequestException);
+      expect(mockBefehlsgeberSucheQueryHandler.execute).not.toHaveBeenCalled();
+    });
+
+    it('sollte InternalServerErrorException werfen wenn Handler fehlschlaegt', async () => {
+      mockBefehlsgeberSucheQueryHandler.execute.mockResolvedValue(Result.fail('Datenbankfehler'));
+
+      await expect(controller.befehlsgeberSuche('cm5einsatzid123', 'Mueller')).rejects.toThrow(InternalServerErrorException);
+    });
+
+    it('sollte leeres Array zurueckgeben wenn Handler leeres Array liefert', async () => {
+      mockBefehlsgeberSucheQueryHandler.execute.mockResolvedValue(Result.ok([]));
+
+      const result = await controller.befehlsgeberSuche('cm5einsatzid123', 'xyz');
+
+      expect(result).toEqual([]);
+    });
+
+    it('sollte ohne Suchbegriff funktionieren (q ist optional)', async () => {
+      mockBefehlsgeberSucheQueryHandler.execute.mockResolvedValue(Result.ok([]));
+
+      const result = await controller.befehlsgeberSuche('cm5einsatzid123');
+
+      expect(result).toEqual([]);
+      expect(mockBefehlsgeberSucheQueryHandler.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('sollte BadRequestException werfen bei ungueltiger einsatzId', async () => {
+      await expect(controller.befehlsgeberSuche('x', 'Mueller')).rejects.toThrow(BadRequestException);
+      expect(mockBefehlsgeberSucheQueryHandler.execute).not.toHaveBeenCalled();
+    });
+  });
 });
 
 describe('BefehlController Guard-Decorators (Story 5.4 AC1, AC5)', () => {
@@ -1214,10 +1269,10 @@ describe('BefehlController Guard-Decorators (Story 5.4 AC1, AC5)', () => {
     expect(rollen).toEqual(['ERSTELLER', 'BEFEHLSGEBER']);
   });
 
-  // --- Befehle quittieren: BEFEHLSGEBER, ERSTELLER, EMPFAENGER ---
-  it('sollte @RequiresBefehlRolle(BEFEHLSGEBER, ERSTELLER, EMPFAENGER) auf quittieren() haben', () => {
+  // --- Befehle quittieren: BEFEHLSGEBER, EMPFAENGER (Story 4.2: ERSTELLER entfernt) ---
+  it('sollte @RequiresBefehlRolle(BEFEHLSGEBER, EMPFAENGER) auf quittieren() haben', () => {
     const rollen = Reflect.getMetadata(BEFEHL_ROLLEN_KEY, BefehlController.prototype.quittieren);
-    expect(rollen).toEqual(['BEFEHLSGEBER', 'ERSTELLER', 'EMPFAENGER']);
+    expect(rollen).toEqual(['BEFEHLSGEBER', 'EMPFAENGER']);
   });
 
   // --- Befehle korrigieren: ERSTELLER, BEFEHLSGEBER ---
@@ -1256,10 +1311,16 @@ describe('BefehlController Guard-Decorators (Story 5.4 AC1, AC5)', () => {
     expect(rollen).toEqual(['ERSTELLER', 'BEFEHLSGEBER']);
   });
 
+  // --- Befehlsgeber-Suche: ERSTELLER, BEFEHLSGEBER ---
+  it('sollte @RequiresBefehlRolle(ERSTELLER, BEFEHLSGEBER) auf befehlsgeberSuche() haben', () => {
+    const rollen = Reflect.getMetadata(BEFEHL_ROLLEN_KEY, BefehlController.prototype.befehlsgeberSuche);
+    expect(rollen).toEqual(['ERSTELLER', 'BEFEHLSGEBER']);
+  });
+
   // --- Vollstaendigkeits-Check: KEIN Endpoint ohne Guard ---
   it('sollte auf ALLEN public Endpoints einen @RequiresBefehlRolle Decorator haben (Vollstaendigkeits-Check)', () => {
     // Given - alle public Methoden des Controllers
-    const publicMethods = ['create', 'quittieren', 'korrigieren', 'findByEinsatz', 'addKommentar', 'exportBefehle', 'getHistorie', 'empfaengerSuche'];
+    const publicMethods = ['create', 'quittieren', 'korrigieren', 'findByEinsatz', 'addKommentar', 'exportBefehle', 'getHistorie', 'empfaengerSuche', 'befehlsgeberSuche'];
 
     // When & Then - jede Methode hat Rollen-Metadata
     for (const method of publicMethods) {
@@ -1395,8 +1456,14 @@ describe('BefehlController Guard-Enforcement (Integration)', () => {
           auftrag: 'Test-Auftrag',
         });
 
-      // Then - Guard ist aktuell Pass-through
-      expect(response.status).not.toBe(403);
+      // Then - Guard blockiert BEOBACHTER (Story 4.2: Guard aktiviert)
+      expect(response.status).toBe(403);
+      // AC3: Strukturiertes Fehler-Body
+      expect(response.body.code).toBe('MISSING_ROLLE');
+      expect(response.body.message).toBeDefined();
+      expect(response.body.nextAction).toBeDefined();
+      expect(response.body.allowedRoles).toBeDefined();
+      expect(Array.isArray(response.body.allowedRoles)).toBe(true);
     });
 
     it('sollte EMPFAENGER mit 403 ablehnen (nur ERSTELLER/BEFEHLSGEBER erlaubt)', async () => {
@@ -1414,15 +1481,15 @@ describe('BefehlController Guard-Enforcement (Integration)', () => {
           auftrag: 'Test-Auftrag',
         });
 
-      // Then - Guard ist aktuell Pass-through
-      expect(response.status).not.toBe(403);
+      // Then - Guard blockiert EMPFAENGER (Story 4.2: Guard aktiviert)
+      expect(response.status).toBe(403);
     });
   });
 
   // --- POST /befehle/:id/quittieren: BEOBACHTER wird abgelehnt (403) ---
 
   describe('POST /befehle/:id/quittieren - Guard-Enforcement', () => {
-    it('sollte BEOBACHTER mit 403 ablehnen (nur EMPFAENGER erlaubt)', async () => {
+    it('sollte BEOBACHTER mit 403 ablehnen (nur BEFEHLSGEBER/EMPFAENGER erlaubt)', async () => {
       // Given - Befehl-Lookup liefert einsatzId, User hat BEOBACHTER-Rolle
       setBefehlLookup(TEST_EINSATZ_ID);
       setUserRolle('BEOBACHTER');
@@ -1433,11 +1500,17 @@ describe('BefehlController Guard-Enforcement (Integration)', () => {
         quittierungArt: 'VERSTANDEN',
       });
 
-      // Then - Guard ist aktuell Pass-through
-      expect(response.status).not.toBe(403);
+      // Then - Guard blockiert BEOBACHTER (Story 4.2: Guard aktiviert)
+      expect(response.status).toBe(403);
+      // AC3: Strukturiertes Fehler-Body
+      expect(response.body.code).toBe('MISSING_ROLLE');
+      expect(response.body.message).toBeDefined();
+      expect(response.body.nextAction).toBeDefined();
+      expect(response.body.allowedRoles).toBeDefined();
+      expect(Array.isArray(response.body.allowedRoles)).toBe(true);
     });
 
-    it('sollte ERSTELLER beim quittieren durchlassen (BEFEHLSGEBER, ERSTELLER, EMPFAENGER erlaubt)', async () => {
+    it('sollte ERSTELLER mit 403 ablehnen (Story 4.2: nur BEFEHLSGEBER, EMPFAENGER erlaubt)', async () => {
       // Given - Befehl-Lookup liefert einsatzId, User hat ERSTELLER-Rolle
       setBefehlLookup(TEST_EINSATZ_ID);
       setUserRolle('ERSTELLER');
@@ -1448,8 +1521,8 @@ describe('BefehlController Guard-Enforcement (Integration)', () => {
         quittierungArt: 'VERSTANDEN',
       });
 
-      // Then - 500 (Guard laesst durch, Handler-Mock nicht konfiguriert)
-      expect(response.status).toBe(500);
+      // Then - Guard blockiert ERSTELLER (Story 4.2: ERSTELLER von quittieren entfernt)
+      expect(response.status).toBe(403);
     });
   });
 
@@ -1471,8 +1544,14 @@ describe('BefehlController Guard-Enforcement (Integration)', () => {
           auftrag: 'Korrigierter Auftrag',
         });
 
-      // Then - Guard ist aktuell Pass-through
-      expect(response.status).not.toBe(403);
+      // Then - Guard blockiert EMPFAENGER (Story 4.2: Guard aktiviert)
+      expect(response.status).toBe(403);
+      // AC3: Strukturiertes Fehler-Body
+      expect(response.body.code).toBe('MISSING_ROLLE');
+      expect(response.body.message).toBeDefined();
+      expect(response.body.nextAction).toBeDefined();
+      expect(response.body.allowedRoles).toBeDefined();
+      expect(Array.isArray(response.body.allowedRoles)).toBe(true);
     });
 
     it('sollte BEOBACHTER mit 403 ablehnen (nur ERSTELLER/BEFEHLSGEBER erlaubt)', async () => {
@@ -1490,23 +1569,23 @@ describe('BefehlController Guard-Enforcement (Integration)', () => {
           auftrag: 'Korrigierter Auftrag',
         });
 
-      // Then - Guard ist aktuell Pass-through
-      expect(response.status).not.toBe(403);
+      // Then - Guard blockiert BEOBACHTER (Story 4.2: Guard aktiviert)
+      expect(response.status).toBe(403);
     });
   });
 
   // --- GET /befehle: Ohne Rolle wird abgelehnt (403) ---
 
   describe('GET /befehle (findByEinsatz) - Guard-Enforcement', () => {
-    it('sollte ohne Rollenzuweisung im Einsatz mit 403 ablehnen', async () => {
+    it('sollte ohne Rollenzuweisung im Einsatz GET-Zugriff erlauben (200)', async () => {
       // Given - User hat KEINE Rolle im Einsatz
       setUserRolle(null);
 
       // When
       const response = await request(app.getHttpServer()).get(`/api/v-alpha/befehle?einsatzId=${TEST_EINSATZ_ID}`);
 
-      // Then - Guard ist aktuell Pass-through
-      expect(response.status).toBe(200);
+      // Then - Story 4.3: GET /befehle erlaubt ohne Rolle (read-only, BEOBACHTER-aehnlich)
+      expect(response.status).not.toBe(403);
     });
 
     it('sollte mit gueltiger Rolle (BEOBACHTER) durchlassen (200)', async () => {
@@ -1536,22 +1615,59 @@ describe('BefehlController Guard-Enforcement (Integration)', () => {
           // einsatzId fehlt!
         });
 
-      // Then - Body-Validierung greift vor Handlerausführung
-      expect(response.status).toBe(400);
+      // Then - Guard kann einsatzId nicht ermitteln → 403 (Story 4.2)
+      expect(response.status).toBe(403);
     });
 
-    it('sollte 403 werfen wenn Befehl-Lookup fehlschlaegt (Befehl nicht gefunden)', async () => {
-      // Given - Befehl existiert nicht in DB
+    it('sollte 400 werfen wenn Befehl-ID ungueltig (kein CUID)', async () => {
+      // Given - Befehl-ID ist kein valides CUID
       setBefehlLookup(null);
 
-      // When - quittieren mit unbekannter Befehl-ID
+      // When - quittieren mit ungueltiger Befehl-ID
       const response = await request(app.getHttpServer()).post('/api/v-alpha/befehle/unknown-befehl-id/quittieren').send({
         empfaengerId: TEST_USER_ID,
         quittierungArt: 'VERSTANDEN',
       });
 
-      // Then - Guard ist Pass-through, Handler-Mock ist nicht konfiguriert
-      expect(response.status).toBe(500);
+      // Then - Guard wirft BadRequestException wegen ungueltiger CUID
+      expect(response.status).toBe(400);
+    });
+  });
+
+  // --- GET /befehle/befehlsgeber-suche: EMPFAENGER/BEOBACHTER wird abgelehnt (403) ---
+
+  describe('GET /befehle/befehlsgeber-suche - Guard-Enforcement (Story 4.2 C4)', () => {
+    it('sollte EMPFAENGER mit 403 ablehnen (nur ERSTELLER/BEFEHLSGEBER erlaubt)', async () => {
+      // Given - User hat EMPFAENGER-Rolle
+      setUserRolle('EMPFAENGER');
+
+      // When
+      const response = await request(app.getHttpServer()).get(`/api/v-alpha/befehle/befehlsgeber-suche?einsatzId=${TEST_EINSATZ_ID}&q=Mueller`);
+
+      // Then - Guard blockiert EMPFAENGER
+      expect(response.status).toBe(403);
+    });
+
+    it('sollte BEOBACHTER mit 403 ablehnen (nur ERSTELLER/BEFEHLSGEBER erlaubt)', async () => {
+      // Given - User hat BEOBACHTER-Rolle
+      setUserRolle('BEOBACHTER');
+
+      // When
+      const response = await request(app.getHttpServer()).get(`/api/v-alpha/befehle/befehlsgeber-suche?einsatzId=${TEST_EINSATZ_ID}&q=Mueller`);
+
+      // Then - Guard blockiert BEOBACHTER
+      expect(response.status).toBe(403);
+    });
+
+    it('sollte ERSTELLER durchlassen (Guard-Pruefung)', async () => {
+      // Given - User hat ERSTELLER-Rolle
+      setUserRolle('ERSTELLER');
+
+      // When
+      const response = await request(app.getHttpServer()).get(`/api/v-alpha/befehle/befehlsgeber-suche?einsatzId=${TEST_EINSATZ_ID}&q=Mueller`);
+
+      // Then - NICHT 403 (Guard laesst durch)
+      expect(response.status).not.toBe(403);
     });
   });
 

@@ -33,15 +33,14 @@ function navigateToBefehl(einsatzId: string, befehlId: string) {
   void import('@/main')
     .then(({ router }) => {
       router.navigate({
-        to: '/app/einsatz/$einsatzId/führung/befehle',
-        params: { einsatzId },
-        search: { befehlId },
+        to: '/app/einsatz/$einsatzId/befehl/$befehlId',
+        params: { einsatzId, befehlId },
       });
     })
     .catch((error) => {
       logger.warn('Befehl-Navigation über Router fehlgeschlagen, fallback auf URL', { error });
       if (typeof window !== 'undefined') {
-        window.location.href = `/app/einsatz/${einsatzId}/führung/befehle?befehlId=${befehlId}`;
+        window.location.href = `/app/einsatz/${einsatzId}/befehl/${befehlId}`;
       }
     });
 }

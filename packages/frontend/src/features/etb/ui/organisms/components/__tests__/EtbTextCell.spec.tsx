@@ -18,11 +18,11 @@ import type { EintragDto } from '@/shared';
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children, to, params, search, ...props }: { children: React.ReactNode; to: string; params?: Record<string, string>; search?: Record<string, string>; [key: string]: unknown }) => (
     <a
-      href={`${to.replace('$einsatzId', params?.einsatzId ?? '')}?befehlId=${search?.befehlId ?? ''}`}
+      href={`${to.replace('$einsatzId', params?.einsatzId ?? '').replace('$befehlId', params?.befehlId ?? '')}${search?.befehlId ? `?befehlId=${search.befehlId}` : ''}`}
       data-testid="befehl-link"
       data-to={to}
       data-params={JSON.stringify(params)}
-      data-search={JSON.stringify(search)}
+      data-search={search ? JSON.stringify(search) : undefined}
       {...props}
     >
       {children}
@@ -114,7 +114,7 @@ describe('EtbTextCell', () => {
       expect(screen.queryByTestId('befehl-link')).not.toBeInTheDocument();
     });
 
-    it('should navigate to correct Befehl URL with befehlId search param', () => {
+    it('should navigate to correct Befehl URL with befehlId param', () => {
       // Given: Eintrag mit Befehl-Metadata
       const entry = createMockEntry({
         metadata: { eventType: 'BefehlQuittiert', befehlId: 'befehl-789' },
@@ -123,11 +123,10 @@ describe('EtbTextCell', () => {
       // When: Komponente wird gerendert
       render(<EtbTextCell entry={entry} einsatzId="einsatz-42" />);
 
-      // Then: Link hat korrekte Route und Params
+      // Then: Link hat korrekte Deep-Link Route und Params
       const link = screen.getByTestId('befehl-link');
-      expect(link).toHaveAttribute('data-to', '/app/einsatz/$einsatzId/führung/befehle');
-      expect(link).toHaveAttribute('data-params', JSON.stringify({ einsatzId: 'einsatz-42' }));
-      expect(link).toHaveAttribute('data-search', JSON.stringify({ befehlId: 'befehl-789' }));
+      expect(link).toHaveAttribute('data-to', '/app/einsatz/$einsatzId/befehl/$befehlId');
+      expect(link).toHaveAttribute('data-params', JSON.stringify({ einsatzId: 'einsatz-42', befehlId: 'befehl-789' }));
     });
 
     it('should render Befehl link as clickable anchor element with correct href', () => {
@@ -139,11 +138,11 @@ describe('EtbTextCell', () => {
       // When: Komponente wird gerendert
       render(<EtbTextCell entry={entry} einsatzId="einsatz-1" />);
 
-      // Then: Link ist ein klickbares Anchor-Element mit korrekter href
+      // Then: Link ist ein klickbares Anchor-Element mit korrekter Deep-Link href
       const link = screen.getByRole('link', { name: /befehl befehl-abc anzeigen/i });
       expect(link).toBeInTheDocument();
       expect(link.tagName).toBe('A');
-      expect(link).toHaveAttribute('href', expect.stringContaining('befehlId=befehl-abc'));
+      expect(link).toHaveAttribute('href', expect.stringContaining('befehl-abc'));
     });
 
     it('should NOT show Befehl link when einsatzId is not provided', () => {

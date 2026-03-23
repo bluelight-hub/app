@@ -180,6 +180,8 @@ export {
   BefehlQuittierenDialog,
   KorrekturBefehlDialog,
   BefehlsListeMitEingabe,
+  BefehlWorkspace,
+  BefehlWorkspaceSkeleton,
   BefehlStatusBadge,
   BefehlTabellenView,
   BefehleViewToggle,
@@ -189,6 +191,7 @@ export {
   KanbanSpalte,
   KritikalitaetBadge,
   KritischeBefehleCounter,
+  WeitergabeStatusListe,
   ZustellHaekchen,
   ZustellstatusAnzeige,
 } from './ui';

@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/infrastructure/database/prisma.module';
 import { PrismaEinsatzRepository } from './repositories/prisma-einsatz.repository';
+import { PrismaEinsatzRollenReadRepository } from './repositories/prisma-einsatz-rollen-read.repository';
 import { PrismaOutboxRepository } from '@/infrastructure/outbox/prisma-outbox.repository';
 import { EventSerializer } from '@/infrastructure/outbox/event-serializer';
-import { EINSATZ_REPOSITORY, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, EINSATZ_ROLLEN_READ_REPOSITORY, LOGGER, OUTBOX_REPOSITORY } from '@infrastructure/di-tokens';
 import { NestLoggerAdapter } from '../common/adapters/nest-logger.adapter';
 
 /**
@@ -67,10 +68,17 @@ import { NestLoggerAdapter } from '../common/adapters/nest-logger.adapter';
       provide: EINSATZ_REPOSITORY,
       useClass: PrismaEinsatzRepository,
     },
+
+    // Read-Only Rollen Repository (Story 4.3)
+    {
+      provide: EINSATZ_ROLLEN_READ_REPOSITORY,
+      useClass: PrismaEinsatzRollenReadRepository,
+    },
   ],
   exports: [
     // Export Interface Token for Application Layer injection
     EINSATZ_REPOSITORY,
+    EINSATZ_ROLLEN_READ_REPOSITORY,
     OUTBOX_REPOSITORY,
   ],
 })

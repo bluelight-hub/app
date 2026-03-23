@@ -338,11 +338,10 @@ describe('BefehleSeite - Loading State', () => {
   it('zeigt disabled Export-Button waehrend Permissions laden', () => {
     renderBefehleSeite();
 
-    // Waehrend isLoading sind canExport false
-    // => disabled Export-Button wird gerendert
-    const exportButton = screen.getByRole('button', { name: /befehle exportieren/i });
+    const loadingButtons = screen.getAllByRole('button', { name: /berechtigungen werden geladen/i });
+    const exportButton = loadingButtons.find((b) => b.textContent?.includes('Export'));
+    expect(exportButton).toBeDefined();
     expect(exportButton).toBeDisabled();
-    expect(exportButton).toHaveAttribute('aria-disabled', 'true');
   });
 });
 

@@ -43,6 +43,7 @@ import { Route as AdminIntegrationsHiorgRouteImport } from './routes/admin/integ
 import { Route as AppEinsatzEinsatzIdIndexRouteImport } from './routes/app/einsatz/$einsatzId/index'
 import { Route as AppEinsatzEinsatzIdChar220bersichtIndexRouteImport } from './routes/app/einsatz/$einsatzId/übersicht/index'
 import { Route as AppEinsatzEinsatzIdPatientenIndexRouteImport } from './routes/app/einsatz/$einsatzId/patienten/index'
+import { Route as AppEinsatzEinsatzIdBefehlIndexRouteImport } from './routes/app/einsatz/$einsatzId/befehl/index'
 import { Route as AppEinsatzEinsatzIdChar220bersichtStatistikRouteImport } from './routes/app/einsatz/$einsatzId/übersicht/statistik'
 import { Route as AppEinsatzEinsatzIdChar220bersichtKarteRouteImport } from './routes/app/einsatz/$einsatzId/übersicht/karte'
 import { Route as AppEinsatzEinsatzIdSicherheitHygieneRouteImport } from './routes/app/einsatz/$einsatzId/sicherheit/hygiene'
@@ -73,6 +74,7 @@ import { Route as AppEinsatzEinsatzIdDrohneLiveFeedRouteImport } from './routes/
 import { Route as AppEinsatzEinsatzIdBetreuungVerpflegungRouteImport } from './routes/app/einsatz/$einsatzId/betreuung/verpflegung'
 import { Route as AppEinsatzEinsatzIdBetreuungUnterkunftRouteImport } from './routes/app/einsatz/$einsatzId/betreuung/unterkunft'
 import { Route as AppEinsatzEinsatzIdBetreuungBetroffeneRouteImport } from './routes/app/einsatz/$einsatzId/betreuung/betroffene'
+import { Route as AppEinsatzEinsatzIdBefehlBefehlIdRouteImport } from './routes/app/einsatz/$einsatzId/befehl/$befehlId'
 import { Route as AppEinsatzEinsatzIdFChar252hrungEtbIndexRouteImport } from './routes/app/einsatz/$einsatzId/führung/etb/index'
 
 const AuthRoute = AuthRouteImport.update({
@@ -255,6 +257,12 @@ const AppEinsatzEinsatzIdPatientenIndexRoute =
     path: '/patienten/',
     getParentRoute: () => AppEinsatzEinsatzIdRoute,
   } as any)
+const AppEinsatzEinsatzIdBefehlIndexRoute =
+  AppEinsatzEinsatzIdBefehlIndexRouteImport.update({
+    id: '/befehl/',
+    path: '/befehl/',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
 const AppEinsatzEinsatzIdChar220bersichtStatistikRoute =
   AppEinsatzEinsatzIdChar220bersichtStatistikRouteImport.update({
     id: '/übersicht/statistik',
@@ -435,6 +443,12 @@ const AppEinsatzEinsatzIdBetreuungBetroffeneRoute =
     path: '/betreuung/betroffene',
     getParentRoute: () => AppEinsatzEinsatzIdRoute,
   } as any)
+const AppEinsatzEinsatzIdBefehlBefehlIdRoute =
+  AppEinsatzEinsatzIdBefehlBefehlIdRouteImport.update({
+    id: '/befehl/$befehlId',
+    path: '/befehl/$befehlId',
+    getParentRoute: () => AppEinsatzEinsatzIdRoute,
+  } as any)
 const AppEinsatzEinsatzIdFChar252hrungEtbIndexRoute =
   AppEinsatzEinsatzIdFChar252hrungEtbIndexRouteImport.update({
     id: '/',
@@ -475,6 +489,7 @@ export interface FileRoutesByFullPath {
   '/app/einsatz/$einsatzId': typeof AppEinsatzEinsatzIdRouteWithChildren
   '/app/einsaetze/': typeof AppEinsaetzeIndexRoute
   '/app/einsatz/$einsatzId/': typeof AppEinsatzEinsatzIdIndexRoute
+  '/app/einsatz/$einsatzId/befehl/$befehlId': typeof AppEinsatzEinsatzIdBefehlBefehlIdRoute
   '/app/einsatz/$einsatzId/betreuung/betroffene': typeof AppEinsatzEinsatzIdBetreuungBetroffeneRoute
   '/app/einsatz/$einsatzId/betreuung/unterkunft': typeof AppEinsatzEinsatzIdBetreuungUnterkunftRoute
   '/app/einsatz/$einsatzId/betreuung/verpflegung': typeof AppEinsatzEinsatzIdBetreuungVerpflegungRoute
@@ -505,6 +520,7 @@ export interface FileRoutesByFullPath {
   '/app/einsatz/$einsatzId/sicherheit/hygiene': typeof AppEinsatzEinsatzIdSicherheitHygieneRoute
   '/app/einsatz/$einsatzId/übersicht/karte': typeof AppEinsatzEinsatzIdChar220bersichtKarteRoute
   '/app/einsatz/$einsatzId/übersicht/statistik': typeof AppEinsatzEinsatzIdChar220bersichtStatistikRoute
+  '/app/einsatz/$einsatzId/befehl/': typeof AppEinsatzEinsatzIdBefehlIndexRoute
   '/app/einsatz/$einsatzId/patienten/': typeof AppEinsatzEinsatzIdPatientenIndexRoute
   '/app/einsatz/$einsatzId/übersicht/': typeof AppEinsatzEinsatzIdChar220bersichtIndexRoute
   '/app/einsatz/$einsatzId/führung/etb/': typeof AppEinsatzEinsatzIdFChar252hrungEtbIndexRoute
@@ -539,6 +555,7 @@ export interface FileRoutesByTo {
   '/app/einsaetze/monitoring': typeof AppEinsaetzeMonitoringRoute
   '/app/einsaetze': typeof AppEinsaetzeIndexRoute
   '/app/einsatz/$einsatzId': typeof AppEinsatzEinsatzIdIndexRoute
+  '/app/einsatz/$einsatzId/befehl/$befehlId': typeof AppEinsatzEinsatzIdBefehlBefehlIdRoute
   '/app/einsatz/$einsatzId/betreuung/betroffene': typeof AppEinsatzEinsatzIdBetreuungBetroffeneRoute
   '/app/einsatz/$einsatzId/betreuung/unterkunft': typeof AppEinsatzEinsatzIdBetreuungUnterkunftRoute
   '/app/einsatz/$einsatzId/betreuung/verpflegung': typeof AppEinsatzEinsatzIdBetreuungVerpflegungRoute
@@ -568,6 +585,7 @@ export interface FileRoutesByTo {
   '/app/einsatz/$einsatzId/sicherheit/hygiene': typeof AppEinsatzEinsatzIdSicherheitHygieneRoute
   '/app/einsatz/$einsatzId/übersicht/karte': typeof AppEinsatzEinsatzIdChar220bersichtKarteRoute
   '/app/einsatz/$einsatzId/übersicht/statistik': typeof AppEinsatzEinsatzIdChar220bersichtStatistikRoute
+  '/app/einsatz/$einsatzId/befehl': typeof AppEinsatzEinsatzIdBefehlIndexRoute
   '/app/einsatz/$einsatzId/patienten': typeof AppEinsatzEinsatzIdPatientenIndexRoute
   '/app/einsatz/$einsatzId/übersicht': typeof AppEinsatzEinsatzIdChar220bersichtIndexRoute
   '/app/einsatz/$einsatzId/führung/etb': typeof AppEinsatzEinsatzIdFChar252hrungEtbIndexRoute
@@ -606,6 +624,7 @@ export interface FileRoutesById {
   '/app/einsatz/$einsatzId': typeof AppEinsatzEinsatzIdRouteWithChildren
   '/app/einsaetze/': typeof AppEinsaetzeIndexRoute
   '/app/einsatz/$einsatzId/': typeof AppEinsatzEinsatzIdIndexRoute
+  '/app/einsatz/$einsatzId/befehl/$befehlId': typeof AppEinsatzEinsatzIdBefehlBefehlIdRoute
   '/app/einsatz/$einsatzId/betreuung/betroffene': typeof AppEinsatzEinsatzIdBetreuungBetroffeneRoute
   '/app/einsatz/$einsatzId/betreuung/unterkunft': typeof AppEinsatzEinsatzIdBetreuungUnterkunftRoute
   '/app/einsatz/$einsatzId/betreuung/verpflegung': typeof AppEinsatzEinsatzIdBetreuungVerpflegungRoute
@@ -636,6 +655,7 @@ export interface FileRoutesById {
   '/app/einsatz/$einsatzId/sicherheit/hygiene': typeof AppEinsatzEinsatzIdSicherheitHygieneRoute
   '/app/einsatz/$einsatzId/übersicht/karte': typeof AppEinsatzEinsatzIdChar220bersichtKarteRoute
   '/app/einsatz/$einsatzId/übersicht/statistik': typeof AppEinsatzEinsatzIdChar220bersichtStatistikRoute
+  '/app/einsatz/$einsatzId/befehl/': typeof AppEinsatzEinsatzIdBefehlIndexRoute
   '/app/einsatz/$einsatzId/patienten/': typeof AppEinsatzEinsatzIdPatientenIndexRoute
   '/app/einsatz/$einsatzId/übersicht/': typeof AppEinsatzEinsatzIdChar220bersichtIndexRoute
   '/app/einsatz/$einsatzId/führung/etb/': typeof AppEinsatzEinsatzIdFChar252hrungEtbIndexRoute
@@ -675,6 +695,7 @@ export interface FileRouteTypes {
     | '/app/einsatz/$einsatzId'
     | '/app/einsaetze/'
     | '/app/einsatz/$einsatzId/'
+    | '/app/einsatz/$einsatzId/befehl/$befehlId'
     | '/app/einsatz/$einsatzId/betreuung/betroffene'
     | '/app/einsatz/$einsatzId/betreuung/unterkunft'
     | '/app/einsatz/$einsatzId/betreuung/verpflegung'
@@ -705,6 +726,7 @@ export interface FileRouteTypes {
     | '/app/einsatz/$einsatzId/sicherheit/hygiene'
     | '/app/einsatz/$einsatzId/übersicht/karte'
     | '/app/einsatz/$einsatzId/übersicht/statistik'
+    | '/app/einsatz/$einsatzId/befehl/'
     | '/app/einsatz/$einsatzId/patienten/'
     | '/app/einsatz/$einsatzId/übersicht/'
     | '/app/einsatz/$einsatzId/führung/etb/'
@@ -739,6 +761,7 @@ export interface FileRouteTypes {
     | '/app/einsaetze/monitoring'
     | '/app/einsaetze'
     | '/app/einsatz/$einsatzId'
+    | '/app/einsatz/$einsatzId/befehl/$befehlId'
     | '/app/einsatz/$einsatzId/betreuung/betroffene'
     | '/app/einsatz/$einsatzId/betreuung/unterkunft'
     | '/app/einsatz/$einsatzId/betreuung/verpflegung'
@@ -768,6 +791,7 @@ export interface FileRouteTypes {
     | '/app/einsatz/$einsatzId/sicherheit/hygiene'
     | '/app/einsatz/$einsatzId/übersicht/karte'
     | '/app/einsatz/$einsatzId/übersicht/statistik'
+    | '/app/einsatz/$einsatzId/befehl'
     | '/app/einsatz/$einsatzId/patienten'
     | '/app/einsatz/$einsatzId/übersicht'
     | '/app/einsatz/$einsatzId/führung/etb'
@@ -805,6 +829,7 @@ export interface FileRouteTypes {
     | '/app/einsatz/$einsatzId'
     | '/app/einsaetze/'
     | '/app/einsatz/$einsatzId/'
+    | '/app/einsatz/$einsatzId/befehl/$befehlId'
     | '/app/einsatz/$einsatzId/betreuung/betroffene'
     | '/app/einsatz/$einsatzId/betreuung/unterkunft'
     | '/app/einsatz/$einsatzId/betreuung/verpflegung'
@@ -835,6 +860,7 @@ export interface FileRouteTypes {
     | '/app/einsatz/$einsatzId/sicherheit/hygiene'
     | '/app/einsatz/$einsatzId/übersicht/karte'
     | '/app/einsatz/$einsatzId/übersicht/statistik'
+    | '/app/einsatz/$einsatzId/befehl/'
     | '/app/einsatz/$einsatzId/patienten/'
     | '/app/einsatz/$einsatzId/übersicht/'
     | '/app/einsatz/$einsatzId/führung/etb/'
@@ -1091,6 +1117,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppEinsatzEinsatzIdPatientenIndexRouteImport
       parentRoute: typeof AppEinsatzEinsatzIdRoute
     }
+    '/app/einsatz/$einsatzId/befehl/': {
+      id: '/app/einsatz/$einsatzId/befehl/'
+      path: '/befehl'
+      fullPath: '/app/einsatz/$einsatzId/befehl/'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdBefehlIndexRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
     '/app/einsatz/$einsatzId/übersicht/statistik': {
       id: '/app/einsatz/$einsatzId/übersicht/statistik'
       path: '/übersicht/statistik'
@@ -1301,6 +1334,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppEinsatzEinsatzIdBetreuungBetroffeneRouteImport
       parentRoute: typeof AppEinsatzEinsatzIdRoute
     }
+    '/app/einsatz/$einsatzId/befehl/$befehlId': {
+      id: '/app/einsatz/$einsatzId/befehl/$befehlId'
+      path: '/befehl/$befehlId'
+      fullPath: '/app/einsatz/$einsatzId/befehl/$befehlId'
+      preLoaderRoute: typeof AppEinsatzEinsatzIdBefehlBefehlIdRouteImport
+      parentRoute: typeof AppEinsatzEinsatzIdRoute
+    }
     '/app/einsatz/$einsatzId/führung/etb/': {
       id: '/app/einsatz/$einsatzId/führung/etb/'
       path: '/'
@@ -1384,6 +1424,7 @@ const AppEinsatzEinsatzIdFChar252hrungEtbRouteWithChildren =
 
 interface AppEinsatzEinsatzIdRouteChildren {
   AppEinsatzEinsatzIdIndexRoute: typeof AppEinsatzEinsatzIdIndexRoute
+  AppEinsatzEinsatzIdBefehlBefehlIdRoute: typeof AppEinsatzEinsatzIdBefehlBefehlIdRoute
   AppEinsatzEinsatzIdBetreuungBetroffeneRoute: typeof AppEinsatzEinsatzIdBetreuungBetroffeneRoute
   AppEinsatzEinsatzIdBetreuungUnterkunftRoute: typeof AppEinsatzEinsatzIdBetreuungUnterkunftRoute
   AppEinsatzEinsatzIdBetreuungVerpflegungRoute: typeof AppEinsatzEinsatzIdBetreuungVerpflegungRoute
@@ -1414,12 +1455,15 @@ interface AppEinsatzEinsatzIdRouteChildren {
   AppEinsatzEinsatzIdSicherheitHygieneRoute: typeof AppEinsatzEinsatzIdSicherheitHygieneRoute
   AppEinsatzEinsatzIdChar220bersichtKarteRoute: typeof AppEinsatzEinsatzIdChar220bersichtKarteRoute
   AppEinsatzEinsatzIdChar220bersichtStatistikRoute: typeof AppEinsatzEinsatzIdChar220bersichtStatistikRoute
+  AppEinsatzEinsatzIdBefehlIndexRoute: typeof AppEinsatzEinsatzIdBefehlIndexRoute
   AppEinsatzEinsatzIdPatientenIndexRoute: typeof AppEinsatzEinsatzIdPatientenIndexRoute
   AppEinsatzEinsatzIdChar220bersichtIndexRoute: typeof AppEinsatzEinsatzIdChar220bersichtIndexRoute
 }
 
 const AppEinsatzEinsatzIdRouteChildren: AppEinsatzEinsatzIdRouteChildren = {
   AppEinsatzEinsatzIdIndexRoute: AppEinsatzEinsatzIdIndexRoute,
+  AppEinsatzEinsatzIdBefehlBefehlIdRoute:
+    AppEinsatzEinsatzIdBefehlBefehlIdRoute,
   AppEinsatzEinsatzIdBetreuungBetroffeneRoute:
     AppEinsatzEinsatzIdBetreuungBetroffeneRoute,
   AppEinsatzEinsatzIdBetreuungUnterkunftRoute:
@@ -1480,6 +1524,7 @@ const AppEinsatzEinsatzIdRouteChildren: AppEinsatzEinsatzIdRouteChildren = {
     AppEinsatzEinsatzIdChar220bersichtKarteRoute,
   AppEinsatzEinsatzIdChar220bersichtStatistikRoute:
     AppEinsatzEinsatzIdChar220bersichtStatistikRoute,
+  AppEinsatzEinsatzIdBefehlIndexRoute: AppEinsatzEinsatzIdBefehlIndexRoute,
   AppEinsatzEinsatzIdPatientenIndexRoute:
     AppEinsatzEinsatzIdPatientenIndexRoute,
   AppEinsatzEinsatzIdChar220bersichtIndexRoute:

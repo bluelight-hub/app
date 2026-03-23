@@ -70,52 +70,37 @@ describe('BefehlDetailPanel RBAC (Story 5.4 AC2)', () => {
 
   it('zeigt Korrektur-Button aktiv fuer BEFEHLSGEBER', () => {
     const befehl = createBefehl(baseBefehlProps);
-    renderWithProviders(<BefehlDetailPanel befehl={befehl} isOpen={true} onClose={vi.fn()} einsatzId="einsatz-1" />);
+    renderWithProviders(<BefehlDetailPanel befehl={befehl} isOpen={true} onClose={vi.fn()} einsatzId="einsatz-1" canKorrigieren={true} isBeobachter={false} />);
 
     const korrekturButton = screen.getByRole('button', { name: /korrektur/i });
     expect(korrekturButton).not.toBeDisabled();
   });
 
   it('zeigt Korrektur-Button disabled fuer EMPFAENGER', () => {
-    Object.assign(mockPermissions, {
-      canCreate: false,
-      canKorrigieren: false,
-      canExport: false,
-
-      rolle: 'EMPFAENGER',
-    });
-
     const befehl = createBefehl(baseBefehlProps);
-    renderWithProviders(<BefehlDetailPanel befehl={befehl} isOpen={true} onClose={vi.fn()} einsatzId="einsatz-1" />);
+    renderWithProviders(<BefehlDetailPanel befehl={befehl} isOpen={true} onClose={vi.fn()} einsatzId="einsatz-1" canKorrigieren={false} isBeobachter={false} />);
 
     const korrekturButton = screen.getByRole('button', { name: /korrektur/i });
     expect(korrekturButton).toBeDisabled();
   });
 
   it('zeigt Tooltip bei disabled Korrektur-Button', () => {
-    Object.assign(mockPermissions, {
-      canKorrigieren: false,
-      rolle: 'BEOBACHTER',
-    });
-
     const befehl = createBefehl(baseBefehlProps);
-    renderWithProviders(<BefehlDetailPanel befehl={befehl} isOpen={true} onClose={vi.fn()} einsatzId="einsatz-1" />);
+    renderWithProviders(<BefehlDetailPanel befehl={befehl} isOpen={true} onClose={vi.fn()} einsatzId="einsatz-1" canKorrigieren={false} isBeobachter={false} />);
 
     expect(screen.getByText(/nur ersteller\/befehlsgeber/i)).toBeInTheDocument();
   });
 
   it('zeigt keinen Korrektur-Button bei status=KORRIGIERT', () => {
     const befehl = createBefehl({ ...baseBefehlProps, status: 'KORRIGIERT' });
-    renderWithProviders(<BefehlDetailPanel befehl={befehl} isOpen={true} onClose={vi.fn()} einsatzId="einsatz-1" />);
+    renderWithProviders(<BefehlDetailPanel befehl={befehl} isOpen={true} onClose={vi.fn()} einsatzId="einsatz-1" canKorrigieren={true} isBeobachter={false} />);
 
     expect(screen.queryByRole('button', { name: /korrektur/i })).not.toBeInTheDocument();
   });
 
   it('Korrektur-Button aktiv fuer ERSTELLER', () => {
-    Object.assign(mockPermissions, { rolle: 'ERSTELLER', canKorrigieren: true });
-
     const befehl = createBefehl(baseBefehlProps);
-    renderWithProviders(<BefehlDetailPanel befehl={befehl} isOpen={true} onClose={vi.fn()} einsatzId="einsatz-1" />);
+    renderWithProviders(<BefehlDetailPanel befehl={befehl} isOpen={true} onClose={vi.fn()} einsatzId="einsatz-1" canKorrigieren={true} isBeobachter={false} />);
 
     const korrekturButton = screen.getByRole('button', { name: /korrektur/i });
     expect(korrekturButton).not.toBeDisabled();

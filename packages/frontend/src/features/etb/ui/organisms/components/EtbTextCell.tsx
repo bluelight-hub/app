@@ -95,9 +95,8 @@ export function EtbTextCell({ entry, isDeleted, einsatzId }: EtbTextCellProps) {
       {/* Story 4.3: Befehl-Link wenn metadata.befehlId vorhanden */}
       {linkedBefehlId && einsatzId && (
         <Link
-          to="/app/einsatz/$einsatzId/führung/befehle"
-          params={{ einsatzId }}
-          search={{ befehlId: linkedBefehlId }}
+          to="/app/einsatz/$einsatzId/befehl/$befehlId"
+          params={{ einsatzId, befehlId: linkedBefehlId }}
           title={`Befehl ${linkedBefehlId} anzeigen`}
           aria-label={`Befehl ${linkedBefehlId} anzeigen`}
           className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-purple-100 px-2.5 py-1 font-medium text-purple-800 text-xs transition-colors hover:bg-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-1 dark:bg-purple-900/30 dark:text-purple-300 dark:focus:ring-offset-gray-800 dark:hover:bg-purple-900/50"
