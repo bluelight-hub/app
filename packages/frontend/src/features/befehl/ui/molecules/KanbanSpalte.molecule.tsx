@@ -72,7 +72,7 @@ export function KanbanSpalte({ config, befehle, einsatzId, className, onStatusCh
       <div className="flex flex-1 flex-col gap-2 overflow-y-auto p-2">
         {sortierteBefehle.length === 0 && <p className="py-4 text-center text-gray-400 text-sm dark:text-gray-500">Keine Befehle</p>}
         {sortierteBefehle.map(({ befehl, istKorrigiert }) => (
-          <div key={befehl.id} className={cn(istKorrigiert && 'opacity-60')}>
+          <div key={befehl.id} id={`befehl-row-${befehl.id}`} className={cn(istKorrigiert && 'opacity-60')}>
             <BefehlKarte
               nummer={befehl.nummer}
               auftrag={befehl.auftrag}

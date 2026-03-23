@@ -214,6 +214,11 @@ vi.mock('../BefehlKanbanView.organism', () => ({
   ),
 }));
 
+// --- scrollIntoView Stub (jsdom implementiert scrollIntoView nicht) ---
+beforeEach(() => {
+  Element.prototype.scrollIntoView = vi.fn();
+});
+
 // --- Hilfsfunktionen ---
 
 function createQueryClient() {
