@@ -474,7 +474,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
             {/* Mobile: Compact Card Liste (immer, unabhängig vom View-Toggle) */}
             <ul className="flex flex-col gap-2 p-3 md:hidden" aria-label="Befehlsliste">
               {aktiveBefehle?.map((befehl) => (
-                <li key={befehl.id} className="list-none">
+                <li key={befehl.id} id={`befehl-row-${befehl.id}`} className="list-none">
                   <BefehlCompactCard befehl={befehl} onClick={() => onSelectBefehl(befehl.id)} selected={selectedBefehlId === befehl.id} />
                 </li>
               ))}

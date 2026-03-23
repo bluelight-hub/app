@@ -548,6 +548,48 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
         ],
         "type": "object",
       },
+      "BefehlPermissionsDto": {
+        "properties": {
+          "canCreate": {
+            "description": "Darf Befehle erstellen",
+            "type": "boolean",
+          },
+          "canExport": {
+            "description": "Darf Befehle exportieren",
+            "type": "boolean",
+          },
+          "canKorrigieren": {
+            "description": "Darf Befehle korrigieren",
+            "type": "boolean",
+          },
+          "canManageStatus": {
+            "description": "Darf Empfaenger-Status verwalten",
+            "type": "boolean",
+          },
+          "canQuittieren": {
+            "description": "Darf Befehle quittieren",
+            "type": "boolean",
+          },
+          "canViewAll": {
+            "description": "Darf alle Befehle einsehen",
+            "type": "boolean",
+          },
+          "isBeobachter": {
+            "description": "Ist nur Beobachter (read-only)",
+            "type": "boolean",
+          },
+        },
+        "required": [
+          "canCreate",
+          "canQuittieren",
+          "canKorrigieren",
+          "canManageStatus",
+          "canExport",
+          "canViewAll",
+          "isBeobachter",
+        ],
+        "type": "object",
+      },
       "BefehlsgeberSucheResultDto": {
         "properties": {
           "id": {
@@ -1636,6 +1678,37 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
           "einsatzId",
           "pois",
           "createdAt",
+        ],
+        "type": "object",
+      },
+      "MeineEinsatzRolleDto": {
+        "properties": {
+          "permissions": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BefehlPermissionsDto",
+              },
+            ],
+            "description": "Abgeleitete Berechtigungen basierend auf der Rolle",
+          },
+          "rolle": {
+            "description": "Zugewiesene Rolle im Einsatz (null wenn keine)",
+            "enum": [
+              "BEFEHLSGEBER",
+              "ERSTELLER",
+              "EMPFAENGER",
+              "BEOBACHTER",
+              "ADMIN",
+              "SUPER_ADMIN",
+            ],
+            "example": "BEFEHLSGEBER",
+            "nullable": true,
+            "type": "string",
+          },
+        },
+        "required": [
+          "rolle",
+          "permissions",
         ],
         "type": "object",
       },
@@ -4524,6 +4597,84 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
         ],
       },
     },
+    "/api/v-1/einsatz/{id}/meine-rolle": {
+      "get": {
+        "description": "Gibt die eigene Rollenzuweisung und abgeleitete Befehl-Berechtigungen zurueck.",
+        "operationId": "EinsatzController_getMeineRolle_v-1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/MeineEinsatzRolleDto",
+                    },
+                    "meta": {
+                      "properties": {
+                        "requestId": {
+                          "example": "abc123xyz",
+                          "type": "string",
+                        },
+                        "timestamp": {
+                          "example": "2025-08-29T14:00:00.000Z",
+                          "format": "date-time",
+                          "type": "string",
+                        },
+                        "version": {
+                          "example": "alpha",
+                          "type": "string",
+                        },
+                      },
+                      "required": [
+                        "timestamp",
+                        "version",
+                        "requestId",
+                      ],
+                      "type": "object",
+                    },
+                  },
+                  "required": [
+                    "data",
+                    "meta",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Aktuelle Rolle und Permissions im Einsatz",
+          },
+          "400": {
+            "description": "Ungueltige Einsatz-ID",
+          },
+          "401": {
+            "description": "Nicht authentifiziert - JWT Token fehlt oder ungültig",
+          },
+          "403": {
+            "description": "Keine Berechtigung für diese Aktion",
+          },
+        },
+        "security": [
+          {
+            "bearer": [],
+          },
+        ],
+        "summary": "Eigene Rolle im Einsatz abrufen",
+        "tags": [
+          "Einsatz",
+        ],
+      },
+    },
     "/api/v-1/einsatz/{id}/navigation/next": {
       "get": {
         "description": "Gibt die ID des nächsten Einsatzes basierend auf createdAt zurück.",
@@ -7055,6 +7206,84 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
           },
         ],
         "summary": "Einsatz mit ETB und Lagekarte abrufen (kombiniert)",
+        "tags": [
+          "Einsatz",
+        ],
+      },
+    },
+    "/api/v-alpha/einsatz/{id}/meine-rolle": {
+      "get": {
+        "description": "Gibt die eigene Rollenzuweisung und abgeleitete Befehl-Berechtigungen zurueck.",
+        "operationId": "EinsatzController_getMeineRolle_v-alpha",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/MeineEinsatzRolleDto",
+                    },
+                    "meta": {
+                      "properties": {
+                        "requestId": {
+                          "example": "abc123xyz",
+                          "type": "string",
+                        },
+                        "timestamp": {
+                          "example": "2025-08-29T14:00:00.000Z",
+                          "format": "date-time",
+                          "type": "string",
+                        },
+                        "version": {
+                          "example": "alpha",
+                          "type": "string",
+                        },
+                      },
+                      "required": [
+                        "timestamp",
+                        "version",
+                        "requestId",
+                      ],
+                      "type": "object",
+                    },
+                  },
+                  "required": [
+                    "data",
+                    "meta",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Aktuelle Rolle und Permissions im Einsatz",
+          },
+          "400": {
+            "description": "Ungueltige Einsatz-ID",
+          },
+          "401": {
+            "description": "Nicht authentifiziert - JWT Token fehlt oder ungültig",
+          },
+          "403": {
+            "description": "Keine Berechtigung für diese Aktion",
+          },
+        },
+        "security": [
+          {
+            "bearer": [],
+          },
+        ],
+        "summary": "Eigene Rolle im Einsatz abrufen",
         "tags": [
           "Einsatz",
         ],

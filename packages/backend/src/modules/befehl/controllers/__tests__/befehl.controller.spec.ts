@@ -731,6 +731,95 @@ describe('BefehlController (Integration Tests - AC10)', () => {
       expect(mockBefehlRepository.findByEinsatzId).toHaveBeenCalledTimes(1);
       expect(mockBefehlRepository.findFiltered).not.toHaveBeenCalled();
     });
+
+    // --- Security: EMPFAENGER-Scoping (P1 Fix) ---
+
+    it('sollte EMPFAENGER nur eigene Befehle zeigen bei hasOpenRueckfragen=true (Security P1)', async () => {
+      // Given - Befehl mit empfaengerId des callers + Befehl eines anderen Users
+      const callerUserId = 'ek9036b7w8y4fgdy690iht0l';
+      const otherUserId = 'dl4oknufqgqzf8sngfjj3r97';
+
+      const eigenerBefehl = Befehl.create({
+        einsatzId: EinsatzId.create('cm5einsatzid123').value as EinsatzId,
+        empfaenger: [{ name: 'ZF Meier', empfaengerId: UserId.create(callerUserId).value as UserId }],
+        befehlsgeber: 'EL Mueller',
+        erstellerId: UserId.create('ersteller1').value as UserId,
+        auftrag: 'Eigener Befehl',
+        nummer: 'B-001',
+      }).value as Befehl;
+
+      const fremderBefehl = Befehl.create({
+        einsatzId: EinsatzId.create('cm5einsatzid123').value as EinsatzId,
+        empfaenger: [{ name: 'GF Schmidt', empfaengerId: UserId.create(otherUserId).value as UserId }],
+        befehlsgeber: 'EL Mueller',
+        erstellerId: UserId.create('ersteller1').value as UserId,
+        auftrag: 'Fremder Befehl',
+        nummer: 'B-002',
+      }).value as Befehl;
+
+      // Repository liefert ALLE Befehle mit offenen Rückfragen
+      mockBefehlRepository.findWithOpenRueckfragen.mockResolvedValue(Result.ok([eigenerBefehl, fremderBefehl]));
+
+      const empfaengerReq = { einsatzRolle: 'EMPFAENGER', user: { userId: callerUserId } };
+
+      // When
+      const result = await controller.findByEinsatz('cm5einsatzid123', undefined, 'true', undefined, undefined, undefined, undefined, undefined, undefined, empfaengerReq);
+
+      // Then - Nur eigener Befehl sichtbar
+      expect(result).toHaveLength(1);
+      expect(result[0]?.auftrag).toBe('Eigener Befehl');
+      expect(mockBefehlRepository.findWithOpenRueckfragen).toHaveBeenCalledTimes(1);
+    });
+
+    it('sollte EMPFAENGER fremde empfaengerId mit eigener userId ueberschreiben (Security P1)', async () => {
+      // Given - EMPFAENGER versucht mit fremder empfaengerId abzufragen
+      const callerUserId = 'ek9036b7w8y4fgdy690iht0l';
+      const mockBefehl = createMockBefehl();
+      mockBefehlRepository.findByEmpfaengerId.mockResolvedValue(Result.ok([mockBefehl]));
+
+      const empfaengerReq = { einsatzRolle: 'EMPFAENGER', user: { userId: callerUserId } };
+
+      // When - EMPFAENGER gibt fremde empfaengerId an
+      await controller.findByEinsatz('cm5einsatzid123', 'dl4oknufqgqzf8sngfjj3r97', undefined, undefined, undefined, undefined, undefined, undefined, undefined, empfaengerReq);
+
+      // Then - Repository wird mit eigener userId aufgerufen, NICHT mit der fremden
+      expect(mockBefehlRepository.findByEmpfaengerId).toHaveBeenCalledTimes(1);
+      const calledArgs = mockBefehlRepository.findByEmpfaengerId.mock.calls[0];
+      expect(calledArgs[1]).toBe(callerUserId); // Eigene userId statt fremder
+    });
+
+    it('sollte EMPFAENGER ohne Filter weiterhin nur eigene Befehle per findByEmpfaengerId laden (Security P1)', async () => {
+      // Given
+      const callerUserId = 'ek9036b7w8y4fgdy690iht0l';
+      const mockBefehl = createMockBefehl();
+      mockBefehlRepository.findByEmpfaengerId.mockResolvedValue(Result.ok([mockBefehl]));
+
+      const empfaengerReq = { einsatzRolle: 'EMPFAENGER', user: { userId: callerUserId } };
+
+      // When - Kein empfaengerId, kein hasOpenRueckfragen
+      await controller.findByEinsatz('cm5einsatzid123', undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, empfaengerReq);
+
+      // Then - Automatisch eigene userId verwendet
+      expect(mockBefehlRepository.findByEmpfaengerId).toHaveBeenCalledTimes(1);
+      const calledArgs = mockBefehlRepository.findByEmpfaengerId.mock.calls[0];
+      expect(calledArgs[1]).toBe(callerUserId);
+      expect(mockBefehlRepository.findByEinsatzId).not.toHaveBeenCalled();
+    });
+
+    it('sollte nicht-EMPFAENGER Rollen weiterhin alle Befehle sehen bei hasOpenRueckfragen=true', async () => {
+      // Given - BEFEHLSGEBER fragt offene Rückfragen ab
+      const mockBefehl = createMockBefehl();
+      mockBefehlRepository.findWithOpenRueckfragen.mockResolvedValue(Result.ok([mockBefehl]));
+
+      const befehlsgeberReq = { einsatzRolle: 'BEFEHLSGEBER', user: { userId: 'ek9036b7w8y4fgdy690iht0l' } };
+
+      // When
+      const result = await controller.findByEinsatz('cm5einsatzid123', undefined, 'true', undefined, undefined, undefined, undefined, undefined, undefined, befehlsgeberReq);
+
+      // Then - Keine Filterung, alle Rückfragen sichtbar
+      expect(result).toHaveLength(1);
+      expect(mockBefehlRepository.findWithOpenRueckfragen).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('getHistorie() - GET /api/api/v-alpha/befehle/:id/historie (Story 4.2)', () => {

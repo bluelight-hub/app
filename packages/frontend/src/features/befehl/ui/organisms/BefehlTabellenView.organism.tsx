@@ -156,6 +156,7 @@ export function BefehlTabellenView({ einsatzId, befehle: externalBefehle, classN
           {table.getRowModel().rows.map((row) => (
             <Table.Row
               key={row.id}
+              id={`befehl-row-${row.original.id}`}
               onClick={() => onBefehlSelect?.(row.original.id)}
               className={cn(
                 onBefehlSelect && 'cursor-pointer',

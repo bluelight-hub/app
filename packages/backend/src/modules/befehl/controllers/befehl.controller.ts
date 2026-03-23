@@ -55,7 +55,7 @@ import type { Response } from 'express';
 import type { Befehl } from '@domain/aggregates/befehl.aggregate';
 import type { BefehlEmpfaenger } from '@domain/entities/befehl-empfaenger.entity';
 import type { BefehlKommentar } from '@domain/entities/befehl-kommentar.entity';
-import type { Result } from '@domain/common/result';
+import { Result } from '@domain/common/result';
 
 /**
  * Controller fuer Befehlsverwaltung.
@@ -528,14 +528,18 @@ export class BefehlController {
       result = await this.befehlRepository.findFiltered(einsatzIdVo, filters);
     } else {
       const hasOpenRueckfragenBool = hasOpenRueckfragen?.toLowerCase() === 'true';
-      const trimmedEmpfaengerId = empfaengerId?.trim() || undefined;
+      // Security: EMPFAENGER darf nur eigene Befehle sehen - fremde empfaengerId wird überschrieben
+      const trimmedEmpfaengerId = isEmpfaenger && req?.user ? req.user.userId : empfaengerId?.trim() || undefined;
 
       if (hasOpenRueckfragenBool) {
         result = await this.befehlRepository.findWithOpenRueckfragen(einsatzIdVo);
+        // Security: EMPFAENGER sieht nur eigene Befehle mit offenen Rückfragen
+        if (isEmpfaenger && req?.user && result.isSuccess && result.value) {
+          const filtered = result.value.filter((b) => b.empfaenger.some((e) => e.empfaengerId?.value === req.user!.userId));
+          result = Result.ok(filtered);
+        }
       } else if (trimmedEmpfaengerId) {
         result = await this.befehlRepository.findByEmpfaengerId(einsatzIdVo, trimmedEmpfaengerId);
-      } else if (isEmpfaenger && req.user) {
-        result = await this.befehlRepository.findByEmpfaengerId(einsatzIdVo, req.user.userId);
       } else {
         result = await this.befehlRepository.findByEinsatzId(einsatzIdVo);
       }
