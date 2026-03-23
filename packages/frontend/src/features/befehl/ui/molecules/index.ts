@@ -11,3 +11,4 @@ export { KanbanSpalte, type KanbanSpalteConfig } from './KanbanSpalte.molecule';
 export { KritischeBefehleCounter } from './KritischeBefehleCounter.molecule';
 export { ZustellstatusAnzeige } from './ZustellstatusAnzeige.molecule';
 export { IntegrationStatusBanner } from './IntegrationStatusBanner.molecule';
+export { WeitergabeStatusListe } from './WeitergabeStatusListe.molecule';

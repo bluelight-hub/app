@@ -102,7 +102,17 @@ export function BefehlTabellenView({ einsatzId, befehle: externalBefehle, classN
             ))}
           </Table.Row>
         </Table.Header>
-        <Table.Skeleton rows={10} columns={7} />
+        <Table.Body>
+          {Array.from({ length: 10 }).map((_, rowIndex) => (
+            <Table.Row key={`skeleton-row-${rowIndex}`}>
+              {Array.from({ length: 7 }).map((__, colIndex) => (
+                <Table.Cell key={`skeleton-cell-${rowIndex}-${colIndex}`}>
+                  <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                </Table.Cell>
+              ))}
+            </Table.Row>
+          ))}
+        </Table.Body>
       </Table.Root>
     );
   }

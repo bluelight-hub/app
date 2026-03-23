@@ -32,5 +32,8 @@ export { GetEinsatzTeilnehmerQuery, GetEinsatzTeilnehmerHandler } from './get-ei
 // GetEinsatzRollen (Story 5.2: Rollenzuweisungen)
 export { GetEinsatzRollenQuery, GetEinsatzRollenQueryHandler } from './get-einsatz-rollen';
 
+// GetMeineEinsatzRolle (Story 4.2: Eigene Rolle + Permissions)
+export { GetMeineEinsatzRolleQuery, GetMeineEinsatzRolleQueryHandler } from './get-meine-einsatz-rolle';
+
 // CanMutateEinsatz (Security: Ownership/Membership für Mutationen)
 export { CanMutateEinsatzQuery, CanMutateEinsatzQueryHandler } from './can-mutate-einsatz';

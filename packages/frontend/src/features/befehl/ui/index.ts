@@ -13,6 +13,7 @@ export {
   IntegrationStatusBanner,
   KanbanSpalte,
   KritischeBefehleCounter,
+  WeitergabeStatusListe,
   ZustellstatusAnzeige,
 } from './molecules';
 export type { EmpfaengerSelection, KanbanSpalteConfig } from './molecules';
@@ -26,4 +27,6 @@ export {
   BefehlQuittierenDialog,
   KorrekturBefehlDialog,
   BefehlsListeMitEingabe,
+  BefehlWorkspace,
+  BefehlWorkspaceSkeleton,
 } from './organisms';

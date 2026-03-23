@@ -1,3 +1,4 @@
+import { isCuid } from '@paralleldrive/cuid2';
 import { ArchiveEinsatzCommand, CompleteEinsatzCommand, CreateEinsatzCommand, StartEinsatzCommand, UpdateEinsatzCommand, UpdateEinsatzRollenCommand } from '@/application/einsatz/commands';
 import { UpdateEinsatzRollenHandler } from '@/application/einsatz/commands';
 import { Result } from '@domain/common/result';
@@ -17,6 +18,7 @@ import {
   UpdateEinsatzDto,
   EinsatzRolleDto,
   UpdateEinsatzRollenDto,
+  MeineEinsatzRolleDto,
 } from '@/application/einsatz/dto';
 import {
   GetActiveEinsaetzeWithCountsQuery,
@@ -31,6 +33,7 @@ import {
   GetEinsatzTeilnehmerHandler,
   GetEinsatzRollenQuery,
   GetEinsatzRollenQueryHandler,
+  GetMeineEinsatzRolleQuery,
   CanMutateEinsatzQuery,
 } from '@/application/einsatz/queries';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
@@ -160,6 +163,41 @@ export class EinsatzController {
     const result = await this.queryBus.execute(new GetStatusCountsQuery(query.includeArchived));
     if (result.isFailure) throw new BadRequestException(result.error ?? 'Fehler beim Abrufen der Status-Statistiken');
     if (!result.value) throw new InternalServerErrorException('Keine Status-Statistiken zurückgegeben');
+    return result.value;
+  }
+
+  /**
+   * Gibt die eigene Rollenzuweisung + Permissions im Einsatz zurueck.
+   *
+   * Story 4.3 AC1: GET /api/v-alpha/einsaetze/:id/meine-rolle
+   * Jeder authentifizierte User darf seine eigene Rolle abfragen.
+   */
+  @Get(':id/meine-rolle')
+  @Roles('USER', 'ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({
+    summary: 'Eigene Rolle im Einsatz abrufen',
+    description: 'Gibt die eigene Rollenzuweisung und abgeleitete Befehl-Berechtigungen zurueck.',
+  })
+  @ApiWrappedResponse(MeineEinsatzRolleDto, {
+    description: 'Aktuelle Rolle und Permissions im Einsatz',
+  })
+  @ApiBadRequestResponse({ description: 'Ungueltige Einsatz-ID' })
+  async getMeineRolle(@Param('id') id: string, @CurrentUser() user: ValidatedUser): Promise<MeineEinsatzRolleDto> {
+    if (!isCuid(id)) {
+      throw new BadRequestException('Ungueltige Einsatz-ID');
+    }
+
+    const query = new GetMeineEinsatzRolleQuery(id, user.userId, user.role);
+    const result = await this.queryBus.execute(query);
+
+    if (result.isFailure) {
+      throw new InternalServerErrorException(result.error);
+    }
+
+    if (!result.value) {
+      throw new InternalServerErrorException('Rolle konnte nicht ermittelt werden');
+    }
+
     return result.value;
   }
 

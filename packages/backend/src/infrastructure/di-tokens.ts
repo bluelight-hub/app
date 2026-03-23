@@ -71,6 +71,9 @@ export const ERINNERUNGSVORLAGE_REPOSITORY = Symbol('IErinnerungsvorlageReposito
 /** Repository Token für IBefehlRepository (Story 1.1) */
 export const BEFEHL_REPOSITORY = Symbol('IBefehlRepository');
 
+/** Repository Token für IEinsatzRollenReadRepository (Story 4.3) */
+export const EINSATZ_ROLLEN_READ_REPOSITORY = Symbol('IEinsatzRollenReadRepository');
+
 /** Repository Token für IFuehrungsrhythmusTemplateRepository (Story 6.6) */
 export const FUEHRUNGSRHYTHMUS_TEMPLATE_REPOSITORY = Symbol('IFuehrungsrhythmusTemplateRepository');
 

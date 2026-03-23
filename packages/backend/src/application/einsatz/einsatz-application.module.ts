@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/infrastructure/database/prisma.module';
 import { EventInfrastructureModule } from '@infrastructure/events/event-infrastructure.module';
 import { LagekarteInfrastructureModule } from '@infrastructure/lagekarte-infrastructure.module';
+import { EinsatzInfrastructureModule } from '@infrastructure/einsatz/einsatz-infrastructure.module';
 import { EtbInfrastructureModule } from '@infrastructure/etb/etb-infrastructure.module';
 import { OutboxModule } from '@infrastructure/outbox/outbox.module';
 import { LOGGER } from '@infrastructure/di-tokens';
@@ -33,6 +34,7 @@ import {
   GetNextEinsatzIdQueryHandler,
   GetEinsatzTeilnehmerHandler,
   GetEinsatzRollenQueryHandler,
+  GetMeineEinsatzRolleQueryHandler,
 } from './queries';
 
 /**
@@ -78,6 +80,8 @@ import {
     EventInfrastructureModule,
     // Repository Infrastructure (IEinsatzRepository, ILagekarteRepository)
     LagekarteInfrastructureModule,
+    // Repository Infrastructure (IEinsatzRollenReadRepository) - fuer GetMeineEinsatzRolleQueryHandler (Story 4.3)
+    EinsatzInfrastructureModule,
     // Repository Infrastructure (IEtbRepository) - für Cross-Aggregate Queries (Story 4-3b)
     EtbInfrastructureModule,
     // Outbox Infrastructure (PrismaOutboxRepository) - für Transactional Outbox Pattern
@@ -122,6 +126,8 @@ import {
     // Story 5.2: Rollen Command + Query Handlers
     UpdateEinsatzRollenHandler,
     GetEinsatzRollenQueryHandler,
+    // Story 4.3: Eigene Rolle + Permissions Query Handler
+    GetMeineEinsatzRolleQueryHandler,
     // Security: Ownership/Membership-Check für Einsatz-Mutationen
     CanMutateEinsatzQueryHandler,
   ],
@@ -155,6 +161,8 @@ import {
     // Story 5.2: Rollen Command + Query Handlers
     UpdateEinsatzRollenHandler,
     GetEinsatzRollenQueryHandler,
+    // Story 4.3: Eigene Rolle + Permissions Query Handler
+    GetMeineEinsatzRolleQueryHandler,
     // Security: Ownership/Membership-Check für Einsatz-Mutationen
     CanMutateEinsatzQueryHandler,
   ],

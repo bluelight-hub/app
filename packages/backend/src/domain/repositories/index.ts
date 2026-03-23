@@ -68,3 +68,6 @@ export type { IEinsatzTeilnehmerRepository, EinsatzTeilnehmerDto } from './i-ein
 
 // Erinnerung Repository Interface (Story 1.1)
 export { IErinnerungRepository } from './i-erinnerung.repository';
+
+// EinsatzRollenRead Repository Interface (Story 4.3)
+export type { IEinsatzRollenReadRepository, MeineRolleReadDto } from './i-einsatz-rollen-read.repository';

@@ -70,7 +70,7 @@ function BefehleSeite() {
 
   // Server-seitige Query mit Filtern
   const queryFilters = useMemo(() => toQueryFilters(filterState), [filterState]);
-  const { data: befehle, isError } = useBefehleByEinsatz(einsatzId, hasFilters ? queryFilters : undefined);
+  const { data: befehle, isError, refetch } = useBefehleByEinsatz(einsatzId, hasFilters ? queryFilters : undefined);
 
   // Ungefilterte Befehle fuer Optionslisten + Handlungsbedarf
   const { data: allBefehle } = useBefehleByEinsatz(einsatzId);
@@ -110,7 +110,12 @@ function BefehleSeite() {
       <div className="flex flex-wrap items-center justify-between gap-2 border-gray-200 border-b px-4 py-2 dark:border-gray-700">
         <div className="flex items-center gap-2">
           {/* Neuer Befehl Button */}
-          {!canCreate && !isPermissionsLoading ? (
+          {isPermissionsLoading ? (
+            <Button intent="primary" size="sm" disabled aria-label="Berechtigungen werden geladen">
+              <PiPlus className="mr-1.5 h-4 w-4" aria-hidden="true" />
+              <span className="hidden sm:inline">Laden…</span>
+            </Button>
+          ) : !canCreate ? (
             <Tooltip content="Nur Ersteller/Befehlsgeber dürfen Befehle erstellen">
               <Button intent="primary" size="sm" disabled aria-disabled="true">
                 <PiPlus className="mr-1.5 h-4 w-4" aria-hidden="true" />
@@ -118,9 +123,9 @@ function BefehleSeite() {
               </Button>
             </Tooltip>
           ) : (
-            <Button intent="primary" size="sm" kbd="ctrl+n" onClick={() => setShowEingabeRow(true)} disabled={showEingabeRow || isPermissionsLoading}>
+            <Button intent="primary" size="sm" kbd="ctrl+n" onClick={() => setShowEingabeRow(true)} disabled={showEingabeRow}>
               <PiPlus className="mr-1.5 h-4 w-4" aria-hidden="true" />
-              <span className="hidden sm:inline">{isPermissionsLoading ? 'Laden...' : 'Neuer Befehl'}</span>
+              <span className="hidden sm:inline">Neuer Befehl</span>
             </Button>
           )}
 
@@ -167,7 +172,17 @@ function BefehleSeite() {
           </span>
 
           {/* Export-Button */}
-          {canExport ? (
+          {isPermissionsLoading ? (
+            <button
+              type="button"
+              disabled
+              className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-md px-2.5 py-1.5 font-medium text-gray-400 text-sm dark:text-gray-600"
+              aria-label="Berechtigungen werden geladen"
+            >
+              <PiExport className="h-4 w-4" aria-hidden="true" />
+              <span className="hidden sm:inline">Export</span>
+            </button>
+          ) : canExport ? (
             <button
               type="button"
               onClick={() => setIsExportDialogOpen(true)}
@@ -223,7 +238,7 @@ function BefehleSeite() {
       {isError && (
         <div className="bg-red-50 px-4 py-2 text-red-600 text-sm dark:bg-red-900/20 dark:text-red-400">
           Filter konnten nicht angewendet werden.{' '}
-          <button type="button" onClick={() => window.location.reload()} className="underline hover:no-underline">
+          <button type="button" onClick={() => void refetch()} className="underline hover:no-underline">
             Erneut versuchen
           </button>
         </div>

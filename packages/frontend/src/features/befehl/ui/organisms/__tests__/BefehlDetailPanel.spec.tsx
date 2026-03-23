@@ -150,10 +150,10 @@ describe('BefehlDetailPanel', () => {
     expect(screen.getByText('Befehlsgeber')).toBeInTheDocument();
   });
 
-  it('zeigt Label "Empfaenger"', () => {
+  it('zeigt Label "Zustellstatus" fuer canViewAll', () => {
     const befehl = createBefehl(baseBefehlProps);
-    renderWithProviders(<BefehlDetailPanel befehl={befehl} isOpen={true} onClose={vi.fn()} einsatzId="einsatz-1" />);
+    renderWithProviders(<BefehlDetailPanel befehl={befehl} isOpen={true} onClose={vi.fn()} einsatzId="einsatz-1" canViewAll={true} />);
 
-    expect(screen.getByText(/Empf[aä]nger/)).toBeInTheDocument();
+    expect(screen.getByText('Zustellstatus')).toBeInTheDocument();
   });
 });

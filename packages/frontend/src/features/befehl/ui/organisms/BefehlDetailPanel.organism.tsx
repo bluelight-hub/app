@@ -1,9 +1,19 @@
 /**
- * BefehlDetailPanel Organism
+ * BefehlDetailPanel Organism (Inspector-Panel)
  *
  * Slide-Over Panel von rechts das Befehl-Details anzeigt.
  * Nutzt Headless UI Dialog fuer Focus-Trap, Escape-to-close
  * und Click-Outside-to-close.
+ *
+ * Story 4.3: Erweitert zum Inspector-Panel mit drei Sektionen:
+ * 1. Befehlsinhalt (Auftrag, EAMZW, Befehlsgeber, Zeitstempel)
+ * 2. Weitergabe-/Zustellstatus (ZustellstatusAnzeige + WeitergabeStatusListe)
+ * 3. Verlauf/Timeline + Kommentare
+ *
+ * Rollenabhaengige Sichtbarkeit (AC2):
+ * - BEFEHLSGEBER/ERSTELLER: Alle Sektionen + Aktionen
+ * - EMPFAENGER: Befehlsinhalt + eigener Status + Quittierung + Kommentare
+ * - BEOBACHTER: Befehlsinhalt + Zustellstatus (readonly), KEINE Kommentare/Aktionen
  */
 
 import { Dialog as HeadlessDialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
@@ -16,9 +26,10 @@ import { Tooltip } from '@/shared/ui/atoms/tooltip.atom';
 import { type BefehlDto, BefehlDtoStatusEnum, type BefehlEmpfaengerDtoQuittierungArtEnum } from '@bluelight-hub/shared/client';
 import { useAendereEmpfaengerStatus } from '../../api/use-aendere-empfaenger-status';
 import type { AendereEmpfaengerStatusInput } from '../../api/use-aendere-empfaenger-status';
-import { useBefehlPermissions } from '../../hooks/use-befehl-permissions';
 import { BefehlStatusBadge } from '../atoms/BefehlStatusBadge.atom';
 import { ZustellstatusAnzeige } from '../molecules/ZustellstatusAnzeige.molecule';
+import { WeitergabeStatusListe } from '../molecules/WeitergabeStatusListe.molecule';
+import { BefehlKommentarThread } from '../molecules/BefehlKommentarThread.molecule';
 import { getEigenerEmpfaengerStatus } from '../../lib/befehl-utils';
 import { BefehlHistorieTimeline } from './BefehlHistorieTimeline.organism';
 import { KorrekturBefehlDialog } from './KorrekturBefehlDialog.organism';
@@ -41,10 +52,29 @@ interface BefehlDetailPanelProps {
   currentUserId?: string;
   /** RBAC: Darf der aktuelle User quittieren? */
   canQuittieren?: boolean;
+  /** RBAC: Darf der aktuelle User Korrekturen erstellen? */
+  canKorrigieren?: boolean;
+  /** RBAC: Darf der aktuelle User Empfaenger-Status verwalten? */
+  canManageStatus?: boolean;
+  /** Ist der aktuelle User nur Beobachter? */
+  isBeobachter?: boolean;
+  /** RBAC: Darf der aktuelle User alle Empfaenger sehen? */
+  canViewAll?: boolean;
 }
 
-export function BefehlDetailPanel({ befehl, isOpen, onClose, einsatzId, onQuittieren, currentUserId, canQuittieren }: BefehlDetailPanelProps) {
-  const { canKorrigieren, canManageStatus } = useBefehlPermissions(einsatzId);
+export function BefehlDetailPanel({
+  befehl,
+  isOpen,
+  onClose,
+  einsatzId,
+  onQuittieren,
+  currentUserId,
+  canQuittieren,
+  canKorrigieren,
+  canManageStatus,
+  isBeobachter,
+  canViewAll,
+}: BefehlDetailPanelProps) {
   const [isKorrekturDialogOpen, setIsKorrekturDialogOpen] = useState(false);
   const statusMutation = useAendereEmpfaengerStatus(einsatzId);
 
@@ -124,14 +154,54 @@ export function BefehlDetailPanel({ befehl, isOpen, onClose, einsatzId, onQuitti
                       return null;
                     })()}
 
-                    {/* Body */}
+                    {/* Body — drei Inspector-Sektionen (Story 4.3 AC2) */}
                     <div className="flex-1 overflow-y-auto px-6 py-5">
                       <div className="space-y-4">
+                        {/* === Sektion 1: Befehlsinhalt (alle Rollen) === */}
+
                         {/* Auftrag */}
                         <section>
                           <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Auftrag</h3>
                           <p className="mt-1 whitespace-pre-wrap text-gray-900 text-sm dark:text-gray-100">{befehl.auftrag}</p>
                         </section>
+
+                        {/* EAMZW-Felder (nur bei entsprechendem Befehlstyp) */}
+                        {(befehl.befehlstyp === 'EAMZW' || befehl.befehlstyp === 'ERWEITERT') && (
+                          <>
+                            {befehl.ereignis && (
+                              <section>
+                                <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Ereignis</h3>
+                                <p className="mt-1 whitespace-pre-wrap text-gray-900 text-sm dark:text-gray-100">{befehl.ereignis}</p>
+                              </section>
+                            )}
+                            {befehl.mittel && (
+                              <section>
+                                <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Mittel</h3>
+                                <p className="mt-1 whitespace-pre-wrap text-gray-900 text-sm dark:text-gray-100">{befehl.mittel}</p>
+                              </section>
+                            )}
+                            {befehl.ziel && (
+                              <section>
+                                <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Ziel</h3>
+                                <p className="mt-1 whitespace-pre-wrap text-gray-900 text-sm dark:text-gray-100">{befehl.ziel}</p>
+                              </section>
+                            )}
+                            {befehl.weg && (
+                              <section>
+                                <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Weg</h3>
+                                <p className="mt-1 whitespace-pre-wrap text-gray-900 text-sm dark:text-gray-100">{befehl.weg}</p>
+                              </section>
+                            )}
+                          </>
+                        )}
+
+                        {/* Zeitvorgabe (falls vorhanden) */}
+                        {befehl.zeitvorgabe && (
+                          <section>
+                            <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Zeitvorgabe</h3>
+                            <p className="mt-1 text-gray-900 text-sm dark:text-gray-100">{befehl.zeitvorgabe}</p>
+                          </section>
+                        )}
 
                         {/* Befehlsgeber */}
                         <section>
@@ -145,32 +215,60 @@ export function BefehlDetailPanel({ befehl, isOpen, onClose, einsatzId, onQuitti
                           <p className="mt-1 text-gray-700 text-sm dark:text-gray-300">{format(befehl.erteiltAm, 'dd.MM.yyyy, HH:mm')} Uhr</p>
                         </section>
 
-                        {/* Empfaenger */}
-                        <section>
-                          <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Empfänger</h3>
-                          <div className="mt-2">
-                            <ZustellstatusAnzeige
-                              empfaenger={befehl.empfaenger}
-                              variant="expanded"
-                              interactive={canManageStatus}
-                              befehlId={befehl.id}
-                              onStatusChange={handleStatusChange}
-                              isKorrigiert={befehl.status === BefehlDtoStatusEnum.Korrigiert}
-                            />
-                          </div>
-                        </section>
+                        {/* === Sektion 2: Weitergabe-/Zustellstatus === */}
+                        {(() => {
+                          /** EMPFAENGER sieht nur eigenen Status (AC2), BEFEHLSGEBER/ERSTELLER sehen alle */
+                          const isEmpfaengerOnly = !canViewAll && !isBeobachter;
+                          const eigenerStatus = getEigenerEmpfaengerStatus(befehl.empfaenger, currentUserId);
+                          const sichtbareEmpfaenger = isEmpfaengerOnly && eigenerStatus.empfaengerInfo ? [eigenerStatus.empfaengerInfo] : befehl.empfaenger;
 
-                        {/* Verlauf (Story 4.2) */}
-                        <section>
-                          <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Verlauf</h3>
-                          <div className="mt-3">
-                            <BefehlHistorieTimeline befehlId={befehl.id} />
-                          </div>
-                        </section>
+                          return (
+                            <section className="border-gray-200 border-t pt-4 dark:border-gray-700" aria-label="Weitergabe- und Zustellstatus">
+                              <h3 className="mb-2 font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">{isEmpfaengerOnly ? 'Eigener Zustellstatus' : 'Zustellstatus'}</h3>
 
-                        {/* Korrektur-Button (nur wenn nicht bereits korrigiert) */}
-                        {befehl.status !== BefehlDtoStatusEnum.Korrigiert && (
-                          <section>
+                              {/* Fortschrittsbalken + interaktive Chips (fuer canManageStatus) */}
+                              <ZustellstatusAnzeige
+                                empfaenger={sichtbareEmpfaenger}
+                                variant="expanded"
+                                interactive={canManageStatus && !isBeobachter}
+                                befehlId={befehl.id}
+                                onStatusChange={handleStatusChange}
+                                isKorrigiert={befehl.status === BefehlDtoStatusEnum.Korrigiert}
+                              />
+
+                              {/* Detaillierte Weitergabe-Liste (Story 4.3 AC2) */}
+                              <div className="mt-3">
+                                <h3 className="mb-1 font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">{isEmpfaengerOnly ? 'Mein Status' : 'Weitergabe-Details'}</h3>
+                                <WeitergabeStatusListe empfaenger={sichtbareEmpfaenger} showHandlungsbedarf={!isBeobachter} />
+                              </div>
+                            </section>
+                          );
+                        })()}
+
+                        {/* === Sektion 3: Verlauf + Kommentare (nicht fuer BEOBACHTER) === */}
+                        {!isBeobachter && (
+                          <div className="border-gray-200 border-t pt-4 dark:border-gray-700">
+                            {/* Verlauf */}
+                            <section>
+                              <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Verlauf</h3>
+                              <div className="mt-3">
+                                <BefehlHistorieTimeline befehlId={befehl.id} />
+                              </div>
+                            </section>
+
+                            {/* Kommentare (Story 4.3 AC2) */}
+                            <section className="mt-4">
+                              <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Kommentare</h3>
+                              <div className="mt-2">
+                                <BefehlKommentarThread befehlId={befehl.id} einsatzId={einsatzId} kommentare={befehl.kommentare ?? []} />
+                              </div>
+                            </section>
+                          </div>
+                        )}
+
+                        {/* Korrektur-Button (nur wenn nicht BEOBACHTER und nicht bereits korrigiert) */}
+                        {!isBeobachter && befehl.status !== BefehlDtoStatusEnum.Korrigiert && (
+                          <section className="border-gray-200 border-t pt-4 dark:border-gray-700">
                             {!canKorrigieren ? (
                               <Tooltip content="Nur Ersteller/Befehlsgeber dürfen Korrekturen erstellen" position="bottom">
                                 <Button intent="warning" appearance="outline" size="sm" onClick={() => setIsKorrekturDialogOpen(true)} disabled aria-disabled="true">
