@@ -6,6 +6,13 @@ import type { AnchorHTMLAttributes, ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SingleEinsatzLayout } from '../SingleEinsatzLayout';
 
+/** Minimaler Ersatz fuer EinsatzRolleProvider im Test (vi.hoisted damit vi.mock darauf zugreifen kann) */
+const { StubEinsatzRolleProvider } = vi.hoisted(() => {
+  const { createContext } = require('react');
+  const ctx = createContext(null);
+  return { StubEinsatzRolleProvider: ctx.Provider };
+});
+
 const navigateSpy = vi.fn();
 const routerNavigateSpy = vi.fn();
 const clearActiveEinsatzSpy = vi.fn();
@@ -143,6 +150,7 @@ vi.mock('@/features/einsatz', () => ({
     lists: () => ['einsatz', 'lists'],
     activeWithCounts: () => ['einsatz', 'activeWithCounts'],
   },
+  EinsatzRolleProvider: StubEinsatzRolleProvider,
   useEinsatzDetails: () => ({
     einsatz: {
       id: 'einsatz-42',

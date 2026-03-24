@@ -24,6 +24,12 @@ export interface HiOrgCredentialsDto {
   lastTestedAt?: Date;
   /** Letzte Synchronisation */
   lastSyncAt?: Date;
+  /** Ist das Access Token abgelaufen? */
+  isAccessTokenExpired: boolean;
+  /** Ablaufzeitpunkt des Access Tokens */
+  accessTokenExpiresAt?: Date;
+  /** Ist ein Refresh Token vorhanden? */
+  hasRefreshToken: boolean;
 }
 
 /**
@@ -55,6 +61,9 @@ export class GetHiOrgCredentialsHandler {
       isActive: credential.isActive,
       lastTestedAt: credential.lastTestedAt,
       lastSyncAt: credential.lastSyncAt,
+      isAccessTokenExpired: credential.isAccessTokenExpired,
+      accessTokenExpiresAt: credential.accessTokenExpiresAt,
+      hasRefreshToken: credential.hasRefreshToken,
     });
   }
 }

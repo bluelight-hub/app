@@ -22,6 +22,9 @@ const ROLLE_PERMISSIONS: Record<string, BefehlPermissionsDto> = {
     canExport: true,
     canViewAll: true,
     isBeobachter: false,
+    canEditEtb: true,
+    canEditPinnwand: true,
+    isSecondaryRole: false,
   },
   ERSTELLER: {
     canCreate: true,
@@ -31,6 +34,9 @@ const ROLLE_PERMISSIONS: Record<string, BefehlPermissionsDto> = {
     canExport: true,
     canViewAll: true,
     isBeobachter: false,
+    canEditEtb: true,
+    canEditPinnwand: true,
+    isSecondaryRole: false,
   },
   EMPFAENGER: {
     canCreate: false,
@@ -40,6 +46,9 @@ const ROLLE_PERMISSIONS: Record<string, BefehlPermissionsDto> = {
     canExport: false,
     canViewAll: false,
     isBeobachter: false,
+    canEditEtb: false,
+    canEditPinnwand: false,
+    isSecondaryRole: true,
   },
   BEOBACHTER: {
     canCreate: false,
@@ -49,6 +58,9 @@ const ROLLE_PERMISSIONS: Record<string, BefehlPermissionsDto> = {
     canExport: false,
     canViewAll: true,
     isBeobachter: true,
+    canEditEtb: false,
+    canEditPinnwand: false,
+    isSecondaryRole: true,
   },
 };
 
@@ -61,6 +73,9 @@ const ADMIN_PERMISSIONS: BefehlPermissionsDto = {
   canExport: true,
   canViewAll: true,
   isBeobachter: false,
+  canEditEtb: true,
+  canEditPinnwand: true,
+  isSecondaryRole: false,
 };
 
 /** Keine Permissions (kein Zugang). */
@@ -72,6 +87,9 @@ const NO_PERMISSIONS: BefehlPermissionsDto = {
   canExport: false,
   canViewAll: false,
   isBeobachter: false,
+  canEditEtb: false,
+  canEditPinnwand: false,
+  isSecondaryRole: false,
 };
 
 /**

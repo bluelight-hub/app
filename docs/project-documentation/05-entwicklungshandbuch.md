@@ -331,4 +331,4 @@ cd packages/frontend && pnpm install
 
 ---
 
-*Dokumentation generiert durch BMad Document-Project Workflow v1.2.0*
+*Dokumentation generiert am 2026-01-04*

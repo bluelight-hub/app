@@ -45,4 +45,24 @@ export class HiOrgCredentialsResponseDto {
     example: true,
   })
   isOAuthConfigured!: boolean;
+
+  @ApiProperty({
+    description: 'Ist das Access Token abgelaufen oder läuft in weniger als 5 Minuten ab?',
+    example: false,
+  })
+  isAccessTokenExpired!: boolean;
+
+  @ApiProperty({
+    description: 'Ablaufzeitpunkt des Access Tokens',
+    example: '2025-01-15T12:00:00.000Z',
+    required: false,
+    nullable: true,
+  })
+  accessTokenExpiresAt?: Date | null;
+
+  @ApiProperty({
+    description: 'Ist ein Refresh Token vorhanden für automatische Erneuerung?',
+    example: true,
+  })
+  hasRefreshToken!: boolean;
 }

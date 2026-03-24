@@ -160,10 +160,10 @@ class EinsatzAggregate extends AggregateRoot<EinsatzId> {
 }
 ```
 
-**Stories mit Domain-Layer-Schutz:**
-- [Story 1.3](../../../../.bmad-ephemeral/stories/1-3-einsatz-aggregate-value-objects.md) - Einsatz Aggregate: `canBeDeleted()` immer `false`
-- [Story 1.4](../../../../.bmad-ephemeral/stories/1-4-einsatztagebuch-etb-aggregate-with-versioning.md) - ETB Soft-Delete: `is_deleted` Flag statt physischer Löschung
-- [Story 1.6](../../../../.bmad-ephemeral/stories/1-6-user-aggregate-rbac-value-objects.md) - User Account Locking: `is_locked` Flag für Sperrungen
+**Beispiele für Domain-Layer-Schutz:**
+- Einsatz Aggregate: `canBeDeleted()` immer `false`
+- ETB Soft-Delete: `is_deleted` Flag statt physischer Löschung
+- User Account Locking: `is_locked` Flag für Sperrungen
 
 ### Layer 2: Database Layer (Story 1.8) ⭐ NEW
 
@@ -194,12 +194,12 @@ CREATE TRIGGER einsatz_no_delete
 
 Statt physischer Löschung nutzt Bluelight Hub diese Archivierungs-Strategien:
 
-| Entity | Alternative Action | Implementierung | Story |
-|--------|-------------------|----------------|-------|
-| **Einsatz** | `status = ARCHIVIERT` setzen | 10-Jahres-Aufbewahrung, dann Archivierung | [Story 1.7](../../../../.bmad-ephemeral/stories/1-7-domain-services-for-cross-aggregate-logic.md) |
-| **ETB Eintrag** | `is_deleted = true` setzen | Soft-Delete, Historie bleibt erhalten | [Story 1.4](../../../../.bmad-ephemeral/stories/1-4-einsatztagebuch-etb-aggregate-with-versioning.md) |
-| **User** | `is_locked = true` setzen | Account-Sperrung (reversibel) | [Story 1.6](../../../../.bmad-ephemeral/stories/1-6-user-aggregate-rbac-value-objects.md) |
-| **POI** | Removal via Aggregate Methode | Business-Logik-kontrolliert | [Story 1.5](../../../../.bmad-ephemeral/stories/1-5-lagekarte-aggregate-with-mgrs-coordinates.md) |
+| Entity | Alternative Action | Implementierung |
+|--------|-------------------|----------------|
+| **Einsatz** | `status = ARCHIVIERT` setzen | 10-Jahres-Aufbewahrung, dann Archivierung |
+| **ETB Eintrag** | `is_deleted = true` setzen | Soft-Delete, Historie bleibt erhalten |
+| **User** | `is_locked = true` setzen | Account-Sperrung (reversibel) |
+| **POI** | Removal via Aggregate Methode | Business-Logik-kontrolliert |
 
 **Beispiel - Einsatz Archivierung:**
 ```typescript
@@ -261,7 +261,7 @@ it('should prevent direct DELETE on einsatz table', async () => {
 });
 ```
 
-**Story:** [Story 1.8 - Database Constraints & Triggers](../../../../.bmad-ephemeral/stories/1-8-database-constraints-triggers.md)
+**Hinweis:** Die Datenbank-Schutzschicht wird über die Migration [`20251118081643_add_no_delete_triggers`](../../prisma/migrations/20251118081643_add_no_delete_triggers/migration.sql) ergänzt.
 
 ---
 

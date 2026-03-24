@@ -7,6 +7,8 @@ import type {
   AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200Response,
   AdminHiOrgIntegrationControllerPreviewPersonsVAlpha200Response,
   AdminHiOrgIntegrationControllerTestConnectionVAlpha200Response,
+  AdminHiOrgIntegrationControllerRefreshTokenVAlpha200Response,
+  AdminHiOrgIntegrationControllerDisconnectVAlpha200Response,
   BatchSaveQualifikationMappingsResponseDto,
   ImportPersonsResponseDto,
 } from '@/shared';
@@ -240,6 +242,53 @@ export const useAdminHiOrgIntegration = (options?: UseAdminHiOrgIntegrationOptio
     },
   });
 
+  // Mutation: OAuth2 Token manuell erneuern
+  const refreshTokenMutation = useMutation<AdminHiOrgIntegrationControllerRefreshTokenVAlpha200Response, ResponseError, void>({
+    mutationFn: async () => {
+      return await api.adminIntegrationsHiorg().adminHiOrgIntegrationControllerRefreshTokenVAlpha();
+    },
+    onSuccess: async (response) => {
+      const { refreshed } = response.data;
+      if (refreshed) {
+        toast.success('Token erneuert', {
+          description: 'Das OAuth2 Token wurde erfolgreich erneuert.',
+        });
+      } else {
+        toast.info('Token noch gültig', {
+          description: 'Das Token war noch gültig und musste nicht erneuert werden.',
+        });
+      }
+      await queryClient.invalidateQueries({
+        queryKey: ADMIN_QUERY_KEYS.integrations.hiorg.credentials(),
+      });
+    },
+    onError: async (error: ResponseError) => {
+      const message = await getApiErrorMessage(error, 'Token konnte nicht erneuert werden. Bitte verbinde dich erneut.', 'refreshToken');
+      logger.error('Token refresh failed', error);
+      toast.error('Token-Erneuerung fehlgeschlagen', { description: message });
+    },
+  });
+
+  // Mutation: Integration trennen
+  const disconnectMutation = useMutation<AdminHiOrgIntegrationControllerDisconnectVAlpha200Response, ResponseError, void>({
+    mutationFn: async () => {
+      return await api.adminIntegrationsHiorg().adminHiOrgIntegrationControllerDisconnectVAlpha();
+    },
+    onSuccess: async () => {
+      toast.success('Verbindung getrennt', {
+        description: 'Die HiOrg-Server Verbindung wurde erfolgreich getrennt.',
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ADMIN_QUERY_KEYS.integrations.hiorg.all(),
+      });
+    },
+    onError: async (error: ResponseError) => {
+      const message = await getApiErrorMessage(error, 'Verbindung konnte nicht getrennt werden.', 'disconnect');
+      logger.error('Disconnect failed', error);
+      toast.error('Trennung fehlgeschlagen', { description: message });
+    },
+  });
+
   // Mutation: Batch-Save Qualifikation-Mappings (für Inline-Mapping im Import-Dialog)
   const batchSaveMappingsMutation = useMutation<{ data: BatchSaveQualifikationMappingsResponseDto }, ResponseError, BatchMappingItem[]>({
     mutationFn: async (mappings) => {
@@ -313,6 +362,14 @@ export const useAdminHiOrgIntegration = (options?: UseAdminHiOrgIntegrationOptio
     batchSaveMappings: batchSaveMappingsMutation.mutate,
     batchSaveMappingsAsync: batchSaveMappingsMutation.mutateAsync,
     isSavingBatchMappings: batchSaveMappingsMutation.isPending,
+
+    // Token-Refresh
+    refreshToken: refreshTokenMutation.mutate,
+    isRefreshingToken: refreshTokenMutation.isPending,
+
+    // Disconnect
+    disconnect: disconnectMutation.mutate,
+    isDisconnecting: disconnectMutation.isPending,
 
     // Refetch functions
     refetchCredentials: credentialsQuery.refetch,

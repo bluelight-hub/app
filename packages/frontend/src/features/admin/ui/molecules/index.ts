@@ -11,3 +11,6 @@ export { RevokeInviteButton } from './RevokeInviteButton';
 
 // Access-Token Management
 export { TokenListItem } from './TokenListItem';
+
+// Integration Overview
+export { IntegrationStatusCard } from './IntegrationStatusCard';

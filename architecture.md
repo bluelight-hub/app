@@ -1607,17 +1607,6 @@ completeness = (filledFields / totalFields) * 100;
 - User-Flow nicht unterbrechen
 - Stresssituationen berücksichtigen
 
-#### ADR-021: BMAD Documentation Integration
-
-**Status:** ✅ This document
-
-**Decision:** Nutzung von BMAD Method für Architektur-Dokumentation
-
-**Rationale:**
-- arc42 teilweise veraltet
-- BMAD für brownfield-Analyse geeignet
-- Single Source of Truth aus Code
-
 ### Partially Implemented ADRs (⚠️)
 
 #### ADR-001: Verbindungskonzept

@@ -1,5 +1,15 @@
 import { BadRequestException, Body, ConflictException, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, Patch, Post, UseGuards, ValidationPipe } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiConflictResponse,
+  ApiForbiddenResponse,
+  ApiNoContentResponse,
+  ApiNotFoundResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '@/modules/auth/guards/roles.guard';
@@ -122,7 +132,7 @@ export class NotizController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles('USER', 'ADMIN', 'SUPER_ADMIN')
   @ApiOperation({ summary: 'Notiz loeschen (Soft-Delete)' })
-  @ApiResponse({ status: 204, description: 'Notiz erfolgreich geloescht' })
+  @ApiNoContentResponse({ description: 'Notiz erfolgreich geloescht' })
   @ApiBadRequestResponse({ description: 'Ungueltige NotizId oder UserId' })
   @ApiNotFoundResponse({ description: 'Notiz nicht gefunden' })
   @ApiConflictResponse({ description: 'Notiz bereits geloescht' })

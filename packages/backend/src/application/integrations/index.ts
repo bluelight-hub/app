@@ -11,6 +11,8 @@ export * from './services';
 export * from './commands/test-hiorg-connection';
 export * from './commands/initiate-oauth-flow';
 export * from './commands/process-oauth-callback';
+export * from './commands/refresh-hiorg-token';
+export * from './commands/disconnect-hiorg';
 export * from './commands/save-qualifikation-mapping';
 export * from './commands/auto-match-qualifikationen';
 
@@ -18,3 +20,4 @@ export * from './commands/auto-match-qualifikationen';
 export * from './queries/get-hiorg-credentials';
 export * from './queries/preview-hiorg-persons';
 export * from './queries/get-qualifikation-mappings';
+export * from './queries/get-integration-overview';

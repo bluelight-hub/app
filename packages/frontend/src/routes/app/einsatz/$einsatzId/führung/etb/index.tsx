@@ -1,3 +1,4 @@
+import { useEinsatzRolleContext } from '@/features/einsatz/contexts';
 import { EtbPage } from '@/features/etb';
 import { createFileRoute } from '@tanstack/react-router';
 
@@ -23,6 +24,9 @@ export const Route = createFileRoute('/app/einsatz/$einsatzId/führung/etb/')({
 function RouteComponent() {
   const { einsatzId } = Route.useParams();
   const { mode } = Route.useSearch();
+  // Story 5.5: ETB read-only fuer sekundaere Rollen (via Layout-Context)
+  const { meineRolle } = useEinsatzRolleContext();
+  const readOnly = meineRolle?.permissions ? !meineRolle.permissions.canEditEtb : true;
 
-  return <EtbPage einsatzId={einsatzId} mode={mode} />;
+  return <EtbPage einsatzId={einsatzId} mode={mode} readOnly={readOnly} />;
 }

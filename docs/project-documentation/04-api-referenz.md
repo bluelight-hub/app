@@ -394,4 +394,4 @@ const einsaetze = await api.einsatz.findAll();
 
 ---
 
-*Dokumentation generiert durch BMad Document-Project Workflow v1.2.0*
+*Dokumentation generiert am 2026-01-04*

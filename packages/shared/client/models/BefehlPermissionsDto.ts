@@ -61,6 +61,24 @@ export interface BefehlPermissionsDto {
      * @memberof BefehlPermissionsDto
      */
     isBeobachter: boolean;
+    /**
+     * Darf ETB-Eintraege erstellen/bearbeiten
+     * @type {boolean}
+     * @memberof BefehlPermissionsDto
+     */
+    canEditEtb: boolean;
+    /**
+     * Darf Erinnerungen/Pinnwand bearbeiten
+     * @type {boolean}
+     * @memberof BefehlPermissionsDto
+     */
+    canEditPinnwand: boolean;
+    /**
+     * Ist sekundaere Rolle (eingeschraenkter Workspace)
+     * @type {boolean}
+     * @memberof BefehlPermissionsDto
+     */
+    isSecondaryRole: boolean;
 }
 
 /**
@@ -74,6 +92,9 @@ export function instanceOfBefehlPermissionsDto(value: object): value is BefehlPe
     if (!('canExport' in value) || value['canExport'] === undefined) return false;
     if (!('canViewAll' in value) || value['canViewAll'] === undefined) return false;
     if (!('isBeobachter' in value) || value['isBeobachter'] === undefined) return false;
+    if (!('canEditEtb' in value) || value['canEditEtb'] === undefined) return false;
+    if (!('canEditPinnwand' in value) || value['canEditPinnwand'] === undefined) return false;
+    if (!('isSecondaryRole' in value) || value['isSecondaryRole'] === undefined) return false;
     return true;
 }
 
@@ -94,6 +115,9 @@ export function BefehlPermissionsDtoFromJSONTyped(json: any, ignoreDiscriminator
         'canExport': json['canExport'],
         'canViewAll': json['canViewAll'],
         'isBeobachter': json['isBeobachter'],
+        'canEditEtb': json['canEditEtb'],
+        'canEditPinnwand': json['canEditPinnwand'],
+        'isSecondaryRole': json['isSecondaryRole'],
     };
 }
 
@@ -115,6 +139,9 @@ export function BefehlPermissionsDtoToJSONTyped(value?: BefehlPermissionsDto | n
         'canExport': value['canExport'],
         'canViewAll': value['canViewAll'],
         'isBeobachter': value['isBeobachter'],
+        'canEditEtb': value['canEditEtb'],
+        'canEditPinnwand': value['canEditPinnwand'],
+        'isSecondaryRole': value['isSecondaryRole'],
     };
 }
 

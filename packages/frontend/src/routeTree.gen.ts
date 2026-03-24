@@ -32,6 +32,7 @@ import { Route as AdminErinnerungenRouteImport } from './routes/admin/erinnerung
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 import { Route as AdminBefehlsgeberVorschlaegeRouteImport } from './routes/admin/befehlsgeber-vorschlaege'
 import { Route as AppEinsaetzeIndexRouteImport } from './routes/app/einsaetze/index'
+import { Route as AdminIntegrationsIndexRouteImport } from './routes/admin/integrations/index'
 import { Route as AppEinsatzEinsatzIdRouteImport } from './routes/app/einsatz/$einsatzId'
 import { Route as AppEinsaetzeMonitoringRouteImport } from './routes/app/einsaetze/monitoring'
 import { Route as AppEinsaetzeEinsatzIdRouteImport } from './routes/app/einsaetze/$einsatzId'
@@ -195,6 +196,11 @@ const AppEinsaetzeIndexRoute = AppEinsaetzeIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppEinsaetzeRoute,
+} as any)
+const AdminIntegrationsIndexRoute = AdminIntegrationsIndexRouteImport.update({
+  id: '/integrations/',
+  path: '/integrations/',
+  getParentRoute: () => AdminRoute,
 } as any)
 const AppEinsatzEinsatzIdRoute = AppEinsatzEinsatzIdRouteImport.update({
   id: '/$einsatzId',
@@ -494,6 +500,7 @@ export interface FileRoutesByFullPath {
   '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
   '/app/einsaetze/monitoring': typeof AppEinsaetzeMonitoringRoute
   '/app/einsatz/$einsatzId': typeof AppEinsatzEinsatzIdRouteWithChildren
+  '/admin/integrations/': typeof AdminIntegrationsIndexRoute
   '/app/einsaetze/': typeof AppEinsaetzeIndexRoute
   '/app/einsatz/$einsatzId/': typeof AppEinsatzEinsatzIdIndexRoute
   '/app/einsatz/$einsatzId/befehl/$befehlId': typeof AppEinsatzEinsatzIdBefehlBefehlIdRoute
@@ -561,6 +568,7 @@ export interface FileRoutesByTo {
   '/admin/stammdaten/personen': typeof AdminStammdatenPersonenRoute
   '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
   '/app/einsaetze/monitoring': typeof AppEinsaetzeMonitoringRoute
+  '/admin/integrations': typeof AdminIntegrationsIndexRoute
   '/app/einsaetze': typeof AppEinsaetzeIndexRoute
   '/app/einsatz/$einsatzId': typeof AppEinsatzEinsatzIdIndexRoute
   '/app/einsatz/$einsatzId/befehl/$befehlId': typeof AppEinsatzEinsatzIdBefehlBefehlIdRoute
@@ -631,6 +639,7 @@ export interface FileRoutesById {
   '/app/einsaetze/$einsatzId': typeof AppEinsaetzeEinsatzIdRoute
   '/app/einsaetze/monitoring': typeof AppEinsaetzeMonitoringRoute
   '/app/einsatz/$einsatzId': typeof AppEinsatzEinsatzIdRouteWithChildren
+  '/admin/integrations/': typeof AdminIntegrationsIndexRoute
   '/app/einsaetze/': typeof AppEinsaetzeIndexRoute
   '/app/einsatz/$einsatzId/': typeof AppEinsatzEinsatzIdIndexRoute
   '/app/einsatz/$einsatzId/befehl/$befehlId': typeof AppEinsatzEinsatzIdBefehlBefehlIdRoute
@@ -703,6 +712,7 @@ export interface FileRouteTypes {
     | '/app/einsaetze/$einsatzId'
     | '/app/einsaetze/monitoring'
     | '/app/einsatz/$einsatzId'
+    | '/admin/integrations/'
     | '/app/einsaetze/'
     | '/app/einsatz/$einsatzId/'
     | '/app/einsatz/$einsatzId/befehl/$befehlId'
@@ -770,6 +780,7 @@ export interface FileRouteTypes {
     | '/admin/stammdaten/personen'
     | '/app/einsaetze/$einsatzId'
     | '/app/einsaetze/monitoring'
+    | '/admin/integrations'
     | '/app/einsaetze'
     | '/app/einsatz/$einsatzId'
     | '/app/einsatz/$einsatzId/befehl/$befehlId'
@@ -839,6 +850,7 @@ export interface FileRouteTypes {
     | '/app/einsaetze/$einsatzId'
     | '/app/einsaetze/monitoring'
     | '/app/einsatz/$einsatzId'
+    | '/admin/integrations/'
     | '/app/einsaetze/'
     | '/app/einsatz/$einsatzId/'
     | '/app/einsatz/$einsatzId/befehl/$befehlId'
@@ -1051,6 +1063,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/einsaetze/'
       preLoaderRoute: typeof AppEinsaetzeIndexRouteImport
       parentRoute: typeof AppEinsaetzeRoute
+    }
+    '/admin/integrations/': {
+      id: '/admin/integrations/'
+      path: '/integrations'
+      fullPath: '/admin/integrations/'
+      preLoaderRoute: typeof AdminIntegrationsIndexRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/app/einsatz/$einsatzId': {
       id: '/app/einsatz/$einsatzId'
@@ -1387,6 +1406,7 @@ interface AdminRouteChildren {
   AdminKraefteRollenDefinitionenRoute: typeof AdminKraefteRollenDefinitionenRoute
   AdminStammdatenFahrzeugeRoute: typeof AdminStammdatenFahrzeugeRoute
   AdminStammdatenPersonenRoute: typeof AdminStammdatenPersonenRoute
+  AdminIntegrationsIndexRoute: typeof AdminIntegrationsIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
@@ -1406,6 +1426,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminKraefteRollenDefinitionenRoute: AdminKraefteRollenDefinitionenRoute,
   AdminStammdatenFahrzeugeRoute: AdminStammdatenFahrzeugeRoute,
   AdminStammdatenPersonenRoute: AdminStammdatenPersonenRoute,
+  AdminIntegrationsIndexRoute: AdminIntegrationsIndexRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)

@@ -6,6 +6,7 @@
  */
 
 import { createFileRoute, useParams } from '@tanstack/react-router';
+import { EinsatzRolleGate } from '@/features/einsatz/ui/molecules/EinsatzRolleGate';
 import { useEinsatzFahrzeuge, useUpdateFmsStatus } from '@/features/einsatz/api';
 import { FahrzeugHinzufuegenDialog } from '@/features/einsatz/ui/organisms/FahrzeugHinzufuegenDialog.organism';
 import { EinsatzResourceWidget } from '@/features/einsatz/ui/molecules/EinsatzResourceWidget';
@@ -23,6 +24,14 @@ export const Route = createFileRoute('/app/einsatz/$einsatzId/kräfte/fahrzeuge'
 function RouteComponent() {
   const { einsatzId } = useParams({ from: '/app/einsatz/$einsatzId/kräfte/fahrzeuge' });
 
+  return (
+    <EinsatzRolleGate einsatzId={einsatzId}>
+      <FahrzeugeContent einsatzId={einsatzId} />
+    </EinsatzRolleGate>
+  );
+}
+
+function FahrzeugeContent({ einsatzId }: { einsatzId: string }) {
   // State für Dialog
   const [showFahrzeugDialog, setShowFahrzeugDialog] = useState(false);
   const handleOpenFahrzeugDialog = useCallback(() => setShowFahrzeugDialog(true), []);

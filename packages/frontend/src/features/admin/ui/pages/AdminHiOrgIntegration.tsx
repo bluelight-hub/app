@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Navigate, useSearch, useNavigate } from '@tanstack/react-router';
-import { PiPlugsConnected, PiCheckCircle, PiWarningCircle, PiSpinner, PiUsers, PiDownload, PiCopy, PiGear } from 'react-icons/pi';
+import { PiPlugsConnected, PiCheckCircle, PiWarningCircle, PiSpinner, PiUsers, PiDownload, PiCopy, PiGear, PiArrowsClockwise, PiLinkBreak, PiKey, PiClock } from 'react-icons/pi';
 import { toast } from 'sonner';
 import { useAdminAuth } from '@/features/auth/api';
 import { useAdminHiOrgIntegration, useAdminQualifikationenManagement, type BatchMappingItem } from '@/features/admin/api';
@@ -13,6 +13,8 @@ import { Text } from '@/shared/ui/atoms/text.atom';
 import { Skeleton } from '@/shared/ui/atoms/skeleton';
 import { Checkbox } from '@/shared/ui/atoms/checkbox.atom';
 import { Badge } from '@/shared/ui/atoms/badge.atom';
+import { InlineConfirmation } from '@/shared/ui/atoms/InlineConfirmation.atom';
+import { useInlineConfirmation } from '@/shared/ui/hooks/use-inline-confirmation';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { QualifikationMappingDialog } from '../organisms/QualifikationMappingDialog';
 import { ImportMappingStep } from '../organisms/ImportMappingStep';
@@ -40,6 +42,9 @@ export function AdminHiOrgIntegration() {
   const [mappingValues, setMappingValues] = useState<Record<string, string | null>>({});
   // Standalone Mapping Dialog State
   const [showMappingDialog, setShowMappingDialog] = useState(false);
+  // Disconnect Confirmation State
+  const [showDisconnectDialog, setShowDisconnectDialog] = useState(false);
+  const authConfirmation = useInlineConfirmation(5000);
   // Search Params für OAuth Callback (oauth=success/error, message=...)
   const search = useSearch({ from: '/admin/integrations/hiorg' });
   const navigate = useNavigate();
@@ -71,6 +76,11 @@ export function AdminHiOrgIntegration() {
     isSavingMapping,
     autoMatchQualifikationen,
     isAutoMatching,
+    // Auth-Management
+    refreshToken,
+    isRefreshingToken,
+    disconnect,
+    isDisconnecting,
   } = useAdminHiOrgIntegration({
     activeOnly: true,
     enablePreview: showPreview, // Nur laden wenn User auf "Vorschau laden" klickt
@@ -216,8 +226,9 @@ export function AdminHiOrgIntegration() {
       // URL Parameter entfernen via TanStack Router
       navigate({ to: '/admin/integrations/hiorg', replace: true });
     } else if (search.oauth === 'error') {
+      const safeMessage = typeof search.message === 'string' ? search.message.slice(0, 200) : undefined;
       toast.error('Verbindung fehlgeschlagen', {
-        description: search.message || 'Ein unbekannter Fehler ist aufgetreten.',
+        description: safeMessage || 'Ein unbekannter Fehler ist aufgetreten.',
       });
       // URL Parameter entfernen via TanStack Router
       navigate({ to: '/admin/integrations/hiorg', replace: true });
@@ -247,61 +258,135 @@ export function AdminHiOrgIntegration() {
         <Text className="text-gray-600 dark:text-gray-400">Verbinde Bluelight Hub mit deinem HiOrg-Server Account um Personen zu importieren.</Text>
       </div>
 
-      {/* Status Card - Zeige wenn Credentials vorhanden sind */}
-      {credentials && (
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {/* Status Icon: Grün wenn OAuth oder getestet, Gelb wenn Token vorhanden aber nicht getestet, Rot wenn nichts konfiguriert */}
-              {credentials.hasOAuthTokens || credentials.lastTestedAt ? (
-                <PiCheckCircle className="h-8 w-8 text-green-500" />
-              ) : credentials.hasToken ? (
-                <PiWarningCircle className="h-8 w-8 text-yellow-500" />
+      {/* Authentifizierung & Verbindungsstatus */}
+      <Card className="p-4">
+        <div className="mb-4 flex items-center justify-between">
+          <Heading level={3}>Authentifizierung</Heading>
+          {credentials?.hasOAuthTokens && (
+            <div className="flex items-center gap-2">
+              {!credentials.isAccessTokenExpired ? (
+                <Badge variant="success" size="sm" aria-label="Token gültig">
+                  <PiCheckCircle className="mr-1 h-3 w-3" />
+                  Token gültig
+                </Badge>
+              ) : credentials.hasRefreshToken ? (
+                <Badge variant="warning" size="sm" aria-label="Token abgelaufen, erneuerbar">
+                  <PiClock className="mr-1 h-3 w-3" />
+                  Token abgelaufen
+                </Badge>
               ) : (
-                <PiWarningCircle className="h-8 w-8 text-red-500" />
+                <Badge variant="danger" size="sm" aria-label="Erneute Anmeldung erforderlich">
+                  <PiKey className="mr-1 h-3 w-3" />
+                  Erneute Anmeldung erforderlich
+                </Badge>
               )}
-              <div>
-                <Text className="font-medium">
-                  {credentials.hasOAuthTokens ? 'OAuth2 verbunden' : credentials.lastTestedAt ? 'Verbunden' : credentials.hasToken ? 'Nicht getestet' : 'Nicht konfiguriert'}
-                </Text>
-                {credentials.orgKuerzel && <Text className="text-gray-500 text-sm">Organisation: {credentials.orgKuerzel}</Text>}
-                {credentials.lastTestedAt && <Text className="text-gray-400 text-xs">Letzter Test: {new Date(credentials.lastTestedAt).toLocaleString('de-DE')}</Text>}
-              </div>
-            </div>
-            <Button variant="outline" onClick={() => testConnection()} disabled={isTestingConnection || (!credentials.hasToken && !credentials.hasOAuthTokens)}>
-              {isTestingConnection ? (
-                <>
-                  <PiSpinner className="mr-2 h-4 w-4 animate-spin" />
-                  Teste...
-                </>
-              ) : (
-                <>
-                  <PiPlugsConnected className="mr-2 h-4 w-4" />
-                  Verbindung testen
-                </>
-              )}
-            </Button>
-          </div>
-
-          {/* Connection Info - nur bei erfolgreichem Test */}
-          {connectionInfo && (
-            <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">
-              <Text className="font-medium text-green-800 dark:text-green-200">Erfolgreich verbunden mit: {connectionInfo.organisationName}</Text>
             </div>
           )}
-        </Card>
-      )}
+        </div>
 
-      {/* OAuth Connect Card */}
-      <Card className="p-4">
-        <Heading level={3} className="mb-4">
-          HiOrg-Server verbinden
-        </Heading>
+        {/* Inline Confirmation */}
+        {authConfirmation.confirmation && (
+          <div className="mb-4">
+            <InlineConfirmation message={authConfirmation.confirmation.message} variant={authConfirmation.confirmation.variant} onDismiss={authConfirmation.dismiss} />
+          </div>
+        )}
 
         {credentials?.hasOAuthTokens ? (
-          <div className="flex items-center gap-4">
-            <PiCheckCircle className="h-6 w-6 text-green-500" />
-            <Text>OAuth2 Verbindung aktiv</Text>
+          <div className="space-y-4">
+            {/* Verbindungsinfo */}
+            <div className="flex items-center gap-4">
+              <PiCheckCircle className="h-8 w-8 shrink-0 text-green-500" />
+              <div>
+                <Text className="font-medium">OAuth2 verbunden</Text>
+                {credentials.lastTestedAt && <Text className="text-gray-400 text-xs">Letzter Test: {new Date(credentials.lastTestedAt as unknown as string).toLocaleString('de-DE')}</Text>}
+                {credentials.accessTokenExpiresAt && (
+                  <Text className="text-gray-400 text-xs">Token gültig bis: {new Date(credentials.accessTokenExpiresAt as unknown as string).toLocaleString('de-DE')}</Text>
+                )}
+              </div>
+            </div>
+
+            {/* Connection Info - nur bei erfolgreichem Test */}
+            {connectionInfo && (
+              <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">
+                <Text className="font-medium text-green-800 dark:text-green-200">Erfolgreich verbunden mit: {connectionInfo.organisationName}</Text>
+              </div>
+            )}
+
+            {/* Token abgelaufen - Hinweis mit nächster Aktion */}
+            {credentials.isAccessTokenExpired && (
+              <div
+                className={`rounded-lg border p-4 ${credentials.hasRefreshToken ? 'border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20' : 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20'}`}
+                role="status"
+                aria-live="polite"
+              >
+                <div className="flex items-center gap-2">
+                  <PiWarningCircle className={`h-5 w-5 ${credentials.hasRefreshToken ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'}`} />
+                  <Text className={`font-medium ${credentials.hasRefreshToken ? 'text-amber-800 dark:text-amber-200' : 'text-red-800 dark:text-red-200'}`}>
+                    {credentials.hasRefreshToken ? 'Access Token abgelaufen' : 'Erneute Anmeldung erforderlich'}
+                  </Text>
+                </div>
+                <Text className={`mt-1 text-sm ${credentials.hasRefreshToken ? 'text-amber-700 dark:text-amber-300' : 'text-red-700 dark:text-red-300'}`}>
+                  {credentials.hasRefreshToken
+                    ? 'Das Token kann automatisch erneuert werden. Klicke auf "Token erneuern".'
+                    : 'Das Refresh Token ist nicht verfügbar. Bitte verbinde dich erneut mit HiOrg-Server.'}
+                </Text>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" onClick={() => testConnection()} disabled={isTestingConnection}>
+                {isTestingConnection ? (
+                  <>
+                    <PiSpinner className="mr-2 h-4 w-4 animate-spin" />
+                    Teste...
+                  </>
+                ) : (
+                  <>
+                    <PiPlugsConnected className="mr-2 h-4 w-4" />
+                    Verbindung prüfen
+                  </>
+                )}
+              </Button>
+
+              {credentials.hasRefreshToken && (
+                <Button variant="outline" onClick={() => refreshToken()} disabled={isRefreshingToken}>
+                  {isRefreshingToken ? (
+                    <>
+                      <PiSpinner className="mr-2 h-4 w-4 animate-spin" />
+                      Erneuere...
+                    </>
+                  ) : (
+                    <>
+                      <PiArrowsClockwise className="mr-2 h-4 w-4" />
+                      Token erneuern
+                    </>
+                  )}
+                </Button>
+              )}
+
+              {/* Erneut verbinden wenn kein Refresh Token */}
+              {credentials.isAccessTokenExpired && !credentials.hasRefreshToken && (
+                <Button onClick={() => initiateOAuth()} disabled={isInitiatingOAuth || !credentials.isOAuthConfigured}>
+                  {isInitiatingOAuth ? (
+                    <>
+                      <PiSpinner className="mr-2 h-4 w-4 animate-spin" />
+                      Verbinde...
+                    </>
+                  ) : (
+                    <>
+                      <PiPlugsConnected className="mr-2 h-4 w-4" />
+                      Neu verbinden
+                    </>
+                  )}
+                </Button>
+              )}
+
+              <Button variant="outline" intent="danger" onClick={() => setShowDisconnectDialog(true)} disabled={isDisconnecting}>
+                <PiLinkBreak className="mr-2 h-4 w-4" />
+                Verbindung trennen
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
@@ -600,6 +685,24 @@ export function AdminHiOrgIntegration() {
         isSaving={isSavingMapping}
         onAutoMatch={() => autoMatchQualifikationen({ onlyUnmapped: true })}
         isAutoMatching={isAutoMatching}
+      />
+
+      {/* Disconnect Confirmation Dialog */}
+      <Dialog.Alert
+        isOpen={showDisconnectDialog}
+        onClose={() => setShowDisconnectDialog(false)}
+        title="Verbindung trennen?"
+        variant="warning"
+        message="Die OAuth2-Verbindung zu HiOrg-Server wird getrennt. Du musst dich anschließend erneut verbinden, um Personen zu importieren."
+        confirmLabel="Verbindung trennen"
+        onConfirm={() => {
+          disconnect(undefined, {
+            onSuccess: () => {
+              setShowDisconnectDialog(false);
+              authConfirmation.show('Verbindung erfolgreich getrennt', 'success');
+            },
+          });
+        }}
       />
     </Container>
   );

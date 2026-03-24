@@ -38,6 +38,9 @@ describe('GetMeineEinsatzRolleQueryHandler', () => {
           canExport: true,
           canViewAll: true,
           isBeobachter: false,
+          canEditEtb: true,
+          canEditPinnwand: true,
+          isSecondaryRole: false,
         },
       });
       expect(mockRepository.findMeineRolle).not.toHaveBeenCalled();
@@ -78,6 +81,9 @@ describe('GetMeineEinsatzRolleQueryHandler', () => {
           canExport: true,
           canViewAll: true,
           isBeobachter: false,
+          canEditEtb: true,
+          canEditPinnwand: true,
+          isSecondaryRole: false,
         },
       });
     });
@@ -101,6 +107,9 @@ describe('GetMeineEinsatzRolleQueryHandler', () => {
           canExport: true,
           canViewAll: true,
           isBeobachter: false,
+          canEditEtb: true,
+          canEditPinnwand: true,
+          isSecondaryRole: false,
         },
       });
     });
@@ -124,6 +133,9 @@ describe('GetMeineEinsatzRolleQueryHandler', () => {
           canExport: false,
           canViewAll: false,
           isBeobachter: false,
+          canEditEtb: false,
+          canEditPinnwand: false,
+          isSecondaryRole: true,
         },
       });
     });
@@ -147,6 +159,9 @@ describe('GetMeineEinsatzRolleQueryHandler', () => {
           canExport: false,
           canViewAll: true,
           isBeobachter: true,
+          canEditEtb: false,
+          canEditPinnwand: false,
+          isSecondaryRole: true,
         },
       });
     });
@@ -171,6 +186,9 @@ describe('GetMeineEinsatzRolleQueryHandler', () => {
           canExport: true,
           canViewAll: true,
           isBeobachter: false,
+          canEditEtb: true,
+          canEditPinnwand: true,
+          isSecondaryRole: false,
         },
       });
     });
@@ -193,6 +211,9 @@ describe('GetMeineEinsatzRolleQueryHandler', () => {
           canExport: false,
           canViewAll: false,
           isBeobachter: false,
+          canEditEtb: false,
+          canEditPinnwand: false,
+          isSecondaryRole: false,
         },
       });
     });
@@ -266,6 +287,9 @@ describe('GetMeineEinsatzRolleQueryHandler', () => {
         canExport: false,
         canViewAll: false,
         isBeobachter: false,
+        canEditEtb: false,
+        canEditPinnwand: false,
+        isSecondaryRole: false,
       });
     });
   });

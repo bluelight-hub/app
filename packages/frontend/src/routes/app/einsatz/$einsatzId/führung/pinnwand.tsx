@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Pinnwand } from '@/features/einsatz';
+import { EinsatzRolleGate } from '@/features/einsatz/ui/molecules/EinsatzRolleGate';
 
 export const Route = createFileRoute('/app/einsatz/$einsatzId/führung/pinnwand')({
   component: RouteComponent,
@@ -7,5 +8,9 @@ export const Route = createFileRoute('/app/einsatz/$einsatzId/führung/pinnwand'
 
 function RouteComponent() {
   const { einsatzId } = Route.useParams();
-  return <Pinnwand einsatzId={einsatzId} />;
+  return (
+    <EinsatzRolleGate einsatzId={einsatzId}>
+      <Pinnwand einsatzId={einsatzId} />
+    </EinsatzRolleGate>
+  );
 }

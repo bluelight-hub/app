@@ -17,6 +17,7 @@ export { useAdminRollenDefinitionenManagement } from './use-admin-rollen-definit
 export { useAdminStammFahrzeugeManagement } from './use-admin-stamm-fahrzeuge-management';
 export { useAdminStammPersonenManagement } from './use-admin-stamm-personen-management';
 export { useAdminHiOrgIntegration } from './use-admin-hiorg-integration';
+export { useIntegrationOverview } from './use-integration-overview';
 export { useListInvites, useRevokeInvite, type InviteFilters } from './use-admin-invite-management';
 export {
   useAccessTokenManagement,

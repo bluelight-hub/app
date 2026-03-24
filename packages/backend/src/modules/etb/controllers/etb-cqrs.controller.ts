@@ -8,8 +8,7 @@ import { AddEintragDto, EintragDto, EtbDto, EtbSnapshotDto, TextbausteinDto, Upd
 import { EtbQueryMapper, type EtbSnapshotDto as EtbSnapshotDtoFromMapper } from '@/application/etb/mappers';
 import { GetEtbHistoryQuery, GetEtbHistoryQueryHandler, GetEtbQuery, GetEtbQueryHandler, GetTextbausteineHandler, GetTextbausteineQuery } from '@/application/etb/queries';
 import type { EtbKategorie } from '@/generated/prisma/client';
-import { ETB_REPOSITORY, LOGGER } from '@/infrastructure/di-tokens';
-import { PrismaService } from '@/infrastructure/database/prisma.service';
+import { EINSATZ_ROLLEN_READ_REPOSITORY, EINSATZ_TEILNEHMER_REPOSITORY, ETB_REPOSITORY, LOGGER } from '@/infrastructure/di-tokens';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import { Roles } from '@/modules/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
@@ -17,10 +16,12 @@ import { RolesGuard } from '@/modules/auth/guards/roles.guard';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ApiWrappedCreatedResponse, ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import type { ILogger } from '@domain/ports/i-logger.port';
+import type { IEinsatzRollenReadRepository } from '@domain/repositories/i-einsatz-rollen-read.repository';
+import type { IEinsatzTeilnehmerRepository } from '@domain/repositories/i-einsatz-teilnehmer.repository';
 import { IEtbRepository } from '@domain/repositories/i-etb.repository';
 import { EtbId } from '@domain/value-objects/etb-id';
 import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, HttpCode, Inject, NotFoundException, Param, Post, Put, Query, UseGuards, ValidationPipe } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiQuery, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOperation, ApiQuery, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 
 /**
  * CQRS Controller für ETB (Einsatztagebuch) Management.
@@ -68,7 +69,10 @@ export class EtbCqrsController {
     @Inject(ETB_REPOSITORY)
     private readonly etbRepository: IEtbRepository,
     @Inject(LOGGER) private readonly logger: ILogger,
-    private readonly prisma: PrismaService,
+    @Inject(EINSATZ_TEILNEHMER_REPOSITORY)
+    private readonly einsatzTeilnehmerRepository: IEinsatzTeilnehmerRepository,
+    @Inject(EINSATZ_ROLLEN_READ_REPOSITORY)
+    private readonly einsatzRollenReadRepository: IEinsatzRollenReadRepository,
   ) {}
 
   // ============================================
@@ -79,21 +83,63 @@ export class EtbCqrsController {
    * Prüft ob ein User aktiver Einsatzteilnehmer ist.
    *
    * Ein User ist aktiv wenn er am Einsatz teilnimmt und noch nicht verlassen hat (leftAt: null).
+   * Delegiert an IEinsatzTeilnehmerRepository (Hexagonale Architektur).
    *
    * @param userId - ID des Users
    * @param einsatzId - ID des Einsatzes
    * @returns true wenn User aktiver Teilnehmer ist, false sonst
    */
   private async checkUserIsActiveTeilnehmer(userId: string, einsatzId: string): Promise<boolean> {
-    const teilnehmer = await this.prisma.einsatzTeilnehmer.findFirst({
-      where: {
-        userId,
-        einsatzId,
-        leftAt: null, // Nur aktive Teilnehmer (nicht verlassen)
-      },
-      select: { id: true },
-    });
+    const teilnehmer = await this.einsatzTeilnehmerRepository.findByEinsatzAndUser(einsatzId, userId);
     return teilnehmer !== null;
+  }
+
+  /**
+   * Prüft ob ein User das ETB bearbeiten darf (Story 5.5).
+   *
+   * Sekundaere Rollen (EMPFAENGER, BEOBACHTER) haben nur Lesezugriff.
+   * ADMIN/SUPER_ADMIN umgehen die Pruefung.
+   * Wenn keine Rollen konfiguriert sind, wird voller Zugriff gewaehrt (Abwaertskompatibilitaet).
+   * Delegiert an IEinsatzRollenReadRepository (Hexagonale Architektur).
+   *
+   * @param userId - ID des Users
+   * @param einsatzId - ID des Einsatzes
+   * @param userRole - System-Rolle aus JWT (optional)
+   * @throws ForbiddenException wenn User keine Schreibberechtigung hat
+   */
+  private async checkUserCanEditEtb(userId: string, einsatzId: string, userRole?: string): Promise<void> {
+    // Admin/SuperAdmin haben immer vollen Zugriff
+    if (userRole === 'ADMIN' || userRole === 'SUPER_ADMIN') {
+      return;
+    }
+
+    const rolleResult = await this.einsatzRollenReadRepository.findMeineRolle(einsatzId, userId);
+
+    if (rolleResult.isFailure) {
+      this.logger.error(`Rollen-Abfrage fehlgeschlagen: ${rolleResult.error}`, 'EtbCqrsController');
+      throw new ForbiddenException('Rollenprüfung fehlgeschlagen');
+    }
+
+    const rolle = rolleResult.value?.rolle ?? null;
+
+    if (!rolle) {
+      // Pruefen ob Rollensystem fuer diesen Einsatz aktiv ist
+      const hasRollenResult = await this.einsatzRollenReadRepository.hasAnyRollen(einsatzId);
+
+      if (hasRollenResult.isFailure) {
+        this.logger.error(`Rollen-Count fehlgeschlagen: ${hasRollenResult.error}`, 'EtbCqrsController');
+        throw new ForbiddenException('Rollenprüfung fehlgeschlagen');
+      }
+
+      // Keine Rollen konfiguriert → voller Zugriff (Abwaertskompatibilitaet)
+      if (!hasRollenResult.value) return;
+
+      throw new ForbiddenException('Keine Schreibberechtigung fuer das ETB: Ihnen wurde keine Rolle in diesem Einsatz zugewiesen.');
+    }
+
+    if (rolle === 'EMPFAENGER' || rolle === 'BEOBACHTER') {
+      throw new ForbiddenException(`Keine Schreibberechtigung fuer das ETB. Ihre Rolle (${rolle}) erlaubt nur Lesezugriff. Nutzen Sie stattdessen die Befehle-Ansicht.`);
+    }
   }
 
   // ============================================
@@ -450,6 +496,9 @@ export class EtbCqrsController {
       throw new ForbiddenException('Keine Berechtigung: User ist kein aktiver Einsatzteilnehmer');
     }
 
+    // Story 5.5: Sekundaere Rollen (EMPFAENGER/BEOBACHTER) duerfen nicht schreiben
+    await this.checkUserCanEditEtb(user.userId, einsatzId, user.role);
+
     // Convert optional ISO string to Date if present
     const occurredAt = dto.occurredAt ? new Date(dto.occurredAt) : undefined;
 
@@ -534,6 +583,9 @@ export class EtbCqrsController {
       throw new ForbiddenException('Keine Berechtigung: User ist kein aktiver Einsatzteilnehmer');
     }
 
+    // Story 5.5: Sekundaere Rollen (EMPFAENGER/BEOBACHTER) duerfen nicht schreiben
+    await this.checkUserCanEditEtb(user.userId, einsatzId, user.role);
+
     const commandResult = UpdateEintragCommand.create(etbId, eintragId, dto.newText, user.userId);
     if (commandResult.isFailure || !commandResult.value) {
       this.logger.error(`Invalid UpdateEintragCommand: ${commandResult.error}`);
@@ -587,7 +639,7 @@ export class EtbCqrsController {
     summary: 'ETB-Eintrag soft-löschen',
     description: 'Markiert einen Eintrag als gelöscht (Soft-Delete). Ein Snapshot wird vor der Änderung erstellt.',
   })
-  @ApiResponse({ status: 204, description: 'Eintrag erfolgreich gelöscht' })
+  @ApiNoContentResponse({ description: 'Eintrag erfolgreich gelöscht' })
   @ApiNotFoundResponse({ description: 'ETB oder Eintrag nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler oder ETB ist gesperrt' })
   async deleteEintrag(@Param('etbId') etbId: string, @Param('eintragId') eintragId: string, @CurrentUser() user: ValidatedUser): Promise<void> {
@@ -612,6 +664,9 @@ export class EtbCqrsController {
       this.logger.warn(`User ${user.userId} is not an active participant of Einsatz ${einsatzId}`, 'EtbCqrsController');
       throw new ForbiddenException('Keine Berechtigung: User ist kein aktiver Einsatzteilnehmer');
     }
+
+    // Story 5.5: Sekundaere Rollen (EMPFAENGER/BEOBACHTER) duerfen nicht schreiben
+    await this.checkUserCanEditEtb(user.userId, einsatzId, user.role);
 
     const commandResult = DeleteEintragCommand.create(etbId, eintragId, user.userId);
     if (commandResult.isFailure || !commandResult.value) {
@@ -658,7 +713,7 @@ export class EtbCqrsController {
     summary: 'ETB sperren (nur Admin)',
     description: 'Sperrt das ETB irreversibel. Nur ADMIN oder SUPER_ADMIN können diese Aktion ausführen.',
   })
-  @ApiResponse({ status: 204, description: 'ETB erfolgreich gesperrt' })
+  @ApiNoContentResponse({ description: 'ETB erfolgreich gesperrt' })
   @ApiNotFoundResponse({ description: 'ETB nicht gefunden' })
   @ApiBadRequestResponse({ description: 'ETB ist bereits gesperrt oder Validierungsfehler' })
   @ApiForbiddenResponse({ description: 'Nur ADMIN oder SUPER_ADMIN berechtigt' })

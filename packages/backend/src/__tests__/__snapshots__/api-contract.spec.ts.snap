@@ -554,6 +554,14 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
             "description": "Darf Befehle erstellen",
             "type": "boolean",
           },
+          "canEditEtb": {
+            "description": "Darf ETB-Eintraege erstellen/bearbeiten",
+            "type": "boolean",
+          },
+          "canEditPinnwand": {
+            "description": "Darf Erinnerungen/Pinnwand bearbeiten",
+            "type": "boolean",
+          },
           "canExport": {
             "description": "Darf Befehle exportieren",
             "type": "boolean",
@@ -578,6 +586,10 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
             "description": "Ist nur Beobachter (read-only)",
             "type": "boolean",
           },
+          "isSecondaryRole": {
+            "description": "Ist sekundaere Rolle (eingeschraenkter Workspace)",
+            "type": "boolean",
+          },
         },
         "required": [
           "canCreate",
@@ -587,6 +599,9 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
           "canExport",
           "canViewAll",
           "isBeobachter",
+          "canEditEtb",
+          "canEditPinnwand",
+          "isSecondaryRole",
         ],
         "type": "object",
       },

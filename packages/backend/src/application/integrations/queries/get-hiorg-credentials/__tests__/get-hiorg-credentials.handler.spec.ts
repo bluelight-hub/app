@@ -135,7 +135,7 @@ describe('GetHiOrgCredentialsHandler', () => {
       expect(dto).not.toHaveProperty('apiToken');
 
       // Nur erlaubte Properties pruefen
-      const allowedKeys = ['hasOAuthTokens', 'isActive', 'lastTestedAt', 'lastSyncAt'];
+      const allowedKeys = ['hasOAuthTokens', 'isActive', 'lastTestedAt', 'lastSyncAt', 'isAccessTokenExpired', 'accessTokenExpiresAt', 'hasRefreshToken'];
       const actualKeys = Object.keys(dto);
       for (const key of actualKeys) {
         expect(allowedKeys).toContain(key);

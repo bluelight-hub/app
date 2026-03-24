@@ -49,6 +49,24 @@ export interface HiOrgCredentialsResponseDto {
      * @memberof HiOrgCredentialsResponseDto
      */
     isOAuthConfigured: boolean;
+    /**
+     * Ist das Access Token abgelaufen oder läuft in weniger als 5 Minuten ab?
+     * @type {boolean}
+     * @memberof HiOrgCredentialsResponseDto
+     */
+    isAccessTokenExpired: boolean;
+    /**
+     * Ablaufzeitpunkt des Access Tokens
+     * @type {object}
+     * @memberof HiOrgCredentialsResponseDto
+     */
+    accessTokenExpiresAt?: object | null;
+    /**
+     * Ist ein Refresh Token vorhanden für automatische Erneuerung?
+     * @type {boolean}
+     * @memberof HiOrgCredentialsResponseDto
+     */
+    hasRefreshToken: boolean;
 }
 
 /**
@@ -58,6 +76,8 @@ export function instanceOfHiOrgCredentialsResponseDto(value: object): value is H
     if (!('hasOAuthTokens' in value) || value['hasOAuthTokens'] === undefined) return false;
     if (!('isActive' in value) || value['isActive'] === undefined) return false;
     if (!('isOAuthConfigured' in value) || value['isOAuthConfigured'] === undefined) return false;
+    if (!('isAccessTokenExpired' in value) || value['isAccessTokenExpired'] === undefined) return false;
+    if (!('hasRefreshToken' in value) || value['hasRefreshToken'] === undefined) return false;
     return true;
 }
 
@@ -76,6 +96,9 @@ export function HiOrgCredentialsResponseDtoFromJSONTyped(json: any, ignoreDiscri
         'lastTestedAt': json['lastTestedAt'] == null ? undefined : json['lastTestedAt'],
         'lastSyncAt': json['lastSyncAt'] == null ? undefined : json['lastSyncAt'],
         'isOAuthConfigured': json['isOAuthConfigured'],
+        'isAccessTokenExpired': json['isAccessTokenExpired'],
+        'accessTokenExpiresAt': json['accessTokenExpiresAt'] == null ? undefined : json['accessTokenExpiresAt'],
+        'hasRefreshToken': json['hasRefreshToken'],
     };
 }
 
@@ -95,6 +118,9 @@ export function HiOrgCredentialsResponseDtoToJSONTyped(value?: HiOrgCredentialsR
         'lastTestedAt': value['lastTestedAt'],
         'lastSyncAt': value['lastSyncAt'],
         'isOAuthConfigured': value['isOAuthConfigured'],
+        'isAccessTokenExpired': value['isAccessTokenExpired'],
+        'accessTokenExpiresAt': value['accessTokenExpiresAt'],
+        'hasRefreshToken': value['hasRefreshToken'],
     };
 }
 

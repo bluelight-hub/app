@@ -425,10 +425,8 @@ Die Infrastructure Layer Implementation (PrismaEinsatzRepository) erfolgt in **E
 
 ## 📚 Documentation Links
 
-- **Story:** [1-3-einsatz-aggregate-value-objects.md](.bmad-ephemeral/stories/1-3-einsatz-aggregate-value-objects.md)
-- **Tech Spec:** [tech-spec-epic-1.md](.bmad-ephemeral/stories/tech-spec-epic-1.md)
-- **Architecture:** [docs/architecture/9-architecture-decisions-adrs.md](../../../../docs/architecture/9-architecture-decisions-adrs.md)
-- **PRD:** [docs/prds/276-hexagonale-architektur.md](../../../../docs/prds/276-hexagonale-architektur.md)
+- **Domain Layer Übersicht:** [README.md](./README.md)
+- **Implementierung:** [aggregates/einsatz.aggregate.ts](./aggregates/einsatz.aggregate.ts)
 
 ---
 

@@ -2,7 +2,7 @@
 
 > **Generiert:** 2026-01-05
 > **Letzte Aktualisierung:** 2026-02-19
-> **Workflow:** BMad Document-Project v1.2.0
+> **Quelle:** Projekt-Scan v1.2.0
 > **Scan-Level:** Exhaustive
 > **Dateien analysiert:** 78
 > **Lines of Code:** ~5.800 LOC
@@ -961,4 +961,4 @@ pnpm --filter @bluelight-hub/backend test -- --testPathPattern=hiorg-token-refre
 
 ---
 
-*Deep-Dive generiert durch BMad Document-Project Workflow v1.2.0, aktualisiert am 2026-02-19*
+*Deep-Dive generiert am 2026-01-05, aktualisiert am 2026-02-19*

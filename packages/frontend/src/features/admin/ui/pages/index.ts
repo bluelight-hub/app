@@ -8,6 +8,7 @@ export { AdminBefehlsgeberVorschlaege } from './AdminBefehlsgeberVorschlaege';
 export { AdminDashboard } from './AdminDashboard';
 export { AdminFahrzeugtypen } from './AdminFahrzeugtypen';
 export { AdminHiOrgIntegration } from './AdminHiOrgIntegration';
+export { AdminIntegrationOverview } from './AdminIntegrationOverview';
 export { AdminInvites } from './AdminInvites';
 export { AdminLogin } from './AdminLogin';
 export { AdminQualifikationen } from './AdminQualifikationen';

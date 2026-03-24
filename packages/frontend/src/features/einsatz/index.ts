@@ -46,6 +46,11 @@ export {
 } from './api';
 
 // ============================================
+// Contexts
+// ============================================
+export { EinsatzRolleProvider, useEinsatzRolleContext, type EinsatzRolleContextValue } from './contexts';
+
+// ============================================
 // Store Layer (UI State Management)
 // ============================================
 export * from './stores';
