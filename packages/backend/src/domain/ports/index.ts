@@ -18,3 +18,4 @@ export * from './i-logger.port';
 export * from './i-encryption.port';
 export * from './i-oauth2.port';
 export * from './i-hiorg-server.port';
+export * from './i-circuit-breaker-reader.port';

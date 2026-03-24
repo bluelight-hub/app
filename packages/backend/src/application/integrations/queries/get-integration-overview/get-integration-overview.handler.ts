@@ -16,8 +16,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Result } from '@domain/common/result';
 import { INTEGRATION_TYPES, type IIntegrationCredentialRepository, type IntegrationCredential } from '@domain/integrations';
 import { INTEGRATIONS, RESILIENCE } from '@infrastructure/di-tokens';
-import { CircuitBreakerService, type CircuitStatus } from '@infrastructure/resilience/circuit-breaker.service';
-import { CircuitBreakerStateEnum } from '@infrastructure/resilience/circuit-breaker-state';
+import { type CircuitStatus, CircuitBreakerStateEnum, type ICircuitBreakerReader } from '@domain/ports/i-circuit-breaker-reader.port';
 import type { GetIntegrationOverviewQuery } from './get-integration-overview.query';
 
 /**
@@ -89,7 +88,7 @@ export class GetIntegrationOverviewHandler {
     @Inject(INTEGRATIONS.CREDENTIAL_REPOSITORY)
     private readonly credentialRepository: IIntegrationCredentialRepository,
     @Inject(RESILIENCE.CIRCUIT_BREAKER)
-    private readonly circuitBreaker: CircuitBreakerService,
+    private readonly circuitBreaker: ICircuitBreakerReader,
   ) {}
 
   /**
