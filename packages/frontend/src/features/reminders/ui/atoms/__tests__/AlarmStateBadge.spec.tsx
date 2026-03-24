@@ -25,7 +25,7 @@ describe('AlarmStateBadge', () => {
       // Then (Assert)
       const badge = screen.getByRole('status');
       expect(badge).toHaveTextContent('Geplant');
-      expect(badge.className).toMatch(/bg-green/);
+      expect(badge.className).toMatch(/bg-status-success/);
     });
 
     it('should render AUSGELOEST status with red styling and bell icon', () => {
@@ -38,7 +38,7 @@ describe('AlarmStateBadge', () => {
       // Then (Assert)
       const badge = screen.getByRole('status');
       expect(badge).toHaveTextContent('Ausgelöst');
-      expect(badge.className).toMatch(/bg-red/);
+      expect(badge.className).toMatch(/bg-status-danger/);
     });
 
     it('should render ACKNOWLEDGED status with blue styling and check icon', () => {
@@ -51,7 +51,7 @@ describe('AlarmStateBadge', () => {
       // Then (Assert)
       const badge = screen.getByRole('status');
       expect(badge).toHaveTextContent('Bestätigt');
-      expect(badge.className).toMatch(/bg-blue/);
+      expect(badge.className).toMatch(/bg-status-info/);
     });
 
     it('should render SNOOZED status with yellow styling and moon icon', () => {
@@ -64,7 +64,7 @@ describe('AlarmStateBadge', () => {
       // Then (Assert)
       const badge = screen.getByRole('status');
       expect(badge).toHaveTextContent('Verschoben');
-      expect(badge.className).toMatch(/bg-yellow/);
+      expect(badge.className).toMatch(/bg-status-warning/);
     });
 
     it('should render ERLEDIGT status with gray styling and check-circle icon', () => {
@@ -77,7 +77,7 @@ describe('AlarmStateBadge', () => {
       // Then (Assert)
       const badge = screen.getByRole('status');
       expect(badge).toHaveTextContent('Erledigt');
-      expect(badge.className).toMatch(/bg-gray/);
+      expect(badge.className).toMatch(/bg-surface-raised/);
     });
   });
 
@@ -92,8 +92,8 @@ describe('AlarmStateBadge', () => {
 
       // Then (Assert)
       const badge = screen.getByRole('status');
-      expect(badge.className).toMatch(/bg-green/);
-      expect(badge.className).toMatch(/text-green/);
+      expect(badge.className).toMatch(/bg-status-success/);
+      expect(badge.className).toMatch(/text-status-success/);
     });
 
     it('should show yellow styling when 2-5 minutes remaining', () => {
@@ -106,8 +106,8 @@ describe('AlarmStateBadge', () => {
 
       // Then (Assert)
       const badge = screen.getByRole('status');
-      expect(badge.className).toMatch(/bg-yellow/);
-      expect(badge.className).toMatch(/text-yellow/);
+      expect(badge.className).toMatch(/bg-status-warning/);
+      expect(badge.className).toMatch(/text-status-warning/);
     });
 
     it('should show orange styling when < 2 minutes remaining', () => {
@@ -120,8 +120,8 @@ describe('AlarmStateBadge', () => {
 
       // Then (Assert)
       const badge = screen.getByRole('status');
-      expect(badge.className).toMatch(/bg-orange/);
-      expect(badge.className).toMatch(/text-orange/);
+      expect(badge.className).toMatch(/bg-status-danger/);
+      expect(badge.className).toMatch(/text-status-danger/);
     });
 
     it('should show green styling when minutesUntilDue is exactly 5', () => {
@@ -134,7 +134,7 @@ describe('AlarmStateBadge', () => {
 
       // Then (Assert) - 5 minutes is still in warning zone (2-5)
       const badge = screen.getByRole('status');
-      expect(badge.className).toMatch(/bg-yellow/);
+      expect(badge.className).toMatch(/bg-status-warning/);
     });
 
     it('should show yellow styling when minutesUntilDue is exactly 2', () => {
@@ -147,7 +147,7 @@ describe('AlarmStateBadge', () => {
 
       // Then (Assert) - 2 minutes is still in warning zone (2-5)
       const badge = screen.getByRole('status');
-      expect(badge.className).toMatch(/bg-yellow/);
+      expect(badge.className).toMatch(/bg-status-warning/);
     });
 
     it('should ignore minutesUntilDue for non-GEPLANT status', () => {
@@ -160,7 +160,7 @@ describe('AlarmStateBadge', () => {
 
       // Then (Assert) - Should still be red, not affected by minutesUntilDue
       const badge = screen.getByRole('status');
-      expect(badge.className).toMatch(/bg-red/);
+      expect(badge.className).toMatch(/bg-status-danger/);
     });
   });
 
@@ -282,16 +282,16 @@ describe('AlarmStateBadge', () => {
   });
 
   describe('Dark Mode', () => {
-    it('should have dark mode classes', () => {
+    it('should use semantic token classes that support dark mode', () => {
       // Given (Arrange)
       const status = 'GEPLANT';
 
       // When (Act)
       render(<AlarmStateBadge status={status} />);
 
-      // Then (Assert)
+      // Then (Assert) - Semantic tokens handle dark mode via CSS variables
       const badge = screen.getByRole('status');
-      expect(badge.className).toMatch(/dark:/);
+      expect(badge.className).toMatch(/bg-status-success/);
     });
   });
 });

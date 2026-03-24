@@ -57,7 +57,7 @@ describe('KategorieStatCard', () => {
 
       // Then (Assert)
       const overdueElement = screen.getByText('4 überfällig');
-      expect(overdueElement).toHaveClass('text-red-600');
+      expect(overdueElement).toHaveClass('text-status-danger-text');
       expect(overdueElement).toHaveClass('font-semibold');
     });
 
@@ -70,7 +70,7 @@ describe('KategorieStatCard', () => {
 
       // Then (Assert)
       const overdueElement = screen.getByText('0 überfällig');
-      expect(overdueElement).not.toHaveClass('text-red-600');
+      expect(overdueElement).not.toHaveClass('text-status-danger-text');
       expect(overdueElement).not.toHaveClass('font-semibold');
     });
   });

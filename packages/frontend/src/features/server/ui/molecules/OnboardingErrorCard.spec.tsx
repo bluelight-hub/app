@@ -242,7 +242,7 @@ describe('OnboardingErrorCard', () => {
 
       // Then
       const card = screen.getByTestId('onboarding-error-card');
-      const innerContainer = card.querySelector('.border-red-200');
+      const innerContainer = card.querySelector('.border-status-danger-border');
       expect(innerContainer).toBeInTheDocument();
     });
 
@@ -255,7 +255,7 @@ describe('OnboardingErrorCard', () => {
 
       // Then
       const card = screen.getByTestId('onboarding-error-card');
-      expect(card).toHaveClass('border-yellow-200');
+      expect(card).toHaveClass('border-status-warning-border');
     });
 
     it('should use PiXCircleFill icon for error severity', () => {
@@ -267,7 +267,7 @@ describe('OnboardingErrorCard', () => {
 
       // Then
       const icon = screen.getByTestId('error-icon');
-      expect(icon).toHaveClass('text-red-600');
+      expect(icon).toHaveClass('text-status-danger-text');
     });
 
     it('should use PiWarningFill icon for warning severity', () => {
@@ -279,7 +279,7 @@ describe('OnboardingErrorCard', () => {
 
       // Then
       const icon = screen.getByTestId('error-icon');
-      expect(icon).toHaveClass('text-yellow-600');
+      expect(icon).toHaveClass('text-status-warning-text');
     });
   });
 

@@ -304,7 +304,7 @@ describe('CreateKategorieDialog', () => {
       // Und es gibt Sterne für Pflichtfelder
       const requiredMarks = screen.getAllByText('*');
       expect(requiredMarks.length).toBeGreaterThan(0);
-      expect(requiredMarks[0]).toHaveClass('text-red-500');
+      expect(requiredMarks[0]).toHaveClass('text-status-danger-text');
     });
 
     it('should mark farbe as required field', () => {

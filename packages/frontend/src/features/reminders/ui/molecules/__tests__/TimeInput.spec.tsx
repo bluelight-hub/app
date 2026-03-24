@@ -211,8 +211,8 @@ describe('TimeInput', () => {
       const hoursInput = screen.getByLabelText(/stunden/i);
       const minutesInput = screen.getByLabelText(/minuten/i);
       // Error state should be reflected in className (border-red classes)
-      expect(hoursInput.className).toMatch(/border-red/);
-      expect(minutesInput.className).toMatch(/border-red/);
+      expect(hoursInput.className).toMatch(/border-status-danger/);
+      expect(minutesInput.className).toMatch(/border-status-danger/);
     });
   });
 });

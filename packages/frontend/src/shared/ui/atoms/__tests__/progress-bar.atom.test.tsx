@@ -21,7 +21,7 @@ describe('ProgressBar Atom', () => {
   it('should apply variant classes', () => {
     render(<ProgressBar value={50} variant="success" />);
     const progressBar = screen.getByRole('progressbar');
-    expect(progressBar).toHaveClass('bg-green-100'); // background class for success
+    expect(progressBar).toHaveClass('bg-status-success-surface'); // background class for success
     // Note: The inner bar has the foreground color, but testing the container background is simpler for now
   });
 

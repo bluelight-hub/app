@@ -241,7 +241,7 @@ describe('EtbEntryList Performance-Gates', () => {
             async () => {
               await waitFor(() => {
                 expect(screen.getByText(resumeTargetText)).toBeInTheDocument();
-                expect(document.getElementById(`etb-entry-${resumeTargetEntry.id}`)).toHaveClass('bg-primary-50');
+                expect(document.getElementById(`etb-entry-${resumeTargetEntry.id}`)).toHaveClass('bg-action-secondary');
               });
             },
           );

@@ -71,7 +71,7 @@ describe('ItemTypeFilterControl', () => {
 
       // Then hat der aktive Button die hervorgehobene Klasse
       const button = screen.getByText('Notizen').closest('button');
-      expect(button?.className).toContain('bg-white');
+      expect(button?.className).toContain('bg-surface-panel');
       expect(button?.className).toContain('shadow-sm');
     });
 
@@ -81,7 +81,7 @@ describe('ItemTypeFilterControl', () => {
 
       // Then haben die anderen Buttons keine Highlight-Klasse
       const alleButton = screen.getByText('Alle').closest('button');
-      expect(alleButton?.className).not.toContain('bg-white');
+      expect(alleButton?.className).not.toContain('bg-surface-panel');
     });
   });
 

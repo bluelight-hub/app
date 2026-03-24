@@ -10,7 +10,7 @@ describe('Badge Atom', () => {
     render(<Badge>Default Badge</Badge>);
     const badge = screen.getByText('Default Badge');
     expect(badge).toBeInTheDocument();
-    expect(badge).toHaveClass('rounded-full');
+    expect(badge).toHaveClass('rounded-pill');
     expect(badge).toHaveClass('px-2.5'); // Default size (md)
   });
 
@@ -18,7 +18,7 @@ describe('Badge Atom', () => {
     render(<Badge variant="error">Error Badge</Badge>);
     const badge = screen.getByText('Error Badge');
     expect(badge).toBeInTheDocument();
-    expect(badge).toHaveClass('rounded-full');
+    expect(badge).toHaveClass('rounded-pill');
   });
 
   it('should apply size classes', () => {

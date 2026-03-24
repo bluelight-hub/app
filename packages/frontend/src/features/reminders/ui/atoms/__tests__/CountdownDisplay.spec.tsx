@@ -107,7 +107,7 @@ describe('CountdownDisplay', () => {
 
       // Then (Assert)
       const display = screen.getByText('10m');
-      expect(display.className).toMatch(/text-green/);
+      expect(display.className).toMatch(/text-status-success/);
     });
 
     it('should have yellow text color for 2-5 minutes (warning)', () => {
@@ -120,7 +120,7 @@ describe('CountdownDisplay', () => {
 
       // Then (Assert)
       const display = screen.getByText('3m');
-      expect(display.className).toMatch(/text-yellow/);
+      expect(display.className).toMatch(/text-status-warning/);
     });
 
     it('should have orange text color for < 2 minutes (urgent)', () => {
@@ -133,7 +133,7 @@ describe('CountdownDisplay', () => {
 
       // Then (Assert)
       const display = screen.getByText('1m 0s');
-      expect(display.className).toMatch(/text-orange/);
+      expect(display.className).toMatch(/text-status-danger/);
     });
 
     it('should have red text color when overdue (critical)', () => {
@@ -146,7 +146,7 @@ describe('CountdownDisplay', () => {
 
       // Then (Assert)
       const display = screen.getByText('Jetzt fällig!');
-      expect(display.className).toMatch(/text-red/);
+      expect(display.className).toMatch(/text-status-danger/);
     });
   });
 
@@ -210,7 +210,7 @@ describe('CountdownDisplay', () => {
   });
 
   describe('Dark Mode', () => {
-    it('should have dark mode classes', () => {
+    it('should use semantic token classes that support dark mode', () => {
       // Given (Arrange)
       vi.setSystemTime(new Date('2026-01-20T10:00:00Z'));
       const faelligAm = new Date('2026-01-20T10:05:00Z');
@@ -218,9 +218,10 @@ describe('CountdownDisplay', () => {
       // When (Act)
       render(<CountdownDisplay faelligAm={faelligAm} />);
 
-      // Then (Assert)
+      // Then (Assert) - Semantic tokens handle dark mode via CSS variables
+      // 5m = warning zone (2-5 min), so uses status-warning token
       const display = screen.getByText('5m');
-      expect(display.className).toMatch(/dark:/);
+      expect(display.className).toMatch(/text-status-warning/);
     });
   });
 });
