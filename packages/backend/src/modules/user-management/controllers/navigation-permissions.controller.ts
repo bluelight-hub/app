@@ -4,7 +4,7 @@ import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
-import { GetNavigationPermissionsQuery, GetNavigationPermissionsQueryHandler, NavigationPermissionDto } from '@application/user-management';
+import { GetNavigationPermissionsQuery, GetNavigationPermissionsQueryHandler, GetUserPermissionsQuery, GetUserPermissionsQueryHandler, NavigationPermissionDto } from '@application/user-management';
 import type { NavigationUserRole } from '@application/user-management';
 
 /**
@@ -23,7 +23,10 @@ import type { NavigationUserRole } from '@application/user-management';
 })
 @UseGuards(JwtAuthGuard)
 export class NavigationPermissionsController {
-  constructor(private readonly getNavigationPermissionsHandler: GetNavigationPermissionsQueryHandler) {}
+  constructor(
+    private readonly getNavigationPermissionsHandler: GetNavigationPermissionsQueryHandler,
+    private readonly getUserPermissionsHandler: GetUserPermissionsQueryHandler,
+  ) {}
 
   /**
    * Navigations-Berechtigungen des aktuellen Benutzers abrufen.
@@ -41,7 +44,12 @@ export class NavigationPermissionsController {
   })
   async getPermissions(@CurrentUser() user: ValidatedUser): Promise<NavigationPermissionDto[]> {
     const userRole: NavigationUserRole = (user.role as NavigationUserRole) ?? 'USER';
-    const query = new GetNavigationPermissionsQuery(userRole);
+
+    // Custom Permissions des Users laden fuer additive Navigations-Berechtigung
+    const permissionsResult = await this.getUserPermissionsHandler.execute(new GetUserPermissionsQuery(user.userId));
+    const customPermissions = permissionsResult.isSuccess ? permissionsResult.value : undefined;
+
+    const query = new GetNavigationPermissionsQuery(userRole, customPermissions ?? undefined);
 
     const result = await this.getNavigationPermissionsHandler.execute(query);
 

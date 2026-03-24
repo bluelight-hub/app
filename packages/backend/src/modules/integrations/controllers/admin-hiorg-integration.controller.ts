@@ -396,6 +396,9 @@ export class AdminHiOrgIntegrationController {
     const result = await this.disconnectHandler.execute(commandResult.value!);
 
     if (result.isFailure) {
+      if (IntegrationError.hasCode(result.error, INTEGRATION_ERROR_CODES.CREDENTIALS_NOT_FOUND)) {
+        throw new NotFoundException('Keine HiOrg-Credentials konfiguriert');
+      }
       throw new InternalServerErrorException('Integration konnte nicht getrennt werden');
     }
 
