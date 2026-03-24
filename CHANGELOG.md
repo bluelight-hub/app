@@ -1,3 +1,21 @@
+## Berechtigungen & Zugriffskontrolle
+
+- **Rollenbasierte Navigation**: Die Navigationsmenüs passen sich jetzt automatisch an die Rolle des Benutzers an. Bereiche, für die keine Berechtigung besteht, werden ausgeblendet
+- **Benutzerverwaltung für Administratoren**: Administratoren können nun gezielt Berechtigungen an Benutzer vergeben und entziehen
+- **Verbesserte Fehlermeldungen**: Beim Versuch, auf nicht autorisierte Bereiche zuzugreifen, wird eine aussagekräftige Fehlerseite angezeigt
+- **Einsatzrollen-Prüfung**: Zugriff auf Workspace-Seiten wird jetzt basierend auf der zugewiesenen Einsatzrolle eingeschränkt
+
+## Integrationen
+
+- **Integrations-Übersicht für Administratoren**: Neue Administrations-Seite zur Verwaltung aller verbundenen Dienste (z.B. HiOrg-Server)
+- **Verbindungen trennen und aktualisieren**: Administratoren können Integrationen jetzt direkt trennen oder aktualisieren
+- Behebung eines Fehlers, bei dem das Trennen einer HiOrg-Verbindung zu einem Serverfehler führte, wenn keine Zugangsdaten hinterlegt waren
+
+## Technische Verbesserungen
+
+- Verbesserte Code-Architektur durch Umstrukturierung interner Schnittstellen
+- Optimierte API-Dokumentation und -Client-Generierung
+
 ## Befehle & Berechtigungen
 
 - **Neuer Befehl-Workspace**: Vollständig überarbeitete Befehlsansicht mit rollenbasierter Zugriffskontrolle und Weitergabe-Statusübersicht
