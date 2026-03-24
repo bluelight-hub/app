@@ -171,12 +171,12 @@ export function ServerColorPicker({ value, onChange, disabled = false, className
               // Hover-Effekt
               !disabled && 'hover:scale-110',
               // Focus-Styling
-              'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
-              // Selection-Styling (ring-blue-500 für Dark Mode bessere Sichtbarkeit)
-              // Ring nur wenn nicht fokussiert, um Konflikt mit focus-visible Ring zu vermeiden
-              isSelected && 'ring-2 ring-gray-900 ring-offset-2 focus-visible:ring-blue-500 dark:ring-blue-500',
+              'focus-visible:shadow-focus-ring focus-visible:outline-none',
+              // Selection-Styling mit Token-Ring
+              // Ring nur wenn nicht fokussiert, um Konflikte mit dem Fokus-Stil zu vermeiden
+              isSelected && 'ring-2 ring-action-primary ring-offset-2 ring-offset-surface-panel',
               // Farbe oder Reset-Button
-              isResetButton ? 'border-2 border-gray-400 border-dashed bg-gray-200 dark:border-gray-500 dark:bg-gray-700' : getServerColorClass(preset.value, 'bg'),
+              isResetButton ? 'border-2 border-border-strong border-dashed bg-surface-raised' : getServerColorClass(preset.value, 'bg'),
               // Cursor
               disabled ? 'cursor-not-allowed' : 'cursor-pointer',
             )}

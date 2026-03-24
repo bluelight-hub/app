@@ -509,9 +509,9 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
             </output>
           </div>
         ) : requiresAssignment ? (
-          <div className="rounded-panel border border-amber-300 bg-amber-50 p-6 shadow-panel dark:border-amber-900/40 dark:bg-amber-950/40" role="alert">
-            <p className="font-semibold text-amber-900 text-title-sm dark:text-amber-100">Zuordnung erforderlich</p>
-            <p className="mt-2 text-amber-900/90 text-body-sm dark:text-amber-200">
+          <div className="rounded-panel border border-status-warning-border bg-status-warning-surface p-6 shadow-panel" role="alert">
+            <p className="font-semibold text-status-warning-text text-title-sm">Zuordnung erforderlich</p>
+            <p className="mt-2 text-body-sm text-status-warning-text">
               Der Einsatz bleibt gesperrt, bis Sie sich eindeutig zuordnen. Nutzen Sie den geöffneten AssignmentGate, um eine vorhandene Person auszuwählen oder direkt neu anzulegen.
             </p>
             <Button appearance="ghost" size="sm" className="mt-4" onClick={() => void handleReturnToEinsatzliste()}>

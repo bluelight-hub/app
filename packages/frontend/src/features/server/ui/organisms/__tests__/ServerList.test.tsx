@@ -262,7 +262,7 @@ describe('ServerList', () => {
       // Then
       // Der Status wird an ServerListItem weitergegeben, was den Status-Dot beeinflusst
       const statusDot = screen.getByRole('status');
-      expect(statusDot).toHaveClass('bg-green-500');
+      expect(statusDot).toHaveClass('bg-status-success-text');
     });
   });
 
@@ -383,7 +383,7 @@ describe('ServerList', () => {
 
       // Then
       const statusDot = screen.getByRole('status');
-      expect(statusDot).toHaveClass('bg-yellow-500');
+      expect(statusDot).toHaveClass('bg-status-warning-text');
       expect(statusDot).toHaveClass('animate-pulse');
     });
 
@@ -400,7 +400,7 @@ describe('ServerList', () => {
 
       // Then
       const statusDot = screen.getByRole('status');
-      expect(statusDot).toHaveClass('bg-gray-400');
+      expect(statusDot).toHaveClass('bg-text-muted');
     });
   });
 
@@ -420,8 +420,7 @@ describe('ServerList', () => {
       // Then
       const list = screen.getByTestId('server-list');
       expect(list).toHaveClass('divide-y');
-      expect(list).toHaveClass('divide-gray-200');
-      expect(list).toHaveClass('dark:divide-gray-700');
+      expect(list).toHaveClass('divide-border-subtle');
     });
 
     it('should merge custom className', () => {
@@ -498,7 +497,7 @@ describe('ServerList', () => {
       const statusDots = screen.getAllByRole('status');
       expect(statusDots).toHaveLength(3);
       for (const dot of statusDots) {
-        expect(dot).toHaveClass('bg-green-500');
+        expect(dot).toHaveClass('bg-status-success-text');
       }
     });
 

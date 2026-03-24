@@ -14,22 +14,22 @@ const BADGE_CONFIG: Record<KritikalitaetBadgeType, { label: string; ariaLabel: s
   ueberfaellig: {
     label: 'Überfällig',
     ariaLabel: 'Befehl ist überfällig',
-    bg: 'bg-red-100 dark:bg-red-900/30',
-    text: 'text-red-700 dark:text-red-300',
+    bg: 'bg-status-danger-surface',
+    text: 'text-status-danger-text',
     Icon: PiClock,
   },
   'nicht-verstanden': {
     label: 'Nicht verstanden',
     ariaLabel: 'Befehl wurde nicht verstanden',
-    bg: 'bg-red-100 dark:bg-red-900/30',
-    text: 'text-red-700 dark:text-red-300',
+    bg: 'bg-status-danger-surface',
+    text: 'text-status-danger-text',
     Icon: PiXCircle,
   },
   rueckfrage: {
     label: 'Rückfrage',
     ariaLabel: 'Befehl hat offene Rückfrage',
-    bg: 'bg-yellow-100 dark:bg-yellow-900/30',
-    text: 'text-yellow-700 dark:text-yellow-300',
+    bg: 'bg-status-warning-surface',
+    text: 'text-status-warning-text',
     Icon: PiQuestion,
   },
 };

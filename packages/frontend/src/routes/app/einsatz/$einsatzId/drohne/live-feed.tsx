@@ -12,12 +12,12 @@ function LiveFeedComponent() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="font-bold text-2xl text-gray-900 dark:text-gray-100">Live-Feed</h1>
-        <p className="mt-1 text-gray-500 text-sm dark:text-gray-400">Video-Stream von Drohnen</p>
+        <h1 className="font-bold text-2xl text-text-primary">Live-Feed</h1>
+        <p className="mt-1 text-text-muted text-sm">Video-Stream von Drohnen</p>
       </div>
 
-      <div className="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-        <p className="text-gray-600 dark:text-gray-400">Live-Feed-Modul für Einsatz {einsatzId} - Coming soon</p>
+      <div className="rounded-lg bg-surface-panel p-4 shadow">
+        <p className="text-text-muted">Live-Feed-Modul für Einsatz {einsatzId} - Coming soon</p>
       </div>
     </div>
   );

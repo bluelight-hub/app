@@ -62,7 +62,7 @@ export function PersonStatistikTabelle({ einsatzId, className }: PersonStatistik
 
   return (
     <div className={cn('flex flex-col gap-2', className)}>
-      <button type="button" className="flex items-center gap-1 font-medium text-gray-700 text-sm dark:text-gray-300" onClick={() => setIsExpanded(!isExpanded)} aria-expanded={isExpanded}>
+      <button type="button" className="flex items-center gap-1 font-medium text-sm text-text-secondary" onClick={() => setIsExpanded(!isExpanded)} aria-expanded={isExpanded}>
         {isExpanded ? <PiCaretDown className="h-4 w-4" /> : <PiCaretRight className="h-4 w-4" />}
         <PiUsers className="h-4 w-4" />
         Personen-Statistik
@@ -72,9 +72,9 @@ export function PersonStatistikTabelle({ einsatzId, className }: PersonStatistik
         <>
           {isLoading && <Table.Skeleton rows={3} columns={5} />}
 
-          {!isLoading && isError && <p className="py-4 text-center text-red-500 text-sm dark:text-red-400">Statistiken konnten nicht geladen werden.</p>}
+          {!isLoading && isError && <p className="py-4 text-center text-sm text-status-danger-text">Statistiken konnten nicht geladen werden.</p>}
 
-          {!isLoading && !isError && sortedItems.length === 0 && <p className="py-4 text-center text-gray-500 text-sm dark:text-gray-400">Keine Teilnehmer im Einsatz vorhanden.</p>}
+          {!isLoading && !isError && sortedItems.length === 0 && <p className="py-4 text-center text-sm text-text-muted">Keine Teilnehmer im Einsatz vorhanden.</p>}
 
           {!isLoading && !isError && sortedItems.length > 0 && (
             <Table.Root>

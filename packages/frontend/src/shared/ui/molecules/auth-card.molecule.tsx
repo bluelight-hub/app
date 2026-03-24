@@ -19,7 +19,7 @@ interface AuthCardProps {
 export function AuthCard({ children, className, showStripe = true }: AuthCardProps) {
   return (
     <Card className={cn('relative animate-card-entry overflow-hidden border-0', className)} padding="lg">
-      {showStripe && <div className="absolute inset-x-0 top-0 h-1 animate-stripe-move bg-[length:200%_100%] bg-gradient-to-r from-red-500 via-blue-600 to-red-500" />}
+      {showStripe && <div className="absolute inset-x-0 top-0 h-1 animate-stripe-move bg-[length:200%_100%] bg-gradient-to-r from-status-danger-text via-action-primary to-status-danger-text" />}
       {children}
     </Card>
   );

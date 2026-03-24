@@ -22,14 +22,14 @@ export const ArchiveConfirmationModal = ({ isOpen, onClose, onConfirm, einsatzNa
       message={
         <div className="space-y-4">
           <div>
-            <p className="font-medium text-gray-900 dark:text-white">Sind Sie sicher, dass Sie diesen Einsatz archivieren möchten?</p>
-            <p className="mt-2 text-gray-700 dark:text-gray-300">
+            <p className="font-medium text-text-primary">Sind Sie sicher, dass Sie diesen Einsatz archivieren möchten?</p>
+            <p className="mt-2 text-text-secondary">
               <span className="font-semibold">{einsatzName}</span>
             </p>
           </div>
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-900/20">
-            <p className="font-medium text-amber-800 text-sm dark:text-amber-200">⚠️ Wichtiger Hinweis</p>
-            <p className="mt-1 text-amber-700 text-sm dark:text-amber-300">
+          <div className="rounded-lg border border-status-warning-border bg-status-warning-surface p-3">
+            <p className="font-medium text-body-sm text-status-warning-text">⚠️ Wichtiger Hinweis</p>
+            <p className="mt-1 text-body-sm text-status-warning-text">
               Archivierte Einsätze können nicht wiederhergestellt werden. Diese Aktion ist permanent und kann nicht rückgängig gemacht werden.
             </p>
           </div>

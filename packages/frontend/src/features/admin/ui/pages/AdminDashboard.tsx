@@ -4,34 +4,28 @@ import { Button } from '@/shared/ui/atoms/button.atom';
 import { Heading } from '@/shared/ui/atoms/heading.atom';
 import { Text } from '@/shared/ui/atoms/text.atom';
 import { cn } from '@/shared/ui/cn';
+import { AdminDashboardLayout } from '@/shared/ui/templates/AdminDashboardLayout';
 import { useNavigate } from '@tanstack/react-router';
 import { isTauri } from '@tauri-apps/api/core';
-import { AdminDashboardLayout } from '@/shared/ui/templates/AdminDashboardLayout';
-import { useCallback } from 'react';
-import type { ReactNode } from 'react';
+import { useCallback, type ReactNode } from 'react';
 import {
+  PiBell,
+  PiCaretRight,
   PiCertificate,
   PiIdentificationBadge,
+  PiKey,
+  PiMegaphone,
+  PiMetronome,
+  PiPlugsConnected,
   PiSignOut,
-  PiUsers,
+  PiSliders,
+  PiTicket,
   PiTruck,
   PiUserList,
-  PiPlugsConnected,
-  PiTicket,
-  PiKey,
-  PiCaretRight,
-  PiBell,
-  PiMetronome,
-  PiMegaphone,
-  PiSliders,
+  PiUsers,
 } from 'react-icons/pi';
 
-/**
- * Navigation-Card für Admin-Dashboard
- *
- * Klickbare Card mit Icon, Titel und Beschreibung für die Navigation
- * zu verschiedenen Admin-Bereichen.
- */
+/** Navigation-Card für das Admin-Dashboard */
 function NavCard({
   icon,
   title,
@@ -46,17 +40,17 @@ function NavCard({
   accentColor?: 'blue' | 'emerald' | 'violet' | 'amber';
 }) {
   const accentStyles = {
-    blue: 'group-hover:bg-blue-500/10 group-hover:text-blue-400 dark:group-hover:bg-blue-500/20',
-    emerald: 'group-hover:bg-emerald-500/10 group-hover:text-emerald-400 dark:group-hover:bg-emerald-500/20',
-    violet: 'group-hover:bg-violet-500/10 group-hover:text-violet-400 dark:group-hover:bg-violet-500/20',
-    amber: 'group-hover:bg-amber-500/10 group-hover:text-amber-400 dark:group-hover:bg-amber-500/20',
+    blue: 'group-hover:bg-status-info-surface group-hover:text-status-info-text',
+    emerald: 'group-hover:bg-status-success-surface group-hover:text-status-success-text',
+    violet: 'group-hover:bg-action-secondary group-hover:text-text-primary',
+    amber: 'group-hover:bg-status-warning-surface group-hover:text-status-warning-text',
   };
 
   const iconBgStyles = {
-    blue: 'bg-blue-500/10 text-blue-500 dark:bg-blue-500/20 dark:text-blue-400',
-    emerald: 'bg-emerald-500/10 text-emerald-500 dark:bg-emerald-500/20 dark:text-emerald-400',
-    violet: 'bg-violet-500/10 text-violet-500 dark:bg-violet-500/20 dark:text-violet-400',
-    amber: 'bg-amber-500/10 text-amber-500 dark:bg-amber-500/20 dark:text-amber-400',
+    blue: 'bg-status-info-surface text-status-info-text',
+    emerald: 'bg-status-success-surface text-status-success-text',
+    violet: 'bg-action-secondary text-text-primary',
+    amber: 'bg-status-warning-surface text-status-warning-text',
   };
 
   return (
@@ -64,34 +58,29 @@ function NavCard({
       type="button"
       onClick={onClick}
       className={cn(
-        'group flex w-full cursor-pointer items-center gap-4 rounded-xl p-4 text-left transition-all duration-200',
-        'bg-gray-50 dark:bg-gray-800/50',
-        'hover:bg-gray-100 dark:hover:bg-gray-700/50',
-        'border border-transparent hover:border-gray-200 dark:hover:border-gray-600',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900',
+        'group flex w-full cursor-pointer items-center gap-4 rounded-xl border border-border-subtle bg-surface-panel p-4 text-left transition-all duration-200',
+        'hover:border-border-strong hover:bg-action-secondary focus:outline-none focus-visible:shadow-focus-ring',
       )}
     >
       <div className={cn('flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-colors duration-200', iconBgStyles[accentColor], accentStyles[accentColor])}>{icon}</div>
       <div className="min-w-0 flex-1">
-        <Text as="span" className="block font-medium text-gray-900 dark:text-white">
+        <Text as="span" className="block font-medium text-text-primary">
           {title}
         </Text>
         <Text as="span" size="sm" color="muted" className="mt-0.5 block truncate">
           {description}
         </Text>
       </div>
-      <PiCaretRight className="h-5 w-5 shrink-0 text-gray-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-300" />
+      <PiCaretRight className="h-5 w-5 shrink-0 text-text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-text-secondary" />
     </button>
   );
 }
 
-/**
- * Sektion-Header für Admin-Dashboard
- */
+/** Sektion-Header für das Admin-Dashboard */
 function SectionHeader({ title, description }: { title: string; description: string }) {
   return (
     <div className="mb-4">
-      <Text className="font-semibold text-gray-900 text-lg dark:text-white">{title}</Text>
+      <Text className="font-semibold text-lg text-text-primary">{title}</Text>
       <Text size="sm" color="muted" className="mt-1">
         {description}
       </Text>
@@ -99,13 +88,7 @@ function SectionHeader({ title, description }: { title: string; description: str
   );
 }
 
-/**
- * Admin-Dashboard Seite
- *
- * Zentrale Verwaltungsseite für Administratoren mit Zugriff auf
- * Benutzerverwaltung und andere administrative Funktionen.
- * Nutzt das DashboardLayout für konsistente Darstellung.
- */
+/** Admin-Dashboard Seite */
 export function AdminDashboard() {
   const navigate = useNavigate();
   const { user } = useCurrentUser();
@@ -122,28 +105,24 @@ export function AdminDashboard() {
         await currentWindow.close();
       } catch (error) {
         logger.error('Fehler beim Schließen des Admin-Fensters:', error);
-        // Fallback: zur Startseite navigieren
         await navigate({ to: '/' });
       }
     } else {
-      // Im Browser: zur Startseite navigieren
       await navigate({ to: '/' });
     }
   }, [logoutAdmin, navigate]);
 
   return (
     <AdminDashboardLayout maxWidth="full">
-      {/* Dashboard Header */}
       <div className="mb-2">
         <Heading size="xl" className="mb-1">
           Admin-Dashboard
         </Heading>
         <Text color="muted">
-          Willkommen im Admin-Bereich, <span className="font-medium text-gray-700 dark:text-gray-300">{user?.username}</span>
+          Willkommen im Admin-Bereich, <span className="font-medium text-text-secondary">{user?.username}</span>
         </Text>
       </div>
 
-      {/* Admin-Funktionen */}
       <section>
         <SectionHeader title="Admin-Funktionen" description="Benutzer verwalten, Einstellungen konfigurieren und mehr" />
         <div className="grid gap-4 sm:grid-cols-2">
@@ -202,7 +181,6 @@ export function AdminDashboard() {
         </div>
       </section>
 
-      {/* Stammdaten */}
       <section>
         <SectionHeader title="Stammdaten" description="Fahrzeuge und Personal Ihrer Organisation verwalten" />
         <div className="grid gap-4 sm:grid-cols-2">
@@ -223,7 +201,6 @@ export function AdminDashboard() {
         </div>
       </section>
 
-      {/* Integrationen */}
       <section>
         <SectionHeader title="Integrationen" description="Externe Systeme für den Datenimport verbinden" />
         <div className="grid gap-4 sm:grid-cols-2">
@@ -244,8 +221,7 @@ export function AdminDashboard() {
         </div>
       </section>
 
-      {/* Logout Section */}
-      <div className="border-gray-200 border-t pt-4 dark:border-gray-700">
+      <div className="border-border-subtle border-t pt-4">
         <Button appearance="ghost" intent="danger" size="sm" onClick={handleLogout}>
           <PiSignOut className="mr-2" />
           Admin-Bereich verlassen

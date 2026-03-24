@@ -61,13 +61,13 @@ export interface ServerSelectorProps {
 function getStatusColor(status: ConnectionStatus | undefined): string {
   switch (status) {
     case 'connected':
-      return 'bg-green-500';
+      return 'bg-status-success-text';
     case 'checking':
-      return 'bg-yellow-500 animate-pulse';
+      return 'bg-status-warning-text animate-pulse';
     case 'disconnected':
-      return 'bg-red-500';
+      return 'bg-status-danger-text';
     default:
-      return 'bg-gray-400';
+      return 'bg-text-muted';
   }
 }
 
@@ -162,12 +162,10 @@ export function ServerSelector({
           <ListboxButton
             id={buttonId}
             className={cn(
-              'relative w-full cursor-pointer rounded-lg border bg-white py-3 pr-10 pl-4 text-left',
+              'relative w-full cursor-pointer rounded-control border bg-surface-panel py-3 pr-10 pl-4 text-left',
               'transition-all duration-200',
-              'border-gray-200 hover:border-gray-300',
-              'focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20',
-              'dark:border-gray-700 dark:bg-gray-900 dark:hover:border-gray-600',
-              'dark:focus:border-primary-400 dark:focus:ring-primary-400/20',
+              'border-border-subtle hover:border-border-subtle',
+              'focus:border-action-primary focus:outline-none focus-visible:shadow-focus-ring',
               'disabled:cursor-not-allowed disabled:opacity-50',
             )}
           >
@@ -178,39 +176,31 @@ export function ServerSelector({
                   <div className="relative flex-shrink-0">
                     <ServerVisualBadge server={activeServer} size="sm" />
                     {/* Status-Indikator als Overlay unten-rechts */}
-                    <span
-                      className={cn('absolute -right-0.5 -bottom-0.5 h-2 w-2 rounded-full ring-2 ring-white dark:ring-gray-900', getStatusColor(connectionStatus?.get(activeServer.id)))}
-                      aria-hidden="true"
-                    />
+                    <span className={cn('absolute -right-0.5 -bottom-0.5 h-2 w-2 rounded-full ring-2 ring-surface-panel', getStatusColor(connectionStatus?.get(activeServer.id)))} aria-hidden="true" />
                   </div>
-                  <span className="block truncate font-medium text-gray-900 dark:text-white">{activeServer.name}</span>
-                  <span className="ml-auto truncate text-gray-500 text-sm dark:text-gray-400">{getHostSafe(activeServer.url) ?? 'Unbekannt'}</span>
+                  <span className="block truncate font-medium text-text-primary">{activeServer.name}</span>
+                  <span className="ml-auto truncate text-text-muted text-sm">{getHostSafe(activeServer.url) ?? 'Unbekannt'}</span>
                 </>
               ) : (
-                <span className="block text-gray-500 dark:text-gray-400">Server auswählen...</span>
+                <span className="block text-text-muted">Server auswählen...</span>
               )}
             </span>
             <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-              <PiCaretUpDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
+              <PiCaretUpDown className="h-5 w-5 text-text-muted" aria-hidden="true" />
             </span>
           </ListboxButton>
 
           <ListboxOptions
             transition
             className={cn(
-              'absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white py-1 shadow-lg',
-              'border border-gray-200',
+              'absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-panel bg-surface-panel py-1 shadow-panel',
+              'border border-border-subtle',
               'focus:outline-none',
               'data-[closed]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in',
-              'dark:border-gray-700 dark:bg-gray-800',
             )}
           >
             {sortedServers.map((server) => (
-              <ListboxOption
-                key={server.id}
-                value={server}
-                className={cn('relative cursor-pointer select-none py-3 pr-10 pl-4', 'text-gray-900 dark:text-gray-100', 'data-[focus]:bg-primary-50 dark:data-[focus]:bg-primary-900/20')}
-              >
+              <ListboxOption key={server.id} value={server} className={cn('relative cursor-pointer select-none py-3 pr-10 pl-4', 'text-text-primary', 'data-[focus]:bg-primary-50')}>
                 {({ selected }) => (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -218,23 +208,20 @@ export function ServerSelector({
                       <div className="relative flex-shrink-0">
                         <ServerVisualBadge server={server} size="sm" />
                         {/* Status-Indikator als Overlay unten-rechts */}
-                        <span
-                          className={cn('absolute -right-0.5 -bottom-0.5 h-2 w-2 rounded-full ring-2 ring-white dark:ring-gray-800', getStatusColor(connectionStatus?.get(server.id)))}
-                          aria-hidden="true"
-                        />
+                        <span className={cn('absolute -right-0.5 -bottom-0.5 h-2 w-2 rounded-full ring-2 ring-surface-panel', getStatusColor(connectionStatus?.get(server.id)))} aria-hidden="true" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
                           <span className={cn('block truncate', selected ? 'font-semibold' : 'font-medium')}>{server.name}</span>
-                          {connectionStatus?.get(server.id) === 'disconnected' && <span className="flex-shrink-0 text-gray-500 text-sm">Offline</span>}
+                          {connectionStatus?.get(server.id) === 'disconnected' && <span className="flex-shrink-0 text-text-muted text-sm">Offline</span>}
                         </div>
-                        <span className="block truncate text-gray-500 text-sm dark:text-gray-400">{getHostSafe(server.url) ?? 'Unbekannt'}</span>
+                        <span className="block truncate text-text-muted text-sm">{getHostSafe(server.url) ?? 'Unbekannt'}</span>
                       </div>
                     </div>
 
                     {/* Check Icon für ausgewählten Server */}
                     {selected && (
-                      <span className="absolute inset-y-0 right-3 flex items-center text-primary-600 dark:text-primary-400">
+                      <span className="absolute inset-y-0 right-3 flex items-center text-action-primary">
                         <PiCheck className="h-5 w-5" aria-hidden="true" />
                       </span>
                     )}
@@ -244,14 +231,10 @@ export function ServerSelector({
             ))}
 
             {/* Separator */}
-            <div className="mx-2 my-1 border-gray-200 border-t dark:border-gray-700" />
+            <div className="mx-2 my-1 border-border-subtle border-t" />
 
             {/* Server hinzufügen */}
-            <button
-              type="button"
-              onClick={onAddServer}
-              className={cn('flex w-full cursor-pointer items-center gap-3 px-4 py-3', 'text-primary-600 dark:text-primary-400', 'hover:bg-primary-50 dark:hover:bg-primary-900/20')}
-            >
+            <button type="button" onClick={onAddServer} className={cn('flex w-full cursor-pointer items-center gap-3 px-4 py-3', 'text-action-primary', 'hover:bg-primary-50')}>
               <PiPlus className="h-5 w-5" />
               <span className="font-medium">Server hinzufügen</span>
             </button>
@@ -261,7 +244,7 @@ export function ServerSelector({
               <button
                 type="button"
                 onClick={onManageServers}
-                className={cn('flex w-full cursor-pointer items-center gap-3 px-4 py-3', 'text-gray-700 dark:text-gray-300', 'hover:bg-gray-50 dark:hover:bg-gray-700/50')}
+                className={cn('flex w-full cursor-pointer items-center gap-3 px-4 py-3', 'text-text-secondary', 'hover:bg-action-secondary hover:text-text-primary')}
               >
                 <PiGear className="h-5 w-5" />
                 <span className="font-medium">Server verwalten</span>

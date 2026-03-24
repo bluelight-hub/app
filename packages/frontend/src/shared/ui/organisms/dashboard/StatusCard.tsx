@@ -10,33 +10,33 @@ interface StatusCardProps {
 }
 
 const variantStyles = {
-  default: 'bg-gray-50 dark:bg-gray-700',
-  blue: 'bg-blue-50 dark:bg-blue-900/20',
-  yellow: 'bg-yellow-50 dark:bg-yellow-900/20',
-  green: 'bg-green-50 dark:bg-green-900/20',
-  gray: 'bg-gray-50 dark:bg-gray-700',
+  default: 'bg-surface-raised',
+  blue: 'bg-status-info-surface',
+  yellow: 'bg-status-warning-surface',
+  green: 'bg-status-success-surface',
+  gray: 'bg-surface-raised',
 };
 
 const textStyles = {
   default: {
-    label: 'text-gray-600 dark:text-gray-300',
-    value: 'text-gray-900 dark:text-white',
+    label: 'text-text-secondary',
+    value: 'text-text-primary',
   },
   blue: {
-    label: 'text-blue-600 dark:text-blue-400',
-    value: 'text-blue-900 dark:text-blue-300',
+    label: 'text-status-info-text',
+    value: 'text-status-info-text',
   },
   yellow: {
-    label: 'text-yellow-600 dark:text-yellow-400',
-    value: 'text-yellow-900 dark:text-yellow-300',
+    label: 'text-status-warning-text',
+    value: 'text-status-warning-text',
   },
   green: {
-    label: 'text-green-600 dark:text-green-400',
-    value: 'text-green-900 dark:text-green-300',
+    label: 'text-status-success-text',
+    value: 'text-status-success-text',
   },
   gray: {
-    label: 'text-gray-600 dark:text-gray-300',
-    value: 'text-gray-900 dark:text-white',
+    label: 'text-text-secondary',
+    value: 'text-text-primary',
   },
 };
 

@@ -123,8 +123,8 @@ export const ServerListItem = forwardRef<HTMLDivElement, ServerListItemProps>(({
         // Base Layout
         'flex flex-col items-start gap-2 rounded-lg p-3 sm:flex-row sm:items-center sm:gap-4',
         // Hover & Focus States
-        'hover:bg-gray-50 dark:hover:bg-gray-700/50',
-        'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900',
+        'hover:bg-surface-raised',
+        'focus-visible:shadow-focus-ring focus-visible:outline-none',
         // Interaktivität
         onClick && 'cursor-pointer',
         // Transitions
@@ -140,12 +140,12 @@ export const ServerListItem = forwardRef<HTMLDivElement, ServerListItemProps>(({
           <ServerVisualBadge server={server} size="sm" />
           {/* Status-Indikator als Overlay unten-rechts */}
           <div className="absolute -right-0.5 -bottom-0.5">
-            <ServerStatusDot status={status ?? 'disconnected'} size="sm" className="ring-2 ring-white dark:ring-gray-800" />
+            <ServerStatusDot status={status ?? 'disconnected'} size="sm" className="ring-2 ring-surface-panel" />
           </div>
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="truncate font-medium text-gray-900 dark:text-white">{server.name}</span>
+            <span className="truncate font-medium text-text-primary">{server.name}</span>
             {/* Badge inline auf größeren Screens im Header-Bereich */}
             {isActive && (
               <Badge variant="success" size="sm" className="hidden shrink-0 sm:inline-flex">
@@ -153,7 +153,7 @@ export const ServerListItem = forwardRef<HTMLDivElement, ServerListItemProps>(({
               </Badge>
             )}
           </div>
-          <div className="truncate text-gray-500 text-sm dark:text-gray-400">{server.url}</div>
+          <div className="truncate text-sm text-text-secondary">{server.url}</div>
         </div>
       </div>
 
@@ -178,9 +178,8 @@ export const ServerListItem = forwardRef<HTMLDivElement, ServerListItemProps>(({
                 onClick={(e) => handleActionClick(e, onEdit)}
                 aria-label={`Server ${server.name} bearbeiten`}
                 className={cn(
-                  'rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700',
-                  'dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200',
-                  'focus:outline-none focus:ring-2 focus:ring-blue-500',
+                  'rounded-md p-2 text-text-muted hover:bg-action-secondary hover:text-text-secondary',
+                  'focus-visible:shadow-focus-ring focus-visible:outline-none',
                   'transition-colors duration-150',
                 )}
               >
@@ -199,9 +198,8 @@ export const ServerListItem = forwardRef<HTMLDivElement, ServerListItemProps>(({
                 onClick={(e) => handleActionClick(e, onDelete)}
                 aria-label={`Server ${server.name} löschen`}
                 className={cn(
-                  'rounded-md p-2 text-gray-500 hover:bg-red-50 hover:text-red-600',
-                  'dark:text-gray-400 dark:hover:bg-red-900/20 dark:hover:text-red-400',
-                  'focus:outline-none focus:ring-2 focus:ring-red-500',
+                  'rounded-md p-2 text-text-muted hover:bg-status-danger-surface hover:text-status-danger-text',
+                  'focus-visible:shadow-focus-ring focus-visible:outline-none',
                   'transition-colors duration-150',
                 )}
               >

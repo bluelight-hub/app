@@ -28,18 +28,14 @@ export function AudioToggle({ enabled, onChange, className }: AudioToggleProps) 
   const descriptionId = useId();
 
   return (
-    <div className={cn('flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800', className)}>
+    <div className={cn('flex items-center justify-between rounded-panel border border-border-subtle bg-surface-panel p-4', className)}>
       <div className="flex items-center gap-3">
-        {enabled ? (
-          <PiSpeakerHigh className="h-6 w-6 text-green-500 dark:text-green-400" aria-hidden="true" />
-        ) : (
-          <PiSpeakerSlash className="h-6 w-6 text-gray-400 dark:text-gray-500" aria-hidden="true" />
-        )}
+        {enabled ? <PiSpeakerHigh className="h-6 w-6 text-status-success-text" aria-hidden="true" /> : <PiSpeakerSlash className="h-6 w-6 text-text-muted" aria-hidden="true" />}
         <div>
-          <span id={labelId} className="block font-medium text-gray-900 dark:text-white">
+          <span id={labelId} className="block font-medium text-text-primary">
             Alarm-Töne aktivieren
           </span>
-          <span id={descriptionId} className="text-gray-500 text-sm dark:text-gray-400">
+          <span id={descriptionId} className="text-text-secondary text-sm">
             {enabled ? 'Töne werden bei Erinnerungen abgespielt' : 'Nur visuelle Benachrichtigungen'}
           </span>
         </div>

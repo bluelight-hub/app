@@ -32,24 +32,18 @@ export const EtbActionsCell: React.FC<EtbActionsCellProps> = ({ isEditing, onEdi
   if (isDeleted) {
     return (
       <div className="flex justify-center gap-1">
-        <span className="text-gray-400 text-xs italic">Gelöscht</span>
+        <span className="text-text-muted text-xs italic">Gelöscht</span>
       </div>
     );
   }
 
   return (
     <div className="flex justify-center gap-1">
-      <IconButton appearance="minimal" size="sm" onClick={onEdit} className="text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400" aria-label="Bearbeiten">
+      <IconButton appearance="minimal" size="sm" onClick={onEdit} className="text-text-secondary hover:text-action-primary" aria-label="Bearbeiten">
         <PiPencil />
       </IconButton>
       {onCreateErinnerung && (
-        <IconButton
-          size="sm"
-          appearance="minimal"
-          onClick={onCreateErinnerung}
-          className="text-gray-500 hover:text-amber-600 dark:text-gray-400 dark:hover:text-amber-400"
-          aria-label="Erinnerung erstellen"
-        >
+        <IconButton size="sm" appearance="minimal" onClick={onCreateErinnerung} className="text-text-secondary hover:text-status-warning-text" aria-label="Erinnerung erstellen">
           <PiBell />
         </IconButton>
       )}

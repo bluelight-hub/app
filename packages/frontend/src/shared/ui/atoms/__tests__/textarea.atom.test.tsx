@@ -9,14 +9,14 @@ describe('Textarea Atom', () => {
     const textarea = screen.getByPlaceholderText('Type here');
     expect(textarea).toBeInTheDocument();
     expect(textarea.tagName).toBe('TEXTAREA');
-    expect(textarea).toHaveClass('border-gray-300'); // Default variant
+    expect(textarea).toHaveClass('border-border-subtle'); // Default variant
     expect(textarea).toHaveClass('px-3'); // Default size (md)
   });
 
   it('should apply variant classes', () => {
     render(<Textarea variant="error" placeholder="Error Textarea" />);
     const textarea = screen.getByPlaceholderText('Error Textarea');
-    expect(textarea).toHaveClass('border-red-300');
+    expect(textarea).toHaveClass('border-status-danger-border');
   });
 
   it('should apply size classes', () => {

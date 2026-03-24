@@ -165,7 +165,7 @@ export function EinsatzDetailView() {
       />
 
       {/* Main Content - Scrollable */}
-      <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+      <div className="flex-1 overflow-y-auto bg-surface-canvas">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           {/* Archive Banner */}
           {isArchived && <ArchivedBanner />}

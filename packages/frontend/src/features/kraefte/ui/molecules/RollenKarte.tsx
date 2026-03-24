@@ -34,14 +34,14 @@ const getModeClasses = (mode: DashboardMode) => ({
     compact: 'rounded border p-2',
   }[mode],
   rollenName: {
-    standard: 'font-semibold text-gray-900 dark:text-gray-100',
-    fullscreen: 'font-bold text-lg lg:text-xl text-gray-900 dark:text-gray-100',
-    compact: 'font-medium text-sm text-gray-900 dark:text-gray-100',
+    standard: 'font-semibold text-text-primary',
+    fullscreen: 'font-bold text-lg lg:text-xl text-text-primary',
+    compact: 'font-medium text-sm text-text-primary',
   }[mode],
   personName: {
-    standard: 'text-gray-700 text-sm dark:text-gray-300',
-    fullscreen: 'text-gray-700 text-base lg:text-lg dark:text-gray-300',
-    compact: 'text-gray-700 text-xs dark:text-gray-300',
+    standard: 'text-text-secondary text-sm',
+    fullscreen: 'text-text-secondary text-base lg:text-lg',
+    compact: 'text-text-secondary text-xs',
   }[mode],
   icon: {
     standard: 'h-4 w-4',
@@ -69,13 +69,13 @@ export function RollenKarteSkeleton({ className }: { className?: string }) {
   const classes = getModeClasses(mode);
 
   return (
-    <div className={cn('animate-pulse border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800', classes.container, className)}>
+    <div className={cn('animate-pulse border-border-subtle bg-surface-panel', classes.container, className)}>
       <div className="flex items-center justify-between">
-        <div className={cn('rounded bg-gray-200 dark:bg-gray-700', mode === 'fullscreen' ? 'h-6 w-24' : mode === 'compact' ? 'h-4 w-16' : 'h-5 w-20')} />
-        <div className={cn('rounded bg-gray-200 dark:bg-gray-700', classes.icon)} />
+        <div className={cn('rounded bg-surface-raised', mode === 'fullscreen' ? 'h-6 w-24' : mode === 'compact' ? 'h-4 w-16' : 'h-5 w-20')} />
+        <div className={cn('rounded bg-surface-raised', classes.icon)} />
       </div>
-      <div className={cn('mt-2 rounded bg-gray-200 dark:bg-gray-700', mode === 'fullscreen' ? 'h-5 w-40' : mode === 'compact' ? 'h-3 w-24' : 'h-4 w-32')} />
-      <div className={cn('mt-3 rounded bg-gray-200 dark:bg-gray-700', mode === 'fullscreen' ? 'h-10 w-28' : mode === 'compact' ? 'h-8 w-24' : 'h-6 w-20')} />
+      <div className={cn('mt-2 rounded bg-surface-raised', mode === 'fullscreen' ? 'h-5 w-40' : mode === 'compact' ? 'h-3 w-24' : 'h-4 w-32')} />
+      <div className={cn('mt-3 rounded bg-surface-raised', mode === 'fullscreen' ? 'h-10 w-28' : mode === 'compact' ? 'h-8 w-24' : 'h-6 w-20')} />
     </div>
   );
 }
@@ -98,19 +98,19 @@ export function RollenKarte({ besetzung, onFreigeben, className }: RollenKartePr
         'transition-all',
         classes.container,
         // Besetzte Rolle = grüne Markierung (AC2)
-        'border-green-500 bg-green-50 dark:border-green-700 dark:bg-green-900/20',
+        'border-status-success-border bg-status-success-surface',
         className,
       )}
     >
       {/* Header: Rollenname + Qualifikations-Icon */}
       <div className="flex items-center justify-between">
         <h4 className={classes.rollenName}>{besetzung.rollenName}</h4>
-        <PiShieldCheck className={cn(classes.icon, 'text-green-600')} title="Besetzt" />
+        <PiShieldCheck className={cn(classes.icon, 'text-status-success-text')} title="Besetzt" />
       </div>
 
       {/* Person mit Check (AC1) */}
       <div className={cn('flex items-center gap-2', mode === 'fullscreen' ? 'mt-3' : 'mt-2')}>
-        <PiCheck className={cn(classes.icon, 'text-green-600')} />
+        <PiCheck className={cn(classes.icon, 'text-status-success-text')} />
         <span className={classes.personName}>{besetzung.personName}</span>
       </div>
 
@@ -120,7 +120,7 @@ export function RollenKarte({ besetzung, onFreigeben, className }: RollenKartePr
           <button
             type="button"
             onClick={onFreigeben}
-            className={cn('flex items-center gap-1 rounded text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30', classes.button)}
+            className={cn('flex items-center gap-1 rounded-control text-status-danger-text hover:bg-status-danger-surface focus:outline-none focus-visible:shadow-focus-ring', classes.button)}
             aria-label={`Rolle ${besetzung.rollenName} freigeben`}
           >
             <PiUserMinus className={classes.buttonIcon} />

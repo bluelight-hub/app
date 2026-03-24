@@ -21,15 +21,15 @@ vi.mock('../../../api', () => ({
 vi.mock('../../../constants', () => ({
   getEventConfig: (eventType: string) => {
     const configs: Record<string, { icon: () => null; bgColor: string; textColor: string; label: string }> = {
-      ErinnerungErstellt: { icon: () => null, bgColor: 'bg-blue-100', textColor: 'text-blue-600', label: 'Erstellt' },
-      ErinnerungAusgeloest: { icon: () => null, bgColor: 'bg-orange-100', textColor: 'text-orange-600', label: 'Ausgelöst' },
-      ErinnerungAcknowledged: { icon: () => null, bgColor: 'bg-green-100', textColor: 'text-green-600', label: 'Bestätigt' },
-      ErinnerungSnoozed: { icon: () => null, bgColor: 'bg-purple-100', textColor: 'text-purple-600', label: 'Verschoben' },
-      ErinnerungEskaliert: { icon: () => null, bgColor: 'bg-red-100', textColor: 'text-red-600', label: 'Eskaliert' },
-      ErinnerungErledigt: { icon: () => null, bgColor: 'bg-emerald-100', textColor: 'text-emerald-600', label: 'Erledigt' },
-      ErinnerungAssigned: { icon: () => null, bgColor: 'bg-indigo-100', textColor: 'text-indigo-600', label: 'Zugewiesen' },
+      ErinnerungErstellt: { icon: () => null, bgColor: 'bg-status-info-surface', textColor: 'text-status-info-text', label: 'Erstellt' },
+      ErinnerungAusgeloest: { icon: () => null, bgColor: 'bg-status-danger-surface', textColor: 'text-status-danger-text', label: 'Ausgelöst' },
+      ErinnerungAcknowledged: { icon: () => null, bgColor: 'bg-status-success-surface', textColor: 'text-status-success-text', label: 'Bestätigt' },
+      ErinnerungSnoozed: { icon: () => null, bgColor: 'bg-status-info-surface', textColor: 'text-status-info-text', label: 'Verschoben' },
+      ErinnerungEskaliert: { icon: () => null, bgColor: 'bg-status-danger-surface', textColor: 'text-status-danger-text', label: 'Eskaliert' },
+      ErinnerungErledigt: { icon: () => null, bgColor: 'bg-status-success-surface', textColor: 'text-status-success-text', label: 'Erledigt' },
+      ErinnerungAssigned: { icon: () => null, bgColor: 'bg-status-info-surface', textColor: 'text-status-info-text', label: 'Zugewiesen' },
     };
-    return configs[eventType] ?? { icon: () => null, bgColor: 'bg-gray-100', textColor: 'text-gray-600', label: eventType };
+    return configs[eventType] ?? { icon: () => null, bgColor: 'bg-surface-raised', textColor: 'text-text-secondary', label: eventType };
   },
   EVENT_CONFIG: {},
 }));

@@ -46,7 +46,7 @@ export const ColorPicker = forwardRef<HTMLInputElement, ColorPickerProps>(({ val
           value={value}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
-          className="h-10 w-20 rounded-lg border-2 border-gray-300 hover:border-gray-400 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:hover:border-gray-600"
+          className="h-10 w-20 rounded-control border-2 border-border-subtle hover:border-border-strong disabled:cursor-not-allowed disabled:opacity-50"
           aria-label={label ? `${label} - Farbwähler` : 'Farbwähler'}
         />
 

@@ -37,27 +37,27 @@ export function EinsatzTimelineWidget({ events, className }: EinsatzTimelineWidg
   const getEventColors = (type: TimelineEvent['type']) => {
     switch (type) {
       case 'alarm':
-        return 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400';
+        return 'bg-status-danger-surface text-status-danger-text';
       case 'arrival':
-        return 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400';
+        return 'bg-status-info-surface text-status-info-text';
       case 'action':
-        return 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400';
+        return 'bg-action-secondary text-action-primary';
       case 'info':
-        return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
+        return 'bg-surface-raised text-text-secondary';
       case 'success':
-        return 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400';
+        return 'bg-status-success-surface text-status-success-text';
       default:
-        return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
+        return 'bg-surface-raised text-text-secondary';
     }
   };
 
   return (
-    <div className={cn('rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800', className)}>
-      <h3 className="mb-4 font-semibold text-gray-900 text-lg dark:text-gray-100">Einsatzverlauf</h3>
+    <div className={cn('rounded-lg bg-surface-panel p-6 shadow-sm', className)}>
+      <h3 className="mb-4 font-semibold text-text-primary text-lg">Einsatzverlauf</h3>
 
       <div className="relative">
         {/* Timeline line */}
-        <div className="absolute top-8 bottom-0 left-5 w-0.5 bg-gray-200 dark:bg-gray-700" />
+        <div className="absolute top-8 bottom-0 left-5 w-0.5 bg-border-subtle" />
 
         {/* Timeline events */}
         <div className="space-y-4">
@@ -70,10 +70,10 @@ export function EinsatzTimelineWidget({ events, className }: EinsatzTimelineWidg
               <div className="flex-1 pb-4">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-gray-100">{event.title}</p>
-                    {event.description && <p className="mt-1 text-gray-600 text-sm dark:text-gray-400">{event.description}</p>}
+                    <p className="font-medium text-text-primary">{event.title}</p>
+                    {event.description && <p className="mt-1 text-body-sm text-text-secondary">{event.description}</p>}
                   </div>
-                  <time className="text-gray-500 text-xs dark:text-gray-400">{formatNatoDateTime(event.time)}</time>
+                  <time className="text-body-xs text-text-muted">{formatNatoDateTime(event.time)}</time>
                 </div>
               </div>
             </div>
@@ -81,9 +81,9 @@ export function EinsatzTimelineWidget({ events, className }: EinsatzTimelineWidg
         </div>
 
         {events.length === 0 && (
-          <div className="py-8 text-center text-gray-500 dark:text-gray-400">
+          <div className="py-8 text-center text-text-secondary">
             <PiClock className="mx-auto mb-2 h-12 w-12 opacity-50" />
-            <p className="text-sm">Noch keine Ereignisse vorhanden</p>
+            <p className="text-body-sm">Noch keine Ereignisse vorhanden</p>
           </div>
         )}
       </div>

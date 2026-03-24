@@ -13,8 +13,8 @@ interface AlarmDotProps {
 export function AlarmDot({ className }: AlarmDotProps) {
   return (
     <span className={cn('relative inline-flex h-2 w-2', className)} aria-hidden="true">
-      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75 motion-reduce:animate-none" />
-      <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-status-danger-text opacity-75 motion-reduce:animate-none" />
+      <span className="relative inline-flex h-2 w-2 rounded-full bg-status-danger-text" />
     </span>
   );
 }

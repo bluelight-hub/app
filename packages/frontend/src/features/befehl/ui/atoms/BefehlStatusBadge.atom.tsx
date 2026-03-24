@@ -14,7 +14,7 @@ const STATUS_CONFIG: Record<BefehlStatus, { variant: BadgeVariant; label: string
   ERTEILT: { variant: 'default', label: 'Erteilt' },
   ZUGESTELLT: { variant: 'info', label: 'Zugestellt' },
   QUITTIERT: { variant: 'success', label: 'Quittiert' },
-  KORRIGIERT: { variant: 'warning', label: 'Korrigiert', className: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300' },
+  KORRIGIERT: { variant: 'warning', label: 'Korrigiert', className: 'bg-status-warning-surface text-status-warning-text' },
 };
 
 /**

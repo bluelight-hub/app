@@ -25,16 +25,16 @@ export function EtbVersionBadge({ version, variant = 'solid', isCurrent = false,
   const variantClasses =
     variant === 'solid'
       ? {
-          current: 'bg-primary-500 text-white',
-          currentHover: 'hover:bg-primary-600',
-          old: 'bg-gray-500 text-white',
-          oldHover: 'hover:bg-gray-600',
+          current: 'bg-action-primary text-text-inverse',
+          currentHover: 'hover:bg-action-primary-hover',
+          old: 'bg-surface-raised text-text-secondary',
+          oldHover: 'hover:bg-action-secondary hover:text-text-primary',
         }
       : {
-          current: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-          currentHover: 'hover:bg-blue-200 dark:hover:bg-blue-900/50',
-          old: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-          oldHover: 'hover:bg-blue-200 dark:hover:bg-blue-900/50',
+          current: 'bg-status-info-surface text-status-info-text',
+          currentHover: 'hover:bg-status-info-surface/80',
+          old: 'bg-status-info-surface text-status-info-text',
+          oldHover: 'hover:bg-status-info-surface/80',
         };
 
   const content = (
@@ -46,7 +46,7 @@ export function EtbVersionBadge({ version, variant = 'solid', isCurrent = false,
 
   if (onClick) {
     return (
-      <button type="button" onClick={onClick} className="inline-flex items-center rounded-full" title="Versionshistorie anzeigen">
+      <button type="button" onClick={onClick} className="inline-flex items-center rounded-full focus-visible:shadow-focus-ring focus-visible:outline-none" title="Versionshistorie anzeigen">
         <Badge
           size="sm"
           className={cn(

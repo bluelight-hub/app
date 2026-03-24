@@ -27,7 +27,7 @@ interface PoiToolbarProps {
  * @remarks
  * - Häufige POI-Typen werden direkt als Buttons angezeigt
  * - Erweiterte Typen sind in einem Headless UI Dropdown-Menü
- * - Active State: bg-blue-100 dark:bg-blue-900 für ausgewählten Typ
+ * - Active State: status-info/action tokens für ausgewählten Typ
  * - Desktop: Vertical sidebar (left side)
  * - Mobile: Horizontal toolbar (bottom) - siehe Task 9
  *
@@ -87,19 +87,17 @@ export const PoiToolbar: React.FC<PoiToolbarProps> = ({ onPoiTypeSelect, selecte
             <>
               <MenuButton
                 className={`flex w-full items-center justify-between gap-2 rounded-lg border-2 px-3 py-2 transition-all hover:shadow-md ${
-                  open
-                    ? 'border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-900/50'
-                    : 'border-gray-300 bg-white hover:border-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:hover:border-gray-500'
+                  open ? 'border-status-info-border bg-status-info-surface' : 'border-border-subtle bg-surface-panel hover:border-border-strong'
                 }
                 `}
                 aria-label="Erweiterte POI-Typen"
               >
-                <span className="font-medium text-gray-900 text-sm dark:text-gray-100">Erweitert</span>
-                <PiCaretDown className={`h-4 w-4 text-gray-600 transition-transform dark:text-gray-400 ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
+                <span className="font-medium text-text-primary text-sm">Erweitert</span>
+                <PiCaretDown className={`h-4 w-4 text-text-secondary transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
               </MenuButton>
 
               <MenuItems
-                className="absolute top-full left-0 z-50 mt-1 w-56 origin-top-left rounded-lg border border-gray-300 bg-white py-1 shadow-lg transition focus:outline-none dark:border-gray-600 dark:bg-gray-800"
+                className="absolute top-full left-0 z-50 mt-1 w-56 origin-top-left rounded-lg border border-border-subtle bg-surface-panel py-1 shadow-lg transition focus-visible:outline-none"
                 anchor="bottom start"
               >
                 {extendedTypes.map((type) => {
@@ -143,19 +141,17 @@ export const PoiToolbar: React.FC<PoiToolbarProps> = ({ onPoiTypeSelect, selecte
             <>
               <MenuButton
                 className={`flex w-full items-center justify-center gap-2 rounded-lg border-2 px-4 py-3 transition-all hover:shadow-md ${
-                  open
-                    ? 'border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-900/50'
-                    : 'border-gray-300 bg-white hover:border-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:hover:border-gray-500'
+                  open ? 'border-status-info-border bg-status-info-surface' : 'border-border-subtle bg-surface-panel hover:border-border-strong'
                 }
                 `}
                 aria-label="POI platzieren"
               >
-                <span className="font-medium text-base text-gray-900 dark:text-gray-100">{selectedType ? formatPoiTypeLabel(selectedType) : 'POI platzieren'}</span>
-                <PiCaretDown className={`h-5 w-5 text-gray-600 transition-transform dark:text-gray-400 ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
+                <span className="font-medium text-base text-text-primary">{selectedType ? formatPoiTypeLabel(selectedType) : 'POI platzieren'}</span>
+                <PiCaretDown className={`h-5 w-5 text-text-secondary transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
               </MenuButton>
 
               <MenuItems
-                className="absolute right-0 bottom-full left-0 z-50 mb-2 max-h-64 origin-bottom overflow-y-auto rounded-lg border border-gray-300 bg-white py-1 shadow-lg transition focus:outline-none dark:border-gray-600 dark:bg-gray-800"
+                className="absolute right-0 bottom-full left-0 z-50 mb-2 max-h-64 origin-bottom overflow-y-auto rounded-lg border border-border-subtle bg-surface-panel py-1 shadow-lg transition focus-visible:outline-none"
                 anchor="top start"
               >
                 {/* Alle POI-Typen (häufig + erweitert) auf Mobile */}

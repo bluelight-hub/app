@@ -73,7 +73,7 @@ export const FullscreenCloseButton: React.FC<FullscreenCloseButtonProps> = ({ on
       size="lg"
       appearance="ghost"
       label="Vollbildmodus schließen"
-      className={cn('fixed top-4 right-4 z-[1000]', 'bg-white dark:bg-gray-800', 'shadow-lg', 'hover:bg-gray-100 dark:hover:bg-gray-700')}
+      className={cn('fixed top-4 right-4 z-[1000]', 'bg-surface-panel', 'shadow-lg', 'hover:bg-action-secondary')}
     />
   );
 };

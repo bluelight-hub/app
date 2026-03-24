@@ -35,29 +35,29 @@ export function TemplatePicker({ vorlagen, isLoading, onSelect, disabled }: Temp
       <ListboxButton
         disabled={disabled || isLoading}
         className={cn(
-          'flex items-center gap-2 rounded-lg border-2 border-gray-300 border-dashed px-3 py-2 text-sm transition-colors',
-          'hover:border-amber-400 hover:bg-amber-50 dark:border-gray-600 dark:hover:border-amber-500 dark:hover:bg-amber-900/10',
-          'focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800',
+          'flex items-center gap-2 rounded-panel border-2 border-dashed border-border-subtle px-3 py-2 text-sm transition-colors',
+          'hover:border-status-warning-text hover:bg-status-warning-surface',
+          'focus:outline-none focus-visible:shadow-focus-ring',
           'disabled:cursor-not-allowed disabled:opacity-50',
         )}
       >
-        {isLoading ? <PiSpinner className="h-4 w-4 animate-spin text-gray-400" /> : <PiClipboardText className="h-4 w-4 text-gray-500 dark:text-gray-400" />}
-        <span className="font-medium text-gray-600 dark:text-gray-300">Aus Vorlage</span>
+        {isLoading ? <PiSpinner className="h-4 w-4 animate-spin text-text-muted" /> : <PiClipboardText className="h-4 w-4 text-text-muted" />}
+        <span className="font-medium text-text-secondary">Aus Vorlage</span>
       </ListboxButton>
 
       <ListboxOptions
         anchor="bottom start"
         className={cn(
-          'z-50 mt-1 w-72 origin-top-left rounded-lg border border-gray-200 bg-white shadow-lg',
-          'focus:outline-none dark:border-gray-700 dark:bg-gray-800',
+          'z-50 mt-1 w-72 origin-top-left rounded-panel border border-border-subtle bg-surface-panel shadow-panel',
+          'focus:outline-none',
           'transition duration-100 ease-out data-[closed]:scale-95 data-[closed]:opacity-0',
         )}
       >
         <div className="p-1">
           {vorlagen.length === 0 ? (
             <div className="px-3 py-4 text-center">
-              <p className="text-gray-500 text-sm dark:text-gray-400">Keine Vorlagen vorhanden</p>
-              <Link to="/admin/erinnerungen" className="mt-2 inline-block font-medium text-amber-600 text-xs hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300">
+              <p className="text-text-muted text-sm">Keine Vorlagen vorhanden</p>
+              <Link to="/admin/erinnerungen" className="mt-2 inline-block font-medium text-status-warning-text text-xs hover:text-status-warning-text">
                 Vorlagen erstellen →
               </Link>
             </div>
@@ -66,18 +66,15 @@ export function TemplatePicker({ vorlagen, isLoading, onSelect, disabled }: Temp
               <ListboxOption
                 key={vorlage.id}
                 value={vorlage}
-                className={cn(
-                  'flex w-full cursor-pointer items-center justify-between gap-3 rounded-md px-3 py-2.5 text-left transition-colors',
-                  'data-[focus]:bg-amber-50 dark:data-[focus]:bg-amber-900/20',
-                )}
+                className={cn('flex w-full cursor-pointer items-center justify-between gap-3 rounded-control px-3 py-2.5 text-left transition-colors', 'data-[focus]:bg-status-warning-surface')}
               >
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-gray-900 text-sm dark:text-white">{vorlage.titel}</p>
-                  {vorlage.beschreibung && <p className="mt-0.5 truncate text-gray-500 text-xs dark:text-gray-400">{vorlage.beschreibung}</p>}
+                  <p className="truncate font-medium text-text-primary text-sm">{vorlage.titel}</p>
+                  {vorlage.beschreibung && <p className="mt-0.5 truncate text-text-muted text-xs">{vorlage.beschreibung}</p>}
                 </div>
-                <div className="flex flex-shrink-0 items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 dark:bg-amber-900/30">
-                  <PiClock className="h-3 w-3 text-amber-600 dark:text-amber-400" />
-                  <span className="font-medium text-amber-700 text-xs dark:text-amber-300">{vorlage.minuten} Min</span>
+                <div className="flex flex-shrink-0 items-center gap-1 rounded-pill bg-status-warning-surface px-2 py-0.5">
+                  <PiClock className="h-3 w-3 text-status-warning-text" />
+                  <span className="font-medium text-status-warning-text text-xs">{vorlage.minuten} Min</span>
                 </div>
               </ListboxOption>
             ))

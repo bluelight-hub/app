@@ -99,23 +99,23 @@ export interface EmpfaengerQuittierungStatus {
 /** Chip-Konfiguration pro Empfaenger-Status */
 const CHIP_CONFIG: Record<EmpfaengerChipStatus, { chipBg: string; chipText: string; label: string }> = {
   ZUGESTELLT: {
-    chipBg: 'bg-gray-100 dark:bg-gray-800',
-    chipText: 'text-gray-600 dark:text-gray-400',
+    chipBg: 'bg-surface-raised',
+    chipText: 'text-text-muted',
     label: 'Zugestellt',
   },
   VERSTANDEN: {
-    chipBg: 'bg-green-100 dark:bg-green-900/30',
-    chipText: 'text-green-700 dark:text-green-300',
+    chipBg: 'bg-status-success-surface',
+    chipText: 'text-status-success-text',
     label: 'Verstanden',
   },
   RUECKFRAGE: {
-    chipBg: 'bg-yellow-100 dark:bg-yellow-900/30',
-    chipText: 'text-yellow-700 dark:text-yellow-300',
+    chipBg: 'bg-status-warning-surface',
+    chipText: 'text-status-warning-text',
     label: 'Rückfrage',
   },
   NICHT_VERSTANDEN: {
-    chipBg: 'bg-red-100 dark:bg-red-900/30',
-    chipText: 'text-red-700 dark:text-red-300',
+    chipBg: 'bg-status-danger-surface',
+    chipText: 'text-status-danger-text',
     label: 'Nicht verstanden',
   },
 };
@@ -273,29 +273,29 @@ export function getOffeneRueckfragenCount(befehl: { kommentare?: BefehlKommentar
 /** CSS-Klassen fuer Empfaenger-Status Farbcodierung (AC5: Grau=unquittiert, Gelb=Rueckfrage, Gruen=Verstanden) */
 export const EMPFAENGER_STATUS_FARBEN: Record<EmpfaengerStatus, { bg: string; text: string; border: string }> = {
   NICHT_EMPFAENGER: {
-    bg: 'bg-gray-100 dark:bg-gray-800',
-    text: 'text-gray-600 dark:text-gray-400',
-    border: 'border-gray-200 dark:border-gray-700',
+    bg: 'bg-surface-raised',
+    text: 'text-text-muted',
+    border: 'border-border-subtle',
   },
   AUSSTEHEND: {
-    bg: 'bg-gray-50 dark:bg-gray-800/50',
-    text: 'text-gray-600 dark:text-gray-400',
-    border: 'border-gray-300 dark:border-gray-600',
+    bg: 'bg-surface-raised',
+    text: 'text-text-muted',
+    border: 'border-border-subtle',
   },
   ZUGESTELLT: {
-    bg: 'bg-gray-50 dark:bg-gray-800/50',
-    text: 'text-gray-700 dark:text-gray-300',
-    border: 'border-gray-300 dark:border-gray-600',
+    bg: 'bg-surface-raised',
+    text: 'text-text-secondary',
+    border: 'border-border-subtle',
   },
   QUITTIERT: {
-    bg: 'bg-green-50 dark:bg-green-950/20',
-    text: 'text-green-700 dark:text-green-300',
-    border: 'border-green-200 dark:border-green-800',
+    bg: 'bg-status-success-surface',
+    text: 'text-status-success-text',
+    border: 'border-status-success-border',
   },
   RUECKFRAGE: {
-    bg: 'bg-yellow-50 dark:bg-yellow-950/20',
-    text: 'text-yellow-700 dark:text-yellow-300',
-    border: 'border-yellow-300 dark:border-yellow-700',
+    bg: 'bg-status-warning-surface',
+    text: 'text-status-warning-text',
+    border: 'border-status-warning-border',
   },
 };
 

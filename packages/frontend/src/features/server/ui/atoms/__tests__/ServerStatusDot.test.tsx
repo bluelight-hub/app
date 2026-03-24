@@ -23,7 +23,7 @@ describe('ServerStatusDot', () => {
 
       // Then (Assert)
       const dot = screen.getByRole('status');
-      expect(dot).toHaveClass('bg-green-500');
+      expect(dot).toHaveClass('bg-status-success-text');
     });
 
     it('should render green dot for connected status (alias)', () => {
@@ -35,7 +35,7 @@ describe('ServerStatusDot', () => {
 
       // Then (Assert)
       const dot = screen.getByRole('status');
-      expect(dot).toHaveClass('bg-green-500');
+      expect(dot).toHaveClass('bg-status-success-text');
     });
 
     it('should render gray dot for offline status', () => {
@@ -47,7 +47,7 @@ describe('ServerStatusDot', () => {
 
       // Then (Assert)
       const dot = screen.getByRole('status');
-      expect(dot).toHaveClass('bg-gray-400');
+      expect(dot).toHaveClass('bg-text-muted');
     });
 
     it('should render gray dot for disconnected status (alias)', () => {
@@ -59,7 +59,7 @@ describe('ServerStatusDot', () => {
 
       // Then (Assert)
       const dot = screen.getByRole('status');
-      expect(dot).toHaveClass('bg-gray-400');
+      expect(dot).toHaveClass('bg-text-muted');
     });
 
     it('should render yellow pulsing dot for checking status', () => {
@@ -71,7 +71,7 @@ describe('ServerStatusDot', () => {
 
       // Then (Assert)
       const dot = screen.getByRole('status');
-      expect(dot).toHaveClass('bg-yellow-500');
+      expect(dot).toHaveClass('bg-status-warning-text');
       expect(dot).toHaveClass('animate-pulse');
     });
   });
@@ -170,7 +170,7 @@ describe('ServerStatusDot', () => {
       expect(dot).toHaveClass('opacity-75');
       // Default classes should remain
       expect(dot).toHaveClass('rounded-full');
-      expect(dot).toHaveClass('bg-green-500');
+      expect(dot).toHaveClass('bg-status-success-text');
     });
   });
 

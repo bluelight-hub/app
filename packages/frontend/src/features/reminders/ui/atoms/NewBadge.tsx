@@ -26,7 +26,7 @@ export function NewBadge({ className, reducedMotion }: NewBadgeProps) {
     <output
       aria-label="Neue Zuweisung"
       className={cn(
-        'inline-flex items-center gap-1 rounded-full bg-blue-600 px-2 py-0.5 font-bold text-[10px] text-white uppercase tracking-wider shadow-sm dark:bg-blue-500',
+        'inline-flex items-center gap-1 rounded-full bg-action-primary px-2 py-0.5 font-bold text-[10px] text-text-inverse uppercase tracking-wider shadow-sm',
         // Sanfte Pulse Animation nur wenn reduced-motion NICHT aktiv ist
         !isReducedMotion && 'animate-pulse',
         className,

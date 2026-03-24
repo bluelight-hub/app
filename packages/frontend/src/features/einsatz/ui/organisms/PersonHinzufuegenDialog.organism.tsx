@@ -335,21 +335,20 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
 
         <Dialog.Title>
           <div className="flex items-center gap-2">
-            <PiUser className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+            <PiUser className="h-5 w-5 text-action-primary" />
             <span>Person hinzufügen</span>
           </div>
         </Dialog.Title>
 
         <Dialog.Body>
           <TabGroup selectedIndex={selectedTab} onChange={setSelectedTab}>
-            <TabList className="mb-4 flex gap-1 rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
+            <TabList className="mb-4 flex gap-1 rounded-lg bg-surface-raised p-1">
               <Tab
                 className={cn(
                   'flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 font-medium text-sm transition-all',
-                  'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-                  'data-[selected]:bg-white data-[selected]:text-primary-600 data-[selected]:shadow-sm',
-                  'data-[hover]:text-gray-700 dark:data-[hover]:text-gray-300',
-                  'dark:data-[selected]:bg-gray-700 dark:data-[selected]:text-primary-400',
+                  'focus-visible:outline-none focus-visible:shadow-focus-ring',
+                  'data-[selected]:bg-surface-panel data-[selected]:text-action-primary data-[selected]:shadow-sm',
+                  'data-[hover]:text-text-primary',
                 )}
               >
                 <PiUser className="h-4 w-4" />
@@ -358,10 +357,9 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
               <Tab
                 className={cn(
                   'flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 font-medium text-sm transition-all',
-                  'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-                  'data-[selected]:bg-white data-[selected]:text-primary-600 data-[selected]:shadow-sm',
-                  'data-[hover]:text-gray-700 dark:data-[hover]:text-gray-300',
-                  'dark:data-[selected]:bg-gray-700 dark:data-[selected]:text-primary-400',
+                  'focus-visible:outline-none focus-visible:shadow-focus-ring',
+                  'data-[selected]:bg-surface-panel data-[selected]:text-action-primary data-[selected]:shadow-sm',
+                  'data-[hover]:text-text-primary',
                 )}
               >
                 <PiQrCode className="h-4 w-4" />
@@ -372,7 +370,7 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
             <TabPanels>
               {/* Tab 1: Manuelle Eingabe */}
               <TabPanel>
-                <p className="mb-4 text-gray-600 text-sm dark:text-gray-400">Registrieren Sie eine Person für diesen Einsatz.</p>
+                <p className="mb-4 text-body-sm text-text-secondary">Registrieren Sie eine Person für diesen Einsatz.</p>
 
                 <form className="space-y-4">
                   {/* Vorname */}
@@ -388,16 +386,14 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                           disabled={registrierePerson.isPending}
                           placeholder="z.B. Max"
                           className={cn(
-                            'block w-full rounded-lg border bg-gray-50 px-4 py-3 font-medium text-base text-gray-900',
+                            'block w-full rounded-lg border bg-surface-raised px-4 py-3 font-medium text-base text-text-primary',
                             'transition-all duration-200',
-                            'border-gray-200',
-                            'placeholder:text-gray-400',
-                            'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20',
+                            'border-border-subtle',
+                            'placeholder:text-text-muted',
+                            'focus-visible:outline-none focus-visible:shadow-focus-ring',
                             'sm:text-sm',
-                            'dark:border-gray-700 dark:bg-gray-900 dark:text-white',
-                            'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400 dark:placeholder:text-gray-500',
                             'disabled:cursor-not-allowed disabled:opacity-50',
-                            field.state.meta.errors.length > 0 && 'border-red-500 focus:border-red-500 focus:ring-red-500',
+                            field.state.meta.errors.length > 0 && 'border-status-danger-border',
                           )}
                         />
                       </FormField>
@@ -413,16 +409,14 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                             <ComboboxInput
                               aria-label="Nachname suchen"
                               className={cn(
-                                'block w-full rounded-lg border bg-gray-50 px-4 py-3 pr-12 font-medium text-base text-gray-900',
+                                'block w-full rounded-lg border bg-surface-raised px-4 py-3 pr-12 font-medium text-base text-text-primary',
                                 'transition-all duration-200',
-                                'border-gray-200',
-                                'placeholder:text-gray-400',
-                                'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20',
+                                'border-border-subtle',
+                                'placeholder:text-text-muted',
+                                'focus-visible:outline-none focus-visible:shadow-focus-ring',
                                 'sm:text-sm',
-                                'dark:border-gray-700 dark:bg-gray-900 dark:text-white',
-                                'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400 dark:placeholder:text-gray-500',
                                 'disabled:cursor-not-allowed disabled:opacity-50',
-                                field.state.meta.errors.length > 0 && 'border-red-500 focus:border-red-500 focus:ring-red-500',
+                                field.state.meta.errors.length > 0 && 'border-status-danger-border',
                               )}
                               placeholder="z.B. Mustermann (mit Stammdaten-Suche)"
                               onChange={(e) => {
@@ -440,22 +434,21 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                               autoComplete="off"
                             />
                             <ComboboxButton className="absolute inset-y-0 right-0 flex items-center px-3">
-                              {isLoadingPersonen && debouncedQuery.length >= 1 ? <InlineSpinner size="sm" /> : <PiCaretDown className="h-5 w-5 text-gray-400" aria-hidden="true" />}
+                              {isLoadingPersonen && debouncedQuery.length >= 1 ? <InlineSpinner size="sm" /> : <PiCaretDown className="h-5 w-5 text-text-muted" aria-hidden="true" />}
                             </ComboboxButton>
 
                             <ComboboxOptions
                               transition
                               className={cn(
-                                'absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white py-1 text-base shadow-lg',
-                                'border border-gray-200',
+                                'absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-surface-panel py-1 text-base shadow-panel',
+                                'border border-border-subtle',
                                 'data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in',
                                 'sm:text-sm',
-                                'dark:border-gray-700 dark:bg-gray-800',
                               )}
                             >
                               {/* Loading State - Only show when actually loading the debounced query */}
                               {isLoadingPersonen && debouncedQuery.length >= 1 && (
-                                <div className="flex items-center justify-center gap-2 px-4 py-8 text-gray-500">
+                                <div className="flex items-center justify-center gap-2 px-4 py-8 text-text-secondary">
                                   <InlineSpinner size="sm" />
                                   <span>Suche läuft…</span>
                                 </div>
@@ -463,17 +456,17 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
 
                               {/* Error State */}
                               {!isLoadingPersonen && stammPersonenError && debouncedQuery.length >= 1 && (
-                                <div className="px-4 py-4 text-center text-red-600 text-sm dark:text-red-400">Fehler beim Laden der Stammdaten. Bitte versuchen Sie es erneut.</div>
+                                <div className="px-4 py-4 text-center text-body-sm text-status-danger-text">Fehler beim Laden der Stammdaten. Bitte versuchen Sie es erneut.</div>
                               )}
 
                               {/* Empty State - Mindestens 1 Zeichen */}
                               {!isLoadingPersonen && !stammPersonenError && searchQuery.length === 0 && (
-                                <div className="px-4 py-4 text-center text-gray-500 text-sm dark:text-gray-400">Bitte mindestens 1 Zeichen eingeben</div>
+                                <div className="px-4 py-4 text-center text-body-sm text-text-secondary">Bitte mindestens 1 Zeichen eingeben</div>
                               )}
 
                               {/* No Results */}
                               {!isLoadingPersonen && !stammPersonenError && debouncedQuery.length >= 1 && (!stammPersonen || stammPersonen.length === 0) && (
-                                <output className="block px-4 py-4 text-center text-gray-500 text-sm dark:text-gray-400" aria-live="polite">
+                                <output className="block px-4 py-4 text-center text-body-sm text-text-secondary" aria-live="polite">
                                   Keine Personen gefunden
                                 </output>
                               )}
@@ -488,8 +481,8 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                                     value={person}
                                     className={cn(
                                       'relative cursor-default select-none py-3 pr-9 pl-4',
-                                      'data-[focus]:bg-primary-600 data-[focus]:text-white data-[focus]:outline-none',
-                                      'dark:text-gray-200 dark:data-[focus]:bg-primary-500',
+                                      'data-[focus]:bg-action-primary data-[focus]:text-text-inverse data-[focus]:outline-none',
+                                      'text-text-primary',
                                     )}
                                   >
                                     {({ selected, focus }) => (
@@ -499,12 +492,12 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                                             {person.nachname}, {person.vorname}
                                           </span>
                                           {person.funkkenungBOS && (
-                                            <span className={cn('mt-0.5 text-sm', focus ? 'text-primary-100' : 'text-gray-500 dark:text-gray-400')}>Funkkennung: {person.funkkenungBOS}</span>
+                                            <span className={cn('mt-0.5 text-body-sm', focus ? 'text-text-inverse/90' : 'text-text-secondary')}>Funkkennung: {person.funkkenungBOS}</span>
                                           )}
                                         </div>
 
                                         {selected && (
-                                          <span className={cn('absolute inset-y-0 right-0 flex items-center pr-4', focus ? 'text-white' : 'text-primary-600 dark:text-primary-400')}>
+                                          <span className={cn('absolute inset-y-0 right-0 flex items-center pr-4', focus ? 'text-text-inverse' : 'text-action-primary')}>
                                             <PiCheck className="h-5 w-5" aria-hidden="true" />
                                           </span>
                                         )}
@@ -528,30 +521,27 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                             <ListboxButton
                               aria-label="Funktion auswählen"
                               className={cn(
-                                'relative w-full cursor-default rounded-lg border bg-gray-50 py-3 pr-10 pl-4 text-left font-medium text-base text-gray-900',
+                                'relative w-full cursor-default rounded-lg border bg-surface-raised py-3 pr-10 pl-4 text-left font-medium text-base text-text-primary',
                                 'transition-all duration-200',
-                                'border-gray-200',
-                                'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20',
+                                'border-border-subtle',
+                                'focus-visible:outline-none focus-visible:shadow-focus-ring',
                                 'sm:text-sm',
-                                'dark:border-gray-700 dark:bg-gray-900 dark:text-white',
-                                'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400',
                                 'disabled:cursor-not-allowed disabled:opacity-50',
-                                field.state.meta.errors.length > 0 && 'border-red-500 focus:border-red-500 focus:ring-red-500',
+                                field.state.meta.errors.length > 0 && 'border-status-danger-border',
                               )}
                             >
                               <span className="block truncate">{field.state.value || 'Funktion wählen…'}</span>
                               <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                                <PiCaretDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                <PiCaretDown className="h-5 w-5 text-text-muted" aria-hidden="true" />
                               </span>
                             </ListboxButton>
                             <ListboxOptions
                               transition
                               className={cn(
-                                'absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white py-1 text-base shadow-lg',
-                                'border border-gray-200',
+                                'absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-surface-panel py-1 text-base shadow-panel',
+                                'border border-border-subtle',
                                 'data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in',
                                 'sm:text-sm',
-                                'dark:border-gray-700 dark:bg-gray-800',
                               )}
                             >
                               {FUNKTIONEN.map((funktion) => (
@@ -560,15 +550,15 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                                   value={funktion}
                                   className={cn(
                                     'relative cursor-default select-none py-3 pr-9 pl-4',
-                                    'data-[focus]:bg-primary-600 data-[focus]:text-white data-[focus]:outline-none',
-                                    'dark:text-gray-200 dark:data-[focus]:bg-primary-500',
+                                    'data-[focus]:bg-action-primary data-[focus]:text-text-inverse data-[focus]:outline-none',
+                                    'text-text-primary',
                                   )}
                                 >
                                   {({ selected, focus }) => (
                                     <>
                                       <span className={cn('block truncate', selected && 'font-semibold')}>{funktion}</span>
                                       {selected && (
-                                        <span className={cn('absolute inset-y-0 right-0 flex items-center pr-4', focus ? 'text-white' : 'text-primary-600 dark:text-primary-400')}>
+                                        <span className={cn('absolute inset-y-0 right-0 flex items-center pr-4', focus ? 'text-text-inverse' : 'text-action-primary')}>
                                           <PiCheck className="h-5 w-5" aria-hidden="true" />
                                         </span>
                                       )}
@@ -595,16 +585,14 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                           disabled={registrierePerson.isPending}
                           placeholder="z.B. GF"
                           className={cn(
-                            'block w-full rounded-lg border bg-gray-50 px-4 py-3 font-medium text-base text-gray-900',
+                            'block w-full rounded-lg border bg-surface-raised px-4 py-3 font-medium text-base text-text-primary',
                             'transition-all duration-200',
-                            'border-gray-200',
-                            'placeholder:text-gray-400',
-                            'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20',
+                            'border-border-subtle',
+                            'placeholder:text-text-muted',
+                            'focus-visible:outline-none focus-visible:shadow-focus-ring',
                             'sm:text-sm',
-                            'dark:border-gray-700 dark:bg-gray-900 dark:text-white',
-                            'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400 dark:placeholder:text-gray-500',
                             'disabled:cursor-not-allowed disabled:opacity-50',
-                            field.state.meta.errors.length > 0 && 'border-red-500 focus:border-red-500 focus:ring-red-500',
+                            field.state.meta.errors.length > 0 && 'border-status-danger-border',
                           )}
                         />
                       </FormField>
@@ -612,8 +600,8 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                   </form.Field>
 
                   {/* Info Box */}
-                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-900/20">
-                    <p className="text-blue-900 text-sm dark:text-blue-100">Person wird für diesen Einsatz registriert. Ein ETB-Eintrag wird automatisch erstellt.</p>
+                  <div className="rounded-lg border border-status-info-border bg-status-info-surface p-3">
+                    <p className="text-body-sm text-status-info-text">Person wird für diesen Einsatz registriert. Ein ETB-Eintrag wird automatisch erstellt.</p>
                   </div>
                 </form>
               </TabPanel>

@@ -53,20 +53,20 @@ export function DeleteVorlageConfirm({ isOpen, onClose, vorlage }: DeleteVorlage
   return (
     <Dialog isOpen={isOpen} onClose={handleClose} size="sm">
       <div className="flex items-center gap-3">
-        <div className="rounded-full bg-red-100 p-2 dark:bg-red-900/30">
-          <PiWarning className="h-5 w-5 text-red-600 dark:text-red-400" />
+        <div className="rounded-full bg-status-danger-surface p-2">
+          <PiWarning className="h-5 w-5 text-status-danger-text" />
         </div>
         <Dialog.Title>Vorlage löschen</Dialog.Title>
       </div>
 
       <Dialog.Body>
         <div className="space-y-3">
-          <p className="text-gray-700 text-sm dark:text-gray-300">
+          <p className="text-text-secondary text-sm">
             Soll die Vorlage <span className="font-semibold">"{vorlage?.titel}"</span> wirklich gelöscht werden?
           </p>
-          <p className="text-gray-500 text-xs dark:text-gray-400">Bereits erstellte Erinnerungen bleiben unverändert.</p>
+          <p className="text-text-muted text-xs">Bereits erstellte Erinnerungen bleiben unverändert.</p>
 
-          {apiErrorMessage && <div className="rounded-lg bg-red-50 p-3 text-red-700 text-sm dark:bg-red-900/20 dark:text-red-400">{apiErrorMessage}</div>}
+          {apiErrorMessage && <div className="rounded-panel bg-status-danger-surface p-3 text-status-danger-text text-sm">{apiErrorMessage}</div>}
         </div>
       </Dialog.Body>
 

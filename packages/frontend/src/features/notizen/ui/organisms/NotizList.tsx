@@ -98,10 +98,10 @@ export function NotizList({ einsatzId, className, mode = 'default' }: NotizListP
     <div className={cn(isSidebar ? '' : 'space-y-4', className)}>
       {/* Header */}
       {isSidebar ? (
-        <div className="flex items-center justify-between rounded-t-xl border border-gray-200 bg-white px-5 py-3.5 dark:border-gray-800 dark:bg-gray-900">
+        <div className="flex items-center justify-between rounded-t-xl border border-border-subtle bg-surface-panel px-5 py-3.5">
           <div className="flex items-center gap-2.5">
-            <PiNotepad className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-            <h2 className="font-bold text-gray-900 text-lg tracking-tight dark:text-white">Notizen</h2>
+            <PiNotepad className="h-4 w-4 text-text-muted" />
+            <h2 className="font-bold text-text-primary text-lg tracking-tight">Notizen</h2>
           </div>
           <Button intent="primary" size="sm" onClick={() => setIsCreateDialogOpen(true)} className="h-7 rounded-lg px-3 font-semibold text-xs">
             <PiPlus className="mr-0.5 h-3.5 w-3.5" />
@@ -111,8 +111,8 @@ export function NotizList({ einsatzId, className, mode = 'default' }: NotizListP
       ) : (
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <PiNotepad className="h-5 w-5 text-slate-500" />
-            <h2 className="font-semibold text-gray-900 text-lg dark:text-white">Notizen</h2>
+            <PiNotepad className="h-5 w-5 text-text-muted" />
+            <h2 className="font-semibold text-text-primary text-lg">Notizen</h2>
           </div>
           <Button intent="primary" size="sm" onClick={() => setIsCreateDialogOpen(true)}>
             <PiPlus className="mr-1 h-4 w-4" />
@@ -137,7 +137,7 @@ export function NotizList({ einsatzId, className, mode = 'default' }: NotizListP
           <KategorieFilterDropdown selectedFilter={selectedKategorieFilter} onFilterChange={handleKategorieFilterChange} kategorien={kategorien} className="w-44" />
           {/* Story 8.6 AC5: Filter-Count anzeigen */}
           {isKategorieFilterActive && (
-            <span className="text-gray-500 text-xs dark:text-gray-400">
+            <span className="text-text-muted text-xs">
               {filteredNotizen?.length ?? 0} von {notizen.length}
             </span>
           )}
@@ -151,15 +151,15 @@ export function NotizList({ einsatzId, className, mode = 'default' }: NotizListP
 
       {/* Content - im Sidebar-Modus als Container-Body (passend zum Header) */}
       {isSidebar ? (
-        <div className="overflow-y-auto rounded-b-xl border-gray-200 border-x border-b bg-white dark:border-gray-800 dark:bg-gray-900" style={{ maxHeight: 'calc(100vh - 260px)' }}>
+        <div className="overflow-y-auto rounded-b-xl border-border-subtle border-x border-b bg-surface-panel" style={{ maxHeight: 'calc(100vh - 260px)' }}>
           {isLoading && (
             <div className="flex items-center justify-center py-12">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-500 border-t-transparent" />
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-text-muted border-t-transparent" />
             </div>
           )}
-          {error && <div className="p-4 text-red-700 text-sm dark:text-red-400">Fehler beim Laden</div>}
+          {error && <div className="p-4 text-status-danger-text text-sm">Fehler beim Laden</div>}
           {!isLoading && !error && notizen && notizen.length === 0 && (
-            <div className="py-6 text-center text-gray-400 dark:text-gray-500">
+            <div className="py-6 text-center text-text-muted">
               <PiNotepad className="mx-auto h-6 w-6 opacity-40" />
               <p className="mt-1 text-xs">Keine Notizen</p>
             </div>
@@ -170,7 +170,7 @@ export function NotizList({ einsatzId, className, mode = 'default' }: NotizListP
                 // biome-ignore lint/a11y/useSemanticElements: Div mit komplexem Inhalt
                 <div
                   key={notiz.id}
-                  className="cursor-pointer border-gray-100 border-b px-4 py-3 transition-colors hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50"
+                  className="cursor-pointer border-border-subtle/50 border-b px-4 py-3 transition-colors hover:bg-surface-raised"
                   onClick={() => setViewingNotiz(notiz)}
                   onKeyUp={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
@@ -182,16 +182,14 @@ export function NotizList({ einsatzId, className, mode = 'default' }: NotizListP
                   tabIndex={0}
                 >
                   <div className="mb-1 flex items-start justify-between gap-2">
-                    <h3 className="truncate font-medium text-gray-900 text-sm dark:text-white">{notiz.titel}</h3>
-                    <span className="mt-0.5 flex-shrink-0 text-[10px] text-gray-400 dark:text-gray-500">
-                      {new Date(notiz.updatedAt).toLocaleDateString('de-DE', { hour: '2-digit', minute: '2-digit' })}
-                    </span>
+                    <h3 className="truncate font-medium text-text-primary text-sm">{notiz.titel}</h3>
+                    <span className="mt-0.5 flex-shrink-0 text-[10px] text-text-muted">{new Date(notiz.updatedAt).toLocaleDateString('de-DE', { hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
-                  {notiz.inhalt && <p className="mb-1.5 truncate text-gray-500 text-xs dark:text-gray-400">{notiz.inhalt}</p>}
+                  {notiz.inhalt && <p className="mb-1.5 truncate text-text-muted text-xs">{notiz.inhalt}</p>}
                   {typeof notiz.kategorieName === 'string' && typeof notiz.kategorieFarbe === 'string' && (
                     <div className="flex items-center gap-1.5">
                       <span className="h-2 w-2 rounded-full" style={{ backgroundColor: notiz.kategorieFarbe }} />
-                      <span className="font-medium text-[10px] text-gray-400 uppercase tracking-wider dark:text-gray-500">{notiz.kategorieName}</span>
+                      <span className="font-medium text-[10px] text-text-muted uppercase tracking-wider">{notiz.kategorieName}</span>
                     </div>
                   )}
                 </div>
@@ -201,7 +199,7 @@ export function NotizList({ einsatzId, className, mode = 'default' }: NotizListP
                 <div className="px-4 py-3">
                   <button
                     type="button"
-                    className="flex items-center gap-1 font-medium text-blue-600 text-sm transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                    className="flex items-center gap-1 font-medium text-action-primary text-sm transition-colors hover:opacity-80 focus:outline-none focus-visible:shadow-focus-ring"
                     onClick={() => {
                       /* TODO: Navigation zur vollen Notizen-Seite */
                     }}
@@ -218,16 +216,16 @@ export function NotizList({ einsatzId, className, mode = 'default' }: NotizListP
           {/* Loading */}
           {isLoading && (
             <div className="flex items-center justify-center py-12">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-500 border-t-transparent" />
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-text-muted border-t-transparent" />
             </div>
           )}
 
           {/* Error */}
-          {error && <div className="rounded-lg bg-red-50 p-4 text-red-700 text-sm dark:bg-red-900/20 dark:text-red-400">Fehler beim Laden der Notizen</div>}
+          {error && <div className="rounded-panel bg-status-danger-surface p-4 text-status-danger-text text-sm">Fehler beim Laden der Notizen</div>}
 
           {/* Empty State */}
           {!isLoading && !error && notizen && notizen.length === 0 && (
-            <div className="flex flex-col items-center gap-2 py-12 text-center text-gray-500 dark:text-gray-400">
+            <div className="flex flex-col items-center gap-2 py-12 text-center text-text-muted">
               <PiNotepad className="h-8 w-8 opacity-50" aria-hidden="true" />
               <p className="text-sm">Noch keine Notizen vorhanden</p>
               <Button intent="secondary" size="sm" onClick={() => setIsCreateDialogOpen(true)}>
@@ -238,7 +236,7 @@ export function NotizList({ einsatzId, className, mode = 'default' }: NotizListP
 
           {/* Such-Empty-State (Story 7.8 AC5) */}
           {!isLoading && !error && searchQuery && filteredNotizen && filteredNotizen.length === 0 && (
-            <div className="flex flex-col items-center gap-2 py-12 text-center text-gray-500 dark:text-gray-400">
+            <div className="flex flex-col items-center gap-2 py-12 text-center text-text-muted">
               <PiNotepad className="h-8 w-8 opacity-50" aria-hidden="true" />
               <p className="text-sm">Keine Notizen für &lsquo;{searchQuery}&rsquo; gefunden</p>
               <p className="text-xs">Versuche einen anderen Suchbegriff</p>

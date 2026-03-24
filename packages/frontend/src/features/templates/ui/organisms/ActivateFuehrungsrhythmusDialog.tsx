@@ -82,8 +82,8 @@ export function ActivateFuehrungsrhythmusDialog({ isOpen, onClose, template, ein
   return (
     <Dialog isOpen={isOpen} onClose={handleClose} size="md">
       <div className="flex items-center gap-3">
-        <div className="rounded-full bg-amber-100 p-2 dark:bg-amber-900/30">
-          <PiLightning className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+        <div className="rounded-full bg-status-warning-surface p-2">
+          <PiLightning className="h-5 w-5 text-status-warning-text" />
         </div>
         <Dialog.Title>Fuehrungsrhythmus aktivieren</Dialog.Title>
       </div>
@@ -92,21 +92,21 @@ export function ActivateFuehrungsrhythmusDialog({ isOpen, onClose, template, ein
         <div className="space-y-4">
           {/* Template Info */}
           <div>
-            <p className="text-gray-700 text-sm dark:text-gray-300">
+            <p className="text-text-secondary text-sm">
               Fuehrungsrhythmus <span className="font-semibold">"{template.name}"</span> aktivieren?
             </p>
-            <p className="mt-1 text-gray-500 text-xs dark:text-gray-400">
+            <p className="mt-1 text-text-muted text-xs">
               Es werden {sortedEintraege.length} wiederkehrende {sortedEintraege.length === 1 ? 'Erinnerung' : 'Erinnerungen'} erstellt.
             </p>
           </div>
 
           {/* Erinnerungs-Vorschau */}
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800/50">
+          <div className="rounded-panel border border-border-subtle bg-surface-raised p-3">
             <div className="space-y-2">
               {sortedEintraege.map((eintrag) => (
-                <div key={eintrag.id} className="flex items-center justify-between rounded-md bg-white px-3 py-2 text-sm dark:bg-gray-800">
-                  <span className="font-medium text-gray-700 dark:text-gray-300">{eintrag.titel}</span>
-                  <div className="flex items-center gap-3 text-gray-500 text-xs dark:text-gray-400">
+                <div key={eintrag.id} className="flex items-center justify-between rounded-control bg-surface-panel px-3 py-2 text-sm">
+                  <span className="font-medium text-text-secondary">{eintrag.titel}</span>
+                  <div className="flex items-center gap-3 text-text-muted text-xs">
                     <span className="flex items-center gap-1">
                       <PiArrowClockwise className="h-3 w-3" />
                       alle {eintrag.intervallMinuten} Min
@@ -122,7 +122,7 @@ export function ActivateFuehrungsrhythmusDialog({ isOpen, onClose, template, ein
           </div>
 
           {/* API Error */}
-          {apiErrorMessage && <div className="rounded-lg bg-red-50 p-3 text-red-700 text-sm dark:bg-red-900/20 dark:text-red-400">{apiErrorMessage}</div>}
+          {apiErrorMessage && <div className="rounded-panel bg-status-danger-surface p-3 text-status-danger-text text-sm">{apiErrorMessage}</div>}
         </div>
       </Dialog.Body>
 

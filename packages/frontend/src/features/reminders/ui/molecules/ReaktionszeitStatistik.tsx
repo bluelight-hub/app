@@ -36,7 +36,7 @@ export function ReaktionszeitStatistik({ einsatzId, className }: ReaktionszeitSt
 
   return (
     <div className={cn('flex flex-col gap-2', className)}>
-      <button type="button" className="flex items-center gap-1 font-medium text-gray-700 text-sm dark:text-gray-300" onClick={() => setIsExpanded(!isExpanded)} aria-expanded={isExpanded}>
+      <button type="button" className="flex items-center gap-1 font-medium text-sm text-text-secondary" onClick={() => setIsExpanded(!isExpanded)} aria-expanded={isExpanded}>
         {isExpanded ? <PiCaretDown className="h-4 w-4" /> : <PiCaretRight className="h-4 w-4" />}
         <PiTimer className="h-4 w-4" />
         Reaktionszeit-Statistik
@@ -48,18 +48,18 @@ export function ReaktionszeitStatistik({ einsatzId, className }: ReaktionszeitSt
           {isLoading && (
             <div className="flex flex-col gap-4">
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                <div className="h-20 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-700" />
-                <div className="h-20 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-700" />
-                <div className="h-20 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-700" />
-                <div className="h-20 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-700" />
+                <div className="h-20 animate-pulse rounded-lg bg-surface-raised" />
+                <div className="h-20 animate-pulse rounded-lg bg-surface-raised" />
+                <div className="h-20 animate-pulse rounded-lg bg-surface-raised" />
+                <div className="h-20 animate-pulse rounded-lg bg-surface-raised" />
               </div>
-              <div className="h-[250px] animate-pulse rounded-lg bg-slate-200 dark:bg-slate-700" />
+              <div className="h-[250px] animate-pulse rounded-lg bg-surface-raised" />
             </div>
           )}
 
           {/* AC5: Error State */}
           {!isLoading && isError && (
-            <div className="py-4 text-center text-red-600 text-sm dark:text-red-400">
+            <div className="py-4 text-center text-sm text-status-danger-text">
               <p>Reaktionszeit-Statistik konnte nicht geladen werden.</p>
               <button type="button" className="mt-1 underline hover:no-underline" onClick={() => refetch()}>
                 Erneut versuchen
@@ -68,7 +68,7 @@ export function ReaktionszeitStatistik({ einsatzId, className }: ReaktionszeitSt
           )}
 
           {/* AC4: Empty State */}
-          {!isLoading && !isError && data && data.totalAcknowledged === 0 && <p className="py-4 text-center text-gray-500 text-sm dark:text-gray-400">Keine Reaktionsdaten vorhanden</p>}
+          {!isLoading && !isError && data && data.totalAcknowledged === 0 && <p className="py-4 text-center text-sm text-text-muted">Keine Reaktionsdaten vorhanden</p>}
 
           {/* AC1 + AC2: Daten anzeigen */}
           {!isLoading && !isError && data && data.totalAcknowledged > 0 && (

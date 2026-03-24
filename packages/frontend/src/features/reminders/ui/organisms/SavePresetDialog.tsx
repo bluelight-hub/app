@@ -141,8 +141,8 @@ export function SavePresetDialog({ isOpen, onClose, teilnehmerMap, kategorienMap
   return (
     <Dialog isOpen={isOpen} onClose={handleClose}>
       <div className="flex items-center gap-3">
-        <div className="rounded-full bg-primary-100 p-2 dark:bg-primary-900/30">
-          <PiBookmarkSimple className="h-5 w-5 text-primary-500" />
+        <div className="rounded-full bg-status-info-surface p-2">
+          <PiBookmarkSimple className="h-5 w-5 text-status-info-text" />
         </div>
         <Dialog.Title>Filter-Preset speichern</Dialog.Title>
       </div>
@@ -161,8 +161,8 @@ export function SavePresetDialog({ isOpen, onClose, teilnehmerMap, kategorienMap
           <form.Field name="name">
             {(field) => (
               <div>
-                <label htmlFor="preset-name" className="mb-1 block font-medium text-gray-700 text-sm dark:text-gray-300">
-                  Preset-Name <span className="text-red-500">*</span>
+                <label htmlFor="preset-name" className="mb-1 block font-medium text-sm text-text-secondary">
+                  Preset-Name <span className="text-status-danger-text">*</span>
                 </label>
                 <Input
                   id="preset-name"
@@ -174,31 +174,21 @@ export function SavePresetDialog({ isOpen, onClose, teilnehmerMap, kategorienMap
                   maxLength={50}
                   autoFocus
                 />
-                {field.state.meta.isTouched && field.state.meta.errors.length > 0 && <p className="mt-1 text-red-600 text-sm dark:text-red-400">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.isTouched && field.state.meta.errors.length > 0 && <p className="mt-1 text-sm text-status-danger-text">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
 
           {/* Filter-Zusammenfassung */}
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800/50">
-            <p className="mb-2 font-medium text-gray-600 text-xs dark:text-gray-400">Aktuelle Filter:</p>
+          <div className="rounded-panel border border-border-subtle bg-surface-raised p-3">
+            <p className="mb-2 font-medium text-text-secondary text-xs">Aktuelle Filter:</p>
             <div className="flex flex-wrap gap-1.5">
-              {teamLabel && (
-                <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 font-medium text-blue-700 text-xs dark:bg-blue-900/30 dark:text-blue-300">Team: {teamLabel}</span>
-              )}
+              {teamLabel && <span className="inline-flex items-center rounded-pill bg-status-info-surface px-2 py-0.5 font-medium text-status-info-text text-xs">Team: {teamLabel}</span>}
               {kategorieLabel && (
-                <span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 font-medium text-purple-700 text-xs dark:bg-purple-900/30 dark:text-purple-300">
-                  Kategorie: {kategorieLabel}
-                </span>
+                <span className="inline-flex items-center rounded-pill bg-status-info-surface px-2 py-0.5 font-medium text-status-info-text text-xs">Kategorie: {kategorieLabel}</span>
               )}
-              {statusLabel && (
-                <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 font-medium text-amber-700 text-xs dark:bg-amber-900/30 dark:text-amber-300">
-                  Status: {statusLabel}
-                </span>
-              )}
-              <span className="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 font-medium text-gray-600 text-xs dark:bg-gray-700 dark:text-gray-300">
-                Sortierung: {sortLabel(currentSort)}
-              </span>
+              {statusLabel && <span className="inline-flex items-center rounded-pill bg-status-warning-surface px-2 py-0.5 font-medium text-status-warning-text text-xs">Status: {statusLabel}</span>}
+              <span className="inline-flex items-center rounded-pill bg-surface-raised px-2 py-0.5 font-medium text-text-secondary text-xs">Sortierung: {sortLabel(currentSort)}</span>
             </div>
           </div>
         </form>

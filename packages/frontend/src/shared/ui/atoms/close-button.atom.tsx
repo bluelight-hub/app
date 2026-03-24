@@ -25,15 +25,7 @@ export const CloseButton = forwardRef<HTMLButtonElement, CloseButtonProps>(({ si
   };
 
   return (
-    <IconButton
-      ref={ref}
-      size={size}
-      appearance={appearance}
-      intent={intent}
-      className={cn('text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300', className)}
-      aria-label={label}
-      {...props}
-    >
+    <IconButton ref={ref} size={size} appearance={appearance} intent={intent} className={cn('text-text-muted hover:text-text-secondary', className)} aria-label={label} {...props}>
       <PiX className={iconSizes[size]} />
     </IconButton>
   );

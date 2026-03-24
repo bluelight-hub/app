@@ -1,14 +1,15 @@
+import { useState } from 'react';
 import { useForm } from '@tanstack/react-form';
 import { zodValidator } from '@tanstack/zod-form-adapter';
+import { PiCheck, PiCopy } from 'react-icons/pi';
+
 import type { CreateInviteDto } from '@/shared';
-import { Button } from '@/shared/ui/atoms/button.atom';
-import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
-import { FormField } from '@/shared/ui/atoms/form-field.atom';
-import { Input } from '@/shared/ui/atoms/input.atom';
 import { useCreateInvite } from '@/features/admin/api/use-admin-invite-management';
 import { createInviteSchema } from '@/features/admin/schemas';
-import { useState } from 'react';
-import { PiCheck, PiCopy } from 'react-icons/pi';
+import { Button } from '@/shared/ui/atoms/button.atom';
+import { FormField } from '@/shared/ui/atoms/form-field.atom';
+import { Input } from '@/shared/ui/atoms/input.atom';
+import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 
 interface CreateInviteDialogProps {
   isOpen: boolean;
@@ -26,12 +27,8 @@ interface CreateInviteDialogProps {
  * Nach erfolgreicher Erstellung wird der vollständige Code
  * in einem kopierbaren Format angezeigt.
  */
-/**
- * Berechnet das Default-Ablaufdatum (7 Tage ab jetzt) im datetime-local Format.
- */
 function getDefaultExpiresAt(): string {
   const date = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-  // datetime-local Format: YYYY-MM-DDTHH:mm
   return date.toISOString().slice(0, 16);
 }
 
@@ -83,18 +80,17 @@ export const CreateInviteDialog = ({ isOpen, onClose }: CreateInviteDialogProps)
     }
   };
 
-  // Success View: Show created code
   if (createdCode) {
     return (
       <Dialog isOpen={isOpen} onClose={handleClose}>
         <Dialog.Title>Invite-Code erstellt</Dialog.Title>
         <Dialog.Body>
           <div className="space-y-4">
-            <p className="text-gray-700 text-sm dark:text-gray-300">Der Invite-Code wurde erfolgreich erstellt. Kopiere ihn jetzt, da er später nur maskiert angezeigt wird.</p>
-            <div className="rounded-lg border-2 border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950">
-              <div className="mb-2 font-medium text-gray-700 text-sm dark:text-gray-300">Invite-Code:</div>
+            <p className="text-text-secondary text-sm">Der Invite-Code wurde erfolgreich erstellt. Kopiere ihn jetzt, da er später nur maskiert angezeigt wird.</p>
+            <div className="rounded-panel border-2 border-status-success-border bg-status-success-surface p-4">
+              <div className="mb-2 font-medium text-text-secondary text-sm">Invite-Code:</div>
               <div className="flex items-center gap-2">
-                <code className="flex-1 rounded bg-white px-3 py-2 font-bold font-mono text-green-700 text-lg dark:bg-gray-800 dark:text-green-400">{createdCode}</code>
+                <code className="flex-1 rounded-control bg-surface-panel px-3 py-2 font-bold font-mono text-status-success-text text-lg">{createdCode}</code>
                 <Button intent="secondary" size="sm" onClick={handleCopyCode} aria-label="Code kopieren">
                   {copied ? <PiCheck className="h-5 w-5" /> : <PiCopy className="h-5 w-5" />}
                 </Button>
@@ -109,11 +105,9 @@ export const CreateInviteDialog = ({ isOpen, onClose }: CreateInviteDialogProps)
     );
   }
 
-  // Form View: Create new invite
   return (
     <Dialog isOpen={isOpen} onClose={handleClose}>
       <Dialog.Title>Neuer Invite-Code</Dialog.Title>
-
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -122,7 +116,6 @@ export const CreateInviteDialog = ({ isOpen, onClose }: CreateInviteDialogProps)
       >
         <Dialog.Body>
           <div className="space-y-4">
-            {/* Label */}
             <form.Field name="label">
               {(field) => (
                 <FormField label="Label" error={field.state.meta.errors[0]} htmlFor="create-invite-label">
@@ -140,7 +133,6 @@ export const CreateInviteDialog = ({ isOpen, onClose }: CreateInviteDialogProps)
               )}
             </form.Field>
 
-            {/* Ablaufdatum */}
             <form.Field name="expiresAt">
               {(field) => (
                 <FormField label="Ablaufdatum" helperText="Standard: 7 Tage ab jetzt" error={field.state.meta.errors[0]} htmlFor="create-invite-expires">
@@ -158,7 +150,6 @@ export const CreateInviteDialog = ({ isOpen, onClose }: CreateInviteDialogProps)
               )}
             </form.Field>
 
-            {/* Max Uses */}
             <form.Field name="maxUses">
               {(field) => (
                 <FormField label="Maximale Nutzungen" error={field.state.meta.errors[0]} htmlFor="create-invite-maxuses">
@@ -183,7 +174,6 @@ export const CreateInviteDialog = ({ isOpen, onClose }: CreateInviteDialogProps)
             </form.Field>
           </div>
         </Dialog.Body>
-
         <Dialog.Footer>
           <Button intent="secondary" appearance="ghost" onClick={handleClose} disabled={createInviteMutation.isPending}>
             Abbrechen

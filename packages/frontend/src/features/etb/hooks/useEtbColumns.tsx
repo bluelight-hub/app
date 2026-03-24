@@ -25,11 +25,7 @@ export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory, einsat
         id: 'expander',
         header: () => null,
         cell: ({ row }) => (
-          <IconButton
-            aria-label="Eintrag erweitern"
-            onClick={row.getToggleExpandedHandler()}
-            className={cn('rounded p-1 hover:bg-gray-100 dark:hover:bg-gray-700', 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200')}
-          >
+          <IconButton aria-label="Eintrag erweitern" onClick={row.getToggleExpandedHandler()} className={cn('rounded p-1 hover:bg-action-secondary', 'text-text-muted hover:text-text-secondary')}>
             {row.getIsExpanded() ? <PiCaretDown className="h-4 w-4" /> : <PiCaretRight className="h-4 w-4" />}
           </IconButton>
         ),
@@ -39,7 +35,7 @@ export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory, einsat
         id: 'sequenceNumber',
         accessorKey: 'sequenceNumber',
         header: '#',
-        cell: ({ getValue }) => <span className="font-mono text-gray-500 text-xs dark:text-gray-400">#{getValue<number>()}</span>,
+        cell: ({ getValue }) => <span className="font-mono text-text-muted text-xs">#{getValue<number>()}</span>,
         size: 70,
         enableSorting: true,
       },
@@ -72,7 +68,7 @@ export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory, einsat
           if (entry.deletedAt) {
             return (
               <span
-                className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 font-medium text-red-700 text-xs dark:bg-red-900/30 dark:text-red-400"
+                className="inline-flex items-center gap-1 rounded-full bg-status-danger-surface px-2 py-0.5 font-medium text-status-danger-text text-xs"
                 title={`Gelöscht${entry.deleterUsername ? ` von ${entry.deleterUsername}` : ''}`}
               >
                 <PiTrashSimple className="h-3 w-3" />
@@ -94,11 +90,11 @@ export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory, einsat
           const date = rawTimestamp ? new Date(rawTimestamp) : null;
 
           if (!date || !isValid(date)) {
-            return <span className="text-gray-500 text-sm dark:text-gray-400">-</span>;
+            return <span className="text-text-muted text-sm">-</span>;
           }
 
           return (
-            <time className="text-gray-700 text-sm dark:text-gray-300" title={format(date, 'dd.MM.yyyy HH:mm:ss', { locale: de })}>
+            <time className="text-text-secondary text-sm" title={format(date, 'dd.MM.yyyy HH:mm:ss', { locale: de })}>
               {format(date, 'HH:mm:ss', { locale: de })}
             </time>
           );
@@ -113,10 +109,10 @@ export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory, einsat
         cell: ({ getValue }) => {
           const absender = getValue<string | null | undefined>();
           if (!absender) {
-            return <span className="text-gray-400 text-sm dark:text-gray-500">-</span>;
+            return <span className="text-text-muted text-sm">-</span>;
           }
           return (
-            <span className="text-gray-700 text-sm dark:text-gray-300" title={absender}>
+            <span className="text-text-secondary text-sm" title={absender}>
               {absender}
             </span>
           );
@@ -131,10 +127,10 @@ export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory, einsat
         cell: ({ getValue }) => {
           const empfaenger = getValue<string | null | undefined>();
           if (!empfaenger) {
-            return <span className="text-gray-400 text-sm dark:text-gray-500">-</span>;
+            return <span className="text-text-muted text-sm">-</span>;
           }
           return (
-            <span className="text-gray-700 text-sm dark:text-gray-300" title={empfaenger}>
+            <span className="text-text-secondary text-sm" title={empfaenger}>
               {empfaenger}
             </span>
           );
@@ -181,13 +177,7 @@ export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory, einsat
 
           return (
             <div className="flex justify-center gap-1">
-              <IconButton
-                appearance="minimal"
-                size="sm"
-                onClick={() => onEditEntry?.(entry)}
-                className="text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400"
-                aria-label="Bearbeiten"
-              >
+              <IconButton appearance="minimal" size="sm" onClick={() => onEditEntry?.(entry)} className="text-text-muted hover:text-action-primary" aria-label="Bearbeiten">
                 <PiPencil />
               </IconButton>
               <IconButton size="sm" appearance="minimal" intent="danger" onClick={() => handleDelete(entry)} aria-label="Löschen">

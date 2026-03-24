@@ -41,13 +41,13 @@ export function FormField({ label, helperText, error, required, className, child
   return (
     <div className={cn('space-y-2', className)}>
       {label && (
-        <label htmlFor={htmlFor} className="block font-medium text-gray-700 text-sm">
+        <label htmlFor={htmlFor} className="block font-medium text-sm text-text-secondary">
           {label}
-          {required && <span className="ml-1 text-red-500">*</span>}
+          {required && <span className="ml-1 text-status-danger-text">*</span>}
         </label>
       )}
       {children}
-      {(helperText || errorMessage) && <p className={cn('mt-1 text-sm', errorMessage ? 'text-red-600' : 'text-gray-500')}>{errorMessage || helperText}</p>}
+      {(helperText || errorMessage) && <p className={cn('mt-1 text-sm', errorMessage ? 'text-status-danger-text' : 'text-text-muted')}>{errorMessage || helperText}</p>}
     </div>
   );
 }

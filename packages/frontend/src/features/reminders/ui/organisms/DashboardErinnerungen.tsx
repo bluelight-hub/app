@@ -45,8 +45,8 @@ export function DashboardErinnerungen({ einsatzId, className }: DashboardErinner
 
   if (!user) {
     return (
-      <div className={cn('rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-900/20', className)}>
-        <p className="text-sm text-yellow-700 dark:text-yellow-300">Bitte einloggen um Erinnerungen zu sehen</p>
+      <div className={cn('rounded-panel border border-status-warning-border bg-status-warning-surface p-4', className)}>
+        <p className="text-sm text-status-warning-text">Bitte einloggen um Erinnerungen zu sehen</p>
       </div>
     );
   }
@@ -80,9 +80,9 @@ const SWIMLANE_CONFIGS: SwimlaneConfig[] = [
     emoji: '\u{1F534}',
     variant: 'minimal',
     accentColor: 'red',
-    headerBg: 'bg-red-50 dark:bg-red-950/30',
-    headerText: 'text-red-800 dark:text-red-200',
-    badgeBg: 'bg-red-200 text-red-800 dark:bg-red-900 dark:text-red-200',
+    headerBg: 'bg-status-danger-surface',
+    headerText: 'text-status-danger-text',
+    badgeBg: 'bg-status-danger-text text-text-inverse',
   },
   {
     key: 'aufmerksamkeit',
@@ -90,9 +90,9 @@ const SWIMLANE_CONFIGS: SwimlaneConfig[] = [
     emoji: '\u{1F7E1}',
     variant: 'minimal',
     accentColor: 'amber',
-    headerBg: 'bg-amber-50 dark:bg-amber-950/30',
-    headerText: 'text-amber-800 dark:text-amber-200',
-    badgeBg: 'bg-amber-200 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
+    headerBg: 'bg-status-warning-surface',
+    headerText: 'text-status-warning-text',
+    badgeBg: 'bg-status-warning-text text-text-inverse',
   },
   {
     key: 'kontrolle',
@@ -100,9 +100,9 @@ const SWIMLANE_CONFIGS: SwimlaneConfig[] = [
     emoji: '\u{1F7E2}',
     variant: 'minimal',
     accentColor: 'green',
-    headerBg: 'bg-green-50 dark:bg-green-950/30',
-    headerText: 'text-green-800 dark:text-green-200',
-    badgeBg: 'bg-green-200 text-green-800 dark:bg-green-900 dark:text-green-200',
+    headerBg: 'bg-status-success-surface',
+    headerText: 'text-status-success-text',
+    badgeBg: 'bg-status-success-text text-text-inverse',
   },
   {
     key: 'eingeplant',
@@ -110,9 +110,9 @@ const SWIMLANE_CONFIGS: SwimlaneConfig[] = [
     emoji: '\u{1F535}',
     variant: 'minimal',
     accentColor: 'blue',
-    headerBg: 'bg-blue-50 dark:bg-blue-950/30',
-    headerText: 'text-blue-800 dark:text-blue-200',
-    badgeBg: 'bg-blue-200 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+    headerBg: 'bg-status-info-surface',
+    headerText: 'text-status-info-text',
+    badgeBg: 'bg-status-info-text text-text-inverse',
   },
   {
     key: 'abgeschlossen',
@@ -120,9 +120,9 @@ const SWIMLANE_CONFIGS: SwimlaneConfig[] = [
     emoji: '\u2B1C',
     variant: 'minimal',
     accentColor: 'gray',
-    headerBg: 'bg-gray-50 dark:bg-gray-800/50',
-    headerText: 'text-gray-600 dark:text-gray-400',
-    badgeBg: 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
+    headerBg: 'bg-surface-raised',
+    headerText: 'text-text-secondary',
+    badgeBg: 'bg-surface-raised text-text-secondary',
   },
 ];
 
@@ -191,16 +191,16 @@ function DashboardErinnerungenInner({ einsatzId, className, currentUserId }: Das
   if (isLoading) {
     return (
       <div className={cn('animate-pulse', className)}>
-        <div className="h-20 rounded-lg bg-gray-200 dark:bg-gray-700" />
-        <div className="mt-2 h-20 rounded-lg bg-gray-200 dark:bg-gray-700" />
+        <div className="h-20 rounded-lg bg-surface-raised" />
+        <div className="mt-2 h-20 rounded-lg bg-surface-raised" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className={cn('rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20', className)}>
-        <p className="text-red-700 text-sm dark:text-red-300">Fehler beim Laden der Erinnerungen</p>
+      <div className={cn('rounded-panel border border-status-danger-border bg-status-danger-surface p-4', className)}>
+        <p className="text-sm text-status-danger-text">Fehler beim Laden der Erinnerungen</p>
       </div>
     );
   }
@@ -209,21 +209,21 @@ function DashboardErinnerungenInner({ einsatzId, className, currentUserId }: Das
     <div className={cn('flex flex-col', className)}>
       <OfflineBanner isOffline={isOffline} pendingCount={pendingActionsCount} isSyncing={isSyncing} offlineSince={offlineSince} className="mb-2 rounded-lg" />
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+      <div className="overflow-hidden rounded-xl border border-border-subtle bg-surface-panel">
         <TabGroup defaultIndex={0}>
           {/* Header */}
-          <div className="flex items-center justify-between border-gray-200 border-b px-4 py-2.5 dark:border-gray-800">
+          <div className="flex items-center justify-between border-border-subtle border-b px-4 py-2.5">
             <div className="flex items-center gap-2">
-              <PiAlarm className="h-4 w-4 text-red-500" />
-              <h3 className="font-semibold text-gray-900 text-sm dark:text-white">Zeitkritisch</h3>
+              <PiAlarm className="h-4 w-4 text-status-danger-text" />
+              <h3 className="font-semibold text-sm text-text-primary">Zeitkritisch</h3>
               {sortedErinnerungen.length > 0 && (
-                <span className="rounded-full bg-red-100 px-1.5 py-0.5 font-medium font-mono text-red-700 text-xs dark:bg-red-900/40 dark:text-red-300">{sortedErinnerungen.length}</span>
+                <span className="rounded-full bg-status-danger-surface px-1.5 py-0.5 font-medium font-mono text-status-danger-text text-xs">{sortedErinnerungen.length}</span>
               )}
               <span
-                className={cn('flex items-center gap-1 text-xs', isConnected ? 'text-emerald-500' : 'text-gray-400 dark:text-gray-500')}
+                className={cn('flex items-center gap-1 text-xs', isConnected ? 'text-status-success-text' : 'text-text-muted')}
                 title={isConnected ? 'Echtzeit-Updates aktiv' : 'Verbindung unterbrochen'}
               >
-                <span className={cn('h-1.5 w-1.5 rounded-full', isConnected ? 'animate-pulse bg-green-500' : 'bg-gray-400')} />
+                <span className={cn('h-1.5 w-1.5 rounded-full', isConnected ? 'animate-pulse bg-status-success-text' : 'bg-text-muted')} />
                 {isConnected ? <PiWifiHigh className="hidden h-3 w-3 sm:inline" /> : <PiWifiSlash className="h-3 w-3" />}
               </span>
             </div>
@@ -234,13 +234,13 @@ function DashboardErinnerungenInner({ einsatzId, className, currentUserId }: Das
           </div>
 
           {/* Tabs */}
-          <div className="border-gray-100 border-b px-3 py-1.5 dark:border-gray-800">
+          <div className="border-border-subtle border-b px-3 py-1.5">
             <TabList className="flex gap-1">
               <Tab
                 className={({ selected }) =>
                   cn(
                     'cursor-pointer rounded-full px-2.5 py-1 font-medium text-xs transition-colors',
-                    selected ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800',
+                    selected ? 'bg-action-primary text-text-inverse' : 'text-text-secondary hover:bg-action-secondary hover:text-text-primary',
                   )
                 }
               >
@@ -250,7 +250,7 @@ function DashboardErinnerungenInner({ einsatzId, className, currentUserId }: Das
                 className={({ selected }) =>
                   cn(
                     'cursor-pointer rounded-full px-2.5 py-1 font-medium text-xs transition-colors',
-                    selected ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800',
+                    selected ? 'bg-action-primary text-text-inverse' : 'text-text-secondary hover:bg-action-secondary hover:text-text-primary',
                   )
                 }
               >
@@ -330,8 +330,8 @@ function CompactSwimlaneView({ groups, einsatzId, currentUserId, showCreator, on
   if (totalCount === 0) {
     return (
       <div className="p-6 text-center">
-        <PiAlarm className="mx-auto h-8 w-8 text-gray-400 dark:text-gray-500" />
-        <p className="mt-2 text-gray-500 text-sm dark:text-gray-400">{emptyMessage}</p>
+        <PiAlarm className="mx-auto h-8 w-8 text-text-muted" />
+        <p className="mt-2 text-sm text-text-muted">{emptyMessage}</p>
         <Button size="sm" appearance="ghost" className="mt-3" onClick={onCreateClick}>
           <PiPlus className="mr-1 h-4 w-4" />
           Erinnerung erstellen
@@ -341,7 +341,7 @@ function CompactSwimlaneView({ groups, einsatzId, currentUserId, showCreator, on
   }
 
   return (
-    <div className="max-h-[60vh] divide-y divide-gray-200 overflow-y-auto dark:divide-gray-800">
+    <div className="max-h-[60vh] divide-y divide-border-subtle overflow-y-auto">
       {SWIMLANE_CONFIGS.map((config) => {
         const items = groups[config.key];
         const isCollapsible = COLLAPSIBLE_KEYS.has(config.key);
@@ -376,7 +376,7 @@ function CompactSwimlaneView({ groups, einsatzId, currentUserId, showCreator, on
 
             {/* Cards */}
             {!isCollapsed && (
-              <div className={cn('divide-y divide-gray-100 dark:divide-gray-800', isAbgeschlossen && 'opacity-60')}>
+              <div className={cn('divide-y divide-border-subtle', isAbgeschlossen && 'opacity-60')}>
                 {items.map((e) => (
                   <ErinnerungCard
                     key={e.id}

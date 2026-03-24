@@ -67,15 +67,15 @@ interface DashboardHeaderProps {
  */
 function DashboardHeader({ onRefresh, lastUpdated, isRefreshing, mode, onModeChange }: DashboardHeaderProps) {
   return (
-    <div className={cn('flex items-center justify-between', mode === 'fullscreen' && 'sticky top-0 z-10 -mx-6 -mt-6 bg-white px-6 py-4 shadow-sm lg:-mx-8 lg:px-8 dark:bg-gray-800')}>
+    <div className={cn('flex items-center justify-between', mode === 'fullscreen' && 'sticky top-0 z-10 -mx-6 -mt-6 bg-surface-panel px-6 py-4 shadow-sm lg:-mx-8 lg:px-8')}>
       <div className="flex items-center gap-3">
-        <PiChartBar className={cn('text-gray-500 dark:text-gray-400', mode === 'fullscreen' ? 'h-8 w-8' : 'h-6 w-6')} />
-        <h1 className={cn('font-bold text-gray-900 dark:text-gray-100', mode === 'fullscreen' ? 'text-3xl lg:text-4xl' : 'text-2xl')}>Kräfte-Dashboard</h1>
+        <PiChartBar className={cn('text-text-muted', mode === 'fullscreen' ? 'h-8 w-8' : 'h-6 w-6')} />
+        <h1 className={cn('font-bold text-text-primary', mode === 'fullscreen' ? 'text-3xl lg:text-4xl' : 'text-2xl')}>Kräfte-Dashboard</h1>
       </div>
 
       <div className="flex items-center gap-4">
         {/* Timestamp (AC3: Auto-Refresh Indikator) */}
-        {lastUpdated > 0 && <span className={cn('text-gray-500 dark:text-gray-400', mode === 'fullscreen' ? 'text-lg' : 'text-sm')}>Aktualisiert: {formatTime(lastUpdated)}</span>}
+        {lastUpdated > 0 && <span className={cn('text-text-muted', mode === 'fullscreen' ? 'text-lg' : 'text-sm')}>Aktualisiert: {formatTime(lastUpdated)}</span>}
 
         {/* Mode Selector (AC5) */}
         <ModeSelector mode={mode} onModeChange={onModeChange} />
@@ -86,9 +86,8 @@ function DashboardHeader({ onRefresh, lastUpdated, isRefreshing, mode, onModeCha
           onClick={onRefresh}
           disabled={isRefreshing}
           className={cn(
-            'rounded-lg p-2 text-gray-500 transition-colors',
-            'hover:bg-gray-100 hover:text-gray-700',
-            'dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300',
+            'rounded-lg p-2 text-text-muted transition-colors',
+            'hover:bg-surface-raised hover:text-text-secondary',
             'disabled:cursor-not-allowed disabled:opacity-50',
             isRefreshing && 'animate-spin',
             mode === 'fullscreen' && 'p-3',
@@ -114,14 +113,11 @@ interface ModeSelectorProps {
  */
 function ModeSelector({ mode, onModeChange }: ModeSelectorProps) {
   return (
-    <div className="flex items-center gap-1 rounded-lg bg-gray-100 p-1 dark:bg-gray-700">
+    <div className="flex items-center gap-1 rounded-lg bg-surface-raised p-1">
       <button
         type="button"
         onClick={() => onModeChange('compact')}
-        className={cn(
-          'rounded-md px-3 py-1.5 font-medium text-sm transition-colors',
-          mode === 'compact' ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-600 dark:text-white' : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white',
-        )}
+        className={cn('rounded-md px-3 py-1.5 font-medium text-sm transition-colors', mode === 'compact' ? 'bg-surface-panel text-text-primary shadow-sm' : 'text-text-muted hover:text-text-primary')}
         title="Kompakt-Modus für Tablets"
       >
         <PiDevices className="h-4 w-4" />
@@ -129,10 +125,7 @@ function ModeSelector({ mode, onModeChange }: ModeSelectorProps) {
       <button
         type="button"
         onClick={() => onModeChange('standard')}
-        className={cn(
-          'rounded-md px-3 py-1.5 font-medium text-sm transition-colors',
-          mode === 'standard' ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-600 dark:text-white' : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white',
-        )}
+        className={cn('rounded-md px-3 py-1.5 font-medium text-sm transition-colors', mode === 'standard' ? 'bg-surface-panel text-text-primary shadow-sm' : 'text-text-muted hover:text-text-primary')}
         title="Standard-Ansicht"
       >
         Normal
@@ -142,7 +135,7 @@ function ModeSelector({ mode, onModeChange }: ModeSelectorProps) {
         onClick={() => onModeChange('fullscreen')}
         className={cn(
           'rounded-md px-3 py-1.5 font-medium text-sm transition-colors',
-          mode === 'fullscreen' ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-600 dark:text-white' : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white',
+          mode === 'fullscreen' ? 'bg-surface-panel text-text-primary shadow-sm' : 'text-text-muted hover:text-text-primary',
         )}
         title="Vollbild-Modus für Beamer"
       >

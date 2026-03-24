@@ -105,9 +105,8 @@ export function ErinnerungAlarmToast({ toastId, erinnerungId, einsatzId, titel, 
       aria-atomic="true"
       onKeyDown={handleKeyDown}
       className={cn(
-        'min-w-[300px] max-w-[420px] rounded-xl border-2 border-red-400 p-4 shadow-2xl',
-        'bg-gradient-to-br from-red-600 to-red-700 text-white',
-        'focus:outline-none focus:ring-4 focus:ring-red-300',
+        'min-w-[300px] max-w-[420px] rounded-xl border-2 border-status-danger-border bg-status-danger-text p-4 text-text-inverse shadow-2xl',
+        'focus:outline-none focus-visible:shadow-focus-ring',
         isProcessing && 'pointer-events-none opacity-70',
       )}
     >
@@ -120,12 +119,12 @@ export function ErinnerungAlarmToast({ toastId, erinnerungId, einsatzId, titel, 
       </div>
 
       {/* Status */}
-      <div className="mb-3 flex items-center gap-3 text-red-100 text-sm">
+      <div className="mb-3 flex items-center gap-3 text-text-inverse/85 text-sm">
         <div className="flex items-center gap-1">
           <PiClock className="size-4" />
           <span>seit {elapsedTime}</span>
         </div>
-        <span className="rounded bg-red-500/50 px-2 py-0.5 font-bold text-xs">ALARM</span>
+        <span className="rounded bg-surface-inverse/18 px-2 py-0.5 font-bold text-xs">ALARM</span>
       </div>
 
       {/* Actions */}
@@ -137,8 +136,8 @@ export function ErinnerungAlarmToast({ toastId, erinnerungId, einsatzId, titel, 
           disabled={isProcessing}
           className={cn(
             'flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2',
-            'cursor-pointer bg-white font-medium text-red-700',
-            'hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-white',
+            'cursor-pointer bg-surface-panel font-medium text-status-danger-text',
+            'hover:bg-surface-raised focus:outline-none focus-visible:shadow-focus-ring',
             'disabled:cursor-not-allowed disabled:opacity-50',
           )}
         >
@@ -147,8 +146,8 @@ export function ErinnerungAlarmToast({ toastId, erinnerungId, einsatzId, titel, 
         </button>
 
         {/* Snooze Buttons */}
-        <div className="flex gap-1 rounded-lg bg-white/20 p-1">
-          <PiClockCountdown className="my-auto ml-1 size-4 text-white/80" />
+        <div className="flex gap-1 rounded-lg bg-surface-inverse/16 p-1">
+          <PiClockCountdown className="my-auto ml-1 size-4 text-text-inverse/80" />
           {([1, 5, 10] as const).map((minutes) => (
             <button
               key={minutes}
@@ -156,8 +155,8 @@ export function ErinnerungAlarmToast({ toastId, erinnerungId, einsatzId, titel, 
               onClick={() => handleSnooze(minutes)}
               disabled={isProcessing}
               className={cn(
-                'cursor-pointer rounded px-2 py-1 font-medium text-sm text-white',
-                'hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50',
+                'cursor-pointer rounded px-2 py-1 font-medium text-sm text-text-inverse',
+                'hover:bg-surface-inverse/20 focus:outline-none focus-visible:shadow-focus-ring',
                 'disabled:cursor-not-allowed disabled:opacity-50',
               )}
             >
@@ -168,7 +167,7 @@ export function ErinnerungAlarmToast({ toastId, erinnerungId, einsatzId, titel, 
       </div>
 
       {/* Keyboard Hint */}
-      <div className="mt-2 text-center text-red-200 text-xs">Enter: Bestätigen | Esc: 5 Min Snooze</div>
+      <div className="mt-2 text-center text-text-inverse/70 text-xs">Enter: Bestätigen | Esc: 5 Min Snooze</div>
     </div>
   );
 }

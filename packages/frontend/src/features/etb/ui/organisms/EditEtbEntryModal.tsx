@@ -1,4 +1,3 @@
-import { cn } from '@/shared/ui/cn';
 import { IconButton } from '@/shared/ui/atoms/icon-button.atom';
 import { Input } from '@/shared/ui/atoms/input.atom';
 import { Label } from '@/shared/ui/atoms/label.atom';
@@ -95,20 +94,20 @@ export function EditEtbEntryModal({ entry, isOpen, onClose, onEditSuccess, updat
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+      <div className="fixed inset-0 bg-surface-inverse/30" aria-hidden="true" />
 
       {/* Full-screen container */}
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+        <DialogPanel className="w-full max-w-2xl rounded-panel border border-border-subtle bg-surface-panel p-6 shadow-xl">
           {/* Header */}
           <div className="mb-4 flex items-start justify-between">
             <div>
-              <DialogTitle className="font-semibold text-gray-900 text-lg dark:text-gray-100">Eintrag bearbeiten</DialogTitle>
-              <p className="mt-1 text-gray-500 text-sm dark:text-gray-400">
+              <DialogTitle className="font-semibold text-lg text-text-primary">Eintrag bearbeiten</DialogTitle>
+              <p className="mt-1 text-sm text-text-secondary">
                 Eintrag #{entry.sequenceNumber} {entry.version > 1 && `(Version ${entry.version})`}
               </p>
             </div>
-            <IconButton appearance="minimal" onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200" aria-label="Schließen">
+            <IconButton appearance="minimal" onClick={onClose} className="text-text-muted hover:text-text-secondary" aria-label="Schließen">
               <PiX className="h-5 w-5" />
             </IconButton>
           </div>
@@ -136,9 +135,9 @@ export function EditEtbEntryModal({ entry, isOpen, onClose, onEditSuccess, updat
                       value={field.state.value}
                       onChange={(e) => field.handleChange(e.target.value)}
                       onBlur={field.handleBlur}
-                      className={cn(field.state.meta.errors.length > 0 && 'border-red-500 focus:ring-red-500')}
+                      variant={field.state.meta.errors.length > 0 ? 'error' : 'default'}
                     />
-                    {field.state.meta.errors.length > 0 && <p className="text-red-500 text-sm">{field.state.meta.errors[0]?.message}</p>}
+                    {field.state.meta.errors.length > 0 && <p className="text-sm text-status-danger-text">{field.state.meta.errors[0]?.message}</p>}
                   </div>
                 )}
               </form.Field>
@@ -155,12 +154,13 @@ export function EditEtbEntryModal({ entry, isOpen, onClose, onEditSuccess, updat
                       onBlur={field.handleBlur}
                       rows={6}
                       maxLength={2000}
-                      className={cn('resize-none', field.state.meta.errors.length > 0 && 'border-red-500 focus:ring-red-500')}
+                      variant={field.state.meta.errors.length > 0 ? 'error' : 'default'}
+                      className="resize-none"
                       placeholder="Eintrag..."
                     />
                     <div className="flex items-center justify-between">
-                      {field.state.meta.errors.length > 0 && <p className="text-red-500 text-sm">{field.state.meta.errors[0]?.message}</p>}
-                      <p className="ml-auto text-gray-500 text-xs dark:text-gray-400">{field.state.value.length} / 2000 Zeichen</p>
+                      {field.state.meta.errors.length > 0 && <p className="text-sm text-status-danger-text">{field.state.meta.errors[0]?.message}</p>}
+                      <p className="ml-auto text-text-secondary text-xs">{field.state.value.length} / 2000 Zeichen</p>
                     </div>
                   </div>
                 )}
@@ -179,14 +179,14 @@ export function EditEtbEntryModal({ entry, isOpen, onClose, onEditSuccess, updat
                       type="button"
                       onClick={onClose}
                       disabled={isSubmitting || updateEintrag.isPending}
-                      className="rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 text-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                      className="rounded-lg border border-border-subtle bg-surface-panel px-4 py-2 font-medium text-sm text-text-secondary transition-colors hover:bg-action-secondary hover:text-text-primary focus-visible:shadow-focus-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       Abbrechen
                     </button>
                     <button
                       type="submit"
                       disabled={!canSubmit || isSubmitting || updateEintrag.isPending}
-                      className="rounded-lg bg-primary-600 px-4 py-2 font-medium text-sm text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="rounded-lg bg-action-primary px-4 py-2 font-medium text-sm text-text-inverse transition-colors hover:bg-action-primary-hover focus-visible:shadow-focus-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {isSubmitting || updateEintrag.isPending ? 'Speichern...' : 'Speichern'}
                     </button>

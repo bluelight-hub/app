@@ -86,21 +86,21 @@ export function FreigebeRolleDialog({ isOpen, onClose, einsatzId, besetzung }: F
     <Dialog isOpen={isOpen} onClose={handleClose} size="sm">
       {/* Header mit Icon */}
       <div className="flex items-center gap-3">
-        <div className="rounded-full bg-red-100 p-2 dark:bg-red-900/30">
-          <PiWarning className="h-5 w-5 text-red-600 dark:text-red-400" />
+        <div className="rounded-full bg-status-danger-surface p-2">
+          <PiWarning className="h-5 w-5 text-status-danger-text" />
         </div>
         <Dialog.Title>Rolle freigeben</Dialog.Title>
       </div>
 
       <Dialog.Body>
         {/* Bestaetigungs-Text */}
-        <p className="text-gray-600 text-sm dark:text-gray-400">
+        <p className="text-text-secondary text-sm">
           Moechten Sie die Rolle <strong>{besetzung.rollenName}</strong> von <strong>{besetzung.personName}</strong> wirklich freigeben?
         </p>
-        <p className="mt-2 text-gray-500 text-xs dark:text-gray-500">Die Freigabe wird im ETB dokumentiert.</p>
+        <p className="mt-2 text-text-muted text-xs">Die Freigabe wird im ETB dokumentiert.</p>
 
         {/* Error Message */}
-        {errorMessage && <div className="mt-4 rounded-lg bg-red-50 p-3 text-red-700 text-sm dark:bg-red-900/20 dark:text-red-400">{errorMessage}</div>}
+        {errorMessage && <div className="mt-4 rounded-panel bg-status-danger-surface p-3 text-status-danger-text text-sm">{errorMessage}</div>}
       </Dialog.Body>
 
       <Dialog.Footer loading={isPending}>

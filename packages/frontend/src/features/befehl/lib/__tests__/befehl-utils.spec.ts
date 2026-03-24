@@ -338,8 +338,8 @@ describe('getEmpfaengerQuittierungStatus', () => {
     const result = getEmpfaengerQuittierungStatus(empfaenger);
 
     expect(result.status).toBe('ZUGESTELLT');
-    expect(result.chipBg).toBe('bg-gray-100 dark:bg-gray-800');
-    expect(result.chipText).toBe('text-gray-600 dark:text-gray-400');
+    expect(result.chipBg).toBe('bg-surface-raised');
+    expect(result.chipText).toBe('text-text-muted');
   });
 
   it('gibt VERSTANDEN zurueck mit korrektem chipBg/chipText', () => {
@@ -352,8 +352,8 @@ describe('getEmpfaengerQuittierungStatus', () => {
     const result = getEmpfaengerQuittierungStatus(empfaenger);
 
     expect(result.status).toBe('VERSTANDEN');
-    expect(result.chipBg).toBe('bg-green-100 dark:bg-green-900/30');
-    expect(result.chipText).toBe('text-green-700 dark:text-green-300');
+    expect(result.chipBg).toBe('bg-status-success-surface');
+    expect(result.chipText).toBe('text-status-success-text');
   });
 
   it('gibt RUECKFRAGE zurueck mit gelbem Chip', () => {
@@ -366,8 +366,8 @@ describe('getEmpfaengerQuittierungStatus', () => {
     const result = getEmpfaengerQuittierungStatus(empfaenger);
 
     expect(result.status).toBe('RUECKFRAGE');
-    expect(result.chipBg).toBe('bg-yellow-100 dark:bg-yellow-900/30');
-    expect(result.chipText).toBe('text-yellow-700 dark:text-yellow-300');
+    expect(result.chipBg).toBe('bg-status-warning-surface');
+    expect(result.chipText).toBe('text-status-warning-text');
   });
 
   it('gibt NICHT_VERSTANDEN zurueck mit rotem Chip', () => {
@@ -380,8 +380,8 @@ describe('getEmpfaengerQuittierungStatus', () => {
     const result = getEmpfaengerQuittierungStatus(empfaenger);
 
     expect(result.status).toBe('NICHT_VERSTANDEN');
-    expect(result.chipBg).toBe('bg-red-100 dark:bg-red-900/30');
-    expect(result.chipText).toBe('text-red-700 dark:text-red-300');
+    expect(result.chipBg).toBe('bg-status-danger-surface');
+    expect(result.chipText).toBe('text-status-danger-text');
   });
 
   it('setzt zeitpunkt korrekt bei Quittierung', () => {
@@ -418,7 +418,7 @@ describe('getEmpfaengerQuittierungStatus', () => {
     const result = getEmpfaengerQuittierungStatus(empfaenger);
 
     expect(result.status).toBe('VERSTANDEN');
-    expect(result.chipBg).toBe('bg-green-100 dark:bg-green-900/30');
+    expect(result.chipBg).toBe('bg-status-success-surface');
     expect(result.zeitpunkt).toBe(quittierZeit);
   });
 });

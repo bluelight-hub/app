@@ -42,8 +42,8 @@ const STATUS_OPTIONS = [
 ] as const;
 
 /** Aktiv/Inaktiv Styling fuer Filter-Controls */
-const activeClasses = 'border-primary-300 bg-primary-50 text-primary-700 dark:border-primary-600 dark:bg-primary-900/30 dark:text-primary-300';
-const inactiveClasses = 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700';
+const activeClasses = 'border-action-primary bg-action-secondary text-action-primary';
+const inactiveClasses = 'border-border-subtle bg-surface-panel text-text-secondary hover:bg-action-secondary';
 
 export function BefehlFilterRow({
   statusFilter,
@@ -128,45 +128,39 @@ export function BefehlFilterRow({
           <ListboxButton
             className={cn(
               'relative flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm',
-              'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
+              'focus:outline-none focus-visible:shadow-focus-ring',
               statusFilter.length > 0 ? activeClasses : inactiveClasses,
             )}
             aria-label="Status filtern"
           >
-            <PiFunnel className={cn('h-4 w-4 flex-shrink-0', statusFilter.length > 0 ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400')} aria-hidden="true" />
+            <PiFunnel className={cn('h-4 w-4 flex-shrink-0', statusFilter.length > 0 ? 'text-action-primary' : 'text-text-muted')} aria-hidden="true" />
             <span className="font-medium">{statusButtonLabel}</span>
-            <PiCaretDown className={cn('h-4 w-4 flex-shrink-0', statusFilter.length > 0 ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400')} aria-hidden="true" />
+            <PiCaretDown className={cn('h-4 w-4 flex-shrink-0', statusFilter.length > 0 ? 'text-action-primary' : 'text-text-muted')} aria-hidden="true" />
           </ListboxButton>
 
           <ListboxOptions
             transition
             className={cn(
-              'absolute z-20 mt-1 w-48 overflow-auto rounded-lg bg-white py-1 text-sm shadow-lg',
-              'border border-gray-200 ring-1 ring-black/5 focus:outline-none',
+              'absolute z-20 mt-1 w-48 overflow-auto rounded-lg bg-surface-panel py-1 text-sm shadow-lg',
+              'border border-border-subtle ring-1 ring-border-subtle/50 focus:outline-none',
               'data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in motion-reduce:data-[leave]:duration-0',
-              'dark:border-gray-700 dark:bg-gray-800',
             )}
           >
             {STATUS_OPTIONS.map((option) => (
               <ListboxOption
                 key={option.value}
                 value={option.value}
-                className={cn(
-                  'relative flex cursor-pointer select-none items-center gap-2 px-3 py-2',
-                  'text-gray-900 dark:text-gray-100',
-                  'data-[focus]:bg-primary-50 data-[focus]:text-primary-900',
-                  'dark:data-[focus]:bg-primary-900/30 dark:data-[focus]:text-primary-100',
-                )}
+                className={cn('relative flex cursor-pointer select-none items-center gap-2 px-3 py-2', 'text-text-primary', 'data-[focus]:bg-action-secondary data-[focus]:text-text-primary')}
               >
                 {({ selected }) => (
                   <>
                     <span
                       className={cn(
                         'flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border',
-                        selected ? 'border-primary-600 bg-primary-600 dark:border-primary-400 dark:bg-primary-500' : 'border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-700',
+                        selected ? 'border-action-primary bg-action-primary' : 'border-border-subtle bg-surface-panel',
                       )}
                     >
-                      {selected && <PiCheck className="h-3 w-3 text-white dark:text-gray-900" aria-hidden="true" />}
+                      {selected && <PiCheck className="h-3 w-3 text-text-inverse" aria-hidden="true" />}
                     </span>
                     <span className={cn('block truncate', selected && 'font-semibold')}>{option.label}</span>
                   </>
@@ -180,18 +174,12 @@ export function BefehlFilterRow({
       {/* Empfaenger Combobox (Typeahead) */}
       <Combobox value={empfaengerName} onChange={(value) => onEmpfaengerNameChange(value ?? '')} onClose={() => setEmpfaengerQuery('')}>
         <div className="relative">
-          <div
-            className={cn(
-              'relative flex items-center rounded-lg border text-sm',
-              'focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2',
-              empfaengerName ? activeClasses : inactiveClasses,
-            )}
-          >
-            <PiUsers className={cn('ml-3 h-4 w-4 flex-shrink-0', empfaengerName ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400')} aria-hidden="true" />
+          <div className={cn('relative flex items-center rounded-lg border text-sm', 'focus-within:shadow-focus-ring', empfaengerName ? activeClasses : inactiveClasses)}>
+            <PiUsers className={cn('ml-3 h-4 w-4 flex-shrink-0', empfaengerName ? 'text-action-primary' : 'text-text-muted')} aria-hidden="true" />
             <ComboboxInput
               className={cn(
                 'w-full border-none bg-transparent py-2 pr-8 pl-2 font-medium text-sm focus:outline-none',
-                empfaengerName ? 'text-primary-700 placeholder:text-primary-400 dark:text-primary-300' : 'text-gray-700 placeholder:text-gray-400 dark:text-gray-300',
+                empfaengerName ? 'text-action-primary placeholder:text-text-muted' : 'text-text-secondary placeholder:text-text-muted',
               )}
               placeholder="Empfänger..."
               aria-label="Empfänger filtern"
@@ -202,27 +190,22 @@ export function BefehlFilterRow({
               }}
             />
             <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
-              <PiCaretDown className={cn('h-4 w-4', empfaengerName ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400')} aria-hidden="true" />
+              <PiCaretDown className={cn('h-4 w-4', empfaengerName ? 'text-action-primary' : 'text-text-muted')} aria-hidden="true" />
             </ComboboxButton>
           </div>
 
           <ComboboxOptions
             transition
             className={cn(
-              'absolute z-20 mt-1 max-h-48 w-full overflow-auto rounded-lg bg-white py-1 text-sm shadow-lg',
-              'border border-gray-200 ring-1 ring-black/5 focus:outline-none',
+              'absolute z-20 mt-1 max-h-48 w-full overflow-auto rounded-lg bg-surface-panel py-1 text-sm shadow-lg',
+              'border border-border-subtle ring-1 ring-border-subtle/50 focus:outline-none',
               'data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in motion-reduce:data-[leave]:duration-0',
-              'dark:border-gray-700 dark:bg-gray-800',
             )}
           >
             {/* Leere Option zum Zuruecksetzen */}
             <ComboboxOption
               value=""
-              className={cn(
-                'relative flex cursor-pointer select-none items-center px-3 py-2 text-gray-500 italic',
-                'data-[focus]:bg-primary-50 data-[focus]:text-primary-900',
-                'dark:text-gray-400 dark:data-[focus]:bg-primary-900/30 dark:data-[focus]:text-primary-100',
-              )}
+              className={cn('relative flex cursor-pointer select-none items-center px-3 py-2 text-text-muted italic', 'data-[focus]:bg-action-secondary data-[focus]:text-text-primary')}
             >
               Alle Empfänger
             </ComboboxOption>
@@ -230,12 +213,7 @@ export function BefehlFilterRow({
               <ComboboxOption
                 key={name}
                 value={name}
-                className={cn(
-                  'relative flex cursor-pointer select-none items-center gap-2 px-3 py-2',
-                  'text-gray-900 dark:text-gray-100',
-                  'data-[focus]:bg-primary-50 data-[focus]:text-primary-900',
-                  'dark:data-[focus]:bg-primary-900/30 dark:data-[focus]:text-primary-100',
-                )}
+                className={cn('relative flex cursor-pointer select-none items-center gap-2 px-3 py-2', 'text-text-primary', 'data-[focus]:bg-action-secondary data-[focus]:text-text-primary')}
               >
                 {({ selected }) => <span className={cn('block truncate', selected && 'font-semibold')}>{name}</span>}
               </ComboboxOption>
@@ -250,33 +228,28 @@ export function BefehlFilterRow({
           <ListboxButton
             className={cn(
               'relative flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm',
-              'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
+              'focus:outline-none focus-visible:shadow-focus-ring',
               befehlsgeberName ? activeClasses : inactiveClasses,
             )}
             aria-label="Befehlsgeber filtern"
           >
-            <PiUser className={cn('h-4 w-4 flex-shrink-0', befehlsgeberName ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400')} aria-hidden="true" />
+            <PiUser className={cn('h-4 w-4 flex-shrink-0', befehlsgeberName ? 'text-action-primary' : 'text-text-muted')} aria-hidden="true" />
             <span className="max-w-[120px] truncate font-medium">{befehlsgeberButtonLabel}</span>
-            <PiCaretDown className={cn('h-4 w-4 flex-shrink-0', befehlsgeberName ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400')} aria-hidden="true" />
+            <PiCaretDown className={cn('h-4 w-4 flex-shrink-0', befehlsgeberName ? 'text-action-primary' : 'text-text-muted')} aria-hidden="true" />
           </ListboxButton>
 
           <ListboxOptions
             transition
             className={cn(
-              'absolute z-20 mt-1 max-h-48 w-48 overflow-auto rounded-lg bg-white py-1 text-sm shadow-lg',
-              'border border-gray-200 ring-1 ring-black/5 focus:outline-none',
+              'absolute z-20 mt-1 max-h-48 w-48 overflow-auto rounded-lg bg-surface-panel py-1 text-sm shadow-lg',
+              'border border-border-subtle ring-1 ring-border-subtle/50 focus:outline-none',
               'data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in motion-reduce:data-[leave]:duration-0',
-              'dark:border-gray-700 dark:bg-gray-800',
             )}
           >
             {/* Leere Option = "Alle" */}
             <ListboxOption
               value=""
-              className={cn(
-                'relative flex cursor-pointer select-none items-center px-3 py-2 text-gray-500 italic',
-                'data-[focus]:bg-primary-50 data-[focus]:text-primary-900',
-                'dark:text-gray-400 dark:data-[focus]:bg-primary-900/30 dark:data-[focus]:text-primary-100',
-              )}
+              className={cn('relative flex cursor-pointer select-none items-center px-3 py-2 text-text-muted italic', 'data-[focus]:bg-action-secondary data-[focus]:text-text-primary')}
             >
               Alle Befehlsgeber
             </ListboxOption>
@@ -284,12 +257,7 @@ export function BefehlFilterRow({
               <ListboxOption
                 key={name}
                 value={name}
-                className={cn(
-                  'relative flex cursor-pointer select-none items-center gap-2 px-3 py-2',
-                  'text-gray-900 dark:text-gray-100',
-                  'data-[focus]:bg-primary-50 data-[focus]:text-primary-900',
-                  'dark:data-[focus]:bg-primary-900/30 dark:data-[focus]:text-primary-100',
-                )}
+                className={cn('relative flex cursor-pointer select-none items-center gap-2 px-3 py-2', 'text-text-primary', 'data-[focus]:bg-action-secondary data-[focus]:text-text-primary')}
               >
                 {({ selected }) => <span className={cn('block truncate', selected && 'font-semibold')}>{name}</span>}
               </ListboxOption>
@@ -300,37 +268,25 @@ export function BefehlFilterRow({
 
       {/* Zeitraum: Von / Bis */}
       <div className="flex items-center gap-2">
-        <div
-          className={cn('relative flex items-center rounded-lg border text-sm', 'focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2', von ? activeClasses : inactiveClasses)}
-        >
-          <PiCalendar className={cn('ml-3 h-4 w-4 flex-shrink-0', von ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400')} aria-hidden="true" />
+        <div className={cn('relative flex items-center rounded-lg border text-sm', 'focus-within:shadow-focus-ring', von ? activeClasses : inactiveClasses)}>
+          <PiCalendar className={cn('ml-3 h-4 w-4 flex-shrink-0', von ? 'text-action-primary' : 'text-text-muted')} aria-hidden="true" />
           <input
             type="date"
             value={von}
             onChange={(e) => onVonChange(e.target.value)}
             aria-label="Befehle ab Datum"
-            className={cn(
-              'border-none bg-transparent py-2 pr-3 pl-2 font-medium text-sm focus:outline-none',
-              von ? 'text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300',
-              'dark:[color-scheme:dark]',
-            )}
+            className={cn('border-none bg-transparent py-2 pr-3 pl-2 font-medium text-sm text-text-secondary focus:outline-none', von && 'text-action-primary')}
           />
         </div>
-        <span className="text-gray-400 text-xs">–</span>
-        <div
-          className={cn('relative flex items-center rounded-lg border text-sm', 'focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2', bis ? activeClasses : inactiveClasses)}
-        >
-          <PiCalendar className={cn('ml-3 h-4 w-4 flex-shrink-0', bis ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400')} aria-hidden="true" />
+        <span className="text-text-muted text-xs">–</span>
+        <div className={cn('relative flex items-center rounded-lg border text-sm', 'focus-within:shadow-focus-ring', bis ? activeClasses : inactiveClasses)}>
+          <PiCalendar className={cn('ml-3 h-4 w-4 flex-shrink-0', bis ? 'text-action-primary' : 'text-text-muted')} aria-hidden="true" />
           <input
             type="date"
             value={bis}
             onChange={(e) => onBisChange(e.target.value)}
             aria-label="Befehle bis Datum"
-            className={cn(
-              'border-none bg-transparent py-2 pr-3 pl-2 font-medium text-sm focus:outline-none',
-              bis ? 'text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300',
-              'dark:[color-scheme:dark]',
-            )}
+            className={cn('border-none bg-transparent py-2 pr-3 pl-2 font-medium text-sm text-text-secondary focus:outline-none', bis && 'text-action-primary')}
           />
         </div>
       </div>
@@ -338,7 +294,7 @@ export function BefehlFilterRow({
       {/* Freitext-Suche */}
       <div className="relative min-w-[180px] flex-1">
         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-          <PiMagnifyingGlass className="h-4 w-4 text-gray-400" aria-hidden="true" />
+          <PiMagnifyingGlass className="h-4 w-4 text-text-muted" aria-hidden="true" />
         </div>
         <input
           type="text"
@@ -347,10 +303,9 @@ export function BefehlFilterRow({
           placeholder="Suche in Befehlen..."
           aria-label="Befehle durchsuchen"
           className={cn(
-            'w-full rounded-lg border border-gray-300 py-2 pr-3 pl-9 text-sm',
-            'placeholder:text-gray-400',
-            'focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-            'dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500',
+            'w-full rounded-lg border border-border-subtle bg-surface-panel py-2 pr-3 pl-9 text-sm text-text-primary',
+            'placeholder:text-text-muted',
+            'focus:border-action-primary focus:outline-none focus-visible:shadow-focus-ring',
           )}
         />
       </div>
@@ -358,17 +313,11 @@ export function BefehlFilterRow({
       {/* Filter Badge + Reset */}
       {hasActiveFilters && (
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 font-medium text-primary-700 text-xs dark:bg-primary-900 dark:text-primary-300">
-            Filter ({activeFilterCount})
-          </span>
+          <span className="inline-flex items-center rounded-full bg-action-secondary px-2.5 py-0.5 font-medium text-action-primary text-xs">Filter ({activeFilterCount})</span>
           <button
             type="button"
             onClick={onReset}
-            className={cn(
-              'inline-flex items-center gap-1 rounded-lg px-2 py-1 font-medium text-xs',
-              'text-gray-500 hover:bg-gray-100 hover:text-gray-700',
-              'dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200',
-            )}
+            className={cn('inline-flex items-center gap-1 rounded-lg px-2 py-1 font-medium text-xs', 'text-text-muted hover:bg-action-secondary hover:text-text-secondary')}
             aria-label="Filter zurücksetzen"
           >
             <PiX className="h-3.5 w-3.5" aria-hidden="true" />

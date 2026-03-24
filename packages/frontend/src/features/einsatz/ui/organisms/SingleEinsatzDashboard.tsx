@@ -237,7 +237,7 @@ function QuickLinkCard({ link, einsatzId }: { link: QuickLink; einsatzId: string
 
   const cardClassName = cn(
     'rounded-panel border border-border-subtle bg-surface-panel px-4 py-3 shadow-sm',
-    link.to ? 'block transition-colors hover:border-border-strong focus:outline-none focus-visible:shadow-focus-ring' : 'block',
+    link.to ? 'block transition-colors hover:border-border-strong focus-visible:outline-none focus-visible:shadow-focus-ring' : 'block',
   );
 
   if (!link.to) {
@@ -607,7 +607,7 @@ export function SingleEinsatzDashboard() {
                         search={(prev) => prev}
                         onClick={(e) => guardNavigation(e, vehicleTarget.route as string)}
                         onKeyDown={handleLinkSpace}
-                        className="flex items-center justify-between gap-3 rounded-panel border border-border-subtle bg-surface-raised px-3 py-2 transition-colors hover:bg-muted/50 focus:outline-none focus-visible:shadow-focus-ring"
+                        className="flex items-center justify-between gap-3 rounded-panel border border-border-subtle bg-surface-raised px-3 py-2 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:shadow-focus-ring"
                       >
                         <span className="sr-only">{vehicleTarget.label}</span>
                         {vehicleContent}
@@ -703,7 +703,7 @@ export function SingleEinsatzDashboard() {
                         search={(prev) => prev}
                         onClick={(e) => guardNavigation(e, entryTarget.route as string)}
                         onKeyDown={handleLinkSpace}
-                        className="block rounded-panel px-2 py-1 -mx-2 -my-1 transition-colors hover:bg-muted/50 focus:outline-none focus-visible:shadow-focus-ring"
+                        className="block rounded-panel px-2 py-1 -mx-2 -my-1 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:shadow-focus-ring"
                       >
                         <span className="sr-only">{entryTarget.label}</span>
                         {entryContent}

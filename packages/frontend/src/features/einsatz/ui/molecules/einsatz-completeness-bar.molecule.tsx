@@ -61,7 +61,7 @@ export function EinsatzCompletenessBar({
     <div className={className}>
       <ProgressBar value={completeness} max={100} variant={getVariant()} size={size} label={label} showPercentage={showPercentage} animated />
       {showTooltip && missingFields.length > 0 && (
-        <div className="mt-1 text-gray-600 text-xs dark:text-gray-400">
+        <div className="mt-1 text-body-xs text-text-secondary">
           <span className="font-medium">Fehlende Felder:</span> {missingFields.join(', ')}
         </div>
       )}

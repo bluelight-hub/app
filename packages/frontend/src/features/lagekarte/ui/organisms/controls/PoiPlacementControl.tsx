@@ -107,8 +107,7 @@ export const PoiPlacementControl: React.FC<PoiPlacementControlProps> = ({ onPoiT
       <div
         className={cn(
           // Glassmorphism
-          'rounded-xl border border-gray-200/50 bg-white/90 shadow-xl backdrop-blur-lg',
-          'dark:border-gray-700/50 dark:bg-gray-900/90',
+          'rounded-xl border border-border-subtle/50 bg-surface-panel/90 shadow-xl backdrop-blur-lg',
           // Width
           'min-w-[200px]',
           // Transition
@@ -133,19 +132,19 @@ export const PoiPlacementControl: React.FC<PoiPlacementControlProps> = ({ onPoiT
             </Button>
 
             {/* Ausgewählte Kategorie (anzeigen) */}
-            <div className="mt-2 rounded-lg border-2 border-blue-500 bg-blue-50 px-3 py-2 dark:border-blue-400 dark:bg-blue-900/50">
+            <div className="mt-2 rounded-lg border-2 border-status-info-border bg-status-info-surface px-3 py-2">
               <div className="flex items-center gap-2">
                 {(() => {
                   const config = POI_ICON_MAP[selectedType];
                   return (
                     <>
                       <config.Icon size={20} color={config.color} aria-hidden="true" />
-                      <span className="font-semibold text-blue-900 text-sm dark:text-blue-100">{formatPoiTypeLabel(selectedType)}</span>
+                      <span className="font-semibold text-status-info-text text-sm">{formatPoiTypeLabel(selectedType)}</span>
                     </>
                   );
                 })()}
               </div>
-              <p className="mt-1 text-blue-700 text-xs dark:text-blue-300">Klicke auf die Karte, um zu platzieren</p>
+              <p className="mt-1 text-body-xs text-status-info-text">Klicke auf die Karte, um zu platzieren</p>
             </div>
           </div>
         ) : (
@@ -161,7 +160,7 @@ export const PoiPlacementControl: React.FC<PoiPlacementControlProps> = ({ onPoiT
               <div className="p-2">
                 {/* Header mit Schließen-Button */}
                 <div className="mb-2 flex items-center justify-between px-1">
-                  <span className="font-semibold text-gray-900 text-sm dark:text-gray-100">POI-Typ wählen</span>
+                  <span className="font-semibold text-text-primary text-sm">POI-Typ wählen</span>
                   <Button onClick={handleToggleExpand} intent="secondary" appearance="ghost" size="icon" className="p-1" aria-label="Kategorien schließen">
                     <PiX size={18} aria-hidden="true" />
                   </Button>
@@ -188,8 +187,7 @@ export const PoiPlacementControl: React.FC<PoiPlacementControlProps> = ({ onPoiT
         <div
           className={cn(
             // Glassmorphism
-            'rounded-xl border border-gray-200/50 bg-white/90 shadow-xl backdrop-blur-lg',
-            'dark:border-gray-700/50 dark:bg-gray-900/90',
+            'rounded-xl border border-border-subtle/50 bg-surface-panel/90 shadow-xl backdrop-blur-lg',
             // Padding
             'p-3',
           )}
@@ -204,14 +202,14 @@ export const PoiPlacementControl: React.FC<PoiPlacementControlProps> = ({ onPoiT
               </Button>
 
               {/* Ausgewählte Kategorie */}
-              <div className="rounded-lg border-2 border-blue-500 bg-blue-50 px-3 py-2 dark:border-blue-400 dark:bg-blue-900/50">
+              <div className="rounded-lg border-2 border-status-info-border bg-status-info-surface px-3 py-2">
                 <div className="flex items-center justify-center gap-2">
                   {(() => {
                     const config = POI_ICON_MAP[selectedType];
                     return (
                       <>
                         <config.Icon size={22} color={config.color} aria-hidden="true" />
-                        <span className="font-semibold text-base text-blue-900 dark:text-blue-100">{formatPoiTypeLabel(selectedType)}</span>
+                        <span className="font-semibold text-base text-status-info-text">{formatPoiTypeLabel(selectedType)}</span>
                       </>
                     );
                   })()}
@@ -226,7 +224,7 @@ export const PoiPlacementControl: React.FC<PoiPlacementControlProps> = ({ onPoiT
                   <MenuButton
                     className={cn(
                       'flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 transition-all duration-200',
-                      open ? 'bg-blue-500 font-semibold text-white shadow-lg' : 'bg-gradient-to-r from-blue-500 to-blue-600 font-semibold text-white shadow-lg hover:from-blue-600 hover:to-blue-700',
+                      open ? 'bg-action-primary font-semibold text-text-inverse shadow-lg' : 'bg-action-primary font-semibold text-text-inverse shadow-lg hover:bg-action-primary-hover',
                     )}
                     aria-label="POI platzieren"
                   >
@@ -235,7 +233,7 @@ export const PoiPlacementControl: React.FC<PoiPlacementControlProps> = ({ onPoiT
                     <PiCaretDown className={cn('h-5 w-5 transition-transform duration-200', open && 'rotate-180')} aria-hidden="true" />
                   </MenuButton>
 
-                  <MenuItems className="absolute right-0 bottom-full left-0 z-50 mb-2 max-h-72 origin-bottom overflow-y-auto rounded-lg border border-gray-200 bg-white p-1 shadow-xl transition focus:outline-none dark:border-gray-700 dark:bg-gray-800">
+                  <MenuItems className="absolute right-0 bottom-full left-0 z-50 mb-2 max-h-72 origin-bottom overflow-y-auto rounded-lg border border-border-subtle bg-surface-panel p-1 shadow-xl transition focus-visible:outline-none">
                     {/* Alle POI-Typen (häufig + erweitert) auf Mobile */}
                     {[...frequentTypes, ...extendedTypes].map((type) => {
                       const isActive = selectedType === type;
@@ -247,7 +245,7 @@ export const PoiPlacementControl: React.FC<PoiPlacementControlProps> = ({ onPoiT
                               className={cn(
                                 'rounded-md transition-colors',
                                 // Focus state (keyboard navigation)
-                                focus && 'bg-gray-50 dark:bg-gray-700',
+                                focus && 'bg-action-secondary',
                               )}
                             >
                               <PoiTypeButton

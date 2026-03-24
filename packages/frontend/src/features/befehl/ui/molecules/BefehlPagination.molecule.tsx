@@ -28,8 +28,8 @@ export function BefehlPagination({ currentPage, totalPages, totalItems, pageSize
   const rangeEnd = rangeStart + itemsOnPage - 1;
 
   return (
-    <nav className={cn('flex items-center justify-between border-gray-200 border-t px-2 py-3 dark:border-gray-700', className)} aria-label="Tabellen-Pagination">
-      <span className="text-gray-500 text-sm dark:text-gray-400">
+    <nav className={cn('flex items-center justify-between border-border-subtle border-t px-2 py-3', className)} aria-label="Tabellen-Pagination">
+      <span className="text-text-muted text-sm">
         {rangeStart}–{rangeEnd} von {totalItems} {totalItems === 1 ? 'Befehl' : 'Befehlen'}
       </span>
 
@@ -41,7 +41,7 @@ export function BefehlPagination({ currentPage, totalPages, totalItems, pageSize
           className={cn(
             'inline-flex items-center gap-1 rounded-md px-3 py-1.5 font-medium text-sm',
             'transition-colors motion-reduce:transition-none',
-            canPreviousPage ? 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800' : 'cursor-not-allowed text-gray-300 dark:text-gray-600',
+            canPreviousPage ? 'text-text-secondary hover:bg-action-secondary' : 'cursor-not-allowed text-text-muted',
           )}
           aria-label="Vorherige Seite"
         >
@@ -49,7 +49,7 @@ export function BefehlPagination({ currentPage, totalPages, totalItems, pageSize
           Zurück
         </button>
 
-        <span className="text-gray-700 text-sm dark:text-gray-300">
+        <span className="text-text-secondary text-sm">
           Seite {currentPage} von {totalPages}
         </span>
 
@@ -60,7 +60,7 @@ export function BefehlPagination({ currentPage, totalPages, totalItems, pageSize
           className={cn(
             'inline-flex items-center gap-1 rounded-md px-3 py-1.5 font-medium text-sm',
             'transition-colors motion-reduce:transition-none',
-            canNextPage ? 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800' : 'cursor-not-allowed text-gray-300 dark:text-gray-600',
+            canNextPage ? 'text-text-secondary hover:bg-action-secondary' : 'cursor-not-allowed text-text-muted',
           )}
           aria-label="Nächste Seite"
         >

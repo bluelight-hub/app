@@ -276,22 +276,20 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
 
         <Dialog.Title>
           <div className="flex items-center gap-2">
-            <PiTruck className="h-5 w-5 text-primary-600 dark:text-primary-400" />
+            <PiTruck className="h-5 w-5 text-action-primary" />
             <span>Fahrzeug hinzufügen</span>
           </div>
         </Dialog.Title>
 
         <Dialog.Body>
           <TabGroup selectedIndex={selectedTabIndex} onChange={setSelectedTabIndex}>
-            <TabList className="flex gap-2 border-gray-200 border-b pb-2 dark:border-gray-700">
+            <TabList className="flex gap-2 border-border-subtle border-b pb-2">
               <Tab
                 className={({ selected }) =>
                   cn(
                     'flex items-center gap-2 rounded-lg px-4 py-2 font-medium text-sm transition-colors',
-                    'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-                    selected
-                      ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200',
+                    'focus-visible:outline-none focus-visible:shadow-focus-ring',
+                    selected ? 'bg-action-secondary text-action-primary' : 'text-text-secondary hover:bg-action-secondary hover:text-text-primary',
                   )
                 }
               >
@@ -302,10 +300,8 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                 className={({ selected }) =>
                   cn(
                     'flex items-center gap-2 rounded-lg px-4 py-2 font-medium text-sm transition-colors',
-                    'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-                    selected
-                      ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200',
+                    'focus-visible:outline-none focus-visible:shadow-focus-ring',
+                    selected ? 'bg-action-secondary text-action-primary' : 'text-text-secondary hover:bg-action-secondary hover:text-text-primary',
                   )
                 }
               >
@@ -317,22 +313,20 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
             <TabPanels className="mt-4">
               {/* Tab 1: Aus Stammdaten */}
               <TabPanel>
-                <p className="mb-4 text-gray-600 text-sm dark:text-gray-400">Wählen Sie ein Fahrzeug aus den Stammdaten, um es für diesen Einsatz zu erfassen.</p>
+                <p className="mb-4 text-body-sm text-text-secondary">Wählen Sie ein Fahrzeug aus den Stammdaten, um es für diesen Einsatz zu erfassen.</p>
 
                 {/* Combobox */}
                 <HeadlessCombobox as="div" value={selectedFahrzeug} onChange={handleSelect} disabled={erfasseFahrzeug.isPending}>
-                  <Label className="block font-medium text-gray-900 text-sm dark:text-white">Fahrzeug auswählen</Label>
+                  <Label className="block font-medium text-text-primary text-body-sm">Fahrzeug auswählen</Label>
                   <div className="relative mt-2">
                     <ComboboxInput
                       className={cn(
-                        'block w-full rounded-lg border bg-gray-50 px-4 py-3 pr-12 font-medium text-base text-gray-900',
+                        'block w-full rounded-lg border bg-surface-raised px-4 py-3 pr-12 font-medium text-base text-text-primary',
                         'transition-all duration-200',
-                        'border-gray-200',
-                        'placeholder:text-gray-400',
-                        'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20',
+                        'border-border-subtle',
+                        'placeholder:text-text-muted',
+                        'focus-visible:outline-none focus-visible:shadow-focus-ring',
                         'sm:text-sm',
-                        'dark:border-gray-700 dark:bg-gray-900 dark:text-white',
-                        'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400 dark:placeholder:text-gray-500',
                         'disabled:cursor-not-allowed disabled:opacity-50',
                       )}
                       placeholder={isLoadingStamm ? 'Lade Fahrzeuge…' : 'Funkrufname, Kennzeichen oder Typ eingeben…'}
@@ -341,26 +335,25 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                       autoComplete="off"
                     />
                     <ComboboxButton className="absolute inset-y-0 right-0 flex items-center px-3">
-                      {isLoadingStamm ? <InlineSpinner size="sm" /> : <PiCaretDown className="h-5 w-5 text-gray-400" aria-hidden="true" />}
+                      {isLoadingStamm ? <InlineSpinner size="sm" /> : <PiCaretDown className="h-5 w-5 text-text-muted" aria-hidden="true" />}
                     </ComboboxButton>
 
                     <ComboboxOptions
                       transition
                       className={cn(
-                        'absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white py-1 text-base shadow-lg',
-                        'border border-gray-200',
+                        'absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-surface-panel py-1 text-base shadow-panel',
+                        'border border-border-subtle',
                         'data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in',
                         'sm:text-sm',
-                        'dark:border-gray-700 dark:bg-gray-800',
                       )}
                     >
                       {isLoadingStamm ? (
-                        <div className="flex items-center justify-center gap-2 px-4 py-8 text-gray-500">
+                        <div className="flex items-center justify-center gap-2 px-4 py-8 text-text-secondary">
                           <InlineSpinner size="sm" />
                           <span>Lade Stammdaten…</span>
                         </div>
                       ) : filteredFahrzeuge.length === 0 ? (
-                        <div className="px-4 py-4 text-center text-gray-500 dark:text-gray-400">{query ? `Keine Fahrzeuge gefunden für "${query}"` : 'Keine Stamm-Fahrzeuge verfügbar'}</div>
+                        <div className="px-4 py-4 text-center text-text-secondary">{query ? `Keine Fahrzeuge gefunden für "${query}"` : 'Keine Stamm-Fahrzeuge verfügbar'}</div>
                       ) : (
                         filteredFahrzeuge.map((fz) => {
                           const disabled = isFahrzeugDisabled(fz);
@@ -373,8 +366,8 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                               disabled={disabled}
                               className={cn(
                                 'relative cursor-default select-none py-3 pr-9 pl-4',
-                                'data-[focus]:bg-primary-600 data-[focus]:text-white data-[focus]:outline-none',
-                                'dark:text-gray-200 dark:data-[focus]:bg-primary-500',
+                                'data-[focus]:bg-action-primary data-[focus]:text-text-inverse data-[focus]:outline-none',
+                                'text-text-primary',
                                 disabled && 'cursor-not-allowed opacity-50',
                               )}
                             >
@@ -387,7 +380,7 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                                         <span
                                           className={cn(
                                             'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs',
-                                            focus ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+                                            focus ? 'bg-surface-panel/20 text-text-inverse' : 'bg-status-warning-surface text-status-warning-text',
                                           )}
                                         >
                                           <PiWarning className="h-3 w-3" />
@@ -395,13 +388,13 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                                         </span>
                                       )}
                                     </div>
-                                    <span className={cn('mt-0.5 text-sm', focus ? 'text-primary-100' : 'text-gray-500 dark:text-gray-400')}>
+                                    <span className={cn('mt-0.5 text-body-sm', focus ? 'text-text-inverse/90' : 'text-text-secondary')}>
                                       {fz.kennzeichen ?? '–'} • {fahrzeugtypName}
                                     </span>
                                   </div>
 
                                   {selected && (
-                                    <span className={cn('absolute inset-y-0 right-0 flex items-center pr-4', focus ? 'text-white' : 'text-primary-600 dark:text-primary-400')}>
+                                    <span className={cn('absolute inset-y-0 right-0 flex items-center pr-4', focus ? 'text-text-inverse' : 'text-action-primary')}>
                                       <PiCheck className="h-5 w-5" aria-hidden="true" />
                                     </span>
                                   )}
@@ -417,15 +410,15 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
 
                 {/* Auswahl-Info */}
                 {selectedFahrzeug && (
-                  <div className="mt-4 rounded-lg border border-primary-200 bg-primary-50 p-3 dark:border-primary-800 dark:bg-primary-900/20">
+                  <div className="mt-4 rounded-lg border border-status-info-border bg-status-info-surface p-3">
                     <div className="flex items-start gap-3">
-                      <PiTruck className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary-600 dark:text-primary-400" />
+                      <PiTruck className="mt-0.5 h-5 w-5 flex-shrink-0 text-status-info-text" />
                       <div>
-                        <p className="font-medium text-primary-900 text-sm dark:text-primary-100">{selectedFahrzeug.funkrufname}</p>
-                        <p className="mt-0.5 text-primary-700 text-xs dark:text-primary-300">
+                        <p className="font-medium text-body-sm text-status-info-text">{selectedFahrzeug.funkrufname}</p>
+                        <p className="mt-0.5 text-body-xs text-status-info-text">
                           {selectedFahrzeug.kennzeichen ?? '–'} • {(selectedFahrzeug.fahrzeugtyp as { name?: string })?.name ?? 'Unbekannt'}
                         </p>
-                        <p className="mt-1 text-primary-600 text-xs dark:text-primary-400">Wird mit initialem FMS-Status 2 (Einsatzbereit) erfasst</p>
+                        <p className="mt-1 text-body-xs text-status-info-text">Wird mit initialem FMS-Status 2 (Einsatzbereit) erfasst</p>
                       </div>
                     </div>
                   </div>
@@ -434,7 +427,7 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
 
               {/* Tab 2: Temporär */}
               <TabPanel>
-                <p className="mb-4 text-gray-600 text-sm dark:text-gray-400">Erfassen Sie ein temporäres Fahrzeug ohne Referenz zu den Stammdaten.</p>
+                <p className="mb-4 text-body-sm text-text-secondary">Erfassen Sie ein temporäres Fahrzeug ohne Referenz zu den Stammdaten.</p>
 
                 <form className="space-y-4">
                   {/* Funkrufname */}
@@ -449,16 +442,14 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                           disabled={erfasseTemporales.isPending}
                           placeholder="z.B. Florian Stuttgart 44-1"
                           className={cn(
-                            'block w-full rounded-lg border bg-gray-50 px-4 py-3 font-medium text-base text-gray-900',
+                            'block w-full rounded-lg border bg-surface-raised px-4 py-3 font-medium text-base text-text-primary',
                             'transition-all duration-200',
-                            'border-gray-200',
-                            'placeholder:text-gray-400',
-                            'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20',
+                            'border-border-subtle',
+                            'placeholder:text-text-muted',
+                            'focus-visible:outline-none focus-visible:shadow-focus-ring',
                             'sm:text-sm',
-                            'dark:border-gray-700 dark:bg-gray-900 dark:text-white',
-                            'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400 dark:placeholder:text-gray-500',
                             'disabled:cursor-not-allowed disabled:opacity-50',
-                            field.state.meta.errors.length > 0 && 'border-red-500 focus:border-red-500 focus:ring-red-500',
+                            field.state.meta.errors.length > 0 && 'border-status-danger-border',
                           )}
                         />
                       </FormField>
@@ -475,15 +466,13 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                           onBlur={field.handleBlur}
                           disabled={erfasseTemporales.isPending || isLoadingFahrzeugtypen}
                           className={cn(
-                            'block w-full rounded-lg border bg-gray-50 px-4 py-3 font-medium text-base text-gray-900',
+                            'block w-full rounded-lg border bg-surface-raised px-4 py-3 font-medium text-base text-text-primary',
                             'transition-all duration-200',
-                            'border-gray-200',
-                            'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20',
+                            'border-border-subtle',
+                            'focus-visible:outline-none focus-visible:shadow-focus-ring',
                             'sm:text-sm',
-                            'dark:border-gray-700 dark:bg-gray-900 dark:text-white',
-                            'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400',
                             'disabled:cursor-not-allowed disabled:opacity-50',
-                            field.state.meta.errors.length > 0 && 'border-red-500 focus:border-red-500 focus:ring-red-500',
+                            field.state.meta.errors.length > 0 && 'border-status-danger-border',
                           )}
                         >
                           <option value="">Fahrzeugtyp wählen…</option>
@@ -509,16 +498,14 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                           disabled={erfasseTemporales.isPending}
                           placeholder="z.B. S-FW 1234"
                           className={cn(
-                            'block w-full rounded-lg border bg-gray-50 px-4 py-3 font-medium text-base text-gray-900',
+                            'block w-full rounded-lg border bg-surface-raised px-4 py-3 font-medium text-base text-text-primary',
                             'transition-all duration-200',
-                            'border-gray-200',
-                            'placeholder:text-gray-400',
-                            'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20',
+                            'border-border-subtle',
+                            'placeholder:text-text-muted',
+                            'focus-visible:outline-none focus-visible:shadow-focus-ring',
                             'sm:text-sm',
-                            'dark:border-gray-700 dark:bg-gray-900 dark:text-white',
-                            'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400 dark:placeholder:text-gray-500',
                             'disabled:cursor-not-allowed disabled:opacity-50',
-                            field.state.meta.errors.length > 0 && 'border-red-500 focus:border-red-500 focus:ring-red-500',
+                            field.state.meta.errors.length > 0 && 'border-status-danger-border',
                           )}
                         />
                       </FormField>
@@ -526,8 +513,8 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                   </temporalForm.Field>
 
                   {/* Info Box */}
-                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-900/20">
-                    <p className="text-blue-900 text-sm dark:text-blue-100">
+                  <div className="rounded-lg border border-status-info-border bg-status-info-surface p-3">
+                    <p className="text-body-sm text-status-info-text">
                       Temporäre Fahrzeuge werden nur für diesen Einsatz erfasst und sind nicht in den Stammdaten hinterlegt. Sie erhalten ebenfalls den initialen FMS-Status 2 (Einsatzbereit).
                     </p>
                   </div>

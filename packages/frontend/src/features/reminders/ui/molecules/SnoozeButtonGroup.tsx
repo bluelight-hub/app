@@ -78,14 +78,14 @@ const SNOOZE_PRESETS: { minutes: SnoozeMinutes; label: string }[] = [
  */
 const VARIANT_STYLES: Record<SnoozeButtonGroupVariant, { container: string; icon: string; button: string }> = {
   default: {
-    container: 'bg-blue-50 dark:bg-blue-900/30',
-    icon: 'text-blue-600 dark:text-blue-400',
-    button: 'text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-800/50 dark:hover:text-blue-300',
+    container: 'bg-status-info-surface',
+    icon: 'text-status-info-text',
+    button: 'text-status-info-text hover:bg-action-secondary hover:text-text-primary',
   },
   floating: {
-    container: 'bg-white/20',
-    icon: 'text-white',
-    button: 'text-white hover:bg-white/30 hover:text-white',
+    container: 'bg-surface-inverse/20',
+    icon: 'text-text-inverse',
+    button: 'text-text-inverse hover:bg-surface-inverse/30 hover:text-text-inverse',
   },
 };
 

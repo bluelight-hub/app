@@ -136,7 +136,7 @@ export function PasswordStrengthIndicator({ password, className, showLabel = tru
         {showLabel && (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              {strength.isBlocked && <PiWarning className="h-3.5 w-3.5 text-red-500" aria-hidden="true" />}
+              {strength.isBlocked && <PiWarning className="h-3.5 w-3.5 text-status-danger-text" aria-hidden="true" />}
               <Text size="xs" color={VARIANT_TO_COLOR[strength.variant]} className="font-medium">
                 {strength.label}
               </Text>
@@ -152,7 +152,7 @@ export function PasswordStrengthIndicator({ password, className, showLabel = tru
 
       {/* Hinweis bei Blocklist-Passwörtern */}
       {strength.isBlocked && (
-        <div className="rounded-md bg-red-50 p-2 dark:bg-red-900/20" role="alert">
+        <div className="rounded-panel bg-status-danger-surface p-2" role="alert">
           <Text size="xs" color="error">
             Dieses Passwort ist zu häufig und nicht erlaubt. Bitte wählen Sie ein einzigartiges Passwort.
           </Text>
@@ -161,7 +161,7 @@ export function PasswordStrengthIndicator({ password, className, showLabel = tru
 
       {/* Hinweis bei zu kurzem Passwort */}
       {!strength.meetsMinLength && !strength.isBlocked && (
-        <div className="rounded-md bg-amber-50 p-2 dark:bg-amber-900/20" role="alert">
+        <div className="rounded-panel bg-status-warning-surface p-2" role="alert">
           <Text size="xs" color="warning">
             Mindestens {PASSWORD_CRITERIA.minLength} Zeichen erforderlich.
           </Text>

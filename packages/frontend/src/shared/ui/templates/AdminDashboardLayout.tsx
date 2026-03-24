@@ -16,7 +16,7 @@ interface DashboardLayoutProps {
 
 export function AdminDashboardLayout({ children, maxWidth = '7xl', className }: DashboardLayoutProps) {
   return (
-    <div className={cn('min-h-screen bg-gray-50 dark:bg-gray-900', className)}>
+    <div className={cn('min-h-screen bg-surface-canvas', className)}>
       <Container maxWidth={maxWidth} className={cn('py-8')}>
         <div className="flex gap-8">
           <main className="min-w-0 flex-1">

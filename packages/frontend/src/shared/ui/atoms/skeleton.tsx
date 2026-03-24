@@ -14,5 +14,5 @@ export interface SkeletonProps extends ComponentPropsWithoutRef<'div'> {
  * Zeigt einen animierten Platzhalter während Daten geladen werden.
  */
 export const Skeleton = ({ className, ...props }: SkeletonProps) => {
-  return <div className={cn('animate-pulse rounded bg-gray-200 dark:bg-gray-700', className)} {...props} />;
+  return <div className={cn('animate-pulse rounded bg-surface-raised', className)} {...props} />;
 };

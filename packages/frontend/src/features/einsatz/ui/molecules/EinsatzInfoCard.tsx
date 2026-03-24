@@ -21,40 +21,40 @@ export function EinsatzInfoCard({ einsatz, isArchived, isEditing, form }: Einsat
   const poisCount = 'poisCount' in einsatz ? (einsatz as { poisCount: number }).poisCount : undefined;
 
   return (
-    <div className="mb-6 rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+    <div className="mb-6 rounded-panel bg-surface-panel p-6 shadow">
       <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center space-x-2">
-          {isArchived && <PiArchive className="h-6 w-6 text-amber-500" />}
-          <span className="rounded bg-gray-100 px-2 py-0.5 font-mono font-semibold text-gray-600 text-sm dark:bg-gray-700 dark:text-gray-300">{einsatz.nummer}</span>
-          <h1 className="font-bold text-2xl text-gray-900 dark:text-white">{einsatz.alarmstichwort || 'Kein Alarmstichwort'}</h1>
+          {isArchived && <PiArchive className="h-6 w-6 text-status-warning-text" />}
+          <span className="rounded bg-surface-raised px-2 py-0.5 font-mono font-semibold text-text-muted text-sm">{einsatz.nummer}</span>
+          <h1 className="font-bold text-2xl text-text-primary">{einsatz.alarmstichwort || 'Kein Alarmstichwort'}</h1>
         </div>
         <div className="mt-2 flex items-center space-x-4 sm:mt-0">
           <EinsatzStatusBadge status={einsatz.status || EinsatzResponseDtoStatusEnum.Angelegt} size="lg" />
-          <span className="text-gray-500 text-sm dark:text-gray-400">ID: {einsatz.id}</span>
+          <span className="text-text-muted text-sm">ID: {einsatz.id}</span>
         </div>
       </div>
 
       {/* Einsatz Meta Info */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div className="flex items-start space-x-2">
-          <PiClock className="mt-1 h-5 w-5 text-gray-400" />
+          <PiClock className="mt-1 h-5 w-5 text-text-muted" />
           <div>
-            <p className="font-medium text-gray-700 text-sm dark:text-gray-300">Erstellt am</p>
-            <p className="text-gray-900 text-sm dark:text-white">{formatNatoDateTime(einsatz.createdAt)}</p>
+            <p className="font-medium text-text-secondary text-sm">Erstellt am</p>
+            <p className="text-text-primary text-sm">{formatNatoDateTime(einsatz.createdAt)}</p>
           </div>
         </div>
         <div className="flex items-start space-x-2">
-          <PiMapPinIcon className="mt-1 h-5 w-5 text-gray-400" />
+          <PiMapPinIcon className="mt-1 h-5 w-5 text-text-muted" />
           <div className="flex-1">
-            <p className="font-medium text-gray-700 text-sm dark:text-gray-300">Einsatzort</p>
-            <p className="text-gray-900 text-sm dark:text-white">{einsatz.einsatzort || 'Nicht angegeben'}</p>
+            <p className="font-medium text-text-secondary text-sm">Einsatzort</p>
+            <p className="text-text-primary text-sm">{einsatz.einsatzort || 'Nicht angegeben'}</p>
           </div>
         </div>
         <div className="flex items-start space-x-2">
-          <PiCheckCircle className="mt-1 h-5 w-5 text-gray-400" />
+          <PiCheckCircle className="mt-1 h-5 w-5 text-text-muted" />
           <div className="flex-1">
-            <p className="font-medium text-gray-700 text-sm dark:text-gray-300">Status</p>
-            <p className="text-gray-900 text-sm dark:text-white">{einsatz.status}</p>
+            <p className="font-medium text-text-secondary text-sm">Status</p>
+            <p className="text-text-primary text-sm">{einsatz.status}</p>
           </div>
         </div>
       </div>
@@ -63,20 +63,20 @@ export function EinsatzInfoCard({ einsatz, isArchived, isEditing, form }: Einsat
       {(etbEintraegeCount !== undefined || poisCount !== undefined) && (
         <div className="mt-4 flex gap-3">
           {etbEintraegeCount !== undefined && (
-            <div className="flex items-center space-x-2 rounded-lg bg-blue-50 px-3 py-2 dark:bg-blue-900/20">
-              <PiBookOpen className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <div className="flex items-center space-x-2 rounded-lg bg-status-info-surface px-3 py-2">
+              <PiBookOpen className="h-5 w-5 text-status-info-text" />
               <div>
-                <p className="font-medium text-blue-900 text-xs dark:text-blue-100">ETB-Einträge</p>
-                <p className="font-semibold text-blue-900 text-lg dark:text-blue-100">{etbEintraegeCount}</p>
+                <p className="font-medium text-status-info-text text-xs">ETB-Einträge</p>
+                <p className="font-semibold text-status-info-text text-lg">{etbEintraegeCount}</p>
               </div>
             </div>
           )}
           {poisCount !== undefined && (
-            <div className="flex items-center space-x-2 rounded-lg bg-purple-50 px-3 py-2 dark:bg-purple-900/20">
-              <PiMapPinIcon className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            <div className="flex items-center space-x-2 rounded-panel bg-action-secondary px-3 py-2">
+              <PiMapPinIcon className="h-5 w-5 text-action-primary" />
               <div>
-                <p className="font-medium text-purple-900 text-xs dark:text-purple-100">POIs auf Karte</p>
-                <p className="font-semibold text-lg text-purple-900 dark:text-purple-100">{poisCount}</p>
+                <p className="font-medium text-action-primary text-xs">POIs auf Karte</p>
+                <p className="font-semibold text-action-primary text-lg">{poisCount}</p>
               </div>
             </div>
           )}
@@ -85,13 +85,13 @@ export function EinsatzInfoCard({ einsatz, isArchived, isEditing, form }: Einsat
 
       {/* Vollständigkeitsanzeige */}
       <div className="mt-6">
-        <p className="mb-2 font-medium text-gray-700 text-sm dark:text-gray-300">Vollständigkeit</p>
+        <p className="mb-2 font-medium text-text-secondary text-sm">Vollständigkeit</p>
         <EinsatzCompletenessBar einsatz={einsatz} showTooltip={true} showPercentage={true} size="lg" className="max-w-full" />
       </div>
 
       {/* Beschreibung */}
       <div className="mt-6">
-        <p className="mb-2 font-medium text-gray-700 text-sm dark:text-gray-300">Beschreibung</p>
+        <p className="mb-2 font-medium text-text-secondary text-sm">Beschreibung</p>
         {isEditing ? (
           <form.Field name="beschreibung">
             {(field) => (
@@ -104,12 +104,12 @@ export function EinsatzInfoCard({ einsatz, isArchived, isEditing, form }: Einsat
                   rows={4}
                   className="w-full"
                 />
-                {field.state.meta.errors?.length > 0 && <p className="mt-1 text-red-600 text-sm dark:text-red-400">{field.state.meta.errors.join(', ')}</p>}
+                {field.state.meta.errors?.length > 0 && <p className="mt-1 text-status-danger-text text-sm">{field.state.meta.errors.join(', ')}</p>}
               </>
             )}
           </form.Field>
         ) : (
-          <p className="whitespace-pre-wrap text-gray-900 text-sm dark:text-white">{einsatz.beschreibung || 'Keine Beschreibung vorhanden'}</p>
+          <p className="whitespace-pre-wrap text-text-primary text-sm">{einsatz.beschreibung || 'Keine Beschreibung vorhanden'}</p>
         )}
       </div>
     </div>

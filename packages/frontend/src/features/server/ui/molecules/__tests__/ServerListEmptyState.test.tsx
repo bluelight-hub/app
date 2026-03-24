@@ -120,8 +120,7 @@ describe('ServerListEmptyState', () => {
       expect(heading.tagName).toBe('H3');
       expect(heading).toHaveClass('text-lg');
       expect(heading).toHaveClass('font-medium');
-      expect(heading).toHaveClass('text-gray-900');
-      expect(heading).toHaveClass('dark:text-white');
+      expect(heading).toHaveClass('text-text-primary');
     });
 
     it('should have proper text styling for helper text', () => {
@@ -131,8 +130,7 @@ describe('ServerListEmptyState', () => {
       // Then
       const helperText = screen.getByText('Füge einen Server hinzu, um loszulegen.');
       expect(helperText).toHaveClass('text-sm');
-      expect(helperText).toHaveClass('text-gray-500');
-      expect(helperText).toHaveClass('dark:text-gray-400');
+      expect(helperText).toHaveClass('text-text-secondary');
     });
   });
 

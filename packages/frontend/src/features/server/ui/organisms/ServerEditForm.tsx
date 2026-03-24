@@ -250,7 +250,7 @@ export function ServerEditForm({ server, onSuccess, onCancel, className }: Serve
 
           return (
             <div className="space-y-1">
-              <label htmlFor="serverName" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
+              <label htmlFor="serverName" className="block font-medium text-sm text-text-secondary">
                 Server-Name
               </label>
               <Input
@@ -268,7 +268,7 @@ export function ServerEditForm({ server, onSuccess, onCancel, className }: Serve
               />
               {/* H2: ARIA Live-Region für Screen-Reader */}
               {fieldError && (
-                <p id="serverName-error" className="text-red-600 text-sm dark:text-red-400" role="alert" aria-live="assertive">
+                <p id="serverName-error" className="text-sm text-status-danger-text" role="alert" aria-live="assertive">
                   {fieldError}
                 </p>
               )}
@@ -292,7 +292,7 @@ export function ServerEditForm({ server, onSuccess, onCancel, className }: Serve
 
           return (
             <div className="space-y-1">
-              <label htmlFor="serverUrl" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
+              <label htmlFor="serverUrl" className="block font-medium text-sm text-text-secondary">
                 Server-URL
               </label>
               <Input
@@ -310,7 +310,7 @@ export function ServerEditForm({ server, onSuccess, onCancel, className }: Serve
               />
               {/* H2: ARIA Live-Region für Screen-Reader */}
               {fieldError && (
-                <p id="serverUrl-error" className="text-red-600 text-sm dark:text-red-400" role="alert" aria-live="assertive">
+                <p id="serverUrl-error" className="text-sm text-status-danger-text" role="alert" aria-live="assertive">
                   {fieldError}
                 </p>
               )}
@@ -320,18 +320,18 @@ export function ServerEditForm({ server, onSuccess, onCancel, className }: Serve
       </form.Field>
 
       {/* Token-Hinweis (nicht editierbar) */}
-      <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800" data-testid="token-hint">
-        <p className="flex items-center text-gray-600 text-sm dark:text-gray-400">
+      <div className="rounded-lg bg-surface-raised p-3" data-testid="token-hint">
+        <p className="flex items-center text-sm text-text-secondary">
           <PiKey className="mr-2 size-4" />
           {server.accessToken ? 'Access-Token gespeichert' : 'Kein Access-Token konfiguriert'}
         </p>
       </div>
 
       {/* Visuelle Unterscheidung - Icon und Farbe */}
-      <div className="space-y-4 rounded-lg border border-gray-200 p-4 dark:border-gray-700" data-testid="visual-settings-section">
+      <div className="space-y-4 rounded-lg border border-border-subtle p-4" data-testid="visual-settings-section">
         <div className="flex items-center gap-2">
-          <PiPalette className="size-5 text-gray-600 dark:text-gray-400" />
-          <h3 className="font-medium text-gray-900 text-sm dark:text-gray-100">Visuelle Unterscheidung</h3>
+          <PiPalette className="size-5 text-text-secondary" />
+          <h3 className="font-medium text-sm text-text-primary">Visuelle Unterscheidung</h3>
         </div>
 
         {/* Farb-Auswahl - Validierung erfolgt durch den Picker selbst (nur gültige Presets) */}
@@ -339,7 +339,7 @@ export function ServerEditForm({ server, onSuccess, onCancel, className }: Serve
           {(field) => (
             <div className="space-y-2" data-testid="color-picker-section">
               {/* biome-ignore lint/a11y/noLabelWithoutControl: ServerColorPicker ist ein radiogroup, kein einzelnes Input */}
-              <label className="block font-medium text-gray-700 text-sm dark:text-gray-300">Farbe auswählen</label>
+              <label className="block font-medium text-sm text-text-secondary">Farbe auswählen</label>
               <ServerColorPicker value={field.state.value} onChange={(color) => field.handleChange(color)} disabled={isSubmitting} aria-label="Farbe auswählen" />
             </div>
           )}

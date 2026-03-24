@@ -69,12 +69,8 @@ export const PoiTypeDropdown: React.FC<PoiTypeDropdownProps> = ({ types, onSelec
           {/* Dropdown-Button */}
           <MenuButton
             className={cn(
-              'flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2.5 transition-all duration-200',
-              'font-medium text-sm',
-              // Open State: Blue with ring
-              open
-                ? 'bg-blue-50 text-blue-900 shadow-md ring-2 ring-blue-500 dark:bg-blue-900/50 dark:text-blue-100 dark:ring-blue-400'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600',
+              'flex w-full items-center justify-between gap-2 rounded-control px-3 py-2.5 font-medium text-sm transition-all duration-200',
+              open ? 'bg-action-secondary text-text-primary shadow-panel ring-2 ring-status-info-border/50' : 'bg-surface-raised text-text-secondary hover:bg-action-secondary',
             )}
             aria-label={`${label} POI-Typen`}
           >
@@ -86,9 +82,7 @@ export const PoiTypeDropdown: React.FC<PoiTypeDropdownProps> = ({ types, onSelec
           <MenuItems
             className={cn(
               'absolute right-0 bottom-full left-0 z-50 mb-1',
-              'origin-bottom-left rounded-lg border border-gray-200 bg-white p-1',
-              'shadow-xl transition focus:outline-none',
-              'dark:border-gray-700 dark:bg-gray-800',
+              'origin-bottom-left rounded-panel border border-border-subtle bg-surface-panel p-1 shadow-panel transition focus:outline-none',
               // Smooth entrance animation (von unten nach oben)
               'data-[closed]:scale-95 data-[closed]:opacity-0',
               'data-[enter]:duration-100 data-[leave]:duration-75',
@@ -104,9 +98,9 @@ export const PoiTypeDropdown: React.FC<PoiTypeDropdownProps> = ({ types, onSelec
                   {({ focus }) => (
                     <div
                       className={cn(
-                        'rounded-md transition-colors',
+                        'rounded-control transition-colors',
                         // Focus state (keyboard navigation)
-                        focus && 'bg-gray-50 dark:bg-gray-700',
+                        focus && 'bg-action-secondary',
                       )}
                     >
                       <PoiTypeButton

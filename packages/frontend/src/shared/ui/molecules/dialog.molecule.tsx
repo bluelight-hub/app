@@ -123,7 +123,7 @@ export const Dialog = ({ isOpen, onClose, children, className, size = 'md', clos
           <DialogPanel
             transition
             className={cn(
-              'w-full transform overflow-hidden rounded-lg bg-white p-5 shadow-xl dark:bg-gray-800',
+              'w-full transform overflow-hidden rounded-panel bg-surface-panel p-5 shadow-panel',
               'duration-300 ease-out data-[closed]:scale-95 data-[closed]:opacity-0',
               sizeClasses[size],
               className,
@@ -139,7 +139,7 @@ export const Dialog = ({ isOpen, onClose, children, className, size = 'md', clos
 
 Dialog.Title = ({ children, className }: DialogTitleProps) => {
   return (
-    <DialogTitle as="h3" className={cn('font-semibold text-gray-900 text-base leading-6 dark:text-white', className)}>
+    <DialogTitle as="h3" className={cn('font-semibold text-text-primary text-base leading-6', className)}>
       {children}
     </DialogTitle>
   );
@@ -153,7 +153,7 @@ Dialog.Footer = ({ children, className, loading }: DialogFooterProps) => {
   return (
     <div className={cn('mt-4 flex items-center justify-end gap-3', className)}>
       {loading && (
-        <div className="mr-auto flex items-center gap-2 text-gray-500 text-sm dark:text-gray-400">
+        <div className="mr-auto flex items-center gap-2 text-text-muted text-sm">
           <InlineSpinner size="sm" />
           <span>Verarbeitung...</span>
         </div>
@@ -190,17 +190,17 @@ Dialog.Confirm = ({
   const variantConfig = {
     danger: {
       icon: PiWarning,
-      iconColor: 'text-red-500',
+      iconColor: 'text-status-danger-text',
       buttonIntent: 'danger' as const,
     },
     warning: {
       icon: PiWarning,
-      iconColor: 'text-amber-500',
+      iconColor: 'text-status-warning-text',
       buttonIntent: 'warning' as const,
     },
     info: {
       icon: PiInfo,
-      iconColor: 'text-blue-500',
+      iconColor: 'text-status-info-text',
       buttonIntent: 'primary' as const,
     },
   };
@@ -240,19 +240,19 @@ Dialog.Confirm = ({
       <Dialog.Body>
         <div className="flex items-start space-x-3">
           <Icon className={cn('mt-0.5 h-6 w-6 flex-shrink-0', config.iconColor)} />
-          <div className="flex-1">{typeof message === 'string' ? <p className="text-gray-700 dark:text-gray-300">{message}</p> : message}</div>
+          <div className="flex-1">{typeof message === 'string' ? <p className="text-text-secondary">{message}</p> : message}</div>
         </div>
         {requireConfirmation && (
-          <div className="mt-4 border-t pt-4 dark:border-gray-700">
+          <div className="mt-4 border-t border-border-subtle pt-4">
             <label className="flex cursor-pointer items-start space-x-3">
               <input
                 type="checkbox"
                 checked={isConfirmed}
                 onChange={(e) => setIsConfirmed(e.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
+                className="mt-1 h-4 w-4 rounded border-border-subtle text-action-primary focus-visible:shadow-focus-ring bg-surface-panel"
                 disabled={isProcessing}
               />
-              <span className="select-none text-gray-700 text-sm dark:text-gray-300">Ich bestätige diese Aktion</span>
+              <span className="select-none text-text-secondary text-sm">Ich bestätige diese Aktion</span>
             </label>
           </div>
         )}
@@ -278,27 +278,27 @@ Dialog.Alert = ({ isOpen, onClose, title, message, variant = 'info', icon }: Ale
   const variantConfig = {
     success: {
       icon: icon || PiCheckCircle,
-      iconColor: 'text-green-500',
-      bgColor: 'bg-green-50 dark:bg-green-900/20',
-      borderColor: 'border-green-200 dark:border-green-800',
+      iconColor: 'text-status-success-text',
+      bgColor: 'bg-status-success-surface',
+      borderColor: 'border-status-success-border',
     },
     error: {
       icon: icon || PiXCircle,
-      iconColor: 'text-red-500',
-      bgColor: 'bg-red-50 dark:bg-red-900/20',
-      borderColor: 'border-red-200 dark:border-red-800',
+      iconColor: 'text-status-danger-text',
+      bgColor: 'bg-status-danger-surface',
+      borderColor: 'border-status-danger-border',
     },
     warning: {
       icon: icon || PiWarning,
-      iconColor: 'text-amber-500',
-      bgColor: 'bg-amber-50 dark:bg-amber-900/20',
-      borderColor: 'border-amber-200 dark:border-amber-800',
+      iconColor: 'text-status-warning-text',
+      bgColor: 'bg-status-warning-surface',
+      borderColor: 'border-status-warning-border',
     },
     info: {
       icon: icon || PiInfo,
-      iconColor: 'text-blue-500',
-      bgColor: 'bg-blue-50 dark:bg-blue-900/20',
-      borderColor: 'border-blue-200 dark:border-blue-800',
+      iconColor: 'text-status-info-text',
+      bgColor: 'bg-status-info-surface',
+      borderColor: 'border-status-info-border',
     },
   };
 
@@ -328,9 +328,7 @@ Dialog.Alert = ({ isOpen, onClose, title, message, variant = 'info', icon }: Ale
         </div>
       </Dialog.Title>
       <Dialog.Body>
-        <div className={cn('rounded-lg border p-4', config.bgColor, config.borderColor)}>
-          {typeof message === 'string' ? <p className="text-gray-700 text-sm dark:text-gray-300">{message}</p> : message}
-        </div>
+        <div className={cn('rounded-panel border p-4', config.bgColor, config.borderColor)}>{typeof message === 'string' ? <p className="text-text-secondary text-sm">{message}</p> : message}</div>
       </Dialog.Body>
       <Dialog.Footer>
         <Button intent="primary" onClick={onClose}>
@@ -369,13 +367,13 @@ Dialog.SlideIn = ({ isOpen, onClose, title, description, children, size = 'lg', 
         <div className="absolute inset-0 overflow-hidden">
           <div className={cn('pointer-events-none fixed inset-y-0 flex', positionClasses, sizeClasses[size])}>
             <DialogPanel transition className={cn('pointer-events-auto relative w-screen transform', 'duration-300 ease-in-out', slideClosedClass, sizeClasses[size], className)}>
-              <div className="flex h-full flex-col bg-white shadow-2xl dark:bg-gray-900">
+              <div className="flex h-full flex-col bg-surface-panel shadow-2xl">
                 {/* Header */}
-                <div className="border-gray-200 border-b px-5 py-3 dark:border-gray-700">
+                <div className="border-border-subtle border-b px-5 py-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <DialogTitle className="font-semibold text-gray-900 text-base leading-6 dark:text-white">{title}</DialogTitle>
-                      {description && <p className="mt-1 text-gray-500 text-sm dark:text-gray-400">{description}</p>}
+                      <DialogTitle className="font-semibold text-text-primary text-base leading-6">{title}</DialogTitle>
+                      {description && <p className="mt-1 text-text-muted text-sm">{description}</p>}
                     </div>
                     {showCloseButton && <CloseButton onClick={onClose} size="lg" appearance="minimal" className="ml-4" />}
                   </div>

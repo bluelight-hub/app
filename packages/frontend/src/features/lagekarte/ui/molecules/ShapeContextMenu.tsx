@@ -123,9 +123,8 @@ export const ShapeContextMenu: React.FC<ShapeContextMenuProps> = ({ isOpen, posi
       <MenuItems
         style={getPosition()}
         className={cn(
-          'absolute rounded-lg border border-gray-200 bg-white/95 p-1.5 shadow-xl',
-          'backdrop-blur-sm transition focus:outline-none',
-          'dark:border-gray-700 dark:bg-gray-800/95',
+          'absolute rounded-lg border border-border-subtle bg-surface-panel/95 p-1.5 shadow-xl',
+          'backdrop-blur-sm transition focus-visible:outline-none',
           'data-[closed]:scale-95 data-[closed]:opacity-0',
           'data-[enter]:duration-100 data-[leave]:duration-75',
           'min-w-max',
@@ -143,8 +142,8 @@ export const ShapeContextMenu: React.FC<ShapeContextMenuProps> = ({ isOpen, posi
               }}
               className={cn(
                 'flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors',
-                'text-gray-700 dark:text-gray-300',
-                focus ? 'bg-blue-50 text-blue-900 dark:bg-blue-900/50 dark:text-blue-100' : 'hover:bg-gray-100 dark:hover:bg-gray-700',
+                'text-text-secondary',
+                focus ? 'bg-action-secondary text-text-primary' : 'hover:bg-action-secondary',
               )}
             >
               <PiPencil className="h-4 w-4" aria-hidden="true" />
@@ -164,8 +163,8 @@ export const ShapeContextMenu: React.FC<ShapeContextMenuProps> = ({ isOpen, posi
               }}
               className={cn(
                 'flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors',
-                'text-gray-700 dark:text-gray-300',
-                focus ? 'bg-blue-50 text-blue-900 dark:bg-blue-900/50 dark:text-blue-100' : 'hover:bg-gray-100 dark:hover:bg-gray-700',
+                'text-text-secondary',
+                focus ? 'bg-action-secondary text-text-primary' : 'hover:bg-action-secondary',
               )}
             >
               <PiPalette className="h-4 w-4" aria-hidden="true" />
@@ -175,7 +174,7 @@ export const ShapeContextMenu: React.FC<ShapeContextMenuProps> = ({ isOpen, posi
         </MenuItem>
 
         {/* Separator */}
-        <div className="my-1 border-gray-200 border-t dark:border-gray-700" />
+        <div className="my-1 border-border-subtle border-t" />
 
         {/* Löschen */}
         <MenuItem>
@@ -188,8 +187,8 @@ export const ShapeContextMenu: React.FC<ShapeContextMenuProps> = ({ isOpen, posi
               }}
               className={cn(
                 'flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors',
-                'text-red-700 dark:text-red-400',
-                focus ? 'bg-red-50 dark:bg-red-900/50' : 'hover:bg-red-50 dark:hover:bg-red-900/30',
+                'text-status-danger-text',
+                focus ? 'bg-status-danger-surface' : 'hover:bg-status-danger-surface',
               )}
             >
               <PiTrash className="h-4 w-4" aria-hidden="true" />

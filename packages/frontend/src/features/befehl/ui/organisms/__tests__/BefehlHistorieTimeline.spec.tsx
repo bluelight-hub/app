@@ -221,7 +221,7 @@ describe('BefehlHistorieTimeline', () => {
     renderWithProviders(<BefehlHistorieTimeline befehlId="befehl-1" />);
 
     const ausstehendText = screen.getByText('Quittierung ausstehend');
-    expect(ausstehendText.className).toMatch(/text-gray-400/);
+    expect(ausstehendText.className).toMatch(/text-text-muted/);
   });
 
   it('zeigt keinen Zeitstempel bei AUSSTEHEND Events', () => {
@@ -276,13 +276,13 @@ describe('BefehlHistorieTimeline', () => {
 
     it('rendert gruenen Dot fuer ABGESCHLOSSEN Events', () => {
       const { container } = renderWithProviders(<BefehlHistorieTimeline befehlId="befehl-1" />);
-      const greenDots = container.querySelectorAll('.bg-green-500');
+      const greenDots = container.querySelectorAll('.bg-status-success-text');
       expect(greenDots.length).toBeGreaterThan(0);
     });
 
     it('rendert blauen pulsierenden Dot fuer AKTUELL Events', () => {
       const { container } = renderWithProviders(<BefehlHistorieTimeline befehlId="befehl-1" />);
-      const blueDots = container.querySelectorAll('.bg-blue-500');
+      const blueDots = container.querySelectorAll('.bg-action-primary');
       expect(blueDots.length).toBeGreaterThan(0);
       // Pulsierender Ring
       const pingElements = container.querySelectorAll('.animate-ping');
@@ -291,7 +291,7 @@ describe('BefehlHistorieTimeline', () => {
 
     it('rendert grauen Dot mit Border fuer AUSSTEHEND Events', () => {
       const { container } = renderWithProviders(<BefehlHistorieTimeline befehlId="befehl-1" />);
-      const grayDots = container.querySelectorAll('.border-gray-300');
+      const grayDots = container.querySelectorAll('.border-border-subtle');
       expect(grayDots.length).toBeGreaterThan(0);
     });
   });

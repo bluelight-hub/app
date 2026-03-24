@@ -105,26 +105,26 @@ export function ErinnerungAssignDialog({ isOpen, onClose, erinnerung, einsatzId 
   return (
     <Dialog isOpen={isOpen} onClose={handleClose} size="md">
       <Dialog.Title className="flex items-center gap-2">
-        <PiUser className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        <PiUser className="h-5 w-5 text-action-primary" />
         <span>Erinnerung zuweisen</span>
       </Dialog.Title>
 
       <Dialog.Body>
         {!erinnerung ? (
-          <div className="py-4 text-gray-500 dark:text-gray-400">Keine Erinnerung ausgewaehlt</div>
+          <div className="py-4 text-text-muted">Keine Erinnerung ausgewaehlt</div>
         ) : !isAssignable ? (
           <div className="flex flex-col items-center gap-3 py-6">
-            <PiWarning className="h-12 w-12 text-amber-500" />
-            <p className="text-center text-gray-700 dark:text-gray-300">Diese Erinnerung kann nicht zugewiesen werden, da sie bereits erledigt oder eskaliert ist.</p>
+            <PiWarning className="h-12 w-12 text-status-warning-text" />
+            <p className="text-center text-text-secondary">Diese Erinnerung kann nicht zugewiesen werden, da sie bereits erledigt oder eskaliert ist.</p>
           </div>
         ) : (
           <div className="space-y-4">
             {/* Erinnerungs-Info */}
-            <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
-              <p className="font-medium text-gray-900 dark:text-white">{erinnerung.titel}</p>
-              {erinnerung.beschreibung && <p className="mt-1 text-gray-600 text-sm dark:text-gray-400">{erinnerung.beschreibung}</p>}
+            <div className="rounded-panel bg-surface-raised p-3">
+              <p className="font-medium text-text-primary">{erinnerung.titel}</p>
+              {erinnerung.beschreibung && <p className="mt-1 text-sm text-text-secondary">{erinnerung.beschreibung}</p>}
               {erinnerung.assignedToName && (
-                <p className="mt-2 text-gray-500 text-sm dark:text-gray-400">
+                <p className="mt-2 text-sm text-text-muted">
                   Aktuell zugewiesen an: <span className="font-medium">{erinnerung.assignedToName}</span>
                 </p>
               )}
@@ -132,15 +132,15 @@ export function ErinnerungAssignDialog({ isOpen, onClose, erinnerung, einsatzId 
 
             {/* Teilnehmer-Auswahl */}
             <div>
-              <label htmlFor="assignee-select" className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
+              <label htmlFor="assignee-select" className="mb-1.5 block font-medium text-sm text-text-secondary">
                 Zuweisen an
               </label>
               <AssigneeSelector einsatzId={einsatzId} value={selectedUserId} onChange={handleUserChange} disabled={isPending} error={error ?? undefined} />
-              {error && <p className="mt-1 text-red-600 text-sm dark:text-red-400">{error}</p>}
+              {error && <p className="mt-1 text-sm text-status-danger-text">{error}</p>}
             </div>
 
             {/* Hinweis */}
-            <p className="text-gray-500 text-xs dark:text-gray-400">Nach der Zuweisung erhaelt die ausgewaehlte Person eine Benachrichtigung und die Erinnerung erscheint in deren Liste.</p>
+            <p className="text-text-muted text-xs">Nach der Zuweisung erhaelt die ausgewaehlte Person eine Benachrichtigung und die Erinnerung erscheint in deren Liste.</p>
           </div>
         )}
       </Dialog.Body>

@@ -105,17 +105,12 @@ export function BefehlDetailPanel({
             <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-md">
               <DialogPanel transition className={cn('pointer-events-auto relative w-screen max-w-md transform', 'duration-300 ease-in-out data-[closed]:translate-x-full', 'motion-reduce:duration-0')}>
                 {befehl && (
-                  <div className="flex h-full flex-col bg-white shadow-2xl dark:bg-gray-900">
+                  <div className="flex h-full flex-col bg-surface-panel shadow-2xl">
                     {/* Header */}
-                    <div className="border-gray-200 border-b px-6 py-4 dark:border-gray-700">
+                    <div className="border-border-subtle border-b px-6 py-4">
                       <div className="flex items-center justify-between">
-                        <DialogTitle className="font-bold font-mono text-gray-900 text-xl dark:text-white">{befehl.nummer}</DialogTitle>
-                        <button
-                          type="button"
-                          onClick={onClose}
-                          className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
-                          aria-label="Schließen"
-                        >
+                        <DialogTitle className="font-bold font-mono text-text-primary text-xl">{befehl.nummer}</DialogTitle>
+                        <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-text-muted hover:bg-surface-raised hover:text-text-secondary" aria-label="Schließen">
                           <PiX className="h-5 w-5" aria-hidden="true" />
                         </button>
                       </div>
@@ -129,20 +124,20 @@ export function BefehlDetailPanel({
 
                       if (eigenerStatus.status === 'QUITTIERT' && eigenerStatus.quittierungArt) {
                         return (
-                          <div className="flex items-center gap-2 border-green-200 border-b bg-green-50 px-6 py-3 dark:border-green-800 dark:bg-green-900/20">
-                            <PiCheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" aria-hidden="true" />
-                            <span className="font-medium text-green-800 text-sm dark:text-green-300">Quittiert: {QUITTIERUNG_ART_LABELS[eigenerStatus.quittierungArt]}</span>
+                          <div className="flex items-center gap-2 border-status-success-border border-b bg-status-success-surface px-6 py-3">
+                            <PiCheckCircle className="h-5 w-5 text-status-success-text" aria-hidden="true" />
+                            <span className="font-medium text-status-success-text text-sm">Quittiert: {QUITTIERUNG_ART_LABELS[eigenerStatus.quittierungArt]}</span>
                           </div>
                         );
                       }
 
                       if (canQuittieren && onQuittieren && befehl.status !== BefehlDtoStatusEnum.Korrigiert) {
                         return (
-                          <div className="border-yellow-200 border-b bg-yellow-50 px-6 py-3 dark:border-yellow-800 dark:bg-yellow-900/20">
+                          <div className="border-status-warning-border border-b bg-status-warning-surface px-6 py-3">
                             <button
                               type="button"
                               onClick={() => onQuittieren(befehl.id)}
-                              className="flex w-full items-center justify-center gap-2 rounded-lg bg-yellow-500 px-4 py-2.5 font-semibold text-sm text-white shadow-sm transition-colors hover:bg-yellow-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 focus-visible:ring-offset-2 dark:bg-yellow-600 dark:hover:bg-yellow-700"
+                              className="flex w-full items-center justify-center gap-2 rounded-control bg-status-warning-text px-4 py-2.5 font-semibold text-sm text-text-inverse shadow-sm transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:shadow-focus-ring"
                             >
                               <PiCheckCircle className="h-5 w-5" aria-hidden="true" />
                               Befehl quittieren
@@ -161,8 +156,8 @@ export function BefehlDetailPanel({
 
                         {/* Auftrag */}
                         <section>
-                          <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Auftrag</h3>
-                          <p className="mt-1 whitespace-pre-wrap text-gray-900 text-sm dark:text-gray-100">{befehl.auftrag}</p>
+                          <h3 className="font-semibold text-text-muted text-xs uppercase tracking-wider">Auftrag</h3>
+                          <p className="mt-1 whitespace-pre-wrap text-text-primary text-sm">{befehl.auftrag}</p>
                         </section>
 
                         {/* EAMZW-Felder (nur bei entsprechendem Befehlstyp) */}
@@ -170,26 +165,26 @@ export function BefehlDetailPanel({
                           <>
                             {befehl.ereignis && (
                               <section>
-                                <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Ereignis</h3>
-                                <p className="mt-1 whitespace-pre-wrap text-gray-900 text-sm dark:text-gray-100">{befehl.ereignis}</p>
+                                <h3 className="font-semibold text-text-muted text-xs uppercase tracking-wider">Ereignis</h3>
+                                <p className="mt-1 whitespace-pre-wrap text-text-primary text-sm">{befehl.ereignis}</p>
                               </section>
                             )}
                             {befehl.mittel && (
                               <section>
-                                <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Mittel</h3>
-                                <p className="mt-1 whitespace-pre-wrap text-gray-900 text-sm dark:text-gray-100">{befehl.mittel}</p>
+                                <h3 className="font-semibold text-text-muted text-xs uppercase tracking-wider">Mittel</h3>
+                                <p className="mt-1 whitespace-pre-wrap text-text-primary text-sm">{befehl.mittel}</p>
                               </section>
                             )}
                             {befehl.ziel && (
                               <section>
-                                <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Ziel</h3>
-                                <p className="mt-1 whitespace-pre-wrap text-gray-900 text-sm dark:text-gray-100">{befehl.ziel}</p>
+                                <h3 className="font-semibold text-text-muted text-xs uppercase tracking-wider">Ziel</h3>
+                                <p className="mt-1 whitespace-pre-wrap text-text-primary text-sm">{befehl.ziel}</p>
                               </section>
                             )}
                             {befehl.weg && (
                               <section>
-                                <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Weg</h3>
-                                <p className="mt-1 whitespace-pre-wrap text-gray-900 text-sm dark:text-gray-100">{befehl.weg}</p>
+                                <h3 className="font-semibold text-text-muted text-xs uppercase tracking-wider">Weg</h3>
+                                <p className="mt-1 whitespace-pre-wrap text-text-primary text-sm">{befehl.weg}</p>
                               </section>
                             )}
                           </>
@@ -198,21 +193,21 @@ export function BefehlDetailPanel({
                         {/* Zeitvorgabe (falls vorhanden) */}
                         {befehl.zeitvorgabe && (
                           <section>
-                            <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Zeitvorgabe</h3>
-                            <p className="mt-1 text-gray-900 text-sm dark:text-gray-100">{befehl.zeitvorgabe}</p>
+                            <h3 className="font-semibold text-text-muted text-xs uppercase tracking-wider">Zeitvorgabe</h3>
+                            <p className="mt-1 text-text-primary text-sm">{befehl.zeitvorgabe}</p>
                           </section>
                         )}
 
                         {/* Befehlsgeber */}
                         <section>
-                          <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Befehlsgeber</h3>
-                          <p className="mt-1 text-gray-900 text-sm dark:text-gray-100">{befehl.befehlsgeberName}</p>
+                          <h3 className="font-semibold text-text-muted text-xs uppercase tracking-wider">Befehlsgeber</h3>
+                          <p className="mt-1 text-text-primary text-sm">{befehl.befehlsgeberName}</p>
                         </section>
 
                         {/* Zeitstempel */}
                         <section>
-                          <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Erteilt am</h3>
-                          <p className="mt-1 text-gray-700 text-sm dark:text-gray-300">{format(befehl.erteiltAm, 'dd.MM.yyyy, HH:mm')} Uhr</p>
+                          <h3 className="font-semibold text-text-muted text-xs uppercase tracking-wider">Erteilt am</h3>
+                          <p className="mt-1 text-text-secondary text-sm">{format(befehl.erteiltAm, 'dd.MM.yyyy, HH:mm')} Uhr</p>
                         </section>
 
                         {/* === Sektion 2: Weitergabe-/Zustellstatus === */}
@@ -223,8 +218,8 @@ export function BefehlDetailPanel({
                           const sichtbareEmpfaenger = isEmpfaengerOnly && eigenerStatus.empfaengerInfo ? [eigenerStatus.empfaengerInfo] : befehl.empfaenger;
 
                           return (
-                            <section className="border-gray-200 border-t pt-4 dark:border-gray-700" aria-label="Weitergabe- und Zustellstatus">
-                              <h3 className="mb-2 font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">{isEmpfaengerOnly ? 'Eigener Zustellstatus' : 'Zustellstatus'}</h3>
+                            <section className="border-border-subtle border-t pt-4" aria-label="Weitergabe- und Zustellstatus">
+                              <h3 className="mb-2 font-semibold text-text-muted text-xs uppercase tracking-wider">{isEmpfaengerOnly ? 'Eigener Zustellstatus' : 'Zustellstatus'}</h3>
 
                               {/* Fortschrittsbalken + interaktive Chips (fuer canManageStatus) */}
                               <ZustellstatusAnzeige
@@ -238,7 +233,7 @@ export function BefehlDetailPanel({
 
                               {/* Detaillierte Weitergabe-Liste (Story 4.3 AC2) */}
                               <div className="mt-3">
-                                <h3 className="mb-1 font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">{isEmpfaengerOnly ? 'Mein Status' : 'Weitergabe-Details'}</h3>
+                                <h3 className="mb-1 font-semibold text-text-muted text-xs uppercase tracking-wider">{isEmpfaengerOnly ? 'Mein Status' : 'Weitergabe-Details'}</h3>
                                 <WeitergabeStatusListe empfaenger={sichtbareEmpfaenger} showHandlungsbedarf={!isBeobachter} />
                               </div>
                             </section>
@@ -247,10 +242,10 @@ export function BefehlDetailPanel({
 
                         {/* === Sektion 3: Verlauf + Kommentare (nicht fuer BEOBACHTER) === */}
                         {!isBeobachter && (
-                          <div className="border-gray-200 border-t pt-4 dark:border-gray-700">
+                          <div className="border-border-subtle border-t pt-4">
                             {/* Verlauf */}
                             <section>
-                              <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Verlauf</h3>
+                              <h3 className="font-semibold text-text-muted text-xs uppercase tracking-wider">Verlauf</h3>
                               <div className="mt-3">
                                 <BefehlHistorieTimeline befehlId={befehl.id} />
                               </div>
@@ -258,7 +253,7 @@ export function BefehlDetailPanel({
 
                             {/* Kommentare (Story 4.3 AC2) */}
                             <section className="mt-4">
-                              <h3 className="font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">Kommentare</h3>
+                              <h3 className="font-semibold text-text-muted text-xs uppercase tracking-wider">Kommentare</h3>
                               <div className="mt-2">
                                 <BefehlKommentarThread befehlId={befehl.id} einsatzId={einsatzId} kommentare={befehl.kommentare ?? []} />
                               </div>
@@ -268,7 +263,7 @@ export function BefehlDetailPanel({
 
                         {/* Korrektur-Button (nur wenn nicht BEOBACHTER und nicht bereits korrigiert) */}
                         {!isBeobachter && befehl.status !== BefehlDtoStatusEnum.Korrigiert && (
-                          <section className="border-gray-200 border-t pt-4 dark:border-gray-700">
+                          <section className="border-border-subtle border-t pt-4">
                             {!canKorrigieren ? (
                               <Tooltip content="Nur Ersteller/Befehlsgeber dürfen Korrekturen erstellen" position="bottom">
                                 <Button intent="warning" appearance="outline" size="sm" onClick={() => setIsKorrekturDialogOpen(true)} disabled aria-disabled="true">

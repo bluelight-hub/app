@@ -88,7 +88,7 @@ export const ClusteredPoiLayer: React.FC<ClusteredPoiLayerProps> = React.memo(({
   // Loading-State: Spinner in oberer rechter Ecke
   if (isLoading) {
     return (
-      <div className="absolute top-4 right-4 z-50 rounded-lg bg-white p-3 shadow-lg dark:bg-gray-800">
+      <div className="absolute top-4 right-4 z-50 rounded-lg bg-surface-panel p-3 shadow-lg">
         <Spinner size="sm" type="ring" />
       </div>
     );
@@ -98,9 +98,9 @@ export const ClusteredPoiLayer: React.FC<ClusteredPoiLayerProps> = React.memo(({
   if (error) {
     console.error('POI-Fetch-Fehler:', error);
     return (
-      <div className="absolute top-4 right-4 z-50 flex items-center gap-2 rounded-lg border-2 border-red-500 bg-red-50 p-3 shadow-lg dark:border-red-400 dark:bg-red-900/50">
-        <PiXCircle className="h-5 w-5 text-red-500 dark:text-red-400" />
-        <p className="font-medium text-red-700 text-sm dark:text-red-300">POIs konnten nicht geladen werden</p>
+      <div className="absolute top-4 right-4 z-50 flex items-center gap-2 rounded-lg border-2 border-status-danger-border bg-status-danger-surface p-3 shadow-lg">
+        <PiXCircle className="h-5 w-5 text-status-danger-text" />
+        <p className="font-medium text-body-sm text-status-danger-text">POIs konnten nicht geladen werden</p>
       </div>
     );
   }
@@ -200,9 +200,9 @@ export const ClusteredPoiLayer: React.FC<ClusteredPoiLayerProps> = React.memo(({
     <>
       {/* Warning-Badge für übersprungene POIs */}
       {skippedCount > 0 && (
-        <div className="absolute right-4 bottom-4 z-50 flex items-center gap-2 rounded-lg border-2 border-orange-500 bg-orange-50 p-3 shadow-lg dark:border-orange-400 dark:bg-orange-900/50">
-          <PiWarning className="h-5 w-5 text-orange-500 dark:text-orange-400" />
-          <p className="font-medium text-orange-700 text-sm dark:text-orange-300">
+        <div className="absolute right-4 bottom-4 z-50 flex items-center gap-2 rounded-lg border-2 border-status-warning-border bg-status-warning-surface p-3 shadow-lg">
+          <PiWarning className="h-5 w-5 text-status-warning-text" />
+          <p className="font-medium text-body-sm text-status-warning-text">
             {skippedCount} POI{skippedCount > 1 ? 's' : ''} konnten nicht angezeigt werden (ungültige Koordinaten)
           </p>
         </div>
@@ -231,18 +231,18 @@ export const ClusteredPoiLayer: React.FC<ClusteredPoiLayerProps> = React.memo(({
               aria-label={ariaLabel}
             >
               <Popup className="poi-popup">
-                <div className="rounded-lg bg-white p-4 shadow-lg dark:bg-gray-800 dark:text-white">
+                <div className="rounded-lg bg-surface-panel p-4 shadow-lg">
                   {/* POI-Name */}
                   <h3 className="mb-2 font-semibold text-lg">{poi.name}</h3>
 
                   {/* POI-Kategorie */}
-                  <p className="mb-1 text-gray-600 text-sm dark:text-gray-400">{poi.category}</p>
+                  <p className="mb-1 text-body-sm text-text-secondary">{poi.category}</p>
 
                   {/* MGRS-Koordinaten */}
-                  {poi.coordinate.mgrs && <p className="mb-1 font-mono text-gray-500 text-xs dark:text-gray-400">{formatMgrs(poi.coordinate.mgrs)}</p>}
+                  {poi.coordinate.mgrs && <p className="mb-1 font-mono text-body-xs text-text-muted">{formatMgrs(poi.coordinate.mgrs)}</p>}
 
                   {/* Beschreibung (optional) */}
-                  {poi.beschreibung && <p className="text-gray-700 text-sm dark:text-gray-300">{poi.beschreibung}</p>}
+                  {poi.beschreibung && <p className="text-body-sm text-text-secondary">{poi.beschreibung}</p>}
                 </div>
               </Popup>
             </Marker>
@@ -252,21 +252,21 @@ export const ClusteredPoiLayer: React.FC<ClusteredPoiLayerProps> = React.memo(({
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel} className="relative z-[9999]">
-        <DialogBackdrop className="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity" />
+        <DialogBackdrop className="fixed inset-0 bg-surface-inverse/30 backdrop-blur-sm transition-opacity" />
 
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <DialogPanel className="w-full max-w-md transform overflow-hidden rounded-lg border border-gray-300 bg-white p-6 shadow-xl transition-all dark:border-gray-600 dark:bg-gray-800">
+          <DialogPanel className="w-full max-w-md transform overflow-hidden rounded-lg border border-border-subtle bg-surface-panel p-6 shadow-xl transition-all">
             <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
-                <PiTrash className="h-6 w-6 text-red-600 dark:text-red-400" aria-hidden="true" />
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-status-danger-surface">
+                <PiTrash className="h-6 w-6 text-status-danger-text" aria-hidden="true" />
               </div>
 
               <div className="flex-1">
-                <DialogTitle as="h3" className="font-semibold text-gray-900 text-lg dark:text-gray-100">
+                <DialogTitle as="h3" className="font-semibold text-text-primary text-lg">
                   POI löschen?
                 </DialogTitle>
 
-                <p className="mt-2 text-gray-600 text-sm dark:text-gray-400">
+                <p className="mt-2 text-body-sm text-text-secondary">
                   Möchten Sie <span className="font-semibold">{poiToDelete?.name || 'diesen POI'}</span> wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.
                 </p>
               </div>

@@ -94,7 +94,7 @@ export function ModuleOverviewCard({ modules, currentModuleId, einsatzId, open, 
             const badgeHintText = getBadgeHintText(module);
             const cardClassName = cn(
               'relative flex flex-col items-center gap-2 rounded-panel border p-4 text-center transition-[background-color,border-color,color,box-shadow]',
-              moduleIsDisabled ? 'cursor-not-allowed opacity-70' : 'focus:outline-none focus-visible:shadow-focus-ring',
+              moduleIsDisabled ? 'cursor-not-allowed opacity-70' : 'focus-visible:outline-none focus-visible:shadow-focus-ring',
               moduleIsDisabled ? getModuleColor(module.color) : isActive ? getModuleActiveColor(module.color) : getModuleColor(module.color),
               isActive && !moduleIsDisabled && 'ring-2 ring-focus-ring ring-offset-2 ring-offset-focus-ring-offset',
             );

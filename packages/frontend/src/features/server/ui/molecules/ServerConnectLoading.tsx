@@ -9,8 +9,8 @@ export const ServerConnectLoading: React.FC<ServerConnectLoadingProps> = ({ clas
   return (
     <div className={cn('flex flex-col items-center justify-center gap-4 p-6', className)}>
       {/* Spinner - Tailwind CSS Animation */}
-      <output className="h-12 w-12 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600" aria-label="Lädt" />
-      <p className="text-gray-600 text-sm">{message}</p>
+      <output className="h-12 w-12 animate-spin rounded-full border-4 border-border-subtle border-t-action-primary" aria-label="Lädt" />
+      <p className="text-sm text-text-secondary">{message}</p>
     </div>
   );
 };

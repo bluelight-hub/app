@@ -83,8 +83,8 @@ export function CreateKategorieDialog({ isOpen, onClose, einsatzId }: CreateKate
   return (
     <Dialog isOpen={isOpen} onClose={handleClose} size="sm">
       <div className="flex items-center gap-3">
-        <div className="rounded-full bg-slate-100 p-2 dark:bg-slate-800">
-          <PiTag className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+        <div className="rounded-full bg-action-secondary p-2">
+          <PiTag className="h-5 w-5 text-action-primary" />
         </div>
         <Dialog.Title>Neue Kategorie erstellen</Dialog.Title>
       </div>
@@ -103,8 +103,8 @@ export function CreateKategorieDialog({ isOpen, onClose, einsatzId }: CreateKate
           <form.Field name="name">
             {(field) => (
               <div>
-                <label htmlFor="kategorie-name" className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
-                  Name <span className="text-red-500">*</span>
+                <label htmlFor="kategorie-name" className="mb-1.5 block font-medium text-text-secondary text-sm">
+                  Name <span className="text-status-danger-text">*</span>
                 </label>
                 <Input
                   id="kategorie-name"
@@ -117,7 +117,7 @@ export function CreateKategorieDialog({ isOpen, onClose, einsatzId }: CreateKate
                   maxLength={100}
                   autoFocus
                 />
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-red-600 text-sm dark:text-red-400">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-sm">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
@@ -126,17 +126,17 @@ export function CreateKategorieDialog({ isOpen, onClose, einsatzId }: CreateKate
           <form.Field name="farbe">
             {(field) => (
               <div>
-                <p id="kategorie-farbe-label" className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
-                  Farbe <span className="text-red-500">*</span>
+                <p id="kategorie-farbe-label" className="mb-1.5 block font-medium text-text-secondary text-sm">
+                  Farbe <span className="text-status-danger-text">*</span>
                 </p>
                 <FarbPresetPicker value={field.state.value} onChange={(farbe) => field.handleChange(farbe)} ariaLabelledBy="kategorie-farbe-label" />
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-red-600 text-sm dark:text-red-400">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-sm">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
 
           {/* API Error */}
-          {apiErrorMessage && <div className="rounded-lg bg-red-50 p-3 text-red-700 text-sm dark:bg-red-900/20 dark:text-red-400">{apiErrorMessage}</div>}
+          {apiErrorMessage && <div className="rounded-panel bg-status-danger-surface p-3 text-status-danger-text text-sm">{apiErrorMessage}</div>}
         </form>
       </Dialog.Body>
 

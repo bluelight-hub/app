@@ -38,10 +38,10 @@ interface BefehlTabellenViewProps {
 function getRowTintClass(befehl: BefehlDto): string | undefined {
   if (befehl.status === BefehlDtoStatusEnum.Korrigiert) return undefined; // opacity-60 wird separat behandelt
   const kritikalitaet = getBefehlKritikalitaet(befehl);
-  if (kritikalitaet === 'KRITISCH') return 'bg-red-50 dark:bg-red-950/20';
-  if (kritikalitaet === 'WARNUNG') return 'bg-yellow-50 dark:bg-yellow-950/20';
+  if (kritikalitaet === 'KRITISCH') return 'bg-status-danger-surface';
+  if (kritikalitaet === 'WARNUNG') return 'bg-status-warning-surface';
   const fortschritt = getQuittierungsfortschritt(befehl.empfaenger);
-  if (fortschritt.gesamt > 0 && fortschritt.quittiert === fortschritt.gesamt) return 'bg-green-50 dark:bg-green-950/20';
+  if (fortschritt.gesamt > 0 && fortschritt.quittiert === fortschritt.gesamt) return 'bg-status-success-surface';
   return undefined;
 }
 
@@ -56,21 +56,21 @@ function renderCell(cell: Cell<BefehlDto, unknown>) {
         return <AlarmDot />;
       }
       if (kritikalitaet === 'WARNUNG') {
-        return <span role="img" className="inline-block h-2.5 w-2.5 rounded-full bg-yellow-400" aria-label="Warnung" />;
+        return <span role="img" className="inline-block h-2.5 w-2.5 rounded-full bg-status-warning-text" aria-label="Warnung" />;
       }
-      return <span role="img" className="inline-block h-2.5 w-2.5 rounded-full bg-gray-300 dark:bg-gray-600" aria-label="Normal" />;
+      return <span role="img" className="inline-block h-2.5 w-2.5 rounded-full bg-surface-raised" aria-label="Normal" />;
     }
     case 'nummer':
-      return <span className="font-bold font-mono text-gray-900 text-sm dark:text-gray-100">{row.nummer}</span>;
+      return <span className="font-bold font-mono text-text-primary text-sm">{row.nummer}</span>;
     case 'fortschritt':
       return <ZustellstatusAnzeige empfaenger={row.empfaenger} variant="compact" />;
     case 'empfaengerCount': {
       const count = row.empfaenger?.length ?? 0;
-      return <span className="text-gray-600 text-sm dark:text-gray-400">{count} Empf.</span>;
+      return <span className="text-text-muted text-sm">{count} Empf.</span>;
     }
     case 'erteiltAm':
       return (
-        <time dateTime={row.erteiltAm.toISOString()} className="text-gray-500 text-sm dark:text-gray-400">
+        <time dateTime={row.erteiltAm.toISOString()} className="text-text-muted text-sm">
           {format(row.erteiltAm, 'dd.MM. HH:mm')}
         </time>
       );
@@ -107,7 +107,7 @@ export function BefehlTabellenView({ einsatzId, befehle: externalBefehle, classN
             <Table.Row key={`skeleton-row-${rowIndex}`}>
               {Array.from({ length: 7 }).map((__, colIndex) => (
                 <Table.Cell key={`skeleton-cell-${rowIndex}-${colIndex}`}>
-                  <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                  <div className="h-4 w-full animate-pulse rounded bg-surface-raised" />
                 </Table.Cell>
               ))}
             </Table.Row>
@@ -120,10 +120,10 @@ export function BefehlTabellenView({ einsatzId, befehle: externalBefehle, classN
   if (!befehle?.length) {
     return (
       <div className={cn('flex flex-col items-center justify-center py-16 text-center', className)}>
-        <PiTable className="mb-4 h-12 w-12 text-gray-300 dark:text-gray-600" aria-hidden="true" />
-        <p className="text-gray-500 dark:text-gray-400">Noch keine Befehle erteilt.</p>
-        <p className="mt-1 text-gray-400 text-sm dark:text-gray-500">
-          Erstelle den ersten Befehl mit <kbd className="rounded border border-gray-300 bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:border-gray-600 dark:bg-gray-800">Ctrl+N</kbd>.
+        <PiTable className="mb-4 h-12 w-12 text-text-muted" aria-hidden="true" />
+        <p className="text-text-muted">Noch keine Befehle erteilt.</p>
+        <p className="mt-1 text-text-muted text-sm">
+          Erstelle den ersten Befehl mit <kbd className="rounded border border-border-subtle bg-surface-raised px-1.5 py-0.5 font-mono text-xs">Ctrl+N</kbd>.
         </p>
       </div>
     );
@@ -160,7 +160,7 @@ export function BefehlTabellenView({ einsatzId, befehle: externalBefehle, classN
               onClick={() => onBefehlSelect?.(row.original.id)}
               className={cn(
                 onBefehlSelect && 'cursor-pointer',
-                selectedBefehlId === row.original.id && 'bg-primary-50 dark:bg-primary-900/20',
+                selectedBefehlId === row.original.id && 'bg-primary-50',
                 row.original.status === BefehlDtoStatusEnum.Korrigiert && 'opacity-60',
                 selectedBefehlId !== row.original.id && row.original.status !== BefehlDtoStatusEnum.Korrigiert && getRowTintClass(row.original),
               )}

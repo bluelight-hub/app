@@ -140,16 +140,13 @@ export function EmpfaengerCombobox({ einsatzId, value, onChange, error }: Empfae
       {value.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-1.5">
           {value.map((chip, index) => (
-            <span
-              key={chip.empfaengerId ?? `manual-${index}`}
-              className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 font-medium text-blue-700 text-sm dark:bg-blue-900/30 dark:text-blue-300"
-            >
-              {chip.empfaengerId && <PiLink className="h-3 w-3 text-blue-400" aria-hidden="true" />}
+            <span key={chip.empfaengerId ?? `manual-${index}`} className="inline-flex items-center gap-1 rounded-full bg-status-info-surface px-2.5 py-0.5 font-medium text-status-info-text text-sm">
+              {chip.empfaengerId && <PiLink className="h-3 w-3 text-status-info-text" aria-hidden="true" />}
               {chip.name}
               <button
                 type="button"
                 onClick={() => removeEmpfaenger(index)}
-                className="ml-0.5 inline-flex items-center rounded-full p-0.5 text-blue-400 hover:bg-blue-100 hover:text-blue-600 dark:text-blue-400 dark:hover:bg-blue-800 dark:hover:text-blue-200"
+                className="ml-0.5 inline-flex items-center rounded-full p-0.5 text-status-info-text hover:bg-status-info-surface hover:text-action-primary"
                 aria-label={`${chip.name} entfernen`}
               >
                 <PiX className="h-3 w-3" />
@@ -171,15 +168,13 @@ export function EmpfaengerCombobox({ einsatzId, value, onChange, error }: Empfae
             ref={inputRef}
             aria-label="Empfänger suchen"
             className={cn(
-              'block w-full rounded-lg border bg-gray-50 px-4 py-3 font-medium text-base text-gray-900',
+              'block w-full rounded-lg border bg-surface-raised px-4 py-3 font-medium text-base text-text-primary',
               'transition-all duration-200',
-              'border-gray-200',
-              'placeholder:text-gray-400',
-              'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20',
+              'border-border-subtle',
+              'placeholder:text-text-muted',
+              'focus:border-action-primary focus:bg-surface-panel focus:outline-none focus-visible:shadow-focus-ring',
               'sm:text-sm/6',
-              'dark:border-gray-700 dark:bg-gray-900 dark:text-white',
-              'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400 dark:placeholder:text-gray-500',
-              error && 'border-red-300 focus:border-red-500 focus:ring-red-500 dark:border-red-700 dark:focus:border-red-400 dark:focus:ring-red-400',
+              error && 'border-status-danger-border focus:border-status-danger-text focus-visible:shadow-focus-ring',
             )}
             autoCorrect="off"
             autoComplete="off"
@@ -201,63 +196,52 @@ export function EmpfaengerCombobox({ einsatzId, value, onChange, error }: Empfae
 
           {/* Dropdown - Headless UI managed */}
           <ComboboxOptions
-            className={cn(
-              'absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white py-1 text-base shadow-lg',
-              'border border-gray-200',
-              'empty:hidden',
-              'sm:text-sm',
-              'dark:border-gray-700 dark:bg-gray-800 dark:shadow-none',
-            )}
+            className={cn('absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-surface-panel py-1 text-base shadow-lg', 'border border-border-subtle', 'empty:hidden', 'sm:text-sm')}
           >
             {/* Hinweis: Mind. 2 Zeichen */}
-            {query.length > 0 && query.length < 2 && <div className="px-3 py-2 text-gray-500 text-sm dark:text-gray-400">Mind. 2 Zeichen für Vorschläge</div>}
+            {query.length > 0 && query.length < 2 && <div className="px-3 py-2 text-text-muted text-sm">Mind. 2 Zeichen für Vorschläge</div>}
 
             {/* Ladeanzeige */}
-            {isFetching && debouncedQuery.length >= 2 && <div className="px-3 py-2 text-gray-500 text-sm dark:text-gray-400">Suche läuft...</div>}
+            {isFetching && debouncedQuery.length >= 2 && <div className="px-3 py-2 text-text-muted text-sm">Suche läuft...</div>}
 
             {/* API-Ergebnisse */}
             {filteredResults.map((result) => (
               <ComboboxOption
                 key={result.id}
                 value={{ name: result.name, empfaengerId: result.userId } satisfies EmpfaengerSelection}
-                className={cn(
-                  'group cursor-default select-none px-3 py-2 text-gray-900',
-                  'data-[focus]:bg-primary-600 data-[focus]:text-white data-[focus]:outline-none',
-                  'dark:text-gray-300 dark:data-[focus]:bg-primary-500',
-                )}
+                className={cn('group cursor-default select-none px-3 py-2 text-text-primary', 'data-[focus]:bg-action-primary data-[focus]:text-text-inverse data-[focus]:outline-none')}
               >
                 <div className="flex items-center gap-2">
                   <span className="block truncate">{result.name}</span>
                   {result.rolle && (
-                    <span className="inline-flex shrink-0 items-center rounded-full bg-gray-100 px-2 py-0.5 font-medium text-gray-600 text-xs group-data-[focus]:bg-primary-700 group-data-[focus]:text-primary-100 dark:bg-gray-700 dark:text-gray-300">
+                    <span className="inline-flex shrink-0 items-center rounded-full bg-surface-raised px-2 py-0.5 font-medium text-text-secondary text-xs group-data-[focus]:bg-action-primary-hover group-data-[focus]:text-text-inverse">
                       {result.rolle}
                     </span>
                   )}
-                  {result.userId && <PiLink className="h-3.5 w-3.5 shrink-0 text-gray-400 group-data-[focus]:text-white" aria-label="Verknüpfter Benutzer" />}
+                  {result.userId && <PiLink className="h-3.5 w-3.5 shrink-0 text-text-muted group-data-[focus]:text-text-inverse" aria-label="Verknüpfter Benutzer" />}
                 </div>
               </ComboboxOption>
             ))}
 
             {/* Alle bereits ausgewaehlt */}
             {debouncedQuery.length >= 2 && !isFetching && results && results.length > 0 && filteredResults.length === 0 && (
-              <div className="px-3 py-2 text-gray-500 text-sm dark:text-gray-400">Alle Treffer bereits ausgewählt</div>
+              <div className="px-3 py-2 text-text-muted text-sm">Alle Treffer bereits ausgewählt</div>
             )}
 
             {/* Keine Treffer Hinweis */}
-            {debouncedQuery.length >= 2 && !isFetching && results && results.length === 0 && <div className="px-3 py-2 text-gray-500 text-sm dark:text-gray-400">Keine Treffer gefunden</div>}
+            {debouncedQuery.length >= 2 && !isFetching && results && results.length === 0 && <div className="px-3 py-2 text-text-muted text-sm">Keine Treffer gefunden</div>}
 
             {/* Freitext-Option - immer verfuegbar wenn Query vorhanden */}
             {showFreetextOption && (
               <ComboboxOption
                 value={{ name: trimmedQuery } satisfies EmpfaengerSelection}
                 className={cn(
-                  'group cursor-default select-none border-gray-100 border-t px-3 py-2 text-gray-900',
-                  'data-[focus]:bg-primary-600 data-[focus]:text-white data-[focus]:outline-none',
-                  'dark:border-gray-700 dark:text-gray-300 dark:data-[focus]:bg-primary-500',
+                  'group cursor-default select-none border-border-subtle border-t px-3 py-2 text-text-primary',
+                  'data-[focus]:bg-action-primary data-[focus]:text-text-inverse data-[focus]:outline-none',
                 )}
               >
                 <div className="flex items-center gap-2">
-                  <PiPlus className="h-3.5 w-3.5 shrink-0 text-gray-400 group-data-[focus]:text-white" aria-hidden="true" />
+                  <PiPlus className="h-3.5 w-3.5 shrink-0 text-text-muted group-data-[focus]:text-text-inverse" aria-hidden="true" />
                   <span className="block truncate">„{trimmedQuery}" als Freitext hinzufügen</span>
                 </div>
               </ComboboxOption>
@@ -267,7 +251,7 @@ export function EmpfaengerCombobox({ einsatzId, value, onChange, error }: Empfae
       </Combobox>
 
       {/* Error-Hinweis */}
-      {isError && <p className="mt-1.5 text-gray-500 text-xs dark:text-gray-400">Manuelle Eingabe möglich</p>}
+      {isError && <p className="mt-1.5 text-text-muted text-xs">Manuelle Eingabe möglich</p>}
     </div>
   );
 }

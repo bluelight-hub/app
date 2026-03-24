@@ -327,8 +327,8 @@ export function EtbEntryForm({
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
           <div className="space-y-4">
             {!editingEntry && (
-              <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-                <p className="mb-3 font-medium text-gray-900 text-sm dark:text-gray-100">1. Kommunikationsweg festlegen</p>
+              <div className="rounded-panel border border-border-subtle bg-surface-panel p-4">
+                <p className="mb-3 font-medium text-text-primary text-sm">1. Kommunikationsweg festlegen</p>
                 {/* Verschachtelte form.Field: EtbAbsenderInput benötigt beide Feld-States gleichzeitig */}
                 <form.Field
                   name="absender"
@@ -364,8 +364,8 @@ export function EtbEntryForm({
               </div>
             )}
 
-            <div ref={afterSaveFocusRef} className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-              <p className="mb-3 font-medium text-gray-900 text-sm dark:text-gray-100">2. Kontext auswählen</p>
+            <div ref={afterSaveFocusRef} className="rounded-panel border border-border-subtle bg-surface-panel p-4">
+              <p className="mb-3 font-medium text-text-primary text-sm">2. Kontext auswählen</p>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <form.Field name="kategorie">
                   {(field) => (
@@ -387,8 +387,8 @@ export function EtbEntryForm({
 
             {pendingTextbaustein && <EtbTextbausteinPreview text={pendingTextbaustein.text} onApply={applyPendingTextbaustein} onCancel={cancelPendingTextbaustein} />}
 
-            <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-              <p className="mb-3 font-medium text-gray-900 text-sm dark:text-gray-100">3. Eintrag formulieren</p>
+            <div className="rounded-panel border border-border-subtle bg-surface-panel p-4">
+              <p className="mb-3 font-medium text-text-primary text-sm">3. Eintrag formulieren</p>
               <form.Field
                 name="text"
                 validators={{
@@ -425,20 +425,20 @@ export function EtbEntryForm({
                 ];
                 const completed = items.filter((item) => item.done).length;
                 return (
-                  <aside className="h-fit rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/40">
-                    <p className="font-medium text-gray-900 text-sm dark:text-gray-100">Ablaufstatus</p>
-                    <p className="mt-1 text-gray-600 text-xs dark:text-gray-400">
+                  <aside className="h-fit rounded-panel border border-border-subtle bg-surface-raised p-4">
+                    <p className="font-medium text-text-primary text-sm">Ablaufstatus</p>
+                    <p className="mt-1 text-text-secondary text-xs">
                       {completed}/{items.length} Felder ausgefüllt
                     </p>
                     <ul className="mt-3 space-y-2 text-sm">
                       {items.map((item) => (
-                        <li key={item.label} className="flex items-center justify-between rounded-md bg-white px-2.5 py-1.5 dark:bg-gray-800">
-                          <span className="text-gray-700 dark:text-gray-200">{item.label}</span>
-                          <span className={item.done ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500'}>{item.done ? 'Erfasst' : 'Offen'}</span>
+                        <li key={item.label} className="flex items-center justify-between rounded-control bg-surface-panel px-2.5 py-1.5">
+                          <span className="text-text-secondary">{item.label}</span>
+                          <span className={item.done ? 'text-status-success-text' : 'text-text-muted'}>{item.done ? 'Erfasst' : 'Offen'}</span>
                         </li>
                       ))}
                     </ul>
-                    <p className="mt-3 text-gray-500 text-xs dark:text-gray-400">Shortcut: Strg/Cmd + Enter speichert direkt.</p>
+                    <p className="mt-3 text-text-muted text-xs">Shortcut: Strg/Cmd + Enter speichert direkt.</p>
                   </aside>
                 );
               }}

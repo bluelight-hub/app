@@ -45,7 +45,7 @@ export function ModuleButton({ to, params, hotkey, colorClasses, children, class
       // biome-ignore lint/suspicious/noExplicitAny: params should be correctly typed
       params={params as any}
       className={cn(
-        'group relative flex items-center gap-2 whitespace-nowrap rounded-control border px-4 py-2 font-medium text-body-sm transition-[background-color,border-color,color,box-shadow] focus:outline-none focus-visible:shadow-focus-ring',
+        'group relative flex items-center gap-2 whitespace-nowrap rounded-control border px-4 py-2 font-medium text-body-sm transition-[background-color,border-color,color,box-shadow] focus-visible:outline-none focus-visible:shadow-focus-ring',
         colorClasses,
         className,
       )}

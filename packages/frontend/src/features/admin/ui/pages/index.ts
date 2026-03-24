@@ -1,7 +1,7 @@
 /**
  * Admin UI - Pages
  *
- * Barrel export für Admin-Page-Komponenten
+ * Barrel export für Admin-Page-Komponenten.
  */
 
 export { AdminBefehlsgeberVorschlaege } from './AdminBefehlsgeberVorschlaege';

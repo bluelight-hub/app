@@ -59,10 +59,10 @@ interface LayerToggleProps {
  */
 export const LayerToggle: React.FC<LayerToggleProps> = ({ layers, onToggle }) => {
   return (
-    <div className="absolute top-64 right-4 z-50 rounded-lg border border-gray-300 bg-white p-3 shadow-md dark:border-gray-600 dark:bg-gray-800">
+    <div className="absolute top-64 right-4 z-50 rounded-lg border border-border-subtle bg-surface-panel p-3 shadow-md">
       {/* Header */}
       <div className="mb-2">
-        <h3 className="font-semibold text-gray-900 text-sm dark:text-gray-100">Layer</h3>
+        <h3 className="font-semibold text-text-primary text-sm">Layer</h3>
       </div>
 
       {/* Layer Switches */}
@@ -71,21 +71,23 @@ export const LayerToggle: React.FC<LayerToggleProps> = ({ layers, onToggle }) =>
           <Switch.Group key={layer.name}>
             <div className="flex items-center justify-between gap-3">
               {/* Label */}
-              <Switch.Label className="cursor-pointer font-medium text-gray-700 text-sm dark:text-gray-300">{layer.label}</Switch.Label>
+              <Switch.Label className="cursor-pointer font-medium text-text-secondary text-sm">{layer.label}</Switch.Label>
 
               {/* Switch */}
               <Switch
                 checked={layer.visible}
                 onChange={() => onToggle(layer.name)}
                 className={`${
-                  layer.visible ? 'bg-blue-600 dark:bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'
-                } relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800`}
+                  layer.visible ? 'bg-action-primary' : 'bg-surface-raised'
+                } relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors focus-visible:outline-none focus-visible:shadow-focus-ring`}
                 aria-label={`${layer.label} ${layer.visible ? 'ausblenden' : 'einblenden'}`}
               >
                 {/* Switch Circle */}
-                <span className={`${layer.visible ? 'translate-x-6' : 'translate-x-1'} inline-flex h-4 w-4 transform items-center justify-center rounded-full bg-white shadow-sm transition-transform`}>
+                <span
+                  className={`${layer.visible ? 'translate-x-6' : 'translate-x-1'} inline-flex h-4 w-4 transform items-center justify-center rounded-full bg-surface-panel shadow-sm transition-transform`}
+                >
                   {/* Icon */}
-                  {layer.visible ? <PiEye size={12} className="text-blue-600" aria-hidden="true" /> : <PiEyeSlash size={12} className="text-gray-600" aria-hidden="true" />}
+                  {layer.visible ? <PiEye size={12} className="text-action-primary" aria-hidden="true" /> : <PiEyeSlash size={12} className="text-text-secondary" aria-hidden="true" />}
                 </span>
               </Switch>
             </div>

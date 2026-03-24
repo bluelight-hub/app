@@ -32,22 +32,22 @@ export function HandlungsbedarfSection({ handlungsbedarf, onBefehlSelect, onQuit
   const summaryText = summaryParts.join(', ');
 
   return (
-    <section className={cn('border-gray-200 border-b dark:border-gray-700', className)} aria-label="Handlungsbedarf">
+    <section className={cn('border-border-subtle border-b', className)} aria-label="Handlungsbedarf">
       {/* Toggle-Header */}
       <button
         type="button"
         onClick={() => setIsCollapsed((prev) => !prev)}
-        className={cn('flex w-full items-center gap-2 px-4 py-2 text-left font-medium text-sm transition-colors', 'hover:bg-gray-50 dark:hover:bg-gray-800/50', 'text-gray-700 dark:text-gray-300')}
+        className={cn('flex w-full items-center gap-2 px-4 py-2 text-left font-medium text-sm transition-colors hover:bg-action-secondary text-text-secondary')}
         aria-expanded={!isCollapsed}
         aria-controls="handlungsbedarf-content"
       >
-        <PiWarningCircle className="h-4 w-4 text-amber-500" aria-hidden="true" />
+        <PiWarningCircle className="h-4 w-4 text-status-warning-text" aria-hidden="true" />
         <span>
           Handlungsbedarf
-          <span className="ml-1.5 font-normal text-gray-500 text-xs dark:text-gray-400">({gesamtCount})</span>
+          <span className="ml-1.5 font-normal text-text-muted text-xs">({gesamtCount})</span>
         </span>
-        {isCollapsed && <span className="ml-2 font-normal text-gray-500 text-xs dark:text-gray-400">{summaryText}</span>}
-        <span className="ml-auto">{isCollapsed ? <PiCaretDown className="h-4 w-4 text-gray-400" aria-hidden="true" /> : <PiCaretUp className="h-4 w-4 text-gray-400" aria-hidden="true" />}</span>
+        {isCollapsed && <span className="ml-2 font-normal text-text-muted text-xs">{summaryText}</span>}
+        <span className="ml-auto">{isCollapsed ? <PiCaretDown className="h-4 w-4 text-text-muted" aria-hidden="true" /> : <PiCaretUp className="h-4 w-4 text-text-muted" aria-hidden="true" />}</span>
       </button>
 
       {/* Expandierter Content */}
@@ -55,10 +55,10 @@ export function HandlungsbedarfSection({ handlungsbedarf, onBefehlSelect, onQuit
         <div id="handlungsbedarf-content">
           {/* A1: Kritisch (roter Akzent) */}
           {kritisch.length > 0 && (
-            <div className="border-red-500 border-l-4 bg-red-50/50 dark:bg-red-950/20">
+            <div className="border-status-danger-border border-l-4 bg-status-danger-surface">
               <div className="flex items-center gap-2 px-4 py-1.5">
-                <span className="h-2 w-2 rounded-full bg-red-500" aria-hidden="true" />
-                <span className="font-semibold text-red-700 text-xs dark:text-red-400">{kritisch.length} kritisch</span>
+                <span className="h-2 w-2 rounded-full bg-status-danger-text" aria-hidden="true" />
+                <span className="font-semibold text-status-danger-text text-xs">{kritisch.length} kritisch</span>
               </div>
               {kritisch.map((befehl) => (
                 <BefehlAlertRow key={befehl.id} befehl={befehl} variant="kritisch" onClick={() => onBefehlSelect(befehl.id)} />
@@ -68,10 +68,10 @@ export function HandlungsbedarfSection({ handlungsbedarf, onBefehlSelect, onQuit
 
           {/* A2: Warnung (gelber Akzent) */}
           {warnung.length > 0 && (
-            <div className={cn('border-yellow-400 border-l-4 bg-yellow-50/50 dark:bg-yellow-950/20', kritisch.length > 0 && 'border-t border-t-gray-200 dark:border-t-gray-700')}>
+            <div className={cn('border-status-warning-border border-l-4 bg-status-warning-surface', kritisch.length > 0 && 'border-t border-border-subtle')}>
               <div className="flex items-center gap-2 px-4 py-1.5">
-                <span className="h-2 w-2 rounded-full bg-yellow-400" aria-hidden="true" />
-                <span className="font-semibold text-xs text-yellow-700 dark:text-yellow-400">
+                <span className="h-2 w-2 rounded-full bg-status-warning-text" aria-hidden="true" />
+                <span className="font-semibold text-xs text-status-warning-text">
                   {warnung.length} Rückfrage{warnung.length !== 1 ? 'n' : ''}
                 </span>
               </div>
@@ -83,10 +83,10 @@ export function HandlungsbedarfSection({ handlungsbedarf, onBefehlSelect, onQuit
 
           {/* A3: Zu quittieren (blauer Akzent, rollenbasiert) */}
           {zuQuittieren.length > 0 && (
-            <div className={cn('border-blue-400 border-l-4 bg-blue-50/50 dark:bg-blue-950/20', (kritisch.length > 0 || warnung.length > 0) && 'border-t border-t-gray-200 dark:border-t-gray-700')}>
+            <div className={cn('border-status-info-border border-l-4 bg-status-info-surface', (kritisch.length > 0 || warnung.length > 0) && 'border-t border-border-subtle')}>
               <div className="flex items-center gap-2 px-4 py-1.5">
-                <span className="h-2 w-2 rounded-full bg-blue-400" aria-hidden="true" />
-                <span className="font-semibold text-blue-700 text-xs dark:text-blue-400">{zuQuittieren.length} zu quittieren</span>
+                <span className="h-2 w-2 rounded-full bg-status-info-text" aria-hidden="true" />
+                <span className="font-semibold text-status-info-text text-xs">{zuQuittieren.length} zu quittieren</span>
               </div>
               {zuQuittieren.map((befehl) => (
                 <BefehlAlertRow key={befehl.id} befehl={befehl} variant="zuQuittieren" onQuittieren={onQuittieren} onClick={() => onBefehlSelect(befehl.id)} />

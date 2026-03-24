@@ -68,7 +68,7 @@ export function EtbLockButton({ etbId, disabled = false, onSuccess }: EtbLockBut
         title="ETB sperren?"
         message={
           <div className="space-y-2">
-            <p className="font-semibold text-red-600 dark:text-red-400">Diese Aktion ist UNWIDERRUFLICH.</p>
+            <p className="font-semibold text-status-danger-text">Diese Aktion ist UNWIDERRUFLICH.</p>
             <p>Das ETB kann danach nicht mehr bearbeitet werden.</p>
           </div>
         }

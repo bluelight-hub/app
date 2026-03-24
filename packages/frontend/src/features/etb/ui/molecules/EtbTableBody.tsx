@@ -74,9 +74,9 @@ const EtbTableRow = memo(function EtbTableRowComponent({ row, virtualRowSize, ar
       onKeyDown={handleKeyDown}
       className={cn(
         'transition-all duration-300 focus-visible:shadow-focus-ring focus-visible:outline-none',
-        row.original.deletedAt ? 'border-l-2 border-l-red-500 bg-red-50/30 opacity-60 dark:bg-red-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-900/50',
+        row.original.deletedAt ? 'border-l-2 border-l-status-danger-border bg-status-danger-surface/30 opacity-60' : 'hover:bg-surface-raised',
         // Story 5.5: Highlight-Animation wenn Entry hervorgehoben ist
-        isHighlighted && 'bg-primary-50 ring-2 ring-primary-500 ring-offset-2 dark:bg-primary-900/20',
+        isHighlighted && 'bg-action-secondary ring-2 ring-action-primary/40 ring-offset-2 ring-offset-surface-panel',
       )}
       style={{ height: `${virtualRowSize}px` }}
     >
@@ -117,7 +117,7 @@ export function EtbTableBody({
   globalFilter,
 }: EtbTableBodyProps) {
   return (
-    <tbody className="divide-y divide-gray-100 bg-white dark:divide-gray-800 dark:bg-gray-950">
+    <tbody className="divide-y divide-border-subtle bg-surface-panel">
       {paddingTop > 0 && (
         <tr>
           <td colSpan={columns.length} style={{ height: `${paddingTop}px` }} />
@@ -129,7 +129,7 @@ export function EtbTableBody({
         <>
           <tr>
             <td colSpan={columns.length} className="px-4 pt-4">
-              <output className="flex items-center gap-2 text-gray-500 text-sm dark:text-gray-400" aria-live="polite" aria-atomic="true">
+              <output className="flex items-center gap-2 text-text-muted text-sm" aria-live="polite" aria-atomic="true">
                 <PiCircleNotch className="h-4 w-4 animate-spin" />
                 <span>ETB-Einträge werden geladen…</span>
               </output>
@@ -138,22 +138,22 @@ export function EtbTableBody({
           {SKELETON_KEYS.map((key) => (
             <tr key={key} className="animate-pulse">
               <td className="px-3 py-2">
-                <div className="h-4 w-4 rounded bg-gray-200 dark:bg-gray-700" />
+                <div className="h-4 w-4 rounded bg-surface-raised" />
               </td>
               <td className="px-3 py-2">
-                <div className="h-4 w-8 rounded bg-gray-200 dark:bg-gray-700" />
+                <div className="h-4 w-8 rounded bg-surface-raised" />
               </td>
               <td className="px-3 py-2">
-                <div className="h-4 w-16 rounded bg-gray-200 dark:bg-gray-700" />
+                <div className="h-4 w-16 rounded bg-surface-raised" />
               </td>
               <td className="px-3 py-2">
-                <div className="h-4 w-20 rounded bg-gray-200 dark:bg-gray-700" />
+                <div className="h-4 w-20 rounded bg-surface-raised" />
               </td>
               <td className="px-3 py-2">
-                <div className="h-4 w-48 rounded bg-gray-200 dark:bg-gray-700" />
+                <div className="h-4 w-48 rounded bg-surface-raised" />
               </td>
               <td className="px-3 py-2">
-                <div className="h-4 w-16 rounded bg-gray-200 dark:bg-gray-700" />
+                <div className="h-4 w-16 rounded bg-surface-raised" />
               </td>
             </tr>
           ))}
@@ -163,7 +163,7 @@ export function EtbTableBody({
         <tr>
           <td colSpan={columns.length} className="h-[300px]">
             <div className="flex h-full items-center justify-center" role="status">
-              <p className="text-gray-500 text-sm dark:text-gray-400">Keine Einträge gefunden</p>
+              <p className="text-text-muted text-sm">Keine Einträge gefunden</p>
             </div>
           </td>
         </tr>
@@ -172,7 +172,7 @@ export function EtbTableBody({
         <tr>
           <td colSpan={columns.length} className="h-[300px]">
             <div className="flex h-full items-center justify-center" role="status">
-              <p className="text-gray-500 text-sm dark:text-gray-400">Keine Treffer für &laquo;{globalFilter}&raquo;</p>
+              <p className="text-text-muted text-sm">Keine Treffer für &laquo;{globalFilter}&raquo;</p>
             </div>
           </td>
         </tr>
@@ -181,8 +181,8 @@ export function EtbTableBody({
         <tr>
           <td colSpan={columns.length} className="h-[500px]">
             <output className="flex h-full flex-col items-center justify-center gap-2" aria-live="polite" aria-atomic="true">
-              <PiCircleNotch className="h-6 w-6 animate-spin text-primary-500" />
-              <span className="text-gray-500 text-sm dark:text-gray-400">Einträge werden aktualisiert…</span>
+              <PiCircleNotch className="h-6 w-6 animate-spin text-action-primary" />
+              <span className="text-text-muted text-sm">Einträge werden aktualisiert…</span>
             </output>
           </td>
         </tr>
@@ -202,7 +202,7 @@ export function EtbTableBody({
               {/* Expanded Row */}
               {row.getIsExpanded() && (
                 <tr>
-                  <td colSpan={columns.length} className="bg-gray-50 px-8 py-4 dark:bg-gray-900/30" aria-label={`Details zu Eintrag #${row.original.sequenceNumber}`}>
+                  <td colSpan={columns.length} className="bg-surface-raised px-8 py-4" aria-label={`Details zu Eintrag #${row.original.sequenceNumber}`}>
                     <EtbEntryDetails entry={row.original} getUserName={getUserName} etbId={etbId} onEntryClick={onEntryClick} />
                   </td>
                 </tr>

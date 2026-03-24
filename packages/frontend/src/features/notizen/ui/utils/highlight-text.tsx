@@ -22,7 +22,7 @@ export function HighlightText({ text, query }: { text: string; query: string }) 
         }
 
         return part.toLowerCase() === normalizedQuery ? (
-          <mark key={`${startOffset}-${part}`} className="rounded-sm bg-yellow-100 px-0.5 dark:bg-yellow-800/40">
+          <mark key={`${startOffset}-${part}`} className="rounded-sm bg-status-warning-surface px-0.5 text-status-warning-text">
             {part}
           </mark>
         ) : (

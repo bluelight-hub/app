@@ -49,8 +49,7 @@ export const LagekarteToolbar: React.FC<LagekarteToolbarProps> = ({ onOfflineDow
     <div
       className={cn(
         // Glassmorphism
-        'rounded-xl border border-gray-200/50 bg-white/90 shadow-xl backdrop-blur-lg',
-        'dark:border-gray-700/50 dark:bg-gray-900/90',
+        'rounded-xl border border-border-subtle/50 bg-surface-panel/90 shadow-xl backdrop-blur-lg',
         // Padding
         'p-2',
         // Flex layout für multiple buttons

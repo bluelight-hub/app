@@ -59,23 +59,20 @@ export interface ServerNameDisplayProps {
  */
 export function ServerNameDisplay({ server, status, className }: ServerNameDisplayProps) {
   return (
-    <div
-      className={cn('w-full rounded-lg border-2 border-gray-200 bg-white px-4 py-3', 'flex items-center gap-3', 'dark:border-gray-700 dark:bg-gray-900', className)}
-      data-testid="server-name-display"
-    >
+    <div className={cn('w-full rounded-lg border-2 border-border-subtle bg-surface-panel px-4 py-3', 'flex items-center gap-3', className)} data-testid="server-name-display">
       {/* Server Visual Badge mit Status-Overlay */}
       <div className="relative flex-shrink-0">
         <ServerVisualBadge server={server} size="md" data-testid="server-visual-badge" />
         {/* Status-Indikator als Overlay unten-rechts */}
         <div className="absolute -right-0.5 -bottom-0.5">
-          <ServerStatusDot status={status ?? 'disconnected'} size="sm" className="ring-2 ring-white dark:ring-gray-900" />
+          <ServerStatusDot status={status ?? 'disconnected'} size="sm" className="ring-2 ring-surface-panel" />
         </div>
       </div>
       <div className="flex min-w-0 flex-col">
-        <span className="truncate font-medium text-gray-900 dark:text-white" data-testid="server-name">
+        <span className="truncate font-medium text-text-primary" data-testid="server-name">
           {server.name}
         </span>
-        <span className="truncate text-gray-500 text-sm dark:text-gray-400" data-testid="server-url">
+        <span className="truncate text-sm text-text-secondary" data-testid="server-url">
           {getHostSafe(server.url) ?? 'Unbekannt'}
         </span>
       </div>

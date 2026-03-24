@@ -47,10 +47,8 @@ export function KritischeBefehleCounter({ befehle, onClick, className }: Kritisc
       onClick={onClick}
       className={cn(
         'inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-semibold text-xs transition-colors',
-        'bg-red-100 text-red-700 hover:bg-red-200',
-        'dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2',
-        'dark:focus-visible:ring-offset-gray-900',
+        'bg-status-danger-surface text-status-danger-text hover:bg-status-danger-surface',
+        'focus-visible:outline-none focus-visible:shadow-focus-ring',
         className,
       )}
       aria-label={`${count} kritische${count !== 1 ? '' : 'r'} Befehl${count !== 1 ? 'e' : ''} anzeigen`}

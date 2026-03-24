@@ -66,7 +66,7 @@ export function EskalationsAnalyse({ einsatzId, className }: EskalationsAnalyseP
 
   return (
     <div className={cn('flex flex-col gap-2', className)}>
-      <button type="button" className="flex items-center gap-1 font-medium text-gray-700 text-sm dark:text-gray-300" onClick={() => setIsExpanded(!isExpanded)} aria-expanded={isExpanded}>
+      <button type="button" className="flex items-center gap-1 font-medium text-sm text-text-secondary" onClick={() => setIsExpanded(!isExpanded)} aria-expanded={isExpanded}>
         {isExpanded ? <PiCaretDown className="h-4 w-4" /> : <PiCaretRight className="h-4 w-4" />}
         <PiWarningCircle className="h-4 w-4" />
         Eskalations-Analyse
@@ -78,13 +78,13 @@ export function EskalationsAnalyse({ einsatzId, className }: EskalationsAnalyseP
           {isLoading && (
             <div className="flex flex-col gap-4">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div className="h-20 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-700" />
-                <div className="h-20 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-700" />
-                <div className="h-20 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-700" />
+                <div className="h-20 animate-pulse rounded-lg bg-surface-raised" />
+                <div className="h-20 animate-pulse rounded-lg bg-surface-raised" />
+                <div className="h-20 animate-pulse rounded-lg bg-surface-raised" />
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="h-24 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-700" />
-                <div className="h-24 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-700" />
+                <div className="h-24 animate-pulse rounded-lg bg-surface-raised" />
+                <div className="h-24 animate-pulse rounded-lg bg-surface-raised" />
               </div>
               <Table.Skeleton rows={3} columns={6} />
             </div>
@@ -92,7 +92,7 @@ export function EskalationsAnalyse({ einsatzId, className }: EskalationsAnalyseP
 
           {/* AC5: Error State */}
           {!isLoading && isError && (
-            <div className="py-4 text-center text-red-600 text-sm dark:text-red-400">
+            <div className="py-4 text-center text-sm text-status-danger-text">
               <p>Eskalations-Analyse konnte nicht geladen werden.</p>
               <button type="button" className="mt-1 underline hover:no-underline" onClick={() => refetch()}>
                 Erneut versuchen
@@ -101,7 +101,7 @@ export function EskalationsAnalyse({ einsatzId, className }: EskalationsAnalyseP
           )}
 
           {/* AC4: Empty State */}
-          {!isLoading && !isError && data && data.totalEscalated === 0 && <p className="py-4 text-center text-gray-500 text-sm dark:text-gray-400">Keine Eskalationen in diesem Einsatz</p>}
+          {!isLoading && !isError && data && data.totalEscalated === 0 && <p className="py-4 text-center text-sm text-text-muted">Keine Eskalationen in diesem Einsatz</p>}
 
           {/* AC1 + AC2: Daten anzeigen */}
           {!isLoading && !isError && data && data.totalEscalated > 0 && (
@@ -116,31 +116,31 @@ export function EskalationsAnalyse({ einsatzId, className }: EskalationsAnalyseP
               {/* Top-Listen */}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                  <h4 className="font-medium text-slate-600 text-sm dark:text-slate-400">Häufigste Empfänger</h4>
+                  <h4 className="font-medium text-sm text-text-secondary">Häufigste Empfänger</h4>
                   {data.topReceivers.length > 0 ? (
                     <ol className="mt-1 list-inside list-decimal">
                       {data.topReceivers.map((r) => (
-                        <li key={r.userId} className="text-slate-700 text-sm dark:text-slate-300">
+                        <li key={r.userId} className="text-sm text-text-primary">
                           {r.userName} ({r.count})
                         </li>
                       ))}
                     </ol>
                   ) : (
-                    <p className="mt-1 text-gray-400 text-sm">Keine Daten</p>
+                    <p className="mt-1 text-sm text-text-muted">Keine Daten</p>
                   )}
                 </div>
                 <div>
-                  <h4 className="font-medium text-slate-600 text-sm dark:text-slate-400">Häufigste Quellen</h4>
+                  <h4 className="font-medium text-sm text-text-secondary">Häufigste Quellen</h4>
                   {data.topSources.length > 0 ? (
                     <ol className="mt-1 list-inside list-decimal">
                       {data.topSources.map((s) => (
-                        <li key={s.userId} className="text-slate-700 text-sm dark:text-slate-300">
+                        <li key={s.userId} className="text-sm text-text-primary">
                           {s.userName} ({s.count})
                         </li>
                       ))}
                     </ol>
                   ) : (
-                    <p className="mt-1 text-gray-400 text-sm">Keine Daten</p>
+                    <p className="mt-1 text-sm text-text-muted">Keine Daten</p>
                   )}
                 </div>
               </div>

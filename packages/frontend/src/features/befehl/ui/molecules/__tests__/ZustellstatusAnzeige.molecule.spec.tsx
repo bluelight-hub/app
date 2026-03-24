@@ -298,7 +298,7 @@ describe('ZustellstatusAnzeige', () => {
 
       const progressbar = screen.getByRole('progressbar');
       const innerBar = progressbar.firstElementChild as HTMLElement;
-      expect(innerBar.className).toContain('bg-gray-200');
+      expect(innerBar.className).toContain('bg-surface-raised');
     });
 
     it('zeigt gelbe Farbe bei teilweisem Fortschritt', () => {
@@ -316,7 +316,7 @@ describe('ZustellstatusAnzeige', () => {
 
       const progressbar = screen.getByRole('progressbar');
       const innerBar = progressbar.firstElementChild as HTMLElement;
-      expect(innerBar.className).toContain('bg-yellow-400');
+      expect(innerBar.className).toContain('bg-status-warning-text');
     });
 
     it('zeigt gruene Farbe bei 100% Fortschritt', () => {
@@ -339,7 +339,7 @@ describe('ZustellstatusAnzeige', () => {
 
       const progressbar = screen.getByRole('progressbar');
       const innerBar = progressbar.firstElementChild as HTMLElement;
-      expect(innerBar.className).toContain('bg-green-500');
+      expect(innerBar.className).toContain('bg-status-success-text');
     });
   });
 

@@ -48,28 +48,28 @@ export function ServerSwitchWarningDialog({ currentServer, targetServer, open, o
       aria-describedby="switch-warning-description"
     >
       {/* Backdrop */}
-      <DialogBackdrop transition className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity data-[closed]:opacity-0" />
+      <DialogBackdrop transition className="fixed inset-0 bg-surface-inverse/50 backdrop-blur-sm transition-opacity data-[closed]:opacity-0" />
 
       {/* Modal Container */}
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel transition className="mx-auto w-full max-w-sm transform rounded-xl bg-white p-6 shadow-xl transition-all data-[closed]:scale-95 data-[closed]:opacity-0 dark:bg-gray-800">
+        <DialogPanel transition className="mx-auto w-full max-w-sm transform rounded-xl bg-surface-panel p-6 shadow-xl transition-all data-[closed]:scale-95 data-[closed]:opacity-0">
           {/* Warning Icon */}
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
-            <PiWarning className="h-6 w-6 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-status-warning-surface">
+            <PiWarning className="h-6 w-6 text-status-warning-text" aria-hidden="true" />
           </div>
 
           {/* Title */}
-          <DialogTitle id="switch-warning-title" className="mt-4 text-center font-semibold text-gray-900 text-lg dark:text-white">
+          <DialogTitle id="switch-warning-title" className="mt-4 text-center font-semibold text-lg text-text-primary">
             Server wechseln
           </DialogTitle>
 
           {/* Description */}
-          <Description id="switch-warning-description" className="mt-2 text-center text-gray-600 text-sm dark:text-gray-400">
-            Um zu Server <span className="font-medium text-gray-900 dark:text-white">"{targetServer.name}"</span> zu wechseln, musst du dich zuerst abmelden.
+          <Description id="switch-warning-description" className="mt-2 text-center text-sm text-text-secondary">
+            Um zu Server <span className="font-medium text-text-primary">"{targetServer.name}"</span> zu wechseln, musst du dich zuerst abmelden.
           </Description>
 
           {/* Info */}
-          <p className="mt-2 text-center text-gray-500 text-xs dark:text-gray-500">
+          <p className="mt-2 text-center text-text-muted text-xs">
             Deine aktuelle Session auf <span className="font-medium">"{currentServer.name}"</span> wird beendet.
           </p>
 

@@ -35,7 +35,7 @@ export function WorkspaceContextBar({ title, subtitle, icon: ContextIcon, backAc
                   // biome-ignore lint/suspicious/noExplicitAny: Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
                   params={routeParams as any}
                   className={cn(
-                    'group inline-flex items-center justify-center gap-2 rounded-control border border-transparent px-2.5 py-1 font-medium font-sans text-body-sm text-text-secondary transition-[background-color,border-color,color,box-shadow] hover:bg-action-secondary hover:text-text-primary focus:outline-none focus-visible:shadow-focus-ring',
+                    'group inline-flex items-center justify-center gap-2 rounded-control border border-transparent px-2.5 py-1 font-medium font-sans text-body-sm text-text-secondary transition-[background-color,border-color,color,box-shadow] hover:bg-action-secondary hover:text-text-primary focus-visible:shadow-focus-ring focus-visible:outline-none',
                   )}
                 >
                   <BackIcon className="h-4 w-4" />

@@ -24,7 +24,7 @@ export function EinsatzSwitcher() {
   if (isLoading) {
     return (
       <div className="mb-4">
-        <output className="block h-9 animate-pulse rounded-lg bg-gray-700" aria-label="Einsatz wird geladen" />
+        <output className="block h-9 animate-pulse rounded-lg bg-surface-raised" aria-label="Einsatz wird geladen" />
       </div>
     );
   }
@@ -46,33 +46,30 @@ export function EinsatzSwitcher() {
       <Listbox as="div" value={einsatzId} onChange={handleChange}>
         <ListboxButton
           className={cn(
-            'group flex w-full items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-left text-sm',
-            'hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600',
+            'group flex w-full items-center gap-2 rounded-lg border border-border-subtle bg-surface-raised px-3 py-2 text-left text-sm',
+            'hover:bg-action-secondary',
+            'focus-visible:outline-none focus-visible:shadow-focus-ring',
           )}
           aria-label="Einsatz wechseln"
         >
-          <PiSiren className="h-4 w-4 flex-shrink-0 text-red-500" />
-          <span className="min-w-0 flex-1 truncate font-medium text-gray-900 dark:text-gray-100">{aktuellerEinsatz?.name ?? 'Einsatz wählen'}</span>
-          <PiCaretUpDown className="h-4 w-4 flex-shrink-0 text-gray-400" />
+          <PiSiren className="h-4 w-4 flex-shrink-0 text-status-danger-text" />
+          <span className="min-w-0 flex-1 truncate font-medium text-text-primary">{aktuellerEinsatz?.name ?? 'Einsatz wählen'}</span>
+          <PiCaretUpDown className="h-4 w-4 flex-shrink-0 text-text-muted" />
         </ListboxButton>
         <ListboxOptions
-          className={cn('absolute z-50 mt-1 max-h-60 w-[var(--button-width)] overflow-auto rounded-lg border border-gray-200 bg-white shadow-lg', 'dark:border-gray-600 dark:bg-gray-700')}
+          className={cn('absolute z-50 mt-1 max-h-60 w-[var(--button-width)] overflow-auto rounded-lg border border-border-subtle bg-surface-panel shadow-panel', 'focus-visible:outline-none')}
           anchor="bottom start"
         >
           {einsaetze.map((einsatz) => (
             <ListboxOption
               key={einsatz.id}
               value={einsatz.id}
-              className={cn(
-                'flex cursor-pointer items-center gap-2 px-3 py-2 text-sm',
-                'data-[focus]:bg-blue-50 dark:data-[focus]:bg-blue-900/20',
-                'data-[selected]:bg-blue-100 data-[selected]:font-medium dark:data-[selected]:bg-blue-900/30',
-              )}
+              className={cn('flex cursor-pointer items-center gap-2 px-3 py-2 text-sm', 'data-[focus]:bg-action-secondary', 'data-[selected]:bg-action-secondary data-[selected]:font-medium')}
             >
-              <PiSiren className="h-3.5 w-3.5 flex-shrink-0 text-red-500" />
+              <PiSiren className="h-3.5 w-3.5 flex-shrink-0 text-status-danger-text" />
               <div className="min-w-0 flex-1">
-                <div className="truncate text-gray-900 dark:text-gray-100">{einsatz.name}</div>
-                {einsatz.alarmstichwort && <div className="truncate text-gray-500 text-xs dark:text-gray-400">{einsatz.alarmstichwort}</div>}
+                <div className="truncate text-text-primary">{einsatz.name}</div>
+                {einsatz.alarmstichwort && <div className="truncate text-body-xs text-text-secondary">{einsatz.alarmstichwort}</div>}
               </div>
             </ListboxOption>
           ))}

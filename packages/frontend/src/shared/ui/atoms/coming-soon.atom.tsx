@@ -13,11 +13,11 @@ export function ComingSoon({ title, description }: ComingSoonProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-bold text-2xl text-gray-900 dark:text-gray-100">{title}</h1>
-        <p className="mt-1 text-gray-500 text-sm dark:text-gray-400">{description}</p>
+        <h1 className="font-bold text-2xl text-text-primary">{title}</h1>
+        <p className="mt-1 text-sm text-text-secondary">{description}</p>
       </div>
-      <div className="flex items-center justify-center rounded-lg border border-gray-300 border-dashed py-16 dark:border-gray-600">
-        <p className="text-gray-400 text-sm dark:text-gray-500">Dieses Modul wird in einem zukünftigen Update verfügbar sein.</p>
+      <div className="flex items-center justify-center rounded-panel border border-border-subtle border-dashed py-16">
+        <p className="text-sm text-text-muted">Dieses Modul wird in einem zukünftigen Update verfügbar sein.</p>
       </div>
     </div>
   );

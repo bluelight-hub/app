@@ -18,7 +18,7 @@ export function NotizSearchBar({ value, onChange, onClear, resultCount, totalCou
       <label className="sr-only" htmlFor="notiz-search">
         Notizen durchsuchen
       </label>
-      <PiMagnifyingGlass aria-hidden="true" className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+      <PiMagnifyingGlass aria-hidden="true" className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-text-muted" />
       <input
         id="notiz-search"
         type="text"
@@ -33,15 +33,14 @@ export function NotizSearchBar({ value, onChange, onClear, resultCount, totalCou
         className={cn(
           'w-full py-2 pl-9 text-sm',
           showResultCount || hasValue ? 'pr-24' : 'pr-4',
-          'rounded-lg border border-gray-300',
-          'focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500',
-          'dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100',
-          'placeholder:text-gray-400',
+          'rounded-control border border-border-subtle bg-surface-panel text-text-primary',
+          'focus:border-action-primary focus:outline-none focus-visible:shadow-focus-ring',
+          'placeholder:text-text-muted',
         )}
       />
       <div className="absolute top-1/2 right-3 flex -translate-y-1/2 items-center gap-2">
         {showResultCount && (
-          <output className="text-gray-400 text-xs" aria-live="polite">
+          <output className="text-text-muted text-xs" aria-live="polite">
             {resultCount} von {totalCount}
           </output>
         )}
@@ -50,7 +49,7 @@ export function NotizSearchBar({ value, onChange, onClear, resultCount, totalCou
             type="button"
             onClick={onClear}
             aria-label="Suche zurücksetzen"
-            className="rounded text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:hover:text-gray-200"
+            className="rounded-control text-text-muted hover:text-text-secondary focus:outline-none focus-visible:shadow-focus-ring"
           >
             <PiX aria-hidden="true" className="h-4 w-4" />
           </button>

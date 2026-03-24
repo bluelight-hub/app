@@ -6,9 +6,9 @@
  * die bestehende Codebase-Terminologie (connected/disconnected).
  *
  * **Farben:**
- * - online/connected: Grün (#10b981 / bg-green-500)
- * - offline/disconnected: Grau (#9ca3af / bg-gray-400)
- * - checking: Gelb mit Pulse-Animation (#eab308 / bg-yellow-500)
+ * - online/connected: status-success
+ * - offline/disconnected: text-muted
+ * - checking: status-warning mit Pulse-Animation
  *
  * @module features/server/ui/atoms/ServerStatusDot
  */
@@ -67,11 +67,11 @@ function normalizeStatus(status: ServerStatus): 'online' | 'offline' | 'checking
 function getStatusColorClass(status: 'online' | 'offline' | 'checking'): string {
   switch (status) {
     case 'online':
-      return 'bg-green-500';
+      return 'bg-status-success-text';
     case 'checking':
-      return 'bg-yellow-500 animate-pulse';
+      return 'bg-status-warning-text animate-pulse';
     case 'offline':
-      return 'bg-gray-400';
+      return 'bg-text-muted';
   }
 }
 
@@ -118,7 +118,6 @@ export const ServerStatusDot = forwardRef<HTMLSpanElement, ServerStatusDotProps>
     lg: 'h-3 w-3',
   };
 
-  // biome-ignore lint/a11y/useSemanticElements: <span role="status"> ist das semantisch korrekte HTML-Element für Live-Status-Indikatoren laut ARIA 1.2 Spec. <output> ist für Formular-Berechnungsergebnisse gedacht, nicht für visuelle Status-Anzeigen.
   return <span ref={ref} role="status" aria-label={ariaLabel} className={cn('inline-block flex-shrink-0 rounded-full', sizeClasses[size], colorClass, className)} />;
 });
 

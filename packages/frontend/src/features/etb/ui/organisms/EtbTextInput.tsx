@@ -35,7 +35,7 @@ export function EtbTextInput({ value, onChange, onBlur, onSubmit, error, maxLeng
 
   return (
     <div className="space-y-1">
-      <label htmlFor={textareaId} className="block font-medium text-gray-700 text-sm dark:text-gray-300">
+      <label htmlFor={textareaId} className="block font-medium text-sm text-text-secondary">
         Text
         <span className="sr-only"> — Strg/Cmd + Enter zum Speichern</span>
       </label>
@@ -60,7 +60,7 @@ export function EtbTextInput({ value, onChange, onBlur, onSubmit, error, maxLeng
       <div className="flex items-start justify-between">
         <div className="flex-1">
           {error && (
-            <p id={errorId} className="text-red-600 text-sm dark:text-red-400" aria-live="polite">
+            <p id={errorId} className="text-sm text-status-danger-text" aria-live="polite">
               {error}
             </p>
           )}
@@ -68,11 +68,7 @@ export function EtbTextInput({ value, onChange, onBlur, onSubmit, error, maxLeng
 
         <div className="ml-2">
           <span
-            className={cn(
-              'text-gray-500 text-sm dark:text-gray-400',
-              value.length >= maxLength * 0.9 && 'text-amber-600 dark:text-amber-400',
-              value.length >= maxLength && 'text-red-600 dark:text-red-400',
-            )}
+            className={cn('text-sm text-text-secondary', value.length >= maxLength * 0.9 && 'text-status-warning-text', value.length >= maxLength && 'text-status-danger-text')}
             title={`${value.length} von ${maxLength} Zeichen verwendet`}
           >
             {value.length} / {maxLength}

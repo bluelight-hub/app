@@ -13,8 +13,8 @@ import L from 'leaflet';
  * - Large (≥100 POIs): 60px diameter, text-lg
  *
  * Farben (AC: 5):
- * - Light-Mode: bg-blue-600, border-blue-400
- * - Dark-Mode: dark:bg-blue-800, dark:border-blue-600
+ * - Light-Mode: bg-status-info-text, border-status-info-border
+ * - Dark-Mode: bg-status-info-text, border-status-info-border
  *
  * Security Note:
  * - childCount kommt von cluster.getChildCount() (Leaflet API, returns number)
@@ -38,7 +38,7 @@ export const createClusterIcon = (cluster: L.MarkerCluster): L.DivIcon => {
 
   // Generate HTML (safe: childCount is numeric, not user-controlled)
   const html = `
-    <div class="${sizeClasses} bg-blue-600 dark:bg-blue-800 text-white rounded-full border-2 border-blue-400 dark:border-blue-600 flex items-center justify-center font-semibold shadow-lg">
+    <div class="${sizeClasses} bg-status-info-text text-text-inverse rounded-full border-2 border-status-info-border flex items-center justify-center font-semibold shadow-lg">
       <span>${childCount}</span>
     </div>
   `;

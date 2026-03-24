@@ -136,38 +136,38 @@ export type ErinnerungCardAccentColor = 'red' | 'amber' | 'green' | 'blue' | 'gr
 
 /** Border-Klassen pro Akzent-Farbe */
 const ACCENT_BORDER: Record<ErinnerungCardAccentColor, string> = {
-  red: 'border-red-500',
-  amber: 'border-amber-400',
-  green: 'border-green-300 dark:border-green-700',
-  blue: 'border-blue-400 dark:border-blue-600',
-  gray: 'border-gray-300 dark:border-gray-700',
+  red: 'border-status-danger-border',
+  amber: 'border-status-warning-border',
+  green: 'border-status-success-border',
+  blue: 'border-status-info-border',
+  gray: 'border-border-subtle',
 };
 
 /** Hintergrund-Klassen pro Akzent-Farbe (full/compact) */
 const ACCENT_BG: Record<ErinnerungCardAccentColor, string> = {
-  red: 'bg-red-50/95 dark:bg-red-950/30',
-  amber: 'bg-amber-50/95 dark:bg-amber-950/30',
-  green: 'bg-green-50/95 dark:bg-green-950/30',
-  blue: 'bg-blue-50/95 dark:bg-blue-950/30',
-  gray: 'dark:bg-gray-800/70',
+  red: 'bg-status-danger-surface/95',
+  amber: 'bg-status-warning-surface/95',
+  green: 'bg-status-success-surface/95',
+  blue: 'bg-status-info-surface/95',
+  gray: 'bg-surface-raised/70',
 };
 
 /** Hover-Hintergrund pro Akzent-Farbe (minimal) */
 const ACCENT_HOVER_BG: Record<ErinnerungCardAccentColor, string> = {
-  red: 'hover:bg-red-50 dark:hover:bg-red-950/30',
-  amber: 'hover:bg-amber-50 dark:hover:bg-amber-950/30',
-  green: 'hover:bg-green-50/50 dark:hover:bg-green-950/20',
-  blue: 'hover:bg-blue-50/50 dark:hover:bg-blue-950/20',
-  gray: 'hover:bg-gray-50/50 dark:hover:bg-gray-800/50',
+  red: 'hover:bg-status-danger-surface',
+  amber: 'hover:bg-status-warning-surface',
+  green: 'hover:bg-status-success-surface',
+  blue: 'hover:bg-status-info-surface',
+  gray: 'hover:bg-surface-raised',
 };
 
 /** Uhrzeit-Farbe pro Akzent-Farbe */
 const ACCENT_TIME: Record<ErinnerungCardAccentColor, string> = {
-  red: 'text-red-600 dark:text-red-400',
-  amber: 'text-amber-600 dark:text-amber-400',
-  green: 'text-green-600 dark:text-green-400',
-  blue: 'text-blue-600 dark:text-blue-400',
-  gray: 'text-gray-400 dark:text-gray-600',
+  red: 'text-status-danger-text',
+  amber: 'text-status-warning-text',
+  green: 'text-status-success-text',
+  blue: 'text-status-info-text',
+  gray: 'text-text-muted',
 };
 
 /** Accent-Farben mit ausgefuellten Aktions-Buttons (sofort handeln + unter Kontrolle) */
@@ -438,36 +438,36 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
     if (isTriggered || isEskaliert) {
       // Story 4.7: Drohende Eskalation -> Dringendste Warnstufe
       if (isEscalationImminent) {
-        return 'border-red-600 dark:border-red-500 ring-4 ring-red-500 dark:ring-red-600 animate-pulse bg-red-100 dark:bg-red-900/40';
+        return 'border-status-danger-text ring-4 ring-status-danger-text animate-pulse bg-status-danger-surface';
       }
       // Story 2.8 AC2: Bei Audio-Ausfall intensivere visuelle Darstellung
       if (audioFailed) {
-        return 'border-red-600 dark:border-red-500 ring-4 ring-red-400 dark:ring-red-700 animate-border-glow-urgent';
+        return 'border-status-danger-text ring-4 ring-status-danger-border animate-border-glow-urgent';
       }
       // Story 2.3 AC2: Bei Intensivierung animate-border-glow hinzufuegen
       if (intensityLevel !== 'none') {
-        return 'border-red-500 dark:border-red-400 ring-2 ring-red-300 dark:ring-red-800 animate-border-glow';
+        return 'border-status-danger-border ring-2 ring-status-danger-border animate-border-glow';
       }
-      return 'border-red-500 dark:border-red-400 ring-2 ring-red-200 dark:ring-red-900/50';
+      return 'border-status-danger-border ring-2 ring-status-danger-border';
     }
     // ACKNOWLEDGED/ERLEDIGT: Gedämpfte Farben
     if (isAcknowledged || isErledigt) {
-      return 'border-gray-200 dark:border-gray-700 opacity-75';
+      return 'border-border-subtle opacity-75';
     }
     // GEPLANT: Progressive Border basierend auf Urgency
     if (erinnerung.status === 'GEPLANT') {
       switch (urgencyLevel) {
         case 'urgent':
-          return 'border-orange-400 dark:border-orange-500';
+          return 'border-status-warning-border';
         case 'warning':
-          return 'border-yellow-300 dark:border-yellow-500';
+          return 'border-status-warning-border';
         case 'critical':
-          return 'border-red-500 dark:border-red-400';
+          return 'border-status-danger-border';
         default:
-          return 'border-gray-200 dark:border-gray-700';
+          return 'border-border-subtle';
       }
     }
-    return 'border-gray-200 dark:border-gray-700';
+    return 'border-border-subtle';
   };
 
   // Story 3.2 AC2: Animation-Classes basierend auf Animation-Typ
@@ -481,10 +481,10 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
       switch (animationEntry.type) {
         case 'update':
           // Statischer blauer Ring als Highlight (ohne Animation)
-          return 'ring-2 ring-blue-400 ring-opacity-50';
+          return 'ring-2 ring-status-info-text/50';
         case 'insert':
           // Statischer gruener Ring fuer neue Items (ohne Slide-Animation)
-          return 'ring-2 ring-green-400 ring-opacity-50';
+          return 'ring-2 ring-status-success-text/50';
         default:
           return '';
       }
@@ -494,7 +494,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
     switch (animationEntry.type) {
       case 'update':
         // Highlight-Effekt bei Update (kurzer Glow/Pulse)
-        return 'animate-highlight ring-2 ring-blue-400 ring-opacity-75';
+        return 'animate-highlight ring-2 ring-status-info-text/75';
       case 'insert':
         // Slide-in Animation für neue Items
         return 'animate-slide-in-right';
@@ -506,9 +506,9 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
   // Effekt-Klassen fuer triggered/eskaliert im Accent-Modus (ohne Border, nur Ring/Glow)
   const getEffectClasses = () => {
     if (isTriggered || isEskaliert) {
-      if (isEscalationImminent) return 'ring-4 ring-red-500 dark:ring-red-600 animate-pulse';
-      if (audioFailed) return 'ring-4 ring-red-400 dark:ring-red-700 animate-border-glow-urgent';
-      if (intensityLevel !== 'none') return 'ring-2 ring-red-300 dark:ring-red-800 animate-border-glow';
+      if (isEscalationImminent) return 'ring-4 ring-status-danger-text animate-pulse';
+      if (audioFailed) return 'ring-4 ring-status-danger-border animate-border-glow-urgent';
+      if (intensityLevel !== 'none') return 'ring-2 ring-status-danger-border animate-border-glow';
     }
     if (isAcknowledged || isErledigt) return 'opacity-75';
     return '';
@@ -521,7 +521,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
     variant === 'minimal'
       ? accentColor
         ? cn('border-l-4 rounded-r px-3 py-2 transition-colors', ACCENT_BORDER[accentColor], ACCENT_HOVER_BG[accentColor])
-        : 'border-b border-gray-100 bg-white py-2 px-3 dark:border-gray-800 dark:bg-gray-800'
+        : 'border-b border-border-subtle bg-surface-panel py-2 px-3'
       : accentColor
         ? cn(
             'border-l-4 rounded-r-lg transition-all',
@@ -530,15 +530,15 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
             ACCENT_BG[accentColor],
             getEffectClasses(),
             getAnimationClasses(),
-            isHighlighted && 'ring-4 ring-amber-400 ring-opacity-75 animate-pulse',
+            isHighlighted && 'ring-4 ring-status-warning-border/80 animate-pulse',
           )
         : cn(
-            'rounded-lg border bg-white shadow-sm transition-all dark:bg-gray-800',
+            'rounded-lg border border-border-subtle bg-surface-panel shadow-panel transition-all',
             variant === 'compact' ? 'p-3' : 'p-4',
             getBorderClasses(),
-            (isTriggered || isEskaliert) && 'bg-red-50 dark:bg-red-900/20',
+            (isTriggered || isEskaliert) && 'bg-status-danger-surface',
             getAnimationClasses(),
-            isHighlighted && 'ring-4 ring-amber-400 ring-opacity-75 animate-pulse',
+            isHighlighted && 'ring-4 ring-status-warning-border/80 animate-pulse',
           ),
     className,
   );
@@ -548,21 +548,21 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
 
   // Status-Dot Farbe fuer minimal Variante
   const getStatusDotColor = () => {
-    if (isTriggered || isEskaliert) return 'bg-red-500 animate-pulse';
-    if (erinnerung.status === 'SNOOZED') return 'bg-orange-400';
-    if (isAcknowledged) return 'bg-emerald-500';
-    if (isErledigt) return 'bg-gray-300 dark:bg-gray-600';
+    if (isTriggered || isEskaliert) return 'bg-status-danger-text animate-pulse';
+    if (erinnerung.status === 'SNOOZED') return 'bg-status-warning-text';
+    if (isAcknowledged) return 'bg-status-success-text';
+    if (isErledigt) return 'bg-text-muted/60';
     // GEPLANT: Orange wenn bald faellig
-    if (urgencyLevel === 'warning' || urgencyLevel === 'urgent' || urgencyLevel === 'critical') return 'bg-orange-400';
-    return 'bg-gray-400';
+    if (urgencyLevel === 'warning' || urgencyLevel === 'urgent' || urgencyLevel === 'critical') return 'bg-status-warning-text';
+    return 'bg-text-muted';
   };
 
   // Status-spezifische Text-Klassen fuer minimal Variante
   const getMinimalTextClasses = () => {
-    if (isTriggered || isEskaliert) return 'font-medium text-red-700 dark:text-red-400';
-    if (erinnerung.status === 'SNOOZED') return 'italic text-orange-600 dark:text-orange-400';
-    if (isErledigt) return 'line-through text-gray-500 dark:text-gray-400';
-    return 'text-gray-900 dark:text-white';
+    if (isTriggered || isEskaliert) return 'font-medium text-status-danger-text';
+    if (erinnerung.status === 'SNOOZED') return 'italic text-status-warning-text';
+    if (isErledigt) return 'line-through text-text-muted';
+    return 'text-text-primary';
   };
 
   // Story 3.4: Zuweisungs-Dialog (wird immer gerendert, sichtbar nur wenn isAssignDialogOpen)
@@ -588,19 +588,25 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
       <>
         {/* biome-ignore lint/a11y/useSemanticElements: div mit role="group" ist hier korrekt, da Container interaktive Elemente enthaelt */}
         {/* biome-ignore lint/a11y/useKeyWithClickEvents: Keyboard-Navigation via interaktive Kindelemente */}
-        <div ref={cardRef} role="group" onClick={handleCardClick} aria-label={`Erinnerung "${erinnerung.titel}"`} className={cn(cardBaseClasses, 'group relative focus:outline-none')}>
+        <div
+          ref={cardRef}
+          role="group"
+          onClick={handleCardClick}
+          aria-label={`Erinnerung "${erinnerung.titel}"`}
+          className={cn(cardBaseClasses, 'group relative focus:outline-none focus-visible:shadow-focus-ring')}
+        >
           <div className="flex items-center gap-2">
             {/* Status-Dot */}
             <span className={cn('h-2 w-2 flex-shrink-0 rounded-full', getStatusDotColor())} aria-hidden="true" />
 
             {/* Snoozed: Kleines Uhr-Icon */}
-            {erinnerung.status === 'SNOOZED' && <PiTimer className="h-3 w-3 flex-shrink-0 text-orange-500 dark:text-orange-400" aria-hidden="true" />}
+            {erinnerung.status === 'SNOOZED' && <PiTimer className="h-3 w-3 flex-shrink-0 text-status-warning-text" aria-hidden="true" />}
 
             {/* Titel mit Status-spezifischem Styling */}
             <span className={cn('min-w-0 truncate text-sm', getMinimalTextClasses())}>{erinnerung.titel}</span>
 
             {/* Uhrzeit (wird bei Hover durch Actions ersetzt) */}
-            <span className={cn('ml-auto whitespace-nowrap text-xs group-hover:hidden', accentColor ? cn('font-mono font-semibold', ACCENT_TIME[accentColor]) : 'text-gray-400')}>{timeString}</span>
+            <span className={cn('ml-auto whitespace-nowrap text-xs group-hover:hidden', accentColor ? cn('font-mono font-semibold', ACCENT_TIME[accentColor]) : 'text-text-muted')}>{timeString}</span>
 
             {/* Hover-Actions (ersetzen die Uhrzeit visuell) */}
             <div className="ml-auto hidden flex-shrink-0 items-center gap-0.5 group-hover:flex">
@@ -614,7 +620,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                   }}
                   aria-label="Bestätigen"
                   title="Bestätigen"
-                  className="h-6 w-6 cursor-pointer p-0 text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20"
+                  className="h-6 w-6 cursor-pointer p-0 text-status-success-text hover:bg-action-secondary"
                 >
                   <PiCheckCircle className="pointer-events-none h-3.5 w-3.5" />
                 </Button>
@@ -629,7 +635,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                   }}
                   aria-label="Erledigt"
                   title="Erledigt"
-                  className="h-6 w-6 cursor-pointer p-0 text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20"
+                  className="h-6 w-6 cursor-pointer p-0 text-status-success-text hover:bg-action-secondary"
                 >
                   <PiCheckSquareOffset className="pointer-events-none h-3.5 w-3.5" />
                 </Button>
@@ -644,7 +650,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                   }}
                   aria-label="5 Min Snooze"
                   title="5 Min Snooze"
-                  className="h-6 w-6 cursor-pointer p-0 text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-900/20"
+                  className="h-6 w-6 cursor-pointer p-0 text-status-warning-text hover:bg-action-secondary"
                 >
                   <PiTimer className="pointer-events-none h-3.5 w-3.5" />
                 </Button>
@@ -658,7 +664,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                 }}
                 aria-label="Verlauf anzeigen"
                 title="Verlauf anzeigen"
-                className="h-6 w-6 cursor-pointer p-0 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+                className="h-6 w-6 cursor-pointer p-0 text-text-muted hover:bg-action-secondary"
               >
                 <PiClockCounterClockwise className="pointer-events-none h-3.5 w-3.5" />
               </Button>
@@ -687,9 +693,11 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h4 className="font-medium text-gray-900 text-sm dark:text-white">{erinnerung.titel}</h4>
+              <h4 className="font-medium text-sm text-text-primary">{erinnerung.titel}</h4>
               {/* Compact: Uhrzeit rechtsbuendig in Zeile 1 */}
-              {variant === 'compact' && <span className={cn('ml-auto whitespace-nowrap font-mono font-semibold text-xs', accentColor ? ACCENT_TIME[accentColor] : 'text-gray-400')}>{timeString}</span>}
+              {variant === 'compact' && (
+                <span className={cn('ml-auto whitespace-nowrap font-mono font-semibold text-xs', accentColor ? ACCENT_TIME[accentColor] : 'text-text-muted')}>{timeString}</span>
+              )}
               {/* Story 7.5 AC3: Typ-Badge (nur full) */}
               {variant === 'full' && <ItemTypeBadge type="erinnerung" />}
               {/* Story 8.2: Kategorie-Badge mit Runtime Type Check */}
@@ -702,7 +710,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                   {/* Story 6.4 + 6.5: Wiederkehrend-Badge */}
                   {(erinnerung.isRecurring || erinnerung.parentErinnerungId) && (
                     <span
-                      className="inline-flex items-center text-amber-500 dark:text-amber-400"
+                      className="inline-flex items-center text-status-warning-text"
                       title={
                         erinnerung.isRecurring
                           ? `Wiederkehrend alle ${erinnerung.recurringIntervalMinutes} Min`
@@ -716,7 +724,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                   {!erinnerung.isRecurring && !erinnerung.parentErinnerungId && (erinnerung.recurringCurrentCount as unknown as number) > 0 && erinnerung.recurringIntervalMinutes && (
                     <output
                       aria-label="Serie gestoppt"
-                      className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-1.5 py-0.5 font-medium text-gray-600 text-xs dark:bg-gray-700 dark:text-gray-300"
+                      className="inline-flex items-center gap-1 rounded-full bg-surface-raised px-1.5 py-0.5 font-medium text-text-secondary text-xs"
                       title={`Serie gestoppt (${erinnerung.recurringCurrentCount as unknown as number} Instanzen erstellt)`}
                     >
                       <PiStopCircle className="h-3 w-3" aria-hidden="true" />
@@ -727,7 +735,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                   {isOfflineCreated && (
                     <output
                       aria-label="Offline erstellt"
-                      className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 font-medium text-amber-700 text-xs dark:bg-amber-900/40 dark:text-amber-300"
+                      className="inline-flex items-center gap-1 rounded-full bg-status-warning-surface px-1.5 py-0.5 font-medium text-status-warning-text text-xs"
                       title="Offline erstellt"
                     >
                       <PiCloudSlash className="h-3 w-3" aria-hidden="true" />
@@ -738,7 +746,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                   {isRetrigger && (
                     <output
                       aria-label={`${retriggerNumber}. Auslösung`}
-                      className="inline-flex items-center gap-1 rounded-full bg-red-100 px-1.5 py-0.5 font-medium text-red-700 text-xs dark:bg-red-900/40 dark:text-red-300"
+                      className="inline-flex items-center gap-1 rounded-full bg-status-danger-surface px-1.5 py-0.5 font-medium text-status-danger-text text-xs"
                       title={`${retriggerNumber}. Auslösung`}
                     >
                       {retriggerNumber}. Auslösung
@@ -748,7 +756,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                   {erinnerung.requiresNote && (
                     <output
                       aria-label="Pflicht-Notiz"
-                      className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 font-medium text-amber-700 text-xs dark:bg-amber-900/40 dark:text-amber-300"
+                      className="inline-flex items-center gap-1 rounded-full bg-status-warning-surface px-1.5 py-0.5 font-medium text-status-warning-text text-xs"
                       title="Notiz erforderlich"
                     >
                       <PiNotepad className="h-3 w-3" aria-hidden="true" />
@@ -757,10 +765,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                   )}
                   {/* Story 3.1 AC8: Team-Badge */}
                   {isTeamReminder && (
-                    <output
-                      aria-label="Team-Erinnerung"
-                      className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-1.5 py-0.5 font-medium text-blue-700 text-xs dark:bg-blue-900/40 dark:text-blue-300"
-                    >
+                    <output aria-label="Team-Erinnerung" className="inline-flex items-center gap-1 rounded-full bg-status-info-surface px-1.5 py-0.5 font-medium text-status-info-text text-xs">
                       Team
                     </output>
                   )}
@@ -768,7 +773,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                   {erinnerung.eskalationsPersonName && (
                     <output
                       aria-label={`Eskalation an: ${erinnerung.eskalationsPersonName}`}
-                      className="inline-flex items-center gap-1 rounded-full bg-red-50 px-1.5 py-0.5 font-medium text-red-700 text-xs dark:bg-red-900/40 dark:text-red-300"
+                      className="inline-flex items-center gap-1 rounded-full bg-status-danger-surface px-1.5 py-0.5 font-medium text-status-danger-text text-xs"
                       title={`Im Eskalationsfall benachrichtigt: ${erinnerung.eskalationsPersonName}`}
                     >
                       <PiWarning className="h-3 w-3" aria-hidden="true" />
@@ -779,7 +784,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                   {(erinnerung as unknown as { eskalationNurAnErsteller?: boolean })?.eskalationNurAnErsteller && (
                     <output
                       aria-label="Rückläufer aktiv - Eskalation geht an Ersteller"
-                      className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 font-medium text-amber-700 text-xs dark:bg-amber-900/40 dark:text-amber-300"
+                      className="inline-flex items-center gap-1 rounded-full bg-status-warning-surface px-1.5 py-0.5 font-medium text-status-warning-text text-xs"
                       title="Eskalation geht automatisch an den Ersteller zurück (Rückläufer)"
                     >
                       ↩️ Rückläufer
@@ -789,7 +794,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                   {erinnerung.previousAssigneeName && (
                     <output
                       aria-label={`Eskaliert von: ${erinnerung.previousAssigneeName}`}
-                      className="inline-flex items-center gap-1 rounded-full bg-red-100 px-1.5 py-0.5 font-medium text-red-700 text-xs dark:bg-red-900/40 dark:text-red-300"
+                      className="inline-flex items-center gap-1 rounded-full bg-status-danger-surface px-1.5 py-0.5 font-medium text-status-danger-text text-xs"
                       title={`Eskaliert von ${erinnerung.previousAssigneeName} am ${erinnerung.escalatedAt ? new Date(erinnerung.escalatedAt as unknown as string).toLocaleTimeString() : ''}`}
                     >
                       <PiWarning className="h-3 w-3" aria-hidden="true" />
@@ -801,7 +806,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
               )}
             </div>
             {/* Beschreibung: nur in full */}
-            {variant === 'full' && erinnerung.beschreibung && <p className="mt-0.5 text-gray-500 text-xs dark:text-gray-400">{erinnerung.beschreibung as unknown as string}</p>}
+            {variant === 'full' && erinnerung.beschreibung && <p className="mt-0.5 text-text-muted text-xs">{erinnerung.beschreibung as unknown as string}</p>}
 
             {/* ETB-Link: nur in full */}
             {variant === 'full' && erinnerung.etbEntryId && (
@@ -819,8 +824,8 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
             {variant === 'full' && (showCreator || isTeamReminder || (assignedToId && assignedToId === currentUserId)) && erinnerung.erstellerName && (
               <div className="mt-0.5 flex items-center gap-1.5">
                 <AvatarInitials name={erinnerung.erstellerName as unknown as string} size="sm" />
-                <p className="text-gray-400 text-xs dark:text-gray-500">
-                  <span className="text-gray-500 dark:text-gray-400">{assignedToId === currentUserId ? 'Erstellt von' : 'von'}</span> {erinnerung.erstellerName as unknown as string}
+                <p className="text-text-muted text-xs">
+                  <span className="text-text-secondary">{assignedToId === currentUserId ? 'Erstellt von' : 'von'}</span> {erinnerung.erstellerName as unknown as string}
                 </p>
               </div>
             )}
@@ -832,13 +837,13 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
 
                 {/* Story 4.7: Escalation Countdown */}
                 {isEscalationImminent && (
-                  <span className="flex animate-pulse items-center gap-1 font-bold text-red-600 text-xs dark:text-red-400">
+                  <span className="flex animate-pulse items-center gap-1 font-bold text-status-danger-text text-xs">
                     <PiWarning className="h-3 w-3" />
                     {msUntilEscalation > 0 ? `Eskaliert in ${Math.ceil(msUntilEscalation / 1000)}s` : 'Eskalation wird ausgeführt...'}
                   </span>
                 )}
 
-                <span className="text-gray-400 text-xs">{timeString}</span>
+                <span className="text-text-muted text-xs">{timeString}</span>
               </div>
             )}
           </div>
@@ -861,7 +866,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
               onClick={handleOpenAssignDialog}
               aria-label={`Erinnerung ${assignActionLabel}`}
               title={`Erinnerung ${assignActionLabel}`}
-              className="h-10 w-10 p-0 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20"
+              className="h-10 w-10 p-0 text-action-primary hover:bg-action-secondary"
             >
               <PiUserPlus className="h-5 w-5" />
             </Button>
@@ -874,7 +879,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
               onClick={handleDelete}
               aria-label="Erinnerung löschen"
               title="Erinnerung löschen"
-              className="h-10 w-10 p-0 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+              className="h-10 w-10 p-0 text-status-danger-text hover:bg-action-secondary"
             >
               <PiTrash className="h-5 w-5" />
             </Button>
@@ -891,7 +896,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
               }}
               aria-label="Serie beenden"
               title="Wiederkehrende Serie beenden"
-              className="h-10 w-10 p-0 text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-900/20"
+              className="h-10 w-10 p-0 text-status-warning-text hover:bg-action-secondary"
             >
               <PiStopCircle className="h-5 w-5" />
             </Button>
@@ -907,7 +912,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
             }}
             aria-label="Verlauf anzeigen"
             title="Verlauf anzeigen"
-            className="h-10 w-10 p-0 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+            className="h-10 w-10 p-0 text-text-muted hover:bg-action-secondary"
           >
             <PiClockCounterClockwise className="h-5 w-5" />
           </Button>
@@ -916,7 +921,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
 
       {/* Primaere Aktionen fuer AUSGELOEST oder ACKNOWLEDGED */}
       {(isAcknowledgeable || isMarkErledigtable || isSnoozeable) && (
-        <div className={cn('flex flex-wrap items-center gap-2 border-t pt-2', isTriggered ? 'border-red-200 dark:border-red-800' : 'border-gray-100 dark:border-gray-700')}>
+        <div className={cn('flex flex-wrap items-center gap-2 border-t pt-2', isTriggered ? 'border-status-danger-border' : 'border-border-subtle')}>
           {/* Acknowledge Button - filled in rot/gruen Zone, outline in anderen */}
           {isAcknowledgeable &&
             (accentColor && FILLED_BUTTON_ACCENTS.has(accentColor) ? (
@@ -928,8 +933,8 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                 className={cn(
                   'justify-center gap-2',
                   variant === 'compact'
-                    ? cn('h-8 min-w-[80px]', isTriggered ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700')
-                    : cn('h-10 min-w-[120px] flex-1', isTriggered ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'),
+                    ? cn('h-8 min-w-[80px]', isTriggered ? 'bg-status-danger-text hover:opacity-90' : 'bg-status-success-text hover:opacity-90')
+                    : cn('h-10 min-w-[120px] flex-1', isTriggered ? 'bg-status-danger-text hover:opacity-90' : 'bg-status-success-text hover:opacity-90'),
                 )}
               >
                 <PiCheckCircle className={cn(variant === 'compact' ? 'h-4 w-4' : 'h-5 w-5', acknowledgeErinnerung.isPending && 'animate-pulse')} />
@@ -942,7 +947,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                 onClick={handleAcknowledge}
                 disabled={acknowledgeErinnerung.isPending}
                 className={cn(
-                  'justify-center gap-2 border-green-500 text-green-700 hover:bg-green-50 dark:border-green-600 dark:text-green-400 dark:hover:bg-green-950/30',
+                  'justify-center gap-2 border-status-success-border text-status-success-text hover:bg-action-secondary',
                   variant === 'compact' ? 'h-8 min-w-[80px]' : 'h-10 min-w-[120px] flex-1',
                 )}
               >
@@ -958,7 +963,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                 appearance="filled"
                 size="sm"
                 onClick={handleMarkErledigt}
-                className={cn('justify-center gap-2 bg-green-600 text-white hover:bg-green-700', variant === 'compact' ? 'h-8 min-w-[80px]' : 'h-10 flex-1')}
+                className={cn('justify-center gap-2 bg-status-success-text text-text-inverse hover:opacity-90', variant === 'compact' ? 'h-8 min-w-[80px]' : 'h-10 flex-1')}
               >
                 <PiCheckSquareOffset className={variant === 'compact' ? 'h-4 w-4' : 'h-5 w-5'} />
                 <span>Erledigt</span>
@@ -968,10 +973,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                 appearance="outline"
                 size="sm"
                 onClick={handleMarkErledigt}
-                className={cn(
-                  'justify-center gap-2 border-green-500 text-green-700 hover:bg-green-50 dark:border-green-600 dark:text-green-400 dark:hover:bg-green-950/30',
-                  variant === 'compact' ? 'h-8 min-w-[80px]' : 'h-10 flex-1',
-                )}
+                className={cn('justify-center gap-2 border-status-success-border text-status-success-text hover:bg-action-secondary', variant === 'compact' ? 'h-8 min-w-[80px]' : 'h-10 flex-1')}
               >
                 <PiCheckSquareOffset className={variant === 'compact' ? 'h-4 w-4' : 'h-5 w-5'} />
                 <span>Erledigt</span>
@@ -983,7 +985,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
 
           {/* Keyboard Hint: nur in full */}
           {variant === 'full' && isFocused && isAcknowledgeable && (
-            <span className="mt-1 w-full animate-pulse text-center font-medium text-red-600 text-xs dark:text-red-400">Enter: Bestätigen · Esc: 5 Min Snooze</span>
+            <span className="mt-1 w-full animate-pulse text-center font-medium text-status-danger-text text-xs">Enter: Bestätigen · Esc: 5 Min Snooze</span>
           )}
         </div>
       )}
@@ -1004,7 +1006,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
         onBlur={() => setIsFocused(false)}
         onClick={handleCardClick}
         aria-label={`Erinnerung "${erinnerung.titel}"`}
-        className={cn(cardBaseClasses, 'group w-full text-left focus:outline-none')}
+        className={cn(cardBaseClasses, 'group w-full text-left focus:outline-none focus-visible:shadow-focus-ring')}
       >
         {cardContent}
       </div>

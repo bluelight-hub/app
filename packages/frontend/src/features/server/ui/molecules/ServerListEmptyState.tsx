@@ -25,7 +25,7 @@ import { Button } from '@/shared/ui/atoms/button.atom';
  * Nutzt Heroicons-Stil mit angepassten Größen und Farben.
  */
 const ServerIcon = () => (
-  <svg className="h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+  <svg className="h-12 w-12 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -69,7 +69,7 @@ export interface ServerListEmptyStateProps {
  * // Mit custom className
  * <ServerListEmptyState
  *   onAddServer={handleAddServer}
- *   className="bg-gray-50 rounded-xl"
+ *   className="bg-surface-raised rounded-xl"
  * />
  * ```
  */
@@ -80,10 +80,10 @@ export const ServerListEmptyState = forwardRef<HTMLDivElement, ServerListEmptySt
       <ServerIcon />
 
       {/* Überschrift */}
-      <h3 className="mt-4 font-medium text-gray-900 text-lg dark:text-white">Keine Server konfiguriert</h3>
+      <h3 className="mt-4 font-medium text-lg text-text-primary">Keine Server konfiguriert</h3>
 
       {/* Hilfstext */}
-      <p className="mt-2 text-gray-500 text-sm dark:text-gray-400">Füge einen Server hinzu, um loszulegen.</p>
+      <p className="mt-2 text-sm text-text-secondary">Füge einen Server hinzu, um loszulegen.</p>
 
       {/* CTA-Button */}
       {onAddServer && (

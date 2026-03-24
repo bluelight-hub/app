@@ -20,8 +20,8 @@ const BASE_STYLES =
 const INTENT_COLORS = {
   primary: {
     filled: 'border-transparent bg-action-primary text-text-inverse shadow-button-primary hover:bg-action-primary-hover',
-    outline: 'border-action-primary/35 bg-surface-panel text-action-primary hover:border-action-primary hover:bg-primary-50 dark:hover:bg-primary-950/50',
-    ghost: 'border-transparent bg-transparent text-action-primary hover:bg-primary-50 dark:hover:bg-primary-950/40',
+    outline: 'border-action-primary/35 bg-surface-panel text-action-primary hover:border-action-primary hover:bg-primary-50',
+    ghost: 'border-transparent bg-transparent text-action-primary hover:bg-primary-50',
     minimal: 'border-transparent bg-transparent text-text-secondary hover:text-action-primary',
     heavy: 'border-transparent bg-action-primary text-text-inverse shadow-button-primary hover:bg-action-primary-hover',
   },
@@ -85,7 +85,7 @@ const CONTENT_SIZES = {
 };
 
 const KBD_INTENT_COLORS = {
-  primary: 'bg-primary-100 text-primary-700 group-hover:bg-primary-200 dark:bg-primary-900/50 dark:text-primary-100',
+  primary: 'bg-primary-100 text-primary-700 group-hover:bg-primary-200',
   secondary: 'bg-action-secondary text-text-secondary group-hover:bg-action-secondary-hover',
   danger: 'bg-status-danger-surface text-status-danger-text',
   warning: 'bg-status-warning-surface text-status-warning-text',

@@ -117,7 +117,7 @@ function KonfigurationsFormular() {
   return (
     <Card padding="lg">
       <div className="mb-4 flex items-center gap-2">
-        <PiShieldCheck className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        <PiShieldCheck className="h-5 w-5 text-action-primary" />
         <Heading size="lg" as="h2">
           Aufbewahrungsregeln
         </Heading>
@@ -203,9 +203,9 @@ function KonfigurationsFormular() {
 
           <form.Field name="automatischLoeschenAktiv">
             {(field) => (
-              <div className="flex items-center justify-between rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+              <div className="flex items-center justify-between rounded-panel border border-border-subtle p-4">
                 <div className="flex-1">
-                  <label htmlFor="auto-loeschen-switch" id="auto-loeschen-label" className="block font-medium text-gray-700 text-sm dark:text-gray-200">
+                  <label htmlFor="auto-loeschen-switch" id="auto-loeschen-label" className="block font-medium text-text-secondary text-sm">
                     Automatische Loeschung
                   </label>
                   <Text size="xs" color="muted" className="mt-0.5">
@@ -240,7 +240,7 @@ function VorschauTabelle() {
   return (
     <Card padding="lg">
       <div className="mb-4 flex items-center gap-2">
-        <PiEye className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+        <PiEye className="h-5 w-5 text-status-warning-text" />
         <Heading size="lg" as="h2">
           Vorschau betroffener Einsaetze
         </Heading>
@@ -271,7 +271,7 @@ function VorschauTabelle() {
 
           {vorschau.einsaetze.length === 0 ? (
             <div className="py-6 text-center">
-              <PiCheckCircle className="mx-auto mb-2 h-8 w-8 text-green-500" />
+              <PiCheckCircle className="mx-auto mb-2 h-8 w-8 text-status-success-text" />
               <Text size="sm" color="muted">
                 Keine Einsaetze betroffen. Alle Daten sind innerhalb der Aufbewahrungsfrist.
               </Text>
@@ -279,7 +279,7 @@ function VorschauTabelle() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
-                <thead className="border-gray-200 border-b text-gray-500 text-xs uppercase dark:border-gray-700 dark:text-gray-400">
+                <thead className="border-border-subtle border-b text-text-muted text-xs uppercase">
                   <tr>
                     <th className="px-4 py-3">Einsatz-Nr.</th>
                     <th className="px-4 py-3">Archiviert am</th>
@@ -287,15 +287,15 @@ function VorschauTabelle() {
                     <th className="px-4 py-3 text-right">Befehle</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                <tbody className="divide-y divide-border-subtle">
                   {vorschau.einsaetze.map((einsatz) => (
-                    <tr key={einsatz.einsatzId} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{einsatz.einsatzNummer}</td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{formatDate(einsatz.archiviertAm)}</td>
+                    <tr key={einsatz.einsatzId} className="hover:bg-surface-raised">
+                      <td className="px-4 py-3 font-medium text-text-primary">{einsatz.einsatzNummer}</td>
+                      <td className="px-4 py-3 text-text-secondary">{formatDate(einsatz.archiviertAm)}</td>
                       <td className="px-4 py-3">
-                        <span className="text-amber-600 dark:text-amber-400">{formatDate(einsatz.anonymisierungFaelligAm)}</span>
+                        <span className="text-status-warning-text">{formatDate(einsatz.anonymisierungFaelligAm)}</span>
                       </td>
-                      <td className="px-4 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{einsatz.befehlCount}</td>
+                      <td className="px-4 py-3 text-right font-mono text-text-secondary">{einsatz.befehlCount}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -318,7 +318,7 @@ function ComplianceReportsTabelle() {
   return (
     <Card padding="lg">
       <div className="mb-4 flex items-center gap-2">
-        <PiClockCountdown className="h-5 w-5 text-green-600 dark:text-green-400" />
+        <PiClockCountdown className="h-5 w-5 text-status-success-text" />
         <Heading size="lg" as="h2">
           Compliance-Reports
         </Heading>
@@ -339,7 +339,7 @@ function ComplianceReportsTabelle() {
       {reports &&
         (reports.length === 0 ? (
           <div className="py-6 text-center">
-            <PiShieldCheck className="mx-auto mb-2 h-8 w-8 text-gray-400" />
+            <PiShieldCheck className="mx-auto mb-2 h-8 w-8 text-text-muted" />
             <Text size="sm" color="muted">
               Noch keine Anonymisierungen oder Loeschungen durchgefuehrt.
             </Text>
@@ -347,7 +347,7 @@ function ComplianceReportsTabelle() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-gray-200 border-b text-gray-500 text-xs uppercase dark:border-gray-700 dark:text-gray-400">
+              <thead className="border-border-subtle border-b text-text-muted text-xs uppercase">
                 <tr>
                   <th className="px-4 py-3">Typ</th>
                   <th className="px-4 py-3">Durchgefuehrt am</th>
@@ -357,20 +357,20 @@ function ComplianceReportsTabelle() {
                   <th className="px-4 py-3 text-right">Kommentare</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+              <tbody className="divide-y divide-border-subtle">
                 {reports.map((report) => (
-                  <tr key={report.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                  <tr key={report.id} className="hover:bg-surface-raised">
                     <td className="px-4 py-3">
                       <Badge variant={getReportTypBadgeVariant(report.typ)} size="sm">
                         {report.typ === 'LOESCHUNG' && <PiTrash className="mr-1 inline h-3 w-3" />}
                         {getReportTypLabel(report.typ)}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{formatDateTime(report.durchgefuehrtAm)}</td>
-                    <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{report.durchgefuehrtVon}</td>
-                    <td className="px-4 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{report.befehlCount}</td>
-                    <td className="px-4 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{report.empfaengerCount}</td>
-                    <td className="px-4 py-3 text-right font-mono text-gray-600 dark:text-gray-400">{report.kommentarCount}</td>
+                    <td className="px-4 py-3 text-text-secondary">{formatDateTime(report.durchgefuehrtAm)}</td>
+                    <td className="px-4 py-3 text-text-secondary">{report.durchgefuehrtVon}</td>
+                    <td className="px-4 py-3 text-right font-mono text-text-secondary">{report.befehlCount}</td>
+                    <td className="px-4 py-3 text-right font-mono text-text-secondary">{report.empfaengerCount}</td>
+                    <td className="px-4 py-3 text-right font-mono text-text-secondary">{report.kommentarCount}</td>
                   </tr>
                 ))}
               </tbody>

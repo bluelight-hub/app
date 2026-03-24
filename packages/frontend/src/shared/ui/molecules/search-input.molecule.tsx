@@ -78,7 +78,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
       <div className="relative">
         {showSearchIcon && (
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <PiMagnifyingGlass className="h-5 w-5 text-gray-400" />
+            <PiMagnifyingGlass className="h-5 w-5 text-text-muted" />
           </div>
         )}
 
@@ -98,7 +98,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
             appearance="minimal"
             size="icon"
             onClick={handleClear}
-            className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            className="absolute inset-y-0 right-0 flex items-center pr-3 text-text-muted hover:text-text-secondary"
             aria-label="Suche löschen"
           >
             <PiX className="h-5 w-5" />

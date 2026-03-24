@@ -84,10 +84,10 @@ export const EtbTableRowEditable: React.FC<EtbTableRowEditableProps> = ({ row, s
       onKeyDown={handleKeyDown}
       className={cn(
         'transition-all duration-300 focus-visible:shadow-focus-ring focus-visible:outline-none',
-        row.original.deletedAt ? 'border-l-2 border-l-red-500 bg-red-50/30 opacity-60 dark:bg-red-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-900/50',
-        isEditing && 'bg-blue-50 dark:bg-blue-900/20',
+        row.original.deletedAt ? 'border-l-2 border-l-status-danger-border bg-status-danger-surface/30 opacity-60' : 'hover:bg-surface-raised',
+        isEditing && 'bg-action-secondary',
         // Story 5.5: Highlight-Animation wenn Entry hervorgehoben ist
-        isHighlighted && 'bg-primary-50 ring-2 ring-primary-500 ring-offset-2 dark:bg-primary-900/20',
+        isHighlighted && 'bg-status-info-surface ring-2 ring-status-info-border ring-offset-2 ring-offset-surface-panel',
         className,
       )}
       style={style}
@@ -102,7 +102,11 @@ export const EtbTableRowEditable: React.FC<EtbTableRowEditableProps> = ({ row, s
               <textarea
                 value={editText}
                 onChange={(e) => setEditText(e.target.value)}
-                className={cn('w-full rounded-md border-gray-300 shadow-sm', 'focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm', 'dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100')}
+                className={cn(
+                  'w-full rounded-md border border-border-subtle bg-surface-panel px-3 py-2 text-sm text-text-primary shadow-sm',
+                  'focus:border-action-primary focus-visible:shadow-focus-ring focus-visible:outline-none',
+                  'resize-none',
+                )}
                 rows={2}
               />
             </td>

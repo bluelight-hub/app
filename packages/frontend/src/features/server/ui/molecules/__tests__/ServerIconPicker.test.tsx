@@ -145,7 +145,7 @@ describe('ServerIconPicker', () => {
       // Then
       const shieldButton = screen.getByRole('radio', { name: /schild/i });
       expect(shieldButton).toHaveClass('ring-2');
-      expect(shieldButton).toHaveClass('ring-primary-500');
+      expect(shieldButton).toHaveClass('ring-action-primary');
     });
 
     it('should not apply ring styling to unselected icons', () => {
@@ -491,7 +491,7 @@ describe('ServerIconPicker', () => {
       // Then
       const buttons = screen.getAllByRole('radio');
       for (const button of buttons) {
-        expect(button).toHaveClass('hover:bg-gray-100');
+        expect(button).toHaveClass('hover:bg-action-secondary');
       }
     });
 
@@ -517,7 +517,7 @@ describe('ServerIconPicker', () => {
       // Then
       const buttons = screen.getAllByRole('radio');
       for (const button of buttons) {
-        expect(button).toHaveClass('dark:hover:bg-gray-700');
+        expect(button).toHaveClass('hover:bg-action-secondary');
       }
     });
 
@@ -531,7 +531,7 @@ describe('ServerIconPicker', () => {
       // Then
       const buttons = screen.getAllByRole('radio');
       for (const button of buttons) {
-        expect(button).toHaveClass('focus-visible:ring-2');
+        expect(button).toHaveClass('focus-visible:shadow-focus-ring');
       }
     });
   });

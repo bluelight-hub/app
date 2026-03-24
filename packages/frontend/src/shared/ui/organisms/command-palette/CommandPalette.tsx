@@ -86,7 +86,7 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
   return (
     <Dialog open={open} as="div" className="relative z-50" onClose={onOpenChange}>
       {/* Backdrop */}
-      <DialogBackdrop transition className="fixed inset-0 bg-black/40 backdrop-blur-sm duration-200 ease-out data-[closed]:opacity-0 dark:bg-black/60" aria-hidden="true" />
+      <DialogBackdrop transition className="fixed inset-0 bg-surface-inverse/40 backdrop-blur-sm duration-200 ease-out data-[closed]:opacity-0" aria-hidden="true" />
 
       {/* Dialog Panel */}
       <div className="fixed inset-0 overflow-y-auto p-4 sm:p-6 lg:p-8">
@@ -95,13 +95,13 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
           className={cn(
             'mx-auto mt-[10vh] max-w-2xl transform',
             'overflow-hidden rounded-lg',
-            'bg-white/95 backdrop-blur-xl dark:bg-gray-900/95',
-            'shadow-2xl ring-1 ring-gray-900/10 dark:ring-white/10',
+            'bg-surface-panel/95 backdrop-blur-xl',
+            'shadow-2xl ring-1 ring-border-subtle/50',
             'duration-200 ease-out data-[closed]:scale-95 data-[closed]:opacity-0',
           )}
         >
           <Command
-            className="overflow-hidden [&_[cmdk-group-heading]]:mb-2 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-gray-500 [&_[cmdk-group-heading]]:text-xs dark:[&_[cmdk-group-heading]]:text-gray-400"
+            className="overflow-hidden [&_[cmdk-group-heading]]:mb-2 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-text-secondary [&_[cmdk-group-heading]]:text-xs"
             onKeyDown={(e) => {
               // Handle navigation edge cases when no results
               if (filteredCommands.length === 0 && (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'Tab')) {
@@ -114,7 +114,7 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
             {/* Search Input */}
             <div className="relative">
               <div className="absolute top-1/2 left-4 -translate-y-1/2">
-                <PiTerminal className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                <PiTerminal className="h-5 w-5 text-text-muted" />
               </div>
               <Command.Input
                 ref={inputRef}
@@ -122,17 +122,17 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
                 onValueChange={actions.setSearch}
                 className={cn(
                   'w-full bg-transparent py-3 pr-10 pl-10',
-                  'text-base text-gray-900 dark:text-gray-100',
-                  'placeholder-gray-400 dark:placeholder-gray-500',
-                  'focus:outline-none',
-                  'border-gray-200 border-b dark:border-gray-700',
+                  'text-base text-text-primary',
+                  'placeholder:text-text-muted',
+                  'focus-visible:outline-none focus-visible:shadow-focus-ring',
+                  'border-border-subtle border-b',
                 )}
                 placeholder="Suche nach Befehlen oder springe zu..."
                 autoFocus
               />
               {state.immediateSearch && (
                 <CloseButton onClick={() => actions.setSearch('')} className="absolute top-1/2 right-4 -translate-y-1/2" aria-label="Suche löschen">
-                  <PiX className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                  <PiX className="h-4 w-4 text-text-muted" />
                 </CloseButton>
               )}
             </div>
@@ -143,8 +143,8 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
             {/* Command List */}
             <Command.List className="max-h-[calc(100vh-24rem)] overflow-y-auto scroll-smooth p-2">
               <Command.Empty className="flex flex-col items-center justify-center px-4 py-8">
-                <PiWarning className="mb-3 h-10 w-10 text-gray-300 dark:text-gray-600" />
-                <p className="text-gray-500 text-sm dark:text-gray-400">Keine Ergebnisse für "{state.immediateSearch}"</p>
+                <PiWarning className="mb-3 h-10 w-10 text-text-muted" />
+                <p className="text-sm text-text-secondary">Keine Ergebnisse für "{state.immediateSearch}"</p>
               </Command.Empty>
 
               {/* Show subcommands or regular commands */}
@@ -152,7 +152,7 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
                 <Command.Group
                   heading={
                     <div className="mt-2 flex items-center gap-2">
-                      {state.selectedCommand.icon && <state.selectedCommand.icon className="h-3.5 w-3.5 text-gray-500" />}
+                      {state.selectedCommand.icon && <state.selectedCommand.icon className="h-3.5 w-3.5 text-text-muted" />}
                       <span className="text-xs uppercase tracking-wider">Optionen für {state.selectedCommand.name}</span>
                     </div>
                   }
@@ -174,7 +174,7 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
                     key={group.id}
                     heading={
                       <div className="mt-2 flex items-center gap-2 first:mt-0">
-                        <group.icon className="h-3.5 w-3.5" />
+                        <group.icon className="h-3.5 w-3.5 text-text-muted" />
                         <span className="text-xs uppercase tracking-wider">{group.name}</span>
                       </div>
                     }

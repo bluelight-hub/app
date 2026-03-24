@@ -24,8 +24,8 @@ function getHistorieEventKeyBase(event: BefehlHistorieEventDto): string {
 function TimelineDot({ status }: { status: BefehlHistorieEventDto['status'] }) {
   if (status === StatusEnum.Abgeschlossen) {
     return (
-      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500 ring-8 ring-white dark:ring-gray-800">
-        <PiCheck className="h-4 w-4 text-white" aria-hidden="true" />
+      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-status-success-text ring-8 ring-surface-panel">
+        <PiCheck className="h-4 w-4 text-text-inverse" aria-hidden="true" />
       </span>
     );
   }
@@ -33,9 +33,9 @@ function TimelineDot({ status }: { status: BefehlHistorieEventDto['status'] }) {
   if (status === StatusEnum.Aktuell) {
     return (
       <span className="relative flex h-8 w-8 items-center justify-center">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75 motion-reduce:animate-none" />
-        <span className="relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 ring-8 ring-white dark:ring-gray-800">
-          <PiClock className="h-4 w-4 text-white" aria-hidden="true" />
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-action-primary opacity-75 motion-reduce:animate-none" />
+        <span className="relative flex h-8 w-8 items-center justify-center rounded-full bg-action-primary ring-8 ring-surface-panel">
+          <PiClock className="h-4 w-4 text-text-inverse" aria-hidden="true" />
         </span>
       </span>
     );
@@ -43,8 +43,8 @@ function TimelineDot({ status }: { status: BefehlHistorieEventDto['status'] }) {
 
   // AUSSTEHEND
   return (
-    <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-gray-300 bg-white ring-8 ring-white dark:border-gray-600 dark:bg-gray-800 dark:ring-gray-800">
-      <PiDotsThree className="h-4 w-4 text-gray-400 dark:text-gray-500" aria-hidden="true" />
+    <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-border-subtle bg-surface-panel ring-8 ring-surface-panel">
+      <PiDotsThree className="h-4 w-4 text-text-muted" aria-hidden="true" />
     </span>
   );
 }
@@ -56,12 +56,12 @@ function LoadingSkeleton() {
         {[0, 1, 2].map((i) => (
           <li key={i}>
             <div className="relative pb-8">
-              {i !== 2 && <span className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200 dark:bg-gray-700" aria-hidden="true" />}
+              {i !== 2 && <span className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-border-subtle" aria-hidden="true" />}
               <div className="relative flex space-x-3">
-                <div className="h-8 w-8 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
+                <div className="h-8 w-8 animate-pulse rounded-full bg-surface-raised" />
                 <div className="flex-1 space-y-2 pt-1">
-                  <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
-                  <div className="h-3 w-1/2 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                  <div className="h-4 w-3/4 animate-pulse rounded bg-surface-raised" />
+                  <div className="h-3 w-1/2 animate-pulse rounded bg-surface-raised" />
                 </div>
               </div>
             </div>
@@ -82,9 +82,9 @@ export function BefehlHistorieTimeline({ befehlId }: BefehlHistorieTimelineProps
 
   if (isError) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-800 dark:bg-red-900/20" data-testid="historie-error">
-        <p className="text-red-600 text-sm dark:text-red-400">Historie konnte nicht geladen werden</p>
-        <button type="button" onClick={() => refetch()} className="mt-2 font-medium text-red-700 text-sm underline hover:text-red-800 dark:text-red-300 dark:hover:text-red-200">
+      <div className="rounded-lg border border-status-danger-border bg-status-danger-surface p-4 text-center" data-testid="historie-error">
+        <p className="text-status-danger-text text-sm">Historie konnte nicht geladen werden</p>
+        <button type="button" onClick={() => refetch()} className="mt-2 font-medium text-status-danger-text text-sm underline hover:text-action-primary">
           Erneut versuchen
         </button>
       </div>
@@ -93,7 +93,7 @@ export function BefehlHistorieTimeline({ befehlId }: BefehlHistorieTimelineProps
 
   if (!timeline || timeline.events.length === 0) {
     return (
-      <p className="text-center text-gray-500 text-sm dark:text-gray-400" data-testid="historie-leer">
+      <p className="text-center text-text-muted text-sm" data-testid="historie-leer">
         Keine Historie vorhanden
       </p>
     );
@@ -116,7 +116,7 @@ export function BefehlHistorieTimeline({ befehlId }: BefehlHistorieTimelineProps
           return (
             <li key={`${eventKeyBase}|${occurrence}`}>
               <div className="relative pb-8">
-                {!isLast && <span className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200 dark:bg-gray-700" aria-hidden="true" />}
+                {!isLast && <span className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-border-subtle" aria-hidden="true" />}
                 <button
                   type="button"
                   className="relative flex w-full space-x-3 text-left"
@@ -129,19 +129,19 @@ export function BefehlHistorieTimeline({ befehlId }: BefehlHistorieTimelineProps
                   </div>
                   <div className="flex min-w-0 flex-1 justify-between space-x-4">
                     <div>
-                      <p className={cn('font-medium text-sm', event.status === StatusEnum.Ausstehend ? 'text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-gray-100')}>
+                      <p className={cn('font-medium text-sm', event.status === StatusEnum.Ausstehend ? 'text-text-muted' : 'text-text-primary')}>
                         {event.beschreibung}
-                        {event.akteur && <span className="ml-1 font-normal text-gray-500 dark:text-gray-400">durch {event.akteur}</span>}
+                        {event.akteur && <span className="ml-1 font-normal text-text-muted">durch {event.akteur}</span>}
                       </p>
-                      {isExpanded && event.details && <p className="mt-1 text-gray-500 text-sm dark:text-gray-400">{event.details}</p>}
+                      {isExpanded && event.details && <p className="mt-1 text-text-muted text-sm">{event.details}</p>}
                       {isExpanded && event.korrekturBefehlNummer && (
-                        <p className="mt-1 text-gray-500 text-sm dark:text-gray-400">
+                        <p className="mt-1 text-text-muted text-sm">
                           Korrektur: <span className="font-mono">{event.korrekturBefehlNummer}</span>
                         </p>
                       )}
                     </div>
                     {zeitpunktDate && (
-                      <div className="shrink-0 whitespace-nowrap text-right text-gray-500 text-sm dark:text-gray-400">
+                      <div className="shrink-0 whitespace-nowrap text-right text-text-muted text-sm">
                         <time dateTime={zeitpunktDate.toISOString()}>{format(zeitpunktDate, 'dd.MM.yyyy HH:mm')}</time>
                       </div>
                     )}

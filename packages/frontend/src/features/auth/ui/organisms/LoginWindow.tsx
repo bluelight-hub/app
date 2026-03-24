@@ -328,7 +328,7 @@ export function LoginWindow(_props: Props) {
           {/* Logo Section */}
           <div className="space-y-6 text-center">
             <LogoWithIndicator size="lg" status={indicatorStatus} />
-            <Heading size="2xl" className="text-gray-900 dark:text-white">
+            <Heading size="2xl" className="text-text-primary">
               Bluelight Hub
             </Heading>
             <Text size="md" color="muted">

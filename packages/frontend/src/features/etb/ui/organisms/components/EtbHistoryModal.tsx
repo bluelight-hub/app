@@ -136,13 +136,13 @@ export function EtbHistoryModal({ entry, etbId, isOpen, onClose }: EtbHistoryMod
     <Dialog isOpen={isOpen} onClose={onClose} size="xl">
       <Dialog.Title>
         Versionshistorie
-        {activeEntry && <span className="ml-2 text-gray-500 text-sm dark:text-gray-400">Eintrag #{activeEntry.sequenceNumber}</span>}
+        {activeEntry && <span className="ml-2 text-sm text-text-secondary">Eintrag #{activeEntry.sequenceNumber}</span>}
       </Dialog.Title>
 
       <Dialog.Body className="max-h-[70vh] overflow-y-auto">
         {isLoading ? (
           <div className="flex h-64 items-center justify-center">
-            <PiCircleNotch className="h-8 w-8 animate-spin text-primary-500" />
+            <PiCircleNotch className="h-8 w-8 animate-spin text-action-primary" />
           </div>
         ) : hasHistory ? (
           <Timeline>
@@ -162,7 +162,7 @@ export function EtbHistoryModal({ entry, etbId, isOpen, onClose }: EtbHistoryMod
             ))}
           </Timeline>
         ) : (
-          <div className="flex h-64 items-center justify-center text-gray-500 dark:text-gray-400">Keine Versionshistorie verfügbar</div>
+          <div className="flex h-64 items-center justify-center text-text-secondary">Keine Versionshistorie verfügbar</div>
         )}
       </Dialog.Body>
 

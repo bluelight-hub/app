@@ -73,8 +73,8 @@ export function PinnwandErinnerungen({ einsatzId, className }: PinnwandErinnerun
   // Guard - User muss eingeloggt sein
   if (!user) {
     return (
-      <div className={cn('rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-900/20', className)}>
-        <p className="text-sm text-yellow-700 dark:text-yellow-300">Bitte einloggen um Erinnerungen zu sehen</p>
+      <div className={cn('rounded-panel border border-status-warning-border bg-status-warning-surface p-4', className)}>
+        <p className="text-sm text-status-warning-text">Bitte einloggen um Erinnerungen zu sehen</p>
       </div>
     );
   }
@@ -119,14 +119,14 @@ const SWIMLANE_CONFIGS: SwimlaneConfig[] = [
     emoji: '\u{1F534}',
     variant: 'full',
     accentColor: 'red',
-    headerBg: 'bg-red-50 dark:bg-red-950/80',
-    headerText: 'text-red-800 dark:text-red-300',
-    headerBorderColor: 'border-red-200 dark:border-red-900/50',
-    badgeBg: 'bg-red-600 text-white',
+    headerBg: 'bg-status-danger-surface',
+    headerText: 'text-status-danger-text',
+    headerBorderColor: 'border-status-danger-border',
+    badgeBg: 'bg-status-danger-text text-text-inverse',
     cardSpacing: 'space-y-3',
     statusText: 'Aktive Alarme',
     statusPulse: true,
-    statusTextColor: 'text-red-500 dark:text-red-400',
+    statusTextColor: 'text-status-danger-text',
   },
   {
     key: 'aufmerksamkeit',
@@ -134,13 +134,13 @@ const SWIMLANE_CONFIGS: SwimlaneConfig[] = [
     emoji: '\u{1F7E1}',
     variant: 'compact',
     accentColor: 'amber',
-    headerBg: 'bg-amber-50 dark:bg-amber-950/80',
-    headerText: 'text-amber-800 dark:text-amber-300',
-    headerBorderColor: 'border-amber-200 dark:border-amber-900/40',
-    badgeBg: 'bg-amber-500 text-white',
+    headerBg: 'bg-status-warning-surface',
+    headerText: 'text-status-warning-text',
+    headerBorderColor: 'border-status-warning-border',
+    badgeBg: 'bg-status-warning-text text-text-inverse',
     cardSpacing: 'space-y-2',
     statusText: 'Bald fällig',
-    statusTextColor: 'text-amber-600 dark:text-amber-400',
+    statusTextColor: 'text-status-warning-text',
   },
   {
     key: 'kontrolle',
@@ -148,13 +148,13 @@ const SWIMLANE_CONFIGS: SwimlaneConfig[] = [
     emoji: '\u{1F7E2}',
     variant: 'compact',
     accentColor: 'green',
-    headerBg: 'bg-green-50 dark:bg-green-950/80',
-    headerText: 'text-green-800 dark:text-green-300',
-    headerBorderColor: 'border-green-200 dark:border-green-900/40',
-    badgeBg: 'bg-green-600 text-white',
+    headerBg: 'bg-status-success-surface',
+    headerText: 'text-status-success-text',
+    headerBorderColor: 'border-status-success-border',
+    badgeBg: 'bg-status-success-text text-text-inverse',
     cardSpacing: 'space-y-2',
     statusText: 'Bestätigt',
-    statusTextColor: 'text-green-600 dark:text-green-400',
+    statusTextColor: 'text-status-success-text',
   },
   {
     key: 'eingeplant',
@@ -162,13 +162,13 @@ const SWIMLANE_CONFIGS: SwimlaneConfig[] = [
     emoji: '\u{1F535}',
     variant: 'compact',
     accentColor: 'blue',
-    headerBg: 'bg-blue-50 dark:bg-blue-950/80',
-    headerText: 'text-blue-800 dark:text-blue-300',
-    headerBorderColor: 'border-blue-200 dark:border-blue-900/40',
-    badgeBg: 'bg-blue-600 text-white',
+    headerBg: 'bg-status-info-surface',
+    headerText: 'text-status-info-text',
+    headerBorderColor: 'border-status-info-border',
+    badgeBg: 'bg-status-info-text text-text-inverse',
     cardSpacing: 'space-y-2',
     statusText: 'Geplant',
-    statusTextColor: 'text-blue-600 dark:text-blue-400',
+    statusTextColor: 'text-status-info-text',
   },
   {
     key: 'abgeschlossen',
@@ -176,10 +176,10 @@ const SWIMLANE_CONFIGS: SwimlaneConfig[] = [
     emoji: '\u{26AA}',
     variant: 'minimal',
     accentColor: 'gray',
-    headerBg: 'bg-gray-50 dark:bg-gray-900/80',
-    headerText: 'text-gray-500 dark:text-gray-500',
-    headerBorderColor: 'border-gray-200 dark:border-gray-800',
-    badgeBg: 'bg-gray-400 dark:bg-gray-600 text-white',
+    headerBg: 'bg-surface-raised',
+    headerText: 'text-text-muted',
+    headerBorderColor: 'border-border-subtle',
+    badgeBg: 'bg-text-muted text-text-inverse',
     cardSpacing: 'space-y-1',
   },
 ];
@@ -394,16 +394,16 @@ function PinnwandErinnerungenInner({ einsatzId, className, currentUserId }: Pinn
   if (isLoading) {
     return (
       <div className={cn('animate-pulse', className)}>
-        <div className="h-20 rounded-lg bg-gray-200 dark:bg-gray-700" />
-        <div className="mt-2 h-20 rounded-lg bg-gray-200 dark:bg-gray-700" />
+        <div className="h-20 rounded-lg bg-surface-raised" />
+        <div className="mt-2 h-20 rounded-lg bg-surface-raised" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className={cn('rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20', className)}>
-        <p className="text-red-700 text-sm dark:text-red-300">Fehler beim Laden der Erinnerungen</p>
+      <div className={cn('rounded-panel border border-status-danger-border bg-status-danger-surface p-4', className)}>
+        <p className="text-sm text-status-danger-text">Fehler beim Laden der Erinnerungen</p>
       </div>
     );
   }
@@ -422,50 +422,41 @@ function PinnwandErinnerungenInner({ einsatzId, className, currentUserId }: Pinn
       />
 
       {/* Einheitlicher Container */}
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+      <div className="overflow-hidden rounded-xl border border-border-subtle bg-surface-panel">
         <TabGroup defaultIndex={0}>
           {/* Header */}
-          <div className="flex flex-col gap-3 border-gray-200 border-b px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between dark:border-gray-800">
+          <div className="flex flex-col gap-3 border-border-subtle border-b px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <PiAlarm className="h-5 w-5 text-red-500" />
-                <span className="absolute -top-1 -right-1.5 h-2 w-2 animate-pulse rounded-full bg-red-500" />
+                <PiAlarm className="h-5 w-5 text-status-danger-text" />
+                <span className="absolute -top-1 -right-1.5 h-2 w-2 animate-pulse rounded-full bg-status-danger-text" />
               </div>
-              <h3 className="font-bold text-gray-900 text-lg tracking-tight dark:text-white">Erinnerungen</h3>
+              <h3 className="font-bold text-lg text-text-primary tracking-tight">Erinnerungen</h3>
               {sortedErinnerungen.length > 0 && (
-                <span className="rounded-full bg-red-100 px-2 py-0.5 font-mono font-semibold text-red-700 text-xs dark:bg-red-900/40 dark:text-red-300">{sortedErinnerungen.length}</span>
+                <span className="rounded-full bg-status-danger-surface px-2 py-0.5 font-mono font-semibold text-status-danger-text text-xs">{sortedErinnerungen.length}</span>
               )}
               <span
-                className={cn(
-                  'flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs',
-                  isConnected ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
-                )}
+                className={cn('flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs', isConnected ? 'bg-status-success-surface text-status-success-text' : 'bg-surface-raised text-text-muted')}
                 title={isConnected ? 'Echtzeit-Updates aktiv' : 'Verbindung unterbrochen'}
               >
                 {isConnected ? <PiWifiHigh className="h-3 w-3" /> : <PiWifiSlash className="h-3 w-3" />}
               </span>
             </div>
             <div className="flex items-center gap-3">
-              <TabList className="flex items-center gap-1 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-800">
+              <TabList className="flex items-center gap-1 rounded-lg bg-action-secondary p-0.5">
                 <Tab
                   className={({ selected }) =>
-                    cn(
-                      'rounded-md px-3 py-1.5 font-medium text-sm transition-colors',
-                      selected ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300',
-                    )
+                    cn('rounded-md px-3 py-1.5 font-medium text-sm transition-colors', selected ? 'bg-surface-panel text-text-primary shadow-sm' : 'text-text-secondary hover:text-text-primary')
                   }
                 >
-                  Meine <span className="ml-1 font-mono text-gray-500 text-xs dark:text-gray-400">({myErinnerungen.length})</span>
+                  Meine <span className="ml-1 font-mono text-text-muted text-xs">({myErinnerungen.length})</span>
                 </Tab>
                 <Tab
                   className={({ selected }) =>
-                    cn(
-                      'rounded-md px-3 py-1.5 font-medium text-sm transition-colors',
-                      selected ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300',
-                    )
+                    cn('rounded-md px-3 py-1.5 font-medium text-sm transition-colors', selected ? 'bg-surface-panel text-text-primary shadow-sm' : 'text-text-secondary hover:text-text-primary')
                   }
                 >
-                  Team <span className="ml-1 font-mono text-xs">({teamErinnerungen.length})</span>
+                  Team <span className="ml-1 font-mono text-text-muted text-xs">({teamErinnerungen.length})</span>
                 </Tab>
               </TabList>
               <Button size="sm" appearance="ghost" onClick={handleCreateClick}>
@@ -509,7 +500,7 @@ function PinnwandErinnerungenInner({ einsatzId, className, currentUserId }: Pinn
                   </div>
                   {/* Anzeige der gefilterten Anzahl bei aktivem Filter */}
                   {isAnyFilterActive && (
-                    <span className="text-gray-500 text-xs dark:text-gray-400">
+                    <span className="text-text-muted text-xs">
                       {filteredByStatus.length} von {teamErinnerungen.length}
                     </span>
                   )}
@@ -587,8 +578,8 @@ function SwimlaneView({ groups, einsatzId, currentUserId, showCreator, onCreateC
   if (totalCount === 0) {
     return (
       <div className="p-6 text-center">
-        <PiAlarm className="mx-auto h-8 w-8 text-gray-400 dark:text-gray-500" />
-        <p className="mt-2 text-gray-500 text-sm dark:text-gray-400">{emptyMessage}</p>
+        <PiAlarm className="mx-auto h-8 w-8 text-text-muted" />
+        <p className="mt-2 text-sm text-text-muted">{emptyMessage}</p>
         <Button size="sm" appearance="ghost" className="mt-3" onClick={onCreateClick}>
           <PiPlus className="mr-1 h-4 w-4" />
           Erinnerung erstellen
@@ -608,7 +599,7 @@ function SwimlaneView({ groups, einsatzId, currentUserId, showCreator, onCreateC
         if (items.length === 0) return null;
 
         return (
-          <div key={config.key} className="border-gray-200 border-b dark:border-gray-800">
+          <div key={config.key} className="border-border-subtle border-b">
             {/* Swimlane Header - Sticky mit Separator */}
             {isCollapsible ? (
               <button
@@ -617,7 +608,7 @@ function SwimlaneView({ groups, einsatzId, currentUserId, showCreator, onCreateC
                   'sticky top-0 z-10 flex w-full cursor-pointer items-center justify-between border-b px-5 py-2.5 transition-colors',
                   config.headerBg,
                   config.headerBorderColor,
-                  isAbgeschlossen ? 'hover:bg-gray-100 dark:hover:bg-gray-800/50' : 'hover:brightness-95 dark:hover:brightness-110',
+                  isAbgeschlossen ? 'hover:bg-action-secondary' : 'hover:brightness-95',
                 )}
                 onClick={() => toggleCollapse(config.key)}
                 aria-expanded={!isCollapsed}
@@ -629,7 +620,7 @@ function SwimlaneView({ groups, einsatzId, currentUserId, showCreator, onCreateC
                 </div>
                 <div className="flex items-center gap-2">
                   {!isAbgeschlossen && config.statusText && <span className={cn('font-medium text-xs', config.statusTextColor)}>{config.statusText}</span>}
-                  {isCollapsed ? <PiCaretDown className="h-4 w-4 text-gray-400" /> : <PiCaretUp className="h-4 w-4 text-gray-400" />}
+                  {isCollapsed ? <PiCaretDown className="h-4 w-4 text-text-muted" /> : <PiCaretUp className="h-4 w-4 text-text-muted" />}
                 </div>
               </button>
             ) : (
@@ -641,7 +632,7 @@ function SwimlaneView({ groups, einsatzId, currentUserId, showCreator, onCreateC
                 </div>
                 {config.statusText && (
                   <span className={cn('flex items-center gap-1 font-medium text-xs', config.statusTextColor)}>
-                    {config.statusPulse && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500" />}
+                    {config.statusPulse && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-status-danger-text" />}
                     {config.statusText}
                   </span>
                 )}
@@ -650,7 +641,7 @@ function SwimlaneView({ groups, einsatzId, currentUserId, showCreator, onCreateC
 
             {/* Cards */}
             {!isCollapsed && (
-              <div className={cn('divide-y divide-gray-100 px-4 py-2 dark:divide-gray-800/60', isAbgeschlossen && 'opacity-60')}>
+              <div className={cn('divide-y divide-border-subtle px-4 py-2', isAbgeschlossen && 'opacity-60')}>
                 {items.map((e) => (
                   <div key={e.id} className="py-1.5">
                     <ErinnerungCard erinnerung={e} einsatzId={einsatzId} variant={config.variant} accentColor={config.accentColor} showCreator={showCreator} currentUserId={currentUserId} />

@@ -59,7 +59,7 @@ function KraefteDashboardRoute() {
   if (mode === 'fullscreen') {
     return (
       <EinsatzRolleGate einsatzId={einsatzId}>
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="min-h-screen bg-surface-raised">
           <KraefteDashboard einsatzId={einsatzId} mode="fullscreen" />
         </div>
       </EinsatzRolleGate>

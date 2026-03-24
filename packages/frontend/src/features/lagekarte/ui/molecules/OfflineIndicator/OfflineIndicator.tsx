@@ -59,9 +59,7 @@ export const OfflineIndicator: React.FC = () => {
         'font-medium text-sm shadow-lg',
         'transition-all duration-300',
         'backdrop-blur-md', // Glassmorphism-Effekt
-        isOnline
-          ? 'bg-green-50/90 text-green-700 ring-1 ring-green-200 dark:bg-green-900/30 dark:text-green-400 dark:ring-green-800'
-          : 'bg-red-50/90 text-red-700 ring-1 ring-red-200 dark:bg-red-900/30 dark:text-red-400 dark:ring-red-800',
+        isOnline ? 'bg-status-success-surface text-status-success-text ring-1 ring-status-success-border' : 'bg-status-danger-surface text-status-danger-text ring-1 ring-status-danger-border',
       )}
       aria-live="polite"
       aria-label={isOnline ? 'Online-Modus' : 'Offline-Modus'}

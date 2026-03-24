@@ -13,7 +13,7 @@ export function BefehleViewToggle({ className }: { className?: string }) {
   ];
 
   return (
-    <div className={cn('inline-flex rounded-lg border border-gray-200 dark:border-gray-700', className)} role="toolbar" aria-label="Ansicht wechseln">
+    <div className={cn('inline-flex rounded-lg border border-border-subtle bg-surface-panel', className)} role="toolbar" aria-label="Ansicht wechseln">
       {buttons.map(({ view, icon: Icon, label }) => (
         <button
           key={view}
@@ -24,10 +24,8 @@ export function BefehleViewToggle({ className }: { className?: string }) {
           className={cn(
             'inline-flex items-center justify-center p-2 transition-colors motion-reduce:transition-none',
             'first:rounded-l-lg last:rounded-r-lg',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
-            currentView === view
-              ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300'
-              : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200',
+            'focus-visible:outline-none focus-visible:shadow-focus-ring',
+            currentView === view ? 'bg-action-secondary text-action-primary' : 'text-text-muted hover:bg-action-secondary hover:text-text-secondary',
           )}
         >
           <Icon className="h-5 w-5" />

@@ -151,20 +151,20 @@ export function EinsatzRollenManager({ einsatzId }: EinsatzRollenManagerProps) {
   if (isLoading) {
     return (
       <output className="flex items-center justify-center py-12" aria-label="Rollen werden geladen">
-        <PiSpinner className="h-6 w-6 animate-spin text-gray-400" />
-        <span className="ml-2 text-gray-500 text-sm">Rollen werden geladen...</span>
+        <PiSpinner className="h-6 w-6 animate-spin text-text-muted" />
+        <span className="ml-2 text-body-sm text-text-secondary">Rollen werden geladen...</span>
       </output>
     );
   }
 
   if (isError) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20" role="alert">
+      <div className="rounded-lg border border-status-danger-border bg-status-danger-surface p-4" role="alert">
         <div className="flex items-center gap-2">
-          <PiWarning className="h-5 w-5 text-red-500" />
-          <p className="font-medium text-red-800 text-sm dark:text-red-200">Fehler beim Laden der Rollen</p>
+          <PiWarning className="h-5 w-5 text-status-danger-text" />
+          <p className="font-medium text-body-sm text-status-danger-text">Fehler beim Laden der Rollen</p>
         </div>
-        <p className="mt-1 text-red-700 text-xs dark:text-red-300">{error?.message ?? 'Unbekannter Fehler'}</p>
+        <p className="mt-1 text-body-xs text-status-danger-text">{error?.message ?? 'Unbekannter Fehler'}</p>
       </div>
     );
   }
@@ -173,7 +173,7 @@ export function EinsatzRollenManager({ einsatzId }: EinsatzRollenManagerProps) {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold text-gray-900 text-lg dark:text-gray-100">Rollen verwalten</h2>
+        <h2 className="font-semibold text-text-primary text-lg">Rollen verwalten</h2>
         <div className="flex items-center gap-2">
           {hasChanges && (
             <Button appearance="ghost" size="sm" onClick={handleReset} disabled={updateMutation.isPending}>
@@ -197,32 +197,32 @@ export function EinsatzRollenManager({ einsatzId }: EinsatzRollenManagerProps) {
       </div>
 
       {/* Rollen-Tabelle */}
-      <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700" aria-label="Rollenzuweisungen">
-          <thead className="bg-gray-50 dark:bg-gray-800">
+      <div className="overflow-hidden rounded-lg border border-border-subtle">
+        <table className="min-w-full divide-y divide-border-subtle" aria-label="Rollenzuweisungen">
+          <thead className="bg-surface-raised">
             <tr>
-              <th scope="col" className="px-4 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">
+              <th scope="col" className="px-4 py-3 text-left font-medium text-body-xs uppercase tracking-wider text-text-muted">
                 Benutzer
               </th>
-              <th scope="col" className="px-4 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">
+              <th scope="col" className="px-4 py-3 text-left font-medium text-body-xs uppercase tracking-wider text-text-muted">
                 Rolle
               </th>
-              <th scope="col" className="px-4 py-3 text-right font-medium text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">
+              <th scope="col" className="px-4 py-3 text-right font-medium text-body-xs uppercase tracking-wider text-text-muted">
                 Aktionen
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
+          <tbody className="divide-y divide-border-subtle bg-surface-panel">
             {effectiveRollen.length === 0 ? (
               <tr>
-                <td colSpan={3} className="px-4 py-8 text-center text-gray-500 text-sm dark:text-gray-400">
+                <td colSpan={3} className="px-4 py-8 text-center text-body-sm text-text-secondary">
                   Keine Rollen zugewiesen. Fügen Sie Benutzer hinzu.
                 </td>
               </tr>
             ) : (
               effectiveRollen.map((zeile) => (
-                <tr key={zeile.userId} className={cn(zeile.isNew && 'bg-green-50 dark:bg-green-900/10')}>
-                  <td className="whitespace-nowrap px-4 py-3 font-medium text-gray-900 text-sm dark:text-gray-100">{zeile.userName}</td>
+                <tr key={zeile.userId} className={cn(zeile.isNew && 'bg-status-success-surface')}>
+                  <td className="whitespace-nowrap px-4 py-3 font-medium text-text-primary text-body-sm">{zeile.userName}</td>
                   <td className="px-4 py-3">
                     <RollenDropdown value={zeile.rolle} onChange={(rolle) => handleRolleChange(zeile.userId, rolle)} userName={zeile.userName} />
                   </td>
@@ -233,7 +233,7 @@ export function EinsatzRollenManager({ einsatzId }: EinsatzRollenManagerProps) {
                       onClick={() => handleRemoveUser(zeile.userId)}
                       disabled={updateMutation.isPending}
                       aria-label={`${zeile.userName} entfernen`}
-                      className="text-red-600 hover:text-red-700 dark:text-red-400"
+                      className="text-status-danger-text hover:text-status-danger-text"
                     >
                       <PiTrash className="h-4 w-4" />
                     </Button>
@@ -263,19 +263,23 @@ function RollenDropdown({ value, onChange, userName }: { value: string; onChange
   return (
     <Listbox as="div" value={value} onChange={onChange}>
       <ListboxButton
-        className={cn('flex items-center gap-2 rounded-md border border-gray-200 px-3 py-1.5 text-sm', 'hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700')}
+        className={cn(
+          'flex items-center gap-2 rounded-md border border-border-subtle px-3 py-1.5 text-body-sm',
+          'hover:bg-action-secondary',
+          'focus-visible:outline-none focus-visible:shadow-focus-ring',
+        )}
         aria-label={`Rolle für ${userName} auswählen`}
       >
-        <span className="text-gray-900 dark:text-gray-100">{ROLLEN_LABELS[value] ?? value}</span>
-        <PiCaretUpDown className="h-3.5 w-3.5 text-gray-400" />
+        <span className="text-text-primary">{ROLLEN_LABELS[value] ?? value}</span>
+        <PiCaretUpDown className="h-3.5 w-3.5 text-text-muted" />
       </ListboxButton>
-      <ListboxOptions className="z-50 mt-1 rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-600 dark:bg-gray-700" anchor="bottom start">
+      <ListboxOptions className="z-50 mt-1 rounded-lg border border-border-subtle bg-surface-panel shadow-panel" anchor="bottom start">
         {ALLE_ROLLEN.map((rolle) => (
-          <ListboxOption key={rolle} value={rolle} className={cn('flex cursor-pointer items-center gap-2 px-3 py-2 text-sm', 'data-[focus]:bg-blue-50 dark:data-[focus]:bg-blue-900/20')}>
+          <ListboxOption key={rolle} value={rolle} className={cn('flex cursor-pointer items-center gap-2 px-3 py-2 text-body-sm', 'data-[focus]:bg-action-secondary')}>
             {({ selected }) => (
               <>
-                <PiCheck className={cn('h-4 w-4', selected ? 'text-blue-600' : 'invisible')} />
-                <span className={cn(selected && 'font-medium', 'text-gray-900 dark:text-gray-100')}>{ROLLEN_LABELS[rolle]}</span>
+                <PiCheck className={cn('h-4 w-4', selected ? 'text-status-info-text' : 'invisible')} />
+                <span className={cn(selected && 'font-medium', 'text-text-primary')}>{ROLLEN_LABELS[rolle]}</span>
               </>
             )}
           </ListboxOption>
@@ -312,11 +316,7 @@ function UserSucheCombobox({
         >
           <div className="relative">
             <ComboboxInput
-              className={cn(
-                'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm',
-                'focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500',
-                'dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100',
-              )}
+              className={cn('w-full rounded-lg border border-border-subtle bg-surface-panel px-3 py-2 text-body-sm text-text-primary', 'focus-visible:outline-none focus-visible:shadow-focus-ring')}
               placeholder="Benutzer suchen..."
               displayValue={(user: { username: string } | null) => user?.username ?? ''}
               onChange={(e) => onQueryChange(e.target.value)}
@@ -324,18 +324,18 @@ function UserSucheCombobox({
               autoFocus
             />
             <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
-              <PiCaretUpDown className="h-4 w-4 text-gray-400" />
+              <PiCaretUpDown className="h-4 w-4 text-text-muted" />
             </ComboboxButton>
           </div>
-          <ComboboxOptions className="z-50 mt-1 max-h-48 overflow-auto rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-600 dark:bg-gray-700" anchor="bottom start">
+          <ComboboxOptions className="z-50 mt-1 max-h-48 overflow-auto rounded-lg border border-border-subtle bg-surface-panel shadow-panel" anchor="bottom start">
             {isUsersError ? (
-              <div className="p-2 text-red-400 text-sm">Fehler beim Laden der Benutzer</div>
+              <div className="p-2 text-body-sm text-status-danger-text">Fehler beim Laden der Benutzer</div>
             ) : users.length === 0 ? (
-              <div className="px-3 py-2 text-gray-500 text-sm">Keine Benutzer gefunden</div>
+              <div className="px-3 py-2 text-body-sm text-text-secondary">Keine Benutzer gefunden</div>
             ) : (
               users.map((user) => (
-                <ComboboxOption key={user.id} value={user} className={cn('flex cursor-pointer items-center px-3 py-2 text-sm', 'data-[focus]:bg-blue-50 dark:data-[focus]:bg-blue-900/20')}>
-                  <span className="text-gray-900 dark:text-gray-100">{user.username}</span>
+                <ComboboxOption key={user.id} value={user} className={cn('flex cursor-pointer items-center px-3 py-2 text-body-sm', 'data-[focus]:bg-action-secondary')}>
+                  <span className="text-text-primary">{user.username}</span>
                 </ComboboxOption>
               ))
             )}
