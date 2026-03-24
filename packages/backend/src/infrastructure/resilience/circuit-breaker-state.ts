@@ -14,12 +14,11 @@
  * @module infrastructure/resilience
  */
 
-/** Moegliche Circuit Breaker Zustaende */
-export enum CircuitBreakerStateEnum {
-  CLOSED = 'CLOSED',
-  OPEN = 'OPEN',
-  HALF_OPEN = 'HALF_OPEN',
-}
+/** Import aus Domain Port - Single Source of Truth fuer den Enum */
+import { CircuitBreakerStateEnum } from '@domain/ports/i-circuit-breaker-reader.port';
+
+/** Re-export fuer Rueckwaertskompatibilitaet innerhalb Infrastructure */
+export { CircuitBreakerStateEnum };
 
 /**
  * Konfiguration fuer einen Circuit Breaker.
