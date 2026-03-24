@@ -6,6 +6,8 @@
 
 export { HiOrgCredentialsResponseDto } from './hiorg-credentials-response.dto';
 export { HiOrgConnectionInfoDto } from './hiorg-connection-info.dto';
+export { RefreshTokenResponseDto } from './refresh-token-response.dto';
+export { DisconnectResponseDto } from './disconnect-response.dto';
 export { HiOrgQualifikationPreviewItemDto, HiOrgPersonPreviewItemDto, HiOrgPersonsPreviewResponseDto } from './hiorg-persons-preview.dto';
 export { InitiateOAuthResponseDto } from './initiate-oauth-response.dto';
 // Story 7.2: Qualifikation-Mapping
@@ -22,3 +24,5 @@ export {
 } from './qualifikation-mapping.dto';
 // Story 7.2: Import
 export { ImportPersonsRequestDto, ImportPersonResultItemDto, ImportPersonsResponseDto } from './import-persons.dto';
+// Story 5.3: Integrationsübersicht
+export { IntegrationOverviewItemResponseDto, IntegrationOverviewResponseDto } from './integration-overview.dto';

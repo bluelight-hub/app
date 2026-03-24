@@ -1,6 +1,7 @@
 import { useCurrentUser } from '@/features/auth';
 import { useBefehlNotifications, useBefehlWebSocket, useMissedBefehlAlerts, useUnquittierteBefehleCount } from '@/features/befehl';
-import { EINSATZ_QUERY_KEYS, useActiveEinsatz, useEinsatzDetails, useMyEinsatzTeilnahme } from '@/features/einsatz';
+import { useMyEinsatzRolle } from '@/features/befehl/api/use-my-einsatz-rolle';
+import { EINSATZ_QUERY_KEYS, EinsatzRolleProvider, useActiveEinsatz, useEinsatzDetails, useMyEinsatzTeilnahme } from '@/features/einsatz';
 import { EinsatzStatusBadge } from '@/features/einsatz/ui/molecules/einsatz-status-badge.molecule';
 import { EinsatzSwitcher } from '@/features/einsatz/ui/molecules/EinsatzSwitcher.molecule';
 import { ModuleOverviewCard } from '@/features/einsatz/ui/molecules/ModuleOverviewCard';
@@ -28,7 +29,7 @@ import {
 } from '@/features/reminders';
 import { filterMyErinnerungen } from '@/features/reminders/utils/erinnerung-ownership';
 import { AudioSettingsDialog } from '@/features/settings';
-import { useEinsatzWorkspaceShell, useWorkspaceModules, useWorkspaceResume, WorkspaceShell } from '@/features/workspace';
+import { useEinsatzRolleWorkspaceRestrictions, useEinsatzWorkspaceShell, useWorkspaceModules, useWorkspaceResume, WorkspaceShell } from '@/features/workspace';
 import { api, EinsatzDtoStatusEnum } from '@/shared';
 import { cn } from '@/shared/ui';
 import { Button } from '@/shared/ui/atoms/button.atom';
@@ -228,13 +229,20 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   // Modul-Konfiguration aus Hook
   const baseModules = useWorkspaceModules();
 
+  // Story 5.5: Workspace-Module nach EinsatzRolle einschraenken
+  const { data: meineRolle, isLoading: isRolleLoading } = useMyEinsatzRolle(einsatzId);
+  const rolleRestrictedModules = useEinsatzRolleWorkspaceRestrictions(baseModules, meineRolle?.permissions);
+
+  // Context-Wert fuer Child-Routes, damit diese keinen eigenen Loading-Zyklus durchlaufen
+  const einsatzRolleContextValue = useMemo(() => ({ meineRolle: meineRolle ?? null, isLoading: isRolleLoading }), [meineRolle, isRolleLoading]);
+
   // Badge-Counter fuer unquittierte Befehle (WP4.3)
   const unquittiertCount = useUnquittierteBefehleCount(einsatzId);
 
   // Module mit dynamischem Badge fuer Befehle-Tab
   const modules = useMemo(
     () =>
-      baseModules.map((module) => ({
+      rolleRestrictedModules.map((module) => ({
         ...module,
         badgeHint: module.badgeHint
           ? {
@@ -249,7 +257,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
           return page;
         }),
       })),
-    [baseModules, unquittiertCount],
+    [rolleRestrictedModules, unquittiertCount],
   );
 
   useEffect(() => {
@@ -330,6 +338,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
     isLoading: isTeilnahmeLoading || isUserLoading || isEinsatzLoading,
     requiresAssignment,
     isRemindersDegraded: Boolean(erinnerungenError),
+    isReadonly: meineRolle?.permissions?.isSecondaryRole ?? false,
   });
 
   const moduleOverviewModules = useMemo(
@@ -400,14 +409,16 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   // Wenn Fullscreen-Modus aktiv ist, nur Content ohne Layout rendern
   if (isFullscreenMode) {
     return (
-      <div className={cn('min-h-screen bg-surface-canvas text-text-primary', className)}>
-        <Outlet />
-      </div>
+      <EinsatzRolleProvider value={einsatzRolleContextValue}>
+        <div className={cn('min-h-screen bg-surface-canvas text-text-primary', className)}>
+          <Outlet />
+        </div>
+      </EinsatzRolleProvider>
     );
   }
 
   return (
-    <>
+    <EinsatzRolleProvider value={einsatzRolleContextValue}>
       <WorkspaceShell
         className={className}
         contextBar={{
@@ -591,6 +602,6 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
 
       {/* Audio-Einstellungen Dialog (Story 2.7) */}
       <AudioSettingsDialog isOpen={showAudioDialog} onClose={() => setShowAudioDialog(false)} />
-    </>
+    </EinsatzRolleProvider>
   );
 }

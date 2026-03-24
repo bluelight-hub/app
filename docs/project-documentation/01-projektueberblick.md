@@ -29,7 +29,7 @@ bluelight-hub/
 │   ├── frontend/      # React + Tauri Desktop App
 │   └── shared/        # Generierter API Client
 ├── docs/              # Projektdokumentation
-└── .claude/           # AI Agent Konfiguration (BMad v6)
+└── .claude/           # AI Agent Konfiguration
 ```
 
 ### Packages im Detail
@@ -227,4 +227,4 @@ pnpm --filter @bluelight-hub/backend prisma:studio
 
 ---
 
-*Dokumentation generiert durch BMad Document-Project Workflow v1.2.0*
+*Dokumentation generiert am 2026-01-04*

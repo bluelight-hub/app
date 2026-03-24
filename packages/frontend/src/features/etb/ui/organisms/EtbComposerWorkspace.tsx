@@ -23,6 +23,8 @@ import { EtbSnapshotHistoryModal } from './components/EtbSnapshotHistoryModal';
 
 interface EtbComposerWorkspaceProps {
   einsatzId: string;
+  /** Story 5.5: Sekundaere Rollen sehen ETB read-only (kein Erstellen/Bearbeiten/Loeschen) */
+  readOnly?: boolean;
 }
 
 /**
@@ -34,7 +36,7 @@ interface EtbComposerWorkspaceProps {
  * - Semantischer Skeleton-Ladezustand (300ms Threshold)
  * - WCAG 2.1 AA Accessibility
  */
-export function EtbComposerWorkspace({ einsatzId }: EtbComposerWorkspaceProps) {
+export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbComposerWorkspaceProps) {
   const [sortBy, setSortBy] = useState<string>('sequenceNumber');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showDeleted, setShowDeleted] = useState<boolean>(false);
@@ -328,12 +330,12 @@ export function EtbComposerWorkspace({ einsatzId }: EtbComposerWorkspaceProps) {
               <PiClockCounterClockwise className="h-4 w-4" aria-hidden="true" />
               Historie
             </button>
-            <EtbLockButton etbId={etb.id} disabled={etb.status === 'LOCKED'} />
+            {!readOnly && <EtbLockButton etbId={etb.id} disabled={etb.status === 'LOCKED'} />}
           </div>
         </div>
 
         {/* Story 3.5: Navigation-Blocker Bestätigung */}
-        {navBlocker.status === 'blocked' && (
+        {!readOnly && navBlocker.status === 'blocked' && (
           <div
             role="alertdialog"
             aria-label="Ungespeicherter Eintrag"
@@ -363,7 +365,7 @@ export function EtbComposerWorkspace({ einsatzId }: EtbComposerWorkspaceProps) {
         <ContinuityStatusRail syncStatus={syncStatus} />
 
         {/* Story 3.5: Draft-Resume-Banner */}
-        {pendingDraft && !editingEntry && <EtbDraftResumeBanner draft={pendingDraft} onRestore={handleRestoreDraft} onDiscard={handleDiscardDraft} />}
+        {!readOnly && pendingDraft && !editingEntry && <EtbDraftResumeBanner draft={pendingDraft} onRestore={handleRestoreDraft} onDiscard={handleDiscardDraft} />}
 
         {/* Story 3.5: Draft-Loading-Skeleton (300ms-Gate) */}
         {isLoadingDraft && showDraftLoadingSkeleton && <div className="h-12 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800" role="status" aria-label="Draft wird geladen" />}
@@ -376,7 +378,11 @@ export function EtbComposerWorkspace({ einsatzId }: EtbComposerWorkspaceProps) {
         )}
 
         {/* Eingabeformular */}
-        {etb.status === 'LOCKED' ? (
+        {readOnly ? (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20" role="status" aria-live="polite">
+            <p className="text-center text-blue-700 dark:text-blue-400">Sie sehen das ETB im Lesemodus. Ihre Einsatzrolle erlaubt keine Bearbeitung.</p>
+          </div>
+        ) : etb.status === 'LOCKED' ? (
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20" role="alert">
             <p className="text-center text-red-700 dark:text-red-400">Das ETB ist gesperrt. Neue Einträge können nicht hinzugefügt werden.</p>
           </div>
@@ -424,11 +430,11 @@ export function EtbComposerWorkspace({ einsatzId }: EtbComposerWorkspaceProps) {
               hasNextPage={hasNextPage}
               fetchNextPage={fetchNextPage}
               isFetchingNextPage={isFetchingNextPage}
-              onEditEntry={handleEditEntry}
+              onEditEntry={readOnly ? undefined : handleEditEntry}
               onSortChange={handleSortChange}
               sortBy={sortBy}
               sortOrder={sortOrder}
-              enableInlineEdit={true}
+              enableInlineEdit={!readOnly}
               showDeleted={showDeleted}
               onShowDeletedChange={setShowDeleted}
             />

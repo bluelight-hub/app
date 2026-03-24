@@ -16,8 +16,6 @@
  * - Test User + Test Einsatz in beforeAll() erstellt
  * - afterEach() cleanup in reverse FK order (POI → Lagekarte → Einsatz)
  *
- * **Story Context:** .bmad-ephemeral/stories/2-3-lagekarte-infrastructure-prisma-repository-adapter.context.xml
- *
  * Epic 2 Story 2.3 | Task 4 (Integration Tests)
  */
 

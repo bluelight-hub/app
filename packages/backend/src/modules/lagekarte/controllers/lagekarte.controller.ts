@@ -29,6 +29,7 @@ import {
   ApiBody,
   ApiConsumes,
   ApiForbiddenResponse,
+  ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOperation,
   ApiQuery,
@@ -639,7 +640,7 @@ export class LagekarteCqrsController {
     summary: 'POI entfernen',
     description: 'Entfernt einen POI von der Lagekarte.',
   })
-  @ApiResponse({ status: 204, description: 'POI erfolgreich entfernt' })
+  @ApiNoContentResponse({ description: 'POI erfolgreich entfernt' })
   @ApiNotFoundResponse({ description: 'Lagekarte oder POI nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler' })
   async removePoi(@Param('lagekarteId') lagekarteId: string, @Param('poiId') poiId: string): Promise<void> {

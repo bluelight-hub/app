@@ -111,7 +111,9 @@ describe('EtbCqrsController', () => {
   let mockEtbRepository: jest.Mocked<IEtbRepository>;
   let mockLogger: jest.Mocked<ILogger>;
   // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
-  let mockPrismaService: jest.Mocked<any>;
+  let mockEinsatzTeilnehmerRepository: jest.Mocked<any>;
+  // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+  let mockEinsatzRollenReadRepository: jest.Mocked<any>;
 
   // Standard mock user for authenticated requests
   const mockUser: ValidatedUser = {
@@ -192,11 +194,17 @@ describe('EtbCqrsController', () => {
       // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
-    // Create mock PrismaService
-    mockPrismaService = {
-      einsatzTeilnehmer: {
-        findFirst: jest.fn(),
-      },
+    // Create mock EinsatzTeilnehmerRepository (replaces direct PrismaService access)
+    mockEinsatzTeilnehmerRepository = {
+      findByEinsatzAndUser: jest.fn(),
+      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+    } as any;
+
+    // Create mock EinsatzRollenReadRepository (replaces direct PrismaService access)
+    // Default: User hat Schreibberechtigung (Rolle mit vollem Zugriff)
+    mockEinsatzRollenReadRepository = {
+      findMeineRolle: jest.fn().mockResolvedValue(Result.ok({ rolle: 'BEFEHLSGEBER' })),
+      hasAnyRollen: jest.fn().mockResolvedValue(Result.ok(true)),
       // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
     } as any;
 
@@ -212,7 +220,8 @@ describe('EtbCqrsController', () => {
       mockGetErinnerungTimelineHandler,
       mockEtbRepository,
       mockLogger,
-      mockPrismaService,
+      mockEinsatzTeilnehmerRepository,
+      mockEinsatzRollenReadRepository,
     );
   });
 
@@ -226,7 +235,7 @@ describe('EtbCqrsController', () => {
   describe('getEtbByEinsatzId()', () => {
     beforeEach(() => {
       // Story 5.9: Default mock for active participant check
-      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValue({ id: 'teilnehmer-id' });
+      mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValue({ id: 'teilnehmer-id' });
     });
 
     it('should execute GetEtbQuery and return EtbDto', async () => {
@@ -385,32 +394,25 @@ describe('EtbCqrsController', () => {
           createdAt: new Date(),
         };
 
-        mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce({ id: 'teilnehmer-id' });
+        mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce({ id: 'teilnehmer-id' });
         mockGetEtbQueryHandler.execute.mockResolvedValueOnce(Result.ok(expectedDto));
 
         // When
         const result = await controller.getEtbByEinsatzId(einsatzId, mockUser, undefined);
 
         // Then
-        expect(mockPrismaService.einsatzTeilnehmer.findFirst).toHaveBeenCalledWith({
-          where: {
-            userId: mockUser.userId,
-            einsatzId,
-            leftAt: null,
-          },
-          select: { id: true },
-        });
+        expect(mockEinsatzTeilnehmerRepository.findByEinsatzAndUser).toHaveBeenCalledWith(einsatzId, mockUser.userId);
         expect(result).toEqual(expectedDto);
       });
 
       it('should throw ForbiddenException for non-participant (AC2)', async () => {
         // Given
         const einsatzId = createValidTestId('eins0');
-        mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce(null);
+        mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce(null);
 
         // When/Then
         await expect(controller.getEtbByEinsatzId(einsatzId, mockUser, undefined)).rejects.toThrow(ForbiddenException);
-        expect(mockPrismaService.einsatzTeilnehmer.findFirst).toHaveBeenCalledTimes(1);
+        expect(mockEinsatzTeilnehmerRepository.findByEinsatzAndUser).toHaveBeenCalledTimes(1);
         expect(mockGetEtbQueryHandler.execute).not.toHaveBeenCalled();
       });
 
@@ -418,18 +420,11 @@ describe('EtbCqrsController', () => {
         // Given - Former participant: leftAt !== null means inactive
         // The checkUserIsActiveTeilnehmer query uses leftAt: null, so findFirst returns null
         const einsatzId = createValidTestId('eins0');
-        mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce(null);
+        mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce(null);
 
         // When/Then
         await expect(controller.getEtbByEinsatzId(einsatzId, mockUser, undefined)).rejects.toThrow(ForbiddenException);
-        expect(mockPrismaService.einsatzTeilnehmer.findFirst).toHaveBeenCalledWith({
-          where: {
-            userId: mockUser.userId,
-            einsatzId,
-            leftAt: null,
-          },
-          select: { id: true },
-        });
+        expect(mockEinsatzTeilnehmerRepository.findByEinsatzAndUser).toHaveBeenCalledWith(einsatzId, mockUser.userId);
       });
     });
   });
@@ -449,7 +444,7 @@ describe('EtbCqrsController', () => {
       };
       mockEtbRepository.findById.mockResolvedValue(mockAggregate as unknown);
       // Default mock for active participant check
-      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValue({ id: 'teilnehmer-id' });
+      mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValue({ id: 'teilnehmer-id' });
     });
 
     it('should execute GetEtbHistoryQuery and return EtbSnapshotDto array', async () => {
@@ -560,44 +555,30 @@ describe('EtbCqrsController', () => {
 
         // Then
         expect(mockEtbRepository.findById).toHaveBeenCalledTimes(1);
-        expect(mockPrismaService.einsatzTeilnehmer.findFirst).toHaveBeenCalledWith({
-          where: {
-            userId: mockUser.userId,
-            einsatzId,
-            leftAt: null,
-          },
-          select: { id: true },
-        });
+        expect(mockEinsatzTeilnehmerRepository.findByEinsatzAndUser).toHaveBeenCalledWith(einsatzId, mockUser.userId);
         expect(result).toEqual(expectedSnapshots);
       });
 
       it('should throw ForbiddenException for non-participant (AC2)', async () => {
         // Given
         const etbId = createValidTestId('etb00');
-        mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce(null);
+        mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce(null);
 
         // When/Then
         await expect(controller.getEtbHistory(etbId, mockUser)).rejects.toThrow(ForbiddenException);
         expect(mockEtbRepository.findById).toHaveBeenCalledTimes(1);
-        expect(mockPrismaService.einsatzTeilnehmer.findFirst).toHaveBeenCalledTimes(1);
+        expect(mockEinsatzTeilnehmerRepository.findByEinsatzAndUser).toHaveBeenCalledTimes(1);
         expect(mockGetEtbHistoryQueryHandler.execute).not.toHaveBeenCalled();
       });
 
       it('should throw ForbiddenException for former participant with leftAt set (AC2)', async () => {
         // Given - Former participant: leftAt !== null means inactive
         const etbId = createValidTestId('etb00');
-        mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce(null);
+        mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce(null);
 
         // When/Then
         await expect(controller.getEtbHistory(etbId, mockUser)).rejects.toThrow(ForbiddenException);
-        expect(mockPrismaService.einsatzTeilnehmer.findFirst).toHaveBeenCalledWith({
-          where: {
-            userId: mockUser.userId,
-            einsatzId,
-            leftAt: null,
-          },
-          select: { id: true },
-        });
+        expect(mockEinsatzTeilnehmerRepository.findByEinsatzAndUser).toHaveBeenCalledWith(einsatzId, mockUser.userId);
       });
 
       it('should throw NotFoundException when ETB not found during auth check', async () => {
@@ -607,7 +588,7 @@ describe('EtbCqrsController', () => {
 
         // When/Then
         await expect(controller.getEtbHistory(etbId, mockUser)).rejects.toThrow(NotFoundException);
-        expect(mockPrismaService.einsatzTeilnehmer.findFirst).not.toHaveBeenCalled();
+        expect(mockEinsatzTeilnehmerRepository.findByEinsatzAndUser).not.toHaveBeenCalled();
       });
     });
   });
@@ -627,7 +608,7 @@ describe('EtbCqrsController', () => {
       };
       mockEtbRepository.findById.mockResolvedValue(mockAggregate as unknown);
       // Default mock for active participant check
-      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValue({ id: 'teilnehmer-id' });
+      mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValue({ id: 'teilnehmer-id' });
     });
 
     it('should execute AddEintragCommand and return EintragDto', async () => {
@@ -747,7 +728,7 @@ describe('EtbCqrsController', () => {
         };
 
         // Mock: ETB exists, user is active participant
-        mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce({ id: 'teilnehmer-id' });
+        mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce({ id: 'teilnehmer-id' });
         mockAddEintragHandler.execute.mockResolvedValueOnce(Result.ok(mockEintrag));
 
         // When
@@ -767,11 +748,11 @@ describe('EtbCqrsController', () => {
         const dto: AddEintragDto = { text: 'Neuer Eintrag' };
 
         // Mock: ETB exists, user is NOT participant (findFirst returns null)
-        mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce(null);
+        mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce(null);
 
         // When/Then
         await expect(controller.addEintrag(etbId, dto, mockUser)).rejects.toThrow(ForbiddenException);
-        expect(mockPrismaService.einsatzTeilnehmer.findFirst).toHaveBeenCalledTimes(1);
+        expect(mockEinsatzTeilnehmerRepository.findByEinsatzAndUser).toHaveBeenCalledTimes(1);
         expect(mockAddEintragHandler.execute).not.toHaveBeenCalled();
       });
 
@@ -782,18 +763,11 @@ describe('EtbCqrsController', () => {
         const dto: AddEintragDto = { text: 'Neuer Eintrag' };
 
         // Mock: User was participant but leftAt !== null (query returns null because leftAt: null condition not met)
-        mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce(null);
+        mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce(null);
 
         // When/Then
         await expect(controller.addEintrag(etbId, dto, mockUser)).rejects.toThrow(ForbiddenException);
-        expect(mockPrismaService.einsatzTeilnehmer.findFirst).toHaveBeenCalledWith({
-          where: {
-            userId: mockUser.userId,
-            einsatzId,
-            leftAt: null,
-          },
-          select: { id: true },
-        });
+        expect(mockEinsatzTeilnehmerRepository.findByEinsatzAndUser).toHaveBeenCalledWith(einsatzId, mockUser.userId);
         expect(mockAddEintragHandler.execute).not.toHaveBeenCalled();
       });
     });
@@ -814,7 +788,7 @@ describe('EtbCqrsController', () => {
       };
       mockEtbRepository.findById.mockResolvedValue(mockAggregate as unknown);
       // Story 5.9: Default mock for active participant check
-      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValue({ id: 'teilnehmer-id' });
+      mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValue({ id: 'teilnehmer-id' });
     });
 
     it('should execute UpdateEintragCommand and return updated EintragDto', async () => {
@@ -986,7 +960,7 @@ describe('EtbCqrsController', () => {
         // Mock: Repository calls (first for auth, second for getting updated ETB)
         mockEtbRepository.findById.mockResolvedValueOnce(mockAggregateForAuth as unknown).mockResolvedValueOnce(mockAggregateAfterUpdate as unknown);
         // Mock: User is active participant
-        mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce({ id: 'teilnehmer-id' });
+        mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce({ id: 'teilnehmer-id' });
         mockUpdateEintragHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
 
         // When
@@ -1013,11 +987,11 @@ describe('EtbCqrsController', () => {
         mockEtbRepository.findById.mockResolvedValueOnce(mockAggregate as unknown);
 
         // Mock: User is NOT participant (findFirst returns null)
-        mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce(null);
+        mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce(null);
 
         // When/Then
         await expect(controller.updateEintrag(etbId, eintragId, dto, mockUser)).rejects.toThrow(ForbiddenException);
-        expect(mockPrismaService.einsatzTeilnehmer.findFirst).toHaveBeenCalledTimes(1);
+        expect(mockEinsatzTeilnehmerRepository.findByEinsatzAndUser).toHaveBeenCalledTimes(1);
         expect(mockUpdateEintragHandler.execute).not.toHaveBeenCalled();
       });
 
@@ -1036,18 +1010,11 @@ describe('EtbCqrsController', () => {
         mockEtbRepository.findById.mockResolvedValueOnce(mockAggregate as unknown);
 
         // Mock: User was participant but leftAt !== null (query returns null)
-        mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce(null);
+        mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce(null);
 
         // When/Then
         await expect(controller.updateEintrag(etbId, eintragId, dto, mockUser)).rejects.toThrow(ForbiddenException);
-        expect(mockPrismaService.einsatzTeilnehmer.findFirst).toHaveBeenCalledWith({
-          where: {
-            userId: mockUser.userId,
-            einsatzId,
-            leftAt: null,
-          },
-          select: { id: true },
-        });
+        expect(mockEinsatzTeilnehmerRepository.findByEinsatzAndUser).toHaveBeenCalledWith(einsatzId, mockUser.userId);
         expect(mockUpdateEintragHandler.execute).not.toHaveBeenCalled();
       });
     });
@@ -1068,7 +1035,7 @@ describe('EtbCqrsController', () => {
       };
       mockEtbRepository.findById.mockResolvedValue(mockAggregate as unknown);
       // Story 5.9: Default mock for active participant check
-      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValue({ id: 'teilnehmer-id' });
+      mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValue({ id: 'teilnehmer-id' });
     });
 
     it('should execute DeleteEintragCommand and return void (204)', async () => {
@@ -1144,7 +1111,7 @@ describe('EtbCqrsController', () => {
         const eintragId = createValidTestId('entry');
 
         // Mock: User is active participant
-        mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce({ id: 'teilnehmer-id' });
+        mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce({ id: 'teilnehmer-id' });
         mockDeleteEintragHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
 
         // When
@@ -1169,11 +1136,11 @@ describe('EtbCqrsController', () => {
         mockEtbRepository.findById.mockResolvedValueOnce(mockAggregate as unknown);
 
         // Mock: User is NOT participant (findFirst returns null)
-        mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce(null);
+        mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce(null);
 
         // When/Then
         await expect(controller.deleteEintrag(etbId, eintragId, mockUser)).rejects.toThrow(ForbiddenException);
-        expect(mockPrismaService.einsatzTeilnehmer.findFirst).toHaveBeenCalledTimes(1);
+        expect(mockEinsatzTeilnehmerRepository.findByEinsatzAndUser).toHaveBeenCalledTimes(1);
         expect(mockDeleteEintragHandler.execute).not.toHaveBeenCalled();
       });
 
@@ -1191,18 +1158,11 @@ describe('EtbCqrsController', () => {
         mockEtbRepository.findById.mockResolvedValueOnce(mockAggregate as unknown);
 
         // Mock: User was participant but leftAt !== null (query returns null)
-        mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce(null);
+        mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce(null);
 
         // When/Then
         await expect(controller.deleteEintrag(etbId, eintragId, mockUser)).rejects.toThrow(ForbiddenException);
-        expect(mockPrismaService.einsatzTeilnehmer.findFirst).toHaveBeenCalledWith({
-          where: {
-            userId: mockUser.userId,
-            einsatzId,
-            leftAt: null,
-          },
-          select: { id: true },
-        });
+        expect(mockEinsatzTeilnehmerRepository.findByEinsatzAndUser).toHaveBeenCalledWith(einsatzId, mockUser.userId);
         expect(mockDeleteEintragHandler.execute).not.toHaveBeenCalled();
       });
     });
@@ -1314,7 +1274,7 @@ describe('EtbCqrsController', () => {
 
     it('should allow active participant to access timeline', async () => {
       // Mock: User is active participant
-      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce({ id: 'teilnehmer-id' });
+      mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce({ id: 'teilnehmer-id' });
       mockGetErinnerungTimelineHandler.execute.mockResolvedValueOnce(Result.ok({ events: [] }));
 
       const result = await controller.getErinnerungTimeline(etbId, erinnerungId, mockUser);
@@ -1325,14 +1285,14 @@ describe('EtbCqrsController', () => {
 
     it('should throw ForbiddenException for non-participant (AC2)', async () => {
       // Mock: User is NOT participant
-      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce(null);
+      mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce(null);
 
       await expect(controller.getErinnerungTimeline(etbId, erinnerungId, mockUser)).rejects.toThrow(ForbiddenException);
     });
 
     it('should throw ForbiddenException for former participant with leftAt set (AC2)', async () => {
       // Mock: User was participant but left (leftAt !== null means findFirst returns null)
-      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce(null);
+      mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce(null);
 
       await expect(controller.getErinnerungTimeline(etbId, erinnerungId, mockUser)).rejects.toThrow(ForbiddenException);
     });
@@ -1342,24 +1302,17 @@ describe('EtbCqrsController', () => {
       mockEtbRepository.findById.mockResolvedValueOnce(null);
 
       await expect(controller.getErinnerungTimeline(etbId, erinnerungId, mockUser)).rejects.toThrow(NotFoundException);
-      expect(mockPrismaService.einsatzTeilnehmer.findFirst).not.toHaveBeenCalled();
+      expect(mockEinsatzTeilnehmerRepository.findByEinsatzAndUser).not.toHaveBeenCalled();
     });
 
     it('should verify participant check uses correct einsatzId from ETB', async () => {
       // Mock: User is active participant
-      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce({ id: 'teilnehmer-id' });
+      mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce({ id: 'teilnehmer-id' });
       mockGetErinnerungTimelineHandler.execute.mockResolvedValueOnce(Result.ok({ events: [] }));
 
       await controller.getErinnerungTimeline(etbId, erinnerungId, mockUser);
 
-      expect(mockPrismaService.einsatzTeilnehmer.findFirst).toHaveBeenCalledWith({
-        where: {
-          userId: mockUser.userId,
-          einsatzId,
-          leftAt: null,
-        },
-        select: { id: true },
-      });
+      expect(mockEinsatzTeilnehmerRepository.findByEinsatzAndUser).toHaveBeenCalledWith(einsatzId, mockUser.userId);
     });
 
     it('should throw BadRequestException when etbId is invalid', async () => {
@@ -1386,7 +1339,7 @@ describe('EtbCqrsController', () => {
         createdAt: new Date(),
       };
 
-      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce({ id: 'teilnehmer-id' });
+      mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce({ id: 'teilnehmer-id' });
       mockGetEtbQueryHandler.execute.mockResolvedValueOnce(Result.ok(expectedDto));
 
       // When - whitespace is not "true"
@@ -1409,7 +1362,7 @@ describe('EtbCqrsController', () => {
         eintraege: [],
       };
       mockEtbRepository.findById.mockResolvedValueOnce(mockAggregate as unknown);
-      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce({ id: 'teilnehmer-id' });
+      mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce({ id: 'teilnehmer-id' });
 
       // When/Then - AddEintragCommand.create fails because trimmed text is empty
       await expect(controller.addEintrag(etbId, dto, mockUser)).rejects.toThrow(BadRequestException);
@@ -1430,7 +1383,7 @@ describe('EtbCqrsController', () => {
         eintraege: [],
       };
       mockEtbRepository.findById.mockResolvedValueOnce(mockAggregate as unknown);
-      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce({ id: 'teilnehmer-id' });
+      mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce({ id: 'teilnehmer-id' });
 
       // When/Then
       await expect(controller.updateEintrag(etbId, eintragId, dto, mockUser)).rejects.toThrow(BadRequestException);
@@ -1459,7 +1412,7 @@ describe('EtbCqrsController', () => {
         eintraege: [],
       };
       mockEtbRepository.findById.mockResolvedValueOnce(mockAggregate as unknown);
-      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce({ id: 'teilnehmer-id' });
+      mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce({ id: 'teilnehmer-id' });
       mockAddEintragHandler.execute.mockResolvedValueOnce(Result.ok(mockEintrag));
 
       // When
@@ -1479,7 +1432,7 @@ describe('EtbCqrsController', () => {
         eintraege: [],
       };
       mockEtbRepository.findById.mockResolvedValueOnce(mockAggregate as unknown);
-      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce({ id: 'teilnehmer-id' });
+      mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce({ id: 'teilnehmer-id' });
 
       const snapshots: EtbSnapshotDto[] = [
         {

@@ -11,7 +11,7 @@ import { LOGGER } from '@infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { IntegrationsApplicationModule } from '@application/integrations/integrations-application.module';
-import { AdminHiOrgIntegrationController } from '@/modules/integrations/controllers';
+import { AdminHiOrgIntegrationController, AdminIntegrationsController } from '@/modules/integrations/controllers';
 import { OAuthCallbackController } from './controllers/oauth-callback.controller';
 
 /**
@@ -24,7 +24,7 @@ import { OAuthCallbackController } from './controllers/oauth-callback.controller
     // Application Layer mit Command/Query Handlers
     IntegrationsApplicationModule,
   ],
-  controllers: [AdminHiOrgIntegrationController, OAuthCallbackController],
+  controllers: [AdminHiOrgIntegrationController, AdminIntegrationsController, OAuthCallbackController],
   providers: [
     // Logger für Integrations Controller
     {

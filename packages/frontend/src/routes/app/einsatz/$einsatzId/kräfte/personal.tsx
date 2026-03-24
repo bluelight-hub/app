@@ -6,6 +6,7 @@
  */
 
 import { createFileRoute, useParams } from '@tanstack/react-router';
+import { EinsatzRolleGate } from '@/features/einsatz/ui/molecules/EinsatzRolleGate';
 import { useEinsatzPersonen, useEinsatzFahrzeuge, useWeisePersonZuFahrzeugZu, useEntfernePersonVonFahrzeug } from '@/features/einsatz/api';
 import { PersonHinzufuegenDialog } from '@/features/einsatz/ui/organisms/PersonHinzufuegenDialog.organism';
 import { FahrzeugZuweisungsDropdown } from '@/features/einsatz/ui/molecules/FahrzeugZuweisungsDropdown.molecule';
@@ -22,6 +23,14 @@ export const Route = createFileRoute('/app/einsatz/$einsatzId/kräfte/personal')
 function RouteComponent() {
   const { einsatzId } = useParams({ from: '/app/einsatz/$einsatzId/kräfte/personal' });
 
+  return (
+    <EinsatzRolleGate einsatzId={einsatzId}>
+      <PersonalContent einsatzId={einsatzId} />
+    </EinsatzRolleGate>
+  );
+}
+
+function PersonalContent({ einsatzId }: { einsatzId: string }) {
   // State für Dialog
   const [showPersonDialog, setShowPersonDialog] = useState(false);
   const handleOpenPersonDialog = useCallback(() => setShowPersonDialog(true), []);

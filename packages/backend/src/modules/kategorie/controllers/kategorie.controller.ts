@@ -4,10 +4,10 @@ import {
   ApiBearerAuth,
   ApiConflictResponse,
   ApiForbiddenResponse,
+  ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOperation,
   ApiQuery,
-  ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -98,7 +98,7 @@ export class KategorieController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles('USER', 'ADMIN', 'SUPER_ADMIN')
   @ApiOperation({ summary: 'Kategorie loeschen (Soft-Delete)' })
-  @ApiResponse({ status: 204, description: 'Kategorie erfolgreich geloescht' })
+  @ApiNoContentResponse({ description: 'Kategorie erfolgreich geloescht' })
   @ApiBadRequestResponse({ description: 'Ungueltige KategorieId oder UserId' })
   @ApiNotFoundResponse({ description: 'Kategorie nicht gefunden' })
   @ApiConflictResponse({ description: 'Kategorie bereits geloescht' })

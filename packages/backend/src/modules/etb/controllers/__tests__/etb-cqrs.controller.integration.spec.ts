@@ -138,7 +138,9 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
   let mockEtbRepository: jest.Mocked<any>;
   let mockLogger: jest.Mocked<ILogger>;
   // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
-  let mockPrismaService: jest.Mocked<any>;
+  let mockEinsatzTeilnehmerRepository: jest.Mocked<any>;
+  // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+  let mockEinsatzRollenReadRepository: jest.Mocked<any>;
 
   const adminUser: ValidatedUser = {
     userId: createTestCuid('admin'),
@@ -200,11 +202,16 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       debug: jest.fn(),
     } as jest.Mocked<ILogger>;
 
-    // Create mock PrismaService
-    mockPrismaService = {
-      einsatzTeilnehmer: {
-        findFirst: jest.fn(),
-      },
+    // Create mock EinsatzTeilnehmerRepository (replaces direct PrismaService access)
+    mockEinsatzTeilnehmerRepository = {
+      findByEinsatzAndUser: jest.fn(),
+    };
+
+    // Create mock EinsatzRollenReadRepository (replaces direct PrismaService access)
+    // Default: User hat Schreibberechtigung (Rolle mit vollem Zugriff)
+    mockEinsatzRollenReadRepository = {
+      findMeineRolle: jest.fn().mockResolvedValue(Result.ok({ rolle: 'BEFEHLSGEBER' })),
+      hasAnyRollen: jest.fn().mockResolvedValue(Result.ok(true)),
     };
 
     // Instantiate controller with mocks (Direct Instantiation Pattern)
@@ -219,7 +226,8 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       mockGetErinnerungTimelineHandler,
       mockEtbRepository,
       mockLogger,
-      mockPrismaService,
+      mockEinsatzTeilnehmerRepository,
+      mockEinsatzRollenReadRepository,
     );
   });
 
@@ -243,7 +251,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       };
       mockEtbRepository.findById.mockResolvedValue(mockAggregate);
       // Default mock for active participant check
-      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValue({ id: 'teilnehmer-id' });
+      mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValue({ id: 'teilnehmer-id' });
     });
 
     it('should add eintrag to ETB and return EintragDto', async () => {
@@ -316,7 +324,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
 
     beforeEach(() => {
       // Story 5.9: Default mock for active participant check
-      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValue({ id: 'teilnehmer-id' });
+      mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValue({ id: 'teilnehmer-id' });
       // Note: mockEtbRepository.findById is set up per-test because updateEintrag
       // calls it twice: once for auth check and once after update to return updated eintrag
     });
@@ -418,7 +426,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       };
       mockEtbRepository.findById.mockResolvedValue(mockAggregate);
       // Default mock for active participant check
-      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValue({ id: 'teilnehmer-id' });
+      mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValue({ id: 'teilnehmer-id' });
     });
 
     it('should soft-delete eintrag and return void', async () => {
@@ -531,7 +539,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
   describe('GET /etb/einsatz/:einsatzId - getEtbByEinsatzId()', () => {
     beforeEach(() => {
       // Story 5.9: Default mock for active participant check
-      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValue({ id: 'teilnehmer-id' });
+      mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValue({ id: 'teilnehmer-id' });
     });
 
     it('should return ETB with eintraege for einsatz', async () => {
@@ -616,7 +624,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       it('should throw ForbiddenException for non-participant (AC2)', async () => {
         // Given
         const einsatzId = createTestCuid('einsatz');
-        mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce(null);
+        mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce(null);
 
         // When/Then
         await expect(controller.getEtbByEinsatzId(einsatzId, regularUser, undefined)).rejects.toThrow(ForbiddenException);
@@ -626,7 +634,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       it('should throw ForbiddenException for former participant (AC2)', async () => {
         // Given - Former participant: leftAt !== null means inactive
         const einsatzId = createTestCuid('einsatz');
-        mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce(null);
+        mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce(null);
 
         // When/Then
         await expect(controller.getEtbByEinsatzId(einsatzId, regularUser, undefined)).rejects.toThrow(ForbiddenException);
@@ -650,7 +658,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       };
       mockEtbRepository.findById.mockResolvedValue(mockAggregate);
       // Default mock for active participant check
-      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValue({ id: 'teilnehmer-id' });
+      mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValue({ id: 'teilnehmer-id' });
     });
 
     it('should return snapshots sorted by version', async () => {
@@ -704,7 +712,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       it('should throw ForbiddenException for non-participant (AC2)', async () => {
         // Given
         const etbId = createTestCuid('etb');
-        mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce(null);
+        mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce(null);
 
         // When/Then
         await expect(controller.getEtbHistory(etbId, regularUser)).rejects.toThrow(ForbiddenException);
@@ -714,7 +722,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       it('should throw ForbiddenException for former participant (AC2)', async () => {
         // Given - Former participant: leftAt !== null means inactive
         const etbId = createTestCuid('etb');
-        mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValueOnce(null);
+        mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce(null);
 
         // When/Then
         await expect(controller.getEtbHistory(etbId, regularUser)).rejects.toThrow(ForbiddenException);
@@ -727,7 +735,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
 
         // When/Then
         await expect(controller.getEtbHistory(etbId, regularUser)).rejects.toThrow(NotFoundException);
-        expect(mockPrismaService.einsatzTeilnehmer.findFirst).not.toHaveBeenCalled();
+        expect(mockEinsatzTeilnehmerRepository.findByEinsatzAndUser).not.toHaveBeenCalled();
       });
     });
   });
@@ -748,7 +756,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       };
       mockEtbRepository.findById.mockResolvedValue(mockAggregate);
       // Default mock for active participant check
-      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValue({ id: 'teilnehmer-id' });
+      mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValue({ id: 'teilnehmer-id' });
     });
 
     it('should throw BadRequestException for invalid etbId in addEintrag', async () => {
@@ -793,7 +801,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
 
     beforeEach(() => {
       // Story 5.9: Default mock for active participant check
-      mockPrismaService.einsatzTeilnehmer.findFirst.mockResolvedValue({ id: 'teilnehmer-id' });
+      mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValue({ id: 'teilnehmer-id' });
     });
 
     it('should execute complete lifecycle: Add -> Update -> Delete', async () => {

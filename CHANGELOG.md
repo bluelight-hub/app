@@ -355,10 +355,6 @@ Neue **priorisierte Lageübersicht** für operative Kräfte und Führung:
 - **Schnellere CI-Pipeline bei Pull Requests**: Die Build-Pipeline wurde optimiert und erkennt nun automatisch, wenn nur Dokumentation geändert wurde – in diesen Fällen werden zeitintensive Build-Schritte übersprungen, was die Feedback-Zeiten deutlich verkürzt
 - **KI-generierte Release Notes**: Release Notes werden nun automatisch mit Claude erstellt und sind benutzerfreundlicher, thematisch gruppiert und leichter verständlich statt als reine Commit-Liste
 
-### Interne Infrastruktur
-
-- Erweiterung des BMAD-Frameworks um Module Builder (BMB) für strukturierte Workflows und Agent-Konfigurationen
-
 ## Version [v1.0.0-alpha.47](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.46...v1.0.0-alpha.47) – Veröffentlicht am 2026-02-14
 
 ## ✨ Neue Funktionen
@@ -557,8 +553,6 @@ Verbesserungen an den Werkzeugen:
 
 - [`7c879d60`](https://github.com/rubenvitt/bluelight-hub/commit/7c879d60) (deps): Update backend dependencies to latest versions 
 
-- [`e8d187a2`](https://github.com/rubenvitt/bluelight-hub/commit/e8d187a2) (config): Remove auto-generated bmad output file 
-
 - [`c35db03d`](https://github.com/rubenvitt/bluelight-hub/commit/c35db03d) (deps): Update Tauri plugins and dependencies to latest versions 
 
 - [`7120fcb3`](https://github.com/rubenvitt/bluelight-hub/commit/7120fcb3) (config): Ignore generated Prisma client files 
@@ -615,8 +609,6 @@ Verbesserungen an den Werkzeugen:
 - [`3977a369`](https://github.com/rubenvitt/bluelight-hub/commit/3977a369) (deps): Update frontend dependencies and migrate dotenvx 
 
 - [`091fe48b`](https://github.com/rubenvitt/bluelight-hub/commit/091fe48b) (deps): Update backend dependencies to latest versions 
-
-- [`3ea39cbf`](https://github.com/rubenvitt/bluelight-hub/commit/3ea39cbf) (config): Remove auto-generated bmad output file 
 
 - [`5ed26259`](https://github.com/rubenvitt/bluelight-hub/commit/5ed26259) (deps): Update Tauri plugins and dependencies to latest versions 
 
@@ -829,8 +821,6 @@ Struktur- oder Code-Verbesserungen:
 
 ## 🔧 Tool Verbesserungen
 Verbesserungen an den Werkzeugen:
-- [`8a6280f7`](https://github.com/rubenvitt/bluelight-hub/commit/8a6280f7) (bmad): Add sub-agent usage to all agent configurations 
-
 - [`921d4b6b`](https://github.com/rubenvitt/bluelight-hub/commit/921d4b6b) (ci): Add GitGuardian config to exclude test files 
 
 
@@ -1026,10 +1016,6 @@ Verbesserungen an den Werkzeugen:
 - [`6a777450`](https://github.com/rubenvitt/bluelight-hub/commit/6a777450) (config): Swap backend/frontend ports for consistency 
 
 - [`4961fd4c`](https://github.com/rubenvitt/bluelight-hub/commit/4961fd4c) (ide): Update IntelliJ run configurations for Jest 30 
-
-- [`04f3dcec`](https://github.com/rubenvitt/bluelight-hub/commit/04f3dcec) (docs): Radikales Aufräumen vor BMad v22 Upgrade 
-
-- [`8e73dd13`](https://github.com/rubenvitt/bluelight-hub/commit/8e73dd13) (bmad): Upgrade to BMad v22 with new workflow structure 
 
 - [`c15e3146`](https://github.com/rubenvitt/bluelight-hub/commit/c15e3146) (config): Add alternative AI tool configurations 
 
@@ -1403,12 +1389,9 @@ Verbesserungen an den Werkzeugen:
 
 ## ✨ Neue Funktionen
 Die folgenden neuen Features wurden hinzugefügt:
-- [`f5d4c2e`](https://github.com/rubenvitt/bluelight-hub/commit/f5d4c2e) (config): Integrate BMad v6 agent framework with full workflow system 
 
 ## 🔧 Tool Verbesserungen
 Verbesserungen an den Werkzeugen:
-- [`bdea6ee`](https://github.com/rubenvitt/bluelight-hub/commit/bdea6ee) (config): Remove legacy BMad and Taskmaster framework files 
-
 - [`c8bfbde`](https://github.com/rubenvitt/bluelight-hub/commit/c8bfbde) (config): Erweitere CodeRabbit ignore patterns für AI-Verzeichnisse 
 
 
@@ -2247,8 +2230,6 @@ Verbesserungen an den Werkzeugen:
 
 - [`bf7c6b0`](https://github.com/rubenvitt/bluelight-hub/commit/bf7c6b0) (workspace): Move @tanstack/react-devtools to catalog specification 
 
-- [`0575100`](https://github.com/rubenvitt/bluelight-hub/commit/0575100) (dev-tools): Add BMad framework and Task Master orchestration agents 
-
 - [`8a4599b`](https://github.com/rubenvitt/bluelight-hub/commit/8a4599b) (ci): Consolidate and improve CI/CD workflows 
 
 - [`8d65976`](https://github.com/rubenvitt/bluelight-hub/commit/8d65976) (config): Update development tools configuration 
@@ -2256,8 +2237,6 @@ Verbesserungen an den Werkzeugen:
 - [`05f2f14`](https://github.com/rubenvitt/bluelight-hub/commit/05f2f14) (ci): Update Node.js versions and GitHub Actions dependencies 
 
 - [`033159e`](https://github.com/rubenvitt/bluelight-hub/commit/033159e) (ci): Update Node.js versions to 22/24 
-
-- [`d3e642f`](https://github.com/rubenvitt/bluelight-hub/commit/d3e642f) (config): Update BMad configuration and documentation 
 
 - [`b2569e7`](https://github.com/rubenvitt/bluelight-hub/commit/b2569e7) (config): Setup CORS and network for WebSocket/Tauri 
 

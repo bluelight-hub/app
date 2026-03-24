@@ -229,6 +229,13 @@ export function AdminDashboard() {
         <div className="grid gap-4 sm:grid-cols-2">
           <NavCard
             icon={<PiPlugsConnected className="h-6 w-6" />}
+            title="Integrationsübersicht"
+            description="Status aller externen Integrationen"
+            onClick={() => navigate({ to: '/admin/integrations/' })}
+            accentColor="violet"
+          />
+          <NavCard
+            icon={<PiPlugsConnected className="h-6 w-6" />}
             title="HiOrg-Server"
             description="HiOrg-Server Anbindung"
             onClick={() => navigate({ to: '/admin/integrations/hiorg' })}

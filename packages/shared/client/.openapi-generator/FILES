@@ -1,6 +1,7 @@
 .openapi-generator-ignore
 apis/AdminApi.ts
 apis/AdminBefehleBefehlsgeberVorschlaegeApi.ts
+apis/AdminIntegrationsApi.ts
 apis/AdminIntegrationsHiorgApi.ts
 apis/AdminKraefteFahrzeugtypenApi.ts
 apis/AdminKraefteFunkstatusApi.ts
@@ -55,12 +56,15 @@ models/AdminFunkStatusControllerFindAllVAlpha200Response.ts
 models/AdminFunkStatusControllerFindByCodeVAlpha200Response.ts
 models/AdminHiOrgIntegrationControllerAutoMatchQualifikationenVAlpha200Response.ts
 models/AdminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlpha200Response.ts
+models/AdminHiOrgIntegrationControllerDisconnectVAlpha200Response.ts
 models/AdminHiOrgIntegrationControllerGetCredentialsVAlpha200Response.ts
 models/AdminHiOrgIntegrationControllerGetQualifikationMappingsVAlpha200Response.ts
 models/AdminHiOrgIntegrationControllerImportPersonsVAlpha200Response.ts
 models/AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200Response.ts
 models/AdminHiOrgIntegrationControllerPreviewPersonsVAlpha200Response.ts
+models/AdminHiOrgIntegrationControllerRefreshTokenVAlpha200Response.ts
 models/AdminHiOrgIntegrationControllerTestConnectionVAlpha200Response.ts
+models/AdminIntegrationsControllerGetOverviewVAlpha200Response.ts
 models/AdminInviteControllerCreateInviteVAlpha201Response.ts
 models/AdminInviteControllerListInvitesVAlpha200Response.ts
 models/AdminInviteControllerRevokeInviteVAlpha200Response.ts
@@ -177,6 +181,7 @@ models/DeleteManagedUserResponseData.ts
 models/DeleteRuntimeConfigResultDto.ts
 models/DeleteUserDto.ts
 models/DetailedHealthDto.ts
+models/DisconnectResponseDto.ts
 models/EinsatzControllerCreateVAlpha201Response.ts
 models/EinsatzControllerFindAllVAlpha200Response.ts
 models/EinsatzControllerFindOneVAlpha200Response.ts
@@ -280,6 +285,8 @@ models/ImportPersonsResponseDto.ts
 models/InitialPoiDto.ts
 models/InitiateOAuthResponseDto.ts
 models/IntegrationHealthDto.ts
+models/IntegrationOverviewItemResponseDto.ts
+models/IntegrationOverviewResponseDto.ts
 models/IntegrationStatusDto.ts
 models/InviteCodeCreatorDto.ts
 models/InviteCodeListItemDto.ts
@@ -335,6 +342,7 @@ models/QuittierenBefehlDto.ts
 models/ReaktionszeitBucketDto.ts
 models/ReaktionszeitStatistikDto.ts
 models/RefreshResponseDto.ts
+models/RefreshTokenResponseDto.ts
 models/RegistrierePersonDto.ts
 models/RegistrierePersonViaQrCodeDto.ts
 models/RevokeInviteResponseDto.ts

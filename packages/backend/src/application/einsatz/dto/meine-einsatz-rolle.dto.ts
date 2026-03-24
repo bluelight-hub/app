@@ -41,6 +41,15 @@ export class BefehlPermissionsDto {
 
   @ApiProperty({ description: 'Ist nur Beobachter (read-only)' })
   isBeobachter!: boolean;
+
+  @ApiProperty({ description: 'Darf ETB-Eintraege erstellen/bearbeiten' })
+  canEditEtb!: boolean;
+
+  @ApiProperty({ description: 'Darf Erinnerungen/Pinnwand bearbeiten' })
+  canEditPinnwand!: boolean;
+
+  @ApiProperty({ description: 'Ist sekundaere Rolle (eingeschraenkter Workspace)' })
+  isSecondaryRole!: boolean;
 }
 
 export class MeineEinsatzRolleDto {

@@ -4,6 +4,7 @@ import {
   AdminApi,
   AdminBefehleBefehlsgeberVorschlaegeApi,
   AdminKraefteFahrzeugtypenApi,
+  AdminIntegrationsApi,
   AdminIntegrationsHiorgApi,
   AdminKraefteQualifikationenApi,
   AdminKraefteRollenApi,
@@ -137,6 +138,7 @@ class BackendApi {
   private readonly adminKraefteRollenApi: AdminKraefteRollenApi;
   private readonly kraefteRollenDefinitionenApi: KraefteRollenDefinitionenApi;
   private readonly rollenBesetzungApi: RollenBesetzungApi;
+  private readonly adminIntegrationsApi: AdminIntegrationsApi;
   private readonly adminIntegrationsHiorgApi: AdminIntegrationsHiorgApi;
   private readonly einsatzTeilnehmerApi: EinsatzTeilnehmerApi;
   private readonly erinnerungApi: ErinnerungApi;
@@ -190,6 +192,7 @@ class BackendApi {
     this.kraefteStammFahrzeugeApi = new KraefteStammFahrzeugeApi(this.configuration);
     this.kraefteStammPersonenApi = new KraefteStammPersonenApi(this.configuration);
     this.rollenBesetzungApi = new RollenBesetzungApi(this.configuration);
+    this.adminIntegrationsApi = new AdminIntegrationsApi(this.configuration);
     this.adminIntegrationsHiorgApi = new AdminIntegrationsHiorgApi(this.configuration);
     this.einsatzTeilnehmerApi = new EinsatzTeilnehmerApi(this.configuration);
     this.erinnerungApi = new ErinnerungApi(this.configuration);
@@ -442,6 +445,15 @@ class BackendApi {
    *
    * @returns Die AdminIntegrationsHiorg-API-Instanz für HiOrg-Server Integration
    */
+  /**
+   * Gibt die gecachte AdminIntegrations-API-Instanz zurueck
+   *
+   * @returns Die AdminIntegrations-API-Instanz fuer Integrationsübersicht
+   */
+  adminIntegrations(): AdminIntegrationsApi {
+    return this.adminIntegrationsApi;
+  }
+
   adminIntegrationsHiorg(): AdminIntegrationsHiorgApi {
     return this.adminIntegrationsHiorgApi;
   }

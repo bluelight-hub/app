@@ -654,4 +654,4 @@ test('should render einsatz list', async () => {
 
 ---
 
-*Dokumentation generiert durch BMad Document-Project Workflow v1.2.0*
+*Dokumentation generiert am 2026-01-05*

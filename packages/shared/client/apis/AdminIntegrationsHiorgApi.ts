@@ -17,11 +17,13 @@ import * as runtime from '../runtime';
 import type {
   AdminHiOrgIntegrationControllerAutoMatchQualifikationenVAlpha200Response,
   AdminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlpha200Response,
+  AdminHiOrgIntegrationControllerDisconnectVAlpha200Response,
   AdminHiOrgIntegrationControllerGetCredentialsVAlpha200Response,
   AdminHiOrgIntegrationControllerGetQualifikationMappingsVAlpha200Response,
   AdminHiOrgIntegrationControllerImportPersonsVAlpha200Response,
   AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200Response,
   AdminHiOrgIntegrationControllerPreviewPersonsVAlpha200Response,
+  AdminHiOrgIntegrationControllerRefreshTokenVAlpha200Response,
   AdminHiOrgIntegrationControllerTestConnectionVAlpha200Response,
   AutoMatchRequestDto,
   BatchSaveQualifikationMappingsRequestDto,
@@ -33,6 +35,8 @@ import {
     AdminHiOrgIntegrationControllerAutoMatchQualifikationenVAlpha200ResponseToJSON,
     AdminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlpha200ResponseFromJSON,
     AdminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlpha200ResponseToJSON,
+    AdminHiOrgIntegrationControllerDisconnectVAlpha200ResponseFromJSON,
+    AdminHiOrgIntegrationControllerDisconnectVAlpha200ResponseToJSON,
     AdminHiOrgIntegrationControllerGetCredentialsVAlpha200ResponseFromJSON,
     AdminHiOrgIntegrationControllerGetCredentialsVAlpha200ResponseToJSON,
     AdminHiOrgIntegrationControllerGetQualifikationMappingsVAlpha200ResponseFromJSON,
@@ -43,6 +47,8 @@ import {
     AdminHiOrgIntegrationControllerInitiateOAuthFlowVAlpha200ResponseToJSON,
     AdminHiOrgIntegrationControllerPreviewPersonsVAlpha200ResponseFromJSON,
     AdminHiOrgIntegrationControllerPreviewPersonsVAlpha200ResponseToJSON,
+    AdminHiOrgIntegrationControllerRefreshTokenVAlpha200ResponseFromJSON,
+    AdminHiOrgIntegrationControllerRefreshTokenVAlpha200ResponseToJSON,
     AdminHiOrgIntegrationControllerTestConnectionVAlpha200ResponseFromJSON,
     AdminHiOrgIntegrationControllerTestConnectionVAlpha200ResponseToJSON,
     AutoMatchRequestDtoFromJSON,
@@ -167,6 +173,40 @@ export class AdminIntegrationsHiorgApi extends runtime.BaseAPI {
      */
     async adminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlpha(requestParameters: AdminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlpha200Response> {
         const response = await this.adminHiOrgIntegrationControllerBatchSaveQualifikationMappingsVAlphaVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * HiOrg-Server Integration trennen
+     */
+    async adminHiOrgIntegrationControllerDisconnectVAlphaRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AdminHiOrgIntegrationControllerDisconnectVAlpha200Response>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("admin-jwt", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/api/v-alpha/admin/integrations/hiorg/disconnect`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AdminHiOrgIntegrationControllerDisconnectVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * HiOrg-Server Integration trennen
+     */
+    async adminHiOrgIntegrationControllerDisconnectVAlpha(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminHiOrgIntegrationControllerDisconnectVAlpha200Response> {
+        const response = await this.adminHiOrgIntegrationControllerDisconnectVAlphaRaw(initOverrides);
         return await response.value();
     }
 
@@ -351,6 +391,40 @@ export class AdminIntegrationsHiorgApi extends runtime.BaseAPI {
      */
     async adminHiOrgIntegrationControllerPreviewPersonsVAlpha(requestParameters: AdminHiOrgIntegrationControllerPreviewPersonsVAlphaRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminHiOrgIntegrationControllerPreviewPersonsVAlpha200Response> {
         const response = await this.adminHiOrgIntegrationControllerPreviewPersonsVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * OAuth2 Token manuell erneuern
+     */
+    async adminHiOrgIntegrationControllerRefreshTokenVAlphaRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AdminHiOrgIntegrationControllerRefreshTokenVAlpha200Response>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("admin-jwt", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/api/v-alpha/admin/integrations/hiorg/oauth/refresh`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AdminHiOrgIntegrationControllerRefreshTokenVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * OAuth2 Token manuell erneuern
+     */
+    async adminHiOrgIntegrationControllerRefreshTokenVAlpha(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AdminHiOrgIntegrationControllerRefreshTokenVAlpha200Response> {
+        const response = await this.adminHiOrgIntegrationControllerRefreshTokenVAlphaRaw(initOverrides);
         return await response.value();
     }
 

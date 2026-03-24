@@ -59,6 +59,8 @@ import { ADMIN_RATE_LIMIT, ADMIN_MUTATION_RATE_LIMIT } from '@/infrastructure/ht
 // Handlers
 import { TestHiOrgConnectionHandler } from '@application/integrations/commands/test-hiorg-connection/test-hiorg-connection.handler';
 import { InitiateOAuthFlowHandler } from '@application/integrations/commands/initiate-oauth-flow/initiate-oauth-flow.handler';
+import { RefreshHiOrgTokenHandler } from '@application/integrations/commands/refresh-hiorg-token/refresh-hiorg-token.handler';
+import { DisconnectHiOrgHandler } from '@application/integrations/commands/disconnect-hiorg/disconnect-hiorg.handler';
 import { GetHiOrgCredentialsHandler } from '@application/integrations/queries/get-hiorg-credentials/get-hiorg-credentials.handler';
 import { PreviewHiOrgPersonsHandler } from '@application/integrations/queries/preview-hiorg-persons/preview-hiorg-persons.handler';
 import { GetQualifikationMappingsHandler } from '@application/integrations/queries/get-qualifikation-mappings/get-qualifikation-mappings.handler';
@@ -70,6 +72,8 @@ import { BatchSaveQualifikationMappingsHandler } from '@application/integrations
 // Commands & Queries
 import { TestHiOrgConnectionCommand } from '@application/integrations/commands/test-hiorg-connection/test-hiorg-connection.command';
 import { InitiateOAuthFlowCommand } from '@application/integrations/commands/initiate-oauth-flow/initiate-oauth-flow.command';
+import { RefreshHiOrgTokenCommand } from '@application/integrations/commands/refresh-hiorg-token/refresh-hiorg-token.command';
+import { DisconnectHiOrgCommand } from '@application/integrations/commands/disconnect-hiorg/disconnect-hiorg.command';
 import { GetHiOrgCredentialsQuery } from '@application/integrations/queries/get-hiorg-credentials/get-hiorg-credentials.query';
 import { PreviewHiOrgPersonsQuery } from '@application/integrations/queries/preview-hiorg-persons/preview-hiorg-persons.query';
 import { GetQualifikationMappingsQuery } from '@application/integrations/queries/get-qualifikation-mappings/get-qualifikation-mappings.query';
@@ -85,6 +89,8 @@ import {
   HiOrgConnectionInfoDto,
   HiOrgPersonsPreviewResponseDto,
   InitiateOAuthResponseDto,
+  RefreshTokenResponseDto,
+  DisconnectResponseDto,
   QualifikationMappingsResponseDto,
   SaveQualifikationMappingRequestDto,
   AutoMatchResultResponseDto,
@@ -128,6 +134,8 @@ export class AdminHiOrgIntegrationController {
     private readonly configService: ConfigService,
     private readonly testConnectionHandler: TestHiOrgConnectionHandler,
     private readonly initiateOAuthHandler: InitiateOAuthFlowHandler,
+    private readonly refreshTokenHandler: RefreshHiOrgTokenHandler,
+    private readonly disconnectHandler: DisconnectHiOrgHandler,
     private readonly getCredentialsHandler: GetHiOrgCredentialsHandler,
     private readonly previewPersonsHandler: PreviewHiOrgPersonsHandler,
     // Story 7.2: Qualifikation-Mapping Handlers
@@ -178,6 +186,9 @@ export class AdminHiOrgIntegrationController {
         lastTestedAt: null,
         lastSyncAt: null,
         isOAuthConfigured: this.isOAuthConfigured(),
+        isAccessTokenExpired: true,
+        accessTokenExpiresAt: null,
+        hasRefreshToken: false,
       };
     }
 
@@ -187,6 +198,9 @@ export class AdminHiOrgIntegrationController {
       lastTestedAt: result.value.lastTestedAt ?? null,
       lastSyncAt: result.value.lastSyncAt ?? null,
       isOAuthConfigured: this.isOAuthConfigured(),
+      isAccessTokenExpired: result.value.isAccessTokenExpired,
+      accessTokenExpiresAt: result.value.accessTokenExpiresAt ?? null,
+      hasRefreshToken: result.value.hasRefreshToken,
     };
   }
 
@@ -299,6 +313,94 @@ export class AdminHiOrgIntegrationController {
     const flowResult = result.value!;
     this.logger.log(`OAuth flow initiated for HiOrg by admin ${user.userId}`);
     return { authorizationUrl: flowResult.authorizationUrl };
+  }
+
+  /**
+   * OAuth2 Token manuell erneuern.
+   *
+   * Löst ein Token-Refresh aus, falls ein Refresh Token vorhanden ist.
+   * Wenn das Token noch gültig ist, wird es nicht erneuert.
+   *
+   * @param user - Aktueller Admin-Benutzer (aus JWT Token)
+   * @returns Refresh-Ergebnis mit neuem Ablaufzeitpunkt
+   */
+  @Post('oauth/refresh')
+  @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'OAuth2 Token manuell erneuern' })
+  @ApiWrappedResponse(RefreshTokenResponseDto, { description: 'Token-Refresh Ergebnis' })
+  @ApiNotFoundResponse({ description: 'Keine Credentials konfiguriert' })
+  @ApiServiceUnavailableResponse({ description: 'Token-Refresh fehlgeschlagen' })
+  async refreshToken(@CurrentUser() user: ValidatedUser): Promise<RefreshTokenResponseDto> {
+    const commandResult = RefreshHiOrgTokenCommand.create({ userId: user.userId });
+    if (commandResult.isFailure) {
+      throw new BadRequestException(commandResult.error);
+    }
+
+    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    const result = await this.refreshTokenHandler.execute(commandResult.value!);
+
+    if (result.isFailure) {
+      // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist error garantiert vorhanden
+      const error = result.error!;
+
+      if (IntegrationError.hasCode(error, INTEGRATION_ERROR_CODES.CREDENTIALS_NOT_FOUND)) {
+        throw new NotFoundException(IntegrationError.extractMessage(error));
+      }
+      if (IntegrationError.hasCode(error, INTEGRATION_ERROR_CODES.OAUTH_TOKEN_REFRESH_FAILED)) {
+        throw new ServiceUnavailableException(IntegrationError.extractMessage(error));
+      }
+      if (IntegrationError.hasCode(error, INTEGRATION_ERROR_CODES.OAUTH_NOT_CONFIGURED)) {
+        throw new BadRequestException(IntegrationError.extractMessage(error));
+      }
+      if (IntegrationError.hasCode(error, INTEGRATION_ERROR_CODES.DECRYPTION_FAILED)) {
+        this.logger.error(`Decryption failed during token refresh: ${error}`);
+        throw new InternalServerErrorException('Token-Entschlüsselung fehlgeschlagen');
+      }
+
+      throw new ServiceUnavailableException('Token-Refresh fehlgeschlagen');
+    }
+
+    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    const refreshResult = result.value!;
+    this.logger.log(`Token-Refresh durch Admin ${user.userId}: ${refreshResult.refreshed ? 'erneuert' : 'war noch gültig'}`);
+
+    return {
+      refreshed: refreshResult.refreshed,
+      accessTokenExpiresAt: refreshResult.accessTokenExpiresAt,
+      hasRefreshToken: refreshResult.hasRefreshToken,
+    };
+  }
+
+  /**
+   * HiOrg-Server Integration trennen.
+   *
+   * Löscht die OAuth2 Credentials und trennt die Verbindung.
+   *
+   * @param user - Aktueller Admin-Benutzer (aus JWT Token)
+   * @returns Bestätigung der Trennung
+   */
+  @Post('disconnect')
+  @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'HiOrg-Server Integration trennen' })
+  @ApiWrappedResponse(DisconnectResponseDto, { description: 'Integration getrennt' })
+  @ApiNotFoundResponse({ description: 'Keine Credentials konfiguriert' })
+  async disconnect(@CurrentUser() user: ValidatedUser): Promise<DisconnectResponseDto> {
+    const commandResult = DisconnectHiOrgCommand.create({ userId: user.userId });
+    if (commandResult.isFailure) {
+      throw new BadRequestException(commandResult.error);
+    }
+
+    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    const result = await this.disconnectHandler.execute(commandResult.value!);
+
+    if (result.isFailure) {
+      throw new InternalServerErrorException('Integration konnte nicht getrennt werden');
+    }
+
+    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    return result.value!;
   }
 
   /**

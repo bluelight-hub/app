@@ -15,6 +15,7 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router';
+import { EinsatzRolleGate } from '@/features/einsatz/ui/molecules/EinsatzRolleGate';
 import { KraefteDashboard } from '@/features/kraefte';
 import type { DashboardMode } from '@/features/kraefte';
 
@@ -57,15 +58,19 @@ function KraefteDashboardRoute() {
   // Fullscreen-Modus: Keine Container-Padding
   if (mode === 'fullscreen') {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <KraefteDashboard einsatzId={einsatzId} mode="fullscreen" />
-      </div>
+      <EinsatzRolleGate einsatzId={einsatzId}>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+          <KraefteDashboard einsatzId={einsatzId} mode="fullscreen" />
+        </div>
+      </EinsatzRolleGate>
     );
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <KraefteDashboard einsatzId={einsatzId} mode={mode} />
-    </div>
+    <EinsatzRolleGate einsatzId={einsatzId}>
+      <div className="container mx-auto p-4">
+        <KraefteDashboard einsatzId={einsatzId} mode={mode} />
+      </div>
+    </EinsatzRolleGate>
   );
 }

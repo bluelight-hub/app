@@ -728,5 +728,5 @@ Diese Kombination bietet die beste Balance aus:
 2. ⏭️ Tech Spec für Story 2.1 erstellen (basierend auf Empfehlungen)
 3. ⏭️ Implementierung starten (EncryptionService + IndexedDBService)
 
-**Erstellt von:** Claude Code (BMad v6)
+**Erstellt von:** Claude Code
 **Letzte Aktualisierung:** 2026-01-08

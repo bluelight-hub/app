@@ -66,6 +66,7 @@ export const ADMIN_QUERY_KEYS = {
   },
   integrations: {
     all: ['admin', 'integrations'] as const,
+    overview: () => ['admin', 'integrations', 'overview'] as const,
     hiorg: {
       all: () => [...ADMIN_QUERY_KEYS.integrations.all, 'hiorg'] as const,
       credentials: () => [...ADMIN_QUERY_KEYS.integrations.hiorg.all(), 'credentials'] as const,

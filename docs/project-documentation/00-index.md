@@ -3,7 +3,7 @@
 > **Projekt:** Bluelight Hub - Einsatzverwaltung für Blaulichtorganisationen
 > **Version:** siehe CHANGELOG.md
 > **Generiert:** 2026-01-04
-> **Workflow:** BMad Document-Project v1.2.0
+> **Quelle:** Projekt-Scan v1.2.0
 
 ---
 
@@ -161,4 +161,4 @@ Detaillierte exhaustive Analysen spezifischer Bereiche:
 
 ---
 
-*Dokumentation generiert durch BMad Document-Project Workflow v1.2.0*
+*Dokumentation generiert am 2026-01-04*

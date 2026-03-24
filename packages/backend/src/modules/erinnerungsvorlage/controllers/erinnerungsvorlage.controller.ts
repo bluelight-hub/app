@@ -1,5 +1,5 @@
 import { BadRequestException, Body, ConflictException, Controller, Delete, Get, HttpCode, HttpStatus, NotFoundException, Param, Patch, Post, UseGuards, ValidationPipe } from '@nestjs/common';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiNotFoundResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
@@ -96,7 +96,7 @@ export class ErinnerungsvorlageController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Erinnerungsvorlage löschen (Soft-Delete)' })
-  @ApiResponse({ status: 204, description: 'Vorlage erfolgreich gelöscht (Soft-Delete)' })
+  @ApiNoContentResponse({ description: 'Vorlage erfolgreich gelöscht (Soft-Delete)' })
   @ApiBadRequestResponse({ description: 'Ungültige VorlageId' })
   @ApiNotFoundResponse({ description: 'Vorlage nicht gefunden' })
   @ApiConflictResponse({ description: 'Vorlage bereits gelöscht' })
