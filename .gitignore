@@ -222,8 +222,6 @@ packages/backend/src/generated/
 # Certificates
 certs/
 
-_bmad-output
-
 .gemini/
 gha-creds-*.json
 .serena/
