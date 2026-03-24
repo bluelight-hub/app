@@ -95,7 +95,7 @@ export function AudioSettingsDialog({ isOpen, onClose }: AudioSettingsDialogProp
         <Dialog.Body>
           {isLoading ? (
             <div className="flex h-48 items-center justify-center">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent" />
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-action-primary border-t-transparent" />
             </div>
           ) : (
             <div className="space-y-4">
@@ -104,7 +104,7 @@ export function AudioSettingsDialog({ isOpen, onClose }: AudioSettingsDialogProp
 
               {/* Level-Konfigurationen */}
               <div className="space-y-4">
-                <h2 className="font-medium text-gray-900 text-lg dark:text-white">Alarm-Stufen konfigurieren</h2>
+                <h2 className="font-medium text-text-primary text-lg">Alarm-Stufen konfigurieren</h2>
 
                 {ALARM_LEVELS.map((level) => (
                   <AudioLevelConfig key={level} level={level} config={settings.levels[level]} onChange={(config) => handleLevelChange(level, config)} disabled={!settings.enabled} />
@@ -113,8 +113,8 @@ export function AudioSettingsDialog({ isOpen, onClose }: AudioSettingsDialogProp
 
               {/* Hinweis bei deaktiviertem Audio */}
               {!settings.enabled && (
-                <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-900/20">
-                  <p className="text-sm text-yellow-800 dark:text-yellow-200">Alarm-Töne sind deaktiviert. Erinnerungen werden nur visuell angezeigt.</p>
+                <div className="rounded-panel border border-status-warning-border bg-status-warning-surface p-4">
+                  <p className="text-sm text-status-warning-text">Alarm-Töne sind deaktiviert. Erinnerungen werden nur visuell angezeigt.</p>
                 </div>
               )}
             </div>

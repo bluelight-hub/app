@@ -95,13 +95,13 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         <div className="flex min-h-[400px] items-center justify-center p-8">
           <Card padding="lg" className="max-w-md">
             <div className="flex flex-col items-center text-center">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
-                <PiWarning className="h-6 w-6 text-red-600 dark:text-red-400" />
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-status-danger-surface">
+                <PiWarning className="h-6 w-6 text-status-danger-text" />
               </div>
               <Heading size="md" className="mb-2">
                 Ein Fehler ist aufgetreten
               </Heading>
-              <Text className="mb-4 text-gray-600 dark:text-gray-400">{this.state.error?.message || 'Ein unerwarteter Fehler ist aufgetreten.'}</Text>
+              <Text className="mb-4 text-text-secondary">{this.state.error?.message || 'Ein unerwarteter Fehler ist aufgetreten.'}</Text>
               <div className="flex gap-3">
                 <Button onClick={this.handleReset} intent="primary">
                   Erneut versuchen

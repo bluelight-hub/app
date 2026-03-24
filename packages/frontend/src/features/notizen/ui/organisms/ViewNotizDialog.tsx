@@ -51,12 +51,12 @@ export function ViewNotizDialog({ isOpen, onClose, notiz, isOwner = false, onEdi
     <Dialog isOpen={isOpen} onClose={onClose} size="lg">
       {/* Header mit Titel und Metadaten */}
       <div className="flex items-start gap-3">
-        <div className="rounded-full bg-slate-100 p-2 dark:bg-slate-800">
-          <PiNotepad className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+        <div className="rounded-full bg-surface-raised p-2">
+          <PiNotepad className="h-5 w-5 text-text-secondary" />
         </div>
         <div className="min-w-0 flex-1">
           <Dialog.Title className="!text-xl">{notiz.titel}</Dialog.Title>
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-gray-500 text-xs dark:text-gray-400">
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-text-muted text-xs">
             <span>Erstellt {createdDate}</span>
             {updatedDate && <span>· Bearbeitet {updatedDate}</span>}
             {notiz.erstelltVonName && <span>· von {notiz.erstelltVonName}</span>}
@@ -70,7 +70,7 @@ export function ViewNotizDialog({ isOpen, onClose, notiz, isOwner = false, onEdi
           <div className="flex flex-wrap items-center gap-2">
             {typeof notiz.kategorieName === 'string' && typeof notiz.kategorieFarbe === 'string' && <KategorieChip name={notiz.kategorieName} farbe={notiz.kategorieFarbe} />}
             {notiz.istTeamsichtbar && (
-              <div className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 font-medium text-blue-700 text-xs dark:bg-blue-900/30 dark:text-blue-300">
+              <div className="inline-flex items-center gap-1 rounded-pill bg-action-secondary px-2 py-0.5 font-medium text-action-primary text-xs">
                 <PiUsersThree className="h-3.5 w-3.5" />
                 Team-sichtbar
               </div>
@@ -79,12 +79,12 @@ export function ViewNotizDialog({ isOpen, onClose, notiz, isOwner = false, onEdi
 
           {/* Inhalt */}
           {notiz.inhalt ? (
-            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
-              <p className="whitespace-pre-wrap text-gray-700 text-sm leading-relaxed dark:text-gray-300">{notiz.inhalt}</p>
+            <div className="rounded-panel border border-border-subtle bg-surface-raised p-4">
+              <p className="whitespace-pre-wrap text-text-secondary text-sm leading-relaxed">{notiz.inhalt}</p>
             </div>
           ) : (
-            <div className="rounded-lg border border-gray-200 border-dashed bg-gray-50/50 p-4 text-center dark:border-gray-700 dark:bg-gray-800/30">
-              <p className="text-gray-400 text-sm italic dark:text-gray-500">Kein Inhalt vorhanden</p>
+            <div className="rounded-panel border border-border-subtle border-dashed bg-surface-raised/70 p-4 text-center">
+              <p className="text-text-muted text-sm italic">Kein Inhalt vorhanden</p>
             </div>
           )}
         </div>

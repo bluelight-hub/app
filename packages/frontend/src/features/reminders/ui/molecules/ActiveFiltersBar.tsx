@@ -9,15 +9,15 @@ import type { StatusFilterType, ErinnerungStatus } from '../../stores';
 
 // Status-Farben (aus AlarmStateBadge Pattern)
 const STATUS_COLORS: Record<ErinnerungStatus, string> = {
-  GEPLANT: 'bg-green-100 border-green-300 text-green-700 dark:bg-green-900/30 dark:border-green-600 dark:text-green-300',
-  AUSGELOEST: 'bg-red-100 border-red-300 text-red-700 dark:bg-red-900/30 dark:border-red-600 dark:text-red-300',
-  ACKNOWLEDGED: 'bg-blue-100 border-blue-300 text-blue-700 dark:bg-blue-900/30 dark:border-blue-600 dark:text-blue-300',
-  SNOOZED: 'bg-yellow-100 border-yellow-300 text-yellow-700 dark:bg-yellow-900/30 dark:border-yellow-600 dark:text-yellow-300',
-  ESKALIERT: 'bg-indigo-100 border-indigo-300 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-600 dark:text-indigo-300',
-  ERLEDIGT: 'bg-gray-100 border-gray-300 text-gray-600 dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-400',
+  GEPLANT: 'bg-status-success-surface border-status-success-border text-status-success-text',
+  AUSGELOEST: 'bg-status-danger-surface border-status-danger-border text-status-danger-text',
+  ACKNOWLEDGED: 'bg-status-info-surface border-status-info-border text-status-info-text',
+  SNOOZED: 'bg-status-warning-surface border-status-warning-border text-status-warning-text',
+  ESKALIERT: 'bg-status-info-surface border-status-info-border text-status-info-text',
+  ERLEDIGT: 'bg-surface-raised border-border-subtle text-text-secondary',
 };
 
-const TEAM_FILTER_COLOR = 'bg-indigo-100 border-indigo-300 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-600 dark:text-indigo-300';
+const TEAM_FILTER_COLOR = 'bg-status-info-surface border-status-info-border text-status-info-text';
 
 interface ActiveFiltersBarProps {
   teamFilter?: TeamFilterType;
@@ -77,7 +77,7 @@ export function ActiveFiltersBar({
         filters.push({
           type: 'kategorie',
           label: 'Ohne Kategorie',
-          colorClass: 'bg-gray-100 border-gray-300 text-gray-700 dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-400',
+          colorClass: 'bg-surface-raised border-border-subtle text-text-secondary',
           onRemove: onClearKategorieFilter,
         });
       } else if (kategorieFilter.type === 'kategorie') {
@@ -132,10 +132,9 @@ export function ActiveFiltersBar({
           aria-label="Alle aktiven Filter zurücksetzen"
           className={cn(
             'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-medium text-xs',
-            'text-gray-500 hover:bg-gray-100 hover:text-gray-700',
+            'text-text-muted hover:bg-action-secondary hover:text-text-primary',
             'transition-colors duration-150',
-            'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-            'dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200',
+            'focus:outline-none focus-visible:shadow-focus-ring',
           )}
         >
           <PiX className="h-3 w-3" />

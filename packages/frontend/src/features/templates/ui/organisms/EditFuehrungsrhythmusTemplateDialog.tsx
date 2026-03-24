@@ -146,8 +146,8 @@ export function EditFuehrungsrhythmusTemplateDialog({ isOpen, onClose, template 
   return (
     <Dialog isOpen={isOpen} onClose={handleClose} size="lg">
       <div className="flex items-center gap-3">
-        <div className="rounded-full bg-amber-100 p-2 dark:bg-amber-900/30">
-          <PiMetronome className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+        <div className="rounded-full bg-status-warning-surface p-2">
+          <PiMetronome className="h-5 w-5 text-status-warning-text" />
         </div>
         <Dialog.Title>Template bearbeiten</Dialog.Title>
       </div>
@@ -166,8 +166,8 @@ export function EditFuehrungsrhythmusTemplateDialog({ isOpen, onClose, template 
           <form.Field name="name">
             {(field) => (
               <div>
-                <label htmlFor="edit-fr-template-name" className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
-                  Name <span className="text-red-500">*</span>
+                <label htmlFor="edit-fr-template-name" className="mb-1.5 block font-medium text-text-secondary text-sm">
+                  Name <span className="text-status-danger-text">*</span>
                 </label>
                 <Input
                   id="edit-fr-template-name"
@@ -180,7 +180,7 @@ export function EditFuehrungsrhythmusTemplateDialog({ isOpen, onClose, template 
                   maxLength={100}
                   autoFocus
                 />
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-red-600 text-sm dark:text-red-400">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-sm">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
@@ -189,8 +189,8 @@ export function EditFuehrungsrhythmusTemplateDialog({ isOpen, onClose, template 
           <form.Field name="beschreibung">
             {(field) => (
               <div>
-                <label htmlFor="edit-fr-template-beschreibung" className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
-                  Beschreibung <span className="text-gray-400 text-xs">(optional)</span>
+                <label htmlFor="edit-fr-template-beschreibung" className="mb-1.5 block font-medium text-text-secondary text-sm">
+                  Beschreibung <span className="text-text-muted text-xs">(optional)</span>
                 </label>
                 <textarea
                   id="edit-fr-template-beschreibung"
@@ -201,12 +201,11 @@ export function EditFuehrungsrhythmusTemplateDialog({ isOpen, onClose, template 
                   maxLength={500}
                   rows={2}
                   className={cn(
-                    'block w-full rounded-lg border bg-white px-4 py-2.5 font-medium text-gray-900 transition-colors duration-200',
-                    'placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-opacity-20',
+                    'block w-full rounded-control border bg-surface-panel px-4 py-2.5 font-medium text-text-primary transition-colors duration-200',
+                    'placeholder:text-text-muted focus:outline-none focus-visible:shadow-focus-ring',
                     'disabled:cursor-not-allowed disabled:opacity-50',
-                    'dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-500',
                     'resize-none',
-                    'border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700',
+                    'border-border-subtle hover:border-border-strong focus:border-action-primary',
                   )}
                 />
               </div>
@@ -215,9 +214,9 @@ export function EditFuehrungsrhythmusTemplateDialog({ isOpen, onClose, template 
 
           {/* Eintraege (dynamisch) */}
           <div>
-            <div className="mb-3 flex items-center gap-2 border-gray-200 border-b pb-2 dark:border-gray-700">
-              <span className="font-medium text-gray-700 text-sm dark:text-gray-300">Erinnerungen</span>
-              <span className="text-red-500">*</span>
+            <div className="mb-3 flex items-center gap-2 border-border-subtle border-b pb-2">
+              <span className="font-medium text-text-secondary text-sm">Erinnerungen</span>
+              <span className="text-status-danger-text">*</span>
             </div>
 
             <form.Field name="eintraege" mode="array">
@@ -245,21 +244,21 @@ export function EditFuehrungsrhythmusTemplateDialog({ isOpen, onClose, template 
                       setEntryKeys((prev) => [...prev, createEditEintragKey()]);
                     }}
                     disabled={isPending}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-gray-300 border-dashed px-4 py-2.5 text-gray-500 text-sm transition-colors hover:border-amber-400 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-400 dark:hover:border-amber-500 dark:hover:text-amber-400"
+                    className="flex w-full items-center justify-center gap-2 rounded-panel border-2 border-dashed border-border-subtle px-4 py-2.5 text-text-secondary text-sm transition-colors hover:border-status-warning-text hover:text-status-warning-text disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <PiPlus className="h-4 w-4" />
                     Erinnerung hinzufuegen
                   </button>
 
                   {/* Array-Level Fehler */}
-                  {field.state.meta.errors.length > 0 && <p className="text-red-600 text-sm dark:text-red-400">{formatErrors(field.state.meta.errors)}</p>}
+                  {field.state.meta.errors.length > 0 && <p className="text-status-danger-text text-sm">{formatErrors(field.state.meta.errors)}</p>}
                 </div>
               )}
             </form.Field>
           </div>
 
           {/* API Error */}
-          {apiErrorMessage && <div className="rounded-lg bg-red-50 p-3 text-red-700 text-sm dark:bg-red-900/20 dark:text-red-400">{apiErrorMessage}</div>}
+          {apiErrorMessage && <div className="rounded-panel bg-status-danger-surface p-3 text-status-danger-text text-sm">{apiErrorMessage}</div>}
         </form>
       </Dialog.Body>
 
@@ -293,15 +292,15 @@ function EditEintragRow({
   const offsetInputId = `edit-fr-eintrag-${index}-offset`;
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800/50">
+    <div className="rounded-panel border border-border-subtle bg-surface-raised p-3">
       <div className="mb-2 flex items-center justify-between">
-        <span className="font-medium text-gray-500 text-xs dark:text-gray-400">{index + 1}.</span>
+        <span className="font-medium text-text-muted text-xs">{index + 1}.</span>
         {canRemove && (
           <button
             type="button"
             onClick={onRemove}
             disabled={isPending}
-            className="rounded-md p-1 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+            className="rounded-control p-1 text-text-muted transition-colors hover:bg-status-danger-surface hover:text-status-danger-text disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={`Eintrag ${index + 1} entfernen`}
           >
             <PiTrash className="h-3.5 w-3.5" />
@@ -324,7 +323,7 @@ function EditEintragRow({
                 inputSize="sm"
                 maxLength={100}
               />
-              {field.state.meta.errors.length > 0 && <p className="mt-1 text-red-600 text-xs dark:text-red-400">{formatErrors(field.state.meta.errors)}</p>}
+              {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-xs">{formatErrors(field.state.meta.errors)}</p>}
             </div>
           )}
         </form.Field>
@@ -334,7 +333,7 @@ function EditEintragRow({
           <form.Field name={`eintraege[${index}].intervallMinuten`}>
             {(field) => (
               <div className="flex-1">
-                <label htmlFor={intervallInputId} className="mb-1 block text-gray-500 text-xs dark:text-gray-400">
+                <label htmlFor={intervallInputId} className="mb-1 block text-text-muted text-xs">
                   Intervall (Min)
                 </label>
                 <div className="flex items-center gap-1.5">
@@ -347,9 +346,7 @@ function EditEintragRow({
                       className={cn(
                         'rounded-md px-2.5 py-1 font-medium text-xs transition-colors',
                         'disabled:cursor-not-allowed disabled:opacity-50',
-                        (field.state.value as number) === preset
-                          ? 'bg-amber-500 text-white dark:bg-amber-600'
-                          : 'bg-gray-200 text-gray-600 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600',
+                        (field.state.value as number) === preset ? 'bg-status-warning-text text-text-inverse' : 'bg-surface-raised text-text-secondary hover:bg-action-secondary',
                       )}
                     >
                       {preset}
@@ -368,7 +365,7 @@ function EditEintragRow({
                     className="w-16"
                   />
                 </div>
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-red-600 text-xs dark:text-red-400">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-xs">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
@@ -377,7 +374,7 @@ function EditEintragRow({
           <form.Field name={`eintraege[${index}].offsetMinuten`}>
             {(field) => (
               <div className="w-24">
-                <label htmlFor={offsetInputId} className="mb-1 block text-gray-500 text-xs dark:text-gray-400">
+                <label htmlFor={offsetInputId} className="mb-1 block text-text-muted text-xs">
                   Offset (Min)
                 </label>
                 <Input
@@ -391,7 +388,7 @@ function EditEintragRow({
                   min={0}
                   max={1440}
                 />
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-red-600 text-xs dark:text-red-400">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-xs">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>

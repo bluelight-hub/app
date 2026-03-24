@@ -16,10 +16,10 @@ const WARNUNG_TYP_LABELS: Record<string, string> = {
 };
 
 const WARNUNG_TYP_COLORS: Record<string, string> = {
-  ZUSTELLRATE: 'text-red-400',
-  OUTBOX_STAU: 'text-yellow-400',
-  LATENZ: 'text-orange-400',
-  CIRCUIT_BREAKER: 'text-red-400',
+  ZUSTELLRATE: 'text-status-danger-text',
+  OUTBOX_STAU: 'text-status-warning-text',
+  LATENZ: 'text-status-warning-text',
+  CIRCUIT_BREAKER: 'text-status-danger-text',
 };
 
 interface WarnungListProps {
@@ -33,16 +33,16 @@ function getWarnungKeyBase(warnung: SystemWarnungPayload): string {
 export function WarnungList({ warnungen }: WarnungListProps) {
   if (warnungen.length === 0) {
     return (
-      <div className="rounded-lg border border-gray-700 bg-gray-800/50 p-4">
-        <h3 className="mb-2 font-medium text-gray-400 text-sm">Letzte Warnungen</h3>
-        <p className="text-gray-500 text-sm">Keine Warnungen</p>
+      <div className="rounded-panel border border-border-subtle bg-surface-raised p-4">
+        <h3 className="mb-2 font-medium text-text-secondary text-sm">Letzte Warnungen</h3>
+        <p className="text-text-muted text-sm">Keine Warnungen</p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-lg border border-gray-700 bg-gray-800/50 p-4">
-      <h3 className="mb-3 font-medium text-gray-400 text-sm">Letzte Warnungen ({warnungen.length})</h3>
+    <div className="rounded-panel border border-border-subtle bg-surface-raised p-4">
+      <h3 className="mb-3 font-medium text-text-secondary text-sm">Letzte Warnungen ({warnungen.length})</h3>
       <div className="max-h-64 space-y-2 overflow-y-auto" role="log" aria-live="polite" aria-label="System-Warnungen">
         {(() => {
           const warnungKeyCounts = new Map<string, number>();
@@ -53,9 +53,9 @@ export function WarnungList({ warnungen }: WarnungListProps) {
             warnungKeyCounts.set(warnungKeyBase, occurrence);
 
             return (
-              <div key={`${warnungKeyBase}|${occurrence}`} className="flex items-center justify-between rounded bg-gray-900/50 px-3 py-2 text-sm">
-                <span className={WARNUNG_TYP_COLORS[w.warnungTyp] || 'text-gray-300'}>{WARNUNG_TYP_LABELS[w.warnungTyp] || w.warnungTyp}</span>
-                <span className="text-gray-500">{new Date(w.timestamp).toLocaleTimeString('de-DE')}</span>
+              <div key={`${warnungKeyBase}|${occurrence}`} className="flex items-center justify-between rounded-control bg-surface-canvas px-3 py-2 text-sm">
+                <span className={WARNUNG_TYP_COLORS[w.warnungTyp] || 'text-text-secondary'}>{WARNUNG_TYP_LABELS[w.warnungTyp] || w.warnungTyp}</span>
+                <span className="text-text-muted">{new Date(w.timestamp).toLocaleTimeString('de-DE')}</span>
               </div>
             );
           });

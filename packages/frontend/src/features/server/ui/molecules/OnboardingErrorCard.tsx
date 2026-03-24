@@ -64,22 +64,22 @@ export function OnboardingErrorCard({ errorCode, title, message, cta, onRetry, o
   // Style-Varianten basierend auf Schweregrad
   const severityStyles = {
     error: {
-      container: 'border-red-200 bg-red-50',
-      icon: 'text-red-600',
-      title: 'text-red-800',
-      message: 'text-red-700',
-      cta: 'text-red-700',
-      primaryButton: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-      secondaryButton: 'border-red-300 text-red-700 hover:bg-red-100 focus:ring-red-500',
+      container: 'border-status-danger-border bg-status-danger-surface',
+      icon: 'text-status-danger-text',
+      title: 'text-status-danger-text',
+      message: 'text-status-danger-text',
+      cta: 'text-status-danger-text',
+      primaryButton: 'bg-status-danger-text text-text-inverse hover:opacity-90',
+      secondaryButton: 'border-status-danger-border text-status-danger-text hover:bg-status-danger-surface',
     },
     warning: {
-      container: 'border-yellow-200 bg-yellow-50',
-      icon: 'text-yellow-600',
-      title: 'text-yellow-800',
-      message: 'text-yellow-700',
-      cta: 'text-yellow-700',
-      primaryButton: 'bg-yellow-600 text-white hover:bg-yellow-700 focus:ring-yellow-500',
-      secondaryButton: 'border-yellow-300 text-yellow-700 hover:bg-yellow-100 focus:ring-yellow-500',
+      container: 'border-status-warning-border bg-status-warning-surface',
+      icon: 'text-status-warning-text',
+      title: 'text-status-warning-text',
+      message: 'text-status-warning-text',
+      cta: 'text-status-warning-text',
+      primaryButton: 'bg-status-warning-text text-text-inverse hover:opacity-90',
+      secondaryButton: 'border-status-warning-border text-status-warning-text hover:bg-status-warning-surface',
     },
   };
 
@@ -94,8 +94,8 @@ export function OnboardingErrorCard({ errorCode, title, message, cta, onRetry, o
     if (!hasActions) return null;
 
     const buttonBaseClasses = fullscreen
-      ? 'rounded-md px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2'
-      : 'rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2';
+      ? 'rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:shadow-focus-ring focus-visible:outline-none'
+      : 'rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus-visible:shadow-focus-ring focus-visible:outline-none';
 
     return (
       <div className={cn('flex gap-3', fullscreen ? 'mt-6' : 'mt-4')} data-testid="action-buttons">
@@ -170,7 +170,7 @@ export function OnboardingErrorCard({ errorCode, title, message, cta, onRetry, o
                 <button
                   type="button"
                   onClick={onRetry}
-                  className={cn('rounded-md px-4 py-2 font-medium text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2', styles.primaryButton)}
+                  className={cn('rounded-md px-4 py-2 font-medium text-sm transition-colors focus-visible:shadow-focus-ring focus-visible:outline-none', styles.primaryButton)}
                   data-testid="retry-button"
                 >
                   Erneut versuchen
@@ -181,7 +181,7 @@ export function OnboardingErrorCard({ errorCode, title, message, cta, onRetry, o
                   type="button"
                   onClick={onManualSetup}
                   className={cn(
-                    'rounded-md border px-4 py-2 font-medium text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2',
+                    'rounded-md border px-4 py-2 font-medium text-sm transition-colors focus-visible:shadow-focus-ring focus-visible:outline-none',
                     showRetryButton ? styles.secondaryButton : styles.primaryButton,
                   )}
                   data-testid="manual-setup-button"

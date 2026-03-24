@@ -61,7 +61,7 @@ export function EinsatzHeader({ einsatz, isEditing, previousEinsatzId, nextEinsa
   );
 
   return (
-    <div className="flex-shrink-0 border-gray-200 border-b bg-white dark:border-gray-700 dark:bg-gray-800">
+    <div className="flex-shrink-0 border-border-subtle border-b bg-surface-panel">
       <div className="px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">

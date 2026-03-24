@@ -19,9 +19,8 @@ export function KategorieStatCard({ name, farbe, activeCount, overdueCount, isAc
     <button
       type="button"
       className={cn(
-        'flex cursor-pointer flex-col gap-1 rounded-lg border p-3 text-left transition-colors',
-        'border-gray-200 dark:border-gray-700',
-        'hover:bg-gray-50 dark:hover:bg-gray-800',
+        'flex cursor-pointer flex-col gap-1 rounded-panel border border-border-subtle p-3 text-left transition-colors',
+        'bg-surface-panel hover:bg-surface-raised',
         isActive && 'border-primary-300 ring-2 ring-primary-500 dark:border-primary-600',
       )}
       onClick={onClick}
@@ -34,9 +33,9 @@ export function KategorieStatCard({ name, farbe, activeCount, overdueCount, isAc
         <span className="truncate font-medium text-sm">{name}</span>
       </div>
       {/* Zeile 2: Statistiken */}
-      <div className="flex items-center gap-3 text-gray-500 text-xs dark:text-gray-400">
+      <div className="flex items-center gap-3 text-text-muted text-xs">
         <span>{activeCount} aktiv</span>
-        <span className={cn(overdueCount > 0 && 'font-semibold text-red-600 dark:text-red-400')}>{overdueCount} überfällig</span>
+        <span className={cn(overdueCount > 0 && 'font-semibold text-status-danger-text')}>{overdueCount} überfällig</span>
       </div>
     </button>
   );

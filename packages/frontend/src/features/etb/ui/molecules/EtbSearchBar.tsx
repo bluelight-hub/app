@@ -13,7 +13,7 @@ interface EtbSearchBarProps {
 export function EtbSearchBar({ value, onChange, placeholder = 'Einträge durchsuchen...' }: EtbSearchBarProps) {
   return (
     <div className="relative">
-      <PiMagnifyingGlass className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+      <PiMagnifyingGlass className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-text-muted" />
       <input
         type="text"
         value={value ?? ''}
@@ -25,10 +25,9 @@ export function EtbSearchBar({ value, onChange, placeholder = 'Einträge durchsu
         autoCapitalize="off"
         className={cn(
           'w-full py-2 pr-4 pl-9 text-sm',
-          'rounded-lg border border-gray-300',
-          'focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500',
-          'dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100',
-          'placeholder:text-gray-400',
+          'rounded-lg border border-border-subtle bg-surface-panel text-text-primary',
+          'placeholder:text-text-muted',
+          'focus-visible:border-action-primary focus-visible:outline-none focus-visible:shadow-focus-ring',
         )}
       />
     </div>

@@ -66,9 +66,8 @@ export function ErinnerungEtbLink({ etbEntryId, etbEntryText, sequenceNumber, on
       onClick={onClick}
       className={cn(
         'group inline-flex items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors',
-        'text-blue-600 hover:bg-blue-50 hover:text-blue-700',
-        'dark:text-blue-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300',
-        'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1',
+        'text-action-primary hover:bg-action-secondary hover:text-action-primary',
+        'focus:outline-none focus-visible:shadow-focus-ring',
         className,
       )}
       title={etbEntryText ? `ETB #${sequenceNumber ?? '?'}: ${etbEntryText}` : `Zum ETB-Eintrag #${sequenceNumber ?? '?'}`}
@@ -77,7 +76,7 @@ export function ErinnerungEtbLink({ etbEntryId, etbEntryText, sequenceNumber, on
       {sequenceNumber !== undefined && <span className="font-medium">#{sequenceNumber}</span>}
 
       {/* Text-Preview */}
-      {displayText && <span className="truncate text-gray-600 dark:text-gray-400">{displayText}</span>}
+      {displayText && <span className="truncate text-text-secondary">{displayText}</span>}
 
       {/* Link-Icon */}
       <PiArrowSquareOut className="h-3.5 w-3.5 shrink-0 opacity-70 transition-opacity group-hover:opacity-100" aria-hidden="true" />

@@ -72,7 +72,7 @@ export function ServerOnboardingPage() {
                   setSetupRedirectInProgress(false);
                   navigate({ to: '/auth' });
                 }}
-                className="flex cursor-pointer items-center gap-2 text-gray-500 text-sm transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                className="flex cursor-pointer items-center gap-2 text-text-muted text-sm transition-colors hover:text-text-secondary"
               >
                 <PiArrowLeft className="h-4 w-4" />
                 Zurück zur Anmeldung
@@ -83,7 +83,7 @@ export function ServerOnboardingPage() {
                   setSetupRedirectInProgress(false);
                   navigate({ to: '/server/manage' });
                 }}
-                className="flex cursor-pointer items-center gap-2 text-gray-500 text-sm transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                className="flex cursor-pointer items-center gap-2 text-text-muted text-sm transition-colors hover:text-text-secondary"
               >
                 <PiGear className="h-4 w-4" />
                 Server verwalten
@@ -95,7 +95,7 @@ export function ServerOnboardingPage() {
           <div className="space-y-4 text-center">
             <LogoWithIndicator size="lg" status={isExchanging ? 'checking' : error ? 'error' : undefined} showIndicator={isExchanging} />
             <div className="space-y-2">
-              <Heading size="2xl" className="text-gray-900 dark:text-white">
+              <Heading size="2xl" className="text-text-primary">
                 Bluelight Hub
               </Heading>
               <Text size="md" color="muted">
@@ -127,20 +127,20 @@ export function ServerOnboardingPage() {
               <div className="space-y-4">
                 {/* Info Text */}
                 {!prefillServerUrl && (
-                  <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/50">
-                    <PiInfo className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400" />
+                  <div className="flex items-start gap-3 rounded-panel border border-status-info-border bg-status-info-surface p-4">
+                    <PiInfo className="mt-0.5 h-5 w-5 flex-shrink-0 text-status-info-text" />
                     <div className="space-y-1">
-                      <p className="font-medium text-blue-800 text-sm dark:text-blue-200">Willkommen bei Bluelight Hub</p>
-                      <p className="text-blue-700 text-sm dark:text-blue-300">Gib die Server-URL ein und verbinde dich mit einem Einladungscode oder richte einen neuen Server ein.</p>
+                      <p className="font-medium text-status-info-text text-sm">Willkommen bei Bluelight Hub</p>
+                      <p className="text-status-info-text text-sm">Gib die Server-URL ein und verbinde dich mit einem Einladungscode oder richte einen neuen Server ein.</p>
                     </div>
                   </div>
                 )}
 
                 {/* Prefill Info */}
                 {prefillServerUrl && (
-                  <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/50">
-                    <PiInfo className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400" />
-                    <p className="text-blue-700 text-sm dark:text-blue-300">Server-URL wurde aus dem Link übernommen. Bitte gib deinen Einladungscode ein.</p>
+                  <div className="flex items-start gap-3 rounded-panel border border-status-info-border bg-status-info-surface p-4">
+                    <PiInfo className="mt-0.5 h-5 w-5 flex-shrink-0 text-status-info-text" />
+                    <p className="text-status-info-text text-sm">Server-URL wurde aus dem Link übernommen. Bitte gib deinen Einladungscode ein.</p>
                   </div>
                 )}
 

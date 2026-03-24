@@ -132,21 +132,21 @@ function IconButton({ iconValue, name, isSelected, disabled, onClick, onKeyDown,
         'flex flex-col items-center justify-center gap-1 rounded-lg p-3',
         'transition-all duration-150',
         // Border
-        'border border-gray-200 dark:border-gray-700',
+        'border border-border-subtle',
         // Hover (when not disabled)
-        !disabled && 'hover:bg-gray-100 dark:hover:bg-gray-700',
+        !disabled && 'hover:bg-action-secondary',
         // Focus visible
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
+        'focus-visible:shadow-focus-ring focus-visible:outline-none',
         // Selected state
-        isSelected && 'bg-primary-50 ring-2 ring-primary-500 ring-offset-2 dark:bg-primary-900/20',
+        isSelected && 'bg-action-secondary ring-2 ring-action-primary ring-offset-2 ring-offset-surface-panel',
         // Disabled state
         disabled && 'cursor-not-allowed opacity-50',
         // Normal cursor when enabled
         !disabled && 'cursor-pointer',
       )}
     >
-      {IconComponent ? <IconComponent className="size-6 text-gray-700 dark:text-gray-300" /> : <PiX className="size-6 text-gray-700 dark:text-gray-300" />}
-      <span className="text-gray-600 text-xs dark:text-gray-400">{name}</span>
+      {IconComponent ? <IconComponent className="size-6 text-text-secondary" /> : <PiX className="size-6 text-text-secondary" />}
+      <span className="text-text-muted text-xs">{name}</span>
     </button>
   );
 }
@@ -251,7 +251,7 @@ export function ServerIconPicker({ value, onChange, disabled = false, className 
 
   return (
     <div className={cn('flex flex-col gap-2', className)}>
-      <span className="font-medium text-gray-700 text-sm dark:text-gray-300">Icon auswählen</span>
+      <span className="font-medium text-sm text-text-secondary">Icon auswählen</span>
       <div ref={containerRef} role="radiogroup" aria-label="Server-Icon auswählen" className="grid grid-cols-4 gap-2">
         {options.map((option, index) => {
           const isSelected = isValidValue && normalizedValue === option.value;

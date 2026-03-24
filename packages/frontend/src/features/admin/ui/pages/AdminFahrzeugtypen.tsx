@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate } from '@tanstack/react-router';
 import { PiPlus, PiWarning } from 'react-icons/pi';
+
 import { useAdminAuth } from '@/features/auth/api';
 import { useAdminFahrzeugtypenManagement, type CreateFahrzeugtypDto, type FahrzeugtypDto, type UpdateFahrzeugtypDto } from '@/features/admin/api';
 import { Button } from '@/shared/ui/atoms/button.atom';
@@ -73,7 +74,6 @@ export function AdminFahrzeugtypen() {
 
   const handleUpdateFahrzeugtyp = (data: UpdateFahrzeugtypDto) => {
     if (!editTarget) return;
-
     updateFahrzeugtyp(
       { id: editTarget.id, data },
       {
@@ -91,7 +91,6 @@ export function AdminFahrzeugtypen() {
 
   const confirmDeactivate = () => {
     if (!deactivateTarget) return;
-
     deactivateFahrzeugtyp(deactivateTarget.id, {
       onSuccess: () => {
         setDeactivateTarget(null);
@@ -137,10 +136,10 @@ export function AdminFahrzeugtypen() {
       <Container maxWidth="6xl" className="py-8">
         <Card padding="lg" className="text-center">
           <div className="flex flex-col items-center gap-4">
-            <PiWarning className="h-12 w-12 text-red-500" />
+            <PiWarning className="h-12 w-12 text-status-danger-text" />
             <Heading size="md">Fehler beim Laden</Heading>
-            <Text className="text-gray-600">Die Fahrzeugtypen konnten nicht geladen werden.</Text>
-            <Text className="text-gray-500 text-sm">{error.message}</Text>
+            <Text className="text-text-secondary">Die Fahrzeugtypen konnten nicht geladen werden.</Text>
+            <Text className="text-text-muted text-sm">{error.message}</Text>
             <Button onClick={() => void refetch()} intent="primary" loading={isFahrzeugtypenLoading} disabled={isFahrzeugtypenLoading}>
               Erneut versuchen
             </Button>
@@ -159,7 +158,7 @@ export function AdminFahrzeugtypen() {
               <Heading size="lg" as="h1">
                 Fahrzeugtypen
               </Heading>
-              <Text className="text-gray-600">Verwalten Sie Fahrzeugtypen für Einsatzrollen und Stammdaten.</Text>
+              <Text className="text-text-secondary">Verwalten Sie Fahrzeugtypen für Einsatzrollen und Stammdaten.</Text>
             </div>
             <Button onClick={() => setIsCreateDialogOpen(true)} intent="primary" appearance="outline">
               <PiPlus className="mr-2" />

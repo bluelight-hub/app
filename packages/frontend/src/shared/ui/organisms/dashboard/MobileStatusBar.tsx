@@ -10,22 +10,22 @@ interface MobileStatusBarProps {
 
 export const MobileStatusBar = ({ total, counts }: MobileStatusBarProps) => {
   return (
-    <div className="mt-3 flex items-center justify-around rounded-lg bg-gray-50 p-2 sm:hidden dark:bg-gray-700">
+    <div className="mt-3 flex items-center justify-around rounded-lg bg-surface-raised p-2 sm:hidden">
       <div className="text-center">
-        <p className="text-gray-600 text-xs dark:text-gray-300">Gesamt</p>
-        <p className="font-bold text-gray-900 text-lg dark:text-white">{total}</p>
+        <p className="text-text-secondary text-xs">Gesamt</p>
+        <p className="font-bold text-lg text-text-primary">{total}</p>
       </div>
       <div className="text-center">
-        <p className="text-blue-600 text-xs dark:text-blue-400">Angelegt</p>
-        <p className="font-bold text-blue-900 text-lg dark:text-blue-300">{counts.angelegt}</p>
+        <p className="text-status-info-text text-xs">Angelegt</p>
+        <p className="font-bold text-lg text-status-info-text">{counts.angelegt}</p>
       </div>
       <div className="text-center">
-        <p className="text-xs text-yellow-600 dark:text-yellow-400">In Bearbeitung</p>
-        <p className="font-bold text-lg text-yellow-900 dark:text-yellow-300">{counts.inBearbeitung}</p>
+        <p className="text-status-warning-text text-xs">In Bearbeitung</p>
+        <p className="font-bold text-lg text-status-warning-text">{counts.inBearbeitung}</p>
       </div>
       <div className="text-center">
-        <p className="text-green-600 text-xs dark:text-green-400">Abgeschlossen</p>
-        <p className="font-bold text-green-900 text-lg dark:text-green-300">{counts.abgeschlossen}</p>
+        <p className="text-status-success-text text-xs">Abgeschlossen</p>
+        <p className="font-bold text-lg text-status-success-text">{counts.abgeschlossen}</p>
       </div>
     </div>
   );

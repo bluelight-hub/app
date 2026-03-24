@@ -56,7 +56,7 @@ export function EtbDraftResumeBanner({ draft, onRestore, onDiscard, isRestoring 
       aria-label="Ungespeicherter Entwurf"
       aria-live="polite"
       tabIndex={-1}
-      className={cn('flex items-start gap-3 rounded-lg border border-status-info-border bg-status-info-surface px-4 py-3', 'focus:outline-none focus-visible:shadow-focus-ring')}
+      className={cn('flex items-start gap-3 rounded-lg border border-status-info-border bg-status-info-surface px-4 py-3', 'focus-visible:outline-none focus-visible:shadow-focus-ring')}
     >
       <PiNotePencil className="mt-0.5 h-5 w-5 shrink-0 text-status-info-text" aria-hidden="true" />
 
@@ -74,8 +74,8 @@ export function EtbDraftResumeBanner({ draft, onRestore, onDiscard, isRestoring 
           disabled={isRestoring}
           className={cn(
             'rounded-md px-3 py-1.5 text-xs font-medium text-text-secondary',
-            'hover:bg-gray-100 dark:hover:bg-gray-700',
-            'focus:outline-none focus-visible:shadow-focus-ring',
+            'hover:bg-action-secondary',
+            'focus-visible:outline-none focus-visible:shadow-focus-ring',
             'disabled:cursor-not-allowed disabled:opacity-50',
           )}
           aria-label="Entwurf verwerfen"
@@ -87,9 +87,9 @@ export function EtbDraftResumeBanner({ draft, onRestore, onDiscard, isRestoring 
           onClick={onRestore}
           disabled={isRestoring}
           className={cn(
-            'rounded-md bg-status-info-text px-3 py-1.5 text-xs font-medium text-white',
-            'hover:opacity-90',
-            'focus:outline-none focus-visible:shadow-focus-ring',
+            'rounded-md bg-action-primary px-3 py-1.5 text-xs font-medium text-text-inverse',
+            'hover:bg-action-primary-hover',
+            'focus-visible:outline-none focus-visible:shadow-focus-ring',
             'disabled:cursor-not-allowed disabled:opacity-50',
           )}
           aria-label="Entwurf fortsetzen"

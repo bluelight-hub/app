@@ -43,17 +43,17 @@ export function ZeitverlaufDiagramm({ einsatzId, className }: ZeitverlaufDiagram
 
   return (
     <div className={cn('flex flex-col gap-2', className)}>
-      <button type="button" className="flex items-center gap-1 font-medium text-gray-700 text-sm dark:text-gray-300" onClick={() => setIsExpanded(!isExpanded)} aria-expanded={isExpanded}>
+      <button type="button" className="flex items-center gap-1 font-medium text-sm text-text-secondary" onClick={() => setIsExpanded(!isExpanded)} aria-expanded={isExpanded}>
         {isExpanded ? <PiCaretDown className="h-4 w-4" /> : <PiCaretRight className="h-4 w-4" />}
         Zeitverlauf
       </button>
 
       {isExpanded && (
         <>
-          {isLoading && <div data-testid="zeitverlauf-skeleton" className="h-[300px] animate-pulse rounded-lg bg-slate-200 dark:bg-slate-700" />}
+          {isLoading && <div data-testid="zeitverlauf-skeleton" className="h-[300px] animate-pulse rounded-lg bg-surface-raised" />}
 
           {isError && (
-            <div className="text-red-600 text-sm dark:text-red-400">
+            <div className="text-sm text-status-danger-text">
               <p>Fehler beim Laden der Zeitverlauf-Statistiken.</p>
               <button type="button" className="mt-1 underline hover:no-underline" onClick={() => refetch()}>
                 Erneut versuchen
@@ -62,8 +62,8 @@ export function ZeitverlaufDiagramm({ einsatzId, className }: ZeitverlaufDiagram
           )}
 
           {!isLoading && !isError && (!chartData || chartData.length === 0) && (
-            <div className="flex h-[200px] items-center justify-center rounded-lg border border-slate-300 border-dashed dark:border-slate-600">
-              <div className="flex flex-col items-center gap-2 text-slate-500 dark:text-slate-400">
+            <div className="flex h-[200px] items-center justify-center rounded-lg border border-border-subtle border-dashed">
+              <div className="flex flex-col items-center gap-2 text-text-muted">
                 <PiChartLine className="h-8 w-8" />
                 <p className="text-sm">Noch keine Erinnerungen vorhanden</p>
               </div>

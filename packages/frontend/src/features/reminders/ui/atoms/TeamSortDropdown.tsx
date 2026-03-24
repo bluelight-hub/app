@@ -51,30 +51,29 @@ export function TeamSortDropdown({ selectedSort, onSortChange, disabled = false,
         <ListboxButton
           aria-label="Sortierung auswählen"
           className={cn(
-            'relative flex w-full cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm',
+            'relative flex w-full cursor-pointer items-center gap-2 rounded-control border px-3 py-2 text-left text-sm',
             'transition-all duration-200',
-            'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
+            'focus:outline-none focus-visible:shadow-focus-ring',
             'disabled:cursor-not-allowed disabled:opacity-50',
-            'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700',
+            'border-border-subtle bg-surface-panel text-text-secondary hover:bg-surface-raised',
           )}
         >
           {selectedSort === 'faelligkeit_desc' ? (
-            <PiSortDescending className="h-4 w-4 flex-shrink-0 text-gray-400" aria-hidden="true" />
+            <PiSortDescending className="h-4 w-4 flex-shrink-0 text-text-muted" aria-hidden="true" />
           ) : (
-            <PiSortAscending className="h-4 w-4 flex-shrink-0 text-gray-400" aria-hidden="true" />
+            <PiSortAscending className="h-4 w-4 flex-shrink-0 text-text-muted" aria-hidden="true" />
           )}
           <span className="block truncate font-medium">{currentOption.label}</span>
-          <PiCaretDown className="ml-auto h-4 w-4 flex-shrink-0 text-gray-400" aria-hidden="true" />
+          <PiCaretDown className="ml-auto h-4 w-4 flex-shrink-0 text-text-muted" aria-hidden="true" />
         </ListboxButton>
 
         <ListboxOptions
           transition
           className={cn(
-            'absolute z-20 mt-1 max-h-60 w-full min-w-[160px] overflow-auto rounded-lg bg-white py-1 text-sm shadow-lg',
-            'border border-gray-200',
-            'ring-1 ring-black ring-opacity-5 focus:outline-none',
+            'absolute z-20 mt-1 max-h-60 w-full min-w-[160px] overflow-auto rounded-panel bg-surface-panel py-1 text-sm shadow-panel',
+            'border border-border-subtle',
+            'focus:outline-none',
             'data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in',
-            'dark:border-gray-700 dark:bg-gray-800',
           )}
         >
           {SORT_OPTIONS.map((option) => (
@@ -83,7 +82,7 @@ export function TeamSortDropdown({ selectedSort, onSortChange, disabled = false,
               value={option.value}
               className={cn(
                 'relative flex cursor-pointer select-none items-center gap-2 px-3 py-2',
-                'text-gray-900 dark:text-gray-100',
+                'text-text-primary',
                 'data-[focus]:bg-primary-50 data-[focus]:text-primary-900',
                 'dark:data-[focus]:bg-primary-900/30 dark:data-[focus]:text-primary-100',
               )}

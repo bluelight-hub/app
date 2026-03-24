@@ -21,19 +21,19 @@ import type { BefehlDto } from '@bluelight-hub/shared/client';
 const KANBAN_SPALTEN_CONFIG: { key: keyof KanbanGruppierung<BefehlDto>; config: KanbanSpalteConfig }[] = [
   {
     key: 'ERTEILT',
-    config: { label: 'Erteilt', headerBg: 'bg-blue-100 dark:bg-blue-900/40', headerText: 'text-blue-800 dark:text-blue-200' },
+    config: { label: 'Erteilt', headerBg: 'bg-status-info-surface', headerText: 'text-status-info-text' },
   },
   {
     key: 'ZUGESTELLT',
-    config: { label: 'Zugestellt', headerBg: 'bg-yellow-100 dark:bg-yellow-900/40', headerText: 'text-yellow-800 dark:text-yellow-200' },
+    config: { label: 'Zugestellt', headerBg: 'bg-status-warning-surface', headerText: 'text-status-warning-text' },
   },
   {
     key: 'TEILWEISE_QUITTIERT',
-    config: { label: 'Teilweise quittiert', headerBg: 'bg-orange-100 dark:bg-orange-900/40', headerText: 'text-orange-800 dark:text-orange-200' },
+    config: { label: 'Teilweise quittiert', headerBg: 'bg-status-warning-surface', headerText: 'text-status-warning-text' },
   },
   {
     key: 'VOLLSTAENDIG_QUITTIERT',
-    config: { label: 'Vollständig quittiert', headerBg: 'bg-green-100 dark:bg-green-900/40', headerText: 'text-green-800 dark:text-green-200' },
+    config: { label: 'Vollständig quittiert', headerBg: 'bg-status-success-surface', headerText: 'text-status-success-text' },
   },
 ];
 
@@ -90,15 +90,15 @@ export function BefehlKanbanView({ einsatzId, befehle: externalBefehle, classNam
       {/* Mobile: Tabs (<768px) */}
       <div className="h-full md:hidden">
         <TabGroup>
-          <TabList className="flex border-gray-200 border-b dark:border-gray-700">
+          <TabList className="flex border-border-subtle border-b">
             {KANBAN_SPALTEN_CONFIG.map(({ key, config }) => (
               <Tab
                 key={key}
                 className={({ selected }) =>
                   cn(
                     'flex-1 px-2 py-2.5 text-center font-medium text-xs transition-colors motion-reduce:transition-none',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset',
-                    selected ? 'border-primary-500 border-b-2 text-primary-700 dark:text-primary-300' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200',
+                    'focus-visible:outline-none focus-visible:shadow-focus-ring',
+                    selected ? 'border-action-primary border-b-2 text-action-primary' : 'text-text-muted hover:text-text-secondary',
                   )
                 }
               >

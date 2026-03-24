@@ -40,7 +40,7 @@ export const MobileFilterDialog = ({ isOpen, onClose, statusFilter, sortOption, 
 
   const handleStatusChange = (value: string) => {
     // Convert empty string to undefined, otherwise use the string value as enum
-    onStatusFilterChange(value === '' ? undefined : (value as EinsatzResponseDtoStatusEnum));
+    onStatusFilterChange(value === '' ? undefined : (value as EinsatzDtoStatusEnum));
     onClose();
   };
 
@@ -59,7 +59,7 @@ export const MobileFilterDialog = ({ isOpen, onClose, statusFilter, sortOption, 
       <Dialog.Title>Filter & Sortierung</Dialog.Title>
 
       <Dialog.Body className="max-h-[60vh] space-y-4 overflow-y-auto">
-        <div className="border-gray-200 border-b pb-4 dark:border-gray-700">
+        <div className="border-border-subtle border-b pb-4">
           <Button
             intent={!showArchived ? 'secondary' : 'primary'}
             appearance={!showArchived ? 'outline' : 'ghost'}
@@ -73,12 +73,12 @@ export const MobileFilterDialog = ({ isOpen, onClose, statusFilter, sortOption, 
             <PiArchive className="mr-2 h-4 w-4" />
             {showArchived ? 'Aktive Einsätze' : 'Archiv anzeigen'}
           </Button>
-          {showArchived && <p className="mt-2 text-gray-600 text-xs dark:text-gray-400">Zeigt nur archivierte Einsätze</p>}
+          {showArchived && <p className="mt-2 text-text-secondary text-xs">Zeigt nur archivierte Einsätze</p>}
         </div>
 
         {!showArchived && (
           <div>
-            <label htmlFor="status-filter-mobile" className="mb-2 block font-medium text-gray-700 text-sm dark:text-gray-300">
+            <label htmlFor="status-filter-mobile" className="mb-2 block font-medium text-sm text-text-secondary">
               Status filtern
             </label>
             <Select
@@ -98,17 +98,14 @@ export const MobileFilterDialog = ({ isOpen, onClose, statusFilter, sortOption, 
         )}
 
         <div>
-          <span className="mb-2 block font-medium text-gray-700 text-sm dark:text-gray-300">Sortieren nach</span>
+          <span className="mb-2 block font-medium text-sm text-text-secondary">Sortieren nach</span>
           <div className="space-y-2">
             {sortOptions.map(({ key, label }) => (
               <Button
                 key={key}
                 appearance="ghost"
                 onClick={() => handleSortChange(key)}
-                className={cn(
-                  'w-full rounded-md px-3 py-2 text-left text-sm',
-                  sortOption.key === key ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : 'hover:bg-gray-100 dark:hover:bg-gray-800',
-                )}
+                className={cn('w-full rounded-md px-3 py-2 text-left text-sm', sortOption.key === key ? 'bg-action-secondary text-action-primary' : 'hover:bg-action-secondary')}
               >
                 {label} {sortOption.key === key && (sortOption.direction === EinsatzControllerFindAllVAlphaOrderDirectionEnum.Asc ? '↑' : '↓')}
               </Button>

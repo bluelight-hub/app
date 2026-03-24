@@ -119,13 +119,13 @@ export function ContinuityStatusRail({ syncStatus, syncedFadeMs = 3000 }: Contin
       aria-atomic="true"
       tabIndex={-1}
       className={cn(
-        'focus:outline-none focus-visible:shadow-focus-ring',
+        'focus-visible:outline-none focus-visible:shadow-focus-ring',
         'flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-opacity duration-200',
         syncStatus.status === 'synced' && 'bg-status-success-surface',
         syncStatus.status === 'syncing' && 'bg-status-info-surface',
         syncStatus.status === 'failed' && 'bg-status-danger-surface',
         (syncStatus.status === 'degraded-connection' || syncStatus.status === 'conflict-retry') && 'bg-status-warning-surface',
-        syncStatus.status === 'readonly-locked' && 'bg-gray-50 dark:bg-gray-800',
+        syncStatus.status === 'readonly-locked' && 'bg-surface-raised',
       )}
     >
       <StatusIcon status={syncStatus.status} />
@@ -137,7 +137,7 @@ export function ContinuityStatusRail({ syncStatus, syncedFadeMs = 3000 }: Contin
           type="button"
           onClick={handleRetryClick}
           className={cn(
-            'inline-flex items-center gap-1 rounded px-2 py-1 font-medium text-xs focus:outline-none focus-visible:shadow-focus-ring',
+            'inline-flex items-center gap-1 rounded px-2 py-1 font-medium text-xs focus-visible:outline-none focus-visible:shadow-focus-ring',
             STATUS_TONE[syncStatus.status],
             syncStatus.status === 'failed' && 'hover:bg-status-danger-surface/80',
             syncStatus.status === 'conflict-retry' && 'hover:bg-status-warning-surface/80',

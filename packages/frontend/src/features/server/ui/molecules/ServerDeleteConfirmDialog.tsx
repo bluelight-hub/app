@@ -27,26 +27,26 @@ export function ServerDeleteConfirmDialog({ server, open, onConfirm, onCancel, i
   return (
     <Dialog open={open} onClose={onCancel} className="relative z-50" data-testid="delete-server-dialog" role="alertdialog">
       {/* Backdrop */}
-      <DialogBackdrop transition className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity data-[closed]:opacity-0" />
+      <DialogBackdrop transition className="fixed inset-0 bg-surface-inverse/50 backdrop-blur-sm transition-opacity data-[closed]:opacity-0" />
 
       {/* Modal Container */}
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel transition className="mx-auto w-full max-w-sm transform rounded-xl bg-white p-6 shadow-xl transition-all data-[closed]:scale-95 data-[closed]:opacity-0 dark:bg-gray-800">
+        <DialogPanel transition className="mx-auto w-full max-w-sm transform rounded-xl bg-surface-panel p-6 shadow-xl transition-all data-[closed]:scale-95 data-[closed]:opacity-0">
           {/* Warning Icon */}
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
-            <PiTrash className="h-6 w-6 text-red-600 dark:text-red-400" aria-hidden="true" />
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-status-danger-surface">
+            <PiTrash className="h-6 w-6 text-status-danger-text" aria-hidden="true" />
           </div>
 
           {/* Title */}
-          <DialogTitle className="mt-4 text-center font-semibold text-gray-900 text-lg dark:text-white">Server entfernen</DialogTitle>
+          <DialogTitle className="mt-4 text-center font-semibold text-lg text-text-primary">Server entfernen</DialogTitle>
 
           {/* Description */}
-          <Description className="mt-2 text-center text-gray-600 text-sm dark:text-gray-400">
+          <Description className="mt-2 text-center text-sm text-text-secondary">
             Möchtest du den Server <span className="font-medium">"{server?.name}"</span> wirklich entfernen?
           </Description>
 
           {/* Warning */}
-          <p className="mt-2 text-center text-gray-600 text-xs dark:text-gray-400">Diese Aktion kann nicht rückgängig gemacht werden.</p>
+          <p className="mt-2 text-center text-text-secondary text-xs">Diese Aktion kann nicht rückgängig gemacht werden.</p>
 
           {/* Actions */}
           <div className="mt-6 flex gap-3">

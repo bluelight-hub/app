@@ -62,7 +62,7 @@ export function BefehlKommentarThread({ befehlId, einsatzId, kommentare }: Befeh
 
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: Container blocks bubbling to parent card and is not directly user-actionable.
-    <div id={threadId} tabIndex={-1} className="mt-3 border-gray-100 border-t pt-3 focus:outline-none dark:border-gray-800" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+    <div id={threadId} tabIndex={-1} className="mt-3 border-border-subtle border-t pt-3 focus:outline-none" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
       {/* Kommentar-Liste */}
       {sortedKommentare.length > 0 && (
         <ul className="mb-3 flex flex-col gap-2" aria-label="Kommentare">
@@ -71,22 +71,20 @@ export function BefehlKommentarThread({ befehlId, einsatzId, kommentare }: Befeh
             const createdAt = typeof kommentar.createdAt === 'string' ? new Date(kommentar.createdAt) : kommentar.createdAt;
 
             return (
-              <li key={kommentar.id} className="rounded-md bg-gray-50 px-3 py-2 text-sm dark:bg-gray-800/50">
+              <li key={kommentar.id} className="rounded-md bg-surface-raised px-3 py-2 text-sm">
                 <div className="flex items-center gap-2">
-                  <span className={cn('font-medium text-xs', isOwn ? 'text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300')}>
-                    {isOwn ? 'Du' : (kommentar.authorId?.substring(0, 8) ?? 'Anonym')}
-                  </span>
-                  <time dateTime={createdAt.toISOString()} className="text-gray-400 text-xs dark:text-gray-500">
+                  <span className={cn('font-medium text-xs', isOwn ? 'text-action-primary' : 'text-text-secondary')}>{isOwn ? 'Du' : (kommentar.authorId?.substring(0, 8) ?? 'Anonym')}</span>
+                  <time dateTime={createdAt.toISOString()} className="text-text-muted text-xs">
                     {format(createdAt, 'dd.MM. HH:mm')}
                   </time>
                   {kommentar.isRueckfrage && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 font-medium text-amber-800 text-xs dark:bg-amber-900/30 dark:text-amber-300">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-status-warning-surface px-2 py-0.5 font-medium text-status-warning-text text-xs">
                       <PiChatCircleDots className="h-3 w-3" />
                       Rückfrage
                     </span>
                   )}
                 </div>
-                <p className="mt-1 whitespace-pre-wrap text-gray-700 dark:text-gray-300">{kommentar.text}</p>
+                <p className="mt-1 whitespace-pre-wrap text-text-secondary">{kommentar.text}</p>
               </li>
             );
           })}
@@ -125,16 +123,13 @@ export function BefehlKommentarThread({ befehlId, einsatzId, kommentare }: Befeh
                   aria-label="Kommentar schreiben"
                   rows={1}
                   className={cn(
-                    'w-full resize-none rounded-md border px-3 py-1.5 text-sm transition-colors',
-                    'bg-white dark:bg-gray-900',
-                    'text-gray-900 dark:text-gray-100',
-                    'placeholder:text-gray-400 dark:placeholder:text-gray-500',
-                    'border-gray-200 hover:border-gray-300 focus:border-primary-500 focus:ring-1 focus:ring-primary-500',
-                    'dark:border-gray-700 dark:focus:border-primary-500 dark:hover:border-gray-600',
+                    'w-full resize-none rounded-md border bg-surface-panel px-3 py-1.5 text-sm text-text-primary transition-colors',
+                    'placeholder:text-text-muted',
+                    'border-border-subtle hover:border-border-strong focus:border-action-primary focus-visible:shadow-focus-ring',
                     'focus:outline-none',
                   )}
                 />
-                {field.state.meta.errors?.length > 0 && <p className="mt-1 text-red-600 text-xs dark:text-red-400">{field.state.meta.errors[0]}</p>}
+                {field.state.meta.errors?.length > 0 && <p className="mt-1 text-status-danger-text text-xs">{field.state.meta.errors[0]}</p>}
               </div>
             )}
           </form.Field>
@@ -150,9 +145,7 @@ export function BefehlKommentarThread({ befehlId, einsatzId, kommentare }: Befeh
                 aria-pressed={field.state.value}
                 className={cn(
                   'mt-0.5 rounded-md p-1.5 transition-colors',
-                  field.state.value
-                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
-                    : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-300',
+                  field.state.value ? 'bg-status-warning-surface text-status-warning-text' : 'text-text-muted hover:bg-action-secondary hover:text-text-secondary',
                 )}
               >
                 <PiChatCircleDots className="h-4 w-4" />

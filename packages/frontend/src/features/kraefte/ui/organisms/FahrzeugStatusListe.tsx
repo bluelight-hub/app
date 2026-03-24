@@ -61,8 +61,8 @@ function FahrzeugStatusListeSkeleton() {
   return (
     <>
       <div className="mb-4 flex items-center justify-between">
-        <div className="h-5 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
-        <div className="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+        <div className="h-5 w-32 animate-pulse rounded bg-surface-raised" />
+        <div className="h-4 w-20 animate-pulse rounded bg-surface-raised" />
       </div>
       <div className="space-y-3">
         {[1, 2, 3].map((i) => (
@@ -80,14 +80,14 @@ function FahrzeugStatusListeSkeleton() {
  */
 function FahrzeugBadge({ fahrzeug }: { fahrzeug: EinsatzFahrzeugDto }) {
   const statusColors: Record<number, string> = {
-    1: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-    2: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-    3: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-    4: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+    1: 'bg-status-success-surface text-status-success-text',
+    2: 'bg-status-warning-surface text-status-warning-text',
+    3: 'bg-status-danger-surface text-status-danger-text',
+    4: 'bg-status-info-surface text-status-info-text',
   };
 
   return (
-    <span className={cn('inline-flex items-center rounded-md px-2 py-1 font-medium text-xs', statusColors[fahrzeug.fmsStatus] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200')}>
+    <span className={cn('inline-flex items-center rounded-control px-2 py-1 font-medium text-xs', statusColors[fahrzeug.fmsStatus] ?? 'bg-surface-raised text-text-primary')}>
       {fahrzeug.funkrufname}
     </span>
   );
@@ -119,7 +119,7 @@ export function FahrzeugStatusListe({ einsatzId, onFahrzeugClick, className }: F
   // Loading State
   if (isLoading) {
     return (
-      <div className={cn('rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800', containerClasses, className)}>
+      <div className={cn('rounded-panel border border-border-subtle bg-surface-panel', containerClasses, className)}>
         <FahrzeugStatusListeSkeleton />
       </div>
     );
@@ -135,10 +135,10 @@ export function FahrzeugStatusListe({ einsatzId, onFahrzeugClick, className }: F
   // Compact: Badge-Liste statt Karten (platzsparend für Tablets)
   if (mode === 'compact') {
     return (
-      <div className={cn('rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800', containerClasses, className)}>
+      <div className={cn('rounded-panel border border-border-subtle bg-surface-panel', containerClasses, className)}>
         <div className="mb-2 flex items-center justify-between">
-          <span className="font-medium text-gray-600 text-sm dark:text-gray-400">Fahrzeuge</span>
-          <span className="text-gray-500 text-xs">{fahrzeugCount}</span>
+          <span className="font-medium text-text-secondary text-sm">Fahrzeuge</span>
+          <span className="text-text-muted text-xs">{fahrzeugCount}</span>
         </div>
         {fahrzeuge && fahrzeuge.length > 0 ? (
           <div className="flex flex-wrap gap-1">
@@ -147,7 +147,7 @@ export function FahrzeugStatusListe({ einsatzId, onFahrzeugClick, className }: F
             ))}
           </div>
         ) : (
-          <p className="text-center text-gray-500 text-xs">Keine Fahrzeuge</p>
+          <p className="text-center text-text-muted text-xs">Keine Fahrzeuge</p>
         )}
       </div>
     );
@@ -155,19 +155,19 @@ export function FahrzeugStatusListe({ einsatzId, onFahrzeugClick, className }: F
 
   // Standard & Fullscreen: Vollständige Karten
   return (
-    <div className={cn('rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800', containerClasses, className)}>
+    <div className={cn('rounded-panel border border-border-subtle bg-surface-panel shadow-panel', containerClasses, className)}>
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <PiTruck className={cn('text-gray-500', mode === 'fullscreen' ? 'h-6 w-6' : 'h-5 w-5')} />
-          <h3 className={cn('font-semibold text-gray-900 dark:text-gray-100', mode === 'fullscreen' ? 'text-xl lg:text-2xl' : 'text-base')}>Fahrzeuge</h3>
+          <PiTruck className={cn('text-text-muted', mode === 'fullscreen' ? 'h-6 w-6' : 'h-5 w-5')} />
+          <h3 className={cn('font-semibold text-text-primary', mode === 'fullscreen' ? 'text-xl lg:text-2xl' : 'text-base')}>Fahrzeuge</h3>
         </div>
         <div className="flex items-center gap-3">
-          <span className={cn('text-gray-500', mode === 'fullscreen' ? 'text-base' : 'text-sm')}>{fahrzeugCount} im Einsatz</span>
+          <span className={cn('text-text-muted', mode === 'fullscreen' ? 'text-base' : 'text-sm')}>{fahrzeugCount} im Einsatz</span>
           <button
             type="button"
             onClick={() => refetch()}
-            className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700"
+            className="rounded-control p-1 text-text-muted hover:bg-action-secondary hover:text-text-secondary focus:outline-none focus-visible:shadow-focus-ring"
             title="Aktualisieren"
             aria-label="Aktualisieren"
           >
@@ -177,7 +177,7 @@ export function FahrzeugStatusListe({ einsatzId, onFahrzeugClick, className }: F
       </div>
 
       {/* Last Updated */}
-      {dataUpdatedAt && <p className={cn('mb-3 text-gray-400', mode === 'fullscreen' ? 'text-sm' : 'text-xs')}>Aktualisiert: {formatTime(dataUpdatedAt)}</p>}
+      {dataUpdatedAt && <p className={cn('mb-3 text-text-muted', mode === 'fullscreen' ? 'text-sm' : 'text-xs')}>Aktualisiert: {formatTime(dataUpdatedAt)}</p>}
 
       {/* Liste oder Empty State */}
       {fahrzeuge && fahrzeuge.length > 0 ? (
@@ -188,7 +188,7 @@ export function FahrzeugStatusListe({ einsatzId, onFahrzeugClick, className }: F
         </div>
       ) : (
         /* Empty State (AC1b) */
-        <div className="flex flex-col items-center py-8 text-gray-500">
+        <div className="flex flex-col items-center py-8 text-text-muted">
           <PiTruck className="mb-2 h-12 w-12 opacity-50" />
           <p className="text-sm">Keine Fahrzeuge erfasst</p>
         </div>

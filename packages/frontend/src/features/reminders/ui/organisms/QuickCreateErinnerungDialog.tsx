@@ -307,8 +307,8 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
   return (
     <Dialog isOpen={isOpen} onClose={handleClose} size="sm">
       <div className="flex items-center gap-3">
-        <div className="rounded-full bg-amber-100 p-2 dark:bg-amber-900/30">
-          <PiAlarm className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+        <div className="rounded-full bg-status-warning-surface p-2">
+          <PiAlarm className="h-5 w-5 text-status-warning-text" />
         </div>
         <Dialog.Title>Erinnerung erstellen</Dialog.Title>
       </div>
@@ -323,7 +323,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
 
         {/* Story 7.6: Notiz-Verknuepfungs-Hinweis */}
         {fromNotiz && (
-          <div className="mb-4 flex items-center gap-2 rounded-lg bg-amber-50 p-3 text-amber-700 text-sm dark:bg-amber-900/20 dark:text-amber-400">
+          <div className="mb-4 flex items-center gap-2 rounded-panel bg-status-warning-surface p-3 text-sm text-status-warning-text">
             <PiNotepad className="h-4 w-4 flex-shrink-0" />
             <span>Diese Erinnerung wird aus der Notiz erstellt. Die Notiz bleibt bestehen.</span>
           </div>
@@ -331,7 +331,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
 
         {/* Story 5.4: ETB-Verknuepfungs-Hinweis */}
         {fromEtb && (
-          <div className="mb-4 flex items-center gap-2 rounded-lg bg-blue-50 p-3 text-blue-700 text-sm dark:bg-blue-900/20 dark:text-blue-400">
+          <div className="mb-4 flex items-center gap-2 rounded-panel bg-status-info-surface p-3 text-sm text-status-info-text">
             <PiBookOpen className="h-4 w-4 flex-shrink-0" />
             <span>Diese Erinnerung wird mit dem ETB-Eintrag verknuepft.</span>
           </div>
@@ -350,8 +350,8 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
           <form.Field name="titel">
             {(field) => (
               <div>
-                <label htmlFor="titel" className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
-                  Titel <span className="text-red-500">*</span>
+                <label htmlFor="titel" className="mb-1.5 block font-medium text-sm text-text-secondary">
+                  Titel <span className="text-status-danger-text">*</span>
                 </label>
                 <Input
                   id="titel"
@@ -364,7 +364,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                   maxLength={100}
                   autoFocus
                 />
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-red-600 text-sm dark:text-red-400">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-sm text-status-danger-text">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
@@ -377,8 +377,8 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                   <form.Field name="customTime">
                     {(customTimeField) => (
                       <fieldset className="m-0 border-none p-0">
-                        <legend className="mb-2 font-medium text-gray-700 text-sm dark:text-gray-300">
-                          Erinnern in <span className="text-red-500">*</span>
+                        <legend className="mb-2 font-medium text-sm text-text-secondary">
+                          Erinnern in <span className="text-status-danger-text">*</span>
                         </legend>
 
                         {/* Zeit-Presets und Benutzerdefiniert als Chips */}
@@ -397,10 +397,10 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                               disabled={isPending}
                               className={cn(
                                 'min-h-[48px] rounded-full px-4 py-2 font-medium text-sm transition-all duration-200',
-                                'focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800',
+                                'focus:outline-none focus-visible:shadow-focus-ring',
                                 timeModeField.state.value === 'preset' && minutenField.state.value === preset.value
-                                  ? 'bg-amber-500 text-white shadow-md hover:bg-amber-600'
-                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600',
+                                  ? 'bg-status-warning-text text-text-inverse shadow-md hover:opacity-90'
+                                  : 'bg-surface-raised text-text-secondary hover:bg-action-secondary',
                                 isPending && 'cursor-not-allowed opacity-50',
                               )}
                             >
@@ -412,11 +412,11 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                           <label
                             className={cn(
                               'min-h-[48px] rounded-full px-4 py-2 font-medium text-sm transition-all duration-200',
-                              'focus-within:ring-2 focus-within:ring-amber-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-gray-800',
+                              'focus-within:shadow-focus-ring focus-within:ring-2',
                               'flex items-center gap-1',
                               timeModeField.state.value === 'preset' && minutenField.state.value !== undefined && !TIME_PRESETS.some((p) => p.value === minutenField.state.value)
-                                ? 'bg-amber-500 text-white shadow-md'
-                                : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
+                                ? 'bg-status-warning-text text-text-inverse shadow-md'
+                                : 'bg-surface-raised text-text-secondary',
                               isPending && 'cursor-not-allowed opacity-50',
                             )}
                           >
@@ -444,8 +444,8 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                                 'w-12 bg-transparent text-center font-medium text-sm focus:outline-none',
                                 '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
                                 timeModeField.state.value === 'preset' && minutenField.state.value !== undefined && !TIME_PRESETS.some((p) => p.value === minutenField.state.value)
-                                  ? 'text-white placeholder:text-white/60'
-                                  : 'text-gray-700 placeholder:text-gray-400 dark:text-gray-300 dark:placeholder:text-gray-500',
+                                  ? 'text-text-inverse placeholder:text-text-inverse/60'
+                                  : 'text-text-secondary placeholder:text-text-muted',
                               )}
                             />
                             Min
@@ -466,11 +466,11 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                             disabled={isPending}
                             className={cn(
                               'min-h-[48px] rounded-full px-4 py-2 font-medium text-sm transition-all duration-200',
-                              'focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800',
+                              'focus:outline-none focus-visible:shadow-focus-ring',
                               'flex items-center gap-1.5',
                               timeModeField.state.value === 'custom'
-                                ? 'bg-amber-500 text-white shadow-md hover:bg-amber-600'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600',
+                                ? 'bg-status-warning-text text-text-inverse shadow-md hover:opacity-90'
+                                : 'bg-surface-raised text-text-secondary hover:bg-action-secondary',
                               isPending && 'cursor-not-allowed opacity-50',
                             )}
                           >
@@ -482,7 +482,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                         {/* Story 1.2 AC2: TimeInput erscheint bei Benutzerdefiniert */}
                         {timeModeField.state.value === 'custom' && (
                           <div className="mt-4">
-                            <label htmlFor="custom-time-input" className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
+                            <label htmlFor="custom-time-input" className="mb-1.5 block font-medium text-sm text-text-secondary">
                               Uhrzeit eingeben
                             </label>
                             <TimeInput
@@ -492,13 +492,13 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                               disabled={isPending}
                               error={customTimeField.state.meta.errors.length > 0}
                             />
-                            {customTimeField.state.meta.errors.length > 0 && <p className="mt-1 text-red-600 text-sm dark:text-red-400">{formatErrors(customTimeField.state.meta.errors)}</p>}
+                            {customTimeField.state.meta.errors.length > 0 && <p className="mt-1 text-sm text-status-danger-text">{formatErrors(customTimeField.state.meta.errors)}</p>}
                           </div>
                         )}
 
                         {/* Validation Errors für minuten (bei preset mode) */}
                         {timeModeField.state.value === 'preset' && minutenField.state.meta.errors.length > 0 && (
-                          <p className="mt-1 text-red-600 text-sm dark:text-red-400">{formatErrors(minutenField.state.meta.errors)}</p>
+                          <p className="mt-1 text-sm text-status-danger-text">{formatErrors(minutenField.state.meta.errors)}</p>
                         )}
                       </fieldset>
                     )}
@@ -512,8 +512,8 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
           <form.Field name="assignedToId">
             {(field) => (
               <div>
-                <label htmlFor="assignedToId" className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
-                  Zuweisen an <span className="text-gray-400 text-xs">(optional)</span>
+                <label htmlFor="assignedToId" className="mb-1.5 block font-medium text-sm text-text-secondary">
+                  Zuweisen an <span className="text-text-muted text-xs">(optional)</span>
                 </label>
                 <AssigneeSelector
                   einsatzId={einsatzId}
@@ -530,7 +530,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                   error={field.state.meta.errors.length > 0 ? formatErrors(field.state.meta.errors) : undefined}
                   placeholder="Für alle (keine Zuweisung)"
                 />
-                <p className="mt-1 text-gray-500 text-xs dark:text-gray-400">Leer lassen für alle Teilnehmer</p>
+                <p className="mt-1 text-text-muted text-xs">Leer lassen für alle Teilnehmer</p>
               </div>
             )}
           </form.Field>
@@ -556,19 +556,19 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                           }}
                           disabled={isPending}
                           className={cn(
-                            'h-5 w-5 rounded border-2 text-amber-500',
-                            'focus:ring-2 focus:ring-amber-500 focus:ring-offset-2',
+                            'h-5 w-5 rounded border-2 text-status-warning-text',
+                            'focus-visible:shadow-focus-ring',
                             'disabled:cursor-not-allowed disabled:opacity-50',
-                            'dark:border-gray-600 dark:bg-gray-800 dark:focus:ring-offset-gray-900',
+                            'border-border-subtle bg-surface-panel',
                           )}
                         />
                       </div>
                       <div className="flex-1">
-                        <label htmlFor="eskalationNurAnErsteller" className="flex cursor-pointer items-center gap-2 font-medium text-gray-700 text-sm dark:text-gray-300">
-                          <PiArrowUUpLeft className="h-4 w-4 text-amber-500" />
+                        <label htmlFor="eskalationNurAnErsteller" className="flex cursor-pointer items-center gap-2 font-medium text-sm text-text-secondary">
+                          <PiArrowUUpLeft className="h-4 w-4 text-status-warning-text" />
                           Eskalation nur an mich (Rückläufer)
                         </label>
-                        <p className="mt-0.5 text-gray-500 text-xs dark:text-gray-400">Wenn aktiviert, geht jede Eskalation zurück an dich, statt an eine andere Person.</p>
+                        <p className="mt-0.5 text-text-muted text-xs">Wenn aktiviert, geht jede Eskalation zurück an dich, statt an eine andere Person.</p>
                       </div>
                     </div>
                   )}
@@ -584,8 +584,8 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                 <form.Field name="eskalationsPersonId">
                   {(field) => (
                     <div>
-                      <label htmlFor="eskalationsPersonId" className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
-                        Eskalation an <span className="text-gray-400 text-xs">(optional)</span>
+                      <label htmlFor="eskalationsPersonId" className="mb-1.5 block font-medium text-sm text-text-secondary">
+                        Eskalation an <span className="text-text-muted text-xs">(optional)</span>
                       </label>
                       <AssigneeSelector
                         einsatzId={einsatzId}
@@ -596,7 +596,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                         error={field.state.meta.errors.length > 0 ? formatErrors(field.state.meta.errors) : undefined}
                         placeholder="Keine Eskalation"
                       />
-                      <p className="mt-1 text-gray-500 text-xs dark:text-gray-400">Wird benachrichtigt, wenn Zuweisungsempfänger nicht reagiert</p>
+                      <p className="mt-1 text-text-muted text-xs">Wird benachrichtigt, wenn Zuweisungsempfänger nicht reagiert</p>
                     </div>
                   )}
                 </form.Field>
@@ -608,8 +608,8 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
           <form.Field name="beschreibung">
             {(field) => (
               <div>
-                <label htmlFor="beschreibung" className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
-                  Beschreibung <span className="text-gray-400 text-xs">(optional)</span>
+                <label htmlFor="beschreibung" className="mb-1.5 block font-medium text-sm text-text-secondary">
+                  Beschreibung <span className="text-text-muted text-xs">(optional)</span>
                 </label>
                 <textarea
                   id="beschreibung"
@@ -620,28 +620,17 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                   maxLength={500}
                   rows={3}
                   className={cn(
-                    'block w-full rounded-lg border bg-white px-4 py-2.5 font-medium text-gray-900 transition-colors duration-200',
-                    'placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-opacity-20',
+                    'block w-full rounded-control border bg-surface-panel px-4 py-2.5 font-medium text-text-primary transition-colors duration-200',
+                    'placeholder:text-text-muted focus:outline-none focus-visible:shadow-focus-ring',
                     'disabled:cursor-not-allowed disabled:opacity-50',
-                    'dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-500',
                     'resize-none',
                     // Error state styling (consistent with Input component)
                     field.state.meta.errors.length > 0
-                      ? [
-                          'border-red-500 hover:border-red-600',
-                          'focus:border-red-500 focus:bg-white focus:ring-red-500',
-                          'dark:border-red-400 dark:hover:border-red-500',
-                          'dark:focus:border-red-400 dark:focus:bg-gray-900 dark:focus:ring-red-400',
-                        ]
-                      : [
-                          'border-gray-300 hover:border-gray-400',
-                          'focus:border-primary-500 focus:bg-white focus:ring-primary-500',
-                          'dark:border-gray-700 dark:hover:border-gray-600',
-                          'dark:focus:border-primary-400 dark:focus:bg-gray-900 dark:focus:ring-primary-400',
-                        ],
+                      ? ['border-status-danger-border hover:border-status-danger-text', 'focus:border-status-danger-text']
+                      : ['border-border-subtle hover:border-border-strong', 'focus:border-action-primary'],
                   )}
                 />
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-red-600 text-sm dark:text-red-400">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-sm text-status-danger-text">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
@@ -651,8 +640,8 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
             {(field) => (
               <div>
                 {/* biome-ignore lint/a11y/noLabelWithoutControl: KategorieSelector ist Custom-Komponente mit internem Select */}
-                <label className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
-                  Kategorie <span className="text-gray-400 text-xs">(optional)</span>
+                <label className="mb-1.5 block font-medium text-sm text-text-secondary">
+                  Kategorie <span className="text-text-muted text-xs">(optional)</span>
                 </label>
                 <KategorieSelector
                   einsatzId={einsatzId}
@@ -678,19 +667,19 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                     onChange={(e) => field.handleChange(e.target.checked)}
                     disabled={isPending}
                     className={cn(
-                      'h-5 w-5 rounded border-2 text-amber-500',
-                      'focus:ring-2 focus:ring-amber-500 focus:ring-offset-2',
+                      'h-5 w-5 rounded border-2 text-status-warning-text',
+                      'focus-visible:shadow-focus-ring',
                       'disabled:cursor-not-allowed disabled:opacity-50',
-                      'dark:border-gray-600 dark:bg-gray-800 dark:focus:ring-offset-gray-900',
+                      'border-border-subtle bg-surface-panel',
                     )}
                   />
                 </div>
                 <div className="flex-1">
-                  <label htmlFor="requiresNote" className="flex cursor-pointer items-center gap-2 font-medium text-gray-700 text-sm dark:text-gray-300">
-                    <PiNotepad className="h-4 w-4 text-amber-500" />
+                  <label htmlFor="requiresNote" className="flex cursor-pointer items-center gap-2 font-medium text-sm text-text-secondary">
+                    <PiNotepad className="h-4 w-4 text-status-warning-text" />
                     Pflicht-Notiz bei Erledigung
                   </label>
-                  <p className="mt-0.5 text-gray-500 text-xs dark:text-gray-400">Wenn aktiviert, muss bei Erledigung eine Dokumentations-Notiz eingegeben werden.</p>
+                  <p className="mt-0.5 text-text-muted text-xs">Wenn aktiviert, muss bei Erledigung eine Dokumentations-Notiz eingegeben werden.</p>
                 </div>
               </div>
             )}
@@ -709,32 +698,32 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                       onChange={(e) => recurringField.handleChange(e.target.checked)}
                       disabled={isPending}
                       className={cn(
-                        'h-5 w-5 rounded border-2 text-amber-500',
-                        'focus:ring-2 focus:ring-amber-500 focus:ring-offset-2',
+                        'h-5 w-5 rounded border-2 text-status-warning-text',
+                        'focus-visible:shadow-focus-ring',
                         'disabled:cursor-not-allowed disabled:opacity-50',
-                        'dark:border-gray-600 dark:bg-gray-800 dark:focus:ring-offset-gray-900',
+                        'border-border-subtle bg-surface-panel',
                       )}
                     />
                   </div>
                   <div className="flex-1">
-                    <label htmlFor="isRecurring" className="flex cursor-pointer items-center gap-2 font-medium text-gray-700 text-sm dark:text-gray-300">
-                      <PiRepeat className="h-4 w-4 text-amber-500" />
+                    <label htmlFor="isRecurring" className="flex cursor-pointer items-center gap-2 font-medium text-sm text-text-secondary">
+                      <PiRepeat className="h-4 w-4 text-status-warning-text" />
                       Wiederkehrend
                     </label>
-                    <p className="mt-0.5 text-gray-500 text-xs dark:text-gray-400">Erstellt automatisch eine neue Erinnerung nach Erledigung.</p>
+                    <p className="mt-0.5 text-text-muted text-xs">Erstellt automatisch eine neue Erinnerung nach Erledigung.</p>
                   </div>
                 </div>
 
                 {/* Conditional Recurring Options */}
                 {recurringField.state.value && (
-                  <div className="ml-8 space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
+                  <div className="ml-8 space-y-4 rounded-panel border border-border-subtle bg-surface-raised p-4">
                     {/* Intervall-Chips */}
                     <form.Field name="recurringIntervalMinutes">
                       {(intervalField) => (
                         <div>
                           {/* biome-ignore lint/a11y/noLabelWithoutControl: Label fuer Button-Chip-Gruppe, kein Input-Element */}
-                          <label className="mb-2 block font-medium text-gray-700 text-sm dark:text-gray-300">
-                            Intervall <span className="text-red-500">*</span>
+                          <label className="mb-2 block font-medium text-sm text-text-secondary">
+                            Intervall <span className="text-status-danger-text">*</span>
                           </label>
                           <div className="flex flex-wrap gap-2">
                             {RECURRING_INTERVAL_PRESETS.map((preset) => (
@@ -746,10 +735,10 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                                 disabled={isPending}
                                 className={cn(
                                   'rounded-full px-3 py-1.5 font-medium text-sm transition-all duration-200',
-                                  'focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800',
+                                  'focus:outline-none focus-visible:shadow-focus-ring',
                                   intervalField.state.value === preset.value
-                                    ? 'bg-amber-500 text-white shadow-md hover:bg-amber-600'
-                                    : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600',
+                                    ? 'bg-status-warning-text text-text-inverse shadow-md hover:opacity-90'
+                                    : 'bg-surface-panel text-text-secondary hover:bg-action-secondary',
                                   isPending && 'cursor-not-allowed opacity-50',
                                 )}
                               >
@@ -760,11 +749,11 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                             <label
                               className={cn(
                                 'rounded-full px-3 py-1.5 font-medium text-sm transition-all duration-200',
-                                'focus-within:ring-2 focus-within:ring-amber-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-gray-800',
+                                'focus-within:shadow-focus-ring',
                                 'flex items-center gap-1',
                                 intervalField.state.value && !RECURRING_INTERVAL_PRESETS.some((p) => p.value === intervalField.state.value)
-                                  ? 'bg-amber-500 text-white shadow-md'
-                                  : 'bg-white text-gray-700 dark:bg-gray-700 dark:text-gray-300',
+                                  ? 'bg-status-warning-text text-text-inverse shadow-md'
+                                  : 'bg-surface-panel text-text-secondary',
                                 isPending && 'cursor-not-allowed opacity-50',
                               )}
                             >
@@ -785,14 +774,14 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                                   'w-12 bg-transparent text-center font-medium text-sm focus:outline-none',
                                   '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
                                   intervalField.state.value && !RECURRING_INTERVAL_PRESETS.some((p) => p.value === intervalField.state.value)
-                                    ? 'text-white placeholder:text-white/60'
-                                    : 'text-gray-700 placeholder:text-gray-400 dark:text-gray-300 dark:placeholder:text-gray-500',
+                                    ? 'text-text-inverse placeholder:text-text-inverse/60'
+                                    : 'text-text-secondary placeholder:text-text-muted',
                                 )}
                               />
                               Min
                             </label>
                           </div>
-                          {intervalField.state.meta.errors.length > 0 && <p className="mt-1 text-red-600 text-sm dark:text-red-400">{formatErrors(intervalField.state.meta.errors)}</p>}
+                          {intervalField.state.meta.errors.length > 0 && <p className="mt-1 text-sm text-status-danger-text">{formatErrors(intervalField.state.meta.errors)}</p>}
                         </div>
                       )}
                     </form.Field>
@@ -802,7 +791,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                       {(endModeField) => (
                         <div>
                           {/* biome-ignore lint/a11y/noLabelWithoutControl: Label fuer Radio-Button-Gruppe */}
-                          <label className="mb-2 block font-medium text-gray-700 text-sm dark:text-gray-300">Ende</label>
+                          <label className="mb-2 block font-medium text-sm text-text-secondary">Ende</label>
                           <div className="space-y-2">
                             <label className="flex items-center gap-2">
                               <input
@@ -812,9 +801,9 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                                 checked={endModeField.state.value === 'none'}
                                 onChange={() => endModeField.handleChange('none')}
                                 disabled={isPending}
-                                className="h-4 w-4 text-amber-500 focus:ring-amber-500 dark:bg-gray-800"
+                                className="h-4 w-4 text-status-warning-text focus-visible:shadow-focus-ring"
                               />
-                              <span className="text-gray-700 text-sm dark:text-gray-300">Kein Ende</span>
+                              <span className="text-sm text-text-secondary">Kein Ende</span>
                             </label>
 
                             <label className="flex items-center gap-2">
@@ -825,9 +814,9 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                                 checked={endModeField.state.value === 'count'}
                                 onChange={() => endModeField.handleChange('count')}
                                 disabled={isPending}
-                                className="h-4 w-4 text-amber-500 focus:ring-amber-500 dark:bg-gray-800"
+                                className="h-4 w-4 text-status-warning-text focus-visible:shadow-focus-ring"
                               />
-                              <span className="text-gray-700 text-sm dark:text-gray-300">Nach</span>
+                              <span className="text-sm text-text-secondary">Nach</span>
                               {endModeField.state.value === 'count' && (
                                 <form.Field name="recurringMaxCount">
                                   {(maxCountField) => (
@@ -842,8 +831,8 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                                         max={100}
                                         placeholder="5"
                                       />
-                                      <span className="text-gray-700 text-sm dark:text-gray-300">Wiederholungen</span>
-                                      {maxCountField.state.meta.errors.length > 0 && <p className="text-red-600 text-sm dark:text-red-400">{formatErrors(maxCountField.state.meta.errors)}</p>}
+                                      <span className="text-sm text-text-secondary">Wiederholungen</span>
+                                      {maxCountField.state.meta.errors.length > 0 && <p className="text-sm text-status-danger-text">{formatErrors(maxCountField.state.meta.errors)}</p>}
                                     </>
                                   )}
                                 </form.Field>
@@ -858,9 +847,9 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                                 checked={endModeField.state.value === 'date'}
                                 onChange={() => endModeField.handleChange('date')}
                                 disabled={isPending}
-                                className="h-4 w-4 text-amber-500 focus:ring-amber-500 dark:bg-gray-800"
+                                className="h-4 w-4 text-status-warning-text focus-visible:shadow-focus-ring"
                               />
-                              <span className="text-gray-700 text-sm dark:text-gray-300">Bis</span>
+                              <span className="text-sm text-text-secondary">Bis</span>
                               {endModeField.state.value === 'date' && (
                                 <form.Field name="recurringEndDate">
                                   {(endDateField) => (
@@ -872,7 +861,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                                         disabled={isPending}
                                         className="w-56"
                                       />
-                                      {endDateField.state.meta.errors.length > 0 && <p className="text-red-600 text-sm dark:text-red-400">{formatErrors(endDateField.state.meta.errors)}</p>}
+                                      {endDateField.state.meta.errors.length > 0 && <p className="text-sm text-status-danger-text">{formatErrors(endDateField.state.meta.errors)}</p>}
                                     </>
                                   )}
                                 </form.Field>
@@ -889,7 +878,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
           </form.Field>
 
           {/* API Error Message */}
-          {apiErrorMessage && <div className="rounded-lg bg-red-50 p-3 text-red-700 text-sm dark:bg-red-900/20 dark:text-red-400">{apiErrorMessage}</div>}
+          {apiErrorMessage && <div className="rounded-panel bg-status-danger-surface p-3 text-sm text-status-danger-text">{apiErrorMessage}</div>}
         </form>
       </Dialog.Body>
 

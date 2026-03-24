@@ -116,22 +116,22 @@ export function EinsatzBeitrittDialog({ einsatzId, isOpen, onClose, onReturnToOv
 
         <div className="flex items-start gap-4">
           <div className="flex-shrink-0">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/20">
-              <PiUser className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-status-info-surface">
+              <PiUser className="h-6 w-6 text-status-info-text" />
             </div>
           </div>
 
           <div className="flex-1">
             <div className="mb-2 flex items-center gap-2">
-              {requiresAssignment && <span className="rounded-full bg-amber-100 px-2 py-1 font-medium text-amber-800 text-xs dark:bg-amber-900/30 dark:text-amber-300">Pflichtschritt</span>}
+              {requiresAssignment && <span className="rounded-full bg-status-warning-surface px-2 py-1 font-medium text-body-xs text-status-warning-text">Pflichtschritt</span>}
             </div>
-            <h2 ref={gateTitleRef} tabIndex={-1} className="font-semibold text-gray-900 text-lg dark:text-white">
+            <h2 ref={gateTitleRef} tabIndex={-1} className="font-semibold text-text-primary text-lg">
               {requiresAssignment ? 'Zuordnung erforderlich' : 'Zuordnung ändern'}
             </h2>
 
             <Dialog.Body className="mt-2">
               <div className="space-y-3">
-                <output aria-live="polite" className="block text-gray-600 text-sm dark:text-gray-400">
+                <output aria-live="polite" className="block text-body-sm text-text-secondary">
                   {requiresAssignment
                     ? 'Arbeitsraum bleibt gesperrt, bis Sie sich diesem Einsatz eindeutig zuordnen. Danach arbeiten Sie ohne Kontextverlust direkt im aktiven Einsatz weiter.'
                     : 'Ändern Sie Ihre verknüpfte Person für diesen Einsatz.'}
@@ -154,9 +154,9 @@ export function EinsatzBeitrittDialog({ einsatzId, isOpen, onClose, onReturnToOv
                 />
 
                 <div className="flex items-center gap-3">
-                  <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
-                  <span className="text-gray-400 text-xs">oder</span>
-                  <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
+                  <div className="h-px flex-1 bg-border-subtle" />
+                  <span className="text-text-muted text-body-xs">oder</span>
+                  <div className="h-px flex-1 bg-border-subtle" />
                 </div>
 
                 <Button appearance="ghost" size="sm" className="w-full justify-center" onClick={() => setShowPersonDialog(true)} disabled={joinEinsatz.isPending}>
@@ -183,7 +183,7 @@ export function EinsatzBeitrittDialog({ einsatzId, isOpen, onClose, onReturnToOv
           <Button intent="primary" size="sm" onClick={handleSubmit} disabled={joinEinsatz.isPending || isTeilnahmeLoading}>
             {joinEinsatz.isPending ? (
               <>
-                <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-text-inverse border-t-transparent" />
                 Zuordnung wird gespeichert...
               </>
             ) : requiresAssignment ? (

@@ -34,7 +34,7 @@ export function Timeline({ children, className }: TimelineProps) {
 export function TimelineItem({ children, className, showLine = true }: TimelineItemProps) {
   return (
     <div className={cn('relative pl-8', className)}>
-      {showLine && <div className="absolute top-6 bottom-0 left-3 w-0.5 bg-gray-200 dark:bg-gray-700" />}
+      {showLine && <div className="absolute top-6 bottom-0 left-3 w-0.5 bg-border-subtle" />}
       {children}
     </div>
   );
@@ -47,13 +47,13 @@ export function TimelineItem({ children, className, showLine = true }: TimelineI
  */
 export function TimelineDot({ variant = 'secondary', className }: TimelineDotProps) {
   const variantClasses = {
-    primary: 'bg-primary-500 ring-white dark:ring-gray-800',
-    secondary: 'bg-gray-300 dark:bg-gray-600 ring-white dark:ring-gray-800',
+    primary: 'bg-action-primary ring-surface-canvas',
+    secondary: 'bg-surface-raised ring-surface-canvas',
   };
 
   const innerDotClasses = {
-    primary: 'bg-white',
-    secondary: 'bg-white dark:bg-gray-800',
+    primary: 'bg-surface-panel',
+    secondary: 'bg-surface-panel',
   };
 
   return (

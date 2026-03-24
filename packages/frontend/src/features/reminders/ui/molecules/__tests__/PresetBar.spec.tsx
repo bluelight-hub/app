@@ -7,8 +7,8 @@
  * - Rendert nichts wenn keine Presets vorhanden
  * - Klick auf Chip aktiviert Preset (applyPreset)
  * - X-Button loescht Preset (removePreset)
- * - Aktiver Preset visuell hervorgehoben (ring-2, bg-primary-50)
- * - Inaktiver Preset hat Standard-Klassen (bg-gray-100)
+ * - Aktiver Preset visuell hervorgehoben (ring-2, bg-action-primary)
+ * - Inaktiver Preset hat Standard-Klassen (bg-surface-raised)
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -121,7 +121,7 @@ describe('PresetBar', () => {
   });
 
   describe('active preset styling', () => {
-    it('should apply highlighted classes for active preset (ring-2, bg-primary-50)', () => {
+    it('should apply highlighted classes for active preset (ring-2, bg-action-primary)', () => {
       // Given (Arrange) - Preset-1 ist aktiv und Filter stimmen ueberein
       mockUseFilterPresets.mockReturnValue([presetMeine]);
       mockUseActivePresetId.mockReturnValue('preset-1');
@@ -133,10 +133,10 @@ describe('PresetBar', () => {
       // Then (Assert) - Der Chip-Wrapper (span) hat aktive Klassen
       const chipSpan = container.querySelector('span');
       expect(chipSpan).toHaveClass('ring-2');
-      expect(chipSpan).toHaveClass('bg-primary-50');
+      expect(chipSpan).toHaveClass('bg-action-primary');
     });
 
-    it('should apply default classes for inactive preset (bg-gray-100)', () => {
+    it('should apply default classes for inactive preset (bg-surface-raised)', () => {
       // Given (Arrange) - Preset ist nicht aktiv
       mockUseFilterPresets.mockReturnValue([presetMeine]);
       mockUseActivePresetId.mockReturnValue(null);
@@ -147,9 +147,9 @@ describe('PresetBar', () => {
 
       // Then (Assert) - Der Chip-Wrapper (span) hat inaktive Klassen
       const chipSpan = container.querySelector('span');
-      expect(chipSpan).toHaveClass('bg-gray-100');
+      expect(chipSpan).toHaveClass('bg-surface-raised');
       expect(chipSpan).not.toHaveClass('ring-2');
-      expect(chipSpan).not.toHaveClass('bg-primary-50');
+      expect(chipSpan).not.toHaveClass('bg-action-primary');
     });
   });
 

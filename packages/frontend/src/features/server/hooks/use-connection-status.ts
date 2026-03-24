@@ -22,7 +22,7 @@ import { serverStore } from '../stores/server.store';
  *   }
  *
  *   return (
- *     <span className={status === 'connected' ? 'text-green-500' : 'text-red-500'}>
+ *     <span className={status === 'connected' ? 'text-status-success-text' : 'text-status-danger-text'}>
  *       {status}
  *     </span>
  *   );

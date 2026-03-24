@@ -40,13 +40,11 @@ export const DateInput = forwardRef<ComponentRef<typeof DatePicker>, DateInputPr
           onBlur={onBlur}
           // customInput={<CustomInput />}
           className={cn(
-            'block w-full rounded-lg border bg-gray-50 font-medium text-gray-900',
-            'transition-all duration-200 placeholder:text-gray-400',
-            'focus:outline-none focus:ring-2 focus:ring-opacity-20',
+            'block w-full rounded-control border bg-surface-panel font-medium text-text-primary',
+            'transition-all duration-200 placeholder:text-text-muted',
+            'focus:border-action-primary focus-visible:shadow-focus-ring focus-visible:outline-none',
             'disabled:cursor-not-allowed disabled:opacity-50',
-            'dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-500',
-            'border-gray-200 focus:border-blue-500 focus:bg-white focus:ring-blue-500',
-            'dark:border-gray-700 dark:focus:border-blue-400 dark:focus:bg-gray-800 dark:focus:ring-blue-400',
+            'border-border-subtle hover:border-border-strong',
             'px-3 py-1.5 text-sm',
             showIcon && 'pr-12',
             className,
@@ -75,7 +73,7 @@ export const DateInput = forwardRef<ComponentRef<typeof DatePicker>, DateInputPr
         />
         {showIcon && (
           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-            <PiCalendar className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+            <PiCalendar className="h-5 w-5 text-text-muted" />
           </div>
         )}
       </div>

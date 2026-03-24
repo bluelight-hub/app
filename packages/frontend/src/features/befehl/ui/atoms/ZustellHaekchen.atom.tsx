@@ -4,11 +4,11 @@ import type { QuittierungHaekchenStatus } from '../../lib/befehl-utils';
 
 /** Farbklassen je Quittierungs-Status */
 const QUITTIERUNG_FARBEN: Record<QuittierungHaekchenStatus, string> = {
-  none: 'text-gray-400 dark:text-gray-500',
-  partial: 'text-gray-400 dark:text-gray-500',
-  all_verstanden: 'text-green-500 dark:text-green-400',
-  mixed: 'text-yellow-500 dark:text-yellow-400',
-  has_nicht_verstanden: 'text-red-500 dark:text-red-400',
+  none: 'text-text-muted',
+  partial: 'text-text-muted',
+  all_verstanden: 'text-status-success-text',
+  mixed: 'text-status-warning-text',
+  has_nicht_verstanden: 'text-status-danger-text',
 };
 
 /** Lesbare Labels für aria-label */

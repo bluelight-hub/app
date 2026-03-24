@@ -72,7 +72,7 @@ export function BefehlQuittierenDialog({ isOpen, onClose, befehlId, befehlNummer
       <Dialog.Body>
         {bereitsQuittiert ? (
           <div aria-live="polite">
-            <p className="text-base text-gray-500 dark:text-gray-400">Dieser Befehl wurde bereits quittiert.</p>
+            <p className="text-base text-text-secondary">Dieser Befehl wurde bereits quittiert.</p>
           </div>
         ) : (
           <>

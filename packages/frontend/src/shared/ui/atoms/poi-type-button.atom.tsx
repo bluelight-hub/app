@@ -93,11 +93,11 @@ export const PoiTypeButton: React.FC<PoiTypeButtonProps> = ({ type, onClick, isA
       className={cn(
         'justify-start gap-2 text-left transition-all duration-200',
         // Active state enhancements (blue glow)
-        isActive && 'shadow-blue-500/50 shadow-lg ring-2 ring-blue-400 dark:ring-blue-500',
+        isActive && 'shadow-focus-ring ring-2 ring-status-info-border/60',
         // Hover scale animation
         !compact && 'hover:scale-[1.02]',
         // Focus state (for dropdown items)
-        showFocusState && 'focus:bg-gray-50 dark:focus:bg-gray-700',
+        showFocusState && 'focus:bg-surface-raised',
         // Compact mode: Square button
         compact && 'aspect-square justify-center',
         className,
@@ -106,7 +106,7 @@ export const PoiTypeButton: React.FC<PoiTypeButtonProps> = ({ type, onClick, isA
       aria-pressed={isActive}
     >
       {/* Icon */}
-      <config.Icon size={iconSize} color={isActive ? '#ffffff' : config.color} aria-hidden="true" />
+      <config.Icon size={iconSize} color={isActive ? 'currentColor' : config.color} aria-hidden="true" />
 
       {/* Label (nicht im kompakten Modus) */}
       {!compact && <span className="truncate">{formatPoiTypeLabel(type)}</span>}

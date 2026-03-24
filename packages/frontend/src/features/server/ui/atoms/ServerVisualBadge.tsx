@@ -74,7 +74,7 @@ const iconSizeClasses = {
  * <ServerVisualBadge server={server} size="lg" />
  *
  * // Mit zusätzlichem Ring
- * <ServerVisualBadge server={server} className="ring-2 ring-white" />
+ * <ServerVisualBadge server={server} className="ring-2 ring-surface-panel" />
  * ```
  */
 export function ServerVisualBadge({ server, size = 'md', className }: ServerVisualBadgeProps) {
@@ -87,7 +87,7 @@ export function ServerVisualBadge({ server, size = 'md', className }: ServerVisu
 
   return (
     <div role="img" aria-label={`Server: ${server.name}`} className={cn('flex items-center justify-center rounded-full', badgeSizeClasses[size], colorClass, className)}>
-      <IconComponent className={cn('text-white', iconSizeClasses[size])} aria-hidden="true" />
+      <IconComponent className={cn('text-text-inverse', iconSizeClasses[size])} aria-hidden="true" />
     </div>
   );
 }

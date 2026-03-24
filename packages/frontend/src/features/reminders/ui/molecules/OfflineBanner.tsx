@@ -92,7 +92,6 @@ export function OfflineBanner({ isOffline, pendingCount, isSyncing, offlineSince
   const ariaLabel = isOfflineVariant ? `Offline${pendingCount > 0 ? ` - ${formatPendingCount(pendingCount)}` : ''}` : `Synchronisiere ${pendingCount} ${pendingCount === 1 ? 'Aktion' : 'Aktionen'}`;
 
   return (
-    // biome-ignore lint/a11y/useSemanticElements: role="status" ist korrekt fuer ARIA Live-Region Status-Updates
     <div
       role="status"
       aria-live="polite"
@@ -106,9 +105,9 @@ export function OfflineBanner({ isOffline, pendingCount, isSyncing, offlineSince
         // Typography
         'font-medium text-sm',
         // Variant: Offline (amber/yellow)
-        isOfflineVariant && 'border-amber-200 border-b bg-amber-100 text-amber-800',
+        isOfflineVariant && 'border-status-warning-border border-b bg-status-warning-surface text-status-warning-text',
         // Variant: Syncing (blue)
-        isSyncingVariant && 'border-blue-200 border-b bg-blue-100 text-blue-800',
+        isSyncingVariant && 'border-status-info-border border-b bg-status-info-surface text-status-info-text',
         className,
       )}
     >

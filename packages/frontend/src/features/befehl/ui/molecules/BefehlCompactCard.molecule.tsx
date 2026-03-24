@@ -37,22 +37,17 @@ export function BefehlCompactCard({ befehl, onClick, selected, className }: Befe
       }}
       className={cn(
         'cursor-pointer rounded-lg border p-3 transition-colors',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
-        selected && 'border-primary-300 bg-primary-50 dark:border-primary-600 dark:bg-primary-900/20',
-        !selected && isKorrigiert && 'border-gray-200 opacity-60 dark:border-gray-700',
-        !selected && !isKorrigiert && kritikalitaet === 'KRITISCH' && 'border-red-300 bg-red-50 dark:border-red-700 dark:bg-red-950/20',
-        !selected && !isKorrigiert && kritikalitaet === 'WARNUNG' && 'border-yellow-300 bg-yellow-50 dark:border-yellow-700 dark:bg-yellow-950/20',
-        !selected &&
-          !isKorrigiert &&
-          kritikalitaet === 'NORMAL' &&
-          fortschritt.quittiert === fortschritt.gesamt &&
-          fortschritt.gesamt > 0 &&
-          'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20',
+        'focus-visible:outline-none focus-visible:shadow-focus-ring',
+        selected && 'border-action-primary bg-action-secondary',
+        !selected && isKorrigiert && 'border-border-subtle opacity-60',
+        !selected && !isKorrigiert && kritikalitaet === 'KRITISCH' && 'border-status-danger-border bg-status-danger-surface',
+        !selected && !isKorrigiert && kritikalitaet === 'WARNUNG' && 'border-status-warning-border bg-status-warning-surface',
+        !selected && !isKorrigiert && kritikalitaet === 'NORMAL' && fortschritt.quittiert === fortschritt.gesamt && fortschritt.gesamt > 0 && 'border-status-success-border bg-status-success-surface',
         !selected &&
           !isKorrigiert &&
           kritikalitaet === 'NORMAL' &&
           (fortschritt.quittiert < fortschritt.gesamt || fortschritt.gesamt === 0) &&
-          'border-gray-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:bg-gray-800/50',
+          'border-border-subtle hover:border-border-strong hover:bg-action-secondary',
         className,
       )}
       aria-label={`Befehl ${befehl.nummer}: ${befehl.auftrag}`}
@@ -60,31 +55,31 @@ export function BefehlCompactCard({ befehl, onClick, selected, className }: Befe
       {/* Zeile 1: Prio-Dot + Nummer + Zeit */}
       <div className="flex items-center gap-2">
         {kritikalitaet === 'KRITISCH' && <AlarmDot className="flex-shrink-0" />}
-        {kritikalitaet === 'WARNUNG' && <span className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full bg-yellow-400" aria-hidden="true" />}
-        {kritikalitaet === 'NORMAL' && <span className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full bg-gray-300 dark:bg-gray-600" aria-hidden="true" />}
-        <span className="font-bold font-mono text-gray-900 text-sm dark:text-gray-100">{befehl.nummer}</span>
-        <time dateTime={erteiltAmDate.toISOString()} className="ml-auto text-gray-500 text-xs dark:text-gray-400">
+        {kritikalitaet === 'WARNUNG' && <span className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full bg-status-warning-text" aria-hidden="true" />}
+        {kritikalitaet === 'NORMAL' && <span className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full bg-border-strong" aria-hidden="true" />}
+        <span className="font-bold font-mono text-text-primary text-sm">{befehl.nummer}</span>
+        <time dateTime={erteiltAmDate.toISOString()} className="ml-auto text-text-muted text-xs">
           {format(erteiltAmDate, 'dd.MM. HH:mm')}
         </time>
       </div>
 
       {/* Zeile 2: Auftrag (1 Zeile) */}
-      <p className="mt-1 truncate text-gray-700 text-sm dark:text-gray-300">{befehl.auftrag}</p>
+      <p className="mt-1 truncate text-text-secondary text-sm">{befehl.auftrag}</p>
 
       {/* Zeile 3: Fortschrittsbar + Count */}
       <div className="mt-2 flex items-center gap-2">
-        <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+        <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-surface-raised">
           <div
             className={cn(
               'h-full rounded-full transition-all duration-300',
-              fortschritt.prozent === 0 && 'bg-gray-200 dark:bg-gray-700',
-              fortschritt.prozent > 0 && fortschritt.prozent < 100 && 'bg-yellow-400 dark:bg-yellow-500',
-              fortschritt.prozent === 100 && 'bg-green-500 dark:bg-green-400',
+              fortschritt.prozent === 0 && 'bg-surface-raised',
+              fortschritt.prozent > 0 && fortschritt.prozent < 100 && 'bg-status-warning-text',
+              fortschritt.prozent === 100 && 'bg-status-success-text',
             )}
             style={{ width: `${fortschritt.prozent}%` }}
           />
         </div>
-        <span className="flex-shrink-0 text-gray-500 text-xs dark:text-gray-400">
+        <span className="flex-shrink-0 text-text-muted text-xs">
           {fortschritt.quittiert}/{fortschritt.gesamt}
         </span>
       </div>

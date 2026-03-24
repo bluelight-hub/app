@@ -13,11 +13,11 @@ interface BadgeProps {
 }
 
 const VARIANT_CLASSES = {
-  default: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
-  success: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-  error: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
-  warning: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-  info: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+  default: 'bg-surface-raised text-text-secondary',
+  success: 'bg-status-success-surface text-status-success-text',
+  error: 'bg-status-danger-surface text-status-danger-text',
+  warning: 'bg-status-warning-surface text-status-warning-text',
+  info: 'bg-status-info-surface text-status-info-text',
 };
 
 const SIZE_CLASSES = {
@@ -27,10 +27,10 @@ const SIZE_CLASSES = {
 };
 
 const DOT_COLORS = {
-  green: 'bg-green-400',
-  red: 'bg-red-400',
-  yellow: 'bg-yellow-400',
-  blue: 'bg-blue-400',
+  green: 'bg-status-success-text',
+  red: 'bg-status-danger-text',
+  yellow: 'bg-status-warning-text',
+  blue: 'bg-status-info-text',
 };
 
 /**
@@ -40,7 +40,7 @@ const DOT_COLORS = {
  */
 export const Badge = memo(({ children, variant = 'default', size = 'md', className, dot = false, dotColor = 'green' }: BadgeProps) => {
   return (
-    <div className={cn('inline-flex items-center rounded-full font-medium', VARIANT_CLASSES[variant], SIZE_CLASSES[size], className)}>
+    <div className={cn('inline-flex items-center rounded-pill font-medium', VARIANT_CLASSES[variant], SIZE_CLASSES[size], className)}>
       {dot && (
         <span className="relative mr-2 flex h-1.5 w-1.5">
           <span className={cn('absolute inline-flex h-full w-full animate-ping rounded-full opacity-75', DOT_COLORS[dotColor])} />

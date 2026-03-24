@@ -6,9 +6,7 @@ import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { ManagedUserResponseDtoRoleEnum } from '@/shared';
 import { useState } from 'react';
 import { PiLockKey, PiShieldWarning, PiUserMinus } from 'react-icons/pi';
-
 export type UserActionType = 'delete' | 'downgrade' | 'lock';
-
 interface ConfirmDeleteDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -16,13 +14,7 @@ interface ConfirmDeleteDialogProps {
   userName: string;
   userRole: ManagedUserResponseDtoRoleEnum;
   isDeleting: boolean;
-}
-
-/**
- * Bestimmt die Badge-Variante basierend auf der Benutzerrolle.
- * @param role - Die Benutzerrolle als ManagedUserResponseDtoRoleEnum
- * @returns Die entsprechende Badge-Variante für die visuelle Darstellung
- */
+} /** * Bestimmt die Badge-Variante basierend auf der Benutzerrolle. * @param role - Die Benutzerrolle als ManagedUserResponseDtoRoleEnum * @returns Die entsprechende Badge-Variante für die visuelle Darstellung */
 const getRoleBadgeVariant = (role: ManagedUserResponseDtoRoleEnum): 'error' | 'warning' | 'info' | 'default' => {
   switch (role) {
     case ManagedUserResponseDtoRoleEnum.SuperAdmin:
@@ -35,23 +27,18 @@ const getRoleBadgeVariant = (role: ManagedUserResponseDtoRoleEnum): 'error' | 'w
       return 'default';
   }
 };
-
 export const ConfirmDeleteDialog = ({ isOpen, onClose, onConfirm, userName, userRole, isDeleting }: ConfirmDeleteDialogProps) => {
   const [selectedAction, setSelectedAction] = useState<UserActionType>('delete');
   const [lockReason, setLockReason] = useState('');
-
   const isAdmin = userRole === ManagedUserResponseDtoRoleEnum.Admin || userRole === ManagedUserResponseDtoRoleEnum.SuperAdmin;
-
   const handleClose = () => {
     setSelectedAction('delete');
     setLockReason('');
     onClose();
   };
-
   const handleConfirm = () => {
     onConfirm(selectedAction, selectedAction === 'lock' ? lockReason : undefined);
   };
-
   const getActionButtonText = () => {
     switch (selectedAction) {
       case 'delete':
@@ -62,100 +49,109 @@ export const ConfirmDeleteDialog = ({ isOpen, onClose, onConfirm, userName, user
         return 'Sperren';
     }
   };
-
   return (
     <Dialog isOpen={isOpen} onClose={handleClose}>
+      {' '}
       <div className="relative">
-        <Dialog.Title>Benutzer-Aktion wählen</Dialog.Title>
-
+        {' '}
+        <Dialog.Title>Benutzer-Aktion wählen</Dialog.Title>{' '}
         <Dialog.Body>
+          {' '}
           <div className="flex flex-col space-y-4">
+            {' '}
             <div className="flex flex-col items-center space-y-2 text-center">
-              <PiShieldWarning className="h-12 w-12 text-orange-500" />
-              <p className="font-semibold text-gray-900 text-lg dark:text-white">{userName}</p>
-              <Badge variant={getRoleBadgeVariant(userRole)}>{userRole}</Badge>
-            </div>
-
+              {' '}
+              <PiShieldWarning className="h-12 w-12 text-status-warning-text" /> <p className="font-semibold text-text-primary text-lg">{userName}</p>{' '}
+              <Badge variant={getRoleBadgeVariant(userRole)}>{userRole}</Badge>{' '}
+            </div>{' '}
             <div className="space-y-3">
-              <Label>Aktion auswählen:</Label>
-
+              {' '}
+              <Label>Aktion auswählen:</Label>{' '}
               <div className="space-y-2">
-                <label className="flex cursor-pointer items-center space-x-3 rounded-lg border border-gray-200 p-3 transition hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+                {' '}
+                <label className="flex cursor-pointer items-center space-x-3 rounded-lg border border-border-subtle p-3 transition hover:bg-surface-raised ">
+                  {' '}
                   <input
                     type="radio"
                     name="action"
                     value="delete"
                     checked={selectedAction === 'delete'}
                     onChange={(e) => setSelectedAction(e.target.value as UserActionType)}
-                    className="h-4 w-4 text-red-600"
-                  />
+                    className="h-4 w-4 text-status-danger-text"
+                  />{' '}
                   <div className="flex flex-1 items-center space-x-2">
-                    <PiUserMinus className="h-5 w-5 text-red-500" />
+                    {' '}
+                    <PiUserMinus className="h-5 w-5 text-status-danger-text" />{' '}
                     <div>
-                      <p className="font-medium text-sm">Löschen (Soft Delete)</p>
-                      <p className="text-gray-500 text-xs dark:text-gray-400">{isAdmin ? 'Deaktivieren + zu User herabstufen (reaktivierbar)' : 'Benutzer deaktivieren (reaktivierbar)'}</p>
-                    </div>
-                  </div>
-                </label>
-
+                      {' '}
+                      <p className="font-medium text-sm">Löschen (Soft Delete)</p>{' '}
+                      <p className="text-text-muted text-xs ">{isAdmin ? 'Deaktivieren + zu User herabstufen (reaktivierbar)' : 'Benutzer deaktivieren (reaktivierbar)'}</p>{' '}
+                    </div>{' '}
+                  </div>{' '}
+                </label>{' '}
                 {isAdmin && (
-                  <label className="flex cursor-pointer items-center space-x-3 rounded-lg border border-gray-200 p-3 transition hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+                  <label className="flex cursor-pointer items-center space-x-3 rounded-lg border border-border-subtle p-3 transition hover:bg-surface-raised ">
+                    {' '}
                     <input
                       type="radio"
                       name="action"
                       value="downgrade"
                       checked={selectedAction === 'downgrade'}
                       onChange={(e) => setSelectedAction(e.target.value as UserActionType)}
-                      className="h-4 w-4 text-yellow-600"
-                    />
+                      className="h-4 w-4 text-status-warning-text"
+                    />{' '}
                     <div className="flex flex-1 items-center space-x-2">
-                      <PiShieldWarning className="h-5 w-5 text-yellow-500" />
+                      {' '}
+                      <PiShieldWarning className="h-5 w-5 text-status-warning-text" />{' '}
                       <div>
-                        <p className="font-medium text-sm">Zu User herabstufen (aktiv)</p>
-                        <p className="text-gray-500 text-xs dark:text-gray-400">Admin-Rechte entfernen, als User aktiv bleiben</p>
-                      </div>
-                    </div>
+                        {' '}
+                        <p className="font-medium text-sm">Zu User herabstufen (aktiv)</p> <p className="text-text-muted text-xs ">Admin-Rechte entfernen, als User aktiv bleiben</p>{' '}
+                      </div>{' '}
+                    </div>{' '}
                   </label>
-                )}
-
-                <label className="flex cursor-pointer items-center space-x-3 rounded-lg border border-gray-200 p-3 transition hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800">
+                )}{' '}
+                <label className="flex cursor-pointer items-center space-x-3 rounded-lg border border-border-subtle p-3 transition hover:bg-surface-raised ">
+                  {' '}
                   <input
                     type="radio"
                     name="action"
                     value="lock"
                     checked={selectedAction === 'lock'}
                     onChange={(e) => setSelectedAction(e.target.value as UserActionType)}
-                    className="h-4 w-4 text-orange-600"
-                  />
+                    className="h-4 w-4 text-status-warning-text"
+                  />{' '}
                   <div className="flex flex-1 items-center space-x-2">
-                    <PiLockKey className="h-5 w-5 text-orange-500" />
+                    {' '}
+                    <PiLockKey className="h-5 w-5 text-status-warning-text" />{' '}
                     <div>
-                      <p className="font-medium text-sm">Sperren</p>
-                      <p className="text-gray-500 text-xs dark:text-gray-400">Temporär sperren (reversibel)</p>
-                    </div>
-                  </div>
-                </label>
-              </div>
-
+                      {' '}
+                      <p className="font-medium text-sm">Sperren</p> <p className="text-text-muted text-xs ">Temporär sperren (reversibel)</p>{' '}
+                    </div>{' '}
+                  </div>{' '}
+                </label>{' '}
+              </div>{' '}
               {selectedAction === 'lock' && (
                 <div className="mt-3">
-                  <Label htmlFor="lockReason">Sperrgrund (optional)</Label>
-                  <Input id="lockReason" value={lockReason} onChange={(e) => setLockReason(e.target.value)} placeholder="z.B. Verstoß gegen Nutzungsbedingungen" className="mt-1" />
+                  {' '}
+                  <Label htmlFor="lockReason">Sperrgrund (optional)</Label>{' '}
+                  <Input id="lockReason" value={lockReason} onChange={(e) => setLockReason(e.target.value)} placeholder="z.B. Verstoß gegen Nutzungsbedingungen" className="mt-1" />{' '}
                 </div>
-              )}
-            </div>
-          </div>
-        </Dialog.Body>
-
+              )}{' '}
+            </div>{' '}
+          </div>{' '}
+        </Dialog.Body>{' '}
         <Dialog.Footer>
+          {' '}
           <Button intent="secondary" appearance="ghost" onClick={handleClose} disabled={isDeleting}>
-            Abbrechen
-          </Button>
+            {' '}
+            Abbrechen{' '}
+          </Button>{' '}
           <Button intent={selectedAction === 'delete' ? 'danger' : selectedAction === 'lock' ? 'warning' : 'primary'} onClick={handleConfirm} loading={isDeleting} disabled={isDeleting}>
-            {getActionButtonText()}
-          </Button>
-        </Dialog.Footer>
-      </div>
+            {' '}
+            {getActionButtonText()}{' '}
+          </Button>{' '}
+        </Dialog.Footer>{' '}
+      </div>{' '}
     </Dialog>
   );
 };

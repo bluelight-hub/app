@@ -65,31 +65,31 @@ export function ErinnerungDeleteDialog({ isOpen, onClose, erinnerung, einsatzId 
   return (
     <Dialog isOpen={isOpen} onClose={handleClose} size="md">
       <div className="flex items-center gap-3">
-        <div className="rounded-full bg-red-100 p-2 dark:bg-red-900/30">
-          <PiWarning className="h-5 w-5 text-red-600 dark:text-red-400" />
+        <div className="rounded-full bg-status-danger-surface p-2">
+          <PiWarning className="h-5 w-5 text-status-danger-text" />
         </div>
         <Dialog.Title>Erinnerung '{erinnerung.titel}' löschen?</Dialog.Title>
       </div>
 
       <Dialog.Body>
         <div className="space-y-4">
-          <div className="rounded-lg bg-amber-50 p-3 dark:bg-amber-900/20">
-            <p className="flex items-start gap-2 text-amber-800 text-sm dark:text-amber-300">
+          <div className="rounded-panel bg-status-warning-surface p-3">
+            <p className="flex items-start gap-2 text-sm text-status-warning-text">
               <PiTrash className="mt-0.5 h-4 w-4 flex-shrink-0" />
               <span>Diese Aktion kann nicht rückgängig gemacht werden. Die Erinnerung wird im Einsatztagebuch dokumentiert.</span>
             </p>
           </div>
 
           {/* Erinnerung-Details */}
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800/50">
+          <div className="rounded-panel border border-border-subtle bg-surface-raised p-3">
             <dl className="space-y-1 text-sm">
               <div className="flex">
-                <dt className="w-24 flex-shrink-0 text-gray-500 dark:text-gray-400">Titel:</dt>
-                <dd className="font-medium text-gray-900 dark:text-white">{erinnerung.titel}</dd>
+                <dt className="w-24 flex-shrink-0 text-text-muted">Titel:</dt>
+                <dd className="font-medium text-text-primary">{erinnerung.titel}</dd>
               </div>
               <div className="flex">
-                <dt className="w-24 flex-shrink-0 text-gray-500 dark:text-gray-400">Fällig um:</dt>
-                <dd className="text-gray-700 dark:text-gray-300">
+                <dt className="w-24 flex-shrink-0 text-text-muted">Fällig um:</dt>
+                <dd className="text-text-secondary">
                   {new Date(erinnerung.faelligAm).toLocaleString('de-DE', {
                     day: '2-digit',
                     month: '2-digit',
@@ -100,8 +100,8 @@ export function ErinnerungDeleteDialog({ isOpen, onClose, erinnerung, einsatzId 
                 </dd>
               </div>
               <div className="flex">
-                <dt className="w-24 flex-shrink-0 text-gray-500 dark:text-gray-400">Status:</dt>
-                <dd className="text-gray-700 dark:text-gray-300">{erinnerung.status === 'GEPLANT' ? 'Geplant' : erinnerung.status === 'AUSGELOEST' ? 'Ausgelöst' : erinnerung.status}</dd>
+                <dt className="w-24 flex-shrink-0 text-text-muted">Status:</dt>
+                <dd className="text-text-secondary">{erinnerung.status === 'GEPLANT' ? 'Geplant' : erinnerung.status === 'AUSGELOEST' ? 'Ausgelöst' : erinnerung.status}</dd>
               </div>
             </dl>
           </div>

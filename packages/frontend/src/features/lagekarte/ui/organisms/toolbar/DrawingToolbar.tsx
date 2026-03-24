@@ -57,43 +57,43 @@ export const DrawingToolbar: React.FC<DrawingToolbarProps> = ({ onToolSelect, se
         type: 'select' as const,
         icon: PiCursor,
         label: 'Auswählen',
-        color: '#6366f1', // Tailwind indigo-500
+        color: 'var(--color-action-primary)',
       },
       {
         type: 'polygon' as const,
         icon: PiPentagon,
         label: 'Polygon',
-        color: '#ef4444', // Tailwind red-500
+        color: 'var(--color-status-danger-text)',
       },
       {
         type: 'polyline' as const,
         icon: PiPath,
         label: 'Linie',
-        color: '#10b981', // Tailwind green-500
+        color: 'var(--color-status-success-text)',
       },
       {
         type: 'rectangle' as const,
         icon: PiRectangle,
         label: 'Rechteck',
-        color: '#3b82f6', // Tailwind blue-500
+        color: 'var(--color-status-info-text)',
       },
       {
         type: 'text' as const,
         icon: PiTextAa,
         label: 'Text',
-        color: '#8b5cf6', // Tailwind violet-500
+        color: 'var(--color-action-primary)',
       },
       {
         type: 'edit' as const,
         icon: PiPencilSimple,
         label: 'Bearbeiten',
-        color: '#6b7280', // Tailwind gray-500
+        color: 'var(--color-text-secondary)',
       },
       {
         type: 'delete' as const,
         icon: PiTrash,
         label: 'Löschen',
-        color: '#dc2626', // Tailwind red-600
+        color: 'var(--color-status-danger-text)',
       },
     ],
     [],
@@ -132,8 +132,8 @@ export const DrawingToolbar: React.FC<DrawingToolbarProps> = ({ onToolSelect, se
         fullWidth
         className={cn(
           'justify-start gap-2 text-left',
-          // Active state enhancements (blue glow)
-          isActive && 'shadow-blue-500/50 shadow-lg ring-2 ring-blue-400 dark:ring-blue-500',
+          // Active state enhancements
+          isActive && 'shadow-focus-ring shadow-lg ring-2 ring-status-info-border',
           // Hover scale animation
           'hover:scale-[1.02]',
         )}
@@ -156,8 +156,7 @@ export const DrawingToolbar: React.FC<DrawingToolbarProps> = ({ onToolSelect, se
       <div
         className={cn(
           // Glassmorphism
-          'rounded-xl border border-gray-200/50 bg-white/90 shadow-xl backdrop-blur-lg',
-          'dark:border-gray-700/50 dark:bg-gray-900/90',
+          'rounded-xl border border-border-subtle/50 bg-surface-panel/90 shadow-xl backdrop-blur-lg',
           // Width
           'min-w-[200px]',
           // Transition
@@ -175,7 +174,7 @@ export const DrawingToolbar: React.FC<DrawingToolbarProps> = ({ onToolSelect, se
           <div className="p-2">
             {/* Header mit Schließen-Button */}
             <div className="mb-2 flex items-center justify-between px-1">
-              <span className="font-semibold text-gray-900 text-sm dark:text-gray-100">Zeichnen-Tool wählen</span>
+              <span className="font-semibold text-text-primary text-sm">Zeichnen-Tool wählen</span>
               <Button onClick={handleToggleExpand} intent="secondary" appearance="ghost" size="icon" className="p-1" aria-label="Tools schließen">
                 <PiX size={18} aria-hidden="true" />
               </Button>
@@ -193,8 +192,7 @@ export const DrawingToolbar: React.FC<DrawingToolbarProps> = ({ onToolSelect, se
         <div
           className={cn(
             // Glassmorphism
-            'rounded-xl border border-gray-200/50 bg-white/90 shadow-xl backdrop-blur-lg',
-            'dark:border-gray-700/50 dark:bg-gray-900/90',
+            'rounded-xl border border-border-subtle/50 bg-surface-panel/90 shadow-xl backdrop-blur-lg',
             // Padding
             'p-3',
           )}

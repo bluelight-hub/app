@@ -66,13 +66,13 @@ export function BefehlExportDialog({ isOpen, onClose, einsatzId }: BefehlExportD
     <Dialog isOpen={isOpen} onClose={handleClose} size="sm">
       <Dialog.Title>
         <div className="flex items-center gap-2">
-          <PiExport className="h-5 w-5 text-gray-500 dark:text-gray-400" aria-hidden="true" />
+          <PiExport className="h-5 w-5 text-text-muted" aria-hidden="true" />
           <span>Befehle exportieren</span>
         </div>
       </Dialog.Title>
 
       <Dialog.Body>
-        <p className="mb-4 text-gray-600 text-sm dark:text-gray-400">Wählen Sie das gewünschte Exportformat:</p>
+        <p className="mb-4 text-text-secondary text-sm">Wählen Sie das gewünschte Exportformat:</p>
 
         <div className="space-y-2" role="radiogroup" aria-label="Exportformat wählen">
           {FORMAT_OPTIONS.map((option) => {
@@ -84,9 +84,7 @@ export function BefehlExportDialog({ isOpen, onClose, einsatzId }: BefehlExportD
                 key={option.value}
                 className={cn(
                   'flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors',
-                  isSelected
-                    ? 'border-primary-300 bg-primary-50 dark:border-primary-700 dark:bg-primary-900/20'
-                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:bg-gray-800/50',
+                  isSelected ? 'border-action-primary bg-action-secondary' : 'border-border-subtle bg-surface-panel hover:border-border-strong hover:bg-action-secondary',
                   isExporting && 'pointer-events-none opacity-50',
                 )}
               >
@@ -97,14 +95,14 @@ export function BefehlExportDialog({ isOpen, onClose, einsatzId }: BefehlExportD
                   checked={isSelected}
                   onChange={() => setSelectedFormat(option.value)}
                   disabled={isExporting}
-                  className="mt-1 h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700"
+                  className="mt-1 h-4 w-4 border-border-subtle text-action-primary focus-visible:shadow-focus-ring"
                 />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <Icon className={cn('h-4 w-4', isSelected ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400')} />
-                    <span className={cn('font-medium text-sm', isSelected ? 'text-primary-900 dark:text-primary-100' : 'text-gray-900 dark:text-gray-100')}>{option.label}</span>
+                    <Icon className={cn('h-4 w-4', isSelected ? 'text-action-primary' : 'text-text-muted')} />
+                    <span className={cn('font-medium text-sm', isSelected ? 'text-action-primary' : 'text-text-primary')}>{option.label}</span>
                   </div>
-                  <p className="mt-0.5 text-gray-500 text-xs dark:text-gray-400">{option.description}</p>
+                  <p className="mt-0.5 text-text-muted text-xs">{option.description}</p>
                 </div>
               </label>
             );

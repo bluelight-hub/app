@@ -85,8 +85,8 @@ export function CreateVorlageDialog({ isOpen, onClose }: CreateVorlageDialogProp
   return (
     <Dialog isOpen={isOpen} onClose={handleClose} size="sm">
       <div className="flex items-center gap-3">
-        <div className="rounded-full bg-amber-100 p-2 dark:bg-amber-900/30">
-          <PiAlarm className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+        <div className="rounded-full bg-status-warning-surface p-2">
+          <PiAlarm className="h-5 w-5 text-status-warning-text" />
         </div>
         <Dialog.Title>Neue Vorlage erstellen</Dialog.Title>
       </div>
@@ -105,8 +105,8 @@ export function CreateVorlageDialog({ isOpen, onClose }: CreateVorlageDialogProp
           <form.Field name="titel">
             {(field) => (
               <div>
-                <label htmlFor="vorlage-titel" className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
-                  Titel <span className="text-red-500">*</span>
+                <label htmlFor="vorlage-titel" className="mb-1.5 block font-medium text-text-secondary text-sm">
+                  Titel <span className="text-status-danger-text">*</span>
                 </label>
                 <Input
                   id="vorlage-titel"
@@ -119,7 +119,7 @@ export function CreateVorlageDialog({ isOpen, onClose }: CreateVorlageDialogProp
                   maxLength={100}
                   autoFocus
                 />
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-red-600 text-sm dark:text-red-400">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-sm">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
@@ -128,8 +128,8 @@ export function CreateVorlageDialog({ isOpen, onClose }: CreateVorlageDialogProp
           <form.Field name="minuten">
             {(field) => (
               <div>
-                <label htmlFor="vorlage-minuten" className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
-                  Minuten <span className="text-red-500">*</span>
+                <label htmlFor="vorlage-minuten" className="mb-1.5 block font-medium text-text-secondary text-sm">
+                  Minuten <span className="text-status-danger-text">*</span>
                 </label>
                 <Input
                   id="vorlage-minuten"
@@ -141,8 +141,8 @@ export function CreateVorlageDialog({ isOpen, onClose }: CreateVorlageDialogProp
                   variant={field.state.meta.errors.length > 0 ? 'error' : 'default'}
                   min={1}
                 />
-                <p className="mt-1 text-gray-500 text-xs dark:text-gray-400">Relative Zeitdauer in Minuten</p>
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-red-600 text-sm dark:text-red-400">{formatErrors(field.state.meta.errors)}</p>}
+                <p className="mt-1 text-text-muted text-xs">Relative Zeitdauer in Minuten</p>
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-sm">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
@@ -151,8 +151,8 @@ export function CreateVorlageDialog({ isOpen, onClose }: CreateVorlageDialogProp
           <form.Field name="beschreibung">
             {(field) => (
               <div>
-                <label htmlFor="vorlage-beschreibung" className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
-                  Beschreibung <span className="text-gray-400 text-xs">(optional)</span>
+                <label htmlFor="vorlage-beschreibung" className="mb-1.5 block font-medium text-text-secondary text-sm">
+                  Beschreibung <span className="text-text-muted text-xs">(optional)</span>
                 </label>
                 <textarea
                   id="vorlage-beschreibung"
@@ -163,23 +163,22 @@ export function CreateVorlageDialog({ isOpen, onClose }: CreateVorlageDialogProp
                   maxLength={500}
                   rows={3}
                   className={cn(
-                    'block w-full rounded-lg border bg-white px-4 py-2.5 font-medium text-gray-900 transition-colors duration-200',
-                    'placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-opacity-20',
+                    'block w-full rounded-control border bg-surface-panel px-4 py-2.5 font-medium text-text-primary transition-colors duration-200',
+                    'placeholder:text-text-muted focus:outline-none focus-visible:shadow-focus-ring',
                     'disabled:cursor-not-allowed disabled:opacity-50',
-                    'dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-500',
                     'resize-none',
                     field.state.meta.errors.length > 0
-                      ? 'border-red-500 hover:border-red-600 focus:border-red-500 focus:ring-red-500 dark:border-red-400'
-                      : 'border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700',
+                      ? 'border-status-danger-border hover:border-status-danger-text focus:border-status-danger-text'
+                      : 'border-border-subtle hover:border-border-strong focus:border-action-primary',
                   )}
                 />
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-red-600 text-sm dark:text-red-400">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-sm">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
 
           {/* API Error */}
-          {apiErrorMessage && <div className="rounded-lg bg-red-50 p-3 text-red-700 text-sm dark:bg-red-900/20 dark:text-red-400">{apiErrorMessage}</div>}
+          {apiErrorMessage && <div className="rounded-panel bg-status-danger-surface p-3 text-status-danger-text text-sm">{apiErrorMessage}</div>}
         </form>
       </Dialog.Body>
 

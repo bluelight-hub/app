@@ -480,13 +480,13 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
       <div className={cn('space-y-4', className)}>
         {/* Success Header */}
         <div className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-            <svg className="h-6 w-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-status-success-surface">
+            <svg className="h-6 w-6 text-status-success-text" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="font-semibold text-gray-900 text-xl dark:text-white">Setup abgeschlossen!</h2>
-          <p className="mt-1 text-gray-600 text-sm dark:text-gray-400">Der Server ist jetzt einsatzbereit.</p>
+          <h2 className="font-semibold text-text-primary text-xl">Setup abgeschlossen!</h2>
+          <p className="mt-1 text-sm text-text-secondary">Der Server ist jetzt einsatzbereit.</p>
         </div>
 
         {/* Warning Banner */}
@@ -498,10 +498,10 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
         />
 
         {/* Token Display Box */}
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50" aria-live="polite">
-          <div className="mb-2 font-medium text-gray-700 text-sm dark:text-gray-300">Server Access Token</div>
+        <div className="rounded-lg border border-border-subtle bg-surface-raised p-4" aria-live="polite">
+          <div className="mb-2 font-medium text-sm text-text-secondary">Server Access Token</div>
           <div className="flex items-center gap-3">
-            <code className="flex-1 break-all rounded bg-white px-3 py-2 font-mono text-gray-900 text-sm dark:bg-gray-900 dark:text-gray-100">{generatedToken}</code>
+            <code className="flex-1 break-all rounded bg-surface-panel px-3 py-2 font-mono text-sm text-text-primary">{generatedToken}</code>
             <CopyButton text={generatedToken} size="sm" />
           </div>
         </div>
@@ -522,22 +522,22 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
 
       {/* Admin-Setup Info Banner */}
       {formMode === 'admin-setup' && (
-        <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/50">
-          <PiWarning className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+        <div className="flex items-start gap-3 rounded-lg border border-status-warning-border bg-status-warning-surface p-4">
+          <PiWarning className="mt-0.5 h-5 w-5 flex-shrink-0 text-status-warning-text" />
           <div className="space-y-1">
-            <p className="font-medium text-amber-800 text-sm dark:text-amber-200">Server nicht eingerichtet</p>
-            <p className="text-amber-700 text-sm dark:text-amber-300">Dieser Server wurde noch nicht konfiguriert. Erstelle einen Admin-Account, um den Server zu initialisieren.</p>
+            <p className="font-medium text-sm text-status-warning-text">Server nicht eingerichtet</p>
+            <p className="text-sm text-status-warning-text">Dieser Server wurde noch nicht konfiguriert. Erstelle einen Admin-Account, um den Server zu initialisieren.</p>
           </div>
         </div>
       )}
 
       {/* Server gefunden Banner */}
       {formMode === 'invite' && (
-        <div className="flex items-start gap-3 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950/50">
-          <PiCheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400" />
+        <div className="flex items-start gap-3 rounded-lg border border-status-success-border bg-status-success-surface p-4">
+          <PiCheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-status-success-text" />
           <div className="space-y-1">
-            <p className="font-medium text-green-800 text-sm dark:text-green-200">Server gefunden</p>
-            <p className="text-green-700 text-sm dark:text-green-300">Der Server ist erreichbar und eingerichtet. Gib deinen Einladungscode ein, um dich zu verbinden.</p>
+            <p className="font-medium text-sm text-status-success-text">Server gefunden</p>
+            <p className="text-sm text-status-success-text">Der Server ist erreichbar und eingerichtet. Gib deinen Einladungscode ein, um dich zu verbinden.</p>
           </div>
         </div>
       )}
@@ -552,7 +552,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
       >
         {/* Server URL Field */}
         <div className="space-y-2">
-          <label htmlFor="serverUrl" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
+          <label htmlFor="serverUrl" className="block font-medium text-sm text-text-secondary">
             Server-URL
           </label>
           <form.Field
@@ -601,11 +601,15 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
                       </Button>
                     )}
                   </div>
-                  {fieldError && <p className="text-red-600 text-sm dark:text-red-400">{fieldError}</p>}
+                  {fieldError && <p className="text-sm text-status-danger-text">{fieldError}</p>}
                   {healthCheckError && !fieldError && (
                     <div className="space-y-2">
-                      <p className="text-red-600 text-sm dark:text-red-400">{healthCheckError}</p>
-                      <button type="button" onClick={() => setHealthCheckError(null)} className="font-medium text-blue-600 text-sm hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                      <p className="text-sm text-status-danger-text">{healthCheckError}</p>
+                      <button
+                        type="button"
+                        onClick={() => setHealthCheckError(null)}
+                        className="font-medium text-action-primary text-sm hover:text-action-primary-hover focus-visible:shadow-focus-ring focus-visible:outline-none"
+                      >
                         Erneut versuchen
                       </button>
                     </div>
@@ -619,7 +623,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
         {/* Invite Code Field (nur bei setupComplete: true) */}
         {formMode === 'invite' && (
           <div className="space-y-2">
-            <label htmlFor="inviteCode" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
+            <label htmlFor="inviteCode" className="block font-medium text-sm text-text-secondary">
               Einladungscode
             </label>
             <form.Field
@@ -646,7 +650,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
                       autoComplete="off"
                       autoFocus
                     />
-                    {fieldError && <p className="text-red-600 text-sm dark:text-red-400">{fieldError}</p>}
+                    {fieldError && <p className="text-sm text-status-danger-text">{fieldError}</p>}
                   </div>
                 );
               }}
@@ -659,7 +663,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
           <>
             {/* Username Field */}
             <div className="space-y-2">
-              <label htmlFor="username" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
+              <label htmlFor="username" className="block font-medium text-sm text-text-secondary">
                 Admin-Nutzername
               </label>
               <form.Field
@@ -686,8 +690,8 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
                         autoComplete="username"
                         autoFocus
                       />
-                      {fieldError && <p className="text-red-600 text-sm dark:text-red-400">{fieldError}</p>}
-                      <p className="text-gray-500 text-xs dark:text-gray-400">3-20 Zeichen, nur Buchstaben, Zahlen, - und _</p>
+                      {fieldError && <p className="text-sm text-status-danger-text">{fieldError}</p>}
+                      <p className="text-text-muted text-xs">3-20 Zeichen, nur Buchstaben, Zahlen, - und _</p>
                     </div>
                   );
                 }}
@@ -696,7 +700,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
 
             {/* Password Field */}
             <div className="space-y-2">
-              <label htmlFor="password" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
+              <label htmlFor="password" className="block font-medium text-sm text-text-secondary">
                 Admin-Passwort
               </label>
               <form.Field
@@ -722,7 +726,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
                         leftIcon={<PiLock className="h-5 w-5" />}
                         autoComplete="new-password"
                       />
-                      {fieldError && <p className="text-red-600 text-sm dark:text-red-400">{fieldError}</p>}
+                      {fieldError && <p className="text-sm text-status-danger-text">{fieldError}</p>}
                       {/* Password Strength Indicator */}
                       <PasswordStrengthIndicator password={field.state.value} showLabel={true} />
                     </div>
@@ -733,8 +737,8 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
 
             {/* Admin Setup Error */}
             {adminSetupError && (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-900 dark:bg-red-950/50">
-                <p className="text-red-600 text-sm dark:text-red-400">{adminSetupError}</p>
+              <div className="rounded-lg border border-status-danger-border bg-status-danger-surface p-3">
+                <p className="text-sm text-status-danger-text">{adminSetupError}</p>
               </div>
             )}
           </>
@@ -742,7 +746,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
 
         {/* Server Name Field (immer sichtbar, Pflichtfeld) */}
         <div className="space-y-2">
-          <label htmlFor="serverName" className="block font-medium text-gray-700 text-sm dark:text-gray-300">
+          <label htmlFor="serverName" className="block font-medium text-sm text-text-secondary">
             Server-Name
           </label>
           <form.Field
@@ -796,8 +800,8 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
                     leftIcon={<PiBuildings className="h-5 w-5" />}
                     autoComplete="off"
                   />
-                  {fieldError && <p className="text-red-600 text-sm dark:text-red-400">{fieldError}</p>}
-                  <p className="text-gray-500 text-xs dark:text-gray-400">{hasManuallyEditedName ? 'Eindeutiger Anzeigename für diesen Server.' : 'Wird automatisch aus der URL befüllt.'}</p>
+                  {fieldError && <p className="text-sm text-status-danger-text">{fieldError}</p>}
+                  <p className="text-text-muted text-xs">{hasManuallyEditedName ? 'Eindeutiger Anzeigename für diesen Server.' : 'Wird automatisch aus der URL befüllt.'}</p>
                 </div>
               );
             }}
@@ -811,7 +815,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
               <button
                 type="button"
                 onClick={handleRetryNetworkError}
-                className="mt-2 font-medium text-red-800 text-sm underline hover:text-red-900 dark:text-red-300 dark:hover:text-red-200"
+                className="mt-2 font-medium text-sm text-status-danger-text underline hover:opacity-80 focus-visible:shadow-focus-ring focus-visible:outline-none"
                 data-testid="retry-network-error-button"
               >
                 Erneut versuchen

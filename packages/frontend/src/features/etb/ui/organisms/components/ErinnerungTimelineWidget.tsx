@@ -54,6 +54,33 @@ function getMetadataDetails(eventType: string, metadata: object | null | undefin
   return null;
 }
 
+function getEventTone(eventType: string): { bg: string; text: string } {
+  switch (eventType) {
+    case 'ErinnerungErstellt':
+      return { bg: 'bg-status-info-surface', text: 'text-status-info-text' };
+    case 'ErinnerungAusgeloest':
+    case 'ErinnerungRetriggered':
+      return { bg: 'bg-status-warning-surface', text: 'text-status-warning-text' };
+    case 'ErinnerungAcknowledged':
+    case 'ErinnerungErledigt':
+      return { bg: 'bg-status-success-surface', text: 'text-status-success-text' };
+    case 'ErinnerungSnoozed':
+      return { bg: 'bg-action-secondary', text: 'text-action-primary' };
+    case 'ErinnerungEskaliert':
+    case 'ErinnerungIntensiviert':
+      return { bg: 'bg-status-danger-surface', text: 'text-status-danger-text' };
+    case 'ErinnerungAssigned':
+      return { bg: 'bg-action-secondary', text: 'text-action-primary' };
+    case 'ErinnerungAktualisiert':
+    case 'ErinnerungGeloescht':
+      return { bg: 'bg-surface-raised', text: 'text-text-secondary' };
+    case 'UrsprungsEintrag':
+      return { bg: 'bg-status-info-surface', text: 'text-status-info-text' };
+    default:
+      return { bg: 'bg-surface-raised', text: 'text-text-secondary' };
+  }
+}
+
 interface TimelineEventItemProps {
   event: ErinnerungTimelineEventDto;
   isLast: boolean;
@@ -65,6 +92,7 @@ interface TimelineEventItemProps {
  */
 function TimelineEventItem({ event, isLast, onEntryClick }: TimelineEventItemProps) {
   const config = getEventConfig(event.eventType);
+  const tone = getEventTone(event.eventType);
   const Icon = config.icon;
   const metadataDetails = getMetadataDetails(event.eventType, event.metadata);
 
@@ -77,11 +105,11 @@ function TimelineEventItem({ event, isLast, onEntryClick }: TimelineEventItemPro
   return (
     <div className="relative flex gap-4">
       {/* Vertikale Linie (ausser beim letzten Element) */}
-      {!isLast && <div className="absolute top-8 -bottom-6 left-4 w-0.5 bg-gray-200 dark:bg-gray-700" />}
+      {!isLast && <div className="absolute top-8 -bottom-6 left-4 w-0.5 bg-border-subtle" />}
 
       {/* Icon */}
-      <div className={cn('z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full', config.bgColor)}>
-        <Icon className={cn('h-4 w-4', config.textColor)} aria-hidden="true" />
+      <div className={cn('z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full', tone.bg)}>
+        <Icon className={cn('h-4 w-4', tone.text)} aria-hidden="true" />
       </div>
 
       {/* Content */}
@@ -89,20 +117,20 @@ function TimelineEventItem({ event, isLast, onEntryClick }: TimelineEventItemPro
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             {/* Event Label und User */}
-            <p className="font-medium text-gray-900 text-sm dark:text-gray-100">
+            <p className="font-medium text-sm text-text-primary">
               {config.label}
-              <span className="ml-2 font-normal text-gray-500 dark:text-gray-400">von {event.createdBy.displayName || event.createdBy.username}</span>
+              <span className="ml-2 font-normal text-text-secondary">von {event.createdBy.displayName || event.createdBy.username}</span>
             </p>
 
             {/* Timestamp */}
-            <p className="mt-0.5 text-gray-500 text-xs dark:text-gray-400">{formatTimestamp(event.timestamp)}</p>
+            <p className="mt-0.5 text-text-secondary text-xs">{formatTimestamp(event.timestamp)}</p>
 
             {/* Text (gekuerzt) */}
-            {event.text && <p className="mt-1 line-clamp-2 text-gray-600 text-sm dark:text-gray-300">{event.text}</p>}
+            {event.text && <p className="mt-1 line-clamp-2 text-sm text-text-secondary">{event.text}</p>}
 
             {/* Metadata Details */}
             {metadataDetails && (
-              <p className="mt-1 text-gray-500 text-xs dark:text-gray-400">
+              <p className="mt-1 text-text-secondary text-xs">
                 <span className="font-medium">{event.eventType === 'ErinnerungSnoozed' ? 'Dauer:' : event.eventType === 'ErinnerungErledigt' ? 'Notiz:' : ''}</span>
                 {metadataDetails}
               </p>
@@ -114,7 +142,7 @@ function TimelineEventItem({ event, isLast, onEntryClick }: TimelineEventItemPro
             <button
               type="button"
               onClick={handleClick}
-              className="shrink-0 rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+              className="shrink-0 rounded p-1 text-text-muted transition-colors hover:bg-action-secondary hover:text-text-secondary focus-visible:shadow-focus-ring focus-visible:outline-none"
               title="Zum ETB-Eintrag springen"
               aria-label={`Zum ETB-Eintrag #${event.sequenceNumber} springen`}
             >
@@ -182,10 +210,10 @@ export function ErinnerungTimelineWidget({ etbId, erinnerungId, onEntryClick, cl
   // Loading State
   if (isLoading) {
     return (
-      <div className={cn('rounded-lg bg-white p-4 dark:bg-gray-950', className)}>
-        <h4 className="mb-4 font-medium text-gray-900 text-sm dark:text-gray-100">Erinnerungsverlauf</h4>
+      <div className={cn('rounded-lg bg-surface-panel p-4 shadow-sm', className)}>
+        <h4 className="mb-4 font-medium text-sm text-text-primary">Erinnerungsverlauf</h4>
         <div className="flex items-center justify-center py-8">
-          <PiCircleNotch className="h-6 w-6 animate-spin text-primary-500" />
+          <PiCircleNotch className="h-6 w-6 animate-spin text-action-primary" />
         </div>
       </div>
     );
@@ -194,9 +222,9 @@ export function ErinnerungTimelineWidget({ etbId, erinnerungId, onEntryClick, cl
   // Error State
   if (error) {
     return (
-      <div className={cn('rounded-lg bg-white p-4 dark:bg-gray-950', className)}>
-        <h4 className="mb-4 font-medium text-gray-900 text-sm dark:text-gray-100">Erinnerungsverlauf</h4>
-        <p className="py-4 text-center text-gray-500 text-sm dark:text-gray-400">Timeline konnte nicht geladen werden.</p>
+      <div className={cn('rounded-lg bg-surface-panel p-4 shadow-sm', className)}>
+        <h4 className="mb-4 font-medium text-sm text-text-primary">Erinnerungsverlauf</h4>
+        <p className="py-4 text-center text-sm text-text-secondary">Timeline konnte nicht geladen werden.</p>
       </div>
     );
   }
@@ -204,25 +232,25 @@ export function ErinnerungTimelineWidget({ etbId, erinnerungId, onEntryClick, cl
   // Empty State
   if (!timeline || timeline.events.length === 0) {
     return (
-      <div className={cn('rounded-lg bg-white p-4 dark:bg-gray-950', className)}>
-        <h4 className="mb-4 font-medium text-gray-900 text-sm dark:text-gray-100">Erinnerungsverlauf</h4>
-        <p className="py-4 text-center text-gray-500 text-sm dark:text-gray-400">Keine Timeline-Events vorhanden.</p>
+      <div className={cn('rounded-lg bg-surface-panel p-4 shadow-sm', className)}>
+        <h4 className="mb-4 font-medium text-sm text-text-primary">Erinnerungsverlauf</h4>
+        <p className="py-4 text-center text-sm text-text-secondary">Keine Timeline-Events vorhanden.</p>
       </div>
     );
   }
 
   return (
-    <div className={cn('rounded-lg bg-white p-4 dark:bg-gray-950', className)}>
+    <div className={cn('rounded-lg bg-surface-panel p-4 shadow-sm', className)}>
       {/* Header mit Titel */}
       <div className="mb-4 flex items-center justify-between">
-        <h4 className="font-medium text-gray-900 text-sm dark:text-gray-100">Erinnerungsverlauf</h4>
-        <span className="text-gray-500 text-xs dark:text-gray-400">
+        <h4 className="font-medium text-sm text-text-primary">Erinnerungsverlauf</h4>
+        <span className="text-text-secondary text-xs">
           {timeline.totalCount} {timeline.totalCount === 1 ? 'Event' : 'Events'}
         </span>
       </div>
 
       {/* Erinnerung Titel */}
-      <p className="mb-4 truncate font-medium text-gray-700 text-xs dark:text-gray-300" title={timeline.titel}>
+      <p className="mb-4 truncate font-medium text-text-secondary text-xs" title={timeline.titel}>
         {timeline.titel}
       </p>
 

@@ -38,19 +38,19 @@ const ACTIVE_SECTIONS: ActiveSection[] = [
     status: EinsatzListItemDtoStatusEnum.InBearbeitung,
     title: 'In Bearbeitung',
     description: 'Laufende Einsätze mit aktuellem Arbeitsbedarf.',
-    badgeClassName: 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200',
+    badgeClassName: 'border-status-warning-border bg-status-warning-surface text-status-warning-text',
   },
   {
     status: EinsatzListItemDtoStatusEnum.Angelegt,
     title: 'Neu angelegt',
     description: 'Einsätze, die als Nächstes übernommen werden können.',
-    badgeClassName: 'border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-200',
+    badgeClassName: 'border-status-info-border bg-status-info-surface text-status-info-text',
   },
   {
     status: EinsatzListItemDtoStatusEnum.Abgeschlossen,
     title: 'Abgeschlossen',
     description: 'Dokumentation ist fertig, Archivierung steht noch aus.',
-    badgeClassName: 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200',
+    badgeClassName: 'border-status-success-border bg-status-success-surface text-status-success-text',
   },
 ];
 
@@ -217,7 +217,7 @@ export function EinsatzDashboard() {
           disabled={openingEinsatzId === einsatz.id || !einsatzCapabilities.canOpenEinsatz}
           title={!einsatzCapabilities.canOpenEinsatz ? (restrictionHint ?? 'Einsatzöffnung ist für Ihre Rolle aktuell nicht freigegeben.') : undefined}
           onClick={() => void handleOpenEinsatz(einsatz.id)}
-          className={cn('block w-full cursor-pointer text-left focus:outline-none focus-visible:shadow-focus-ring', 'disabled:cursor-not-allowed')}
+          className={cn('block w-full cursor-pointer text-left focus-visible:outline-none focus-visible:shadow-focus-ring', 'disabled:cursor-not-allowed')}
         >
           <EinsatzListItem einsatz={einsatz} />
         </button>
@@ -249,8 +249,8 @@ export function EinsatzDashboard() {
 
   const renderErrorState = (onRetry: () => Promise<unknown>) => (
     <div className="flex h-full items-center justify-center p-6">
-      <div role="alert" className="max-w-md rounded-lg border border-red-200 bg-white p-4 text-center shadow-sm dark:border-red-900/40 dark:bg-gray-900">
-        <p className="mb-4 font-medium text-red-700 dark:text-red-300">Fehler beim Laden der Einsätze</p>
+      <div role="alert" className="max-w-md rounded-lg border border-status-danger-border bg-surface-panel p-4 text-center shadow-sm">
+        <p className="mb-4 font-medium text-status-danger-text">Fehler beim Laden der Einsätze</p>
         <Button onClick={() => void onRetry()} className="rounded-md">
           Erneut versuchen
         </Button>
@@ -261,8 +261,8 @@ export function EinsatzDashboard() {
   const renderLoadingState = (label: string) => (
     <div className="flex h-full items-center justify-center p-6">
       <output aria-live="polite" className="flex flex-col items-center text-center">
-        <span aria-hidden="true" className="mx-auto h-12 w-12 animate-spin rounded-full border-blue-600 border-b-2" />
-        <span className="mt-4 text-gray-600 dark:text-gray-400">{label}</span>
+        <span aria-hidden="true" className="mx-auto h-12 w-12 animate-spin rounded-full border-action-primary border-b-2" />
+        <span className="mt-4 text-text-secondary">{label}</span>
       </output>
     </div>
   );
@@ -271,16 +271,16 @@ export function EinsatzDashboard() {
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="flex-shrink-0 border-gray-200 border-b bg-white px-3 py-4 sm:px-4 lg:px-6 dark:border-gray-800 dark:bg-gray-900">
+      <div className="flex-shrink-0 border-border-subtle border-b bg-surface-panel px-3 py-4 sm:px-4 lg:px-6">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div className="space-y-4">
             <div>
-              <h2 id="einsatz-dashboard-title" className="font-bold text-2xl text-gray-900 dark:text-white">
+              <h2 id="einsatz-dashboard-title" className="font-bold text-2xl text-text-primary">
                 Einsätze
               </h2>
             </div>
 
-            <div className="inline-flex rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
+            <div className="inline-flex rounded-lg bg-surface-raised p-1">
               <DashboardViewButton isActive={currentView === 'active'} count={activeCount} label="Aktive Einsätze" onClick={() => setCurrentView('active')} />
               <DashboardViewButton isActive={currentView === 'archive'} count={counts.archiviert} label="Archiv" onClick={() => setCurrentView('archive')} />
             </div>
@@ -307,13 +307,13 @@ export function EinsatzDashboard() {
         </div>
 
         {restrictionHint && (
-          <output aria-live="polite" className="mt-3 block text-amber-700 text-sm dark:text-amber-300">
+          <output aria-live="polite" className="mt-3 block text-body-sm text-status-warning-text">
             {restrictionHint}
           </output>
         )}
 
         {openError && (
-          <p role="alert" className="mt-3 text-red-600 text-sm dark:text-red-400">
+          <p role="alert" className="mt-3 text-body-sm text-status-danger-text">
             {openError}
           </p>
         )}
@@ -328,9 +328,9 @@ export function EinsatzDashboard() {
               renderLoadingState('Lade aktive Einsätze...')
             ) : activeEinsaetze.length === 0 ? (
               <div className="flex h-full items-center justify-center">
-                <div className="max-w-md rounded-lg border border-gray-300 border-dashed bg-white p-8 text-center shadow-sm dark:border-gray-700 dark:bg-gray-900">
-                  <p className="font-medium text-gray-900 dark:text-white">Keine aktiven Einsätze vorhanden</p>
-                  <p className="mt-2 text-gray-600 text-sm dark:text-gray-400">Sobald ein Einsatz angelegt oder noch nicht archiviert ist, erscheint er hier als Arbeitsliste.</p>
+                <div className="max-w-md rounded-lg border border-border-subtle border-dashed bg-surface-panel p-8 text-center shadow-sm">
+                  <p className="font-medium text-text-primary">Keine aktiven Einsätze vorhanden</p>
+                  <p className="mt-2 text-body-sm text-text-secondary">Sobald ein Einsatz angelegt oder noch nicht archiviert ist, erscheint er hier als Arbeitsliste.</p>
                   <div className="mt-6 flex flex-wrap justify-center gap-2">
                     <Button onClick={() => setIsCreatePanelOpen(true)} disabled={!einsatzCapabilities.canCreateEinsatz}>
                       <PiPlus className="h-5 w-5" />
@@ -367,7 +367,7 @@ export function EinsatzDashboard() {
           </div>
         ) : (
           <div className="flex min-h-0 flex-1 flex-col">
-            <div className="flex-shrink-0 border-gray-200 border-b bg-white px-3 py-4 sm:px-4 lg:px-6 dark:border-gray-800 dark:bg-gray-900">
+            <div className="flex-shrink-0 border-border-subtle border-b bg-surface-panel px-3 py-4 sm:px-4 lg:px-6">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
                 <div className="flex-1">
                   <SearchInput
@@ -391,7 +391,7 @@ export function EinsatzDashboard() {
                   />
                 </div>
               </div>
-              <p className="mt-3 text-gray-600 text-sm dark:text-gray-400">
+              <p className="mt-3 text-body-sm text-text-secondary">
                 {archiveTotal} archivierte Einsätze
                 {archiveSearchTerm ? `, davon ${archivedEinsaetze.length} Treffer für „${archiveSearchTerm}“` : ''}
               </p>
@@ -404,9 +404,9 @@ export function EinsatzDashboard() {
                 renderLoadingState('Lade Archiv...')
               ) : archivedEinsaetze.length === 0 ? (
                 <div className="flex h-full items-center justify-center">
-                  <div className="max-w-md rounded-lg border border-gray-300 border-dashed bg-white p-8 text-center shadow-sm dark:border-gray-700 dark:bg-gray-900">
-                    <p className="font-medium text-gray-900 dark:text-white">Keine Archivtreffer</p>
-                    <p className="mt-2 text-gray-600 text-sm dark:text-gray-400">
+                  <div className="max-w-md rounded-lg border border-border-subtle border-dashed bg-surface-panel p-8 text-center shadow-sm">
+                    <p className="font-medium text-text-primary">Keine Archivtreffer</p>
+                    <p className="mt-2 text-body-sm text-text-secondary">
                       {archiveSearchTerm ? 'Passen Sie Suche oder Sortierung an.' : 'Archivierte Einsätze erscheinen hier, sobald sie archiviert wurden.'}
                     </p>
                     {archiveSearchTerm && (
@@ -463,15 +463,12 @@ function DashboardViewButton({ count, isActive, label, onClick }: DashboardViewB
       aria-pressed={isActive}
       className={cn(
         'inline-flex items-center gap-2 rounded-xl px-3 py-2 font-medium text-sm transition-colors',
-        isActive ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white' : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white',
+        isActive ? 'bg-surface-panel text-text-primary shadow-sm' : 'text-text-secondary hover:text-text-primary',
       )}
     >
       <span>{label}</span>
       <span
-        className={cn(
-          'inline-flex min-w-6 items-center justify-center rounded-full px-2 py-0.5 text-xs',
-          isActive ? 'bg-gray-100 text-gray-700 dark:bg-gray-600 dark:text-gray-100' : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200',
-        )}
+        className={cn('inline-flex min-w-6 items-center justify-center rounded-full px-2 py-0.5 text-xs', isActive ? 'bg-surface-raised text-text-primary' : 'bg-surface-raised text-text-secondary')}
       >
         {count}
       </span>
@@ -487,9 +484,9 @@ interface SummaryChipProps {
 
 function SummaryChip({ label, tone, value }: SummaryChipProps) {
   const toneClassName = {
-    amber: 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200',
-    emerald: 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200',
-    sky: 'border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-200',
+    amber: 'border-status-warning-border bg-status-warning-surface text-status-warning-text',
+    emerald: 'border-status-success-border bg-status-success-surface text-status-success-text',
+    sky: 'border-status-info-border bg-status-info-surface text-status-info-text',
   }[tone];
 
   return (

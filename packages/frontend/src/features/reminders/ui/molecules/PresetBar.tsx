@@ -45,12 +45,16 @@ function PresetChip({ preset, isActive, onApply, onRemove }: PresetChipProps) {
       className={cn(
         'group inline-flex items-center gap-1 rounded-full px-3 py-1 font-medium text-xs',
         'cursor-pointer select-none transition-all duration-150',
-        isActive
-          ? 'bg-primary-50 text-primary-700 ring-2 ring-primary-500 dark:bg-primary-900/20 dark:text-primary-300'
-          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700',
+        isActive ? 'bg-action-primary text-text-inverse ring-2 ring-action-primary/50' : 'bg-surface-raised text-text-secondary hover:bg-action-secondary',
       )}
     >
-      <button type="button" onClick={onApply} className="max-w-[150px] truncate focus:outline-none" aria-label={`Preset "${preset.name}" aktivieren`} title={preset.name}>
+      <button
+        type="button"
+        onClick={onApply}
+        className="max-w-[150px] truncate focus:outline-none focus-visible:shadow-focus-ring"
+        aria-label={`Preset "${preset.name}" aktivieren`}
+        title={preset.name}
+      >
         {preset.name}
       </button>
       <button
@@ -62,8 +66,8 @@ function PresetChip({ preset, isActive, onApply, onRemove }: PresetChipProps) {
         className={cn(
           'inline-flex h-4 w-4 items-center justify-center rounded-full',
           'opacity-0 transition-opacity duration-150 group-hover:opacity-100',
-          'text-current hover:bg-black/10 dark:hover:bg-white/20',
-          'focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-primary-500',
+          'text-current hover:bg-action-secondary',
+          'focus:opacity-100 focus:outline-none focus-visible:shadow-focus-ring',
         )}
         aria-label={`Preset "${preset.name}" loeschen`}
       >

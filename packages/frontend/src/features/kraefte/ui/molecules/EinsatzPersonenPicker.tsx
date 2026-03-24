@@ -68,8 +68,8 @@ export function EinsatzPersonenPicker({ einsatzId, value, onChange, onBlur, disa
   if (isLoading) {
     return (
       <div className="space-y-1">
-        {label && <div className="h-5 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />}
-        <div className="h-10 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700" />
+        {label && <div className="h-5 w-16 animate-pulse rounded bg-surface-raised" />}
+        <div className="h-10 animate-pulse rounded-control bg-surface-raised" />
       </div>
     );
   }
@@ -78,8 +78,8 @@ export function EinsatzPersonenPicker({ einsatzId, value, onChange, onBlur, disa
   if (isError) {
     return (
       <div className="space-y-1">
-        {label && <span className="block font-medium text-gray-700 text-sm dark:text-gray-300">{label}</span>}
-        <div role="alert" aria-live="assertive" className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-red-700 text-sm dark:border-red-700 dark:bg-red-900/20 dark:text-red-400">
+        {label && <span className="block font-medium text-text-secondary text-sm">{label}</span>}
+        <div role="alert" aria-live="assertive" className="rounded-panel border border-status-danger-border bg-status-danger-surface px-3 py-2 text-status-danger-text text-sm">
           Fehler beim Laden der Personen. Bitte Seite neu laden.
         </div>
       </div>
@@ -90,8 +90,8 @@ export function EinsatzPersonenPicker({ einsatzId, value, onChange, onBlur, disa
   if (personen && personen.length === 0) {
     return (
       <div className="space-y-1">
-        {label && <span className="block font-medium text-gray-700 text-sm dark:text-gray-300">{label}</span>}
-        <output className="block rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-amber-700 text-sm dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
+        {label && <span className="block font-medium text-text-secondary text-sm">{label}</span>}
+        <output className="block rounded-panel border border-status-warning-border bg-status-warning-surface px-3 py-2 text-status-warning-text text-sm">
           Keine Personen registriert. Registrieren Sie zuerst Einsatzkräfte.
         </output>
       </div>
@@ -102,10 +102,8 @@ export function EinsatzPersonenPicker({ einsatzId, value, onChange, onBlur, disa
   if (items.length === 0 && personen && personen.length > 0) {
     return (
       <div className="space-y-1">
-        {label && <span className="block font-medium text-gray-700 text-sm dark:text-gray-300">{label}</span>}
-        <output className="block rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-gray-600 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400">
-          Alle verfuegbaren Personen sind bereits Rollen zugewiesen.
-        </output>
+        {label && <span className="block font-medium text-text-secondary text-sm">{label}</span>}
+        <output className="block rounded-panel border border-border-subtle bg-surface-raised px-3 py-2 text-text-secondary text-sm">Alle verfügbaren Personen sind bereits Rollen zugewiesen.</output>
       </div>
     );
   }

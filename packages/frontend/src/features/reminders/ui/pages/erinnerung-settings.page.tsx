@@ -4,18 +4,18 @@ import { ErinnerungKonfigurationSettingsCard } from '../settings/erinnerung-konf
 export const ErinnerungSettingsPage = () => {
   return (
     <div className="space-y-4">
-      <div className="border-slate-200 border-b pb-4 dark:border-slate-700">
-        <h1 className="font-bold text-2xl text-slate-900 dark:text-slate-100">Erinnerungs-Einstellungen</h1>
-        <p className="mt-1 text-slate-500 text-sm dark:text-slate-400">Verwalten Sie globale Konfigurationen für das Erinnerungssystem.</p>
+      <div className="border-border-subtle border-b pb-4">
+        <h1 className="font-bold text-2xl text-text-primary">Erinnerungs-Einstellungen</h1>
+        <p className="mt-1 text-text-muted text-sm">Verwalten Sie globale Konfigurationen für das Erinnerungssystem.</p>
       </div>
 
       <VorlageList />
 
-      <hr className="border-slate-200 dark:border-slate-700" />
+      <hr className="border-border-subtle" />
 
       <FuehrungsrhythmusTemplateList />
 
-      <hr className="border-slate-200 dark:border-slate-700" />
+      <hr className="border-border-subtle" />
 
       <ErinnerungKonfigurationSettingsCard />
     </div>

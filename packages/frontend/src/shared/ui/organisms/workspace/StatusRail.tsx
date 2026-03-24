@@ -27,7 +27,7 @@ export interface StatusRailItem {
 const TONE_CLASSES: Record<WorkspaceStatusTone, string> = {
   neutral: 'border-border-subtle bg-surface-panel text-text-secondary',
   info: 'border-status-info-border bg-status-info-surface text-status-info-text',
-  active: 'border-action-primary/35 bg-primary-50 text-action-primary dark:bg-primary-950/40 dark:text-primary-300',
+  active: 'border-action-primary/35 bg-action-secondary text-action-primary',
   loading: 'border-status-info-border bg-status-info-surface text-status-info-text',
   warning: 'border-status-warning-border bg-status-warning-surface text-status-warning-text',
   blocked: 'border-status-danger-border bg-status-danger-surface text-status-danger-text',
@@ -60,7 +60,7 @@ function StatusRailActionButton({ action }: { action: StatusRailAction }) {
       onClick={action.onClick}
       className={cn(
         'inline-flex items-center justify-center rounded-control border border-action-primary/35 bg-action-primary px-3 py-1.5 font-medium text-body-sm text-text-inverse shadow-button-primary transition-colors',
-        'hover:bg-action-primary-hover focus:outline-none focus-visible:shadow-focus-ring disabled:cursor-not-allowed disabled:opacity-50',
+        'hover:bg-action-primary-hover focus-visible:shadow-focus-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
       )}
     >
       {action.label}

@@ -15,29 +15,29 @@ interface MetricCardProps {
 }
 
 const STATUS_COLORS = {
-  ok: 'border-green-500/30 bg-green-500/5',
-  warnung: 'border-yellow-500/30 bg-yellow-500/5',
-  kritisch: 'border-red-500/30 bg-red-500/5',
+  ok: 'border-status-success-border bg-status-success-surface',
+  warnung: 'border-status-warning-border bg-status-warning-surface',
+  kritisch: 'border-status-danger-border bg-status-danger-surface',
 } as const;
 
 const STATUS_DOT_COLORS = {
-  ok: 'bg-green-500',
-  warnung: 'bg-yellow-500',
-  kritisch: 'bg-red-500',
+  ok: 'bg-status-success-text',
+  warnung: 'bg-status-warning-text',
+  kritisch: 'bg-status-danger-text',
 } as const;
 
 export function MetricCard({ label, value, einheit, status = 'ok', description }: MetricCardProps) {
   return (
-    <div className={`rounded-lg border p-4 ${STATUS_COLORS[status]}`}>
+    <div className={`rounded-panel border p-4 ${STATUS_COLORS[status]}`}>
       <div className="mb-1 flex items-center gap-2">
         <div className={`h-2 w-2 rounded-full ${STATUS_DOT_COLORS[status]}`} role="img" aria-label={`Status: ${status === 'ok' ? 'OK' : status === 'warnung' ? 'Warnung' : 'Kritisch'}`} />
-        <span className="text-gray-400 text-sm">{label}</span>
+        <span className="text-text-secondary text-sm">{label}</span>
       </div>
       <div className="flex items-baseline gap-1">
-        <span className="font-semibold text-2xl text-white">{value}</span>
-        {einheit && <span className="text-gray-500 text-sm">{einheit}</span>}
+        <span className="font-semibold text-2xl text-text-primary">{value}</span>
+        {einheit && <span className="text-text-muted text-sm">{einheit}</span>}
       </div>
-      {description && <p className="mt-1 text-gray-500 text-xs">{description}</p>}
+      {description && <p className="mt-1 text-text-muted text-xs">{description}</p>}
     </div>
   );
 }

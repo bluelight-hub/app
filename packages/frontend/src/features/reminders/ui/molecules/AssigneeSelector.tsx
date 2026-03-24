@@ -80,7 +80,7 @@ export function AssigneeSelector({ einsatzId, value, onChange, onBlur, disabled 
     return (
       <div className={cn('w-full', className)}>
         <div className="animate-pulse">
-          <div className="h-[52px] rounded-lg bg-gray-200 dark:bg-gray-700" />
+          <div className="h-[52px] rounded-control bg-surface-raised" />
         </div>
       </div>
     );
@@ -90,9 +90,7 @@ export function AssigneeSelector({ einsatzId, value, onChange, onBlur, disabled 
   if (isError) {
     return (
       <div className={cn('w-full', className)}>
-        <div className="rounded-lg border-2 border-red-300 bg-red-50 px-4 py-3 text-red-700 text-sm dark:border-red-700 dark:bg-red-900/20 dark:text-red-400">
-          Teilnehmer konnten nicht geladen werden
-        </div>
+        <div className="rounded-panel border-2 border-status-danger-border bg-status-danger-surface px-4 py-3 text-sm text-status-danger-text">Teilnehmer konnten nicht geladen werden</div>
       </div>
     );
   }
@@ -110,7 +108,7 @@ export function AssigneeSelector({ einsatzId, value, onChange, onBlur, disabled 
         error={error}
         openOnFocus
       />
-      {comboboxItems.length === 0 && !isLoading && <p className="mt-1 text-gray-500 text-xs dark:text-gray-400">Keine aktiven Teilnehmer in diesem Einsatz</p>}
+      {comboboxItems.length === 0 && !isLoading && <p className="mt-1 text-text-muted text-xs">Keine aktiven Teilnehmer in diesem Einsatz</p>}
     </div>
   );
 }

@@ -51,8 +51,7 @@ export function Tooltip({ content, children, className, position = 'top' }: Tool
         className={cn(
           // Basis-Styling
           'pointer-events-none absolute left-1/2 z-50 -translate-x-1/2 whitespace-nowrap',
-          'rounded-md bg-gray-900 px-2 py-1 font-medium text-white text-xs shadow-md',
-          'dark:bg-gray-100 dark:text-gray-900',
+          'rounded-control bg-surface-inverse px-2 py-1 font-medium text-text-inverse text-xs shadow-md',
           // Sichtbarkeit: versteckt, bei group-hover/focus-within sichtbar
           'invisible opacity-0 transition-opacity',
           'group-hover/tooltip:visible group-hover/tooltip:opacity-100',
@@ -68,8 +67,8 @@ export function Tooltip({ content, children, className, position = 'top' }: Tool
           aria-hidden="true"
           className={cn(
             'absolute left-1/2 -translate-x-1/2 border-4 border-transparent',
-            position === 'top' && 'top-full border-t-gray-900 dark:border-t-gray-100',
-            position === 'bottom' && 'bottom-full border-b-gray-900 dark:border-b-gray-100',
+            position === 'top' && 'top-full border-t-surface-inverse',
+            position === 'bottom' && 'bottom-full border-b-surface-inverse',
           )}
         />
       </span>

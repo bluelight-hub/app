@@ -64,7 +64,7 @@ interface TableRowProps extends HTMLAttributes<HTMLTableRowElement> {
 
 export const TableRow = forwardRef<HTMLTableRowElement, TableRowProps>(({ className, children, ...props }, ref) => {
   return (
-    <tr ref={ref} className={cn('border-b transition-colors hover:bg-gray-50 data-[state=selected]:bg-gray-100 dark:data-[state=selected]:bg-gray-800 dark:hover:bg-gray-900', className)} {...props}>
+    <tr ref={ref} className={cn('border-b transition-colors hover:bg-surface-raised data-[state=selected]:bg-surface-raised', className)} {...props}>
       {children}
     </tr>
   );
@@ -85,16 +85,12 @@ export const TableHead = forwardRef<HTMLTableCellElement, TableHeadProps>(({ cla
   return (
     <th
       ref={ref}
-      className={cn(
-        'h-9 px-3 text-left align-middle font-medium text-gray-500 dark:text-gray-400 [&:has([role=checkbox])]:pr-0',
-        sortable && 'cursor-pointer select-none hover:text-gray-900 dark:hover:text-gray-100',
-        className,
-      )}
+      className={cn('h-9 px-3 text-left align-middle font-medium text-text-muted [&:has([role=checkbox])]:pr-0', sortable && 'cursor-pointer select-none hover:text-text-primary', className)}
       {...props}
     >
       <div className="flex items-center gap-2">
         {children}
-        {sorted && <span className="text-gray-400 dark:text-gray-500">{sorted === 'asc' ? '↑' : '↓'}</span>}
+        {sorted && <span className="text-text-muted">{sorted === 'asc' ? '↑' : '↓'}</span>}
       </div>
     </th>
   );
@@ -128,7 +124,7 @@ interface TableCaptionProps extends HTMLAttributes<HTMLTableCaptionElement> {
 
 export const TableCaption = forwardRef<HTMLTableCaptionElement, TableCaptionProps>(({ className, children, ...props }, ref) => {
   return (
-    <caption ref={ref} className={cn('mt-4 text-gray-500 text-sm dark:text-gray-400', className)} {...props}>
+    <caption ref={ref} className={cn('mt-4 text-sm text-text-muted', className)} {...props}>
       {children}
     </caption>
   );
@@ -156,7 +152,7 @@ export function TableSkeleton({ rows = 5, columns = 4 }: TableSkeletonProps) {
                 const cellKey = `skeleton-${rows}-${columns}-cell-${rowIndex}-${colIndex}`;
                 return (
                   <TableCell key={cellKey}>
-                    <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                    <div className="h-4 w-full animate-pulse rounded bg-surface-raised" />
                   </TableCell>
                 );
               })}

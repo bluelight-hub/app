@@ -145,24 +145,22 @@ export function Combobox({
   return (
     <div className={cn('w-full', className)}>
       <HeadlessCombobox as="div" value={selectedItem} onChange={handleSelectionChange} disabled={disabled} immediate={openOnFocus}>
-        {label && <Label className="block font-medium text-gray-900 text-sm/6 dark:text-white">{label}</Label>}
+        {label && <Label className="block font-medium text-sm/6 text-text-primary">{label}</Label>}
         <div className="relative mt-2">
-          {leadingIcon && <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-gray-500 dark:text-gray-400">{leadingIcon}</div>}
+          {leadingIcon && <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-text-muted">{leadingIcon}</div>}
           <ComboboxInput
             ref={inputRef}
             className={cn(
-              'block w-full rounded-lg border bg-white px-3 py-1.5 pr-12 font-medium text-base text-gray-900',
+              'block w-full rounded-control border bg-surface-panel px-3 py-1.5 pr-12 font-medium text-base text-text-primary',
               'transition-all duration-200',
-              'border-gray-200 hover:border-gray-300',
-              'placeholder:text-gray-400',
-              'focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20',
+              'border-border-subtle hover:border-border-strong',
+              'placeholder:text-text-muted',
+              'focus:border-action-primary focus-visible:shadow-focus-ring focus-visible:outline-none',
               'sm:text-sm/6',
-              'dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:hover:border-gray-600',
-              'dark:focus:border-primary-400 dark:focus:bg-gray-800 dark:focus:ring-primary-400/20 dark:placeholder:text-gray-500',
               'disabled:cursor-not-allowed disabled:opacity-50',
               leadingIcon && 'pl-12',
               showClearButton && 'pr-20',
-              error && 'border-red-300 focus:border-red-500 focus:ring-red-500 dark:border-red-700 dark:focus:border-red-400 dark:focus:ring-red-400',
+              error && 'border-status-danger-border focus:border-status-danger-text',
             )}
             autoCorrect={'off'}
             autoComplete={'off'}
@@ -213,7 +211,7 @@ export function Combobox({
                     handleClear();
                   }
                 }}
-                className="rounded p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 dark:hover:text-gray-300"
+                className="rounded-control p-2 text-text-muted hover:text-text-secondary focus-visible:shadow-focus-ring focus-visible:outline-none"
                 aria-label="Auswahl löschen"
                 tabIndex={0}
               >
@@ -221,36 +219,30 @@ export function Combobox({
               </button>
             )}
             <ComboboxButton className="px-2 focus:outline-none disabled:opacity-50">
-              <PiCaretDown className="size-5 text-gray-400" aria-hidden="true" />
+              <PiCaretDown className="size-5 text-text-muted" aria-hidden="true" />
             </ComboboxButton>
           </div>
 
           <ComboboxOptions
             transition
             className={cn(
-              'absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg',
-              'border border-gray-200',
+              'absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-panel border border-border-subtle bg-surface-panel py-1 text-base shadow-panel',
               'data-[closed]:pointer-events-none data-[closed]:hidden',
               'data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in',
               'sm:text-sm',
-              'dark:border-gray-700 dark:bg-gray-800 dark:shadow-none',
             )}
           >
             {filteredItems.length === 0 && query !== '' ? (
-              <div className="px-3 py-2 text-gray-500 text-sm dark:text-gray-400">{allowCustomValue ? `Keine Übereinstimmung für "${query}"` : 'Keine Ergebnisse gefunden'}</div>
+              <div className="px-3 py-2 text-sm text-text-muted">{allowCustomValue ? `Keine Übereinstimmung für "${query}"` : 'Keine Ergebnisse gefunden'}</div>
             ) : filteredGroups ? (
               filteredGroups.map((group) => (
                 <div key={group.label}>
-                  <div className="px-3 py-1.5 font-semibold text-gray-500 text-xs uppercase tracking-wider dark:text-gray-400">{group.label}</div>
+                  <div className="px-3 py-1.5 font-semibold text-text-muted text-xs uppercase tracking-wider">{group.label}</div>
                   {group.items.map((item) => (
                     <ComboboxOption
                       key={item.value}
                       value={item}
-                      className={cn(
-                        'cursor-default select-none px-3 py-2 text-gray-900',
-                        'data-[focus]:bg-primary-600 data-[focus]:text-white data-[focus]:outline-none',
-                        'dark:text-gray-300 dark:data-[focus]:bg-primary-500',
-                      )}
+                      className={cn('cursor-default select-none px-3 py-2 text-text-primary', 'data-[focus]:bg-action-secondary data-[focus]:text-text-primary data-[focus]:outline-none')}
                     >
                       <span className="block truncate">{item.label}</span>
                     </ComboboxOption>
@@ -262,11 +254,7 @@ export function Combobox({
                 <ComboboxOption
                   key={item.value}
                   value={item}
-                  className={cn(
-                    'cursor-default select-none px-3 py-2 text-gray-900',
-                    'data-[focus]:bg-primary-600 data-[focus]:text-white data-[focus]:outline-none',
-                    'dark:text-gray-300 dark:data-[focus]:bg-primary-500',
-                  )}
+                  className={cn('cursor-default select-none px-3 py-2 text-text-primary', 'data-[focus]:bg-action-secondary data-[focus]:text-text-primary data-[focus]:outline-none')}
                 >
                   <span className="block truncate">{item.label}</span>
                 </ComboboxOption>
@@ -275,11 +263,7 @@ export function Combobox({
             {allowCustomValue && query.length > 0 && !allItems.some((item) => item.label.toLowerCase() === query.toLowerCase()) && (
               <ComboboxOption
                 value={{ value: query, label: query }}
-                className={cn(
-                  'cursor-default select-none px-3 py-2 text-gray-900',
-                  'data-[focus]:bg-primary-600 data-[focus]:text-white data-[focus]:outline-none',
-                  'dark:text-gray-300 dark:data-[focus]:bg-primary-500',
-                )}
+                className={cn('cursor-default select-none px-3 py-2 text-text-primary', 'data-[focus]:bg-action-secondary data-[focus]:text-text-primary data-[focus]:outline-none')}
               >
                 <span className="block truncate">"{query}" (neu erstellen)</span>
               </ComboboxOption>
@@ -289,7 +273,7 @@ export function Combobox({
       </HeadlessCombobox>
 
       {(helperText || error) && (
-        <p id={error ? errorId : undefined} aria-live={error ? 'polite' : undefined} className={cn('mt-2 text-sm', error ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400')}>
+        <p id={error ? errorId : undefined} aria-live={error ? 'polite' : undefined} className={cn('mt-2 text-sm', error ? 'text-status-danger-text' : 'text-text-muted')}>
           {error || helperText}
         </p>
       )}

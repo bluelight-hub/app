@@ -17,12 +17,11 @@ export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectE
 }
 
 const BASE_STYLES =
-  'block w-full appearance-none rounded-lg border bg-white font-medium text-gray-900 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-opacity-20 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-900 dark:text-white';
+  'block w-full appearance-none rounded-control border bg-surface-panel font-medium text-text-primary transition-colors duration-200 focus:border-action-primary focus-visible:outline-none focus-visible:shadow-focus-ring disabled:cursor-not-allowed disabled:opacity-50';
 
 const VARIANTS = {
-  default:
-    'border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:bg-white focus:ring-primary-500 dark:border-gray-700 dark:hover:border-gray-600 dark:focus:border-primary-400 dark:focus:bg-gray-900 dark:focus:ring-primary-400',
-  error: 'border-red-300 hover:border-red-400 focus:border-red-500 focus:ring-red-500 dark:border-red-700 dark:hover:border-red-600 dark:focus:border-red-400 dark:focus:ring-red-400',
+  default: 'border-border-subtle hover:border-border-strong',
+  error: 'border-status-danger-border hover:border-status-danger-text focus:border-status-danger-text',
 };
 
 const SIZES = {
@@ -60,7 +59,7 @@ export const Select = React.memo(
             </option>
           ))}
         </select>
-        <PiCaretDown className={cn('pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-gray-500 dark:text-gray-400', ICON_SIZES[selectSize])} aria-hidden="true" />
+        <PiCaretDown className={cn('pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-text-muted', ICON_SIZES[selectSize])} aria-hidden="true" />
       </div>
     );
   }),

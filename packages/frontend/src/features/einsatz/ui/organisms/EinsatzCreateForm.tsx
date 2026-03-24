@@ -225,12 +225,12 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
         {(form.state.isSubmitting || submitError) && (
           <div className="space-y-2">
             {form.state.isSubmitting && (
-              <output aria-live="polite" className="block text-gray-600 text-sm dark:text-gray-300">
+              <output aria-live="polite" className="block text-body-sm text-text-secondary">
                 Einsatz wird erstellt…
               </output>
             )}
             {submitError && (
-              <p role="alert" className="text-red-600 text-sm dark:text-red-400">
+              <p role="alert" className="text-body-sm text-status-danger-text">
                 {submitError}
               </p>
             )}
@@ -248,9 +248,11 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
         </div>
 
         {/* Keyboard Hint */}
-        <div className="text-center text-gray-500 text-xs">
-          <kbd className="rounded-lg border border-gray-200 bg-gray-100 px-2 py-1 font-semibold text-gray-800 text-xs">{navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}+Enter</kbd> zum schnellen
-          Erstellen
+        <div className="text-center text-body-xs text-text-secondary">
+          <kbd className="rounded-lg border border-border-subtle bg-surface-raised px-2 py-1 font-semibold text-text-primary text-body-xs">
+            {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}+Enter
+          </kbd>{' '}
+          zum schnellen Erstellen
         </div>
       </form>
     </Dialog.SlideIn>

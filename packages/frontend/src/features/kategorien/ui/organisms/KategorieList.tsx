@@ -54,7 +54,7 @@ export function KategorieList({ einsatzId, className }: KategorieListProps) {
     <div className={cn('space-y-4', className)}>
       {/* Header mit Button */}
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-gray-900 text-lg dark:text-white">Kategorien</h3>
+        <h3 className="font-semibold text-text-primary text-lg">Kategorien</h3>
         <Button intent="primary" size="sm" onClick={() => setIsCreateDialogOpen(true)}>
           <PiPlus className="mr-1.5 h-4 w-4" />
           Neue Kategorie
@@ -65,21 +65,15 @@ export function KategorieList({ einsatzId, className }: KategorieListProps) {
       {kategorien && kategorien.length > 0 ? (
         <div className="space-y-2">
           {kategorien.map((kategorie) => (
-            <div
-              key={kategorie.id}
-              className={cn(
-                'flex items-center justify-between rounded-lg border-2 border-gray-200 bg-white p-3',
-                'hover:border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-gray-600',
-              )}
-            >
+            <div key={kategorie.id} className={cn('flex items-center justify-between rounded-panel border-2 border-border-subtle bg-surface-panel p-3', 'hover:border-border-strong')}>
               <KategorieChip name={kategorie.name} farbe={kategorie.farbe} />
               <button
                 type="button"
                 onClick={() => handleDeleteClick(kategorie)}
                 disabled={isDeleting}
                 className={cn(
-                  'rounded-md p-2 text-gray-400 transition-colors',
-                  'hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400',
+                  'rounded-control p-2 text-text-muted transition-colors',
+                  'hover:bg-status-danger-surface hover:text-status-danger-text',
                   'disabled:cursor-not-allowed disabled:opacity-50',
                 )}
                 aria-label={`${kategorie.name} löschen`}
@@ -90,10 +84,10 @@ export function KategorieList({ einsatzId, className }: KategorieListProps) {
           ))}
         </div>
       ) : (
-        <div className="rounded-lg border-2 border-gray-300 border-dashed bg-gray-50 p-8 text-center dark:border-gray-700 dark:bg-gray-800/50">
-          <PiPlus className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600" />
-          <p className="mt-2 text-gray-600 text-sm dark:text-gray-400">Noch keine Kategorien vorhanden</p>
-          <p className="mt-1 text-gray-500 text-xs dark:text-gray-500">Erstellen Sie eine neue Kategorie mit dem Button oben</p>
+        <div className="rounded-panel border-2 border-dashed border-border-subtle bg-surface-raised p-8 text-center">
+          <PiPlus className="mx-auto h-12 w-12 text-text-muted" />
+          <p className="mt-2 text-text-secondary text-sm">Noch keine Kategorien vorhanden</p>
+          <p className="mt-1 text-text-muted text-xs">Erstellen Sie eine neue Kategorie mit dem Button oben</p>
         </div>
       )}
 

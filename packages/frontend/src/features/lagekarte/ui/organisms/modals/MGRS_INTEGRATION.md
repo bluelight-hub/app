@@ -75,7 +75,7 @@ handleMgrsChange("33U UU 41831 83221");
     onClick={() => setCoordMode('latLng')}
     className={cn(
       'px-3 py-2 rounded',
-      coordMode === 'latLng' ? 'bg-blue-500 text-white' : 'bg-gray-200'
+      coordMode === 'latLng' ? 'bg-action-primary text-text-inverse' : 'bg-surface-raised text-text-secondary'
     )}
   >
     Lat/Lng
@@ -85,7 +85,7 @@ handleMgrsChange("33U UU 41831 83221");
     onClick={() => setCoordMode('mgrs')}
     className={cn(
       'px-3 py-2 rounded',
-      coordMode === 'mgrs' ? 'bg-blue-500 text-white' : 'bg-gray-200'
+      coordMode === 'mgrs' ? 'bg-action-primary text-text-inverse' : 'bg-surface-raised text-text-secondary'
     )}
   >
     MGRS
@@ -130,11 +130,11 @@ handleMgrsChange("33U UU 41831 83221");
         onChange={(e) => handleMgrsChange(e.target.value)}
         placeholder="z.B. 33U UU 41831 83221"
         className={cn(
-          isMgrsValid ? 'border-green-500' : 'border-red-500'
+          isMgrsValid ? 'border-status-success-border' : 'border-status-danger-border'
         )}
       />
       {!isMgrsValid && mgrsInput && (
-        <p className="text-red-500 text-sm mt-1">
+        <p className="mt-1 text-status-danger-text text-sm">
           Ungültiges MGRS-Format
         </p>
       )}
@@ -151,13 +151,13 @@ handleMgrsChange("33U UU 41831 83221");
   <div className="flex items-center gap-2 text-sm">
     {isMgrsValid ? (
       <>
-        <CheckIcon className="w-4 h-4 text-green-500" />
-        <span className="text-green-700">Gültige MGRS-Koordinaten</span>
+        <CheckIcon className="h-4 w-4 text-status-success-text" />
+        <span className="text-status-success-text">Gültige MGRS-Koordinaten</span>
       </>
     ) : mgrsInput ? (
       <>
-        <XIcon className="w-4 h-4 text-red-500" />
-        <span className="text-red-700">Ungültige MGRS-Koordinaten</span>
+        <XIcon className="h-4 w-4 text-status-danger-text" />
+        <span className="text-status-danger-text">Ungültige MGRS-Koordinaten</span>
       </>
     ) : null}
   </div>

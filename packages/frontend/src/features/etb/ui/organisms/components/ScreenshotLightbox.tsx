@@ -76,14 +76,14 @@ export function ScreenshotLightbox({ isOpen, onClose, screenshotUrl, title = 'La
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" aria-hidden="true" />
+      <div className="fixed inset-0 bg-surface-inverse/80 backdrop-blur-sm" aria-hidden="true" />
 
       {/* Full-screen Modal */}
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel className="relative flex max-h-[90vh] max-w-[95vw] flex-col rounded-lg bg-white shadow-2xl dark:bg-gray-900">
+        <DialogPanel className="relative flex max-h-[90vh] max-w-[95vw] flex-col rounded-lg bg-surface-panel shadow-2xl">
           {/* Header */}
-          <div className="flex items-center justify-between border-gray-200 border-b p-4 dark:border-gray-700">
-            <DialogTitle className="font-semibold text-gray-900 text-lg dark:text-white">{title}</DialogTitle>
+          <div className="flex items-center justify-between border-border-subtle border-b p-4">
+            <DialogTitle className="font-semibold text-lg text-text-primary">{title}</DialogTitle>
             <div className="flex gap-2">
               <Button type="button" onClick={handleDownload} intent="secondary" appearance="outline" size="sm" className="gap-2" aria-label="Screenshot herunterladen">
                 <PiDownload size={18} aria-hidden="true" />

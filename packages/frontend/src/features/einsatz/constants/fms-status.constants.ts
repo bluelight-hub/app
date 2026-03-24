@@ -17,19 +17,19 @@ export const FMS_STATUS_LABELS: Record<number, string> = {
 
 /**
  * FMS-Status Farben gemäß Story 4.3 + Status 0 für Story 6.1b.
- * Unterstützt Light Mode und Dark Mode mit Tailwind CSS.
+ * Nutzt Ring-1 Design Tokens für konsistente Light-/Dark-Mode-Farben.
  */
 export const FMS_STATUS_COLORS: Record<number, string> = {
-  0: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
-  1: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
-  2: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-  3: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-  4: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300',
-  5: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
-  6: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
-  7: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
-  8: 'bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300',
-  9: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
+  0: 'bg-status-danger-surface text-status-danger-text',
+  1: 'bg-surface-raised text-text-primary',
+  2: 'bg-status-success-surface text-status-success-text',
+  3: 'bg-status-info-surface text-status-info-text',
+  4: 'bg-action-secondary text-action-primary',
+  5: 'bg-status-warning-surface text-status-warning-text',
+  6: 'bg-status-danger-surface text-status-danger-text',
+  7: 'bg-status-info-surface text-status-info-text',
+  8: 'bg-status-success-surface text-status-success-text',
+  9: 'bg-action-secondary text-action-primary',
 };
 
 /**
@@ -37,7 +37,7 @@ export const FMS_STATUS_COLORS: Record<number, string> = {
  * Fallback: grau für unbekannte Status (mit Dark Mode Support).
  */
 export const getStatusClasses = (status: number): string => {
-  return FMS_STATUS_COLORS[status] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
+  return FMS_STATUS_COLORS[status] ?? 'bg-surface-raised text-text-primary';
 };
 
 /**
@@ -45,9 +45,9 @@ export const getStatusClasses = (status: number): string => {
  * Für Status-Dots ohne Text.
  */
 export const getStatusBgClasses = (status: number): string => {
-  const colorClasses = FMS_STATUS_COLORS[status] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
+  const colorClasses = FMS_STATUS_COLORS[status] ?? 'bg-surface-raised text-text-primary';
   const bgClasses = colorClasses.split(/\s+/).filter((cls) => cls.startsWith('bg-') || cls.startsWith('dark:bg-'));
-  return bgClasses.join(' ') || 'bg-gray-100';
+  return bgClasses.join(' ') || 'bg-surface-raised';
 };
 
 /**

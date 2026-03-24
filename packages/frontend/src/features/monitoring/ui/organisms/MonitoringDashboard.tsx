@@ -80,12 +80,16 @@ export function MonitoringDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-semibold text-white text-xl">System-Monitoring</h1>
-          <p className="text-gray-400 text-sm">Echtzeit-Systemzustand und Schwellwert-Warnungen</p>
+          <h1 className="font-semibold text-text-primary text-xl">System-Monitoring</h1>
+          <p className="text-text-secondary text-sm">Echtzeit-Systemzustand und Schwellwert-Warnungen</p>
         </div>
         <div className="flex items-center gap-2">
-          <div className={`h-2 w-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} role="img" aria-label={isConnected ? 'WebSocket verbunden' : 'WebSocket getrennt'} />
-          <span className="text-gray-400 text-sm">{isConnected ? 'Live' : 'Getrennt'}</span>
+          <div
+            className={`h-2 w-2 rounded-full ${isConnected ? 'bg-status-success-text' : 'bg-status-danger-text'}`}
+            role="img"
+            aria-label={isConnected ? 'WebSocket verbunden' : 'WebSocket getrennt'}
+          />
+          <span className="text-text-secondary text-sm">{isConnected ? 'Live' : 'Getrennt'}</span>
         </div>
       </div>
 
@@ -104,8 +108,8 @@ export function MonitoringDashboard() {
               return (
                 <div
                   key={`banner-${warnungKeyBase}|${occurrence}`}
-                  className={`flex items-center justify-between rounded-lg border p-3 text-sm ${
-                    isKritisch ? 'border-red-500/50 bg-red-500/10 text-red-300' : 'border-yellow-500/50 bg-yellow-500/10 text-yellow-300'
+                  className={`flex items-center justify-between rounded-panel border p-3 text-sm ${
+                    isKritisch ? 'border-status-danger-border bg-status-danger-surface text-status-danger-text' : 'border-status-warning-border bg-status-warning-surface text-status-warning-text'
                   }`}
                 >
                   <div className="flex items-center gap-2">
@@ -125,11 +129,13 @@ export function MonitoringDashboard() {
       {/* Loading / Error States */}
       {isLoading && (
         <div className="flex items-center justify-center py-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-action-primary border-t-transparent" />
         </div>
       )}
 
-      {error && <div className="rounded-lg border border-red-500/30 bg-red-500/5 p-4 text-red-400 text-sm">Fehler beim Laden der System-Metriken: {error.message}</div>}
+      {error && (
+        <div className="rounded-panel border border-status-danger-border bg-status-danger-surface p-4 text-status-danger-text text-sm">Fehler beim Laden der System-Metriken: {error.message}</div>
+      )}
 
       {/* Metrics Grid */}
       {health && (
@@ -143,7 +149,7 @@ export function MonitoringDashboard() {
 
           {/* API Response Times */}
           <div>
-            <h2 className="mb-3 font-medium text-gray-400 text-sm">API Response Times</h2>
+            <h2 className="mb-3 font-medium text-text-secondary text-sm">API Response Times</h2>
             <div className="grid grid-cols-3 gap-3">
               <MetricCard label="p50 (Median)" value={Math.round(health.apiResponseTime.p50)} einheit="ms" status="ok" />
               <MetricCard label="p95" value={Math.round(health.apiResponseTime.p95)} einheit="ms" status={getLatenzStatus(health.apiResponseTime.p95)} />
@@ -154,7 +160,7 @@ export function MonitoringDashboard() {
           {/* Circuit Breaker Status */}
           {health.circuitBreakerStatus.length > 0 && (
             <div>
-              <h2 className="mb-3 font-medium text-gray-400 text-sm">Circuit Breaker Status</h2>
+              <h2 className="mb-3 font-medium text-text-secondary text-sm">Circuit Breaker Status</h2>
               <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
                 {health.circuitBreakerStatus.map((cb) => (
                   <MetricCard key={cb.serviceName} label={cb.serviceName} value={cb.state} status={cb.state === 'CLOSED' ? 'ok' : cb.state === 'HALF_OPEN' ? 'warnung' : 'kritisch'} />

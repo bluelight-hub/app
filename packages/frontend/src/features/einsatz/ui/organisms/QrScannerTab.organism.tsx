@@ -671,12 +671,12 @@ export function QrScannerTab({ einsatzId, onSuccess, isActive = true }: QrScanne
         <div
           className={cn(
             'relative aspect-square w-full max-w-sm overflow-hidden rounded-xl border-2',
-            'bg-gray-900',
-            state.status === 'scanning' && 'border-primary-500',
-            state.status === 'processing' && 'border-amber-500',
-            state.status === 'success' && 'border-green-500',
-            state.status === 'error' && 'border-red-500',
-            ['idle', 'requesting-permission', 'permission-denied'].includes(state.status) && 'border-gray-700',
+            'bg-surface-inverse',
+            state.status === 'scanning' && 'border-action-primary',
+            state.status === 'processing' && 'border-status-warning-border',
+            state.status === 'success' && 'border-status-success-border',
+            state.status === 'error' && 'border-status-danger-border',
+            ['idle', 'requesting-permission', 'permission-denied'].includes(state.status) && 'border-border-subtle',
           )}
         >
           {/* Video Element */}
@@ -694,44 +694,44 @@ export function QrScannerTab({ einsatzId, onSuccess, isActive = true }: QrScanne
 
           {/* Overlay für verschiedene Status */}
           {/* MEDIUM FIX #15: Keep output mounted for screen readers, toggle visibility via className */}
-          <output className={cn('absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gray-900/80', state.status !== 'idle' && 'hidden')} aria-live="polite">
-            <PiQrCode className="h-16 w-16 text-gray-400" />
-            <span className="text-gray-400 text-sm">Scanner bereit</span>
+          <output className={cn('absolute inset-0 flex flex-col items-center justify-center gap-4 bg-surface-inverse/80', state.status !== 'idle' && 'hidden')} aria-live="polite">
+            <PiQrCode className="h-16 w-16 text-text-muted" />
+            <span className="text-text-muted text-sm">Scanner bereit</span>
           </output>
 
           <output
-            className={cn('absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gray-900/80', state.status !== 'requesting-permission' && 'hidden')}
+            className={cn('absolute inset-0 flex flex-col items-center justify-center gap-4 bg-surface-inverse/80', state.status !== 'requesting-permission' && 'hidden')}
             aria-live="polite"
             aria-busy={state.status === 'requesting-permission'}
           >
             <InlineSpinner size="lg" />
-            <span className="text-gray-300 text-sm">Kamerazugriff wird angefordert…</span>
+            <span className="text-text-secondary text-sm">Kamerazugriff wird angefordert…</span>
           </output>
 
           <div
-            className={cn('absolute inset-0 flex flex-col items-center justify-center gap-4 bg-gray-900/80 p-4 text-center', state.status !== 'permission-denied' && 'hidden')}
+            className={cn('absolute inset-0 flex flex-col items-center justify-center gap-4 bg-surface-inverse/80 p-4 text-center', state.status !== 'permission-denied' && 'hidden')}
             role="alert"
             aria-live="assertive"
           >
-            <PiCameraSlash className="h-16 w-16 text-red-400" />
-            <span className="text-red-300 text-sm">{state.status === 'permission-denied' ? state.error : ''}</span>
+            <PiCameraSlash className="h-16 w-16 text-status-danger-text" />
+            <span className="text-status-danger-text text-sm">{state.status === 'permission-denied' ? state.error : ''}</span>
           </div>
 
           {state.status === 'scanning' && (
             <>
               {/* Scan-Rahmen Overlay */}
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                <div className="h-48 w-48 rounded-lg border-2 border-white/50">
+                <div className="h-48 w-48 rounded-lg border-2 border-border-inverse/50">
                   {/* Ecken-Markierungen */}
-                  <div className="absolute top-0 left-0 h-6 w-6 border-primary-400 border-t-4 border-l-4" />
-                  <div className="absolute top-0 right-0 h-6 w-6 border-primary-400 border-t-4 border-r-4" />
-                  <div className="absolute bottom-0 left-0 h-6 w-6 border-primary-400 border-b-4 border-l-4" />
-                  <div className="absolute right-0 bottom-0 h-6 w-6 border-primary-400 border-r-4 border-b-4" />
+                  <div className="absolute top-0 left-0 h-6 w-6 border-action-primary border-t-4 border-l-4" />
+                  <div className="absolute top-0 right-0 h-6 w-6 border-action-primary border-t-4 border-r-4" />
+                  <div className="absolute bottom-0 left-0 h-6 w-6 border-action-primary border-b-4 border-l-4" />
+                  <div className="absolute right-0 bottom-0 h-6 w-6 border-action-primary border-r-4 border-b-4" />
                 </div>
               </div>
               {/* Scan-Anweisung */}
               <output className="absolute right-0 bottom-4 left-0 text-center" aria-live="polite">
-                <span className="rounded-lg bg-black/60 px-3 py-1.5 text-sm text-white">
+                <span className="rounded-lg bg-surface-inverse/60 px-3 py-1.5 text-sm text-text-inverse">
                   QR-Code in den Rahmen halten
                   {/* MEDIUM FIX (3): Add keyboard hints */}
                   <span className="ml-2 text-xs opacity-75">(ESC zum Stoppen)</span>
@@ -741,22 +741,22 @@ export function QrScannerTab({ einsatzId, onSuccess, isActive = true }: QrScanne
           )}
 
           <output
-            className={cn('absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-900/80', state.status !== 'processing' && 'hidden')}
+            className={cn('absolute inset-0 flex flex-col items-center justify-center gap-3 bg-surface-inverse/80', state.status !== 'processing' && 'hidden')}
             aria-live="assertive"
             aria-busy={state.status === 'processing'}
           >
             <InlineSpinner size="lg" />
-            <span className="text-amber-300 text-sm">{state.status === 'processing' ? `${state.data.vorname} ${state.data.nachname} wird registriert…` : ''}</span>
+            <span className="text-status-warning-text text-sm">{state.status === 'processing' ? `${state.data.vorname} ${state.data.nachname} wird registriert…` : ''}</span>
           </output>
 
-          <output className={cn('absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-900/80', state.status !== 'success' && 'hidden')} aria-live="assertive">
-            <PiCheckCircle className="h-16 w-16 text-green-400" />
-            <span className="text-green-300 text-sm">{state.status === 'success' ? `${state.personName} registriert!` : ''}</span>
+          <output className={cn('absolute inset-0 flex flex-col items-center justify-center gap-3 bg-surface-inverse/80', state.status !== 'success' && 'hidden')} aria-live="assertive">
+            <PiCheckCircle className="h-16 w-16 text-status-success-text" />
+            <span className="text-status-success-text text-sm">{state.status === 'success' ? `${state.personName} registriert!` : ''}</span>
           </output>
 
-          <div className={cn('absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-900/80', state.status !== 'error' && 'hidden')} role="alert" aria-live="assertive">
-            <PiXCircle className="h-16 w-16 text-red-400" />
-            <span className="text-red-300 text-sm">{state.status === 'error' ? state.message : ''}</span>
+          <div className={cn('absolute inset-0 flex flex-col items-center justify-center gap-3 bg-surface-inverse/80', state.status !== 'error' && 'hidden')} role="alert" aria-live="assertive">
+            <PiXCircle className="h-16 w-16 text-status-danger-text" />
+            <span className="text-status-danger-text text-sm">{state.status === 'error' ? state.message : ''}</span>
           </div>
         </div>
       )}
@@ -765,46 +765,46 @@ export function QrScannerTab({ einsatzId, onSuccess, isActive = true }: QrScanne
       {isTauriMobile && (
         <div
           className={cn(
-            'flex min-h-[200px] w-full max-w-sm flex-col items-center justify-center gap-4 rounded-xl border-2 bg-gray-900 p-6',
-            state.status === 'scanning' && 'border-primary-500',
-            state.status === 'processing' && 'border-amber-500',
-            state.status === 'success' && 'border-green-500',
-            state.status === 'error' && 'border-red-500',
-            ['idle', 'requesting-permission', 'permission-denied'].includes(state.status) && 'border-gray-700',
+            'flex min-h-[200px] w-full max-w-sm flex-col items-center justify-center gap-4 rounded-xl border-2 bg-surface-inverse p-6',
+            state.status === 'scanning' && 'border-action-primary',
+            state.status === 'processing' && 'border-status-warning-border',
+            state.status === 'success' && 'border-status-success-border',
+            state.status === 'error' && 'border-status-danger-border',
+            ['idle', 'requesting-permission', 'permission-denied'].includes(state.status) && 'border-border-subtle',
           )}
         >
           {state.status === 'idle' && (
             <>
-              <PiQrCode className="h-16 w-16 text-gray-400" />
-              <span className="text-center text-gray-400 text-sm">Scanner bereit</span>
+              <PiQrCode className="h-16 w-16 text-text-muted" />
+              <span className="text-center text-text-muted text-sm">Scanner bereit</span>
             </>
           )}
 
           {state.status === 'requesting-permission' && (
             <>
               <InlineSpinner size="lg" />
-              <span className="text-center text-gray-300 text-sm">Kamera wird gestartet…</span>
+              <span className="text-center text-text-secondary text-sm">Kamera wird gestartet…</span>
             </>
           )}
 
           {state.status === 'permission-denied' && (
             <>
-              <PiCameraSlash className="h-16 w-16 text-red-400" />
-              <span className="text-center text-red-300 text-sm">{state.error}</span>
+              <PiCameraSlash className="h-16 w-16 text-status-danger-text" />
+              <span className="text-center text-status-danger-text text-sm">{state.error}</span>
             </>
           )}
 
           {state.status === 'scanning' && (
             <>
-              <PiCamera className="h-16 w-16 animate-pulse text-primary-400" />
-              <span className="text-center text-primary-300 text-sm">Native Kamera aktiv - QR-Code scannen</span>
+              <PiCamera className="h-16 w-16 animate-pulse text-action-primary" />
+              <span className="text-center text-action-primary text-sm">Native Kamera aktiv - QR-Code scannen</span>
             </>
           )}
 
           {state.status === 'processing' && (
             <>
               <InlineSpinner size="lg" />
-              <span className="text-center text-amber-300 text-sm">
+              <span className="text-center text-status-warning-text text-sm">
                 {state.data.vorname} {state.data.nachname} wird registriert…
               </span>
             </>
@@ -812,15 +812,15 @@ export function QrScannerTab({ einsatzId, onSuccess, isActive = true }: QrScanne
 
           {state.status === 'success' && (
             <>
-              <PiCheckCircle className="h-16 w-16 text-green-400" />
-              <span className="text-center text-green-300 text-sm">{state.personName} registriert!</span>
+              <PiCheckCircle className="h-16 w-16 text-status-success-text" />
+              <span className="text-center text-status-success-text text-sm">{state.personName} registriert!</span>
             </>
           )}
 
           {state.status === 'error' && (
             <>
-              <PiXCircle className="h-16 w-16 text-red-400" />
-              <span className="text-center text-red-300 text-sm">{state.message}</span>
+              <PiXCircle className="h-16 w-16 text-status-danger-text" />
+              <span className="text-center text-status-danger-text text-sm">{state.message}</span>
             </>
           )}
         </div>
@@ -855,8 +855,8 @@ export function QrScannerTab({ einsatzId, onSuccess, isActive = true }: QrScanne
       </div>
 
       {/* Hinweis-Box */}
-      <div className="w-full max-w-sm rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-900/20">
-        <p className="text-blue-900 text-xs dark:text-blue-100">
+      <div className="w-full max-w-sm rounded-lg border border-status-info-border bg-status-info-surface p-3">
+        <p className="text-body-xs text-status-info-text">
           <strong>DRK QR-Format:</strong> Der Scanner erkennt DRK-Mitgliedsausweise automatisch. Nach dem Scannen wird die Person direkt registriert.
         </p>
       </div>
@@ -875,37 +875,37 @@ const StatusDisplay = React.memo(({ state }: { state: ScannerState }) => {
       idle: {
         icon: <PiQrCode className="h-5 w-5" />,
         text: 'Scanner bereit',
-        color: 'text-gray-500 dark:text-gray-400',
+        color: 'text-text-secondary',
       },
       'requesting-permission': {
         icon: <InlineSpinner size="sm" />,
         text: 'Kamerazugriff wird angefordert…',
-        color: 'text-amber-600 dark:text-amber-400',
+        color: 'text-status-warning-text',
       },
       'permission-denied': {
         icon: <PiCameraSlash className="h-5 w-5" />,
         text: 'Kamerazugriff verweigert',
-        color: 'text-red-600 dark:text-red-400',
+        color: 'text-status-danger-text',
       },
       scanning: {
         icon: <PiCamera className="h-5 w-5 animate-pulse" />,
         text: 'Scanne nach QR-Code…',
-        color: 'text-primary-600 dark:text-primary-400',
+        color: 'text-action-primary',
       },
       processing: {
         icon: <InlineSpinner size="sm" />,
         text: 'Registriere Person…',
-        color: 'text-amber-600 dark:text-amber-400',
+        color: 'text-status-warning-text',
       },
       success: {
         icon: <PiCheckCircle className="h-5 w-5" />,
         text: 'Person registriert!',
-        color: 'text-green-600 dark:text-green-400',
+        color: 'text-status-success-text',
       },
       error: {
         icon: <PiWarningCircle className="h-5 w-5" />,
         text: 'error' in state ? state.message : 'Fehler',
-        color: 'text-red-600 dark:text-red-400',
+        color: 'text-status-danger-text',
       },
     }),
     [state.status, state.message, state],

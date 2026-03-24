@@ -61,11 +61,7 @@ export function NotizCard({
   return (
     // biome-ignore lint/a11y/useSemanticElements: Div mit komplexem Inhalt und interaktiven Kindelementen
     <div
-      className={cn(
-        'group cursor-pointer rounded-lg border-slate-300 border-l-4 bg-slate-50 p-4 transition-colors hover:bg-slate-100',
-        'dark:border-slate-600 dark:bg-gray-800/50 dark:hover:bg-gray-800/80',
-        className,
-      )}
+      className={cn('group cursor-pointer rounded-lg border-border-subtle border-l-4 bg-surface-raised p-4 transition-colors hover:bg-surface-raised', className)}
       onClick={onClick}
       onKeyUp={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -79,17 +75,17 @@ export function NotizCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <PiNotepad className="h-4 w-4 shrink-0 text-slate-500 dark:text-slate-400" />
-            <h3 className="truncate font-semibold text-gray-900 text-sm dark:text-white">{searchQuery ? <HighlightText text={titel} query={searchQuery} /> : titel}</h3>
+            <PiNotepad className="h-4 w-4 shrink-0 text-text-muted" />
+            <h3 className="truncate font-semibold text-text-primary text-sm">{searchQuery ? <HighlightText text={titel} query={searchQuery} /> : titel}</h3>
             <ItemTypeBadge type="notiz" />
             {istTeamsichtbar && (
-              <div className="flex items-center gap-1 text-blue-600 text-xs dark:text-blue-400">
+              <div className="flex items-center gap-1 text-action-primary text-xs">
                 <PiUsersThree className="h-3.5 w-3.5" />
                 <span>Team</span>
               </div>
             )}
           </div>
-          {inhalt && <p className="mt-1.5 line-clamp-3 text-gray-600 text-xs dark:text-gray-400">{searchQuery ? <HighlightText text={inhalt} query={searchQuery} /> : inhalt}</p>}
+          {inhalt && <p className="mt-1.5 line-clamp-3 text-text-muted text-xs">{searchQuery ? <HighlightText text={inhalt} query={searchQuery} /> : inhalt}</p>}
         </div>
 
         {/* Hover-Aktionen: nur bei Hover sichtbar */}
@@ -102,7 +98,7 @@ export function NotizCard({
                   e.stopPropagation();
                   onConvertToErinnerung();
                 }}
-                className="shrink-0 rounded-md p-1.5 text-amber-500 transition-colors hover:bg-amber-100 hover:text-amber-700 dark:text-amber-400 dark:hover:bg-amber-900/30 dark:hover:text-amber-300"
+                className="shrink-0 rounded-control p-1.5 text-status-warning-text transition-colors hover:bg-status-warning-surface hover:text-status-warning-text"
                 aria-label="Zu Erinnerung umwandeln"
                 title="Zu Erinnerung machen"
               >
@@ -116,7 +112,7 @@ export function NotizCard({
                   e.stopPropagation();
                   onEdit();
                 }}
-                className="shrink-0 rounded-md p-1.5 text-gray-400 transition-colors hover:bg-slate-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                className="shrink-0 rounded-md p-1.5 text-text-muted transition-colors hover:bg-surface-raised hover:text-text-secondary"
                 aria-label="Notiz bearbeiten"
                 title="Bearbeiten"
               >
@@ -130,7 +126,7 @@ export function NotizCard({
                   e.stopPropagation();
                   onDelete();
                 }}
-                className="shrink-0 rounded-md p-1.5 text-gray-400 transition-colors hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400"
+                className="shrink-0 rounded-control p-1.5 text-text-muted transition-colors hover:bg-status-danger-surface hover:text-status-danger-text"
                 aria-label="Notiz löschen"
                 title="Löschen"
               >
@@ -142,17 +138,17 @@ export function NotizCard({
       </div>
 
       <div className="mt-2 flex items-center gap-2">
-        <time dateTime={createdAt} className="text-gray-400 text-xs dark:text-gray-500">
+        <time dateTime={createdAt} className="text-text-muted text-xs">
           {zeitAnzeige}
         </time>
         {bearbeitetAnzeige && (
-          <span className="text-gray-400 text-xs dark:text-gray-500">
+          <span className="text-text-muted text-xs">
             {'· bearbeitet '}
             <time dateTime={updatedAt}>{bearbeitetAnzeige}</time>
           </span>
         )}
         {kategorieName && kategorieFarbe && <KategorieChip name={kategorieName} farbe={kategorieFarbe} />}
-        {istTeamsichtbar && erstelltVonName && <span className="text-slate-500 text-xs dark:text-slate-400">von {erstelltVonName}</span>}
+        {istTeamsichtbar && erstelltVonName && <span className="text-text-muted text-xs">von {erstelltVonName}</span>}
       </div>
     </div>
   );

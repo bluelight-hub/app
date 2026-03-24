@@ -45,16 +45,21 @@ export const BrowserSecurityBanner: React.FC<BrowserSecurityBannerProps> = ({ cl
   }
 
   return (
-    <div className={cn('sticky top-0 z-50 border-yellow-200 border-b bg-yellow-50 px-4 py-3', className)} role="alert" aria-live="polite" aria-labelledby="browser-security-warning-text">
+    <div
+      className={cn('sticky top-0 z-50 border-status-warning-border border-b bg-status-warning-surface px-4 py-3', className)}
+      role="alert"
+      aria-live="polite"
+      aria-labelledby="browser-security-warning-text"
+    >
       <div className="flex items-center gap-3">
-        <PiWarningFill className="h-5 w-5 flex-shrink-0 text-yellow-600" aria-hidden="true" />
-        <p id="browser-security-warning-text" className="flex-1 text-sm text-yellow-800">
+        <PiWarningFill className="h-5 w-5 flex-shrink-0 text-status-warning-text" aria-hidden="true" />
+        <p id="browser-security-warning-text" className="flex-1 text-sm text-status-warning-text">
           Im Browser werden Server-Daten unverschlüsselt gespeichert. Für maximale Sicherheit nutze die Desktop-App.
         </p>
         <button
           type="button"
           onClick={dismiss}
-          className="flex-shrink-0 rounded p-1 text-yellow-600 hover:bg-yellow-100 hover:text-yellow-800 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          className="flex-shrink-0 rounded-control p-1 text-status-warning-text hover:bg-status-warning-border/20 hover:text-status-warning-text focus-visible:shadow-focus-ring focus-visible:outline-none"
           aria-label="Browser-Sicherheitswarnung dauerhaft ausblenden"
         >
           <PiX className="h-5 w-5" aria-hidden="true" />

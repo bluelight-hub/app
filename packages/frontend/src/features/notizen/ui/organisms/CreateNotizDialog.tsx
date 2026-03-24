@@ -89,8 +89,8 @@ export function CreateNotizDialog({ isOpen, onClose, einsatzId }: CreateNotizDia
   return (
     <Dialog isOpen={isOpen} onClose={handleClose} size="sm">
       <div className="flex items-center gap-3">
-        <div className="rounded-full bg-slate-100 p-2 dark:bg-slate-800">
-          <PiNotepad className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+        <div className="rounded-full bg-surface-raised p-2">
+          <PiNotepad className="h-5 w-5 text-text-secondary" />
         </div>
         <Dialog.Title>Neue Notiz erstellen</Dialog.Title>
       </div>
@@ -109,13 +109,13 @@ export function CreateNotizDialog({ isOpen, onClose, einsatzId }: CreateNotizDia
           <form.Field name="titel">
             {(field) => (
               <div>
-                <label htmlFor="notiz-titel" className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
-                  Titel <span className="text-red-500">*</span>
+                <label htmlFor="notiz-titel" className="mb-1.5 block font-medium text-text-secondary text-sm">
+                  Titel <span className="text-status-danger-text">*</span>
                 </label>
                 <Input
                   id="notiz-titel"
                   type="text"
-                  placeholder="z.B. Lageaenderung, Rueckmeldung..."
+                  placeholder="z.B. Lageänderung, Rückmeldung..."
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   disabled={isPending}
@@ -123,7 +123,7 @@ export function CreateNotizDialog({ isOpen, onClose, einsatzId }: CreateNotizDia
                   maxLength={100}
                   autoFocus
                 />
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-red-600 text-sm dark:text-red-400">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-sm">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
@@ -132,29 +132,28 @@ export function CreateNotizDialog({ isOpen, onClose, einsatzId }: CreateNotizDia
           <form.Field name="inhalt">
             {(field) => (
               <div>
-                <label htmlFor="notiz-inhalt" className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
-                  Inhalt <span className="text-gray-400 text-xs">(optional)</span>
+                <label htmlFor="notiz-inhalt" className="mb-1.5 block font-medium text-text-secondary text-sm">
+                  Inhalt <span className="text-text-muted text-xs">(optional)</span>
                 </label>
                 <textarea
                   id="notiz-inhalt"
-                  placeholder="Zusaetzliche Details zur Notiz..."
+                  placeholder="Zusätzliche Details zur Notiz..."
                   value={field.state.value ?? ''}
                   onChange={(e) => field.handleChange(e.target.value || undefined)}
                   disabled={isPending}
                   maxLength={2000}
                   rows={4}
                   className={cn(
-                    'block w-full rounded-lg border bg-white px-4 py-2.5 font-medium text-gray-900 transition-colors duration-200',
-                    'placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-opacity-20',
+                    'block w-full rounded-control border bg-surface-panel px-4 py-2.5 font-medium text-text-primary transition-[background-color,border-color,color,box-shadow] duration-200',
+                    'placeholder:text-text-muted focus:outline-none focus-visible:shadow-focus-ring',
                     'disabled:cursor-not-allowed disabled:opacity-50',
-                    'dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-500',
                     'resize-none',
                     field.state.meta.errors.length > 0
-                      ? 'border-red-500 hover:border-red-600 focus:border-red-500 focus:ring-red-500 dark:border-red-400'
-                      : 'border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700',
+                      ? 'border-status-danger-border hover:border-status-danger-text focus:border-status-danger-text'
+                      : 'border-border-subtle hover:border-border-strong focus:border-action-primary',
                   )}
                 />
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-red-600 text-sm dark:text-red-400">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-sm">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
@@ -185,14 +184,14 @@ export function CreateNotizDialog({ isOpen, onClose, einsatzId }: CreateNotizDia
                   disabled={isPending}
                   aria-label="Für das Team sichtbar"
                   className={cn(
-                    'relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors',
+                    'relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-pill transition-colors focus:outline-none focus-visible:shadow-focus-ring',
                     'disabled:cursor-not-allowed disabled:opacity-50',
-                    field.state.value ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700',
+                    field.state.value ? 'bg-action-primary' : 'bg-surface-raised',
                   )}
                 >
-                  <span className={cn('inline-block h-4 w-4 transform rounded-full bg-white transition-transform', field.state.value ? 'translate-x-6' : 'translate-x-1')} />
+                  <span className={cn('inline-block h-4 w-4 transform rounded-full bg-surface-panel transition-transform', field.state.value ? 'translate-x-6' : 'translate-x-1')} />
                 </Switch>
-                <span className="flex items-center gap-1.5 text-slate-700 text-sm dark:text-slate-300">
+                <span className="flex items-center gap-1.5 text-text-secondary text-sm">
                   <PiUsersThree className="h-4 w-4" />
                   Für das Team sichtbar
                 </span>
@@ -201,7 +200,7 @@ export function CreateNotizDialog({ isOpen, onClose, einsatzId }: CreateNotizDia
           </form.Field>
 
           {/* API Error */}
-          {apiErrorMessage && <div className="rounded-lg bg-red-50 p-3 text-red-700 text-sm dark:bg-red-900/20 dark:text-red-400">{apiErrorMessage}</div>}
+          {apiErrorMessage && <div className="rounded-panel bg-status-danger-surface p-3 text-status-danger-text text-sm">{apiErrorMessage}</div>}
         </form>
       </Dialog.Body>
 

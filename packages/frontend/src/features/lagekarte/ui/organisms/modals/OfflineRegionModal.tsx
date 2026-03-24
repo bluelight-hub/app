@@ -361,8 +361,7 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
             // Sizing
             'w-full max-w-2xl',
             // Glassmorphism
-            'rounded-xl border border-gray-200/50 bg-white/95 shadow-2xl backdrop-blur-lg',
-            'dark:border-gray-700/50 dark:bg-gray-900/95',
+            'rounded-xl border border-border-subtle bg-surface-panel/95 shadow-2xl backdrop-blur-lg',
             // Padding
             'p-4',
             // Mobile: Full-screen
@@ -371,7 +370,7 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
         >
           {/* Header */}
           <div className="mb-4 flex items-start justify-between">
-            <DialogTitle className="font-semibold text-gray-900 text-xl dark:text-gray-100">Offline-Region auswählen</DialogTitle>
+            <DialogTitle className="font-semibold text-text-primary text-xl">Offline-Region auswählen</DialogTitle>
             <Button type="button" onClick={onClose} intent="secondary" appearance="ghost" size="icon" className="p-2" aria-label="Modal schließen" disabled={isDownloading}>
               <PiX size={20} aria-hidden="true" />
             </Button>
@@ -381,8 +380,8 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
           <div className="space-y-4">
             {/* Map-Preview Section */}
             <div>
-              <h3 className="mb-2 font-medium text-gray-900 text-sm dark:text-gray-100">Karten-Region</h3>
-              <p className="mb-3 text-gray-600 text-sm dark:text-gray-400">
+              <h3 className="mb-2 font-medium text-text-primary text-sm">Karten-Region</h3>
+              <p className="mb-3 text-text-muted text-sm">
                 Zeichne ein Rechteck auf der Karte, um die Offline-Region auszuwählen. Du kannst das Rechteck anpassen, indem du es verschiebst oder die Ecken ziehst.
               </p>
               <RegionSelectionMap initialBounds={currentMapBounds} onBoundsChange={handleBoundsChange} />
@@ -390,7 +389,7 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
 
             {/* Zoom-Level-Slider Section */}
             <div>
-              <h3 className="mb-2 font-medium text-gray-900 text-sm dark:text-gray-100">Zoom-Level: {zoomLevel}</h3>
+              <h3 className="mb-2 font-medium text-text-primary text-sm">Zoom-Level: {zoomLevel}</h3>
               <input
                 type="range"
                 min={8}
@@ -400,27 +399,26 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
                 className={cn(
                   'w-full',
                   // Tailwind range styling
-                  'h-2 rounded-lg bg-gray-200 accent-blue-600',
-                  'dark:bg-gray-700',
+                  'h-2 rounded-lg bg-surface-raised accent-blue-600',
                   'cursor-pointer',
                 )}
                 aria-label="Zoom-Level auswählen"
                 disabled={isDownloading}
               />
-              <div className="mt-1 flex justify-between text-gray-600 text-xs dark:text-gray-400">
+              <div className="mt-1 flex justify-between text-text-muted text-xs">
                 <span>8 (Land)</span>
                 <span>15 (Nachbarschaft)</span>
                 <span>18 (Straße)</span>
               </div>
               {selectedBounds ? (
                 <div className="mt-2 space-y-1">
-                  <p className="text-gray-600 text-sm dark:text-gray-400">
+                  <p className="text-text-muted text-sm">
                     Ca. {estimatedTileCount.toLocaleString('de-DE')} Tiles ({estimatedSizeMB} MB)
                   </p>
-                  {isLargeDownload && <p className="font-medium text-orange-600 text-sm dark:text-orange-400">⚠️ Großer Download! Kann länger dauern.</p>}
+                  {isLargeDownload && <p className="font-medium text-status-warning-text text-sm">⚠️ Großer Download! Kann länger dauern.</p>}
                 </div>
               ) : (
-                <p className="mt-2 text-gray-600 text-sm dark:text-gray-400">Wähle eine Region aus, um die Größe zu berechnen.</p>
+                <p className="mt-2 text-text-muted text-sm">Wähle eine Region aus, um die Größe zu berechnen.</p>
               )}
             </div>
 
@@ -428,34 +426,34 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
             {storageQuota && (
               <div
                 className={cn(
-                  'rounded-lg border p-4',
+                  'rounded-panel border p-4',
                   // Warning styling if <10% available
-                  storageQuota.percentage > 90 ? 'border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950/30' : 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30',
+                  storageQuota.percentage > 90 ? 'border-status-warning-border bg-status-warning-surface' : 'border-status-info-border bg-status-info-surface',
                 )}
               >
                 <div className="flex items-start gap-3">
                   {storageQuota.percentage > 90 ? (
-                    <PiWarning className="mt-0.5 h-5 w-5 flex-shrink-0 text-orange-600 dark:text-orange-400" aria-hidden="true" />
+                    <PiWarning className="mt-0.5 h-5 w-5 flex-shrink-0 text-status-warning-text" aria-hidden="true" />
                   ) : (
-                    <PiInfo className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                    <PiInfo className="mt-0.5 h-5 w-5 flex-shrink-0 text-status-info-text" aria-hidden="true" />
                   )}
                   <div className="text-sm">
-                    <p className={cn('font-medium', storageQuota.percentage > 90 ? 'text-orange-900 dark:text-orange-200' : 'text-blue-900 dark:text-blue-200')}>Verfügbarer Speicher</p>
-                    <p className={cn('mt-1', storageQuota.percentage > 90 ? 'text-orange-700 dark:text-orange-300' : 'text-blue-700 dark:text-blue-300')}>
+                    <p className={cn('font-medium', storageQuota.percentage > 90 ? 'text-status-warning-text' : 'text-status-info-text')}>Verfügbarer Speicher</p>
+                    <p className={cn('mt-1', storageQuota.percentage > 90 ? 'text-status-warning-text' : 'text-status-info-text')}>
                       {storageQuota.available.toLocaleString('de-DE')} MB ({100 - storageQuota.percentage}% frei)
                     </p>
-                    {storageQuota.percentage > 90 && <p className="mt-2 font-medium text-orange-900 dark:text-orange-200">⚠️ Wenig Speicher! Bitte Platz freigeben.</p>}
+                    {storageQuota.percentage > 90 && <p className="mt-2 font-medium text-status-warning-text">⚠️ Wenig Speicher! Bitte Platz freigeben.</p>}
                   </div>
                 </div>
               </div>
             )}
             {storageQuotaError && (
-              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/30">
+              <div className="rounded-lg border border-border-subtle bg-surface-raised p-4">
                 <div className="flex items-start gap-3">
-                  <PiInfo className="mt-0.5 h-5 w-5 flex-shrink-0 text-gray-600 dark:text-gray-400" aria-hidden="true" />
+                  <PiInfo className="mt-0.5 h-5 w-5 flex-shrink-0 text-text-muted" aria-hidden="true" />
                   <div className="text-sm">
-                    <p className="font-medium text-gray-900 dark:text-gray-200">Speicher-Info nicht verfügbar</p>
-                    <p className="mt-1 text-gray-600 text-xs dark:text-gray-400">{storageQuotaError}</p>
+                    <p className="font-medium text-text-primary">Speicher-Info nicht verfügbar</p>
+                    <p className="mt-1 text-text-muted text-xs">{storageQuotaError}</p>
                   </div>
                 </div>
               </div>
@@ -465,12 +463,12 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
             {isDownloading && (
               <div>
                 <div className="mb-2 flex justify-between text-sm">
-                  <span className="text-gray-700 dark:text-gray-300">Lade Tiles...</span>
-                  <span className="font-medium text-gray-900 dark:text-gray-100">{downloadProgress}%</span>
+                  <span className="text-text-secondary">Lade Tiles...</span>
+                  <span className="font-medium text-text-primary">{downloadProgress}%</span>
                 </div>
-                <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-surface-raised">
                   <div
-                    className="h-full rounded-full bg-blue-600 transition-all duration-300 dark:bg-blue-500"
+                    className="h-full rounded-full bg-action-primary transition-all duration-300"
                     style={{ width: `${downloadProgress}%` }}
                     role="progressbar"
                     aria-valuenow={downloadProgress}

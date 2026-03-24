@@ -23,10 +23,10 @@ interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
  */
 function Alert({ status = 'info', title, description, icon, className, children, role, ...props }: AlertProps) {
   const statusStyles = {
-    info: 'bg-blue-50 border-blue-200 text-blue-800',
-    warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
-    error: 'bg-red-50 border-red-200 text-red-800',
-    success: 'bg-green-50 border-green-200 text-green-800',
+    info: 'bg-status-info-surface border-status-info-border text-status-info-text',
+    warning: 'bg-status-warning-surface border-status-warning-border text-status-warning-text',
+    error: 'bg-status-danger-surface border-status-danger-border text-status-danger-text',
+    success: 'bg-status-success-surface border-status-success-border text-status-success-text',
   };
 
   const defaultIcons = {
@@ -40,7 +40,7 @@ function Alert({ status = 'info', title, description, icon, className, children,
   const defaultRole = status === 'error' ? 'alert' : 'status';
 
   return (
-    <div role={role || defaultRole} className={cn('flex gap-3 rounded-md border p-3', statusStyles[status], className)} {...props}>
+    <div role={role || defaultRole} className={cn('flex gap-3 rounded-panel border p-3', statusStyles[status], className)} {...props}>
       <div className="flex-shrink-0">{icon || defaultIcons[status]}</div>
       <div className="flex-1">
         {title && <h3 className="mb-1 font-medium text-sm">{title}</h3>}

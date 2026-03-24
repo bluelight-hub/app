@@ -579,8 +579,8 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
         className={cn(
           'w-full overflow-hidden rounded-lg',
           'flex flex-col items-center justify-center',
-          'bg-gray-50 dark:bg-gray-800',
-          'border-2 border-gray-300 border-dashed dark:border-gray-600',
+          'bg-surface-raised',
+          'border-2 border-border-subtle border-dashed',
           // Mode-specific heights
           mode === 'standard' && 'h-[600px] md:h-[calc(100vh-120px)]',
           (mode === 'fullscreen' || mode === 'presentation') && 'h-screen',
@@ -588,9 +588,9 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
         role="alert"
         aria-live="assertive"
       >
-        <PiWarning className="mb-4 h-12 w-12 text-orange-500" />
-        <h3 className="mb-2 font-semibold text-gray-900 text-lg dark:text-gray-100">Karte konnte nicht geladen werden</h3>
-        <p className="mb-4 text-center text-gray-600 text-sm dark:text-gray-400">
+        <PiWarning className="mb-4 h-12 w-12 text-status-warning-text" />
+        <h3 className="mb-2 font-semibold text-text-primary text-lg">Karte konnte nicht geladen werden</h3>
+        <p className="mb-4 text-center text-text-muted text-sm">
           Die Karten-Tiles konnten nicht vom Server geladen werden.
           <br />
           Bitte überprüfen Sie Ihre Internetverbindung.
@@ -613,16 +613,15 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
           className={cn(
             'fixed top-4 left-4 z-[9999]',
             'flex items-center gap-2 rounded-lg px-4 py-2',
-            'border border-blue-300 bg-blue-50/90 backdrop-blur-lg',
-            'dark:border-blue-800 dark:bg-blue-950/50',
+            'border border-status-info-border bg-status-info-surface/90 backdrop-blur-lg',
             'shadow-lg',
             'transition-opacity duration-500',
             showFullscreenBadge ? 'opacity-100' : 'opacity-0',
           )}
           aria-label="Vollbildmodus aktiv"
         >
-          <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500 dark:bg-blue-400" />
-          <span className="font-medium text-blue-900 text-sm dark:text-blue-100">Vollbildmodus</span>
+          <div className="h-2 w-2 animate-pulse rounded-full bg-status-info-text" />
+          <span className="font-medium text-status-info-text text-sm">Vollbildmodus</span>
         </output>
       )}
 
@@ -693,7 +692,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
         {mode === 'standard' && <LayerToggle layers={layers} onToggle={handleLayerToggle} />}
 
         {isLoading && (
-          <div className="absolute inset-0 z-30 flex items-center justify-center bg-white/80 dark:bg-gray-900/80">
+          <div className="absolute inset-0 z-30 flex items-center justify-center bg-surface-panel/80">
             <Spinner type="ring" size="lg" />
           </div>
         )}

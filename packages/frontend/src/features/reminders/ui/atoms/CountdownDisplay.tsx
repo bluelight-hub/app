@@ -16,22 +16,18 @@ interface CountdownDisplayProps {
 /**
  * Farb-Mapping für Urgency Levels
  */
-const URGENCY_COLORS: Record<UrgencyLevel, { text: string; dark: string }> = {
+const URGENCY_COLORS: Record<UrgencyLevel, { text: string }> = {
   normal: {
-    text: 'text-green-600',
-    dark: 'dark:text-green-400',
+    text: 'text-status-success-text',
   },
   warning: {
-    text: 'text-yellow-600',
-    dark: 'dark:text-yellow-400',
+    text: 'text-status-warning-text',
   },
   urgent: {
-    text: 'text-orange-600',
-    dark: 'dark:text-orange-400',
+    text: 'text-status-danger-text',
   },
   critical: {
-    text: 'text-red-600',
-    dark: 'dark:text-red-400',
+    text: 'text-status-danger-text',
   },
 };
 
@@ -80,7 +76,6 @@ export function CountdownDisplay({ faelligAm, className }: CountdownDisplayProps
         'font-medium tabular-nums',
         // Color based on urgency
         colors.text,
-        colors.dark,
         // Custom classes
         className,
       )}

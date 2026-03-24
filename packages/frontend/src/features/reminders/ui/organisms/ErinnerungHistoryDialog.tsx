@@ -124,7 +124,7 @@ export function ErinnerungHistoryDialog({ isOpen, onClose, erinnerung, einsatzId
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onClose}>
         <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
-          <div className="fixed inset-0 bg-black/25 backdrop-blur-sm" />
+          <div className="fixed inset-0 bg-surface-inverse/25 backdrop-blur-sm" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
@@ -138,9 +138,9 @@ export function ErinnerungHistoryDialog({ isOpen, onClose, erinnerung, einsatzId
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-lg bg-white p-4 text-left align-middle shadow-xl transition-all dark:bg-gray-800">
-                <div className="flex items-center justify-between border-b pb-4 dark:border-gray-700">
-                  <Dialog.Title as="h3" className="font-medium text-gray-900 text-lg leading-6 dark:text-white">
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-panel bg-surface-panel p-4 text-left align-middle shadow-panel transition-all">
+                <div className="flex items-center justify-between border-border-subtle border-b pb-4">
+                  <Dialog.Title as="h3" className="font-medium text-lg text-text-primary leading-6">
                     Verlauf
                   </Dialog.Title>
                   <Button appearance="ghost" size="sm" onClick={onClose} className="-mr-2 h-8 w-8 p-0">
@@ -158,30 +158,30 @@ export function ErinnerungHistoryDialog({ isOpen, onClose, erinnerung, einsatzId
                       return (
                         <li key={`${eventKeyBase}|${occurrence}`}>
                           <div className="relative pb-8">
-                            {eventIdx !== events.length - 1 ? <span className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200 dark:bg-gray-700" aria-hidden="true" /> : null}
+                            {eventIdx !== events.length - 1 ? <span className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-border-subtle" aria-hidden="true" /> : null}
                             <div className="relative flex space-x-3">
                               <div>
                                 <span
                                   className={cn(
-                                    'flex h-8 w-8 items-center justify-center rounded-full ring-8 ring-white dark:ring-gray-800',
-                                    event.color === 'blue' && 'bg-blue-500',
-                                    event.color === 'red' && 'bg-red-500',
-                                    event.color === 'green' && 'bg-green-500',
-                                    event.color === 'yellow' && 'bg-yellow-500',
-                                    event.color === 'gray' && 'bg-gray-500',
+                                    'flex h-8 w-8 items-center justify-center rounded-full ring-8 ring-surface-panel',
+                                    event.color === 'blue' && 'bg-status-info-text',
+                                    event.color === 'red' && 'bg-status-danger-text',
+                                    event.color === 'green' && 'bg-status-success-text',
+                                    event.color === 'yellow' && 'bg-status-warning-text',
+                                    event.color === 'gray' && 'bg-text-muted',
                                   )}
                                 >
-                                  <event.icon className="h-5 w-5 text-white" aria-hidden="true" />
+                                  <event.icon className="h-5 w-5 text-text-inverse" aria-hidden="true" />
                                 </span>
                               </div>
                               <div className="flex min-w-0 flex-1 justify-between space-x-4">
                                 <div>
-                                  <p className="font-medium text-gray-900 text-sm dark:text-gray-100">
-                                    {event.title} {event.user && <span className="font-normal text-gray-500 dark:text-gray-400">durch {event.user}</span>}
+                                  <p className="font-medium text-sm text-text-primary">
+                                    {event.title} {event.user && <span className="font-normal text-text-muted">durch {event.user}</span>}
                                   </p>
-                                  {event.description && <p className="mt-0.5 text-gray-500 text-sm dark:text-gray-400">{event.description}</p>}
+                                  {event.description && <p className="mt-0.5 text-sm text-text-muted">{event.description}</p>}
                                 </div>
-                                <div className="whitespace-nowrap text-right text-gray-500 text-sm dark:text-gray-400">
+                                <div className="whitespace-nowrap text-right text-sm text-text-muted">
                                   <time dateTime={event.date}>{format(new Date(event.date), 'HH:mm')}</time>
                                   <div className="text-xs">{format(new Date(event.date), 'dd.MM.')}</div>
                                 </div>
@@ -196,8 +196,8 @@ export function ErinnerungHistoryDialog({ isOpen, onClose, erinnerung, einsatzId
 
                 {/* Story 5.7: ETB-Verknüpfungen Widget */}
                 {einsatzId && (
-                  <div className="mt-6 border-t pt-4 dark:border-gray-700">
-                    <ErinnerungEtbHistoryWidget erinnerungId={erinnerung.id} einsatzId={einsatzId} onEntryClick={handleEtbEntryClick} className="bg-gray-50 dark:bg-gray-900" />
+                  <div className="mt-6 border-border-subtle border-t pt-4">
+                    <ErinnerungEtbHistoryWidget erinnerungId={erinnerung.id} einsatzId={einsatzId} onEntryClick={handleEtbEntryClick} className="bg-surface-raised" />
                   </div>
                 )}
 

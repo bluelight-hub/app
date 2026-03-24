@@ -43,12 +43,12 @@ interface StatusOption {
 /** Status-Filter-Optionen (AC1: alle Status) */
 const STATUS_OPTIONS: StatusOption[] = [
   { value: 'all', label: 'Alle Status', icon: PiCirclesThree },
-  { value: 'GEPLANT', label: 'Geplant', icon: PiClock, colorClass: 'text-green-600 dark:text-green-400' },
-  { value: 'AUSGELOEST', label: 'Ausgelöst', icon: PiBellRinging, colorClass: 'text-red-600 dark:text-red-400' },
-  { value: 'ACKNOWLEDGED', label: 'Bestätigt', icon: PiCheck, colorClass: 'text-blue-600 dark:text-blue-400' },
-  { value: 'SNOOZED', label: 'Verschoben', icon: PiMoon, colorClass: 'text-yellow-600 dark:text-yellow-400' },
-  { value: 'ESKALIERT', label: 'Eskaliert', icon: PiTrendUp, colorClass: 'text-indigo-600 dark:text-indigo-400' },
-  { value: 'ERLEDIGT', label: 'Erledigt', icon: PiCheckCircle, colorClass: 'text-gray-500 dark:text-gray-400' },
+  { value: 'GEPLANT', label: 'Geplant', icon: PiClock, colorClass: 'text-status-success-text' },
+  { value: 'AUSGELOEST', label: 'Ausgelöst', icon: PiBellRinging, colorClass: 'text-status-danger-text' },
+  { value: 'ACKNOWLEDGED', label: 'Bestätigt', icon: PiCheck, colorClass: 'text-status-info-text' },
+  { value: 'SNOOZED', label: 'Verschoben', icon: PiMoon, colorClass: 'text-status-warning-text' },
+  { value: 'ESKALIERT', label: 'Eskaliert', icon: PiTrendUp, colorClass: 'text-action-primary' },
+  { value: 'ERLEDIGT', label: 'Erledigt', icon: PiCheckCircle, colorClass: 'text-text-muted' },
 ];
 
 /**
@@ -81,29 +81,26 @@ export function StatusFilterDropdown({ selectedFilter, onFilterChange, disabled 
       <div className={cn('relative', className)}>
         <ListboxButton
           className={cn(
-            'relative flex w-full cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm',
+            'relative flex w-full cursor-pointer items-center gap-2 rounded-control border px-3 py-2 text-left text-sm',
             'transition-all duration-200',
-            'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
+            'focus:outline-none focus-visible:shadow-focus-ring',
             'disabled:cursor-not-allowed disabled:opacity-50',
             // AC3: Aktiver Filter mit Primary-Farben
-            isFilterActive
-              ? 'border-primary-300 bg-primary-50 text-primary-700 dark:border-primary-600 dark:bg-primary-900/30 dark:text-primary-300'
-              : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700',
+            isFilterActive ? 'border-action-primary/35 bg-primary-50 text-action-primary' : 'border-border-subtle bg-surface-panel text-text-secondary hover:bg-surface-raised',
           )}
         >
-          <PiFunnel className={cn('h-4 w-4 flex-shrink-0', isFilterActive ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400')} aria-hidden="true" />
+          <PiFunnel className={cn('h-4 w-4 flex-shrink-0', isFilterActive ? 'text-action-primary' : 'text-text-muted')} aria-hidden="true" />
           <span className="block truncate font-medium">{currentOption.label}</span>
-          <PiCaretDown className={cn('ml-auto h-4 w-4 flex-shrink-0', isFilterActive ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400')} aria-hidden="true" />
+          <PiCaretDown className={cn('ml-auto h-4 w-4 flex-shrink-0', isFilterActive ? 'text-action-primary' : 'text-text-muted')} aria-hidden="true" />
         </ListboxButton>
 
         <ListboxOptions
           transition
           className={cn(
-            'absolute z-20 mt-1 max-h-60 w-full min-w-[180px] overflow-auto rounded-lg bg-white py-1 text-sm shadow-lg',
-            'border border-gray-200',
-            'ring-1 ring-black ring-opacity-5 focus:outline-none',
+            'absolute z-20 mt-1 max-h-60 w-full min-w-[180px] overflow-auto rounded-panel bg-surface-panel py-1 text-sm shadow-panel',
+            'border border-border-subtle',
+            'focus:outline-none',
             'data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in',
-            'dark:border-gray-700 dark:bg-gray-800',
           )}
         >
           {STATUS_OPTIONS.map((option) => {
@@ -112,18 +109,13 @@ export function StatusFilterDropdown({ selectedFilter, onFilterChange, disabled 
               <ListboxOption
                 key={option.value}
                 value={option.value}
-                className={cn(
-                  'relative flex cursor-pointer select-none items-center gap-2 px-3 py-2',
-                  'text-gray-900 dark:text-gray-100',
-                  'data-[focus]:bg-primary-50 data-[focus]:text-primary-900',
-                  'dark:data-[focus]:bg-primary-900/30 dark:data-[focus]:text-primary-100',
-                )}
+                className={cn('relative flex cursor-pointer select-none items-center gap-2 px-3 py-2', 'text-text-primary', 'data-[focus]:bg-primary-50 data-[focus]:text-primary-900')}
               >
                 {({ selected }) => (
                   <>
-                    <Icon className={cn('h-4 w-4 flex-shrink-0', option.colorClass ?? 'text-gray-400')} aria-hidden="true" />
+                    <Icon className={cn('h-4 w-4 flex-shrink-0', option.colorClass ?? 'text-text-muted')} aria-hidden="true" />
                     <span className={cn('block truncate', selected && 'font-semibold')}>{option.label}</span>
-                    {selected && <PiCheck className="ml-auto h-4 w-4 text-primary-600 dark:text-primary-400" aria-hidden="true" />}
+                    {selected && <PiCheck className="ml-auto h-4 w-4 text-action-primary" aria-hidden="true" />}
                   </>
                 )}
               </ListboxOption>

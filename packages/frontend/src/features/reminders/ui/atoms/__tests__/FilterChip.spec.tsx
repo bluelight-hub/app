@@ -93,7 +93,7 @@ describe('FilterChip', () => {
       const { container } = render(<FilterChip label={label} onRemove={vi.fn()} />);
 
       // Then (Assert)
-      expect(container.firstChild).toHaveClass('bg-gray-100', 'border-gray-300');
+      expect(container.firstChild).toHaveClass('bg-surface-raised', 'border-border-subtle');
     });
 
     it('should apply additional className', () => {

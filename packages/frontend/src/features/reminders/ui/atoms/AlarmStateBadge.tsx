@@ -73,57 +73,48 @@ const STATUS_ICONS: Record<ErinnerungStatus, React.ComponentType<{ className?: s
 /**
  * Farb-Mapping für jeden Status (Light + Dark Mode)
  */
-const STATUS_COLORS: Record<ErinnerungStatus, { bg: string; text: string; dark: string }> = {
+const STATUS_COLORS: Record<ErinnerungStatus, { bg: string; text: string }> = {
   GEPLANT: {
-    bg: 'bg-green-100',
-    text: 'text-green-700',
-    dark: 'dark:bg-green-900/40 dark:text-green-300',
+    bg: 'bg-status-success-surface',
+    text: 'text-status-success-text',
   },
   AUSGELOEST: {
-    bg: 'bg-red-100',
-    text: 'text-red-700',
-    dark: 'dark:bg-red-900/40 dark:text-red-300',
+    bg: 'bg-status-danger-surface',
+    text: 'text-status-danger-text',
   },
   ACKNOWLEDGED: {
-    bg: 'bg-blue-100',
-    text: 'text-blue-700',
-    dark: 'dark:bg-blue-900/40 dark:text-blue-300',
+    bg: 'bg-status-info-surface',
+    text: 'text-status-info-text',
   },
   SNOOZED: {
-    bg: 'bg-yellow-100',
-    text: 'text-yellow-700',
-    dark: 'dark:bg-yellow-900/40 dark:text-yellow-300',
+    bg: 'bg-status-warning-surface',
+    text: 'text-status-warning-text',
   },
   ERLEDIGT: {
-    bg: 'bg-gray-100',
-    text: 'text-gray-500',
-    dark: 'dark:bg-gray-800 dark:text-gray-400',
+    bg: 'bg-surface-raised',
+    text: 'text-text-muted',
   },
   ESKALIERT: {
-    bg: 'bg-indigo-100',
-    text: 'text-indigo-700',
-    dark: 'dark:bg-indigo-900/40 dark:text-indigo-300',
+    bg: 'bg-action-secondary',
+    text: 'text-action-primary',
   },
 };
 
 /**
  * Progressive Farben für GEPLANT Status basierend auf Urgency Level
  */
-const URGENCY_COLORS: Record<UrgencyLevel, { bg: string; text: string; dark: string }> = {
+const URGENCY_COLORS: Record<UrgencyLevel, { bg: string; text: string }> = {
   normal: {
-    bg: 'bg-green-100',
-    text: 'text-green-700',
-    dark: 'dark:bg-green-900/40 dark:text-green-300',
+    bg: 'bg-status-success-surface',
+    text: 'text-status-success-text',
   },
   warning: {
-    bg: 'bg-yellow-100',
-    text: 'text-yellow-700',
-    dark: 'dark:bg-yellow-900/40 dark:text-yellow-300',
+    bg: 'bg-status-warning-surface',
+    text: 'text-status-warning-text',
   },
   urgent: {
-    bg: 'bg-orange-100',
-    text: 'text-orange-700',
-    dark: 'dark:bg-orange-900/40 dark:text-orange-300',
+    bg: 'bg-status-danger-surface',
+    text: 'text-status-danger-text',
   },
 };
 
@@ -132,9 +123,8 @@ const URGENCY_COLORS: Record<UrgencyLevel, { bg: string; text: string; dark: str
  * Verwendet dunkleres Rot für maximale Aufmerksamkeit ohne Sound
  */
 const AUDIO_FAILED_COLORS = {
-  bg: 'bg-red-200',
-  text: 'text-red-800',
-  dark: 'dark:bg-red-800/60 dark:text-red-200',
+  bg: 'bg-status-danger-text',
+  text: 'text-text-inverse',
 };
 
 /**
@@ -177,7 +167,7 @@ function getUrgencyLevel(minutesUntilDue: number | undefined): UrgencyLevel {
  * @param minutesUntilDue - Verbleibende Minuten (nur für GEPLANT)
  * @param audioFailed - true wenn Audio fehlgeschlagen (Story 2.8)
  */
-function getColors(status: ErinnerungStatus, minutesUntilDue?: number, audioFailed?: boolean): { bg: string; text: string; dark: string } {
+function getColors(status: ErinnerungStatus, minutesUntilDue?: number, audioFailed?: boolean): { bg: string; text: string } {
   // Story 2.8: Audio-Ausfall = intensiveres Rot bei AUSGELOEST
   if (status === 'AUSGELOEST' && audioFailed) {
     return AUDIO_FAILED_COLORS;
@@ -276,7 +266,6 @@ export function AlarmStateBadge({ status, minutesUntilDue, size = 'md', classNam
         // Colors
         colors.bg,
         colors.text,
-        colors.dark,
         // Animation (Story 2.3: intensitätsabhängig)
         animationClasses.badge,
         // Custom classes

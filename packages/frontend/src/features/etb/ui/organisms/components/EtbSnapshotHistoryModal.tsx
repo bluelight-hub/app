@@ -45,46 +45,42 @@ function SnapshotCard({ snapshot, isFirst }: { snapshot: EtbSnapshotDto; isFirst
   const entryKeyCounts = new Map<string, number>();
 
   return (
-    <div
-      className={cn(
-        'rounded-lg p-4',
-        isFirst ? 'border-2 border-primary-500 bg-primary-50/50 dark:border-primary-600 dark:bg-primary-900/20' : 'border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900/50',
-      )}
-    >
+    <div className={cn('rounded-lg p-4', isFirst ? 'border-2 border-status-info-border bg-status-info-surface' : 'border border-border-subtle bg-surface-panel')}>
       {/* Header mit Version, Timestamp und Einträge-Anzahl */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <EtbVersionBadge version={snapshot.version} isCurrent={isFirst} variant="solid" />
-          <span className="text-gray-500 text-sm dark:text-gray-400">{formatDisplayDateTime(snapshot.snapshotAt)}</span>
+          <span className="text-sm text-text-secondary">{formatDisplayDateTime(snapshot.snapshotAt)}</span>
         </div>
-        <span className="text-gray-500 text-sm dark:text-gray-400">
+        <span className="text-sm text-text-secondary">
           {entryCount} {entryCount === 1 ? 'Eintrag' : 'Einträge'}
         </span>
       </div>
 
       {/* Aktuell-Label für den neuesten Snapshot */}
-      {isFirst && <p className="mt-1 text-primary-600 text-xs dark:text-primary-400">Aktueller Stand</p>}
+      {isFirst && <p className="mt-1 text-action-primary text-xs">Aktueller Stand</p>}
 
       {/* Expandable Einträge-Liste */}
       {entryCount > 0 && (
         <div className="mt-3">
-          <button type="button" onClick={() => setIsExpanded(!isExpanded)} className="flex items-center gap-1 text-gray-600 text-sm hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
+          <button
+            type="button"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary focus-visible:shadow-focus-ring focus-visible:outline-none"
+          >
             {isExpanded ? <PiCaretDown className="h-4 w-4" /> : <PiCaretRight className="h-4 w-4" />}
             <span>{isExpanded ? 'Einträge ausblenden' : 'Einträge anzeigen'}</span>
           </button>
 
           {isExpanded && (
-            <div className="mt-2 max-h-64 space-y-2 overflow-y-auto rounded-md border border-gray-100 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
+            <div className="mt-2 max-h-64 space-y-2 overflow-y-auto rounded-md border border-border-subtle bg-surface-raised p-3">
               {snapshot.eintraege.map((eintrag) => {
                 const text = Array.isArray(eintrag) ? eintrag.join(' | ') : String(eintrag);
                 const occurrence = (entryKeyCounts.get(text) ?? 0) + 1;
                 entryKeyCounts.set(text, occurrence);
 
                 return (
-                  <div
-                    key={`entry-${snapshot.version}-${text}-${occurrence}`}
-                    className="border-gray-200 border-b pb-2 text-gray-700 text-sm last:border-b-0 last:pb-0 dark:border-gray-700 dark:text-gray-300"
-                  >
+                  <div key={`entry-${snapshot.version}-${text}-${occurrence}`} className="border-border-subtle border-b pb-2 text-sm text-text-secondary last:border-b-0 last:pb-0">
                     {text}
                   </div>
                 );
@@ -127,7 +123,7 @@ export function EtbSnapshotHistoryModal({ etbId, isOpen, onClose }: EtbSnapshotH
       <Dialog.Body className="max-h-[70vh] overflow-y-auto">
         {isLoading ? (
           <div className="flex h-64 items-center justify-center">
-            <PiCircleNotch className="h-8 w-8 animate-spin text-primary-500" />
+            <PiCircleNotch className="h-8 w-8 animate-spin text-action-primary" />
           </div>
         ) : snapshots && snapshots.length > 0 ? (
           <Timeline>
@@ -139,7 +135,7 @@ export function EtbSnapshotHistoryModal({ etbId, isOpen, onClose }: EtbSnapshotH
             ))}
           </Timeline>
         ) : (
-          <div className="flex h-64 items-center justify-center text-gray-500 dark:text-gray-400">Keine Historie vorhanden</div>
+          <div className="flex h-64 items-center justify-center text-text-secondary">Keine Historie vorhanden</div>
         )}
       </Dialog.Body>
 

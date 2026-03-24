@@ -288,13 +288,13 @@ export function EtbEntryList({
           {onShowDeletedChange && <EtbFilterControls showDeleted={showDeleted} onShowDeletedChange={onShowDeletedChange} />}
         </div>
 
-        <div className="flex h-[600px] items-center justify-center overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700" role="status">
+        <div className="flex h-[600px] items-center justify-center overflow-hidden rounded-lg border border-border-subtle" role="status">
           <div className="flex flex-col items-center gap-3">
-            <p className="text-gray-500 text-sm dark:text-gray-400">Alle Einträge durch Filter ausgeblendet</p>
+            <p className="text-sm text-text-secondary">Alle Einträge durch Filter ausgeblendet</p>
             <button
               type="button"
               onClick={() => resetKategorieFilter()}
-              className="rounded-md bg-primary-50 px-3 py-1.5 font-medium text-primary-700 text-sm hover:bg-primary-100 dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/40"
+              className="rounded-md bg-action-secondary px-3 py-1.5 font-medium text-action-primary text-sm hover:bg-action-secondary-hover focus-visible:shadow-focus-ring focus-visible:outline-none"
             >
               Filter zurücksetzen
             </button>
@@ -320,7 +320,7 @@ export function EtbEntryList({
       {/* Table */}
       <div
         ref={tableContainerRef}
-        className="relative isolate overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
+        className="relative isolate overflow-hidden rounded-lg border border-border-subtle"
         aria-busy={!!isLoading || !!isFetchingNextPage}
         style={{
           height: '600px',
@@ -355,8 +355,8 @@ export function EtbEntryList({
 
         {/* Loading Indicator for Next Page */}
         {isFetchingNextPage && (
-          <div className="flex justify-center bg-white py-4 dark:bg-gray-950">
-            <PiCircleNotch className="h-6 w-6 animate-spin text-primary-500" />
+          <div className="flex justify-center bg-surface-panel py-4">
+            <PiCircleNotch className="h-6 w-6 animate-spin text-action-primary" />
           </div>
         )}
 

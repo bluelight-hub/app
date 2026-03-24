@@ -137,7 +137,7 @@ describe('ServerListItem', () => {
 
       // Then
       const statusDot = screen.getByRole('status');
-      expect(statusDot).toHaveClass('bg-green-500');
+      expect(statusDot).toHaveClass('bg-status-success-text');
     });
 
     it('should show gray status for disconnected', () => {
@@ -149,7 +149,7 @@ describe('ServerListItem', () => {
 
       // Then
       const statusDot = screen.getByRole('status');
-      expect(statusDot).toHaveClass('bg-gray-400');
+      expect(statusDot).toHaveClass('bg-text-muted');
     });
 
     it('should show yellow status with pulse for checking', () => {
@@ -161,7 +161,7 @@ describe('ServerListItem', () => {
 
       // Then
       const statusDot = screen.getByRole('status');
-      expect(statusDot).toHaveClass('bg-yellow-500');
+      expect(statusDot).toHaveClass('bg-status-warning-text');
       expect(statusDot).toHaveClass('animate-pulse');
     });
 
@@ -174,7 +174,7 @@ describe('ServerListItem', () => {
 
       // Then
       const statusDot = screen.getByRole('status');
-      expect(statusDot).toHaveClass('bg-gray-400');
+      expect(statusDot).toHaveClass('bg-text-muted');
     });
   });
 
@@ -386,8 +386,7 @@ describe('ServerListItem', () => {
 
       // Then
       const listItem = screen.getByRole('listitem');
-      expect(listItem).toHaveClass('hover:bg-gray-50');
-      expect(listItem).toHaveClass('dark:hover:bg-gray-700/50');
+      expect(listItem).toHaveClass('hover:bg-surface-raised');
     });
 
     it('should have cursor-pointer when onClick provided', () => {

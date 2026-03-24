@@ -16,7 +16,7 @@ const PasswordStrengthIndicatorImpl = lazy(() =>
  */
 export function PasswordStrengthIndicator(props: React.ComponentProps<typeof PasswordStrengthIndicatorImpl>) {
   return (
-    <Suspense fallback={<div className="h-20 animate-pulse rounded-md bg-gray-200 dark:bg-gray-700" />}>
+    <Suspense fallback={<div className="h-20 animate-pulse rounded-panel bg-surface-raised" />}>
       <PasswordStrengthIndicatorImpl {...props} />
     </Suspense>
   );

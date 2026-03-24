@@ -1,4 +1,6 @@
-import { consumeRedirectAfterLogin, useCurrentUser, useAdminLogin } from '@/features/auth';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import { useCurrentUser, useAdminLogin, consumeRedirectAfterLogin } from '@/features/auth';
 import { useSystemHealth } from '@/features/system/api/use-system-health';
 import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { getRedirectFromSearch, navigateToInternalRedirect, sanitizeInternalRedirectPath } from '@/shared/lib/navigation/router-redirect';
@@ -11,10 +13,9 @@ import { AuthCard } from '@/shared/ui/molecules/auth-card.molecule';
 import { AuthFooter } from '@/shared/ui/molecules/auth-footer.molecule';
 import { LogoWithIndicator } from '@/shared/ui/molecules/logo-with-indicator.molecule';
 import { PasswordInput } from '@/shared/ui/molecules/password-input.molecule';
+import { AuthLayout } from '@/shared/ui/templates/AuthLayout';
 import { useForm } from '@tanstack/react-form';
 import { useNavigate, useRouter } from '@tanstack/react-router';
-import { AuthLayout } from '@/shared/ui/templates/AuthLayout';
-import { useCallback, useEffect, useRef, useState } from 'react';
 import { PiWarning } from 'react-icons/pi';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -57,17 +58,13 @@ export function AdminLogin() {
   }, []);
 
   const form = useForm({
-    defaultValues: {
-      password: '',
-    },
+    defaultValues: { password: '' },
     validators: {
       onSubmit: adminLoginSchema,
     },
     onSubmit: async ({ value }) => {
       return loginAdmin.mutateAsync(
-        {
-          password: value.password,
-        },
+        { password: value.password },
         {
           onSuccess: async () => {
             toast.success('Anmeldung erfolgreich', {
@@ -76,11 +73,8 @@ export function AdminLogin() {
           },
           onError: async (error: Error) => {
             const message = await getApiErrorMessage(error, 'Ein unerwarteter Fehler ist aufgetreten.', 'adminLogin');
-
-            // Set error message in state instead of form
             setApiError(message);
 
-            // Shake input for password errors
             if (message.includes('Ungültiges') || message.includes('Passwort')) {
               setShouldShake(true);
               setTimeout(() => setShouldShake(false), 500);
@@ -95,72 +89,39 @@ export function AdminLogin() {
     },
   });
 
-  // Track when auth check is complete
   useEffect(() => {
     if (!isLoading && !hasCheckedAuth) {
       setHasCheckedAuth(true);
     }
   }, [isLoading, hasCheckedAuth]);
 
-  // Redirect logic based on authentication state
   useEffect(() => {
-    // Only redirect after we've completed the initial auth check
-    if (hasCheckedAuth) {
-      // If user has an active admin session, redirect to dashboard
-      if (user && isAdminAuthenticated) {
-        const redirectTarget = resolveRedirectTarget('/admin/dashboard');
-        navigateToInternalRedirect(router, redirectTarget, { replace: true });
-      }
-      // If user is not logged in at all, redirect to auth
-      else if (!user) {
-        const redirectTarget = getRedirectFromSearch(window.location.search) ?? sanitizeInternalRedirectPath(consumeRedirectAfterLogin());
-        void navigate({
-          to: '/auth',
-          search: redirectTarget
-            ? {
-                redirect: redirectTarget,
-              }
-            : undefined,
-          replace: true,
-        });
-      }
-      // If user needs to set up admin password, redirect to setup
-      else if (user && adminStatus?.adminSetupAvailable) {
-        void navigate({ to: '/admin/setup', replace: true });
-      }
-      // User is logged in but not admin authenticated - stay on this page
+    if (!hasCheckedAuth) return;
+
+    if (user && isAdminAuthenticated) {
+      const redirectTarget = resolveRedirectTarget('/admin/dashboard');
+      navigateToInternalRedirect(router, redirectTarget, { replace: true });
+    } else if (!user) {
+      const redirectTarget = getRedirectFromSearch(window.location.search) ?? sanitizeInternalRedirectPath(consumeRedirectAfterLogin());
+      void navigate({
+        to: '/auth',
+        search: redirectTarget ? { redirect: redirectTarget } : undefined,
+        replace: true,
+      });
+    } else if (user && adminStatus?.adminSetupAvailable) {
+      void navigate({ to: '/admin/setup', replace: true });
     }
   }, [user, hasCheckedAuth, isAdminAuthenticated, adminStatus?.adminSetupAvailable, navigate, router, resolveRedirectTarget]);
 
-  // Don't render the form until we've checked authentication
-  // This prevents flashing of the form before redirect
   if (!hasCheckedAuth) {
-    return null; // The loading state is handled by AdminLayout
-  }
-
-  // If user has admin session, don't show form (will redirect)
-  if (user && isAdminAuthenticated) {
     return null;
   }
 
-  // If user is not logged in at all, don't show the admin login form
-  // (useEffect will redirect to /auth)
-  if (!user) {
-    return null;
-  }
+  if (user && isAdminAuthenticated) return null;
+  if (!user) return null;
+  if (adminStatus?.adminSetupAvailable) return null;
 
-  // If user needs to set up admin password, don't show login form
-  // (useEffect will redirect to /admin/setup)
-  if (adminStatus?.adminSetupAvailable) {
-    return null;
-  }
-
-  // Dynamische Status-Badges basierend auf Health Response
-  const statusBadges: Array<{
-    label: string;
-    variant: 'default' | 'info' | 'success' | 'warning' | 'error';
-    dotColor: 'green' | 'blue' | 'red' | 'yellow';
-  }> = [
+  const statusBadges: Array<{ label: string; variant: 'default' | 'info' | 'success' | 'warning' | 'error'; dotColor: 'green' | 'blue' | 'red' | 'yellow' }> = [
     {
       label: connectionMode === 'online' ? 'System online' : connectionMode === 'checking' ? 'Verbindung...' : connectionMode === 'error' ? 'Verbindungsfehler' : 'System offline',
       variant: connectionMode === 'online' ? 'default' : connectionMode === 'error' ? 'error' : 'warning',
@@ -172,10 +133,8 @@ export function AdminLogin() {
     <AuthLayout>
       <AuthCard className="mx-5 w-full max-w-[440px]">
         <div className="flex flex-col gap-8">
-          {/* Logo Section */}
           <div className="flex flex-col items-center gap-6 text-center">
             <LogoWithIndicator size="xl" />
-
             <Heading size="2xl" as="h1">
               Bluelight Hub
             </Heading>
@@ -184,9 +143,7 @@ export function AdminLogin() {
             </Text>
           </div>
 
-          {/* Form Container */}
           <div className="w-full">
-            {/* API-Fehlermeldung anzeigen */}
             {apiError && <Alert status="error" title="Anmeldung fehlgeschlagen!" description={apiError} icon={<PiWarning className="h-5 w-5" />} className="mb-6" />}
 
             <form
@@ -228,7 +185,6 @@ export function AdminLogin() {
             </form>
           </div>
 
-          {/* Footer */}
           <AuthFooter badges={statusBadges} version={version ?? undefined} copyright="© 2025 DRK" />
         </div>
       </AuthCard>

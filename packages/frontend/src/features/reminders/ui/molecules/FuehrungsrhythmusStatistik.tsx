@@ -30,7 +30,7 @@ export function FuehrungsrhythmusStatistik({ einsatzId, className }: Fuehrungsrh
 
   return (
     <div className={cn('flex flex-col gap-2', className)}>
-      <button type="button" className="flex items-center gap-1 font-medium text-gray-700 text-sm dark:text-gray-300" onClick={() => setIsExpanded(!isExpanded)} aria-expanded={isExpanded}>
+      <button type="button" className="flex items-center gap-1 font-medium text-sm text-text-secondary" onClick={() => setIsExpanded(!isExpanded)} aria-expanded={isExpanded}>
         {isExpanded ? <PiCaretDown className="h-4 w-4" /> : <PiCaretRight className="h-4 w-4" />}
         <PiHeartbeat className="h-4 w-4" />
         Führungsrhythmus-Statistik
@@ -42,10 +42,10 @@ export function FuehrungsrhythmusStatistik({ einsatzId, className }: Fuehrungsrh
           {isLoading && (
             <div className="flex flex-col gap-4">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-                <div className="h-20 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-700" />
-                <div className="h-20 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-700" />
-                <div className="h-20 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-700" />
-                <div className="h-20 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-700" />
+                <div className="h-20 animate-pulse rounded-lg bg-surface-raised" />
+                <div className="h-20 animate-pulse rounded-lg bg-surface-raised" />
+                <div className="h-20 animate-pulse rounded-lg bg-surface-raised" />
+                <div className="h-20 animate-pulse rounded-lg bg-surface-raised" />
               </div>
               <Table.Skeleton rows={3} columns={4} />
             </div>
@@ -53,7 +53,7 @@ export function FuehrungsrhythmusStatistik({ einsatzId, className }: Fuehrungsrh
 
           {/* AC4: Error State */}
           {!isLoading && isError && (
-            <div className="py-4 text-center text-red-600 text-sm dark:text-red-400">
+            <div className="py-4 text-center text-sm text-status-danger-text">
               <p>Führungsrhythmus-Statistik konnte nicht geladen werden.</p>
               <button type="button" className="mt-1 underline hover:no-underline" onClick={() => refetch()}>
                 Erneut versuchen
@@ -62,9 +62,7 @@ export function FuehrungsrhythmusStatistik({ einsatzId, className }: Fuehrungsrh
           )}
 
           {/* AC2: Empty State */}
-          {!isLoading && !isError && data && data.totalActivations === 0 && (
-            <p className="py-4 text-center text-gray-500 text-sm dark:text-gray-400">Kein Führungsrhythmus in diesem Einsatz aktiviert</p>
-          )}
+          {!isLoading && !isError && data && data.totalActivations === 0 && <p className="py-4 text-center text-sm text-text-muted">Kein Führungsrhythmus in diesem Einsatz aktiviert</p>}
 
           {/* AC1: Daten anzeigen */}
           {!isLoading && !isError && data && data.totalActivations > 0 && (
@@ -99,8 +97,8 @@ export function FuehrungsrhythmusStatistik({ einsatzId, className }: Fuehrungsrh
                   {data.activations.length > 1
                     ? data.activations.map((activation, idx) => (
                         <Fragment key={activation.activationTimestamp}>
-                          <Table.Row className="bg-slate-50 dark:bg-slate-800/50">
-                            <Table.Cell colSpan={4} className="font-medium text-slate-600 text-xs dark:text-slate-400">
+                          <Table.Row className="bg-surface-raised">
+                            <Table.Cell colSpan={4} className="font-medium text-text-secondary text-xs">
                               Aktivierung {idx + 1} — {new Date(activation.activationTimestamp).toLocaleString('de-DE')} (Zyklen: {activation.totalCycles}, Abschluss:{' '}
                               {(activation.completionRate * 100).toFixed(1)}%)
                             </Table.Cell>

@@ -121,8 +121,8 @@ export function ErinnerungMarkErledigtDialog({ isOpen, onClose, erinnerung, eins
   return (
     <Dialog isOpen={isOpen} onClose={handleClose}>
       <div className="flex items-center gap-3">
-        <div className="rounded-full bg-green-100 p-2 dark:bg-green-900/30">
-          <PiCheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+        <div className="rounded-full bg-status-success-surface p-2">
+          <PiCheckCircle className="h-5 w-5 text-status-success-text" />
         </div>
         <Dialog.Title>Erinnerung '{erinnerung.titel}' erledigen?</Dialog.Title>
       </div>
@@ -130,31 +130,31 @@ export function ErinnerungMarkErledigtDialog({ isOpen, onClose, erinnerung, eins
       <Dialog.Body>
         <div className="space-y-4">
           {/* Info-Box */}
-          <div className="rounded-lg bg-green-50 p-3 dark:bg-green-900/20">
-            <p className="flex items-start gap-2 text-green-800 text-sm dark:text-green-300">
+          <div className="rounded-panel bg-status-success-surface p-3">
+            <p className="flex items-start gap-2 text-sm text-status-success-text">
               <PiCheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
               <span>Die Erinnerung wird als erledigt markiert und im Einsatztagebuch dokumentiert.</span>
             </p>
           </div>
 
           {/* Erinnerung-Details */}
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800/50">
+          <div className="rounded-panel border border-border-subtle bg-surface-raised p-3">
             <dl className="space-y-1 text-sm">
               <div className="flex">
-                <dt className="w-24 flex-shrink-0 text-gray-500 dark:text-gray-400">Titel:</dt>
-                <dd className="font-medium text-gray-900 dark:text-white">{erinnerung.titel}</dd>
+                <dt className="w-24 flex-shrink-0 text-text-muted">Titel:</dt>
+                <dd className="font-medium text-text-primary">{erinnerung.titel}</dd>
               </div>
               <div className="flex">
-                <dt className="w-24 flex-shrink-0 text-gray-500 dark:text-gray-400">Status:</dt>
-                <dd className="text-gray-700 dark:text-gray-300">{erinnerung.status === 'ACKNOWLEDGED' ? 'Bestätigt' : erinnerung.status === 'ESKALIERT' ? 'Eskaliert' : erinnerung.status}</dd>
+                <dt className="w-24 flex-shrink-0 text-text-muted">Status:</dt>
+                <dd className="text-text-secondary">{erinnerung.status === 'ACKNOWLEDGED' ? 'Bestätigt' : erinnerung.status === 'ESKALIERT' ? 'Eskaliert' : erinnerung.status}</dd>
               </div>
             </dl>
           </div>
 
           {/* Story 2.6: Pflicht-Notiz Warnung bei requiresNote=true */}
           {requiresNote && (
-            <div className="rounded-lg bg-amber-50 p-3 dark:bg-amber-900/20">
-              <p className="flex items-start gap-2 text-amber-800 text-sm dark:text-amber-300">
+            <div className="rounded-panel bg-status-warning-surface p-3">
+              <p className="flex items-start gap-2 text-sm text-status-warning-text">
                 <PiWarning className="mt-0.5 h-4 w-4 flex-shrink-0" />
                 <span>Diese Erinnerung erfordert eine Pflicht-Notiz zur Dokumentation.</span>
               </p>
@@ -169,11 +169,11 @@ export function ErinnerungMarkErledigtDialog({ isOpen, onClose, erinnerung, eins
 
               return (
                 <div className="space-y-2">
-                  <label htmlFor="erledigungsNotiz" className="flex items-center gap-2 font-medium text-gray-700 text-sm dark:text-gray-300">
+                  <label htmlFor="erledigungsNotiz" className="flex items-center gap-2 font-medium text-sm text-text-secondary">
                     <PiNotepad className="h-4 w-4" />
                     {requiresNote ? (
                       <>
-                        Pflicht-Notiz zur Erledigung <span className="text-red-500">*</span>
+                        Pflicht-Notiz zur Erledigung <span className="text-status-danger-text">*</span>
                       </>
                     ) : (
                       'Optionale Notiz zur Erledigung'
@@ -193,20 +193,15 @@ export function ErinnerungMarkErledigtDialog({ isOpen, onClose, erinnerung, eins
                     // Story 2.6 Issue 4: Auto-Focus auf Textarea wenn Pflicht-Notiz
                     autoFocus={requiresNote}
                     className={cn(
-                      'w-full rounded-lg border bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 disabled:opacity-50 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500',
-                      hasError
-                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20 dark:border-red-400 dark:focus:border-red-400'
-                        : 'border-gray-300 focus:border-green-500 focus:ring-green-500/20 dark:border-gray-600 dark:focus:border-green-400',
+                      'w-full rounded-control border bg-surface-panel px-3 py-2 text-sm placeholder:text-text-muted focus:outline-none focus-visible:shadow-focus-ring disabled:opacity-50',
+                      hasError ? 'border-status-danger-border focus:border-status-danger-text' : 'border-border-subtle focus:border-status-success-text',
                     )}
                   />
                   {/* Validation Error Message */}
-                  {hasError && <p className="text-red-600 text-xs dark:text-red-400">{field.state.meta.errors[0]}</p>}
+                  {hasError && <p className="text-status-danger-text text-xs">{field.state.meta.errors[0]}</p>}
                   <p
                     id="erledigungsNotiz-hint"
-                    className={cn(
-                      'text-right text-xs',
-                      remainingChars < 0 ? 'font-semibold text-red-600 dark:text-red-400' : remainingChars < 50 ? 'text-amber-600 dark:text-amber-400' : 'text-gray-500 dark:text-gray-400',
-                    )}
+                    className={cn('text-right text-xs', remainingChars < 0 ? 'font-semibold text-status-danger-text' : remainingChars < 50 ? 'text-status-warning-text' : 'text-text-muted')}
                   >
                     {remainingChars < 0 ? 'Zeichenlimit überschritten' : `${remainingChars} Zeichen verbleibend`}
                   </p>

@@ -10,9 +10,7 @@ import { Input } from '@/shared/ui/atoms/input.atom';
 import { Select } from '@/shared/ui/atoms/select.atom';
 import { Textarea } from '@/shared/ui/atoms/textarea.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
-
 const optionalCountSchema = z.union([z.literal(''), z.number().int().min(0, 'Wert muss mindestens 0 sein').max(99, 'Wert darf maximal 99 sein')]);
-
 const createFahrzeugtypSchema = z.object({
   code: z.string().min(2, 'Code muss mindestens 2 Zeichen haben').max(20, 'Code darf maximal 20 Zeichen haben'),
   bezeichnung: z.string().min(2, 'Bezeichnung muss mindestens 2 Zeichen haben').max(100, 'Bezeichnung darf maximal 100 Zeichen haben'),
@@ -24,42 +22,31 @@ const createFahrzeugtypSchema = z.object({
   funktrupp: optionalCountSchema,
   helfer: optionalCountSchema,
 });
-
 interface CreateFahrzeugtypDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: CreateFahrzeugtypDto) => void;
   isSubmitting: boolean;
 }
-
 const KATEGORIE_OPTIONS = [
   { value: 'RETTUNGSDIENST', label: FAHRZEUGTYP_KATEGORIE_LABELS.RETTUNGSDIENST },
   { value: 'FUEHRUNG', label: FAHRZEUGTYP_KATEGORIE_LABELS.FUEHRUNG },
   { value: 'TRANSPORT', label: FAHRZEUGTYP_KATEGORIE_LABELS.TRANSPORT },
   { value: 'SONSTIGES', label: FAHRZEUGTYP_KATEGORIE_LABELS.SONSTIGES },
 ] as const;
-
 const parseCountInput = (value: string): number | '' => {
   if (value.trim() === '') return '';
-
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : '';
 };
-
 const toOptionalInteger = (value: number | ''): number | undefined => {
   if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) {
     return undefined;
   }
-
   return value;
-};
-
-/**
- * Dialog zum Erstellen eines neuen Fahrzeugtyps.
- */
+}; /** * Dialog zum Erstellen eines neuen Fahrzeugtyps. */
 export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmitting }: CreateFahrzeugtypDialogProps) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
-
   const form = useForm({
     defaultValues: {
       code: '',
@@ -73,10 +60,7 @@ export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmittin
       helfer: '' as number | '',
     },
     validatorAdapter: zodValidator(),
-    validators: {
-      onBlur: createFahrzeugtypSchema,
-      onSubmit: createFahrzeugtypSchema,
-    },
+    validators: { onBlur: createFahrzeugtypSchema, onSubmit: createFahrzeugtypSchema },
     onSubmit: ({ value }) => {
       const sollbesatzung: CreateFahrzeugtypDto['sollbesatzung'] = {
         fahrer: toOptionalInteger(value.fahrer),
@@ -85,9 +69,7 @@ export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmittin
         funktrupp: toOptionalInteger(value.funktrupp),
         helfer: toOptionalInteger(value.helfer),
       };
-
       const hasSollbesatzung = Object.values(sollbesatzung).some((entry) => entry !== undefined);
-
       onSubmit({
         code: value.code,
         bezeichnung: value.bezeichnung,
@@ -97,7 +79,6 @@ export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmittin
       });
     },
   });
-
   const handleClose = () => {
     if (!isSubmitting) {
       form.reset();
@@ -105,22 +86,26 @@ export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmittin
       onClose();
     }
   };
-
   return (
     <Dialog isOpen={isOpen} onClose={handleClose}>
-      <Dialog.Title>Neuen Fahrzeugtyp erstellen</Dialog.Title>
-
+      {' '}
+      <Dialog.Title>Neuen Fahrzeugtyp erstellen</Dialog.Title>{' '}
       <form
         onSubmit={(e) => {
           e.preventDefault();
           form.handleSubmit();
         }}
       >
+        {' '}
         <Dialog.Body>
+          {' '}
           <div className="space-y-4">
+            {' '}
             <form.Field name="code">
+              {' '}
               {(field) => (
                 <FormField label="Code" error={field.state.meta.errors[0]} required htmlFor="create-fahrzeugtyp-code">
+                  {' '}
                   <Input
                     id="create-fahrzeugtyp-code"
                     name={field.name}
@@ -130,14 +115,15 @@ export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmittin
                     placeholder="z.B. RTW"
                     variant={field.state.meta.errors.length > 0 ? 'error' : 'default'}
                     fullWidth
-                  />
+                  />{' '}
                 </FormField>
-              )}
-            </form.Field>
-
+              )}{' '}
+            </form.Field>{' '}
             <form.Field name="bezeichnung">
+              {' '}
               {(field) => (
                 <FormField label="Bezeichnung" error={field.state.meta.errors[0]} required htmlFor="create-fahrzeugtyp-bezeichnung">
+                  {' '}
                   <Input
                     id="create-fahrzeugtyp-bezeichnung"
                     name={field.name}
@@ -147,28 +133,30 @@ export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmittin
                     placeholder="z.B. Rettungswagen"
                     variant={field.state.meta.errors.length > 0 ? 'error' : 'default'}
                     fullWidth
-                  />
+                  />{' '}
                 </FormField>
-              )}
-            </form.Field>
-
+              )}{' '}
+            </form.Field>{' '}
             <form.Field name="kategorie">
+              {' '}
               {(field) => (
                 <FormField label="Kategorie" required htmlFor="create-fahrzeugtyp-kategorie">
+                  {' '}
                   <Select
                     id="create-fahrzeugtyp-kategorie"
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value as CreateFahrzeugtypDto['kategorie'])}
                     options={KATEGORIE_OPTIONS.map((option) => ({ ...option }))}
                     fullWidth
-                  />
+                  />{' '}
                 </FormField>
-              )}
-            </form.Field>
-
+              )}{' '}
+            </form.Field>{' '}
             <form.Field name="beschreibung">
+              {' '}
               {(field) => (
                 <FormField label="Beschreibung" error={field.state.meta.errors[0]} htmlFor="create-fahrzeugtyp-beschreibung">
+                  {' '}
                   <Textarea
                     id="create-fahrzeugtyp-beschreibung"
                     name={field.name}
@@ -177,27 +165,32 @@ export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmittin
                     onChange={(e) => field.handleChange(e.target.value)}
                     placeholder="Optionale Beschreibung"
                     rows={3}
-                  />
+                  />{' '}
                 </FormField>
-              )}
-            </form.Field>
-
-            <div className="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+              )}{' '}
+            </form.Field>{' '}
+            <div className="rounded-lg border border-border-subtle p-3">
+              {' '}
               <div className="flex items-center justify-between gap-4">
+                {' '}
                 <div>
-                  <p className="font-medium text-gray-900 text-sm dark:text-gray-100">Sollbesatzung (optional)</p>
-                  <p className="text-gray-500 text-xs dark:text-gray-400">Definiert die empfohlene Besetzung für diesen Fahrzeugtyp.</p>
-                </div>
+                  {' '}
+                  <p className="font-medium text-text-primary text-sm ">Sollbesatzung (optional)</p>{' '}
+                  <p className="text-text-muted text-xs ">Definiert die empfohlene Besetzung für diesen Fahrzeugtyp.</p>{' '}
+                </div>{' '}
                 <Button type="button" size="sm" appearance="ghost" intent="secondary" onClick={() => setShowAdvanced((prev) => !prev)}>
-                  {showAdvanced ? 'Ausblenden' : 'Bearbeiten'}
-                </Button>
-              </div>
-
+                  {' '}
+                  {showAdvanced ? 'Ausblenden' : 'Bearbeiten'}{' '}
+                </Button>{' '}
+              </div>{' '}
               {showAdvanced && (
                 <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {' '}
                   <form.Field name="fahrer">
+                    {' '}
                     {(field) => (
                       <FormField label="Fahrer" error={field.state.meta.errors[0]} htmlFor="create-fahrzeugtyp-fahrer">
+                        {' '}
                         <Input
                           id="create-fahrzeugtyp-fahrer"
                           name={field.name}
@@ -210,14 +203,15 @@ export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmittin
                           placeholder="z.B. 1"
                           variant={field.state.meta.errors.length > 0 ? 'error' : 'default'}
                           fullWidth
-                        />
+                        />{' '}
                       </FormField>
-                    )}
-                  </form.Field>
-
+                    )}{' '}
+                  </form.Field>{' '}
                   <form.Field name="sanitaeter">
+                    {' '}
                     {(field) => (
                       <FormField label="Sanitäter" error={field.state.meta.errors[0]} htmlFor="create-fahrzeugtyp-sanitaeter">
+                        {' '}
                         <Input
                           id="create-fahrzeugtyp-sanitaeter"
                           name={field.name}
@@ -230,14 +224,15 @@ export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmittin
                           placeholder="z.B. 2"
                           variant={field.state.meta.errors.length > 0 ? 'error' : 'default'}
                           fullWidth
-                        />
+                        />{' '}
                       </FormField>
-                    )}
-                  </form.Field>
-
+                    )}{' '}
+                  </form.Field>{' '}
                   <form.Field name="notarzt">
+                    {' '}
                     {(field) => (
                       <FormField label="Notarzt" error={field.state.meta.errors[0]} htmlFor="create-fahrzeugtyp-notarzt">
+                        {' '}
                         <Input
                           id="create-fahrzeugtyp-notarzt"
                           name={field.name}
@@ -250,14 +245,15 @@ export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmittin
                           placeholder="z.B. 1"
                           variant={field.state.meta.errors.length > 0 ? 'error' : 'default'}
                           fullWidth
-                        />
+                        />{' '}
                       </FormField>
-                    )}
-                  </form.Field>
-
+                    )}{' '}
+                  </form.Field>{' '}
                   <form.Field name="funktrupp">
+                    {' '}
                     {(field) => (
                       <FormField label="Funktrupp" error={field.state.meta.errors[0]} htmlFor="create-fahrzeugtyp-funktrupp">
+                        {' '}
                         <Input
                           id="create-fahrzeugtyp-funktrupp"
                           name={field.name}
@@ -270,14 +266,15 @@ export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmittin
                           placeholder="z.B. 0"
                           variant={field.state.meta.errors.length > 0 ? 'error' : 'default'}
                           fullWidth
-                        />
+                        />{' '}
                       </FormField>
-                    )}
-                  </form.Field>
-
+                    )}{' '}
+                  </form.Field>{' '}
                   <form.Field name="helfer">
+                    {' '}
                     {(field) => (
                       <FormField label="Helfer" error={field.state.meta.errors[0]} htmlFor="create-fahrzeugtyp-helfer">
+                        {' '}
                         <Input
                           id="create-fahrzeugtyp-helfer"
                           name={field.name}
@@ -290,29 +287,32 @@ export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmittin
                           placeholder="z.B. 0"
                           variant={field.state.meta.errors.length > 0 ? 'error' : 'default'}
                           fullWidth
-                        />
+                        />{' '}
                       </FormField>
-                    )}
-                  </form.Field>
+                    )}{' '}
+                  </form.Field>{' '}
                 </div>
-              )}
-            </div>
-          </div>
-        </Dialog.Body>
-
+              )}{' '}
+            </div>{' '}
+          </div>{' '}
+        </Dialog.Body>{' '}
         <Dialog.Footer>
+          {' '}
           <Button intent="secondary" appearance="ghost" onClick={handleClose} disabled={isSubmitting}>
-            Abbrechen
-          </Button>
+            {' '}
+            Abbrechen{' '}
+          </Button>{' '}
           <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
+            {' '}
             {([canSubmit, isFormSubmitting]) => (
               <Button type="submit" disabled={!canSubmit || isFormSubmitting || isSubmitting} loading={isSubmitting || isFormSubmitting}>
-                Fahrzeugtyp erstellen
+                {' '}
+                Fahrzeugtyp erstellen{' '}
               </Button>
-            )}
-          </form.Subscribe>
-        </Dialog.Footer>
-      </form>
+            )}{' '}
+          </form.Subscribe>{' '}
+        </Dialog.Footer>{' '}
+      </form>{' '}
     </Dialog>
   );
 };

@@ -198,8 +198,8 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
   return (
     <Dialog isOpen={isOpen} onClose={handleClose} size="sm">
       <div className="flex items-center gap-3">
-        <div className="rounded-full bg-blue-100 p-2 dark:bg-blue-900/30">
-          <PiPencil className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        <div className="rounded-full bg-status-info-surface p-2">
+          <PiPencil className="h-5 w-5 text-status-info-text" />
         </div>
         <Dialog.Title>Erinnerung bearbeiten</Dialog.Title>
       </div>
@@ -218,7 +218,7 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
           <form.Field name="titel">
             {(field) => (
               <div>
-                <label htmlFor="edit-titel" className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
+                <label htmlFor="edit-titel" className="mb-1.5 block font-medium text-sm text-text-secondary">
                   Titel
                 </label>
                 <Input
@@ -232,7 +232,7 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
                   maxLength={100}
                   autoFocus
                 />
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-red-600 text-sm dark:text-red-400">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-sm text-status-danger-text">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
@@ -245,7 +245,7 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
                   <form.Field name="customTime">
                     {(customTimeField) => (
                       <fieldset className="m-0 border-none p-0">
-                        <legend className="mb-2 font-medium text-gray-700 text-sm dark:text-gray-300">Faelligkeit</legend>
+                        <legend className="mb-2 font-medium text-sm text-text-secondary">Faelligkeit</legend>
 
                         {/* Zeit-Optionen als Chips */}
                         <div className="flex flex-wrap gap-2">
@@ -259,10 +259,10 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
                             disabled={isPending}
                             className={cn(
                               'min-h-[48px] rounded-full px-4 py-2 font-medium text-sm transition-all duration-200',
-                              'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800',
+                              'focus:outline-none focus-visible:shadow-focus-ring',
                               timeModeField.state.value === 'unchanged'
-                                ? 'bg-blue-500 text-white shadow-md hover:bg-blue-600'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600',
+                                ? 'bg-action-primary text-text-inverse shadow-md hover:bg-action-primary-hover'
+                                : 'bg-surface-raised text-text-secondary hover:bg-action-secondary',
                               isPending && 'cursor-not-allowed opacity-50',
                             )}
                           >
@@ -282,10 +282,10 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
                               disabled={isPending}
                               className={cn(
                                 'min-h-[48px] rounded-full px-4 py-2 font-medium text-sm transition-all duration-200',
-                                'focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800',
+                                'focus:outline-none focus-visible:shadow-focus-ring',
                                 timeModeField.state.value === 'preset' && minutenField.state.value === preset.value
-                                  ? 'bg-amber-500 text-white shadow-md hover:bg-amber-600'
-                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600',
+                                  ? 'bg-status-warning-text text-text-inverse shadow-md hover:opacity-90'
+                                  : 'bg-surface-raised text-text-secondary hover:bg-action-secondary',
                                 isPending && 'cursor-not-allowed opacity-50',
                               )}
                             >
@@ -307,10 +307,10 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
                             disabled={isPending}
                             className={cn(
                               'flex min-h-[48px] items-center gap-1.5 rounded-full px-4 py-2 font-medium text-sm transition-all duration-200',
-                              'focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800',
+                              'focus:outline-none focus-visible:shadow-focus-ring',
                               timeModeField.state.value === 'custom'
-                                ? 'bg-amber-500 text-white shadow-md hover:bg-amber-600'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600',
+                                ? 'bg-status-warning-text text-text-inverse shadow-md hover:opacity-90'
+                                : 'bg-surface-raised text-text-secondary hover:bg-action-secondary',
                               isPending && 'cursor-not-allowed opacity-50',
                             )}
                           >
@@ -322,25 +322,25 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
                         {/* TimeInput erscheint bei Benutzerdefiniert */}
                         {timeModeField.state.value === 'custom' && (
                           <div className="mt-4">
-                            <span className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">Uhrzeit eingeben</span>
+                            <span className="mb-1.5 block font-medium text-sm text-text-secondary">Uhrzeit eingeben</span>
                             <TimeInput
                               value={customTimeField.state.value ?? initialCustomTime}
                               onChange={(newTime) => customTimeField.handleChange(newTime)}
                               disabled={isPending}
                               error={customTimeField.state.meta.errors.length > 0}
                             />
-                            {customTimeField.state.meta.errors.length > 0 && <p className="mt-1 text-red-600 text-sm dark:text-red-400">{formatErrors(customTimeField.state.meta.errors)}</p>}
+                            {customTimeField.state.meta.errors.length > 0 && <p className="mt-1 text-sm text-status-danger-text">{formatErrors(customTimeField.state.meta.errors)}</p>}
                           </div>
                         )}
 
                         {/* Validation Errors für minuten (bei preset mode) */}
                         {timeModeField.state.value === 'preset' && minutenField.state.meta.errors.length > 0 && (
-                          <p className="mt-1 text-red-600 text-sm dark:text-red-400">{formatErrors(minutenField.state.meta.errors)}</p>
+                          <p className="mt-1 text-sm text-status-danger-text">{formatErrors(minutenField.state.meta.errors)}</p>
                         )}
 
                         {/* Info: Aktuelle Faelligkeit anzeigen wenn 'unchanged' */}
                         {timeModeField.state.value === 'unchanged' && erinnerung.faelligAm && (
-                          <p className="mt-2 text-gray-500 text-sm dark:text-gray-400">
+                          <p className="mt-2 text-sm text-text-muted">
                             Aktuelle Faelligkeit:{' '}
                             {new Date(erinnerung.faelligAm).toLocaleString('de-DE', {
                               day: '2-digit',
@@ -361,19 +361,19 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
 
           {/* Story 4.1: Eskalationsperson - Story 4.10: Nicht änderbar wenn Rückläufer aktiv */}
           {(erinnerung as unknown as { eskalationNurAnErsteller?: boolean })?.eskalationNurAnErsteller ? (
-            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-900/20">
-              <p className="flex items-center gap-2 font-medium text-amber-800 text-sm dark:text-amber-200">
+            <div className="rounded-panel border border-status-warning-border bg-status-warning-surface p-3">
+              <p className="flex items-center gap-2 font-medium text-sm text-status-warning-text">
                 <span className="text-base">↩️</span>
                 Rückläufer aktiv
               </p>
-              <p className="mt-1 text-amber-700 text-xs dark:text-amber-300">Eskalation geht automatisch an den Ersteller zurück. Diese Einstellung kann nicht geändert werden.</p>
+              <p className="mt-1 text-status-warning-text text-xs">Eskalation geht automatisch an den Ersteller zurück. Diese Einstellung kann nicht geändert werden.</p>
             </div>
           ) : (
             <form.Field name="eskalationsPersonId">
               {(field) => (
                 <div>
-                  <label htmlFor="edit-eskalationsPersonId" className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
-                    Eskalation an <span className="text-gray-400 text-xs">(optional)</span>
+                  <label htmlFor="edit-eskalationsPersonId" className="mb-1.5 block font-medium text-sm text-text-secondary">
+                    Eskalation an <span className="text-text-muted text-xs">(optional)</span>
                   </label>
                   <AssigneeSelector
                     einsatzId={einsatzId}
@@ -384,7 +384,7 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
                     error={field.state.meta.errors.length > 0 ? formatErrors(field.state.meta.errors) : undefined}
                     placeholder="Keine Eskalation"
                   />
-                  <p className="mt-1 text-gray-500 text-xs dark:text-gray-400">Wird benachrichtigt, wenn Zuweisungsempfänger nicht reagiert</p>
+                  <p className="mt-1 text-text-muted text-xs">Wird benachrichtigt, wenn Zuweisungsempfänger nicht reagiert</p>
                 </div>
               )}
             </form.Field>
@@ -394,8 +394,8 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
           <form.Field name="beschreibung">
             {(field) => (
               <div>
-                <label htmlFor="edit-beschreibung" className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-300">
-                  Beschreibung <span className="text-gray-400 text-xs">(optional)</span>
+                <label htmlFor="edit-beschreibung" className="mb-1.5 block font-medium text-sm text-text-secondary">
+                  Beschreibung <span className="text-text-muted text-xs">(optional)</span>
                 </label>
                 <textarea
                   id="edit-beschreibung"
@@ -406,33 +406,22 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
                   maxLength={500}
                   rows={3}
                   className={cn(
-                    'block w-full rounded-lg border bg-white px-4 py-2.5 font-medium text-gray-900 transition-colors duration-200',
-                    'placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-opacity-20',
+                    'block w-full rounded-control border bg-surface-panel px-4 py-2.5 font-medium text-text-primary transition-colors duration-200',
+                    'placeholder:text-text-muted focus:outline-none focus-visible:shadow-focus-ring',
                     'disabled:cursor-not-allowed disabled:opacity-50',
-                    'dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-500',
                     'resize-none',
                     field.state.meta.errors.length > 0
-                      ? [
-                          'border-red-500 hover:border-red-600',
-                          'focus:border-red-500 focus:bg-white focus:ring-red-500',
-                          'dark:border-red-400 dark:hover:border-red-500',
-                          'dark:focus:border-red-400 dark:focus:bg-gray-900 dark:focus:ring-red-400',
-                        ]
-                      : [
-                          'border-gray-300 hover:border-gray-400',
-                          'focus:border-primary-500 focus:bg-white focus:ring-primary-500',
-                          'dark:border-gray-700 dark:hover:border-gray-600',
-                          'dark:focus:border-primary-400 dark:focus:bg-gray-900 dark:focus:ring-primary-400',
-                        ],
+                      ? ['border-status-danger-border hover:border-status-danger-text', 'focus:border-status-danger-text']
+                      : ['border-border-subtle hover:border-border-strong', 'focus:border-action-primary'],
                   )}
                 />
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-red-600 text-sm dark:text-red-400">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-sm text-status-danger-text">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
 
           {/* API Error Message */}
-          {apiErrorMessage && <div className="rounded-lg bg-red-50 p-3 text-red-700 text-sm dark:bg-red-900/20 dark:text-red-400">{apiErrorMessage}</div>}
+          {apiErrorMessage && <div className="rounded-panel bg-status-danger-surface p-3 text-sm text-status-danger-text">{apiErrorMessage}</div>}
         </form>
       </Dialog.Body>
 

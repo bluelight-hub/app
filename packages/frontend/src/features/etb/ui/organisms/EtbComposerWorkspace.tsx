@@ -281,7 +281,7 @@ export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbCompose
           <div>
             {/* Breadcrumb/Context-Hint */}
             <nav aria-label="ETB-Kontext-Navigation">
-              <p className="text-gray-500 text-sm dark:text-gray-400">
+              <p className="text-sm text-text-muted">
                 <span>Führung</span>
                 <span className="mx-1.5" aria-hidden="true">
                   →
@@ -292,19 +292,19 @@ export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbCompose
                     <span className="mx-1.5" aria-hidden="true">
                       ·
                     </span>
-                    <span className="font-medium text-gray-700 dark:text-gray-300">{einsatz.name}</span>
+                    <span className="font-medium text-text-secondary">{einsatz.name}</span>
                   </>
                 )}
               </p>
             </nav>
             {/* Titel + Status */}
             <div className="mt-1 flex items-center gap-3">
-              <h1 id="composer-heading" className="font-semibold text-2xl text-gray-900 dark:text-gray-100">
+              <h1 id="composer-heading" className="font-semibold text-2xl text-text-primary">
                 Einsatztagebuch
               </h1>
               {etb?.status && <EtbStatusBadge status={etb.status as EtbStatus} showDot />}
             </div>
-            <p className="mt-1 text-gray-500 text-sm dark:text-gray-400">Dokumentiere alle wichtigen Ereignisse und Maßnahmen während des Einsatzes.</p>
+            <p className="mt-1 text-sm text-text-muted">Dokumentiere alle wichtigen Ereignisse und Maßnahmen während des Einsatzes.</p>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -313,7 +313,7 @@ export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbCompose
               aria-disabled={isRefreshPending}
               disabled={isRefreshPending}
               className={cn(
-                'inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-2 text-gray-700 text-sm shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 focus:outline-none focus-visible:shadow-focus-ring dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600',
+                'inline-flex items-center gap-1.5 rounded-md bg-surface-panel px-3 py-2 text-sm text-text-secondary shadow-sm ring-1 ring-border-subtle ring-inset hover:bg-surface-raised focus:outline-none focus-visible:shadow-focus-ring',
                 isRefreshPending && 'cursor-not-allowed opacity-50',
               )}
               title="Aktualisieren"
@@ -324,7 +324,7 @@ export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbCompose
             <button
               type="button"
               onClick={() => setIsHistoryModalOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-2 text-gray-700 text-sm shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 focus:outline-none focus-visible:shadow-focus-ring dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600"
+              className="inline-flex items-center gap-1.5 rounded-md bg-surface-panel px-3 py-2 text-sm text-text-secondary shadow-sm ring-1 ring-border-subtle ring-inset hover:bg-surface-raised focus:outline-none focus-visible:shadow-focus-ring"
               title="Versionshistorie anzeigen"
             >
               <PiClockCounterClockwise className="h-4 w-4" aria-hidden="true" />
@@ -339,21 +339,21 @@ export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbCompose
           <div
             role="alertdialog"
             aria-label="Ungespeicherter Eintrag"
-            className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-700 dark:bg-amber-900/20"
+            className="flex items-center justify-between rounded-panel border border-status-warning-border bg-status-warning-surface px-4 py-3"
           >
-            <p className="text-amber-800 text-sm dark:text-amber-200">Du hast einen ungespeicherten Eintrag. Möchtest du die Seite verlassen? Der Entwurf bleibt erhalten.</p>
+            <p className="text-sm text-status-warning-text">Du hast einen ungespeicherten Eintrag. Möchtest du die Seite verlassen? Der Entwurf bleibt erhalten.</p>
             <div className="ml-4 flex shrink-0 items-center gap-2">
               <button
                 type="button"
                 onClick={() => navBlocker.reset()}
-                className="rounded-md px-3 py-1.5 font-medium text-amber-800 text-xs hover:bg-amber-100 focus:outline-none focus-visible:shadow-focus-ring dark:text-amber-200 dark:hover:bg-amber-800"
+                className="rounded-control px-3 py-1.5 font-medium text-status-warning-text text-xs hover:bg-status-warning-surface/80 focus:outline-none focus-visible:shadow-focus-ring"
               >
                 Bleiben
               </button>
               <button
                 type="button"
                 onClick={() => navBlocker.proceed()}
-                className="rounded-md bg-amber-600 px-3 py-1.5 font-medium text-white text-xs hover:bg-amber-700 focus:outline-none focus-visible:shadow-focus-ring"
+                className="rounded-control bg-status-warning-text px-3 py-1.5 font-medium text-text-inverse text-xs hover:opacity-90 focus:outline-none focus-visible:shadow-focus-ring"
               >
                 Verlassen
               </button>
@@ -368,28 +368,28 @@ export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbCompose
         {!readOnly && pendingDraft && !editingEntry && <EtbDraftResumeBanner draft={pendingDraft} onRestore={handleRestoreDraft} onDiscard={handleDiscardDraft} />}
 
         {/* Story 3.5: Draft-Loading-Skeleton (300ms-Gate) */}
-        {isLoadingDraft && showDraftLoadingSkeleton && <div className="h-12 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800" role="status" aria-label="Draft wird geladen" />}
+        {isLoadingDraft && showDraftLoadingSkeleton && <div className="h-12 animate-pulse rounded-lg bg-surface-raised" role="status" aria-label="Draft wird geladen" />}
 
         {/* Story 3.5: Discard-Reason Inline-Meldung */}
         {discardReason && (
-          <div role="status" aria-live="polite" className="rounded-md bg-gray-50 px-3 py-2 text-sm text-text-secondary dark:bg-gray-800">
+          <div role="status" aria-live="polite" className="rounded-md bg-surface-raised px-3 py-2 text-sm text-text-secondary">
             {discardReason}
           </div>
         )}
 
         {/* Eingabeformular */}
         {readOnly ? (
-          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20" role="status" aria-live="polite">
-            <p className="text-center text-blue-700 dark:text-blue-400">Sie sehen das ETB im Lesemodus. Ihre Einsatzrolle erlaubt keine Bearbeitung.</p>
+          <div className="rounded-lg border border-status-info-border bg-status-info-surface p-4" role="status" aria-live="polite">
+            <p className="text-center text-status-info-text">Sie sehen das ETB im Lesemodus. Ihre Einsatzrolle erlaubt keine Bearbeitung.</p>
           </div>
         ) : etb.status === 'LOCKED' ? (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20" role="alert">
-            <p className="text-center text-red-700 dark:text-red-400">Das ETB ist gesperrt. Neue Einträge können nicht hinzugefügt werden.</p>
+          <div className="rounded-lg border border-status-danger-border bg-status-danger-surface p-4" role="alert">
+            <p className="text-center text-status-danger-text">Das ETB ist gesperrt. Neue Einträge können nicht hinzugefügt werden.</p>
           </div>
         ) : (
-          <div className="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
+          <div className="rounded-lg bg-surface-panel p-4 shadow">
             <div className="mb-4">
-              <h2 className="font-medium text-gray-900 text-lg dark:text-gray-100">Neuer Eintrag</h2>
+              <h2 className="font-medium text-lg text-text-primary">Neuer Eintrag</h2>
             </div>
             <EtbEntryForm
               etbId={etb.id}
@@ -408,16 +408,16 @@ export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbCompose
         )}
 
         {/* Eintragliste mit Infinite Scrolling */}
-        <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
-          <div className="border-gray-200 border-b px-4 py-4 dark:border-gray-700">
-            <h2 className="font-medium text-gray-900 text-lg dark:text-gray-100">
+        <div className="overflow-hidden rounded-lg bg-surface-panel shadow">
+          <div className="border-b border-border-subtle px-4 py-4">
+            <h2 className="font-medium text-lg text-text-primary">
               Einträge
               {data?.pages?.[0]?.pagination?.total ? (
-                <span className="ml-2 text-gray-500 text-sm dark:text-gray-400">
+                <span className="ml-2 text-sm text-text-muted">
                   ({allEntries.length} von {data.pages[0].pagination.total} geladen)
                 </span>
               ) : (
-                <span className="ml-2 text-gray-500 text-sm dark:text-gray-400">({allEntries.length})</span>
+                <span className="ml-2 text-sm text-text-muted">({allEntries.length})</span>
               )}
             </h2>
           </div>

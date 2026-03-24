@@ -13,7 +13,7 @@ describe('Select Atom', () => {
     render(<Select options={options} data-testid="select" />);
     const select = screen.getByTestId('select');
     expect(select).toBeInTheDocument();
-    expect(select).toHaveClass('border-gray-300'); // Default variant
+    expect(select).toHaveClass('border-border-subtle'); // Default variant
     expect(select).toHaveClass('px-3'); // Default size (md)
   });
 
@@ -33,7 +33,7 @@ describe('Select Atom', () => {
   it('should apply variant classes', () => {
     render(<Select options={options} variant="error" data-testid="select" />);
     const select = screen.getByTestId('select');
-    expect(select).toHaveClass('border-red-300');
+    expect(select).toHaveClass('border-status-danger-border');
   });
 
   it('should apply size classes', () => {

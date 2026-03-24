@@ -43,15 +43,15 @@ export const Checkbox = ({ checked, onChange, id, name, disabled = false, classN
       id={id}
       name={name}
       className={cn(
-        'group flex h-4 w-4 items-center justify-center rounded border transition-colors',
-        'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
-        'border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-800',
-        'data-[checked]:border-blue-600 data-[checked]:bg-blue-600',
+        'group flex h-4 w-4 items-center justify-center rounded-control border transition-colors',
+        'border-border-subtle bg-surface-panel',
+        'focus-visible:shadow-focus-ring focus-visible:outline-none',
+        'data-[checked]:border-action-primary data-[checked]:bg-action-primary',
         disabled && 'cursor-not-allowed opacity-50',
         className,
       )}
     >
-      <PiCheck className="hidden h-3.5 w-3.5 text-white group-data-[checked]:block" strokeWidth={3} />
+      <PiCheck className="hidden h-3.5 w-3.5 text-text-inverse group-data-[checked]:block" strokeWidth={3} />
     </HeadlessCheckbox>
   );
 };

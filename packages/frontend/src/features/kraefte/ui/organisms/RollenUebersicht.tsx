@@ -76,8 +76,8 @@ function RollenUebersichtSkeleton() {
   return (
     <>
       <div className="mb-4 flex items-center justify-between">
-        <div className="h-5 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
-        <div className="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+        <div className="h-5 w-32 animate-pulse rounded bg-surface-raised" />
+        <div className="h-4 w-16 animate-pulse rounded bg-surface-raised" />
       </div>
       <div className={gridClasses}>
         {[1, 2, 3].map((i) => (
@@ -114,7 +114,7 @@ export function RollenUebersicht({ einsatzId, onFreigebeClick, onBesetzeClick, c
   // Loading State
   if (isLoading) {
     return (
-      <div className={cn('rounded-lg border bg-white dark:bg-gray-800', containerClasses, className)}>
+      <div className={cn('rounded-panel border border-border-subtle bg-surface-panel', containerClasses, className)}>
         <RollenUebersichtSkeleton />
       </div>
     );
@@ -130,11 +130,11 @@ export function RollenUebersicht({ einsatzId, onFreigebeClick, onBesetzeClick, c
   // Compact: Inline-Liste statt Grid (platzsparend für Tablets)
   if (mode === 'compact') {
     return (
-      <div className={cn('rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800', containerClasses, className)}>
+      <div className={cn('rounded-panel border border-border-subtle bg-surface-panel', containerClasses, className)}>
         <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="font-medium text-gray-600 text-sm dark:text-gray-400">Rollen</span>
-            <span className="text-gray-500 text-xs">{besetzteCount} besetzt</span>
+            <span className="font-medium text-text-secondary text-sm">Rollen</span>
+            <span className="text-text-muted text-xs">{besetzteCount} besetzt</span>
           </div>
           {/* Story TD2.5 AC3: "Rolle besetzen" Button für Compact Mode mit min-touch-target */}
           {onBesetzeClick && (
@@ -142,9 +142,8 @@ export function RollenUebersicht({ einsatzId, onFreigebeClick, onBesetzeClick, c
               type="button"
               onClick={onBesetzeClick}
               className={cn(
-                'flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg bg-blue-600 text-white transition-colors',
-                'hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
-                'dark:bg-blue-500 dark:hover:bg-blue-600',
+                'flex min-h-[44px] min-w-[44px] items-center justify-center rounded-control bg-action-primary text-text-inverse transition-colors',
+                'hover:bg-action-primary-hover focus:outline-none focus-visible:shadow-focus-ring',
               )}
               aria-label="Neue Rolle besetzen"
             >
@@ -156,14 +155,14 @@ export function RollenUebersicht({ einsatzId, onFreigebeClick, onBesetzeClick, c
         {besetzungen && besetzungen.length > 0 ? (
           <div className="space-y-1">
             {besetzungen.map((b) => (
-              <div key={b.id} className="flex items-center justify-between rounded bg-gray-50 px-2 py-1 dark:bg-gray-700">
-                <span className="font-medium text-gray-700 text-xs dark:text-gray-300">{b.rollenName}</span>
-                <span className="text-gray-600 text-xs dark:text-gray-400">{b.personName}</span>
+              <div key={b.id} className="flex items-center justify-between rounded-control bg-surface-raised px-2 py-1">
+                <span className="font-medium text-text-secondary text-xs">{b.rollenName}</span>
+                <span className="text-text-muted text-xs">{b.personName}</span>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-center text-gray-500 text-xs">Keine Rollen besetzt</p>
+          <p className="text-center text-text-muted text-xs">Keine Rollen besetzt</p>
         )}
       </div>
     );
@@ -171,24 +170,23 @@ export function RollenUebersicht({ einsatzId, onFreigebeClick, onBesetzeClick, c
 
   // Standard & Fullscreen: Vollständige Karten im Grid
   return (
-    <div className={cn('rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800', containerClasses, className)}>
+    <div className={cn('rounded-panel border border-border-subtle bg-surface-panel shadow-panel', containerClasses, className)}>
       {/* Header (AC5, AC7) */}
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <PiUsers className={cn('text-gray-500', mode === 'fullscreen' ? 'h-6 w-6' : 'h-5 w-5')} />
-          <h3 className={cn('font-semibold text-gray-900 dark:text-gray-100', mode === 'fullscreen' ? 'text-xl lg:text-2xl' : 'text-base')}>Führungsrollen</h3>
+          <PiUsers className={cn('text-text-muted', mode === 'fullscreen' ? 'h-6 w-6' : 'h-5 w-5')} />
+          <h3 className={cn('font-semibold text-text-primary', mode === 'fullscreen' ? 'text-xl lg:text-2xl' : 'text-base')}>Führungsrollen</h3>
         </div>
         <div className="flex items-center gap-3">
-          <span className={cn('text-gray-500', mode === 'fullscreen' ? 'text-base' : 'text-sm')}>{besetzteCount} besetzt</span>
+          <span className={cn('text-text-muted', mode === 'fullscreen' ? 'text-base' : 'text-sm')}>{besetzteCount} besetzt</span>
           {/* Story TD2.5 AC2+AC3: "Rolle besetzen" Button mit mode-aware min-height */}
           {onBesetzeClick && (
             <button
               type="button"
               onClick={onBesetzeClick}
               className={cn(
-                'flex items-center gap-2 rounded-lg bg-blue-600 font-medium text-white transition-colors',
-                'hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
-                'dark:bg-blue-500 dark:hover:bg-blue-600',
+                'flex items-center gap-2 rounded-control bg-action-primary font-medium text-text-inverse transition-colors',
+                'hover:bg-action-primary-hover focus:outline-none focus-visible:shadow-focus-ring',
                 // AC3: Mode-aware min-height für Touch-Targets
                 mode === 'fullscreen' ? 'min-h-[56px] px-4 py-3 text-base' : 'px-3 py-1.5 text-sm',
               )}
@@ -201,7 +199,7 @@ export function RollenUebersicht({ einsatzId, onFreigebeClick, onBesetzeClick, c
           <button
             type="button"
             onClick={() => refetch()}
-            className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700"
+            className="rounded-control p-1 text-text-muted hover:bg-action-secondary hover:text-text-secondary focus:outline-none focus-visible:shadow-focus-ring"
             title="Aktualisieren"
             aria-label="Aktualisieren"
           >
@@ -211,7 +209,7 @@ export function RollenUebersicht({ einsatzId, onFreigebeClick, onBesetzeClick, c
       </div>
 
       {/* Last Updated (AC7) */}
-      {dataUpdatedAt && <p className={cn('mb-3 text-gray-400', mode === 'fullscreen' ? 'text-sm' : 'text-xs')}>Aktualisiert: {formatTime(dataUpdatedAt)}</p>}
+      {dataUpdatedAt && <p className={cn('mb-3 text-text-muted', mode === 'fullscreen' ? 'text-sm' : 'text-xs')}>Aktualisiert: {formatTime(dataUpdatedAt)}</p>}
 
       {/* Grid oder Empty State */}
       {besetzungen && besetzungen.length > 0 ? (
@@ -222,7 +220,7 @@ export function RollenUebersicht({ einsatzId, onFreigebeClick, onBesetzeClick, c
         </div>
       ) : (
         /* Empty State (AC1b) */
-        <div className="flex flex-col items-center py-8 text-gray-500">
+        <div className="flex flex-col items-center py-8 text-text-muted">
           <PiUsers className="mb-2 h-12 w-12 opacity-50" />
           <p className="text-sm">Keine Rollen besetzt</p>
         </div>

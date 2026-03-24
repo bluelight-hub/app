@@ -3,7 +3,7 @@ import { PiX } from 'react-icons/pi';
 
 export interface FilterChipProps {
   label: string;
-  /** Tailwind color class for background/border (z.B. 'bg-indigo-100 border-indigo-300') */
+  /** Tailwind-Klasse für Badge-Farben, z.B. `bg-status-info-surface border-status-info-border text-status-info-text` */
   colorClass?: string;
   /** Hex-Code für Kategorie-Farbe (überschreibt colorClass) */
   kategorieColor?: string;
@@ -11,7 +11,7 @@ export interface FilterChipProps {
   className?: string;
 }
 
-export function FilterChip({ label, colorClass = 'bg-gray-100 border-gray-300 text-gray-700', kategorieColor, onRemove, className }: FilterChipProps) {
+export function FilterChip({ label, colorClass = 'bg-surface-raised border-border-subtle text-text-secondary', kategorieColor, onRemove, className }: FilterChipProps) {
   const colorStyle = kategorieColor ? { backgroundColor: `${kategorieColor}20`, borderColor: kategorieColor } : undefined;
 
   return (
@@ -20,8 +20,7 @@ export function FilterChip({ label, colorClass = 'bg-gray-100 border-gray-300 te
         'inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 font-medium text-xs',
         'transition-colors duration-150',
         !kategorieColor && colorClass,
-        kategorieColor && 'text-gray-900 dark:text-gray-100',
-        'dark:border-opacity-50 dark:bg-opacity-20',
+        kategorieColor && 'text-text-primary',
         className,
       )}
       style={colorStyle}
@@ -35,9 +34,8 @@ export function FilterChip({ label, colorClass = 'bg-gray-100 border-gray-300 te
         onClick={onRemove}
         className={cn(
           'ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded-full',
-          'text-current opacity-60 hover:bg-black/10 hover:opacity-100',
-          'focus:outline-none focus:ring-2 focus:ring-primary-500',
-          'dark:hover:bg-white/20',
+          'text-current opacity-60 hover:bg-surface-inverse/10 hover:opacity-100',
+          'focus:outline-none focus-visible:shadow-focus-ring',
         )}
         aria-label={`Filter "${label}" entfernen`}
       >

@@ -48,13 +48,10 @@ export function TimeInput({ value, onChange, disabled = false, error = false, cl
   const [minutesInput, setMinutesInput] = useState<string | null>(null);
 
   const baseInputStyles = cn(
-    'w-14 rounded-lg border bg-white px-2 py-2.5 text-center font-medium text-gray-900 transition-colors duration-200',
-    'focus:outline-none focus:ring-2 focus:ring-opacity-20',
+    'w-14 rounded-control border bg-surface-panel px-2 py-2.5 text-center font-medium text-text-primary transition-colors duration-200',
+    'focus:outline-none focus-visible:shadow-focus-ring',
     'disabled:cursor-not-allowed disabled:opacity-50',
-    'dark:bg-gray-900 dark:text-white',
-    error
-      ? 'border-red-500 hover:border-red-600 focus:border-red-500 focus:ring-red-500 dark:border-red-400 dark:hover:border-red-500 dark:focus:border-red-400 dark:focus:ring-red-400'
-      : 'border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:hover:border-gray-600 dark:focus:border-primary-400 dark:focus:ring-primary-400',
+    error ? 'border-status-danger-border hover:border-status-danger-text focus:border-status-danger-text' : 'border-border-subtle hover:border-border-strong focus:border-action-primary',
   );
 
   const handleHoursChange = useCallback(
@@ -145,7 +142,7 @@ export function TimeInput({ value, onChange, disabled = false, error = false, cl
         onBlur={handleHoursBlur}
         disabled={disabled}
       />
-      <span className="font-medium text-gray-500 text-lg dark:text-gray-400">:</span>
+      <span className="font-medium text-lg text-text-muted">:</span>
       <input
         ref={minutesRef}
         type="text"

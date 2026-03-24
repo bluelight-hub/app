@@ -13,9 +13,9 @@ export function ErrorState({ title = 'Fehler aufgetreten', description = 'Die an
   return (
     <div className="flex h-screen items-center justify-center">
       <div className="text-center">
-        <PiWarningCircle className="mx-auto h-16 w-16 text-red-500" />
-        <p className="mt-4 font-medium text-gray-900 text-xl">{title}</p>
-        <p className="mt-2 text-gray-600">{description}</p>
+        <PiWarningCircle className="mx-auto h-16 w-16 text-status-danger-text" />
+        <p className="mt-4 font-medium text-text-primary text-xl">{title}</p>
+        <p className="mt-2 text-text-secondary">{description}</p>
         <Link to={backLink} className="mt-6 inline-block">
           <Button>
             <PiArrowLeft className="mr-2 h-5 w-5" />

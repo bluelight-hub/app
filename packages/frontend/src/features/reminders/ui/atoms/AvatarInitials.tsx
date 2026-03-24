@@ -68,9 +68,8 @@ export function AvatarInitials({ name, size = 'md', className }: AvatarInitialsP
       className={cn(
         // Base styles
         'inline-flex items-center justify-center rounded-full font-medium',
-        // Colors: Light + Dark Mode
-        'bg-blue-100 text-blue-700',
-        'dark:bg-blue-900/40 dark:text-blue-300',
+        // Colors
+        'bg-action-secondary text-action-primary',
         // Size
         SIZE_CLASSES[size],
         // Custom classes

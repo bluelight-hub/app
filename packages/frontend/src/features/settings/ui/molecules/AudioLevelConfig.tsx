@@ -38,9 +38,9 @@ const LEVEL_ICONS: Record<AlarmLevel, React.ElementType> = {
  * Farb-Mapping für Alarm-Level (für visuelles Feedback)
  */
 const LEVEL_COLORS: Record<AlarmLevel, string> = {
-  info: 'text-blue-500 dark:text-blue-400',
-  warning: 'text-yellow-500 dark:text-yellow-400',
-  urgent: 'text-red-500 dark:text-red-400',
+  info: 'text-action-primary',
+  warning: 'text-status-warning-text',
+  urgent: 'text-status-danger-text',
 };
 
 /**
@@ -119,11 +119,11 @@ export function AudioLevelConfig({ level, config, onChange, disabled = false, cl
   }, [level, config.sound, config.volume, isPreviewPlaying, disabled]);
 
   return (
-    <div className={cn('rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50', disabled && 'opacity-50', className)}>
+    <div className={cn('rounded-panel border border-border-subtle bg-surface-raised p-4', disabled && 'opacity-50', className)}>
       {/* Header mit Icon und Level-Name */}
       <div className="mb-4 flex items-center gap-2">
         <Icon className={cn('h-5 w-5', levelColor)} aria-hidden="true" />
-        <span className="font-medium text-gray-900 dark:text-white">{levelLabel}</span>
+        <span className="font-medium text-text-primary">{levelLabel}</span>
       </div>
 
       {/* Konfigurationsfelder */}

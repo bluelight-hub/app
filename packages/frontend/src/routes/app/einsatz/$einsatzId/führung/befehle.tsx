@@ -107,7 +107,7 @@ function BefehleSeite() {
       <ConnectionStatusBanner isConnected={isConnected} />
 
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-gray-200 border-b px-4 py-2 dark:border-gray-700">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-border-subtle border-b px-4 py-2">
         <div className="flex items-center gap-2">
           {/* Neuer Befehl Button */}
           {isPermissionsLoading ? (
@@ -137,7 +137,7 @@ function BefehleSeite() {
               <span
                 className={cn(
                   'ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 font-bold text-xs',
-                  showMeineBefehle ? 'bg-white/20 text-white' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
+                  showMeineBefehle ? 'bg-white/20 text-white' : 'bg-status-warning-surface text-status-warning-text',
                 )}
               >
                 {unquittiertCount}
@@ -151,9 +151,7 @@ function BefehleSeite() {
             onClick={() => setIsMobileFilterOpen((prev) => !prev)}
             className={cn(
               'inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 font-medium text-sm transition-colors',
-              hasFilters
-                ? 'border-primary-300 bg-primary-50 text-primary-700 dark:border-primary-600 dark:bg-primary-900/20 dark:text-primary-300'
-                : 'border-gray-300 text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-800',
+              hasFilters ? 'border-action-primary/35 bg-primary-50 text-action-primary' : 'border-border-subtle text-text-secondary hover:bg-action-secondary hover:text-text-primary',
             )}
             aria-expanded={isMobileFilterOpen}
             aria-controls="befehl-filter-panel"
@@ -167,7 +165,7 @@ function BefehleSeite() {
 
         <div className="flex items-center gap-3">
           {/* Ergebnis-Count */}
-          <span className="text-gray-500 text-sm dark:text-gray-400" aria-live="polite">
+          <span className="text-text-muted text-sm" aria-live="polite">
             {aktiveBefehle ? `${aktiveBefehle.length} Befehle` : ''}
           </span>
 
@@ -176,7 +174,7 @@ function BefehleSeite() {
             <button
               type="button"
               disabled
-              className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-md px-2.5 py-1.5 font-medium text-gray-400 text-sm dark:text-gray-600"
+              className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-md px-2.5 py-1.5 font-medium text-text-muted text-sm"
               aria-label="Berechtigungen werden geladen"
             >
               <PiExport className="h-4 w-4" aria-hidden="true" />
@@ -186,7 +184,7 @@ function BefehleSeite() {
             <button
               type="button"
               onClick={() => setIsExportDialogOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 font-medium text-gray-600 text-sm hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+              className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 font-medium text-text-secondary text-sm hover:bg-action-secondary hover:text-text-primary focus:outline-none focus-visible:shadow-focus-ring"
               aria-label="Befehle exportieren"
             >
               <PiExport className="h-4 w-4" aria-hidden="true" />
@@ -197,7 +195,7 @@ function BefehleSeite() {
               <button
                 type="button"
                 disabled
-                className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-md px-2.5 py-1.5 font-medium text-gray-400 text-sm dark:text-gray-600"
+                className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-md px-2.5 py-1.5 font-medium text-text-muted text-sm"
                 aria-label="Befehle exportieren (keine Berechtigung)"
                 aria-disabled="true"
               >
@@ -211,7 +209,7 @@ function BefehleSeite() {
 
       {/* Filter-Panel (Dropdown) */}
       {isMobileFilterOpen && (
-        <div id="befehl-filter-panel" className="border-gray-200 border-b dark:border-gray-700">
+        <div id="befehl-filter-panel" className="border-border-subtle border-b">
           <BefehlFilterRow
             statusFilter={filterState.statusFilter}
             onStatusFilterChange={setStatusFilter}
@@ -236,9 +234,9 @@ function BefehleSeite() {
 
       {/* Error-State */}
       {isError && (
-        <div className="bg-red-50 px-4 py-2 text-red-600 text-sm dark:bg-red-900/20 dark:text-red-400">
+        <div className="bg-status-danger-surface px-4 py-2 text-status-danger-text text-sm">
           Filter konnten nicht angewendet werden.{' '}
-          <button type="button" onClick={() => void refetch()} className="underline hover:no-underline">
+          <button type="button" onClick={() => void refetch()} className="underline hover:no-underline focus:outline-none focus-visible:shadow-focus-ring">
             Erneut versuchen
           </button>
         </div>
@@ -246,7 +244,7 @@ function BefehleSeite() {
 
       {/* Befehl-Eingabezeile */}
       {showEingabeRow && (
-        <div className="border-gray-200 border-b px-4 py-4 dark:border-gray-700">
+        <div className="border-border-subtle border-b px-4 py-4">
           <BefehlEingabeRow einsatzId={einsatzId} onClose={() => setShowEingabeRow(false)} />
         </div>
       )}
@@ -259,8 +257,12 @@ function BefehleSeite() {
         {/* Zone B: Alle Befehle */}
         {hasFilters && aktiveBefehle?.length === 0 && !isError ? (
           <div className="flex flex-1 flex-col items-center justify-center py-16 text-center">
-            <p className="text-gray-500 dark:text-gray-400">Keine Befehle gefunden — Filter anpassen</p>
-            <button type="button" onClick={resetBefehleFilter} className="mt-2 text-primary-600 text-sm hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300">
+            <p className="text-text-muted">Keine Befehle gefunden — Filter anpassen</p>
+            <button
+              type="button"
+              onClick={resetBefehleFilter}
+              className="mt-2 text-primary-600 text-sm hover:text-primary-700 focus:outline-none focus-visible:shadow-focus-ring dark:text-primary-400 dark:hover:text-primary-300"
+            >
               Filter zurücksetzen
             </button>
           </div>
@@ -276,9 +278,9 @@ function BefehleSeite() {
               ))}
               {!aktiveBefehle?.length && (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <p className="text-gray-500 dark:text-gray-400">Noch keine Befehle erteilt.</p>
-                  <p className="mt-1 text-gray-400 text-sm dark:text-gray-500">
-                    Erstelle den ersten Befehl mit <kbd className="rounded border border-gray-300 bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:border-gray-600 dark:bg-gray-800">Ctrl+N</kbd>.
+                  <p className="text-text-muted">Noch keine Befehle erteilt.</p>
+                  <p className="mt-1 text-text-muted text-sm">
+                    Erstelle den ersten Befehl mit <kbd className="rounded border border-border-subtle bg-surface-raised px-1.5 py-0.5 font-mono text-xs">Ctrl+N</kbd>.
                   </p>
                 </div>
               )}

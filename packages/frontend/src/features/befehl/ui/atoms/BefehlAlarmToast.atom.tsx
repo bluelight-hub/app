@@ -103,9 +103,8 @@ export function BefehlAlarmToast({ toastId, befehlId, einsatzId, nummer, befehls
       aria-atomic="true"
       onKeyDown={handleKeyDown}
       className={cn(
-        'min-w-[300px] max-w-[420px] rounded-xl border-2 border-orange-400 p-4 shadow-2xl',
-        'bg-gradient-to-br from-orange-500 to-orange-600 text-white',
-        'focus:outline-none focus:ring-4 focus:ring-orange-300',
+        'min-w-[300px] max-w-[420px] rounded-xl border-2 border-status-warning-border bg-status-warning-text p-4 text-text-inverse shadow-2xl',
+        'focus:outline-none focus-visible:shadow-focus-ring',
       )}
     >
       {/* Header */}
@@ -117,15 +116,15 @@ export function BefehlAlarmToast({ toastId, befehlId, einsatzId, nummer, befehls
       </div>
 
       {/* Info */}
-      <p className="mb-3 text-orange-100 text-sm leading-snug">{displayInfo}</p>
+      <p className="mb-3 text-text-inverse/85 text-sm leading-snug">{displayInfo}</p>
 
       {/* Status */}
-      <div className="mb-3 flex items-center gap-3 text-orange-100 text-sm">
+      <div className="mb-3 flex items-center gap-3 text-text-inverse/85 text-sm">
         <div className="flex items-center gap-1">
           <PiClock className="size-4" />
           <span>seit {elapsedTime}</span>
         </div>
-        <span className="rounded bg-orange-500/50 px-2 py-0.5 font-bold text-xs">BEFEHL</span>
+        <span className="rounded bg-surface-inverse/18 px-2 py-0.5 font-bold text-xs">BEFEHL</span>
       </div>
 
       {/* Actions */}
@@ -135,8 +134,8 @@ export function BefehlAlarmToast({ toastId, befehlId, einsatzId, nummer, befehls
           onClick={handleNavigate}
           className={cn(
             'flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2',
-            'cursor-pointer bg-white font-medium text-orange-700',
-            'hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-white',
+            'cursor-pointer bg-surface-panel font-medium text-status-warning-text',
+            'hover:bg-surface-raised focus:outline-none focus-visible:shadow-focus-ring',
           )}
         >
           <PiNavigationArrow className="size-5" />
@@ -148,8 +147,8 @@ export function BefehlAlarmToast({ toastId, befehlId, einsatzId, nummer, befehls
           onClick={handleDismiss}
           className={cn(
             'flex items-center justify-center gap-2 rounded-lg px-4 py-2',
-            'cursor-pointer bg-white/20 font-medium text-white',
-            'hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50',
+            'cursor-pointer bg-surface-inverse/16 font-medium text-text-inverse',
+            'hover:bg-surface-inverse/20 focus:outline-none focus-visible:shadow-focus-ring',
           )}
         >
           <PiX className="size-5" />
@@ -158,7 +157,7 @@ export function BefehlAlarmToast({ toastId, befehlId, einsatzId, nummer, befehls
       </div>
 
       {/* Keyboard Hint */}
-      <div className="mt-2 text-center text-orange-200 text-xs">Enter: Zum Befehl | Esc: Zur Kenntnis</div>
+      <div className="mt-2 text-center text-text-inverse/70 text-xs">Enter: Zum Befehl | Esc: Zur Kenntnis</div>
     </div>
   );
 }
@@ -198,28 +197,28 @@ interface QuittierungAlarmToastProps {
 /** Style-Config je QuittierungArt */
 const QUITTIERUNG_STYLES = {
   RUECKFRAGE: {
-    border: 'border-amber-400',
-    bg: 'bg-gradient-to-br from-amber-500 to-amber-600',
-    ring: 'focus:ring-amber-300',
-    badge: 'bg-amber-500/50',
+    border: 'border-status-warning-border',
+    bg: 'bg-status-warning-text',
+    ring: 'focus-visible:shadow-focus-ring',
+    badge: 'bg-surface-inverse/18',
     badgeText: 'RÜCKFRAGE',
     title: (nr: string) => `Rückfrage zu Befehl #${nr}`,
     description: 'Ein Empfänger hat eine Rückfrage zu Ihrem Befehl',
     icon: PiQuestion,
-    actionBg: 'text-amber-700',
-    actionHover: 'hover:bg-amber-50',
+    actionBg: 'text-status-warning-text',
+    actionHover: 'hover:bg-surface-raised',
   },
   NICHT_VERSTANDEN: {
-    border: 'border-red-400',
-    bg: 'bg-gradient-to-br from-red-500 to-red-600',
-    ring: 'focus:ring-red-300',
-    badge: 'bg-red-500/50',
+    border: 'border-status-danger-border',
+    bg: 'bg-status-danger-text',
+    ring: 'focus-visible:shadow-focus-ring',
+    badge: 'bg-surface-inverse/18',
     badgeText: 'NICHT VERSTANDEN',
     title: (nr: string) => `Befehl #${nr} nicht verstanden`,
     description: 'Ein Empfänger hat Ihren Befehl als "Nicht verstanden" quittiert',
     icon: PiWarningOctagon,
-    actionBg: 'text-red-700',
-    actionHover: 'hover:bg-red-50',
+    actionBg: 'text-status-danger-text',
+    actionHover: 'hover:bg-surface-raised',
   },
 } as const;
 
@@ -264,7 +263,7 @@ export function QuittierungAlarmToast({ toastId, befehlId, einsatzId, nummer, qu
       aria-live="assertive"
       aria-atomic="true"
       onKeyDown={handleKeyDown}
-      className={cn('min-w-[300px] max-w-[420px] rounded-xl border-2 p-4 shadow-2xl', style.border, style.bg, 'text-white', style.ring)}
+      className={cn('min-w-[300px] max-w-[420px] rounded-xl border-2 p-4 shadow-2xl', style.border, style.bg, 'text-text-inverse', style.ring)}
     >
       {/* Header */}
       <div className="mb-2 flex items-start justify-between gap-3">
@@ -293,10 +292,10 @@ export function QuittierungAlarmToast({ toastId, befehlId, einsatzId, nummer, qu
           onClick={handleNavigate}
           className={cn(
             'flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2',
-            'cursor-pointer bg-white font-medium',
+            'cursor-pointer bg-surface-panel font-medium',
             style.actionBg,
             style.actionHover,
-            'focus:outline-none focus:ring-2 focus:ring-white',
+            'focus:outline-none focus-visible:shadow-focus-ring',
           )}
         >
           <PiNavigationArrow className="size-5" />
@@ -308,8 +307,8 @@ export function QuittierungAlarmToast({ toastId, befehlId, einsatzId, nummer, qu
           onClick={handleDismiss}
           className={cn(
             'flex items-center justify-center gap-2 rounded-lg px-4 py-2',
-            'cursor-pointer bg-white/20 font-medium text-white',
-            'hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50',
+            'cursor-pointer bg-surface-inverse/16 font-medium text-text-inverse',
+            'hover:bg-surface-inverse/20 focus:outline-none focus-visible:shadow-focus-ring',
           )}
         >
           <PiX className="size-5" />
@@ -386,9 +385,8 @@ export function KorrekturAlarmToast({ toastId, befehlId, einsatzId, nummer, time
       aria-atomic="true"
       onKeyDown={handleKeyDown}
       className={cn(
-        'min-w-[300px] max-w-[420px] rounded-xl border-2 border-violet-400 p-4 shadow-2xl',
-        'bg-gradient-to-br from-blue-600 to-violet-600 text-white',
-        'focus:outline-none focus:ring-4 focus:ring-violet-300',
+        'min-w-[300px] max-w-[420px] rounded-xl border-2 border-status-info-border bg-status-info-text p-4 text-text-inverse shadow-2xl',
+        'focus:outline-none focus-visible:shadow-focus-ring',
       )}
     >
       {/* Header */}
@@ -400,15 +398,15 @@ export function KorrekturAlarmToast({ toastId, befehlId, einsatzId, nummer, time
       </div>
 
       {/* Info */}
-      <p className="mb-3 text-sm text-violet-100 leading-snug">Dieser Befehl wurde durch eine Korrektur ersetzt</p>
+      <p className="mb-3 text-sm text-text-inverse/85 leading-snug">Dieser Befehl wurde durch eine Korrektur ersetzt</p>
 
       {/* Status */}
-      <div className="mb-3 flex items-center gap-3 text-sm text-violet-100">
+      <div className="mb-3 flex items-center gap-3 text-sm text-text-inverse/85">
         <div className="flex items-center gap-1">
           <PiClock className="size-4" />
           <span>vor {elapsedTime}</span>
         </div>
-        <span className="rounded bg-violet-500/50 px-2 py-0.5 font-bold text-xs">KORRIGIERT</span>
+        <span className="rounded bg-surface-inverse/18 px-2 py-0.5 font-bold text-xs">KORRIGIERT</span>
       </div>
 
       {/* Actions */}
@@ -418,8 +416,8 @@ export function KorrekturAlarmToast({ toastId, befehlId, einsatzId, nummer, time
           onClick={handleNavigate}
           className={cn(
             'flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2',
-            'cursor-pointer bg-white font-medium text-violet-700',
-            'hover:bg-violet-50 focus:outline-none focus:ring-2 focus:ring-white',
+            'cursor-pointer bg-surface-panel font-medium text-status-info-text',
+            'hover:bg-surface-raised focus:outline-none focus-visible:shadow-focus-ring',
           )}
         >
           <PiNavigationArrow className="size-5" />
@@ -431,8 +429,8 @@ export function KorrekturAlarmToast({ toastId, befehlId, einsatzId, nummer, time
           onClick={handleDismiss}
           className={cn(
             'flex items-center justify-center gap-2 rounded-lg px-4 py-2',
-            'cursor-pointer bg-white/20 font-medium text-white',
-            'hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50',
+            'cursor-pointer bg-surface-inverse/16 font-medium text-text-inverse',
+            'hover:bg-surface-inverse/20 focus:outline-none focus-visible:shadow-focus-ring',
           )}
         >
           <PiX className="size-5" />
@@ -441,7 +439,7 @@ export function KorrekturAlarmToast({ toastId, befehlId, einsatzId, nummer, time
       </div>
 
       {/* Keyboard Hint */}
-      <div className="mt-2 text-center text-violet-200 text-xs">Enter: Zum Befehl | Esc: Schließen</div>
+      <div className="mt-2 text-center text-text-inverse/70 text-xs">Enter: Zum Befehl | Esc: Schließen</div>
     </div>
   );
 }

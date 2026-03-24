@@ -60,17 +60,17 @@ export function KanbanSpalte({ config, befehle, einsatzId, className, onStatusCh
   return (
     <section
       aria-label={`${config.label} – ${befehle.length} Befehl${befehle.length !== 1 ? 'e' : ''}`}
-      className={cn('flex flex-col rounded-lg border border-gray-200 dark:border-gray-700', className)}
+      className={cn('flex flex-col rounded-lg border border-border-subtle bg-surface-panel', className)}
     >
       {/* Spalten-Header mit Count-Badge */}
       <div className={cn('flex items-center justify-between rounded-t-lg px-3 py-2', config.headerBg)}>
         <h3 className={cn('font-semibold text-sm', config.headerText)}>{config.label}</h3>
-        <span className={cn('rounded-full bg-white/80 px-2 py-0.5 font-bold text-xs dark:bg-black/20', config.headerText)}>{befehle.length}</span>
+        <span className={cn('rounded-full bg-surface-panel/80 px-2 py-0.5 font-bold text-xs', config.headerText)}>{befehle.length}</span>
       </div>
 
       {/* Karten-Liste (nach Prioritaet sortiert) */}
       <div className="flex flex-1 flex-col gap-2 overflow-y-auto p-2">
-        {sortierteBefehle.length === 0 && <p className="py-4 text-center text-gray-400 text-sm dark:text-gray-500">Keine Befehle</p>}
+        {sortierteBefehle.length === 0 && <p className="py-4 text-center text-text-muted text-sm">Keine Befehle</p>}
         {sortierteBefehle.map(({ befehl, istKorrigiert }) => (
           <div key={befehl.id} id={`befehl-row-${befehl.id}`} className={cn(istKorrigiert && 'opacity-60')}>
             <BefehlKarte
@@ -90,9 +90,7 @@ export function KanbanSpalte({ config, befehle, einsatzId, className, onStatusCh
               currentUserId={currentUserId}
               canQuittieren={canQuittieren}
             />
-            {istKorrigiert && (
-              <span className="mt-1 inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 font-medium text-gray-600 text-xs dark:bg-gray-700 dark:text-gray-400">Korrigiert</span>
-            )}
+            {istKorrigiert && <span className="mt-1 inline-flex items-center rounded-full bg-surface-raised px-2 py-0.5 font-medium text-text-secondary text-xs">Korrigiert</span>}
           </div>
         ))}
       </div>

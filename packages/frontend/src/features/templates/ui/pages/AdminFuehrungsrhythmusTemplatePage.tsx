@@ -57,10 +57,10 @@ export function AdminFuehrungsrhythmusTemplatePage() {
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="rounded-full bg-amber-100 p-2 dark:bg-amber-900/30">
-            <PiMetronome className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+          <div className="rounded-full bg-status-warning-surface p-2">
+            <PiMetronome className="h-5 w-5 text-status-warning-text" />
           </div>
-          <h1 className="font-bold text-gray-900 text-xl dark:text-white">Globale Fuehrungsrhythmus-Templates</h1>
+          <h1 className="font-bold text-text-primary text-xl">Globale Fuehrungsrhythmus-Templates</h1>
         </div>
         <Button intent="primary" size="sm" onClick={() => setIsCreateDialogOpen(true)}>
           <PiPlus className="mr-1.5 h-4 w-4" />
@@ -71,14 +71,14 @@ export function AdminFuehrungsrhythmusTemplatePage() {
       {/* Content */}
       {isLoading && (
         <div className="flex items-center justify-center py-12">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-status-warning-text border-t-transparent" />
         </div>
       )}
 
-      {error && <div className="rounded-lg bg-red-50 p-4 text-red-700 text-sm dark:bg-red-900/20 dark:text-red-400">Fehler beim Laden der Templates</div>}
+      {error && <div className="rounded-panel bg-status-danger-surface p-4 text-status-danger-text text-sm">Fehler beim Laden der Templates</div>}
 
       {!isLoading && !error && templates && templates.length === 0 && (
-        <div className="flex flex-col items-center gap-2 py-12 text-center text-gray-500 dark:text-gray-400">
+        <div className="flex flex-col items-center gap-2 py-12 text-center text-text-muted">
           <PiMetronome className="h-8 w-8 opacity-50" />
           <p className="text-sm">Noch keine globalen Templates vorhanden</p>
         </div>
@@ -87,19 +87,16 @@ export function AdminFuehrungsrhythmusTemplatePage() {
       {!isLoading && !error && templates && templates.length > 0 && (
         <div className="space-y-3">
           {templates.map((template) => (
-            <div
-              key={template.id}
-              className="flex items-center justify-between rounded-lg border-2 border-gray-200 bg-white p-4 transition-colors hover:border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-gray-600"
-            >
+            <div key={template.id} className="flex items-center justify-between rounded-panel border-2 border-border-subtle bg-surface-panel p-4 transition-colors hover:border-border-strong">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <h3 className="truncate font-semibold text-gray-900 text-sm dark:text-white">{template.name}</h3>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 font-medium text-blue-700 text-xs dark:bg-blue-900/30 dark:text-blue-300">
+                  <h3 className="truncate font-semibold text-text-primary text-sm">{template.name}</h3>
+                  <span className="inline-flex items-center gap-1 rounded-pill bg-status-info-surface px-2 py-0.5 font-medium text-status-info-text text-xs">
                     <PiBuilding className="h-3 w-3" /> Global
                   </span>
                 </div>
-                {template.beschreibung && <p className="mt-1 truncate text-gray-500 text-xs dark:text-gray-400">{template.beschreibung}</p>}
-                <span className="mt-1 inline-block rounded-full bg-amber-100 px-2 py-0.5 font-medium text-amber-700 text-xs dark:bg-amber-900/30 dark:text-amber-300">
+                {template.beschreibung && <p className="mt-1 truncate text-text-muted text-xs">{template.beschreibung}</p>}
+                <span className="mt-1 inline-block rounded-pill bg-status-warning-surface px-2 py-0.5 font-medium text-status-warning-text text-xs">
                   {template.eintraege.length} {template.eintraege.length === 1 ? 'Erinnerung' : 'Erinnerungen'}
                 </span>
               </div>
@@ -121,7 +118,7 @@ export function AdminFuehrungsrhythmusTemplatePage() {
                       })),
                     })
                   }
-                  className="rounded-md p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+                  className="rounded-control p-2 text-text-muted transition-colors hover:bg-action-secondary hover:text-text-primary"
                   aria-label={`${template.name} bearbeiten`}
                 >
                   <PiPencil className="h-4 w-4" />
@@ -129,7 +126,7 @@ export function AdminFuehrungsrhythmusTemplatePage() {
                 <button
                   type="button"
                   onClick={() => setDeleteTarget({ id: template.id, name: template.name })}
-                  className="rounded-md p-2 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+                  className="rounded-control p-2 text-text-muted transition-colors hover:bg-status-danger-surface hover:text-status-danger-text"
                   aria-label={`${template.name} loeschen`}
                 >
                   <PiTrash className="h-4 w-4" />
@@ -150,10 +147,10 @@ export function AdminFuehrungsrhythmusTemplatePage() {
       <Dialog isOpen={!!deleteTarget} onClose={() => !isDeleting && setDeleteTarget(null)} size="sm">
         <Dialog.Title>Template loeschen?</Dialog.Title>
         <Dialog.Body>
-          <p className="text-gray-600 text-sm dark:text-gray-400">
+          <p className="text-text-secondary text-sm">
             Template <span className="font-semibold">'{deleteTarget?.name}'</span> wirklich loeschen?
           </p>
-          <p className="mt-2 text-gray-500 text-xs dark:text-gray-400">Bereits erstellte Erinnerungen bleiben erhalten.</p>
+          <p className="mt-2 text-text-muted text-xs">Bereits erstellte Erinnerungen bleiben erhalten.</p>
         </Dialog.Body>
         <Dialog.Footer loading={isDeleting}>
           <Button intent="secondary" appearance="ghost" onClick={() => setDeleteTarget(null)} disabled={isDeleting}>

@@ -72,12 +72,12 @@ export function SubCommandItem({ subCommand, onSelect, currentValue, isActive = 
 
   return (
     <Command.Item value={subCommand.name} onSelect={() => onSelect(subCommand)} className={commandItemClasses.base}>
-      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-50 dark:bg-gray-800">
-        <SubIcon className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-surface-raised">
+        <SubIcon className="h-4 w-4 text-text-secondary" />
       </div>
       <div className="flex-1">
         <div className="flex items-center gap-2">
-          <span className="font-medium text-gray-900 dark:text-gray-100">{subCommand.name}</span>
+          <span className="font-medium text-text-primary">{subCommand.name}</span>
           {subCommand.shortcut && (
             <div className="hidden items-center gap-1 sm:flex">
               {shortcutKeys.map((shortcut) => (
@@ -88,11 +88,11 @@ export function SubCommandItem({ subCommand, onSelect, currentValue, isActive = 
             </div>
           )}
         </div>
-        {subCommand.description && <div className="mt-0.5 text-gray-500 text-xs dark:text-gray-400">{subCommand.description}</div>}
+        {subCommand.description && <div className="mt-0.5 text-text-secondary text-xs">{subCommand.description}</div>}
       </div>
       {isSelected && (
-        <div className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
-          <div className="h-2 w-2 rounded-full bg-blue-600 dark:bg-blue-400" />
+        <div className="flex h-5 w-5 items-center justify-center rounded-full bg-action-secondary">
+          <div className="h-2 w-2 rounded-full bg-action-primary" />
         </div>
       )}
     </Command.Item>

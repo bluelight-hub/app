@@ -13,7 +13,7 @@ describe('Input Atom', () => {
   it('should apply variant classes', () => {
     render(<Input variant="error" placeholder="Error Input" />);
     const input = screen.getByPlaceholderText('Error Input');
-    expect(input).toHaveClass('border-red-300');
+    expect(input).toHaveClass('border-status-danger-border');
   });
 
   it('should apply size classes', () => {

@@ -24,8 +24,8 @@ export function FarbPresetPicker({ value, onChange, className, ariaLabelledBy }:
           aria-label={preset.name}
           title={preset.name}
           className={cn(
-            'h-8 w-8 rounded-full border-2 transition-all',
-            value === preset.hex ? 'border-gray-900 ring-2 ring-gray-400 ring-offset-2 dark:border-white dark:ring-gray-500' : 'border-transparent hover:border-gray-300 dark:hover:border-gray-600',
+            'h-8 w-8 rounded-full border-2 transition-all focus:outline-none focus-visible:shadow-focus-ring',
+            value === preset.hex ? 'border-action-primary ring-2 ring-action-primary/40 ring-offset-2 ring-offset-surface-panel' : 'border-border-subtle hover:border-border-strong',
           )}
           style={{ backgroundColor: preset.hex }}
           onClick={() => onChange(preset.hex)}

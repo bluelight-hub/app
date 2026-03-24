@@ -12,13 +12,10 @@ import type { ResponseError } from '@/shared';
 import { useState } from 'react';
 import { PiX } from 'react-icons/pi';
 import { GrantPermissionDialog } from './GrantPermissionDialog.organism';
-
 interface UserPermissionsPanelProps {
   userId: string;
   username: string;
-}
-
-/** Gruppiert Permissions nach Domain (z.B. "nav" -> ["stammdaten", "berechtigungen"]) */
+} /** Gruppiert Permissions nach Domain (z.B. "nav" -> ["stammdaten", "berechtigungen"]) */
 function groupByDomain(permissions: string[]): Map<string, string[]> {
   const grouped = new Map<string, string[]>();
   for (const p of permissions) {
@@ -29,14 +26,7 @@ function groupByDomain(permissions: string[]): Map<string, string[]> {
     grouped.get(domain)?.push(action);
   }
   return grouped;
-}
-
-/**
- * Panel fuer die Verwaltung von Custom Permissions eines Users.
- *
- * Story 5.2 AC1: Zeigt alle Custom Permissions gruppiert nach Domain.
- * Jede Permission kann einzeln entzogen werden (Inline-Bestaetigung).
- */
+} /** * Panel fuer die Verwaltung von Custom Permissions eines Users. * * Story 5.2 AC1: Zeigt alle Custom Permissions gruppiert nach Domain. * Jede Permission kann einzeln entzogen werden (Inline-Bestaetigung). */
 export function UserPermissionsPanel({ userId, username }: UserPermissionsPanelProps) {
   const { data: permissions, isLoading } = useUserPermissions(userId);
   const { accessible: canAccessBerechtigungen } = useCanAccess('berechtigungen');
@@ -44,7 +34,6 @@ export function UserPermissionsPanel({ userId, username }: UserPermissionsPanelP
   const revokeMutation = useRevokePermission();
   const { confirmation, show: showConfirmation, dismiss } = useInlineConfirmation();
   const [grantDialogOpen, setGrantDialogOpen] = useState(false);
-
   const handleGrant = async (permission: string) => {
     try {
       await grantMutation.mutateAsync({ userId, permission });
@@ -55,7 +44,6 @@ export function UserPermissionsPanel({ userId, username }: UserPermissionsPanelP
       showConfirmation(msg, 'error');
     }
   };
-
   const handleRevoke = async (permission: string) => {
     try {
       await revokeMutation.mutateAsync({ userId, permission });
@@ -65,64 +53,66 @@ export function UserPermissionsPanel({ userId, username }: UserPermissionsPanelP
       showConfirmation(msg, 'error');
     }
   };
-
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 py-4">
-        <Spinner size="sm" />
-        <span className="text-sm text-gray-500">Berechtigungen werden geladen...</span>
+        {' '}
+        <Spinner size="sm" /> <span className="text-sm text-text-muted">Berechtigungen werden geladen...</span>{' '}
       </div>
     );
   }
-
   const grouped = groupByDomain(permissions ?? []);
-
   return (
     <div className="space-y-4">
+      {' '}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Custom Permissions</h3>
+        {' '}
+        <h3 className="text-sm font-semibold text-text-secondary">Custom Permissions</h3>{' '}
         {canAccessBerechtigungen && (
           <Button intent="primary" appearance="outline" size="sm" onClick={() => setGrantDialogOpen(true)}>
-            Permission vergeben
+            {' '}
+            Permission vergeben{' '}
           </Button>
-        )}
-      </div>
-
-      {confirmation && <InlineConfirmation message={confirmation.message} variant={confirmation.variant} onDismiss={dismiss} />}
-
+        )}{' '}
+      </div>{' '}
+      {confirmation && <InlineConfirmation message={confirmation.message} variant={confirmation.variant} onDismiss={dismiss} />}{' '}
       {!permissions || permissions.length === 0 ? (
-        <p className="text-sm text-gray-500 dark:text-gray-400">Keine Custom Permissions vergeben. Nur Role-Default-Berechtigungen aktiv.</p>
+        <p className="text-sm text-text-muted">Keine Custom Permissions vergeben. Nur Role-Default-Berechtigungen aktiv.</p>
       ) : (
         <div className="space-y-3">
+          {' '}
           {[...grouped.entries()].map(([domain, actions]) => (
-            <div key={domain} className="rounded-md border border-gray-200 p-3 dark:border-gray-700">
-              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">{domain}</p>
+            <div key={domain} className="rounded-control border border-border-subtle p-3">
+              {' '}
+              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-text-muted">{domain}</p>{' '}
               <div className="flex flex-wrap gap-2">
+                {' '}
                 {actions.map((action) => {
                   const fullPermission = `${domain}:${action}`;
                   return (
                     <Badge key={fullPermission} variant="info" className="group cursor-default gap-1.5">
-                      {fullPermission}
+                      {' '}
+                      {fullPermission}{' '}
                       {canAccessBerechtigungen && (
                         <button
                           type="button"
                           onClick={() => handleRevoke(fullPermission)}
                           disabled={revokeMutation.isPending}
-                          className="ml-0.5 inline-flex items-center rounded-full p-0.5 opacity-60 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-current"
+                          className="ml-0.5 inline-flex items-center rounded-full p-0.5 opacity-60 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:shadow-focus-ring"
                           aria-label={`Permission ${fullPermission} entziehen`}
                         >
-                          <PiX className="h-3 w-3" aria-hidden="true" />
+                          {' '}
+                          <PiX className="h-3 w-3" aria-hidden="true" />{' '}
                         </button>
-                      )}
+                      )}{' '}
                     </Badge>
                   );
-                })}
-              </div>
+                })}{' '}
+              </div>{' '}
             </div>
-          ))}
+          ))}{' '}
         </div>
-      )}
-
+      )}{' '}
       {canAccessBerechtigungen && (
         <GrantPermissionDialog
           isOpen={grantDialogOpen}
@@ -132,7 +122,7 @@ export function UserPermissionsPanel({ userId, username }: UserPermissionsPanelP
           existingPermissions={permissions ?? []}
           username={username}
         />
-      )}
+      )}{' '}
     </div>
   );
 }

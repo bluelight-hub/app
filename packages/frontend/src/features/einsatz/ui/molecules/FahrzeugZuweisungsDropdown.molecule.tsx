@@ -39,33 +39,31 @@ export function FahrzeugZuweisungsDropdown({ currentFahrzeugId, fahrzeuge, onAss
   const buttonLabel = isLoading ? '...' : currentFahrzeug ? currentFahrzeug.funkrufname : 'Zuweisen';
 
   const buttonClasses = cn(
-    'relative w-full cursor-pointer rounded-lg py-2 pr-10 pl-3 text-left shadow-sm ring-1 ring-inset focus:outline-none focus:ring-2 focus:ring-primary-500 sm:text-sm',
-    currentFahrzeug ? 'bg-blue-100 text-blue-800 ring-blue-200' : 'bg-gray-100 text-gray-600 ring-gray-300',
+    'relative w-full cursor-pointer rounded-lg py-2 pr-10 pl-3 text-left shadow-sm ring-1 ring-inset focus-visible:outline-none focus-visible:shadow-focus-ring sm:text-sm',
+    currentFahrzeug ? 'bg-status-info-surface text-status-info-text ring-status-info-border' : 'bg-surface-raised text-text-secondary ring-border-subtle',
     (disabled || isLoading) && 'cursor-not-allowed opacity-50',
   );
 
   return (
     <Listbox as="div" value={currentFahrzeugId ?? null} onChange={onAssign} disabled={disabled || isLoading}>
-      <div className={cn('relative', className)}>
+      <div className={cn(className)}>
         <ListboxButton className={buttonClasses} aria-label={`Fahrzeug: ${buttonLabel}`}>
           <span className="flex items-center gap-2 truncate font-medium">
             <PiTruck className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
             {buttonLabel}
           </span>
           <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-            <PiCaretUpDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
+            <PiCaretUpDown className="h-5 w-5 text-text-muted" aria-hidden="true" />
           </span>
         </ListboxButton>
 
         <ListboxOptions
+          anchor="bottom end"
           transition
-          className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 transition duration-100 ease-in focus:outline-none data-[closed]:opacity-0 sm:text-sm dark:bg-gray-800 dark:text-gray-100"
+          className="z-[100] max-h-60 w-[var(--button-width)] overflow-auto rounded-md border border-border-subtle bg-surface-panel py-1 text-base shadow-panel transition duration-100 ease-in [--anchor-gap:4px] focus-visible:outline-none data-[closed]:opacity-0 sm:text-sm"
         >
           {/* Erste Option: Zuweisung entfernen */}
-          <ListboxOption
-            value={null}
-            className={({ focus }) => cn('relative cursor-pointer select-none py-2 pr-4 pl-10', focus ? 'bg-gray-100 dark:bg-gray-700' : '', 'text-gray-600 dark:text-gray-400')}
-          >
+          <ListboxOption value={null} className={({ focus }) => cn('relative cursor-pointer select-none py-2 pr-4 pl-10 text-text-secondary', focus ? 'bg-action-secondary' : '')}>
             {({ selected }) => (
               <>
                 <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>Keine Zuweisung</span>
@@ -80,16 +78,16 @@ export function FahrzeugZuweisungsDropdown({ currentFahrzeugId, fahrzeuge, onAss
 
           {/* Fahrzeug-Optionen */}
           {fahrzeuge.map((fahrzeug) => (
-            <ListboxOption key={fahrzeug.id} value={fahrzeug.id} className={({ focus }) => cn('relative cursor-pointer select-none py-2 pr-4 pl-10', focus ? 'bg-blue-50 dark:bg-blue-900/20' : '')}>
+            <ListboxOption key={fahrzeug.id} value={fahrzeug.id} className={({ focus }) => cn('relative cursor-pointer select-none py-2 pr-4 pl-10', focus ? 'bg-action-secondary' : '')}>
               {({ selected }) => (
                 <>
                   <span className={`flex items-center gap-2 truncate ${selected ? 'font-medium' : 'font-normal'}`}>
-                    <PiTruck className="h-4 w-4 flex-shrink-0 text-gray-500" aria-hidden="true" />
+                    <PiTruck className="h-4 w-4 flex-shrink-0 text-text-muted" aria-hidden="true" />
                     <span>{fahrzeug.funkrufname}</span>
                     <FmsStatusBadge status={fahrzeug.fmsStatus} />
                   </span>
                   {selected && (
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600 dark:text-blue-400">
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-status-info-text">
                       <PiCheck className="h-5 w-5" aria-hidden="true" />
                     </span>
                   )}

@@ -110,10 +110,10 @@ const LOW_CONTRAST_COLORS: readonly string[] = ['amber', 'orange', 'cyan'];
  *
  * @example
  * ```ts
- * getServerColorClass('sky', 'bg')     // 'bg-sky-500'
- * getServerColorClass('amber', 'bg')   // 'bg-amber-600' (besserer Kontrast)
- * getServerColorClass('emerald', 'ring') // 'ring-emerald-500'
- * getServerColorClass('invalid', 'bg')  // 'bg-slate-500' (Fallback)
+ * getServerColorClass('sky', 'bg')        // 'bg-sky-500'
+ * getServerColorClass('amber', 'bg')      // Amber-Fallback mit stärkerem Shade
+ * getServerColorClass('emerald', 'ring')  // 'ring-emerald-500'
+ * getServerColorClass('invalid', 'bg')    // Fallback auf Slate-Ton
  * ```
  */
 export function getServerColorClass(color: string, variant: ColorVariant): string {

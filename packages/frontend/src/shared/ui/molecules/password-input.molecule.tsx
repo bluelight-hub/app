@@ -58,7 +58,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
           onClick={handleClick}
           rightElement={
             <div className="flex items-center gap-1 pr-1">
-              {capsLockActive && <PiWarning className="h-5 w-5 text-amber-500" title="Feststelltaste ist aktiviert" aria-hidden="true" />}
+              {capsLockActive && <PiWarning className="h-5 w-5 text-status-warning-text" title="Feststelltaste ist aktiviert" aria-hidden="true" />}
               <IconButton
                 type="button"
                 aria-label={showPassword ? 'Passwort verbergen' : 'Passwort anzeigen'}

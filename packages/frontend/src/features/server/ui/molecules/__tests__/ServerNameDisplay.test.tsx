@@ -83,7 +83,7 @@ describe('ServerNameDisplay', () => {
 
       // Then
       const statusDot = screen.getByRole('status');
-      expect(statusDot).toHaveClass('bg-green-500');
+      expect(statusDot).toHaveClass('bg-status-success-text');
     });
 
     it('should show offline status dot when disconnected', () => {
@@ -95,7 +95,7 @@ describe('ServerNameDisplay', () => {
 
       // Then
       const statusDot = screen.getByRole('status');
-      expect(statusDot).toHaveClass('bg-gray-400');
+      expect(statusDot).toHaveClass('bg-text-muted');
     });
 
     it('should show checking status with pulse animation', () => {
@@ -107,7 +107,7 @@ describe('ServerNameDisplay', () => {
 
       // Then
       const statusDot = screen.getByRole('status');
-      expect(statusDot).toHaveClass('bg-yellow-500');
+      expect(statusDot).toHaveClass('bg-status-warning-text');
       expect(statusDot).toHaveClass('animate-pulse');
     });
 
@@ -120,7 +120,7 @@ describe('ServerNameDisplay', () => {
 
       // Then
       const statusDot = screen.getByRole('status');
-      expect(statusDot).toHaveClass('bg-gray-400');
+      expect(statusDot).toHaveClass('bg-text-muted');
     });
   });
 
@@ -205,8 +205,8 @@ describe('ServerNameDisplay', () => {
       // Then
       const container = screen.getByTestId('server-name-display');
       expect(container).toHaveClass('border-2');
-      expect(container).toHaveClass('border-gray-200');
-      expect(container).toHaveClass('bg-white');
+      expect(container).toHaveClass('border-border-subtle');
+      expect(container).toHaveClass('bg-surface-panel');
       expect(container).toHaveClass('rounded-lg');
     });
 

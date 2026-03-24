@@ -441,8 +441,8 @@ export function KorrekturBefehlDialog({ isOpen, onClose, originalBefehl, einsatz
           className={cn(
             'rounded-md border px-3 py-2 text-left transition-colors',
             schemaMode === mode.id
-              ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-200'
-              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300',
+              ? 'border-action-primary bg-action-secondary text-action-primary'
+              : 'border-border-subtle bg-surface-panel text-text-secondary hover:border-border-strong hover:bg-action-secondary',
           )}
         >
           <p className="font-medium text-sm">{mode.label}</p>
@@ -466,27 +466,27 @@ export function KorrekturBefehlDialog({ isOpen, onClose, originalBefehl, einsatz
           }}
         >
           <div className="space-y-4">
-            <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-amber-800 text-sm dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
+            <div className="rounded-md border border-status-warning-border bg-status-warning-surface px-3 py-2 text-status-warning-text text-sm">
               Korrektur des Original-Auftrags: &ldquo;{originalBefehl.auftrag.length > 100 ? `${originalBefehl.auftrag.slice(0, 100)}...` : originalBefehl.auftrag}&rdquo;
             </div>
 
-            <div className="rounded-md border border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50 p-3 dark:border-gray-700 dark:from-gray-900 dark:to-gray-800">
-              <p className="font-medium text-gray-900 text-sm dark:text-gray-100">Schemawahl</p>
+            <div className="rounded-md border border-border-subtle bg-gradient-to-r from-surface-raised to-action-secondary p-3">
+              <p className="font-medium text-text-primary text-sm">Schemawahl</p>
               <div className="mt-2">{renderSchemaSwitcher()}</div>
             </div>
 
             <div className="grid gap-4 xl:grid-cols-3">
               <div className="space-y-4 xl:col-span-2">
-                <div className="rounded-md border border-gray-200 p-4 dark:border-gray-700">
+                <div className="rounded-md border border-border-subtle p-4">
                   {isErweitert && <div>{renderLageField()}</div>}
                   <div className={cn(isErweitert ? 'mt-4' : undefined)}>{renderAuftragField()}</div>
                 </div>
-                <div className="rounded-md border border-gray-200 p-4 dark:border-gray-700">{isErweitert ? renderErweitertDetails() : renderEinfachDetails()}</div>
+                <div className="rounded-md border border-border-subtle p-4">{isErweitert ? renderErweitertDetails() : renderEinfachDetails()}</div>
               </div>
 
               <div className="space-y-4">
-                <div className="rounded-md border border-gray-200 p-4 dark:border-gray-700">
-                  <p className="font-medium text-gray-900 text-sm dark:text-gray-100">Adressierung und Zeit</p>
+                <div className="rounded-md border border-border-subtle p-4">
+                  <p className="font-medium text-text-primary text-sm">Adressierung und Zeit</p>
                   <div className="mt-3 space-y-4">
                     {renderEinheitField()}
                     {renderBefehlsgeberField()}

@@ -58,10 +58,10 @@ export function BefehlAlertRow({ befehl, variant, beschreibung, onClick, onQuitt
       }}
       className={cn(
         'flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left transition-colors',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset',
-        variant === 'kritisch' && 'hover:bg-red-100/50 focus-visible:ring-red-500 dark:hover:bg-red-950/30',
-        variant === 'warnung' && 'hover:bg-yellow-100/50 focus-visible:ring-yellow-500 dark:hover:bg-yellow-950/30',
-        variant === 'zuQuittieren' && 'hover:bg-blue-100/50 focus-visible:ring-blue-500 dark:hover:bg-blue-950/30',
+        'focus-visible:outline-none focus-visible:shadow-focus-ring',
+        variant === 'kritisch' && 'hover:bg-status-danger-surface',
+        variant === 'warnung' && 'hover:bg-status-warning-surface',
+        variant === 'zuQuittieren' && 'hover:bg-status-info-surface',
         className,
       )}
       aria-label={`Befehl ${befehl.nummer}: ${befehl.auftrag}`}
@@ -70,15 +70,15 @@ export function BefehlAlertRow({ befehl, variant, beschreibung, onClick, onQuitt
       {variant === 'kritisch' && <AlarmDot className="flex-shrink-0" />}
 
       {/* Nummer */}
-      <span className="flex-shrink-0 font-bold font-mono text-gray-900 text-sm dark:text-gray-100">{befehl.nummer}</span>
+      <span className="flex-shrink-0 font-bold font-mono text-text-primary text-sm">{befehl.nummer}</span>
 
       {/* Grund-Badge / Beschreibung */}
       <span
         className={cn(
           'flex-shrink-0 rounded-full px-2 py-0.5 font-medium text-xs',
-          variant === 'kritisch' && (istUeberfaellig ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'),
-          variant === 'warnung' && 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
-          variant === 'zuQuittieren' && 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+          variant === 'kritisch' && 'bg-status-danger-surface text-status-danger-text',
+          variant === 'warnung' && 'bg-status-warning-surface text-status-warning-text',
+          variant === 'zuQuittieren' && 'bg-status-info-surface text-status-info-text',
         )}
       >
         {variant === 'kritisch' && (istUeberfaellig ? `Überfällig (${getUeberfaelligDauer(befehl) ?? '?'})` : 'Nicht verstanden')}
@@ -88,13 +88,13 @@ export function BefehlAlertRow({ befehl, variant, beschreibung, onClick, onQuitt
 
       {/* Fortschritt (nicht bei zuQuittieren) */}
       {variant !== 'zuQuittieren' && (
-        <span className="flex-shrink-0 text-gray-500 text-xs dark:text-gray-400">
+        <span className="flex-shrink-0 text-text-muted text-xs">
           {fortschritt.quittiert}/{fortschritt.gesamt}
         </span>
       )}
 
       {/* Auftrag (truncated, flex-grow) */}
-      <span className="min-w-0 flex-1 truncate text-gray-600 text-sm dark:text-gray-400">{befehl.auftrag}</span>
+      <span className="min-w-0 flex-1 truncate text-text-secondary text-sm">{befehl.auftrag}</span>
 
       {/* Chevron / Quittieren-Button */}
       {variant === 'zuQuittieren' ? (
@@ -104,12 +104,12 @@ export function BefehlAlertRow({ befehl, variant, beschreibung, onClick, onQuitt
             e.stopPropagation();
             onQuittieren?.(befehl.id);
           }}
-          className={cn('flex-shrink-0 rounded-md px-3 py-1 font-medium text-xs transition-colors', 'bg-blue-600 text-white hover:bg-blue-700', 'dark:bg-blue-500 dark:hover:bg-blue-600')}
+          className={cn('flex-shrink-0 rounded-md px-3 py-1 font-medium text-xs transition-colors', 'bg-action-primary text-text-inverse hover:bg-action-primary-hover')}
         >
           Quittieren
         </button>
       ) : (
-        <PiCaretRight className="h-4 w-4 flex-shrink-0 text-gray-400 dark:text-gray-500" aria-hidden="true" />
+        <PiCaretRight className="h-4 w-4 flex-shrink-0 text-text-muted" aria-hidden="true" />
       )}
     </button>
   );

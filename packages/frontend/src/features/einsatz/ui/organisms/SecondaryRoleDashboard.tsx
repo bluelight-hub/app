@@ -71,13 +71,13 @@ export function SecondaryRoleDashboard({ einsatzId, rolle }: SecondaryRoleDashbo
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
       {/* Rollen-Banner */}
-      <div className="flex items-start gap-3 rounded-panel border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20" role="status" aria-live="polite">
-        <PiInfo className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+      <div className="flex items-start gap-3 rounded-panel border border-status-info-border bg-status-info-surface p-4" role="status" aria-live="polite">
+        <PiInfo className="mt-0.5 h-5 w-5 flex-shrink-0 text-status-info-text" aria-hidden="true" />
         <div>
-          <p className="font-medium text-blue-800 text-body-sm dark:text-blue-200">
+          <p className="font-medium text-body-sm text-status-info-text">
             Sie sind als <span className="font-semibold">{rolleLabel}</span> im Einsatz aktiv.
           </p>
-          <p className="mt-1 text-blue-700 text-body-sm dark:text-blue-300">Sie sehen eine reduzierte Ansicht mit den fuer Ihre Rolle freigegebenen Informationen.</p>
+          <p className="mt-1 text-body-sm text-status-info-text">Sie sehen eine reduzierte Ansicht mit den fuer Ihre Rolle freigegebenen Informationen.</p>
         </div>
       </div>
 
@@ -129,16 +129,16 @@ export function SecondaryRoleDashboard({ einsatzId, rolle }: SecondaryRoleDashbo
         </div>
 
         {isEmpfaenger && unquittiertCount > 0 && (
-          <div className="mt-4 flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-700 dark:bg-amber-900/20">
-            <PiWarning className="h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+          <div className="mt-4 flex items-center gap-3 rounded-lg border border-status-warning-border bg-status-warning-surface px-4 py-3">
+            <PiWarning className="h-5 w-5 flex-shrink-0 text-status-warning-text" aria-hidden="true" />
             <div>
-              <p className="font-medium text-amber-800 text-body-sm dark:text-amber-200">
+              <p className="font-medium text-body-sm text-status-warning-text">
                 {unquittiertCount} {unquittiertCount === 1 ? 'Befehl' : 'Befehle'} warten auf Ihre Quittierung
               </p>
               <Link
                 to="/app/einsatz/$einsatzId/führung/befehle"
                 params={{ einsatzId }}
-                className="mt-1 inline-block font-medium text-amber-700 text-body-sm underline hover:text-amber-900 dark:text-amber-300 dark:hover:text-amber-100"
+                className="mt-1 inline-block font-medium text-body-sm text-status-warning-text underline hover:text-action-primary"
               >
                 Jetzt quittieren
               </Link>

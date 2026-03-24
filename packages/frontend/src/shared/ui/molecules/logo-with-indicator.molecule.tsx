@@ -19,10 +19,10 @@ interface LogoWithIndicatorProps {
 }
 
 const statusColorClasses: Record<IndicatorStatus, string> = {
-  online: 'bg-green-400 animate-pulse-shadow',
-  offline: 'bg-yellow-400',
-  error: 'bg-red-500',
-  checking: 'bg-gray-400 animate-pulse',
+  online: 'bg-status-success-text animate-pulse-shadow',
+  offline: 'bg-status-warning-text',
+  error: 'bg-status-danger-text',
+  checking: 'bg-text-muted animate-pulse',
 };
 
 /**
@@ -48,7 +48,7 @@ export function LogoWithIndicator({ size = 'lg', showIndicator = true, status = 
   return (
     <div className="relative inline-block">
       <img src={logoSrc} alt="Bluelight Hub Logo" className={`${sizeClasses[size]} object-contain drop-shadow-[0_10px_30px_rgba(0,61,122,0.3)]`} />
-      {showIndicator && <div className={`absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full border-[3px] border-white dark:border-gray-800 ${statusColorClasses[status]}`} />}
+      {showIndicator && <div className={`absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full border-[3px] border-surface-canvas ${statusColorClasses[status]}`} />}
     </div>
   );
 }

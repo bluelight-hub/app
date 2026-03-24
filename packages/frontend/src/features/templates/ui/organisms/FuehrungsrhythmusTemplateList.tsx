@@ -69,8 +69,8 @@ export function FuehrungsrhythmusTemplateList({ einsatzId = null, context = 'adm
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <PiMetronome className="h-5 w-5 text-amber-500" />
-          <h2 className="font-semibold text-gray-900 text-lg dark:text-white">Fuehrungsrhythmus-Templates</h2>
+          <PiMetronome className="h-5 w-5 text-status-warning-text" />
+          <h2 className="font-semibold text-text-primary text-lg">Fuehrungsrhythmus-Templates</h2>
         </div>
         <Button intent="primary" size="sm" onClick={() => setIsCreateDialogOpen(true)}>
           <PiPlus className="mr-1 h-4 w-4" />
@@ -81,14 +81,14 @@ export function FuehrungsrhythmusTemplateList({ einsatzId = null, context = 'adm
       {/* Inhalt */}
       {isLoading && (
         <div className="flex items-center justify-center py-12">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-status-warning-text border-t-transparent" />
         </div>
       )}
 
-      {error && <div className="rounded-lg bg-red-50 p-4 text-red-700 text-sm dark:bg-red-900/20 dark:text-red-400">Fehler beim Laden der Templates</div>}
+      {error && <div className="rounded-panel bg-status-danger-surface p-4 text-status-danger-text text-sm">Fehler beim Laden der Templates</div>}
 
       {!isLoading && !error && templates && templates.length === 0 && (
-        <div className="flex flex-col items-center gap-2 py-12 text-center text-gray-500 dark:text-gray-400">
+        <div className="flex flex-col items-center gap-2 py-12 text-center text-text-muted">
           <PiMetronome className="h-8 w-8 opacity-50" />
           <p className="text-sm">Noch keine Fuehrungsrhythmus-Templates erstellt</p>
           <Button intent="secondary" size="sm" onClick={() => setIsCreateDialogOpen(true)}>
@@ -168,10 +168,10 @@ export function FuehrungsrhythmusTemplateList({ einsatzId = null, context = 'adm
       <Dialog isOpen={!!deleteTemplateId} onClose={() => !isDeleting && setDeleteTemplateId(null)} size="sm">
         <Dialog.Title>Template loeschen?</Dialog.Title>
         <Dialog.Body>
-          <p className="text-gray-600 text-sm dark:text-gray-400">
+          <p className="text-text-secondary text-sm">
             Template <span className="font-semibold">'{deleteTemplate?.name}'</span> wirklich loeschen?
           </p>
-          <p className="mt-2 text-gray-500 text-xs dark:text-gray-400">Bereits erstellte Erinnerungen bleiben erhalten.</p>
+          <p className="mt-2 text-text-muted text-xs">Bereits erstellte Erinnerungen bleiben erhalten.</p>
         </Dialog.Body>
         <Dialog.Footer loading={isDeleting}>
           <Button intent="secondary" appearance="ghost" onClick={() => setDeleteTemplateId(null)} disabled={isDeleting}>

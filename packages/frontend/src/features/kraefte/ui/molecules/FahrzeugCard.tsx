@@ -43,9 +43,9 @@ const getModeClasses = (mode: DashboardMode) => ({
     compact: 'rounded border p-2',
   }[mode],
   funkrufname: {
-    standard: 'font-semibold text-gray-900 dark:text-gray-100',
-    fullscreen: 'font-bold text-xl lg:text-2xl text-gray-900 dark:text-gray-100', // AC1: min. 24px
-    compact: 'font-medium text-sm text-gray-900 dark:text-gray-100',
+    standard: 'font-semibold text-text-primary',
+    fullscreen: 'font-bold text-xl lg:text-2xl text-text-primary', // AC1: min. 24px
+    compact: 'font-medium text-sm text-text-primary',
   }[mode],
   truckIcon: {
     standard: 'h-5 w-5',
@@ -53,9 +53,9 @@ const getModeClasses = (mode: DashboardMode) => ({
     compact: 'h-4 w-4',
   }[mode],
   besatzungText: {
-    standard: 'text-gray-600 text-sm dark:text-gray-400',
-    fullscreen: 'text-gray-600 text-base lg:text-lg dark:text-gray-400',
-    compact: 'text-gray-600 text-xs dark:text-gray-400',
+    standard: 'text-text-muted text-sm',
+    fullscreen: 'text-text-muted text-base lg:text-lg',
+    compact: 'text-text-muted text-xs',
   }[mode],
   usersIcon: {
     standard: 'h-4 w-4',
@@ -78,13 +78,13 @@ export function FahrzeugCardSkeleton({ className }: { className?: string }) {
   const classes = getModeClasses(mode);
 
   return (
-    <div className={cn('border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800', 'animate-pulse', classes.container, className)}>
+    <div className={cn('border-border-subtle bg-surface-panel', 'animate-pulse', classes.container, className)}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2">
-          <div className={cn('rounded bg-gray-200 dark:bg-gray-700', classes.truckIcon)} />
-          <div className={cn('rounded bg-gray-200 dark:bg-gray-700', mode === 'fullscreen' ? 'h-6 w-32' : mode === 'compact' ? 'h-3 w-20' : 'h-4 w-24')} />
+          <div className={cn('rounded bg-surface-raised', classes.truckIcon)} />
+          <div className={cn('rounded bg-surface-raised', mode === 'fullscreen' ? 'h-6 w-32' : mode === 'compact' ? 'h-3 w-20' : 'h-4 w-24')} />
         </div>
-        <div className={cn('rounded-full bg-gray-200 dark:bg-gray-700', mode === 'fullscreen' ? 'h-8 w-20' : mode === 'compact' ? 'h-5 w-12' : 'h-6 w-16')} />
+        <div className={cn('rounded-full bg-surface-raised', mode === 'fullscreen' ? 'h-8 w-20' : mode === 'compact' ? 'h-5 w-12' : 'h-6 w-16')} />
       </div>
     </div>
   );
@@ -116,10 +116,9 @@ export function FahrzeugCard({ fahrzeug, onClick, isLoading, className }: Fahrze
     // biome-ignore lint/a11y/noStaticElementInteractions: role="button" wird dynamisch gesetzt wenn onClick vorhanden ist
     <div
       className={cn(
-        'border-gray-200 bg-white',
-        'dark:border-gray-700 dark:bg-gray-800',
+        'border-border-subtle bg-surface-panel',
         classes.container,
-        onClick && 'cursor-pointer transition-all hover:border-blue-300 hover:shadow-md dark:hover:border-blue-600',
+        onClick && 'cursor-pointer transition-all hover:border-border-strong hover:shadow-md',
         // AC2: Touch-Targets min. 44x44px in Compact-Mode (Card ist klickbar)
         onClick && mode === 'compact' && 'min-h-[44px]',
         className,
@@ -141,7 +140,7 @@ export function FahrzeugCard({ fahrzeug, onClick, isLoading, className }: Fahrze
       <div className="flex items-start justify-between gap-3">
         {/* Fahrzeug-Info */}
         <div className="flex items-center gap-2">
-          <PiTruck className={cn('text-gray-400 dark:text-gray-500', classes.truckIcon)} />
+          <PiTruck className={cn('text-text-muted', classes.truckIcon)} />
           <h3 className={classes.funkrufname}>{fahrzeug.funkrufname}</h3>
         </div>
 

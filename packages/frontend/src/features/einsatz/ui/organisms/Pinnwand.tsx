@@ -35,21 +35,17 @@ export function Pinnwand({ einsatzId }: PinnwandProps) {
       </div>
 
       {/* Statistiken - einklappbar, Card-Style */}
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-        <button
-          type="button"
-          onClick={() => setShowStatistiken(!showStatistiken)}
-          className="flex w-full items-center justify-between px-4 py-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
-        >
+      <div className="overflow-hidden rounded-xl border border-border-subtle bg-surface-panel">
+        <button type="button" onClick={() => setShowStatistiken(!showStatistiken)} className="flex w-full items-center justify-between px-4 py-3 transition-colors hover:bg-action-secondary">
           <div className="flex items-center gap-2.5">
-            <PiChartBar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-            <span className="font-bold text-gray-700 text-sm uppercase tracking-wider dark:text-gray-300">Statistiken &amp; Analysen</span>
+            <PiChartBar className="h-4 w-4 text-text-muted" />
+            <span className="font-bold text-body-sm uppercase tracking-wider text-text-secondary">Statistiken &amp; Analysen</span>
           </div>
-          {showStatistiken ? <PiCaretUp className="h-4 w-4 text-gray-400" /> : <PiCaretDown className="h-4 w-4 text-gray-400" />}
+          {showStatistiken ? <PiCaretUp className="h-4 w-4 text-text-muted" /> : <PiCaretDown className="h-4 w-4 text-text-muted" />}
         </button>
 
         {showStatistiken && (
-          <div className="border-gray-200 border-t p-4 dark:border-gray-800">
+          <div className="border-border-subtle border-t p-4">
             <div className="flex flex-col gap-4">
               <ErinnerungUebersicht erinnerungen={erinnerungen} />
               <PersonStatistikTabelle einsatzId={einsatzId} />

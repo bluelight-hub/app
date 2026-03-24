@@ -44,8 +44,7 @@ export function ConnectionStatusBanner({ isConnected }: ConnectionStatusBannerPr
       aria-live="assertive"
       className={cn(
         'flex items-center gap-2 rounded-md border px-4 py-2 font-medium text-sm transition-opacity duration-300',
-        'border-yellow-200 bg-yellow-50 text-yellow-800',
-        'dark:border-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-200',
+        'border-status-warning-border bg-status-warning-surface text-status-warning-text',
         isConnected ? 'opacity-0' : 'opacity-100',
       )}
     >

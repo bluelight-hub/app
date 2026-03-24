@@ -9,8 +9,8 @@ interface ItemTypeBadgeProps {
 }
 
 const variantStyles: Record<ItemType, string> = {
-  erinnerung: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-  notiz: 'bg-slate-100 text-slate-600 dark:bg-slate-700/50 dark:text-slate-400',
+  erinnerung: 'bg-status-warning-surface text-status-warning-text',
+  notiz: 'bg-surface-raised text-text-secondary',
 };
 
 const variantIcons: Record<ItemType, React.ReactNode> = {

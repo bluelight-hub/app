@@ -58,15 +58,14 @@ export function DashboardErrorCard({ title, onRetry, className }: DashboardError
   const classes = getModeClasses(mode);
 
   return (
-    <div className={cn('flex flex-col items-center justify-center rounded-lg border border-red-200 bg-red-50', 'dark:border-red-800 dark:bg-red-900/20', classes.container, className)}>
-      <PiWarningCircle className={cn('text-red-500', classes.icon)} />
-      <p className={cn('text-center text-red-600 dark:text-red-400', classes.text)}>{title} konnte nicht geladen werden</p>
+    <div className={cn('flex flex-col items-center justify-center rounded-panel border border-status-danger-border bg-status-danger-surface', classes.container, className)}>
+      <PiWarningCircle className={cn('text-status-danger-text', classes.icon)} />
+      <p className={cn('text-center text-status-danger-text', classes.text)}>{title} konnte nicht geladen werden</p>
       <button
         type="button"
         onClick={onRetry}
         className={cn(
-          'flex items-center gap-1 text-red-600 hover:text-red-700',
-          'dark:text-red-400 dark:hover:text-red-300',
+          'flex items-center gap-1 rounded-control px-2 py-1 text-status-danger-text transition-opacity hover:opacity-80 focus:outline-none focus-visible:shadow-focus-ring',
           classes.text,
           // AC2: Touch-Target min. 44x44px in Compact-Mode
           mode === 'compact' && 'min-h-[44px] min-w-[44px] px-2 py-2',

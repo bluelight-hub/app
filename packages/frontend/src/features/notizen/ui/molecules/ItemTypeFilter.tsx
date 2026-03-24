@@ -72,7 +72,7 @@ export function ItemTypeFilterControl({ value, onChange, className }: ItemTypeFi
   );
 
   return (
-    <div ref={containerRef} className={cn('inline-flex rounded-lg bg-gray-100 p-1 dark:bg-gray-800', className)} role="radiogroup" aria-label="Typ-Filter">
+    <div ref={containerRef} className={cn('inline-flex rounded-panel bg-action-secondary p-1', className)} role="radiogroup" aria-label="Typ-Filter">
       {filterOptions.map((option, index) => {
         const isSelected = value === option.value;
         const isFocusable = index === focusableIndex;
@@ -88,9 +88,9 @@ export function ItemTypeFilterControl({ value, onChange, className }: ItemTypeFi
             onClick={() => onChange(option.value)}
             onKeyDown={(e) => handleKeyDown(e, index)}
             className={cn(
-              'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 font-medium text-sm transition-colors',
-              'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
-              isSelected ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white' : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200',
+              'inline-flex items-center gap-1.5 rounded-control px-3 py-1.5 font-medium text-sm transition-colors',
+              'focus:outline-none focus-visible:shadow-focus-ring',
+              isSelected ? 'bg-surface-panel text-text-primary shadow-sm' : 'text-text-secondary hover:text-text-primary',
             )}
           >
             {option.icon}

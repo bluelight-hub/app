@@ -8,12 +8,11 @@ export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElemen
 }
 
 const BASE_STYLES =
-  'block w-full rounded-lg border bg-white font-medium text-gray-900 transition-colors duration-200 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-opacity-20 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-500 resize-none';
+  'block w-full rounded-control border bg-surface-panel font-medium text-text-primary transition-colors duration-200 placeholder:text-text-muted focus:border-action-primary focus-visible:outline-none focus-visible:shadow-focus-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none';
 
 const VARIANTS = {
-  default:
-    'border-gray-300 hover:border-gray-400 focus:border-primary-500 focus:bg-white focus:ring-primary-500 dark:border-gray-700 dark:hover:border-gray-600 dark:focus:border-primary-400 dark:focus:bg-gray-900 dark:focus:ring-primary-400',
-  error: 'border-red-300 hover:border-red-400 focus:border-red-500 focus:ring-red-500 dark:border-red-700 dark:hover:border-red-600 dark:focus:border-red-400 dark:focus:ring-red-400',
+  default: 'border-border-subtle hover:border-border-strong',
+  error: 'border-status-danger-border hover:border-status-danger-text focus:border-status-danger-text',
 };
 
 const SIZES = {

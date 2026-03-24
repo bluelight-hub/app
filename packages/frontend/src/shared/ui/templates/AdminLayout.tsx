@@ -130,7 +130,7 @@ export function AdminLayout() {
     <Container maxWidth="6xl" className="px-0 py-8">
       <div className="flex flex-col gap-4">
         {/* Header mit Titel und Close-Button */}
-        <div className="border-gray-200 border-b pb-4 dark:border-gray-800">
+        <div className="border-border-subtle border-b pb-4">
           <div className="flex items-start justify-between">
             <div className="flex">
               {!matchRoute({ to: '/admin/dashboard' }) && (
@@ -154,7 +154,7 @@ export function AdminLayout() {
           {isGuardPending ? (
             <div className="flex flex-col items-center gap-4 py-12">
               <Spinner size="xl" />
-              <p className="text-gray-600 text-lg dark:text-gray-400">Authentifizierung wird geprüft...</p>
+              <p className="text-lg text-text-secondary">Authentifizierung wird geprüft...</p>
             </div>
           ) : (
             <Outlet />

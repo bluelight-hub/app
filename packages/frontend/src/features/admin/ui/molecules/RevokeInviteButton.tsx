@@ -1,8 +1,9 @@
+import { useState } from 'react';
+import { PiProhibit } from 'react-icons/pi';
+
 import { useRevokeInvite } from '@/features/admin/api';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
-import { useState } from 'react';
-import { PiProhibit } from 'react-icons/pi';
 
 interface RevokeInviteButtonProps {
   /** ID des Invite-Codes */
@@ -14,9 +15,9 @@ interface RevokeInviteButtonProps {
 /**
  * Button zum Widerrufen eines Invite-Codes mit Bestätigungsdialog.
  *
- * Deaktiviert für Status 'used' und 'revoked'.
- * Zeigt Headless UI Dialog zur Bestätigung der Aktion.
- * Verwendet useRevokeInvite Hook für API-Mutation.
+ * Deaktiviert fuer Status 'used' und 'revoked'.
+ * Zeigt Headless UI Dialog zur Bestaetigung der Aktion.
+ * Verwendet useRevokeInvite Hook fuer API-Mutation.
  *
  * @example
  * ```tsx
@@ -26,7 +27,6 @@ interface RevokeInviteButtonProps {
 export function RevokeInviteButton({ inviteId, status }: RevokeInviteButtonProps) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const revokeMutation = useRevokeInvite();
-
   const isDisabled = status === 'used' || status === 'revoked';
 
   const handleRevoke = async () => {
@@ -51,8 +51,8 @@ export function RevokeInviteButton({ inviteId, status }: RevokeInviteButtonProps
         title="Invite-Code widerrufen"
         message={
           <div className="space-y-2">
-            <p className="text-gray-700 dark:text-gray-300">Möchten Sie diesen Invite-Code wirklich widerrufen?</p>
-            <p className="text-gray-500 text-sm dark:text-gray-400">Diese Aktion kann nicht rückgängig gemacht werden. Der Code kann nach dem Widerruf nicht mehr verwendet werden.</p>
+            <p className="text-text-secondary">Möchten Sie diesen Invite-Code wirklich widerrufen?</p>
+            <p className="text-text-muted text-sm">Diese Aktion kann nicht rückgängig gemacht werden. Der Code kann nach dem Widerruf nicht mehr verwendet werden.</p>
           </div>
         }
         confirmLabel="Widerrufen"

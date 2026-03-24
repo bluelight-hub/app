@@ -64,7 +64,7 @@ export function ColorModeMenu({ placement = 'bottom', align = 'right' }: ColorMo
   }, []);
 
   if (!mounted) {
-    return <div className="h-9 w-32 animate-pulse rounded-md bg-gray-200 dark:bg-gray-700" />;
+    return <div className="h-9 w-32 animate-pulse rounded-control bg-surface-raised" />;
   }
 
   const currentOption = colorModeOptions.find((opt) => opt.value === colorMode) || colorModeOptions[2];
@@ -74,10 +74,8 @@ export function ColorModeMenu({ placement = 'bottom', align = 'right' }: ColorMo
     <Menu as="div" className="relative">
       <MenuButton
         className={cn(
-          'inline-flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2',
-          'border border-gray-200 bg-white text-gray-700',
-          'hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset',
-          'dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700',
+          'inline-flex cursor-pointer items-center gap-2 rounded-control border border-border-subtle bg-surface-panel px-3 py-2 text-text-secondary',
+          'hover:bg-action-secondary focus-visible:shadow-focus-ring focus-visible:outline-none',
           'transition-colors duration-200',
         )}
       >
@@ -88,12 +86,7 @@ export function ColorModeMenu({ placement = 'bottom', align = 'right' }: ColorMo
 
       <MenuItems
         anchor={`${placement} ${align === 'left' ? 'start' : 'end'}` as const}
-        className={cn(
-          'z-50 min-w-max rounded-xl [--anchor-gap:8px]',
-          'border border-gray-200 bg-white shadow-xl ring-1 ring-black/5',
-          'dark:border-gray-700 dark:bg-gray-900 dark:ring-white/10',
-          'focus:outline-none',
-        )}
+        className={cn('z-50 min-w-max rounded-panel border border-border-subtle bg-surface-panel shadow-panel [--anchor-gap:8px]', 'focus:outline-none')}
       >
         <div className="p-2">
           {colorModeOptions.map((option) => {
@@ -108,17 +101,17 @@ export function ColorModeMenu({ placement = 'bottom', align = 'right' }: ColorMo
                     type="button"
                     onClick={() => setColorMode(option.value)}
                     className={cn(
-                      'flex w-full cursor-pointer items-center gap-4 rounded-lg px-3 py-2.5',
+                      'flex w-full cursor-pointer items-center gap-4 rounded-control px-3 py-2.5',
                       'transition-all duration-150',
-                      focus && 'bg-gray-100 dark:bg-gray-800',
-                      isSelected && 'bg-blue-50 dark:bg-blue-950/50',
+                      focus && 'bg-action-secondary',
+                      isSelected && 'bg-action-secondary',
                     )}
                   >
                     {/* Icon Container */}
                     <div
                       className={cn(
-                        'flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg',
-                        isSelected ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
+                        'flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-control',
+                        isSelected ? 'bg-action-secondary text-action-primary' : 'bg-surface-raised text-text-muted',
                       )}
                     >
                       <Icon className="h-5 w-5" />
@@ -126,15 +119,15 @@ export function ColorModeMenu({ placement = 'bottom', align = 'right' }: ColorMo
 
                     {/* Text Content */}
                     <div className="flex flex-1 flex-col items-start">
-                      <span className={cn('font-medium text-sm', isSelected ? 'text-blue-700 dark:text-blue-300' : 'text-gray-900 dark:text-gray-100')}>{option.label}</span>
-                      <span className={cn('whitespace-nowrap text-xs', isSelected ? 'text-blue-600/70 dark:text-blue-400/70' : 'text-gray-500 dark:text-gray-400')}>
+                      <span className={cn('font-medium text-sm text-text-primary')}>{option.label}</span>
+                      <span className={cn('whitespace-nowrap text-xs', isSelected ? 'text-text-secondary' : 'text-text-muted')}>
                         {option.description}
                         {isSystemActive && ` (${resolvedColorMode === 'dark' ? 'Dunkel' : 'Hell'})`}
                       </span>
                     </div>
 
                     {/* Checkmark */}
-                    <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center">{isSelected && <PiCheck className="h-5 w-5 text-blue-600 dark:text-blue-400" />}</div>
+                    <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center">{isSelected && <PiCheck className="h-5 w-5 text-action-primary" />}</div>
                   </button>
                 )}
               </MenuItem>

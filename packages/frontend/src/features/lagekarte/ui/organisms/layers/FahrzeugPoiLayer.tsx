@@ -57,10 +57,10 @@ export const FahrzeugPoiLayer: React.FC<FahrzeugPoiLayerProps> = React.memo(({ e
   // Loading-State: Spinner in oberer rechter Ecke
   if (isLoading) {
     return (
-      <div className="absolute top-4 right-20 z-50 rounded-lg bg-white p-3 shadow-lg dark:bg-gray-800">
+      <div className="absolute top-4 right-20 z-50 rounded-lg bg-surface-panel p-3 shadow-lg">
         <div className="flex items-center gap-2">
           <Spinner size="sm" type="ring" />
-          <span className="text-gray-600 text-sm dark:text-gray-400">Fahrzeuge laden...</span>
+          <span className="text-body-sm text-text-secondary">Fahrzeuge laden...</span>
         </div>
       </div>
     );
@@ -70,9 +70,9 @@ export const FahrzeugPoiLayer: React.FC<FahrzeugPoiLayerProps> = React.memo(({ e
   if (error) {
     logger.error('Fahrzeug-POI-Fetch-Fehler:', error);
     return (
-      <div className="absolute top-4 right-20 z-50 flex items-center gap-2 rounded-lg border-2 border-red-500 bg-red-50 p-3 shadow-lg dark:border-red-400 dark:bg-red-900/50">
-        <PiXCircle className="h-5 w-5 text-red-500 dark:text-red-400" />
-        <p className="font-medium text-red-700 text-sm dark:text-red-300">Fahrzeug-POIs konnten nicht geladen werden</p>
+      <div className="absolute top-4 right-20 z-50 flex items-center gap-2 rounded-lg border-2 border-status-danger-border bg-status-danger-surface p-3 shadow-lg">
+        <PiXCircle className="h-5 w-5 text-status-danger-text" />
+        <p className="font-medium text-body-sm text-status-danger-text">Fahrzeug-POIs konnten nicht geladen werden</p>
       </div>
     );
   }
@@ -104,25 +104,25 @@ export const FahrzeugPoiLayer: React.FC<FahrzeugPoiLayerProps> = React.memo(({ e
             <Popup className="fahrzeug-popup">
               <div className="space-y-2 p-2">
                 {/* Fahrzeug-Name (Funkrufname) */}
-                <h3 className="font-semibold text-gray-900 text-lg dark:text-gray-100">{name}</h3>
+                <h3 className="font-semibold text-text-primary text-lg">{name}</h3>
 
                 {/* Status mit Farbindikator */}
                 <div className="flex items-center gap-2">
                   <span className="h-3 w-3 rounded-full" style={{ backgroundColor: typeof statusFarbe === 'string' ? statusFarbe : '#6B7280' }} />
-                  <span className="text-gray-700 text-sm dark:text-gray-300">{statusLabel}</span>
+                  <span className="text-body-sm text-text-secondary">{statusLabel}</span>
                 </div>
 
                 {/* Taktische Staerke */}
-                <p className="text-gray-600 text-sm dark:text-gray-400">
+                <p className="text-body-sm text-text-secondary">
                   <span className="font-medium">Staerke:</span> {staerkeDisplay}
                 </p>
 
                 {/* Position Timestamp (AC3) */}
-                {positionTimestamp && <p className="text-gray-400 text-xs dark:text-gray-500">Position: {new Date(positionTimestamp).toLocaleTimeString('de-DE')}</p>}
+                {positionTimestamp && <p className="text-body-xs text-text-muted">Position: {new Date(positionTimestamp).toLocaleTimeString('de-DE')}</p>}
 
                 {/* Link zum Fahrzeug (optional) */}
                 {onFahrzeugClick && (
-                  <button type="button" onClick={() => onFahrzeugClick(feature.id)} className="mt-2 text-blue-600 text-sm hover:underline dark:text-blue-400">
+                  <button type="button" onClick={() => onFahrzeugClick(feature.id)} className="mt-2 text-body-sm text-action-primary hover:underline">
                     Zum Fahrzeug
                   </button>
                 )}

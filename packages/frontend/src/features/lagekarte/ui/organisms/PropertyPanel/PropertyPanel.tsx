@@ -120,10 +120,10 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({ selectedShape, onP
   return (
     <>
       {/* Desktop: Fixed Right Sidebar */}
-      <div className="fixed top-0 right-0 z-[1000] hidden h-full w-80 border-gray-200 border-l bg-white/95 p-4 shadow-xl backdrop-blur-sm md:block dark:border-gray-700 dark:bg-gray-800/95">
+      <div className="fixed top-0 right-0 z-[1000] hidden h-full w-80 border-border-subtle border-l bg-surface-panel/95 p-4 shadow-xl backdrop-blur-sm md:block">
         {/* Header */}
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-semibold text-gray-900 text-lg dark:text-white">Shape-Eigenschaften</h3>
+          <h3 className="font-semibold text-text-primary text-lg">Shape-Eigenschaften</h3>
           <CloseButton onClick={onClose} />
         </div>
 
@@ -132,10 +132,10 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({ selectedShape, onP
       </div>
 
       {/* Mobile: Slide-up Bottom Sheet */}
-      <div className="fixed inset-x-0 bottom-0 z-[1000] max-h-[70vh] overflow-y-auto rounded-t-2xl border-gray-200 border-t bg-white/95 p-4 shadow-xl backdrop-blur-sm md:hidden dark:border-gray-700 dark:bg-gray-800/95">
+      <div className="fixed inset-x-0 bottom-0 z-[1000] max-h-[70vh] overflow-y-auto rounded-t-2xl border-border-subtle border-t bg-surface-panel/95 p-4 shadow-xl backdrop-blur-sm md:hidden">
         {/* Header */}
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-semibold text-gray-900 text-lg dark:text-white">Shape-Eigenschaften</h3>
+          <h3 className="font-semibold text-text-primary text-lg">Shape-Eigenschaften</h3>
           <CloseButton onClick={onClose} />
         </div>
 

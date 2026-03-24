@@ -12,9 +12,9 @@
  * **AC2 - Design:**
  * - Zahlen prominent (min. 24px / text-2xl, Fullscreen: 36-48px)
  * - Farblich unterschieden:
- *   - Führung = Blau (text-blue-600)
- *   - Unterführung = Grün (text-green-600)
- *   - Mannschaft = Grau (text-gray-600)
+ *   - Führung = Primär-Akzent
+ *   - Unterführung = Success-Ton
+ *   - Mannschaft = Sekundärtext
  *   - Gesamt = Schwarz/Bold
  */
 
@@ -46,9 +46,9 @@ const getModeClasses = (mode: DashboardMode) => ({
     compact: 'text-xl font-semibold',
   }[mode],
   label: {
-    standard: 'text-xs text-gray-500 dark:text-gray-400',
-    fullscreen: 'text-base text-gray-500 lg:text-lg dark:text-gray-400',
-    compact: 'text-[10px] text-gray-500 dark:text-gray-400',
+    standard: 'text-text-muted text-xs',
+    fullscreen: 'text-base text-text-muted lg:text-lg',
+    compact: 'text-[10px] text-text-muted',
   }[mode],
   container: {
     standard: 'p-4',
@@ -82,13 +82,13 @@ function StaerkeCardSkeleton({ className }: { className?: string }) {
   const classes = getModeClasses(mode);
 
   return (
-    <div className={cn('animate-pulse rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800', classes.container, className)}>
-      <div className="mb-4 h-5 w-32 rounded bg-gray-200 dark:bg-gray-700" />
+    <div className={cn('animate-pulse rounded-panel border border-border-subtle bg-surface-panel shadow-panel', classes.container, className)}>
+      <div className="mb-4 h-5 w-32 rounded bg-surface-raised" />
       <div className={cn('flex items-center justify-between', classes.gap)}>
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="text-center">
-            <div className={cn('mx-auto mb-1 rounded bg-gray-200 dark:bg-gray-700', mode === 'fullscreen' ? 'h-12 w-14' : mode === 'compact' ? 'h-6 w-8' : 'h-8 w-10')} />
-            <div className="mx-auto h-3 w-16 rounded bg-gray-200 dark:bg-gray-700" />
+            <div className={cn('mx-auto mb-1 rounded bg-surface-raised', mode === 'fullscreen' ? 'h-12 w-14' : mode === 'compact' ? 'h-6 w-8' : 'h-8 w-10')} />
+            <div className="mx-auto h-3 w-16 rounded bg-surface-raised" />
           </div>
         ))}
       </div>
@@ -114,47 +114,47 @@ export function StaerkeCard({ fuehrung, unterfuehrung, mannschaft, gesamt, isLoa
   // Compact-Modus: Nur Gesamt anzeigen (platzsparend)
   if (mode === 'compact') {
     return (
-      <div className={cn('flex items-center justify-between rounded-lg border border-gray-200 bg-white', 'dark:border-gray-700 dark:bg-gray-800', classes.container, className)}>
-        <span className="font-medium text-gray-600 text-sm dark:text-gray-400">Stärke</span>
-        <span className="font-bold text-gray-900 text-xl dark:text-white">{gesamt}</span>
+      <div className={cn('flex items-center justify-between rounded-panel border border-border-subtle bg-surface-panel', classes.container, className)}>
+        <span className="font-medium text-text-secondary text-sm">Stärke</span>
+        <span className="font-bold text-text-primary text-xl">{gesamt}</span>
       </div>
     );
   }
 
   // Standard & Fullscreen: Alle Kategorien mit Separatoren
   return (
-    <div className={cn('rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800', classes.container, className)}>
-      <h3 className={cn('mb-4 font-medium text-gray-900 dark:text-gray-100', classes.title)}>Taktische Stärke</h3>
+    <div className={cn('rounded-panel border border-border-subtle bg-surface-panel shadow-panel', classes.container, className)}>
+      <h3 className={cn('mb-4 font-medium text-text-primary', classes.title)}>Taktische Stärke</h3>
 
       <div className={cn('flex items-center justify-between', classes.gap)}>
         {/* Führung - Blau */}
         <div className="text-center">
-          <span className={cn(classes.number, 'text-blue-600 dark:text-blue-400')}>{fuehrung}</span>
+          <span className={cn(classes.number, 'text-action-primary')}>{fuehrung}</span>
           <p className={classes.label}>Führung</p>
         </div>
 
-        <span className={cn('text-gray-400 dark:text-gray-500', classes.separator)}>/</span>
+        <span className={cn('text-text-muted', classes.separator)}>/</span>
 
         {/* Unterführung - Grün */}
         <div className="text-center">
-          <span className={cn(classes.number, 'text-green-600 dark:text-green-400')}>{unterfuehrung}</span>
+          <span className={cn(classes.number, 'text-status-success-text')}>{unterfuehrung}</span>
           <p className={classes.label}>Unterführung</p>
         </div>
 
-        <span className={cn('text-gray-400 dark:text-gray-500', classes.separator)}>/</span>
+        <span className={cn('text-text-muted', classes.separator)}>/</span>
 
         {/* Mannschaft - Grau */}
         <div className="text-center">
-          <span className={cn(classes.number, 'text-gray-600 dark:text-gray-300')}>{mannschaft}</span>
+          <span className={cn(classes.number, 'text-text-secondary')}>{mannschaft}</span>
           <p className={classes.label}>Mannschaft</p>
         </div>
 
         {/* Separator - Doppelter Schrägstrich vor Gesamt (FwDV-konform) */}
-        <span className={cn('text-gray-400 dark:text-gray-500', classes.separator)}>{'//'}</span>
+        <span className={cn('text-text-muted', classes.separator)}>{'//'}</span>
 
         {/* Gesamt - Bold/Schwarz */}
         <div className="text-center">
-          <span className={cn(classes.number, 'text-gray-900 dark:text-white')}>{gesamt}</span>
+          <span className={cn(classes.number, 'text-text-primary')}>{gesamt}</span>
           <p className={classes.label}>Gesamt</p>
         </div>
       </div>

@@ -68,55 +68,55 @@ export function StopRecurringErinnerungDialog({ isOpen, onClose, erinnerung, ein
   return (
     <Dialog isOpen={isOpen} onClose={handleClose} size="md">
       <div className="flex items-center gap-3">
-        <div className="rounded-full bg-amber-100 p-2 dark:bg-amber-900/30">
-          <PiStopCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+        <div className="rounded-full bg-status-warning-surface p-2">
+          <PiStopCircle className="h-5 w-5 text-status-warning-text" />
         </div>
         <Dialog.Title>Wiederkehrende Serie beenden?</Dialog.Title>
       </div>
 
       <Dialog.Body>
         <div className="space-y-4">
-          <div className="rounded-lg bg-amber-50 p-3 dark:bg-amber-900/20">
-            <p className="flex items-start gap-2 text-amber-800 text-sm dark:text-amber-300">
+          <div className="rounded-panel bg-status-warning-surface p-3">
+            <p className="flex items-start gap-2 text-sm text-status-warning-text">
               <PiRepeat className="mt-0.5 h-4 w-4 flex-shrink-0" />
               <span>Zukuenftige Erinnerungen dieser Serie werden nicht mehr automatisch erstellt.</span>
             </p>
           </div>
 
           {/* Erinnerung-Details */}
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800/50">
+          <div className="rounded-panel border border-border-subtle bg-surface-raised p-3">
             <dl className="space-y-1 text-sm">
               <div className="flex">
-                <dt className="w-28 flex-shrink-0 text-gray-500 dark:text-gray-400">Titel:</dt>
-                <dd className="font-medium text-gray-900 dark:text-white">{erinnerung.titel}</dd>
+                <dt className="w-28 flex-shrink-0 text-text-muted">Titel:</dt>
+                <dd className="font-medium text-text-primary">{erinnerung.titel}</dd>
               </div>
               {erinnerung.recurringIntervalMinutes && (
                 <div className="flex">
-                  <dt className="w-28 flex-shrink-0 text-gray-500 dark:text-gray-400">Intervall:</dt>
-                  <dd className="text-gray-700 dark:text-gray-300">Alle {erinnerung.recurringIntervalMinutes} Min</dd>
+                  <dt className="w-28 flex-shrink-0 text-text-muted">Intervall:</dt>
+                  <dd className="text-text-secondary">Alle {erinnerung.recurringIntervalMinutes} Min</dd>
                 </div>
               )}
               {(erinnerung.recurringCurrentCount as unknown as number) > 0 && (
                 <div className="flex">
-                  <dt className="w-28 flex-shrink-0 text-gray-500 dark:text-gray-400">Instanzen:</dt>
-                  <dd className="text-gray-700 dark:text-gray-300">{erinnerung.recurringCurrentCount as unknown as number} erstellt</dd>
+                  <dt className="w-28 flex-shrink-0 text-text-muted">Instanzen:</dt>
+                  <dd className="text-text-secondary">{erinnerung.recurringCurrentCount as unknown as number} erstellt</dd>
                 </div>
               )}
             </dl>
           </div>
 
           {/* AC2: Checkbox fuer aktuelle Instanz abbrechen */}
-          <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-gray-200 p-3 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800/50">
+          <label className="flex cursor-pointer items-start gap-3 rounded-panel border border-border-subtle p-3 transition-colors hover:bg-action-secondary">
             <input
               type="checkbox"
               checked={cancelCurrent}
               onChange={(e) => setCancelCurrent(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+              className="mt-0.5 h-4 w-4 rounded border-border-subtle text-status-warning-text focus-visible:shadow-focus-ring"
               disabled={isPending}
             />
             <div>
-              <span className="font-medium text-gray-900 text-sm dark:text-white">Auch die aktuelle aktive Instanz abbrechen</span>
-              <p className="mt-0.5 text-gray-500 text-xs dark:text-gray-400">Falls eine Instanz gerade aktiv ist (geplant/ausgeloest), wird sie ebenfalls beendet.</p>
+              <span className="font-medium text-sm text-text-primary">Auch die aktuelle aktive Instanz abbrechen</span>
+              <p className="mt-0.5 text-text-muted text-xs">Falls eine Instanz gerade aktiv ist (geplant/ausgeloest), wird sie ebenfalls beendet.</p>
             </div>
           </label>
         </div>

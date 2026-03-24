@@ -29,24 +29,18 @@ interface EtbHistoryCardProps {
  */
 export function EtbHistoryCard({ version, timestamp, text, kategorie, isCurrent = false, username, changeReason, className }: EtbHistoryCardProps) {
   return (
-    <div
-      className={cn(
-        'rounded-lg p-4',
-        isCurrent ? 'border-2 border-primary-500 bg-primary-50/50 dark:border-primary-600 dark:bg-primary-900/20' : 'border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900/50',
-        className,
-      )}
-    >
+    <div className={cn('rounded-lg p-4', isCurrent ? 'border-2 border-status-info-border bg-status-info-surface' : 'border border-border-subtle bg-surface-panel', className)}>
       {/* Header mit Version und Timestamp */}
       <div className="mb-2 flex items-center gap-2">
         <EtbVersionBadge version={version} isCurrent={isCurrent} variant="solid" />
-        <span className="text-gray-500 text-sm dark:text-gray-400">{formatDisplayDateTime(timestamp)}</span>
+        <span className="text-sm text-text-secondary">{formatDisplayDateTime(timestamp)}</span>
       </div>
 
       {/* Username */}
-      {username && <p className="mb-2 text-gray-600 text-sm dark:text-gray-400">Bearbeitet von: {username}</p>}
+      {username && <p className="mb-2 text-sm text-text-secondary">Bearbeitet von: {username}</p>}
 
       {/* Change Reason */}
-      {changeReason && <p className="mb-2 text-gray-500 text-sm italic dark:text-gray-400">Grund: {changeReason}</p>}
+      {changeReason && <p className="mb-2 text-sm text-text-muted italic">Grund: {changeReason}</p>}
 
       {/* Kategorie Badge */}
       <div className="mb-2">
@@ -54,7 +48,7 @@ export function EtbHistoryCard({ version, timestamp, text, kategorie, isCurrent 
       </div>
 
       {/* Text Content */}
-      <p className={cn('text-sm', isCurrent ? 'text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300')}>{text}</p>
+      <p className={cn('text-sm', isCurrent ? 'text-text-primary' : 'text-text-secondary')}>{text}</p>
     </div>
   );
 }

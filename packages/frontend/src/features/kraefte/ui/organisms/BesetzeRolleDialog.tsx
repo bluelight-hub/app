@@ -135,8 +135,8 @@ export function BesetzeRolleDialog({ isOpen, onClose, einsatzId, rollenDefinitio
   return (
     <Dialog isOpen={isOpen} onClose={handleClose} size="sm">
       <div className="flex items-center gap-3">
-        <div className="rounded-full bg-blue-100 p-2 dark:bg-blue-900/30">
-          <PiUserPlus className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        <div className="rounded-full bg-status-info-surface p-2">
+          <PiUserPlus className="h-5 w-5 text-status-info-text" />
         </div>
         <Dialog.Title>Rolle besetzen</Dialog.Title>
       </div>
@@ -183,7 +183,7 @@ export function BesetzeRolleDialog({ isOpen, onClose, einsatzId, rollenDefinitio
           </form.Field>
 
           {/* API Error Message */}
-          {apiErrorMessage && <div className="rounded-lg bg-red-50 p-3 text-red-700 text-sm dark:bg-red-900/20 dark:text-red-400">{apiErrorMessage}</div>}
+          {apiErrorMessage && <div className="rounded-panel bg-status-danger-surface p-3 text-status-danger-text text-sm">{apiErrorMessage}</div>}
         </form>
       </Dialog.Body>
 

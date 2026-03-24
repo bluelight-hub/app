@@ -84,8 +84,8 @@ export function ErinnerungenList({ einsatzId, className, compact = false, onConn
   // Story 3.6 Issue #6: Guard - User muss eingeloggt sein
   if (!user) {
     return (
-      <div className={cn('rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-900/20', className)}>
-        <p className="text-sm text-yellow-700 dark:text-yellow-300">Bitte einloggen um Erinnerungen zu sehen</p>
+      <div className={cn('rounded-panel border border-status-warning-border bg-status-warning-surface p-4', className)}>
+        <p className="text-sm text-status-warning-text">Bitte einloggen um Erinnerungen zu sehen</p>
       </div>
     );
   }
@@ -380,16 +380,16 @@ function ErinnerungenListInner({ einsatzId, className, compact = false, currentU
   if (isLoading) {
     return (
       <div className={cn('animate-pulse', className)}>
-        <div className="h-20 rounded-lg bg-gray-200 dark:bg-gray-700" />
-        <div className="mt-2 h-20 rounded-lg bg-gray-200 dark:bg-gray-700" />
+        <div className="h-20 rounded-panel bg-surface-raised" />
+        <div className="mt-2 h-20 rounded-panel bg-surface-raised" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className={cn('rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20', className)}>
-        <p className="text-red-700 text-sm dark:text-red-300">Fehler beim Laden der Erinnerungen</p>
+      <div className={cn('rounded-panel border border-status-danger-border bg-status-danger-surface p-4', className)}>
+        <p className="text-sm text-status-danger-text">Fehler beim Laden der Erinnerungen</p>
       </div>
     );
   }
@@ -403,17 +403,12 @@ function ErinnerungenListInner({ einsatzId, className, compact = false, currentU
       {!compact && (
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <PiAlarm className="h-5 w-5 text-amber-500" />
-            <h3 className="font-semibold text-gray-900 dark:text-white">Erinnerungen</h3>
-            {sortedErinnerungen.length > 0 && (
-              <span className="rounded-full bg-amber-100 px-2 py-0.5 font-medium text-amber-700 text-xs dark:bg-amber-900/40 dark:text-amber-300">{sortedErinnerungen.length}</span>
-            )}
+            <PiAlarm className="h-5 w-5 text-status-warning-text" />
+            <h3 className="font-semibold text-text-primary">Erinnerungen</h3>
+            {sortedErinnerungen.length > 0 && <span className="rounded-pill bg-status-warning-surface px-2 py-0.5 font-medium text-status-warning-text text-xs">{sortedErinnerungen.length}</span>}
             {/* Story 3.2 Task 1.2: WebSocket-Status-Indikator */}
             <span
-              className={cn(
-                'flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs',
-                isConnected ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
-              )}
+              className={cn('flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs', isConnected ? 'bg-status-success-surface text-status-success-text' : 'bg-surface-raised text-text-muted')}
               title={isConnected ? 'Echtzeit-Updates aktiv' : 'Verbindung unterbrochen'}
             >
               {isConnected ? <PiWifiHigh className="h-3 w-3" /> : <PiWifiSlash className="h-3 w-3" />}
@@ -478,7 +473,7 @@ function ErinnerungenListInner({ einsatzId, className, compact = false, currentU
                   </div>
                   {/* Story 8.6 AC5: Anzeige der gefilterten Anzahl bei aktivem Filter */}
                   {isAnyFilterActive && (
-                    <span className="text-gray-500 text-xs dark:text-gray-400">
+                    <span className="text-text-muted text-xs">
                       {filteredByStatus.length} von {teamErinnerungen.length}
                     </span>
                   )}
@@ -532,9 +527,9 @@ interface ErinnerungListContentProps {
 function ErinnerungListContent({ erinnerungen, einsatzId, currentUserId, showCreator, compact, onCreateClick, emptyMessage }: ErinnerungListContentProps) {
   if (erinnerungen.length === 0) {
     return (
-      <div className={cn('rounded-lg border border-gray-300 border-dashed p-6 text-center dark:border-gray-600', compact && 'p-4')}>
-        <PiAlarm className="mx-auto h-8 w-8 text-gray-400 dark:text-gray-500" />
-        <p className="mt-2 text-gray-500 text-sm dark:text-gray-400">{emptyMessage}</p>
+      <div className={cn('rounded-panel border border-border-subtle border-dashed bg-surface-panel p-6 text-center', compact && 'p-4')}>
+        <PiAlarm className="mx-auto h-8 w-8 text-text-muted" />
+        <p className="mt-2 text-sm text-text-muted">{emptyMessage}</p>
         <Button size="sm" appearance="ghost" className="mt-3" onClick={onCreateClick}>
           <PiPlus className="mr-1 h-4 w-4" />
           Erinnerung erstellen

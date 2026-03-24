@@ -227,8 +227,8 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
     return (
       <div className="flex h-full flex-col items-center justify-center p-8" role="alert">
         <div className="max-w-md text-center">
-          <p className="font-medium text-gray-900 text-lg dark:text-gray-100">Befehle konnten nicht geladen werden</p>
-          <p className="mt-2 text-gray-500 text-sm dark:text-gray-400">{error?.message ?? 'Verbindungsfehler — bitte überprüfe die Netzwerkverbindung.'}</p>
+          <p className="font-medium text-text-primary text-lg">Befehle konnten nicht geladen werden</p>
+          <p className="mt-2 text-text-muted text-sm">{error?.message ?? 'Verbindungsfehler — bitte überprüfe die Netzwerkverbindung.'}</p>
           <Button intent="primary" size="sm" className="mt-4" onClick={handleRetry} autoFocus>
             <PiArrowClockwise className="mr-1.5 h-4 w-4" aria-hidden="true" />
             Erneut versuchen
@@ -250,12 +250,12 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
 
       {/* Inline-Fehler bei Filter-Queries (Daten teilweise vorhanden) */}
       {isError && befehle && (
-        <div className="flex items-center justify-between bg-red-50 px-4 py-2 text-red-600 text-sm dark:bg-red-900/20 dark:text-red-400" role="status">
+        <div className="flex items-center justify-between bg-status-danger-surface px-4 py-2 text-status-danger-text text-sm" role="status">
           <span>Filter konnten nicht angewendet werden.</span>
           <button
             type="button"
             onClick={handleRetry}
-            className="ml-3 rounded-md px-2 py-1 font-medium text-red-700 underline hover:no-underline focus:outline-none focus-visible:shadow-focus-ring dark:text-red-300"
+            className="ml-3 rounded-md px-2 py-1 font-medium text-status-danger-text underline hover:no-underline focus:outline-none focus-visible:shadow-focus-ring"
           >
             Erneut versuchen
           </button>
@@ -263,7 +263,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
       )}
 
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-gray-200 border-b px-4 py-2 dark:border-gray-700" role="toolbar" aria-label="Befehl-Aktionen">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-border-subtle border-b px-4 py-2" role="toolbar" aria-label="Befehl-Aktionen">
         <div className="flex items-center gap-2">
           {/* Neuer Befehl Button */}
           {isPermissionsLoading ? (
@@ -293,7 +293,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
               <span
                 className={cn(
                   'ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 font-bold text-xs',
-                  showMeineBefehle ? 'bg-white/20 text-white' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
+                  showMeineBefehle ? 'bg-surface-overlay/20 text-text-inverse' : 'bg-status-warning-surface text-status-warning-text',
                 )}
               >
                 {unquittiertCount}
@@ -307,16 +307,14 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
             onClick={() => setIsMobileFilterOpen((prev) => !prev)}
             className={cn(
               'inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 font-medium text-sm transition-colors focus:outline-none focus-visible:shadow-focus-ring',
-              hasFilters
-                ? 'border-primary-300 bg-primary-50 text-primary-700 dark:border-primary-600 dark:bg-primary-900/20 dark:text-primary-300'
-                : 'border-gray-300 text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-800',
+              hasFilters ? 'border-action-primary bg-action-secondary text-action-primary' : 'border-border-subtle text-text-secondary hover:bg-action-secondary',
             )}
             aria-expanded={isMobileFilterOpen}
             aria-controls="befehl-filter-panel"
           >
             <PiFunnel className="h-4 w-4" aria-hidden="true" />
             <span className="hidden sm:inline">Filter</span>
-            {hasFilters && <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary-600 px-1 font-bold text-white text-xs">{activeFilterCount}</span>}
+            {hasFilters && <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-action-primary px-1 font-bold text-text-inverse text-xs">{activeFilterCount}</span>}
             {isMobileFilterOpen ? <PiCaretUp className="h-3 w-3" aria-hidden="true" /> : <PiCaretDown className="h-3 w-3" aria-hidden="true" />}
           </button>
         </div>
@@ -326,7 +324,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
           <BefehleViewToggle className="hidden md:inline-flex" />
 
           {/* Ergebnis-Count */}
-          <span className="text-gray-500 text-sm dark:text-gray-400">{aktiveBefehle ? `${aktiveBefehle.length} Befehle` : ''}</span>
+          <span className="text-text-muted text-sm">{aktiveBefehle ? `${aktiveBefehle.length} Befehle` : ''}</span>
 
           {/* Aktualisieren */}
           <button
@@ -334,7 +332,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
             onClick={handleRetry}
             disabled={isRefetching}
             className={cn(
-              'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 font-medium text-gray-600 text-sm hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:shadow-focus-ring dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200',
+              'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 font-medium text-text-secondary text-sm hover:bg-action-secondary hover:text-text-primary focus:outline-none focus-visible:shadow-focus-ring',
               isRefetching && 'cursor-not-allowed opacity-50',
             )}
             aria-label="Befehle aktualisieren"
@@ -347,7 +345,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
             <button
               type="button"
               disabled
-              className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-md px-2.5 py-1.5 font-medium text-gray-400 text-sm dark:text-gray-600"
+              className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-md px-2.5 py-1.5 font-medium text-text-muted text-sm"
               aria-label="Berechtigungen werden geladen"
             >
               <PiExport className="h-4 w-4" aria-hidden="true" />
@@ -357,7 +355,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
             <button
               type="button"
               onClick={() => setIsExportDialogOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 font-medium text-gray-600 text-sm hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:shadow-focus-ring dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+              className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 font-medium text-text-secondary text-sm hover:bg-action-secondary hover:text-text-primary focus:outline-none focus-visible:shadow-focus-ring"
               aria-label="Befehle exportieren"
             >
               <PiExport className="h-4 w-4" aria-hidden="true" />
@@ -368,7 +366,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
               <button
                 type="button"
                 disabled
-                className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-md px-2.5 py-1.5 font-medium text-gray-400 text-sm dark:text-gray-600"
+                className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-md px-2.5 py-1.5 font-medium text-text-muted text-sm"
                 aria-label="Befehle exportieren (keine Berechtigung)"
                 aria-disabled="true"
               >
@@ -382,7 +380,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
 
       {/* Filter-Panel (Dropdown) */}
       {isMobileFilterOpen && (
-        <div id="befehl-filter-panel" className="border-gray-200 border-b dark:border-gray-700">
+        <div id="befehl-filter-panel" className="border-border-subtle border-b">
           <BefehlFilterRow
             statusFilter={filterState.statusFilter}
             onStatusFilterChange={setStatusFilter}
@@ -407,7 +405,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
 
       {/* Befehl-Eingabezeile */}
       {showEingabeRow && (
-        <div className="border-gray-200 border-b px-4 py-4 dark:border-gray-700">
+        <div className="border-border-subtle border-b px-4 py-4">
           <BefehlEingabeRow einsatzId={einsatzId} onClose={() => setShowEingabeRow(false)} />
         </div>
       )}
@@ -420,11 +418,11 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
         {/* Leerzustand */}
         {!hasFilters && aktiveBefehle?.length === 0 && !isError && (
           <div className="flex flex-1 flex-col items-center justify-center py-16 text-center" role="status">
-            <p className="font-medium text-gray-700 dark:text-gray-300">Keine offenen Befehle</p>
-            <p className="mt-1 text-gray-500 text-sm dark:text-gray-400">
+            <p className="font-medium text-text-secondary">Keine offenen Befehle</p>
+            <p className="mt-1 text-text-muted text-sm">
               {canCreate ? (
                 <>
-                  Erstelle den ersten Befehl mit <kbd className="rounded border border-gray-300 bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:border-gray-600 dark:bg-gray-800">Ctrl+N</kbd>.
+                  Erstelle den ersten Befehl mit <kbd className="rounded border border-border-subtle bg-surface-raised px-1.5 py-0.5 font-mono text-xs">Ctrl+N</kbd>.
                 </>
               ) : (
                 'Noch keine Befehle im aktiven Einsatz erteilt.'
@@ -442,12 +440,8 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
         {/* Filter-Leerzustand */}
         {hasFilters && aktiveBefehle?.length === 0 && !isError && (
           <div className="flex flex-1 flex-col items-center justify-center py-16 text-center">
-            <p className="text-gray-500 dark:text-gray-400">Keine Befehle gefunden — Filter anpassen</p>
-            <button
-              type="button"
-              onClick={resetBefehleFilter}
-              className="mt-2 text-primary-600 text-sm hover:text-primary-700 focus:outline-none focus-visible:shadow-focus-ring dark:text-primary-400 dark:hover:text-primary-300"
-            >
+            <p className="text-text-muted">Keine Befehle gefunden — Filter anpassen</p>
+            <button type="button" onClick={resetBefehleFilter} className="mt-2 text-action-primary text-sm hover:text-action-primary-hover focus:outline-none focus-visible:shadow-focus-ring">
               Filter zurücksetzen
             </button>
           </div>
@@ -485,13 +479,13 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
 
       {/* Story 4.3 AC3: Befehl nicht gefunden — Inline-Fehler (kein Modal/Overlay) */}
       {isBefehlNotFound && (
-        <div className="border-red-200 border-t bg-red-50 px-6 py-8 text-center dark:border-red-800 dark:bg-red-900/20" role="alert" aria-live="assertive">
-          <p className="font-medium text-gray-900 text-lg dark:text-gray-100">Dieser Befehl ist nicht mehr verfügbar</p>
-          <p className="mt-2 text-gray-500 text-sm dark:text-gray-400">Der Befehl wurde möglicherweise gelöscht oder Sie haben keine Berechtigung.</p>
+        <div className="border-status-danger-border border-t bg-status-danger-surface px-6 py-8 text-center" role="alert" aria-live="assertive">
+          <p className="font-medium text-text-primary text-lg">Dieser Befehl ist nicht mehr verfügbar</p>
+          <p className="mt-2 text-text-muted text-sm">Der Befehl wurde möglicherweise gelöscht oder Sie haben keine Berechtigung.</p>
           <button
             type="button"
             onClick={onClosePanel}
-            className="mt-4 rounded-md bg-primary-600 px-4 py-2 font-medium text-sm text-white hover:bg-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+            className="mt-4 rounded-md bg-action-primary px-4 py-2 font-medium text-sm text-text-inverse hover:bg-action-primary-hover focus:outline-none focus-visible:shadow-focus-ring"
           >
             Zurück zur Befehlsübersicht
           </button>
