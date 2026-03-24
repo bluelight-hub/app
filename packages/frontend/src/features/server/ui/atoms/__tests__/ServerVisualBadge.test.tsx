@@ -321,7 +321,7 @@ describe('ServerVisualBadge', () => {
 
       // Then (Assert)
       const svg = container.querySelector('svg');
-      expect(svg).toHaveClass('text-white');
+      expect(svg).toHaveClass('text-text-inverse');
     });
   });
 

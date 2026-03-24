@@ -59,5 +59,85 @@ export function AdminIntegrationOverview() {
       }
     },
     [navigate],
-  ); // Access Guard if (accessLoading) { return ( <div className="space-y-4 p-6"> <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"> <SkeletonCard /> </div> </div> ); } if (!accessible) { return ( <div className="flex items-center justify-center p-12"> <p className="text-text-muted">Keine Berechtigung für die Integrationsübersicht.</p> </div> ); } // Loading State if (isLoading) { return ( <div className="space-y-4 p-6"> <div className="flex items-center justify-between"> <h2 className="font-semibold text-text-primary text-lg">Externe Integrationen</h2> </div> <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"> <SkeletonCard /> <SkeletonCard /> </div> </div> ); } // Error State if (isError) { return ( <div className="space-y-4 p-6"> <h2 className="font-semibold text-text-primary text-lg">Externe Integrationen</h2> <div className="rounded-panel border border-status-danger-border bg-status-danger-surface p-4"> <p className="text-status-danger-text text-sm">Fehler beim Laden der Integrationsübersicht: {(error as Error)?.message ?? 'Unbekannter Fehler'}</p> <button type="button" onClick={() => refetch()} className="mt-2 rounded-control bg-status-danger-surface px-3 py-1.5 font-medium text-status-danger-text text-xs transition-colors hover:bg-status-danger-surface/80 focus-visible:outline-none focus-visible:shadow-focus-ring" > Erneut versuchen </button> </div> </div> ); } const integrations = data?.integrations ?? []; return ( <div className="space-y-4 p-6"> {/* Header mit aria-live Region fuer Status-Aenderungen */} <div className="flex items-center justify-between"> <h2 className="font-semibold text-text-primary text-lg">Externe Integrationen</h2> {refreshLabel && ( <span aria-live="polite" className="text-text-muted text-xs"> {refreshLabel} </span> )} </div> {/* Grid: 2-3 Spalten auf Desktop, Stack auf engem Viewport (AC3) */} {integrations.length > 0 ? ( <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"> {integrations.map((integration) => ( <IntegrationStatusCard key={integration.serviceKey} integration={integration} onAction={handleAction} /> ))} </div> ) : ( <p className="py-8 text-center text-text-muted text-sm">Keine Integrationen konfiguriert.</p> )} </div> );
+  );
+
+  // Access Guard
+  if (accessLoading) {
+    return (
+      <div className="space-y-4 p-6">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <SkeletonCard />
+        </div>
+      </div>
+    );
+  }
+
+  if (!accessible) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <p className="text-text-muted">Keine Berechtigung fuer die Integrationsübersicht.</p>
+      </div>
+    );
+  }
+
+  // Loading State
+  if (isLoading) {
+    return (
+      <div className="space-y-4 p-6">
+        <div className="flex items-center justify-between">
+          <h2 className="font-semibold text-text-primary text-lg">Externe Integrationen</h2>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+      </div>
+    );
+  }
+
+  // Error State
+  if (isError) {
+    return (
+      <div className="space-y-4 p-6">
+        <h2 className="font-semibold text-text-primary text-lg">Externe Integrationen</h2>
+        <div className="rounded-panel border border-status-danger-border bg-status-danger-surface p-4">
+          <p className="text-status-danger-text text-sm">Fehler beim Laden der Integrationsübersicht: {(error as Error)?.message ?? 'Unbekannter Fehler'}</p>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="mt-2 rounded-control bg-status-danger-surface px-3 py-1.5 font-medium text-status-danger-text text-xs transition-colors hover:bg-status-danger-surface/80 focus-visible:outline-none focus-visible:shadow-focus-ring"
+          >
+            Erneut versuchen
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const integrations = data?.integrations ?? [];
+
+  return (
+    <div className="space-y-4 p-6">
+      {/* Header mit aria-live Region fuer Status-Aenderungen */}
+      <div className="flex items-center justify-between">
+        <h2 className="font-semibold text-text-primary text-lg">Externe Integrationen</h2>
+        {refreshLabel && (
+          <span aria-live="polite" className="text-text-muted text-xs">
+            {refreshLabel}
+          </span>
+        )}
+      </div>
+
+      {/* Grid: 2-3 Spalten auf Desktop, Stack auf engem Viewport (AC3) */}
+      {integrations.length > 0 ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {integrations.map((integration) => (
+            <IntegrationStatusCard key={integration.serviceKey} integration={integration} onAction={handleAction} />
+          ))}
+        </div>
+      ) : (
+        <p className="py-8 text-center text-text-muted text-sm">Keine Integrationen konfiguriert.</p>
+      )}
+    </div>
+  );
 }

@@ -17,7 +17,7 @@ describe('KritikalitaetBadge', () => {
 
     it('hat roten Hintergrund', () => {
       const { container } = render(<KritikalitaetBadge type="ueberfaellig" />);
-      expect(container.firstChild).toHaveClass('bg-red-100');
+      expect(container.firstChild).toHaveClass('bg-status-danger-surface');
     });
 
     it('zeigt ein Icon (aria-hidden)', () => {
@@ -39,7 +39,7 @@ describe('KritikalitaetBadge', () => {
 
     it('hat roten Hintergrund', () => {
       const { container } = render(<KritikalitaetBadge type="nicht-verstanden" />);
-      expect(container.firstChild).toHaveClass('bg-red-100');
+      expect(container.firstChild).toHaveClass('bg-status-danger-surface');
     });
   });
 
@@ -56,7 +56,7 @@ describe('KritikalitaetBadge', () => {
 
     it('hat gelben Hintergrund', () => {
       const { container } = render(<KritikalitaetBadge type="rueckfrage" />);
-      expect(container.firstChild).toHaveClass('bg-yellow-100');
+      expect(container.firstChild).toHaveClass('bg-status-warning-surface');
     });
   });
 

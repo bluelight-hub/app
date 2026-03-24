@@ -56,7 +56,7 @@ describe('ErinnerungUebersicht', () => {
     // Then (Assert) - Pruefe ueber die zugehoerigen Titel-Labels
     const cards = screen.getAllByText(/^\d+$/).map((el) => ({
       value: el.textContent,
-      title: el.closest('div.rounded-lg')?.querySelector('p.text-sm')?.textContent,
+      title: el.closest('div.rounded-panel')?.querySelector('p.text-sm')?.textContent,
     }));
 
     expect(cards).toEqual(
@@ -117,8 +117,8 @@ describe('ErinnerungUebersicht', () => {
     render(<ErinnerungUebersicht erinnerungen={erinnerungen} />);
 
     // Then (Assert) - Eskaliert-Karte hat danger-Styling (rote Farben)
-    const eskaliertCard = screen.getByText('Eskaliert').closest('div.rounded-lg');
-    expect(eskaliertCard?.className).toMatch(/red/);
+    const eskaliertCard = screen.getByText('Eskaliert').closest('div.rounded-panel');
+    expect(eskaliertCard?.className).toMatch(/status-danger/);
   });
 
   it('should use warning variant for Aktiv card when active count > 0', () => {
@@ -128,9 +128,9 @@ describe('ErinnerungUebersicht', () => {
     // When (Act)
     render(<ErinnerungUebersicht erinnerungen={erinnerungen} />);
 
-    // Then (Assert) - Aktiv-Karte hat warning-Styling (amber Farben)
-    const aktivCard = screen.getByText('Aktuell aktiv').closest('div.rounded-lg');
-    expect(aktivCard?.className).toMatch(/amber/);
+    // Then (Assert) - Aktiv-Karte hat warning-Styling (status-warning Farben)
+    const aktivCard = screen.getByText('Aktuell aktiv').closest('div.rounded-panel');
+    expect(aktivCard?.className).toMatch(/status-warning/);
   });
 
   it('should use default variant for Aktiv card when active count is 0', () => {
@@ -140,10 +140,10 @@ describe('ErinnerungUebersicht', () => {
     // When (Act)
     render(<ErinnerungUebersicht erinnerungen={erinnerungen} />);
 
-    // Then (Assert) - Aktiv-Karte hat default-Styling (kein amber/warning)
-    const aktivCard = screen.getByText('Aktuell aktiv').closest('div.rounded-lg');
-    expect(aktivCard?.className).not.toMatch(/amber/);
-    expect(aktivCard?.className).not.toMatch(/red/);
+    // Then (Assert) - Aktiv-Karte hat default-Styling (kein warning/danger)
+    const aktivCard = screen.getByText('Aktuell aktiv').closest('div.rounded-panel');
+    expect(aktivCard?.className).not.toMatch(/status-warning/);
+    expect(aktivCard?.className).not.toMatch(/status-danger/);
   });
 
   it('should be expanded by default with aria-expanded="true"', () => {

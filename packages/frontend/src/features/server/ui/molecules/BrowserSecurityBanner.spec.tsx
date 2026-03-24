@@ -61,7 +61,7 @@ describe('BrowserSecurityBanner', () => {
       // Then (Assert)
       const icon = container.querySelector('svg');
       expect(icon).toBeInTheDocument();
-      expect(icon).toHaveClass('text-yellow-600');
+      expect(icon).toHaveClass('text-status-warning-text');
       expect(icon).toHaveAttribute('aria-hidden', 'true');
     });
 
@@ -209,8 +209,8 @@ describe('BrowserSecurityBanner', () => {
 
       // Then (Assert)
       const wrapper = container.firstChild as HTMLElement;
-      expect(wrapper).toHaveClass('bg-yellow-50');
-      expect(wrapper).toHaveClass('border-yellow-200');
+      expect(wrapper).toHaveClass('bg-status-warning-surface');
+      expect(wrapper).toHaveClass('border-status-warning-border');
     });
 
     it('should have sticky positioning', () => {
@@ -237,7 +237,7 @@ describe('BrowserSecurityBanner', () => {
       // Then (Assert)
       const text = screen.getByText(/Im Browser werden Server-Daten/);
       expect(text).toHaveClass('text-sm');
-      expect(text).toHaveClass('text-yellow-800');
+      expect(text).toHaveClass('text-status-warning-text');
     });
   });
 
@@ -269,8 +269,8 @@ describe('BrowserSecurityBanner', () => {
       expect(wrapper).toHaveClass('shadow-lg');
       // Default classes should remain
       expect(wrapper).toHaveClass('sticky');
-      expect(wrapper).toHaveClass('bg-yellow-50');
-      expect(wrapper).toHaveClass('border-yellow-200');
+      expect(wrapper).toHaveClass('bg-status-warning-surface');
+      expect(wrapper).toHaveClass('border-status-warning-border');
     });
   });
 
@@ -285,9 +285,8 @@ describe('BrowserSecurityBanner', () => {
       const button = screen.getByRole('button', { name: 'Browser-Sicherheitswarnung dauerhaft ausblenden' });
 
       // Then (Assert)
-      expect(button).toHaveClass('focus:outline-none');
-      expect(button).toHaveClass('focus:ring-2');
-      expect(button).toHaveClass('focus:ring-yellow-500');
+      expect(button).toHaveClass('focus-visible:outline-none');
+      expect(button).toHaveClass('focus-visible:shadow-focus-ring');
     });
 
     it('should have hidden icon for screen readers', () => {

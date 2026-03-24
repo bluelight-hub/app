@@ -854,7 +854,7 @@ describe('ServerSetupForm', () => {
       // Then (Assert)
       await waitFor(() => {
         const errorMessage = screen.getByText(/Ungültige Server-URL/i);
-        expect(errorMessage).toHaveClass('text-red-600');
+        expect(errorMessage).toHaveClass('text-status-danger-text');
       });
     });
   });

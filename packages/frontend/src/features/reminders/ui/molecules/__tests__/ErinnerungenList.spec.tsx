@@ -247,7 +247,7 @@ describe('ErinnerungenList', () => {
       // Then (Assert)
       const indicator = screen.getByTitle('Echtzeit-Updates aktiv');
       expect(indicator).toBeInTheDocument();
-      expect(indicator.className).toMatch(/emerald/);
+      expect(indicator.className).toMatch(/status-success/);
     });
 
     it('should show gray indicator when WebSocket is disconnected', async () => {
@@ -265,7 +265,7 @@ describe('ErinnerungenList', () => {
       // Then (Assert)
       const indicator = screen.getByTitle('Verbindung unterbrochen');
       expect(indicator).toBeInTheDocument();
-      expect(indicator.className).toMatch(/gray/);
+      expect(indicator.className).toMatch(/text-text-muted/);
     });
 
     it('should NOT show indicator in compact mode', async () => {

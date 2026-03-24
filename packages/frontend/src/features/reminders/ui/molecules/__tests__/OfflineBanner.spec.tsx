@@ -72,7 +72,7 @@ describe('OfflineBanner', () => {
 
       // Then (Assert)
       const banner = screen.getByRole('status');
-      expect(banner.className).toMatch(/amber|yellow/);
+      expect(banner.className).toMatch(/status-warning/);
     });
   });
 
@@ -99,7 +99,7 @@ describe('OfflineBanner', () => {
 
       // Then (Assert)
       const banner = screen.getByRole('status');
-      expect(banner.className).toMatch(/blue/);
+      expect(banner.className).toMatch(/status-info/);
     });
   });
 

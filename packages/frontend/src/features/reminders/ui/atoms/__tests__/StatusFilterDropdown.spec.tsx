@@ -245,7 +245,7 @@ describe('StatusFilterDropdown', () => {
       const geplantOption = screen.getByRole('option', { name: /Geplant/i });
       const icon = geplantOption.querySelector('svg');
       // SVG className ist ein SVGAnimatedString, daher getAttribute nutzen
-      expect(icon?.getAttribute('class')).toMatch(/text-green/);
+      expect(icon?.getAttribute('class')).toMatch(/text-status-success/);
     });
 
     it('should render correct color class for AUSGELOEST option', async () => {
@@ -260,7 +260,7 @@ describe('StatusFilterDropdown', () => {
       const ausgeloestOption = screen.getByRole('option', { name: /Ausgelöst/i });
       const icon = ausgeloestOption.querySelector('svg');
       // SVG className ist ein SVGAnimatedString, daher getAttribute nutzen
-      expect(icon?.getAttribute('class')).toMatch(/text-red/);
+      expect(icon?.getAttribute('class')).toMatch(/text-status-danger/);
     });
 
     it('should render correct color class for ACKNOWLEDGED option', async () => {
@@ -275,7 +275,7 @@ describe('StatusFilterDropdown', () => {
       const acknowledgedOption = screen.getByRole('option', { name: /Bestätigt/i });
       const icon = acknowledgedOption.querySelector('svg');
       // SVG className ist ein SVGAnimatedString, daher getAttribute nutzen
-      expect(icon?.getAttribute('class')).toMatch(/text-blue/);
+      expect(icon?.getAttribute('class')).toMatch(/text-status-info/);
     });
 
     it('should render correct color class for SNOOZED option', async () => {
@@ -290,7 +290,7 @@ describe('StatusFilterDropdown', () => {
       const snoozedOption = screen.getByRole('option', { name: /Verschoben/i });
       const icon = snoozedOption.querySelector('svg');
       // SVG className ist ein SVGAnimatedString, daher getAttribute nutzen
-      expect(icon?.getAttribute('class')).toMatch(/text-yellow/);
+      expect(icon?.getAttribute('class')).toMatch(/text-status-warning/);
     });
 
     it('should render correct color class for ESKALIERT option', async () => {
@@ -305,7 +305,7 @@ describe('StatusFilterDropdown', () => {
       const eskaliertOption = screen.getByRole('option', { name: /Eskaliert/i });
       const icon = eskaliertOption.querySelector('svg');
       // SVG className ist ein SVGAnimatedString, daher getAttribute nutzen
-      expect(icon?.getAttribute('class')).toMatch(/text-indigo/);
+      expect(icon?.getAttribute('class')).toMatch(/text-action-primary/);
     });
 
     it('should render correct color class for ERLEDIGT option', async () => {
@@ -320,7 +320,7 @@ describe('StatusFilterDropdown', () => {
       const erledigtOption = screen.getByRole('option', { name: /Erledigt/i });
       const icon = erledigtOption.querySelector('svg');
       // SVG className ist ein SVGAnimatedString, daher getAttribute nutzen
-      expect(icon?.getAttribute('class')).toMatch(/text-gray/);
+      expect(icon?.getAttribute('class')).toMatch(/text-text-muted/);
     });
   });
 

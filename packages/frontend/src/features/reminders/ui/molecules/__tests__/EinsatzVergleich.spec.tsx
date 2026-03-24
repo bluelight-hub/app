@@ -339,7 +339,7 @@ describe('EinsatzVergleich', () => {
 
     // Then - Gruen fuer <= 10%
     const eskalationCell = screen.getByText('5.0%');
-    expect(eskalationCell.className).toMatch(/text-green/);
+    expect(eskalationCell.className).toMatch(/text-status-success/);
   });
 
   it('should show amber color for eskalationsrate > 10% and <= 20%', async () => {
@@ -361,7 +361,7 @@ describe('EinsatzVergleich', () => {
 
     // Then - Amber fuer > 10% und <= 20%
     const eskalationCell = screen.getByText('12.5%');
-    expect(eskalationCell.className).toMatch(/text-amber/);
+    expect(eskalationCell.className).toMatch(/text-status-warning/);
   });
 
   it('should show red color for eskalationsrate > 20%', async () => {
@@ -383,7 +383,7 @@ describe('EinsatzVergleich', () => {
 
     // Then - Rot fuer > 20%
     const eskalationCell = screen.getByText('25.0%');
-    expect(eskalationCell.className).toMatch(/text-red/);
+    expect(eskalationCell.className).toMatch(/text-status-danger/);
   });
 
   // --- Aktueller Einsatz Markierung ---

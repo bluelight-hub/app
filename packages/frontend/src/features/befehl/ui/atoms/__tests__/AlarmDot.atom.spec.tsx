@@ -25,9 +25,9 @@ describe('AlarmDot', () => {
     expect(pingSpan?.className).toContain('motion-reduce:animate-none');
   });
 
-  it('hat bg-red-500 Farbe', () => {
+  it('hat bg-status-danger-text Farbe', () => {
     const { container } = render(<AlarmDot />);
-    const redDots = container.querySelectorAll('.bg-red-500');
+    const redDots = container.querySelectorAll('.bg-status-danger-text');
     expect(redDots.length).toBe(2); // Ping + statischer Dot
   });
 

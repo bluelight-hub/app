@@ -74,7 +74,7 @@ describe('MetricCard', () => {
       // Then: Status-Dot hat gruene Farbe und korrekte ARIA-Attribute
       const statusDot = screen.getByRole('img', { name: /Status: OK/i });
       expect(statusDot).toBeInTheDocument();
-      expect(statusDot.className).toMatch(/bg-green-500/);
+      expect(statusDot.className).toMatch(/bg-status-success-text/);
     });
 
     it('sollte gelben Status-Dot fuer status=warnung verwenden', () => {
@@ -85,7 +85,7 @@ describe('MetricCard', () => {
       // Then: Status-Dot hat gelbe Farbe und korrekte ARIA-Attribute
       const statusDot = screen.getByRole('img', { name: /Status: Warnung/i });
       expect(statusDot).toBeInTheDocument();
-      expect(statusDot.className).toMatch(/bg-yellow-500/);
+      expect(statusDot.className).toMatch(/bg-status-warning-text/);
     });
 
     it('sollte roten Status-Dot fuer status=kritisch verwenden', () => {
@@ -96,7 +96,7 @@ describe('MetricCard', () => {
       // Then: Status-Dot hat rote Farbe und korrekte ARIA-Attribute
       const statusDot = screen.getByRole('img', { name: /Status: Kritisch/i });
       expect(statusDot).toBeInTheDocument();
-      expect(statusDot.className).toMatch(/bg-red-500/);
+      expect(statusDot.className).toMatch(/bg-status-danger-text/);
     });
 
     it('sollte Standard-Status ok verwenden wenn kein Status angegeben', () => {
@@ -107,7 +107,7 @@ describe('MetricCard', () => {
       // Then: Default Status ok mit gruenem Dot
       const statusDot = screen.getByRole('img', { name: /Status: OK/i });
       expect(statusDot).toBeInTheDocument();
-      expect(statusDot.className).toMatch(/bg-green-500/);
+      expect(statusDot.className).toMatch(/bg-status-success-text/);
     });
   });
 

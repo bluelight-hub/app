@@ -269,7 +269,7 @@ describe('ErinnerungCard', () => {
 
       // Then (Assert)
       const badge = screen.getByText('2. Auslösung');
-      expect(badge.className).toMatch(/red/);
+      expect(badge.className).toMatch(/status-danger/);
     });
   });
 

@@ -550,7 +550,7 @@ describe('ServerColorPicker', () => {
 
       // Then
       const options = screen.getAllByRole('radio');
-      expect(options[0]).toHaveClass('focus-visible:ring-2');
+      expect(options[0]).toHaveClass('focus-visible:shadow-focus-ring');
     });
 
     it('should have transition for smooth animations', () => {
