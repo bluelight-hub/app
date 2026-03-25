@@ -151,17 +151,17 @@ export function WorkspaceShell({
                 ) : null}
 
                 <nav aria-label="Modulseiten" className="-mt-1 space-y-0.5 pb-3">
-                  <h2 className="mb-3 px-2.5 font-semibold text-body-xs text-text-secondary uppercase tracking-[0.16em]">Navigation</h2>
+                  <h2 className="mb-3 px-2.5 text-body-xs font-semibold tracking-[0.16em] text-text-secondary uppercase">Navigation</h2>
                   {navigationGroups.map((module) => (
                     <div key={module.id} className="space-y-1 pb-2 last:pb-0">
                       {isDisabled(module.visibility) ? (
                         <div aria-disabled="true" className="flex items-center gap-2 rounded-control px-2.5 py-2 text-text-muted" title={module.visibility.reason}>
                           <module.icon className="h-4 w-4 flex-shrink-0 text-text-muted" aria-hidden="true" />
-                          <h3 className="font-medium text-body-sm">{module.label}</h3>
+                          <h3 className="text-body-sm font-medium">{module.label}</h3>
                           {getShortcutBadge(module) ? (
                             <span
                               aria-hidden="true"
-                              className="ml-auto rounded-pill border border-border-subtle bg-surface-raised px-1.5 py-0.5 font-mono text-[11px] text-text-secondary leading-none shadow-sm"
+                              className="ml-auto rounded-pill border border-border-subtle bg-surface-raised px-1.5 py-0.5 font-mono text-[11px] leading-none text-text-secondary shadow-sm"
                             >
                               {getShortcutBadge(module)}
                             </span>
@@ -170,7 +170,7 @@ export function WorkspaceShell({
                       ) : (
                         <Link
                           to={module.routeTarget}
-                          // biome-ignore lint/suspicious/noExplicitAny: Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
+                          // eslint-disable-next-line typescript/no-explicit-any -- Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
                           params={routeParams as any}
                           aria-label={module.label}
                           aria-keyshortcuts={module.shortcut ? [...module.shortcut.modifiers, module.shortcut.key].join('+') : undefined}
@@ -190,11 +190,11 @@ export function WorkspaceShell({
                             className={cn('h-4 w-4 flex-shrink-0 transition-colors', module.id === currentModule.id ? 'text-text-primary' : 'text-text-muted group-hover:text-text-secondary')}
                             aria-hidden="true"
                           />
-                          <h3 className="font-medium text-body-sm">{module.label}</h3>
+                          <h3 className="text-body-sm font-medium">{module.label}</h3>
                           {getShortcutBadge(module) ? (
                             <span
                               aria-hidden="true"
-                              className="ml-auto rounded-pill border border-border-subtle bg-surface-raised px-1.5 py-0.5 font-mono text-[11px] text-text-secondary leading-none shadow-sm"
+                              className="ml-auto rounded-pill border border-border-subtle bg-surface-raised px-1.5 py-0.5 font-mono text-[11px] leading-none text-text-secondary shadow-sm"
                             >
                               {getShortcutBadge(module)}
                             </span>
@@ -206,7 +206,7 @@ export function WorkspaceShell({
                         <div className="ml-2.5 flex items-center gap-2 px-2.5 py-1 text-body-xs text-text-secondary">
                           <span className="font-medium">{module.badgeHint.label}</span>
                           {module.badgeHint.value !== undefined ? (
-                            <span className="rounded-pill bg-action-secondary px-1.5 py-0.5 font-semibold text-body-xs text-text-primary">{module.badgeHint.value}</span>
+                            <span className="rounded-pill bg-action-secondary px-1.5 py-0.5 text-body-xs font-semibold text-text-primary">{module.badgeHint.value}</span>
                           ) : null}
                         </div>
                       ) : null}
@@ -224,8 +224,8 @@ export function WorkspaceShell({
                                     <page.icon className="mt-0.5 h-5 w-5 flex-shrink-0" aria-hidden="true" />
                                     <div className="min-w-0 flex-1">
                                       <div className="flex items-center gap-2">
-                                        <span className="font-medium text-body-sm">{page.label}</span>
-                                        {page.badge ? <span className="rounded-pill bg-action-secondary px-1.5 py-0.5 font-semibold text-body-xs text-text-secondary">{page.badge}</span> : null}
+                                        <span className="text-body-sm font-medium">{page.label}</span>
+                                        {page.badge ? <span className="rounded-pill bg-action-secondary px-1.5 py-0.5 text-body-xs font-semibold text-text-secondary">{page.badge}</span> : null}
                                       </div>
                                       {page.description ? <p className="mt-0.5 text-body-xs">{page.description}</p> : null}
                                       {page.visibility.reason ? <p className="mt-1 text-body-xs">{page.visibility.reason}</p> : null}
@@ -239,7 +239,7 @@ export function WorkspaceShell({
                               <Link
                                 key={page.id}
                                 to={page.href}
-                                // biome-ignore lint/suspicious/noExplicitAny: Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
+                                // eslint-disable-next-line typescript/no-explicit-any -- Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
                                 params={routeParams as any}
                                 search={(prev) => prev}
                                 aria-current={isActive ? 'page' : undefined}
@@ -251,8 +251,8 @@ export function WorkspaceShell({
                                 <page.icon className={cn('mt-0.5 h-5 w-5 shrink-0 transition-colors', isActive ? 'text-text-primary' : 'text-text-muted group-hover:text-text-secondary')} />
                                 <div className="min-w-0 flex-1">
                                   <div className="flex items-center gap-2">
-                                    <span className="font-medium text-body-sm">{page.label}</span>
-                                    {page.badge ? <span className="rounded-pill bg-action-primary px-1.5 py-0.5 font-semibold text-body-xs text-text-inverse">{page.badge}</span> : null}
+                                    <span className="text-body-sm font-medium">{page.label}</span>
+                                    {page.badge ? <span className="rounded-pill bg-action-primary px-1.5 py-0.5 text-body-xs font-semibold text-text-inverse">{page.badge}</span> : null}
                                   </div>
                                   {page.description ? <p className="mt-0.5 text-body-xs text-text-secondary">{page.description}</p> : null}
                                 </div>
@@ -264,8 +264,8 @@ export function WorkspaceShell({
                 </nav>
 
                 {quickActionsSlot ? (
-                  <section aria-label="Schnellaktionen" className="space-y-2 border-border-subtle border-t pt-3">
-                    <h2 className="px-2.5 font-semibold text-body-xs text-text-secondary uppercase tracking-[0.16em]">Schnellaktionen</h2>
+                  <section aria-label="Schnellaktionen" className="space-y-2 border-t border-border-subtle pt-3">
+                    <h2 className="px-2.5 text-body-xs font-semibold tracking-[0.16em] text-text-secondary uppercase">Schnellaktionen</h2>
                     {quickActionsSlot}
                   </section>
                 ) : null}
@@ -275,10 +275,10 @@ export function WorkspaceShell({
               </div>
             </aside>
 
-            <div className="fixed right-0 bottom-0 left-0 z-20 border-border-subtle border-t bg-surface-panel p-3 shadow-raised lg:hidden">
+            <div className="fixed right-0 bottom-0 left-0 z-20 border-t border-border-subtle bg-surface-panel p-3 shadow-raised lg:hidden">
               {quickActionsSlot ? (
-                <section aria-label="Schnellaktionen" className="space-y-2 border-border-subtle border-t pt-4">
-                  <h2 className="px-2.5 font-semibold text-body-xs text-text-secondary uppercase tracking-[0.16em]">Schnellaktionen</h2>
+                <section aria-label="Schnellaktionen" className="space-y-2 border-t border-border-subtle pt-4">
+                  <h2 className="px-2.5 text-body-xs font-semibold tracking-[0.16em] text-text-secondary uppercase">Schnellaktionen</h2>
                   {quickActionsSlot}
                 </section>
               ) : null}
@@ -293,7 +293,7 @@ export function WorkspaceShell({
                       <div
                         key={page.id}
                         aria-disabled="true"
-                        className="flex items-center gap-2 whitespace-nowrap rounded-control px-3 py-2 text-body-sm text-text-muted"
+                        className="flex items-center gap-2 rounded-control px-3 py-2 text-body-sm whitespace-nowrap text-text-muted"
                         title={page.visibility.reason}
                       >
                         <page.icon className="h-4 w-4" aria-hidden="true" />
@@ -306,12 +306,12 @@ export function WorkspaceShell({
                     <Link
                       key={page.id}
                       to={page.href}
-                      // biome-ignore lint/suspicious/noExplicitAny: Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
+                      // eslint-disable-next-line typescript/no-explicit-any -- Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
                       params={routeParams as any}
                       search={(prev) => prev}
                       aria-current={isActive ? 'page' : undefined}
                       className={cn(
-                        'flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-control px-3 py-2 text-body-sm',
+                        'flex cursor-pointer items-center gap-2 rounded-control px-3 py-2 text-body-sm whitespace-nowrap',
                         isActive ? 'bg-action-secondary text-text-primary' : 'text-text-secondary',
                       )}
                     >

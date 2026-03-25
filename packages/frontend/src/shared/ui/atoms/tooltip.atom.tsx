@@ -51,7 +51,7 @@ export function Tooltip({ content, children, className, position = 'top' }: Tool
         className={cn(
           // Basis-Styling
           'pointer-events-none absolute left-1/2 z-50 -translate-x-1/2 whitespace-nowrap',
-          'rounded-control bg-surface-inverse px-2 py-1 font-medium text-text-inverse text-xs shadow-md',
+          'rounded-control bg-surface-inverse px-2 py-1 text-xs font-medium text-text-inverse shadow-md',
           // Sichtbarkeit: versteckt, bei group-hover/focus-within sichtbar
           'invisible opacity-0 transition-opacity',
           'group-hover/tooltip:visible group-hover/tooltip:opacity-100',

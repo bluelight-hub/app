@@ -39,7 +39,7 @@ export function FahrzeugZuweisungsDropdown({ currentFahrzeugId, fahrzeuge, onAss
   const buttonLabel = isLoading ? '...' : currentFahrzeug ? currentFahrzeug.funkrufname : 'Zuweisen';
 
   const buttonClasses = cn(
-    'relative w-full cursor-pointer rounded-lg py-2 pr-10 pl-3 text-left shadow-sm ring-1 ring-inset focus-visible:outline-none focus-visible:shadow-focus-ring sm:text-sm',
+    'relative w-full cursor-pointer rounded-lg py-2 pr-10 pl-3 text-left shadow-sm ring-1 ring-inset focus-visible:shadow-focus-ring focus-visible:outline-none sm:text-sm',
     currentFahrzeug ? 'bg-status-info-surface text-status-info-text ring-status-info-border' : 'bg-surface-raised text-text-secondary ring-border-subtle',
     (disabled || isLoading) && 'cursor-not-allowed opacity-50',
   );
@@ -63,7 +63,7 @@ export function FahrzeugZuweisungsDropdown({ currentFahrzeugId, fahrzeuge, onAss
           className="z-[100] max-h-60 w-[var(--button-width)] overflow-auto rounded-md border border-border-subtle bg-surface-panel py-1 text-base shadow-panel transition duration-100 ease-in [--anchor-gap:4px] focus-visible:outline-none data-[closed]:opacity-0 sm:text-sm"
         >
           {/* Erste Option: Zuweisung entfernen */}
-          <ListboxOption value={null} className={({ focus }) => cn('relative cursor-pointer select-none py-2 pr-4 pl-10 text-text-secondary', focus ? 'bg-action-secondary' : '')}>
+          <ListboxOption value={null} className={({ focus }) => cn('relative cursor-pointer py-2 pr-4 pl-10 text-text-secondary select-none', focus ? 'bg-action-secondary' : '')}>
             {({ selected }) => (
               <>
                 <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>Keine Zuweisung</span>
@@ -78,7 +78,7 @@ export function FahrzeugZuweisungsDropdown({ currentFahrzeugId, fahrzeuge, onAss
 
           {/* Fahrzeug-Optionen */}
           {fahrzeuge.map((fahrzeug) => (
-            <ListboxOption key={fahrzeug.id} value={fahrzeug.id} className={({ focus }) => cn('relative cursor-pointer select-none py-2 pr-4 pl-10', focus ? 'bg-action-secondary' : '')}>
+            <ListboxOption key={fahrzeug.id} value={fahrzeug.id} className={({ focus }) => cn('relative cursor-pointer py-2 pr-4 pl-10 select-none', focus ? 'bg-action-secondary' : '')}>
               {({ selected }) => (
                 <>
                   <span className={`flex items-center gap-2 truncate ${selected ? 'font-medium' : 'font-normal'}`}>

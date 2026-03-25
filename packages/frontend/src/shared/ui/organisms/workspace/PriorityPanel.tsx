@@ -39,14 +39,14 @@ export function PriorityPanel({ title, description, ariaLabel = 'Prioritätsflä
           <div className="min-w-0 space-y-1.5">
             {marker ? (
               <div>
-                <span className={cn('inline-flex items-center rounded-full border px-2 py-0.5 font-medium text-body-xs uppercase tracking-[0.05em]', MARKER_TONE_CLASSES[tone])}>{marker}</span>
+                <span className={cn('inline-flex items-center rounded-full border px-2 py-0.5 text-body-xs font-medium tracking-[0.05em] uppercase', MARKER_TONE_CLASSES[tone])}>{marker}</span>
               </div>
             ) : null}
 
             <div className="flex items-start gap-3">
               {Icon ? <Icon className="mt-0.5 h-5 w-5 flex-shrink-0" aria-hidden="true" /> : null}
               <div className="min-w-0">
-                <h2 className="font-semibold text-title-md">{title}</h2>
+                <h2 className="text-title-md font-semibold">{title}</h2>
                 <p className="mt-1 max-w-3xl text-body-sm opacity-90">{description}</p>
               </div>
             </div>

@@ -83,8 +83,8 @@ export function BefehlHistorieTimeline({ befehlId }: BefehlHistorieTimelineProps
   if (isError) {
     return (
       <div className="rounded-lg border border-status-danger-border bg-status-danger-surface p-4 text-center" data-testid="historie-error">
-        <p className="text-status-danger-text text-sm">Historie konnte nicht geladen werden</p>
-        <button type="button" onClick={() => refetch()} className="mt-2 font-medium text-status-danger-text text-sm underline hover:text-action-primary">
+        <p className="text-sm text-status-danger-text">Historie konnte nicht geladen werden</p>
+        <button type="button" onClick={() => refetch()} className="mt-2 text-sm font-medium text-status-danger-text underline hover:text-action-primary">
           Erneut versuchen
         </button>
       </div>
@@ -93,7 +93,7 @@ export function BefehlHistorieTimeline({ befehlId }: BefehlHistorieTimelineProps
 
   if (!timeline || timeline.events.length === 0) {
     return (
-      <p className="text-center text-text-muted text-sm" data-testid="historie-leer">
+      <p className="text-center text-sm text-text-muted" data-testid="historie-leer">
         Keine Historie vorhanden
       </p>
     );
@@ -129,19 +129,19 @@ export function BefehlHistorieTimeline({ befehlId }: BefehlHistorieTimelineProps
                   </div>
                   <div className="flex min-w-0 flex-1 justify-between space-x-4">
                     <div>
-                      <p className={cn('font-medium text-sm', event.status === StatusEnum.Ausstehend ? 'text-text-muted' : 'text-text-primary')}>
+                      <p className={cn('text-sm font-medium', event.status === StatusEnum.Ausstehend ? 'text-text-muted' : 'text-text-primary')}>
                         {event.beschreibung}
                         {event.akteur && <span className="ml-1 font-normal text-text-muted">durch {event.akteur}</span>}
                       </p>
-                      {isExpanded && event.details && <p className="mt-1 text-text-muted text-sm">{event.details}</p>}
+                      {isExpanded && event.details && <p className="mt-1 text-sm text-text-muted">{event.details}</p>}
                       {isExpanded && event.korrekturBefehlNummer && (
-                        <p className="mt-1 text-text-muted text-sm">
+                        <p className="mt-1 text-sm text-text-muted">
                           Korrektur: <span className="font-mono">{event.korrekturBefehlNummer}</span>
                         </p>
                       )}
                     </div>
                     {zeitpunktDate && (
-                      <div className="shrink-0 whitespace-nowrap text-right text-text-muted text-sm">
+                      <div className="shrink-0 text-right text-sm whitespace-nowrap text-text-muted">
                         <time dateTime={zeitpunktDate.toISOString()}>{format(zeitpunktDate, 'dd.MM.yyyy HH:mm')}</time>
                       </div>
                     )}

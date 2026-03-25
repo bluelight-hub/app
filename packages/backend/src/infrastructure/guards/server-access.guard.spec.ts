@@ -282,7 +282,7 @@ describe('ServerAccessGuard', () => {
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
       // Access private method via type assertion
-      // biome-ignore lint/suspicious/noExplicitAny: Accessing private method in unit test
+      // eslint-disable-next-line typescript/no-explicit-any -- Accessing private method in unit test
       const result = await (guard as any).validateToken(rawToken);
 
       // Then: returns matching ServerAccessToken
@@ -298,7 +298,7 @@ describe('ServerAccessGuard', () => {
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
       // When: validateToken is called
-      // biome-ignore lint/suspicious/noExplicitAny: Accessing private method in unit test
+      // eslint-disable-next-line typescript/no-explicit-any -- Accessing private method in unit test
       const result = await (guard as any).validateToken(rawToken);
 
       // Then: returns null
@@ -313,7 +313,7 @@ describe('ServerAccessGuard', () => {
       (bcrypt.compare as jest.Mock).mockResolvedValueOnce(true);
 
       // When: validateToken is called
-      // biome-ignore lint/suspicious/noExplicitAny: Accessing private method in unit test
+      // eslint-disable-next-line typescript/no-explicit-any -- Accessing private method in unit test
       const result = await (guard as any).validateToken('any-token');
 
       // Then: only compares until first match
@@ -336,7 +336,7 @@ describe('ServerAccessGuard', () => {
         .mockResolvedValueOnce(true); // Second token also matches
 
       // When: validateToken is called
-      // biome-ignore lint/suspicious/noExplicitAny: Accessing private method in unit test
+      // eslint-disable-next-line typescript/no-explicit-any -- Accessing private method in unit test
       const result = await (guard as any).validateToken('any-token');
 
       // Then: Returns valid token (skips invalid one)

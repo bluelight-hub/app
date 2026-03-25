@@ -580,7 +580,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
           'w-full overflow-hidden rounded-lg',
           'flex flex-col items-center justify-center',
           'bg-surface-raised',
-          'border-2 border-border-subtle border-dashed',
+          'border-2 border-dashed border-border-subtle',
           // Mode-specific heights
           mode === 'standard' && 'h-[600px] md:h-[calc(100vh-120px)]',
           (mode === 'fullscreen' || mode === 'presentation') && 'h-screen',
@@ -589,8 +589,8 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
         aria-live="assertive"
       >
         <PiWarning className="mb-4 h-12 w-12 text-status-warning-text" />
-        <h3 className="mb-2 font-semibold text-text-primary text-lg">Karte konnte nicht geladen werden</h3>
-        <p className="mb-4 text-center text-text-muted text-sm">
+        <h3 className="mb-2 text-lg font-semibold text-text-primary">Karte konnte nicht geladen werden</h3>
+        <p className="mb-4 text-center text-sm text-text-muted">
           Die Karten-Tiles konnten nicht vom Server geladen werden.
           <br />
           Bitte überprüfen Sie Ihre Internetverbindung.
@@ -621,7 +621,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
           aria-label="Vollbildmodus aktiv"
         >
           <div className="h-2 w-2 animate-pulse rounded-full bg-status-info-text" />
-          <span className="font-medium text-status-info-text text-sm">Vollbildmodus</span>
+          <span className="text-sm font-medium text-status-info-text">Vollbildmodus</span>
         </output>
       )}
 

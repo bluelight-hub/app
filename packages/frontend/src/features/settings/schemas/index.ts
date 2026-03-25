@@ -13,9 +13,4 @@ export {
   validateAudioSettings,
 } from './audio-settings.schema';
 
-export type {
-  AlarmLevel,
-  AudioLevelConfig,
-  AudioSettings,
-  SoundOption,
-} from './audio-settings.schema';
+export type { AlarmLevel, AudioLevelConfig, AudioSettings, SoundOption } from './audio-settings.schema';

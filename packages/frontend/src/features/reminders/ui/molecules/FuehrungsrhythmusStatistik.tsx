@@ -30,7 +30,7 @@ export function FuehrungsrhythmusStatistik({ einsatzId, className }: Fuehrungsrh
 
   return (
     <div className={cn('flex flex-col gap-2', className)}>
-      <button type="button" className="flex items-center gap-1 font-medium text-sm text-text-secondary" onClick={() => setIsExpanded(!isExpanded)} aria-expanded={isExpanded}>
+      <button type="button" className="flex items-center gap-1 text-sm font-medium text-text-secondary" onClick={() => setIsExpanded(!isExpanded)} aria-expanded={isExpanded}>
         {isExpanded ? <PiCaretDown className="h-4 w-4" /> : <PiCaretRight className="h-4 w-4" />}
         <PiHeartbeat className="h-4 w-4" />
         Führungsrhythmus-Statistik
@@ -98,7 +98,7 @@ export function FuehrungsrhythmusStatistik({ einsatzId, className }: Fuehrungsrh
                     ? data.activations.map((activation, idx) => (
                         <Fragment key={activation.activationTimestamp}>
                           <Table.Row className="bg-surface-raised">
-                            <Table.Cell colSpan={4} className="font-medium text-text-secondary text-xs">
+                            <Table.Cell colSpan={4} className="text-xs font-medium text-text-secondary">
                               Aktivierung {idx + 1} — {new Date(activation.activationTimestamp).toLocaleString('de-DE')} (Zyklen: {activation.totalCycles}, Abschluss:{' '}
                               {(activation.completionRate * 100).toFixed(1)}%)
                             </Table.Cell>

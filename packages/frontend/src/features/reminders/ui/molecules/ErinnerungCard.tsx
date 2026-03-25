@@ -520,17 +520,17 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
   const cardBaseClasses = cn(
     variant === 'minimal'
       ? accentColor
-        ? cn('border-l-4 rounded-r px-3 py-2 transition-colors', ACCENT_BORDER[accentColor], ACCENT_HOVER_BG[accentColor])
-        : 'border-b border-border-subtle bg-surface-panel py-2 px-3'
+        ? cn('rounded-r border-l-4 px-3 py-2 transition-colors', ACCENT_BORDER[accentColor], ACCENT_HOVER_BG[accentColor])
+        : 'border-b border-border-subtle bg-surface-panel px-3 py-2'
       : accentColor
         ? cn(
-            'border-l-4 rounded-r-lg transition-all',
+            'rounded-r-lg border-l-4 transition-all',
             variant === 'compact' ? 'px-4 py-3' : 'p-4',
             ACCENT_BORDER[accentColor],
             ACCENT_BG[accentColor],
             getEffectClasses(),
             getAnimationClasses(),
-            isHighlighted && 'ring-4 ring-status-warning-border/80 animate-pulse',
+            isHighlighted && 'animate-pulse ring-4 ring-status-warning-border/80',
           )
         : cn(
             'rounded-lg border border-border-subtle bg-surface-panel shadow-panel transition-all',
@@ -538,7 +538,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
             getBorderClasses(),
             (isTriggered || isEskaliert) && 'bg-status-danger-surface',
             getAnimationClasses(),
-            isHighlighted && 'ring-4 ring-status-warning-border/80 animate-pulse',
+            isHighlighted && 'animate-pulse ring-4 ring-status-warning-border/80',
           ),
     className,
   );
@@ -586,8 +586,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
   if (variant === 'minimal') {
     return (
       <>
-        {/* biome-ignore lint/a11y/useSemanticElements: div mit role="group" ist hier korrekt, da Container interaktive Elemente enthaelt */}
-        {/* biome-ignore lint/a11y/useKeyWithClickEvents: Keyboard-Navigation via interaktive Kindelemente */}
+        {/* eslint-disable-next-line jsx-a11y/prefer-tag-over-role, jsx-a11y/click-events-have-key-events -- div mit role="group" ist korrekt; Keyboard-Navigation via interaktive Kindelemente */}
         <div
           ref={cardRef}
           role="group"
@@ -606,7 +605,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
             <span className={cn('min-w-0 truncate text-sm', getMinimalTextClasses())}>{erinnerung.titel}</span>
 
             {/* Uhrzeit (wird bei Hover durch Actions ersetzt) */}
-            <span className={cn('ml-auto whitespace-nowrap text-xs group-hover:hidden', accentColor ? cn('font-mono font-semibold', ACCENT_TIME[accentColor]) : 'text-text-muted')}>{timeString}</span>
+            <span className={cn('ml-auto text-xs whitespace-nowrap group-hover:hidden', accentColor ? cn('font-mono font-semibold', ACCENT_TIME[accentColor]) : 'text-text-muted')}>{timeString}</span>
 
             {/* Hover-Actions (ersetzen die Uhrzeit visuell) */}
             <div className="ml-auto hidden flex-shrink-0 items-center gap-0.5 group-hover:flex">
@@ -688,15 +687,15 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
         {/* Status-Badge und Inhalt */}
         <div className="flex items-start gap-3">
           {/* Story 1.7 AC1/AC6: AlarmStateBadge statt inline Icon */}
-          {/* biome-ignore lint/suspicious/noExplicitAny: DTO type mismatch */}
+          {/* eslint-disable-next-line typescript/no-explicit-any -- DTO type mismatch */}
           <AlarmStateBadge status={erinnerung.status as any} minutesUntilDue={minutesUntilDue} size={variant === 'compact' ? 'sm' : 'md'} intensityLevel={intensityLevel} audioFailed={audioFailed} />
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h4 className="font-medium text-sm text-text-primary">{erinnerung.titel}</h4>
+              <h4 className="text-sm font-medium text-text-primary">{erinnerung.titel}</h4>
               {/* Compact: Uhrzeit rechtsbuendig in Zeile 1 */}
               {variant === 'compact' && (
-                <span className={cn('ml-auto whitespace-nowrap font-mono font-semibold text-xs', accentColor ? ACCENT_TIME[accentColor] : 'text-text-muted')}>{timeString}</span>
+                <span className={cn('ml-auto font-mono text-xs font-semibold whitespace-nowrap', accentColor ? ACCENT_TIME[accentColor] : 'text-text-muted')}>{timeString}</span>
               )}
               {/* Story 7.5 AC3: Typ-Badge (nur full) */}
               {variant === 'full' && <ItemTypeBadge type="erinnerung" />}
@@ -724,7 +723,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                   {!erinnerung.isRecurring && !erinnerung.parentErinnerungId && (erinnerung.recurringCurrentCount as unknown as number) > 0 && erinnerung.recurringIntervalMinutes && (
                     <output
                       aria-label="Serie gestoppt"
-                      className="inline-flex items-center gap-1 rounded-full bg-surface-raised px-1.5 py-0.5 font-medium text-text-secondary text-xs"
+                      className="inline-flex items-center gap-1 rounded-full bg-surface-raised px-1.5 py-0.5 text-xs font-medium text-text-secondary"
                       title={`Serie gestoppt (${erinnerung.recurringCurrentCount as unknown as number} Instanzen erstellt)`}
                     >
                       <PiStopCircle className="h-3 w-3" aria-hidden="true" />
@@ -735,7 +734,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                   {isOfflineCreated && (
                     <output
                       aria-label="Offline erstellt"
-                      className="inline-flex items-center gap-1 rounded-full bg-status-warning-surface px-1.5 py-0.5 font-medium text-status-warning-text text-xs"
+                      className="inline-flex items-center gap-1 rounded-full bg-status-warning-surface px-1.5 py-0.5 text-xs font-medium text-status-warning-text"
                       title="Offline erstellt"
                     >
                       <PiCloudSlash className="h-3 w-3" aria-hidden="true" />
@@ -746,7 +745,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                   {isRetrigger && (
                     <output
                       aria-label={`${retriggerNumber}. Auslösung`}
-                      className="inline-flex items-center gap-1 rounded-full bg-status-danger-surface px-1.5 py-0.5 font-medium text-status-danger-text text-xs"
+                      className="inline-flex items-center gap-1 rounded-full bg-status-danger-surface px-1.5 py-0.5 text-xs font-medium text-status-danger-text"
                       title={`${retriggerNumber}. Auslösung`}
                     >
                       {retriggerNumber}. Auslösung
@@ -756,7 +755,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                   {erinnerung.requiresNote && (
                     <output
                       aria-label="Pflicht-Notiz"
-                      className="inline-flex items-center gap-1 rounded-full bg-status-warning-surface px-1.5 py-0.5 font-medium text-status-warning-text text-xs"
+                      className="inline-flex items-center gap-1 rounded-full bg-status-warning-surface px-1.5 py-0.5 text-xs font-medium text-status-warning-text"
                       title="Notiz erforderlich"
                     >
                       <PiNotepad className="h-3 w-3" aria-hidden="true" />
@@ -765,7 +764,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                   )}
                   {/* Story 3.1 AC8: Team-Badge */}
                   {isTeamReminder && (
-                    <output aria-label="Team-Erinnerung" className="inline-flex items-center gap-1 rounded-full bg-status-info-surface px-1.5 py-0.5 font-medium text-status-info-text text-xs">
+                    <output aria-label="Team-Erinnerung" className="inline-flex items-center gap-1 rounded-full bg-status-info-surface px-1.5 py-0.5 text-xs font-medium text-status-info-text">
                       Team
                     </output>
                   )}
@@ -773,7 +772,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                   {erinnerung.eskalationsPersonName && (
                     <output
                       aria-label={`Eskalation an: ${erinnerung.eskalationsPersonName}`}
-                      className="inline-flex items-center gap-1 rounded-full bg-status-danger-surface px-1.5 py-0.5 font-medium text-status-danger-text text-xs"
+                      className="inline-flex items-center gap-1 rounded-full bg-status-danger-surface px-1.5 py-0.5 text-xs font-medium text-status-danger-text"
                       title={`Im Eskalationsfall benachrichtigt: ${erinnerung.eskalationsPersonName}`}
                     >
                       <PiWarning className="h-3 w-3" aria-hidden="true" />
@@ -784,7 +783,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                   {(erinnerung as unknown as { eskalationNurAnErsteller?: boolean })?.eskalationNurAnErsteller && (
                     <output
                       aria-label="Rückläufer aktiv - Eskalation geht an Ersteller"
-                      className="inline-flex items-center gap-1 rounded-full bg-status-warning-surface px-1.5 py-0.5 font-medium text-status-warning-text text-xs"
+                      className="inline-flex items-center gap-1 rounded-full bg-status-warning-surface px-1.5 py-0.5 text-xs font-medium text-status-warning-text"
                       title="Eskalation geht automatisch an den Ersteller zurück (Rückläufer)"
                     >
                       ↩️ Rückläufer
@@ -794,7 +793,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                   {erinnerung.previousAssigneeName && (
                     <output
                       aria-label={`Eskaliert von: ${erinnerung.previousAssigneeName}`}
-                      className="inline-flex items-center gap-1 rounded-full bg-status-danger-surface px-1.5 py-0.5 font-medium text-status-danger-text text-xs"
+                      className="inline-flex items-center gap-1 rounded-full bg-status-danger-surface px-1.5 py-0.5 text-xs font-medium text-status-danger-text"
                       title={`Eskaliert von ${erinnerung.previousAssigneeName} am ${erinnerung.escalatedAt ? new Date(erinnerung.escalatedAt as unknown as string).toLocaleTimeString() : ''}`}
                     >
                       <PiWarning className="h-3 w-3" aria-hidden="true" />
@@ -806,7 +805,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
               )}
             </div>
             {/* Beschreibung: nur in full */}
-            {variant === 'full' && erinnerung.beschreibung && <p className="mt-0.5 text-text-muted text-xs">{erinnerung.beschreibung as unknown as string}</p>}
+            {variant === 'full' && erinnerung.beschreibung && <p className="mt-0.5 text-xs text-text-muted">{erinnerung.beschreibung as unknown as string}</p>}
 
             {/* ETB-Link: nur in full */}
             {variant === 'full' && erinnerung.etbEntryId && (
@@ -824,7 +823,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
             {variant === 'full' && (showCreator || isTeamReminder || (assignedToId && assignedToId === currentUserId)) && erinnerung.erstellerName && (
               <div className="mt-0.5 flex items-center gap-1.5">
                 <AvatarInitials name={erinnerung.erstellerName as unknown as string} size="sm" />
-                <p className="text-text-muted text-xs">
+                <p className="text-xs text-text-muted">
                   <span className="text-text-secondary">{assignedToId === currentUserId ? 'Erstellt von' : 'von'}</span> {erinnerung.erstellerName as unknown as string}
                 </p>
               </div>
@@ -837,13 +836,13 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
 
                 {/* Story 4.7: Escalation Countdown */}
                 {isEscalationImminent && (
-                  <span className="flex animate-pulse items-center gap-1 font-bold text-status-danger-text text-xs">
+                  <span className="flex animate-pulse items-center gap-1 text-xs font-bold text-status-danger-text">
                     <PiWarning className="h-3 w-3" />
                     {msUntilEscalation > 0 ? `Eskaliert in ${Math.ceil(msUntilEscalation / 1000)}s` : 'Eskalation wird ausgeführt...'}
                   </span>
                 )}
 
-                <span className="text-text-muted text-xs">{timeString}</span>
+                <span className="text-xs text-text-muted">{timeString}</span>
               </div>
             )}
           </div>
@@ -985,7 +984,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
 
           {/* Keyboard Hint: nur in full */}
           {variant === 'full' && isFocused && isAcknowledgeable && (
-            <span className="mt-1 w-full animate-pulse text-center font-medium text-status-danger-text text-xs">Enter: Bestätigen · Esc: 5 Min Snooze</span>
+            <span className="mt-1 w-full animate-pulse text-center text-xs font-medium text-status-danger-text">Enter: Bestätigen · Esc: 5 Min Snooze</span>
           )}
         </div>
       )}
@@ -996,8 +995,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
   // Acknowledge erfolgt NUR ueber explizite Buttons, nicht per Card-Klick.
   return (
     <>
-      {/* biome-ignore lint/a11y/useSemanticElements: div mit role="group" ist hier korrekt, da Container interaktive Elemente enthaelt */}
-      {/* biome-ignore lint/a11y/useKeyWithClickEvents: Keyboard-Navigation via interaktive Kindelemente */}
+      {/* eslint-disable-next-line jsx-a11y/prefer-tag-over-role, jsx-a11y/click-events-have-key-events -- div mit role="group" ist korrekt; Keyboard-Navigation via interaktive Kindelemente */}
       <div
         ref={cardRef}
         role="group"

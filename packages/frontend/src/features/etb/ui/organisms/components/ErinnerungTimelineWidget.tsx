@@ -117,20 +117,20 @@ function TimelineEventItem({ event, isLast, onEntryClick }: TimelineEventItemPro
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             {/* Event Label und User */}
-            <p className="font-medium text-sm text-text-primary">
+            <p className="text-sm font-medium text-text-primary">
               {config.label}
               <span className="ml-2 font-normal text-text-secondary">von {event.createdBy.displayName || event.createdBy.username}</span>
             </p>
 
             {/* Timestamp */}
-            <p className="mt-0.5 text-text-secondary text-xs">{formatTimestamp(event.timestamp)}</p>
+            <p className="mt-0.5 text-xs text-text-secondary">{formatTimestamp(event.timestamp)}</p>
 
             {/* Text (gekuerzt) */}
             {event.text && <p className="mt-1 line-clamp-2 text-sm text-text-secondary">{event.text}</p>}
 
             {/* Metadata Details */}
             {metadataDetails && (
-              <p className="mt-1 text-text-secondary text-xs">
+              <p className="mt-1 text-xs text-text-secondary">
                 <span className="font-medium">{event.eventType === 'ErinnerungSnoozed' ? 'Dauer:' : event.eventType === 'ErinnerungErledigt' ? 'Notiz:' : ''}</span>
                 {metadataDetails}
               </p>
@@ -211,7 +211,7 @@ export function ErinnerungTimelineWidget({ etbId, erinnerungId, onEntryClick, cl
   if (isLoading) {
     return (
       <div className={cn('rounded-lg bg-surface-panel p-4 shadow-sm', className)}>
-        <h4 className="mb-4 font-medium text-sm text-text-primary">Erinnerungsverlauf</h4>
+        <h4 className="mb-4 text-sm font-medium text-text-primary">Erinnerungsverlauf</h4>
         <div className="flex items-center justify-center py-8">
           <PiCircleNotch className="h-6 w-6 animate-spin text-action-primary" />
         </div>
@@ -223,7 +223,7 @@ export function ErinnerungTimelineWidget({ etbId, erinnerungId, onEntryClick, cl
   if (error) {
     return (
       <div className={cn('rounded-lg bg-surface-panel p-4 shadow-sm', className)}>
-        <h4 className="mb-4 font-medium text-sm text-text-primary">Erinnerungsverlauf</h4>
+        <h4 className="mb-4 text-sm font-medium text-text-primary">Erinnerungsverlauf</h4>
         <p className="py-4 text-center text-sm text-text-secondary">Timeline konnte nicht geladen werden.</p>
       </div>
     );
@@ -233,7 +233,7 @@ export function ErinnerungTimelineWidget({ etbId, erinnerungId, onEntryClick, cl
   if (!timeline || timeline.events.length === 0) {
     return (
       <div className={cn('rounded-lg bg-surface-panel p-4 shadow-sm', className)}>
-        <h4 className="mb-4 font-medium text-sm text-text-primary">Erinnerungsverlauf</h4>
+        <h4 className="mb-4 text-sm font-medium text-text-primary">Erinnerungsverlauf</h4>
         <p className="py-4 text-center text-sm text-text-secondary">Keine Timeline-Events vorhanden.</p>
       </div>
     );
@@ -243,14 +243,14 @@ export function ErinnerungTimelineWidget({ etbId, erinnerungId, onEntryClick, cl
     <div className={cn('rounded-lg bg-surface-panel p-4 shadow-sm', className)}>
       {/* Header mit Titel */}
       <div className="mb-4 flex items-center justify-between">
-        <h4 className="font-medium text-sm text-text-primary">Erinnerungsverlauf</h4>
-        <span className="text-text-secondary text-xs">
+        <h4 className="text-sm font-medium text-text-primary">Erinnerungsverlauf</h4>
+        <span className="text-xs text-text-secondary">
           {timeline.totalCount} {timeline.totalCount === 1 ? 'Event' : 'Events'}
         </span>
       </div>
 
       {/* Erinnerung Titel */}
-      <p className="mb-4 truncate font-medium text-text-secondary text-xs" title={timeline.titel}>
+      <p className="mb-4 truncate text-xs font-medium text-text-secondary" title={timeline.titel}>
         {timeline.titel}
       </p>
 

@@ -16,9 +16,9 @@ export function EtbFilterControls({ showDeleted, onShowDeletedChange }: EtbFilte
           type="checkbox"
           checked={showDeleted}
           onChange={(e) => onShowDeletedChange(e.target.checked)}
-          className="h-4 w-4 rounded border-border-subtle bg-surface-panel text-action-primary focus-visible:outline-none focus-visible:shadow-focus-ring"
+          className="h-4 w-4 rounded border-border-subtle bg-surface-panel text-action-primary focus-visible:shadow-focus-ring focus-visible:outline-none"
         />
-        <span className="flex items-center gap-1.5 text-text-secondary text-sm">
+        <span className="flex items-center gap-1.5 text-sm text-text-secondary">
           <PiTrash className="h-4 w-4" />
           Gelöschte Einträge anzeigen
         </span>

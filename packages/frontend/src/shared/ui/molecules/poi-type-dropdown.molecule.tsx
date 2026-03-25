@@ -69,7 +69,7 @@ export const PoiTypeDropdown: React.FC<PoiTypeDropdownProps> = ({ types, onSelec
           {/* Dropdown-Button */}
           <MenuButton
             className={cn(
-              'flex w-full items-center justify-between gap-2 rounded-control px-3 py-2.5 font-medium text-sm transition-all duration-200',
+              'flex w-full items-center justify-between gap-2 rounded-control px-3 py-2.5 text-sm font-medium transition-all duration-200',
               open ? 'bg-action-secondary text-text-primary shadow-panel ring-2 ring-status-info-border/50' : 'bg-surface-raised text-text-secondary hover:bg-action-secondary',
             )}
             aria-label={`${label} POI-Typen`}

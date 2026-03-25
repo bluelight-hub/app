@@ -54,13 +54,7 @@ export { FahrzeugtypId } from './value-objects/fahrzeugtyp-id';
 export { FahrzeugtypKategorie, FAHRZEUGTYP_KATEGORIEN, type FahrzeugtypKategorieType } from './value-objects/fahrzeugtyp-kategorie';
 
 // Aggregates
-export {
-  Fahrzeugtyp,
-  type SollbesatzungSchema,
-  type CreateFahrzeugtypProps,
-  type ReconstituteFahrzeugtypProps,
-  type UpdateFahrzeugtypProps,
-} from './aggregates/fahrzeugtyp.aggregate';
+export { Fahrzeugtyp, type SollbesatzungSchema, type CreateFahrzeugtypProps, type ReconstituteFahrzeugtypProps, type UpdateFahrzeugtypProps } from './aggregates/fahrzeugtyp.aggregate';
 
 // Repository Interfaces (Ports)
 export type { IFahrzeugtypRepository } from './repositories/i-fahrzeugtyp.repository';
@@ -166,12 +160,7 @@ export { STAMM_PERSON_ERROR_CODES, StammPersonError, type StammPersonErrorCode }
 export { EinsatzPersonId } from './value-objects/einsatz-person-id';
 
 // Aggregates
-export {
-  EinsatzPerson,
-  type CreateEinsatzPersonFromStammProps,
-  type CreateTemporaryEinsatzPersonProps,
-  type ReconstituteEinsatzPersonProps,
-} from './aggregates/einsatz-person.aggregate';
+export { EinsatzPerson, type CreateEinsatzPersonFromStammProps, type CreateTemporaryEinsatzPersonProps, type ReconstituteEinsatzPersonProps } from './aggregates/einsatz-person.aggregate';
 
 // Repository Interfaces (Ports)
 export type { IEinsatzPersonRepository } from './repositories/i-einsatz-person.repository';

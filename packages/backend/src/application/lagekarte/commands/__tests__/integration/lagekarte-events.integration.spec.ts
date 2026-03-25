@@ -1,5 +1,5 @@
 // @ts-nocheck
-// biome-ignore-all lint/suspicious/noExplicitAny: Integration tests access dynamic event properties
+/* eslint-disable typescript/no-explicit-any -- Integration tests access dynamic event properties */
 /**
  * Integration Tests fuer Lagekarte Event Publishing.
  *

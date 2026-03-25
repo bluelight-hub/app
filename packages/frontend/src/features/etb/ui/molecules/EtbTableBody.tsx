@@ -129,7 +129,7 @@ export function EtbTableBody({
         <>
           <tr>
             <td colSpan={columns.length} className="px-4 pt-4">
-              <output className="flex items-center gap-2 text-text-muted text-sm" aria-live="polite" aria-atomic="true">
+              <output className="flex items-center gap-2 text-sm text-text-muted" aria-live="polite" aria-atomic="true">
                 <PiCircleNotch className="h-4 w-4 animate-spin" />
                 <span>ETB-Einträge werden geladen…</span>
               </output>
@@ -163,7 +163,7 @@ export function EtbTableBody({
         <tr>
           <td colSpan={columns.length} className="h-[300px]">
             <div className="flex h-full items-center justify-center" role="status">
-              <p className="text-text-muted text-sm">Keine Einträge gefunden</p>
+              <p className="text-sm text-text-muted">Keine Einträge gefunden</p>
             </div>
           </td>
         </tr>
@@ -172,7 +172,7 @@ export function EtbTableBody({
         <tr>
           <td colSpan={columns.length} className="h-[300px]">
             <div className="flex h-full items-center justify-center" role="status">
-              <p className="text-text-muted text-sm">Keine Treffer für &laquo;{globalFilter}&raquo;</p>
+              <p className="text-sm text-text-muted">Keine Treffer für &laquo;{globalFilter}&raquo;</p>
             </div>
           </td>
         </tr>
@@ -182,7 +182,7 @@ export function EtbTableBody({
           <td colSpan={columns.length} className="h-[500px]">
             <output className="flex h-full flex-col items-center justify-center gap-2" aria-live="polite" aria-atomic="true">
               <PiCircleNotch className="h-6 w-6 animate-spin text-action-primary" />
-              <span className="text-text-muted text-sm">Einträge werden aktualisiert…</span>
+              <span className="text-sm text-text-muted">Einträge werden aktualisiert…</span>
             </output>
           </td>
         </tr>

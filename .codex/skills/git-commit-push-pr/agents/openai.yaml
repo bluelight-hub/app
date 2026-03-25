@@ -1,4 +1,4 @@
 interface:
-  display_name: "Git Commit Push PR"
-  short_description: "Commit, push, and open a structured GitHub PR"
-  default_prompt: "Use $git-commit-push-pr to commit changes, push the branch, and open a PR."
+  display_name: 'Git Commit Push PR'
+  short_description: 'Commit, push, and open a structured GitHub PR'
+  default_prompt: 'Use $git-commit-push-pr to commit changes, push the branch, and open a PR.'

@@ -58,14 +58,14 @@ export function EtbEntryDetails({ entry, getUserName, etbId, onEntryClick }: Etb
     <div className="space-y-4">
       {/* Vollständiger Text */}
       <div className="rounded-lg border border-border-subtle bg-surface-panel p-4 shadow-sm">
-        <h4 className="mb-2 font-medium text-text-secondary text-xs">Vollständiger Eintrag</h4>
-        <p className="whitespace-pre-wrap break-words text-sm text-text-primary">{entry.text}</p>
+        <h4 className="mb-2 text-xs font-medium text-text-secondary">Vollständiger Eintrag</h4>
+        <p className="text-sm break-words whitespace-pre-wrap text-text-primary">{entry.text}</p>
       </div>
 
       {/* Screenshot Preview (if exists) */}
       {sanitizedUrl && (
         <div className="rounded-lg border border-border-subtle bg-surface-panel p-4 shadow-sm">
-          <h4 className="mb-2 font-medium text-text-secondary text-xs">Lagekarten-Screenshot</h4>
+          <h4 className="mb-2 text-xs font-medium text-text-secondary">Lagekarten-Screenshot</h4>
           <button
             type="button"
             onClick={() => setLightboxOpen(true)}
@@ -141,7 +141,7 @@ export function EtbEntryDetails({ entry, getUserName, etbId, onEntryClick }: Etb
 
         {entry.isAutomatic && (
           <div>
-            <span className="inline-flex items-center rounded bg-status-info-surface px-2 py-1 text-status-info-text text-xs">🤖 Automatisch generiert</span>
+            <span className="inline-flex items-center rounded bg-status-info-surface px-2 py-1 text-xs text-status-info-text">🤖 Automatisch generiert</span>
           </div>
         )}
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Runs Biome lint check on the edited/written file after each Edit/Write tool call.
+# Runs oxlint check on the edited/written file after each Edit/Write tool call.
 # Receives tool call JSON on stdin.
 
 FILE_PATH=$(jq -r '.tool_input.file_path // .tool_input.notebook_path // empty')
@@ -15,5 +15,5 @@ case "$FILE_PATH" in
 esac
 
 cd "$CLAUDE_PROJECT_DIR" || exit 0
-pnpm exec biome check "$FILE_PATH" 2>&1 | head -15
+pnpm exec oxlint "$FILE_PATH" 2>&1 | head -15
 exit 0

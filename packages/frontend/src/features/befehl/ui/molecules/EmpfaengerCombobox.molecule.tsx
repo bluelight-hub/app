@@ -140,7 +140,7 @@ export function EmpfaengerCombobox({ einsatzId, value, onChange, error }: Empfae
       {value.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-1.5">
           {value.map((chip, index) => (
-            <span key={chip.empfaengerId ?? `manual-${index}`} className="inline-flex items-center gap-1 rounded-full bg-status-info-surface px-2.5 py-0.5 font-medium text-status-info-text text-sm">
+            <span key={chip.empfaengerId ?? `manual-${index}`} className="inline-flex items-center gap-1 rounded-full bg-status-info-surface px-2.5 py-0.5 text-sm font-medium text-status-info-text">
               {chip.empfaengerId && <PiLink className="h-3 w-3 text-status-info-text" aria-hidden="true" />}
               {chip.name}
               <button
@@ -168,7 +168,7 @@ export function EmpfaengerCombobox({ einsatzId, value, onChange, error }: Empfae
             ref={inputRef}
             aria-label="Empfänger suchen"
             className={cn(
-              'block w-full rounded-lg border bg-surface-raised px-4 py-3 font-medium text-base text-text-primary',
+              'block w-full rounded-lg border bg-surface-raised px-4 py-3 text-base font-medium text-text-primary',
               'transition-all duration-200',
               'border-border-subtle',
               'placeholder:text-text-muted',
@@ -199,22 +199,22 @@ export function EmpfaengerCombobox({ einsatzId, value, onChange, error }: Empfae
             className={cn('absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-surface-panel py-1 text-base shadow-lg', 'border border-border-subtle', 'empty:hidden', 'sm:text-sm')}
           >
             {/* Hinweis: Mind. 2 Zeichen */}
-            {query.length > 0 && query.length < 2 && <div className="px-3 py-2 text-text-muted text-sm">Mind. 2 Zeichen für Vorschläge</div>}
+            {query.length > 0 && query.length < 2 && <div className="px-3 py-2 text-sm text-text-muted">Mind. 2 Zeichen für Vorschläge</div>}
 
             {/* Ladeanzeige */}
-            {isFetching && debouncedQuery.length >= 2 && <div className="px-3 py-2 text-text-muted text-sm">Suche läuft...</div>}
+            {isFetching && debouncedQuery.length >= 2 && <div className="px-3 py-2 text-sm text-text-muted">Suche läuft...</div>}
 
             {/* API-Ergebnisse */}
             {filteredResults.map((result) => (
               <ComboboxOption
                 key={result.id}
                 value={{ name: result.name, empfaengerId: result.userId } satisfies EmpfaengerSelection}
-                className={cn('group cursor-default select-none px-3 py-2 text-text-primary', 'data-[focus]:bg-action-primary data-[focus]:text-text-inverse data-[focus]:outline-none')}
+                className={cn('group cursor-default px-3 py-2 text-text-primary select-none', 'data-[focus]:bg-action-primary data-[focus]:text-text-inverse data-[focus]:outline-none')}
               >
                 <div className="flex items-center gap-2">
                   <span className="block truncate">{result.name}</span>
                   {result.rolle && (
-                    <span className="inline-flex shrink-0 items-center rounded-full bg-surface-raised px-2 py-0.5 font-medium text-text-secondary text-xs group-data-[focus]:bg-action-primary-hover group-data-[focus]:text-text-inverse">
+                    <span className="inline-flex shrink-0 items-center rounded-full bg-surface-raised px-2 py-0.5 text-xs font-medium text-text-secondary group-data-[focus]:bg-action-primary-hover group-data-[focus]:text-text-inverse">
                       {result.rolle}
                     </span>
                   )}
@@ -225,18 +225,18 @@ export function EmpfaengerCombobox({ einsatzId, value, onChange, error }: Empfae
 
             {/* Alle bereits ausgewaehlt */}
             {debouncedQuery.length >= 2 && !isFetching && results && results.length > 0 && filteredResults.length === 0 && (
-              <div className="px-3 py-2 text-text-muted text-sm">Alle Treffer bereits ausgewählt</div>
+              <div className="px-3 py-2 text-sm text-text-muted">Alle Treffer bereits ausgewählt</div>
             )}
 
             {/* Keine Treffer Hinweis */}
-            {debouncedQuery.length >= 2 && !isFetching && results && results.length === 0 && <div className="px-3 py-2 text-text-muted text-sm">Keine Treffer gefunden</div>}
+            {debouncedQuery.length >= 2 && !isFetching && results && results.length === 0 && <div className="px-3 py-2 text-sm text-text-muted">Keine Treffer gefunden</div>}
 
             {/* Freitext-Option - immer verfuegbar wenn Query vorhanden */}
             {showFreetextOption && (
               <ComboboxOption
                 value={{ name: trimmedQuery } satisfies EmpfaengerSelection}
                 className={cn(
-                  'group cursor-default select-none border-border-subtle border-t px-3 py-2 text-text-primary',
+                  'group cursor-default border-t border-border-subtle px-3 py-2 text-text-primary select-none',
                   'data-[focus]:bg-action-primary data-[focus]:text-text-inverse data-[focus]:outline-none',
                 )}
               >
@@ -251,7 +251,7 @@ export function EmpfaengerCombobox({ einsatzId, value, onChange, error }: Empfae
       </Combobox>
 
       {/* Error-Hinweis */}
-      {isError && <p className="mt-1.5 text-text-muted text-xs">Manuelle Eingabe möglich</p>}
+      {isError && <p className="mt-1.5 text-xs text-text-muted">Manuelle Eingabe möglich</p>}
     </div>
   );
 }

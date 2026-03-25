@@ -135,8 +135,8 @@ export function BefehlsListeMitEingabe({ einsatzId, initialBefehlId }: BefehlsLi
   return (
     <div className="flex flex-1 flex-col">
       {/* Kopfzeile */}
-      <div className="flex items-center justify-between border-border-subtle border-b px-6 py-4">
-        <h2 className="font-semibold text-text-primary text-lg">Befehle</h2>
+      <div className="flex items-center justify-between border-b border-border-subtle px-6 py-4">
+        <h2 className="text-lg font-semibold text-text-primary">Befehle</h2>
         <div className="flex items-center gap-2">
           {/* Desktop: Toggle-Button "Meine Befehle" */}
           <Button
@@ -152,7 +152,7 @@ export function BefehlsListeMitEingabe({ einsatzId, initialBefehlId }: BefehlsLi
             {unquittiertCount > 0 && (
               <span
                 className={cn(
-                  'ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 font-bold text-xs',
+                  'ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-bold',
                   showMeineBefehle ? 'bg-surface-overlay/20 text-text-inverse' : 'bg-status-warning-surface text-status-warning-text',
                 )}
               >
@@ -175,7 +175,7 @@ export function BefehlsListeMitEingabe({ einsatzId, initialBefehlId }: BefehlsLi
             {offeneRueckfragenCount > 0 && (
               <span
                 className={cn(
-                  'ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 font-bold text-xs',
+                  'ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-bold',
                   showOffeneRueckfragen ? 'bg-surface-overlay/20 text-text-inverse' : 'bg-status-warning-surface text-status-warning-text',
                 )}
               >
@@ -202,7 +202,7 @@ export function BefehlsListeMitEingabe({ einsatzId, initialBefehlId }: BefehlsLi
       <IntegrationStatusBanner />
 
       {/* Mobile: Tabs "Alle Befehle" | "Meine Befehle (n)" | "Rückfragen (n)" */}
-      <div className="flex border-border-subtle border-b md:hidden" role="tablist" aria-label="Befehlsfilter">
+      <div className="flex border-b border-border-subtle md:hidden" role="tablist" aria-label="Befehlsfilter">
         <button
           type="button"
           role="tab"
@@ -213,9 +213,9 @@ export function BefehlsListeMitEingabe({ einsatzId, initialBefehlId }: BefehlsLi
             setShowOffeneRueckfragen(false);
           }}
           className={cn(
-            'flex-1 px-4 py-3 text-center font-medium text-sm transition-colors',
+            'flex-1 px-4 py-3 text-center text-sm font-medium transition-colors',
             'min-h-[48px]',
-            !showMeineBefehle && !showOffeneRueckfragen ? 'border-action-primary border-b-2 text-action-primary' : 'text-text-muted hover:text-text-secondary',
+            !showMeineBefehle && !showOffeneRueckfragen ? 'border-b-2 border-action-primary text-action-primary' : 'text-text-muted hover:text-text-secondary',
           )}
         >
           Alle
@@ -230,14 +230,14 @@ export function BefehlsListeMitEingabe({ einsatzId, initialBefehlId }: BefehlsLi
             setShowOffeneRueckfragen(false);
           }}
           className={cn(
-            'flex-1 px-4 py-3 text-center font-medium text-sm transition-colors',
+            'flex-1 px-4 py-3 text-center text-sm font-medium transition-colors',
             'min-h-[48px]',
-            showMeineBefehle ? 'border-action-primary border-b-2 text-action-primary' : 'text-text-muted hover:text-text-secondary',
+            showMeineBefehle ? 'border-b-2 border-action-primary text-action-primary' : 'text-text-muted hover:text-text-secondary',
           )}
         >
           Meine
           {unquittiertCount > 0 && (
-            <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-status-warning-surface px-1 font-bold text-xs text-status-warning-text">
+            <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-status-warning-surface px-1 text-xs font-bold text-status-warning-text">
               {unquittiertCount}
             </span>
           )}
@@ -252,14 +252,14 @@ export function BefehlsListeMitEingabe({ einsatzId, initialBefehlId }: BefehlsLi
             setShowMeineBefehle(false);
           }}
           className={cn(
-            'flex-1 px-4 py-3 text-center font-medium text-sm transition-colors',
+            'flex-1 px-4 py-3 text-center text-sm font-medium transition-colors',
             'min-h-[48px]',
-            showOffeneRueckfragen ? 'border-action-primary border-b-2 text-action-primary' : 'text-text-muted hover:text-text-secondary',
+            showOffeneRueckfragen ? 'border-b-2 border-action-primary text-action-primary' : 'text-text-muted hover:text-text-secondary',
           )}
         >
           Rückfragen
           {offeneRueckfragenCount > 0 && (
-            <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-status-warning-surface px-1 font-bold text-xs text-status-warning-text">
+            <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-status-warning-surface px-1 text-xs font-bold text-status-warning-text">
               {offeneRueckfragenCount}
             </span>
           )}
@@ -279,14 +279,14 @@ export function BefehlsListeMitEingabe({ einsatzId, initialBefehlId }: BefehlsLi
         {!isPermissionsLoading && !canViewAll && (
           <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
             <PiWarningCircle className="mb-4 h-12 w-12 text-status-warning-text" />
-            <p className="font-medium text-text-primary text-lg">Keine Befehl-Rolle zugewiesen</p>
-            <p className="mt-1 text-text-muted text-sm">Bitten Sie einen Administrator, Ihnen eine Rolle in diesem Einsatz zuzuweisen.</p>
+            <p className="text-lg font-medium text-text-primary">Keine Befehl-Rolle zugewiesen</p>
+            <p className="mt-1 text-sm text-text-muted">Bitten Sie einen Administrator, Ihnen eine Rolle in diesem Einsatz zuzuweisen.</p>
           </div>
         )}
 
         {/* Loading State */}
         {isLoading && (
-          /* biome-ignore lint/a11y/useSemanticElements: role="status" auf div ist Standard-Pattern fuer Skeleton Loading */
+          // eslint-disable-next-line jsx-a11y/prefer-tag-over-role -- role="status" auf div ist Standard-Pattern fuer Skeleton Loading
           <div className="flex flex-col gap-3 p-6" role="status" aria-label="Befehle werden geladen">
             <BefehlKarteSkeleton />
             <BefehlKarteSkeleton />
@@ -298,8 +298,8 @@ export function BefehlsListeMitEingabe({ einsatzId, initialBefehlId }: BefehlsLi
         {isError && (
           <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
             <PiWarningCircle className="mb-4 h-12 w-12 text-status-danger-text" />
-            <p className="font-medium text-text-primary text-lg">Fehler beim Laden der Befehle</p>
-            <p className="mt-1 text-text-muted text-sm">Die Befehle konnten nicht geladen werden.</p>
+            <p className="text-lg font-medium text-text-primary">Fehler beim Laden der Befehle</p>
+            <p className="mt-1 text-sm text-text-muted">Die Befehle konnten nicht geladen werden.</p>
             <Button intent="secondary" size="sm" className="mt-4" onClick={() => refetch()}>
               Erneut versuchen
             </Button>
@@ -310,15 +310,15 @@ export function BefehlsListeMitEingabe({ einsatzId, initialBefehlId }: BefehlsLi
         {!isLoading && !isError && befehle?.length === 0 && (
           <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
             <PiListChecks className="mb-4 h-12 w-12 text-text-muted" />
-            <p className="font-medium text-text-primary text-lg">{showOffeneRueckfragen ? 'Keine offenen Rückfragen' : showMeineBefehle ? 'Keine eigenen Befehle' : 'Noch keine Befehle erteilt'}</p>
-            <p className="mt-1 text-text-muted text-sm">
+            <p className="text-lg font-medium text-text-primary">{showOffeneRueckfragen ? 'Keine offenen Rückfragen' : showMeineBefehle ? 'Keine eigenen Befehle' : 'Noch keine Befehle erteilt'}</p>
+            <p className="mt-1 text-sm text-text-muted">
               {showOffeneRueckfragen ? (
                 'Aktuell gibt es keine Befehle mit unbeantworteten Rückfragen.'
               ) : showMeineBefehle ? (
                 'Du bist derzeit bei keinem Befehl als Empfänger eingetragen.'
               ) : (
                 <>
-                  Erstelle den ersten Befehl mit <kbd className="rounded bg-surface-raised px-1.5 py-0.5 font-mono text-text-secondary text-xs">Ctrl+N</kbd>
+                  Erstelle den ersten Befehl mit <kbd className="rounded bg-surface-raised px-1.5 py-0.5 font-mono text-xs text-text-secondary">Ctrl+N</kbd>
                 </>
               )}
             </p>

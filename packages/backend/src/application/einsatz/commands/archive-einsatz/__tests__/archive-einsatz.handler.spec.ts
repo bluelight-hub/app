@@ -36,7 +36,7 @@ const createMockEinsatz = (options: { status?: EinsatzStatus; abgeschlossenYears
     if (options.abgeschlossenYearsAgo !== undefined) {
       const pastDate = new Date();
       pastDate.setFullYear(pastDate.getFullYear() - options.abgeschlossenYearsAgo);
-      // biome-ignore lint/suspicious/noExplicitAny: Test benötigt Zugriff auf private Property
+      // eslint-disable-next-line typescript/no-explicit-any -- Test benötigt Zugriff auf private Property
       (einsatz as any)._abgeschlossenAt = pastDate;
     }
   } else if (options.status) {

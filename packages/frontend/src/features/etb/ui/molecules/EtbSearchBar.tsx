@@ -27,7 +27,7 @@ export function EtbSearchBar({ value, onChange, placeholder = 'Einträge durchsu
           'w-full py-2 pr-4 pl-9 text-sm',
           'rounded-lg border border-border-subtle bg-surface-panel text-text-primary',
           'placeholder:text-text-muted',
-          'focus-visible:border-action-primary focus-visible:outline-none focus-visible:shadow-focus-ring',
+          'focus-visible:border-action-primary focus-visible:shadow-focus-ring focus-visible:outline-none',
         )}
       />
     </div>

@@ -44,7 +44,7 @@ export function ForbiddenPage({ reason, suggestedAction = 'Zurück zum Überblic
             <PiWarning className="h-6 w-6 text-status-warning-text" aria-hidden="true" />
           </div>
           <div className="flex-1">
-            <h2 className="font-semibold text-text-primary text-title-sm">Zugriff nicht freigegeben</h2>
+            <h2 className="text-title-sm font-semibold text-text-primary">Zugriff nicht freigegeben</h2>
             <p className="mt-2 text-body-sm text-text-secondary">{reason ?? 'Dieser Bereich ist für Ihre Rolle nicht freigegeben.'}</p>
           </div>
         </div>

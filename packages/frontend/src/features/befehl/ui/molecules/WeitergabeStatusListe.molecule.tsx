@@ -110,17 +110,17 @@ function EmpfaengerRow({ empfaenger, showHandlungsbedarf }: { empfaenger: Befehl
       {/* Name + Zeitstempel */}
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
-          <span className="truncate font-medium text-text-primary text-sm">{empfaenger.name}</span>
+          <span className="truncate text-sm font-medium text-text-primary">{empfaenger.name}</span>
 
           {/* Status Badge */}
-          <span className={cn('inline-flex flex-shrink-0 items-center gap-1 rounded-full px-2 py-0.5 font-medium text-xs', config.badgeClasses)} title={config.label}>
+          <span className={cn('inline-flex flex-shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium', config.badgeClasses)} title={config.label}>
             <Icon className="h-3.5 w-3.5" aria-hidden="true" />
             {config.label}
           </span>
         </div>
 
         {/* Zeitstempel-Zeile */}
-        <div className="mt-0.5 flex flex-wrap items-center gap-x-3 text-text-muted text-xs">
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-3 text-xs text-text-muted">
           {zugestelltFormatiert && <span>Zugestellt: {zugestelltFormatiert}</span>}
           {quittiertFormatiert && (
             <>
@@ -132,12 +132,12 @@ function EmpfaengerRow({ empfaenger, showHandlungsbedarf }: { empfaenger: Befehl
               <span>Quittiert: {quittiertFormatiert}</span>
             </>
           )}
-          {!zugestelltFormatiert && !quittiertFormatiert && <span className="italic text-text-muted">Noch nicht zugestellt</span>}
+          {!zugestelltFormatiert && !quittiertFormatiert && <span className="text-text-muted italic">Noch nicht zugestellt</span>}
         </div>
 
         {/* Handlungsbedarf Label */}
         {handlungsbedarf && (
-          <span className={cn('mt-1 inline-block font-medium text-xs', status === 'RUECKFRAGE' && 'text-status-warning-text', status === 'NICHT_VERSTANDEN' && 'text-status-danger-text')}>
+          <span className={cn('mt-1 inline-block text-xs font-medium', status === 'RUECKFRAGE' && 'text-status-warning-text', status === 'NICHT_VERSTANDEN' && 'text-status-danger-text')}>
             {handlungsbedarf.label}
           </span>
         )}
@@ -155,7 +155,7 @@ function EmpfaengerRow({ empfaenger, showHandlungsbedarf }: { empfaenger: Befehl
  */
 export function WeitergabeStatusListe({ empfaenger, showHandlungsbedarf = false, className }: WeitergabeStatusListeProps) {
   if (empfaenger.length === 0) {
-    return <div className={cn('py-4 text-center text-text-muted text-sm', className)}>Keine Empfänger</div>;
+    return <div className={cn('py-4 text-center text-sm text-text-muted', className)}>Keine Empfänger</div>;
   }
 
   const isScrollable = empfaenger.length > 5;

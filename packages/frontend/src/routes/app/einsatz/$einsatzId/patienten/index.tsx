@@ -12,8 +12,8 @@ function PatientenComponent() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="font-bold text-2xl text-text-primary">Patientenübersicht</h1>
-        <p className="mt-1 text-text-muted text-sm">Verwaltung aller Patienten im Einsatz</p>
+        <h1 className="text-2xl font-bold text-text-primary">Patientenübersicht</h1>
+        <p className="mt-1 text-sm text-text-muted">Verwaltung aller Patienten im Einsatz</p>
       </div>
 
       <div className="rounded-lg bg-surface-panel p-4 shadow">

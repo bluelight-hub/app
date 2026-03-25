@@ -57,6 +57,5 @@ try {
   console.log(`✅ Tauri version synced: ${oldVersion} → ${tauriVersion} (from ${packageJson.version})`);
 } catch (error) {
   console.error('❌ Failed to sync Tauri version:', error.message);
-  let process;
   process.exit(1);
 }

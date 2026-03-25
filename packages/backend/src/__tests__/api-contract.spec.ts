@@ -90,7 +90,7 @@ function createMockProviders() {
  * @returns Initialisierte NestJS Application fuer OpenAPI-Generierung
  */
 async function createContractTestApp(): Promise<INestApplication> {
-  // biome-ignore lint/correctness/useHookAtTopLevel: NestJS testing module API uses "useValue" method names.
+  // eslint-disable-next-line react/rules-of-hooks -- NestJS testing module API uses "useValue" method names.
   const moduleRef = await Test.createTestingModule({
     controllers: [BefehlController, EinsatzController, HealthController],
     providers: createMockProviders(),

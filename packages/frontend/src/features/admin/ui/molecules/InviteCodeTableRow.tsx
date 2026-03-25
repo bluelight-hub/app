@@ -23,14 +23,14 @@ export function InviteCodeTableRow({ invite }: InviteCodeTableRowProps) {
         {' '}
         <InviteStatusBadge status={invite.status as 'active' | 'used' | 'expired' | 'revoked'} />{' '}
       </Table.Cell>{' '}
-      {/* Label */} <Table.Cell> {invite.label ? <span className="text-text-primary text-sm ">{String(invite.label)}</span> : <span className="text-text-muted text-sm ">-</span>} </Table.Cell>{' '}
+      {/* Label */} <Table.Cell> {invite.label ? <span className="text-sm text-text-primary">{String(invite.label)}</span> : <span className="text-sm text-text-muted">-</span>} </Table.Cell>{' '}
       {/* Ablaufdatum */}{' '}
       <Table.Cell>
         {' '}
         <div className="flex flex-col">
           {' '}
           <span className={`text-sm ${isExpired ? 'text-status-danger-text' : 'text-text-primary'}`}>{formatDate(invite.expiresAt)}</span>{' '}
-          {isExpired && <span className="text-status-danger-text text-xs">Abgelaufen</span>}{' '}
+          {isExpired && <span className="text-xs text-status-danger-text">Abgelaufen</span>}{' '}
         </div>{' '}
       </Table.Cell>{' '}
       {/* Nutzung */}{' '}
@@ -44,7 +44,7 @@ export function InviteCodeTableRow({ invite }: InviteCodeTableRowProps) {
       {/* Ersteller */}{' '}
       <Table.Cell>
         {' '}
-        <span className="text-text-primary text-sm ">{invite.createdBy.username}</span>{' '}
+        <span className="text-sm text-text-primary">{invite.createdBy.username}</span>{' '}
       </Table.Cell>{' '}
       {/* Aktionen */}{' '}
       <Table.Cell>

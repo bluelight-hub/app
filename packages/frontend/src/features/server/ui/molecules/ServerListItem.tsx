@@ -111,7 +111,7 @@ export const ServerListItem = forwardRef<HTMLDivElement, ServerListItemProps>(({
   };
 
   return (
-    // biome-ignore lint/a11y/useSemanticElements: <li> erfordert Parent <ul>/<ol>, aber diese Komponente kann auch einzeln oder in anderen Kontexten verwendet werden. role="listitem" ist die flexible Alternative.
+    // eslint-disable-next-line jsx-a11y/prefer-tag-over-role -- <li> erfordert Parent <ul>/<ol>, aber diese Komponente kann auch einzeln oder in anderen Kontexten verwendet werden. role="listitem" ist die flexible Alternative.
     <div
       ref={ref}
       role="listitem"

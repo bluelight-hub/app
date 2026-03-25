@@ -46,7 +46,7 @@ export const UsersTable = ({ users, isLoading, onDelete, onEdit, onUnlock }: Use
                   <PiLockKey className="h-3 w-3" /> Gesperrt{' '}
                 </Badge>{' '}
                 {lockReason && (
-                  <span className="text-text-muted text-xs " title={lockReason}>
+                  <span className="text-xs text-text-muted" title={lockReason}>
                     {' '}
                     ({lockReason.length > 20 ? `${lockReason.substring(0, 20)}...` : lockReason}){' '}
                   </span>
@@ -57,7 +57,7 @@ export const UsersTable = ({ users, isLoading, onDelete, onEdit, onUnlock }: Use
           return <Badge variant="success">Aktiv</Badge>;
         },
       }),
-      columnHelper.accessor('id', { header: 'ID', cell: (info) => <span className="font-mono text-text-secondary text-sm ">{info.getValue()}</span> }),
+      columnHelper.accessor('id', { header: 'ID', cell: (info) => <span className="font-mono text-sm text-text-secondary">{info.getValue()}</span> }),
       columnHelper.display({
         id: 'actions',
         header: 'Aktionen',

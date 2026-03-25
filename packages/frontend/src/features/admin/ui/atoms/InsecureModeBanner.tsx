@@ -12,12 +12,12 @@ export const InsecureModeBanner: FC<InsecureModeBannerProps> = ({ onMigrateClick
         <PiShieldWarning className="h-6 w-6 flex-shrink-0 text-status-warning-text" aria-hidden="true" />{' '}
         <div className="flex-1">
           {' '}
-          <h3 className="font-medium text-status-warning-text text-sm">Unsicherer Modus aktiv</h3>{' '}
-          <p className="mt-1 text-status-warning-text text-sm">Dieser Server laeuft im unsicheren Modus. Tokens sind nicht erforderlich.</p>{' '}
+          <h3 className="text-sm font-medium text-status-warning-text">Unsicherer Modus aktiv</h3>{' '}
+          <p className="mt-1 text-sm text-status-warning-text">Dieser Server laeuft im unsicheren Modus. Tokens sind nicht erforderlich.</p>{' '}
           <button
             type="button"
             onClick={onMigrateClick}
-            className="mt-3 inline-flex items-center rounded-control bg-action-primary px-3 py-2 font-semibold text-sm text-text-inverse shadow-sm hover:bg-action-primary-hover focus-visible:outline-none focus-visible:shadow-focus-ring"
+            className="mt-3 inline-flex items-center rounded-control bg-action-primary px-3 py-2 text-sm font-semibold text-text-inverse shadow-sm hover:bg-action-primary-hover focus-visible:shadow-focus-ring focus-visible:outline-none"
           >
             {' '}
             Zu SECURE_MODE wechseln{' '}

@@ -21,45 +21,45 @@ config:
   phases:
     - duration: 60
       arrivalRate: 5
-      name: "Warmup (60s @ 5 RPS)"
+      name: 'Warmup (60s @ 5 RPS)'
     - duration: 120
       arrivalRate: 20
-      name: "Sustained Load (120s @ 20 RPS)"
-  processor: "./artillery-helpers.js"
+      name: 'Sustained Load (120s @ 20 RPS)'
+  processor: './artillery-helpers.js'
   defaults:
     headers:
-      Content-Type: "application/json"
+      Content-Type: 'application/json'
   # NFR-4 Compliance Thresholds (Story 5-3)
   # Automatische Validierung für CI/CD Integration
   ensure:
-    p95: 200       # NFR-4: <200ms p95 für alle Endpoints
+    p95: 200 # NFR-4: <200ms p95 für alle Endpoints
     maxErrorRate: 5 # Max 5% Fehlerrate toleriert
 
 scenarios:
   # Scenario 1: Create Einsatz (Weight: 20%)
   # Simuliert das Erstellen neuer Einsätze durch Leitstelle
-  - name: "Create Einsatz"
+  - name: 'Create Einsatz'
     weight: 20
     flow:
-      - function: "setAuthHeader"
-      - function: "generateEinsatzPayload"
+      - function: 'setAuthHeader'
+      - function: 'generateEinsatzPayload'
       - post:
-          url: "/api/v-alpha/einsatz"
-          json: "{{ einsatzPayload }}"
+          url: '/api/v-alpha/einsatz'
+          json: '{{ einsatzPayload }}'
           capture:
-            - json: "$.data.id"
-              as: "createdEinsatzId"
-            - json: "$.data.etbId"
-              as: "createdEtbId"
+            - json: '$.data.id'
+              as: 'createdEinsatzId'
+            - json: '$.data.etbId'
+              as: 'createdEtbId'
 
   # Scenario 2: Get All Einsätze (Weight: 30%)
   # Simuliert das Laden der Einsatz-Liste (häufigste Operation)
-  - name: "Get All Einsätze"
+  - name: 'Get All Einsätze'
     weight: 30
     flow:
-      - function: "setAuthHeader"
+      - function: 'setAuthHeader'
       - get:
-          url: "/api/v-alpha/einsatz"
+          url: '/api/v-alpha/einsatz'
           qs:
             page: 1
             limit: 10
@@ -67,70 +67,70 @@ scenarios:
 
   # Scenario 3: Dashboard Query (Weight: 20%)
   # Simuliert den Dashboard-Aufruf mit aggregierten Daten
-  - name: "Dashboard Query (Active with Counts)"
+  - name: 'Dashboard Query (Active with Counts)'
     weight: 20
     flow:
-      - function: "setAuthHeader"
+      - function: 'setAuthHeader'
       - get:
-          url: "/api/v-alpha/einsatz/active-with-counts"
+          url: '/api/v-alpha/einsatz/active-with-counts'
 
   # Scenario 4: Get Einsatz Details (Weight: 15%)
   # Simuliert das Laden eines einzelnen Einsatzes mit ETB und Lagekarte
   # Erfordert erst einen Create um gültige ID zu haben
-  - name: "Get Einsatz Details"
+  - name: 'Get Einsatz Details'
     weight: 15
     flow:
-      - function: "setAuthHeader"
-      - function: "generateEinsatzPayload"
+      - function: 'setAuthHeader'
+      - function: 'generateEinsatzPayload'
       # Erst Einsatz erstellen um gültige ID zu bekommen
       - post:
-          url: "/api/v-alpha/einsatz"
-          json: "{{ einsatzPayload }}"
+          url: '/api/v-alpha/einsatz'
+          json: '{{ einsatzPayload }}'
           capture:
-            - json: "$.data.id"
-              as: "einsatzId"
+            - json: '$.data.id'
+              as: 'einsatzId'
       # Dann Details abrufen
       - get:
-          url: "/api/v-alpha/einsatz/{{ einsatzId }}/details"
+          url: '/api/v-alpha/einsatz/{{ einsatzId }}/details'
 
   # Scenario 5: Add ETB Eintrag (Weight: 10%)
   # Simuliert das Hinzufügen von Einträgen zum Einsatztagebuch
-  - name: "Add ETB Eintrag"
+  - name: 'Add ETB Eintrag'
     weight: 10
     flow:
-      - function: "setAuthHeader"
-      - function: "generateEinsatzPayload"
-      - function: "generateEtbEintragPayload"
+      - function: 'setAuthHeader'
+      - function: 'generateEinsatzPayload'
+      - function: 'generateEtbEintragPayload'
       # Erst Einsatz erstellen um ETB-ID zu bekommen
       - post:
-          url: "/api/v-alpha/einsatz"
-          json: "{{ einsatzPayload }}"
+          url: '/api/v-alpha/einsatz'
+          json: '{{ einsatzPayload }}'
           capture:
-            - json: "$.data.id"
-              as: "einsatzId"
+            - json: '$.data.id'
+              as: 'einsatzId'
       # ETB-Eintrag hinzufügen (ETB wird automatisch erstellt)
       - post:
-          url: "/api/v-alpha/etb/{{ einsatzId }}/eintrag"
+          url: '/api/v-alpha/etb/{{ einsatzId }}/eintrag'
           json:
-            text: "{{ etbEintragPayload.text }}"
-            kategorie: "{{ etbEintragPayload.kategorie }}"
-            einsatzId: "{{ einsatzId }}"
+            text: '{{ etbEintragPayload.text }}'
+            kategorie: '{{ etbEintragPayload.kategorie }}'
+            einsatzId: '{{ einsatzId }}'
 
   # Scenario 6: Complete Einsatz (Weight: 5%)
   # Simuliert das Abschließen eines Einsatzes
   # Selten (nur 5% der Last), aber wichtiger Workflow
-  - name: "Complete Einsatz"
+  - name: 'Complete Einsatz'
     weight: 5
     flow:
-      - function: "setAuthHeader"
-      - function: "generateEinsatzPayload"
+      - function: 'setAuthHeader'
+      - function: 'generateEinsatzPayload'
       # Erst Einsatz erstellen
       - post:
-          url: "/api/v-alpha/einsatz"
-          json: "{{ einsatzPayload }}"
+          url: '/api/v-alpha/einsatz'
+          json: '{{ einsatzPayload }}'
           capture:
-            - json: "$.data.id"
-              as: "einsatzId"
+            - json: '$.data.id'
+              as: 'einsatzId'
       # Dann abschließen
       - post:
-          url: "/api/v-alpha/einsatz/{{ einsatzId }}/complete"
+          url: '/api/v-alpha/einsatz/{{ einsatzId }}/complete'

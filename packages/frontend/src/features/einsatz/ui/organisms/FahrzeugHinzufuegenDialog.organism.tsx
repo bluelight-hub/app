@@ -283,12 +283,12 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
 
         <Dialog.Body>
           <TabGroup selectedIndex={selectedTabIndex} onChange={setSelectedTabIndex}>
-            <TabList className="flex gap-2 border-border-subtle border-b pb-2">
+            <TabList className="flex gap-2 border-b border-border-subtle pb-2">
               <Tab
                 className={({ selected }) =>
                   cn(
-                    'flex items-center gap-2 rounded-lg px-4 py-2 font-medium text-sm transition-colors',
-                    'focus-visible:outline-none focus-visible:shadow-focus-ring',
+                    'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors',
+                    'focus-visible:shadow-focus-ring focus-visible:outline-none',
                     selected ? 'bg-action-secondary text-action-primary' : 'text-text-secondary hover:bg-action-secondary hover:text-text-primary',
                   )
                 }
@@ -299,8 +299,8 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
               <Tab
                 className={({ selected }) =>
                   cn(
-                    'flex items-center gap-2 rounded-lg px-4 py-2 font-medium text-sm transition-colors',
-                    'focus-visible:outline-none focus-visible:shadow-focus-ring',
+                    'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors',
+                    'focus-visible:shadow-focus-ring focus-visible:outline-none',
                     selected ? 'bg-action-secondary text-action-primary' : 'text-text-secondary hover:bg-action-secondary hover:text-text-primary',
                   )
                 }
@@ -317,15 +317,15 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
 
                 {/* Combobox */}
                 <HeadlessCombobox as="div" value={selectedFahrzeug} onChange={handleSelect} disabled={erfasseFahrzeug.isPending}>
-                  <Label className="block font-medium text-text-primary text-body-sm">Fahrzeug auswählen</Label>
+                  <Label className="block text-body-sm font-medium text-text-primary">Fahrzeug auswählen</Label>
                   <div className="relative mt-2">
                     <ComboboxInput
                       className={cn(
-                        'block w-full rounded-lg border bg-surface-raised px-4 py-3 pr-12 font-medium text-base text-text-primary',
+                        'block w-full rounded-lg border bg-surface-raised px-4 py-3 pr-12 text-base font-medium text-text-primary',
                         'transition-all duration-200',
                         'border-border-subtle',
                         'placeholder:text-text-muted',
-                        'focus-visible:outline-none focus-visible:shadow-focus-ring',
+                        'focus-visible:shadow-focus-ring focus-visible:outline-none',
                         'sm:text-sm',
                         'disabled:cursor-not-allowed disabled:opacity-50',
                       )}
@@ -343,7 +343,7 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                       className={cn(
                         'absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-surface-panel py-1 text-base shadow-panel',
                         'border border-border-subtle',
-                        'data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in',
+                        'data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in data-[closed]:data-[leave]:opacity-0',
                         'sm:text-sm',
                       )}
                     >
@@ -365,7 +365,7 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                               value={fz}
                               disabled={disabled}
                               className={cn(
-                                'relative cursor-default select-none py-3 pr-9 pl-4',
+                                'relative cursor-default py-3 pr-9 pl-4 select-none',
                                 'data-[focus]:bg-action-primary data-[focus]:text-text-inverse data-[focus]:outline-none',
                                 'text-text-primary',
                                 disabled && 'cursor-not-allowed opacity-50',
@@ -414,7 +414,7 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                     <div className="flex items-start gap-3">
                       <PiTruck className="mt-0.5 h-5 w-5 flex-shrink-0 text-status-info-text" />
                       <div>
-                        <p className="font-medium text-body-sm text-status-info-text">{selectedFahrzeug.funkrufname}</p>
+                        <p className="text-body-sm font-medium text-status-info-text">{selectedFahrzeug.funkrufname}</p>
                         <p className="mt-0.5 text-body-xs text-status-info-text">
                           {selectedFahrzeug.kennzeichen ?? '–'} • {(selectedFahrzeug.fahrzeugtyp as { name?: string })?.name ?? 'Unbekannt'}
                         </p>
@@ -442,11 +442,11 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                           disabled={erfasseTemporales.isPending}
                           placeholder="z.B. Florian Stuttgart 44-1"
                           className={cn(
-                            'block w-full rounded-lg border bg-surface-raised px-4 py-3 font-medium text-base text-text-primary',
+                            'block w-full rounded-lg border bg-surface-raised px-4 py-3 text-base font-medium text-text-primary',
                             'transition-all duration-200',
                             'border-border-subtle',
                             'placeholder:text-text-muted',
-                            'focus-visible:outline-none focus-visible:shadow-focus-ring',
+                            'focus-visible:shadow-focus-ring focus-visible:outline-none',
                             'sm:text-sm',
                             'disabled:cursor-not-allowed disabled:opacity-50',
                             field.state.meta.errors.length > 0 && 'border-status-danger-border',
@@ -466,10 +466,10 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                           onBlur={field.handleBlur}
                           disabled={erfasseTemporales.isPending || isLoadingFahrzeugtypen}
                           className={cn(
-                            'block w-full rounded-lg border bg-surface-raised px-4 py-3 font-medium text-base text-text-primary',
+                            'block w-full rounded-lg border bg-surface-raised px-4 py-3 text-base font-medium text-text-primary',
                             'transition-all duration-200',
                             'border-border-subtle',
-                            'focus-visible:outline-none focus-visible:shadow-focus-ring',
+                            'focus-visible:shadow-focus-ring focus-visible:outline-none',
                             'sm:text-sm',
                             'disabled:cursor-not-allowed disabled:opacity-50',
                             field.state.meta.errors.length > 0 && 'border-status-danger-border',
@@ -498,11 +498,11 @@ export function FahrzeugHinzufuegenDialog({ isOpen, onClose, einsatzId }: Fahrze
                           disabled={erfasseTemporales.isPending}
                           placeholder="z.B. S-FW 1234"
                           className={cn(
-                            'block w-full rounded-lg border bg-surface-raised px-4 py-3 font-medium text-base text-text-primary',
+                            'block w-full rounded-lg border bg-surface-raised px-4 py-3 text-base font-medium text-text-primary',
                             'transition-all duration-200',
                             'border-border-subtle',
                             'placeholder:text-text-muted',
-                            'focus-visible:outline-none focus-visible:shadow-focus-ring',
+                            'focus-visible:shadow-focus-ring focus-visible:outline-none',
                             'sm:text-sm',
                             'disabled:cursor-not-allowed disabled:opacity-50',
                             field.state.meta.errors.length > 0 && 'border-status-danger-border',

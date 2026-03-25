@@ -124,14 +124,14 @@ export function UnifiedAuthForm({ onSubmit, isLoading = false, error, className 
       </form.Subscribe>
 
       {showPendingNotice && (
-        <output aria-live="polite" aria-atomic="true" className="block w-full break-words rounded-panel border border-status-info-border bg-status-info-surface p-4 text-status-info-text text-sm">
+        <output aria-live="polite" aria-atomic="true" className="block w-full rounded-panel border border-status-info-border bg-status-info-surface p-4 text-sm break-words text-status-info-text">
           Anmeldung wird verarbeitet. Ihre Eingaben bleiben erhalten.
         </output>
       )}
 
       {errorMessage && (
         <div role="alert" className="rounded-panel bg-status-danger-surface p-4">
-          <p className="text-status-danger-text text-sm">{errorMessage}</p>
+          <p className="text-sm text-status-danger-text">{errorMessage}</p>
         </div>
       )}
     </form>

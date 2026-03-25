@@ -79,7 +79,7 @@ export function StatusChangeMeta({ meta, isNewest = false, isLoading = false, cl
       )}
       {meta.version > 1 ? (
         <span
-          className="inline-flex items-center rounded-full border border-status-warning-border bg-status-warning-surface px-2 py-0.5 font-medium text-body-xs text-status-warning-text"
+          className="inline-flex items-center rounded-full border border-status-warning-border bg-status-warning-surface px-2 py-0.5 text-body-xs font-medium text-status-warning-text"
           title={`Version ${meta.version} — aktualisiert`}
         >
           v{meta.version}

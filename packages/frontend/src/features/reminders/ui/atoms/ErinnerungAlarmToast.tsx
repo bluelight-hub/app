@@ -105,7 +105,7 @@ export function ErinnerungAlarmToast({ toastId, erinnerungId, einsatzId, titel, 
       aria-atomic="true"
       onKeyDown={handleKeyDown}
       className={cn(
-        'min-w-[300px] max-w-[420px] rounded-xl border-2 border-status-danger-border bg-status-danger-text p-4 text-text-inverse shadow-2xl',
+        'max-w-[420px] min-w-[300px] rounded-xl border-2 border-status-danger-border bg-status-danger-text p-4 text-text-inverse shadow-2xl',
         'focus:outline-none focus-visible:shadow-focus-ring',
         isProcessing && 'pointer-events-none opacity-70',
       )}
@@ -114,17 +114,17 @@ export function ErinnerungAlarmToast({ toastId, erinnerungId, einsatzId, titel, 
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="flex items-center gap-2">
           <PiBellRingingFill className="size-5 shrink-0 animate-bounce text-white" />
-          <span className="font-semibold leading-tight">{truncatedTitel}</span>
+          <span className="leading-tight font-semibold">{truncatedTitel}</span>
         </div>
       </div>
 
       {/* Status */}
-      <div className="mb-3 flex items-center gap-3 text-text-inverse/85 text-sm">
+      <div className="mb-3 flex items-center gap-3 text-sm text-text-inverse/85">
         <div className="flex items-center gap-1">
           <PiClock className="size-4" />
           <span>seit {elapsedTime}</span>
         </div>
-        <span className="rounded bg-surface-inverse/18 px-2 py-0.5 font-bold text-xs">ALARM</span>
+        <span className="rounded bg-surface-inverse/18 px-2 py-0.5 text-xs font-bold">ALARM</span>
       </div>
 
       {/* Actions */}
@@ -155,7 +155,7 @@ export function ErinnerungAlarmToast({ toastId, erinnerungId, einsatzId, titel, 
               onClick={() => handleSnooze(minutes)}
               disabled={isProcessing}
               className={cn(
-                'cursor-pointer rounded px-2 py-1 font-medium text-sm text-text-inverse',
+                'cursor-pointer rounded px-2 py-1 text-sm font-medium text-text-inverse',
                 'hover:bg-surface-inverse/20 focus:outline-none focus-visible:shadow-focus-ring',
                 'disabled:cursor-not-allowed disabled:opacity-50',
               )}
@@ -167,7 +167,7 @@ export function ErinnerungAlarmToast({ toastId, erinnerungId, einsatzId, titel, 
       </div>
 
       {/* Keyboard Hint */}
-      <div className="mt-2 text-center text-text-inverse/70 text-xs">Enter: Bestätigen | Esc: 5 Min Snooze</div>
+      <div className="mt-2 text-center text-xs text-text-inverse/70">Enter: Bestätigen | Esc: 5 Min Snooze</div>
     </div>
   );
 }

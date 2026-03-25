@@ -53,7 +53,7 @@ describe('AdminSetupController', () => {
     // Create mock handler (Direct Instantiation Pattern)
     mockCompleteSetupHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     // Instantiate controller with mocks

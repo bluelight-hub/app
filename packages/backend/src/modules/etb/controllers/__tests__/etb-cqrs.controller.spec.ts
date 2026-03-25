@@ -106,13 +106,13 @@ describe('EtbCqrsController', () => {
   let mockGetEtbQueryHandler: jest.Mocked<GetEtbQueryHandler>;
   let mockGetEtbHistoryQueryHandler: jest.Mocked<GetEtbHistoryQueryHandler>;
   let mockGetTextbausteineHandler: jest.Mocked<GetTextbausteineHandler>;
-  // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+  // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
   let mockGetErinnerungTimelineHandler: jest.Mocked<any>;
   let mockEtbRepository: jest.Mocked<IEtbRepository>;
   let mockLogger: jest.Mocked<ILogger>;
-  // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+  // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
   let mockEinsatzTeilnehmerRepository: jest.Mocked<any>;
-  // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+  // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
   let mockEinsatzRollenReadRepository: jest.Mocked<any>;
 
   // Standard mock user for authenticated requests
@@ -140,49 +140,49 @@ describe('EtbCqrsController', () => {
     // Create mock handlers (Direct Instantiation Pattern)
     mockAddEintragHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     mockUpdateEintragHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     mockDeleteEintragHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     mockLockEtbHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     mockGetEtbQueryHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     mockGetEtbHistoryQueryHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     mockGetTextbausteineHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     mockGetErinnerungTimelineHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     mockEtbRepository = {
       findById: jest.fn(),
       findByEinsatzId: jest.fn(),
       save: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     // Create mock logger
@@ -191,13 +191,13 @@ describe('EtbCqrsController', () => {
       error: jest.fn(),
       warn: jest.fn(),
       debug: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     // Create mock EinsatzTeilnehmerRepository (replaces direct PrismaService access)
     mockEinsatzTeilnehmerRepository = {
       findByEinsatzAndUser: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     // Create mock EinsatzRollenReadRepository (replaces direct PrismaService access)
@@ -205,7 +205,7 @@ describe('EtbCqrsController', () => {
     mockEinsatzRollenReadRepository = {
       findMeineRolle: jest.fn().mockResolvedValue(Result.ok({ rolle: 'BEFEHLSGEBER' })),
       hasAnyRollen: jest.fn().mockResolvedValue(Result.ok(true)),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     // Instantiate controller with mocks

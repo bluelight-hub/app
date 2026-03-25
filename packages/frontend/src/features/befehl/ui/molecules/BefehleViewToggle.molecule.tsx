@@ -24,7 +24,7 @@ export function BefehleViewToggle({ className }: { className?: string }) {
           className={cn(
             'inline-flex items-center justify-center p-2 transition-colors motion-reduce:transition-none',
             'first:rounded-l-lg last:rounded-r-lg',
-            'focus-visible:outline-none focus-visible:shadow-focus-ring',
+            'focus-visible:shadow-focus-ring focus-visible:outline-none',
             currentView === view ? 'bg-action-secondary text-action-primary' : 'text-text-muted hover:bg-action-secondary hover:text-text-secondary',
           )}
         >

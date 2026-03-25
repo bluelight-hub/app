@@ -45,7 +45,7 @@ export const EntityStatusBadge = memo(({ status, reason, className }: EntityStat
   const ariaLabel = reason ? `${config.label}: ${reason}` : config.label;
 
   return (
-    <span role="status" aria-label={ariaLabel} className={cn('inline-flex items-center gap-1 rounded-pill px-2.5 py-0.5 font-medium text-xs', config.classes, className)} title={reason ?? undefined}>
+    <span role="status" aria-label={ariaLabel} className={cn('inline-flex items-center gap-1 rounded-pill px-2.5 py-0.5 text-xs font-medium', config.classes, className)} title={reason ?? undefined}>
       <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
       {config.label}
       {reason && <span className="sr-only">: {reason}</span>}

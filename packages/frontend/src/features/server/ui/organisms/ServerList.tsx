@@ -112,7 +112,7 @@ export const ServerList = forwardRef<HTMLDivElement, ServerListProps>(({ onAddSe
 
   // Server Liste
   return (
-    // biome-ignore lint/a11y/useSemanticElements: <ul> erfordert <li> children, aber ServerListItem nutzt role="listitem" auf <div> für flexible Verwendung
+    // eslint-disable-next-line jsx-a11y/prefer-tag-over-role -- <ul> erfordert <li> children, aber ServerListItem nutzt role="listitem" auf <div> für flexible Verwendung
     <div ref={ref} role="list" data-testid="server-list" className={cn('divide-y divide-border-subtle', className)}>
       {servers.map((server) => (
         <ServerListItem

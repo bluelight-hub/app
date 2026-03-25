@@ -59,9 +59,9 @@ export function NotizCard({
   const hasActions = onConvertToErinnerung || (isOwner && onEdit) || (isOwner && onDelete);
 
   return (
-    // biome-ignore lint/a11y/useSemanticElements: Div mit komplexem Inhalt und interaktiven Kindelementen
+    // eslint-disable-next-line jsx-a11y/prefer-tag-over-role -- Div mit komplexem Inhalt und interaktiven Kindelementen
     <div
-      className={cn('group cursor-pointer rounded-lg border-border-subtle border-l-4 bg-surface-raised p-4 transition-colors hover:bg-surface-raised', className)}
+      className={cn('group cursor-pointer rounded-lg border-l-4 border-border-subtle bg-surface-raised p-4 transition-colors hover:bg-surface-raised', className)}
       onClick={onClick}
       onKeyUp={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -76,16 +76,16 @@ export function NotizCard({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <PiNotepad className="h-4 w-4 shrink-0 text-text-muted" />
-            <h3 className="truncate font-semibold text-text-primary text-sm">{searchQuery ? <HighlightText text={titel} query={searchQuery} /> : titel}</h3>
+            <h3 className="truncate text-sm font-semibold text-text-primary">{searchQuery ? <HighlightText text={titel} query={searchQuery} /> : titel}</h3>
             <ItemTypeBadge type="notiz" />
             {istTeamsichtbar && (
-              <div className="flex items-center gap-1 text-action-primary text-xs">
+              <div className="flex items-center gap-1 text-xs text-action-primary">
                 <PiUsersThree className="h-3.5 w-3.5" />
                 <span>Team</span>
               </div>
             )}
           </div>
-          {inhalt && <p className="mt-1.5 line-clamp-3 text-text-muted text-xs">{searchQuery ? <HighlightText text={inhalt} query={searchQuery} /> : inhalt}</p>}
+          {inhalt && <p className="mt-1.5 line-clamp-3 text-xs text-text-muted">{searchQuery ? <HighlightText text={inhalt} query={searchQuery} /> : inhalt}</p>}
         </div>
 
         {/* Hover-Aktionen: nur bei Hover sichtbar */}
@@ -138,17 +138,17 @@ export function NotizCard({
       </div>
 
       <div className="mt-2 flex items-center gap-2">
-        <time dateTime={createdAt} className="text-text-muted text-xs">
+        <time dateTime={createdAt} className="text-xs text-text-muted">
           {zeitAnzeige}
         </time>
         {bearbeitetAnzeige && (
-          <span className="text-text-muted text-xs">
+          <span className="text-xs text-text-muted">
             {'· bearbeitet '}
             <time dateTime={updatedAt}>{bearbeitetAnzeige}</time>
           </span>
         )}
         {kategorieName && kategorieFarbe && <KategorieChip name={kategorieName} farbe={kategorieFarbe} />}
-        {istTeamsichtbar && erstelltVonName && <span className="text-text-muted text-xs">von {erstelltVonName}</span>}
+        {istTeamsichtbar && erstelltVonName && <span className="text-xs text-text-muted">von {erstelltVonName}</span>}
       </div>
     </div>
   );

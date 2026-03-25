@@ -55,7 +55,7 @@ export interface ServerNameBadgeProps {
 export function ServerNameBadge({ name, size = 'md', className }: ServerNameBadgeProps) {
   return (
     <output
-      className={cn('flex items-center gap-2 rounded-pill border border-border-subtle bg-surface-panel px-3 py-1 font-medium text-body-sm text-text-secondary shadow-raised', className)}
+      className={cn('flex items-center gap-2 rounded-pill border border-border-subtle bg-surface-panel px-3 py-1 text-body-sm font-medium text-text-secondary shadow-raised', className)}
       title={name}
       aria-label={`Aktiver Server: ${name}`}
     >

@@ -16,11 +16,7 @@ export {
   type UpdateOAuthTokensDto,
 } from './entities/integration-credential.entity';
 
-export {
-  OAuth2State,
-  type OAuth2StateProps,
-  type CreateOAuth2StateProps,
-} from './entities/oauth2-state.entity';
+export { OAuth2State, type OAuth2StateProps, type CreateOAuth2StateProps } from './entities/oauth2-state.entity';
 
 export {
   QualifikationMapping,
@@ -38,8 +34,4 @@ export type { IOAuth2StateRepository } from './repositories/i-oauth2-state.repos
 export type { IQualifikationMappingRepository } from './repositories/i-qualifikation-mapping.repository';
 
 // Error Codes
-export {
-  INTEGRATION_ERROR_CODES,
-  IntegrationError,
-  type IntegrationErrorCode,
-} from './common/integration-error-codes';
+export { INTEGRATION_ERROR_CODES, IntegrationError, type IntegrationErrorCode } from './common/integration-error-codes';

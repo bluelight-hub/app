@@ -96,7 +96,7 @@ export class ErinnerungAktualisiertEventHandler implements IEventHandler<Erinner
       }
 
       // Command ausfuehren via injiziertem Handler
-      // biome-ignore lint/style/noNonNullAssertion: Safe - already checked isFailure above
+      // eslint-disable-next-line typescript/no-non-null-assertion -- Safe - already checked isFailure above
       const result = await this.addEintragHandler.execute(commandResult.value!);
 
       if (result.isFailure) {

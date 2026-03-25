@@ -101,7 +101,7 @@ describe('PrismaBefehlRepository', () => {
       },
     };
 
-    // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+    // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     repository = new PrismaBefehlRepository(mockPrismaService as any);
   });
 

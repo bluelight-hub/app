@@ -24,15 +24,15 @@ Zusammenspiel von Domain Layer, Application Layer und Infrastructure Layer gegen
 
 ### Implementierte Test-Suites
 
-| Test File | Acceptance Criteria | Beschreibung |
-|-----------|-------------------|--------------|
-| `etb-auto-creation.e2e.spec.ts` | AC1 | ETB Auto-Creation via `EinsatzCreatedEvent` |
-| `etb-versioning.e2e.spec.ts` | AC2, AC3 | Versioning & Snapshot-Erstellung |
-| `etb-locking.e2e.spec.ts` | AC4 | Lock-Mechanismus & Mutation Prevention |
-| `etb-soft-delete.e2e.spec.ts` | AC5 | Soft-Delete Behavior (isDeleted Flag) |
-| `etb-drk-compliance.e2e.spec.ts` | AC6, AC7 | NO-DELETE Trigger Enforcement |
-| `etb-concurrency.e2e.spec.ts` | AC8 | Optimistic Locking (version-based) |
-| `etb-performance.e2e.spec.ts` | AC9 | Performance Baselines |
+| Test File                        | Acceptance Criteria | Beschreibung                                |
+| -------------------------------- | ------------------- | ------------------------------------------- |
+| `etb-auto-creation.e2e.spec.ts`  | AC1                 | ETB Auto-Creation via `EinsatzCreatedEvent` |
+| `etb-versioning.e2e.spec.ts`     | AC2, AC3            | Versioning & Snapshot-Erstellung            |
+| `etb-locking.e2e.spec.ts`        | AC4                 | Lock-Mechanismus & Mutation Prevention      |
+| `etb-soft-delete.e2e.spec.ts`    | AC5                 | Soft-Delete Behavior (isDeleted Flag)       |
+| `etb-drk-compliance.e2e.spec.ts` | AC6, AC7            | NO-DELETE Trigger Enforcement               |
+| `etb-concurrency.e2e.spec.ts`    | AC8                 | Optimistic Locking (version-based)          |
+| `etb-performance.e2e.spec.ts`    | AC9                 | Performance Baselines                       |
 
 ### Acceptance Criteria Mapping
 
@@ -216,10 +216,14 @@ Pollt asynchrone Assertions (für Event Handler):
 it('should emit event', async () => {
   await createHandler.execute(command);
 
-  await waitFor(async () => {
-    const events = ctx.eventPublisher.getEventsByName('etb.created');
-    expect(events).toHaveLength(1);
-  }, 500, 50); // 500ms timeout, 50ms interval
+  await waitFor(
+    async () => {
+      const events = ctx.eventPublisher.getEventsByName('etb.created');
+      expect(events).toHaveLength(1);
+    },
+    500,
+    50,
+  ); // 500ms timeout, 50ms interval
 });
 ```
 
@@ -286,12 +290,7 @@ try {
 ### Basis-Struktur
 
 ```typescript
-import {
-  createEtbE2eModule,
-  teardownE2eModule,
-  cleanupTestData,
-  type EtbE2eTestContext,
-} from './etb.e2e-setup';
+import { createEtbE2eModule, teardownE2eModule, cleanupTestData, type EtbE2eTestContext } from './etb.e2e-setup';
 
 describe('ETB Feature - E2E Tests', () => {
   let ctx: EtbE2eTestContext;
@@ -442,13 +441,13 @@ pnpm --filter @bluelight-hub/backend prisma:studio
 
 Aus `etb-performance.e2e.spec.ts`:
 
-| Operation | Baseline | Actual (Beispiel) |
-|-----------|----------|-------------------|
-| Create ETB | < 100ms | ~30ms |
-| Add Eintrag | < 50ms | ~20ms |
-| Load 100 Einträge | < 200ms | ~80ms |
-| Lock ETB | < 50ms | ~25ms |
-| Create Snapshot | < 100ms | ~40ms |
+| Operation         | Baseline | Actual (Beispiel) |
+| ----------------- | -------- | ----------------- |
+| Create ETB        | < 100ms  | ~30ms             |
+| Add Eintrag       | < 50ms   | ~20ms             |
+| Load 100 Einträge | < 200ms  | ~80ms             |
+| Lock ETB          | < 50ms   | ~25ms             |
+| Create Snapshot   | < 100ms  | ~40ms             |
 
 **Hinweis:** Baselines sind Guidelines, keine Hard Limits. CI/CD Pipeline kann langsamer sein als lokale Dev-Umgebung.
 

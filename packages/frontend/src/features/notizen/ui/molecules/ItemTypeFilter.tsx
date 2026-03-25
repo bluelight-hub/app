@@ -78,7 +78,7 @@ export function ItemTypeFilterControl({ value, onChange, className }: ItemTypeFi
         const isFocusable = index === focusableIndex;
 
         return (
-          // biome-ignore lint/a11y/useSemanticElements: segmented control uses button-based radio pattern
+          // eslint-disable-next-line jsx-a11y/prefer-tag-over-role -- segmented control uses button-based radio pattern
           <button
             key={option.value}
             type="button"
@@ -88,7 +88,7 @@ export function ItemTypeFilterControl({ value, onChange, className }: ItemTypeFi
             onClick={() => onChange(option.value)}
             onKeyDown={(e) => handleKeyDown(e, index)}
             className={cn(
-              'inline-flex items-center gap-1.5 rounded-control px-3 py-1.5 font-medium text-sm transition-colors',
+              'inline-flex items-center gap-1.5 rounded-control px-3 py-1.5 text-sm font-medium transition-colors',
               'focus:outline-none focus-visible:shadow-focus-ring',
               isSelected ? 'bg-surface-panel text-text-primary shadow-sm' : 'text-text-secondary hover:text-text-primary',
             )}

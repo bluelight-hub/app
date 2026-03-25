@@ -44,10 +44,10 @@ export const StatusCard = ({ label, value, variant = 'default', trendIcon, class
   return (
     <div className={cn('rounded-lg p-3', variantStyles[variant], className)}>
       <div className="flex items-center justify-between">
-        <p className={cn('font-medium text-sm', textStyles[variant].label)}>{label}</p>
+        <p className={cn('text-sm font-medium', textStyles[variant].label)}>{label}</p>
         {trendIcon}
       </div>
-      <p className={cn('font-bold text-2xl', textStyles[variant].value)}>{value}</p>
+      <p className={cn('text-2xl font-bold', textStyles[variant].value)}>{value}</p>
     </div>
   );
 };

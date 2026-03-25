@@ -101,9 +101,9 @@ export function NotizList({ einsatzId, className, mode = 'default' }: NotizListP
         <div className="flex items-center justify-between rounded-t-xl border border-border-subtle bg-surface-panel px-5 py-3.5">
           <div className="flex items-center gap-2.5">
             <PiNotepad className="h-4 w-4 text-text-muted" />
-            <h2 className="font-bold text-text-primary text-lg tracking-tight">Notizen</h2>
+            <h2 className="text-lg font-bold tracking-tight text-text-primary">Notizen</h2>
           </div>
-          <Button intent="primary" size="sm" onClick={() => setIsCreateDialogOpen(true)} className="h-7 rounded-lg px-3 font-semibold text-xs">
+          <Button intent="primary" size="sm" onClick={() => setIsCreateDialogOpen(true)} className="h-7 rounded-lg px-3 text-xs font-semibold">
             <PiPlus className="mr-0.5 h-3.5 w-3.5" />
             Neu
           </Button>
@@ -112,7 +112,7 @@ export function NotizList({ einsatzId, className, mode = 'default' }: NotizListP
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <PiNotepad className="h-5 w-5 text-text-muted" />
-            <h2 className="font-semibold text-text-primary text-lg">Notizen</h2>
+            <h2 className="text-lg font-semibold text-text-primary">Notizen</h2>
           </div>
           <Button intent="primary" size="sm" onClick={() => setIsCreateDialogOpen(true)}>
             <PiPlus className="mr-1 h-4 w-4" />
@@ -137,7 +137,7 @@ export function NotizList({ einsatzId, className, mode = 'default' }: NotizListP
           <KategorieFilterDropdown selectedFilter={selectedKategorieFilter} onFilterChange={handleKategorieFilterChange} kategorien={kategorien} className="w-44" />
           {/* Story 8.6 AC5: Filter-Count anzeigen */}
           {isKategorieFilterActive && (
-            <span className="text-text-muted text-xs">
+            <span className="text-xs text-text-muted">
               {filteredNotizen?.length ?? 0} von {notizen.length}
             </span>
           )}
@@ -151,13 +151,13 @@ export function NotizList({ einsatzId, className, mode = 'default' }: NotizListP
 
       {/* Content - im Sidebar-Modus als Container-Body (passend zum Header) */}
       {isSidebar ? (
-        <div className="overflow-y-auto rounded-b-xl border-border-subtle border-x border-b bg-surface-panel" style={{ maxHeight: 'calc(100vh - 260px)' }}>
+        <div className="overflow-y-auto rounded-b-xl border-x border-b border-border-subtle bg-surface-panel" style={{ maxHeight: 'calc(100vh - 260px)' }}>
           {isLoading && (
             <div className="flex items-center justify-center py-12">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-text-muted border-t-transparent" />
             </div>
           )}
-          {error && <div className="p-4 text-status-danger-text text-sm">Fehler beim Laden</div>}
+          {error && <div className="p-4 text-sm text-status-danger-text">Fehler beim Laden</div>}
           {!isLoading && !error && notizen && notizen.length === 0 && (
             <div className="py-6 text-center text-text-muted">
               <PiNotepad className="mx-auto h-6 w-6 opacity-40" />
@@ -167,10 +167,10 @@ export function NotizList({ einsatzId, className, mode = 'default' }: NotizListP
           {!isLoading && !error && filteredNotizen && filteredNotizen.length > 0 && (
             <>
               {filteredNotizen.slice(0, 5).map((notiz) => (
-                // biome-ignore lint/a11y/useSemanticElements: Div mit komplexem Inhalt
+                // eslint-disable-next-line jsx-a11y/prefer-tag-over-role -- Div mit komplexem Inhalt
                 <div
                   key={notiz.id}
-                  className="cursor-pointer border-border-subtle/50 border-b px-4 py-3 transition-colors hover:bg-surface-raised"
+                  className="cursor-pointer border-b border-border-subtle/50 px-4 py-3 transition-colors hover:bg-surface-raised"
                   onClick={() => setViewingNotiz(notiz)}
                   onKeyUp={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
@@ -182,14 +182,14 @@ export function NotizList({ einsatzId, className, mode = 'default' }: NotizListP
                   tabIndex={0}
                 >
                   <div className="mb-1 flex items-start justify-between gap-2">
-                    <h3 className="truncate font-medium text-text-primary text-sm">{notiz.titel}</h3>
+                    <h3 className="truncate text-sm font-medium text-text-primary">{notiz.titel}</h3>
                     <span className="mt-0.5 flex-shrink-0 text-[10px] text-text-muted">{new Date(notiz.updatedAt).toLocaleDateString('de-DE', { hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
-                  {notiz.inhalt && <p className="mb-1.5 truncate text-text-muted text-xs">{notiz.inhalt}</p>}
+                  {notiz.inhalt && <p className="mb-1.5 truncate text-xs text-text-muted">{notiz.inhalt}</p>}
                   {typeof notiz.kategorieName === 'string' && typeof notiz.kategorieFarbe === 'string' && (
                     <div className="flex items-center gap-1.5">
                       <span className="h-2 w-2 rounded-full" style={{ backgroundColor: notiz.kategorieFarbe }} />
-                      <span className="font-medium text-[10px] text-text-muted uppercase tracking-wider">{notiz.kategorieName}</span>
+                      <span className="text-[10px] font-medium tracking-wider text-text-muted uppercase">{notiz.kategorieName}</span>
                     </div>
                   )}
                 </div>
@@ -199,7 +199,7 @@ export function NotizList({ einsatzId, className, mode = 'default' }: NotizListP
                 <div className="px-4 py-3">
                   <button
                     type="button"
-                    className="flex items-center gap-1 font-medium text-action-primary text-sm transition-colors hover:opacity-80 focus:outline-none focus-visible:shadow-focus-ring"
+                    className="flex items-center gap-1 text-sm font-medium text-action-primary transition-colors hover:opacity-80 focus:outline-none focus-visible:shadow-focus-ring"
                     onClick={() => {
                       /* TODO: Navigation zur vollen Notizen-Seite */
                     }}
@@ -221,7 +221,7 @@ export function NotizList({ einsatzId, className, mode = 'default' }: NotizListP
           )}
 
           {/* Error */}
-          {error && <div className="rounded-panel bg-status-danger-surface p-4 text-status-danger-text text-sm">Fehler beim Laden der Notizen</div>}
+          {error && <div className="rounded-panel bg-status-danger-surface p-4 text-sm text-status-danger-text">Fehler beim Laden der Notizen</div>}
 
           {/* Empty State */}
           {!isLoading && !error && notizen && notizen.length === 0 && (

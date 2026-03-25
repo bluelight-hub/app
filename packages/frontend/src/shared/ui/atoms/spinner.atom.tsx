@@ -56,7 +56,7 @@ function WaveSpinner({ size = 'md', className, label = 'Laden...' }: SpecificSpi
       {waves.map((index) => (
         <div
           key={index}
-          className={cn('origin-center animate-wave-clean rounded-sm bg-action-primary', config.width, config.height)}
+          className={cn('animate-wave-clean origin-center rounded-sm bg-action-primary', config.width, config.height)}
           style={{
             animationDelay: `${index * 0.1}s`,
             // Initialer Filter-Zustand für sofortigen Effekt

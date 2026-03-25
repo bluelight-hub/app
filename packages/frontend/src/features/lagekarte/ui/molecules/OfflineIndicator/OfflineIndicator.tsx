@@ -56,7 +56,7 @@ export const OfflineIndicator: React.FC = () => {
     <output
       className={cn(
         'inline-flex items-center gap-2 rounded-lg px-3 py-2',
-        'font-medium text-sm shadow-lg',
+        'text-sm font-medium shadow-lg',
         'transition-all duration-300',
         'backdrop-blur-md', // Glassmorphism-Effekt
         isOnline ? 'bg-status-success-surface text-status-success-text ring-1 ring-status-success-border' : 'bg-status-danger-surface text-status-danger-text ring-1 ring-status-danger-border',

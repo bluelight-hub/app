@@ -83,7 +83,7 @@ function ShortcutHint({ module, className }: { module: WorkspaceModuleDefinition
   }
 
   return (
-    <span aria-hidden="true" className={cn('rounded-pill border border-border-subtle bg-surface-raised px-1.5 py-0.5 font-mono text-[11px] text-text-secondary leading-none shadow-sm', className)}>
+    <span aria-hidden="true" className={cn('rounded-pill border border-border-subtle bg-surface-raised px-1.5 py-0.5 font-mono text-[11px] leading-none text-text-secondary shadow-sm', className)}>
       {shortcutBadge}
     </span>
   );
@@ -122,7 +122,7 @@ export function ModuleRail({
       event.preventDefault();
       void navigate({
         to: matchedModule.routeTarget,
-        // biome-ignore lint/suspicious/noExplicitAny: Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
+        // eslint-disable-next-line typescript/no-explicit-any -- Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
         params: routeParams as any,
         search: (prev) => prev,
       });
@@ -139,7 +139,7 @@ export function ModuleRail({
   }
 
   return (
-    <nav aria-label="Workspace-Module" className={cn('sticky top-12 z-20 border-border-subtle border-b bg-surface-panel shadow-raised', className)}>
+    <nav aria-label="Workspace-Module" className={cn('sticky top-12 z-20 border-b border-border-subtle bg-surface-panel shadow-raised', className)}>
       <Container maxWidth="full">
         <div className="py-2">
           <div className="flex items-center justify-between gap-3">
@@ -153,7 +153,7 @@ export function ModuleRail({
                     <div
                       key={module.id}
                       aria-disabled="true"
-                      className={cn('flex items-center gap-2 whitespace-nowrap rounded-control border px-3 py-1.5 font-medium text-body-sm text-text-muted', getModuleColor(module.color))}
+                      className={cn('flex items-center gap-2 rounded-control border px-3 py-1.5 text-body-sm font-medium whitespace-nowrap text-text-muted', getModuleColor(module.color))}
                       title={module.visibility.reason}
                     >
                       <module.icon className="h-4 w-4" aria-hidden="true" />
@@ -166,14 +166,14 @@ export function ModuleRail({
                   <Link
                     key={module.id}
                     to={module.routeTarget}
-                    // biome-ignore lint/suspicious/noExplicitAny: Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
+                    // eslint-disable-next-line typescript/no-explicit-any -- Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
                     params={routeParams as any}
                     search={(prev) => prev}
                     aria-label={module.label}
                     aria-current={isActive ? 'page' : undefined}
                     aria-keyshortcuts={getShortcutLabel(module)}
                     className={cn(
-                      'group relative flex items-center gap-2 whitespace-nowrap rounded-control border px-3 py-1.5 font-medium text-body-sm transition-[background-color,border-color,color,box-shadow] focus:outline-none focus-visible:shadow-focus-ring',
+                      'group relative flex items-center gap-2 rounded-control border px-3 py-1.5 text-body-sm font-medium whitespace-nowrap transition-[background-color,border-color,color,box-shadow] focus:outline-none focus-visible:shadow-focus-ring',
                       isActive ? getModuleActiveColor(module.color) : getModuleColor(module.color),
                     )}
                     title={getShortcutLabel(module) ? `Tastenkürzel: ${getShortcutLabel(module)}` : undefined}
@@ -196,7 +196,7 @@ export function ModuleRail({
                     <div
                       key={module.id}
                       aria-disabled="true"
-                      className={cn('flex items-center gap-2 rounded-control border px-2.5 py-1.5 font-medium text-body-sm text-text-muted', getModuleColor(module.color))}
+                      className={cn('flex items-center gap-2 rounded-control border px-2.5 py-1.5 text-body-sm font-medium text-text-muted', getModuleColor(module.color))}
                       title={module.visibility.reason}
                     >
                       <module.icon className="h-4 w-4" aria-hidden="true" />
@@ -209,7 +209,7 @@ export function ModuleRail({
                   <Link
                     key={module.id}
                     to={module.routeTarget}
-                    // biome-ignore lint/suspicious/noExplicitAny: Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
+                    // eslint-disable-next-line typescript/no-explicit-any -- Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
                     params={routeParams as any}
                     search={(prev) => prev}
                     aria-label={module.label}
@@ -217,7 +217,7 @@ export function ModuleRail({
                     aria-keyshortcuts={getShortcutLabel(module)}
                     title={getShortcutLabel(module) ? `Tastenkürzel: ${getShortcutLabel(module)}` : undefined}
                     className={cn(
-                      'flex items-center gap-2 rounded-control border px-2.5 py-1.5 font-medium text-body-sm transition-[background-color,border-color,color,box-shadow] focus:outline-none focus-visible:shadow-focus-ring',
+                      'flex items-center gap-2 rounded-control border px-2.5 py-1.5 text-body-sm font-medium transition-[background-color,border-color,color,box-shadow] focus:outline-none focus-visible:shadow-focus-ring',
                       isActive ? getModuleActiveColor(module.color) : getModuleColor(module.color),
                     )}
                   >
@@ -246,7 +246,7 @@ export function ModuleRail({
                     <div
                       key={module.id}
                       aria-disabled="true"
-                      className={cn('flex items-center gap-2 rounded-control border px-3 py-2 font-medium text-body-sm text-text-muted', getModuleColor(module.color))}
+                      className={cn('flex items-center gap-2 rounded-control border px-3 py-2 text-body-sm font-medium text-text-muted', getModuleColor(module.color))}
                       title={module.visibility.reason}
                     >
                       <module.icon className="h-4 w-4" aria-hidden="true" />
@@ -259,7 +259,7 @@ export function ModuleRail({
                   <Link
                     key={module.id}
                     to={module.routeTarget}
-                    // biome-ignore lint/suspicious/noExplicitAny: Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
+                    // eslint-disable-next-line typescript/no-explicit-any -- Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
                     params={routeParams as any}
                     search={(prev) => prev}
                     aria-label={module.label}
@@ -267,7 +267,7 @@ export function ModuleRail({
                     aria-keyshortcuts={getShortcutLabel(module)}
                     title={getShortcutLabel(module) ? `Tastenkürzel: ${getShortcutLabel(module)}` : undefined}
                     className={cn(
-                      'flex items-center gap-2 rounded-control border px-3 py-2 font-medium text-body-sm transition-[background-color,border-color,color,box-shadow] focus:outline-none focus-visible:shadow-focus-ring',
+                      'flex items-center gap-2 rounded-control border px-3 py-2 text-body-sm font-medium transition-[background-color,border-color,color,box-shadow] focus:outline-none focus-visible:shadow-focus-ring',
                       isActive ? getModuleActiveColor(module.color) : getModuleColor(module.color),
                     )}
                   >
@@ -289,7 +289,7 @@ export function ModuleRail({
             <div className="flex flex-1 items-center gap-2 sm:hidden">
               <div
                 className={cn(
-                  'flex items-center gap-2 rounded-control border border-border-subtle bg-action-secondary px-3 py-2 font-medium text-body-sm text-text-primary',
+                  'flex items-center gap-2 rounded-control border border-border-subtle bg-action-secondary px-3 py-2 text-body-sm font-medium text-text-primary',
                   getModuleActiveColor(currentModule.color),
                 )}
               >

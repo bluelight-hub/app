@@ -62,7 +62,7 @@ export const LayerToggle: React.FC<LayerToggleProps> = ({ layers, onToggle }) =>
     <div className="absolute top-64 right-4 z-50 rounded-lg border border-border-subtle bg-surface-panel p-3 shadow-md">
       {/* Header */}
       <div className="mb-2">
-        <h3 className="font-semibold text-text-primary text-sm">Layer</h3>
+        <h3 className="text-sm font-semibold text-text-primary">Layer</h3>
       </div>
 
       {/* Layer Switches */}
@@ -71,7 +71,7 @@ export const LayerToggle: React.FC<LayerToggleProps> = ({ layers, onToggle }) =>
           <Switch.Group key={layer.name}>
             <div className="flex items-center justify-between gap-3">
               {/* Label */}
-              <Switch.Label className="cursor-pointer font-medium text-text-secondary text-sm">{layer.label}</Switch.Label>
+              <Switch.Label className="cursor-pointer text-sm font-medium text-text-secondary">{layer.label}</Switch.Label>
 
               {/* Switch */}
               <Switch
@@ -79,7 +79,7 @@ export const LayerToggle: React.FC<LayerToggleProps> = ({ layers, onToggle }) =>
                 onChange={() => onToggle(layer.name)}
                 className={`${
                   layer.visible ? 'bg-action-primary' : 'bg-surface-raised'
-                } relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors focus-visible:outline-none focus-visible:shadow-focus-ring`}
+                } relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors focus-visible:shadow-focus-ring focus-visible:outline-none`}
                 aria-label={`${layer.label} ${layer.visible ? 'ausblenden' : 'einblenden'}`}
               >
                 {/* Switch Circle */}

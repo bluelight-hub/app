@@ -66,7 +66,7 @@ describe('EinsatztagebuchAggregate', () => {
     });
 
     it('should reject null/undefined einsatzId', () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Test verifies null/undefined handling
+      // eslint-disable-next-line typescript/no-explicit-any -- Test verifies null/undefined handling
       const result = EinsatztagebuchAggregate.create(null as any);
       expect(result.isFailure).toBe(true);
       expect(result.error).toContain('EinsatzId');
@@ -126,7 +126,7 @@ describe('EinsatztagebuchAggregate', () => {
       // Sequence number is readonly via ValueObject immutability
       expect(entry.sequenceNumber.value).toBe(1);
       expect(() => {
-        // biome-ignore lint/suspicious/noExplicitAny: Test verifies immutability
+        // eslint-disable-next-line typescript/no-explicit-any -- Test verifies immutability
         (entry.sequenceNumber as any).props.value = 999;
       }).toThrow();
     });

@@ -152,7 +152,7 @@ export function ServerColorPicker({ value, onChange, disabled = false, className
         const isFocusable = index === focusableIndex;
 
         return (
-          // biome-ignore lint/a11y/useSemanticElements: Custom RadioGroup mit button ist hier beabsichtigt
+          // eslint-disable-next-line jsx-a11y/prefer-tag-over-role -- Custom RadioGroup mit button ist hier beabsichtigt
           <button
             key={preset.value ?? 'none'}
             type="button"
@@ -176,7 +176,7 @@ export function ServerColorPicker({ value, onChange, disabled = false, className
               // Ring nur wenn nicht fokussiert, um Konflikte mit dem Fokus-Stil zu vermeiden
               isSelected && 'ring-2 ring-action-primary ring-offset-2 ring-offset-surface-panel',
               // Farbe oder Reset-Button
-              isResetButton ? 'border-2 border-border-strong border-dashed bg-surface-raised' : getServerColorClass(preset.value, 'bg'),
+              isResetButton ? 'border-2 border-dashed border-border-strong bg-surface-raised' : getServerColorClass(preset.value, 'bg'),
               // Cursor
               disabled ? 'cursor-not-allowed' : 'cursor-pointer',
             )}

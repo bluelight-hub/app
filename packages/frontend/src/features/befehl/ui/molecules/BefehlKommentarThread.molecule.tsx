@@ -61,8 +61,8 @@ export function BefehlKommentarThread({ befehlId, einsatzId, kommentare }: Befeh
   const sortedKommentare = [...kommentare].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: Container blocks bubbling to parent card and is not directly user-actionable.
-    <div id={threadId} tabIndex={-1} className="mt-3 border-border-subtle border-t pt-3 focus:outline-none" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- Container blocks bubbling to parent card and is not directly user-actionable.
+    <div id={threadId} tabIndex={-1} className="mt-3 border-t border-border-subtle pt-3 focus:outline-none" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
       {/* Kommentar-Liste */}
       {sortedKommentare.length > 0 && (
         <ul className="mb-3 flex flex-col gap-2" aria-label="Kommentare">
@@ -73,12 +73,12 @@ export function BefehlKommentarThread({ befehlId, einsatzId, kommentare }: Befeh
             return (
               <li key={kommentar.id} className="rounded-md bg-surface-raised px-3 py-2 text-sm">
                 <div className="flex items-center gap-2">
-                  <span className={cn('font-medium text-xs', isOwn ? 'text-action-primary' : 'text-text-secondary')}>{isOwn ? 'Du' : (kommentar.authorId?.substring(0, 8) ?? 'Anonym')}</span>
-                  <time dateTime={createdAt.toISOString()} className="text-text-muted text-xs">
+                  <span className={cn('text-xs font-medium', isOwn ? 'text-action-primary' : 'text-text-secondary')}>{isOwn ? 'Du' : (kommentar.authorId?.substring(0, 8) ?? 'Anonym')}</span>
+                  <time dateTime={createdAt.toISOString()} className="text-xs text-text-muted">
                     {format(createdAt, 'dd.MM. HH:mm')}
                   </time>
                   {kommentar.isRueckfrage && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-status-warning-surface px-2 py-0.5 font-medium text-status-warning-text text-xs">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-status-warning-surface px-2 py-0.5 text-xs font-medium text-status-warning-text">
                       <PiChatCircleDots className="h-3 w-3" />
                       Rückfrage
                     </span>
@@ -129,7 +129,7 @@ export function BefehlKommentarThread({ befehlId, einsatzId, kommentare }: Befeh
                     'focus:outline-none',
                   )}
                 />
-                {field.state.meta.errors?.length > 0 && <p className="mt-1 text-status-danger-text text-xs">{field.state.meta.errors[0]}</p>}
+                {field.state.meta.errors?.length > 0 && <p className="mt-1 text-xs text-status-danger-text">{field.state.meta.errors[0]}</p>}
               </div>
             )}
           </form.Field>

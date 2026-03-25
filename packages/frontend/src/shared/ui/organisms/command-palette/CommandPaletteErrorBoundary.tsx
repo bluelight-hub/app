@@ -61,20 +61,20 @@ export class CommandPaletteErrorBoundary extends Component<CommandPaletteErrorBo
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-status-danger-surface">
                 <PiWarning className="h-6 w-6 text-status-danger-text" />
               </div>
-              <h3 className="mb-2 font-semibold text-text-primary text-lg">Fehler in der Command Palette</h3>
+              <h3 className="mb-2 text-lg font-semibold text-text-primary">Fehler in der Command Palette</h3>
               <p className="mb-6 text-sm text-text-secondary">{this.state.error?.message || 'Ein unerwarteter Fehler ist aufgetreten.'}</p>
               <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={this.handleReset}
-                  className="rounded-lg bg-action-primary px-4 py-2 font-medium text-sm text-text-inverse hover:bg-action-primary-hover focus-visible:outline-none focus-visible:shadow-focus-ring"
+                  className="rounded-lg bg-action-primary px-4 py-2 text-sm font-medium text-text-inverse hover:bg-action-primary-hover focus-visible:shadow-focus-ring focus-visible:outline-none"
                 >
                   Erneut versuchen
                 </button>
                 <button
                   type="button"
                   onClick={() => window.location.reload()}
-                  className="rounded-lg border border-border-subtle bg-surface-panel px-4 py-2 font-medium text-sm text-text-primary hover:bg-action-secondary focus-visible:outline-none focus-visible:shadow-focus-ring"
+                  className="rounded-lg border border-border-subtle bg-surface-panel px-4 py-2 text-sm font-medium text-text-primary hover:bg-action-secondary focus-visible:shadow-focus-ring focus-visible:outline-none"
                 >
                   Seite neu laden
                 </button>

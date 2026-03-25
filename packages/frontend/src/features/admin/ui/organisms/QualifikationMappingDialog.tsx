@@ -81,13 +81,13 @@ export function QualifikationMappingDialog({ isOpen, onClose, mappings, isLoadin
               <table className="min-w-full divide-y divide-border-subtle">
                 <thead className="bg-surface-raised">
                   <tr>
-                    <th scope="col" className="px-4 py-3 text-left font-medium text-text-muted text-xs uppercase tracking-wider">
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium tracking-wider text-text-muted uppercase">
                       HiOrg-Name
                     </th>
-                    <th scope="col" className="px-4 py-3 text-left font-medium text-text-muted text-xs uppercase tracking-wider">
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium tracking-wider text-text-muted uppercase">
                       Zugeordnet zu
                     </th>
-                    <th scope="col" className="px-4 py-3 text-left font-medium text-text-muted text-xs uppercase tracking-wider">
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium tracking-wider text-text-muted uppercase">
                       Status
                     </th>
                   </tr>
@@ -134,7 +134,7 @@ function MappingRow({ mapping, qualifikationen, onSaveMapping, isSaving }: Mappi
 
   return (
     <tr className="hover:bg-surface-raised">
-      <td className="whitespace-nowrap px-4 py-3">
+      <td className="px-4 py-3 whitespace-nowrap">
         <Text size="sm" as="span">
           {mapping.externalName}
         </Text>
@@ -142,7 +142,7 @@ function MappingRow({ mapping, qualifikationen, onSaveMapping, isSaving }: Mappi
       <td className="px-4 py-3">
         <QualifikationListbox value={currentQualifikationId} qualifikationen={qualifikationen} onChange={handleChange} disabled={isSaving} />
       </td>
-      <td className="whitespace-nowrap px-4 py-3">
+      <td className="px-4 py-3 whitespace-nowrap">
         {mapping.isAutoMatched && confidence != null && <ConfidenceBadge confidence={confidence} />}
         {!mapping.isAutoMatched && currentQualifikationId && (
           <Badge variant="default" size="sm">
@@ -187,7 +187,7 @@ function QualifikationListbox({ value, qualifikationen, onChange, disabled = fal
         anchor="bottom start"
         className="z-[100] mt-1 max-h-60 w-[var(--button-width)] overflow-auto rounded-control bg-surface-panel py-1 text-base shadow-lg ring-1 ring-border-subtle [--anchor-gap:4px] focus:outline-none sm:text-sm"
       >
-        <Listbox.Option value={null} className={({ active }) => cn('relative cursor-pointer select-none py-2 pr-4 pl-10', active ? 'bg-surface-raised' : '', 'text-text-muted')}>
+        <Listbox.Option value={null} className={({ active }) => cn('relative cursor-pointer py-2 pr-4 pl-10 select-none', active ? 'bg-surface-raised' : '', 'text-text-muted')}>
           {({ selected }) => (
             <>
               <span className={cn('block truncate', selected ? 'font-medium' : 'font-normal')}>Nicht zugeordnet</span>
@@ -201,7 +201,7 @@ function QualifikationListbox({ value, qualifikationen, onChange, disabled = fal
         </Listbox.Option>
 
         {qualifikationen.map((qualifikation) => (
-          <Listbox.Option key={qualifikation.id} value={qualifikation.id} className={({ active }) => cn('relative cursor-pointer select-none py-2 pr-4 pl-10', active ? 'bg-status-info-surface' : '')}>
+          <Listbox.Option key={qualifikation.id} value={qualifikation.id} className={({ active }) => cn('relative cursor-pointer py-2 pr-4 pl-10 select-none', active ? 'bg-status-info-surface' : '')}>
             {({ selected }) => (
               <>
                 <span className={cn('block truncate text-text-primary', selected ? 'font-medium' : 'font-normal')}>

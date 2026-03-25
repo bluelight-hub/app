@@ -197,12 +197,12 @@ bluelight://connect?url=https://api.test.de&invite=INV_12345678&expires=2025-01-
 
 ### Client-side Validation Errors
 
-| Error Type | Toast Message | Description |
-|------------|---------------|-------------|
-| `INVALID_PROTOCOL` | "Ungültiger Link" | Protocol nicht `bluelight://` |
-| `MISSING_PARAMETERS` | "Ungültiger Link" | Fehlende `url` oder `invite` Parameter |
-| `EXPIRED_LINK` | "Link abgelaufen" | Client-side Expiry Check failed |
-| `PARSE_ERROR` | "Fehler beim Verarbeiten" | URL parsing fehlgeschlagen |
+| Error Type           | Toast Message             | Description                            |
+| -------------------- | ------------------------- | -------------------------------------- |
+| `INVALID_PROTOCOL`   | "Ungültiger Link"         | Protocol nicht `bluelight://`          |
+| `MISSING_PARAMETERS` | "Ungültiger Link"         | Fehlende `url` oder `invite` Parameter |
+| `EXPIRED_LINK`       | "Link abgelaufen"         | Client-side Expiry Check failed        |
+| `PARSE_ERROR`        | "Fehler beim Verarbeiten" | URL parsing fehlgeschlagen             |
 
 ### API Call Errors
 
@@ -217,7 +217,7 @@ bluelight://connect?url=https://api.test.de&invite=INV_12345678&expires=2025-01-
 
 ```typescript
 toast.loading('Verbinde mit Server...', {
-  description: 'Tausche Einladungscode ein'
+  description: 'Tausche Einladungscode ein',
 });
 ```
 
@@ -226,7 +226,7 @@ toast.loading('Verbinde mit Server...', {
 ```typescript
 toast.success("Server 'Test Server' hinzugefügt", {
   description: 'Du wirst zur Anmeldung weitergeleitet',
-  duration: 2500
+  duration: 2500,
 });
 ```
 
@@ -235,7 +235,7 @@ toast.success("Server 'Test Server' hinzugefügt", {
 ```typescript
 toast.error('Fehler beim Verbinden mit Server', {
   description: error.message,
-  duration: 5000
+  duration: 5000,
 });
 ```
 
@@ -267,9 +267,9 @@ const mockResponse = {
     accessToken: 'test-token-123',
     serverInfo: {
       name: 'Test Server',
-      baseUrl: 'https://api.test.de'
-    }
-  }
+      baseUrl: 'https://api.test.de',
+    },
+  },
 };
 
 mockMutateAsync.mockResolvedValue(mockResponse);
@@ -278,7 +278,7 @@ mockMutateAsync.mockResolvedValue(mockResponse);
 deepLinkService.emit('deep-link-received', {
   serverUrl: 'https://api.test.de',
   inviteCode: 'INV_12345678',
-  expiresAt: null
+  expiresAt: null,
 });
 
 // Then: Verify Navigation
@@ -330,7 +330,7 @@ const newServer = {
   url: serverInfo.baseUrl,
   accessToken,
   isDefault: false,
-  lastUsedAt: new Date().toISOString()
+  lastUsedAt: new Date().toISOString(),
 };
 
 await addServer(newServer); // Persisted to storage
@@ -419,12 +419,12 @@ navigate({ to: '/auth' });
 
 ## Version History
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | 2025-01-09 | Initial implementation (Story 2.4) |
-| | | - DeepLinkService Event Emitter |
-| | | - useExchangeInvite Mutation |
-| | | - useDeepLinkEffect Hook |
-| | | - Navigation to /auth |
-| | | - Toast Notifications |
-| | | - Integration Tests |
+| Version | Date       | Changes                            |
+| ------- | ---------- | ---------------------------------- |
+| 1.0.0   | 2025-01-09 | Initial implementation (Story 2.4) |
+|         |            | - DeepLinkService Event Emitter    |
+|         |            | - useExchangeInvite Mutation       |
+|         |            | - useDeepLinkEffect Hook           |
+|         |            | - Navigation to /auth              |
+|         |            | - Toast Notifications              |
+|         |            | - Integration Tests                |

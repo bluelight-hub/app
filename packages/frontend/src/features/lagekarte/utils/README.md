@@ -24,7 +24,7 @@ const mgrs = latLngToMgrs(51.5074, -0.1278, 3);
 // => "30U YC 763 992"
 
 // Berlin, Deutschland
-const mgrs = latLngToMgrs(52.5200, 13.4050, 5);
+const mgrs = latLngToMgrs(52.52, 13.405, 5);
 // => "33U UU 41831 83221"
 ```
 
@@ -33,12 +33,12 @@ const mgrs = latLngToMgrs(52.5200, 13.4050, 5);
 - `lat`: Breitengrad (-90 bis 90)
 - `lng`: Längengrad (-180 bis 180)
 - `precision`: MGRS Precision Level (0-5, default: 5)
-    - 0 = 100km
-    - 1 = 10km
-    - 2 = 1km
-    - 3 = 100m
-    - 4 = 10m
-    - 5 = 1m
+  - 0 = 100km
+  - 1 = 10km
+  - 2 = 1km
+  - 3 = 100m
+  - 4 = 10m
+  - 5 = 1m
 
 **Returns:** MGRS String oder `null` bei Fehler
 
@@ -52,11 +52,11 @@ Konvertiert MGRS Koordinaten zu Lat/Lng.
 import { mgrsToLatLng } from '@/features/lagekarte/utils/mgrs';
 
 // Mit Leerzeichen (formatiert)
-const coords1 = mgrsToLatLng("31U DQ 48251 11932");
+const coords1 = mgrsToLatLng('31U DQ 48251 11932');
 // => { lat: 48.8566, lng: 2.3522 }
 
 // Ohne Leerzeichen (unformatiert)
-const coords2 = mgrsToLatLng("31UDQ4825111932");
+const coords2 = mgrsToLatLng('31UDQ4825111932');
 // => { lat: 48.8566, lng: 2.3522 }
 ```
 
@@ -75,10 +75,10 @@ Validiert MGRS Format.
 ```typescript
 import { isValidMgrs } from '@/features/lagekarte/utils/mgrs';
 
-isValidMgrs("31U DQ 48251 11932"); // true
-isValidMgrs("31UDQ4825111932");    // true
-isValidMgrs("invalid");            // false
-isValidMgrs("");                   // false
+isValidMgrs('31U DQ 48251 11932'); // true
+isValidMgrs('31UDQ4825111932'); // true
+isValidMgrs('invalid'); // false
+isValidMgrs(''); // false
 ```
 
 **Parameter:**
@@ -96,10 +96,10 @@ Formatiert MGRS String für bessere Lesbarkeit.
 ```typescript
 import { formatMgrs } from '@/features/lagekarte/utils/mgrs';
 
-formatMgrs("33UVU1234567890");      // "33U VU 12345 67890"
-formatMgrs("31UDQ4825111932");      // "31U DQ 48251 11932"
-formatMgrs("30UYC763992");          // "30U YC 763 992"
-formatMgrs("33U VU 12345 67890");   // "33U VU 12345 67890" (bereits formatiert)
+formatMgrs('33UVU1234567890'); // "33U VU 12345 67890"
+formatMgrs('31UDQ4825111932'); // "31U DQ 48251 11932"
+formatMgrs('30UYC763992'); // "30U YC 763 992"
+formatMgrs('33U VU 12345 67890'); // "33U VU 12345 67890" (bereits formatiert)
 ```
 
 **Parameter:**
@@ -148,10 +148,10 @@ Berechnet die Precision eines MGRS Strings.
 ```typescript
 import { getMgrsPrecision } from '@/features/lagekarte/utils/mgrs';
 
-getMgrsPrecision("33U VU 12345 67890"); // 5 (1m)
-getMgrsPrecision("33U VU 123 678");     // 3 (100m)
-getMgrsPrecision("33U VU 12 67");       // 2 (1km)
-getMgrsPrecision("33U VU");             // 0 (100km)
+getMgrsPrecision('33U VU 12345 67890'); // 5 (1m)
+getMgrsPrecision('33U VU 123 678'); // 3 (100m)
+getMgrsPrecision('33U VU 12 67'); // 2 (1km)
+getMgrsPrecision('33U VU'); // 0 (100km)
 ```
 
 **Parameter:**

@@ -56,8 +56,8 @@ export function TemplatePicker({ vorlagen, isLoading, onSelect, disabled }: Temp
         <div className="p-1">
           {vorlagen.length === 0 ? (
             <div className="px-3 py-4 text-center">
-              <p className="text-text-muted text-sm">Keine Vorlagen vorhanden</p>
-              <Link to="/admin/erinnerungen" className="mt-2 inline-block font-medium text-status-warning-text text-xs hover:text-status-warning-text">
+              <p className="text-sm text-text-muted">Keine Vorlagen vorhanden</p>
+              <Link to="/admin/erinnerungen" className="mt-2 inline-block text-xs font-medium text-status-warning-text hover:text-status-warning-text">
                 Vorlagen erstellen →
               </Link>
             </div>
@@ -69,12 +69,12 @@ export function TemplatePicker({ vorlagen, isLoading, onSelect, disabled }: Temp
                 className={cn('flex w-full cursor-pointer items-center justify-between gap-3 rounded-control px-3 py-2.5 text-left transition-colors', 'data-[focus]:bg-status-warning-surface')}
               >
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-text-primary text-sm">{vorlage.titel}</p>
-                  {vorlage.beschreibung && <p className="mt-0.5 truncate text-text-muted text-xs">{vorlage.beschreibung}</p>}
+                  <p className="truncate text-sm font-medium text-text-primary">{vorlage.titel}</p>
+                  {vorlage.beschreibung && <p className="mt-0.5 truncate text-xs text-text-muted">{vorlage.beschreibung}</p>}
                 </div>
                 <div className="flex flex-shrink-0 items-center gap-1 rounded-pill bg-status-warning-surface px-2 py-0.5">
                   <PiClock className="h-3 w-3 text-status-warning-text" />
-                  <span className="font-medium text-status-warning-text text-xs">{vorlage.minuten} Min</span>
+                  <span className="text-xs font-medium text-status-warning-text">{vorlage.minuten} Min</span>
                 </div>
               </ListboxOption>
             ))

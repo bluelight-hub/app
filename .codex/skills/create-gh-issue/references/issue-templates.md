@@ -11,24 +11,30 @@ Verwenden, wenn das Issue neuen Nutzer- oder Operator-Nutzen beschreibt.
 
 ```md
 ## Ziel
+
 <Welchen Nutzen soll das Issue liefern?>
 
 ## Kontext
+
 <Ausgangslage, betroffener Bereich, warum jetzt>
 
 ## User Story
+
 Als <Rolle>
 möchte ich <Fähigkeit>
 damit <Nutzen>
 
 ## Akzeptanzkriterien
+
 - [ ] ...
 - [ ] ...
 
 ## Abgrenzung
+
 - Nicht Teil dieses Issues: ...
 
 ## Offene Fragen
+
 - ...
 ```
 
@@ -41,24 +47,30 @@ Verwenden, wenn bestehendes Verhalten defekt ist oder Erwartungen widerspricht.
 
 ```md
 ## Ist-Verhalten
+
 <Was passiert aktuell?>
 
 ## Erwartetes Verhalten
+
 <Was sollte stattdessen passieren?>
 
 ## Schritte zur Reproduktion
+
 1. ...
 2. ...
 3. ...
 
 ## Auswirkung
+
 <Wie stark ist der Fehler und wen betrifft er?>
 
 ## Technische Hinweise
+
 - Betroffene Oberfläche / API / Komponente: ...
 - Auffälligkeiten aus Logs, Tests oder Screenshots: ...
 
 ## Akzeptanzkriterien
+
 - [ ] Fehler ist reproduzierbar verstanden
 - [ ] Fehlerursache ist behoben
 - [ ] Regression ist abgesichert
@@ -73,22 +85,28 @@ Verwenden, wenn Wartbarkeit, Konsistenz oder Architektur der Kern des Issues sin
 
 ```md
 ## Problem
+
 <Welcher technische Schmerz oder welche Inkonsistenz besteht?>
 
 ## Zielbild
+
 <Wie soll der Zielzustand aussehen?>
 
 ## Scope
+
 - ...
 
 ## Nicht im Scope
+
 - ...
 
 ## Akzeptanzkriterien
+
 - [ ] ...
 - [ ] ...
 
 ## Risiken / Abhängigkeiten
+
 - ...
 ```
 
@@ -101,23 +119,29 @@ Verwenden, wenn Antworten, Optionen oder Entscheidungen fehlen.
 
 ```md
 ## Fragestellung
+
 <Welche Frage soll beantwortet werden?>
 
 ## Hintergrund
+
 <Warum muss das jetzt untersucht werden?>
 
 ## Zu prüfende Optionen
+
 - ...
 - ...
 
 ## Erwartetes Ergebnis
+
 <Entscheidung, Empfehlung, Vergleich oder Prototyp>
 
 ## Erfolgskriterium
+
 - [ ] Entscheidungsvorlage liegt vor
 - [ ] Risiken und Trade-offs sind dokumentiert
 
 ## Timebox
+
 <Optional: z. B. 0,5-1 Tag>
 ```
 
@@ -130,18 +154,23 @@ Verwenden, wenn das eigentliche Ergebnis Dokumentation statt Code ist.
 
 ```md
 ## Ziel
+
 <Welche Dokumentation fehlt oder muss geändert werden?>
 
 ## Anlass
+
 <Warum ist die Dokumentation nötig oder veraltet?>
 
 ## Betroffene Dokumente
+
 - ...
 
 ## Erwartete Änderungen
+
 - ...
 
 ## Akzeptanzkriterien
+
 - [ ] Dokumentation ist aktualisiert oder neu angelegt
 - [ ] Beispiele, Entscheidungen oder Betriebsdetails sind nachvollziehbar beschrieben
 ```
@@ -155,22 +184,28 @@ Verwenden, wenn das Issue mehrere Workstreams oder Child-Issues bündelt.
 
 ```md
 ## Zielbild
+
 <Was soll die Epic insgesamt erreichen?>
 
 ## Nutzen
+
 <Geschäftlicher, operativer oder technischer Wert>
 
 ## Scope
+
 - ...
 
 ## Teil-Issues
+
 - [ ] ...
 - [ ] ...
 
 ## Erfolgsmetriken
+
 - ...
 
 ## Risiken / Abhängigkeiten
+
 - ...
 ```
 
@@ -183,18 +218,23 @@ Verwenden, wenn das Issue primär operativ, infrastrukturell oder toolingbezogen
 
 ```md
 ## Aufgabe
+
 <Was soll erledigt werden?>
 
 ## Hintergrund
+
 <Warum ist die Aufgabe nötig?>
 
 ## Scope
+
 - ...
 
 ## Akzeptanzkriterien
+
 - [ ] ...
 - [ ] ...
 
 ## Risiken / Abhängigkeiten
+
 - ...
 ```

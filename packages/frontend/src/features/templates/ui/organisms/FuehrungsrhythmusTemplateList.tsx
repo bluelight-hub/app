@@ -70,7 +70,7 @@ export function FuehrungsrhythmusTemplateList({ einsatzId = null, context = 'adm
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <PiMetronome className="h-5 w-5 text-status-warning-text" />
-          <h2 className="font-semibold text-text-primary text-lg">Fuehrungsrhythmus-Templates</h2>
+          <h2 className="text-lg font-semibold text-text-primary">Fuehrungsrhythmus-Templates</h2>
         </div>
         <Button intent="primary" size="sm" onClick={() => setIsCreateDialogOpen(true)}>
           <PiPlus className="mr-1 h-4 w-4" />
@@ -85,7 +85,7 @@ export function FuehrungsrhythmusTemplateList({ einsatzId = null, context = 'adm
         </div>
       )}
 
-      {error && <div className="rounded-panel bg-status-danger-surface p-4 text-status-danger-text text-sm">Fehler beim Laden der Templates</div>}
+      {error && <div className="rounded-panel bg-status-danger-surface p-4 text-sm text-status-danger-text">Fehler beim Laden der Templates</div>}
 
       {!isLoading && !error && templates && templates.length === 0 && (
         <div className="flex flex-col items-center gap-2 py-12 text-center text-text-muted">
@@ -168,10 +168,10 @@ export function FuehrungsrhythmusTemplateList({ einsatzId = null, context = 'adm
       <Dialog isOpen={!!deleteTemplateId} onClose={() => !isDeleting && setDeleteTemplateId(null)} size="sm">
         <Dialog.Title>Template loeschen?</Dialog.Title>
         <Dialog.Body>
-          <p className="text-text-secondary text-sm">
+          <p className="text-sm text-text-secondary">
             Template <span className="font-semibold">'{deleteTemplate?.name}'</span> wirklich loeschen?
           </p>
-          <p className="mt-2 text-text-muted text-xs">Bereits erstellte Erinnerungen bleiben erhalten.</p>
+          <p className="mt-2 text-xs text-text-muted">Bereits erstellte Erinnerungen bleiben erhalten.</p>
         </Dialog.Body>
         <Dialog.Footer loading={isDeleting}>
           <Button intent="secondary" appearance="ghost" onClick={() => setDeleteTemplateId(null)} disabled={isDeleting}>

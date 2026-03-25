@@ -56,6 +56,7 @@ bluelight://connect?url=<server-url>&invite=<invite-code>&expires=<iso-timestamp
 ```
 
 **Parameter:**
+
 - `url` (required): Server Base URL (z.B. `https://api.example.de`)
 - `invite` (required): 8-Zeichen Invite Code (z.B. `INV_abc12345`)
 - `expires` (optional): ISO 8601 Timestamp für Client-Side Expiry Check
@@ -63,10 +64,12 @@ bluelight://connect?url=<server-url>&invite=<invite-code>&expires=<iso-timestamp
 ### Entwickler-Setup
 
 **1. Dev-Mode Limitation (macOS):**
+
 - Deep Links funktionieren **NICHT** in `pnpm dev` (Tauri dev mode)
 - Grund: macOS erfordert vollständig gebündeltes .app für URL-Schema-Registrierung
 
 **2. Testing auf macOS:**
+
 ```bash
 # Build Release Bundle
 pnpm --filter @bluelight-hub/frontend tauri build
@@ -79,6 +82,7 @@ open "bluelight://connect?url=https://api.example.de&invite=INV_12345678"
 ```
 
 **3. Testing auf Windows/Linux:**
+
 - Deep Links funktionieren mit Dev-Mode UND Release-Build
 - Single-Instance Plugin verhindert Multiple App-Instanzen
 

@@ -56,13 +56,13 @@ export function EtbDraftResumeBanner({ draft, onRestore, onDiscard, isRestoring 
       aria-label="Ungespeicherter Entwurf"
       aria-live="polite"
       tabIndex={-1}
-      className={cn('flex items-start gap-3 rounded-lg border border-status-info-border bg-status-info-surface px-4 py-3', 'focus-visible:outline-none focus-visible:shadow-focus-ring')}
+      className={cn('flex items-start gap-3 rounded-lg border border-status-info-border bg-status-info-surface px-4 py-3', 'focus-visible:shadow-focus-ring focus-visible:outline-none')}
     >
       <PiNotePencil className="mt-0.5 h-5 w-5 shrink-0 text-status-info-text" aria-hidden="true" />
 
       <div className="min-w-0 flex-1">
-        <p className="font-medium text-sm text-status-info-text">Ungespeicherter Entwurf gefunden</p>
-        <p className="mt-0.5 text-text-secondary text-xs">
+        <p className="text-sm font-medium text-status-info-text">Ungespeicherter Entwurf gefunden</p>
+        <p className="mt-0.5 text-xs text-text-secondary">
           {formatRelativeTime(draft.updatedAt)} · {truncateText(draft.text)}
         </p>
       </div>
@@ -75,7 +75,7 @@ export function EtbDraftResumeBanner({ draft, onRestore, onDiscard, isRestoring 
           className={cn(
             'rounded-md px-3 py-1.5 text-xs font-medium text-text-secondary',
             'hover:bg-action-secondary',
-            'focus-visible:outline-none focus-visible:shadow-focus-ring',
+            'focus-visible:shadow-focus-ring focus-visible:outline-none',
             'disabled:cursor-not-allowed disabled:opacity-50',
           )}
           aria-label="Entwurf verwerfen"
@@ -89,7 +89,7 @@ export function EtbDraftResumeBanner({ draft, onRestore, onDiscard, isRestoring 
           className={cn(
             'rounded-md bg-action-primary px-3 py-1.5 text-xs font-medium text-text-inverse',
             'hover:bg-action-primary-hover',
-            'focus-visible:outline-none focus-visible:shadow-focus-ring',
+            'focus-visible:shadow-focus-ring focus-visible:outline-none',
             'disabled:cursor-not-allowed disabled:opacity-50',
           )}
           aria-label="Entwurf fortsetzen"

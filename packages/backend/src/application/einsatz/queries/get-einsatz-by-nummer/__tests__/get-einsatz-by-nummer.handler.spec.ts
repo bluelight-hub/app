@@ -64,7 +64,7 @@ describe('GetEinsatzByNummerQueryHandler', () => {
       findActive: jest.fn(),
       save: jest.fn(),
       exists: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     mockLogger = {
@@ -442,7 +442,7 @@ describe('GetEinsatzByNummerQueryHandler', () => {
 
     it('should throw error when nummer is undefined', () => {
       // Given
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
+      // eslint-disable-next-line typescript/no-explicit-any -- Testing null/undefined handling
       const undefinedNummer = undefined as any;
 
       // When/Then
@@ -451,7 +451,7 @@ describe('GetEinsatzByNummerQueryHandler', () => {
 
     it('should throw error when nummer is null', () => {
       // Given
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
+      // eslint-disable-next-line typescript/no-explicit-any -- Testing null/undefined handling
       const nullNummer = null as any;
 
       // When/Then

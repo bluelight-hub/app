@@ -80,8 +80,8 @@ export function ModuleOverviewCard({ modules, currentModuleId, einsatzId, open, 
     <Dialog isOpen={open} onClose={onClose} className="z-50 max-w-2xl p-0">
       <div className="relative">
         {/* Header */}
-        <div className="flex items-center justify-between border-border-subtle border-b p-4">
-          <h2 className="font-semibold text-text-primary text-title-sm">Module wählen</h2>
+        <div className="flex items-center justify-between border-b border-border-subtle p-4">
+          <h2 className="text-title-sm font-semibold text-text-primary">Module wählen</h2>
           <CloseButton onClick={onClose} className="text-text-muted hover:bg-action-secondary hover:text-text-primary" />
         </div>
 
@@ -94,7 +94,7 @@ export function ModuleOverviewCard({ modules, currentModuleId, einsatzId, open, 
             const badgeHintText = getBadgeHintText(module);
             const cardClassName = cn(
               'relative flex flex-col items-center gap-2 rounded-panel border p-4 text-center transition-[background-color,border-color,color,box-shadow]',
-              moduleIsDisabled ? 'cursor-not-allowed opacity-70' : 'focus-visible:outline-none focus-visible:shadow-focus-ring',
+              moduleIsDisabled ? 'cursor-not-allowed opacity-70' : 'focus-visible:shadow-focus-ring focus-visible:outline-none',
               moduleIsDisabled ? getModuleColor(module.color) : isActive ? getModuleActiveColor(module.color) : getModuleColor(module.color),
               isActive && !moduleIsDisabled && 'ring-2 ring-focus-ring ring-offset-2 ring-offset-focus-ring-offset',
             );
@@ -107,7 +107,7 @@ export function ModuleOverviewCard({ modules, currentModuleId, einsatzId, open, 
                 <module.icon className="h-8 w-8" />
 
                 {/* Name */}
-                <span className="font-medium text-body-sm">{module.name}</span>
+                <span className="text-body-sm font-medium">{module.name}</span>
 
                 {/* Description */}
                 {module.description && <span className="line-clamp-2 text-body-xs opacity-80">{module.description}</span>}

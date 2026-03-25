@@ -18,7 +18,7 @@ export function InviteFilters({ selectedStatus, onChange }: InviteFiltersProps) 
   return (
     <div className="flex items-center gap-2">
       {' '}
-      <Label htmlFor="status-filter" className="text-text-secondary text-sm">
+      <Label htmlFor="status-filter" className="text-sm text-text-secondary">
         {' '}
         Status:{' '}
       </Label>{' '}
@@ -46,7 +46,7 @@ export function InviteFilters({ selectedStatus, onChange }: InviteFiltersProps) 
               <ListboxOption
                 key={option.value}
                 value={option.value}
-                className={({ focus }) => `relative cursor-pointer select-none py-2 pr-4 pl-10 text-sm ${focus ? 'bg-action-secondary text-text-primary' : 'text-text-primary'}`}
+                className={({ focus }) => `relative cursor-pointer py-2 pr-4 pl-10 text-sm select-none ${focus ? 'bg-action-secondary text-text-primary' : 'text-text-primary'}`}
               >
                 {' '}
                 {({ selected }) => (

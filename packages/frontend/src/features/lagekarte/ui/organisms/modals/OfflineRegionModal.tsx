@@ -370,7 +370,7 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
         >
           {/* Header */}
           <div className="mb-4 flex items-start justify-between">
-            <DialogTitle className="font-semibold text-text-primary text-xl">Offline-Region auswählen</DialogTitle>
+            <DialogTitle className="text-xl font-semibold text-text-primary">Offline-Region auswählen</DialogTitle>
             <Button type="button" onClick={onClose} intent="secondary" appearance="ghost" size="icon" className="p-2" aria-label="Modal schließen" disabled={isDownloading}>
               <PiX size={20} aria-hidden="true" />
             </Button>
@@ -380,8 +380,8 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
           <div className="space-y-4">
             {/* Map-Preview Section */}
             <div>
-              <h3 className="mb-2 font-medium text-text-primary text-sm">Karten-Region</h3>
-              <p className="mb-3 text-text-muted text-sm">
+              <h3 className="mb-2 text-sm font-medium text-text-primary">Karten-Region</h3>
+              <p className="mb-3 text-sm text-text-muted">
                 Zeichne ein Rechteck auf der Karte, um die Offline-Region auszuwählen. Du kannst das Rechteck anpassen, indem du es verschiebst oder die Ecken ziehst.
               </p>
               <RegionSelectionMap initialBounds={currentMapBounds} onBoundsChange={handleBoundsChange} />
@@ -389,7 +389,7 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
 
             {/* Zoom-Level-Slider Section */}
             <div>
-              <h3 className="mb-2 font-medium text-text-primary text-sm">Zoom-Level: {zoomLevel}</h3>
+              <h3 className="mb-2 text-sm font-medium text-text-primary">Zoom-Level: {zoomLevel}</h3>
               <input
                 type="range"
                 min={8}
@@ -405,20 +405,20 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
                 aria-label="Zoom-Level auswählen"
                 disabled={isDownloading}
               />
-              <div className="mt-1 flex justify-between text-text-muted text-xs">
+              <div className="mt-1 flex justify-between text-xs text-text-muted">
                 <span>8 (Land)</span>
                 <span>15 (Nachbarschaft)</span>
                 <span>18 (Straße)</span>
               </div>
               {selectedBounds ? (
                 <div className="mt-2 space-y-1">
-                  <p className="text-text-muted text-sm">
+                  <p className="text-sm text-text-muted">
                     Ca. {estimatedTileCount.toLocaleString('de-DE')} Tiles ({estimatedSizeMB} MB)
                   </p>
-                  {isLargeDownload && <p className="font-medium text-status-warning-text text-sm">⚠️ Großer Download! Kann länger dauern.</p>}
+                  {isLargeDownload && <p className="text-sm font-medium text-status-warning-text">⚠️ Großer Download! Kann länger dauern.</p>}
                 </div>
               ) : (
-                <p className="mt-2 text-text-muted text-sm">Wähle eine Region aus, um die Größe zu berechnen.</p>
+                <p className="mt-2 text-sm text-text-muted">Wähle eine Region aus, um die Größe zu berechnen.</p>
               )}
             </div>
 
@@ -453,7 +453,7 @@ export const OfflineRegionModal: React.FC<OfflineRegionModalProps> = ({ isOpen, 
                   <PiInfo className="mt-0.5 h-5 w-5 flex-shrink-0 text-text-muted" aria-hidden="true" />
                   <div className="text-sm">
                     <p className="font-medium text-text-primary">Speicher-Info nicht verfügbar</p>
-                    <p className="mt-1 text-text-muted text-xs">{storageQuotaError}</p>
+                    <p className="mt-1 text-xs text-text-muted">{storageQuotaError}</p>
                   </div>
                 </div>
               </div>

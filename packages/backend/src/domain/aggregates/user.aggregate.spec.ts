@@ -104,7 +104,7 @@ describe('UserAggregate', () => {
     it('should fail if UserId generation fails', () => {
       // Given: Mock UserId.create() to fail
       const originalCreate = UserId.create;
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock requires any type
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock requires any type
       (UserId.create as any) = jest.fn(() => Result.fail('UserId generation failed'));
 
       const username = Username.create('ruben_admin').value!;

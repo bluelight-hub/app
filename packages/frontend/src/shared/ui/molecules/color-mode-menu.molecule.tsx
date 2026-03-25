@@ -80,7 +80,7 @@ export function ColorModeMenu({ placement = 'bottom', align = 'right' }: ColorMo
         )}
       >
         <CurrentIcon className="h-4 w-4" />
-        <span className="font-medium text-sm">{currentOption.label}</span>
+        <span className="text-sm font-medium">{currentOption.label}</span>
         <PiCaretDown className="h-3 w-3" />
       </MenuButton>
 
@@ -119,8 +119,8 @@ export function ColorModeMenu({ placement = 'bottom', align = 'right' }: ColorMo
 
                     {/* Text Content */}
                     <div className="flex flex-1 flex-col items-start">
-                      <span className={cn('font-medium text-sm text-text-primary')}>{option.label}</span>
-                      <span className={cn('whitespace-nowrap text-xs', isSelected ? 'text-text-secondary' : 'text-text-muted')}>
+                      <span className={cn('text-sm font-medium text-text-primary')}>{option.label}</span>
+                      <span className={cn('text-xs whitespace-nowrap', isSelected ? 'text-text-secondary' : 'text-text-muted')}>
                         {option.description}
                         {isSystemActive && ` (${resolvedColorMode === 'dark' ? 'Dunkel' : 'Hell'})`}
                       </span>

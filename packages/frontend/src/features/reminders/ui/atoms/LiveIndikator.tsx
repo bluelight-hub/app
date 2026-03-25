@@ -8,7 +8,7 @@ export function LiveIndikator({ isConnected }: LiveIndikatorProps) {
   return (
     <div
       className={cn(
-        'inline-flex items-center gap-2 rounded-full px-3 py-1 font-medium text-xs',
+        'inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium',
         isConnected ? 'bg-status-success-surface text-status-success-text' : 'bg-status-warning-surface text-status-warning-text',
       )}
     >

@@ -49,7 +49,7 @@ describe('GetLagekarteExistsQuery', () => {
 
     it('should throw error when einsatzId is undefined', () => {
       // Given
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
+      // eslint-disable-next-line typescript/no-explicit-any -- Testing null/undefined handling
       const undefinedId = undefined as any;
 
       // When/Then
@@ -58,7 +58,7 @@ describe('GetLagekarteExistsQuery', () => {
 
     it('should throw error when einsatzId is null', () => {
       // Given
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
+      // eslint-disable-next-line typescript/no-explicit-any -- Testing null/undefined handling
       const nullId = null as any;
 
       // When/Then

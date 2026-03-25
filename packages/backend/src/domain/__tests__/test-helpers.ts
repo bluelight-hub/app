@@ -319,7 +319,7 @@ export function expectAggregateToHaveEvents(aggregate: { getDomainEvents(): unkn
  */
 export function expectAggregateToHaveEmittedEvent<T>(
   aggregate: { getDomainEvents(): unknown[] },
-  // biome-ignore lint/suspicious/noExplicitAny: Generic constructor type needed for instanceof check
+  // eslint-disable-next-line typescript/no-explicit-any -- Generic constructor type needed for instanceof check
   eventType: new (...args: any[]) => T,
   index = 0,
 ): void {

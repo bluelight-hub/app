@@ -142,7 +142,7 @@ export function OnboardingErrorCard({ errorCode, title, message, cta, onRetry, o
           </div>
 
           {/* Title */}
-          <h2 className={cn('text-center font-semibold text-lg', styles.title)} data-testid="error-title">
+          <h2 className={cn('text-center text-lg font-semibold', styles.title)} data-testid="error-title">
             {displayTitle}
           </h2>
 
@@ -170,7 +170,7 @@ export function OnboardingErrorCard({ errorCode, title, message, cta, onRetry, o
                 <button
                   type="button"
                   onClick={onRetry}
-                  className={cn('rounded-md px-4 py-2 font-medium text-sm transition-colors focus-visible:shadow-focus-ring focus-visible:outline-none', styles.primaryButton)}
+                  className={cn('rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:shadow-focus-ring focus-visible:outline-none', styles.primaryButton)}
                   data-testid="retry-button"
                 >
                   Erneut versuchen
@@ -181,7 +181,7 @@ export function OnboardingErrorCard({ errorCode, title, message, cta, onRetry, o
                   type="button"
                   onClick={onManualSetup}
                   className={cn(
-                    'rounded-md border px-4 py-2 font-medium text-sm transition-colors focus-visible:shadow-focus-ring focus-visible:outline-none',
+                    'rounded-md border px-4 py-2 text-sm font-medium transition-colors focus-visible:shadow-focus-ring focus-visible:outline-none',
                     showRetryButton ? styles.secondaryButton : styles.primaryButton,
                   )}
                   data-testid="manual-setup-button"
@@ -214,7 +214,7 @@ export function OnboardingErrorCard({ errorCode, title, message, cta, onRetry, o
       {/* Content */}
       <div className="flex-1">
         {/* Title */}
-        <h3 className={cn('font-medium text-sm', styles.title)} data-testid="error-title">
+        <h3 className={cn('text-sm font-medium', styles.title)} data-testid="error-title">
           {displayTitle}
         </h3>
 

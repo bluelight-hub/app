@@ -95,7 +95,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
 
   // Story 4.2: EMPFAENGER sieht standardmaessig "Meine Befehle"
   const hasSetRolleDefaultRef = useRef(false);
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Ref-Guard verhindert Re-Execution, showMeineBefehle wuerde Loop verursachen
+  // eslint-disable-next-line react/exhaustive-deps -- Ref-Guard verhindert Re-Execution, showMeineBefehle wuerde Loop verursachen
   useEffect(() => {
     if (hasSetRolleDefaultRef.current || isPermissionsLoading || rolle === null) return;
     if (rolle === 'EMPFAENGER' && !showMeineBefehle) {
@@ -227,8 +227,8 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
     return (
       <div className="flex h-full flex-col items-center justify-center p-8" role="alert">
         <div className="max-w-md text-center">
-          <p className="font-medium text-text-primary text-lg">Befehle konnten nicht geladen werden</p>
-          <p className="mt-2 text-text-muted text-sm">{error?.message ?? 'Verbindungsfehler — bitte überprüfe die Netzwerkverbindung.'}</p>
+          <p className="text-lg font-medium text-text-primary">Befehle konnten nicht geladen werden</p>
+          <p className="mt-2 text-sm text-text-muted">{error?.message ?? 'Verbindungsfehler — bitte überprüfe die Netzwerkverbindung.'}</p>
           <Button intent="primary" size="sm" className="mt-4" onClick={handleRetry} autoFocus>
             <PiArrowClockwise className="mr-1.5 h-4 w-4" aria-hidden="true" />
             Erneut versuchen
@@ -250,7 +250,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
 
       {/* Inline-Fehler bei Filter-Queries (Daten teilweise vorhanden) */}
       {isError && befehle && (
-        <div className="flex items-center justify-between bg-status-danger-surface px-4 py-2 text-status-danger-text text-sm" role="status">
+        <div className="flex items-center justify-between bg-status-danger-surface px-4 py-2 text-sm text-status-danger-text" role="status">
           <span>Filter konnten nicht angewendet werden.</span>
           <button
             type="button"
@@ -263,7 +263,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
       )}
 
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-border-subtle border-b px-4 py-2" role="toolbar" aria-label="Befehl-Aktionen">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-subtle px-4 py-2" role="toolbar" aria-label="Befehl-Aktionen">
         <div className="flex items-center gap-2">
           {/* Neuer Befehl Button */}
           {isPermissionsLoading ? (
@@ -292,7 +292,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
             {unquittiertCount > 0 && (
               <span
                 className={cn(
-                  'ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 font-bold text-xs',
+                  'ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-bold',
                   showMeineBefehle ? 'bg-surface-overlay/20 text-text-inverse' : 'bg-status-warning-surface text-status-warning-text',
                 )}
               >
@@ -306,7 +306,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
             type="button"
             onClick={() => setIsMobileFilterOpen((prev) => !prev)}
             className={cn(
-              'inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 font-medium text-sm transition-colors focus:outline-none focus-visible:shadow-focus-ring',
+              'inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:shadow-focus-ring',
               hasFilters ? 'border-action-primary bg-action-secondary text-action-primary' : 'border-border-subtle text-text-secondary hover:bg-action-secondary',
             )}
             aria-expanded={isMobileFilterOpen}
@@ -314,7 +314,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
           >
             <PiFunnel className="h-4 w-4" aria-hidden="true" />
             <span className="hidden sm:inline">Filter</span>
-            {hasFilters && <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-action-primary px-1 font-bold text-text-inverse text-xs">{activeFilterCount}</span>}
+            {hasFilters && <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-action-primary px-1 text-xs font-bold text-text-inverse">{activeFilterCount}</span>}
             {isMobileFilterOpen ? <PiCaretUp className="h-3 w-3" aria-hidden="true" /> : <PiCaretDown className="h-3 w-3" aria-hidden="true" />}
           </button>
         </div>
@@ -324,7 +324,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
           <BefehleViewToggle className="hidden md:inline-flex" />
 
           {/* Ergebnis-Count */}
-          <span className="text-text-muted text-sm">{aktiveBefehle ? `${aktiveBefehle.length} Befehle` : ''}</span>
+          <span className="text-sm text-text-muted">{aktiveBefehle ? `${aktiveBefehle.length} Befehle` : ''}</span>
 
           {/* Aktualisieren */}
           <button
@@ -332,7 +332,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
             onClick={handleRetry}
             disabled={isRefetching}
             className={cn(
-              'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 font-medium text-text-secondary text-sm hover:bg-action-secondary hover:text-text-primary focus:outline-none focus-visible:shadow-focus-ring',
+              'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-text-secondary hover:bg-action-secondary hover:text-text-primary focus:outline-none focus-visible:shadow-focus-ring',
               isRefetching && 'cursor-not-allowed opacity-50',
             )}
             aria-label="Befehle aktualisieren"
@@ -345,7 +345,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
             <button
               type="button"
               disabled
-              className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-md px-2.5 py-1.5 font-medium text-text-muted text-sm"
+              className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-text-muted"
               aria-label="Berechtigungen werden geladen"
             >
               <PiExport className="h-4 w-4" aria-hidden="true" />
@@ -355,7 +355,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
             <button
               type="button"
               onClick={() => setIsExportDialogOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 font-medium text-text-secondary text-sm hover:bg-action-secondary hover:text-text-primary focus:outline-none focus-visible:shadow-focus-ring"
+              className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-text-secondary hover:bg-action-secondary hover:text-text-primary focus:outline-none focus-visible:shadow-focus-ring"
               aria-label="Befehle exportieren"
             >
               <PiExport className="h-4 w-4" aria-hidden="true" />
@@ -366,7 +366,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
               <button
                 type="button"
                 disabled
-                className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-md px-2.5 py-1.5 font-medium text-text-muted text-sm"
+                className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-text-muted"
                 aria-label="Befehle exportieren (keine Berechtigung)"
                 aria-disabled="true"
               >
@@ -380,7 +380,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
 
       {/* Filter-Panel (Dropdown) */}
       {isMobileFilterOpen && (
-        <div id="befehl-filter-panel" className="border-border-subtle border-b">
+        <div id="befehl-filter-panel" className="border-b border-border-subtle">
           <BefehlFilterRow
             statusFilter={filterState.statusFilter}
             onStatusFilterChange={setStatusFilter}
@@ -405,7 +405,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
 
       {/* Befehl-Eingabezeile */}
       {showEingabeRow && (
-        <div className="border-border-subtle border-b px-4 py-4">
+        <div className="border-b border-border-subtle px-4 py-4">
           <BefehlEingabeRow einsatzId={einsatzId} onClose={() => setShowEingabeRow(false)} />
         </div>
       )}
@@ -419,7 +419,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
         {!hasFilters && aktiveBefehle?.length === 0 && !isError && (
           <div className="flex flex-1 flex-col items-center justify-center py-16 text-center" role="status">
             <p className="font-medium text-text-secondary">Keine offenen Befehle</p>
-            <p className="mt-1 text-text-muted text-sm">
+            <p className="mt-1 text-sm text-text-muted">
               {canCreate ? (
                 <>
                   Erstelle den ersten Befehl mit <kbd className="rounded border border-border-subtle bg-surface-raised px-1.5 py-0.5 font-mono text-xs">Ctrl+N</kbd>.
@@ -441,7 +441,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
         {hasFilters && aktiveBefehle?.length === 0 && !isError && (
           <div className="flex flex-1 flex-col items-center justify-center py-16 text-center">
             <p className="text-text-muted">Keine Befehle gefunden — Filter anpassen</p>
-            <button type="button" onClick={resetBefehleFilter} className="mt-2 text-action-primary text-sm hover:text-action-primary-hover focus:outline-none focus-visible:shadow-focus-ring">
+            <button type="button" onClick={resetBefehleFilter} className="mt-2 text-sm text-action-primary hover:text-action-primary-hover focus:outline-none focus-visible:shadow-focus-ring">
               Filter zurücksetzen
             </button>
           </div>
@@ -479,13 +479,13 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
 
       {/* Story 4.3 AC3: Befehl nicht gefunden — Inline-Fehler (kein Modal/Overlay) */}
       {isBefehlNotFound && (
-        <div className="border-status-danger-border border-t bg-status-danger-surface px-6 py-8 text-center" role="alert" aria-live="assertive">
-          <p className="font-medium text-text-primary text-lg">Dieser Befehl ist nicht mehr verfügbar</p>
-          <p className="mt-2 text-text-muted text-sm">Der Befehl wurde möglicherweise gelöscht oder Sie haben keine Berechtigung.</p>
+        <div className="border-t border-status-danger-border bg-status-danger-surface px-6 py-8 text-center" role="alert" aria-live="assertive">
+          <p className="text-lg font-medium text-text-primary">Dieser Befehl ist nicht mehr verfügbar</p>
+          <p className="mt-2 text-sm text-text-muted">Der Befehl wurde möglicherweise gelöscht oder Sie haben keine Berechtigung.</p>
           <button
             type="button"
             onClick={onClosePanel}
-            className="mt-4 rounded-md bg-action-primary px-4 py-2 font-medium text-sm text-text-inverse hover:bg-action-primary-hover focus:outline-none focus-visible:shadow-focus-ring"
+            className="mt-4 rounded-md bg-action-primary px-4 py-2 text-sm font-medium text-text-inverse hover:bg-action-primary-hover focus:outline-none focus-visible:shadow-focus-ring"
           >
             Zurück zur Befehlsübersicht
           </button>

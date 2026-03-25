@@ -16,10 +16,10 @@
    - [Einsatztagebuch (ETB) Aggregate](#2-einsatztagebuch-etb-aggregate---spezialfall-versioning--soft-delete)
    - [LagekarteAggregate (Lagekarte + POI Management)](#3-lagekarteaggregate-lagekarte--poi-management)
    - [UserAggregate (RBAC User Management)](#4-useraggregate-rbac-user-management)
-5. [Versioning Pattern (ETB Aggregate)](#-versioning-pattern-etb-aggregate)
-6. [Example - How to create a new Aggregate](#-example---how-to-create-a-new-aggregate)
-7. [ETB Aggregate - Code Examples](#-etb-aggregate---code-examples)
-8. [Dependency Rules](#-dependency-rules)
+6. [Versioning Pattern (ETB Aggregate)](#-versioning-pattern-etb-aggregate)
+7. [Example - How to create a new Aggregate](#-example---how-to-create-a-new-aggregate)
+8. [ETB Aggregate - Code Examples](#-etb-aggregate---code-examples)
+9. [Dependency Rules](#-dependency-rules)
 
 ---
 
@@ -48,6 +48,7 @@ anderen External Libraries.
 **Warum Hexagonal Architecture?**
 
 Die bisherige 3-Tier-Architektur hatte kritische Probleme:
+
 - 37+ Prisma-Imports in Business-Logik (tight coupling)
 - ORM-Wechsel würde Ripple-Effekte auslösen
 - Business-Regeln verstreut in Services, Controllers und DTOs
@@ -85,16 +86,17 @@ Hexagonal Architecture löst diese Probleme durch klare Separation:
 
 **Was gehört in den Domain Layer?**
 
-| Artefakt Type | Verantwortung | Beispiel |
-|---------------|---------------|----------|
-| **Aggregates** | Transaktionale Konsistenz-Grenzen, Business-Logik, Event-Emission | `Einsatz`, `EinsatztagebuchAggregate`, `Lagekarte` |
-| **Entities** | Business-Objekte mit Identität (Teil eines Aggregates) | `ETBEintrag` (gehört zu `EinsatzTagebuch` Aggregate) |
-| **Value Objects** | Immutable, self-validating Werte | `EinsatzId`, `EinsatzStatus`, `Coordinates` |
-| **Domain Events** | Fachliche Events bei Zustandsänderungen | `EinsatzCreatedEvent`, `ETBEintragAddedEvent` |
-| **Repository Interfaces** | Ports für Persistence (KEINE Implementierung!) | `IEinsatzRepository`, `ILagekarteRepository` |
-| **Domain Services** | Cross-Aggregate Business-Logik | `EinsatzNamingService` (generiert Einsatz-Namen) |
+| Artefakt Type             | Verantwortung                                                     | Beispiel                                             |
+| ------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------- |
+| **Aggregates**            | Transaktionale Konsistenz-Grenzen, Business-Logik, Event-Emission | `Einsatz`, `EinsatztagebuchAggregate`, `Lagekarte`   |
+| **Entities**              | Business-Objekte mit Identität (Teil eines Aggregates)            | `ETBEintrag` (gehört zu `EinsatzTagebuch` Aggregate) |
+| **Value Objects**         | Immutable, self-validating Werte                                  | `EinsatzId`, `EinsatzStatus`, `Coordinates`          |
+| **Domain Events**         | Fachliche Events bei Zustandsänderungen                           | `EinsatzCreatedEvent`, `ETBEintragAddedEvent`        |
+| **Repository Interfaces** | Ports für Persistence (KEINE Implementierung!)                    | `IEinsatzRepository`, `ILagekarteRepository`         |
+| **Domain Services**       | Cross-Aggregate Business-Logik                                    | `EinsatzNamingService` (generiert Einsatz-Namen)     |
 
 **Was gehört NICHT in den Domain Layer?**
+
 - ❌ NestJS Decorators (`@Injectable()`, `@Controller()`)
 - ❌ Prisma Models (`PrismaClient`, `@prisma/client`)
 - ❌ DTOs (API-Layer Contracts)
@@ -161,6 +163,7 @@ class EinsatzAggregate extends AggregateRoot<EinsatzId> {
 ```
 
 **Beispiele für Domain-Layer-Schutz:**
+
 - Einsatz Aggregate: `canBeDeleted()` immer `false`
 - ETB Soft-Delete: `is_deleted` Flag statt physischer Löschung
 - User Account Locking: `is_locked` Flag für Sperrungen
@@ -194,14 +197,15 @@ CREATE TRIGGER einsatz_no_delete
 
 Statt physischer Löschung nutzt Bluelight Hub diese Archivierungs-Strategien:
 
-| Entity | Alternative Action | Implementierung |
-|--------|-------------------|----------------|
-| **Einsatz** | `status = ARCHIVIERT` setzen | 10-Jahres-Aufbewahrung, dann Archivierung |
-| **ETB Eintrag** | `is_deleted = true` setzen | Soft-Delete, Historie bleibt erhalten |
-| **User** | `is_locked = true` setzen | Account-Sperrung (reversibel) |
-| **POI** | Removal via Aggregate Methode | Business-Logik-kontrolliert |
+| Entity          | Alternative Action            | Implementierung                           |
+| --------------- | ----------------------------- | ----------------------------------------- |
+| **Einsatz**     | `status = ARCHIVIERT` setzen  | 10-Jahres-Aufbewahrung, dann Archivierung |
+| **ETB Eintrag** | `is_deleted = true` setzen    | Soft-Delete, Historie bleibt erhalten     |
+| **User**        | `is_locked = true` setzen     | Account-Sperrung (reversibel)             |
+| **POI**         | Removal via Aggregate Methode | Business-Logik-kontrolliert               |
 
 **Beispiel - Einsatz Archivierung:**
+
 ```typescript
 // ✅ RICHTIG: Einsatz archivieren (UPDATE statt DELETE)
 const userId = UserId.create().getValue();
@@ -232,10 +236,12 @@ const deleteResult = await repository.delete(einsatzId);
 Die Double-Layer Protection wird auf beiden Ebenen getestet:
 
 **Domain Layer Tests:**
+
 - Unit Tests validieren Aggregate Business Rules (`canBeDeleted()`, `archive()`, etc.)
 - Pfad: `packages/backend/src/domain/aggregates/__tests__/`
 
 **Infrastructure Layer Tests:**
+
 - Integration Tests validieren PostgreSQL Triggers mit echter Datenbank
 - Pfad: [`packages/backend/src/infrastructure/__tests__/no-delete-triggers.integration.spec.ts`](../infrastructure/__tests__/no-delete-triggers.integration.spec.ts)
 - **7 Tests:**
@@ -243,6 +249,7 @@ Die Double-Layer Protection wird auf beiden Ebenen getestet:
   - 3 Tests: Allow Alternative Actions (UPDATE zu ARCHIVIERT, is_deleted, is_locked)
 
 **Test Beispiel:**
+
 ```typescript
 // Test: Trigger verhindert DELETE auf einsaetze table
 it('should prevent direct DELETE on einsatz table', async () => {
@@ -305,6 +312,7 @@ status1.equals(status2); // true (structural equality!)
 ```
 
 **Key Features:**
+
 - ✅ `equals()`: Deep structural comparison (nicht reference equality)
 - ✅ `hashCode()`: Für Set/Map Collections
 - ✅ `Object.freeze()`: Runtime immutability
@@ -335,6 +343,7 @@ processEinsatz(userId); // ❌ TypeScript Compile Error!
 ```
 
 **Key Features:**
+
 - ✅ **Auto-Generation:** `create()` ohne Parameter → `cuid()`
 - ✅ **Type-Safety:** `EinsatzId ≠ UserId` at compile-time
 - ✅ **Result<T> Pattern:** Validierung mit Error Handling
@@ -352,7 +361,7 @@ class EinsatzCreatedEvent extends DomainEvent {
     public readonly einsatzId: string,
     public readonly name: string,
     public readonly location: string,
-    aggregateId?: string
+    aggregateId?: string,
   ) {
     super(aggregateId); // eventId + occurredAt auto-generated!
   }
@@ -363,24 +372,22 @@ class EinsatzCreatedEvent extends DomainEvent {
 }
 
 // Usage
-const event = new EinsatzCreatedEvent(
-  'A1B2C3D4E5F6G7H8I9J0K',
-  'Wohnungsbrand',
-  'Musterstraße 42'
-);
+const event = new EinsatzCreatedEvent('A1B2C3D4E5F6G7H8I9J0K', 'Wohnungsbrand', 'Musterstraße 42');
 
-console.log(event.eventId);     // "X1Y2Z3..." (cuid, 21 chars)
-console.log(event.occurredAt);  // 2025-11-14T13:45:23.456Z
+console.log(event.eventId); // "X1Y2Z3..." (cuid, 21 chars)
+console.log(event.occurredAt); // 2025-11-14T13:45:23.456Z
 console.log(EinsatzCreatedEvent.eventName()); // "EinsatzCreated"
 ```
 
 **Key Features:**
+
 - ✅ **Auto-Generation:** `eventId` (cuid) + `occurredAt` (Date) im Constructor
 - ✅ **Immutable:** Readonly properties (historical facts)
 - ✅ **Event Routing:** `eventName()` für type-safe dispatching
 - ✅ **Versioning:** `eventVersion()` für Schema Evolution
 
 **Event Naming Convention:**
+
 - ✅ Past Tense: "EinsatzCreatedEvent", "ETBEntryAddedEvent"
 - ❌ NOT Imperative: "CreateEinsatzEvent"
 
@@ -400,7 +407,7 @@ class Einsatz extends AggregateRoot<EinsatzId> {
     private _name: string,
     private _location: string,
     createdAt?: Date,
-    updatedAt?: Date
+    updatedAt?: Date,
   ) {
     super(id, createdAt, updatedAt);
   }
@@ -416,17 +423,13 @@ class Einsatz extends AggregateRoot<EinsatzId> {
     }
 
     const einsatz = new Einsatz(idResult.value!, name, location);
-    einsatz.addDomainEvent(
-      new EinsatzCreatedEvent(idResult.value!.value, name, location)
-    );
+    einsatz.addDomainEvent(new EinsatzCreatedEvent(idResult.value!.value, name, location));
     return Result.ok(einsatz);
   }
 
   updateName(name: string): void {
     this._name = name;
-    this.addDomainEvent(
-      new EinsatzUpdatedEvent(this.id.value, { name })
-    );
+    this.addDomainEvent(new EinsatzUpdatedEvent(this.id.value, { name }));
   }
 
   get name(): string {
@@ -443,11 +446,12 @@ einsatz.updateName('Großbrand');
 const events = einsatz.getDomainEvents(); // 2 events (Created + Updated)
 
 // Publish Events (Infrastructure Layer)
-events.forEach(event => eventBus.publish(event));
+events.forEach((event) => eventBus.publish(event));
 einsatz.clearDomainEvents(); // Clear after publishing
 ```
 
 **Key Features:**
+
 - ✅ **Event Accumulation:** `addDomainEvent()`, `getDomainEvents()`, `clearDomainEvents()`
 - ✅ **Shallow Copy:** `getDomainEvents()` returns `[..._domainEvents]` (mutation-safe!)
 - ✅ **Identity Equality:** `equals()` compares ONLY by ID
@@ -455,6 +459,7 @@ einsatz.clearDomainEvents(); // Clear after publishing
 - ✅ **Generic Constraint:** `<TId extends EntityId<any>>` für type-safe IDs
 
 **Critical Pattern: Shallow Copy**
+
 ```typescript
 // ✅ CORRECT: Shallow copy prevents external mutations
 getDomainEvents(): DomainEvent[] {
@@ -493,9 +498,9 @@ console.log(id.equals(sameId)); // true (structural equality)
 
 // 5. Domain Events
 const events = einsatz.getDomainEvents();
-events.forEach(event => {
-  console.log(event.eventId);     // cuid
-  console.log(event.occurredAt);  // Date
+events.forEach((event) => {
+  console.log(event.eventId); // cuid
+  console.log(event.occurredAt); // Date
   console.log(event.constructor.name); // "EinsatzCreatedEvent"
 });
 
@@ -507,6 +512,7 @@ console.log(einsatz.equals(einsatz2)); // false (different IDs)
 ### Best Practices
 
 1. **IMMER Result<T> Pattern nutzen**
+
    ```typescript
    // ✅ CORRECT
    static create(...): Result<Aggregate> {
@@ -520,6 +526,7 @@ console.log(einsatz.equals(einsatz2)); // false (different IDs)
    ```
 
 2. **IMMER Protected Constructors**
+
    ```typescript
    // ✅ CORRECT: Forces factory methods
    private constructor(...) { ... }
@@ -529,6 +536,7 @@ console.log(einsatz.equals(einsatz2)); // false (different IDs)
    ```
 
 3. **IMMER Cuid für IDs (NICHT UUID)**
+
    ```typescript
    // ✅ CORRECT (Project Standard)
    import { createId } from '@paralleldrive/cuid2';
@@ -540,6 +548,7 @@ console.log(einsatz.equals(einsatz2)); // false (different IDs)
    ```
 
 4. **Events in Past Tense**
+
    ```typescript
    // ✅ CORRECT
    class EinsatzCreatedEvent extends DomainEvent { ... }
@@ -552,15 +561,16 @@ console.log(einsatz.equals(einsatz2)); // false (different IDs)
 
 Alle Base Classes haben **100% Test Coverage** (Story 1.2):
 
-| Base Class | Statements | Branches | Functions | Lines |
-|------------|------------|----------|-----------|-------|
-| `aggregate-root.ts` | 100% | 100% | 100% | 100% |
-| `domain-event.ts` | 100% | 100% | 100% | 100% |
-| `entity-id.ts` | 100% | 100% | 100% | 100% |
-| `value-object.ts` | 87.87% | 83.33% | 100% | 100% |
-| `result.ts` | 100% | 100% | 100% | 100% |
+| Base Class          | Statements | Branches | Functions | Lines |
+| ------------------- | ---------- | -------- | --------- | ----- |
+| `aggregate-root.ts` | 100%       | 100%     | 100%      | 100%  |
+| `domain-event.ts`   | 100%       | 100%     | 100%      | 100%  |
+| `entity-id.ts`      | 100%       | 100%     | 100%      | 100%  |
+| `value-object.ts`   | 87.87%     | 83.33%   | 100%      | 100%  |
+| `result.ts`         | 100%       | 100%     | 100%      | 100%  |
 
 **Tests Location:**
+
 - `src/domain/common/*.spec.ts` (Unit Tests)
 - `src/domain/common/__tests__/base-classes.integration.spec.ts` (Integration Tests)
 
@@ -602,10 +612,7 @@ export class Einsatz extends AggregateRoot<EinsatzId> {
    * Nutzt Result<T> Pattern statt Exceptions für vorhersagbare Fehlerbehandlung.
    * Warum? Domain Layer hat keine Abhängigkeiten zu Exception-Handling-Frameworks.
    */
-  static create(
-    nummer: string,
-    ort?: string,
-  ): Result<Einsatz> {
+  static create(nummer: string, ort?: string): Result<Einsatz> {
     // Validierung
     if (!nummer || nummer.trim().length === 0) {
       return Result.fail('Einsatznummer darf nicht leer sein');
@@ -646,13 +653,20 @@ export class Einsatz extends AggregateRoot<EinsatzId> {
   }
 
   // Getter (kein Setter - Immutability!)
-  get nummer(): string { return this._nummer; }
-  get status(): EinsatzStatus { return this._status; }
-  get ort(): string | undefined { return this._ort; }
+  get nummer(): string {
+    return this._nummer;
+  }
+  get status(): EinsatzStatus {
+    return this._status;
+  }
+  get ort(): string | undefined {
+    return this._ort;
+  }
 }
 ```
 
 **Wichtig:**
+
 - Extends `AggregateRoot<ID>` (Base-Class in `domain/shared/base/`)
 - Private Constructor + Public Factory-Methode (`create()`)
 - Business-Logik-Methoden (z.B. `complete()`) nutzen `Result<T>` Pattern
@@ -670,18 +684,22 @@ Versionierung, unveränderlichen Sequenznummern und DRK-konformen Soft-Deletes.
 **Purpose:** Manages tactical map with Points of Interest (POIs) using MGRS coordinate system (DRK standard).
 
 **Key Features:**
+
 - MGRS coordinates as primary (Military Grid Reference System)
 - Lat/Lng fallback for external APIs (Nominatim geocoding)
 - POI management (add, remove, update position)
 - German MGRS zones validation (32U, 33U, 33N)
 
 **Aggregates:**
+
 - `LagekarteAggregate` - Root aggregate managing POIs
 
 **Entities:**
+
 - `Poi` - Point of Interest (managed by LagekarteAggregate)
 
 **Value Objects:**
+
 - `LagekarteId` - Typed ID for Lagekarte
 - `PoiId` - Typed ID for POI entities
 - `MgrsCoordinate` - Primary coordinate system (MGRS)
@@ -689,14 +707,17 @@ Versionierung, unveränderlichen Sequenznummern und DRK-konformen Soft-Deletes.
 - `PoiCategory` - POI categorization (EINSATZSTELLE, BEREITSTELLUNGSRAUM, etc.)
 
 **Domain Events:**
+
 - `PoiAddedEvent` - POI added to Lagekarte
 - `PoiRemovedEvent` - POI removed from Lagekarte
 - `PoiPositionUpdatedEvent` - POI position changed (includes old + new coordinates)
 
 **Repository Interface:**
+
 - `ILagekarteRepository` - Persistence contract (Infrastructure implementation in Epic 2)
 
 **Domain Service Port:**
+
 - `IGeocodingPort` - Geocoding service contract (Nominatim adapter in Epic 2)
 
 ### 4. UserAggregate (RBAC User Management)
@@ -704,6 +725,7 @@ Versionierung, unveränderlichen Sequenznummern und DRK-konformen Soft-Deletes.
 **Purpose:** RBAC User Management mit Permission Hierarchie und Unified Auth Strategy
 
 **Value Objects:**
+
 - `UserId` - Type-Safe User ID (extends EntityId<'User'>)
 - `Username` - Case-insensitive username (3-50 chars, lowercase normalization)
 - `UserRole` - Role enum (SUPER_ADMIN, ADMIN, USER)
@@ -739,10 +761,7 @@ if (usernameResult.isFailure) {
   throw new Error(usernameResult.error);
 }
 
-const user = UserAggregate.create(
-  usernameResult.getValue(),
-  UserRole.ADMIN(),
-).getValue();
+const user = UserAggregate.create(usernameResult.getValue(), UserRole.ADMIN()).getValue();
 
 // Grant Custom Permission (zusätzlich zu ADMIN Defaults)
 const permission = Permission.create('etb:lock').getValue();
@@ -750,15 +769,11 @@ user.grantPermission(permission, adminUserId);
 
 // Check Permission (Role Defaults + Custom Grants)
 user.hasPermission(Permission.CREATE_EINSATZ()); // true (ADMIN hat einsatz:*)
-user.hasPermission(Permission.LOCK_ETB());       // true (Custom Grant)
-user.hasPermission(Permission.DELETE_USER());    // false (keine Wildcard Match)
+user.hasPermission(Permission.LOCK_ETB()); // true (Custom Grant)
+user.hasPermission(Permission.DELETE_USER()); // false (keine Wildcard Match)
 
 // Update Role (mit Min-1-SUPER_ADMIN Check im Application Layer)
-const updateResult = await user.updateRole(
-  UserRole.SUPER_ADMIN(),
-  adminUserId,
-  repository
-);
+const updateResult = await user.updateRole(UserRole.SUPER_ADMIN(), adminUserId, repository);
 if (updateResult.isFailure) {
   // Könnte fehlschlagen wenn letzter SUPER_ADMIN downgegraded würde
   console.error(updateResult.error);
@@ -789,22 +804,26 @@ Die Domain Layer hat KEINE Kenntnis von Passwörtern! Auth-Strategie wird in Inf
   - Domain Layer validiert NUR Permissions, NICHT Passwörter
 
 **Warum Password-Agnostic?**
+
 - Domain Layer ist framework-agnostisch (keine bcrypt, JWT Dependencies)
 - Auth-Strategie kann gewechselt werden ohne Domain Layer zu ändern
 - Testbarkeit: Mock `ITokenServicePort` für Unit Tests
 
 **Repository Interface:**
+
 - `IUserRepository` - Persistence contract für User Management
   - `findById(id: UserId): Promise<Result<UserAggregate>>`
   - `save(user: UserAggregate): Promise<Result<void>>`
   - `countByRole(role: UserRole): Promise<number>` (für Min-1-SUPER_ADMIN Constraint)
 
 **Domain Service Port:**
+
 - `ITokenServicePort` - Token Generation für Auth (Infrastructure Adapter)
   - `generateEmailVerificationToken(userId: UserId): Promise<string>`
   - `generatePasswordResetToken(userId: UserId): Promise<string>`
 
 **Domain Events:**
+
 - `UserCreatedEvent` - User erstellt
 - `UserRoleUpdatedEvent` - Role geändert (enthält old + new Role)
 - `UserPermissionGrantedEvent` - Custom Permission gewährt
@@ -826,9 +845,11 @@ Die Domain Layer hat KEINE Kenntnis von Passwörtern! Auth-Strategie wird in Inf
    - Optimistic Locking verhindert Concurrency Conflicts (Epic 4)
 
 3. **State Machine (3 States):**
+
    ```
    DRAFT → ACTIVE → LOCKED (nur Vorwärts, LOCKED ist final)
    ```
+
    - **DRAFT:** Initial state, Bearbeitung erlaubt
    - **ACTIVE:** Im Einsatz, Bearbeitung erlaubt
    - **LOCKED:** Final state, KEINE Änderungen mehr möglich (DRK-Compliance)
@@ -844,6 +865,7 @@ Die Domain Layer hat KEINE Kenntnis von Passwörtern! Auth-Strategie wird in Inf
    - Garantiert chronologische Sortierung
 
 **Wichtig:**
+
 - Extends `AggregateRoot<EtbId>` (Base-Class)
 - Private Constructor + Factory-Methode (`create()`)
 - Business-Logik-Methoden nutzen `Result<T>` Pattern
@@ -851,6 +873,7 @@ Die Domain Layer hat KEINE Kenntnis von Passwörtern! Auth-Strategie wird in Inf
 - KEINE `@Injectable()` oder Framework-Decorators!
 
 **Dateien:**
+
 - Aggregate: `domain/aggregates/einsatztagebuch.aggregate.ts`
 - Entity: `domain/entities/etb-eintrag.entity.ts`
 - Value Objects: `domain/value-objects/etb-*.ts`
@@ -895,9 +918,7 @@ export class EinsatzStatus extends ValueObject<EinsatzStatusProps> {
     const validStatuses: EinsatzStatusValue[] = ['AKTIV', 'ABGESCHLOSSEN', 'ARCHIVIERT'];
 
     if (!validStatuses.includes(value as EinsatzStatusValue)) {
-      return Result.fail(
-        `Ungültiger Status: ${value}. Erlaubt: ${validStatuses.join(', ')}`
-      );
+      return Result.fail(`Ungültiger Status: ${value}. Erlaubt: ${validStatuses.join(', ')}`);
     }
 
     return Result.ok(new EinsatzStatus({ value: value as EinsatzStatusValue }));
@@ -931,6 +952,7 @@ export class EinsatzStatus extends ValueObject<EinsatzStatusProps> {
 ```
 
 **Wichtig:**
+
 - Extends `ValueObject<Props>` (Base-Class in `domain/shared/base/`)
 - Private Constructor + Factory-Methode (`create()`)
 - Factory gibt `Result<VO>` zurück (KEIN `throw`)
@@ -973,6 +995,7 @@ export class EinsatzCreatedEvent extends DomainEvent {
 ```
 
 **Wichtig:**
+
 - Extends `DomainEvent` (Base-Class in `domain/shared/base/`)
 - Readonly Properties (Events sind immutable!)
 - Past Tense Naming (`Created`, `Completed`, `Archived`, NICHT `Create`, `Complete`)
@@ -1032,6 +1055,7 @@ export interface IEinsatzRepository {
 ```
 
 **Wichtig:**
+
 - Interface (KEINE Class!)
 - Nutzt Domain Objects (Aggregate, Value Objects), NICHT Prisma Models
 - Alle Methoden geben `Promise<Result<T>>` zurück
@@ -1067,6 +1091,7 @@ export interface IEinsatzNamingService {
 ```
 
 **Wichtig:**
+
 - Interface im Domain Layer, Implementierung in Infrastructure
 - Nutzt Domain Objects (Value Objects, Aggregates)
 - Gibt `Result<T>` zurück
@@ -1075,12 +1100,12 @@ export interface IEinsatzNamingService {
 
 In Story 1.7 wurden 3 Domain Services für Einsatz-Management implementiert:
 
-| Service | Type | Purpose | Location |
-|---------|------|---------|----------|
-| **EinsatzNamingService** | Pure Function | Einsatznummern-Generierung (E{JAHR}-{LAUFNUMMER}) | `domain/services/einsatz-naming.service.ts` |
-| **EinsatzCompletenessService** | Pure Function | Vollständigkeits-Validierung vor Abschluss | `domain/services/einsatz-completeness.service.ts` |
-| **EinsatzArchivalPolicy** | Domain Policy | DRK 10-Jahres-Archivierungspflicht | `domain/services/einsatz-archival.policy.ts` |
-| **IGeocodingPort** | Port Interface | Geocoding Contract (Nominatim Adapter) | `domain/services/ports/i-geocoding.port.ts` (Story 1.5) |
+| Service                        | Type           | Purpose                                           | Location                                                |
+| ------------------------------ | -------------- | ------------------------------------------------- | ------------------------------------------------------- |
+| **EinsatzNamingService**       | Pure Function  | Einsatznummern-Generierung (E{JAHR}-{LAUFNUMMER}) | `domain/services/einsatz-naming.service.ts`             |
+| **EinsatzCompletenessService** | Pure Function  | Vollständigkeits-Validierung vor Abschluss        | `domain/services/einsatz-completeness.service.ts`       |
+| **EinsatzArchivalPolicy**      | Domain Policy  | DRK 10-Jahres-Archivierungspflicht                | `domain/services/einsatz-archival.policy.ts`            |
+| **IGeocodingPort**             | Port Interface | Geocoding Contract (Nominatim Adapter)            | `domain/services/ports/i-geocoding.port.ts` (Story 1.5) |
 
 **Code Examples:**
 
@@ -1155,17 +1180,18 @@ describe('EinsatzNamingService', () => {
 
 **Test Coverage (Story 1.7):**
 
-| Service | Statements | Branches | Functions | Lines | Test File |
-|---------|------------|----------|-----------|-------|-----------|
-| `einsatz-naming.service.ts` | 100% | 100% | 100% | 100% | 10 tests |
-| `einsatz-completeness.service.ts` | 94.44% | 95.45% | 100% | 94.44% | 14 tests |
-| `einsatz-archival.policy.ts` | 92.3% | 83.33% | 100% | 92.3% | 12 tests |
-| **Integration Tests** | - | - | - | - | 8 tests |
-| **Total** | **94.11%** | **92.85%** | **100%** | **94.11%** | **44 tests** |
+| Service                           | Statements | Branches   | Functions | Lines      | Test File    |
+| --------------------------------- | ---------- | ---------- | --------- | ---------- | ------------ |
+| `einsatz-naming.service.ts`       | 100%       | 100%       | 100%      | 100%       | 10 tests     |
+| `einsatz-completeness.service.ts` | 94.44%     | 95.45%     | 100%      | 94.44%     | 14 tests     |
+| `einsatz-archival.policy.ts`      | 92.3%      | 83.33%     | 100%      | 92.3%      | 12 tests     |
+| **Integration Tests**             | -          | -          | -         | -          | 8 tests      |
+| **Total**                         | **94.11%** | **92.85%** | **100%**  | **94.11%** | **44 tests** |
 
 **Port Consolidation (AC3):**
 
 `IGeocodingPort` wurde in Story 1.5 implementiert und wird hier nur referenziert (NO duplication):
+
 - **Location:** `domain/services/ports/i-geocoding.port.ts`
 - **Methods:** `geocodeAddress()`, `reverseGeocode()`
 - **Implementation:** Nominatim Adapter (Infrastructure Layer, Epic 2)
@@ -1202,6 +1228,7 @@ Optimistic Locking via Versionierung + Snapshot-Persistierung durch Repository.
    - Wenn DB-Version ≠ N → ConflictException (Retry)
 
 **Warum NOT im Memory?**
+
 - Unbegrenztes Memory-Wachstum (10.000 Changes = 10.000 Snapshots im RAM)
 - Persistence ist Infrastructure-Responsibility (Hexagonal Architecture)
 - Repository entscheidet über Snapshot-Strategie
@@ -1390,8 +1417,12 @@ export class Coordinates extends ValueObject<CoordinatesProps> {
     return Result.ok(new Coordinates({ latitude: lat, longitude: lng }));
   }
 
-  get latitude(): number { return this.props.latitude; }
-  get longitude(): number { return this.props.longitude; }
+  get latitude(): number {
+    return this.props.latitude;
+  }
+  get longitude(): number {
+    return this.props.longitude;
+  }
 }
 ```
 
@@ -1459,8 +1490,12 @@ export class Lagekarte extends AggregateRoot<LagekarteId> {
     return Result.ok(undefined);
   }
 
-  get center(): Coordinates { return this._center; }
-  get zoom(): number { return this._zoom; }
+  get center(): Coordinates {
+    return this._center;
+  }
+  get zoom(): number {
+    return this._zoom;
+  }
 }
 ```
 
@@ -1490,7 +1525,7 @@ describe('Lagekarte Aggregate', () => {
   describe('create', () => {
     it('should create lagekarte with valid coordinates', () => {
       // Given: Valid coordinates
-      const center = Coordinates.create(48.1351, 11.5820).value!; // München
+      const center = Coordinates.create(48.1351, 11.582).value!; // München
       const zoom = 13;
 
       // When: Creating lagekarte
@@ -1504,7 +1539,7 @@ describe('Lagekarte Aggregate', () => {
 
     it('should fail with invalid zoom', () => {
       // Given: Invalid zoom
-      const center = Coordinates.create(48.1351, 11.5820).value!;
+      const center = Coordinates.create(48.1351, 11.582).value!;
       const invalidZoom = 25;
 
       // When: Creating lagekarte
@@ -1519,9 +1554,9 @@ describe('Lagekarte Aggregate', () => {
   describe('updateCenter', () => {
     it('should update center coordinates', () => {
       // Given: Existing lagekarte
-      const oldCenter = Coordinates.create(48.1351, 11.5820).value!;
+      const oldCenter = Coordinates.create(48.1351, 11.582).value!;
       const lagekarte = Lagekarte.create(oldCenter).value!;
-      const newCenter = Coordinates.create(52.5200, 13.4050).value!; // Berlin
+      const newCenter = Coordinates.create(52.52, 13.405).value!; // Berlin
 
       // When: Updating center
       const result = lagekarte.updateCenter(newCenter);
@@ -1594,16 +1629,19 @@ export class PrismaLagekarteRepository implements ILagekarteRepository {
 ### ✅ ERLAUBT
 
 **Domain Layer DARF importieren:**
+
 - ✅ TypeScript Standard Library (`Date`, `Map`, `Set`, etc.)
 - ✅ Andere Domain Objects (`import { EinsatzId } from '../value-objects/einsatz-id.vo'`)
 - ✅ Shared Kernel (`import { Result } from '@domain/common/result'`)
 - ✅ Cuid Library (`cuid` - NUR für ID-Generierung)
 
 **Application Layer DARF importieren:**
+
 - ✅ Domain Layer (`import { Einsatz } from '@domain/einsatz/aggregates/einsatz.aggregate'`)
 - ✅ Andere Application Layer (`import { CreateEinsatzDto } from '../dto/create-einsatz.dto'`)
 
 **Infrastructure Layer DARF importieren:**
+
 - ✅ Domain Layer
 - ✅ Application Layer
 - ✅ NestJS (`@nestjs/common`, `@nestjs/core`)
@@ -1612,6 +1650,7 @@ export class PrismaLagekarteRepository implements ILagekarteRepository {
 ### ❌ VERBOTEN
 
 **Domain Layer DARF NIEMALS importieren:**
+
 - ❌ Application Layer (`import { CreateEinsatzDto } from '@application/...'`)
 - ❌ Infrastructure Layer (`import { PrismaService } from '@infrastructure/...'`)
 - ❌ NestJS (`@nestjs/*`)
@@ -1620,7 +1659,8 @@ export class PrismaLagekarteRepository implements ILagekarteRepository {
 
 **Enforcement:**
 
-1. **Biome Linter** (konfiguriert in `biome.json`):
+1. **OXC Linter** (konfiguriert in `.oxlintrc.json`):
+
    ```json
    {
      "linter": {
@@ -1638,6 +1678,7 @@ export class PrismaLagekarteRepository implements ILagekarteRepository {
    ```
 
 2. **Madge Circular Dependency Check** (Pre-Commit Hook):
+
    ```bash
    pnpm --filter @bluelight-hub/backend check:deps
    # Führt aus: madge --circular src/domain/
@@ -1740,7 +1781,7 @@ etb.addEintrag('Ankunft Einsatzort: 14:40 Uhr', userId);
 console.log(etb.version.versionNumber); // 4
 
 // All entries with stable sequence numbers
-console.log(etb.eintraege.map(e => e.sequenceNumber.value)); // [1, 2, 3]
+console.log(etb.eintraege.map((e) => e.sequenceNumber.value)); // [1, 2, 3]
 console.log(etb.eintraege.length); // 3
 ```
 
@@ -1854,11 +1895,11 @@ console.log(etb.version.versionNumber); // 8
 
 // Final state:
 console.log(etb.eintraege.length); // 4 (deleted entry still here)
-console.log(etb.eintraege.filter(e => !e.isDeleted).length); // 3 (active entries)
+console.log(etb.eintraege.filter((e) => !e.isDeleted).length); // 3 (active entries)
 console.log(etb.getDomainEvents().length); // 7 (all events)
 
 // All sequences are stable
-console.log(etb.eintraege.map(e => e.sequenceNumber.value)); // [1, 2, 3, 4]
+console.log(etb.eintraege.map((e) => e.sequenceNumber.value)); // [1, 2, 3, 4]
 
 // Version history would be (from Repository in Epic 4):
 // Version 1: Initial creation
@@ -1875,12 +1916,10 @@ console.log(etb.eintraege.map(e => e.sequenceNumber.value)); // [1, 2, 3, 4]
 
 ```typescript
 // Get only active entries (for UI display)
-const activeEntries = etb.eintraege
-  .filter(e => !e.isDeleted)
-  .sort((a, b) => a.sequenceNumber.value - b.sequenceNumber.value);
+const activeEntries = etb.eintraege.filter((e) => !e.isDeleted).sort((a, b) => a.sequenceNumber.value - b.sequenceNumber.value);
 
 // Display
-activeEntries.forEach(e => {
+activeEntries.forEach((e) => {
   console.log(`[${e.sequenceNumber.value}] ${e.text}`);
   // [1] Ausrücken: 14:33 (korrigiert)
   // [2] Ankunft: 14:40
@@ -1888,7 +1927,7 @@ activeEntries.forEach(e => {
 });
 
 // Deleted entries visible only in admin view or history
-const deletedEntries = etb.eintraege.filter(e => e.isDeleted);
+const deletedEntries = etb.eintraege.filter((e) => e.isDeleted);
 console.log(deletedEntries.length); // 1 (audit trail)
 ```
 
@@ -1897,23 +1936,27 @@ console.log(deletedEntries.length); // 1 (audit trail)
 ## 📍 MGRS Coordinate System (DRK Standard)
 
 **Why MGRS?**
+
 - NATO standard used by DRK for tactical positioning
 - Higher precision than Lat/Lng (up to 1 meter)
 - Grid-based system optimized for emergency response
 - Avoids confusion with decimal degrees
 
 **German MGRS Zones:**
+
 - **Zone 32U:** Western/Northern Germany (Hamburg, Cologne)
 - **Zone 33U:** Eastern Germany (Berlin, Leipzig, Dresden)
 - **Zone 33N:** Central/Southern Germany (Frankfurt, Stuttgart, Munich)
 
 **Conversion Strategy:**
+
 ```
 External APIs (Nominatim) → Lat/Lng → MGRS → Storage
 Storage → MGRS → Lat/Lng → External APIs
 ```
 
 **Precision Levels:**
+
 - 0 digits: 100km grid square
 - 2 digits: 10km precision
 - 4 digits: 1km precision
@@ -1922,6 +1965,7 @@ Storage → MGRS → Lat/Lng → External APIs
 - 10 digits: 1m precision (used in Bluelight Hub)
 
 **Example MGRS Format:**
+
 ```
 33UUU8990317936
 │││└─ Coordinates (10 digits = 1m precision)
@@ -1948,7 +1992,7 @@ if (lagekarteResult.isFailure) {
 const lagekarte = lagekarteResult.getValue();
 
 // Option 2: Create with initial POI (atomic)
-const berlinMgrs = MgrsCoordinate.fromLatLng(52.52, 13.40, 5).getValue();
+const berlinMgrs = MgrsCoordinate.fromLatLng(52.52, 13.4, 5).getValue();
 const initialPoi = Poi.create('Einsatzstelle', berlinMgrs, PoiCategory.EINSATZSTELLE(), userId);
 const lagekarteWithPoi = LagekarteAggregate.create(einsatzId, initialPoi).getValue();
 ```
@@ -1956,13 +2000,8 @@ const lagekarteWithPoi = LagekarteAggregate.create(einsatzId, initialPoi).getVal
 ### Add POI with MGRS coordinate
 
 ```typescript
-const berlinMgrs = MgrsCoordinate.fromLatLng(52.52, 13.40, 5).getValue();
-const poiResult = lagekarte.addPoi(
-  'Einsatzstelle Brandenburger Tor',
-  berlinMgrs,
-  PoiCategory.EINSATZSTELLE(),
-  userId
-);
+const berlinMgrs = MgrsCoordinate.fromLatLng(52.52, 13.4, 5).getValue();
+const poiResult = lagekarte.addPoi('Einsatzstelle Brandenburger Tor', berlinMgrs, PoiCategory.EINSATZSTELLE(), userId);
 
 if (poiResult.isSuccess) {
   const poi = poiResult.getValue();
@@ -1973,25 +2012,25 @@ if (poiResult.isSuccess) {
 ### Add POI with Lat/Lng (auto-converts to MGRS)
 
 ```typescript
-const hamburgGeo = GeoCoordinate.create(53.55, 10.00).getValue();
+const hamburgGeo = GeoCoordinate.create(53.55, 10.0).getValue();
 const poiResult = lagekarte.addPoi(
   'Bereitstellungsraum Hamburg',
   hamburgGeo, // Auto-converts to MGRS Zone 32U
   PoiCategory.BEREITSTELLUNGSRAUM(),
-  userId
+  userId,
 );
 ```
 
 ### Update POI position
 
 ```typescript
-const hamburgMgrs = MgrsCoordinate.fromLatLng(53.55, 10.00, 5).getValue();
+const hamburgMgrs = MgrsCoordinate.fromLatLng(53.55, 10.0, 5).getValue();
 const updateResult = lagekarte.updatePoiPosition(poi.id, hamburgMgrs, userId);
 
 if (updateResult.isSuccess) {
   // Event emitted with old + new coordinates for distance calculation
   const events = lagekarte.getDomainEvents();
-  const positionEvent = events.find(e => e instanceof PoiPositionUpdatedEvent);
+  const positionEvent = events.find((e) => e instanceof PoiPositionUpdatedEvent);
   const distanceKm = positionEvent.oldCoordinate.distanceTo(positionEvent.newCoordinate) / 1000;
   console.log(`POI moved ${distanceKm.toFixed(2)} km`);
 }
@@ -2017,7 +2056,7 @@ console.log(`Found ${einsatzstellen.length} Einsatzstellen`);
 
 ```typescript
 // Convert Lat/Lng to MGRS
-const berlinMgrs = MgrsCoordinate.fromLatLng(52.52, 13.40, 5).getValue();
+const berlinMgrs = MgrsCoordinate.fromLatLng(52.52, 13.4, 5).getValue();
 console.log(berlinMgrs.value); // "33UUU8990317936" (Zone 33U, 1m precision)
 console.log(berlinMgrs.gridZone); // "33U"
 
@@ -2026,7 +2065,7 @@ const latLng = berlinMgrs.toLatLng();
 console.log(`${latLng.latitude}, ${latLng.longitude}`); // 52.52, 13.40
 
 // Calculate distance between two MGRS coordinates
-const hamburgMgrs = MgrsCoordinate.fromLatLng(53.55, 10.00, 5).getValue();
+const hamburgMgrs = MgrsCoordinate.fromLatLng(53.55, 10.0, 5).getValue();
 const distanceMeters = berlinMgrs.distanceTo(hamburgMgrs);
 console.log(`${(distanceMeters / 1000).toFixed(2)} km`); // ~255 km
 ```

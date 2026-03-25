@@ -115,8 +115,8 @@ export function StopRecurringErinnerungDialog({ isOpen, onClose, erinnerung, ein
               disabled={isPending}
             />
             <div>
-              <span className="font-medium text-sm text-text-primary">Auch die aktuelle aktive Instanz abbrechen</span>
-              <p className="mt-0.5 text-text-muted text-xs">Falls eine Instanz gerade aktiv ist (geplant/ausgeloest), wird sie ebenfalls beendet.</p>
+              <span className="text-sm font-medium text-text-primary">Auch die aktuelle aktive Instanz abbrechen</span>
+              <p className="mt-0.5 text-xs text-text-muted">Falls eine Instanz gerade aktiv ist (geplant/ausgeloest), wird sie ebenfalls beendet.</p>
             </div>
           </label>
         </div>

@@ -40,7 +40,7 @@ export function NotizSearchBar({ value, onChange, onClear, resultCount, totalCou
       />
       <div className="absolute top-1/2 right-3 flex -translate-y-1/2 items-center gap-2">
         {showResultCount && (
-          <output className="text-text-muted text-xs" aria-live="polite">
+          <output className="text-xs text-text-muted" aria-live="polite">
             {resultCount} von {totalCount}
           </output>
         )}

@@ -60,7 +60,7 @@ describe('ServerVisualBadge', () => {
 
     it('should render default icon for invalid icon value', () => {
       // Given (Arrange) - Ungültiger Wert via type assertion um Runtime-Verhalten zu testen
-      // biome-ignore lint/suspicious/noExplicitAny: Testing runtime behavior with invalid input
+      // eslint-disable-next-line typescript/no-explicit-any -- Testing runtime behavior with invalid input
       const server = createMockServer({ icon: 'invalid-icon' } as any);
 
       // When (Act)
@@ -127,7 +127,7 @@ describe('ServerVisualBadge', () => {
 
     it('should use slate fallback color for invalid color value', () => {
       // Given (Arrange) - Ungültiger Wert via type assertion um Runtime-Verhalten zu testen
-      // biome-ignore lint/suspicious/noExplicitAny: Testing runtime behavior with invalid input
+      // eslint-disable-next-line typescript/no-explicit-any -- Testing runtime behavior with invalid input
       const server = createMockServer({ color: 'invalid-color' } as any);
 
       // When (Act)

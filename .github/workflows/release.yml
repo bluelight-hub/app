@@ -2,8 +2,8 @@ name: Release
 run-name: Release ${{ github.ref_name }}#${{ github.run_number }}
 on:
   workflow_run:
-    workflows: [ 'CI Pipeline' ]
-    branches: [ main, alpha, beta, next ]
+    workflows: ['CI Pipeline']
+    branches: [main, alpha, beta, next]
     types:
       - completed
 
@@ -34,7 +34,7 @@ jobs:
 
   build-backend:
     name: Build Backend ${{ matrix.variant }} (${{ matrix.platform }})
-    needs: [ check-test-success ]
+    needs: [check-test-success]
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -126,9 +126,9 @@ jobs:
       matrix:
         include:
           - variant: app
-            image_suffix: ""
+            image_suffix: ''
           - variant: migrations
-            image_suffix: "/migrations"
+            image_suffix: '/migrations'
     steps:
       - name: Download digests
         uses: actions/download-artifact@v8
@@ -291,7 +291,7 @@ jobs:
 
   release:
     name: Create Release
-    needs: [ merge-backend, build-frontend ]
+    needs: [merge-backend, build-frontend]
     runs-on: ubuntu-latest
     environment: releases
     steps:

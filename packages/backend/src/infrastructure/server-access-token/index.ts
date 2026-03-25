@@ -6,8 +6,5 @@
  */
 
 export { PrismaServerAccessTokenRepository } from './repositories/prisma-server-access-token.repository';
-export {
-  PrismaServerAccessTokenMapper,
-  type ServerAccessTokenPersistenceDto,
-} from './mappers/prisma-server-access-token.mapper';
+export { PrismaServerAccessTokenMapper, type ServerAccessTokenPersistenceDto } from './mappers/prisma-server-access-token.mapper';
 export { ServerAccessTokenInfrastructureModule } from './server-access-token-infrastructure.module';

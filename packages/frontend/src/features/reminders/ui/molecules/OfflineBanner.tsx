@@ -103,11 +103,11 @@ export function OfflineBanner({ isOffline, pendingCount, isSyncing, offlineSince
         // Flex layout
         'flex items-center justify-center gap-2',
         // Typography
-        'font-medium text-sm',
+        'text-sm font-medium',
         // Variant: Offline (amber/yellow)
-        isOfflineVariant && 'border-status-warning-border border-b bg-status-warning-surface text-status-warning-text',
+        isOfflineVariant && 'border-b border-status-warning-border bg-status-warning-surface text-status-warning-text',
         // Variant: Syncing (blue)
-        isSyncingVariant && 'border-status-info-border border-b bg-status-info-surface text-status-info-text',
+        isSyncingVariant && 'border-b border-status-info-border bg-status-info-surface text-status-info-text',
         className,
       )}
     >

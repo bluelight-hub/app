@@ -64,11 +64,11 @@ export const commandItemClasses = {
   base: cn('group flex items-center gap-3 rounded-xl px-3 py-2.5', 'text-sm transition-all duration-150', 'cursor-pointer select-none', 'outline-none', 'data-[selected=true]:bg-action-secondary'),
   destructive: 'data-[selected=true]:bg-status-danger-surface',
   iconContainer: cn('flex items-center justify-center', 'h-8 w-8 flex-shrink-0 rounded-lg', 'transition-transform group-data-[selected=true]:scale-110'),
-  badge: cn('inline-flex items-center rounded-full px-2 py-0.5', 'font-medium text-xs', 'bg-action-secondary text-action-primary'),
+  badge: cn('inline-flex items-center rounded-full px-2 py-0.5', 'text-xs font-medium', 'bg-action-secondary text-action-primary'),
   kbd: cn(
     'inline-flex items-center justify-center',
     'h-6 min-w-[1.5rem] px-1.5',
-    'font-medium text-xs',
+    'text-xs font-medium',
     'bg-surface-raised',
     'text-text-secondary',
     'border border-border-subtle',

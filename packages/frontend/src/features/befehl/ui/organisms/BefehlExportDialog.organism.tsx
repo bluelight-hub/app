@@ -72,7 +72,7 @@ export function BefehlExportDialog({ isOpen, onClose, einsatzId }: BefehlExportD
       </Dialog.Title>
 
       <Dialog.Body>
-        <p className="mb-4 text-text-secondary text-sm">Wählen Sie das gewünschte Exportformat:</p>
+        <p className="mb-4 text-sm text-text-secondary">Wählen Sie das gewünschte Exportformat:</p>
 
         <div className="space-y-2" role="radiogroup" aria-label="Exportformat wählen">
           {FORMAT_OPTIONS.map((option) => {
@@ -100,9 +100,9 @@ export function BefehlExportDialog({ isOpen, onClose, einsatzId }: BefehlExportD
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <Icon className={cn('h-4 w-4', isSelected ? 'text-action-primary' : 'text-text-muted')} />
-                    <span className={cn('font-medium text-sm', isSelected ? 'text-action-primary' : 'text-text-primary')}>{option.label}</span>
+                    <span className={cn('text-sm font-medium', isSelected ? 'text-action-primary' : 'text-text-primary')}>{option.label}</span>
                   </div>
-                  <p className="mt-0.5 text-text-muted text-xs">{option.description}</p>
+                  <p className="mt-0.5 text-xs text-text-muted">{option.description}</p>
                 </div>
               </label>
             );

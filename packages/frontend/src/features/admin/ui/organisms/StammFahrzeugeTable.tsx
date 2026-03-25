@@ -143,7 +143,7 @@ export const StammFahrzeugeTable = ({ stammFahrzeuge, isLoading, onEdit, onArchi
     return (
       <div className="flex h-48 flex-col items-center justify-center p-8">
         {' '}
-        <Text className="text-text-secondary">Keine Fahrzeuge vorhanden.</Text> <Text className="text-text-muted text-sm">Erstellen Sie ein neues Fahrzeug.</Text>{' '}
+        <Text className="text-text-secondary">Keine Fahrzeuge vorhanden.</Text> <Text className="text-sm text-text-muted">Erstellen Sie ein neues Fahrzeug.</Text>{' '}
       </div>
     );
   }

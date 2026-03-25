@@ -84,7 +84,7 @@ export function UserPermissionsPanel({ userId, username }: UserPermissionsPanelP
           {[...grouped.entries()].map(([domain, actions]) => (
             <div key={domain} className="rounded-control border border-border-subtle p-3">
               {' '}
-              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-text-muted">{domain}</p>{' '}
+              <p className="mb-2 text-xs font-medium tracking-wide text-text-muted uppercase">{domain}</p>{' '}
               <div className="flex flex-wrap gap-2">
                 {' '}
                 {actions.map((action) => {
@@ -98,7 +98,7 @@ export function UserPermissionsPanel({ userId, username }: UserPermissionsPanelP
                           type="button"
                           onClick={() => handleRevoke(fullPermission)}
                           disabled={revokeMutation.isPending}
-                          className="ml-0.5 inline-flex items-center rounded-full p-0.5 opacity-60 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:shadow-focus-ring"
+                          className="ml-0.5 inline-flex items-center rounded-full p-0.5 opacity-60 transition-opacity hover:opacity-100 focus-visible:shadow-focus-ring focus-visible:outline-none"
                           aria-label={`Permission ${fullPermission} entziehen`}
                         >
                           {' '}

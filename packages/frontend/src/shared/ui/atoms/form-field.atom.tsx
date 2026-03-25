@@ -41,7 +41,7 @@ export function FormField({ label, helperText, error, required, className, child
   return (
     <div className={cn('space-y-2', className)}>
       {label && (
-        <label htmlFor={htmlFor} className="block font-medium text-sm text-text-secondary">
+        <label htmlFor={htmlFor} className="block text-sm font-medium text-text-secondary">
           {label}
           {required && <span className="ml-1 text-status-danger-text">*</span>}
         </label>

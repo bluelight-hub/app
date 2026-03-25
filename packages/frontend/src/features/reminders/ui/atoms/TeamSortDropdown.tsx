@@ -73,7 +73,7 @@ export function TeamSortDropdown({ selectedSort, onSortChange, disabled = false,
             'absolute z-20 mt-1 max-h-60 w-full min-w-[160px] overflow-auto rounded-panel bg-surface-panel py-1 text-sm shadow-panel',
             'border border-border-subtle',
             'focus:outline-none',
-            'data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in',
+            'data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in data-[closed]:data-[leave]:opacity-0',
           )}
         >
           {SORT_OPTIONS.map((option) => (
@@ -81,7 +81,7 @@ export function TeamSortDropdown({ selectedSort, onSortChange, disabled = false,
               key={option.value}
               value={option.value}
               className={cn(
-                'relative flex cursor-pointer select-none items-center gap-2 px-3 py-2',
+                'relative flex cursor-pointer items-center gap-2 px-3 py-2 select-none',
                 'text-text-primary',
                 'data-[focus]:bg-primary-50 data-[focus]:text-primary-900',
                 'dark:data-[focus]:bg-primary-900/30 dark:data-[focus]:text-primary-100',

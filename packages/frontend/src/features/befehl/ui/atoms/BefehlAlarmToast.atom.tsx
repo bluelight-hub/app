@@ -103,7 +103,7 @@ export function BefehlAlarmToast({ toastId, befehlId, einsatzId, nummer, befehls
       aria-atomic="true"
       onKeyDown={handleKeyDown}
       className={cn(
-        'min-w-[300px] max-w-[420px] rounded-xl border-2 border-status-warning-border bg-status-warning-text p-4 text-text-inverse shadow-2xl',
+        'max-w-[420px] min-w-[300px] rounded-xl border-2 border-status-warning-border bg-status-warning-text p-4 text-text-inverse shadow-2xl',
         'focus:outline-none focus-visible:shadow-focus-ring',
       )}
     >
@@ -111,20 +111,20 @@ export function BefehlAlarmToast({ toastId, befehlId, einsatzId, nummer, befehls
       <div className="mb-2 flex items-start justify-between gap-3">
         <div className="flex items-center gap-2">
           <PiMegaphoneFill className="size-5 shrink-0 animate-bounce text-white" />
-          <span className="font-semibold leading-tight">Neuer Befehl #{nummer}</span>
+          <span className="leading-tight font-semibold">Neuer Befehl #{nummer}</span>
         </div>
       </div>
 
       {/* Info */}
-      <p className="mb-3 text-text-inverse/85 text-sm leading-snug">{displayInfo}</p>
+      <p className="mb-3 text-sm leading-snug text-text-inverse/85">{displayInfo}</p>
 
       {/* Status */}
-      <div className="mb-3 flex items-center gap-3 text-text-inverse/85 text-sm">
+      <div className="mb-3 flex items-center gap-3 text-sm text-text-inverse/85">
         <div className="flex items-center gap-1">
           <PiClock className="size-4" />
           <span>seit {elapsedTime}</span>
         </div>
-        <span className="rounded bg-surface-inverse/18 px-2 py-0.5 font-bold text-xs">BEFEHL</span>
+        <span className="rounded bg-surface-inverse/18 px-2 py-0.5 text-xs font-bold">BEFEHL</span>
       </div>
 
       {/* Actions */}
@@ -157,7 +157,7 @@ export function BefehlAlarmToast({ toastId, befehlId, einsatzId, nummer, befehls
       </div>
 
       {/* Keyboard Hint */}
-      <div className="mt-2 text-center text-text-inverse/70 text-xs">Enter: Zum Befehl | Esc: Zur Kenntnis</div>
+      <div className="mt-2 text-center text-xs text-text-inverse/70">Enter: Zum Befehl | Esc: Zur Kenntnis</div>
     </div>
   );
 }
@@ -263,13 +263,13 @@ export function QuittierungAlarmToast({ toastId, befehlId, einsatzId, nummer, qu
       aria-live="assertive"
       aria-atomic="true"
       onKeyDown={handleKeyDown}
-      className={cn('min-w-[300px] max-w-[420px] rounded-xl border-2 p-4 shadow-2xl', style.border, style.bg, 'text-text-inverse', style.ring)}
+      className={cn('max-w-[420px] min-w-[300px] rounded-xl border-2 p-4 shadow-2xl', style.border, style.bg, 'text-text-inverse', style.ring)}
     >
       {/* Header */}
       <div className="mb-2 flex items-start justify-between gap-3">
         <div className="flex items-center gap-2">
           <Icon className="size-5 shrink-0 animate-bounce text-white" />
-          <span className="font-semibold leading-tight">{style.title(nummer)}</span>
+          <span className="leading-tight font-semibold">{style.title(nummer)}</span>
         </div>
       </div>
 
@@ -282,7 +282,7 @@ export function QuittierungAlarmToast({ toastId, befehlId, einsatzId, nummer, qu
           <PiClock className="size-4" />
           <span>vor {elapsedTime}</span>
         </div>
-        <span className={cn('rounded px-2 py-0.5 font-bold text-xs', style.badge)}>{style.badgeText}</span>
+        <span className={cn('rounded px-2 py-0.5 text-xs font-bold', style.badge)}>{style.badgeText}</span>
       </div>
 
       {/* Actions */}
@@ -385,7 +385,7 @@ export function KorrekturAlarmToast({ toastId, befehlId, einsatzId, nummer, time
       aria-atomic="true"
       onKeyDown={handleKeyDown}
       className={cn(
-        'min-w-[300px] max-w-[420px] rounded-xl border-2 border-status-info-border bg-status-info-text p-4 text-text-inverse shadow-2xl',
+        'max-w-[420px] min-w-[300px] rounded-xl border-2 border-status-info-border bg-status-info-text p-4 text-text-inverse shadow-2xl',
         'focus:outline-none focus-visible:shadow-focus-ring',
       )}
     >
@@ -393,12 +393,12 @@ export function KorrekturAlarmToast({ toastId, befehlId, einsatzId, nummer, time
       <div className="mb-2 flex items-start justify-between gap-3">
         <div className="flex items-center gap-2">
           <PiArrowsClockwise className="size-5 shrink-0 animate-spin text-white" />
-          <span className="font-semibold leading-tight">Befehl #{nummer} korrigiert</span>
+          <span className="leading-tight font-semibold">Befehl #{nummer} korrigiert</span>
         </div>
       </div>
 
       {/* Info */}
-      <p className="mb-3 text-sm text-text-inverse/85 leading-snug">Dieser Befehl wurde durch eine Korrektur ersetzt</p>
+      <p className="mb-3 text-sm leading-snug text-text-inverse/85">Dieser Befehl wurde durch eine Korrektur ersetzt</p>
 
       {/* Status */}
       <div className="mb-3 flex items-center gap-3 text-sm text-text-inverse/85">
@@ -406,7 +406,7 @@ export function KorrekturAlarmToast({ toastId, befehlId, einsatzId, nummer, time
           <PiClock className="size-4" />
           <span>vor {elapsedTime}</span>
         </div>
-        <span className="rounded bg-surface-inverse/18 px-2 py-0.5 font-bold text-xs">KORRIGIERT</span>
+        <span className="rounded bg-surface-inverse/18 px-2 py-0.5 text-xs font-bold">KORRIGIERT</span>
       </div>
 
       {/* Actions */}
@@ -439,7 +439,7 @@ export function KorrekturAlarmToast({ toastId, befehlId, einsatzId, nummer, time
       </div>
 
       {/* Keyboard Hint */}
-      <div className="mt-2 text-center text-text-inverse/70 text-xs">Enter: Zum Befehl | Esc: Schließen</div>
+      <div className="mt-2 text-center text-xs text-text-inverse/70">Enter: Zum Befehl | Esc: Schließen</div>
     </div>
   );
 }

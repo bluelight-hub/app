@@ -12,8 +12,8 @@ function NachschubComponent() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="font-bold text-2xl text-text-primary">Nachschub</h1>
-        <p className="mt-1 text-text-muted text-sm">Nachforderungen und Materialbestellung</p>
+        <h1 className="text-2xl font-bold text-text-primary">Nachschub</h1>
+        <p className="mt-1 text-sm text-text-muted">Nachforderungen und Materialbestellung</p>
       </div>
 
       <div className="rounded-lg bg-surface-panel p-4 shadow">

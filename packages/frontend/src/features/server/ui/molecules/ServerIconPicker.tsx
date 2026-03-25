@@ -117,7 +117,7 @@ function IconButton({ iconValue, name, isSelected, disabled, onClick, onKeyDown,
   );
 
   return (
-    // biome-ignore lint/a11y/useSemanticElements: Custom Radio Group Pattern - Button mit role="radio" ermöglicht flexibles Grid-Layout und konsistentes Styling mit anderen Picker-Komponenten (ServerColorPicker)
+    // eslint-disable-next-line jsx-a11y/prefer-tag-over-role -- Custom Radio Group Pattern - Button mit role="radio" ermöglicht flexibles Grid-Layout und konsistentes Styling mit anderen Picker-Komponenten (ServerColorPicker)
     <button
       type="button"
       role="radio"
@@ -146,7 +146,7 @@ function IconButton({ iconValue, name, isSelected, disabled, onClick, onKeyDown,
       )}
     >
       {IconComponent ? <IconComponent className="size-6 text-text-secondary" /> : <PiX className="size-6 text-text-secondary" />}
-      <span className="text-text-muted text-xs">{name}</span>
+      <span className="text-xs text-text-muted">{name}</span>
     </button>
   );
 }
@@ -251,7 +251,7 @@ export function ServerIconPicker({ value, onChange, disabled = false, className 
 
   return (
     <div className={cn('flex flex-col gap-2', className)}>
-      <span className="font-medium text-sm text-text-secondary">Icon auswählen</span>
+      <span className="text-sm font-medium text-text-secondary">Icon auswählen</span>
       <div ref={containerRef} role="radiogroup" aria-label="Server-Icon auswählen" className="grid grid-cols-4 gap-2">
         {options.map((option, index) => {
           const isSelected = isValidValue && normalizedValue === option.value;

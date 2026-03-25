@@ -144,7 +144,7 @@ export const Button = React.memo(
           <span className={cn('inline-flex items-center', CONTENT_SIZES[size], loading && 'invisible')}>
             {children}
             {kbd && (
-              <kbd className={cn('ml-2 inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 font-medium text-xs', kbdStyles)}>
+              <kbd className={cn('ml-2 inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-xs font-medium', kbdStyles)}>
                 {kbd.split('+').map((key) => {
                   const normalizedKey = key.trim().toLowerCase();
                   const displayKey = KEY_MAP[normalizedKey] || key.charAt(0).toUpperCase() + key.slice(1).toLowerCase();

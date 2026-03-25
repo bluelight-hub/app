@@ -139,8 +139,8 @@ export function ErinnerungHistoryDialog({ isOpen, onClose, erinnerung, einsatzId
               leaveTo="opacity-0 scale-95"
             >
               <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-panel bg-surface-panel p-4 text-left align-middle shadow-panel transition-all">
-                <div className="flex items-center justify-between border-border-subtle border-b pb-4">
-                  <Dialog.Title as="h3" className="font-medium text-lg text-text-primary leading-6">
+                <div className="flex items-center justify-between border-b border-border-subtle pb-4">
+                  <Dialog.Title as="h3" className="text-lg leading-6 font-medium text-text-primary">
                     Verlauf
                   </Dialog.Title>
                   <Button appearance="ghost" size="sm" onClick={onClose} className="-mr-2 h-8 w-8 p-0">
@@ -176,12 +176,12 @@ export function ErinnerungHistoryDialog({ isOpen, onClose, erinnerung, einsatzId
                               </div>
                               <div className="flex min-w-0 flex-1 justify-between space-x-4">
                                 <div>
-                                  <p className="font-medium text-sm text-text-primary">
+                                  <p className="text-sm font-medium text-text-primary">
                                     {event.title} {event.user && <span className="font-normal text-text-muted">durch {event.user}</span>}
                                   </p>
                                   {event.description && <p className="mt-0.5 text-sm text-text-muted">{event.description}</p>}
                                 </div>
-                                <div className="whitespace-nowrap text-right text-sm text-text-muted">
+                                <div className="text-right text-sm whitespace-nowrap text-text-muted">
                                   <time dateTime={event.date}>{format(new Date(event.date), 'HH:mm')}</time>
                                   <div className="text-xs">{format(new Date(event.date), 'dd.MM.')}</div>
                                 </div>
@@ -196,7 +196,7 @@ export function ErinnerungHistoryDialog({ isOpen, onClose, erinnerung, einsatzId
 
                 {/* Story 5.7: ETB-Verknüpfungen Widget */}
                 {einsatzId && (
-                  <div className="mt-6 border-border-subtle border-t pt-4">
+                  <div className="mt-6 border-t border-border-subtle pt-4">
                     <ErinnerungEtbHistoryWidget erinnerungId={erinnerung.id} einsatzId={einsatzId} onEntryClick={handleEtbEntryClick} className="bg-surface-raised" />
                   </div>
                 )}

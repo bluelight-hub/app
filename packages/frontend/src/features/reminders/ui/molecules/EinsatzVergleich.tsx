@@ -60,7 +60,7 @@ export function EinsatzVergleich({ einsatzId, className }: EinsatzVergleichProps
 
   return (
     <div className={cn('flex flex-col gap-2', className)}>
-      <button type="button" className="flex items-center gap-1 font-medium text-sm text-text-secondary" onClick={() => setIsExpanded(!isExpanded)} aria-expanded={isExpanded}>
+      <button type="button" className="flex items-center gap-1 text-sm font-medium text-text-secondary" onClick={() => setIsExpanded(!isExpanded)} aria-expanded={isExpanded}>
         {isExpanded ? <PiCaretDown className="h-4 w-4" /> : <PiCaretRight className="h-4 w-4" />}
         <PiChartBar className="h-4 w-4" />
         Einsatz-Vergleich
@@ -83,7 +83,7 @@ export function EinsatzVergleich({ einsatzId, className }: EinsatzVergleichProps
                       <ListboxOption
                         key={e.id}
                         value={e.id}
-                        className={({ focus }) => cn('relative cursor-pointer select-none py-2 pr-9 pl-3', focus ? 'bg-action-primary text-text-inverse' : 'text-text-primary')}
+                        className={({ focus }) => cn('relative cursor-pointer py-2 pr-9 pl-3 select-none', focus ? 'bg-action-primary text-text-inverse' : 'text-text-primary')}
                       >
                         {({ selected }) => (
                           <>
@@ -149,8 +149,8 @@ export function EinsatzVergleich({ einsatzId, className }: EinsatzVergleichProps
                           <tr key={item.einsatzId} className={cn(item.einsatzId === einsatzId && 'bg-action-secondary')}>
                             <td className="px-3 py-2 font-medium text-text-primary">
                               {item.alarmstichwort ?? 'k.A.'}
-                              {item.einsatzId === einsatzId && <span className="ml-1 text-action-primary text-xs">(aktuell)</span>}
-                              {item.alarmierungszeit && <span className="ml-1 text-text-muted text-xs">{formatTimestamp(item.alarmierungszeit)}</span>}
+                              {item.einsatzId === einsatzId && <span className="ml-1 text-xs text-action-primary">(aktuell)</span>}
+                              {item.alarmierungszeit && <span className="ml-1 text-xs text-text-muted">{formatTimestamp(item.alarmierungszeit)}</span>}
                             </td>
                             <td className="px-3 py-2 text-right text-text-secondary">{item.gesamtErinnerungen}</td>
                             <td className="px-3 py-2 text-right text-text-secondary">{item.erinnerungenProStunde.toFixed(1)}</td>

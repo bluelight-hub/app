@@ -47,18 +47,18 @@ const EtbFullscreenEntry: React.FC<EtbFullscreenEntryProps> = ({ entry, getUserN
   return (
     <div className={cn('rounded-lg border border-border-subtle bg-surface-panel p-6 shadow-sm', entry.deletedAt && 'opacity-50')}>
       {/* Header: Zeitstempel, Sequenznummer, Kategorie */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-border-subtle border-b pb-4">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-border-subtle pb-4">
         <div className="flex flex-wrap items-center gap-3">
-          <span className="font-mono font-semibold text-2xl text-text-primary">#{entry.sequenceNumber}</span>
+          <span className="font-mono text-2xl font-semibold text-text-primary">#{entry.sequenceNumber}</span>
           <EtbKategorieBadge kategorie={entry.kategorie} size="lg" />
-          {entry.deletedAt && <span className="rounded-full bg-status-danger-surface px-3 py-1 font-semibold text-sm text-status-danger-text">Gelöscht</span>}
+          {entry.deletedAt && <span className="rounded-full bg-status-danger-surface px-3 py-1 text-sm font-semibold text-status-danger-text">Gelöscht</span>}
         </div>
-        <span className="font-medium text-lg text-text-secondary">{formatDisplayDateTime(entry.timestamp)}</span>
+        <span className="text-lg font-medium text-text-secondary">{formatDisplayDateTime(entry.timestamp)}</span>
       </div>
 
       {/* Text-Content */}
       <div className="mb-4">
-        <p className={cn('whitespace-pre-wrap break-words text-xl leading-relaxed', entry.deletedAt ? 'text-text-secondary line-through' : 'text-text-primary')}>{entry.text}</p>
+        <p className={cn('text-xl leading-relaxed break-words whitespace-pre-wrap', entry.deletedAt ? 'text-text-secondary line-through' : 'text-text-primary')}>{entry.text}</p>
       </div>
 
       {/* Screenshot Preview (if exists) */}
@@ -69,7 +69,7 @@ const EtbFullscreenEntry: React.FC<EtbFullscreenEntryProps> = ({ entry, getUserN
       )}
 
       {/* Meta-Informationen */}
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-border-subtle border-t pt-4 text-sm text-text-secondary">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-border-subtle pt-4 text-sm text-text-secondary">
         <div className="flex items-center gap-2">
           <PiUser className="h-4 w-4" />
           <span>{getUserName(entry.createdBy) ?? 'Unbekannt'}</span>
@@ -86,7 +86,7 @@ const EtbFullscreenEntry: React.FC<EtbFullscreenEntryProps> = ({ entry, getUserN
             <span>{entry.standort}</span>
           </div>
         )}
-        {entry.isAutomatic && <span className="inline-flex items-center rounded bg-status-info-surface px-2 py-1 text-status-info-text text-xs">🤖 Automatisch</span>}
+        {entry.isAutomatic && <span className="inline-flex items-center rounded bg-status-info-surface px-2 py-1 text-xs text-status-info-text">🤖 Automatisch</span>}
       </div>
     </div>
   );
@@ -103,10 +103,10 @@ interface EtbFullscreenToolbarProps {
 
 const EtbFullscreenToolbar: React.FC<EtbFullscreenToolbarProps> = ({ totalEntries, loadedEntries, sortOrder }) => {
   return (
-    <div className="sticky top-0 z-10 border-border-subtle border-b bg-surface-panel px-6 py-4 shadow-sm">
+    <div className="sticky top-0 z-10 border-b border-border-subtle bg-surface-panel px-6 py-4 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-semibold text-2xl text-text-primary">Einsatztagebuch</h1>
+          <h1 className="text-2xl font-semibold text-text-primary">Einsatztagebuch</h1>
           <p className="mt-1 text-sm text-text-secondary">
             {loadedEntries} von {totalEntries} Einträgen geladen · {sortOrder === 'desc' ? 'Neueste zuerst' : 'Älteste zuerst'}
           </p>
@@ -212,7 +212,7 @@ export function EtbFullscreenView({ einsatzId, sortOrder = 'desc', showDeleted =
       <div className="flex h-screen w-screen flex-col items-center justify-center bg-surface-canvas">
         <FullscreenCloseButton onClose={handleClose} />
         <PiWarning className="mb-4 h-16 w-16 text-status-warning-text" />
-        <h2 className="mb-2 font-semibold text-2xl text-text-primary">Ungültige Einsatz-ID</h2>
+        <h2 className="mb-2 text-2xl font-semibold text-text-primary">Ungültige Einsatz-ID</h2>
         <p className="text-center text-text-secondary">Die angegebene Einsatz-ID ist ungültig oder fehlt.</p>
       </div>
     );
@@ -224,7 +224,7 @@ export function EtbFullscreenView({ einsatzId, sortOrder = 'desc', showDeleted =
       <div className="flex h-screen w-screen flex-col items-center justify-center bg-surface-canvas">
         <FullscreenCloseButton onClose={handleClose} />
         <PiWarning className="mb-4 h-16 w-16 text-status-warning-text" />
-        <h2 className="mb-2 font-semibold text-2xl text-text-primary">ETB konnte nicht geladen werden</h2>
+        <h2 className="mb-2 text-2xl font-semibold text-text-primary">ETB konnte nicht geladen werden</h2>
         <p className="text-center text-text-secondary">Es ist ein Fehler beim Laden des Einsatztagebuchs aufgetreten.</p>
       </div>
     );
@@ -246,7 +246,7 @@ export function EtbFullscreenView({ einsatzId, sortOrder = 'desc', showDeleted =
     return (
       <div className="flex h-screen w-screen flex-col items-center justify-center bg-surface-canvas">
         <FullscreenCloseButton onClose={handleClose} />
-        <h2 className="mb-2 font-semibold text-2xl text-text-primary">Keine Einträge vorhanden</h2>
+        <h2 className="mb-2 text-2xl font-semibold text-text-primary">Keine Einträge vorhanden</h2>
         <p className="text-center text-text-secondary">Es wurden noch keine ETB-Einträge für diesen Einsatz erstellt.</p>
       </div>
     );

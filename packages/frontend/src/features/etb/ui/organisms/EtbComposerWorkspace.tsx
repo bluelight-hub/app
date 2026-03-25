@@ -299,7 +299,7 @@ export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbCompose
             </nav>
             {/* Titel + Status */}
             <div className="mt-1 flex items-center gap-3">
-              <h1 id="composer-heading" className="font-semibold text-2xl text-text-primary">
+              <h1 id="composer-heading" className="text-2xl font-semibold text-text-primary">
                 Einsatztagebuch
               </h1>
               {etb?.status && <EtbStatusBadge status={etb.status as EtbStatus} showDot />}
@@ -346,14 +346,14 @@ export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbCompose
               <button
                 type="button"
                 onClick={() => navBlocker.reset()}
-                className="rounded-control px-3 py-1.5 font-medium text-status-warning-text text-xs hover:bg-status-warning-surface/80 focus:outline-none focus-visible:shadow-focus-ring"
+                className="rounded-control px-3 py-1.5 text-xs font-medium text-status-warning-text hover:bg-status-warning-surface/80 focus:outline-none focus-visible:shadow-focus-ring"
               >
                 Bleiben
               </button>
               <button
                 type="button"
                 onClick={() => navBlocker.proceed()}
-                className="rounded-control bg-status-warning-text px-3 py-1.5 font-medium text-text-inverse text-xs hover:opacity-90 focus:outline-none focus-visible:shadow-focus-ring"
+                className="rounded-control bg-status-warning-text px-3 py-1.5 text-xs font-medium text-text-inverse hover:opacity-90 focus:outline-none focus-visible:shadow-focus-ring"
               >
                 Verlassen
               </button>
@@ -389,7 +389,7 @@ export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbCompose
         ) : (
           <div className="rounded-lg bg-surface-panel p-4 shadow">
             <div className="mb-4">
-              <h2 className="font-medium text-lg text-text-primary">Neuer Eintrag</h2>
+              <h2 className="text-lg font-medium text-text-primary">Neuer Eintrag</h2>
             </div>
             <EtbEntryForm
               etbId={etb.id}
@@ -410,7 +410,7 @@ export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbCompose
         {/* Eintragliste mit Infinite Scrolling */}
         <div className="overflow-hidden rounded-lg bg-surface-panel shadow">
           <div className="border-b border-border-subtle px-4 py-4">
-            <h2 className="font-medium text-lg text-text-primary">
+            <h2 className="text-lg font-medium text-text-primary">
               Einträge
               {data?.pages?.[0]?.pagination?.total ? (
                 <span className="ml-2 text-sm text-text-muted">

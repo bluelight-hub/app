@@ -88,10 +88,10 @@ export function CommandItem({ command, onSelect, isActive = true }: CommandItemP
           <span className={cn('font-medium', command.destructive ? 'text-status-danger-text' : 'text-text-primary')}>{command.name}</span>
           {command.badge && <span className={commandItemClasses.badge}>{command.badge}</span>}
           {isDisabled && <span className={commandItemClasses.badge}>Gesperrt</span>}
-          {command.subCommands && command.subCommands.length > 0 && <span className="text-text-muted text-xs">→</span>}
+          {command.subCommands && command.subCommands.length > 0 && <span className="text-xs text-text-muted">→</span>}
           {command.external && <PiArrowUpRight className="h-3 w-3 text-text-muted" />}
         </div>
-        <p className="mt-0.5 text-text-secondary text-xs">{command.disabledReason ?? command.description ?? `in ${command.module}`}</p>
+        <p className="mt-0.5 text-xs text-text-secondary">{command.disabledReason ?? command.description ?? `in ${command.module}`}</p>
       </div>
 
       {/* Actions/Shortcuts */}

@@ -36,7 +36,7 @@ export function ReaktionszeitStatistik({ einsatzId, className }: ReaktionszeitSt
 
   return (
     <div className={cn('flex flex-col gap-2', className)}>
-      <button type="button" className="flex items-center gap-1 font-medium text-sm text-text-secondary" onClick={() => setIsExpanded(!isExpanded)} aria-expanded={isExpanded}>
+      <button type="button" className="flex items-center gap-1 text-sm font-medium text-text-secondary" onClick={() => setIsExpanded(!isExpanded)} aria-expanded={isExpanded}>
         {isExpanded ? <PiCaretDown className="h-4 w-4" /> : <PiCaretRight className="h-4 w-4" />}
         <PiTimer className="h-4 w-4" />
         Reaktionszeit-Statistik

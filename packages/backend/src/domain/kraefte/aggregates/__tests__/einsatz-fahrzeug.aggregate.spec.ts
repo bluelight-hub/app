@@ -1631,7 +1631,7 @@ describe('EinsatzFahrzeug Aggregate', () => {
         fahrzeug.clearDomainEvents(); // Clear creation event
 
         // Spy on addDomainEvent method to verify it's NEVER called
-        // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+        // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
         const addDomainEventSpy = jest.spyOn(fahrzeug as any, 'addDomainEvent');
 
         // When (Act) - Set to SAME status (idempotent operation)

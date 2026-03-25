@@ -21,10 +21,7 @@ if (!targetName || !(targetName in targets)) {
 }
 
 const target = targets[targetName];
-const baseUrl = (process.env.BLUELIGHT_OPENAPI_BASE_URL ?? process.env.OPENAPI_GENERATOR_BASE_URL ?? 'https://localhost:3091').replace(
-  /\/+$/,
-  '',
-);
+const baseUrl = (process.env.BLUELIGHT_OPENAPI_BASE_URL ?? process.env.OPENAPI_GENERATOR_BASE_URL ?? 'https://localhost:3091').replace(/\/+$/, '');
 const specUrl = `${baseUrl}${target.specPath}`;
 
 rmSync(path.resolve(process.cwd(), target.outputDir), { recursive: true, force: true });
@@ -33,24 +30,10 @@ console.log(`[generate-api] Target: ${targetName}`);
 console.log(`[generate-api] Spec:   ${specUrl}`);
 
 const pnpmBinary = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
-const result = spawnSync(
-  pnpmBinary,
-  [
-    'exec',
-    'openapi-generator-cli',
-    'generate',
-    '-g=typescript-fetch',
-    '-i',
-    specUrl,
-    '-o',
-    `./${target.outputDir}`,
-    '--skip-validate-spec',
-  ],
-  {
-    env: process.env,
-    stdio: 'inherit',
-  },
-);
+const result = spawnSync(pnpmBinary, ['exec', 'openapi-generator-cli', 'generate', '-g=typescript-fetch', '-i', specUrl, '-o', `./${target.outputDir}`, '--skip-validate-spec'], {
+  env: process.env,
+  stdio: 'inherit',
+});
 
 if (result.error) {
   throw result.error;

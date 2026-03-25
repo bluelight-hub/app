@@ -152,9 +152,9 @@ export const TokenRotationModal = ({ isOpen, onClose, tokenToRotate, onTokenRota
             </div>
 
             <div role="status" aria-live="polite" aria-atomic="true" className="rounded-panel border-2 border-status-success-border bg-status-success-surface p-4">
-              <div className="mb-2 font-medium text-sm text-text-secondary">Neues Access-Token:</div>
+              <div className="mb-2 text-sm font-medium text-text-secondary">Neues Access-Token:</div>
               <div className="flex items-center gap-2">
-                <code className="flex-1 overflow-x-auto rounded-control bg-surface-panel px-3 py-2 font-bold font-mono text-sm text-status-success-text">{rotatedToken}</code>
+                <code className="flex-1 overflow-x-auto rounded-control bg-surface-panel px-3 py-2 font-mono text-sm font-bold text-status-success-text">{rotatedToken}</code>
                 <Button
                   intent={copied ? 'success' : 'secondary'}
                   appearance="outline"
@@ -173,10 +173,10 @@ export const TokenRotationModal = ({ isOpen, onClose, tokenToRotate, onTokenRota
               </div>
             </div>
 
-            <div className="border-border-subtle border-t pt-4">
+            <div className="border-t border-border-subtle pt-4">
               <label htmlFor="token-rotation-confirmed" className="flex cursor-pointer items-start gap-3">
                 <Checkbox checked={confirmed} onChange={setConfirmed} id="token-rotation-confirmed" name="token-rotation-confirmed" className="mt-0.5" />
-                <span className={cn('select-none text-sm', confirmed ? 'text-status-success-text' : 'text-text-secondary')}>
+                <span className={cn('text-sm select-none', confirmed ? 'text-status-success-text' : 'text-text-secondary')}>
                   Ich habe das neue Token sicher gespeichert und verstehe, dass es nicht erneut angezeigt werden kann.
                 </span>
               </label>
@@ -228,7 +228,7 @@ export const TokenRotationModal = ({ isOpen, onClose, tokenToRotate, onTokenRota
             )}
 
             <div className="rounded-panel border border-border-subtle bg-surface-raised p-3">
-              <div className="text-text-muted text-xs">Aktuelles Token</div>
+              <div className="text-xs text-text-muted">Aktuelles Token</div>
               <div className="flex items-center gap-2">
                 <span className="font-medium text-text-primary">{tokenToRotate?.name ?? 'Kein Name'}</span>
                 <code className="text-sm text-text-muted">({tokenToRotate?.prefix}...)</code>

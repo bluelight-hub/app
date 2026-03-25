@@ -139,7 +139,7 @@ export const PoiPlacementControl: React.FC<PoiPlacementControlProps> = ({ onPoiT
                   return (
                     <>
                       <config.Icon size={20} color={config.color} aria-hidden="true" />
-                      <span className="font-semibold text-status-info-text text-sm">{formatPoiTypeLabel(selectedType)}</span>
+                      <span className="text-sm font-semibold text-status-info-text">{formatPoiTypeLabel(selectedType)}</span>
                     </>
                   );
                 })()}
@@ -160,7 +160,7 @@ export const PoiPlacementControl: React.FC<PoiPlacementControlProps> = ({ onPoiT
               <div className="p-2">
                 {/* Header mit Schließen-Button */}
                 <div className="mb-2 flex items-center justify-between px-1">
-                  <span className="font-semibold text-text-primary text-sm">POI-Typ wählen</span>
+                  <span className="text-sm font-semibold text-text-primary">POI-Typ wählen</span>
                   <Button onClick={handleToggleExpand} intent="secondary" appearance="ghost" size="icon" className="p-1" aria-label="Kategorien schließen">
                     <PiX size={18} aria-hidden="true" />
                   </Button>
@@ -209,7 +209,7 @@ export const PoiPlacementControl: React.FC<PoiPlacementControlProps> = ({ onPoiT
                     return (
                       <>
                         <config.Icon size={22} color={config.color} aria-hidden="true" />
-                        <span className="font-semibold text-base text-status-info-text">{formatPoiTypeLabel(selectedType)}</span>
+                        <span className="text-base font-semibold text-status-info-text">{formatPoiTypeLabel(selectedType)}</span>
                       </>
                     );
                   })()}
@@ -257,7 +257,7 @@ export const PoiPlacementControl: React.FC<PoiPlacementControlProps> = ({ onPoiT
                                 fullWidth
                                 showFocusState={focus}
                                 className={cn(
-                                  'font-medium text-base',
+                                  'text-base font-medium',
                                   // Override default hover scale for dropdown items
                                   'hover:scale-100',
                                   'px-4 py-3',

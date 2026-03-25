@@ -48,7 +48,7 @@ export function EinsatzSwitcher() {
           className={cn(
             'group flex w-full items-center gap-2 rounded-lg border border-border-subtle bg-surface-raised px-3 py-2 text-left text-sm',
             'hover:bg-action-secondary',
-            'focus-visible:outline-none focus-visible:shadow-focus-ring',
+            'focus-visible:shadow-focus-ring focus-visible:outline-none',
           )}
           aria-label="Einsatz wechseln"
         >

@@ -218,7 +218,7 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
           <form.Field name="titel">
             {(field) => (
               <div>
-                <label htmlFor="edit-titel" className="mb-1.5 block font-medium text-sm text-text-secondary">
+                <label htmlFor="edit-titel" className="mb-1.5 block text-sm font-medium text-text-secondary">
                   Titel
                 </label>
                 <Input
@@ -245,7 +245,7 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
                   <form.Field name="customTime">
                     {(customTimeField) => (
                       <fieldset className="m-0 border-none p-0">
-                        <legend className="mb-2 font-medium text-sm text-text-secondary">Faelligkeit</legend>
+                        <legend className="mb-2 text-sm font-medium text-text-secondary">Faelligkeit</legend>
 
                         {/* Zeit-Optionen als Chips */}
                         <div className="flex flex-wrap gap-2">
@@ -258,7 +258,7 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
                             }}
                             disabled={isPending}
                             className={cn(
-                              'min-h-[48px] rounded-full px-4 py-2 font-medium text-sm transition-all duration-200',
+                              'min-h-[48px] rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
                               'focus:outline-none focus-visible:shadow-focus-ring',
                               timeModeField.state.value === 'unchanged'
                                 ? 'bg-action-primary text-text-inverse shadow-md hover:bg-action-primary-hover'
@@ -281,7 +281,7 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
                               }}
                               disabled={isPending}
                               className={cn(
-                                'min-h-[48px] rounded-full px-4 py-2 font-medium text-sm transition-all duration-200',
+                                'min-h-[48px] rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
                                 'focus:outline-none focus-visible:shadow-focus-ring',
                                 timeModeField.state.value === 'preset' && minutenField.state.value === preset.value
                                   ? 'bg-status-warning-text text-text-inverse shadow-md hover:opacity-90'
@@ -306,7 +306,7 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
                             }}
                             disabled={isPending}
                             className={cn(
-                              'flex min-h-[48px] items-center gap-1.5 rounded-full px-4 py-2 font-medium text-sm transition-all duration-200',
+                              'flex min-h-[48px] items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
                               'focus:outline-none focus-visible:shadow-focus-ring',
                               timeModeField.state.value === 'custom'
                                 ? 'bg-status-warning-text text-text-inverse shadow-md hover:opacity-90'
@@ -322,7 +322,7 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
                         {/* TimeInput erscheint bei Benutzerdefiniert */}
                         {timeModeField.state.value === 'custom' && (
                           <div className="mt-4">
-                            <span className="mb-1.5 block font-medium text-sm text-text-secondary">Uhrzeit eingeben</span>
+                            <span className="mb-1.5 block text-sm font-medium text-text-secondary">Uhrzeit eingeben</span>
                             <TimeInput
                               value={customTimeField.state.value ?? initialCustomTime}
                               onChange={(newTime) => customTimeField.handleChange(newTime)}
@@ -362,18 +362,18 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
           {/* Story 4.1: Eskalationsperson - Story 4.10: Nicht änderbar wenn Rückläufer aktiv */}
           {(erinnerung as unknown as { eskalationNurAnErsteller?: boolean })?.eskalationNurAnErsteller ? (
             <div className="rounded-panel border border-status-warning-border bg-status-warning-surface p-3">
-              <p className="flex items-center gap-2 font-medium text-sm text-status-warning-text">
+              <p className="flex items-center gap-2 text-sm font-medium text-status-warning-text">
                 <span className="text-base">↩️</span>
                 Rückläufer aktiv
               </p>
-              <p className="mt-1 text-status-warning-text text-xs">Eskalation geht automatisch an den Ersteller zurück. Diese Einstellung kann nicht geändert werden.</p>
+              <p className="mt-1 text-xs text-status-warning-text">Eskalation geht automatisch an den Ersteller zurück. Diese Einstellung kann nicht geändert werden.</p>
             </div>
           ) : (
             <form.Field name="eskalationsPersonId">
               {(field) => (
                 <div>
-                  <label htmlFor="edit-eskalationsPersonId" className="mb-1.5 block font-medium text-sm text-text-secondary">
-                    Eskalation an <span className="text-text-muted text-xs">(optional)</span>
+                  <label htmlFor="edit-eskalationsPersonId" className="mb-1.5 block text-sm font-medium text-text-secondary">
+                    Eskalation an <span className="text-xs text-text-muted">(optional)</span>
                   </label>
                   <AssigneeSelector
                     einsatzId={einsatzId}
@@ -384,7 +384,7 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
                     error={field.state.meta.errors.length > 0 ? formatErrors(field.state.meta.errors) : undefined}
                     placeholder="Keine Eskalation"
                   />
-                  <p className="mt-1 text-text-muted text-xs">Wird benachrichtigt, wenn Zuweisungsempfänger nicht reagiert</p>
+                  <p className="mt-1 text-xs text-text-muted">Wird benachrichtigt, wenn Zuweisungsempfänger nicht reagiert</p>
                 </div>
               )}
             </form.Field>
@@ -394,8 +394,8 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
           <form.Field name="beschreibung">
             {(field) => (
               <div>
-                <label htmlFor="edit-beschreibung" className="mb-1.5 block font-medium text-sm text-text-secondary">
-                  Beschreibung <span className="text-text-muted text-xs">(optional)</span>
+                <label htmlFor="edit-beschreibung" className="mb-1.5 block text-sm font-medium text-text-secondary">
+                  Beschreibung <span className="text-xs text-text-muted">(optional)</span>
                 </label>
                 <textarea
                   id="edit-beschreibung"

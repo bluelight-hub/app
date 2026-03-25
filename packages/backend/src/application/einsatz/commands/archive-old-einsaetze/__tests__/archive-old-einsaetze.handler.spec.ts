@@ -37,7 +37,7 @@ function createMockEinsatz(_id: string, abgeschlossenYearsAgo?: number): Einsatz
   if (abgeschlossenYearsAgo !== undefined) {
     const pastDate = new Date();
     pastDate.setFullYear(pastDate.getFullYear() - abgeschlossenYearsAgo);
-    // biome-ignore lint/suspicious/noExplicitAny: Test helper needs to modify readonly abgeschlossenAt
+    // eslint-disable-next-line typescript/no-explicit-any -- Test helper needs to modify readonly abgeschlossenAt
     (einsatz as any)._abgeschlossenAt = pastDate;
   }
 
@@ -79,12 +79,12 @@ describe('ArchiveOldEinsaetzeHandler', () => {
       exists: jest.fn(),
       countByStatus: jest.fn(),
       findAllPaginated: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Mock repository needs flexible typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Mock repository needs flexible typing
     } as any;
 
     mockOutboxRepository = {
       save: jest.fn().mockResolvedValue(undefined),
-      // biome-ignore lint/suspicious/noExplicitAny: Mock repository needs flexible typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Mock repository needs flexible typing
     } as any;
 
     mockLogger = {

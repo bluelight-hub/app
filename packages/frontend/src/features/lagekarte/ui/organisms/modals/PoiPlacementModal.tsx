@@ -121,7 +121,7 @@ export const PoiPlacementModal: React.FC<PoiPlacementModalProps> = ({ isOpen, on
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
               <iconConfig.Icon size={24} color={iconConfig.color} aria-hidden="true" />
-              <DialogTitle as="h3" className="font-semibold text-text-primary text-lg">
+              <DialogTitle as="h3" className="text-lg font-semibold text-text-primary">
                 {formatPoiTypeLabel(poiType)} platzieren
               </DialogTitle>
             </div>
@@ -145,7 +145,7 @@ export const PoiPlacementModal: React.FC<PoiPlacementModalProps> = ({ isOpen, on
             <form.Field name="name" validators={{ onChange: ({ value }) => (value.length < 3 ? 'Mindestens 3 Zeichen erforderlich' : undefined) }}>
               {(field) => (
                 <div>
-                  <label htmlFor={field.name} className="mb-1 block font-medium text-text-secondary text-body-sm">
+                  <label htmlFor={field.name} className="mb-1 block text-body-sm font-medium text-text-secondary">
                     Name <span className="text-status-danger-text">*</span>
                   </label>
                   <Input
@@ -166,7 +166,7 @@ export const PoiPlacementModal: React.FC<PoiPlacementModalProps> = ({ isOpen, on
             <form.Field name="adresse">
               {(field) => (
                 <div>
-                  <label htmlFor={field.name} className="mb-1 block font-medium text-text-secondary text-body-sm">
+                  <label htmlFor={field.name} className="mb-1 block text-body-sm font-medium text-text-secondary">
                     Adresse (optional)
                   </label>
                   <div className="relative">
@@ -205,7 +205,7 @@ export const PoiPlacementModal: React.FC<PoiPlacementModalProps> = ({ isOpen, on
                 onClick={() => setCoordMode('latLng')}
                 aria-label="Koordinaten-Modus: Lat/Lng"
                 aria-pressed={coordMode === 'latLng'}
-                className={`flex-1 rounded-md px-3 py-2 font-medium text-sm transition-colors ${
+                className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                   coordMode === 'latLng' ? 'bg-surface-panel text-text-primary shadow-sm' : 'text-text-secondary hover:text-text-primary'
                 }`}
               >
@@ -216,7 +216,7 @@ export const PoiPlacementModal: React.FC<PoiPlacementModalProps> = ({ isOpen, on
                 onClick={() => setCoordMode('mgrs')}
                 aria-label="Koordinaten-Modus: MGRS"
                 aria-pressed={coordMode === 'mgrs'}
-                className={`flex-1 rounded-md px-3 py-2 font-medium text-sm transition-colors ${
+                className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                   coordMode === 'mgrs' ? 'bg-surface-panel text-text-primary shadow-sm' : 'text-text-secondary hover:text-text-primary'
                 }`}
               >
@@ -240,7 +240,7 @@ export const PoiPlacementModal: React.FC<PoiPlacementModalProps> = ({ isOpen, on
                 >
                   {(field) => (
                     <div>
-                      <label htmlFor={field.name} className="mb-1 block font-medium text-text-secondary text-body-sm">
+                      <label htmlFor={field.name} className="mb-1 block text-body-sm font-medium text-text-secondary">
                         Breitengrad
                       </label>
                       <Input
@@ -271,7 +271,7 @@ export const PoiPlacementModal: React.FC<PoiPlacementModalProps> = ({ isOpen, on
                 >
                   {(field) => (
                     <div>
-                      <label htmlFor={field.name} className="mb-1 block font-medium text-text-secondary text-body-sm">
+                      <label htmlFor={field.name} className="mb-1 block text-body-sm font-medium text-text-secondary">
                         Längengrad
                       </label>
                       <Input
@@ -291,7 +291,7 @@ export const PoiPlacementModal: React.FC<PoiPlacementModalProps> = ({ isOpen, on
               </div>
             ) : (
               <div>
-                <label htmlFor="mgrs" className="mb-1 block font-medium text-text-secondary text-body-sm">
+                <label htmlFor="mgrs" className="mb-1 block text-body-sm font-medium text-text-secondary">
                   MGRS-Koordinaten
                 </label>
                 <Input

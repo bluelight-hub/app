@@ -39,9 +39,9 @@ export function InactivityBadge({ isInactive, tooltip, className }: InactivityBa
   const defaultTooltip = 'Dieser Token wurde seit ueber 90 Tagen nicht verwendet';
 
   return (
-    // biome-ignore lint/a11y/useSemanticElements: span with role="status" is intentional for inline badge styling
+    // eslint-disable-next-line jsx-a11y/prefer-tag-over-role -- span with role="status" is intentional for inline badge styling
     <span
-      className={cn('inline-flex items-center rounded-control px-2 py-0.5 font-medium text-xs', 'bg-status-warning-surface text-status-warning-text', className)}
+      className={cn('inline-flex items-center rounded-control px-2 py-0.5 text-xs font-medium', 'bg-status-warning-surface text-status-warning-text', className)}
       role="status"
       aria-label={tooltip ?? defaultTooltip}
       title={tooltip ?? defaultTooltip}

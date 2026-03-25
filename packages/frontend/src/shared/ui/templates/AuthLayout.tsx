@@ -19,8 +19,8 @@ interface AuthLayoutProps {
 export function AuthLayout({ children, className }: AuthLayoutProps) {
   return (
     <div className={cn('relative min-h-screen overflow-hidden bg-surface-canvas text-text-primary', className)} data-testid="auth-layout-shell">
-      <div className="absolute inset-0 -z-20 ring-1-auth-ambient" data-testid="auth-layout-ambient" />
-      <div className="absolute inset-x-0 top-0 -z-10 h-64 ring-1-auth-top-glow" data-testid="auth-layout-top-glow" />
+      <div className="ring-1-auth-ambient absolute inset-0 -z-20" data-testid="auth-layout-ambient" />
+      <div className="ring-1-auth-top-glow absolute inset-x-0 top-0 -z-10 h-64" data-testid="auth-layout-top-glow" />
 
       <BrowserSecurityBanner />
 

@@ -153,14 +153,14 @@ export function TokenList({ onCreateToken }: TokenListProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <PiKey className="h-5 w-5 text-text-secondary" aria-hidden="true" />
-            <h2 className="font-semibold text-lg text-text-primary">Access-Tokens</h2>
+            <h2 className="text-lg font-semibold text-text-primary">Access-Tokens</h2>
           </div>
           <Skeleton className="h-9 w-32" />
         </div>
 
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, index) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: Skeleton items have static order
+            // eslint-disable-next-line react/no-array-index-key -- Skeleton items have static order
             <div key={`skeleton-${index}`} className="rounded-panel border border-border-subtle bg-surface-panel p-4">
               <div className="flex items-center gap-4">
                 <Skeleton className="h-10 w-10 rounded-lg" />
@@ -183,7 +183,7 @@ export function TokenList({ onCreateToken }: TokenListProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <PiKey className="h-5 w-5 text-text-secondary" aria-hidden="true" />
-            <h2 className="font-semibold text-lg text-text-primary">Access-Tokens</h2>
+            <h2 className="text-lg font-semibold text-text-primary">Access-Tokens</h2>
           </div>
         </div>
 
@@ -206,7 +206,7 @@ export function TokenList({ onCreateToken }: TokenListProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <PiKey className="h-5 w-5 text-text-secondary" aria-hidden="true" />
-            <h2 className="font-semibold text-lg text-text-primary">Access-Tokens</h2>
+            <h2 className="text-lg font-semibold text-text-primary">Access-Tokens</h2>
           </div>
           <Button intent="primary" size="sm" onClick={handleCreateClick}>
             <PiPlus className="mr-2 h-4 w-4" aria-hidden="true" />
@@ -214,11 +214,11 @@ export function TokenList({ onCreateToken }: TokenListProps) {
           </Button>
         </div>
 
-        <div className="flex h-64 flex-col items-center justify-center rounded-panel border border-border-subtle border-dashed p-8">
+        <div className="flex h-64 flex-col items-center justify-center rounded-panel border border-dashed border-border-subtle p-8">
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-surface-raised">
             <PiKey className="h-8 w-8 text-text-muted" aria-hidden="true" />
           </div>
-          <p className="mb-1 font-medium text-lg text-text-primary">Keine Tokens vorhanden</p>
+          <p className="mb-1 text-lg font-medium text-text-primary">Keine Tokens vorhanden</p>
           <p className="mb-4 text-center text-sm text-text-muted">Es wurden noch keine Access-Tokens erstellt. Tokens werden verwendet, um Anwendungen sicheren Zugriff zu gewähren.</p>
           <Button intent="primary" onClick={handleCreateClick}>
             <PiPlus className="mr-2 h-4 w-4" aria-hidden="true" />
@@ -236,8 +236,8 @@ export function TokenList({ onCreateToken }: TokenListProps) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <PiKey className="h-5 w-5 text-text-secondary" aria-hidden="true" />
-          <h2 className="font-semibold text-lg text-text-primary">Access-Tokens</h2>
-          <span className="ml-2 rounded-full bg-surface-raised px-2 py-0.5 text-text-secondary text-xs">{tokens.length}</span>
+          <h2 className="text-lg font-semibold text-text-primary">Access-Tokens</h2>
+          <span className="ml-2 rounded-full bg-surface-raised px-2 py-0.5 text-xs text-text-secondary">{tokens.length}</span>
         </div>
 
         <div className="flex items-center gap-2">

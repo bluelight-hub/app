@@ -76,14 +76,14 @@ use-store.ts
 
 ## File Locations
 
-| File | Purpose |
-|------|---------|
-| `store.service.ts` | Core service implementation |
-| `use-store.ts` | React hooks |
-| `__tests__/store.service.test.ts` | Service unit tests |
-| `__tests__/use-store.test.ts` | Hook tests |
-| `__tests__/store.integration.example.ts` | Usage examples |
-| `/docs/development-guide/tauri-plugins.md` | Full documentation |
+| File                                       | Purpose                     |
+| ------------------------------------------ | --------------------------- |
+| `store.service.ts`                         | Core service implementation |
+| `use-store.ts`                             | React hooks                 |
+| `__tests__/store.service.test.ts`          | Service unit tests          |
+| `__tests__/use-store.test.ts`              | Hook tests                  |
+| `__tests__/store.integration.example.ts`   | Usage examples              |
+| `/docs/development-guide/tauri-plugins.md` | Full documentation          |
 
 ## Capabilities Configured
 
@@ -133,8 +133,8 @@ All hooks automatically rollback values if save fails:
 const [value, setValue] = useStore('key', 'default');
 
 try {
-  await setValue('new');  // If this fails,
-                          // value reverts to previous state
+  await setValue('new'); // If this fails,
+  // value reverts to previous state
 } catch (error) {
   console.error('Save failed, value rolled back');
 }
@@ -149,15 +149,18 @@ try {
 ## Troubleshooting
 
 ### Store not persisting
+
 - Check capabilities in `src-tauri/capabilities/default.json`
 - Verify `@tauri-apps/plugin-store` is installed
 - Clear app cache and rebuild
 
 ### Type errors with mocks in tests
+
 - Use `as unknown as Record<string, unknown>` for mock casting
 - Mock all Store methods: `get`, `set`, `has`, `delete`, `clear`, `keys`, `save`
 
 ### Encryption errors
+
 - Store creates encryption key automatically on first use
 - Key is managed by OS, cannot be manually set
 - If corrupted, the store can be reset: delete the json file

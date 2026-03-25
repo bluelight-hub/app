@@ -21,6 +21,7 @@ Bluelight-Hub ist eine **Desktop-basierte Einsatzunterstützungsanwendung** für
 ### System Scope
 
 **Enthalten:**
+
 - ✅ Desktop-App (Tauri) mit Web-Frontend
 - ✅ Lokaler/Remote Backend-Server (NestJS)
 - ✅ Cookie-basierte JWT-Authentifizierung
@@ -30,6 +31,7 @@ Bluelight-Hub ist eine **Desktop-basierte Einsatzunterstützungsanwendung** für
 - ✅ Optimistic UI Updates (TanStack Query)
 
 **Nicht enthalten:**
+
 - ❌ Externe Systemintegration (TETRA, Digitalfunk, FMS)
 - ❌ Echtzeit-Kommunikation (WebSocket)
 - ❌ Offline-Sync / Cloud-Synchronisation
@@ -123,47 +125,47 @@ Bluelight-Hub ist eine **Desktop-basierte Einsatzunterstützungsanwendung** für
 
 #### Backend
 
-| Category | Technology | Version | Purpose |
-|----------|------------|---------|---------|
-| **Framework** | NestJS | 11.1.8 | Modular server framework |
-| **Language** | TypeScript | 5.9.3 | Type-safe development |
-| **Runtime** | Node.js | 24.10.0+ | JavaScript runtime |
-| **Database** | PostgreSQL | 17 | Relational database |
-| **ORM** | Prisma | 6.19.0 | Type-safe database client |
-| **API Docs** | Swagger/OpenAPI | 11.2.1 | Auto-generated API docs |
-| **Authentication** | Passport JWT | 11.0.5 | JWT strategy |
-| **Validation** | class-validator | 0.14.2 | DTO validation |
-| **Security** | Helmet + Throttler | 8.1.0 + 6.4.0 | Security headers + rate limiting |
-| **Caching** | cache-manager | 7.2.4 | In-memory caching |
-| **Events** | EventEmitter | 3.0.1 | Domain events (not Event Sourcing) |
+| Category           | Technology         | Version       | Purpose                            |
+| ------------------ | ------------------ | ------------- | ---------------------------------- |
+| **Framework**      | NestJS             | 11.1.8        | Modular server framework           |
+| **Language**       | TypeScript         | 5.9.3         | Type-safe development              |
+| **Runtime**        | Node.js            | 24.10.0+      | JavaScript runtime                 |
+| **Database**       | PostgreSQL         | 17            | Relational database                |
+| **ORM**            | Prisma             | 6.19.0        | Type-safe database client          |
+| **API Docs**       | Swagger/OpenAPI    | 11.2.1        | Auto-generated API docs            |
+| **Authentication** | Passport JWT       | 11.0.5        | JWT strategy                       |
+| **Validation**     | class-validator    | 0.14.2        | DTO validation                     |
+| **Security**       | Helmet + Throttler | 8.1.0 + 6.4.0 | Security headers + rate limiting   |
+| **Caching**        | cache-manager      | 7.2.4         | In-memory caching                  |
+| **Events**         | EventEmitter       | 3.0.1         | Domain events (not Event Sourcing) |
 
 #### Frontend
 
-| Category | Technology | Version | Purpose |
-|----------|------------|---------|---------|
-| **Framework** | React | 19.2.0 | UI library |
-| **Language** | TypeScript | 5.9.3 | Type-safe development |
-| **Build Tool** | Vite + SWC | 7.2.2 + 4.2.1 | Fast build and HMR |
-| **Desktop** | Tauri | 2.8.5 | Cross-platform desktop app |
-| **Routing** | TanStack Router | 1.135.0 | Type-safe routing with file-based |
-| **Server State** | TanStack Query | 5.90.7 | Data fetching + caching |
-| **UI State** | TanStack Store | 0.8.0 | Global state management |
-| **Forms** | TanStack Form | 1.23.8 | Type-safe forms |
-| **Validation** | Zod | 4.1.12 | Schema validation |
-| **Styling** | Tailwind CSS | 4.1.17 | Utility-first CSS |
-| **Components** | Headless UI | 2.2.9 | Accessible primitives |
-| **Maps** | Leaflet | 1.9.4 | Mapping library |
-| **Map Drawing** | Geoman | 2.18.3 | Drawing tools |
-| **Icons** | Phosphor Icons | - | Icon library |
-| **Notifications** | Sonner | 2.0.7 | Toast notifications |
-| **Command** | cmdk | 1.1.1 | Command palette |
+| Category          | Technology      | Version       | Purpose                           |
+| ----------------- | --------------- | ------------- | --------------------------------- |
+| **Framework**     | React           | 19.2.0        | UI library                        |
+| **Language**      | TypeScript      | 5.9.3         | Type-safe development             |
+| **Build Tool**    | Vite + SWC      | 7.2.2 + 4.2.1 | Fast build and HMR                |
+| **Desktop**       | Tauri           | 2.8.5         | Cross-platform desktop app        |
+| **Routing**       | TanStack Router | 1.135.0       | Type-safe routing with file-based |
+| **Server State**  | TanStack Query  | 5.90.7        | Data fetching + caching           |
+| **UI State**      | TanStack Store  | 0.8.0         | Global state management           |
+| **Forms**         | TanStack Form   | 1.23.8        | Type-safe forms                   |
+| **Validation**    | Zod             | 4.1.12        | Schema validation                 |
+| **Styling**       | Tailwind CSS    | 4.1.17        | Utility-first CSS                 |
+| **Components**    | Headless UI     | 2.2.9         | Accessible primitives             |
+| **Maps**          | Leaflet         | 1.9.4         | Mapping library                   |
+| **Map Drawing**   | Geoman          | 2.18.3        | Drawing tools                     |
+| **Icons**         | Phosphor Icons  | -             | Icon library                      |
+| **Notifications** | Sonner          | 2.0.7         | Toast notifications               |
+| **Command**       | cmdk            | 1.1.1         | Command palette                   |
 
 #### Shared
 
-| Category | Technology | Version | Purpose |
-|----------|------------|---------|---------|
-| **API Client** | openapi-typescript | - | Generated from OpenAPI spec |
-| **Types** | TypeScript | 5.9.3 | Shared types |
+| Category       | Technology         | Version | Purpose                     |
+| -------------- | ------------------ | ------- | --------------------------- |
+| **API Client** | openapi-typescript | -       | Generated from OpenAPI spec |
+| **Types**      | TypeScript         | 5.9.3   | Shared types                |
 
 ### Architecture Style
 
@@ -184,6 +186,7 @@ Prisma ORM & PostgreSQL
 
 **Transactional Outbox Pattern:**
 Ensures atomicity between data persistence and domain events.
+
 1. Application: Executes Command
 2. Domain: Returns Result + Events
 3. Infrastructure: Saves Aggregate + Events (in same TX)
@@ -236,6 +239,7 @@ packages/backend/src/
 ```
 
 **Features:**
+
 - ✅ **Application Layer:** Trennung von Commands (Write) und Queries (Read)
 - ✅ **Domain Layer:** Unabhängig von Frameworks, reine Business-Logik
 - ✅ **Infrastructure:** Kapselt externe Abhängigkeiten (DB, Auth, etc.)
@@ -257,11 +261,13 @@ packages/backend/src/
 3. **Admin Token:** Für administrative Operationen
 
 **Cookie Settings:**
+
 - `httpOnly: true` (XSS-Schutz)
 - `secure: true` (nur HTTPS in Production)
 - `sameSite: 'strict'` (CSRF-Schutz)
 
 **Guards:**
+
 - `@UseGuards(JwtAuthGuard)` - Standard-Auth
 - `@UseGuards(AdminJwtAuthGuard)` - Admin-Auth
 - `@UseGuards(JwtRefreshGuard)` - Refresh-Auth
@@ -269,6 +275,7 @@ packages/backend/src/
 #### Rate Limiting
 
 **Throttle Guards auf kritischen Endpunkten:**
+
 - `/api/auth/unified`: 5 Requests / Minute
 - Controller-Level: Konfigurierbar via `@Throttle()`
 - Service-Level: Zusätzliche Limits
@@ -293,106 +300,106 @@ packages/backend/src/
 
 #### Authentication (VERSION_NEUTRAL)
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| POST | `/api/auth/unified` | Unified login & auto-register | No |
-| POST | `/api/auth/logout` | Logout (clear cookies) | Yes |
-| POST | `/api/auth/refresh` | Refresh access token | Refresh |
-| GET | `/api/auth/validate` | Validate current token | Yes |
+| Method | Endpoint             | Description                   | Auth    |
+| ------ | -------------------- | ----------------------------- | ------- |
+| POST   | `/api/auth/unified`  | Unified login & auto-register | No      |
+| POST   | `/api/auth/logout`   | Logout (clear cookies)        | Yes     |
+| POST   | `/api/auth/refresh`  | Refresh access token          | Refresh |
+| GET    | `/api/auth/validate` | Validate current token        | Yes     |
 
 #### User Management (/api/alpha/users)
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/api/alpha/users` | List all users | Admin |
-| GET | `/api/alpha/users/:id` | Get user by ID | Admin |
-| POST | `/api/alpha/users` | Create user | Admin |
-| PATCH | `/api/alpha/users/:id` | Update user | Admin |
-| DELETE | `/api/alpha/users/:id` | Soft-delete user | Admin |
-| POST | `/api/alpha/users/:id/lock` | Lock user | Admin |
-| POST | `/api/alpha/users/:id/unlock` | Unlock user | Admin |
+| Method | Endpoint                      | Description      | Auth  |
+| ------ | ----------------------------- | ---------------- | ----- |
+| GET    | `/api/alpha/users`            | List all users   | Admin |
+| GET    | `/api/alpha/users/:id`        | Get user by ID   | Admin |
+| POST   | `/api/alpha/users`            | Create user      | Admin |
+| PATCH  | `/api/alpha/users/:id`        | Update user      | Admin |
+| DELETE | `/api/alpha/users/:id`        | Soft-delete user | Admin |
+| POST   | `/api/alpha/users/:id/lock`   | Lock user        | Admin |
+| POST   | `/api/alpha/users/:id/unlock` | Unlock user      | Admin |
 
 #### Einsatz Management (/api/alpha/einsaetze)
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/api/alpha/einsaetze` | List all missions | Yes |
-| GET | `/api/alpha/einsaetze/:id` | Get mission by ID | Yes |
-| POST | `/api/alpha/einsaetze` | Create mission (minimal) | Yes |
-| PATCH | `/api/alpha/einsaetze/:id` | Update mission | Yes |
-| DELETE | `/api/alpha/einsaetze/:id` | Archive mission (no delete) | Yes |
-| POST | `/api/alpha/einsaetze/:id/archive` | Explicit archive | Yes |
+| Method | Endpoint                           | Description                 | Auth |
+| ------ | ---------------------------------- | --------------------------- | ---- |
+| GET    | `/api/alpha/einsaetze`             | List all missions           | Yes  |
+| GET    | `/api/alpha/einsaetze/:id`         | Get mission by ID           | Yes  |
+| POST   | `/api/alpha/einsaetze`             | Create mission (minimal)    | Yes  |
+| PATCH  | `/api/alpha/einsaetze/:id`         | Update mission              | Yes  |
+| DELETE | `/api/alpha/einsaetze/:id`         | Archive mission (no delete) | Yes  |
+| POST   | `/api/alpha/einsaetze/:id/archive` | Explicit archive            | Yes  |
 
 #### Einsatztagebuch (/api/alpha/einsatztagebuch)
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/api/alpha/einsatztagebuch` | List all ETBs | Yes |
-| GET | `/api/alpha/einsatztagebuch/:id` | Get ETB by ID | Yes |
-| POST | `/api/alpha/einsatztagebuch` | Create ETB | Yes |
-| PATCH | `/api/alpha/einsatztagebuch/:id` | Update ETB | Yes |
-| POST | `/api/alpha/einsatztagebuch/:id/lock` | Lock ETB | Yes |
+| Method | Endpoint                              | Description   | Auth |
+| ------ | ------------------------------------- | ------------- | ---- |
+| GET    | `/api/alpha/einsatztagebuch`          | List all ETBs | Yes  |
+| GET    | `/api/alpha/einsatztagebuch/:id`      | Get ETB by ID | Yes  |
+| POST   | `/api/alpha/einsatztagebuch`          | Create ETB    | Yes  |
+| PATCH  | `/api/alpha/einsatztagebuch/:id`      | Update ETB    | Yes  |
+| POST   | `/api/alpha/einsatztagebuch/:id/lock` | Lock ETB      | Yes  |
 
 #### ETB Einträge (/api/alpha/etb-eintraege)
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/api/alpha/etb-eintraege` | List entries | Yes |
-| GET | `/api/alpha/etb-eintraege/:id` | Get entry by ID | Yes |
-| POST | `/api/alpha/etb-eintraege` | Create entry | Yes |
-| PATCH | `/api/alpha/etb-eintraege/:id` | Update entry (creates version) | Yes |
-| DELETE | `/api/alpha/etb-eintraege/:id` | Soft-delete entry | Yes |
-| GET | `/api/alpha/etb-eintraege/:id/historie` | Get version history | Yes |
+| Method | Endpoint                                | Description                    | Auth |
+| ------ | --------------------------------------- | ------------------------------ | ---- |
+| GET    | `/api/alpha/etb-eintraege`              | List entries                   | Yes  |
+| GET    | `/api/alpha/etb-eintraege/:id`          | Get entry by ID                | Yes  |
+| POST   | `/api/alpha/etb-eintraege`              | Create entry                   | Yes  |
+| PATCH  | `/api/alpha/etb-eintraege/:id`          | Update entry (creates version) | Yes  |
+| DELETE | `/api/alpha/etb-eintraege/:id`          | Soft-delete entry              | Yes  |
+| GET    | `/api/alpha/etb-eintraege/:id/historie` | Get version history            | Yes  |
 
 #### ETB Textbausteine (/api/alpha/textbausteine)
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/api/alpha/textbausteine` | List templates | Yes |
-| GET | `/api/alpha/textbausteine/:id` | Get template by ID | Yes |
-| POST | `/api/alpha/textbausteine` | Create template | Yes |
-| PATCH | `/api/alpha/textbausteine/:id` | Update template | Yes |
-| DELETE | `/api/alpha/textbausteine/:id` | Soft-delete template | Yes |
+| Method | Endpoint                       | Description          | Auth |
+| ------ | ------------------------------ | -------------------- | ---- |
+| GET    | `/api/alpha/textbausteine`     | List templates       | Yes  |
+| GET    | `/api/alpha/textbausteine/:id` | Get template by ID   | Yes  |
+| POST   | `/api/alpha/textbausteine`     | Create template      | Yes  |
+| PATCH  | `/api/alpha/textbausteine/:id` | Update template      | Yes  |
+| DELETE | `/api/alpha/textbausteine/:id` | Soft-delete template | Yes  |
 
 #### Lagekarte (/api/alpha/lagekarten)
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/api/alpha/lagekarten` | List all maps | Yes |
-| GET | `/api/alpha/lagekarten/:id` | Get map by ID | Yes |
-| POST | `/api/alpha/lagekarten` | Create map | Yes |
-| PATCH | `/api/alpha/lagekarten/:id` | Update map | Yes |
-| DELETE | `/api/alpha/lagekarten/:id` | Delete map | Yes |
+| Method | Endpoint                    | Description   | Auth |
+| ------ | --------------------------- | ------------- | ---- |
+| GET    | `/api/alpha/lagekarten`     | List all maps | Yes  |
+| GET    | `/api/alpha/lagekarten/:id` | Get map by ID | Yes  |
+| POST   | `/api/alpha/lagekarten`     | Create map    | Yes  |
+| PATCH  | `/api/alpha/lagekarten/:id` | Update map    | Yes  |
+| DELETE | `/api/alpha/lagekarten/:id` | Delete map    | Yes  |
 
 #### Lagekarte POIs (/api/alpha/lagekarten/:id/pois)
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/api/alpha/lagekarten/:id/pois` | List POIs | Yes |
-| POST | `/api/alpha/lagekarten/:id/pois` | Create POI | Yes |
-| PATCH | `/api/alpha/lagekarten/:id/pois/:poiId` | Update POI | Yes |
-| DELETE | `/api/alpha/lagekarten/:id/pois/:poiId` | Delete POI | Yes |
+| Method | Endpoint                                | Description | Auth |
+| ------ | --------------------------------------- | ----------- | ---- |
+| GET    | `/api/alpha/lagekarten/:id/pois`        | List POIs   | Yes  |
+| POST   | `/api/alpha/lagekarten/:id/pois`        | Create POI  | Yes  |
+| PATCH  | `/api/alpha/lagekarten/:id/pois/:poiId` | Update POI  | Yes  |
+| DELETE | `/api/alpha/lagekarten/:id/pois/:poiId` | Delete POI  | Yes  |
 
 #### Geocoding (/api/alpha/geocoding)
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/api/alpha/geocoding/search` | Search by address | Yes |
-| GET | `/api/alpha/geocoding/reverse` | Reverse geocode | Yes |
+| Method | Endpoint                       | Description       | Auth |
+| ------ | ------------------------------ | ----------------- | ---- |
+| GET    | `/api/alpha/geocoding/search`  | Search by address | Yes  |
+| GET    | `/api/alpha/geocoding/reverse` | Reverse geocode   | Yes  |
 
 #### Health Checks (VERSION_NEUTRAL)
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/api/health` | Overall health | No |
-| GET | `/api/health/liveness` | Liveness probe | No |
-| GET | `/api/health/readiness` | Readiness probe | No |
+| Method | Endpoint                | Description     | Auth |
+| ------ | ----------------------- | --------------- | ---- |
+| GET    | `/api/health`           | Overall health  | No   |
+| GET    | `/api/health/liveness`  | Liveness probe  | No   |
+| GET    | `/api/health/readiness` | Readiness probe | No   |
 
 #### Root Meta (VERSION_NEUTRAL)
 
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/` | API metadata | No |
+| Method | Endpoint | Description  | Auth |
+| ------ | -------- | ------------ | ---- |
+| GET    | `/`      | API metadata | No   |
 
 ### Data Layer
 
@@ -418,15 +425,18 @@ packages/backend/src/
 #### Key Patterns
 
 **No-Delete Policy (Einsätze):**
+
 - Einsätze werden NIEMALS physisch gelöscht
 - Stattdessen: Archivierung mit `archivedAt`, `archivedBy`
 - Status-Transition: `ANGELEGT` → `IN_BEARBEITUNG` → `ABGESCHLOSSEN` → `ARCHIVIERT`
 
 **Soft-Delete (Users, ETB Entries):**
+
 - `isDeleted: boolean`, `deletedAt: DateTime`, `deletedBy: String`
 - Queries filtern automatisch gelöschte Einträge
 
 **Full Audit Logging:**
+
 - **Created:** `createdAt`, `createdBy` (auf allen Entitäten)
 - **Updated:** `updatedAt`, `updatedBy` (auf allen Entitäten)
 - **Deleted:** `deletedAt`, `deletedBy` (Soft-Delete)
@@ -434,11 +444,13 @@ packages/backend/src/
 - **Locked:** `lockedAt`, `lockedBy` (ETB)
 
 **Version History (ETB Entries):**
+
 - Jede Änderung erstellt einen neuen `EtbEintragHistorie`-Eintrag
 - Historie enthält: `modifiedAt`, `modifiedBy`, `changes` (JSON)
 - Vollständige Nachvollziehbarkeit aller Änderungen
 
 **10-Year Archival (ETB):**
+
 - `EtbArchiv` speichert vollständigen ETB-Snapshot
 - SHA-256 Checksum für Integrität
 - Compliance-konform für DRK-Anforderungen
@@ -482,13 +494,14 @@ packages/backend/src/
 
 **3 Rollen (Implementiert):**
 
-| Role | Permissions | Guards |
-|------|-------------|--------|
-| **USER** | Basic access, CRUD Einsätze/ETB/Lagekarte | `@UseGuards(JwtAuthGuard)` |
-| **ADMIN** | User management, System config | `@UseGuards(AdminJwtAuthGuard)` |
-| **SUPER_ADMIN** | Full system access | `@UseGuards(AdminJwtAuthGuard)` |
+| Role            | Permissions                               | Guards                          |
+| --------------- | ----------------------------------------- | ------------------------------- |
+| **USER**        | Basic access, CRUD Einsätze/ETB/Lagekarte | `@UseGuards(JwtAuthGuard)`      |
+| **ADMIN**       | User management, System config            | `@UseGuards(AdminJwtAuthGuard)` |
+| **SUPER_ADMIN** | Full system access                        | `@UseGuards(AdminJwtAuthGuard)` |
 
 **Permission Guards:**
+
 - `JwtAuthGuard` - Validiert Access Token
 - `AdminJwtAuthGuard` - Validiert Admin Token
 - `JwtRefreshGuard` - Validiert Refresh Token
@@ -535,17 +548,17 @@ src/
 
 ### Feature Breakdown
 
-| Feature | Components | Complexity | Status |
-|---------|-----------|-----------|--------|
-| **ETB** | 25 (8 Molecules + 17 Organisms) | ★★★★★ Very High | ✅ Fully implemented |
-| **Lagekarte** | 20 (4 Molecules + 16 Organisms) | ★★★★★ Very High | ✅ Fully implemented |
-| **Einsatz** | 18 (13 Molecules + 5 Organisms) | ★★★★☆ High | ✅ Fully implemented |
-| **Shared** | 14 (Molecules) | ★★★☆☆ Medium | ✅ Fully implemented |
-| **Admin** | 5 (1 Molecule + 4 Organisms) | ★★★☆☆ Medium | ✅ Fully implemented |
-| **Command Palette** | 6 (Organisms) | ★★★☆☆ Medium | ✅ Fully implemented |
-| **Dashboard** | 4 (2 Molecules + 2 Organisms) | ★★☆☆☆ Low | ✅ Fully implemented |
-| **Auth** | 3 (1 Molecule + 2 Organisms) | ★★☆☆☆ Low | ✅ Fully implemented |
-| **Forms** | 3 (Molecules) | ★★★☆☆ Medium | ✅ Fully implemented |
+| Feature             | Components                      | Complexity      | Status               |
+| ------------------- | ------------------------------- | --------------- | -------------------- |
+| **ETB**             | 25 (8 Molecules + 17 Organisms) | ★★★★★ Very High | ✅ Fully implemented |
+| **Lagekarte**       | 20 (4 Molecules + 16 Organisms) | ★★★★★ Very High | ✅ Fully implemented |
+| **Einsatz**         | 18 (13 Molecules + 5 Organisms) | ★★★★☆ High      | ✅ Fully implemented |
+| **Shared**          | 14 (Molecules)                  | ★★★☆☆ Medium    | ✅ Fully implemented |
+| **Admin**           | 5 (1 Molecule + 4 Organisms)    | ★★★☆☆ Medium    | ✅ Fully implemented |
+| **Command Palette** | 6 (Organisms)                   | ★★★☆☆ Medium    | ✅ Fully implemented |
+| **Dashboard**       | 4 (2 Molecules + 2 Organisms)   | ★★☆☆☆ Low       | ✅ Fully implemented |
+| **Auth**            | 3 (1 Molecule + 2 Organisms)    | ★★☆☆☆ Low       | ✅ Fully implemented |
+| **Forms**           | 3 (Molecules)                   | ★★★☆☆ Medium    | ✅ Fully implemented |
 
 ### State Management
 
@@ -556,6 +569,7 @@ src/
 **Purpose:** Data fetching, caching, synchronization
 
 **Pattern:**
+
 ```typescript
 // Query Keys (Hierarchical)
 const QUERY_KEYS = {
@@ -564,8 +578,8 @@ const QUERY_KEYS = {
   etb: {
     all: ['etb'],
     byId: (id: string) => ['etb', id],
-    entries: (etbId: string) => ['etb', etbId, 'entries']
-  }
+    entries: (etbId: string) => ['etb', etbId, 'entries'],
+  },
 };
 
 // Usage
@@ -574,12 +588,13 @@ const useEinsaetze = () => {
     queryKey: QUERY_KEYS.einsaetze,
     queryFn: () => api.einsatz().getEinsaetze(),
     staleTime: 5 * 60 * 1000, // 5min
-    gcTime: 10 * 60 * 1000    // 10min
+    gcTime: 10 * 60 * 1000, // 10min
   });
 };
 ```
 
 **Features:**
+
 - Automatic background refetch
 - Optimistic updates (ADR-020)
 - Automatic retry on failure
@@ -592,26 +607,26 @@ const useEinsaetze = () => {
 **Purpose:** Global UI state (NOT server state)
 
 **Implementation:**
+
 ```typescript
 // Only ONE store: EinsatzStore
 export const einsatzStore = new Store<EinsatzStoreState>({
   selectedEinsatzId: null,
   filterOptions: {},
-  sortOrder: 'desc'
+  sortOrder: 'desc',
 });
 ```
 
 **Usage Pattern:**
+
 ```typescript
 const useEinsatzStore = () => {
-  const selectedId = einsatzStore.useSelector(
-    (state) => state.selectedEinsatzId
-  );
+  const selectedId = einsatzStore.useSelector((state) => state.selectedEinsatzId);
 
   const setSelectedId = (id: string) => {
     einsatzStore.setState((state) => ({
       ...state,
-      selectedEinsatzId: id
+      selectedEinsatzId: id,
     }));
   };
 
@@ -620,6 +635,7 @@ const useEinsatzStore = () => {
 ```
 
 **Scope:**
+
 - ✅ UI-only state (filters, selections, modals)
 - ❌ NO server data (use TanStack Query)
 - ❌ NO form state (use TanStack Form)
@@ -629,22 +645,24 @@ const useEinsatzStore = () => {
 **Purpose:** Type-safe forms with validation
 
 **Pattern:**
+
 ```typescript
 const form = useForm({
   defaultValues: {
     username: '',
-    password: ''
+    password: '',
   },
   validators: {
-    onChange: loginSchema
+    onChange: loginSchema,
   },
   onSubmit: async ({ value }) => {
     await api.auth().unified(value);
-  }
+  },
 });
 ```
 
 **Features:**
+
 - Zod schema validation
 - Field-level validation
 - Submit handling
@@ -656,6 +674,7 @@ const form = useForm({
 **Purpose:** App-wide settings
 
 **Contexts:**
+
 - `ColorModeContext` - Dark/Light mode
 - `ConfirmDialogContext` - Global confirmation dialogs
 
@@ -681,6 +700,7 @@ src/routes/
 ```
 
 **Features:**
+
 - Type-safe navigation
 - Auto-generated route tree
 - Nested layouts
@@ -693,12 +713,14 @@ src/routes/
 #### Generated OpenAPI Client
 
 **Workflow:**
+
 1. Backend: NestJS controllers with `@ApiOperation()`, `@ApiResponse()` decorators
 2. Generate: `pnpm run generate-api` (in root)
 3. Output: `packages/shared/client/apis/` (auto-generated TypeScript)
 4. Frontend: Import and wrap in TanStack Query hooks
 
 **Example:**
+
 ```typescript
 // Generated client (DO NOT EDIT)
 export class EinsatzApi {
@@ -711,7 +733,7 @@ export class EinsatzApi {
 export const useEinsaetze = () => {
   return useQuery({
     queryKey: QUERY_KEYS.einsaetze,
-    queryFn: () => api.einsatz().getEinsaetze()
+    queryFn: () => api.einsatz().getEinsaetze(),
   });
 };
 ```
@@ -719,6 +741,7 @@ export const useEinsaetze = () => {
 #### BackendApi Singleton
 
 **Pattern:**
+
 ```typescript
 // Singleton wrapper with error handling
 export const api = {
@@ -726,11 +749,12 @@ export const api = {
   einsatz: () => new EinsatzApi(httpClient),
   etb: () => new EtbApi(httpClient),
   lagekarte: () => new LagekarteApi(httpClient),
-  users: () => new UsersApi(httpClient)
+  users: () => new UsersApi(httpClient),
 };
 ```
 
 **Features:**
+
 - Automatic token refresh on 401
 - Cookie-based auth (no manual headers)
 - Error handling with toast notifications
@@ -741,6 +765,7 @@ export const api = {
 #### Tailwind CSS Configuration
 
 **Theme:**
+
 ```javascript
 // tailwind.config.js
 module.exports = {
@@ -757,15 +782,15 @@ module.exports = {
 ```
 
 **Usage:**
+
 ```tsx
-<button className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md">
-  Click me
-</button>
+<button className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md">Click me</button>
 ```
 
 #### Headless UI Components
 
 **Accessible primitives:**
+
 - `Dialog` - Modals
 - `Menu` - Dropdowns
 - `Listbox` - Custom selects
@@ -774,6 +799,7 @@ module.exports = {
 - `Transition` - Animations
 
 **Pattern:**
+
 ```tsx
 import { Dialog } from '@headlessui/react';
 
@@ -782,16 +808,17 @@ import { Dialog } from '@headlessui/react';
     <Dialog.Title>Title</Dialog.Title>
     {/* Content */}
   </Dialog.Panel>
-</Dialog>
+</Dialog>;
 ```
 
 #### Icon System
 
 **Phosphor Icons via react-icons:**
+
 ```tsx
 import { PiUser, PiMapPin } from 'react-icons/pi';
 
-<PiUser className="w-5 h-5" />
+<PiUser className="w-5 h-5" />;
 ```
 
 ---
@@ -848,6 +875,7 @@ import { PiUser, PiMapPin } from 'react-icons/pi';
 **Step-by-Step:**
 
 1. **Backend: Define API with OpenAPI decorators**
+
    ```typescript
    @ApiOperation({ summary: 'Get all missions' })
    @ApiResponse({ status: 200, type: [EinsatzDto] })
@@ -858,12 +886,14 @@ import { PiUser, PiMapPin } from 'react-icons/pi';
    ```
 
 2. **Generate OpenAPI Spec**
+
    ```bash
    # Automatic on backend start
    # Output: packages/backend/openapi.json
    ```
 
 3. **Generate TypeScript Client**
+
    ```bash
    pnpm run generate-api
    # Uses: openapi-typescript-codegen
@@ -871,18 +901,20 @@ import { PiUser, PiMapPin } from 'react-icons/pi';
    ```
 
 4. **Frontend: Import Generated Client**
+
    ```typescript
    import { api } from '@/api/backend-api';
 
    const useEinsaetze = () => {
      return useQuery({
        queryKey: ['einsaetze'],
-       queryFn: () => api.einsatz().getEinsaetze()
+       queryFn: () => api.einsatz().getEinsaetze(),
      });
    };
    ```
 
 **Benefits:**
+
 - ✅ Type-safety across frontend/backend
 - ✅ Auto-completion in IDE
 - ✅ Compile-time errors for API mismatches
@@ -918,6 +950,7 @@ User Action (e.g., Create Einsatz)
 ```
 
 **Implementation:**
+
 ```typescript
 const useCreateEinsatz = () => {
   const queryClient = useQueryClient();
@@ -929,10 +962,7 @@ const useCreateEinsatz = () => {
       await queryClient.cancelQueries(['einsaetze']);
       const previous = queryClient.getQueryData(['einsaetze']);
 
-      queryClient.setQueryData(['einsaetze'], (old) => [
-        ...old,
-        { ...newEinsatz, id: `temp-${Date.now()}` }
-      ]);
+      queryClient.setQueryData(['einsaetze'], (old) => [...old, { ...newEinsatz, id: `temp-${Date.now()}` }]);
 
       return { previous };
     },
@@ -943,15 +973,13 @@ const useCreateEinsatz = () => {
     },
 
     onSuccess: (data) => {
-      queryClient.setQueryData(['einsaetze'], (old) =>
-        old.map(e => e.id.startsWith('temp-') ? data : e)
-      );
+      queryClient.setQueryData(['einsaetze'], (old) => old.map((e) => (e.id.startsWith('temp-') ? data : e)));
       toast.success('Einsatz erstellt');
     },
 
     onSettled: () => {
       queryClient.invalidateQueries(['einsaetze']);
-    }
+    },
   });
 };
 ```
@@ -959,12 +987,14 @@ const useCreateEinsatz = () => {
 ### Error Handling
 
 **Frontend:**
+
 - TanStack Query error handling
 - Toast notifications (Sonner)
 - Automatic retry on 401 (token refresh)
 - Global error boundary
 
 **Backend:**
+
 - NestJS exception filters
 - Custom HTTP exceptions
 - Validation pipes (class-validator)
@@ -981,6 +1011,7 @@ const useCreateEinsatz = () => {
 **Purpose:** Zentrale Benutzerverwaltung
 
 **Key Fields:**
+
 - `id` (String, cuid) - Primary Key
 - `username` (String, unique) - Username
 - `passwordHash` (String, optional) - Nur für Admin-User
@@ -990,6 +1021,7 @@ const useCreateEinsatz = () => {
 - `isLocked` (Boolean) - Manueller Lock
 
 **Relationships:**
+
 - `createdEinsaetze` - Einsätze erstellt
 - `updatedEinsaetze` - Einsätze aktualisiert
 - `archivedEinsaetze` - Einsätze archiviert
@@ -997,6 +1029,7 @@ const useCreateEinsatz = () => {
 - `createdEtbEintraege` - ETB-Einträge erstellt
 
 **Business Rules:**
+
 - Soft-Delete statt physischer Löschung
 - Manueller Lock getrennt von Auto-Lock
 - Password-Hash nur für Admin-User (Standard-User haben keins)
@@ -1006,6 +1039,7 @@ const useCreateEinsatz = () => {
 **Purpose:** Einsatzverwaltung
 
 **Key Fields:**
+
 - `id` (String, cuid) - Primary Key
 - `alarmstichwort` (String, optional) - Kann leer sein (ADR-018)
 - `alarmierungszeit` (DateTime, optional) - Kann leer sein
@@ -1014,6 +1048,7 @@ const useCreateEinsatz = () => {
 - `archivedBy` (String, optional) - User ID des Archivierers
 
 **Relationships:**
+
 - `createdBy` - User (Creator)
 - `updatedBy` - User (Updater)
 - `archivedBy` - User (Archiver)
@@ -1021,6 +1056,7 @@ const useCreateEinsatz = () => {
 - `lagekarte` - 1:1 Lagekarte
 
 **Business Rules:**
+
 - **No-Delete Policy (ADR-017):** Einsätze werden NIEMALS gelöscht, nur archiviert
 - **Minimale Erstellung (ADR-018):** Keine Pflichtfelder außer ID
 - **Computed Fields (ADR-019):** `name`, `completeness` werden berechnet
@@ -1030,6 +1066,7 @@ const useCreateEinsatz = () => {
 **Purpose:** 1:1 Beziehung zu Einsatz, Container für ETB-Einträge
 
 **Key Fields:**
+
 - `id` (String, cuid) - Primary Key
 - `einsatzId` (String, unique) - Foreign Key zu Einsatz
 - `status` (EtbStatus) - DRAFT, ACTIVE, LOCKED
@@ -1037,6 +1074,7 @@ const useCreateEinsatz = () => {
 - `lockedBy` (String, optional) - User ID des Lockers
 
 **Relationships:**
+
 - `einsatz` - 1:1 Einsatz
 - `eintraege` - 1:N EtbEintrag
 - `createdBy` - User (Creator)
@@ -1044,6 +1082,7 @@ const useCreateEinsatz = () => {
 - `lockedBy` - User (Locker)
 
 **Business Rules:**
+
 - Status-Transition: DRAFT → ACTIVE → LOCKED
 - Nach LOCKED: Keine Änderungen mehr möglich
 - Automatische Archivierung nach 10 Jahren (EtbArchiv)
@@ -1053,6 +1092,7 @@ const useCreateEinsatz = () => {
 **Purpose:** Einzelner Einsatztagebuch-Eintrag mit Versionierung
 
 **Key Fields:**
+
 - `id` (String, cuid) - Primary Key
 - `laufendeNummer` (Int) - Fortlaufende Nummer innerhalb ETB
 - `timestampErstellung` (DateTime) - Erstellungszeitpunkt
@@ -1062,6 +1102,7 @@ const useCreateEinsatz = () => {
 - `isDeleted` (Boolean) - Soft-Delete
 
 **Relationships:**
+
 - `einsatztagebuch` - N:1 Einsatztagebuch
 - `historie` - 1:N EtbEintragHistorie
 - `createdBy` - User (Creator)
@@ -1069,6 +1110,7 @@ const useCreateEinsatz = () => {
 - `deletedBy` - User (Deleter)
 
 **Business Rules:**
+
 - Versionierung bei jeder Änderung
 - Soft-Delete mit Zeitstempel
 - Laufende Nummer für einfache Referenzierung
@@ -1078,6 +1120,7 @@ const useCreateEinsatz = () => {
 **Purpose:** Vollständige Versionshistorie eines ETB-Eintrags
 
 **Key Fields:**
+
 - `id` (String, cuid) - Primary Key
 - `eintragId` (String) - Foreign Key zu EtbEintrag
 - `versionNumber` (Int) - Versionsnummer
@@ -1085,10 +1128,12 @@ const useCreateEinsatz = () => {
 - `changes` (JSON) - Diff der Änderungen
 
 **Relationships:**
+
 - `eintrag` - N:1 EtbEintrag
 - `modifiedBy` - User (Modifier)
 
 **Business Rules:**
+
 - Unveränderbar nach Erstellung
 - Vollständige Nachvollziehbarkeit
 - JSON-Diff für effizienten Speicher
@@ -1098,6 +1143,7 @@ const useCreateEinsatz = () => {
 **Purpose:** Wiederverwendbare Textbausteine für ETB-Einträge
 
 **Key Fields:**
+
 - `id` (String, cuid) - Primary Key
 - `titel` (String) - Titel des Bausteins
 - `inhalt` (String) - Textinhalt
@@ -1105,10 +1151,12 @@ const useCreateEinsatz = () => {
 - `isDeleted` (Boolean) - Soft-Delete
 
 **Relationships:**
+
 - `createdBy` - User (Creator)
 - `updatedBy` - User (Updater)
 
 **Business Rules:**
+
 - Global verfügbar (nicht Einsatz-spezifisch)
 - Soft-Delete für Audit-Trail
 
@@ -1117,6 +1165,7 @@ const useCreateEinsatz = () => {
 **Purpose:** 10-Jahre-Archivierung von ETBs mit Checksummen
 
 **Key Fields:**
+
 - `id` (String, cuid) - Primary Key
 - `einsatztagebuchId` (String, unique) - Foreign Key zu Einsatztagebuch
 - `archivData` (JSON) - Vollständiger ETB-Snapshot
@@ -1124,10 +1173,12 @@ const useCreateEinsatz = () => {
 - `archivedAt` (DateTime) - Archivierungszeitpunkt
 
 **Relationships:**
+
 - `einsatztagebuch` - 1:1 Einsatztagebuch
 - `archivedBy` - User (Archiver)
 
 **Business Rules:**
+
 - Unveränderbar nach Erstellung
 - SHA-256 Checksum für Integrität
 - Automatische Erstellung bei ETB-Lock oder 10 Jahren
@@ -1137,6 +1188,7 @@ const useCreateEinsatz = () => {
 **Purpose:** Geografische Visualisierung eines Einsatzes
 
 **Key Fields:**
+
 - `id` (String, cuid) - Primary Key
 - `einsatzId` (String, unique) - Foreign Key zu Einsatz
 - `centerLat` (Float, optional) - Zentrum Latitude
@@ -1146,10 +1198,12 @@ const useCreateEinsatz = () => {
 - `geoJson` (JSON) - GeoJSON Features
 
 **Relationships:**
+
 - `einsatz` - 1:1 Einsatz
 - `pois` - 1:N LagekartePoi
 
 **Business Rules:**
+
 - MGRS-Koordinaten als Primär (mit Lat/Lng Fallback)
 - GeoJSON für Zeichnungen (Polygone, Linien, etc.)
 - Offline-fähig (Leaflet Tiles)
@@ -1159,6 +1213,7 @@ const useCreateEinsatz = () => {
 **Purpose:** Point of Interest auf Lagekarte
 
 **Key Fields:**
+
 - `id` (String, cuid) - Primary Key
 - `lagekarteId` (String) - Foreign Key zu Lagekarte
 - `typ` (PoiType) - EINSATZSTELLE, SAMMELPLATZ, GEFAHRENBEREICH
@@ -1168,9 +1223,11 @@ const useCreateEinsatz = () => {
 - `mgrsKoordinate` (String, optional) - MGRS-Koordinate
 
 **Relationships:**
+
 - `lagekarte` - N:1 Lagekarte
 
 **Business Rules:**
+
 - Lat/Lng als Primär (mit MGRS optional)
 - Icon basierend auf `typ`
 - Clustering bei vielen POIs
@@ -1220,12 +1277,14 @@ User
 **NOT FULLY IMPLEMENTED** (minimal logging only)
 
 **Current State:**
+
 - Console logging in development
 - Error logging via NestJS exception filters
 - No structured logging (Winston/Pino)
 - No centralized monitoring
 
 **TODO:**
+
 - Structured logging framework
 - Log aggregation (e.g., ELK Stack)
 - APM (Application Performance Monitoring)
@@ -1234,6 +1293,7 @@ User
 ### Error Handling
 
 **Frontend:**
+
 ```typescript
 // TanStack Query Error Handling
 const useEinsaetze = () => {
@@ -1263,6 +1323,7 @@ const useEinsaetze = () => {
 ```
 
 **Backend:**
+
 ```typescript
 // Global Exception Filter
 @Catch()
@@ -1271,14 +1332,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
 
-    const status = exception instanceof HttpException
-      ? exception.getStatus()
-      : HttpStatus.INTERNAL_SERVER_ERROR;
+    const status = exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
 
     response.status(status).json({
       statusCode: status,
       message: exception.message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 }
@@ -1289,12 +1348,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
 **Status:** **Tests temporarily disabled** (per project notes)
 
 **Current State:**
+
 - ❌ Unit tests: Skipped
 - ❌ Integration tests: Skipped
 - ❌ E2E tests: Removed
 - ❌ Testing infrastructure: Exists but not actively used
 
 **Planned Strategy:**
+
 - Unit tests: Jest (Backend + Frontend)
 - Integration tests: Supertest (Backend API)
 - E2E tests: Playwright (Frontend flows)
@@ -1324,17 +1385,20 @@ pnpm -r build
 #### Production Deployment
 
 **Backend:**
+
 - Docker image with NestJS app
 - PostgreSQL 17 container
 - Environment variables via .env
 - Health checks: `/api/health`
 
 **Frontend:**
+
 - Vite build for production
 - Tauri bundle for desktop
 - Static assets with CDN (optional)
 
 **Workflow:**
+
 ```bash
 # Build backend
 cd packages/backend
@@ -1444,12 +1508,14 @@ pnpm tauri build
 **Decision:** CRUD-basierter Ansatz mit Versionierung und Audit-Trail
 
 **Implementation:**
+
 - Soft-Delete only (keine physischen Löschungen)
 - Versionierte Einträge (EtbEintragHistorie)
 - Separater Audit-Table für alle Aktionen
 - Status-Feld für ETB (DRAFT → ACTIVE → LOCKED)
 
 **Rationale:**
+
 - Konsistenz mit Prisma/PostgreSQL Stack
 - Einfachere Implementierung
 - Schnellere Time-to-Market
@@ -1460,6 +1526,7 @@ pnpm tauri build
 **Status:** ✅ Fully implemented
 
 **Implementation:**
+
 - Cookie-basierte JWT-Tokens (HTTP-Only, Secure, SameSite)
 - 3-Token-System: Access (15min), Refresh (7d), Admin
 - Passport JWT Strategy
@@ -1472,6 +1539,7 @@ pnpm tauri build
 **Decision:** Vollständige Entfernung von Multi-Factor Authentication
 
 **Rationale:**
+
 - Zu komplex für initialen Release
 - Fokus auf Kernfeatures
 - Kann später ergänzt werden
@@ -1481,6 +1549,7 @@ pnpm tauri build
 **Status:** ✅ Fully implemented
 
 **Implementation:**
+
 - 3 Rollen: USER, ADMIN, SUPER_ADMIN
 - Role-based Guards (`JwtAuthGuard`, `AdminJwtAuthGuard`)
 - Granular permissions per endpoint
@@ -1492,12 +1561,14 @@ pnpm tauri build
 **Decision:** Migration von Chakra UI zu Tailwind CSS + Headless UI
 
 **Implementation:**
+
 - Atomic Design mit Tailwind-Klassen
 - Headless UI für accessible Komponenten
 - Bundle-Size Reduktion um ~60%
 - Performance-Verbesserung (kein CSS-in-JS Runtime)
 
 **Rationale:**
+
 - Bessere Performance (Zero-Runtime)
 - Kleinere Bundle-Size
 - Tailwind IntelliSense in IDE
@@ -1510,6 +1581,7 @@ pnpm tauri build
 **Decision:** Ein einziger `/api/auth/unified` Endpunkt für Login & Auto-Register
 
 **Implementation:**
+
 ```typescript
 POST /api/auth/unified
 {
@@ -1530,6 +1602,7 @@ if (userExists) {
 ```
 
 **Rationale:**
+
 - Bessere UX (keine Verwirrung Login vs. Register)
 - Schnellerer Onboarding
 - Weniger Code (ein Formular, ein Endpunkt)
@@ -1541,12 +1614,14 @@ if (userExists) {
 **Decision:** Einsätze werden NIEMALS physisch gelöscht
 
 **Implementation:**
+
 - `archivedAt`, `archivedBy` Felder
 - Status-Transition: → ARCHIVIERT
 - Prisma-Query-Filter für archivierte Einsätze
 - Expliziter `/archive` Endpunkt
 
 **Rationale:**
+
 - Compliance (DRK-Anforderungen)
 - Audit-Trail
 - Datenintegrität
@@ -1559,12 +1634,14 @@ if (userExists) {
 **Decision:** Einsätze können ohne Pflichtparameter erstellt werden
 
 **Implementation:**
+
 - Alle Felder optional (außer ID)
 - Automatische Namengenerierung aus verfügbaren Feldern
 - Inkrementelle Vervollständigung
 - Completeness-Score (0-100%)
 
 **Rationale:**
+
 - Flexibilität im Einsatz
 - Schnelle Anlage ohne Vorkenntnisse
 - Nachträgliche Vervollständigung
@@ -1576,15 +1653,17 @@ if (userExists) {
 **Decision:** `name` und `completeness` als Computed Fields
 
 **Implementation:**
+
 ```typescript
 // name: Automatisch generiert
-name = alarmstichwort || `Einsatz ${id.slice(0,8)}` || 'Unbenannter Einsatz';
+name = alarmstichwort || `Einsatz ${id.slice(0, 8)}` || 'Unbenannter Einsatz';
 
 // completeness: Berechnet aus ausgefüllten Feldern
 completeness = (filledFields / totalFields) * 100;
 ```
 
 **Rationale:**
+
 - User Experience (sinnvoller Name ohne Pflicht)
 - Übersicht über Datenvollständigkeit
 - Keine Duplikation in Datenbank
@@ -1596,12 +1675,14 @@ completeness = (filledFields / totalFields) * 100;
 **Decision:** Sofortige UI-Aktualisierung mit Rollback bei Fehler
 
 **Implementation:**
+
 - TanStack Query `onMutate`, `onError`, `onSuccess`, `onSettled`
 - Automatic rollback bei Server-Fehler
 - Visuelle Indikatoren für Pending-Status
 - Toast-Notifications für Feedback
 
 **Rationale:**
+
 - Beste UX (sofortiges Feedback)
 - Gefühlte Performance verbessern
 - User-Flow nicht unterbrechen
@@ -1616,6 +1697,7 @@ completeness = (filledFields / totalFields) * 100;
 **Decision:** Verschiedene Konnektivitätsszenarien (lokal, vollständig, autonom)
 
 **Reality:**
+
 - ✅ HTTP REST API (lokal + remote)
 - ❌ Keine Offline-Sync
 - ❌ Kein autonomer Modus
@@ -1626,6 +1708,7 @@ completeness = (filledFields / totalFields) * 100;
 **Status:** ⚠️ Implemented, but limited
 
 **Reality:**
+
 - ✅ Tauri 2.8.5 Desktop App
 - ✅ Cross-Platform (Windows, macOS, Linux)
 - ❌ Keine nativen Features genutzt (z.B. Dateisystem)
@@ -1636,6 +1719,7 @@ completeness = (filledFields / totalFields) * 100;
 **Status:** ⚠️ Partially implemented
 
 **Reality:**
+
 - ✅ Dockerfile vorhanden
 - ✅ docker-compose.yml für Development
 - ❌ Production-Deployment nicht dokumentiert
@@ -1646,6 +1730,7 @@ completeness = (filledFields / totalFields) * 100;
 **Status:** ⚠️ Frontend-only
 
 **Reality:**
+
 - ✅ 4 Dashboard-Komponenten im Frontend
 - ❌ Kein Backend-Dashboard-Modul
 - ❌ Keine Echtzeit-Updates
@@ -1655,6 +1740,7 @@ completeness = (filledFields / totalFields) * 100;
 **Status:** ⚠️ Not fully verified
 
 **Reality:**
+
 - Implementierung nicht im Detail verifiziert
 - Wahrscheinlich vorhanden (13 ETB-Molecules)
 
@@ -1665,6 +1751,7 @@ completeness = (filledFields / totalFields) * 100;
 **Status:** ❌ "In Prüfung", not implemented
 
 **Reality:**
+
 - Keine CRDT-Bibliotheken
 - Keine Konfliktauflösung
 - Nur Standard HTTP REST
@@ -1674,6 +1761,7 @@ completeness = (filledFields / totalFields) * 100;
 **Status:** ❌ Monolith gewählt, aber keine klaren Service-Grenzen
 
 **Reality:**
+
 - Modularer Monolith (NestJS Modules)
 - Keine Service-Grenzen definiert
 - Keine Microservice-Architektur
@@ -1687,6 +1775,7 @@ completeness = (filledFields / totalFields) * 100;
 **Status:** ⚠️ `alpha` implementiert, aber keine v1/v2-Strategie
 
 **Reality:**
+
 - `/api/alpha/{resource}` für Domain-Endpunkte
 - Keine Backward-Compatibility-Strategie
 - Kein Deprecation-Prozess
@@ -1698,6 +1787,7 @@ completeness = (filledFields / totalFields) * 100;
 ### Current Limitations
 
 **Technical Debt:**
+
 - Tests disabled (no test coverage)
 - Minimal logging (no structured logging)
 - No monitoring/observability
@@ -1706,6 +1796,7 @@ completeness = (filledFields / totalFields) * 100;
 - WebSocket-Ordner existiert, aber leer
 
 **Feature Gaps:**
+
 - Keine Offline-Sync (nur Offline-Maps)
 - Keine Echtzeit-Kommunikation (WebSocket)
 - Keine Ressourcen-Verwaltung (Personal, Fahrzeuge, Material)
@@ -1713,6 +1804,7 @@ completeness = (filledFields / totalFields) * 100;
 - Kein Dashboard-Backend-Modul
 
 **Architecture Mismatches:**
+
 - arc42 verspricht Hexagonal/CQRS/Event Sourcing → Reality: Standard 3-Layer
 - arc42 verspricht Offline-Sync → Reality: Nur HTTP REST
 - arc42 verspricht Ressourcen-Module → Reality: Nicht implementiert
@@ -1799,6 +1891,7 @@ completeness = (filledFields / totalFields) * 100;
 **Source:** Exhaustive codebase scan (BMM Document-Project Workflow v1.2.0)
 
 **Method:**
+
 1. **Step 1-2:** Scan backend structure, API contracts
 2. **Step 3:** Scan data models (Prisma schema)
 3. **Step 4:** Scan frontend structure, components
@@ -1808,6 +1901,7 @@ completeness = (filledFields / totalFields) * 100;
 7. **Step 8:** Compare with arc42 documentation
 
 **Validation:**
+
 - ✅ Cross-referenced with actual implementation
 - ✅ Verified against Prisma schema
 - ✅ Checked OpenAPI documentation
@@ -1817,6 +1911,7 @@ completeness = (filledFields / totalFields) * 100;
 **Status:** Current and accurate as of 2025-01-11
 
 **Differences from arc42:**
+
 - **Removed:** Hexagonal Architecture, CQRS, Event Sourcing, CRDTs, Externe Systeme
 - **Updated:** Technologie-Stack, Module-Liste, API-Design, State-Management
 - **Added:** TanStack Suite, Tailwind CSS, Lagekarte-Modul, Computed Fields
@@ -1913,18 +2008,18 @@ OpenAPI JSON:  http://localhost:3000/api-json
 
 ### Architecture Patterns Cheat Sheet
 
-| What | Where | How |
-|------|-------|-----|
-| **API erstellen** | Backend | NestJS Controller + `@ApiOperation()` |
-| **API nutzen** | Frontend | `pnpm run generate-api` → `api.{module}().{method}()` |
-| **Daten fetchen** | Frontend | TanStack Query `useQuery()` |
-| **State verwalten** | Frontend | TanStack Store (nur UI-State) |
-| **Form erstellen** | Frontend | TanStack Form + Zod |
-| **Component bauen** | Frontend | Atomic Design + Tailwind CSS |
-| **Authentifizierung** | Backend | `@UseGuards(JwtAuthGuard)` |
-| **Admin-Route** | Backend | `@UseGuards(AdminJwtAuthGuard)` |
-| **Datenbank ändern** | Backend | Prisma Migrate: `prisma migrate dev` |
-| **Neue Entität** | Backend | Prisma Schema → Migrate → Generate Client |
+| What                  | Where    | How                                                   |
+| --------------------- | -------- | ----------------------------------------------------- |
+| **API erstellen**     | Backend  | NestJS Controller + `@ApiOperation()`                 |
+| **API nutzen**        | Frontend | `pnpm run generate-api` → `api.{module}().{method}()` |
+| **Daten fetchen**     | Frontend | TanStack Query `useQuery()`                           |
+| **State verwalten**   | Frontend | TanStack Store (nur UI-State)                         |
+| **Form erstellen**    | Frontend | TanStack Form + Zod                                   |
+| **Component bauen**   | Frontend | Atomic Design + Tailwind CSS                          |
+| **Authentifizierung** | Backend  | `@UseGuards(JwtAuthGuard)`                            |
+| **Admin-Route**       | Backend  | `@UseGuards(AdminJwtAuthGuard)`                       |
+| **Datenbank ändern**  | Backend  | Prisma Migrate: `prisma migrate dev`                  |
+| **Neue Entität**      | Backend  | Prisma Schema → Migrate → Generate Client             |
 
 ---
 

@@ -316,7 +316,7 @@ export class PrismaUserRepository implements IUserRepository {
       // den generierten Enum-Type erwartet. Die Werte sind identisch.
       const count = await client.user.count({
         where: {
-          // biome-ignore lint/suspicious/noExplicitAny: Prisma generiert Enum aus Schema, wir akzeptieren flexible Strings
+          // eslint-disable-next-line typescript/no-explicit-any -- Prisma generiert Enum aus Schema, wir akzeptieren flexible Strings
           role: { in: roles as any },
         },
       });
@@ -346,7 +346,7 @@ export class PrismaUserRepository implements IUserRepository {
     try {
       const count = await client.user.count({
         where: {
-          // biome-ignore lint/suspicious/noExplicitAny: Prisma generiert Enum aus Schema, wir akzeptieren flexible Strings
+          // eslint-disable-next-line typescript/no-explicit-any -- Prisma generiert Enum aus Schema, wir akzeptieren flexible Strings
           role: { in: roles as any },
           isActive: true,
           isDeleted: false,

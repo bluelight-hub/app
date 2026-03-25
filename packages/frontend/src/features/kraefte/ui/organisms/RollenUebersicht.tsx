@@ -133,8 +133,8 @@ export function RollenUebersicht({ einsatzId, onFreigebeClick, onBesetzeClick, c
       <div className={cn('rounded-panel border border-border-subtle bg-surface-panel', containerClasses, className)}>
         <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="font-medium text-text-secondary text-sm">Rollen</span>
-            <span className="text-text-muted text-xs">{besetzteCount} besetzt</span>
+            <span className="text-sm font-medium text-text-secondary">Rollen</span>
+            <span className="text-xs text-text-muted">{besetzteCount} besetzt</span>
           </div>
           {/* Story TD2.5 AC3: "Rolle besetzen" Button für Compact Mode mit min-touch-target */}
           {onBesetzeClick && (
@@ -156,13 +156,13 @@ export function RollenUebersicht({ einsatzId, onFreigebeClick, onBesetzeClick, c
           <div className="space-y-1">
             {besetzungen.map((b) => (
               <div key={b.id} className="flex items-center justify-between rounded-control bg-surface-raised px-2 py-1">
-                <span className="font-medium text-text-secondary text-xs">{b.rollenName}</span>
-                <span className="text-text-muted text-xs">{b.personName}</span>
+                <span className="text-xs font-medium text-text-secondary">{b.rollenName}</span>
+                <span className="text-xs text-text-muted">{b.personName}</span>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-center text-text-muted text-xs">Keine Rollen besetzt</p>
+          <p className="text-center text-xs text-text-muted">Keine Rollen besetzt</p>
         )}
       </div>
     );

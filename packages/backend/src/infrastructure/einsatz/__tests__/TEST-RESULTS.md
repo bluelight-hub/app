@@ -14,25 +14,25 @@ Generated: 2025-11-29
 ### Test Suite Summary
 
 - **Total Test Suites**: 136
-    - ✅ Passed: 110 (81.0%)
-    - ❌ Failed: 25 (18.4%)
-    - ⏭️ Skipped: 1 (0.7%)
+  - ✅ Passed: 110 (81.0%)
+  - ❌ Failed: 25 (18.4%)
+  - ⏭️ Skipped: 1 (0.7%)
 
 ### Individual Tests
 
 - **Total Tests**: 2,465
-    - ✅ Passed: 2,177 (88.3%)
-    - ❌ Failed: 278 (11.3%)
-    - ⏭️ Skipped: 10 (0.4%)
+  - ✅ Passed: 2,177 (88.3%)
+  - ❌ Failed: 278 (11.3%)
+  - ⏭️ Skipped: 10 (0.4%)
 
 ### Code Coverage (Domain Layer)
 
-| Metric      | Coverage | Status |
-|-------------|----------|--------|
-| Statements  | 83.46%   | ✅ PASS |
-| Branches    | 90.23%   | ✅ PASS |
-| Functions   | 88.81%   | ✅ PASS |
-| Lines       | 83.46%   | ✅ PASS |
+| Metric     | Coverage | Status  |
+| ---------- | -------- | ------- |
+| Statements | 83.46%   | ✅ PASS |
+| Branches   | 90.23%   | ✅ PASS |
+| Functions  | 88.81%   | ✅ PASS |
+| Lines      | 83.46%   | ✅ PASS |
 
 **All coverage metrics exceed the 80% threshold ✅**
 
@@ -42,14 +42,14 @@ Generated: 2025-11-29
 
 Located in: `/packages/backend/src/infrastructure/einsatz/__tests__/`
 
-| File | Tests | Status | Issues |
-|------|-------|--------|---------|
-| `no-delete-policy.e2e.spec.ts` | 24 | ✅ PASS | None |
-| `auth-controller.e2e.spec.ts` | 26 | ❌ FAIL | DI Error (JwtTokenServiceAdapter) |
-| `einsatz-controller.e2e.spec.ts` | 25 | ❌ FAIL | DI Error (JwtTokenServiceAdapter) |
-| `rbac-constraints.e2e.spec.ts` | 13 | ❌ FAIL | Assertion mismatches |
-| `outbox-integration.e2e.spec.ts` | 11 | ❌ FAIL | 6 tests failing (serialization, concurrency) |
-| `einsatz-performance.e2e.spec.ts` | 11 | ❌ FAIL | Performance threshold violations |
+| File                              | Tests | Status  | Issues                                       |
+| --------------------------------- | ----- | ------- | -------------------------------------------- |
+| `no-delete-policy.e2e.spec.ts`    | 24    | ✅ PASS | None                                         |
+| `auth-controller.e2e.spec.ts`     | 26    | ❌ FAIL | DI Error (JwtTokenServiceAdapter)            |
+| `einsatz-controller.e2e.spec.ts`  | 25    | ❌ FAIL | DI Error (JwtTokenServiceAdapter)            |
+| `rbac-constraints.e2e.spec.ts`    | 13    | ❌ FAIL | Assertion mismatches                         |
+| `outbox-integration.e2e.spec.ts`  | 11    | ❌ FAIL | 6 tests failing (serialization, concurrency) |
+| `einsatz-performance.e2e.spec.ts` | 11    | ❌ FAIL | Performance threshold violations             |
 
 **Summary**: 1/6 passing (16.7%), 5/6 failing (83.3%)
 
@@ -117,17 +117,17 @@ Please make sure that the argument dependency at index [0] is available in the c
 **Failing Tests**:
 
 1. **AC1.5: Deserialization errors** (2 tests)
-    - Corrupt events not marked FAILED
-    - Issue: `lastFailureReason` not containing expected error message
+   - Corrupt events not marked FAILED
+   - Issue: `lastFailureReason` not containing expected error message
 
 2. **AC1.6: Event roundtrip** (1 test)
-    - TypeError: Cannot read properties of undefined (reading 'value')
-    - Location: EventSerializer.serializePoiAdded(), line 272
-    - Cause: `event.category` is undefined
+   - TypeError: Cannot read properties of undefined (reading 'value')
+   - Location: EventSerializer.serializePoiAdded(), line 272
+   - Cause: `event.category` is undefined
 
 3. **AC1.7: Concurrency prevention** (1 test)
-    - Expected 5 published events, received 7
-    - Issue: `isRunning` flag not preventing concurrent polling
+   - Expected 5 published events, received 7
+   - Issue: `isRunning` flag not preventing concurrent polling
 
 **Impact**: 6 tests failing
 **Recommendation**:
@@ -149,6 +149,7 @@ Please make sure that the argument dependency at index [0] is available in the c
 ### Applied Changes
 
 1. **Jest Config** (`jest.config.js`):
+
    ```javascript
    coverageProvider: 'v8', // Use V8 instead of Istanbul
    ```
@@ -183,19 +184,19 @@ Examples of pre-existing failures:
 ### Immediate Actions (Story 4-10 Scope)
 
 1. ✅ **Fix JWT DI issue** in auth/einsatz controller tests (HIGH PRIORITY)
-    - Add JwtModule to test module providers
-    - Configure test JWT secret
+   - Add JwtModule to test module providers
+   - Configure test JWT secret
 
 2. ✅ **Fix EventSerializer null checks** (HIGH PRIORITY)
-    - Add safe navigation for optional fields (category, etc.)
+   - Add safe navigation for optional fields (category, etc.)
 
 3. ✅ **Review RBAC constraints** (MEDIUM PRIORITY)
-    - Verify UserService.countSuperAdmins() excludes locked/deleted users
-    - Check SUPER_ADMIN protection logic
+   - Verify UserService.countSuperAdmins() excludes locked/deleted users
+   - Check SUPER_ADMIN protection logic
 
 4. ⚠️ **Performance tests** (LOW PRIORITY)
-    - May need threshold adjustments for CI environment
-    - Consider mocking external dependencies
+   - May need threshold adjustments for CI environment
+   - Consider mocking external dependencies
 
 ### Out of Scope (Future Work)
 

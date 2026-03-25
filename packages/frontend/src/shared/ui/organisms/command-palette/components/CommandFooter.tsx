@@ -32,9 +32,9 @@ export function CommandFooter({ resultCount, shortcuts }: CommandFooterProps) {
   };
 
   return (
-    <div className="border-border-subtle border-t bg-surface-raised/70 px-4 py-3">
+    <div className="border-t border-border-subtle bg-surface-raised/70 px-4 py-3">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4 text-text-secondary text-xs">
+        <div className="flex items-center gap-4 text-xs text-text-secondary">
           {Object.entries(safeShortcuts).map(([key, keys]) => {
             if (!keys || keys.length === 0) return null;
             return (
@@ -47,7 +47,7 @@ export function CommandFooter({ resultCount, shortcuts }: CommandFooterProps) {
         </div>
         {resultCount !== undefined && resultCount > 0 && (
           <div className="flex items-center gap-2">
-            <span className="text-text-muted text-xs">{resultCount} Ergebnisse</span>
+            <span className="text-xs text-text-muted">{resultCount} Ergebnisse</span>
           </div>
         )}
       </div>

@@ -10,32 +10,32 @@ bleibt.
 ### Domain Services sind für:
 
 - **Cross-Aggregate Logic:** Koordination zwischen mehreren Aggregates
-    - Beispiel: `EinsatzCompletenessService` prüft Einsatz-Vollständigkeit (könnte später auch andere Aggregates prüfen)
+  - Beispiel: `EinsatzCompletenessService` prüft Einsatz-Vollständigkeit (könnte später auch andere Aggregates prüfen)
 - **Komplexe Berechnungen:** Domänen-Logik, die nicht zu einem Aggregate gehört
-    - Beispiel: `EinsatzNamingService` generiert Einsatznummern (verwendet Jahr + Sequenznummer)
+  - Beispiel: `EinsatzNamingService` generiert Einsatznummern (verwendet Jahr + Sequenznummer)
 - **Domain Policies:** System-weite Regeln und Richtlinien
-    - Beispiel: `EinsatzArchivalPolicy` implementiert DRK 10-Jahres-Archivierungspflicht
+  - Beispiel: `EinsatzArchivalPolicy` implementiert DRK 10-Jahres-Archivierungspflicht
 - **External Integrations (Ports):** Schnittstellen für Infrastructure-Adapter
-    - Beispiel: `IGeocodingPort` definiert Contract für Geocoding-Services (Nominatim)
+  - Beispiel: `IGeocodingPort` definiert Contract für Geocoding-Services (Nominatim)
 
 ### Aggregate Methods sind für:
 
 - **Aggregate-spezifische Business Logic:** Zustandsänderungen innerhalb des Aggregates
-    - Beispiel: `EinsatzAggregate.complete(userId)` (Statusübergang IN_BEARBEITUNG → ABGESCHLOSSEN)
+  - Beispiel: `EinsatzAggregate.complete(userId)` (Statusübergang IN_BEARBEITUNG → ABGESCHLOSSEN)
 - **Invarianten-Sicherung:** Konsistenz-Regeln des Aggregates
-    - Beispiel: `UserAggregate.updateRole()` prüft "Min-1-SUPER_ADMIN" Regel
+  - Beispiel: `UserAggregate.updateRole()` prüft "Min-1-SUPER_ADMIN" Regel
 - **State Transitions:** Zustandsübergänge mit Guards
-    - Beispiel: `EinsatzAggregate.archive()` prüft Status = ABGESCHLOSSEN
+  - Beispiel: `EinsatzAggregate.archive()` prüft Status = ABGESCHLOSSEN
 
 ---
 
 ## Naming Conventions
 
-| Typ | Pattern | Beispiel | Verwendung |
-|-----|---------|----------|------------|
-| **Services** | `{Context}{Purpose}Service` | `EinsatzNamingService` | Pure Functions (stateless) |
-| **Policies** | `{Context}{Purpose}Policy` | `EinsatzArchivalPolicy` | Domain Policies (zeitbasierte Regeln) |
-| **Ports** | `I{Service}Port` | `IGeocodingPort` | Interfaces für Infrastructure Adapter |
+| Typ          | Pattern                     | Beispiel                | Verwendung                            |
+| ------------ | --------------------------- | ----------------------- | ------------------------------------- |
+| **Services** | `{Context}{Purpose}Service` | `EinsatzNamingService`  | Pure Functions (stateless)            |
+| **Policies** | `{Context}{Purpose}Policy`  | `EinsatzArchivalPolicy` | Domain Policies (zeitbasierte Regeln) |
+| **Ports**    | `I{Service}Port`            | `IGeocodingPort`        | Interfaces für Infrastructure Adapter |
 
 ---
 
@@ -99,9 +99,9 @@ getMissingRequirements(einsatz: EinsatzAggregate, requireOrt = true): string[]
 **Business Rules:**
 
 - Einsatz kann nur abgeschlossen werden wenn:
-    - `alarmstichwort` ist gesetzt (Pflichteingabe)
-    - `einsatzort` ist gesetzt (optional, konfigurierbar via `requireOrt`)
-    - Status ist IN_BEARBEITUNG (nicht ANGELEGT, ABGESCHLOSSEN, ARCHIVIERT)
+  - `alarmstichwort` ist gesetzt (Pflichteingabe)
+  - `einsatzort` ist gesetzt (optional, konfigurierbar via `requireOrt`)
+  - Status ist IN_BEARBEITUNG (nicht ANGELEGT, ABGESCHLOSSEN, ARCHIVIERT)
 
 **Warum Service statt Aggregate?**
 
@@ -145,8 +145,8 @@ getArchivalDate(einsatz: EinsatzAggregate): Date
 **Business Rules:**
 
 - Einsatz kann archiviert werden wenn:
-    - Status ist ABGESCHLOSSEN (nicht ANGELEGT, IN_BEARBEITUNG, ARCHIVIERT)
-    - `abgeschlossenAt` ist mindestens 10 Jahre vor `currentDate`
+  - Status ist ABGESCHLOSSEN (nicht ANGELEGT, IN_BEARBEITUNG, ARCHIVIERT)
+  - `abgeschlossenAt` ist mindestens 10 Jahre vor `currentDate`
 - Nach Archivierung (Status → ARCHIVIERT) ist Einsatz immutable
 
 **Warum Policy statt Aggregate?**
@@ -321,12 +321,12 @@ domain/services/
 
 ## Zusammenfassung
 
-| Service | Typ | Purpose | Location | Framework |
-|---------|-----|---------|----------|-----------|
-| **EinsatzNamingService** | Service | Einsatznummern generieren | `einsatz-naming.service.ts` | NO (Pure Function) |
-| **EinsatzCompletenessService** | Service | Einsatz-Vollständigkeit prüfen | `einsatz-completeness.service.ts` | NO (Pure Function) |
-| **EinsatzArchivalPolicy** | Policy | 10-Jahres-Archivierung prüfen | `einsatz-archival.policy.ts` | NO (Pure Function) |
-| **IGeocodingPort** | Port | Geocoding Interface (Nominatim) | `ports/i-geocoding.port.ts` | NO (Interface Only) |
+| Service                        | Typ     | Purpose                         | Location                          | Framework           |
+| ------------------------------ | ------- | ------------------------------- | --------------------------------- | ------------------- |
+| **EinsatzNamingService**       | Service | Einsatznummern generieren       | `einsatz-naming.service.ts`       | NO (Pure Function)  |
+| **EinsatzCompletenessService** | Service | Einsatz-Vollständigkeit prüfen  | `einsatz-completeness.service.ts` | NO (Pure Function)  |
+| **EinsatzArchivalPolicy**      | Policy  | 10-Jahres-Archivierung prüfen   | `einsatz-archival.policy.ts`      | NO (Pure Function)  |
+| **IGeocodingPort**             | Port    | Geocoding Interface (Nominatim) | `ports/i-geocoding.port.ts`       | NO (Interface Only) |
 
 **Alle Domain Services sind:**
 

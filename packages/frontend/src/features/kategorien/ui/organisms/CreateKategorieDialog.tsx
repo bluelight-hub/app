@@ -103,7 +103,7 @@ export function CreateKategorieDialog({ isOpen, onClose, einsatzId }: CreateKate
           <form.Field name="name">
             {(field) => (
               <div>
-                <label htmlFor="kategorie-name" className="mb-1.5 block font-medium text-text-secondary text-sm">
+                <label htmlFor="kategorie-name" className="mb-1.5 block text-sm font-medium text-text-secondary">
                   Name <span className="text-status-danger-text">*</span>
                 </label>
                 <Input
@@ -117,7 +117,7 @@ export function CreateKategorieDialog({ isOpen, onClose, einsatzId }: CreateKate
                   maxLength={100}
                   autoFocus
                 />
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-sm">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-sm text-status-danger-text">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
@@ -126,17 +126,17 @@ export function CreateKategorieDialog({ isOpen, onClose, einsatzId }: CreateKate
           <form.Field name="farbe">
             {(field) => (
               <div>
-                <p id="kategorie-farbe-label" className="mb-1.5 block font-medium text-text-secondary text-sm">
+                <p id="kategorie-farbe-label" className="mb-1.5 block text-sm font-medium text-text-secondary">
                   Farbe <span className="text-status-danger-text">*</span>
                 </p>
                 <FarbPresetPicker value={field.state.value} onChange={(farbe) => field.handleChange(farbe)} ariaLabelledBy="kategorie-farbe-label" />
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-sm">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-sm text-status-danger-text">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
 
           {/* API Error */}
-          {apiErrorMessage && <div className="rounded-panel bg-status-danger-surface p-3 text-status-danger-text text-sm">{apiErrorMessage}</div>}
+          {apiErrorMessage && <div className="rounded-panel bg-status-danger-surface p-3 text-sm text-status-danger-text">{apiErrorMessage}</div>}
         </form>
       </Dialog.Body>
 

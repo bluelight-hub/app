@@ -316,7 +316,7 @@ export function RegisterForm() {
 
 **File:** `packages/backend/src/application/common/validation/validate-with-zod.decorator.ts`
 
-```typescript
+````typescript
 import { registerDecorator, ValidationOptions, ValidationArguments } from 'class-validator';
 import { ZodSchema } from 'zod';
 
@@ -340,31 +340,30 @@ import { ZodSchema } from 'zod';
 
 */
 export function ValidateWithZod(schema: ZodSchema, validationOptions?: ValidationOptions) {
-return function (object: object, propertyName: string) {
-registerDecorator({
-name: 'validateWithZod',
-target: object.constructor,
-propertyName: propertyName,
-options: validationOptions,
-validator: {
-validate(value: unknown, args: ValidationArguments) {
-const result = schema.safeParse(value);
-return result.success;
-},
-defaultMessage(args: ValidationArguments) {
-const result = schema.safeParse(args.value);
-if (!result.success) {
-// Nutze erste Zod-Error-Message
-return result.error.errors[0]?.message || 'Validierung fehlgeschlagen';
+  return function (object: object, propertyName: string) {
+    registerDecorator({
+      name: 'validateWithZod',
+      target: object.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      validator: {
+        validate(value: unknown, args: ValidationArguments) {
+          const result = schema.safeParse(value);
+          return result.success;
+        },
+        defaultMessage(args: ValidationArguments) {
+          const result = schema.safeParse(args.value);
+          if (!result.success) {
+            // Nutze erste Zod-Error-Message
+            return result.error.errors[0]?.message || 'Validierung fehlgeschlagen';
+          }
+          return 'Validierung fehlgeschlagen';
+        },
+      },
+    });
+  };
 }
-return 'Validierung fehlgeschlagen';
-},
-},
-});
-};
-}
-
-```
+````
 
 **File:** `packages/backend/src/application/common/validation/index.ts`
 
@@ -586,10 +585,7 @@ export const NEW_FIELD_CRITERIA = {
   maxLength: 50,
 } as const;
 
-export const newFieldSchema = z
-  .string()
-  .min(NEW_FIELD_CRITERIA.minLength)
-  .max(NEW_FIELD_CRITERIA.maxLength);
+export const newFieldSchema = z.string().min(NEW_FIELD_CRITERIA.minLength).max(NEW_FIELD_CRITERIA.maxLength);
 
 export type NewField = z.infer<typeof newFieldSchema>;
 ```

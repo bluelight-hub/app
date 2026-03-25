@@ -43,8 +43,8 @@ function PresetChip({ preset, isActive, onApply, onRemove }: PresetChipProps) {
   return (
     <span
       className={cn(
-        'group inline-flex items-center gap-1 rounded-full px-3 py-1 font-medium text-xs',
-        'cursor-pointer select-none transition-all duration-150',
+        'group inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium',
+        'cursor-pointer transition-all duration-150 select-none',
         isActive ? 'bg-action-primary text-text-inverse ring-2 ring-action-primary/50' : 'bg-surface-raised text-text-secondary hover:bg-action-secondary',
       )}
     >

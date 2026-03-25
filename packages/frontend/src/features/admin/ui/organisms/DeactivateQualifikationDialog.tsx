@@ -28,7 +28,7 @@ export const DeactivateQualifikationDialog = ({ isOpen, onClose, onConfirm, qual
         <div className="space-y-4">
           {' '}
           <Text>Möchten Sie die folgende Qualifikation wirklich deaktivieren?</Text>{' '}
-          <div className="rounded-lg border border-border-subtle bg-surface-raised p-4 ">
+          <div className="rounded-lg border border-border-subtle bg-surface-raised p-4">
             {' '}
             <div className="flex items-start justify-between">
               {' '}
@@ -43,13 +43,13 @@ export const DeactivateQualifikationDialog = ({ isOpen, onClose, onConfirm, qual
                   </Badge>{' '}
                 </div>{' '}
                 <Text className="mt-1 text-text-secondary">{qualifikation.name}</Text>{' '}
-                {qualifikation.beschreibung && <Text className="mt-2 text-text-muted text-sm ">{qualifikation.beschreibung}</Text>}{' '}
+                {qualifikation.beschreibung && <Text className="mt-2 text-sm text-text-muted">{qualifikation.beschreibung}</Text>}{' '}
               </div>{' '}
             </div>{' '}
           </div>{' '}
           <div className="rounded-lg border border-status-warning-border bg-status-warning-surface p-3">
             {' '}
-            <Text className="text-status-warning-text text-sm">
+            <Text className="text-sm text-status-warning-text">
               {' '}
               <strong>Hinweis:</strong> Deaktivierte Qualifikationen können nicht mehr neuen Kräften zugewiesen werden. Bestehende Zuweisungen bleiben erhalten.{' '}
             </Text>{' '}

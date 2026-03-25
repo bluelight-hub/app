@@ -240,7 +240,7 @@ export class RetryUtil {
     try {
       return await Promise.race([fn(), timeoutPromise]);
     } finally {
-      // biome-ignore lint/style/noNonNullAssertion: timeoutId is always assigned before Promise.race
+      // eslint-disable-next-line typescript/no-non-null-assertion -- timeoutId is always assigned before Promise.race
       clearTimeout(timeoutId!);
     }
   }

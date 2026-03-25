@@ -7,7 +7,7 @@
 Bluelight Hub ist eine **Web + Tauri Desktop App** für Blaulicht-Organisationen (Katastrophenschutz).
 
 | Package          | Stack                        | Beschreibung                                                             |
-|------------------|------------------------------|--------------------------------------------------------------------------|
+| ---------------- | ---------------------------- | ------------------------------------------------------------------------ |
 | `frontend/`      | React 19 + Vite + Tauri      | Desktop App mit Feature-based Architektur                                |
 | `backend/`       | NestJS + Prisma + PostgreSQL | Hexagonale Architektur (Domain → Application → Infrastructure → Modules) |
 | `shared/client/` | Generiert                    | API Client - **NIEMALS manuell ändern!**                                 |
@@ -15,7 +15,7 @@ Bluelight Hub ist eine **Web + Tauri Desktop App** für Blaulicht-Organisationen
 ## MCP Server (NUTZE SIE!)
 
 - **Context7** - Aktuelle Library-Dokumentation abrufen
-- **Claude-in-Chrome** - Frontend testen (Login: rubeen / MyPass123*)
+- **Claude-in-Chrome** - Frontend testen (Login: rubeen / MyPass123\*)
 
 ## Kritische Regeln
 
@@ -30,11 +30,11 @@ Backend-Endpoint → pnpm run generate-api → TanStack Query Hook → Komponent
 ### Tech Stack (NUR diese!)
 
 | Bereich | Erlaubt                                                        | Verboten                     |
-|---------|----------------------------------------------------------------|------------------------------|
+| ------- | -------------------------------------------------------------- | ---------------------------- |
 | UI      | Tailwind CSS + Headless UI                                     | CSS-in-JS, andere Frameworks |
 | Forms   | @tanstack/react-form + Zod                                     | HTML Forms, Formik           |
 | State   | @tanstack/react-query (Server), @tanstack/react-store (Client) | Redux                        |
-| Linting | Biome                                                          | ESLint, Prettier             |
+| Linting | OXC (oxlint + oxfmt)                                           | Biome, ESLint, Prettier      |
 
 ### Backend DI Import (AC1)
 
@@ -74,7 +74,7 @@ pnpm --filter @bluelight-hub/backend prisma:migrate --name add_feature_xyz
 pnpm --filter @bluelight-hub/backend test
 
 # Code Quality
-pnpm lint                            # Biome
+pnpm lint                            # oxlint + oxfmt
 pnpm --filter @bluelight-hub/backend check:arch  # Circular Dependencies
 ```
 

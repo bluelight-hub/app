@@ -186,7 +186,7 @@ export function BefehlKarte({
       role={onClick ? 'button' : undefined}
       className={cn(
         'relative rounded-lg border p-4 transition-colors',
-        'focus-visible:outline-none focus-visible:shadow-focus-ring',
+        'focus-visible:shadow-focus-ring focus-visible:outline-none',
         onClick && 'cursor-pointer',
         // Kritikalitaets-Styling hat Vorrang vor Quittierungs-Styling
         istKritisch && !zeigeQuittierung && ['border-status-danger-border ring-2 ring-status-danger-text/40'],
@@ -201,17 +201,17 @@ export function BefehlKarte({
       {istUeberfaellig && <AlarmDot className="absolute top-2 right-2" />}
       {/* Obere Zeile: Nummer + Status-Badge + Kritikalitaet-Badge + Zustellhäkchen + Quittierungs-Badge */}
       <div className="flex items-center gap-3">
-        <span className="font-bold text-3xl text-text-primary">{nummer}</span>
+        <span className="text-3xl font-bold text-text-primary">{nummer}</span>
         <BefehlStatusBadge status={status} />
         {badgeType && <KritikalitaetBadge type={badgeType} />}
         <ZustellHaekchen empfaengerGesamt={empfaenger.length} empfaengerZugestellt={zugestelltCount} quittierungStatus={getZustellHaekchenFarbe(empfaenger)} />
 
         {/* Quittierungs-Badge (Standard-Modus) */}
         {!showMeineBefehle && zeigeQuittierung && (
-          <span className="ml-auto inline-flex items-center rounded-full bg-status-warning-surface px-2.5 py-0.5 font-medium text-status-warning-text text-xs">Quittierung ausstehend</span>
+          <span className="ml-auto inline-flex items-center rounded-full bg-status-warning-surface px-2.5 py-0.5 text-xs font-medium text-status-warning-text">Quittierung ausstehend</span>
         )}
         {!showMeineBefehle && bereitsQuittiert && meineEmpfaengerInfo?.quittierungArt && (
-          <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-status-success-surface px-2.5 py-0.5 font-medium text-status-success-text text-xs">
+          <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-status-success-surface px-2.5 py-0.5 text-xs font-medium text-status-success-text">
             <PiCheckCircle className="h-3.5 w-3.5" />
             {QUITTIERUNG_LABELS[meineEmpfaengerInfo.quittierungArt] ?? 'Quittiert'}
           </span>
@@ -219,7 +219,7 @@ export function BefehlKarte({
 
         {/* Empfaenger-Status-Badge (Meine Befehle-Modus, WCAG: Icon + Text) */}
         {MeineBefehleStatusIcon && meineBefehleFarben && meineBefehleLabel && (
-          <span className={cn('ml-auto inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-medium text-xs', meineBefehleFarben.bg, meineBefehleFarben.text)}>
+          <span className={cn('ml-auto inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium', meineBefehleFarben.bg, meineBefehleFarben.text)}>
             <MeineBefehleStatusIcon className="h-3.5 w-3.5" />
             {meineBefehleLabel}
           </span>
@@ -228,20 +228,20 @@ export function BefehlKarte({
 
       {/* Korrektur-Hinweise */}
       {status === 'KORRIGIERT' && (
-        <div className="mt-2 flex items-center gap-1.5 rounded-md border border-status-warning-border bg-status-warning-surface px-2.5 py-1.5 font-medium text-status-warning-text text-xs">
+        <div className="mt-2 flex items-center gap-1.5 rounded-md border border-status-warning-border bg-status-warning-surface px-2.5 py-1.5 text-xs font-medium text-status-warning-text">
           <PiPencilSimpleLine className="h-3.5 w-3.5 flex-shrink-0" />
           {korrekturBefehlLabel}
         </div>
       )}
       {originalBefehlId && (
-        <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-status-info-surface px-2 py-0.5 font-medium text-status-info-text text-xs">
+        <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-status-info-surface px-2 py-0.5 text-xs font-medium text-status-info-text">
           <PiArrowBendUpRight className="h-3 w-3 flex-shrink-0" />
           {originalBefehlLabel}
         </div>
       )}
 
       {/* Auftrag */}
-      <p className="mt-2 line-clamp-2 text-text-secondary text-sm">{auftrag}</p>
+      <p className="mt-2 line-clamp-2 text-sm text-text-secondary">{auftrag}</p>
 
       {/* Quittierungsfortschritt mit interaktiven Empfaenger-Chips */}
       <div className="mt-3">
@@ -249,7 +249,7 @@ export function BefehlKarte({
       </div>
 
       {/* Untere Zeile: Zeitstempel + Kommentar-Toggle */}
-      <div className="mt-2 flex items-center gap-3 text-text-muted text-xs">
+      <div className="mt-2 flex items-center gap-3 text-xs text-text-muted">
         <time dateTime={erteiltAmDate.toISOString()}>{format(erteiltAmDate, 'dd.MM.yyyy HH:mm')}</time>
 
         {/* Kommentar-Toggle */}
@@ -311,7 +311,7 @@ export function BefehlKarte({
               e.stopPropagation();
               onQuittieren(befehlId);
             }}
-            className="mt-3 w-full rounded-md bg-status-warning-surface py-2 font-medium text-sm text-status-warning-text hover:bg-action-secondary"
+            className="mt-3 w-full rounded-md bg-status-warning-surface py-2 text-sm font-medium text-status-warning-text hover:bg-action-secondary"
           >
             Quittieren
           </button>
@@ -321,7 +321,7 @@ export function BefehlKarte({
             disabled
             aria-disabled="true"
             title="Nur Empfänger dürfen Befehle quittieren"
-            className="mt-3 w-full cursor-not-allowed rounded-md bg-surface-raised py-2 font-medium text-text-muted text-sm"
+            className="mt-3 w-full cursor-not-allowed rounded-md bg-surface-raised py-2 text-sm font-medium text-text-muted"
           >
             Quittieren
           </button>

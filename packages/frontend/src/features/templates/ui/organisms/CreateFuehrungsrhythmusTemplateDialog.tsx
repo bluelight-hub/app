@@ -133,7 +133,7 @@ export function CreateFuehrungsrhythmusTemplateDialog({ isOpen, onClose, default
           <form.Field name="name">
             {(field) => (
               <div>
-                <label htmlFor="fr-template-name" className="mb-1.5 block font-medium text-text-secondary text-sm">
+                <label htmlFor="fr-template-name" className="mb-1.5 block text-sm font-medium text-text-secondary">
                   Name <span className="text-status-danger-text">*</span>
                 </label>
                 <Input
@@ -147,7 +147,7 @@ export function CreateFuehrungsrhythmusTemplateDialog({ isOpen, onClose, default
                   maxLength={100}
                   autoFocus
                 />
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-sm">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-sm text-status-danger-text">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
@@ -156,8 +156,8 @@ export function CreateFuehrungsrhythmusTemplateDialog({ isOpen, onClose, default
           <form.Field name="beschreibung">
             {(field) => (
               <div>
-                <label htmlFor="fr-template-beschreibung" className="mb-1.5 block font-medium text-text-secondary text-sm">
-                  Beschreibung <span className="text-text-muted text-xs">(optional)</span>
+                <label htmlFor="fr-template-beschreibung" className="mb-1.5 block text-sm font-medium text-text-secondary">
+                  Beschreibung <span className="text-xs text-text-muted">(optional)</span>
                 </label>
                 <textarea
                   id="fr-template-beschreibung"
@@ -181,8 +181,8 @@ export function CreateFuehrungsrhythmusTemplateDialog({ isOpen, onClose, default
 
           {/* Eintraege (dynamisch) */}
           <div>
-            <div className="mb-3 flex items-center gap-2 border-border-subtle border-b pb-2">
-              <span className="font-medium text-text-secondary text-sm">Erinnerungen</span>
+            <div className="mb-3 flex items-center gap-2 border-b border-border-subtle pb-2">
+              <span className="text-sm font-medium text-text-secondary">Erinnerungen</span>
               <span className="text-status-danger-text">*</span>
             </div>
 
@@ -211,21 +211,21 @@ export function CreateFuehrungsrhythmusTemplateDialog({ isOpen, onClose, default
                       setEntryKeys((prev) => [...prev, createEintragKey()]);
                     }}
                     disabled={isPending}
-                    className="flex w-full items-center justify-center gap-2 rounded-panel border-2 border-dashed border-border-subtle px-4 py-2.5 text-text-secondary text-sm transition-colors hover:border-status-warning-text hover:text-status-warning-text disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-2 rounded-panel border-2 border-dashed border-border-subtle px-4 py-2.5 text-sm text-text-secondary transition-colors hover:border-status-warning-text hover:text-status-warning-text disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <PiPlus className="h-4 w-4" />
                     Erinnerung hinzufuegen
                   </button>
 
                   {/* Array-Level Fehler */}
-                  {field.state.meta.errors.length > 0 && <p className="text-status-danger-text text-sm">{formatErrors(field.state.meta.errors)}</p>}
+                  {field.state.meta.errors.length > 0 && <p className="text-sm text-status-danger-text">{formatErrors(field.state.meta.errors)}</p>}
                 </div>
               )}
             </form.Field>
           </div>
 
           {/* API Error */}
-          {apiErrorMessage && <div className="rounded-panel bg-status-danger-surface p-3 text-status-danger-text text-sm">{apiErrorMessage}</div>}
+          {apiErrorMessage && <div className="rounded-panel bg-status-danger-surface p-3 text-sm text-status-danger-text">{apiErrorMessage}</div>}
         </form>
       </Dialog.Body>
 
@@ -261,7 +261,7 @@ function EintragRow({
   return (
     <div className="rounded-panel border border-border-subtle bg-surface-raised p-3">
       <div className="mb-2 flex items-center justify-between">
-        <span className="font-medium text-text-muted text-xs">{index + 1}.</span>
+        <span className="text-xs font-medium text-text-muted">{index + 1}.</span>
         {canRemove && (
           <button
             type="button"
@@ -290,7 +290,7 @@ function EintragRow({
                 inputSize="sm"
                 maxLength={100}
               />
-              {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-xs">{formatErrors(field.state.meta.errors)}</p>}
+              {field.state.meta.errors.length > 0 && <p className="mt-1 text-xs text-status-danger-text">{formatErrors(field.state.meta.errors)}</p>}
             </div>
           )}
         </form.Field>
@@ -300,7 +300,7 @@ function EintragRow({
           <form.Field name={`eintraege[${index}].intervallMinuten`}>
             {(field) => (
               <div className="flex-1">
-                <label htmlFor={intervallInputId} className="mb-1 block text-text-muted text-xs">
+                <label htmlFor={intervallInputId} className="mb-1 block text-xs text-text-muted">
                   Intervall (Min)
                 </label>
                 <div className="flex items-center gap-1.5">
@@ -311,7 +311,7 @@ function EintragRow({
                       onClick={() => field.handleChange(preset)}
                       disabled={isPending}
                       className={cn(
-                        'rounded-md px-2.5 py-1 font-medium text-xs transition-colors',
+                        'rounded-md px-2.5 py-1 text-xs font-medium transition-colors',
                         'disabled:cursor-not-allowed disabled:opacity-50',
                         (field.state.value as number) === preset ? 'bg-status-warning-text text-text-inverse' : 'bg-surface-raised text-text-secondary hover:bg-action-secondary',
                       )}
@@ -332,7 +332,7 @@ function EintragRow({
                     className="w-16"
                   />
                 </div>
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-xs">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-xs text-status-danger-text">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
@@ -341,7 +341,7 @@ function EintragRow({
           <form.Field name={`eintraege[${index}].offsetMinuten`}>
             {(field) => (
               <div className="w-24">
-                <label htmlFor={offsetInputId} className="mb-1 block text-text-muted text-xs">
+                <label htmlFor={offsetInputId} className="mb-1 block text-xs text-text-muted">
                   Offset (Min)
                 </label>
                 <Input
@@ -355,7 +355,7 @@ function EintragRow({
                   min={0}
                   max={1440}
                 />
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-xs">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-xs text-status-danger-text">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>

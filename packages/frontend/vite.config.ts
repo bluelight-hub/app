@@ -38,7 +38,7 @@ export default defineConfig({
           key: readFileSync(keyPath),
           cert: readFileSync(certPath),
         }
-      : false,
+      : undefined,
     proxy: {
       '/uploads': {
         target: process.env.VITE_API_URL || (useHttps ? 'https://localhost:3091' : 'http://localhost:3091'),

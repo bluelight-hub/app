@@ -174,7 +174,7 @@ vi.mock('@/shared/ui/molecules/tabs.molecule', () => ({
   Tabs: ({ items }: { items: Array<{ label: string; content: React.ReactNode }> }) => (
     <div data-testid="tabs">
       {items.map((item, idx) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: Test-Mock benötigt stabile Keys
+        // eslint-disable-next-line react/no-array-index-key -- Test-Mock benötigt stabile Keys
         <div key={idx} data-testid={`tab-${idx}`}>
           <span>{item.label}</span>
           <div>{item.content}</div>

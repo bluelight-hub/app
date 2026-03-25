@@ -4,13 +4,13 @@ Wiederverwendbare Zod-Schemas für konsistente Validierung zwischen **Frontend**
 
 ## 📚 Verfügbare Schemas
 
-| Schema | Import | Beschreibung |
-|--------|--------|--------------|
-| **Username** | `usernameSchema` | 3-20 Zeichen, alphanumerisch + `_-` |
-| **Password** | `passwordSchema` | Min. 8 Zeichen, Komplexitätsregeln |
-| **Invite Code** | `inviteCodeSchema` | Exakt 8 Zeichen, A-Z0-9 (uppercase) |
-| **Invite Code (normalized)** | `inviteCodeSchemaNormalized` | Auto-Uppercase-Konvertierung |
-| **Server URL** | `serverUrlSchema` | Gültige http/https URL |
+| Schema                       | Import                       | Beschreibung                        |
+| ---------------------------- | ---------------------------- | ----------------------------------- |
+| **Username**                 | `usernameSchema`             | 3-20 Zeichen, alphanumerisch + `_-` |
+| **Password**                 | `passwordSchema`             | Min. 8 Zeichen, Komplexitätsregeln  |
+| **Invite Code**              | `inviteCodeSchema`           | Exakt 8 Zeichen, A-Z0-9 (uppercase) |
+| **Invite Code (normalized)** | `inviteCodeSchemaNormalized` | Auto-Uppercase-Konvertierung        |
+| **Server URL**               | `serverUrlSchema`            | Gültige http/https URL              |
 
 ## 🚀 Installation & Setup
 
@@ -230,11 +230,11 @@ interface RegistrationData {
 
 ## 🔗 Backend Value Object Synchronisation
 
-| Schema | Backend Value Object | Location |
-|--------|---------------------|----------|
-| `inviteCodeSchema` | `InviteCodeValue` | `@backend/domain/value-objects/invite-code-value.ts` |
-| `passwordSchema` | - | `@bluelight-hub/shared/validation/password.schema.ts` |
-| `usernameSchema` | - | - |
+| Schema             | Backend Value Object | Location                                              |
+| ------------------ | -------------------- | ----------------------------------------------------- |
+| `inviteCodeSchema` | `InviteCodeValue`    | `@backend/domain/value-objects/invite-code-value.ts`  |
+| `passwordSchema`   | -                    | `@bluelight-hub/shared/validation/password.schema.ts` |
+| `usernameSchema`   | -                    | -                                                     |
 
 **Wichtig:** Bei Änderungen an Backend Value Objects MUSS das entsprechende Schema aktualisiert werden!
 
@@ -293,7 +293,11 @@ export class LoginDto {
 
 // ❌ Frontend Schema
 const schema = z.object({
-  username: z.string().min(3).max(20).regex(/^[a-zA-Z0-9_-]+$/),
+  username: z
+    .string()
+    .min(3)
+    .max(20)
+    .regex(/^[a-zA-Z0-9_-]+$/),
 });
 ```
 

@@ -249,7 +249,7 @@ export function EinsatzCreateForm({ isOpen, onClose, onSuccess }: EinsatzCreateF
 
         {/* Keyboard Hint */}
         <div className="text-center text-body-xs text-text-secondary">
-          <kbd className="rounded-lg border border-border-subtle bg-surface-raised px-2 py-1 font-semibold text-text-primary text-body-xs">
+          <kbd className="rounded-lg border border-border-subtle bg-surface-raised px-2 py-1 text-body-xs font-semibold text-text-primary">
             {navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}+Enter
           </kbd>{' '}
           zum schnellen Erstellen

@@ -47,7 +47,7 @@ export function StatistikExportDialog({ einsatzId, isOpen, onClose }: StatistikE
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <DialogPanel className="mx-auto w-full max-w-md rounded-panel bg-surface-panel p-6 shadow-panel">
           <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center gap-2 font-semibold text-lg text-text-primary">
+            <DialogTitle className="flex items-center gap-2 text-lg font-semibold text-text-primary">
               <PiExport className="h-5 w-5" />
               Statistik exportieren
             </DialogTitle>
@@ -76,8 +76,8 @@ export function StatistikExportDialog({ einsatzId, isOpen, onClose }: StatistikE
                         {checked && <div className="h-1.5 w-1.5 rounded-full bg-text-inverse" />}
                       </div>
                       <div>
-                        <p className="font-medium text-sm text-text-primary">{option.label}</p>
-                        <p className="text-text-muted text-xs">{option.description}</p>
+                        <p className="text-sm font-medium text-text-primary">{option.label}</p>
+                        <p className="text-xs text-text-muted">{option.description}</p>
                       </div>
                     </>
                   )}
@@ -101,7 +101,7 @@ export function StatistikExportDialog({ einsatzId, isOpen, onClose }: StatistikE
               onClick={handleExport}
               disabled={exportMutation.isPending}
               className={cn(
-                'inline-flex items-center gap-2 rounded-control px-4 py-2 font-medium text-sm text-text-inverse',
+                'inline-flex items-center gap-2 rounded-control px-4 py-2 text-sm font-medium text-text-inverse',
                 'bg-action-primary hover:bg-action-primary-hover',
                 'disabled:cursor-not-allowed disabled:opacity-50',
               )}

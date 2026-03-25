@@ -130,7 +130,7 @@ export function AdminLayout() {
     <Container maxWidth="6xl" className="px-0 py-8">
       <div className="flex flex-col gap-4">
         {/* Header mit Titel und Close-Button */}
-        <div className="border-border-subtle border-b pb-4">
+        <div className="border-b border-border-subtle pb-4">
           <div className="flex items-start justify-between">
             <div className="flex">
               {!matchRoute({ to: '/admin/dashboard' }) && (

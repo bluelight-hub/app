@@ -4,8 +4,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const GITMOJI_SOURCE_URL =
-  'https://raw.githubusercontent.com/carloscuesta/gitmoji/master/packages/gitmojis/src/gitmojis.json';
+export const GITMOJI_SOURCE_URL = 'https://raw.githubusercontent.com/carloscuesta/gitmoji/master/packages/gitmojis/src/gitmojis.json';
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 export const GITMOJI_SNAPSHOT_PATH = path.resolve(SCRIPT_DIR, 'gitmojis.snapshot.json');
@@ -109,8 +108,7 @@ export async function validateCommitMessage(commitMessage) {
   if (nonEmptyLineCount > 0 && nonEmptyLineCount < 3) {
     warnings.push({
       code: 'SHORT_MESSAGE',
-      message:
-        'Einzeilige Commit-Nachricht erkannt. Für substantielle Änderungen sind mehrzeilige Commits erwünscht.',
+      message: 'Einzeilige Commit-Nachricht erkannt. Für substantielle Änderungen sind mehrzeilige Commits erwünscht.',
     });
   }
 
@@ -132,9 +130,7 @@ function printHumanErrors(result) {
   }
   console.error('📋 Erwartetes Format: <emoji>(<scope>): <message>');
   console.error('💡 Beispiel: ✨(frontend): Neue Benutzeroberfläche für Dashboard');
-  console.error(
-    `🔎 Erlaubte Emojis: ${result.allowedEmojiCount} (Source of Truth: ${GITMOJI_SOURCE_URL})`,
-  );
+  console.error(`🔎 Erlaubte Emojis: ${result.allowedEmojiCount} (Source of Truth: ${GITMOJI_SOURCE_URL})`);
 }
 
 function parseCliArgs(argv) {
@@ -192,9 +188,7 @@ async function main() {
   }
 }
 
-const invokedAsScript = process.argv[1]
-  ? path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
-  : false;
+const invokedAsScript = process.argv[1] ? path.resolve(process.argv[1]) === fileURLToPath(import.meta.url) : false;
 
 if (invokedAsScript) {
   try {

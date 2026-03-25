@@ -109,7 +109,7 @@ export function CreateNotizDialog({ isOpen, onClose, einsatzId }: CreateNotizDia
           <form.Field name="titel">
             {(field) => (
               <div>
-                <label htmlFor="notiz-titel" className="mb-1.5 block font-medium text-text-secondary text-sm">
+                <label htmlFor="notiz-titel" className="mb-1.5 block text-sm font-medium text-text-secondary">
                   Titel <span className="text-status-danger-text">*</span>
                 </label>
                 <Input
@@ -123,7 +123,7 @@ export function CreateNotizDialog({ isOpen, onClose, einsatzId }: CreateNotizDia
                   maxLength={100}
                   autoFocus
                 />
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-sm">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-sm text-status-danger-text">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
@@ -132,8 +132,8 @@ export function CreateNotizDialog({ isOpen, onClose, einsatzId }: CreateNotizDia
           <form.Field name="inhalt">
             {(field) => (
               <div>
-                <label htmlFor="notiz-inhalt" className="mb-1.5 block font-medium text-text-secondary text-sm">
-                  Inhalt <span className="text-text-muted text-xs">(optional)</span>
+                <label htmlFor="notiz-inhalt" className="mb-1.5 block text-sm font-medium text-text-secondary">
+                  Inhalt <span className="text-xs text-text-muted">(optional)</span>
                 </label>
                 <textarea
                   id="notiz-inhalt"
@@ -153,7 +153,7 @@ export function CreateNotizDialog({ isOpen, onClose, einsatzId }: CreateNotizDia
                       : 'border-border-subtle hover:border-border-strong focus:border-action-primary',
                   )}
                 />
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-sm">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-sm text-status-danger-text">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
@@ -191,7 +191,7 @@ export function CreateNotizDialog({ isOpen, onClose, einsatzId }: CreateNotizDia
                 >
                   <span className={cn('inline-block h-4 w-4 transform rounded-full bg-surface-panel transition-transform', field.state.value ? 'translate-x-6' : 'translate-x-1')} />
                 </Switch>
-                <span className="flex items-center gap-1.5 text-text-secondary text-sm">
+                <span className="flex items-center gap-1.5 text-sm text-text-secondary">
                   <PiUsersThree className="h-4 w-4" />
                   Für das Team sichtbar
                 </span>
@@ -200,7 +200,7 @@ export function CreateNotizDialog({ isOpen, onClose, einsatzId }: CreateNotizDia
           </form.Field>
 
           {/* API Error */}
-          {apiErrorMessage && <div className="rounded-panel bg-status-danger-surface p-3 text-status-danger-text text-sm">{apiErrorMessage}</div>}
+          {apiErrorMessage && <div className="rounded-panel bg-status-danger-surface p-3 text-sm text-status-danger-text">{apiErrorMessage}</div>}
         </form>
       </Dialog.Body>
 

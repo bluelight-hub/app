@@ -65,6 +65,7 @@ Findet alle `import type` Statements mit Regex:
 ```
 
 Beispiele:
+
 - `import type { MyService } from './my.service'`
 - `import type { A, B, C } from '@domain/services'`
 - `import type MyService from './my.service'`
@@ -201,6 +202,7 @@ packages/backend/scripts/
 ### Dependencies
 
 Der Validator nutzt nur Node.js Built-ins:
+
 - `fs` (Datei-IO)
 - `path` (Pfad-Auflösung)
 - `glob` (Datei-Pattern-Matching)

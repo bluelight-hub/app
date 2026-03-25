@@ -26,7 +26,7 @@ describe('EmpfaengerSucheQueryHandler', () => {
     mockPrisma.einsatzTeilnehmer.findMany.mockResolvedValue([]);
     // Default: keine Fahrzeuge
     mockPrisma.einsatzFahrzeug.findMany.mockResolvedValue([]);
-    // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+    // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     handler = new EmpfaengerSucheQueryHandler(mockPrisma as any);
   });
 

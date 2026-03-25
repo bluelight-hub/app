@@ -92,6 +92,7 @@ private readonly repository: IEtbRepository
 **Fix:**
 
 1. Add missing DI Tokens to `infrastructure/di-tokens.ts`:
+
    ```typescript
    export const ETB_REPOSITORY = Symbol('IEtbRepository');
    export const LAGEKARTE_REPOSITORY = Symbol('ILagekarteRepository');
@@ -99,6 +100,7 @@ private readonly repository: IEtbRepository
    ```
 
 2. Update imports in handlers:
+
    ```typescript
    import { ETB_REPOSITORY } from '@infrastructure/di-tokens';
    ```
@@ -201,9 +203,9 @@ Pattern.
 **Tasks:**
 
 1. ✅ Define DI Tokens in `di-tokens.ts`
-    - ✅ `ETB_REPOSITORY`
-    - ✅ `LAGEKARTE_REPOSITORY`
-    - ⏳ `EVENT_PUBLISHER` (optional)
+   - ✅ `ETB_REPOSITORY`
+   - ✅ `LAGEKARTE_REPOSITORY`
+   - ⏳ `EVENT_PUBLISHER` (optional)
 
 2. ⏳ Migrate ETB handlers to Symbol tokens (9 files)
 3. ⏳ Migrate Lagekarte handlers to Symbol tokens (7 files)
@@ -258,7 +260,7 @@ Pattern.
 # .github/workflows/ci.yml
 - name: Architecture Validation
   run: pnpm --filter @bluelight-hub/backend exec jest src/__tests__/architecture
-  continue-on-error: true  # TEMPORARY: Bis alle Migrations abgeschlossen
+  continue-on-error: true # TEMPORARY: Bis alle Migrations abgeschlossen
 ```
 
 **Next Steps:**

@@ -34,15 +34,15 @@ export function WarnungList({ warnungen }: WarnungListProps) {
   if (warnungen.length === 0) {
     return (
       <div className="rounded-panel border border-border-subtle bg-surface-raised p-4">
-        <h3 className="mb-2 font-medium text-text-secondary text-sm">Letzte Warnungen</h3>
-        <p className="text-text-muted text-sm">Keine Warnungen</p>
+        <h3 className="mb-2 text-sm font-medium text-text-secondary">Letzte Warnungen</h3>
+        <p className="text-sm text-text-muted">Keine Warnungen</p>
       </div>
     );
   }
 
   return (
     <div className="rounded-panel border border-border-subtle bg-surface-raised p-4">
-      <h3 className="mb-3 font-medium text-text-secondary text-sm">Letzte Warnungen ({warnungen.length})</h3>
+      <h3 className="mb-3 text-sm font-medium text-text-secondary">Letzte Warnungen ({warnungen.length})</h3>
       <div className="max-h-64 space-y-2 overflow-y-auto" role="log" aria-live="polite" aria-label="System-Warnungen">
         {(() => {
           const warnungKeyCounts = new Map<string, number>();

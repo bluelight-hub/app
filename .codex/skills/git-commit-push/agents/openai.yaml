@@ -1,4 +1,4 @@
 interface:
-  display_name: "Git Commit Push"
-  short_description: "Commit and push without creating a PR"
-  default_prompt: "Use $git-commit-push to stage, commit, and push changes without opening a PR."
+  display_name: 'Git Commit Push'
+  short_description: 'Commit and push without creating a PR'
+  default_prompt: 'Use $git-commit-push to stage, commit, and push changes without opening a PR.'

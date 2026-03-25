@@ -88,7 +88,7 @@ export function SubCommandItem({ subCommand, onSelect, currentValue, isActive = 
             </div>
           )}
         </div>
-        {subCommand.description && <div className="mt-0.5 text-text-secondary text-xs">{subCommand.description}</div>}
+        {subCommand.description && <div className="mt-0.5 text-xs text-text-secondary">{subCommand.description}</div>}
       </div>
       {isSelected && (
         <div className="flex h-5 w-5 items-center justify-center rounded-full bg-action-secondary">

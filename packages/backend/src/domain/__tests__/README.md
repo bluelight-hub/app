@@ -167,12 +167,7 @@ describe('EinsatztagebuchAggregate', () => {
 ### Test-Matching Patterns
 
 ```javascript
-testMatch: [
-  '**/domain/**/*.spec.ts',
-  '**/infrastructure/**/*.spec.ts',
-  '**/application/**/*.spec.ts',
-  '**/common/**/*.spec.ts',
-]
+testMatch: ['**/domain/**/*.spec.ts', '**/infrastructure/**/*.spec.ts', '**/application/**/*.spec.ts', '**/common/**/*.spec.ts'];
 ```
 
 ### Module Path Aliases

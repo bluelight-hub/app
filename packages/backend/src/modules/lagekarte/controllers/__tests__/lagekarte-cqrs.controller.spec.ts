@@ -69,12 +69,12 @@ describe('LagekarteCqrsController', () => {
     // Create mock buses
     mockCommandBus = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     mockQueryBus = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     // Create mock repository
@@ -83,7 +83,7 @@ describe('LagekarteCqrsController', () => {
       findByEinsatzId: jest.fn(),
       save: jest.fn(),
       exists: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     // Create mock logger
@@ -92,7 +92,7 @@ describe('LagekarteCqrsController', () => {
       error: jest.fn(),
       warn: jest.fn(),
       debug: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     // Instantiate controller with mocks (Direct Instantiation Pattern)
@@ -236,7 +236,7 @@ describe('LagekarteCqrsController', () => {
       };
 
       mockCommandBus.execute.mockResolvedValueOnce(Result.ok(poiId));
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock aggregate
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock aggregate
       mockRepository.findById.mockResolvedValueOnce(mockAggregate as any);
 
       // When
@@ -307,7 +307,7 @@ describe('LagekarteCqrsController', () => {
       };
 
       mockCommandBus.execute.mockResolvedValueOnce(Result.ok(poiId));
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock aggregate
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock aggregate
       mockRepository.findById.mockResolvedValueOnce(mockAggregate as any);
 
       // When
@@ -359,7 +359,7 @@ describe('LagekarteCqrsController', () => {
       };
 
       mockCommandBus.execute.mockResolvedValueOnce(Result.ok(undefined));
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock aggregate
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock aggregate
       mockRepository.findById.mockResolvedValueOnce(mockAggregate as any);
 
       // When
@@ -420,7 +420,7 @@ describe('LagekarteCqrsController', () => {
       };
 
       mockCommandBus.execute.mockResolvedValueOnce(Result.ok(undefined));
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock aggregate
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock aggregate
       mockRepository.findById.mockResolvedValueOnce(mockAggregate as any);
 
       // When

@@ -16,10 +16,10 @@ export function EtbTextbausteinPreview({ text, onApply, onCancel }: EtbTextbaust
       <div className="flex items-start gap-2">
         <PiWarningCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-status-warning-text" />
         <div className="flex-grow">
-          <p className="font-medium text-sm text-status-warning-text">Textbaustein-Vorschau</p>
+          <p className="text-sm font-medium text-status-warning-text">Textbaustein-Vorschau</p>
           <p className="mt-1 text-sm text-text-secondary">Der vorhandene Text wird ersetzt mit:</p>
           <div className="mt-2 rounded border border-border-subtle bg-surface-panel p-2">
-            <p className="line-clamp-2 text-text-primary text-sm">{text}</p>
+            <p className="line-clamp-2 text-sm text-text-primary">{text}</p>
           </div>
           <div className="mt-3 flex gap-2">
             <Button type="button" size="sm" intent="primary" onClick={onApply}>

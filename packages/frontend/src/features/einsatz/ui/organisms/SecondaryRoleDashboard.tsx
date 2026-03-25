@@ -74,7 +74,7 @@ export function SecondaryRoleDashboard({ einsatzId, rolle }: SecondaryRoleDashbo
       <div className="flex items-start gap-3 rounded-panel border border-status-info-border bg-status-info-surface p-4" role="status" aria-live="polite">
         <PiInfo className="mt-0.5 h-5 w-5 flex-shrink-0 text-status-info-text" aria-hidden="true" />
         <div>
-          <p className="font-medium text-body-sm text-status-info-text">
+          <p className="text-body-sm font-medium text-status-info-text">
             Sie sind als <span className="font-semibold">{rolleLabel}</span> im Einsatz aktiv.
           </p>
           <p className="mt-1 text-body-sm text-status-info-text">Sie sehen eine reduzierte Ansicht mit den fuer Ihre Rolle freigegebenen Informationen.</p>
@@ -85,7 +85,7 @@ export function SecondaryRoleDashboard({ einsatzId, rolle }: SecondaryRoleDashbo
       <div className="rounded-panel border border-border-subtle bg-surface-panel p-5 shadow-panel">
         <div className="flex items-center gap-2">
           <PiSiren className="h-5 w-5 text-text-muted" aria-hidden="true" />
-          <h2 className="font-semibold text-text-primary text-title-sm">Einsatzlage</h2>
+          <h2 className="text-title-sm font-semibold text-text-primary">Einsatzlage</h2>
         </div>
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
@@ -117,12 +117,12 @@ export function SecondaryRoleDashboard({ einsatzId, rolle }: SecondaryRoleDashbo
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <PiFileText className="h-5 w-5 text-text-muted" aria-hidden="true" />
-            <h2 className="font-semibold text-text-primary text-title-sm">Befehle</h2>
+            <h2 className="text-title-sm font-semibold text-text-primary">Befehle</h2>
           </div>
           <Link
             to="/app/einsatz/$einsatzId/führung/befehle"
             params={{ einsatzId }}
-            className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-action-primary text-body-sm hover:bg-surface-hover"
+            className="hover:bg-surface-hover inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-body-sm text-action-primary"
           >
             Alle anzeigen
           </Link>
@@ -132,13 +132,13 @@ export function SecondaryRoleDashboard({ einsatzId, rolle }: SecondaryRoleDashbo
           <div className="mt-4 flex items-center gap-3 rounded-lg border border-status-warning-border bg-status-warning-surface px-4 py-3">
             <PiWarning className="h-5 w-5 flex-shrink-0 text-status-warning-text" aria-hidden="true" />
             <div>
-              <p className="font-medium text-body-sm text-status-warning-text">
+              <p className="text-body-sm font-medium text-status-warning-text">
                 {unquittiertCount} {unquittiertCount === 1 ? 'Befehl' : 'Befehle'} warten auf Ihre Quittierung
               </p>
               <Link
                 to="/app/einsatz/$einsatzId/führung/befehle"
                 params={{ einsatzId }}
-                className="mt-1 inline-block font-medium text-body-sm text-status-warning-text underline hover:text-action-primary"
+                className="mt-1 inline-block text-body-sm font-medium text-status-warning-text underline hover:text-action-primary"
               >
                 Jetzt quittieren
               </Link>
@@ -161,7 +161,7 @@ export function SecondaryRoleDashboard({ einsatzId, rolle }: SecondaryRoleDashbo
       <div className="rounded-panel border border-border-subtle bg-surface-panel p-5 shadow-panel">
         <div className="flex items-center gap-2">
           <PiClipboard className="h-5 w-5 text-text-muted" aria-hidden="true" />
-          <h2 className="font-semibold text-text-primary text-title-sm">Letzte ETB-Eintraege</h2>
+          <h2 className="text-title-sm font-semibold text-text-primary">Letzte ETB-Eintraege</h2>
         </div>
 
         {recentEntries.length === 0 ? (
@@ -174,7 +174,7 @@ export function SecondaryRoleDashboard({ einsatzId, rolle }: SecondaryRoleDashbo
                   <div className="min-w-0 flex-1">
                     <p className={cn('text-body-sm text-text-primary', entry.isDeleted && 'line-through opacity-50')}>{entry.text}</p>
                     <div className="mt-1 flex items-center gap-2 text-body-sm text-text-secondary">
-                      <span className="inline-flex items-center rounded-full bg-surface-secondary px-2 py-0.5 font-medium text-text-secondary text-xs">{entry.kategorie}</span>
+                      <span className="bg-surface-secondary inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium text-text-secondary">{entry.kategorie}</span>
                       {entry.absender && <span>von {entry.absender}</span>}
                     </div>
                   </div>
@@ -187,8 +187,8 @@ export function SecondaryRoleDashboard({ einsatzId, rolle }: SecondaryRoleDashbo
           </ul>
         )}
 
-        <div className="mt-4 border-border-subtle border-t pt-3">
-          <Link to="/app/einsatz/$einsatzId/führung/etb" params={{ einsatzId }} className="inline-flex items-center gap-1 text-action-primary text-body-sm hover:underline">
+        <div className="mt-4 border-t border-border-subtle pt-3">
+          <Link to="/app/einsatz/$einsatzId/führung/etb" params={{ einsatzId }} className="inline-flex items-center gap-1 text-body-sm text-action-primary hover:underline">
             Vollstaendiges ETB anzeigen (Lesemodus)
           </Link>
         </div>

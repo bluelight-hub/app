@@ -139,7 +139,7 @@ export const Dialog = ({ isOpen, onClose, children, className, size = 'md', clos
 
 Dialog.Title = ({ children, className }: DialogTitleProps) => {
   return (
-    <DialogTitle as="h3" className={cn('font-semibold text-text-primary text-base leading-6', className)}>
+    <DialogTitle as="h3" className={cn('text-base leading-6 font-semibold text-text-primary', className)}>
       {children}
     </DialogTitle>
   );
@@ -153,7 +153,7 @@ Dialog.Footer = ({ children, className, loading }: DialogFooterProps) => {
   return (
     <div className={cn('mt-4 flex items-center justify-end gap-3', className)}>
       {loading && (
-        <div className="mr-auto flex items-center gap-2 text-text-muted text-sm">
+        <div className="mr-auto flex items-center gap-2 text-sm text-text-muted">
           <InlineSpinner size="sm" />
           <span>Verarbeitung...</span>
         </div>
@@ -249,10 +249,10 @@ Dialog.Confirm = ({
                 type="checkbox"
                 checked={isConfirmed}
                 onChange={(e) => setIsConfirmed(e.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-border-subtle text-action-primary focus-visible:shadow-focus-ring bg-surface-panel"
+                className="mt-1 h-4 w-4 rounded border-border-subtle bg-surface-panel text-action-primary focus-visible:shadow-focus-ring"
                 disabled={isProcessing}
               />
-              <span className="select-none text-text-secondary text-sm">Ich bestätige diese Aktion</span>
+              <span className="text-sm text-text-secondary select-none">Ich bestätige diese Aktion</span>
             </label>
           </div>
         )}
@@ -328,7 +328,7 @@ Dialog.Alert = ({ isOpen, onClose, title, message, variant = 'info', icon }: Ale
         </div>
       </Dialog.Title>
       <Dialog.Body>
-        <div className={cn('rounded-panel border p-4', config.bgColor, config.borderColor)}>{typeof message === 'string' ? <p className="text-text-secondary text-sm">{message}</p> : message}</div>
+        <div className={cn('rounded-panel border p-4', config.bgColor, config.borderColor)}>{typeof message === 'string' ? <p className="text-sm text-text-secondary">{message}</p> : message}</div>
       </Dialog.Body>
       <Dialog.Footer>
         <Button intent="primary" onClick={onClose}>
@@ -369,11 +369,11 @@ Dialog.SlideIn = ({ isOpen, onClose, title, description, children, size = 'lg', 
             <DialogPanel transition className={cn('pointer-events-auto relative w-screen transform', 'duration-300 ease-in-out', slideClosedClass, sizeClasses[size], className)}>
               <div className="flex h-full flex-col bg-surface-panel shadow-2xl">
                 {/* Header */}
-                <div className="border-border-subtle border-b px-5 py-3">
+                <div className="border-b border-border-subtle px-5 py-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <DialogTitle className="font-semibold text-text-primary text-base leading-6">{title}</DialogTitle>
-                      {description && <p className="mt-1 text-text-muted text-sm">{description}</p>}
+                      <DialogTitle className="text-base leading-6 font-semibold text-text-primary">{title}</DialogTitle>
+                      {description && <p className="mt-1 text-sm text-text-muted">{description}</p>}
                     </div>
                     {showCloseButton && <CloseButton onClick={onClose} size="lg" appearance="minimal" className="ml-4" />}
                   </div>

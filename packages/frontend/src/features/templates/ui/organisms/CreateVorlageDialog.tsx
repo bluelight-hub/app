@@ -105,7 +105,7 @@ export function CreateVorlageDialog({ isOpen, onClose }: CreateVorlageDialogProp
           <form.Field name="titel">
             {(field) => (
               <div>
-                <label htmlFor="vorlage-titel" className="mb-1.5 block font-medium text-text-secondary text-sm">
+                <label htmlFor="vorlage-titel" className="mb-1.5 block text-sm font-medium text-text-secondary">
                   Titel <span className="text-status-danger-text">*</span>
                 </label>
                 <Input
@@ -119,7 +119,7 @@ export function CreateVorlageDialog({ isOpen, onClose }: CreateVorlageDialogProp
                   maxLength={100}
                   autoFocus
                 />
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-sm">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-sm text-status-danger-text">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
@@ -128,7 +128,7 @@ export function CreateVorlageDialog({ isOpen, onClose }: CreateVorlageDialogProp
           <form.Field name="minuten">
             {(field) => (
               <div>
-                <label htmlFor="vorlage-minuten" className="mb-1.5 block font-medium text-text-secondary text-sm">
+                <label htmlFor="vorlage-minuten" className="mb-1.5 block text-sm font-medium text-text-secondary">
                   Minuten <span className="text-status-danger-text">*</span>
                 </label>
                 <Input
@@ -141,8 +141,8 @@ export function CreateVorlageDialog({ isOpen, onClose }: CreateVorlageDialogProp
                   variant={field.state.meta.errors.length > 0 ? 'error' : 'default'}
                   min={1}
                 />
-                <p className="mt-1 text-text-muted text-xs">Relative Zeitdauer in Minuten</p>
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-sm">{formatErrors(field.state.meta.errors)}</p>}
+                <p className="mt-1 text-xs text-text-muted">Relative Zeitdauer in Minuten</p>
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-sm text-status-danger-text">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
@@ -151,8 +151,8 @@ export function CreateVorlageDialog({ isOpen, onClose }: CreateVorlageDialogProp
           <form.Field name="beschreibung">
             {(field) => (
               <div>
-                <label htmlFor="vorlage-beschreibung" className="mb-1.5 block font-medium text-text-secondary text-sm">
-                  Beschreibung <span className="text-text-muted text-xs">(optional)</span>
+                <label htmlFor="vorlage-beschreibung" className="mb-1.5 block text-sm font-medium text-text-secondary">
+                  Beschreibung <span className="text-xs text-text-muted">(optional)</span>
                 </label>
                 <textarea
                   id="vorlage-beschreibung"
@@ -172,13 +172,13 @@ export function CreateVorlageDialog({ isOpen, onClose }: CreateVorlageDialogProp
                       : 'border-border-subtle hover:border-border-strong focus:border-action-primary',
                   )}
                 />
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-sm">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-sm text-status-danger-text">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
 
           {/* API Error */}
-          {apiErrorMessage && <div className="rounded-panel bg-status-danger-surface p-3 text-status-danger-text text-sm">{apiErrorMessage}</div>}
+          {apiErrorMessage && <div className="rounded-panel bg-status-danger-surface p-3 text-sm text-status-danger-text">{apiErrorMessage}</div>}
         </form>
       </Dialog.Body>
 

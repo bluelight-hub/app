@@ -147,7 +147,7 @@ function OverviewWorkspaceHarness({ activeModuleId, activePageHref }: OverviewWo
         <SingleEinsatzDashboard />
       ) : (
         <section aria-label="Führungsarbeitsbereich" className="rounded-lg border border-border-subtle bg-surface-panel p-6 shadow-sm">
-          <h1 className="font-semibold text-lg">Führungsarbeitsbereich</h1>
+          <h1 className="text-lg font-semibold">Führungsarbeitsbereich</h1>
           <p className="mt-2 text-sm">ETB und Befehle bleiben aktiv, bis in den Überblick gewechselt wird.</p>
         </section>
       )}

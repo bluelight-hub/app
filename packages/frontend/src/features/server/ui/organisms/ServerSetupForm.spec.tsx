@@ -26,7 +26,7 @@ import { toast } from 'sonner';
 // Mock dependencies
 vi.mock('../../api/mutations', () => ({
   useExchangeInvite: vi.fn(),
-  // biome-ignore lint/nursery/noShadow: Mock class intentionally shadows the real error export
+  // eslint-disable-next-line no-shadow -- Mock class intentionally shadows the real error export
   ExchangeInvitePersistenceError: class ExchangeInvitePersistenceError extends Error {
     constructor(message: string) {
       super(message);
@@ -37,7 +37,7 @@ vi.mock('../../api/mutations', () => ({
 
 vi.mock('../../api/use-health-check', () => ({
   useHealthCheck: vi.fn(),
-  // biome-ignore lint/nursery/noShadow: Mock class intentionally shadows the real HealthCheckError
+  // eslint-disable-next-line no-shadow -- Mock class intentionally shadows the real HealthCheckError
   HealthCheckError: class HealthCheckError extends Error {
     type: string;
     constructor(message: string, type: string) {
@@ -556,7 +556,7 @@ describe('ServerSetupForm', () => {
         setupComplete: true,
       });
 
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock type assertion
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock type assertion
       render(<ServerSetupForm onSuccess={mockOnSuccess as any} />);
 
       // Step 1

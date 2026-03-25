@@ -39,13 +39,13 @@ export function Pinnwand({ einsatzId }: PinnwandProps) {
         <button type="button" onClick={() => setShowStatistiken(!showStatistiken)} className="flex w-full items-center justify-between px-4 py-3 transition-colors hover:bg-action-secondary">
           <div className="flex items-center gap-2.5">
             <PiChartBar className="h-4 w-4 text-text-muted" />
-            <span className="font-bold text-body-sm uppercase tracking-wider text-text-secondary">Statistiken &amp; Analysen</span>
+            <span className="text-body-sm font-bold tracking-wider text-text-secondary uppercase">Statistiken &amp; Analysen</span>
           </div>
           {showStatistiken ? <PiCaretUp className="h-4 w-4 text-text-muted" /> : <PiCaretDown className="h-4 w-4 text-text-muted" />}
         </button>
 
         {showStatistiken && (
-          <div className="border-border-subtle border-t p-4">
+          <div className="border-t border-border-subtle p-4">
             <div className="flex flex-col gap-4">
               <ErinnerungUebersicht erinnerungen={erinnerungen} />
               <PersonStatistikTabelle einsatzId={einsatzId} />

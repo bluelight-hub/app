@@ -43,7 +43,7 @@ function Alert({ status = 'info', title, description, icon, className, children,
     <div role={role || defaultRole} className={cn('flex gap-3 rounded-panel border p-3', statusStyles[status], className)} {...props}>
       <div className="flex-shrink-0">{icon || defaultIcons[status]}</div>
       <div className="flex-1">
-        {title && <h3 className="mb-1 font-medium text-sm">{title}</h3>}
+        {title && <h3 className="mb-1 text-sm font-medium">{title}</h3>}
         {description && <div className="text-sm">{description}</div>}
         {children}
       </div>

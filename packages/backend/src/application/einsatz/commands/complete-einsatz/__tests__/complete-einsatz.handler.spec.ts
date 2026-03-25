@@ -113,7 +113,7 @@ describe('CompleteEinsatzHandler', () => {
       findActive: jest.fn(),
       findByNummer: jest.fn(),
       exists: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     mockPrismaService = {

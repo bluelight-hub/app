@@ -114,8 +114,8 @@ function PersonalContent({ einsatzId }: { einsatzId: string }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-bold text-2xl text-text-primary">Personal</h1>
-          <p className="mt-1 text-text-secondary text-sm">Verwalten Sie das eingesetzte Personal und deren Fahrzeug-Zuweisungen</p>
+          <h1 className="text-2xl font-bold text-text-primary">Personal</h1>
+          <p className="mt-1 text-sm text-text-secondary">Verwalten Sie das eingesetzte Personal und deren Fahrzeug-Zuweisungen</p>
         </div>
         <Button intent="primary" onClick={handleOpenPersonDialog}>
           <PiUserPlus className="mr-2 h-4 w-4" />
@@ -131,8 +131,8 @@ function PersonalContent({ einsatzId }: { einsatzId: string }) {
               <PiUsers className="h-6 w-6 text-status-info-text" />
             </div>
             <div>
-              <p className="font-semibold text-2xl text-text-primary">{personen.length}</p>
-              <p className="text-text-muted text-sm">Gesamt</p>
+              <p className="text-2xl font-semibold text-text-primary">{personen.length}</p>
+              <p className="text-sm text-text-muted">Gesamt</p>
             </div>
           </div>
         </div>
@@ -143,8 +143,8 @@ function PersonalContent({ einsatzId }: { einsatzId: string }) {
               <PiTruck className="h-6 w-6 text-status-info-text" />
             </div>
             <div>
-              <p className="font-semibold text-2xl text-text-primary">{personenMitFahrzeug.length}</p>
-              <p className="text-text-muted text-sm">Zugewiesen</p>
+              <p className="text-2xl font-semibold text-text-primary">{personenMitFahrzeug.length}</p>
+              <p className="text-sm text-text-muted">Zugewiesen</p>
             </div>
           </div>
         </div>
@@ -155,8 +155,8 @@ function PersonalContent({ einsatzId }: { einsatzId: string }) {
               <PiUser className="h-6 w-6 text-status-warning-text" />
             </div>
             <div>
-              <p className="font-semibold text-2xl text-text-primary">{personenOhneFahrzeug.length}</p>
-              <p className="text-text-muted text-sm">Nicht zugewiesen</p>
+              <p className="text-2xl font-semibold text-text-primary">{personenOhneFahrzeug.length}</p>
+              <p className="text-sm text-text-muted">Nicht zugewiesen</p>
             </div>
           </div>
         </div>
@@ -164,15 +164,15 @@ function PersonalContent({ einsatzId }: { einsatzId: string }) {
 
       {/* Personen-Liste */}
       <div className="rounded-panel bg-surface-panel shadow-sm">
-        <div className="border-border-subtle border-b px-6 py-4">
-          <h2 className="font-semibold text-text-primary text-lg">Eingesetztes Personal</h2>
+        <div className="border-b border-border-subtle px-6 py-4">
+          <h2 className="text-lg font-semibold text-text-primary">Eingesetztes Personal</h2>
         </div>
 
         {personen.length === 0 ? (
           <div className="px-6 py-12 text-center">
             <PiUsers className="mx-auto mb-4 h-16 w-16 text-text-muted" />
             <p className="mb-2 font-medium text-text-primary">Noch keine Personen registriert</p>
-            <p className="mb-6 text-text-muted text-sm">Fügen Sie die erste Person für diesen Einsatz hinzu</p>
+            <p className="mb-6 text-sm text-text-muted">Fügen Sie die erste Person für diesen Einsatz hinzu</p>
             <Button intent="primary" onClick={handleOpenPersonDialog}>
               <PiUserPlus className="mr-2 h-4 w-4" />
               Person hinzufügen
@@ -183,44 +183,44 @@ function PersonalContent({ einsatzId }: { einsatzId: string }) {
             <table className="w-full">
               <thead className="bg-surface-raised">
                 <tr>
-                  <th className="px-6 py-3 text-left font-medium text-text-primary text-sm">Name</th>
-                  <th className="px-6 py-3 text-left font-medium text-text-primary text-sm">Funktion</th>
-                  <th className="px-6 py-3 text-left font-medium text-text-primary text-sm">Funkrufname</th>
-                  <th className="px-6 py-3 text-left font-medium text-text-primary text-sm">Qualifikationen</th>
-                  <th className="w-64 px-6 py-3 text-left font-medium text-text-primary text-sm">Zugewiesenes Fahrzeug</th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-text-primary">Name</th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-text-primary">Funktion</th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-text-primary">Funkrufname</th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-text-primary">Qualifikationen</th>
+                  <th className="w-64 px-6 py-3 text-left text-sm font-medium text-text-primary">Zugewiesenes Fahrzeug</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-subtle">
                 {personen.map((person) => (
                   <tr key={person.id} className="transition-colors hover:bg-surface-raised">
-                    <td className="whitespace-nowrap px-6 py-4">
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-status-info-surface">
                           <PiUser className="h-5 w-5 text-status-info-text" />
                         </div>
                         <div>
-                          <p className="font-medium text-text-primary text-sm">
+                          <p className="text-sm font-medium text-text-primary">
                             {person.vorname} {person.nachname}
                           </p>
-                          {person.stammPersonId && <p className="text-text-muted text-xs">Aus Stammdaten</p>}
+                          {person.stammPersonId && <p className="text-xs text-text-muted">Aus Stammdaten</p>}
                         </div>
                       </div>
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4">
-                      <span className="inline-flex rounded-pill bg-status-info-surface px-2.5 py-0.5 font-medium text-status-info-text text-xs">{person.funktion}</span>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex rounded-pill bg-status-info-surface px-2.5 py-0.5 text-xs font-medium text-status-info-text">{person.funktion}</span>
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-text-secondary text-sm">{person.funkrufname || '-'}</td>
+                    <td className="px-6 py-4 text-sm whitespace-nowrap text-text-secondary">{person.funkrufname || '-'}</td>
                     <td className="px-6 py-4">
                       {person.qualifikationen && person.qualifikationen.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                           {person.qualifikationen.map((qual) => (
-                            <span key={qual.id} className="inline-flex rounded-control bg-surface-raised px-2 py-0.5 text-text-secondary text-xs">
+                            <span key={qual.id} className="inline-flex rounded-control bg-surface-raised px-2 py-0.5 text-xs text-text-secondary">
                               {qual.kuerzel}
                             </span>
                           ))}
                         </div>
                       ) : (
-                        <span className="text-text-muted text-sm">-</span>
+                        <span className="text-sm text-text-muted">-</span>
                       )}
                     </td>
                     <td className="px-6 py-4">

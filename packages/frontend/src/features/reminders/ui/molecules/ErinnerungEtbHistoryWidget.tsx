@@ -67,17 +67,17 @@ function EtbHistoryEntryItem({ entry, onEntryClick }: EtbHistoryEntryItemProps) 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           {/* Sequenznummer */}
-          <span className="font-medium text-text-primary text-xs">#{entry.sequenceNumber}</span>
+          <span className="text-xs font-medium text-text-primary">#{entry.sequenceNumber}</span>
           {/* Event Label */}
           <span className={cn('text-xs', config.textColor)}>{config.label}</span>
         </div>
         {/* Text (gekürzt) */}
-        <p className="mt-0.5 line-clamp-1 text-text-secondary text-xs">{entry.text}</p>
+        <p className="mt-0.5 line-clamp-1 text-xs text-text-secondary">{entry.text}</p>
       </div>
 
       {/* Timestamp + Navigation Icon */}
       <div className="flex shrink-0 items-center gap-2">
-        <span className="text-text-muted text-xs">{formatTimestamp(entry.timestamp)}</span>
+        <span className="text-xs text-text-muted">{formatTimestamp(entry.timestamp)}</span>
         <PiListMagnifyingGlass className="h-4 w-4 text-text-muted opacity-0 transition-opacity group-hover:opacity-100" />
       </div>
     </button>
@@ -143,7 +143,7 @@ export function ErinnerungEtbHistoryWidget({ erinnerungId, einsatzId, onEntryCli
   if (isLoading) {
     return (
       <div className={cn('rounded-panel bg-surface-panel p-4 shadow-panel', className)}>
-        <h4 className="mb-3 font-medium text-sm text-text-primary">ETB-Verknüpfungen</h4>
+        <h4 className="mb-3 text-sm font-medium text-text-primary">ETB-Verknüpfungen</h4>
         <div className="flex items-center justify-center py-4">
           <PiCircleNotch className="h-5 w-5 animate-spin text-action-primary" />
         </div>
@@ -155,8 +155,8 @@ export function ErinnerungEtbHistoryWidget({ erinnerungId, einsatzId, onEntryCli
   if (error) {
     return (
       <div className={cn('rounded-panel bg-surface-panel p-4 shadow-panel', className)}>
-        <h4 className="mb-3 font-medium text-sm text-text-primary">ETB-Verknüpfungen</h4>
-        <p className="py-2 text-center text-text-muted text-xs">Konnte nicht geladen werden.</p>
+        <h4 className="mb-3 text-sm font-medium text-text-primary">ETB-Verknüpfungen</h4>
+        <p className="py-2 text-center text-xs text-text-muted">Konnte nicht geladen werden.</p>
       </div>
     );
   }
@@ -165,8 +165,8 @@ export function ErinnerungEtbHistoryWidget({ erinnerungId, einsatzId, onEntryCli
   if (!history || history.entries.length === 0) {
     return (
       <div className={cn('rounded-panel bg-surface-panel p-4 shadow-panel', className)}>
-        <h4 className="mb-3 font-medium text-sm text-text-primary">ETB-Verknüpfungen</h4>
-        <p className="py-2 text-center text-text-muted text-xs">Keine ETB-Einträge vorhanden.</p>
+        <h4 className="mb-3 text-sm font-medium text-text-primary">ETB-Verknüpfungen</h4>
+        <p className="py-2 text-center text-xs text-text-muted">Keine ETB-Einträge vorhanden.</p>
       </div>
     );
   }
@@ -180,8 +180,8 @@ export function ErinnerungEtbHistoryWidget({ erinnerungId, einsatzId, onEntryCli
     <div className={cn('rounded-panel bg-surface-panel p-4 shadow-panel', className)}>
       {/* Header mit Titel und Count */}
       <div className="mb-3 flex items-center justify-between">
-        <h4 className="font-medium text-sm text-text-primary">ETB-Verknüpfungen</h4>
-        <span className="text-text-muted text-xs">
+        <h4 className="text-sm font-medium text-text-primary">ETB-Verknüpfungen</h4>
+        <span className="text-xs text-text-muted">
           {history.totalCount} {history.totalCount === 1 ? 'Eintrag' : 'Einträge'}
         </span>
       </div>

@@ -169,7 +169,7 @@ export function ErinnerungMarkErledigtDialog({ isOpen, onClose, erinnerung, eins
 
               return (
                 <div className="space-y-2">
-                  <label htmlFor="erledigungsNotiz" className="flex items-center gap-2 font-medium text-sm text-text-secondary">
+                  <label htmlFor="erledigungsNotiz" className="flex items-center gap-2 text-sm font-medium text-text-secondary">
                     <PiNotepad className="h-4 w-4" />
                     {requiresNote ? (
                       <>
@@ -198,7 +198,7 @@ export function ErinnerungMarkErledigtDialog({ isOpen, onClose, erinnerung, eins
                     )}
                   />
                   {/* Validation Error Message */}
-                  {hasError && <p className="text-status-danger-text text-xs">{field.state.meta.errors[0]}</p>}
+                  {hasError && <p className="text-xs text-status-danger-text">{field.state.meta.errors[0]}</p>}
                   <p
                     id="erledigungsNotiz-hint"
                     className={cn('text-right text-xs', remainingChars < 0 ? 'font-semibold text-status-danger-text' : remainingChars < 50 ? 'text-status-warning-text' : 'text-text-muted')}

@@ -80,7 +80,7 @@ function NavCard({
 function SectionHeader({ title, description }: { title: string; description: string }) {
   return (
     <div className="mb-4">
-      <Text className="font-semibold text-lg text-text-primary">{title}</Text>
+      <Text className="text-lg font-semibold text-text-primary">{title}</Text>
       <Text size="sm" color="muted" className="mt-1">
         {description}
       </Text>
@@ -221,7 +221,7 @@ export function AdminDashboard() {
         </div>
       </section>
 
-      <div className="border-border-subtle border-t pt-4">
+      <div className="border-t border-border-subtle pt-4">
         <Button appearance="ghost" intent="danger" size="sm" onClick={handleLogout}>
           <PiSignOut className="mr-2" />
           Admin-Bereich verlassen

@@ -183,7 +183,7 @@ export function BesetzeRolleDialog({ isOpen, onClose, einsatzId, rollenDefinitio
           </form.Field>
 
           {/* API Error Message */}
-          {apiErrorMessage && <div className="rounded-panel bg-status-danger-surface p-3 text-status-danger-text text-sm">{apiErrorMessage}</div>}
+          {apiErrorMessage && <div className="rounded-panel bg-status-danger-surface p-3 text-sm text-status-danger-text">{apiErrorMessage}</div>}
         </form>
       </Dialog.Body>
 

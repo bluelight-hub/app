@@ -13,7 +13,7 @@
  * **Strategie:** Direkte Handler/Repository Tests (kein HTTP/SuperTest)
  */
 
-// biome-ignore-all lint/style/noNonNullAssertion: Test file uses assertions after expect().not.toBeNull()
+/* eslint-disable typescript/no-non-null-assertion -- Test file uses assertions after expect().not.toBeNull() */
 
 // Mock @paralleldrive/cuid2 BEFORE any imports (hoisting workaround for Jest + ESM)
 jest.mock('@paralleldrive/cuid2', () => ({
@@ -75,7 +75,7 @@ function generateCuid2(): string {
     const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
     prisma = new PrismaClient({ adapter });
     // PrismaLagekarteRepository erwartet PrismaService, wir nutzen Duck Typing
-    // biome-ignore lint/suspicious/noExplicitAny: Duck Typing für PrismaClient statt PrismaService
+    // eslint-disable-next-line typescript/no-explicit-any -- Duck Typing für PrismaClient statt PrismaService
     repository = new PrismaLagekarteRepository(prisma as any);
 
     // Generate nanoid-compliant User ID

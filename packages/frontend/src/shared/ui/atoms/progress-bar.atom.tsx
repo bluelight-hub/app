@@ -49,8 +49,8 @@ export const ProgressBar = memo(function ProgressBarImpl({ value, max = 100, var
     <div className={cn('w-full', className)}>
       {(label || showPercentage) && (
         <div className="mb-1 flex items-center justify-between">
-          {label && <span className="font-medium text-sm text-text-secondary">{label}</span>}
-          {showPercentage && <span className="font-medium text-sm text-text-secondary">{Math.round(percentage)}%</span>}
+          {label && <span className="text-sm font-medium text-text-secondary">{label}</span>}
+          {showPercentage && <span className="text-sm font-medium text-text-secondary">{Math.round(percentage)}%</span>}
         </div>
       )}
       <div className={cn('w-full overflow-hidden rounded-full', backgroundClasses[variant], sizeClasses[size])} role="progressbar" aria-valuenow={value} aria-valuemin={0} aria-valuemax={max}>

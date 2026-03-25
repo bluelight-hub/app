@@ -324,9 +324,9 @@ describe('Poi Entity', () => {
       it('should return true for POIs with same ID', () => {
         // Given: Two POI instances with same ID (via protected constructor)
         const id = PoiId.create().value as PoiId;
-        // biome-ignore lint/suspicious/noExplicitAny: Test needs to bypass protected constructor
+        // eslint-disable-next-line typescript/no-explicit-any -- Test needs to bypass protected constructor
         const poi1 = new (Poi as any)(id, 'POI 1', berlinMgrs, testCategory, testUserId);
-        // biome-ignore lint/suspicious/noExplicitAny: Test needs to bypass protected constructor
+        // eslint-disable-next-line typescript/no-explicit-any -- Test needs to bypass protected constructor
         const poi2 = new (Poi as any)(id, 'POI 2', berlinMgrs, testCategory, testUserId);
 
         // When/Then: Should be equal (ID-based equality)
@@ -349,7 +349,7 @@ describe('Poi Entity', () => {
         const poi = Poi.create('POI', berlinMgrs, testCategory, testUserId);
 
         // When/Then: Compare with null/undefined
-        // biome-ignore lint/suspicious/noExplicitAny: Test explicitly checks null handling
+        // eslint-disable-next-line typescript/no-explicit-any -- Test explicitly checks null handling
         expect(poi.equals(null as any)).toBe(false);
         expect(poi.equals(undefined)).toBe(false);
       });
@@ -360,9 +360,9 @@ describe('Poi Entity', () => {
         const hamburg = MgrsCoordinate.fromLatLng(53.55, 10.0, 5).value as MgrsCoordinate;
         const bereitstellungsraum = PoiCategory.BEREITSTELLUNGSRAUM();
 
-        // biome-ignore lint/suspicious/noExplicitAny: Test needs to bypass protected constructor
+        // eslint-disable-next-line typescript/no-explicit-any -- Test needs to bypass protected constructor
         const poi1 = new (Poi as any)(id, 'POI 1', berlinMgrs, testCategory, testUserId);
-        // biome-ignore lint/suspicious/noExplicitAny: Test needs to bypass protected constructor
+        // eslint-disable-next-line typescript/no-explicit-any -- Test needs to bypass protected constructor
         const poi2 = new (Poi as any)(id, 'POI 2', hamburg, bereitstellungsraum, testUserId);
 
         // When/Then: Should be equal despite different properties (ID-based equality)

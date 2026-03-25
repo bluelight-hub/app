@@ -12,6 +12,7 @@ Das **Einsatz Aggregate** ist die zentrale Business-Entität für Emergency Resp
 Es implementiert die vollständige DDD Aggregate Pattern mit State Machine, NO-DELETE Policy und Event Sourcing.
 
 **Komponenten:**
+
 - **Aggregate Root:** `Einsatz` (packages/backend/src/domain/aggregates/einsatz.aggregate.ts:109-568)
 - **Value Objects:** `EinsatzId`, `UserId`, `EinsatzStatus`, `Address`
 - **Domain Events:** `EinsatzCreatedEvent`, `EinsatzCompletedEvent`, `EinsatzArchivedEvent`, `EinsatzStatusChangedEvent`
@@ -67,9 +68,9 @@ const result = Einsatz.create({
 
 if (result.isSuccess) {
   const einsatz = result.value!;
-  console.log(einsatz.nummer);        // "E2025-A1B2C3" (auto-generated)
+  console.log(einsatz.nummer); // "E2025-A1B2C3" (auto-generated)
   console.log(einsatz.alarmstichwort); // "Brand Gebäude"
-  console.log(einsatz.status.value);   // "ANGELEGT"
+  console.log(einsatz.status.value); // "ANGELEGT"
   console.log(einsatz.getDomainEvents().length); // 1 (EinsatzCreatedEvent)
 }
 
@@ -91,16 +92,16 @@ const fullResult = Einsatz.create({
 if (fullResult.isSuccess) {
   const einsatz = fullResult.value!;
   console.log(einsatz.einsatzort?.toString()); // "Hauptstr. 42, 80331 München"
-  console.log(einsatz.bemerkung);              // "Mehrere Personen vermisst..."
+  console.log(einsatz.bemerkung); // "Mehrere Personen vermisst..."
 }
 
 // Validation Fehler
 const invalidResult = Einsatz.create({
-  alarmstichwort: '',  // ❌ Empty string
+  alarmstichwort: '', // ❌ Empty string
   createdBy,
 });
 console.log(invalidResult.isFailure); // true
-console.log(invalidResult.error);     // "Alarmstichwort ist erforderlich"
+console.log(invalidResult.error); // "Alarmstichwort ist erforderlich"
 ```
 
 ### 2. Status Transitions (complete/archive)
@@ -120,8 +121,8 @@ const userId = UserId.create().value!;
 const completeResult = einsatz.complete(userId);
 
 if (completeResult.isSuccess) {
-  console.log(einsatz.status.value);       // "ABGESCHLOSSEN"
-  console.log(einsatz.abgeschlossenAt);    // Date (2025-11-14T14:23:45.678Z)
+  console.log(einsatz.status.value); // "ABGESCHLOSSEN"
+  console.log(einsatz.abgeschlossenAt); // Date (2025-11-14T14:23:45.678Z)
   console.log(einsatz.getDomainEvents().length); // 3 events
   // [EinsatzCreatedEvent, EinsatzCompletedEvent, EinsatzStatusChangedEvent]
 }
@@ -130,8 +131,8 @@ if (completeResult.isSuccess) {
 const archiveResult = einsatz.archive(userId);
 
 if (archiveResult.isSuccess) {
-  console.log(einsatz.status.value);    // "ARCHIVIERT"
-  console.log(einsatz.archivedAt);      // Date
+  console.log(einsatz.status.value); // "ARCHIVIERT"
+  console.log(einsatz.archivedAt); // Date
   console.log(einsatz.getDomainEvents().length); // 5 events
   // [...previous events, EinsatzArchivedEvent, EinsatzStatusChangedEvent]
 }
@@ -139,11 +140,11 @@ if (archiveResult.isSuccess) {
 // Then: Archivierte Einsätze sind immutable
 const failResult = einsatz.complete(userId);
 console.log(failResult.isFailure); // true
-console.log(failResult.error);     // "Archivierte Einsätze können nicht abgeschlossen werden"
+console.log(failResult.error); // "Archivierte Einsätze können nicht abgeschlossen werden"
 
 const updateResult = einsatz.updateStatus(EinsatzStatus.IN_BEARBEITUNG());
 console.log(updateResult.isFailure); // true
-console.log(updateResult.error);     // "Archivierte Einsätze können nicht geändert werden"
+console.log(updateResult.error); // "Archivierte Einsätze können nicht geändert werden"
 ```
 
 ### 3. Event Emission Pattern
@@ -159,8 +160,8 @@ const einsatz = Einsatz.create({
 const events = einsatz.getDomainEvents();
 console.log(events.length); // 1
 console.log(events[0].constructor.name); // "EinsatzCreatedEvent"
-console.log(events[0].eventId);          // "X1Y2Z3..." (cuid)
-console.log(events[0].occurredAt);       // Date
+console.log(events[0].eventId); // "X1Y2Z3..." (cuid)
+console.log(events[0].occurredAt); // Date
 
 // Business Operations emittieren weitere Events
 einsatz.complete(UserId.create().value!);
@@ -175,7 +176,7 @@ console.log(allEvents[2].constructor.name); // "EinsatzStatusChangedEvent"
 const eventsToPublish = einsatz.getDomainEvents(); // Shallow copy!
 einsatz.clearDomainEvents();
 console.log(einsatz.getDomainEvents().length); // 0 (cleared)
-console.log(eventsToPublish.length);            // 3 (original copy)
+console.log(eventsToPublish.length); // 3 (original copy)
 ```
 
 ### 4. Repository Interface Usage
@@ -189,7 +190,7 @@ import { EinsatzId } from '@domain/value-objects/einsatz-id';
 
 class CreateEinsatzCommandHandler {
   constructor(
-    private readonly repository: IEinsatzRepository // Port injection!
+    private readonly repository: IEinsatzRepository, // Port injection!
   ) {}
 
   async execute(command: CreateEinsatzCommand): Promise<Result<void>> {
@@ -293,7 +294,7 @@ describe('Einsatz Aggregate', () => {
       // Given
       const einsatz = Einsatz.create({
         alarmstichwort: 'Test',
-        createdBy: UserId.create().value!
+        createdBy: UserId.create().value!,
       }).value!;
 
       // Then: IMMER false, unabhängig von Status
@@ -358,16 +359,19 @@ describe('Einsatz Integration Tests', () => {
 ## 📊 Test Coverage
 
 **Gesamt Domain Layer Coverage (Story 1-3):**
+
 - **Statements:** 96.31%
 - **Branches:** 89.02%
 - **Functions:** 97.22%
 - **Lines:** 98.02% ✅
 
 **Einsatz Aggregate Coverage:**
+
 - **Lines:** 97.26% (2 uncovered defensive error paths)
 - **Tests:** 79 Unit Tests + 19 Integration Tests = **98 Tests total** ✅
 
 **Files:**
+
 - `einsatz.aggregate.spec.ts` - 79 tests (0.162s)
 - `einsatz.integration.spec.ts` - 19 tests (0.18s)
 - `einsatz.events.spec.ts` - 39 tests (Event testing)
@@ -379,6 +383,7 @@ describe('Einsatz Integration Tests', () => {
 ## 🔗 Related Components
 
 ### Value Objects
+
 - **EinsatzId** (packages/backend/src/domain/value-objects/einsatz-id.ts:1-84)
   - Type-safe Cuid-based ID
   - 30 Unit Tests
@@ -397,12 +402,14 @@ describe('Einsatz Integration Tests', () => {
   - 46 Unit Tests
 
 ### Domain Events
+
 - **EinsatzCreatedEvent** (packages/backend/src/domain/events/einsatz-created.event.ts:1-67)
 - **EinsatzCompletedEvent** (packages/backend/src/domain/events/einsatz-completed.event.ts:1-65)
 - **EinsatzArchivedEvent** (packages/backend/src/domain/events/einsatz-archived.event.ts:1-65)
 - **EinsatzStatusChangedEvent** (packages/backend/src/domain/events/einsatz-status-changed.event.ts:1-72)
 
 ### Repository Interface
+
 - **IEinsatzRepository** (packages/backend/src/domain/repositories/ieinsatz.repository.ts:47-196)
   - Port für Persistence (Hexagonal Architecture)
   - Methods: `save()`, `findById()`, `findActive()`, `findByNummer()`, `exists()`

@@ -225,11 +225,11 @@ export class AdminHiOrgIntegrationController {
       throw new BadRequestException(commandResult.error);
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist value garantiert vorhanden
     const result = await this.testConnectionHandler.execute(commandResult.value!);
 
     if (result.isFailure) {
-      // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist error garantiert vorhanden
+      // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist error garantiert vorhanden
       const error = result.error!;
 
       // Check error codes
@@ -256,7 +256,7 @@ export class AdminHiOrgIntegrationController {
       throw new ServiceUnavailableException('Verbindungstest fehlgeschlagen');
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist value garantiert vorhanden
     const connectionInfo = result.value!;
     this.logger.log(`HiOrg-Verbindungstest erfolgreich für ${connectionInfo.organisationName}`);
 
@@ -293,11 +293,11 @@ export class AdminHiOrgIntegrationController {
       throw new BadRequestException(commandResult.error);
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist value garantiert vorhanden
     const result = await this.initiateOAuthHandler.execute(commandResult.value!);
 
     if (result.isFailure) {
-      // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist error garantiert vorhanden
+      // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist error garantiert vorhanden
       const error = result.error!;
       // OAuth nicht konfiguriert ist ein Client-Fehler (Konfiguration fehlt)
       // BadRequest zeigt dem User die Nachricht an (4xx werden nicht maskiert)
@@ -309,7 +309,7 @@ export class AdminHiOrgIntegrationController {
       throw new BadRequestException(IntegrationError.extractMessage(error));
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist value garantiert vorhanden
     const flowResult = result.value!;
     this.logger.log(`OAuth flow initiated for HiOrg by admin ${user.userId}`);
     return { authorizationUrl: flowResult.authorizationUrl };
@@ -337,11 +337,11 @@ export class AdminHiOrgIntegrationController {
       throw new BadRequestException(commandResult.error);
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist value garantiert vorhanden
     const result = await this.refreshTokenHandler.execute(commandResult.value!);
 
     if (result.isFailure) {
-      // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist error garantiert vorhanden
+      // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist error garantiert vorhanden
       const error = result.error!;
 
       if (IntegrationError.hasCode(error, INTEGRATION_ERROR_CODES.CREDENTIALS_NOT_FOUND)) {
@@ -361,7 +361,7 @@ export class AdminHiOrgIntegrationController {
       throw new ServiceUnavailableException('Token-Refresh fehlgeschlagen');
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist value garantiert vorhanden
     const refreshResult = result.value!;
     this.logger.log(`Token-Refresh durch Admin ${user.userId}: ${refreshResult.refreshed ? 'erneuert' : 'war noch gültig'}`);
 
@@ -392,7 +392,7 @@ export class AdminHiOrgIntegrationController {
       throw new BadRequestException(commandResult.error);
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist value garantiert vorhanden
     const result = await this.disconnectHandler.execute(commandResult.value!);
 
     if (result.isFailure) {
@@ -402,7 +402,7 @@ export class AdminHiOrgIntegrationController {
       throw new InternalServerErrorException('Integration konnte nicht getrennt werden');
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist value garantiert vorhanden
     return result.value!;
   }
 
@@ -440,11 +440,11 @@ export class AdminHiOrgIntegrationController {
       throw new BadRequestException(queryResult.error);
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist value garantiert vorhanden
     const result = await this.previewPersonsHandler.execute(queryResult.value!);
 
     if (result.isFailure) {
-      // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist error garantiert vorhanden
+      // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist error garantiert vorhanden
       const error = result.error!;
 
       // Check error codes
@@ -465,7 +465,7 @@ export class AdminHiOrgIntegrationController {
       throw new ServiceUnavailableException('Personen-Abfrage fehlgeschlagen');
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist value garantiert vorhanden
     const preview = result.value!;
     return {
       totalCount: preview.totalCount,
@@ -506,11 +506,11 @@ export class AdminHiOrgIntegrationController {
       throw new BadRequestException(queryResult.error);
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist value garantiert vorhanden
     const result = await this.getMappingsHandler.execute(queryResult.value!);
 
     if (result.isFailure) {
-      // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist error garantiert vorhanden
+      // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist error garantiert vorhanden
       const error = result.error!;
       if (IntegrationError.hasCode(error, INTEGRATION_ERROR_CODES.MAPPING_NOT_FOUND)) {
         // Keine Mappings = leere Liste zurückgeben
@@ -524,7 +524,7 @@ export class AdminHiOrgIntegrationController {
       throw new InternalServerErrorException('Fehler beim Laden der Mappings');
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist value garantiert vorhanden
     const data = result.value!;
     return {
       mappings: data.mappings.map((m) => ({
@@ -571,11 +571,11 @@ export class AdminHiOrgIntegrationController {
       throw new BadRequestException(commandResult.error);
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist value garantiert vorhanden
     const result = await this.saveMappingHandler.execute(commandResult.value!);
 
     if (result.isFailure) {
-      // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist error garantiert vorhanden
+      // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist error garantiert vorhanden
       const error = result.error!;
       if (IntegrationError.hasCode(error, INTEGRATION_ERROR_CODES.MAPPING_NOT_FOUND)) {
         throw new NotFoundException('Mapping nicht gefunden');
@@ -615,14 +615,14 @@ export class AdminHiOrgIntegrationController {
       throw new BadRequestException(commandResult.error);
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist value garantiert vorhanden
     const result = await this.autoMatchHandler.execute(commandResult.value!);
 
     if (result.isFailure) {
       throw new InternalServerErrorException('Fehler beim Auto-Matching');
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist value garantiert vorhanden
     const data = result.value!;
     this.logger.log(`Auto-Match abgeschlossen: ${data.totalMatched}/${data.totalMatched + data.totalUnmatched} gematcht (${data.averageConfidence}% avg)`);
 
@@ -671,11 +671,11 @@ export class AdminHiOrgIntegrationController {
       throw new BadRequestException(commandResult.error);
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist value garantiert vorhanden
     const result = await this.importPersonsHandler.execute(commandResult.value!);
 
     if (result.isFailure) {
-      // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist error garantiert vorhanden
+      // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist error garantiert vorhanden
       const error = result.error!;
 
       // Check error codes
@@ -692,7 +692,7 @@ export class AdminHiOrgIntegrationController {
       throw new InternalServerErrorException('Import fehlgeschlagen');
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist value garantiert vorhanden
     const data = result.value!;
     this.logger.log(`Import abgeschlossen: ${data.created} erstellt, ${data.updated} aktualisiert, ${data.skipped} übersprungen, ${data.failed} fehlgeschlagen`);
 
@@ -745,14 +745,14 @@ export class AdminHiOrgIntegrationController {
       throw new BadRequestException(commandResult.error);
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist value garantiert vorhanden
     const result = await this.batchSaveMappingsHandler.execute(commandResult.value!);
 
     if (result.isFailure) {
       throw new InternalServerErrorException(result.error ?? 'Mappings konnten nicht gespeichert werden');
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist value garantiert vorhanden
     const data = result.value!;
     this.logger.log(`Batch-Save Mappings: ${data.saved} gespeichert, ${data.ignored} ignoriert`);
 

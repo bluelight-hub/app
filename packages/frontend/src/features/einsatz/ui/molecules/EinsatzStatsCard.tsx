@@ -33,15 +33,15 @@ export function EinsatzStatsCard({ title, value, icon, trend, description, class
     <div className={cn('rounded-panel border p-6 shadow-sm transition-all hover:shadow-md', variantClasses[variant], className)}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="font-medium text-text-muted text-sm">{title}</p>
-          <p className="mt-2 font-bold text-3xl text-text-primary">{value}</p>
-          {description && <p className="mt-1 text-text-muted text-xs">{description}</p>}
+          <p className="text-sm font-medium text-text-muted">{title}</p>
+          <p className="mt-2 text-3xl font-bold text-text-primary">{value}</p>
+          {description && <p className="mt-1 text-xs text-text-muted">{description}</p>}
           {trend && (
             <div className="mt-2 flex items-center gap-1">
-              <span className={cn('font-medium text-sm', trend.isPositive ? 'text-status-success-text' : 'text-status-danger-text')}>
+              <span className={cn('text-sm font-medium', trend.isPositive ? 'text-status-success-text' : 'text-status-danger-text')}>
                 {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}%
               </span>
-              <span className="text-text-muted text-xs">seit letzter Stunde</span>
+              <span className="text-xs text-text-muted">seit letzter Stunde</span>
             </div>
           )}
         </div>

@@ -117,7 +117,7 @@ function ModeSelector({ mode, onModeChange }: ModeSelectorProps) {
       <button
         type="button"
         onClick={() => onModeChange('compact')}
-        className={cn('rounded-md px-3 py-1.5 font-medium text-sm transition-colors', mode === 'compact' ? 'bg-surface-panel text-text-primary shadow-sm' : 'text-text-muted hover:text-text-primary')}
+        className={cn('rounded-md px-3 py-1.5 text-sm font-medium transition-colors', mode === 'compact' ? 'bg-surface-panel text-text-primary shadow-sm' : 'text-text-muted hover:text-text-primary')}
         title="Kompakt-Modus für Tablets"
       >
         <PiDevices className="h-4 w-4" />
@@ -125,7 +125,7 @@ function ModeSelector({ mode, onModeChange }: ModeSelectorProps) {
       <button
         type="button"
         onClick={() => onModeChange('standard')}
-        className={cn('rounded-md px-3 py-1.5 font-medium text-sm transition-colors', mode === 'standard' ? 'bg-surface-panel text-text-primary shadow-sm' : 'text-text-muted hover:text-text-primary')}
+        className={cn('rounded-md px-3 py-1.5 text-sm font-medium transition-colors', mode === 'standard' ? 'bg-surface-panel text-text-primary shadow-sm' : 'text-text-muted hover:text-text-primary')}
         title="Standard-Ansicht"
       >
         Normal
@@ -134,7 +134,7 @@ function ModeSelector({ mode, onModeChange }: ModeSelectorProps) {
         type="button"
         onClick={() => onModeChange('fullscreen')}
         className={cn(
-          'rounded-md px-3 py-1.5 font-medium text-sm transition-colors',
+          'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
           mode === 'fullscreen' ? 'bg-surface-panel text-text-primary shadow-sm' : 'text-text-muted hover:text-text-primary',
         )}
         title="Vollbild-Modus für Beamer"

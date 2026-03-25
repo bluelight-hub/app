@@ -2,9 +2,9 @@ name: Docker
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
+    tags: ['v*.*.*']
 
 env:
   REGISTRY: ghcr.io
@@ -101,9 +101,9 @@ jobs:
       matrix:
         include:
           - variant: app
-            image_suffix: ""
+            image_suffix: ''
           - variant: migrations
-            image_suffix: "/migrations"
+            image_suffix: '/migrations'
     permissions:
       contents: read
       packages: write

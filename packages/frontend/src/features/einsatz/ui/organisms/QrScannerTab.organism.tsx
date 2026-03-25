@@ -36,7 +36,7 @@ function sanitizeForLog(input: string): string {
     return `${input.substring(0, 100)}... [truncated, ${input.length} chars total]`;
   }
   // Remove control characters and potential injection patterns
-  // biome-ignore lint/suspicious/noControlCharactersInRegex: Needed for security - sanitizing untrusted QR input
+  // eslint-disable-next-line no-control-regex -- Needed for security - sanitizing untrusted QR input
   return input.replace(/[\x00-\x1F\x7F]/g, '?');
 }
 
@@ -609,7 +609,7 @@ export function QrScannerTab({ einsatzId, onSuccess, isActive = true }: QrScanne
   }, [cleanup]);
 
   // Auto-Start beim Mount (nur einmal!) und Cleanup bei Unmount
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Absichtlich nur beim Mount ausführen - Refs für stabile Funktionen
+  // eslint-disable-next-line react/exhaustive-deps -- Absichtlich nur beim Mount ausführen - Refs für stabile Funktionen
   useEffect(() => {
     // Verhindere doppelten Start durch StrictMode
     if (mountedRef.current) {
@@ -696,7 +696,7 @@ export function QrScannerTab({ einsatzId, onSuccess, isActive = true }: QrScanne
           {/* MEDIUM FIX #15: Keep output mounted for screen readers, toggle visibility via className */}
           <output className={cn('absolute inset-0 flex flex-col items-center justify-center gap-4 bg-surface-inverse/80', state.status !== 'idle' && 'hidden')} aria-live="polite">
             <PiQrCode className="h-16 w-16 text-text-muted" />
-            <span className="text-text-muted text-sm">Scanner bereit</span>
+            <span className="text-sm text-text-muted">Scanner bereit</span>
           </output>
 
           <output
@@ -705,7 +705,7 @@ export function QrScannerTab({ einsatzId, onSuccess, isActive = true }: QrScanne
             aria-busy={state.status === 'requesting-permission'}
           >
             <InlineSpinner size="lg" />
-            <span className="text-text-secondary text-sm">Kamerazugriff wird angefordert…</span>
+            <span className="text-sm text-text-secondary">Kamerazugriff wird angefordert…</span>
           </output>
 
           <div
@@ -714,7 +714,7 @@ export function QrScannerTab({ einsatzId, onSuccess, isActive = true }: QrScanne
             aria-live="assertive"
           >
             <PiCameraSlash className="h-16 w-16 text-status-danger-text" />
-            <span className="text-status-danger-text text-sm">{state.status === 'permission-denied' ? state.error : ''}</span>
+            <span className="text-sm text-status-danger-text">{state.status === 'permission-denied' ? state.error : ''}</span>
           </div>
 
           {state.status === 'scanning' && (
@@ -723,10 +723,10 @@ export function QrScannerTab({ einsatzId, onSuccess, isActive = true }: QrScanne
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                 <div className="h-48 w-48 rounded-lg border-2 border-border-inverse/50">
                   {/* Ecken-Markierungen */}
-                  <div className="absolute top-0 left-0 h-6 w-6 border-action-primary border-t-4 border-l-4" />
-                  <div className="absolute top-0 right-0 h-6 w-6 border-action-primary border-t-4 border-r-4" />
-                  <div className="absolute bottom-0 left-0 h-6 w-6 border-action-primary border-b-4 border-l-4" />
-                  <div className="absolute right-0 bottom-0 h-6 w-6 border-action-primary border-r-4 border-b-4" />
+                  <div className="absolute top-0 left-0 h-6 w-6 border-t-4 border-l-4 border-action-primary" />
+                  <div className="absolute top-0 right-0 h-6 w-6 border-t-4 border-r-4 border-action-primary" />
+                  <div className="absolute bottom-0 left-0 h-6 w-6 border-b-4 border-l-4 border-action-primary" />
+                  <div className="absolute right-0 bottom-0 h-6 w-6 border-r-4 border-b-4 border-action-primary" />
                 </div>
               </div>
               {/* Scan-Anweisung */}
@@ -746,17 +746,17 @@ export function QrScannerTab({ einsatzId, onSuccess, isActive = true }: QrScanne
             aria-busy={state.status === 'processing'}
           >
             <InlineSpinner size="lg" />
-            <span className="text-status-warning-text text-sm">{state.status === 'processing' ? `${state.data.vorname} ${state.data.nachname} wird registriert…` : ''}</span>
+            <span className="text-sm text-status-warning-text">{state.status === 'processing' ? `${state.data.vorname} ${state.data.nachname} wird registriert…` : ''}</span>
           </output>
 
           <output className={cn('absolute inset-0 flex flex-col items-center justify-center gap-3 bg-surface-inverse/80', state.status !== 'success' && 'hidden')} aria-live="assertive">
             <PiCheckCircle className="h-16 w-16 text-status-success-text" />
-            <span className="text-status-success-text text-sm">{state.status === 'success' ? `${state.personName} registriert!` : ''}</span>
+            <span className="text-sm text-status-success-text">{state.status === 'success' ? `${state.personName} registriert!` : ''}</span>
           </output>
 
           <div className={cn('absolute inset-0 flex flex-col items-center justify-center gap-3 bg-surface-inverse/80', state.status !== 'error' && 'hidden')} role="alert" aria-live="assertive">
             <PiXCircle className="h-16 w-16 text-status-danger-text" />
-            <span className="text-status-danger-text text-sm">{state.status === 'error' ? state.message : ''}</span>
+            <span className="text-sm text-status-danger-text">{state.status === 'error' ? state.message : ''}</span>
           </div>
         </div>
       )}
@@ -776,35 +776,35 @@ export function QrScannerTab({ einsatzId, onSuccess, isActive = true }: QrScanne
           {state.status === 'idle' && (
             <>
               <PiQrCode className="h-16 w-16 text-text-muted" />
-              <span className="text-center text-text-muted text-sm">Scanner bereit</span>
+              <span className="text-center text-sm text-text-muted">Scanner bereit</span>
             </>
           )}
 
           {state.status === 'requesting-permission' && (
             <>
               <InlineSpinner size="lg" />
-              <span className="text-center text-text-secondary text-sm">Kamera wird gestartet…</span>
+              <span className="text-center text-sm text-text-secondary">Kamera wird gestartet…</span>
             </>
           )}
 
           {state.status === 'permission-denied' && (
             <>
               <PiCameraSlash className="h-16 w-16 text-status-danger-text" />
-              <span className="text-center text-status-danger-text text-sm">{state.error}</span>
+              <span className="text-center text-sm text-status-danger-text">{state.error}</span>
             </>
           )}
 
           {state.status === 'scanning' && (
             <>
               <PiCamera className="h-16 w-16 animate-pulse text-action-primary" />
-              <span className="text-center text-action-primary text-sm">Native Kamera aktiv - QR-Code scannen</span>
+              <span className="text-center text-sm text-action-primary">Native Kamera aktiv - QR-Code scannen</span>
             </>
           )}
 
           {state.status === 'processing' && (
             <>
               <InlineSpinner size="lg" />
-              <span className="text-center text-status-warning-text text-sm">
+              <span className="text-center text-sm text-status-warning-text">
                 {state.data.vorname} {state.data.nachname} wird registriert…
               </span>
             </>
@@ -813,14 +813,14 @@ export function QrScannerTab({ einsatzId, onSuccess, isActive = true }: QrScanne
           {state.status === 'success' && (
             <>
               <PiCheckCircle className="h-16 w-16 text-status-success-text" />
-              <span className="text-center text-status-success-text text-sm">{state.personName} registriert!</span>
+              <span className="text-center text-sm text-status-success-text">{state.personName} registriert!</span>
             </>
           )}
 
           {state.status === 'error' && (
             <>
               <PiXCircle className="h-16 w-16 text-status-danger-text" />
-              <span className="text-center text-status-danger-text text-sm">{state.message}</span>
+              <span className="text-center text-sm text-status-danger-text">{state.message}</span>
             </>
           )}
         </div>
@@ -914,7 +914,7 @@ const StatusDisplay = React.memo(({ state }: { state: ScannerState }) => {
   const config = statusConfig[state.status];
 
   return (
-    <div className={cn('flex items-center gap-2 font-medium text-sm', config.color)} aria-live="polite" aria-atomic="true">
+    <div className={cn('flex items-center gap-2 text-sm font-medium', config.color)} aria-live="polite" aria-atomic="true">
       {config.icon}
       <span>{config.text}</span>
     </div>

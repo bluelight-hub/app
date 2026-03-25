@@ -85,7 +85,7 @@ describe('ArchiveOldEinsaetzeCommand', () => {
 
     it('should fail when archivedBy is missing', () => {
       // Given
-      // biome-ignore lint/suspicious/noExplicitAny: Testing invalid input without required fields
+      // eslint-disable-next-line typescript/no-explicit-any -- Testing invalid input without required fields
       const dto = {} as any;
 
       // When

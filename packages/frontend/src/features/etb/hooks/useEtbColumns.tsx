@@ -35,7 +35,7 @@ export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory, einsat
         id: 'sequenceNumber',
         accessorKey: 'sequenceNumber',
         header: '#',
-        cell: ({ getValue }) => <span className="font-mono text-text-muted text-xs">#{getValue<number>()}</span>,
+        cell: ({ getValue }) => <span className="font-mono text-xs text-text-muted">#{getValue<number>()}</span>,
         size: 70,
         enableSorting: true,
       },
@@ -68,7 +68,7 @@ export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory, einsat
           if (entry.deletedAt) {
             return (
               <span
-                className="inline-flex items-center gap-1 rounded-full bg-status-danger-surface px-2 py-0.5 font-medium text-status-danger-text text-xs"
+                className="inline-flex items-center gap-1 rounded-full bg-status-danger-surface px-2 py-0.5 text-xs font-medium text-status-danger-text"
                 title={`Gelöscht${entry.deleterUsername ? ` von ${entry.deleterUsername}` : ''}`}
               >
                 <PiTrashSimple className="h-3 w-3" />
@@ -90,11 +90,11 @@ export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory, einsat
           const date = rawTimestamp ? new Date(rawTimestamp) : null;
 
           if (!date || !isValid(date)) {
-            return <span className="text-text-muted text-sm">-</span>;
+            return <span className="text-sm text-text-muted">-</span>;
           }
 
           return (
-            <time className="text-text-secondary text-sm" title={format(date, 'dd.MM.yyyy HH:mm:ss', { locale: de })}>
+            <time className="text-sm text-text-secondary" title={format(date, 'dd.MM.yyyy HH:mm:ss', { locale: de })}>
               {format(date, 'HH:mm:ss', { locale: de })}
             </time>
           );
@@ -109,10 +109,10 @@ export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory, einsat
         cell: ({ getValue }) => {
           const absender = getValue<string | null | undefined>();
           if (!absender) {
-            return <span className="text-text-muted text-sm">-</span>;
+            return <span className="text-sm text-text-muted">-</span>;
           }
           return (
-            <span className="text-text-secondary text-sm" title={absender}>
+            <span className="text-sm text-text-secondary" title={absender}>
               {absender}
             </span>
           );
@@ -127,10 +127,10 @@ export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory, einsat
         cell: ({ getValue }) => {
           const empfaenger = getValue<string | null | undefined>();
           if (!empfaenger) {
-            return <span className="text-text-muted text-sm">-</span>;
+            return <span className="text-sm text-text-muted">-</span>;
           }
           return (
-            <span className="text-text-secondary text-sm" title={empfaenger}>
+            <span className="text-sm text-text-secondary" title={empfaenger}>
               {empfaenger}
             </span>
           );

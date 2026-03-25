@@ -727,7 +727,7 @@ export class AuthController {
       });
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Result pattern garantiert value nach isSuccess check
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Result pattern garantiert value nach isSuccess check
     return result.value!;
   }
 

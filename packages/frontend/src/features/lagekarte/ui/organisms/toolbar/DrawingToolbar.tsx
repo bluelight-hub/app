@@ -174,7 +174,7 @@ export const DrawingToolbar: React.FC<DrawingToolbarProps> = ({ onToolSelect, se
           <div className="p-2">
             {/* Header mit Schließen-Button */}
             <div className="mb-2 flex items-center justify-between px-1">
-              <span className="font-semibold text-text-primary text-sm">Zeichnen-Tool wählen</span>
+              <span className="text-sm font-semibold text-text-primary">Zeichnen-Tool wählen</span>
               <Button onClick={handleToggleExpand} intent="secondary" appearance="ghost" size="icon" className="p-1" aria-label="Tools schließen">
                 <PiX size={18} aria-hidden="true" />
               </Button>

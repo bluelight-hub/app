@@ -175,8 +175,8 @@ export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmittin
                 {' '}
                 <div>
                   {' '}
-                  <p className="font-medium text-text-primary text-sm ">Sollbesatzung (optional)</p>{' '}
-                  <p className="text-text-muted text-xs ">Definiert die empfohlene Besetzung für diesen Fahrzeugtyp.</p>{' '}
+                  <p className="text-sm font-medium text-text-primary">Sollbesatzung (optional)</p>{' '}
+                  <p className="text-xs text-text-muted">Definiert die empfohlene Besetzung für diesen Fahrzeugtyp.</p>{' '}
                 </div>{' '}
                 <Button type="button" size="sm" appearance="ghost" intent="secondary" onClick={() => setShowAdvanced((prev) => !prev)}>
                   {' '}

@@ -217,15 +217,15 @@ export function EinsatzDashboard() {
           disabled={openingEinsatzId === einsatz.id || !einsatzCapabilities.canOpenEinsatz}
           title={!einsatzCapabilities.canOpenEinsatz ? (restrictionHint ?? 'Einsatzöffnung ist für Ihre Rolle aktuell nicht freigegeben.') : undefined}
           onClick={() => void handleOpenEinsatz(einsatz.id)}
-          className={cn('block w-full cursor-pointer text-left focus-visible:outline-none focus-visible:shadow-focus-ring', 'disabled:cursor-not-allowed')}
+          className={cn('block w-full cursor-pointer text-left focus-visible:shadow-focus-ring focus-visible:outline-none', 'disabled:cursor-not-allowed')}
         >
           <EinsatzListItem einsatz={einsatz} />
         </button>
 
         {canArchive ? (
-          <div className="flex flex-col gap-3 border-border-subtle border-t bg-surface-raised/60 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+          <div className="flex flex-col gap-3 border-t border-border-subtle bg-surface-raised/60 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
             <div className="min-w-0">
-              <p className="font-medium text-body-sm text-text-primary">Abgeschlossen und bereit fürs Archiv</p>
+              <p className="text-body-sm font-medium text-text-primary">Abgeschlossen und bereit fürs Archiv</p>
               <p className="mt-1 text-body-xs text-text-secondary">Einmal klicken, dann erneut bestätigen. Danach verschwindet der Einsatz direkt aus der aktiven Liste.</p>
             </div>
             <ConfirmButton
@@ -261,7 +261,7 @@ export function EinsatzDashboard() {
   const renderLoadingState = (label: string) => (
     <div className="flex h-full items-center justify-center p-6">
       <output aria-live="polite" className="flex flex-col items-center text-center">
-        <span aria-hidden="true" className="mx-auto h-12 w-12 animate-spin rounded-full border-action-primary border-b-2" />
+        <span aria-hidden="true" className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-action-primary" />
         <span className="mt-4 text-text-secondary">{label}</span>
       </output>
     </div>
@@ -271,11 +271,11 @@ export function EinsatzDashboard() {
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="flex-shrink-0 border-border-subtle border-b bg-surface-panel px-3 py-4 sm:px-4 lg:px-6">
+      <div className="flex-shrink-0 border-b border-border-subtle bg-surface-panel px-3 py-4 sm:px-4 lg:px-6">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div className="space-y-4">
             <div>
-              <h2 id="einsatz-dashboard-title" className="font-bold text-2xl text-text-primary">
+              <h2 id="einsatz-dashboard-title" className="text-2xl font-bold text-text-primary">
                 Einsätze
               </h2>
             </div>
@@ -328,7 +328,7 @@ export function EinsatzDashboard() {
               renderLoadingState('Lade aktive Einsätze...')
             ) : activeEinsaetze.length === 0 ? (
               <div className="flex h-full items-center justify-center">
-                <div className="max-w-md rounded-lg border border-border-subtle border-dashed bg-surface-panel p-8 text-center shadow-sm">
+                <div className="max-w-md rounded-lg border border-dashed border-border-subtle bg-surface-panel p-8 text-center shadow-sm">
                   <p className="font-medium text-text-primary">Keine aktiven Einsätze vorhanden</p>
                   <p className="mt-2 text-body-sm text-text-secondary">Sobald ein Einsatz angelegt oder noch nicht archiviert ist, erscheint er hier als Arbeitsliste.</p>
                   <div className="mt-6 flex flex-wrap justify-center gap-2">
@@ -352,8 +352,8 @@ export function EinsatzDashboard() {
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-text-primary text-title-sm">{section.title}</h3>
-                          <span className={cn('inline-flex rounded-full border px-2.5 py-1 font-medium text-xs', section.badgeClassName)}>{section.einsaetze.length}</span>
+                          <h3 className="text-title-sm font-semibold text-text-primary">{section.title}</h3>
+                          <span className={cn('inline-flex rounded-full border px-2.5 py-1 text-xs font-medium', section.badgeClassName)}>{section.einsaetze.length}</span>
                         </div>
                         <p className="mt-1 text-body-sm text-text-secondary">{section.description}</p>
                       </div>
@@ -367,7 +367,7 @@ export function EinsatzDashboard() {
           </div>
         ) : (
           <div className="flex min-h-0 flex-1 flex-col">
-            <div className="flex-shrink-0 border-border-subtle border-b bg-surface-panel px-3 py-4 sm:px-4 lg:px-6">
+            <div className="flex-shrink-0 border-b border-border-subtle bg-surface-panel px-3 py-4 sm:px-4 lg:px-6">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
                 <div className="flex-1">
                   <SearchInput
@@ -404,7 +404,7 @@ export function EinsatzDashboard() {
                 renderLoadingState('Lade Archiv...')
               ) : archivedEinsaetze.length === 0 ? (
                 <div className="flex h-full items-center justify-center">
-                  <div className="max-w-md rounded-lg border border-border-subtle border-dashed bg-surface-panel p-8 text-center shadow-sm">
+                  <div className="max-w-md rounded-lg border border-dashed border-border-subtle bg-surface-panel p-8 text-center shadow-sm">
                     <p className="font-medium text-text-primary">Keine Archivtreffer</p>
                     <p className="mt-2 text-body-sm text-text-secondary">
                       {archiveSearchTerm ? 'Passen Sie Suche oder Sortierung an.' : 'Archivierte Einsätze erscheinen hier, sobald sie archiviert wurden.'}
@@ -462,7 +462,7 @@ function DashboardViewButton({ count, isActive, label, onClick }: DashboardViewB
       onClick={onClick}
       aria-pressed={isActive}
       className={cn(
-        'inline-flex items-center gap-2 rounded-xl px-3 py-2 font-medium text-sm transition-colors',
+        'inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors',
         isActive ? 'bg-surface-panel text-text-primary shadow-sm' : 'text-text-secondary hover:text-text-primary',
       )}
     >

@@ -84,7 +84,7 @@ export function EditNotizDialog({ isOpen, onClose, einsatzId, notiz }: EditNotiz
   });
 
   // Reset form when notiz changes (react to open state and notiz identity)
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Intentionally only reacting to isOpen and notiz.id to avoid infinite loops from form/notiz object references
+  // eslint-disable-next-line react/exhaustive-deps -- Intentionally only reacting to isOpen and notiz.id to avoid infinite loops from form/notiz object references
   useEffect(() => {
     if (isOpen) {
       form.reset();
@@ -125,7 +125,7 @@ export function EditNotizDialog({ isOpen, onClose, einsatzId, notiz }: EditNotiz
           <form.Field name="titel">
             {(field) => (
               <div>
-                <label htmlFor="edit-notiz-titel" className="mb-1.5 block font-medium text-text-secondary text-sm">
+                <label htmlFor="edit-notiz-titel" className="mb-1.5 block text-sm font-medium text-text-secondary">
                   Titel <span className="text-status-danger-text">*</span>
                 </label>
                 <Input
@@ -139,7 +139,7 @@ export function EditNotizDialog({ isOpen, onClose, einsatzId, notiz }: EditNotiz
                   maxLength={100}
                   autoFocus
                 />
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-sm">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-sm text-status-danger-text">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
@@ -148,8 +148,8 @@ export function EditNotizDialog({ isOpen, onClose, einsatzId, notiz }: EditNotiz
           <form.Field name="inhalt">
             {(field) => (
               <div>
-                <label htmlFor="edit-notiz-inhalt" className="mb-1.5 block font-medium text-text-secondary text-sm">
-                  Inhalt <span className="text-text-muted text-xs">(optional)</span>
+                <label htmlFor="edit-notiz-inhalt" className="mb-1.5 block text-sm font-medium text-text-secondary">
+                  Inhalt <span className="text-xs text-text-muted">(optional)</span>
                 </label>
                 <textarea
                   id="edit-notiz-inhalt"
@@ -169,7 +169,7 @@ export function EditNotizDialog({ isOpen, onClose, einsatzId, notiz }: EditNotiz
                       : 'border-border-subtle hover:border-border-strong focus:border-action-primary',
                   )}
                 />
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-sm">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-sm text-status-danger-text">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
@@ -207,7 +207,7 @@ export function EditNotizDialog({ isOpen, onClose, einsatzId, notiz }: EditNotiz
                 >
                   <span className={cn('inline-block h-4 w-4 transform rounded-full bg-surface-panel transition-transform', field.state.value ? 'translate-x-6' : 'translate-x-1')} />
                 </Switch>
-                <span className="flex items-center gap-1.5 text-text-secondary text-sm">
+                <span className="flex items-center gap-1.5 text-sm text-text-secondary">
                   <PiUsersThree className="h-4 w-4" />
                   Für das Team sichtbar
                 </span>

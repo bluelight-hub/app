@@ -80,7 +80,7 @@ export const ServerListEmptyState = forwardRef<HTMLDivElement, ServerListEmptySt
       <ServerIcon />
 
       {/* Überschrift */}
-      <h3 className="mt-4 font-medium text-lg text-text-primary">Keine Server konfiguriert</h3>
+      <h3 className="mt-4 text-lg font-medium text-text-primary">Keine Server konfiguriert</h3>
 
       {/* Hilfstext */}
       <p className="mt-2 text-sm text-text-secondary">Füge einen Server hinzu, um loszulegen.</p>

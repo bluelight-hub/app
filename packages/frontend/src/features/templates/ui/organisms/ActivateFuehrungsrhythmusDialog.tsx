@@ -92,10 +92,10 @@ export function ActivateFuehrungsrhythmusDialog({ isOpen, onClose, template, ein
         <div className="space-y-4">
           {/* Template Info */}
           <div>
-            <p className="text-text-secondary text-sm">
+            <p className="text-sm text-text-secondary">
               Fuehrungsrhythmus <span className="font-semibold">"{template.name}"</span> aktivieren?
             </p>
-            <p className="mt-1 text-text-muted text-xs">
+            <p className="mt-1 text-xs text-text-muted">
               Es werden {sortedEintraege.length} wiederkehrende {sortedEintraege.length === 1 ? 'Erinnerung' : 'Erinnerungen'} erstellt.
             </p>
           </div>
@@ -106,7 +106,7 @@ export function ActivateFuehrungsrhythmusDialog({ isOpen, onClose, template, ein
               {sortedEintraege.map((eintrag) => (
                 <div key={eintrag.id} className="flex items-center justify-between rounded-control bg-surface-panel px-3 py-2 text-sm">
                   <span className="font-medium text-text-secondary">{eintrag.titel}</span>
-                  <div className="flex items-center gap-3 text-text-muted text-xs">
+                  <div className="flex items-center gap-3 text-xs text-text-muted">
                     <span className="flex items-center gap-1">
                       <PiArrowClockwise className="h-3 w-3" />
                       alle {eintrag.intervallMinuten} Min
@@ -122,7 +122,7 @@ export function ActivateFuehrungsrhythmusDialog({ isOpen, onClose, template, ein
           </div>
 
           {/* API Error */}
-          {apiErrorMessage && <div className="rounded-panel bg-status-danger-surface p-3 text-status-danger-text text-sm">{apiErrorMessage}</div>}
+          {apiErrorMessage && <div className="rounded-panel bg-status-danger-surface p-3 text-sm text-status-danger-text">{apiErrorMessage}</div>}
         </div>
       </Dialog.Body>
 

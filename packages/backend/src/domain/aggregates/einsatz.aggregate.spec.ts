@@ -939,7 +939,7 @@ describe('Einsatz Aggregate', () => {
       // When: Getting events and mutating copy
       const events1 = einsatz.getDomainEvents();
       const originalLength = events1.length;
-      // biome-ignore lint/suspicious/noExplicitAny: Test verifies shallow copy behavior
+      // eslint-disable-next-line typescript/no-explicit-any -- Test verifies shallow copy behavior
       events1.push({} as any); // Mutate copy
 
       // Then: Original events unchanged
@@ -979,7 +979,7 @@ describe('Einsatz Aggregate', () => {
       const einsatz = createTestEinsatz();
 
       // When: Comparing with undefined
-      // biome-ignore lint/suspicious/noExplicitAny: Test verifies null-safety
+      // eslint-disable-next-line typescript/no-explicit-any -- Test verifies null-safety
       const areEqual = einsatz.equals(undefined as any);
 
       // Then: Returns false
@@ -991,7 +991,7 @@ describe('Einsatz Aggregate', () => {
       const einsatz = createTestEinsatz();
 
       // When: Comparing with null
-      // biome-ignore lint/suspicious/noExplicitAny: Test verifies null-safety
+      // eslint-disable-next-line typescript/no-explicit-any -- Test verifies null-safety
       const areEqual = einsatz.equals(null as any);
 
       // Then: Returns false

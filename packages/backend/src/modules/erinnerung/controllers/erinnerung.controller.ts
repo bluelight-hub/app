@@ -209,7 +209,7 @@ export class ErinnerungController {
       throw new BadRequestException(result.error);
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Result pattern - value is guaranteed after isFailure check
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Result pattern - value is guaranteed after isFailure check
     return result.value!;
   }
 
@@ -244,7 +244,7 @@ export class ErinnerungController {
       throw new InternalServerErrorException(result.error);
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Result pattern - value is guaranteed after isFailure check
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Result pattern - value is guaranteed after isFailure check
     return result.value!;
   }
 
@@ -279,7 +279,7 @@ export class ErinnerungController {
       throw new InternalServerErrorException(result.error);
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Result pattern - value is guaranteed after isFailure check
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Result pattern - value is guaranteed after isFailure check
     return result.value!;
   }
 
@@ -315,7 +315,7 @@ export class ErinnerungController {
       throw new InternalServerErrorException(result.error);
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Result pattern - value is guaranteed after isFailure check
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Result pattern - value is guaranteed after isFailure check
     return result.value!;
   }
 
@@ -351,7 +351,7 @@ export class ErinnerungController {
       throw new InternalServerErrorException(result.error);
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Result pattern - value is guaranteed after isFailure check
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Result pattern - value is guaranteed after isFailure check
     return result.value!;
   }
 
@@ -384,7 +384,7 @@ export class ErinnerungController {
       throw new InternalServerErrorException(result.error);
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Result pattern - value is guaranteed after isFailure check
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Result pattern - value is guaranteed after isFailure check
     return result.value!;
   }
 
@@ -407,7 +407,7 @@ export class ErinnerungController {
     if (result.isFailure) {
       throw new InternalServerErrorException(result.error);
     }
-    // biome-ignore lint/style/noNonNullAssertion: Result pattern - value is guaranteed after isFailure check
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Result pattern - value is guaranteed after isFailure check
     return result.value!;
   }
 
@@ -1002,7 +1002,7 @@ export class ErinnerungController {
       throw new BadRequestException(result.error);
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Result pattern - value is guaranteed after isFailure check
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Result pattern - value is guaranteed after isFailure check
     return result.value!;
   }
 
@@ -1048,14 +1048,14 @@ export class ErinnerungController {
       throw new BadRequestException(queryResult.error);
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Result pattern
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Result pattern
     const result = await this.exportRohdatenHandler.execute(queryResult.value!);
 
     if (result.isFailure) {
       throw new InternalServerErrorException(result.error);
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Result pattern
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Result pattern
     const exportData = result.value!;
 
     res.set({
@@ -1108,14 +1108,14 @@ export class ErinnerungController {
       throw new BadRequestException(queryResult.error);
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Result pattern
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Result pattern
     const result = await this.exportHandler.execute(queryResult.value!);
 
     if (result.isFailure) {
       throw new InternalServerErrorException(result.error);
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Result pattern
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Result pattern
     const exportData = result.value!;
 
     res.set({

@@ -36,15 +36,15 @@
 
 - Lokaler Default mit `.env.example`: `https://localhost:3091`
 - Swagger UI:
-    1) Alpha: `https://localhost:3091/api` oder `https://localhost:3091/api/alpha`
-    2) v1: `https://localhost:3091/api/v1`
+  1. Alpha: `https://localhost:3091/api` oder `https://localhost:3091/api/alpha`
+  2. v1: `https://localhost:3091/api/v1`
 - OpenAPI JSON:
-    1) Alpha: `https://localhost:3091/api/alpha-json` (`/api-json` bleibt als Alias verfügbar)
-    2) v1: `https://localhost:3091/api/v1-json`
+  1. Alpha: `https://localhost:3091/api/alpha-json` (`/api-json` bleibt als Alias verfügbar)
+  2. v1: `https://localhost:3091/api/v1-json`
 - Der TypeScript-Fetch-Client wird aus `packages/shared` generiert. Nach API-Änderungen:
-    1) Backend starten
-    2) Bei HTTP-only lokal optional `BLUELIGHT_OPENAPI_BASE_URL=http://localhost:3091` setzen
-    3) `pnpm --filter @bluelight-hub/shared generate-api`
+  1. Backend starten
+  2. Bei HTTP-only lokal optional `BLUELIGHT_OPENAPI_BASE_URL=http://localhost:3091` setzen
+  3. `pnpm --filter @bluelight-hub/shared generate-api`
 
 ## Datenbank
 
@@ -55,13 +55,14 @@
 
 Das Backend nutzt TypeScript Path Aliases für saubere Imports gemäß Hexagonal Architecture (siehe ADR-022):
 
-| Alias | Ziel | Layer | Verwendung |
-|-------|------|-------|------------|
-| `@domain/*` | `src/domain/*` | Domain Layer | Business Logic, Entities, Value Objects, Aggregates |
-| `@application/*` | `src/application/*` | Application Layer | Use Cases, Commands, Queries |
-| `@infrastructure/*` | `src/infrastructure/*` | Infrastructure Layer | Repositories, Adapters, External Services |
+| Alias               | Ziel                   | Layer                | Verwendung                                          |
+| ------------------- | ---------------------- | -------------------- | --------------------------------------------------- |
+| `@domain/*`         | `src/domain/*`         | Domain Layer         | Business Logic, Entities, Value Objects, Aggregates |
+| `@application/*`    | `src/application/*`    | Application Layer    | Use Cases, Commands, Queries                        |
+| `@infrastructure/*` | `src/infrastructure/*` | Infrastructure Layer | Repositories, Adapters, External Services           |
 
 **Beispiel:**
+
 ```typescript
 // ✅ RICHTIG: Mit Path Alias
 import { Result } from '@domain/common/result';
@@ -72,10 +73,12 @@ import { Result } from '../../../domain/common/result';
 ```
 
 **Konfiguration:**
+
 - TypeScript: `tsconfig.json` (Zeilen 29-34) - Compiler-Auflösung
 - Jest: `jest.config.js` (Zeilen 12-16) - Test-Module-Auflösung
 
 **Dependency Rules (ADR-022):**
+
 ```
 Domain Layer (keine externen Dependencies)
     ↑ importiert von
@@ -85,6 +88,7 @@ Infrastructure Layer (Domain + Application Layer)
 ```
 
 **Validation:**
+
 - Pre-commit Hook: `tsc --noEmit` prüft TypeScript-Kompilierung (~1.5s)
 - Madge: `pnpm check:deps` erkennt zirkuläre Dependencies
 
@@ -116,6 +120,7 @@ Vor jedem Commit werden automatisch folgende Checks ausgeführt:
 **Hook-Konfiguration:** `.husky/pre-commit`
 
 **Hinweise:**
+
 - Hooks laufen automatisch - keine manuelle Aktion erforderlich
 - Gesamtlaufzeit: abhängig von den geänderten Dateien und den zusätzlichen Architektur-Checks
 - **Niemals `--no-verify` verwenden** - würde wichtige Checks überspringen

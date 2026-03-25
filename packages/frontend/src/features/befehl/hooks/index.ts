@@ -22,15 +22,7 @@ export {
   meineBefehleFilterStore,
   type MeineBefehleFilterStoreState,
 } from './use-meine-befehle-filter';
-export {
-  useBefehleView,
-  useCurrentBefehleView,
-  setBefehleView,
-  toggleBefehleView,
-  befehleViewStore,
-  type BefehleView,
-  type BefehleViewStoreState,
-} from './use-befehle-view-store';
+export { useBefehleView, useCurrentBefehleView, setBefehleView, toggleBefehleView, befehleViewStore, type BefehleView, type BefehleViewStoreState } from './use-befehle-view-store';
 export {
   useBefehleFilter,
   useActiveFilterCount,
