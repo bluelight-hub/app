@@ -13,8 +13,6 @@
     "generate-api": "pnpm -r --filter '@bluelight-hub/*' --if-present generate-api",
     "lint": "oxlint --fix && oxfmt --write .",
     "lint:check": "oxlint && oxfmt --check .",
-    "lint:array-multiline:check": "oxlint -c .oxlintrc.array-multiline.json",
-    "lint:array-multiline:fix": "oxlint -c .oxlintrc.array-multiline.json --fix",
     "test": "pnpm -r --filter '@bluelight-hub/*' test",
     "test:gitmoji": "node --test scripts/__tests__/gitmoji-commit-validator.test.mjs",
     "test:ui": "pnpm -r --filter '@bluelight-hub/*' test:ui",
