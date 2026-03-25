@@ -82,6 +82,7 @@ export function BefehlExportDialog({ isOpen, onClose, einsatzId }: BefehlExportD
             return (
               <label
                 key={option.value}
+                aria-label={option.label}
                 className={cn(
                   'flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors',
                   isSelected ? 'border-action-primary bg-action-secondary' : 'border-border-subtle bg-surface-panel hover:border-border-strong hover:bg-action-secondary',

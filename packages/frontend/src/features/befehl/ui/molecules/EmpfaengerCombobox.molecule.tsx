@@ -140,7 +140,10 @@ export function EmpfaengerCombobox({ einsatzId, value, onChange, error }: Empfae
       {value.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-1.5">
           {value.map((chip, index) => (
-            <span key={chip.empfaengerId ?? `manual-${index}`} className="inline-flex items-center gap-1 rounded-full bg-status-info-surface px-2.5 py-0.5 text-sm font-medium text-status-info-text">
+            <span
+              key={chip.empfaengerId ?? chip.name.trim().toLowerCase()}
+              className="inline-flex items-center gap-1 rounded-full bg-status-info-surface px-2.5 py-0.5 text-sm font-medium text-status-info-text"
+            >
               {chip.empfaengerId && <PiLink className="h-3 w-3 text-status-info-text" aria-hidden="true" />}
               {chip.name}
               <button

@@ -1,4 +1,4 @@
-/// <reference path="../../cypress.d.ts" />
+import '../../cypress.d.ts';
 
 describe('Admin Login', () => {
   beforeEach(() => {

@@ -103,10 +103,10 @@ export function BefehlTabellenView({ einsatzId, befehle: externalBefehle, classN
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {Array.from({ length: 10 }).map((_, rowIndex) => (
-            <Table.Row key={`skeleton-row-${rowIndex}`}>
-              {Array.from({ length: 7 }).map((__, colIndex) => (
-                <Table.Cell key={`skeleton-cell-${rowIndex}-${colIndex}`}>
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((rowId) => (
+            <Table.Row key={`skeleton-row-${rowId}`}>
+              {COLUMN_HEADERS.map((header) => (
+                <Table.Cell key={`skeleton-cell-${rowId}-${header}`}>
                   <div className="h-4 w-full animate-pulse rounded bg-surface-raised" />
                 </Table.Cell>
               ))}

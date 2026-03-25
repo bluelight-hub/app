@@ -87,9 +87,6 @@ import { Result } from '@domain/common/result';
  */
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
-// NOTE: Import needed for JSDoc example, even though not used in this file
-// eslint-disable-next-line no-unused-imports -- Used in JSDoc example
-import { EINSATZ_REPOSITORY } from '@infrastructure/di-tokens';
 
 /**
  * Abstract Base Class für transaktionale Command Handler im Transactional Outbox Pattern.
@@ -142,7 +139,7 @@ import { EINSATZ_REPOSITORY } from '@infrastructure/di-tokens';
  *   constructor(
  *     prisma: PrismaService,
  *     outboxRepository: IOutboxRepository,
- *     @Inject(EINSATZ_REPOSITORY) private readonly einsatzRepository: IEinsatzRepository,
+ *     @Inject('EINSATZ_REPOSITORY') private readonly einsatzRepository: IEinsatzRepository,
  *   ) {
  *     super(prisma, outboxRepository);
  *   }

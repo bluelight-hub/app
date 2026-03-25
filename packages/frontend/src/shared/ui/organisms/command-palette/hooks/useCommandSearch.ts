@@ -107,7 +107,9 @@ export function useCommandSearch({ modules, search }: UseCommandSearchProps): Us
 
     const searchLower = search.toLowerCase();
     // Use pre-computed lowercase values to avoid repeated toLowerCase() calls
-    return commandsWithLowerCase.filter((cmd) => cmd.nameLower.includes(searchLower) || cmd.moduleLower.includes(searchLower)).map(({ nameLower, moduleLower, ...originalCmd }) => originalCmd);
+    return commandsWithLowerCase
+      .filter((cmd) => cmd.nameLower.includes(searchLower) || cmd.moduleLower.includes(searchLower))
+      .map(({ nameLower: _nameLower, moduleLower: _moduleLower, ...originalCmd }) => originalCmd);
   }, [allCommands, commandsWithLowerCase, search]);
 
   // Group commands by module for display

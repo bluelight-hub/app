@@ -189,9 +189,9 @@ export function CreateFuehrungsrhythmusTemplateDialog({ isOpen, onClose, default
             <form.Field name="eintraege" mode="array">
               {(field) => (
                 <div className="space-y-4">
-                  {field.state.value.map((_: unknown, index: number) => (
+                  {entryKeys.map((rowKey, index) => (
                     <EintragRow
-                      key={entryKeys[index] ?? 'create-fr-eintrag-fallback'}
+                      key={rowKey}
                       form={form}
                       index={index}
                       isPending={isPending}

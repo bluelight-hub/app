@@ -222,9 +222,9 @@ export function EditFuehrungsrhythmusTemplateDialog({ isOpen, onClose, template 
             <form.Field name="eintraege" mode="array">
               {(field) => (
                 <div className="space-y-4">
-                  {field.state.value.map((_: unknown, index: number) => (
+                  {entryKeys.map((rowKey, index) => (
                     <EditEintragRow
-                      key={entryKeys[index] ?? 'edit-fr-eintrag-fallback'}
+                      key={rowKey}
                       form={form}
                       index={index}
                       isPending={isPending}

@@ -30,7 +30,7 @@ const pathAliases: Record<string, string> = {
 /**
  * Rekursiv alle .ts Dateien im Verzeichnis finden
  */
-function findTypeScriptFiles(dir: string, baseDir: string): string[] {
+function findTypeScriptFiles(dir: string): string[] {
   const files: string[] = [];
 
   try {
@@ -45,7 +45,7 @@ function findTypeScriptFiles(dir: string, baseDir: string): string[] {
       }
 
       if (entry.isDirectory()) {
-        files.push(...findTypeScriptFiles(fullPath, baseDir));
+        files.push(...findTypeScriptFiles(fullPath));
       } else if (entry.name.endsWith('.ts')) {
         files.push(fullPath);
       }
@@ -188,7 +188,7 @@ function main(): void {
   console.log('🔍 Checking DI Import Patterns (AC1 Rule)...\n');
 
   // Finde alle TypeScript Dateien
-  const tsFiles = findTypeScriptFiles(baseSrcDir, baseSrcDir);
+  const tsFiles = findTypeScriptFiles(baseSrcDir);
 
   // Analysiere Dateien
   for (const filePath of tsFiles) {
