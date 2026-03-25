@@ -1,3 +1,13 @@
+## 🎨 Design-System & Benutzeroberfläche
+
+- **Dark Mode Unterstützung**: Die gesamte Benutzeroberfläche wurde auf ein modernes Design-Token-System (Ring-1) migriert. Damit ist die Grundlage für automatisches Umschalten zwischen hellem und dunklem Modus geschaffen.
+- **Einheitliches Erscheinungsbild**: Alle Farben, Abstände und Animationen folgen jetzt einem zentralen Design-System für ein konsistenteres Nutzererlebnis über alle Bereiche der Anwendung hinweg (Einsätze, ETB, Lagekarte, Kräfteübersicht, Verwaltung).
+
+## 🛠️ Technische Verbesserungen
+
+- **Schnellere Build-Zeiten**: Die Entwicklungs-Werkzeuge wurden auf eine moderne, Rust-basierte Toolchain (OXC) umgestellt, was die Ladezeiten beim Entwickeln und Bauen der Anwendung spürbar verkürzt.
+- **Verbesserte Code-Qualität**: Strengere Prüfungen der Software-Architektur stellen sicher, dass die Anwendung auch langfristig wartbar und erweiterbar bleibt.
+
 ## Berechtigungen & Zugriffskontrolle
 
 - **Rollenbasierte Navigation**: Die Navigationsmenüs passen sich jetzt automatisch an die Rolle des Benutzers an. Bereiche, für die keine Berechtigung besteht, werden ausgeblendet
