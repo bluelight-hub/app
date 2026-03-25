@@ -106,7 +106,10 @@ export function StopRecurringErinnerungDialog({ isOpen, onClose, erinnerung, ein
           </div>
 
           {/* AC2: Checkbox fuer aktuelle Instanz abbrechen */}
-          <label className="flex cursor-pointer items-start gap-3 rounded-panel border border-border-subtle p-3 transition-colors hover:bg-action-secondary">
+          <label
+            aria-label="Auch die aktuelle aktive Instanz abbrechen"
+            className="flex cursor-pointer items-start gap-3 rounded-panel border border-border-subtle p-3 transition-colors hover:bg-action-secondary"
+          >
             <input
               type="checkbox"
               checked={cancelCurrent}

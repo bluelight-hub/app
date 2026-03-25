@@ -120,8 +120,7 @@ const invokeRuntimeConfigEndpoint = async <T>(path: string, init?: RequestInit):
   const response = await fetchWithRefresh(buildRuntimeConfigRequestUrl(path), {
     ...init,
     headers: {
-      ...((init?.headers as Record<string, string>) || {}),
-      ...(init?.headers ? {} : {}),
+      ...(init?.headers as Record<string, string> | undefined),
       'Content-Type': 'application/json',
     },
     credentials: 'include',
