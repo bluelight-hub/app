@@ -17,7 +17,7 @@ export function FilterChip({ label, colorClass = 'bg-surface-raised border-borde
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 font-medium text-xs',
+        'inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium',
         'transition-colors duration-150',
         !kategorieColor && colorClass,
         kategorieColor && 'text-text-primary',

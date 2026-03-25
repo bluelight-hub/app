@@ -78,8 +78,8 @@ export function EinsatzPersonenPicker({ einsatzId, value, onChange, onBlur, disa
   if (isError) {
     return (
       <div className="space-y-1">
-        {label && <span className="block font-medium text-text-secondary text-sm">{label}</span>}
-        <div role="alert" aria-live="assertive" className="rounded-panel border border-status-danger-border bg-status-danger-surface px-3 py-2 text-status-danger-text text-sm">
+        {label && <span className="block text-sm font-medium text-text-secondary">{label}</span>}
+        <div role="alert" aria-live="assertive" className="rounded-panel border border-status-danger-border bg-status-danger-surface px-3 py-2 text-sm text-status-danger-text">
           Fehler beim Laden der Personen. Bitte Seite neu laden.
         </div>
       </div>
@@ -90,8 +90,8 @@ export function EinsatzPersonenPicker({ einsatzId, value, onChange, onBlur, disa
   if (personen && personen.length === 0) {
     return (
       <div className="space-y-1">
-        {label && <span className="block font-medium text-text-secondary text-sm">{label}</span>}
-        <output className="block rounded-panel border border-status-warning-border bg-status-warning-surface px-3 py-2 text-status-warning-text text-sm">
+        {label && <span className="block text-sm font-medium text-text-secondary">{label}</span>}
+        <output className="block rounded-panel border border-status-warning-border bg-status-warning-surface px-3 py-2 text-sm text-status-warning-text">
           Keine Personen registriert. Registrieren Sie zuerst Einsatzkräfte.
         </output>
       </div>
@@ -102,8 +102,8 @@ export function EinsatzPersonenPicker({ einsatzId, value, onChange, onBlur, disa
   if (items.length === 0 && personen && personen.length > 0) {
     return (
       <div className="space-y-1">
-        {label && <span className="block font-medium text-text-secondary text-sm">{label}</span>}
-        <output className="block rounded-panel border border-border-subtle bg-surface-raised px-3 py-2 text-text-secondary text-sm">Alle verfügbaren Personen sind bereits Rollen zugewiesen.</output>
+        {label && <span className="block text-sm font-medium text-text-secondary">{label}</span>}
+        <output className="block rounded-panel border border-border-subtle bg-surface-raised px-3 py-2 text-sm text-text-secondary">Alle verfügbaren Personen sind bereits Rollen zugewiesen.</output>
       </div>
     );
   }

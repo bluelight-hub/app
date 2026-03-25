@@ -13,11 +13,11 @@ export function EtbTableHeader<T>({ headerGroups }: EtbTableHeaderProps<T>) {
   return (
     <thead className="sticky top-0 z-10 bg-surface-panel">
       {headerGroups.map((headerGroup) => (
-        <tr key={headerGroup.id} className="border-border-subtle border-b">
+        <tr key={headerGroup.id} className="border-b border-border-subtle">
           {headerGroup.headers.map((header) => (
             <th
               key={header.id}
-              className={cn('px-4 py-3 text-left font-medium text-text-muted text-xs uppercase tracking-wider', header.column.getCanSort() && 'cursor-pointer hover:bg-action-secondary')}
+              className={cn('px-4 py-3 text-left text-xs font-medium tracking-wider text-text-muted uppercase', header.column.getCanSort() && 'cursor-pointer hover:bg-action-secondary')}
               style={{
                 width: header.getSize(),
               }}

@@ -4,8 +4,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const GITMOJI_SOURCE_URL =
-  'https://raw.githubusercontent.com/carloscuesta/gitmoji/master/packages/gitmojis/src/gitmojis.json';
+export const GITMOJI_SOURCE_URL = 'https://raw.githubusercontent.com/carloscuesta/gitmoji/master/packages/gitmojis/src/gitmojis.json';
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 export const SNAPSHOT_PATH = path.resolve(SCRIPT_DIR, 'gitmojis.snapshot.json');

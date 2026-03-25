@@ -31,7 +31,7 @@ export function ImportMappingStep({ unmappedQualifikationen, localQualifikatione
       </Text>{' '}
       <div className="rounded-lg border border-status-info-border bg-status-info-surface p-3">
         {' '}
-        <Text className="text-status-info-text text-sm">Die Zuordnungen werden gespeichert und automatisch für zukünftige Importe verwendet.</Text>{' '}
+        <Text className="text-sm text-status-info-text">Die Zuordnungen werden gespeichert und automatisch für zukünftige Importe verwendet.</Text>{' '}
       </div>{' '}
       <div className="max-h-80 space-y-3 overflow-y-auto">
         {' '}
@@ -40,9 +40,9 @@ export function ImportMappingStep({ unmappedQualifikationen, localQualifikatione
             {' '}
             <div className="min-w-0 flex-1">
               {' '}
-              <Text className="font-medium">{q.name}</Text> {q.nameKurz && <Text className="text-text-muted text-sm">({q.nameKurz})</Text>}{' '}
+              <Text className="font-medium">{q.name}</Text> {q.nameKurz && <Text className="text-sm text-text-muted">({q.nameKurz})</Text>}{' '}
               {q.autoMatchSuggestionName && (
-                <Text className="text-text-muted text-xs">
+                <Text className="text-xs text-text-muted">
                   {' '}
                   Vorschlag: {q.autoMatchSuggestionName} ({Math.round(q.autoMatchConfidence ?? 0)}%){' '}
                 </Text>
@@ -69,7 +69,7 @@ export function ImportMappingStep({ unmappedQualifikationen, localQualifikatione
                   }
                 }}
               />{' '}
-              <Text className="text-text-muted text-sm">Ignorieren</Text>{' '}
+              <Text className="text-sm text-text-muted">Ignorieren</Text>{' '}
             </div>{' '}
           </div>
         ))}{' '}

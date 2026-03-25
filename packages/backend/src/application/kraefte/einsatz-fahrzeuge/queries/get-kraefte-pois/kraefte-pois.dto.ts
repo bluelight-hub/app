@@ -12,7 +12,7 @@ export class GeoJsonPointDto {
     enum: ['Point'],
     example: 'Point',
   })
-  readonly type: 'Point' = 'Point';
+  readonly type = 'Point' as const;
 
   @ApiProperty({
     description: 'Koordinaten als [longitude, latitude] nach RFC 7946',
@@ -94,7 +94,7 @@ export class KraeftePoisFeatureDto {
     enum: ['Feature'],
     example: 'Feature',
   })
-  readonly type: 'Feature' = 'Feature';
+  readonly type = 'Feature' as const;
 
   @ApiProperty({
     description: 'Eindeutige Feature-ID (EinsatzFahrzeug ID)',
@@ -133,7 +133,7 @@ export class KraeftePoisFeatureCollectionDto {
     enum: ['FeatureCollection'],
     example: 'FeatureCollection',
   })
-  readonly type: 'FeatureCollection' = 'FeatureCollection';
+  readonly type = 'FeatureCollection' as const;
 
   @ApiProperty({
     description: 'Array von Fahrzeug-Features',

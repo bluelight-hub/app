@@ -42,11 +42,7 @@ export { IEtbRepository } from './i-etb.repository';
 export { ILagekarteRepository } from './i-lagekarte.repository';
 
 // Outbox Repository Interface (Transactional Outbox Pattern)
-export {
-  IOutboxRepository,
-  type OutboxEventDto,
-  type OutboxEventStatus,
-} from './i-outbox.repository';
+export { IOutboxRepository, type OutboxEventDto, type OutboxEventStatus } from './i-outbox.repository';
 
 // User Repository Interface
 export { IUserRepository } from './i-user.repository';
@@ -55,13 +51,7 @@ export { IUserRepository } from './i-user.repository';
 export { IServerAccessTokenRepository } from './i-server-access-token.repository';
 
 // InviteCode Repository Interface
-export {
-  IInviteCodeRepository,
-  type InviteCodeFilters,
-  type InviteCodeSortOptions,
-  type InviteCodePaginationOptions,
-  type InviteCodePaginatedResult,
-} from './i-invite-code.repository';
+export { IInviteCodeRepository, type InviteCodeFilters, type InviteCodeSortOptions, type InviteCodePaginationOptions, type InviteCodePaginatedResult } from './i-invite-code.repository';
 
 // EinsatzTeilnehmer Repository Interface (Story 115)
 export type { IEinsatzTeilnehmerRepository, EinsatzTeilnehmerDto } from './i-einsatz-teilnehmer.repository';

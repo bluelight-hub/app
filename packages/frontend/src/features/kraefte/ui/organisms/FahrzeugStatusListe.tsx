@@ -87,7 +87,7 @@ function FahrzeugBadge({ fahrzeug }: { fahrzeug: EinsatzFahrzeugDto }) {
   };
 
   return (
-    <span className={cn('inline-flex items-center rounded-control px-2 py-1 font-medium text-xs', statusColors[fahrzeug.fmsStatus] ?? 'bg-surface-raised text-text-primary')}>
+    <span className={cn('inline-flex items-center rounded-control px-2 py-1 text-xs font-medium', statusColors[fahrzeug.fmsStatus] ?? 'bg-surface-raised text-text-primary')}>
       {fahrzeug.funkrufname}
     </span>
   );
@@ -137,8 +137,8 @@ export function FahrzeugStatusListe({ einsatzId, onFahrzeugClick, className }: F
     return (
       <div className={cn('rounded-panel border border-border-subtle bg-surface-panel', containerClasses, className)}>
         <div className="mb-2 flex items-center justify-between">
-          <span className="font-medium text-text-secondary text-sm">Fahrzeuge</span>
-          <span className="text-text-muted text-xs">{fahrzeugCount}</span>
+          <span className="text-sm font-medium text-text-secondary">Fahrzeuge</span>
+          <span className="text-xs text-text-muted">{fahrzeugCount}</span>
         </div>
         {fahrzeuge && fahrzeuge.length > 0 ? (
           <div className="flex flex-wrap gap-1">
@@ -147,7 +147,7 @@ export function FahrzeugStatusListe({ einsatzId, onFahrzeugClick, className }: F
             ))}
           </div>
         ) : (
-          <p className="text-center text-text-muted text-xs">Keine Fahrzeuge</p>
+          <p className="text-center text-xs text-text-muted">Keine Fahrzeuge</p>
         )}
       </div>
     );

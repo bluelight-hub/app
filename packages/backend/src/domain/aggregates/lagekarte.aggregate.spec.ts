@@ -77,7 +77,7 @@ describe('LagekarteAggregate', () => {
 
       it('should reject missing einsatzId', () => {
         // When: Create without einsatzId
-        // biome-ignore lint/suspicious/noExplicitAny: Testing validation with intentionally invalid input
+        // eslint-disable-next-line typescript/no-explicit-any -- Testing validation with intentionally invalid input
         const result = LagekarteAggregate.create(null as any, testUserId);
 
         // Then: Failure
@@ -87,7 +87,7 @@ describe('LagekarteAggregate', () => {
 
       it('should reject missing createdBy', () => {
         // When: Create without createdBy
-        // biome-ignore lint/suspicious/noExplicitAny: Testing validation with intentionally invalid input
+        // eslint-disable-next-line typescript/no-explicit-any -- Testing validation with intentionally invalid input
         const result = LagekarteAggregate.create(testEinsatzId, null as any);
 
         // Then: Failure

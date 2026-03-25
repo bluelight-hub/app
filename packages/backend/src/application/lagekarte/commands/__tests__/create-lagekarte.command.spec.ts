@@ -87,7 +87,7 @@ describe('CreateLagekarteCommand', () => {
   describe('Invalid Commands - einsatzId validation', () => {
     it('should return failure when einsatzId is undefined', () => {
       // Given/When
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
+      // eslint-disable-next-line typescript/no-explicit-any -- Testing null/undefined handling
       const result = CreateLagekarteCommand.create(undefined as any);
 
       // Then
@@ -97,7 +97,7 @@ describe('CreateLagekarteCommand', () => {
 
     it('should return failure when einsatzId is null', () => {
       // Given/When
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
+      // eslint-disable-next-line typescript/no-explicit-any -- Testing null/undefined handling
       const result = CreateLagekarteCommand.create(null as any);
 
       // Then
@@ -135,7 +135,7 @@ describe('CreateLagekarteCommand', () => {
       };
 
       // When
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
+      // eslint-disable-next-line typescript/no-explicit-any -- Testing null/undefined handling
       const result = CreateLagekarteCommand.create(einsatzId, invalidPoi as any);
 
       // Then
@@ -153,7 +153,7 @@ describe('CreateLagekarteCommand', () => {
       };
 
       // When
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
+      // eslint-disable-next-line typescript/no-explicit-any -- Testing null/undefined handling
       const result = CreateLagekarteCommand.create(einsatzId, invalidPoi as any);
 
       // Then
@@ -166,7 +166,7 @@ describe('CreateLagekarteCommand', () => {
       const einsatzId = 'einsatz-123';
       const invalidPoi = {
         name: 'Brandenburger Tor',
-        // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
+        // eslint-disable-next-line typescript/no-explicit-any -- Testing null/undefined handling
         coordinate: undefined as any,
         category: 'EINSATZSTELLE',
       };
@@ -184,7 +184,7 @@ describe('CreateLagekarteCommand', () => {
       const einsatzId = 'einsatz-123';
       const invalidPoi = {
         name: 'Brandenburger Tor',
-        // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
+        // eslint-disable-next-line typescript/no-explicit-any -- Testing null/undefined handling
         coordinate: null as any,
         category: 'EINSATZSTELLE',
       };
@@ -207,7 +207,7 @@ describe('CreateLagekarteCommand', () => {
       };
 
       // When
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
+      // eslint-disable-next-line typescript/no-explicit-any -- Testing null/undefined handling
       const result = CreateLagekarteCommand.create(einsatzId, invalidPoi as any);
 
       // Then
@@ -225,7 +225,7 @@ describe('CreateLagekarteCommand', () => {
       };
 
       // When
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
+      // eslint-disable-next-line typescript/no-explicit-any -- Testing null/undefined handling
       const result = CreateLagekarteCommand.create(einsatzId, invalidPoi as any);
 
       // Then

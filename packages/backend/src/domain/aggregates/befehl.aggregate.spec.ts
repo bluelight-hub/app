@@ -1051,9 +1051,9 @@ describe('Befehl Aggregate', () => {
 
     it('sollte false bei null/undefined zurückgeben', () => {
       const befehl = createTestBefehl();
-      // biome-ignore lint/suspicious/noExplicitAny: Test prüft null-safety
+      // eslint-disable-next-line typescript/no-explicit-any -- Test prüft null-safety
       expect(befehl.equals(undefined as any)).toBe(false);
-      // biome-ignore lint/suspicious/noExplicitAny: Test prüft null-safety
+      // eslint-disable-next-line typescript/no-explicit-any -- Test prüft null-safety
       expect(befehl.equals(null as any)).toBe(false);
     });
   });

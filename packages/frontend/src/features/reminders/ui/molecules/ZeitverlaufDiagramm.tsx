@@ -43,7 +43,7 @@ export function ZeitverlaufDiagramm({ einsatzId, className }: ZeitverlaufDiagram
 
   return (
     <div className={cn('flex flex-col gap-2', className)}>
-      <button type="button" className="flex items-center gap-1 font-medium text-sm text-text-secondary" onClick={() => setIsExpanded(!isExpanded)} aria-expanded={isExpanded}>
+      <button type="button" className="flex items-center gap-1 text-sm font-medium text-text-secondary" onClick={() => setIsExpanded(!isExpanded)} aria-expanded={isExpanded}>
         {isExpanded ? <PiCaretDown className="h-4 w-4" /> : <PiCaretRight className="h-4 w-4" />}
         Zeitverlauf
       </button>
@@ -62,7 +62,7 @@ export function ZeitverlaufDiagramm({ einsatzId, className }: ZeitverlaufDiagram
           )}
 
           {!isLoading && !isError && (!chartData || chartData.length === 0) && (
-            <div className="flex h-[200px] items-center justify-center rounded-lg border border-border-subtle border-dashed">
+            <div className="flex h-[200px] items-center justify-center rounded-lg border border-dashed border-border-subtle">
               <div className="flex flex-col items-center gap-2 text-text-muted">
                 <PiChartLine className="h-8 w-8" />
                 <p className="text-sm">Noch keine Erinnerungen vorhanden</p>

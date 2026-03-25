@@ -1,0 +1,188 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "import", "oxc"],
+  "rules": {
+    "no-shadow": "warn",
+    "no-unused-vars": [
+      "warn",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ],
+    "typescript/consistent-type-imports": "off",
+    "typescript/prefer-as-const": "warn",
+    "unicorn/no-static-only-class": "off",
+    "unicorn/no-useless-fallback-in-spread": "warn"
+  },
+  "ignorePatterns": [
+    "node_modules",
+    "dist",
+    "out",
+    "coverage",
+    "coverage-e2e",
+    "old-projects",
+    "venv",
+    ".husky",
+    ".claude",
+    "docs",
+    "**/generated/**",
+    "packages/shared/client/**",
+    "packages/shared/client-v1/**",
+    "packages/frontend/src/routeTree.gen.ts",
+    "packages/frontend/src-tauri/gen",
+    "packages/frontend/src-tauri/target",
+    "packages/frontend/.tanstack",
+    "packages/frontend/test-results",
+    ".releaserc.js",
+    "**/__tests__/**",
+    "**/*.spec.*",
+    "**/*.test.*"
+  ],
+  "overrides": [
+    {
+      "files": ["packages/frontend/src/**/*.{ts,tsx}"],
+      "plugins": ["typescript", "unicorn", "import", "oxc", "react", "jsx-a11y"],
+      "rules": {
+        "jsx-a11y/label-has-associated-control": "warn",
+        "react/no-array-index-key": "warn"
+      }
+    },
+    {
+      "files": ["packages/backend/src/infrastructure/**/*.ts", "packages/backend/src/cli/**/*.ts"],
+      "rules": {
+        "typescript/no-non-null-assertion": "off"
+      }
+    },
+    {
+      "files": ["packages/backend/src/domain/**/*.ts"],
+      "rules": {
+        "no-shadow": "off",
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/application/*", "../application/*", "@application/*"],
+                "message": "Domain layer MUST NOT import from Application layer (violates Hexagonal Architecture)"
+              },
+              {
+                "group": ["**/infrastructure/*", "../infrastructure/*", "@infrastructure/*"],
+                "message": "Domain layer MUST NOT import from Infrastructure layer (violates Hexagonal Architecture)"
+              },
+              {
+                "group": ["@nestjs/*"],
+                "message": "Domain layer MUST be framework-agnostic (no NestJS imports allowed)"
+              },
+              {
+                "group": ["@prisma/*"],
+                "message": "Domain layer MUST NOT depend on Prisma (use Repository interfaces instead)"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "packages/backend/src/application/**/*.handler.ts",
+        "packages/backend/src/application/**/*.command.ts",
+        "packages/backend/src/application/**/*.query.ts",
+        "packages/backend/src/application/**/*.service.ts",
+        "packages/backend/src/application/**/common/**/*.ts"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "@nestjs/common",
+                "importNames": ["Logger"],
+                "message": "Application Layer: Logger via DI injizieren mit @Inject(LOGGER) aus @infrastructure/di-tokens"
+              }
+            ],
+            "patterns": [
+              {
+                "group": [
+                  "@infrastructure/alert/*",
+                  "@infrastructure/auth/*",
+                  "@infrastructure/common/*",
+                  "@infrastructure/einsatz/*",
+                  "@infrastructure/etb/*",
+                  "@infrastructure/events/*",
+                  "@infrastructure/geocoding/*",
+                  "@infrastructure/kraefte/*",
+                  "@infrastructure/outbox/*",
+                  "@infrastructure/repositories/*",
+                  "@infrastructure/user/*",
+                  "@infrastructure/index",
+                  "@infrastructure/lagekarte-infrastructure.module"
+                ],
+                "message": "Application layer MUST NOT import from Infrastructure layer (except @infrastructure/di-tokens, @infrastructure/database). Use DI via Repository interfaces."
+              },
+              {
+                "group": ["@prisma/*"],
+                "message": "Application layer MUST NOT depend on Prisma directly (use Repository interfaces and DI instead)"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["packages/backend/src/infrastructure/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "@nestjs/common",
+                "importNames": ["Logger"],
+                "message": "Infrastructure Layer: Logger via DI injizieren mit @Inject(LOGGER), ausser in Adapters"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "packages/backend/src/infrastructure/common/adapters/**/*.ts",
+        "packages/backend/src/infrastructure/**/*.adapter.ts",
+        "packages/backend/src/infrastructure/repositories/**/*.ts",
+        "packages/backend/src/infrastructure/integrations/repositories/**/*.ts",
+        "packages/backend/src/infrastructure/integrations/tasks/**/*.ts",
+        "packages/backend/src/infrastructure/config/**/*.ts"
+      ],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    },
+    {
+      "files": ["packages/backend/src/modules/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "@nestjs/common",
+                "importNames": ["Logger"],
+                "message": "Module Layer: Logger via DI injizieren mit @Inject(LOGGER)"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["packages/backend/src/main.ts", "packages/backend/src/main-cli.ts", "packages/backend/src/main-cli-archive.ts"],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ]
+}

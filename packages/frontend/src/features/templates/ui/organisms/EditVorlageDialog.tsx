@@ -88,7 +88,7 @@ export function EditVorlageDialog({ isOpen, onClose, vorlage }: EditVorlageDialo
   //
   // `form` ist eine instabile Referenz (aendert sich bei jedem Render).
   // Stattdessen: form.reset direkt im useEffect aufrufen, lastLoadedIdRef verhindert unnoetige Resets.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: form.reset ist stabil, lastLoadedIdRef verhindert Race Conditions
+  // eslint-disable-next-line react/exhaustive-deps -- form.reset ist stabil, lastLoadedIdRef verhindert Race Conditions
   useEffect(() => {
     if (vorlage && isOpen && lastLoadedIdRef.current !== vorlage.id) {
       lastLoadedIdRef.current = vorlage.id;
@@ -100,7 +100,7 @@ export function EditVorlageDialog({ isOpen, onClose, vorlage }: EditVorlageDialo
     }
   }, [vorlage, isOpen]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: form.reset ist stabil (interne TanStack Form Implementierung)
+  // eslint-disable-next-line react/exhaustive-deps -- form.reset ist stabil (interne TanStack Form Implementierung)
   const handleClose = useCallback(() => {
     if (!isPending) {
       setApiErrorMessage(null);
@@ -133,7 +133,7 @@ export function EditVorlageDialog({ isOpen, onClose, vorlage }: EditVorlageDialo
           <form.Field name="titel">
             {(field) => (
               <div>
-                <label htmlFor="edit-vorlage-titel" className="mb-1.5 block font-medium text-text-secondary text-sm">
+                <label htmlFor="edit-vorlage-titel" className="mb-1.5 block text-sm font-medium text-text-secondary">
                   Titel <span className="text-status-danger-text">*</span>
                 </label>
                 <Input
@@ -147,7 +147,7 @@ export function EditVorlageDialog({ isOpen, onClose, vorlage }: EditVorlageDialo
                   maxLength={100}
                   autoFocus
                 />
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-sm">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-sm text-status-danger-text">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
@@ -156,7 +156,7 @@ export function EditVorlageDialog({ isOpen, onClose, vorlage }: EditVorlageDialo
           <form.Field name="minuten">
             {(field) => (
               <div>
-                <label htmlFor="edit-vorlage-minuten" className="mb-1.5 block font-medium text-text-secondary text-sm">
+                <label htmlFor="edit-vorlage-minuten" className="mb-1.5 block text-sm font-medium text-text-secondary">
                   Minuten <span className="text-status-danger-text">*</span>
                 </label>
                 <Input
@@ -169,8 +169,8 @@ export function EditVorlageDialog({ isOpen, onClose, vorlage }: EditVorlageDialo
                   variant={field.state.meta.errors.length > 0 ? 'error' : 'default'}
                   min={1}
                 />
-                <p className="mt-1 text-text-muted text-xs">Relative Zeitdauer in Minuten</p>
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-sm">{formatErrors(field.state.meta.errors)}</p>}
+                <p className="mt-1 text-xs text-text-muted">Relative Zeitdauer in Minuten</p>
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-sm text-status-danger-text">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
@@ -179,8 +179,8 @@ export function EditVorlageDialog({ isOpen, onClose, vorlage }: EditVorlageDialo
           <form.Field name="beschreibung">
             {(field) => (
               <div>
-                <label htmlFor="edit-vorlage-beschreibung" className="mb-1.5 block font-medium text-text-secondary text-sm">
-                  Beschreibung <span className="text-text-muted text-xs">(optional)</span>
+                <label htmlFor="edit-vorlage-beschreibung" className="mb-1.5 block text-sm font-medium text-text-secondary">
+                  Beschreibung <span className="text-xs text-text-muted">(optional)</span>
                 </label>
                 <textarea
                   id="edit-vorlage-beschreibung"
@@ -200,13 +200,13 @@ export function EditVorlageDialog({ isOpen, onClose, vorlage }: EditVorlageDialo
                       : 'border-border-subtle hover:border-border-strong focus:border-action-primary',
                   )}
                 />
-                {field.state.meta.errors.length > 0 && <p className="mt-1 text-status-danger-text text-sm">{formatErrors(field.state.meta.errors)}</p>}
+                {field.state.meta.errors.length > 0 && <p className="mt-1 text-sm text-status-danger-text">{formatErrors(field.state.meta.errors)}</p>}
               </div>
             )}
           </form.Field>
 
           {/* API Error */}
-          {apiErrorMessage && <div className="rounded-panel bg-status-danger-surface p-3 text-status-danger-text text-sm">{apiErrorMessage}</div>}
+          {apiErrorMessage && <div className="rounded-panel bg-status-danger-surface p-3 text-sm text-status-danger-text">{apiErrorMessage}</div>}
         </form>
       </Dialog.Body>
 

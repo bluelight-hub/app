@@ -162,7 +162,7 @@ export function EinsatzRollenManager({ einsatzId }: EinsatzRollenManagerProps) {
       <div className="rounded-lg border border-status-danger-border bg-status-danger-surface p-4" role="alert">
         <div className="flex items-center gap-2">
           <PiWarning className="h-5 w-5 text-status-danger-text" />
-          <p className="font-medium text-body-sm text-status-danger-text">Fehler beim Laden der Rollen</p>
+          <p className="text-body-sm font-medium text-status-danger-text">Fehler beim Laden der Rollen</p>
         </div>
         <p className="mt-1 text-body-xs text-status-danger-text">{error?.message ?? 'Unbekannter Fehler'}</p>
       </div>
@@ -173,7 +173,7 @@ export function EinsatzRollenManager({ einsatzId }: EinsatzRollenManagerProps) {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold text-text-primary text-lg">Rollen verwalten</h2>
+        <h2 className="text-lg font-semibold text-text-primary">Rollen verwalten</h2>
         <div className="flex items-center gap-2">
           {hasChanges && (
             <Button appearance="ghost" size="sm" onClick={handleReset} disabled={updateMutation.isPending}>
@@ -201,13 +201,13 @@ export function EinsatzRollenManager({ einsatzId }: EinsatzRollenManagerProps) {
         <table className="min-w-full divide-y divide-border-subtle" aria-label="Rollenzuweisungen">
           <thead className="bg-surface-raised">
             <tr>
-              <th scope="col" className="px-4 py-3 text-left font-medium text-body-xs uppercase tracking-wider text-text-muted">
+              <th scope="col" className="px-4 py-3 text-left text-body-xs font-medium tracking-wider text-text-muted uppercase">
                 Benutzer
               </th>
-              <th scope="col" className="px-4 py-3 text-left font-medium text-body-xs uppercase tracking-wider text-text-muted">
+              <th scope="col" className="px-4 py-3 text-left text-body-xs font-medium tracking-wider text-text-muted uppercase">
                 Rolle
               </th>
-              <th scope="col" className="px-4 py-3 text-right font-medium text-body-xs uppercase tracking-wider text-text-muted">
+              <th scope="col" className="px-4 py-3 text-right text-body-xs font-medium tracking-wider text-text-muted uppercase">
                 Aktionen
               </th>
             </tr>
@@ -222,7 +222,7 @@ export function EinsatzRollenManager({ einsatzId }: EinsatzRollenManagerProps) {
             ) : (
               effectiveRollen.map((zeile) => (
                 <tr key={zeile.userId} className={cn(zeile.isNew && 'bg-status-success-surface')}>
-                  <td className="whitespace-nowrap px-4 py-3 font-medium text-text-primary text-body-sm">{zeile.userName}</td>
+                  <td className="px-4 py-3 text-body-sm font-medium whitespace-nowrap text-text-primary">{zeile.userName}</td>
                   <td className="px-4 py-3">
                     <RollenDropdown value={zeile.rolle} onChange={(rolle) => handleRolleChange(zeile.userId, rolle)} userName={zeile.userName} />
                   </td>
@@ -266,7 +266,7 @@ function RollenDropdown({ value, onChange, userName }: { value: string; onChange
         className={cn(
           'flex items-center gap-2 rounded-md border border-border-subtle px-3 py-1.5 text-body-sm',
           'hover:bg-action-secondary',
-          'focus-visible:outline-none focus-visible:shadow-focus-ring',
+          'focus-visible:shadow-focus-ring focus-visible:outline-none',
         )}
         aria-label={`Rolle für ${userName} auswählen`}
       >
@@ -316,7 +316,7 @@ function UserSucheCombobox({
         >
           <div className="relative">
             <ComboboxInput
-              className={cn('w-full rounded-lg border border-border-subtle bg-surface-panel px-3 py-2 text-body-sm text-text-primary', 'focus-visible:outline-none focus-visible:shadow-focus-ring')}
+              className={cn('w-full rounded-lg border border-border-subtle bg-surface-panel px-3 py-2 text-body-sm text-text-primary', 'focus-visible:shadow-focus-ring focus-visible:outline-none')}
               placeholder="Benutzer suchen..."
               displayValue={(user: { username: string } | null) => user?.username ?? ''}
               onChange={(e) => onQueryChange(e.target.value)}

@@ -66,7 +66,7 @@ export function EskalationsAnalyse({ einsatzId, className }: EskalationsAnalyseP
 
   return (
     <div className={cn('flex flex-col gap-2', className)}>
-      <button type="button" className="flex items-center gap-1 font-medium text-sm text-text-secondary" onClick={() => setIsExpanded(!isExpanded)} aria-expanded={isExpanded}>
+      <button type="button" className="flex items-center gap-1 text-sm font-medium text-text-secondary" onClick={() => setIsExpanded(!isExpanded)} aria-expanded={isExpanded}>
         {isExpanded ? <PiCaretDown className="h-4 w-4" /> : <PiCaretRight className="h-4 w-4" />}
         <PiWarningCircle className="h-4 w-4" />
         Eskalations-Analyse
@@ -116,7 +116,7 @@ export function EskalationsAnalyse({ einsatzId, className }: EskalationsAnalyseP
               {/* Top-Listen */}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                  <h4 className="font-medium text-sm text-text-secondary">Häufigste Empfänger</h4>
+                  <h4 className="text-sm font-medium text-text-secondary">Häufigste Empfänger</h4>
                   {data.topReceivers.length > 0 ? (
                     <ol className="mt-1 list-inside list-decimal">
                       {data.topReceivers.map((r) => (
@@ -130,7 +130,7 @@ export function EskalationsAnalyse({ einsatzId, className }: EskalationsAnalyseP
                   )}
                 </div>
                 <div>
-                  <h4 className="font-medium text-sm text-text-secondary">Häufigste Quellen</h4>
+                  <h4 className="text-sm font-medium text-text-secondary">Häufigste Quellen</h4>
                   {data.topSources.length > 0 ? (
                     <ol className="mt-1 list-inside list-decimal">
                       {data.topSources.map((s) => (

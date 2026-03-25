@@ -90,15 +90,15 @@ export function BefehlKanbanView({ einsatzId, befehle: externalBefehle, classNam
       {/* Mobile: Tabs (<768px) */}
       <div className="h-full md:hidden">
         <TabGroup>
-          <TabList className="flex border-border-subtle border-b">
+          <TabList className="flex border-b border-border-subtle">
             {KANBAN_SPALTEN_CONFIG.map(({ key, config }) => (
               <Tab
                 key={key}
                 className={({ selected }) =>
                   cn(
-                    'flex-1 px-2 py-2.5 text-center font-medium text-xs transition-colors motion-reduce:transition-none',
-                    'focus-visible:outline-none focus-visible:shadow-focus-ring',
-                    selected ? 'border-action-primary border-b-2 text-action-primary' : 'text-text-muted hover:text-text-secondary',
+                    'flex-1 px-2 py-2.5 text-center text-xs font-medium transition-colors motion-reduce:transition-none',
+                    'focus-visible:shadow-focus-ring focus-visible:outline-none',
+                    selected ? 'border-b-2 border-action-primary text-action-primary' : 'text-text-muted hover:text-text-secondary',
                   )
                 }
               >

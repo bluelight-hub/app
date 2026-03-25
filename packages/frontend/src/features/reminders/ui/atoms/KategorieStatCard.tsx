@@ -30,10 +30,10 @@ export function KategorieStatCard({ name, farbe, activeCount, overdueCount, isAc
       {/* Zeile 1: Farbpunkt + Name */}
       <div className="flex items-center gap-1.5">
         <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: farbe }} aria-hidden="true" />
-        <span className="truncate font-medium text-sm">{name}</span>
+        <span className="truncate text-sm font-medium">{name}</span>
       </div>
       {/* Zeile 2: Statistiken */}
-      <div className="flex items-center gap-3 text-text-muted text-xs">
+      <div className="flex items-center gap-3 text-xs text-text-muted">
         <span>{activeCount} aktiv</span>
         <span className={cn(overdueCount > 0 && 'font-semibold text-status-danger-text')}>{overdueCount} überfällig</span>
       </div>

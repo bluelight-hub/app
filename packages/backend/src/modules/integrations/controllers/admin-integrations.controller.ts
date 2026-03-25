@@ -68,7 +68,7 @@ export class AdminIntegrationsController {
       throw new InternalServerErrorException('Fehler beim Laden der Integrationsübersicht');
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Nach isFailure-Check ist value garantiert vorhanden
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Nach isFailure-Check ist value garantiert vorhanden
     const overview = result.value!;
     this.logger.log(`Integrationsübersicht abgerufen von ${user.userId}: ${overview.integrations.length} Integrationen`, 'AdminIntegrationsController');
 

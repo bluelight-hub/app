@@ -271,7 +271,7 @@ export class PersonFahrzeugZuweisungHandler implements IEventHandler<PersonZuFah
       }
 
       // Command ausführen via injiziertem Handler mit Retry Logic
-      // biome-ignore lint/style/noNonNullAssertion: Safe - already checked isFailure above
+      // eslint-disable-next-line typescript/no-non-null-assertion -- Safe - already checked isFailure above
       const command = commandResult.value!;
 
       const result = await this.executeWithRetry(() => this.addEintragHandler.execute(command), `PersonZuFahrzeugZugewiesen:${event.einsatzId}:${event.personId}:${event.fahrzeugId}`);
@@ -361,7 +361,7 @@ export class PersonFahrzeugZuweisungHandler implements IEventHandler<PersonZuFah
       }
 
       // Command ausführen via injiziertem Handler mit Retry Logic
-      // biome-ignore lint/style/noNonNullAssertion: Safe - already checked isFailure above
+      // eslint-disable-next-line typescript/no-non-null-assertion -- Safe - already checked isFailure above
       const command = commandResult.value!;
 
       const result = await this.executeWithRetry(() => this.addEintragHandler.execute(command), `PersonVonFahrzeugEntfernt:${event.einsatzId}:${event.personId}:${event.fahrzeugId}`);

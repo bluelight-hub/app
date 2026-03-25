@@ -19,20 +19,8 @@ export { useAdminStammPersonenManagement } from './use-admin-stamm-personen-mana
 export { useAdminHiOrgIntegration } from './use-admin-hiorg-integration';
 export { useIntegrationOverview } from './use-integration-overview';
 export { useListInvites, useRevokeInvite, type InviteFilters } from './use-admin-invite-management';
-export {
-  useAccessTokenManagement,
-  useListAccessTokens,
-  useCreateAccessToken,
-  type AccessTokenFilters,
-} from './use-access-token-management';
-export {
-  useSecurityManagement,
-  useSecurityStatus,
-  useMigrateToSecureMode,
-  type SecurityStatus,
-  type MigrateToSecureModeResponse,
-  type MigrateToSecureModeRequest,
-} from './use-security-management';
+export { useAccessTokenManagement, useListAccessTokens, useCreateAccessToken, type AccessTokenFilters } from './use-access-token-management';
+export { useSecurityManagement, useSecurityStatus, useMigrateToSecureMode, type SecurityStatus, type MigrateToSecureModeResponse, type MigrateToSecureModeRequest } from './use-security-management';
 export {
   useRuntimeConfigManagement,
   useRuntimeConfigList,

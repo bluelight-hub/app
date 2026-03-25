@@ -61,16 +61,16 @@ function renderCell(cell: Cell<BefehlDto, unknown>) {
       return <span role="img" className="inline-block h-2.5 w-2.5 rounded-full bg-surface-raised" aria-label="Normal" />;
     }
     case 'nummer':
-      return <span className="font-bold font-mono text-text-primary text-sm">{row.nummer}</span>;
+      return <span className="font-mono text-sm font-bold text-text-primary">{row.nummer}</span>;
     case 'fortschritt':
       return <ZustellstatusAnzeige empfaenger={row.empfaenger} variant="compact" />;
     case 'empfaengerCount': {
       const count = row.empfaenger?.length ?? 0;
-      return <span className="text-text-muted text-sm">{count} Empf.</span>;
+      return <span className="text-sm text-text-muted">{count} Empf.</span>;
     }
     case 'erteiltAm':
       return (
-        <time dateTime={row.erteiltAm.toISOString()} className="text-text-muted text-sm">
+        <time dateTime={row.erteiltAm.toISOString()} className="text-sm text-text-muted">
           {format(row.erteiltAm, 'dd.MM. HH:mm')}
         </time>
       );
@@ -122,7 +122,7 @@ export function BefehlTabellenView({ einsatzId, befehle: externalBefehle, classN
       <div className={cn('flex flex-col items-center justify-center py-16 text-center', className)}>
         <PiTable className="mb-4 h-12 w-12 text-text-muted" aria-hidden="true" />
         <p className="text-text-muted">Noch keine Befehle erteilt.</p>
-        <p className="mt-1 text-text-muted text-sm">
+        <p className="mt-1 text-sm text-text-muted">
           Erstelle den ersten Befehl mit <kbd className="rounded border border-border-subtle bg-surface-raised px-1.5 py-0.5 font-mono text-xs">Ctrl+N</kbd>.
         </p>
       </div>

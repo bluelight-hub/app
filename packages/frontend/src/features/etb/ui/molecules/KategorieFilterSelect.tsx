@@ -87,7 +87,7 @@ export function KategorieFilterSelect() {
         className={cn(
           'relative flex w-full cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm',
           'transition-all duration-200',
-          'focus-visible:outline-none focus-visible:shadow-focus-ring',
+          'focus-visible:shadow-focus-ring focus-visible:outline-none',
           hasActiveFilter ? 'border-action-primary bg-action-secondary text-action-primary' : 'border-border-subtle bg-surface-panel text-text-secondary hover:bg-action-secondary',
         )}
       >
@@ -106,11 +106,11 @@ export function KategorieFilterSelect() {
         )}
       >
         {/* Quick Actions */}
-        <div className="mb-2 flex flex-wrap gap-2 border-border-subtle border-b px-3 pb-2">
+        <div className="mb-2 flex flex-wrap gap-2 border-b border-border-subtle px-3 pb-2">
           <button
             type="button"
             onClick={showAllKategorien}
-            className={cn('flex items-center gap-1 rounded px-2 py-1 font-medium text-xs text-text-secondary hover:bg-action-secondary', 'focus-visible:outline-none focus-visible:shadow-focus-ring')}
+            className={cn('flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-text-secondary hover:bg-action-secondary', 'focus-visible:shadow-focus-ring focus-visible:outline-none')}
           >
             <PiEye className="h-3.5 w-3.5" />
             Alle
@@ -118,7 +118,7 @@ export function KategorieFilterSelect() {
           <button
             type="button"
             onClick={hideAllKategorien}
-            className={cn('flex items-center gap-1 rounded px-2 py-1 font-medium text-xs text-text-secondary hover:bg-action-secondary', 'focus-visible:outline-none focus-visible:shadow-focus-ring')}
+            className={cn('flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-text-secondary hover:bg-action-secondary', 'focus-visible:shadow-focus-ring focus-visible:outline-none')}
           >
             <PiProhibit className="h-3.5 w-3.5" />
             Keine
@@ -126,7 +126,7 @@ export function KategorieFilterSelect() {
           <button
             type="button"
             onClick={resetKategorieFilter}
-            className={cn('flex items-center gap-1 rounded px-2 py-1 font-medium text-xs text-text-secondary hover:bg-action-secondary', 'focus-visible:outline-none focus-visible:shadow-focus-ring')}
+            className={cn('flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-text-secondary hover:bg-action-secondary', 'focus-visible:shadow-focus-ring focus-visible:outline-none')}
           >
             <PiFunnel className="h-3.5 w-3.5" />
             Standard
@@ -150,7 +150,7 @@ export function KategorieFilterSelect() {
                   'transition-colors duration-100',
                   'hover:bg-action-secondary',
                   isVisible ? 'text-text-primary' : 'text-text-muted',
-                  'focus-visible:outline-none focus-visible:shadow-focus-ring',
+                  'focus-visible:shadow-focus-ring focus-visible:outline-none',
                 )}
               >
                 {/* Checkbox */}
@@ -176,7 +176,7 @@ export function KategorieFilterSelect() {
           })}
 
           {/* Separator */}
-          <div className="my-2 border-border-subtle border-t" />
+          <div className="my-2 border-t border-border-subtle" />
 
           {/* Spezieller Filter: Mit Erinnerung */}
           <button
@@ -187,7 +187,7 @@ export function KategorieFilterSelect() {
               'transition-colors duration-100',
               'hover:bg-action-secondary',
               erinnerungFilterActive ? 'bg-status-warning-surface text-status-warning-text' : 'text-text-secondary',
-              'focus-visible:outline-none focus-visible:shadow-focus-ring',
+              'focus-visible:shadow-focus-ring focus-visible:outline-none',
             )}
           >
             {/* Checkbox */}

@@ -4,9 +4,9 @@ import { ErinnerungKonfigurationSettingsCard } from '../settings/erinnerung-konf
 export const ErinnerungSettingsPage = () => {
   return (
     <div className="space-y-4">
-      <div className="border-border-subtle border-b pb-4">
-        <h1 className="font-bold text-2xl text-text-primary">Erinnerungs-Einstellungen</h1>
-        <p className="mt-1 text-text-muted text-sm">Verwalten Sie globale Konfigurationen für das Erinnerungssystem.</p>
+      <div className="border-b border-border-subtle pb-4">
+        <h1 className="text-2xl font-bold text-text-primary">Erinnerungs-Einstellungen</h1>
+        <p className="mt-1 text-sm text-text-muted">Verwalten Sie globale Konfigurationen für das Erinnerungssystem.</p>
       </div>
 
       <VorlageList />

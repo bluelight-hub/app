@@ -470,20 +470,20 @@ idCounter = 0; // Reset für jeden Test
 });
 
 describe('User Integration Tests', () => {
-  let repository: InMemoryUserRepository;
+let repository: InMemoryUserRepository;
 
-  beforeEach(() => {
-    repository = new InMemoryUserRepository();
-  });
+beforeEach(() => {
+repository = new InMemoryUserRepository();
+});
 
-  afterEach(() => {
-    repository.clear(); // In-Memory Cleanup (kein DB Cleanup nötig!)
-  });
+afterEach(() => {
+repository.clear(); // In-Memory Cleanup (kein DB Cleanup nötig!)
+});
 
-  it('should create user, grant permission, revoke permission with event accumulation', async () => {
-    // Given: A new User is created
-    const username = Username.create('testuser').value!;
-    const user = UserAggregate.create(username, UserRole.USER()).value!;
+it('should create user, grant permission, revoke permission with event accumulation', async () => {
+// Given: A new User is created
+const username = Username.create('testuser').value!;
+const user = UserAggregate.create(username, UserRole.USER()).value!;
 
     // Then: User is created successfully
     expect(user.username.equals(username)).toBe(true);
@@ -502,8 +502,10 @@ describe('User Integration Tests', () => {
 
     // Then: PermissionRevokedEvent is emitted
     expect(user.getDomainEvents()).toHaveLength(3); // Created + Granted + Revoked
-  });
+
 });
+});
+
 ```
 
 **Learnings:**
@@ -542,3 +544,4 @@ describe('User Integration Tests', () => {
 
 - Epic 2-5: Infrastructure Layer Implementation (Stories 2-1 bis 2-5)
 - Repository Pattern Tests (siehe Epic 2 PRD für Details)
+```

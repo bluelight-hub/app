@@ -8,8 +8,4 @@
  * @module features/server/constants/server-colors
  */
 
-export {
-  SERVER_COLOR_PRESETS,
-  type ServerColorPreset,
-  type ServerColorValue,
-} from '../utils/server-color.utils';
+export { SERVER_COLOR_PRESETS, type ServerColorPreset, type ServerColorValue } from '../utils/server-color.utils';

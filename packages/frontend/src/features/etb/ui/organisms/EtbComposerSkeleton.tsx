@@ -12,16 +12,16 @@ export function EtbComposerSkeleton() {
         {/* Header-Skeleton */}
         <div className="flex items-start justify-between">
           <div className="space-y-2">
-            <div className="h-4 w-48 animate-pulse rounded bg-muted" />
+            <div className="bg-muted h-4 w-48 animate-pulse rounded" />
             <div className="flex items-center gap-3">
-              <div className="h-7 w-56 animate-pulse rounded bg-muted" />
-              <div className="h-6 w-16 animate-pulse rounded-full bg-muted" />
+              <div className="bg-muted h-7 w-56 animate-pulse rounded" />
+              <div className="bg-muted h-6 w-16 animate-pulse rounded-full" />
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="h-9 w-28 animate-pulse rounded-md bg-muted" />
-            <div className="h-9 w-20 animate-pulse rounded-md bg-muted" />
-            <div className="h-9 w-24 animate-pulse rounded-md bg-muted" />
+            <div className="bg-muted h-9 w-28 animate-pulse rounded-md" />
+            <div className="bg-muted h-9 w-20 animate-pulse rounded-md" />
+            <div className="bg-muted h-9 w-24 animate-pulse rounded-md" />
           </div>
         </div>
 
@@ -80,7 +80,7 @@ export function EtbComposerSkeleton() {
 
         {/* Eintragliste-Skeleton */}
         <div className="overflow-hidden rounded-lg bg-surface-panel shadow">
-          <div className="border-border-subtle border-b px-4 py-4">
+          <div className="border-b border-border-subtle px-4 py-4">
             <div className="h-6 w-24 animate-pulse rounded bg-surface-raised" />
           </div>
           <div className="space-y-3 p-4">

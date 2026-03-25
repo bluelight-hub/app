@@ -35,7 +35,7 @@ export function AudioToggle({ enabled, onChange, className }: AudioToggleProps) 
           <span id={labelId} className="block font-medium text-text-primary">
             Alarm-Töne aktivieren
           </span>
-          <span id={descriptionId} className="text-text-secondary text-sm">
+          <span id={descriptionId} className="text-sm text-text-secondary">
             {enabled ? 'Töne werden bei Erinnerungen abgespielt' : 'Nur visuelle Benachrichtigungen'}
           </span>
         </div>

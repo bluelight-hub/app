@@ -445,7 +445,7 @@ export function KorrekturBefehlDialog({ isOpen, onClose, originalBefehl, einsatz
               : 'border-border-subtle bg-surface-panel text-text-secondary hover:border-border-strong hover:bg-action-secondary',
           )}
         >
-          <p className="font-medium text-sm">{mode.label}</p>
+          <p className="text-sm font-medium">{mode.label}</p>
           <p className="mt-0.5 text-xs opacity-80">{mode.requirements}</p>
           <p className="mt-0.5 text-xs opacity-80">{mode.detailHint}</p>
         </button>
@@ -466,12 +466,12 @@ export function KorrekturBefehlDialog({ isOpen, onClose, originalBefehl, einsatz
           }}
         >
           <div className="space-y-4">
-            <div className="rounded-md border border-status-warning-border bg-status-warning-surface px-3 py-2 text-status-warning-text text-sm">
+            <div className="rounded-md border border-status-warning-border bg-status-warning-surface px-3 py-2 text-sm text-status-warning-text">
               Korrektur des Original-Auftrags: &ldquo;{originalBefehl.auftrag.length > 100 ? `${originalBefehl.auftrag.slice(0, 100)}...` : originalBefehl.auftrag}&rdquo;
             </div>
 
             <div className="rounded-md border border-border-subtle bg-gradient-to-r from-surface-raised to-action-secondary p-3">
-              <p className="font-medium text-text-primary text-sm">Schemawahl</p>
+              <p className="text-sm font-medium text-text-primary">Schemawahl</p>
               <div className="mt-2">{renderSchemaSwitcher()}</div>
             </div>
 
@@ -486,7 +486,7 @@ export function KorrekturBefehlDialog({ isOpen, onClose, originalBefehl, einsatz
 
               <div className="space-y-4">
                 <div className="rounded-md border border-border-subtle p-4">
-                  <p className="font-medium text-text-primary text-sm">Adressierung und Zeit</p>
+                  <p className="text-sm font-medium text-text-primary">Adressierung und Zeit</p>
                   <div className="mt-3 space-y-4">
                     {renderEinheitField()}
                     {renderBefehlsgeberField()}

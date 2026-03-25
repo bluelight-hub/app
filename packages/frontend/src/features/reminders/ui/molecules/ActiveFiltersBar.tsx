@@ -131,7 +131,7 @@ export function ActiveFiltersBar({
           onClick={onClearAll}
           aria-label="Alle aktiven Filter zurücksetzen"
           className={cn(
-            'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-medium text-xs',
+            'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium',
             'text-text-muted hover:bg-action-secondary hover:text-text-primary',
             'transition-colors duration-150',
             'focus:outline-none focus-visible:shadow-focus-ring',

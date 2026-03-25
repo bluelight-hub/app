@@ -1,7 +1,7 @@
 {
   "name": "@bluelight-hub/frontend",
-  "private": true,
   "version": "1.0.0-alpha.73",
+  "private": true,
   "type": "module",
   "scripts": {
     "predev": "pnpm --filter @bluelight-hub/shared build",
@@ -10,8 +10,8 @@
     "dev:vite": "vite",
     "prebuild": "pnpm --filter @bluelight-hub/shared build",
     "build": "tsc --skipLibCheck --noEmit && vite build",
-    "lint": "biome check --write",
-    "lint:check": "biome check",
+    "lint": "oxlint --fix && oxfmt --write .",
+    "lint:check": "oxlint && oxfmt --check .",
     "preview": "vite preview",
     "tauri": "tauri",
     "version": "node scripts/sync-tauri-version.js",
@@ -80,9 +80,7 @@
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
     "@tanstack/devtools-vite": "^0.6.0",
-    "@tanstack/eslint-config": "^0.4.0",
     "@tanstack/router-plugin": "^1.167.2",
     "@tauri-apps/cli": "^2.10.1",
     "@testing-library/jest-dom": "^6.9.1",
@@ -93,16 +91,13 @@
     "@types/react-dom": "^19.2.3",
     "@types/zxcvbn": "^4.4.5",
     "@vitejs/plugin-react": "^6.0.1",
-    "@vitejs/plugin-react-swc": "^4.3.0",
     "@vitest/coverage-v8": "^4.1.0",
     "@vitest/ui": "^4.1.0",
     "baseline-browser-mapping": "^2.10.9",
     "globals": "^17.4.0",
     "jsdom": "^29.0.1",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.57.1",
     "vite": "^8.0.1",
-    "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.0"
   }
 }

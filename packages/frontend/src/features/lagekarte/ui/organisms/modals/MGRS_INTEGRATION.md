@@ -59,7 +59,7 @@ Wenn User MGRS-Koordinaten eingibt:
 **Beispiel:**
 
 ```typescript
-handleMgrsChange("33U UU 41831 83221");
+handleMgrsChange('33U UU 41831 83221');
 // → latitude = 52.52, longitude = 13.405
 ```
 
@@ -73,20 +73,14 @@ handleMgrsChange("33U UU 41831 83221");
   <button
     type="button"
     onClick={() => setCoordMode('latLng')}
-    className={cn(
-      'px-3 py-2 rounded',
-      coordMode === 'latLng' ? 'bg-action-primary text-text-inverse' : 'bg-surface-raised text-text-secondary'
-    )}
+    className={cn('px-3 py-2 rounded', coordMode === 'latLng' ? 'bg-action-primary text-text-inverse' : 'bg-surface-raised text-text-secondary')}
   >
     Lat/Lng
   </button>
   <button
     type="button"
     onClick={() => setCoordMode('mgrs')}
-    className={cn(
-      'px-3 py-2 rounded',
-      coordMode === 'mgrs' ? 'bg-action-primary text-text-inverse' : 'bg-surface-raised text-text-secondary'
-    )}
+    className={cn('px-3 py-2 rounded', coordMode === 'mgrs' ? 'bg-action-primary text-text-inverse' : 'bg-surface-raised text-text-secondary')}
   >
     MGRS
   </button>
@@ -96,72 +90,56 @@ handleMgrsChange("33U UU 41831 83221");
 ### 2. Konditionale Input-Anzeige
 
 ```tsx
-{coordMode === 'latLng' ? (
-  <>
-    {/* Bestehende Latitude/Longitude Inputs */}
-    <form.Field name="latitude">
-      {(field) => (
-        <Input
-          type="number"
-          value={field.state.value}
-          onChange={(e) => field.handleChange(parseFloat(e.target.value))}
-        />
-      )}
-    </form.Field>
+{
+  coordMode === 'latLng' ? (
+    <>
+      {/* Bestehende Latitude/Longitude Inputs */}
+      <form.Field name="latitude">{(field) => <Input type="number" value={field.state.value} onChange={(e) => field.handleChange(parseFloat(e.target.value))} />}</form.Field>
 
-    <form.Field name="longitude">
-      {(field) => (
+      <form.Field name="longitude">{(field) => <Input type="number" value={field.state.value} onChange={(e) => field.handleChange(parseFloat(e.target.value))} />}</form.Field>
+    </>
+  ) : (
+    <>
+      {/* Neuer MGRS Input */}
+      <div>
+        <label>MGRS Koordinaten</label>
         <Input
-          type="number"
-          value={field.state.value}
-          onChange={(e) => field.handleChange(parseFloat(e.target.value))}
+          type="text"
+          value={mgrsInput}
+          onChange={(e) => handleMgrsChange(e.target.value)}
+          placeholder="z.B. 33U UU 41831 83221"
+          className={cn(isMgrsValid ? 'border-status-success-border' : 'border-status-danger-border')}
         />
-      )}
-    </form.Field>
-  </>
-) : (
-  <>
-    {/* Neuer MGRS Input */}
-    <div>
-      <label>MGRS Koordinaten</label>
-      <Input
-        type="text"
-        value={mgrsInput}
-        onChange={(e) => handleMgrsChange(e.target.value)}
-        placeholder="z.B. 33U UU 41831 83221"
-        className={cn(
-          isMgrsValid ? 'border-status-success-border' : 'border-status-danger-border'
-        )}
-      />
-      {!isMgrsValid && mgrsInput && (
-        <p className="mt-1 text-status-danger-text text-sm">
-          Ungültiges MGRS-Format
-        </p>
-      )}
-    </div>
-  </>
-)}
+        {!isMgrsValid && mgrsInput && <p className="mt-1 text-status-danger-text text-sm">Ungültiges MGRS-Format</p>}
+      </div>
+    </>
+  );
+}
 ```
 
 ### 3. Validierungs-Indikator
 
 ```tsx
-{/* Zeige MGRS-Validierung nur wenn MGRS-Modus aktiv */}
-{coordMode === 'mgrs' && (
-  <div className="flex items-center gap-2 text-sm">
-    {isMgrsValid ? (
-      <>
-        <CheckIcon className="h-4 w-4 text-status-success-text" />
-        <span className="text-status-success-text">Gültige MGRS-Koordinaten</span>
-      </>
-    ) : mgrsInput ? (
-      <>
-        <XIcon className="h-4 w-4 text-status-danger-text" />
-        <span className="text-status-danger-text">Ungültige MGRS-Koordinaten</span>
-      </>
-    ) : null}
-  </div>
-)}
+{
+  /* Zeige MGRS-Validierung nur wenn MGRS-Modus aktiv */
+}
+{
+  coordMode === 'mgrs' && (
+    <div className="flex items-center gap-2 text-sm">
+      {isMgrsValid ? (
+        <>
+          <CheckIcon className="h-4 w-4 text-status-success-text" />
+          <span className="text-status-success-text">Gültige MGRS-Koordinaten</span>
+        </>
+      ) : mgrsInput ? (
+        <>
+          <XIcon className="h-4 w-4 text-status-danger-text" />
+          <span className="text-status-danger-text">Ungültige MGRS-Koordinaten</span>
+        </>
+      ) : null}
+    </div>
+  );
+}
 ```
 
 ## State Management Strategie
@@ -212,7 +190,7 @@ await createPoiMutation.mutateAsync({
   type: validated.type,
   name: validated.name,
   adresse: validated.adresse,
-  latitude: validated.latitude,   // ← Sendet Lat/Lng
+  latitude: validated.latitude, // ← Sendet Lat/Lng
   longitude: validated.longitude, // ← (auch wenn MGRS eingegeben wurde)
   icon: validated.icon,
 });
@@ -240,6 +218,7 @@ await createPoiMutation.mutateAsync({
 ### Backend TODO
 
 1. **DTO erweitern** (`create-poi.dto.ts`):
+
    ```typescript
    @ApiPropertyOptional({
      description: 'MGRS-Koordinaten (z.B. "33U UU 41831 83221")',
@@ -253,6 +232,7 @@ await createPoiMutation.mutateAsync({
    ```
 
 2. **Validator anpassen** (`coordinates-or-address.validator.ts`):
+
    ```typescript
    interface CoordinatesOrAddressObject {
      adresse?: string | null;
@@ -272,8 +252,8 @@ await createPoiMutation.mutateAsync({
    ```
 
 3. **Service erweitern** (`poi.service.ts`):
-    - MGRS zu Lat/Lng Konvertierung (mit `mgrs` NPM package)
-    - MGRS-Speicherung in DB
+   - MGRS zu Lat/Lng Konvertierung (mit `mgrs` NPM package)
+   - MGRS-Speicherung in DB
 
 ## Testing
 
@@ -316,13 +296,13 @@ describe('usePoiForm MGRS Integration', () => {
 ```typescript
 // In Browser Console (wenn Modal offen):
 // 1. Test MGRS-Validierung
-isValidMgrs("33U UU 41831 83221"); // true
-isValidMgrs("invalid");           // false
+isValidMgrs('33U UU 41831 83221'); // true
+isValidMgrs('invalid'); // false
 
 // 2. Test Konvertierung
-latLngToMgrs(52.52, 13.405, 5);  // "33UUU4183183221"
-formatMgrs("33UUU4183183221");   // "33U UU 41831 83221"
-mgrsToLatLng("33U UU 41831 83221"); // { lat: 52.52, lng: 13.405 }
+latLngToMgrs(52.52, 13.405, 5); // "33UUU4183183221"
+formatMgrs('33UUU4183183221'); // "33U UU 41831 83221"
+mgrsToLatLng('33U UU 41831 83221'); // { lat: 52.52, lng: 13.405 }
 ```
 
 ## Known Issues & Limitations

@@ -208,7 +208,7 @@ describe('Username', () => {
 
       // When: Attempting to modify props
       const modifyProps = () => {
-        // biome-ignore lint/suspicious/noExplicitAny: Testing immutability
+        // eslint-disable-next-line typescript/no-explicit-any -- Testing immutability
         (username as any).props.value = 'modified';
       };
 

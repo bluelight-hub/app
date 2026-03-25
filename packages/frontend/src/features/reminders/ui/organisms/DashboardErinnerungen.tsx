@@ -212,12 +212,12 @@ function DashboardErinnerungenInner({ einsatzId, className, currentUserId }: Das
       <div className="overflow-hidden rounded-xl border border-border-subtle bg-surface-panel">
         <TabGroup defaultIndex={0}>
           {/* Header */}
-          <div className="flex items-center justify-between border-border-subtle border-b px-4 py-2.5">
+          <div className="flex items-center justify-between border-b border-border-subtle px-4 py-2.5">
             <div className="flex items-center gap-2">
               <PiAlarm className="h-4 w-4 text-status-danger-text" />
-              <h3 className="font-semibold text-sm text-text-primary">Zeitkritisch</h3>
+              <h3 className="text-sm font-semibold text-text-primary">Zeitkritisch</h3>
               {sortedErinnerungen.length > 0 && (
-                <span className="rounded-full bg-status-danger-surface px-1.5 py-0.5 font-medium font-mono text-status-danger-text text-xs">{sortedErinnerungen.length}</span>
+                <span className="rounded-full bg-status-danger-surface px-1.5 py-0.5 font-mono text-xs font-medium text-status-danger-text">{sortedErinnerungen.length}</span>
               )}
               <span
                 className={cn('flex items-center gap-1 text-xs', isConnected ? 'text-status-success-text' : 'text-text-muted')}
@@ -234,12 +234,12 @@ function DashboardErinnerungenInner({ einsatzId, className, currentUserId }: Das
           </div>
 
           {/* Tabs */}
-          <div className="border-border-subtle border-b px-3 py-1.5">
+          <div className="border-b border-border-subtle px-3 py-1.5">
             <TabList className="flex gap-1">
               <Tab
                 className={({ selected }) =>
                   cn(
-                    'cursor-pointer rounded-full px-2.5 py-1 font-medium text-xs transition-colors',
+                    'cursor-pointer rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
                     selected ? 'bg-action-primary text-text-inverse' : 'text-text-secondary hover:bg-action-secondary hover:text-text-primary',
                   )
                 }
@@ -249,7 +249,7 @@ function DashboardErinnerungenInner({ einsatzId, className, currentUserId }: Das
               <Tab
                 className={({ selected }) =>
                   cn(
-                    'cursor-pointer rounded-full px-2.5 py-1 font-medium text-xs transition-colors',
+                    'cursor-pointer rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
                     selected ? 'bg-action-primary text-text-inverse' : 'text-text-secondary hover:bg-action-secondary hover:text-text-primary',
                   )
                 }
@@ -357,7 +357,7 @@ function CompactSwimlaneView({ groups, einsatzId, currentUserId, showCreator, on
               <Button
                 appearance="ghost"
                 size="sm"
-                className={cn('flex w-full items-center gap-1.5 rounded-none px-3 py-1.5 font-semibold text-xs', config.headerBg, config.headerText)}
+                className={cn('flex w-full items-center gap-1.5 rounded-none px-3 py-1.5 text-xs font-semibold', config.headerBg, config.headerText)}
                 onClick={() => toggleCollapse(config.key)}
                 aria-expanded={!isCollapsed}
               >
@@ -367,7 +367,7 @@ function CompactSwimlaneView({ groups, einsatzId, currentUserId, showCreator, on
                 <span className={cn('rounded-full px-1.5 py-0.5 font-mono text-[10px]', config.badgeBg)}>{items.length}</span>
               </Button>
             ) : (
-              <div className={cn('flex items-center gap-1.5 px-3 py-1.5 font-semibold text-xs', config.headerBg, config.headerText)}>
+              <div className={cn('flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold', config.headerBg, config.headerText)}>
                 <span>{config.emoji}</span>
                 <span>{config.label}</span>
                 <span className={cn('rounded-full px-1.5 py-0.5 font-mono text-[10px]', config.badgeBg)}>{items.length}</span>

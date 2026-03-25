@@ -52,7 +52,7 @@ const mockWebNotificationClose = vi.fn();
 
 describe('NotificationService', () => {
   let notificationService: NotificationService;
-  // biome-ignore lint/suspicious/noExplicitAny: Mocking internal module
+  // eslint-disable-next-line typescript/no-explicit-any -- Mocking internal module
   let isTauriMock: any;
 
   beforeEach(async () => {
@@ -71,7 +71,7 @@ describe('NotificationService', () => {
       constructor(title: string, options?: NotificationOptions) {
         mockWebNotificationConstructor(title, options);
       }
-      // biome-ignore lint/suspicious/noExplicitAny: Mocking global
+      // eslint-disable-next-line typescript/no-explicit-any -- Mocking global
     } as any;
 
     notificationService = new NotificationService();
@@ -88,7 +88,7 @@ describe('NotificationService', () => {
 
     it('should return false if Web Notifications are NOT supported in browser', async () => {
       // Remove Notification from global
-      // biome-ignore lint/suspicious/noExplicitAny: Mocking global
+      // eslint-disable-next-line typescript/no-explicit-any -- Mocking global
       delete (global as any).Notification;
       expect(await notificationService.isSupported()).toBe(false);
     });
@@ -102,7 +102,7 @@ describe('NotificationService', () => {
 
   describe('checkPermission()', () => {
     it('should check Web Permission when in browser', async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Mocking global
+      // eslint-disable-next-line typescript/no-explicit-any -- Mocking global
       (global.Notification as any).permission = 'granted';
       const status = await notificationService.checkPermission();
       expect(status).toBe('granted');
@@ -139,7 +139,7 @@ describe('NotificationService', () => {
 
   describe('send()', () => {
     it('should send Web Notification when in browser', async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Mocking global
+      // eslint-disable-next-line typescript/no-explicit-any -- Mocking global
       (global.Notification as any).permission = 'granted';
 
       const result = await notificationService.send({ title: 'Test', body: 'Body' });
@@ -165,7 +165,7 @@ describe('NotificationService', () => {
     });
 
     it('should fail gracefully if permission denied', async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Mocking global
+      // eslint-disable-next-line typescript/no-explicit-any -- Mocking global
       (global.Notification as any).permission = 'denied';
 
       const result = await notificationService.send({ title: 'Test' });
@@ -177,7 +177,7 @@ describe('NotificationService', () => {
 
   describe('sendBefehlNotification()', () => {
     it('should send web notification with correct format for befehle', async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Mocking global
+      // eslint-disable-next-line typescript/no-explicit-any -- Mocking global
       (global.Notification as any).permission = 'granted';
 
       const result = await notificationService.sendBefehlNotification({
@@ -199,7 +199,7 @@ describe('NotificationService', () => {
     });
 
     it('should truncate long inhalt to 100 characters', async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Mocking global
+      // eslint-disable-next-line typescript/no-explicit-any -- Mocking global
       (global.Notification as any).permission = 'granted';
 
       const longInhalt = 'A'.repeat(200);
@@ -217,7 +217,7 @@ describe('NotificationService', () => {
     });
 
     it('should fail gracefully if permission denied', async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Mocking global
+      // eslint-disable-next-line typescript/no-explicit-any -- Mocking global
       (global.Notification as any).permission = 'denied';
 
       const result = await notificationService.sendBefehlNotification({
@@ -235,7 +235,7 @@ describe('NotificationService', () => {
 
   describe('sendAssignmentNotification() (AC1)', () => {
     it('should send notification with correct format for assignments', async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Mocking global
+      // eslint-disable-next-line typescript/no-explicit-any -- Mocking global
       (global.Notification as any).permission = 'granted';
 
       const result = await notificationService.sendAssignmentNotification('Funkgerät prüfen', 'Max Mustermann', 'erinnerung-123', 'einsatz-456');

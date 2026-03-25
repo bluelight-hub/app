@@ -174,7 +174,7 @@ export const ShapeContextMenu: React.FC<ShapeContextMenuProps> = ({ isOpen, posi
         </MenuItem>
 
         {/* Separator */}
-        <div className="my-1 border-border-subtle border-t" />
+        <div className="my-1 border-t border-border-subtle" />
 
         {/* Löschen */}
         <MenuItem>

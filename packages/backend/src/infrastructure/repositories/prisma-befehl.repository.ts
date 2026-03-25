@@ -132,7 +132,7 @@ export class PrismaBefehlRepository implements IBefehlRepository {
     try {
       const client = (tx as PrismaClient | undefined) ?? this.prisma;
 
-      // biome-ignore lint/suspicious/noExplicitAny: Dynamische Prisma WHERE-Clause Konstruktion
+      // eslint-disable-next-line typescript/no-explicit-any -- Dynamische Prisma WHERE-Clause Konstruktion
       const where: any = { einsatzId: einsatzId.value, isDeleted: false };
 
       if (filters.status && filters.status.length > 0) {

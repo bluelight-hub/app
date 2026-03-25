@@ -59,7 +59,7 @@ export function ServerSwitchWarningDialog({ currentServer, targetServer, open, o
           </div>
 
           {/* Title */}
-          <DialogTitle id="switch-warning-title" className="mt-4 text-center font-semibold text-lg text-text-primary">
+          <DialogTitle id="switch-warning-title" className="mt-4 text-center text-lg font-semibold text-text-primary">
             Server wechseln
           </DialogTitle>
 
@@ -69,7 +69,7 @@ export function ServerSwitchWarningDialog({ currentServer, targetServer, open, o
           </Description>
 
           {/* Info */}
-          <p className="mt-2 text-center text-text-muted text-xs">
+          <p className="mt-2 text-center text-xs text-text-muted">
             Deine aktuelle Session auf <span className="font-medium">"{currentServer.name}"</span> wird beendet.
           </p>
 

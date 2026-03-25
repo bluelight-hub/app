@@ -32,7 +32,7 @@ export const EtbActionsCell: React.FC<EtbActionsCellProps> = ({ isEditing, onEdi
   if (isDeleted) {
     return (
       <div className="flex justify-center gap-1">
-        <span className="text-text-muted text-xs italic">Gelöscht</span>
+        <span className="text-xs text-text-muted italic">Gelöscht</span>
       </div>
     );
   }

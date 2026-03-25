@@ -81,8 +81,8 @@ function FahrzeugeContent({ einsatzId }: { einsatzId: string }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-bold text-2xl text-text-primary">Fahrzeuge</h1>
-          <p className="mt-1 text-text-muted text-sm">Verwalten Sie die eingesetzten Fahrzeuge und deren Status</p>
+          <h1 className="text-2xl font-bold text-text-primary">Fahrzeuge</h1>
+          <p className="mt-1 text-sm text-text-muted">Verwalten Sie die eingesetzten Fahrzeuge und deren Status</p>
         </div>
         <Button intent="primary" onClick={handleOpenFahrzeugDialog}>
           <PiTruck className="mr-2 h-4 w-4" />
@@ -98,8 +98,8 @@ function FahrzeugeContent({ einsatzId }: { einsatzId: string }) {
               <PiTruck className="h-6 w-6 text-status-info-text" />
             </div>
             <div>
-              <p className="font-semibold text-2xl text-text-primary">{totalFahrzeuge}</p>
-              <p className="text-text-muted text-sm">Gesamt</p>
+              <p className="text-2xl font-semibold text-text-primary">{totalFahrzeuge}</p>
+              <p className="text-sm text-text-muted">Gesamt</p>
             </div>
           </div>
         </div>
@@ -110,8 +110,8 @@ function FahrzeugeContent({ einsatzId }: { einsatzId: string }) {
               <PiGauge className="h-6 w-6 text-status-success-text" />
             </div>
             <div>
-              <p className="font-semibold text-2xl text-text-primary">{activeFahrzeuge}</p>
-              <p className="text-text-muted text-sm">Im Einsatz</p>
+              <p className="text-2xl font-semibold text-text-primary">{activeFahrzeuge}</p>
+              <p className="text-sm text-text-muted">Im Einsatz</p>
             </div>
           </div>
         </div>
@@ -122,8 +122,8 @@ function FahrzeugeContent({ einsatzId }: { einsatzId: string }) {
               <PiUsers className="h-6 w-6 text-status-info-text" />
             </div>
             <div>
-              <p className="font-semibold text-2xl text-text-primary">{totalBesatzung}</p>
-              <p className="text-text-muted text-sm">Personen</p>
+              <p className="text-2xl font-semibold text-text-primary">{totalBesatzung}</p>
+              <p className="text-sm text-text-muted">Personen</p>
             </div>
           </div>
         </div>
@@ -134,8 +134,8 @@ function FahrzeugeContent({ einsatzId }: { einsatzId: string }) {
               <PiUser className="h-6 w-6 text-status-warning-text" />
             </div>
             <div>
-              <p className="font-semibold text-2xl text-text-primary">{durchschnittBesatzung}</p>
-              <p className="text-text-muted text-sm">Ø Besatzung</p>
+              <p className="text-2xl font-semibold text-text-primary">{durchschnittBesatzung}</p>
+              <p className="text-sm text-text-muted">Ø Besatzung</p>
             </div>
           </div>
         </div>
@@ -150,8 +150,8 @@ function FahrzeugeContent({ einsatzId }: { einsatzId: string }) {
           {/* Im Einsatz (FMS 3-4) */}
           {fahrzeugeImEinsatz.length > 0 && (
             <div className="rounded-panel bg-surface-panel shadow-sm">
-              <div className="border-status-success-border border-b bg-status-success-surface px-4 py-3">
-                <h3 className="font-semibold text-status-success-text text-sm">Im Einsatz ({fahrzeugeImEinsatz.length})</h3>
+              <div className="border-b border-status-success-border bg-status-success-surface px-4 py-3">
+                <h3 className="text-sm font-semibold text-status-success-text">Im Einsatz ({fahrzeugeImEinsatz.length})</h3>
               </div>
               <div className="divide-y divide-border-subtle">
                 {fahrzeugeImEinsatz.map((fahrzeug) => (
@@ -162,15 +162,15 @@ function FahrzeugeContent({ einsatzId }: { einsatzId: string }) {
                           <PiTruck className="h-5 w-5 text-text-muted" />
                           <div>
                             <p className="font-medium text-text-primary">{fahrzeug.funkrufname}</p>
-                            {fahrzeug.kennzeichen && <p className="text-text-muted text-sm">{fahrzeug.kennzeichen}</p>}
+                            {fahrzeug.kennzeichen && <p className="text-sm text-text-muted">{fahrzeug.kennzeichen}</p>}
                           </div>
                         </div>
                         {fahrzeug.besatzung && fahrzeug.besatzung.length > 0 && (
                           <div className="mt-2 ml-8">
-                            <p className="mb-1 font-medium text-text-secondary text-xs">Besatzung ({fahrzeug.besatzung.length}):</p>
+                            <p className="mb-1 text-xs font-medium text-text-secondary">Besatzung ({fahrzeug.besatzung.length}):</p>
                             <div className="flex flex-wrap gap-2">
                               {fahrzeug.besatzung.map((person) => (
-                                <span key={person.id} className="inline-flex items-center gap-1.5 rounded-control bg-surface-raised px-2.5 py-1 text-text-secondary text-xs">
+                                <span key={person.id} className="inline-flex items-center gap-1.5 rounded-control bg-surface-raised px-2.5 py-1 text-xs text-text-secondary">
                                   <PiUser className="h-3 w-3" />
                                   {person.vorname} {person.nachname}
                                 </span>
@@ -189,8 +189,8 @@ function FahrzeugeContent({ einsatzId }: { einsatzId: string }) {
           {/* Bereit (FMS 2) */}
           {fahrzeugeBereit.length > 0 && (
             <div className="rounded-panel bg-surface-panel shadow-sm">
-              <div className="border-status-info-border border-b bg-status-info-surface px-4 py-3">
-                <h3 className="font-semibold text-status-info-text text-sm">Einsatzbereit ({fahrzeugeBereit.length})</h3>
+              <div className="border-b border-status-info-border bg-status-info-surface px-4 py-3">
+                <h3 className="text-sm font-semibold text-status-info-text">Einsatzbereit ({fahrzeugeBereit.length})</h3>
               </div>
               <div className="divide-y divide-border-subtle">
                 {fahrzeugeBereit.map((fahrzeug) => (
@@ -199,7 +199,7 @@ function FahrzeugeContent({ einsatzId }: { einsatzId: string }) {
                       <PiTruck className="h-5 w-5 text-text-muted" />
                       <div>
                         <p className="font-medium text-text-primary">{fahrzeug.funkrufname}</p>
-                        {fahrzeug.kennzeichen && <p className="text-text-muted text-sm">{fahrzeug.kennzeichen}</p>}
+                        {fahrzeug.kennzeichen && <p className="text-sm text-text-muted">{fahrzeug.kennzeichen}</p>}
                       </div>
                     </div>
                   </div>
@@ -211,8 +211,8 @@ function FahrzeugeContent({ einsatzId }: { einsatzId: string }) {
           {/* Andere Status */}
           {fahrzeugeAndere.length > 0 && (
             <div className="rounded-panel bg-surface-panel shadow-sm">
-              <div className="border-border-subtle border-b bg-surface-raised px-4 py-3">
-                <h3 className="font-semibold text-text-primary text-sm">Weitere Fahrzeuge ({fahrzeugeAndere.length})</h3>
+              <div className="border-b border-border-subtle bg-surface-raised px-4 py-3">
+                <h3 className="text-sm font-semibold text-text-primary">Weitere Fahrzeuge ({fahrzeugeAndere.length})</h3>
               </div>
               <div className="divide-y divide-border-subtle">
                 {fahrzeugeAndere.map((fahrzeug) => (
@@ -221,7 +221,7 @@ function FahrzeugeContent({ einsatzId }: { einsatzId: string }) {
                       <PiTruck className="h-5 w-5 text-text-muted" />
                       <div>
                         <p className="font-medium text-text-primary">{fahrzeug.funkrufname}</p>
-                        {fahrzeug.kennzeichen && <p className="text-text-muted text-sm">{fahrzeug.kennzeichen}</p>}
+                        {fahrzeug.kennzeichen && <p className="text-sm text-text-muted">{fahrzeug.kennzeichen}</p>}
                       </div>
                     </div>
                   </div>

@@ -87,7 +87,7 @@ export class HiOrgTokenRefreshService {
     // 1. Credentials laden
     const credentialResult = await this.repository.findByType(INTEGRATION_TYPES.HIORG_SERVER);
     if (credentialResult.isFailure) {
-      // biome-ignore lint/style/noNonNullAssertion: Result Pattern - error existiert bei isFailure
+      // eslint-disable-next-line typescript/no-non-null-assertion -- Result Pattern - error existiert bei isFailure
       return Result.fail(credentialResult.error!);
     }
 
@@ -110,11 +110,11 @@ export class HiOrgTokenRefreshService {
 
       const refreshResult = await this.refreshToken(credential);
       if (refreshResult.isFailure) {
-        // biome-ignore lint/style/noNonNullAssertion: Result Pattern - error existiert bei isFailure
+        // eslint-disable-next-line typescript/no-non-null-assertion -- Result Pattern - error existiert bei isFailure
         return Result.fail(refreshResult.error!);
       }
 
-      // biome-ignore lint/style/noNonNullAssertion: Result Pattern - value existiert bei isSuccess
+      // eslint-disable-next-line typescript/no-non-null-assertion -- Result Pattern - value existiert bei isSuccess
       activeCredential = refreshResult.value!;
       wasRefreshed = true;
       this.logger.log('Token erfolgreich refreshed');
@@ -123,7 +123,7 @@ export class HiOrgTokenRefreshService {
     // 4. Access Token entschlüsseln
     let accessToken: string;
     try {
-      // biome-ignore lint/style/noNonNullAssertion: hasOAuthTokens wurde oben geprüft
+      // eslint-disable-next-line typescript/no-non-null-assertion -- hasOAuthTokens wurde oben geprüft
       accessToken = this.encryption.decrypt(activeCredential.encryptedAccessToken!);
     } catch {
       return Result.fail(IntegrationError.format(INTEGRATION_ERROR_CODES.DECRYPTION_FAILED, 'OAuth2 Access-Token Entschlüsselung fehlgeschlagen'));
@@ -161,7 +161,7 @@ export class HiOrgTokenRefreshService {
     // Refresh Token entschlüsseln
     let refreshToken: string;
     try {
-      // biome-ignore lint/style/noNonNullAssertion: hasRefreshToken wurde oben geprüft
+      // eslint-disable-next-line typescript/no-non-null-assertion -- hasRefreshToken wurde oben geprüft
       refreshToken = this.encryption.decrypt(credential.encryptedRefreshToken!);
     } catch {
       return Result.fail(IntegrationError.format(INTEGRATION_ERROR_CODES.DECRYPTION_FAILED, 'Refresh Token Entschlüsselung fehlgeschlagen'));
@@ -180,7 +180,7 @@ export class HiOrgTokenRefreshService {
       return Result.fail(IntegrationError.format(INTEGRATION_ERROR_CODES.OAUTH_TOKEN_REFRESH_FAILED, 'Token Refresh fehlgeschlagen - bitte erneut mit HiOrg-Server verbinden'));
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Result Pattern - value existiert bei isSuccess
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Result Pattern - value existiert bei isSuccess
     const tokens = refreshResult.value!;
 
     // Neue Tokens verschlüsseln
@@ -206,11 +206,11 @@ export class HiOrgTokenRefreshService {
     // Speichern
     const saveResult = await this.repository.save(updatedCredential);
     if (saveResult.isFailure) {
-      // biome-ignore lint/style/noNonNullAssertion: Result Pattern - error existiert bei isFailure
+      // eslint-disable-next-line typescript/no-non-null-assertion -- Result Pattern - error existiert bei isFailure
       return Result.fail(saveResult.error!);
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Result Pattern - value existiert bei isSuccess
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Result Pattern - value existiert bei isSuccess
     return Result.ok(saveResult.value!);
   }
 

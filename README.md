@@ -55,8 +55,8 @@ bluelight-hub/
    ```
 
 3. Umgebungsvariablen konfigurieren:
-    - Kopiere `.env.example` zu `.env` (falls vorhanden)
-    - Passe die Konfiguration nach Bedarf an
+   - Kopiere `.env.example` zu `.env` (falls vorhanden)
+   - Passe die Konfiguration nach Bedarf an
 
 ## Entwicklung
 
@@ -126,17 +126,17 @@ Endpunkt kombiniert:
 ### Auth-Endpoints
 
 - `POST /api/auth/unified` - Unified Authentication (Login/Auto-Registrierung)
-    - Request: `{ username: string }`
-    - Response: `{ user: UserResponseDto, isNewUser: boolean }`
-    - Verhalten:
-        - Existierender Benutzer → Login
-        - Neuer Benutzername → Automatische Registrierung
+  - Request: `{ username: string }`
+  - Response: `{ user: UserResponseDto, isNewUser: boolean }`
+  - Verhalten:
+    - Existierender Benutzer → Login
+    - Neuer Benutzername → Automatische Registrierung
 - `POST /api/auth/refresh` - Token-Refresh
-    - Request: Keine (Refresh-Token wird aus Cookie gelesen)
-    - Response: `{ success: true }`
+  - Request: Keine (Refresh-Token wird aus Cookie gelesen)
+  - Response: `{ success: true }`
 - `POST /api/auth/admin/login` - Admin-Login (mit Passwort)
-    - Request: `{ password: string }`
-    - Response: `{ user: UserResponseDto }`
+  - Request: `{ password: string }`
+  - Response: `{ user: UserResponseDto }`
 
 ### Cookie-Handling
 
@@ -156,16 +156,16 @@ Cookie-Eigenschaften:
 ```typescript
 // Unified Auth - Login oder automatische Registrierung
 const response = await api.auth.unifiedAuth({
-    username: 'benutzername',
+  username: 'benutzername',
 });
 
 // Response enthält:
 // - user: Benutzerdaten
 // - isNewUser: true bei neuer Registrierung, false bei Login
 if (response.isNewUser) {
-    console.log('Willkommen! Ihr Account wurde erstellt.');
+  console.log('Willkommen! Ihr Account wurde erstellt.');
 } else {
-    console.log('Willkommen zurück!');
+  console.log('Willkommen zurück!');
 }
 
 // Tokens werden automatisch als httpOnly-Cookies gesetzt

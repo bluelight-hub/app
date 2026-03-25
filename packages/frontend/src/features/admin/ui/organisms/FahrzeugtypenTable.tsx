@@ -74,7 +74,7 @@ export const FahrzeugtypenTable = ({ fahrzeugtypen, isLoading, onEdit, onDeactiv
             Code <PiCaretUpDown className="h-4 w-4" aria-hidden="true" />{' '}
           </button>
         ),
-        cell: (info) => <span className="font-medium font-mono">{info.getValue()}</span>,
+        cell: (info) => <span className="font-mono font-medium">{info.getValue()}</span>,
       }),
       columnHelper.accessor('bezeichnung', {
         header: ({ column }) => (
@@ -106,7 +106,7 @@ export const FahrzeugtypenTable = ({ fahrzeugtypen, isLoading, onEdit, onDeactiv
       }),
       columnHelper.accessor('sollbesatzung', {
         header: 'Sollbesatzung',
-        cell: ({ row }) => <span className="whitespace-nowrap text-text-secondary text-sm ">{formatSollbesatzungCompact(row.original.sollbesatzung)}</span>,
+        cell: ({ row }) => <span className="text-sm whitespace-nowrap text-text-secondary">{formatSollbesatzungCompact(row.original.sollbesatzung)}</span>,
       }),
       columnHelper.accessor('istAktiv', {
         header: 'Status',
@@ -168,7 +168,7 @@ export const FahrzeugtypenTable = ({ fahrzeugtypen, isLoading, onEdit, onDeactiv
     return (
       <div className="flex h-48 flex-col items-center justify-center p-8">
         {' '}
-        <Text className="text-text-secondary">Keine Fahrzeugtypen vorhanden.</Text> <Text className="text-text-muted text-sm">Erstellen Sie einen neuen Fahrzeugtyp.</Text>{' '}
+        <Text className="text-text-secondary">Keine Fahrzeugtypen vorhanden.</Text> <Text className="text-sm text-text-muted">Erstellen Sie einen neuen Fahrzeugtyp.</Text>{' '}
       </div>
     );
   }

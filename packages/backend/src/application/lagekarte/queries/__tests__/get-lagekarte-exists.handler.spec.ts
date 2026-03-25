@@ -39,7 +39,7 @@ describe('GetLagekarteExistsQueryHandler', () => {
       save: jest.fn(),
       findById: jest.fn(),
       exists: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     // Instantiate handler with mock (Direct Instantiation Pattern)
@@ -247,7 +247,7 @@ describe('GetLagekarteExistsQueryHandler', () => {
       const query = new GetLagekarteExistsQuery(einsatzId);
 
       // Mock: Repository returns undefined (type mismatch, but testing runtime)
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
+      // eslint-disable-next-line typescript/no-explicit-any -- Testing null/undefined handling
       mockRepo.exists.mockResolvedValue(undefined as any);
 
       // When

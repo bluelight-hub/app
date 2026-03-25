@@ -19,7 +19,7 @@ export function CommandTrigger({ onClick, className, variant = 'default', 'aria-
       aria-label={ariaLabel}
       title={ariaLabel}
       className={cn(
-        'inline-flex items-center gap-2 rounded-control border-border-subtle bg-surface-panel px-3 py-1.5 font-medium text-body-sm text-text-secondary shadow-raised transition-[background-color,border-color,color,box-shadow]',
+        'inline-flex items-center gap-2 rounded-control border-border-subtle bg-surface-panel px-3 py-1.5 text-body-sm font-medium text-text-secondary shadow-raised transition-[background-color,border-color,color,box-shadow]',
         'hover:bg-action-secondary hover:text-text-primary',
         'focus-visible:shadow-focus-ring',
         className,

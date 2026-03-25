@@ -350,7 +350,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
           <form.Field name="titel">
             {(field) => (
               <div>
-                <label htmlFor="titel" className="mb-1.5 block font-medium text-sm text-text-secondary">
+                <label htmlFor="titel" className="mb-1.5 block text-sm font-medium text-text-secondary">
                   Titel <span className="text-status-danger-text">*</span>
                 </label>
                 <Input
@@ -377,7 +377,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                   <form.Field name="customTime">
                     {(customTimeField) => (
                       <fieldset className="m-0 border-none p-0">
-                        <legend className="mb-2 font-medium text-sm text-text-secondary">
+                        <legend className="mb-2 text-sm font-medium text-text-secondary">
                           Erinnern in <span className="text-status-danger-text">*</span>
                         </legend>
 
@@ -396,7 +396,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                               }}
                               disabled={isPending}
                               className={cn(
-                                'min-h-[48px] rounded-full px-4 py-2 font-medium text-sm transition-all duration-200',
+                                'min-h-[48px] rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
                                 'focus:outline-none focus-visible:shadow-focus-ring',
                                 timeModeField.state.value === 'preset' && minutenField.state.value === preset.value
                                   ? 'bg-status-warning-text text-text-inverse shadow-md hover:opacity-90'
@@ -411,7 +411,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                           {/* Eigene Dauer als Inline-Chip-Input (immer sichtbar) */}
                           <label
                             className={cn(
-                              'min-h-[48px] rounded-full px-4 py-2 font-medium text-sm transition-all duration-200',
+                              'min-h-[48px] rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
                               'focus-within:shadow-focus-ring focus-within:ring-2',
                               'flex items-center gap-1',
                               timeModeField.state.value === 'preset' && minutenField.state.value !== undefined && !TIME_PRESETS.some((p) => p.value === minutenField.state.value)
@@ -441,7 +441,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                               min={1}
                               max={1440}
                               className={cn(
-                                'w-12 bg-transparent text-center font-medium text-sm focus:outline-none',
+                                'w-12 bg-transparent text-center text-sm font-medium focus:outline-none',
                                 '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
                                 timeModeField.state.value === 'preset' && minutenField.state.value !== undefined && !TIME_PRESETS.some((p) => p.value === minutenField.state.value)
                                   ? 'text-text-inverse placeholder:text-text-inverse/60'
@@ -465,7 +465,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                             }}
                             disabled={isPending}
                             className={cn(
-                              'min-h-[48px] rounded-full px-4 py-2 font-medium text-sm transition-all duration-200',
+                              'min-h-[48px] rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
                               'focus:outline-none focus-visible:shadow-focus-ring',
                               'flex items-center gap-1.5',
                               timeModeField.state.value === 'custom'
@@ -482,7 +482,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                         {/* Story 1.2 AC2: TimeInput erscheint bei Benutzerdefiniert */}
                         {timeModeField.state.value === 'custom' && (
                           <div className="mt-4">
-                            <label htmlFor="custom-time-input" className="mb-1.5 block font-medium text-sm text-text-secondary">
+                            <label htmlFor="custom-time-input" className="mb-1.5 block text-sm font-medium text-text-secondary">
                               Uhrzeit eingeben
                             </label>
                             <TimeInput
@@ -512,8 +512,8 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
           <form.Field name="assignedToId">
             {(field) => (
               <div>
-                <label htmlFor="assignedToId" className="mb-1.5 block font-medium text-sm text-text-secondary">
-                  Zuweisen an <span className="text-text-muted text-xs">(optional)</span>
+                <label htmlFor="assignedToId" className="mb-1.5 block text-sm font-medium text-text-secondary">
+                  Zuweisen an <span className="text-xs text-text-muted">(optional)</span>
                 </label>
                 <AssigneeSelector
                   einsatzId={einsatzId}
@@ -530,7 +530,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                   error={field.state.meta.errors.length > 0 ? formatErrors(field.state.meta.errors) : undefined}
                   placeholder="Für alle (keine Zuweisung)"
                 />
-                <p className="mt-1 text-text-muted text-xs">Leer lassen für alle Teilnehmer</p>
+                <p className="mt-1 text-xs text-text-muted">Leer lassen für alle Teilnehmer</p>
               </div>
             )}
           </form.Field>
@@ -564,11 +564,11 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                         />
                       </div>
                       <div className="flex-1">
-                        <label htmlFor="eskalationNurAnErsteller" className="flex cursor-pointer items-center gap-2 font-medium text-sm text-text-secondary">
+                        <label htmlFor="eskalationNurAnErsteller" className="flex cursor-pointer items-center gap-2 text-sm font-medium text-text-secondary">
                           <PiArrowUUpLeft className="h-4 w-4 text-status-warning-text" />
                           Eskalation nur an mich (Rückläufer)
                         </label>
-                        <p className="mt-0.5 text-text-muted text-xs">Wenn aktiviert, geht jede Eskalation zurück an dich, statt an eine andere Person.</p>
+                        <p className="mt-0.5 text-xs text-text-muted">Wenn aktiviert, geht jede Eskalation zurück an dich, statt an eine andere Person.</p>
                       </div>
                     </div>
                   )}
@@ -584,8 +584,8 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                 <form.Field name="eskalationsPersonId">
                   {(field) => (
                     <div>
-                      <label htmlFor="eskalationsPersonId" className="mb-1.5 block font-medium text-sm text-text-secondary">
-                        Eskalation an <span className="text-text-muted text-xs">(optional)</span>
+                      <label htmlFor="eskalationsPersonId" className="mb-1.5 block text-sm font-medium text-text-secondary">
+                        Eskalation an <span className="text-xs text-text-muted">(optional)</span>
                       </label>
                       <AssigneeSelector
                         einsatzId={einsatzId}
@@ -596,7 +596,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                         error={field.state.meta.errors.length > 0 ? formatErrors(field.state.meta.errors) : undefined}
                         placeholder="Keine Eskalation"
                       />
-                      <p className="mt-1 text-text-muted text-xs">Wird benachrichtigt, wenn Zuweisungsempfänger nicht reagiert</p>
+                      <p className="mt-1 text-xs text-text-muted">Wird benachrichtigt, wenn Zuweisungsempfänger nicht reagiert</p>
                     </div>
                   )}
                 </form.Field>
@@ -608,8 +608,8 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
           <form.Field name="beschreibung">
             {(field) => (
               <div>
-                <label htmlFor="beschreibung" className="mb-1.5 block font-medium text-sm text-text-secondary">
-                  Beschreibung <span className="text-text-muted text-xs">(optional)</span>
+                <label htmlFor="beschreibung" className="mb-1.5 block text-sm font-medium text-text-secondary">
+                  Beschreibung <span className="text-xs text-text-muted">(optional)</span>
                 </label>
                 <textarea
                   id="beschreibung"
@@ -639,9 +639,9 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
           <form.Field name="kategorieId">
             {(field) => (
               <div>
-                {/* biome-ignore lint/a11y/noLabelWithoutControl: KategorieSelector ist Custom-Komponente mit internem Select */}
-                <label className="mb-1.5 block font-medium text-sm text-text-secondary">
-                  Kategorie <span className="text-text-muted text-xs">(optional)</span>
+                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- KategorieSelector ist Custom-Komponente mit internem Select */}
+                <label className="mb-1.5 block text-sm font-medium text-text-secondary">
+                  Kategorie <span className="text-xs text-text-muted">(optional)</span>
                 </label>
                 <KategorieSelector
                   einsatzId={einsatzId}
@@ -675,11 +675,11 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                   />
                 </div>
                 <div className="flex-1">
-                  <label htmlFor="requiresNote" className="flex cursor-pointer items-center gap-2 font-medium text-sm text-text-secondary">
+                  <label htmlFor="requiresNote" className="flex cursor-pointer items-center gap-2 text-sm font-medium text-text-secondary">
                     <PiNotepad className="h-4 w-4 text-status-warning-text" />
                     Pflicht-Notiz bei Erledigung
                   </label>
-                  <p className="mt-0.5 text-text-muted text-xs">Wenn aktiviert, muss bei Erledigung eine Dokumentations-Notiz eingegeben werden.</p>
+                  <p className="mt-0.5 text-xs text-text-muted">Wenn aktiviert, muss bei Erledigung eine Dokumentations-Notiz eingegeben werden.</p>
                 </div>
               </div>
             )}
@@ -706,11 +706,11 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                     />
                   </div>
                   <div className="flex-1">
-                    <label htmlFor="isRecurring" className="flex cursor-pointer items-center gap-2 font-medium text-sm text-text-secondary">
+                    <label htmlFor="isRecurring" className="flex cursor-pointer items-center gap-2 text-sm font-medium text-text-secondary">
                       <PiRepeat className="h-4 w-4 text-status-warning-text" />
                       Wiederkehrend
                     </label>
-                    <p className="mt-0.5 text-text-muted text-xs">Erstellt automatisch eine neue Erinnerung nach Erledigung.</p>
+                    <p className="mt-0.5 text-xs text-text-muted">Erstellt automatisch eine neue Erinnerung nach Erledigung.</p>
                   </div>
                 </div>
 
@@ -721,8 +721,8 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                     <form.Field name="recurringIntervalMinutes">
                       {(intervalField) => (
                         <div>
-                          {/* biome-ignore lint/a11y/noLabelWithoutControl: Label fuer Button-Chip-Gruppe, kein Input-Element */}
-                          <label className="mb-2 block font-medium text-sm text-text-secondary">
+                          {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Label fuer Button-Chip-Gruppe, kein Input-Element */}
+                          <label className="mb-2 block text-sm font-medium text-text-secondary">
                             Intervall <span className="text-status-danger-text">*</span>
                           </label>
                           <div className="flex flex-wrap gap-2">
@@ -734,7 +734,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                                 onClick={() => intervalField.handleChange(preset.value)}
                                 disabled={isPending}
                                 className={cn(
-                                  'rounded-full px-3 py-1.5 font-medium text-sm transition-all duration-200',
+                                  'rounded-full px-3 py-1.5 text-sm font-medium transition-all duration-200',
                                   'focus:outline-none focus-visible:shadow-focus-ring',
                                   intervalField.state.value === preset.value
                                     ? 'bg-status-warning-text text-text-inverse shadow-md hover:opacity-90'
@@ -748,7 +748,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                             {/* Eigene Intervall-Dauer als Inline-Chip-Input */}
                             <label
                               className={cn(
-                                'rounded-full px-3 py-1.5 font-medium text-sm transition-all duration-200',
+                                'rounded-full px-3 py-1.5 text-sm font-medium transition-all duration-200',
                                 'focus-within:shadow-focus-ring',
                                 'flex items-center gap-1',
                                 intervalField.state.value && !RECURRING_INTERVAL_PRESETS.some((p) => p.value === intervalField.state.value)
@@ -771,7 +771,7 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                                 min={1}
                                 max={1440}
                                 className={cn(
-                                  'w-12 bg-transparent text-center font-medium text-sm focus:outline-none',
+                                  'w-12 bg-transparent text-center text-sm font-medium focus:outline-none',
                                   '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
                                   intervalField.state.value && !RECURRING_INTERVAL_PRESETS.some((p) => p.value === intervalField.state.value)
                                     ? 'text-text-inverse placeholder:text-text-inverse/60'
@@ -790,8 +790,8 @@ export function QuickCreateErinnerungDialog({ isOpen, onClose, einsatzId, fromEt
                     <form.Field name="recurringEndMode">
                       {(endModeField) => (
                         <div>
-                          {/* biome-ignore lint/a11y/noLabelWithoutControl: Label fuer Radio-Button-Gruppe */}
-                          <label className="mb-2 block font-medium text-sm text-text-secondary">Ende</label>
+                          {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- Label fuer Radio-Button-Gruppe */}
+                          <label className="mb-2 block text-sm font-medium text-text-secondary">Ende</label>
                           <div className="space-y-2">
                             <label className="flex items-center gap-2">
                               <input

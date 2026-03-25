@@ -85,7 +85,7 @@ function getZodError(result: { success: boolean; error?: { issues?: Array<{ mess
  *
  * Kann entfernt werden wenn @tanstack/store > 0.8.0 das Derived-Propagation-Problem behebt.
  */
-// biome-ignore lint/suspicious/noExplicitAny: Zugriff auf TanStack Store Internals nötig für Workaround
+// eslint-disable-next-line typescript/no-explicit-any -- Zugriff auf TanStack Store Internals nötig für Workaround
 function forceFieldStoreSync(form: any, fieldName: string): void {
   const fieldInfo = form.getFieldInfo(fieldName);
   const fieldStore = fieldInfo?.instance?.store;
@@ -485,7 +485,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="font-semibold text-text-primary text-xl">Setup abgeschlossen!</h2>
+          <h2 className="text-xl font-semibold text-text-primary">Setup abgeschlossen!</h2>
           <p className="mt-1 text-sm text-text-secondary">Der Server ist jetzt einsatzbereit.</p>
         </div>
 
@@ -499,9 +499,9 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
 
         {/* Token Display Box */}
         <div className="rounded-lg border border-border-subtle bg-surface-raised p-4" aria-live="polite">
-          <div className="mb-2 font-medium text-sm text-text-secondary">Server Access Token</div>
+          <div className="mb-2 text-sm font-medium text-text-secondary">Server Access Token</div>
           <div className="flex items-center gap-3">
-            <code className="flex-1 break-all rounded bg-surface-panel px-3 py-2 font-mono text-sm text-text-primary">{generatedToken}</code>
+            <code className="flex-1 rounded bg-surface-panel px-3 py-2 font-mono text-sm break-all text-text-primary">{generatedToken}</code>
             <CopyButton text={generatedToken} size="sm" />
           </div>
         </div>
@@ -525,7 +525,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
         <div className="flex items-start gap-3 rounded-lg border border-status-warning-border bg-status-warning-surface p-4">
           <PiWarning className="mt-0.5 h-5 w-5 flex-shrink-0 text-status-warning-text" />
           <div className="space-y-1">
-            <p className="font-medium text-sm text-status-warning-text">Server nicht eingerichtet</p>
+            <p className="text-sm font-medium text-status-warning-text">Server nicht eingerichtet</p>
             <p className="text-sm text-status-warning-text">Dieser Server wurde noch nicht konfiguriert. Erstelle einen Admin-Account, um den Server zu initialisieren.</p>
           </div>
         </div>
@@ -536,7 +536,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
         <div className="flex items-start gap-3 rounded-lg border border-status-success-border bg-status-success-surface p-4">
           <PiCheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-status-success-text" />
           <div className="space-y-1">
-            <p className="font-medium text-sm text-status-success-text">Server gefunden</p>
+            <p className="text-sm font-medium text-status-success-text">Server gefunden</p>
             <p className="text-sm text-status-success-text">Der Server ist erreichbar und eingerichtet. Gib deinen Einladungscode ein, um dich zu verbinden.</p>
           </div>
         </div>
@@ -552,7 +552,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
       >
         {/* Server URL Field */}
         <div className="space-y-2">
-          <label htmlFor="serverUrl" className="block font-medium text-sm text-text-secondary">
+          <label htmlFor="serverUrl" className="block text-sm font-medium text-text-secondary">
             Server-URL
           </label>
           <form.Field
@@ -608,7 +608,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
                       <button
                         type="button"
                         onClick={() => setHealthCheckError(null)}
-                        className="font-medium text-action-primary text-sm hover:text-action-primary-hover focus-visible:shadow-focus-ring focus-visible:outline-none"
+                        className="text-sm font-medium text-action-primary hover:text-action-primary-hover focus-visible:shadow-focus-ring focus-visible:outline-none"
                       >
                         Erneut versuchen
                       </button>
@@ -623,7 +623,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
         {/* Invite Code Field (nur bei setupComplete: true) */}
         {formMode === 'invite' && (
           <div className="space-y-2">
-            <label htmlFor="inviteCode" className="block font-medium text-sm text-text-secondary">
+            <label htmlFor="inviteCode" className="block text-sm font-medium text-text-secondary">
               Einladungscode
             </label>
             <form.Field
@@ -663,7 +663,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
           <>
             {/* Username Field */}
             <div className="space-y-2">
-              <label htmlFor="username" className="block font-medium text-sm text-text-secondary">
+              <label htmlFor="username" className="block text-sm font-medium text-text-secondary">
                 Admin-Nutzername
               </label>
               <form.Field
@@ -691,7 +691,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
                         autoFocus
                       />
                       {fieldError && <p className="text-sm text-status-danger-text">{fieldError}</p>}
-                      <p className="text-text-muted text-xs">3-20 Zeichen, nur Buchstaben, Zahlen, - und _</p>
+                      <p className="text-xs text-text-muted">3-20 Zeichen, nur Buchstaben, Zahlen, - und _</p>
                     </div>
                   );
                 }}
@@ -700,7 +700,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
 
             {/* Password Field */}
             <div className="space-y-2">
-              <label htmlFor="password" className="block font-medium text-sm text-text-secondary">
+              <label htmlFor="password" className="block text-sm font-medium text-text-secondary">
                 Admin-Passwort
               </label>
               <form.Field
@@ -746,7 +746,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
 
         {/* Server Name Field (immer sichtbar, Pflichtfeld) */}
         <div className="space-y-2">
-          <label htmlFor="serverName" className="block font-medium text-sm text-text-secondary">
+          <label htmlFor="serverName" className="block text-sm font-medium text-text-secondary">
             Server-Name
           </label>
           <form.Field
@@ -801,7 +801,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
                     autoComplete="off"
                   />
                   {fieldError && <p className="text-sm text-status-danger-text">{fieldError}</p>}
-                  <p className="text-text-muted text-xs">{hasManuallyEditedName ? 'Eindeutiger Anzeigename für diesen Server.' : 'Wird automatisch aus der URL befüllt.'}</p>
+                  <p className="text-xs text-text-muted">{hasManuallyEditedName ? 'Eindeutiger Anzeigename für diesen Server.' : 'Wird automatisch aus der URL befüllt.'}</p>
                 </div>
               );
             }}
@@ -815,7 +815,7 @@ export function ServerSetupForm({ prefillServerUrl, onSuccess, className }: Serv
               <button
                 type="button"
                 onClick={handleRetryNetworkError}
-                className="mt-2 font-medium text-sm text-status-danger-text underline hover:opacity-80 focus-visible:shadow-focus-ring focus-visible:outline-none"
+                className="mt-2 text-sm font-medium text-status-danger-text underline hover:opacity-80 focus-visible:shadow-focus-ring focus-visible:outline-none"
                 data-testid="retry-network-error-button"
               >
                 Erneut versuchen

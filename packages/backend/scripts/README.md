@@ -13,6 +13,7 @@ Dieses Verzeichnis enthält verschiedene Validierungs- und Hilfs-Scripts für da
 **Zweck:** Überprüft AC1-Rule: Injectable Classes müssen mit `import` importiert werden, nicht `import type`.
 
 **Verwendung:**
+
 ```bash
 # Manuell
 ts-node -r tsconfig-paths/register scripts/check-di-imports-zero-deps.ts
@@ -25,11 +26,13 @@ git commit -m "..."
 ```
 
 **Dokumentation:**
+
 - [DI_IMPORT_VALIDATION.md](./DI_IMPORT_VALIDATION.md) - Technische Details
 - [CLAUDE.md](../../CLAUDE.md) - AC1 Rule Erklärung
 - [test-di-imports-example.ts](./test-di-imports-example.ts) - Test Cases
 
 **Features:**
+
 - ✅ Ultra-schnell (nur Node.js Built-ins)
 - ✅ Path-Alias Support (@/, @domain/, etc.)
 - ✅ Aussagekräftige Error-Messages
@@ -47,6 +50,7 @@ git commit -m "..."
 **Zweck:** Überprüft ob public APIs deutsche JSDoc-Kommentare haben.
 
 **Verwendung:**
+
 ```bash
 pnpm check:jsdoc           # Alle fehlenden JSDoc
 pnpm check:jsdoc:public    # Nur public APIs
@@ -64,11 +68,13 @@ pnpm check:jsdoc:json      # JSON Report
 **Zweck:** Zeigt 6 Beispiel-Szenarien für DI Import Pattern.
 
 **Verwendung:**
+
 ```bash
 ts-node scripts/test-di-imports-example.ts
 ```
 
 **Output:**
+
 - ❌ CASE 1: import type für @Injectable() (VIOLATION)
 - ✅ CASE 2: import für @Injectable() (OK)
 - ✅ CASE 3: import type für Interface (OK)
@@ -85,10 +91,12 @@ ts-node scripts/test-di-imports-example.ts
 Die folgenden Dateien sind NICHT aktiv, aber dokumentieren alternative Ansätze:
 
 **`check-di-imports-simple.ts`** (mit `glob` dependency)
+
 - Zu langsam für Pre-Commit Hook
 - Archiviert als Referenz
 
 **`check-di-imports.ts`** (TypeScript AST-basiert)
+
 - Zu komplex für den Use-Case
 - Archiviert als Referenz
 
@@ -158,6 +166,7 @@ const pathAliases: Record<string, string> = {
 ### "Command not found: ts-node"
 
 Stelle sicher, dass ts-node installiert ist:
+
 ```bash
 pnpm install
 ```
@@ -165,6 +174,7 @@ pnpm install
 ### "Module not found"
 
 Nutze `-r tsconfig-paths/register` für Path-Aliases:
+
 ```bash
 ts-node -r tsconfig-paths/register scripts/check-di-imports-zero-deps.ts
 ```
@@ -172,6 +182,7 @@ ts-node -r tsconfig-paths/register scripts/check-di-imports-zero-deps.ts
 ### Pre-Commit Hook läuft nicht
 
 Stelle sicher, dass Husky initialisiert ist:
+
 ```bash
 npm run prepare
 ```
@@ -180,12 +191,12 @@ npm run prepare
 
 ## Performance
 
-| Script | Laufzeit | Dependencies |
-|--------|----------|--------------|
-| check-di-imports-zero-deps.ts | 100-200ms | Nur Node.js Built-ins |
-| check-di-imports-simple.ts | 200-400ms | glob package |
-| check-di-imports.ts | 300-500ms | TypeScript AST |
-| check:jsdoc | 500-1000ms | TypeScript Compiler |
+| Script                        | Laufzeit   | Dependencies          |
+| ----------------------------- | ---------- | --------------------- |
+| check-di-imports-zero-deps.ts | 100-200ms  | Nur Node.js Built-ins |
+| check-di-imports-simple.ts    | 200-400ms  | glob package          |
+| check-di-imports.ts           | 300-500ms  | TypeScript AST        |
+| check:jsdoc                   | 500-1000ms | TypeScript Compiler   |
 
 ---
 
@@ -194,6 +205,7 @@ npm run prepare
 ### 1. Regelmäßig ausführen
 
 Vor jedem Commit:
+
 ```bash
 pnpm check:di:imports    # Lokale Überprüfung
 git commit -m "..."      # Automatisch im Hook
@@ -214,6 +226,7 @@ grep -B2 -A2 "import type.*from" src/application/ | grep -v node_modules
 ### 3. Team-Kommunikation
 
 AC1 Rule erklären:
+
 - Zeige [DI_IMPORT_VALIDATION.md](./DI_IMPORT_VALIDATION.md)
 - Referenziere [CLAUDE.md](../../CLAUDE.md) AC1 Section
 - Nutze `test-di-imports-example.ts` für Beispiele
@@ -235,11 +248,11 @@ AC1 Rule erklären:
 ### Update Checklist
 
 - [ ] Neue path aliases in `tsconfig.json` hinzugefügt?
-  → Datei `check-di-imports-zero-deps.ts` aktualisieren
+      → Datei `check-di-imports-zero-deps.ts` aktualisieren
 - [ ] AC1 Rule geändert?
-  → Dokumentation in [CLAUDE.md](../../CLAUDE.md) aktualisieren
+      → Dokumentation in [CLAUDE.md](../../CLAUDE.md) aktualisieren
 - [ ] Performance Problem mit Pre-Commit Hook?
-  → Check [Performance](#performance) Section
+      → Check [Performance](#performance) Section
 
 ---
 

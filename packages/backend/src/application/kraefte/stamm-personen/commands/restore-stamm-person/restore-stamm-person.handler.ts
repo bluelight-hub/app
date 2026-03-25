@@ -121,7 +121,7 @@ export class RestoreStammPersonHandler extends TransactionalCommandHandler<Resto
     const currentQualifikationIds = stammPerson.qualifikationIds
       .map((id) => QualifikationId.create(id))
       .filter((r) => r.isSuccess && r.value)
-      // biome-ignore lint/style/noNonNullAssertion: Filtered for isSuccess above, value guaranteed non-null
+      // eslint-disable-next-line typescript/no-non-null-assertion -- Filtered for isSuccess above, value guaranteed non-null
       .map((r) => r.value!);
 
     for (const id of currentQualifikationIds) {

@@ -217,12 +217,12 @@ const databaseAvailable = !!process.env.DATABASE_URL;
       expect(Array.isArray(response.body.data)).toBe(true);
 
       // Filter nur die Einsätze dieses Tests (nach Marker filtern)
-      // biome-ignore lint/suspicious/noExplicitAny: E2E test response body typing not strictly typed
+      // eslint-disable-next-line typescript/no-explicit-any -- E2E test response body typing not strictly typed
       const testEinsaetze = response.body.data.filter((e: any) => e.alarmstichwort?.includes(testMarker));
       expect(testEinsaetze).toHaveLength(2); // Nur aktive mit unserem Marker
 
       // Verify our specific IDs are in the result
-      // biome-ignore lint/suspicious/noExplicitAny: E2E test response body typing not strictly typed
+      // eslint-disable-next-line typescript/no-explicit-any -- E2E test response body typing not strictly typed
       const returnedIds = testEinsaetze.map((e: any) => e.id);
       expect(returnedIds).toContain(id1);
       expect(returnedIds).toContain(id2);
@@ -246,7 +246,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
         .set('Cookie', [`accessToken=${cachedAccessToken}`])
         .expect(200);
 
-      // biome-ignore lint/suspicious/noExplicitAny: E2E test response body typing not strictly typed
+      // eslint-disable-next-line typescript/no-explicit-any -- E2E test response body typing not strictly typed
       const einsatz = response.body.data.find((e: any) => e.id === einsatzId);
       expect(einsatz).toBeDefined();
       // ETB and POI counts should exist (even if 0)
@@ -281,7 +281,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
         .expect(200);
 
       // Filter by our unique marker - should be empty since we didn't create any
-      // biome-ignore lint/suspicious/noExplicitAny: E2E test response body typing not strictly typed
+      // eslint-disable-next-line typescript/no-explicit-any -- E2E test response body typing not strictly typed
       const matchingEinsaetze = response.body.data.filter((e: any) => e.alarmstichwort?.includes(uniqueMarker));
       expect(matchingEinsaetze).toEqual([]);
     });
@@ -679,7 +679,7 @@ const databaseAvailable = !!process.env.DATABASE_URL;
         .expect(200);
 
       // Filter by our marker to count only our test data
-      // biome-ignore lint/suspicious/noExplicitAny: E2E test response body typing not strictly typed
+      // eslint-disable-next-line typescript/no-explicit-any -- E2E test response body typing not strictly typed
       const ourEinsaetze = allResponse.body.data.filter((e: any) => e.alarmstichwort?.includes(testMarker));
       expect(ourEinsaetze).toHaveLength(5);
 
@@ -716,16 +716,16 @@ const databaseAvailable = !!process.env.DATABASE_URL;
         .expect(200);
 
       // Filter by our marker to count only our test data
-      // biome-ignore lint/suspicious/noExplicitAny: E2E test response body typing not strictly typed
+      // eslint-disable-next-line typescript/no-explicit-any -- E2E test response body typing not strictly typed
       const ourEinsaetze = response.body.data.filter((e: any) => e.alarmstichwort?.includes(testMarker));
       expect(ourEinsaetze).toHaveLength(2);
 
       // Verify all returned items have correct status
-      // biome-ignore lint/suspicious/noExplicitAny: E2E test response body typing not strictly typed
+      // eslint-disable-next-line typescript/no-explicit-any -- E2E test response body typing not strictly typed
       expect(response.body.data.every((e: any) => e.status === 'IN_BEARBEITUNG')).toBe(true);
 
       // Verify our specific IDs are in the filtered result
-      // biome-ignore lint/suspicious/noExplicitAny: E2E test response body typing not strictly typed
+      // eslint-disable-next-line typescript/no-explicit-any -- E2E test response body typing not strictly typed
       const returnedIds = ourEinsaetze.map((e: any) => e.id);
       expect(returnedIds).toContain(id1);
       expect(returnedIds).toContain(id2);

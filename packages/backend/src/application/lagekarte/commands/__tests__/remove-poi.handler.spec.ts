@@ -1,5 +1,5 @@
 // @ts-nocheck
-// biome-ignore-all lint/suspicious/noExplicitAny: Test mocks and type casting
+/* eslint-disable typescript/no-explicit-any -- Test mocks and type casting */
 import { RemovePoiCommandHandler } from '../remove-poi.handler';
 import { RemovePoiCommand } from '../remove-poi.command';
 import type { ILagekarteRepository } from '@domain/repositories';

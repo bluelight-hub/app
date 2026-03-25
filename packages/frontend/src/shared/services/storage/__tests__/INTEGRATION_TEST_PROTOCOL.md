@@ -181,19 +181,21 @@ console.log('✅ Double clear succeeded');
 ### Setup
 
 1. Build Rust Backend:
+
    ```bash
    cd packages/frontend
    pnpm build:tauri # Or start dev mode
    ```
 
 2. Start Tauri Dev App:
+
    ```bash
    pnpm --filter @bluelight-hub/frontend dev
    ```
 
 3. Open Browser DevTools:
-    - Right-click → "Inspect Element"
-    - Switch to Console tab
+   - Right-click → "Inspect Element"
+   - Switch to Console tab
 
 ### Running Tests
 
@@ -225,11 +227,11 @@ console.log('✅ Double clear succeeded');
 
 ## Test Results
 
-| Test Case | Status | Date | Notes |
-|-----------|--------|------|-------|
-| TC1: CRUD Roundtrip | ⏳ PENDING | - | Awaiting manual execution |
-| TC2: Persistence Test | ⏳ PENDING | - | Awaiting manual execution |
-| TC3: Error Handling | ⏳ PENDING | - | Awaiting manual execution |
+| Test Case             | Status     | Date | Notes                     |
+| --------------------- | ---------- | ---- | ------------------------- |
+| TC1: CRUD Roundtrip   | ⏳ PENDING | -    | Awaiting manual execution |
+| TC2: Persistence Test | ⏳ PENDING | -    | Awaiting manual execution |
+| TC3: Error Handling   | ⏳ PENDING | -    | Awaiting manual execution |
 
 ---
 

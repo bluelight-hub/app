@@ -72,7 +72,7 @@ export const FahrzeugPoiLayer: React.FC<FahrzeugPoiLayerProps> = React.memo(({ e
     return (
       <div className="absolute top-4 right-20 z-50 flex items-center gap-2 rounded-lg border-2 border-status-danger-border bg-status-danger-surface p-3 shadow-lg">
         <PiXCircle className="h-5 w-5 text-status-danger-text" />
-        <p className="font-medium text-body-sm text-status-danger-text">Fahrzeug-POIs konnten nicht geladen werden</p>
+        <p className="text-body-sm font-medium text-status-danger-text">Fahrzeug-POIs konnten nicht geladen werden</p>
       </div>
     );
   }
@@ -104,7 +104,7 @@ export const FahrzeugPoiLayer: React.FC<FahrzeugPoiLayerProps> = React.memo(({ e
             <Popup className="fahrzeug-popup">
               <div className="space-y-2 p-2">
                 {/* Fahrzeug-Name (Funkrufname) */}
-                <h3 className="font-semibold text-text-primary text-lg">{name}</h3>
+                <h3 className="text-lg font-semibold text-text-primary">{name}</h3>
 
                 {/* Status mit Farbindikator */}
                 <div className="flex items-center gap-2">

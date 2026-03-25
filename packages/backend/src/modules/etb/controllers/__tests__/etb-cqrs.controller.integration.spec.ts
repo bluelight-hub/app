@@ -118,28 +118,28 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
 
 (databaseAvailable ? describe : describe.skip)('EtbCqrsController Integration Tests (Story 3-7)', () => {
   let controller: EtbCqrsController;
-  // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+  // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
   let mockAddEintragHandler: jest.Mocked<any>;
-  // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+  // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
   let mockUpdateEintragHandler: jest.Mocked<any>;
-  // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+  // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
   let mockDeleteEintragHandler: jest.Mocked<any>;
-  // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+  // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
   let mockLockEtbHandler: jest.Mocked<any>;
-  // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+  // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
   let mockGetEtbQueryHandler: jest.Mocked<any>;
-  // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+  // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
   let mockGetEtbHistoryQueryHandler: jest.Mocked<any>;
-  // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+  // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
   let mockGetTextbausteineHandler: jest.Mocked<any>;
-  // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+  // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
   let mockGetErinnerungTimelineHandler: jest.Mocked<any>;
-  // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+  // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
   let mockEtbRepository: jest.Mocked<any>;
   let mockLogger: jest.Mocked<ILogger>;
-  // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+  // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
   let mockEinsatzTeilnehmerRepository: jest.Mocked<any>;
-  // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+  // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
   let mockEinsatzRollenReadRepository: jest.Mocked<any>;
 
   const adminUser: ValidatedUser = {

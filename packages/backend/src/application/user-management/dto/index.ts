@@ -20,9 +20,4 @@ export { NavigationPermissionDto } from './navigation-permission.dto';
 // Response DTOs
 export { DeleteUserResponseDto } from './delete-user-response.dto';
 export { UserBasicDto, UserBasicListResponse } from './user-basic-response.dto';
-export {
-  ManagedUserResponseDto,
-  ManagedUsersListResponse,
-  ManagedUserResponse,
-  DeleteManagedUserResponse,
-} from './managed-user-response.dto';
+export { ManagedUserResponseDto, ManagedUsersListResponse, ManagedUserResponse, DeleteManagedUserResponse } from './managed-user-response.dto';

@@ -20,8 +20,8 @@ export function VorlageCard({ titel, minuten, beschreibung, className, onEdit, o
     <div className={cn('rounded-panel border-2 border-border-subtle bg-surface-panel p-4 transition-colors', 'hover:border-border-strong', className)}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <h3 className="truncate font-semibold text-text-primary text-sm">{titel}</h3>
-          {beschreibung && <p className="mt-1 line-clamp-2 text-text-muted text-xs">{beschreibung}</p>}
+          <h3 className="truncate text-sm font-semibold text-text-primary">{titel}</h3>
+          {beschreibung && <p className="mt-1 line-clamp-2 text-xs text-text-muted">{beschreibung}</p>}
         </div>
         <div className="flex items-center gap-2">
           {onUse && (
@@ -60,7 +60,7 @@ export function VorlageCard({ titel, minuten, beschreibung, className, onEdit, o
           )}
           <div className="flex items-center gap-1.5 rounded-pill bg-status-warning-surface px-2.5 py-1">
             <PiClock className="h-3.5 w-3.5 text-status-warning-text" />
-            <span className="font-medium text-status-warning-text text-xs">{minuten} Min</span>
+            <span className="text-xs font-medium text-status-warning-text">{minuten} Min</span>
           </div>
         </div>
       </div>

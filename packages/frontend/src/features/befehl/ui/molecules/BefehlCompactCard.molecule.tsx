@@ -37,7 +37,7 @@ export function BefehlCompactCard({ befehl, onClick, selected, className }: Befe
       }}
       className={cn(
         'cursor-pointer rounded-lg border p-3 transition-colors',
-        'focus-visible:outline-none focus-visible:shadow-focus-ring',
+        'focus-visible:shadow-focus-ring focus-visible:outline-none',
         selected && 'border-action-primary bg-action-secondary',
         !selected && isKorrigiert && 'border-border-subtle opacity-60',
         !selected && !isKorrigiert && kritikalitaet === 'KRITISCH' && 'border-status-danger-border bg-status-danger-surface',
@@ -57,14 +57,14 @@ export function BefehlCompactCard({ befehl, onClick, selected, className }: Befe
         {kritikalitaet === 'KRITISCH' && <AlarmDot className="flex-shrink-0" />}
         {kritikalitaet === 'WARNUNG' && <span className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full bg-status-warning-text" aria-hidden="true" />}
         {kritikalitaet === 'NORMAL' && <span className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full bg-border-strong" aria-hidden="true" />}
-        <span className="font-bold font-mono text-text-primary text-sm">{befehl.nummer}</span>
-        <time dateTime={erteiltAmDate.toISOString()} className="ml-auto text-text-muted text-xs">
+        <span className="font-mono text-sm font-bold text-text-primary">{befehl.nummer}</span>
+        <time dateTime={erteiltAmDate.toISOString()} className="ml-auto text-xs text-text-muted">
           {format(erteiltAmDate, 'dd.MM. HH:mm')}
         </time>
       </div>
 
       {/* Zeile 2: Auftrag (1 Zeile) */}
-      <p className="mt-1 truncate text-text-secondary text-sm">{befehl.auftrag}</p>
+      <p className="mt-1 truncate text-sm text-text-secondary">{befehl.auftrag}</p>
 
       {/* Zeile 3: Fortschrittsbar + Count */}
       <div className="mt-2 flex items-center gap-2">
@@ -79,7 +79,7 @@ export function BefehlCompactCard({ befehl, onClick, selected, className }: Befe
             style={{ width: `${fortschritt.prozent}%` }}
           />
         </div>
-        <span className="flex-shrink-0 text-text-muted text-xs">
+        <span className="flex-shrink-0 text-xs text-text-muted">
           {fortschritt.quittiert}/{fortschritt.gesamt}
         </span>
       </div>

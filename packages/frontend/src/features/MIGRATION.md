@@ -347,8 +347,8 @@ grep -r "useAuth" packages/frontend/src/
 # Feature-Template erstellen
 mkdir -p packages/frontend/src/features/{name}/{api,stores,guards}
 
-# Biome Lint für Feature
-pnpm biome check --write packages/frontend/src/features/{name}/
+# OXC Lint für Feature
+pnpm oxlint --fix && pnpm oxfmt --write packages/frontend/src/features/{name}/
 
 # Tests ausführen
 pnpm --filter @bluelight-hub/frontend test features/{name}

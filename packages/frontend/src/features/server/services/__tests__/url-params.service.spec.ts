@@ -143,7 +143,7 @@ describe('validateParams()', () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues.length).toBeGreaterThan(0);
-      // biome-ignore lint/suspicious/noExplicitAny: Zod error type inference
+      // eslint-disable-next-line typescript/no-explicit-any -- Zod error type inference
       const serverError = result.error.issues.find((err: any) => err.path.includes('server'));
       expect(serverError).toBeDefined();
     }
@@ -162,7 +162,7 @@ describe('validateParams()', () => {
     // Then (Assert)
     expect(result.success).toBe(false);
     if (!result.success) {
-      // biome-ignore lint/suspicious/noExplicitAny: Zod error type inference
+      // eslint-disable-next-line typescript/no-explicit-any -- Zod error type inference
       const serverError = result.error.issues.find((err: any) => err.path.includes('server'));
       expect(serverError).toBeDefined();
       // Konsistent mit serverUrlSchema Fehlermeldung (AC6: INSECURE_MODE)
@@ -183,7 +183,7 @@ describe('validateParams()', () => {
     // Then (Assert)
     expect(result.success).toBe(false);
     if (!result.success) {
-      // biome-ignore lint/suspicious/noExplicitAny: Zod error type inference
+      // eslint-disable-next-line typescript/no-explicit-any -- Zod error type inference
       const inviteError = result.error.issues.find((err: any) => err.path.includes('invite'));
       expect(inviteError).toBeDefined();
       // Konsistent mit inviteCodeSchema Fehlermeldung (exakt 8 Zeichen)

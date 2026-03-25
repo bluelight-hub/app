@@ -108,7 +108,7 @@ export function AssigneeSelector({ einsatzId, value, onChange, onBlur, disabled 
         error={error}
         openOnFocus
       />
-      {comboboxItems.length === 0 && !isLoading && <p className="mt-1 text-text-muted text-xs">Keine aktiven Teilnehmer in diesem Einsatz</p>}
+      {comboboxItems.length === 0 && !isLoading && <p className="mt-1 text-xs text-text-muted">Keine aktiven Teilnehmer in diesem Einsatz</p>}
     </div>
   );
 }

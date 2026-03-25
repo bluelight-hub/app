@@ -241,9 +241,9 @@ function PinnwandErinnerungenInner({ einsatzId, className, currentUserId }: Pinn
     if ((!einsatzTeilnehmer || einsatzTeilnehmer.length === 0) && erinnerungen && erinnerungen.length > 0) {
       const teilnehmerMap = new Map<string, string>();
       for (const e of erinnerungen) {
-        // biome-ignore lint/suspicious/noExplicitAny: DTO missing fields
+        // eslint-disable-next-line typescript/no-explicit-any -- DTO missing fields
         if (e.erstelltVon && (e as any).erstellerName) {
-          // biome-ignore lint/suspicious/noExplicitAny: DTO missing fields
+          // eslint-disable-next-line typescript/no-explicit-any -- DTO missing fields
           teilnehmerMap.set(e.erstelltVon, sanitizeName((e as any).erstellerName));
         }
         if (e.assignedToId && e.assignedToName) {
@@ -425,15 +425,15 @@ function PinnwandErinnerungenInner({ einsatzId, className, currentUserId }: Pinn
       <div className="overflow-hidden rounded-xl border border-border-subtle bg-surface-panel">
         <TabGroup defaultIndex={0}>
           {/* Header */}
-          <div className="flex flex-col gap-3 border-border-subtle border-b px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 border-b border-border-subtle px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <div className="relative">
                 <PiAlarm className="h-5 w-5 text-status-danger-text" />
                 <span className="absolute -top-1 -right-1.5 h-2 w-2 animate-pulse rounded-full bg-status-danger-text" />
               </div>
-              <h3 className="font-bold text-lg text-text-primary tracking-tight">Erinnerungen</h3>
+              <h3 className="text-lg font-bold tracking-tight text-text-primary">Erinnerungen</h3>
               {sortedErinnerungen.length > 0 && (
-                <span className="rounded-full bg-status-danger-surface px-2 py-0.5 font-mono font-semibold text-status-danger-text text-xs">{sortedErinnerungen.length}</span>
+                <span className="rounded-full bg-status-danger-surface px-2 py-0.5 font-mono text-xs font-semibold text-status-danger-text">{sortedErinnerungen.length}</span>
               )}
               <span
                 className={cn('flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs', isConnected ? 'bg-status-success-surface text-status-success-text' : 'bg-surface-raised text-text-muted')}
@@ -446,17 +446,17 @@ function PinnwandErinnerungenInner({ einsatzId, className, currentUserId }: Pinn
               <TabList className="flex items-center gap-1 rounded-lg bg-action-secondary p-0.5">
                 <Tab
                   className={({ selected }) =>
-                    cn('rounded-md px-3 py-1.5 font-medium text-sm transition-colors', selected ? 'bg-surface-panel text-text-primary shadow-sm' : 'text-text-secondary hover:text-text-primary')
+                    cn('rounded-md px-3 py-1.5 text-sm font-medium transition-colors', selected ? 'bg-surface-panel text-text-primary shadow-sm' : 'text-text-secondary hover:text-text-primary')
                   }
                 >
-                  Meine <span className="ml-1 font-mono text-text-muted text-xs">({myErinnerungen.length})</span>
+                  Meine <span className="ml-1 font-mono text-xs text-text-muted">({myErinnerungen.length})</span>
                 </Tab>
                 <Tab
                   className={({ selected }) =>
-                    cn('rounded-md px-3 py-1.5 font-medium text-sm transition-colors', selected ? 'bg-surface-panel text-text-primary shadow-sm' : 'text-text-secondary hover:text-text-primary')
+                    cn('rounded-md px-3 py-1.5 text-sm font-medium transition-colors', selected ? 'bg-surface-panel text-text-primary shadow-sm' : 'text-text-secondary hover:text-text-primary')
                   }
                 >
-                  Team <span className="ml-1 font-mono text-text-muted text-xs">({teamErinnerungen.length})</span>
+                  Team <span className="ml-1 font-mono text-xs text-text-muted">({teamErinnerungen.length})</span>
                 </Tab>
               </TabList>
               <Button size="sm" appearance="ghost" onClick={handleCreateClick}>
@@ -500,7 +500,7 @@ function PinnwandErinnerungenInner({ einsatzId, className, currentUserId }: Pinn
                   </div>
                   {/* Anzeige der gefilterten Anzahl bei aktivem Filter */}
                   {isAnyFilterActive && (
-                    <span className="text-text-muted text-xs">
+                    <span className="text-xs text-text-muted">
                       {filteredByStatus.length} von {teamErinnerungen.length}
                     </span>
                   )}
@@ -599,7 +599,7 @@ function SwimlaneView({ groups, einsatzId, currentUserId, showCreator, onCreateC
         if (items.length === 0) return null;
 
         return (
-          <div key={config.key} className="border-border-subtle border-b">
+          <div key={config.key} className="border-b border-border-subtle">
             {/* Swimlane Header - Sticky mit Separator */}
             {isCollapsible ? (
               <button
@@ -615,11 +615,11 @@ function SwimlaneView({ groups, einsatzId, currentUserId, showCreator, onCreateC
               >
                 <div className="flex items-center gap-2.5">
                   <span className={cn('text-base', isAbgeschlossen && 'opacity-60')}>{config.emoji}</span>
-                  <h2 className={cn('font-bold text-sm uppercase tracking-wider', config.headerText)}>{config.label}</h2>
-                  <span className={cn('min-w-[20px] rounded-full px-1.5 py-0.5 text-center font-bold font-mono text-xs', config.badgeBg)}>{items.length}</span>
+                  <h2 className={cn('text-sm font-bold tracking-wider uppercase', config.headerText)}>{config.label}</h2>
+                  <span className={cn('min-w-[20px] rounded-full px-1.5 py-0.5 text-center font-mono text-xs font-bold', config.badgeBg)}>{items.length}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  {!isAbgeschlossen && config.statusText && <span className={cn('font-medium text-xs', config.statusTextColor)}>{config.statusText}</span>}
+                  {!isAbgeschlossen && config.statusText && <span className={cn('text-xs font-medium', config.statusTextColor)}>{config.statusText}</span>}
                   {isCollapsed ? <PiCaretDown className="h-4 w-4 text-text-muted" /> : <PiCaretUp className="h-4 w-4 text-text-muted" />}
                 </div>
               </button>
@@ -627,11 +627,11 @@ function SwimlaneView({ groups, einsatzId, currentUserId, showCreator, onCreateC
               <div className={cn('sticky top-0 z-10 flex items-center justify-between border-b px-5 py-2.5', config.headerBg, config.headerBorderColor)}>
                 <div className="flex items-center gap-2.5">
                   <span className="text-base">{config.emoji}</span>
-                  <h2 className={cn('font-bold text-sm uppercase tracking-wider', config.headerText)}>{config.label}</h2>
-                  <span className={cn('min-w-[20px] rounded-full px-1.5 py-0.5 text-center font-bold font-mono text-xs', config.badgeBg)}>{items.length}</span>
+                  <h2 className={cn('text-sm font-bold tracking-wider uppercase', config.headerText)}>{config.label}</h2>
+                  <span className={cn('min-w-[20px] rounded-full px-1.5 py-0.5 text-center font-mono text-xs font-bold', config.badgeBg)}>{items.length}</span>
                 </div>
                 {config.statusText && (
-                  <span className={cn('flex items-center gap-1 font-medium text-xs', config.statusTextColor)}>
+                  <span className={cn('flex items-center gap-1 text-xs font-medium', config.statusTextColor)}>
                     {config.statusPulse && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-status-danger-text" />}
                     {config.statusText}
                   </span>

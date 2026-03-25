@@ -45,7 +45,7 @@ Die Release Notes sollen:
 2. Änderungen thematisch nach Feature-Bereichen gruppieren (z.B. "Erinnerungen", "ETB-Integration", "Vorlagen") statt nach Commit-Typ (Feature/Bugfix)
 3. Technische Commit-Messages in benutzerfreundliche Beschreibungen übersetzen
 4. Wichtige Änderungen hervorheben, die Nutzer betreffen
-5. Rein technische Commits weglassen (CI-Fixes, Biome-Config, Refactoring ohne User-Impact, Release-Pipeline-Änderungen)
+5. Rein technische Commits weglassen (CI-Fixes, Linter-Config, Refactoring ohne User-Impact, Release-Pipeline-Änderungen)
 6. Bugfixes den jeweiligen Feature-Bereichen zuordnen, nicht separat auflisten
 7. Keine Commit-Hashes, keine Story-Nummern, keine internen Tracking-IDs
 8. Markdown-Formatierung mit ## für Abschnitts-Überschriften

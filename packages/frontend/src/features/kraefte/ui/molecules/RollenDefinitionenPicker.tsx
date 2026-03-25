@@ -66,8 +66,8 @@ export function RollenDefinitionenPicker({
   if (isError) {
     return (
       <div className="space-y-1">
-        {label && <span className="block font-medium text-text-secondary text-sm">{label}</span>}
-        <div role="alert" aria-live="assertive" className="rounded-panel border border-status-danger-border bg-status-danger-surface px-3 py-2 text-status-danger-text text-sm">
+        {label && <span className="block text-sm font-medium text-text-secondary">{label}</span>}
+        <div role="alert" aria-live="assertive" className="rounded-panel border border-status-danger-border bg-status-danger-surface px-3 py-2 text-sm text-status-danger-text">
           Fehler beim Laden der Rollen. Bitte Seite neu laden.
         </div>
       </div>
@@ -77,8 +77,8 @@ export function RollenDefinitionenPicker({
   if (rollen && rollen.length === 0) {
     return (
       <div className="space-y-1">
-        {label && <span className="block font-medium text-text-secondary text-sm">{label}</span>}
-        <output className="block rounded-panel border border-status-warning-border bg-status-warning-surface px-3 py-2 text-status-warning-text text-sm">
+        {label && <span className="block text-sm font-medium text-text-secondary">{label}</span>}
+        <output className="block rounded-panel border border-status-warning-border bg-status-warning-surface px-3 py-2 text-sm text-status-warning-text">
           Keine RollenDefinitionen gefunden. Bitte Rollen anlegen.
         </output>
       </div>
@@ -88,8 +88,8 @@ export function RollenDefinitionenPicker({
   if (items.length === 0 && rollen && rollen.length > 0) {
     return (
       <div className="space-y-1">
-        {label && <span className="block font-medium text-text-secondary text-sm">{label}</span>}
-        <output className="block rounded-panel border border-border-subtle bg-surface-raised px-3 py-2 text-text-secondary text-sm">Alle Rollen sind bereits besetzt.</output>
+        {label && <span className="block text-sm font-medium text-text-secondary">{label}</span>}
+        <output className="block rounded-panel border border-border-subtle bg-surface-raised px-3 py-2 text-sm text-text-secondary">Alle Rollen sind bereits besetzt.</output>
       </div>
     );
   }

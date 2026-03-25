@@ -23,7 +23,7 @@ export function FmsStatusBadge({ status, className }: FmsStatusBadgeProps) {
   const colorClasses = getStatusClasses(status);
 
   return (
-    <span className={cn('inline-flex items-center rounded-full px-2 py-0.5 font-medium text-xs', colorClasses, className)} title={FMS_STATUS_LABELS[status]}>
+    <span className={cn('inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium', colorClasses, className)} title={FMS_STATUS_LABELS[status]}>
       FMS {status}
     </span>
   );

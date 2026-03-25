@@ -75,7 +75,7 @@ export function EinsatzIncompleteAlert({
               <Button
                 appearance="minimal"
                 size="icon"
-                className="rounded-md bg-surface-panel text-text-muted hover:text-text-secondary focus-visible:outline-none focus-visible:shadow-focus-ring"
+                className="rounded-md bg-surface-panel text-text-muted hover:text-text-secondary focus-visible:shadow-focus-ring focus-visible:outline-none"
                 onClick={handleClose}
               >
                 <span className="sr-only">Schließen</span>
@@ -89,7 +89,7 @@ export function EinsatzIncompleteAlert({
               </div>
 
               <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                <DialogTitle as="h3" className="font-semibold text-base text-text-primary leading-6">
+                <DialogTitle as="h3" className="text-base leading-6 font-semibold text-text-primary">
                   {title}
                 </DialogTitle>
 
@@ -98,7 +98,7 @@ export function EinsatzIncompleteAlert({
 
                   {missingFields.length > 0 && (
                     <div className="mt-3">
-                      <p className="font-medium text-text-primary text-body-sm">Fehlende Felder:</p>
+                      <p className="text-body-sm font-medium text-text-primary">Fehlende Felder:</p>
                       <ul className="mt-1 list-inside list-disc text-body-sm text-text-secondary">
                         {missingFields.map((field) => (
                           <li key={field}>{field}</li>

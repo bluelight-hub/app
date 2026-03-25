@@ -345,8 +345,8 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
             <TabList className="mb-4 flex gap-1 rounded-lg bg-surface-raised p-1">
               <Tab
                 className={cn(
-                  'flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 font-medium text-sm transition-all',
-                  'focus-visible:outline-none focus-visible:shadow-focus-ring',
+                  'flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-all',
+                  'focus-visible:shadow-focus-ring focus-visible:outline-none',
                   'data-[selected]:bg-surface-panel data-[selected]:text-action-primary data-[selected]:shadow-sm',
                   'data-[hover]:text-text-primary',
                 )}
@@ -356,8 +356,8 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
               </Tab>
               <Tab
                 className={cn(
-                  'flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 font-medium text-sm transition-all',
-                  'focus-visible:outline-none focus-visible:shadow-focus-ring',
+                  'flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-all',
+                  'focus-visible:shadow-focus-ring focus-visible:outline-none',
                   'data-[selected]:bg-surface-panel data-[selected]:text-action-primary data-[selected]:shadow-sm',
                   'data-[hover]:text-text-primary',
                 )}
@@ -386,11 +386,11 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                           disabled={registrierePerson.isPending}
                           placeholder="z.B. Max"
                           className={cn(
-                            'block w-full rounded-lg border bg-surface-raised px-4 py-3 font-medium text-base text-text-primary',
+                            'block w-full rounded-lg border bg-surface-raised px-4 py-3 text-base font-medium text-text-primary',
                             'transition-all duration-200',
                             'border-border-subtle',
                             'placeholder:text-text-muted',
-                            'focus-visible:outline-none focus-visible:shadow-focus-ring',
+                            'focus-visible:shadow-focus-ring focus-visible:outline-none',
                             'sm:text-sm',
                             'disabled:cursor-not-allowed disabled:opacity-50',
                             field.state.meta.errors.length > 0 && 'border-status-danger-border',
@@ -409,11 +409,11 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                             <ComboboxInput
                               aria-label="Nachname suchen"
                               className={cn(
-                                'block w-full rounded-lg border bg-surface-raised px-4 py-3 pr-12 font-medium text-base text-text-primary',
+                                'block w-full rounded-lg border bg-surface-raised px-4 py-3 pr-12 text-base font-medium text-text-primary',
                                 'transition-all duration-200',
                                 'border-border-subtle',
                                 'placeholder:text-text-muted',
-                                'focus-visible:outline-none focus-visible:shadow-focus-ring',
+                                'focus-visible:shadow-focus-ring focus-visible:outline-none',
                                 'sm:text-sm',
                                 'disabled:cursor-not-allowed disabled:opacity-50',
                                 field.state.meta.errors.length > 0 && 'border-status-danger-border',
@@ -442,7 +442,7 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                               className={cn(
                                 'absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-surface-panel py-1 text-base shadow-panel',
                                 'border border-border-subtle',
-                                'data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in',
+                                'data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in data-[closed]:data-[leave]:opacity-0',
                                 'sm:text-sm',
                               )}
                             >
@@ -480,7 +480,7 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                                     key={person.id}
                                     value={person}
                                     className={cn(
-                                      'relative cursor-default select-none py-3 pr-9 pl-4',
+                                      'relative cursor-default py-3 pr-9 pl-4 select-none',
                                       'data-[focus]:bg-action-primary data-[focus]:text-text-inverse data-[focus]:outline-none',
                                       'text-text-primary',
                                     )}
@@ -521,10 +521,10 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                             <ListboxButton
                               aria-label="Funktion auswählen"
                               className={cn(
-                                'relative w-full cursor-default rounded-lg border bg-surface-raised py-3 pr-10 pl-4 text-left font-medium text-base text-text-primary',
+                                'relative w-full cursor-default rounded-lg border bg-surface-raised py-3 pr-10 pl-4 text-left text-base font-medium text-text-primary',
                                 'transition-all duration-200',
                                 'border-border-subtle',
-                                'focus-visible:outline-none focus-visible:shadow-focus-ring',
+                                'focus-visible:shadow-focus-ring focus-visible:outline-none',
                                 'sm:text-sm',
                                 'disabled:cursor-not-allowed disabled:opacity-50',
                                 field.state.meta.errors.length > 0 && 'border-status-danger-border',
@@ -540,7 +540,7 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                               className={cn(
                                 'absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg bg-surface-panel py-1 text-base shadow-panel',
                                 'border border-border-subtle',
-                                'data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in',
+                                'data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in data-[closed]:data-[leave]:opacity-0',
                                 'sm:text-sm',
                               )}
                             >
@@ -549,7 +549,7 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                                   key={funktion}
                                   value={funktion}
                                   className={cn(
-                                    'relative cursor-default select-none py-3 pr-9 pl-4',
+                                    'relative cursor-default py-3 pr-9 pl-4 select-none',
                                     'data-[focus]:bg-action-primary data-[focus]:text-text-inverse data-[focus]:outline-none',
                                     'text-text-primary',
                                   )}
@@ -585,11 +585,11 @@ export function PersonHinzufuegenDialog({ isOpen, onClose, einsatzId, onPersonCr
                           disabled={registrierePerson.isPending}
                           placeholder="z.B. GF"
                           className={cn(
-                            'block w-full rounded-lg border bg-surface-raised px-4 py-3 font-medium text-base text-text-primary',
+                            'block w-full rounded-lg border bg-surface-raised px-4 py-3 text-base font-medium text-text-primary',
                             'transition-all duration-200',
                             'border-border-subtle',
                             'placeholder:text-text-muted',
-                            'focus-visible:outline-none focus-visible:shadow-focus-ring',
+                            'focus-visible:shadow-focus-ring focus-visible:outline-none',
                             'sm:text-sm',
                             'disabled:cursor-not-allowed disabled:opacity-50',
                             field.state.meta.errors.length > 0 && 'border-status-danger-border',

@@ -27,7 +27,7 @@ export const DeleteBefehlsgeberVorschlagDialog = ({ isOpen, onClose, onConfirm, 
         <div className="space-y-4">
           {' '}
           <Text>Möchten Sie den folgenden Befehlsgeber-Vorschlag wirklich löschen?</Text>{' '}
-          <div className="rounded-lg border border-border-subtle bg-surface-raised p-4 ">
+          <div className="rounded-lg border border-border-subtle bg-surface-raised p-4">
             {' '}
             <div className="flex items-start justify-between">
               {' '}
@@ -43,7 +43,7 @@ export const DeleteBefehlsgeberVorschlagDialog = ({ isOpen, onClose, onConfirm, 
           </div>{' '}
           <div className="rounded-lg border border-status-danger-border bg-status-danger-surface p-3">
             {' '}
-            <Text className="text-status-danger-text text-sm">
+            <Text className="text-sm text-status-danger-text">
               {' '}
               <strong>Achtung:</strong> Der Vorschlag wird unwiderruflich gelöscht. Bestehende Befehle bleiben davon unberührt.{' '}
             </Text>{' '}

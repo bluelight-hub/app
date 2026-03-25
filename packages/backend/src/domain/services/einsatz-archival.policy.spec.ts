@@ -139,7 +139,7 @@ describe('EinsatzArchivalPolicy', () => {
       einsatz.archive(userId);
 
       // HACK: Set archivedAt to 10 years ago for testing
-      // biome-ignore lint/suspicious/noExplicitAny: Test bypasses factory for date simulation
+      // eslint-disable-next-line typescript/no-explicit-any -- Test bypasses factory for date simulation
       (einsatz as any)._archivedAt = new Date('2014-11-17T10:00:00Z');
 
       const currentDate = new Date('2024-11-17T10:00:00Z'); // Exactly 10 years later
@@ -158,7 +158,7 @@ describe('EinsatzArchivalPolicy', () => {
       einsatz.archive(userId);
 
       // HACK: Set archivedAt to 9 years ago for testing
-      // biome-ignore lint/suspicious/noExplicitAny: Test bypasses factory for date simulation
+      // eslint-disable-next-line typescript/no-explicit-any -- Test bypasses factory for date simulation
       (einsatz as any)._archivedAt = new Date('2015-11-17T10:00:00Z');
 
       const currentDate = new Date('2024-11-17T10:00:00Z'); // Only 9 years later
@@ -195,7 +195,7 @@ describe('EinsatzArchivalPolicy', () => {
       const einsatz = einsatzResult.value!;
 
       // HACK: Force ARCHIVIERT status without proper archival
-      // biome-ignore lint/suspicious/noExplicitAny: Test bypasses factory for invalid state simulation
+      // eslint-disable-next-line typescript/no-explicit-any -- Test bypasses factory for invalid state simulation
       (einsatz as any)._status = EinsatzStatus.ARCHIVIERT();
 
       const currentDate = new Date('2024-11-17T10:00:00Z');
@@ -214,7 +214,7 @@ describe('EinsatzArchivalPolicy', () => {
       einsatz.archive(userId);
 
       // HACK: Set archivedAt to Feb 29, 2024
-      // biome-ignore lint/suspicious/noExplicitAny: Test bypasses factory for date simulation
+      // eslint-disable-next-line typescript/no-explicit-any -- Test bypasses factory for date simulation
       (einsatz as any)._archivedAt = new Date('2024-02-29T12:00:00Z');
 
       const currentDate = new Date('2034-03-01T12:00:00Z'); // 10 years later (Feb 29 + 10 years = Mar 1, 2034)
@@ -235,7 +235,7 @@ describe('EinsatzArchivalPolicy', () => {
       einsatz.archive(userId);
 
       // HACK: Set archivedAt to 2014-11-17
-      // biome-ignore lint/suspicious/noExplicitAny: Test bypasses factory for date simulation
+      // eslint-disable-next-line typescript/no-explicit-any -- Test bypasses factory for date simulation
       (einsatz as any)._archivedAt = new Date('2014-11-17T10:30:00Z');
 
       // When: Get deletion date
@@ -253,7 +253,7 @@ describe('EinsatzArchivalPolicy', () => {
       einsatz.archive(userId);
 
       // HACK: Set archivedAt to Feb 29, 2024
-      // biome-ignore lint/suspicious/noExplicitAny: Test bypasses factory for date simulation
+      // eslint-disable-next-line typescript/no-explicit-any -- Test bypasses factory for date simulation
       (einsatz as any)._archivedAt = new Date('2024-02-29T12:00:00Z');
 
       // When: Get deletion date
@@ -288,7 +288,7 @@ describe('EinsatzArchivalPolicy', () => {
       einsatz.archive(userId);
 
       // HACK: Set archivedAt to 2014-11-17
-      // biome-ignore lint/suspicious/noExplicitAny: Test bypasses factory for date simulation
+      // eslint-disable-next-line typescript/no-explicit-any -- Test bypasses factory for date simulation
       (einsatz as any)._archivedAt = new Date('2014-11-17T10:00:00Z');
 
       const originalDateString = einsatz.archivedAt?.toISOString();

@@ -389,10 +389,10 @@ dto: RegisterDto
 
 ```typescript
 // ✅ Korrekt: Via /schemas Export
-import {inviteCodeSchema} from '@bluelight-hub/shared/schemas';
+import { inviteCodeSchema } from '@bluelight-hub/shared/schemas';
 
 // ❌ Falsch: Direkter Import (funktioniert nicht)
-import {inviteCodeSchema} from '@bluelight-hub/shared/src/schemas/auth/invite-code.schema';
+import { inviteCodeSchema } from '@bluelight-hub/shared/src/schemas/auth/invite-code.schema';
 ```
 
 ## 🔄 Synchronisation Strategy

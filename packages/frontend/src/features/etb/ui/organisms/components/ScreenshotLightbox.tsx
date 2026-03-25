@@ -82,8 +82,8 @@ export function ScreenshotLightbox({ isOpen, onClose, screenshotUrl, title = 'La
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <DialogPanel className="relative flex max-h-[90vh] max-w-[95vw] flex-col rounded-lg bg-surface-panel shadow-2xl">
           {/* Header */}
-          <div className="flex items-center justify-between border-border-subtle border-b p-4">
-            <DialogTitle className="font-semibold text-lg text-text-primary">{title}</DialogTitle>
+          <div className="flex items-center justify-between border-b border-border-subtle p-4">
+            <DialogTitle className="text-lg font-semibold text-text-primary">{title}</DialogTitle>
             <div className="flex gap-2">
               <Button type="button" onClick={handleDownload} intent="secondary" appearance="outline" size="sm" className="gap-2" aria-label="Screenshot herunterladen">
                 <PiDownload size={18} aria-hidden="true" />

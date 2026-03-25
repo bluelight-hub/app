@@ -120,7 +120,7 @@ describe('PrismaEinsatzPersonMapper', () => {
       };
 
       // When: toPersistence() aufgerufen
-      // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+      // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
       const result = PrismaEinsatzPersonMapper.toPersistence(mockAggregate as any);
 
       // Then: fahrzeugId ist null (DB NULL)
@@ -148,7 +148,7 @@ describe('PrismaEinsatzPersonMapper', () => {
       };
 
       // When: toPersistence() aufgerufen
-      // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+      // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
       const result = PrismaEinsatzPersonMapper.toPersistence(mockAggregate as any);
 
       // Then: fahrzeugId bleibt "cuid123"
@@ -206,7 +206,7 @@ describe('PrismaEinsatzPersonMapper', () => {
       };
 
       // When: toPersistence() aufgerufen
-      // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+      // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
       const result = PrismaEinsatzPersonMapper.toPersistence(mockAggregate as any);
 
       // Then: stammId ist null
@@ -231,7 +231,7 @@ describe('PrismaEinsatzPersonMapper', () => {
       };
 
       // When: toPersistence() aufgerufen
-      // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+      // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
       const result = PrismaEinsatzPersonMapper.toPersistence(mockAggregate as any);
 
       // Then: funkrufname ist null
@@ -256,7 +256,7 @@ describe('PrismaEinsatzPersonMapper', () => {
       };
 
       // When: toPersistence() aufgerufen
-      // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+      // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
       const result = PrismaEinsatzPersonMapper.toPersistence(mockAggregate as any);
 
       // Then: updatedBy ist null
@@ -322,7 +322,7 @@ describe('PrismaEinsatzPersonMapper', () => {
       };
 
       // When: toPersistence() aufgerufen
-      // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+      // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
       const result = PrismaEinsatzPersonMapper.toPersistence(mockAggregate as any);
 
       // Then: Required Felder sind korrekt
@@ -370,7 +370,7 @@ describe('PrismaEinsatzPersonMapper', () => {
       // Given: Prisma Entity mit Position JSONB
       const positionJson = { lat: 52.52, lng: 13.405 };
       const prismaEntity = createMockPrismaEinsatzPerson({
-        // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+        // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
         position: positionJson as any,
       });
 
@@ -381,9 +381,9 @@ describe('PrismaEinsatzPersonMapper', () => {
       expect(result.isSuccess).toBe(true);
       expect(result.value?.position).toBeDefined();
       // GeoPosition ist ein Value Object, prüfe die props
-      // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+      // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
       expect((result.value?.position as any)?.props?.lat).toBe(52.52);
-      // biome-ignore lint/suspicious/noExplicitAny: Test requires type bypass for mock/invalid data
+      // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
       expect((result.value?.position as any)?.props?.lng).toBe(13.405);
     });
 

@@ -121,7 +121,7 @@ export function TeamFilterDropdown({ selectedFilter, onFilterChange, teilnehmer,
             'absolute z-20 mt-1 max-h-60 w-full min-w-[180px] overflow-auto rounded-panel bg-surface-panel py-1 text-sm shadow-panel',
             'border border-border-subtle',
             'focus:outline-none',
-            'data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in',
+            'data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in data-[closed]:data-[leave]:opacity-0',
           )}
         >
           {/* Basis-Optionen */}
@@ -129,7 +129,7 @@ export function TeamFilterDropdown({ selectedFilter, onFilterChange, teilnehmer,
             <ListboxOption
               key={option.value}
               value={option.value}
-              className={cn('relative flex cursor-pointer select-none items-center gap-2 px-3 py-2', 'text-text-primary', 'data-[focus]:bg-primary-50 data-[focus]:text-primary-900')}
+              className={cn('relative flex cursor-pointer items-center gap-2 px-3 py-2 select-none', 'text-text-primary', 'data-[focus]:bg-primary-50 data-[focus]:text-primary-900')}
             >
               {({ selected }) => (
                 <>
@@ -142,14 +142,14 @@ export function TeamFilterDropdown({ selectedFilter, onFilterChange, teilnehmer,
           ))}
 
           {/* Divider wenn Teilnehmer vorhanden */}
-          {teilnehmerOptions.length > 0 && <div className="my-1 border-border-subtle border-t" />}
+          {teilnehmerOptions.length > 0 && <div className="my-1 border-t border-border-subtle" />}
 
           {/* Teilnehmer-Optionen */}
           {teilnehmerOptions.map((option) => (
             <ListboxOption
               key={option.value}
               value={option.value}
-              className={cn('relative flex cursor-pointer select-none items-center gap-2 px-3 py-2', 'text-text-primary', 'data-[focus]:bg-primary-50 data-[focus]:text-primary-900')}
+              className={cn('relative flex cursor-pointer items-center gap-2 px-3 py-2 select-none', 'text-text-primary', 'data-[focus]:bg-primary-50 data-[focus]:text-primary-900')}
             >
               {({ selected }) => (
                 <>

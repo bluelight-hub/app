@@ -59,12 +59,12 @@ export class LayerErrorBoundary extends Component<LayerErrorBoundaryProps, Layer
               <PiWarning className="h-4 w-4 text-status-danger-text" />
             </div>
             <div className="flex-1">
-              <h4 className="font-semibold text-status-danger-text text-sm">Fehler im {this.props.layerName}</h4>
+              <h4 className="text-sm font-semibold text-status-danger-text">Fehler im {this.props.layerName}</h4>
               <p className="mt-1 text-body-xs text-status-danger-text">{this.state.error?.message || 'Ein unerwarteter Fehler ist aufgetreten.'}</p>
               <button
                 type="button"
                 onClick={this.handleReset}
-                className="mt-2 inline-flex items-center gap-1 rounded-md bg-status-danger-text px-2 py-1 font-medium text-text-inverse text-body-xs hover:opacity-90 focus-visible:outline-none focus-visible:shadow-focus-ring"
+                className="mt-2 inline-flex items-center gap-1 rounded-md bg-status-danger-text px-2 py-1 text-body-xs font-medium text-text-inverse hover:opacity-90 focus-visible:shadow-focus-ring focus-visible:outline-none"
               >
                 <PiArrowClockwise className="h-3 w-3" />
                 Erneut laden

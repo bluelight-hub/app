@@ -19,7 +19,7 @@ export function CommandBreadcrumb({ commandStack, onBack, onNavigateTo }: Comman
   };
 
   return (
-    <nav aria-label="Breadcrumb" className="flex items-center border-border-subtle border-b bg-surface-raised/70 px-4 py-2.5">
+    <nav aria-label="Breadcrumb" className="flex items-center border-b border-border-subtle bg-surface-raised/70 px-4 py-2.5">
       <Button
         appearance="ghost"
         size="sm"
@@ -44,14 +44,13 @@ export function CommandBreadcrumb({ commandStack, onBack, onNavigateTo }: Comman
                 onClick={() => handleBreadcrumbClick(idx)}
                 disabled={!isClickable}
                 aria-current={isLast ? 'page' : undefined}
-                className={`rounded-md px-2 py-1 font-medium text-sm transition-all focus-visible:outline-none focus-visible:shadow-focus-ring ${
+                className={`rounded-md px-2 py-1 text-sm font-medium transition-all focus-visible:shadow-focus-ring focus-visible:outline-none ${
                   isLast
                     ? 'cursor-default text-text-primary'
                     : isClickable
                       ? 'cursor-pointer text-text-secondary hover:bg-action-secondary hover:text-text-primary'
                       : 'cursor-default text-text-secondary'
-                }
-                `}
+                } `}
               >
                 {cmd.name}
               </button>

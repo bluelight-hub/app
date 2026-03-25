@@ -58,7 +58,7 @@ function SnapshotCard({ snapshot, isFirst }: { snapshot: EtbSnapshotDto; isFirst
       </div>
 
       {/* Aktuell-Label für den neuesten Snapshot */}
-      {isFirst && <p className="mt-1 text-action-primary text-xs">Aktueller Stand</p>}
+      {isFirst && <p className="mt-1 text-xs text-action-primary">Aktueller Stand</p>}
 
       {/* Expandable Einträge-Liste */}
       {entryCount > 0 && (
@@ -80,7 +80,7 @@ function SnapshotCard({ snapshot, isFirst }: { snapshot: EtbSnapshotDto; isFirst
                 entryKeyCounts.set(text, occurrence);
 
                 return (
-                  <div key={`entry-${snapshot.version}-${text}-${occurrence}`} className="border-border-subtle border-b pb-2 text-sm text-text-secondary last:border-b-0 last:pb-0">
+                  <div key={`entry-${snapshot.version}-${text}-${occurrence}`} className="border-b border-border-subtle pb-2 text-sm text-text-secondary last:border-b-0 last:pb-0">
                     {text}
                   </div>
                 );

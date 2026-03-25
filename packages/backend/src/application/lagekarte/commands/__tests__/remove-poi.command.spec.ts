@@ -85,7 +85,7 @@ describe('RemovePoiCommand', () => {
   describe('Invalid Commands - lagekarteId validation', () => {
     it('should return failure when lagekarteId is undefined', () => {
       // Given/When
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
+      // eslint-disable-next-line typescript/no-explicit-any -- Testing null/undefined handling
       const result = RemovePoiCommand.create(undefined as any, 'poi-456');
 
       // Then
@@ -95,7 +95,7 @@ describe('RemovePoiCommand', () => {
 
     it('should return failure when lagekarteId is null', () => {
       // Given/When
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
+      // eslint-disable-next-line typescript/no-explicit-any -- Testing null/undefined handling
       const result = RemovePoiCommand.create(null as any, 'poi-456');
 
       // Then
@@ -125,7 +125,7 @@ describe('RemovePoiCommand', () => {
   describe('Invalid Commands - poiId validation', () => {
     it('should return failure when poiId is undefined', () => {
       // Given/When
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
+      // eslint-disable-next-line typescript/no-explicit-any -- Testing null/undefined handling
       const result = RemovePoiCommand.create('lagekarte-123', undefined as any);
 
       // Then
@@ -135,7 +135,7 @@ describe('RemovePoiCommand', () => {
 
     it('should return failure when poiId is null', () => {
       // Given/When
-      // biome-ignore lint/suspicious/noExplicitAny: Testing null/undefined handling
+      // eslint-disable-next-line typescript/no-explicit-any -- Testing null/undefined handling
       const result = RemovePoiCommand.create('lagekarte-123', null as any);
 
       // Then

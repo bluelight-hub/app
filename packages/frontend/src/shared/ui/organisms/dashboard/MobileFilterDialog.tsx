@@ -55,11 +55,11 @@ export const MobileFilterDialog = ({ isOpen, onClose, statusFilter, sortOption, 
   };
 
   return (
-    <Dialog isOpen={isOpen} onClose={onClose} size="full" className="!fixed !inset-x-0 !bottom-0 !top-auto !max-h-[80vh] !rounded-b-none !rounded-t-2xl sm:hidden">
+    <Dialog isOpen={isOpen} onClose={onClose} size="full" className="!fixed !inset-x-0 !top-auto !bottom-0 !max-h-[80vh] !rounded-t-2xl !rounded-b-none sm:hidden">
       <Dialog.Title>Filter & Sortierung</Dialog.Title>
 
       <Dialog.Body className="max-h-[60vh] space-y-4 overflow-y-auto">
-        <div className="border-border-subtle border-b pb-4">
+        <div className="border-b border-border-subtle pb-4">
           <Button
             intent={!showArchived ? 'secondary' : 'primary'}
             appearance={!showArchived ? 'outline' : 'ghost'}
@@ -73,12 +73,12 @@ export const MobileFilterDialog = ({ isOpen, onClose, statusFilter, sortOption, 
             <PiArchive className="mr-2 h-4 w-4" />
             {showArchived ? 'Aktive Einsätze' : 'Archiv anzeigen'}
           </Button>
-          {showArchived && <p className="mt-2 text-text-secondary text-xs">Zeigt nur archivierte Einsätze</p>}
+          {showArchived && <p className="mt-2 text-xs text-text-secondary">Zeigt nur archivierte Einsätze</p>}
         </div>
 
         {!showArchived && (
           <div>
-            <label htmlFor="status-filter-mobile" className="mb-2 block font-medium text-sm text-text-secondary">
+            <label htmlFor="status-filter-mobile" className="mb-2 block text-sm font-medium text-text-secondary">
               Status filtern
             </label>
             <Select
@@ -98,7 +98,7 @@ export const MobileFilterDialog = ({ isOpen, onClose, statusFilter, sortOption, 
         )}
 
         <div>
-          <span className="mb-2 block font-medium text-sm text-text-secondary">Sortieren nach</span>
+          <span className="mb-2 block text-sm font-medium text-text-secondary">Sortieren nach</span>
           <div className="space-y-2">
             {sortOptions.map(({ key, label }) => (
               <Button

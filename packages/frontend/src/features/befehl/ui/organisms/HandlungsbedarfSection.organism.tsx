@@ -32,21 +32,21 @@ export function HandlungsbedarfSection({ handlungsbedarf, onBefehlSelect, onQuit
   const summaryText = summaryParts.join(', ');
 
   return (
-    <section className={cn('border-border-subtle border-b', className)} aria-label="Handlungsbedarf">
+    <section className={cn('border-b border-border-subtle', className)} aria-label="Handlungsbedarf">
       {/* Toggle-Header */}
       <button
         type="button"
         onClick={() => setIsCollapsed((prev) => !prev)}
-        className={cn('flex w-full items-center gap-2 px-4 py-2 text-left font-medium text-sm transition-colors hover:bg-action-secondary text-text-secondary')}
+        className={cn('flex w-full items-center gap-2 px-4 py-2 text-left text-sm font-medium text-text-secondary transition-colors hover:bg-action-secondary')}
         aria-expanded={!isCollapsed}
         aria-controls="handlungsbedarf-content"
       >
         <PiWarningCircle className="h-4 w-4 text-status-warning-text" aria-hidden="true" />
         <span>
           Handlungsbedarf
-          <span className="ml-1.5 font-normal text-text-muted text-xs">({gesamtCount})</span>
+          <span className="ml-1.5 text-xs font-normal text-text-muted">({gesamtCount})</span>
         </span>
-        {isCollapsed && <span className="ml-2 font-normal text-text-muted text-xs">{summaryText}</span>}
+        {isCollapsed && <span className="ml-2 text-xs font-normal text-text-muted">{summaryText}</span>}
         <span className="ml-auto">{isCollapsed ? <PiCaretDown className="h-4 w-4 text-text-muted" aria-hidden="true" /> : <PiCaretUp className="h-4 w-4 text-text-muted" aria-hidden="true" />}</span>
       </button>
 
@@ -55,10 +55,10 @@ export function HandlungsbedarfSection({ handlungsbedarf, onBefehlSelect, onQuit
         <div id="handlungsbedarf-content">
           {/* A1: Kritisch (roter Akzent) */}
           {kritisch.length > 0 && (
-            <div className="border-status-danger-border border-l-4 bg-status-danger-surface">
+            <div className="border-l-4 border-status-danger-border bg-status-danger-surface">
               <div className="flex items-center gap-2 px-4 py-1.5">
                 <span className="h-2 w-2 rounded-full bg-status-danger-text" aria-hidden="true" />
-                <span className="font-semibold text-status-danger-text text-xs">{kritisch.length} kritisch</span>
+                <span className="text-xs font-semibold text-status-danger-text">{kritisch.length} kritisch</span>
               </div>
               {kritisch.map((befehl) => (
                 <BefehlAlertRow key={befehl.id} befehl={befehl} variant="kritisch" onClick={() => onBefehlSelect(befehl.id)} />
@@ -68,10 +68,10 @@ export function HandlungsbedarfSection({ handlungsbedarf, onBefehlSelect, onQuit
 
           {/* A2: Warnung (gelber Akzent) */}
           {warnung.length > 0 && (
-            <div className={cn('border-status-warning-border border-l-4 bg-status-warning-surface', kritisch.length > 0 && 'border-t border-border-subtle')}>
+            <div className={cn('border-l-4 border-status-warning-border bg-status-warning-surface', kritisch.length > 0 && 'border-t border-border-subtle')}>
               <div className="flex items-center gap-2 px-4 py-1.5">
                 <span className="h-2 w-2 rounded-full bg-status-warning-text" aria-hidden="true" />
-                <span className="font-semibold text-xs text-status-warning-text">
+                <span className="text-xs font-semibold text-status-warning-text">
                   {warnung.length} Rückfrage{warnung.length !== 1 ? 'n' : ''}
                 </span>
               </div>
@@ -83,10 +83,10 @@ export function HandlungsbedarfSection({ handlungsbedarf, onBefehlSelect, onQuit
 
           {/* A3: Zu quittieren (blauer Akzent, rollenbasiert) */}
           {zuQuittieren.length > 0 && (
-            <div className={cn('border-status-info-border border-l-4 bg-status-info-surface', (kritisch.length > 0 || warnung.length > 0) && 'border-t border-border-subtle')}>
+            <div className={cn('border-l-4 border-status-info-border bg-status-info-surface', (kritisch.length > 0 || warnung.length > 0) && 'border-t border-border-subtle')}>
               <div className="flex items-center gap-2 px-4 py-1.5">
                 <span className="h-2 w-2 rounded-full bg-status-info-text" aria-hidden="true" />
-                <span className="font-semibold text-status-info-text text-xs">{zuQuittieren.length} zu quittieren</span>
+                <span className="text-xs font-semibold text-status-info-text">{zuQuittieren.length} zu quittieren</span>
               </div>
               {zuQuittieren.map((befehl) => (
                 <BefehlAlertRow key={befehl.id} befehl={befehl} variant="zuQuittieren" onQuittieren={onQuittieren} onClick={() => onBefehlSelect(befehl.id)} />

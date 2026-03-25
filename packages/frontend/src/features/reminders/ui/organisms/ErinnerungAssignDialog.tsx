@@ -132,7 +132,7 @@ export function ErinnerungAssignDialog({ isOpen, onClose, erinnerung, einsatzId 
 
             {/* Teilnehmer-Auswahl */}
             <div>
-              <label htmlFor="assignee-select" className="mb-1.5 block font-medium text-sm text-text-secondary">
+              <label htmlFor="assignee-select" className="mb-1.5 block text-sm font-medium text-text-secondary">
                 Zuweisen an
               </label>
               <AssigneeSelector einsatzId={einsatzId} value={selectedUserId} onChange={handleUserChange} disabled={isPending} error={error ?? undefined} />
@@ -140,7 +140,7 @@ export function ErinnerungAssignDialog({ isOpen, onClose, erinnerung, einsatzId 
             </div>
 
             {/* Hinweis */}
-            <p className="text-text-muted text-xs">Nach der Zuweisung erhaelt die ausgewaehlte Person eine Benachrichtigung und die Erinnerung erscheint in deren Liste.</p>
+            <p className="text-xs text-text-muted">Nach der Zuweisung erhaelt die ausgewaehlte Person eine Benachrichtigung und die Erinnerung erscheint in deren Liste.</p>
           </div>
         )}
       </Dialog.Body>

@@ -67,17 +67,17 @@ describe('AdminInviteController', () => {
     // Create mock handlers (Direct Instantiation Pattern)
     mockCreateInviteHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     mockListInvitesHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     mockRevokeInviteHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     // Instantiate controller with all required mocks
@@ -362,7 +362,7 @@ describe('AdminInviteController', () => {
           expiresAt: futureIsoDate(),
         };
 
-        // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+        // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
         mockCreateInviteHandler.execute.mockResolvedValue(Result.ok(undefined as any));
 
         // When (Act) & Then (Assert)

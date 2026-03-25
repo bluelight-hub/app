@@ -36,13 +36,13 @@ export const FilterPanel = ({ statusFilter, sortOption, showArchived, onStatusFi
   ];
 
   return (
-    <div className={cn('w-64 flex-shrink-0 overflow-y-auto border-border-subtle border-r bg-surface-panel p-4', className)}>
-      <h3 className="mb-4 font-medium text-lg text-text-primary">Filter & Sortierung</h3>
+    <div className={cn('w-64 flex-shrink-0 overflow-y-auto border-r border-border-subtle bg-surface-panel p-4', className)}>
+      <h3 className="mb-4 text-lg font-medium text-text-primary">Filter & Sortierung</h3>
 
       <div className="space-y-4">
         {!showArchived && (
           <div>
-            <label htmlFor="status-filter" className="mb-2 block font-medium text-sm text-text-secondary">
+            <label htmlFor="status-filter" className="mb-2 block text-sm font-medium text-text-secondary">
               Status filtern
             </label>
             <Select
@@ -61,16 +61,16 @@ export const FilterPanel = ({ statusFilter, sortOption, showArchived, onStatusFi
           </div>
         )}
 
-        <div className="border-border-subtle border-t pt-4">
+        <div className="border-t border-border-subtle pt-4">
           <Button intent={!showArchived ? 'secondary' : 'primary'} appearance={!showArchived ? 'outline' : 'ghost'} size="sm" onClick={onArchiveToggle} className="w-full">
             <PiArchive className="mr-2 h-4 w-4" />
             {showArchived ? 'Aktive Einsätze' : 'Archiv anzeigen'}
           </Button>
-          {showArchived && <p className="mt-2 text-text-secondary text-xs">Zeigt nur archivierte Einsätze</p>}
+          {showArchived && <p className="mt-2 text-xs text-text-secondary">Zeigt nur archivierte Einsätze</p>}
         </div>
 
         <div>
-          <span className="mb-2 block font-medium text-sm text-text-secondary">Sortieren nach</span>
+          <span className="mb-2 block text-sm font-medium text-text-secondary">Sortieren nach</span>
           <div className="space-y-2">
             {sortOptions.map(({ key, label }) => (
               <Button

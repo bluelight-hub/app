@@ -52,12 +52,12 @@ MGRS-Koordinaten folgen dem NATO-Standard:
 - **Easting:** Ost-West Position in Metern (0-99999)
 - **Northing:** Nord-Süd Position in Metern (0-99999)
 - **Präzision:** Anzahl der Ziffern bestimmt die Genauigkeit
-    - 10 Ziffern (5+5): 1m Genauigkeit (z.B. `12345 67890`)
-    - 8 Ziffern (4+4): 10m Genauigkeit (z.B. `1234 6789`)
-    - 6 Ziffern (3+3): 100m Genauigkeit (z.B. `123 678`)
-    - 4 Ziffern (2+2): 1km Genauigkeit (z.B. `12 67`)
-    - 2 Ziffern (1+1): 10km Genauigkeit (z.B. `1 6`)
-    - 0 Ziffern: 100km Genauigkeit (nur Grid Square)
+  - 10 Ziffern (5+5): 1m Genauigkeit (z.B. `12345 67890`)
+  - 8 Ziffern (4+4): 10m Genauigkeit (z.B. `1234 6789`)
+  - 6 Ziffern (3+3): 100m Genauigkeit (z.B. `123 678`)
+  - 4 Ziffern (2+2): 1km Genauigkeit (z.B. `12 67`)
+  - 2 Ziffern (1+1): 10km Genauigkeit (z.B. `1 6`)
+  - 0 Ziffern: 100km Genauigkeit (nur Grid Square)
 
 **Wichtig:** Easting und Northing müssen immer die gleiche Anzahl Ziffern haben!
 
@@ -69,13 +69,13 @@ Konvertiert MGRS-Koordinaten zu WGS84 Lat/Lng (Mittelpunkt der MGRS-Zelle):
 
 ```typescript
 // MGRS-String parsen
-const mgrsResult = MgrsCoordinate.fromString("33UUU8990317936");
+const mgrsResult = MgrsCoordinate.fromString('33UUU8990317936');
 if (mgrsResult.isSuccess) {
   const mgrs = mgrsResult.value;
 
   // Zu Lat/Lng konvertieren (Mittelpunkt)
   const latLng = mgrs.toLatLng();
-  console.log(latLng.latitude);  // 52.5163
+  console.log(latLng.latitude); // 52.5163
   console.log(latLng.longitude); // 13.3777
   console.log(latLng.toString()); // "52.5163°N, 13.3777°E"
 
@@ -101,12 +101,12 @@ const mgrsResult = MgrsCoordinate.fromLatLng(52.5163, 13.3777, 5);
 //                                            ^lat    ^lng     ^precision (5 = 1m)
 if (mgrsResult.isSuccess) {
   const mgrs = mgrsResult.value;
-  console.log(mgrs.value);      // "33UUU8990317936"
-  console.log(mgrs.gridZone);   // "33U"
-  console.log(mgrs.squareId);   // "UU"
-  console.log(mgrs.easting);    // 89903
-  console.log(mgrs.northing);   // 17936
-  console.log(mgrs.precision);  // 1 (meter)
+  console.log(mgrs.value); // "33UUU8990317936"
+  console.log(mgrs.gridZone); // "33U"
+  console.log(mgrs.squareId); // "UU"
+  console.log(mgrs.easting); // 89903
+  console.log(mgrs.northing); // 17936
+  console.log(mgrs.precision); // 1 (meter)
 }
 ```
 
@@ -134,24 +134,24 @@ verwendet werden muss:
 ### Verwendung von GeoCoordinate (Lat/Lng)
 
 1. **Externe APIs:**
-    - Geocoding-APIs (Nominatim, Google Maps Geocoding)
-    - Map-Rendering (Leaflet, Google Maps, Mapbox)
-    - Routing-APIs (OSRM, Google Directions)
+   - Geocoding-APIs (Nominatim, Google Maps Geocoding)
+   - Map-Rendering (Leaflet, Google Maps, Mapbox)
+   - Routing-APIs (OSRM, Google Directions)
 
 2. **Frontend-Anzeige:**
-    - Kartenanzeige (Leaflet erwartet Lat/Lng)
-    - Marker-Positionierung
-    - Polyline/Polygon-Zeichnung
+   - Kartenanzeige (Leaflet erwartet Lat/Lng)
+   - Marker-Positionierung
+   - Polyline/Polygon-Zeichnung
 
 3. **API-Integration:**
-    - Externe Dienste geben fast immer Lat/Lng zurück
-    - Standards wie GeoJSON nutzen Lat/Lng
+   - Externe Dienste geben fast immer Lat/Lng zurück
+   - Standards wie GeoJSON nutzen Lat/Lng
 
 ### Workflow
 
 ```typescript
 // 1. Externe API liefert Lat/Lng (z.B. Nominatim Geocoding)
-const geocodingResult = await nominatim.search("Brandenburger Tor, Berlin");
+const geocodingResult = await nominatim.search('Brandenburger Tor, Berlin');
 const { lat, lng } = geocodingResult[0];
 
 // 2. Konvertierung zu MGRS für Datenbank-Speicherung
@@ -181,14 +181,14 @@ L.marker([latLng.latitude, latLng.longitude]).addTo(map);
 
 ```typescript
 // MGRS
-const berlinMgrs = MgrsCoordinate.fromString("33UUU8990317936").getValue();
-console.log(berlinMgrs.gridZone);  // "33U"
-console.log(berlinMgrs.squareId);  // "UU"
+const berlinMgrs = MgrsCoordinate.fromString('33UUU8990317936').getValue();
+console.log(berlinMgrs.gridZone); // "33U"
+console.log(berlinMgrs.squareId); // "UU"
 console.log(berlinMgrs.precision); // 1 (meter)
 
 // Lat/Lng
 const berlinLatLng = berlinMgrs.toLatLng();
-console.log(berlinLatLng.latitude);  // 52.5163
+console.log(berlinLatLng.latitude); // 52.5163
 console.log(berlinLatLng.longitude); // 13.3777
 ```
 
@@ -223,11 +223,11 @@ Die MGRS-Implementierung ist umfassend getestet:
 - **391 Tests** für MGRS-Koordinaten-Konvertierung (Epic 1)
 - **97.1% Line Coverage**
 - **Alle Edge Cases abgedeckt:**
-    - Polregionen (werden gracefully behandelt)
-    - UTM-Zonengrenzen
-    - Format-Validierung (ungerade Ziffernanzahl, ungültige Zeichen)
-    - Deutsche Zonen-Validierung (32U, 33U, 33N)
-    - Präzisions-Varianten (0-10 Ziffern)
+  - Polregionen (werden gracefully behandelt)
+  - UTM-Zonengrenzen
+  - Format-Validierung (ungerade Ziffernanzahl, ungültige Zeichen)
+  - Deutsche Zonen-Validierung (32U, 33U, 33N)
+  - Präzisions-Varianten (0-10 Ziffern)
 
 **Test-Datei für Entwickler:**
 `packages/backend/src/domain/value-objects/mgrs-coordinate.spec.ts`

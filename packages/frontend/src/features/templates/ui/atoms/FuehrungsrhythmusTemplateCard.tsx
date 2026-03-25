@@ -38,11 +38,11 @@ export function FuehrungsrhythmusTemplateCard({ id, name, beschreibung, eintraeg
         <div className="min-w-0 flex-1 text-left">
           <div className="flex items-center gap-2">
             <PiMetronome className="h-4 w-4 shrink-0 text-status-warning-text" />
-            <h3 className="truncate font-semibold text-text-primary text-sm">{name}</h3>
+            <h3 className="truncate text-sm font-semibold text-text-primary">{name}</h3>
             {scope && (
               <span
                 className={cn(
-                  'inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium text-xs',
+                  'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
                   scope === 'GLOBAL' ? 'bg-status-info-surface text-status-info-text' : 'bg-surface-raised text-text-secondary',
                 )}
               >
@@ -58,10 +58,10 @@ export function FuehrungsrhythmusTemplateCard({ id, name, beschreibung, eintraeg
               </span>
             )}
           </div>
-          {beschreibung && <p className="mt-1 line-clamp-2 text-text-muted text-xs">{beschreibung}</p>}
+          {beschreibung && <p className="mt-1 line-clamp-2 text-xs text-text-muted">{beschreibung}</p>}
         </div>
         <div className="flex items-center gap-2">
-          <span className="whitespace-nowrap rounded-pill bg-status-warning-surface px-2.5 py-1 font-medium text-status-warning-text text-xs">
+          <span className="rounded-pill bg-status-warning-surface px-2.5 py-1 text-xs font-medium whitespace-nowrap text-status-warning-text">
             {eintraege.length} {eintraege.length === 1 ? 'Erinnerung' : 'Erinnerungen'}
           </span>
           {isExpanded ? <PiCaretUp className="h-4 w-4 text-text-muted" /> : <PiCaretDown className="h-4 w-4 text-text-muted" />}
@@ -70,14 +70,14 @@ export function FuehrungsrhythmusTemplateCard({ id, name, beschreibung, eintraeg
 
       {/* Eintraege-Liste (aufklappbar) */}
       {isExpanded && (
-        <div className="border-border-subtle border-t px-4 pt-3 pb-4">
+        <div className="border-t border-border-subtle px-4 pt-3 pb-4">
           <div className="space-y-2">
             {eintraege
               .sort((a, b) => a.sortOrder - b.sortOrder)
               .map((eintrag) => (
                 <div key={eintrag.id} className="flex items-center justify-between rounded-control bg-surface-raised px-3 py-2 text-sm">
                   <span className="font-medium text-text-secondary">{eintrag.titel}</span>
-                  <div className="flex items-center gap-3 text-text-muted text-xs">
+                  <div className="flex items-center gap-3 text-xs text-text-muted">
                     <span>alle {eintrag.intervallMinuten} Min</span>
                     {eintrag.offsetMinuten > 0 && <span className="rounded bg-surface-panel px-1.5 py-0.5">+{eintrag.offsetMinuten} Min Offset</span>}
                   </div>

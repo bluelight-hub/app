@@ -75,12 +75,12 @@ describe('AdminSecurityController', () => {
     // Create mock handlers (Direct Instantiation Pattern)
     mockMigrateHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     mockStatusHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     mockAppConfig = {
@@ -93,7 +93,7 @@ describe('AdminSecurityController', () => {
         runtimeConfigCount: 0,
         runtimeSecretCount: 0,
       })),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     // Instantiate controller with mocks

@@ -165,7 +165,7 @@ export function TokenListItem({ token, onClick, onRevokeClick, onReactivateClick
   };
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: Interaktivität ist optional und role wird dynamisch gesetzt
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- Interaktivität ist optional und role wird dynamisch gesetzt
     <div
       className={cn(
         'rounded-panel border border-border-subtle bg-surface-panel p-4 transition-colors',
@@ -190,10 +190,10 @@ export function TokenListItem({ token, onClick, onRevokeClick, onReactivateClick
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="truncate font-medium text-sm text-text-primary">{token.name}</h3>
+              <h3 className="truncate text-sm font-medium text-text-primary">{token.name}</h3>
               {isActive && <InactivityBadge isInactive={lastUsedInfo.isInactive} tooltip={lastUsedInfo.tooltip} />}
             </div>
-            <code className="font-mono text-text-muted text-xs">{formatMaskedPrefix(token.prefix)}</code>
+            <code className="font-mono text-xs text-text-muted">{formatMaskedPrefix(token.prefix)}</code>
           </div>
           <div title={rotationTooltip}>
             <Badge variant={statusVariant} size="sm" dot={isActive || isReplacement} dotColor={isActive || isReplacement ? 'green' : undefined}>
@@ -203,13 +203,13 @@ export function TokenListItem({ token, onClick, onRevokeClick, onReactivateClick
         </div>
 
         {rotationTooltip && (
-          <div className="flex items-center gap-1 text-action-primary text-xs">
+          <div className="flex items-center gap-1 text-xs text-action-primary">
             <PiArrowsClockwise className="h-3.5 w-3.5" aria-hidden="true" />
             {rotationTooltip}
           </div>
         )}
 
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-text-muted text-xs">
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-muted">
           <span className="flex items-center gap-1">
             <PiCalendar className="h-3.5 w-3.5" aria-hidden="true" />
             Erstellt: {formatDate(token.createdAt)}
@@ -248,7 +248,7 @@ export function TokenListItem({ token, onClick, onRevokeClick, onReactivateClick
           <div className="flex items-center gap-2">
             <code className="font-mono text-sm text-text-muted">{formatMaskedPrefix(token.prefix)}</code>
             {rotationTooltip && (
-              <span className="text-action-primary text-xs" title={rotationTooltip}>
+              <span className="text-xs text-action-primary" title={rotationTooltip}>
                 <PiArrowsClockwise className="inline h-3.5 w-3.5" aria-hidden="true" />
               </span>
             )}
@@ -256,24 +256,24 @@ export function TokenListItem({ token, onClick, onRevokeClick, onReactivateClick
         </div>
 
         <div className="hidden flex-shrink-0 text-right md:block">
-          <div className="text-text-muted text-xs">Erstellt</div>
+          <div className="text-xs text-text-muted">Erstellt</div>
           <div className="text-sm text-text-secondary">{formatDate(token.createdAt)}</div>
         </div>
 
         <div className="hidden flex-shrink-0 text-right lg:block">
           {isRotated && token.revokedAt ? (
             <>
-              <div className="text-action-primary text-xs">Rotiert am</div>
-              <div className="text-action-primary text-sm">{formatDate(token.revokedAt)}</div>
+              <div className="text-xs text-action-primary">Rotiert am</div>
+              <div className="text-sm text-action-primary">{formatDate(token.revokedAt)}</div>
             </>
           ) : token.revokedAt ? (
             <>
-              <div className="text-status-danger-text text-xs">Deaktiviert am</div>
+              <div className="text-xs text-status-danger-text">Deaktiviert am</div>
               <div className="text-sm text-status-danger-text">{formatDate(token.revokedAt)}</div>
             </>
           ) : (
             <>
-              <div className="text-text-muted text-xs">Zuletzt verwendet</div>
+              <div className="text-xs text-text-muted">Zuletzt verwendet</div>
               <div className="text-sm text-text-secondary" title={lastUsedInfo.tooltip}>
                 {lastUsedInfo.text}
               </div>

@@ -103,8 +103,8 @@ describe('BefehlKommentarThread', () => {
     const kommentare = [createKommentar({ id: 'k1', authorId: 'user-2', text: 'Test' })];
 
     renderWithProviders(
-      // biome-ignore lint/a11y/useKeyWithClickEvents: Test-Helper
-      // biome-ignore lint/a11y/noStaticElementInteractions: Test-Helper
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events -- Test-Helper
+      // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- Test-Helper
       <div onClick={parentClick}>
         <BefehlKommentarThread {...defaultProps} kommentare={kommentare} />
       </div>,

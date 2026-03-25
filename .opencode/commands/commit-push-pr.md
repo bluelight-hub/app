@@ -1,5 +1,5 @@
 ---
-description: "Erstellt Commit, Push und Pull Request nach den Projektkonventionen"
+description: 'Erstellt Commit, Push und Pull Request nach den Projektkonventionen'
 ---
 
 Führe den OpenCode-Workflow `git-commit-push-pr` aus.

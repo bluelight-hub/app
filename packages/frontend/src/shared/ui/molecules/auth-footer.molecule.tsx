@@ -22,7 +22,7 @@ interface AuthFooterProps {
  */
 export function AuthFooter({ badges = [{ label: 'System online', variant: 'default', dotColor: 'green' }], version, copyright }: AuthFooterProps) {
   return (
-    <div className="w-full space-y-4 border-border-subtle border-t pt-6">
+    <div className="w-full space-y-4 border-t border-border-subtle pt-6">
       {/* Status Pills */}
       {badges.length > 0 && (
         <div className="flex justify-center gap-4">

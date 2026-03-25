@@ -114,7 +114,7 @@ export function AdminFahrzeugtypen() {
             <div className="p-6">
               <div className="space-y-4">
                 {[...Array(5)].map((_, index) => (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: Static skeleton elements
+                  // eslint-disable-next-line react/no-array-index-key -- Static skeleton elements
                   <div key={`skeleton-${index}`} className="flex items-center gap-4">
                     <Skeleton className="h-6 w-24" />
                     <Skeleton className="h-6 w-48" />
@@ -139,7 +139,7 @@ export function AdminFahrzeugtypen() {
             <PiWarning className="h-12 w-12 text-status-danger-text" />
             <Heading size="md">Fehler beim Laden</Heading>
             <Text className="text-text-secondary">Die Fahrzeugtypen konnten nicht geladen werden.</Text>
-            <Text className="text-text-muted text-sm">{error.message}</Text>
+            <Text className="text-sm text-text-muted">{error.message}</Text>
             <Button onClick={() => void refetch()} intent="primary" loading={isFahrzeugtypenLoading} disabled={isFahrzeugtypenLoading}>
               Erneut versuchen
             </Button>

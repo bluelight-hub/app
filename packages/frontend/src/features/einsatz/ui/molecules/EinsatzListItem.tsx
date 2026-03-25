@@ -24,7 +24,7 @@ export const EinsatzListItem = ({ einsatz }: EinsatzListItemProps) => {
       <div className="flex flex-col gap-4">
         <div className="min-w-0 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-[11px] text-text-secondary uppercase tracking-[0.18em]">{einsatz.nummer}</span>
+            <span className="font-mono text-[11px] tracking-[0.18em] text-text-secondary uppercase">{einsatz.nummer}</span>
             {isCurrentlyActive && (
               <Badge size="sm" className="border border-status-success-border bg-status-success-surface text-status-success-text">
                 Im Fokus
@@ -33,7 +33,7 @@ export const EinsatzListItem = ({ einsatz }: EinsatzListItemProps) => {
           </div>
           <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
             <div className="min-w-0 space-y-1">
-              <h3 className="line-clamp-2 font-semibold text-text-primary text-title-sm sm:line-clamp-1">{einsatz.alarmstichwort || 'Kein Alarmstichwort'}</h3>
+              <h3 className="line-clamp-2 text-title-sm font-semibold text-text-primary sm:line-clamp-1">{einsatz.alarmstichwort || 'Kein Alarmstichwort'}</h3>
               {einsatzortLabel ? <p className="line-clamp-1 text-body-sm text-text-secondary">{einsatzortLabel}</p> : null}
             </div>
             <EinsatzStatusBadge status={einsatz.status || EinsatzStatus.ANGELEGT} size="sm" className="w-fit shrink-0" />
@@ -59,7 +59,7 @@ interface MetadataPillProps {
 
 function MetadataPill({ children, icon }: MetadataPillProps) {
   return (
-    <span className={cn('inline-flex items-center gap-1.5 rounded-pill border border-border-subtle bg-surface-raised px-2.5 py-1', 'font-medium text-[11px] text-text-secondary shadow-sm')}>
+    <span className={cn('inline-flex items-center gap-1.5 rounded-pill border border-border-subtle bg-surface-raised px-2.5 py-1', 'text-[11px] font-medium text-text-secondary shadow-sm')}>
       <span className="text-text-muted">{icon}</span>
       <span>{children}</span>
     </span>

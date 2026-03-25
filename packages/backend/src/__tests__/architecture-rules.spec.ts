@@ -17,7 +17,7 @@ describe('Architecture Rules', () => {
   const infrastructureImportPattern = /from\s+['"].*@infrastructure(?!\/di-tokens)/;
   const prismaImportPattern = /from\s+['"]@prisma\/client['"]/;
 
-  // Files with legacy exceptions (documented with biome-ignore or planned for Epic 6 migration)
+  // Files with legacy exceptions (documented with eslint-disable or planned for Epic 6 migration)
   const legacyExceptions = [
     'get-all-einsaetze.query.ts',
     'get-all-einsaetze.handler.ts',

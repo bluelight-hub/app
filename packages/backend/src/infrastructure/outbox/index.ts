@@ -32,12 +32,7 @@ export { PrismaOutboxRepository, type PrismaTransaction } from './prisma-outbox.
 export type { IOutboxRepository, OutboxEventDto } from '@domain/repositories/i-outbox.repository';
 
 // Polling Worker
-export {
-  OutboxEventPublisher,
-  type OutboxPublisherConfig,
-  DEFAULT_OUTBOX_PUBLISHER_CONFIG,
-  OUTBOX_PUBLISHER_CONFIG,
-} from './outbox-event-publisher.service';
+export { OutboxEventPublisher, type OutboxPublisherConfig, DEFAULT_OUTBOX_PUBLISHER_CONFIG, OUTBOX_PUBLISHER_CONFIG } from './outbox-event-publisher.service';
 
 // Module
 export { OutboxModule } from './outbox.module';

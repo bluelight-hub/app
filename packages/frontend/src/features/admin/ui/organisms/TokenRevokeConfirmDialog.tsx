@@ -27,7 +27,7 @@ export function TokenRevokeConfirmDialog({ isOpen, onClose, tokenName, tokenId, 
 
           <div className="rounded-panel border border-border-subtle bg-surface-raised p-4">
             <div className="font-medium text-text-primary">{tokenName}</div>
-            <code className="mt-1 font-mono text-text-muted text-xs">ID: {tokenId}</code>
+            <code className="mt-1 font-mono text-xs text-text-muted">ID: {tokenId}</code>
           </div>
 
           <div className="rounded-panel border border-status-danger-border bg-status-danger-surface p-3">

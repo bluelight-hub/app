@@ -53,7 +53,7 @@ export function EinsatzTimelineWidget({ events, className }: EinsatzTimelineWidg
 
   return (
     <div className={cn('rounded-lg bg-surface-panel p-6 shadow-sm', className)}>
-      <h3 className="mb-4 font-semibold text-text-primary text-lg">Einsatzverlauf</h3>
+      <h3 className="mb-4 text-lg font-semibold text-text-primary">Einsatzverlauf</h3>
 
       <div className="relative">
         {/* Timeline line */}

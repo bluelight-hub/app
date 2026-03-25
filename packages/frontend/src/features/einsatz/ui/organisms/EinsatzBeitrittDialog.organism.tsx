@@ -123,9 +123,9 @@ export function EinsatzBeitrittDialog({ einsatzId, isOpen, onClose, onReturnToOv
 
           <div className="flex-1">
             <div className="mb-2 flex items-center gap-2">
-              {requiresAssignment && <span className="rounded-full bg-status-warning-surface px-2 py-1 font-medium text-body-xs text-status-warning-text">Pflichtschritt</span>}
+              {requiresAssignment && <span className="rounded-full bg-status-warning-surface px-2 py-1 text-body-xs font-medium text-status-warning-text">Pflichtschritt</span>}
             </div>
-            <h2 ref={gateTitleRef} tabIndex={-1} className="font-semibold text-text-primary text-lg">
+            <h2 ref={gateTitleRef} tabIndex={-1} className="text-lg font-semibold text-text-primary">
               {requiresAssignment ? 'Zuordnung erforderlich' : 'Zuordnung ändern'}
             </h2>
 
@@ -155,7 +155,7 @@ export function EinsatzBeitrittDialog({ einsatzId, isOpen, onClose, onReturnToOv
 
                 <div className="flex items-center gap-3">
                   <div className="h-px flex-1 bg-border-subtle" />
-                  <span className="text-text-muted text-body-xs">oder</span>
+                  <span className="text-body-xs text-text-muted">oder</span>
                   <div className="h-px flex-1 bg-border-subtle" />
                 </div>
 

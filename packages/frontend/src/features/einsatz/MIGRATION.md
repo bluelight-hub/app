@@ -92,12 +92,7 @@ const updateEinsatz = useUpdateEinsatz();
 **Vorher:**
 
 ```typescript
-const {
-  einsaetze,
-  isFetchingNextPage,
-  hasNextPage,
-  fetchNextPage,
-} = useEinsaetze({
+const { einsaetze, isFetchingNextPage, hasNextPage, fetchNextPage } = useEinsaetze({
   infinite: true,
   status: 'AKTIV',
   limit: 20,
@@ -107,18 +102,13 @@ const {
 **Nachher:**
 
 ```typescript
-const {
-  data,
-  isFetchingNextPage,
-  hasNextPage,
-  fetchNextPage,
-} = useEinsaetzeInfiniteQuery({
+const { data, isFetchingNextPage, hasNextPage, fetchNextPage } = useEinsaetzeInfiniteQuery({
   status: 'AKTIV',
   limit: 20,
 });
 
 // Flatten all pages
-const einsaetze = data?.pages.flatMap(page => page.data || []) || [];
+const einsaetze = data?.pages.flatMap((page) => page.data || []) || [];
 ```
 
 #### C) Single Detail Query
@@ -204,13 +194,7 @@ Die alte `useEinsaetze.ts` hatte keine zentrale UI-State-Verwaltung. Der neue St
 
 ```typescript
 import { useStore } from '@tanstack/react-store';
-import {
-  einsatzUIStore,
-  setStatusFilter,
-  setSearchFilter,
-  setPage,
-  getEinsatzQueryFilters,
-} from '@/features/einsatz';
+import { einsatzUIStore, setStatusFilter, setSearchFilter, setPage, getEinsatzQueryFilters } from '@/features/einsatz';
 
 // In Component
 function EinsatzList() {
@@ -273,11 +257,11 @@ function EinsatzList() {
 
 ### 1. Hook-Namen geändert
 
-| Alt | Neu |
-|-----|-----|
-| `useEinsaetze({ infinite: false })` | `useEinsaetzeQuery()` |
-| `useEinsaetze({ infinite: true })` | `useEinsaetzeInfiniteQuery()` |
-| `useEinsatz(id)` | `useEinsatzDetail(id)` |
+| Alt                                 | Neu                           |
+| ----------------------------------- | ----------------------------- |
+| `useEinsaetze({ infinite: false })` | `useEinsaetzeQuery()`         |
+| `useEinsaetze({ infinite: true })`  | `useEinsaetzeInfiniteQuery()` |
+| `useEinsatz(id)`                    | `useEinsatzDetail(id)`        |
 
 ### 2. Return-Struktur geändert
 
@@ -393,16 +377,16 @@ function EinsatzListPage() {
 
 ```typescript
 // Paginated List
-useEinsaetzeQuery({ status, search, page, limit, orderBy, orderDirection })
+useEinsaetzeQuery({ status, search, page, limit, orderBy, orderDirection });
 
 // Infinite Scroll
-useEinsaetzeInfiniteQuery({ status, search, limit, orderBy, orderDirection })
+useEinsaetzeInfiniteQuery({ status, search, limit, orderBy, orderDirection });
 
 // Single Detail
-useEinsatzDetail(id)
+useEinsatzDetail(id);
 
 // Dashboard with Counts
-useActiveEinsaetzeWithCounts()
+useActiveEinsaetzeWithCounts();
 ```
 
 ### Mutations
@@ -424,24 +408,24 @@ archive.mutate({ id });
 ### Store Actions
 
 ```typescript
-setSelectedEinsatzId(id)
-setStatusFilter(status)
-setSearchFilter(search)
-setPage(page)
-setLimit(limit)
-setSorting(orderBy, orderDirection)
-setViewMode('list' | 'grid' | 'infinite')
-resetFilters()
-resetEinsatzUIStore()
-getEinsatzQueryFilters() // Returns combined filters + sorting
+setSelectedEinsatzId(id);
+setStatusFilter(status);
+setSearchFilter(search);
+setPage(page);
+setLimit(limit);
+setSorting(orderBy, orderDirection);
+setViewMode('list' | 'grid' | 'infinite');
+resetFilters();
+resetEinsatzUIStore();
+getEinsatzQueryFilters(); // Returns combined filters + sorting
 ```
 
 ### Query Keys
 
 ```typescript
-EINSATZ_QUERY_KEYS.all // ['einsatz']
-EINSATZ_QUERY_KEYS.list({ status: 'AKTIV' }) // ['einsatz', 'list', { status: 'AKTIV' }]
-EINSATZ_QUERY_KEYS.infinite({ status: 'AKTIV' }) // ['einsatz', 'infinite', { status: 'AKTIV' }]
-EINSATZ_QUERY_KEYS.detail(id) // ['einsatz', 'detail', id]
-EINSATZ_QUERY_KEYS.activeWithCounts() // ['einsatz', 'activeWithCounts']
+EINSATZ_QUERY_KEYS.all; // ['einsatz']
+EINSATZ_QUERY_KEYS.list({ status: 'AKTIV' }); // ['einsatz', 'list', { status: 'AKTIV' }]
+EINSATZ_QUERY_KEYS.infinite({ status: 'AKTIV' }); // ['einsatz', 'infinite', { status: 'AKTIV' }]
+EINSATZ_QUERY_KEYS.detail(id); // ['einsatz', 'detail', id]
+EINSATZ_QUERY_KEYS.activeWithCounts(); // ['einsatz', 'activeWithCounts']
 ```

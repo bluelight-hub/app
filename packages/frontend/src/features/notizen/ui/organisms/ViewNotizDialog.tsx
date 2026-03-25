@@ -56,7 +56,7 @@ export function ViewNotizDialog({ isOpen, onClose, notiz, isOwner = false, onEdi
         </div>
         <div className="min-w-0 flex-1">
           <Dialog.Title className="!text-xl">{notiz.titel}</Dialog.Title>
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-text-muted text-xs">
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-text-muted">
             <span>Erstellt {createdDate}</span>
             {updatedDate && <span>· Bearbeitet {updatedDate}</span>}
             {notiz.erstelltVonName && <span>· von {notiz.erstelltVonName}</span>}
@@ -70,7 +70,7 @@ export function ViewNotizDialog({ isOpen, onClose, notiz, isOwner = false, onEdi
           <div className="flex flex-wrap items-center gap-2">
             {typeof notiz.kategorieName === 'string' && typeof notiz.kategorieFarbe === 'string' && <KategorieChip name={notiz.kategorieName} farbe={notiz.kategorieFarbe} />}
             {notiz.istTeamsichtbar && (
-              <div className="inline-flex items-center gap-1 rounded-pill bg-action-secondary px-2 py-0.5 font-medium text-action-primary text-xs">
+              <div className="inline-flex items-center gap-1 rounded-pill bg-action-secondary px-2 py-0.5 text-xs font-medium text-action-primary">
                 <PiUsersThree className="h-3.5 w-3.5" />
                 Team-sichtbar
               </div>
@@ -80,11 +80,11 @@ export function ViewNotizDialog({ isOpen, onClose, notiz, isOwner = false, onEdi
           {/* Inhalt */}
           {notiz.inhalt ? (
             <div className="rounded-panel border border-border-subtle bg-surface-raised p-4">
-              <p className="whitespace-pre-wrap text-text-secondary text-sm leading-relaxed">{notiz.inhalt}</p>
+              <p className="text-sm leading-relaxed whitespace-pre-wrap text-text-secondary">{notiz.inhalt}</p>
             </div>
           ) : (
-            <div className="rounded-panel border border-border-subtle border-dashed bg-surface-raised/70 p-4 text-center">
-              <p className="text-text-muted text-sm italic">Kein Inhalt vorhanden</p>
+            <div className="rounded-panel border border-dashed border-border-subtle bg-surface-raised/70 p-4 text-center">
+              <p className="text-sm text-text-muted italic">Kein Inhalt vorhanden</p>
             </div>
           )}
         </div>

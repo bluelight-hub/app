@@ -72,7 +72,7 @@ export function ServerOnboardingPage() {
                   setSetupRedirectInProgress(false);
                   navigate({ to: '/auth' });
                 }}
-                className="flex cursor-pointer items-center gap-2 text-text-muted text-sm transition-colors hover:text-text-secondary"
+                className="flex cursor-pointer items-center gap-2 text-sm text-text-muted transition-colors hover:text-text-secondary"
               >
                 <PiArrowLeft className="h-4 w-4" />
                 Zurück zur Anmeldung
@@ -83,7 +83,7 @@ export function ServerOnboardingPage() {
                   setSetupRedirectInProgress(false);
                   navigate({ to: '/server/manage' });
                 }}
-                className="flex cursor-pointer items-center gap-2 text-text-muted text-sm transition-colors hover:text-text-secondary"
+                className="flex cursor-pointer items-center gap-2 text-sm text-text-muted transition-colors hover:text-text-secondary"
               >
                 <PiGear className="h-4 w-4" />
                 Server verwalten
@@ -130,8 +130,8 @@ export function ServerOnboardingPage() {
                   <div className="flex items-start gap-3 rounded-panel border border-status-info-border bg-status-info-surface p-4">
                     <PiInfo className="mt-0.5 h-5 w-5 flex-shrink-0 text-status-info-text" />
                     <div className="space-y-1">
-                      <p className="font-medium text-status-info-text text-sm">Willkommen bei Bluelight Hub</p>
-                      <p className="text-status-info-text text-sm">Gib die Server-URL ein und verbinde dich mit einem Einladungscode oder richte einen neuen Server ein.</p>
+                      <p className="text-sm font-medium text-status-info-text">Willkommen bei Bluelight Hub</p>
+                      <p className="text-sm text-status-info-text">Gib die Server-URL ein und verbinde dich mit einem Einladungscode oder richte einen neuen Server ein.</p>
                     </div>
                   </div>
                 )}
@@ -140,7 +140,7 @@ export function ServerOnboardingPage() {
                 {prefillServerUrl && (
                   <div className="flex items-start gap-3 rounded-panel border border-status-info-border bg-status-info-surface p-4">
                     <PiInfo className="mt-0.5 h-5 w-5 flex-shrink-0 text-status-info-text" />
-                    <p className="text-status-info-text text-sm">Server-URL wurde aus dem Link übernommen. Bitte gib deinen Einladungscode ein.</p>
+                    <p className="text-sm text-status-info-text">Server-URL wurde aus dem Link übernommen. Bitte gib deinen Einladungscode ein.</p>
                   </div>
                 )}
 

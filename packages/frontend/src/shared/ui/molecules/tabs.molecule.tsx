@@ -28,7 +28,7 @@ export function Tabs({ items, defaultIndex = 0, onChange, className }: TabsProps
             key={item.label}
             className={({ selected }) =>
               cn(
-                'w-full rounded-control py-1.5 font-medium text-sm leading-5',
+                'w-full rounded-control py-1.5 text-sm leading-5 font-medium',
                 'focus-visible:shadow-focus-ring focus-visible:outline-none',
                 selected ? 'bg-surface-panel text-text-primary shadow' : 'text-text-secondary hover:bg-action-secondary-hover hover:text-text-primary',
               )

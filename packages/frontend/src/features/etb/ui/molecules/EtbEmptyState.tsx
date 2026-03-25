@@ -15,8 +15,8 @@ export function EtbEmptyState({ title = 'Keine Einträge vorhanden', description
         <div className="mb-4 rounded-full bg-surface-raised p-3">
           <PiClock className="h-8 w-8 text-text-muted" />
         </div>
-        <h3 className="font-medium text-text-primary text-lg">{title}</h3>
-        <p className="mt-1 text-text-secondary text-sm">{description}</p>
+        <h3 className="text-lg font-medium text-text-primary">{title}</h3>
+        <p className="mt-1 text-sm text-text-secondary">{description}</p>
       </div>
     </div>
   );

@@ -179,7 +179,7 @@ export function ServerSelector({
                     <span className={cn('absolute -right-0.5 -bottom-0.5 h-2 w-2 rounded-full ring-2 ring-surface-panel', getStatusColor(connectionStatus?.get(activeServer.id)))} aria-hidden="true" />
                   </div>
                   <span className="block truncate font-medium text-text-primary">{activeServer.name}</span>
-                  <span className="ml-auto truncate text-text-muted text-sm">{getHostSafe(activeServer.url) ?? 'Unbekannt'}</span>
+                  <span className="ml-auto truncate text-sm text-text-muted">{getHostSafe(activeServer.url) ?? 'Unbekannt'}</span>
                 </>
               ) : (
                 <span className="block text-text-muted">Server auswählen...</span>
@@ -200,7 +200,7 @@ export function ServerSelector({
             )}
           >
             {sortedServers.map((server) => (
-              <ListboxOption key={server.id} value={server} className={cn('relative cursor-pointer select-none py-3 pr-10 pl-4', 'text-text-primary', 'data-[focus]:bg-primary-50')}>
+              <ListboxOption key={server.id} value={server} className={cn('relative cursor-pointer py-3 pr-10 pl-4 select-none', 'text-text-primary', 'data-[focus]:bg-primary-50')}>
                 {({ selected }) => (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -213,9 +213,9 @@ export function ServerSelector({
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
                           <span className={cn('block truncate', selected ? 'font-semibold' : 'font-medium')}>{server.name}</span>
-                          {connectionStatus?.get(server.id) === 'disconnected' && <span className="flex-shrink-0 text-text-muted text-sm">Offline</span>}
+                          {connectionStatus?.get(server.id) === 'disconnected' && <span className="flex-shrink-0 text-sm text-text-muted">Offline</span>}
                         </div>
-                        <span className="block truncate text-text-muted text-sm">{getHostSafe(server.url) ?? 'Unbekannt'}</span>
+                        <span className="block truncate text-sm text-text-muted">{getHostSafe(server.url) ?? 'Unbekannt'}</span>
                       </div>
                     </div>
 
@@ -231,7 +231,7 @@ export function ServerSelector({
             ))}
 
             {/* Separator */}
-            <div className="mx-2 my-1 border-border-subtle border-t" />
+            <div className="mx-2 my-1 border-t border-border-subtle" />
 
             {/* Server hinzufügen */}
             <button type="button" onClick={onAddServer} className={cn('flex w-full cursor-pointer items-center gap-3 px-4 py-3', 'text-action-primary', 'hover:bg-primary-50')}>

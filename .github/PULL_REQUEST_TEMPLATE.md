@@ -55,4 +55,3 @@
 ## Verknüpfte Issues
 
 <!-- z.B. Closes #123, Fixes #456 -->
-

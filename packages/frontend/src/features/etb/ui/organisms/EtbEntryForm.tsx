@@ -328,7 +328,7 @@ export function EtbEntryForm({
           <div className="space-y-4">
             {!editingEntry && (
               <div className="rounded-panel border border-border-subtle bg-surface-panel p-4">
-                <p className="mb-3 font-medium text-text-primary text-sm">1. Kommunikationsweg festlegen</p>
+                <p className="mb-3 text-sm font-medium text-text-primary">1. Kommunikationsweg festlegen</p>
                 {/* Verschachtelte form.Field: EtbAbsenderInput benötigt beide Feld-States gleichzeitig */}
                 <form.Field
                   name="absender"
@@ -365,7 +365,7 @@ export function EtbEntryForm({
             )}
 
             <div ref={afterSaveFocusRef} className="rounded-panel border border-border-subtle bg-surface-panel p-4">
-              <p className="mb-3 font-medium text-text-primary text-sm">2. Kontext auswählen</p>
+              <p className="mb-3 text-sm font-medium text-text-primary">2. Kontext auswählen</p>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <form.Field name="kategorie">
                   {(field) => (
@@ -388,7 +388,7 @@ export function EtbEntryForm({
             {pendingTextbaustein && <EtbTextbausteinPreview text={pendingTextbaustein.text} onApply={applyPendingTextbaustein} onCancel={cancelPendingTextbaustein} />}
 
             <div className="rounded-panel border border-border-subtle bg-surface-panel p-4">
-              <p className="mb-3 font-medium text-text-primary text-sm">3. Eintrag formulieren</p>
+              <p className="mb-3 text-sm font-medium text-text-primary">3. Eintrag formulieren</p>
               <form.Field
                 name="text"
                 validators={{
@@ -426,8 +426,8 @@ export function EtbEntryForm({
                 const completed = items.filter((item) => item.done).length;
                 return (
                   <aside className="h-fit rounded-panel border border-border-subtle bg-surface-raised p-4">
-                    <p className="font-medium text-text-primary text-sm">Ablaufstatus</p>
-                    <p className="mt-1 text-text-secondary text-xs">
+                    <p className="text-sm font-medium text-text-primary">Ablaufstatus</p>
+                    <p className="mt-1 text-xs text-text-secondary">
                       {completed}/{items.length} Felder ausgefüllt
                     </p>
                     <ul className="mt-3 space-y-2 text-sm">
@@ -438,7 +438,7 @@ export function EtbEntryForm({
                         </li>
                       ))}
                     </ul>
-                    <p className="mt-3 text-text-muted text-xs">Shortcut: Strg/Cmd + Enter speichert direkt.</p>
+                    <p className="mt-3 text-xs text-text-muted">Shortcut: Strg/Cmd + Enter speichert direkt.</p>
                   </aside>
                 );
               }}

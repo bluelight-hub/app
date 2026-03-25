@@ -46,7 +46,7 @@ export const BrowserSecurityBanner: React.FC<BrowserSecurityBannerProps> = ({ cl
 
   return (
     <div
-      className={cn('sticky top-0 z-50 border-status-warning-border border-b bg-status-warning-surface px-4 py-3', className)}
+      className={cn('sticky top-0 z-50 border-b border-status-warning-border bg-status-warning-surface px-4 py-3', className)}
       role="alert"
       aria-live="polite"
       aria-labelledby="browser-security-warning-text"

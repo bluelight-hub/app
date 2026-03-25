@@ -69,7 +69,7 @@ export const PoiToolbar: React.FC<PoiToolbarProps> = ({ onPoiTypeSelect, selecte
         <config.Icon size={20} color={config.color} aria-hidden="true" />
 
         {/* Label */}
-        <span className="font-medium text-sm">{formatPoiTypeLabel(type)}</span>
+        <span className="text-sm font-medium">{formatPoiTypeLabel(type)}</span>
       </Button>
     );
   };
@@ -88,11 +88,10 @@ export const PoiToolbar: React.FC<PoiToolbarProps> = ({ onPoiTypeSelect, selecte
               <MenuButton
                 className={`flex w-full items-center justify-between gap-2 rounded-lg border-2 px-3 py-2 transition-all hover:shadow-md ${
                   open ? 'border-status-info-border bg-status-info-surface' : 'border-border-subtle bg-surface-panel hover:border-border-strong'
-                }
-                `}
+                } `}
                 aria-label="Erweiterte POI-Typen"
               >
-                <span className="font-medium text-text-primary text-sm">Erweitert</span>
+                <span className="text-sm font-medium text-text-primary">Erweitert</span>
                 <PiCaretDown className={`h-4 w-4 text-text-secondary transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
               </MenuButton>
 
@@ -121,7 +120,7 @@ export const PoiToolbar: React.FC<PoiToolbarProps> = ({ onPoiTypeSelect, selecte
                           <config.Icon size={20} color={config.color} aria-hidden="true" />
 
                           {/* Label */}
-                          <span className="font-medium text-sm">{formatPoiTypeLabel(type)}</span>
+                          <span className="text-sm font-medium">{formatPoiTypeLabel(type)}</span>
                         </Button>
                       )}
                     </MenuItem>
@@ -142,11 +141,10 @@ export const PoiToolbar: React.FC<PoiToolbarProps> = ({ onPoiTypeSelect, selecte
               <MenuButton
                 className={`flex w-full items-center justify-center gap-2 rounded-lg border-2 px-4 py-3 transition-all hover:shadow-md ${
                   open ? 'border-status-info-border bg-status-info-surface' : 'border-border-subtle bg-surface-panel hover:border-border-strong'
-                }
-                `}
+                } `}
                 aria-label="POI platzieren"
               >
-                <span className="font-medium text-base text-text-primary">{selectedType ? formatPoiTypeLabel(selectedType) : 'POI platzieren'}</span>
+                <span className="text-base font-medium text-text-primary">{selectedType ? formatPoiTypeLabel(selectedType) : 'POI platzieren'}</span>
                 <PiCaretDown className={`h-5 w-5 text-text-secondary transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
               </MenuButton>
 
@@ -176,7 +174,7 @@ export const PoiToolbar: React.FC<PoiToolbarProps> = ({ onPoiTypeSelect, selecte
                           <config.Icon size={24} color={config.color} aria-hidden="true" />
 
                           {/* Label */}
-                          <span className="font-medium text-base">{formatPoiTypeLabel(type)}</span>
+                          <span className="text-base font-medium">{formatPoiTypeLabel(type)}</span>
                         </Button>
                       )}
                     </MenuItem>

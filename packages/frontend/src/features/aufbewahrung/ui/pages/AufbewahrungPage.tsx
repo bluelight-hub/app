@@ -205,7 +205,7 @@ function KonfigurationsFormular() {
             {(field) => (
               <div className="flex items-center justify-between rounded-panel border border-border-subtle p-4">
                 <div className="flex-1">
-                  <label htmlFor="auto-loeschen-switch" id="auto-loeschen-label" className="block font-medium text-text-secondary text-sm">
+                  <label htmlFor="auto-loeschen-switch" id="auto-loeschen-label" className="block text-sm font-medium text-text-secondary">
                     Automatische Loeschung
                   </label>
                   <Text size="xs" color="muted" className="mt-0.5">
@@ -279,7 +279,7 @@ function VorschauTabelle() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
-                <thead className="border-border-subtle border-b text-text-muted text-xs uppercase">
+                <thead className="border-b border-border-subtle text-xs text-text-muted uppercase">
                   <tr>
                     <th className="px-4 py-3">Einsatz-Nr.</th>
                     <th className="px-4 py-3">Archiviert am</th>
@@ -347,7 +347,7 @@ function ComplianceReportsTabelle() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-border-subtle border-b text-text-muted text-xs uppercase">
+              <thead className="border-b border-border-subtle text-xs text-text-muted uppercase">
                 <tr>
                   <th className="px-4 py-3">Typ</th>
                   <th className="px-4 py-3">Durchgefuehrt am</th>

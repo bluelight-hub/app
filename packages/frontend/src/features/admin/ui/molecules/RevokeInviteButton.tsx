@@ -52,7 +52,7 @@ export function RevokeInviteButton({ inviteId, status }: RevokeInviteButtonProps
         message={
           <div className="space-y-2">
             <p className="text-text-secondary">Möchten Sie diesen Invite-Code wirklich widerrufen?</p>
-            <p className="text-text-muted text-sm">Diese Aktion kann nicht rückgängig gemacht werden. Der Code kann nach dem Widerruf nicht mehr verwendet werden.</p>
+            <p className="text-sm text-text-muted">Diese Aktion kann nicht rückgängig gemacht werden. Der Code kann nach dem Widerruf nicht mehr verwendet werden.</p>
           </div>
         }
         confirmLabel="Widerrufen"

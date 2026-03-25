@@ -38,5 +38,5 @@ pnpm --filter @bluelight-hub/backend lint:deps:core || {
   exit 1
 }
 
-# Code quality checks (Biome linting + formatting)
+# Code quality checks (oxlint + oxfmt via lint-staged)
 pnpm lint-staged

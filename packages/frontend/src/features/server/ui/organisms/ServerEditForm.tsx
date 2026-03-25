@@ -222,7 +222,7 @@ export function ServerEditForm({ server, onSuccess, onCancel, className }: Serve
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-    // biome-ignore lint/correctness/useExhaustiveDependencies: handleTestConnection ist bewusst in Dependencies (F4 Feature)
+    // eslint-disable-next-line react/exhaustive-deps -- handleTestConnection ist bewusst in Dependencies (F4 Feature)
   }, [isSubmitting, healthCheck.isPending, handleTestConnection]);
 
   return (
@@ -250,7 +250,7 @@ export function ServerEditForm({ server, onSuccess, onCancel, className }: Serve
 
           return (
             <div className="space-y-1">
-              <label htmlFor="serverName" className="block font-medium text-sm text-text-secondary">
+              <label htmlFor="serverName" className="block text-sm font-medium text-text-secondary">
                 Server-Name
               </label>
               <Input
@@ -292,7 +292,7 @@ export function ServerEditForm({ server, onSuccess, onCancel, className }: Serve
 
           return (
             <div className="space-y-1">
-              <label htmlFor="serverUrl" className="block font-medium text-sm text-text-secondary">
+              <label htmlFor="serverUrl" className="block text-sm font-medium text-text-secondary">
                 Server-URL
               </label>
               <Input
@@ -331,15 +331,15 @@ export function ServerEditForm({ server, onSuccess, onCancel, className }: Serve
       <div className="space-y-4 rounded-lg border border-border-subtle p-4" data-testid="visual-settings-section">
         <div className="flex items-center gap-2">
           <PiPalette className="size-5 text-text-secondary" />
-          <h3 className="font-medium text-sm text-text-primary">Visuelle Unterscheidung</h3>
+          <h3 className="text-sm font-medium text-text-primary">Visuelle Unterscheidung</h3>
         </div>
 
         {/* Farb-Auswahl - Validierung erfolgt durch den Picker selbst (nur gültige Presets) */}
         <form.Field name="color">
           {(field) => (
             <div className="space-y-2" data-testid="color-picker-section">
-              {/* biome-ignore lint/a11y/noLabelWithoutControl: ServerColorPicker ist ein radiogroup, kein einzelnes Input */}
-              <label className="block font-medium text-sm text-text-secondary">Farbe auswählen</label>
+              {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- ServerColorPicker ist ein radiogroup, kein einzelnes Input */}
+              <label className="block text-sm font-medium text-text-secondary">Farbe auswählen</label>
               <ServerColorPicker value={field.state.value} onChange={(color) => field.handleChange(color)} disabled={isSubmitting} aria-label="Farbe auswählen" />
             </div>
           )}

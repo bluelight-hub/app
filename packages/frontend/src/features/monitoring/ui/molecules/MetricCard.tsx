@@ -31,13 +31,13 @@ export function MetricCard({ label, value, einheit, status = 'ok', description }
     <div className={`rounded-panel border p-4 ${STATUS_COLORS[status]}`}>
       <div className="mb-1 flex items-center gap-2">
         <div className={`h-2 w-2 rounded-full ${STATUS_DOT_COLORS[status]}`} role="img" aria-label={`Status: ${status === 'ok' ? 'OK' : status === 'warnung' ? 'Warnung' : 'Kritisch'}`} />
-        <span className="text-text-secondary text-sm">{label}</span>
+        <span className="text-sm text-text-secondary">{label}</span>
       </div>
       <div className="flex items-baseline gap-1">
-        <span className="font-semibold text-2xl text-text-primary">{value}</span>
-        {einheit && <span className="text-text-muted text-sm">{einheit}</span>}
+        <span className="text-2xl font-semibold text-text-primary">{value}</span>
+        {einheit && <span className="text-sm text-text-muted">{einheit}</span>}
       </div>
-      {description && <p className="mt-1 text-text-muted text-xs">{description}</p>}
+      {description && <p className="mt-1 text-xs text-text-muted">{description}</p>}
     </div>
   );
 }

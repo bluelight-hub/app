@@ -21,7 +21,7 @@ function SkeletonCard() {
         {' '}
         <div className="h-3 w-full rounded bg-surface-raised" /> <div className="h-3 w-2/3 rounded bg-surface-raised" />{' '}
       </div>{' '}
-      <div className="mt-3 border-border-subtle border-t pt-3">
+      <div className="mt-3 border-t border-border-subtle pt-3">
         {' '}
         <div className="h-7 w-full rounded bg-surface-raised" />{' '}
       </div>{' '}
@@ -85,7 +85,7 @@ export function AdminIntegrationOverview() {
     return (
       <div className="space-y-4 p-6">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-text-primary text-lg">Externe Integrationen</h2>
+          <h2 className="text-lg font-semibold text-text-primary">Externe Integrationen</h2>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <SkeletonCard />
@@ -99,13 +99,13 @@ export function AdminIntegrationOverview() {
   if (isError) {
     return (
       <div className="space-y-4 p-6">
-        <h2 className="font-semibold text-text-primary text-lg">Externe Integrationen</h2>
+        <h2 className="text-lg font-semibold text-text-primary">Externe Integrationen</h2>
         <div className="rounded-panel border border-status-danger-border bg-status-danger-surface p-4">
-          <p className="text-status-danger-text text-sm">Fehler beim Laden der Integrationsübersicht: {(error as Error)?.message ?? 'Unbekannter Fehler'}</p>
+          <p className="text-sm text-status-danger-text">Fehler beim Laden der Integrationsübersicht: {(error as Error)?.message ?? 'Unbekannter Fehler'}</p>
           <button
             type="button"
             onClick={() => refetch()}
-            className="mt-2 rounded-control bg-status-danger-surface px-3 py-1.5 font-medium text-status-danger-text text-xs transition-colors hover:bg-status-danger-surface/80 focus-visible:outline-none focus-visible:shadow-focus-ring"
+            className="mt-2 rounded-control bg-status-danger-surface px-3 py-1.5 text-xs font-medium text-status-danger-text transition-colors hover:bg-status-danger-surface/80 focus-visible:shadow-focus-ring focus-visible:outline-none"
           >
             Erneut versuchen
           </button>
@@ -120,9 +120,9 @@ export function AdminIntegrationOverview() {
     <div className="space-y-4 p-6">
       {/* Header mit aria-live Region fuer Status-Aenderungen */}
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold text-text-primary text-lg">Externe Integrationen</h2>
+        <h2 className="text-lg font-semibold text-text-primary">Externe Integrationen</h2>
         {refreshLabel && (
-          <span aria-live="polite" className="text-text-muted text-xs">
+          <span aria-live="polite" className="text-xs text-text-muted">
             {refreshLabel}
           </span>
         )}
@@ -136,7 +136,7 @@ export function AdminIntegrationOverview() {
           ))}
         </div>
       ) : (
-        <p className="py-8 text-center text-text-muted text-sm">Keine Integrationen konfiguriert.</p>
+        <p className="py-8 text-center text-sm text-text-muted">Keine Integrationen konfiguriert.</p>
       )}
     </div>
   );

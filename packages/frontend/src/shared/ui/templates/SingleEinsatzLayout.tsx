@@ -182,7 +182,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   const hasStartedRef = useRef(false);
 
   // Reset hasStartedRef when einsatzId changes (ref mutation doesn't require deps)
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Ref mutation doesn't require dependencies
+  // eslint-disable-next-line react/exhaustive-deps -- Ref mutation doesn't require dependencies
   useEffect(() => {
     hasStartedRef.current = false;
   }, [einsatzId]);
@@ -212,7 +212,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   });
 
   // Automatisch Einsatz starten wenn Status ANGELEGT ist
-  // biome-ignore lint/correctness/useExhaustiveDependencies: startEinsatzMutation intentionally excluded to prevent re-trigger on mutation state changes
+  // eslint-disable-next-line react/exhaustive-deps -- startEinsatzMutation intentionally excluded to prevent re-trigger on mutation state changes
   useEffect(() => {
     // Erst nach geladener Teilnahme entscheiden.
     if (isTeilnahmeLoading) return;
@@ -472,7 +472,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
         onOpenModuleOverview={() => setShowModuleOverview(true)}
         sidebarHeader={<EinsatzSwitcher />}
         quickActionsSlot={
-          <div className="border-border-subtle border-t pt-4">
+          <div className="border-t border-border-subtle pt-4">
             <Button appearance="ghost" size="sm" className="mb-2 w-full justify-start" onClick={() => setShowBeitrittDialog(true)}>
               <PiRadio className="mr-2 h-4 w-4" />
               {currentEinsatzPersonId ? (
@@ -504,13 +504,13 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
         {isTeilnahmeLoading ? (
           <div className="rounded-panel border border-border-subtle bg-surface-panel p-6 shadow-panel">
             <output aria-live="polite" className="block">
-              <span className="block font-semibold text-text-primary text-title-sm">Arbeitsraum wird vorbereitet</span>
+              <span className="block text-title-sm font-semibold text-text-primary">Arbeitsraum wird vorbereitet</span>
               <span className="mt-2 block text-body-sm text-text-secondary">Teilnahme und Einsatzkontext werden geprüft. Der Arbeitsraum bleibt bis zur Entscheidung blockiert.</span>
             </output>
           </div>
         ) : requiresAssignment ? (
           <div className="rounded-panel border border-status-warning-border bg-status-warning-surface p-6 shadow-panel" role="alert">
-            <p className="font-semibold text-status-warning-text text-title-sm">Zuordnung erforderlich</p>
+            <p className="text-title-sm font-semibold text-status-warning-text">Zuordnung erforderlich</p>
             <p className="mt-2 text-body-sm text-status-warning-text">
               Der Einsatz bleibt gesperrt, bis Sie sich eindeutig zuordnen. Nutzen Sie den geöffneten AssignmentGate, um eine vorhandene Person auszuwählen oder direkt neu anzulegen.
             </p>
@@ -540,7 +540,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
           </div>
 
           <div className="flex-1">
-            <Dialog.Title className="font-semibold text-text-primary text-title-sm">Einsatz beenden?</Dialog.Title>
+            <Dialog.Title className="text-title-sm font-semibold text-text-primary">Einsatz beenden?</Dialog.Title>
 
             <Dialog.Body className="mt-2">
               <p className="text-body-sm text-text-secondary">

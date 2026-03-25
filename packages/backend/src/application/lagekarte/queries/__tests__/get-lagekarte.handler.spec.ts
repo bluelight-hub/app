@@ -44,7 +44,7 @@ describe('GetLagekarteQueryHandler', () => {
       save: jest.fn(),
       findById: jest.fn(),
       exists: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     // Instantiate handler with mock (Direct Instantiation Pattern)

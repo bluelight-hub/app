@@ -143,14 +143,14 @@ export function BefehlFilterRow({
             className={cn(
               'absolute z-20 mt-1 w-48 overflow-auto rounded-lg bg-surface-panel py-1 text-sm shadow-lg',
               'border border-border-subtle ring-1 ring-border-subtle/50 focus:outline-none',
-              'data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in motion-reduce:data-[leave]:duration-0',
+              'data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in data-[closed]:data-[leave]:opacity-0 motion-reduce:data-[leave]:duration-0',
             )}
           >
             {STATUS_OPTIONS.map((option) => (
               <ListboxOption
                 key={option.value}
                 value={option.value}
-                className={cn('relative flex cursor-pointer select-none items-center gap-2 px-3 py-2', 'text-text-primary', 'data-[focus]:bg-action-secondary data-[focus]:text-text-primary')}
+                className={cn('relative flex cursor-pointer items-center gap-2 px-3 py-2 select-none', 'text-text-primary', 'data-[focus]:bg-action-secondary data-[focus]:text-text-primary')}
               >
                 {({ selected }) => (
                   <>
@@ -178,7 +178,7 @@ export function BefehlFilterRow({
             <PiUsers className={cn('ml-3 h-4 w-4 flex-shrink-0', empfaengerName ? 'text-action-primary' : 'text-text-muted')} aria-hidden="true" />
             <ComboboxInput
               className={cn(
-                'w-full border-none bg-transparent py-2 pr-8 pl-2 font-medium text-sm focus:outline-none',
+                'w-full border-none bg-transparent py-2 pr-8 pl-2 text-sm font-medium focus:outline-none',
                 empfaengerName ? 'text-action-primary placeholder:text-text-muted' : 'text-text-secondary placeholder:text-text-muted',
               )}
               placeholder="Empfänger..."
@@ -199,13 +199,13 @@ export function BefehlFilterRow({
             className={cn(
               'absolute z-20 mt-1 max-h-48 w-full overflow-auto rounded-lg bg-surface-panel py-1 text-sm shadow-lg',
               'border border-border-subtle ring-1 ring-border-subtle/50 focus:outline-none',
-              'data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in motion-reduce:data-[leave]:duration-0',
+              'data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in data-[closed]:data-[leave]:opacity-0 motion-reduce:data-[leave]:duration-0',
             )}
           >
             {/* Leere Option zum Zuruecksetzen */}
             <ComboboxOption
               value=""
-              className={cn('relative flex cursor-pointer select-none items-center px-3 py-2 text-text-muted italic', 'data-[focus]:bg-action-secondary data-[focus]:text-text-primary')}
+              className={cn('relative flex cursor-pointer items-center px-3 py-2 text-text-muted italic select-none', 'data-[focus]:bg-action-secondary data-[focus]:text-text-primary')}
             >
               Alle Empfänger
             </ComboboxOption>
@@ -213,7 +213,7 @@ export function BefehlFilterRow({
               <ComboboxOption
                 key={name}
                 value={name}
-                className={cn('relative flex cursor-pointer select-none items-center gap-2 px-3 py-2', 'text-text-primary', 'data-[focus]:bg-action-secondary data-[focus]:text-text-primary')}
+                className={cn('relative flex cursor-pointer items-center gap-2 px-3 py-2 select-none', 'text-text-primary', 'data-[focus]:bg-action-secondary data-[focus]:text-text-primary')}
               >
                 {({ selected }) => <span className={cn('block truncate', selected && 'font-semibold')}>{name}</span>}
               </ComboboxOption>
@@ -243,13 +243,13 @@ export function BefehlFilterRow({
             className={cn(
               'absolute z-20 mt-1 max-h-48 w-48 overflow-auto rounded-lg bg-surface-panel py-1 text-sm shadow-lg',
               'border border-border-subtle ring-1 ring-border-subtle/50 focus:outline-none',
-              'data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in motion-reduce:data-[leave]:duration-0',
+              'data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in data-[closed]:data-[leave]:opacity-0 motion-reduce:data-[leave]:duration-0',
             )}
           >
             {/* Leere Option = "Alle" */}
             <ListboxOption
               value=""
-              className={cn('relative flex cursor-pointer select-none items-center px-3 py-2 text-text-muted italic', 'data-[focus]:bg-action-secondary data-[focus]:text-text-primary')}
+              className={cn('relative flex cursor-pointer items-center px-3 py-2 text-text-muted italic select-none', 'data-[focus]:bg-action-secondary data-[focus]:text-text-primary')}
             >
               Alle Befehlsgeber
             </ListboxOption>
@@ -257,7 +257,7 @@ export function BefehlFilterRow({
               <ListboxOption
                 key={name}
                 value={name}
-                className={cn('relative flex cursor-pointer select-none items-center gap-2 px-3 py-2', 'text-text-primary', 'data-[focus]:bg-action-secondary data-[focus]:text-text-primary')}
+                className={cn('relative flex cursor-pointer items-center gap-2 px-3 py-2 select-none', 'text-text-primary', 'data-[focus]:bg-action-secondary data-[focus]:text-text-primary')}
               >
                 {({ selected }) => <span className={cn('block truncate', selected && 'font-semibold')}>{name}</span>}
               </ListboxOption>
@@ -275,10 +275,10 @@ export function BefehlFilterRow({
             value={von}
             onChange={(e) => onVonChange(e.target.value)}
             aria-label="Befehle ab Datum"
-            className={cn('border-none bg-transparent py-2 pr-3 pl-2 font-medium text-sm text-text-secondary focus:outline-none', von && 'text-action-primary')}
+            className={cn('border-none bg-transparent py-2 pr-3 pl-2 text-sm font-medium text-text-secondary focus:outline-none', von && 'text-action-primary')}
           />
         </div>
-        <span className="text-text-muted text-xs">–</span>
+        <span className="text-xs text-text-muted">–</span>
         <div className={cn('relative flex items-center rounded-lg border text-sm', 'focus-within:shadow-focus-ring', bis ? activeClasses : inactiveClasses)}>
           <PiCalendar className={cn('ml-3 h-4 w-4 flex-shrink-0', bis ? 'text-action-primary' : 'text-text-muted')} aria-hidden="true" />
           <input
@@ -286,7 +286,7 @@ export function BefehlFilterRow({
             value={bis}
             onChange={(e) => onBisChange(e.target.value)}
             aria-label="Befehle bis Datum"
-            className={cn('border-none bg-transparent py-2 pr-3 pl-2 font-medium text-sm text-text-secondary focus:outline-none', bis && 'text-action-primary')}
+            className={cn('border-none bg-transparent py-2 pr-3 pl-2 text-sm font-medium text-text-secondary focus:outline-none', bis && 'text-action-primary')}
           />
         </div>
       </div>
@@ -313,11 +313,11 @@ export function BefehlFilterRow({
       {/* Filter Badge + Reset */}
       {hasActiveFilters && (
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center rounded-full bg-action-secondary px-2.5 py-0.5 font-medium text-action-primary text-xs">Filter ({activeFilterCount})</span>
+          <span className="inline-flex items-center rounded-full bg-action-secondary px-2.5 py-0.5 text-xs font-medium text-action-primary">Filter ({activeFilterCount})</span>
           <button
             type="button"
             onClick={onReset}
-            className={cn('inline-flex items-center gap-1 rounded-lg px-2 py-1 font-medium text-xs', 'text-text-muted hover:bg-action-secondary hover:text-text-secondary')}
+            className={cn('inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium', 'text-text-muted hover:bg-action-secondary hover:text-text-secondary')}
             aria-label="Filter zurücksetzen"
           >
             <PiX className="h-3.5 w-3.5" aria-hidden="true" />

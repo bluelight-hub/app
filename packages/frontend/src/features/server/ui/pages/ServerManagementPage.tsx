@@ -191,7 +191,7 @@ export function ServerManagementPage() {
 
         {/* Page Header */}
         <div className="mb-6">
-          <h1 className="font-semibold text-text-primary text-title-lg">Server verwalten</h1>
+          <h1 className="text-title-lg font-semibold text-text-primary">Server verwalten</h1>
           <p className="mt-1 text-body-sm text-text-secondary">Verwalte deine konfigurierten Server und Verbindungen.</p>
         </div>
 
@@ -234,7 +234,7 @@ export function ServerManagementPage() {
             {/* Modal Header */}
             <div className="mb-4 flex items-center justify-between">
               {/* H6 Fix: DialogTitle mit dynamischem Server-Namen */}
-              <DialogTitle className="flex items-center gap-2 font-semibold text-text-primary text-title-sm">
+              <DialogTitle className="flex items-center gap-2 text-title-sm font-semibold text-text-primary">
                 <PiPencilSimple className="size-5" />
                 {editingServer?.name ?? 'Server'} bearbeiten
               </DialogTitle>

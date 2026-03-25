@@ -4,6 +4,7 @@
 Format: `<emoji>(<context>): <title>`
 
 Emoji Source of Truth:
+
 - Allowed emojis are defined by `scripts/gitmojis.snapshot.json`.
 - The snapshot is synced from:
   `https://raw.githubusercontent.com/carloscuesta/gitmoji/master/packages/gitmojis/src/gitmojis.json`
@@ -12,12 +13,14 @@ Emoji Source of Truth:
 - Validation is enforced by `.husky/commit-msg` via `scripts/gitmoji-commit-validator.mjs`.
 
 Release note:
+
 - Not every allowed gitmoji triggers a semantic-release bump.
 - Current release bump mapping is intentionally defined in `.releaserc.js`.
 
 Context mapping: frontend, backend, shared, db, auth, api, config, docs, tests, ci, release, docker
 
 Rules:
+
 - English commit messages, imperative mood ("Add" not "Added")
 - Title: 50-72 characters
 - Emoji must exist in `scripts/gitmojis.snapshot.json`

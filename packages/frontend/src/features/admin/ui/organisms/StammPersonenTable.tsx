@@ -176,7 +176,7 @@ export const StammPersonenTable = ({ stammPersonen, isLoading, onEdit, onArchive
     return (
       <div className="flex h-48 flex-col items-center justify-center p-8">
         {' '}
-        <Text className="text-text-secondary">Keine Personen vorhanden.</Text> <Text className="text-text-muted text-sm">Erstellen Sie eine neue Person.</Text>{' '}
+        <Text className="text-text-secondary">Keine Personen vorhanden.</Text> <Text className="text-sm text-text-muted">Erstellen Sie eine neue Person.</Text>{' '}
       </div>
     );
   }

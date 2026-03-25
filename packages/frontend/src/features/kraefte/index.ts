@@ -29,11 +29,7 @@
 // ============================================
 // Contexts (Story 6.2)
 // ============================================
-export {
-  DashboardModeProvider,
-  useDashboardMode,
-  type DashboardMode,
-} from './contexts';
+export { DashboardModeProvider, useDashboardMode, type DashboardMode } from './contexts';
 
 // ============================================
 // API Layer (Queries & Mutations)

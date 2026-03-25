@@ -61,22 +61,22 @@ describe('ErinnerungsvorlageController', () => {
 
     mockCreateHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     mockUpdateHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     mockDeleteHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     mockGetAllHandler = {
       execute: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     controller = new ErinnerungsvorlageController(mockCreateHandler, mockUpdateHandler, mockDeleteHandler, mockGetAllHandler);

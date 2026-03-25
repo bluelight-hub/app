@@ -145,13 +145,13 @@ export function Combobox({
   return (
     <div className={cn('w-full', className)}>
       <HeadlessCombobox as="div" value={selectedItem} onChange={handleSelectionChange} disabled={disabled} immediate={openOnFocus}>
-        {label && <Label className="block font-medium text-sm/6 text-text-primary">{label}</Label>}
+        {label && <Label className="block text-sm/6 font-medium text-text-primary">{label}</Label>}
         <div className="relative mt-2">
           {leadingIcon && <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-text-muted">{leadingIcon}</div>}
           <ComboboxInput
             ref={inputRef}
             className={cn(
-              'block w-full rounded-control border bg-surface-panel px-3 py-1.5 pr-12 font-medium text-base text-text-primary',
+              'block w-full rounded-control border bg-surface-panel px-3 py-1.5 pr-12 text-base font-medium text-text-primary',
               'transition-all duration-200',
               'border-border-subtle hover:border-border-strong',
               'placeholder:text-text-muted',
@@ -228,7 +228,7 @@ export function Combobox({
             className={cn(
               'absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-panel border border-border-subtle bg-surface-panel py-1 text-base shadow-panel',
               'data-[closed]:pointer-events-none data-[closed]:hidden',
-              'data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in',
+              'data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in data-[closed]:data-[leave]:opacity-0',
               'sm:text-sm',
             )}
           >
@@ -237,12 +237,12 @@ export function Combobox({
             ) : filteredGroups ? (
               filteredGroups.map((group) => (
                 <div key={group.label}>
-                  <div className="px-3 py-1.5 font-semibold text-text-muted text-xs uppercase tracking-wider">{group.label}</div>
+                  <div className="px-3 py-1.5 text-xs font-semibold tracking-wider text-text-muted uppercase">{group.label}</div>
                   {group.items.map((item) => (
                     <ComboboxOption
                       key={item.value}
                       value={item}
-                      className={cn('cursor-default select-none px-3 py-2 text-text-primary', 'data-[focus]:bg-action-secondary data-[focus]:text-text-primary data-[focus]:outline-none')}
+                      className={cn('cursor-default px-3 py-2 text-text-primary select-none', 'data-[focus]:bg-action-secondary data-[focus]:text-text-primary data-[focus]:outline-none')}
                     >
                       <span className="block truncate">{item.label}</span>
                     </ComboboxOption>
@@ -254,7 +254,7 @@ export function Combobox({
                 <ComboboxOption
                   key={item.value}
                   value={item}
-                  className={cn('cursor-default select-none px-3 py-2 text-text-primary', 'data-[focus]:bg-action-secondary data-[focus]:text-text-primary data-[focus]:outline-none')}
+                  className={cn('cursor-default px-3 py-2 text-text-primary select-none', 'data-[focus]:bg-action-secondary data-[focus]:text-text-primary data-[focus]:outline-none')}
                 >
                   <span className="block truncate">{item.label}</span>
                 </ComboboxOption>
@@ -263,7 +263,7 @@ export function Combobox({
             {allowCustomValue && query.length > 0 && !allItems.some((item) => item.label.toLowerCase() === query.toLowerCase()) && (
               <ComboboxOption
                 value={{ value: query, label: query }}
-                className={cn('cursor-default select-none px-3 py-2 text-text-primary', 'data-[focus]:bg-action-secondary data-[focus]:text-text-primary data-[focus]:outline-none')}
+                className={cn('cursor-default px-3 py-2 text-text-primary select-none', 'data-[focus]:bg-action-secondary data-[focus]:text-text-primary data-[focus]:outline-none')}
               >
                 <span className="block truncate">"{query}" (neu erstellen)</span>
               </ComboboxOption>

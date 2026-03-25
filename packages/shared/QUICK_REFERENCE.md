@@ -16,8 +16,8 @@ import {
   type Password,
 
   // Invite-Code
-  inviteCodeSchema,              // Backend (strikte Validierung)
-  inviteCodeSchemaNormalized,    // Frontend (Auto-Uppercase)
+  inviteCodeSchema, // Backend (strikte Validierung)
+  inviteCodeSchemaNormalized, // Frontend (Auto-Uppercase)
   INVITE_CODE_CRITERIA,
   type InviteCode,
 
@@ -29,13 +29,13 @@ import {
 
 ## 🔍 Schema Übersicht
 
-| Schema | Min | Max | Erlaubte Zeichen | Besonderheit |
-|--------|-----|-----|------------------|--------------|
-| `usernameSchema` | 3 | 20 | `a-zA-Z0-9_-` | - |
-| `passwordSchema` | 8 | 128 | Alle | Komplexitätsregeln |
-| `inviteCodeSchema` | 8 | 8 | `A-Z0-9` | Nur Uppercase |
-| `inviteCodeSchemaNormalized` | 8 | 8 | `A-Z0-9` | Auto-Uppercase |
-| `serverUrlSchema` | - | - | URL | http/https only |
+| Schema                       | Min | Max | Erlaubte Zeichen | Besonderheit       |
+| ---------------------------- | --- | --- | ---------------- | ------------------ |
+| `usernameSchema`             | 3   | 20  | `a-zA-Z0-9_-`    | -                  |
+| `passwordSchema`             | 8   | 128 | Alle             | Komplexitätsregeln |
+| `inviteCodeSchema`           | 8   | 8   | `A-Z0-9`         | Nur Uppercase      |
+| `inviteCodeSchemaNormalized` | 8   | 8   | `A-Z0-9`         | Auto-Uppercase     |
+| `serverUrlSchema`            | -   | -   | URL              | http/https only    |
 
 ## 💻 Frontend (TanStack Form)
 
@@ -45,14 +45,16 @@ import {
 import { z } from 'zod';
 import { usernameSchema, passwordSchema } from '@bluelight-hub/shared/schemas';
 
-const schema = z.object({
-  username: usernameSchema,
-  password: passwordSchema,
-  passwordConfirm: z.string(),
-}).refine(data => data.password === data.passwordConfirm, {
-  message: 'Passwörter stimmen nicht überein',
-  path: ['passwordConfirm'],
-});
+const schema = z
+  .object({
+    username: usernameSchema,
+    password: passwordSchema,
+    passwordConfirm: z.string(),
+  })
+  .refine((data) => data.password === data.passwordConfirm, {
+    message: 'Passwörter stimmen nicht überein',
+    path: ['passwordConfirm'],
+  });
 ```
 
 ### Formular
@@ -142,18 +144,18 @@ export class RegisterDto {
 ### Username
 
 ```typescript
-usernameSchema.parse('admin');      // ✅
-usernameSchema.parse('user_123');   // ✅
-usernameSchema.parse('ab');         // ❌ Min. 3 Zeichen
-usernameSchema.parse('user@test');  // ❌ Ungültige Zeichen
+usernameSchema.parse('admin'); // ✅
+usernameSchema.parse('user_123'); // ✅
+usernameSchema.parse('ab'); // ❌ Min. 3 Zeichen
+usernameSchema.parse('user@test'); // ❌ Ungültige Zeichen
 ```
 
 ### Password
 
 ```typescript
-passwordSchema.parse('MyPass123!');       // ✅
-passwordSchema.parse('short');            // ❌ Min. 8 Zeichen
-passwordSchema.parse('alllowercase1!');   // ❌ Mind. ein Großbuchstabe
+passwordSchema.parse('MyPass123!'); // ✅
+passwordSchema.parse('short'); // ❌ Min. 8 Zeichen
+passwordSchema.parse('alllowercase1!'); // ❌ Mind. ein Großbuchstabe
 ```
 
 ### Invite-Code
@@ -171,9 +173,9 @@ inviteCodeSchemaNormalized.parse('ABC12345'); // ✅ → 'ABC12345'
 ### Server-URL
 
 ```typescript
-serverUrlSchema.parse('https://api.example.com');  // ✅
-serverUrlSchema.parse('http://localhost:3091');    // ✅
-serverUrlSchema.parse('ftp://server.com');         // ❌ Nur http/https
+serverUrlSchema.parse('https://api.example.com'); // ✅
+serverUrlSchema.parse('http://localhost:3091'); // ✅
+serverUrlSchema.parse('ftp://server.com'); // ❌ Nur http/https
 ```
 
 ## 🧪 Testing
@@ -272,9 +274,9 @@ pnpm --filter @bluelight-hub/shared build
 
 ## 🔗 Schema ↔ Backend Sync
 
-| Schema | Backend Value Object | Location |
-|--------|---------------------|----------|
-| `inviteCodeSchema` | `InviteCodeValue` | `@backend/domain/value-objects/invite-code-value.ts` |
-| `passwordSchema` | - | `@shared/validation/password.schema.ts` |
+| Schema             | Backend Value Object | Location                                             |
+| ------------------ | -------------------- | ---------------------------------------------------- |
+| `inviteCodeSchema` | `InviteCodeValue`    | `@backend/domain/value-objects/invite-code-value.ts` |
+| `passwordSchema`   | -                    | `@shared/validation/password.schema.ts`              |
 
 **WICHTIG:** Bei Änderungen an `InviteCodeValue` muss `inviteCodeSchema` aktualisiert werden!

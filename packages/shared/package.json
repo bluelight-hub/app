@@ -24,8 +24,8 @@
     }
   },
   "scripts": {
-    "lint": "biome check --write",
-    "lint:check": "biome check",
+    "lint": "oxlint --fix && oxfmt --write .",
+    "lint:check": "oxlint && oxfmt --check .",
     "generate-api": "pnpm generate-api:alpha && pnpm lint",
     "generate-api:alpha": "node ./scripts/generate-openapi-client.mjs alpha",
     "generate-api:all": "pnpm generate-api:alpha && pnpm generate-api:v1 && pnpm lint",

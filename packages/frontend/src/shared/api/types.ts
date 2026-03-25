@@ -8,7 +8,7 @@
 
 // Re-export des generierten ResponseError als eigener Type
 export class ResponseError extends Error {
-  override name: 'ResponseError' = 'ResponseError';
+  override name = 'ResponseError' as const;
 
   constructor(
     public response: Response,

@@ -36,7 +36,7 @@ export function FmsStatusDropdown({ value, onChange, disabled = false, className
       <div className={cn('relative', className)}>
         <ListboxButton
           className={cn(
-            'relative w-full cursor-pointer rounded-lg py-2 pr-10 pl-3 text-left shadow-sm ring-1 ring-inset focus-visible:outline-none focus-visible:shadow-focus-ring sm:text-sm',
+            'relative w-full cursor-pointer rounded-lg py-2 pr-10 pl-3 text-left shadow-sm ring-1 ring-inset focus-visible:shadow-focus-ring focus-visible:outline-none sm:text-sm',
             getStatusClasses(value),
             disabled && 'cursor-not-allowed opacity-50',
           )}
@@ -60,7 +60,7 @@ export function FmsStatusDropdown({ value, onChange, disabled = false, className
               value={status}
               className={({ focus }) => {
                 // Konsistente Styling mit FMS_STATUS_COLORS für alle States
-                const baseClasses = 'relative cursor-pointer select-none py-2 pr-4 pl-10';
+                const baseClasses = 'relative cursor-pointer py-2 pr-4 pl-10 select-none';
                 const statusClasses = getStatusClasses(status);
                 const focusClasses = focus ? 'bg-action-secondary' : '';
                 return `${baseClasses} ${statusClasses} ${focusClasses}`;

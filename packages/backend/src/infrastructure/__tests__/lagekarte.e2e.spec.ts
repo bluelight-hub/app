@@ -181,7 +181,7 @@ class SpyEventPublisher implements IEventPublisher {
       error: jest.fn(),
       warn: jest.fn(),
       debug: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Mock object für Tests benötigt any-Cast wegen partieller Implementierung
+      // eslint-disable-next-line typescript/no-explicit-any -- Mock object für Tests benötigt any-Cast wegen partieller Implementierung
     } as any;
 
     // Mock EinsatzRepository
@@ -191,7 +191,7 @@ class SpyEventPublisher implements IEventPublisher {
       save: jest.fn(),
       findActive: jest.fn(),
       findByNummer: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Mock object für Tests benötigt any-Cast wegen partieller Implementierung
+      // eslint-disable-next-line typescript/no-explicit-any -- Mock object für Tests benötigt any-Cast wegen partieller Implementierung
     } as any;
 
     // Default: Einsatz exists

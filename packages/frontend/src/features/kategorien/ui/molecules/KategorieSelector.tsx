@@ -94,7 +94,7 @@ export function KategorieSelector({ einsatzId, value, onChange, onBlur, disabled
   if (isError) {
     return (
       <div className={cn('w-full', className)}>
-        <div role="alert" aria-live="polite" className="rounded-panel border-2 border-status-danger-border bg-status-danger-surface px-4 py-3 text-status-danger-text text-sm">
+        <div role="alert" aria-live="polite" className="rounded-panel border-2 border-status-danger-border bg-status-danger-surface px-4 py-3 text-sm text-status-danger-text">
           Kategorien konnten nicht geladen werden
         </div>
       </div>
@@ -115,7 +115,7 @@ export function KategorieSelector({ einsatzId, value, onChange, onBlur, disabled
         error={error}
         openOnFocus
       />
-      {comboboxItems.length === 0 && !isLoading && <p className="mt-1 text-text-muted text-xs">Keine Kategorien in diesem Einsatz</p>}
+      {comboboxItems.length === 0 && !isLoading && <p className="mt-1 text-xs text-text-muted">Keine Kategorien in diesem Einsatz</p>}
     </div>
   );
 }

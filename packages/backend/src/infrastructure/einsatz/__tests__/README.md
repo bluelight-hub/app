@@ -27,14 +27,14 @@ Domain Layer, Application Layer und Infrastructure Layer gegen eine echte Postgr
 
 ### Implementierte Test-Suites
 
-| Test File | Acceptance Criteria | Beschreibung |
-|-----------|-------------------|--------------|
-| `outbox-integration.e2e.spec.ts` | AC1.1-1.7 | Outbox Pattern & Event Publishing |
-| `no-delete-policy.e2e.spec.ts` | AC2.1-2.5 | NO-DELETE Policy Enforcement |
-| `rbac-constraints.e2e.spec.ts` | AC3.1-3.4 | RBAC Authorization Tests |
-| `einsatz-performance.e2e.spec.ts` | AC4.1-4.4 | Performance Baselines |
-| `einsatz-controller.e2e.spec.ts` | AC5.1, 5.3, 5.4 | HTTP REST Integration |
-| `auth-controller.e2e.spec.ts` | AC5.2 | Authentication HTTP Integration |
+| Test File                         | Acceptance Criteria | Beschreibung                      |
+| --------------------------------- | ------------------- | --------------------------------- |
+| `outbox-integration.e2e.spec.ts`  | AC1.1-1.7           | Outbox Pattern & Event Publishing |
+| `no-delete-policy.e2e.spec.ts`    | AC2.1-2.5           | NO-DELETE Policy Enforcement      |
+| `rbac-constraints.e2e.spec.ts`    | AC3.1-3.4           | RBAC Authorization Tests          |
+| `einsatz-performance.e2e.spec.ts` | AC4.1-4.4           | Performance Baselines             |
+| `einsatz-controller.e2e.spec.ts`  | AC5.1, 5.3, 5.4     | HTTP REST Integration             |
+| `auth-controller.e2e.spec.ts`     | AC5.2               | Authentication HTTP Integration   |
 
 ### Acceptance Criteria Mapping
 
@@ -256,10 +256,14 @@ Pollt asynchrone Assertions (für Event Handler):
 it('should emit event', async () => {
   await createHandler.execute(command);
 
-  await waitFor(async () => {
-    const events = ctx.eventPublisher.getEventsByName('einsatz.created');
-    expect(events).toHaveLength(1);
-  }, 500, 50); // 500ms timeout, 50ms interval
+  await waitFor(
+    async () => {
+      const events = ctx.eventPublisher.getEventsByName('einsatz.created');
+      expect(events).toHaveLength(1);
+    },
+    500,
+    50,
+  ); // 500ms timeout, 50ms interval
 });
 ```
 
@@ -337,12 +341,7 @@ try {
 ### Basis-Struktur
 
 ```typescript
-import {
-  createEinsatzE2eModule,
-  teardownE2eModule,
-  cleanupTestData,
-  type EinsatzE2eTestContext,
-} from './einsatz.e2e-setup';
+import { createEinsatzE2eModule, teardownE2eModule, cleanupTestData, type EinsatzE2eTestContext } from './einsatz.e2e-setup';
 
 describe('Einsatz Feature - E2E Tests', () => {
   let ctx: EinsatzE2eTestContext;
@@ -362,10 +361,13 @@ describe('Einsatz Feature - E2E Tests', () => {
   describe('Scenario: Create Einsatz', () => {
     it('should create Einsatz successfully', async () => {
       // Given: Command vorbereiten
-      const command = CreateEinsatzCommand.create({
-        alarmstichwort: 'Brand',
-        einsatzort: 'Hauptstraße 1',
-      }, ctx.testUserIds.user).value!;
+      const command = CreateEinsatzCommand.create(
+        {
+          alarmstichwort: 'Brand',
+          einsatzort: 'Hauptstraße 1',
+        },
+        ctx.testUserIds.user,
+      ).value!;
 
       // When: Handler ausführen
       const result = await createHandler.execute(command);
@@ -382,9 +384,12 @@ describe('Einsatz Feature - E2E Tests', () => {
 
     it('should emit einsatz.created event', async () => {
       // Given
-      const command = CreateEinsatzCommand.create({
-        alarmstichwort: 'Brand',
-      }, ctx.testUserIds.user).value!;
+      const command = CreateEinsatzCommand.create(
+        {
+          alarmstichwort: 'Brand',
+        },
+        ctx.testUserIds.user,
+      ).value!;
 
       // When
       await createHandler.execute(command);
@@ -409,10 +414,13 @@ it('should allow ADMIN to update any Einsatz', async () => {
   });
 
   // When: ADMIN updates
-  const command = UpdateEinsatzCommand.create({
-    id: einsatzId,
-    einsatzort: 'Neue Adresse',
-  }, ctx.testUserIds.admin).value!;
+  const command = UpdateEinsatzCommand.create(
+    {
+      id: einsatzId,
+      einsatzort: 'Neue Adresse',
+    },
+    ctx.testUserIds.admin,
+  ).value!;
   const result = await updateHandler.execute(command);
 
   // Then
@@ -426,10 +434,7 @@ it('should deny USER to archive other users Einsatz', async () => {
   });
 
   // When: USER tries to archive
-  const command = ArchiveEinsatzCommand.create(
-    einsatzId,
-    ctx.testUserIds.user
-  ).value!;
+  const command = ArchiveEinsatzCommand.create(einsatzId, ctx.testUserIds.user).value!;
   const result = await archiveHandler.execute(command);
 
   // Then
@@ -443,9 +448,12 @@ it('should deny USER to archive other users Einsatz', async () => {
 ```typescript
 it('should store events in outbox', async () => {
   // Given
-  const command = CreateEinsatzCommand.create({
-    alarmstichwort: 'Brand',
-  }, ctx.testUserIds.user).value!;
+  const command = CreateEinsatzCommand.create(
+    {
+      alarmstichwort: 'Brand',
+    },
+    ctx.testUserIds.user,
+  ).value!;
 
   // When
   const result = await createHandler.execute(command);
@@ -454,9 +462,7 @@ it('should store events in outbox', async () => {
   const outboxEvents = await ctx.outboxRepository.findPendingEvents(10);
   expect(outboxEvents.length).toBeGreaterThan(0);
 
-  const einsatzCreatedEvent = outboxEvents.find(
-    e => e.eventName === 'einsatz.created'
-  );
+  const einsatzCreatedEvent = outboxEvents.find((e) => e.eventName === 'einsatz.created');
   expect(einsatzCreatedEvent).toBeDefined();
   expect(einsatzCreatedEvent!.status).toBe('PENDING');
   expect(einsatzCreatedEvent!.aggregateId).toBe(result.value!);
@@ -467,13 +473,13 @@ it('should store events in outbox', async () => {
 
 Aus `einsatz-performance.e2e.spec.ts`:
 
-| Operation | Baseline | Tolerance | Test Threshold | Beschreibung |
-|-----------|----------|-----------|----------------|--------------|
-| List Active Einsätze | 50ms | ±10% | 55ms | Abfrage aller aktiven Einsätze |
-| Get Einsatz Details | 80ms | ±10% | 88ms | Einzelne Einsatz mit Details laden |
-| Create Einsatz | 150ms | ±10% | 165ms | Neuen Einsatz erstellen |
-| Combined Query Overhead | - | - | <50ms | Overhead bei mehreren Queries |
-| Outbox Publish Latency | - | - | <7000ms | Event Publishing im Outbox Pattern |
+| Operation               | Baseline | Tolerance | Test Threshold | Beschreibung                       |
+| ----------------------- | -------- | --------- | -------------- | ---------------------------------- |
+| List Active Einsätze    | 50ms     | ±10%      | 55ms           | Abfrage aller aktiven Einsätze     |
+| Get Einsatz Details     | 80ms     | ±10%      | 88ms           | Einzelne Einsatz mit Details laden |
+| Create Einsatz          | 150ms    | ±10%      | 165ms          | Neuen Einsatz erstellen            |
+| Combined Query Overhead | -        | -         | <50ms          | Overhead bei mehreren Queries      |
+| Outbox Publish Latency  | -        | -         | <7000ms        | Event Publishing im Outbox Pattern |
 
 **Hinweis:** Baselines sind Guidelines, keine Hard Limits. CI/CD Pipeline kann langsamer sein als lokale Dev-Umgebung.
 
@@ -541,9 +547,7 @@ it('debug outbox', async () => {
   console.log('Outbox Events:', allEvents);
 
   // Spezifische Einsatz Events
-  const einsatzEvents = allEvents.filter(
-    e => e.aggregateId === 'some-einsatz-id'
-  );
+  const einsatzEvents = allEvents.filter((e) => e.aggregateId === 'some-einsatz-id');
   console.log('Einsatz Events:', einsatzEvents);
 });
 ```

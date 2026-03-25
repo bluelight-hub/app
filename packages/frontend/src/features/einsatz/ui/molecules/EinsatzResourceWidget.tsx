@@ -58,7 +58,7 @@ export function EinsatzResourceWidget({ fahrzeuge, onStatusChange, className, on
   return (
     <div className={cn('rounded-panel bg-surface-panel p-6 shadow-sm', className)}>
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="font-semibold text-text-primary text-lg">Eingesetzte Fahrzeuge</h3>
+        <h3 className="text-lg font-semibold text-text-primary">Eingesetzte Fahrzeuge</h3>
         {onAddResource && (
           <Button appearance="ghost" size="sm" onClick={onAddResource}>
             <PiUserPlus className="mr-2 h-4 w-4" />
@@ -70,12 +70,12 @@ export function EinsatzResourceWidget({ fahrzeuge, onStatusChange, className, on
       {/* Summary Stats */}
       <div className="mb-6 grid grid-cols-2 gap-4">
         <div className="text-center">
-          <p className="font-bold text-2xl text-text-primary">{totalFahrzeuge}</p>
-          <p className="text-text-muted text-xs">Fahrzeuge</p>
+          <p className="text-2xl font-bold text-text-primary">{totalFahrzeuge}</p>
+          <p className="text-xs text-text-muted">Fahrzeuge</p>
         </div>
         <div className="text-center">
-          <p className="font-bold text-2xl text-text-primary">{activeFahrzeuge}</p>
-          <p className="text-text-muted text-xs">Aktiv</p>
+          <p className="text-2xl font-bold text-text-primary">{activeFahrzeuge}</p>
+          <p className="text-xs text-text-muted">Aktiv</p>
         </div>
       </div>
 
@@ -86,9 +86,9 @@ export function EinsatzResourceWidget({ fahrzeuge, onStatusChange, className, on
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <PiTruck className="h-5 w-5 shrink-0 text-text-muted" />
               <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-text-primary text-sm">{fahrzeug.funkrufname}</p>
-                {fahrzeug.kennzeichen && <p className="truncate text-text-muted text-xs">{fahrzeug.kennzeichen}</p>}
-                {fahrzeug.besatzung && fahrzeug.besatzung.length > 0 && <div className="text-text-muted text-xs">{formatBesatzung(fahrzeug.besatzung)}</div>}
+                <p className="truncate text-sm font-medium text-text-primary">{fahrzeug.funkrufname}</p>
+                {fahrzeug.kennzeichen && <p className="truncate text-xs text-text-muted">{fahrzeug.kennzeichen}</p>}
+                {fahrzeug.besatzung && fahrzeug.besatzung.length > 0 && <div className="text-xs text-text-muted">{formatBesatzung(fahrzeug.besatzung)}</div>}
               </div>
             </div>
             <div className="shrink-0">

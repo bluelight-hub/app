@@ -11,13 +11,39 @@
     "commit:check-range": "node scripts/check-commit-range.mjs",
     "build": "pnpm -r --filter '@bluelight-hub/*' build",
     "generate-api": "pnpm -r --filter '@bluelight-hub/*' --if-present generate-api",
-    "lint": "biome check --write",
-    "lint:check": "biome check",
+    "lint": "oxlint --fix && oxfmt --write .",
+    "lint:check": "oxlint && oxfmt --check .",
     "test": "pnpm -r --filter '@bluelight-hub/*' test",
     "test:gitmoji": "node --test scripts/__tests__/gitmoji-commit-validator.test.mjs",
     "test:ui": "pnpm -r --filter '@bluelight-hub/*' test:ui",
     "test:cov": "pnpm -r --filter '@bluelight-hub/*' test:cov",
     "prepare": "command -v husky >/dev/null 2>&1 && husky || echo 'husky not available, skipping git hooks setup'"
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/exec": "^7.1.0",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^12.0.6",
+    "debug": "^4.4.3",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "oxfmt": "^0.42.0",
+    "oxlint": "^1.57.0",
+    "semantic-release": "^25.0.3",
+    "semantic-release-claude-changelog": "^2.0.0",
+    "semantic-release-gitmoji": "^1.6.9"
+  },
+  "lint-staged": {
+    "**/*.{js,ts,tsx,json,yml,yaml}": [
+      "oxlint --fix",
+      "oxfmt --write --no-error-on-unmatched-pattern"
+    ],
+    "**/*.md": [
+      "oxfmt --check --no-error-on-unmatched-pattern"
+    ]
+  },
+  "engines": {
+    "node": ">=24.0.0"
   },
   "packageManager": "pnpm@10.32.1+sha512.a706938f0e89ac1456b6563eab4edf1d1faf3368d1191fc5c59790e96dc918e4456ab2e67d613de1043d2e8c81f87303e6b40d4ffeca9df15ef1ad567348f2be",
   "pnpm": {
@@ -41,28 +67,5 @@
     "overrides": {
       "glob": ">=11.1.0"
     }
-  },
-  "lint-staged": {
-    "**/*.{js,ts,tsx,json,yml,yaml}": ["biome check --write --no-errors-on-unmatched"],
-    "**/*.md": ["biome check --no-errors-on-unmatched"],
-    "packages/backend/**/*.ts": ["pnpm --filter @bluelight-hub/backend lint"],
-    "packages/backend/src/domain/**/*.ts": ["pnpm --filter @bluelight-hub/backend lint:domain"],
-    "packages/frontend/**/!(*.gen).{ts,tsx}": ["pnpm --filter @bluelight-hub/frontend lint"]
-  },
-  "engines": {
-    "node": ">=24.0.0"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "2.4.8",
-    "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/exec": "^7.1.0",
-    "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "^12.0.6",
-    "debug": "^4.4.3",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.4.0",
-    "semantic-release": "^25.0.3",
-    "semantic-release-claude-changelog": "^2.0.0",
-    "semantic-release-gitmoji": "^1.6.9"
   }
 }

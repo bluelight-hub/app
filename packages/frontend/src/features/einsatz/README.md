@@ -139,12 +139,12 @@ Lädt paginierte Einsatz-Liste.
 **Parameters:**
 
 - `filters?: EinsatzQueryFilters`
-    - `status?: 'ANGELEGT' | 'AKTIV' | 'ARCHIVIERT'`
-    - `search?: string`
-    - `page?: number`
-    - `limit?: number`
-    - `orderBy?: 'createdAt' | 'updatedAt' | ...`
-    - `orderDirection?: 'asc' | 'desc'`
+  - `status?: 'ANGELEGT' | 'AKTIV' | 'ARCHIVIERT'`
+  - `search?: string`
+  - `page?: number`
+  - `limit?: number`
+  - `orderBy?: 'createdAt' | 'updatedAt' | ...`
+  - `orderDirection?: 'asc' | 'desc'`
 
 **Returns:**
 
@@ -300,8 +300,8 @@ import { useStore } from '@tanstack/react-store';
 import { einsatzUIStore } from '@/features/einsatz';
 
 function Component() {
-  const viewMode = useStore(einsatzUIStore, state => state.viewMode);
-  const filters = useStore(einsatzUIStore, state => state.filters);
+  const viewMode = useStore(einsatzUIStore, (state) => state.viewMode);
+  const filters = useStore(einsatzUIStore, (state) => state.filters);
   // ...
 }
 ```
@@ -331,7 +331,7 @@ EINSATZ_QUERY_KEYS = {
   detail: (id) => ['einsatz', 'detail', id],
   activeWithCounts: () => ['einsatz', 'activeWithCounts'],
   // ... weitere
-}
+};
 ```
 
 ## Best Practices
@@ -393,7 +393,7 @@ await queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.lists() });
 
 // Invalidiere spezifische Liste
 await queryClient.invalidateQueries({
-  queryKey: EINSATZ_QUERY_KEYS.list({ status: 'AKTIV' })
+  queryKey: EINSATZ_QUERY_KEYS.list({ status: 'AKTIV' }),
 });
 ```
 
@@ -505,7 +505,7 @@ createEinsatz.mutate(data, {
 ```typescript
 // ✅ RICHTIG: useStore Hook
 import { useStore } from '@tanstack/react-store';
-const filters = useStore(einsatzUIStore, state => state.filters);
+const filters = useStore(einsatzUIStore, (state) => state.filters);
 
 // ❌ FALSCH: Direkt auf state zugreifen
 const filters = einsatzUIStore.state.filters; // Re-rendert nicht!

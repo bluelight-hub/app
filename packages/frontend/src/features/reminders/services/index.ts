@@ -20,11 +20,7 @@ export {
   type NotificationResult,
 } from './notification.service';
 
-export {
-  TimerService,
-  timerService,
-  type OnTriggerCallback,
-} from './timer.service';
+export { TimerService, timerService, type OnTriggerCallback } from './timer.service';
 
 export {
   notificationSetupService,
@@ -41,14 +37,6 @@ export {
   type NavigateToBefehlCallback,
 } from './notification-setup.service';
 
-export {
-  TrayService,
-  trayService,
-  type TrayResult,
-} from './tray.service';
+export { TrayService, trayService, type TrayResult } from './tray.service';
 
-export {
-  IntensificationService,
-  intensificationService,
-  type IntensificationCallback,
-} from './intensification.service';
+export { IntensificationService, intensificationService, type IntensificationCallback } from './intensification.service';

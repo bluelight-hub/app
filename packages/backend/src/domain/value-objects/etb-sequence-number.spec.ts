@@ -40,7 +40,7 @@ describe('EtbSequenceNumber', () => {
       // When: Attempting to modify (TypeScript would block, but test runtime)
       // Then: Properties are readonly
       expect(() => {
-        // biome-ignore lint/suspicious/noExplicitAny: Test verifies immutability
+        // eslint-disable-next-line typescript/no-explicit-any -- Test verifies immutability
         (seq as any).props.value = 10; // Should fail due to Object.freeze
       }).toThrow();
     });

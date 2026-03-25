@@ -138,7 +138,7 @@ export const ShapeLabelModal: React.FC<ShapeLabelModalProps> = ({ isOpen, onClos
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
               <PiPentagon size={24} color="#3b82f6" aria-hidden="true" />
-              <DialogTitle as="h3" className="font-semibold text-text-primary text-lg">
+              <DialogTitle as="h3" className="text-lg font-semibold text-text-primary">
                 Bereich beschriften
               </DialogTitle>
             </div>
@@ -153,7 +153,7 @@ export const ShapeLabelModal: React.FC<ShapeLabelModalProps> = ({ isOpen, onClos
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             {/* Label Field */}
             <div>
-              <label htmlFor="shape-label" className="mb-1 block font-medium text-text-secondary text-body-sm">
+              <label htmlFor="shape-label" className="mb-1 block text-body-sm font-medium text-text-secondary">
                 Beschreibung <span className="text-status-danger-text">*</span>
               </label>
               <Input id="shape-label" name="label" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="z.B. Überschwemmtes Gebiet" className="w-full" maxLength={255} required />
@@ -163,7 +163,7 @@ export const ShapeLabelModal: React.FC<ShapeLabelModalProps> = ({ isOpen, onClos
 
             {/* Type Dropdown */}
             <div>
-              <label htmlFor="shape-type" className="mb-1 block font-medium text-text-secondary text-body-sm">
+              <label htmlFor="shape-type" className="mb-1 block text-body-sm font-medium text-text-secondary">
                 Typ <span className="text-status-danger-text">*</span>
               </label>
               <select
@@ -171,7 +171,7 @@ export const ShapeLabelModal: React.FC<ShapeLabelModalProps> = ({ isOpen, onClos
                 name="type"
                 value={shapeType}
                 onChange={(e) => setShapeType(e.target.value as ShapeType)}
-                className="w-full rounded-md border border-border-subtle bg-surface-panel px-3 py-2 shadow-sm transition-colors focus-visible:outline-none focus-visible:shadow-focus-ring text-text-primary"
+                className="w-full rounded-md border border-border-subtle bg-surface-panel px-3 py-2 text-text-primary shadow-sm transition-colors focus-visible:shadow-focus-ring focus-visible:outline-none"
                 required
               >
                 {shapeTypes.map((type) => {

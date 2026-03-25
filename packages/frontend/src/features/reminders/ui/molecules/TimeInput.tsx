@@ -142,7 +142,7 @@ export function TimeInput({ value, onChange, disabled = false, error = false, cl
         onBlur={handleHoursBlur}
         disabled={disabled}
       />
-      <span className="font-medium text-lg text-text-muted">:</span>
+      <span className="text-lg font-medium text-text-muted">:</span>
       <input
         ref={minutesRef}
         type="text"

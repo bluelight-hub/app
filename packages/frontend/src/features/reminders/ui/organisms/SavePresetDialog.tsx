@@ -161,7 +161,7 @@ export function SavePresetDialog({ isOpen, onClose, teilnehmerMap, kategorienMap
           <form.Field name="name">
             {(field) => (
               <div>
-                <label htmlFor="preset-name" className="mb-1 block font-medium text-sm text-text-secondary">
+                <label htmlFor="preset-name" className="mb-1 block text-sm font-medium text-text-secondary">
                   Preset-Name <span className="text-status-danger-text">*</span>
                 </label>
                 <Input
@@ -181,14 +181,14 @@ export function SavePresetDialog({ isOpen, onClose, teilnehmerMap, kategorienMap
 
           {/* Filter-Zusammenfassung */}
           <div className="rounded-panel border border-border-subtle bg-surface-raised p-3">
-            <p className="mb-2 font-medium text-text-secondary text-xs">Aktuelle Filter:</p>
+            <p className="mb-2 text-xs font-medium text-text-secondary">Aktuelle Filter:</p>
             <div className="flex flex-wrap gap-1.5">
-              {teamLabel && <span className="inline-flex items-center rounded-pill bg-status-info-surface px-2 py-0.5 font-medium text-status-info-text text-xs">Team: {teamLabel}</span>}
+              {teamLabel && <span className="inline-flex items-center rounded-pill bg-status-info-surface px-2 py-0.5 text-xs font-medium text-status-info-text">Team: {teamLabel}</span>}
               {kategorieLabel && (
-                <span className="inline-flex items-center rounded-pill bg-status-info-surface px-2 py-0.5 font-medium text-status-info-text text-xs">Kategorie: {kategorieLabel}</span>
+                <span className="inline-flex items-center rounded-pill bg-status-info-surface px-2 py-0.5 text-xs font-medium text-status-info-text">Kategorie: {kategorieLabel}</span>
               )}
-              {statusLabel && <span className="inline-flex items-center rounded-pill bg-status-warning-surface px-2 py-0.5 font-medium text-status-warning-text text-xs">Status: {statusLabel}</span>}
-              <span className="inline-flex items-center rounded-pill bg-surface-raised px-2 py-0.5 font-medium text-text-secondary text-xs">Sortierung: {sortLabel(currentSort)}</span>
+              {statusLabel && <span className="inline-flex items-center rounded-pill bg-status-warning-surface px-2 py-0.5 text-xs font-medium text-status-warning-text">Status: {statusLabel}</span>}
+              <span className="inline-flex items-center rounded-pill bg-surface-raised px-2 py-0.5 text-xs font-medium text-text-secondary">Sortierung: {sortLabel(currentSort)}</span>
             </div>
           </div>
         </form>

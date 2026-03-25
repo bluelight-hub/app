@@ -61,12 +61,12 @@ export function DeleteVorlageConfirm({ isOpen, onClose, vorlage }: DeleteVorlage
 
       <Dialog.Body>
         <div className="space-y-3">
-          <p className="text-text-secondary text-sm">
+          <p className="text-sm text-text-secondary">
             Soll die Vorlage <span className="font-semibold">"{vorlage?.titel}"</span> wirklich gelöscht werden?
           </p>
-          <p className="text-text-muted text-xs">Bereits erstellte Erinnerungen bleiben unverändert.</p>
+          <p className="text-xs text-text-muted">Bereits erstellte Erinnerungen bleiben unverändert.</p>
 
-          {apiErrorMessage && <div className="rounded-panel bg-status-danger-surface p-3 text-status-danger-text text-sm">{apiErrorMessage}</div>}
+          {apiErrorMessage && <div className="rounded-panel bg-status-danger-surface p-3 text-sm text-status-danger-text">{apiErrorMessage}</div>}
         </div>
       </Dialog.Body>
 

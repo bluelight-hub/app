@@ -17,21 +17,9 @@ export {
 export type { AlarmLevel, AudioLevelConfig, AudioSettings, SoundOption } from './schemas';
 
 // Hooks
-export {
-  AUDIO_SETTINGS_STORE_KEY,
-  getAudioLevelConfig,
-  getAudioSettings,
-  isAudioEnabled,
-  resetAudioSettings,
-  setAudioSettings,
-  useAudioSettings,
-} from './hooks';
+export { AUDIO_SETTINGS_STORE_KEY, getAudioLevelConfig, getAudioSettings, isAudioEnabled, resetAudioSettings, setAudioSettings, useAudioSettings } from './hooks';
 
 // UI Components
-export {
-  AudioLevelConfig as AudioLevelConfigComponent,
-  AudioToggle,
-  AudioSettingsDialog,
-} from './ui';
+export { AudioLevelConfig as AudioLevelConfigComponent, AudioToggle, AudioSettingsDialog } from './ui';
 
 export type { AudioLevelConfigProps, AudioToggleProps, AudioSettingsDialogProps } from './ui';

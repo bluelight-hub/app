@@ -79,7 +79,7 @@ export const SelectedShapeToolbar: React.FC<SelectedShapeToolbarProps> = ({ shap
           e.stopPropagation();
           onEdit();
         }}
-        className="flex min-h-10 min-w-10 items-center justify-center rounded p-2 hover:bg-action-secondary focus-visible:outline-none focus-visible:shadow-focus-ring md:h-8 md:w-8"
+        className="flex min-h-10 min-w-10 items-center justify-center rounded p-2 hover:bg-action-secondary focus-visible:shadow-focus-ring focus-visible:outline-none md:h-8 md:w-8"
         title="Geometrie bearbeiten"
         aria-label="Geometrie bearbeiten"
       >
@@ -93,7 +93,7 @@ export const SelectedShapeToolbar: React.FC<SelectedShapeToolbarProps> = ({ shap
           e.stopPropagation();
           onDelete();
         }}
-        className="flex min-h-10 min-w-10 items-center justify-center rounded p-2 text-status-danger-text hover:bg-status-danger-surface focus-visible:outline-none focus-visible:shadow-focus-ring md:h-8 md:w-8"
+        className="flex min-h-10 min-w-10 items-center justify-center rounded p-2 text-status-danger-text hover:bg-status-danger-surface focus-visible:shadow-focus-ring focus-visible:outline-none md:h-8 md:w-8"
         title="Shape löschen"
         aria-label="Shape löschen"
       >
@@ -107,7 +107,7 @@ export const SelectedShapeToolbar: React.FC<SelectedShapeToolbarProps> = ({ shap
           e.stopPropagation();
           onChangeStyle();
         }}
-        className="flex min-h-10 min-w-10 items-center justify-center rounded p-2 hover:bg-action-secondary focus-visible:outline-none focus-visible:shadow-focus-ring md:h-8 md:w-8"
+        className="flex min-h-10 min-w-10 items-center justify-center rounded p-2 hover:bg-action-secondary focus-visible:shadow-focus-ring focus-visible:outline-none md:h-8 md:w-8"
         title="Stil ändern"
         aria-label="Stil ändern"
       >

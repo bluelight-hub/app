@@ -86,11 +86,11 @@ export const CreateInviteDialog = ({ isOpen, onClose }: CreateInviteDialogProps)
         <Dialog.Title>Invite-Code erstellt</Dialog.Title>
         <Dialog.Body>
           <div className="space-y-4">
-            <p className="text-text-secondary text-sm">Der Invite-Code wurde erfolgreich erstellt. Kopiere ihn jetzt, da er später nur maskiert angezeigt wird.</p>
+            <p className="text-sm text-text-secondary">Der Invite-Code wurde erfolgreich erstellt. Kopiere ihn jetzt, da er später nur maskiert angezeigt wird.</p>
             <div className="rounded-panel border-2 border-status-success-border bg-status-success-surface p-4">
-              <div className="mb-2 font-medium text-text-secondary text-sm">Invite-Code:</div>
+              <div className="mb-2 text-sm font-medium text-text-secondary">Invite-Code:</div>
               <div className="flex items-center gap-2">
-                <code className="flex-1 rounded-control bg-surface-panel px-3 py-2 font-bold font-mono text-status-success-text text-lg">{createdCode}</code>
+                <code className="flex-1 rounded-control bg-surface-panel px-3 py-2 font-mono text-lg font-bold text-status-success-text">{createdCode}</code>
                 <Button intent="secondary" size="sm" onClick={handleCopyCode} aria-label="Code kopieren">
                   {copied ? <PiCheck className="h-5 w-5" /> : <PiCopy className="h-5 w-5" />}
                 </Button>

@@ -64,7 +64,7 @@ describe('SystemMonitoringScheduler', () => {
 
     scheduler = new SystemMonitoringScheduler(
       mockMetricsCollector,
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
       mockEventEmitter as any,
       mockLogger,
     );

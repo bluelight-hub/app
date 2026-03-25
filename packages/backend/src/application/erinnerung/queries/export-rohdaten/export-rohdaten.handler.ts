@@ -35,7 +35,7 @@ export class ExportRohdatenHandler {
       return Result.fail<ExportResult>(exportResult.error ?? ERINNERUNG_ERROR_CODES.QUERY_FAILED);
     }
 
-    // biome-ignore lint/style/noNonNullAssertion: Result.value ist nach isFailure-Check garantiert
+    // eslint-disable-next-line typescript/no-non-null-assertion -- Result.value ist nach isFailure-Check garantiert
     const erinnerungen = exportResult.value!;
     const einsatzNummer = query.einsatzNummer;
 

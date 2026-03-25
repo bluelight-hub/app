@@ -15,7 +15,7 @@ export function FarbPresetPicker({ value, onChange, className, ariaLabelledBy }:
   return (
     <div className={cn('flex flex-wrap gap-2', className)} role="radiogroup" aria-label={ariaLabelledBy ? undefined : 'Farbauswahl'} aria-labelledby={ariaLabelledBy}>
       {KATEGORIE_FARB_PRESETS.map((preset) => (
-        // biome-ignore lint/a11y/useSemanticElements: button mit role=radio ist korrekt fuer Farbauswahl-Radiogroup
+        // eslint-disable-next-line jsx-a11y/prefer-tag-over-role -- button mit role=radio ist korrekt fuer Farbauswahl-Radiogroup
         <button
           key={preset.hex}
           type="button"

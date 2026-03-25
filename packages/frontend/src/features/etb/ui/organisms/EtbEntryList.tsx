@@ -294,7 +294,7 @@ export function EtbEntryList({
             <button
               type="button"
               onClick={() => resetKategorieFilter()}
-              className="rounded-md bg-action-secondary px-3 py-1.5 font-medium text-action-primary text-sm hover:bg-action-secondary-hover focus-visible:shadow-focus-ring focus-visible:outline-none"
+              className="rounded-md bg-action-secondary px-3 py-1.5 text-sm font-medium text-action-primary hover:bg-action-secondary-hover focus-visible:shadow-focus-ring focus-visible:outline-none"
             >
               Filter zurücksetzen
             </button>

@@ -64,7 +64,7 @@ export function DeleteNotizDialog({ isOpen, onClose, notiz, einsatzId }: DeleteN
       <Dialog.Body>
         <div className="space-y-4">
           <div className="rounded-panel bg-status-warning-surface p-3">
-            <p className="flex items-start gap-2 text-status-warning-text text-sm">
+            <p className="flex items-start gap-2 text-sm text-status-warning-text">
               <PiTrash className="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden="true" />
               <span>Diese Aktion kann nicht rückgängig gemacht werden.</span>
             </p>

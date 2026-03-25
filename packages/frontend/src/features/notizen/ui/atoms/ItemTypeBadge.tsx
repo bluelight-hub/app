@@ -32,7 +32,7 @@ const variantLabels: Record<ItemType, string> = {
  */
 export function ItemTypeBadge({ type, className }: ItemTypeBadgeProps) {
   return (
-    <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium text-xs', variantStyles[type], className)}>
+    <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium', variantStyles[type], className)}>
       {variantIcons[type]}
       {variantLabels[type]}
     </span>

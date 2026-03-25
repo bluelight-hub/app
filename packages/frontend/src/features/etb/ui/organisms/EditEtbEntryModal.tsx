@@ -102,7 +102,7 @@ export function EditEtbEntryModal({ entry, isOpen, onClose, onEditSuccess, updat
           {/* Header */}
           <div className="mb-4 flex items-start justify-between">
             <div>
-              <DialogTitle className="font-semibold text-lg text-text-primary">Eintrag bearbeiten</DialogTitle>
+              <DialogTitle className="text-lg font-semibold text-text-primary">Eintrag bearbeiten</DialogTitle>
               <p className="mt-1 text-sm text-text-secondary">
                 Eintrag #{entry.sequenceNumber} {entry.version > 1 && `(Version ${entry.version})`}
               </p>
@@ -160,7 +160,7 @@ export function EditEtbEntryModal({ entry, isOpen, onClose, onEditSuccess, updat
                     />
                     <div className="flex items-center justify-between">
                       {field.state.meta.errors.length > 0 && <p className="text-sm text-status-danger-text">{field.state.meta.errors[0]?.message}</p>}
-                      <p className="ml-auto text-text-secondary text-xs">{field.state.value.length} / 2000 Zeichen</p>
+                      <p className="ml-auto text-xs text-text-secondary">{field.state.value.length} / 2000 Zeichen</p>
                     </div>
                   </div>
                 )}
@@ -179,14 +179,14 @@ export function EditEtbEntryModal({ entry, isOpen, onClose, onEditSuccess, updat
                       type="button"
                       onClick={onClose}
                       disabled={isSubmitting || updateEintrag.isPending}
-                      className="rounded-lg border border-border-subtle bg-surface-panel px-4 py-2 font-medium text-sm text-text-secondary transition-colors hover:bg-action-secondary hover:text-text-primary focus-visible:shadow-focus-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                      className="rounded-lg border border-border-subtle bg-surface-panel px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-action-secondary hover:text-text-primary focus-visible:shadow-focus-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       Abbrechen
                     </button>
                     <button
                       type="submit"
                       disabled={!canSubmit || isSubmitting || updateEintrag.isPending}
-                      className="rounded-lg bg-action-primary px-4 py-2 font-medium text-sm text-text-inverse transition-colors hover:bg-action-primary-hover focus-visible:shadow-focus-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                      className="rounded-lg bg-action-primary px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:bg-action-primary-hover focus-visible:shadow-focus-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {isSubmitting || updateEintrag.isPending ? 'Speichern...' : 'Speichern'}
                     </button>

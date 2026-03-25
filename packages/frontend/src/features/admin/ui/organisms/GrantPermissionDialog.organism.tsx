@@ -70,7 +70,7 @@ export function GrantPermissionDialog({ isOpen, onClose, onGrant, isGranting, ex
           {isLoading ? (
             <div className="flex items-center gap-2 py-4">
               {' '}
-              <Spinner size="sm" /> <span className="text-text-muted text-sm">Verfuegbare Permissions laden...</span>{' '}
+              <Spinner size="sm" /> <span className="text-sm text-text-muted">Verfuegbare Permissions laden...</span>{' '}
             </div>
           ) : (
             <div className="space-y-4">
@@ -114,7 +114,7 @@ export function GrantPermissionDialog({ isOpen, onClose, onGrant, isGranting, ex
                         variant={field.state.meta.errors.length > 0 ? 'error' : 'default'}
                         fullWidth
                       />{' '}
-                      {availableActions.length === 0 && selectedDomain && <p className="mt-1 text-text-muted text-sm">Alle Aktionen dieser Domain sind bereits vergeben.</p>}{' '}
+                      {availableActions.length === 0 && selectedDomain && <p className="mt-1 text-sm text-text-muted">Alle Aktionen dieser Domain sind bereits vergeben.</p>}{' '}
                     </FormField>
                   )}{' '}
                 </form.Field>

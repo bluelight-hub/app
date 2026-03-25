@@ -35,7 +35,7 @@ export function EtbTextInput({ value, onChange, onBlur, onSubmit, error, maxLeng
 
   return (
     <div className="space-y-1">
-      <label htmlFor={textareaId} className="block font-medium text-sm text-text-secondary">
+      <label htmlFor={textareaId} className="block text-sm font-medium text-text-secondary">
         Text
         <span className="sr-only"> — Strg/Cmd + Enter zum Speichern</span>
       </label>

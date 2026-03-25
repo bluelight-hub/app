@@ -43,32 +43,32 @@ export const IntegrationStatusCard = memo(({ integration, onAction }: Integratio
   return (
     <section
       aria-label={ariaLabel}
-      className="rounded-panel border border-border-subtle bg-surface-panel p-4 shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:shadow-focus-ring"
+      className="rounded-panel border border-border-subtle bg-surface-panel p-4 shadow-sm transition-shadow hover:shadow-md focus-visible:shadow-focus-ring focus-visible:outline-none"
     >
       {' '}
       {/* Header: Name + Status Badge */}{' '}
       <div className="flex items-start justify-between gap-2">
         {' '}
-        <h3 className="font-semibold text-text-primary text-sm">{integration.displayName}</h3>{' '}
-        <span className={cn('inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-medium text-xs ring-1 ring-inset', config.badgeClasses)}>
+        <h3 className="text-sm font-semibold text-text-primary">{integration.displayName}</h3>{' '}
+        <span className={cn('inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset', config.badgeClasses)}>
           {' '}
           <Icon className={cn('h-3.5 w-3.5 shrink-0', config.iconClasses)} aria-hidden="true" /> {integration.statusLabel}{' '}
         </span>{' '}
       </div>{' '}
       {/* Details */}{' '}
-      <div className="mt-3 space-y-1 text-text-muted text-xs">
+      <div className="mt-3 space-y-1 text-xs text-text-muted">
         {' '}
         {integration.errorRate > 0 && <DetailRow label="Fehlerrate" value={`${integration.errorRate}%`} />}{' '}
         {integration.failureCount > 0 && <DetailRow label="Fehler" value={`${integration.failureCount}`} />} {lastActivity && <DetailRow label="Letzte Aktivität" value={lastActivity} />}{' '}
       </div>{' '}
       {/* Suggested Action */}{' '}
       {integration.suggestedAction && (
-        <div className="mt-3 border-border-subtle border-t pt-3">
+        <div className="mt-3 border-t border-border-subtle pt-3">
           {' '}
           <button
             type="button"
             onClick={() => onAction?.(integration.serviceKey)}
-            className="inline-flex w-full items-center justify-center gap-1.5 rounded-control bg-action-secondary px-3 py-1.5 font-medium text-text-primary text-xs transition-colors hover:bg-action-secondary-hover focus-visible:outline-none focus-visible:shadow-focus-ring"
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded-control bg-action-secondary px-3 py-1.5 text-xs font-medium text-text-primary transition-colors hover:bg-action-secondary-hover focus-visible:shadow-focus-ring focus-visible:outline-none"
           >
             {' '}
             {integration.suggestedAction} <PiArrowRight className="h-3.5 w-3.5" aria-hidden="true" />{' '}

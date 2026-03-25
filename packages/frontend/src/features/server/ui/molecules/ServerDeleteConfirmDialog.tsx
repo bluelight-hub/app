@@ -38,7 +38,7 @@ export function ServerDeleteConfirmDialog({ server, open, onConfirm, onCancel, i
           </div>
 
           {/* Title */}
-          <DialogTitle className="mt-4 text-center font-semibold text-lg text-text-primary">Server entfernen</DialogTitle>
+          <DialogTitle className="mt-4 text-center text-lg font-semibold text-text-primary">Server entfernen</DialogTitle>
 
           {/* Description */}
           <Description className="mt-2 text-center text-sm text-text-secondary">
@@ -46,7 +46,7 @@ export function ServerDeleteConfirmDialog({ server, open, onConfirm, onCancel, i
           </Description>
 
           {/* Warning */}
-          <p className="mt-2 text-center text-text-secondary text-xs">Diese Aktion kann nicht rückgängig gemacht werden.</p>
+          <p className="mt-2 text-center text-xs text-text-secondary">Diese Aktion kann nicht rückgängig gemacht werden.</p>
 
           {/* Actions */}
           <div className="mt-6 flex gap-3">

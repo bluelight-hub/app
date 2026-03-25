@@ -10,7 +10,7 @@ interface EtbResultsCountProps {
  */
 export function EtbResultsCount({ filteredCount, totalCount, hasGlobalFilter, hasNextPage }: EtbResultsCountProps) {
   return (
-    <div className="text-text-muted text-sm">
+    <div className="text-sm text-text-muted">
       {hasGlobalFilter && filteredCount !== totalCount ? `${filteredCount} von ${totalCount} Einträgen` : `${totalCount} Einträge`}
       {hasNextPage && ' (weitere werden beim Scrollen geladen)'}
     </div>

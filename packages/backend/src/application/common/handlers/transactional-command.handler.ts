@@ -80,7 +80,7 @@ import { Result } from '@domain/common/result';
  * - Business Logic bleibt testbar und portierbar
  * - Transaction Management ist akzeptabel als Infrastructure Concern
  *
- * **biome-ignore Begründung:**
+ * **eslint-disable Begründung:**
  * - NestJS DI benötigt das Runtime-Symbol für Constructor Injection
  * - `import type` würde zur Compile-Time entfernt → DI bricht zur Laufzeit
  * - Daher MUSS reguläres `import` statt `import type` genutzt werden
@@ -88,7 +88,7 @@ import { Result } from '@domain/common/result';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 // NOTE: Import needed for JSDoc example, even though not used in this file
-// biome-ignore lint/correctness/noUnusedImports: Used in JSDoc example
+// eslint-disable-next-line no-unused-imports -- Used in JSDoc example
 import { EINSATZ_REPOSITORY } from '@infrastructure/di-tokens';
 
 /**

@@ -186,9 +186,9 @@ function ErinnerungenListInner({ einsatzId, className, compact = false, currentU
       // Story 3.6 Task 4.4: Fallback - Teilnehmer aus Erinnerungen extrahieren
       const teilnehmerMap = new Map<string, string>();
       for (const e of erinnerungen) {
-        // biome-ignore lint/suspicious/noExplicitAny: DTO missing fields
+        // eslint-disable-next-line typescript/no-explicit-any -- DTO missing fields
         if (e.erstelltVon && (e as any).erstellerName) {
-          // biome-ignore lint/suspicious/noExplicitAny: DTO missing fields
+          // eslint-disable-next-line typescript/no-explicit-any -- DTO missing fields
           teilnehmerMap.set(e.erstelltVon, sanitizeName((e as any).erstellerName));
         }
         if (e.assignedToId && e.assignedToName) {
@@ -405,7 +405,7 @@ function ErinnerungenListInner({ einsatzId, className, compact = false, currentU
           <div className="flex items-center gap-2">
             <PiAlarm className="h-5 w-5 text-status-warning-text" />
             <h3 className="font-semibold text-text-primary">Erinnerungen</h3>
-            {sortedErinnerungen.length > 0 && <span className="rounded-pill bg-status-warning-surface px-2 py-0.5 font-medium text-status-warning-text text-xs">{sortedErinnerungen.length}</span>}
+            {sortedErinnerungen.length > 0 && <span className="rounded-pill bg-status-warning-surface px-2 py-0.5 text-xs font-medium text-status-warning-text">{sortedErinnerungen.length}</span>}
             {/* Story 3.2 Task 1.2: WebSocket-Status-Indikator */}
             <span
               className={cn('flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs', isConnected ? 'bg-status-success-surface text-status-success-text' : 'bg-surface-raised text-text-muted')}
@@ -473,7 +473,7 @@ function ErinnerungenListInner({ einsatzId, className, compact = false, currentU
                   </div>
                   {/* Story 8.6 AC5: Anzeige der gefilterten Anzahl bei aktivem Filter */}
                   {isAnyFilterActive && (
-                    <span className="text-text-muted text-xs">
+                    <span className="text-xs text-text-muted">
                       {filteredByStatus.length} von {teamErinnerungen.length}
                     </span>
                   )}
@@ -527,7 +527,7 @@ interface ErinnerungListContentProps {
 function ErinnerungListContent({ erinnerungen, einsatzId, currentUserId, showCreator, compact, onCreateClick, emptyMessage }: ErinnerungListContentProps) {
   if (erinnerungen.length === 0) {
     return (
-      <div className={cn('rounded-panel border border-border-subtle border-dashed bg-surface-panel p-6 text-center', compact && 'p-4')}>
+      <div className={cn('rounded-panel border border-dashed border-border-subtle bg-surface-panel p-6 text-center', compact && 'p-4')}>
         <PiAlarm className="mx-auto h-8 w-8 text-text-muted" />
         <p className="mt-2 text-sm text-text-muted">{emptyMessage}</p>
         <Button size="sm" appearance="ghost" className="mt-3" onClick={onCreateClick}>

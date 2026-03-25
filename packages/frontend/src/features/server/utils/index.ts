@@ -19,10 +19,4 @@ export {
 } from './server-color.utils';
 
 // Server Icon Utilities
-export {
-  isValidServerIcon,
-  getServerIconComponent,
-  getDefaultServerIcon,
-  getServerIconName,
-  getServerIconPreset,
-} from './server-icon.utils';
+export { isValidServerIcon, getServerIconComponent, getDefaultServerIcon, getServerIconName, getServerIconPreset } from './server-icon.utils';

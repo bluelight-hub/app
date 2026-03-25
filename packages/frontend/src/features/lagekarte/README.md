@@ -128,12 +128,7 @@ const LagekarteContainer = ({ einsatzId }: { einsatzId: string }) => {
 Für fortgeschrittene Use Cases kann direkt auf Store Actions zugegriffen werden:
 
 ```tsx
-import {
-  selectShape,
-  addShape,
-  removeShape,
-  setActiveDrawingTool,
-} from '@/features/lagekarte/stores';
+import { selectShape, addShape, removeShape, setActiveDrawingTool } from '@/features/lagekarte/stores';
 
 // Shape selektieren
 selectShape('shape-123');

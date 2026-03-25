@@ -61,7 +61,7 @@ export const ConfirmDeleteDialog = ({ isOpen, onClose, onConfirm, userName, user
             {' '}
             <div className="flex flex-col items-center space-y-2 text-center">
               {' '}
-              <PiShieldWarning className="h-12 w-12 text-status-warning-text" /> <p className="font-semibold text-text-primary text-lg">{userName}</p>{' '}
+              <PiShieldWarning className="h-12 w-12 text-status-warning-text" /> <p className="text-lg font-semibold text-text-primary">{userName}</p>{' '}
               <Badge variant={getRoleBadgeVariant(userRole)}>{userRole}</Badge>{' '}
             </div>{' '}
             <div className="space-y-3">
@@ -69,7 +69,7 @@ export const ConfirmDeleteDialog = ({ isOpen, onClose, onConfirm, userName, user
               <Label>Aktion auswählen:</Label>{' '}
               <div className="space-y-2">
                 {' '}
-                <label className="flex cursor-pointer items-center space-x-3 rounded-lg border border-border-subtle p-3 transition hover:bg-surface-raised ">
+                <label className="flex cursor-pointer items-center space-x-3 rounded-lg border border-border-subtle p-3 transition hover:bg-surface-raised">
                   {' '}
                   <input
                     type="radio"
@@ -84,13 +84,13 @@ export const ConfirmDeleteDialog = ({ isOpen, onClose, onConfirm, userName, user
                     <PiUserMinus className="h-5 w-5 text-status-danger-text" />{' '}
                     <div>
                       {' '}
-                      <p className="font-medium text-sm">Löschen (Soft Delete)</p>{' '}
-                      <p className="text-text-muted text-xs ">{isAdmin ? 'Deaktivieren + zu User herabstufen (reaktivierbar)' : 'Benutzer deaktivieren (reaktivierbar)'}</p>{' '}
+                      <p className="text-sm font-medium">Löschen (Soft Delete)</p>{' '}
+                      <p className="text-xs text-text-muted">{isAdmin ? 'Deaktivieren + zu User herabstufen (reaktivierbar)' : 'Benutzer deaktivieren (reaktivierbar)'}</p>{' '}
                     </div>{' '}
                   </div>{' '}
                 </label>{' '}
                 {isAdmin && (
-                  <label className="flex cursor-pointer items-center space-x-3 rounded-lg border border-border-subtle p-3 transition hover:bg-surface-raised ">
+                  <label className="flex cursor-pointer items-center space-x-3 rounded-lg border border-border-subtle p-3 transition hover:bg-surface-raised">
                     {' '}
                     <input
                       type="radio"
@@ -105,12 +105,12 @@ export const ConfirmDeleteDialog = ({ isOpen, onClose, onConfirm, userName, user
                       <PiShieldWarning className="h-5 w-5 text-status-warning-text" />{' '}
                       <div>
                         {' '}
-                        <p className="font-medium text-sm">Zu User herabstufen (aktiv)</p> <p className="text-text-muted text-xs ">Admin-Rechte entfernen, als User aktiv bleiben</p>{' '}
+                        <p className="text-sm font-medium">Zu User herabstufen (aktiv)</p> <p className="text-xs text-text-muted">Admin-Rechte entfernen, als User aktiv bleiben</p>{' '}
                       </div>{' '}
                     </div>{' '}
                   </label>
                 )}{' '}
-                <label className="flex cursor-pointer items-center space-x-3 rounded-lg border border-border-subtle p-3 transition hover:bg-surface-raised ">
+                <label className="flex cursor-pointer items-center space-x-3 rounded-lg border border-border-subtle p-3 transition hover:bg-surface-raised">
                   {' '}
                   <input
                     type="radio"
@@ -125,7 +125,7 @@ export const ConfirmDeleteDialog = ({ isOpen, onClose, onConfirm, userName, user
                     <PiLockKey className="h-5 w-5 text-status-warning-text" />{' '}
                     <div>
                       {' '}
-                      <p className="font-medium text-sm">Sperren</p> <p className="text-text-muted text-xs ">Temporär sperren (reversibel)</p>{' '}
+                      <p className="text-sm font-medium">Sperren</p> <p className="text-xs text-text-muted">Temporär sperren (reversibel)</p>{' '}
                     </div>{' '}
                   </div>{' '}
                 </label>{' '}

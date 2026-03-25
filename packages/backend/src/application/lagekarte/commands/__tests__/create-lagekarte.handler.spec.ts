@@ -64,7 +64,7 @@ describe('CreateLagekarteCommandHandler', () => {
       error: jest.fn(),
       warn: jest.fn(),
       debug: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     // Create mock repositories with all required methods
@@ -74,7 +74,7 @@ describe('CreateLagekarteCommandHandler', () => {
       save: jest.fn(),
       findActive: jest.fn(),
       findByNummer: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     mockLagekarteRepo = {
@@ -82,13 +82,13 @@ describe('CreateLagekarteCommandHandler', () => {
       findById: jest.fn(),
       findByEinsatzId: jest.fn(),
       exists: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     mockEventPublisher = {
       publish: jest.fn(),
       publishAll: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     // Instantiate handler with mocks (Direct Instantiation Pattern)
@@ -264,7 +264,7 @@ describe('CreateLagekarteCommandHandler', () => {
       const existingLagekarteId = createValidTestId('lagekarte');
       const existingAggregate = {
         id: { value: existingLagekarteId },
-        // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+        // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
       } as any; // Mock aggregate
       mockLagekarteRepo.findByEinsatzId.mockResolvedValue(existingAggregate);
 

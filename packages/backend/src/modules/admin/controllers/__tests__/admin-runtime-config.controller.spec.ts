@@ -26,7 +26,7 @@ describe('AdminRuntimeConfigController', () => {
       get: jest.fn(),
       getOrThrow: jest.fn(),
       parseValueForStorage: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test Mock Typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test Mock Typing
     } as any;
 
     controller = new AdminRuntimeConfigController(mockAppConfigService);

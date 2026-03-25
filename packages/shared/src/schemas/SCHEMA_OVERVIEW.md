@@ -53,11 +53,11 @@ import { usernameSchema, type Username } from '@bluelight-hub/shared/schemas';
 **Beispiele:**
 
 ```typescript
-usernameSchema.parse('admin');      // ✅ OK
-usernameSchema.parse('user_123');   // ✅ OK
-usernameSchema.parse('test-user');  // ✅ OK
-usernameSchema.parse('ab');         // ❌ Error: Min. 3 Zeichen
-usernameSchema.parse('user@test');  // ❌ Error: Ungültige Zeichen
+usernameSchema.parse('admin'); // ✅ OK
+usernameSchema.parse('user_123'); // ✅ OK
+usernameSchema.parse('test-user'); // ✅ OK
+usernameSchema.parse('ab'); // ❌ Error: Min. 3 Zeichen
+usernameSchema.parse('user@test'); // ❌ Error: Ungültige Zeichen
 ```
 
 **Verwendung:**
@@ -80,10 +80,10 @@ import { passwordSchema, PASSWORD_CRITERIA, type Password } from '@bluelight-hub
 - **Min Length:** 8 Zeichen
 - **Max Length:** 128 Zeichen
 - **Komplexitätsregeln:**
-    - Mind. 1 Kleinbuchstabe (`a-z`)
-    - Mind. 1 Großbuchstabe (`A-Z`)
-    - Mind. 1 Zahl (`0-9`)
-    - Mind. 1 Sonderzeichen (alles außer `a-zA-Z0-9`)
+  - Mind. 1 Kleinbuchstabe (`a-z`)
+  - Mind. 1 Großbuchstabe (`A-Z`)
+  - Mind. 1 Zahl (`0-9`)
+  - Mind. 1 Sonderzeichen (alles außer `a-zA-Z0-9`)
 
 **PASSWORD_CRITERIA:**
 
@@ -110,13 +110,13 @@ import { passwordSchema, PASSWORD_CRITERIA, type Password } from '@bluelight-hub
 **Beispiele:**
 
 ```typescript
-passwordSchema.parse('MyPass123!');       // ✅ OK
-passwordSchema.parse('SecureP@ss1');      // ✅ OK
-passwordSchema.parse('short');            // ❌ Error: Min. 8 Zeichen
-passwordSchema.parse('alllowercase1!');   // ❌ Error: Mind. ein Großbuchstabe
-passwordSchema.parse('ALLUPPERCASE1!');   // ❌ Error: Mind. ein Kleinbuchstabe
-passwordSchema.parse('NoNumber!');        // ❌ Error: Mind. eine Zahl
-passwordSchema.parse('NoSymbol123');      // ❌ Error: Mind. ein Sonderzeichen
+passwordSchema.parse('MyPass123!'); // ✅ OK
+passwordSchema.parse('SecureP@ss1'); // ✅ OK
+passwordSchema.parse('short'); // ❌ Error: Min. 8 Zeichen
+passwordSchema.parse('alllowercase1!'); // ❌ Error: Mind. ein Großbuchstabe
+passwordSchema.parse('ALLUPPERCASE1!'); // ❌ Error: Mind. ein Kleinbuchstabe
+passwordSchema.parse('NoNumber!'); // ❌ Error: Mind. eine Zahl
+passwordSchema.parse('NoSymbol123'); // ❌ Error: Mind. ein Sonderzeichen
 ```
 
 **Verwendung:**
@@ -134,12 +134,7 @@ passwordSchema.parse('NoSymbol123');      // ❌ Error: Mind. ein Sonderzeichen
 **Import:**
 
 ```typescript
-import {
-  inviteCodeSchema,
-  inviteCodeSchemaNormalized,
-  INVITE_CODE_CRITERIA,
-  type InviteCode,
-} from '@bluelight-hub/shared/schemas';
+import { inviteCodeSchema, inviteCodeSchemaNormalized, INVITE_CODE_CRITERIA, type InviteCode } from '@bluelight-hub/shared/schemas';
 ```
 
 **Validierung:**
@@ -176,8 +171,8 @@ import { inviteCodeSchema } from '@bluelight-hub/shared/schemas';
 // Nur Uppercase akzeptiert
 inviteCodeSchema.parse('ABC12345'); // ✅ OK
 inviteCodeSchema.parse('abc12345'); // ❌ Error: Nur Großbuchstaben
-inviteCodeSchema.parse('ABC123');   // ❌ Error: Exakt 8 Zeichen
-inviteCodeSchema.parse('ABC12345X');// ❌ Error: Exakt 8 Zeichen
+inviteCodeSchema.parse('ABC123'); // ❌ Error: Exakt 8 Zeichen
+inviteCodeSchema.parse('ABC12345X'); // ❌ Error: Exakt 8 Zeichen
 inviteCodeSchema.parse('ABC123@5'); // ❌ Error: Nur A-Z0-9
 ```
 
@@ -247,12 +242,12 @@ import { serverUrlSchema, type ServerUrl } from '@bluelight-hub/shared/schemas';
 **Beispiele:**
 
 ```typescript
-serverUrlSchema.parse('https://api.example.com');  // ✅ OK
-serverUrlSchema.parse('http://localhost:3091');    // ✅ OK
-serverUrlSchema.parse('http://127.0.0.1:3091');    // ✅ OK
-serverUrlSchema.parse('ftp://server.com');         // ❌ Error: Nur http/https
-serverUrlSchema.parse('invalid-url');              // ❌ Error: Ungültige URL
-serverUrlSchema.parse('example.com');              // ❌ Error: Ungültige URL (fehlt Protokoll)
+serverUrlSchema.parse('https://api.example.com'); // ✅ OK
+serverUrlSchema.parse('http://localhost:3091'); // ✅ OK
+serverUrlSchema.parse('http://127.0.0.1:3091'); // ✅ OK
+serverUrlSchema.parse('ftp://server.com'); // ❌ Error: Nur http/https
+serverUrlSchema.parse('invalid-url'); // ❌ Error: Ungültige URL
+serverUrlSchema.parse('example.com'); // ❌ Error: Ungültige URL (fehlt Protokoll)
 ```
 
 **Verwendung:**
@@ -270,8 +265,8 @@ serverUrlSchema.parse('example.com');              // ❌ Error: Ungültige URL 
 export const inviteCodeSchema = z
   .string()
   .trim()
-  .length(8, "Exakt 8 Zeichen")
-  .regex(/^[A-Z0-9]{8}$/, "Nur A-Z und 0-9");
+  .length(8, 'Exakt 8 Zeichen')
+  .regex(/^[A-Z0-9]{8}$/, 'Nur A-Z und 0-9');
 ```
 
 ### 2. Export in Index
@@ -313,15 +308,15 @@ export class RegisterDto {
 
 ## 📊 Schema Comparison
 
-| Feature | Username | Password | Invite-Code | Server-URL |
-|---------|----------|----------|-------------|------------|
-| **Min Length** | 3 | 8 | 8 (exakt) | - |
-| **Max Length** | 20 | 128 | 8 (exakt) | - |
-| **Case-Sensitive** | Ja | Ja | Nein (uppercase) | Ja |
-| **Normalisierung** | Nein | Nein | Ja (optional) | Nein |
-| **Komplexität** | Niedrig | Hoch | Mittel | Niedrig |
-| **Frontend UX** | Standard | Criteria Display | Auto-Uppercase | Standard |
-| **Backend Sync** | - | ✅ | ✅ (Value Object) | - |
+| Feature            | Username | Password         | Invite-Code       | Server-URL |
+| ------------------ | -------- | ---------------- | ----------------- | ---------- |
+| **Min Length**     | 3        | 8                | 8 (exakt)         | -          |
+| **Max Length**     | 20       | 128              | 8 (exakt)         | -          |
+| **Case-Sensitive** | Ja       | Ja               | Nein (uppercase)  | Ja         |
+| **Normalisierung** | Nein     | Nein             | Ja (optional)     | Nein       |
+| **Komplexität**    | Niedrig  | Hoch             | Mittel            | Niedrig    |
+| **Frontend UX**    | Standard | Criteria Display | Auto-Uppercase    | Standard   |
+| **Backend Sync**   | -        | ✅               | ✅ (Value Object) | -          |
 
 ---
 

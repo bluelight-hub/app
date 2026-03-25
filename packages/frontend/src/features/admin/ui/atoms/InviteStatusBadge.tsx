@@ -17,5 +17,5 @@ const STATUS_LABELS: Record<InviteStatus, string> = {
   revoked: 'Widerrufen',
 }; /** * Badge für Invite-Code Status Anzeige. * * Zeigt den Status eines Invite-Codes mit farbcodiertem Hintergrund. * Unterstützt 4 Status-Varianten: active (grün), used (grau), expired (amber), revoked (rot). * * @example * ```tsx * <InviteStatusBadge status="active" /> * // Zeigt: "Aktiv" mit grünem Hintergrund * * <InviteStatusBadge status="expired" /> * // Zeigt: "Abgelaufen" mit amber Hintergrund * ``` */
 export function InviteStatusBadge({ status, className }: InviteStatusBadgeProps) {
-  return <span className={cn('inline-flex items-center rounded-full px-2 py-0.5 font-medium text-xs', STATUS_STYLES[status], className)}>{STATUS_LABELS[status]}</span>;
+  return <span className={cn('inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium', STATUS_STYLES[status], className)}>{STATUS_LABELS[status]}</span>;
 }

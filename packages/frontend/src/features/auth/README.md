@@ -36,15 +36,21 @@ const { isAdmin, hasAdminSession } = useAdminAuth();
 
 // Login
 const { mutate: login } = useUnifiedAuth();
-login({ username, password }, {
-  onSuccess: () => navigate('/dashboard')
-});
+login(
+  { username, password },
+  {
+    onSuccess: () => navigate('/dashboard'),
+  },
+);
 
 // Admin Login
 const { mutate: loginAdmin } = useAdminLogin();
-loginAdmin({ password }, {
-  onSuccess: () => navigate('/admin')
-});
+loginAdmin(
+  { password },
+  {
+    onSuccess: () => navigate('/admin'),
+  },
+);
 
 // Logout
 const { mutate: logout } = useLogout();
@@ -78,9 +84,12 @@ const names = getUserNames(['id-1', 'id-2']); // ["Max", "Maria"]
 import { useAdminSetup } from '@/features/auth';
 
 const { mutate: setupAdmin } = useAdminSetup();
-setupAdmin({ username, password }, {
-  onSuccess: () => navigate('/admin')
-});
+setupAdmin(
+  { username, password },
+  {
+    onSuccess: () => navigate('/admin'),
+  },
+);
 ```
 
 ## Store
@@ -153,13 +162,13 @@ Alle Query Keys sind in `AUTH_KEYS` zentralisiert:
 import { AUTH_KEYS } from '@/features/auth';
 
 // Auth Keys
-AUTH_KEYS.auth.queryKey              // ['auth']
-AUTH_KEYS.auth.queries.authCheck     // ['auth', 'check']
-AUTH_KEYS.auth.queries.adminStatus   // ['auth', 'admin', 'status']
+AUTH_KEYS.auth.queryKey; // ['auth']
+AUTH_KEYS.auth.queries.authCheck; // ['auth', 'check']
+AUTH_KEYS.auth.queries.adminStatus; // ['auth', 'admin', 'status']
 
 // User Keys
-AUTH_KEYS.users.all                  // ['users']
-AUTH_KEYS.users.byId(id)             // ['users', id]
+AUTH_KEYS.users.all; // ['users']
+AUTH_KEYS.users.byId(id); // ['users', id]
 ```
 
 ## Migration von Legacy Hooks
@@ -181,14 +190,7 @@ const { data: users } = useUsers();
 
 ```typescript
 // packages/frontend/src/features/auth
-import {
-  useCurrentUser,
-  useAdminAuth,
-  useLogout,
-  useUnifiedAuth,
-  useUsers,
-  useUserNames
-} from '@/features/auth';
+import { useCurrentUser, useAdminAuth, useLogout, useUnifiedAuth, useUsers, useUserNames } from '@/features/auth';
 
 const { user } = useCurrentUser();
 const { mutate: logout } = useLogout();

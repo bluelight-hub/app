@@ -210,9 +210,9 @@ function KpiCard({ item }: { item: KpiItem }) {
     <div className={cn('rounded-panel border px-3 py-2 shadow-sm', getMetricToneClasses(item.tone))}>
       <div className="flex items-center gap-2 text-text-secondary">
         <Icon className="h-4 w-4" aria-hidden="true" />
-        <span className="font-medium text-body-xs uppercase tracking-[0.08em]">{item.label}</span>
+        <span className="text-body-xs font-medium tracking-[0.08em] uppercase">{item.label}</span>
       </div>
-      <p className="mt-2 font-semibold text-text-primary text-title-md">{item.value}</p>
+      <p className="mt-2 text-title-md font-semibold text-text-primary">{item.value}</p>
     </div>
   );
 }
@@ -227,17 +227,17 @@ function QuickLinkCard({ link, einsatzId }: { link: QuickLink; einsatzId: string
         <Icon className="h-4 w-4" aria-hidden="true" />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="font-medium text-body-sm text-text-primary">{link.label}</p>
+        <p className="text-body-sm font-medium text-text-primary">{link.label}</p>
         <p className="text-body-xs text-text-secondary">{stateLabel}</p>
       </div>
-      <span className="rounded-pill border border-border-subtle bg-surface-raised px-2 py-0.5 font-medium text-body-xs text-text-secondary">{link.count}</span>
+      <span className="rounded-pill border border-border-subtle bg-surface-raised px-2 py-0.5 text-body-xs font-medium text-text-secondary">{link.count}</span>
       {link.to ? <PiArrowRight className="h-4 w-4 flex-shrink-0 text-text-secondary" aria-hidden="true" /> : null}
     </div>
   );
 
   const cardClassName = cn(
     'rounded-panel border border-border-subtle bg-surface-panel px-4 py-3 shadow-sm',
-    link.to ? 'block transition-colors hover:border-border-strong focus-visible:outline-none focus-visible:shadow-focus-ring' : 'block',
+    link.to ? 'block transition-colors hover:border-border-strong focus-visible:shadow-focus-ring focus-visible:outline-none' : 'block',
   );
 
   if (!link.to) {
@@ -247,7 +247,7 @@ function QuickLinkCard({ link, einsatzId }: { link: QuickLink; einsatzId: string
   return (
     <Link
       to={link.to}
-      // biome-ignore lint/suspicious/noExplicitAny: Workspace-Aktionen binden kanonische Route-Templates mit Einsatz-Parametern.
+      // eslint-disable-next-line typescript/no-explicit-any -- Workspace-Aktionen binden kanonische Route-Templates mit Einsatz-Parametern.
       params={{ einsatzId } as any}
       search={(prev) => prev}
       className={cardClassName}
@@ -259,7 +259,7 @@ function QuickLinkCard({ link, einsatzId }: { link: QuickLink; einsatzId: string
 
 function EtbBarChart({ data }: { data: EtbCategoryDatum[] }) {
   if (data.length === 0) {
-    return <div className="rounded-panel border border-border-subtle border-dashed bg-surface-raised px-4 py-3 text-body-sm text-text-secondary">Noch keine ETB-Aktivität vorhanden.</div>;
+    return <div className="rounded-panel border border-dashed border-border-subtle bg-surface-raised px-4 py-3 text-body-sm text-text-secondary">Noch keine ETB-Aktivität vorhanden.</div>;
   }
 
   return (
@@ -288,7 +288,7 @@ function EtbBarChart({ data }: { data: EtbCategoryDatum[] }) {
 
 function FmsDonutChart({ data, total }: { data: FmsStatusDatum[]; total: number }) {
   if (total === 0) {
-    return <div className="rounded-panel border border-border-subtle border-dashed bg-surface-raised px-4 py-3 text-body-sm text-text-secondary">Noch keine Ressourcen im Überblick verfügbar.</div>;
+    return <div className="rounded-panel border border-dashed border-border-subtle bg-surface-raised px-4 py-3 text-body-sm text-text-secondary">Noch keine Ressourcen im Überblick verfügbar.</div>;
   }
 
   const visibleData = data.filter((d) => d.value > 0);
@@ -311,7 +311,7 @@ function FmsDonutChart({ data, total }: { data: FmsStatusDatum[]; total: number 
         </PieChart>
       </ResponsiveContainer>
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-        <span className="font-semibold text-text-primary text-title-md">{total}</span>
+        <span className="text-title-md font-semibold text-text-primary">{total}</span>
       </div>
     </div>
   );
@@ -400,7 +400,7 @@ export function SingleEinsatzDashboard() {
           onClick: () =>
             navigate({
               to: '/app/einsatz/$einsatzId/übersicht',
-              // biome-ignore lint/suspicious/noExplicitAny: Workspace-Aktionen binden kanonische Route-Templates mit Einsatz-Parametern.
+              // eslint-disable-next-line typescript/no-explicit-any -- Workspace-Aktionen binden kanonische Route-Templates mit Einsatz-Parametern.
               params: { einsatzId } as any,
               search: (prev: Record<string, unknown>) => prev,
             }),
@@ -552,8 +552,8 @@ export function SingleEinsatzDashboard() {
       <div className="space-y-2">
         <div className={cn('flex items-center gap-2 rounded-panel border px-3 py-1.5', getSurfaceToneClasses(heroTone))}>
           <FocusIcon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-          <span className="font-medium text-body-xs uppercase tracking-[0.05em] opacity-80">Fokus</span>
-          <span className="rounded-pill border border-current/15 bg-surface-panel/70 px-2.5 py-0.5 font-medium text-body-xs">{focusLabel}</span>
+          <span className="text-body-xs font-medium tracking-[0.05em] uppercase opacity-80">Fokus</span>
+          <span className="rounded-pill border border-current/15 bg-surface-panel/70 px-2.5 py-0.5 text-body-xs font-medium">{focusLabel}</span>
         </div>
 
         <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
@@ -571,14 +571,14 @@ export function SingleEinsatzDashboard() {
 
       <div className="grid gap-3 xl:grid-cols-2">
         <section className="rounded-panel border border-border-subtle bg-surface-panel p-4 shadow-panel">
-          <h3 className="font-semibold text-body-lg text-text-primary">Lagebild</h3>
+          <h3 className="text-body-lg font-semibold text-text-primary">Lagebild</h3>
           <div className="mt-3">
             <EtbBarChart data={etbChartData} />
           </div>
         </section>
 
         <section className="rounded-panel border border-border-subtle bg-surface-panel p-4 shadow-panel">
-          <h3 className="font-semibold text-body-lg text-text-primary">Ressourcenlage</h3>
+          <h3 className="text-body-lg font-semibold text-text-primary">Ressourcenlage</h3>
           <div className="mt-3">
             <FmsDonutChart data={fmsChartData} total={fahrzeuge.length} />
           </div>
@@ -589,9 +589,9 @@ export function SingleEinsatzDashboard() {
 
                 const vehicleContent = (
                   <>
-                    <span className="truncate font-medium text-body-sm text-text-primary">{fahrzeug.funkrufname}</span>
+                    <span className="truncate text-body-sm font-medium text-text-primary">{fahrzeug.funkrufname}</span>
                     <div className="flex items-center gap-2">
-                      <span className="rounded-pill border border-border-subtle bg-surface-panel px-2 py-0.5 font-medium text-body-xs text-text-secondary">{fmsLabel}</span>
+                      <span className="rounded-pill border border-border-subtle bg-surface-panel px-2 py-0.5 text-body-xs font-medium text-text-secondary">{fmsLabel}</span>
                       {vehicleTarget.available ? <PiArrowRight className="h-3.5 w-3.5 flex-shrink-0 text-text-secondary" aria-hidden="true" /> : null}
                     </div>
                   </>
@@ -602,12 +602,12 @@ export function SingleEinsatzDashboard() {
                     {vehicleTarget.available && vehicleTarget.route ? (
                       <Link
                         to={vehicleTarget.route}
-                        // biome-ignore lint/suspicious/noExplicitAny: Workspace-Aktionen binden kanonische Route-Templates mit Einsatz-Parametern.
+                        // eslint-disable-next-line typescript/no-explicit-any -- Workspace-Aktionen binden kanonische Route-Templates mit Einsatz-Parametern.
                         params={{ einsatzId } as any}
                         search={(prev) => prev}
                         onClick={(e) => guardNavigation(e, vehicleTarget.route as string)}
                         onKeyDown={handleLinkSpace}
-                        className="flex items-center justify-between gap-3 rounded-panel border border-border-subtle bg-surface-raised px-3 py-2 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:shadow-focus-ring"
+                        className="hover:bg-muted/50 flex items-center justify-between gap-3 rounded-panel border border-border-subtle bg-surface-raised px-3 py-2 transition-colors focus-visible:shadow-focus-ring focus-visible:outline-none"
                       >
                         <span className="sr-only">{vehicleTarget.label}</span>
                         {vehicleContent}
@@ -624,33 +624,33 @@ export function SingleEinsatzDashboard() {
       </div>
 
       <section className="rounded-panel border border-border-subtle bg-surface-panel p-4 shadow-panel">
-        <h3 className="font-semibold text-body-lg text-text-primary">Einsatzinformationen</h3>
+        <h3 className="text-body-lg font-semibold text-text-primary">Einsatzinformationen</h3>
         <dl className="mt-3 flex flex-wrap gap-x-8 gap-y-3">
           <div>
-            <dt className="font-medium text-body-xs text-text-secondary uppercase tracking-[0.08em]">Einsatz</dt>
+            <dt className="text-body-xs font-medium tracking-[0.08em] text-text-secondary uppercase">Einsatz</dt>
             <dd className="mt-0.5 text-body-sm text-text-primary">{displayNumber}</dd>
           </div>
           <div>
-            <dt className="font-medium text-body-xs text-text-secondary uppercase tracking-[0.08em]">Alarmstichwort</dt>
+            <dt className="text-body-xs font-medium tracking-[0.08em] text-text-secondary uppercase">Alarmstichwort</dt>
             <dd className="mt-0.5 text-body-sm text-text-primary">{einsatz.alarmstichwort}</dd>
           </div>
           <div>
-            <dt className="font-medium text-body-xs text-text-secondary uppercase tracking-[0.08em]">Ort</dt>
+            <dt className="text-body-xs font-medium tracking-[0.08em] text-text-secondary uppercase">Ort</dt>
             <dd className="mt-0.5 text-body-sm text-text-primary">{einsatzort}</dd>
           </div>
           <div>
-            <dt className="font-medium text-body-xs text-text-secondary uppercase tracking-[0.08em]">Alarmierung</dt>
+            <dt className="text-body-xs font-medium tracking-[0.08em] text-text-secondary uppercase">Alarmierung</dt>
             <dd className="mt-0.5 text-body-sm text-text-primary">{format(startTime, 'dd.MM.yyyy HH:mm', { locale: de })} Uhr</dd>
           </div>
           <div>
-            <dt className="font-medium text-body-xs text-text-secondary uppercase tracking-[0.08em]">Hinweis</dt>
+            <dt className="text-body-xs font-medium tracking-[0.08em] text-text-secondary uppercase">Hinweis</dt>
             <dd className="mt-0.5 text-body-sm text-text-primary">{einsatz.beschreibung?.trim() || einsatz.bemerkung?.trim() || 'Keine zusätzliche Lagemitteilung hinterlegt.'}</dd>
           </div>
         </dl>
       </section>
 
       <section className="rounded-panel border border-border-subtle bg-surface-panel p-4 shadow-panel">
-        <h3 className="font-semibold text-body-lg text-text-primary">Direktzugriffe</h3>
+        <h3 className="text-body-lg font-semibold text-text-primary">Direktzugriffe</h3>
         <div className="mt-3 grid gap-2 sm:grid-cols-3">
           {quickLinks.map((link) => (
             <QuickLinkCard key={link.id} link={link} einsatzId={einsatzId} />
@@ -659,7 +659,7 @@ export function SingleEinsatzDashboard() {
       </section>
 
       <section className="rounded-panel border border-border-subtle bg-surface-panel p-4 shadow-panel" aria-label="Letzte Meldungen">
-        <h3 className="font-semibold text-body-lg text-text-primary">Letzte Meldungen</h3>
+        <h3 className="text-body-lg font-semibold text-text-primary">Letzte Meldungen</h3>
         <output aria-live="polite" aria-atomic="false" className="mt-3 block">
           {isFetching && !isLoading && recentEntries.length > 0 ? (
             <div className="mb-2 flex gap-2">
@@ -679,7 +679,7 @@ export function SingleEinsatzDashboard() {
                   <>
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0 flex-1">
-                        <span className={cn('font-medium text-body-sm text-text-primary', isNewest && 'font-semibold')}>{getEntryCategoryLabel(entry.kategorie)}</span>
+                        <span className={cn('text-body-sm font-medium text-text-primary', isNewest && 'font-semibold')}>{getEntryCategoryLabel(entry.kategorie)}</span>
                         <span className="ml-2 text-body-sm text-text-secondary">{trimText(entry.text, 110)}</span>
                       </div>
                       <div className="flex flex-shrink-0 items-center gap-2">
@@ -698,18 +698,18 @@ export function SingleEinsatzDashboard() {
                     {entryTarget.available && entryTarget.route ? (
                       <Link
                         to={entryTarget.route}
-                        // biome-ignore lint/suspicious/noExplicitAny: Workspace-Aktionen binden kanonische Route-Templates mit Einsatz-Parametern.
+                        // eslint-disable-next-line typescript/no-explicit-any -- Workspace-Aktionen binden kanonische Route-Templates mit Einsatz-Parametern.
                         params={{ einsatzId } as any}
                         search={(prev) => prev}
                         onClick={(e) => guardNavigation(e, entryTarget.route as string)}
                         onKeyDown={handleLinkSpace}
-                        className="block rounded-panel px-2 py-1 -mx-2 -my-1 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:shadow-focus-ring"
+                        className="hover:bg-muted/50 -mx-2 -my-1 block rounded-panel px-2 py-1 transition-colors focus-visible:shadow-focus-ring focus-visible:outline-none"
                       >
                         <span className="sr-only">{entryTarget.label}</span>
                         {entryContent}
                       </Link>
                     ) : (
-                      <div className="px-2 py-1 -mx-2 -my-1">
+                      <div className="-mx-2 -my-1 px-2 py-1">
                         {entryContent}
                         {!entryTarget.available ? <p className="mt-1 text-body-xs text-text-secondary italic">{entryTarget.fallbackAction}</p> : null}
                       </div>
@@ -719,7 +719,7 @@ export function SingleEinsatzDashboard() {
               })}
             </ul>
           ) : (
-            <div className="rounded-panel border border-border-subtle border-dashed bg-surface-raised px-4 py-3 text-body-sm text-text-secondary">Noch keine Meldungen im ETB vorhanden.</div>
+            <div className="rounded-panel border border-dashed border-border-subtle bg-surface-raised px-4 py-3 text-body-sm text-text-secondary">Noch keine Meldungen im ETB vorhanden.</div>
           )}
         </output>
       </section>

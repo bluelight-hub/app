@@ -1,10 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {
-  getAllowedGitmojis,
-  normalizeEmoji,
-  validateCommitMessage,
-} from '../gitmoji-commit-validator.mjs';
+import { getAllowedGitmojis, normalizeEmoji, validateCommitMessage } from '../gitmoji-commit-validator.mjs';
 
 test('akzeptiert gültige Commit-Nachrichten mit offiziellem Gitmoji', async () => {
   const gitmojis = await getAllowedGitmojis();

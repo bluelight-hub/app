@@ -272,7 +272,7 @@ describe('TransactionalCommandHandler', () => {
       handler.eventsToReturn = [testEvent];
 
       // Spy on executeInTransaction
-      // biome-ignore lint/suspicious/noExplicitAny: Need to spy on protected method for testing
+      // eslint-disable-next-line typescript/no-explicit-any -- Need to spy on protected method for testing
       const executeInTransactionSpy = jest.spyOn(handler as any, 'executeInTransaction');
 
       // When: Execute command
@@ -303,7 +303,7 @@ describe('TransactionalCommandHandler', () => {
       const callOrder: string[] = [];
 
       // Spy on executeInTransaction
-      // biome-ignore lint/suspicious/noExplicitAny: Need to spy on protected method for testing
+      // eslint-disable-next-line typescript/no-explicit-any -- Need to spy on protected method for testing
       jest.spyOn(handler as any, 'executeInTransaction').mockImplementation(async () => {
         callOrder.push('executeInTransaction');
         return {

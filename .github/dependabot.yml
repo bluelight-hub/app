@@ -2,78 +2,78 @@ version: 2
 
 updates:
   # pnpm monorepo - npm dependencies
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: 'npm'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "friday"
-      time: "20:00"
-      timezone: "Europe/Berlin"
-    target-branch: "alpha"
+      interval: 'weekly'
+      day: 'friday'
+      time: '20:00'
+      timezone: 'Europe/Berlin'
+    target-branch: 'alpha'
     open-pull-requests-limit: 10
     labels:
-      - "dependencies"
+      - 'dependencies'
     groups:
       nestjs:
         patterns:
-          - "@nestjs/*"
+          - '@nestjs/*'
       react:
         patterns:
-          - "react"
-          - "react-dom"
-          - "@types/react"
-          - "@types/react-dom"
+          - 'react'
+          - 'react-dom'
+          - '@types/react'
+          - '@types/react-dom'
       tanstack:
         patterns:
-          - "@tanstack/*"
+          - '@tanstack/*'
       prisma:
         patterns:
-          - "prisma"
-          - "@prisma/*"
+          - 'prisma'
+          - '@prisma/*'
       tauri:
         patterns:
-          - "@tauri-apps/*"
+          - '@tauri-apps/*'
       dev-minor-patch:
-        dependency-type: "development"
+        dependency-type: 'development'
         update-types:
-          - "minor"
-          - "patch"
+          - 'minor'
+          - 'patch'
 
   # Tauri Rust dependencies
-  - package-ecosystem: "cargo"
-    directory: "/packages/frontend/src-tauri"
+  - package-ecosystem: 'cargo'
+    directory: '/packages/frontend/src-tauri'
     schedule:
-      interval: "weekly"
-      day: "friday"
-      time: "20:00"
-      timezone: "Europe/Berlin"
-    target-branch: "alpha"
+      interval: 'weekly'
+      day: 'friday'
+      time: '20:00'
+      timezone: 'Europe/Berlin'
+    target-branch: 'alpha'
     labels:
-      - "dependencies"
-      - "rust"
+      - 'dependencies'
+      - 'rust'
 
   # GitHub Actions
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "friday"
-      time: "20:00"
-      timezone: "Europe/Berlin"
-    target-branch: "alpha"
+      interval: 'weekly'
+      day: 'friday'
+      time: '20:00'
+      timezone: 'Europe/Berlin'
+    target-branch: 'alpha'
     labels:
-      - "dependencies"
-      - "ci"
+      - 'dependencies'
+      - 'ci'
 
   # Docker
-  - package-ecosystem: "docker"
-    directory: "/"
+  - package-ecosystem: 'docker'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "friday"
-      time: "20:00"
-      timezone: "Europe/Berlin"
-    target-branch: "alpha"
+      interval: 'weekly'
+      day: 'friday'
+      time: '20:00'
+      timezone: 'Europe/Berlin'
+    target-branch: 'alpha'
     labels:
-      - "dependencies"
-      - "docker"
+      - 'dependencies'
+      - 'docker'

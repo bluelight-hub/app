@@ -44,11 +44,11 @@ Wenn Sound-Dateien fehlen:
 
 ## Sound-Charakteristiken pro Level
 
-| Level | Frequenzbereich | Tempo | Charakter |
-|-------|-----------------|-------|-----------|
-| Info | 400-800 Hz | Langsam | Dezent, freundlich |
-| Warning | 600-1000 Hz | Mittel | Aufmerksamkeit erregend |
-| Urgent | 800-1200 Hz | Schnell | Dringend, nicht zu ignorieren |
+| Level   | Frequenzbereich | Tempo   | Charakter                     |
+| ------- | --------------- | ------- | ----------------------------- |
+| Info    | 400-800 Hz      | Langsam | Dezent, freundlich            |
+| Warning | 600-1000 Hz     | Mittel  | Aufmerksamkeit erregend       |
+| Urgent  | 800-1200 Hz     | Schnell | Dringend, nicht zu ignorieren |
 
 ## Freie Sound-Ressourcen
 

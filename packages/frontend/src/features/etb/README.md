@@ -97,16 +97,7 @@ function EtbEntryForm({ etbId }: { etbId: string }) {
 import { useEtbOperations } from '@/features/etb';
 
 function EtbPage({ einsatzId }: { einsatzId: string }) {
-  const {
-    etb,
-    isLoadingEtb,
-    textbausteine,
-    createEintrag,
-    updateEintrag,
-    deleteEintrag,
-    lockEtb,
-    isCreatingEintrag,
-  } = useEtbOperations({ einsatzId });
+  const { etb, isLoadingEtb, textbausteine, createEintrag, updateEintrag, deleteEintrag, lockEtb, isCreatingEintrag } = useEtbOperations({ einsatzId });
 
   // Alle ETB-Operationen verfügbar
 }
@@ -191,11 +182,13 @@ Neue Features sollten IMMER `/features/etb` verwenden.
 ## Best Practices
 
 1. **Immer typisierte Options verwenden:**
+
    ```typescript
-   useEtb({ einsatzId, includeDeleted: false })
+   useEtb({ einsatzId, includeDeleted: false });
    ```
 
 2. **Mutation States für Loading abfragen:**
+
    ```typescript
    const createEntry = useCreateEtbEntry();
    return <Button disabled={createEntry.isPending} />;

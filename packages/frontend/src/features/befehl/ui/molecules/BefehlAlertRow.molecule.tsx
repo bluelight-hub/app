@@ -58,7 +58,7 @@ export function BefehlAlertRow({ befehl, variant, beschreibung, onClick, onQuitt
       }}
       className={cn(
         'flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left transition-colors',
-        'focus-visible:outline-none focus-visible:shadow-focus-ring',
+        'focus-visible:shadow-focus-ring focus-visible:outline-none',
         variant === 'kritisch' && 'hover:bg-status-danger-surface',
         variant === 'warnung' && 'hover:bg-status-warning-surface',
         variant === 'zuQuittieren' && 'hover:bg-status-info-surface',
@@ -70,12 +70,12 @@ export function BefehlAlertRow({ befehl, variant, beschreibung, onClick, onQuitt
       {variant === 'kritisch' && <AlarmDot className="flex-shrink-0" />}
 
       {/* Nummer */}
-      <span className="flex-shrink-0 font-bold font-mono text-text-primary text-sm">{befehl.nummer}</span>
+      <span className="flex-shrink-0 font-mono text-sm font-bold text-text-primary">{befehl.nummer}</span>
 
       {/* Grund-Badge / Beschreibung */}
       <span
         className={cn(
-          'flex-shrink-0 rounded-full px-2 py-0.5 font-medium text-xs',
+          'flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-medium',
           variant === 'kritisch' && 'bg-status-danger-surface text-status-danger-text',
           variant === 'warnung' && 'bg-status-warning-surface text-status-warning-text',
           variant === 'zuQuittieren' && 'bg-status-info-surface text-status-info-text',
@@ -88,13 +88,13 @@ export function BefehlAlertRow({ befehl, variant, beschreibung, onClick, onQuitt
 
       {/* Fortschritt (nicht bei zuQuittieren) */}
       {variant !== 'zuQuittieren' && (
-        <span className="flex-shrink-0 text-text-muted text-xs">
+        <span className="flex-shrink-0 text-xs text-text-muted">
           {fortschritt.quittiert}/{fortschritt.gesamt}
         </span>
       )}
 
       {/* Auftrag (truncated, flex-grow) */}
-      <span className="min-w-0 flex-1 truncate text-text-secondary text-sm">{befehl.auftrag}</span>
+      <span className="min-w-0 flex-1 truncate text-sm text-text-secondary">{befehl.auftrag}</span>
 
       {/* Chevron / Quittieren-Button */}
       {variant === 'zuQuittieren' ? (
@@ -104,7 +104,7 @@ export function BefehlAlertRow({ befehl, variant, beschreibung, onClick, onQuitt
             e.stopPropagation();
             onQuittieren?.(befehl.id);
           }}
-          className={cn('flex-shrink-0 rounded-md px-3 py-1 font-medium text-xs transition-colors', 'bg-action-primary text-text-inverse hover:bg-action-primary-hover')}
+          className={cn('flex-shrink-0 rounded-md px-3 py-1 text-xs font-medium transition-colors', 'bg-action-primary text-text-inverse hover:bg-action-primary-hover')}
         >
           Quittieren
         </button>

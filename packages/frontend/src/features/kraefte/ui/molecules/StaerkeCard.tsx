@@ -115,8 +115,8 @@ export function StaerkeCard({ fuehrung, unterfuehrung, mannschaft, gesamt, isLoa
   if (mode === 'compact') {
     return (
       <div className={cn('flex items-center justify-between rounded-panel border border-border-subtle bg-surface-panel', classes.container, className)}>
-        <span className="font-medium text-text-secondary text-sm">Stärke</span>
-        <span className="font-bold text-text-primary text-xl">{gesamt}</span>
+        <span className="text-sm font-medium text-text-secondary">Stärke</span>
+        <span className="text-xl font-bold text-text-primary">{gesamt}</span>
       </div>
     );
   }

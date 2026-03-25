@@ -42,10 +42,10 @@ export function ModuleButton({ to, params, hotkey, colorClasses, children, class
     <Link
       ref={linkRef}
       to={to}
-      // biome-ignore lint/suspicious/noExplicitAny: params should be correctly typed
+      // eslint-disable-next-line typescript/no-explicit-any -- params should be correctly typed
       params={params as any}
       className={cn(
-        'group relative flex items-center gap-2 whitespace-nowrap rounded-control border px-4 py-2 font-medium text-body-sm transition-[background-color,border-color,color,box-shadow] focus-visible:outline-none focus-visible:shadow-focus-ring',
+        'group relative flex items-center gap-2 rounded-control border px-4 py-2 text-body-sm font-medium whitespace-nowrap transition-[background-color,border-color,color,box-shadow] focus-visible:shadow-focus-ring focus-visible:outline-none',
         colorClasses,
         className,
       )}

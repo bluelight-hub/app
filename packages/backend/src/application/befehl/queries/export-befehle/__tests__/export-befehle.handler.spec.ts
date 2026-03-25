@@ -51,12 +51,12 @@ describe('ExportBefehleQueryHandler', () => {
       findByEmpfaengerId: jest.fn(),
       findWithOpenRueckfragen: jest.fn(),
       findFiltered: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     mockCsvService = {
       generateCsv: jest.fn(),
-      // biome-ignore lint/suspicious/noExplicitAny: Test mock typing
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
     handler = new ExportBefehleQueryHandler(mockBefehlRepository, mockCsvService);

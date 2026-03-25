@@ -100,7 +100,7 @@ export const ClusteredPoiLayer: React.FC<ClusteredPoiLayerProps> = React.memo(({
     return (
       <div className="absolute top-4 right-4 z-50 flex items-center gap-2 rounded-lg border-2 border-status-danger-border bg-status-danger-surface p-3 shadow-lg">
         <PiXCircle className="h-5 w-5 text-status-danger-text" />
-        <p className="font-medium text-body-sm text-status-danger-text">POIs konnten nicht geladen werden</p>
+        <p className="text-body-sm font-medium text-status-danger-text">POIs konnten nicht geladen werden</p>
       </div>
     );
   }
@@ -202,7 +202,7 @@ export const ClusteredPoiLayer: React.FC<ClusteredPoiLayerProps> = React.memo(({
       {skippedCount > 0 && (
         <div className="absolute right-4 bottom-4 z-50 flex items-center gap-2 rounded-lg border-2 border-status-warning-border bg-status-warning-surface p-3 shadow-lg">
           <PiWarning className="h-5 w-5 text-status-warning-text" />
-          <p className="font-medium text-body-sm text-status-warning-text">
+          <p className="text-body-sm font-medium text-status-warning-text">
             {skippedCount} POI{skippedCount > 1 ? 's' : ''} konnten nicht angezeigt werden (ungültige Koordinaten)
           </p>
         </div>
@@ -233,7 +233,7 @@ export const ClusteredPoiLayer: React.FC<ClusteredPoiLayerProps> = React.memo(({
               <Popup className="poi-popup">
                 <div className="rounded-lg bg-surface-panel p-4 shadow-lg">
                   {/* POI-Name */}
-                  <h3 className="mb-2 font-semibold text-lg">{poi.name}</h3>
+                  <h3 className="mb-2 text-lg font-semibold">{poi.name}</h3>
 
                   {/* POI-Kategorie */}
                   <p className="mb-1 text-body-sm text-text-secondary">{poi.category}</p>
@@ -262,7 +262,7 @@ export const ClusteredPoiLayer: React.FC<ClusteredPoiLayerProps> = React.memo(({
               </div>
 
               <div className="flex-1">
-                <DialogTitle as="h3" className="font-semibold text-text-primary text-lg">
+                <DialogTitle as="h3" className="text-lg font-semibold text-text-primary">
                   POI löschen?
                 </DialogTitle>
 

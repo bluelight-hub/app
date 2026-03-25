@@ -29,7 +29,7 @@ export const DeactivateFahrzeugtypDialog = ({ isOpen, onClose, onConfirm, fahrze
         <div className="space-y-4">
           {' '}
           <Text>Möchten Sie den folgenden Fahrzeugtyp wirklich deaktivieren?</Text>{' '}
-          <div className="rounded-lg border border-border-subtle bg-surface-raised p-4 ">
+          <div className="rounded-lg border border-border-subtle bg-surface-raised p-4">
             {' '}
             <div className="flex items-start justify-between">
               {' '}
@@ -44,13 +44,13 @@ export const DeactivateFahrzeugtypDialog = ({ isOpen, onClose, onConfirm, fahrze
                   </Badge>{' '}
                 </div>{' '}
                 <Text className="mt-1 text-text-secondary">{fahrzeugtyp.bezeichnung}</Text>{' '}
-                {fahrzeugtyp.beschreibung && <Text className="mt-2 text-text-muted text-sm ">{fahrzeugtyp.beschreibung}</Text>}{' '}
+                {fahrzeugtyp.beschreibung && <Text className="mt-2 text-sm text-text-muted">{fahrzeugtyp.beschreibung}</Text>}{' '}
               </div>{' '}
             </div>{' '}
           </div>{' '}
           <div className="rounded-lg border border-status-warning-border bg-status-warning-surface p-3">
             {' '}
-            <Text className="text-status-warning-text text-sm">
+            <Text className="text-sm text-status-warning-text">
               {' '}
               <strong>Hinweis:</strong> Deaktivierte Fahrzeugtypen können nicht mehr für neue Fahrzeuge ausgewählt werden. Bestehende Zuordnungen bleiben erhalten.{' '}
             </Text>{' '}

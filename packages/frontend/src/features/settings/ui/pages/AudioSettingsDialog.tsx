@@ -104,7 +104,7 @@ export function AudioSettingsDialog({ isOpen, onClose }: AudioSettingsDialogProp
 
               {/* Level-Konfigurationen */}
               <div className="space-y-4">
-                <h2 className="font-medium text-text-primary text-lg">Alarm-Stufen konfigurieren</h2>
+                <h2 className="text-lg font-medium text-text-primary">Alarm-Stufen konfigurieren</h2>
 
                 {ALARM_LEVELS.map((level) => (
                   <AudioLevelConfig key={level} level={level} config={settings.levels[level]} onChange={(config) => handleLevelChange(level, config)} disabled={!settings.enabled} />

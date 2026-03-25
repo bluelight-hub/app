@@ -217,7 +217,7 @@ describe('PrismaEtbRepository - Performance Baselines', () => {
  * @param iterations - Anzahl der Iterationen (default: 10)
  * @returns Performance-Statistiken (avg, min, max in ms)
  */
-// biome-ignore lint/correctness/noUnusedVariables: Placeholder-Utility fuer Epic 4 Performance Tests
+// eslint-disable-next-line no-unused-vars -- Placeholder-Utility fuer Epic 4 Performance Tests
 const measurePerformance = async (fn: () => Promise<void>, iterations = 10): Promise<{ avg: number; min: number; max: number }> => {
   const times: number[] = [];
   for (let i = 0; i < iterations; i++) {
@@ -242,7 +242,7 @@ const performanceResults: Record<string, { avg: number; min: number; max: number
  *
  * Nuetzlich in afterAll() um alle gemessenen Baselines anzuzeigen.
  */
-// biome-ignore lint/correctness/noUnusedVariables: Placeholder-Utility fuer Epic 4 Performance Tests
+// eslint-disable-next-line no-unused-vars -- Placeholder-Utility fuer Epic 4 Performance Tests
 function printPerformanceSummary(): void {
   console.log('\n📊 ETB Performance Baselines:');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');

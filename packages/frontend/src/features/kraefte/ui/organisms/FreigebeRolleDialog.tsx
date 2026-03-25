@@ -94,13 +94,13 @@ export function FreigebeRolleDialog({ isOpen, onClose, einsatzId, besetzung }: F
 
       <Dialog.Body>
         {/* Bestaetigungs-Text */}
-        <p className="text-text-secondary text-sm">
+        <p className="text-sm text-text-secondary">
           Moechten Sie die Rolle <strong>{besetzung.rollenName}</strong> von <strong>{besetzung.personName}</strong> wirklich freigeben?
         </p>
-        <p className="mt-2 text-text-muted text-xs">Die Freigabe wird im ETB dokumentiert.</p>
+        <p className="mt-2 text-xs text-text-muted">Die Freigabe wird im ETB dokumentiert.</p>
 
         {/* Error Message */}
-        {errorMessage && <div className="mt-4 rounded-panel bg-status-danger-surface p-3 text-status-danger-text text-sm">{errorMessage}</div>}
+        {errorMessage && <div className="mt-4 rounded-panel bg-status-danger-surface p-3 text-sm text-status-danger-text">{errorMessage}</div>}
       </Dialog.Body>
 
       <Dialog.Footer loading={isPending}>

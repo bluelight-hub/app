@@ -59,7 +59,7 @@ function StatusRailActionButton({ action }: { action: StatusRailAction }) {
       disabled={action.disabled}
       onClick={action.onClick}
       className={cn(
-        'inline-flex items-center justify-center rounded-control border border-action-primary/35 bg-action-primary px-3 py-1.5 font-medium text-body-sm text-text-inverse shadow-button-primary transition-colors',
+        'inline-flex items-center justify-center rounded-control border border-action-primary/35 bg-action-primary px-3 py-1.5 text-body-sm font-medium text-text-inverse shadow-button-primary transition-colors',
         'hover:bg-action-primary-hover focus-visible:shadow-focus-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
       )}
     >
@@ -86,12 +86,12 @@ export function StatusRail({ items = [], className, title = 'Workspace-Status' }
               {Icon ? <Icon className="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden="true" /> : null}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-body-sm">{item.label}</span>
+                  <span className="text-body-sm font-medium">{item.label}</span>
                   {item.value ? <span className="text-body-xs">{item.value}</span> : null}
                 </div>
                 {item.description ? <p className="mt-0.5 text-body-xs opacity-90">{item.description}</p> : null}
                 {item.nextActionDescription ? (
-                  <p className="mt-1 font-medium text-body-xs opacity-90">
+                  <p className="mt-1 text-body-xs font-medium opacity-90">
                     {item.nextActionLabel ?? 'Nächster Schritt'}: {item.nextActionDescription}
                   </p>
                 ) : null}

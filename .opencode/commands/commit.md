@@ -1,5 +1,5 @@
 ---
-description: "Erstellt einen Git-Commit nach den Projektkonventionen mit Safety-Check und selektivem Staging"
+description: 'Erstellt einen Git-Commit nach den Projektkonventionen mit Safety-Check und selektivem Staging'
 ---
 
 Führe den OpenCode-Workflow `git-commit` aus.

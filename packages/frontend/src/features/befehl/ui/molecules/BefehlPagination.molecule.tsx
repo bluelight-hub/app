@@ -28,8 +28,8 @@ export function BefehlPagination({ currentPage, totalPages, totalItems, pageSize
   const rangeEnd = rangeStart + itemsOnPage - 1;
 
   return (
-    <nav className={cn('flex items-center justify-between border-border-subtle border-t px-2 py-3', className)} aria-label="Tabellen-Pagination">
-      <span className="text-text-muted text-sm">
+    <nav className={cn('flex items-center justify-between border-t border-border-subtle px-2 py-3', className)} aria-label="Tabellen-Pagination">
+      <span className="text-sm text-text-muted">
         {rangeStart}–{rangeEnd} von {totalItems} {totalItems === 1 ? 'Befehl' : 'Befehlen'}
       </span>
 
@@ -39,7 +39,7 @@ export function BefehlPagination({ currentPage, totalPages, totalItems, pageSize
           onClick={onPreviousPage}
           disabled={!canPreviousPage}
           className={cn(
-            'inline-flex items-center gap-1 rounded-md px-3 py-1.5 font-medium text-sm',
+            'inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium',
             'transition-colors motion-reduce:transition-none',
             canPreviousPage ? 'text-text-secondary hover:bg-action-secondary' : 'cursor-not-allowed text-text-muted',
           )}
@@ -49,7 +49,7 @@ export function BefehlPagination({ currentPage, totalPages, totalItems, pageSize
           Zurück
         </button>
 
-        <span className="text-text-secondary text-sm">
+        <span className="text-sm text-text-secondary">
           Seite {currentPage} von {totalPages}
         </span>
 
@@ -58,7 +58,7 @@ export function BefehlPagination({ currentPage, totalPages, totalItems, pageSize
           onClick={onNextPage}
           disabled={!canNextPage}
           className={cn(
-            'inline-flex items-center gap-1 rounded-md px-3 py-1.5 font-medium text-sm',
+            'inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium',
             'transition-colors motion-reduce:transition-none',
             canNextPage ? 'text-text-secondary hover:bg-action-secondary' : 'cursor-not-allowed text-text-muted',
           )}

@@ -113,7 +113,7 @@ export function FahrzeugCard({ fahrzeug, onClick, isLoading, className }: Fahrze
   const validFmsStatus: FmsStatus = isFmsStatus(fahrzeug.fmsStatus) ? fahrzeug.fmsStatus : 0;
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: role="button" wird dynamisch gesetzt wenn onClick vorhanden ist
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- role="button" wird dynamisch gesetzt wenn onClick vorhanden ist
     <div
       className={cn(
         'border-border-subtle bg-surface-panel',

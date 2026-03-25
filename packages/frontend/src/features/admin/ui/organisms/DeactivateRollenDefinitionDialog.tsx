@@ -28,7 +28,7 @@ export const DeactivateRollenDefinitionDialog = ({ isOpen, onClose, onConfirm, r
         <div className="space-y-4">
           {' '}
           <Text>Möchten Sie die folgende Rollendefinition wirklich deaktivieren?</Text>{' '}
-          <div className="rounded-lg border border-border-subtle bg-surface-raised p-4 ">
+          <div className="rounded-lg border border-border-subtle bg-surface-raised p-4">
             {' '}
             <div className="flex items-start justify-between">
               {' '}
@@ -39,11 +39,11 @@ export const DeactivateRollenDefinitionDialog = ({ isOpen, onClose, onConfirm, r
                   <span className="font-semibold text-text-primary">{rollenDefinition.name}</span>{' '}
                 </div>{' '}
                 {rollenDefinition.funkrufname && <Text className="mt-1 text-text-secondary">Funkrufname: {rollenDefinition.funkrufname}</Text>}{' '}
-                {rollenDefinition.beschreibung && <Text className="mt-2 text-text-muted text-sm ">{rollenDefinition.beschreibung}</Text>} {/* Qualifikationen anzeigen */}{' '}
+                {rollenDefinition.beschreibung && <Text className="mt-2 text-sm text-text-muted">{rollenDefinition.beschreibung}</Text>} {/* Qualifikationen anzeigen */}{' '}
                 {rollenDefinition.erforderlicheQualifikationen.length > 0 && (
                   <div className="mt-3">
                     {' '}
-                    <Text className="mb-1 text-text-secondary text-xs ">Erforderliche Qualifikationen:</Text>{' '}
+                    <Text className="mb-1 text-xs text-text-secondary">Erforderliche Qualifikationen:</Text>{' '}
                     <div className="flex flex-wrap gap-1">
                       {' '}
                       {rollenDefinition.erforderlicheQualifikationen.map((qualifikation) => (
@@ -60,7 +60,7 @@ export const DeactivateRollenDefinitionDialog = ({ isOpen, onClose, onConfirm, r
           </div>{' '}
           <div className="rounded-lg border border-status-warning-border bg-status-warning-surface p-3">
             {' '}
-            <Text className="text-status-warning-text text-sm">
+            <Text className="text-sm text-status-warning-text">
               {' '}
               <strong>Hinweis:</strong> Deaktivierte Rollen können nicht mehr für neue Besetzungen verwendet werden. Bestehende Besetzungen bleiben erhalten.{' '}
             </Text>{' '}

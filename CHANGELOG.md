@@ -130,10 +130,12 @@ Neue **priorisierte Lageübersicht** für operative Kräfte und Führung:
 ## 🐛 Fehlerbehebungen
 
 ### Backend
+
 - Behebung von Regressionstests im Backend-System
 - Korrektur von zirkulären Imports für stabilere Testausführung
 
 ### Frontend
+
 - Behebung von Testfehlern in Erinnerungs-Modulen durch verbesserte Mock-Strategie
 - Robustere Verarbeitung von DRK-QR-Code-Eingaben
 - Aktualisierung der Barrierefreiheits-Tests für Dialoge
@@ -141,6 +143,7 @@ Neue **priorisierte Lageübersicht** für operative Kräfte und Führung:
 ## ⬆️ Aktualisierungen
 
 ### TanStack-Bibliotheken
+
 - React DevTools auf Version 0.9.10 aktualisiert
 - React Form auf Version 1.28.4 aktualisiert
 - React Router und Router DevTools auf Version 1.166.2 aktualisiert
@@ -232,20 +235,24 @@ Neue **priorisierte Lageübersicht** für operative Kräfte und Führung:
 ## 🔧 Technische Verbesserungen
 
 ### Audio-Wiedergabe
+
 - Aktualisierung der Audio-Bibliothek (Rodio) auf Version 0.22.1 für verbesserte Stabilität und Kompatibilität der Tonausgabe in der Desktop-Anwendung
 
 ### Performance-Tests
+
 - Optimierung der Leistungstests für zuverlässigere Ergebnisse in verschiedenen Ausführungsumgebungen
 
 ## 📦 Dependency-Updates
 
 ### Frontend-Bibliotheken
+
 - TailwindCSS auf Version 4.2.1 aktualisiert
 - TanStack-Bibliotheken aktualisiert (Router, Form, Store, Virtual und weitere)
 - React Hook Form auf Version 7.71.2 aktualisiert
 - Axios auf Version 1.13.6 aktualisiert
 
 ### Backend-Bibliotheken
+
 - Prisma-Client und Adapter auf Version 7.4.1 aktualisiert
 - PostgreSQL-Treiber (pg) auf Version 8.19.0 aktualisiert
 - Multer auf Version 2.1.0 aktualisiert
@@ -307,7 +314,7 @@ Neue **priorisierte Lageübersicht** für operative Kräfte und Führung:
 
 ## v1.0.0-alpha.54
 
-*Veröffentlicht am 16. Februar 2026*
+_Veröffentlicht am 16. Februar 2026_
 
 ### Infrastruktur & Deployment
 
@@ -376,221 +383,238 @@ Neue **priorisierte Lageübersicht** für operative Kräfte und Führung:
 ## Version [v1.0.0-alpha.47](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.46...v1.0.0-alpha.47) – Veröffentlicht am 2026-02-14
 
 ## ✨ Neue Funktionen
+
 Die folgenden neuen Features wurden hinzugefügt:
-- [`ded435e5`](https://github.com/rubenvitt/bluelight-hub/commit/ded435e5) (erinnerung): Add Quick-Create Erinnerung feature (Story 1.1) 
 
-- [`89ee06c1`](https://github.com/rubenvitt/bluelight-hub/commit/89ee06c1) (erinnerung): Add custom time selection for reminders (Story 1.2) 
+- [`ded435e5`](https://github.com/rubenvitt/bluelight-hub/commit/ded435e5) (erinnerung): Add Quick-Create Erinnerung feature (Story 1.1)
 
-- [`855eb097`](https://github.com/rubenvitt/bluelight-hub/commit/855eb097) (erinnerung): Add edit functionality for reminders (Story 1.3) 
+- [`89ee06c1`](https://github.com/rubenvitt/bluelight-hub/commit/89ee06c1) (erinnerung): Add custom time selection for reminders (Story 1.2)
 
-- [`13846917`](https://github.com/rubenvitt/bluelight-hub/commit/13846917) (erinnerung): Add delete functionality for reminders (Story 1.4) 
+- [`855eb097`](https://github.com/rubenvitt/bluelight-hub/commit/855eb097) (erinnerung): Add edit functionality for reminders (Story 1.3)
 
-- [`dd209e0e`](https://github.com/rubenvitt/bluelight-hub/commit/dd209e0e) (erinnerung): Add trigger alarm feature (Story 1.5 Backend) 
+- [`13846917`](https://github.com/rubenvitt/bluelight-hub/commit/13846917) (erinnerung): Add delete functionality for reminders (Story 1.4)
 
-- [`dcae3c4d`](https://github.com/rubenvitt/bluelight-hub/commit/dcae3c4d) (erinnerung): Add optional Story 1.5 features 
+- [`dd209e0e`](https://github.com/rubenvitt/bluelight-hub/commit/dd209e0e) (erinnerung): Add trigger alarm feature (Story 1.5 Backend)
 
-- [`74eaa4b0`](https://github.com/rubenvitt/bluelight-hub/commit/74eaa4b0) (erinnerung): Add Alarm-Intensivierung bei Nicht-Reaktion (Story 2.3) 
+- [`dcae3c4d`](https://github.com/rubenvitt/bluelight-hub/commit/dcae3c4d) (erinnerung): Add optional Story 1.5 features
 
-- [`c4d4d5cf`](https://github.com/rubenvitt/bluelight-hub/commit/c4d4d5cf) (erinnerung): Story 2.4 Alarm-Intensivierung Stufe 2 (Urgent) 
+- [`74eaa4b0`](https://github.com/rubenvitt/bluelight-hub/commit/74eaa4b0) (erinnerung): Add Alarm-Intensivierung bei Nicht-Reaktion (Story 2.3)
 
-- [`d64977d9`](https://github.com/rubenvitt/bluelight-hub/commit/d64977d9) (erinnerung): Story 2.8 Web Audio Fallback + Code Review Fixes 
+- [`c4d4d5cf`](https://github.com/rubenvitt/bluelight-hub/commit/c4d4d5cf) (erinnerung): Story 2.4 Alarm-Intensivierung Stufe 2 (Urgent)
 
-- [`3854a3bf`](https://github.com/rubenvitt/bluelight-hub/commit/3854a3bf) (erinnerung): Story 3.2 Echtzeit-Updates via WebSocket 
+- [`d64977d9`](https://github.com/rubenvitt/bluelight-hub/commit/d64977d9) (erinnerung): Story 2.8 Web Audio Fallback + Code Review Fixes
 
-- [`f0619a29`](https://github.com/rubenvitt/bluelight-hub/commit/f0619a29) (erinnerung): Story 3.3 Erinnerung einer Person zuweisen 
+- [`3854a3bf`](https://github.com/rubenvitt/bluelight-hub/commit/3854a3bf) (erinnerung): Story 3.2 Echtzeit-Updates via WebSocket
 
-- [`62669dae`](https://github.com/rubenvitt/bluelight-hub/commit/62669dae) (erinnerung): Story 3.4 Bestehende Erinnerung zuweisen 
+- [`f0619a29`](https://github.com/rubenvitt/bluelight-hub/commit/f0619a29) (erinnerung): Story 3.3 Erinnerung einer Person zuweisen
 
-- [`ebd51c92`](https://github.com/rubenvitt/bluelight-hub/commit/ebd51c92) (erinnerung): Story 3.6 Filter + Code Review Fixes + Backend Assign 
+- [`62669dae`](https://github.com/rubenvitt/bluelight-hub/commit/62669dae) (erinnerung): Story 3.4 Bestehende Erinnerung zuweisen
 
-- [`03e97690`](https://github.com/rubenvitt/bluelight-hub/commit/03e97690) (reminders): implement seen assignments logic and setup LFS for mp3 
+- [`ebd51c92`](https://github.com/rubenvitt/bluelight-hub/commit/ebd51c92) (erinnerung): Story 3.6 Filter + Code Review Fixes + Backend Assign
 
-- [`0937bb37`](https://github.com/rubenvitt/bluelight-hub/commit/0937bb37) (erinnerung): implement escalation system with configurable timeouts 
+- [`03e97690`](https://github.com/rubenvitt/bluelight-hub/commit/03e97690) (reminders): implement seen assignments logic and setup LFS for mp3
 
-- [`54aeeeb8`](https://github.com/rubenvitt/bluelight-hub/commit/54aeeeb8) (erinnerung): implement multi-level escalation chain (Story 4.8) 
+- [`0937bb37`](https://github.com/rubenvitt/bluelight-hub/commit/0937bb37) (erinnerung): implement escalation system with configurable timeouts
 
-- [`e047b514`](https://github.com/rubenvitt/bluelight-hub/commit/e047b514) (backend): add escalation persistence fields 
+- [`54aeeeb8`](https://github.com/rubenvitt/bluelight-hub/commit/54aeeeb8) (erinnerung): implement multi-level escalation chain (Story 4.8)
 
-- [`03856394`](https://github.com/rubenvitt/bluelight-hub/commit/03856394) (erinnerung): implement Story 4.9 Statistik &amp; 4.10 Rückläufer 
+- [`e047b514`](https://github.com/rubenvitt/bluelight-hub/commit/e047b514) (backend): add escalation persistence fields
 
-- [`f167b835`](https://github.com/rubenvitt/bluelight-hub/commit/f167b835) (backend): add PR template and event registry architecture test 
+- [`03856394`](https://github.com/rubenvitt/bluelight-hub/commit/03856394) (erinnerung): implement Story 4.9 Statistik &amp; 4.10 Rückläufer
 
-- [`9bbc4aef`](https://github.com/rubenvitt/bluelight-hub/commit/9bbc4aef) (backend): implement Story 5.0 ETB-Integration preparation 
+- [`f167b835`](https://github.com/rubenvitt/bluelight-hub/commit/f167b835) (backend): add PR template and event registry architecture test
 
-- [`d11d66b7`](https://github.com/rubenvitt/bluelight-hub/commit/d11d66b7) (backend): implement Story 5.0 ETB-Integration preparation 
+- [`9bbc4aef`](https://github.com/rubenvitt/bluelight-hub/commit/9bbc4aef) (backend): implement Story 5.0 ETB-Integration preparation
 
-- [`1dd62d1a`](https://github.com/rubenvitt/bluelight-hub/commit/1dd62d1a) (etb): implement Story 5.5 ETB shows Erinnerung timeline 
+- [`d11d66b7`](https://github.com/rubenvitt/bluelight-hub/commit/d11d66b7) (backend): implement Story 5.0 ETB-Integration preparation
 
-- [`cec4ffb6`](https://github.com/rubenvitt/bluelight-hub/commit/cec4ffb6) (erinnerungsvorlage): implement Story 6.1 + disable useImportType rule 
+- [`1dd62d1a`](https://github.com/rubenvitt/bluelight-hub/commit/1dd62d1a) (etb): implement Story 5.5 ETB shows Erinnerung timeline
 
-- [`cf7d6ec7`](https://github.com/rubenvitt/bluelight-hub/commit/cf7d6ec7) (erinnerung): implement Stories 6.2-6.6 
+- [`cec4ffb6`](https://github.com/rubenvitt/bluelight-hub/commit/cec4ffb6) (erinnerungsvorlage): implement Story 6.1 + disable useImportType rule
 
-- [`ac5da78c`](https://github.com/rubenvitt/bluelight-hub/commit/ac5da78c) (epics-6-9): implement Epics 6-9 with Notizen, Kategorien, Statistiken 
+- [`cf7d6ec7`](https://github.com/rubenvitt/bluelight-hub/commit/cf7d6ec7) (erinnerung): implement Stories 6.2-6.6
 
-- [`b11254d4`](https://github.com/rubenvitt/bluelight-hub/commit/b11254d4) (erinnerung): add statistics, analysis, and export features 
+- [`ac5da78c`](https://github.com/rubenvitt/bluelight-hub/commit/ac5da78c) (epics-6-9): implement Epics 6-9 with Notizen, Kategorien, Statistiken
 
-- [`918a1db2`](https://github.com/rubenvitt/bluelight-hub/commit/918a1db2) (erinnerung): add Pinnwand UI and fix export/escalation 
+- [`b11254d4`](https://github.com/rubenvitt/bluelight-hub/commit/b11254d4) (erinnerung): add statistics, analysis, and export features
+
+- [`918a1db2`](https://github.com/rubenvitt/bluelight-hub/commit/918a1db2) (erinnerung): add Pinnwand UI and fix export/escalation
 
 ## 🐛 Fehlerbehebungen
+
 Diese Probleme wurden behoben:
-- [`a6e89a25`](https://github.com/rubenvitt/bluelight-hub/commit/a6e89a25) (erinnerung): Fix validation timing and error message display 
 
-- [`ed651e79`](https://github.com/rubenvitt/bluelight-hub/commit/ed651e79) (erinnerung): Add missing ErinnerungAktualisiert event serialization 
+- [`a6e89a25`](https://github.com/rubenvitt/bluelight-hub/commit/a6e89a25) (erinnerung): Fix validation timing and error message display
 
-- [`bc2bf3e6`](https://github.com/rubenvitt/bluelight-hub/commit/bc2bf3e6) (erinnerung): Fix delete - add event serializer + umlauts 
+- [`ed651e79`](https://github.com/rubenvitt/bluelight-hub/commit/ed651e79) (erinnerung): Add missing ErinnerungAktualisiert event serialization
 
-- [`af415c49`](https://github.com/rubenvitt/bluelight-hub/commit/af415c49) (erinnerung): Fix HIGH and MEDIUM issues from code review 
+- [`bc2bf3e6`](https://github.com/rubenvitt/bluelight-hub/commit/bc2bf3e6) (erinnerung): Fix delete - add event serializer + umlauts
 
-- [`306fb11e`](https://github.com/rubenvitt/bluelight-hub/commit/306fb11e) (erinnerung): Fix HIGH and MEDIUM issues from code review 
+- [`af415c49`](https://github.com/rubenvitt/bluelight-hub/commit/af415c49) (erinnerung): Fix HIGH and MEDIUM issues from code review
 
-- [`6eb152c4`](https://github.com/rubenvitt/bluelight-hub/commit/6eb152c4) (erinnerung): Fix Timer Service deduplication race condition 
+- [`306fb11e`](https://github.com/rubenvitt/bluelight-hub/commit/306fb11e) (erinnerung): Fix HIGH and MEDIUM issues from code review
 
-- [`de0a3154`](https://github.com/rubenvitt/bluelight-hub/commit/de0a3154) (erinnerung): Fix Backend Issues B1-B5 für Story 2.1 Snooze Feature 
+- [`6eb152c4`](https://github.com/rubenvitt/bluelight-hub/commit/6eb152c4) (erinnerung): Fix Timer Service deduplication race condition
 
-- [`a76c441c`](https://github.com/rubenvitt/bluelight-hub/commit/a76c441c) (erinnerung): Fix Snooze 400 Error - fehlende Event Registration 
+- [`de0a3154`](https://github.com/rubenvitt/bluelight-hub/commit/de0a3154) (erinnerung): Fix Backend Issues B1-B5 für Story 2.1 Snooze Feature
 
-- [`402e867c`](https://github.com/rubenvitt/bluelight-hub/commit/402e867c) (erinnerung): fix reminder assignment sync and notifications 
+- [`a76c441c`](https://github.com/rubenvitt/bluelight-hub/commit/a76c441c) (erinnerung): Fix Snooze 400 Error - fehlende Event Registration
 
-- [`48c1b1c6`](https://github.com/rubenvitt/bluelight-hub/commit/48c1b1c6) (backend): fix dependency injection imports and provider registration 
+- [`402e867c`](https://github.com/rubenvitt/bluelight-hub/commit/402e867c) (erinnerung): fix reminder assignment sync and notifications
 
-- [`e1ff983d`](https://github.com/rubenvitt/bluelight-hub/commit/e1ff983d) (backend): fix DI imports and biome config for AC1 rule 
+- [`48c1b1c6`](https://github.com/rubenvitt/bluelight-hub/commit/48c1b1c6) (backend): fix dependency injection imports and provider registration
 
-- [`7a813fe9`](https://github.com/rubenvitt/bluelight-hub/commit/7a813fe9) (etb): fix timeline hook to extract data from wrapped response 
+- [`e1ff983d`](https://github.com/rubenvitt/bluelight-hub/commit/e1ff983d) (backend): fix DI imports and biome config for AC1 rule
 
-- [`bf814959`](https://github.com/rubenvitt/bluelight-hub/commit/bf814959) (etb): fix timeline event type keys to match backend 
+- [`7a813fe9`](https://github.com/rubenvitt/bluelight-hub/commit/7a813fe9) (etb): fix timeline hook to extract data from wrapped response
 
-- [`5f2c12de`](https://github.com/rubenvitt/bluelight-hub/commit/5f2c12de) (frontend): fix timeline metadata extraction and test labels 
+- [`bf814959`](https://github.com/rubenvitt/bluelight-hub/commit/bf814959) (etb): fix timeline event type keys to match backend
 
-- [`2aaeab40`](https://github.com/rubenvitt/bluelight-hub/commit/2aaeab40) (backend): add missing event adapters and whitelist 
+- [`5f2c12de`](https://github.com/rubenvitt/bluelight-hub/commit/5f2c12de) (frontend): fix timeline metadata extraction and test labels
 
-- [`2aa0263b`](https://github.com/rubenvitt/bluelight-hub/commit/2aa0263b) (ci): fix frontend build error and remove unused biome suppressions 
+- [`2aaeab40`](https://github.com/rubenvitt/bluelight-hub/commit/2aaeab40) (backend): add missing event adapters and whitelist
 
-- [`1352ddde`](https://github.com/rubenvitt/bluelight-hub/commit/1352ddde) (security): fix incomplete multi-char sanitization 
-(Zugehörige Issues: [`#53`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#55`](https://github.com/rubenvitt/bluelight-hub/issues/))
+- [`2aa0263b`](https://github.com/rubenvitt/bluelight-hub/commit/2aa0263b) (ci): fix frontend build error and remove unused biome suppressions
 
-- [`24439804`](https://github.com/rubenvitt/bluelight-hub/commit/24439804) (release): Fix Biome Formatierung in .releaserc.js 
+- [`1352ddde`](https://github.com/rubenvitt/bluelight-hub/commit/1352ddde) (security): fix incomplete multi-char sanitization
+  (Zugehörige Issues: [`#53`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#55`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
-- [`43a08a30`](https://github.com/rubenvitt/bluelight-hub/commit/43a08a30) (release): Fix Tauri-Build und Docker-Build in Release Pipeline 
+- [`24439804`](https://github.com/rubenvitt/bluelight-hub/commit/24439804) (release): Fix Biome Formatierung in .releaserc.js
+
+- [`43a08a30`](https://github.com/rubenvitt/bluelight-hub/commit/43a08a30) (release): Fix Tauri-Build und Docker-Build in Release Pipeline
 
 ## ♻ Refactoring
+
 Struktur- oder Code-Verbesserungen:
-- [`105b1e70`](https://github.com/rubenvitt/bluelight-hub/commit/105b1e70) (tauri): Fix Code Review Issues für Story 1.9 System-Tray 
 
-- [`aa7c7f7d`](https://github.com/rubenvitt/bluelight-hub/commit/aa7c7f7d) (erinnerung): Fix Frontend Issues + Backend Typos für Story 2.5 
+- [`105b1e70`](https://github.com/rubenvitt/bluelight-hub/commit/105b1e70) (tauri): Fix Code Review Issues für Story 1.9 System-Tray
 
-- [`1d33f9f3`](https://github.com/rubenvitt/bluelight-hub/commit/1d33f9f3) (erinnerung): Fix Code Review Issues for Story 2.6 Pflicht-Notiz 
+- [`aa7c7f7d`](https://github.com/rubenvitt/bluelight-hub/commit/aa7c7f7d) (erinnerung): Fix Frontend Issues + Backend Typos für Story 2.5
 
-- [`8c41d7d5`](https://github.com/rubenvitt/bluelight-hub/commit/8c41d7d5) (biome): consolidate biome config into root and add architecture rules 
+- [`1d33f9f3`](https://github.com/rubenvitt/bluelight-hub/commit/1d33f9f3) (erinnerung): Fix Code Review Issues for Story 2.6 Pflicht-Notiz
+
+- [`8c41d7d5`](https://github.com/rubenvitt/bluelight-hub/commit/8c41d7d5) (biome): consolidate biome config into root and add architecture rules
 
 ## 🔧 Tool Verbesserungen
-Verbesserungen an den Werkzeugen:
-- [`6e860d23`](https://github.com/rubenvitt/bluelight-hub/commit/6e860d23) (release): Fix doppelte Release Notes und aktiviere GitHub-Kommentare 
 
-- [`a6eb17df`](https://github.com/rubenvitt/bluelight-hub/commit/a6eb17df) (docker): Dediziertes Migrations-Image und Production-Dockerfile fixen 
-(Zugehörige Issues: [`#358`](https://github.com/rubenvitt/bluelight-hub/issues/))
+Verbesserungen an den Werkzeugen:
+
+- [`6e860d23`](https://github.com/rubenvitt/bluelight-hub/commit/6e860d23) (release): Fix doppelte Release Notes und aktiviere GitHub-Kommentare
+
+- [`a6eb17df`](https://github.com/rubenvitt/bluelight-hub/commit/a6eb17df) (docker): Dediziertes Migrations-Image und Production-Dockerfile fixen
+  (Zugehörige Issues: [`#358`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
 ## Version [v1.0.0-alpha.46](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.45...v1.0.0-alpha.46) – Veröffentlicht am 2026-01-25
 
 ## ✨ Neue Funktionen
+
 Die folgenden neuen Features wurden hinzugefügt:
-- [`056f6819`](https://github.com/rubenvitt/bluelight-hub/commit/056f6819) (einsatz): Implement findNextId and findPreviousId navigation 
 
-
+- [`056f6819`](https://github.com/rubenvitt/bluelight-hub/commit/056f6819) (einsatz): Implement findNextId and findPreviousId navigation
 
 # [1.0.0-alpha.46](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.45...v1.0.0-alpha.46) (2026-01-25)
 
-
 ### Features
 
-* enable https for local development ([ef3892e](https://github.com/rubenvitt/bluelight-hub/commit/ef3892e245939044b7fbdfdca564831e200efea9))
-* **security:** remove deprecated X-XSS-Protection header ([b5b89d6](https://github.com/rubenvitt/bluelight-hub/commit/b5b89d685e4d5771f980b658c6aa93a5f7699a81))
+- enable https for local development ([ef3892e](https://github.com/rubenvitt/bluelight-hub/commit/ef3892e245939044b7fbdfdca564831e200efea9))
+- **security:** remove deprecated X-XSS-Protection header ([b5b89d6](https://github.com/rubenvitt/bluelight-hub/commit/b5b89d685e4d5771f980b658c6aa93a5f7699a81))
 
 ## Version [v1.0.0-alpha.45](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.44...v1.0.0-alpha.45) – Veröffentlicht am 2026-01-17
 
 ## ✨ Neue Funktionen
+
 Die folgenden neuen Features wurden hinzugefügt:
-- [`f020b578`](https://github.com/rubenvitt/bluelight-hub/commit/f020b578) (etb): Add absender/empfaenger with auto-fill feature 
 
-- [`8df918e9`](https://github.com/rubenvitt/bluelight-hub/commit/8df918e9) (etb): Add auto-show Beitritts-Dialog in SingleEinsatzLayout 
+- [`f020b578`](https://github.com/rubenvitt/bluelight-hub/commit/f020b578) (etb): Add absender/empfaenger with auto-fill feature
 
-- [`5e7bb47f`](https://github.com/rubenvitt/bluelight-hub/commit/5e7bb47f) (etb): Add GetAllTeilnehmer query and improve auto-fill UX 
+- [`8df918e9`](https://github.com/rubenvitt/bluelight-hub/commit/8df918e9) (etb): Add auto-show Beitritts-Dialog in SingleEinsatzLayout
+
+- [`5e7bb47f`](https://github.com/rubenvitt/bluelight-hub/commit/5e7bb47f) (etb): Add GetAllTeilnehmer query and improve auto-fill UX
 
 ## 🐛 Fehlerbehebungen
+
 Diese Probleme wurden behoben:
-- [`e0fa76a2`](https://github.com/rubenvitt/bluelight-hub/commit/e0fa76a2) (etb): Fix ETB response structure and add Funkrufname UI 
 
-- [`8383d0bf`](https://github.com/rubenvitt/bluelight-hub/commit/8383d0bf) (etb): Remove @SkipTransform to fix response wrapping 
+- [`e0fa76a2`](https://github.com/rubenvitt/bluelight-hub/commit/e0fa76a2) (etb): Fix ETB response structure and add Funkrufname UI
 
-- [`a3288cae`](https://github.com/rubenvitt/bluelight-hub/commit/a3288cae) (etb): Fix metadata tests for new constructor signature 
+- [`8383d0bf`](https://github.com/rubenvitt/bluelight-hub/commit/8383d0bf) (etb): Remove @SkipTransform to fix response wrapping
 
-
+- [`a3288cae`](https://github.com/rubenvitt/bluelight-hub/commit/a3288cae) (etb): Fix metadata tests for new constructor signature
 
 # [1.0.0-alpha.45](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.44...v1.0.0-alpha.45) (2026-01-17)
 
 ## Version [v1.0.0-alpha.44](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.43...v1.0.0-alpha.44) – Veröffentlicht am 2026-01-16
 
 ## ✨ Neue Funktionen
+
 Die folgenden neuen Features wurden hinzugefügt:
-- [`a8eec0fc`](https://github.com/rubenvitt/bluelight-hub/commit/a8eec0fc) (storage): Implement persistent server storage with tauri-plugin-store 
+
+- [`a8eec0fc`](https://github.com/rubenvitt/bluelight-hub/commit/a8eec0fc) (storage): Implement persistent server storage with tauri-plugin-store
 
 ## 🐛 Fehlerbehebungen
+
 Diese Probleme wurden behoben:
-- [`87c3309e`](https://github.com/rubenvitt/bluelight-hub/commit/87c3309e) (prisma): Fix prisma generate failing without DATABASE_URL 
 
-- [`d4f206c2`](https://github.com/rubenvitt/bluelight-hub/commit/d4f206c2) (test): Fix database-test.helper mock imports 
+- [`87c3309e`](https://github.com/rubenvitt/bluelight-hub/commit/87c3309e) (prisma): Fix prisma generate failing without DATABASE_URL
 
-- [`fc6402a0`](https://github.com/rubenvitt/bluelight-hub/commit/fc6402a0) (test): Fix database-test.helper mock imports 
+- [`d4f206c2`](https://github.com/rubenvitt/bluelight-hub/commit/d4f206c2) (test): Fix database-test.helper mock imports
 
-- [`d5c79574`](https://github.com/rubenvitt/bluelight-hub/commit/d5c79574) (test): Fix E2E tests failing with PostgreSQL 25P02 error 
+- [`fc6402a0`](https://github.com/rubenvitt/bluelight-hub/commit/fc6402a0) (test): Fix database-test.helper mock imports
 
-- [`c1ae4092`](https://github.com/rubenvitt/bluelight-hub/commit/c1ae4092) (test): Fix Prisma 7.x compatibility in OAuth e2e tests 
+- [`d5c79574`](https://github.com/rubenvitt/bluelight-hub/commit/d5c79574) (test): Fix E2E tests failing with PostgreSQL 25P02 error
 
-- [`35526971`](https://github.com/rubenvitt/bluelight-hub/commit/35526971) (build): Exclude test files from shared package TypeScript build 
+- [`c1ae4092`](https://github.com/rubenvitt/bluelight-hub/commit/c1ae4092) (test): Fix Prisma 7.x compatibility in OAuth e2e tests
 
-- [`ea5d9ca9`](https://github.com/rubenvitt/bluelight-hub/commit/ea5d9ca9) (build): Use dedicated tsconfig.build.json for shared package 
+- [`35526971`](https://github.com/rubenvitt/bluelight-hub/commit/35526971) (build): Exclude test files from shared package TypeScript build
 
-- [`96987025`](https://github.com/rubenvitt/bluelight-hub/commit/96987025) (di): Fix HibpService dependency injection and add CodeQL workflow 
+- [`ea5d9ca9`](https://github.com/rubenvitt/bluelight-hub/commit/ea5d9ca9) (build): Use dedicated tsconfig.build.json for shared package
 
-- [`c88029a7`](https://github.com/rubenvitt/bluelight-hub/commit/c88029a7) (auth): Add PasswordModule import to fix DI in tests 
+- [`96987025`](https://github.com/rubenvitt/bluelight-hub/commit/96987025) (di): Fix HibpService dependency injection and add CodeQL workflow
+
+- [`c88029a7`](https://github.com/rubenvitt/bluelight-hub/commit/c88029a7) (auth): Add PasswordModule import to fix DI in tests
 
 ## 🔒 Sicherheitsverbesserungen
+
 Sicherheitsrelevante Änderungen:
-- [`b8e69a70`](https://github.com/rubenvitt/bluelight-hub/commit/b8e69a70) (auth): Implement NIST SP 800-63B-4 password policy 
+
+- [`b8e69a70`](https://github.com/rubenvitt/bluelight-hub/commit/b8e69a70) (auth): Implement NIST SP 800-63B-4 password policy
 
 ## 🧹 Codebereinigungen
-Aufräumarbeiten und kleinere Verbesserungen:
-- [`92a5532e`](https://github.com/rubenvitt/bluelight-hub/commit/92a5532e) (lint): Fix all Biome lint errors for CI pipeline 
 
-- [`e878182d`](https://github.com/rubenvitt/bluelight-hub/commit/e878182d) (lint): Fix remaining Biome lint errors 
+Aufräumarbeiten und kleinere Verbesserungen:
+
+- [`92a5532e`](https://github.com/rubenvitt/bluelight-hub/commit/92a5532e) (lint): Fix all Biome lint errors for CI pipeline
+
+- [`e878182d`](https://github.com/rubenvitt/bluelight-hub/commit/e878182d) (lint): Fix remaining Biome lint errors
 
 ## 🔧 Tool Verbesserungen
+
 Verbesserungen an den Werkzeugen:
-- [`d6c76a5f`](https://github.com/rubenvitt/bluelight-hub/commit/d6c76a5f) (deps): Update dev dependencies to latest versions 
 
-- [`8adc6e0e`](https://github.com/rubenvitt/bluelight-hub/commit/8adc6e0e) (deps): Update frontend dependencies and migrate dotenvx 
+- [`d6c76a5f`](https://github.com/rubenvitt/bluelight-hub/commit/d6c76a5f) (deps): Update dev dependencies to latest versions
 
-- [`7c879d60`](https://github.com/rubenvitt/bluelight-hub/commit/7c879d60) (deps): Update backend dependencies to latest versions 
+- [`8adc6e0e`](https://github.com/rubenvitt/bluelight-hub/commit/8adc6e0e) (deps): Update frontend dependencies and migrate dotenvx
 
-- [`c35db03d`](https://github.com/rubenvitt/bluelight-hub/commit/c35db03d) (deps): Update Tauri plugins and dependencies to latest versions 
+- [`7c879d60`](https://github.com/rubenvitt/bluelight-hub/commit/7c879d60) (deps): Update backend dependencies to latest versions
 
-- [`7120fcb3`](https://github.com/rubenvitt/bluelight-hub/commit/7120fcb3) (config): Ignore generated Prisma client files 
+- [`c35db03d`](https://github.com/rubenvitt/bluelight-hub/commit/c35db03d) (deps): Update Tauri plugins and dependencies to latest versions
+
+- [`7120fcb3`](https://github.com/rubenvitt/bluelight-hub/commit/7120fcb3) (config): Ignore generated Prisma client files
 
 ## 💥 Breaking Changes
+
 Bitte beachtet folgende Änderungen, die möglicherweise Anpassungen erfordern:
-- [`34a0963a`](https://github.com/rubenvitt/bluelight-hub/commit/34a0963a) (db): Migrate Prisma v6 to v7 with adapter pattern 
 
-
+- [`34a0963a`](https://github.com/rubenvitt/bluelight-hub/commit/34a0963a) (db): Migrate Prisma v6 to v7 with adapter pattern
 
 # [1.0.0-alpha.44](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.43...v1.0.0-alpha.44) (2026-01-16)
 
-
-* 💥(db): Migrate Prisma v6 to v7 with adapter pattern ([34a0963](https://github.com/rubenvitt/bluelight-hub/commit/34a0963a5d5f8930e80b302deeeb7a0128d156d1))
-
+- 💥(db): Migrate Prisma v6 to v7 with adapter pattern ([34a0963](https://github.com/rubenvitt/bluelight-hub/commit/34a0963a5d5f8930e80b302deeeb7a0128d156d1))
 
 ### BREAKING CHANGES
 
-* Prisma v7 uses adapter pattern instead of query engine.
-All @prisma/client imports now resolve to generated client.
+- Prisma v7 uses adapter pattern instead of query engine.
+  All @prisma/client imports now resolve to generated client.
 
 🤖 Generated with Claude Code
 
@@ -599,55 +623,61 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ## Version [v1.0.0-alpha.43](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.42...v1.0.0-alpha.43) – Veröffentlicht am 2026-01-16
 
 ## ✨ Neue Funktionen
+
 Die folgenden neuen Features wurden hinzugefügt:
-- [`6424913e`](https://github.com/rubenvitt/bluelight-hub/commit/6424913e) (storage): Implement persistent server storage with tauri-plugin-store 
+
+- [`6424913e`](https://github.com/rubenvitt/bluelight-hub/commit/6424913e) (storage): Implement persistent server storage with tauri-plugin-store
 
 ## 🐛 Fehlerbehebungen
+
 Diese Probleme wurden behoben:
-- [`fad4995b`](https://github.com/rubenvitt/bluelight-hub/commit/fad4995b) (prisma): Fix prisma generate failing without DATABASE_URL 
 
-- [`9ef30edd`](https://github.com/rubenvitt/bluelight-hub/commit/9ef30edd) (test): Fix database-test.helper mock imports 
+- [`fad4995b`](https://github.com/rubenvitt/bluelight-hub/commit/fad4995b) (prisma): Fix prisma generate failing without DATABASE_URL
 
-- [`14f24a29`](https://github.com/rubenvitt/bluelight-hub/commit/14f24a29) (test): Fix database-test.helper mock imports 
+- [`9ef30edd`](https://github.com/rubenvitt/bluelight-hub/commit/9ef30edd) (test): Fix database-test.helper mock imports
 
-- [`211a5d4e`](https://github.com/rubenvitt/bluelight-hub/commit/211a5d4e) (test): Fix E2E tests failing with PostgreSQL 25P02 error 
+- [`14f24a29`](https://github.com/rubenvitt/bluelight-hub/commit/14f24a29) (test): Fix database-test.helper mock imports
 
-- [`1e450fe2`](https://github.com/rubenvitt/bluelight-hub/commit/1e450fe2) (test): Fix Prisma 7.x compatibility in OAuth e2e tests 
+- [`211a5d4e`](https://github.com/rubenvitt/bluelight-hub/commit/211a5d4e) (test): Fix E2E tests failing with PostgreSQL 25P02 error
+
+- [`1e450fe2`](https://github.com/rubenvitt/bluelight-hub/commit/1e450fe2) (test): Fix Prisma 7.x compatibility in OAuth e2e tests
 
 ## 🧹 Codebereinigungen
-Aufräumarbeiten und kleinere Verbesserungen:
-- [`42a9f88a`](https://github.com/rubenvitt/bluelight-hub/commit/42a9f88a) (lint): Fix all Biome lint errors for CI pipeline 
 
-- [`fab33a38`](https://github.com/rubenvitt/bluelight-hub/commit/fab33a38) (lint): Fix remaining Biome lint errors 
+Aufräumarbeiten und kleinere Verbesserungen:
+
+- [`42a9f88a`](https://github.com/rubenvitt/bluelight-hub/commit/42a9f88a) (lint): Fix all Biome lint errors for CI pipeline
+
+- [`fab33a38`](https://github.com/rubenvitt/bluelight-hub/commit/fab33a38) (lint): Fix remaining Biome lint errors
 
 ## 🔧 Tool Verbesserungen
+
 Verbesserungen an den Werkzeugen:
-- [`98daaa5f`](https://github.com/rubenvitt/bluelight-hub/commit/98daaa5f) (deps): Update dev dependencies to latest versions 
 
-- [`3977a369`](https://github.com/rubenvitt/bluelight-hub/commit/3977a369) (deps): Update frontend dependencies and migrate dotenvx 
+- [`98daaa5f`](https://github.com/rubenvitt/bluelight-hub/commit/98daaa5f) (deps): Update dev dependencies to latest versions
 
-- [`091fe48b`](https://github.com/rubenvitt/bluelight-hub/commit/091fe48b) (deps): Update backend dependencies to latest versions 
+- [`3977a369`](https://github.com/rubenvitt/bluelight-hub/commit/3977a369) (deps): Update frontend dependencies and migrate dotenvx
 
-- [`5ed26259`](https://github.com/rubenvitt/bluelight-hub/commit/5ed26259) (deps): Update Tauri plugins and dependencies to latest versions 
+- [`091fe48b`](https://github.com/rubenvitt/bluelight-hub/commit/091fe48b) (deps): Update backend dependencies to latest versions
 
-- [`32e126e4`](https://github.com/rubenvitt/bluelight-hub/commit/32e126e4) (config): Ignore generated Prisma client files 
+- [`5ed26259`](https://github.com/rubenvitt/bluelight-hub/commit/5ed26259) (deps): Update Tauri plugins and dependencies to latest versions
+
+- [`32e126e4`](https://github.com/rubenvitt/bluelight-hub/commit/32e126e4) (config): Ignore generated Prisma client files
 
 ## 💥 Breaking Changes
+
 Bitte beachtet folgende Änderungen, die möglicherweise Anpassungen erfordern:
-- [`4a090856`](https://github.com/rubenvitt/bluelight-hub/commit/4a090856) (db): Migrate Prisma v6 to v7 with adapter pattern 
 
-
+- [`4a090856`](https://github.com/rubenvitt/bluelight-hub/commit/4a090856) (db): Migrate Prisma v6 to v7 with adapter pattern
 
 # [1.0.0-alpha.43](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.42...v1.0.0-alpha.43) (2026-01-16)
 
-
-* 💥(db): Migrate Prisma v6 to v7 with adapter pattern ([4a09085](https://github.com/rubenvitt/bluelight-hub/commit/4a0908565f4b5c68fd8f4c4d32164054c57ca9cf))
-
+- 💥(db): Migrate Prisma v6 to v7 with adapter pattern ([4a09085](https://github.com/rubenvitt/bluelight-hub/commit/4a0908565f4b5c68fd8f4c4d32164054c57ca9cf))
 
 ### BREAKING CHANGES
 
-* Prisma v7 uses adapter pattern instead of query engine.
-All @prisma/client imports now resolve to generated client.
+- Prisma v7 uses adapter pattern instead of query engine.
+  All @prisma/client imports now resolve to generated client.
 
 🤖 Generated with Claude Code
 
@@ -656,994 +686,1031 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ## Version [v1.0.0-alpha.42](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.41...v1.0.0-alpha.42) – Veröffentlicht am 2026-01-15
 
 ## 🐛 Fehlerbehebungen
+
 Diese Probleme wurden behoben:
-- [`1e96c450`](https://github.com/rubenvitt/bluelight-hub/commit/1e96c450) (ui): Fix layout issues in button and color mode menu 
 
-
+- [`1e96c450`](https://github.com/rubenvitt/bluelight-hub/commit/1e96c450) (ui): Fix layout issues in button and color mode menu
 
 # [1.0.0-alpha.42](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.41...v1.0.0-alpha.42) (2026-01-15)
 
 ## Version [v1.0.0-alpha.41](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.40...v1.0.0-alpha.41) – Veröffentlicht am 2026-01-14
 
 ## 🐛 Fehlerbehebungen
+
 Diese Probleme wurden behoben:
-- [`f1912e71`](https://github.com/rubenvitt/bluelight-hub/commit/f1912e71) (auth): Disable password manager autofill in login combobox 
-(Zugehörige Issues: [`#309`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
-
+- [`f1912e71`](https://github.com/rubenvitt/bluelight-hub/commit/f1912e71) (auth): Disable password manager autofill in login combobox
+  (Zugehörige Issues: [`#309`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
 # [1.0.0-alpha.41](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.40...v1.0.0-alpha.41) (2026-01-14)
 
 ## Version [v1.0.0-alpha.40](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.39...v1.0.0-alpha.40) – Veröffentlicht am 2026-01-14
 
 ## ✨ Neue Funktionen
+
 Die folgenden neuen Features wurden hinzugefügt:
-- [`48b1f40a`](https://github.com/rubenvitt/bluelight-hub/commit/48b1f40a) (auth): Add server access token system for initial setup 
 
-- [`c9ed2c85`](https://github.com/rubenvitt/bluelight-hub/commit/c9ed2c85) (backend): Implement differentiated health endpoint (Story 1.4) 
+- [`48b1f40a`](https://github.com/rubenvitt/bluelight-hub/commit/48b1f40a) (auth): Add server access token system for initial setup
 
-- [`662c1a4a`](https://github.com/rubenvitt/bluelight-hub/commit/662c1a4a) (auth): Add multi-server config foundation 
-(Zugehörige Issues: [`#284`](https://github.com/rubenvitt/bluelight-hub/issues/))
+- [`c9ed2c85`](https://github.com/rubenvitt/bluelight-hub/commit/c9ed2c85) (backend): Implement differentiated health endpoint (Story 1.4)
 
-- [`4464b9af`](https://github.com/rubenvitt/bluelight-hub/commit/4464b9af) (invite-code): Complete Story 1.7 - Invite-Code verwalten 
+- [`662c1a4a`](https://github.com/rubenvitt/bluelight-hub/commit/662c1a4a) (auth): Add multi-server config foundation
+  (Zugehörige Issues: [`#284`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
-- [`f8b5cde5`](https://github.com/rubenvitt/bluelight-hub/commit/f8b5cde5) (backend): implement invite codes 
+- [`4464b9af`](https://github.com/rubenvitt/bluelight-hub/commit/4464b9af) (invite-code): Complete Story 1.7 - Invite-Code verwalten
 
-- [`227b21cc`](https://github.com/rubenvitt/bluelight-hub/commit/227b21cc) (admin): Implement Task 1 - Query Keys &amp; API Hook for Invite Management 
+- [`f8b5cde5`](https://github.com/rubenvitt/bluelight-hub/commit/f8b5cde5) (backend): implement invite codes
 
-- [`5f363d2a`](https://github.com/rubenvitt/bluelight-hub/commit/5f363d2a) (admin): Add InviteStatusBadge atom component 
+- [`227b21cc`](https://github.com/rubenvitt/bluelight-hub/commit/227b21cc) (admin): Implement Task 1 - Query Keys &amp; API Hook for Invite Management
 
-- [`88710011`](https://github.com/rubenvitt/bluelight-hub/commit/88710011) (admin-invites): Implement UI molecules for invite code management 
+- [`5f363d2a`](https://github.com/rubenvitt/bluelight-hub/commit/5f363d2a) (admin): Add InviteStatusBadge atom component
 
-- [`ce0f89c1`](https://github.com/rubenvitt/bluelight-hub/commit/ce0f89c1) (admin): Implement InviteCodeTable organism 
+- [`88710011`](https://github.com/rubenvitt/bluelight-hub/commit/88710011) (admin-invites): Implement UI molecules for invite code management
 
-- [`df1eb719`](https://github.com/rubenvitt/bluelight-hub/commit/df1eb719) (admin): Add Invite-Codes navigation link to AdminDashboard 
+- [`ce0f89c1`](https://github.com/rubenvitt/bluelight-hub/commit/ce0f89c1) (admin): Implement InviteCodeTable organism
 
-- [`4246895a`](https://github.com/rubenvitt/bluelight-hub/commit/4246895a) (admin): Add /admin/invites route definition 
+- [`df1eb719`](https://github.com/rubenvitt/bluelight-hub/commit/df1eb719) (admin): Add Invite-Codes navigation link to AdminDashboard
 
-- [`ba66db66`](https://github.com/rubenvitt/bluelight-hub/commit/ba66db66) (storage): Add Rust storage commands with Mutex-based state 
+- [`4246895a`](https://github.com/rubenvitt/bluelight-hub/commit/4246895a) (admin): Add /admin/invites route definition
 
-- [`2a98106c`](https://github.com/rubenvitt/bluelight-hub/commit/2a98106c) (storage): Implement TauriStorageAdapter with Tauri invoke 
+- [`ba66db66`](https://github.com/rubenvitt/bluelight-hub/commit/ba66db66) (storage): Add Rust storage commands with Mutex-based state
 
-- [`52919cca`](https://github.com/rubenvitt/bluelight-hub/commit/52919cca) (storage): Implement WebStorageAdapter with localStorage fallback 
+- [`2a98106c`](https://github.com/rubenvitt/bluelight-hub/commit/2a98106c) (storage): Implement TauriStorageAdapter with Tauri invoke
 
-- [`806221ba`](https://github.com/rubenvitt/bluelight-hub/commit/806221ba) (storage): Add storage adapter factory with singleton pattern 
+- [`52919cca`](https://github.com/rubenvitt/bluelight-hub/commit/52919cca) (storage): Implement WebStorageAdapter with localStorage fallback
 
-- [`bef14edc`](https://github.com/rubenvitt/bluelight-hub/commit/bef14edc) (server): Create ServerConfig types and TanStack Store foundation 
+- [`806221ba`](https://github.com/rubenvitt/bluelight-hub/commit/806221ba) (storage): Add storage adapter factory with singleton pattern
 
-- [`61dd46d7`](https://github.com/rubenvitt/bluelight-hub/commit/61dd46d7) (server): Implement server CRUD actions (add/set/remove) 
+- [`bef14edc`](https://github.com/rubenvitt/bluelight-hub/commit/bef14edc) (server): Create ServerConfig types and TanStack Store foundation
 
-- [`c50b1633`](https://github.com/rubenvitt/bluelight-hub/commit/c50b1633) (server): Implement store hydration and useLoadServers hook 
+- [`61dd46d7`](https://github.com/rubenvitt/bluelight-hub/commit/61dd46d7) (server): Implement server CRUD actions (add/set/remove)
 
-- [`ace7da33`](https://github.com/rubenvitt/bluelight-hub/commit/ace7da33) (server): Implement connection status tracking 
+- [`c50b1633`](https://github.com/rubenvitt/bluelight-hub/commit/c50b1633) (server): Implement store hydration and useLoadServers hook
 
-- [`24db540a`](https://github.com/rubenvitt/bluelight-hub/commit/24db540a) (server): Add custom hooks for UI integration 
+- [`ace7da33`](https://github.com/rubenvitt/bluelight-hub/commit/ace7da33) (server): Implement connection status tracking
 
-- [`b5c4f46d`](https://github.com/rubenvitt/bluelight-hub/commit/b5c4f46d) (auth): Add Exchange Invite DTOs for Story 2.3 
+- [`24db540a`](https://github.com/rubenvitt/bluelight-hub/commit/24db540a) (server): Add custom hooks for UI integration
 
-- [`08926c5d`](https://github.com/rubenvitt/bluelight-hub/commit/08926c5d) (auth): Implement ExchangeInviteHandler with Result pattern 
+- [`b5c4f46d`](https://github.com/rubenvitt/bluelight-hub/commit/b5c4f46d) (auth): Add Exchange Invite DTOs for Story 2.3
 
-- [`b286b2f4`](https://github.com/rubenvitt/bluelight-hub/commit/b286b2f4) (auth): Add exchange-invite endpoint to AuthController 
+- [`08926c5d`](https://github.com/rubenvitt/bluelight-hub/commit/08926c5d) (auth): Implement ExchangeInviteHandler with Result pattern
 
-- [`4677c28e`](https://github.com/rubenvitt/bluelight-hub/commit/4677c28e) (api): Generate API client with exchange-invite endpoint 
+- [`b286b2f4`](https://github.com/rubenvitt/bluelight-hub/commit/b286b2f4) (auth): Add exchange-invite endpoint to AuthController
 
-- [`0628f87d`](https://github.com/rubenvitt/bluelight-hub/commit/0628f87d) (frontend): Add Tauri deep link plugin support 
+- [`4677c28e`](https://github.com/rubenvitt/bluelight-hub/commit/4677c28e) (api): Generate API client with exchange-invite endpoint
 
-- [`8bde213a`](https://github.com/rubenvitt/bluelight-hub/commit/8bde213a) (frontend): Add DeepLinkService with event handling 
+- [`0628f87d`](https://github.com/rubenvitt/bluelight-hub/commit/0628f87d) (frontend): Add Tauri deep link plugin support
 
-- [`3f360cab`](https://github.com/rubenvitt/bluelight-hub/commit/3f360cab) (frontend): Add useExchangeInvite mutation hook 
+- [`8bde213a`](https://github.com/rubenvitt/bluelight-hub/commit/8bde213a) (frontend): Add DeepLinkService with event handling
 
-- [`eeeb8fff`](https://github.com/rubenvitt/bluelight-hub/commit/eeeb8fff) (frontend): Add Deep Link UI components (Loading, Error) 
+- [`3f360cab`](https://github.com/rubenvitt/bluelight-hub/commit/3f360cab) (frontend): Add useExchangeInvite mutation hook
 
-- [`2573751c`](https://github.com/rubenvitt/bluelight-hub/commit/2573751c) (frontend): Integrate Deep Link handler with navigation 
+- [`eeeb8fff`](https://github.com/rubenvitt/bluelight-hub/commit/eeeb8fff) (frontend): Add Deep Link UI components (Loading, Error)
 
-- [`a8fb4be6`](https://github.com/rubenvitt/bluelight-hub/commit/a8fb4be6) (server): Add URL params types and validation schema 
+- [`2573751c`](https://github.com/rubenvitt/bluelight-hub/commit/2573751c) (frontend): Integrate Deep Link handler with navigation
 
-- [`eaa96372`](https://github.com/rubenvitt/bluelight-hub/commit/eaa96372) (server): Implement URL params parsing service 
+- [`a8fb4be6`](https://github.com/rubenvitt/bluelight-hub/commit/a8fb4be6) (server): Add URL params types and validation schema
 
-- [`7a533fce`](https://github.com/rubenvitt/bluelight-hub/commit/7a533fce) (server): Add URL param validation to root route 
+- [`eaa96372`](https://github.com/rubenvitt/bluelight-hub/commit/eaa96372) (server): Implement URL params parsing service
 
-- [`64161a3d`](https://github.com/rubenvitt/bluelight-hub/commit/64161a3d) (server): Add useUrlParams hook with exchange logic 
+- [`7a533fce`](https://github.com/rubenvitt/bluelight-hub/commit/7a533fce) (server): Add URL param validation to root route
 
-- [`509a1640`](https://github.com/rubenvitt/bluelight-hub/commit/509a1640) (server): Add URL params UI integration 
+- [`64161a3d`](https://github.com/rubenvitt/bluelight-hub/commit/64161a3d) (server): Add useUrlParams hook with exchange logic
 
-- [`51656be4`](https://github.com/rubenvitt/bluelight-hub/commit/51656be4) (server): Add required server name validation with auto-fill 
+- [`509a1640`](https://github.com/rubenvitt/bluelight-hub/commit/509a1640) (server): Add URL params UI integration
 
-- [`488e7c0d`](https://github.com/rubenvitt/bluelight-hub/commit/488e7c0d) (server): Add back button on setup page when servers exist 
+- [`51656be4`](https://github.com/rubenvitt/bluelight-hub/commit/51656be4) (server): Add required server name validation with auto-fill
 
-- [`6c110aa7`](https://github.com/rubenvitt/bluelight-hub/commit/6c110aa7) (server): Implement multi-server configuration feature 
+- [`488e7c0d`](https://github.com/rubenvitt/bluelight-hub/commit/488e7c0d) (server): Add back button on setup page when servers exist
 
-- [`925870a7`](https://github.com/rubenvitt/bluelight-hub/commit/925870a7) (admin): Implement access token management (Story 4.1) 
+- [`6c110aa7`](https://github.com/rubenvitt/bluelight-hub/commit/6c110aa7) (server): Implement multi-server configuration feature
 
-- [`bdb6337b`](https://github.com/rubenvitt/bluelight-hub/commit/bdb6337b) (admin): Implement token lifecycle management (Stories 4.2-4.6) 
+- [`925870a7`](https://github.com/rubenvitt/bluelight-hub/commit/925870a7) (admin): Implement access token management (Story 4.1)
 
-- [`8aa3e62b`](https://github.com/rubenvitt/bluelight-hub/commit/8aa3e62b) (general): add not committed files 
+- [`bdb6337b`](https://github.com/rubenvitt/bluelight-hub/commit/bdb6337b) (admin): Implement token lifecycle management (Stories 4.2-4.6)
 
-- [`12e02354`](https://github.com/rubenvitt/bluelight-hub/commit/12e02354) (admin): Add default expiry (7 days) for invite codes 
+- [`8aa3e62b`](https://github.com/rubenvitt/bluelight-hub/commit/8aa3e62b) (general): add not committed files
+
+- [`12e02354`](https://github.com/rubenvitt/bluelight-hub/commit/12e02354) (admin): Add default expiry (7 days) for invite codes
 
 ## 🐛 Fehlerbehebungen
+
 Diese Probleme wurden behoben:
-- [`93b0e0cd`](https://github.com/rubenvitt/bluelight-hub/commit/93b0e0cd) (auth): Fix token storage race condition and error handling 
 
-- [`d19ce476`](https://github.com/rubenvitt/bluelight-hub/commit/d19ce476) (invite-code): Fix missing LOGGER provider in module 
+- [`93b0e0cd`](https://github.com/rubenvitt/bluelight-hub/commit/93b0e0cd) (auth): Fix token storage race condition and error handling
 
-- [`04f3cddb`](https://github.com/rubenvitt/bluelight-hub/commit/04f3cddb) (admin): Fix HTML validation error in InviteCodeTable skeleton 
+- [`d19ce476`](https://github.com/rubenvitt/bluelight-hub/commit/d19ce476) (invite-code): Fix missing LOGGER provider in module
 
-- [`26e7a389`](https://github.com/rubenvitt/bluelight-hub/commit/26e7a389) (invite-code): Add missing InviteCodeCreatedEvent serializer 
+- [`04f3cddb`](https://github.com/rubenvitt/bluelight-hub/commit/04f3cddb) (admin): Fix HTML validation error in InviteCodeTable skeleton
 
-- [`61f0fb8d`](https://github.com/rubenvitt/bluelight-hub/commit/61f0fb8d) (shared): Fix ESM imports in Backend tests and Frontend schemas 
+- [`26e7a389`](https://github.com/rubenvitt/bluelight-hub/commit/26e7a389) (invite-code): Add missing InviteCodeCreatedEvent serializer
 
-- [`8b46b465`](https://github.com/rubenvitt/bluelight-hub/commit/8b46b465) (server): Fix lastUsedAt null handling in useServerList hook 
+- [`61f0fb8d`](https://github.com/rubenvitt/bluelight-hub/commit/61f0fb8d) (shared): Fix ESM imports in Backend tests and Frontend schemas
 
-- [`742a59ab`](https://github.com/rubenvitt/bluelight-hub/commit/742a59ab) (server): Fix TypeScript errors in unit tests 
+- [`8b46b465`](https://github.com/rubenvitt/bluelight-hub/commit/8b46b465) (server): Fix lastUsedAt null handling in useServerList hook
 
-- [`5dad6a87`](https://github.com/rubenvitt/bluelight-hub/commit/5dad6a87) (server): Replace deprecated Zod validators with refine() 
-(Zugehörige Issues: [`#3`](https://github.com/rubenvitt/bluelight-hub/issues/))
+- [`742a59ab`](https://github.com/rubenvitt/bluelight-hub/commit/742a59ab) (server): Fix TypeScript errors in unit tests
 
-- [`5f10998c`](https://github.com/rubenvitt/bluelight-hub/commit/5f10998c) (auth): Fix exchange-invite HTTP status code to 200 OK 
+- [`5dad6a87`](https://github.com/rubenvitt/bluelight-hub/commit/5dad6a87) (server): Replace deprecated Zod validators with refine()
+  (Zugehörige Issues: [`#3`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
-- [`c84f137d`](https://github.com/rubenvitt/bluelight-hub/commit/c84f137d) (auth): Fix race condition and transaction rollback (Issues #2 &amp; #3) 
-(Zugehörige Issues: [`#2`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#3`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#2`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#3`](https://github.com/rubenvitt/bluelight-hub/issues/))
+- [`5f10998c`](https://github.com/rubenvitt/bluelight-hub/commit/5f10998c) (auth): Fix exchange-invite HTTP status code to 200 OK
 
-- [`42540bee`](https://github.com/rubenvitt/bluelight-hub/commit/42540bee) (frontend): Fix TypeScript errors in DeepLinkService 
+- [`c84f137d`](https://github.com/rubenvitt/bluelight-hub/commit/c84f137d) (auth): Fix race condition and transaction rollback (Issues #2 &amp; #3)
+  (Zugehörige Issues: [`#2`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#3`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#2`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#3`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
-- [`07fbc9f3`](https://github.com/rubenvitt/bluelight-hub/commit/07fbc9f3) (frontend): Fix Tauri deep-link plugin API usage 
+- [`42540bee`](https://github.com/rubenvitt/bluelight-hub/commit/42540bee) (frontend): Fix TypeScript errors in DeepLinkService
 
-- [`969e5eac`](https://github.com/rubenvitt/bluelight-hub/commit/969e5eac) (frontend): Fix API client import path across codebase 
+- [`07fbc9f3`](https://github.com/rubenvitt/bluelight-hub/commit/07fbc9f3) (frontend): Fix Tauri deep-link plugin API usage
 
-- [`f0865b2e`](https://github.com/rubenvitt/bluelight-hub/commit/f0865b2e) (frontend): Fix API client import and test wrapper scope 
+- [`969e5eac`](https://github.com/rubenvitt/bluelight-hub/commit/969e5eac) (frontend): Fix API client import path across codebase
 
-- [`89defe5d`](https://github.com/rubenvitt/bluelight-hub/commit/89defe5d) (frontend): Fix ReactElement import in mutations tests 
+- [`f0865b2e`](https://github.com/rubenvitt/bluelight-hub/commit/f0865b2e) (frontend): Fix API client import and test wrapper scope
 
-- [`bcef1b57`](https://github.com/rubenvitt/bluelight-hub/commit/bcef1b57) (frontend): Fix TypeScript errors in Deep Link integration 
+- [`89defe5d`](https://github.com/rubenvitt/bluelight-hub/commit/89defe5d) (frontend): Fix ReactElement import in mutations tests
 
-- [`11956709`](https://github.com/rubenvitt/bluelight-hub/commit/11956709) (frontend): Add method overloads for DeepLinkService.off() 
+- [`bcef1b57`](https://github.com/rubenvitt/bluelight-hub/commit/bcef1b57) (frontend): Fix TypeScript errors in Deep Link integration
 
-- [`191cf97e`](https://github.com/rubenvitt/bluelight-hub/commit/191cf97e) (deep-link): Fix critical code review issues (Story 2.4) 
+- [`11956709`](https://github.com/rubenvitt/bluelight-hub/commit/11956709) (frontend): Add method overloads for DeepLinkService.off()
 
-- [`4bdc8e07`](https://github.com/rubenvitt/bluelight-hub/commit/4bdc8e07) (server): Fix TypeScript errors in UI components 
+- [`191cf97e`](https://github.com/rubenvitt/bluelight-hub/commit/191cf97e) (deep-link): Fix critical code review issues (Story 2.4)
 
-- [`c085bcce`](https://github.com/rubenvitt/bluelight-hub/commit/c085bcce) (server): Fix TanStack Form validation API pattern 
+- [`4bdc8e07`](https://github.com/rubenvitt/bluelight-hub/commit/4bdc8e07) (server): Fix TypeScript errors in UI components
 
-- [`10d76edf`](https://github.com/rubenvitt/bluelight-hub/commit/10d76edf) (server): Fix critical code review issues for Story 2.5 
-(Zugehörige Issues: [`#1`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#2`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#3`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#4`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#5`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#6`](https://github.com/rubenvitt/bluelight-hub/issues/))
+- [`c085bcce`](https://github.com/rubenvitt/bluelight-hub/commit/c085bcce) (server): Fix TanStack Form validation API pattern
 
-- [`9924e9e5`](https://github.com/rubenvitt/bluelight-hub/commit/9924e9e5) (server): Fix Code Review Issues for Story 2.7 
-(Zugehörige Issues: [`#1`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#2`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#3`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#4`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#5`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#6`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#7`](https://github.com/rubenvitt/bluelight-hub/issues/))
+- [`10d76edf`](https://github.com/rubenvitt/bluelight-hub/commit/10d76edf) (server): Fix critical code review issues for Story 2.5
+  (Zugehörige Issues: [`#1`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#2`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#3`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#4`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#5`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#6`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
-- [`c19c891d`](https://github.com/rubenvitt/bluelight-hub/commit/c19c891d) (frontend): Add missing format-last-used.ts to git 
+- [`9924e9e5`](https://github.com/rubenvitt/bluelight-hub/commit/9924e9e5) (server): Fix Code Review Issues for Story 2.7
+  (Zugehörige Issues: [`#1`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#2`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#3`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#4`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#5`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#6`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#7`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
-- [`70347135`](https://github.com/rubenvitt/bluelight-hub/commit/70347135) (backend): Fix E2E tests for SetupPendingGuard requirements 
+- [`c19c891d`](https://github.com/rubenvitt/bluelight-hub/commit/c19c891d) (frontend): Add missing format-last-used.ts to git
 
-- [`2d506234`](https://github.com/rubenvitt/bluelight-hub/commit/2d506234) (admin): Add API versioning to admin controllers 
+- [`70347135`](https://github.com/rubenvitt/bluelight-hub/commit/70347135) (backend): Fix E2E tests for SetupPendingGuard requirements
 
-- [`475fd9f2`](https://github.com/rubenvitt/bluelight-hub/commit/475fd9f2) (admin): Fix Story 4.6 code review issues 
+- [`2d506234`](https://github.com/rubenvitt/bluelight-hub/commit/2d506234) (admin): Add API versioning to admin controllers
 
-- [`19ff89f8`](https://github.com/rubenvitt/bluelight-hub/commit/19ff89f8) (auth): Make accessToken validation optional in AdminJwtStrategy 
+- [`475fd9f2`](https://github.com/rubenvitt/bluelight-hub/commit/475fd9f2) (admin): Fix Story 4.6 code review issues
+
+- [`19ff89f8`](https://github.com/rubenvitt/bluelight-hub/commit/19ff89f8) (auth): Make accessToken validation optional in AdminJwtStrategy
 
 ## 🔒 Sicherheitsverbesserungen
+
 Sicherheitsrelevante Änderungen:
-- [`93749c11`](https://github.com/rubenvitt/bluelight-hub/commit/93749c11) (security): Fix CodeQL security vulnerabilities 
+
+- [`93749c11`](https://github.com/rubenvitt/bluelight-hub/commit/93749c11) (security): Fix CodeQL security vulnerabilities
 
 ## 🧹 Codebereinigungen
+
 Aufräumarbeiten und kleinere Verbesserungen:
-- [`29f7bb5b`](https://github.com/rubenvitt/bluelight-hub/commit/29f7bb5b) (frontend): Cleanup unused imports in DeepLinkService 
+
+- [`29f7bb5b`](https://github.com/rubenvitt/bluelight-hub/commit/29f7bb5b) (frontend): Cleanup unused imports in DeepLinkService
 
 ## ♻ Refactoring
+
 Struktur- oder Code-Verbesserungen:
-- [`5baaf964`](https://github.com/rubenvitt/bluelight-hub/commit/5baaf964) (frontend): Code Review Fixes for Story 1.7a 
 
-- [`cd6977d0`](https://github.com/rubenvitt/bluelight-hub/commit/cd6977d0) (storage): Code review fixes for Story 2.1 
+- [`5baaf964`](https://github.com/rubenvitt/bluelight-hub/commit/5baaf964) (frontend): Code Review Fixes for Story 1.7a
 
-- [`7844e666`](https://github.com/rubenvitt/bluelight-hub/commit/7844e666) (auth): Use milliseconds() for cookie maxAge readability 
+- [`cd6977d0`](https://github.com/rubenvitt/bluelight-hub/commit/cd6977d0) (storage): Code review fixes for Story 2.1
+
+- [`7844e666`](https://github.com/rubenvitt/bluelight-hub/commit/7844e666) (auth): Use milliseconds() for cookie maxAge readability
 
 ## 🔧 Tool Verbesserungen
+
 Verbesserungen an den Werkzeugen:
-- [`921d4b6b`](https://github.com/rubenvitt/bluelight-hub/commit/921d4b6b) (ci): Add GitGuardian config to exclude test files 
 
-
+- [`921d4b6b`](https://github.com/rubenvitt/bluelight-hub/commit/921d4b6b) (ci): Add GitGuardian config to exclude test files
 
 # [1.0.0-alpha.40](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.39...v1.0.0-alpha.40) (2026-01-14)
 
 ## Version [v1.0.0-alpha.39](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.38...v1.0.0-alpha.39) – Veröffentlicht am 2026-01-05
 
 ## 🐛 Fehlerbehebungen
+
 Diese Probleme wurden behoben:
-- [`4045ab91`](https://github.com/rubenvitt/bluelight-hub/commit/4045ab91) (ci): Fix macOS artifact upload path for cross-compilation 
 
-
+- [`4045ab91`](https://github.com/rubenvitt/bluelight-hub/commit/4045ab91) (ci): Fix macOS artifact upload path for cross-compilation
 
 # [1.0.0-alpha.39](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.38...v1.0.0-alpha.39) (2026-01-05)
 
 ## Version [v1.0.0-alpha.38](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.37...v1.0.0-alpha.38) – Veröffentlicht am 2026-01-05
 
 ## ✨ Neue Funktionen
+
 Die folgenden neuen Features wurden hinzugefügt:
-- [`4ce80d84`](https://github.com/rubenvitt/bluelight-hub/commit/4ce80d84) (frontend): Add dynamic system status badges 
-(Zugehörige Issues: [`#301`](https://github.com/rubenvitt/bluelight-hub/issues/))
+
+- [`4ce80d84`](https://github.com/rubenvitt/bluelight-hub/commit/4ce80d84) (frontend): Add dynamic system status badges
+  (Zugehörige Issues: [`#301`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
 ## 🐛 Fehlerbehebungen
+
 Diese Probleme wurden behoben:
-- [`733c5f14`](https://github.com/rubenvitt/bluelight-hub/commit/733c5f14) (frontend): Fix MSI version format for Tauri builds 
 
-- [`e2650c6f`](https://github.com/rubenvitt/bluelight-hub/commit/e2650c6f) (frontend): Fix MSI version format for Tauri builds 
+- [`733c5f14`](https://github.com/rubenvitt/bluelight-hub/commit/733c5f14) (frontend): Fix MSI version format for Tauri builds
 
-
+- [`e2650c6f`](https://github.com/rubenvitt/bluelight-hub/commit/e2650c6f) (frontend): Fix MSI version format for Tauri builds
 
 # [1.0.0-alpha.38](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.37...v1.0.0-alpha.38) (2026-01-05)
 
 ## Version [v1.0.0-alpha.37](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.36...v1.0.0-alpha.37) – Veröffentlicht am 2026-01-05
 
 ## ✨ Neue Funktionen
+
 Die folgenden neuen Features wurden hinzugefügt:
-- [`429d79e3`](https://github.com/rubenvitt/bluelight-hub/commit/429d79e3) (geo-coordinate): Add GeoJSON serialization methods (Story 0-3) 
 
-- [`70fa8fb6`](https://github.com/rubenvitt/bluelight-hub/commit/70fa8fb6) (kraefte): Implement RollenDefinition + Fahrzeugtyp CRUD 
+- [`429d79e3`](https://github.com/rubenvitt/bluelight-hub/commit/429d79e3) (geo-coordinate): Add GeoJSON serialization methods (Story 0-3)
 
-- [`0aad5452`](https://github.com/rubenvitt/bluelight-hub/commit/0aad5452) (kraefte): Complete Fahrzeugtypen CRUD + Story docs (1.2, 1.3) 
+- [`70fa8fb6`](https://github.com/rubenvitt/bluelight-hub/commit/70fa8fb6) (kraefte): Implement RollenDefinition + Fahrzeugtyp CRUD
 
-- [`a39cff90`](https://github.com/rubenvitt/bluelight-hub/commit/a39cff90) (kraefte): Implement FunkStatusConfig Domain Layer (Story 1-4) 
+- [`0aad5452`](https://github.com/rubenvitt/bluelight-hub/commit/0aad5452) (kraefte): Complete Fahrzeugtypen CRUD + Story docs (1.2, 1.3)
 
-- [`8585e31e`](https://github.com/rubenvitt/bluelight-hub/commit/8585e31e) (kraefte): Add StammFahrzeug Query Handlers + Fix bugs (Story 2-1) 
+- [`a39cff90`](https://github.com/rubenvitt/bluelight-hub/commit/a39cff90) (kraefte): Implement FunkStatusConfig Domain Layer (Story 1-4)
 
-- [`77f8d9d8`](https://github.com/rubenvitt/bluelight-hub/commit/77f8d9d8) (kraefte): Add StammPerson Domain Layer (Story 2.2) 
+- [`8585e31e`](https://github.com/rubenvitt/bluelight-hub/commit/8585e31e) (kraefte): Add StammFahrzeug Query Handlers + Fix bugs (Story 2-1)
 
-- [`8314db44`](https://github.com/rubenvitt/bluelight-hub/commit/8314db44) (kraefte): Implement Stamm-Personen CRUD (Story 2.2) 
+- [`77f8d9d8`](https://github.com/rubenvitt/bluelight-hub/commit/77f8d9d8) (kraefte): Add StammPerson Domain Layer (Story 2.2)
 
-- [`dbeba43c`](https://github.com/rubenvitt/bluelight-hub/commit/dbeba43c) (frontend): Add temporäres Fahrzeug UI (Story 3-2 Task 5) 
+- [`8314db44`](https://github.com/rubenvitt/bluelight-hub/commit/8314db44) (kraefte): Implement Stamm-Personen CRUD (Story 2.2)
 
-- [`1b820a9a`](https://github.com/rubenvitt/bluelight-hub/commit/1b820a9a) (kraefte): Add POST /temporary endpoint for Story 3-2 
+- [`dbeba43c`](https://github.com/rubenvitt/bluelight-hub/commit/dbeba43c) (frontend): Add temporäres Fahrzeug UI (Story 3-2 Task 5)
 
-- [`088b9082`](https://github.com/rubenvitt/bluelight-hub/commit/088b9082) (kraefte): Add FMS-Status UI components (Story 3.3 Task 7) 
+- [`1b820a9a`](https://github.com/rubenvitt/bluelight-hub/commit/1b820a9a) (kraefte): Add POST /temporary endpoint for Story 3-2
 
-- [`17b34f60`](https://github.com/rubenvitt/bluelight-hub/commit/17b34f60) (kraefte): Add Infrastructure Layer for EinsatzPerson 
+- [`088b9082`](https://github.com/rubenvitt/bluelight-hub/commit/088b9082) (kraefte): Add FMS-Status UI components (Story 3.3 Task 7)
 
-- [`e260274b`](https://github.com/rubenvitt/bluelight-hub/commit/e260274b) (kraefte): Add ETB auto-creation for person registration (Story 4-1) 
+- [`17b34f60`](https://github.com/rubenvitt/bluelight-hub/commit/17b34f60) (kraefte): Add Infrastructure Layer for EinsatzPerson
 
-- [`8b3ae8a7`](https://github.com/rubenvitt/bluelight-hub/commit/8b3ae8a7) (kraefte): Add PersonHinzufuegenDialog component (Story 4-1) 
+- [`e260274b`](https://github.com/rubenvitt/bluelight-hub/commit/e260274b) (kraefte): Add ETB auto-creation for person registration (Story 4-1)
 
-- [`06ae06f4`](https://github.com/rubenvitt/bluelight-hub/commit/06ae06f4) (kraefte): Add StammPersonen autocomplete to PersonHinzufuegenDialog 
+- [`8b3ae8a7`](https://github.com/rubenvitt/bluelight-hub/commit/8b3ae8a7) (kraefte): Add PersonHinzufuegenDialog component (Story 4-1)
 
-- [`49e3f254`](https://github.com/rubenvitt/bluelight-hub/commit/49e3f254) (kraefte): Implement QR code person registration (Story 4-2) 
+- [`06ae06f4`](https://github.com/rubenvitt/bluelight-hub/commit/06ae06f4) (kraefte): Add StammPersonen autocomplete to PersonHinzufuegenDialog
 
-- [`72d1719c`](https://github.com/rubenvitt/bluelight-hub/commit/72d1719c) (kraefte): Add Tauri barcode-scanner support and improve QR detection 
+- [`49e3f254`](https://github.com/rubenvitt/bluelight-hub/commit/49e3f254) (kraefte): Implement QR code person registration (Story 4-2)
 
-- [`aa71befc`](https://github.com/rubenvitt/bluelight-hub/commit/aa71befc) (kraefte): Add person-to-vehicle assignment frontend 
+- [`72d1719c`](https://github.com/rubenvitt/bluelight-hub/commit/72d1719c) (kraefte): Add Tauri barcode-scanner support and improve QR detection
 
-- [`896c36e0`](https://github.com/rubenvitt/bluelight-hub/commit/896c36e0) (kraefte): Story 5.1 - Rollenbesetzung mit Qualifikation 
+- [`aa71befc`](https://github.com/rubenvitt/bluelight-hub/commit/aa71befc) (kraefte): Add person-to-vehicle assignment frontend
 
-- [`fee8af4f`](https://github.com/rubenvitt/bluelight-hub/commit/fee8af4f) (kraefte): Story 5.2 - Rolle freigeben mit Soft-Delete 
-(Zugehörige Issues: [`#1`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#2`](https://github.com/rubenvitt/bluelight-hub/issues/))
+- [`896c36e0`](https://github.com/rubenvitt/bluelight-hub/commit/896c36e0) (kraefte): Story 5.1 - Rollenbesetzung mit Qualifikation
 
-- [`79953978`](https://github.com/rubenvitt/bluelight-hub/commit/79953978) (kraefte): Epic 6 - Taktische Übersicht Dashboard 
+- [`fee8af4f`](https://github.com/rubenvitt/bluelight-hub/commit/fee8af4f) (kraefte): Story 5.2 - Rolle freigeben mit Soft-Delete
+  (Zugehörige Issues: [`#1`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#2`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
-- [`82317c2f`](https://github.com/rubenvitt/bluelight-hub/commit/82317c2f) (kraefte): Story 6.2 - Fullscreen &amp; Compact Modus 
+- [`79953978`](https://github.com/rubenvitt/bluelight-hub/commit/79953978) (kraefte): Epic 6 - Taktische Übersicht Dashboard
 
-- [`eaa09074`](https://github.com/rubenvitt/bluelight-hub/commit/eaa09074) (kraefte): TD2-Person-Picker + RollenDefinitionenPicker 
+- [`82317c2f`](https://github.com/rubenvitt/bluelight-hub/commit/82317c2f) (kraefte): Story 6.2 - Fullscreen &amp; Compact Modus
 
-- [`83f20e56`](https://github.com/rubenvitt/bluelight-hub/commit/83f20e56) (integrations): Add HiOrg-Server OAuth2 integration 
+- [`eaa09074`](https://github.com/rubenvitt/bluelight-hub/commit/eaa09074) (kraefte): TD2-Person-Picker + RollenDefinitionenPicker
 
-- [`cf2d053a`](https://github.com/rubenvitt/bluelight-hub/commit/cf2d053a) (integrations): Add inline Qualifikation-Mapping during HiOrg import 
+- [`83f20e56`](https://github.com/rubenvitt/bluelight-hub/commit/83f20e56) (integrations): Add HiOrg-Server OAuth2 integration
 
-- [`1d0cb204`](https://github.com/rubenvitt/bluelight-hub/commit/1d0cb204) (lagekarte): Add GeoJSON POIs endpoint for Kraefte on map 
+- [`cf2d053a`](https://github.com/rubenvitt/bluelight-hub/commit/cf2d053a) (integrations): Add inline Qualifikation-Mapping during HiOrg import
 
-- [`0cea3b31`](https://github.com/rubenvitt/bluelight-hub/commit/0cea3b31) (lagekarte): Add Fahrzeuge als POIs auf Lagekarte (Story 8.1) 
-(Zugehörige Issues: [`#808080`](https://github.com/rubenvitt/bluelight-hub/issues/))
+- [`1d0cb204`](https://github.com/rubenvitt/bluelight-hub/commit/1d0cb204) (lagekarte): Add GeoJSON POIs endpoint for Kraefte on map
 
-- [`2624cab9`](https://github.com/rubenvitt/bluelight-hub/commit/2624cab9) (lagekarte): Integrate FahrzeugPoiLayer in LagekarteView 
+- [`0cea3b31`](https://github.com/rubenvitt/bluelight-hub/commit/0cea3b31) (lagekarte): Add Fahrzeuge als POIs auf Lagekarte (Story 8.1)
+  (Zugehörige Issues: [`#808080`](https://github.com/rubenvitt/bluelight-hub/issues/))
+
+- [`2624cab9`](https://github.com/rubenvitt/bluelight-hub/commit/2624cab9) (lagekarte): Integrate FahrzeugPoiLayer in LagekarteView
 
 ## 🐛 Fehlerbehebungen
+
 Diese Probleme wurden behoben:
-- [`1e4f4981`](https://github.com/rubenvitt/bluelight-hub/commit/1e4f4981) (tests): Remove useless catch clauses in qualifikation handler tests 
 
-- [`77cc0013`](https://github.com/rubenvitt/bluelight-hub/commit/77cc0013) (frontend): Fix useEffect dependency in EditQualifikationDialog 
+- [`1e4f4981`](https://github.com/rubenvitt/bluelight-hub/commit/1e4f4981) (tests): Remove useless catch clauses in qualifikation handler tests
 
-- [`bcedfe2d`](https://github.com/rubenvitt/bluelight-hub/commit/bcedfe2d) (kraefte): Fix CRITICAL and HIGH review issues (Story 1.1 R11) 
+- [`77cc0013`](https://github.com/rubenvitt/bluelight-hub/commit/77cc0013) (frontend): Fix useEffect dependency in EditQualifikationDialog
 
-- [`a3abad70`](https://github.com/rubenvitt/bluelight-hub/commit/a3abad70) (kraefte): Fix Story 1.3 code review issues (4 fixes) 
+- [`bcedfe2d`](https://github.com/rubenvitt/bluelight-hub/commit/bcedfe2d) (kraefte): Fix CRITICAL and HIGH review issues (Story 1.1 R11)
 
-- [`169ed914`](https://github.com/rubenvitt/bluelight-hub/commit/169ed914) (frontend): Fix Qualifikationen API response + validation 
+- [`a3abad70`](https://github.com/rubenvitt/bluelight-hub/commit/a3abad70) (kraefte): Fix Story 1.3 code review issues (4 fixes)
 
-- [`831b936d`](https://github.com/rubenvitt/bluelight-hub/commit/831b936d) (kraefte): Fix Code Review issues for Story 3.2 (Temporäres Fahrzeug) 
+- [`169ed914`](https://github.com/rubenvitt/bluelight-hub/commit/169ed914) (frontend): Fix Qualifikationen API response + validation
 
-- [`a4b5d4dc`](https://github.com/rubenvitt/bluelight-hub/commit/a4b5d4dc) (kraefte): Fix empty position object validation in UpdateFmsStatusDto 
+- [`831b936d`](https://github.com/rubenvitt/bluelight-hub/commit/831b936d) (kraefte): Fix Code Review issues for Story 3.2 (Temporäres Fahrzeug)
 
-- [`8ab6b694`](https://github.com/rubenvitt/bluelight-hub/commit/8ab6b694) (kraefte): Fix idempotency in EinsatzFahrzeug.updateFmsStatus 
+- [`a4b5d4dc`](https://github.com/rubenvitt/bluelight-hub/commit/a4b5d4dc) (kraefte): Fix empty position object validation in UpdateFmsStatusDto
 
-- [`bb86cd7c`](https://github.com/rubenvitt/bluelight-hub/commit/bb86cd7c) (kraefte): Fix Story 3.3 Code Review Round 3 Issues 
+- [`8ab6b694`](https://github.com/rubenvitt/bluelight-hub/commit/8ab6b694) (kraefte): Fix idempotency in EinsatzFahrzeug.updateFmsStatus
 
-- [`a78338b7`](https://github.com/rubenvitt/bluelight-hub/commit/a78338b7) (kraefte): Fix Logger DI in UpdateFmsStatusHandler (AC3) 
+- [`bb86cd7c`](https://github.com/rubenvitt/bluelight-hub/commit/bb86cd7c) (kraefte): Fix Story 3.3 Code Review Round 3 Issues
 
-- [`2f885436`](https://github.com/rubenvitt/bluelight-hub/commit/2f885436) (kraefte): Fix Story 4.1 Code Review Issues (Round 1) 
+- [`a78338b7`](https://github.com/rubenvitt/bluelight-hub/commit/a78338b7) (kraefte): Fix Logger DI in UpdateFmsStatusHandler (AC3)
 
-- [`6ca7f135`](https://github.com/rubenvitt/bluelight-hub/commit/6ca7f135) (kraefte): Fix Story 4.1 Code Review Issues (Round 2 + 3) 
+- [`2f885436`](https://github.com/rubenvitt/bluelight-hub/commit/2f885436) (kraefte): Fix Story 4.1 Code Review Issues (Round 1)
 
-- [`50aba091`](https://github.com/rubenvitt/bluelight-hub/commit/50aba091) (kraefte): Fix video play() interrupted error in QrScannerTab 
+- [`6ca7f135`](https://github.com/rubenvitt/bluelight-hub/commit/6ca7f135) (kraefte): Fix Story 4.1 Code Review Issues (Round 2 + 3)
 
-- [`57362bd1`](https://github.com/rubenvitt/bluelight-hub/commit/57362bd1) (kraefte): Fix QrScannerTab infinite loop and Tauri compatibility 
+- [`50aba091`](https://github.com/rubenvitt/bluelight-hub/commit/50aba091) (kraefte): Fix video play() interrupted error in QrScannerTab
 
-- [`bcff96fe`](https://github.com/rubenvitt/bluelight-hub/commit/bcff96fe) (kraefte): Fix barcode-scanner for desktop Tauri 
+- [`57362bd1`](https://github.com/rubenvitt/bluelight-hub/commit/57362bd1) (kraefte): Fix QrScannerTab infinite loop and Tauri compatibility
 
-- [`73732508`](https://github.com/rubenvitt/bluelight-hub/commit/73732508) (kraefte): Fix critical memory leaks and race condition in QR scanner 
+- [`bcff96fe`](https://github.com/rubenvitt/bluelight-hub/commit/bcff96fe) (kraefte): Fix barcode-scanner for desktop Tauri
 
-- [`ecdb7668`](https://github.com/rubenvitt/bluelight-hub/commit/ecdb7668) (kraefte): Fix API response extraction in useEinsatzPersonen 
+- [`73732508`](https://github.com/rubenvitt/bluelight-hub/commit/73732508) (kraefte): Fix critical memory leaks and race condition in QR scanner
 
-- [`69db01b7`](https://github.com/rubenvitt/bluelight-hub/commit/69db01b7) (repo): sync einsatz detail cache responses 
+- [`ecdb7668`](https://github.com/rubenvitt/bluelight-hub/commit/ecdb7668) (kraefte): Fix API response extraction in useEinsatzPersonen
 
-- [`d6284fb4`](https://github.com/rubenvitt/bluelight-hub/commit/d6284fb4) (kraefte): Fix domain validation and event timestamps (D1-D3) 
+- [`69db01b7`](https://github.com/rubenvitt/bluelight-hub/commit/69db01b7) (repo): sync einsatz detail cache responses
 
-- [`932f6632`](https://github.com/rubenvitt/bluelight-hub/commit/932f6632) (kraefte): Fix Backend BLOCKER Issues (C2+C3) - Story 4.3 
+- [`d6284fb4`](https://github.com/rubenvitt/bluelight-hub/commit/d6284fb4) (kraefte): Fix domain validation and event timestamps (D1-D3)
 
-- [`860d5e87`](https://github.com/rubenvitt/bluelight-hub/commit/860d5e87) (kraefte): Fix handler pattern violation (A1) 
+- [`932f6632`](https://github.com/rubenvitt/bluelight-hub/commit/932f6632) (kraefte): Fix Backend BLOCKER Issues (C2+C3) - Story 4.3
 
-- [`7db87eb3`](https://github.com/rubenvitt/bluelight-hub/commit/7db87eb3) (kraefte): Fix input validation order in removeFromFahrzeug (D1) 
+- [`860d5e87`](https://github.com/rubenvitt/bluelight-hub/commit/860d5e87) (kraefte): Fix handler pattern violation (A1)
 
-- [`fef1561a`](https://github.com/rubenvitt/bluelight-hub/commit/fef1561a) (validation): Fix @IsCuid decorator for CUID2 format 
+- [`7db87eb3`](https://github.com/rubenvitt/bluelight-hub/commit/7db87eb3) (kraefte): Fix input validation order in removeFromFahrzeug (D1)
 
-- [`4af470dd`](https://github.com/rubenvitt/bluelight-hub/commit/4af470dd) (kraefte): Fix domain validation and event timestamps (D1-D3) 
+- [`fef1561a`](https://github.com/rubenvitt/bluelight-hub/commit/fef1561a) (validation): Fix @IsCuid decorator for CUID2 format
 
-- [`2bf299e4`](https://github.com/rubenvitt/bluelight-hub/commit/2bf299e4) (kraefte): Fix Story 5.1 Review Issues - ETB Handler Registration 
+- [`4af470dd`](https://github.com/rubenvitt/bluelight-hub/commit/4af470dd) (kraefte): Fix domain validation and event timestamps (D1-D3)
 
-- [`852bd0f8`](https://github.com/rubenvitt/bluelight-hub/commit/852bd0f8) (integrations): Fix ConfigService DI in AesEncryptionAdapter 
+- [`2bf299e4`](https://github.com/rubenvitt/bluelight-hub/commit/2bf299e4) (kraefte): Fix Story 5.1 Review Issues - ETB Handler Registration
 
-- [`b17b5955`](https://github.com/rubenvitt/bluelight-hub/commit/b17b5955) (integrations): Fix HiOrgTokenRefreshService DI imports 
+- [`852bd0f8`](https://github.com/rubenvitt/bluelight-hub/commit/852bd0f8) (integrations): Fix ConfigService DI in AesEncryptionAdapter
 
-- [`2139ea5b`](https://github.com/rubenvitt/bluelight-hub/commit/2139ea5b) (integrations): Fix import type for ILogger breaking DI at runtime 
-(Zugehörige Issues: [`#3`](https://github.com/rubenvitt/bluelight-hub/issues/))
+- [`b17b5955`](https://github.com/rubenvitt/bluelight-hub/commit/b17b5955) (integrations): Fix HiOrgTokenRefreshService DI imports
 
-- [`4dba6e7f`](https://github.com/rubenvitt/bluelight-hub/commit/4dba6e7f) (tests): Fix ADMIN_JWT_SECRET missing in CI for E2E tests 
+- [`2139ea5b`](https://github.com/rubenvitt/bluelight-hub/commit/2139ea5b) (integrations): Fix import type for ILogger breaking DI at runtime
+  (Zugehörige Issues: [`#3`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
-- [`06eb881b`](https://github.com/rubenvitt/bluelight-hub/commit/06eb881b) (tests): Add global test secrets to jest.setup.ts 
+- [`4dba6e7f`](https://github.com/rubenvitt/bluelight-hub/commit/4dba6e7f) (tests): Fix ADMIN_JWT_SECRET missing in CI for E2E tests
 
-- [`a6678812`](https://github.com/rubenvitt/bluelight-hub/commit/a6678812) (tests): Add INTEGRATION_ENCRYPTION_KEY to test secrets 
+- [`06eb881b`](https://github.com/rubenvitt/bluelight-hub/commit/06eb881b) (tests): Add global test secrets to jest.setup.ts
+
+- [`a6678812`](https://github.com/rubenvitt/bluelight-hub/commit/a6678812) (tests): Add INTEGRATION_ENCRYPTION_KEY to test secrets
 
 ## 🔒 Sicherheitsverbesserungen
+
 Sicherheitsrelevante Änderungen:
-- [`60f086e5`](https://github.com/rubenvitt/bluelight-hub/commit/60f086e5) (kraefte): Fix security + AC3 compliance (Story 1.1 R12) 
 
-- [`2cd2947a`](https://github.com/rubenvitt/bluelight-hub/commit/2cd2947a) (kraefte): Add stricter rate limits for mutation endpoints 
+- [`60f086e5`](https://github.com/rubenvitt/bluelight-hub/commit/60f086e5) (kraefte): Fix security + AC3 compliance (Story 1.1 R12)
 
-- [`10f78ba5`](https://github.com/rubenvitt/bluelight-hub/commit/10f78ba5) (kraefte): Add ParseCuidPipe validation to route params (C1) 
+- [`2cd2947a`](https://github.com/rubenvitt/bluelight-hub/commit/2cd2947a) (kraefte): Add stricter rate limits for mutation endpoints
 
-- [`c959246b`](https://github.com/rubenvitt/bluelight-hub/commit/c959246b) (kraefte): Fix ReDoS vulnerability in QR validation regex 
+- [`10f78ba5`](https://github.com/rubenvitt/bluelight-hub/commit/10f78ba5) (kraefte): Add ParseCuidPipe validation to route params (C1)
+
+- [`c959246b`](https://github.com/rubenvitt/bluelight-hub/commit/c959246b) (kraefte): Fix ReDoS vulnerability in QR validation regex
 
 ## ♻ Refactoring
+
 Struktur- oder Code-Verbesserungen:
-- [`8d7c031e`](https://github.com/rubenvitt/bluelight-hub/commit/8d7c031e) (kraefte): Refactor Prisma error meta handling pattern 
 
-- [`2a1d675b`](https://github.com/rubenvitt/bluelight-hub/commit/2a1d675b) (kraefte): Remove dead code in CreateRollenDefinitionHandler 
+- [`8d7c031e`](https://github.com/rubenvitt/bluelight-hub/commit/8d7c031e) (kraefte): Refactor Prisma error meta handling pattern
 
-- [`00053ace`](https://github.com/rubenvitt/bluelight-hub/commit/00053ace) (kraefte): Add einsatzId CUID2 validation in commands (A2) 
+- [`2a1d675b`](https://github.com/rubenvitt/bluelight-hub/commit/2a1d675b) (kraefte): Remove dead code in CreateRollenDefinitionHandler
 
-- [`e7d0920a`](https://github.com/rubenvitt/bluelight-hub/commit/e7d0920a) (outbox): Update event count and format (I1 partial) 
+- [`00053ace`](https://github.com/rubenvitt/bluelight-hub/commit/00053ace) (kraefte): Add einsatzId CUID2 validation in commands (A2)
 
-- [`7ad05c56`](https://github.com/rubenvitt/bluelight-hub/commit/7ad05c56) (api-client): Regenerate WeisePersonZuFahrzeugZuDto 
+- [`e7d0920a`](https://github.com/rubenvitt/bluelight-hub/commit/e7d0920a) (outbox): Update event count and format (I1 partial)
 
-- [`24884e1a`](https://github.com/rubenvitt/bluelight-hub/commit/24884e1a) (kraefte): TD2.1 - Migrate Admin Controllers to @ApiWrappedResponse 
+- [`7ad05c56`](https://github.com/rubenvitt/bluelight-hub/commit/7ad05c56) (api-client): Regenerate WeisePersonZuFahrzeugZuDto
 
-- [`e432bd65`](https://github.com/rubenvitt/bluelight-hub/commit/e432bd65) (frontend): Update Headless UI v2 + TanStack Pacer APIs 
+- [`24884e1a`](https://github.com/rubenvitt/bluelight-hub/commit/24884e1a) (kraefte): TD2.1 - Migrate Admin Controllers to @ApiWrappedResponse
 
-- [`fe6d0784`](https://github.com/rubenvitt/bluelight-hub/commit/fe6d0784) (backend): Move config adapters and add logger to handlers 
+- [`e432bd65`](https://github.com/rubenvitt/bluelight-hub/commit/e432bd65) (frontend): Update Headless UI v2 + TanStack Pacer APIs
+
+- [`fe6d0784`](https://github.com/rubenvitt/bluelight-hub/commit/fe6d0784) (backend): Move config adapters and add logger to handlers
 
 ## 🔧 Tool Verbesserungen
+
 Verbesserungen an den Werkzeugen:
-- [`7fcff634`](https://github.com/rubenvitt/bluelight-hub/commit/7fcff634) (shared): Generate API clients for Rollen + Fahrzeugtypen 
 
-- [`dc2b93b2`](https://github.com/rubenvitt/bluelight-hub/commit/dc2b93b2) (husky): Remove deprecated shebang and source lines from pre-commit 
+- [`7fcff634`](https://github.com/rubenvitt/bluelight-hub/commit/7fcff634) (shared): Generate API clients for Rollen + Fahrzeugtypen
 
-- [`6a777450`](https://github.com/rubenvitt/bluelight-hub/commit/6a777450) (config): Swap backend/frontend ports for consistency 
+- [`dc2b93b2`](https://github.com/rubenvitt/bluelight-hub/commit/dc2b93b2) (husky): Remove deprecated shebang and source lines from pre-commit
 
-- [`4961fd4c`](https://github.com/rubenvitt/bluelight-hub/commit/4961fd4c) (ide): Update IntelliJ run configurations for Jest 30 
+- [`6a777450`](https://github.com/rubenvitt/bluelight-hub/commit/6a777450) (config): Swap backend/frontend ports for consistency
 
-- [`c15e3146`](https://github.com/rubenvitt/bluelight-hub/commit/c15e3146) (config): Add alternative AI tool configurations 
+- [`4961fd4c`](https://github.com/rubenvitt/bluelight-hub/commit/4961fd4c) (ide): Update IntelliJ run configurations for Jest 30
 
-
+- [`c15e3146`](https://github.com/rubenvitt/bluelight-hub/commit/c15e3146) (config): Add alternative AI tool configurations
 
 # [1.0.0-alpha.37](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.36...v1.0.0-alpha.37) (2026-01-05)
 
 ## Version [v1.0.0-alpha.36](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.35...v1.0.0-alpha.36) – Veröffentlicht am 2025-12-09
 
 ## 🔧 Tool Verbesserungen
+
 Verbesserungen an den Werkzeugen:
-- [`25403f7f`](https://github.com/rubenvitt/bluelight-hub/commit/25403f7f) (ci): Fix semantic-release success handler bug 
 
-
+- [`25403f7f`](https://github.com/rubenvitt/bluelight-hub/commit/25403f7f) (ci): Fix semantic-release success handler bug
 
 # [1.0.0-alpha.36](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.35...v1.0.0-alpha.36) (2025-12-09)
 
 ## Version [v1.0.0-alpha.35](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.34...v1.0.0-alpha.35) – Veröffentlicht am 2025-12-09
 
 ## ✨ Neue Funktionen
+
 Die folgenden neuen Features wurden hinzugefügt:
-- [`c07e650d`](https://github.com/rubenvitt/bluelight-hub/commit/c07e650d) (domain): Implement Result&lt;T&gt; pattern for domain layer error handling 
 
-- [`3ac19021`](https://github.com/rubenvitt/bluelight-hub/commit/3ac19021) (domain): Implement ValueObject&lt;TProps&gt; base class for DDD 
+- [`c07e650d`](https://github.com/rubenvitt/bluelight-hub/commit/c07e650d) (domain): Implement Result&lt;T&gt; pattern for domain layer error handling
 
-- [`c5d68231`](https://github.com/rubenvitt/bluelight-hub/commit/c5d68231) (domain): Implement EntityId&lt;TAggregateType&gt; with nanoid validation 
+- [`3ac19021`](https://github.com/rubenvitt/bluelight-hub/commit/3ac19021) (domain): Implement ValueObject&lt;TProps&gt; base class for DDD
 
-- [`be9d6829`](https://github.com/rubenvitt/bluelight-hub/commit/be9d6829) (domain): Add DomainEvent base class with auto-generated eventId 
+- [`c5d68231`](https://github.com/rubenvitt/bluelight-hub/commit/c5d68231) (domain): Implement EntityId&lt;TAggregateType&gt; with nanoid validation
 
-- [`84539ea7`](https://github.com/rubenvitt/bluelight-hub/commit/84539ea7) (domain): Add AggregateRoot&lt;TId&gt; base class with events 
+- [`be9d6829`](https://github.com/rubenvitt/bluelight-hub/commit/be9d6829) (domain): Add DomainEvent base class with auto-generated eventId
 
-- [`f1ce3d83`](https://github.com/rubenvitt/bluelight-hub/commit/f1ce3d83) (domain): Implement 4 Domain Events for Einsatz Aggregate 
+- [`84539ea7`](https://github.com/rubenvitt/bluelight-hub/commit/84539ea7) (domain): Add AggregateRoot&lt;TId&gt; base class with events
 
-- [`132c0cad`](https://github.com/rubenvitt/bluelight-hub/commit/132c0cad) (domain): Implement complete Einsatz aggregate with business logic 
+- [`f1ce3d83`](https://github.com/rubenvitt/bluelight-hub/commit/f1ce3d83) (domain): Implement 4 Domain Events for Einsatz Aggregate
 
-- [`598e1a53`](https://github.com/rubenvitt/bluelight-hub/commit/598e1a53) (domain): Implement all 6 Value Objects for ETB Aggregate 
+- [`132c0cad`](https://github.com/rubenvitt/bluelight-hub/commit/132c0cad) (domain): Implement complete Einsatz aggregate with business logic
 
-- [`b19fc56d`](https://github.com/rubenvitt/bluelight-hub/commit/b19fc56d) (domain): Implement ETB Aggregate with Business Logic 
+- [`598e1a53`](https://github.com/rubenvitt/bluelight-hub/commit/598e1a53) (domain): Implement all 6 Value Objects for ETB Aggregate
 
-- [`7955b763`](https://github.com/rubenvitt/bluelight-hub/commit/7955b763) (domain): Fix ETB Repository &amp; Aggregate type safety 
+- [`b19fc56d`](https://github.com/rubenvitt/bluelight-hub/commit/b19fc56d) (domain): Implement ETB Aggregate with Business Logic
 
-- [`5a610648`](https://github.com/rubenvitt/bluelight-hub/commit/5a610648) (domain): Implement 5 Lagekarte Value Objects with MGRS support 
+- [`7955b763`](https://github.com/rubenvitt/bluelight-hub/commit/7955b763) (domain): Fix ETB Repository &amp; Aggregate type safety
 
-- [`d7ad42f6`](https://github.com/rubenvitt/bluelight-hub/commit/d7ad42f6) (domain): Implement Poi Entity for Lagekarte 
+- [`5a610648`](https://github.com/rubenvitt/bluelight-hub/commit/5a610648) (domain): Implement 5 Lagekarte Value Objects with MGRS support
 
-- [`a95ac2d1`](https://github.com/rubenvitt/bluelight-hub/commit/a95ac2d1) (domain): Implement 3 Lagekarte Domain Events with unit tests 
+- [`d7ad42f6`](https://github.com/rubenvitt/bluelight-hub/commit/d7ad42f6) (domain): Implement Poi Entity for Lagekarte
 
-- [`82a7fd05`](https://github.com/rubenvitt/bluelight-hub/commit/82a7fd05) (domain): Implement LagekarteAggregate with POI management 
+- [`a95ac2d1`](https://github.com/rubenvitt/bluelight-hub/commit/a95ac2d1) (domain): Implement 3 Lagekarte Domain Events with unit tests
 
-- [`1ea7c3a0`](https://github.com/rubenvitt/bluelight-hub/commit/1ea7c3a0) (domain): Define ILagekarteRepository and IGeocodingPort interfaces 
+- [`82a7fd05`](https://github.com/rubenvitt/bluelight-hub/commit/82a7fd05) (domain): Implement LagekarteAggregate with POI management
 
-- [`45421eca`](https://github.com/rubenvitt/bluelight-hub/commit/45421eca) (domain): Implement Permission Value Object mit Wildcard Matching 
+- [`1ea7c3a0`](https://github.com/rubenvitt/bluelight-hub/commit/1ea7c3a0) (domain): Define ILagekarteRepository and IGeocodingPort interfaces
 
-- [`7bcc7195`](https://github.com/rubenvitt/bluelight-hub/commit/7bcc7195) (domain): Implement UserRole VO with RBAC hierarchy 
+- [`45421eca`](https://github.com/rubenvitt/bluelight-hub/commit/45421eca) (domain): Implement Permission Value Object mit Wildcard Matching
 
-- [`aab5a5fb`](https://github.com/rubenvitt/bluelight-hub/commit/aab5a5fb) (domain): Implement 5 User Domain Events 
+- [`7bcc7195`](https://github.com/rubenvitt/bluelight-hub/commit/7bcc7195) (domain): Implement UserRole VO with RBAC hierarchy
 
-- [`9c1558dd`](https://github.com/rubenvitt/bluelight-hub/commit/9c1558dd) (domain): Implement UserAggregate with RBAC Business Logic 
+- [`aab5a5fb`](https://github.com/rubenvitt/bluelight-hub/commit/aab5a5fb) (domain): Implement 5 User Domain Events
 
-- [`2e845f5f`](https://github.com/rubenvitt/bluelight-hub/commit/2e845f5f) (infrastructure): Add PostgreSQL triggers for NO-DELETE policy 
+- [`9c1558dd`](https://github.com/rubenvitt/bluelight-hub/commit/9c1558dd) (domain): Implement UserAggregate with RBAC Business Logic
 
-- [`6b98ee91`](https://github.com/rubenvitt/bluelight-hub/commit/6b98ee91) (application): Implement AddPoiCommand with Handler and Tests 
+- [`2e845f5f`](https://github.com/rubenvitt/bluelight-hub/commit/2e845f5f) (infrastructure): Add PostgreSQL triggers for NO-DELETE policy
 
-- [`e4194c97`](https://github.com/rubenvitt/bluelight-hub/commit/e4194c97) (application): Implement RemovePoiCommand with tests 
+- [`6b98ee91`](https://github.com/rubenvitt/bluelight-hub/commit/6b98ee91) (application): Implement AddPoiCommand with Handler and Tests
 
-- [`f200360b`](https://github.com/rubenvitt/bluelight-hub/commit/f200360b) (application): Implement UpdatePoiPositionCommand and Handler 
+- [`e4194c97`](https://github.com/rubenvitt/bluelight-hub/commit/e4194c97) (application): Implement RemovePoiCommand with tests
 
-- [`61086afb`](https://github.com/rubenvitt/bluelight-hub/commit/61086afb) (application): Complete Lagekarte Command Layer Integration 
+- [`f200360b`](https://github.com/rubenvitt/bluelight-hub/commit/f200360b) (application): Implement UpdatePoiPositionCommand and Handler
 
-- [`9e9571fd`](https://github.com/rubenvitt/bluelight-hub/commit/9e9571fd) (lagekarte): Add beschreibung support to LagekarteAggregate.addPoi() 
+- [`61086afb`](https://github.com/rubenvitt/bluelight-hub/commit/61086afb) (application): Complete Lagekarte Command Layer Integration
 
-- [`faf15c62`](https://github.com/rubenvitt/bluelight-hub/commit/faf15c62) (application): Setup Lagekarte Application Layer structure and DTOs 
+- [`9e9571fd`](https://github.com/rubenvitt/bluelight-hub/commit/9e9571fd) (lagekarte): Add beschreibung support to LagekarteAggregate.addPoi()
 
-- [`547d5020`](https://github.com/rubenvitt/bluelight-hub/commit/547d5020) (lagekarte): Implement LagekarteMapper and PoiMapper for Query Layer 
+- [`faf15c62`](https://github.com/rubenvitt/bluelight-hub/commit/faf15c62) (application): Setup Lagekarte Application Layer structure and DTOs
 
-- [`2fe773a7`](https://github.com/rubenvitt/bluelight-hub/commit/2fe773a7) (lagekarte): Implement GetLagekarteQuery and Handler 
+- [`547d5020`](https://github.com/rubenvitt/bluelight-hub/commit/547d5020) (lagekarte): Implement LagekarteMapper and PoiMapper for Query Layer
 
-- [`0c5f4cbb`](https://github.com/rubenvitt/bluelight-hub/commit/0c5f4cbb) (application): Implement GetPoisQuery and Handler 
+- [`2fe773a7`](https://github.com/rubenvitt/bluelight-hub/commit/2fe773a7) (lagekarte): Implement GetLagekarteQuery and Handler
 
-- [`9b96e288`](https://github.com/rubenvitt/bluelight-hub/commit/9b96e288) (application): Implement GetLagekarteExistsQuery with Handler 
+- [`0c5f4cbb`](https://github.com/rubenvitt/bluelight-hub/commit/0c5f4cbb) (application): Implement GetPoisQuery and Handler
 
-- [`8e7a4337`](https://github.com/rubenvitt/bluelight-hub/commit/8e7a4337) (application): Integrate Query Handlers in Lagekarte Module 
+- [`9b96e288`](https://github.com/rubenvitt/bluelight-hub/commit/9b96e288) (application): Implement GetLagekarteExistsQuery with Handler
 
-- [`a6de42c6`](https://github.com/rubenvitt/bluelight-hub/commit/a6de42c6) (lagekarte): Add integration tests for Query Layer handlers 
+- [`8e7a4337`](https://github.com/rubenvitt/bluelight-hub/commit/8e7a4337) (application): Integrate Query Handlers in Lagekarte Module
 
-- [`8708abda`](https://github.com/rubenvitt/bluelight-hub/commit/8708abda) (lagekarte): Add PrismaLagekarteRepository integration tests 
+- [`a6de42c6`](https://github.com/rubenvitt/bluelight-hub/commit/a6de42c6) (lagekarte): Add integration tests for Query Layer handlers
 
-- [`b2af93ae`](https://github.com/rubenvitt/bluelight-hub/commit/b2af93ae) (infrastructure): Register NominatimGeocodingAdapter in DI container 
+- [`8708abda`](https://github.com/rubenvitt/bluelight-hub/commit/8708abda) (lagekarte): Add PrismaLagekarteRepository integration tests
 
-- [`5841dbac`](https://github.com/rubenvitt/bluelight-hub/commit/5841dbac) (lagekarte): Add comprehensive unit tests for LagekarteCqrsController 
+- [`b2af93ae`](https://github.com/rubenvitt/bluelight-hub/commit/b2af93ae) (infrastructure): Register NominatimGeocodingAdapter in DI container
 
-- [`b3a05945`](https://github.com/rubenvitt/bluelight-hub/commit/b3a05945) (etb): Implement ETB Application Layer with CQRS pattern 
+- [`5841dbac`](https://github.com/rubenvitt/bluelight-hub/commit/5841dbac) (lagekarte): Add comprehensive unit tests for LagekarteCqrsController
 
-- [`47eb30c4`](https://github.com/rubenvitt/bluelight-hub/commit/47eb30c4) (etb): Implementiere vollständige E2E Test-Infrastruktur 
+- [`b3a05945`](https://github.com/rubenvitt/bluelight-hub/commit/b3a05945) (etb): Implement ETB Application Layer with CQRS pattern
 
-- [`39478dad`](https://github.com/rubenvitt/bluelight-hub/commit/39478dad) (einsatz): Implementiere Unit Tests für Command Handler 
+- [`47eb30c4`](https://github.com/rubenvitt/bluelight-hub/commit/47eb30c4) (etb): Implementiere vollständige E2E Test-Infrastruktur
 
-- [`d0c8d4d9`](https://github.com/rubenvitt/bluelight-hub/commit/d0c8d4d9) (einsatz): Add GetEinsatzByIdQuery handler with full test coverage 
+- [`39478dad`](https://github.com/rubenvitt/bluelight-hub/commit/39478dad) (einsatz): Implementiere Unit Tests für Command Handler
 
-- [`0179526a`](https://github.com/rubenvitt/bluelight-hub/commit/0179526a) (einsatz): Register EinsatzInfrastructureModule + Integration Tests 
+- [`d0c8d4d9`](https://github.com/rubenvitt/bluelight-hub/commit/d0c8d4d9) (einsatz): Add GetEinsatzByIdQuery handler with full test coverage
 
-- [`d6972f35`](https://github.com/rubenvitt/bluelight-hub/commit/d6972f35) (auth): Refactor AuthController zu CQRS Pattern 
+- [`0179526a`](https://github.com/rubenvitt/bluelight-hub/commit/0179526a) (einsatz): Register EinsatzInfrastructureModule + Integration Tests
 
-- [`2475a42a`](https://github.com/rubenvitt/bluelight-hub/commit/2475a42a) (einsatz): Add GetStatusCountsQuery and Handler for Einsatz statistics 
+- [`d6972f35`](https://github.com/rubenvitt/bluelight-hub/commit/d6972f35) (auth): Refactor AuthController zu CQRS Pattern
 
-- [`fc9bfa2c`](https://github.com/rubenvitt/bluelight-hub/commit/fc9bfa2c) (einsatz): Add ETB and POI counts display to dashboard components 
+- [`2475a42a`](https://github.com/rubenvitt/bluelight-hub/commit/2475a42a) (einsatz): Add GetStatusCountsQuery and Handler for Einsatz statistics
 
-- [`974f267f`](https://github.com/rubenvitt/bluelight-hub/commit/974f267f) (tests): Add Outbox Pattern Integration Tests (AC1.1-1.7) 
+- [`fc9bfa2c`](https://github.com/rubenvitt/bluelight-hub/commit/fc9bfa2c) (einsatz): Add ETB and POI counts display to dashboard components
 
-- [`7d6b8c62`](https://github.com/rubenvitt/bluelight-hub/commit/7d6b8c62) (application): Add TransactionalCommandHandler for Outbox Pattern 
+- [`974f267f`](https://github.com/rubenvitt/bluelight-hub/commit/974f267f) (tests): Add Outbox Pattern Integration Tests (AC1.1-1.7)
 
-- [`ca2968b3`](https://github.com/rubenvitt/bluelight-hub/commit/ca2968b3) (infrastructure): Add Prisma Error Mapper Service 
+- [`7d6b8c62`](https://github.com/rubenvitt/bluelight-hub/commit/7d6b8c62) (application): Add TransactionalCommandHandler for Outbox Pattern
 
-- [`e05db15b`](https://github.com/rubenvitt/bluelight-hub/commit/e05db15b) (exception): Add DomainExceptionFilter for HTTP mapping 
+- [`ca2968b3`](https://github.com/rubenvitt/bluelight-hub/commit/ca2968b3) (infrastructure): Add Prisma Error Mapper Service
 
-- [`b7320ced`](https://github.com/rubenvitt/bluelight-hub/commit/b7320ced) (einsatz): Add findEligibleForArchival method to IEinsatzRepository 
+- [`e05db15b`](https://github.com/rubenvitt/bluelight-hub/commit/e05db15b) (exception): Add DomainExceptionFilter for HTTP mapping
 
-- [`622a008a`](https://github.com/rubenvitt/bluelight-hub/commit/622a008a) (cli): Add CLI command for bulk archival of old Einsätze 
+- [`b7320ced`](https://github.com/rubenvitt/bluelight-hub/commit/b7320ced) (einsatz): Add findEligibleForArchival method to IEinsatzRepository
 
-- [`3b844380`](https://github.com/rubenvitt/bluelight-hub/commit/3b844380) (auth): Migrate to TanStack-Native Feature Architecture 
+- [`622a008a`](https://github.com/rubenvitt/bluelight-hub/commit/622a008a) (cli): Add CLI command for bulk archival of old Einsätze
 
-- [`eb53f412`](https://github.com/rubenvitt/bluelight-hub/commit/eb53f412) (einsatz): Add includeArchived filter and fix archival policy 
+- [`3b844380`](https://github.com/rubenvitt/bluelight-hub/commit/3b844380) (auth): Migrate to TanStack-Native Feature Architecture
+
+- [`eb53f412`](https://github.com/rubenvitt/bluelight-hub/commit/eb53f412) (einsatz): Add includeArchived filter and fix archival policy
 
 ## 🐛 Fehlerbehebungen
+
 Diese Probleme wurden behoben:
-- [`2f281e7e`](https://github.com/rubenvitt/bluelight-hub/commit/2f281e7e) (backend): Fix review findings for Story 1-1 domain layer setup 
 
-- [`6951a95e`](https://github.com/rubenvitt/bluelight-hub/commit/6951a95e) (lagekarte): Fix integration tests by using valid POI categories 
+- [`2f281e7e`](https://github.com/rubenvitt/bluelight-hub/commit/2f281e7e) (backend): Fix review findings for Story 1-1 domain layer setup
 
-- [`b59d49c8`](https://github.com/rubenvitt/bluelight-hub/commit/b59d49c8) (test): Fix PrismaLagekarteMapper test API usage 
+- [`6951a95e`](https://github.com/rubenvitt/bluelight-hub/commit/6951a95e) (lagekarte): Fix integration tests by using valid POI categories
 
-- [`24288cca`](https://github.com/rubenvitt/bluelight-hub/commit/24288cca) (lagekarte): Fix AC3 category filter &amp; AC4 enums 
+- [`b59d49c8`](https://github.com/rubenvitt/bluelight-hub/commit/b59d49c8) (test): Fix PrismaLagekarteMapper test API usage
 
-- [`a68ce70d`](https://github.com/rubenvitt/bluelight-hub/commit/a68ce70d) (events): Fix EventEmitter2 DI injection in EventEmitterPublisher 
+- [`24288cca`](https://github.com/rubenvitt/bluelight-hub/commit/24288cca) (lagekarte): Fix AC3 category filter &amp; AC4 enums
 
-- [`0527fa19`](https://github.com/rubenvitt/bluelight-hub/commit/0527fa19) (etb): Add kategorie field to CQRS layer with proper DDD architecture 
+- [`a68ce70d`](https://github.com/rubenvitt/bluelight-hub/commit/a68ce70d) (events): Fix EventEmitter2 DI injection in EventEmitterPublisher
 
-- [`d738d633`](https://github.com/rubenvitt/bluelight-hub/commit/d738d633) (etb): Fix missing etbId in updateEintrag mutation call 
+- [`0527fa19`](https://github.com/rubenvitt/bluelight-hub/commit/0527fa19) (etb): Add kategorie field to CQRS layer with proper DDD architecture
 
-- [`09d962ac`](https://github.com/rubenvitt/bluelight-hub/commit/09d962ac) (etb): Fix missing etbId in EditEtbEntryModal and EtbPage 
+- [`d738d633`](https://github.com/rubenvitt/bluelight-hub/commit/d738d633) (etb): Fix missing etbId in updateEintrag mutation call
 
-- [`efc3fb54`](https://github.com/rubenvitt/bluelight-hub/commit/efc3fb54) (etb): Fix UpdateEintragDto data structure - use newText only 
+- [`09d962ac`](https://github.com/rubenvitt/bluelight-hub/commit/09d962ac) (etb): Fix missing etbId in EditEtbEntryModal and EtbPage
 
-- [`55f8d73a`](https://github.com/rubenvitt/bluelight-hub/commit/55f8d73a) (domain): Fix UserId validation for Nanoid format &amp; DI import types 
+- [`efc3fb54`](https://github.com/rubenvitt/bluelight-hub/commit/efc3fb54) (etb): Fix UpdateEintragDto data structure - use newText only
 
-- [`84aa0ceb`](https://github.com/rubenvitt/bluelight-hub/commit/84aa0ceb) (etb): Behandle 409 Conflict in useCreateEtb Hook korrekt 
+- [`55f8d73a`](https://github.com/rubenvitt/bluelight-hub/commit/55f8d73a) (domain): Fix UserId validation for Nanoid format &amp; DI import types
 
-- [`4dea9e1e`](https://github.com/rubenvitt/bluelight-hub/commit/4dea9e1e) (etb): Remove IEventPublisher from tests (Outbox Pattern) 
+- [`84aa0ceb`](https://github.com/rubenvitt/bluelight-hub/commit/84aa0ceb) (etb): Behandle 409 Conflict in useCreateEtb Hook korrekt
 
-- [`465d0e61`](https://github.com/rubenvitt/bluelight-hub/commit/465d0e61) (lagekarte): Add IEventPublisher mocks to handler unit tests 
+- [`4dea9e1e`](https://github.com/rubenvitt/bluelight-hub/commit/4dea9e1e) (etb): Remove IEventPublisher from tests (Outbox Pattern)
 
-- [`d3e069f7`](https://github.com/rubenvitt/bluelight-hub/commit/d3e069f7) (tests): Fix UserId and EtbAutoCreation unit tests for CUID2 migration 
+- [`465d0e61`](https://github.com/rubenvitt/bluelight-hub/commit/465d0e61) (lagekarte): Add IEventPublisher mocks to handler unit tests
 
-- [`c1600fd9`](https://github.com/rubenvitt/bluelight-hub/commit/c1600fd9) (lagekarte): Remove automatic ETB creation from export handler 
+- [`d3e069f7`](https://github.com/rubenvitt/bluelight-hub/commit/d3e069f7) (tests): Fix UserId and EtbAutoCreation unit tests for CUID2 migration
 
-- [`780da73e`](https://github.com/rubenvitt/bluelight-hub/commit/780da73e) (lagekarte): Add 404 handling to useLagekarte hook 
+- [`c1600fd9`](https://github.com/rubenvitt/bluelight-hub/commit/c1600fd9) (lagekarte): Remove automatic ETB creation from export handler
 
-- [`732e5b83`](https://github.com/rubenvitt/bluelight-hub/commit/732e5b83) (error-handler): Suppress 404 toast globally 
+- [`780da73e`](https://github.com/rubenvitt/bluelight-hub/commit/780da73e) (lagekarte): Add 404 handling to useLagekarte hook
 
-- [`48b3c43c`](https://github.com/rubenvitt/bluelight-hub/commit/48b3c43c) (einsatz): Fix DI type imports in all handlers 
+- [`732e5b83`](https://github.com/rubenvitt/bluelight-hub/commit/732e5b83) (error-handler): Suppress 404 toast globally
 
-- [`46c61d0b`](https://github.com/rubenvitt/bluelight-hub/commit/46c61d0b) (auth): Fix logout endpoint - extract JWT from cookie instead of header 
+- [`48b3c43c`](https://github.com/rubenvitt/bluelight-hub/commit/48b3c43c) (einsatz): Fix DI type imports in all handlers
 
-- [`a37dd9a7`](https://github.com/rubenvitt/bluelight-hub/commit/a37dd9a7) (einsatz): Fix useActiveEinsaetzeWithCounts response parsing 
+- [`46c61d0b`](https://github.com/rubenvitt/bluelight-hub/commit/46c61d0b) (auth): Fix logout endpoint - extract JWT from cookie instead of header
 
-- [`e217049a`](https://github.com/rubenvitt/bluelight-hub/commit/e217049a) (api): Fix active-with-counts response mismatch causing console errors 
+- [`a37dd9a7`](https://github.com/rubenvitt/bluelight-hub/commit/a37dd9a7) (einsatz): Fix useActiveEinsaetzeWithCounts response parsing
 
-- [`e858595c`](https://github.com/rubenvitt/bluelight-hub/commit/e858595c) (tests): Fix Jest coverage configuration and outbox test schema 
+- [`e217049a`](https://github.com/rubenvitt/bluelight-hub/commit/e217049a) (api): Fix active-with-counts response mismatch causing console errors
 
-- [`8ab46c75`](https://github.com/rubenvitt/bluelight-hub/commit/8ab46c75) (einsatz): Fix E2E tests - App-Konfiguration und URL-Pfade korrigiert 
+- [`e858595c`](https://github.com/rubenvitt/bluelight-hub/commit/e858595c) (tests): Fix Jest coverage configuration and outbox test schema
 
-- [`81a83fb8`](https://github.com/rubenvitt/bluelight-hub/commit/81a83fb8) (backend): Fix DI type imports &amp; add missing Einsatz endpoints 
+- [`8ab46c75`](https://github.com/rubenvitt/bluelight-hub/commit/8ab46c75) (einsatz): Fix E2E tests - App-Konfiguration und URL-Pfade korrigiert
 
-- [`36b6bd03`](https://github.com/rubenvitt/bluelight-hub/commit/36b6bd03) (backend): Add biome-ignore comments for DI imports 
+- [`81a83fb8`](https://github.com/rubenvitt/bluelight-hub/commit/81a83fb8) (backend): Fix DI type imports &amp; add missing Einsatz endpoints
 
-- [`cfbf8eae`](https://github.com/rubenvitt/bluelight-hub/commit/cfbf8eae) (outbox): Fix AC4.1 violation - remove eventEmitter from EinsatzService 
+- [`36b6bd03`](https://github.com/rubenvitt/bluelight-hub/commit/36b6bd03) (backend): Add biome-ignore comments for DI imports
 
-- [`eee59cfa`](https://github.com/rubenvitt/bluelight-hub/commit/eee59cfa) (backend): Fix import type DI errors for Injectable Classes 
+- [`cfbf8eae`](https://github.com/rubenvitt/bluelight-hub/commit/cfbf8eae) (outbox): Fix AC4.1 violation - remove eventEmitter from EinsatzService
 
-- [`4b3fac1a`](https://github.com/rubenvitt/bluelight-hub/commit/4b3fac1a) (handlers): Fix TypeScript error in ArchiveOldEinsaetzeHandler 
+- [`eee59cfa`](https://github.com/rubenvitt/bluelight-hub/commit/eee59cfa) (backend): Fix import type DI errors for Injectable Classes
 
-- [`cad7bba7`](https://github.com/rubenvitt/bluelight-hub/commit/cad7bba7) (di): Migrate IEinsatzRepository from string to Symbol DI token 
+- [`4b3fac1a`](https://github.com/rubenvitt/bluelight-hub/commit/4b3fac1a) (handlers): Fix TypeScript error in ArchiveOldEinsaetzeHandler
 
-- [`582a4004`](https://github.com/rubenvitt/bluelight-hub/commit/582a4004) (di): Fix DI error in GetTextbausteineHandler 
+- [`cad7bba7`](https://github.com/rubenvitt/bluelight-hub/commit/cad7bba7) (di): Migrate IEinsatzRepository from string to Symbol DI token
 
-- [`1298370f`](https://github.com/rubenvitt/bluelight-hub/commit/1298370f) (frontend): Fix remaining import path issues 
+- [`582a4004`](https://github.com/rubenvitt/bluelight-hub/commit/582a4004) (di): Fix DI error in GetTextbausteineHandler
 
-- [`71856d95`](https://github.com/rubenvitt/bluelight-hub/commit/71856d95) (frontend): Fix TanStack Form useStore API usage 
+- [`1298370f`](https://github.com/rubenvitt/bluelight-hub/commit/1298370f) (frontend): Fix remaining import path issues
 
-- [`f06a1ec2`](https://github.com/rubenvitt/bluelight-hub/commit/f06a1ec2) (frontend): Fix linter warnings in SingleEinsatzLayout 
+- [`71856d95`](https://github.com/rubenvitt/bluelight-hub/commit/71856d95) (frontend): Fix TanStack Form useStore API usage
 
-- [`6684f9bd`](https://github.com/rubenvitt/bluelight-hub/commit/6684f9bd) (frontend): Extract .data from wrapped API responses 
+- [`f06a1ec2`](https://github.com/rubenvitt/bluelight-hub/commit/f06a1ec2) (frontend): Fix linter warnings in SingleEinsatzLayout
 
-- [`48de8e20`](https://github.com/rubenvitt/bluelight-hub/commit/48de8e20) (frontend): Restore EtbPage to features/etb/ui/pages/ 
+- [`6684f9bd`](https://github.com/rubenvitt/bluelight-hub/commit/6684f9bd) (frontend): Extract .data from wrapped API responses
 
-- [`a430a70b`](https://github.com/rubenvitt/bluelight-hub/commit/a430a70b) (frontend): Fix import error in use-toolbar-positioning hook 
+- [`48de8e20`](https://github.com/rubenvitt/bluelight-hub/commit/48de8e20) (frontend): Restore EtbPage to features/etb/ui/pages/
 
-- [`f234e84c`](https://github.com/rubenvitt/bluelight-hub/commit/f234e84c) (infrastructure): Fix domain event clearing in repositories 
+- [`a430a70b`](https://github.com/rubenvitt/bluelight-hub/commit/a430a70b) (frontend): Fix import error in use-toolbar-positioning hook
 
-- [`3970b6ba`](https://github.com/rubenvitt/bluelight-hub/commit/3970b6ba) (ci): Fix DATABASE_URL propagation for integration tests 
+- [`f234e84c`](https://github.com/rubenvitt/bluelight-hub/commit/f234e84c) (infrastructure): Fix domain event clearing in repositories
 
-- [`654da3e0`](https://github.com/rubenvitt/bluelight-hub/commit/654da3e0) (backend): Fix complete-einsatz tests to use Result Pattern 
+- [`3970b6ba`](https://github.com/rubenvitt/bluelight-hub/commit/3970b6ba) (ci): Fix DATABASE_URL propagation for integration tests
 
-- [`76694c55`](https://github.com/rubenvitt/bluelight-hub/commit/76694c55) (tests): Migrate tests to Result Pattern and add database guards 
+- [`654da3e0`](https://github.com/rubenvitt/bluelight-hub/commit/654da3e0) (backend): Fix complete-einsatz tests to use Result Pattern
 
-- [`02579708`](https://github.com/rubenvitt/bluelight-hub/commit/02579708) (tests): Fix integration tests for Result Pattern migration 
+- [`76694c55`](https://github.com/rubenvitt/bluelight-hub/commit/76694c55) (tests): Migrate tests to Result Pattern and add database guards
 
-- [`4e84e51f`](https://github.com/rubenvitt/bluelight-hub/commit/4e84e51f) (tests): Fix ETB_REPOSITORY DI token in etb-auto-creation test 
+- [`02579708`](https://github.com/rubenvitt/bluelight-hub/commit/02579708) (tests): Fix integration tests for Result Pattern migration
 
-- [`ce788c28`](https://github.com/rubenvitt/bluelight-hub/commit/ce788c28) (tests): Fix outbox integration test architecture 
+- [`4e84e51f`](https://github.com/rubenvitt/bluelight-hub/commit/4e84e51f) (tests): Fix ETB_REPOSITORY DI token in etb-auto-creation test
 
-- [`d0b26d1f`](https://github.com/rubenvitt/bluelight-hub/commit/d0b26d1f) (tests): Fix integration test issues for CI 
+- [`ce788c28`](https://github.com/rubenvitt/bluelight-hub/commit/ce788c28) (tests): Fix outbox integration test architecture
 
-- [`eb85dc63`](https://github.com/rubenvitt/bluelight-hub/commit/eb85dc63) (tests): Fix remaining einsatz-controller.e2e.spec failures 
+- [`d0b26d1f`](https://github.com/rubenvitt/bluelight-hub/commit/d0b26d1f) (tests): Fix integration test issues for CI
 
-- [`17f396c2`](https://github.com/rubenvitt/bluelight-hub/commit/17f396c2) (einsatz): Return 404 for non-existent Einsatz in complete endpoint 
+- [`eb85dc63`](https://github.com/rubenvitt/bluelight-hub/commit/eb85dc63) (tests): Fix remaining einsatz-controller.e2e.spec failures
 
-- [`e2b1b950`](https://github.com/rubenvitt/bluelight-hub/commit/e2b1b950) (tests): Fix test assertions for handler and e2e tests 
+- [`17f396c2`](https://github.com/rubenvitt/bluelight-hub/commit/17f396c2) (einsatz): Return 404 for non-existent Einsatz in complete endpoint
+
+- [`e2b1b950`](https://github.com/rubenvitt/bluelight-hub/commit/e2b1b950) (tests): Fix test assertions for handler and e2e tests
 
 ## 🔒 Sicherheitsverbesserungen
+
 Sicherheitsrelevante Änderungen:
-- [`8611124b`](https://github.com/rubenvitt/bluelight-hub/commit/8611124b) (deps): Update glob and js-yaml to fix security vulnerabilities 
 
-- [`1f9eecfc`](https://github.com/rubenvitt/bluelight-hub/commit/1f9eecfc) (application): Sanitize error messages to prevent ID disclosure 
+- [`8611124b`](https://github.com/rubenvitt/bluelight-hub/commit/8611124b) (deps): Update glob and js-yaml to fix security vulnerabilities
 
-- [`803e8709`](https://github.com/rubenvitt/bluelight-hub/commit/803e8709) (lagekarte): Fix 3 MEDIUM security issues in Query Layer 
+- [`1f9eecfc`](https://github.com/rubenvitt/bluelight-hub/commit/1f9eecfc) (application): Sanitize error messages to prevent ID disclosure
 
-- [`a2ef4ad1`](https://github.com/rubenvitt/bluelight-hub/commit/a2ef4ad1) (lagekarte): Fix regex sanitization bypass vulnerability Replaced tag-matching regex /&lt;[^&gt;]*&gt;/g with single-character replacement /[&lt;&gt;]/g to prevent nested bypass attacks like &#x27;&lt;scr&lt;script&gt;ipt&gt;&#x27; as flagged by CodeQL. Refs: CWE-20, CWE-80, CWE-116 
+- [`803e8709`](https://github.com/rubenvitt/bluelight-hub/commit/803e8709) (lagekarte): Fix 3 MEDIUM security issues in Query Layer
+
+- [`a2ef4ad1`](https://github.com/rubenvitt/bluelight-hub/commit/a2ef4ad1) (lagekarte): Fix regex sanitization bypass vulnerability Replaced tag-matching regex /&lt;[^&gt;]\*&gt;/g with single-character replacement /[&lt;&gt;]/g to prevent nested bypass attacks like &#x27;&lt;scr&lt;script&gt;ipt&gt;&#x27; as flagged by CodeQL. Refs: CWE-20, CWE-80, CWE-116
 
 ## 🧹 Codebereinigungen
+
 Aufräumarbeiten und kleinere Verbesserungen:
-- [`473c4c2c`](https://github.com/rubenvitt/bluelight-hub/commit/473c4c2c) (cleanup): Remove old 3-Tier architecture services 
+
+- [`473c4c2c`](https://github.com/rubenvitt/bluelight-hub/commit/473c4c2c) (cleanup): Remove old 3-Tier architecture services
 
 ## ♻ Refactoring
+
 Struktur- oder Code-Verbesserungen:
-- [`f1d8c579`](https://github.com/rubenvitt/bluelight-hub/commit/f1d8c579) (lagekarte): Standardize Result.ok(undefined) pattern 
 
-- [`5c86cf60`](https://github.com/rubenvitt/bluelight-hub/commit/5c86cf60) (lagekarte): Refactor commands to use Result&lt;T&gt; factory pattern 
+- [`f1d8c579`](https://github.com/rubenvitt/bluelight-hub/commit/f1d8c579) (lagekarte): Standardize Result.ok(undefined) pattern
 
-- [`2d19a833`](https://github.com/rubenvitt/bluelight-hub/commit/2d19a833) (application): Extract coordinate conversion to shared helper 
+- [`5c86cf60`](https://github.com/rubenvitt/bluelight-hub/commit/5c86cf60) (lagekarte): Refactor commands to use Result&lt;T&gt; factory pattern
 
-- [`62ecf732`](https://github.com/rubenvitt/bluelight-hub/commit/62ecf732) (lagekarte): Replace non-null assertions with safe unwrapping 
+- [`2d19a833`](https://github.com/rubenvitt/bluelight-hub/commit/2d19a833) (application): Extract coordinate conversion to shared helper
 
-- [`0850f091`](https://github.com/rubenvitt/bluelight-hub/commit/0850f091) (lagekarte): Extract validation logic to shared validators 
+- [`62ecf732`](https://github.com/rubenvitt/bluelight-hub/commit/62ecf732) (lagekarte): Replace non-null assertions with safe unwrapping
 
-- [`dff63c6f`](https://github.com/rubenvitt/bluelight-hub/commit/dff63c6f) (lagekarte): Extract test helper code duplication 
+- [`0850f091`](https://github.com/rubenvitt/bluelight-hub/commit/0850f091) (lagekarte): Extract validation logic to shared validators
 
-- [`b9572469`](https://github.com/rubenvitt/bluelight-hub/commit/b9572469) (lagekarte): Refactor Controller to use CommandBus/QueryBus 
+- [`dff63c6f`](https://github.com/rubenvitt/bluelight-hub/commit/dff63c6f) (lagekarte): Extract test helper code duplication
 
-- [`70331677`](https://github.com/rubenvitt/bluelight-hub/commit/70331677) (lagekarte): Fix Response DTOs and add @HttpCode(204) 
+- [`b9572469`](https://github.com/rubenvitt/bluelight-hub/commit/b9572469) (lagekarte): Refactor Controller to use CommandBus/QueryBus
 
-- [`5a0e8b78`](https://github.com/rubenvitt/bluelight-hub/commit/5a0e8b78) (einsatz): Refactor string validation with centralized validators 
+- [`70331677`](https://github.com/rubenvitt/bluelight-hub/commit/70331677) (lagekarte): Fix Response DTOs and add @HttpCode(204)
 
-- [`54cc44ca`](https://github.com/rubenvitt/bluelight-hub/commit/54cc44ca) (etb): Refactor EtbCreatedEvent emission to Aggregate 
+- [`5a0e8b78`](https://github.com/rubenvitt/bluelight-hub/commit/5a0e8b78) (einsatz): Refactor string validation with centralized validators
 
-- [`1db0b2e0`](https://github.com/rubenvitt/bluelight-hub/commit/1db0b2e0) (etb): Handle 404 gracefully in useEtb hook 
+- [`54cc44ca`](https://github.com/rubenvitt/bluelight-hub/commit/54cc44ca) (etb): Refactor EtbCreatedEvent emission to Aggregate
 
-- [`a4e1fbfc`](https://github.com/rubenvitt/bluelight-hub/commit/a4e1fbfc) (einsatz): Refactor EinsatzController to CQRS pattern 
+- [`1db0b2e0`](https://github.com/rubenvitt/bluelight-hub/commit/1db0b2e0) (etb): Handle 404 gracefully in useEtb hook
 
-- [`8f60cdea`](https://github.com/rubenvitt/bluelight-hub/commit/8f60cdea) (frontend): Enhance useEinsatzDetails with retry &amp; error handling 
+- [`a4e1fbfc`](https://github.com/rubenvitt/bluelight-hub/commit/a4e1fbfc) (einsatz): Refactor EinsatzController to CQRS pattern
 
-- [`c55aa15b`](https://github.com/rubenvitt/bluelight-hub/commit/c55aa15b) (einsatz): Migrate CreateEinsatzHandler to Outbox Pattern 
+- [`8f60cdea`](https://github.com/rubenvitt/bluelight-hub/commit/8f60cdea) (frontend): Enhance useEinsatzDetails with retry &amp; error handling
 
-- [`b22d72aa`](https://github.com/rubenvitt/bluelight-hub/commit/b22d72aa) (einsatz): Migrate handlers to TransactionalCommandHandler 
+- [`c55aa15b`](https://github.com/rubenvitt/bluelight-hub/commit/c55aa15b) (einsatz): Migrate CreateEinsatzHandler to Outbox Pattern
 
-- [`040130f6`](https://github.com/rubenvitt/bluelight-hub/commit/040130f6) (repository): Remove duplicate PrismaEinsatzRepository implementation 
+- [`b22d72aa`](https://github.com/rubenvitt/bluelight-hub/commit/b22d72aa) (einsatz): Migrate handlers to TransactionalCommandHandler
 
-- [`2d6ad981`](https://github.com/rubenvitt/bluelight-hub/commit/2d6ad981) (einsatz): Remove redundant clearDomainEvents() from Command Handlers 
+- [`040130f6`](https://github.com/rubenvitt/bluelight-hub/commit/040130f6) (repository): Remove duplicate PrismaEinsatzRepository implementation
 
-- [`0e121774`](https://github.com/rubenvitt/bluelight-hub/commit/0e121774) (einsatz): Migrate UpdateEinsatzStatusHandler to domain exceptions 
+- [`2d6ad981`](https://github.com/rubenvitt/bluelight-hub/commit/2d6ad981) (einsatz): Remove redundant clearDomainEvents() from Command Handlers
 
-- [`0c537f43`](https://github.com/rubenvitt/bluelight-hub/commit/0c537f43) (backend): Delete old services and migrate controllers to CQRS 
+- [`0e121774`](https://github.com/rubenvitt/bluelight-hub/commit/0e121774) (einsatz): Migrate UpdateEinsatzStatusHandler to domain exceptions
 
-- [`8d9e0040`](https://github.com/rubenvitt/bluelight-hub/commit/8d9e0040) (einsatz): Migrate GetAllEinsaetzeQueryHandler to IEinsatzRepository 
+- [`0c537f43`](https://github.com/rubenvitt/bluelight-hub/commit/0c537f43) (backend): Delete old services and migrate controllers to CQRS
 
-- [`5a700fc0`](https://github.com/rubenvitt/bluelight-hub/commit/5a700fc0) (einsatz): Migrate old DTOs to Application Layer 
+- [`8d9e0040`](https://github.com/rubenvitt/bluelight-hub/commit/8d9e0040) (einsatz): Migrate GetAllEinsaetzeQueryHandler to IEinsatzRepository
 
-- [`9b7899c5`](https://github.com/rubenvitt/bluelight-hub/commit/9b7899c5) (lagekarte): Migrate PoiPlacementControl to CQRS POI categories 
+- [`5a700fc0`](https://github.com/rubenvitt/bluelight-hub/commit/5a700fc0) (einsatz): Migrate old DTOs to Application Layer
 
-- [`8b3b7ea0`](https://github.com/rubenvitt/bluelight-hub/commit/8b3b7ea0) (lagekarte): Remove legacy POI type mapping from usePoiForm 
+- [`9b7899c5`](https://github.com/rubenvitt/bluelight-hub/commit/9b7899c5) (lagekarte): Migrate PoiPlacementControl to CQRS POI categories
 
-- [`13368bd0`](https://github.com/rubenvitt/bluelight-hub/commit/13368bd0) (events): Introduce EVENT_NAMES constants for event names 
+- [`8b3b7ea0`](https://github.com/rubenvitt/bluelight-hub/commit/8b3b7ea0) (lagekarte): Remove legacy POI type mapping from usePoiForm
 
-- [`06797c40`](https://github.com/rubenvitt/bluelight-hub/commit/06797c40) (di): Migrate string-literal DI tokens to Symbol-based DI_TOKENS 
+- [`13368bd0`](https://github.com/rubenvitt/bluelight-hub/commit/13368bd0) (events): Introduce EVENT_NAMES constants for event names
 
-- [`ead9da56`](https://github.com/rubenvitt/bluelight-hub/commit/ead9da56) (application): Replace HTTP exceptions with Result pattern (AC3) 
+- [`06797c40`](https://github.com/rubenvitt/bluelight-hub/commit/06797c40) (di): Migrate string-literal DI tokens to Symbol-based DI_TOKENS
 
-- [`779af1b0`](https://github.com/rubenvitt/bluelight-hub/commit/779af1b0) (cleanup): Remove duplicate einsatz/events (use domain/events) 
+- [`ead9da56`](https://github.com/rubenvitt/bluelight-hub/commit/ead9da56) (application): Replace HTTP exceptions with Result pattern (AC3)
 
-- [`a93e652f`](https://github.com/rubenvitt/bluelight-hub/commit/a93e652f) (arch): Complete hexagonal architecture migration with Biome fixes 
+- [`779af1b0`](https://github.com/rubenvitt/bluelight-hub/commit/779af1b0) (cleanup): Remove duplicate einsatz/events (use domain/events)
 
-- [`58c6e298`](https://github.com/rubenvitt/bluelight-hub/commit/58c6e298) (lagekarte): Migrate to feature-based architecture 
+- [`a93e652f`](https://github.com/rubenvitt/bluelight-hub/commit/a93e652f) (arch): Complete hexagonal architecture migration with Biome fixes
 
-- [`0fd8b0aa`](https://github.com/rubenvitt/bluelight-hub/commit/0fd8b0aa) (frontend): Update imports to use @/shared/* paths 
+- [`58c6e298`](https://github.com/rubenvitt/bluelight-hub/commit/58c6e298) (lagekarte): Migrate to feature-based architecture
 
-- [`cd439eda`](https://github.com/rubenvitt/bluelight-hub/commit/cd439eda) (frontend): Migrate @atoms/ and @molecules/ aliases to full paths 
+- [`0fd8b0aa`](https://github.com/rubenvitt/bluelight-hub/commit/0fd8b0aa) (frontend): Update imports to use @/shared/\* paths
 
-- [`71264cb7`](https://github.com/rubenvitt/bluelight-hub/commit/71264cb7) (frontend): Remove empty legacy directory stores/persistence 
+- [`cd439eda`](https://github.com/rubenvitt/bluelight-hub/commit/cd439eda) (frontend): Migrate @atoms/ and @molecules/ aliases to full paths
 
-- [`a2c68a73`](https://github.com/rubenvitt/bluelight-hub/commit/a2c68a73) (frontend): Migrate guards to features/auth/guards/ 
+- [`71264cb7`](https://github.com/rubenvitt/bluelight-hub/commit/71264cb7) (frontend): Remove empty legacy directory stores/persistence
 
-- [`8e7d054b`](https://github.com/rubenvitt/bluelight-hub/commit/8e7d054b) (frontend): Migrate einsatz schemas to features/einsatz/schemas/ 
+- [`a2c68a73`](https://github.com/rubenvitt/bluelight-hub/commit/a2c68a73) (frontend): Migrate guards to features/auth/guards/
 
-- [`47594c2f`](https://github.com/rubenvitt/bluelight-hub/commit/47594c2f) (frontend): Remove useUsers duplicate, use features/auth 
+- [`8e7d054b`](https://github.com/rubenvitt/bluelight-hub/commit/8e7d054b) (frontend): Migrate einsatz schemas to features/einsatz/schemas/
 
-- [`b7e15fab`](https://github.com/rubenvitt/bluelight-hub/commit/b7e15fab) (frontend): Migrate lagekarte utils to features/lagekarte/ 
+- [`47594c2f`](https://github.com/rubenvitt/bluelight-hub/commit/47594c2f) (frontend): Remove useUsers duplicate, use features/auth
 
-- [`7dc7a3be`](https://github.com/rubenvitt/bluelight-hub/commit/7dc7a3be) (frontend): Migrate einsatz hooks to features/einsatz/ 
+- [`b7e15fab`](https://github.com/rubenvitt/bluelight-hub/commit/b7e15fab) (frontend): Migrate lagekarte utils to features/lagekarte/
 
-- [`28eef11e`](https://github.com/rubenvitt/bluelight-hub/commit/28eef11e) (frontend): Migrate queryKeys.ts to feature-specific query keys 
+- [`7dc7a3be`](https://github.com/rubenvitt/bluelight-hub/commit/7dc7a3be) (frontend): Migrate einsatz hooks to features/einsatz/
 
-- [`da451b21`](https://github.com/rubenvitt/bluelight-hub/commit/da451b21) (frontend): Consolidate utils/ into feature and shared directories 
+- [`28eef11e`](https://github.com/rubenvitt/bluelight-hub/commit/28eef11e) (frontend): Migrate queryKeys.ts to feature-specific query keys
 
-- [`e68492f4`](https://github.com/rubenvitt/bluelight-hub/commit/e68492f4) (frontend): Split lagekarte API hooks into separate files 
+- [`da451b21`](https://github.com/rubenvitt/bluelight-hub/commit/da451b21) (frontend): Consolidate utils/ into feature and shared directories
 
-- [`4d23e809`](https://github.com/rubenvitt/bluelight-hub/commit/4d23e809) (frontend): Migrate Einsatz UI components to features/einsatz/ui 
+- [`e68492f4`](https://github.com/rubenvitt/bluelight-hub/commit/e68492f4) (frontend): Split lagekarte API hooks into separate files
 
-- [`3fb89ab7`](https://github.com/rubenvitt/bluelight-hub/commit/3fb89ab7) (frontend): Migrate admin UI to features/admin/ui/ 
+- [`4d23e809`](https://github.com/rubenvitt/bluelight-hub/commit/4d23e809) (frontend): Migrate Einsatz UI components to features/einsatz/ui
 
-- [`a129b117`](https://github.com/rubenvitt/bluelight-hub/commit/a129b117) (frontend): Clean up legacy component directories and empty folders 
+- [`3fb89ab7`](https://github.com/rubenvitt/bluelight-hub/commit/3fb89ab7) (frontend): Migrate admin UI to features/admin/ui/
 
-- [`b88b9043`](https://github.com/rubenvitt/bluelight-hub/commit/b88b9043) (frontend): Consolidate shared UI components to shared/ui/ 
+- [`a129b117`](https://github.com/rubenvitt/bluelight-hub/commit/a129b117) (frontend): Clean up legacy component directories and empty folders
 
-- [`553c4cea`](https://github.com/rubenvitt/bluelight-hub/commit/553c4cea) (frontend): Move index.page to features, remove components/ 
+- [`b88b9043`](https://github.com/rubenvitt/bluelight-hub/commit/b88b9043) (frontend): Consolidate shared UI components to shared/ui/
 
-- [`8610c1c0`](https://github.com/rubenvitt/bluelight-hub/commit/8610c1c0) (frontend): Restructure shared/utils into cleaner modules 
+- [`553c4cea`](https://github.com/rubenvitt/bluelight-hub/commit/553c4cea) (frontend): Move index.page to features, remove components/
 
-- [`73cc6894`](https://github.com/rubenvitt/bluelight-hub/commit/73cc6894) (backend): Fix architecture violations - Domain/Application layers 
+- [`8610c1c0`](https://github.com/rubenvitt/bluelight-hub/commit/8610c1c0) (frontend): Restructure shared/utils into cleaner modules
+
+- [`73cc6894`](https://github.com/rubenvitt/bluelight-hub/commit/73cc6894) (backend): Fix architecture violations - Domain/Application layers
 
 ## 🔧 Tool Verbesserungen
+
 Verbesserungen an den Werkzeugen:
-- [`68117c55`](https://github.com/rubenvitt/bluelight-hub/commit/68117c55) (backend): Fix Jest test:domain script and Biome config 
 
-- [`5fc30694`](https://github.com/rubenvitt/bluelight-hub/commit/5fc30694) (frontend): Migrate ports to standard range (3091 Vite, 3090 API) 
+- [`68117c55`](https://github.com/rubenvitt/bluelight-hub/commit/68117c55) (backend): Fix Jest test:domain script and Biome config
 
-- [`0070d9bd`](https://github.com/rubenvitt/bluelight-hub/commit/0070d9bd) (infra): Migrate Database &amp; Prisma Studio ports to 30xx range 
+- [`5fc30694`](https://github.com/rubenvitt/bluelight-hub/commit/5fc30694) (frontend): Migrate ports to standard range (3091 Vite, 3090 API)
 
-- [`0526740d`](https://github.com/rubenvitt/bluelight-hub/commit/0526740d) (backend): Migrate backend port from 3000 to 3090 
+- [`0070d9bd`](https://github.com/rubenvitt/bluelight-hub/commit/0070d9bd) (infra): Migrate Database &amp; Prisma Studio ports to 30xx range
 
-- [`723db221`](https://github.com/rubenvitt/bluelight-hub/commit/723db221) (backend): Exclude example files from Jest coverage 
+- [`0526740d`](https://github.com/rubenvitt/bluelight-hub/commit/0526740d) (backend): Migrate backend port from 3000 to 3090
 
-- [`22366bb3`](https://github.com/rubenvitt/bluelight-hub/commit/22366bb3) (backend): Add Biome ignore comment for entity-id.ts static method 
+- [`723db221`](https://github.com/rubenvitt/bluelight-hub/commit/723db221) (backend): Exclude example files from Jest coverage
 
-- [`48543d8f`](https://github.com/rubenvitt/bluelight-hub/commit/48543d8f) (domain): Fix TypeScript compilation errors from code review 
+- [`22366bb3`](https://github.com/rubenvitt/bluelight-hub/commit/22366bb3) (backend): Add Biome ignore comment for entity-id.ts static method
 
-- [`86029ce4`](https://github.com/rubenvitt/bluelight-hub/commit/86029ce4) (lagekarte): Register LagekarteInfrastructureModule and fix DI 
+- [`48543d8f`](https://github.com/rubenvitt/bluelight-hub/commit/48543d8f) (domain): Fix TypeScript compilation errors from code review
 
-- [`039fdd3a`](https://github.com/rubenvitt/bluelight-hub/commit/039fdd3a) (di): Register ArchiveOldEinsaetzeHandler in EinsatzApplicationModule 
+- [`86029ce4`](https://github.com/rubenvitt/bluelight-hub/commit/86029ce4) (lagekarte): Register LagekarteInfrastructureModule and fix DI
 
-- [`488a14c7`](https://github.com/rubenvitt/bluelight-hub/commit/488a14c7) (git-hooks): Add circular dependency check to pre-commit 
+- [`039fdd3a`](https://github.com/rubenvitt/bluelight-hub/commit/039fdd3a) (di): Register ArchiveOldEinsaetzeHandler in EinsatzApplicationModule
 
-- [`a5f47166`](https://github.com/rubenvitt/bluelight-hub/commit/a5f47166) (ci): Add test:unit script for running tests without database 
+- [`488a14c7`](https://github.com/rubenvitt/bluelight-hub/commit/488a14c7) (git-hooks): Add circular dependency check to pre-commit
 
-- [`5b82934f`](https://github.com/rubenvitt/bluelight-hub/commit/5b82934f) (tests): Lower coverage threshold to 79% for CI stability 
+- [`a5f47166`](https://github.com/rubenvitt/bluelight-hub/commit/a5f47166) (ci): Add test:unit script for running tests without database
 
-- [`d24c180b`](https://github.com/rubenvitt/bluelight-hub/commit/d24c180b) (tests): Skip flaky performance consistency test on CI Shared runners have unpredictable performance characteristics (GC pauses, noisy neighbors, cold starts) that cause false positives in the max/avg ratio assertion. Test runs locally only. 
+- [`5b82934f`](https://github.com/rubenvitt/bluelight-hub/commit/5b82934f) (tests): Lower coverage threshold to 79% for CI stability
 
-- [`7c21dea6`](https://github.com/rubenvitt/bluelight-hub/commit/7c21dea6) (ci): Remove unused Claude workflow configurations 
+- [`d24c180b`](https://github.com/rubenvitt/bluelight-hub/commit/d24c180b) (tests): Skip flaky performance consistency test on CI Shared runners have unpredictable performance characteristics (GC pauses, noisy neighbors, cold starts) that cause false positives in the max/avg ratio assertion. Test runs locally only.
 
-- [`547accca`](https://github.com/rubenvitt/bluelight-hub/commit/547accca) (ci): Use native ARM64 runners for multi-arch Docker builds 
+- [`7c21dea6`](https://github.com/rubenvitt/bluelight-hub/commit/7c21dea6) (ci): Remove unused Claude workflow configurations
 
-- [`36852174`](https://github.com/rubenvitt/bluelight-hub/commit/36852174) (ci): Fix release workflow with native ARM64 runners 
+- [`547accca`](https://github.com/rubenvitt/bluelight-hub/commit/547accca) (ci): Use native ARM64 runners for multi-arch Docker builds
 
-- [`f2d20161`](https://github.com/rubenvitt/bluelight-hub/commit/f2d20161) (ci): Always generate Prisma client in build action 
+- [`36852174`](https://github.com/rubenvitt/bluelight-hub/commit/36852174) (ci): Fix release workflow with native ARM64 runners
 
-
+- [`f2d20161`](https://github.com/rubenvitt/bluelight-hub/commit/f2d20161) (ci): Always generate Prisma client in build action
 
 # [1.0.0-alpha.35](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.34...v1.0.0-alpha.35) (2025-12-09)
 
 ## Version [v1.0.0-alpha.34](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.33...v1.0.0-alpha.34) – Veröffentlicht am 2025-11-11
 
 ## ✨ Neue Funktionen
+
 Die folgenden neuen Features wurden hinzugefügt:
 
 ## 🔧 Tool Verbesserungen
+
 Verbesserungen an den Werkzeugen:
-- [`c8bfbde`](https://github.com/rubenvitt/bluelight-hub/commit/c8bfbde) (config): Erweitere CodeRabbit ignore patterns für AI-Verzeichnisse 
 
-
+- [`c8bfbde`](https://github.com/rubenvitt/bluelight-hub/commit/c8bfbde) (config): Erweitere CodeRabbit ignore patterns für AI-Verzeichnisse
 
 # [1.0.0-alpha.34](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.33...v1.0.0-alpha.34) (2025-11-11)
 
 ## Version [v1.0.0-alpha.33](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.32...v1.0.0-alpha.33) – Veröffentlicht am 2025-11-10
 
 ## ✨ Neue Funktionen
+
 Die folgenden neuen Features wurden hinzugefügt:
-- [`6a0363d`](https://github.com/rubenvitt/bluelight-hub/commit/6a0363d) (shared): Generate complete API client from OpenAPI spec 
 
-
+- [`6a0363d`](https://github.com/rubenvitt/bluelight-hub/commit/6a0363d) (shared): Generate complete API client from OpenAPI spec
 
 # [1.0.0-alpha.33](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.32...v1.0.0-alpha.33) (2025-11-10)
 
 ## Version [v1.0.0-alpha.32](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.31...v1.0.0-alpha.32) – Veröffentlicht am 2025-11-09
 
 ## ✨ Neue Funktionen
+
 Die folgenden neuen Features wurden hinzugefügt:
-- [`b520904`](https://github.com/rubenvitt/bluelight-hub/commit/b520904) (etb): Implement ETB entry form with user management integration 
 
-- [`9adb53c`](https://github.com/rubenvitt/bluelight-hub/commit/9adb53c) (etb): Add history tracking and enhanced table view with auto-creation 
+- [`b520904`](https://github.com/rubenvitt/bluelight-hub/commit/b520904) (etb): Implement ETB entry form with user management integration
 
-- [`572fa30`](https://github.com/rubenvitt/bluelight-hub/commit/572fa30) (etb): Add deleter username display and rate limiting 
+- [`9adb53c`](https://github.com/rubenvitt/bluelight-hub/commit/9adb53c) (etb): Add history tracking and enhanced table view with auto-creation
 
-- [`a41872e`](https://github.com/rubenvitt/bluelight-hub/commit/a41872e) (auth): Password Strength Indicator für Admin-Setup 
-(Zugehörige Issues: [`#198`](https://github.com/rubenvitt/bluelight-hub/issues/))
+- [`572fa30`](https://github.com/rubenvitt/bluelight-hub/commit/572fa30) (etb): Add deleter username display and rate limiting
 
-- [`44bb79e`](https://github.com/rubenvitt/bluelight-hub/commit/44bb79e) (frontend): Integriere zxcvbn für Passwort-Stärke-Bewertung 
-(Zugehörige Issues: [`#230`](https://github.com/rubenvitt/bluelight-hub/issues/))
+- [`a41872e`](https://github.com/rubenvitt/bluelight-hub/commit/a41872e) (auth): Password Strength Indicator für Admin-Setup
+  (Zugehörige Issues: [`#198`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
-- [`b2e206e`](https://github.com/rubenvitt/bluelight-hub/commit/b2e206e) (user-management): Add soft delete and manual lock functionality 
+- [`44bb79e`](https://github.com/rubenvitt/bluelight-hub/commit/44bb79e) (frontend): Integriere zxcvbn für Passwort-Stärke-Bewertung
+  (Zugehörige Issues: [`#230`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
-- [`50fce92`](https://github.com/rubenvitt/bluelight-hub/commit/50fce92) (frontend): Implement Lagekarte view with OSM tiles integration 
+- [`b2e206e`](https://github.com/rubenvitt/bluelight-hub/commit/b2e206e) (user-management): Add soft delete and manual lock functionality
 
-- [`8cbece9`](https://github.com/rubenvitt/bluelight-hub/commit/8cbece9) (backend): Implement Lagekarte POI-Management System 
+- [`50fce92`](https://github.com/rubenvitt/bluelight-hub/commit/50fce92) (frontend): Implement Lagekarte view with OSM tiles integration
 
-- [`64eeae5`](https://github.com/rubenvitt/bluelight-hub/commit/64eeae5) (backend): Implement Lagekarte controllers and integration tests 
+- [`8cbece9`](https://github.com/rubenvitt/bluelight-hub/commit/8cbece9) (backend): Implement Lagekarte POI-Management System
 
-- [`fee248b`](https://github.com/rubenvitt/bluelight-hub/commit/fee248b) (lagekarte): Implement PoiLayer component for POI markers 
+- [`64eeae5`](https://github.com/rubenvitt/bluelight-hub/commit/64eeae5) (backend): Implement Lagekarte controllers and integration tests
 
-- [`04d8dfb`](https://github.com/rubenvitt/bluelight-hub/commit/04d8dfb) (lagekarte): Implement multi-POI marker system for Lagekarte 
+- [`fee248b`](https://github.com/rubenvitt/bluelight-hub/commit/fee248b) (lagekarte): Implement PoiLayer component for POI markers
 
-- [`877226b`](https://github.com/rubenvitt/bluelight-hub/commit/877226b) (lagekarte): Implement POI placement system 
+- [`04d8dfb`](https://github.com/rubenvitt/bluelight-hub/commit/04d8dfb) (lagekarte): Implement multi-POI marker system for Lagekarte
 
-- [`c1c06c8`](https://github.com/rubenvitt/bluelight-hub/commit/c1c06c8) (lagekarte): Implement drawing tools for hazard/restricted areas 
+- [`877226b`](https://github.com/rubenvitt/bluelight-hub/commit/877226b) (lagekarte): Implement POI placement system
 
-- [`7bb8c63`](https://github.com/rubenvitt/bluelight-hub/commit/7bb8c63) (lagekarte): Implement text tool in drawing toolbar 
+- [`c1c06c8`](https://github.com/rubenvitt/bluelight-hub/commit/c1c06c8) (lagekarte): Implement drawing tools for hazard/restricted areas
 
-- [`6575a95`](https://github.com/rubenvitt/bluelight-hub/commit/6575a95) (lagekarte): Flexbox-Layout für Map-Werkzeuge implementiert 
+- [`7bb8c63`](https://github.com/rubenvitt/bluelight-hub/commit/7bb8c63) (lagekarte): Implement text tool in drawing toolbar
 
-- [`dc01200`](https://github.com/rubenvitt/bluelight-hub/commit/dc01200) (lagekarte): Add text content change handler for drawing markers 
+- [`6575a95`](https://github.com/rubenvitt/bluelight-hub/commit/6575a95) (lagekarte): Flexbox-Layout für Map-Werkzeuge implementiert
 
-- [`fce2f23`](https://github.com/rubenvitt/bluelight-hub/commit/fce2f23) (lagekarte): Install leaflet.markercluster library with CSS imports 
+- [`dc01200`](https://github.com/rubenvitt/bluelight-hub/commit/dc01200) (lagekarte): Add text content change handler for drawing markers
 
-- [`036e267`](https://github.com/rubenvitt/bluelight-hub/commit/036e267) (lagekarte): Add ClusteredPoiLayer with MarkerClusterGroup 
+- [`fce2f23`](https://github.com/rubenvitt/bluelight-hub/commit/fce2f23) (lagekarte): Install leaflet.markercluster library with CSS imports
 
-- [`742583e`](https://github.com/rubenvitt/bluelight-hub/commit/742583e) (lagekarte): Configure MarkerClusterGroup clustering options 
+- [`036e267`](https://github.com/rubenvitt/bluelight-hub/commit/036e267) (lagekarte): Add ClusteredPoiLayer with MarkerClusterGroup
 
-- [`8455a61`](https://github.com/rubenvitt/bluelight-hub/commit/8455a61) (lagekarte): Add custom Tailwind cluster icons with dynamic sizing 
+- [`742583e`](https://github.com/rubenvitt/bluelight-hub/commit/742583e) (lagekarte): Configure MarkerClusterGroup clustering options
 
-- [`8bf1c21`](https://github.com/rubenvitt/bluelight-hub/commit/8bf1c21) (lagekarte): Integrate ClusteredPoiLayer in LagekarteView 
+- [`8455a61`](https://github.com/rubenvitt/bluelight-hub/commit/8455a61) (lagekarte): Add custom Tailwind cluster icons with dynamic sizing
 
-- [`f85fdb3`](https://github.com/rubenvitt/bluelight-hub/commit/f85fdb3) (lagekarte): Add debounced auto-save for Lagekarte state 
+- [`8bf1c21`](https://github.com/rubenvitt/bluelight-hub/commit/8bf1c21) (lagekarte): Integrate ClusteredPoiLayer in LagekarteView
 
-- [`46f16ac`](https://github.com/rubenvitt/bluelight-hub/commit/46f16ac) (lagekarte): Enable offline-first mode for Lagekarte queries/mutations 
+- [`f85fdb3`](https://github.com/rubenvitt/bluelight-hub/commit/f85fdb3) (lagekarte): Add debounced auto-save for Lagekarte state
 
-- [`8a682cd`](https://github.com/rubenvitt/bluelight-hub/commit/8a682cd) (lagekarte): Add Last-Write-Wins conflict handling warning 
+- [`46f16ac`](https://github.com/rubenvitt/bluelight-hub/commit/46f16ac) (lagekarte): Enable offline-first mode for Lagekarte queries/mutations
 
-- [`e4414ae`](https://github.com/rubenvitt/bluelight-hub/commit/e4414ae) (lagekarte): Add Offline-Download toolbar button 
+- [`8a682cd`](https://github.com/rubenvitt/bluelight-hub/commit/8a682cd) (lagekarte): Add Last-Write-Wins conflict handling warning
 
-- [`16e5ecc`](https://github.com/rubenvitt/bluelight-hub/commit/16e5ecc) (lagekarte): Add Offline-Region-Modal with zoom controls 
+- [`e4414ae`](https://github.com/rubenvitt/bluelight-hub/commit/e4414ae) (lagekarte): Add Offline-Download toolbar button
 
-- [`126f06e`](https://github.com/rubenvitt/bluelight-hub/commit/126f06e) (lagekarte): Implement Bounding-Box-Selection for Offline-Download 
+- [`16e5ecc`](https://github.com/rubenvitt/bluelight-hub/commit/16e5ecc) (lagekarte): Add Offline-Region-Modal with zoom controls
 
-- [`7cf39e3`](https://github.com/rubenvitt/bluelight-hub/commit/7cf39e3) (offline-download): Implement tile count calculation 
+- [`126f06e`](https://github.com/rubenvitt/bluelight-hub/commit/126f06e) (lagekarte): Implement Bounding-Box-Selection for Offline-Download
 
-- [`76c29aa`](https://github.com/rubenvitt/bluelight-hub/commit/76c29aa) (offline-download): Add storage quota check 
+- [`7cf39e3`](https://github.com/rubenvitt/bluelight-hub/commit/7cf39e3) (offline-download): Implement tile count calculation
 
-- [`5b04b91`](https://github.com/rubenvitt/bluelight-hub/commit/5b04b91) (offline-download): Implement tile download utility 
+- [`76c29aa`](https://github.com/rubenvitt/bluelight-hub/commit/76c29aa) (offline-download): Add storage quota check
 
-- [`22ea69e`](https://github.com/rubenvitt/bluelight-hub/commit/22ea69e) (offline-download): Integrate tile download with progress bar 
+- [`5b04b91`](https://github.com/rubenvitt/bluelight-hub/commit/5b04b91) (offline-download): Implement tile download utility
 
-- [`b14402f`](https://github.com/rubenvitt/bluelight-hub/commit/b14402f) (offline-lagekarte): Complete Tasks 9-12 for offline tile functionality 
+- [`22ea69e`](https://github.com/rubenvitt/bluelight-hub/commit/22ea69e) (offline-download): Integrate tile download with progress bar
 
-- [`46cd7ca`](https://github.com/rubenvitt/bluelight-hub/commit/46cd7ca) (lagekarte): Add ETB screenshot export feature 
+- [`b14402f`](https://github.com/rubenvitt/bluelight-hub/commit/b14402f) (offline-lagekarte): Complete Tasks 9-12 for offline tile functionality
 
-- [`c461bf6`](https://github.com/rubenvitt/bluelight-hub/commit/c461bf6) (backend): Add ENV-based uploads path configuration 
+- [`46cd7ca`](https://github.com/rubenvitt/bluelight-hub/commit/46cd7ca) (lagekarte): Add ETB screenshot export feature
 
-- [`59652e1`](https://github.com/rubenvitt/bluelight-hub/commit/59652e1) (frontend): Add screenshot preview to ETB entry details 
+- [`c461bf6`](https://github.com/rubenvitt/bluelight-hub/commit/c461bf6) (backend): Add ENV-based uploads path configuration
 
-- [`113c6bd`](https://github.com/rubenvitt/bluelight-hub/commit/113c6bd) (feature): Add kategorisierungsdokumentation to ETB system 
+- [`59652e1`](https://github.com/rubenvitt/bluelight-hub/commit/59652e1) (frontend): Add screenshot preview to ETB entry details
 
-- [`3d29a13`](https://github.com/rubenvitt/bluelight-hub/commit/3d29a13) (etb): Add fullscreen mode to ETB view 
+- [`113c6bd`](https://github.com/rubenvitt/bluelight-hub/commit/113c6bd) (feature): Add kategorisierungsdokumentation to ETB system
 
-- [`073eddd`](https://github.com/rubenvitt/bluelight-hub/commit/073eddd) (tauri): Add automatic window orientation switching 
+- [`3d29a13`](https://github.com/rubenvitt/bluelight-hub/commit/3d29a13) (etb): Add fullscreen mode to ETB view
 
-- [`570e77f`](https://github.com/rubenvitt/bluelight-hub/commit/570e77f) (lagekarte): Add Shape-Selection with Click-to-Select 
-(Zugehörige Issues: [`#3`](https://github.com/rubenvitt/bluelight-hub/issues/))
+- [`073eddd`](https://github.com/rubenvitt/bluelight-hub/commit/073eddd) (tauri): Add automatic window orientation switching
 
-- [`62c8b05`](https://github.com/rubenvitt/bluelight-hub/commit/62c8b05) (lagekarte): Add Context-Menu and Keyboard Delete for Shapes 
+- [`570e77f`](https://github.com/rubenvitt/bluelight-hub/commit/570e77f) (lagekarte): Add Shape-Selection with Click-to-Select
+  (Zugehörige Issues: [`#3`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
-- [`9645805`](https://github.com/rubenvitt/bluelight-hub/commit/9645805) (lagekarte): Add Property Panel for Shape Editing 
+- [`62c8b05`](https://github.com/rubenvitt/bluelight-hub/commit/62c8b05) (lagekarte): Add Context-Menu and Keyboard Delete for Shapes
 
-- [`58e5605`](https://github.com/rubenvitt/bluelight-hub/commit/58e5605) (lagekarte): Add MGRS coordinate conversion utilities 
+- [`9645805`](https://github.com/rubenvitt/bluelight-hub/commit/9645805) (lagekarte): Add Property Panel for Shape Editing
 
-- [`ccaa677`](https://github.com/rubenvitt/bluelight-hub/commit/ccaa677) (lagekarte): Add MGRS coordinate support for POIs 
+- [`58e5605`](https://github.com/rubenvitt/bluelight-hub/commit/58e5605) (lagekarte): Add MGRS coordinate conversion utilities
+
+- [`ccaa677`](https://github.com/rubenvitt/bluelight-hub/commit/ccaa677) (lagekarte): Add MGRS coordinate support for POIs
 
 ## 🐛 Fehlerbehebungen
+
 Diese Probleme wurden behoben:
-- [`bef332c`](https://github.com/rubenvitt/bluelight-hub/commit/bef332c) (etb): Fix incorrect query invalidation when deleting ETB entries 
 
-- [`53ca2b1`](https://github.com/rubenvitt/bluelight-hub/commit/53ca2b1) (shared): Fix CI build by compiling TypeScript in build:ci 
+- [`bef332c`](https://github.com/rubenvitt/bluelight-hub/commit/bef332c) (etb): Fix incorrect query invalidation when deleting ETB entries
 
-- [`5f4665b`](https://github.com/rubenvitt/bluelight-hub/commit/5f4665b) (backend): Apply QA-review fixes for Lagekarte POI system 
+- [`53ca2b1`](https://github.com/rubenvitt/bluelight-hub/commit/53ca2b1) (shared): Fix CI build by compiling TypeScript in build:ci
 
-- [`0e5004e`](https://github.com/rubenvitt/bluelight-hub/commit/0e5004e) (lagekarte): Fix POI-Endpoint lazy creation 
+- [`5f4665b`](https://github.com/rubenvitt/bluelight-hub/commit/5f4665b) (backend): Apply QA-review fixes for Lagekarte POI system
 
-- [`9d7613a`](https://github.com/rubenvitt/bluelight-hub/commit/9d7613a) (lagekarte): Fix z-index hierarchy for dialogs 
+- [`0e5004e`](https://github.com/rubenvitt/bluelight-hub/commit/0e5004e) (lagekarte): Fix POI-Endpoint lazy creation
 
-- [`086bd65`](https://github.com/rubenvitt/bluelight-hub/commit/086bd65) (lagekarte): Fix Drawing-Tools kritische Fehler 
+- [`9d7613a`](https://github.com/rubenvitt/bluelight-hub/commit/9d7613a) (lagekarte): Fix z-index hierarchy for dialogs
 
-- [`5a0c0f2`](https://github.com/rubenvitt/bluelight-hub/commit/5a0c0f2) (lagekarte): Fix Edit-Mode &amp; Label-Modal 
+- [`086bd65`](https://github.com/rubenvitt/bluelight-hub/commit/086bd65) (lagekarte): Fix Drawing-Tools kritische Fehler
 
-- [`4a4e339`](https://github.com/rubenvitt/bluelight-hub/commit/4a4e339) (lagekarte): Fix TanStack Pacer API usage in auto-save hook 
+- [`5a0c0f2`](https://github.com/rubenvitt/bluelight-hub/commit/5a0c0f2) (lagekarte): Fix Edit-Mode &amp; Label-Modal
 
-- [`fbc808c`](https://github.com/rubenvitt/bluelight-hub/commit/fbc808c) (offline-lagekarte): Fix leaflet.offline event listeners 
+- [`4a4e339`](https://github.com/rubenvitt/bluelight-hub/commit/4a4e339) (lagekarte): Fix TanStack Pacer API usage in auto-save hook
 
-- [`98990f1`](https://github.com/rubenvitt/bluelight-hub/commit/98990f1) (offline-lagekarte): Fix map reference for tile downloads 
+- [`fbc808c`](https://github.com/rubenvitt/bluelight-hub/commit/fbc808c) (offline-lagekarte): Fix leaflet.offline event listeners
 
-- [`502ee6d`](https://github.com/rubenvitt/bluelight-hub/commit/502ee6d) (offline-lagekarte): Fix event listener warnings 
+- [`98990f1`](https://github.com/rubenvitt/bluelight-hub/commit/98990f1) (offline-lagekarte): Fix map reference for tile downloads
 
-- [`c452ed9`](https://github.com/rubenvitt/bluelight-hub/commit/c452ed9) (offline-lagekarte): Add toast notifications for tile downloads 
+- [`502ee6d`](https://github.com/rubenvitt/bluelight-hub/commit/502ee6d) (offline-lagekarte): Fix event listener warnings
 
-- [`dfdea6d`](https://github.com/rubenvitt/bluelight-hub/commit/dfdea6d) (frontend): Fix enum type conversion and remove UI clutter 
+- [`c452ed9`](https://github.com/rubenvitt/bluelight-hub/commit/c452ed9) (offline-lagekarte): Add toast notifications for tile downloads
 
-- [`dc40f9f`](https://github.com/rubenvitt/bluelight-hub/commit/dc40f9f) (backend): Add multer dependencies for file upload 
+- [`dfdea6d`](https://github.com/rubenvitt/bluelight-hub/commit/dfdea6d) (frontend): Fix enum type conversion and remove UI clutter
 
-- [`50694fa`](https://github.com/rubenvitt/bluelight-hub/commit/50694fa) (backend): Fix TypeScript error in screenshot upload 
+- [`dc40f9f`](https://github.com/rubenvitt/bluelight-hub/commit/dc40f9f) (backend): Add multer dependencies for file upload
 
-- [`9d46a1a`](https://github.com/rubenvitt/bluelight-hub/commit/9d46a1a) (lagekarte): Fix ETB-Screenshot-Export Bugs 
+- [`50694fa`](https://github.com/rubenvitt/bluelight-hub/commit/50694fa) (backend): Fix TypeScript error in screenshot upload
 
-- [`df17a43`](https://github.com/rubenvitt/bluelight-hub/commit/df17a43) (backend): Fix uploads directory path for monorepo 
+- [`9d46a1a`](https://github.com/rubenvitt/bluelight-hub/commit/9d46a1a) (lagekarte): Fix ETB-Screenshot-Export Bugs
 
-- [`f118ebe`](https://github.com/rubenvitt/bluelight-hub/commit/f118ebe) (backend): Increase payload size limit for screenshot uploads 
+- [`df17a43`](https://github.com/rubenvitt/bluelight-hub/commit/df17a43) (backend): Fix uploads directory path for monorepo
 
-- [`3071a5a`](https://github.com/rubenvitt/bluelight-hub/commit/3071a5a) (backend): Fix multer destination callback context issue 
+- [`f118ebe`](https://github.com/rubenvitt/bluelight-hub/commit/f118ebe) (backend): Increase payload size limit for screenshot uploads
 
-- [`efb3046`](https://github.com/rubenvitt/bluelight-hub/commit/efb3046) (frontend): Fix screenshot URL extraction from wrapped API response 
+- [`3071a5a`](https://github.com/rubenvitt/bluelight-hub/commit/3071a5a) (backend): Fix multer destination callback context issue
 
-- [`065b73b`](https://github.com/rubenvitt/bluelight-hub/commit/065b73b) (tauri): Fix LogicalSize import from correct module 
+- [`efb3046`](https://github.com/rubenvitt/bluelight-hub/commit/efb3046) (frontend): Fix screenshot URL extraction from wrapped API response
 
-- [`cf3cd26`](https://github.com/rubenvitt/bluelight-hub/commit/cf3cd26) (qa-review): Fix review issues from PR feedback 
+- [`065b73b`](https://github.com/rubenvitt/bluelight-hub/commit/065b73b) (tauri): Fix LogicalSize import from correct module
 
-- [`deb846b`](https://github.com/rubenvitt/bluelight-hub/commit/deb846b) (lagekarte): Fix Drawing-Toolbar position from top-24 to top-40 
+- [`cf3cd26`](https://github.com/rubenvitt/bluelight-hub/commit/cf3cd26) (qa-review): Fix review issues from PR feedback
 
-- [`fe5e2e0`](https://github.com/rubenvitt/bluelight-hub/commit/fe5e2e0) (lagekarte): Fix zwei kritische Bugs in Lagekarte-Feature 
+- [`deb846b`](https://github.com/rubenvitt/bluelight-hub/commit/deb846b) (lagekarte): Fix Drawing-Toolbar position from top-24 to top-40
 
-- [`f485045`](https://github.com/rubenvitt/bluelight-hub/commit/f485045) (lagekarte): Verbessere Error-Logging bei ETB-Screenshot-Export 
+- [`fe5e2e0`](https://github.com/rubenvitt/bluelight-hub/commit/fe5e2e0) (lagekarte): Fix zwei kritische Bugs in Lagekarte-Feature
 
-- [`1d5d090`](https://github.com/rubenvitt/bluelight-hub/commit/1d5d090) (lagekarte): Fix ETB-Screenshot-Export - API-Client Sync 
+- [`f485045`](https://github.com/rubenvitt/bluelight-hub/commit/f485045) (lagekarte): Verbessere Error-Logging bei ETB-Screenshot-Export
 
-- [`2774e88`](https://github.com/rubenvitt/bluelight-hub/commit/2774e88) (lagekarte): Fix Edit-Button and Color Display Bugs 
+- [`1d5d090`](https://github.com/rubenvitt/bluelight-hub/commit/1d5d090) (lagekarte): Fix ETB-Screenshot-Export - API-Client Sync
 
-- [`f77383f`](https://github.com/rubenvitt/bluelight-hub/commit/f77383f) (lagekarte): Fix Edit/Delete-Buttons und Farb-Update Live-Anzeige 
+- [`2774e88`](https://github.com/rubenvitt/bluelight-hub/commit/2774e88) (lagekarte): Fix Edit-Button and Color Display Bugs
 
-- [`1f13557`](https://github.com/rubenvitt/bluelight-hub/commit/1f13557) (lagekarte): Fix POI-Platzierungs-Crash durch DrawingLayer-Unmount 
+- [`f77383f`](https://github.com/rubenvitt/bluelight-hub/commit/f77383f) (lagekarte): Fix Edit/Delete-Buttons und Farb-Update Live-Anzeige
 
-- [`91bcbd5`](https://github.com/rubenvitt/bluelight-hub/commit/91bcbd5) (lagekarte): Fix alle &quot;wrong listener type: undefined&quot; Errors 
+- [`1f13557`](https://github.com/rubenvitt/bluelight-hub/commit/1f13557) (lagekarte): Fix POI-Platzierungs-Crash durch DrawingLayer-Unmount
 
-- [`499b76f`](https://github.com/rubenvitt/bluelight-hub/commit/499b76f) (lagekarte): Fix verbleibende layer.pm.enable() Errors in DrawingLayer 
+- [`91bcbd5`](https://github.com/rubenvitt/bluelight-hub/commit/91bcbd5) (lagekarte): Fix alle &quot;wrong listener type: undefined&quot; Errors
 
-- [`e8405c4`](https://github.com/rubenvitt/bluelight-hub/commit/e8405c4) (lagekarte): Fix Race Conditions - Stabile Handler &amp; PM-Event-Checks 
-(Zugehörige Issues: [`#1`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#2`](https://github.com/rubenvitt/bluelight-hub/issues/))
+- [`499b76f`](https://github.com/rubenvitt/bluelight-hub/commit/499b76f) (lagekarte): Fix verbleibende layer.pm.enable() Errors in DrawingLayer
 
-- [`f32769d`](https://github.com/rubenvitt/bluelight-hub/commit/f32769d) (lagekarte): Fix fehlende PM-Checks in OfflineRegionModal map.off() 
+- [`e8405c4`](https://github.com/rubenvitt/bluelight-hub/commit/e8405c4) (lagekarte): Fix Race Conditions - Stabile Handler &amp; PM-Event-Checks
+  (Zugehörige Issues: [`#1`](https://github.com/rubenvitt/bluelight-hub/issues/), [`#2`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
-- [`2049a31`](https://github.com/rubenvitt/bluelight-hub/commit/2049a31) (lagekarte): Fix Stabilität durch defensive PM-Checks und Modal-Fixes 
+- [`f32769d`](https://github.com/rubenvitt/bluelight-hub/commit/f32769d) (lagekarte): Fix fehlende PM-Checks in OfflineRegionModal map.off()
+
+- [`2049a31`](https://github.com/rubenvitt/bluelight-hub/commit/2049a31) (lagekarte): Fix Stabilität durch defensive PM-Checks und Modal-Fixes
 
 ## 🔒 Sicherheitsverbesserungen
+
 Sicherheitsrelevante Änderungen:
-- [`2217793`](https://github.com/rubenvitt/bluelight-hub/commit/2217793) (tauri): Add window resize permissions to capabilities 
+
+- [`2217793`](https://github.com/rubenvitt/bluelight-hub/commit/2217793) (tauri): Add window resize permissions to capabilities
 
 ## ♻ Refactoring
+
 Struktur- oder Code-Verbesserungen:
-- [`b7b3d45`](https://github.com/rubenvitt/bluelight-hub/commit/b7b3d45) (etb): Remove duplicate kategorieLabels definition 
 
-- [`31d21bc`](https://github.com/rubenvitt/bluelight-hub/commit/31d21bc) (etb): Use Textarea atom props instead of className overrides 
+- [`b7b3d45`](https://github.com/rubenvitt/bluelight-hub/commit/b7b3d45) (etb): Remove duplicate kategorieLabels definition
 
-- [`9662c65`](https://github.com/rubenvitt/bluelight-hub/commit/9662c65) (etb): Remove duplicate type definition and redundant refetch 
+- [`31d21bc`](https://github.com/rubenvitt/bluelight-hub/commit/31d21bc) (etb): Use Textarea atom props instead of className overrides
 
-- [`483b8cc`](https://github.com/rubenvitt/bluelight-hub/commit/483b8cc) (ui): Make LoadingState height configurable 
+- [`9662c65`](https://github.com/rubenvitt/bluelight-hub/commit/9662c65) (etb): Remove duplicate type definition and redundant refetch
 
-- [`f5aa90b`](https://github.com/rubenvitt/bluelight-hub/commit/f5aa90b) (backend): Refactor Einsatz-ETB dependency with domain events 
+- [`483b8cc`](https://github.com/rubenvitt/bluelight-hub/commit/483b8cc) (ui): Make LoadingState height configurable
 
-- [`b3b1ce3`](https://github.com/rubenvitt/bluelight-hub/commit/b3b1ce3) (ui): Move filter reset to Dialog.Footer for API consistency 
-(Zugehörige Issues: [`#227`](https://github.com/rubenvitt/bluelight-hub/issues/))
+- [`f5aa90b`](https://github.com/rubenvitt/bluelight-hub/commit/f5aa90b) (backend): Refactor Einsatz-ETB dependency with domain events
 
-- [`3d00886`](https://github.com/rubenvitt/bluelight-hub/commit/3d00886) (frontend): Use EinsatzDetailView in einsaetze route 
+- [`b3b1ce3`](https://github.com/rubenvitt/bluelight-hub/commit/b3b1ce3) (ui): Move filter reset to Dialog.Footer for API consistency
+  (Zugehörige Issues: [`#227`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
-- [`d1a7873`](https://github.com/rubenvitt/bluelight-hub/commit/d1a7873) (api): Replace manual POI interface with generated PoiResponseDto 
+- [`3d00886`](https://github.com/rubenvitt/bluelight-hub/commit/3d00886) (frontend): Use EinsatzDetailView in einsaetze route
 
-- [`2160eb7`](https://github.com/rubenvitt/bluelight-hub/commit/2160eb7) (lagekarte): Apply QA code improvements for drawing tools 
+- [`d1a7873`](https://github.com/rubenvitt/bluelight-hub/commit/d1a7873) (api): Replace manual POI interface with generated PoiResponseDto
 
-- [`4f341dd`](https://github.com/rubenvitt/bluelight-hub/commit/4f341dd) (lagekarte): QA refactorings für Marker-Clustering 
+- [`2160eb7`](https://github.com/rubenvitt/bluelight-hub/commit/2160eb7) (lagekarte): Apply QA code improvements for drawing tools
 
-- [`6ca641a`](https://github.com/rubenvitt/bluelight-hub/commit/6ca641a) (backend): Use absolute paths for uploads directory 
+- [`4f341dd`](https://github.com/rubenvitt/bluelight-hub/commit/4f341dd) (lagekarte): QA refactorings für Marker-Clustering
 
-- [`330f68b`](https://github.com/rubenvitt/bluelight-hub/commit/330f68b) (backend): Consolidate static file serving with ServeStaticModule 
+- [`6ca641a`](https://github.com/rubenvitt/bluelight-hub/commit/6ca641a) (backend): Use absolute paths for uploads directory
 
-- [`67cf54d`](https://github.com/rubenvitt/bluelight-hub/commit/67cf54d) (docs): Refactor CLAUDE.md and remove all test infrastructure 
+- [`330f68b`](https://github.com/rubenvitt/bluelight-hub/commit/330f68b) (backend): Consolidate static file serving with ServeStaticModule
 
-- [`81e6139`](https://github.com/rubenvitt/bluelight-hub/commit/81e6139) (lagekarte): Refactor POI Placement Control into Atomic Components 
+- [`67cf54d`](https://github.com/rubenvitt/bluelight-hub/commit/67cf54d) (docs): Refactor CLAUDE.md and remove all test infrastructure
 
-- [`c7e03c9`](https://github.com/rubenvitt/bluelight-hub/commit/c7e03c9) (frontend): Redundante Tailwind-Klassen in Label entfernen 
+- [`81e6139`](https://github.com/rubenvitt/bluelight-hub/commit/81e6139) (lagekarte): Refactor POI Placement Control into Atomic Components
 
-- [`b3da781`](https://github.com/rubenvitt/bluelight-hub/commit/b3da781) (lagekarte): Refactor DrawingLayer in Custom Hooks 
+- [`c7e03c9`](https://github.com/rubenvitt/bluelight-hub/commit/c7e03c9) (frontend): Redundante Tailwind-Klassen in Label entfernen
+
+- [`b3da781`](https://github.com/rubenvitt/bluelight-hub/commit/b3da781) (lagekarte): Refactor DrawingLayer in Custom Hooks
 
 ## 🔧 Tool Verbesserungen
+
 Verbesserungen an den Werkzeugen:
-- [`d1be55c`](https://github.com/rubenvitt/bluelight-hub/commit/d1be55c) (config): Add uploads directory to gitignore 
 
-
+- [`d1be55c`](https://github.com/rubenvitt/bluelight-hub/commit/d1be55c) (config): Add uploads directory to gitignore
 
 # [1.0.0-alpha.32](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.31...v1.0.0-alpha.32) (2025-11-09)
 
-
-* ♻️(api): Replace manual POI interface with generated PoiResponseDto ([d1a7873](https://github.com/rubenvitt/bluelight-hub/commit/d1a787361ed5e280d49ff0cdfa56387ad625fc99))
-
+- ♻️(api): Replace manual POI interface with generated PoiResponseDto ([d1a7873](https://github.com/rubenvitt/bluelight-hub/commit/d1a787361ed5e280d49ff0cdfa56387ad625fc99))
 
 ### BREAKING CHANGES
 
-* - Manual LagekartePoi interface removed - use generated PoiResponseDto
+- - Manual LagekartePoi interface removed - use generated PoiResponseDto
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
@@ -1652,709 +1719,739 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ## Version [v1.0.0-alpha.31](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.30...v1.0.0-alpha.31) – Veröffentlicht am 2025-09-26
 
 ## ✨ Neue Funktionen
+
 Die folgenden neuen Features wurden hinzugefügt:
-- [`0173652`](https://github.com/rubenvitt/bluelight-hub/commit/0173652) (frontend): Add ETB hooks with TanStack Query integration 
+
+- [`0173652`](https://github.com/rubenvitt/bluelight-hub/commit/0173652) (frontend): Add ETB hooks with TanStack Query integration
 
 ## 🔧 Tool Verbesserungen
+
 Verbesserungen an den Werkzeugen:
-- [`a5987b9`](https://github.com/rubenvitt/bluelight-hub/commit/a5987b9) (api): Update generated API clients and query keys 
 
-
+- [`a5987b9`](https://github.com/rubenvitt/bluelight-hub/commit/a5987b9) (api): Update generated API clients and query keys
 
 # [1.0.0-alpha.31](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.30...v1.0.0-alpha.31) (2025-09-26)
 
 ## Version [v1.0.0-alpha.30](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.29...v1.0.0-alpha.30) – Veröffentlicht am 2025-09-26
 
 ## ♻ Refactoring
+
 Struktur- oder Code-Verbesserungen:
-- [`c991cc7`](https://github.com/rubenvitt/bluelight-hub/commit/c991cc7) (backend): Refactor ETB module with type safety and atomic operations 
 
-
+- [`c991cc7`](https://github.com/rubenvitt/bluelight-hub/commit/c991cc7) (backend): Refactor ETB module with type safety and atomic operations
 
 # [1.0.0-alpha.30](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.29...v1.0.0-alpha.30) (2025-09-26)
 
 ## Version [v1.0.0-alpha.29](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.28...v1.0.0-alpha.29) – Veröffentlicht am 2025-09-26
 
 ## ✨ Neue Funktionen
+
 Die folgenden neuen Features wurden hinzugefügt:
-- [`4d4386c`](https://github.com/rubenvitt/bluelight-hub/commit/4d4386c) (backend): Add ETB (Einsatztagebuch) module with full CRUD operations 
 
-- [`2874b41`](https://github.com/rubenvitt/bluelight-hub/commit/2874b41) (backend): Add comprehensive ETB response DTOs with validation 
+- [`4d4386c`](https://github.com/rubenvitt/bluelight-hub/commit/4d4386c) (backend): Add ETB (Einsatztagebuch) module with full CRUD operations
 
-
+- [`2874b41`](https://github.com/rubenvitt/bluelight-hub/commit/2874b41) (backend): Add comprehensive ETB response DTOs with validation
 
 # [1.0.0-alpha.29](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.28...v1.0.0-alpha.29) (2025-09-26)
 
 ## Version [v1.0.0-alpha.28](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.27...v1.0.0-alpha.28) – Veröffentlicht am 2025-09-23
 
 ## 🔧 Tool Verbesserungen
+
 Verbesserungen an den Werkzeugen:
-- [`590bbcf`](https://github.com/rubenvitt/bluelight-hub/commit/590bbcf) (backend): TypeScript-Strenge erhöht &amp; Type-Fehler behoben 
-(Zugehörige Issues: [`#214`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
-- [`368c709`](https://github.com/rubenvitt/bluelight-hub/commit/368c709) (backend): Complete TypeScript strict mode migration 
+- [`590bbcf`](https://github.com/rubenvitt/bluelight-hub/commit/590bbcf) (backend): TypeScript-Strenge erhöht &amp; Type-Fehler behoben
+  (Zugehörige Issues: [`#214`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
-
+- [`368c709`](https://github.com/rubenvitt/bluelight-hub/commit/368c709) (backend): Complete TypeScript strict mode migration
 
 # [1.0.0-alpha.28](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.27...v1.0.0-alpha.28) (2025-09-23)
 
 ## Version [v1.0.0-alpha.27](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.26...v1.0.0-alpha.27) – Veröffentlicht am 2025-09-23
 
 ## ♻ Refactoring
+
 Struktur- oder Code-Verbesserungen:
-- [`32622d3`](https://github.com/rubenvitt/bluelight-hub/commit/32622d3) (workspace): Stabilisiere pnpm-Workspace-Ausführung 
-(Zugehörige Issues: [`#212`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
-- [`c26c364`](https://github.com/rubenvitt/bluelight-hub/commit/c26c364) (workspace): Stabilisiere pnpm-Workspace-Ausführung 
+- [`32622d3`](https://github.com/rubenvitt/bluelight-hub/commit/32622d3) (workspace): Stabilisiere pnpm-Workspace-Ausführung
+  (Zugehörige Issues: [`#212`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
-
+- [`c26c364`](https://github.com/rubenvitt/bluelight-hub/commit/c26c364) (workspace): Stabilisiere pnpm-Workspace-Ausführung
 
 # [1.0.0-alpha.27](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.26...v1.0.0-alpha.27) (2025-09-23)
 
 ## Version [v1.0.0-alpha.26](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.25...v1.0.0-alpha.26) – Veröffentlicht am 2025-09-21
 
 ## ✨ Neue Funktionen
+
 Die folgenden neuen Features wurden hinzugefügt:
-- [`8381717`](https://github.com/rubenvitt/bluelight-hub/commit/8381717) (frontend): erweitere Dialog Component um Varianten und vereinfachte API 
+
+- [`8381717`](https://github.com/rubenvitt/bluelight-hub/commit/8381717) (frontend): erweitere Dialog Component um Varianten und vereinfachte API
 
 ## 🐛 Fehlerbehebungen
+
 Diese Probleme wurden behoben:
-- [`dba7d73`](https://github.com/rubenvitt/bluelight-hub/commit/dba7d73) (frontend): Fix enum value handling in MobileFilterDialog 
+
+- [`dba7d73`](https://github.com/rubenvitt/bluelight-hub/commit/dba7d73) (frontend): Fix enum value handling in MobileFilterDialog
 
 ## ♻ Refactoring
+
 Struktur- oder Code-Verbesserungen:
-- [`4886895`](https://github.com/rubenvitt/bluelight-hub/commit/4886895) (frontend): Migrate SlideInPanel to Dialog.SlideIn variant 
 
-
+- [`4886895`](https://github.com/rubenvitt/bluelight-hub/commit/4886895) (frontend): Migrate SlideInPanel to Dialog.SlideIn variant
 
 # [1.0.0-alpha.26](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.25...v1.0.0-alpha.26) (2025-09-21)
 
 ## Version [v1.0.0-alpha.25](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.24...v1.0.0-alpha.25) – Veröffentlicht am 2025-09-19
 
 ## ✨ Neue Funktionen
-Die folgenden neuen Features wurden hinzugefügt:
-- [`c798157`](https://github.com/rubenvitt/bluelight-hub/commit/c798157) (frontend): Add Command Palette with keyboard shortcuts 
 
-- [`b1cd850`](https://github.com/rubenvitt/bluelight-hub/commit/b1cd850) (frontend): Add error boundary and improve Command Palette stability 
+Die folgenden neuen Features wurden hinzugefügt:
+
+- [`c798157`](https://github.com/rubenvitt/bluelight-hub/commit/c798157) (frontend): Add Command Palette with keyboard shortcuts
+
+- [`b1cd850`](https://github.com/rubenvitt/bluelight-hub/commit/b1cd850) (frontend): Add error boundary and improve Command Palette stability
 
 ## ♻ Refactoring
+
 Struktur- oder Code-Verbesserungen:
-- [`0317e2d`](https://github.com/rubenvitt/bluelight-hub/commit/0317e2d) (frontend): Extract Command Palette hooks into separate modules 
 
-- [`7fbc19f`](https://github.com/rubenvitt/bluelight-hub/commit/7fbc19f) (project): Major refactoring and cleanup of code structure 
+- [`0317e2d`](https://github.com/rubenvitt/bluelight-hub/commit/0317e2d) (frontend): Extract Command Palette hooks into separate modules
 
-- [`85dcfa6`](https://github.com/rubenvitt/bluelight-hub/commit/85dcfa6) (frontend): Replace custom debounce hook with @tanstack/pacer 
+- [`7fbc19f`](https://github.com/rubenvitt/bluelight-hub/commit/7fbc19f) (project): Major refactoring and cleanup of code structure
 
-
+- [`85dcfa6`](https://github.com/rubenvitt/bluelight-hub/commit/85dcfa6) (frontend): Replace custom debounce hook with @tanstack/pacer
 
 # [1.0.0-alpha.25](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.24...v1.0.0-alpha.25) (2025-09-19)
 
 ## Version [v1.0.0-alpha.24](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.23...v1.0.0-alpha.24) – Veröffentlicht am 2025-09-19
 
 ## 🔒 Sicherheitsverbesserungen
+
 Sicherheitsrelevante Änderungen:
-- [`326df75`](https://github.com/rubenvitt/bluelight-hub/commit/326df75) (ci): Add security and rate limiting to Claude workflows 
 
-
+- [`326df75`](https://github.com/rubenvitt/bluelight-hub/commit/326df75) (ci): Add security and rate limiting to Claude workflows
 
 # [1.0.0-alpha.24](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.23...v1.0.0-alpha.24) (2025-09-19)
 
 ## Version [v1.0.0-alpha.23](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.22...v1.0.0-alpha.23) – Veröffentlicht am 2025-09-15
 
 ## ✨ Neue Funktionen
-Die folgenden neuen Features wurden hinzugefügt:
-- [`c5d5f04`](https://github.com/rubenvitt/bluelight-hub/commit/c5d5f04) (db): Add ETB database schema with comprehensive models 
 
-- [`ce1c954`](https://github.com/rubenvitt/bluelight-hub/commit/ce1c954) (admin): Add user edit functionality with role management 
+Die folgenden neuen Features wurden hinzugefügt:
+
+- [`c5d5f04`](https://github.com/rubenvitt/bluelight-hub/commit/c5d5f04) (db): Add ETB database schema with comprehensive models
+
+- [`ce1c954`](https://github.com/rubenvitt/bluelight-hub/commit/ce1c954) (admin): Add user edit functionality with role management
 
 ## 🐛 Fehlerbehebungen
+
 Diese Probleme wurden behoben:
-- [`94f3621`](https://github.com/rubenvitt/bluelight-hub/commit/94f3621) (frontend): Fix admin user dialog validation and submission issues 
+
+- [`94f3621`](https://github.com/rubenvitt/bluelight-hub/commit/94f3621) (frontend): Fix admin user dialog validation and submission issues
 
 ## ♻ Refactoring
+
 Struktur- oder Code-Verbesserungen:
-- [`53dd442`](https://github.com/rubenvitt/bluelight-hub/commit/53dd442) (db): Refactor ETB migration with improved formatting and constraints 
 
-- [`f1f3925`](https://github.com/rubenvitt/bluelight-hub/commit/f1f3925) (frontend): Refactor import statements and improve user role handling 
+- [`53dd442`](https://github.com/rubenvitt/bluelight-hub/commit/53dd442) (db): Refactor ETB migration with improved formatting and constraints
 
-- [`eab9e24`](https://github.com/rubenvitt/bluelight-hub/commit/eab9e24) (backend): Implement repository pattern for user management 
+- [`f1f3925`](https://github.com/rubenvitt/bluelight-hub/commit/f1f3925) (frontend): Refactor import statements and improve user role handling
 
-
+- [`eab9e24`](https://github.com/rubenvitt/bluelight-hub/commit/eab9e24) (backend): Implement repository pattern for user management
 
 # [1.0.0-alpha.23](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.22...v1.0.0-alpha.23) (2025-09-15)
 
 ## Version [v1.0.0-alpha.22](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.21...v1.0.0-alpha.22) – Veröffentlicht am 2025-09-14
 
 ## ✨ Neue Funktionen
+
 Die folgenden neuen Features wurden hinzugefügt:
-- [`4c0de75`](https://github.com/rubenvitt/bluelight-hub/commit/4c0de75) (backend): Design JWT claim schema for admin authentication 
 
-- [`865d54b`](https://github.com/rubenvitt/bluelight-hub/commit/865d54b) (backend): Implement JWT authentication system 
+- [`4c0de75`](https://github.com/rubenvitt/bluelight-hub/commit/4c0de75) (backend): Design JWT claim schema for admin authentication
 
-- [`af7edef`](https://github.com/rubenvitt/bluelight-hub/commit/af7edef) (backend): Prevent duplicate Einsatz seeding 
+- [`865d54b`](https://github.com/rubenvitt/bluelight-hub/commit/865d54b) (backend): Implement JWT authentication system
 
-- [`14a93db`](https://github.com/rubenvitt/bluelight-hub/commit/14a93db) (backend): Convert AdminUser to User with role-based system 
+- [`af7edef`](https://github.com/rubenvitt/bluelight-hub/commit/af7edef) (backend): Prevent duplicate Einsatz seeding
 
-- [`2b114b5`](https://github.com/rubenvitt/bluelight-hub/commit/2b114b5) (frontend): Implement admin role detection and navigation 
+- [`14a93db`](https://github.com/rubenvitt/bluelight-hub/commit/14a93db) (backend): Convert AdminUser to User with role-based system
 
-- [`393aad7`](https://github.com/rubenvitt/bluelight-hub/commit/393aad7) (auth): Implement authentication system with JWT and admin pages 
+- [`2b114b5`](https://github.com/rubenvitt/bluelight-hub/commit/2b114b5) (frontend): Implement admin role detection and navigation
 
-- [`0bf8a03`](https://github.com/rubenvitt/bluelight-hub/commit/0bf8a03) (frontend): Implement role-based admin navigation system 
+- [`393aad7`](https://github.com/rubenvitt/bluelight-hub/commit/393aad7) (auth): Implement authentication system with JWT and admin pages
 
-- [`366e568`](https://github.com/rubenvitt/bluelight-hub/commit/366e568) (backend): Define role-based permissions matrix 
+- [`0bf8a03`](https://github.com/rubenvitt/bluelight-hub/commit/0bf8a03) (frontend): Implement role-based admin navigation system
 
-- [`1cefe38`](https://github.com/rubenvitt/bluelight-hub/commit/1cefe38) (backend): Implement Multi-Factor Authentication (MFA) system 
+- [`366e568`](https://github.com/rubenvitt/bluelight-hub/commit/366e568) (backend): Define role-based permissions matrix
 
-- [`c0b97c1`](https://github.com/rubenvitt/bluelight-hub/commit/c0b97c1) (backend): Implement MFA with TOTP and WebAuthn 
+- [`1cefe38`](https://github.com/rubenvitt/bluelight-hub/commit/1cefe38) (backend): Implement Multi-Factor Authentication (MFA) system
 
-- [`53c911b`](https://github.com/rubenvitt/bluelight-hub/commit/53c911b) (backend): Add MFA database migration and improve API documentation 
+- [`c0b97c1`](https://github.com/rubenvitt/bluelight-hub/commit/c0b97c1) (backend): Implement MFA with TOTP and WebAuthn
 
-- [`169c80e`](https://github.com/rubenvitt/bluelight-hub/commit/169c80e) (frontend): Implement MFA flow integration 
+- [`53c911b`](https://github.com/rubenvitt/bluelight-hub/commit/53c911b) (backend): Add MFA database migration and improve API documentation
 
-- [`e61e0b9`](https://github.com/rubenvitt/bluelight-hub/commit/e61e0b9) (frontend): Integrate MFA components in the user interface 
+- [`169c80e`](https://github.com/rubenvitt/bluelight-hub/commit/169c80e) (frontend): Implement MFA flow integration
 
-- [`558452e`](https://github.com/rubenvitt/bluelight-hub/commit/558452e) (backend): Implement comprehensive audit logging infrastructure 
+- [`e61e0b9`](https://github.com/rubenvitt/bluelight-hub/commit/e61e0b9) (frontend): Integrate MFA components in the user interface
 
-- [`dd5abcd`](https://github.com/rubenvitt/bluelight-hub/commit/dd5abcd) (backend): Implement comprehensive audit interceptor for admin APIs 
+- [`558452e`](https://github.com/rubenvitt/bluelight-hub/commit/558452e) (backend): Implement comprehensive audit logging infrastructure
 
-- [`fbefdbe`](https://github.com/rubenvitt/bluelight-hub/commit/fbefdbe) (backend): Implement NestJS Logging Interceptor for audit logging 
+- [`dd5abcd`](https://github.com/rubenvitt/bluelight-hub/commit/dd5abcd) (backend): Implement comprehensive audit interceptor for admin APIs
 
-- [`4a47eae`](https://github.com/rubenvitt/bluelight-hub/commit/4a47eae) (backend): Add audit log service layer with batch processing 
+- [`fbefdbe`](https://github.com/rubenvitt/bluelight-hub/commit/fbefdbe) (backend): Implement NestJS Logging Interceptor for audit logging
 
-- [`d031e29`](https://github.com/rubenvitt/bluelight-hub/commit/d031e29) (backend): Implement audit log REST API endpoints 
+- [`4a47eae`](https://github.com/rubenvitt/bluelight-hub/commit/4a47eae) (backend): Add audit log service layer with batch processing
 
-- [`4239a78`](https://github.com/rubenvitt/bluelight-hub/commit/4239a78) (frontend): Integrate audit logging context and utilities 
+- [`d031e29`](https://github.com/rubenvitt/bluelight-hub/commit/d031e29) (backend): Implement audit log REST API endpoints
 
-- [`d8e61e9`](https://github.com/rubenvitt/bluelight-hub/commit/d8e61e9) (backend): Add archive and cleanup endpoints to audit log controller 
+- [`4239a78`](https://github.com/rubenvitt/bluelight-hub/commit/4239a78) (frontend): Integrate audit logging context and utilities
 
-- [`2dcf191`](https://github.com/rubenvitt/bluelight-hub/commit/2dcf191) (frontend): Integrate frontend logging context 
+- [`d8e61e9`](https://github.com/rubenvitt/bluelight-hub/commit/d8e61e9) (backend): Add archive and cleanup endpoints to audit log controller
 
-- [`e89398a`](https://github.com/rubenvitt/bluelight-hub/commit/e89398a) (frontend): Implement Log Viewer UI 
+- [`2dcf191`](https://github.com/rubenvitt/bluelight-hub/commit/2dcf191) (frontend): Integrate frontend logging context
 
-- [`e6431ef`](https://github.com/rubenvitt/bluelight-hub/commit/e6431ef) (backend): Add MANAGER role to user schema 
+- [`e89398a`](https://github.com/rubenvitt/bluelight-hub/commit/e89398a) (frontend): Implement Log Viewer UI
 
-- [`34217ba`](https://github.com/rubenvitt/bluelight-hub/commit/34217ba) (backend): Add proper response types for audit log endpoints and use generated API client 
+- [`e6431ef`](https://github.com/rubenvitt/bluelight-hub/commit/e6431ef) (backend): Add MANAGER role to user schema
 
-- [`8eab372`](https://github.com/rubenvitt/bluelight-hub/commit/8eab372) (backend): Add comprehensive tests for audit module 
+- [`34217ba`](https://github.com/rubenvitt/bluelight-hub/commit/34217ba) (backend): Add proper response types for audit log endpoints and use generated API client
 
-- [`2193ad5`](https://github.com/rubenvitt/bluelight-hub/commit/2193ad5) (backend): Implementiere umfassende Tests für Audit-System 
+- [`8eab372`](https://github.com/rubenvitt/bluelight-hub/commit/8eab372) (backend): Add comprehensive tests for audit module
 
-- [`290136a`](https://github.com/rubenvitt/bluelight-hub/commit/290136a) (admin): Initialize feature branch for admin infrastructure 
+- [`2193ad5`](https://github.com/rubenvitt/bluelight-hub/commit/2193ad5) (backend): Implementiere umfassende Tests für Audit-System
 
-- [`4ac6588`](https://github.com/rubenvitt/bluelight-hub/commit/4ac6588) (frontend): Add &#x27;Einsatz schließen&#x27; functionality to UserProfile menu 
+- [`290136a`](https://github.com/rubenvitt/bluelight-hub/commit/290136a) (admin): Initialize feature branch for admin infrastructure
 
-- [`e9bd9ec`](https://github.com/rubenvitt/bluelight-hub/commit/e9bd9ec) (frontend): Add &#x27;Einsatz schließen&#x27; functionality to UserProfile menu 
+- [`4ac6588`](https://github.com/rubenvitt/bluelight-hub/commit/4ac6588) (frontend): Add &#x27;Einsatz schließen&#x27; functionality to UserProfile menu
 
-- [`4b5d08f`](https://github.com/rubenvitt/bluelight-hub/commit/4b5d08f) (backend): Implement Session Monitoring Service 
+- [`e9bd9ec`](https://github.com/rubenvitt/bluelight-hub/commit/e9bd9ec) (frontend): Add &#x27;Einsatz schließen&#x27; functionality to UserProfile menu
 
-- [`87f2371`](https://github.com/rubenvitt/bluelight-hub/commit/87f2371) (backend): Add session monitoring service 
+- [`4b5d08f`](https://github.com/rubenvitt/bluelight-hub/commit/4b5d08f) (backend): Implement Session Monitoring Service
 
-- [`8d3d427`](https://github.com/rubenvitt/bluelight-hub/commit/8d3d427) (backend): Add failed login tracking &amp; account lockout feature 
+- [`87f2371`](https://github.com/rubenvitt/bluelight-hub/commit/87f2371) (backend): Add session monitoring service
 
-- [`2782985`](https://github.com/rubenvitt/bluelight-hub/commit/2782985) (backend): Implement API callbacks for security alerts 
+- [`8d3d427`](https://github.com/rubenvitt/bluelight-hub/commit/8d3d427) (backend): Add failed login tracking &amp; account lockout feature
 
-- [`bf3a8b8`](https://github.com/rubenvitt/bluelight-hub/commit/bf3a8b8) (backend): Implement security recommendations 1-8 and 10 
+- [`2782985`](https://github.com/rubenvitt/bluelight-hub/commit/2782985) (backend): Implement API callbacks for security alerts
 
-- [`8812367`](https://github.com/rubenvitt/bluelight-hub/commit/8812367) (frontend): Add account lockout notification with UI blocking 
+- [`bf3a8b8`](https://github.com/rubenvitt/bluelight-hub/commit/bf3a8b8) (backend): Implement security recommendations 1-8 and 10
 
-- [`9e152e3`](https://github.com/rubenvitt/bluelight-hub/commit/9e152e3) (backend): Add retry mechanism and circuit breaker for security alerts 
+- [`8812367`](https://github.com/rubenvitt/bluelight-hub/commit/8812367) (frontend): Add account lockout notification with UI blocking
 
-- [`fae9950`](https://github.com/rubenvitt/bluelight-hub/commit/fae9950) (backend): Implement sophisticated bot detection using isbot library 
+- [`9e152e3`](https://github.com/rubenvitt/bluelight-hub/commit/9e152e3) (backend): Add retry mechanism and circuit breaker for security alerts
 
-- [`8adc6ce`](https://github.com/rubenvitt/bluelight-hub/commit/8adc6ce) (backend): Implement notification channels for security notifications 
+- [`fae9950`](https://github.com/rubenvitt/bluelight-hub/commit/fae9950) (backend): Implement sophisticated bot detection using isbot library
 
-- [`c7b1ca9`](https://github.com/rubenvitt/bluelight-hub/commit/c7b1ca9) (backend): Add automatic Threat Rules seeding on backend startup 
-(Zugehörige Issues: [`#177`](https://github.com/rubenvitt/bluelight-hub/issues/))
+- [`8adc6ce`](https://github.com/rubenvitt/bluelight-hub/commit/8adc6ce) (backend): Implement notification channels for security notifications
 
-- [`fee50a7`](https://github.com/rubenvitt/bluelight-hub/commit/fee50a7) (backend): Implement comprehensive threat detection rules system 
+- [`c7b1ca9`](https://github.com/rubenvitt/bluelight-hub/commit/c7b1ca9) (backend): Add automatic Threat Rules seeding on backend startup
+  (Zugehörige Issues: [`#177`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
-- [`c34fcce`](https://github.com/rubenvitt/bluelight-hub/commit/c34fcce) (backend): Add comprehensive security alert system with test coverage 
+- [`fee50a7`](https://github.com/rubenvitt/bluelight-hub/commit/fee50a7) (backend): Implement comprehensive threat detection rules system
 
-- [`6bfc848`](https://github.com/rubenvitt/bluelight-hub/commit/6bfc848) (security): Add SecurityLog model with hash chain support 
+- [`c34fcce`](https://github.com/rubenvitt/bluelight-hub/commit/c34fcce) (backend): Add comprehensive security alert system with test coverage
 
-- [`13ba8af`](https://github.com/rubenvitt/bluelight-hub/commit/13ba8af) (security): Setup BullMQ queue for security logging 
+- [`6bfc848`](https://github.com/rubenvitt/bluelight-hub/commit/6bfc848) (security): Add SecurityLog model with hash chain support
 
-- [`0aecd1f`](https://github.com/rubenvitt/bluelight-hub/commit/0aecd1f) (backend): Implement SecurityLogService with queue integration 
+- [`13ba8af`](https://github.com/rubenvitt/bluelight-hub/commit/13ba8af) (security): Setup BullMQ queue for security logging
 
-- [`dbc7df1`](https://github.com/rubenvitt/bluelight-hub/commit/dbc7df1) (backend): Add hash chain integrity verification for security logs 
+- [`0aecd1f`](https://github.com/rubenvitt/bluelight-hub/commit/0aecd1f) (backend): Implement SecurityLogService with queue integration
 
-- [`6dd495f`](https://github.com/rubenvitt/bluelight-hub/commit/6dd495f) (backend): Add SecurityLog REST API with admin controls 
-(Zugehörige Issues: [`#42`](https://github.com/rubenvitt/bluelight-hub/issues/))
+- [`dbc7df1`](https://github.com/rubenvitt/bluelight-hub/commit/dbc7df1) (backend): Add hash chain integrity verification for security logs
 
-- [`9c8000c`](https://github.com/rubenvitt/bluelight-hub/commit/9c8000c) (backend): Add security log retention management 
+- [`6dd495f`](https://github.com/rubenvitt/bluelight-hub/commit/6dd495f) (backend): Add SecurityLog REST API with admin controls
+  (Zugehörige Issues: [`#42`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
-- [`51673b1`](https://github.com/rubenvitt/bluelight-hub/commit/51673b1) (backend): Integrate SecurityLog service into auth system 
+- [`9c8000c`](https://github.com/rubenvitt/bluelight-hub/commit/9c8000c) (backend): Add security log retention management
 
-- [`97d674c`](https://github.com/rubenvitt/bluelight-hub/commit/97d674c) (backend): Implement comprehensive security audit logging 
+- [`51673b1`](https://github.com/rubenvitt/bluelight-hub/commit/51673b1) (backend): Integrate SecurityLog service into auth system
 
-- [`6af39c9`](https://github.com/rubenvitt/bluelight-hub/commit/6af39c9) (frontend): Add comprehensive test coverage for security API modules 
-(Zugehörige Issues: [`#162`](https://github.com/rubenvitt/bluelight-hub/issues/))
+- [`97d674c`](https://github.com/rubenvitt/bluelight-hub/commit/97d674c) (backend): Implement comprehensive security audit logging
 
-- [`e22e8bb`](https://github.com/rubenvitt/bluelight-hub/commit/e22e8bb) (frontend): Add comprehensive test coverage for security features 
+- [`6af39c9`](https://github.com/rubenvitt/bluelight-hub/commit/6af39c9) (frontend): Add comprehensive test coverage for security API modules
+  (Zugehörige Issues: [`#162`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
-- [`468c5bf`](https://github.com/rubenvitt/bluelight-hub/commit/468c5bf) (frontend): Comprehensive test coverage improvements for security pages 
+- [`e22e8bb`](https://github.com/rubenvitt/bluelight-hub/commit/e22e8bb) (frontend): Add comprehensive test coverage for security features
 
-- [`0fdf527`](https://github.com/rubenvitt/bluelight-hub/commit/0fdf527) (security): Implement activity log for admin dashboard 
+- [`468c5bf`](https://github.com/rubenvitt/bluelight-hub/commit/468c5bf) (frontend): Comprehensive test coverage improvements for security pages
 
-- [`860128a`](https://github.com/rubenvitt/bluelight-hub/commit/860128a) (backend): Implement distributed rate limiting with Redis support 
+- [`0fdf527`](https://github.com/rubenvitt/bluelight-hub/commit/0fdf527) (security): Implement activity log for admin dashboard
 
-- [`c61def7`](https://github.com/rubenvitt/bluelight-hub/commit/c61def7) (frontend): Add dark mode toggle to greeting molecule 
+- [`860128a`](https://github.com/rubenvitt/bluelight-hub/commit/860128a) (backend): Implement distributed rate limiting with Redis support
 
-- [`1de4116`](https://github.com/rubenvitt/bluelight-hub/commit/1de4116) (frontend): Add comprehensive color mode component architecture 
+- [`c61def7`](https://github.com/rubenvitt/bluelight-hub/commit/c61def7) (frontend): Add dark mode toggle to greeting molecule
 
-- [`cd77583`](https://github.com/rubenvitt/bluelight-hub/commit/cd77583) (backend): Add user creation tracking to User model 
+- [`1de4116`](https://github.com/rubenvitt/bluelight-hub/commit/1de4116) (frontend): Add comprehensive color mode component architecture
 
-- [`ab55efb`](https://github.com/rubenvitt/bluelight-hub/commit/ab55efb) (backend): Add User model with role-based authentication system 
+- [`cd77583`](https://github.com/rubenvitt/bluelight-hub/commit/cd77583) (backend): Add user creation tracking to User model
 
-- [`6b6fca6`](https://github.com/rubenvitt/bluelight-hub/commit/6b6fca6) (backend): Implement authentication system with password-less auth 
+- [`ab55efb`](https://github.com/rubenvitt/bluelight-hub/commit/ab55efb) (backend): Add User model with role-based authentication system
 
-- [`fb42177`](https://github.com/rubenvitt/bluelight-hub/commit/fb42177) (backend): Implement comprehensive JWT authentication system 
+- [`6b6fca6`](https://github.com/rubenvitt/bluelight-hub/commit/6b6fca6) (backend): Implement authentication system with password-less auth
 
-- [`1195574`](https://github.com/rubenvitt/bluelight-hub/commit/1195574) (backend): Implement JWT authentication with API versioning 
-(Zugehörige Issues: [`#122`](https://github.com/rubenvitt/bluelight-hub/issues/))
+- [`fb42177`](https://github.com/rubenvitt/bluelight-hub/commit/fb42177) (backend): Implement comprehensive JWT authentication system
 
-- [`82b07cd`](https://github.com/rubenvitt/bluelight-hub/commit/82b07cd) (app): Implement frontend authentication with E2E testing 
+- [`1195574`](https://github.com/rubenvitt/bluelight-hub/commit/1195574) (backend): Implement JWT authentication with API versioning
+  (Zugehörige Issues: [`#122`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
-- [`285646c`](https://github.com/rubenvitt/bluelight-hub/commit/285646c) (app): Implement complete login functionality with E2E testing 
+- [`82b07cd`](https://github.com/rubenvitt/bluelight-hub/commit/82b07cd) (app): Implement frontend authentication with E2E testing
 
-- [`cb986d5`](https://github.com/rubenvitt/bluelight-hub/commit/cb986d5) (backend): Add admin setup endpoint and user profile API 
+- [`285646c`](https://github.com/rubenvitt/bluelight-hub/commit/285646c) (app): Implement complete login functionality with E2E testing
 
-- [`fcf24b3`](https://github.com/rubenvitt/bluelight-hub/commit/fcf24b3) (backend): Implement admin setup business logic with password hashing 
+- [`cb986d5`](https://github.com/rubenvitt/bluelight-hub/commit/cb986d5) (backend): Add admin setup endpoint and user profile API
 
-- [`f79cdab`](https://github.com/rubenvitt/bluelight-hub/commit/f79cdab) (backend): Complete admin setup system with full-stack integration 
-(Zugehörige Issues: [`#122`](https://github.com/rubenvitt/bluelight-hub/issues/))
+- [`fcf24b3`](https://github.com/rubenvitt/bluelight-hub/commit/fcf24b3) (backend): Implement admin setup business logic with password hashing
 
-- [`47167b5`](https://github.com/rubenvitt/bluelight-hub/commit/47167b5) (auth): Implement secure admin authentication system 
+- [`f79cdab`](https://github.com/rubenvitt/bluelight-hub/commit/f79cdab) (backend): Complete admin setup system with full-stack integration
+  (Zugehörige Issues: [`#122`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
-- [`5c41ef9`](https://github.com/rubenvitt/bluelight-hub/commit/5c41ef9) (backend): Implement comprehensive user management system 
+- [`47167b5`](https://github.com/rubenvitt/bluelight-hub/commit/47167b5) (auth): Implement secure admin authentication system
 
-- [`61a3ed4`](https://github.com/rubenvitt/bluelight-hub/commit/61a3ed4) (frontend): Implement comprehensive admin user management system 
+- [`5c41ef9`](https://github.com/rubenvitt/bluelight-hub/commit/5c41ef9) (backend): Implement comprehensive user management system
 
-- [`58ef326`](https://github.com/rubenvitt/bluelight-hub/commit/58ef326) (backend): Add CLI tool for admin password reset 
+- [`61a3ed4`](https://github.com/rubenvitt/bluelight-hub/commit/61a3ed4) (frontend): Implement comprehensive admin user management system
 
-- [`dbc5893`](https://github.com/rubenvitt/bluelight-hub/commit/dbc5893) (auth): Implement unified tabbed authentication interface 
+- [`58ef326`](https://github.com/rubenvitt/bluelight-hub/commit/58ef326) (backend): Add CLI tool for admin password reset
 
-- [`6cb3933`](https://github.com/rubenvitt/bluelight-hub/commit/6cb3933) (frontend): Add AdminLayout component with window management 
+- [`dbc5893`](https://github.com/rubenvitt/bluelight-hub/commit/dbc5893) (auth): Implement unified tabbed authentication interface
 
-- [`bce651a`](https://github.com/rubenvitt/bluelight-hub/commit/bce651a) (frontend): Implement admin window management with Tauri integration 
+- [`6cb3933`](https://github.com/rubenvitt/bluelight-hub/commit/6cb3933) (frontend): Add AdminLayout component with window management
 
-- [`548090d`](https://github.com/rubenvitt/bluelight-hub/commit/548090d) (backend): Add unified authentication endpoint with auto-registration 
+- [`bce651a`](https://github.com/rubenvitt/bluelight-hub/commit/bce651a) (frontend): Implement admin window management with Tauri integration
 
-- [`ff069f2`](https://github.com/rubenvitt/bluelight-hub/commit/ff069f2) (backend): Add Einsatz module with CRUD operations 
+- [`548090d`](https://github.com/rubenvitt/bluelight-hub/commit/548090d) (backend): Add unified authentication endpoint with auto-registration
 
-- [`3279541`](https://github.com/rubenvitt/bluelight-hub/commit/3279541) (api): Add missing generated API client models 
+- [`ff069f2`](https://github.com/rubenvitt/bluelight-hub/commit/ff069f2) (backend): Add Einsatz module with CRUD operations
 
-- [`35b6eaa`](https://github.com/rubenvitt/bluelight-hub/commit/35b6eaa) (backend): Add cache manager foundation with NestJS CacheModule 
+- [`3279541`](https://github.com/rubenvitt/bluelight-hub/commit/3279541) (api): Add missing generated API client models
 
-- [`0eaad1c`](https://github.com/rubenvitt/bluelight-hub/commit/0eaad1c) (einsatz): Add archiving workflow with status transition rules 
+- [`35b6eaa`](https://github.com/rubenvitt/bluelight-hub/commit/35b6eaa) (backend): Add cache manager foundation with NestJS CacheModule
 
-- [`cc40db2`](https://github.com/rubenvitt/bluelight-hub/commit/cc40db2) (backend): Add CacheDuplicateDetectionService for idempotency 
+- [`0eaad1c`](https://github.com/rubenvitt/bluelight-hub/commit/0eaad1c) (einsatz): Add archiving workflow with status transition rules
 
-- [`6963ced`](https://github.com/rubenvitt/bluelight-hub/commit/6963ced) (frontend): Add Einsatz UI components with atomic design 
+- [`cc40db2`](https://github.com/rubenvitt/bluelight-hub/commit/cc40db2) (backend): Add CacheDuplicateDetectionService for idempotency
 
-- [`3116e32`](https://github.com/rubenvitt/bluelight-hub/commit/3116e32) (ui): Implement comprehensive Einsatz UI with atomic design system 
+- [`6963ced`](https://github.com/rubenvitt/bluelight-hub/commit/6963ced) (frontend): Add Einsatz UI components with atomic design
 
-- [`6d32b69`](https://github.com/rubenvitt/bluelight-hub/commit/6d32b69) (einsatz): Add navigation between Einsätze with detail view 
+- [`3116e32`](https://github.com/rubenvitt/bluelight-hub/commit/3116e32) (ui): Implement comprehensive Einsatz UI with atomic design system
 
-- [`a61dfa6`](https://github.com/rubenvitt/bluelight-hub/commit/a61dfa6) (frontend): Add system color mode with automatic OS theme detection 
+- [`6d32b69`](https://github.com/rubenvitt/bluelight-hub/commit/6d32b69) (einsatz): Add navigation between Einsätze with detail view
 
-- [`824063c`](https://github.com/rubenvitt/bluelight-hub/commit/824063c) (frontend): Add search input and UI state components 
+- [`a61dfa6`](https://github.com/rubenvitt/bluelight-hub/commit/a61dfa6) (frontend): Add system color mode with automatic OS theme detection
+
+- [`824063c`](https://github.com/rubenvitt/bluelight-hub/commit/824063c) (frontend): Add search input and UI state components
 
 ## 🐛 Fehlerbehebungen
+
 Diese Probleme wurden behoben:
-- [`7210901`](https://github.com/rubenvitt/bluelight-hub/commit/7210901) (backend): Fix test failures after admin auth implementation 
 
-- [`5498f91`](https://github.com/rubenvitt/bluelight-hub/commit/5498f91) (frontend): Fix gitignore to track logs pages 
+- [`7210901`](https://github.com/rubenvitt/bluelight-hub/commit/7210901) (backend): Fix test failures after admin auth implementation
 
-- [`d94fdc7`](https://github.com/rubenvitt/bluelight-hub/commit/d94fdc7) (admin): Fix admin authentication and test issues 
+- [`5498f91`](https://github.com/rubenvitt/bluelight-hub/commit/5498f91) (frontend): Fix gitignore to track logs pages
 
-- [`030869f`](https://github.com/rubenvitt/bluelight-hub/commit/030869f) (backend): Fix remaining unit test failures after audit integration 
+- [`d94fdc7`](https://github.com/rubenvitt/bluelight-hub/commit/d94fdc7) (admin): Fix admin authentication and test issues
 
-- [`070f8c2`](https://github.com/rubenvitt/bluelight-hub/commit/070f8c2) (frontend): Fix audit log API parameter mismatches 
+- [`030869f`](https://github.com/rubenvitt/bluelight-hub/commit/030869f) (backend): Fix remaining unit test failures after audit integration
 
-- [`1fce007`](https://github.com/rubenvitt/bluelight-hub/commit/1fce007) (backend): Add missing audit log permissions to Prisma schema 
+- [`070f8c2`](https://github.com/rubenvitt/bluelight-hub/commit/070f8c2) (frontend): Fix audit log API parameter mismatches
 
-- [`db5a013`](https://github.com/rubenvitt/bluelight-hub/commit/db5a013) (frontend): Fix audit log table data mapping issue 
+- [`1fce007`](https://github.com/rubenvitt/bluelight-hub/commit/1fce007) (backend): Add missing audit log permissions to Prisma schema
 
-- [`829c9b7`](https://github.com/rubenvitt/bluelight-hub/commit/829c9b7) (frontend): Fix audit log statistics data mapping 
+- [`db5a013`](https://github.com/rubenvitt/bluelight-hub/commit/db5a013) (frontend): Fix audit log table data mapping issue
 
-- [`517573f`](https://github.com/rubenvitt/bluelight-hub/commit/517573f) (backend): Fix trace logging implementation and remove console.error from audit interceptor 
+- [`829c9b7`](https://github.com/rubenvitt/bluelight-hub/commit/829c9b7) (frontend): Fix audit log statistics data mapping
 
-- [`6fe9727`](https://github.com/rubenvitt/bluelight-hub/commit/6fe9727) (backend): Fix audit log API response type and update frontend hooks 
+- [`517573f`](https://github.com/rubenvitt/bluelight-hub/commit/517573f) (backend): Fix trace logging implementation and remove console.error from audit interceptor
 
-- [`66c3fe0`](https://github.com/rubenvitt/bluelight-hub/commit/66c3fe0) (backend): Fix audit interceptor to use logger instead of console.error 
+- [`6fe9727`](https://github.com/rubenvitt/bluelight-hub/commit/6fe9727) (backend): Fix audit log API response type and update frontend hooks
 
-- [`bc05f2e`](https://github.com/rubenvitt/bluelight-hub/commit/bc05f2e) (backend): Fix auth module test for CI environments 
+- [`66c3fe0`](https://github.com/rubenvitt/bluelight-hub/commit/66c3fe0) (backend): Fix audit interceptor to use logger instead of console.error
 
-- [`27bf7a1`](https://github.com/rubenvitt/bluelight-hub/commit/27bf7a1) (backend): Fix session service tests to use jti instead of id 
+- [`bc05f2e`](https://github.com/rubenvitt/bluelight-hub/commit/bc05f2e) (backend): Fix auth module test for CI environments
 
-- [`9f12130`](https://github.com/rubenvitt/bluelight-hub/commit/9f12130) (backend): Fix hardcoded 15-minute window to use configurable value 
+- [`27bf7a1`](https://github.com/rubenvitt/bluelight-hub/commit/27bf7a1) (backend): Fix session service tests to use jti instead of id
 
-- [`c88e1e7`](https://github.com/rubenvitt/bluelight-hub/commit/c88e1e7) (frontend): Fix IP rate limit handling and error messages 
+- [`9f12130`](https://github.com/rubenvitt/bluelight-hub/commit/9f12130) (backend): Fix hardcoded 15-minute window to use configurable value
 
-- [`0b33afc`](https://github.com/rubenvitt/bluelight-hub/commit/0b33afc) (frontend): Fix backend availability check and TypeScript types 
+- [`c88e1e7`](https://github.com/rubenvitt/bluelight-hub/commit/c88e1e7) (frontend): Fix IP rate limit handling and error messages
 
-- [`e3d8577`](https://github.com/rubenvitt/bluelight-hub/commit/e3d8577) (backend): Remove unused ThreatDetectionRule imports 
+- [`0b33afc`](https://github.com/rubenvitt/bluelight-hub/commit/0b33afc) (frontend): Fix backend availability check and TypeScript types
 
-- [`fed04b8`](https://github.com/rubenvitt/bluelight-hub/commit/fed04b8) (backend): Fix test failures in security and session tests 
+- [`e3d8577`](https://github.com/rubenvitt/bluelight-hub/commit/e3d8577) (backend): Remove unused ThreatDetectionRule imports
 
-- [`197141f`](https://github.com/rubenvitt/bluelight-hub/commit/197141f) (backend): Fix all 37 test failures and improve test stability 
+- [`fed04b8`](https://github.com/rubenvitt/bluelight-hub/commit/fed04b8) (backend): Fix test failures in security and session tests
 
-- [`f502b70`](https://github.com/rubenvitt/bluelight-hub/commit/f502b70) (backend): Fix TypeScript types and remove any types 
+- [`197141f`](https://github.com/rubenvitt/bluelight-hub/commit/197141f) (backend): Fix all 37 test failures and improve test stability
 
-- [`fe393fd`](https://github.com/rubenvitt/bluelight-hub/commit/fe393fd) (backend): Fix TypeScript types and remove any types 
+- [`f502b70`](https://github.com/rubenvitt/bluelight-hub/commit/f502b70) (backend): Fix TypeScript types and remove any types
 
-- [`d5f5046`](https://github.com/rubenvitt/bluelight-hub/commit/d5f5046) (backend): Fix timezone-dependent test in suspicious activity service 
+- [`fe393fd`](https://github.com/rubenvitt/bluelight-hub/commit/fe393fd) (backend): Fix TypeScript types and remove any types
 
-- [`1b79b4a`](https://github.com/rubenvitt/bluelight-hub/commit/1b79b4a) (backend): Fix health controller test failures and linting errors 
+- [`d5f5046`](https://github.com/rubenvitt/bluelight-hub/commit/d5f5046) (backend): Fix timezone-dependent test in suspicious activity service
 
-- [`1600c1d`](https://github.com/rubenvitt/bluelight-hub/commit/1600c1d) (backend): Fix timezone-related test failures in CI 
+- [`1b79b4a`](https://github.com/rubenvitt/bluelight-hub/commit/1b79b4a) (backend): Fix health controller test failures and linting errors
 
-- [`e6cd2c5`](https://github.com/rubenvitt/bluelight-hub/commit/e6cd2c5) (backend): Fix test failures in retry and circuit breaker utilities 
+- [`1600c1d`](https://github.com/rubenvitt/bluelight-hub/commit/1600c1d) (backend): Fix timezone-related test failures in CI
 
-- [`a98fe53`](https://github.com/rubenvitt/bluelight-hub/commit/a98fe53) (backend): Fix PR review issues in test and utility files 
+- [`e6cd2c5`](https://github.com/rubenvitt/bluelight-hub/commit/e6cd2c5) (backend): Fix test failures in retry and circuit breaker utilities
 
-- [`38a88d0`](https://github.com/rubenvitt/bluelight-hub/commit/38a88d0) (backend): Fix BullMQ Redis connection for security logging queue 
+- [`a98fe53`](https://github.com/rubenvitt/bluelight-hub/commit/a98fe53) (backend): Fix PR review issues in test and utility files
 
-- [`b6088e9`](https://github.com/rubenvitt/bluelight-hub/commit/b6088e9) (backend): Fix SecurityLog integrity verification sorting issue 
+- [`38a88d0`](https://github.com/rubenvitt/bluelight-hub/commit/38a88d0) (backend): Fix BullMQ Redis connection for security logging queue
 
-- [`7d808ed`](https://github.com/rubenvitt/bluelight-hub/commit/7d808ed) (backend): Fix Prisma validation test in CI environment 
+- [`b6088e9`](https://github.com/rubenvitt/bluelight-hub/commit/b6088e9) (backend): Fix SecurityLog integrity verification sorting issue
 
-- [`00b750e`](https://github.com/rubenvitt/bluelight-hub/commit/00b750e) (backend): Fix remaining security logging test failures 
+- [`7d808ed`](https://github.com/rubenvitt/bluelight-hub/commit/7d808ed) (backend): Fix Prisma validation test in CI environment
 
-- [`39750bb`](https://github.com/rubenvitt/bluelight-hub/commit/39750bb) (backend): Fix resource column display in audit log view 
-(Zugehörige Issues: [`#162`](https://github.com/rubenvitt/bluelight-hub/issues/))
+- [`00b750e`](https://github.com/rubenvitt/bluelight-hub/commit/00b750e) (backend): Fix remaining security logging test failures
 
-- [`170120b`](https://github.com/rubenvitt/bluelight-hub/commit/170120b) (backend): Fix resource extraction for version-prefixed paths 
+- [`39750bb`](https://github.com/rubenvitt/bluelight-hub/commit/39750bb) (backend): Fix resource column display in audit log view
+  (Zugehörige Issues: [`#162`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
-- [`149b49c`](https://github.com/rubenvitt/bluelight-hub/commit/149b49c) (frontend): Fix audit log statistics severity mapping 
+- [`170120b`](https://github.com/rubenvitt/bluelight-hub/commit/170120b) (backend): Fix resource extraction for version-prefixed paths
 
-- [`1b2d8fd`](https://github.com/rubenvitt/bluelight-hub/commit/1b2d8fd) (frontend): Fix negative successful login count in SecurityDashboard 
+- [`149b49c`](https://github.com/rubenvitt/bluelight-hub/commit/149b49c) (frontend): Fix audit log statistics severity mapping
 
-- [`0647a53`](https://github.com/rubenvitt/bluelight-hub/commit/0647a53) (frontend): Fix missing fields in SecurityLog interface 
+- [`1b2d8fd`](https://github.com/rubenvitt/bluelight-hub/commit/1b2d8fd) (frontend): Fix negative successful login count in SecurityDashboard
 
-- [`0f5be53`](https://github.com/rubenvitt/bluelight-hub/commit/0f5be53) (backend): Fix suspicious activity service tests by mocking date 
+- [`0647a53`](https://github.com/rubenvitt/bluelight-hub/commit/0647a53) (frontend): Fix missing fields in SecurityLog interface
 
-- [`25e585a`](https://github.com/rubenvitt/bluelight-hub/commit/25e585a) (backend): Fix time-dependent test failures in auth service 
+- [`0f5be53`](https://github.com/rubenvitt/bluelight-hub/commit/0f5be53) (backend): Fix suspicious activity service tests by mocking date
 
-- [`65419f0`](https://github.com/rubenvitt/bluelight-hub/commit/65419f0) (frontend): Fix timezone-dependent tests in security components 
+- [`25e585a`](https://github.com/rubenvitt/bluelight-hub/commit/25e585a) (backend): Fix time-dependent test failures in auth service
 
-- [`2b09cf4`](https://github.com/rubenvitt/bluelight-hub/commit/2b09cf4) (frontend): Add minimal test to fix CI/CD pipeline failure 
+- [`65419f0`](https://github.com/rubenvitt/bluelight-hub/commit/65419f0) (frontend): Fix timezone-dependent tests in security components
 
-- [`945d77b`](https://github.com/rubenvitt/bluelight-hub/commit/945d77b) (admin): Fix activity log error handling and add mock data 
+- [`2b09cf4`](https://github.com/rubenvitt/bluelight-hub/commit/2b09cf4) (frontend): Add minimal test to fix CI/CD pipeline failure
 
-- [`b18056c`](https://github.com/rubenvitt/bluelight-hub/commit/b18056c) (backend): Fix TypeScript errors in admin module 
+- [`945d77b`](https://github.com/rubenvitt/bluelight-hub/commit/945d77b) (admin): Fix activity log error handling and add mock data
 
-- [`de0cff0`](https://github.com/rubenvitt/bluelight-hub/commit/de0cff0) (backend): Fix admin login tests to match JWT-based authentication 
+- [`b18056c`](https://github.com/rubenvitt/bluelight-hub/commit/b18056c) (backend): Fix TypeScript errors in admin module
 
-- [`26b8fc0`](https://github.com/rubenvitt/bluelight-hub/commit/26b8fc0) (frontend): Fix unnecessary conditional check in AdminLogin 
+- [`de0cff0`](https://github.com/rubenvitt/bluelight-hub/commit/de0cff0) (backend): Fix admin login tests to match JWT-based authentication
 
-- [`6889d38`](https://github.com/rubenvitt/bluelight-hub/commit/6889d38) (frontend): Fix Button component missing type prop 
+- [`26b8fc0`](https://github.com/rubenvitt/bluelight-hub/commit/26b8fc0) (frontend): Fix unnecessary conditional check in AdminLogin
 
-- [`1795378`](https://github.com/rubenvitt/bluelight-hub/commit/1795378) (backend): Fix syntax error in auth-response mapper spec 
+- [`6889d38`](https://github.com/rubenvitt/bluelight-hub/commit/6889d38) (frontend): Fix Button component missing type prop
 
-- [`d54c9f3`](https://github.com/rubenvitt/bluelight-hub/commit/d54c9f3) (backend): Fix TypeScript compilation errors 
+- [`1795378`](https://github.com/rubenvitt/bluelight-hub/commit/1795378) (backend): Fix syntax error in auth-response mapper spec
+
+- [`d54c9f3`](https://github.com/rubenvitt/bluelight-hub/commit/d54c9f3) (backend): Fix TypeScript compilation errors
 
 ## 🔒 Sicherheitsverbesserungen
-Sicherheitsrelevante Änderungen:
-- [`dd6d6ef`](https://github.com/rubenvitt/bluelight-hub/commit/dd6d6ef) (deps): Update pnpm-lock.yaml 
 
-- [`f3048fe`](https://github.com/rubenvitt/bluelight-hub/commit/f3048fe) (einsatz): Implement No-Delete Policy with soft-delete pattern 
+Sicherheitsrelevante Änderungen:
+
+- [`dd6d6ef`](https://github.com/rubenvitt/bluelight-hub/commit/dd6d6ef) (deps): Update pnpm-lock.yaml
+
+- [`f3048fe`](https://github.com/rubenvitt/bluelight-hub/commit/f3048fe) (einsatz): Implement No-Delete Policy with soft-delete pattern
 
 ## 🧹 Codebereinigungen
+
 Aufräumarbeiten und kleinere Verbesserungen:
-- [`6af2089`](https://github.com/rubenvitt/bluelight-hub/commit/6af2089) (config): Remove and ignore Windsurfrules and Roo files 
 
-- [`67bcc0b`](https://github.com/rubenvitt/bluelight-hub/commit/67bcc0b) (backend): Add comprehensive authentication module tests 
+- [`6af2089`](https://github.com/rubenvitt/bluelight-hub/commit/6af2089) (config): Remove and ignore Windsurfrules and Roo files
 
-- [`444cab4`](https://github.com/rubenvitt/bluelight-hub/commit/444cab4) (backend): Reduce audit and ETB log verbosity 
+- [`67bcc0b`](https://github.com/rubenvitt/bluelight-hub/commit/67bcc0b) (backend): Add comprehensive authentication module tests
 
-- [`0904277`](https://github.com/rubenvitt/bluelight-hub/commit/0904277) (backend): Add comprehensive unit tests for audit module 
+- [`444cab4`](https://github.com/rubenvitt/bluelight-hub/commit/444cab4) (backend): Reduce audit and ETB log verbosity
 
-- [`f8e82fb`](https://github.com/rubenvitt/bluelight-hub/commit/f8e82fb) (backend): Füge umfassende Tests für Audit DTOs und Entities hinzu 
+- [`0904277`](https://github.com/rubenvitt/bluelight-hub/commit/0904277) (backend): Add comprehensive unit tests for audit module
 
-- [`4293a1a`](https://github.com/rubenvitt/bluelight-hub/commit/4293a1a) (backend): Füge JSDoc zu admin-auth.spec.ts hinzu 
+- [`f8e82fb`](https://github.com/rubenvitt/bluelight-hub/commit/f8e82fb) (backend): Füge umfassende Tests für Audit DTOs und Entities hinzu
 
-- [`17ac671`](https://github.com/rubenvitt/bluelight-hub/commit/17ac671) (backend): Entferne ungenutzte JwtRefreshStrategy 
+- [`4293a1a`](https://github.com/rubenvitt/bluelight-hub/commit/4293a1a) (backend): Füge JSDoc zu admin-auth.spec.ts hinzu
 
-- [`3d708b8`](https://github.com/rubenvitt/bluelight-hub/commit/3d708b8) (tooling): Remove Rust version from .tool-versions file 
+- [`17ac671`](https://github.com/rubenvitt/bluelight-hub/commit/17ac671) (backend): Entferne ungenutzte JwtRefreshStrategy
 
-- [`242b2fb`](https://github.com/rubenvitt/bluelight-hub/commit/242b2fb) (backend): Remove obsolete integration tests for audit and auth modules 
+- [`3d708b8`](https://github.com/rubenvitt/bluelight-hub/commit/3d708b8) (tooling): Remove Rust version from .tool-versions file
 
-- [`7021db9`](https://github.com/rubenvitt/bluelight-hub/commit/7021db9) (backend): Fix test suite after security logging implementation 
+- [`242b2fb`](https://github.com/rubenvitt/bluelight-hub/commit/242b2fb) (backend): Remove obsolete integration tests for audit and auth modules
 
-- [`08f1119`](https://github.com/rubenvitt/bluelight-hub/commit/08f1119) (backend): Fix undefined &#x27;fail&#x27; function in security schema tests 
+- [`7021db9`](https://github.com/rubenvitt/bluelight-hub/commit/7021db9) (backend): Fix test suite after security logging implementation
 
-- [`e5db960`](https://github.com/rubenvitt/bluelight-hub/commit/e5db960) (backend): Fix flaky timing test in auditTestUtils 
+- [`08f1119`](https://github.com/rubenvitt/bluelight-hub/commit/08f1119) (backend): Fix undefined &#x27;fail&#x27; function in security schema tests
 
-- [`a5d61f5`](https://github.com/rubenvitt/bluelight-hub/commit/a5d61f5) (backend): Fix test mocks and clean up test suite 
+- [`e5db960`](https://github.com/rubenvitt/bluelight-hub/commit/e5db960) (backend): Fix flaky timing test in auditTestUtils
 
-- [`eaec2ff`](https://github.com/rubenvitt/bluelight-hub/commit/eaec2ff) (backend): Temporär alle Backend-Tests entfernt für CI/CD-Pipeline-Fix 
+- [`a5d61f5`](https://github.com/rubenvitt/bluelight-hub/commit/a5d61f5) (backend): Fix test mocks and clean up test suite
 
-- [`8b36cd2`](https://github.com/rubenvitt/bluelight-hub/commit/8b36cd2) (docs): Bereinige Agent-Konfigurationen und vereinfache Docs 
+- [`eaec2ff`](https://github.com/rubenvitt/bluelight-hub/commit/eaec2ff) (backend): Temporär alle Backend-Tests entfernt für CI/CD-Pipeline-Fix
 
-- [`c63eb02`](https://github.com/rubenvitt/bluelight-hub/commit/c63eb02) (docs): Improve formatting in arc42 concepts documentation 
+- [`8b36cd2`](https://github.com/rubenvitt/bluelight-hub/commit/8b36cd2) (docs): Bereinige Agent-Konfigurationen und vereinfache Docs
 
-- [`e62cd77`](https://github.com/rubenvitt/bluelight-hub/commit/e62cd77) (frontend): Clean up Tailwind CSS class ordering 
+- [`c63eb02`](https://github.com/rubenvitt/bluelight-hub/commit/c63eb02) (docs): Improve formatting in arc42 concepts documentation
+
+- [`e62cd77`](https://github.com/rubenvitt/bluelight-hub/commit/e62cd77) (frontend): Clean up Tailwind CSS class ordering
 
 ## ♻ Refactoring
+
 Struktur- oder Code-Verbesserungen:
-- [`eab89e8`](https://github.com/rubenvitt/bluelight-hub/commit/eab89e8) (docs): Move role-based admin docs to architecture section 
 
-- [`5171d90`](https://github.com/rubenvitt/bluelight-hub/commit/5171d90) (backend): Reduce audit log verbosity and add trace level support 
+- [`eab89e8`](https://github.com/rubenvitt/bluelight-hub/commit/eab89e8) (docs): Move role-based admin docs to architecture section
 
-- [`3dab7f3`](https://github.com/rubenvitt/bluelight-hub/commit/3dab7f3) (backend): Implement streaming exports for large audit log datasets 
+- [`5171d90`](https://github.com/rubenvitt/bluelight-hub/commit/5171d90) (backend): Reduce audit log verbosity and add trace level support
 
-- [`84d8b0a`](https://github.com/rubenvitt/bluelight-hub/commit/84d8b0a) (backend): Konsolidiere Audit-Interceptoren 
+- [`3dab7f3`](https://github.com/rubenvitt/bluelight-hub/commit/3dab7f3) (backend): Implement streaming exports for large audit log datasets
 
-- [`cb5ccc6`](https://github.com/rubenvitt/bluelight-hub/commit/cb5ccc6) (backend): Refactor auth.service for better security 
+- [`84d8b0a`](https://github.com/rubenvitt/bluelight-hub/commit/84d8b0a) (backend): Konsolidiere Audit-Interceptoren
 
-- [`910cc60`](https://github.com/rubenvitt/bluelight-hub/commit/910cc60) (frontend): Replace login button with automatic redirect 
+- [`cb5ccc6`](https://github.com/rubenvitt/bluelight-hub/commit/cb5ccc6) (backend): Refactor auth.service for better security
 
-- [`d468c05`](https://github.com/rubenvitt/bluelight-hub/commit/d468c05) (backend): Refactor AuditInterceptor for enhanced action handling 
+- [`910cc60`](https://github.com/rubenvitt/bluelight-hub/commit/910cc60) (frontend): Replace login button with automatic redirect
 
-- [`549b569`](https://github.com/rubenvitt/bluelight-hub/commit/549b569) (backend): Update test cases with UTC handling, exclude performance 
+- [`d468c05`](https://github.com/rubenvitt/bluelight-hub/commit/d468c05) (backend): Refactor AuditInterceptor for enhanced action handling
 
-- [`de68972`](https://github.com/rubenvitt/bluelight-hub/commit/de68972) (backend): Refactor and Re-enable Audit-Interceptor Test Suite 
-(Zugehörige Issues: [`#164`](https://github.com/rubenvitt/bluelight-hub/issues/))
+- [`549b569`](https://github.com/rubenvitt/bluelight-hub/commit/549b569) (backend): Update test cases with UTC handling, exclude performance
 
-- [`f5b6390`](https://github.com/rubenvitt/bluelight-hub/commit/f5b6390) (backend): Refactor suspicious activity service 
+- [`de68972`](https://github.com/rubenvitt/bluelight-hub/commit/de68972) (backend): Refactor and Re-enable Audit-Interceptor Test Suite
+  (Zugehörige Issues: [`#164`](https://github.com/rubenvitt/bluelight-hub/issues/))
 
-- [`7c59041`](https://github.com/rubenvitt/bluelight-hub/commit/7c59041) (backend): Extract date parsing logic into reusable utility functions 
+- [`f5b6390`](https://github.com/rubenvitt/bluelight-hub/commit/f5b6390) (backend): Refactor suspicious activity service
 
-- [`ecad36c`](https://github.com/rubenvitt/bluelight-hub/commit/ecad36c) (backend): Replace any types with specific types in rules 
+- [`7c59041`](https://github.com/rubenvitt/bluelight-hub/commit/7c59041) (backend): Extract date parsing logic into reusable utility functions
 
-- [`7f5dd31`](https://github.com/rubenvitt/bluelight-hub/commit/7f5dd31) (backend): Refactor security alert system for improved maintainability 
+- [`ecad36c`](https://github.com/rubenvitt/bluelight-hub/commit/ecad36c) (backend): Replace any types with specific types in rules
 
-- [`8e0cc8b`](https://github.com/rubenvitt/bluelight-hub/commit/8e0cc8b) (frontend): Refactor admin API to use centralized helpers 
+- [`7f5dd31`](https://github.com/rubenvitt/bluelight-hub/commit/7f5dd31) (backend): Refactor security alert system for improved maintainability
 
-- [`0c253b4`](https://github.com/rubenvitt/bluelight-hub/commit/0c253b4) (frontend): Remove manual API helpers and update CLAUDE.md 
+- [`8e0cc8b`](https://github.com/rubenvitt/bluelight-hub/commit/8e0cc8b) (frontend): Refactor admin API to use centralized helpers
 
-- [`4d0ff0c`](https://github.com/rubenvitt/bluelight-hub/commit/4d0ff0c) (husky): Remove redundant test execution logic in commit-msg hook 
+- [`0c253b4`](https://github.com/rubenvitt/bluelight-hub/commit/0c253b4) (frontend): Remove manual API helpers and update CLAUDE.md
 
-- [`be30f34`](https://github.com/rubenvitt/bluelight-hub/commit/be30f34) (husky): Comment out test execution logic in commit-msg hook 
+- [`4d0ff0c`](https://github.com/rubenvitt/bluelight-hub/commit/4d0ff0c) (husky): Remove redundant test execution logic in commit-msg hook
 
-- [`6212819`](https://github.com/rubenvitt/bluelight-hub/commit/6212819) (auth): Refactor admin auth system for better maintainability 
+- [`be30f34`](https://github.com/rubenvitt/bluelight-hub/commit/be30f34) (husky): Comment out test execution logic in commit-msg hook
 
-- [`a912768`](https://github.com/rubenvitt/bluelight-hub/commit/a912768) (frontend): Enhance admin auth with centralized utilities 
+- [`6212819`](https://github.com/rubenvitt/bluelight-hub/commit/6212819) (auth): Refactor admin auth system for better maintainability
 
-- [`2eb4857`](https://github.com/rubenvitt/bluelight-hub/commit/2eb4857) (arch): Standardize API responses with DTO pattern 
+- [`a912768`](https://github.com/rubenvitt/bluelight-hub/commit/a912768) (frontend): Enhance admin auth with centralized utilities
 
-- [`b30562f`](https://github.com/rubenvitt/bluelight-hub/commit/b30562f) (auth): Refactor authentication system for better session handling 
+- [`2eb4857`](https://github.com/rubenvitt/bluelight-hub/commit/2eb4857) (arch): Standardize API responses with DTO pattern
 
-- [`fd66078`](https://github.com/rubenvitt/bluelight-hub/commit/fd66078) (auth): Refresh-Flow aktualisiert; Admin-Login/Layout; DTO-Updates 
+- [`b30562f`](https://github.com/rubenvitt/bluelight-hub/commit/b30562f) (auth): Refactor authentication system for better session handling
 
-- [`d856ddb`](https://github.com/rubenvitt/bluelight-hub/commit/d856ddb) (backend): Use ConfigService and fix package.json import 
+- [`fd66078`](https://github.com/rubenvitt/bluelight-hub/commit/fd66078) (auth): Refresh-Flow aktualisiert; Admin-Login/Layout; DTO-Updates
 
-- [`02a2daa`](https://github.com/rubenvitt/bluelight-hub/commit/02a2daa) (auth): Refactor auth system with improved DTOs and mappers 
+- [`d856ddb`](https://github.com/rubenvitt/bluelight-hub/commit/d856ddb) (backend): Use ConfigService and fix package.json import
 
-- [`bd6d3e5`](https://github.com/rubenvitt/bluelight-hub/commit/bd6d3e5) (project): Standardize configuration and improve error handling 
+- [`02a2daa`](https://github.com/rubenvitt/bluelight-hub/commit/02a2daa) (auth): Refactor auth system with improved DTOs and mappers
 
-- [`284bd60`](https://github.com/rubenvitt/bluelight-hub/commit/284bd60) (shared): Regenerate API client with public users endpoint 
+- [`bd6d3e5`](https://github.com/rubenvitt/bluelight-hub/commit/bd6d3e5) (project): Standardize configuration and improve error handling
 
-- [`58acd7d`](https://github.com/rubenvitt/bluelight-hub/commit/58acd7d) (auth): Centralize query keys and refactor authentication system 
+- [`284bd60`](https://github.com/rubenvitt/bluelight-hub/commit/284bd60) (shared): Regenerate API client with public users endpoint
 
-- [`d29322e`](https://github.com/rubenvitt/bluelight-hub/commit/d29322e) (auth): Improve logger DI and auth refresh state management 
+- [`58acd7d`](https://github.com/rubenvitt/bluelight-hub/commit/58acd7d) (auth): Centralize query keys and refactor authentication system
 
-- [`2037519`](https://github.com/rubenvitt/bluelight-hub/commit/2037519) (frontend): Centralize API error handling 
+- [`d29322e`](https://github.com/rubenvitt/bluelight-hub/commit/d29322e) (auth): Improve logger DI and auth refresh state management
 
-- [`e57f159`](https://github.com/rubenvitt/bluelight-hub/commit/e57f159) (auth): Restructure auth system with new mappers and improved UI 
+- [`2037519`](https://github.com/rubenvitt/bluelight-hub/commit/2037519) (frontend): Centralize API error handling
 
-- [`83bf94c`](https://github.com/rubenvitt/bluelight-hub/commit/83bf94c) (frontend): Add cn utility and update import paths 
+- [`e57f159`](https://github.com/rubenvitt/bluelight-hub/commit/e57f159) (auth): Restructure auth system with new mappers and improved UI
 
-- [`33c9eb9`](https://github.com/rubenvitt/bluelight-hub/commit/33c9eb9) (frontend): Continue Tailwind migration with improved components 
+- [`83bf94c`](https://github.com/rubenvitt/bluelight-hub/commit/83bf94c) (frontend): Add cn utility and update import paths
 
-- [`f8b4626`](https://github.com/rubenvitt/bluelight-hub/commit/f8b4626) (frontend): Improve Button accessibility and TypeScript types 
+- [`33c9eb9`](https://github.com/rubenvitt/bluelight-hub/commit/33c9eb9) (frontend): Continue Tailwind migration with improved components
 
-- [`08208f3`](https://github.com/rubenvitt/bluelight-hub/commit/08208f3) (auth): Implement unified authentication with auto-registration 
+- [`f8b4626`](https://github.com/rubenvitt/bluelight-hub/commit/f8b4626) (frontend): Improve Button accessibility and TypeScript types
 
-- [`1fc61f3`](https://github.com/rubenvitt/bluelight-hub/commit/1fc61f3) (auth): Refactor to unified authentication form 
+- [`08208f3`](https://github.com/rubenvitt/bluelight-hub/commit/08208f3) (auth): Implement unified authentication with auto-registration
 
-- [`18be606`](https://github.com/rubenvitt/bluelight-hub/commit/18be606) (all): Update Node.js, fix tests and improve query keys 
+- [`1fc61f3`](https://github.com/rubenvitt/bluelight-hub/commit/1fc61f3) (auth): Refactor to unified authentication form
 
-- [`aa7e184`](https://github.com/rubenvitt/bluelight-hub/commit/aa7e184) (all): Add Biome formatter and centralize config management 
+- [`18be606`](https://github.com/rubenvitt/bluelight-hub/commit/18be606) (all): Update Node.js, fix tests and improve query keys
 
-- [`f0ae5e9`](https://github.com/rubenvitt/bluelight-hub/commit/f0ae5e9) (tooling): Replace format:check with unified lint:check command 
+- [`aa7e184`](https://github.com/rubenvitt/bluelight-hub/commit/aa7e184) (all): Add Biome formatter and centralize config management
 
-- [`db60efe`](https://github.com/rubenvitt/bluelight-hub/commit/db60efe) (tooling): Complete migration from Prettier/ESLint to Biome 
+- [`f0ae5e9`](https://github.com/rubenvitt/bluelight-hub/commit/f0ae5e9) (tooling): Replace format:check with unified lint:check command
 
-- [`82d58eb`](https://github.com/rubenvitt/bluelight-hub/commit/82d58eb) (backend): Improve type safety and cleanup dependencies 
+- [`db60efe`](https://github.com/rubenvitt/bluelight-hub/commit/db60efe) (tooling): Complete migration from Prettier/ESLint to Biome
 
-- [`31c1af3`](https://github.com/rubenvitt/bluelight-hub/commit/31c1af3) (backend): Remove type-only imports from services and controllers 
+- [`82d58eb`](https://github.com/rubenvitt/bluelight-hub/commit/82d58eb) (backend): Improve type safety and cleanup dependencies
 
-- [`afbeae6`](https://github.com/rubenvitt/bluelight-hub/commit/afbeae6) (api): Refactor API client and remove obsolete DTOs 
+- [`31c1af3`](https://github.com/rubenvitt/bluelight-hub/commit/31c1af3) (backend): Remove type-only imports from services and controllers
 
-- [`ad82ba5`](https://github.com/rubenvitt/bluelight-hub/commit/ad82ba5) (architecture): Simplify caching and add performance monitoring 
+- [`afbeae6`](https://github.com/rubenvitt/bluelight-hub/commit/afbeae6) (api): Refactor API client and remove obsolete DTOs
 
-- [`d4c3f02`](https://github.com/rubenvitt/bluelight-hub/commit/d4c3f02) (backend): Migrate rate limiter to cache-only implementation 
+- [`ad82ba5`](https://github.com/rubenvitt/bluelight-hub/commit/ad82ba5) (architecture): Simplify caching and add performance monitoring
 
-- [`c2f81bf`](https://github.com/rubenvitt/bluelight-hub/commit/c2f81bf) (frontend): Refactor Einsatz hooks with optimistic updates 
+- [`d4c3f02`](https://github.com/rubenvitt/bluelight-hub/commit/d4c3f02) (backend): Migrate rate limiter to cache-only implementation
 
-- [`7f0526f`](https://github.com/rubenvitt/bluelight-hub/commit/7f0526f) (einsatz): Refactor Einsatz system for minimal creation pattern 
+- [`c2f81bf`](https://github.com/rubenvitt/bluelight-hub/commit/c2f81bf) (frontend): Refactor Einsatz hooks with optimistic updates
 
-- [`ae8680f`](https://github.com/rubenvitt/bluelight-hub/commit/ae8680f) (frontend): Refactor dashboard with responsive components 
+- [`7f0526f`](https://github.com/rubenvitt/bluelight-hub/commit/7f0526f) (einsatz): Refactor Einsatz system for minimal creation pattern
 
-- [`f872fe3`](https://github.com/rubenvitt/bluelight-hub/commit/f872fe3) (ci): Simplify CI pipeline configuration 
+- [`ae8680f`](https://github.com/rubenvitt/bluelight-hub/commit/ae8680f) (frontend): Refactor dashboard with responsive components
+
+- [`f872fe3`](https://github.com/rubenvitt/bluelight-hub/commit/f872fe3) (ci): Simplify CI pipeline configuration
 
 ## 🔧 Tool Verbesserungen
+
 Verbesserungen an den Werkzeugen:
-- [`14ada80`](https://github.com/rubenvitt/bluelight-hub/commit/14ada80) (config): Add puppeteer to allowed deprecated versions 
 
-- [`2afbb33`](https://github.com/rubenvitt/bluelight-hub/commit/2afbb33) (frontend): Fix linting errors and test failures 
+- [`14ada80`](https://github.com/rubenvitt/bluelight-hub/commit/14ada80) (config): Add puppeteer to allowed deprecated versions
 
-- [`0fe18b8`](https://github.com/rubenvitt/bluelight-hub/commit/0fe18b8) (backend): Move environment variables to appropriate locations 
+- [`2afbb33`](https://github.com/rubenvitt/bluelight-hub/commit/2afbb33) (frontend): Fix linting errors and test failures
 
-- [`278a1b3`](https://github.com/rubenvitt/bluelight-hub/commit/278a1b3) (shared): Regenerate API client after MFA removal 
+- [`0fe18b8`](https://github.com/rubenvitt/bluelight-hub/commit/0fe18b8) (backend): Move environment variables to appropriate locations
 
-- [`aff8eb8`](https://github.com/rubenvitt/bluelight-hub/commit/aff8eb8) (scripts): Erweitere commit-helper um alle erlaubten Emojis 
+- [`278a1b3`](https://github.com/rubenvitt/bluelight-hub/commit/278a1b3) (shared): Regenerate API client after MFA removal
 
-- [`2434fed`](https://github.com/rubenvitt/bluelight-hub/commit/2434fed) (backend): Exclude DTOs, interfaces and modules from code coverage 
+- [`aff8eb8`](https://github.com/rubenvitt/bluelight-hub/commit/aff8eb8) (scripts): Erweitere commit-helper um alle erlaubten Emojis
 
-- [`02a05da`](https://github.com/rubenvitt/bluelight-hub/commit/02a05da) (config): Add initial &#x60;.coderabbit.yaml&#x60; configuration file 
+- [`2434fed`](https://github.com/rubenvitt/bluelight-hub/commit/2434fed) (backend): Exclude DTOs, interfaces and modules from code coverage
 
-- [`b71a0bd`](https://github.com/rubenvitt/bluelight-hub/commit/b71a0bd) (config): Add initial &#x60;.coderabbit.yaml&#x60; configuration file 
+- [`02a05da`](https://github.com/rubenvitt/bluelight-hub/commit/02a05da) (config): Add initial &#x60;.coderabbit.yaml&#x60; configuration file
 
-- [`fee2ab7`](https://github.com/rubenvitt/bluelight-hub/commit/fee2ab7) (config): Add initial &#x60;.coderabbit.yaml&#x60; configuration file 
+- [`b71a0bd`](https://github.com/rubenvitt/bluelight-hub/commit/b71a0bd) (config): Add initial &#x60;.coderabbit.yaml&#x60; configuration file
 
-- [`0b09b44`](https://github.com/rubenvitt/bluelight-hub/commit/0b09b44) (config): Add initial &#x60;.coderabbit.yaml&#x60; configuration file 
+- [`fee2ab7`](https://github.com/rubenvitt/bluelight-hub/commit/fee2ab7) (config): Add initial &#x60;.coderabbit.yaml&#x60; configuration file
 
-- [`25e3776`](https://github.com/rubenvitt/bluelight-hub/commit/25e3776) (frontend): Temporär Frontend-Coverage-Anforderungen reduziert 
+- [`0b09b44`](https://github.com/rubenvitt/bluelight-hub/commit/0b09b44) (config): Add initial &#x60;.coderabbit.yaml&#x60; configuration file
 
-- [`b742352`](https://github.com/rubenvitt/bluelight-hub/commit/b742352) (backend): Add prisma generate to test scripts for CI/CD compatibility 
+- [`25e3776`](https://github.com/rubenvitt/bluelight-hub/commit/25e3776) (frontend): Temporär Frontend-Coverage-Anforderungen reduziert
 
-- [`5e71afc`](https://github.com/rubenvitt/bluelight-hub/commit/5e71afc) (frontend): Update vitest configuration to remove setup files 
+- [`b742352`](https://github.com/rubenvitt/bluelight-hub/commit/b742352) (backend): Add prisma generate to test scripts for CI/CD compatibility
 
-- [`f2c2c52`](https://github.com/rubenvitt/bluelight-hub/commit/f2c2c52) (tsconfig): Update TypeScript configurations across all packages 
+- [`5e71afc`](https://github.com/rubenvitt/bluelight-hub/commit/5e71afc) (frontend): Update vitest configuration to remove setup files
 
-- [`f8f1899`](https://github.com/rubenvitt/bluelight-hub/commit/f8f1899) (ci): Expand Frontend E2E Tests branch triggers 
+- [`f2c2c52`](https://github.com/rubenvitt/bluelight-hub/commit/f2c2c52) (tsconfig): Update TypeScript configurations across all packages
 
-- [`87b7f3c`](https://github.com/rubenvitt/bluelight-hub/commit/87b7f3c) (github): remove pnpm version from gh workflow 
+- [`f8f1899`](https://github.com/rubenvitt/bluelight-hub/commit/f8f1899) (ci): Expand Frontend E2E Tests branch triggers
 
-- [`44eda9a`](https://github.com/rubenvitt/bluelight-hub/commit/44eda9a) (ci): Fix GitHub Actions workflow by adding CI-specific build script 
+- [`87b7f3c`](https://github.com/rubenvitt/bluelight-hub/commit/87b7f3c) (github): remove pnpm version from gh workflow
 
-- [`1da80d4`](https://github.com/rubenvitt/bluelight-hub/commit/1da80d4) (ci): Fix pnpm not found error in GitHub Actions workflows 
+- [`44eda9a`](https://github.com/rubenvitt/bluelight-hub/commit/44eda9a) (ci): Fix GitHub Actions workflow by adding CI-specific build script
 
-- [`bfaa232`](https://github.com/rubenvitt/bluelight-hub/commit/bfaa232) (backend): Fix production build configuration and start script 
+- [`1da80d4`](https://github.com/rubenvitt/bluelight-hub/commit/1da80d4) (ci): Fix pnpm not found error in GitHub Actions workflows
 
-- [`bebb1e0`](https://github.com/rubenvitt/bluelight-hub/commit/bebb1e0) (ci): Make frontend E2E tests optional in CI pipeline 
+- [`bfaa232`](https://github.com/rubenvitt/bluelight-hub/commit/bfaa232) (backend): Fix production build configuration and start script
 
-- [`d677353`](https://github.com/rubenvitt/bluelight-hub/commit/d677353) (ci): Temporarily disable frontend E2E tests 
+- [`bebb1e0`](https://github.com/rubenvitt/bluelight-hub/commit/bebb1e0) (ci): Make frontend E2E tests optional in CI pipeline
 
-- [`07b83af`](https://github.com/rubenvitt/bluelight-hub/commit/07b83af) (ci): Update Node.js to v20 and remove createdBy field 
+- [`d677353`](https://github.com/rubenvitt/bluelight-hub/commit/d677353) (ci): Temporarily disable frontend E2E tests
 
-- [`43f7a7d`](https://github.com/rubenvitt/bluelight-hub/commit/43f7a7d) (ci): Add Qodana code quality checks with various fixes 
+- [`07b83af`](https://github.com/rubenvitt/bluelight-hub/commit/07b83af) (ci): Update Node.js to v20 and remove createdBy field
 
-- [`897565d`](https://github.com/rubenvitt/bluelight-hub/commit/897565d) (ci): Update Qodana action to use main branch 
+- [`43f7a7d`](https://github.com/rubenvitt/bluelight-hub/commit/43f7a7d) (ci): Add Qodana code quality checks with various fixes
 
-- [`bf7c6b0`](https://github.com/rubenvitt/bluelight-hub/commit/bf7c6b0) (workspace): Move @tanstack/react-devtools to catalog specification 
+- [`897565d`](https://github.com/rubenvitt/bluelight-hub/commit/897565d) (ci): Update Qodana action to use main branch
 
-- [`8a4599b`](https://github.com/rubenvitt/bluelight-hub/commit/8a4599b) (ci): Consolidate and improve CI/CD workflows 
+- [`bf7c6b0`](https://github.com/rubenvitt/bluelight-hub/commit/bf7c6b0) (workspace): Move @tanstack/react-devtools to catalog specification
 
-- [`8d65976`](https://github.com/rubenvitt/bluelight-hub/commit/8d65976) (config): Update development tools configuration 
+- [`8a4599b`](https://github.com/rubenvitt/bluelight-hub/commit/8a4599b) (ci): Consolidate and improve CI/CD workflows
 
-- [`05f2f14`](https://github.com/rubenvitt/bluelight-hub/commit/05f2f14) (ci): Update Node.js versions and GitHub Actions dependencies 
+- [`8d65976`](https://github.com/rubenvitt/bluelight-hub/commit/8d65976) (config): Update development tools configuration
 
-- [`033159e`](https://github.com/rubenvitt/bluelight-hub/commit/033159e) (ci): Update Node.js versions to 22/24 
+- [`05f2f14`](https://github.com/rubenvitt/bluelight-hub/commit/05f2f14) (ci): Update Node.js versions and GitHub Actions dependencies
 
-- [`b2569e7`](https://github.com/rubenvitt/bluelight-hub/commit/b2569e7) (config): Setup CORS and network for WebSocket/Tauri 
+- [`033159e`](https://github.com/rubenvitt/bluelight-hub/commit/033159e) (ci): Update Node.js versions to 22/24
 
-- [`45814f4`](https://github.com/rubenvitt/bluelight-hub/commit/45814f4) (ci): Fix Puppeteer Chromium download issues on macOS ARM64 
+- [`b2569e7`](https://github.com/rubenvitt/bluelight-hub/commit/b2569e7) (config): Setup CORS and network for WebSocket/Tauri
 
-- [`33e836e`](https://github.com/rubenvitt/bluelight-hub/commit/33e836e) (ci): Fix pnpm setup order in CI workflow 
+- [`45814f4`](https://github.com/rubenvitt/bluelight-hub/commit/45814f4) (ci): Fix Puppeteer Chromium download issues on macOS ARM64
 
-- [`bb00d15`](https://github.com/rubenvitt/bluelight-hub/commit/bb00d15) (ci): Standardize pnpm setup across all workflows 
+- [`33e836e`](https://github.com/rubenvitt/bluelight-hub/commit/33e836e) (ci): Fix pnpm setup order in CI workflow
 
-- [`7cee2c1`](https://github.com/rubenvitt/bluelight-hub/commit/7cee2c1) (ci): Consolidate E2E tests into main CI workflow 
+- [`bb00d15`](https://github.com/rubenvitt/bluelight-hub/commit/bb00d15) (ci): Standardize pnpm setup across all workflows
 
-- [`37ef48f`](https://github.com/rubenvitt/bluelight-hub/commit/37ef48f) (ci): Optimize dependency installation across workflows 
+- [`7cee2c1`](https://github.com/rubenvitt/bluelight-hub/commit/7cee2c1) (ci): Consolidate E2E tests into main CI workflow
 
-- [`cbe76e7`](https://github.com/rubenvitt/bluelight-hub/commit/cbe76e7) (ci): Comment out E2E test execution temporarily 
+- [`37ef48f`](https://github.com/rubenvitt/bluelight-hub/commit/37ef48f) (ci): Optimize dependency installation across workflows
 
-- [`2ec6b05`](https://github.com/rubenvitt/bluelight-hub/commit/2ec6b05) (ci): Disable Playwright installation temporarily 
+- [`cbe76e7`](https://github.com/rubenvitt/bluelight-hub/commit/cbe76e7) (ci): Comment out E2E test execution temporarily
 
-- [`f3e28b9`](https://github.com/rubenvitt/bluelight-hub/commit/f3e28b9) (ci): Add cross-platform support and fix macOS builds 
+- [`2ec6b05`](https://github.com/rubenvitt/bluelight-hub/commit/2ec6b05) (ci): Disable Playwright installation temporarily
 
-- [`c6c32bf`](https://github.com/rubenvitt/bluelight-hub/commit/c6c32bf) (ci): Disable E2E tests temporarily 
+- [`f3e28b9`](https://github.com/rubenvitt/bluelight-hub/commit/f3e28b9) (ci): Add cross-platform support and fix macOS builds
+
+- [`c6c32bf`](https://github.com/rubenvitt/bluelight-hub/commit/c6c32bf) (ci): Disable E2E tests temporarily
 
 ## 💥 Breaking Changes
+
 Bitte beachtet folgende Änderungen, die möglicherweise Anpassungen erfordern:
-- [`eb48b7c`](https://github.com/rubenvitt/bluelight-hub/commit/eb48b7c) (auth): Remove MFA/2FA functionality completely 
 
-- [`40e8373`](https://github.com/rubenvitt/bluelight-hub/commit/40e8373) (frontend): Umfangreiche Test-Suite-Bereinigung 
+- [`eb48b7c`](https://github.com/rubenvitt/bluelight-hub/commit/eb48b7c) (auth): Remove MFA/2FA functionality completely
 
-- [`9fdc49f`](https://github.com/rubenvitt/bluelight-hub/commit/9fdc49f) (monorepo): Reset to minimal working state 
+- [`40e8373`](https://github.com/rubenvitt/bluelight-hub/commit/40e8373) (frontend): Umfangreiche Test-Suite-Bereinigung
 
-- [`c7a4cee`](https://github.com/rubenvitt/bluelight-hub/commit/c7a4cee) (frontend): Migrate to Chakra UI v3 and TanStack Router 
+- [`9fdc49f`](https://github.com/rubenvitt/bluelight-hub/commit/9fdc49f) (monorepo): Reset to minimal working state
 
-- [`299ad30`](https://github.com/rubenvitt/bluelight-hub/commit/299ad30) (frontend): Migrate from Ant Design to Chakra UI v3 
+- [`c7a4cee`](https://github.com/rubenvitt/bluelight-hub/commit/c7a4cee) (frontend): Migrate to Chakra UI v3 and TanStack Router
 
-- [`78192f5`](https://github.com/rubenvitt/bluelight-hub/commit/78192f5) (auth): Move JWT tokens from response body to httpOnly cookies 
+- [`299ad30`](https://github.com/rubenvitt/bluelight-hub/commit/299ad30) (frontend): Migrate from Ant Design to Chakra UI v3
 
-- [`0e3be8d`](https://github.com/rubenvitt/bluelight-hub/commit/0e3be8d) (frontend): Remove deprecated Chakra UI components and legacy files 
+- [`78192f5`](https://github.com/rubenvitt/bluelight-hub/commit/78192f5) (auth): Move JWT tokens from response body to httpOnly cookies
 
-- [`df694dc`](https://github.com/rubenvitt/bluelight-hub/commit/df694dc) (frontend): Migrate from Chakra UI to Tailwind CSS + Headless UI 
+- [`0e3be8d`](https://github.com/rubenvitt/bluelight-hub/commit/0e3be8d) (frontend): Remove deprecated Chakra UI components and legacy files
 
-
+- [`df694dc`](https://github.com/rubenvitt/bluelight-hub/commit/df694dc) (frontend): Migrate from Chakra UI to Tailwind CSS + Headless UI
 
 # [1.0.0-alpha.22](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.21...v1.0.0-alpha.22) (2025-09-14)
 
-
-* ♻️(auth): Refactor auth system with improved DTOs and mappers ([02a2daa](https://github.com/rubenvitt/bluelight-hub/commit/02a2daad2d3829c20e36ad7c6ba4cfdff0fe755e))
-* ✨(backend): Convert AdminUser to User with role-based system ([14a93db](https://github.com/rubenvitt/bluelight-hub/commit/14a93dba7ad1287d46f8a08b4b655523f74d18e1))
-* 💥(auth): Move JWT tokens from response body to httpOnly cookies ([78192f5](https://github.com/rubenvitt/bluelight-hub/commit/78192f56818a3a1d79a88466391402b32fdb501c))
-* 💥(auth): Remove MFA/2FA functionality completely ([eb48b7c](https://github.com/rubenvitt/bluelight-hub/commit/eb48b7c025cd2b8c61473db0ba4ccbfd45cf8d91))
-* 💥(frontend): Migrate from Ant Design to Chakra UI v3 ([299ad30](https://github.com/rubenvitt/bluelight-hub/commit/299ad301d54d9da810e3db8a774ed6f38ef6a5c0))
-* 💥(frontend): Migrate from Chakra UI to Tailwind CSS + Headless UI ([df694dc](https://github.com/rubenvitt/bluelight-hub/commit/df694dc5bdd8d849da16f6dae885e2c474b6b35c))
-* 💥(frontend): Migrate to Chakra UI v3 and TanStack Router ([c7a4cee](https://github.com/rubenvitt/bluelight-hub/commit/c7a4cee5d86a515ff76171e3e4368f3f29171f75))
-* 💥(frontend): Umfangreiche Test-Suite-Bereinigung ([40e8373](https://github.com/rubenvitt/bluelight-hub/commit/40e837392c285bd892794f886e87527218a01896))
-* 🗑(frontend): Remove MFA functionality and implement auth improvements ([63fdd6e](https://github.com/rubenvitt/bluelight-hub/commit/63fdd6e98e117b7270fe61a9f898b0ad702a0f32))
-
+- ♻️(auth): Refactor auth system with improved DTOs and mappers ([02a2daa](https://github.com/rubenvitt/bluelight-hub/commit/02a2daad2d3829c20e36ad7c6ba4cfdff0fe755e))
+- ✨(backend): Convert AdminUser to User with role-based system ([14a93db](https://github.com/rubenvitt/bluelight-hub/commit/14a93dba7ad1287d46f8a08b4b655523f74d18e1))
+- 💥(auth): Move JWT tokens from response body to httpOnly cookies ([78192f5](https://github.com/rubenvitt/bluelight-hub/commit/78192f56818a3a1d79a88466391402b32fdb501c))
+- 💥(auth): Remove MFA/2FA functionality completely ([eb48b7c](https://github.com/rubenvitt/bluelight-hub/commit/eb48b7c025cd2b8c61473db0ba4ccbfd45cf8d91))
+- 💥(frontend): Migrate from Ant Design to Chakra UI v3 ([299ad30](https://github.com/rubenvitt/bluelight-hub/commit/299ad301d54d9da810e3db8a774ed6f38ef6a5c0))
+- 💥(frontend): Migrate from Chakra UI to Tailwind CSS + Headless UI ([df694dc](https://github.com/rubenvitt/bluelight-hub/commit/df694dc5bdd8d849da16f6dae885e2c474b6b35c))
+- 💥(frontend): Migrate to Chakra UI v3 and TanStack Router ([c7a4cee](https://github.com/rubenvitt/bluelight-hub/commit/c7a4cee5d86a515ff76171e3e4368f3f29171f75))
+- 💥(frontend): Umfangreiche Test-Suite-Bereinigung ([40e8373](https://github.com/rubenvitt/bluelight-hub/commit/40e837392c285bd892794f886e87527218a01896))
+- 🗑(frontend): Remove MFA functionality and implement auth improvements ([63fdd6e](https://github.com/rubenvitt/bluelight-hub/commit/63fdd6e98e117b7270fe61a9f898b0ad702a0f32))
 
 ### BREAKING CHANGES
 
-* Complete UI framework migration
-- Replace all Chakra UI components with Tailwind CSS utilities
-- Implement new Atomic Design component system with Tailwind
-- Add Headless UI for accessible complex components
-- Create comprehensive atom/molecule/template components
-- Update all documentation to reflect Tailwind usage
-- Add ADR-013 documenting migration rationale
-- Configure Prettier with Tailwind CSS plugin
-- Update architectural documentation in arc42
+- Complete UI framework migration
+
+* Replace all Chakra UI components with Tailwind CSS utilities
+* Implement new Atomic Design component system with Tailwind
+* Add Headless UI for accessible complex components
+* Create comprehensive atom/molecule/template components
+* Update all documentation to reflect Tailwind usage
+* Add ADR-013 documenting migration rationale
+* Configure Prettier with Tailwind CSS plugin
+* Update architectural documentation in arc42
 
 This migration improves:
+
 - Performance: ~60% bundle size reduction
 - DX: Faster HMR with utility-first CSS
 - Maintainability: Fewer dependencies, simpler updates
 - Consistency: Unified styling approach
 
 All existing Chakra UI components must be replaced with new Tailwind-based equivalents.
-* Auth response DTOs now use structured user objects
-instead of partial User entities. Frontend must handle new response
-format for admin setup and login endpoints.
-* Auth endpoints no longer return tokens in JSON response body.
-Tokens are now exclusively set as httpOnly cookies for enhanced security.
+
+- Auth response DTOs now use structured user objects
+  instead of partial User entities. Frontend must handle new response
+  format for admin setup and login endpoints.
+- Auth endpoints no longer return tokens in JSON response body.
+  Tokens are now exclusively set as httpOnly cookies for enhanced security.
 
 Affected endpoints:
+
 - POST /api/auth/login - Returns only UserResponseDto
 - POST /api/auth/register - Returns only UserResponseDto
 - POST /api/auth/refresh - Returns { success: true }
 - POST /api/auth/admin/login - Returns only UserResponseDto
 
 Security improvements:
+
 - Tokens stored as httpOnly cookies (XSS protection)
 - sameSite=strict attribute (CSRF protection)
 - secure=true in production (HTTPS only)
 
 Additional changes:
+
 - Removed redundant /api/auth/me endpoint (use /api/auth/check instead)
 - Updated all E2E tests for new response format
 - Regenerated OpenAPI client types
 - Updated README with authentication documentation
+
 * Complete frontend UI library migration that affects all components
-and styling patterns. This introduces a new component architecture and theming system.
+  and styling patterns. This introduces a new component architecture and theming system.
 
 Major changes include:
+
 - Replace Ant Design with Chakra UI v3 across all components
 - Implement new color mode system with proper provider structure
 - Add comprehensive UI component library (provider, toaster, tooltip)
@@ -2367,6 +2464,7 @@ Major changes include:
 - Update auth concept PRD to support self-registration (first user admin)
 
 Affected areas:
+
 - Frontend component architecture (atomic design patterns)
 - Color mode and theming system
 - API client structure and documentation
@@ -2376,11 +2474,13 @@ Affected areas:
 🔧 Generated with [Claude Code](https://claude.ai/code)
 
 Co-Authored-By: Claude <noreply@anthropic.com>
-* Complete frontend architecture migration from
-minimal React setup to full-featured Chakra UI v3 with TanStack
-Router for type-safe routing.
+
+- Complete frontend architecture migration from
+  minimal React setup to full-featured Chakra UI v3 with TanStack
+  Router for type-safe routing.
 
 Major Changes:
+
 - Add Chakra UI v3 with Provider, ColorMode, Toaster, Tooltip components
 - Integrate TanStack Router with file-based routing and auto-generation
 - Replace manual routing with type-safe route definitions
@@ -2390,13 +2490,16 @@ Major Changes:
 - Update TypeScript configuration for new routing patterns
 
 New Dependencies:
+
 - @tanstack/react-router + devtools + vite plugin
 - vite-tsconfig-paths for path mapping
 
 Breaking Changes:
+
 - All existing route definitions are now file-based
 - Component imports may need updating due to new UI system
 - Dark mode implementation changed to Chakra's ColorMode
+
 * Frontend-Test-Coverage temporär deaktiviert
 
 - Entferne 73+ veraltete/fehlerhafte Frontend-Test-Dateien
@@ -2408,15 +2511,18 @@ Breaking Changes:
 🤖 Generated with [Claude Code](https://claude.ai/code)
 
 Co-Authored-By: Claude <noreply@anthropic.com>
-* MFA functionality has been completely removed from the frontend. Users can no longer enable or manage two-factor authentication.
+
+- MFA functionality has been completely removed from the frontend. Users can no longer enable or manage two-factor authentication.
 
 🤖 Generated with Claude Code
 
 Co-Authored-By: Claude <noreply@anthropic.com>
-* Multi-factor authentication (MFA/2FA) has been completely
-removed from the application. This includes TOTP and WebAuthn support.
+
+- Multi-factor authentication (MFA/2FA) has been completely
+  removed from the application. This includes TOTP and WebAuthn support.
 
 Changes made:
+
 - Removed all MFA-related backend services, controllers, and DTOs
 - Removed MFA fields from user model and JWT types
 - Removed WebAuthn and TOTP dependencies from package.json
@@ -2428,6 +2534,7 @@ Changes made:
 - Fixed tests to remove MFA-related test cases
 
 Affected areas:
+
 - Backend auth module
 - Frontend login flow
 - User authentication process
@@ -2439,7 +2546,8 @@ All tests are now passing after MFA removal.
 🤖 Generated with [Claude Code](https://claude.ai/code)
 
 Co-Authored-By: Claude <noreply@anthropic.com>
-* AdminUser table renamed to User. Run migration to convert data.
+
+- AdminUser table renamed to User. Run migration to convert data.
 
 🤖 Generated with [Claude Code](https://claude.ai/code)
 
@@ -2474,9 +2582,9 @@ ausschließlich als httpOnly-Cookies:
 
 - Der `/api/auth/me` Endpoint wurde entfernt, da er nicht verwendet wurde
 - Stattdessen sollte der `/api/auth/check` Endpoint genutzt werden, der zusätzlich:
-    - Nie 401 wirft (immer 200 mit `authenticated: false` bei fehlender Auth)
-    - Ein `authenticated` boolean-Flag mitliefert
-    - Besser für initiale App-Checks geeignet ist
+  - Nie 401 wirft (immer 200 mit `authenticated: false` bei fehlender Auth)
+  - Ein `authenticated` boolean-Flag mitliefert
+  - Besser für initiale App-Checks geeignet ist
 
 ## Version [v1.0.0-alpha.21](https://github.com/rubenvitt/bluelight-hub/compare/v1.0.0-alpha.20...v1.0.0-alpha.21) – Veröffentlicht am 2025-06-16
 

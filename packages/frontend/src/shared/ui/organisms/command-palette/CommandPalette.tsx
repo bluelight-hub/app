@@ -101,7 +101,7 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
           )}
         >
           <Command
-            className="overflow-hidden [&_[cmdk-group-heading]]:mb-2 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-text-secondary [&_[cmdk-group-heading]]:text-xs"
+            className="overflow-hidden [&_[cmdk-group-heading]]:mb-2 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-text-secondary"
             onKeyDown={(e) => {
               // Handle navigation edge cases when no results
               if (filteredCommands.length === 0 && (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'Tab')) {
@@ -124,8 +124,8 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
                   'w-full bg-transparent py-3 pr-10 pl-10',
                   'text-base text-text-primary',
                   'placeholder:text-text-muted',
-                  'focus-visible:outline-none focus-visible:shadow-focus-ring',
-                  'border-border-subtle border-b',
+                  'focus-visible:shadow-focus-ring focus-visible:outline-none',
+                  'border-b border-border-subtle',
                 )}
                 placeholder="Suche nach Befehlen oder springe zu..."
                 autoFocus
@@ -153,7 +153,7 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
                   heading={
                     <div className="mt-2 flex items-center gap-2">
                       {state.selectedCommand.icon && <state.selectedCommand.icon className="h-3.5 w-3.5 text-text-muted" />}
-                      <span className="text-xs uppercase tracking-wider">Optionen für {state.selectedCommand.name}</span>
+                      <span className="text-xs tracking-wider uppercase">Optionen für {state.selectedCommand.name}</span>
                     </div>
                   }
                   className="mb-3"
@@ -175,7 +175,7 @@ export function CommandPalette({ modules = [], open, onOpenChange }: CommandPale
                     heading={
                       <div className="mt-2 flex items-center gap-2 first:mt-0">
                         <group.icon className="h-3.5 w-3.5 text-text-muted" />
-                        <span className="text-xs uppercase tracking-wider">{group.name}</span>
+                        <span className="text-xs tracking-wider uppercase">{group.name}</span>
                       </div>
                     }
                     className="mb-3 last:mb-0"

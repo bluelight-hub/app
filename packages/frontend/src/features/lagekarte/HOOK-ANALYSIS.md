@@ -159,19 +159,19 @@ interface LagekarteState {
 #### 2. `use-shape-actions.ts` - Shape Operations
 
 - **Konsolidiert:**
-    - `useShapeSelection` → `selectShape()`
-    - `useShapeHighlighting` → `highlightShape()`
-    - `useShapeEventHandlers` → `createShape()`, `updateShape()`, `deleteShape()`
-    - `useKeyboardShortcuts` → `deleteSelectedShape()`
-    - `useTextMarkerHandling` → `updateTextMarker()`
-    - `useShapeStyleUpdates` → `updateShapeStyle()`
+  - `useShapeSelection` → `selectShape()`
+  - `useShapeHighlighting` → `highlightShape()`
+  - `useShapeEventHandlers` → `createShape()`, `updateShape()`, `deleteShape()`
+  - `useKeyboardShortcuts` → `deleteSelectedShape()`
+  - `useTextMarkerHandling` → `updateTextMarker()`
+  - `useShapeStyleUpdates` → `updateShapeStyle()`
 
 #### 3. `use-drawing-tools.ts` - Drawing Tool Management
 
 - **Konsolidiert:**
-    - `useLeafletPMControls` → `initializePm()`
-    - `useDrawingToolSelection` → `activateTool()`
-    - `useToolbarPositioning` → `updateToolbarPosition()`
+  - `useLeafletPMControls` → `initializePm()`
+  - `useDrawingToolSelection` → `activateTool()`
+  - `useToolbarPositioning` → `updateToolbarPosition()`
 
 ### API Separation
 
@@ -191,8 +191,7 @@ export const useLagekarte = (einsatzId: string) => {
 ```typescript
 export const useSaveShapes = (einsatzId: string) => {
   return useMutation({
-    mutationFn: (shapes: GeoJSON.FeatureCollection) =>
-      api.lagekarte.updateShapes(einsatzId, shapes),
+    mutationFn: (shapes: GeoJSON.FeatureCollection) => api.lagekarte.updateShapes(einsatzId, shapes),
     onSuccess: () => {
       queryClient.invalidateQueries(QUERY_KEYS.lagekarte.byEinsatz(einsatzId));
     },

@@ -60,9 +60,4 @@ export {
 export { useMyEinsatzRolle, MEINE_EINSATZ_ROLLE_KEY } from './use-my-einsatz-rolle';
 
 // Integration Health Query Hook (Story 5.3 AC4)
-export {
-  useIntegrationHealth,
-  INTEGRATION_HEALTH_KEY,
-  type IntegrationStatusEntry,
-  type IntegrationHealthResponse,
-} from './use-integration-health';
+export { useIntegrationHealth, INTEGRATION_HEALTH_KEY, type IntegrationStatusEntry, type IntegrationHealthResponse } from './use-integration-health';
