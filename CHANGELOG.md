@@ -1,3 +1,12 @@
+## ETB (Einsatztagebuch)
+
+- **Automatische ETB-Sperrung**: Das ETB wird nun sofort gesperrt, wenn ein Einsatz beendet wird – ohne Verzögerung. Die manuelle Sperrfunktion wurde entfernt, da sie redundant war.
+
+## Dependency-Updates
+
+- Aktualisierung verschiedener TanStack-Bibliotheken (Pacer, React Query, React Router, React Store) für verbesserte Stabilität und Performance
+- Aktualisierung von React Hook Form, Vite, Vitest und weiteren Entwicklungs-Dependencies
+
 ## Adressverwaltung
 
 - **Neue Adresssuche**: Adressen können jetzt über eine integrierte Suche gefunden werden. Die Suche nutzt Photon/Komoot-Daten für präzise Ergebnisse.
