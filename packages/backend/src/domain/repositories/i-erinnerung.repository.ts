@@ -195,7 +195,7 @@ export interface IErinnerungRepository {
   findActiveChildByParentId(parentId: ErinnerungId, tx?: TransactionContext): Promise<Result<Erinnerung | null>>;
 
   /**
-   * Laedt alle nicht-geloeschten Erinnerungen fuer den Export.
+   * Lädt alle nicht-gelöschten Erinnerungen für den Export.
    * Story 9.6: Statistiken nach Einsatz-Ende exportieren
    */
   getErinnerungenForExport(einsatzId: EinsatzId): Promise<Result<ErinnerungExportItem[]>>;
@@ -213,7 +213,7 @@ export interface IErinnerungRepository {
   getVergleichsStatistik(einsatzIds: EinsatzId[]): Promise<Result<EinsatzVergleich>>;
 
   /**
-   * Laedt alle nicht-geloeschten Erinnerungen fuer den Rohdaten-Export.
+   * Lädt alle nicht-gelöschten Erinnerungen für den Rohdaten-Export.
    * Story 9.10: Export der Rohdaten mit allen 25 Feldern inkl. User-Name-Aufloesung.
    */
   getErinnerungenForRawExport(einsatzId: EinsatzId): Promise<Result<RohdatenExportItem[]>>;

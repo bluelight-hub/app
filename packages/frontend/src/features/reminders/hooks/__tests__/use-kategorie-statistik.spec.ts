@@ -259,7 +259,7 @@ describe('calculateKategorieStatistik', () => {
   });
 
   it('should count reminder with deleted/unknown kategorieId to "Ohne Kategorie"', () => {
-    // Given: Kategorie existiert, aber Erinnerung referenziert geloeschte Kategorie
+    // Given: Kategorie existiert, aber Erinnerung referenziert gelöschte Kategorie
     const kat = createKategorie({ id: 'kat-1', name: 'Logistik', farbe: '#FF0000' });
 
     const erinnerungen = [
@@ -273,7 +273,7 @@ describe('calculateKategorieStatistik', () => {
     // When
     const result = calculateKategorieStatistik(erinnerungen, [kat]);
 
-    // Then: Geloeschte Kategorie zaehlt zu "Ohne Kategorie"
+    // Then: Gelöschte Kategorie zählt zu "Ohne Kategorie"
     const ohneKategorie = result.find((s) => s.kategorieId === null)!;
     expect(ohneKategorie.activeCount).toBe(1);
     expect(ohneKategorie.overdueCount).toBe(1);

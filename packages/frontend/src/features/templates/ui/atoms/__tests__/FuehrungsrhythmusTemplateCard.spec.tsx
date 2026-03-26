@@ -5,7 +5,7 @@ import { FuehrungsrhythmusTemplateCard } from '@/features/templates';
 
 const mockEintraege = [
   { id: 'e1', titel: 'Lagebeurteilung', intervallMinuten: 30, offsetMinuten: 0, sortOrder: 0 },
-  { id: 'e2', titel: 'Rueckmeldungen pruefen', intervallMinuten: 30, offsetMinuten: 5, sortOrder: 1 },
+  { id: 'e2', titel: 'Rückmeldungen pruefen', intervallMinuten: 30, offsetMinuten: 5, sortOrder: 1 },
   { id: 'e3', titel: 'Ressourcen checken', intervallMinuten: 30, offsetMinuten: 10, sortOrder: 2 },
 ];
 
@@ -73,7 +73,7 @@ describe('FuehrungsrhythmusTemplateCard', () => {
 
       // Then werden alle Eintraege angezeigt
       expect(screen.getByText('Lagebeurteilung')).toBeInTheDocument();
-      expect(screen.getByText('Rueckmeldungen pruefen')).toBeInTheDocument();
+      expect(screen.getByText('Rückmeldungen pruefen')).toBeInTheDocument();
       expect(screen.getByText('Ressourcen checken')).toBeInTheDocument();
     });
 

@@ -6,7 +6,7 @@
  * **Story 5.4 Task 6:** Badge in ETB-Tabelle zeigt verknuepfte Erinnerung
  * Beim Klick auf den Badge wird die Erinnerung hervorgehoben und in den View gescrollt.
  *
- * **Story 5.5:** ETB-Eintraege koennen ebenfalls hervorgehoben werden (Timeline-Navigation)
+ * **Story 5.5:** ETB-Eintraege können ebenfalls hervorgehoben werden (Timeline-Navigation)
  */
 
 import { createStore, useStore } from '@tanstack/react-store';

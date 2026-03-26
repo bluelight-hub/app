@@ -1,6 +1,6 @@
-// Command Handlers für ETB Application Layer
+// Command Handlers fuer ETB Application Layer
 export * from './create-etb';
 export * from './add-eintrag';
-export * from './update-eintrag';
+export * from './add-korrektur-eintrag';
 export * from './delete-eintrag';
 export * from './lock-etb';

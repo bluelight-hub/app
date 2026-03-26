@@ -322,7 +322,7 @@ describe('Erinnerung Entity', () => {
         expect(erinnerung.faelligAm.getTime()).toBe(newDate.getTime());
       });
 
-      it('sollte leere Props ablehnen (keine Aenderungen)', () => {
+      it('sollte leere Props ablehnen (keine Änderungen)', () => {
         // Given
         const erinnerung = createGeplantErinnerung();
 
@@ -352,7 +352,7 @@ describe('Erinnerung Entity', () => {
         expect(events[0]).toBeInstanceOf(ErinnerungAktualisiertEvent);
       });
 
-      it('sollte korrekte Aenderungen im Event enthalten', () => {
+      it('sollte korrekte Änderungen im Event enthalten', () => {
         // Given
         const erinnerung = createGeplantErinnerung();
         erinnerung.clearDomainEvents();
@@ -361,29 +361,29 @@ describe('Erinnerung Entity', () => {
         // When
         erinnerung.update({
           aktualisierVon: testUserId,
-          titel: 'Geaenderter Titel',
+          titel: 'Geänderter Titel',
           beschreibung: 'Neue Beschreibung',
           faelligAm: newDate,
         });
 
         // Then
         const event = erinnerung.getDomainEvents()[0] as ErinnerungAktualisiertEvent;
-        expect(event.aenderungen.titel).toBe('Geaenderter Titel');
+        expect(event.aenderungen.titel).toBe('Geänderter Titel');
         expect(event.aenderungen.beschreibung).toBe('Neue Beschreibung');
         expect(event.aenderungen.faelligAm).toEqual(newDate);
       });
 
-      it('sollte nur geaenderte Felder im Event enthalten', () => {
+      it('sollte nur geänderte Felder im Event enthalten', () => {
         // Given
         const erinnerung = createGeplantErinnerung({ titel: 'Original' });
         erinnerung.clearDomainEvents();
 
         // When: Nur Titel ändern
-        erinnerung.update({ titel: 'Nur Titel geaendert', aktualisierVon: testUserId });
+        erinnerung.update({ titel: 'Nur Titel geändert', aktualisierVon: testUserId });
 
         // Then: Nur titel im Event
         const event = erinnerung.getDomainEvents()[0] as ErinnerungAktualisiertEvent;
-        expect(event.aenderungen.titel).toBe('Nur Titel geaendert');
+        expect(event.aenderungen.titel).toBe('Nur Titel geändert');
         expect(event.aenderungen.beschreibung).toBeUndefined();
         expect(event.aenderungen.faelligAm).toBeUndefined();
       });
@@ -522,7 +522,7 @@ describe('Erinnerung Entity', () => {
         expect(erinnerung.deletedBy).toBe(deletingUser);
       });
 
-      it('sollte deletedAt als Kopie zurueckgeben (Immutabilitaet)', () => {
+      it('sollte deletedAt als Kopie zurückgeben (Immutabilität)', () => {
         // Given
         const erinnerung = createGeplantErinnerung();
         erinnerung.delete(testUserId);
@@ -538,7 +538,7 @@ describe('Erinnerung Entity', () => {
     });
 
     describe('Idempotenz', () => {
-      it('sollte Fehler bei doppeltem Delete zurueckgeben', () => {
+      it('sollte Fehler bei doppeltem Delete zurückgeben', () => {
         // Given
         const erinnerung = createGeplantErinnerung();
         erinnerung.delete(testUserId);
@@ -597,7 +597,7 @@ describe('Erinnerung Entity', () => {
         expect(events).toHaveLength(0);
       });
 
-      it('sollte kein Event emittieren bei bereits geloeschter Erinnerung', () => {
+      it('sollte kein Event emittieren bei bereits gelöschter Erinnerung', () => {
         // Given
         const erinnerung = createGeplantErinnerung();
         erinnerung.delete(testUserId);
@@ -613,7 +613,7 @@ describe('Erinnerung Entity', () => {
     });
 
     describe('reconstruct() mit Soft-Delete', () => {
-      it('sollte geloeschte Erinnerung korrekt rekonstruieren', () => {
+      it('sollte gelöschte Erinnerung korrekt rekonstruieren', () => {
         // Given
         const id = ErinnerungId.create().value!;
         const titel = ErinnerungTitel.create('Test').value!;
@@ -642,7 +642,7 @@ describe('Erinnerung Entity', () => {
         expect(erinnerung.deletedBy).toBe(deletedBy);
       });
 
-      it('sollte nicht-geloeschte Erinnerung korrekt rekonstruieren (Defaults)', () => {
+      it('sollte nicht-gelöschte Erinnerung korrekt rekonstruieren (Defaults)', () => {
         // Given
         const id = ErinnerungId.create().value!;
         const titel = ErinnerungTitel.create('Test').value!;
@@ -786,7 +786,7 @@ describe('Erinnerung Entity', () => {
         expect(erinnerung.acknowledgedBy).toBe(acknowledgingUser);
       });
 
-      it('sollte acknowledgedAm als Kopie zurueckgeben (Immutabilitaet)', () => {
+      it('sollte acknowledgedAm als Kopie zurückgeben (Immutabilität)', () => {
         // Given
         const erinnerung = createErinnerungWithStatus(ErinnerungStatus.AUSGELOEST());
         erinnerung.acknowledge(testUserId);
@@ -800,7 +800,7 @@ describe('Erinnerung Entity', () => {
         expect(acknowledgedAm1?.getTime()).toBe(acknowledgedAm2?.getTime());
       });
 
-      it('sollte bei Eskalation die Zuweisung auf den Acknowledger uebertragen (Story 4.6)', () => {
+      it('sollte bei Eskalation die Zuweisung auf den Acknowledger übertragen (Story 4.6)', () => {
         // Given: Eine eskalierte Erinnerung, zugewiesen an jemand anderen
         const escalatedUser = UserId.create().value!;
         const erinnerung = createErinnerungWithStatus(ErinnerungStatus.ESKALIERT(), { assignedToId: escalatedUser });
@@ -1326,7 +1326,7 @@ describe('Erinnerung Entity', () => {
         // Then
         expect(result.isFailure).toBe(true);
         expect(result.error).toBe('ERINNERUNG_NOTIZ_TOO_LONG');
-        // Status sollte unveraendert sein
+        // Status sollte unverändert sein
         expect(erinnerung.status.isAcknowledged()).toBe(true);
       });
 
@@ -1356,7 +1356,7 @@ describe('Erinnerung Entity', () => {
           // Then: Fehler wegen fehlender Pflicht-Notiz
           expect(result.isFailure).toBe(true);
           expect(result.error).toBe('ERINNERUNG_ERLEDIGUNGS_NOTIZ_REQUIRED');
-          // Status sollte unveraendert sein
+          // Status sollte unverändert sein
           expect(erinnerung.status.isAcknowledged()).toBe(true);
         });
 
@@ -1475,7 +1475,7 @@ describe('Erinnerung Entity', () => {
       });
 
       describe('requiresNote Getter', () => {
-        it('sollte requiresNote=true korrekt zurueckgeben', () => {
+        it('sollte requiresNote=true korrekt zurückgeben', () => {
           // Given (Arrange)
           const erinnerung = createErinnerungWithStatus(ErinnerungStatus.ACKNOWLEDGED(), { requiresNote: true });
 
@@ -1483,7 +1483,7 @@ describe('Erinnerung Entity', () => {
           expect(erinnerung.requiresNote).toBe(true);
         });
 
-        it('sollte requiresNote=false korrekt zurueckgeben (Default)', () => {
+        it('sollte requiresNote=false korrekt zurückgeben (Default)', () => {
           // Given (Arrange)
           const erinnerung = createErinnerungWithStatus(ErinnerungStatus.ACKNOWLEDGED());
 

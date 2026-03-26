@@ -25,8 +25,8 @@ export { useTextbausteine } from './use-textbausteine';
 export { useCreateEtbEntry } from './use-create-entry';
 export type { CreateEtbEntryVariables } from './use-create-entry';
 
-export { useUpdateEtbEntry } from './use-update-entry';
-export type { UpdateEtbEntryVariables } from './use-update-entry';
+export { useCreateKorrektur } from './use-create-korrektur';
+export type { CreateKorrekturVariables } from './use-create-korrektur';
 
 export { useDeleteEtbEntry } from './use-delete-entry';
 export type { DeleteEtbEntryVariables } from './use-delete-entry';

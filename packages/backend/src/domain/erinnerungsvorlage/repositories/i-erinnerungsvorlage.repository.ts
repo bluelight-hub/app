@@ -12,7 +12,7 @@ export interface IErinnerungsvorlageRepository {
   /** Findet eine Erinnerungsvorlage per ID */
   findById(id: ErinnerungsvorlageId): Promise<Erinnerungsvorlage | null>;
 
-  /** Gibt alle nicht-geloeschten Erinnerungsvorlagen zurueck */
+  /** Gibt alle nicht-gelöschten Erinnerungsvorlagen zurück */
   findAll(): Promise<Erinnerungsvorlage[]>;
 
   /** Prueft ob eine Erinnerungsvorlage existiert */

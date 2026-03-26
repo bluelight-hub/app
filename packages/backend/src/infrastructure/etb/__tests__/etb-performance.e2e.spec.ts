@@ -40,14 +40,11 @@ const databaseAvailable = !!process.env.DATABASE_URL;
   /**
    * Test 1: Snapshot Creation Overhead < 10ms (AC6)
    *
-   * Misst den Overhead der Snapshot-Erstellung bei updateEintrag().
-   * Der Test vergleicht:
-   * - Basis-Zeit: addEintrag() (kein Snapshot)
-   * - Mit Snapshot: updateEintrag() (erstellt Snapshot VOR Mutation)
+   * Misst den Overhead der Snapshot-Erstellung bei addEintrag().
+   * Jede mutierende Operation (add/korrektur) erstellt einen Snapshot VOR Mutation.
    *
    * **BASELINE (2025-11-24):**
-   * - addEintrag durchschnittlich: ~3ms
-   * - updateEintrag durchschnittlich: ~5ms
+   * - addEintrag durchschnittlich: ~3-5ms
    * - Snapshot overhead: ~2ms (< 10ms Threshold)
    */
   it('should create snapshot with stable overhead under CI variability', async () => {
@@ -58,26 +55,22 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     aggregate.addEintrag('Initial entry for timing', userId);
     await ctx.repository.save(aggregate);
 
-    // Measure: updateEintrag (creates snapshot BEFORE mutation)
+    // Warm-up: Einen Eintrag hinzufuegen um DB-Caches aufzuwaermen
     const retrieved = await ctx.repository.findByEinsatzId(einsatzId);
     expect(retrieved).not.toBeNull();
-    const eintragId = EintragId.create(retrieved?.eintraege[0]?.id.value).value!;
-
-    // Warm-up: Ein Update durchführen um DB-Caches aufzuwärmen
-    retrieved?.updateEintrag(eintragId, 'Warm-up text', userId);
+    retrieved?.addEintrag('Warm-up entry', userId);
     await ctx.repository.save(retrieved!);
 
-    // Measurement: 5 weitere Updates und Durchschnitt berechnen
+    // Measurement: 5 weitere addEintrag und Durchschnitt berechnen
     const timings: number[] = [];
     const iterations = 5;
 
     for (let i = 0; i < iterations; i++) {
       const current = await ctx.repository.findByEinsatzId(einsatzId);
       expect(current).not.toBeNull();
-      const currentEintragId = EintragId.create(current?.eintraege[0]?.id.value).value!;
 
       const startTime = performance.now();
-      current?.updateEintrag(currentEintragId, `Timed update ${i}`, userId);
+      current?.addEintrag(`Timed entry ${i}`, userId);
       await ctx.repository.save(current!);
       const endTime = performance.now();
 

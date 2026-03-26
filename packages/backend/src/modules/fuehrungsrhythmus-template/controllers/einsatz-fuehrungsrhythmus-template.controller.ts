@@ -111,7 +111,7 @@ export class EinsatzFuehrungsrhythmusTemplateController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Einsatz-Fuehrungsrhythmus-Template loeschen (Soft-Delete)' })
-  @ApiWrappedResponse(FuehrungsrhythmusTemplateResponseDto, { description: 'Einsatz-Template geloescht (Soft-Delete)' })
+  @ApiWrappedResponse(FuehrungsrhythmusTemplateResponseDto, { description: 'Einsatz-Template gelöscht (Soft-Delete)' })
   async remove(@Param('einsatzId') _einsatzId: string, @Param('id') id: string, @CurrentUser() user: ValidatedUser) {
     const commandResult = DeleteFuehrungsrhythmusTemplateCommand.create({
       templateId: id,

@@ -40,7 +40,7 @@ const mockVorlagen: ErinnerungsvorlageResponseDto[] = [
   },
   {
     id: 'v2',
-    titel: 'Rueckmeldung pruefen',
+    titel: 'Rückmeldung pruefen',
     minuten: 15,
     beschreibung: null,
     createdBy: 'user-1',
@@ -369,7 +369,7 @@ describe('QuickCreateErinnerungDialog', () => {
       const titelInput = screen.getByPlaceholderText(/lagebesprechung/i);
       await user.type(titelInput, 'Test Erinnerung');
 
-      // - Preset auswaehlen (15 Min)
+      // - Preset auswählen (15 Min)
       const presetChip = screen.getByRole('button', { name: '15 Min' });
       await user.click(presetChip);
 
@@ -393,7 +393,7 @@ describe('QuickCreateErinnerungDialog', () => {
       const user = userEvent.setup();
       renderWithProviders(<QuickCreateErinnerungDialog {...defaultProps} />);
 
-      // - Kein Titel eingeben, aber Zeit auswaehlen
+      // - Kein Titel eingeben, aber Zeit auswählen
       const presetChip = screen.getByRole('button', { name: '10 Min' });
       await user.click(presetChip);
 
@@ -505,7 +505,7 @@ describe('QuickCreateErinnerungDialog', () => {
       expect(screen.queryByRole('button', { name: '45 Min' })).not.toBeInTheDocument();
     });
 
-    it('sollte ein Intervall-Preset auswaehlen koennen', async () => {
+    it('sollte ein Intervall-Preset auswählen können', async () => {
       // Given (Arrange) - Dialog mit aktiviertem Recurring-Toggle
       const user = userEvent.setup();
       renderWithProviders(<QuickCreateErinnerungDialog {...defaultProps} />);
@@ -533,7 +533,7 @@ describe('QuickCreateErinnerungDialog', () => {
       const titelInput = screen.getByPlaceholderText(/lagebesprechung/i);
       await user.type(titelInput, 'Wiederkehrende Lagebesprechung');
 
-      // - Zeit-Preset auswaehlen (15 Min)
+      // - Zeit-Preset auswählen (15 Min)
       const presetChip = screen.getByRole('button', { name: '15 Min' });
       await user.click(presetChip);
 
@@ -541,7 +541,7 @@ describe('QuickCreateErinnerungDialog', () => {
       const recurringCheckbox = screen.getByLabelText(/wiederkehrend/i);
       await user.click(recurringCheckbox);
 
-      // - Intervall 30 Min auswaehlen (zweiter "30 Min" Button = Recurring-Intervall)
+      // - Intervall 30 Min auswählen (zweiter "30 Min" Button = Recurring-Intervall)
       const allButtons30Min = screen.getAllByRole('button', { name: '30 Min' });
       const intervalChip = allButtons30Min[1];
       await user.click(intervalChip);
@@ -641,7 +641,7 @@ describe('QuickCreateErinnerungDialog', () => {
       const user = userEvent.setup();
       renderWithProviders(<QuickCreateErinnerungDialog {...defaultProps} />);
 
-      // - Vorlage auswaehlen
+      // - Vorlage auswählen
       await user.click(screen.getByTestId('template-v1'));
 
       // When (Act) - Vorausgefuellten Titel aendern
@@ -652,7 +652,7 @@ describe('QuickCreateErinnerungDialog', () => {
       await user.clear(titelInput);
       await user.type(titelInput, 'Angepasste Lagebesprechung');
 
-      // Then (Assert) - Geaenderter Titel
+      // Then (Assert) - Geänderter Titel
       expect((titelInput as HTMLInputElement).value).toBe('Angepasste Lagebesprechung');
     });
 
@@ -661,7 +661,7 @@ describe('QuickCreateErinnerungDialog', () => {
       const user = userEvent.setup();
       renderWithProviders(<QuickCreateErinnerungDialog {...defaultProps} />);
 
-      // - Vorlage auswaehlen
+      // - Vorlage auswählen
       await user.click(screen.getByTestId('template-v1'));
 
       // - Warte auf Vorausfuellung

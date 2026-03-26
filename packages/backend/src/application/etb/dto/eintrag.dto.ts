@@ -169,6 +169,38 @@ export class EintragDto {
   })
   metadata?: Record<string, unknown>;
 
+  // ============================================
+  // Korrektur-Felder (Issue #554: Immutabilitaet)
+  // ============================================
+
+  @ApiPropertyOptional({
+    description: 'ID des Original-Eintrags den dieser Korrektur-Eintrag korrigiert',
+    example: 'clw3h8x9y0000qwertyuiopas',
+    nullable: true,
+    type: 'string',
+  })
+  korrigiertEintragId?: string | null;
+
+  @ApiPropertyOptional({
+    description: 'ID des Korrektur-Eintrags der diesen Eintrag ersetzt',
+    example: 'clw3h8x9y0000qwertyuiopas',
+    nullable: true,
+    type: 'string',
+  })
+  korrigiertDurchId?: string | null;
+
+  @ApiProperty({
+    description: 'true wenn dieser Eintrag ein Korrektur-Eintrag ist',
+    example: false,
+  })
+  isKorrektur!: boolean;
+
+  @ApiProperty({
+    description: 'true wenn dieser Eintrag durch einen Korrektur-Eintrag ersetzt wurde',
+    example: false,
+  })
+  isKorrigiert!: boolean;
+
   /**
    * Story 5.4: Verknüpfte Erinnerung (wenn aus diesem Eintrag erstellt).
    * Wird query-basiert geladen - keine Denormalisierung in ETB-Eintrag.

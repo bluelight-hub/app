@@ -46,6 +46,7 @@ models/ActivateFuehrungsrhythmusTemplateDto.ts
 models/ActivateFuehrungsrhythmusTemplateResponseDto.ts
 models/AddBefehlKommentarDto.ts
 models/AddEintragDto.ts
+models/AddKorrekturEintragDto.ts
 models/AddPoiDto.ts
 models/AddressDto.ts
 models/AdminBefehlsgeberVorschlaegeControllerCreateVAlpha201Response.ts
@@ -384,7 +385,6 @@ models/UpdateAufbewahrungsKonfigurationDto.ts
 models/UpdateBefehlsgeberVorschlagDto.ts
 models/UpdateEinsatzDto.ts
 models/UpdateEinsatzRollenDto.ts
-models/UpdateEintragDto.ts
 models/UpdateErinnerungDto.ts
 models/UpdateErinnerungsvorlageDto.ts
 models/UpdateEskalationsTimeoutDto.ts

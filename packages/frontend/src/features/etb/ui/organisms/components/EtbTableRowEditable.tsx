@@ -1,8 +1,7 @@
 import type React from 'react';
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { flexRender, type Row } from '@tanstack/react-table';
 import type { EintragDto } from '@/shared';
-import { useUpdateEtbEntry } from '@/features/etb';
 import { cn } from '@/shared/ui/cn';
 import { EtbActionsCell } from './cells/EtbActionsCell';
 import { openQuickCreateFromEtb, useIsEntryHighlighted } from '@/features/reminders/stores';
@@ -11,6 +10,7 @@ interface EtbTableRowEditableProps {
   row: Row<EintragDto>;
   style?: React.CSSProperties;
   className?: string;
+  onEdit?: (entry: EintragDto) => void;
   onDelete?: (entry: EintragDto) => void;
   /** Einsatz-ID fuer Erinnerung-Erstellung (Story 5.4) */
   einsatzId: string;
@@ -20,10 +20,7 @@ interface EtbTableRowEditableProps {
   ariaRowIndex?: number;
 }
 
-export const EtbTableRowEditable: React.FC<EtbTableRowEditableProps> = ({ row, style, className = '', onDelete, einsatzId, etbId, ariaRowIndex }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editText, setEditText] = useState(row.original.text);
-  const updateEintrag = useUpdateEtbEntry();
+export const EtbTableRowEditable: React.FC<EtbTableRowEditableProps> = ({ row, style, className = '', onEdit, onDelete, einsatzId, etbId: _etbId, ariaRowIndex }) => {
   // Story 5.5: Highlight-Support fuer Inline-Editing Zeilen
   const isHighlighted = useIsEntryHighlighted(row.original.id);
 
@@ -40,30 +37,6 @@ export const EtbTableRowEditable: React.FC<EtbTableRowEditableProps> = ({ row, s
     },
     [row],
   );
-
-  const handleSave = () => {
-    if (!row.original.id) return;
-
-    updateEintrag.mutate(
-      {
-        etbId,
-        eintragId: row.original.id,
-        data: {
-          newText: editText,
-        },
-      },
-      {
-        onSuccess: () => {
-          setIsEditing(false);
-        },
-      },
-    );
-  };
-
-  const handleCancel = () => {
-    setEditText(row.original.text);
-    setIsEditing(false);
-  };
 
   /**
    * Oeffnet den Quick-Create Dialog mit dem ETB-Eintrag verknuepft.
@@ -84,8 +57,11 @@ export const EtbTableRowEditable: React.FC<EtbTableRowEditableProps> = ({ row, s
       onKeyDown={handleKeyDown}
       className={cn(
         'transition-all duration-300 focus-visible:shadow-focus-ring focus-visible:outline-none',
-        row.original.deletedAt ? 'border-l-2 border-l-status-danger-border bg-status-danger-surface/30 opacity-60' : 'hover:bg-surface-raised',
-        isEditing && 'bg-action-secondary',
+        row.original.deletedAt
+          ? 'border-l-2 border-l-status-danger-border bg-status-danger-surface/30 opacity-60'
+          : row.original.isKorrigiert
+            ? 'bg-surface-sunken/50 border-l-2 border-l-border-subtle opacity-50'
+            : 'hover:bg-surface-raised',
         // Story 5.5: Highlight-Animation wenn Entry hervorgehoben ist
         isHighlighted && 'bg-status-info-surface ring-2 ring-status-info-border ring-offset-2 ring-offset-surface-panel',
         className,
@@ -95,37 +71,16 @@ export const EtbTableRowEditable: React.FC<EtbTableRowEditableProps> = ({ row, s
       {row.getVisibleCells().map((cell) => {
         const columnId = cell.column.id;
 
-        // Special handling for text column in edit mode
-        if (columnId === 'text' && isEditing) {
-          return (
-            <td key={cell.id} className="px-3 py-2" style={{ width: cell.column.getSize() }}>
-              <textarea
-                value={editText}
-                onChange={(e) => setEditText(e.target.value)}
-                className={cn(
-                  'w-full rounded-md border border-border-subtle bg-surface-panel px-3 py-2 text-sm text-text-primary shadow-sm',
-                  'focus:border-action-primary focus-visible:shadow-focus-ring focus-visible:outline-none',
-                  'resize-none',
-                )}
-                rows={2}
-              />
-            </td>
-          );
-        }
-
         // Special handling for actions column
         if (columnId === 'actions') {
+          const isInactive = !!row.original.deletedAt || !!row.original.isKorrigiert;
           return (
             <td key={cell.id} className="px-3 py-2" style={{ width: cell.column.getSize() }}>
               <EtbActionsCell
-                isEditing={isEditing}
-                onEdit={() => setIsEditing(true)}
-                onSave={handleSave}
-                onCancel={handleCancel}
-                onDelete={onDelete ? () => onDelete(row.original) : undefined}
-                onCreateErinnerung={handleCreateErinnerung}
-                isLoading={updateEintrag.isPending}
-                isDeleted={!!row.original.deletedAt}
+                onEdit={!isInactive && onEdit ? () => onEdit(row.original) : undefined}
+                onDelete={!isInactive && onDelete ? () => onDelete(row.original) : undefined}
+                onCreateErinnerung={!isInactive ? handleCreateErinnerung : undefined}
+                isDeleted={isInactive}
               />
             </td>
           );

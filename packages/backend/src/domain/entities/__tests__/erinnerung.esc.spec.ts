@@ -73,7 +73,7 @@ describe('Erinnerung Entity - Escalation Statistics (Story 4.9)', () => {
     expect(erinnerung.eskaliertAm).toBeInstanceOf(Date);
   });
 
-  it('sollte eskaliertAm bei weiterer Eskalation NICHT ueberschreiben (First Escalation Time)', () => {
+  it('sollte eskaliertAm bei weiterer Eskalation NICHT überschreiben (First Escalation Time)', () => {
     // Given: Already escalated
     const erinnerung = createAusgeloesteErinnerung();
     erinnerung.eskalieren(testUserId, eskalationsTargetId);

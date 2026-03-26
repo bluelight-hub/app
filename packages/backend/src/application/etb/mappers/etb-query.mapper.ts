@@ -177,6 +177,11 @@ export class EtbQueryMapper {
       deletedAt: eintrag.isDeleted ? (eintrag.updatedAt ?? null) : null,
       deletedBy: null, // Domain trackt deletedBy nicht
       deleterUsername: null, // Benoetigt User-Join (nur via Prisma verfuegbar)
+      // Korrektur-Felder (Issue #554)
+      korrigiertEintragId: null,
+      korrigiertDurchId: null,
+      isKorrektur: false,
+      isKorrigiert: false,
     };
 
     // Optional: updatedAt nur setzen wenn vorhanden
@@ -188,6 +193,12 @@ export class EtbQueryMapper {
     if (eintrag.metadata !== undefined) {
       dto.metadata = eintrag.metadata;
     }
+
+    // Korrektur-Felder (Issue #554)
+    dto.korrigiertEintragId = eintrag.korrigiertEintragId?.value ?? null;
+    dto.korrigiertDurchId = eintrag.korrigiertDurchId?.value ?? null;
+    dto.isKorrektur = eintrag.isKorrektur;
+    dto.isKorrigiert = eintrag.isKorrigiert;
 
     // Story 5.4: linkedErinnerung wird vom Handler nachträglich gesetzt (query-based)
     dto.linkedErinnerung = null;

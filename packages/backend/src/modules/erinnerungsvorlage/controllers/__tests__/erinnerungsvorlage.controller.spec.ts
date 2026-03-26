@@ -128,7 +128,7 @@ describe('ErinnerungsvorlageController', () => {
         await expect(controller.update(vorlageId, dto, mockUser)).rejects.toThrow(NotFoundException);
       });
 
-      it('sollte ConflictException werfen wenn Vorlage bereits geloescht', async () => {
+      it('sollte ConflictException werfen wenn Vorlage bereits gelöscht', async () => {
         // Given
         const dto: UpdateErinnerungsvorlageDto = { titel: 'Neuer Titel' };
         mockUpdateHandler.execute.mockResolvedValue(Result.fail(ERINNERUNGSVORLAGE_ERROR_CODES.ALREADY_DELETED));
@@ -181,7 +181,7 @@ describe('ErinnerungsvorlageController', () => {
         await expect(controller.delete(vorlageId, mockUser)).rejects.toThrow(NotFoundException);
       });
 
-      it('sollte ConflictException werfen wenn Vorlage bereits geloescht', async () => {
+      it('sollte ConflictException werfen wenn Vorlage bereits gelöscht', async () => {
         // Given
         mockDeleteHandler.execute.mockResolvedValue(Result.fail(ERINNERUNGSVORLAGE_ERROR_CODES.ALREADY_DELETED));
 

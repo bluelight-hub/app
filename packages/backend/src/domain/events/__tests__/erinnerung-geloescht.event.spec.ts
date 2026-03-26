@@ -67,7 +67,7 @@ describe('ErinnerungGeloeschtEvent', () => {
   });
 
   describe('eventName', () => {
-    it('sollte static eventName() "erinnerung.geloescht" zurueckgeben', () => {
+    it('sollte static eventName() "erinnerung.geloescht" zurückgeben', () => {
       // Then
       expect(ErinnerungGeloeschtEvent.eventName()).toBe('erinnerung.geloescht');
     });
@@ -185,10 +185,10 @@ describe('ErinnerungGeloeschtEvent', () => {
       const event = new ErinnerungGeloeschtEvent(testErinnerungId, testEinsatzId, 'Lagebesprechung 14:00', testUserId);
 
       // Then - Event Handler kann ETB-Text ohne DB-Query bauen
-      const expectedEtbText = `Erinnerung '${event.titel}' geloescht`;
+      const expectedEtbText = `Erinnerung '${event.titel}' gelöscht`;
       expect(event.titel).toBe('Lagebesprechung 14:00');
-      expect(event.einsatzId).toBeDefined(); // Fuer ETB-Zuordnung
-      expect(event.geloeschtVon).toBeDefined(); // Fuer Audit
+      expect(event.einsatzId).toBeDefined(); // Für ETB-Zuordnung
+      expect(event.geloeschtVon).toBeDefined(); // Für Audit
       expect(expectedEtbText).toContain(event.titel);
     });
   });

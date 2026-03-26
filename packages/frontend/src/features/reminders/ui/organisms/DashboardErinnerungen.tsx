@@ -297,7 +297,7 @@ interface CompactSwimlaneViewProps {
   emptyMessage: string;
 }
 
-/** Swimlanes die per Klick auf den Header ein-/ausgeklappt werden koennen */
+/** Swimlanes die per Klick auf den Header ein-/ausgeklappt werden können */
 const COLLAPSIBLE_KEYS = new Set<keyof UrgencyGroups>(['eingeplant', 'abgeschlossen']);
 
 /** Swimlanes die standardmaessig eingeklappt starten */

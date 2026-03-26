@@ -94,18 +94,11 @@ describe('GetEintraegeQueryHandler', () => {
       }
     });
 
-    it('sollte geloeschte Eintraege ausschliessen wenn includeDeleted=false', async () => {
-      // Given: ETB mit Eintraegen, wovon einige geloescht werden
+    it('sollte alle Eintraege zurueckgeben wenn keine geloescht sind', async () => {
+      // Given: ETB mit 4 Eintraegen (keine geloescht, da deleteEintrag entfernt)
       const einsatzId = createValidTestId('einsatz3');
       const userId = createValidTestId('user0003');
       const etb = createTestEtb({ einsatzId, userId, entriesCount: 4 });
-      const userIdVo = UserId.create(createValidTestId('deluser01')).value!;
-
-      // Zwei Eintraege loeschen
-      const entry1 = etb.eintraege[0];
-      const entry2 = etb.eintraege[2];
-      etb.deleteEintrag(entry1.id, userIdVo);
-      etb.deleteEintrag(entry2.id, userIdVo);
 
       await repository.save(etb);
 
@@ -116,32 +109,31 @@ describe('GetEintraegeQueryHandler', () => {
 
       // Then
       expect(result.isSuccess).toBe(true);
-      expect(result.value).toHaveLength(2); // 4 - 2 geloescht = 2
+      expect(result.value).toHaveLength(4);
       expect(result.value?.every((e) => !e.isDeleted)).toBe(true);
     });
 
-    it('sollte geloeschte Eintraege inkludieren wenn includeDeleted=true', async () => {
-      // Given: ETB mit Eintraegen, wovon einer geloescht wird
+    it('sollte korrigierte Eintraege zusammen mit Korrektur-Eintraegen zurueckgeben', async () => {
+      // Given: ETB mit Eintraegen, wovon einer korrigiert wird
       const einsatzId = createValidTestId('einsatz4');
       const userId = createValidTestId('user0004');
       const etb = createTestEtb({ einsatzId, userId, entriesCount: 3 });
-      const userIdVo = UserId.create(createValidTestId('deluser02')).value!;
+      const userIdVo = UserId.create(createValidTestId('koruser01')).value!;
 
-      // Einen Eintrag loeschen
-      const deletedEntry = etb.eintraege[1];
-      etb.deleteEintrag(deletedEntry.id, userIdVo);
+      // Einen Eintrag korrigieren
+      const originalEntry = etb.eintraege[1];
+      etb.addKorrekturEintrag(originalEntry.id, 'Korrektur-Text', userIdVo);
 
       await repository.save(etb);
 
-      const query = new GetEintraegeQuery(etb.id.value, true); // includeDeleted = true
+      const query = new GetEintraegeQuery(etb.id.value, false);
 
       // When
       const result = await handler.execute(query);
 
-      // Then
+      // Then: 3 original + 1 korrektur = 4
       expect(result.isSuccess).toBe(true);
-      expect(result.value).toHaveLength(3); // Alle 3 inkl. geloeschter
-      expect(result.value?.some((e) => e.isDeleted)).toBe(true);
+      expect(result.value).toHaveLength(4);
     });
 
     it('sollte leeres Array fuer ETB ohne Eintraege zurueckgeben', async () => {
@@ -249,50 +241,49 @@ describe('GetEintraegeQueryHandler', () => {
   });
 
   describe('Edge Cases', () => {
-    it('sollte ETB mit nur geloeschten Eintraegen korrekt behandeln', async () => {
-      // Given: ETB wo alle Eintraege geloescht sind
+    it('sollte ETB mit korrigierten Eintraegen korrekt behandeln', async () => {
+      // Given: ETB mit korrigierten Eintraegen
       const einsatzId = createValidTestId('einsatz8');
       const userId = createValidTestId('user0008');
       const etb = createTestEtb({ einsatzId, userId, entriesCount: 3 });
-      const userIdVo = UserId.create(createValidTestId('deluser03')).value!;
+      const userIdVo = UserId.create(createValidTestId('koruser03')).value!;
 
-      // Alle Eintraege loeschen
+      // Alle Eintraege korrigieren
       for (const entry of etb.eintraege) {
-        etb.deleteEintrag(entry.id, userIdVo);
+        etb.addKorrekturEintrag(entry.id, `Korrektur fuer ${entry.text}`, userIdVo);
       }
 
       await repository.save(etb);
 
-      const query = new GetEintraegeQuery(etb.id.value, false); // includeDeleted = false
+      const query = new GetEintraegeQuery(etb.id.value, false);
 
       // When
       const result = await handler.execute(query);
 
-      // Then: Leeres Array (alle geloescht)
+      // Then: 3 original + 3 korrektur = 6
       expect(result.isSuccess).toBe(true);
-      expect(result.value).toEqual([]);
+      expect(result.value).toHaveLength(6);
     });
 
-    it('sollte geloeschte Eintraege auch in korrekter Reihenfolge sortieren', async () => {
-      // Given: ETB mit Eintraegen, wovon einige geloescht
+    it('sollte Eintraege inklusive Korrekturen in korrekter Reihenfolge sortieren', async () => {
+      // Given: ETB mit Eintraegen und Korrekturen
       const einsatzId = createValidTestId('einsatz9');
       const userId = createValidTestId('user0009');
-      const etb = createTestEtb({ einsatzId, userId, entriesCount: 5 });
-      const userIdVo = UserId.create(createValidTestId('deluser04')).value!;
+      const etb = createTestEtb({ einsatzId, userId, entriesCount: 3 });
+      const userIdVo = UserId.create(createValidTestId('koruser04')).value!;
 
-      // Ungerade Eintraege loeschen (1, 3, 5)
-      etb.deleteEintrag(etb.eintraege[0]?.id, userIdVo);
-      etb.deleteEintrag(etb.eintraege[2]?.id, userIdVo);
-      etb.deleteEintrag(etb.eintraege[4]?.id, userIdVo);
+      // Eintraege korrigieren
+      etb.addKorrekturEintrag(etb.eintraege[0]?.id, 'Korrektur 1', userIdVo);
+      etb.addKorrekturEintrag(etb.eintraege[2]?.id, 'Korrektur 3', userIdVo);
 
       await repository.save(etb);
 
-      const query = new GetEintraegeQuery(etb.id.value, true); // includeDeleted = true
+      const query = new GetEintraegeQuery(etb.id.value, false);
 
       // When
       const result = await handler.execute(query);
 
-      // Then: Alle 5 Eintraege, sortiert nach sequenceNumber
+      // Then: 3 original + 2 korrektur = 5, sortiert nach sequenceNumber
       expect(result.isSuccess).toBe(true);
       expect(result.value).toHaveLength(5);
 

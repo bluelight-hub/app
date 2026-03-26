@@ -17,9 +17,6 @@ vi.mock('@/features/etb', async (importOriginal) => {
 
   return {
     ...actual,
-    useDeleteEtbEntry: () => ({
-      mutate: vi.fn(),
-    }),
   };
 });
 

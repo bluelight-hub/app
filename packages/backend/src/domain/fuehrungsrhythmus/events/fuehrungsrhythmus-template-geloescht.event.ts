@@ -4,7 +4,7 @@ import type { UserId } from '@domain/value-objects/user-id';
 import { EVENT_NAMES } from '@domain/events/event-names';
 
 /**
- * Domain Event: Fuehrungsrhythmus-Template wurde geloescht (Soft-Delete).
+ * Domain Event: Fuehrungsrhythmus-Template wurde gelöscht (Soft-Delete).
  */
 export class FuehrungsrhythmusTemplateGeloeschtEvent extends DomainEvent {
   constructor(

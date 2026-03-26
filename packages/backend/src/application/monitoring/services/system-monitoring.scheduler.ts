@@ -12,13 +12,13 @@ import { DEFAULT_SCHWELLWERT_CONFIG, type SchwellwertConfig } from '@/applicatio
 /**
  * Scheduler fuer periodische System-Monitoring-Checks.
  *
- * Prueft alle 30 Sekunden Schwellwerte und emittiert
+ * Prüft alle 30 Sekunden Schwellwerte und emittiert
  * SystemWarnungEvents bei Ueberschreitungen.
  *
  * **Pattern:**
- * - @Interval(30_000): Periodische Ausfuehrung
+ * - @Interval(30_000): Periodische Ausführung
  * - EventEmitter2: Event-basierte Kommunikation (fire-and-forget)
- * - Circuit Breaker Status: Prueft OPEN-Zustaende ueber IMetricsCollector Port
+ * - Circuit Breaker Status: Prüft OPEN-Zustaende über IMetricsCollector Port
  *
  * @remarks Story 5.6 AC3, AC5
  */
@@ -39,8 +39,8 @@ export class SystemMonitoringScheduler {
   /**
    * Periodischer Check alle 30 Sekunden.
    *
-   * Prueft Schwellwerte und emittiert Events bei Ueberschreitungen.
-   * Running-Guard verhindert parallele Ausfuehrung.
+   * Prüft Schwellwerte und emittiert Events bei Ueberschreitungen.
+   * Running-Guard verhindert parallele Ausführung.
    */
   @Interval('system-monitoring-check', 30_000)
   async checkSchwellwerte(): Promise<void> {
@@ -63,7 +63,7 @@ export class SystemMonitoringScheduler {
     }
   }
 
-  /** Prueft ob die Zustellrate unter dem Schwellwert liegt */
+  /** Prüft ob die Zustellrate unter dem Schwellwert liegt */
   private async checkZustellrate(): Promise<void> {
     const zustellrate = await this.metricsCollector.getZustellrate();
     if (zustellrate < this.config.zustellrateMin) {
@@ -71,7 +71,7 @@ export class SystemMonitoringScheduler {
     }
   }
 
-  /** Prueft ob die Outbox-Queue-Tiefe den Schwellwert ueberschreitet */
+  /** Prüft ob die Outbox-Queue-Tiefe den Schwellwert überschreitet */
   private async checkOutboxQueueDepth(): Promise<void> {
     const depth = await this.metricsCollector.getOutboxQueueDepth();
     if (depth > this.config.outboxQueueDepthMax) {
@@ -79,7 +79,7 @@ export class SystemMonitoringScheduler {
     }
   }
 
-  /** Prueft ob die API-Latenz (p95) den Schwellwert ueberschreitet */
+  /** Prüft ob die API-Latenz (p95) den Schwellwert überschreitet */
   private async checkLatenz(): Promise<void> {
     const responseTime = await this.metricsCollector.getApiResponseTime();
     if (responseTime.p95 > this.config.latenzP95Max) {
@@ -87,7 +87,7 @@ export class SystemMonitoringScheduler {
     }
   }
 
-  /** Prueft ob ein Circuit Breaker OPEN oder HALF_OPEN ist */
+  /** Prüft ob ein Circuit Breaker OPEN oder HALF_OPEN ist */
   private checkCircuitBreakers(): void {
     const statuses = this.metricsCollector.getCircuitBreakerStatus();
     for (const status of statuses) {

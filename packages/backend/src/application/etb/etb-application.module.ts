@@ -1,4 +1,4 @@
-import { AddEintragHandler, CreateEtbHandler, DeleteEintragHandler, LockEtbHandler, UpdateEintragHandler } from '@application/etb/commands';
+import { AddEintragHandler, AddKorrekturEintragHandler, CreateEtbHandler, DeleteEintragHandler, LockEtbHandler } from '@application/etb/commands';
 import { EVENT_HANDLER, LOGGER } from '@infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@infrastructure/common/adapters';
 import { EtbInfrastructureModule } from '@infrastructure/etb/etb-infrastructure.module';
@@ -101,10 +101,10 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
       useFactory: () => new NestLoggerAdapter('ETB'),
     },
 
-    // Command Handlers (Story 3.1 + 3.2)
+    // Command Handlers (Story 3.1 + 3.2 + Issue #554)
     CreateEtbHandler,
     AddEintragHandler,
-    UpdateEintragHandler,
+    AddKorrekturEintragHandler,
     DeleteEintragHandler,
     LockEtbHandler,
 
@@ -274,7 +274,7 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
     // Command Handlers
     CreateEtbHandler,
     AddEintragHandler,
-    UpdateEintragHandler,
+    AddKorrekturEintragHandler,
     DeleteEintragHandler,
     LockEtbHandler,
 

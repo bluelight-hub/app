@@ -29,7 +29,7 @@ import { BadRequestException, ForbiddenException, NotFoundException } from '@nes
 import { EtbCqrsController } from '@/modules/etb/controllers/etb-cqrs.controller';
 import { Result } from '@/domain/common/result';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
-import type { AddEintragDto, UpdateEintragDto, EtbDto, EintragDto, EtbSnapshotDto } from '@/application/etb/dto';
+import type { AddEintragDto, EtbDto, EintragDto, EtbSnapshotDto } from '@/application/etb/dto';
 import { EtbKategorie } from '@/domain/value-objects/etb-kategorie';
 import type { ILogger } from '@domain/ports/i-logger.port';
 
@@ -121,9 +121,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
   // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
   let mockAddEintragHandler: jest.Mocked<any>;
   // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
-  let mockUpdateEintragHandler: jest.Mocked<any>;
-  // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
-  let mockDeleteEintragHandler: jest.Mocked<any>;
+  let mockAddKorrekturEintragHandler: jest.Mocked<any>;
   // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
   let mockLockEtbHandler: jest.Mocked<any>;
   // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
@@ -160,11 +158,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       execute: jest.fn(),
     };
 
-    mockUpdateEintragHandler = {
-      execute: jest.fn(),
-    };
-
-    mockDeleteEintragHandler = {
+    mockAddKorrekturEintragHandler = {
       execute: jest.fn(),
     };
 
@@ -217,8 +211,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
     // Instantiate controller with mocks (Direct Instantiation Pattern)
     controller = new EtbCqrsController(
       mockAddEintragHandler,
-      mockUpdateEintragHandler,
-      mockDeleteEintragHandler,
+      mockAddKorrekturEintragHandler,
       mockLockEtbHandler,
       mockGetEtbQueryHandler,
       mockGetEtbHistoryQueryHandler,
@@ -319,7 +312,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
   // TEST GROUP 2: PUT /etb/:etbId/eintrag/:eintragId
   // ========================================
 
-  describe('PUT /etb/:etbId/eintrag/:eintragId - updateEintrag()', () => {
+  describe.skip('PUT /etb/:etbId/eintrag/:eintragId - updateEintrag() REMOVED', () => {
     const einsatzId = createTestCuid('eins0');
 
     beforeEach(() => {
@@ -414,7 +407,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
   // TEST GROUP 3: DELETE /etb/:etbId/eintrag/:eintragId
   // ========================================
 
-  describe('DELETE /etb/:etbId/eintrag/:eintragId - deleteEintrag()', () => {
+  describe.skip('DELETE /etb/:etbId/eintrag/:eintragId - deleteEintrag() REMOVED', () => {
     const einsatzId = createTestCuid('eins0');
 
     beforeEach(() => {
@@ -769,27 +762,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       expect(mockAddEintragHandler.execute).not.toHaveBeenCalled();
     });
 
-    it('should throw BadRequestException for empty eintragId in updateEintrag', async () => {
-      // Given
-      const etbId = createTestCuid('etb');
-      const emptyEintragId = '';
-      const dto: UpdateEintragDto = { newText: 'Test' };
-
-      // When/Then - Command.create() fails for empty eintragId after auth check passes
-      await expect(controller.updateEintrag(etbId, emptyEintragId, dto, adminUser)).rejects.toThrow(BadRequestException);
-      expect(mockUpdateEintragHandler.execute).not.toHaveBeenCalled();
-    });
-
-    it('should throw BadRequestException for empty newText in updateEintrag', async () => {
-      // Given
-      const etbId = createTestCuid('etb');
-      const eintragId = createTestCuid('entry');
-      const dto: UpdateEintragDto = { newText: '' };
-
-      // When/Then - Command.create() fails for empty newText after auth check passes
-      await expect(controller.updateEintrag(etbId, eintragId, dto, adminUser)).rejects.toThrow(BadRequestException);
-      expect(mockUpdateEintragHandler.execute).not.toHaveBeenCalled();
-    });
+    // Tests for updateEintrag/deleteEintrag validation removed (Issue #554)
   });
 
   // ========================================
@@ -857,26 +830,10 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
         createdBy: { value: adminUser.userId },
       };
 
-      // First call: auth check, second call: after update to return updated eintrag
-      mockEtbRepository.findById.mockResolvedValueOnce(mockAggregateAfterUpdate);
-      mockEtbRepository.findById.mockResolvedValueOnce(mockAggregateAfterUpdate);
-      mockUpdateEintragHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
-
-      const updated = await controller.updateEintrag(etbId, entryId, { newText: 'Updated Text' }, adminUser);
-      expect(updated.text).toBe('Updated Text');
-
-      // Phase 3: Delete eintrag - mock findById for auth check
-      mockEtbRepository.findById.mockResolvedValueOnce(mockAggregateAfterUpdate);
-      mockDeleteEintragHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
-
-      await controller.deleteEintrag(etbId, entryId, adminUser);
-
-      // Verify all operations were called
+      // Verify add was called
       expect(mockAddEintragHandler.execute).toHaveBeenCalledTimes(1);
-      expect(mockUpdateEintragHandler.execute).toHaveBeenCalledTimes(1);
-      expect(mockDeleteEintragHandler.execute).toHaveBeenCalledTimes(1);
-      // findById called: 1x add auth + 2x update (auth + after) + 1x delete auth = 4
-      expect(mockEtbRepository.findById).toHaveBeenCalledTimes(4);
+      // findById called: 1x add auth = 1
+      expect(mockEtbRepository.findById).toHaveBeenCalledTimes(1);
     });
   });
 });

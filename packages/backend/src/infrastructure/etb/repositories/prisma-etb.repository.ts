@@ -188,21 +188,29 @@ export class PrismaEtbRepository implements IEtbRepository {
       // - "Gelöschte" Einträge werden soft-deleted (deletedAt != null)
       // Dies respektiert den NO-DELETE Trigger und die 10-Jahres-Aufbewahrungspflicht.
       if (resolvedEintraege.length > 0) {
-        // Verwende Raw SQL mit ON CONFLICT DO UPDATE für Upsert-Semantik
-        // Der Unique Constraint (etbId, sequenceNumber) ermöglicht Updates
-        for (const eintrag of resolvedEintraege) {
+        // Sortierung: Korrektur-Eintraege (mit korrigiertEintragId) werden ZUERST eingefuegt,
+        // damit die FK-Referenz von korrigiertDurchId auf den bereits existierenden Eintrag zeigt.
+        const sortedEintraege = [...resolvedEintraege].sort((a, b) => {
+          if (a.korrigiertDurchId && !b.korrigiertDurchId) return 1;
+          if (!a.korrigiertDurchId && b.korrigiertDurchId) return -1;
+          return 0;
+        });
+
+        for (const eintrag of sortedEintraege) {
           await prismaClient.$executeRaw`
             INSERT INTO etb_eintraege (
               "id", "etbId", "sequenceNumber", "text", "createdBy", "createdAt",
               "updatedAt", "deletedAt", "deletedBy", "kategorie", "timestamp",
-              "version", "isAutomatic", "absender", "empfaenger", "metadata"
+              "version", "isAutomatic", "absender", "empfaenger", "metadata",
+              "korrigiert_eintrag_id", "korrigiert_durch_id"
             ) VALUES (
               ${eintrag.id}, ${etbId}, ${eintrag.sequenceNumber}, ${eintrag.text},
               ${eintrag.createdBy}, ${eintrag.createdAt}, ${eintrag.updatedAt},
               ${eintrag.deletedAt}, ${eintrag.deletedBy}, ${eintrag.kategorie}::"EtbKategorie",
               ${eintrag.timestamp}, ${eintrag.version}, ${eintrag.isAutomatic},
               ${eintrag.absender}, ${eintrag.empfaenger},
-              ${eintrag.metadata ?? null}::jsonb
+              ${eintrag.metadata ?? null}::jsonb,
+              ${eintrag.korrigiertEintragId}, ${eintrag.korrigiertDurchId}
             )
             ON CONFLICT ("etbId", "sequenceNumber") DO UPDATE SET
               "text" = EXCLUDED."text",
@@ -211,7 +219,9 @@ export class PrismaEtbRepository implements IEtbRepository {
               "deletedBy" = EXCLUDED."deletedBy",
               "version" = EXCLUDED."version",
               "absender" = EXCLUDED."absender",
-              "empfaenger" = EXCLUDED."empfaenger"
+              "empfaenger" = EXCLUDED."empfaenger",
+              "korrigiert_eintrag_id" = EXCLUDED."korrigiert_eintrag_id",
+              "korrigiert_durch_id" = EXCLUDED."korrigiert_durch_id"
           `;
         }
       }

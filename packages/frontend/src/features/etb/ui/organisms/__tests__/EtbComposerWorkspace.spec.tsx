@@ -99,14 +99,21 @@ vi.mock('@/features/etb/api', () => ({
     variables: undefined,
     mutate: vi.fn(),
   }),
-  useUpdateEtbEntry: () => ({
+  useDeleteEtbEntry: () => ({
     isPending: false,
     isSuccess: false,
     isError: false,
-    variables: undefined,
     mutate: vi.fn(),
   }),
 }));
+
+vi.mock('@/shared/hooks', async () => {
+  const actual = await vi.importActual<typeof import('@/shared/hooks')>('@/shared/hooks');
+  return {
+    ...actual,
+    useConfirm: () => vi.fn(async () => true),
+  };
+});
 
 vi.mock('@/features/etb/hooks/useDelayedLoading', () => ({
   useDelayedLoading: () => mockDelayedLoading,
@@ -364,7 +371,7 @@ describe('EtbComposerWorkspace', () => {
     expect(screen.getByText('Fehler beim Laden')).toBeInTheDocument();
   });
 
-  // === Fokus-Rückkehr nach Modal-Close (H6) ===
+  // === Fokus-Rueckkehr nach Modal-Close (H6) ===
 
   it('setzt Fokus auf bearbeitete Zeile nach Modal-Close', () => {
     vi.useFakeTimers();
@@ -373,19 +380,17 @@ describe('EtbComposerWorkspace', () => {
     // Given - Modal-Props wurden erfasst und enthalten onClose
     expect(capturedModalProps.onClose).toBeDefined();
 
-    // When - simuliere Modal-Close über die erfassten Props
+    // When - simuliere Modal-Close ueber die erfassten Props
     // Erstelle ein DOM-Element mit der erwarteten ID, da EtbEntryList gemockt ist
     const mockRow = document.createElement('div');
     mockRow.id = 'etb-entry-entry-1';
     mockRow.tabIndex = 0;
     document.body.appendChild(mockRow);
 
-    // Simuliere dass ein Entry bearbeitet wird (editingEntryIdRef wird gesetzt)
-    // Dazu muss erst onEditEntry ausgelöst werden - das passiert über EtbEntryList mock
-    // Stattdessen rufen wir direkt onClose auf, das den Fokus zurücksetzen soll
+    // Stattdessen rufen wir direkt onClose auf, das den Fokus zuruecksetzen soll
     (capturedModalProps.onClose as () => void)();
 
-    // rAF ausführen (JSDOM implementiert rAF als setTimeout(cb, 0))
+    // rAF ausfuehren (JSDOM implementiert rAF als setTimeout(cb, 0))
     act(() => {
       vi.advanceTimersByTime(16);
     });
@@ -395,28 +400,28 @@ describe('EtbComposerWorkspace', () => {
     vi.useRealTimers();
   });
 
-  // === aria-live Meldung nach erfolgreicher Bearbeitung (H8) ===
+  // === aria-live Meldung nach erfolgreichem Bearbeiten ===
 
-  it('zeigt aria-live Meldung nach erfolgreicher Bearbeitung', () => {
+  it('zeigt aria-live Meldung nach erfolgreichem Bearbeiten', () => {
     vi.useFakeTimers();
     renderWithProviders(<EtbComposerWorkspace einsatzId="einsatz-1" />);
 
-    // Given - Modal-Props wurden erfasst und enthalten onEditSuccess
-    expect(capturedModalProps.onEditSuccess).toBeDefined();
+    // Given - Modal-Props wurden erfasst und enthalten onSaveSuccess
+    expect(capturedModalProps.onSaveSuccess).toBeDefined();
 
-    // When - simuliere erfolgreiche Bearbeitung über die erfassten Props
+    // When - simuliere erfolgreiches Speichern ueber die erfassten Props
     act(() => {
-      (capturedModalProps.onEditSuccess as (entry: { id: string; sequenceNumber: number }) => void)({
+      (capturedModalProps.onSaveSuccess as (entry: { id: string; sequenceNumber: number }) => void)({
         id: 'entry-1',
         sequenceNumber: 42,
       });
     });
 
-    // Then - aria-live Region enthält die Aktualisierungsmeldung
-    expect(screen.getByText('Eintrag #42 aktualisiert')).toBeInTheDocument();
+    // Then - aria-live Region enthaelt die Bearbeitungs-Meldung
+    expect(screen.getByText('Eintrag #42 gespeichert')).toBeInTheDocument();
 
     // Verifiziere aria-live="polite" auf dem Container
-    const liveRegion = screen.getByText('Eintrag #42 aktualisiert').closest('[aria-live]');
+    const liveRegion = screen.getByText('Eintrag #42 gespeichert').closest('[aria-live]');
     expect(liveRegion).toHaveAttribute('aria-live', 'polite');
 
     vi.useRealTimers();

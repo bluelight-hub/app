@@ -12,7 +12,7 @@
  * Sanitiert einen Namen-String durch Entfernung von HTML-Tags.
  *
  * Defense-in-Depth gegen potenzielle XSS-Angriffe bei Namen,
- * die vom Backend ohne vorherige Sanitization kommen koennten.
+ * die vom Backend ohne vorherige Sanitization kommen könnten.
  *
  * @param name - Der zu bereinigende Name-String
  * @returns Bereinigter String ohne HTML-Tags, 'Unbekannt' falls leer

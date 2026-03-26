@@ -3,8 +3,8 @@ import { KATEGORIE_ERROR_CODES } from '../../errors/kategorie-error.codes';
 
 /**
  * Query zum Abrufen aller Kategorien eines Einsatzes.
- * Validiert einsatzId vor der Ausfuehrung.
- * Liefert alle Kategorien (inkl. geloeschter) des Einsatzes.
+ * Validiert einsatzId vor der Ausführung.
+ * Liefert alle Kategorien (inkl. gelöschter) des Einsatzes.
  */
 export class GetKategorienByEinsatzQuery {
   private constructor(public readonly einsatzId: string) {}

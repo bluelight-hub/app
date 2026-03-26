@@ -202,7 +202,7 @@ export async function markAsSeen(erinnerungId: string): Promise<void> {
 /**
  * Entfernt eine Erinnerung aus der Seen-Liste
  *
- * Wird genutzt wenn Erinnerung geloescht wird oder fuer Testing.
+ * Wird genutzt wenn Erinnerung gelöscht wird oder für Testing.
  * Persistiert automatisch in den Tauri Store.
  *
  * @param erinnerungId - ID der Erinnerung
@@ -221,7 +221,7 @@ export async function clearSeenAssignment(erinnerungId: string): Promise<void> {
 /**
  * Entfernt mehrere Erinnerungen aus der Seen-Liste (Batch)
  *
- * Nuetzlich beim Cleanup von geloeschten Erinnerungen.
+ * Nützlich beim Cleanup von gelöschten Erinnerungen.
  *
  * @param erinnerungIds - IDs der Erinnerungen
  * @returns Promise wenn Operation abgeschlossen

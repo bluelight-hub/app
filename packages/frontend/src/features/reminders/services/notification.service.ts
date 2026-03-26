@@ -328,9 +328,9 @@ class NotificationService {
   }
 
   /**
-   * Prueft ob das Tauri Notification Plugin verfuegbar ist
+   * Prüft ob das Tauri Notification Plugin verfügbar ist
    *
-   * Prueft nur ob das JS-Modul importierbar ist und die erwarteten Exports hat.
+   * Prüft nur ob das JS-Modul importierbar ist und die erwarteten Exports hat.
    * Kein IPC-Call um Mixed-Content-Fehler (https:// → ipc://) zu vermeiden.
    * Die tatsaechliche Plugin-Verfuegbarkeit wird beim ersten Aufruf verifiziert.
    */
@@ -342,9 +342,9 @@ class NotificationService {
 
     try {
       const mod = await import('@tauri-apps/plugin-notification');
-      // Modul importierbar und erwartete Exports vorhanden → optimistisch verfuegbar
+      // Modul importierbar und erwartete Exports vorhanden → optimistisch verfügbar
       // Kein IPC-Probe-Call: Mixed-Content-Block (https→ipc) loest Browser-Fehler aus
-      // bevor unser catch greift. Tatsaechliche Verfuegbarkeit wird bei erstem Aufruf geprueft.
+      // bevor unser catch greift. Tatsächliche Verfügbarkeit wird bei erstem Aufruf geprüft.
       this.tauriPluginAvailable = typeof mod.isPermissionGranted === 'function';
       return this.tauriPluginAvailable;
     } catch {

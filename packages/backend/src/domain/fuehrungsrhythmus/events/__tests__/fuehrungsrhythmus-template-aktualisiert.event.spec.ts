@@ -67,7 +67,7 @@ describe('FuehrungsrhythmusTemplateAktualisiertEvent', () => {
       expect(FuehrungsrhythmusTemplateAktualisiertEvent.eventName()).toBe('fuehrungsrhythmus-template.aktualisiert');
     });
 
-    it('sollte eventName mit EVENT_NAMES Constant uebereinstimmen', () => {
+    it('sollte eventName mit EVENT_NAMES Constant übereinstimmen', () => {
       // Then
       expect(FuehrungsrhythmusTemplateAktualisiertEvent.eventName()).toBe(EVENT_NAMES.FUEHRUNGSRHYTHMUS_TEMPLATE.AKTUALISIERT);
     });

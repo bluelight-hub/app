@@ -27,7 +27,7 @@ export const ETB_OFFLINE_STORE_KEYS = {
 /**
  * ETB Queue Action Types
  *
- * Erstmal nur 'addEintrag' - weitere koennen spaeter ergaenzt werden.
+ * Erstmal nur 'addEintrag' - weitere können spaeter ergaenzt werden.
  */
 export type EtbActionType = 'addEintrag';
 

@@ -62,12 +62,12 @@ describe('FuehrungsrhythmusTemplateGeloeschtEvent', () => {
   });
 
   describe('eventName', () => {
-    it('sollte static eventName() "fuehrungsrhythmus-template.geloescht" zurueckgeben', () => {
+    it('sollte static eventName() "fuehrungsrhythmus-template.geloescht" zurückgeben', () => {
       // Then
       expect(FuehrungsrhythmusTemplateGeloeschtEvent.eventName()).toBe('fuehrungsrhythmus-template.geloescht');
     });
 
-    it('sollte eventName mit EVENT_NAMES Constant uebereinstimmen', () => {
+    it('sollte eventName mit EVENT_NAMES Constant übereinstimmen', () => {
       // Then
       expect(FuehrungsrhythmusTemplateGeloeschtEvent.eventName()).toBe(EVENT_NAMES.FUEHRUNGSRHYTHMUS_TEMPLATE.GELOESCHT);
     });

@@ -3,11 +3,10 @@ import { BadRequestException, ForbiddenException, NotFoundException } from '@nes
 import { EtbCqrsController } from '@/modules/etb/controllers/etb-cqrs.controller';
 import { Result } from '@/domain/common/result';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
-import type { AddEintragDto, UpdateEintragDto, EtbDto, EintragDto } from '@/application/etb/dto';
+import type { AddEintragDto, EtbDto, EintragDto } from '@/application/etb/dto';
 import type { EtbEintragSnapshotDto, EtbSnapshotDto } from '@/application/etb/mappers';
 import type { AddEintragHandler } from '@/application/etb/commands/add-eintrag/add-eintrag.handler';
-import type { UpdateEintragHandler } from '@/application/etb/commands/update-eintrag/update-eintrag.handler';
-import type { DeleteEintragHandler } from '@/application/etb/commands/delete-eintrag/delete-eintrag.handler';
+import type { AddKorrekturEintragHandler } from '@/application/etb/commands/add-korrektur-eintrag/add-korrektur-eintrag.handler';
 import type { LockEtbHandler } from '@/application/etb/commands/lock-etb/lock-etb.handler';
 import type { GetEtbQueryHandler } from '@/application/etb/queries/get-etb/get-etb.handler';
 import type { GetEtbHistoryQueryHandler } from '@/application/etb/queries/get-etb-history/get-etb-history.handler';
@@ -100,8 +99,7 @@ function createValidTestId(suffix = ''): string {
 describe('EtbCqrsController', () => {
   let controller: EtbCqrsController;
   let mockAddEintragHandler: jest.Mocked<AddEintragHandler>;
-  let mockUpdateEintragHandler: jest.Mocked<UpdateEintragHandler>;
-  let mockDeleteEintragHandler: jest.Mocked<DeleteEintragHandler>;
+  let mockAddKorrekturEintragHandler: jest.Mocked<AddKorrekturEintragHandler>;
   let mockLockEtbHandler: jest.Mocked<LockEtbHandler>;
   let mockGetEtbQueryHandler: jest.Mocked<GetEtbQueryHandler>;
   let mockGetEtbHistoryQueryHandler: jest.Mocked<GetEtbHistoryQueryHandler>;
@@ -143,12 +141,7 @@ describe('EtbCqrsController', () => {
       // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
 
-    mockUpdateEintragHandler = {
-      execute: jest.fn(),
-      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
-    } as any;
-
-    mockDeleteEintragHandler = {
+    mockAddKorrekturEintragHandler = {
       execute: jest.fn(),
       // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
@@ -211,8 +204,7 @@ describe('EtbCqrsController', () => {
     // Instantiate controller with mocks
     controller = new EtbCqrsController(
       mockAddEintragHandler,
-      mockUpdateEintragHandler,
-      mockDeleteEintragHandler,
+      mockAddKorrekturEintragHandler,
       mockLockEtbHandler,
       mockGetEtbQueryHandler,
       mockGetEtbHistoryQueryHandler,
@@ -774,9 +766,16 @@ describe('EtbCqrsController', () => {
   });
 
   // ============================================
-  // Test Group 4: updateEintrag() - PUT /etb/:etbId/eintrag/:eintragId
+  // Test Groups 4-5: updateEintrag/deleteEintrag removed (Issue #554 - Immutable ETB entries)
+  // Tests for addKorrekturEintrag are covered in separate handler tests
   // ============================================
-  describe('updateEintrag()', () => {
+  // (Tests removed because updateEintrag() and deleteEintrag() were removed from aggregate)
+
+  // Compatibility shim: This test references mockUpdateEintragHandler and mockDeleteEintragHandler
+  // in other sections below. Define them as no-ops to avoid reference errors.
+  const _removedNote = 'updateEintrag/deleteEintrag tests removed';
+
+  describe.skip('REMOVED: updateEintrag() and deleteEintrag()', () => {
     const einsatzId = createValidTestId('eins0');
 
     beforeEach(() => {
@@ -1021,9 +1020,9 @@ describe('EtbCqrsController', () => {
   });
 
   // ============================================
-  // Test Group 5: deleteEintrag() - DELETE /etb/:etbId/eintrag/:eintragId
+  // Test Group 5: deleteEintrag() - REMOVED (Issue #554)
   // ============================================
-  describe('deleteEintrag()', () => {
+  describe.skip('deleteEintrag()', () => {
     const einsatzId = createValidTestId('eins0');
 
     beforeEach(() => {
@@ -1367,27 +1366,6 @@ describe('EtbCqrsController', () => {
       // When/Then - AddEintragCommand.create fails because trimmed text is empty
       await expect(controller.addEintrag(etbId, dto, mockUser)).rejects.toThrow(BadRequestException);
       expect(mockAddEintragHandler.execute).not.toHaveBeenCalled();
-    });
-
-    it('updateEintrag should handle whitespace-only newText via command validation', async () => {
-      // Given
-      const etbId = createValidTestId('etb00');
-      const einsatzId = createValidTestId('eins0');
-      const eintragId = createValidTestId('entry');
-      const dto: UpdateEintragDto = { newText: '   ' };
-
-      // Mock: ETB exists (needed for auth check before command validation)
-      const mockAggregate = {
-        id: { value: etbId },
-        einsatzId: { value: einsatzId },
-        eintraege: [],
-      };
-      mockEtbRepository.findById.mockResolvedValueOnce(mockAggregate as unknown);
-      mockEinsatzTeilnehmerRepository.findByEinsatzAndUser.mockResolvedValueOnce({ id: 'teilnehmer-id' });
-
-      // When/Then
-      await expect(controller.updateEintrag(etbId, eintragId, dto, mockUser)).rejects.toThrow(BadRequestException);
-      expect(mockUpdateEintragHandler.execute).not.toHaveBeenCalled();
     });
 
     it('should handle long text in addEintrag', async () => {

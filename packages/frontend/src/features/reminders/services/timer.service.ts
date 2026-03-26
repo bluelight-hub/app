@@ -7,7 +7,7 @@
  * **Story 1.5 AC1, AC6:**
  * - Polling-Interval: 500ms
  * - Trigger-Logik: faelligAm <= Date.now() UND status === 'GEPLANT'
- * - Deduplizierung ueber triggered Set (verhindert Mehrfach-Ausloesung)
+ * - Deduplizierung ueber triggered Set (verhindert Mehrfach-Auslösung)
  *
  * **Story 2.2 AC1, AC3:**
  * - Erweiterte Trigger-Logik: status === 'GEPLANT' ODER status === 'SNOOZED'
@@ -40,7 +40,7 @@ export type OnTriggerCallback = (erinnerung: ErinnerungResponseDto) => void;
  *
  * Verwaltet die Ueberwachung von Erinnerungen und triggert Callbacks
  * wenn eine Erinnerung faellig wird. Nutzt Set fuer Deduplizierung
- * um Mehrfach-Ausloesung zu verhindern.
+ * um Mehrfach-Auslösung zu verhindern.
  *
  * **C5 Fix:** Singleton unterstuetzt nun einsatzId-Context um Race Conditions
  * zwischen mehreren Hooks zu vermeiden.
@@ -79,10 +79,10 @@ export class TimerService {
    * Stoppt automatisch einen vorherigen Timer falls vorhanden.
    * Prueft alle 500ms ob Erinnerungen faellig sind.
    *
-   * **WICHTIG:** Bei gleichem einsatzId werden triggeredIds NICHT geloescht,
-   * um Mehrfach-Ausloesung bei Query-Refetch zu verhindern.
+   * **WICHTIG:** Bei gleichem einsatzId werden triggeredIds NICHT gelöscht,
+   * um Mehrfach-Auslösung bei Query-Refetch zu verhindern.
    *
-   * @param erinnerungen - Liste der zu ueberwachenden Erinnerungen
+   * @param erinnerungen - Liste der zu überwachenden Erinnerungen
    * @param einsatzId - C5 Fix: Einsatz-ID fuer Context-Tracking
    * @param onTrigger - Callback bei Faelligkeit einer Erinnerung
    */
@@ -134,13 +134,13 @@ export class TimerService {
     // Reset internal state (aber triggeredIds behalten fuer Deduplizierung!)
     this.currentErinnerungen = [];
     this.onTriggerCallback = null;
-    // triggeredIds werden NICHT geleert - das uebernimmt start() bei Einsatz-Wechsel
+    // triggeredIds werden NICHT geleert - das übernimmt start() bei Einsatz-Wechsel
   }
 
   /**
    * Setzt den kompletten Timer-State zurueck inkl. triggeredIds
    *
-   * Nutze diese Methode nur wenn ein vollstaendiger Reset erwuenscht ist,
+   * Nutze diese Methode nur wenn ein vollständiger Reset erwünscht ist,
    * z.B. beim Verlassen der Einsatz-Seite.
    */
   reset(): void {
@@ -157,7 +157,7 @@ export class TimerService {
    *
    * **C5 Fix:** Prueft ob einsatzId-Context uebereinstimmt bevor Update erfolgt.
    *
-   * @param erinnerungen - Neue Liste der zu ueberwachenden Erinnerungen
+   * @param erinnerungen - Neue Liste der zu überwachenden Erinnerungen
    * @param einsatzId - C5 Fix: Einsatz-ID fuer Context-Validierung
    */
   updateErinnerungen(erinnerungen: ErinnerungResponseDto[], einsatzId: string): void {

@@ -172,14 +172,14 @@ describe('EtbTextCell', () => {
     });
 
     it('should apply line-through styling for deleted entries', () => {
-      // Given: Geloeschter Eintrag
-      const entry = createMockEntry({ text: 'Geloeschter Text' });
+      // Given: Gelöschter Eintrag
+      const entry = createMockEntry({ text: 'Gelöschter Text' });
 
       // When: Komponente wird mit isDeleted=true gerendert
       render(<EtbTextCell entry={entry} isDeleted />);
 
       // Then: Text hat line-through Klasse
-      const textElement = screen.getByText('Geloeschter Text');
+      const textElement = screen.getByText('Gelöschter Text');
       expect(textElement.className).toMatch(/line-through/);
     });
   });

@@ -26,6 +26,10 @@ export interface EtbEintragSnapshot {
   updatedAt?: string;
   /** Soft-Delete Flag */
   isDeleted: boolean;
+  /** ID des Original-Eintrags den dieser korrigiert (optional) */
+  korrigiertEintragId?: string;
+  /** ID des Korrektur-Eintrags der diesen ersetzt (optional) */
+  korrigiertDurchId?: string;
 }
 
 /**
@@ -168,7 +172,7 @@ export class EtbSnapshot {
   }
 
   /**
-   * Gibt die Anzahl der aktiven (nicht geloeschten) Eintraege zurueck.
+   * Gibt die Anzahl der aktiven (nicht gelöschten) Eintraege zurück.
    *
    * @returns Anzahl der aktiven Eintraege
    */

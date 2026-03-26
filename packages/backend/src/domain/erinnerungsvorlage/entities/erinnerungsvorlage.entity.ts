@@ -155,12 +155,12 @@ export class Erinnerungsvorlage extends AggregateRoot<ErinnerungsvorlageId> {
   /**
    * Aktualisiert die Erinnerungsvorlage mit den gegebenen Properties (Story 6.2).
    * Business Rules:
-   * - Geloeschte Vorlagen duerfen nicht bearbeitet werden
+   * - Gelöschte Vorlagen dürfen nicht bearbeitet werden
    * - Mindestens ein Feld muss geaendert werden
    * - Titel und Minuten werden validiert
    */
   public update(props: UpdateErinnerungsvorlageProps): Result<void> {
-    // Business Rule: Geloeschte Vorlagen duerfen nicht bearbeitet werden
+    // Business Rule: Gelöschte Vorlagen dürfen nicht bearbeitet werden
     if (this._isDeleted) {
       return Result.fail<void>('VORLAGE_ALREADY_DELETED');
     }
@@ -209,8 +209,8 @@ export class Erinnerungsvorlage extends AggregateRoot<ErinnerungsvorlageId> {
   }
 
   /**
-   * Soft-Delete: Markiert die Erinnerungsvorlage als geloescht (Story 6.2).
-   * Business Rule: Bereits geloeschte Vorlagen koennen nicht erneut geloescht werden.
+   * Soft-Delete: Markiert die Erinnerungsvorlage als gelöscht (Story 6.2).
+   * Business Rule: Bereits gelöschte Vorlagen können nicht erneut gelöscht werden.
    */
   public softDelete(deletedBy: UserId): Result<void> {
     if (this._isDeleted) {

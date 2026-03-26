@@ -214,12 +214,20 @@ export function createTestEintrag(options: CreateTestEintragOptions = {}): EtbEi
   if (!idResult.value || !seqResult.value) {
     throw new Error('Failed to create required value objects');
   }
-  const eintrag = new EtbEintrag(idResult.value, seqResult.value, text, userIdResult.value, createdAt);
-
-  // Mark as deleted if requested
-  if (isDeleted) {
-    eintrag.markAsDeleted();
-  }
+  const eintrag = new EtbEintrag(
+    idResult.value,
+    seqResult.value,
+    text,
+    userIdResult.value,
+    createdAt,
+    undefined, // kategorie
+    undefined, // absender
+    undefined, // empfaenger
+    undefined, // metadata
+    undefined, // korrigiertEintragId
+    undefined, // korrigiertDurchId
+    isDeleted, // isDeleted
+  );
 
   return eintrag;
 }

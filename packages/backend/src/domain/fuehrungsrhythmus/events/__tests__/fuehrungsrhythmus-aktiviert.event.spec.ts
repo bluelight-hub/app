@@ -87,7 +87,7 @@ describe('FuehrungsrhythmusAktiviertEvent', () => {
       expect(FuehrungsrhythmusAktiviertEvent.eventName()).toBe('fuehrungsrhythmus-template.aktiviert');
     });
 
-    it('sollte eventName mit EVENT_NAMES Constant uebereinstimmen', () => {
+    it('sollte eventName mit EVENT_NAMES Constant übereinstimmen', () => {
       // Then
       expect(FuehrungsrhythmusAktiviertEvent.eventName()).toBe(EVENT_NAMES.FUEHRUNGSRHYTHMUS_TEMPLATE.AKTIVIERT);
     });

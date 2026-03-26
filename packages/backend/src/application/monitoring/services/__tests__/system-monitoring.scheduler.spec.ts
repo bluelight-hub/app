@@ -204,7 +204,7 @@ describe('SystemMonitoringScheduler', () => {
   });
 
   describe('running guard', () => {
-    it('sollte parallele Ausfuehrung verhindern', async () => {
+    it('sollte parallele Ausführung verhindern', async () => {
       // Given: Langsamer Metriken-Call
       let resolveZustellrate: (value: number) => void;
       mockMetricsCollector.getZustellrate.mockImplementation(

@@ -3,8 +3,8 @@
  *
  * **Story 1.3:** "Erinnerung bearbeiten"
  * AC1: Editor oeffnet sich mit den aktuellen Werten (Titel, Beschreibung, Faelligkeit)
- * AC2: Aenderungen speichern und Timer aktualisieren
- * AC3: Nur GEPLANT Status editierbar (wird im Store/List Item geprueft)
+ * AC2: Änderungen speichern und Timer aktualisieren
+ * AC3: Nur GEPLANT Status editierbar (wird im Store/List Item geprüft)
  * AC4: Validierung (Titel nicht leer, Zeit in der Zukunft)
  */
 
@@ -66,7 +66,7 @@ interface ErinnerungEditDialogProps {
  * Dialog zum Bearbeiten einer bestehenden Erinnerung.
  *
  * **Story 1.3 AC1:** Oeffnet mit den aktuellen Werten der Erinnerung.
- * **Story 1.3 AC2:** Speichert Aenderungen und aktualisiert Timer.
+ * **Story 1.3 AC2:** Speichert Änderungen und aktualisiert Timer.
  * **Story 1.3 AC4:** Validiert Titel und Faelligkeit.
  */
 export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }: ErinnerungEditDialogProps) {
@@ -101,7 +101,7 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
 
       setApiErrorMessage(null);
 
-      // Erstelle UpdateErinnerungDto mit nur geaenderten Feldern
+      // Erstelle UpdateErinnerungDto mit nur geänderten Feldern
       const updateData: UpdateErinnerungDto = {};
       let hasChanges = false;
       let toastMessage = 'Erinnerung aktualisiert';
@@ -146,10 +146,10 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
         hasChanges = true;
       }
 
-      // Wenn nichts geaendert wurde, Dialog schliessen ohne API-Call
+      // Wenn nichts geändert wurde, Dialog schliessen ohne API-Call
       if (!hasChanges) {
-        toast.info('Keine Aenderungen', {
-          description: 'Es wurden keine Aenderungen vorgenommen.',
+        toast.info('Keine Änderungen', {
+          description: 'Es wurden keine Änderungen vorgenommen.',
         });
         setTimeout(() => {
           form.reset();

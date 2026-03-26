@@ -12,8 +12,8 @@ import { BEFEHL_REPOSITORY, EINSATZ_REPOSITORY, ETB_REPOSITORY, MONITORING, METR
 /**
  * DI Resolution Smoke Test.
  *
- * Kompiliert das vollstaendige AppModule und validiert, dass alle
- * Dependency-Injection-Bindings korrekt aufgeloest werden koennen.
+ * Kompiliert das vollständige AppModule und validiert, dass alle
+ * Dependency-Injection-Bindings korrekt aufgelöst werden können.
  * PrismaService wird gemockt, um eine echte DB-Verbindung zu vermeiden.
  *
  * Haette den MonitoringApplicationModule IMetricsCollector-Fehler
@@ -105,7 +105,7 @@ describe('DI Resolution Smoke Test', () => {
     expect(moduleRef).toBeDefined();
   });
 
-  it('Kritische Services sind aufloesbar', () => {
+  it('Kritische Services sind auflösbar', () => {
     // Controller aus verschiedenen Modulen
     expect(moduleRef.get(BefehlController)).toBeDefined();
     expect(moduleRef.get(EinsatzController)).toBeDefined();

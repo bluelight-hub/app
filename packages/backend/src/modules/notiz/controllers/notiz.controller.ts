@@ -132,10 +132,10 @@ export class NotizController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles('USER', 'ADMIN', 'SUPER_ADMIN')
   @ApiOperation({ summary: 'Notiz loeschen (Soft-Delete)' })
-  @ApiNoContentResponse({ description: 'Notiz erfolgreich geloescht' })
+  @ApiNoContentResponse({ description: 'Notiz erfolgreich gelöscht' })
   @ApiBadRequestResponse({ description: 'Ungueltige NotizId oder UserId' })
   @ApiNotFoundResponse({ description: 'Notiz nicht gefunden' })
-  @ApiConflictResponse({ description: 'Notiz bereits geloescht' })
+  @ApiConflictResponse({ description: 'Notiz bereits gelöscht' })
   async delete(@Param('einsatzId') _einsatzId: string, @Param('notizId') notizId: string, @CurrentUser() user: ValidatedUser): Promise<void> {
     const commandResult = DeleteNotizCommand.create({
       notizId,

@@ -125,8 +125,8 @@ export class Kategorie extends AggregateRoot<KategorieId> {
   }
 
   /**
-   * Soft-Delete: Markiert die Kategorie als geloescht (Story 8.2).
-   * Idempotenz: Bereits geloeschte Kategorien geben Failure zurueck.
+   * Soft-Delete: Markiert die Kategorie als gelöscht (Story 8.2).
+   * Idempotenz: Bereits gelöschte Kategorien geben Failure zurück.
    */
   public softDelete(geloeschtVon: UserId): Result<void> {
     if (this._geloeschtAm !== null) {

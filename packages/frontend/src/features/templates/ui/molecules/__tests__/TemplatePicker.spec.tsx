@@ -35,7 +35,7 @@ const mockVorlagen: ErinnerungsvorlageResponseDto[] = [
   },
   {
     id: 'v2',
-    titel: 'Rueckmeldung pruefen',
+    titel: 'Rückmeldung pruefen',
     minuten: 15,
     beschreibung: null,
     createdBy: 'user-1',
@@ -86,7 +86,7 @@ describe('TemplatePicker', () => {
       // Then (Assert) - Alle Vorlagen mit Titel und Minuten sichtbar
       await waitFor(() => {
         expect(screen.getByText('Lagebesprechung')).toBeInTheDocument();
-        expect(screen.getByText('Rueckmeldung pruefen')).toBeInTheDocument();
+        expect(screen.getByText('Rückmeldung pruefen')).toBeInTheDocument();
         expect(screen.getByText('Ressourcen-Check')).toBeInTheDocument();
       });
       expect(screen.getByText('30 Min')).toBeInTheDocument();

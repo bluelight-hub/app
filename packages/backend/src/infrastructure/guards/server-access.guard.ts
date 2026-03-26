@@ -12,8 +12,8 @@ import { EVENT_NAMES } from '@domain/events/event-names';
 /**
  * Guard zur Validierung von Server-Access-Tokens.
  *
- * Prueft den `X-Server-Access-Token` Header gegen die Datenbank.
- * Aktualisiert `lastUsedAt` asynchron bei gueltigem Token.
+ * Prüft den `X-Server-Access-Token` Header gegen die Datenbank.
+ * Aktualisiert `lastUsedAt` asynchron bei gültigem Token.
  *
  * ## OpenAPI Header-Spezifikation
  *
@@ -23,10 +23,10 @@ import { EVENT_NAMES } from '@domain/events/event-names';
  *
  * ## Multi-Token Support
  *
- * Das System unterstuetzt mehrere gleichzeitig aktive Tokens:
+ * Das System unterstützt mehrere gleichzeitig aktive Tokens:
  * - Jedes Token hat einen eindeutigen Namen (z.B. "Desktop Hauptwache")
  * - `lastUsedAt` wird bei jeder erfolgreichen Validierung aktualisiert
- * - Tokens koennen individuell deaktiviert/reaktiviert werden
+ * - Tokens können individuell deaktiviert/reaktiviert werden
  * - Bei Rotation wird ein neues Token generiert, das alte deaktiviert
  *
  * ## Guard-Reihenfolge (zwischen Guards)
@@ -35,7 +35,7 @@ import { EVENT_NAMES } from '@domain/events/event-names';
  *
  * ## Check-Reihenfolge (innerhalb canActivate)
  *
- * 1. `@SkipServerAccess` Decorator Check (hoechste Prioritaet, sofort return)
+ * 1. `@SkipServerAccess` Decorator Check (höchste Priorität, sofort return)
  * 2. Token-Extraktion aus `X-Server-Access-Token`
  * 3. Token-Validierung gegen alle aktiven Hashes (bcrypt.compare)
  * 4. lastUsedAt Update (asynchron, non-blocking)
@@ -51,13 +51,13 @@ import { EVENT_NAMES } from '@domain/events/event-names';
  *
  * ## Bypass
  *
- * - Endpoints mit `@SkipServerAccess()` Decorator ueberspringen die Pruefung
- * - Endpunkte mit `@SkipServerAccess()` Decorator ueberspringen die Pruefung
+ * - Endpoints mit `@SkipServerAccess()` Decorator überspringen die Prüfung
+ * - Endpunkte mit `@SkipServerAccess()` Decorator überspringen die Prüfung
  *
  * ## Security
  *
  * - Token-Hashes werden mit bcrypt.compare() timing-safe validiert
- * - Tokens werden NIEMALS vollstaendig geloggt (nur erste 8 Zeichen bei Fehlern)
+ * - Tokens werden NIEMALS vollständig geloggt (nur erste 8 Zeichen bei Fehlern)
  * - lastUsedAt Update erfolgt asynchron (non-blocking)
  */
 @Injectable()
@@ -103,12 +103,12 @@ export class ServerAccessGuard implements CanActivate {
   /**
    * Validiert Klartext-Token gegen alle aktiven Token-Hashes.
    *
-   * Iteriert ueber alle aktiven Tokens und prueft mit bcrypt.compare().
+   * Iteriert über alle aktiven Tokens und prüft mit bcrypt.compare().
    * Stoppt bei erstem Match UND isValid() = true (Performance-Optimierung).
    *
    * **Warum nicht Hash-Lookup?**
    * - bcrypt Hashes sind nicht deterministisch (salt)
-   * - Deshalb muessen wir bcrypt.compare() gegen jeden gespeicherten Hash ausfuehren
+   * - Deshalb müssen wir bcrypt.compare() gegen jeden gespeicherten Hash ausführen
    * - Performance: Bei wenigen aktiven Tokens (<100) ist das akzeptabel
    *
    * @param rawToken - Klartext-Token aus dem Request-Header
@@ -143,15 +143,15 @@ export class ServerAccessGuard implements CanActivate {
    * Fehler werden geloggt, aber der Request wird nicht blockiert.
    *
    * **Warum setImmediate() statt Promise.resolve().then():**
-   * - Verzoegert Ausfuehrung bis nach aktuellem Event-Loop-Tick
+   * - Verzögert Ausführung bis nach aktuellem Event-Loop-Tick
    * - Garantiert dass HTTP Response gesendet wird BEVOR DB-Update startet
    * - Verhindert Race Conditions zwischen Response und DB-Write
    * - Request-Latenz wird nicht von lastUsedAt-Update beeinflusst
    *
    * **Event Emission:**
-   * - recordUsage() fuegt Domain Event zur Aggregate hinzu
+   * - recordUsage() fügt Domain Event zur Aggregate hinzu
    * - Events werden VOR save() extrahiert und emittiert
-   * - Repository.save() loescht Events nach Persistierung
+   * - Repository.save() löscht Events nach Persistierung
    * - EventEmitter2 triggert asynchrone Event Handler
    *
    * @param token - Das validierte ServerAccessToken
@@ -159,10 +159,10 @@ export class ServerAccessGuard implements CanActivate {
   private updateLastUsedAsync(token: ServerAccessToken): void {
     setImmediate(async () => {
       try {
-        // 1. recordUsage() aktualisiert lastUsedAt und fuegt Domain Event hinzu
+        // 1. recordUsage() aktualisiert lastUsedAt und fügt Domain Event hinzu
         token.recordUsage();
 
-        // 2. Domain Events VOR save() extrahieren (save() loescht sie via clearDomainEvents)
+        // 2. Domain Events VOR save() extrahieren (save() löscht sie via clearDomainEvents)
         const domainEvents = token.getDomainEvents();
 
         // 3. Events emittieren (asynchron, non-blocking)
@@ -171,7 +171,7 @@ export class ServerAccessGuard implements CanActivate {
           this.eventEmitter.emit(EVENT_NAMES.SERVER_ACCESS_TOKEN.USED, event);
         }
 
-        // 4. Token speichern (loescht Domain Events nach erfolgreichem Save)
+        // 4. Token speichern (löscht Domain Events nach erfolgreichem Save)
         const saveResult = await this.tokenRepo.save(token);
         if (saveResult.isFailure) {
           this.logger.error(`ServerAccessGuard: Failed to save lastUsedAt for ${token.id.value}: ${saveResult.error}`);

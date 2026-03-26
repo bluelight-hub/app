@@ -166,7 +166,7 @@ export interface JoinEinsatzErrorPayload {
  * - `erinnerung.triggered`: Erinnerung wurde ausgeloest (Story 1.5)
  * - `erinnerung.created`: Neue Erinnerung erstellt
  * - `erinnerung.updated`: Erinnerung aktualisiert
- * - `erinnerung.deleted`: Erinnerung geloescht
+ * - `erinnerung.deleted`: Erinnerung gelöscht
  * - `join:einsatz:error`: Room-Join abgelehnt (fehlende Berechtigung/Prueffehler)
  */
 import { corsConfig } from '@/infrastructure/config/security.config';

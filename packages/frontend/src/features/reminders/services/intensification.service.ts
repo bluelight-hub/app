@@ -196,7 +196,7 @@ export class IntensificationService {
     // Store aufräumen
     clearIntensity(erinnerungId);
 
-    // Scheduling anpassen wenn Timer geaendert
+    // Scheduling anpassen wenn Timer geändert
     this.handleTimerChange();
 
     logger.info(`[IntensificationService] Timer gestoppt fuer: ${erinnerungId}`);
@@ -258,19 +258,19 @@ export class IntensificationService {
    * Berechnet wann der naechste Schwellwert erreicht wird und plant
    * einen einzelnen setTimeout dafuer.
    *
-   * Fuehrt SOFORT einen Check aus, falls bereits Schwellwerte ueberschritten
+   * Fuehrt SOFORT einen Check aus, falls bereits Schwellwerte überschritten
    * sind (z.B. wenn ein Timer mit vergangenem Timestamp gestartet wird).
    */
   private ensureSchedulingActive(): void {
     if (this.running) {
-      // Bereits aktiv - Check ob bereits Schwellwerte ueberschritten
+      // Bereits aktiv - Check ob bereits Schwellwerte überschritten
       this.checkAllTimers();
       this.scheduleNextCheck();
       return;
     }
 
     this.running = true;
-    // Sofortiger Check fuer bereits ueberschrittene Schwellwerte
+    // Sofortiger Check fuer bereits überschrittene Schwellwerte
     this.checkAllTimers();
     this.scheduleNextCheck();
 
@@ -364,7 +364,7 @@ export class IntensificationService {
     if (this.trackers.size === 0) {
       this.stopScheduling();
     } else {
-      // Reschedule da sich die Timer geaendert haben koennten
+      // Reschedule da sich die Timer geändert haben könnten
       this.scheduleNextCheck();
     }
   }
@@ -402,7 +402,7 @@ export class IntensificationService {
         const elapsed = now - tracker.startedAt;
         const newLevel = this.calculateLevel(elapsed);
 
-        // Level hat sich geaendert
+        // Level hat sich geändert
         if (newLevel !== tracker.currentLevel) {
           this.escalateLevel(erinnerungId, tracker, newLevel);
         }

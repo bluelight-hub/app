@@ -5,20 +5,20 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { format, isValid } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useMemo } from 'react';
-import { PiCaretDown, PiCaretRight, PiPencil, PiTrash, PiTrashSimple } from 'react-icons/pi';
+import { PiCaretDown, PiCaretRight, PiPencil, PiPencilLine, PiTrash, PiTrashSimple } from 'react-icons/pi';
 import { EtbKategorieBadge } from '../ui/organisms/components/EtbKategorieBadge';
 import { EtbVersionBadge } from '../ui/organisms/components/EtbVersionBadge';
 import { EtbTextCell } from '../ui/organisms/components/EtbTextCell';
 
 interface UseEtbColumnsProps {
   onEditEntry?: (entry: EintragDto) => void;
-  handleDelete: (entry: EintragDto) => void;
+  onDeleteEntry?: (entry: EintragDto) => void;
   onShowHistory?: (entry: EintragDto) => void;
   /** Einsatz-ID fuer Befehl-Verlinkung in EtbTextCell */
   einsatzId?: string;
 }
 
-export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory, einsatzId }: UseEtbColumnsProps): ColumnDef<EintragDto>[] {
+export function useEtbColumns({ onEditEntry, onDeleteEntry, onShowHistory, einsatzId }: UseEtbColumnsProps): ColumnDef<EintragDto>[] {
   return useMemo<ColumnDef<EintragDto>[]>(
     () => [
       {
@@ -35,7 +35,10 @@ export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory, einsat
         id: 'sequenceNumber',
         accessorKey: 'sequenceNumber',
         header: '#',
-        cell: ({ getValue }) => <span className="font-mono text-xs text-text-muted">#{getValue<number>()}</span>,
+        cell: ({ getValue, row }) => {
+          const isOutdated = !!row.original.deletedAt || !!row.original.isKorrigiert;
+          return <span className={cn('font-mono text-xs text-text-muted', isOutdated && 'line-through opacity-50')}>#{getValue<number>()}</span>;
+        },
         size: 70,
         enableSorting: true,
       },
@@ -64,7 +67,7 @@ export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory, einsat
         cell: ({ row }) => {
           const entry = row.original;
 
-          // "Gelöscht" Badge nur anzeigen, wenn Eintrag gelöscht wurde
+          // "Gelöscht" Badge
           if (entry.deletedAt) {
             return (
               <span
@@ -77,9 +80,19 @@ export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory, einsat
             );
           }
 
+          // "Korrigiert" Badge (alte Version, durch Bearbeitung ersetzt) - ausgegraut
+          if (entry.isKorrigiert) {
+            return (
+              <span className="bg-surface-sunken inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium text-text-muted" title="Dieser Eintrag wurde korrigiert.">
+                <PiPencilLine className="h-3 w-3" />
+                Korrigiert
+              </span>
+            );
+          }
+
           return null;
         },
-        size: 90,
+        size: 120,
       },
       {
         id: 'timestamp',
@@ -150,7 +163,11 @@ export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory, einsat
         id: 'text',
         accessorKey: 'text',
         header: 'Eintrag',
-        cell: ({ row }) => <EtbTextCell entry={row.original} isDeleted={!!row.original.deletedAt} einsatzId={einsatzId} />,
+        cell: ({ row }) => {
+          const entry = row.original;
+          const isOutdated = !!entry.deletedAt || !!entry.isKorrigiert;
+          return <EtbTextCell entry={entry} isDeleted={isOutdated} einsatzId={einsatzId} />;
+        },
         size: 600,
         minSize: 400,
       },
@@ -161,34 +178,30 @@ export function useEtbColumns({ onEditEntry, handleDelete, onShowHistory, einsat
           const entry = row.original;
           const isDeleted = !!entry.deletedAt;
 
-          // Für gelöschte Einträge: disabled Buttons mit Tooltip
-          if (isDeleted) {
-            return (
-              <div className="flex justify-center gap-1" title="Eintrag wurde gelöscht">
-                <IconButton appearance="minimal" size="sm" disabled className="cursor-not-allowed opacity-40" aria-label="Bearbeiten nicht möglich">
-                  <PiPencil />
-                </IconButton>
-                <IconButton appearance="minimal" size="sm" intent="danger" disabled className="cursor-not-allowed opacity-40" aria-label="Löschen nicht möglich">
-                  <PiTrash />
-                </IconButton>
-              </div>
-            );
+          // Für gelöschte oder korrigierte Einträge: keine Actions
+          if (isDeleted || entry.isKorrigiert) {
+            return null;
           }
 
+          // Normal: Bearbeiten + Loeschen Buttons
           return (
             <div className="flex justify-center gap-1">
-              <IconButton appearance="minimal" size="sm" onClick={() => onEditEntry?.(entry)} className="text-text-muted hover:text-action-primary" aria-label="Bearbeiten">
-                <PiPencil />
-              </IconButton>
-              <IconButton size="sm" appearance="minimal" intent="danger" onClick={() => handleDelete(entry)} aria-label="Löschen">
-                <PiTrash />
-              </IconButton>
+              {onEditEntry && (
+                <IconButton appearance="minimal" size="sm" onClick={() => onEditEntry(entry)} className="text-text-muted hover:text-action-primary" aria-label="Bearbeiten" title="Bearbeiten">
+                  <PiPencil />
+                </IconButton>
+              )}
+              {onDeleteEntry && (
+                <IconButton appearance="minimal" size="sm" onClick={() => onDeleteEntry(entry)} className="text-text-muted hover:text-status-danger-text" aria-label="Loeschen" title="Loeschen">
+                  <PiTrash />
+                </IconButton>
+              )}
             </div>
           );
         },
         size: 110,
       },
     ],
-    [onEditEntry, handleDelete, onShowHistory, einsatzId],
+    [onEditEntry, onDeleteEntry, onShowHistory, einsatzId],
   );
 }

@@ -3,7 +3,7 @@ import { Result } from '@domain/common/result';
 import { EtbEintrag } from '@domain/entities/etb-eintrag.entity';
 import { EintragAddedEvent } from '@domain/events/eintrag-added.event';
 import { EintragDeletedEvent } from '@domain/events/eintrag-deleted.event';
-import { EintragUpdatedEvent } from '@domain/events/eintrag-updated.event';
+import { EintragKorrigiertEvent } from '@domain/events/eintrag-korrigiert.event';
 import { EtbCreatedEvent } from '@domain/events/etb-created.event';
 import { EtbLockedEvent } from '@domain/events/etb-locked.event';
 import type { EinsatzId } from '@domain/value-objects/einsatz-id';
@@ -31,8 +31,8 @@ import type { UserId } from '@domain/value-objects/user-id';
  * - Transactional Boundary: Ein ETB = eine Transaktion (konsistente State Changes)
  *
  * **Versionierungs-Strategie:**
- * - Jede Änderung (add/update/delete) inkrementiert die Version
- * - Version enthält monoton steigende Nummer + Timestamp
+ * - Jede Aenderung (add/korrektur) inkrementiert die Version
+ * - Version enthaelt monoton steigende Nummer + Timestamp
  * - Snapshots werden automatisch vom Repository erstellt (Epic 4)
  * - Optimistic Locking verhindert Concurrent Modification Conflicts
  *
@@ -41,17 +41,16 @@ import type { UserId } from '@domain/value-objects/user-id';
  * - LOCKED ist final: Keine weiteren Änderungen möglich (DRK-Compliance)
  * - Business Methods validieren LOCKED-Status vor Änderungen
  *
- * **Soft-Delete Pattern:**
- * - Einträge werden NICHT physisch gelöscht (bleiben in eintraege[])
- * - Stattdessen: isDeleted=true Flag für Audit-Trail
- * - Garantiert lückenlose Historie für DRK-Compliance
- * - Sequenznummern bleiben stabil (keine Gaps nach Deletes)
+ * **Immutabilitaet (Issue #554):**
+ * - ETB-Eintraege sind nach Erstellung unveraenderlich
+ * - Korrekturen erfolgen ueber neue Korrektur-Eintraege (addKorrekturEintrag)
+ * - Legacy Soft-Delete Eintraege bleiben fuer Altdaten erhalten
  *
  * **Business Rules:**
- * 1. Sequence Numbers sind unveränderlich und monoton steigend (ab 1)
- * 2. Versionierung bei JEDER Änderung (add/update/delete)
+ * 1. Sequence Numbers sind unveraenderlich und monoton steigend (ab 1)
+ * 2. Versionierung bei JEDER Aenderung (add/korrektur)
  * 3. Locked = Immutable (alle Modification Methods returnen Result.fail())
- * 4. Soft-Delete für Compliance (gelöschte Einträge bleiben in Historie)
+ * 4. Eintraege sind nach Erstellung unveraenderlich (kein update/delete)
  * 5. Forward-Only Status Transitions (DRAFT → ACTIVE → LOCKED)
  *
  * **Design Patterns:**
@@ -92,7 +91,7 @@ export class EinsatztagebuchAggregate extends AggregateRoot<EtbId> {
    * Uncommitted Snapshots Akkumulator.
    *
    * Snapshots werden VOR jeder mutierenden Operation erstellt und hier gesammelt.
-   * Nach erfolgreicher Persistierung durch das Repository werden sie geloescht.
+   * Nach erfolgreicher Persistierung durch das Repository werden sie gelöscht.
    * Analog zu _domainEvents fuer Domain Events.
    *
    * Lifecycle:
@@ -306,6 +305,8 @@ export class EinsatztagebuchAggregate extends AggregateRoot<EtbId> {
       createdAt: e.createdAt.toISOString(),
       updatedAt: e.updatedAt?.toISOString(),
       isDeleted: e.isDeleted,
+      korrigiertEintragId: e.korrigiertEintragId?.value,
+      korrigiertDurchId: e.korrigiertDurchId?.value,
     }));
   }
 
@@ -388,116 +389,126 @@ export class EinsatztagebuchAggregate extends AggregateRoot<EtbId> {
   // ============================================================================
 
   /**
-   * Aktualisiert den Text eines bestehenden Eintrags.
+   * Erstellt einen Korrektur-Eintrag fuer einen bestehenden Eintrag.
    *
-   * Diese Methode implementiert die Business Logic für Entry Updates:
-   * - Validiert dass ETB nicht gesperrt ist
-   * - Validiert dass Text nicht leer ist
-   * - Findet Eintrag anhand ID
-   * - Validiert dass Eintrag existiert und nicht gelöscht ist
-   * - Speichert alten Text für Event (Change Tracking)
-   * - Aktualisiert Eintrag und inkrementiert Version
-   * - Emittiert EintragUpdatedEvent mit old + new Text
+   * ETB-Eintraege sind nach Erstellung unveraenderlich (Issue #554).
+   * Korrekturen erfolgen ueber neue Eintraege die auf das Original verweisen:
+   * - Original-Eintrag wird als "korrigiert" markiert (korrigiertDurchId)
+   * - Neuer Korrektur-Eintrag erhaelt Referenz auf Original (korrigiertEintragId)
+   * - Beide Eintraege bleiben im ETB sichtbar (Audit-Trail)
    *
-   * Warum old + new Text im Event?
-   * - Audit-Trail: Vollständige Change-Log Generierung
-   * - Diff-Generierung: UI kann Änderungen hervorheben
-   * - Rollback-Support: Handler können vorherige Version wiederherstellen
+   * Analog zum Befehl-Korrektur-Pattern (KorrigiereBefehlHandler).
    *
-   * @param eintragId - ID des zu aktualisierenden Eintrags
-   * @param newText - Neuer Textinhalt (darf nicht leer sein)
-   * @param userId - User ID des Bearbeiters (für Audit-Trail)
-   * @returns Result<void> - Success oder Failure mit Error
+   * @param originalEintragId - ID des zu korrigierenden Original-Eintrags
+   * @param text - Text des Korrektur-Eintrags
+   * @param userId - User ID des Erstellers
+   * @param kategorie - Optional: Kategorie (default: Kategorie des Originals)
+   * @param absender - Optional: Absender
+   * @param empfaenger - Optional: Empfaenger
+   * @param metadata - Optional: Metadaten
+   * @param occurredAt - Optional: Zeitpunkt
+   * @returns Result<EtbEintrag> - Der neue Korrektur-Eintrag oder Failure
    */
-  public updateEintrag(eintragId: EintragId, newText: string, userId: UserId): Result<void> {
-    // Validate: ETB must not be locked
+  public addKorrekturEintrag(
+    originalEintragId: EintragId,
+    text: string,
+    userId: UserId,
+    kategorie?: EtbKategorie,
+    absender?: string,
+    empfaenger?: string,
+    metadata?: Record<string, unknown>,
+    occurredAt?: Date,
+  ): Result<EtbEintrag> {
     if (this.isLocked()) {
-      return Result.fail<void>('ETB ist gesperrt und kann nicht mehr geändert werden');
+      return Result.fail<EtbEintrag>('ETB ist gesperrt und kann nicht mehr geaendert werden');
     }
 
-    // Validate: Text must not be empty
-    if (!newText?.trim()) {
-      return Result.fail<void>('Text darf nicht leer sein');
+    if (!text?.trim()) {
+      return Result.fail<EtbEintrag>('Text darf nicht leer sein');
     }
 
-    // Find entry by ID
-    const eintrag = this._eintraege.find((e) => e.id.equals(eintragId));
-
-    // Validate: Entry must exist
-    if (!eintrag) {
-      return Result.fail<void>('Eintrag nicht gefunden');
+    // Original-Eintrag finden
+    const originalEintrag = this._eintraege.find((e) => e.id.equals(originalEintragId));
+    if (!originalEintrag) {
+      return Result.fail<EtbEintrag>('Original-Eintrag nicht gefunden');
     }
 
-    // Validate: Entry must not be deleted (soft-delete check)
-    if (eintrag.isDeleted) {
-      return Result.fail<void>('Gelöschte Einträge können nicht bearbeitet werden');
+    // Pruefen ob bereits korrigiert
+    if (originalEintrag.isKorrigiert) {
+      return Result.fail<EtbEintrag>('Eintrag wurde bereits korrigiert');
     }
 
     // === SNAPSHOT VOR MUTATION (DRK-Compliance) ===
     this.createSnapshot();
 
-    // Save old text for event (change tracking)
-    const oldText = eintrag.text;
+    // Neue IDs erstellen
+    const idResult = EintragId.create();
+    if (idResult.isFailure) {
+      return Result.fail<EtbEintrag>(idResult.error as string);
+    }
+    const seqResult = EtbSequenceNumber.create(this._nextSequenceNumber);
+    if (seqResult.isFailure) {
+      return Result.fail<EtbEintrag>(seqResult.error as string);
+    }
 
-    // Update entry (sets updatedAt timestamp)
-    eintrag.update(newText);
+    const korrekturEintragId = idResult.value as EintragId;
+    const sequenceNumber = seqResult.value as EtbSequenceNumber;
 
-    // Increment version
+    // Kategorie vom Original uebernehmen falls nicht explizit angegeben
+    const korrekturKategorie = kategorie ?? originalEintrag.kategorie;
+
+    // Korrektur-Eintrag erstellen mit Referenz auf Original
+    const korrekturEintrag = new EtbEintrag(
+      korrekturEintragId,
+      sequenceNumber,
+      text,
+      userId,
+      occurredAt,
+      korrekturKategorie,
+      absender,
+      empfaenger,
+      metadata,
+      originalEintragId, // korrigiertEintragId
+    );
+
+    // Original-Eintrag als korrigiert markieren
+    originalEintrag.markAsKorrigiert(korrekturEintragId);
+
+    // Eintrag zur Liste hinzufuegen
+    this._eintraege.push(korrekturEintrag);
+
+    this._nextSequenceNumber++;
     this._version = this._version.increment();
 
-    // Emit domain event with old + new text
-    this.addDomainEvent(new EintragUpdatedEvent(this.id, eintragId, oldText, newText, userId));
+    // Domain Event emittieren
+    this.addDomainEvent(new EintragKorrigiertEvent(this.id, korrekturEintragId, originalEintragId, korrekturEintrag.sequenceNumber.value, text, userId));
 
-    return Result.ok<void>(undefined);
+    return Result.ok<EtbEintrag>(korrekturEintrag);
   }
 
   /**
-   * Löscht einen Eintrag (Soft-Delete).
+   * Soft-Delete eines Eintrags (Streichung im ETB).
    *
-   * Diese Methode implementiert DRK-konformes Soft-Delete Pattern:
-   * - Validiert dass ETB nicht gesperrt ist
-   * - Findet Eintrag anhand ID
-   * - Validiert dass Eintrag existiert
-   * - Markiert Eintrag als gelöscht (isDeleted=true)
-   * - Eintrag bleibt in _eintraege Array (Audit-Trail)
-   * - Inkrementiert Version (Snapshot-Versionierung)
-   * - Emittiert EintragDeletedEvent
-   *
-   * Warum Soft-Delete statt Hard-Delete?
-   * - DRK-Compliance: Unveränderliche Historie gefordert
-   * - Audit-Trail: Wer hat wann was gelöscht?
-   * - Recovery: Versehentliches Löschen kann rückgängig gemacht werden
-   * - Forensik: Gelöschte Einträge bleiben nachvollziehbar
-   * - Sequenznummern: Keine Gaps in der Historie
-   *
-   * @param eintragId - ID des zu löschenden Eintrags
-   * @param userId - User ID des Löschenden (für Audit-Trail)
-   * @returns Result<void> - Success oder Failure mit Error
+   * Der Eintrag wird als gelöscht markiert, bleibt aber im Audit-Trail erhalten.
+   * Analog zur Streichung im physischen Einsatztagebuch.
    */
   public deleteEintrag(eintragId: EintragId, userId: UserId): Result<void> {
-    // Validate: ETB must not be locked
     if (this.isLocked()) {
-      return Result.fail<void>('ETB ist gesperrt und kann nicht mehr geändert werden');
+      return Result.fail<void>('ETB ist gesperrt und kann nicht mehr geaendert werden');
     }
 
-    // Find entry by ID
     const eintrag = this._eintraege.find((e) => e.id.equals(eintragId));
-
-    // Validate: Entry must exist
     if (!eintrag) {
       return Result.fail<void>('Eintrag nicht gefunden');
     }
 
-    // === SNAPSHOT VOR MUTATION (DRK-Compliance) ===
+    if (eintrag.isDeleted) {
+      return Result.fail<void>('Eintrag ist bereits gelöscht');
+    }
+
     this.createSnapshot();
-
-    // Soft-delete: Mark as deleted (stays in array!)
     eintrag.markAsDeleted();
-
-    // Increment version
     this._version = this._version.increment();
-
-    // Emit domain event
     this.addDomainEvent(new EintragDeletedEvent(this.id, eintragId, userId));
 
     return Result.ok<void>(undefined);
@@ -546,8 +557,7 @@ export class EinsatztagebuchAggregate extends AggregateRoot<EtbId> {
    *
    * Diese Methode wird zu Beginn jeder mutierenden Operation aufgerufen:
    * - addEintrag(): Snapshot BEVOR neuer Eintrag hinzugefuegt wird
-   * - updateEintrag(): Snapshot BEVOR Eintrag geaendert wird
-   * - deleteEintrag(): Snapshot BEVOR Eintrag als geloescht markiert wird
+   * - addKorrekturEintrag(): Snapshot BEVOR Korrektur erstellt wird
    *
    * **Warum VOR der Mutation?**
    * - Rollback: Snapshot enthaelt exakten Pre-Mutation State

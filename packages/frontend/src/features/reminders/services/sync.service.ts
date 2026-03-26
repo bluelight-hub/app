@@ -1,7 +1,7 @@
 /**
  * Sync Service fuer Offline-Synchronisation
  *
- * Verwaltet die Synchronisation von offline erstellten/geaenderten Erinnerungen
+ * Verwaltet die Synchronisation von offline erstellten/geänderten Erinnerungen
  * mit dem Server bei Wiederherstellung der Verbindung.
  *
  * **Story 1.8 AC3:**

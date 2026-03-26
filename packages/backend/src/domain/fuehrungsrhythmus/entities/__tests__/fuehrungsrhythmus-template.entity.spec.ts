@@ -386,7 +386,7 @@ describe('FuehrungsrhythmusTemplate Entity', () => {
     it('should reconstruct deleted entity correctly', () => {
       // Given (Arrange)
       const id = FuehrungsrhythmusTemplateId.create().value! as FuehrungsrhythmusTemplateId;
-      const name = FuehrungsrhythmusTemplateName.create('Geloeschtes Template').value!;
+      const name = FuehrungsrhythmusTemplateName.create('Gelöschtes Template').value!;
       const createdBy = generateValidUserId();
       const deletedBy = generateValidUserId();
       const deletedAt = new Date('2026-01-20T12:00:00.000Z');
@@ -594,7 +594,7 @@ describe('FuehrungsrhythmusTemplate Entity', () => {
       const createdBy = generateValidUserId();
       const result = FuehrungsrhythmusTemplate.create({
         name: 'Zu loeschendes Template',
-        beschreibung: 'Wird geloescht',
+        beschreibung: 'Wird gelöscht',
         eintraege: [createValidEintrag()],
         createdBy,
       });

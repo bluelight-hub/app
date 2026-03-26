@@ -107,7 +107,7 @@ async function isServerAccessTokenRequired(response: Response): Promise<boolean>
   }
 
   try {
-    // Clone um Body mehrfach lesen zu koennen
+    // Clone um Body mehrfach lesen zu können
     const cloned = response.clone();
     const body = await cloned.json();
     const message = body?.message || body?.error || '';
@@ -130,7 +130,7 @@ async function isServerNotSetupError(response: Response): Promise<boolean> {
   }
 
   try {
-    // Clone um Body mehrfach lesen zu koennen
+    // Clone um Body mehrfach lesen zu können
     const cloned = response.clone();
     const body = await cloned.json();
     return body?.error === 'SERVER_NOT_SETUP' || body?.message === 'SERVER_NOT_SETUP';

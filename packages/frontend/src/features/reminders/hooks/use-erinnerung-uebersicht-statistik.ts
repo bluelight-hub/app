@@ -17,7 +17,7 @@ const ACTIVE_STATUSES = new Set(['GEPLANT', 'AUSGELOEST', 'ACKNOWLEDGED', 'SNOOZ
 
 /** Statistik-Daten fuer die Erinnerungs-Uebersicht */
 export interface ErinnerungUebersichtStats {
-  /** Gesamtanzahl (alle nicht-geloeschten) */
+  /** Gesamtanzahl (alle nicht-gelöschten) */
   total: number;
   /** Anzahl mit Status ACKNOWLEDGED */
   acknowledged: number;
