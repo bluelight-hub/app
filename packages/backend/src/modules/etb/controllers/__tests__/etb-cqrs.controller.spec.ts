@@ -7,6 +7,7 @@ import type { AddEintragDto, EtbDto, EintragDto } from '@/application/etb/dto';
 import type { EtbEintragSnapshotDto, EtbSnapshotDto } from '@/application/etb/mappers';
 import type { AddEintragHandler } from '@/application/etb/commands/add-eintrag/add-eintrag.handler';
 import type { AddKorrekturEintragHandler } from '@/application/etb/commands/add-korrektur-eintrag/add-korrektur-eintrag.handler';
+import type { DeleteEintragHandler } from '@/application/etb/commands/delete-eintrag/delete-eintrag.handler';
 import type { LockEtbHandler } from '@/application/etb/commands/lock-etb/lock-etb.handler';
 import type { GetEtbQueryHandler } from '@/application/etb/queries/get-etb/get-etb.handler';
 import type { GetEtbHistoryQueryHandler } from '@/application/etb/queries/get-etb-history/get-etb-history.handler';
@@ -100,6 +101,7 @@ describe('EtbCqrsController', () => {
   let controller: EtbCqrsController;
   let mockAddEintragHandler: jest.Mocked<AddEintragHandler>;
   let mockAddKorrekturEintragHandler: jest.Mocked<AddKorrekturEintragHandler>;
+  let mockDeleteEintragHandler: jest.Mocked<DeleteEintragHandler>;
   let mockLockEtbHandler: jest.Mocked<LockEtbHandler>;
   let mockGetEtbQueryHandler: jest.Mocked<GetEtbQueryHandler>;
   let mockGetEtbHistoryQueryHandler: jest.Mocked<GetEtbHistoryQueryHandler>;
@@ -142,6 +144,11 @@ describe('EtbCqrsController', () => {
     } as any;
 
     mockAddKorrekturEintragHandler = {
+      execute: jest.fn(),
+      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
+    } as any;
+
+    mockDeleteEintragHandler = {
       execute: jest.fn(),
       // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
@@ -205,6 +212,7 @@ describe('EtbCqrsController', () => {
     controller = new EtbCqrsController(
       mockAddEintragHandler,
       mockAddKorrekturEintragHandler,
+      mockDeleteEintragHandler,
       mockLockEtbHandler,
       mockGetEtbQueryHandler,
       mockGetEtbHistoryQueryHandler,

@@ -186,12 +186,13 @@ describe('EinsatztagebuchAggregate', () => {
       expect(etb.version.versionNumber).toBe(2);
     });
 
-    it('should increment version on updateEintrag', () => {
+    it('should increment version on addKorrekturEintrag', () => {
       const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
       const eintrag = etb.addEintrag('Original', userId).value!;
 
-      etb.updateEintrag(eintrag.id, 'Updated', userId);
-      expect(etb.version.versionNumber).toBe(3); // v1 → v2 (add) → v3 (update)
+      const result = etb.addKorrekturEintrag(eintrag.id, 'Korrigiert', userId);
+      expect(result.isSuccess).toBe(true);
+      expect(etb.version.versionNumber).toBe(3); // v1 → v2 (add) → v3 (korrektur)
     });
 
     it('should increment version on deleteEintrag', () => {
@@ -254,12 +255,12 @@ describe('EinsatztagebuchAggregate', () => {
       expect(result.error).toContain('gesperrt');
     });
 
-    it('should reject updateEintrag when ETB is locked', () => {
+    it('should reject addKorrekturEintrag when ETB is locked', () => {
       const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
       const eintrag = etb.addEintrag('Test', userId).value!;
       etb.lock(userId);
 
-      const result = etb.updateEintrag(eintrag.id, 'Updated', userId);
+      const result = etb.addKorrekturEintrag(eintrag.id, 'Korrigiert', userId);
       expect(result.isFailure).toBe(true);
       expect(result.error).toContain('gesperrt');
     });
@@ -314,16 +315,16 @@ describe('EinsatztagebuchAggregate', () => {
       expect((events[0]?.constructor as typeof DomainEvent).eventName()).toBe('etb.eintrag_added');
     });
 
-    it('should emit EintragUpdatedEvent on updateEintrag', () => {
+    it('should emit EintragKorrigiertEvent on addKorrekturEintrag', () => {
       const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
       const eintrag = etb.addEintrag('Original', userId).value!;
       etb.clearDomainEvents();
 
-      etb.updateEintrag(eintrag.id, 'Updated', userId);
+      etb.addKorrekturEintrag(eintrag.id, 'Korrigiert', userId);
 
       const events = etb.getDomainEvents();
       expect(events).toHaveLength(1);
-      expect((events[0]?.constructor as typeof DomainEvent).eventName()).toBe('etb.eintrag_updated');
+      expect((events[0]?.constructor as typeof DomainEvent).eventName()).toBe('etb.eintrag_korrigiert');
     });
 
     it('should emit EintragDeletedEvent on deleteEintrag', () => {
@@ -367,11 +368,11 @@ describe('EinsatztagebuchAggregate', () => {
       expect(result.error).toContain('leer');
     });
 
-    it('should reject updateEintrag for non-existent entry', () => {
+    it('should reject addKorrekturEintrag for non-existent entry', () => {
       const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
       const fakeId = EintragId.create().value!;
 
-      const result = etb.updateEintrag(fakeId, 'Test', userId);
+      const result = etb.addKorrekturEintrag(fakeId, 'Korrigiert', userId);
       expect(result.isFailure).toBe(true);
       expect(result.error).toContain('nicht gefunden');
     });
@@ -385,30 +386,30 @@ describe('EinsatztagebuchAggregate', () => {
       expect(result.error).toContain('nicht gefunden');
     });
 
-    it('should reject updateEintrag for deleted entry', () => {
+    it('should reject addKorrekturEintrag for already korrigiert entry', () => {
       const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
       const eintrag = etb.addEintrag('Test', userId).value!;
-      etb.deleteEintrag(eintrag.id, userId);
+      etb.addKorrekturEintrag(eintrag.id, 'Korrektur 1', userId);
 
-      const result = etb.updateEintrag(eintrag.id, 'Updated', userId);
+      const result = etb.addKorrekturEintrag(eintrag.id, 'Korrektur 2', userId);
       expect(result.isFailure).toBe(true);
-      expect(result.error).toContain('Gelöschte');
+      expect(result.error).toContain('bereits korrigiert');
     });
 
-    it('should reject empty text in updateEintrag', () => {
+    it('should reject empty text in addKorrekturEintrag', () => {
       const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
       const eintrag = etb.addEintrag('Test', userId).value!;
 
-      const result = etb.updateEintrag(eintrag.id, '', userId);
+      const result = etb.addKorrekturEintrag(eintrag.id, '', userId);
       expect(result.isFailure).toBe(true);
       expect(result.error).toContain('leer');
     });
 
-    it('should reject whitespace-only text in updateEintrag', () => {
+    it('should reject whitespace-only text in addKorrekturEintrag', () => {
       const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
       const eintrag = etb.addEintrag('Test', userId).value!;
 
-      const result = etb.updateEintrag(eintrag.id, '   ', userId);
+      const result = etb.addKorrekturEintrag(eintrag.id, '   ', userId);
       expect(result.isFailure).toBe(true);
       expect(result.error).toContain('leer');
     });
@@ -452,7 +453,7 @@ describe('EinsatztagebuchAggregate', () => {
       expect(entries1).toHaveLength(entries2.length);
     });
 
-    it('should handle deletion of already deleted entry', () => {
+    it('should reject deletion of already deleted entry', () => {
       const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
       const eintrag = etb.addEintrag('Test', userId).value!;
 
@@ -460,10 +461,10 @@ describe('EinsatztagebuchAggregate', () => {
       etb.deleteEintrag(eintrag.id, userId);
       expect(etb.eintraege[0]?.isDeleted).toBe(true);
 
-      // Delete again - should still work (idempotent)
+      // Delete again - should fail (no longer idempotent, immutability enforcement)
       const result = etb.deleteEintrag(eintrag.id, userId);
-      expect(result.isSuccess).toBe(true);
-      expect(etb.eintraege[0]?.isDeleted).toBe(true);
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('bereits gelöscht');
     });
   });
 
@@ -537,7 +538,7 @@ describe('EinsatztagebuchAggregate', () => {
       expect(etb.getUncommittedSnapshots()).toHaveLength(1);
     });
 
-    it('should create snapshot on updateEintrag', () => {
+    it('should create snapshot on addKorrekturEintrag', () => {
       const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
       const eintrag = etb.addEintrag('Original', userId).value!;
 
@@ -545,10 +546,10 @@ describe('EinsatztagebuchAggregate', () => {
       etb.clearSnapshots();
       expect(etb.hasUncommittedSnapshots()).toBe(false);
 
-      // Update entry
-      etb.updateEintrag(eintrag.id, 'Updated', userId);
+      // Korrektur-Eintrag erstellen
+      etb.addKorrekturEintrag(eintrag.id, 'Korrigiert', userId);
 
-      // After update: should have new snapshot
+      // After korrektur: should have new snapshot
       expect(etb.hasUncommittedSnapshots()).toBe(true);
       expect(etb.getUncommittedSnapshots()).toHaveLength(1);
     });

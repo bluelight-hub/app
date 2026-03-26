@@ -1280,6 +1280,16 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
             "example": false,
             "type": "boolean",
           },
+          "isKorrektur": {
+            "description": "true wenn dieser Eintrag ein Korrektur-Eintrag ist",
+            "example": false,
+            "type": "boolean",
+          },
+          "isKorrigiert": {
+            "description": "true wenn dieser Eintrag durch einen Korrektur-Eintrag ersetzt wurde",
+            "example": false,
+            "type": "boolean",
+          },
           "kategorie": {
             "description": "Kategorie des Eintrags",
             "enum": [
@@ -1299,6 +1309,18 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
               "SYSTEM",
             ],
             "example": "LAGE",
+            "type": "string",
+          },
+          "korrigiertDurchId": {
+            "description": "ID des Korrektur-Eintrags der diesen Eintrag ersetzt",
+            "example": "clw3h8x9y0000qwertyuiopas",
+            "nullable": true,
+            "type": "string",
+          },
+          "korrigiertEintragId": {
+            "description": "ID des Original-Eintrags den dieser Korrektur-Eintrag korrigiert",
+            "example": "clw3h8x9y0000qwertyuiopas",
+            "nullable": true,
             "type": "string",
           },
           "linkedErinnerung": {
@@ -1377,6 +1399,8 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
           "createdBy",
           "createdAt",
           "isDeleted",
+          "isKorrektur",
+          "isKorrigiert",
         ],
         "type": "object",
       },
