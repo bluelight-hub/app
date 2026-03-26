@@ -1,3 +1,15 @@
+## Elektronisches Tage-Buch (ETB)
+
+**Breaking Change:** ETB-Einträge sind nun unveränderlich und können nicht mehr bearbeitet werden. Stattdessen müssen fehlerhafte Einträge durch Korrektureinträge ersetzt werden. Dies gewährleistet eine lückenlose Nachvollziehbarkeit aller Änderungen im Einsatztagebuch.
+
+### Neue Funktionen
+
+- **Korrektureinträge:** Fehlerhafte ETB-Einträge können nun korrigiert werden. Das System erstellt automatisch einen neuen Korrektur-Eintrag und verknüpft ihn mit dem ursprünglichen Eintrag, sodass die vollständige Änderungshistorie erhalten bleibt.
+
+### Entfernte Funktionen
+
+- Die Bearbeitungsfunktion für ETB-Einträge wurde entfernt. Nutzen Sie stattdessen die neue Korrekturfunktion, um fehlerhafte Einträge zu korrigieren.
+
 ## 🎨 Design-System & Benutzeroberfläche
 
 - **Dark Mode Unterstützung**: Die gesamte Benutzeroberfläche wurde auf ein modernes Design-Token-System (Ring-1) migriert. Damit ist die Grundlage für automatisches Umschalten zwischen hellem und dunklem Modus geschaffen.
