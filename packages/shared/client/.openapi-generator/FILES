@@ -23,6 +23,7 @@ apis/ErinnerungApi.ts
 apis/ErinnerungenApi.ts
 apis/ErinnerungsvorlagenApi.ts
 apis/FuehrungsrhythmusTemplatesAdminApi.ts
+apis/GeoApi.ts
 apis/GeocodingApi.ts
 apis/HealthApi.ts
 apis/KategorienApi.ts
@@ -49,6 +50,8 @@ models/AddEintragDto.ts
 models/AddKorrekturEintragDto.ts
 models/AddPoiDto.ts
 models/AddressDto.ts
+models/AddressSucheControllerSearchVAlpha200Response.ts
+models/AddressSucheErgebnisDto.ts
 models/AdminBefehlsgeberVorschlaegeControllerCreateVAlpha201Response.ts
 models/AdminBefehlsgeberVorschlaegeControllerFindAllVAlpha200Response.ts
 models/AdminFahrzeugtypenControllerCreateVAlpha201Response.ts
@@ -328,6 +331,9 @@ models/NotizResponseDto.ts
 models/PersonRegisteredResponseDto.ts
 models/PersonStatistikDto.ts
 models/PersonStatistikItemDto.ts
+models/PlzLookupControllerLookupVAlpha200Response.ts
+models/PlzLookupResponseDto.ts
+models/PlzOrtDto.ts
 models/PoiControllerCreatePoiVAlpha200Response.ts
 models/PoiControllerGetPoisVAlpha200Response.ts
 models/PoiDto.ts

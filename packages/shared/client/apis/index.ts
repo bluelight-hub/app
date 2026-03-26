@@ -24,6 +24,7 @@ export * from './ErinnerungApi';
 export * from './ErinnerungenApi';
 export * from './ErinnerungsvorlagenApi';
 export * from './FuehrungsrhythmusTemplatesAdminApi';
+export * from './GeoApi';
 export * from './GeocodingApi';
 export * from './HealthApi';
 export * from './KategorienApi';
