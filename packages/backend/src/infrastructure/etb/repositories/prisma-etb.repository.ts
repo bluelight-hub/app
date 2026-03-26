@@ -188,11 +188,12 @@ export class PrismaEtbRepository implements IEtbRepository {
       // - "Gelöschte" Einträge werden soft-deleted (deletedAt != null)
       // Dies respektiert den NO-DELETE Trigger und die 10-Jahres-Aufbewahrungspflicht.
       if (resolvedEintraege.length > 0) {
-        // Sortierung: Korrektur-Eintraege (mit korrigiertEintragId) werden ZUERST eingefuegt,
-        // damit die FK-Referenz von korrigiertDurchId auf den bereits existierenden Eintrag zeigt.
+        // Two-Pass Insert wegen zirkulaerer FK-Referenzen:
+        // korrigiert_eintrag_id (Korrektur → Original) und korrigiert_durch_id (Original → Korrektur)
+        // Pass 1: Alle Eintraege OHNE korrigiertDurchId einfuegen (Originals zuerst, dann Korrekturen)
         const sortedEintraege = [...resolvedEintraege].sort((a, b) => {
-          if (a.korrigiertDurchId && !b.korrigiertDurchId) return 1;
-          if (!a.korrigiertDurchId && b.korrigiertDurchId) return -1;
+          if (a.korrigiertEintragId && !b.korrigiertEintragId) return 1;
+          if (!a.korrigiertEintragId && b.korrigiertEintragId) return -1;
           return 0;
         });
 
@@ -210,7 +211,7 @@ export class PrismaEtbRepository implements IEtbRepository {
               ${eintrag.timestamp}, ${eintrag.version}, ${eintrag.isAutomatic},
               ${eintrag.absender}, ${eintrag.empfaenger},
               ${eintrag.metadata ?? null}::jsonb,
-              ${eintrag.korrigiertEintragId}, ${eintrag.korrigiertDurchId}
+              ${eintrag.korrigiertEintragId}, ${null}
             )
             ON CONFLICT ("etbId", "sequenceNumber") DO UPDATE SET
               "text" = EXCLUDED."text",
@@ -220,8 +221,17 @@ export class PrismaEtbRepository implements IEtbRepository {
               "version" = EXCLUDED."version",
               "absender" = EXCLUDED."absender",
               "empfaenger" = EXCLUDED."empfaenger",
-              "korrigiert_eintrag_id" = EXCLUDED."korrigiert_eintrag_id",
-              "korrigiert_durch_id" = EXCLUDED."korrigiert_durch_id"
+              "korrigiert_eintrag_id" = EXCLUDED."korrigiert_eintrag_id"
+          `;
+        }
+
+        // Pass 2: korrigiertDurchId nachtraeglich setzen (Original → Korrektur Rueckverweis)
+        const eintraegeWithKorrigiertDurchId = resolvedEintraege.filter((e) => e.korrigiertDurchId);
+        for (const eintrag of eintraegeWithKorrigiertDurchId) {
+          await prismaClient.$executeRaw`
+            UPDATE etb_eintraege
+            SET "korrigiert_durch_id" = ${eintrag.korrigiertDurchId}
+            WHERE "id" = ${eintrag.id}
           `;
         }
       }

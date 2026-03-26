@@ -33,7 +33,7 @@ describe('EinsatztagebuchAggregate Integration Tests', () => {
     if (!databaseAvailable) return;
   });
 
-  describe('Full Lifecycle: Create → Add → Update → Delete → Lock', () => {
+  describe('Full Lifecycle: Create → Add → Korrektur → Delete → Lock', () => {
     it('should handle complete ETB lifecycle with event accumulation', () => {
       // Given: Fresh IDs
       const einsatzId = EinsatzId.create().value!;
@@ -57,17 +57,18 @@ describe('EinsatztagebuchAggregate Integration Tests', () => {
       expect(entry2.sequenceNumber.value).toBe(2);
       expect(entry3.sequenceNumber.value).toBe(3);
 
-      // When: Update entry
-      etb.updateEintrag(entry2.id, 'Updated second entry', userId);
+      // When: Korrektur-Eintrag für entry2
+      const korrektur = etb.addKorrekturEintrag(entry2.id, 'Korrigierter zweiter Eintrag', userId).value!;
 
-      // Then: Version incremented again
+      // Then: Version incremented again, new entry added
       expect(etb.version.versionNumber).toBe(5);
+      expect(korrektur.sequenceNumber.value).toBe(4);
 
       // When: Delete entry
       etb.deleteEintrag(entry1.id, userId);
 
       // Then: Entry marked as deleted but remains in array
-      expect(etb.eintraege).toHaveLength(3);
+      expect(etb.eintraege).toHaveLength(4); // 3 originals + 1 korrektur
       expect(etb.eintraege[0]?.isDeleted).toBe(true);
 
       // When: Lock ETB
@@ -78,7 +79,7 @@ describe('EinsatztagebuchAggregate Integration Tests', () => {
 
       // Then: All modifications should fail
       expect(etb.addEintrag('Test', userId).isFailure).toBe(true);
-      expect(etb.updateEintrag(entry3.id, 'Test', userId).isFailure).toBe(true);
+      expect(etb.addKorrekturEintrag(entry3.id, 'Test', userId).isFailure).toBe(true);
       expect(etb.deleteEintrag(entry3.id, userId).isFailure).toBe(true);
     });
 
@@ -88,14 +89,14 @@ describe('EinsatztagebuchAggregate Integration Tests', () => {
 
       const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
       const entry = etb.addEintrag('Test', userId).value!;
-      etb.updateEintrag(entry.id, 'Updated', userId);
+      etb.addKorrekturEintrag(entry.id, 'Korrigiert', userId);
       etb.deleteEintrag(entry.id, userId);
       etb.lock(userId);
 
-      // Events: 5 operations (create, add, update, delete, lock)
+      // Events: 5 operations (create, add, korrektur, delete, lock)
       const events = etb.getDomainEvents();
       expect(events).toHaveLength(5);
-      expect(events.map((e) => (e.constructor as typeof DomainEvent).eventName())).toEqual(['etb.created', 'etb.eintrag_added', 'etb.eintrag_updated', 'etb.eintrag_deleted', 'etb.locked']);
+      expect(events.map((e) => (e.constructor as typeof DomainEvent).eventName())).toEqual(['etb.created', 'etb.eintrag_added', 'etb.eintrag_korrigiert', 'etb.eintrag_deleted', 'etb.locked']);
     });
 
     it('should preserve entry order across operations', () => {
@@ -145,19 +146,20 @@ describe('EinsatztagebuchAggregate Integration Tests', () => {
       const userId = UserId.create().value!;
       const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
 
-      // Add → Update → Add → Delete → Add
+      // Add → Korrektur → Add → Delete → Add
       const e1 = etb.addEintrag('Entry 1', userId).value!;
-      etb.updateEintrag(e1.id, 'Entry 1 Updated', userId);
+      const korrektur = etb.addKorrekturEintrag(e1.id, 'Entry 1 Korrektur', userId).value!;
       const _e2 = etb.addEintrag('Entry 2', userId).value!;
       etb.deleteEintrag(e1.id, userId);
       etb.addEintrag('Entry 3', userId);
 
-      // Final state: 3 entries, 1 deleted, sequence 1-2-3
-      expect(etb.eintraege).toHaveLength(3);
+      // Final state: 4 entries (e1 + korrektur + e2 + e3), e1 deleted
+      expect(etb.eintraege).toHaveLength(4);
       expect(etb.eintraege[0]?.isDeleted).toBe(true); // e1 deleted
-      expect(etb.eintraege[0]?.text).toBe('Entry 1 Updated');
-      expect(etb.eintraege[1]?.text).toBe('Entry 2');
-      expect(etb.eintraege[2]?.text).toBe('Entry 3');
+      expect(etb.eintraege[0]?.text).toBe('Entry 1');
+      expect(etb.eintraege[1]?.text).toBe('Entry 1 Korrektur');
+      expect(etb.eintraege[2]?.text).toBe('Entry 2');
+      expect(etb.eintraege[3]?.text).toBe('Entry 3');
     });
 
     it('should maintain version monotonicity across complex workflows', () => {

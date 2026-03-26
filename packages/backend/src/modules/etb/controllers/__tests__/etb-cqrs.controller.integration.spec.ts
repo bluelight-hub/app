@@ -123,6 +123,8 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
   // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
   let mockAddKorrekturEintragHandler: jest.Mocked<any>;
   // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
+  let mockDeleteEintragHandler: jest.Mocked<any>;
+  // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
   let mockLockEtbHandler: jest.Mocked<any>;
   // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
   let mockGetEtbQueryHandler: jest.Mocked<any>;
@@ -159,6 +161,10 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
     };
 
     mockAddKorrekturEintragHandler = {
+      execute: jest.fn(),
+    };
+
+    mockDeleteEintragHandler = {
       execute: jest.fn(),
     };
 
@@ -212,6 +218,7 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
     controller = new EtbCqrsController(
       mockAddEintragHandler,
       mockAddKorrekturEintragHandler,
+      mockDeleteEintragHandler,
       mockLockEtbHandler,
       mockGetEtbQueryHandler,
       mockGetEtbHistoryQueryHandler,
