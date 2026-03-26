@@ -108,7 +108,7 @@ describe('BefehlDetailPanel RBAC (Story 5.4 AC2)', () => {
 });
 
 describe('BefehlKarte Quittieren RBAC (Story 5.4 AC2)', () => {
-  // Importiere BefehlKarte separat um die canQuittieren-Prop direkt testen zu koennen
+  // Importiere BefehlKarte separat um die canQuittieren-Prop direkt testen zu können
   // Die Komponente ist keine Dependency von useBefehlPermissions, sondern erhaelt canQuittieren als Prop
 
   it('rendert aktiven Quittieren-Button wenn canQuittieren=true', async () => {

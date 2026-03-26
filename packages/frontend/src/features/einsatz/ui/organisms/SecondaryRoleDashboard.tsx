@@ -154,7 +154,7 @@ export function SecondaryRoleDashboard({ einsatzId, rolle }: SecondaryRoleDashbo
           </div>
         )}
 
-        {!isEmpfaenger && <p className="mt-4 text-body-sm text-text-secondary">Als Beobachter koennen Sie alle Befehle einsehen, aber keine Aktionen ausfuehren.</p>}
+        {!isEmpfaenger && <p className="mt-4 text-body-sm text-text-secondary">Als Beobachter können Sie alle Befehle einsehen, aber keine Aktionen ausführen.</p>}
       </div>
 
       {/* Letzte ETB-Eintraege */}

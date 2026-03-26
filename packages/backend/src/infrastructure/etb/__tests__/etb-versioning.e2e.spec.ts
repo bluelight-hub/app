@@ -59,13 +59,13 @@ const databaseAvailable = !!process.env.DATABASE_URL;
   });
 
   /**
-   * Test 2: Snapshot-Erstellung VOR updateEintrag() Mutation (AC2)
+   * Test 2: Snapshot-Erstellung VOR addKorrekturEintrag() Mutation (AC2)
    *
    * Given: Ein ETB mit einem bestehenden Eintrag
-   * When: Der Eintrag wird aktualisiert
-   * Then: Der Snapshot enthält den ALTEN Text (vor der Mutation)
+   * When: Ein Korrektur-Eintrag erstellt wird
+   * Then: Der Snapshot enthaelt den Zustand VOR der Korrektur
    */
-  it('should create snapshot BEFORE updateEintrag mutation', async () => {
+  it('should create snapshot BEFORE addKorrekturEintrag mutation', async () => {
     // Given: ETB mit einem Eintrag
     const einsatzId = EinsatzId.create(ctx.testEinsatzId).value!;
     const userId = UserId.create(ctx.testUserId).value!;
@@ -73,19 +73,18 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     aggregate.addEintrag('Original text', userId);
     await ctx.repository.save(aggregate);
 
-    // When: Eintrag updaten
+    // When: Korrektur erstellen
     const retrieved = await ctx.repository.findByEinsatzId(einsatzId);
     expect(retrieved).not.toBeNull();
     expect(retrieved?.eintraege.length).toBe(1);
-    const eintragId = EintragId.create(retrieved?.eintraege[0]?.id.value).value!;
-    const updateResult = retrieved?.updateEintrag(eintragId, 'Updated text', userId);
-    expect(updateResult.isSuccess).toBe(true);
+    const eintragId = retrieved?.eintraege[0]?.id;
+    const korrekturResult = retrieved?.addKorrekturEintrag(eintragId, 'Korrektur text', userId);
+    expect(korrekturResult.isSuccess).toBe(true);
     await ctx.repository.save(retrieved!);
 
-    // Then: Snapshot enthält ALTEN Text (vor Mutation)
+    // Then: Snapshot enthaelt Zustand VOR Korrektur (1 Eintrag)
     const history = await ctx.repository.getHistory(retrieved?.id);
     expect(history.length).toBeGreaterThan(0);
-    // Der letzte Snapshot (vor Update) sollte 'Original text' enthalten
     const lastSnapshot = history[history.length - 1];
     const snapshotEintraege = lastSnapshot.eintraege;
     expect(snapshotEintraege.some((e) => e.text === 'Original text')).toBe(true);
@@ -145,26 +144,26 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     const retrieved = await ctx.repository.findByEinsatzId(einsatzId);
     expect(retrieved).not.toBeNull();
     expect(retrieved?.eintraege.length).toBe(3);
-    const entry2Id = EintragId.create(retrieved?.eintraege[1]?.id.value).value!;
-    const deleteResult = retrieved?.deleteEintrag(entry2Id, userId);
-    expect(deleteResult.isSuccess).toBe(true);
+    const entry2Id = retrieved?.eintraege[1]?.id;
+    const korrekturResult = retrieved?.addKorrekturEintrag(entry2Id, 'Korrektur Entry 2', userId);
+    expect(korrekturResult.isSuccess).toBe(true);
     await ctx.repository.save(retrieved!);
 
     // Then: Sequence numbers sind unverändert
     const updated = await ctx.repository.findByEinsatzId(einsatzId);
     expect(updated).not.toBeNull();
     const seqNums = updated?.eintraege.map((e) => e.sequenceNumber.value);
-    expect(seqNums).toEqual([1, 2, 3]); // Keine Renummerierung!
+    expect(seqNums).toEqual([1, 2, 3, 4]); // Original 3 + 1 Korrektur
   });
 
   /**
-   * Test 5: Version Inkrementierung für alle Mutation-Typen
+   * Test 5: Version Inkrementierung fuer alle Mutation-Typen
    *
    * Given: Ein frisches ETB (Version 1)
-   * When: Add, Update, Delete Operationen durchgeführt werden
-   * Then: Version inkrementiert für jeden Schritt (v1 -> v2 -> v3 -> v4)
+   * When: Add und Korrektur Operationen durchgefuehrt werden
+   * Then: Version inkrementiert fuer jeden Schritt (v1 -> v2 -> v3 -> v4)
    */
-  it('should increment version for add, update, delete', async () => {
+  it('should increment version for add and korrektur', async () => {
     const einsatzId = EinsatzId.create(ctx.testEinsatzId).value!;
     const userId = UserId.create(ctx.testUserId).value!;
     const aggregate = EinsatztagebuchAggregate.create(einsatzId).value!;
@@ -177,19 +176,18 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     await ctx.repository.save(current);
     expect((await ctx.repository.findByEinsatzId(einsatzId))?.version.versionNumber).toBe(2);
 
-    // v2 -> v3 (update)
+    // v2 -> v3 (add second)
     current = (await ctx.repository.findByEinsatzId(einsatzId))!;
     expect(current).not.toBeNull();
-    expect(current.eintraege.length).toBe(1);
-    const eintragId = EintragId.create(current.eintraege[0]?.id.value).value!;
-    current.updateEintrag(eintragId, 'Updated', userId);
+    current.addEintrag('Entry 2', userId);
     await ctx.repository.save(current);
     expect((await ctx.repository.findByEinsatzId(einsatzId))?.version.versionNumber).toBe(3);
 
-    // v3 -> v4 (delete)
+    // v3 -> v4 (korrektur)
     current = (await ctx.repository.findByEinsatzId(einsatzId))!;
     expect(current).not.toBeNull();
-    current.deleteEintrag(eintragId, userId);
+    const eintragId = current.eintraege[0]?.id;
+    current.addKorrekturEintrag(eintragId, 'Korrektur', userId);
     await ctx.repository.save(current);
     expect((await ctx.repository.findByEinsatzId(einsatzId))?.version.versionNumber).toBe(4);
   });
@@ -212,21 +210,21 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     let current = (await ctx.repository.findByEinsatzId(einsatzId))!;
     expect(current).not.toBeNull();
     expect(current.eintraege.length).toBe(1);
-    const entry1Id = EintragId.create(current.eintraege[0]?.id.value).value!;
-    current.deleteEintrag(entry1Id, userId);
+    const entry1Id = current.eintraege[0]?.id;
+    current.addKorrekturEintrag(entry1Id, 'Korrektur Entry 1', userId);
     await ctx.repository.save(current);
 
-    // Add Entry 2 - should be seqNum 2, not 1
+    // Add Entry 2 - should be seqNum 3 (after korrektur at seqNum 2)
     current = (await ctx.repository.findByEinsatzId(einsatzId))!;
     expect(current).not.toBeNull();
     current.addEintrag('Entry 2', userId);
     await ctx.repository.save(current);
 
-    // Then: Entry 2 hat seqNum 2
+    // Then: Entry 2 hat seqNum 3 (Entry 1 = 1, Korrektur = 2, Entry 2 = 3)
     const final = (await ctx.repository.findByEinsatzId(einsatzId))!;
     expect(final).not.toBeNull();
     const entry2 = final.eintraege.find((e) => e.text === 'Entry 2');
     expect(entry2).toBeDefined();
-    expect(entry2?.sequenceNumber.value).toBe(2);
+    expect(entry2?.sequenceNumber.value).toBe(3);
   });
 });

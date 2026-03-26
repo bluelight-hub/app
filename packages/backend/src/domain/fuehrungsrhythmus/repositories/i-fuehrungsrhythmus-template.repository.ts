@@ -15,7 +15,7 @@ export interface IFuehrungsrhythmusTemplateRepository {
   /** Findet ein Fuehrungsrhythmus-Template per ID */
   findById(id: FuehrungsrhythmusTemplateId, tx?: TransactionContext): Promise<FuehrungsrhythmusTemplate | null>;
 
-  /** Gibt alle nicht-geloeschten Fuehrungsrhythmus-Templates zurueck */
+  /** Gibt alle nicht-gelöschten Fuehrungsrhythmus-Templates zurück */
   findAll(filter?: { scope?: FuehrungsrhythmusTemplateScope; einsatzId?: EinsatzId; includeGlobal?: boolean }): Promise<FuehrungsrhythmusTemplate[]>;
 
   /** Prueft ob ein Fuehrungsrhythmus-Template existiert */

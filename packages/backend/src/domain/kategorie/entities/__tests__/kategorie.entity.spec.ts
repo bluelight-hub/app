@@ -204,7 +204,7 @@ describe('Kategorie Entity', () => {
     it('should fail when already deleted', () => {
       // Given (Arrange)
       const id = KategorieId.create().value! as KategorieId;
-      const name = KategorieName.create('Geloeschte Kategorie').value!;
+      const name = KategorieName.create('Gelöschte Kategorie').value!;
       const farbe = KategorieFarbe.create('#FF5733').value!;
       const erstelltVon = generateValidUserId();
       const geloeschtVon = generateValidUserId();

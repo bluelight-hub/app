@@ -2,6 +2,8 @@
 
 **Sprache:** Deutsch mit mir, englischer Code, deutsche JSDoc/Kommentare
 
+> **Umlaute:** In Kommentaren, JSDoc, Testbeschreibungen und User-facing Strings IMMER korrekte Umlaute (ä, ö, ü, ß) verwenden — NIEMALS Digraphen (ae, oe, ue, ss). Code-Identifier (Variablen, Klassen, Funktionen) bleiben ASCII.
+
 ## Projekt-Überblick
 
 Bluelight Hub ist eine **Web + Tauri Desktop App** für Blaulicht-Organisationen (Katastrophenschutz).

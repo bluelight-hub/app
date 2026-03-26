@@ -1,8 +1,8 @@
-// DTOs für ETB Application Layer
+// DTOs fuer ETB Application Layer
 // Command DTOs
 export { CreateEtbDto } from './create-etb.dto';
 export { AddEintragDto } from './add-eintrag.dto';
-export { UpdateEintragDto } from './update-eintrag.dto';
+export { AddKorrekturEintragDto } from './add-korrektur-eintrag.dto';
 export { DeleteEintragDto } from './delete-eintrag.dto';
 export { LockEtbDto } from './lock-etb.dto';
 

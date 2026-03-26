@@ -165,7 +165,7 @@ export const useAdminBefehlsgeberVorschlaegeManagement = (filters?: { istAktiv?:
   /**
    * Aggregiertes isMutating Flag - verhindert Race Conditions durch parallele Mutations.
    *
-   * Wenn TRUE: User sollte keine neuen Mutations starten koennen.
+   * Wenn TRUE: User sollte keine neuen Mutations starten können.
    * Nutze dieses Flag zum Disablen von Create/Update/Deactivate Buttons.
    */
   const isMutating = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;

@@ -168,7 +168,7 @@ describe('CreateFuehrungsrhythmusTemplateHandler', () => {
       expect(commandResult.isSuccess).toBe(true);
       const command = commandResult.value!;
 
-      // DANN Mock setzen fuer Handler-Ausfuehrung
+      // DANN Mock setzen fuer Handler-Ausführung
       const userIdCreateSpy = jest.spyOn(UserId, 'create').mockReturnValue(Result.fail('INVALID_USER_ID'));
 
       try {

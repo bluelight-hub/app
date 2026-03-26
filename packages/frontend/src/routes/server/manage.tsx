@@ -22,7 +22,7 @@ import { ServerManagementPage } from '@/features/server/ui/pages';
 /**
  * Search Parameter Schema fuer Token-Invalid Redirect.
  *
- * Wenn ein Server-Access-Token ungueltig ist (z.B. Server zurueckgesetzt),
+ * Wenn ein Server-Access-Token ungültig ist (z.B. Server zurückgesetzt),
  * wird zu /server/manage?reason=token-invalid weitergeleitet.
  */
 const searchSchema = z.object({

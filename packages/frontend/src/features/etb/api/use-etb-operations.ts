@@ -5,20 +5,20 @@
  */
 
 import { useCreateEtbEntry } from './use-create-entry';
+import { useCreateKorrektur } from './use-create-korrektur';
 import { useDeleteEtbEntry } from './use-delete-entry';
 import { useEtb } from './use-etb';
 import { useLockEtb } from './use-lock-etb';
 import { useTextbausteine } from './use-textbausteine';
-import { useUpdateEtbEntry } from './use-update-entry';
 
 export interface UseEtbOperationsOptions {
   /**
-   * Einsatz-ID für ETB-Abfrage
+   * Einsatz-ID fuer ETB-Abfrage
    */
   einsatzId?: string;
 
   /**
-   * Gelöschte Einträge einschließen
+   * Gelöschte Einträge einschliessen
    *
    * @default false
    */
@@ -26,13 +26,13 @@ export interface UseEtbOperationsOptions {
 }
 
 /**
- * Kombinierter Hook für alle ETB-Operationen (CQRS)
+ * Kombinierter Hook fuer alle ETB-Operationen (CQRS)
  *
  * Dieser Hook vereint alle ETB-bezogenen Queries und Mutations in einem
- * einzigen Hook. Praktisch für Komponenten die mehrere ETB-Operationen
- * benötigen.
+ * einzigen Hook. Praktisch fuer Komponenten die mehrere ETB-Operationen
+ * benoetigen.
  *
- * @param options - Optionen für ETB-Operationen
+ * @param options - Optionen fuer ETB-Operationen
  * @returns Objekt mit allen ETB-bezogenen Hooks und Daten
  *
  * @example
@@ -42,8 +42,7 @@ export interface UseEtbOperationsOptions {
  *   isLoadingEtb,
  *   textbausteine,
  *   createEintrag,
- *   updateEintrag,
- *   deleteEintrag,
+ *   createKorrektur,
  *   lockEtb,
  * } = useEtbOperations({ einsatzId: 'abc-123' });
  * ```
@@ -52,7 +51,7 @@ export const useEtbOperations = ({ einsatzId, includeDeleted = false }: UseEtbOp
   const etbQuery = useEtb({ einsatzId, includeDeleted });
   const textbausteineQuery = useTextbausteine();
   const createEintrag = useCreateEtbEntry();
-  const updateEintrag = useUpdateEtbEntry();
+  const createKorrektur = useCreateKorrektur();
   const deleteEintrag = useDeleteEtbEntry();
   const lockEtb = useLockEtb();
 
@@ -67,19 +66,19 @@ export const useEtbOperations = ({ einsatzId, includeDeleted = false }: UseEtbOp
 
     // Mutations
     createEintrag: createEintrag.mutate,
-    updateEintrag: updateEintrag.mutate,
+    createKorrektur: createKorrektur.mutate,
     deleteEintrag: deleteEintrag.mutate,
     lockEtb: lockEtb.mutate,
 
     // Mutation states
     isCreatingEintrag: createEintrag.isPending,
-    isUpdatingEintrag: updateEintrag.isPending,
+    isCreatingKorrektur: createKorrektur.isPending,
     isDeletingEintrag: deleteEintrag.isPending,
     isLockingEtb: lockEtb.isPending,
 
     // Full mutation objects for advanced usage
     createEintragMutation: createEintrag,
-    updateEintragMutation: updateEintrag,
+    createKorrekturMutation: createKorrektur,
     deleteEintragMutation: deleteEintrag,
     lockEtbMutation: lockEtb,
   };

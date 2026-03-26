@@ -8,7 +8,7 @@ import { NotizTitel } from '@domain/notiz/value-objects/notiz-titel';
 import { UserId } from '@domain/value-objects/user-id';
 
 /**
- * Unit Tests fuer Notiz Entity (Aggregate Root).
+ * Unit Tests für Notiz Entity (Aggregate Root).
  *
  * Testet die Factory Methods und Business Rules gemaess AAA Pattern
  * mit Given-When-Then Kommentaren.
@@ -27,7 +27,7 @@ import { UserId } from '@domain/value-objects/user-id';
  */
 describe('Notiz Entity', () => {
   /**
-   * Generiert eine gueltige UserId fuer Tests.
+   * Generiert eine gültige UserId für Tests.
    */
   const generateValidUserId = () => UserId.create().value!;
 
@@ -373,7 +373,7 @@ describe('Notiz Entity', () => {
     it('should reconstruct deleted entity correctly', () => {
       // Given (Arrange)
       const id = NotizId.create().value! as NotizId;
-      const titel = NotizTitel.create('Geloeschte Notiz').value!;
+      const titel = NotizTitel.create('Gelöschte Notiz').value!;
       const erstelltVon = generateValidUserId();
       const deletedBy = generateValidUserId();
       const deletedAt = new Date('2026-02-03T12:00:00.000Z');
@@ -439,7 +439,7 @@ describe('Notiz Entity', () => {
         id,
         einsatzId: 'einsatz-123',
         titel,
-        inhalt: 'Sichtbar fuer das Team',
+        inhalt: 'Sichtbar für das Team',
         kategorie: 'Lage',
         istTeamsichtbar: true,
         erstelltVon: generateValidUserId(),
@@ -538,7 +538,7 @@ describe('Notiz Entity', () => {
 
   describe('update()', () => {
     /**
-     * Erstellt eine gueltige Notiz fuer Update-Tests.
+     * Erstellt eine gültige Notiz für Update-Tests.
      */
     const createValidNotiz = () => {
       const result = Notiz.create({
@@ -703,7 +703,7 @@ describe('Notiz Entity', () => {
     it('should fail when notiz is deleted', () => {
       // Given (Arrange) - reconstruct a deleted notiz
       const id = NotizId.create().value! as NotizId;
-      const titel = NotizTitel.create('Geloeschte Notiz').value!;
+      const titel = NotizTitel.create('Gelöschte Notiz').value!;
       const notiz = Notiz.reconstruct({
         id,
         einsatzId: 'einsatz-123',
@@ -828,14 +828,14 @@ describe('Notiz Entity', () => {
         const notiz = createValidNotiz();
         const originalUpdatedAt = notiz.updatedAt;
 
-        // When (Act) - Zeit voranschreiten lassen, damit updatedAt sich aendert
+        // When (Act) - Zeit voranschreiten lassen, damit updatedAt sich ändert
         jest.advanceTimersByTime(1000);
         const result = notiz.update({
           titel: 'Aktualisierter Titel',
           aktualisiertVon: 'user-123',
         });
 
-        // Then (Assert) - das Aenderungsdatum wird aktualisiert
+        // Then (Assert) - das Änderungsdatum wird aktualisiert
         expect(result.isSuccess).toBe(true);
         expect(notiz.updatedAt.getTime()).toBeGreaterThan(originalUpdatedAt.getTime());
       } finally {
@@ -906,12 +906,12 @@ describe('Notiz Entity', () => {
 
   describe('delete()', () => {
     /**
-     * Erstellt eine gueltige Notiz fuer Delete-Tests.
+     * Erstellt eine gültige Notiz für Delete-Tests.
      */
     const createValidNotiz = () => {
       const result = Notiz.create({
         einsatzId: 'einsatz-123',
-        titel: 'Zu loeschende Notiz',
+        titel: 'Zu löschende Notiz',
         inhalt: 'Inhalt der Notiz',
         kategorie: 'Lage',
         erstelltVon: generateValidUserId(),
@@ -953,14 +953,14 @@ describe('Notiz Entity', () => {
       const event = events[0] as NotizGeloeschtEvent;
       expect(event.notizId.toString()).toBe(notiz.id.toString());
       expect(event.einsatzId).toBe('einsatz-123');
-      expect(event.titel).toBe('Zu loeschende Notiz');
+      expect(event.titel).toBe('Zu löschende Notiz');
       expect(event.geloeschtVon.equals(geloeschtVon)).toBe(true);
     });
 
     it('should fail when notiz is already deleted', () => {
       // Given (Arrange)
       const id = NotizId.create().value! as NotizId;
-      const titel = NotizTitel.create('Bereits Geloescht').value!;
+      const titel = NotizTitel.create('Bereits Gelöscht').value!;
       const notiz = Notiz.reconstruct({
         id,
         einsatzId: 'einsatz-123',
@@ -987,13 +987,13 @@ describe('Notiz Entity', () => {
     });
 
     it('should not emit event when delete fails on already deleted notiz', () => {
-      // Given (Arrange) - Notiz erstellen und dann loeschen
+      // Given (Arrange) - Notiz erstellen und dann löschen
       const notiz = createValidNotiz();
       const geloeschtVon = generateValidUserId();
       notiz.delete(geloeschtVon);
       notiz.clearDomainEvents();
 
-      // When (Act) - Nochmal loeschen
+      // When (Act) - Nochmal löschen
       const result = notiz.delete(generateValidUserId());
 
       // Then (Assert)

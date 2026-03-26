@@ -1,5 +1,3 @@
-import { useConfirm } from '@/shared/hooks/useConfirm';
-import { useDeleteEtbEntry } from '@/features/etb';
 import { useUserNames } from '@/features/auth';
 import { useHighlightedEntryId, setHighlightedEntry } from '@/features/reminders/stores';
 import type { EintragDto } from '@/shared';
@@ -27,6 +25,7 @@ interface EtbEntryListProps {
   fetchNextPage?: () => void;
   isFetchingNextPage?: boolean;
   onEditEntry?: (entry: EintragDto) => void;
+  onDeleteEntry?: (entry: EintragDto) => void;
   onSortChange?: (field: string, order: 'asc' | 'desc') => void;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
@@ -50,6 +49,7 @@ export function EtbEntryList({
   fetchNextPage,
   isFetchingNextPage,
   onEditEntry,
+  onDeleteEntry,
   onSortChange,
   sortBy = 'sequenceNumber',
   sortOrder = 'desc',
@@ -57,8 +57,6 @@ export function EtbEntryList({
   showDeleted = false,
   onShowDeletedChange,
 }: EtbEntryListProps) {
-  const deleteEintrag = useDeleteEtbEntry();
-  const confirm = useConfirm();
   const { getUserName } = useUserNames();
   const [globalFilter, setGlobalFilter] = useState('');
   const [historyEntry, setHistoryEntry] = useState<EintragDto | null>(null);
@@ -68,7 +66,7 @@ export function EtbEntryList({
   const hasKategorieFilter = useHasActiveFilter();
   const erinnerungFilterActive = useErinnerungFilterActive();
 
-  // Sortierung für Anzeige - lokaler State für die Table
+  // Sortierung fuer Anzeige - lokaler State fuer die Table
   const [sorting, setSorting] = useState<SortingState>(() => [{ id: sortBy, desc: sortOrder === 'desc' }]);
   const [expanded, setExpanded] = useState<ExpandedState>({});
   const observerTarget = useRef<HTMLDivElement>(null);
@@ -86,6 +84,11 @@ export function EtbEntryList({
   const filteredEntries = useMemo(() => {
     let result = entries;
 
+    // Korrigierte Eintraege ausblenden (wie Gelöschte) - nur bei "Gelöschte anzeigen" sichtbar
+    if (!showDeleted) {
+      result = result.filter((entry) => !entry.isKorrigiert);
+    }
+
     // Erinnerungs-Filter: nur Eintraege mit verknuepfter Erinnerung anzeigen
     // Zeigt nur Eintraege an, fuer die eine Erinnerung ERSTELLT wurde (linkedErinnerung),
     // NICHT automatisch generierte System-Eintraege (metadata.erinnerungId)
@@ -99,14 +102,14 @@ export function EtbEntryList({
     }
 
     return result;
-  }, [entries, excludedKategorien, erinnerungFilterActive]);
+  }, [entries, excludedKategorien, erinnerungFilterActive, showDeleted]);
 
   // Synchronisiere lokalen Sortier-State mit Props
   useEffect(() => {
     setSorting([{ id: sortBy, desc: sortOrder === 'desc' }]);
   }, [sortBy, sortOrder]);
 
-  // Intersection Observer für Infinite Scrolling
+  // Intersection Observer fuer Infinite Scrolling
   useEffect(() => {
     const observer = new IntersectionObserver(
       (observerEntries) => {
@@ -130,7 +133,7 @@ export function EtbEntryList({
     };
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  // Verhindere Parent-Scrolling während Table-Scroll
+  // Verhindere Parent-Scrolling waehrend Table-Scroll
   useEffect(() => {
     const container = tableContainerRef.current;
     if (!container) return;
@@ -145,7 +148,7 @@ export function EtbEntryList({
         return; // Erlaube Parent-Scrolling
       }
 
-      // Verhindere Parent-Scrolling während Table-Scroll
+      // Verhindere Parent-Scrolling waehrend Table-Scroll
       e.preventDefault();
       container.scrollTop += e.deltaY;
     };
@@ -157,30 +160,18 @@ export function EtbEntryList({
     };
   }, []);
 
-  const handleDelete = useCallback(
-    async (entry: EintragDto) => {
-      const confirmed = await confirm({
-        title: 'Eintrag löschen',
-        message: 'Möchten Sie diesen ETB-Eintrag wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
-        variant: 'danger',
-        confirmLabel: 'Löschen',
-        cancelLabel: 'Abbrechen',
-      });
-
-      if (confirmed) {
-        deleteEintrag.mutate({
-          eintragId: entry.id,
-          etbId,
-        });
-      }
-    },
-    [confirm, deleteEintrag, etbId],
-  );
+  /**
+   * Story 5.5: Scrollt zu einem ETB-Eintrag und hebt ihn hervor
+   * Nutzt den Highlight-Store fuer reaktives Scrolling und Animation
+   */
+  const handleScrollToEntry = useCallback((entryId: string) => {
+    setHighlightedEntry(entryId);
+  }, []);
 
   // Column Definitions - Using extracted hook
   const columns = useEtbColumns({
     onEditEntry,
-    handleDelete,
+    onDeleteEntry,
     onShowHistory: setHistoryEntry,
     einsatzId,
   });
@@ -213,13 +204,13 @@ export function EtbEntryList({
     getRowCanExpand: () => true,
   });
 
-  // Virtualizer für Performance-Optimierung
+  // Virtualizer fuer Performance-Optimierung
   const { rows } = table.getRowModel();
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => tableContainerRef.current,
-    estimateSize: useCallback(() => 80, []), // Erhöhte Größe für bessere Lesbarkeit mehrzeiliger Texte
-    overscan: 10, // Weniger overscan für bessere Performance
+    estimateSize: useCallback(() => 80, []), // Erhoehte Groesse fuer bessere Lesbarkeit mehrzeiliger Texte
+    overscan: 10, // Weniger overscan fuer bessere Performance
     useFlushSync: false, // React 19: verhindert flushSync-Warnungen im Lifecycle des Virtualizers
   });
 
@@ -245,20 +236,11 @@ export function EtbEntryList({
     });
   }, [highlightedEntryId, rows, rowVirtualizer]);
 
-  /**
-   * Story 5.5: Scrollt zu einem ETB-Eintrag und hebt ihn hervor
-   * Nutzt den Highlight-Store fuer reaktives Scrolling und Animation
-   */
-  const handleScrollToEntry = useCallback((entryId: string) => {
-    // Setze den Eintrag im Store - der Effect oben kuemmert sich um das Scrollen
-    setHighlightedEntry(entryId);
-  }, []);
-
-  // Empty State mit fester Höhe für konsistentes Layout
+  // Empty State mit fester Hoehe fuer konsistentes Layout
   if (entries.length === 0 && !isLoading) {
     return (
       <div className="space-y-4">
-        {/* Story 5.6: Filter-Controls - auch bei leerer Liste anzeigen für konsistentes Layout */}
+        {/* Story 5.6: Filter-Controls - auch bei leerer Liste anzeigen fuer konsistentes Layout */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="min-w-[200px] flex-1">
             <EtbSearchBar value={globalFilter} onChange={setGlobalFilter} />
@@ -268,13 +250,13 @@ export function EtbEntryList({
           </div>
         </div>
 
-        {/* Empty State Container mit fester Höhe */}
+        {/* Empty State Container mit fester Hoehe */}
         <EtbEmptyState />
       </div>
     );
   }
 
-  // Story 3.4 Task 1.2: Alle Einträge durch Kategorie-/Erinnerungs-Filter ausgeblendet
+  // Story 3.4 Task 1.2: Alle Eintraege durch Kategorie-/Erinnerungs-Filter ausgeblendet
   if (filteredEntries.length === 0 && entries.length > 0) {
     return (
       <div className="space-y-4">
@@ -306,7 +288,7 @@ export function EtbEntryList({
 
   return (
     <div className="space-y-4">
-      {/* Story 5.6: Filter-Controls - Suche, Kategorie-Filter, Geloeschte anzeigen */}
+      {/* Story 5.6: Filter-Controls - Suche, Kategorie-Filter, Gelöschte anzeigen */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="min-w-[200px] flex-1">
           <EtbSearchBar value={globalFilter} onChange={setGlobalFilter} />
@@ -346,10 +328,12 @@ export function EtbEntryList({
             enableInlineEdit={enableInlineEdit}
             einsatzId={einsatzId}
             etbId={etbId}
-            onDelete={handleDelete}
+            onEdit={onEditEntry}
+            onDelete={onDeleteEntry}
             getUserName={getUserName}
             onEntryClick={handleScrollToEntry}
             globalFilter={globalFilter}
+            allEntries={entries}
           />
         </table>
 

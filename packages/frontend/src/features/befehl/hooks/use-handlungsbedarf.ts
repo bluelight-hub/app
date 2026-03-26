@@ -29,8 +29,8 @@ export interface HandlungsbedarfResult {
 /**
  * Berechnet die drei Handlungsbedarf-Listen aus Befehlen.
  *
- * Befehle koennen nur in einer Kategorie erscheinen (Prioritaet: kritisch > warnung).
- * zuQuittieren ist unabhaengig (User-spezifisch, kann sich mit kritisch/warnung ueberlappen).
+ * Befehle können nur in einer Kategorie erscheinen (Prioritaet: kritisch > warnung).
+ * zuQuittieren ist unabhaengig (User-spezifisch, kann sich mit kritisch/warnung überlappen).
  */
 export function useHandlungsbedarf(befehle: BefehlDto[] | undefined, currentUserId: string | undefined): HandlungsbedarfResult {
   return useMemo(() => {

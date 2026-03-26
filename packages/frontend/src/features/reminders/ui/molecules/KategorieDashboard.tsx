@@ -17,7 +17,7 @@ interface KategorieDashboardProps {
  * Dashboard fuer Kategorie-Statistiken mit Filter-Funktionalitaet.
  *
  * Zeigt ein Grid von KategorieStatCard-Komponenten an, ueber die
- * Erinnerungen nach Kategorie gefiltert werden koennen.
+ * Erinnerungen nach Kategorie gefiltert werden können.
  * Collapsible mit Toggle-Button.
  *
  * **Story 8.10 Task 3:**

@@ -52,6 +52,9 @@ export interface EtbEintragPersistenceData {
   empfaenger: string | null;
   // Optionale Metadaten (z.B. Screenshots) - Prisma JSON Typ
   metadata?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
+  // Korrektur-Verkettung (Issue #554)
+  korrigiertEintragId: string | null;
+  korrigiertDurchId: string | null;
 }
 
 /**
@@ -165,28 +168,41 @@ export class PrismaEintragMapper {
     const absender = prismaEintrag.absender ?? undefined;
     const empfaenger = prismaEintrag.empfaenger ?? undefined;
 
-    // Create EtbEintrag via Public Constructor (inkl. Kategorie, Absender, Empfaenger und Metadata aus DB)
-    const eintrag = new EtbEintrag(eintragId, sequenceNumber, prismaEintrag.text, createdBy, prismaEintrag.createdAt, kategorie, absender, empfaenger, metadata ?? undefined);
-
-    // Override private _updatedAt (Entity Constructor setzt dies nicht)
-    if (prismaEintrag.updatedAt) {
-      Object.defineProperty(eintrag, '_updatedAt', {
-        value: prismaEintrag.updatedAt,
-        writable: true,
-        configurable: true,
-      });
+    // Korrektur-IDs Reconstruction (Issue #554)
+    let korrigiertEintragId: EintragId | undefined;
+    if ((prismaEintrag as any).korrigiertEintragId) {
+      const korrigiertResult = EintragId.create((prismaEintrag as any).korrigiertEintragId);
+      if (korrigiertResult.isSuccess) {
+        korrigiertEintragId = korrigiertResult.value as EintragId;
+      }
+    }
+    let korrigiertDurchId: EintragId | undefined;
+    if ((prismaEintrag as any).korrigiertDurchId) {
+      const korrigiertDurchResult = EintragId.create((prismaEintrag as any).korrigiertDurchId);
+      if (korrigiertDurchResult.isSuccess) {
+        korrigiertDurchId = korrigiertDurchResult.value as EintragId;
+      }
     }
 
-    // Override private _isDeleted basierend auf deletedAt
     // Soft-Delete Mapping: deletedAt !== null -> isDeleted = true
     const isDeleted = prismaEintrag.deletedAt !== null;
-    if (isDeleted) {
-      Object.defineProperty(eintrag, '_isDeleted', {
-        value: true,
-        writable: true,
-        configurable: true,
-      });
-    }
+
+    // Create EtbEintrag via Public Constructor (inkl. Korrektur-Felder)
+    const eintrag = new EtbEintrag(
+      eintragId,
+      sequenceNumber,
+      prismaEintrag.text,
+      createdBy,
+      prismaEintrag.createdAt,
+      kategorie,
+      absender,
+      empfaenger,
+      metadata ?? undefined,
+      korrigiertEintragId,
+      korrigiertDurchId,
+      isDeleted,
+      prismaEintrag.updatedAt,
+    );
 
     return eintrag;
   }
@@ -242,6 +258,9 @@ export class PrismaEintragMapper {
       empfaenger: eintrag.empfaenger ?? null,
       // Optionale Metadaten (z.B. Screenshots) - Prisma erwartet spezielle Null-Behandlung
       metadata: eintrag.metadata ? (eintrag.metadata as Prisma.InputJsonValue) : Prisma.JsonNull,
+      // Korrektur-Verkettung (Issue #554)
+      korrigiertEintragId: eintrag.korrigiertEintragId?.value ?? null,
+      korrigiertDurchId: eintrag.korrigiertDurchId?.value ?? null,
     };
   }
 }

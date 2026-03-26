@@ -1,10 +1,10 @@
 import { ErinnerungTimelineDto, GetErinnerungTimelineQuery, GetErinnerungTimelineQueryHandler } from '@/application/etb/queries';
-import { AddEintragCommand, DeleteEintragCommand, LockEtbCommand, UpdateEintragCommand } from '@/application/etb/commands';
+import { AddEintragCommand, AddKorrekturEintragCommand, DeleteEintragCommand, LockEtbCommand } from '@/application/etb/commands';
 import { AddEintragHandler } from '@/application/etb/commands/add-eintrag/add-eintrag.handler';
+import { AddKorrekturEintragHandler } from '@/application/etb/commands/add-korrektur-eintrag/add-korrektur-eintrag.handler';
 import { DeleteEintragHandler } from '@/application/etb/commands/delete-eintrag/delete-eintrag.handler';
 import { LockEtbHandler } from '@/application/etb/commands/lock-etb/lock-etb.handler';
-import { UpdateEintragHandler } from '@/application/etb/commands/update-eintrag/update-eintrag.handler';
-import { AddEintragDto, EintragDto, EtbDto, EtbSnapshotDto, TextbausteinDto, UpdateEintragDto } from '@/application/etb/dto';
+import { AddEintragDto, AddKorrekturEintragDto, EintragDto, EtbDto, EtbSnapshotDto, TextbausteinDto } from '@/application/etb/dto';
 import { EtbQueryMapper, type EtbSnapshotDto as EtbSnapshotDtoFromMapper } from '@/application/etb/mappers';
 import { GetEtbHistoryQuery, GetEtbHistoryQueryHandler, GetEtbQuery, GetEtbQueryHandler, GetTextbausteineHandler, GetTextbausteineQuery } from '@/application/etb/queries';
 import type { EtbKategorie } from '@/generated/prisma/client';
@@ -20,7 +20,7 @@ import type { IEinsatzRollenReadRepository } from '@domain/repositories/i-einsat
 import type { IEinsatzTeilnehmerRepository } from '@domain/repositories/i-einsatz-teilnehmer.repository';
 import { IEtbRepository } from '@domain/repositories/i-etb.repository';
 import { EtbId } from '@domain/value-objects/etb-id';
-import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, HttpCode, Inject, NotFoundException, Param, Post, Put, Query, UseGuards, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, HttpCode, Inject, NotFoundException, Param, Post, Query, UseGuards, ValidationPipe } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOperation, ApiQuery, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 
 /**
@@ -59,7 +59,7 @@ import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiNoConten
 export class EtbCqrsController {
   constructor(
     private readonly addEintragHandler: AddEintragHandler,
-    private readonly updateEintragHandler: UpdateEintragHandler,
+    private readonly addKorrekturEintragHandler: AddKorrekturEintragHandler,
     private readonly deleteEintragHandler: DeleteEintragHandler,
     private readonly lockEtbHandler: LockEtbHandler,
     private readonly getEtbQueryHandler: GetEtbQueryHandler,
@@ -530,43 +530,43 @@ export class EtbCqrsController {
   }
 
   /**
-   * Eintrag aktualisieren (AC2)
+   * Korrektur-Eintrag erstellen (Issue #554: Immutabilitaet)
    *
-   * Aktualisiert den Text eines Eintrags via UpdateEintragCommand.
-   * Ein Snapshot wird VOR der Mutation erstellt (DRK-Compliance).
-   * Der alte Text wird für die Historie gespeichert.
+   * ETB-Eintraege sind nach Erstellung unveraenderlich. Korrekturen werden als
+   * neue Eintraege mit Referenz auf den Original-Eintrag erstellt.
+   * Der Original-Eintrag wird als "korrigiert" markiert.
    *
    * @param etbId - ID des ETB (CUID2 Format)
-   * @param eintragId - ID des Eintrags (CUID2 Format)
-   * @param dto - UpdateEintragDto mit newText
+   * @param eintragId - ID des zu korrigierenden Original-Eintrags (CUID2 Format)
+   * @param dto - AddKorrekturEintragDto mit Korrektur-Text
    * @param user - Authentifizierter User (aus JWT)
-   * @returns Aktualisierter EintragDto
+   * @returns Neuer Korrektur-EintragDto
    * @throws NotFoundException wenn ETB oder Eintrag nicht gefunden
-   * @throws BadRequestException bei Validierungsfehlern oder gesperrtem ETB
+   * @throws BadRequestException bei Validierungsfehlern, gesperrtem ETB oder bereits korrigiertem Eintrag
    */
-  @Put(':etbId/eintrag/:eintragId')
+  @Post(':etbId/eintrag/:eintragId/korrektur')
   @ApiOperation({
-    summary: 'ETB-Eintrag aktualisieren',
-    description: 'Aktualisiert den Text eines Eintrags. Ein Snapshot wird vor der Änderung erstellt.',
+    summary: 'Korrektur-Eintrag erstellen',
+    description: 'Erstellt einen neuen Korrektur-Eintrag der auf den Original-Eintrag verweist. Der Original-Eintrag bleibt unveraendert erhalten.',
   })
-  @ApiWrappedResponse(EintragDto, {
-    description: 'Eintrag erfolgreich aktualisiert',
+  @ApiWrappedCreatedResponse(EintragDto, {
+    description: 'Korrektur-Eintrag erfolgreich erstellt',
   })
-  @ApiNotFoundResponse({ description: 'ETB oder Eintrag nicht gefunden' })
-  @ApiBadRequestResponse({ description: 'Validierungsfehler oder ETB ist gesperrt' })
-  async updateEintrag(
+  @ApiNotFoundResponse({ description: 'ETB oder Original-Eintrag nicht gefunden' })
+  @ApiBadRequestResponse({ description: 'Validierungsfehler, ETB gesperrt oder Eintrag bereits korrigiert' })
+  async addKorrekturEintrag(
     @Param('etbId') etbId: string,
     @Param('eintragId') eintragId: string,
     @Body(new ValidationPipe({ transform: true, whitelist: true }))
-    dto: UpdateEintragDto,
+    dto: AddKorrekturEintragDto,
     @CurrentUser() user: ValidatedUser,
   ): Promise<EintragDto> {
-    this.logger.log(`Updating Eintrag ${eintragId} in ETB ${etbId} by user ${user.userId}`);
+    this.logger.log(`Creating correction for Eintrag ${eintragId} in ETB ${etbId} by user ${user.userId}`);
 
-    // Story 5.9: Lade ETB um einsatzId zu erhalten und Berechtigung zu prüfen
+    // Story 5.9: Lade ETB um einsatzId zu erhalten und Berechtigung zu pruefen
     const etbIdResult = EtbId.create(etbId);
     if (etbIdResult.isFailure || !etbIdResult.value) {
-      throw new BadRequestException('Ungültige ETB-ID');
+      throw new BadRequestException('Ungueltige ETB-ID');
     }
 
     const etbAggregate = await this.etbRepository.findById(etbIdResult.value);
@@ -583,72 +583,61 @@ export class EtbCqrsController {
       throw new ForbiddenException('Keine Berechtigung: User ist kein aktiver Einsatzteilnehmer');
     }
 
-    // Story 5.5: Sekundaere Rollen (EMPFAENGER/BEOBACHTER) duerfen nicht schreiben
+    // Story 5.5: Sekundaere Rollen duerfen nicht schreiben
     await this.checkUserCanEditEtb(user.userId, einsatzId, user.role);
 
-    const commandResult = UpdateEintragCommand.create(etbId, eintragId, dto.newText, user.userId);
+    const occurredAt = dto.occurredAt ? new Date(dto.occurredAt) : undefined;
+    const commandResult = AddKorrekturEintragCommand.create(etbId, eintragId, dto.text, user.userId, dto.kategorie, dto.absender, dto.empfaenger, dto.metadata ?? {}, occurredAt);
     if (commandResult.isFailure || !commandResult.value) {
-      this.logger.error(`Invalid UpdateEintragCommand: ${commandResult.error}`);
+      this.logger.error(`Invalid AddKorrekturEintragCommand: ${commandResult.error}`);
       throw new BadRequestException(commandResult.error);
     }
 
-    const result = await this.updateEintragHandler.execute(commandResult.value);
+    const result = await this.addKorrekturEintragHandler.execute(commandResult.value);
 
     if (result.isFailure) {
-      this.logger.error(`Failed to update Eintrag ${eintragId}: ${result.error}`);
+      this.logger.error(`Failed to create correction for Eintrag ${eintragId}: ${result.error}`);
       if (result.error?.includes('nicht gefunden') || result.error?.includes('not found')) {
         throw new NotFoundException(result.error);
       }
       throw new BadRequestException(result.error);
     }
 
-    // Handler returns Result<void>, need to load updated Eintrag via Repository
-    // Nutze bereits validierte etbIdResult.value von oben
-    const updatedAggregate = await this.etbRepository.findById(etbIdResult.value);
-    if (!updatedAggregate) {
-      throw new NotFoundException('ETB nicht gefunden nach Update');
+    const korrekturEintrag = result.value;
+    if (!korrekturEintrag) {
+      throw new BadRequestException('Korrektur erstellt, aber kein Ergebnis zurueckgegeben');
     }
 
-    // Map aggregate to DTO and find the updated Eintrag
-    const etbDto = EtbQueryMapper.toEtbDto(updatedAggregate, false);
-    const updatedEintrag = etbDto.eintraege.find((e: EintragDto) => e.id === eintragId);
-    if (!updatedEintrag) {
-      throw new NotFoundException(`Eintrag ${eintragId} nicht gefunden nach Update`);
-    }
-
-    this.logger.log(`Eintrag ${eintragId} updated in ETB ${etbId}`);
-    return updatedEintrag;
+    const eintragDto = EtbQueryMapper.toEintragDto(korrekturEintrag);
+    this.logger.log(`Correction ${eintragDto.id} created for Eintrag ${eintragId} in ETB ${etbId}`);
+    return eintragDto;
   }
 
+  // ============================================
+  // LOCK ENDPOINT (Admin Only)
+  // ============================================
+
   /**
-   * Eintrag soft-löschen (AC2)
+   * Eintrag soft-loeschen (Streichung im ETB).
    *
-   * Markiert einen Eintrag als gelöscht via DeleteEintragCommand.
-   * Ein Snapshot wird VOR der Mutation erstellt (DRK-Compliance).
-   * Der Eintrag wird NICHT physisch gelöscht (Soft-Delete).
-   *
-   * @param etbId - ID des ETB (CUID2 Format)
-   * @param eintragId - ID des Eintrags (CUID2 Format)
-   * @param user - Authentifizierter User (aus JWT)
-   * @throws NotFoundException wenn ETB oder Eintrag nicht gefunden
-   * @throws BadRequestException bei Validierungsfehlern oder gesperrtem ETB
+   * Der Eintrag wird als geloescht markiert, bleibt aber im Audit-Trail erhalten.
+   * Analog zur Streichung im physischen Einsatztagebuch.
    */
   @Delete(':etbId/eintrag/:eintragId')
   @HttpCode(204)
   @ApiOperation({
-    summary: 'ETB-Eintrag soft-löschen',
-    description: 'Markiert einen Eintrag als gelöscht (Soft-Delete). Ein Snapshot wird vor der Änderung erstellt.',
+    summary: 'ETB-Eintrag streichen (Soft-Delete)',
+    description: 'Markiert einen Eintrag als geloescht. Der Eintrag bleibt im Audit-Trail erhalten.',
   })
-  @ApiNoContentResponse({ description: 'Eintrag erfolgreich gelöscht' })
+  @ApiNoContentResponse({ description: 'Eintrag erfolgreich gestrichen' })
   @ApiNotFoundResponse({ description: 'ETB oder Eintrag nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler oder ETB ist gesperrt' })
   async deleteEintrag(@Param('etbId') etbId: string, @Param('eintragId') eintragId: string, @CurrentUser() user: ValidatedUser): Promise<void> {
     this.logger.log(`Deleting Eintrag ${eintragId} from ETB ${etbId} by user ${user.userId}`);
 
-    // Story 5.9: Lade ETB um einsatzId zu erhalten und Berechtigung zu prüfen
     const etbIdResult = EtbId.create(etbId);
     if (etbIdResult.isFailure || !etbIdResult.value) {
-      throw new BadRequestException('Ungültige ETB-ID');
+      throw new BadRequestException('Ungueltige ETB-ID');
     }
 
     const etbAggregate = await this.etbRepository.findById(etbIdResult.value);
@@ -658,14 +647,12 @@ export class EtbCqrsController {
 
     const einsatzId = etbAggregate.einsatzId.value;
 
-    // Prüfe ob User aktiver Einsatzteilnehmer ist
     const isActiveTeilnehmer = await this.checkUserIsActiveTeilnehmer(user.userId, einsatzId);
     if (!isActiveTeilnehmer) {
       this.logger.warn(`User ${user.userId} is not an active participant of Einsatz ${einsatzId}`, 'EtbCqrsController');
       throw new ForbiddenException('Keine Berechtigung: User ist kein aktiver Einsatzteilnehmer');
     }
 
-    // Story 5.5: Sekundaere Rollen (EMPFAENGER/BEOBACHTER) duerfen nicht schreiben
     await this.checkUserCanEditEtb(user.userId, einsatzId, user.role);
 
     const commandResult = DeleteEintragCommand.create(etbId, eintragId, user.userId);
@@ -675,7 +662,6 @@ export class EtbCqrsController {
     }
 
     const result = await this.deleteEintragHandler.execute(commandResult.value);
-
     if (result.isFailure) {
       this.logger.error(`Failed to delete Eintrag ${eintragId}: ${result.error}`);
       if (result.error?.includes('nicht gefunden') || result.error?.includes('not found')) {
@@ -685,12 +671,7 @@ export class EtbCqrsController {
     }
 
     this.logger.log(`Eintrag ${eintragId} deleted from ETB ${etbId}`);
-    // No return - HTTP 204 No Content
   }
-
-  // ============================================
-  // LOCK ENDPOINT (Admin Only)
-  // ============================================
 
   /**
    * ETB sperren (AC3)

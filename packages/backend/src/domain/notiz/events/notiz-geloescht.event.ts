@@ -4,7 +4,7 @@ import type { UserId } from '@domain/value-objects/user-id';
 import { EVENT_NAMES } from '@domain/events/event-names';
 
 /**
- * Domain Event: Notiz wurde geloescht (Soft-Delete).
+ * Domain Event: Notiz wurde gelöscht (Soft-Delete).
  */
 export class NotizGeloeschtEvent extends DomainEvent {
   constructor(

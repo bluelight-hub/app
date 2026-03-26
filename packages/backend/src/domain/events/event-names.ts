@@ -64,6 +64,8 @@ export const EVENT_NAMES = {
     EINTRAG_UPDATED: 'etb.eintrag_updated',
     /** Event: Eintrag wurde gelöscht (Soft-Delete) */
     EINTRAG_DELETED: 'etb.eintrag_deleted',
+    /** Event: Eintrag wurde durch Korrektur-Eintrag ersetzt */
+    EINTRAG_KORRIGIERT: 'etb.eintrag_korrigiert',
   },
 
   /**
@@ -176,7 +178,7 @@ export const EVENT_NAMES = {
     ERSTELLT: 'erinnerungsvorlage.erstellt',
     /** Event: Erinnerungsvorlage wurde aktualisiert (Story 6.2) */
     AKTUALISIERT: 'erinnerungsvorlage.aktualisiert',
-    /** Event: Erinnerungsvorlage wurde geloescht (Story 6.2) */
+    /** Event: Erinnerungsvorlage wurde gelöscht (Story 6.2) */
     GELOESCHT: 'erinnerungsvorlage.geloescht',
   },
 
@@ -188,7 +190,7 @@ export const EVENT_NAMES = {
     ERSTELLT: 'notiz.erstellt',
     /** Event: Notiz wurde aktualisiert (Story 7.3) */
     AKTUALISIERT: 'notiz.aktualisiert',
-    /** Event: Notiz wurde geloescht (Soft-Delete) (Story 7.4) */
+    /** Event: Notiz wurde gelöscht (Soft-Delete) (Story 7.4) */
     GELOESCHT: 'notiz.geloescht',
   },
 
@@ -198,7 +200,7 @@ export const EVENT_NAMES = {
   FUEHRUNGSRHYTHMUS_TEMPLATE: {
     /** Event: Neues Fuehrungsrhythmus-Template wurde erstellt */
     ERSTELLT: 'fuehrungsrhythmus-template.erstellt',
-    /** Event: Fuehrungsrhythmus-Template wurde geloescht */
+    /** Event: Fuehrungsrhythmus-Template wurde gelöscht */
     GELOESCHT: 'fuehrungsrhythmus-template.geloescht',
     /** Event: Fuehrungsrhythmus-Template wurde fuer einen Einsatz aktiviert (Story 6.7) */
     AKTIVIERT: 'fuehrungsrhythmus-template.aktiviert',
@@ -212,7 +214,7 @@ export const EVENT_NAMES = {
   KATEGORIE: {
     /** Event: Neue Kategorie wurde erstellt */
     ERSTELLT: 'kategorie.erstellt',
-    /** Event: Kategorie wurde geloescht (Soft-Delete) */
+    /** Event: Kategorie wurde gelöscht (Soft-Delete) */
     GELOESCHT: 'kategorie.geloescht',
   },
 

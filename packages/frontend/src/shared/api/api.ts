@@ -537,7 +537,7 @@ class BackendApi {
   /**
    * Gibt die gecachte Permissions-API-Instanz zurueck
    *
-   * @returns Die Permissions-API-Instanz fuer verfuegbare Berechtigungen
+   * @returns Die Permissions-API-Instanz für verfügbare Berechtigungen
    */
   permissions(): PermissionsApi {
     return this.permissionsApi;

@@ -14,6 +14,7 @@ import { EinsatzArchivedEvent } from '@domain/events/einsatz-archived.event';
 // ETB Events
 import { EtbCreatedEvent } from '@domain/events/etb-created.event';
 import { EintragAddedEvent } from '@domain/events/eintrag-added.event';
+import { EintragKorrigiertEvent } from '@domain/events/eintrag-korrigiert.event';
 import { EintragUpdatedEvent } from '@domain/events/eintrag-updated.event';
 import { EintragDeletedEvent } from '@domain/events/eintrag-deleted.event';
 import { EtbLockedEvent } from '@domain/events/etb-locked.event';
@@ -199,6 +200,7 @@ export class EventDeserializer {
       // ===== ETB EVENTS =====
       ['etb.created', this.deserializeEtbCreated.bind(this)],
       ['etb.eintrag_added', this.deserializeEintragAdded.bind(this)],
+      ['etb.eintrag_korrigiert', this.deserializeEintragKorrigiert.bind(this)],
       ['etb.eintrag_updated', this.deserializeEintragUpdated.bind(this)],
       ['etb.eintrag_deleted', this.deserializeEintragDeleted.bind(this)],
       ['etb.locked', this.deserializeEtbLocked.bind(this)],
@@ -451,6 +453,34 @@ export class EventDeserializer {
 
     const event = new EtbCreatedEvent(etbIdResult.value!, einsatzIdResult.value!);
 
+    return Result.ok<DomainEvent>(event);
+  }
+
+  private deserializeEintragKorrigiert(payload: Record<string, unknown>): Result<DomainEvent> {
+    const etbIdResult = EtbId.create(payload.etbId as string);
+    if (etbIdResult.isFailure) {
+      return Result.fail<DomainEvent>(`Invalid etbId: ${etbIdResult.error}`);
+    }
+    const korrekturEintragIdResult = EintragId.create(payload.korrekturEintragId as string);
+    if (korrekturEintragIdResult.isFailure) {
+      return Result.fail<DomainEvent>(`Invalid korrekturEintragId: ${korrekturEintragIdResult.error}`);
+    }
+    const originalEintragIdResult = EintragId.create(payload.originalEintragId as string);
+    if (originalEintragIdResult.isFailure) {
+      return Result.fail<DomainEvent>(`Invalid originalEintragId: ${originalEintragIdResult.error}`);
+    }
+    const createdByResult = UserId.create(payload.createdBy as string);
+    if (createdByResult.isFailure) {
+      return Result.fail<DomainEvent>(`Invalid createdBy: ${createdByResult.error}`);
+    }
+    const event = new EintragKorrigiertEvent(
+      etbIdResult.value!,
+      korrekturEintragIdResult.value!,
+      originalEintragIdResult.value!,
+      payload.sequenceNumber as number,
+      payload.text as string,
+      createdByResult.value!,
+    );
     return Result.ok<DomainEvent>(event);
   }
 

@@ -1,4 +1,4 @@
-import { useCreateEtbEntry, useTextbausteine, useUpdateEtbEntry } from '@/features/etb';
+import { useCreateEtbEntry, useTextbausteine } from '@/features/etb';
 import { useMyEinsatzTeilnahme, useEinsatzFahrzeuge, useEinsatzPersonen, useEinsatzTeilnehmer } from '@/features/einsatz/api';
 import { logger } from '@/shared/lib/logger';
 import { AddEintragDtoKategorieEnum, type EintragDto } from '@bluelight-hub/shared/client';
@@ -55,8 +55,6 @@ interface EtbEntryFormProps {
   afterSaveFocusRef?: React.RefObject<HTMLDivElement | null>;
   /** Geteilte Create-Mutation vom Workspace (für Sync-Status-Integration) */
   createMutation?: ReturnType<typeof useCreateEtbEntry>;
-  /** Geteilte Update-Mutation vom Workspace (für Sync-Status-Integration) */
-  updateMutation?: ReturnType<typeof useUpdateEtbEntry>;
   /** Story 3.5: Callback bei Formular-Wert-Änderung (für Auto-Save) */
   onFormValuesChange?: (values: { text: string; kategorie: string; absender?: string; empfaenger?: string }) => void;
   /** Story 3.5: Wiederhergestellte Draft-Werte (einmalig setzen) */
@@ -82,15 +80,12 @@ export function EtbEntryForm({
   'aria-labelledby': ariaLabelledBy,
   afterSaveFocusRef,
   createMutation,
-  updateMutation,
   onFormValuesChange,
   restoredDraftValues,
   onDraftRestored,
 }: EtbEntryFormProps) {
   const internalCreateEintrag = useCreateEtbEntry();
-  const internalUpdateEintrag = useUpdateEtbEntry();
   const createEintrag = createMutation ?? internalCreateEintrag;
-  const updateEintrag = updateMutation ?? internalUpdateEintrag;
   const { data: textbausteineData } = useTextbausteine();
   const { data: teilnahmeData } = useMyEinsatzTeilnahme(einsatzId);
   const { data: fahrzeuge } = useEinsatzFahrzeuge(einsatzId ?? null);
@@ -171,29 +166,17 @@ export function EtbEntryForm({
     },
     onSubmit: async ({ value }) => {
       try {
-        if (editingEntry) {
-          // Update existing entry
-          // Backend erwartet nur newText (UpdateEintragDto)
-          await updateEintrag.mutateAsync({
-            etbId,
-            eintragId: editingEntry.id,
-            data: {
-              newText: value.text.trim(),
-            },
-          });
-        } else {
-          // Create new entry mit absender/empfaenger
-          await createEintrag.mutateAsync({
-            etbId,
-            data: {
-              kategorie: value.kategorie as AddEintragDtoKategorieEnum,
-              text: value.text.trim(),
-              einsatzId,
-              absender: value.absender?.trim() || undefined,
-              empfaenger: value.empfaenger?.trim() || undefined,
-            },
-          });
-        }
+        // Create new entry mit absender/empfaenger
+        await createEintrag.mutateAsync({
+          etbId,
+          data: {
+            kategorie: value.kategorie as AddEintragDtoKategorieEnum,
+            text: value.text.trim(),
+            einsatzId,
+            absender: value.absender?.trim() || undefined,
+            empfaenger: value.empfaenger?.trim() || undefined,
+          },
+        });
 
         form.reset();
         resetSelection();
@@ -455,7 +438,7 @@ export function EtbEntryForm({
         >
           {({ textValue, canSubmit, isSubmitting }) => {
             const hasContent = (textValue || '').trim() !== '';
-            const isPending = editingEntry ? updateEintrag.isPending : createEintrag.isPending;
+            const isPending = createEintrag.isPending;
 
             return (
               <EtbFormActions

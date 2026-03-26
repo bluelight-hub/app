@@ -4,7 +4,7 @@ import type { UserId } from '@domain/value-objects/user-id';
 import { EVENT_NAMES } from '@domain/events/event-names';
 
 /**
- * Domain Event: Kategorie wurde geloescht (Soft-Delete).
+ * Domain Event: Kategorie wurde gelöscht (Soft-Delete).
  */
 export class KategorieGeloeschtEvent extends DomainEvent {
   constructor(

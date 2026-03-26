@@ -211,17 +211,17 @@ export class Notiz extends AggregateRoot<NotizId> {
   /**
    * Aktualisiert die Notiz mit den gegebenen Properties (Story 7.3).
    * Business Rules:
-   * - Geloeschte Notizen duerfen nicht bearbeitet werden
-   * - Mindestens ein Feld muss geaendert werden
+   * - Gelöschte Notizen dürfen nicht bearbeitet werden
+   * - Mindestens ein Feld muss geändert werden
    * - Titel, Inhalt und Kategorie werden validiert
    */
   public update(props: UpdateNotizProps): Result<void> {
-    // Business Rule: Geloeschte Notizen duerfen nicht bearbeitet werden
+    // Business Rule: Gelöschte Notizen dürfen nicht bearbeitet werden
     if (this._isDeleted) {
       return Result.fail<void>('NOTIZ_ALREADY_DELETED');
     }
 
-    // Mindestens ein Feld muss geaendert werden
+    // Mindestens ein Feld muss geändert werden
     if (props.titel === undefined && props.inhalt === undefined && props.kategorie === undefined && props.kategorieId === undefined && props.istTeamsichtbar === undefined) {
       return Result.fail<void>('NOTIZ_NO_CHANGES');
     }
@@ -281,8 +281,8 @@ export class Notiz extends AggregateRoot<NotizId> {
   }
 
   /**
-   * Soft-Delete: Markiert die Notiz als geloescht (Story 7.4).
-   * Idempotenz: Bereits geloeschte Notizen geben Failure zurueck.
+   * Soft-Delete: Markiert die Notiz als gelöscht (Story 7.4).
+   * Idempotenz: Bereits gelöschte Notizen geben Failure zurück.
    */
   public delete(geloeschtVon: UserId): Result<void> {
     if (this._isDeleted) {

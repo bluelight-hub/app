@@ -21,7 +21,7 @@ export interface IKategorieRepository {
   findById(id: KategorieId, tx?: unknown): Promise<Kategorie | null>;
 
   /**
-   * Findet alle Kategorien eines Einsatzes (inkl. geloeschter).
+   * Findet alle Kategorien eines Einsatzes (inkl. gelöschter).
    * @param einsatzId - Die EinsatzId
    * @returns Array aller Kategorien des Einsatzes
    */

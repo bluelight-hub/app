@@ -251,7 +251,7 @@ function renderWorkspace(overrides: WorkspaceOverrides = {}) {
 // --- Tests ---
 
 describe('Deep-Link Recall (Story 4.3)', () => {
-  /** rAF-Callbacks sammeln fuer manuelle Ausfuehrung */
+  /** rAF-Callbacks sammeln fuer manuelle Ausführung */
   let rafCallbacks: FrameRequestCallback[];
   let originalRAF: typeof requestAnimationFrame;
   let originalScrollIntoView: typeof Element.prototype.scrollIntoView;

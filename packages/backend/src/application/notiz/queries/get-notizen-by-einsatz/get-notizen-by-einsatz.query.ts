@@ -3,7 +3,7 @@ import { NOTIZ_ERROR_CODES } from '../../errors/notiz-error.codes';
 
 /**
  * Query zum Abrufen aller sichtbaren Notizen eines Einsatzes.
- * Validiert einsatzId und userId vor der Ausfuehrung.
+ * Validiert einsatzId und userId vor der Ausführung.
  * Liefert eigene Notizen + team-sichtbare Notizen anderer User.
  */
 export class GetNotizenByEinsatzQuery {

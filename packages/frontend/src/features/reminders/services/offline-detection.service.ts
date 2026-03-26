@@ -31,7 +31,7 @@ export interface OnlineCallbackData {
 }
 
 /**
- * Subscriber-Callback fuer State-Aenderungen
+ * Subscriber-Callback fuer State-Änderungen
  */
 export type OfflineStateSubscriber = (state: OfflineState) => void;
 
@@ -48,7 +48,7 @@ export type OnOfflineCallback = () => void;
 /**
  * Offline Detection Service Klasse
  *
- * Verwaltet den Netzwerk-Status und benachrichtigt Subscriber bei Aenderungen.
+ * Verwaltet den Netzwerk-Status und benachrichtigt Subscriber bei Änderungen.
  * Nutzt das Singleton Pattern fuer globale Verfuegbarkeit.
  *
  * **AC1:** Erkennt Offline-Status via navigator.onLine
@@ -78,7 +78,7 @@ export class OfflineDetectionService {
   /** Aktueller Offline-Status */
   private state: OfflineState;
 
-  /** Subscriber fuer State-Aenderungen */
+  /** Subscriber fuer State-Änderungen */
   private subscribers: Set<OfflineStateSubscriber> = new Set();
 
   /** Callback bei Wiederverbindung */
@@ -192,9 +192,9 @@ export class OfflineDetectionService {
   }
 
   /**
-   * Registriert einen Subscriber fuer State-Aenderungen
+   * Registriert einen Subscriber fuer State-Änderungen
    *
-   * @param subscriber - Callback bei State-Aenderung
+   * @param subscriber - Callback bei State-Änderung
    * @returns Unsubscribe-Funktion
    */
   subscribe(subscriber: OfflineStateSubscriber): () => void {
@@ -304,7 +304,7 @@ export class OfflineDetectionService {
   }
 
   /**
-   * Benachrichtigt alle Subscriber ueber State-Aenderung
+   * Benachrichtigt alle Subscriber ueber State-Änderung
    */
   private notifySubscribers(): void {
     const stateCopy = this.getState();

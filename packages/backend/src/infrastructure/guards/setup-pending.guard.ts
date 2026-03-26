@@ -6,7 +6,7 @@ import { SERVER_ACCESS_TOKEN_REPOSITORY } from '@/infrastructure/di-tokens';
 import { SKIP_SETUP_CHECK_KEY } from '../decorators/skip-setup-check.decorator';
 
 /**
- * Guard zur Pruefung ob Server-Setup abgeschlossen ist.
+ * Guard zur Prüfung ob Server-Setup abgeschlossen ist.
  *
  * Blockiert ALLE Requests mit 503 wenn Setup nicht komplett.
  * Whitelist-Endpoints nutzen @SkipSetupCheck() Decorator.

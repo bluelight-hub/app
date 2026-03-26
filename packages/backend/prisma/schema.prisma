@@ -421,15 +421,23 @@ model EtbEintrag {
   createdBy String   @db.VarChar(100)
   updatedBy String?  @db.VarChar(100)
 
-  // Soft Delete
+  // Soft Delete (Legacy - neue Eintraege werden nicht mehr geloescht)
   deletedAt DateTime? // Soft Delete Zeitstempel
   deletedBy String?   @db.VarChar(100) // User ID der Löschung
 
+  // Korrektur-Verkettung (Immutabilitaet)
+  korrigiertEintragId String? @map("korrigiert_eintrag_id") // ID des Original-Eintrags den dieser korrigiert
+  korrigiertDurchId   String? @map("korrigiert_durch_id") // ID des Korrektur-Eintrags der diesen ersetzt
+
   // Relations
-  einsatztagebuch Einsatztagebuch @relation(fields: [etbId], references: [id], onDelete: Cascade)
-  creator         User            @relation("EtbEintragCreator", fields: [createdBy], references: [id], onDelete: Restrict)
-  updater         User?           @relation("EtbEintragUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
-  deleter         User?           @relation("EtbEintragDeleter", fields: [deletedBy], references: [id], onDelete: SetNull)
+  einsatztagebuch  Einsatztagebuch @relation(fields: [etbId], references: [id], onDelete: Cascade)
+  creator          User            @relation("EtbEintragCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  updater          User?           @relation("EtbEintragUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
+  deleter          User?           @relation("EtbEintragDeleter", fields: [deletedBy], references: [id], onDelete: SetNull)
+  korrigiertEintrag EtbEintrag?    @relation("EintragKorrektur", fields: [korrigiertEintragId], references: [id], onDelete: SetNull)
+  korrigiertDurch   EtbEintrag?    @relation("EintragKorrigiertDurch", fields: [korrigiertDurchId], references: [id], onDelete: SetNull)
+  korrekturenVon    EtbEintrag[]   @relation("EintragKorrektur")
+  korrekturenDurch  EtbEintrag[]   @relation("EintragKorrigiertDurch")
 
   // Historie
   historie EtbEintragHistorie[]
@@ -440,6 +448,7 @@ model EtbEintrag {
   @@index([etbId, kategorie])
   @@index([createdBy])
   @@index([deletedAt])
+  @@index([korrigiertEintragId])
   @@map("etb_eintraege")
 }
 

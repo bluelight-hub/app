@@ -1,12 +1,11 @@
 import { IconButton } from '@/shared/ui/atoms/icon-button.atom';
-import { PiPencil, PiTrash, PiCheck, PiX, PiBell } from 'react-icons/pi';
+import { PiBell, PiPencil, PiTrash } from 'react-icons/pi';
 import type React from 'react';
 
 interface EtbActionsCellProps {
-  isEditing: boolean;
-  onEdit: () => void;
-  onSave?: () => void;
-  onCancel?: () => void;
+  /** Callback zum Bearbeiten des Eintrags */
+  onEdit?: () => void;
+  /** Callback zum Loeschen des Eintrags */
   onDelete?: () => void;
   /** Callback zum Erstellen einer Erinnerung aus diesem ETB-Eintrag (Story 5.4) */
   onCreateErinnerung?: () => void;
@@ -14,20 +13,7 @@ interface EtbActionsCellProps {
   isDeleted?: boolean;
 }
 
-export const EtbActionsCell: React.FC<EtbActionsCellProps> = ({ isEditing, onEdit, onSave, onCancel, onDelete, onCreateErinnerung, isLoading = false, isDeleted = false }) => {
-  if (isEditing) {
-    return (
-      <div className="flex justify-center gap-1">
-        <IconButton size="sm" appearance="minimal" intent="success" onClick={onSave} disabled={isLoading} aria-label="Speichern">
-          <PiCheck />
-        </IconButton>
-        <IconButton size="sm" appearance="minimal" intent="danger" onClick={onCancel} disabled={isLoading} aria-label="Abbrechen">
-          <PiX />
-        </IconButton>
-      </div>
-    );
-  }
-
+export const EtbActionsCell: React.FC<EtbActionsCellProps> = ({ onEdit, onDelete, onCreateErinnerung, isLoading = false, isDeleted = false }) => {
   // Für gelöschte Einträge keine Actions anzeigen
   if (isDeleted) {
     return (
@@ -39,17 +25,19 @@ export const EtbActionsCell: React.FC<EtbActionsCellProps> = ({ isEditing, onEdi
 
   return (
     <div className="flex justify-center gap-1">
-      <IconButton appearance="minimal" size="sm" onClick={onEdit} className="text-text-secondary hover:text-action-primary" aria-label="Bearbeiten">
-        <PiPencil />
-      </IconButton>
-      {onCreateErinnerung && (
-        <IconButton size="sm" appearance="minimal" onClick={onCreateErinnerung} className="text-text-secondary hover:text-status-warning-text" aria-label="Erinnerung erstellen">
-          <PiBell />
+      {onEdit && (
+        <IconButton appearance="minimal" size="sm" onClick={onEdit} disabled={isLoading} className="text-text-muted hover:text-action-primary" aria-label="Bearbeiten" title="Bearbeiten">
+          <PiPencil />
         </IconButton>
       )}
       {onDelete && (
-        <IconButton size="sm" appearance="minimal" intent="danger" onClick={onDelete} aria-label="Löschen">
+        <IconButton appearance="minimal" size="sm" onClick={onDelete} disabled={isLoading} className="text-text-muted hover:text-status-danger-text" aria-label="Loeschen" title="Loeschen">
           <PiTrash />
+        </IconButton>
+      )}
+      {onCreateErinnerung && (
+        <IconButton size="sm" appearance="minimal" onClick={onCreateErinnerung} className="text-text-secondary hover:text-status-warning-text" aria-label="Erinnerung erstellen">
+          <PiBell />
         </IconButton>
       )}
     </div>

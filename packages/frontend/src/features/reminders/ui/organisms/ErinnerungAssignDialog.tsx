@@ -99,7 +99,7 @@ export function ErinnerungAssignDialog({ isOpen, onClose, erinnerung, einsatzId 
     onClose();
   }, [onClose]);
 
-  // Sicherheits-Check: Nur aktive Erinnerungen koennen zugewiesen werden
+  // Sicherheits-Check: Nur aktive Erinnerungen können zugewiesen werden
   const isAssignable = erinnerung && !['ERLEDIGT', 'ESKALIERT'].includes(erinnerung.status);
 
   return (

@@ -10,13 +10,13 @@ import { useBefehlNotificationNavigation } from '@/features/befehl';
 
 // Reset Setup-Redirect-Flag beim App-Start - ABER NICHT wenn wir auf /server/setup sind!
 // Grund: Nach einem Full-Page-Redirect zu /server/setup (via window.location.href) wird die App
-// komplett neu geladen. Wenn wir das Flag hier bedingungslos zuruecksetzen, ist es false
-// BEVOR der /server/setup Route beforeLoad laufen kann. Background-Requests (React Query) koennten
+// komplett neu geladen. Wenn wir das Flag hier bedingungslos zurücksetzen, ist es false
+// BEVOR der /server/setup Route beforeLoad laufen kann. Background-Requests (React Query) könnten
 // dann erneut 503 bekommen und handleServerNotSetup() triggern - was einen neuen Redirect
 // startet obwohl wir gerade auf dem Weg zu /server/setup sind → Endlos-Loop.
 //
-// Loesung: Nur zuruecksetzen wenn wir NICHT auf /server/setup sind. Die /server/setup Route selbst
-// setzt das Flag nach ihrem beforeLoad Check zurueck.
+// Lösung: Nur zurücksetzen wenn wir NICHT auf /server/setup sind. Die /server/setup Route selbst
+// setzt das Flag nach ihrem beforeLoad Check zurück.
 if (!window.location.pathname.startsWith('/server/setup') && !window.location.pathname.startsWith('/server/manage')) {
   setSetupRedirectInProgress(false);
 }

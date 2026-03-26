@@ -1,7 +1,7 @@
 /**
  * Query Hook fuer Befehlshistorie-Timeline
  *
- * Laedt die vollstaendige Historie eines Befehls als Timeline.
+ * Laedt die vollständige Historie eines Befehls als Timeline.
  * Lazy-Loading: Nur wenn befehlId vorhanden ist.
  */
 

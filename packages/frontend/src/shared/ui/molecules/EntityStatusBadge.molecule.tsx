@@ -37,7 +37,7 @@ const STATUS_CONFIG = {
  * Einheitlicher Status-Badge fuer alle Entitaeten im Admin-Bereich.
  *
  * Story 5.2 AC2: Nicht nur Farbe sondern auch Text + Icon (WCAG 2.1 AA).
- * aria-label mit vollstaendigem Status-Text.
+ * aria-label mit vollständigem Status-Text.
  */
 export const EntityStatusBadge = memo(({ status, reason, className }: EntityStatusBadgeProps) => {
   const config = STATUS_CONFIG[status];

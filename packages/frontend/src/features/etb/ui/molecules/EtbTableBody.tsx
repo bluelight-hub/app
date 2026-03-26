@@ -23,7 +23,8 @@ interface EtbTableBodyProps {
    * ETB-ID fuer Timeline-Abfrage (Story 5.5)
    */
   etbId?: string;
-  onDelete: (entry: EintragDto) => void;
+  onEdit?: (entry: EintragDto) => void;
+  onDelete?: (entry: EintragDto) => void;
   getUserName: (userId: string) => string | undefined;
   /**
    * Callback wenn auf einen ETB-Eintrag in der Timeline geklickt wird (Story 5.5)
@@ -31,6 +32,8 @@ interface EtbTableBodyProps {
   onEntryClick?: (entryId: string) => void;
   /** Aktiver Suchbegriff fuer Leerzustand-Meldung (Story 3.4) */
   globalFilter?: string;
+  /** Alle Eintraege (inkl. korrigierte) fuer Bearbeitungshistorie */
+  allEntries?: EintragDto[];
 }
 
 // Statische Skeleton-Row-Keys (für Performance und Linter)
@@ -74,7 +77,11 @@ const EtbTableRow = memo(function EtbTableRowComponent({ row, virtualRowSize, ar
       onKeyDown={handleKeyDown}
       className={cn(
         'transition-all duration-300 focus-visible:shadow-focus-ring focus-visible:outline-none',
-        row.original.deletedAt ? 'border-l-2 border-l-status-danger-border bg-status-danger-surface/30 opacity-60' : 'hover:bg-surface-raised',
+        row.original.deletedAt
+          ? 'border-l-2 border-l-status-danger-border bg-status-danger-surface/30 opacity-60'
+          : row.original.isKorrigiert
+            ? 'bg-surface-sunken/50 border-l-2 border-l-border-subtle opacity-50'
+            : 'hover:bg-surface-raised',
         // Story 5.5: Highlight-Animation wenn Entry hervorgehoben ist
         isHighlighted && 'bg-action-secondary ring-2 ring-action-primary/40 ring-offset-2 ring-offset-surface-panel',
       )}
@@ -111,10 +118,12 @@ export function EtbTableBody({
   enableInlineEdit,
   einsatzId,
   etbId,
+  onEdit,
   onDelete,
   getUserName,
   onEntryClick,
   globalFilter,
+  allEntries,
 }: EtbTableBodyProps) {
   return (
     <tbody className="divide-y divide-border-subtle bg-surface-panel">
@@ -194,7 +203,15 @@ export function EtbTableBody({
             <Fragment key={row.id}>
               {/* Main Row */}
               {enableInlineEdit && einsatzId ? (
-                <EtbTableRowEditable row={row} style={{ height: `${virtualRow.size}px` }} onDelete={onDelete} einsatzId={einsatzId} etbId={etbId ?? ''} ariaRowIndex={virtualRow.index + 1} />
+                <EtbTableRowEditable
+                  row={row}
+                  style={{ height: `${virtualRow.size}px` }}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  einsatzId={einsatzId}
+                  etbId={etbId ?? ''}
+                  ariaRowIndex={virtualRow.index + 1}
+                />
               ) : (
                 <EtbTableRow row={row} virtualRowSize={virtualRow.size} ariaRowIndex={virtualRow.index + 1} />
               )}
@@ -203,7 +220,7 @@ export function EtbTableBody({
               {row.getIsExpanded() && (
                 <tr>
                   <td colSpan={columns.length} className="bg-surface-raised px-8 py-4" aria-label={`Details zu Eintrag #${row.original.sequenceNumber}`}>
-                    <EtbEntryDetails entry={row.original} getUserName={getUserName} etbId={etbId} onEntryClick={onEntryClick} />
+                    <EtbEntryDetails entry={row.original} getUserName={getUserName} etbId={etbId} onEntryClick={onEntryClick} allEntries={allEntries ?? entries} />
                   </td>
                 </tr>
               )}

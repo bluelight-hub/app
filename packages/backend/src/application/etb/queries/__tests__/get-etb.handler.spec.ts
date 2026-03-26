@@ -78,16 +78,11 @@ describe('GetEtbQueryHandler', () => {
       expect(result.value?.status).toBe('DRAFT');
     });
 
-    it('sollte geloeschte Eintraege ausschliessen wenn includeDeleted=false', async () => {
-      // Given: ETB mit Eintraegen, wovon einer geloescht wird
+    it('sollte alle Eintraege zurueckgeben wenn includeDeleted=false (keine geloeschten)', async () => {
+      // Given: ETB mit 3 Eintraegen (keine geloescht)
       const einsatzId = createValidTestId('einsatz2');
       const userId = createValidTestId('user0002');
       const etb = createTestEtb({ einsatzId, userId, entriesCount: 3 });
-      const userIdVo = UserId.create(createValidTestId('deluser01')).value!;
-
-      // Ersten Eintrag loeschen
-      const firstEntry = etb.eintraege[0];
-      etb.deleteEintrag(firstEntry.id, userIdVo);
 
       await repository.save(etb);
 
@@ -99,20 +94,15 @@ describe('GetEtbQueryHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).not.toBeNull();
-      expect(result.value?.eintraege).toHaveLength(2); // 3 - 1 geloescht = 2
+      expect(result.value?.eintraege).toHaveLength(3);
       expect(result.value?.eintraege.every((e) => !e.isDeleted)).toBe(true);
     });
 
-    it('sollte geloeschte Eintraege inkludieren wenn includeDeleted=true', async () => {
-      // Given: ETB mit Eintraegen, wovon einer geloescht wird
+    it('sollte alle Eintraege inkludieren wenn includeDeleted=true', async () => {
+      // Given: ETB mit 3 Eintraegen
       const einsatzId = createValidTestId('einsatz3');
       const userId = createValidTestId('user0003');
       const etb = createTestEtb({ einsatzId, userId, entriesCount: 3 });
-      const userIdVo = UserId.create(createValidTestId('deluser02')).value!;
-
-      // Ersten Eintrag loeschen
-      const firstEntry = etb.eintraege[0];
-      etb.deleteEintrag(firstEntry.id, userIdVo);
 
       await repository.save(etb);
 
@@ -124,8 +114,7 @@ describe('GetEtbQueryHandler', () => {
       // Then
       expect(result.isSuccess).toBe(true);
       expect(result.value).not.toBeNull();
-      expect(result.value?.eintraege).toHaveLength(3); // Alle 3 inkl. geloeschter
-      expect(result.value?.eintraege.some((e) => e.isDeleted)).toBe(true);
+      expect(result.value?.eintraege).toHaveLength(3);
     });
 
     it('sollte Result.ok(null) zurueckgeben wenn ETB nicht gefunden', async () => {

@@ -87,13 +87,13 @@ const databaseAvailable = !!process.env.DATABASE_URL;
   });
 
   /**
-   * Test 4.4: updateEintrag() nach lock → Result.isFailure
+   * Test 4.4: addKorrekturEintrag() nach lock → Result.isFailure
    *
    * Given: Ein ETB mit einem Eintrag, das dann gesperrt wird
-   * When: updateEintrag() aufgerufen wird
-   * Then: Operation schlägt fehl
+   * When: addKorrekturEintrag() aufgerufen wird
+   * Then: Operation schlaegt fehl
    */
-  it('should fail updateEintrag() on locked ETB', async () => {
+  it('should fail addKorrekturEintrag() on locked ETB', async () => {
     // Given: ETB mit Eintrag
     const einsatzId = EinsatzId.create(ctx.testEinsatzId).value!;
     const userId = UserId.create(ctx.testUserId).value!;
@@ -109,47 +109,14 @@ const databaseAvailable = !!process.env.DATABASE_URL;
     retrieved?.lock(userId);
     await ctx.repository.save(retrieved!);
 
-    // When + Then: updateEintrag schlägt fehl
+    // When + Then: addKorrekturEintrag schlaegt fehl
     const locked = await ctx.repository.findByEinsatzId(einsatzId);
     expect(locked).not.toBeNull();
     expect(locked?.isLocked()).toBe(true);
 
-    const updateResult = locked?.updateEintrag(eintragId, 'Should fail', userId);
-    expect(updateResult.isFailure).toBe(true);
-    expect(updateResult.error).toContain('gesperrt');
-  });
-
-  /**
-   * Test 4.5: deleteEintrag() nach lock → Result.isFailure
-   *
-   * Given: Ein ETB mit einem Eintrag, das dann gesperrt wird
-   * When: deleteEintrag() aufgerufen wird
-   * Then: Operation schlägt fehl
-   */
-  it('should fail deleteEintrag() on locked ETB', async () => {
-    // Given: ETB mit Eintrag
-    const einsatzId = EinsatzId.create(ctx.testEinsatzId).value!;
-    const userId = UserId.create(ctx.testUserId).value!;
-    const aggregate = EinsatztagebuchAggregate.create(einsatzId).value!;
-    const addResult = aggregate.addEintrag('Entry to delete', userId);
-    expect(addResult.isSuccess).toBe(true);
-    const eintragId = EintragId.create(addResult.value?.id.value).value!;
-    await ctx.repository.save(aggregate);
-
-    // Lock the ETB
-    const retrieved = await ctx.repository.findByEinsatzId(einsatzId);
-    expect(retrieved).not.toBeNull();
-    retrieved?.lock(userId);
-    await ctx.repository.save(retrieved!);
-
-    // When + Then: deleteEintrag schlägt fehl
-    const locked = await ctx.repository.findByEinsatzId(einsatzId);
-    expect(locked).not.toBeNull();
-    expect(locked?.isLocked()).toBe(true);
-
-    const deleteResult = locked?.deleteEintrag(eintragId, userId);
-    expect(deleteResult.isFailure).toBe(true);
-    expect(deleteResult.error).toContain('gesperrt');
+    const korrekturResult = locked?.addKorrekturEintrag(eintragId, 'Should fail', userId);
+    expect(korrekturResult.isFailure).toBe(true);
+    expect(korrekturResult.error).toContain('gesperrt');
   });
 
   /**

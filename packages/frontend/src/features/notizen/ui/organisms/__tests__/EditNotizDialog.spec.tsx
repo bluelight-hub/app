@@ -124,7 +124,7 @@ describe('EditNotizDialog', () => {
   });
 
   describe('Form Interaktion', () => {
-    it('sollte den Titel aendern koennen', async () => {
+    it('sollte den Titel ändern können', async () => {
       // Given (Arrange)
       const user = userEvent.setup();
       renderDialog();
@@ -138,7 +138,7 @@ describe('EditNotizDialog', () => {
       expect(titelInput).toHaveValue('Neuer Titel');
     });
 
-    it('sollte den Inhalt aendern koennen', async () => {
+    it('sollte den Inhalt ändern können', async () => {
       // Given (Arrange)
       const user = userEvent.setup();
       renderDialog();
@@ -159,7 +159,7 @@ describe('EditNotizDialog', () => {
       const user = userEvent.setup();
       renderDialog();
 
-      // When (Act) - Titel aendern und absenden
+      // When (Act) - Titel ändern und absenden
       const titelInput = screen.getByLabelText(/Titel/);
       await user.clear(titelInput);
       await user.type(titelInput, 'Aktualisierter Lagebericht');

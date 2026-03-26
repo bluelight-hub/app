@@ -13,7 +13,6 @@ vi.mock('@/features/einsatz/api', () => ({
 // Mock non-validation UI Komponenten aus dem Barrel
 vi.mock('@/features/etb', () => ({
   useCreateEtbEntry: () => ({ mutateAsync: vi.fn().mockResolvedValue({}), isPending: false }),
-  useUpdateEtbEntry: () => ({ mutateAsync: vi.fn().mockResolvedValue({}), isPending: false }),
   useTextbausteine: () => ({ data: null }),
   useEtbFormLogic: () => ({
     selectedTextbaustein: '',

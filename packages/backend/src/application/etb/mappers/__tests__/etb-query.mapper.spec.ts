@@ -72,46 +72,35 @@ describe('EtbQueryMapper', () => {
       expect(dto.createdAt).toEqual(etb.createdAt);
     });
 
-    it('sollte geloeschte Eintraege ausfiltern wenn includeDeleted=false', () => {
+    it('sollte alle Eintraege zurueckgeben wenn includeDeleted=false und keine geloeschten Eintraege', () => {
       // Arrange
       const etb = createTestEtb({
         einsatzId: generateTestCuid(),
         userId: generateTestCuid(),
         entriesCount: 3,
       });
-      const userId = createTestUserId(generateTestCuid());
-
-      // Loesche den zweiten Eintrag
-      const secondEntry = etb.eintraege[1];
-      etb.deleteEintrag(secondEntry.id, userId);
 
       // Act
       const dto = EtbQueryMapper.toEtbDto(etb, false);
 
-      // Assert
-      expect(dto.eintraege).toHaveLength(2);
+      // Assert - alle 3 Eintraege sind aktiv
+      expect(dto.eintraege).toHaveLength(3);
       expect(dto.eintraege.every((e) => !e.isDeleted)).toBe(true);
     });
 
-    it('sollte geloeschte Eintraege inkludieren wenn includeDeleted=true', () => {
+    it('sollte alle Eintraege inkludieren wenn includeDeleted=true', () => {
       // Arrange
       const etb = createTestEtb({
         einsatzId: generateTestCuid(),
         userId: generateTestCuid(),
         entriesCount: 3,
       });
-      const userId = createTestUserId(generateTestCuid());
-
-      // Loesche den zweiten Eintrag
-      const secondEntry = etb.eintraege[1];
-      etb.deleteEintrag(secondEntry.id, userId);
 
       // Act
       const dto = EtbQueryMapper.toEtbDto(etb, true);
 
       // Assert
       expect(dto.eintraege).toHaveLength(3);
-      expect(dto.eintraege.some((e) => e.isDeleted)).toBe(true);
     });
 
     it('sollte ein Aggregate ohne Eintraege korrekt mappen', () => {

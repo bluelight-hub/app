@@ -136,12 +136,14 @@ function createDomainEintrag(overrides: { id?: string; sequenceNumber?: number; 
     overrides.text ?? 'Test Eintrag',
     userResult.value as UserId,
     overrides.createdAt ?? new Date('2024-01-01T10:00:00Z'),
+    undefined, // kategorie
+    undefined, // absender
+    undefined, // empfaenger
+    undefined, // metadata
+    undefined, // korrigiertEintragId
+    undefined, // korrigiertDurchId
+    overrides.isDeleted ?? false, // isDeleted via constructor
   );
-
-  // Soft-Delete Flag setzen wenn erforderlich
-  if (overrides.isDeleted) {
-    eintrag.markAsDeleted();
-  }
 
   return eintrag;
 }

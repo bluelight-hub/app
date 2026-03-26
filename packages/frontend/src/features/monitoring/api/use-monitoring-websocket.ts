@@ -23,7 +23,7 @@ const WS_NAMESPACE = '/ws/v-alpha/monitoring';
 const RECONNECT_DELAY_MS = 1000;
 const RECONNECT_DELAY_MAX_MS = 10000;
 
-/** Warnung-Typen ins Deutsche uebersetzt */
+/** Warnung-Typen ins Deutsche übersetzt */
 const WARNUNG_TYP_LABELS: Record<string, string> = {
   ZUSTELLRATE: 'Zustellrate zu niedrig',
   OUTBOX_STAU: 'Outbox-Stau',

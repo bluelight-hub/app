@@ -46,7 +46,7 @@ export interface ReconstructFuehrungsrhythmusTemplateProps {
  *
  * Ein Fuehrungsrhythmus-Template definiert eine Reihe von wiederkehrenden Eintraegen
  * (z.B. Lagebesprechung alle 30 min, Funkmeldecheck alle 15 min),
- * die auf einen Einsatz angewendet werden koennen.
+ * die auf einen Einsatz angewendet werden können.
  */
 export class FuehrungsrhythmusTemplate extends AggregateRoot<FuehrungsrhythmusTemplateId> {
   public static readonly MAX_BESCHREIBUNG_LENGTH = 500;
@@ -203,7 +203,7 @@ export class FuehrungsrhythmusTemplate extends AggregateRoot<FuehrungsrhythmusTe
 
   /**
    * Update: Aktualisiert Name, Beschreibung und Eintraege des Templates (Story 6.8).
-   * Business Rule: Bereits geloeschte Templates koennen nicht aktualisiert werden.
+   * Business Rule: Bereits gelöschte Templates können nicht aktualisiert werden.
    */
   public update(props: { name: string; beschreibung: string | null; eintraege: FuehrungsrhythmusEintrag[]; aktualisiertVon: UserId }): Result<void> {
     if (this._isDeleted) {
@@ -239,8 +239,8 @@ export class FuehrungsrhythmusTemplate extends AggregateRoot<FuehrungsrhythmusTe
   }
 
   /**
-   * Soft-Delete: Markiert das Fuehrungsrhythmus-Template als geloescht.
-   * Business Rule: Bereits geloeschte Templates koennen nicht erneut geloescht werden.
+   * Soft-Delete: Markiert das Fuehrungsrhythmus-Template als gelöscht.
+   * Business Rule: Bereits gelöschte Templates können nicht erneut gelöscht werden.
    */
   public softDelete(deletedBy: UserId): Result<void> {
     if (this._isDeleted) {

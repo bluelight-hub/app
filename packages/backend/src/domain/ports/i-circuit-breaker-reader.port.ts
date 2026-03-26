@@ -2,7 +2,7 @@
  * Circuit Breaker Reader Port - Domain Layer.
  *
  * Read-only Abstraktion fuer Circuit Breaker Status-Abfragen.
- * Ermoeglicht Application Layer Zugriff auf CB-Status ohne
+ * Ermöglicht Application Layer Zugriff auf CB-Status ohne
  * direkte Infrastructure-Abhaengigkeit.
  *
  * @see Story 5.3

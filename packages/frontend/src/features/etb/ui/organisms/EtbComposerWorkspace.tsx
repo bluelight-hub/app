@@ -1,5 +1,6 @@
 import { useEinsatzDetails } from '@/features/einsatz/hooks/use-einsatz-details';
 import { logger } from '@/shared/lib/logger';
+import { useConfirm } from '@/shared/hooks';
 import { ErrorState } from '@/shared/ui/atoms/ErrorState';
 import { cn } from '@/shared/ui/cn';
 import type { EintragDto } from '@/shared';
@@ -9,7 +10,7 @@ import { PiArrowsClockwise, PiClockCounterClockwise } from 'react-icons/pi';
 import { useDelayedLoading } from '../../hooks/useDelayedLoading';
 import { useEtbDraftResume } from '../../hooks/useEtbDraftResume';
 import { useEtbSyncStatus } from '../../hooks/useEtbSyncStatus';
-import { useEtbInfinite, useCreateEtbEntry, useUpdateEtbEntry } from '../../api';
+import { useEtbInfinite, useCreateEtbEntry, useDeleteEtbEntry } from '../../api';
 import { setHighlightedEntry } from '@/features/reminders/stores';
 import { EtbComposerSkeleton } from './EtbComposerSkeleton';
 import { EtbEntryForm } from './EtbEntryForm';
@@ -28,7 +29,7 @@ interface EtbComposerWorkspaceProps {
 }
 
 /**
- * ETB Composer Workspace — Feature-Composite für die Einsatztagebuch-Erfassung
+ * ETB Composer Workspace — Feature-Composite fuer die Einsatztagebuch-Erfassung
  *
  * Wrapper um EtbEntryForm + EtbEntryList mit:
  * - Einsatz-Kontext-Anzeige im Header
@@ -51,16 +52,17 @@ export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbCompose
 
   const { einsatz, isLoading: isEinsatzLoading } = useEinsatzDetails(einsatzId);
 
-  /** Mutation-Hooks für Sync-Status-Ableitung */
+  /** Mutation-Hook fuer Sync-Status-Ableitung */
   const createEintragMutation = useCreateEtbEntry();
-  const updateEintragMutation = useUpdateEtbEntry();
+  const deleteEintragMutation = useDeleteEtbEntry();
+  const confirm = useConfirm();
 
   const [editingEntry, setEditingEntry] = useState<(EintragDto & { etbId: string }) | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
-  /** Story 3.4: aria-live Meldung nach erfolgreicher Bearbeitung */
+  /** aria-live Meldung nach erfolgreichem Bearbeiten */
   const [editStatusMessage, setEditStatusMessage] = useState('');
-  /** Story 3.5: Wiederhergestellte Draft-Werte (einmalig an EtbEntryForm übergeben) */
+  /** Story 3.5: Wiederhergestellte Draft-Werte (einmalig an EtbEntryForm uebergeben) */
   const [restoredDraftValues, setRestoredDraftValues] = useState<{
     text: string;
     kategorie: string;
@@ -68,14 +70,14 @@ export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbCompose
     empfaenger?: string;
   } | null>(null);
 
-  /** Ref für Fokus-Management: Kategorie-Feld nach Speichern fokussieren */
+  /** Ref fuer Fokus-Management: Kategorie-Feld nach Speichern fokussieren */
   const afterSaveFocusRef = useRef<HTMLDivElement>(null);
 
-  /** Timer-Refs für Cleanup bei Unmount */
+  /** Timer-Refs fuer Cleanup bei Unmount */
   const rafIdRef = useRef<number | null>(null);
   const timerIdsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-  /** Story 3.4: ID des bearbeiteten Eintrags fuer Fokus-Rueckkehr nach Modal-Close */
-  const editingEntryIdRef = useRef<string | null>(null);
+  /** ID des bearbeiteten Eintrags fuer Fokus-Rueckkehr nach Modal-Close */
+  const editEntryIdRef = useRef<string | null>(null);
 
   /** Story 3.5: Draft-Resume Hook */
   const { pendingDraft, isLoadingDraft, restoreDraft, discardDraft, saveDraft, clearDraft, discardReason } = useEtbDraftResume({
@@ -84,7 +86,7 @@ export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbCompose
     etbStatus: data?.pages?.[0]?.data?.status,
   });
 
-  /** Story 3.5: Tracking ob Formular nicht-leer ist (für beforeunload + useBlocker) */
+  /** Story 3.5: Tracking ob Formular nicht-leer ist (fuer beforeunload + useBlocker) */
   const [hasUnsavedContent, setHasUnsavedContent] = useState(false);
 
   const isRefreshPending = isRefetching;
@@ -101,14 +103,12 @@ export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbCompose
 
   const etb = data?.pages?.[0]?.data;
 
-  /** Retry-Handler für fehlgeschlagene Speichervorgänge */
+  /** Retry-Handler fuer fehlgeschlagene Speichervorgaenge */
   const handleRetry = useCallback(() => {
     if (createEintragMutation.isError && createEintragMutation.variables) {
       createEintragMutation.mutate(createEintragMutation.variables);
-    } else if (updateEintragMutation.isError && updateEintragMutation.variables) {
-      updateEintragMutation.mutate(updateEintragMutation.variables);
     }
-  }, [createEintragMutation, updateEintragMutation]);
+  }, [createEintragMutation]);
 
   /** Sync-Status aus Mutation-State + ETB-Status ableiten */
   const syncStatus = useEtbSyncStatus({
@@ -119,10 +119,9 @@ export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbCompose
       errorMessage: createEintragMutation.error?.message,
     },
     updateMutation: {
-      isPending: updateEintragMutation.isPending,
-      isSuccess: updateEintragMutation.isSuccess,
-      isError: updateEintragMutation.isError,
-      errorMessage: updateEintragMutation.error?.message,
+      isPending: false,
+      isSuccess: false,
+      isError: false,
     },
     etbStatus: etb?.status,
     onRetry: handleRetry,
@@ -133,19 +132,43 @@ export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbCompose
     setSortOrder(order);
   }, []);
 
+  /** Bearbeiten-Handler: oeffnet den Edit-Dialog */
   const handleEditEntry = useCallback(
     (entry: EintragDto) => {
       if (!etb?.id) return;
-      editingEntryIdRef.current = entry.id;
+      editEntryIdRef.current = entry.id;
       setEditingEntry({ ...entry, etbId: etb.id });
       setIsEditModalOpen(true);
     },
     [etb?.id],
   );
 
-  /** Story 3.4: Nach Modal-Close Fokus zur bearbeiteten Zeile zuruecksetzen */
+  /** Loeschen-Handler: Bestaetigungsdialog + Soft-Delete */
+  const handleDeleteEntry = useCallback(
+    async (entry: EintragDto) => {
+      if (!etb?.id) return;
+
+      const confirmed = await confirm({
+        title: 'Eintrag loeschen',
+        message: `Eintrag #${entry.sequenceNumber} wirklich loeschen?`,
+        variant: 'danger',
+        confirmLabel: 'Loeschen',
+        cancelLabel: 'Abbrechen',
+      });
+
+      if (!confirmed) return;
+
+      deleteEintragMutation.mutate({
+        etbId: etb.id,
+        eintragId: entry.id,
+      });
+    },
+    [etb?.id, confirm, deleteEintragMutation],
+  );
+
+  /** Nach Modal-Close Fokus zur bearbeiteten Zeile zuruecksetzen */
   const handleCloseEditModal = useCallback(() => {
-    const entryId = editingEntryIdRef.current;
+    const entryId = editEntryIdRef.current;
     setIsEditModalOpen(false);
     setEditingEntry(null);
 
@@ -166,23 +189,23 @@ export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbCompose
         }
       });
     }
-    editingEntryIdRef.current = null;
+    editEntryIdRef.current = null;
   }, []);
 
-  /** Story 3.4: Nach erfolgreicher Bearbeitung → Highlight + aria-live Meldung */
+  /** Nach erfolgreichem Bearbeiten: Highlight + aria-live Meldung */
   const handleEditSuccess = useCallback((entry: EintragDto) => {
     setHighlightedEntry(entry.id);
-    setEditStatusMessage(`Eintrag #${entry.sequenceNumber} aktualisiert`);
+    setEditStatusMessage(`Eintrag #${entry.sequenceNumber} gespeichert`);
     // Meldung nach 5s ausblenden
     timerIdsRef.current.push(setTimeout(() => setEditStatusMessage(''), 5000));
   }, []);
 
   const handleSaveSuccess = useCallback(() => {
-    // Story 3.5: Draft löschen nach erfolgreichem Speichern
+    // Story 3.5: Draft loeschen nach erfolgreichem Speichern
     clearDraft();
     setHasUnsavedContent(false);
 
-    // Fokus auf Kategorie-Feld für schnellen Folge-Eintrag
+    // Fokus auf Kategorie-Feld fuer schnellen Folge-Eintrag
     if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
     rafIdRef.current = requestAnimationFrame(() => {
       // TODO(Story 3.1 Review H3): querySelector durch explizite Ref ersetzen — siehe Review-Fix-Pattern in Story 3.1
@@ -399,7 +422,6 @@ export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbCompose
               aria-labelledby="composer-heading"
               afterSaveFocusRef={afterSaveFocusRef}
               createMutation={createEintragMutation}
-              updateMutation={updateEintragMutation}
               onFormValuesChange={handleFormValuesChange}
               restoredDraftValues={restoredDraftValues}
               onDraftRestored={() => setRestoredDraftValues(null)}
@@ -431,6 +453,7 @@ export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbCompose
               fetchNextPage={fetchNextPage}
               isFetchingNextPage={isFetchingNextPage}
               onEditEntry={readOnly ? undefined : handleEditEntry}
+              onDeleteEntry={readOnly ? undefined : handleDeleteEntry}
               onSortChange={handleSortChange}
               sortBy={sortBy}
               sortOrder={sortOrder}
@@ -442,15 +465,15 @@ export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbCompose
         </div>
       </div>
 
-      {/* Story 3.4: aria-live Region fuer Edit-Rueckmeldung */}
+      {/* aria-live Region fuer Bearbeitungs-Rückmeldung */}
       {editStatusMessage && (
         <div aria-live="polite" className="sr-only">
           {editStatusMessage}
         </div>
       )}
 
-      {/* Edit Modal */}
-      <EditEtbEntryModal entry={editingEntry} isOpen={isEditModalOpen} onClose={handleCloseEditModal} onEditSuccess={handleEditSuccess} updateMutation={updateEintragMutation} />
+      {/* Bearbeiten Modal */}
+      <EditEtbEntryModal entry={editingEntry} isOpen={isEditModalOpen} onClose={handleCloseEditModal} onSaveSuccess={handleEditSuccess} />
 
       {/* History Modal */}
       <EtbSnapshotHistoryModal etbId={etb.id} isOpen={isHistoryModalOpen} onClose={() => setIsHistoryModalOpen(false)} />

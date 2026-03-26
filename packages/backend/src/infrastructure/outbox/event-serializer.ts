@@ -7,6 +7,7 @@ import type { EinsatzCompletedEvent } from '@domain/events/einsatz-completed.eve
 import type { EinsatzArchivedEvent } from '@domain/events/einsatz-archived.event';
 import type { EtbCreatedEvent } from '@domain/events/etb-created.event';
 import type { EintragAddedEvent } from '@domain/events/eintrag-added.event';
+import type { EintragKorrigiertEvent } from '@domain/events/eintrag-korrigiert.event';
 import type { EintragUpdatedEvent } from '@domain/events/eintrag-updated.event';
 import type { EintragDeletedEvent } from '@domain/events/eintrag-deleted.event';
 import type { EtbLockedEvent } from '@domain/events/etb-locked.event';
@@ -193,6 +194,8 @@ export class EventSerializer {
         return this.serializeEtbCreated(event as unknown as EtbCreatedEvent);
       case 'etb.eintrag_added':
         return this.serializeEintragAdded(event as unknown as EintragAddedEvent);
+      case 'etb.eintrag_korrigiert':
+        return this.serializeEintragKorrigiert(event as unknown as EintragKorrigiertEvent);
       case 'etb.eintrag_updated':
         return this.serializeEintragUpdated(event as unknown as EintragUpdatedEvent);
       case 'etb.eintrag_deleted':
@@ -479,6 +482,17 @@ export class EventSerializer {
     return {
       etbId: event.etbId.value,
       einsatzId: event.einsatzId.value,
+    };
+  }
+
+  private serializeEintragKorrigiert(event: EintragKorrigiertEvent): Record<string, unknown> {
+    return {
+      etbId: event.etbId.value,
+      korrekturEintragId: event.korrekturEintragId.value,
+      originalEintragId: event.originalEintragId.value,
+      sequenceNumber: event.sequenceNumber,
+      text: event.text,
+      createdBy: event.createdBy.value,
     };
   }
 

@@ -139,152 +139,93 @@ describe('EtbEintrag Entity', () => {
     });
   });
 
-  describe('update() method', () => {
-    it('should update text and set updatedAt timestamp', () => {
+  describe('markAsKorrigiert() method', () => {
+    it('should set korrigiertDurchId and updatedAt', () => {
       // Given: Existing entry
       const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId);
-      const newText = 'Fahrzeug W1 am Einsatzort eingetroffen um 14:30 Uhr';
+      const korrekturId = EintragId.create().value!;
 
-      // When: Updating text
-      eintrag.update(newText);
+      // When: Marking as korrigiert
+      eintrag.markAsKorrigiert(korrekturId);
 
-      // Then: Text is updated and updatedAt is set
-      expect(eintrag.text).toBe(newText);
+      // Then: korrigiertDurchId is set and updatedAt is set
+      expect(eintrag.korrigiertDurchId?.equals(korrekturId)).toBe(true);
+      expect(eintrag.isKorrigiert).toBe(true);
       expect(eintrag.updatedAt).toBeDefined();
       expect(eintrag.updatedAt).toBeInstanceOf(Date);
     });
 
-    it('should update updatedAt timestamp on each update', () => {
-      const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId);
-
-      // First update
-      eintrag.update('Updated text 1');
-      const firstUpdateTime = eintrag.updatedAt!;
-
-      // Wait 2ms
-      const waitUntil = Date.now() + 2;
-      while (Date.now() < waitUntil) {
-        // busy wait
-      }
-
-      // Second update
-      eintrag.update('Updated text 2');
-      const secondUpdateTime = eintrag.updatedAt!;
-
-      // Then: Timestamp is updated
-      expect(secondUpdateTime.getTime()).toBeGreaterThan(firstUpdateTime.getTime());
-    });
-
-    it('should allow multiple updates', () => {
-      const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId);
-
-      eintrag.update('Update 1');
-      expect(eintrag.text).toBe('Update 1');
-
-      eintrag.update('Update 2');
-      expect(eintrag.text).toBe('Update 2');
-
-      eintrag.update('Update 3');
-      expect(eintrag.text).toBe('Update 3');
-    });
-
-    it('should not change other properties when updating text', () => {
-      const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId);
-      const originalId = eintrag.id;
-      const originalSeq = eintrag.sequenceNumber;
-      const originalCreatedBy = eintrag.createdBy;
-      const originalCreatedAt = eintrag.createdAt;
-      const originalIsDeleted = eintrag.isDeleted;
-
-      eintrag.update('New text');
-
-      expect(eintrag.id).toBe(originalId);
-      expect(eintrag.sequenceNumber).toBe(originalSeq);
-      expect(eintrag.createdBy).toBe(originalCreatedBy);
-      expect(eintrag.createdAt).toBe(originalCreatedAt);
-      expect(eintrag.isDeleted).toBe(originalIsDeleted);
-    });
-  });
-
-  describe('markAsDeleted() method (Soft-Delete)', () => {
-    it('should mark entry as deleted', () => {
-      // Given: Active entry
-      const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId);
-      expect(eintrag.isDeleted).toBe(false);
-
-      // When: Marking as deleted
-      eintrag.markAsDeleted();
-
-      // Then: isDeleted flag is set
-      expect(eintrag.isDeleted).toBe(true);
-    });
-
-    it('should set updatedAt timestamp when marking as deleted', () => {
-      const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId);
-      expect(eintrag.updatedAt).toBeUndefined();
-
-      eintrag.markAsDeleted();
-
-      expect(eintrag.updatedAt).toBeDefined();
-      expect(eintrag.updatedAt).toBeInstanceOf(Date);
-    });
-
-    it('should be idempotent (marking deleted entry as deleted again)', () => {
-      const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId);
-
-      // First deletion
-      eintrag.markAsDeleted();
-      expect(eintrag.isDeleted).toBe(true);
-      const firstUpdateTime = eintrag.updatedAt!;
-
-      // Wait 2ms
-      const waitUntil = Date.now() + 2;
-      while (Date.now() < waitUntil) {
-        // busy wait
-      }
-
-      // Second deletion
-      eintrag.markAsDeleted();
-      expect(eintrag.isDeleted).toBe(true);
-
-      // updatedAt should be updated again
-      expect(eintrag.updatedAt?.getTime()).toBeGreaterThan(firstUpdateTime.getTime());
-    });
-
-    it('should not change other properties when marking as deleted', () => {
+    it('should not change other properties when marking as korrigiert', () => {
       const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId);
       const originalId = eintrag.id;
       const originalSeq = eintrag.sequenceNumber;
       const originalText = eintrag.text;
       const originalCreatedBy = eintrag.createdBy;
       const originalCreatedAt = eintrag.createdAt;
+      const originalIsDeleted = eintrag.isDeleted;
+      const korrekturId = EintragId.create().value!;
 
-      eintrag.markAsDeleted();
+      eintrag.markAsKorrigiert(korrekturId);
 
       expect(eintrag.id).toBe(originalId);
       expect(eintrag.sequenceNumber).toBe(originalSeq);
       expect(eintrag.text).toBe(originalText);
       expect(eintrag.createdBy).toBe(originalCreatedBy);
       expect(eintrag.createdAt).toBe(originalCreatedAt);
+      expect(eintrag.isDeleted).toBe(originalIsDeleted);
+    });
+  });
+
+  describe('Korrektur-Pattern properties', () => {
+    it('should have isKorrektur=true when korrigiertEintragId is set', () => {
+      const originalId = EintragId.create().value!;
+      const eintrag = new EtbEintrag(
+        eintragId,
+        sequenceNumber,
+        testText,
+        userId,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        originalId, // korrigiertEintragId
+      );
+
+      expect(eintrag.isKorrektur).toBe(true);
+      expect(eintrag.korrigiertEintragId?.equals(originalId)).toBe(true);
     });
 
-    it('should preserve text after soft-delete (DRK Compliance)', () => {
+    it('should have isKorrektur=false when korrigiertEintragId is not set', () => {
       const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId);
 
-      eintrag.markAsDeleted();
-
-      // Text is still accessible (audit trail)
-      expect(eintrag.text).toBe(testText);
-      expect(eintrag.isDeleted).toBe(true);
+      expect(eintrag.isKorrektur).toBe(false);
+      expect(eintrag.korrigiertEintragId).toBeUndefined();
     });
 
-    it('should preserve sequence number after soft-delete (no gaps)', () => {
+    it('should have isKorrigiert=false initially', () => {
       const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId);
 
-      eintrag.markAsDeleted();
+      expect(eintrag.isKorrigiert).toBe(false);
+      expect(eintrag.korrigiertDurchId).toBeUndefined();
+    });
 
-      // Sequence number remains unchanged
-      expect(eintrag.sequenceNumber.value).toBe(1);
+    it('should support isDeleted via constructor parameter', () => {
+      const eintrag = new EtbEintrag(
+        eintragId,
+        sequenceNumber,
+        testText,
+        userId,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        true, // isDeleted
+      );
+
       expect(eintrag.isDeleted).toBe(true);
     });
   });
@@ -332,52 +273,32 @@ describe('EtbEintrag Entity', () => {
 
     it('should ignore isDeleted flag (ID-based equality)', () => {
       const eintrag1 = new EtbEintrag(eintragId, sequenceNumber, testText, userId);
-      const eintrag2 = new EtbEintrag(eintragId, sequenceNumber, testText, userId);
-      eintrag2.markAsDeleted();
+      const eintrag2 = new EtbEintrag(eintragId, sequenceNumber, testText, userId, undefined, undefined, undefined, undefined, undefined, undefined, undefined, true); // isDeleted = true
 
       expect(eintrag1.equals(eintrag2)).toBe(true);
     });
   });
 
-  describe('complex scenarios', () => {
-    it('should handle update after soft-delete (should be prevented by Aggregate)', () => {
-      // Given: Deleted entry
-      const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId);
-      eintrag.markAsDeleted();
+  describe('immutability scenarios', () => {
+    it('should create entry with isDeleted=true via constructor (legacy data)', () => {
+      const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId, undefined, undefined, undefined, undefined, undefined, undefined, undefined, true);
 
-      // When: Attempting update (Entity allows this, Aggregate should prevent)
-      eintrag.update('New text');
-
-      // Then: Update is applied (validation is Aggregate's responsibility)
-      expect(eintrag.text).toBe('New text');
+      expect(eintrag.text).toBe(testText);
       expect(eintrag.isDeleted).toBe(true);
     });
 
-    it('should handle multiple state transitions', () => {
+    it('should maintain entity consistency after markAsKorrigiert', () => {
       const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId);
+      const korrekturId = EintragId.create().value!;
 
-      // Update → Update → Delete
-      eintrag.update('Update 1');
-      eintrag.update('Update 2');
-      eintrag.markAsDeleted();
-
-      expect(eintrag.text).toBe('Update 2');
-      expect(eintrag.isDeleted).toBe(true);
-      expect(eintrag.updatedAt).toBeDefined();
-    });
-
-    it('should maintain entity consistency across operations', () => {
-      const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId);
-
-      // Perform various operations
-      eintrag.update('Updated');
-      eintrag.markAsDeleted();
-      eintrag.update('Updated again');
+      eintrag.markAsKorrigiert(korrekturId);
 
       // Entity remains consistent
       expect(eintrag.id.equals(eintragId)).toBe(true);
       expect(eintrag.sequenceNumber.equals(sequenceNumber)).toBe(true);
       expect(eintrag.createdBy.equals(userId)).toBe(true);
+      expect(eintrag.text).toBe(testText); // Text is immutable
+      expect(eintrag.isKorrigiert).toBe(true);
     });
   });
 
@@ -406,20 +327,19 @@ describe('EtbEintrag Entity', () => {
       });
     });
 
-    it('should preserve kategorie after update', () => {
+    it('should preserve kategorie after markAsKorrigiert', () => {
       const kategorie = EtbKategorie.MASSNAHME();
       const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId, undefined, kategorie);
+      const korrekturId = EintragId.create().value!;
 
-      eintrag.update('Updated text');
+      eintrag.markAsKorrigiert(korrekturId);
 
       expect(eintrag.kategorie.equals(kategorie)).toBe(true);
     });
 
-    it('should preserve kategorie after soft-delete', () => {
+    it('should preserve kategorie for legacy deleted entries', () => {
       const kategorie = EtbKategorie.BEFEHL();
-      const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId, undefined, kategorie);
-
-      eintrag.markAsDeleted();
+      const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId, undefined, kategorie, undefined, undefined, undefined, undefined, undefined, true); // isDeleted via constructor
 
       expect(eintrag.kategorie.equals(kategorie)).toBe(true);
     });
@@ -439,20 +359,19 @@ describe('EtbEintrag Entity', () => {
       expect(eintrag.metadata).toEqual(metadata);
     });
 
-    it('should preserve metadata after update', () => {
+    it('should preserve metadata after markAsKorrigiert', () => {
       const metadata = { key: 'value' };
       const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId, undefined, undefined, undefined, undefined, metadata);
+      const korrekturId = EintragId.create().value!;
 
-      eintrag.update('New text');
+      eintrag.markAsKorrigiert(korrekturId);
 
       expect(eintrag.metadata).toEqual(metadata);
     });
 
-    it('should preserve metadata after soft-delete', () => {
+    it('should preserve metadata for legacy deleted entries', () => {
       const metadata = { screenshot: 'image.png' };
-      const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId, undefined, undefined, undefined, undefined, metadata);
-
-      eintrag.markAsDeleted();
+      const eintrag = new EtbEintrag(eintragId, sequenceNumber, testText, userId, undefined, undefined, undefined, undefined, metadata, undefined, undefined, true); // isDeleted via constructor
 
       expect(eintrag.metadata).toEqual(metadata);
     });

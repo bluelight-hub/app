@@ -1229,7 +1229,7 @@ export const useMarkErledigtErinnerung = () => {
     },
     onMutate: async ({ einsatzId, erinnerungId, erledigungsNotiz }) => {
       // Story 2.5: Cleanup Timer/Audio/Intensification/FloatingPill sofort bei Erledigung
-      // Wichtig fuer ESKALIERT Status, wo Audio noch laufen koennte
+      // Wichtig fuer ESKALIERT Status, wo Audio noch laufen könnte
       soundService.stopAllSounds();
       timerService.resetTriggered(erinnerungId);
       intensificationService.stopTimer(erinnerungId);
@@ -1338,7 +1338,7 @@ interface AssignErinnerungContext {
  * Hook fuer Erinnerungs-Zuweisung an anderen Benutzer
  *
  * Weist eine bestehende Erinnerung einem anderen Benutzer zu.
- * Nur Erinnerungen mit aktivem Status (nicht ERLEDIGT/ESKALIERT) koennen zugewiesen werden.
+ * Nur Erinnerungen mit aktivem Status (nicht ERLEDIGT/ESKALIERT) können zugewiesen werden.
  *
  * **Story 3.4 AC1:** "Bestehende Erinnerung nachtraeglich zuweisen"
  * **Story 3.4 AC1:** "Teilnehmer aus aktiven Einsatz-Teilnehmern auswaehlen"

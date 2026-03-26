@@ -66,27 +66,14 @@ describe('ETB Snapshot Lifecycle', () => {
       expect(etb.hasUncommittedSnapshots()).toBe(true);
     });
 
-    it('should return true after updateEintrag', () => {
+    it('should return true after addKorrekturEintrag', () => {
       // Given: ETB with entry
       const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
       const eintrag = etb.addEintrag('Original', userId).value!;
       etb.clearSnapshots();
 
-      // When: Updating entry
-      etb.updateEintrag(eintrag.id, 'Updated', userId);
-
-      // Then: Has uncommitted snapshot
-      expect(etb.hasUncommittedSnapshots()).toBe(true);
-    });
-
-    it('should return true after deleteEintrag', () => {
-      // Given: ETB with entry
-      const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
-      const eintrag = etb.addEintrag('Test', userId).value!;
-      etb.clearSnapshots();
-
-      // When: Deleting entry
-      etb.deleteEintrag(eintrag.id, userId);
+      // When: Adding korrektur entry
+      etb.addKorrekturEintrag(eintrag.id, 'Korrektur', userId);
 
       // Then: Has uncommitted snapshot
       expect(etb.hasUncommittedSnapshots()).toBe(true);
@@ -130,10 +117,10 @@ describe('ETB Snapshot Lifecycle', () => {
       // Given: ETB
       const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
 
-      // When: Three mutations
+      // When: Three mutations (add + add + korrektur)
       const eintrag = etb.addEintrag('First', userId).value!;
-      etb.updateEintrag(eintrag.id, 'Updated', userId);
-      etb.deleteEintrag(eintrag.id, userId);
+      etb.addEintrag('Second', userId);
+      etb.addKorrekturEintrag(eintrag.id, 'Korrektur', userId);
 
       // Then: Three snapshots
       expect(etb.getUncommittedSnapshots()).toHaveLength(3);
@@ -159,8 +146,8 @@ describe('ETB Snapshot Lifecycle', () => {
     it('should remove all uncommitted snapshots', () => {
       // Given: ETB with multiple snapshots
       const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
-      const eintrag = etb.addEintrag('Test', userId).value!;
-      etb.updateEintrag(eintrag.id, 'Updated', userId);
+      etb.addEintrag('Test', userId);
+      etb.addEintrag('Second', userId);
       expect(etb.getUncommittedSnapshots()).toHaveLength(2);
 
       // When: Clearing
@@ -200,36 +187,20 @@ describe('ETB Snapshot Lifecycle', () => {
       expect(snapshots[0]?.eintraege).toHaveLength(0); // Empty before add
     });
 
-    it('should capture state BEFORE updateEintrag', () => {
+    it('should capture state BEFORE addKorrekturEintrag', () => {
       // Given: ETB with one entry
       const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
       const eintrag = etb.addEintrag('Original text', userId).value!;
       etb.clearSnapshots();
 
-      // When: Updating entry
-      etb.updateEintrag(eintrag.id, 'Updated text', userId);
+      // When: Adding korrektur entry
+      etb.addKorrekturEintrag(eintrag.id, 'Korrektur text', userId);
 
-      // Then: Snapshot contains original text (before update)
+      // Then: Snapshot contains state before korrektur (1 entry, not yet korrigiert)
       const snapshots = etb.getUncommittedSnapshots();
       expect(snapshots).toHaveLength(1);
       expect(snapshots[0]?.eintraege).toHaveLength(1);
       expect(snapshots[0]?.eintraege[0]?.text).toBe('Original text');
-    });
-
-    it('should capture state BEFORE deleteEintrag', () => {
-      // Given: ETB with entry (not deleted)
-      const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
-      const eintrag = etb.addEintrag('Test entry', userId).value!;
-      etb.clearSnapshots();
-
-      // When: Deleting entry
-      etb.deleteEintrag(eintrag.id, userId);
-
-      // Then: Snapshot contains non-deleted entry (before delete)
-      const snapshots = etb.getUncommittedSnapshots();
-      expect(snapshots).toHaveLength(1);
-      expect(snapshots[0]?.eintraege).toHaveLength(1);
-      expect(snapshots[0]?.eintraege[0]?.isDeleted).toBe(false);
     });
 
     it('should capture version at snapshot time', () => {
@@ -281,18 +252,19 @@ describe('ETB Snapshot Lifecycle', () => {
       expect(entry.isDeleted).toBe(false);
     });
 
-    it('should include soft-deleted entries', () => {
-      // Given: ETB with deleted entry
+    it('should include korrigiert entries', () => {
+      // Given: ETB with korrigiert entry
       const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
-      const eintrag = etb.addEintrag('Test', userId).value!;
-      etb.deleteEintrag(eintrag.id, userId);
+      const eintrag = etb.addEintrag('Original', userId).value!;
+      etb.addKorrekturEintrag(eintrag.id, 'Korrektur', userId);
 
       // When: Getting snapshot data
       const snapshotData = etb.getSnapshotData();
 
-      // Then: Deleted entry included with isDeleted=true
-      expect(snapshotData).toHaveLength(1);
-      expect(snapshotData[0]?.isDeleted).toBe(true);
+      // Then: Both entries included (original + korrektur)
+      expect(snapshotData).toHaveLength(2);
+      expect(snapshotData[0]?.korrigiertDurchId).toBeDefined();
+      expect(snapshotData[1]?.korrigiertEintragId).toBe(eintrag.id.value);
     });
 
     it('should be JSON-serializable', () => {
@@ -366,8 +338,7 @@ describe('ETB Snapshot Lifecycle', () => {
       const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
       etb.addEintrag('Entry 1', userId);
       etb.addEintrag('Entry 2', userId);
-      const eintrag3 = etb.addEintrag('Entry 3', userId).value!;
-      etb.deleteEintrag(eintrag3.id, userId);
+      etb.addEintrag('Entry 3', userId);
       etb.clearSnapshots();
 
       // When: Adding fourth entry
@@ -378,21 +349,20 @@ describe('ETB Snapshot Lifecycle', () => {
       expect(snapshots[0]?.getEintragCount()).toBe(3);
     });
 
-    it('getActiveEintragCount() should exclude deleted entries', () => {
-      // Given: ETB with 3 entries, 1 deleted
+    it('getActiveEintragCount() should count all entries (no deleted)', () => {
+      // Given: ETB with 3 entries
       const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
       etb.addEintrag('Entry 1', userId);
       etb.addEintrag('Entry 2', userId);
-      const eintrag3 = etb.addEintrag('Entry 3', userId).value!;
-      etb.deleteEintrag(eintrag3.id, userId);
+      etb.addEintrag('Entry 3', userId);
       etb.clearSnapshots();
 
       // When: Adding fourth entry
       etb.addEintrag('Entry 4', userId);
 
-      // Then: Snapshot has 2 active entries (3 total - 1 deleted)
+      // Then: Snapshot has 3 active entries (all active)
       const snapshots = etb.getUncommittedSnapshots();
-      expect(snapshots[0]?.getActiveEintragCount()).toBe(2);
+      expect(snapshots[0]?.getActiveEintragCount()).toBe(3);
     });
   });
 
@@ -422,28 +392,28 @@ describe('ETB Snapshot Lifecycle', () => {
       expect(etb.hasUncommittedSnapshots()).toBe(false);
     });
 
-    it('should NOT create snapshot when updateEintrag fails (not found)', () => {
+    it('should NOT create snapshot when addKorrekturEintrag fails (not found)', () => {
       // Given: ETB without entries
       const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
-      const fakeId = EinsatzId.create().value!; // Use any ID
+      const fakeId = EinsatzId.create().value!;
 
-      // When: Trying to update non-existent entry
-      // eslint-disable-next-line typescript/no-explicit-any -- Test verifies error handling for wrong type
-      const result = etb.updateEintrag(fakeId as any, 'Test', userId);
+      // When: Trying to create korrektur for non-existent entry
+      const result = etb.addKorrekturEintrag(fakeId, 'Test', userId);
 
       // Then: No snapshot created
       expect(result.isFailure).toBe(true);
       expect(etb.hasUncommittedSnapshots()).toBe(false);
     });
 
-    it('should NOT create snapshot when deleteEintrag fails (not found)', () => {
-      // Given: ETB without entries
+    it('should NOT create snapshot when addKorrekturEintrag fails (locked)', () => {
+      // Given: Locked ETB with entry
       const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
-      const fakeId = EinsatzId.create().value!;
+      const eintrag = etb.addEintrag('Test', userId).value!;
+      etb.lock(userId);
+      etb.clearSnapshots();
 
-      // When: Trying to delete non-existent entry
-      // eslint-disable-next-line typescript/no-explicit-any -- Test verifies error handling for wrong type
-      const result = etb.deleteEintrag(fakeId as any, userId);
+      // When: Trying to add korrektur on locked ETB
+      const result = etb.addKorrekturEintrag(eintrag.id, 'Korrektur', userId);
 
       // Then: No snapshot created
       expect(result.isFailure).toBe(true);
@@ -475,17 +445,16 @@ describe('ETB Snapshot Lifecycle', () => {
       etb.clearSnapshots();
       expect(etb.hasUncommittedSnapshots()).toBe(false);
 
-      // 5. Update entry → new snapshot with both entries
-      etb.updateEintrag(entry1.id, 'Updated first entry', userId);
+      // 5. Korrektur entry → new snapshot with both entries
+      etb.addKorrekturEintrag(entry1.id, 'Korrektur first entry', userId);
       expect(etb.getUncommittedSnapshots()).toHaveLength(1);
       expect(etb.getUncommittedSnapshots()[0]?.eintraege).toHaveLength(2);
-      expect(etb.getUncommittedSnapshots()[0]?.eintraege[0]?.text).toBe('First entry'); // Before update
+      expect(etb.getUncommittedSnapshots()[0]?.eintraege[0]?.text).toBe('First entry'); // Before korrektur
       expect(etb.version.versionNumber).toBe(4);
 
-      // 6. Delete entry → snapshot before delete
-      etb.deleteEintrag(entry1.id, userId);
+      // 6. Add third entry → snapshot with 3 entries (original + second + korrektur)
+      etb.addEintrag('Third entry', userId);
       expect(etb.getUncommittedSnapshots()).toHaveLength(2);
-      expect(etb.getUncommittedSnapshots()[1]?.eintraege[0]?.isDeleted).toBe(false); // Before delete
       expect(etb.version.versionNumber).toBe(5);
 
       // 7. Final clear
@@ -501,10 +470,10 @@ describe('ETB Snapshot Lifecycle', () => {
       const eintrag = etb.addEintrag('Test', userId).value!;
       versionProgression.push(etb.getUncommittedSnapshots()[0]?.versionNumber);
 
-      etb.updateEintrag(eintrag.id, 'Updated', userId);
+      etb.addEintrag('Second', userId);
       versionProgression.push(etb.getUncommittedSnapshots()[1]?.versionNumber);
 
-      etb.deleteEintrag(eintrag.id, userId);
+      etb.addKorrekturEintrag(eintrag.id, 'Korrektur', userId);
       versionProgression.push(etb.getUncommittedSnapshots()[2]?.versionNumber);
 
       // Snapshots capture version BEFORE each mutation

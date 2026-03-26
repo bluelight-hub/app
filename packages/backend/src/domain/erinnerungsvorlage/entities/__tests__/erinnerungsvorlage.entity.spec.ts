@@ -622,7 +622,7 @@ describe('Erinnerungsvorlage Entity', () => {
       const result = Erinnerungsvorlage.create({
         titel: 'Zu loeschende Vorlage',
         minuten: 30,
-        beschreibung: 'Wird geloescht',
+        beschreibung: 'Wird gelöscht',
         createdBy,
       });
       const vorlage = result.value!;

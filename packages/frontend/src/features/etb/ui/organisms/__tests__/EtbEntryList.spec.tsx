@@ -16,7 +16,6 @@ vi.mock('@/features/etb', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/features/etb')>();
   return {
     ...actual,
-    useDeleteEtbEntry: () => ({ mutate: vi.fn() }),
   };
 });
 
@@ -200,9 +199,9 @@ describe('EtbEntryList', () => {
     });
   });
 
-  // === 6.3: Edit-Flow ===
+  // === 6.3: Bearbeiten-Flow ===
 
-  describe('Edit-Flow (AC3)', () => {
+  describe('Bearbeiten-Flow (AC3)', () => {
     it('ruft onEditEntry mit dem korrekten Eintrag auf', async () => {
       const entries = buildMockEntries(3);
       const onEditEntry = vi.fn();

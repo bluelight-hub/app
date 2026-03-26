@@ -512,19 +512,19 @@ describe('PrismaEtbRepository - Integration Tests', () => {
       let eintraegeCount = await prisma.etbEintrag.count({ where: { etbId: aggregate.id.value } });
       expect(eintraegeCount).toBe(3);
 
-      // When: Delete one entry (soft-delete) and save
-      aggregate.deleteEintrag(eintrag1.id, userId);
+      // When: Add korrektur for entry 1 and save
+      aggregate.addKorrekturEintrag(eintrag1.id, 'Korrektur Entry 1', userId);
       await repository.save(aggregate);
 
-      // Then: Still 3 Eintraege in DB (soft-delete preserves)
+      // Then: 4 Eintraege in DB (3 original + 1 korrektur)
       eintraegeCount = await prisma.etbEintrag.count({ where: { etbId: aggregate.id.value } });
-      expect(eintraegeCount).toBe(3);
+      expect(eintraegeCount).toBe(4);
 
-      // And: One entry is marked as deleted
-      const deletedEntry = await prisma.etbEintrag.findFirst({
+      // And: Original entry 1 is marked as korrigiert (has korrigiertDurchId)
+      const originalEntry = await prisma.etbEintrag.findFirst({
         where: { etbId: aggregate.id.value, sequenceNumber: 1 },
       });
-      expect(deletedEntry?.deletedAt).not.toBeNull();
+      expect(originalEntry).not.toBeNull();
     });
 
     /**
@@ -910,19 +910,20 @@ describe('PrismaEtbRepository - Integration Tests', () => {
       const userId = UserId.create(testUserId).value as UserId;
       const aggregate = EinsatztagebuchAggregate.create(einsatzId).value as EinsatztagebuchAggregate;
 
-      const eintragResult = aggregate.addEintrag('Entry to delete', userId);
+      const eintragResult = aggregate.addEintrag('Entry to correct', userId);
       const eintrag = eintragResult.value!;
-      aggregate.deleteEintrag(eintrag.id, userId);
+      aggregate.addKorrekturEintrag(eintrag.id, 'Korrektur', userId);
 
       // When: Save + retrieve
       await repository.save(aggregate);
       const retrieved = await repository.findById(aggregate.id);
 
-      // Then: Entry exists with isDeleted=true
+      // Then: Both entries exist (original korrigiert + korrektur)
       expect(retrieved).not.toBeNull();
-      expect(retrieved?.eintraege).toHaveLength(1);
-      expect(retrieved?.eintraege[0]?.isDeleted).toBe(true);
-      expect(retrieved?.eintraege[0]?.text).toBe('Entry to delete');
+      expect(retrieved?.eintraege).toHaveLength(2);
+      expect(retrieved?.eintraege[0]?.isKorrigiert).toBe(true);
+      expect(retrieved?.eintraege[0]?.text).toBe('Entry to correct');
+      expect(retrieved?.eintraege[1]?.isKorrektur).toBe(true);
     });
 
     /**

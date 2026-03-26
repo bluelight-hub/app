@@ -193,7 +193,7 @@ export function BefehlWorkspace({ einsatzId, selectedBefehlId, onSelectBefehl, o
     };
   }, [selectedBefehlId, isLoading, isAllLoading]);
 
-  /** Story 4.3 AC3: Befehl nicht gefunden (Deep-Link zu geloeschtem/unzugaenglichem Befehl) */
+  /** Story 4.3 AC3: Befehl nicht gefunden (Deep-Link zu gelöschtem/unzugänglichem Befehl) */
   const isBefehlNotFound = !!selectedBefehlId && !isLoading && !isAllLoading && !!allBefehle && !selectedBefehl;
 
   /** Focus-Restauration nach Panel-Schliessung */

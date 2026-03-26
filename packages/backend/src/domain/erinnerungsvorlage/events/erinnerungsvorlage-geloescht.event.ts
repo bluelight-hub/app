@@ -4,7 +4,7 @@ import type { UserId } from '@domain/value-objects/user-id';
 import { EVENT_NAMES } from '@domain/events/event-names';
 
 /**
- * Domain Event: Erinnerungsvorlage wurde geloescht (Soft-Delete).
+ * Domain Event: Erinnerungsvorlage wurde gelöscht (Soft-Delete).
  */
 export class ErinnerungsvorlageGeloeschtEvent extends DomainEvent {
   constructor(
