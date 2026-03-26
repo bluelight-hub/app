@@ -45,6 +45,7 @@ import { MetricsModule } from '@infrastructure/metrics/metrics.module';
 import { MetricsInterceptor } from '@infrastructure/metrics/metrics.interceptor';
 import { DeprecationInterceptor } from './modules/common/interceptors/deprecation.interceptor';
 import { MonitoringModule } from './modules/monitoring/monitoring.module';
+import { GeoModule } from './modules/geo/geo.module';
 
 /**
  * Haupt-Anwendungsmodul der Bluelight Hub Backend-Anwendung
@@ -132,6 +133,7 @@ import { MonitoringModule } from './modules/monitoring/monitoring.module';
     SchedulerModule, // Cron-Jobs (nur einmal importiert, um mehrfache Registrierung zu vermeiden)
     MetricsModule, // Prometheus Metrics (Story 5.6)
     MonitoringModule, // System-Monitoring WebSocket Gateway (Story 5.6)
+    GeoModule, // PLZ-Lookup via zippopotam.us (Issue #525)
   ],
   controllers: [AppController],
   providers: [

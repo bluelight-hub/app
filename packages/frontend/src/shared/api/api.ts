@@ -26,6 +26,7 @@ import {
   ETBApi,
   NotizenApi,
   KategorienApi,
+  GeoApi,
   GeocodingApi,
   HealthApi,
   KraefteDashboardApi,
@@ -124,6 +125,7 @@ class BackendApi {
   private readonly etbApi: ETBApi;
   private readonly lagekarteApi: LagekarteApi;
   private readonly lagekarteCqrsApi: LagekarteCQRSApi;
+  private readonly geoApi: GeoApi;
   private readonly geocodingApi: GeocodingApi;
   private readonly adminKraefteFahrzeugtypenApi: AdminKraefteFahrzeugtypenApi;
   private readonly adminKraefteQualifikationenApi: AdminKraefteQualifikationenApi;
@@ -178,6 +180,7 @@ class BackendApi {
     this.etbApi = new ETBApi(this.configuration);
     this.lagekarteApi = new LagekarteApi(this.configuration);
     this.lagekarteCqrsApi = new LagekarteCQRSApi(this.configuration);
+    this.geoApi = new GeoApi(this.configuration);
     this.geocodingApi = new GeocodingApi(this.configuration);
     this.adminKraefteFahrzeugtypenApi = new AdminKraefteFahrzeugtypenApi(this.configuration);
     this.adminKraefteQualifikationenApi = new AdminKraefteQualifikationenApi(this.configuration);
@@ -312,6 +315,15 @@ class BackendApi {
    */
   lagekarteCqrs(): LagekarteCQRSApi {
     return this.lagekarteCqrsApi;
+  }
+
+  /**
+   * Gibt die gecachte Geo-API-Instanz zurück
+   *
+   * @returns Die Geo-API-Instanz für PLZ-Lookup
+   */
+  geo(): GeoApi {
+    return this.geoApi;
   }
 
   /**

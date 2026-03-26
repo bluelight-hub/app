@@ -306,6 +306,21 @@ export const INTEGRATIONS = {
 } as const;
 
 /**
+ * Geo-Service Tokens für PLZ-Lookup und Geocoding Ports.
+ *
+ * **Verwendung:**
+ * ```typescript
+ * @Inject(GEO_PORTS.PLZ_LOOKUP) private readonly plzLookup: IPlzLookupPort
+ * ```
+ */
+export const GEO_PORTS = {
+  /** Port Token für IPlzLookupPort (zippopotam.us Adapter) */
+  PLZ_LOOKUP: Symbol('IPlzLookupPort'),
+  /** Port Token für IAddressSuchePort (Photon/Komoot Adapter) */
+  ADDRESS_SUCHE: Symbol('IAddressSuchePort'),
+} as const;
+
+/**
  * Resilience Tokens fuer Circuit Breaker Services (Story 5.3).
  *
  * **Verwendung:**
