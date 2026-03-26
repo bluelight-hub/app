@@ -1,4 +1,4 @@
-import { AddEintragHandler, AddKorrekturEintragHandler, CreateEtbHandler, DeleteEintragHandler, LockEtbHandler } from '@application/etb/commands';
+import { AddEintragHandler, AddKorrekturEintragHandler, CreateEtbHandler, DeleteEintragHandler } from '@application/etb/commands';
 import { EVENT_HANDLER, LOGGER } from '@infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@infrastructure/common/adapters';
 import { EtbInfrastructureModule } from '@infrastructure/etb/etb-infrastructure.module';
@@ -36,6 +36,7 @@ import {
   RolleGeaendertEtbHandler,
   BefehlAnonymisiertEtbHandler,
   BefehlGeloeschtEtbHandler,
+  EtbEinsatzCompletedHandler,
 } from './event-handlers';
 import { EtbQueryMapper } from './mappers';
 import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler, GetTextbausteineHandler } from './queries';
@@ -59,7 +60,7 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
  * importieren (Loose Coupling).
  *
  * **CQRS Pattern:**
- * - Command Handlers: State Mutation (Create ETB, Add/Update/Delete Eintrag, Lock ETB)
+ * - Command Handlers: State Mutation (Create ETB, Add/Update/Delete Eintrag)
  * - Query Handlers: State Reading (Get ETB, Get History, Get Eintraege)
  * - Event Handlers: Reaktion auf Domain Events (framework-agnostisch via IEventHandler)
  * - Mappers: Domain ↔ DTO Transformation
@@ -106,7 +107,6 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
     AddEintragHandler,
     AddKorrekturEintragHandler,
     DeleteEintragHandler,
-    LockEtbHandler,
 
     // Query Handlers (Story 3.3)
     GetEtbQueryHandler,
@@ -265,6 +265,11 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
       provide: EVENT_HANDLER.BEFEHL_GELOESCHT_ETB,
       useClass: BefehlGeloeschtEtbHandler,
     },
+    // EinsatzCompleted ETB-Lock Handler (Issue #581) - ETB automatisch sperren bei Einsatz-Abschluss
+    {
+      provide: EVENT_HANDLER.ETB_EINSATZ_COMPLETED,
+      useClass: EtbEinsatzCompletedHandler,
+    },
 
     // Mappers (Story 3.3)
     EtbQueryMapper,
@@ -276,7 +281,6 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
     AddEintragHandler,
     AddKorrekturEintragHandler,
     DeleteEintragHandler,
-    LockEtbHandler,
 
     // Query Handlers (Story 3.3)
     GetEtbQueryHandler,
@@ -316,6 +320,7 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
     EVENT_HANDLER.ROLLE_GEAENDERT_ETB,
     EVENT_HANDLER.BEFEHL_ANONYMISIERT_ETB,
     EVENT_HANDLER.BEFEHL_GELOESCHT_ETB,
+    EVENT_HANDLER.ETB_EINSATZ_COMPLETED,
 
     // Mappers (Story 3.3)
     EtbQueryMapper,

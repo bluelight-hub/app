@@ -14,7 +14,6 @@
  * - POST /etb/:etbId/eintrag - Eintrag hinzufügen
  * - PUT /etb/:etbId/eintrag/:eintragId - Eintrag aktualisieren
  * - DELETE /etb/:etbId/eintrag/:eintragId - Eintrag soft-löschen
- * - POST /etb/:etbId/lock - ETB sperren (nur ADMIN)
  * - GET /etb/einsatz/:einsatzId - ETB abrufen
  * - GET /etb/:etbId/history - Versionshistorie abrufen
  *
@@ -125,8 +124,6 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
   // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
   let mockDeleteEintragHandler: jest.Mocked<any>;
   // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
-  let mockLockEtbHandler: jest.Mocked<any>;
-  // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
   let mockGetEtbQueryHandler: jest.Mocked<any>;
   // eslint-disable-next-line typescript/no-explicit-any -- Test requires type bypass for mock/invalid data
   let mockGetEtbHistoryQueryHandler: jest.Mocked<any>;
@@ -165,10 +162,6 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
     };
 
     mockDeleteEintragHandler = {
-      execute: jest.fn(),
-    };
-
-    mockLockEtbHandler = {
       execute: jest.fn(),
     };
 
@@ -219,7 +212,6 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
       mockAddEintragHandler,
       mockAddKorrekturEintragHandler,
       mockDeleteEintragHandler,
-      mockLockEtbHandler,
       mockGetEtbQueryHandler,
       mockGetEtbHistoryQueryHandler,
       mockGetTextbausteineHandler,
@@ -464,71 +456,6 @@ function createTestSnapshotDto(options: Partial<EtbSnapshotDto> = {}): EtbSnapsh
 
       // When/Then
       await expect(controller.deleteEintrag(etbId, eintragId, adminUser)).rejects.toThrow(BadRequestException);
-    });
-  });
-
-  // ========================================
-  // TEST GROUP 4: POST /etb/:etbId/lock
-  // ========================================
-
-  describe('POST /etb/:etbId/lock - lockEtb()', () => {
-    it('should lock ETB when user has ADMIN role', async () => {
-      // Given
-      const etbId = createTestCuid('etb');
-
-      mockLockEtbHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
-
-      // When
-      const result = await controller.lockEtb(etbId, adminUser);
-
-      // Then
-      expect(result).toBeUndefined();
-      expect(mockLockEtbHandler.execute).toHaveBeenCalledTimes(1);
-    });
-
-    it('should lock ETB when user has SUPER_ADMIN role', async () => {
-      // Given
-      const etbId = createTestCuid('etb');
-      const superAdmin: ValidatedUser = { ...adminUser, role: 'SUPER_ADMIN' };
-
-      mockLockEtbHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
-
-      // When
-      const result = await controller.lockEtb(etbId, superAdmin);
-
-      // Then
-      expect(result).toBeUndefined();
-      expect(mockLockEtbHandler.execute).toHaveBeenCalledTimes(1);
-    });
-
-    it('should throw BadRequestException when ETB is already locked', async () => {
-      // Given
-      const etbId = createTestCuid('etb');
-
-      mockLockEtbHandler.execute.mockResolvedValueOnce(Result.fail('ETB ist bereits gesperrt'));
-
-      // When/Then
-      await expect(controller.lockEtb(etbId, adminUser)).rejects.toThrow(BadRequestException);
-    });
-
-    it('should throw NotFoundException when ETB does not exist', async () => {
-      // Given
-      const etbId = createTestCuid('etb');
-
-      mockLockEtbHandler.execute.mockResolvedValueOnce(Result.fail('ETB nicht gefunden'));
-
-      // When/Then
-      await expect(controller.lockEtb(etbId, adminUser)).rejects.toThrow(NotFoundException);
-    });
-
-    it('should throw BadRequestException when user has USER role (command validation)', async () => {
-      // Given
-      const etbId = createTestCuid('etb');
-      // Note: RolesGuard would block this at route level, but we test controller behavior
-      mockLockEtbHandler.execute.mockResolvedValueOnce(Result.fail('Nur ADMIN oder SUPER_ADMIN berechtigt'));
-
-      // When/Then
-      await expect(controller.lockEtb(etbId, regularUser)).rejects.toThrow(BadRequestException);
     });
   });
 

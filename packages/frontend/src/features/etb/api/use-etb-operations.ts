@@ -8,7 +8,6 @@ import { useCreateEtbEntry } from './use-create-entry';
 import { useCreateKorrektur } from './use-create-korrektur';
 import { useDeleteEtbEntry } from './use-delete-entry';
 import { useEtb } from './use-etb';
-import { useLockEtb } from './use-lock-etb';
 import { useTextbausteine } from './use-textbausteine';
 
 export interface UseEtbOperationsOptions {
@@ -43,7 +42,6 @@ export interface UseEtbOperationsOptions {
  *   textbausteine,
  *   createEintrag,
  *   createKorrektur,
- *   lockEtb,
  * } = useEtbOperations({ einsatzId: 'abc-123' });
  * ```
  */
@@ -53,7 +51,6 @@ export const useEtbOperations = ({ einsatzId, includeDeleted = false }: UseEtbOp
   const createEintrag = useCreateEtbEntry();
   const createKorrektur = useCreateKorrektur();
   const deleteEintrag = useDeleteEtbEntry();
-  const lockEtb = useLockEtb();
 
   return {
     // Query results
@@ -68,18 +65,15 @@ export const useEtbOperations = ({ einsatzId, includeDeleted = false }: UseEtbOp
     createEintrag: createEintrag.mutate,
     createKorrektur: createKorrektur.mutate,
     deleteEintrag: deleteEintrag.mutate,
-    lockEtb: lockEtb.mutate,
 
     // Mutation states
     isCreatingEintrag: createEintrag.isPending,
     isCreatingKorrektur: createKorrektur.isPending,
     isDeletingEintrag: deleteEintrag.isPending,
-    isLockingEtb: lockEtb.isPending,
 
     // Full mutation objects for advanced usage
     createEintragMutation: createEintrag,
     createKorrekturMutation: createKorrektur,
     deleteEintragMutation: deleteEintrag,
-    lockEtbMutation: lockEtb,
   };
 };

@@ -33,6 +33,7 @@ import {
   AufbewahrungsKonfigurationGeaendertEtbEventAdapter,
   SystemWarnungWebSocketEventAdapter,
   SystemWarnungEtbEventAdapter,
+  EinsatzCompletedEtbEventAdapter,
   // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
   // KategorieErstelltEventAdapter,
   // KategorieGeloeschtEventAdapter,
@@ -150,6 +151,7 @@ import { ResilienceModule } from '@infrastructure/resilience/resilience.module';
     AufbewahrungsKonfigurationGeaendertEtbEventAdapter, // Story 5.5 AC1: Konfig-Änderung Audit-Log
     SystemWarnungWebSocketEventAdapter, // Story 5.6 AC3: SystemWarnung WebSocket-Broadcast
     SystemWarnungEtbEventAdapter, // Story 5.6 AC3: SystemWarnung Audit-Log
+    EinsatzCompletedEtbEventAdapter, // Issue #581: ETB automatisch sperren bei Einsatz-Abschluss
     // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
     // KategorieErstelltEventAdapter, // Story 8.1: KategorieErstellt ETB-Eintrag
     // KategorieGeloeschtEventAdapter, // Story 8.1: KategorieGeloescht ETB-Eintrag

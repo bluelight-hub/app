@@ -179,10 +179,6 @@ vi.mock('@/features/etb/ui/organisms/EtbEntryList', () => ({
   EtbEntryList: () => <div data-testid="etb-entry-list">EtbEntryList Mock</div>,
 }));
 
-vi.mock('@/features/etb/ui/molecules/EtbLockButton', () => ({
-  EtbLockButton: () => <button type="button">Lock</button>,
-}));
-
 vi.mock('@/features/etb/ui/molecules/EtbStatusBadge', () => ({
   EtbStatusBadge: ({ status }: { status: string }) => <span data-testid="etb-status-badge">{status}</span>,
 }));

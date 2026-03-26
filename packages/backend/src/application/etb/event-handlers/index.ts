@@ -35,3 +35,4 @@ export { BefehlZugestelltEtbHandler } from './befehl-zugestellt.handler';
 export { RolleGeaendertEtbHandler } from './rolle-geaendert.handler';
 export { BefehlAnonymisiertEtbHandler } from './befehl-anonymisiert.handler';
 export { BefehlGeloeschtEtbHandler } from './befehl-geloescht-etb.handler';
+export { EtbEinsatzCompletedHandler } from './etb-einsatz-completed.handler';

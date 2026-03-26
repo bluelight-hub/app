@@ -15,7 +15,6 @@ import { setHighlightedEntry } from '@/features/reminders/stores';
 import { EtbComposerSkeleton } from './EtbComposerSkeleton';
 import { EtbEntryForm } from './EtbEntryForm';
 import { EtbEntryList } from './EtbEntryList';
-import { EtbLockButton } from '../molecules/EtbLockButton';
 import { EtbDraftResumeBanner } from '../molecules/EtbDraftResumeBanner';
 import { EtbStatusBadge, type EtbStatus } from '../molecules/EtbStatusBadge';
 import { ContinuityStatusRail } from '../molecules/ContinuityStatusRail';
@@ -353,7 +352,6 @@ export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbCompose
               <PiClockCounterClockwise className="h-4 w-4" aria-hidden="true" />
               Historie
             </button>
-            {!readOnly && <EtbLockButton etbId={etb.id} disabled={etb.status === 'LOCKED'} />}
           </div>
         </div>
 

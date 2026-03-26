@@ -1,18 +1,15 @@
 import { ErinnerungTimelineDto, GetErinnerungTimelineQuery, GetErinnerungTimelineQueryHandler } from '@/application/etb/queries';
-import { AddEintragCommand, AddKorrekturEintragCommand, DeleteEintragCommand, LockEtbCommand } from '@/application/etb/commands';
+import { AddEintragCommand, AddKorrekturEintragCommand, DeleteEintragCommand } from '@/application/etb/commands';
 import { AddEintragHandler } from '@/application/etb/commands/add-eintrag/add-eintrag.handler';
 import { AddKorrekturEintragHandler } from '@/application/etb/commands/add-korrektur-eintrag/add-korrektur-eintrag.handler';
 import { DeleteEintragHandler } from '@/application/etb/commands/delete-eintrag/delete-eintrag.handler';
-import { LockEtbHandler } from '@/application/etb/commands/lock-etb/lock-etb.handler';
 import { AddEintragDto, AddKorrekturEintragDto, EintragDto, EtbDto, EtbSnapshotDto, TextbausteinDto } from '@/application/etb/dto';
 import { EtbQueryMapper, type EtbSnapshotDto as EtbSnapshotDtoFromMapper } from '@/application/etb/mappers';
 import { GetEtbHistoryQuery, GetEtbHistoryQueryHandler, GetEtbQuery, GetEtbQueryHandler, GetTextbausteineHandler, GetTextbausteineQuery } from '@/application/etb/queries';
 import type { EtbKategorie } from '@/generated/prisma/client';
 import { EINSATZ_ROLLEN_READ_REPOSITORY, EINSATZ_TEILNEHMER_REPOSITORY, ETB_REPOSITORY, LOGGER } from '@/infrastructure/di-tokens';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
-import { Roles } from '@/modules/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
-import { RolesGuard } from '@/modules/auth/guards/roles.guard';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ApiWrappedCreatedResponse, ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
 import type { ILogger } from '@domain/ports/i-logger.port';
@@ -27,7 +24,7 @@ import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiNoConten
  * CQRS Controller für ETB (Einsatztagebuch) Management.
  *
  * Dieser Controller implementiert das CQRS Pattern für ETB-Operationen:
- * - Commands: State Mutation via CommandBus (Add/Update/Delete Eintrag, Lock ETB)
+ * - Commands: State Mutation via CommandBus (Add/Update/Delete Eintrag)
  * - Queries: State Reading via QueryBus (Get ETB, Get History)
  *
  * **Architektur-Entscheidung:**
@@ -42,7 +39,6 @@ import { ApiBadRequestResponse, ApiBearerAuth, ApiForbiddenResponse, ApiNoConten
  * - POST /etb/:etbId/eintrag - Neuen Eintrag hinzufügen
  * - PUT /etb/:etbId/eintrag/:eintragId - Eintrag aktualisieren
  * - DELETE /etb/:etbId/eintrag/:eintragId - Eintrag soft-löschen
- * - POST /etb/:etbId/lock - ETB sperren (nur ADMIN/SUPER_ADMIN)
  *
  * @security Alle Endpunkte erfordern valides JWT Token (JwtAuthGuard)
  * @see EtbApplicationModule - Registriert alle Handler
@@ -61,7 +57,6 @@ export class EtbCqrsController {
     private readonly addEintragHandler: AddEintragHandler,
     private readonly addKorrekturEintragHandler: AddKorrekturEintragHandler,
     private readonly deleteEintragHandler: DeleteEintragHandler,
-    private readonly lockEtbHandler: LockEtbHandler,
     private readonly getEtbQueryHandler: GetEtbQueryHandler,
     private readonly getEtbHistoryQueryHandler: GetEtbHistoryQueryHandler,
     private readonly getTextbausteineHandler: GetTextbausteineHandler,
@@ -671,57 +666,5 @@ export class EtbCqrsController {
     }
 
     this.logger.log(`Eintrag ${eintragId} deleted from ETB ${etbId}`);
-  }
-
-  /**
-   * ETB sperren (AC3)
-   *
-   * Sperrt ein ETB irreversibel via LockEtbCommand.
-   * Nur ADMIN oder SUPER_ADMIN dürfen diese Operation ausführen.
-   * Nach der Sperrung können keine Einträge mehr hinzugefügt/geändert/gelöscht werden.
-   *
-   * @param etbId - ID des ETB (CUID2 Format)
-   * @param user - Authentifizierter User (aus JWT) mit ADMIN/SUPER_ADMIN Rolle
-   * @throws NotFoundException wenn ETB nicht gefunden
-   * @throws BadRequestException bei Validierungsfehlern oder bereits gesperrtem ETB
-   * @throws ForbiddenException wenn User keine ADMIN/SUPER_ADMIN Rolle hat
-   */
-  @Post(':etbId/lock')
-  @Roles('ADMIN', 'SUPER_ADMIN')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @HttpCode(204)
-  @ApiOperation({
-    summary: 'ETB sperren (nur Admin)',
-    description: 'Sperrt das ETB irreversibel. Nur ADMIN oder SUPER_ADMIN können diese Aktion ausführen.',
-  })
-  @ApiNoContentResponse({ description: 'ETB erfolgreich gesperrt' })
-  @ApiNotFoundResponse({ description: 'ETB nicht gefunden' })
-  @ApiBadRequestResponse({ description: 'ETB ist bereits gesperrt oder Validierungsfehler' })
-  @ApiForbiddenResponse({ description: 'Nur ADMIN oder SUPER_ADMIN berechtigt' })
-  async lockEtb(@Param('etbId') etbId: string, @CurrentUser() user: ValidatedUser): Promise<void> {
-    this.logger.log(`Locking ETB ${etbId} by user ${user.userId} (role: ${user.role})`);
-
-    const userRole = user.role ?? 'USER';
-    const commandResult = LockEtbCommand.create(etbId, user.userId, userRole);
-    if (commandResult.isFailure || !commandResult.value) {
-      this.logger.error(`Invalid LockEtbCommand: ${commandResult.error}`);
-      throw new BadRequestException(commandResult.error);
-    }
-
-    const result = await this.lockEtbHandler.execute(commandResult.value);
-
-    if (result.isFailure) {
-      this.logger.error(`Failed to lock ETB ${etbId}: ${result.error}`);
-      if (result.error?.includes('nicht gefunden') || result.error?.includes('not found')) {
-        throw new NotFoundException(result.error);
-      }
-      if (result.error?.includes('Administratoren')) {
-        throw new ForbiddenException(result.error);
-      }
-      throw new BadRequestException(result.error);
-    }
-
-    this.logger.log(`ETB ${etbId} locked by user ${user.userId}`);
-    // No return - HTTP 204 No Content
   }
 }

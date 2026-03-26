@@ -6,7 +6,6 @@ export { EtbDraftResumeBanner } from './EtbDraftResumeBanner';
 export { EtbEmptyState } from './EtbEmptyState';
 export { EtbFilterControls } from './EtbFilterControls';
 export { EtbFormActions } from './EtbFormActions';
-export { EtbLockButton } from './EtbLockButton';
 export { EtbResultsCount } from './EtbResultsCount';
 export { EtbSearchBar } from './EtbSearchBar';
 export { EtbStatusBadge } from './EtbStatusBadge';
