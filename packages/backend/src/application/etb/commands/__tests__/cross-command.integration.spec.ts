@@ -4,8 +4,6 @@ import { AddEintragCommand } from '@application/etb/commands';
 import { AddEintragHandler } from '@application/etb/commands';
 import { AddKorrekturEintragCommand } from '@application/etb/commands';
 import { AddKorrekturEintragHandler } from '@application/etb/commands';
-import { LockEtbCommand } from '@application/etb/commands';
-import { LockEtbHandler } from '@application/etb/commands';
 import { createTestEtb } from '@domain/aggregates/__tests__/fixtures/etb.fixtures';
 import type { ILogger } from '@domain/ports/i-logger.port';
 
@@ -50,7 +48,6 @@ function generateTestCuid(): string {
   let etbRepository: InMemoryEtbRepository;
   let addEintragHandler: AddEintragHandler;
   let addKorrekturEintragHandler: AddKorrekturEintragHandler;
-  let lockEtbHandler: LockEtbHandler;
   let mockLogger: jest.Mocked<ILogger>;
   let testUserId: string;
   let testEinsatzId: string;
@@ -72,7 +69,6 @@ function generateTestCuid(): string {
     // Create all handlers with shared repository
     addEintragHandler = new AddEintragHandler(etbRepository, mockLogger);
     addKorrekturEintragHandler = new AddKorrekturEintragHandler(etbRepository, mockLogger);
-    lockEtbHandler = new LockEtbHandler(etbRepository, mockLogger);
   });
 
   afterEach(() => {
@@ -103,54 +99,6 @@ function generateTestCuid(): string {
       expect(savedEtb?.eintraege[0]?.isKorrigiert).toBe(true);
       expect(savedEtb?.eintraege[1]?.isKorrektur).toBe(true);
       expect(savedEtb?.eintraege[1]?.text).toBe('Korrigierter Text');
-    });
-  });
-
-  describe('Task 7.2: AddEintrag → LockEtb → verify AddEintrag fails', () => {
-    it('should prevent AddEintrag after ETB is locked', async () => {
-      // Arrange: Create ETB and add first entry
-      const etb = createTestEtb({ entriesCount: 0, userId: testUserId, einsatzId: testEinsatzId });
-      await etbRepository.save(etb);
-
-      const addCommand1 = AddEintragCommand.create(etb.id.value, 'Erster Eintrag', testUserId).value!;
-      await addEintragHandler.execute(addCommand1);
-
-      // Act 1: Lock ETB
-      const lockCommand = LockEtbCommand.create(etb.id.value, testUserId, 'ADMIN').value!;
-      const lockResult = await lockEtbHandler.execute(lockCommand);
-      expect(lockResult.isSuccess).toBe(true);
-
-      // Act 2: Try to add another entry
-      const addCommand2 = AddEintragCommand.create(etb.id.value, 'Zweiter Eintrag (sollte fehlschlagen)', testUserId).value!;
-      const addResult2 = await addEintragHandler.execute(addCommand2);
-
-      // Assert: AddEintrag should fail with locked error
-      expect(addResult2.isSuccess).toBe(false);
-      expect(addResult2.error).toContain('ETB ist gesperrt und kann nicht mehr geändert werden');
-    });
-  });
-
-  describe('Task 7.3: AddEintrag → LockEtb → verify AddKorrekturEintrag fails', () => {
-    it('should prevent AddKorrekturEintrag after ETB is locked', async () => {
-      // Arrange: Create ETB and add entry
-      const etb = createTestEtb({ entriesCount: 0, userId: testUserId, einsatzId: testEinsatzId });
-      await etbRepository.save(etb);
-
-      const addCommand = AddEintragCommand.create(etb.id.value, 'Test Eintrag', testUserId).value!;
-      const addResult = await addEintragHandler.execute(addCommand);
-      const eintragId = addResult.value?.id.value;
-
-      // Act 1: Lock ETB
-      const lockCommand = LockEtbCommand.create(etb.id.value, testUserId, 'ADMIN').value!;
-      await lockEtbHandler.execute(lockCommand);
-
-      // Act 2: Try to add korrektur
-      const korrekturCommand = AddKorrekturEintragCommand.create(etb.id.value, eintragId, 'Korrektur', testUserId).value!;
-      const korrekturResult = await addKorrekturEintragHandler.execute(korrekturCommand);
-
-      // Assert: AddKorrekturEintrag should fail with locked error
-      expect(korrekturResult.isSuccess).toBe(false);
-      expect(korrekturResult.error).toContain('gesperrt');
     });
   });
 
@@ -202,34 +150,6 @@ function generateTestCuid(): string {
       const savedEtb = await etbRepository.findById(etb.id);
       expect(savedEtb?.hasUncommittedSnapshots()).toBe(true);
       expect(savedEtb?.getUncommittedSnapshots().length).toBeGreaterThanOrEqual(2);
-    });
-  });
-
-  describe('Lock is irreversible - no further operations possible', () => {
-    it('should reject all mutations after lock including another lock attempt', async () => {
-      // Arrange: Create ETB
-      const etb = createTestEtb({ entriesCount: 1, userId: testUserId, einsatzId: testEinsatzId });
-      await etbRepository.save(etb);
-      const eintragId = etb.eintraege[0]?.id.value;
-
-      // Act: Lock ETB
-      const lockCommand = LockEtbCommand.create(etb.id.value, testUserId, 'ADMIN').value!;
-      await lockEtbHandler.execute(lockCommand);
-
-      // Assert: All operations fail
-      const addCmd = AddEintragCommand.create(etb.id.value, 'New Entry', testUserId).value!;
-      const addCmdResult = await addEintragHandler.execute(addCmd);
-      expect(addCmdResult.isSuccess).toBe(false);
-
-      const korrekturCmd = AddKorrekturEintragCommand.create(etb.id.value, eintragId, 'Korrektur', testUserId).value!;
-      const korrekturCmdResult = await addKorrekturEintragHandler.execute(korrekturCmd);
-      expect(korrekturCmdResult.isSuccess).toBe(false);
-
-      // Even another lock attempt fails
-      const lockCmd2 = LockEtbCommand.create(etb.id.value, testUserId, 'SUPER_ADMIN').value!;
-      const lockCmd2Result = await lockEtbHandler.execute(lockCmd2);
-      expect(lockCmd2Result.isSuccess).toBe(false);
-      expect(lockCmd2Result.error).toContain('ETB ist bereits gesperrt');
     });
   });
 });

@@ -31,9 +31,6 @@ export type { CreateKorrekturVariables } from './use-create-korrektur';
 export { useDeleteEtbEntry } from './use-delete-entry';
 export type { DeleteEtbEntryVariables } from './use-delete-entry';
 
-export { useLockEtb } from './use-lock-etb';
-export type { LockEtbVariables } from './use-lock-etb';
-
 // Combined Operations
 export { useEtbOperations } from './use-etb-operations';
 export type { UseEtbOperationsOptions } from './use-etb-operations';

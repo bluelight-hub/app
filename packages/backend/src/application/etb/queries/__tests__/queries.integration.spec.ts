@@ -15,8 +15,8 @@ import { AddEintragCommand } from '@application/etb/commands';
 import { AddEintragHandler } from '@application/etb/commands';
 import { AddKorrekturEintragCommand } from '@application/etb/commands';
 import { AddKorrekturEintragHandler } from '@application/etb/commands';
-import { LockEtbCommand } from '@application/etb/commands';
-import { LockEtbHandler } from '@application/etb/commands';
+import { EtbId } from '@domain/value-objects/etb-id';
+import { UserId } from '@domain/value-objects/user-id';
 
 // Queries
 import { GetEtbQuery } from '../get-etb/get-etb.query';
@@ -84,7 +84,6 @@ function generateTestCuid(): string {
   let createEtbHandler: CreateEtbHandler;
   let addEintragHandler: AddEintragHandler;
   let addKorrekturEintragHandler: AddKorrekturEintragHandler;
-  let lockEtbHandler: LockEtbHandler;
 
   // Query Handlers
   let getEtbHandler: GetEtbQueryHandler;
@@ -115,7 +114,6 @@ function generateTestCuid(): string {
     createEtbHandler = new CreateEtbHandler(mockEinsatzRepository, etbRepository);
     addEintragHandler = new AddEintragHandler(etbRepository);
     addKorrekturEintragHandler = new AddKorrekturEintragHandler(etbRepository);
-    lockEtbHandler = new LockEtbHandler(etbRepository);
 
     // Query Handlers initialisieren
     getEtbHandler = new GetEtbQueryHandler(etbRepository, mockPrismaService);
@@ -389,7 +387,7 @@ function generateTestCuid(): string {
     });
   });
 
-  describe('Full Lifecycle: CreateEtb -> AddEintrag -> AddKorrekturEintrag -> LockEtb -> GetEtb', () => {
+  describe('Full Lifecycle: CreateEtb -> AddEintrag -> AddKorrekturEintrag -> Lock -> GetEtb', () => {
     it('sollte vollstaendigen ETB-Lifecycle korrekt abbilden', async () => {
       // Phase 1: ETB erstellen
       const createCmd = CreateEtbCommand.create(testEinsatzId).value!;
@@ -412,10 +410,11 @@ function generateTestCuid(): string {
       const addCmd2 = AddEintragCommand.create(etbId, 'Zweiter Eintrag', testUserId).value!;
       await addEintragHandler.execute(addCmd2);
 
-      // Phase 5: ETB sperren
-      const lockCmd = LockEtbCommand.create(etbId, testUserId, 'ADMIN').value!;
-      const lockResult = await lockEtbHandler.execute(lockCmd);
+      // Phase 5: ETB sperren (direkt über Aggregate)
+      const etbAggregate = await etbRepository.findById(EtbId.create(etbId).value!);
+      const lockResult = etbAggregate!.lock(UserId.create(testUserId).value!);
       expect(lockResult.isSuccess).toBe(true);
+      await etbRepository.save(etbAggregate!);
 
       // Assert: GetEtb gibt korrekten finalen Zustand zurueck
       const getEtbQuery = new GetEtbQuery(testEinsatzId, false);
@@ -443,12 +442,11 @@ function generateTestCuid(): string {
       const korrekturCmd = AddKorrekturEintragCommand.create(etbId, eintragId, 'Korrektur', testUserId).value!;
       await addKorrekturEintragHandler.execute(korrekturCmd);
 
-      // ETB sperren
-      const lockCmd = LockEtbCommand.create(etbId, testUserId, 'ADMIN').value!;
-      const lockResult = await lockEtbHandler.execute(lockCmd);
-
-      // Assert: ETB ist korrekt gesperrt
+      // ETB sperren (direkt über Aggregate)
+      const etbAggregate = await etbRepository.findById(EtbId.create(etbId).value!);
+      const lockResult = etbAggregate!.lock(UserId.create(testUserId).value!);
       expect(lockResult.isSuccess).toBe(true);
+      await etbRepository.save(etbAggregate!);
     });
   });
 

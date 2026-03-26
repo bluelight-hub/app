@@ -15,7 +15,6 @@ features/etb/
 │   ├── use-create-entry.ts        # Create Entry Mutation
 │   ├── use-update-entry.ts        # Update Entry Mutation
 │   ├── use-delete-entry.ts        # Delete Entry Mutation (Soft Delete)
-│   ├── use-lock-etb.ts            # Lock ETB Mutation (Admin-Only)
 │   ├── use-etb-operations.ts      # Combined Operations Hook
 │   └── index.ts                   # Public API
 └── index.ts                       # Feature Public API
@@ -97,7 +96,7 @@ function EtbEntryForm({ etbId }: { etbId: string }) {
 import { useEtbOperations } from '@/features/etb';
 
 function EtbPage({ einsatzId }: { einsatzId: string }) {
-  const { etb, isLoadingEtb, textbausteine, createEintrag, updateEintrag, deleteEintrag, lockEtb, isCreatingEintrag } = useEtbOperations({ einsatzId });
+  const { etb, isLoadingEtb, textbausteine, createEintrag, deleteEintrag, isCreatingEintrag } = useEtbOperations({ einsatzId });
 
   // Alle ETB-Operationen verfügbar
 }
@@ -118,7 +117,6 @@ Alle Mutation Hooks exportieren ein `<MutationName>Variables` Interface:
 - `CreateEtbEntryVariables`
 - `UpdateEtbEntryVariables`
 - `DeleteEtbEntryVariables`
-- `LockEtbVariables`
 
 ### Options Interfaces
 

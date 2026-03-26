@@ -8,7 +8,6 @@ import type { EtbEintragSnapshotDto, EtbSnapshotDto } from '@/application/etb/ma
 import type { AddEintragHandler } from '@/application/etb/commands/add-eintrag/add-eintrag.handler';
 import type { AddKorrekturEintragHandler } from '@/application/etb/commands/add-korrektur-eintrag/add-korrektur-eintrag.handler';
 import type { DeleteEintragHandler } from '@/application/etb/commands/delete-eintrag/delete-eintrag.handler';
-import type { LockEtbHandler } from '@/application/etb/commands/lock-etb/lock-etb.handler';
 import type { GetEtbQueryHandler } from '@/application/etb/queries/get-etb/get-etb.handler';
 import type { GetEtbHistoryQueryHandler } from '@/application/etb/queries/get-etb-history/get-etb-history.handler';
 import type { GetTextbausteineHandler } from '@/application/etb/queries/get-textbausteine/get-textbausteine.handler';
@@ -95,14 +94,12 @@ function createValidTestId(suffix = ''): string {
  * 3. addEintrag() - POST /etb/:etbId/eintrag
  * 4. updateEintrag() - PUT /etb/:etbId/eintrag/:eintragId
  * 5. deleteEintrag() - DELETE /etb/:etbId/eintrag/:eintragId
- * 6. lockEtb() - POST /etb/:etbId/lock
  */
 describe('EtbCqrsController', () => {
   let controller: EtbCqrsController;
   let mockAddEintragHandler: jest.Mocked<AddEintragHandler>;
   let mockAddKorrekturEintragHandler: jest.Mocked<AddKorrekturEintragHandler>;
   let mockDeleteEintragHandler: jest.Mocked<DeleteEintragHandler>;
-  let mockLockEtbHandler: jest.Mocked<LockEtbHandler>;
   let mockGetEtbQueryHandler: jest.Mocked<GetEtbQueryHandler>;
   let mockGetEtbHistoryQueryHandler: jest.Mocked<GetEtbHistoryQueryHandler>;
   let mockGetTextbausteineHandler: jest.Mocked<GetTextbausteineHandler>;
@@ -149,11 +146,6 @@ describe('EtbCqrsController', () => {
     } as any;
 
     mockDeleteEintragHandler = {
-      execute: jest.fn(),
-      // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
-    } as any;
-
-    mockLockEtbHandler = {
       execute: jest.fn(),
       // eslint-disable-next-line typescript/no-explicit-any -- Test mock typing
     } as any;
@@ -213,7 +205,6 @@ describe('EtbCqrsController', () => {
       mockAddEintragHandler,
       mockAddKorrekturEintragHandler,
       mockDeleteEintragHandler,
-      mockLockEtbHandler,
       mockGetEtbQueryHandler,
       mockGetEtbHistoryQueryHandler,
       mockGetTextbausteineHandler,
@@ -1172,94 +1163,6 @@ describe('EtbCqrsController', () => {
         expect(mockEinsatzTeilnehmerRepository.findByEinsatzAndUser).toHaveBeenCalledWith(einsatzId, mockUser.userId);
         expect(mockDeleteEintragHandler.execute).not.toHaveBeenCalled();
       });
-    });
-  });
-
-  // ============================================
-  // Test Group 6: lockEtb() - POST /etb/:etbId/lock
-  // ============================================
-  describe('lockEtb()', () => {
-    it('should execute LockEtbCommand with ADMIN role and return void (204)', async () => {
-      // Given
-      const etbId = createValidTestId('etb00');
-
-      mockLockEtbHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
-
-      // When
-      const result = await controller.lockEtb(etbId, mockAdminUser);
-
-      // Then
-      expect(mockLockEtbHandler.execute).toHaveBeenCalledTimes(1);
-      expect(result).toBeUndefined();
-    });
-
-    it('should execute LockEtbCommand with SUPER_ADMIN role and return void', async () => {
-      // Given
-      const etbId = createValidTestId('etb00');
-
-      mockLockEtbHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
-
-      // When
-      const result = await controller.lockEtb(etbId, mockSuperAdminUser);
-
-      // Then
-      expect(mockLockEtbHandler.execute).toHaveBeenCalledTimes(1);
-      expect(result).toBeUndefined();
-    });
-
-    it('should throw BadRequestException when command creation fails (empty etbId)', async () => {
-      // Given
-      const etbId = '';
-
-      // When/Then
-      await expect(controller.lockEtb(etbId, mockAdminUser)).rejects.toThrow(BadRequestException);
-      expect(mockLockEtbHandler.execute).not.toHaveBeenCalled();
-    });
-
-    it('should throw NotFoundException when result indicates not found', async () => {
-      // Given
-      const etbId = createValidTestId('etb00');
-      mockLockEtbHandler.execute.mockResolvedValueOnce(Result.fail('ETB nicht gefunden'));
-
-      // When/Then
-      await expect(controller.lockEtb(etbId, mockAdminUser)).rejects.toThrow(NotFoundException);
-    });
-
-    it('should throw BadRequestException when ETB is already locked', async () => {
-      // Given
-      const etbId = createValidTestId('etb00');
-      mockLockEtbHandler.execute.mockResolvedValueOnce(Result.fail('ETB ist bereits gesperrt'));
-
-      // When/Then
-      await expect(controller.lockEtb(etbId, mockAdminUser)).rejects.toThrow(BadRequestException);
-    });
-
-    it('should throw BadRequestException when result fails with other error', async () => {
-      // Given
-      const etbId = createValidTestId('etb00');
-      mockLockEtbHandler.execute.mockResolvedValueOnce(Result.fail('Database error'));
-
-      // When/Then
-      await expect(controller.lockEtb(etbId, mockAdminUser)).rejects.toThrow(BadRequestException);
-    });
-
-    it('should use USER role as default when user.role is undefined', async () => {
-      // Given
-      const etbId = createValidTestId('etb00');
-      const userWithNoRole: ValidatedUser = {
-        userId: createValidTestId('user0'),
-        email: 'noRole@example.com',
-        role: undefined,
-      };
-
-      mockLockEtbHandler.execute.mockResolvedValueOnce(Result.ok(undefined));
-
-      // When
-      const result = await controller.lockEtb(etbId, userWithNoRole);
-
-      // Then
-      expect(mockLockEtbHandler.execute).toHaveBeenCalledTimes(1);
-      expect(result).toBeUndefined();
     });
   });
 
