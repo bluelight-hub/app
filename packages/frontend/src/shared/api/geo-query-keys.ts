@@ -7,5 +7,5 @@
 export const GEO_QUERY_KEYS = {
   all: ['geo'] as const,
   plzLookup: (countryCode: string, plz: string) => ['geo', 'plz', countryCode, plz] as const,
-  addressSearch: (query: string, lat?: string, lon?: string) => ['geo', 'address', query, lat, lon] as const,
+  addressSearch: (query: string, lat?: string, lon?: string, lang?: string, limit?: string) => ['geo', 'address', query, lat, lon, lang, limit] as const,
 } as const;

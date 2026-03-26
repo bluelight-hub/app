@@ -70,6 +70,14 @@ vi.mock('sonner', () => ({
   },
 }));
 
+vi.mock('@/shared/api/use-address-search', () => ({
+  useAddressSearch: vi.fn(() => ({ data: undefined, isLoading: false })),
+}));
+
+vi.mock('@/shared/api/use-plz-lookup', () => ({
+  usePlzLookup: vi.fn(() => ({ data: undefined, isLoading: false, isError: false })),
+}));
+
 import { useCreateEinsatz } from '@/features/einsatz';
 
 const mockedUseCreateEinsatz = vi.mocked(useCreateEinsatz);
