@@ -1,3 +1,15 @@
+## Adressverwaltung
+
+- **Neue Adresssuche**: Adressen können jetzt über eine integrierte Suche gefunden werden. Die Suche nutzt Photon/Komoot-Daten für präzise Ergebnisse.
+
+- **PLZ-Autovervollständigung**: Bei der Eingabe einer Postleitzahl wird der zugehörige Ort automatisch vorgeschlagen und kann mit einem Klick übernommen werden. Dies beschleunigt die Erfassung von Einsatzorten erheblich.
+
+- **Verbesserte Formulare**: Die Adresseingabe im Einsatz-Formular wurde überarbeitet und bietet jetzt die neuen Such- und Autovervollständigungsfunktionen.
+
+## Fehlerbehebungen & Stabilität
+
+- **Adresssuche**: Behobene Sicherheitslücke (ReDoS) in der Fehlerverarbeitung, verbesserte Cache-Verwaltung und Behebung eines Problems, bei dem leere PLZ-Suchen zu inkonsistenten Formularinhalten führten.
+
 ## Elektronisches Tage-Buch (ETB)
 
 **Breaking Change:** ETB-Einträge sind nun unveränderlich und können nicht mehr bearbeitet werden. Stattdessen müssen fehlerhafte Einträge durch Korrektureinträge ersetzt werden. Dies gewährleistet eine lückenlose Nachvollziehbarkeit aller Änderungen im Einsatztagebuch.
