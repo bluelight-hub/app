@@ -95,6 +95,10 @@ export class AddressSucheController {
     @Query('limit') limitStr?: string,
     @Query('countryCode') countryCode?: string,
   ): Promise<AddressSucheErgebnisDto[]> {
+    if (typeof q !== 'string') {
+      throw new BadRequestException('Suchbegriff muss ein String sein.');
+    }
+
     const parsed = limitStr ? Number.parseInt(limitStr, 10) : undefined;
     const limit = parsed != null && !Number.isNaN(parsed) ? Math.min(Math.max(parsed, 1), 10) : limitStr ? 5 : undefined;
 

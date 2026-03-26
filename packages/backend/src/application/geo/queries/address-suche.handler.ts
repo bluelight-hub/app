@@ -24,8 +24,8 @@ export class AddressSucheHandler {
    * @param options - Optionale Such-Parameter
    */
   async execute(query: string, options?: AddressSucheOptionen): Promise<Result<AddressSucheErgebnis[]>> {
-    // Input-Validierung: Query muss 2-100 Zeichen lang sein
-    if (!query || query.length < 2 || query.length > 100) {
+    // Input-Validierung: Query muss ein String mit 2-100 Zeichen sein
+    if (typeof query !== 'string' || !query || query.length < 2 || query.length > 100) {
       return Result.fail(GeoError.format(GEO_ERROR_CODES.INVALID_INPUT, `Suchbegriff muss 2-100 Zeichen lang sein (erhalten: ${query?.length ?? 0})`));
     }
 

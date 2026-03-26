@@ -22,7 +22,7 @@ export type { AddressSucheErgebnisDto as AddressSearchResult };
  */
 export function useAddressSearch(query: string, options?: { lat?: string; lon?: string; enabled?: boolean }) {
   return useQuery<AddressSucheErgebnisDto[]>({
-    queryKey: GEO_QUERY_KEYS.addressSearch(query, options?.lat, options?.lon),
+    queryKey: GEO_QUERY_KEYS.addressSearch(query, options?.lat, options?.lon, 'de', '5'),
     queryFn: async () => {
       const response = await api.geo().addressSucheControllerSearchVAlpha({
         q: query,

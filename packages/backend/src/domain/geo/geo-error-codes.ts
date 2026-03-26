@@ -34,8 +34,9 @@ export class GeoError {
   /** Extrahiert die Message aus einem formatierten Error String. */
   static extractMessage(error: string | undefined): string {
     if (!error) return 'Unbekannter Fehler';
-    const match = error.match(/^\[GEO_\d+\]\s*(.*)$/);
-    return match?.[1] ?? error;
+    const bracketEnd = error.indexOf(']');
+    if (bracketEnd === -1 || !error.startsWith('[GEO_')) return error;
+    return error.slice(bracketEnd + 1).trimStart() || error;
   }
 
   /** Erstellt einen formatierten Error String. */

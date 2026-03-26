@@ -75,7 +75,9 @@ export function AddressInput({ plzField, ortField, bundeslandField, landField, o
   // Auto-Populate bei erfolgreichem Lookup
   // Nur `data` als Dependency — Field-Handles über Refs, um Re-Render-Loops zu vermeiden
   useEffect(() => {
-    if (data && data.orte.length > 0) {
+    if (!data) return;
+
+    if (data.orte.length > 0) {
       const erstesErgebnis = data.orte[0]!;
 
       if (!ortDirtyRef.current) {
@@ -88,6 +90,14 @@ export function AddressInput({ plzField, ortField, bundeslandField, landField, o
 
       // Koordinaten an Parent weitergeben (für Straßen-Autocomplete Proximity-Bias)
       onCoordinatesChangeRef.current?.(erstesErgebnis.breitengrad, erstesErgebnis.laengengrad);
+    } else {
+      // Keine Treffer: Auto-befüllte Felder zurücksetzen (nur wenn nicht manuell geändert)
+      if (!ortDirtyRef.current) {
+        ortFieldRef.current.handleChange('');
+      }
+      if (!bundeslandDirtyRef.current) {
+        bundeslandFieldRef.current.handleChange('');
+      }
     }
   }, [data]);
 
