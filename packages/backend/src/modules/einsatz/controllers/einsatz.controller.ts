@@ -36,9 +36,12 @@ import {
   GetMeineEinsatzRolleQuery,
   CanMutateEinsatzQuery,
 } from '@/application/einsatz/queries';
+import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
+import { RequiresOperativeRole } from '@/modules/auth/decorators/operative-roles.decorator';
 import { Roles } from '@/modules/auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
+import { OperativeRoleGuard } from '@/modules/auth/guards/operative-role.guard';
 import { RolesGuard } from '@/modules/auth/guards/roles.guard';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
 import { ApiWrappedResponse, ApiWrappedCreatedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
@@ -103,6 +106,7 @@ export class EinsatzController {
     private readonly getTeilnehmerHandler: GetEinsatzTeilnehmerHandler,
     private readonly updateEinsatzRollenHandler: UpdateEinsatzRollenHandler,
     private readonly getEinsatzRollenQueryHandler: GetEinsatzRollenQueryHandler,
+    private readonly prisma: PrismaService,
   ) {}
 
   /**
@@ -110,6 +114,8 @@ export class EinsatzController {
    */
   @Post()
   @Roles('USER', 'ADMIN', 'SUPER_ADMIN')
+  @RequiresOperativeRole('FUEHRUNGSKRAFT')
+  @UseGuards(OperativeRoleGuard)
   @ApiOperation({ summary: 'Neuen Einsatz erstellen', description: 'Erstellt einen neuen Einsatz mit automatisch generiertem Namen.' })
   @ApiWrappedCreatedResponse(EinsatzDto, { description: 'Einsatz erfolgreich erstellt' })
   @ApiBadRequestResponse({ description: 'Validierungsfehler in den Eingabedaten' })
@@ -128,13 +134,22 @@ export class EinsatzController {
    * Lädt paginierte Einsatz-Liste via CQRS Query
    */
   @Get()
-  @ApiOperation({ summary: 'Alle Einsätze abrufen', description: 'Paginierte Liste aller Einsätze. Archivierte standardmäßig ausgeschlossen.' })
+  @ApiOperation({ summary: 'Alle Einsätze abrufen', description: 'Paginierte Liste aller Einsätze. Archivierte standardmäßig ausgeschlossen. EXTERNE sehen nur zugewiesene Einsätze.' })
   @ApiWrappedResponse(EinsatzResponseDto, { description: 'Paginierte Liste der Einsätze', isArray: true })
   @ApiBadRequestResponse({ description: 'Ungültige Query-Parameter' })
-  async findAll(@Query(new ValidationPipe({ transform: true, whitelist: true })) query: EinsatzQueryDto): Promise<PaginatedData<EinsatzResponseDto>> {
+  async findAll(@Query(new ValidationPipe({ transform: true, whitelist: true })) query: EinsatzQueryDto, @CurrentUser() user: ValidatedUser): Promise<PaginatedData<EinsatzResponseDto>> {
     const result = await this.queryBus.execute(new GetAllEinsaetzeQuery(query));
     if (result.isFailure) throw new BadRequestException(result.error ?? 'Fehler beim Abrufen der Einsätze');
-    return result.value ?? { items: [], total: 0, page: query.page ?? 1, limit: query.limit ?? 10 };
+    const data = result.value ?? { items: [], total: 0, page: query.page ?? 1, limit: query.limit ?? 10 };
+
+    // EXTERNE: Nur Einsätze anzeigen, an denen der User als Teilnehmer zugewiesen ist
+    if (user.operativeRole === 'EXTERNE') {
+      const assignedIds = await this.getAssignedEinsatzIds(user.userId);
+      const filteredItems = data.items.filter((e: EinsatzResponseDto) => assignedIds.has(e.id));
+      return { ...data, items: filteredItems, total: filteredItems.length };
+    }
+
+    return data;
   }
 
   /**
@@ -147,10 +162,21 @@ export class EinsatzController {
   })
   @ApiWrappedResponse(EinsatzListItemDto, { description: 'Liste der Einsätze mit Counts', isArray: true })
   @ApiBadRequestResponse({ description: 'Fehler beim Abrufen der Einsätze' })
-  async getActiveEinsaetzeWithCounts(@Query(new ValidationPipe({ transform: true, whitelist: true })) queryDto: StatusCountsQueryDto): Promise<EinsatzListItemDto[]> {
+  async getActiveEinsaetzeWithCounts(
+    @Query(new ValidationPipe({ transform: true, whitelist: true })) queryDto: StatusCountsQueryDto,
+    @CurrentUser() user: ValidatedUser,
+  ): Promise<EinsatzListItemDto[]> {
     const result = await this.queryBus.execute(new GetActiveEinsaetzeWithCountsQuery(queryDto.includeArchived));
     if (result.isFailure) throw new BadRequestException(result.error ?? 'Unbekannter Fehler');
-    return result.value ?? [];
+    const items = result.value ?? [];
+
+    // EXTERNE: Nur zugewiesene Einsätze anzeigen
+    if (user.operativeRole === 'EXTERNE') {
+      const assignedIds = await this.getAssignedEinsatzIds(user.userId);
+      return items.filter((e: EinsatzListItemDto) => assignedIds.has(e.id));
+    }
+
+    return items;
   }
 
   /**
@@ -238,6 +264,8 @@ export class EinsatzController {
    */
   @Put(':id/rollen')
   @Roles('USER', 'ADMIN', 'SUPER_ADMIN')
+  @RequiresOperativeRole('FUEHRUNGSKRAFT')
+  @UseGuards(OperativeRoleGuard)
   @ApiOperation({
     summary: 'Rollen-Zuweisungen eines Einsatzes aktualisieren',
     description: 'Ersetzt alle befehlsspezifischen Rollenzuweisungen fuer einen Einsatz (atomares Update).',
@@ -362,8 +390,13 @@ export class EinsatzController {
   @ApiWrappedResponse(EinsatzDetailsDto, { description: 'Einsatz mit ETB und Lagekarte' })
   @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Ungültige Einsatz-ID' })
-  async getEinsatzDetails(@Param('id') id: string): Promise<EinsatzDetailsDto> {
+  async getEinsatzDetails(@Param('id') id: string, @CurrentUser() user: ValidatedUser): Promise<EinsatzDetailsDto> {
     try {
+      // Zugriffsprüfung: EK und EXTERNE benötigen Zuweisung oder genehmigte Beitrittsanfrage
+      if (user.operativeRole === 'EINSATZKRAFT' || user.operativeRole === 'EXTERNE') {
+        await this.ensureEinsatzAccess(id, user.userId);
+      }
+
       const result = await this.queryBus.execute(new GetEinsatzDetailsQuery(id));
       if (result.isFailure) throw new NotFoundException(result.error);
       if (!result.value) throw new NotFoundException(`Einsatz mit ID ${id} nicht gefunden`);
@@ -385,11 +418,11 @@ export class EinsatzController {
    * GetEinsatzByIdQuery gibt EinsatzDto zurück, nicht EinsatzResponseDto.
    */
   @Get(':id')
-  @ApiOperation({ summary: 'Einzelnen Einsatz abrufen', description: 'Gibt einen einzelnen Einsatz mit allen Details zurück.' })
+  @ApiOperation({ summary: 'Einzelnen Einsatz abrufen', description: 'Gibt einen einzelnen Einsatz mit allen Details zurück. EK/EXTERNE benötigen Zuweisung oder genehmigte Beitrittsanfrage.' })
   @ApiWrappedResponse(EinsatzResponseDto, { description: 'Einsatz gefunden' })
   @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
   @ApiBadRequestResponse({ description: 'Ungültige Einsatz-ID' })
-  async findOne(@Param('id') id: string): Promise<EinsatzResponseDto> {
+  async findOne(@Param('id') id: string, @CurrentUser() user: ValidatedUser): Promise<EinsatzResponseDto> {
     // GetAllEinsaetzeQuery mit Suche nach ID - gibt EinsatzResponseDto mit computed fields zurück
     const result = await this.queryBus.execute(
       new GetAllEinsaetzeQuery({
@@ -406,6 +439,11 @@ export class EinsatzController {
     const einsatz = result.value?.items?.find((e: EinsatzResponseDto) => e.id === id);
     if (!einsatz) throw new NotFoundException(`Einsatz mit ID ${id} nicht gefunden`);
 
+    // Zugriffsprüfung: EK und EXTERNE benötigen Zuweisung oder genehmigte Beitrittsanfrage
+    if (user.operativeRole === 'EINSATZKRAFT' || user.operativeRole === 'EXTERNE') {
+      await this.ensureEinsatzAccess(id, user.userId);
+    }
+
     return einsatz;
   }
 
@@ -414,6 +452,8 @@ export class EinsatzController {
    */
   @Patch(':id')
   @Roles('USER', 'ADMIN', 'SUPER_ADMIN')
+  @RequiresOperativeRole('FUEHRUNGSKRAFT')
+  @UseGuards(OperativeRoleGuard)
   @ApiOperation({ summary: 'Einsatz aktualisieren', description: 'Aktualisiert einen bestehenden Einsatz.' })
   @ApiWrappedResponse(EinsatzDto, { description: 'Einsatz erfolgreich aktualisiert' })
   @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
@@ -435,6 +475,8 @@ export class EinsatzController {
    */
   @Post(':id/start')
   @Roles('USER', 'ADMIN', 'SUPER_ADMIN')
+  @RequiresOperativeRole('FUEHRUNGSKRAFT')
+  @UseGuards(OperativeRoleGuard)
   @ApiOperation({ summary: 'Einsatz starten', description: 'Markiert einen Einsatz als IN_BEARBEITUNG. Wird automatisch aufgerufen wenn ein Einsatz vollständig geöffnet wird.' })
   @ApiWrappedResponse(EinsatzDto, { description: 'Einsatz erfolgreich gestartet' })
   @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
@@ -456,6 +498,8 @@ export class EinsatzController {
    */
   @Post(':id/complete')
   @Roles('USER', 'ADMIN', 'SUPER_ADMIN')
+  @RequiresOperativeRole('FUEHRUNGSKRAFT')
+  @UseGuards(OperativeRoleGuard)
   @ApiOperation({ summary: 'Einsatz abschließen', description: 'Markiert einen Einsatz als ABGESCHLOSSEN und sperrt das ETB.' })
   @ApiWrappedResponse(EinsatzDto, { description: 'Einsatz erfolgreich abgeschlossen' })
   @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
@@ -483,6 +527,8 @@ export class EinsatzController {
    */
   @Post(':id/archive')
   @Roles('USER', 'ADMIN', 'SUPER_ADMIN')
+  @RequiresOperativeRole('FUEHRUNGSKRAFT')
+  @UseGuards(OperativeRoleGuard)
   @ApiOperation({ summary: 'Einsatz archivieren (Soft-Delete)', description: 'Markiert einen Einsatz als ARCHIVIERT. Niemals physisch gelöscht.' })
   @ApiWrappedResponse(EinsatzDto, { description: 'Einsatz erfolgreich archiviert' })
   @ApiNotFoundResponse({ description: 'Einsatz nicht gefunden' })
@@ -542,5 +588,38 @@ export class EinsatzController {
     if (result.isFailure) throw new InternalServerErrorException(result.error);
     if (!result.value) throw new NotFoundException(`Einsatz mit ID ${id} nicht gefunden`);
     return result.value;
+  }
+
+  /**
+   * Gibt die IDs aller Einsätze zurück, an denen der User aktiv teilnimmt.
+   */
+  private async getAssignedEinsatzIds(userId: string): Promise<Set<string>> {
+    const teilnahmen = await this.prisma.einsatzTeilnehmer.findMany({
+      where: { userId, leftAt: null },
+      select: { einsatzId: true },
+    });
+    return new Set(teilnahmen.map((t) => t.einsatzId));
+  }
+
+  /**
+   * Prüft ob ein User Zugriff auf einen bestimmten Einsatz hat
+   * (via aktive Teilnahme oder genehmigte Beitrittsanfrage).
+   *
+   * @throws ForbiddenException wenn kein Zugriff besteht
+   */
+  private async ensureEinsatzAccess(einsatzId: string, userId: string): Promise<void> {
+    // Beide Prüfungen parallel ausführen
+    const [teilnehmer, beitrittsanfrage] = await Promise.all([
+      this.prisma.einsatzTeilnehmer.findFirst({
+        where: { einsatzId, userId, leftAt: null },
+      }),
+      this.prisma.einsatzBeitrittsanfrage.findFirst({
+        where: { einsatzId, userId, status: 'GENEHMIGT' },
+      }),
+    ]);
+
+    if (!teilnehmer && !beitrittsanfrage) {
+      throw new ForbiddenException('Kein Zugriff auf diesen Einsatz — Zuweisung oder genehmigte Beitrittsanfrage erforderlich');
+    }
   }
 }

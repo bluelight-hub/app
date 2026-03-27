@@ -12,11 +12,13 @@ describe('EinsatzController - Mutation Authorization', () => {
   let mockGetTeilnehmerHandler: { execute: jest.Mock };
   let mockUpdateEinsatzRollenHandler: { execute: jest.Mock };
   let mockGetEinsatzRollenQueryHandler: { execute: jest.Mock };
+  let mockPrisma: any;
 
   const einsatzId = 'clw3h8x9y0000qwertyuiopas';
   const currentUser: ValidatedUser = {
     userId: 'user-123',
     role: 'USER',
+    operativeRole: 'FUEHRUNGSKRAFT',
   };
 
   const einsatzDto = {
@@ -34,8 +36,12 @@ describe('EinsatzController - Mutation Authorization', () => {
     mockGetTeilnehmerHandler = { execute: jest.fn() };
     mockUpdateEinsatzRollenHandler = { execute: jest.fn() };
     mockGetEinsatzRollenQueryHandler = { execute: jest.fn() };
+    mockPrisma = {
+      einsatzTeilnehmer: { findMany: jest.fn(), findFirst: jest.fn() },
+      einsatzBeitrittsanfrage: { findFirst: jest.fn() },
+    };
 
-    controller = new EinsatzController(mockCommandBus, mockQueryBus, mockGetTeilnehmerHandler, mockUpdateEinsatzRollenHandler, mockGetEinsatzRollenQueryHandler);
+    controller = new EinsatzController(mockCommandBus, mockQueryBus, mockGetTeilnehmerHandler, mockUpdateEinsatzRollenHandler, mockGetEinsatzRollenQueryHandler, mockPrisma);
   });
 
   const setupQueryBus = (isAuthorized: boolean) => {
