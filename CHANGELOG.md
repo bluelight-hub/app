@@ -1,3 +1,7 @@
+## ETB (Elektronisches Tagebuch)
+
+- **Behobener Fehler**: Das ETB wurde nach Abschluss eines Einsatzes kurzzeitig noch als bearbeitbar angezeigt, obwohl es bereits gesperrt war. Die Anzeige aktualisiert sich nun sofort korrekt.
+
 ## ETB (Einsatztagebuch)
 
 - **Automatische ETB-Sperrung**: Das ETB wird nun sofort gesperrt, wenn ein Einsatz beendet wird – ohne Verzögerung. Die manuelle Sperrfunktion wurde entfernt, da sie redundant war.
