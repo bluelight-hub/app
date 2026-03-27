@@ -261,6 +261,26 @@ export const EVENT_NAMES = {
     /** Event: System-Warnung wurde ausgeloest (Schwellwert ueberschritten) */
     WARNUNG: 'system.warnung',
   },
+
+  /**
+   * Operative Rolle Bounded Context Events (Issue #98)
+   */
+  OPERATIVE_ROLLE: {
+    /** Event: Operative Rolle eines Users wurde geändert */
+    CHANGED: 'operative_rolle.changed',
+    /** Event: Stammperson wurde einem User zugewiesen */
+    STAMMPERSON_ASSIGNED: 'operative_rolle.stammperson_assigned',
+  },
+
+  /**
+   * Einsatz-Beitrittsanfrage Bounded Context Events (Issue #98)
+   */
+  BEITRITTSANFRAGE: {
+    /** Event: Neue Beitrittsanfrage wurde erstellt */
+    ERSTELLT: 'beitrittsanfrage.erstellt',
+    /** Event: Beitrittsanfrage wurde entschieden (genehmigt/abgelehnt) */
+    ENTSCHIEDEN: 'beitrittsanfrage.entschieden',
+  },
 } as const;
 
 /**
@@ -292,4 +312,6 @@ export type EventName =
   | (typeof EVENT_NAMES.EINSATZ_ROLLE)[keyof typeof EVENT_NAMES.EINSATZ_ROLLE]
   | (typeof EVENT_NAMES.BEFEHL)[keyof typeof EVENT_NAMES.BEFEHL]
   | (typeof EVENT_NAMES.AUFBEWAHRUNG)[keyof typeof EVENT_NAMES.AUFBEWAHRUNG]
-  | (typeof EVENT_NAMES.SYSTEM)[keyof typeof EVENT_NAMES.SYSTEM];
+  | (typeof EVENT_NAMES.SYSTEM)[keyof typeof EVENT_NAMES.SYSTEM]
+  | (typeof EVENT_NAMES.OPERATIVE_ROLLE)[keyof typeof EVENT_NAMES.OPERATIVE_ROLLE]
+  | (typeof EVENT_NAMES.BEITRITTSANFRAGE)[keyof typeof EVENT_NAMES.BEITRITTSANFRAGE];

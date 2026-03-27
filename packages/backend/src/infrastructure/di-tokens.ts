@@ -127,6 +127,9 @@ export const KRAEFTE_REPOSITORIES = {
 /** Export Service Token für IPdfExportService (Story 9.6) */
 export const PDF_EXPORT_SERVICE = Symbol('IPdfExportService');
 
+/** Repository Token für IEinsatzBeitrittsanfrageRepository (Issue #98) */
+export const EINSATZ_BEITRITTSANFRAGE_REPOSITORY = Symbol('IEinsatzBeitrittsanfrageRepository');
+
 /** Export Service Token für ICsvExportService (Story 9.6) */
 export const CSV_EXPORT_SERVICE = Symbol('ICsvExportService');
 
