@@ -1,6 +1,7 @@
 import { PrismaModule } from '@/infrastructure/database/prisma.module';
 import { LOGGER } from '@/infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@/infrastructure/common/adapters/nest-logger.adapter';
+import { OperativeRoleGuard } from '@/modules/auth/guards/operative-role.guard';
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { EinsatzApplicationModule } from '@/application/einsatz/einsatz-application.module';
@@ -42,6 +43,8 @@ import { EinsatzController } from './controllers/einsatz.controller';
       provide: LOGGER,
       useFactory: () => new NestLoggerAdapter('EinsatzModule'),
     },
+    // Guard für operative Rollenkontrolle (FUEHRUNGSKRAFT/EINSATZKRAFT/EXTERNE)
+    OperativeRoleGuard,
   ],
   exports: [],
 })

@@ -10,6 +10,7 @@ describe('EinsatzController - Rollen Endpoints', () => {
   let mockGetTeilnehmerHandler: any;
   let mockUpdateEinsatzRollenHandler: any;
   let mockGetEinsatzRollenQueryHandler: any;
+  let mockPrisma: any;
 
   beforeEach(() => {
     mockCommandBus = { execute: jest.fn() };
@@ -17,8 +18,12 @@ describe('EinsatzController - Rollen Endpoints', () => {
     mockGetTeilnehmerHandler = { execute: jest.fn() };
     mockUpdateEinsatzRollenHandler = { execute: jest.fn() };
     mockGetEinsatzRollenQueryHandler = { execute: jest.fn() };
+    mockPrisma = {
+      einsatzTeilnehmer: { findMany: jest.fn(), findFirst: jest.fn() },
+      einsatzBeitrittsanfrage: { findFirst: jest.fn() },
+    };
 
-    controller = new EinsatzController(mockCommandBus, mockQueryBus, mockGetTeilnehmerHandler, mockUpdateEinsatzRollenHandler, mockGetEinsatzRollenQueryHandler);
+    controller = new EinsatzController(mockCommandBus, mockQueryBus, mockGetTeilnehmerHandler, mockUpdateEinsatzRollenHandler, mockGetEinsatzRollenQueryHandler, mockPrisma);
   });
 
   describe('GET :id/rollen', () => {
