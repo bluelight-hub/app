@@ -134,7 +134,6 @@ export const EINSATZ_WORKSPACE_MODULES: WorkspaceModuleDefinition[] = [
     icon: PiRadio,
     color: 'green',
     description: 'Funk und Alarmierung',
-    visibility: disabled(LATER_RING_REASON),
     subPages: [
       createSubPage(0, { id: 'funk', label: 'Funkverkehr', href: '/app/einsatz/$einsatzId/kommunikation/funk', icon: PiRadio, description: 'Funkprotokoll' }),
       createSubPage(1, { id: 'alarmierung', label: 'Alarmierung', href: '/app/einsatz/$einsatzId/kommunikation/alarmierung', icon: PiMegaphone, description: 'Nachalarmierung' }),

@@ -15,6 +15,7 @@ apis/AuthApi.ts
 apis/BefehleApi.ts
 apis/ETBApi.ts
 apis/EinsatzApi.ts
+apis/EinsatzBeitrittApi.ts
 apis/EinsatzFahrzeugeApi.ts
 apis/EinsatzFuehrungsrhythmusTemplatesApi.ts
 apis/EinsatzPersonenApi.ts
@@ -73,6 +74,7 @@ models/AdminInviteControllerCreateInviteVAlpha201Response.ts
 models/AdminInviteControllerListInvitesVAlpha200Response.ts
 models/AdminInviteControllerRevokeInviteVAlpha200Response.ts
 models/AdminLoginResponseDto.ts
+models/AdminOperativeRoleControllerChangeOperativeRoleVAlpha200Response.ts
 models/AdminPasswordDto.ts
 models/AdminPermissionsControllerGetAvailablePermissionsVAlpha200Response.ts
 models/AdminQualifikationenControllerCreateVAlpha201Response.ts
@@ -108,6 +110,7 @@ models/ApiMeta.ts
 models/ApiPagination.ts
 models/ApiResponseTimeDto.ts
 models/AssignErinnerungDto.ts
+models/AssignStammpersonDto.ts
 models/AufbewahrungControllerGetConfigVAlpha200Response.ts
 models/AufbewahrungControllerGetReportsVAlpha200Response.ts
 models/AufbewahrungControllerGetVorschauVAlpha200Response.ts
@@ -151,8 +154,10 @@ models/BefehlKommentarDto.ts
 models/BefehlPermissionsDto.ts
 models/BefehlsgeberSucheResultDto.ts
 models/BefehlsgeberVorschlagDto.ts
+models/BeitrittsanfrageResponseDto.ts
 models/BesatzungMemberDto.ts
 models/BesetzeRolleDto.ts
+models/ChangeOperativeRoleDto.ts
 models/CircuitBreakerStatusEntryDto.ts
 models/CompleteSetupDto.ts
 models/CompletenessResponseDto.ts
@@ -186,6 +191,8 @@ models/DeleteRuntimeConfigResultDto.ts
 models/DeleteUserDto.ts
 models/DetailedHealthDto.ts
 models/DisconnectResponseDto.ts
+models/EinsatzBeitrittControllerCreateVAlpha201Response.ts
+models/EinsatzBeitrittControllerFindAllVAlpha200Response.ts
 models/EinsatzControllerCreateVAlpha201Response.ts
 models/EinsatzControllerFindAllVAlpha200Response.ts
 models/EinsatzControllerFindOneVAlpha200Response.ts
@@ -328,6 +335,7 @@ models/NavigationResponseDto.ts
 models/NotizControllerCreateVAlpha201Response.ts
 models/NotizControllerGetByEinsatzVAlpha200Response.ts
 models/NotizResponseDto.ts
+models/OperativeRoleResponseDto.ts
 models/PersonRegisteredResponseDto.ts
 models/PersonStatistikDto.ts
 models/PersonStatistikItemDto.ts
@@ -352,6 +360,7 @@ models/RefreshResponseDto.ts
 models/RefreshTokenResponseDto.ts
 models/RegistrierePersonDto.ts
 models/RegistrierePersonViaQrCodeDto.ts
+models/ResolveBeitrittsanfrageDto.ts
 models/RevokeInviteResponseDto.ts
 models/RolleFreigegebenResponseDto.ts
 models/RollenBesetzungControllerBesetzeRolleVAlpha201Response.ts
