@@ -55,8 +55,8 @@ importers:
         specifier: workspace:*
         version: link:../shared
       '@dotenvx/dotenvx':
-        specifier: ^1.57.2
-        version: 1.57.2
+        specifier: ^1.58.0
+        version: 1.58.0
       '@dotenvx/dotenvx-ops':
         specifier: ^0.36.1
         version: 0.36.1(@types/node@25.5.0)
@@ -263,8 +263,8 @@ importers:
         specifier: workspace:*
         version: link:../shared
       '@dotenvx/dotenvx':
-        specifier: ^1.57.2
-        version: 1.57.2
+        specifier: ^1.58.0
+        version: 1.58.0
       '@fontsource-variable/inter':
         specifier: ^5.2.8
         version: 5.2.8
@@ -1622,8 +1622,8 @@ packages:
     resolution: {integrity: sha512-NyCZ70FMZayHEakP8Z+pN1FtY4vD8/9go83zUcOLUwELycV/MRfTG7mZuyfSXw+YukreDU9W6EjKfe25Wd62tw==}
     hasBin: true
 
-  '@dotenvx/dotenvx@1.57.2':
-    resolution: {integrity: sha512-lv9+UZPnl/KOvShepevLWm3+/wc1It5kgO5Q580evnvOFMZcgKVEYFwxlL7Ohl9my1yjTsWo28N3PJYUEO8wFQ==}
+  '@dotenvx/dotenvx@1.58.0':
+    resolution: {integrity: sha512-xizSguxyyvH5eqGWJrhTomUdXFSRaweXBEXxTpkbaalIjHZeKPNPHpevwxCXXqdXPe5bTIeEtBSKD+zStadGFw==}
     hasBin: true
 
   '@ecies/ciphers@0.2.5':
@@ -13262,7 +13262,7 @@ snapshots:
   '@dotenvx/dotenvx-ops@0.36.1(@types/node@25.5.0)':
     dependencies:
       '@clack/core': 0.4.2
-      '@dotenvx/dotenvx': 1.57.2
+      '@dotenvx/dotenvx': 1.58.0
       '@inquirer/prompts': 7.10.1(@types/node@25.5.0)
       arch: 2.2.0
       commander: 11.1.0
@@ -13279,7 +13279,7 @@ snapshots:
       - '@types/node'
       - supports-color
 
-  '@dotenvx/dotenvx@1.57.2':
+  '@dotenvx/dotenvx@1.58.0':
     dependencies:
       commander: 11.1.0
       dotenv: 17.3.1

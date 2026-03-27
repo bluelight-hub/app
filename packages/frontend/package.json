@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@bluelight-hub/shared": "workspace:*",
-    "@dotenvx/dotenvx": "^1.57.2",
+    "@dotenvx/dotenvx": "^1.58.0",
     "@fontsource-variable/inter": "^5.2.8",
     "@fontsource-variable/montserrat": "^5.2.8",
     "@fontsource-variable/nunito": "^5.2.7",
