@@ -9,6 +9,7 @@ const authUserSchema = z
     id: z.string(),
     username: z.string(),
     role: z.string().optional(),
+    operativeRole: z.enum(['FUEHRUNGSKRAFT', 'EINSATZKRAFT', 'EXTERNE']).optional(),
     isActive: z.boolean().optional(),
     lastLoginAt: z.string().optional(),
     createdAt: z.string().optional(),
