@@ -113,6 +113,12 @@ import { AufbewahrungsKonfigurationGeaendertEvent } from '@domain/events/aufbewa
 import { SystemWarnungEvent } from '@domain/events/system-warnung.event';
 import { WarnungTyp } from '@domain/value-objects/warnung-typ';
 
+// Operative Rollen Events (Issue #98)
+import { OperativeRoleChangedEvent } from '@domain/events/operative-role-changed.event';
+import { StammpersonAssignedEvent } from '@domain/events/stammperson-assigned.event';
+import { EinsatzBeitrittsanfrageErstelltEvent } from '@domain/events/einsatz-beitrittsanfrage-erstellt.event';
+import { EinsatzBeitrittsanfrageEntschiedenEvent } from '@domain/events/einsatz-beitrittsanfrage-entschieden.event';
+
 // Fahrzeugtyp Events
 import { FahrzeugtypCreatedEvent } from '@domain/kraefte/events/fahrzeugtyp-created.event';
 import { FahrzeugtypUpdatedEvent } from '@domain/kraefte/events/fahrzeugtyp-updated.event';
@@ -309,6 +315,14 @@ export class EventDeserializer {
 
       // ===== SYSTEM MONITORING EVENTS (Story 5.6) =====
       ['system.warnung', deserializeSystemWarnung],
+
+      // ===== OPERATIVE ROLLEN EVENTS (Issue #98) =====
+      ['operative_rolle.changed', deserializeOperativeRoleChanged],
+      ['operative_rolle.stammperson_assigned', deserializeStammpersonAssigned],
+
+      // ===== BEITRITTSANFRAGE EVENTS (Issue #98) =====
+      ['beitrittsanfrage.erstellt', deserializeBeitrittsanfrageErstellt],
+      ['beitrittsanfrage.entschieden', deserializeBeitrittsanfrageEntschieden],
     ]);
   }
 
@@ -1991,5 +2005,36 @@ function deserializeAufbewahrungsKonfigurationGeaendert(payload: Record<string, 
 
 function deserializeSystemWarnung(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
   const event = new SystemWarnungEvent(payload.warnungTyp as WarnungTyp, payload.schwellwert as number, payload.aktuellerWert as number, new Date(payload.timestamp as string), aggregateId);
+  return Result.ok<DomainEvent>(event);
+}
+
+// ===== OPERATIVE ROLLEN DESERIALIZERS (Issue #98) =====
+
+function deserializeOperativeRoleChanged(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const event = new OperativeRoleChangedEvent(payload.userId as string, payload.oldRole as string, payload.newRole as string, payload.changedBy as string, aggregateId);
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializeStammpersonAssigned(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const event = new StammpersonAssignedEvent(payload.userId as string, payload.stammpersonId as string, payload.assignedBy as string, aggregateId);
+  return Result.ok<DomainEvent>(event);
+}
+
+// ===== BEITRITTSANFRAGE DESERIALIZERS (Issue #98) =====
+
+function deserializeBeitrittsanfrageErstellt(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const event = new EinsatzBeitrittsanfrageErstelltEvent(payload.anfrageId as string, payload.einsatzId as string, payload.userId as string, aggregateId);
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializeBeitrittsanfrageEntschieden(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const event = new EinsatzBeitrittsanfrageEntschiedenEvent(
+    payload.anfrageId as string,
+    payload.einsatzId as string,
+    payload.userId as string,
+    payload.decision as 'GENEHMIGT' | 'ABGELEHNT',
+    payload.resolvedBy as string,
+    aggregateId,
+  );
   return Result.ok<DomainEvent>(event);
 }
