@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/infrastructure/database/prisma.module';
 import { OutboxModule } from '@infrastructure/outbox/outbox.module';
-import { LOGGER } from '@infrastructure/di-tokens';
+import { EINSATZ_BEITRITTSANFRAGE_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
+import { PrismaEinsatzBeitrittsanfrageRepository } from '@infrastructure/database/repositories/prisma-einsatz-beitrittsanfrage.repository';
 import { CreateBeitrittsanfrageHandler } from './commands/create-beitrittsanfrage/create-beitrittsanfrage.handler';
 import { ResolveBeitrittsanfrageHandler } from './commands/resolve-beitrittsanfrage/resolve-beitrittsanfrage.handler';
 import { GetBeitrittsanfragenHandler } from './queries/get-beitrittsanfragen/get-beitrittsanfragen.handler';
@@ -19,10 +20,14 @@ import { GetBeitrittsanfragenHandler } from './queries/get-beitrittsanfragen/get
       provide: LOGGER,
       useFactory: () => new NestLoggerAdapter('EinsatzBeitritt'),
     },
+    {
+      provide: EINSATZ_BEITRITTSANFRAGE_REPOSITORY,
+      useClass: PrismaEinsatzBeitrittsanfrageRepository,
+    },
     CreateBeitrittsanfrageHandler,
     ResolveBeitrittsanfrageHandler,
     GetBeitrittsanfragenHandler,
   ],
-  exports: [CreateBeitrittsanfrageHandler, ResolveBeitrittsanfrageHandler, GetBeitrittsanfragenHandler],
+  exports: [CreateBeitrittsanfrageHandler, ResolveBeitrittsanfrageHandler, GetBeitrittsanfragenHandler, EINSATZ_BEITRITTSANFRAGE_REPOSITORY],
 })
 export class EinsatzBeitrittApplicationModule {}

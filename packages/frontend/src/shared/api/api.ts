@@ -12,6 +12,7 @@ import {
   AdminStammdatenPersonenApi,
   AufbewahrungApi,
   AuthApi,
+  EinsatzBeitrittApi,
   BefehleApi,
   Configuration,
   EinsatzApi,
@@ -122,6 +123,7 @@ class BackendApi {
   private readonly userManagementApi: UserManagementApi;
   private readonly usersApi: UsersApi;
   private readonly einsatzApi: EinsatzApi;
+  private readonly einsatzBeitrittApi: EinsatzBeitrittApi;
   private readonly etbApi: ETBApi;
   private readonly lagekarteApi: LagekarteApi;
   private readonly lagekarteCqrsApi: LagekarteCQRSApi;
@@ -177,6 +179,7 @@ class BackendApi {
     this.userManagementApi = new UserManagementApi(this.configuration);
     this.usersApi = new UsersApi(this.configuration);
     this.einsatzApi = new EinsatzApi(this.configuration);
+    this.einsatzBeitrittApi = new EinsatzBeitrittApi(this.configuration);
     this.etbApi = new ETBApi(this.configuration);
     this.lagekarteApi = new LagekarteApi(this.configuration);
     this.lagekarteCqrsApi = new LagekarteCQRSApi(this.configuration);
@@ -288,6 +291,15 @@ class BackendApi {
    */
   einsatz(): EinsatzApi {
     return this.einsatzApi;
+  }
+
+  /**
+   * Gibt die gecachte EinsatzBeitritt-API-Instanz zurück
+   *
+   * @returns Die EinsatzBeitritt-API-Instanz für Beitrittsanfragen-Management
+   */
+  einsatzBeitritt(): EinsatzBeitrittApi {
+    return this.einsatzBeitrittApi;
   }
 
   /**

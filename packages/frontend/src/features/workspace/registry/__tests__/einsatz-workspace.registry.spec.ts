@@ -48,8 +48,8 @@ describe('einsatz workspace registry', () => {
     const fuehrungModule = EINSATZ_WORKSPACE_MODULES.find((module) => module.id === 'führung');
     const kraefteModule = EINSATZ_WORKSPACE_MODULES.find((module) => module.id === 'kräfte');
 
-    expect(visibleModules.map((module) => module.id)).toEqual(['übersicht', 'führung', 'kräfte']);
-    expect(disabledModules.map((module) => module.id)).toEqual(['kommunikation', 'sicherheit', 'patienten', 'betreuung', 'logistik', 'drohne']);
+    expect(visibleModules.map((module) => module.id)).toEqual(['übersicht', 'führung', 'kommunikation', 'kräfte']);
+    expect(disabledModules.map((module) => module.id)).toEqual(['sicherheit', 'patienten', 'betreuung', 'logistik', 'drohne']);
     expect(disabledModules.every((module) => module.visibility.reason)).toBe(true);
     expect(fuehrungModule?.subPages.find((page) => page.id === 'etb')?.visibility.default).toBe('visible');
     expect(fuehrungModule?.subPages.find((page) => page.id === 'pinnwand')?.visibility.default).toBe('visible');
@@ -94,7 +94,7 @@ describe('einsatz workspace registry', () => {
   it('erlaubt nur sichtbare Module und Unterseiten für Direktaufrufe', () => {
     expect(isWorkspaceRouteAccessible('/app/einsatz/einsatz-42/führung/etb', 'einsatz-42')).toBe(true);
     expect(isWorkspaceRouteAccessible('/app/einsatz/einsatz-42/führung/protokoll', 'einsatz-42')).toBe(false);
-    expect(isWorkspaceRouteAccessible('/app/einsatz/einsatz-42/kommunikation/funk', 'einsatz-42')).toBe(false);
+    expect(isWorkspaceRouteAccessible('/app/einsatz/einsatz-42/kommunikation/funk', 'einsatz-42')).toBe(true);
     expect(isWorkspaceRouteAccessible('/app/einsatz/einsatz-42/übersicht', 'einsatz-42')).toBe(true);
     expect(isWorkspaceRouteAccessible('/app/einsatz/einsatz-42/übersicht/', 'einsatz-42')).toBe(true);
     expect(isWorkspaceRouteAccessible('/app/einsatz/einsatz-42/übersicht/karte', 'einsatz-42')).toBe(true);

@@ -48,26 +48,16 @@ describe('Route /app/einsatz/$einsatzId Guard', () => {
     ).not.toThrow();
   });
 
-  it('leitet deaktivierte Workspace-Ziele auf den kanonischen Pfad zurück', async () => {
+  it('lässt freigegebene Kommunikations-Ziele unverändert passieren', async () => {
     const { Route } = await import('../../$einsatzId');
     const beforeLoad = (Route as { beforeLoad: (args: { location: { pathname: string }; params: { einsatzId: string } }) => void }).beforeLoad;
-    let thrownValue: unknown;
 
-    try {
+    expect(() =>
       beforeLoad({
         location: { pathname: '/app/einsatz/einsatz-42/kommunikation/funk' },
         params: { einsatzId: 'einsatz-42' },
-      });
-    } catch (error) {
-      thrownValue = error;
-    }
-
-    expect(thrownValue).toEqual({
-      redirect: {
-        to: '/app/einsatz/$einsatzId/übersicht',
-        params: { einsatzId: 'einsatz-42' },
-      },
-    });
+      }),
+    ).not.toThrow();
   });
 
   it('leitet unbekannte Workspace-Subpfade kontrolliert auf den kanonischen Pfad zurück', async () => {
