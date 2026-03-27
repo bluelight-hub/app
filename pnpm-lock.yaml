@@ -58,8 +58,8 @@ importers:
         specifier: ^1.57.2
         version: 1.57.2
       '@dotenvx/dotenvx-ops':
-        specifier: ^0.36.1
-        version: 0.36.1(@types/node@25.5.0)
+        specifier: ^0.37.4
+        version: 0.37.4(@types/node@25.5.0)
       '@nestjs/axios':
         specifier: ^4.0.1
         version: 4.0.1(@nestjs/common@11.1.17(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2))(axios@1.13.6(debug@4.4.3))(rxjs@7.8.2)
@@ -1618,8 +1618,8 @@ packages:
     resolution: {integrity: sha512-Y6+WUMsTFWE5jb20IFP4YGa5IrGY/+a/FbOSjDF/wz9gepU2hwCYSXRHP/vPwBvwcY3SVMASt4yXxbXNXigmZQ==}
     engines: {node: '>=18'}
 
-  '@dotenvx/dotenvx-ops@0.36.1':
-    resolution: {integrity: sha512-NyCZ70FMZayHEakP8Z+pN1FtY4vD8/9go83zUcOLUwELycV/MRfTG7mZuyfSXw+YukreDU9W6EjKfe25Wd62tw==}
+  '@dotenvx/dotenvx-ops@0.37.4':
+    resolution: {integrity: sha512-R39c+XqQBaQMgwAP3yRDwMiIZU/tVBHIw6bWdWIFC+gmBj/lOIV56/i8JNjWG5QPd+Ww/Mmt/5YnyWH5kUHSuQ==}
     hasBin: true
 
   '@dotenvx/dotenvx@1.57.2':
@@ -8823,6 +8823,9 @@ packages:
   path-to-regexp@8.3.0:
     resolution: {integrity: sha512-7jdwVIRtsP8MYpdXSwOS0YdD0Du+qOoF/AEPIt88PcCFrZCzx41oxku1jD88hZBwbNUIEfpqvuhjFaMAqMTWnA==}
 
+  path-to-regexp@8.4.0:
+    resolution: {integrity: sha512-PuseHIvAnz3bjrM2rGJtSgo1zjgxapTLZ7x2pjhzWwlp4SJQgK3f3iZIQwkpEnBaKz6seKBADpM4B4ySkuYypg==}
+
   path-type@4.0.0:
     resolution: {integrity: sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==}
     engines: {node: '>=8'}
@@ -9951,8 +9954,8 @@ packages:
     resolution: {integrity: sha512-Bh7QjT8/SuKUIfObSXNHNSK6WHo6J1tHCqJsuaFDP7gP0fkzSfTxI8y85JrppZ0h8l0maIgc2tfuZQ6/t3GtnQ==}
     engines: {node: ^14.18.0 || >=16.0.0}
 
-  systeminformation@5.31.4:
-    resolution: {integrity: sha512-lZppDyQx91VdS5zJvAyGkmwe+Mq6xY978BDUG2wRkWE+jkmUF5ti8cvOovFQoN5bvSFKCXVkyKEaU5ec3SJiRg==}
+  systeminformation@5.31.5:
+    resolution: {integrity: sha512-5SyLdip4/3alxD4Kh+63bUQTJmu7YMfYQTC+koZy7X73HgNqZSD2P4wOZQWtUncvPvcEmnfIjCoygN4MRoEejQ==}
     engines: {node: '>=8.0.0'}
     os: [darwin, linux, win32, freebsd, openbsd, netbsd, sunos, android]
     hasBin: true
@@ -10263,12 +10266,12 @@ packages:
     resolution: {integrity: sha512-Hn2tCQpoDt1wv23a68Ctc8Cr/BHpUSfaPYrkajTXOS9IKpxVRx/X5m1K2YkbK2ipgZgxXSgsUinl3x+2YdSSfg==}
     engines: {node: '>=20.18.1'}
 
-  undici@7.24.2:
-    resolution: {integrity: sha512-P9J1HWYV/ajFr8uCqk5QixwiRKmB1wOamgS0e+o2Z4A44Ej2+thFVRLG/eA7qprx88XXhnV5Bl8LHXTURpzB3Q==}
-    engines: {node: '>=20.18.1'}
-
   undici@7.24.5:
     resolution: {integrity: sha512-3IWdCpjgxp15CbJnsi/Y9TCDE7HWVN19j1hmzVhoAkY/+CJx449tVxT5wZc1Gwg8J+P0LWvzlBzxYRnHJ+1i7Q==}
+    engines: {node: '>=20.18.1'}
+
+  undici@7.24.6:
+    resolution: {integrity: sha512-Xi4agocCbRzt0yYMZGMA6ApD7gvtUFaxm4ZmeacWI4cZxaF6C+8I8QfofC20NAePiB/IcvZmzkJ7XPa471AEtA==}
     engines: {node: '>=20.18.1'}
 
   unicode-canonical-property-names-ecmascript@2.0.1:
@@ -13259,7 +13262,7 @@ snapshots:
       gonzales-pe: 4.3.0
       node-source-walk: 7.0.1
 
-  '@dotenvx/dotenvx-ops@0.36.1(@types/node@25.5.0)':
+  '@dotenvx/dotenvx-ops@0.37.4(@types/node@25.5.0)':
     dependencies:
       '@clack/core': 0.4.2
       '@dotenvx/dotenvx': 1.57.2
@@ -13273,8 +13276,8 @@ snapshots:
       express: 5.2.1
       open: 8.4.2
       playwright: 1.58.2
-      systeminformation: 5.31.4
-      undici: 7.24.2
+      systeminformation: 5.31.5
+      undici: 7.24.6
     transitivePeerDependencies:
       - '@types/node'
       - supports-color
@@ -17945,7 +17948,7 @@ snapshots:
       parse5: 7.3.0
       parse5-htmlparser2-tree-adapter: 7.1.0
       parse5-parser-stream: 7.1.2
-      undici: 7.24.5
+      undici: 7.24.6
       whatwg-mimetype: 4.0.0
 
   chevrotain@10.5.0:
@@ -21197,6 +21200,8 @@ snapshots:
 
   path-to-regexp@8.3.0: {}
 
+  path-to-regexp@8.4.0: {}
+
   path-type@4.0.0: {}
 
   pathe@2.0.3: {}
@@ -21883,7 +21888,7 @@ snapshots:
       depd: 2.0.0
       is-promise: 4.0.0
       parseurl: 1.3.3
-      path-to-regexp: 8.3.0
+      path-to-regexp: 8.4.0
     transitivePeerDependencies:
       - supports-color
 
@@ -22453,7 +22458,7 @@ snapshots:
     dependencies:
       '@pkgr/core': 0.2.9
 
-  systeminformation@5.31.4: {}
+  systeminformation@5.31.5: {}
 
   tabbable@6.2.0: {}
 
@@ -22759,9 +22764,9 @@ snapshots:
 
   undici@7.21.0: {}
 
-  undici@7.24.2: {}
-
   undici@7.24.5: {}
+
+  undici@7.24.6: {}
 
   unicode-canonical-property-names-ecmascript@2.0.1: {}
 
