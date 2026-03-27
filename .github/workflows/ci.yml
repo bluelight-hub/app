@@ -176,7 +176,7 @@ jobs:
             **/trace.zip
 
       - name: Upload backend coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           files: packages/backend/coverage/lcov.info
           flags: backend-unit
@@ -294,7 +294,7 @@ jobs:
             **/trace.zip
 
       - name: Upload frontend coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           files: packages/frontend/coverage/lcov.info
           flags: frontend
