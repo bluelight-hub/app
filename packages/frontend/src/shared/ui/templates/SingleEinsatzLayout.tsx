@@ -2,6 +2,7 @@ import { useCurrentUser } from '@/features/auth';
 import { useBefehlNotifications, useBefehlWebSocket, useMissedBefehlAlerts, useUnquittierteBefehleCount } from '@/features/befehl';
 import { useMyEinsatzRolle } from '@/features/befehl/api/use-my-einsatz-rolle';
 import { EINSATZ_QUERY_KEYS, EinsatzRolleProvider, useActiveEinsatz, useEinsatzDetails, useMyEinsatzTeilnahme } from '@/features/einsatz';
+import { ETB_QUERY_KEYS } from '@/features/etb';
 import { EinsatzStatusBadge } from '@/features/einsatz/ui/molecules/einsatz-status-badge.molecule';
 import { EinsatzSwitcher } from '@/features/einsatz/ui/molecules/EinsatzSwitcher.molecule';
 import { ModuleOverviewCard } from '@/features/einsatz/ui/molecules/ModuleOverviewCard';
@@ -312,6 +313,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
         queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.detailsCombined(einsatzId) }),
         queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.lists() }),
         queryClient.invalidateQueries({ queryKey: EINSATZ_QUERY_KEYS.activeWithCounts() }),
+        queryClient.invalidateQueries({ queryKey: ETB_QUERY_KEYS.byEinsatz(einsatzId) }),
       ]);
       // Navigate back to overview
       await router.navigate({ to: '/app/einsaetze' });
