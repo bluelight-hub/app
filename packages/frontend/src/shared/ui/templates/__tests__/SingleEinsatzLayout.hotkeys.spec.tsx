@@ -244,19 +244,18 @@ vi.mock('@/features/workspace', async () => {
   };
 });
 
-vi.mock('@/shared', () => ({
-  api: {
-    einsatz: () => ({
-      einsatzControllerStartVAlpha: vi.fn(),
-      einsatzControllerCompleteVAlpha: vi.fn(),
-    }),
-  },
-  EinsatzDtoStatusEnum: {
-    Angelegt: 'Angelegt',
-    Abgeschlossen: 'Abgeschlossen',
-    Archiviert: 'Archiviert',
-  },
-}));
+vi.mock('@/shared', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/shared')>();
+  return {
+    ...actual,
+    api: {
+      einsatz: () => ({
+        einsatzControllerStartVAlpha: vi.fn(),
+        einsatzControllerCompleteVAlpha: vi.fn(),
+      }),
+    },
+  };
+});
 
 vi.mock('@/shared/ui/organisms/command-palette', () => ({
   CommandPalette: ({ modules, open }: { modules: Array<{ name: string; subPages: Array<{ name: string; disabled?: boolean; disabledReason?: string }> }>; open: boolean }) =>
