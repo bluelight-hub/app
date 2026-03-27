@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserRole } from '@/generated/prisma/client';
+import { UserRole, OperativeRole } from '@/generated/prisma/client';
 
 /**
  * DTO für sichere User-Responses (Auth Module)
@@ -26,6 +26,13 @@ export class AuthUserResponseDto {
     example: UserRole.USER,
   })
   role!: UserRole;
+
+  @ApiProperty({
+    description: 'Operative Rolle des Benutzers',
+    enum: OperativeRole,
+    example: OperativeRole.EXTERNE,
+  })
+  operativeRole!: OperativeRole;
 
   @ApiProperty({
     description: 'Gibt an, ob der Benutzer aktiv ist',
