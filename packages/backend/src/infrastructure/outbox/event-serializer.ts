@@ -75,6 +75,10 @@ import type { BefehlAnonymisiertEvent } from '@domain/events/befehl-anonymisiert
 import type { BefehlGeloeschtEvent } from '@domain/events/befehl-geloescht.event';
 import type { AufbewahrungsKonfigurationGeaendertEvent } from '@domain/events/aufbewahrungs-konfiguration-geaendert.event';
 import type { SystemWarnungEvent } from '@domain/events/system-warnung.event';
+import type { OperativeRoleChangedEvent } from '@domain/events/operative-role-changed.event';
+import type { StammpersonAssignedEvent } from '@domain/events/stammperson-assigned.event';
+import type { EinsatzBeitrittsanfrageErstelltEvent } from '@domain/events/einsatz-beitrittsanfrage-erstellt.event';
+import type { EinsatzBeitrittsanfrageEntschiedenEvent } from '@domain/events/einsatz-beitrittsanfrage-entschieden.event';
 
 /**
  * Serialisiertes Event-Payload für Outbox-Persistierung.
@@ -374,6 +378,18 @@ export class EventSerializer {
       // ===== SYSTEM MONITORING EVENTS (Story 5.6) =====
       case 'system.warnung':
         return this.serializeSystemWarnung(event as unknown as SystemWarnungEvent);
+
+      // ===== OPERATIVE ROLLEN EVENTS (Issue #98) =====
+      case 'operative_rolle.changed':
+        return this.serializeOperativeRoleChanged(event as unknown as OperativeRoleChangedEvent);
+      case 'operative_rolle.stammperson_assigned':
+        return this.serializeStammpersonAssigned(event as unknown as StammpersonAssignedEvent);
+
+      // ===== BEITRITTSANFRAGE EVENTS (Issue #98) =====
+      case 'beitrittsanfrage.erstellt':
+        return this.serializeBeitrittsanfrageErstellt(event as unknown as EinsatzBeitrittsanfrageErstelltEvent);
+      case 'beitrittsanfrage.entschieden':
+        return this.serializeBeitrittsanfrageEntschieden(event as unknown as EinsatzBeitrittsanfrageEntschiedenEvent);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -1201,6 +1217,45 @@ export class EventSerializer {
       schwellwert: event.schwellwert,
       aktuellerWert: event.aktuellerWert,
       timestamp: event.timestamp.toISOString(),
+    };
+  }
+
+  // ===== OPERATIVE ROLLEN SERIALIZERS (Issue #98) =====
+
+  private serializeOperativeRoleChanged(event: OperativeRoleChangedEvent): Record<string, unknown> {
+    return {
+      userId: event.userId,
+      oldRole: event.oldRole,
+      newRole: event.newRole,
+      changedBy: event.changedBy,
+    };
+  }
+
+  private serializeStammpersonAssigned(event: StammpersonAssignedEvent): Record<string, unknown> {
+    return {
+      userId: event.userId,
+      stammpersonId: event.stammpersonId,
+      assignedBy: event.assignedBy,
+    };
+  }
+
+  // ===== BEITRITTSANFRAGE SERIALIZERS (Issue #98) =====
+
+  private serializeBeitrittsanfrageErstellt(event: EinsatzBeitrittsanfrageErstelltEvent): Record<string, unknown> {
+    return {
+      anfrageId: event.anfrageId,
+      einsatzId: event.einsatzId,
+      userId: event.userId,
+    };
+  }
+
+  private serializeBeitrittsanfrageEntschieden(event: EinsatzBeitrittsanfrageEntschiedenEvent): Record<string, unknown> {
+    return {
+      anfrageId: event.anfrageId,
+      einsatzId: event.einsatzId,
+      userId: event.userId,
+      decision: event.decision,
+      resolvedBy: event.resolvedBy,
     };
   }
 }

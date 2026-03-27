@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { AppConfigService } from '@/infrastructure/services/app-config.service';
 import { PassportStrategy } from '@nestjs/passport';
-import type { UserRole } from '@/generated/prisma/client';
+import type { UserRole, OperativeRole } from '@/generated/prisma/client';
 import type { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { AuthService } from '../auth.service';
@@ -23,6 +23,7 @@ export interface ValidatedUser {
   userId: string;
   email?: string;
   role?: UserRole;
+  operativeRole?: OperativeRole;
 }
 
 /**
@@ -73,6 +74,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     return {
       userId: payload.sub,
       role: payload.role,
+      operativeRole: user.operativeRole,
     };
   }
 }

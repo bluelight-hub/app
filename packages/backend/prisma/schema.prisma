@@ -19,6 +19,18 @@ enum UserRole {
   USER
 }
 
+enum OperativeRole {
+  FUEHRUNGSKRAFT
+  EINSATZKRAFT
+  EXTERNE
+}
+
+enum BeitrittsanfrageStatus {
+  OFFEN
+  GENEHMIGT
+  ABGELEHNT
+}
+
 model User {
   id               String    @id @default(cuid())
   username         String    @unique @db.VarChar(100)
@@ -49,6 +61,11 @@ model User {
   // Format: ["user:read", "einsatz:create", "etb:lock"]
   // NULL = no custom permissions (inherit from role only)
   permissions String? @db.Text
+
+  // Operative Role (Issue #98)
+  operativeRole  OperativeRole  @default(EXTERNE)
+  stammpersonId  String?        @unique
+  stammperson    StammPerson?   @relation("UserStammperson", fields: [stammpersonId], references: [id])
 
   // Relations
   // sessions        Session[]
@@ -199,6 +216,12 @@ model User {
   // ========================================
   einsatzRollenzuweisungen EinsatzRollenzuweisung[]
 
+  // ========================================
+  // Beitrittsanfragen Relations (Issue #98)
+  // ========================================
+  einsatzBeitrittsanfragen         EinsatzBeitrittsanfrage[]
+  resolvedEinsatzBeitrittsanfragen EinsatzBeitrittsanfrage[] @relation("BeitrittsanfrageResolver")
+
   gegebeneBefehle  Befehl[]           @relation("BefehlBefehlsgeber")
   erstellteBefehle Befehl[]           @relation("BefehlErsteller")
   befehlEmpfaenger BefehlEmpfaenger[] @relation("BefehlEmpfaengerUser")
@@ -221,6 +244,7 @@ model User {
   @@index([username, isDeleted], map: "idx_user_username_deleted")
   @@index([isLocked], map: "idx_user_is_locked")
   @@index([isActive, isDeleted, isLocked], map: "idx_user_status")
+  @@index([operativeRole], map: "idx_user_operative_role")
 }
 
 // Einsatz Status Enum
@@ -295,6 +319,9 @@ model Einsatz {
 
   // Compliance-Reports Relation (1:N, Story 5.5)
   complianceReports ComplianceReport[]
+
+  // Beitrittsanfragen (Issue #98)
+  beitrittsanfragen EinsatzBeitrittsanfrage[]
 
   // Indexes
   @@unique([nummer])
@@ -961,6 +988,9 @@ model StammPerson {
 
   // Einsatz-Personen Relation (Story 4.0 - Rückverfolgbarkeit)
   einsatzPersonen EinsatzPerson[]
+
+  // User-Account Relation (Issue #98 - Stammperson Verknüpfung)
+  userAccount User? @relation("UserStammperson")
 
   @@unique([externalSource, externalId]) // Externe ID eindeutig pro Quelle
   // Indexes
@@ -1953,4 +1983,26 @@ model BefehlsgeberVorschlag {
 
   @@index([istAktiv, sortOrder])
   @@map("befehlsgeber_vorschlaege")
+}
+
+/// Beitrittsanfrage: Einsatzkraft fragt Beitritt zu einem Einsatz an
+/// Führungskraft genehmigt oder lehnt ab (Issue #98)
+model EinsatzBeitrittsanfrage {
+  id         String                  @id @default(cuid())
+  einsatzId  String
+  userId     String
+  status     BeitrittsanfrageStatus  @default(OFFEN)
+  createdAt  DateTime                @default(now())
+  resolvedAt DateTime?
+  resolvedBy String?                 @db.VarChar(100)
+
+  // Relations
+  einsatz  Einsatz @relation(fields: [einsatzId], references: [id], onDelete: Cascade)
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resolver User?   @relation("BeitrittsanfrageResolver", fields: [resolvedBy], references: [id], onDelete: SetNull)
+
+  @@unique([einsatzId, userId])
+  @@index([einsatzId, status])
+  @@index([userId, status])
+  @@map("einsatz_beitrittsanfragen")
 }
