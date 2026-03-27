@@ -22,11 +22,15 @@ import { LOGGER } from '@infrastructure/di-tokens';
 import { OutboxModule } from '@/infrastructure/outbox/outbox.module';
 import { NestLoggerAdapter } from '@/infrastructure/common/adapters/nest-logger.adapter';
 
+import { ChangeOperativeRoleHandler } from '@/application/user-management/commands/change-operative-role/change-operative-role.handler';
+import { AssignStammpersonHandler } from '@/application/user-management/commands/assign-stammperson/assign-stammperson.handler';
+
 import { AdminSetupController } from './controllers/admin-setup.controller';
 import { AdminInviteController } from './controllers/admin-invite.controller';
 import { AdminTokenController } from './controllers/admin-token.controller';
 import { AdminSecurityController } from './controllers/admin-security.controller';
 import { AdminRuntimeConfigController } from './controllers/admin-runtime-config.controller';
+import { AdminOperativeRoleController } from './controllers/admin-operative-role.controller';
 
 /**
  * Admin-Modul fuer Server-Setup und Administration.
@@ -72,7 +76,7 @@ import { AdminRuntimeConfigController } from './controllers/admin-runtime-config
  */
 @Module({
   imports: [PrismaModule, ServerAccessTokenInfrastructureModule, ServerConfigInfrastructureModule, UserInfrastructureModule, InviteCodeInfrastructureModule, OutboxModule, PasswordModule],
-  controllers: [AdminSetupController, AdminInviteController, AdminTokenController, AdminSecurityController, AdminRuntimeConfigController],
+  controllers: [AdminSetupController, AdminInviteController, AdminTokenController, AdminSecurityController, AdminRuntimeConfigController, AdminOperativeRoleController],
   providers: [
     // Logger fuer Handler
     {
@@ -88,6 +92,9 @@ import { AdminRuntimeConfigController } from './controllers/admin-runtime-config
     ReactivateAccessTokenHandler,
     RotateAccessTokenHandler,
     MigrateToSecureModeHandler,
+    // User Management Handlers (Issue #98)
+    ChangeOperativeRoleHandler,
+    AssignStammpersonHandler,
     // Query Handlers
     ListInvitesHandler,
     GetTokenListHandler,
