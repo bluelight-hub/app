@@ -78,6 +78,8 @@ function mapToApiUserDto(appDto: AppUserDto): ManagedUserResponseDto {
     updatedAt: appDto.updatedAt,
     isLocked: appDto.isLocked,
     lockReason: appDto.lockReason,
+    operativeRole: appDto.operativeRole ?? 'EXTERNE',
+    stammperson: appDto.stammperson ?? null,
   };
 }
 

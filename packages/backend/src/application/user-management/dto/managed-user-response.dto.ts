@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import type { UserRole } from '@/generated/prisma/client';
 import { ApiResponse } from '@/shared/interfaces/api-response.interface';
 
@@ -47,6 +47,26 @@ export class ManagedUserResponseDto {
     nullable: true,
   })
   lockReason!: string | null;
+
+  @ApiProperty({
+    description: 'Operative Rolle des Benutzers',
+    enum: ['FUEHRUNGSKRAFT', 'EINSATZKRAFT', 'EXTERNE'],
+    example: 'EXTERNE',
+  })
+  operativeRole!: string;
+
+  @ApiPropertyOptional({
+    description: 'Zugewiesene Stammperson (falls vorhanden)',
+    type: 'object',
+    properties: {
+      id: { type: 'string', description: 'Stammperson-ID' },
+      vorname: { type: 'string', description: 'Vorname' },
+      nachname: { type: 'string', description: 'Nachname' },
+      personalnummer: { type: 'string', description: 'Personalnummer' },
+    },
+    nullable: true,
+  })
+  stammperson!: { id: string; vorname: string; nachname: string; personalnummer: string } | null;
 }
 
 /**
