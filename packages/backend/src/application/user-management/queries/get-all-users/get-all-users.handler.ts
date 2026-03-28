@@ -6,6 +6,7 @@ import type { IUserRepository } from '@domain/repositories/i-user.repository';
 import type { UserDto } from '@/application/user-management/dto/user.dto';
 import { GetAllUsersQuery } from './get-all-users.query';
 import { USER_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
+import { PrismaService } from '@infrastructure/database/prisma.service';
 
 /**
  * Handler für GetAllUsersQuery.
@@ -68,6 +69,7 @@ export class GetAllUsersQueryHandler implements IQueryHandler<GetAllUsersQuery, 
     @Inject(USER_REPOSITORY)
     private readonly repository: IUserRepository,
     @Inject(LOGGER) private readonly logger: ILogger,
+    private readonly prisma: PrismaService,
   ) {}
 
   /**
@@ -106,13 +108,33 @@ export class GetAllUsersQueryHandler implements IQueryHandler<GetAllUsersQuery, 
         return Result.ok<UserDto[]>([]);
       }
 
-      // 4. Domain Aggregates zu DTOs mappen
-      const dtos = users.map((aggregate) => this.aggregateToDto(aggregate));
+      // 4. Operative Daten (operativeRole + stammperson) aus Prisma laden
+      const userIds = users.map((u) => u.id.toString());
+      const operativeData = await this.prisma.user.findMany({
+        where: { id: { in: userIds } },
+        select: {
+          id: true,
+          operativeRole: true,
+          stammperson: {
+            select: {
+              id: true,
+              vorname: true,
+              nachname: true,
+              personalnummer: true,
+            },
+          },
+        },
+      });
 
-      // 5. Logging für Monitoring
+      const operativeMap = new Map(operativeData.map((u) => [u.id, { operativeRole: u.operativeRole, stammperson: u.stammperson }]));
+
+      // 5. Domain Aggregates zu DTOs mappen (mit operativen Daten)
+      const dtos = users.map((aggregate) => this.aggregateToDto(aggregate, operativeMap));
+
+      // 6. Logging für Monitoring
       this.logger.log(`Found ${dtos.length} users`);
 
-      // 6. Return Success mit UserDto Array
+      // 7. Return Success mit UserDto Array
       return Result.ok<UserDto[]>(dtos);
     } catch (error) {
       // Structured Logging für Produktions-Debugging
@@ -143,8 +165,19 @@ export class GetAllUsersQueryHandler implements IQueryHandler<GetAllUsersQuery, 
    * @param aggregate - User Domain Aggregate
    * @returns UserDto - Response DTO mit primitiven Typen
    */
-  private aggregateToDto(aggregate: import('@domain/aggregates/user.aggregate').UserAggregate): UserDto {
-    // Domain Aggregate → Response DTO Mapping
+  private aggregateToDto(
+    aggregate: import('@domain/aggregates/user.aggregate').UserAggregate,
+    operativeMap: Map<
+      string,
+      {
+        operativeRole: string;
+        stammperson: { id: string; vorname: string; nachname: string; personalnummer: string } | null;
+      }
+    >,
+  ): UserDto {
+    const operative = operativeMap.get(aggregate.id.toString());
+
+    // Domain Aggregate + operative Prisma-Daten → Response DTO Mapping
     return {
       id: aggregate.id.toString(),
       username: aggregate.username.toString(),
@@ -153,6 +186,8 @@ export class GetAllUsersQueryHandler implements IQueryHandler<GetAllUsersQuery, 
       updatedAt: aggregate.updatedAt,
       isLocked: aggregate.isLocked,
       lockReason: null, // TODO: lockReason ist noch nicht im Aggregate implementiert
+      operativeRole: operative?.operativeRole ?? 'EXTERNE',
+      stammperson: operative?.stammperson ?? null,
     };
   }
 }
