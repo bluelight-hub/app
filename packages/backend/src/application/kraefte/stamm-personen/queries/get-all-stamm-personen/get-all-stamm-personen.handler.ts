@@ -5,6 +5,7 @@ import { IStammPersonRepository } from '@domain/kraefte/repositories/i-stamm-per
 import { IQualifikationRepository } from '@domain/kraefte/repositories/i-qualifikation.repository';
 import { QualifikationId } from '@domain/kraefte/value-objects/qualifikation-id';
 import { KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';
+import { PrismaService } from '@/infrastructure/database/prisma.service';
 import type { StammPersonDto } from '../../dto/stamm-person.dto';
 import { StammPersonQueryMapper } from '../stamm-person-query.mapper';
 import type { GetAllStammPersonenQuery } from './get-all-stamm-personen.query';
@@ -44,6 +45,7 @@ export class GetAllStammPersonenHandler {
     @Inject(KRAEFTE_REPOSITORIES.QUALIFIKATION)
     private readonly qualifikationRepository: IQualifikationRepository,
     @Inject(LOGGER) protected readonly logger: ILogger,
+    private readonly prisma: PrismaService,
   ) {}
 
   /**
@@ -113,7 +115,19 @@ export class GetAllStammPersonenHandler {
       }
     }
 
-    // 5. Mappe zu DTOs
+    // 5. Lade zugewiesene User-Accounts für alle StammPersonen
+    const stammPersonIds = stammPersonen.map((sp) => sp.id.value);
+    const userAccounts = await this.prisma.user.findMany({
+      where: { stammpersonId: { in: stammPersonIds } },
+      select: {
+        id: true,
+        username: true,
+        stammpersonId: true,
+      },
+    });
+    const userAccountMap = new Map(userAccounts.map((u) => [u.stammpersonId!, { id: u.id, username: u.username }]));
+
+    // 6. Mappe zu DTOs
     const dtos: StammPersonDto[] = [];
     for (const stammPerson of stammPersonen) {
       const qualifikationData: Array<{ id: string; name: string; kuerzel: string }> = [];
@@ -127,7 +141,7 @@ export class GetAllStammPersonenHandler {
         }
       }
 
-      const dto = StammPersonQueryMapper.toDto(stammPerson, qualifikationData);
+      const dto = StammPersonQueryMapper.toDto(stammPerson, qualifikationData, userAccountMap.get(stammPerson.id.value) ?? null);
       dtos.push(dto);
     }
 

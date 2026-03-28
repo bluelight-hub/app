@@ -49,14 +49,14 @@ export class StammPersonQueryMapper {
    *
    * **Überladung 1:** Akzeptiert Qualifikation Aggregates (verwendet von Command Handlers).
    */
-  static toDto(aggregate: StammPerson, qualifikationen: Qualifikation[]): StammPersonDto;
+  static toDto(aggregate: StammPerson, qualifikationen: Qualifikation[], userAccount?: { id: string; username: string } | null): StammPersonDto;
 
   /**
    * Mappt ein StammPerson Aggregate zu einem StammPersonDto.
    *
    * **Überladung 2:** Akzeptiert QualifikationData mit optional Audit-Trail (verwendet von Query Handlers).
    */
-  static toDto(aggregate: StammPerson, qualifikationen: QualifikationData[]): StammPersonDto;
+  static toDto(aggregate: StammPerson, qualifikationen: QualifikationData[], userAccount?: { id: string; username: string } | null): StammPersonDto;
 
   /**
    * Mappt ein StammPerson Aggregate zu einem StammPersonDto.
@@ -67,11 +67,12 @@ export class StammPersonQueryMapper {
    * **Parameter:**
    * @param aggregate - StammPerson Aggregate
    * @param qualifikationen - Array von Qualifikations-Daten oder Qualifikation Aggregates
+   * @param userAccount - Zugewiesener Benutzer-Account (optional)
    *
    * **Returns:**
    * @returns StammPersonDto mit allen Feldern inkl. qualifikationen Array
    */
-  static toDto(aggregate: StammPerson, qualifikationen: Qualifikation[] | QualifikationData[]): StammPersonDto {
+  static toDto(aggregate: StammPerson, qualifikationen: Qualifikation[] | QualifikationData[], userAccount?: { id: string; username: string } | null): StammPersonDto {
     // Mappe Qualifikationen zu StammPersonQualifikationDto
     const qualifikationDtos: StammPersonQualifikationDto[] = qualifikationen.map((qual) => {
       // Handle both Qualifikation Aggregate and QualifikationData
@@ -111,6 +112,7 @@ export class StammPersonQueryMapper {
       updatedAt: aggregate.updatedAt,
       createdBy: aggregate.createdBy,
       updatedBy: aggregate.updatedBy,
+      userAccount: userAccount ?? null,
     };
   }
 
