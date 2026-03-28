@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { ManagedUserResponseDtoStammperson } from './ManagedUserResponseDtoStammperson';
+import {
+    ManagedUserResponseDtoStammpersonFromJSON,
+    ManagedUserResponseDtoStammpersonFromJSONTyped,
+    ManagedUserResponseDtoStammpersonToJSON,
+    ManagedUserResponseDtoStammpersonToJSONTyped,
+} from './ManagedUserResponseDtoStammperson';
+
 /**
  * 
  * @export
@@ -61,6 +69,18 @@ export interface ManagedUserResponseDto {
      * @memberof ManagedUserResponseDto
      */
     lockReason?: string | null;
+    /**
+     * Operative Rolle des Benutzers
+     * @type {string}
+     * @memberof ManagedUserResponseDto
+     */
+    operativeRole: ManagedUserResponseDtoOperativeRoleEnum;
+    /**
+     * 
+     * @type {ManagedUserResponseDtoStammperson}
+     * @memberof ManagedUserResponseDto
+     */
+    stammperson?: ManagedUserResponseDtoStammperson | null;
 }
 
 
@@ -74,6 +94,16 @@ export const ManagedUserResponseDtoRoleEnum = {
 } as const;
 export type ManagedUserResponseDtoRoleEnum = typeof ManagedUserResponseDtoRoleEnum[keyof typeof ManagedUserResponseDtoRoleEnum];
 
+/**
+ * @export
+ */
+export const ManagedUserResponseDtoOperativeRoleEnum = {
+    Fuehrungskraft: 'FUEHRUNGSKRAFT',
+    Einsatzkraft: 'EINSATZKRAFT',
+    Externe: 'EXTERNE'
+} as const;
+export type ManagedUserResponseDtoOperativeRoleEnum = typeof ManagedUserResponseDtoOperativeRoleEnum[keyof typeof ManagedUserResponseDtoOperativeRoleEnum];
+
 
 /**
  * Check if a given object implements the ManagedUserResponseDto interface.
@@ -85,6 +115,7 @@ export function instanceOfManagedUserResponseDto(value: object): value is Manage
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
     if (!('updatedAt' in value) || value['updatedAt'] === undefined) return false;
     if (!('isLocked' in value) || value['isLocked'] === undefined) return false;
+    if (!('operativeRole' in value) || value['operativeRole'] === undefined) return false;
     return true;
 }
 
@@ -105,6 +136,8 @@ export function ManagedUserResponseDtoFromJSONTyped(json: any, ignoreDiscriminat
         'updatedAt': (new Date(json['updatedAt'])),
         'isLocked': json['isLocked'],
         'lockReason': json['lockReason'] == null ? undefined : json['lockReason'],
+        'operativeRole': json['operativeRole'],
+        'stammperson': json['stammperson'] == null ? undefined : ManagedUserResponseDtoStammpersonFromJSON(json['stammperson']),
     };
 }
 
@@ -126,6 +159,8 @@ export function ManagedUserResponseDtoToJSONTyped(value?: ManagedUserResponseDto
         'updatedAt': ((value['updatedAt']).toISOString()),
         'isLocked': value['isLocked'],
         'lockReason': value['lockReason'],
+        'operativeRole': value['operativeRole'],
+        'stammperson': ManagedUserResponseDtoStammpersonToJSON(value['stammperson']),
     };
 }
 

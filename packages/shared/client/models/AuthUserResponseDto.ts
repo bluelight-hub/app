@@ -38,6 +38,12 @@ export interface AuthUserResponseDto {
      */
     role: AuthUserResponseDtoRoleEnum;
     /**
+     * Operative Rolle des Benutzers
+     * @type {string}
+     * @memberof AuthUserResponseDto
+     */
+    operativeRole: AuthUserResponseDtoOperativeRoleEnum;
+    /**
      * Gibt an, ob der Benutzer aktiv ist
      * @type {boolean}
      * @memberof AuthUserResponseDto
@@ -74,6 +80,16 @@ export const AuthUserResponseDtoRoleEnum = {
 } as const;
 export type AuthUserResponseDtoRoleEnum = typeof AuthUserResponseDtoRoleEnum[keyof typeof AuthUserResponseDtoRoleEnum];
 
+/**
+ * @export
+ */
+export const AuthUserResponseDtoOperativeRoleEnum = {
+    Fuehrungskraft: 'FUEHRUNGSKRAFT',
+    Einsatzkraft: 'EINSATZKRAFT',
+    Externe: 'EXTERNE'
+} as const;
+export type AuthUserResponseDtoOperativeRoleEnum = typeof AuthUserResponseDtoOperativeRoleEnum[keyof typeof AuthUserResponseDtoOperativeRoleEnum];
+
 
 /**
  * Check if a given object implements the AuthUserResponseDto interface.
@@ -82,6 +98,7 @@ export function instanceOfAuthUserResponseDto(value: object): value is AuthUserR
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('username' in value) || value['username'] === undefined) return false;
     if (!('role' in value) || value['role'] === undefined) return false;
+    if (!('operativeRole' in value) || value['operativeRole'] === undefined) return false;
     if (!('isActive' in value) || value['isActive'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
     if (!('updatedAt' in value) || value['updatedAt'] === undefined) return false;
@@ -101,6 +118,7 @@ export function AuthUserResponseDtoFromJSONTyped(json: any, ignoreDiscriminator:
         'id': json['id'],
         'username': json['username'],
         'role': json['role'],
+        'operativeRole': json['operativeRole'],
         'isActive': json['isActive'],
         'lastLoginAt': json['lastLoginAt'] == null ? undefined : json['lastLoginAt'],
         'createdAt': (new Date(json['createdAt'])),
@@ -122,6 +140,7 @@ export function AuthUserResponseDtoToJSONTyped(value?: AuthUserResponseDto | nul
         'id': value['id'],
         'username': value['username'],
         'role': value['role'],
+        'operativeRole': value['operativeRole'],
         'isActive': value['isActive'],
         'lastLoginAt': value['lastLoginAt'],
         'createdAt': ((value['createdAt']).toISOString()),
