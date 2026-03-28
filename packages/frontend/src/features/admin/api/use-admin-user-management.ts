@@ -194,7 +194,7 @@ export const useAdminUserManagement = () => {
     mutationFn: async ({ id, stammpersonId }: { id: string; stammpersonId: string | null }) => {
       return await api.admin().adminOperativeRoleControllerAssignStammpersonVAlpha({
         id,
-        assignStammpersonDto: { stammpersonId: stammpersonId as unknown as object | null },
+        assignStammpersonDto: { stammpersonId },
       });
     },
     onSuccess: async () => {

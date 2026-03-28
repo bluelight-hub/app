@@ -19,6 +19,7 @@ export class AssignStammpersonDto {
    */
   @ApiProperty({
     description: 'ID der Stammperson (null zum Entfernen)',
+    type: String,
     example: 'clx_stammperson_xyz789',
     nullable: true,
     required: false,
