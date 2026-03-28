@@ -144,4 +144,15 @@ export class StammPersonDto {
     example: 'clw3h8x9y0001qwertyuiopas',
   })
   updatedBy?: string;
+
+  @ApiPropertyOptional({
+    description: 'Zugewiesener Benutzer-Account (falls vorhanden)',
+    type: 'object',
+    properties: {
+      id: { type: 'string', description: 'User-ID' },
+      username: { type: 'string', description: 'Benutzername' },
+    },
+    nullable: true,
+  })
+  userAccount?: { id: string; username: string } | null;
 }
