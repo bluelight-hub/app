@@ -6,7 +6,8 @@ import { ManagedUserResponseDtoRoleEnum } from '@/shared';
 import type { SortingState } from '@tanstack/react-table';
 import { createColumnHelper, flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
-import { PiLockKey, PiLockKeyOpen, PiPencilSimple, PiTrash } from 'react-icons/pi';
+import { PiArrowSquareOut, PiLockKey, PiLockKeyOpen, PiPencilSimple, PiTrash } from 'react-icons/pi';
+import { Link } from '@tanstack/react-router';
 interface UsersTableProps {
   users: Array<ManagedUserResponseDto> | undefined;
   isLoading: boolean;
@@ -96,9 +97,10 @@ export const UsersTable = ({
           const sp = row.original.stammperson;
           if (sp) {
             return (
-              <span className="text-sm text-text-secondary">
+              <Link to="/admin/stammdaten/personen" className="flex items-center gap-1 text-sm text-action-primary hover:underline">
                 {sp.nachname}, {sp.vorname} ({sp.personalnummer})
-              </span>
+                <PiArrowSquareOut className="h-3 w-3" />
+              </Link>
             );
           }
           const requiresStammperson = row.original.operativeRole === 'FUEHRUNGSKRAFT' || row.original.operativeRole === 'EINSATZKRAFT';
