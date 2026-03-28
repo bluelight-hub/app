@@ -13,6 +13,10 @@ interface UsersTableProps {
   onDelete: (user: ManagedUserResponseDto) => void;
   onEdit: (user: ManagedUserResponseDto) => void;
   onUnlock: (user: ManagedUserResponseDto) => void;
+  operativeRoleFilter: string;
+  onOperativeRoleFilterChange: (value: string) => void;
+  showOnlyWithoutStammperson: boolean;
+  onShowOnlyWithoutStammpersonChange: (value: boolean) => void;
 }
 const columnHelper = createColumnHelper<ManagedUserResponseDto>();
 const getRoleBadgeVariant = (role: ManagedUserResponseDtoRoleEnum): 'error' | 'warning' | 'info' | 'default' => {
@@ -27,12 +31,83 @@ const getRoleBadgeVariant = (role: ManagedUserResponseDtoRoleEnum): 'error' | 'w
       return 'default';
   }
 };
-export const UsersTable = ({ users, isLoading, onDelete, onEdit, onUnlock }: UsersTableProps) => {
+
+const getOperativeRoleBadgeVariant = (role: string): 'warning' | 'info' | 'default' => {
+  switch (role) {
+    case 'FUEHRUNGSKRAFT':
+      return 'warning';
+    case 'EINSATZKRAFT':
+      return 'info';
+    default:
+      return 'default';
+  }
+};
+
+const getOperativeRoleLabel = (role: string): string => {
+  switch (role) {
+    case 'FUEHRUNGSKRAFT':
+      return 'Führungskraft';
+    case 'EINSATZKRAFT':
+      return 'Einsatzkraft';
+    default:
+      return 'Externe';
+  }
+};
+
+export const UsersTable = ({
+  users,
+  isLoading,
+  onDelete,
+  onEdit,
+  onUnlock,
+  operativeRoleFilter,
+  onOperativeRoleFilterChange,
+  showOnlyWithoutStammperson,
+  onShowOnlyWithoutStammpersonChange,
+}: UsersTableProps) => {
   const [sorting, setSorting] = useState<SortingState>([]);
+
+  const filteredUsers = useMemo(() => {
+    let result = users || [];
+    if (operativeRoleFilter) {
+      result = result.filter((u) => u.operativeRole === operativeRoleFilter);
+    }
+    if (showOnlyWithoutStammperson) {
+      result = result.filter((u) => {
+        const requiresStammperson = u.operativeRole === 'FUEHRUNGSKRAFT' || u.operativeRole === 'EINSATZKRAFT';
+        return requiresStammperson && !u.stammperson;
+      });
+    }
+    return result;
+  }, [users, operativeRoleFilter, showOnlyWithoutStammperson]);
+
   const columns = useMemo(
     () => [
       columnHelper.accessor('username', { header: 'Benutzername', cell: (info) => info.getValue() }),
       columnHelper.accessor('role', { header: 'Rolle', cell: ({ row }) => <Badge variant={getRoleBadgeVariant(row.original.role)}>{row.original.role}</Badge> }),
+      columnHelper.accessor('operativeRole', {
+        header: 'Operative Rolle',
+        cell: ({ row }) => <Badge variant={getOperativeRoleBadgeVariant(row.original.operativeRole)}>{getOperativeRoleLabel(row.original.operativeRole)}</Badge>,
+      }),
+      columnHelper.display({
+        id: 'stammperson',
+        header: 'Stammperson',
+        cell: ({ row }) => {
+          const sp = row.original.stammperson;
+          if (sp) {
+            return (
+              <span className="text-sm text-text-secondary">
+                {sp.nachname}, {sp.vorname} ({sp.personalnummer})
+              </span>
+            );
+          }
+          const requiresStammperson = row.original.operativeRole === 'FUEHRUNGSKRAFT' || row.original.operativeRole === 'EINSATZKRAFT';
+          if (requiresStammperson) {
+            return <span className="text-sm text-red-500 italic">⚠ Keine Stammperson</span>;
+          }
+          return <span className="text-text-muted">—</span>;
+        },
+      }),
       columnHelper.accessor('isLocked', {
         header: 'Status',
         cell: ({ row }) => {
@@ -57,7 +132,6 @@ export const UsersTable = ({ users, isLoading, onDelete, onEdit, onUnlock }: Use
           return <Badge variant="success">Aktiv</Badge>;
         },
       }),
-      columnHelper.accessor('id', { header: 'ID', cell: (info) => <span className="font-mono text-sm text-text-secondary">{info.getValue()}</span> }),
       columnHelper.display({
         id: 'actions',
         header: 'Aktionen',
@@ -84,7 +158,7 @@ export const UsersTable = ({ users, isLoading, onDelete, onEdit, onUnlock }: Use
     ],
     [onDelete, onEdit, onUnlock],
   );
-  const table = useReactTable({ data: users || [], columns, state: { sorting }, onSortingChange: setSorting, getCoreRowModel: getCoreRowModel(), getSortedRowModel: getSortedRowModel() });
+  const table = useReactTable({ data: filteredUsers, columns, state: { sorting }, onSortingChange: setSorting, getCoreRowModel: getCoreRowModel(), getSortedRowModel: getSortedRowModel() });
   if (isLoading) {
     return (
       <Table.Root>
@@ -93,41 +167,66 @@ export const UsersTable = ({ users, isLoading, onDelete, onEdit, onUnlock }: Use
           {' '}
           <Table.Row>
             {' '}
-            <Table.Head>Benutzername</Table.Head> <Table.Head>Rolle</Table.Head> <Table.Head>Status</Table.Head> <Table.Head>ID</Table.Head> <Table.Head>Aktionen</Table.Head>{' '}
+            <Table.Head>Benutzername</Table.Head> <Table.Head>Rolle</Table.Head> <Table.Head>Operative Rolle</Table.Head> <Table.Head>Stammperson</Table.Head> <Table.Head>Status</Table.Head>{' '}
+            <Table.Head>Aktionen</Table.Head>{' '}
           </Table.Row>{' '}
         </Table.Header>{' '}
-        <Table.Skeleton rows={5} columns={5} />{' '}
+        <Table.Skeleton rows={5} columns={6} />{' '}
       </Table.Root>
     );
   }
   return (
-    <Table.Root>
-      {' '}
-      <Table.Header>
+    <div>
+      <div className="flex items-center gap-4 px-4 pb-4">
+        <div className="flex flex-col gap-1">
+          <label htmlFor="operative-role-filter" className="text-xs font-medium text-text-muted uppercase">
+            Operative Rolle
+          </label>
+          <select
+            id="operative-role-filter"
+            value={operativeRoleFilter}
+            onChange={(e) => onOperativeRoleFilterChange(e.target.value)}
+            className="rounded-md border border-gray-300 bg-transparent px-3 py-1.5 text-sm dark:border-gray-600"
+          >
+            <option value="">Alle Rollen</option>
+            <option value="FUEHRUNGSKRAFT">Führungskraft</option>
+            <option value="EINSATZKRAFT">Einsatzkraft</option>
+            <option value="EXTERNE">Externe</option>
+          </select>
+        </div>
+        <label className="mt-4 flex items-center gap-2 text-sm text-text-secondary">
+          <input type="checkbox" checked={showOnlyWithoutStammperson} onChange={(e) => onShowOnlyWithoutStammpersonChange(e.target.checked)} className="h-4 w-4 rounded border-gray-300" />
+          Nur ohne Stammperson
+        </label>
+      </div>
+      <Table.Root>
         {' '}
-        {table.getHeaderGroups().map((headerGroup) => (
-          <Table.Row key={headerGroup.id}>
-            {' '}
-            {headerGroup.headers.map((header) => (
-              <Table.Head key={header.id} onClick={header.column.getToggleSortingHandler()} sortable={header.column.getCanSort()} sorted={header.column.getIsSorted()}>
-                {' '}
-                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}{' '}
-              </Table.Head>
-            ))}{' '}
-          </Table.Row>
-        ))}{' '}
-      </Table.Header>{' '}
-      <Table.Body>
-        {' '}
-        {table.getRowModel().rows.map((row) => (
-          <Table.Row key={row.id}>
-            {' '}
-            {row.getVisibleCells().map((cell) => (
-              <Table.Cell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</Table.Cell>
-            ))}{' '}
-          </Table.Row>
-        ))}{' '}
-      </Table.Body>{' '}
-    </Table.Root>
+        <Table.Header>
+          {' '}
+          {table.getHeaderGroups().map((headerGroup) => (
+            <Table.Row key={headerGroup.id}>
+              {' '}
+              {headerGroup.headers.map((header) => (
+                <Table.Head key={header.id} onClick={header.column.getToggleSortingHandler()} sortable={header.column.getCanSort()} sorted={header.column.getIsSorted()}>
+                  {' '}
+                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}{' '}
+                </Table.Head>
+              ))}{' '}
+            </Table.Row>
+          ))}{' '}
+        </Table.Header>{' '}
+        <Table.Body>
+          {' '}
+          {table.getRowModel().rows.map((row) => (
+            <Table.Row key={row.id}>
+              {' '}
+              {row.getVisibleCells().map((cell) => (
+                <Table.Cell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</Table.Cell>
+              ))}{' '}
+            </Table.Row>
+          ))}{' '}
+        </Table.Body>{' '}
+      </Table.Root>
+    </div>
   );
 };
