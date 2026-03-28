@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { type SortingState, flexRender, getCoreRowModel, getSortedRowModel, useReactTable, createColumnHelper } from '@tanstack/react-table';
-import { PiPencilSimple, PiArchive, PiArrowCounterClockwise, PiCaretUpDown, PiCheckCircle, PiProhibit } from 'react-icons/pi';
+import { PiPencilSimple, PiArchive, PiArrowCounterClockwise, PiArrowSquareOut, PiCaretUpDown, PiCheckCircle, PiProhibit } from 'react-icons/pi';
+import { Link } from '@tanstack/react-router';
 import type { StammPersonDto } from '@/features/admin/api';
 import { Badge } from '@/shared/ui/atoms/badge.atom';
 import { IconButton } from '@/shared/ui/atoms/icon-button.atom';
@@ -82,6 +83,22 @@ export const StammPersonenTable = ({ stammPersonen, isLoading, onEdit, onArchive
         ),
         cell: (info) => info.getValue(),
       }),
+      columnHelper.display({
+        id: 'userAccount',
+        header: 'Benutzer-Account',
+        cell: ({ row }) => {
+          const userAccount = row.original.userAccount;
+          if (!userAccount) {
+            return <span className="text-text-muted">—</span>;
+          }
+          return (
+            <Link to="/admin/users" className="flex items-center gap-1 text-sm text-action-primary hover:underline">
+              {userAccount.username}
+              <PiArrowSquareOut className="h-3 w-3" />
+            </Link>
+          );
+        },
+      }),
       columnHelper.accessor('qualifikationen', {
         header: 'Qualifikationen',
         cell: ({ row }) => {
@@ -108,7 +125,6 @@ export const StammPersonenTable = ({ stammPersonen, isLoading, onEdit, onArchive
           );
         },
       }),
-      columnHelper.accessor('funkkenungBOS', { header: 'BOS-Kennung', cell: (info) => <span className="text-text-secondary">{info.getValue() || '—'}</span> }),
       columnHelper.accessor('archivedAt', {
         header: 'Status',
         cell: ({ row }) =>
