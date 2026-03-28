@@ -322,6 +322,7 @@ models/LoginResponseDto.ts
 models/LogoutResponseDto.ts
 models/ManagedUserResponse.ts
 models/ManagedUserResponseDto.ts
+models/ManagedUserResponseDtoStammperson.ts
 models/MarkErledigtErinnerungDto.ts
 models/MeineEinsatzRolleDto.ts
 models/MigrateLegacyRuntimeConfigRequestDto.ts
@@ -385,6 +386,7 @@ models/SetupUserDto.ts
 models/SnoozeErinnerungDto.ts
 models/StammFahrzeugDto.ts
 models/StammPersonDto.ts
+models/StammPersonDtoUserAccount.ts
 models/StammPersonQualifikationDto.ts
 models/StatusCountsDto.ts
 models/StatusCountsResponseDto.ts

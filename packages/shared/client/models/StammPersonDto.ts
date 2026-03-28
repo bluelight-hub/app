@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
+import type { StammPersonDtoUserAccount } from './StammPersonDtoUserAccount';
+import {
+    StammPersonDtoUserAccountFromJSON,
+    StammPersonDtoUserAccountFromJSONTyped,
+    StammPersonDtoUserAccountToJSON,
+    StammPersonDtoUserAccountToJSONTyped,
+} from './StammPersonDtoUserAccount';
 import type { StammPersonQualifikationDto } from './StammPersonQualifikationDto';
 import {
     StammPersonQualifikationDtoFromJSON,
@@ -99,6 +106,12 @@ export interface StammPersonDto {
      * @memberof StammPersonDto
      */
     updatedBy?: string;
+    /**
+     * 
+     * @type {StammPersonDtoUserAccount}
+     * @memberof StammPersonDto
+     */
+    userAccount?: StammPersonDtoUserAccount | null;
 }
 
 /**
@@ -137,6 +150,7 @@ export function StammPersonDtoFromJSONTyped(json: any, ignoreDiscriminator: bool
         'createdBy': json['createdBy'],
         'updatedAt': json['updatedAt'] == null ? undefined : (new Date(json['updatedAt'])),
         'updatedBy': json['updatedBy'] == null ? undefined : json['updatedBy'],
+        'userAccount': json['userAccount'] == null ? undefined : StammPersonDtoUserAccountFromJSON(json['userAccount']),
     };
 }
 
@@ -163,6 +177,7 @@ export function StammPersonDtoToJSONTyped(value?: StammPersonDto | null, ignoreD
         'createdBy': value['createdBy'],
         'updatedAt': value['updatedAt'] == null ? undefined : ((value['updatedAt']).toISOString()),
         'updatedBy': value['updatedBy'],
+        'userAccount': StammPersonDtoUserAccountToJSON(value['userAccount']),
     };
 }
 
