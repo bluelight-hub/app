@@ -6,7 +6,9 @@ import { Card } from '@/shared/ui/atoms/card.atom';
 import { Container } from '@/shared/ui/atoms/container.atom';
 import { Heading } from '@/shared/ui/atoms/heading.atom';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
-import { type CreateUserDto, type UpdateUserDto, type ManagedUserResponseDto, ManagedUserResponseDtoRoleEnum } from '@/shared';
+import { type CreateUserDto, type ManagedUserResponseDto, ManagedUserResponseDtoRoleEnum } from '@/shared';
+import type { EditUserFormData } from '@/features/admin/ui/organisms/EditUserDialog';
+import type { ChangeOperativeRoleDtoOperativeRoleEnum } from '@/shared';
 import { ConfirmDeleteDialog, type UserActionType } from '@/features/admin/ui/organisms/ConfirmDeleteDialog';
 import { CreateUserDialog } from '@/features/admin/ui/organisms/CreateUserDialog';
 import { EditUserDialog } from '@/features/admin/ui/organisms/EditUserDialog';
@@ -26,17 +28,23 @@ export function AdminUsers() {
     deleteUser,
     lockUser,
     unlockUser,
+    changeOperativeRole,
+    assignStammperson,
     isCreating,
     isUpdating,
     isDeleting,
     isLocking,
     isUnlocking,
+    isChangingOperativeRole,
+    isAssigningStammperson,
   } = useAdminUserManagement();
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<ManagedUserResponseDto | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ManagedUserResponseDto | null>(null);
+  const [operativeRoleFilter, setOperativeRoleFilter] = useState('');
+  const [showOnlyWithoutStammperson, setShowOnlyWithoutStammperson] = useState(false);
 
   // Redirect if not admin
   if (!isAuthLoading && !isAdmin) {
@@ -56,16 +64,28 @@ export function AdminUsers() {
     setIsEditDialogOpen(true);
   };
 
-  const handleUpdateUser = (id: string, data: UpdateUserDto) => {
-    updateUser(
-      { id, data },
-      {
-        onSuccess: () => {
-          setIsEditDialogOpen(false);
-          setEditTarget(null);
-        },
-      },
-    );
+  const handleUpdateUser = async (id: string, data: EditUserFormData) => {
+    try {
+      // 1. Basis-Daten updaten (username + role)
+      await updateUser({ id, data: { username: data.username, role: data.role } });
+
+      // 2. Operative Rolle ändern (nur wenn geändert)
+      const currentUser = usersData?.data?.find((u) => u.id === id);
+      if (currentUser?.operativeRole !== data.operativeRole) {
+        await changeOperativeRole({ id, operativeRole: data.operativeRole as ChangeOperativeRoleDtoOperativeRoleEnum });
+      }
+
+      // 3. Stammperson zuweisen (nur wenn geändert)
+      const currentStammpersonId = currentUser?.stammperson?.id || null;
+      if (currentStammpersonId !== data.stammpersonId) {
+        await assignStammperson({ id, stammpersonId: data.stammpersonId });
+      }
+
+      setIsEditDialogOpen(false);
+      setEditTarget(null);
+    } catch {
+      // Fehler werden in den Mutations per Toast gehandelt
+    }
   };
 
   const handleDeleteUser = (user: ManagedUserResponseDto) => {
@@ -147,7 +167,17 @@ export function AdminUsers() {
         </div>
 
         <Card padding="md">
-          <UsersTable users={usersData?.data} isLoading={isUsersLoading} onEdit={handleEditUser} onDelete={handleDeleteUser} onUnlock={handleUnlockUser} />
+          <UsersTable
+            users={usersData?.data}
+            isLoading={isUsersLoading}
+            onEdit={handleEditUser}
+            onDelete={handleDeleteUser}
+            onUnlock={handleUnlockUser}
+            operativeRoleFilter={operativeRoleFilter}
+            onOperativeRoleFilterChange={setOperativeRoleFilter}
+            showOnlyWithoutStammperson={showOnlyWithoutStammperson}
+            onShowOnlyWithoutStammpersonChange={setShowOnlyWithoutStammperson}
+          />
         </Card>
       </div>
 
@@ -160,8 +190,9 @@ export function AdminUsers() {
           setEditTarget(null);
         }}
         onSubmit={handleUpdateUser}
-        isSubmitting={isUpdating}
+        isSubmitting={isUpdating || isChangingOperativeRole || isAssigningStammperson}
         user={editTarget}
+        allUsers={usersData?.data}
       />
 
       <ConfirmDeleteDialog
