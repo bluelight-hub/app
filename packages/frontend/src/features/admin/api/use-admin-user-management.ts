@@ -1,7 +1,7 @@
 import { api } from '@/shared';
 import { getApiErrorMessage } from '@/shared/lib/errors/apiErrorHandler';
 import { logger } from '@/shared/lib/logger';
-import type { CreateUserDto, DeleteManagedUserResponse, ResponseError, UpdateUserDto, ManagedUserResponse, ManagedUsersListResponse } from '@/shared';
+import type { CreateUserDto, DeleteManagedUserResponse, ResponseError, UpdateUserDto, ManagedUserResponse, ManagedUsersListResponse, ChangeOperativeRoleDtoOperativeRoleEnum } from '@/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ADMIN_QUERY_KEYS } from './queries';
@@ -168,6 +168,48 @@ export const useAdminUserManagement = () => {
     },
   });
 
+  // Mutation für operative Rolle ändern
+  const changeOperativeRoleMutation = useMutation({
+    mutationFn: async ({ id, operativeRole }: { id: string; operativeRole: ChangeOperativeRoleDtoOperativeRoleEnum }) => {
+      return await api.admin().adminOperativeRoleControllerChangeOperativeRoleVAlpha({
+        id,
+        changeOperativeRoleDto: { operativeRole },
+      });
+    },
+    onSuccess: async () => {
+      toast.success('Operative Rolle geändert', {
+        description: 'Die operative Rolle wurde erfolgreich aktualisiert.',
+      });
+      await queryClient.invalidateQueries({ queryKey: ADMIN_QUERY_KEYS.users });
+    },
+    onError: async (error: ResponseError) => {
+      const message = await getApiErrorMessage(error, 'Die operative Rolle konnte nicht geändert werden.', 'changeOperativeRole');
+      logger.error('Failed to change operative role', error);
+      toast.error('Fehler', { description: message });
+    },
+  });
+
+  // Mutation für Stammperson zuweisen
+  const assignStammpersonMutation = useMutation({
+    mutationFn: async ({ id, stammpersonId }: { id: string; stammpersonId: string | null }) => {
+      return await api.admin().adminOperativeRoleControllerAssignStammpersonVAlpha({
+        id,
+        assignStammpersonDto: { stammpersonId: stammpersonId as unknown as object | null },
+      });
+    },
+    onSuccess: async () => {
+      toast.success('Stammperson aktualisiert', {
+        description: 'Die Stammperson-Zuweisung wurde erfolgreich aktualisiert.',
+      });
+      await queryClient.invalidateQueries({ queryKey: ADMIN_QUERY_KEYS.users });
+    },
+    onError: async (error: ResponseError) => {
+      const message = await getApiErrorMessage(error, 'Die Stammperson konnte nicht zugewiesen werden.', 'assignStammperson');
+      logger.error('Failed to assign stammperson', error);
+      toast.error('Fehler', { description: message });
+    },
+  });
+
   return {
     // Benutzerdaten und Ladezustände
     users: usersQuery.data?.data,
@@ -178,10 +220,12 @@ export const useAdminUserManagement = () => {
 
     // Aktionen
     createUser: createUserMutation.mutate,
-    updateUser: updateUserMutation.mutate,
+    updateUser: updateUserMutation.mutateAsync,
     deleteUser: deleteUserMutation.mutate,
     lockUser: lockUserMutation.mutate,
     unlockUser: unlockUserMutation.mutate,
+    changeOperativeRole: changeOperativeRoleMutation.mutateAsync,
+    assignStammperson: assignStammpersonMutation.mutateAsync,
 
     // Mutation-Zustände
     isCreating: createUserMutation.isPending,
@@ -189,6 +233,8 @@ export const useAdminUserManagement = () => {
     isDeleting: deleteUserMutation.isPending,
     isLocking: lockUserMutation.isPending,
     isUnlocking: unlockUserMutation.isPending,
+    isChangingOperativeRole: changeOperativeRoleMutation.isPending,
+    isAssigningStammperson: assignStammpersonMutation.isPending,
     createUserError: createUserMutation.error,
     updateUserError: updateUserMutation.error,
     deleteUserError: deleteUserMutation.error,
