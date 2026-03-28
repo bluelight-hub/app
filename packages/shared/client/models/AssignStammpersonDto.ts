@@ -21,10 +21,10 @@ import { mapValues } from '../runtime';
 export interface AssignStammpersonDto {
     /**
      * ID der Stammperson (null zum Entfernen)
-     * @type {object}
+     * @type {string}
      * @memberof AssignStammpersonDto
      */
-    stammpersonId?: object | null;
+    stammpersonId?: string | null;
 }
 
 /**
