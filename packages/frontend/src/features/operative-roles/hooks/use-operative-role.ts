@@ -28,6 +28,8 @@ export interface OperativeRoleInfo {
   canAccessEinsatzList: boolean;
   /** Darf der Benutzer einen Einsatz öffnen? (Führungskraft und Einsatzkraft) */
   canOpenEinsatz: boolean;
+  /** Darf der Benutzer einen neuen Einsatz anlegen? (nur Führungskraft) */
+  canCreateEinsatz: boolean;
   /** Darf der Benutzer einen Einsatz archivieren? (nur Führungskraft) */
   canArchiveEinsatz: boolean;
 }
@@ -64,6 +66,7 @@ export function useOperativeRole(): OperativeRoleInfo {
       isExterne,
       canAccessEinsatzList: isFuehrungskraft || isEinsatzkraft,
       canOpenEinsatz: isFuehrungskraft || isEinsatzkraft,
+      canCreateEinsatz: isFuehrungskraft,
       canArchiveEinsatz: isFuehrungskraft,
     };
   }, [user]);

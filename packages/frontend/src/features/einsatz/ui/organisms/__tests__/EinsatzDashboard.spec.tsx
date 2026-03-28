@@ -25,6 +25,19 @@ vi.mock('@/features/auth', () => ({
   })),
 }));
 
+vi.mock('@/features/operative-roles', () => ({
+  useOperativeRole: vi.fn(() => ({
+    role: 'FUEHRUNGSKRAFT',
+    isFuehrungskraft: true,
+    isEinsatzkraft: false,
+    isExterne: false,
+    canAccessEinsatzList: true,
+    canOpenEinsatz: true,
+    canCreateEinsatz: true,
+    canArchiveEinsatz: true,
+  })),
+}));
+
 vi.mock('@/features/einsatz', () => ({
   useActiveEinsaetzeWithCounts: vi.fn(),
   useEinsatzStatusCounts: vi.fn(),

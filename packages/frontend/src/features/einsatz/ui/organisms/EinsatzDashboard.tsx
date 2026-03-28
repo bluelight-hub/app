@@ -1,4 +1,5 @@
 import { getAuthContextSummary, useCurrentUser } from '@/features/auth';
+import { useOperativeRole } from '@/features/operative-roles';
 import { useActiveEinsaetzeWithCounts, useActiveEinsatz, useArchiveEinsatz, useEinsaetzeInfiniteQuery, useEinsatzStatusCounts } from '@/features/einsatz';
 import { EinsatzListItem } from '@/features/einsatz/ui/molecules/EinsatzListItem';
 import { EinsatzCreateForm } from '@/features/einsatz/ui/organisms/EinsatzCreateForm';
@@ -9,6 +10,7 @@ import {
   type EinsatzListItemDto,
   EinsatzListItemDtoStatusEnum,
 } from '@/shared';
+import { Badge } from '@/shared/ui/atoms/badge.atom';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Select } from '@/shared/ui/atoms/select.atom';
 import { cn } from '@/shared/ui/cn';
@@ -85,6 +87,7 @@ export function EinsatzDashboard() {
   const navigate = useNavigate();
   const { setActiveEinsatz } = useActiveEinsatz();
   const { user, authContext, isAdminAuthenticated } = useCurrentUser();
+  const { role: operativeRole, isExterne, isEinsatzkraft, canCreateEinsatz: canCreateByOperativeRole } = useOperativeRole();
   const [currentView, setCurrentView] = useState<DashboardView>('active');
   const [archiveSearchInput, setArchiveSearchInput] = useState('');
   const [archiveSearchTerm, setArchiveSearchTerm] = useState('');
@@ -96,9 +99,9 @@ export function EinsatzDashboard() {
   const [openingEinsatzId, setOpeningEinsatzId] = useState<string | null>(null);
   const [openError, setOpenError] = useState<string | null>(null);
   const resolvedAuthContext = authContext ?? (user ? getAuthContextSummary(user.role, isAdminAuthenticated ?? false) : null);
-  const einsatzCapabilities = resolvedAuthContext?.capabilities ?? {
-    canOpenEinsatz: false,
-    canCreateEinsatz: false,
+  const einsatzCapabilities = {
+    canOpenEinsatz: resolvedAuthContext?.capabilities.canOpenEinsatz ?? false,
+    canCreateEinsatz: (resolvedAuthContext?.capabilities.canCreateEinsatz ?? false) && canCreateByOperativeRole,
   };
   const restrictionHint = !einsatzCapabilities.canOpenEinsatz || !einsatzCapabilities.canCreateEinsatz ? (resolvedAuthContext?.restrictedActionHint ?? resolvedAuthContext?.nextActionLabel) : null;
 
@@ -274,10 +277,15 @@ export function EinsatzDashboard() {
       <div className="flex-shrink-0 border-b border-border-subtle bg-surface-panel px-3 py-4 sm:px-4 lg:px-6">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div className="space-y-4">
-            <div>
+            <div className="flex items-center gap-3">
               <h2 id="einsatz-dashboard-title" className="text-2xl font-bold text-text-primary">
                 Einsätze
               </h2>
+              {operativeRole && (
+                <Badge variant={isExterne ? 'warning' : isEinsatzkraft ? 'info' : 'success'} size="sm">
+                  {{ FUEHRUNGSKRAFT: 'Führungskraft', EINSATZKRAFT: 'Einsatzkraft', EXTERNE: 'Extern' }[operativeRole] ?? operativeRole}
+                </Badge>
+              )}
             </div>
 
             <div className="inline-flex rounded-lg bg-surface-raised p-1">
@@ -293,22 +301,35 @@ export function EinsatzDashboard() {
               <SummaryChip label="Abgeschlossen" value={counts.abgeschlossen} tone="emerald" />
             </div>
 
-            <Button
-              id="einsatz-dashboard-primary-action"
-              onClick={() => setIsCreatePanelOpen(true)}
-              title={einsatzCapabilities.canCreateEinsatz ? 'Neuer Einsatz (Cmd+N)' : (restrictionHint ?? 'Einsatzanlage ist für Ihre Rolle aktuell nicht freigegeben.')}
-              kbd="Cmd+N"
-              disabled={!einsatzCapabilities.canCreateEinsatz}
-            >
-              <PiPlus className="h-5 w-5" />
-              Neuer Einsatz
-            </Button>
+            {!isExterne && (
+              <Button
+                id="einsatz-dashboard-primary-action"
+                onClick={() => setIsCreatePanelOpen(true)}
+                title={einsatzCapabilities.canCreateEinsatz ? 'Neuer Einsatz (Cmd+N)' : 'Nur Führungskräfte können neue Einsätze anlegen.'}
+                kbd="Cmd+N"
+                disabled={!einsatzCapabilities.canCreateEinsatz}
+              >
+                <PiPlus className="h-5 w-5" />
+                Neuer Einsatz
+              </Button>
+            )}
           </div>
         </div>
 
         {restrictionHint && (
           <output aria-live="polite" className="mt-3 block text-body-sm text-status-warning-text">
             {restrictionHint}
+          </output>
+        )}
+
+        {isExterne && (
+          <output aria-live="polite" className="mt-3 block text-body-sm text-status-info-text">
+            Du siehst nur Einsätze, denen du zugewiesen bist.
+          </output>
+        )}
+        {isEinsatzkraft && (
+          <output aria-live="polite" className="mt-3 block text-body-sm text-status-info-text">
+            Du kannst Einsätze sehen, aber nur per Beitrittsanfrage teilnehmen.
           </output>
         )}
 
@@ -332,10 +353,16 @@ export function EinsatzDashboard() {
                   <p className="font-medium text-text-primary">Keine aktiven Einsätze vorhanden</p>
                   <p className="mt-2 text-body-sm text-text-secondary">Sobald ein Einsatz angelegt oder noch nicht archiviert ist, erscheint er hier als Arbeitsliste.</p>
                   <div className="mt-6 flex flex-wrap justify-center gap-2">
-                    <Button onClick={() => setIsCreatePanelOpen(true)} disabled={!einsatzCapabilities.canCreateEinsatz}>
-                      <PiPlus className="h-5 w-5" />
-                      Einsatz anlegen
-                    </Button>
+                    {!isExterne && (
+                      <Button
+                        onClick={() => setIsCreatePanelOpen(true)}
+                        disabled={!einsatzCapabilities.canCreateEinsatz}
+                        title={einsatzCapabilities.canCreateEinsatz ? undefined : 'Nur Führungskräfte können neue Einsätze anlegen.'}
+                      >
+                        <PiPlus className="h-5 w-5" />
+                        Einsatz anlegen
+                      </Button>
+                    )}
                     {counts.archiviert > 0 && (
                       <Button appearance="outline" intent="secondary" onClick={() => setCurrentView('archive')}>
                         <PiArchive className="h-5 w-5" />
