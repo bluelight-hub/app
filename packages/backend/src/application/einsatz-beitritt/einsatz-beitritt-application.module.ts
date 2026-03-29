@@ -5,6 +5,7 @@ import { EINSATZ_BEITRITTSANFRAGE_REPOSITORY, LOGGER } from '@infrastructure/di-
 import { NestLoggerAdapter } from '@infrastructure/common/adapters/nest-logger.adapter';
 import { PrismaEinsatzBeitrittsanfrageRepository } from '@infrastructure/database/repositories/prisma-einsatz-beitrittsanfrage.repository';
 import { CreateBeitrittsanfrageHandler } from './commands/create-beitrittsanfrage/create-beitrittsanfrage.handler';
+import { InviteExterneHandler } from './commands/invite-externe/invite-externe.handler';
 import { ResolveBeitrittsanfrageHandler } from './commands/resolve-beitrittsanfrage/resolve-beitrittsanfrage.handler';
 import { GetBeitrittsanfragenHandler } from './queries/get-beitrittsanfragen/get-beitrittsanfragen.handler';
 
@@ -25,9 +26,10 @@ import { GetBeitrittsanfragenHandler } from './queries/get-beitrittsanfragen/get
       useClass: PrismaEinsatzBeitrittsanfrageRepository,
     },
     CreateBeitrittsanfrageHandler,
+    InviteExterneHandler,
     ResolveBeitrittsanfrageHandler,
     GetBeitrittsanfragenHandler,
   ],
-  exports: [CreateBeitrittsanfrageHandler, ResolveBeitrittsanfrageHandler, GetBeitrittsanfragenHandler, EINSATZ_BEITRITTSANFRAGE_REPOSITORY],
+  exports: [CreateBeitrittsanfrageHandler, InviteExterneHandler, ResolveBeitrittsanfrageHandler, GetBeitrittsanfragenHandler, EINSATZ_BEITRITTSANFRAGE_REPOSITORY],
 })
 export class EinsatzBeitrittApplicationModule {}
