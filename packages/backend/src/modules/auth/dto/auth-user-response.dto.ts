@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole, OperativeRole } from '@/generated/prisma/client';
 
 /**
@@ -33,6 +33,14 @@ export class AuthUserResponseDto {
     example: OperativeRole.EXTERNE,
   })
   operativeRole!: OperativeRole;
+
+  @ApiPropertyOptional({
+    description: 'ID der zugewiesenen Stammperson (falls vorhanden)',
+    type: String,
+    example: 'clx_stammperson_xyz789',
+    nullable: true,
+  })
+  stammpersonId!: string | null;
 
   @ApiProperty({
     description: 'Gibt an, ob der Benutzer aktiv ist',
