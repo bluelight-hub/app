@@ -73,9 +73,9 @@ export function EinsatzBeitrittDialog({ einsatzId, isOpen, onClose, onReturnToOv
 
       // Falls keine passende EinsatzPerson existiert → aus Stammperson-Daten erstellen
       if (!einsatzPersonId) {
-        const stammPersonen = await api.stammPersonen().stammPersonenControllerFindAllVAlpha({});
-        const allPersonen = (stammPersonen as unknown as { data: Array<{ id: string; vorname: string; nachname: string; funkkenungBOS?: string }> }).data ?? stammPersonen;
-        const stammPerson = (allPersonen as Array<{ id: string; vorname: string; nachname: string; funkkenungBOS?: string }>).find((sp) => sp.id === userStammpersonId);
+        const response = await api.kraefteStammPersonen().stammPersonenControllerFindAllVAlpha({ includeArchived: false });
+        const allPersonen = response.data ?? [];
+        const stammPerson = allPersonen.find((sp) => sp.id === userStammpersonId);
 
         if (!stammPerson) {
           setIsAutoJoining(false);
