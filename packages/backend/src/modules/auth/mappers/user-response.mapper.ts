@@ -18,6 +18,7 @@ export function toUserResponseDto(user: User): AuthUserResponseDto {
     username: user.username,
     role: user.role,
     operativeRole: user.operativeRole,
+    stammpersonId: user.stammpersonId,
     isActive: user.isActive,
     lastLoginAt: user.lastLoginAt,
     createdAt: user.createdAt,

@@ -44,6 +44,12 @@ export interface AuthUserResponseDto {
      */
     operativeRole: AuthUserResponseDtoOperativeRoleEnum;
     /**
+     * ID der zugewiesenen Stammperson (falls vorhanden)
+     * @type {string}
+     * @memberof AuthUserResponseDto
+     */
+    stammpersonId?: string | null;
+    /**
      * Gibt an, ob der Benutzer aktiv ist
      * @type {boolean}
      * @memberof AuthUserResponseDto
@@ -119,6 +125,7 @@ export function AuthUserResponseDtoFromJSONTyped(json: any, ignoreDiscriminator:
         'username': json['username'],
         'role': json['role'],
         'operativeRole': json['operativeRole'],
+        'stammpersonId': json['stammpersonId'] == null ? undefined : json['stammpersonId'],
         'isActive': json['isActive'],
         'lastLoginAt': json['lastLoginAt'] == null ? undefined : json['lastLoginAt'],
         'createdAt': (new Date(json['createdAt'])),
@@ -141,6 +148,7 @@ export function AuthUserResponseDtoToJSONTyped(value?: AuthUserResponseDto | nul
         'username': value['username'],
         'role': value['role'],
         'operativeRole': value['operativeRole'],
+        'stammpersonId': value['stammpersonId'],
         'isActive': value['isActive'],
         'lastLoginAt': value['lastLoginAt'],
         'createdAt': ((value['createdAt']).toISOString()),

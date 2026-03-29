@@ -7,6 +7,8 @@
 
 import { PersonHinzufuegenDialog } from '@/features/einsatz';
 import { useEinsatzTeilnehmer, useJoinEinsatz, useMyEinsatzTeilnahme } from '@/features/einsatz/api';
+import { useEinsatzPersonen } from '@/features/einsatz/api';
+import { useCurrentUser } from '@/features/auth/api/use-current-user';
 import { EinsatzPersonenPicker } from '@/features/kraefte/ui/molecules/EinsatzPersonenPicker';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
@@ -31,9 +33,22 @@ export function EinsatzBeitrittDialog({ einsatzId, isOpen, onClose, onReturnToOv
   const { data: alleTeilnehmer } = useEinsatzTeilnehmer(einsatzId);
   const joinEinsatz = useJoinEinsatz();
 
+  const { user } = useCurrentUser();
+  const { data: einsatzPersonen } = useEinsatzPersonen(einsatzId);
+
   const currentEinsatzPersonId = teilnahmeData?.data?.einsatzPersonId || '';
   const isAlreadyJoined = !!teilnahmeData?.data;
   const requiresAssignment = !isAlreadyJoined;
+
+  // Stammperson-ID des Users aus dem Auth-State
+  const userStammpersonId = (user as Record<string, unknown> | null | undefined)?.stammpersonId as string | null | undefined;
+
+  // EinsatzPerson finden, die zur Stammperson des Users gehört
+  const matchingEinsatzPersonId = useMemo(() => {
+    if (!userStammpersonId || !einsatzPersonen) return '';
+    const match = einsatzPersonen.find((p) => p.stammId === userStammpersonId);
+    return match?.id ?? '';
+  }, [userStammpersonId, einsatzPersonen]);
 
   const [selectedPersonId, setSelectedPersonId] = useState('');
   const [showPersonDialog, setShowPersonDialog] = useState(false);
@@ -47,14 +62,14 @@ export function EinsatzBeitrittDialog({ einsatzId, isOpen, onClose, onReturnToOv
     return alleTeilnehmer.data.filter((t) => t.einsatzPersonId && t.einsatzPersonId !== currentEinsatzPersonId).map((t) => t.einsatzPersonId);
   }, [alleTeilnehmer, currentEinsatzPersonId]);
 
-  // Reset state when dialog opens
+  // Reset state when dialog opens — Stammperson als Vorauswahl nutzen
   useEffect(() => {
     if (isOpen) {
-      setSelectedPersonId(currentEinsatzPersonId);
+      setSelectedPersonId(currentEinsatzPersonId || matchingEinsatzPersonId);
       setSelectionError(undefined);
       setPendingCloseAfterJoin(false);
     }
-  }, [isOpen, currentEinsatzPersonId]);
+  }, [isOpen, currentEinsatzPersonId, matchingEinsatzPersonId]);
 
   useEffect(() => {
     if (isOpen && requiresAssignment) {
