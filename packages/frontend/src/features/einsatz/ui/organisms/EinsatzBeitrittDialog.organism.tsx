@@ -7,12 +7,15 @@
 
 import { PersonHinzufuegenDialog } from '@/features/einsatz';
 import { useEinsatzTeilnehmer, useJoinEinsatz, useMyEinsatzTeilnahme } from '@/features/einsatz/api';
-import { useEinsatzPersonen } from '@/features/einsatz/api';
+import { useEinsatzPersonen, useRegistrierePerson } from '@/features/einsatz/api';
 import { useCurrentUser } from '@/features/auth/api/use-current-user';
+import { useOperativeRole } from '@/features/operative-roles';
 import { EinsatzPersonenPicker } from '@/features/kraefte/ui/molecules/EinsatzPersonenPicker';
 import { Button } from '@/shared/ui/atoms/button.atom';
+import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { api } from '@/shared';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PiArrowLeft, PiPlus, PiUser } from 'react-icons/pi';
 
 interface EinsatzBeitrittDialogProps {
@@ -34,7 +37,9 @@ export function EinsatzBeitrittDialog({ einsatzId, isOpen, onClose, onReturnToOv
   const joinEinsatz = useJoinEinsatz();
 
   const { user } = useCurrentUser();
-  const { data: einsatzPersonen } = useEinsatzPersonen(einsatzId);
+  const { role: operativeRole } = useOperativeRole();
+  const { data: einsatzPersonen, isLoading: isPersonenLoading } = useEinsatzPersonen(einsatzId);
+  const registrierePerson = useRegistrierePerson();
 
   const currentEinsatzPersonId = teilnahmeData?.data?.einsatzPersonId || '';
   const isAlreadyJoined = !!teilnahmeData?.data;
@@ -54,7 +59,67 @@ export function EinsatzBeitrittDialog({ einsatzId, isOpen, onClose, onReturnToOv
   const [showPersonDialog, setShowPersonDialog] = useState(false);
   const [selectionError, setSelectionError] = useState<string | undefined>(undefined);
   const [pendingCloseAfterJoin, setPendingCloseAfterJoin] = useState(false);
+  const [isAutoJoining, setIsAutoJoining] = useState(false);
+  const autoJoinAttemptedRef = useRef(false);
   const gateTitleRef = useRef<HTMLHeadingElement>(null);
+
+  // Auto-Join: Wenn User eine Stammperson hat, automatisch registrieren + beitreten
+  const performAutoJoin = useCallback(async () => {
+    if (!userStammpersonId || !einsatzId) return;
+
+    setIsAutoJoining(true);
+    try {
+      let einsatzPersonId = matchingEinsatzPersonId;
+
+      // Falls keine passende EinsatzPerson existiert → aus Stammperson-Daten erstellen
+      if (!einsatzPersonId) {
+        const stammPersonen = await api.stammPersonen().stammPersonenControllerFindAllVAlpha({});
+        const allPersonen = (stammPersonen as unknown as { data: Array<{ id: string; vorname: string; nachname: string; funkkenungBOS?: string }> }).data ?? stammPersonen;
+        const stammPerson = (allPersonen as Array<{ id: string; vorname: string; nachname: string; funkkenungBOS?: string }>).find((sp) => sp.id === userStammpersonId);
+
+        if (!stammPerson) {
+          setIsAutoJoining(false);
+          return;
+        }
+
+        const funktionLabel = operativeRole === 'FUEHRUNGSKRAFT' ? 'Führungskraft' : operativeRole === 'EINSATZKRAFT' ? 'Einsatzkraft' : 'Externe';
+
+        const result = await registrierePerson.mutateAsync({
+          einsatzId,
+          vorname: stammPerson.vorname,
+          nachname: stammPerson.nachname,
+          funktion: funktionLabel,
+          funkrufname: stammPerson.funkkenungBOS,
+          stammPersonId: stammPerson.id,
+        });
+
+        einsatzPersonId = result.data?.id ?? '';
+      }
+
+      if (einsatzPersonId) {
+        setSelectedPersonId(einsatzPersonId);
+        await joinEinsatz.mutateAsync({
+          einsatzId,
+          data: { einsatzPersonId },
+        });
+        setPendingCloseAfterJoin(true);
+      }
+    } catch {
+      // Fehler werden in den Mutations per Toast gehandelt
+    } finally {
+      setIsAutoJoining(false);
+    }
+  }, [userStammpersonId, einsatzId, matchingEinsatzPersonId, operativeRole, registrierePerson, joinEinsatz]);
+
+  // Auto-Join auslösen wenn Dialog öffnet und User Stammperson hat
+  useEffect(() => {
+    if (!isOpen || !requiresAssignment || !userStammpersonId || isTeilnahmeLoading || isPersonenLoading) {
+      return;
+    }
+    if (autoJoinAttemptedRef.current) return;
+    autoJoinAttemptedRef.current = true;
+    void performAutoJoin();
+  }, [isOpen, requiresAssignment, userStammpersonId, isTeilnahmeLoading, isPersonenLoading, performAutoJoin]);
 
   // IDs der Personen die bereits von anderen Bearbeitern verknüpft sind (ausschließen)
   const excludePersonIds = useMemo(() => {
@@ -68,6 +133,8 @@ export function EinsatzBeitrittDialog({ einsatzId, isOpen, onClose, onReturnToOv
       setSelectedPersonId(currentEinsatzPersonId || matchingEinsatzPersonId);
       setSelectionError(undefined);
       setPendingCloseAfterJoin(false);
+      setIsAutoJoining(false);
+      autoJoinAttemptedRef.current = false;
     }
   }, [isOpen, currentEinsatzPersonId, matchingEinsatzPersonId]);
 
@@ -145,40 +212,49 @@ export function EinsatzBeitrittDialog({ einsatzId, isOpen, onClose, onReturnToOv
             </h2>
 
             <Dialog.Body className="mt-2">
-              <div className="space-y-3">
-                <output aria-live="polite" className="block text-body-sm text-text-secondary">
-                  {requiresAssignment
-                    ? 'Arbeitsraum bleibt gesperrt, bis Sie sich diesem Einsatz eindeutig zuordnen. Danach arbeiten Sie ohne Kontextverlust direkt im aktiven Einsatz weiter.'
-                    : 'Ändern Sie Ihre verknüpfte Person für diesen Einsatz.'}
-                </output>
-              </div>
-
-              <div className="mt-4 space-y-3">
-                <EinsatzPersonenPicker
-                  einsatzId={einsatzId}
-                  value={selectedPersonId}
-                  onChange={(personId) => {
-                    setSelectedPersonId(personId);
-                    setSelectionError(undefined);
-                  }}
-                  disabled={isTeilnahmeLoading || joinEinsatz.isPending}
-                  error={selectionError}
-                  label={requiresAssignment ? 'Einsatzkraft auswählen' : 'Person'}
-                  placeholder="Person auswählen..."
-                  excludePersonIds={excludePersonIds}
-                />
-
-                <div className="flex items-center gap-3">
-                  <div className="h-px flex-1 bg-border-subtle" />
-                  <span className="text-body-xs text-text-muted">oder</span>
-                  <div className="h-px flex-1 bg-border-subtle" />
+              {isAutoJoining ? (
+                <div className="flex flex-col items-center gap-3 py-6">
+                  <Spinner size="lg" />
+                  <p className="text-body-sm text-text-secondary">Zuordnung wird automatisch vorbereitet...</p>
                 </div>
+              ) : (
+                <>
+                  <div className="space-y-3">
+                    <output aria-live="polite" className="block text-body-sm text-text-secondary">
+                      {requiresAssignment
+                        ? 'Arbeitsraum bleibt gesperrt, bis Sie sich diesem Einsatz eindeutig zuordnen. Danach arbeiten Sie ohne Kontextverlust direkt im aktiven Einsatz weiter.'
+                        : 'Ändern Sie Ihre verknüpfte Person für diesen Einsatz.'}
+                    </output>
+                  </div>
 
-                <Button appearance="ghost" size="sm" className="w-full justify-center" onClick={() => setShowPersonDialog(true)} disabled={joinEinsatz.isPending}>
-                  <PiPlus className="mr-2 h-4 w-4" />
-                  Neue Person erstellen
-                </Button>
-              </div>
+                  <div className="mt-4 space-y-3">
+                    <EinsatzPersonenPicker
+                      einsatzId={einsatzId}
+                      value={selectedPersonId}
+                      onChange={(personId) => {
+                        setSelectedPersonId(personId);
+                        setSelectionError(undefined);
+                      }}
+                      disabled={isTeilnahmeLoading || joinEinsatz.isPending}
+                      error={selectionError}
+                      label={requiresAssignment ? 'Einsatzkraft auswählen' : 'Person'}
+                      placeholder="Person auswählen..."
+                      excludePersonIds={excludePersonIds}
+                    />
+
+                    <div className="flex items-center gap-3">
+                      <div className="h-px flex-1 bg-border-subtle" />
+                      <span className="text-body-xs text-text-muted">oder</span>
+                      <div className="h-px flex-1 bg-border-subtle" />
+                    </div>
+
+                    <Button appearance="ghost" size="sm" className="w-full justify-center" onClick={() => setShowPersonDialog(true)} disabled={joinEinsatz.isPending}>
+                      <PiPlus className="mr-2 h-4 w-4" />
+                      Neue Person erstellen
+                    </Button>
+                  </div>
+                </>
+              )}
             </Dialog.Body>
           </div>
         </div>
