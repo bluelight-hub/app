@@ -392,8 +392,9 @@ export class EinsatzController {
   @ApiBadRequestResponse({ description: 'Ungültige Einsatz-ID' })
   async getEinsatzDetails(@Param('id') id: string, @CurrentUser() user: ValidatedUser): Promise<EinsatzDetailsDto> {
     try {
-      // Zugriffsprüfung: EK und EXTERNE benötigen Zuweisung oder genehmigte Beitrittsanfrage
-      if (user.operativeRole === 'EINSATZKRAFT' || user.operativeRole === 'EXTERNE') {
+      // Zugriffsprüfung: EXTERNE benötigen Zuweisung oder genehmigte Beitrittsanfrage
+      // EINSATZKRAFT darf den Einsatz lesen um den Beitritts-Dialog anzuzeigen
+      if (user.operativeRole === 'EXTERNE') {
         await this.ensureEinsatzAccess(id, user.userId);
       }
 
@@ -439,8 +440,9 @@ export class EinsatzController {
     const einsatz = result.value?.items?.find((e: EinsatzResponseDto) => e.id === id);
     if (!einsatz) throw new NotFoundException(`Einsatz mit ID ${id} nicht gefunden`);
 
-    // Zugriffsprüfung: EK und EXTERNE benötigen Zuweisung oder genehmigte Beitrittsanfrage
-    if (user.operativeRole === 'EINSATZKRAFT' || user.operativeRole === 'EXTERNE') {
+    // Zugriffsprüfung: EXTERNE benötigen Zuweisung oder genehmigte Beitrittsanfrage
+    // EINSATZKRAFT darf den Einsatz lesen um den Beitritts-Dialog anzuzeigen
+    if (user.operativeRole === 'EXTERNE') {
       await this.ensureEinsatzAccess(id, user.userId);
     }
 
