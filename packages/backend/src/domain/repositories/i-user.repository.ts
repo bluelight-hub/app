@@ -275,4 +275,20 @@ export interface IUserRepository {
    * @returns Result<string | null> - Success mit bcrypt Hash oder null wenn User kein Passwort hat
    */
   getPasswordHash(id: UserId, tx?: TransactionContext): Promise<Result<string | null>>;
+
+  /**
+   * Lädt alle User mit operativen Zusatzdaten (operativeRole, Stammperson).
+   *
+   * Kombiniert findAll() mit Enrichment-Daten für das Admin-Dashboard.
+   * Vermeidet, dass der Application Layer direkt auf Prisma zugreifen muss.
+   *
+   * @param tx - Optional Transaction Context für Atomizität
+   * @returns Result mit Aggregates + operativer Daten-Map
+   */
+  findAllWithOperativeData(tx?: TransactionContext): Promise<
+    Result<{
+      aggregates: UserAggregate[];
+      operativeDataMap: Map<string, { operativeRole: string; stammperson: { id: string; vorname: string; nachname: string; personalnummer: string } | null }>;
+    }>
+  >;
 }

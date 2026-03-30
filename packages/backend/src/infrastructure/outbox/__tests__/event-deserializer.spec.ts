@@ -2266,15 +2266,16 @@ describe('EventDeserializer', () => {
       expect(deserializer.supportsEventType('')).toBe(false);
     });
 
-    it('should return all 75 supported event types', () => {
+    it('should return all 79 supported event types', () => {
       const supportedTypes = deserializer.getSupportedEventTypes();
 
-      // 75 Event-Typen: Basis + Erinnerung + Erinnerungsvorlage + Notiz + Fuehrungsrhythmus
+      // 79 Event-Typen: Basis + Erinnerung + Erinnerungsvorlage + Notiz + Fuehrungsrhythmus
       // + Fahrzeugtyp + RollenDefinition + FunkStatusConfig + 2 Legacy-Aliases + Kategorie (Story 8.1)
       // + Befehl (Story 1.1 - 4 Events) + BefehlQuittiert (Story 2.1) + RolleGeaendert (Story 5.4)
       // + BefehlAnonymisiert + BefehlGeloescht + AufbewahrungsKonfigurationGeaendert (Story 5.5)
       // + SystemWarnung (Story 5.6) + EintragKorrigiert (Issue #554)
-      expect(supportedTypes).toHaveLength(75);
+      // + OperativeRolleChanged + StammpersonAssigned + BeitrittsanfrageErstellt + BeitrittsanfrageEntschieden (Issue #98)
+      expect(supportedTypes).toHaveLength(79);
       expect(supportedTypes).toContain('einsatz.created');
       expect(supportedTypes).toContain('etb.created');
       expect(supportedTypes).toContain('lagekarte.created');

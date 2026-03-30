@@ -3644,7 +3644,7 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
     },
     "/api/v-1/einsatz": {
       "get": {
-        "description": "Paginierte Liste aller Einsätze. Archivierte standardmäßig ausgeschlossen.",
+        "description": "Paginierte Liste aller Einsätze. Archivierte standardmäßig ausgeschlossen. EXTERNE sehen nur zugewiesene Einsätze.",
         "operationId": "EinsatzController_findAll_v-1",
         "parameters": [
           {
@@ -4133,7 +4133,7 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
         ],
       },
       "get": {
-        "description": "Gibt einen einzelnen Einsatz mit allen Details zurück.",
+        "description": "Gibt einen einzelnen Einsatz mit allen Details zurück. EK/EXTERNE benötigen Zuweisung oder genehmigte Beitrittsanfrage.",
         "operationId": "EinsatzController_findOne_v-1",
         "parameters": [
           {
@@ -6258,7 +6258,7 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
     },
     "/api/v-alpha/einsatz": {
       "get": {
-        "description": "Paginierte Liste aller Einsätze. Archivierte standardmäßig ausgeschlossen.",
+        "description": "Paginierte Liste aller Einsätze. Archivierte standardmäßig ausgeschlossen. EXTERNE sehen nur zugewiesene Einsätze.",
         "operationId": "EinsatzController_findAll_v-alpha",
         "parameters": [
           {
@@ -6747,7 +6747,7 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
         ],
       },
       "get": {
-        "description": "Gibt einen einzelnen Einsatz mit allen Details zurück.",
+        "description": "Gibt einen einzelnen Einsatz mit allen Details zurück. EK/EXTERNE benötigen Zuweisung oder genehmigte Beitrittsanfrage.",
         "operationId": "EinsatzController_findOne_v-alpha",
         "parameters": [
           {

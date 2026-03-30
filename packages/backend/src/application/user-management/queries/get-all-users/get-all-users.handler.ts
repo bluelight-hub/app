@@ -6,7 +6,6 @@ import type { IUserRepository } from '@domain/repositories/i-user.repository';
 import type { UserDto } from '@/application/user-management/dto/user.dto';
 import { GetAllUsersQuery } from './get-all-users.query';
 import { USER_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
-import { PrismaService } from '@infrastructure/database/prisma.service';
 
 /**
  * Handler für GetAllUsersQuery.
@@ -69,7 +68,6 @@ export class GetAllUsersQueryHandler implements IQueryHandler<GetAllUsersQuery, 
     @Inject(USER_REPOSITORY)
     private readonly repository: IUserRepository,
     @Inject(LOGGER) private readonly logger: ILogger,
-    private readonly prisma: PrismaService,
   ) {}
 
   /**
@@ -91,9 +89,8 @@ export class GetAllUsersQueryHandler implements IQueryHandler<GetAllUsersQuery, 
    */
   async execute(_query: GetAllUsersQuery): Promise<Result<UserDto[]>> {
     try {
-      // 1. Repository Abfrage (alle User Aggregates)
-      // Result Pattern: Repository gibt Result<T> zurück statt Exceptions zu werfen
-      const repositoryResult = await this.repository.findAll();
+      // 1. Repository Abfrage (alle User Aggregates + operative Daten)
+      const repositoryResult = await this.repository.findAllWithOperativeData();
 
       // 2. Prüfe Repository Result auf Fehler
       if (repositoryResult.isFailure) {
@@ -102,39 +99,20 @@ export class GetAllUsersQueryHandler implements IQueryHandler<GetAllUsersQuery, 
       }
 
       // 3. Type Narrowing: value ist garantiert vorhanden wenn isFailure === false
-      const users = repositoryResult.value;
-      if (!users) {
-        // Fallback: Leeres Result (sollte nicht passieren aber Type-Safe)
+      const data = repositoryResult.value;
+      if (!data) {
         return Result.ok<UserDto[]>([]);
       }
 
-      // 4. Operative Daten (operativeRole + stammperson) aus Prisma laden
-      const userIds = users.map((u) => u.id.toString());
-      const operativeData = await this.prisma.user.findMany({
-        where: { id: { in: userIds } },
-        select: {
-          id: true,
-          operativeRole: true,
-          stammperson: {
-            select: {
-              id: true,
-              vorname: true,
-              nachname: true,
-              personalnummer: true,
-            },
-          },
-        },
-      });
+      const { aggregates, operativeDataMap } = data;
 
-      const operativeMap = new Map(operativeData.map((u) => [u.id, { operativeRole: u.operativeRole, stammperson: u.stammperson }]));
+      // 4. Domain Aggregates zu DTOs mappen (mit operativen Daten)
+      const dtos = aggregates.map((aggregate) => this.aggregateToDto(aggregate, operativeDataMap));
 
-      // 5. Domain Aggregates zu DTOs mappen (mit operativen Daten)
-      const dtos = users.map((aggregate) => this.aggregateToDto(aggregate, operativeMap));
-
-      // 6. Logging für Monitoring
+      // 5. Logging für Monitoring
       this.logger.log(`Found ${dtos.length} users`);
 
-      // 7. Return Success mit UserDto Array
+      // 6. Return Success mit UserDto Array
       return Result.ok<UserDto[]>(dtos);
     } catch (error) {
       // Structured Logging für Produktions-Debugging

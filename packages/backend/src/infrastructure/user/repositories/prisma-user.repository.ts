@@ -411,6 +411,40 @@ export class PrismaUserRepository implements IUserRepository {
    * @param tx - Optional Transaction Context für Atomizität
    * @returns Result<string | null> - Success mit bcrypt Hash oder null wenn User kein Passwort hat
    */
+  async findAllWithOperativeData(tx?: TransactionContext): Promise<
+    Result<{
+      aggregates: UserAggregate[];
+      operativeDataMap: Map<string, { operativeRole: string; stammperson: { id: string; vorname: string; nachname: string; personalnummer: string } | null }>;
+    }>
+  > {
+    const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
+
+    try {
+      const users = await client.user.findMany({
+        orderBy: { createdAt: 'desc' },
+        include: {
+          stammperson: {
+            select: {
+              id: true,
+              vorname: true,
+              nachname: true,
+              personalnummer: true,
+            },
+          },
+        },
+      });
+
+      const aggregates = users.map((u) => PrismaUserMapper.toAggregate(u));
+      const operativeDataMap = new Map(users.map((u) => [u.id, { operativeRole: u.operativeRole, stammperson: u.stammperson }]));
+
+      return Result.ok({ aggregates, operativeDataMap });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error('Failed to find all Users with operative data', { error: message });
+      return Result.fail(`Database error: ${message}`);
+    }
+  }
+
   async getPasswordHash(id: UserId, tx?: TransactionContext): Promise<Result<string | null>> {
     const client = (tx as PrismaTransactionClient | undefined) ?? this.prisma;
 
