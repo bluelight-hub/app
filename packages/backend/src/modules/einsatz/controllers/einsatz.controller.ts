@@ -593,14 +593,25 @@ export class EinsatzController {
   }
 
   /**
-   * Gibt die IDs aller Einsätze zurück, an denen der User aktiv teilnimmt.
+   * Gibt die IDs aller Einsätze zurück, an denen der User aktiv teilnimmt
+   * oder zu denen er eine genehmigte Beitrittsanfrage hat.
    */
   private async getAssignedEinsatzIds(userId: string): Promise<Set<string>> {
-    const teilnahmen = await this.prisma.einsatzTeilnehmer.findMany({
-      where: { userId, leftAt: null },
-      select: { einsatzId: true },
-    });
-    return new Set(teilnahmen.map((t) => t.einsatzId));
+    const [teilnahmen, beitrittsanfragen] = await Promise.all([
+      this.prisma.einsatzTeilnehmer.findMany({
+        where: { userId, leftAt: null },
+        select: { einsatzId: true },
+      }),
+      this.prisma.einsatzBeitrittsanfrage.findMany({
+        where: { userId, status: 'GENEHMIGT' },
+        select: { einsatzId: true },
+      }),
+    ]);
+
+    const ids = new Set<string>();
+    for (const t of teilnahmen) ids.add(t.einsatzId);
+    for (const b of beitrittsanfragen) ids.add(b.einsatzId);
+    return ids;
   }
 
   /**
