@@ -17,6 +17,7 @@ import * as runtime from '../runtime';
 import type {
   EinsatzBeitrittControllerCreateVAlpha201Response,
   EinsatzBeitrittControllerFindAllVAlpha200Response,
+  InviteExterneDto,
   ResolveBeitrittsanfrageDto,
 } from '../models/index';
 import {
@@ -24,6 +25,8 @@ import {
     EinsatzBeitrittControllerCreateVAlpha201ResponseToJSON,
     EinsatzBeitrittControllerFindAllVAlpha200ResponseFromJSON,
     EinsatzBeitrittControllerFindAllVAlpha200ResponseToJSON,
+    InviteExterneDtoFromJSON,
+    InviteExterneDtoToJSON,
     ResolveBeitrittsanfrageDtoFromJSON,
     ResolveBeitrittsanfrageDtoToJSON,
 } from '../models/index';
@@ -44,6 +47,16 @@ export interface EinsatzBeitrittControllerFindAllVAlphaRequest {
     einsatzId: string;
 }
 
+export interface EinsatzBeitrittControllerInviteV1Request {
+    einsatzId: string;
+    inviteExterneDto: InviteExterneDto;
+}
+
+export interface EinsatzBeitrittControllerInviteVAlphaRequest {
+    einsatzId: string;
+    inviteExterneDto: InviteExterneDto;
+}
+
 export interface EinsatzBeitrittControllerResolveV1Request {
     anfrageId: string;
     resolveBeitrittsanfrageDto: ResolveBeitrittsanfrageDto;
@@ -52,6 +65,16 @@ export interface EinsatzBeitrittControllerResolveV1Request {
 export interface EinsatzBeitrittControllerResolveVAlphaRequest {
     anfrageId: string;
     resolveBeitrittsanfrageDto: ResolveBeitrittsanfrageDto;
+}
+
+export interface EinsatzBeitrittControllerRevokeInvitationV1Request {
+    einsatzId: string;
+    userId: string;
+}
+
+export interface EinsatzBeitrittControllerRevokeInvitationVAlphaRequest {
+    einsatzId: string;
+    userId: string;
 }
 
 /**
@@ -200,6 +223,96 @@ export class EinsatzBeitrittApi extends runtime.BaseAPI {
     }
 
     /**
+     * Führungskraft lädt eine externe Person zu einem Einsatz ein (erstellt genehmigte Beitrittsanfrage).
+     * Externe Person einladen
+     */
+    async einsatzBeitrittControllerInviteV1Raw(requestParameters: EinsatzBeitrittControllerInviteV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EinsatzBeitrittControllerCreateVAlpha201Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling einsatzBeitrittControllerInviteV1().'
+            );
+        }
+
+        if (requestParameters['inviteExterneDto'] == null) {
+            throw new runtime.RequiredError(
+                'inviteExterneDto',
+                'Required parameter "inviteExterneDto" was null or undefined when calling einsatzBeitrittControllerInviteV1().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/api/v-1/einsatz/{einsatzId}/beitrittsanfragen/einladen`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: InviteExterneDtoToJSON(requestParameters['inviteExterneDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzBeitrittControllerCreateVAlpha201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Führungskraft lädt eine externe Person zu einem Einsatz ein (erstellt genehmigte Beitrittsanfrage).
+     * Externe Person einladen
+     */
+    async einsatzBeitrittControllerInviteV1(requestParameters: EinsatzBeitrittControllerInviteV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EinsatzBeitrittControllerCreateVAlpha201Response> {
+        const response = await this.einsatzBeitrittControllerInviteV1Raw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Führungskraft lädt eine externe Person zu einem Einsatz ein (erstellt genehmigte Beitrittsanfrage).
+     * Externe Person einladen
+     */
+    async einsatzBeitrittControllerInviteVAlphaRaw(requestParameters: EinsatzBeitrittControllerInviteVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EinsatzBeitrittControllerCreateVAlpha201Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling einsatzBeitrittControllerInviteVAlpha().'
+            );
+        }
+
+        if (requestParameters['inviteExterneDto'] == null) {
+            throw new runtime.RequiredError(
+                'inviteExterneDto',
+                'Required parameter "inviteExterneDto" was null or undefined when calling einsatzBeitrittControllerInviteVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsatz/{einsatzId}/beitrittsanfragen/einladen`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: InviteExterneDtoToJSON(requestParameters['inviteExterneDto']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzBeitrittControllerCreateVAlpha201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Führungskraft lädt eine externe Person zu einem Einsatz ein (erstellt genehmigte Beitrittsanfrage).
+     * Externe Person einladen
+     */
+    async einsatzBeitrittControllerInviteVAlpha(requestParameters: EinsatzBeitrittControllerInviteVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EinsatzBeitrittControllerCreateVAlpha201Response> {
+        const response = await this.einsatzBeitrittControllerInviteVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Führungskraft genehmigt oder lehnt eine Beitrittsanfrage ab.
      * Beitrittsanfrage entscheiden
      */
@@ -286,6 +399,90 @@ export class EinsatzBeitrittApi extends runtime.BaseAPI {
      */
     async einsatzBeitrittControllerResolveVAlpha(requestParameters: EinsatzBeitrittControllerResolveVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EinsatzBeitrittControllerCreateVAlpha201Response> {
         const response = await this.einsatzBeitrittControllerResolveVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Führungskraft widerruft eine genehmigte Beitrittsanfrage (Einladung) für einen User.
+     * Einladung widerrufen
+     */
+    async einsatzBeitrittControllerRevokeInvitationV1Raw(requestParameters: EinsatzBeitrittControllerRevokeInvitationV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EinsatzBeitrittControllerCreateVAlpha201Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling einsatzBeitrittControllerRevokeInvitationV1().'
+            );
+        }
+
+        if (requestParameters['userId'] == null) {
+            throw new runtime.RequiredError(
+                'userId',
+                'Required parameter "userId" was null or undefined when calling einsatzBeitrittControllerRevokeInvitationV1().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-1/einsatz/{einsatzId}/beitrittsanfragen/{userId}`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"userId"}}`, encodeURIComponent(String(requestParameters['userId']))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzBeitrittControllerCreateVAlpha201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Führungskraft widerruft eine genehmigte Beitrittsanfrage (Einladung) für einen User.
+     * Einladung widerrufen
+     */
+    async einsatzBeitrittControllerRevokeInvitationV1(requestParameters: EinsatzBeitrittControllerRevokeInvitationV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EinsatzBeitrittControllerCreateVAlpha201Response> {
+        const response = await this.einsatzBeitrittControllerRevokeInvitationV1Raw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Führungskraft widerruft eine genehmigte Beitrittsanfrage (Einladung) für einen User.
+     * Einladung widerrufen
+     */
+    async einsatzBeitrittControllerRevokeInvitationVAlphaRaw(requestParameters: EinsatzBeitrittControllerRevokeInvitationVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EinsatzBeitrittControllerCreateVAlpha201Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling einsatzBeitrittControllerRevokeInvitationVAlpha().'
+            );
+        }
+
+        if (requestParameters['userId'] == null) {
+            throw new runtime.RequiredError(
+                'userId',
+                'Required parameter "userId" was null or undefined when calling einsatzBeitrittControllerRevokeInvitationVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsatz/{einsatzId}/beitrittsanfragen/{userId}`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))).replace(`{${"userId"}}`, encodeURIComponent(String(requestParameters['userId']))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzBeitrittControllerCreateVAlpha201ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Führungskraft widerruft eine genehmigte Beitrittsanfrage (Einladung) für einen User.
+     * Einladung widerrufen
+     */
+    async einsatzBeitrittControllerRevokeInvitationVAlpha(requestParameters: EinsatzBeitrittControllerRevokeInvitationVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EinsatzBeitrittControllerCreateVAlpha201Response> {
+        const response = await this.einsatzBeitrittControllerRevokeInvitationVAlphaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

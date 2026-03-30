@@ -11,7 +11,9 @@
 export { OPERATIVE_ROLES_QUERY_KEYS } from './api/queries';
 export { useBeitrittsanfragen } from './api/use-beitrittsanfragen';
 export { useCreateBeitrittsanfrage } from './api/use-create-beitrittsanfrage';
+export { useInviteExterne } from './api/use-invite-externe';
 export { useResolveBeitrittsanfrage } from './api/use-resolve-beitrittsanfrage';
+export { useRevokeInvitation } from './api/use-revoke-invitation';
 
 // Hooks
 export { useOperativeRole } from './hooks/use-operative-role';

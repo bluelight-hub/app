@@ -257,6 +257,7 @@ export * from './IntegrationOverviewResponseDto';
 export * from './IntegrationStatusDto';
 export * from './InviteCodeCreatorDto';
 export * from './InviteCodeListItemDto';
+export * from './InviteExterneDto';
 export * from './JoinEinsatzDto';
 export * from './KategorieControllerCreateVAlpha201Response';
 export * from './KategorieControllerGetByEinsatzVAlpha200Response';
