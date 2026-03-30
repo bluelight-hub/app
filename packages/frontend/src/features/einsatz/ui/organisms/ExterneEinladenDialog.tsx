@@ -8,14 +8,14 @@
 
 import { useInviteExterne, useBeitrittsanfragen } from '@/features/operative-roles';
 import { api } from '@/shared';
-import type { ManagedUsersListResponse, ResponseError } from '@bluelight-hub/shared/client';
+import type { EinsatzBeitrittControllerGetExterneUsersVAlpha200Response, ResponseError } from '@bluelight-hub/shared/client';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Combobox } from '@/shared/ui/headless/combobox';
 import type { ComboboxGroup } from '@/shared/ui/headless/combobox';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
-import { PiUserPlus, PiWarning } from 'react-icons/pi';
+import { PiUserPlus } from 'react-icons/pi';
 
 interface ExterneEinladenDialogProps {
   einsatzId: string;
@@ -26,22 +26,18 @@ interface ExterneEinladenDialogProps {
 /**
  * Dialog zum Einladen von externen Personen
  *
- * Lädt die Benutzerliste über die Admin-API und filtert nach EXTERNE-Rolle.
+ * Lädt die Liste der EXTERNE-User über den Beitritt-Endpoint (JWT-Auth).
  * Zeigt bereits eingeladene Personen in einer separaten Gruppe an.
  */
 export function ExterneEinladenDialog({ einsatzId, isOpen, onClose }: ExterneEinladenDialogProps) {
   const [selectedUserId, setSelectedUserId] = useState('');
   const inviteExterne = useInviteExterne();
 
-  // Benutzerliste laden (nur wenn Dialog offen)
-  const {
-    data: usersData,
-    isLoading: isUsersLoading,
-    error: usersError,
-  } = useQuery<ManagedUsersListResponse, ResponseError>({
-    queryKey: ['admin', 'users', 'externe-einladen'],
+  // EXTERNE-User über den Beitritt-Endpoint laden (kein Admin nötig)
+  const { data: usersData, isLoading: isUsersLoading } = useQuery<EinsatzBeitrittControllerGetExterneUsersVAlpha200Response, ResponseError>({
+    queryKey: ['einsatz-beitritt', einsatzId, 'externe-users'],
     queryFn: async () => {
-      return await api.userManagement().userManagementControllerFindAllVAlpha();
+      return await api.einsatzBeitritt().einsatzBeitrittControllerGetExterneUsersVAlpha({ einsatzId });
     },
     enabled: isOpen,
     staleTime: 30_000,
@@ -59,7 +55,7 @@ export function ExterneEinladenDialog({ einsatzId, isOpen, onClose }: ExterneEin
   const comboboxGroups: ComboboxGroup[] = useMemo(() => {
     if (!usersData?.data) return [];
 
-    const externeUsers = usersData.data.filter((u) => u.operativeRole === 'EXTERNE' && !u.isLocked);
+    const externeUsers = usersData.data;
 
     const verfuegbar = externeUsers
       .filter((u) => !invitedUserIds.has(u.id))
@@ -89,13 +85,8 @@ export function ExterneEinladenDialog({ einsatzId, isOpen, onClose }: ExterneEin
 
   const hasNoExterneUsers = useMemo(() => {
     if (!usersData?.data) return false;
-    return usersData.data.filter((u) => u.operativeRole === 'EXTERNE' && !u.isLocked).length === 0;
+    return usersData.data.length === 0;
   }, [usersData]);
-
-  const isAdminError = useMemo(() => {
-    if (!usersError) return false;
-    return usersError.response?.status === 403 || usersError.response?.status === 401;
-  }, [usersError]);
 
   const handleInvite = async () => {
     if (!selectedUserId || invitedUserIds.has(selectedUserId)) return;
@@ -129,15 +120,7 @@ export function ExterneEinladenDialog({ einsatzId, isOpen, onClose }: ExterneEin
           <Dialog.Title>Externe Person einladen</Dialog.Title>
 
           <Dialog.Body>
-            {isAdminError ? (
-              <div className="flex items-start gap-3 rounded-panel border border-status-warning-border bg-status-warning-surface p-4">
-                <PiWarning className="mt-0.5 h-5 w-5 flex-shrink-0 text-status-warning-text" />
-                <div>
-                  <p className="text-body-sm font-medium text-status-warning-text">Admin-Rechte erforderlich</p>
-                  <p className="mt-1 text-body-xs text-text-secondary">Zum Laden der Benutzerliste werden Admin-Rechte benötigt. Bitte melden Sie sich als Admin an.</p>
-                </div>
-              </div>
-            ) : isUsersLoading ? (
+            {isUsersLoading ? (
               <div className="flex items-center justify-center py-6">
                 <span className="h-6 w-6 animate-spin rounded-full border-2 border-action-primary border-t-transparent" />
                 <span className="ml-3 text-body-sm text-text-secondary">Lade Benutzerliste...</span>
@@ -160,7 +143,7 @@ export function ExterneEinladenDialog({ einsatzId, isOpen, onClose }: ExterneEin
         <Button intent="secondary" appearance="ghost" onClick={handleClose} disabled={inviteExterne.isPending}>
           Abbrechen
         </Button>
-        <Button intent="primary" onClick={handleInvite} disabled={!selectedUserId || invitedUserIds.has(selectedUserId) || inviteExterne.isPending || isAdminError} loading={inviteExterne.isPending}>
+        <Button intent="primary" onClick={handleInvite} disabled={!selectedUserId || invitedUserIds.has(selectedUserId) || inviteExterne.isPending} loading={inviteExterne.isPending}>
           <PiUserPlus className="h-4 w-4" />
           Einladen
         </Button>

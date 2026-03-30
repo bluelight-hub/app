@@ -7,6 +7,8 @@ import { EinsatzStatusBadge } from '@/features/einsatz/ui/molecules/einsatz-stat
 import { EinsatzSwitcher } from '@/features/einsatz/ui/molecules/EinsatzSwitcher.molecule';
 import { ModuleOverviewCard } from '@/features/einsatz/ui/molecules/ModuleOverviewCard';
 import { EinsatzBeitrittDialog } from '@/features/einsatz/ui/organisms';
+import { ExterneEinladenDialog } from '@/features/einsatz/ui/organisms/ExterneEinladenDialog';
+import { useOperativeRole } from '@/features/operative-roles';
 import { closeQuickCreateNotizDialog, CreateNotizDialog, useQuickCreateNotizDialogState, useQuickCreateNotizHotkeys } from '@/features/notizen';
 import {
   closeDeleteDialog,
@@ -42,7 +44,7 @@ import { Outlet, useMatchRoute, useNavigate, useParams, useRouter } from '@tanst
 import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { PiArrowsOut, PiClock, PiRadio, PiSiren, PiSpeakerHigh, PiWarning } from 'react-icons/pi';
+import { PiArrowsOut, PiClock, PiRadio, PiSiren, PiSpeakerHigh, PiUserPlus, PiWarning } from 'react-icons/pi';
 import { toast } from 'sonner';
 import { hasBlockingWorkspaceOverlay, shouldBlockWorkspaceHotkey } from './single-einsatz-layout.utils';
 
@@ -70,6 +72,8 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   const [showEndConfirmation, setShowEndConfirmation] = useState(false);
   const [showBeitrittDialog, setShowBeitrittDialog] = useState(false);
   const [showAudioDialog, setShowAudioDialog] = useState(false);
+  const [showExterneEinladenDialog, setShowExterneEinladenDialog] = useState(false);
+  const { isFuehrungskraft } = useOperativeRole();
 
   // Quick-Create Erinnerung Dialog State und Hotkeys (Story 1.1 AC1, Story 5.4)
   const { isOpen: isQuickCreateOpen, einsatzId: quickCreateEinsatzId, etbEintragId, etbEintragText, fromTemplate } = useQuickCreateDialogStateWithEtb();
@@ -95,6 +99,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
     showEndConfirmation,
     showBeitrittDialog: beitrittDialogOpen,
     showAudioDialog,
+    showExterneEinladenDialog,
     isQuickCreateOpen,
     isEditDialogOpen,
     isDeleteDialogOpen,
@@ -483,6 +488,12 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
                 <span className="text-action-primary">Person wählen</span>
               )}
             </Button>
+            {isFuehrungskraft && (
+              <Button appearance="ghost" size="sm" className="mb-2 w-full justify-start" onClick={() => setShowExterneEinladenDialog(true)} aria-haspopup="dialog">
+                <PiUserPlus className="mr-2 h-4 w-4" />
+                Externe einladen
+              </Button>
+            )}
             <Button appearance="ghost" size="sm" className="mb-2 w-full justify-start" onClick={() => setShowAudioDialog(true)} aria-haspopup="dialog">
               <PiSpeakerHigh className="mr-2 h-4 w-4" />
               Audio-Einstellungen
@@ -604,6 +615,9 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
 
       {/* Audio-Einstellungen Dialog (Story 2.7) */}
       <AudioSettingsDialog isOpen={showAudioDialog} onClose={() => setShowAudioDialog(false)} />
+
+      {/* Externe einladen Dialog */}
+      <ExterneEinladenDialog einsatzId={einsatzId} isOpen={showExterneEinladenDialog} onClose={() => setShowExterneEinladenDialog(false)} />
     </EinsatzRolleProvider>
   );
 }

@@ -5,6 +5,7 @@ interface BlockingWorkspaceOverlayState {
   showEndConfirmation: boolean;
   showBeitrittDialog: boolean;
   showAudioDialog: boolean;
+  showExterneEinladenDialog: boolean;
   showModuleOverview: boolean;
   isQuickCreateOpen: boolean;
   isEditDialogOpen: boolean;
@@ -19,6 +20,7 @@ export function hasBlockingWorkspaceOverlay({
   showEndConfirmation,
   showBeitrittDialog,
   showAudioDialog,
+  showExterneEinladenDialog,
   showModuleOverview,
   isQuickCreateOpen,
   isEditDialogOpen,
@@ -32,6 +34,7 @@ export function hasBlockingWorkspaceOverlay({
     showEndConfirmation ||
     showBeitrittDialog ||
     showAudioDialog ||
+    showExterneEinladenDialog ||
     showModuleOverview ||
     isQuickCreateOpen ||
     isEditDialogOpen ||

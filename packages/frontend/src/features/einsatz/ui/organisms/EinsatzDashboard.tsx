@@ -19,8 +19,7 @@ import { SearchInput } from '@/shared/ui/molecules/search-input.molecule';
 import { useNavigate } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { PiArchive, PiCheckCircle, PiPlus, PiSpinner, PiUserPlus } from 'react-icons/pi';
-import { ExterneEinladenDialog } from '@/features/einsatz/ui/organisms/ExterneEinladenDialog';
+import { PiArchive, PiCheckCircle, PiPlus, PiSpinner } from 'react-icons/pi';
 
 type DashboardView = 'active' | 'archive';
 
@@ -88,7 +87,7 @@ export function EinsatzDashboard() {
   const navigate = useNavigate();
   const { setActiveEinsatz } = useActiveEinsatz();
   const { user, authContext, isAdminAuthenticated } = useCurrentUser();
-  const { role: operativeRole, isExterne, isEinsatzkraft, isFuehrungskraft, canCreateEinsatz: canCreateByOperativeRole } = useOperativeRole();
+  const { role: operativeRole, isExterne, isEinsatzkraft, canCreateEinsatz: canCreateByOperativeRole } = useOperativeRole();
   const [currentView, setCurrentView] = useState<DashboardView>('active');
   const [archiveSearchInput, setArchiveSearchInput] = useState('');
   const [archiveSearchTerm, setArchiveSearchTerm] = useState('');
@@ -97,7 +96,6 @@ export function EinsatzDashboard() {
     direction: EinsatzControllerFindAllVAlphaOrderDirectionEnum.Desc,
   });
   const [isCreatePanelOpen, setIsCreatePanelOpen] = useState(false);
-  const [externeEinladenEinsatzId, setExterneEinladenEinsatzId] = useState<string | null>(null);
   const [openingEinsatzId, setOpeningEinsatzId] = useState<string | null>(null);
   const [openError, setOpenError] = useState<string | null>(null);
   const resolvedAuthContext = authContext ?? (user ? getAuthContextSummary(user.role, isAdminAuthenticated ?? false) : null);
@@ -227,43 +225,25 @@ export function EinsatzDashboard() {
           <EinsatzListItem einsatz={einsatz} />
         </button>
 
-        {(canArchive || isFuehrungskraft) && (
+        {canArchive && (
           <div className="flex flex-col gap-3 border-t border-border-subtle bg-surface-raised/60 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
-            {canArchive ? (
-              <>
-                <div className="min-w-0">
-                  <p className="text-body-sm font-medium text-text-primary">Abgeschlossen und bereit fürs Archiv</p>
-                  <p className="mt-1 text-body-xs text-text-secondary">Einmal klicken, dann erneut bestätigen. Danach verschwindet der Einsatz direkt aus der aktiven Liste.</p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button size="sm" appearance="outline" intent="secondary" onClick={() => setExterneEinladenEinsatzId(einsatz.id)}>
-                    <PiUserPlus className="h-4 w-4" />
-                    Externe einladen
-                  </Button>
-                  <ConfirmButton
-                    size="sm"
-                    intent="warning"
-                    appearance="outline"
-                    confirmAppearance="filled"
-                    confirmLabel="Archivierung bestätigen"
-                    loading={isArchivingCurrent}
-                    disabled={isArchivingCurrent}
-                    onConfirm={() => handleArchiveFromList(einsatz.id)}
-                  >
-                    <PiArchive className="h-4 w-4" />
-                    Archivieren
-                  </ConfirmButton>
-                </div>
-              </>
-            ) : isFuehrungskraft ? (
-              <>
-                <div className="min-w-0" />
-                <Button size="sm" appearance="outline" intent="secondary" onClick={() => setExterneEinladenEinsatzId(einsatz.id)}>
-                  <PiUserPlus className="h-4 w-4" />
-                  Externe einladen
-                </Button>
-              </>
-            ) : null}
+            <div className="min-w-0">
+              <p className="text-body-sm font-medium text-text-primary">Abgeschlossen und bereit fürs Archiv</p>
+              <p className="mt-1 text-body-xs text-text-secondary">Einmal klicken, dann erneut bestätigen. Danach verschwindet der Einsatz direkt aus der aktiven Liste.</p>
+            </div>
+            <ConfirmButton
+              size="sm"
+              intent="warning"
+              appearance="outline"
+              confirmAppearance="filled"
+              confirmLabel="Archivierung bestätigen"
+              loading={isArchivingCurrent}
+              disabled={isArchivingCurrent}
+              onConfirm={() => handleArchiveFromList(einsatz.id)}
+            >
+              <PiArchive className="h-4 w-4" />
+              Archivieren
+            </ConfirmButton>
           </div>
         )}
       </div>
@@ -491,8 +471,6 @@ export function EinsatzDashboard() {
       </div>
 
       <EinsatzCreateForm isOpen={isCreatePanelOpen} onClose={() => setIsCreatePanelOpen(false)} onSuccess={handleCreateSuccess} />
-
-      {externeEinladenEinsatzId && <ExterneEinladenDialog einsatzId={externeEinladenEinsatzId} isOpen={!!externeEinladenEinsatzId} onClose={() => setExterneEinladenEinsatzId(null)} />}
     </div>
   );
 }
