@@ -24,7 +24,7 @@ export interface OperativeRoleInfo {
   isEinsatzkraft: boolean;
   /** Ist der Benutzer eine externe Person? */
   isExterne: boolean;
-  /** Darf der Benutzer die Einsatz-Liste sehen? (Führungskraft und Einsatzkraft) */
+  /** Darf der Benutzer die Einsatz-Liste sehen? (alle operativen Rollen, Backend filtert nach Berechtigung) */
   canAccessEinsatzList: boolean;
   /** Darf der Benutzer einen Einsatz öffnen? (Führungskraft und Einsatzkraft) */
   canOpenEinsatz: boolean;
@@ -64,8 +64,8 @@ export function useOperativeRole(): OperativeRoleInfo {
       isFuehrungskraft,
       isEinsatzkraft,
       isExterne,
-      canAccessEinsatzList: isFuehrungskraft || isEinsatzkraft,
-      canOpenEinsatz: isFuehrungskraft || isEinsatzkraft,
+      canAccessEinsatzList: isFuehrungskraft || isEinsatzkraft || isExterne,
+      canOpenEinsatz: isFuehrungskraft || isEinsatzkraft || isExterne,
       canCreateEinsatz: isFuehrungskraft,
       canArchiveEinsatz: isFuehrungskraft,
     };

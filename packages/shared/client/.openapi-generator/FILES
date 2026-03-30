@@ -301,6 +301,7 @@ models/IntegrationOverviewResponseDto.ts
 models/IntegrationStatusDto.ts
 models/InviteCodeCreatorDto.ts
 models/InviteCodeListItemDto.ts
+models/InviteExterneDto.ts
 models/JoinEinsatzDto.ts
 models/KategorieControllerCreateVAlpha201Response.ts
 models/KategorieControllerGetByEinsatzVAlpha200Response.ts

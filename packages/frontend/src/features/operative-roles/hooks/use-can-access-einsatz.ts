@@ -2,7 +2,8 @@
  * Hook zur Prüfung ob der aktuelle Benutzer auf einen Einsatz zugreifen darf
  *
  * Basiert auf der operativen Rolle des Benutzers.
- * Externe haben keinen direkten Zugriff auf Einsätze.
+ * Alle operativen Rollen (inkl. Externe) dürfen zugreifen,
+ * das Backend filtert nach Berechtigung (Externe sehen nur eingeladene Einsätze).
  */
 
 import { useOperativeRole } from './use-operative-role';
@@ -17,8 +18,8 @@ export interface EinsatzAccessInfo {
 /**
  * Prüft ob der aktuelle Benutzer auf einen bestimmten Einsatz zugreifen darf
  *
- * Führungskräfte und Einsatzkräfte haben grundsätzlich Zugriff.
- * Externe Personen haben keinen direkten Zugriff (müssen Beitrittsanfrage stellen).
+ * Alle operativen Rollen haben grundsätzlich Zugriff.
+ * Externe sehen nur Einsätze, zu denen sie eingeladen wurden (Backend-Filterung).
  *
  * @param _einsatzId - ID des Einsatzes (für zukünftige einsatzspezifische Prüfungen)
  * @returns Zugriffsinformation
