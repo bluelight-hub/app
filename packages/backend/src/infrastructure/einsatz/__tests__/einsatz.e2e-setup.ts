@@ -788,6 +788,9 @@ export async function cleanupTestData(ctx: EinsatzE2eTestContext): Promise<void>
     // Outbox Events
     await safeDelete(tx, `DELETE FROM outbox_events WHERE "aggregateId" IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1))`, [allCleanupUserIds]);
 
+    // Einsatz Rollen Besetzung (FK zu rollen_definitionen + einsatz_personen → vor Einsaetze löschen!)
+    await safeDelete(tx, `DELETE FROM einsatz_rollen_besetzung WHERE einsatz_id IN (SELECT id FROM einsaetze WHERE "createdBy" = ANY($1))`, [allCleanupUserIds]);
+
     // Einsaetze
     await safeDelete(tx, `DELETE FROM einsaetze WHERE "createdBy" = ANY($1)`, [allCleanupUserIds]);
 

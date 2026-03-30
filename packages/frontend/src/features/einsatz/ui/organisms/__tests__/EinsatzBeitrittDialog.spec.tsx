@@ -20,6 +20,30 @@ vi.mock('@/features/einsatz/api', () => ({
   useJoinEinsatz: vi.fn(),
   useMyEinsatzTeilnahme: vi.fn(),
   useEinsatzTeilnehmer: vi.fn(),
+  useEinsatzPersonen: vi.fn(),
+  useRegistrierePerson: vi.fn(),
+}));
+
+vi.mock('@/features/auth/api/use-current-user', () => ({
+  useCurrentUser: vi.fn(() => ({ user: null, authStatus: 'authenticated', isLoading: false })),
+}));
+
+vi.mock('@/features/operative-roles', () => ({
+  useOperativeRole: vi.fn(() => ({ role: 'EINSATZKRAFT' })),
+}));
+
+vi.mock('@/shared/ui/atoms/spinner.atom', () => ({
+  Spinner: () => <div data-testid="spinner" />,
+}));
+
+vi.mock('@/shared', () => ({
+  api: { kraefteStammPersonen: vi.fn() },
+}));
+
+vi.mock('react-icons/pi', () => ({
+  PiArrowLeft: () => null,
+  PiPlus: () => null,
+  PiUser: () => null,
 }));
 
 vi.mock('@/features/kraefte/ui/molecules/EinsatzPersonenPicker', () => ({
@@ -58,11 +82,13 @@ vi.mock('@/shared/ui/molecules/dialog.molecule', () => {
   };
 });
 
-import { useEinsatzTeilnehmer, useJoinEinsatz, useMyEinsatzTeilnahme } from '@/features/einsatz/api';
+import { useEinsatzTeilnehmer, useJoinEinsatz, useMyEinsatzTeilnahme, useEinsatzPersonen, useRegistrierePerson } from '@/features/einsatz/api';
 
 const mockedUseMyEinsatzTeilnahme = vi.mocked(useMyEinsatzTeilnahme);
 const mockedUseEinsatzTeilnehmer = vi.mocked(useEinsatzTeilnehmer);
 const mockedUseJoinEinsatz = vi.mocked(useJoinEinsatz);
+const mockedUseEinsatzPersonen = vi.mocked(useEinsatzPersonen);
+const mockedUseRegistrierePerson = vi.mocked(useRegistrierePerson);
 
 describe('EinsatzBeitrittDialog', () => {
   beforeEach(() => {
@@ -86,6 +112,16 @@ describe('EinsatzBeitrittDialog', () => {
       mutateAsync: mockJoinMutateAsync,
       isPending: false,
     } as ReturnType<typeof useJoinEinsatz>);
+
+    mockedUseEinsatzPersonen.mockReturnValue({
+      data: [],
+      isLoading: false,
+    } as unknown as ReturnType<typeof useEinsatzPersonen>);
+
+    mockedUseRegistrierePerson.mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false,
+    } as unknown as ReturnType<typeof useRegistrierePerson>);
   });
 
   it('zeigt ohne bestehende Zuordnung einen verpflichtenden AssignmentGate mit Fokus und ohne Dismiss-Aktion', () => {
