@@ -17,6 +17,7 @@ import * as runtime from '../runtime';
 import type {
   EinsatzBeitrittControllerCreateVAlpha201Response,
   EinsatzBeitrittControllerFindAllVAlpha200Response,
+  EinsatzBeitrittControllerGetExterneUsersVAlpha200Response,
   InviteExterneDto,
   ResolveBeitrittsanfrageDto,
 } from '../models/index';
@@ -25,6 +26,8 @@ import {
     EinsatzBeitrittControllerCreateVAlpha201ResponseToJSON,
     EinsatzBeitrittControllerFindAllVAlpha200ResponseFromJSON,
     EinsatzBeitrittControllerFindAllVAlpha200ResponseToJSON,
+    EinsatzBeitrittControllerGetExterneUsersVAlpha200ResponseFromJSON,
+    EinsatzBeitrittControllerGetExterneUsersVAlpha200ResponseToJSON,
     InviteExterneDtoFromJSON,
     InviteExterneDtoToJSON,
     ResolveBeitrittsanfrageDtoFromJSON,
@@ -44,6 +47,14 @@ export interface EinsatzBeitrittControllerFindAllV1Request {
 }
 
 export interface EinsatzBeitrittControllerFindAllVAlphaRequest {
+    einsatzId: string;
+}
+
+export interface EinsatzBeitrittControllerGetExterneUsersV1Request {
+    einsatzId: string;
+}
+
+export interface EinsatzBeitrittControllerGetExterneUsersVAlphaRequest {
     einsatzId: string;
 }
 
@@ -219,6 +230,76 @@ export class EinsatzBeitrittApi extends runtime.BaseAPI {
      */
     async einsatzBeitrittControllerFindAllVAlpha(requestParameters: EinsatzBeitrittControllerFindAllVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EinsatzBeitrittControllerFindAllVAlpha200Response> {
         const response = await this.einsatzBeitrittControllerFindAllVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Gibt alle User mit operativer Rolle EXTERNE zurück für den Einladungs-Dialog.
+     * Verfügbare externe User auflisten
+     */
+    async einsatzBeitrittControllerGetExterneUsersV1Raw(requestParameters: EinsatzBeitrittControllerGetExterneUsersV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EinsatzBeitrittControllerGetExterneUsersVAlpha200Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling einsatzBeitrittControllerGetExterneUsersV1().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-1/einsatz/{einsatzId}/beitrittsanfragen/einladen/externe-users`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzBeitrittControllerGetExterneUsersVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Gibt alle User mit operativer Rolle EXTERNE zurück für den Einladungs-Dialog.
+     * Verfügbare externe User auflisten
+     */
+    async einsatzBeitrittControllerGetExterneUsersV1(requestParameters: EinsatzBeitrittControllerGetExterneUsersV1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EinsatzBeitrittControllerGetExterneUsersVAlpha200Response> {
+        const response = await this.einsatzBeitrittControllerGetExterneUsersV1Raw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Gibt alle User mit operativer Rolle EXTERNE zurück für den Einladungs-Dialog.
+     * Verfügbare externe User auflisten
+     */
+    async einsatzBeitrittControllerGetExterneUsersVAlphaRaw(requestParameters: EinsatzBeitrittControllerGetExterneUsersVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<EinsatzBeitrittControllerGetExterneUsersVAlpha200Response>> {
+        if (requestParameters['einsatzId'] == null) {
+            throw new runtime.RequiredError(
+                'einsatzId',
+                'Required parameter "einsatzId" was null or undefined when calling einsatzBeitrittControllerGetExterneUsersVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/einsatz/{einsatzId}/beitrittsanfragen/einladen/externe-users`.replace(`{${"einsatzId"}}`, encodeURIComponent(String(requestParameters['einsatzId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => EinsatzBeitrittControllerGetExterneUsersVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Gibt alle User mit operativer Rolle EXTERNE zurück für den Einladungs-Dialog.
+     * Verfügbare externe User auflisten
+     */
+    async einsatzBeitrittControllerGetExterneUsersVAlpha(requestParameters: EinsatzBeitrittControllerGetExterneUsersVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EinsatzBeitrittControllerGetExterneUsersVAlpha200Response> {
+        const response = await this.einsatzBeitrittControllerGetExterneUsersVAlphaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

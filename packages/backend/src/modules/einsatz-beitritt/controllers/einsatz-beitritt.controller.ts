@@ -5,8 +5,9 @@ import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import { OperativeRoleGuard } from '@/modules/auth/guards/operative-role.guard';
 import { RequiresOperativeRole } from '@/modules/auth/decorators/operative-roles.decorator';
 import type { ValidatedUser } from '@/modules/auth/strategies/jwt.strategy';
+import { PrismaService } from '@/infrastructure/database/prisma.service';
 import { ApiWrappedCreatedResponse, ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
-import { BeitrittsanfrageResponseDto, InviteExterneDto, ResolveBeitrittsanfrageDto } from '@/application/einsatz-beitritt/dto';
+import { BeitrittsanfrageResponseDto, ExterneUserDto, InviteExterneDto, ResolveBeitrittsanfrageDto } from '@/application/einsatz-beitritt/dto';
 import { CreateBeitrittsanfrageCommand } from '@/application/einsatz-beitritt/commands/create-beitrittsanfrage/create-beitrittsanfrage.command';
 import { CreateBeitrittsanfrageHandler } from '@/application/einsatz-beitritt/commands/create-beitrittsanfrage/create-beitrittsanfrage.handler';
 import { InviteExterneCommand } from '@/application/einsatz-beitritt/commands/invite-externe/invite-externe.command';
@@ -37,6 +38,7 @@ export class EinsatzBeitrittController {
     private readonly inviteHandler: InviteExterneHandler,
     private readonly resolveHandler: ResolveBeitrittsanfrageHandler,
     private readonly getHandler: GetBeitrittsanfragenHandler,
+    private readonly prisma: PrismaService,
   ) {}
 
   /**
@@ -74,6 +76,32 @@ export class EinsatzBeitrittController {
     }
 
     return result.value;
+  }
+
+  /**
+   * Gibt alle User mit operativer Rolle EXTERNE zurück.
+   *
+   * Wird für den "Externe einladen" Dialog benötigt.
+   * Gibt nur minimale User-Daten zurück (id + username).
+   */
+  @Get('einladen/externe-users')
+  @RequiresOperativeRole('FUEHRUNGSKRAFT')
+  @UseGuards(OperativeRoleGuard)
+  @ApiOperation({
+    summary: 'Verfügbare externe User auflisten',
+    description: 'Gibt alle User mit operativer Rolle EXTERNE zurück für den Einladungs-Dialog.',
+  })
+  @ApiWrappedResponse(ExterneUserDto, {
+    isArray: true,
+    description: 'Liste aller verfügbaren externen User',
+  })
+  async getExterneUsers(@Param('einsatzId') _einsatzId: string): Promise<ExterneUserDto[]> {
+    const users = await this.prisma.user.findMany({
+      where: { operativeRole: 'EXTERNE', isActive: true },
+      select: { id: true, username: true },
+      orderBy: { username: 'asc' },
+    });
+    return users;
   }
 
   /**

@@ -193,6 +193,7 @@ models/DetailedHealthDto.ts
 models/DisconnectResponseDto.ts
 models/EinsatzBeitrittControllerCreateVAlpha201Response.ts
 models/EinsatzBeitrittControllerFindAllVAlpha200Response.ts
+models/EinsatzBeitrittControllerGetExterneUsersVAlpha200Response.ts
 models/EinsatzControllerCreateVAlpha201Response.ts
 models/EinsatzControllerFindAllVAlpha200Response.ts
 models/EinsatzControllerFindOneVAlpha200Response.ts
@@ -262,6 +263,7 @@ models/EtbSnapshotDto.ts
 models/EtbVersionDto.ts
 models/ExchangeInviteDto.ts
 models/ExchangeInviteResponseDto.ts
+models/ExterneUserDto.ts
 models/FahrzeugtypDto.ts
 models/FahrzeugtypSollbesatzungDto.ts
 models/FuehrungsrhythmusActivationGroupDto.ts
