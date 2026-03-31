@@ -70,10 +70,12 @@ const databaseAvailable = !!process.env.DATABASE_URL;
         passwordHash,
         role: 'ADMIN',
         isActive: true,
+        operativeRole: 'FUEHRUNGSKRAFT',
       },
       update: {
         passwordHash,
         isActive: true,
+        operativeRole: 'FUEHRUNGSKRAFT',
       },
     });
 
