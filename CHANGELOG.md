@@ -1,3 +1,33 @@
+## Operative Rollen & Zugriffsverwaltung
+
+Bluelight Hub unterstützt jetzt verschiedene operative Rollen für Einsatzkräfte: **Führungskraft (FK)**, **Einsatzkraft (EK)** und **Externe**. Die Rolle bestimmt, welche Einsätze ein Nutzer sehen und bearbeiten kann.
+
+- **Führungskräfte** haben vollen Zugriff auf alle Einsätze und können neue Einsätze erstellen, bearbeiten und verwalten
+- **Einsatzkräfte** sehen alle Einsätze in der Übersicht, müssen aber eine Beitrittsanfrage stellen, um Details zu öffnen und mitzuwirken
+- **Externe** sehen nur Einsätze, zu denen sie explizit eingeladen wurden
+
+Die aktuelle Rolle wird im Einsatz-Dashboard als farbcodiertes Badge angezeigt. Bei eingeschränkten Rollen (EK/Externe) erscheint ein kontextueller Hinweis.
+
+## Beitrittsanfragen für Einsatzkräfte
+
+Einsatzkräfte können jetzt Zugang zu Einsätzen anfragen, wenn sie diese in der Liste sehen. Führungskräfte erhalten die Anfragen und können sie genehmigen oder ablehnen. Nach Genehmigung erhält die Einsatzkraft vollen Zugriff auf den Einsatz.
+
+## Externe einladen
+
+Führungskräfte können externe Personen direkt zu einem Einsatz einladen. Der neue Dialog zeigt alle Nutzer mit der Rolle "Externe" an und ermöglicht die gezielte Einladung. Eingeladene Externe sehen den Einsatz automatisch in ihrer Liste. Die Einladung kann jederzeit widerrufen werden.
+
+## Stammpersonen-Verwaltung
+
+- Benutzerkonten können jetzt mit Stammpersonen verknüpft werden
+- In der Benutzerverwaltung werden operative Rollen und verknüpfte Stammpersonen angezeigt und können gefiltert werden
+- Die Stammpersonen-Tabelle zeigt nun, ob eine Stammperson mit einem Benutzerkonto verknüpft ist
+- Beim Einsatz-Beitritt wird die verknüpfte Stammperson automatisch vorausgewählt
+- Stammpersonen können direkt aus der Tabelle zur Detailseite verlinkt werden
+
+## Dependency Updates
+
+Aktualisierung von 8 Abhängigkeiten, darunter axios, Prisma, Recharts und TanStack Router auf die neuesten Versionen.
+
 ## ETB (Elektronisches Tagebuch)
 
 - **Behobener Fehler**: Das ETB wurde nach Abschluss eines Einsatzes kurzzeitig noch als bearbeitbar angezeigt, obwohl es bereits gesperrt war. Die Anzeige aktualisiert sich nun sofort korrekt.
