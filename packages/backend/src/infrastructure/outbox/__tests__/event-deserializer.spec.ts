@@ -2275,7 +2275,8 @@ describe('EventDeserializer', () => {
       // + BefehlAnonymisiert + BefehlGeloescht + AufbewahrungsKonfigurationGeaendert (Story 5.5)
       // + SystemWarnung (Story 5.6) + EintragKorrigiert (Issue #554)
       // + OperativeRolleChanged + StammpersonAssigned + BeitrittsanfrageErstellt + BeitrittsanfrageEntschieden (Issue #98)
-      expect(supportedTypes).toHaveLength(79);
+      // + InviteCodeCreated + InviteCodeUsed + InviteCodeRevoked (Issue #98)
+      expect(supportedTypes).toHaveLength(82);
       expect(supportedTypes).toContain('einsatz.created');
       expect(supportedTypes).toContain('etb.created');
       expect(supportedTypes).toContain('lagekarte.created');
@@ -2295,6 +2296,10 @@ describe('EventDeserializer', () => {
       expect(supportedTypes).toContain('rolle.geaendert');
       // System Monitoring (Story 5.6)
       expect(supportedTypes).toContain('system.warnung');
+      // Invite Code Events (Issue #98)
+      expect(supportedTypes).toContain('invite_code.created');
+      expect(supportedTypes).toContain('invite_code.used');
+      expect(supportedTypes).toContain('invite_code.revoked');
     });
   });
 

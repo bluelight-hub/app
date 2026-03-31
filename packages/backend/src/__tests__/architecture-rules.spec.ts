@@ -192,10 +192,6 @@ describe('Architecture Rules', () => {
       'server_access_token.revoked',
       'server_access_token.reactivated',
       'server_access_token.rotated',
-      // Invite Code Events - noch kein Outbox Consumer
-      'invite_code.created',
-      'invite_code.used',
-      'invite_code.revoked',
       // Server Config Events - noch kein Outbox Consumer
       'server_config.migrated_to_secure',
       // User Events die noch fehlen

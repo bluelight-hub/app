@@ -38,6 +38,7 @@ import type { RolleFreigegeben } from '@domain/kraefte/events/rolle-freigegeben.
 import type { RollenDefinitionCreatedEvent } from '@domain/kraefte/events/rollen-definition-created.event';
 import type { RollenDefinitionUpdatedEvent } from '@domain/kraefte/events/rollen-definition-updated.event';
 import type { InviteCodeCreatedEvent } from '@domain/events/invite-code-created.event';
+import type { InviteCodeUsedEvent } from '@domain/events/invite-code-used.event';
 import type { InviteCodeRevokedEvent } from '@domain/events/invite-code-revoked.event';
 import type { ServerAccessTokenCreatedEvent } from '@domain/events/server-access-token-created.event';
 import type { ServerAccessTokenRevokedEvent } from '@domain/events/server-access-token-revoked.event';
@@ -282,6 +283,8 @@ export class EventSerializer {
       // ===== INVITE CODE EVENTS =====
       case 'invite_code.created':
         return this.serializeInviteCodeCreated(event as unknown as InviteCodeCreatedEvent);
+      case 'invite_code.used':
+        return this.serializeInviteCodeUsed(event as unknown as InviteCodeUsedEvent);
       case 'invite_code.revoked':
         return this.serializeInviteCodeRevoked(event as unknown as InviteCodeRevokedEvent);
 
@@ -830,6 +833,15 @@ export class EventSerializer {
       maxUses: event.maxUses, // Already primitive number
       createdById: event.createdById, // Already primitive string
       label: event.label, // string | null
+    };
+  }
+
+  private serializeInviteCodeUsed(event: InviteCodeUsedEvent): Record<string, unknown> {
+    return {
+      inviteCodeId: event.inviteCodeId, // Already primitive string
+      code: event.code,
+      usedAt: event.usedAt.toISOString(),
+      newUseCount: event.newUseCount,
     };
   }
 
