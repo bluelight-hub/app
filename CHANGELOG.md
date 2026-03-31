@@ -1,3 +1,7 @@
+## Backend-Stabilität
+
+- Behebung eines internen Fehlers bei der Verarbeitung von Einladungscode-Events (Erstellen, Verwenden, Widerrufen)
+
 ## Operative Rollen & Zugriffsverwaltung
 
 Bluelight Hub unterstützt jetzt verschiedene operative Rollen für Einsatzkräfte: **Führungskraft (FK)**, **Einsatzkraft (EK)** und **Externe**. Die Rolle bestimmt, welche Einsätze ein Nutzer sehen und bearbeiten kann.
