@@ -571,13 +571,14 @@ export async function createEinsatzE2eModule(): Promise<EinsatzE2eTestContext> {
 
   // User mit USER Rolle
   await prisma.$executeRaw`
-    INSERT INTO "User" (id, username, "passwordHash", role, "isActive", "createdAt", "updatedAt")
+    INSERT INTO "User" (id, username, "passwordHash", role, "isActive", "operativeRole", "createdAt", "updatedAt")
     VALUES (
       ${userId},
       ${`test_einsatz_e2e_user_${testRunId}`},
       'dummy-hash',
       'USER'::"UserRole",
       true,
+      'FUEHRUNGSKRAFT'::"OperativeRole",
       NOW(),
       NOW()
     )
@@ -586,13 +587,14 @@ export async function createEinsatzE2eModule(): Promise<EinsatzE2eTestContext> {
 
   // User mit ADMIN Rolle
   await prisma.$executeRaw`
-    INSERT INTO "User" (id, username, "passwordHash", role, "isActive", "createdAt", "updatedAt")
+    INSERT INTO "User" (id, username, "passwordHash", role, "isActive", "operativeRole", "createdAt", "updatedAt")
     VALUES (
       ${adminId},
       ${`test_einsatz_e2e_admin_${testRunId}`},
       'dummy-hash',
       'ADMIN'::"UserRole",
       true,
+      'FUEHRUNGSKRAFT'::"OperativeRole",
       NOW(),
       NOW()
     )
@@ -601,13 +603,14 @@ export async function createEinsatzE2eModule(): Promise<EinsatzE2eTestContext> {
 
   // User mit SUPER_ADMIN Rolle
   await prisma.$executeRaw`
-    INSERT INTO "User" (id, username, "passwordHash", role, "isActive", "createdAt", "updatedAt")
+    INSERT INTO "User" (id, username, "passwordHash", role, "isActive", "operativeRole", "createdAt", "updatedAt")
     VALUES (
       ${superAdminId},
       ${`test_einsatz_e2e_superadmin_${testRunId}`},
       'dummy-hash',
       'SUPER_ADMIN'::"UserRole",
       true,
+      'FUEHRUNGSKRAFT'::"OperativeRole",
       NOW(),
       NOW()
     )
@@ -985,13 +988,14 @@ export async function createTestUser(ctx: EinsatzE2eTestContext, role: 'USER' | 
   const generatedUsername = username ?? `test_einsatz_e2e_${role.toLowerCase()}_${ctx.testRunId}_${Date.now()}`;
 
   await ctx.prisma.$executeRaw`
-    INSERT INTO "User" (id, username, "passwordHash", role, "isActive", "createdAt", "updatedAt")
+    INSERT INTO "User" (id, username, "passwordHash", role, "isActive", "operativeRole", "createdAt", "updatedAt")
     VALUES (
       ${userId},
       ${generatedUsername},
       'dummy-hash',
       ${role}::"UserRole",
       true,
+      'FUEHRUNGSKRAFT'::"OperativeRole",
       NOW(),
       NOW()
     )
