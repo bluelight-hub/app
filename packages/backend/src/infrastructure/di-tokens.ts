@@ -279,9 +279,6 @@ export const EVENT_HANDLER = {
   BEFEHL_ANONYMISIERT_ETB: Symbol('IEventHandler<BefehlAnonymisiertEvent>:EtbEintrag'),
   /** BefehlGeloescht ETB-Eintrag Handler Token (Story 5.5) */
   BEFEHL_GELOESCHT_ETB: Symbol('IEventHandler<BefehlGeloeschtEvent>:EtbEintrag'),
-
-  /** EinsatzCompleted ETB-Lock Handler Token (Issue #581) */
-  ETB_EINSATZ_COMPLETED: Symbol('IEventHandler<EinsatzCompletedEvent>:EtbLock'),
 } as const;
 
 /**

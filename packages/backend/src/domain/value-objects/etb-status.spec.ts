@@ -15,10 +15,10 @@ describe('EtbStatus', () => {
       expect(result.value?.value).toBe('ACTIVE');
     });
 
-    it('should create valid status LOCKED', () => {
+    it('should reject LOCKED as invalid status (Issue #582)', () => {
       const result = EtbStatus.create('LOCKED');
-      expect(result.isSuccess).toBe(true);
-      expect(result.value?.value).toBe('LOCKED');
+      expect(result.isFailure).toBe(true);
+      expect(result.error).toContain('Ungültiger Status');
     });
 
     it('should reject invalid status', () => {
@@ -38,11 +38,6 @@ describe('EtbStatus', () => {
       const status = EtbStatus.ACTIVE();
       expect(status.value).toBe('ACTIVE');
     });
-
-    it('should create LOCKED via static factory', () => {
-      const status = EtbStatus.LOCKED();
-      expect(status.value).toBe('LOCKED');
-    });
   });
 
   describe('canTransitionTo - Valid Transitions', () => {
@@ -50,18 +45,6 @@ describe('EtbStatus', () => {
       const draft = EtbStatus.DRAFT();
       const active = EtbStatus.ACTIVE();
       expect(draft.canTransitionTo(active)).toBe(true);
-    });
-
-    it('should allow DRAFT → LOCKED transition', () => {
-      const draft = EtbStatus.DRAFT();
-      const locked = EtbStatus.LOCKED();
-      expect(draft.canTransitionTo(locked)).toBe(true);
-    });
-
-    it('should allow ACTIVE → LOCKED transition', () => {
-      const active = EtbStatus.ACTIVE();
-      const locked = EtbStatus.LOCKED();
-      expect(active.canTransitionTo(locked)).toBe(true);
     });
   });
 
@@ -72,22 +55,16 @@ describe('EtbStatus', () => {
       expect(active.canTransitionTo(draft)).toBe(false);
     });
 
-    it('should reject LOCKED → ACTIVE (no transitions from LOCKED)', () => {
-      const locked = EtbStatus.LOCKED();
-      const active = EtbStatus.ACTIVE();
-      expect(locked.canTransitionTo(active)).toBe(false);
+    it('should reject DRAFT → DRAFT (no self-transition)', () => {
+      const draft1 = EtbStatus.DRAFT();
+      const draft2 = EtbStatus.DRAFT();
+      expect(draft1.canTransitionTo(draft2)).toBe(false);
     });
 
-    it('should reject LOCKED → DRAFT (final state)', () => {
-      const locked = EtbStatus.LOCKED();
-      const draft = EtbStatus.DRAFT();
-      expect(locked.canTransitionTo(draft)).toBe(false);
-    });
-
-    it('should reject LOCKED → LOCKED (no self-transition from final state)', () => {
-      const locked1 = EtbStatus.LOCKED();
-      const locked2 = EtbStatus.LOCKED();
-      expect(locked1.canTransitionTo(locked2)).toBe(false);
+    it('should reject ACTIVE → ACTIVE (no self-transition)', () => {
+      const active1 = EtbStatus.ACTIVE();
+      const active2 = EtbStatus.ACTIVE();
+      expect(active1.canTransitionTo(active2)).toBe(false);
     });
   });
 });

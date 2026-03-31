@@ -40,6 +40,7 @@ function generateTestCuid(): string {
 describe('AddEintragHandler', () => {
   let handler: AddEintragHandler;
   let etbRepository: InMemoryEtbRepository;
+  let mockEinsatzRepository: any;
   let mockLogger: jest.Mocked<ILogger>;
   let testUserId: string;
   let testEinsatzId: string;
@@ -58,8 +59,17 @@ describe('AddEintragHandler', () => {
       debug: jest.fn(),
     } as jest.Mocked<ILogger>;
 
+    // Mock EinsatzRepository — Einsatz mit Status IN_BEARBEITUNG (Issue #582)
+    mockEinsatzRepository = {
+      findById: jest.fn().mockResolvedValue({
+        isSuccess: true,
+        isFailure: false,
+        value: { status: { value: 'IN_BEARBEITUNG' } },
+      }),
+    };
+
     // Create handler with dependencies
-    handler = new AddEintragHandler(etbRepository, mockLogger);
+    handler = new AddEintragHandler(etbRepository, mockEinsatzRepository, mockLogger);
   });
 
   afterEach(() => {
@@ -113,11 +123,18 @@ describe('AddEintragHandler', () => {
     });
   });
 
-  describe('AC2: AddEintrag fails if ETB locked with specific error message', () => {
-    it('should return failure when ETB is locked', async () => {
-      // Arrange: Create locked ETB
-      const etb = createTestEtb({ status: 'LOCKED', entriesCount: 1, userId: testUserId, einsatzId: testEinsatzId });
+  describe('Issue #582: AddEintrag fails if Einsatz is abgeschlossen', () => {
+    it('should return failure when Einsatz is ABGESCHLOSSEN', async () => {
+      // Arrange: Create ETB with Einsatz in ABGESCHLOSSEN status
+      const etb = createTestEtb({ entriesCount: 1, userId: testUserId, einsatzId: testEinsatzId });
       await etbRepository.save(etb);
+
+      // Mock: Einsatz ist abgeschlossen
+      mockEinsatzRepository.findById.mockResolvedValue({
+        isSuccess: true,
+        isFailure: false,
+        value: { status: { value: 'ABGESCHLOSSEN' } },
+      });
 
       const command = AddEintragCommand.create(etb.id.value, 'Neuer Eintrag', testUserId).value!;
 
@@ -126,7 +143,7 @@ describe('AddEintragHandler', () => {
 
       // Assert
       expect(result.isFailure).toBe(true);
-      expect(result.error).toBe('ETB ist gesperrt und kann nicht mehr geändert werden');
+      expect(result.error).toContain('abgeschlossen');
     });
   });
 

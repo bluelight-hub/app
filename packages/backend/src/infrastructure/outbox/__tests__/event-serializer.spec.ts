@@ -2,7 +2,7 @@
 /**
  * Unit Tests für EventSerializer (Infrastructure Layer).
  *
- * Diese Tests validieren die Serialisierung aller 19 Domain Events zu JSON-kompatiblem Format:
+ * Diese Tests validieren die Serialisierung aller 18 Domain Events zu JSON-kompatiblem Format:
  * - Value Objects werden via .value zu Primitives konvertiert
  * - Alle Event-Felder werden korrekt erfasst
  * - SerializedEvent Format ist konsistent
@@ -24,8 +24,6 @@ import { EtbCreatedEvent } from '@domain/events/etb-created.event';
 import { EintragAddedEvent } from '@domain/events/eintrag-added.event';
 import { EintragUpdatedEvent } from '@domain/events/eintrag-updated.event';
 import { EintragDeletedEvent } from '@domain/events/eintrag-deleted.event';
-import { EtbLockedEvent } from '@domain/events/etb-locked.event';
-
 // Lagekarte Events
 import { LagekarteCreatedEvent } from '@domain/events/lagekarte-created.event';
 import { PoiAddedEvent } from '@domain/events/poi-added.event';
@@ -250,20 +248,6 @@ describe('EventSerializer', () => {
         etbId: etbId.value,
         eintragId: eintragId.value,
         deletedBy: userId.value,
-      });
-    });
-
-    it('should serialize EtbLockedEvent correctly', () => {
-      const lockedAt = new Date('2024-11-26T16:00:00Z');
-      const event = new EtbLockedEvent(etbId, userId, lockedAt);
-
-      const serialized = serializer.serialize(event);
-
-      expectValidSerializedEvent(serialized, 'etb.locked');
-      expect(serialized.payload).toEqual({
-        etbId: etbId.value,
-        lockedBy: userId.value,
-        lockedAt: '2024-11-26T16:00:00.000Z',
       });
     });
   });
@@ -580,7 +564,7 @@ describe('EventSerializer', () => {
   // ===== SERIALIZED EVENT COUNT =====
 
   describe('Event Coverage', () => {
-    it('should support all 19 domain events', () => {
+    it('should support all 18 domain events', () => {
       const supportedEvents = [
         'einsatz.created',
         'einsatz.updated',
@@ -591,7 +575,6 @@ describe('EventSerializer', () => {
         'etb.eintrag_added',
         'etb.eintrag_updated',
         'etb.eintrag_deleted',
-        'etb.locked',
         'lagekarte.created',
         'lagekarte.poi_added',
         'lagekarte.poi_removed',
@@ -603,7 +586,7 @@ describe('EventSerializer', () => {
         'user.permission_revoked',
       ];
 
-      expect(supportedEvents.length).toBe(19);
+      expect(supportedEvents.length).toBe(18);
     });
   });
 });

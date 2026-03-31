@@ -15,17 +15,15 @@ interface EtbStatusProps extends Record<string, unknown> {
  * **Erlaubte Zustände:**
  * - `DRAFT`: Initialer Zustand, Bearbeitung erlaubt
  * - `ACTIVE`: Aktiv im Einsatz, Bearbeitung erlaubt
- * - `LOCKED`: Finale Sperrung, keine Änderungen mehr möglich
+ *
+ * **Hinweis (Issue #582):**
+ * Der ehemalige `LOCKED`-Status wurde entfernt. Ob ein ETB schreibgeschützt ist,
+ * wird nun aus dem Einsatz-Status abgeleitet (ABGESCHLOSSEN/ARCHIVIERT → nicht editierbar).
+ * Single Source of Truth: Einsatz-Lifecycle bestimmt ETB-Schreibbarkeit.
  *
  * **State Machine Regeln:**
- * - Nur Vorwärts-Transitions
- * - DRAFT → ACTIVE, LOCKED ✅
- * - ACTIVE → LOCKED ✅
- * - LOCKED → (keine Transitions) ❌
- *
- * **Wichtig:**
- * Der LOCKED-Status ist final und verhindert jegliche Manipulation
- * des ETB nach Abschluss (Audit-Trail Sicherheit).
+ * - DRAFT → ACTIVE ✅
+ * - ACTIVE → (keine weiteren Transitions)
  *
  * @example
  * ```typescript
@@ -34,13 +32,10 @@ interface EtbStatusProps extends Record<string, unknown> {
  *
  * console.log(draft.canTransitionTo(active)); // true
  * console.log(active.canTransitionTo(draft)); // false (no backward transitions)
- *
- * const locked = EtbStatus.LOCKED();
- * console.log(locked.canTransitionTo(active)); // false (locked is final)
  * ```
  */
 export class EtbStatus extends ValueObject<EtbStatusProps> {
-  private static readonly ALLOWED_VALUES = ['DRAFT', 'ACTIVE', 'LOCKED'] as const;
+  private static readonly ALLOWED_VALUES = ['DRAFT', 'ACTIVE'] as const;
 
   get value(): string {
     return this.props.value;
@@ -69,15 +64,11 @@ export class EtbStatus extends ValueObject<EtbStatusProps> {
     return new EtbStatus('ACTIVE');
   }
 
-  static LOCKED(): EtbStatus {
-    return new EtbStatus('LOCKED');
-  }
-
   /**
    * Prüft, ob ein Zustandsübergang erlaubt ist.
    *
    * Diese Methode erzwingt die State Machine Regeln zur Laufzeit
-   * und verhindert ungültige Transitions (z.B. von LOCKED zu ACTIVE).
+   * und verhindert ungültige Transitions.
    * Sie wird vom ETB Aggregate verwendet, um Domain-Invarianten
    * zu garantieren.
    *
@@ -86,9 +77,8 @@ export class EtbStatus extends ValueObject<EtbStatusProps> {
    */
   public canTransitionTo(newStatus: EtbStatus): boolean {
     const validTransitions: Record<string, string[]> = {
-      DRAFT: ['ACTIVE', 'LOCKED'],
-      ACTIVE: ['LOCKED'],
-      LOCKED: [],
+      DRAFT: ['ACTIVE'],
+      ACTIVE: [],
     };
 
     const allowedTargets = validTransitions[this.value] || [];

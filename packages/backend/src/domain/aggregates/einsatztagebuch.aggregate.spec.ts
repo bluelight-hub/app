@@ -220,62 +220,6 @@ describe('EinsatztagebuchAggregate', () => {
     });
   });
 
-  describe('locking behavior (Lock Validation)', () => {
-    it('should transition to LOCKED via lock() method', () => {
-      const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
-      const result = etb.lock(userId);
-
-      expect(result.isSuccess).toBe(true);
-      expect(etb.status.equals(EtbStatus.LOCKED())).toBe(true);
-    });
-
-    it('should reject lock() when already LOCKED', () => {
-      const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
-      etb.lock(userId);
-
-      const result = etb.lock(userId);
-      expect(result.isFailure).toBe(true);
-      expect(result.error).toContain('gesperrt');
-    });
-
-    it('should return true for isLocked() when status is LOCKED', () => {
-      const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
-      expect(etb.isLocked()).toBe(false);
-
-      etb.lock(userId);
-      expect(etb.isLocked()).toBe(true);
-    });
-
-    it('should reject addEintrag when ETB is locked', () => {
-      const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
-      etb.lock(userId);
-
-      const result = etb.addEintrag('Test', userId);
-      expect(result.isFailure).toBe(true);
-      expect(result.error).toContain('gesperrt');
-    });
-
-    it('should reject addKorrekturEintrag when ETB is locked', () => {
-      const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
-      const eintrag = etb.addEintrag('Test', userId).value!;
-      etb.lock(userId);
-
-      const result = etb.addKorrekturEintrag(eintrag.id, 'Korrigiert', userId);
-      expect(result.isFailure).toBe(true);
-      expect(result.error).toContain('gesperrt');
-    });
-
-    it('should reject deleteEintrag when ETB is locked', () => {
-      const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
-      const eintrag = etb.addEintrag('Test', userId).value!;
-      etb.lock(userId);
-
-      const result = etb.deleteEintrag(eintrag.id, userId);
-      expect(result.isFailure).toBe(true);
-      expect(result.error).toContain('gesperrt');
-    });
-  });
-
   describe('soft-delete (Soft-Delete Validation)', () => {
     it('should mark entry as deleted but keep in array', () => {
       const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
@@ -337,17 +281,6 @@ describe('EinsatztagebuchAggregate', () => {
       const events = etb.getDomainEvents();
       expect(events).toHaveLength(1);
       expect((events[0]?.constructor as typeof DomainEvent).eventName()).toBe('etb.eintrag_deleted');
-    });
-
-    it('should emit EtbLockedEvent on lock', () => {
-      const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
-      etb.clearDomainEvents();
-
-      etb.lock(userId);
-
-      const events = etb.getDomainEvents();
-      expect(events).toHaveLength(1);
-      expect((events[0]?.constructor as typeof DomainEvent).eventName()).toBe('etb.locked');
     });
   });
 
@@ -512,15 +445,6 @@ describe('EinsatztagebuchAggregate', () => {
         expect(result.value?.kategorie.equals(kategorie)).toBe(true);
       });
     });
-
-    it('should reject addEintrag with custom kategorie when locked', () => {
-      const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
-      etb.lock(userId);
-
-      const result = etb.addEintrag('Test', userId, EtbKategorie.MASSNAHME());
-      expect(result.isFailure).toBe(true);
-      expect(result.error).toContain('gesperrt');
-    });
   });
 
   describe('snapshot management', () => {
@@ -658,20 +582,6 @@ describe('EinsatztagebuchAggregate', () => {
       const snapshotData = etb.getSnapshotData();
 
       expect(snapshotData[0]?.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
-    });
-
-    it('should not create snapshot when locked', () => {
-      const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
-      etb.lock(userId);
-
-      // Clear event from lock
-      etb.clearSnapshots();
-
-      // Try to add (should fail before snapshot creation)
-      const result = etb.addEintrag('Test', userId);
-
-      expect(result.isFailure).toBe(true);
-      expect(etb.hasUncommittedSnapshots()).toBe(false);
     });
   });
 });

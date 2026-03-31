@@ -40,7 +40,6 @@ import { EtbCreatedEvent } from '@domain/events/etb-created.event';
 import { EintragAddedEvent } from '@domain/events/eintrag-added.event';
 import { EintragUpdatedEvent } from '@domain/events/eintrag-updated.event';
 import { EintragDeletedEvent } from '@domain/events/eintrag-deleted.event';
-import { EtbLockedEvent } from '@domain/events/etb-locked.event';
 import { LagekarteCreatedEvent } from '@domain/events/lagekarte-created.event';
 import { PoiRemovedEvent } from '@domain/events/poi-removed.event';
 import { UserCreatedEvent } from '@domain/events/user-created.event';
@@ -490,11 +489,6 @@ import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
           name: 'EintragDeletedEvent',
           event: new EintragDeletedEvent(EtbId.create().value!, EintragId.create().value!, UserId.create(ctx.testUserIds.user).value!),
         },
-        {
-          name: 'EtbLockedEvent',
-          event: new EtbLockedEvent(EtbId.create().value!, UserId.create(ctx.testUserIds.admin).value!, new Date()),
-        },
-
         // Lagekarte Events
         {
           name: 'LagekarteCreatedEvent',

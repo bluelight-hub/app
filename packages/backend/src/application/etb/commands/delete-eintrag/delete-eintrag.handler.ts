@@ -5,8 +5,9 @@ import { EtbId } from '@domain/value-objects/etb-id';
 import { EintragId } from '@domain/value-objects/eintrag-id';
 import { UserId } from '@domain/value-objects/user-id';
 import type { IEtbRepository } from '@domain/repositories';
+import { IEinsatzRepository } from '@domain/repositories/ieinsatz.repository';
 import type { DeleteEintragCommand } from './delete-eintrag.command';
-import { ETB_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, ETB_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Handler für DeleteEintragCommand.
@@ -35,6 +36,8 @@ export class DeleteEintragHandler {
   constructor(
     @Inject(ETB_REPOSITORY)
     private readonly etbRepository: IEtbRepository,
+    @Inject(EINSATZ_REPOSITORY)
+    private readonly einsatzRepository: IEinsatzRepository,
     @Inject(LOGGER)
     private readonly logger: ILogger,
   ) {}
@@ -93,9 +96,21 @@ export class DeleteEintragHandler {
       return Result.fail<void>('ETB nicht gefunden');
     }
 
-    // Step 5: Delegate to domain method (validates business rules, creates snapshot)
+    // Step 5: Einsatz-Status prüfen (Issue #582: Schreibschutz aus Einsatz-Lifecycle)
+    const einsatzResult = await this.einsatzRepository.findById(aggregate.einsatzId);
+    if (einsatzResult.isFailure || !einsatzResult.value) {
+      this.logger.error('Einsatz nicht gefunden für ETB-Schreibschutz-Prüfung', {
+        einsatzId: aggregate.einsatzId.value,
+      });
+      return Result.fail<void>('Zugehöriger Einsatz nicht gefunden');
+    }
+    const einsatzStatus = einsatzResult.value.status.value;
+    if (einsatzStatus === 'ABGESCHLOSSEN' || einsatzStatus === 'ARCHIVIERT') {
+      return Result.fail<void>('Einsatz ist abgeschlossen — ETB kann nicht mehr geändert werden');
+    }
+
+    // Step 6: Delegate to domain method (validates business rules, creates snapshot)
     // Business rules checked by aggregate:
-    // - ETB must not be locked (status !== LOCKED)
     // - Entry must exist in the ETB
     // Aggregate also:
     // - Creates snapshot BEFORE mutation (DRK-Compliance)

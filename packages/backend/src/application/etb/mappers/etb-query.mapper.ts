@@ -96,7 +96,7 @@ export class EtbQueryMapper {
    * **Edge Cases:**
    * - Null/Undefined Aggregate: Wirft TypeError (Caller muss validieren)
    * - Leere Eintraege-Liste: Gibt leeres Array zurueck
-   * - Locked Status: lockedAt/lockedBy sind undefined (nicht im Aggregate gespeichert)
+   * - Issue #582: Kein LOCKED-Status mehr — Schreibschutz aus Einsatz-Status abgeleitet
    *
    * @param aggregate - Das zu konvertierende EinsatztagebuchAggregate
    * @param includeDeleted - Ob soft-deleted Eintraege inkludiert werden sollen (default: false)
@@ -109,15 +109,8 @@ export class EtbQueryMapper {
     // Map Eintraege zu DTOs
     const eintraegeDtos = filteredEintraege.map((eintrag) => EtbQueryMapper.toEintragDto(eintrag));
 
-    // Status als typisierter String (DRAFT, ACTIVE, LOCKED)
-    const status = aggregate.status.value as 'DRAFT' | 'ACTIVE' | 'LOCKED';
-
-    // Base DTO ohne Lock-Informationen
-
-    // Lock-Informationen werden nicht aus dem Aggregate extrahiert,
-    // da sie dort nicht gespeichert sind. Diese wuerden typischerweise
-    // beim Reconstitute aus der Datenbank kommen (Epic 4).
-    // lockedAt und lockedBy bleiben undefined.
+    // Status als typisierter String (DRAFT, ACTIVE)
+    const status = aggregate.status.value as 'DRAFT' | 'ACTIVE';
 
     return {
       id: aggregate.id.value,

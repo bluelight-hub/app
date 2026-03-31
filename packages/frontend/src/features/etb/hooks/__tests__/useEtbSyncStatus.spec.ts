@@ -89,16 +89,16 @@ describe('useEtbSyncStatus', () => {
     expect(result.current.nextAction?.description).toBe('Netzwerkfehler');
   });
 
-  it('gibt readonly-locked zurück wenn ETB gesperrt ist', () => {
+  it('gibt readonly-locked zurück wenn Einsatz abgeschlossen ist', () => {
     const { result } = renderHook(() =>
       useEtbSyncStatus({
         createMutation: idleMutation(),
         updateMutation: idleMutation(),
-        etbStatus: 'LOCKED',
+        einsatzStatus: 'ABGESCHLOSSEN',
       }),
     );
     expect(result.current.status).toBe('readonly-locked');
-    expect(result.current.message).toBe('Schreibgeschützt – ETB ist gesperrt');
+    expect(result.current.message).toBe('Schreibgeschützt – Einsatz ist abgeschlossen');
   });
 
   it('gibt degraded-connection zurück wenn offline', () => {
@@ -145,12 +145,12 @@ describe('useEtbSyncStatus', () => {
 
   // === Prioritäts-Reihenfolge ===
 
-  it('LOCKED hat höchste Priorität vor allem anderen', () => {
+  it('Abgeschlossener Einsatz hat höchste Priorität vor allem anderen', () => {
     const { result } = renderHook(() =>
       useEtbSyncStatus({
         createMutation: errorMutation(),
         updateMutation: pendingMutation(),
-        etbStatus: 'LOCKED',
+        einsatzStatus: 'ABGESCHLOSSEN',
       }),
     );
     expect(result.current.status).toBe('readonly-locked');

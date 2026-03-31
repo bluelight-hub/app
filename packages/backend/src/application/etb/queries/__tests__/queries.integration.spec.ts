@@ -15,8 +15,6 @@ import { AddEintragCommand } from '@application/etb/commands';
 import { AddEintragHandler } from '@application/etb/commands';
 import { AddKorrekturEintragCommand } from '@application/etb/commands';
 import { AddKorrekturEintragHandler } from '@application/etb/commands';
-import { EtbId } from '@domain/value-objects/etb-id';
-import { UserId } from '@domain/value-objects/user-id';
 
 // Queries
 import { GetEtbQuery } from '../get-etb/get-etb.query';
@@ -387,7 +385,7 @@ function generateTestCuid(): string {
     });
   });
 
-  describe('Full Lifecycle: CreateEtb -> AddEintrag -> AddKorrekturEintrag -> Lock -> GetEtb', () => {
+  describe('Full Lifecycle: CreateEtb -> AddEintrag -> AddKorrekturEintrag -> GetEtb', () => {
     it('sollte vollstaendigen ETB-Lifecycle korrekt abbilden', async () => {
       // Phase 1: ETB erstellen
       const createCmd = CreateEtbCommand.create(testEinsatzId).value!;
@@ -410,19 +408,12 @@ function generateTestCuid(): string {
       const addCmd2 = AddEintragCommand.create(etbId, 'Zweiter Eintrag', testUserId).value!;
       await addEintragHandler.execute(addCmd2);
 
-      // Phase 5: ETB sperren (direkt über Aggregate)
-      const etbAggregate = await etbRepository.findById(EtbId.create(etbId).value!);
-      const lockResult = etbAggregate!.lock(UserId.create(testUserId).value!);
-      expect(lockResult.isSuccess).toBe(true);
-      await etbRepository.save(etbAggregate!);
-
       // Assert: GetEtb gibt korrekten finalen Zustand zurueck
       const getEtbQuery = new GetEtbQuery(testEinsatzId, false);
       const etbResult = await getEtbHandler.execute(getEtbQuery);
 
       expect(etbResult.isSuccess).toBe(true);
       expect(etbResult.value).not.toBeNull();
-      expect(etbResult.value?.status).toBe('LOCKED');
       // Original + Korrektur + Zweiter Eintrag = 3
       expect(etbResult.value?.eintraege).toHaveLength(3);
     });
@@ -441,12 +432,6 @@ function generateTestCuid(): string {
       // Korrektur erstellen
       const korrekturCmd = AddKorrekturEintragCommand.create(etbId, eintragId, 'Korrektur', testUserId).value!;
       await addKorrekturEintragHandler.execute(korrekturCmd);
-
-      // ETB sperren (direkt über Aggregate)
-      const etbAggregate = await etbRepository.findById(EtbId.create(etbId).value!);
-      const lockResult = etbAggregate!.lock(UserId.create(testUserId).value!);
-      expect(lockResult.isSuccess).toBe(true);
-      await etbRepository.save(etbAggregate!);
     });
   });
 

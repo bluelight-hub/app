@@ -29,8 +29,6 @@ import { EtbCreatedEvent } from '@domain/events/etb-created.event';
 import { EintragAddedEvent } from '@domain/events/eintrag-added.event';
 import { EintragUpdatedEvent } from '@domain/events/eintrag-updated.event';
 import { EintragDeletedEvent } from '@domain/events/eintrag-deleted.event';
-import { EtbLockedEvent } from '@domain/events/etb-locked.event';
-
 // Lagekarte Events
 import { LagekarteCreatedEvent } from '@domain/events/lagekarte-created.event';
 import { PoiAddedEvent } from '@domain/events/poi-added.event';
@@ -298,22 +296,6 @@ describe('EventDeserializer', () => {
       expect(result.isSuccess).toBe(true);
       const event = result.value as EintragDeletedEvent;
       expect(event).toBeInstanceOf(EintragDeletedEvent);
-    });
-
-    it('should deserialize EtbLockedEvent correctly', () => {
-      const lockedAt = '2024-11-26T16:00:00.000Z';
-      const serialized = createSerializedEvent('etb.locked', {
-        etbId: etbIdValue,
-        lockedBy: userIdValue,
-        lockedAt,
-      });
-
-      const result = deserializer.deserialize(serialized);
-
-      expect(result.isSuccess).toBe(true);
-      const event = result.value as EtbLockedEvent;
-      expect(event).toBeInstanceOf(EtbLockedEvent);
-      expect(event.lockedAt.toISOString()).toBe(lockedAt);
     });
   });
 
@@ -2256,7 +2238,6 @@ describe('EventDeserializer', () => {
   describe('Utility Methods', () => {
     it('should return true for supported event types', () => {
       expect(deserializer.supportsEventType('einsatz.created')).toBe(true);
-      expect(deserializer.supportsEventType('etb.locked')).toBe(true);
       expect(deserializer.supportsEventType('lagekarte.poi_added')).toBe(true);
       expect(deserializer.supportsEventType('user.permission_revoked')).toBe(true);
     });
@@ -2276,7 +2257,7 @@ describe('EventDeserializer', () => {
       // + SystemWarnung (Story 5.6) + EintragKorrigiert (Issue #554)
       // + OperativeRolleChanged + StammpersonAssigned + BeitrittsanfrageErstellt + BeitrittsanfrageEntschieden (Issue #98)
       // + InviteCodeCreated + InviteCodeUsed + InviteCodeRevoked (Issue #98)
-      expect(supportedTypes).toHaveLength(82);
+      expect(supportedTypes).toHaveLength(81);
       expect(supportedTypes).toContain('einsatz.created');
       expect(supportedTypes).toContain('etb.created');
       expect(supportedTypes).toContain('lagekarte.created');
@@ -2314,13 +2295,12 @@ describe('EventDeserializer', () => {
         'einsatz.status_changed',
         'einsatz.completed',
         'einsatz.archived',
-        // ETB Events (6)
+        // ETB Events (5)
         'etb.created',
         'etb.eintrag_added',
         'etb.eintrag_korrigiert',
         'etb.eintrag_updated',
         'etb.eintrag_deleted',
-        'etb.locked',
         // Lagekarte Events (4)
         'lagekarte.created',
         'lagekarte.poi_added',

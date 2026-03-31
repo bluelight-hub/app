@@ -703,28 +703,6 @@ export async function waitFor(assertion: () => Promise<void>, timeout = 500, int
  *     });
  *   });
  *
- *   describe('Lock ETB', () => {
- *     it('should lock ETB and prevent further modifications', async () => {
- *       // Given: Create ETB with entries
- *       const createCmd = CreateEtbCommand.create(ctx.testEinsatzId).value!;
- *       const createResult = await createHandler.execute(createCmd);
- *       const etbId = createResult.value!.value;
- *
- *       // When: Lock
- *       const lockCmd = LockEtbCommand.create(etbId, ctx.testUserId).value!;
- *       const lockResult = await lockHandler.execute(lockCmd);
- *
- *       // Then
- *       expect(lockResult.isSuccess).toBe(true);
- *       const etb = await ctx.repository.findById(EtbId.create(etbId).value!);
- *       expect(etb!.isLocked()).toBe(true);
- *
- *       // Verify: Further modifications fail
- *       const addCmd = AddEintragCommand.create(etbId, 'Should fail', ctx.testUserId).value!;
- *       const addResult = await addEintragHandler.execute(addCmd);
- *       expect(addResult.isFailure).toBe(true);
- *     });
- *   });
  * });
  * ```
  */

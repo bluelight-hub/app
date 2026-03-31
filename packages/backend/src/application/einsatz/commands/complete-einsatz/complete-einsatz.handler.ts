@@ -12,8 +12,7 @@ import { IOutboxRepository } from '@domain/repositories/i-outbox.repository';
 import type { DomainEvent } from '@domain/common/domain-event';
 import type { TransactionContext } from '@domain/common';
 import { Result } from '@domain/common/result';
-import { IEtbRepository } from '@domain/repositories';
-import { EINSATZ_REPOSITORY, ETB_REPOSITORY, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, OUTBOX_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Handler für CompleteEinsatzCommand mit Transactional Outbox Pattern.
@@ -56,8 +55,6 @@ export class CompleteEinsatzHandler extends TransactionalCommandHandler<Complete
     @Inject(OUTBOX_REPOSITORY) outboxRepository: IOutboxRepository,
     @Inject(EINSATZ_REPOSITORY)
     private readonly einsatzRepository: IEinsatzRepository,
-    @Inject(ETB_REPOSITORY)
-    private readonly etbRepository: IEtbRepository,
     @Inject(EinsatzCompletenessService)
     private readonly completenessService: EinsatzCompletenessService,
     @Inject(LOGGER)
@@ -197,20 +194,7 @@ export class CompleteEinsatzHandler extends TransactionalCommandHandler<Complete
       return Result.fail(error);
     }
 
-    // Step 7: ETB synchron sperren (Issue #581)
-    // ETB muss sofort gesperrt sein wenn "Einsatz beenden" abgeschlossen ist,
-    // nicht erst nach asynchronem Outbox-Event-Delay.
-    const etbAggregate = await this.etbRepository.findByEinsatzId(einsatzId, tx);
-    if (etbAggregate && !etbAggregate.isLocked()) {
-      etbAggregate.lock(userId);
-      await this.etbRepository.save(etbAggregate, tx);
-      this.logger.log('ETB synchron gesperrt nach Einsatz-Abschluss', {
-        einsatzId: command.einsatzId,
-        etbId: etbAggregate.id.value,
-      });
-    }
-
-    // Step 8: Extract Domain Events for Outbox
+    // Step 7: Extract Domain Events for Outbox
     // Base Handler wird Events in Outbox persistieren (atomar in gleicher TX)
     // Repository cleared bereits nach Transaction Commit
     const events = einsatz.getDomainEvents();
@@ -222,6 +206,8 @@ export class CompleteEinsatzHandler extends TransactionalCommandHandler<Complete
     });
 
     // Step 8: Return result + events für Base Handler
+    // Issue #582: ETB wird nicht mehr explizit gesperrt — Schreibschutz
+    // wird aus dem Einsatz-Status abgeleitet (ABGESCHLOSSEN/ARCHIVIERT).
     return { result: undefined, events };
   }
 }

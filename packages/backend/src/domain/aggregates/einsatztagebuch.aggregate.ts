@@ -5,7 +5,7 @@ import { EintragAddedEvent } from '@domain/events/eintrag-added.event';
 import { EintragDeletedEvent } from '@domain/events/eintrag-deleted.event';
 import { EintragKorrigiertEvent } from '@domain/events/eintrag-korrigiert.event';
 import { EtbCreatedEvent } from '@domain/events/etb-created.event';
-import { EtbLockedEvent } from '@domain/events/etb-locked.event';
+
 import type { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { EintragId } from '@domain/value-objects/eintrag-id';
 import { EtbId } from '@domain/value-objects/etb-id';
@@ -37,9 +37,8 @@ import type { UserId } from '@domain/value-objects/user-id';
  * - Optimistic Locking verhindert Concurrent Modification Conflicts
  *
  * **State Machine (Status):**
- * - DRAFT → ACTIVE → LOCKED (nur Vorwärts-Transitions)
- * - LOCKED ist final: Keine weiteren Änderungen möglich (DRK-Compliance)
- * - Business Methods validieren LOCKED-Status vor Änderungen
+ * - DRAFT → ACTIVE (nur Vorwärts-Transitions)
+ * - Schreibschutz wird aus dem Einsatz-Status abgeleitet (Issue #582)
  *
  * **Immutabilitaet (Issue #554):**
  * - ETB-Eintraege sind nach Erstellung unveraenderlich
@@ -49,9 +48,8 @@ import type { UserId } from '@domain/value-objects/user-id';
  * **Business Rules:**
  * 1. Sequence Numbers sind unveraenderlich und monoton steigend (ab 1)
  * 2. Versionierung bei JEDER Aenderung (add/korrektur)
- * 3. Locked = Immutable (alle Modification Methods returnen Result.fail())
- * 4. Eintraege sind nach Erstellung unveraenderlich (kein update/delete)
- * 5. Forward-Only Status Transitions (DRAFT → ACTIVE → LOCKED)
+ * 3. Eintraege sind nach Erstellung unveraenderlich (kein update/delete)
+ * 4. Forward-Only Status Transitions (DRAFT → ACTIVE)
  *
  * **Design Patterns:**
  * - DDD Aggregate Pattern: Transactional Consistency Boundary
@@ -75,9 +73,6 @@ import type { UserId } from '@domain/value-objects/user-id';
  *   etb.updateEintrag(eintragId, 'Fahrzeug W1 um 14:30 Uhr eingetroffen', userId);
  *   console.log(etb.version.versionNumber); // 3
  *
- *   // Lock ETB (irreversible)
- *   etb.lock(userId);
- *   const failResult = etb.addEintrag('Text', userId); // Fail: ETB locked
  * }
  * ```
  */
@@ -138,7 +133,7 @@ export class EinsatztagebuchAggregate extends AggregateRoot<EtbId> {
   }
 
   /**
-   * Status des ETB (State Machine: DRAFT → ACTIVE → LOCKED).
+   * Status des ETB (State Machine: DRAFT → ACTIVE).
    */
   private _status: EtbStatus;
 
@@ -233,18 +228,6 @@ export class EinsatztagebuchAggregate extends AggregateRoot<EtbId> {
     return Result.ok<EinsatztagebuchAggregate>(aggregate);
   }
 
-  /**
-   * Prüft ob das ETB gesperrt ist.
-   *
-   * Diese Helper-Methode wird von allen Business Methods verwendet um
-   * Änderungen an gesperrten ETBs zu verhindern (Immutability nach Lock).
-   *
-   * @returns true wenn Status === LOCKED, false sonst
-   */
-  public isLocked(): boolean {
-    return this._status.equals(EtbStatus.LOCKED());
-  }
-
   // ============================================================================
   // SNAPSHOT MANAGEMENT METHODS
   // ============================================================================
@@ -335,11 +318,6 @@ export class EinsatztagebuchAggregate extends AggregateRoot<EtbId> {
    * @returns Result<EtbEintrag> - Success mit erstelltem Eintrag oder Failure mit Error
    */
   public addEintrag(text: string, userId: UserId, kategorie?: EtbKategorie, absender?: string, empfaenger?: string, metadata?: Record<string, unknown>, occurredAt?: Date): Result<EtbEintrag> {
-    // Validate: ETB must not be locked
-    if (this.isLocked()) {
-      return Result.fail<EtbEintrag>('ETB ist gesperrt und kann nicht mehr geändert werden');
-    }
-
     // Validate: Text must not be empty
     if (!text?.trim()) {
       return Result.fail<EtbEintrag>('Text darf nicht leer sein');
@@ -419,10 +397,6 @@ export class EinsatztagebuchAggregate extends AggregateRoot<EtbId> {
     metadata?: Record<string, unknown>,
     occurredAt?: Date,
   ): Result<EtbEintrag> {
-    if (this.isLocked()) {
-      return Result.fail<EtbEintrag>('ETB ist gesperrt und kann nicht mehr geaendert werden');
-    }
-
     if (!text?.trim()) {
       return Result.fail<EtbEintrag>('Text darf nicht leer sein');
     }
@@ -493,10 +467,6 @@ export class EinsatztagebuchAggregate extends AggregateRoot<EtbId> {
    * Analog zur Streichung im physischen Einsatztagebuch.
    */
   public deleteEintrag(eintragId: EintragId, userId: UserId): Result<void> {
-    if (this.isLocked()) {
-      return Result.fail<void>('ETB ist gesperrt und kann nicht mehr geaendert werden');
-    }
-
     const eintrag = this._eintraege.find((e) => e.id.equals(eintragId));
     if (!eintrag) {
       return Result.fail<void>('Eintrag nicht gefunden');
@@ -510,44 +480,6 @@ export class EinsatztagebuchAggregate extends AggregateRoot<EtbId> {
     eintrag.markAsDeleted();
     this._version = this._version.increment();
     this.addDomainEvent(new EintragDeletedEvent(this.id, eintragId, userId));
-
-    return Result.ok<void>(undefined);
-  }
-
-  /**
-   * Sperrt das ETB (irreversible Transition zu LOCKED).
-   *
-   * Diese Methode implementiert die finale Abschluss-Logik für ETBs:
-   * - Validiert dass Status NICHT bereits LOCKED ist
-   * - Transitioniert Status zu LOCKED (irreversibel!)
-   * - Emittiert EtbLockedEvent
-   * - Ab jetzt: Alle Modification Methods returnen Result.fail()
-   *
-   * Warum irreversibel?
-   * - DRK-Compliance: Finale Einsatzberichte sind rechtsgültige Dokumente
-   * - Rechtssicherheit: Gesperrte ETBs dürfen nicht manipuliert werden
-   * - Audit-Trail: Garantiert Unveränderlichkeit nach Abschluss
-   * - State Machine: LOCKED ist finaler Zustand ohne Ausgangs-Transitions
-   *
-   * Business Kontext:
-   * Nach Einsatzende wird das ETB vom Einsatzleiter finalisiert.
-   * Ab diesem Zeitpunkt werden typischerweise PDF-Berichte generiert
-   * und in langfristige Archivierung verschoben.
-   *
-   * @param userId - User ID des Sperrenden (typischerweise Einsatzleiter)
-   * @returns Result<void> - Success oder Failure mit Error
-   */
-  public lock(userId: UserId): Result<void> {
-    // Validate: Must not already be locked
-    if (this.isLocked()) {
-      return Result.fail<void>('ETB ist bereits gesperrt');
-    }
-
-    // Transition to LOCKED status (irreversible!)
-    this._status = EtbStatus.LOCKED();
-
-    // Emit domain event
-    this.addDomainEvent(new EtbLockedEvent(this.id, userId, new Date()));
 
     return Result.ok<void>(undefined);
   }

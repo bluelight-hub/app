@@ -367,19 +367,6 @@ describe('ETB Snapshot Lifecycle', () => {
   });
 
   describe('No snapshot for failed operations', () => {
-    it('should NOT create snapshot when addEintrag fails (locked)', () => {
-      // Given: Locked ETB
-      const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
-      etb.lock(userId);
-
-      // When: Trying to add entry (will fail)
-      const result = etb.addEintrag('Test', userId);
-
-      // Then: No snapshot created
-      expect(result.isFailure).toBe(true);
-      expect(etb.hasUncommittedSnapshots()).toBe(false);
-    });
-
     it('should NOT create snapshot when addEintrag fails (empty text)', () => {
       // Given: ETB
       const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
@@ -399,21 +386,6 @@ describe('ETB Snapshot Lifecycle', () => {
 
       // When: Trying to create korrektur for non-existent entry
       const result = etb.addKorrekturEintrag(fakeId, 'Test', userId);
-
-      // Then: No snapshot created
-      expect(result.isFailure).toBe(true);
-      expect(etb.hasUncommittedSnapshots()).toBe(false);
-    });
-
-    it('should NOT create snapshot when addKorrekturEintrag fails (locked)', () => {
-      // Given: Locked ETB with entry
-      const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
-      const eintrag = etb.addEintrag('Test', userId).value!;
-      etb.lock(userId);
-      etb.clearSnapshots();
-
-      // When: Trying to add korrektur on locked ETB
-      const result = etb.addKorrekturEintrag(eintrag.id, 'Korrektur', userId);
 
       // Then: No snapshot created
       expect(result.isFailure).toBe(true);

@@ -165,8 +165,6 @@ export class PrismaEtbRepository implements IEtbRepository {
           version: etb.version,
           versionTimestamp: etb.versionTimestamp,
           nextSequenceNumber: etb.nextSequenceNumber,
-          lockedAt: etb.lockedAt,
-          lockedBy: etb.lockedBy,
           updatedBy: etb.updatedBy,
         },
         update: {
@@ -174,8 +172,6 @@ export class PrismaEtbRepository implements IEtbRepository {
           version: etb.version,
           versionTimestamp: etb.versionTimestamp,
           nextSequenceNumber: etb.nextSequenceNumber,
-          lockedAt: etb.lockedAt,
-          lockedBy: etb.lockedBy,
           updatedBy: etb.updatedBy,
           // einsatzId und createdBy können NICHT geändert werden (readonly in Domain)
         },

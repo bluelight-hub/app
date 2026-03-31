@@ -10,7 +10,7 @@ import type { EintragAddedEvent } from '@domain/events/eintrag-added.event';
 import type { EintragKorrigiertEvent } from '@domain/events/eintrag-korrigiert.event';
 import type { EintragUpdatedEvent } from '@domain/events/eintrag-updated.event';
 import type { EintragDeletedEvent } from '@domain/events/eintrag-deleted.event';
-import type { EtbLockedEvent } from '@domain/events/etb-locked.event';
+
 import type { LagekarteCreatedEvent } from '@domain/events/lagekarte-created.event';
 import type { PoiAddedEvent } from '@domain/events/poi-added.event';
 import type { PoiRemovedEvent } from '@domain/events/poi-removed.event';
@@ -205,8 +205,6 @@ export class EventSerializer {
         return this.serializeEintragUpdated(event as unknown as EintragUpdatedEvent);
       case 'etb.eintrag_deleted':
         return this.serializeEintragDeleted(event as unknown as EintragDeletedEvent);
-      case 'etb.locked':
-        return this.serializeEtbLocked(event as unknown as EtbLockedEvent);
 
       // ===== LAGEKARTE EVENTS =====
       case 'lagekarte.created':
@@ -540,14 +538,6 @@ export class EventSerializer {
       etbId: event.etbId.value,
       eintragId: event.eintragId.value,
       deletedBy: event.deletedBy.value,
-    };
-  }
-
-  private serializeEtbLocked(event: EtbLockedEvent): Record<string, unknown> {
-    return {
-      etbId: event.etbId.value,
-      lockedBy: event.lockedBy.value,
-      lockedAt: event.lockedAt.toISOString(),
     };
   }
 

@@ -134,21 +134,6 @@ describe('EtbQueryMapper', () => {
       expect(dto.status).toBe('DRAFT');
     });
 
-    it('sollte den Status LOCKED korrekt mappen', () => {
-      // Arrange
-      const etb = createTestEtb({
-        einsatzId: generateTestCuid(),
-        userId: generateTestCuid(),
-        status: 'LOCKED',
-      });
-
-      // Act
-      const dto = EtbQueryMapper.toEtbDto(etb);
-
-      // Assert
-      expect(dto.status).toBe('LOCKED');
-    });
-
     it('sollte das Version-Objekt korrekt mappen', () => {
       // Arrange
       const etb = createTestEtb({

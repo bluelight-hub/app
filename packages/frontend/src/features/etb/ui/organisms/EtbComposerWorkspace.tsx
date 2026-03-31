@@ -82,7 +82,7 @@ export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbCompose
   const { pendingDraft, isLoadingDraft, restoreDraft, discardDraft, saveDraft, clearDraft, discardReason } = useEtbDraftResume({
     einsatzId,
     etbId: data?.pages?.[0]?.data?.id ?? '',
-    etbStatus: data?.pages?.[0]?.data?.status,
+    einsatzStatus: einsatz?.status,
   });
 
   /** Story 3.5: Tracking ob Formular nicht-leer ist (fuer beforeunload + useBlocker) */
@@ -122,7 +122,7 @@ export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbCompose
       isSuccess: false,
       isError: false,
     },
-    etbStatus: etb?.status,
+    einsatzStatus: einsatz?.status,
     onRetry: handleRetry,
   });
 
@@ -403,9 +403,9 @@ export function EtbComposerWorkspace({ einsatzId, readOnly = false }: EtbCompose
           <div className="rounded-lg border border-status-info-border bg-status-info-surface p-4" role="status" aria-live="polite">
             <p className="text-center text-status-info-text">Sie sehen das ETB im Lesemodus. Ihre Einsatzrolle erlaubt keine Bearbeitung.</p>
           </div>
-        ) : etb.status === 'LOCKED' ? (
+        ) : einsatz?.status === 'ABGESCHLOSSEN' || einsatz?.status === 'ARCHIVIERT' ? (
           <div className="rounded-lg border border-status-danger-border bg-status-danger-surface p-4" role="alert">
-            <p className="text-center text-status-danger-text">Das ETB ist gesperrt. Neue Einträge können nicht hinzugefügt werden.</p>
+            <p className="text-center text-status-danger-text">Der Einsatz ist abgeschlossen. Neue Einträge können nicht hinzugefügt werden.</p>
           </div>
         ) : (
           <div className="rounded-lg bg-surface-panel p-4 shadow">

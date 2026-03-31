@@ -25,12 +25,13 @@ interface EtbStatusBadgeProps {
  *
  * Zeigt den aktuellen Status des ETB mit farblicher Kodierung:
  * - DRAFT (Entwurf): Grau - ETB ist noch in Bearbeitung
- * - ACTIVE (Aktiv): Gruen - ETB ist aktiv und kann bearbeitet werden
- * - LOCKED (Gesperrt): Rot - ETB ist gesperrt, keine Aenderungen moeglich
+ * - ACTIVE (Aktiv): Grün - ETB ist aktiv und kann bearbeitet werden
+ *
+ * Issue #582: LOCKED-Status entfernt — Schreibschutz wird aus Einsatz-Status abgeleitet.
  */
 export function EtbStatusBadge({ status, size = 'md', showDot = false, className }: EtbStatusBadgeProps) {
   const statusConfig: Record<
-    EtbStatus,
+    string,
     {
       variant: BadgeVariant;
       label: string;
@@ -46,11 +47,6 @@ export function EtbStatusBadge({ status, size = 'md', showDot = false, className
       variant: 'success',
       label: 'Aktiv',
       dotColor: 'green',
-    },
-    LOCKED: {
-      variant: 'error',
-      label: 'Gesperrt',
-      dotColor: 'red',
     },
   };
 

@@ -1473,25 +1473,11 @@ exports[`API Contract Tests v1 OpenAPI spec should match snapshot 1`] = `
             "example": "clw3h8x9y0000qwertyuiopas",
             "type": "string",
           },
-          "lockedAt": {
-            "description": "Zeitpunkt der Sperrung (nur bei Status LOCKED)",
-            "example": "2024-01-15T18:00:00.000Z",
-            "format": "date-time",
-            "nullable": true,
-            "type": "string",
-          },
-          "lockedBy": {
-            "description": "User-ID der sperrenden Person (nur bei Status LOCKED)",
-            "example": "clw3h8x9y0000qwertyuiopas",
-            "nullable": true,
-            "type": "string",
-          },
           "status": {
             "description": "Aktueller Status des ETB im Lifecycle",
             "enum": [
               "DRAFT",
               "ACTIVE",
-              "LOCKED",
             ],
             "example": "ACTIVE",
             "type": "string",

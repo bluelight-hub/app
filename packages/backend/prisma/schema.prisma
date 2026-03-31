@@ -361,11 +361,10 @@ model Kategorie {
 // ETB (Einsatztagebuch) Models
 // ========================================
 
-// ETB Status Enum
+// ETB Status Enum (Issue #582: LOCKED entfernt — Schreibschutz wird aus Einsatz-Status abgeleitet)
 enum EtbStatus {
   DRAFT // Entwurf - kann bearbeitet werden
   ACTIVE // Aktiv - wird aktiv gepflegt
-  LOCKED // Gesperrt - keine Änderungen mehr möglich
 }
 
 // Einsatztagebuch Model (1:1 mit Einsatz)

@@ -1,6 +1,7 @@
 import { Result } from '@domain/common/result';
 import type { EtbEintrag } from '@domain/entities/etb-eintrag.entity';
 import type { IEtbRepository } from '@domain/repositories';
+import { IEinsatzRepository } from '@domain/repositories/ieinsatz.repository';
 import { EintragId } from '@domain/value-objects/eintrag-id';
 import { EtbId } from '@domain/value-objects/etb-id';
 import { EtbKategorie } from '@domain/value-objects/etb-kategorie';
@@ -8,7 +9,7 @@ import { UserId } from '@domain/value-objects/user-id';
 import { Inject, Injectable } from '@nestjs/common';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import type { AddKorrekturEintragCommand } from './add-korrektur-eintrag.command';
-import { ETB_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, ETB_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 
 /**
  * Handler fuer AddKorrekturEintragCommand.
@@ -22,6 +23,8 @@ export class AddKorrekturEintragHandler {
   constructor(
     @Inject(ETB_REPOSITORY)
     private readonly etbRepository: IEtbRepository,
+    @Inject(EINSATZ_REPOSITORY)
+    private readonly einsatzRepository: IEinsatzRepository,
     @Inject(LOGGER)
     private readonly logger: ILogger,
   ) {}
@@ -47,6 +50,16 @@ export class AddKorrekturEintragHandler {
     const aggregate = await this.etbRepository.findById(etbIdResult.value);
     if (!aggregate) {
       return Result.fail<EtbEintrag>('ETB nicht gefunden');
+    }
+
+    // Einsatz-Status prüfen (Issue #582: Schreibschutz aus Einsatz-Lifecycle)
+    const einsatzResult = await this.einsatzRepository.findById(aggregate.einsatzId);
+    if (einsatzResult.isFailure || !einsatzResult.value) {
+      return Result.fail<EtbEintrag>('Zugehöriger Einsatz nicht gefunden');
+    }
+    const einsatzStatus = einsatzResult.value.status.value;
+    if (einsatzStatus === 'ABGESCHLOSSEN' || einsatzStatus === 'ARCHIVIERT') {
+      return Result.fail<EtbEintrag>('Einsatz ist abgeschlossen — ETB kann nicht mehr geändert werden');
     }
 
     // Convert Kategorie if provided

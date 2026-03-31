@@ -68,10 +68,13 @@ const mockState = {
 
 let mockDelayedLoading = false;
 
+// Steuerbarer Einsatz-Status für Tests
+let mockEinsatzStatus = 'AKTIV';
+
 // Mock hooks — absolute Pfade
 vi.mock('@/features/einsatz/hooks/use-einsatz-details', () => ({
   useEinsatzDetails: () => ({
-    einsatz: { id: 'einsatz-1', name: 'Hochwasser Musterstadt', status: 'AKTIV' },
+    einsatz: { id: 'einsatz-1', name: 'Hochwasser Musterstadt', status: mockEinsatzStatus },
     etb: { id: 'etb-1', status: 'ACTIVE' },
     lagekarte: null,
     isLoading: false,
@@ -211,6 +214,7 @@ describe('EtbComposerWorkspace', () => {
     mockState.isLoading = false;
     mockState.error = null;
     mockDelayedLoading = false;
+    mockEinsatzStatus = 'AKTIV';
     capturedOnSuccess = undefined;
     capturedModalProps = {};
     capturedFormProps = {};
@@ -262,14 +266,11 @@ describe('EtbComposerWorkspace', () => {
     expect(screen.getByText('Neuer Eintrag')).toBeInTheDocument();
   });
 
-  it('zeigt Gesperrt-Hinweis bei LOCKED ETB', () => {
-    mockState.data = {
-      pages: [{ data: { id: 'etb-1', status: 'LOCKED', eintraege: [] }, pagination: { total: 0, limit: 30, offset: 0 } }],
-      pageParams: [undefined],
-    };
+  it('zeigt Abgeschlossen-Hinweis bei abgeschlossenem Einsatz', () => {
+    mockEinsatzStatus = 'ABGESCHLOSSEN';
 
     renderWithProviders(<EtbComposerWorkspace einsatzId="einsatz-1" />);
-    expect(screen.getByRole('alert')).toHaveTextContent('Das ETB ist gesperrt');
+    expect(screen.getByRole('alert')).toHaveTextContent('Der Einsatz ist abgeschlossen');
   });
 
   // === AC 3: Semantischer Ladezustand ===
@@ -505,10 +506,10 @@ describe('EtbComposerWorkspace', () => {
     });
 
     it('zeigt discardReason als Inline-Meldung', () => {
-      mockDraftResume.discardReason = 'Entwurf verworfen — ETB wurde zwischenzeitlich gesperrt';
+      mockDraftResume.discardReason = 'Entwurf verworfen — Einsatz wurde zwischenzeitlich abgeschlossen';
 
       renderWithProviders(<EtbComposerWorkspace einsatzId="einsatz-1" />);
-      expect(screen.getByText('Entwurf verworfen — ETB wurde zwischenzeitlich gesperrt')).toBeInTheDocument();
+      expect(screen.getByText('Entwurf verworfen — Einsatz wurde zwischenzeitlich abgeschlossen')).toBeInTheDocument();
     });
 
     it('zeigt keine discardReason wenn null', () => {

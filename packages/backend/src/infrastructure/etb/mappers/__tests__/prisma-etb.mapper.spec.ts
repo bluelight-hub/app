@@ -316,7 +316,6 @@ describe('PrismaEtbMapper', () => {
 
       // Then: Domain Status ist DRAFT
       expect(aggregate.status.value).toBe('DRAFT');
-      expect(aggregate.isLocked()).toBe(false);
     });
 
     it('sollte Status ACTIVE korrekt mappen', () => {
@@ -328,23 +327,6 @@ describe('PrismaEtbMapper', () => {
 
       // Then: Domain Status ist ACTIVE
       expect(aggregate.status.value).toBe('ACTIVE');
-      expect(aggregate.isLocked()).toBe(false);
-    });
-
-    it('sollte Status LOCKED korrekt mappen', () => {
-      // Given: Prisma ETB mit Status LOCKED
-      const prismaEtb = createMockPrismaEtb({
-        status: 'LOCKED' as PrismaEtbStatus,
-        lockedAt: new Date('2024-01-20T16:00:00Z'),
-        lockedBy: createValidTestId('user3'),
-      });
-
-      // When: toAggregate() aufgerufen
-      const aggregate = PrismaEtbMapper.toAggregate(prismaEtb);
-
-      // Then: Domain Status ist LOCKED
-      expect(aggregate.status.value).toBe('LOCKED');
-      expect(aggregate.isLocked()).toBe(true);
     });
 
     it('sollte Version korrekt rekonstruieren', () => {
@@ -451,37 +433,6 @@ describe('PrismaEtbMapper', () => {
 
       // Then: ETB data hat Status='DRAFT'
       expect(persistData.etb.status).toBe('DRAFT');
-    });
-
-    it('sollte Lock Fields setzen wenn Aggregate gesperrt ist', () => {
-      // Given: Prisma ETB mit LOCKED Status rekonstruieren
-      const prismaEtb = createMockPrismaEtb({
-        status: 'LOCKED' as PrismaEtbStatus,
-        lockedAt: new Date('2024-01-20T16:00:00Z'),
-        lockedBy: createValidTestId('user3'),
-      });
-      const aggregate = PrismaEtbMapper.toAggregate(prismaEtb);
-      const updatedBy = createValidTestId('user4');
-
-      // When: toPersistence() aufgerufen
-      const persistData = PrismaEtbMapper.toPersistence(aggregate, createValidTestId('user1'), updatedBy);
-
-      // Then: lockedAt und lockedBy sind gesetzt
-      expect(persistData.etb.lockedAt).not.toBeNull();
-      expect(persistData.etb.lockedBy).toBe(updatedBy);
-    });
-
-    it('sollte Lock Fields null lassen wenn Aggregate nicht gesperrt ist', () => {
-      // Given: Domain Aggregate mit DRAFT Status
-      const einsatzId = EinsatzId.create(createValidTestId('eins1')).value as EinsatzId;
-      const aggregate = EinsatztagebuchAggregate.create(einsatzId).value as EinsatztagebuchAggregate;
-
-      // When: toPersistence() aufgerufen
-      const persistData = PrismaEtbMapper.toPersistence(aggregate, createValidTestId('user1'));
-
-      // Then: lockedAt und lockedBy sind null
-      expect(persistData.etb.lockedAt).toBeNull();
-      expect(persistData.etb.lockedBy).toBeNull();
     });
 
     it('sollte Eintraege Array korrekt konvertieren', () => {
@@ -691,9 +642,9 @@ describe('PrismaEtbMapper', () => {
       expect(persistData.etb.versionTimestamp).toEqual(versionTimestamp);
     });
 
-    it('sollte alle Status-Varianten korrekt mappen (DRAFT, ACTIVE, LOCKED)', () => {
+    it('sollte alle Status-Varianten korrekt mappen (DRAFT, ACTIVE)', () => {
       // Test alle Status-Mappings
-      const statusVariants: PrismaEtbStatus[] = ['DRAFT', 'ACTIVE', 'LOCKED'];
+      const statusVariants: PrismaEtbStatus[] = ['DRAFT', 'ACTIVE'];
 
       for (const status of statusVariants) {
         // Given: Prisma ETB mit spezifischem Status

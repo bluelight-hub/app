@@ -82,17 +82,17 @@ describe('useEtbDraftResume', () => {
     expect(result.current.pendingDraft).toBeNull();
   });
 
-  it('verwirft Draft wenn ETB LOCKED ist (AC3)', async () => {
+  it('verwirft Draft wenn Einsatz abgeschlossen ist (AC3)', async () => {
     mockLoadEtbDraft.mockResolvedValue(validDraft);
 
-    const { result } = renderHook(() => useEtbDraftResume({ einsatzId: 'einsatz-1', etbId: 'etb-1', etbStatus: 'LOCKED' }));
+    const { result } = renderHook(() => useEtbDraftResume({ einsatzId: 'einsatz-1', etbId: 'etb-1', einsatzStatus: 'ABGESCHLOSSEN' }));
 
     await waitFor(() => {
       expect(result.current.isLoadingDraft).toBe(false);
     });
 
     expect(result.current.pendingDraft).toBeNull();
-    expect(result.current.discardReason).toBe('Entwurf verworfen — ETB wurde zwischenzeitlich gesperrt');
+    expect(result.current.discardReason).toBe('Entwurf verworfen — Einsatz wurde zwischenzeitlich abgeschlossen');
     expect(mockClearEtbDraft).toHaveBeenCalledOnce();
   });
 
@@ -299,7 +299,7 @@ describe('useEtbDraftResume', () => {
   it('discardReason wird nach 5s automatisch ausgeblendet', async () => {
     mockLoadEtbDraft.mockResolvedValue(validDraft);
 
-    const { result } = renderHook(() => useEtbDraftResume({ einsatzId: 'einsatz-1', etbId: 'etb-1', etbStatus: 'LOCKED' }));
+    const { result } = renderHook(() => useEtbDraftResume({ einsatzId: 'einsatz-1', etbId: 'etb-1', einsatzStatus: 'ABGESCHLOSSEN' }));
 
     await waitFor(() => {
       expect(result.current.discardReason).toBeTruthy();

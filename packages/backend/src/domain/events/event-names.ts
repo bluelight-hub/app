@@ -56,8 +56,6 @@ export const EVENT_NAMES = {
   ETB: {
     /** Event: Neues ETB wurde erstellt */
     CREATED: 'etb.created',
-    /** Event: ETB wurde gesperrt (finale Transition) */
-    LOCKED: 'etb.locked',
     /** Event: Eintrag wurde zum ETB hinzugefügt */
     EINTRAG_ADDED: 'etb.eintrag_added',
     /** Event: Eintrag wurde aktualisiert */

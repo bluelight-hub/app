@@ -17,7 +17,8 @@ export interface EtbDraftFormValues {
 export interface UseEtbDraftResumeOptions {
   einsatzId: string;
   etbId: string;
-  etbStatus?: string;
+  /** Einsatz-Status (Issue #582: Schreibschutz aus Einsatz-Lifecycle) */
+  einsatzStatus?: string;
 }
 
 export interface UseEtbDraftResumeReturn {
@@ -42,11 +43,11 @@ export interface UseEtbDraftResumeReturn {
  *
  * Lifecycle:
  * 1. Mount → Draft aus Storage laden
- * 2. Validierung → ungültige Drafts verwerfen (locked ETB, falsches etbId)
+ * 2. Validierung → ungültige Drafts verwerfen (abgeschlossener Einsatz, falsches etbId)
  * 3. Auto-Save → Form-Werte per saveDraft() persistieren (1000ms Debounce)
  * 4. Clear → nach erfolgreichem Speichern Draft löschen
  */
-export function useEtbDraftResume({ einsatzId, etbId, etbStatus }: UseEtbDraftResumeOptions): UseEtbDraftResumeReturn {
+export function useEtbDraftResume({ einsatzId, etbId, einsatzStatus }: UseEtbDraftResumeOptions): UseEtbDraftResumeReturn {
   const { user } = useCurrentUser();
   const activeServerId = useStore(serverStore, (state) => state.activeServerId);
 
@@ -102,10 +103,10 @@ export function useEtbDraftResume({ einsatzId, etbId, etbStatus }: UseEtbDraftRe
         }
 
         // AC3: Draft-Validierung
-        if (etbStatus === 'LOCKED') {
+        if (einsatzStatus === 'ABGESCHLOSSEN' || einsatzStatus === 'ARCHIVIERT') {
           await clearEtbDraft(capturedScope);
           if (isCancelled) return;
-          setDiscardReason('Entwurf verworfen — ETB wurde zwischenzeitlich gesperrt');
+          setDiscardReason('Entwurf verworfen — Einsatz wurde zwischenzeitlich abgeschlossen');
           setPendingDraft(null);
           setIsLoadingDraft(false);
           return;
@@ -136,7 +137,7 @@ export function useEtbDraftResume({ einsatzId, etbId, etbStatus }: UseEtbDraftRe
       isCancelled = true;
     };
     // Scope-Bestandteile einzeln statt `scope` Objekt (Referenz-Stabilität)
-  }, [activeServerId, user?.id, user?.role, einsatzId, etbId, etbStatus]);
+  }, [activeServerId, user?.id, user?.role, einsatzId, etbId, einsatzStatus]);
 
   // Discard-Reason automatisch nach 5s ausblenden
   useEffect(() => {

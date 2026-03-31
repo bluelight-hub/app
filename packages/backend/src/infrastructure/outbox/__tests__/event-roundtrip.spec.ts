@@ -28,8 +28,6 @@ import { EtbCreatedEvent } from '@domain/events/etb-created.event';
 import { EintragAddedEvent } from '@domain/events/eintrag-added.event';
 import { EintragUpdatedEvent } from '@domain/events/eintrag-updated.event';
 import { EintragDeletedEvent } from '@domain/events/eintrag-deleted.event';
-import { EtbLockedEvent } from '@domain/events/etb-locked.event';
-
 // Lagekarte Events
 import { LagekarteCreatedEvent } from '@domain/events/lagekarte-created.event';
 import { PoiAddedEvent } from '@domain/events/poi-added.event';
@@ -243,21 +241,6 @@ describe('Event Round-Trip (Serialize → Deserialize)', () => {
       expect(restored.eintragId.value).toBe(original.eintragId.value);
       expect(restored.deletedBy.value).toBe(original.deletedBy.value);
     });
-
-    it('EtbLockedEvent should survive round-trip', () => {
-      const lockedAt = new Date('2024-11-26T16:00:00.000Z');
-      const original = new EtbLockedEvent(etbId, userId, lockedAt);
-
-      const serialized = serializer.serialize(original);
-      const result = deserializer.deserialize(serialized);
-
-      expect(result.isSuccess).toBe(true);
-      const restored = result.value as EtbLockedEvent;
-
-      expect(restored.etbId.value).toBe(original.etbId.value);
-      expect(restored.lockedBy.value).toBe(original.lockedBy.value);
-      expect(restored.lockedAt.toISOString()).toBe(original.lockedAt.toISOString());
-    });
   });
 
   // ===== LAGEKARTE EVENTS ROUND-TRIP =====
@@ -423,7 +406,7 @@ describe('Event Round-Trip (Serialize → Deserialize)', () => {
       expect(restored.alarmstichwort).toBe(original.alarmstichwort);
     });
 
-    it('should preserve all 19 events through JSON persistence', () => {
+    it('should preserve all 18 events through JSON persistence', () => {
       const events = [
         new EinsatzCreatedEvent(einsatzId, userId, 'Test', 'E2026-002'),
         new EinsatzUpdatedEvent(einsatzId, { alarmstichwort: 'Updated' }),
@@ -434,7 +417,6 @@ describe('Event Round-Trip (Serialize → Deserialize)', () => {
         new EintragAddedEvent(etbId, eintragId, 1, 'Text', userId),
         new EintragUpdatedEvent(etbId, eintragId, 'Old', 'New', userId),
         new EintragDeletedEvent(etbId, eintragId, userId),
-        new EtbLockedEvent(etbId, userId, new Date()),
         new LagekarteCreatedEvent(lagekarteId, einsatzId, userId, false),
         new PoiAddedEvent(lagekarteId, poiId, 'POI', mgrsCoordinate, poiCategory, userId),
         new PoiRemovedEvent(lagekarteId, poiId, userId),
@@ -446,7 +428,7 @@ describe('Event Round-Trip (Serialize → Deserialize)', () => {
         new PermissionRevokedEvent(userId, permission, userId2),
       ];
 
-      expect(events.length).toBe(19);
+      expect(events.length).toBe(18);
 
       for (const original of events) {
         const serialized = serializer.serialize(original);

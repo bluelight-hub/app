@@ -157,8 +157,7 @@ describe('PrismaEtbRepository - Performance Baselines', () => {
       // 2. Add 10 Eintraege
       // 3. Update 3 Eintraege
       // 4. Delete 2 Eintraege (Soft-Delete)
-      // 5. Lock ETB
-      // 6. Load final state
+      // 5. Load final state
       //
       // const result = await measurePerformance(async () => {
       //   // 1. Create ETB
@@ -186,14 +185,9 @@ describe('PrismaEtbRepository - Performance Baselines', () => {
       //   loaded.deleteEintrag(loaded.eintraege[1]!.id, testUserId);
       //   await repository.save(loaded);
       //
-      //   // 5. Lock ETB
-      //   loaded = await repository.findById(etb.id);
-      //   loaded.lock(testUserId);
-      //   await repository.save(loaded);
-      //
-      //   // 6. Load final state
+      //   // 5. Load final state
       //   const finalState = await repository.findById(etb.id);
-      //   if (!finalState || !finalState.isLocked()) {
+      //   if (!finalState) {
       //     throw new Error('ETB not in expected state');
       //   }
       // }, 5);

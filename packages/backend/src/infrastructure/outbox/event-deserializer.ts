@@ -17,7 +17,6 @@ import { EintragAddedEvent } from '@domain/events/eintrag-added.event';
 import { EintragKorrigiertEvent } from '@domain/events/eintrag-korrigiert.event';
 import { EintragUpdatedEvent } from '@domain/events/eintrag-updated.event';
 import { EintragDeletedEvent } from '@domain/events/eintrag-deleted.event';
-import { EtbLockedEvent } from '@domain/events/etb-locked.event';
 
 // Lagekarte Events
 import { LagekarteCreatedEvent } from '@domain/events/lagekarte-created.event';
@@ -215,7 +214,6 @@ export class EventDeserializer {
       ['etb.eintrag_korrigiert', this.deserializeEintragKorrigiert.bind(this)],
       ['etb.eintrag_updated', this.deserializeEintragUpdated.bind(this)],
       ['etb.eintrag_deleted', this.deserializeEintragDeleted.bind(this)],
-      ['etb.locked', this.deserializeEtbLocked.bind(this)],
 
       // ===== LAGEKARTE EVENTS =====
       ['lagekarte.created', this.deserializeLagekarteCreated.bind(this)],
@@ -568,24 +566,6 @@ export class EventDeserializer {
     }
 
     const event = new EintragDeletedEvent(etbIdResult.value!, eintragIdResult.value!, deletedByResult.value!);
-
-    return Result.ok<DomainEvent>(event);
-  }
-
-  private deserializeEtbLocked(payload: Record<string, unknown>): Result<DomainEvent> {
-    const etbIdResult = EtbId.create(payload.etbId as string);
-    if (etbIdResult.isFailure) {
-      return Result.fail<DomainEvent>(`Invalid etbId: ${etbIdResult.error}`);
-    }
-
-    const lockedByResult = UserId.create(payload.lockedBy as string);
-    if (lockedByResult.isFailure) {
-      return Result.fail<DomainEvent>(`Invalid lockedBy: ${lockedByResult.error}`);
-    }
-
-    const lockedAt = new Date(payload.lockedAt as string);
-
-    const event = new EtbLockedEvent(etbIdResult.value!, lockedByResult.value!, lockedAt);
 
     return Result.ok<DomainEvent>(event);
   }

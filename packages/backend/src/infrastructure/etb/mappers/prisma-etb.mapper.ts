@@ -74,8 +74,6 @@ export interface EtbPersistenceData {
     updatedAt: Date;
     createdBy: string;
     updatedBy: string | null;
-    lockedAt: Date | null;
-    lockedBy: string | null;
   };
   eintraege: EtbEintragPersistenceData[];
 }
@@ -290,7 +288,7 @@ export class PrismaEintragMapper {
  *
  * **STATUS MAPPING:**
  * - Domain EtbStatus Value Object <-> Prisma EtbStatus Enum
- * - 1:1 Mapping: DRAFT, ACTIVE, LOCKED
+ * - 1:1 Mapping: DRAFT, ACTIVE
  *
  * **VERSIONIERUNG:**
  * - Domain EtbVersion Value Object -> Prisma version + versionTimestamp
@@ -473,10 +471,6 @@ export class PrismaEtbMapper {
    * **STATUS MAPPING:**
    * - Domain EtbStatus -> Prisma EtbStatus via mapDomainStatusToPrisma()
    *
-   * **LOCK FIELDS:**
-   * - lockedAt/lockedBy werden gesetzt wenn Status=LOCKED
-   * - Aktuell: Domain trackt diese nicht explizit (TODO: Epic 4)
-   *
    * @param aggregate - EinsatztagebuchAggregate aus Domain Layer
    * @param createdBy - User ID des Erstellers (fuer neue ETBs)
    * @param updatedBy - Optional: User ID des Bearbeiters (fuer Updates)
@@ -503,11 +497,6 @@ export class PrismaEtbMapper {
     // Status Mapping (Domain -> Prisma)
     const status = PrismaEtbMapper.mapDomainStatusToPrisma(aggregate.status);
 
-    // Lock Fields (gesetzt wenn Status=LOCKED)
-    const isLocked = aggregate.isLocked();
-    const lockedAt = isLocked ? new Date() : null;
-    const lockedBy = isLocked && updatedBy ? updatedBy : null;
-
     // Eintraege Conversion (via PrismaEintragMapper)
     const eintraegeData = aggregate.eintraege.map((eintrag) => PrismaEintragMapper.toPersistence(eintrag, aggregate.id.value));
 
@@ -523,8 +512,6 @@ export class PrismaEtbMapper {
         updatedAt: aggregate.updatedAt,
         createdBy,
         updatedBy: updatedBy ?? null,
-        lockedAt,
-        lockedBy,
       },
       eintraege: eintraegeData,
     };
@@ -539,10 +526,9 @@ export class PrismaEtbMapper {
    * **Mapping Table:**
    * - DRAFT (Prisma) -> EtbStatus.DRAFT() (Domain)
    * - ACTIVE (Prisma) -> EtbStatus.ACTIVE() (Domain)
-   * - LOCKED (Prisma) -> EtbStatus.LOCKED() (Domain)
    *
    * **Fallback:**
-   * - Unbekannte Status werden zu DRAFT gemapped (defensive programming)
+   * - Unbekannte Status werden zu ACTIVE gemapped (defensive programming)
    *
    * @param status - Prisma EtbStatus Enum String
    * @returns EtbStatus Value Object
@@ -553,11 +539,9 @@ export class PrismaEtbMapper {
         return EtbStatus.DRAFT();
       case 'ACTIVE':
         return EtbStatus.ACTIVE();
-      case 'LOCKED':
-        return EtbStatus.LOCKED();
       default:
         // Fallback fuer unbekannte Status (sollte nie passieren bei validem Schema)
-        return EtbStatus.DRAFT();
+        return EtbStatus.ACTIVE();
     }
   }
 
@@ -570,7 +554,6 @@ export class PrismaEtbMapper {
    * **Mapping Table:**
    * - EtbStatus.DRAFT() (Domain) -> 'DRAFT' (Prisma)
    * - EtbStatus.ACTIVE() (Domain) -> 'ACTIVE' (Prisma)
-   * - EtbStatus.LOCKED() (Domain) -> 'LOCKED' (Prisma)
    *
    * @param status - EtbStatus Value Object
    * @returns Prisma EtbStatus Enum String
@@ -578,7 +561,7 @@ export class PrismaEtbMapper {
    */
   private static mapDomainStatusToPrisma(status: EtbStatus): PrismaEtbStatus {
     const value = status.value;
-    if (value === 'DRAFT' || value === 'ACTIVE' || value === 'LOCKED') {
+    if (value === 'DRAFT' || value === 'ACTIVE') {
       return value as PrismaEtbStatus;
     }
     throw new Error(`Unmapped EtbStatus: ${value}`);

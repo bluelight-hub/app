@@ -27,8 +27,8 @@ export interface UseEtbSyncStatusParams {
   createMutation: MutationStatusInput;
   /** Update-Mutation Status */
   updateMutation: MutationStatusInput;
-  /** ETB-Status (z.B. 'ACTIVE', 'LOCKED') */
-  etbStatus?: string;
+  /** Einsatz-Status (z.B. 'IN_BEARBEITUNG', 'ABGESCHLOSSEN') — Issue #582 */
+  einsatzStatus?: string;
   /** Retry-Handler für fehlgeschlagene Speichervorgänge */
   onRetry?: () => void;
   /** Verzögerung bevor Syncing-Status angezeigt wird (Standard: 300ms) */
@@ -43,7 +43,7 @@ const STATUS_MESSAGES: Record<EtbSyncStatus, string> = {
   failed: 'Speichern fehlgeschlagen',
   'conflict-retry': 'Konflikt erkannt – bitte erneut versuchen',
   'degraded-connection': 'Verbindung unterbrochen – Eingabe wird lokal gehalten',
-  'readonly-locked': 'Schreibgeschützt – ETB ist gesperrt',
+  'readonly-locked': 'Schreibgeschützt – Einsatz ist abgeschlossen',
 };
 
 /**
@@ -52,7 +52,7 @@ const STATUS_MESSAGES: Record<EtbSyncStatus, string> = {
  * Implementiert das 300ms-Gate: `syncing` wird erst nach 300ms angezeigt.
  * Bei schnellen Mutations (<300ms) springt der Status direkt zu `synced`.
  */
-export function useEtbSyncStatus({ createMutation, updateMutation, etbStatus, onRetry, syncingDelayMs = 300 }: UseEtbSyncStatusParams): SyncStatusInfo {
+export function useEtbSyncStatus({ createMutation, updateMutation, einsatzStatus, onRetry, syncingDelayMs = 300 }: UseEtbSyncStatusParams): SyncStatusInfo {
   const [showSyncing, setShowSyncing] = useState(false);
   const syncingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isOnline, setIsOnline] = useState(() => (typeof navigator !== 'undefined' ? navigator.onLine : true));
@@ -97,8 +97,8 @@ export function useEtbSyncStatus({ createMutation, updateMutation, etbStatus, on
 
   // Status-Ableitung (Prioritätsreihenfolge)
   const status = useMemo((): EtbSyncStatus => {
-    // Höchste Priorität: ETB gesperrt
-    if (etbStatus === 'LOCKED') return 'readonly-locked';
+    // Höchste Priorität: Einsatz abgeschlossen → ETB schreibgeschützt (Issue #582)
+    if (einsatzStatus === 'ABGESCHLOSSEN' || einsatzStatus === 'ARCHIVIERT') return 'readonly-locked';
     // Netzwerk degradiert
     if (!isOnline) return 'degraded-connection';
     // Aktive Mutation (nur anzeigen nach 300ms Gate)
@@ -112,7 +112,7 @@ export function useEtbSyncStatus({ createMutation, updateMutation, etbStatus, on
     if (isSuccess) return 'synced';
     // Default
     return 'local-draft';
-  }, [etbStatus, isOnline, isPending, showSyncing, isError, isSuccess]);
+  }, [einsatzStatus, isOnline, isPending, showSyncing, isError, isSuccess]);
 
   // Next-Action ableiten
   const nextAction = (() => {
@@ -137,7 +137,7 @@ export function useEtbSyncStatus({ createMutation, updateMutation, etbStatus, on
       case 'readonly-locked':
         return {
           label: 'Schreibgeschützt',
-          description: 'Das ETB ist gesperrt und kann nicht bearbeitet werden.',
+          description: 'Der Einsatz ist abgeschlossen — das ETB kann nicht mehr bearbeitet werden.',
         };
       default:
         return undefined;

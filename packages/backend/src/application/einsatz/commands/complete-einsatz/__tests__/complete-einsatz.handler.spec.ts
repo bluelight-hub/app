@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { PrismaService } from '@/infrastructure/database/prisma.service';
-import { EINSATZ_REPOSITORY, ETB_REPOSITORY, LOGGER, OUTBOX_REPOSITORY } from '@/infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, LOGGER, OUTBOX_REPOSITORY } from '@/infrastructure/di-tokens';
 import { CompleteEinsatzCommand, CompleteEinsatzHandler } from '@application/einsatz';
 import { Einsatz } from '@domain/aggregates/einsatz.aggregate';
 import { Result } from '@domain/common/result';
@@ -103,10 +103,6 @@ describe('CompleteEinsatzHandler', () => {
   let mockOutboxRepository: {
     save: jest.Mock;
   };
-  let mockEtbRepository: {
-    findByEinsatzId: jest.Mock;
-    save: jest.Mock;
-  };
   let mockCompletenessService: jest.Mocked<EinsatzCompletenessService>;
   let mockLogger: jest.Mocked<ILogger>;
 
@@ -131,11 +127,6 @@ describe('CompleteEinsatzHandler', () => {
       save: jest.fn().mockResolvedValue(undefined),
     };
 
-    mockEtbRepository = {
-      findByEinsatzId: jest.fn().mockResolvedValue(null),
-      save: jest.fn().mockResolvedValue(undefined),
-    };
-
     mockCompletenessService = {
       canBeCompleted: jest.fn(),
       getMissingRequirements: jest.fn(),
@@ -154,7 +145,6 @@ describe('CompleteEinsatzHandler', () => {
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: OUTBOX_REPOSITORY, useValue: mockOutboxRepository },
         { provide: EINSATZ_REPOSITORY, useValue: mockRepository },
-        { provide: ETB_REPOSITORY, useValue: mockEtbRepository },
         { provide: EinsatzCompletenessService, useValue: mockCompletenessService },
         { provide: LOGGER, useValue: mockLogger },
       ],

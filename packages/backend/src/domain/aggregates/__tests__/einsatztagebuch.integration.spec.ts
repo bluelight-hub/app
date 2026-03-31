@@ -2,7 +2,6 @@
 import { EinsatztagebuchAggregate } from '../einsatztagebuch.aggregate';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { UserId } from '@domain/value-objects/user-id';
-import { EtbStatus } from '@domain/value-objects/etb-status';
 import type { DomainEvent } from '@domain/common/domain-event';
 import { skipIfNoDatabase } from '@domain/__tests__/helpers/database-test.helper';
 
@@ -33,7 +32,7 @@ describe('EinsatztagebuchAggregate Integration Tests', () => {
     if (!databaseAvailable) return;
   });
 
-  describe('Full Lifecycle: Create → Add → Korrektur → Delete → Lock', () => {
+  describe('Full Lifecycle: Create → Add → Korrektur → Delete', () => {
     it('should handle complete ETB lifecycle with event accumulation', () => {
       // Given: Fresh IDs
       const einsatzId = EinsatzId.create().value!;
@@ -42,7 +41,6 @@ describe('EinsatztagebuchAggregate Integration Tests', () => {
       // When: Create ETB
       const etb = EinsatztagebuchAggregate.create(einsatzId).value!;
       expect(etb.version.versionNumber).toBe(1);
-      expect(etb.status.equals(EtbStatus.DRAFT())).toBe(true);
 
       // When: Add 3 entries
       const entry1 = etb.addEintrag('First entry', userId).value!;
@@ -70,17 +68,6 @@ describe('EinsatztagebuchAggregate Integration Tests', () => {
       // Then: Entry marked as deleted but remains in array
       expect(etb.eintraege).toHaveLength(4); // 3 originals + 1 korrektur
       expect(etb.eintraege[0]?.isDeleted).toBe(true);
-
-      // When: Lock ETB
-      etb.lock(userId);
-
-      // Then: Status is LOCKED
-      expect(etb.status.equals(EtbStatus.LOCKED())).toBe(true);
-
-      // Then: All modifications should fail
-      expect(etb.addEintrag('Test', userId).isFailure).toBe(true);
-      expect(etb.addKorrekturEintrag(entry3.id, 'Test', userId).isFailure).toBe(true);
-      expect(etb.deleteEintrag(entry3.id, userId).isFailure).toBe(true);
     });
 
     it('should accumulate events across operations', () => {
@@ -91,12 +78,11 @@ describe('EinsatztagebuchAggregate Integration Tests', () => {
       const entry = etb.addEintrag('Test', userId).value!;
       etb.addKorrekturEintrag(entry.id, 'Korrigiert', userId);
       etb.deleteEintrag(entry.id, userId);
-      etb.lock(userId);
 
-      // Events: 5 operations (create, add, korrektur, delete, lock)
+      // Events: 4 operations (create, add, korrektur, delete)
       const events = etb.getDomainEvents();
-      expect(events).toHaveLength(5);
-      expect(events.map((e) => (e.constructor as typeof DomainEvent).eventName())).toEqual(['etb.created', 'etb.eintrag_added', 'etb.eintrag_korrigiert', 'etb.eintrag_deleted', 'etb.locked']);
+      expect(events).toHaveLength(4);
+      expect(events.map((e) => (e.constructor as typeof DomainEvent).eventName())).toEqual(['etb.created', 'etb.eintrag_added', 'etb.eintrag_korrigiert', 'etb.eintrag_deleted']);
     });
 
     it('should preserve entry order across operations', () => {

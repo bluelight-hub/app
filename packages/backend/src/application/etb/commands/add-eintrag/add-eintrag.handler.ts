@@ -2,6 +2,7 @@ import { CreateEtbCommand } from '@application/etb/commands';
 import { Result } from '@domain/common/result';
 import type { EtbEintrag } from '@domain/entities/etb-eintrag.entity';
 import type { IEtbRepository } from '@domain/repositories';
+import { IEinsatzRepository } from '@domain/repositories/ieinsatz.repository';
 import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { EtbId } from '@domain/value-objects/etb-id';
 import { EtbKategorie } from '@domain/value-objects/etb-kategorie';
@@ -9,7 +10,7 @@ import { UserId } from '@domain/value-objects/user-id';
 import { Inject, Injectable, Optional, forwardRef } from '@nestjs/common';
 import type { ILogger } from '@domain/ports/i-logger.port';
 import type { AddEintragCommand } from './add-eintrag.command';
-import { ETB_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
+import { EINSATZ_REPOSITORY, ETB_REPOSITORY, LOGGER } from '@infrastructure/di-tokens';
 import { CreateEtbHandler } from '../create-etb/create-etb.handler';
 
 /**
@@ -34,6 +35,8 @@ export class AddEintragHandler {
   constructor(
     @Inject(ETB_REPOSITORY)
     private readonly etbRepository: IEtbRepository,
+    @Inject(EINSATZ_REPOSITORY)
+    private readonly einsatzRepository: IEinsatzRepository,
     @Inject(LOGGER)
     private readonly logger: ILogger,
     @Optional()
@@ -171,7 +174,20 @@ export class AddEintragHandler {
       }
     }
 
-    // Step 4: Convert Prisma enum to Domain Value Object
+    // Step 4: Einsatz-Status prüfen (Issue #582: Schreibschutz aus Einsatz-Lifecycle)
+    const einsatzResult = await this.einsatzRepository.findById(aggregate.einsatzId);
+    if (einsatzResult.isFailure || !einsatzResult.value) {
+      this.logger.error('Einsatz nicht gefunden für ETB-Schreibschutz-Prüfung', {
+        einsatzId: aggregate.einsatzId.value,
+      });
+      return Result.fail<EtbEintrag>('Zugehöriger Einsatz nicht gefunden');
+    }
+    const einsatzStatus = einsatzResult.value.status.value;
+    if (einsatzStatus === 'ABGESCHLOSSEN' || einsatzStatus === 'ARCHIVIERT') {
+      return Result.fail<EtbEintrag>('Einsatz ist abgeschlossen — ETB kann nicht mehr geändert werden');
+    }
+
+    // Step 5: Convert Prisma enum to Domain Value Object
     // Application Layer verwendet Prisma Enum (fuer API-Validierung),
     // Domain Layer erwartet Value Object (Hexagonale Architektur)
     let kategorieVo: EtbKategorie | undefined;
@@ -183,9 +199,8 @@ export class AddEintragHandler {
       kategorieVo = kategorieResult.value as EtbKategorie;
     }
 
-    // Step 5: Delegate to domain method (validates business rules, creates snapshot)
+    // Step 6: Delegate to domain method (validates business rules, creates snapshot)
     // Business rules checked by aggregate:
-    // - ETB must not be locked (status !== LOCKED)
     // - Text must not be empty
     // Aggregate also:
     // - Creates snapshot BEFORE mutation (DRK-Compliance)
@@ -204,7 +219,7 @@ export class AddEintragHandler {
       return Result.fail<EtbEintrag>('Invalid Eintrag result');
     }
 
-    // Step 6: Save aggregate (repository handles snapshot persistence)
+    // Step 7: Save aggregate (repository handles snapshot persistence)
     try {
       await this.etbRepository.save(aggregate);
     } catch (error) {

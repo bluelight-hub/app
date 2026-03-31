@@ -2,7 +2,7 @@
 import { EintragAddedEvent } from './eintrag-added.event';
 import { EintragUpdatedEvent } from './eintrag-updated.event';
 import { EintragDeletedEvent } from './eintrag-deleted.event';
-import { EtbLockedEvent } from './etb-locked.event';
+
 import { EtbId } from '@domain/value-objects/etb-id';
 import { EintragId } from '@domain/value-objects/eintrag-id';
 import { UserId } from '@domain/value-objects/user-id';
@@ -110,31 +110,6 @@ describe('ETB Domain Events', () => {
 
     it('should auto-generate event metadata', () => {
       const event = new EintragDeletedEvent(etbId, eintragId, userId);
-      expect(event.eventId).toBeDefined();
-      expect(event.occurredAt).toBeInstanceOf(Date);
-    });
-  });
-
-  describe('EtbLockedEvent', () => {
-    it('should have correct event name', () => {
-      const lockedAt = new Date();
-      const _event = new EtbLockedEvent(etbId, userId, lockedAt);
-      expect(EtbLockedEvent.eventName()).toBe('etb.locked');
-    });
-
-    it('should preserve lockedAt timestamp', () => {
-      const lockedAt = new Date('2025-01-01T12:00:00Z');
-      const event = new EtbLockedEvent(etbId, userId, lockedAt);
-      expect(event.lockedAt).toBe(lockedAt);
-      expect(event.lockedAt.toISOString()).toBe('2025-01-01T12:00:00.000Z');
-    });
-
-    it('should preserve all properties', () => {
-      const lockedAt = new Date();
-      const event = new EtbLockedEvent(etbId, userId, lockedAt);
-      expect(event.etbId).toBe(etbId);
-      expect(event.lockedBy).toBe(userId);
-      expect(event.lockedAt).toBe(lockedAt);
       expect(event.eventId).toBeDefined();
       expect(event.occurredAt).toBeInstanceOf(Date);
     });

@@ -63,12 +63,12 @@ describe('ContinuityStatusRail', () => {
       <ContinuityStatusRail
         syncStatus={createSyncStatus({
           status: 'readonly-locked',
-          message: 'Schreibgeschützt – ETB ist gesperrt',
-          nextAction: { label: 'Schreibgeschützt', description: 'ETB ist gesperrt' },
+          message: 'Schreibgeschützt – Einsatz ist abgeschlossen',
+          nextAction: { label: 'Schreibgeschützt', description: 'Einsatz ist abgeschlossen' },
         })}
       />,
     );
-    expect(screen.getByText('Schreibgeschützt – ETB ist gesperrt')).toBeInTheDocument();
+    expect(screen.getByText('Schreibgeschützt – Einsatz ist abgeschlossen')).toBeInTheDocument();
     expect(screen.getByText('Schreibgeschützt')).toBeInTheDocument();
   });
 

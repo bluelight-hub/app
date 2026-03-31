@@ -36,7 +36,6 @@ import {
   RolleGeaendertEtbHandler,
   BefehlAnonymisiertEtbHandler,
   BefehlGeloeschtEtbHandler,
-  EtbEinsatzCompletedHandler,
 } from './event-handlers';
 import { EtbQueryMapper } from './mappers';
 import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler, GetTextbausteineHandler } from './queries';
@@ -265,12 +264,6 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
       provide: EVENT_HANDLER.BEFEHL_GELOESCHT_ETB,
       useClass: BefehlGeloeschtEtbHandler,
     },
-    // EinsatzCompleted ETB-Lock Handler (Issue #581) - ETB automatisch sperren bei Einsatz-Abschluss
-    {
-      provide: EVENT_HANDLER.ETB_EINSATZ_COMPLETED,
-      useClass: EtbEinsatzCompletedHandler,
-    },
-
     // Mappers (Story 3.3)
     EtbQueryMapper,
   ],
@@ -320,7 +313,6 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
     EVENT_HANDLER.ROLLE_GEAENDERT_ETB,
     EVENT_HANDLER.BEFEHL_ANONYMISIERT_ETB,
     EVENT_HANDLER.BEFEHL_GELOESCHT_ETB,
-    EVENT_HANDLER.ETB_EINSATZ_COMPLETED,
 
     // Mappers (Story 3.3)
     EtbQueryMapper,

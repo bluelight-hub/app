@@ -19,7 +19,7 @@ import { UserId } from '@domain/value-objects/user-id';
  * **Design-Prinzipien:**
  * - Deterministische IDs (optionale Overrides für Reproduzierbarkeit)
  * - Sinnvolle Defaults für alle Pflichtfelder
- * - Support für verschiedene ETB-Stati (DRAFT, ACTIVE, LOCKED)
+ * - Support für verschiedene ETB-Stati (DRAFT, ACTIVE)
  * - Einfache Erstellung von Test-Szenarien
  */
 
@@ -67,7 +67,7 @@ export interface CreateTestEtbOptions {
   /** Einsatz ID (auto-generiert wenn nicht angegeben) */
   einsatzId?: string;
   /** Status des ETB (default: DRAFT) */
-  status?: 'DRAFT' | 'ACTIVE' | 'LOCKED';
+  status?: 'DRAFT' | 'ACTIVE';
   /** Versionsnummer (default: 1) */
   versionNumber?: number;
   /** Anzahl der zu erstellenden Einträge (default: 0) */
@@ -93,8 +93,6 @@ export interface CreateTestEtbOptions {
  * // ETB mit 3 Einträgen
  * const etbWithEntries = createTestEtb({ entriesCount: 3 });
  *
- * // Gesperrtes ETB
- * const lockedEtb = createTestEtb({ status: 'LOCKED', entriesCount: 5 });
  * ```
  */
 export function createTestEtb(options: CreateTestEtbOptions = {}): EinsatztagebuchAggregate {
@@ -132,15 +130,8 @@ export function createTestEtb(options: CreateTestEtbOptions = {}): Einsatztagebu
     }
   }
 
-  // Transition to requested status
-  if (status === 'LOCKED') {
-    const lockResult = etb.lock(userIdVO);
-    if (lockResult.isFailure) {
-      throw new Error(`Failed to lock ETB: ${lockResult.error}`);
-    }
-  }
   // Note: ACTIVE status transition would require additional business logic
-  // For now, we support DRAFT (default) and LOCKED
+  // For now, we support DRAFT (default)
 
   // Clear domain events after setup (prevent test pollution)
   etb.clearDomainEvents();
@@ -369,14 +360,12 @@ export function createTestEtbVersion(versionNumber = 1): EtbVersion {
  * @param status - Status-Wert (default: 'DRAFT')
  * @returns EtbStatus Value Object
  */
-export function createTestEtbStatus(status: 'DRAFT' | 'ACTIVE' | 'LOCKED' = 'DRAFT'): EtbStatus {
+export function createTestEtbStatus(status: 'DRAFT' | 'ACTIVE' = 'DRAFT'): EtbStatus {
   switch (status) {
     case 'DRAFT':
       return EtbStatus.DRAFT();
     case 'ACTIVE':
       return EtbStatus.ACTIVE();
-    case 'LOCKED':
-      return EtbStatus.LOCKED();
     default:
       throw new Error(`Unknown status: ${status}`);
   }

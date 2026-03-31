@@ -48,4 +48,3 @@ export * from './befehl-geloescht-etb-event.adapter';
 export * from './aufbewahrungs-konfiguration-geaendert-etb-event.adapter';
 export * from './system-warnung-websocket-event.adapter';
 export * from './system-warnung-etb-event.adapter';
-export * from './einsatz-completed-etb-event.adapter';
