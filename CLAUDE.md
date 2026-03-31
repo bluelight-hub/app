@@ -84,6 +84,8 @@ pnpm --filter @bluelight-hub/backend check:arch  # Circular Dependencies
 
 - Frontend: `localhost:3090`
 - Backend API + Swagger UI: `localhost:3091/api`
+- PostgreSQL läuft im Docker-Container `bluelight-hub-postgres` auf Port `3092`
+- Kein `psql` lokal installiert — DB-Zugriff via `docker exec bluelight-hub-postgres psql -U bluelight -d bluelight-hub -c "..."`
 
 ## Commit Format
 

@@ -32,6 +32,11 @@ import { UserRoleChangedEvent } from '@domain/events/user-role-changed.event';
 import { PermissionGrantedEvent } from '@domain/events/permission-granted.event';
 import { PermissionRevokedEvent } from '@domain/events/permission-revoked.event';
 
+// Invite Code Events
+import { InviteCodeCreatedEvent } from '@domain/events/invite-code-created.event';
+import { InviteCodeUsedEvent } from '@domain/events/invite-code-used.event';
+import { InviteCodeRevokedEvent } from '@domain/events/invite-code-revoked.event';
+
 // EinsatzPerson Events
 import { EinsatzPersonHinzugefuegtEvent } from '@domain/kraefte/events/einsatz-person-hinzugefuegt.event';
 import { PersonZuFahrzeugZugewiesenEvent } from '@domain/kraefte/events/person-zu-fahrzeug-zugewiesen.event';
@@ -142,6 +147,7 @@ import { EinsatzId } from '@domain/value-objects/einsatz-id';
 import { EtbId } from '@domain/value-objects/etb-id';
 import { EintragId } from '@domain/value-objects/eintrag-id';
 import { ErinnerungId } from '@domain/value-objects/erinnerung-id';
+import { InviteCodeId } from '@domain/value-objects/invite-code-id';
 import { ErinnerungsvorlageId } from '@domain/erinnerungsvorlage/value-objects/erinnerungsvorlage-id';
 import { NotizId } from '@domain/notiz/value-objects/notiz-id';
 import { LagekarteId } from '@domain/value-objects/lagekarte-id';
@@ -259,6 +265,11 @@ export class EventDeserializer {
       // ===== ROLLEN BESETZUNG EVENTS =====
       ['rollen_besetzung.besetzt', this.deserializeRolleBesetzt.bind(this)],
       ['rollen_besetzung.freigegeben', this.deserializeRolleFreigegeben.bind(this)],
+
+      // ===== INVITE CODE EVENTS =====
+      ['invite_code.created', deserializeInviteCodeCreated],
+      ['invite_code.used', deserializeInviteCodeUsed],
+      ['invite_code.revoked', deserializeInviteCodeRevoked],
 
       // ===== ERINNERUNG EVENTS =====
       ['erinnerung.erstellt', this.deserializeErinnerungErstellt.bind(this)],
@@ -2021,6 +2032,35 @@ function deserializeStammpersonAssigned(payload: Record<string, unknown>, aggreg
 }
 
 // ===== BEITRITTSANFRAGE DESERIALIZERS (Issue #98) =====
+
+// ===== INVITE CODE DESERIALIZERS =====
+
+function deserializeInviteCodeCreated(payload: Record<string, unknown>): Result<DomainEvent> {
+  const inviteCodeIdResult = InviteCodeId.create(payload.inviteCodeId as string);
+  if (inviteCodeIdResult.isFailure) {
+    return Result.fail<DomainEvent>(`Ungültige inviteCodeId: ${inviteCodeIdResult.error}`);
+  }
+
+  const event = new InviteCodeCreatedEvent(
+    inviteCodeIdResult.value!,
+    payload.codeMasked as string,
+    new Date(payload.expiresAt as string),
+    payload.maxUses as number,
+    payload.createdById as string,
+    (payload.label as string | null) ?? null,
+  );
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializeInviteCodeUsed(payload: Record<string, unknown>): Result<DomainEvent> {
+  const event = new InviteCodeUsedEvent(payload.inviteCodeId as string, payload.code as string, new Date(payload.usedAt as string), payload.newUseCount as number);
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializeInviteCodeRevoked(payload: Record<string, unknown>): Result<DomainEvent> {
+  const event = new InviteCodeRevokedEvent(payload.inviteCodeId as string, payload.codeMasked as string, new Date(payload.revokedAt as string), payload.revokedById as string);
+  return Result.ok<DomainEvent>(event);
+}
 
 function deserializeBeitrittsanfrageErstellt(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
   const event = new EinsatzBeitrittsanfrageErstelltEvent(payload.anfrageId as string, payload.einsatzId as string, payload.userId as string, aggregateId);
