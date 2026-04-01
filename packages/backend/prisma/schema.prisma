@@ -162,6 +162,14 @@ model User {
   einsatzRollenbesetzungenUpdated EinsatzRollenbesetzung[] @relation("EinsatzRollenbesetzungUpdater")
 
   // ========================================
+  // Taktische Einheiten Relations (Issue #411)
+  // ========================================
+  createdEinsatzEinheiten          EinsatzEinheit[]       @relation("EinsatzEinheitCreator")
+  updatedEinsatzEinheiten          EinsatzEinheit[]       @relation("EinsatzEinheitUpdater")
+  createdEinsatzPersonEinheiten    EinsatzPersonEinheit[] @relation("EinsatzPersonEinheitCreator")
+  updatedEinsatzPersonEinheiten    EinsatzPersonEinheit[] @relation("EinsatzPersonEinheitUpdater")
+
+  // ========================================
   // Invite-Code Relations (Story 1.6)
   // ========================================
   createdInviteCodes InviteCode[]
@@ -322,6 +330,9 @@ model Einsatz {
 
   // Beitrittsanfragen (Issue #98)
   beitrittsanfragen EinsatzBeitrittsanfrage[]
+
+  // Taktische Einheiten Relation (1:N, Issue #411)
+  einheiten EinsatzEinheit[]
 
   // Indexes
   @@unique([nummer])
@@ -1045,6 +1056,7 @@ model EinsatzFahrzeug {
   fahrzeugtypId String  @map("fahrzeugtyp_id")
   fmsStatus     Int     @default(0) @map("fms_status")
   position      Json?   @db.JsonB
+  einheitId     String? @map("einheit_id") // Issue #411: Optional zugewiesene Einheit
 
   // Audit Trail (PFLICHT)
   createdAt DateTime @default(now()) @map("created_at")
@@ -1058,6 +1070,7 @@ model EinsatzFahrzeug {
   fahrzeugtyp Fahrzeugtyp     @relation(fields: [fahrzeugtypId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   creator     User            @relation("EinsatzFahrzeugCreator", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
   updater     User?           @relation("EinsatzFahrzeugUpdater", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  einheit     EinsatzEinheit?  @relation(fields: [einheitId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   personen    EinsatzPerson[] // Epic 4 Story 4.3: Zugewiesene Personen (Rückwärts-Relation)
 
   // Constraints
@@ -1069,6 +1082,8 @@ model EinsatzFahrzeug {
   @@index([fahrzeugtypId])
   @@index([einsatzId, fmsStatus])
   @@index([einsatzId, fahrzeugtypId])
+  @@index([einheitId])
+  @@index([einsatzId, einheitId])
   @@index([createdBy])
   @@map("einsatz_fahrzeuge")
 }
@@ -1114,6 +1129,12 @@ model EinsatzPerson {
 
   // Inverse Relation: Bearbeiter-Verknüpfung (@@unique([einsatzId, einsatzPersonId]) erzwingt max 1 pro Einsatz)
   teilnehmer EinsatzTeilnehmer[]
+
+  // Inverse Relation: Einheiten-Zuordnung (Issue #411)
+  einheiten EinsatzPersonEinheit[]
+
+  // Inverse Relation: Geführte Einheiten (Issue #411)
+  gefuehrteEinheiten EinsatzEinheit[] @relation("EinsatzEinheitFuehrer")
 
   // Constraints
   @@unique([einsatzId, stammId], name: "einsatz_person_einsatz_stamm_unique")
@@ -1209,6 +1230,105 @@ model EinsatzRollenbesetzung {
   @@index([einsatzId, freigegebenAm]) // Aktive Besetzungen pro Einsatz (freigegebenAm = null)
   @@index([createdBy]) // Audit-Queries
   @@map("einsatz_rollen_besetzung")
+}
+
+// ========================================
+// Kräfte-Management: Taktische Einheiten
+// Issue #411
+// ========================================
+
+enum EinsatzEinheitTyp {
+  TRUPP // 3-4 Personen, kleinste Einheit
+  STAFFEL // 6 Personen, z.B. Löschstaffel
+  GRUPPE // 9 Personen, z.B. Löschgruppe, Sanitätsgruppe
+  ZUG // 18-22 Personen, 2-3 Gruppen + Zugführer
+  ABSCHNITT // Mehrere Züge, geographisch oder funktional
+}
+
+enum EinsatzEinheitStatus {
+  AUFGESTELLT
+  EINSATZBEREIT
+  IM_EINSATZ
+  IN_RESERVE
+  AUFGELOEST
+}
+
+/// EinsatzEinheit: Taktische Einheit im Einsatz-Kontext
+/// - Hierarchische Struktur via parentId (self-referential, single parent)
+/// - Cascade-Delete mit Einsatz
+/// - Einheitenführer referenziert eine EinsatzPerson
+/// - Ist-Stärke wird aus zugewiesenen Personen berechnet (nicht gespeichert)
+model EinsatzEinheit {
+  id                  String               @id @default(cuid())
+  einsatzId           String               @map("einsatz_id")
+  parentId            String?              @map("parent_id")
+  name                String               @db.VarChar(100)
+  typ                 EinsatzEinheitTyp
+  funktion            String?              @db.VarChar(100) // z.B. "Löschgruppe", "Sanitätsgruppe"
+  status              EinsatzEinheitStatus @default(AUFGESTELLT)
+  einheitenfuehrerId  String?              @map("einheitenfuehrer_id")
+  sollStaerke         Int                  @default(0)  @map("soll_staerke")
+  auftrag             String?              @db.VarChar(500)
+  einsatzort          String?              @db.VarChar(200)
+
+  // Audit Trail (PFLICHT)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String   @map("created_by") @db.VarChar(100)
+  updatedBy String?  @map("updated_by") @db.VarChar(100)
+
+  // Relations
+  einsatz            Einsatz          @relation(fields: [einsatzId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  parent             EinsatzEinheit?  @relation("EinheitHierarchie", fields: [parentId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  children           EinsatzEinheit[] @relation("EinheitHierarchie")
+  einheitenfuehrer   EinsatzPerson?   @relation("EinsatzEinheitFuehrer", fields: [einheitenfuehrerId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  creator            User             @relation("EinsatzEinheitCreator", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updater            User?            @relation("EinsatzEinheitUpdater", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  // Zugewiesene Personen (M:N via Junction Table)
+  personen EinsatzPersonEinheit[]
+
+  // Zugewiesene Fahrzeuge (1:N über FK auf EinsatzFahrzeug)
+  fahrzeuge EinsatzFahrzeug[]
+
+  // Constraints
+  @@unique([einsatzId, name], name: "einsatz_einheit_einsatz_name_unique")
+  // Indexes
+  @@index([einsatzId])
+  @@index([parentId])
+  @@index([einsatzId, parentId])
+  @@index([einsatzId, status])
+  @@index([einheitenfuehrerId])
+  @@index([createdBy])
+  @@map("einsatz_einheiten")
+}
+
+/// EinsatzPersonEinheit: Junction Table für Person ↔ Einheit Zuordnung
+/// - Eine Person kann in EINER Einheit sein (unique per einsatz)
+/// - Cascade-Delete mit EinsatzEinheit
+model EinsatzPersonEinheit {
+  id              String @id @default(cuid())
+  einheitId       String @map("einheit_id")
+  einsatzPersonId String @map("einsatz_person_id")
+
+  // Audit Trail (PFLICHT - auch für Junction Tables!)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy String   @map("created_by") @db.VarChar(100)
+  updatedBy String?  @map("updated_by") @db.VarChar(100)
+
+  // Relations
+  einheit       EinsatzEinheit @relation(fields: [einheitId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  einsatzPerson EinsatzPerson  @relation(fields: [einsatzPersonId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  creator       User           @relation("EinsatzPersonEinheitCreator", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updater       User?          @relation("EinsatzPersonEinheitUpdater", fields: [updatedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  // Unique: Person kann nur einmal in einer Einheit sein
+  @@unique([einheitId, einsatzPersonId])
+  @@index([einheitId])
+  @@index([einsatzPersonId])
+  @@index([createdBy])
+  @@map("einsatz_person_einheiten")
 }
 
 // ========================================
