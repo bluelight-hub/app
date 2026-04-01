@@ -58,9 +58,7 @@ describe('einsatz workspace registry', () => {
     expect(kraefteModule?.subPages.find((page) => page.id === 'dashboard')?.visibility.default).toBe('visible');
     expect(kraefteModule?.subPages.find((page) => page.id === 'personal')?.visibility.default).toBe('visible');
     expect(kraefteModule?.subPages.find((page) => page.id === 'fahrzeuge')?.visibility.default).toBe('visible');
-    expect(kraefteModule?.subPages.find((page) => page.id === 'einheiten')?.visibility).toMatchObject({
-      default: 'disabled',
-    });
+    expect(kraefteModule?.subPages.find((page) => page.id === 'einheiten')?.visibility.default).toBe('visible');
   });
 
   it('respektiert bewusst modellierte routeTargets statt implizit die erste Unterseite zu verwenden', () => {
