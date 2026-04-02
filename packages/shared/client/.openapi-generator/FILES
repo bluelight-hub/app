@@ -16,6 +16,7 @@ apis/BefehleApi.ts
 apis/ETBApi.ts
 apis/EinsatzApi.ts
 apis/EinsatzBeitrittApi.ts
+apis/EinsatzEinheitenApi.ts
 apis/EinsatzFahrzeugeApi.ts
 apis/EinsatzFuehrungsrhythmusTemplatesApi.ts
 apis/EinsatzPersonenApi.ts
@@ -110,6 +111,8 @@ models/ApiMeta.ts
 models/ApiPagination.ts
 models/ApiResponseTimeDto.ts
 models/AssignErinnerungDto.ts
+models/AssignFahrzeugToEinheitDto.ts
+models/AssignPersonToEinheitDto.ts
 models/AssignStammpersonDto.ts
 models/AufbewahrungControllerGetConfigVAlpha200Response.ts
 models/AufbewahrungControllerGetReportsVAlpha200Response.ts
@@ -157,6 +160,7 @@ models/BefehlsgeberVorschlagDto.ts
 models/BeitrittsanfrageResponseDto.ts
 models/BesatzungMemberDto.ts
 models/BesetzeRolleDto.ts
+models/ChangeEinsatzEinheitStatusDto.ts
 models/ChangeOperativeRoleDto.ts
 models/CircuitBreakerStatusEntryDto.ts
 models/CompleteSetupDto.ts
@@ -170,6 +174,7 @@ models/CreateBefehlDto.ts
 models/CreateBefehlEmpfaengerDto.ts
 models/CreateBefehlsgeberVorschlagDto.ts
 models/CreateEinsatzDto.ts
+models/CreateEinsatzEinheitDto.ts
 models/CreateErinnerungDto.ts
 models/CreateErinnerungsvorlageDto.ts
 models/CreateFahrzeugtypDto.ts
@@ -191,6 +196,7 @@ models/DeleteRuntimeConfigResultDto.ts
 models/DeleteUserDto.ts
 models/DetailedHealthDto.ts
 models/DisconnectResponseDto.ts
+models/EinheitCreatedResponseDto.ts
 models/EinsatzBeitrittControllerCreateVAlpha201Response.ts
 models/EinsatzBeitrittControllerFindAllVAlpha200Response.ts
 models/EinsatzBeitrittControllerGetExterneUsersVAlpha200Response.ts
@@ -207,6 +213,13 @@ models/EinsatzControllerGetStatusCountsVAlpha200Response.ts
 models/EinsatzControllerGetTeilnehmerVAlpha200Response.ts
 models/EinsatzDetailsDto.ts
 models/EinsatzDto.ts
+models/EinsatzEinheitDetailsDto.ts
+models/EinsatzEinheitDto.ts
+models/EinsatzEinheitPersonDto.ts
+models/EinsatzEinheitenControllerCreateVAlpha201Response.ts
+models/EinsatzEinheitenControllerFindAllVAlpha200Response.ts
+models/EinsatzEinheitenControllerFindOneVAlpha200Response.ts
+models/EinsatzEinheitenControllerUpdateVAlpha200Response.ts
 models/EinsatzFahrzeugDto.ts
 models/EinsatzFahrzeugeControllerErfasseAusStammdatenVAlpha201Response.ts
 models/EinsatzFahrzeugeControllerFindAllVAlpha200Response.ts
@@ -333,6 +346,7 @@ models/MigrateLegacyRuntimeConfigResultDto.ts
 models/MigrateLegacyRuntimeConfigResultSummaryDto.ts
 models/MigrateToSecureModeRequestDto.ts
 models/MigrateToSecureModeResponseDto.ts
+models/MoveEinheitDto.ts
 models/NavigationPermissionDto.ts
 models/NavigationPermissionsControllerGetPermissionsVAlpha200Response.ts
 models/NavigationResponseDto.ts
@@ -382,6 +396,7 @@ models/SaveLagekarteStateDto.ts
 models/SaveQualifikationMappingRequestDto.ts
 models/SecurityStatusDto.ts
 models/ServerInfoDto.ts
+models/SetEinheitenfuehrerDto.ts
 models/SetupInviteCodeDto.ts
 models/SetupResponseDto.ts
 models/SetupTokenDto.ts
@@ -404,6 +419,7 @@ models/TopSourceDto.ts
 models/UpdateAufbewahrungsKonfigurationDto.ts
 models/UpdateBefehlsgeberVorschlagDto.ts
 models/UpdateEinsatzDto.ts
+models/UpdateEinsatzEinheitDto.ts
 models/UpdateEinsatzRollenDto.ts
 models/UpdateErinnerungDto.ts
 models/UpdateErinnerungsvorlageDto.ts

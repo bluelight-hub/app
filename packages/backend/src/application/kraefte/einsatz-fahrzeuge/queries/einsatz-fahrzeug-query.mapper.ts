@@ -44,6 +44,7 @@ export class EinsatzFahrzeugQueryMapper {
       updatedAt: aggregate.updatedAt?.toISOString() ?? new Date().toISOString(),
       createdBy: aggregate.createdBy,
       updatedBy: aggregate.updatedBy,
+      einheitId: aggregate.einheitId,
       fahrzeugtyp: FahrzeugtypQueryMapper.toDto(fahrzeugtyp),
       besatzung:
         besatzung.length > 0
