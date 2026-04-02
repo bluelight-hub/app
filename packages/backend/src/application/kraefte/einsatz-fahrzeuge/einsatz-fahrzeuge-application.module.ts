@@ -7,6 +7,7 @@ import { NestLoggerAdapter } from '@infrastructure/common/adapters';
 import { ErfasseFahrzeugAusStammdatenHandler } from './commands/erfasse-fahrzeug-aus-stammdaten/erfasse-fahrzeug-aus-stammdaten.handler';
 import { ErfasseTemporalesFahrzeugHandler } from './commands/erfasse-temporales-fahrzeug/erfasse-temporales-fahrzeug.handler';
 import { UpdateFmsStatusHandler } from './commands/update-fms-status/update-fms-status.handler';
+import { AssignFahrzeugToEinheitHandler } from './commands/assign-fahrzeug-to-einheit/assign-fahrzeug-to-einheit.handler';
 import { GetEinsatzFahrzeugeHandler } from './queries/get-einsatz-fahrzeuge/get-einsatz-fahrzeuge.handler';
 import { GetKraeftePoisHandler } from './queries/get-kraefte-pois/get-kraefte-pois.handler';
 
@@ -31,10 +32,11 @@ import { GetKraeftePoisHandler } from './queries/get-kraefte-pois/get-kraefte-po
     ErfasseFahrzeugAusStammdatenHandler,
     ErfasseTemporalesFahrzeugHandler,
     UpdateFmsStatusHandler,
+    AssignFahrzeugToEinheitHandler,
     // Query Handlers
     GetEinsatzFahrzeugeHandler,
     GetKraeftePoisHandler,
   ],
-  exports: [ErfasseFahrzeugAusStammdatenHandler, ErfasseTemporalesFahrzeugHandler, UpdateFmsStatusHandler, GetEinsatzFahrzeugeHandler, GetKraeftePoisHandler],
+  exports: [ErfasseFahrzeugAusStammdatenHandler, ErfasseTemporalesFahrzeugHandler, UpdateFmsStatusHandler, AssignFahrzeugToEinheitHandler, GetEinsatzFahrzeugeHandler, GetKraeftePoisHandler],
 })
 export class EinsatzFahrzeugeApplicationModule {}
