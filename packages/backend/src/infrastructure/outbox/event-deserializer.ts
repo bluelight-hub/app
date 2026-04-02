@@ -44,6 +44,7 @@ import { PersonVonFahrzeugEntferntEvent } from '@domain/kraefte/events/person-vo
 
 // EinsatzFahrzeug Events
 import { FahrzeugErfasstEvent } from '@domain/kraefte/events/fahrzeug-erfasst.event';
+import { FahrzeugEinheitZugewiesenEvent } from '@domain/kraefte/events/fahrzeug-einheit-zugewiesen.event';
 import { FmsStatusGeaendertEvent } from '@domain/kraefte/events/fms-status-geaendert.event';
 
 // StammPerson Events
@@ -123,6 +124,13 @@ import { OperativeRoleChangedEvent } from '@domain/events/operative-role-changed
 import { StammpersonAssignedEvent } from '@domain/events/stammperson-assigned.event';
 import { EinsatzBeitrittsanfrageErstelltEvent } from '@domain/events/einsatz-beitrittsanfrage-erstellt.event';
 import { EinsatzBeitrittsanfrageEntschiedenEvent } from '@domain/events/einsatz-beitrittsanfrage-entschieden.event';
+
+// EinsatzEinheit Events (Issue #411)
+import { EinheitErstelltEvent } from '@domain/kraefte/events/einheit-erstellt.event';
+import { EinheitStatusGeaendertEvent } from '@domain/kraefte/events/einheit-status-geaendert.event';
+import { EinheitAufgeloestEvent } from '@domain/kraefte/events/einheit-aufgeloest.event';
+import { PersonZuEinheitZugewiesenEvent } from '@domain/kraefte/events/person-zu-einheit-zugewiesen.event';
+import { PersonVonEinheitEntferntEvent } from '@domain/kraefte/events/person-von-einheit-entfernt.event';
 
 // Fahrzeugtyp Events
 import { FahrzeugtypCreatedEvent } from '@domain/kraefte/events/fahrzeugtyp-created.event';
@@ -238,6 +246,7 @@ export class EventDeserializer {
       // ===== EINSATZ FAHRZEUG EVENTS =====
       ['einsatz_fahrzeug.erfasst', this.deserializeFahrzeugErfasst.bind(this)],
       ['einsatz_fahrzeug.fms_status_geaendert', this.deserializeFmsStatusGeaendert.bind(this)],
+      ['einsatz_fahrzeug.einheit_zugewiesen', deserializeFahrzeugEinheitZugewiesen],
 
       // ===== STAMM PERSON EVENTS =====
       ['StammPersonCreated', this.deserializeStammPersonCreated.bind(this)],
@@ -334,6 +343,13 @@ export class EventDeserializer {
       // ===== BEITRITTSANFRAGE EVENTS (Issue #98) =====
       ['beitrittsanfrage.erstellt', deserializeBeitrittsanfrageErstellt],
       ['beitrittsanfrage.entschieden', deserializeBeitrittsanfrageEntschieden],
+
+      // ===== EINSATZ EINHEIT EVENTS (Issue #411) =====
+      ['einsatz_einheit.erstellt', deserializeEinheitErstellt],
+      ['einsatz_einheit.status_geaendert', deserializeEinheitStatusGeaendert],
+      ['einsatz_einheit.aufgeloest', deserializeEinheitAufgeloest],
+      ['einsatz_einheit.person_zugewiesen', deserializePersonZuEinheitZugewiesen],
+      ['einsatz_einheit.person_entfernt', deserializePersonVonEinheitEntfernt],
     ]);
   }
 
@@ -2075,6 +2091,78 @@ function deserializeBeitrittsanfrageEntschieden(payload: Record<string, unknown>
     payload.decision as 'GENEHMIGT' | 'ABGELEHNT',
     payload.resolvedBy as string,
     aggregateId,
+  );
+  return Result.ok<DomainEvent>(event);
+}
+
+// ===== EINSATZ EINHEIT DESERIALIZERS (Issue #411) =====
+
+function deserializeEinheitErstellt(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
+  const event = new EinheitErstelltEvent(
+    payload.einsatzId as string,
+    payload.einheitId as string,
+    payload.name as string,
+    payload.typ as string,
+    payload.funktion as string | undefined,
+    payload.createdBy as string,
+  );
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializeEinheitStatusGeaendert(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
+  const event = new EinheitStatusGeaendertEvent(
+    payload.einsatzId as string,
+    payload.einheitId as string,
+    payload.name as string,
+    payload.alterStatus as string,
+    payload.neuerStatus as string,
+    payload.updatedBy as string,
+  );
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializeEinheitAufgeloest(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
+  const event = new EinheitAufgeloestEvent(payload.einsatzId as string, payload.einheitId as string, payload.name as string, payload.updatedBy as string);
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializePersonZuEinheitZugewiesen(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
+  const event = new PersonZuEinheitZugewiesenEvent(
+    payload.einsatzId as string,
+    payload.einheitId as string,
+    payload.einheitName as string,
+    payload.personId as string,
+    payload.personVorname as string,
+    payload.personNachname as string,
+    payload.createdBy as string,
+  );
+  return Result.ok<DomainEvent>(event);
+}
+
+function deserializePersonVonEinheitEntfernt(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
+  const event = new PersonVonEinheitEntferntEvent(
+    payload.einsatzId as string,
+    payload.einheitId as string,
+    payload.einheitName as string,
+    payload.personId as string,
+    payload.personVorname as string,
+    payload.personNachname as string,
+    payload.updatedBy as string,
+  );
+  return Result.ok<DomainEvent>(event);
+}
+
+// ===== EINSATZ FAHRZEUG-EINHEIT DESERIALIZERS (Issue #411) =====
+
+function deserializeFahrzeugEinheitZugewiesen(payload: Record<string, unknown>, _aggregateId?: string): Result<DomainEvent> {
+  const event = new FahrzeugEinheitZugewiesenEvent(
+    payload.einsatzId as string,
+    payload.fahrzeugId as string,
+    payload.funkrufname as string,
+    (payload.einheitId as string | null) ?? null,
+    (payload.einheitName as string | null) ?? null,
+    (payload.previousEinheitId as string | null) ?? null,
+    payload.updatedBy as string,
   );
   return Result.ok<DomainEvent>(event);
 }

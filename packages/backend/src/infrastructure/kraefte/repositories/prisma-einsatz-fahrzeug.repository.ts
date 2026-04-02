@@ -78,6 +78,7 @@ export class PrismaEinsatzFahrzeugRepository implements IEinsatzFahrzeugReposito
           fahrzeugtypId: persistenceData.fahrzeugtypId,
           fmsStatus: persistenceData.fmsStatus,
           position: persistenceData.position,
+          einheitId: persistenceData.einheitId,
           createdBy: persistenceData.createdBy,
           updatedBy: persistenceData.updatedBy,
         },
@@ -89,6 +90,7 @@ export class PrismaEinsatzFahrzeugRepository implements IEinsatzFahrzeugReposito
           // kennzeichen ist IMMUTABLE (Snapshot)
           fmsStatus: persistenceData.fmsStatus,
           position: persistenceData.position,
+          einheitId: persistenceData.einheitId,
           updatedBy: persistenceData.updatedBy,
           // id, createdAt, createdBy sind immutabel
         },
