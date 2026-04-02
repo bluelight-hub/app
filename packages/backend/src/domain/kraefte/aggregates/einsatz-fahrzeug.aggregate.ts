@@ -3,6 +3,7 @@ import { Result } from '@domain/common/result';
 import { isCuid } from '@paralleldrive/cuid2';
 import { EINSATZ_FAHRZEUG_ERROR_CODES, EinsatzFahrzeugError } from '../common/einsatz-fahrzeug-error-codes';
 import { EINSATZ_FAHRZEUG_VALIDATION, EINSATZ_FAHRZEUG_VALIDATION_ERRORS } from '../constants/einsatz-fahrzeug-validation.constants';
+import { FahrzeugEinheitZugewiesenEvent } from '../events/fahrzeug-einheit-zugewiesen.event';
 import { FahrzeugErfasstEvent } from '../events/fahrzeug-erfasst.event';
 import { FmsStatusGeaendertEvent } from '../events/fms-status-geaendert.event';
 import { EinsatzFahrzeugId } from '../value-objects/einsatz-fahrzeug-id';
@@ -60,6 +61,7 @@ export interface ReconstituteEinsatzFahrzeugProps {
   kennzeichen?: string;
   fmsStatus: number;
   position?: { lat: number; lng: number };
+  einheitId?: string;
   createdAt: Date;
   updatedAt: Date;
   createdBy: string;
@@ -116,6 +118,7 @@ export class EinsatzFahrzeug extends AggregateRoot<EinsatzFahrzeugId> {
   private _kennzeichen?: string; // KOPIE vom StammFahrzeug
   private _fmsStatus: number; // 0-9, initial 2 (Einsatzbereit)
   private _position?: GeoPosition; // Aktuelle GPS-Position
+  private _einheitId?: string; // Optional: zugewiesene taktische Einheit
   private _createdBy: string;
   private _updatedBy?: string;
 
@@ -129,6 +132,7 @@ export class EinsatzFahrzeug extends AggregateRoot<EinsatzFahrzeugId> {
     stammId?: string,
     kennzeichen?: string,
     position?: GeoPosition,
+    einheitId?: string,
     createdAt?: Date,
     updatedAt?: Date,
     updatedBy?: string,
@@ -141,6 +145,7 @@ export class EinsatzFahrzeug extends AggregateRoot<EinsatzFahrzeugId> {
     this._kennzeichen = kennzeichen;
     this._fmsStatus = fmsStatus;
     this._position = position;
+    this._einheitId = einheitId;
     this._createdBy = createdBy;
     this._updatedBy = updatedBy;
   }
@@ -180,6 +185,11 @@ export class EinsatzFahrzeug extends AggregateRoot<EinsatzFahrzeugId> {
   /** Aktuelle GPS-Position (optional) */
   get position(): GeoPosition | undefined {
     return this._position;
+  }
+
+  /** Zugewiesene Einheit-ID (CUID2, optional) */
+  get einheitId(): string | undefined {
+    return this._einheitId;
   }
 
   /** User-ID des Erstellers (Audit-Trail) */
@@ -301,7 +311,18 @@ export class EinsatzFahrzeug extends AggregateRoot<EinsatzFahrzeugId> {
     const initialFmsStatus = EINSATZ_FAHRZEUG_VALIDATION.FMS_STATUS_DEFAULT;
 
     // Create Aggregate
-    const einsatzFahrzeug = new EinsatzFahrzeug(id, trimmedEinsatzId, trimmedFahrzeugtypId, trimmedFunkrufname, initialFmsStatus, trimmedCreatedBy, trimmedStammId, trimmedKennzeichen, geoPosition);
+    const einsatzFahrzeug = new EinsatzFahrzeug(
+      id,
+      trimmedEinsatzId,
+      trimmedFahrzeugtypId,
+      trimmedFunkrufname,
+      initialFmsStatus,
+      trimmedCreatedBy,
+      trimmedStammId,
+      trimmedKennzeichen,
+      geoPosition,
+      undefined,
+    );
 
     // Emit Domain Event (AC2: FahrzeugErfasst für ETB-Eintrag)
     einsatzFahrzeug.addDomainEvent(new FahrzeugErfasstEvent(trimmedEinsatzId, id.value, trimmedFunkrufname, trimmedStammId, initialFmsStatus, trimmedCreatedBy));
@@ -406,6 +427,7 @@ export class EinsatzFahrzeug extends AggregateRoot<EinsatzFahrzeugId> {
       undefined, // stammId: undefined (temporäres Fahrzeug)
       trimmedKennzeichen,
       geoPosition,
+      undefined, // einheitId: undefined bei Erstellung
     );
 
     // Emit Domain Event (stammId: undefined für temporäre Fahrzeuge)
@@ -473,6 +495,7 @@ export class EinsatzFahrzeug extends AggregateRoot<EinsatzFahrzeugId> {
         props.stammId?.trim(),
         kennzeichen,
         geoPosition,
+        props.einheitId?.trim(),
         props.createdAt,
         props.updatedAt,
         props.updatedBy?.trim(),
@@ -536,6 +559,58 @@ export class EinsatzFahrzeug extends AggregateRoot<EinsatzFahrzeugId> {
     if (validatedPosition !== undefined) {
       this._position = validatedPosition;
     }
+
+    return Result.ok<void>(undefined);
+  }
+
+  /**
+   * Weist das Fahrzeug einer taktischen Einheit zu oder entfernt die Zuweisung.
+   *
+   * **Validierung:**
+   * - updatedBy muss ein gültiger CUID2-Identifier sein
+   * - einheitId muss CUID2 sein wenn nicht null
+   * - Idempotenz: Keine Mutation/Event wenn einheitId unverändert
+   *
+   * @param einheitId - Einheit-ID (CUID2) oder null zum Entfernen
+   * @param einheitName - Name der Einheit (denormalisiert für ETB) oder null
+   * @param updatedBy - User-ID des Bearbeiters (CUID2, Audit-Trail)
+   * @returns Result<void> - Success oder Failure
+   */
+  assignToEinheit(einheitId: string | null, einheitName: string | null, updatedBy: string): Result<void> {
+    // Validation: updatedBy (Pflichtfeld, CUID2 Format)
+    const trimmedUpdatedBy = updatedBy?.trim() ?? '';
+    if (trimmedUpdatedBy.length === 0) {
+      return Result.fail<void>('updatedBy ist erforderlich für Audit-Trail');
+    }
+    if (!isCuid(trimmedUpdatedBy)) {
+      return Result.fail<void>('updatedBy muss ein gültiger CUID2-Identifier sein');
+    }
+
+    // Validation: einheitId (CUID2 wenn nicht null)
+    let trimmedEinheitId: string | null = null;
+    if (einheitId !== null) {
+      trimmedEinheitId = einheitId.trim();
+      if (trimmedEinheitId.length === 0 || !isCuid(trimmedEinheitId)) {
+        return Result.fail<void>('einheitId muss ein gültiger CUID2-Identifier sein');
+      }
+    }
+
+    // Idempotenz: Prüfe ob Einheit sich wirklich ändert
+    const currentEinheitId = this._einheitId ?? null;
+    if (currentEinheitId === trimmedEinheitId) {
+      return Result.ok<void>(undefined);
+    }
+
+    // Vorherige Einheit-ID merken für Event
+    const previousEinheitId = currentEinheitId;
+
+    // State-Mutation
+    this._einheitId = trimmedEinheitId ?? undefined;
+    this._updatedBy = trimmedUpdatedBy;
+    this.updateTimestamp();
+
+    // Domain Event emittieren
+    this.addDomainEvent(new FahrzeugEinheitZugewiesenEvent(this._einsatzId, this._id.value, this._funkrufname, trimmedEinheitId, einheitName, previousEinheitId, trimmedUpdatedBy));
 
     return Result.ok<void>(undefined);
   }
