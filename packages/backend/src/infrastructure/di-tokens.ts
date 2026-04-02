@@ -122,6 +122,8 @@ export const KRAEFTE_REPOSITORIES = {
   EINSATZ_PERSON: Symbol('IEinsatzPersonRepository'),
   /** Repository Token für IRollenBesetzungRepository (Story 5-0) */
   ROLLEN_BESETZUNG: Symbol('IRollenBesetzungRepository'),
+  /** Repository Token für IEinsatzEinheitRepository (Issue #411) */
+  EINSATZ_EINHEIT: Symbol('IEinsatzEinheitRepository'),
 } as const;
 
 /** Export Service Token für IPdfExportService (Story 9.6) */
@@ -282,6 +284,17 @@ export const EVENT_HANDLER = {
 
   /** EinsatzCompleted ETB-Lock Handler Token (Issue #581) */
   ETB_EINSATZ_COMPLETED: Symbol('IEventHandler<EinsatzCompletedEvent>:EtbLock'),
+
+  /** EinheitErstellt ETB-Eintrag Handler Token (Issue #411) */
+  EINHEIT_ERSTELLT_ETB: Symbol('IEventHandler<EinheitErstelltEvent>:EtbEintrag'),
+  /** EinheitStatusGeaendert ETB-Eintrag Handler Token (Issue #411) */
+  EINHEIT_STATUS_GEAENDERT_ETB: Symbol('IEventHandler<EinheitStatusGeaendertEvent>:EtbEintrag'),
+  /** PersonZuEinheitZugewiesen ETB-Eintrag Handler Token (Issue #411) */
+  PERSON_ZU_EINHEIT_ZUGEWIESEN_ETB: Symbol('IEventHandler<PersonZuEinheitZugewiesenEvent>:EtbEintrag'),
+  /** PersonVonEinheitEntfernt ETB-Eintrag Handler Token (Issue #411) */
+  PERSON_VON_EINHEIT_ENTFERNT_ETB: Symbol('IEventHandler<PersonVonEinheitEntferntEvent>:EtbEintrag'),
+  /** FahrzeugEinheitZugewiesen ETB-Eintrag Handler Token (Issue #411) */
+  FAHRZEUG_EINHEIT_ZUGEWIESEN_ETB: Symbol('IEventHandler<FahrzeugEinheitZugewiesenEvent>:EtbEintrag'),
 } as const;
 
 /**

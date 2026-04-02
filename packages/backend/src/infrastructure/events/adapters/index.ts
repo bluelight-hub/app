@@ -49,3 +49,8 @@ export * from './aufbewahrungs-konfiguration-geaendert-etb-event.adapter';
 export * from './system-warnung-websocket-event.adapter';
 export * from './system-warnung-etb-event.adapter';
 export * from './einsatz-completed-etb-event.adapter';
+export * from './einheit-erstellt-etb-event.adapter';
+export * from './einheit-status-geaendert-etb-event.adapter';
+export * from './person-zu-einheit-zugewiesen-etb-event.adapter';
+export * from './person-von-einheit-entfernt-etb-event.adapter';
+export * from './fahrzeug-einheit-zugewiesen-etb-event.adapter';
