@@ -38,6 +38,13 @@ import {
   BefehlGeloeschtEtbHandler,
   EtbEinsatzCompletedHandler,
 } from './event-handlers';
+import {
+  EinheitErstelltEtbHandler,
+  EinheitStatusGeaendertEtbHandler,
+  PersonZuEinheitZugewiesenEtbHandler,
+  PersonVonEinheitEntferntEtbHandler,
+} from '@application/kraefte/einsatz-einheiten/event-handlers';
+import { FahrzeugEinheitZugewiesenEtbHandler } from '@application/kraefte/einsatz-fahrzeuge/event-handlers/fahrzeug-einheit-zugewiesen-etb.handler';
 import { EtbQueryMapper } from './mappers';
 import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHistoryQueryHandler, GetEtbQueryHandler, GetTextbausteineHandler } from './queries';
 
@@ -270,6 +277,31 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
       provide: EVENT_HANDLER.ETB_EINSATZ_COMPLETED,
       useClass: EtbEinsatzCompletedHandler,
     },
+    // EinheitErstellt ETB Event Handler (Issue #411) - ETB-Eintrag bei Einheit-Aufstellung
+    {
+      provide: EVENT_HANDLER.EINHEIT_ERSTELLT_ETB,
+      useClass: EinheitErstelltEtbHandler,
+    },
+    // EinheitStatusGeaendert ETB Event Handler (Issue #411) - ETB-Eintrag bei Statusänderung
+    {
+      provide: EVENT_HANDLER.EINHEIT_STATUS_GEAENDERT_ETB,
+      useClass: EinheitStatusGeaendertEtbHandler,
+    },
+    // PersonZuEinheitZugewiesen ETB Event Handler (Issue #411) - ETB-Eintrag bei Personen-Zuweisung
+    {
+      provide: EVENT_HANDLER.PERSON_ZU_EINHEIT_ZUGEWIESEN_ETB,
+      useClass: PersonZuEinheitZugewiesenEtbHandler,
+    },
+    // PersonVonEinheitEntfernt ETB Event Handler (Issue #411) - ETB-Eintrag bei Personen-Entfernung
+    {
+      provide: EVENT_HANDLER.PERSON_VON_EINHEIT_ENTFERNT_ETB,
+      useClass: PersonVonEinheitEntferntEtbHandler,
+    },
+    // FahrzeugEinheitZugewiesen ETB Event Handler (Issue #411) - ETB-Eintrag bei Fahrzeug-Einheit-Zuweisung
+    {
+      provide: EVENT_HANDLER.FAHRZEUG_EINHEIT_ZUGEWIESEN_ETB,
+      useClass: FahrzeugEinheitZugewiesenEtbHandler,
+    },
 
     // Mappers (Story 3.3)
     EtbQueryMapper,
@@ -321,6 +353,11 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
     EVENT_HANDLER.BEFEHL_ANONYMISIERT_ETB,
     EVENT_HANDLER.BEFEHL_GELOESCHT_ETB,
     EVENT_HANDLER.ETB_EINSATZ_COMPLETED,
+    EVENT_HANDLER.EINHEIT_ERSTELLT_ETB, // Issue #411
+    EVENT_HANDLER.EINHEIT_STATUS_GEAENDERT_ETB, // Issue #411
+    EVENT_HANDLER.PERSON_ZU_EINHEIT_ZUGEWIESEN_ETB, // Issue #411
+    EVENT_HANDLER.PERSON_VON_EINHEIT_ENTFERNT_ETB, // Issue #411
+    EVENT_HANDLER.FAHRZEUG_EINHEIT_ZUGEWIESEN_ETB, // Issue #411
 
     // Mappers (Story 3.3)
     EtbQueryMapper,

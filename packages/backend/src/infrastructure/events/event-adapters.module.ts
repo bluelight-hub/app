@@ -34,6 +34,11 @@ import {
   SystemWarnungWebSocketEventAdapter,
   SystemWarnungEtbEventAdapter,
   EinsatzCompletedEtbEventAdapter,
+  EinheitErstelltEtbEventAdapter,
+  EinheitStatusGeaendertEtbEventAdapter,
+  PersonZuEinheitZugewiesenEtbEventAdapter,
+  PersonVonEinheitEntferntEtbEventAdapter,
+  FahrzeugEinheitZugewiesenEtbEventAdapter,
   // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
   // KategorieErstelltEventAdapter,
   // KategorieGeloeschtEventAdapter,
@@ -152,6 +157,11 @@ import { ResilienceModule } from '@infrastructure/resilience/resilience.module';
     SystemWarnungWebSocketEventAdapter, // Story 5.6 AC3: SystemWarnung WebSocket-Broadcast
     SystemWarnungEtbEventAdapter, // Story 5.6 AC3: SystemWarnung Audit-Log
     EinsatzCompletedEtbEventAdapter, // Issue #581: ETB automatisch sperren bei Einsatz-Abschluss
+    EinheitErstelltEtbEventAdapter, // Issue #411: EinheitErstellt ETB-Eintrag
+    EinheitStatusGeaendertEtbEventAdapter, // Issue #411: EinheitStatusGeaendert ETB-Eintrag
+    PersonZuEinheitZugewiesenEtbEventAdapter, // Issue #411: PersonZuEinheitZugewiesen ETB-Eintrag
+    PersonVonEinheitEntferntEtbEventAdapter, // Issue #411: PersonVonEinheitEntfernt ETB-Eintrag
+    FahrzeugEinheitZugewiesenEtbEventAdapter, // Issue #411: FahrzeugEinheitZugewiesen ETB-Eintrag
     // TODO: Fix Story 8.1 - Handler für Kategorie-Events fehlen
     // KategorieErstelltEventAdapter, // Story 8.1: KategorieErstellt ETB-Eintrag
     // KategorieGeloeschtEventAdapter, // Story 8.1: KategorieGeloescht ETB-Eintrag
