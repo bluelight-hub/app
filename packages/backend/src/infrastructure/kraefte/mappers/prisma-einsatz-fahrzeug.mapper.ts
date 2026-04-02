@@ -65,6 +65,7 @@ export class PrismaEinsatzFahrzeugMapper {
       fmsStatus: aggregate.fmsStatus,
       // Position: GeoPosition → JSON Object oder undefined (Prisma default)
       position: aggregate.position ? aggregate.position.toJSON() : undefined,
+      einheitId: aggregate.einheitId ?? null,
       createdBy: aggregate.createdBy,
       updatedBy: aggregate.updatedBy ?? null,
     };
@@ -112,6 +113,7 @@ export class PrismaEinsatzFahrzeugMapper {
       kennzeichen: (entity.kennzeichen as string | null) ?? undefined,
       fmsStatus: entity.fmsStatus,
       position: positionProps,
+      einheitId: (entity.einheitId as string | null) ?? undefined,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
       createdBy: entity.createdBy,

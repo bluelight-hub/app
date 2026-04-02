@@ -26,6 +26,7 @@ import type { FahrzeugtypCreatedEvent } from '@domain/kraefte/events/fahrzeugtyp
 import type { FahrzeugtypUpdatedEvent } from '@domain/kraefte/events/fahrzeugtyp-updated.event';
 import type { EinsatzPersonHinzugefuegtEvent } from '@domain/kraefte/events/einsatz-person-hinzugefuegt.event';
 import type { FahrzeugErfasstEvent } from '@domain/kraefte/events/fahrzeug-erfasst.event';
+import type { FahrzeugEinheitZugewiesenEvent } from '@domain/kraefte/events/fahrzeug-einheit-zugewiesen.event';
 import type { FmsStatusGeaendertEvent } from '@domain/kraefte/events/fms-status-geaendert.event';
 import type { StammPersonCreatedEvent } from '@domain/kraefte/events/stamm-person-created.event';
 import type { StammPersonUpdatedEvent } from '@domain/kraefte/events/stamm-person-updated.event';
@@ -80,6 +81,11 @@ import type { OperativeRoleChangedEvent } from '@domain/events/operative-role-ch
 import type { StammpersonAssignedEvent } from '@domain/events/stammperson-assigned.event';
 import type { EinsatzBeitrittsanfrageErstelltEvent } from '@domain/events/einsatz-beitrittsanfrage-erstellt.event';
 import type { EinsatzBeitrittsanfrageEntschiedenEvent } from '@domain/events/einsatz-beitrittsanfrage-entschieden.event';
+import type { EinheitErstelltEvent } from '@domain/kraefte/events/einheit-erstellt.event';
+import type { EinheitStatusGeaendertEvent } from '@domain/kraefte/events/einheit-status-geaendert.event';
+import type { EinheitAufgeloestEvent } from '@domain/kraefte/events/einheit-aufgeloest.event';
+import type { PersonZuEinheitZugewiesenEvent } from '@domain/kraefte/events/person-zu-einheit-zugewiesen.event';
+import type { PersonVonEinheitEntferntEvent } from '@domain/kraefte/events/person-von-einheit-entfernt.event';
 
 /**
  * Serialisiertes Event-Payload für Outbox-Persistierung.
@@ -255,6 +261,8 @@ export class EventSerializer {
         return this.serializeFahrzeugErfasst(event as unknown as FahrzeugErfasstEvent);
       case 'einsatz_fahrzeug.fms_status_geaendert':
         return this.serializeFmsStatusGeaendert(event as unknown as FmsStatusGeaendertEvent);
+      case 'einsatz_fahrzeug.einheit_zugewiesen':
+        return this.serializeFahrzeugEinheitZugewiesen(event as unknown as FahrzeugEinheitZugewiesenEvent);
 
       // ===== STAMM PERSON EVENTS =====
       case 'StammPersonCreated':
@@ -393,6 +401,18 @@ export class EventSerializer {
         return this.serializeBeitrittsanfrageErstellt(event as unknown as EinsatzBeitrittsanfrageErstelltEvent);
       case 'beitrittsanfrage.entschieden':
         return this.serializeBeitrittsanfrageEntschieden(event as unknown as EinsatzBeitrittsanfrageEntschiedenEvent);
+
+      // ===== EINSATZ EINHEIT EVENTS (Issue #411) =====
+      case 'einsatz_einheit.erstellt':
+        return this.serializeEinheitErstellt(event as unknown as EinheitErstelltEvent);
+      case 'einsatz_einheit.status_geaendert':
+        return this.serializeEinheitStatusGeaendert(event as unknown as EinheitStatusGeaendertEvent);
+      case 'einsatz_einheit.aufgeloest':
+        return this.serializeEinheitAufgeloest(event as unknown as EinheitAufgeloestEvent);
+      case 'einsatz_einheit.person_zugewiesen':
+        return this.serializePersonZuEinheitZugewiesen(event as unknown as PersonZuEinheitZugewiesenEvent);
+      case 'einsatz_einheit.person_entfernt':
+        return this.serializePersonVonEinheitEntfernt(event as unknown as PersonVonEinheitEntferntEvent);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -1268,6 +1288,93 @@ export class EventSerializer {
       userId: event.userId,
       decision: event.decision,
       resolvedBy: event.resolvedBy,
+    };
+  }
+
+  // ===== EINSATZ EINHEIT SERIALIZERS (Issue #411) =====
+
+  /**
+   * Serialisiert EinheitErstelltEvent.
+   */
+  private serializeEinheitErstellt(event: EinheitErstelltEvent): Record<string, unknown> {
+    return {
+      einsatzId: event.einsatzId,
+      einheitId: event.einheitId,
+      name: event.name,
+      typ: event.typ,
+      funktion: event.funktion,
+      createdBy: event.createdBy,
+    };
+  }
+
+  /**
+   * Serialisiert EinheitStatusGeaendertEvent.
+   */
+  private serializeEinheitStatusGeaendert(event: EinheitStatusGeaendertEvent): Record<string, unknown> {
+    return {
+      einsatzId: event.einsatzId,
+      einheitId: event.einheitId,
+      name: event.name,
+      alterStatus: event.alterStatus,
+      neuerStatus: event.neuerStatus,
+      updatedBy: event.updatedBy,
+    };
+  }
+
+  /**
+   * Serialisiert EinheitAufgeloestEvent.
+   */
+  private serializeEinheitAufgeloest(event: EinheitAufgeloestEvent): Record<string, unknown> {
+    return {
+      einsatzId: event.einsatzId,
+      einheitId: event.einheitId,
+      name: event.name,
+      updatedBy: event.updatedBy,
+    };
+  }
+
+  /**
+   * Serialisiert PersonZuEinheitZugewiesenEvent.
+   */
+  private serializePersonZuEinheitZugewiesen(event: PersonZuEinheitZugewiesenEvent): Record<string, unknown> {
+    return {
+      einsatzId: event.einsatzId,
+      einheitId: event.einheitId,
+      einheitName: event.einheitName,
+      personId: event.personId,
+      personVorname: event.personVorname,
+      personNachname: event.personNachname,
+      createdBy: event.createdBy,
+    };
+  }
+
+  /**
+   * Serialisiert PersonVonEinheitEntferntEvent.
+   */
+  private serializePersonVonEinheitEntfernt(event: PersonVonEinheitEntferntEvent): Record<string, unknown> {
+    return {
+      einsatzId: event.einsatzId,
+      einheitId: event.einheitId,
+      einheitName: event.einheitName,
+      personId: event.personId,
+      personVorname: event.personVorname,
+      personNachname: event.personNachname,
+      updatedBy: event.updatedBy,
+    };
+  }
+
+  /**
+   * Serialisiert FahrzeugEinheitZugewiesenEvent (Issue #411).
+   */
+  private serializeFahrzeugEinheitZugewiesen(event: FahrzeugEinheitZugewiesenEvent): Record<string, unknown> {
+    return {
+      einsatzId: event.einsatzId,
+      fahrzeugId: event.fahrzeugId,
+      funkrufname: event.funkrufname,
+      einheitId: event.einheitId,
+      einheitName: event.einheitName,
+      previousEinheitId: event.previousEinheitId,
+      updatedBy: event.updatedBy,
     };
   }
 }
