@@ -8,6 +8,8 @@
 import { createFileRoute, useParams } from '@tanstack/react-router';
 import { EinsatzRolleGate } from '@/features/einsatz/ui/molecules/EinsatzRolleGate';
 import { useEinsatzFahrzeuge, useUpdateFmsStatus } from '@/features/einsatz/api';
+import { useEinsatzEinheiten, useAssignFahrzeugZuEinheit } from '@/features/kraefte/api';
+import { EinheitZuweisungsDropdown } from '@/features/kraefte/ui/molecules/EinheitZuweisungsDropdown';
 import { FahrzeugHinzufuegenDialog } from '@/features/einsatz/ui/organisms/FahrzeugHinzufuegenDialog.organism';
 import { EinsatzResourceWidget } from '@/features/einsatz/ui/molecules/EinsatzResourceWidget';
 import { Button } from '@/shared/ui/atoms/button.atom';
@@ -37,11 +39,16 @@ function FahrzeugeContent({ einsatzId }: { einsatzId: string }) {
   const handleOpenFahrzeugDialog = useCallback(() => setShowFahrzeugDialog(true), []);
   const handleCloseFahrzeugDialog = useCallback(() => setShowFahrzeugDialog(false), []);
 
+  // State für Einheit-Zuweisungs-Race-Condition-Guard
+  const [assigningFahrzeugIds, setAssigningFahrzeugIds] = useState<Set<string>>(new Set());
+
   // Daten laden
   const { data: fahrzeuge = [], isLoading, error } = useEinsatzFahrzeuge(einsatzId);
+  const { data: einheiten = [] } = useEinsatzEinheiten(einsatzId);
 
   // Mutations
   const updateFmsStatus = useUpdateFmsStatus(einsatzId);
+  const assignToEinheit = useAssignFahrzeugZuEinheit(einsatzId);
 
   // Handler für FMS-Status Änderungen
   const handleStatusChange = useCallback(
@@ -50,6 +57,29 @@ function FahrzeugeContent({ einsatzId }: { einsatzId: string }) {
     },
     [updateFmsStatus],
   );
+
+  // Handler für Einheit-Zuweisung (Race-Condition-Guard mit funktionalem setState)
+  const handleEinheitAssign = useCallback(
+    (fahrzeugId: string, einheitId: string | null) => {
+      setAssigningFahrzeugIds((prev) => {
+        if (prev.has(fahrzeugId)) return prev;
+        const next = new Set(prev).add(fahrzeugId);
+        const onSettled = () => {
+          setAssigningFahrzeugIds((p) => {
+            const n = new Set(p);
+            n.delete(fahrzeugId);
+            return n;
+          });
+        };
+        assignToEinheit.mutate({ fahrzeugId, einheitId }, { onSettled });
+        return next;
+      });
+    },
+    [assignToEinheit],
+  );
+
+  /** Einheiten-Daten für das Dropdown aufbereiten */
+  const einheitenOptions = einheiten.map((e) => ({ id: e.id, name: e.name, typ: e.typ }));
 
   // Loading State
   if (isLoading) {
@@ -179,6 +209,14 @@ function FahrzeugeContent({ einsatzId }: { einsatzId: string }) {
                           </div>
                         )}
                       </div>
+                      <div className="w-48 flex-shrink-0">
+                        <EinheitZuweisungsDropdown
+                          currentEinheitId={fahrzeug.einheitId}
+                          einheiten={einheitenOptions}
+                          onAssign={(einheitId) => handleEinheitAssign(fahrzeug.id, einheitId)}
+                          isLoading={assigningFahrzeugIds.has(fahrzeug.id)}
+                        />
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -195,11 +233,21 @@ function FahrzeugeContent({ einsatzId }: { einsatzId: string }) {
               <div className="divide-y divide-border-subtle">
                 {fahrzeugeBereit.map((fahrzeug) => (
                   <div key={fahrzeug.id} className="px-4 py-4">
-                    <div className="flex items-center gap-3">
-                      <PiTruck className="h-5 w-5 text-text-muted" />
-                      <div>
-                        <p className="font-medium text-text-primary">{fahrzeug.funkrufname}</p>
-                        {fahrzeug.kennzeichen && <p className="text-sm text-text-muted">{fahrzeug.kennzeichen}</p>}
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <PiTruck className="h-5 w-5 text-text-muted" />
+                        <div>
+                          <p className="font-medium text-text-primary">{fahrzeug.funkrufname}</p>
+                          {fahrzeug.kennzeichen && <p className="text-sm text-text-muted">{fahrzeug.kennzeichen}</p>}
+                        </div>
+                      </div>
+                      <div className="w-48 flex-shrink-0">
+                        <EinheitZuweisungsDropdown
+                          currentEinheitId={fahrzeug.einheitId}
+                          einheiten={einheitenOptions}
+                          onAssign={(einheitId) => handleEinheitAssign(fahrzeug.id, einheitId)}
+                          isLoading={assigningFahrzeugIds.has(fahrzeug.id)}
+                        />
                       </div>
                     </div>
                   </div>
@@ -217,11 +265,21 @@ function FahrzeugeContent({ einsatzId }: { einsatzId: string }) {
               <div className="divide-y divide-border-subtle">
                 {fahrzeugeAndere.map((fahrzeug) => (
                   <div key={fahrzeug.id} className="px-4 py-4">
-                    <div className="flex items-center gap-3">
-                      <PiTruck className="h-5 w-5 text-text-muted" />
-                      <div>
-                        <p className="font-medium text-text-primary">{fahrzeug.funkrufname}</p>
-                        {fahrzeug.kennzeichen && <p className="text-sm text-text-muted">{fahrzeug.kennzeichen}</p>}
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <PiTruck className="h-5 w-5 text-text-muted" />
+                        <div>
+                          <p className="font-medium text-text-primary">{fahrzeug.funkrufname}</p>
+                          {fahrzeug.kennzeichen && <p className="text-sm text-text-muted">{fahrzeug.kennzeichen}</p>}
+                        </div>
+                      </div>
+                      <div className="w-48 flex-shrink-0">
+                        <EinheitZuweisungsDropdown
+                          currentEinheitId={fahrzeug.einheitId}
+                          einheiten={einheitenOptions}
+                          onAssign={(einheitId) => handleEinheitAssign(fahrzeug.id, einheitId)}
+                          isLoading={assigningFahrzeugIds.has(fahrzeug.id)}
+                        />
                       </div>
                     </div>
                   </div>
