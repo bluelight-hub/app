@@ -29,6 +29,7 @@ import {
   ApiConflictResponse,
   ApiInternalServerErrorResponse,
   ApiTooManyRequestsResponse,
+  ApiOkResponse,
   ApiParam,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
@@ -42,6 +43,7 @@ import { ADMIN_RATE_LIMIT, ADMIN_MUTATION_RATE_LIMIT } from '@/infrastructure/ht
 import { ErfasseFahrzeugAusStammdatenHandler } from '@application/kraefte/einsatz-fahrzeuge/commands/erfasse-fahrzeug-aus-stammdaten/erfasse-fahrzeug-aus-stammdaten.handler';
 import { ErfasseTemporalesFahrzeugHandler } from '@application/kraefte/einsatz-fahrzeuge/commands/erfasse-temporales-fahrzeug/erfasse-temporales-fahrzeug.handler';
 import { UpdateFmsStatusHandler } from '@application/kraefte/einsatz-fahrzeuge/commands/update-fms-status/update-fms-status.handler';
+import { AssignFahrzeugToEinheitHandler } from '@application/kraefte/einsatz-fahrzeuge/commands/assign-fahrzeug-to-einheit/assign-fahrzeug-to-einheit.handler';
 import { GetEinsatzFahrzeugeHandler } from '@application/kraefte/einsatz-fahrzeuge/queries/get-einsatz-fahrzeuge/get-einsatz-fahrzeuge.handler';
 import { GetKraeftePoisHandler } from '@application/kraefte/einsatz-fahrzeuge/queries/get-kraefte-pois/get-kraefte-pois.handler';
 
@@ -49,12 +51,13 @@ import { GetKraeftePoisHandler } from '@application/kraefte/einsatz-fahrzeuge/qu
 import { ErfasseFahrzeugAusStammdatenCommand } from '@application/kraefte/einsatz-fahrzeuge/commands/erfasse-fahrzeug-aus-stammdaten/erfasse-fahrzeug-aus-stammdaten.command';
 import { ErfasseTemporalesFahrzeugCommand } from '@application/kraefte/einsatz-fahrzeuge/commands/erfasse-temporales-fahrzeug/erfasse-temporales-fahrzeug.command';
 import { UpdateFmsStatusCommand } from '@application/kraefte/einsatz-fahrzeuge/commands/update-fms-status/update-fms-status.command';
+import { AssignFahrzeugToEinheitCommand } from '@application/kraefte/einsatz-fahrzeuge/commands/assign-fahrzeug-to-einheit/assign-fahrzeug-to-einheit.command';
 import { GetEinsatzFahrzeugeQuery } from '@application/kraefte/einsatz-fahrzeuge/queries/get-einsatz-fahrzeuge/get-einsatz-fahrzeuge.query';
 import { GetKraeftePoisQuery } from '@application/kraefte/einsatz-fahrzeuge/queries/get-kraefte-pois/get-kraefte-pois.query';
 import { KraeftePoisFeatureCollectionDto } from '@application/kraefte/einsatz-fahrzeuge/queries/get-kraefte-pois/kraefte-pois.dto';
 
 // DTOs
-import { EinsatzFahrzeugDto, ErfasseFahrzeugAusStammdatenDto, ErfasseTemporalesFahrzeugDto, UpdateFmsStatusDto } from '@application/kraefte/einsatz-fahrzeuge/dto';
+import { EinsatzFahrzeugDto, ErfasseFahrzeugAusStammdatenDto, ErfasseTemporalesFahrzeugDto, UpdateFmsStatusDto, AssignFahrzeugToEinheitDto } from '@application/kraefte/einsatz-fahrzeuge/dto';
 
 // Error Codes
 import { EINSATZ_FAHRZEUG_ERROR_CODES, EinsatzFahrzeugError } from '@domain/kraefte/common/einsatz-fahrzeug-error-codes';
@@ -93,6 +96,7 @@ export class EinsatzFahrzeugeController {
     private readonly erfasseTemporalesHandler: ErfasseTemporalesFahrzeugHandler,
     private readonly getEinsatzFahrzeugeHandler: GetEinsatzFahrzeugeHandler,
     private readonly updateFmsStatusHandler: UpdateFmsStatusHandler,
+    private readonly assignToEinheitHandler: AssignFahrzeugToEinheitHandler,
     private readonly getKraeftePoisHandler: GetKraeftePoisHandler,
     @Inject(LOGGER) private readonly logger: ILogger,
   ) {}
@@ -437,5 +441,72 @@ export class EinsatzFahrzeugeController {
     this.logger.log(`FMS-Status aktualisiert: ${result.value.id} (${result.value.funkrufname}) → Status ${dto.fmsStatus} für Einsatz ${einsatzId} von Admin ${user.userId}`);
 
     return result.value;
+  }
+
+  /**
+   * Fahrzeug einer taktischen Einheit zuweisen oder Zuweisung entfernen.
+   *
+   * **Zuweisung:** einheitId mit CUID2 der Einheit senden
+   * **Entfernung:** einheitId null oder weglassen
+   *
+   * @param einsatzId - UUID des Einsatzes
+   * @param id - CUID2 des EinsatzFahrzeugs
+   * @param dto - AssignFahrzeugToEinheitDto mit einheitId
+   * @param user - Aktueller Benutzer (aus JWT Token)
+   */
+  @Patch(':id/einheit')
+  @Throttle({ default: ADMIN_MUTATION_RATE_LIMIT })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Fahrzeug einer taktischen Einheit zuweisen' })
+  @ApiParam({ name: 'einsatzId', type: String, format: 'cuid', description: 'Einsatz-ID (CUID)' })
+  @ApiParam({ name: 'id', type: String, format: 'cuid2', description: 'CUID2 des Einsatz-Fahrzeugs' })
+  @ApiOkResponse({ description: 'Fahrzeug erfolgreich zugewiesen' })
+  @ApiBadRequestResponse({ description: 'Validierungsfehler' })
+  @ApiNotFoundResponse({ description: 'Fahrzeug oder Einheit nicht gefunden' })
+  async assignToEinheit(
+    @Param('einsatzId', ParseCuidPipe) einsatzId: string,
+    @Param('id', ParseCuidPipe) id: string,
+    @Body() dto: AssignFahrzeugToEinheitDto,
+    @CurrentUser() user: ValidatedUser,
+  ): Promise<void> {
+    // Create Command
+    const commandResult = AssignFahrzeugToEinheitCommand.create({
+      einsatzId,
+      fahrzeugId: id,
+      einheitId: dto.einheitId ?? null,
+      updatedBy: user.userId,
+    });
+
+    if (commandResult.isFailure) {
+      throw new BadRequestException(commandResult.error);
+    }
+
+    const command = commandResult.value;
+    if (!command) {
+      throw new BadRequestException('Fehler beim Erstellen des Commands');
+    }
+
+    // Execute Command
+    const result = await this.assignToEinheitHandler.execute(command);
+
+    if (result.isFailure) {
+      const error = result.error ?? '';
+
+      // Check error codes for proper HTTP responses
+      if (EinsatzFahrzeugError.hasCode(error, EINSATZ_FAHRZEUG_ERROR_CODES.NOT_FOUND)) {
+        throw new NotFoundException(EinsatzFahrzeugError.extractMessage(error));
+      }
+
+      // Einheit nicht gefunden
+      if (error.includes('nicht gefunden')) {
+        throw new NotFoundException(error);
+      }
+
+      // Generic error
+      throw new BadRequestException(error || 'Fehler bei der Einheit-Zuweisung');
+    }
+
+    // Audit logging
+    this.logger.log(`Fahrzeug ${id} Einheit-Zuweisung geändert: einheitId=${dto.einheitId ?? 'null'} für Einsatz ${einsatzId} von ${user.userId}`);
   }
 }
