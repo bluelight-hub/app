@@ -87,6 +87,12 @@ export class EinsatzFahrzeugDto {
   })
   updatedBy?: string;
 
+  @ApiPropertyOptional({
+    description: 'Zugewiesene Einheit-ID (CUID2, null wenn keiner Einheit zugewiesen)',
+    example: 'cuid2ein123abc456def',
+  })
+  einheitId?: string;
+
   @ApiProperty({
     description: 'Fahrzeugtyp Details (nested)',
   })

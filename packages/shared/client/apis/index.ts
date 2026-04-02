@@ -17,6 +17,7 @@ export * from './BefehleApi';
 export * from './ETBApi';
 export * from './EinsatzApi';
 export * from './EinsatzBeitrittApi';
+export * from './EinsatzEinheitenApi';
 export * from './EinsatzFahrzeugeApi';
 export * from './EinsatzFuehrungsrhythmusTemplatesApi';
 export * from './EinsatzPersonenApi';
