@@ -2276,7 +2276,8 @@ describe('EventDeserializer', () => {
       // + SystemWarnung (Story 5.6) + EintragKorrigiert (Issue #554)
       // + OperativeRolleChanged + StammpersonAssigned + BeitrittsanfrageErstellt + BeitrittsanfrageEntschieden (Issue #98)
       // + InviteCodeCreated + InviteCodeUsed + InviteCodeRevoked (Issue #98)
-      expect(supportedTypes).toHaveLength(82);
+      // + EinheitErstellt + EinheitStatusGeaendert + EinheitAufgeloest + PersonZuEinheitZugewiesen + PersonVonEinheitEntfernt + FahrzeugEinheitZugewiesen (Issue #411)
+      expect(supportedTypes).toHaveLength(88);
       expect(supportedTypes).toContain('einsatz.created');
       expect(supportedTypes).toContain('etb.created');
       expect(supportedTypes).toContain('lagekarte.created');
@@ -2300,6 +2301,13 @@ describe('EventDeserializer', () => {
       expect(supportedTypes).toContain('invite_code.created');
       expect(supportedTypes).toContain('invite_code.used');
       expect(supportedTypes).toContain('invite_code.revoked');
+      // Einheiten Events (Issue #411)
+      expect(supportedTypes).toContain('einsatz_einheit.erstellt');
+      expect(supportedTypes).toContain('einsatz_einheit.status_geaendert');
+      expect(supportedTypes).toContain('einsatz_einheit.aufgeloest');
+      expect(supportedTypes).toContain('einsatz_einheit.person_zugewiesen');
+      expect(supportedTypes).toContain('einsatz_einheit.person_entfernt');
+      expect(supportedTypes).toContain('einsatz_fahrzeug.einheit_zugewiesen');
     });
   });
 
