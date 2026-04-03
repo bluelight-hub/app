@@ -1,16 +1,18 @@
 import { Badge } from '@/shared/ui/atoms/badge.atom';
 import { IconButton } from '@/shared/ui/atoms/icon-button.atom';
-import { Table } from '@/shared/ui/molecules/table.molecule';
+import { DataTable } from '@/shared/ui/organisms/data-table.organism';
 import type { ManagedUserResponseDto } from '@/shared';
 import { ManagedUserResponseDtoRoleEnum } from '@/shared';
-import type { SortingState } from '@tanstack/react-table';
-import { createColumnHelper, flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table';
-import { useMemo, useState } from 'react';
-import { PiArrowSquareOut, PiLockKey, PiLockKeyOpen, PiPencilSimple, PiTrash } from 'react-icons/pi';
+import { createColumnHelper } from '@tanstack/react-table';
+import { useMemo } from 'react';
+import { PiArrowSquareOut, PiLockKey, PiLockKeyOpen, PiPencilSimple, PiTrash, PiUsers } from 'react-icons/pi';
 import { Link } from '@tanstack/react-router';
+
 interface UsersTableProps {
   users: Array<ManagedUserResponseDto> | undefined;
   isLoading: boolean;
+  error?: Error | null;
+  onRetry?: () => void;
   onDelete: (user: ManagedUserResponseDto) => void;
   onEdit: (user: ManagedUserResponseDto) => void;
   onUnlock: (user: ManagedUserResponseDto) => void;
@@ -58,6 +60,8 @@ const getOperativeRoleLabel = (role: string): string => {
 export const UsersTable = ({
   users,
   isLoading,
+  error,
+  onRetry,
   onDelete,
   onEdit,
   onUnlock,
@@ -66,8 +70,6 @@ export const UsersTable = ({
   showOnlyWithoutStammperson,
   onShowOnlyWithoutStammpersonChange,
 }: UsersTableProps) => {
-  const [sorting, setSorting] = useState<SortingState>([]);
-
   const filteredUsers = useMemo(() => {
     let result = users || [];
     if (operativeRoleFilter) {
@@ -117,17 +119,14 @@ export const UsersTable = ({
             const lockReason = row.original.lockReason;
             return (
               <div className="flex items-center gap-2">
-                {' '}
                 <Badge variant="warning" className="flex items-center gap-1">
-                  {' '}
-                  <PiLockKey className="h-3 w-3" /> Gesperrt{' '}
-                </Badge>{' '}
+                  <PiLockKey className="h-3 w-3" /> Gesperrt
+                </Badge>
                 {lockReason && (
                   <span className="text-xs text-text-muted" title={lockReason}>
-                    {' '}
-                    ({lockReason.length > 20 ? `${lockReason.substring(0, 20)}...` : lockReason}){' '}
+                    ({lockReason.length > 20 ? `${lockReason.substring(0, 20)}...` : lockReason})
                   </span>
-                )}{' '}
+                )}
               </div>
             );
           }
@@ -137,98 +136,68 @@ export const UsersTable = ({
       columnHelper.display({
         id: 'actions',
         header: 'Aktionen',
+        enableSorting: false,
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            {' '}
             {row.original.isLocked && (
               <IconButton size="sm" intent="success" appearance="minimal" onClick={() => onUnlock(row.original)} aria-label="Benutzer entsperren">
-                {' '}
-                <PiLockKeyOpen />{' '}
+                <PiLockKeyOpen />
               </IconButton>
-            )}{' '}
+            )}
             <IconButton size="sm" appearance="minimal" onClick={() => onEdit(row.original)} aria-label="Benutzer bearbeiten">
-              {' '}
-              <PiPencilSimple />{' '}
-            </IconButton>{' '}
+              <PiPencilSimple />
+            </IconButton>
             <IconButton size="sm" intent="danger" appearance="minimal" onClick={() => onDelete(row.original)} aria-label="Benutzer löschen">
-              {' '}
-              <PiTrash />{' '}
-            </IconButton>{' '}
+              <PiTrash />
+            </IconButton>
           </div>
         ),
       }),
     ],
     [onDelete, onEdit, onUnlock],
   );
-  const table = useReactTable({ data: filteredUsers, columns, state: { sorting }, onSortingChange: setSorting, getCoreRowModel: getCoreRowModel(), getSortedRowModel: getSortedRowModel() });
-  if (isLoading) {
-    return (
-      <Table.Root>
-        {' '}
-        <Table.Header>
-          {' '}
-          <Table.Row>
-            {' '}
-            <Table.Head>Benutzername</Table.Head> <Table.Head>Rolle</Table.Head> <Table.Head>Operative Rolle</Table.Head> <Table.Head>Stammperson</Table.Head> <Table.Head>Status</Table.Head>{' '}
-            <Table.Head>Aktionen</Table.Head>{' '}
-          </Table.Row>{' '}
-        </Table.Header>{' '}
-        <Table.Skeleton rows={5} columns={6} />{' '}
-      </Table.Root>
-    );
-  }
-  return (
-    <div>
-      <div className="flex items-center gap-4 px-4 pb-4">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="operative-role-filter" className="text-xs font-medium text-text-muted uppercase">
-            Operative Rolle
-          </label>
-          <select
-            id="operative-role-filter"
-            value={operativeRoleFilter}
-            onChange={(e) => onOperativeRoleFilterChange(e.target.value)}
-            className="rounded-md border border-gray-300 bg-transparent px-3 py-1.5 text-sm dark:border-gray-600"
-          >
-            <option value="">Alle Rollen</option>
-            <option value="FUEHRUNGSKRAFT">Führungskraft</option>
-            <option value="EINSATZKRAFT">Einsatzkraft</option>
-            <option value="EXTERNE">Externe</option>
-          </select>
-        </div>
-        <label className="mt-4 flex items-center gap-2 text-sm text-text-secondary">
-          <input type="checkbox" checked={showOnlyWithoutStammperson} onChange={(e) => onShowOnlyWithoutStammpersonChange(e.target.checked)} className="h-4 w-4 rounded border-gray-300" />
-          Nur ohne Stammperson
+
+  const toolbar = (
+    <>
+      <div className="flex flex-col gap-1">
+        <label htmlFor="operative-role-filter" className="text-xs font-medium text-text-muted uppercase">
+          Operative Rolle
         </label>
+        <select
+          id="operative-role-filter"
+          value={operativeRoleFilter}
+          onChange={(e) => onOperativeRoleFilterChange(e.target.value)}
+          className="border-border-primary bg-surface-primary rounded-control border px-3 py-1.5 text-sm text-text-primary"
+        >
+          <option value="">Alle Rollen</option>
+          <option value="FUEHRUNGSKRAFT">Führungskraft</option>
+          <option value="EINSATZKRAFT">Einsatzkraft</option>
+          <option value="EXTERNE">Externe</option>
+        </select>
       </div>
-      <Table.Root>
-        {' '}
-        <Table.Header>
-          {' '}
-          {table.getHeaderGroups().map((headerGroup) => (
-            <Table.Row key={headerGroup.id}>
-              {' '}
-              {headerGroup.headers.map((header) => (
-                <Table.Head key={header.id} onClick={header.column.getToggleSortingHandler()} sortable={header.column.getCanSort()} sorted={header.column.getIsSorted()}>
-                  {' '}
-                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}{' '}
-                </Table.Head>
-              ))}{' '}
-            </Table.Row>
-          ))}{' '}
-        </Table.Header>{' '}
-        <Table.Body>
-          {' '}
-          {table.getRowModel().rows.map((row) => (
-            <Table.Row key={row.id}>
-              {' '}
-              {row.getVisibleCells().map((cell) => (
-                <Table.Cell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</Table.Cell>
-              ))}{' '}
-            </Table.Row>
-          ))}{' '}
-        </Table.Body>{' '}
-      </Table.Root>
-    </div>
+      <label className="mt-4 flex items-center gap-2 text-sm text-text-secondary">
+        <input type="checkbox" checked={showOnlyWithoutStammperson} onChange={(e) => onShowOnlyWithoutStammpersonChange(e.target.checked)} className="h-4 w-4 rounded border-gray-300" />
+        Nur ohne Stammperson
+      </label>
+    </>
+  );
+
+  return (
+    <DataTable
+      columns={columns}
+      data={filteredUsers}
+      getRowId={(row) => row.id}
+      isLoading={isLoading}
+      error={error}
+      onRetry={onRetry}
+      searchable={{ placeholder: 'Benutzer durchsuchen...' }}
+      defaultSorting={[{ id: 'username', desc: false }]}
+      emptyState={{
+        icon: PiUsers,
+        title: 'Noch keine Benutzer angelegt',
+        description: 'Legen Sie den ersten Benutzer an.',
+      }}
+      toolbar={toolbar}
+    />
   );
 };
