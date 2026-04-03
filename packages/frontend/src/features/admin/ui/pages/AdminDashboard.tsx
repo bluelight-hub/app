@@ -1,19 +1,22 @@
 import { useCurrentUser, useAdminLogout } from '@/features/auth';
+import { useAdminUserManagement, useAdminStammFahrzeugeManagement, useAdminStammPersonenManagement } from '@/features/admin/api';
 import { logger } from '@/shared/lib/logger';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Heading } from '@/shared/ui/atoms/heading.atom';
 import { Text } from '@/shared/ui/atoms/text.atom';
 import { cn } from '@/shared/ui/cn';
+import { StatCard } from '@/shared/ui/molecules/stat-card.molecule';
 import { AdminDashboardLayout } from '@/shared/ui/templates/AdminDashboardLayout';
 import { useNavigate } from '@tanstack/react-router';
 import { isTauri } from '@tauri-apps/api/core';
-import { useCallback, type ReactNode } from 'react';
+import { useCallback, useMemo, type ReactNode } from 'react';
 import {
   PiBell,
   PiCaretRight,
   PiCertificate,
   PiIdentificationBadge,
   PiKey,
+  PiLockKey,
   PiMegaphone,
   PiMetronome,
   PiPlugsConnected,
@@ -94,6 +97,23 @@ export function AdminDashboard() {
   const { user } = useCurrentUser();
   const logoutAdmin = useAdminLogout();
 
+  const { users } = useAdminUserManagement();
+  const { stammFahrzeuge } = useAdminStammFahrzeugeManagement();
+  const { stammPersonen } = useAdminStammPersonenManagement();
+
+  const stats = useMemo(() => {
+    const userList = users ?? [];
+    const lockedCount = userList.filter((u) => u.isLocked).length;
+    const fahrzeugeList = stammFahrzeuge ?? [];
+    const personenList = stammPersonen ?? [];
+    return {
+      totalUsers: userList.length,
+      lockedUsers: lockedCount,
+      totalFahrzeuge: fahrzeugeList.length,
+      totalPersonen: personenList.length,
+    };
+  }, [users, stammFahrzeuge, stammPersonen]);
+
   const handleLogout = useCallback(async () => {
     await logoutAdmin.mutateAsync();
 
@@ -122,6 +142,16 @@ export function AdminDashboard() {
           Willkommen im Admin-Bereich, <span className="font-medium text-text-secondary">{user?.username}</span>
         </Text>
       </div>
+
+      {/* KPI-Übersicht */}
+      <section>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard label="Benutzer" value={stats.totalUsers} icon={PiUsers} variant="info" />
+          <StatCard label="Gesperrte Benutzer" value={stats.lockedUsers} icon={PiLockKey} variant={stats.lockedUsers > 0 ? 'warning' : 'default'} />
+          <StatCard label="Stamm-Fahrzeuge" value={stats.totalFahrzeuge} icon={PiTruck} variant="success" />
+          <StatCard label="Stamm-Personen" value={stats.totalPersonen} icon={PiUserList} variant="success" />
+        </div>
+      </section>
 
       <section>
         <SectionHeader title="Admin-Funktionen" description="Benutzer verwalten, Einstellungen konfigurieren und mehr" />
