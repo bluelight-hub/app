@@ -1,3 +1,13 @@
+## Einsatzverwaltung
+
+- **Taktische Einheitenverwaltung**: Einheiten können jetzt während eines Einsatzes erstellt, bearbeitet und hierarchisch organisiert werden. Personal und Fahrzeuge lassen sich den Einheiten direkt zuweisen
+- **Fahrzeugzuweisung zu Einheiten**: Auf der Fahrzeuge-Seite können Fahrzeuge nun über ein Dropdown-Menü taktischen Einheiten zugeordnet werden
+- **Einsatzort-Anzeige korrigiert**: Adressen werden nun korrekt formatiert dargestellt statt als "[object Object]" oder JSON-String
+
+## Dependency Updates
+
+- TanStack-Bibliotheken aktualisiert (Pacer, React Form, React Router)
+
 ## Backend-Stabilität
 
 - Behebung eines internen Fehlers bei der Verarbeitung von Einladungscode-Events (Erstellen, Verwenden, Widerrufen)
