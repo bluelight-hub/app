@@ -1,8 +1,6 @@
 import { useAdminUserManagement } from '@/features/admin';
 import { useAdminAuth } from '@/features/auth';
-import { Alert } from '@/shared/ui/atoms/alert.atom';
 import { Button } from '@/shared/ui/atoms/button.atom';
-import { Card } from '@/shared/ui/atoms/card.atom';
 import { Container } from '@/shared/ui/atoms/container.atom';
 import { Heading } from '@/shared/ui/atoms/heading.atom';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
@@ -15,7 +13,7 @@ import { EditUserDialog } from '@/features/admin/ui/organisms/EditUserDialog';
 import { UsersTable } from '@/features/admin/ui/organisms/UsersTable';
 import { Navigate } from '@tanstack/react-router';
 import { useState } from 'react';
-import { PiPlus, PiWarning } from 'react-icons/pi';
+import { PiPlus } from 'react-icons/pi';
 
 export function AdminUsers() {
   const { isAdmin, isLoading: isAuthLoading } = useAdminAuth();
@@ -23,6 +21,7 @@ export function AdminUsers() {
     usersData,
     isLoading: isUsersLoading,
     error,
+    refetch,
     createUser,
     updateUser,
     deleteUser,
@@ -133,21 +132,12 @@ export function AdminUsers() {
     }
   };
 
-  if (isAuthLoading || isUsersLoading) {
+  // Auth-Loading separat behandeln (vor Daten-Loading)
+  if (isAuthLoading) {
     return (
       <Container maxWidth="6xl" className="py-8">
         <div className="flex h-[50vh] items-center justify-center">
           <Spinner size="xl" />
-        </div>
-      </Container>
-    );
-  }
-
-  if (error) {
-    return (
-      <Container maxWidth="6xl" className="py-8">
-        <div className="flex h-[50vh] items-center justify-center">
-          <Alert status="error" title="Fehler beim Laden der Benutzer" description={error.message} icon={<PiWarning className="h-6 w-6" />} />
         </div>
       </Container>
     );
@@ -166,19 +156,19 @@ export function AdminUsers() {
           </Button>
         </div>
 
-        <Card padding="md">
-          <UsersTable
-            users={usersData?.data}
-            isLoading={isUsersLoading}
-            onEdit={handleEditUser}
-            onDelete={handleDeleteUser}
-            onUnlock={handleUnlockUser}
-            operativeRoleFilter={operativeRoleFilter}
-            onOperativeRoleFilterChange={setOperativeRoleFilter}
-            showOnlyWithoutStammperson={showOnlyWithoutStammperson}
-            onShowOnlyWithoutStammpersonChange={setShowOnlyWithoutStammperson}
-          />
-        </Card>
+        <UsersTable
+          users={usersData?.data}
+          isLoading={isUsersLoading}
+          error={error}
+          onRetry={refetch}
+          onEdit={handleEditUser}
+          onDelete={handleDeleteUser}
+          onUnlock={handleUnlockUser}
+          operativeRoleFilter={operativeRoleFilter}
+          onOperativeRoleFilterChange={setOperativeRoleFilter}
+          showOnlyWithoutStammperson={showOnlyWithoutStammperson}
+          onShowOnlyWithoutStammpersonChange={setShowOnlyWithoutStammperson}
+        />
       </div>
 
       <CreateUserDialog isOpen={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)} onSubmit={handleCreateUser} isSubmitting={isCreating} />
