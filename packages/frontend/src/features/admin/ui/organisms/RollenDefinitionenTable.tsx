@@ -1,20 +1,22 @@
-import { useCallback, useMemo, useState } from 'react';
-import { type SortingState, flexRender, getCoreRowModel, getSortedRowModel, useReactTable, createColumnHelper } from '@tanstack/react-table';
-import { PiPencilSimple, PiProhibit, PiCheckCircle, PiCaretUpDown } from 'react-icons/pi';
+import { useCallback, useMemo } from 'react';
+import { createColumnHelper } from '@tanstack/react-table';
+import type { ColumnDef } from '@tanstack/react-table';
+import { PiPencilSimple, PiProhibit, PiCheckCircle, PiShieldCheck } from 'react-icons/pi';
 import type { RollenDefinitionDto } from '@/shared';
 import { Badge } from '@/shared/ui/atoms/badge.atom';
 import { IconButton } from '@/shared/ui/atoms/icon-button.atom';
-import { Table } from '@/shared/ui/molecules/table.molecule';
-import { Skeleton } from '@/shared/ui/atoms/skeleton';
-import { Text } from '@/shared/ui/atoms/text.atom';
+import { DataTable } from '@/shared/ui/organisms/data-table.organism';
 
 interface RollenDefinitionenTableProps {
   rollenDefinitionen: RollenDefinitionDto[];
   onEdit: (rolle: RollenDefinitionDto) => void;
   onDeactivate: (rolle: RollenDefinitionDto) => void;
   isLoading?: boolean;
+  error?: Error | null;
+  onRetry?: () => void;
   updatingId?: string;
   deactivatingId?: string;
+  onCreateOpen?: () => void;
 }
 
 const columnHelper = createColumnHelper<RollenDefinitionDto>();
@@ -33,14 +35,11 @@ const formatDate = (date: Date): string => {
 };
 
 /**
- * Rollendefinitionen Tabelle mit Sortierung.
+ * Rollendefinitionen Tabelle mit Sortierung und Suche.
  *
  * Zeigt alle Rollendefinitionen mit Status-Badge, Qualifikationen und Aktionen.
  */
-export const RollenDefinitionenTable = ({ rollenDefinitionen, isLoading, onEdit, onDeactivate, updatingId, deactivatingId }: RollenDefinitionenTableProps) => {
-  const [sorting, setSorting] = useState<SortingState>([{ id: 'name', desc: false }]);
-
-  // Stabile Callback-Referenzen mit useCallback - verhindert unnötige Table Re-Renders
+export const RollenDefinitionenTable = ({ rollenDefinitionen, isLoading, error, onRetry, onEdit, onDeactivate, updatingId, deactivatingId, onCreateOpen }: RollenDefinitionenTableProps) => {
   const handleEdit = useCallback(
     (rolle: RollenDefinitionDto) => {
       onEdit(rolle);
@@ -55,35 +54,25 @@ export const RollenDefinitionenTable = ({ rollenDefinitionen, isLoading, onEdit,
     [onDeactivate],
   );
 
-  const columns = useMemo(
+  const columns: ColumnDef<RollenDefinitionDto, any>[] = useMemo(
     () => [
       columnHelper.accessor('name', {
-        header: ({ column }) => (
-          <button
-            type="button"
-            className="flex items-center gap-1 font-medium"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            aria-label={`Nach Name sortieren ${column.getIsSorted() === 'asc' ? 'absteigend' : 'aufsteigend'}`}
-          >
-            Name
-            <PiCaretUpDown className="h-4 w-4" aria-hidden="true" />
-          </button>
-        ),
+        header: 'Name',
         cell: (info) => <span className="font-medium">{info.getValue()}</span>,
       }),
       columnHelper.accessor('funkrufname', {
         header: 'Funkrufname',
-        cell: (info) => <span className="text-gray-600 dark:text-gray-400">{info.getValue() || '—'}</span>,
+        cell: (info) => <span className="text-text-secondary">{info.getValue() || '—'}</span>,
       }),
       columnHelper.accessor('erforderlicheQualifikationen', {
         header: 'Qualifikationen',
+        enableSorting: false,
         cell: ({ row }) => {
           const qualifikationen = row.original.erforderlicheQualifikationen;
           if (qualifikationen.length === 0) {
-            return <span className="text-gray-500 dark:text-gray-400">—</span>;
+            return <span className="text-text-muted">—</span>;
           }
 
-          // Zeige maximal 3 Badges, danach "+X weitere"
           const maxVisible = 3;
           const visibleQuals = qualifikationen.slice(0, maxVisible);
           const remaining = qualifikationen.length - maxVisible;
@@ -120,24 +109,14 @@ export const RollenDefinitionenTable = ({ rollenDefinitionen, isLoading, onEdit,
           ),
       }),
       columnHelper.accessor('createdAt', {
-        header: ({ column }) => (
-          <button
-            type="button"
-            className="flex items-center gap-1 font-medium"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            aria-label={`Nach Erstellt am sortieren ${column.getIsSorted() === 'asc' ? 'absteigend' : 'aufsteigend'}`}
-          >
-            Erstellt am
-            <PiCaretUpDown className="h-4 w-4" aria-hidden="true" />
-          </button>
-        ),
-        cell: (info) => <span className="whitespace-nowrap text-gray-600 dark:text-gray-400">{formatDate(info.getValue())}</span>,
+        header: 'Erstellt am',
+        cell: (info) => <span className="whitespace-nowrap text-text-secondary">{formatDate(info.getValue())}</span>,
       }),
       columnHelper.display({
         id: 'actions',
         header: 'Aktionen',
+        enableSorting: false,
         cell: ({ row }) => {
-          // Per-Row Mutation Tracking: Disable nur die Zeile, die gerade mutiert wird
           const isRowUpdating = updatingId === row.original.id;
           const isRowDeactivating = deactivatingId === row.original.id;
           const isRowMutating = isRowUpdating || isRowDeactivating;
@@ -160,75 +139,22 @@ export const RollenDefinitionenTable = ({ rollenDefinitionen, isLoading, onEdit,
     [handleEdit, handleDeactivate, updatingId, deactivatingId],
   );
 
-  const table = useReactTable({
-    data: rollenDefinitionen,
-    columns,
-    state: { sorting },
-    onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-  });
-
-  // Loading State
-  if (isLoading) {
-    return (
-      <div className="p-4">
-        <div className="space-y-3">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <Skeleton key={i} className="h-12 w-full" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  // Empty State
-  if (rollenDefinitionen.length === 0) {
-    return (
-      <div className="flex h-48 flex-col items-center justify-center p-8">
-        <Text className="text-gray-600">Keine Rollendefinitionen vorhanden.</Text>
-        <Text className="text-sm text-gray-500">Erstellen Sie eine neue Rollendefinition.</Text>
-      </div>
-    );
-  }
-
   return (
-    <Table.Root>
-      <Table.Header>
-        {table.getHeaderGroups().map((headerGroup) => (
-          <Table.Row key={headerGroup.id}>
-            {headerGroup.headers.map((header) => {
-              const sortDirection = header.column.getIsSorted();
-              const ariaSort = sortDirection === 'asc' ? 'ascending' : sortDirection === 'desc' ? 'descending' : 'none';
-
-              return (
-                <Table.Head key={header.id} className="whitespace-nowrap" scope="col" aria-sort={header.column.getCanSort() ? ariaSort : undefined}>
-                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                </Table.Head>
-              );
-            })}
-          </Table.Row>
-        ))}
-      </Table.Header>
-      <Table.Body>
-        {table.getRowModel().rows.map((row) => {
-          // Visual Feedback für Optimistic Updates
-          const isRowUpdating = updatingId === row.original.id;
-          const isRowDeactivating = deactivatingId === row.original.id;
-          const isRowMutating = isRowUpdating || isRowDeactivating;
-
-          // Kombiniere Opacity-Klassen: deaktivierte Zeilen + mutating rows
-          const rowClassName = [!row.original.istAktiv && 'opacity-60', isRowMutating && 'opacity-50 transition-opacity duration-200'].filter(Boolean).join(' ');
-
-          return (
-            <Table.Row key={row.id} className={rowClassName}>
-              {row.getVisibleCells().map((cell) => (
-                <Table.Cell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</Table.Cell>
-              ))}
-            </Table.Row>
-          );
-        })}
-      </Table.Body>
-    </Table.Root>
+    <DataTable
+      columns={columns}
+      data={rollenDefinitionen}
+      getRowId={(row) => row.id}
+      isLoading={isLoading}
+      error={error}
+      onRetry={onRetry}
+      searchable={{ placeholder: 'Rollen durchsuchen...' }}
+      defaultSorting={[{ id: 'name', desc: false }]}
+      emptyState={{
+        icon: PiShieldCheck,
+        title: 'Noch keine Rollen definiert',
+        description: 'Legen Sie die erste Rollendefinition an.',
+        action: onCreateOpen ? { label: 'Neue Rolle', onClick: onCreateOpen } : undefined,
+      }}
+    />
   );
 };
