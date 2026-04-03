@@ -12,6 +12,7 @@ import { StammPersonenApplicationModule } from '@application/kraefte/stamm-perso
 import { EinsatzFahrzeugeApplicationModule } from '@application/kraefte/einsatz-fahrzeuge/einsatz-fahrzeuge-application.module';
 import { EinsatzPersonenApplicationModule } from '@application/kraefte/einsatz-personen/einsatz-personen-application.module';
 import { RollenBesetzungApplicationModule } from '@application/kraefte/rollen-besetzung/rollen-besetzung-application.module';
+import { EinsatzEinheitenApplicationModule } from '@application/kraefte/einsatz-einheiten/einsatz-einheiten-application.module';
 import { AdminQualifikationenController } from './controllers/admin-qualifikationen.controller';
 import { AdminFahrzeugtypenController } from './controllers/admin-fahrzeugtypen.controller';
 import { AdminRollenController } from './controllers/admin-rollen.controller';
@@ -24,6 +25,7 @@ import { FahrzeugtypenController } from './controllers/fahrzeugtypen.controller'
 import { StammFahrzeugeController } from './controllers/stamm-fahrzeuge.controller';
 import { StammPersonenController } from './controllers/stamm-personen.controller';
 import { RollenBesetzungController } from './controllers/rollen-besetzung.controller';
+import { EinsatzEinheitenController } from './controllers/einsatz-einheiten.controller';
 import { RollenDefinitionenController } from './controllers/rollen-definitionen.controller';
 import { KraefteDashboardController } from './controllers/kraefte-dashboard.controller';
 
@@ -48,6 +50,7 @@ import { KraefteDashboardController } from './controllers/kraefte-dashboard.cont
     EinsatzFahrzeugeApplicationModule,
     EinsatzPersonenApplicationModule,
     RollenBesetzungApplicationModule,
+    EinsatzEinheitenApplicationModule,
   ],
   controllers: [
     AdminQualifikationenController,
@@ -64,6 +67,7 @@ import { KraefteDashboardController } from './controllers/kraefte-dashboard.cont
     RollenBesetzungController,
     RollenDefinitionenController,
     KraefteDashboardController, // Story 6.1a: Taktische Stärke-Anzeige
+    EinsatzEinheitenController, // Issue #411: Taktische Einheiten
   ],
   providers: [
     // Logger für alle Kraefte Controller (DI via LOGGER Token)

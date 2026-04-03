@@ -35,6 +35,12 @@ export const KRAEFTE_QUERY_KEYS = {
   /** RollenDefinitionen (Admin) */
   rollenDefinitionen: () => [...KRAEFTE_QUERY_KEYS.all, 'rollen-definitionen'] as const,
 
+  /** Taktische Einheiten eines Einsatzes (Issue #411) */
+  einheiten: (einsatzId: string) => [...KRAEFTE_QUERY_KEYS.byEinsatz(einsatzId), 'einheiten'] as const,
+
+  /** Detail-Daten einer einzelnen taktischen Einheit (Issue #411) */
+  einheitDetails: (einsatzId: string, einheitId: string) => [...KRAEFTE_QUERY_KEYS.einheiten(einsatzId), einheitId] as const,
+
   /** Kraefte POIs fuer Lagekarte (Story 8.1) */
   pois: (einsatzId: string) => [...KRAEFTE_QUERY_KEYS.byEinsatz(einsatzId), 'pois'] as const,
 } as const;

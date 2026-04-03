@@ -16,6 +16,7 @@ import {
   BefehleApi,
   Configuration,
   EinsatzApi,
+  EinsatzEinheitenApi,
   EinsatzFahrzeugeApi,
   EinsatzPersonenApi,
   EinsatzTeilnehmerApi,
@@ -133,6 +134,7 @@ class BackendApi {
   private readonly adminKraefteQualifikationenApi: AdminKraefteQualifikationenApi;
   private readonly adminStammdatenFahrzeugeApi: AdminStammdatenFahrzeugeApi;
   private readonly adminStammdatenPersonenApi: AdminStammdatenPersonenApi;
+  private readonly einsatzEinheitenApi: EinsatzEinheitenApi;
   private readonly einsatzFahrzeugeApi: EinsatzFahrzeugeApi;
   private readonly einsatzPersonenApi: EinsatzPersonenApi;
   private readonly kraefteDashboardApi: KraefteDashboardApi;
@@ -191,6 +193,7 @@ class BackendApi {
     this.kraefteRollenDefinitionenApi = new KraefteRollenDefinitionenApi(this.configuration);
     this.adminStammdatenFahrzeugeApi = new AdminStammdatenFahrzeugeApi(this.configuration);
     this.adminStammdatenPersonenApi = new AdminStammdatenPersonenApi(this.configuration);
+    this.einsatzEinheitenApi = new EinsatzEinheitenApi(this.configuration);
     this.einsatzFahrzeugeApi = new EinsatzFahrzeugeApi(this.configuration);
     this.einsatzPersonenApi = new EinsatzPersonenApi(this.configuration);
     this.kraefteDashboardApi = new KraefteDashboardApi(this.configuration);
@@ -390,6 +393,15 @@ class BackendApi {
    */
   adminStammdatenFahrzeuge(): AdminStammdatenFahrzeugeApi {
     return this.adminStammdatenFahrzeugeApi;
+  }
+
+  /**
+   * Gibt die gecachte EinsatzEinheiten-API-Instanz zurück
+   *
+   * @returns Die EinsatzEinheiten-API-Instanz für Taktische Einheiten-Management
+   */
+  einsatzEinheiten(): EinsatzEinheitenApi {
+    return this.einsatzEinheitenApi;
   }
 
   /**

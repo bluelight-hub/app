@@ -205,6 +205,12 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get einsatzBeitrittsanfrage() {
     return this._client.einsatzBeitrittsanfrage;
   }
+  get einsatzEinheit() {
+    return this._client.einsatzEinheit;
+  }
+  get einsatzPersonEinheit() {
+    return this._client.einsatzPersonEinheit;
+  }
 
   // Delegate Prisma Client methods
   $connect() {
