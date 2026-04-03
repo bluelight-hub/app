@@ -1,3 +1,10 @@
+## Fahrzeugverwaltung
+
+- **Bidirektionale Fahrzeug-Zuordnung**: Fahrzeuge können jetzt direkt aus der Einheiten-Ansicht zugewiesen werden. Ein neues Panel ermöglicht die flexible Zuweisung von Fahrzeugen zu Einheiten und umgekehrt.
+- **Fahrzeug-Badges in Einheitskarten**: Zugewiesene Fahrzeuge werden jetzt direkt in der Einheitskarte angezeigt (bis zu 3 Fahrzeuge sichtbar, weitere über Overflow-Indikator).
+- **Automatische Ist-Stärke-Berechnung**: Die Ist-Stärke einer Einheit berücksichtigt jetzt automatisch sowohl manuell zugewiesene Personen als auch Fahrzeugbesatzungen (ohne Duplikate).
+- **Fahrzeugbesatzung in Personenzuweisung**: Im Personenzuweisungs-Panel werden jetzt auch Personen angezeigt, die über Fahrzeuge zugeordnet sind. Diese werden automatisch aus der manuellen Zuweisungsliste gefiltert.
+
 ## Einsatzverwaltung
 
 - **Taktische Einheitenverwaltung**: Einheiten können jetzt während eines Einsatzes erstellt, bearbeitet und hierarchisch organisiert werden. Personal und Fahrzeuge lassen sich den Einheiten direkt zuweisen
