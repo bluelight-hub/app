@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Navigate } from '@tanstack/react-router';
-import { PiPlus, PiWarning } from 'react-icons/pi';
+import { PiPlus } from 'react-icons/pi';
 import { useAdminAuth } from '@/features/auth/api';
 import { useAdminBefehlsgeberVorschlaegeManagement, type BefehlsgeberVorschlagDto, type CreateBefehlsgeberVorschlagDto, type UpdateBefehlsgeberVorschlagDto } from '@/features/admin/api';
 import { DeleteBefehlsgeberVorschlagDialog } from '../organisms/DeactivateBefehlsgeberVorschlagDialog';
@@ -111,7 +111,7 @@ export function AdminBefehlsgeberVorschlaege() {
   };
 
   // Loading State
-  if (isAuthLoading || isBefehlsgeberVorschlaegeLoading) {
+  if (isAuthLoading) {
     return (
       <Container maxWidth="6xl" className="py-8">
         <div className="flex flex-col gap-6">
@@ -123,43 +123,7 @@ export function AdminBefehlsgeberVorschlaege() {
             </div>
             <Skeleton className="h-10 w-48" />
           </div>
-
-          {/* Table Skeleton */}
-          <Card padding="none">
-            <div className="p-6">
-              <div className="space-y-4">
-                {[1, 2, 3, 4, 5].map((skeletonId) => (
-                  <div key={`skeleton-${skeletonId}`} className="flex items-center gap-4">
-                    <Skeleton className="h-6 w-24" />
-                    <Skeleton className="h-6 w-32" />
-                    <Skeleton className="h-6 w-20" />
-                    <Skeleton className="h-6 w-16" />
-                    <Skeleton className="h-6 w-16" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </Card>
         </div>
-      </Container>
-    );
-  }
-
-  // Error State
-  if (error) {
-    return (
-      <Container maxWidth="6xl" className="py-8">
-        <Card padding="lg" className="text-center">
-          <div className="flex flex-col items-center gap-4">
-            <PiWarning className="h-12 w-12 text-red-500" />
-            <Heading size="md">Fehler beim Laden</Heading>
-            <Text className="text-gray-600">Die Befehlsgeber-Vorschläge konnten nicht geladen werden.</Text>
-            <Text className="text-sm text-gray-500">{error.message}</Text>
-            <Button onClick={() => void refetch()} intent="primary" loading={isBefehlsgeberVorschlaegeLoading} disabled={isBefehlsgeberVorschlaegeLoading}>
-              Erneut versuchen
-            </Button>
-          </div>
-        </Card>
       </Container>
     );
   }
@@ -183,14 +147,17 @@ export function AdminBefehlsgeberVorschlaege() {
           </div>
 
           {/* Table */}
-          <Card padding="none">
+          <Card padding="lg">
             <BefehlsgeberVorschlaegeTable
               befehlsgeberVorschlaege={befehlsgeberVorschlaege || []}
               isLoading={isBefehlsgeberVorschlaegeLoading}
+              error={error}
+              onRetry={() => void refetch()}
               onEdit={handleEditBefehlsgeberVorschlag}
               onDelete={handleDeleteBefehlsgeberVorschlag}
               updatingId={updatingId}
               deletingId={deletingId}
+              onCreateOpen={() => setIsCreateDialogOpen(true)}
             />
           </Card>
         </div>
