@@ -1,3 +1,4 @@
+import { formatAddress } from '@/shared/lib/addressFormatter';
 import { useUserNames } from '@/features/auth/api/use-users';
 import { FMS_STATUS_LABELS, useActiveEinsatz, useEinsatzDetails, useEinsatzFahrzeuge } from '@/features/einsatz';
 import { isWorkspaceRouteAccessible } from '@/features/workspace';
@@ -84,21 +85,6 @@ function parseDate(value: Date | string | null | undefined): Date | null {
 
   const parsed = value instanceof Date ? value : new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
-}
-
-function formatEinsatzort(einsatzort: DashboardEinsatz['einsatzort']): string {
-  if (!einsatzort) {
-    return 'Ort wird nachgereicht';
-  }
-
-  if (typeof einsatzort === 'string') {
-    return einsatzort;
-  }
-
-  const street = [einsatzort.strasse, einsatzort.hausnummer].filter(Boolean).join(' ');
-  const locality = [einsatzort.plz, einsatzort.ort].filter(Boolean).join(' ');
-
-  return [street, locality].filter(Boolean).join(', ');
 }
 
 function getEinsatzDisplayName(einsatz: DashboardEinsatz): string {
@@ -449,7 +435,7 @@ export function SingleEinsatzDashboard() {
 
   const startTime = getEinsatzStartTime(einsatz);
   const einsatzName = getEinsatzDisplayName(einsatz);
-  const einsatzort = formatEinsatzort(einsatz.einsatzort);
+  const einsatzort = formatAddress(einsatz.einsatzort);
   const duration = formatDistanceToNow(startTime, { locale: de, addSuffix: false });
   const latestEntry = etbEntries.at(-1);
   const pois = Array.isArray(lagekarte?.pois) ? (lagekarte.pois as Array<Record<string, unknown>>) : [];

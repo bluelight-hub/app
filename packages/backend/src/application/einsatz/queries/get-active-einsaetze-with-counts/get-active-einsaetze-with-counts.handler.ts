@@ -116,17 +116,34 @@ export class GetActiveEinsaetzeWithCountsQueryHandler implements IQueryHandler<G
         nummer: e.nummer,
         alarmstichwort: e.alarmstichwort ?? '', // null � empty string f�r API
         status: e.status as EinsatzListItemDto['status'],
-        einsatzort: e.einsatzort ? { ort: e.einsatzort } : undefined,
+        einsatzort: e.einsatzort ? GetActiveEinsaetzeWithCountsQueryHandler.parseEinsatzort(e.einsatzort) : undefined,
         createdAt: e.createdAt,
         etbEintraegeCount: e.einsatztagebuch?._count?.eintraege ?? 0,
         poisCount: e.lagekarte?._count?.pois ?? 0,
       }));
 
       return Result.ok(dtos);
-    } catch (error) {
+    } catch (error: unknown) {
       // Structured Logging f�r Produktions-Debugging
-      this.logger.error('Unerwarteter Fehler beim Laden aktiver Eins�tze mit Counts', error instanceof Error ? error.stack : String(error));
-      return Result.fail('Fehler beim Laden der Eins�tze');
+      this.logger.error('Unerwarteter Fehler beim Laden aktiver Einsätze mit Counts', error instanceof Error ? error.stack : String(error));
+      return Result.fail('Fehler beim Laden der Einsätze');
     }
+  }
+
+  /**
+   * Parsed den einsatzort-String aus der DB (JSON oder Plain-Text) zu { ort: string }.
+   * Die DB speichert Adressen als JSON-String (z.B. '{"ort":"München"}').
+   * Ältere Einträge oder E2E-Tests können Plain-Text enthalten (z.B. 'Test-Ort').
+   */
+  private static parseEinsatzort(raw: string): { ort: string } {
+    try {
+      const parsed = JSON.parse(raw);
+      if (typeof parsed === 'object' && parsed !== null && typeof parsed.ort === 'string') {
+        return { ort: parsed.ort };
+      }
+    } catch {
+      // Kein JSON → Plain-Text als ort verwenden
+    }
+    return { ort: raw };
   }
 }

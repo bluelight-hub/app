@@ -1,3 +1,4 @@
+import { formatAddress } from '@/shared/lib/addressFormatter';
 import type { MeineEinsatzRolleDtoRolleEnum } from '@bluelight-hub/shared/client';
 import { useEinsatzDetails } from '@/features/einsatz';
 import { useUnquittierteBefehleCount } from '@/features/befehl';
@@ -96,7 +97,7 @@ export function SecondaryRoleDashboard({ einsatzId, rolle }: SecondaryRoleDashbo
             <dt className="text-body-sm text-text-secondary">Einsatzort</dt>
             <dd className="mt-1 flex items-center gap-1 font-medium text-text-primary">
               <PiMapPin className="h-4 w-4 text-text-muted" aria-hidden="true" />
-              {einsatz.einsatzort || '—'}
+              {einsatz.einsatzort ? formatAddress(einsatz.einsatzort) : '—'}
             </dd>
           </div>
           <div>

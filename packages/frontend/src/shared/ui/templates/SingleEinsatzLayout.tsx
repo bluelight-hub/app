@@ -1,3 +1,4 @@
+import { formatAddress } from '@/shared/lib/addressFormatter';
 import { useCurrentUser } from '@/features/auth';
 import { useBefehlNotifications, useBefehlWebSocket, useMissedBefehlAlerts, useUnquittierteBefehleCount } from '@/features/befehl';
 import { useMyEinsatzRolle } from '@/features/befehl/api/use-my-einsatz-rolle';
@@ -442,7 +443,7 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
           subtitle: einsatz?.alarmstichwort ? (
             <>
               {einsatz.alarmstichwort}
-              {einsatz.einsatzort && ` • ${einsatz.einsatzort}`}
+              {einsatz.einsatzort && ` • ${formatAddress(einsatz.einsatzort)}`}
             </>
           ) : undefined,
           backAction: {
