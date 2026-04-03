@@ -9,6 +9,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/shared';
 import { logger } from '@/shared/lib/logger';
 import { KRAEFTE_QUERY_KEYS } from './queries';
+import { EINSATZ_QUERY_KEYS } from '@/features/einsatz/api/queries';
 
 /** Parameter für die Fahrzeug→Einheit Zuweisungs-Mutation */
 interface AssignFahrzeugZuEinheitParams {
@@ -48,6 +49,10 @@ export const useAssignFahrzeugZuEinheit = (einsatzId: string) => {
       });
     },
     onSuccess: () => {
+      // Beide Fahrzeug-Query-Keys invalidieren (Einsatz + Kräfte Feature nutzen unterschiedliche Keys)
+      queryClient.invalidateQueries({
+        queryKey: EINSATZ_QUERY_KEYS.fahrzeuge(einsatzId),
+      });
       queryClient.invalidateQueries({
         queryKey: KRAEFTE_QUERY_KEYS.fahrzeuge(einsatzId),
       });
