@@ -1,94 +1,35 @@
 import { useCurrentUser, useAdminLogout } from '@/features/auth';
-import { useAdminUserManagement, useAdminStammFahrzeugeManagement, useAdminStammPersonenManagement } from '@/features/admin/api';
+import {
+  useAdminUserManagement,
+  useAdminStammFahrzeugeManagement,
+  useAdminStammPersonenManagement,
+  useAdminQualifikationenManagement,
+  useAdminRollenDefinitionenManagement,
+  useAdminFahrzeugtypenManagement,
+  useListInvites,
+  useIntegrationOverview,
+} from '@/features/admin/api';
 import { logger } from '@/shared/lib/logger';
 import { Button } from '@/shared/ui/atoms/button.atom';
+import { Card } from '@/shared/ui/atoms/card.atom';
 import { Heading } from '@/shared/ui/atoms/heading.atom';
+import { Skeleton } from '@/shared/ui/atoms/skeleton';
 import { Text } from '@/shared/ui/atoms/text.atom';
-import { cn } from '@/shared/ui/cn';
-import { StatCard } from '@/shared/ui/molecules/stat-card.molecule';
 import { AdminDashboardLayout } from '@/shared/ui/templates/AdminDashboardLayout';
 import { useNavigate } from '@tanstack/react-router';
 import { isTauri } from '@tauri-apps/api/core';
-import { useCallback, useMemo, type ReactNode } from 'react';
-import {
-  PiBell,
-  PiCaretRight,
-  PiCertificate,
-  PiIdentificationBadge,
-  PiKey,
-  PiLockKey,
-  PiMegaphone,
-  PiMetronome,
-  PiPlugsConnected,
-  PiSignOut,
-  PiSliders,
-  PiTicket,
-  PiTruck,
-  PiUserList,
-  PiUsers,
-} from 'react-icons/pi';
+import { useCallback, useMemo, useState } from 'react';
+import { PiCaretRight, PiCertificate, PiIdentificationBadge, PiPlus, PiPlugsConnected, PiSignOut, PiTicket, PiTruck, PiUserList, PiUsers } from 'react-icons/pi';
+import { StatCard } from '@/features/admin/ui/molecules/StatCard';
+import { CreateUserDialog } from '@/features/admin/ui/organisms/CreateUserDialog';
+import { CreateInviteDialog } from '@/features/admin/ui/organisms/CreateInviteDialog';
+import { CreateStammFahrzeugDialog } from '@/features/admin/ui/organisms/CreateStammFahrzeugDialog';
+import { CreateStammPersonDialog } from '@/features/admin/ui/organisms/CreateStammPersonDialog';
+import type { CreateUserDto } from '@/shared';
 
-/** Navigation-Card für das Admin-Dashboard */
-function NavCard({
-  icon,
-  title,
-  description,
-  onClick,
-  accentColor = 'blue',
-}: {
-  icon: ReactNode;
-  title: string;
-  description: string;
-  onClick: () => void;
-  accentColor?: 'blue' | 'emerald' | 'violet' | 'amber';
-}) {
-  const accentStyles = {
-    blue: 'group-hover:bg-status-info-surface group-hover:text-status-info-text',
-    emerald: 'group-hover:bg-status-success-surface group-hover:text-status-success-text',
-    violet: 'group-hover:bg-action-secondary group-hover:text-text-primary',
-    amber: 'group-hover:bg-status-warning-surface group-hover:text-status-warning-text',
-  };
-
-  const iconBgStyles = {
-    blue: 'bg-status-info-surface text-status-info-text',
-    emerald: 'bg-status-success-surface text-status-success-text',
-    violet: 'bg-action-secondary text-text-primary',
-    amber: 'bg-status-warning-surface text-status-warning-text',
-  };
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        'group flex w-full cursor-pointer items-center gap-4 rounded-xl border border-border-subtle bg-surface-panel p-4 text-left transition-all duration-200',
-        'hover:border-border-strong hover:bg-action-secondary focus:outline-none focus-visible:shadow-focus-ring',
-      )}
-    >
-      <div className={cn('flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-colors duration-200', iconBgStyles[accentColor], accentStyles[accentColor])}>{icon}</div>
-      <div className="min-w-0 flex-1">
-        <Text as="span" className="block font-medium text-text-primary">
-          {title}
-        </Text>
-        <Text as="span" size="sm" color="muted" className="mt-0.5 block truncate">
-          {description}
-        </Text>
-      </div>
-      <PiCaretRight className="h-5 w-5 shrink-0 text-text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-text-secondary" />
-    </button>
-  );
-}
-
-/** Sektion-Header für das Admin-Dashboard */
-function SectionHeader({ title, description }: { title: string; description: string }) {
-  return (
-    <div className="mb-4">
-      <Text className="text-lg font-semibold text-text-primary">{title}</Text>
-      <Text size="sm" color="muted" className="mt-1">
-        {description}
-      </Text>
-    </div>
-  );
+/** Sektion-Header */
+function SectionHeader({ title }: { title: string }) {
+  return <Text className="mb-3 text-lg font-semibold text-text-primary">{title}</Text>;
 }
 
 /** Admin-Dashboard Seite */
@@ -97,32 +38,61 @@ export function AdminDashboard() {
   const { user } = useCurrentUser();
   const logoutAdmin = useAdminLogout();
 
-  const { users } = useAdminUserManagement();
-  const { stammFahrzeuge } = useAdminStammFahrzeugeManagement();
-  const { stammPersonen } = useAdminStammPersonenManagement();
+  // Daten-Hooks
+  const { users, isLoading: usersLoading, createUser, isCreating } = useAdminUserManagement();
+  const { stammFahrzeuge, isLoading: fahrzeugeLoading, createStammFahrzeug, isCreating: isCreatingFahrzeug } = useAdminStammFahrzeugeManagement();
+  const { stammPersonen, isLoading: personenLoading, createStammPerson, isCreating: isCreatingPerson } = useAdminStammPersonenManagement();
+  const { qualifikationen, isLoading: qualifikationenLoading } = useAdminQualifikationenManagement();
+  const { rollenDefinitionen } = useAdminRollenDefinitionenManagement();
+  const { fahrzeugtypen, isLoading: fahrzeugtypenLoading } = useAdminFahrzeugtypenManagement();
+  const invitesQuery = useListInvites({ status: 'ACTIVE' as any });
+  const integrationOverview = useIntegrationOverview();
 
-  const stats = useMemo(() => {
-    const userList = users ?? [];
-    const lockedCount = userList.filter((u) => u.isLocked).length;
-    const fahrzeugeList = stammFahrzeuge ?? [];
-    const personenList = stammPersonen ?? [];
-    return {
-      totalUsers: userList.length,
-      lockedUsers: lockedCount,
-      totalFahrzeuge: fahrzeugeList.length,
-      totalPersonen: personenList.length,
-    };
-  }, [users, stammFahrzeuge, stammPersonen]);
+  // Dialog-States
+  const [isCreateUserOpen, setIsCreateUserOpen] = useState(false);
+  const [isCreateInviteOpen, setIsCreateInviteOpen] = useState(false);
+  const [isCreateFahrzeugOpen, setIsCreateFahrzeugOpen] = useState(false);
+  const [isCreatePersonOpen, setIsCreatePersonOpen] = useState(false);
+
+  // KPI-Daten
+  const stats = useMemo(
+    () => ({
+      users: users?.length ?? 0,
+      personen: stammPersonen?.length ?? 0,
+      fahrzeuge: stammFahrzeuge?.length ?? 0,
+      invites: (invitesQuery.data as any)?.data?.length ?? 0,
+    }),
+    [users, stammPersonen, stammFahrzeuge, invitesQuery.data],
+  );
+
+  const kraefteSummary = useMemo(
+    () => ({
+      qualifikationen: qualifikationen?.length ?? 0,
+      rollen: rollenDefinitionen?.length ?? 0,
+      fahrzeugtypen: fahrzeugtypen?.length ?? 0,
+    }),
+    [qualifikationen, rollenDefinitionen, fahrzeugtypen],
+  );
+
+  // Handlers
+  const handleCreateUser = (data: CreateUserDto) => {
+    createUser(data, { onSuccess: () => setIsCreateUserOpen(false) });
+  };
+
+  const handleCreateFahrzeug = (data: any) => {
+    createStammFahrzeug(data, { onSuccess: () => setIsCreateFahrzeugOpen(false) });
+  };
+
+  const handleCreatePerson = (data: any) => {
+    createStammPerson(data, { onSuccess: () => setIsCreatePersonOpen(false) });
+  };
 
   const handleLogout = useCallback(async () => {
     await logoutAdmin.mutateAsync();
-
-    // In Tauri: Fenster schließen
     if (isTauri()) {
       try {
         const { getCurrentWebviewWindow } = await import('@tauri-apps/api/webviewWindow');
-        const currentWindow = getCurrentWebviewWindow();
-        await currentWindow.close();
+        await getCurrentWebviewWindow().close();
       } catch (error) {
         logger.error('Fehler beim Schließen des Admin-Fensters:', error);
         await navigate({ to: '/' });
@@ -131,6 +101,8 @@ export function AdminDashboard() {
       await navigate({ to: '/' });
     }
   }, [logoutAdmin, navigate]);
+
+  const isKpiLoading = usersLoading || fahrzeugeLoading || personenLoading;
 
   return (
     <AdminDashboardLayout maxWidth="full">
@@ -143,111 +115,117 @@ export function AdminDashboard() {
         </Text>
       </div>
 
-      {/* KPI-Übersicht */}
+      {/* KPI-Karten */}
       <section>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Benutzer" value={stats.totalUsers} icon={PiUsers} variant="info" />
-          <StatCard label="Gesperrte Benutzer" value={stats.lockedUsers} icon={PiLockKey} variant={stats.lockedUsers > 0 ? 'warning' : 'default'} />
-          <StatCard label="Stamm-Fahrzeuge" value={stats.totalFahrzeuge} icon={PiTruck} variant="success" />
-          <StatCard label="Stamm-Personen" value={stats.totalPersonen} icon={PiUserList} variant="success" />
+          {isKpiLoading ? (
+            <>
+              <Skeleton className="h-24 w-full rounded-panel" />
+              <Skeleton className="h-24 w-full rounded-panel" />
+              <Skeleton className="h-24 w-full rounded-panel" />
+              <Skeleton className="h-24 w-full rounded-panel" />
+            </>
+          ) : (
+            <>
+              <StatCard label="Benutzer" value={stats.users} icon={PiUsers} />
+              <StatCard label="Personen" value={stats.personen} icon={PiUserList} />
+              <StatCard label="Fahrzeuge" value={stats.fahrzeuge} icon={PiTruck} />
+              <StatCard label="Offene Einladungen" value={stats.invites} icon={PiTicket} />
+            </>
+          )}
         </div>
       </section>
 
+      {/* Quick Actions */}
       <section>
-        <SectionHeader title="Admin-Funktionen" description="Benutzer verwalten, Einstellungen konfigurieren und mehr" />
-        <div className="grid gap-4 sm:grid-cols-2">
-          <NavCard icon={<PiUsers className="h-6 w-6" />} title="Benutzerverwaltung" description="Benutzerkonten verwalten" onClick={() => navigate({ to: '/admin/users' })} accentColor="blue" />
-          <NavCard
-            icon={<PiSliders className="h-6 w-6" />}
-            title="Secret-Verwaltung"
-            description="Interne und externe App-Secrets verwalten"
-            onClick={() => navigate({ to: '/admin/runtime-konfiguration' })}
-            accentColor="violet"
-          />
-          <NavCard
-            icon={<PiCertificate className="h-6 w-6" />}
-            title="Qualifikationen"
-            description="Qualifikationen definieren"
-            onClick={() => navigate({ to: '/admin/kraefte/qualifikationen' })}
-            accentColor="blue"
-          />
-          <NavCard
-            icon={<PiIdentificationBadge className="h-6 w-6" />}
-            title="Rollen-Definitionen"
-            description="Einsatzrollen konfigurieren"
-            onClick={() => navigate({ to: '/admin/kraefte/rollen-definitionen' })}
-            accentColor="blue"
-          />
-          <NavCard
-            icon={<PiTruck className="h-6 w-6" />}
-            title="Fahrzeugtypen"
-            description="Fahrzeugtypen verwalten"
-            onClick={() => navigate({ to: '/admin/kraefte/fahrzeugtypen' })}
-            accentColor="blue"
-          />
-          <NavCard icon={<PiTicket className="h-6 w-6" />} title="Invite-Codes" description="Einladungen verwalten" onClick={() => navigate({ to: '/admin/invites' })} accentColor="blue" />
-          <NavCard icon={<PiKey className="h-6 w-6" />} title="Access-Tokens" description="API-Zugriff verwalten" onClick={() => navigate({ to: '/admin/tokens' })} accentColor="blue" />
-          <NavCard
-            icon={<PiBell className="h-6 w-6" />}
-            title="Erinnerungen"
-            description="Timeouts & globale Einstellungen"
-            onClick={() => navigate({ to: '/admin/erinnerungen' })}
-            accentColor="blue"
-          />
-          <NavCard
-            icon={<PiMetronome className="h-6 w-6" />}
-            title="Führungsrhythmus-Templates"
-            description="Globale Templates verwalten"
-            onClick={() => navigate({ to: '/admin/fuehrungsrhythmus-templates' })}
-            accentColor="blue"
-          />
-          <NavCard
-            icon={<PiMegaphone className="h-6 w-6" />}
-            title="Befehlsgeber-Vorschläge"
-            description="Vorschläge für Befehlsgeber verwalten"
-            onClick={() => navigate({ to: '/admin/befehlsgeber-vorschlaege' })}
-            accentColor="amber"
-          />
+        <SectionHeader title="Schnellaktionen" />
+        <div className="flex flex-wrap gap-3">
+          <Button intent="primary" appearance="outline" size="sm" onClick={() => setIsCreateUserOpen(true)}>
+            <PiPlus className="mr-1.5 h-4 w-4" />
+            Benutzer anlegen
+          </Button>
+          <Button intent="primary" appearance="outline" size="sm" onClick={() => setIsCreateInviteOpen(true)}>
+            <PiPlus className="mr-1.5 h-4 w-4" />
+            Einladung erstellen
+          </Button>
+          <Button intent="primary" appearance="outline" size="sm" onClick={() => setIsCreateFahrzeugOpen(true)}>
+            <PiPlus className="mr-1.5 h-4 w-4" />
+            Fahrzeug anlegen
+          </Button>
+          <Button intent="primary" appearance="outline" size="sm" onClick={() => setIsCreatePersonOpen(true)}>
+            <PiPlus className="mr-1.5 h-4 w-4" />
+            Person anlegen
+          </Button>
         </div>
       </section>
 
+      {/* Statusübersicht */}
       <section>
-        <SectionHeader title="Stammdaten" description="Fahrzeuge und Personal Ihrer Organisation verwalten" />
+        <SectionHeader title="Statusübersicht" />
         <div className="grid gap-4 sm:grid-cols-2">
-          <NavCard
-            icon={<PiTruck className="h-6 w-6" />}
-            title="Stamm-Fahrzeuge"
-            description="Fahrzeugflotte verwalten"
-            onClick={() => navigate({ to: '/admin/stammdaten/fahrzeuge' })}
-            accentColor="emerald"
-          />
-          <NavCard
-            icon={<PiUserList className="h-6 w-6" />}
-            title="Stamm-Personen"
-            description="Personal verwalten"
-            onClick={() => navigate({ to: '/admin/stammdaten/personen' })}
-            accentColor="emerald"
-          />
-        </div>
-      </section>
+          {/* Kräfte */}
+          <Card padding="md">
+            <div className="flex items-start justify-between">
+              <div>
+                <Text className="font-semibold text-text-primary">Kräfte</Text>
+                <Text size="sm" color="muted" className="mt-2">
+                  {kraefteSummary.qualifikationen} Qualifikationen · {kraefteSummary.rollen} Rollen · {kraefteSummary.fahrzeugtypen} Fahrzeugtypen
+                </Text>
+              </div>
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => navigate({ to: '/admin/kraefte/qualifikationen' })}
+                  className="rounded p-1.5 text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary"
+                  aria-label="Qualifikationen"
+                  title="Qualifikationen"
+                >
+                  <PiCertificate className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate({ to: '/admin/kraefte/rollen-definitionen' })}
+                  className="rounded p-1.5 text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary"
+                  aria-label="Rollen-Definitionen"
+                  title="Rollen-Definitionen"
+                >
+                  <PiIdentificationBadge className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate({ to: '/admin/kraefte/fahrzeugtypen' })}
+                  className="rounded p-1.5 text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary"
+                  aria-label="Fahrzeugtypen"
+                  title="Fahrzeugtypen"
+                >
+                  <PiTruck className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </Card>
 
-      <section>
-        <SectionHeader title="Integrationen" description="Externe Systeme für den Datenimport verbinden" />
-        <div className="grid gap-4 sm:grid-cols-2">
-          <NavCard
-            icon={<PiPlugsConnected className="h-6 w-6" />}
-            title="Integrationsübersicht"
-            description="Status aller externen Integrationen"
-            onClick={() => navigate({ to: '/admin/integrations/' })}
-            accentColor="violet"
-          />
-          <NavCard
-            icon={<PiPlugsConnected className="h-6 w-6" />}
-            title="HiOrg-Server"
-            description="HiOrg-Server Anbindung"
-            onClick={() => navigate({ to: '/admin/integrations/hiorg' })}
-            accentColor="violet"
-          />
+          {/* Integrationen */}
+          <Card padding="md">
+            <div className="flex items-start justify-between">
+              <div>
+                <Text className="font-semibold text-text-primary">Integrationen</Text>
+                <Text size="sm" color="muted" className="mt-2">
+                  {integrationOverview.data
+                    ? `${(integrationOverview.data as any[]).filter((i: any) => i.connected).length} von ${(integrationOverview.data as any[]).length} verbunden`
+                    : 'Wird geladen...'}
+                </Text>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate({ to: '/admin/integrations/' })}
+                className="rounded p-1.5 text-text-muted transition-colors hover:bg-surface-raised hover:text-text-primary"
+                aria-label="Integrationen"
+                title="Integrationen"
+              >
+                <PiCaretRight className="h-4 w-4" />
+              </button>
+            </div>
+          </Card>
         </div>
       </section>
 
@@ -257,6 +235,26 @@ export function AdminDashboard() {
           Admin-Bereich verlassen
         </Button>
       </div>
+
+      {/* Dialoge */}
+      <CreateUserDialog isOpen={isCreateUserOpen} onClose={() => setIsCreateUserOpen(false)} onSubmit={handleCreateUser} isSubmitting={isCreating} />
+      <CreateInviteDialog isOpen={isCreateInviteOpen} onClose={() => setIsCreateInviteOpen(false)} />
+      <CreateStammFahrzeugDialog
+        isOpen={isCreateFahrzeugOpen}
+        onClose={() => setIsCreateFahrzeugOpen(false)}
+        onSubmit={handleCreateFahrzeug}
+        isSubmitting={isCreatingFahrzeug}
+        fahrzeugtypen={fahrzeugtypen ?? []}
+        fahrzeugtypenLoading={fahrzeugtypenLoading}
+      />
+      <CreateStammPersonDialog
+        isOpen={isCreatePersonOpen}
+        onClose={() => setIsCreatePersonOpen(false)}
+        onSubmit={handleCreatePerson}
+        isSubmitting={isCreatingPerson}
+        qualifikationen={qualifikationen ?? []}
+        qualifikationenLoading={qualifikationenLoading}
+      />
     </AdminDashboardLayout>
   );
 }
