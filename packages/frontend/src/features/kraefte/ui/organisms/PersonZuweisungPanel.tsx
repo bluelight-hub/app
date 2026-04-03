@@ -7,7 +7,7 @@
 
 import { useCallback, useMemo } from 'react';
 
-import { PiPlus, PiTrash, PiUser, PiUserCircle, PiUsers, PiCrown } from 'react-icons/pi';
+import { PiPlus, PiTrash, PiTruck, PiUser, PiUserCircle, PiUsers, PiCrown } from 'react-icons/pi';
 
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { LoadingState } from '@/shared/ui/atoms/LoadingState';
@@ -50,15 +50,21 @@ export function PersonZuweisungPanel({ isOpen, onClose, einsatzId, einheitId }: 
 
   const isPending = isAssigning || isRemoving || isSettingFuehrer;
 
-  /** IDs der bereits zugewiesenen Personen */
+  /** IDs der bereits zugewiesenen Personen (explizit + Fahrzeug-Besatzung) */
   const zugewiesenePersonIds = useMemo(() => {
-    if (!details?.personen) return new Set<string>();
-    return new Set(details.personen.map((p) => p.id));
+    const ids = new Set<string>();
+    if (details?.personen) {
+      for (const p of details.personen) ids.add(p.id);
+    }
+    if (details?.fahrzeugPersonen) {
+      for (const p of details.fahrzeugPersonen) ids.add(p.id);
+    }
+    return ids;
   }, [details]);
 
-  /** Verfügbare Personen (nicht bereits zugewiesen) */
+  /** Verfügbare Personen (weder zugewiesen noch an ein Fahrzeug gebunden) */
   const verfuegbarePersonen = useMemo(() => {
-    return allePersonen.filter((p) => !zugewiesenePersonIds.has(p.id));
+    return allePersonen.filter((p) => !zugewiesenePersonIds.has(p.id) && !p.fahrzeugId);
   }, [allePersonen, zugewiesenePersonIds]);
 
   const handleAssign = useCallback(
@@ -161,6 +167,34 @@ export function PersonZuweisungPanel({ isOpen, onClose, einsatzId, einheitId }: 
               </div>
             )}
           </section>
+
+          {/* Fahrzeug-Besatzung (implizit, nicht entfernbar) */}
+          {details?.fahrzeugPersonen && details.fahrzeugPersonen.length > 0 && (
+            <section>
+              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-text-primary">
+                <PiTruck className="h-4 w-4" />
+                Fahrzeug-Besatzung ({details.fahrzeugPersonen.length})
+              </h3>
+
+              <div className="space-y-2">
+                {details.fahrzeugPersonen.map((person) => (
+                  <div key={person.id} className="flex items-center justify-between rounded-panel border border-border-subtle bg-surface-raised p-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-status-warning-surface">
+                        <PiTruck className="h-4 w-4 text-status-warning-text" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-text-primary">
+                          {person.vorname} {person.nachname}
+                        </p>
+                        <span className="text-xs text-text-muted">{person.fahrzeugFunkrufname}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Verfügbare Personen */}
           <section>

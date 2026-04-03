@@ -6,6 +6,7 @@
  */
 
 import { useState, useCallback, useMemo } from 'react';
+import type { EinsatzFahrzeugDto } from '@/shared';
 
 import { PiPlus, PiTreeStructure, PiShieldCheck, PiWarning, PiXCircle } from 'react-icons/pi';
 
@@ -15,6 +16,7 @@ import { ErrorState } from '@/shared/ui/atoms/ErrorState';
 import { Dialog } from '@/shared/ui/molecules/dialog.molecule';
 
 import { useEinsatzEinheiten } from '@/features/kraefte/api/use-einsatz-einheiten';
+import { useEinsatzFahrzeuge } from '@/features/kraefte/api/use-einsatz-fahrzeuge';
 import { useChangeEinheitStatus } from '@/features/kraefte/api/use-change-einheit-status';
 import { useDeleteEinheit } from '@/features/kraefte/api/use-delete-einheit';
 
@@ -22,6 +24,7 @@ import { EinheitenBaum } from '../organisms/EinheitenBaum';
 import { EinheitCreateDialog } from '../organisms/EinheitCreateDialog';
 import { EinheitEditDialog } from '../organisms/EinheitEditDialog';
 import { PersonZuweisungPanel } from '../organisms/PersonZuweisungPanel';
+import { FahrzeugZuweisungPanel } from '../organisms/FahrzeugZuweisungPanel';
 
 interface TaktischeEinheitenPageProps {
   /** Einsatz-ID */
@@ -41,9 +44,23 @@ export function TaktischeEinheitenPage({ einsatzId }: TaktischeEinheitenPageProp
   const [editEinheitId, setEditEinheitId] = useState<string | null>(null);
   const [deleteEinheitId, setDeleteEinheitId] = useState<string | null>(null);
   const [zuweisungEinheitId, setZuweisungEinheitId] = useState<string | null>(null);
+  const [fahrzeugZuweisungEinheitId, setFahrzeugZuweisungEinheitId] = useState<string | null>(null);
 
   // === Daten laden ===
   const { data: einheiten = [], isLoading, error } = useEinsatzEinheiten(einsatzId);
+  const { data: fahrzeuge = [] } = useEinsatzFahrzeuge(einsatzId);
+
+  /** Fahrzeuge nach Einheit-ID gruppiert */
+  const fahrzeugeByEinheit = useMemo(() => {
+    const map = new Map<string, EinsatzFahrzeugDto[]>();
+    for (const fz of fahrzeuge) {
+      if (!fz.einheitId) continue;
+      const bucket = map.get(fz.einheitId) ?? [];
+      bucket.push(fz);
+      map.set(fz.einheitId, bucket);
+    }
+    return map;
+  }, [fahrzeuge]);
 
   // === Mutations ===
   const { mutate: changeStatus } = useChangeEinheitStatus(einsatzId);
@@ -108,12 +125,20 @@ export function TaktischeEinheitenPage({ einsatzId }: TaktischeEinheitenPageProp
     [changeStatus],
   );
 
-  const handleOpenZuweisung = useCallback((_einheitId: string) => {
-    setZuweisungEinheitId(_einheitId);
+  const handleOpenZuweisung = useCallback((einheitId: string) => {
+    setZuweisungEinheitId(einheitId);
   }, []);
 
   const handleCloseZuweisung = useCallback(() => {
     setZuweisungEinheitId(null);
+  }, []);
+
+  const handleOpenFahrzeugZuweisung = useCallback((einheitId: string) => {
+    setFahrzeugZuweisungEinheitId(einheitId);
+  }, []);
+
+  const handleCloseFahrzeugZuweisung = useCallback(() => {
+    setFahrzeugZuweisungEinheitId(null);
   }, []);
 
   // === Loading State ===
@@ -199,7 +224,16 @@ export function TaktischeEinheitenPage({ einsatzId }: TaktischeEinheitenPageProp
       </div>
 
       {/* Einheiten-Baum */}
-      <EinheitenBaum einheiten={einheiten} onEdit={handleEdit} onDelete={handleDelete} onStatusChange={handleStatusChange} onAddChild={handleAddChild} onAssignPersonen={handleOpenZuweisung} />
+      <EinheitenBaum
+        einheiten={einheiten}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onStatusChange={handleStatusChange}
+        onAddChild={handleAddChild}
+        onAssignPersonen={handleOpenZuweisung}
+        onAssignFahrzeuge={handleOpenFahrzeugZuweisung}
+        fahrzeugeByEinheit={fahrzeugeByEinheit}
+      />
 
       {/* Erstellen Dialog */}
       <EinheitCreateDialog isOpen={showCreateDialog} onClose={handleCloseCreate} einsatzId={einsatzId} parentId={createParentId} />
@@ -222,6 +256,17 @@ export function TaktischeEinheitenPage({ einsatzId }: TaktischeEinheitenPageProp
 
       {/* Personalzuweisung Panel */}
       {zuweisungEinheitId && <PersonZuweisungPanel isOpen={!!zuweisungEinheitId} onClose={handleCloseZuweisung} einsatzId={einsatzId} einheitId={zuweisungEinheitId} />}
+
+      {/* Fahrzeugzuweisung Panel */}
+      {fahrzeugZuweisungEinheitId && (
+        <FahrzeugZuweisungPanel
+          isOpen={!!fahrzeugZuweisungEinheitId}
+          onClose={handleCloseFahrzeugZuweisung}
+          einsatzId={einsatzId}
+          einheitId={fahrzeugZuweisungEinheitId}
+          einheitName={einheiten.find((e) => e.id === fahrzeugZuweisungEinheitId)?.name ?? 'Einheit'}
+        />
+      )}
     </div>
   );
 }

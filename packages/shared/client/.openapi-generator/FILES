@@ -215,6 +215,7 @@ models/EinsatzDetailsDto.ts
 models/EinsatzDto.ts
 models/EinsatzEinheitDetailsDto.ts
 models/EinsatzEinheitDto.ts
+models/EinsatzEinheitFahrzeugPersonDto.ts
 models/EinsatzEinheitPersonDto.ts
 models/EinsatzEinheitenControllerCreateVAlpha201Response.ts
 models/EinsatzEinheitenControllerFindAllVAlpha200Response.ts

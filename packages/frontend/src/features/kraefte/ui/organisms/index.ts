@@ -10,3 +10,4 @@ export { EinheitenBaum } from './EinheitenBaum';
 export { EinheitCreateDialog } from './EinheitCreateDialog';
 export { EinheitEditDialog } from './EinheitEditDialog';
 export { PersonZuweisungPanel } from './PersonZuweisungPanel';
+export { FahrzeugZuweisungPanel } from './FahrzeugZuweisungPanel';
