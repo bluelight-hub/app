@@ -1,5 +1,6 @@
 import { EinsatzCompletenessBar } from '@/features/einsatz/ui/molecules/einsatz-completeness-bar.molecule';
 import { EinsatzStatusBadge } from '@/features/einsatz/ui/molecules/einsatz-status-badge.molecule';
+import { formatAddress } from '@/shared/lib/addressFormatter';
 import { formatNatoDateTime } from '@/shared/lib/dateFormatter';
 import { Textarea } from '@/shared/ui/atoms/textarea.atom';
 import type { EinsatzResponseDto } from '@/shared';
@@ -47,7 +48,7 @@ export function EinsatzInfoCard({ einsatz, isArchived, isEditing, form }: Einsat
           <PiMapPinIcon className="mt-1 h-5 w-5 text-text-muted" />
           <div className="flex-1">
             <p className="text-sm font-medium text-text-secondary">Einsatzort</p>
-            <p className="text-sm text-text-primary">{einsatz.einsatzort || 'Nicht angegeben'}</p>
+            <p className="text-sm text-text-primary">{einsatz.einsatzort ? formatAddress(einsatz.einsatzort) : 'Nicht angegeben'}</p>
           </div>
         </div>
         <div className="flex items-start space-x-2">

@@ -1,5 +1,6 @@
 import { EinsatzStatus, EinsatzStatusBadge } from '@/features/einsatz/ui/molecules/einsatz-status-badge.molecule';
 import { useActiveEinsatz } from '@/features/einsatz';
+import { formatAddress } from '@/shared/lib/addressFormatter';
 import { formatNatoDateTime } from '@/shared/lib/dateFormatter';
 import type { EinsatzListItemDto, EinsatzResponseDto } from '@/shared';
 import { Badge } from '@/shared/ui/atoms/badge.atom';
@@ -13,7 +14,7 @@ interface EinsatzListItemProps {
 export const EinsatzListItem = ({ einsatz }: EinsatzListItemProps) => {
   const { activeEinsatz } = useActiveEinsatz();
   const isCurrentlyActive = activeEinsatz?.id === einsatz.id;
-  const einsatzortLabel = [einsatz.einsatzort?.strasse, einsatz.einsatzort?.ort].filter(Boolean).join(', ');
+  const einsatzortLabel = einsatz.einsatzort ? formatAddress(einsatz.einsatzort) : '';
 
   // Extract counts if available (present in EinsatzListItemDto)
   const etbEintraegeCount = 'etbEintraegeCount' in einsatz ? einsatz.etbEintraegeCount : undefined;
