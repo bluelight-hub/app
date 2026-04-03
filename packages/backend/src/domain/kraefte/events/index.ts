@@ -17,3 +17,8 @@ export { FunkStatusConfigUpdatedEvent } from './funk-status-config-updated.event
 export { RolleBesetzt } from './rolle-besetzt.event';
 export { RolleFreigegeben } from './rolle-freigegeben.event';
 export { PersonenImportiertEvent } from './personen-importiert.event';
+export { EinheitErstelltEvent } from './einheit-erstellt.event';
+export { EinheitStatusGeaendertEvent } from './einheit-status-geaendert.event';
+export { EinheitAufgeloestEvent } from './einheit-aufgeloest.event';
+export { PersonZuEinheitZugewiesenEvent } from './person-zu-einheit-zugewiesen.event';
+export { PersonVonEinheitEntferntEvent } from './person-von-einheit-entfernt.event';

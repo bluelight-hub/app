@@ -43,10 +43,39 @@ export {
   type TaktischeStaerke,
   useEinsatzFahrzeuge,
   useRollenBesetzungen,
+  // Query Hooks (Issue #411 - Taktische Einheiten)
+  useEinsatzEinheiten,
+  useEinheitDetails,
   // Mutation Hooks (Story 6.1c)
   useBesetzeRolle,
   useFreigebeRolle,
+  // Mutation Hooks (Issue #411 - Taktische Einheiten)
+  useCreateEinheit,
+  useUpdateEinheit,
+  useChangeEinheitStatus,
+  useSetEinheitenfuehrer,
+  useAssignPersonToEinheit,
+  useRemovePersonFromEinheit,
+  useMoveEinheit,
+  useDeleteEinheit,
 } from './api';
+
+// ============================================
+// Schemas (Issue #411 - Taktische Einheiten)
+// ============================================
+export {
+  createEinheitSchema,
+  changeEinheitStatusSchema,
+  EINHEIT_TYP_OPTIONS,
+  EINHEIT_STATUS_OPTIONS,
+  type CreateEinheitFormValues,
+  type ChangeEinheitStatusFormValues,
+} from './schemas/einheit.schema';
+
+// ============================================
+// Utils (Issue #411 - Taktische Einheiten)
+// ============================================
+export { buildEinheitenTree, type EinheitTreeNode } from './utils/einheiten-tree.utils';
 
 // ============================================
 // UI Components

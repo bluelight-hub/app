@@ -156,7 +156,6 @@ export const EINSATZ_WORKSPACE_MODULES: WorkspaceModuleDefinition[] = [
         href: '/app/einsatz/$einsatzId/kräfte/einheiten',
         icon: PiUsers,
         description: 'Einheitenübersicht',
-        visibility: disabled(COMING_SOON_REASON),
       }),
       createSubPage(2, { id: 'personal', label: 'Personal', href: '/app/einsatz/$einsatzId/kräfte/personal', icon: PiUserCheck, description: 'Personalverwaltung' }),
       createSubPage(3, { id: 'fahrzeuge', label: 'Fahrzeuge', href: '/app/einsatz/$einsatzId/kräfte/fahrzeuge', icon: PiTruck, description: 'Fahrzeugstatus' }),
