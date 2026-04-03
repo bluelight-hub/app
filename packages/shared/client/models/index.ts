@@ -170,6 +170,7 @@ export * from './EinsatzDetailsDto';
 export * from './EinsatzDto';
 export * from './EinsatzEinheitDetailsDto';
 export * from './EinsatzEinheitDto';
+export * from './EinsatzEinheitFahrzeugPersonDto';
 export * from './EinsatzEinheitPersonDto';
 export * from './EinsatzEinheitenControllerCreateVAlpha201Response';
 export * from './EinsatzEinheitenControllerFindAllVAlpha200Response';

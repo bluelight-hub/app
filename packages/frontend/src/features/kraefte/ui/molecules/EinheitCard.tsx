@@ -8,11 +8,12 @@
 
 import { useCallback, useState } from 'react';
 
-import { PiCaretDown, PiCaretRight, PiPencilSimple, PiPlus, PiTrash, PiUserCircle, PiUsers } from 'react-icons/pi';
+import { PiCaretDown, PiCaretRight, PiPencilSimple, PiPlus, PiTrash, PiTruck, PiUserCircle, PiUsers } from 'react-icons/pi';
 
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { cn } from '@/shared/ui/cn';
 
+import type { EinsatzFahrzeugDto } from '@/shared';
 import type { EinheitTreeNode } from '@/features/kraefte/utils/einheiten-tree.utils';
 
 import { EinheitStatusBadge } from './EinheitStatusBadge';
@@ -42,6 +43,10 @@ interface EinheitCardProps {
   onAddChild: (parentId: string) => void;
   /** Handler für "Personen zuweisen" */
   onAssignPersonen: (einheitId: string) => void;
+  /** Handler für "Fahrzeuge zuweisen" */
+  onAssignFahrzeuge: (einheitId: string) => void;
+  /** Alle Fahrzeuge des Einsatzes (für Badges, Filterung nach einheitId intern) */
+  fahrzeugeByEinheit: Map<string, EinsatzFahrzeugDto[]>;
 }
 
 /**
@@ -50,7 +55,7 @@ interface EinheitCardProps {
  * Unterstützt beliebige Verschachtelungstiefe durch rekursives Rendering
  * der children. Die Einrückung erfolgt über dynamische padding-left Berechnung.
  */
-export function EinheitCard({ node, depth, onEdit, onDelete, onStatusChange, onAddChild, onAssignPersonen }: EinheitCardProps) {
+export function EinheitCard({ node, depth, onEdit, onDelete, onStatusChange, onAddChild, onAssignPersonen, onAssignFahrzeuge, fahrzeugeByEinheit }: EinheitCardProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
 
@@ -76,6 +81,13 @@ export function EinheitCard({ node, depth, onEdit, onDelete, onStatusChange, onA
   const handleAssignPersonen = useCallback(() => {
     onAssignPersonen(einheit.id);
   }, [onAssignPersonen, einheit.id]);
+
+  const handleAssignFahrzeuge = useCallback(() => {
+    onAssignFahrzeuge(einheit.id);
+  }, [onAssignFahrzeuge, einheit.id]);
+
+  /** Fahrzeuge dieser Einheit */
+  const einheitFahrzeuge = fahrzeugeByEinheit.get(einheit.id) ?? [];
 
   const handleStatusSelect = useCallback(
     (status: string) => {
@@ -148,6 +160,19 @@ export function EinheitCard({ node, depth, onEdit, onDelete, onStatusChange, onA
                   Auftrag: {String(einheit.auftrag)}
                 </span>
               )}
+
+              {/* Fahrzeug-Badges */}
+              {einheitFahrzeuge.length > 0 && (
+                <span className="inline-flex items-center gap-1">
+                  <PiTruck className="h-3.5 w-3.5" />
+                  {einheitFahrzeuge.slice(0, 3).map((f) => (
+                    <span key={f.id} className="rounded-pill bg-surface-raised px-1.5 py-0.5 text-xs font-medium text-text-secondary">
+                      {f.funkrufname}
+                    </span>
+                  ))}
+                  {einheitFahrzeuge.length > 3 && <span className="text-xs text-text-muted">+{einheitFahrzeuge.length - 3}</span>}
+                </span>
+              )}
             </div>
           </div>
 
@@ -161,6 +186,11 @@ export function EinheitCard({ node, depth, onEdit, onDelete, onStatusChange, onA
             {/* Personen zuweisen */}
             <Button intent="info" appearance="ghost" size="icon" onClick={handleAssignPersonen} title="Personen zuweisen" aria-label="Personen zuweisen">
               <PiUsers className="h-4 w-4" />
+            </Button>
+
+            {/* Fahrzeuge zuweisen */}
+            <Button intent="secondary" appearance="ghost" size="icon" onClick={handleAssignFahrzeuge} title="Fahrzeuge zuweisen" aria-label={`Fahrzeuge für ${einheit.name} zuweisen`}>
+              <PiTruck className="h-4 w-4" />
             </Button>
 
             {/* Status ändern */}
@@ -234,6 +264,8 @@ export function EinheitCard({ node, depth, onEdit, onDelete, onStatusChange, onA
               onStatusChange={onStatusChange}
               onAddChild={onAddChild}
               onAssignPersonen={onAssignPersonen}
+              onAssignFahrzeuge={onAssignFahrzeuge}
+              fahrzeugeByEinheit={fahrzeugeByEinheit}
             />
           ))}
         </div>

@@ -5,7 +5,7 @@ import { EINSATZ_EINHEIT_ERROR_CODES, EinsatzEinheitError } from '@domain/kraeft
 import type { ILogger } from '@domain/ports/i-logger.port';
 import { KRAEFTE_REPOSITORIES, LOGGER } from '@infrastructure/di-tokens';
 import { PrismaService } from '@/infrastructure/database/prisma.service';
-import type { EinsatzEinheitDetailsDto, EinsatzEinheitPersonDto } from '../../dto';
+import type { EinsatzEinheitDetailsDto, EinsatzEinheitFahrzeugPersonDto, EinsatzEinheitPersonDto } from '../../dto';
 import { mapEinheitToDto } from '../../einsatz-einheit-mapper';
 import type { GetEinheitDetailsQuery } from './get-einheit-details.query';
 
@@ -95,15 +95,53 @@ export class GetEinheitDetailsHandler {
       einheitenfuehrer = fuehrer ?? null;
     }
 
-    // 6. Detail-DTO zusammenbauen
+    // 6. Fahrzeug-Besatzung laden (Personen deren Fahrzeug dieser Einheit zugewiesen ist)
+    const explicitPersonIds = new Set(personenDtos.map((p) => p.id));
+    const vehicleCrewPersonen = await this.prisma.einsatzPerson.findMany({
+      where: {
+        einsatzId: query.einsatzId,
+        fahrzeug: { einheitId: query.einheitId },
+      },
+      select: {
+        id: true,
+        vorname: true,
+        nachname: true,
+        funktion: true,
+        funkrufname: true,
+        fahrzeug: { select: { funkrufname: true } },
+      },
+      orderBy: { nachname: 'asc' },
+    });
+
+    // 7. Fahrzeug-Personen-DTOs erstellen (nur die, die nicht bereits explizit zugewiesen sind)
+    const fahrzeugPersonenDtos: EinsatzEinheitFahrzeugPersonDto[] = vehicleCrewPersonen
+      .filter((vp) => !explicitPersonIds.has(vp.id))
+      .map((vp) => ({
+        id: vp.id,
+        vorname: vp.vorname,
+        nachname: vp.nachname,
+        funktion: vp.funktion,
+        funkrufname: vp.funkrufname ?? null,
+        fahrzeugFunkrufname: vp.fahrzeug?.funkrufname ?? '',
+      }));
+
+    // 8. Kombinierte istStaerke: Explizite Personen + Fahrzeug-Besatzung (dedupliziert)
+    const combinedPersonIds = new Set(explicitPersonIds);
+    for (const vp of vehicleCrewPersonen) {
+      combinedPersonIds.add(vp.id);
+    }
+
+    // 9. Detail-DTO zusammenbauen
     const baseDto = mapEinheitToDto(einheit);
     const detailsDto: EinsatzEinheitDetailsDto = {
       ...baseDto,
+      istStaerke: combinedPersonIds.size,
       personen: personenDtos,
+      fahrzeugPersonen: fahrzeugPersonenDtos,
       einheitenfuehrer,
     } as EinsatzEinheitDetailsDto;
 
-    this.logger.log(`Einheit ${query.einheitId} mit ${personenDtos.length} Personen geladen`);
+    this.logger.log(`Einheit ${query.einheitId} mit ${personenDtos.length} expliziten + ${fahrzeugPersonenDtos.length} Fahrzeug-Personen geladen`);
 
     return Result.ok(detailsDto);
   }

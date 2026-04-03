@@ -1,5 +1,5 @@
 export { EinsatzEinheitDto } from './einsatz-einheit.dto';
-export { EinsatzEinheitDetailsDto, EinsatzEinheitPersonDto } from './einsatz-einheit-details.dto';
+export { EinsatzEinheitDetailsDto, EinsatzEinheitPersonDto, EinsatzEinheitFahrzeugPersonDto } from './einsatz-einheit-details.dto';
 export { CreateEinsatzEinheitDto } from './create-einheit.dto';
 export { UpdateEinsatzEinheitDto } from './update-einheit.dto';
 export { ChangeEinsatzEinheitStatusDto } from './change-einheit-status.dto';

@@ -9,7 +9,7 @@ import { useMemo } from 'react';
 
 import { PiTreeStructure } from 'react-icons/pi';
 
-import type { EinsatzEinheitDto } from '@/shared';
+import type { EinsatzEinheitDto, EinsatzFahrzeugDto } from '@/shared';
 import { buildEinheitenTree } from '@/features/kraefte/utils/einheiten-tree.utils';
 
 import { EinheitCard } from '../molecules/EinheitCard';
@@ -27,6 +27,10 @@ interface EinheitenBaumProps {
   onAddChild: (parentId: string) => void;
   /** Handler für "Personen zuweisen" */
   onAssignPersonen: (einheitId: string) => void;
+  /** Handler für "Fahrzeuge zuweisen" */
+  onAssignFahrzeuge: (einheitId: string) => void;
+  /** Fahrzeuge gruppiert nach Einheit-ID */
+  fahrzeugeByEinheit: Map<string, EinsatzFahrzeugDto[]>;
 }
 
 /**
@@ -35,7 +39,7 @@ interface EinheitenBaumProps {
  * Baut intern den Baum aus der flachen Liste und zeigt einen
  * Empty-State wenn keine Einheiten vorhanden sind.
  */
-export function EinheitenBaum({ einheiten, onEdit, onDelete, onStatusChange, onAddChild, onAssignPersonen }: EinheitenBaumProps) {
+export function EinheitenBaum({ einheiten, onEdit, onDelete, onStatusChange, onAddChild, onAssignPersonen, onAssignFahrzeuge, fahrzeugeByEinheit }: EinheitenBaumProps) {
   /** Baum aus flacher Liste aufbauen */
   const tree = useMemo(() => buildEinheitenTree(einheiten), [einheiten]);
 
@@ -53,7 +57,18 @@ export function EinheitenBaum({ einheiten, onEdit, onDelete, onStatusChange, onA
   return (
     <div className="space-y-2">
       {tree.map((node) => (
-        <EinheitCard key={node.id} node={node} depth={0} onEdit={onEdit} onDelete={onDelete} onStatusChange={onStatusChange} onAddChild={onAddChild} onAssignPersonen={onAssignPersonen} />
+        <EinheitCard
+          key={node.id}
+          node={node}
+          depth={0}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onStatusChange={onStatusChange}
+          onAddChild={onAddChild}
+          onAssignPersonen={onAssignPersonen}
+          onAssignFahrzeuge={onAssignFahrzeuge}
+          fahrzeugeByEinheit={fahrzeugeByEinheit}
+        />
       ))}
     </div>
   );

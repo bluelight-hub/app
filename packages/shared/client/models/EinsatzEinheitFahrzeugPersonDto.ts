@@ -16,93 +16,95 @@ import { mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface RegistrierePersonDto
+ * @interface EinsatzEinheitFahrzeugPersonDto
  */
-export interface RegistrierePersonDto {
+export interface EinsatzEinheitFahrzeugPersonDto {
     /**
-     * StammPerson ID (optional für Autocomplete-Auswahl)
+     * EinsatzPerson ID (CUID2)
      * @type {string}
-     * @memberof RegistrierePersonDto
+     * @memberof EinsatzEinheitFahrzeugPersonDto
      */
-    stammPersonId?: string;
+    id: string;
     /**
-     * Vorname der Person (1-100 Zeichen)
+     * Vorname der Person
      * @type {string}
-     * @memberof RegistrierePersonDto
+     * @memberof EinsatzEinheitFahrzeugPersonDto
      */
     vorname: string;
     /**
-     * Nachname der Person (1-100 Zeichen)
+     * Nachname der Person
      * @type {string}
-     * @memberof RegistrierePersonDto
+     * @memberof EinsatzEinheitFahrzeugPersonDto
      */
     nachname: string;
     /**
-     * Funktion/Rolle im Einsatz (max 50 Zeichen)
+     * Funktion der Person
      * @type {string}
-     * @memberof RegistrierePersonDto
+     * @memberof EinsatzEinheitFahrzeugPersonDto
      */
     funktion: string;
     /**
-     * Funkrufname (optional, max 50 Zeichen)
-     * @type {string}
-     * @memberof RegistrierePersonDto
+     * Funkrufname der Person
+     * @type {object}
+     * @memberof EinsatzEinheitFahrzeugPersonDto
      */
-    funkrufname?: string;
+    funkrufname?: object | null;
     /**
-     * Qualifikation IDs (CUID2 Array)
-     * @type {Array<string>}
-     * @memberof RegistrierePersonDto
+     * Funkrufname des Fahrzeugs, dem die Person als Besatzung zugewiesen ist
+     * @type {string}
+     * @memberof EinsatzEinheitFahrzeugPersonDto
      */
-    qualifikationIds?: Array<string>;
+    fahrzeugFunkrufname: string;
 }
 
 /**
- * Check if a given object implements the RegistrierePersonDto interface.
+ * Check if a given object implements the EinsatzEinheitFahrzeugPersonDto interface.
  */
-export function instanceOfRegistrierePersonDto(value: object): value is RegistrierePersonDto {
+export function instanceOfEinsatzEinheitFahrzeugPersonDto(value: object): value is EinsatzEinheitFahrzeugPersonDto {
+    if (!('id' in value) || value['id'] === undefined) return false;
     if (!('vorname' in value) || value['vorname'] === undefined) return false;
     if (!('nachname' in value) || value['nachname'] === undefined) return false;
     if (!('funktion' in value) || value['funktion'] === undefined) return false;
+    if (!('fahrzeugFunkrufname' in value) || value['fahrzeugFunkrufname'] === undefined) return false;
     return true;
 }
 
-export function RegistrierePersonDtoFromJSON(json: any): RegistrierePersonDto {
-    return RegistrierePersonDtoFromJSONTyped(json, false);
+export function EinsatzEinheitFahrzeugPersonDtoFromJSON(json: any): EinsatzEinheitFahrzeugPersonDto {
+    return EinsatzEinheitFahrzeugPersonDtoFromJSONTyped(json, false);
 }
 
-export function RegistrierePersonDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): RegistrierePersonDto {
+export function EinsatzEinheitFahrzeugPersonDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): EinsatzEinheitFahrzeugPersonDto {
     if (json == null) {
         return json;
     }
     return {
         
-        'stammPersonId': json['stammPersonId'] == null ? undefined : json['stammPersonId'],
+        'id': json['id'],
         'vorname': json['vorname'],
         'nachname': json['nachname'],
         'funktion': json['funktion'],
         'funkrufname': json['funkrufname'] == null ? undefined : json['funkrufname'],
-        'qualifikationIds': json['qualifikationIds'] == null ? undefined : json['qualifikationIds'],
+        'fahrzeugFunkrufname': json['fahrzeugFunkrufname'],
     };
 }
 
-export function RegistrierePersonDtoToJSON(json: any): RegistrierePersonDto {
-    return RegistrierePersonDtoToJSONTyped(json, false);
+export function EinsatzEinheitFahrzeugPersonDtoToJSON(json: any): EinsatzEinheitFahrzeugPersonDto {
+    return EinsatzEinheitFahrzeugPersonDtoToJSONTyped(json, false);
 }
 
-export function RegistrierePersonDtoToJSONTyped(value?: RegistrierePersonDto | null, ignoreDiscriminator: boolean = false): any {
+export function EinsatzEinheitFahrzeugPersonDtoToJSONTyped(value?: EinsatzEinheitFahrzeugPersonDto | null, ignoreDiscriminator: boolean = false): any {
     if (value == null) {
         return value;
     }
 
     return {
         
-        'stammPersonId': value['stammPersonId'],
+        'id': value['id'],
         'vorname': value['vorname'],
         'nachname': value['nachname'],
         'funktion': value['funktion'],
         'funkrufname': value['funkrufname'],
-        'qualifikationIds': value['qualifikationIds'],
+        'fahrzeugFunkrufname': value['fahrzeugFunkrufname'],
     };
 }
 
