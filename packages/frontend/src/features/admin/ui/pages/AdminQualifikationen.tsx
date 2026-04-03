@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Navigate } from '@tanstack/react-router';
-import { PiPlus, PiWarning } from 'react-icons/pi';
+import { PiPlus } from 'react-icons/pi';
 import { useAdminAuth } from '@/features/auth/api';
 import { useAdminQualifikationenManagement, type QualifikationDto, type CreateQualifikationDto, type UpdateQualifikationDto } from '@/features/admin/api';
 import { Button } from '@/shared/ui/atoms/button.atom';
-import { Card } from '@/shared/ui/atoms/card.atom';
 import { Container } from '@/shared/ui/atoms/container.atom';
 import { Heading } from '@/shared/ui/atoms/heading.atom';
 import { Text } from '@/shared/ui/atoms/text.atom';
-import { Skeleton } from '@/shared/ui/atoms/skeleton';
+import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { ErrorBoundary } from '@/shared/ui/organisms/ErrorBoundary';
 import { QualifikationenTable } from '../organisms/QualifikationenTable';
 import { CreateQualifikationDialog } from '../organisms/CreateQualifikationDialog';
@@ -50,20 +49,17 @@ export function AdminQualifikationen() {
   // Keyboard Shortcuts: Ctrl+N / Cmd+N öffnet Create Dialog
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Ctrl+N (Windows/Linux) oder Cmd+N (Mac)
       if ((event.ctrlKey || event.metaKey) && event.key === 'n') {
-        event.preventDefault(); // Verhindert Browser "Neues Fenster"
+        event.preventDefault();
         setIsCreateDialogOpen(true);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
-
-    // Cleanup: Event Listener entfernen beim Unmount
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, []); // Leeres Dependency Array - nur beim Mount/Unmount
+  }, []);
 
   // Auth Guard
   if (!isAuthLoading && !isAdmin) {
@@ -110,56 +106,13 @@ export function AdminQualifikationen() {
     });
   };
 
-  // Loading State
-  if (isAuthLoading || isQualifikationenLoading) {
+  // Auth-Loading separat behandeln
+  if (isAuthLoading) {
     return (
       <Container maxWidth="6xl" className="py-8">
-        <div className="flex flex-col gap-6">
-          {/* Header Skeleton */}
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col gap-2">
-              <Skeleton className="h-8 w-48" />
-              <Skeleton className="h-4 w-96" />
-            </div>
-            <Skeleton className="h-10 w-48" />
-          </div>
-
-          {/* Table Skeleton */}
-          <Card padding="none">
-            <div className="p-6">
-              <div className="space-y-4">
-                {[1, 2, 3, 4, 5].map((skeletonId) => (
-                  <div key={`skeleton-${skeletonId}`} className="flex items-center gap-4">
-                    <Skeleton className="h-6 w-24" />
-                    <Skeleton className="h-6 w-32" />
-                    <Skeleton className="h-6 w-48" />
-                    <Skeleton className="h-6 w-20" />
-                    <Skeleton className="h-6 w-16" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </Card>
+        <div className="flex h-[50vh] items-center justify-center">
+          <Spinner size="xl" />
         </div>
-      </Container>
-    );
-  }
-
-  // Error State
-  if (error) {
-    return (
-      <Container maxWidth="6xl" className="py-8">
-        <Card padding="lg" className="text-center">
-          <div className="flex flex-col items-center gap-4">
-            <PiWarning className="h-12 w-12 text-red-500" />
-            <Heading size="md">Fehler beim Laden</Heading>
-            <Text className="text-gray-600">Die Qualifikationen konnten nicht geladen werden.</Text>
-            <Text className="text-sm text-gray-500">{error.message}</Text>
-            <Button onClick={() => void refetch()} intent="primary" loading={isQualifikationenLoading} disabled={isQualifikationenLoading}>
-              Erneut versuchen
-            </Button>
-          </div>
-        </Card>
       </Container>
     );
   }
@@ -183,16 +136,16 @@ export function AdminQualifikationen() {
           </div>
 
           {/* Table */}
-          <Card padding="none">
-            <QualifikationenTable
-              qualifikationen={qualifikationen || []}
-              isLoading={isQualifikationenLoading}
-              onEdit={handleEditQualifikation}
-              onDeactivate={handleDeactivateQualifikation}
-              updatingId={updatingId}
-              deactivatingId={deactivatingId}
-            />
-          </Card>
+          <QualifikationenTable
+            qualifikationen={qualifikationen || []}
+            isLoading={isQualifikationenLoading}
+            error={error}
+            onRetry={refetch}
+            onEdit={handleEditQualifikation}
+            onDeactivate={handleDeactivateQualifikation}
+            updatingId={updatingId}
+            deactivatingId={deactivatingId}
+          />
         </div>
 
         {/* Dialogs */}

@@ -1,16 +1,16 @@
-import { useCallback, useMemo, useState } from 'react';
-import { type SortingState, flexRender, getCoreRowModel, getSortedRowModel, useReactTable, createColumnHelper } from '@tanstack/react-table';
-import { PiPencilSimple, PiProhibit, PiCheckCircle, PiCaretUpDown } from 'react-icons/pi';
+import { useCallback, useMemo } from 'react';
+import { createColumnHelper } from '@tanstack/react-table';
+import { PiPencilSimple, PiProhibit, PiCheckCircle, PiCertificate } from 'react-icons/pi';
 import { type QualifikationDto, KATEGORIE_LABELS, getKategorieBadgeVariant } from '@/features/admin/api';
 import { Badge } from '@/shared/ui/atoms/badge.atom';
 import { IconButton } from '@/shared/ui/atoms/icon-button.atom';
-import { Table } from '@/shared/ui/molecules/table.molecule';
-import { Skeleton } from '@/shared/ui/atoms/skeleton';
-import { Text } from '@/shared/ui/atoms/text.atom';
+import { DataTable } from '@/shared/ui/organisms/data-table.organism';
 
 interface QualifikationenTableProps {
   qualifikationen: QualifikationDto[];
   isLoading: boolean;
+  error?: Error | null;
+  onRetry?: () => void;
   onEdit: (qualifikation: QualifikationDto) => void;
   onDeactivate: (qualifikation: QualifikationDto) => void;
   updatingId?: string;
@@ -20,14 +20,11 @@ interface QualifikationenTableProps {
 const columnHelper = createColumnHelper<QualifikationDto>();
 
 /**
- * Qualifikationen Tabelle mit Sortierung.
+ * Qualifikationen Tabelle mit DataTable.
  *
  * Zeigt alle Qualifikationen mit Status-Badge und Aktionen.
  */
-export const QualifikationenTable = ({ qualifikationen, isLoading, onEdit, onDeactivate, updatingId, deactivatingId }: QualifikationenTableProps) => {
-  const [sorting, setSorting] = useState<SortingState>([{ id: 'name', desc: false }]);
-
-  // Stabile Callback-Referenzen mit useCallback - verhindert unnötige Table Re-Renders
+export const QualifikationenTable = ({ qualifikationen, isLoading, error, onRetry, onEdit, onDeactivate, updatingId, deactivatingId }: QualifikationenTableProps) => {
   const handleEdit = useCallback(
     (qualifikation: QualifikationDto) => {
       onEdit(qualifikation);
@@ -45,45 +42,15 @@ export const QualifikationenTable = ({ qualifikationen, isLoading, onEdit, onDea
   const columns = useMemo(
     () => [
       columnHelper.accessor('abkuerzung', {
-        header: ({ column }) => (
-          <button
-            type="button"
-            className="flex items-center gap-1 font-medium"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            aria-label={`Nach Abkürzung sortieren ${column.getIsSorted() === 'asc' ? 'absteigend' : 'aufsteigend'}`}
-          >
-            Abkürzung
-            <PiCaretUpDown className="h-4 w-4" aria-hidden="true" />
-          </button>
-        ),
+        header: 'Abkürzung',
         cell: (info) => <span className="font-mono font-medium">{info.getValue()}</span>,
       }),
       columnHelper.accessor('name', {
-        header: ({ column }) => (
-          <button
-            type="button"
-            className="flex items-center gap-1 font-medium"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            aria-label={`Nach Name sortieren ${column.getIsSorted() === 'asc' ? 'absteigend' : 'aufsteigend'}`}
-          >
-            Name
-            <PiCaretUpDown className="h-4 w-4" aria-hidden="true" />
-          </button>
-        ),
+        header: 'Name',
         cell: (info) => info.getValue(),
       }),
       columnHelper.accessor('kategorie', {
-        header: ({ column }) => (
-          <button
-            type="button"
-            className="flex items-center gap-1 font-medium"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            aria-label={`Nach Kategorie sortieren ${column.getIsSorted() === 'asc' ? 'absteigend' : 'aufsteigend'}`}
-          >
-            Kategorie
-            <PiCaretUpDown className="h-4 w-4" aria-hidden="true" />
-          </button>
-        ),
+        header: 'Kategorie',
         cell: ({ row }) => <Badge variant={getKategorieBadgeVariant(row.original.kategorie)}>{KATEGORIE_LABELS[row.original.kategorie]}</Badge>,
       }),
       columnHelper.accessor('beschreibung', {
@@ -108,8 +75,8 @@ export const QualifikationenTable = ({ qualifikationen, isLoading, onEdit, onDea
       columnHelper.display({
         id: 'actions',
         header: 'Aktionen',
+        enableSorting: false,
         cell: ({ row }) => {
-          // Per-Row Mutation Tracking: Disable nur die Zeile, die gerade mutiert wird
           const isRowUpdating = updatingId === row.original.id;
           const isRowDeactivating = deactivatingId === row.original.id;
           const isRowMutating = isRowUpdating || isRowDeactivating;
@@ -132,75 +99,21 @@ export const QualifikationenTable = ({ qualifikationen, isLoading, onEdit, onDea
     [handleEdit, handleDeactivate, updatingId, deactivatingId],
   );
 
-  const table = useReactTable({
-    data: qualifikationen,
-    columns,
-    state: { sorting },
-    onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-  });
-
-  // Loading State
-  if (isLoading) {
-    return (
-      <div className="p-4">
-        <div className="space-y-3">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <Skeleton key={i} className="h-12 w-full" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  // Empty State
-  if (qualifikationen.length === 0) {
-    return (
-      <div className="flex h-48 flex-col items-center justify-center p-8">
-        <Text className="text-gray-600">Keine Qualifikationen vorhanden.</Text>
-        <Text className="text-sm text-gray-500">Erstellen Sie eine neue Qualifikation.</Text>
-      </div>
-    );
-  }
-
   return (
-    <Table.Root>
-      <Table.Header>
-        {table.getHeaderGroups().map((headerGroup) => (
-          <Table.Row key={headerGroup.id}>
-            {headerGroup.headers.map((header) => {
-              const sortDirection = header.column.getIsSorted();
-              const ariaSort = sortDirection === 'asc' ? 'ascending' : sortDirection === 'desc' ? 'descending' : 'none';
-
-              return (
-                <Table.Head key={header.id} className="whitespace-nowrap" scope="col" aria-sort={header.column.getCanSort() ? ariaSort : undefined}>
-                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                </Table.Head>
-              );
-            })}
-          </Table.Row>
-        ))}
-      </Table.Header>
-      <Table.Body>
-        {table.getRowModel().rows.map((row) => {
-          // Visual Feedback für Optimistic Updates
-          const isRowUpdating = updatingId === row.original.id;
-          const isRowDeactivating = deactivatingId === row.original.id;
-          const isRowMutating = isRowUpdating || isRowDeactivating;
-
-          // Kombiniere Opacity-Klassen: deaktivierte Zeilen + mutating rows
-          const rowClassName = [!row.original.istAktiv && 'opacity-60', isRowMutating && 'opacity-50 transition-opacity duration-200'].filter(Boolean).join(' ');
-
-          return (
-            <Table.Row key={row.id} className={rowClassName}>
-              {row.getVisibleCells().map((cell) => (
-                <Table.Cell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</Table.Cell>
-              ))}
-            </Table.Row>
-          );
-        })}
-      </Table.Body>
-    </Table.Root>
+    <DataTable
+      columns={columns}
+      data={qualifikationen}
+      getRowId={(row) => row.id}
+      isLoading={isLoading}
+      error={error}
+      onRetry={onRetry}
+      searchable={{ placeholder: 'Qualifikationen durchsuchen...' }}
+      defaultSorting={[{ id: 'name', desc: false }]}
+      emptyState={{
+        icon: PiCertificate,
+        title: 'Noch keine Qualifikationen angelegt',
+        description: 'Erstellen Sie eine neue Qualifikation.',
+      }}
+    />
   );
 };
