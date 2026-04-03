@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate } from '@tanstack/react-router';
-import { PiPlus, PiWarning } from 'react-icons/pi';
+import { PiPlus } from 'react-icons/pi';
 
 import { useAdminAuth } from '@/features/auth/api';
 import { useAdminFahrzeugtypenManagement, type CreateFahrzeugtypDto, type FahrzeugtypDto, type UpdateFahrzeugtypDto } from '@/features/admin/api';
@@ -98,7 +98,7 @@ export function AdminFahrzeugtypen() {
     });
   };
 
-  if (isAuthLoading || isFahrzeugtypenLoading) {
+  if (isAuthLoading) {
     return (
       <Container maxWidth="6xl" className="py-8">
         <div className="flex flex-col gap-6">
@@ -109,42 +109,7 @@ export function AdminFahrzeugtypen() {
             </div>
             <Skeleton className="h-10 w-48" />
           </div>
-
-          <Card padding="none">
-            <div className="p-6">
-              <div className="space-y-4">
-                {[...Array(5)].map((_, index) => (
-                  // eslint-disable-next-line react/no-array-index-key -- Static skeleton elements
-                  <div key={`skeleton-${index}`} className="flex items-center gap-4">
-                    <Skeleton className="h-6 w-24" />
-                    <Skeleton className="h-6 w-48" />
-                    <Skeleton className="h-6 w-32" />
-                    <Skeleton className="h-6 w-24" />
-                    <Skeleton className="h-6 w-16" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </Card>
         </div>
-      </Container>
-    );
-  }
-
-  if (error) {
-    return (
-      <Container maxWidth="6xl" className="py-8">
-        <Card padding="lg" className="text-center">
-          <div className="flex flex-col items-center gap-4">
-            <PiWarning className="h-12 w-12 text-status-danger-text" />
-            <Heading size="md">Fehler beim Laden</Heading>
-            <Text className="text-text-secondary">Die Fahrzeugtypen konnten nicht geladen werden.</Text>
-            <Text className="text-sm text-text-muted">{error.message}</Text>
-            <Button onClick={() => void refetch()} intent="primary" loading={isFahrzeugtypenLoading} disabled={isFahrzeugtypenLoading}>
-              Erneut versuchen
-            </Button>
-          </div>
-        </Card>
       </Container>
     );
   }
@@ -170,10 +135,13 @@ export function AdminFahrzeugtypen() {
             <FahrzeugtypenTable
               fahrzeugtypen={fahrzeugtypen || []}
               isLoading={isFahrzeugtypenLoading}
+              error={error}
+              onRetry={() => void refetch()}
               onEdit={handleEditFahrzeugtyp}
               onDeactivate={handleDeactivateFahrzeugtyp}
               updatingId={updatingId}
               deactivatingId={deactivatingId}
+              onCreateOpen={() => setIsCreateDialogOpen(true)}
             />
           </Card>
         </div>
