@@ -2,44 +2,31 @@ import { useAdminAuth } from '@/features/auth';
 import { useListInvites } from '@/features/admin/api/use-admin-invite-management';
 import { InviteCodeTable, CreateInviteDialog } from '@/features/admin/ui/organisms';
 import { InviteFilters, type InviteStatusFilter } from '@/features/admin/ui/molecules/InviteFilters';
-import { Alert } from '@/shared/ui/atoms/alert.atom';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Container } from '@/shared/ui/atoms/container.atom';
 import { Heading } from '@/shared/ui/atoms/heading.atom';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { Navigate } from '@tanstack/react-router';
 import { useState } from 'react';
-import { PiWarning, PiPlus } from 'react-icons/pi';
+import { PiPlus } from 'react-icons/pi';
 
 /**
  * AdminInvitesPage - Verwaltung von Invite-Codes
  *
  * Zeigt eine vollständige Übersicht aller Invite-Codes mit:
  * - Filtermöglichkeiten nach Status (alle, aktiv, verwendet, abgelaufen, widerrufen)
- * - Pagination (20 Codes pro Seite)
+ * - Client-seitige Pagination via DataTable
  * - Revoke-Funktionalität für aktive/expired Codes
- *
- * Pattern konsistent mit AdminUsers.tsx.
- *
- * @example
- * ```tsx
- * // Route Definition (routes/admin/invites.tsx)
- * export const Route = createFileRoute('/admin/invites')({
- *   component: AdminInvitesPage,
- * });
- * ```
  */
 export function AdminInvites() {
   const { isAdmin, isLoading: isAuthLoading } = useAdminAuth();
-  const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<InviteStatusFilter>('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-  // API Query mit Filter und Pagination
-  const { data, isLoading, error } = useListInvites({
+  // API Query mit Filter — Pagination wird client-seitig von DataTable gehandhabt
+  const { data, isLoading, error, refetch } = useListInvites({
     status: statusFilter === 'all' ? undefined : statusFilter,
-    page: currentPage,
-    pageSize: 20,
+    pageSize: 1000,
   });
 
   // Redirect if not admin
@@ -47,7 +34,7 @@ export function AdminInvites() {
     return <Navigate to="/admin-login" />;
   }
 
-  // Loading State
+  // Auth-Loading separat behandeln
   if (isAuthLoading) {
     return (
       <Container maxWidth="6xl" className="py-8">
@@ -58,19 +45,6 @@ export function AdminInvites() {
     );
   }
 
-  // Error State
-  if (error) {
-    return (
-      <Container maxWidth="6xl" className="py-8">
-        <div className="flex h-[50vh] items-center justify-center">
-          <Alert status="error" title="Fehler beim Laden der Invite-Codes" description={error.message} icon={<PiWarning className="h-6 w-6" />} />
-        </div>
-      </Container>
-    );
-  }
-
-  // Calculate total pages from pagination metadata
-  const totalPages = data?.pagination?.totalPages ?? 1;
   const invites = data?.data;
 
   return (
@@ -93,7 +67,7 @@ export function AdminInvites() {
         </div>
 
         {/* Table Section */}
-        <InviteCodeTable invites={invites} isLoading={isLoading} onPageChange={setCurrentPage} currentPage={currentPage} totalPages={totalPages} />
+        <InviteCodeTable invites={invites} isLoading={isLoading} error={error} onRetry={refetch} />
 
         {/* Create Invite Dialog */}
         <CreateInviteDialog isOpen={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)} />
