@@ -1,27 +1,28 @@
+import { adminSidebarItems } from '@/features/admin/lib/admin-sidebar-config';
 import { useCurrentUser } from '@/features/auth';
 import { setRedirectAfterLogin } from '@/features/auth/stores/auth.store';
 import { getCurrentPathWithQueryAndHash, sanitizeInternalRedirectPath } from '@/shared/lib/navigation/router-redirect';
 import { logger } from '@/shared/lib/logger';
-import { CloseButton } from '@/shared/ui/atoms/close-button.atom';
-import { Container } from '@/shared/ui/atoms/container.atom';
-import { Heading } from '@/shared/ui/atoms/heading.atom';
-import { IconButton } from '@/shared/ui/atoms/icon-button.atom';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
-import { Link, Outlet, useLocation, useMatchRoute, useNavigate, useRouterState } from '@tanstack/react-router';
+import type { BreadcrumbItem } from '@/shared/ui/molecules/breadcrumbs.molecule';
+import { Breadcrumbs } from '@/shared/ui/molecules/breadcrumbs.molecule';
+import { Sidebar, SidebarDrawer } from '@/shared/ui/organisms/sidebar.organism';
+import { Outlet, useLocation, useNavigate, useRouterState } from '@tanstack/react-router';
 import { isTauri } from '@tauri-apps/api/core';
-import { useCallback, useEffect, useMemo } from 'react';
-import { PiArrowLeft } from 'react-icons/pi';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { PiGear, PiList, PiSignOut } from 'react-icons/pi';
 
 /**
  * Gemeinsames Layout für alle Admin-Seiten
  *
- * Bietet einen konsistenten Header mit Close-Button und Container
- * für Admin-Setup und Admin-Login Seiten
+ * Bietet Sidebar-Navigation, Breadcrumbs und einen responsiven
+ * Content-Bereich für alle Admin-Unterseiten.
  */
 export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, authStatus, adminSessionStatus } = useCurrentUser();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const redirectTarget = useMemo(() => {
     return sanitizeInternalRedirectPath(getCurrentPathWithQueryAndHash(location.pathname)) ?? '/';
@@ -85,82 +86,99 @@ export function AdminLayout() {
     }
   }, [authStatus, adminSessionStatus, user, location.pathname, navigate, redirectTarget]);
 
-  // Hole Meta-Daten aus der aktuellen Route
+  // Breadcrumbs aus Route-Meta-Daten generieren
   const routerState = useRouterState();
-  const routeMeta = routerState.matches[routerState.matches.length - 1]?.meta?.[0];
+  const breadcrumbItems = useMemo(() => {
+    const items: BreadcrumbItem[] = [{ label: 'Admin', to: '/admin/dashboard' }];
+
+    const lastMatch = routerState.matches[routerState.matches.length - 1];
+    const title = lastMatch?.meta?.[0]?.title;
+    if (title) {
+      items.push({ label: title });
+    }
+
+    return items;
+  }, [routerState.matches]);
 
   /**
-   * Ermittelt den Titel aus den Route-Meta-Daten oder Fallback
-   */
-  const pageTitle = useMemo(() => {
-    return routeMeta?.title || 'Admin-Bereich';
-  }, [routeMeta]);
-
-  /**
-   * Schließt das Fenster oder Tab (optimiert mit useCallback)
+   * Schließt das Fenster oder navigiert zur Startseite
    */
   const handleClose = useCallback(async () => {
-    // Prüfe ob wir in Tauri laufen
     if (isTauri()) {
-      // In Tauri: Fenster schließen
       try {
         const { getCurrentWebviewWindow } = await import('@tauri-apps/api/webviewWindow');
         const currentWindow = getCurrentWebviewWindow();
         await currentWindow.close();
       } catch (error) {
         logger.error('Fehler beim Schließen des Fensters:', error);
-        // Fallback: Navigiere zur Startseite
         await navigate({ to: '/' });
       }
     } else {
-      // Im Browser: Versuche Tab zu schließen oder zur Startseite navigieren
       if (window.opener) {
         window.close();
       } else {
-        // Fallback: Navigiere zur Startseite
         await navigate({ to: '/' });
       }
     }
   }, [navigate]);
 
-  const matchRoute = useMatchRoute();
   const isGuardPending = authStatus === 'pending' || adminSessionStatus === 'pending';
 
-  return (
-    <Container maxWidth="6xl" className="px-0 py-8">
-      <div className="flex flex-col gap-4">
-        {/* Header mit Titel und Close-Button */}
-        <div className="border-b border-border-subtle pb-4">
-          <div className="flex items-start justify-between">
-            <div className="flex">
-              {!matchRoute({ to: '/admin/dashboard' }) && (
-                <Link to="/admin/dashboard">
-                  <IconButton aria-label="Zurück zum Dashboard" size="lg" className="h-full">
-                    <PiArrowLeft />
-                  </IconButton>
-                </Link>
-              )}
+  // Sidebar-Header: Icon + Titel
+  const sidebarHeader = (
+    <div className="flex items-center gap-3">
+      <PiGear className="size-6 text-white/70" />
+      <span className="text-lg font-semibold text-white">Admin Panel</span>
+    </div>
+  );
 
-              <Heading size="2xl" as="h1">
-                {pageTitle}
-              </Heading>
-            </div>
-            <CloseButton className="h-full" onClick={handleClose} size="lg" />
-          </div>
-        </div>
+  // Sidebar-Footer: Schließen/Logout-Button
+  const sidebarFooter = (
+    <button type="button" onClick={handleClose} className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-white">
+      <PiSignOut className="size-5 shrink-0" />
+      <span>Schließen</span>
+    </button>
+  );
 
-        {/* Content der jeweiligen Admin-Seite */}
-        <div>
-          {isGuardPending ? (
-            <div className="flex flex-col items-center gap-4 py-12">
-              <Spinner size="xl" />
-              <p className="text-lg text-text-secondary">Authentifizierung wird geprüft...</p>
-            </div>
-          ) : (
-            <Outlet />
-          )}
+  if (isGuardPending) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-surface-canvas">
+        <div className="flex flex-col items-center gap-4">
+          <Spinner size="xl" />
+          <p className="text-lg text-text-secondary">Authentifizierung wird geprüft...</p>
         </div>
       </div>
-    </Container>
+    );
+  }
+
+  return (
+    <div className="flex h-screen bg-surface-canvas">
+      {/* Desktop-Sidebar — auf Mobile ausgeblendet */}
+      <div className="hidden lg:flex">
+        <Sidebar items={adminSidebarItems} header={sidebarHeader} footer={sidebarFooter} variant="dark" />
+      </div>
+
+      {/* Mobile Drawer */}
+      <SidebarDrawer isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} items={adminSidebarItems} header={sidebarHeader} footer={sidebarFooter} variant="dark" />
+
+      {/* Content-Bereich */}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Mobile Header — auf Desktop ausgeblendet */}
+        <div className="border-border-primary flex items-center gap-3 border-b px-4 py-3 lg:hidden">
+          <button type="button" onClick={() => setSidebarOpen(true)} aria-label="Navigation öffnen">
+            <PiList className="h-6 w-6" />
+          </button>
+          <span className="font-semibold">Admin Panel</span>
+        </div>
+
+        {/* Hauptinhalt */}
+        <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
+          <Breadcrumbs items={breadcrumbItems} />
+          <div className="mt-4">
+            <Outlet />
+          </div>
+        </main>
+      </div>
+    </div>
   );
 }
