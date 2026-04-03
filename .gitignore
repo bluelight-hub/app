@@ -228,3 +228,6 @@ gha-creds-*.json
 
 # Husky runtime shim files
 .husky/_/
+
+.claude/worktrees
+.superpowers
