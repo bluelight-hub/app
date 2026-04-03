@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Navigate } from '@tanstack/react-router';
-import { PiPlus, PiWarning } from 'react-icons/pi';
+import { PiPlus } from 'react-icons/pi';
 import { useAdminAuth } from '@/features/auth/api';
 import { useAdminRollenDefinitionenManagement, type RollenDefinitionDto, type CreateRollenDefinitionDto, type UpdateRollenDefinitionDto } from '@/features/admin/api';
 import { Button } from '@/shared/ui/atoms/button.atom';
@@ -110,12 +110,11 @@ export function AdminRollenDefinitionen() {
     });
   };
 
-  // Loading State
-  if (isAuthLoading || isRollenDefinitionenLoading) {
+  // Auth Loading State
+  if (isAuthLoading) {
     return (
       <Container maxWidth="6xl" className="py-8">
         <div className="flex flex-col gap-6">
-          {/* Header Skeleton */}
           <div className="flex items-center justify-between">
             <div className="flex flex-col gap-2">
               <Skeleton className="h-8 w-48" />
@@ -123,43 +122,7 @@ export function AdminRollenDefinitionen() {
             </div>
             <Skeleton className="h-10 w-48" />
           </div>
-
-          {/* Table Skeleton */}
-          <Card padding="none">
-            <div className="p-6">
-              <div className="space-y-4">
-                {[1, 2, 3, 4, 5].map((skeletonId) => (
-                  <div key={`skeleton-${skeletonId}`} className="flex items-center gap-4">
-                    <Skeleton className="h-6 w-24" />
-                    <Skeleton className="h-6 w-32" />
-                    <Skeleton className="h-6 w-48" />
-                    <Skeleton className="h-6 w-20" />
-                    <Skeleton className="h-6 w-16" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </Card>
         </div>
-      </Container>
-    );
-  }
-
-  // Error State
-  if (error) {
-    return (
-      <Container maxWidth="6xl" className="py-8">
-        <Card padding="lg" className="text-center">
-          <div className="flex flex-col items-center gap-4">
-            <PiWarning className="h-12 w-12 text-red-500" />
-            <Heading size="md">Fehler beim Laden</Heading>
-            <Text className="text-gray-600">Die Rollendefinitionen konnten nicht geladen werden.</Text>
-            <Text className="text-sm text-gray-500">{error.message}</Text>
-            <Button onClick={() => void refetch()} intent="primary" loading={isRollenDefinitionenLoading} disabled={isRollenDefinitionenLoading}>
-              Erneut versuchen
-            </Button>
-          </div>
-        </Card>
       </Container>
     );
   }
@@ -187,10 +150,13 @@ export function AdminRollenDefinitionen() {
             <RollenDefinitionenTable
               rollenDefinitionen={rollenDefinitionen || []}
               isLoading={isRollenDefinitionenLoading}
+              error={error}
+              onRetry={() => void refetch()}
               onEdit={handleEditRollenDefinition}
               onDeactivate={handleDeactivateRollenDefinition}
               updatingId={updatingId}
               deactivatingId={deactivatingId}
+              onCreateOpen={() => setIsCreateDialogOpen(true)}
             />
           </Card>
         </div>
