@@ -1,3 +1,27 @@
+## Admin Panel Redesign
+
+Das Admin Panel wurde komplett überarbeitet und bietet nun eine moderne, übersichtliche Benutzeroberfläche:
+
+- **Neue Sidebar-Navigation** mit responsivem Design – auf mobilen Geräten als ausklappbares Menü verfügbar
+- **Breadcrumb-Navigation** zeigt den aktuellen Standort innerhalb der Anwendung an
+- **Überarbeitetes Dashboard** mit Kennzahlen-Karten (KPIs) für schnellen Überblick über Benutzer, Fahrzeuge und Personen
+- **Schnellaktionen** direkt vom Dashboard: Benutzer, Einladungen, Fahrzeuge und Personen können nun mit einem Klick erstellt werden
+- **Status-Übersicht** zeigt auf einen Blick die Anzahl aktiver Kräfte und Integrationen
+
+## Tabellen & Datenansichten
+
+Alle Admin-Tabellen wurden modernisiert und vereinheitlicht:
+
+- Einheitliches Design für Benutzer-, Einladungscodes-, Qualifikationen-, Rollendefinitionen-, Fahrzeugtypen-, Fahrzeuge-, Personen- und Befehlsgeber-Vorschläge-Tabellen
+- Verbesserte Suchfunktion in allen Tabellen
+- Übersichtlichere Sortierung und Filterung
+- Aussagekräftige Leer-Zustände mit Hinweisen, wenn noch keine Daten vorhanden sind
+
+## Fehlerbehebungen
+
+- **Formulare im Admin-Bereich** funktionieren wieder korrekt – behobenes Problem mit Modal-Dialogen
+- **Einladungs-API** arbeitet nun zuverlässig mit korrekten Datenformaten und angepasster Seitengröße
+
 ## Fahrzeugverwaltung
 
 - **Bidirektionale Fahrzeug-Zuordnung**: Fahrzeuge können jetzt direkt aus der Einheiten-Ansicht zugewiesen werden. Ein neues Panel ermöglicht die flexible Zuweisung von Fahrzeugen zu Einheiten und umgekehrt.
