@@ -49,7 +49,6 @@ export const CreateBefehlsgeberVorschlagDialog = ({ isOpen, onClose, onSubmit, i
             {' '}
             {/* Kuerzel */}{' '}
             <form.Field name="kuerzel">
-              {' '}
               {(field) => (
                 <FormField label="Kürzel" error={field.state.meta.errors[0]} required htmlFor="create-befehlsgeber-vorschlag-kuerzel">
                   {' '}
@@ -64,11 +63,10 @@ export const CreateBefehlsgeberVorschlagDialog = ({ isOpen, onClose, onSubmit, i
                     fullWidth
                   />{' '}
                 </FormField>
-              )}{' '}
+              )}
             </form.Field>{' '}
             {/* Label */}{' '}
             <form.Field name="label">
-              {' '}
               {(field) => (
                 <FormField label="Label" error={field.state.meta.errors[0]} required htmlFor="create-befehlsgeber-vorschlag-label">
                   {' '}
@@ -83,11 +81,10 @@ export const CreateBefehlsgeberVorschlagDialog = ({ isOpen, onClose, onSubmit, i
                     fullWidth
                   />{' '}
                 </FormField>
-              )}{' '}
+              )}
             </form.Field>{' '}
             {/* SortOrder */}{' '}
             <form.Field name="sortOrder">
-              {' '}
               {(field) => (
                 <FormField label="Sortierung" error={field.state.meta.errors[0]} htmlFor="create-befehlsgeber-vorschlag-sort-order">
                   {' '}
@@ -103,7 +100,7 @@ export const CreateBefehlsgeberVorschlagDialog = ({ isOpen, onClose, onSubmit, i
                     fullWidth
                   />{' '}
                 </FormField>
-              )}{' '}
+              )}
             </form.Field>{' '}
           </div>{' '}
         </Dialog.Body>{' '}
@@ -114,13 +111,12 @@ export const CreateBefehlsgeberVorschlagDialog = ({ isOpen, onClose, onSubmit, i
             Abbrechen{' '}
           </Button>{' '}
           <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-            {' '}
             {([canSubmit, isFormSubmitting]) => (
               <Button type="submit" disabled={!canSubmit || isFormSubmitting || isSubmitting} loading={isSubmitting || isFormSubmitting}>
                 {' '}
                 Vorschlag erstellen{' '}
               </Button>
-            )}{' '}
+            )}
           </form.Subscribe>{' '}
         </Dialog.Footer>{' '}
       </form>{' '}

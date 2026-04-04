@@ -76,7 +76,6 @@ export function GrantPermissionDialog({ isOpen, onClose, onGrant, isGranting, ex
             <div className="space-y-4">
               {' '}
               <form.Field name="domain">
-                {' '}
                 {(field) => (
                   <FormField label="Domain" required error={field.state.meta.errors[0]} htmlFor="grant-perm-domain">
                     {' '}
@@ -95,11 +94,10 @@ export function GrantPermissionDialog({ isOpen, onClose, onGrant, isGranting, ex
                       fullWidth
                     />{' '}
                   </FormField>
-                )}{' '}
+                )}
               </form.Field>{' '}
               {selectedDomain && (
                 <form.Field name="action">
-                  {' '}
                   {(field) => (
                     <FormField label="Aktion" required error={field.state.meta.errors[0]} htmlFor="grant-perm-action">
                       {' '}
@@ -116,7 +114,7 @@ export function GrantPermissionDialog({ isOpen, onClose, onGrant, isGranting, ex
                       />{' '}
                       {availableActions.length === 0 && selectedDomain && <p className="mt-1 text-sm text-text-muted">Alle Aktionen dieser Domain sind bereits vergeben.</p>}{' '}
                     </FormField>
-                  )}{' '}
+                  )}
                 </form.Field>
               )}{' '}
             </div>
@@ -129,7 +127,6 @@ export function GrantPermissionDialog({ isOpen, onClose, onGrant, isGranting, ex
             Abbrechen{' '}
           </Button>{' '}
           <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-            {' '}
             {([canSubmit, isFormSubmitting]) => {
               const submitting = isFormSubmitting || isGranting;
               return (
@@ -138,7 +135,7 @@ export function GrantPermissionDialog({ isOpen, onClose, onGrant, isGranting, ex
                   Permission vergeben{' '}
                 </Button>
               );
-            }}{' '}
+            }}
           </form.Subscribe>{' '}
         </Dialog.Footer>{' '}
       </form>{' '}

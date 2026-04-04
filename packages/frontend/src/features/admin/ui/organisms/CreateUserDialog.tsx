@@ -59,7 +59,6 @@ export const CreateUserDialog = ({ isOpen, onClose, onSubmit, isSubmitting }: Cr
             Abbrechen{' '}
           </Button>{' '}
           <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-            {' '}
             {([canSubmit, isFormSubmitting]) => {
               const submitting = isFormSubmitting || isSubmitting;
               return (
@@ -68,7 +67,7 @@ export const CreateUserDialog = ({ isOpen, onClose, onSubmit, isSubmitting }: Cr
                   Benutzer erstellen{' '}
                 </Button>
               );
-            }}{' '}
+            }}
           </form.Subscribe>{' '}
         </Dialog.Footer>{' '}
       </form>{' '}

@@ -69,7 +69,6 @@ export const CreateStammFahrzeugDialog = ({ isOpen, onClose, onSubmit, isSubmitt
             {' '}
             {/* Rufname */}{' '}
             <form.Field name="rufname">
-              {' '}
               {(field) => (
                 <FormField label="Rufname" error={field.state.meta.errors[0]} required htmlFor="create-fahrzeug-rufname">
                   {' '}
@@ -84,11 +83,10 @@ export const CreateStammFahrzeugDialog = ({ isOpen, onClose, onSubmit, isSubmitt
                     fullWidth
                   />{' '}
                 </FormField>
-              )}{' '}
+              )}
             </form.Field>{' '}
             {/* Funkrufname */}{' '}
             <form.Field name="funkrufname">
-              {' '}
               {(field) => (
                 <FormField label="Funkrufname" error={field.state.meta.errors[0]} required htmlFor="create-fahrzeug-funkrufname">
                   {' '}
@@ -103,11 +101,10 @@ export const CreateStammFahrzeugDialog = ({ isOpen, onClose, onSubmit, isSubmitt
                     fullWidth
                   />{' '}
                 </FormField>
-              )}{' '}
+              )}
             </form.Field>{' '}
             {/* Fahrzeugtyp */}{' '}
             <form.Field name="fahrzeugtypId">
-              {' '}
               {(field) => (
                 <FormField label="Fahrzeugtyp" error={field.state.meta.errors[0]} required htmlFor="create-fahrzeug-typ">
                   {' '}
@@ -121,11 +118,10 @@ export const CreateStammFahrzeugDialog = ({ isOpen, onClose, onSubmit, isSubmitt
                     fullWidth
                   />{' '}
                 </FormField>
-              )}{' '}
+              )}
             </form.Field>{' '}
             {/* Kennzeichen */}{' '}
             <form.Field name="kennzeichen">
-              {' '}
               {(field) => (
                 <FormField label="Kennzeichen" error={field.state.meta.errors[0]} htmlFor="create-fahrzeug-kennzeichen">
                   {' '}
@@ -140,11 +136,10 @@ export const CreateStammFahrzeugDialog = ({ isOpen, onClose, onSubmit, isSubmitt
                     fullWidth
                   />{' '}
                 </FormField>
-              )}{' '}
+              )}
             </form.Field>{' '}
             {/* Baujahr */}{' '}
             <form.Field name="baujahr">
-              {' '}
               {(field) => (
                 <FormField label="Baujahr" error={field.state.meta.errors[0]} htmlFor="create-fahrzeug-baujahr">
                   {' '}
@@ -160,11 +155,10 @@ export const CreateStammFahrzeugDialog = ({ isOpen, onClose, onSubmit, isSubmitt
                     fullWidth
                   />{' '}
                 </FormField>
-              )}{' '}
+              )}
             </form.Field>{' '}
             {/* BOS-Funkkennung */}{' '}
             <form.Field name="funkkenungBOS">
-              {' '}
               {(field) => (
                 <FormField label="BOS-Funkkennung" error={field.state.meta.errors[0]} htmlFor="create-fahrzeug-funkkenungbos">
                   {' '}
@@ -179,7 +173,7 @@ export const CreateStammFahrzeugDialog = ({ isOpen, onClose, onSubmit, isSubmitt
                     fullWidth
                   />{' '}
                 </FormField>
-              )}{' '}
+              )}
             </form.Field>{' '}
           </div>{' '}
         </Dialog.Body>{' '}
@@ -190,13 +184,12 @@ export const CreateStammFahrzeugDialog = ({ isOpen, onClose, onSubmit, isSubmitt
             Abbrechen{' '}
           </Button>{' '}
           <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-            {' '}
             {([canSubmit, isFormSubmitting]) => (
               <Button type="submit" disabled={!canSubmit || isFormSubmitting || isSubmitting} loading={isSubmitting || isFormSubmitting}>
                 {' '}
                 Fahrzeug erstellen{' '}
               </Button>
-            )}{' '}
+            )}
           </form.Subscribe>{' '}
         </Dialog.Footer>{' '}
       </form>{' '}

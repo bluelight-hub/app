@@ -102,7 +102,6 @@ export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmittin
           <div className="space-y-4">
             {' '}
             <form.Field name="code">
-              {' '}
               {(field) => (
                 <FormField label="Code" error={field.state.meta.errors[0]} required htmlFor="create-fahrzeugtyp-code">
                   {' '}
@@ -117,10 +116,9 @@ export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmittin
                     fullWidth
                   />{' '}
                 </FormField>
-              )}{' '}
+              )}
             </form.Field>{' '}
             <form.Field name="bezeichnung">
-              {' '}
               {(field) => (
                 <FormField label="Bezeichnung" error={field.state.meta.errors[0]} required htmlFor="create-fahrzeugtyp-bezeichnung">
                   {' '}
@@ -135,10 +133,9 @@ export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmittin
                     fullWidth
                   />{' '}
                 </FormField>
-              )}{' '}
+              )}
             </form.Field>{' '}
             <form.Field name="kategorie">
-              {' '}
               {(field) => (
                 <FormField label="Kategorie" required htmlFor="create-fahrzeugtyp-kategorie">
                   {' '}
@@ -150,10 +147,9 @@ export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmittin
                     fullWidth
                   />{' '}
                 </FormField>
-              )}{' '}
+              )}
             </form.Field>{' '}
             <form.Field name="beschreibung">
-              {' '}
               {(field) => (
                 <FormField label="Beschreibung" error={field.state.meta.errors[0]} htmlFor="create-fahrzeugtyp-beschreibung">
                   {' '}
@@ -167,7 +163,7 @@ export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmittin
                     rows={3}
                   />{' '}
                 </FormField>
-              )}{' '}
+              )}
             </form.Field>{' '}
             <div className="rounded-lg border border-border-subtle p-3">
               {' '}
@@ -187,7 +183,6 @@ export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmittin
                 <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {' '}
                   <form.Field name="fahrer">
-                    {' '}
                     {(field) => (
                       <FormField label="Fahrer" error={field.state.meta.errors[0]} htmlFor="create-fahrzeugtyp-fahrer">
                         {' '}
@@ -205,10 +200,9 @@ export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmittin
                           fullWidth
                         />{' '}
                       </FormField>
-                    )}{' '}
+                    )}
                   </form.Field>{' '}
                   <form.Field name="sanitaeter">
-                    {' '}
                     {(field) => (
                       <FormField label="Sanitäter" error={field.state.meta.errors[0]} htmlFor="create-fahrzeugtyp-sanitaeter">
                         {' '}
@@ -226,10 +220,9 @@ export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmittin
                           fullWidth
                         />{' '}
                       </FormField>
-                    )}{' '}
+                    )}
                   </form.Field>{' '}
                   <form.Field name="notarzt">
-                    {' '}
                     {(field) => (
                       <FormField label="Notarzt" error={field.state.meta.errors[0]} htmlFor="create-fahrzeugtyp-notarzt">
                         {' '}
@@ -247,10 +240,9 @@ export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmittin
                           fullWidth
                         />{' '}
                       </FormField>
-                    )}{' '}
+                    )}
                   </form.Field>{' '}
                   <form.Field name="funktrupp">
-                    {' '}
                     {(field) => (
                       <FormField label="Funktrupp" error={field.state.meta.errors[0]} htmlFor="create-fahrzeugtyp-funktrupp">
                         {' '}
@@ -268,10 +260,9 @@ export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmittin
                           fullWidth
                         />{' '}
                       </FormField>
-                    )}{' '}
+                    )}
                   </form.Field>{' '}
                   <form.Field name="helfer">
-                    {' '}
                     {(field) => (
                       <FormField label="Helfer" error={field.state.meta.errors[0]} htmlFor="create-fahrzeugtyp-helfer">
                         {' '}
@@ -289,7 +280,7 @@ export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmittin
                           fullWidth
                         />{' '}
                       </FormField>
-                    )}{' '}
+                    )}
                   </form.Field>{' '}
                 </div>
               )}{' '}
@@ -303,13 +294,12 @@ export const CreateFahrzeugtypDialog = ({ isOpen, onClose, onSubmit, isSubmittin
             Abbrechen{' '}
           </Button>{' '}
           <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-            {' '}
             {([canSubmit, isFormSubmitting]) => (
               <Button type="submit" disabled={!canSubmit || isFormSubmitting || isSubmitting} loading={isSubmitting || isFormSubmitting}>
                 {' '}
                 Fahrzeugtyp erstellen{' '}
               </Button>
-            )}{' '}
+            )}
           </form.Subscribe>{' '}
         </Dialog.Footer>{' '}
       </form>{' '}
