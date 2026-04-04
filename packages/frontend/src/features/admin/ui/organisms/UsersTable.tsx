@@ -3,7 +3,7 @@ import { IconButton } from '@/shared/ui/atoms/icon-button.atom';
 import { DataTable } from '@/shared/ui/organisms/data-table.organism';
 import type { ManagedUserResponseDto } from '@/shared';
 import { ManagedUserResponseDtoRoleEnum } from '@/shared';
-import { createColumnHelper } from '@tanstack/react-table';
+import type { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
 import { PiArrowSquareOut, PiLockKey, PiLockKeyOpen, PiPencilSimple, PiTrash, PiUsers } from 'react-icons/pi';
 import { Link } from '@tanstack/react-router';
@@ -11,8 +11,6 @@ import { Link } from '@tanstack/react-router';
 interface UsersTableProps {
   users: Array<ManagedUserResponseDto> | undefined;
   isLoading: boolean;
-  error?: Error | null;
-  onRetry?: () => void;
   onDelete: (user: ManagedUserResponseDto) => void;
   onEdit: (user: ManagedUserResponseDto) => void;
   onUnlock: (user: ManagedUserResponseDto) => void;
@@ -21,7 +19,7 @@ interface UsersTableProps {
   showOnlyWithoutStammperson: boolean;
   onShowOnlyWithoutStammpersonChange: (value: boolean) => void;
 }
-const columnHelper = createColumnHelper<ManagedUserResponseDto>();
+
 const getRoleBadgeVariant = (role: ManagedUserResponseDtoRoleEnum): 'error' | 'warning' | 'info' | 'default' => {
   switch (role) {
     case ManagedUserResponseDtoRoleEnum.SuperAdmin:
@@ -60,8 +58,6 @@ const getOperativeRoleLabel = (role: string): string => {
 export const UsersTable = ({
   users,
   isLoading,
-  error,
-  onRetry,
   onDelete,
   onEdit,
   onUnlock,
@@ -84,15 +80,20 @@ export const UsersTable = ({
     return result;
   }, [users, operativeRoleFilter, showOnlyWithoutStammperson]);
 
-  const columns = useMemo(
+  const columns: ColumnDef<ManagedUserResponseDto, any>[] = useMemo(
     () => [
-      columnHelper.accessor('username', { header: 'Benutzername', cell: (info) => info.getValue() }),
-      columnHelper.accessor('role', { header: 'Rolle', cell: ({ row }) => <Badge variant={getRoleBadgeVariant(row.original.role)}>{row.original.role}</Badge> }),
-      columnHelper.accessor('operativeRole', {
+      { accessorKey: 'username', header: 'Benutzername' },
+      {
+        accessorKey: 'role',
+        header: 'Rolle',
+        cell: ({ row }) => <Badge variant={getRoleBadgeVariant(row.original.role)}>{row.original.role}</Badge>,
+      },
+      {
+        accessorKey: 'operativeRole',
         header: 'Operative Rolle',
         cell: ({ row }) => <Badge variant={getOperativeRoleBadgeVariant(row.original.operativeRole)}>{getOperativeRoleLabel(row.original.operativeRole)}</Badge>,
-      }),
-      columnHelper.display({
+      },
+      {
         id: 'stammperson',
         header: 'Stammperson',
         cell: ({ row }) => {
@@ -111,8 +112,9 @@ export const UsersTable = ({
           }
           return <span className="text-text-muted">—</span>;
         },
-      }),
-      columnHelper.accessor('isLocked', {
+      },
+      {
+        accessorKey: 'isLocked',
         header: 'Status',
         cell: ({ row }) => {
           if (row.original.isLocked) {
@@ -132,8 +134,8 @@ export const UsersTable = ({
           }
           return <Badge variant="success">Aktiv</Badge>;
         },
-      }),
-      columnHelper.display({
+      },
+      {
         id: 'actions',
         header: 'Aktionen',
         enableSorting: false,
@@ -152,13 +154,13 @@ export const UsersTable = ({
             </IconButton>
           </div>
         ),
-      }),
+      },
     ],
     [onDelete, onEdit, onUnlock],
   );
 
-  const toolbar = (
-    <>
+  const filterToolbar = (
+    <div className="flex items-center gap-4">
       <div className="flex flex-col gap-1">
         <label htmlFor="operative-role-filter" className="text-xs font-medium text-text-muted uppercase">
           Operative Rolle
@@ -167,7 +169,7 @@ export const UsersTable = ({
           id="operative-role-filter"
           value={operativeRoleFilter}
           onChange={(e) => onOperativeRoleFilterChange(e.target.value)}
-          className="border-border-primary bg-surface-primary rounded-control border px-3 py-1.5 text-sm text-text-primary"
+          className="rounded-md border border-gray-300 bg-transparent px-3 py-1.5 text-sm dark:border-gray-600"
         >
           <option value="">Alle Rollen</option>
           <option value="FUEHRUNGSKRAFT">Führungskraft</option>
@@ -179,7 +181,7 @@ export const UsersTable = ({
         <input type="checkbox" checked={showOnlyWithoutStammperson} onChange={(e) => onShowOnlyWithoutStammpersonChange(e.target.checked)} className="h-4 w-4 rounded border-gray-300" />
         Nur ohne Stammperson
       </label>
-    </>
+    </div>
   );
 
   return (
@@ -188,16 +190,13 @@ export const UsersTable = ({
       data={filteredUsers}
       getRowId={(row) => row.id}
       isLoading={isLoading}
-      error={error}
-      onRetry={onRetry}
-      searchable={{ placeholder: 'Benutzer durchsuchen...' }}
-      defaultSorting={[{ id: 'username', desc: false }]}
+      searchable={{ placeholder: 'Benutzer suchen...' }}
       emptyState={{
         icon: PiUsers,
-        title: 'Noch keine Benutzer angelegt',
-        description: 'Legen Sie den ersten Benutzer an.',
+        title: 'Keine Benutzer',
+        description: 'Es wurden noch keine Benutzer angelegt.',
       }}
-      toolbar={toolbar}
+      toolbar={filterToolbar}
     />
   );
 };

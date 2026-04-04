@@ -8,7 +8,6 @@ import { EmptyState } from '@/shared/ui/molecules/empty-state.molecule';
 import { Alert } from '@/shared/ui/atoms/alert.atom';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Checkbox } from '@/shared/ui/atoms/checkbox.atom';
-import { cn } from '@/shared/ui/cn';
 
 export interface BulkAction {
   label: string;
