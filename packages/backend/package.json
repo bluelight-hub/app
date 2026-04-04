@@ -71,7 +71,7 @@
     "@paralleldrive/cuid2": "^3.3.0",
     "@prisma/adapter-pg": "^7.6.0",
     "@prisma/client": "^7.6.0",
-    "@willsoto/nestjs-prometheus": "^6.0.2",
+    "@willsoto/nestjs-prometheus": "^6.1.0",
     "axios": "^1.14.0",
     "bcrypt": "^6.0.0",
     "cache-manager": "^7.2.8",
