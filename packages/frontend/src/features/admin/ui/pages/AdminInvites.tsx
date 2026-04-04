@@ -26,7 +26,7 @@ export function AdminInvites() {
   // API Query mit Filter — Pagination wird client-seitig von DataTable gehandhabt
   const { data, isLoading, error, refetch } = useListInvites({
     status: statusFilter === 'all' ? undefined : statusFilter,
-    pageSize: 1000,
+    pageSize: 100,
   });
 
   // Redirect if not admin

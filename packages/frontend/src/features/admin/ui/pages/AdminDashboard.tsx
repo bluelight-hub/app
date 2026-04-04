@@ -9,6 +9,7 @@ import {
   useListInvites,
   useIntegrationOverview,
 } from '@/features/admin/api';
+import { AdminInviteControllerListInvitesVAlphaStatusEnum } from '@/shared';
 import { logger } from '@/shared/lib/logger';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Card } from '@/shared/ui/atoms/card.atom';
@@ -45,7 +46,7 @@ export function AdminDashboard() {
   const { qualifikationen, isLoading: qualifikationenLoading } = useAdminQualifikationenManagement();
   const { rollenDefinitionen } = useAdminRollenDefinitionenManagement();
   const { fahrzeugtypen, isLoading: fahrzeugtypenLoading } = useAdminFahrzeugtypenManagement();
-  const invitesQuery = useListInvites({ status: 'ACTIVE' as any });
+  const invitesQuery = useListInvites({ status: AdminInviteControllerListInvitesVAlphaStatusEnum.Active });
   const integrationOverview = useIntegrationOverview();
 
   // Dialog-States
@@ -60,7 +61,7 @@ export function AdminDashboard() {
       users: users?.length ?? 0,
       personen: stammPersonen?.length ?? 0,
       fahrzeuge: stammFahrzeuge?.length ?? 0,
-      invites: (invitesQuery.data as any)?.data?.length ?? 0,
+      invites: invitesQuery.data?.data?.length ?? 0,
     }),
     [users, stammPersonen, stammFahrzeuge, invitesQuery.data],
   );
@@ -210,8 +211,8 @@ export function AdminDashboard() {
               <div>
                 <Text className="font-semibold text-text-primary">Integrationen</Text>
                 <Text size="sm" color="muted" className="mt-2">
-                  {integrationOverview.data
-                    ? `${(integrationOverview.data as any[]).filter((i: any) => i.connected).length} von ${(integrationOverview.data as any[]).length} verbunden`
+                  {integrationOverview.data?.integrations
+                    ? `${integrationOverview.data.integrations.filter((i) => i.status === 'verbunden').length} von ${integrationOverview.data.integrations.length} verbunden`
                     : 'Wird geladen...'}
                 </Text>
               </div>

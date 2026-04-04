@@ -59,7 +59,6 @@ export const CreateQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmitt
             {' '}
             {/* Name */}{' '}
             <form.Field name="name">
-              {' '}
               {(field) => (
                 <FormField label="Name" error={field.state.meta.errors[0]} required htmlFor="create-qualifikation-name">
                   {' '}
@@ -74,11 +73,10 @@ export const CreateQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmitt
                     fullWidth
                   />{' '}
                 </FormField>
-              )}{' '}
+              )}
             </form.Field>{' '}
             {/* Abkürzung */}{' '}
             <form.Field name="abkuerzung">
-              {' '}
               {(field) => (
                 <FormField label="Abkürzung" error={field.state.meta.errors[0]} required htmlFor="create-qualifikation-abkuerzung">
                   {' '}
@@ -93,11 +91,10 @@ export const CreateQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmitt
                     fullWidth
                   />{' '}
                 </FormField>
-              )}{' '}
+              )}
             </form.Field>{' '}
             {/* Kategorie */}{' '}
             <form.Field name="kategorie">
-              {' '}
               {(field) => (
                 <FormField label="Kategorie" required htmlFor="create-qualifikation-kategorie">
                   {' '}
@@ -109,11 +106,10 @@ export const CreateQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmitt
                     fullWidth
                   />{' '}
                 </FormField>
-              )}{' '}
+              )}
             </form.Field>{' '}
             {/* Beschreibung */}{' '}
             <form.Field name="beschreibung">
-              {' '}
               {(field) => (
                 <FormField label="Beschreibung" htmlFor="create-qualifikation-beschreibung">
                   {' '}
@@ -127,7 +123,7 @@ export const CreateQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmitt
                     rows={3}
                   />{' '}
                 </FormField>
-              )}{' '}
+              )}
             </form.Field>{' '}
           </div>{' '}
         </Dialog.Body>{' '}
@@ -138,13 +134,12 @@ export const CreateQualifikationDialog = ({ isOpen, onClose, onSubmit, isSubmitt
             Abbrechen{' '}
           </Button>{' '}
           <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
-            {' '}
             {([canSubmit, isFormSubmitting]) => (
               <Button type="submit" disabled={!canSubmit || isFormSubmitting || isSubmitting} loading={isSubmitting || isFormSubmitting}>
                 {' '}
                 Qualifikation erstellen{' '}
               </Button>
-            )}{' '}
+            )}
           </form.Subscribe>{' '}
         </Dialog.Footer>{' '}
       </form>{' '}
