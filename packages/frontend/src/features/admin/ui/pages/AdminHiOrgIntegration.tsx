@@ -298,10 +298,8 @@ export function AdminHiOrgIntegration() {
               <PiCheckCircle className="h-8 w-8 shrink-0 text-green-500" />
               <div>
                 <Text className="font-medium">OAuth2 verbunden</Text>
-                {credentials.lastTestedAt && <Text className="text-xs text-gray-400">Letzter Test: {new Date(credentials.lastTestedAt as unknown as string).toLocaleString('de-DE')}</Text>}
-                {credentials.accessTokenExpiresAt && (
-                  <Text className="text-xs text-gray-400">Token gültig bis: {new Date(credentials.accessTokenExpiresAt as unknown as string).toLocaleString('de-DE')}</Text>
-                )}
+                {credentials.lastTestedAt && <Text className="text-xs text-gray-400">Letzter Test: {new Date(credentials.lastTestedAt).toLocaleString('de-DE')}</Text>}
+                {credentials.accessTokenExpiresAt && <Text className="text-xs text-gray-400">Token gültig bis: {new Date(credentials.accessTokenExpiresAt).toLocaleString('de-DE')}</Text>}
               </div>
             </div>
 

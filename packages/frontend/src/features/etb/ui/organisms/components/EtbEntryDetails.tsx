@@ -50,7 +50,7 @@ export function EtbEntryDetails({ entry, getUserName, etbId, onEntryClick, allEn
   const updatedAtDate = entry.updatedAt ? new Date(entry.updatedAt) : null;
   const updatedAtDisplay = updatedAtDate && isValid(updatedAtDate) ? format(updatedAtDate, 'HH:mm', { locale: de }) : null;
 
-  const deletedAtDate = entry.deletedAt ? new Date(entry.deletedAt as unknown as string) : null;
+  const deletedAtDate = entry.deletedAt ? new Date(entry.deletedAt) : null;
   const deletedAtDisplay = deletedAtDate && isValid(deletedAtDate) ? format(deletedAtDate, 'HH:mm', { locale: de }) : null;
 
   return (
