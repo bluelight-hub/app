@@ -80,7 +80,7 @@ export const useUpdateVorlage = () => {
               ...v,
               titel: data.titel ?? v.titel,
               minuten: data.minuten ?? v.minuten,
-              beschreibung: data.beschreibung !== undefined ? (data.beschreibung as object | null) : v.beschreibung,
+              beschreibung: data.beschreibung !== undefined ? data.beschreibung : v.beschreibung,
               updatedAt: new Date().toISOString(),
             };
           }
