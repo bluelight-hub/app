@@ -78,6 +78,22 @@ export const SCHUTZOBJEKTE_ERKANNT: SchutzobjektValue[] = ['MENSCHEN', 'TIERE', 
 /** Schutzobjekte Sektion 2: "Vor welchen Gefahren müssen sich Einsatzkräfte schützen?" */
 export const SCHUTZOBJEKTE_EINSATZKRAEFTE: SchutzobjektValue[] = ['EINSATZKRAEFTE'];
 
+/**
+ * Ungültige Kombinationen: Gefahrentypen, die für ein Schutzobjekt keinen Sinn ergeben.
+ *
+ * Sachwerte: können nicht in Panik geraten, nicht atmen, nicht erkranken, nicht ertrinken
+ * Umwelt: kann nicht in Panik geraten, nicht erkranken, nicht ertrinken
+ */
+const DISABLED_COMBINATIONS: Partial<Record<SchutzobjektValue, Set<GefahrentypValue>>> = {
+  SACHWERTE: new Set(['ANGSTREAKTION', 'ATEMGIFTE', 'ERKRANKUNG_VERLETZUNG', 'ERTRINKEN']),
+  UMWELT: new Set(['ANGSTREAKTION', 'ERKRANKUNG_VERLETZUNG', 'ERTRINKEN']),
+};
+
+/** Prüft ob eine Kombination aus Gefahrentyp und Schutzobjekt sinnvoll ist */
+export function isKombinationGueltig(typ: GefahrentypValue, objekt: SchutzobjektValue): boolean {
+  return !DISABLED_COMBINATIONS[objekt]?.has(typ);
+}
+
 export const updateBewertungSchema = z.object({
   gefahrentyp: z.enum(GEFAHRENTYPEN),
   schutzobjekt: z.enum(SCHUTZOBJEKTE),
