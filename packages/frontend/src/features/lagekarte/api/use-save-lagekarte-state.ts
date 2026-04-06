@@ -70,7 +70,7 @@ export const useSaveLagekarteState = (einsatzId: string): UseMutationResult<Lage
       // Call API - parseResult.data ist bereits validiert und typsicher
       const dto: SaveLagekarteStateDto = {
         einsatzId,
-        state: parseResult.data as object, // Sicher durch Zod-Validierung
+        state: parseResult.data,
       };
 
       return await api.lagekarte().lagekarteControllerSaveLagekarteStateVAlpha({
