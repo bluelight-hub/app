@@ -47,6 +47,7 @@ import { DeprecationInterceptor } from './modules/common/interceptors/deprecatio
 import { MonitoringModule } from './modules/monitoring/monitoring.module';
 import { GeoModule } from './modules/geo/geo.module';
 import { EinsatzBeitrittModule } from './modules/einsatz-beitritt/einsatz-beitritt.module';
+import { GefahrModule } from './modules/gefahr/gefahr.module';
 
 /**
  * Haupt-Anwendungsmodul der Bluelight Hub Backend-Anwendung
@@ -136,6 +137,7 @@ import { EinsatzBeitrittModule } from './modules/einsatz-beitritt/einsatz-beitri
     MonitoringModule, // System-Monitoring WebSocket Gateway (Story 5.6)
     GeoModule, // PLZ-Lookup via zippopotam.us (Issue #525)
     EinsatzBeitrittModule, // Einsatz-Beitrittsanfragen (Issue #98)
+    GefahrModule, // Gefahrenmatrix (Issue #414)
   ],
   controllers: [AppController],
   providers: [
