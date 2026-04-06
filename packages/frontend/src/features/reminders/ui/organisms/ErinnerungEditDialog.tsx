@@ -89,7 +89,7 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
       minuten: undefined,
       customTime: initialCustomTime,
       beschreibung: erinnerung?.beschreibung ?? '',
-      eskalationsPersonId: (erinnerung as unknown as { eskalationsPersonId: string | null })?.eskalationsPersonId ?? null,
+      eskalationsPersonId: erinnerung?.eskalationsPersonId ?? null,
     } as UpdateErinnerungFormData,
     // @ts-expect-error: validatorAdapter type definition mismatch in current version
     validatorAdapter: zodValidator(),
@@ -122,7 +122,7 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
       }
 
       const newEskalation = value.eskalationsPersonId ?? null;
-      const oldEskalation = (erinnerung as unknown as { eskalationsPersonId: string | null })?.eskalationsPersonId ?? null;
+      const oldEskalation = erinnerung?.eskalationsPersonId ?? null;
       if (newEskalation !== oldEskalation) {
         updateData.eskalationsPersonId = newEskalation || null;
         hasChanges = true;
@@ -360,7 +360,7 @@ export function ErinnerungEditDialog({ isOpen, onClose, erinnerung, einsatzId }:
           </form.Field>
 
           {/* Story 4.1: Eskalationsperson - Story 4.10: Nicht änderbar wenn Rückläufer aktiv */}
-          {(erinnerung as unknown as { eskalationNurAnErsteller?: boolean })?.eskalationNurAnErsteller ? (
+          {erinnerung?.eskalationNurAnErsteller ? (
             <div className="rounded-panel border border-status-warning-border bg-status-warning-surface p-3">
               <p className="flex items-center gap-2 text-sm font-medium text-status-warning-text">
                 <span className="text-base">↩️</span>

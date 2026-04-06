@@ -9,14 +9,6 @@ import { useNavigate } from '@tanstack/react-router';
 import { setHighlightedEntry } from '../../stores';
 import { ErinnerungEtbHistoryWidget } from '../molecules/ErinnerungEtbHistoryWidget';
 
-// TODO: Remove this extension once backend restart + generate-api works
-interface ExtendedErinnerungResponseDto extends ErinnerungResponseDto {
-  escalatedAt?: string | null;
-  previousAssigneeName?: string | null;
-  eskalationsPersonName?: string | null;
-  ausgeloestAm?: string | null;
-}
-
 interface ErinnerungHistoryDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -76,8 +68,7 @@ export function ErinnerungHistoryDialog({ isOpen, onClose, erinnerung, einsatzId
 
   // Triggered (Ausgelöst)
   if (['AUSGELOEST', 'ACKNOWLEDGED', 'SNOOZED', 'ESKALIERT', 'ERLEDIGT'].includes(erinnerung.status)) {
-    const extended = erinnerung as unknown as ExtendedErinnerungResponseDto;
-    const triggerDate = extended.ausgeloestAm || erinnerung.faelligAm;
+    const triggerDate = erinnerung.ausgeloestAm || erinnerung.faelligAm;
 
     // Check if intensified (trigger date > due date + 60s tolerance)
     const isIntensified = new Date(triggerDate).getTime() > new Date(erinnerung.faelligAm).getTime() + 60000;
@@ -92,12 +83,11 @@ export function ErinnerungHistoryDialog({ isOpen, onClose, erinnerung, einsatzId
   }
 
   // Escalated
-  const extendedErinnerung = erinnerung as unknown as ExtendedErinnerungResponseDto;
-  if (extendedErinnerung.escalatedAt) {
+  if (erinnerung.escalatedAt) {
     events.push({
-      date: extendedErinnerung.escalatedAt,
+      date: erinnerung.escalatedAt,
       title: 'Eskaliert',
-      description: `Von ${extendedErinnerung.previousAssigneeName || 'Unbekannt'} an ${extendedErinnerung.eskalationsPersonName || 'Eskalationsperson'}`,
+      description: `Von ${erinnerung.previousAssigneeName || 'Unbekannt'} an ${erinnerung.eskalationsPersonName || 'Eskalationsperson'}`,
       icon: PiWarning,
       color: 'red',
       user: 'System', // Oder der User der eskaliert hat (via trigger/timeout)
