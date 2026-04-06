@@ -86,6 +86,7 @@ import type { EinheitStatusGeaendertEvent } from '@domain/kraefte/events/einheit
 import type { EinheitAufgeloestEvent } from '@domain/kraefte/events/einheit-aufgeloest.event';
 import type { PersonZuEinheitZugewiesenEvent } from '@domain/kraefte/events/person-zu-einheit-zugewiesen.event';
 import type { PersonVonEinheitEntferntEvent } from '@domain/kraefte/events/person-von-einheit-entfernt.event';
+import type { GefahrenmatrixAktualisiertEvent } from '@domain/gefahr/events/gefahrenmatrix-aktualisiert.event';
 
 /**
  * Serialisiertes Event-Payload für Outbox-Persistierung.
@@ -413,6 +414,10 @@ export class EventSerializer {
         return this.serializePersonZuEinheitZugewiesen(event as unknown as PersonZuEinheitZugewiesenEvent);
       case 'einsatz_einheit.person_entfernt':
         return this.serializePersonVonEinheitEntfernt(event as unknown as PersonVonEinheitEntferntEvent);
+
+      // ===== GEFAHRENMATRIX EVENTS (Issue #414) =====
+      case 'gefahrenmatrix.aktualisiert':
+        return this.serializeGefahrenmatrixAktualisiert(event as unknown as GefahrenmatrixAktualisiertEvent);
 
       default:
         throw new Error(`Unknown event type: ${eventName}. EventSerializer needs to be updated.`);
@@ -1375,6 +1380,18 @@ export class EventSerializer {
       einheitName: event.einheitName,
       previousEinheitId: event.previousEinheitId,
       updatedBy: event.updatedBy,
+    };
+  }
+
+  // ===== GEFAHRENMATRIX SERIALIZERS (Issue #414) =====
+
+  private serializeGefahrenmatrixAktualisiert(event: GefahrenmatrixAktualisiertEvent): Record<string, unknown> {
+    return {
+      einsatzId: event.einsatzId,
+      gefahrentyp: event.gefahrentyp,
+      schutzobjekt: event.schutzobjekt,
+      warnstufe: event.warnstufe,
+      aktualisiertVon: event.aktualisiertVon,
     };
   }
 }

@@ -132,6 +132,9 @@ import { EinheitAufgeloestEvent } from '@domain/kraefte/events/einheit-aufgeloes
 import { PersonZuEinheitZugewiesenEvent } from '@domain/kraefte/events/person-zu-einheit-zugewiesen.event';
 import { PersonVonEinheitEntferntEvent } from '@domain/kraefte/events/person-von-einheit-entfernt.event';
 
+// Gefahrenmatrix Events (Issue #414)
+import { GefahrenmatrixAktualisiertEvent } from '@domain/gefahr/events/gefahrenmatrix-aktualisiert.event';
+
 // Fahrzeugtyp Events
 import { FahrzeugtypCreatedEvent } from '@domain/kraefte/events/fahrzeugtyp-created.event';
 import { FahrzeugtypUpdatedEvent } from '@domain/kraefte/events/fahrzeugtyp-updated.event';
@@ -350,6 +353,9 @@ export class EventDeserializer {
       ['einsatz_einheit.aufgeloest', deserializeEinheitAufgeloest],
       ['einsatz_einheit.person_zugewiesen', deserializePersonZuEinheitZugewiesen],
       ['einsatz_einheit.person_entfernt', deserializePersonVonEinheitEntfernt],
+
+      // ===== GEFAHRENMATRIX EVENTS (Issue #414) =====
+      ['gefahrenmatrix.aktualisiert', deserializeGefahrenmatrixAktualisiert],
     ]);
   }
 
@@ -2163,6 +2169,20 @@ function deserializeFahrzeugEinheitZugewiesen(payload: Record<string, unknown>, 
     (payload.einheitName as string | null) ?? null,
     (payload.previousEinheitId as string | null) ?? null,
     payload.updatedBy as string,
+  );
+  return Result.ok<DomainEvent>(event);
+}
+
+// ===== GEFAHRENMATRIX DESERIALIZERS (Issue #414) =====
+
+function deserializeGefahrenmatrixAktualisiert(payload: Record<string, unknown>, aggregateId?: string): Result<DomainEvent> {
+  const event = new GefahrenmatrixAktualisiertEvent(
+    payload.einsatzId as string,
+    payload.gefahrentyp as string,
+    payload.schutzobjekt as string,
+    payload.warnstufe as string,
+    payload.aktualisiertVon as string,
+    aggregateId,
   );
   return Result.ok<DomainEvent>(event);
 }

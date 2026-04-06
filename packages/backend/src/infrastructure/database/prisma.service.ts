@@ -211,6 +211,9 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get einsatzPersonEinheit() {
     return this._client.einsatzPersonEinheit;
   }
+  get gefahrenmatrixBewertung() {
+    return this._client.gefahrenmatrixBewertung;
+  }
 
   // Delegate Prisma Client methods
   $connect() {

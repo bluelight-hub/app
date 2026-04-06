@@ -83,6 +83,9 @@ export const NOTIZ_REPOSITORY = Symbol('INotizRepository');
 /** Repository Token für IKategorieRepository */
 export const KATEGORIE_REPOSITORY = Symbol('IKategorieRepository');
 
+/** Repository Token für IGefahrenmatrixRepository (Issue #414) */
+export const GEFAHRENMATRIX_REPOSITORY = Symbol('IGefahrenmatrixRepository');
+
 /**
  * Kräftemanagement Repository Tokens (Epic 1+).
  *
