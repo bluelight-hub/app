@@ -13,6 +13,7 @@ import {
   AufbewahrungApi,
   AuthApi,
   EinsatzBeitrittApi,
+  GefahrenmatrixApi,
   BefehleApi,
   Configuration,
   EinsatzApi,
@@ -125,6 +126,7 @@ class BackendApi {
   private readonly usersApi: UsersApi;
   private readonly einsatzApi: EinsatzApi;
   private readonly einsatzBeitrittApi: EinsatzBeitrittApi;
+  private readonly gefahrenmatrixApi: GefahrenmatrixApi;
   private readonly etbApi: ETBApi;
   private readonly lagekarteApi: LagekarteApi;
   private readonly lagekarteCqrsApi: LagekarteCQRSApi;
@@ -182,6 +184,7 @@ class BackendApi {
     this.usersApi = new UsersApi(this.configuration);
     this.einsatzApi = new EinsatzApi(this.configuration);
     this.einsatzBeitrittApi = new EinsatzBeitrittApi(this.configuration);
+    this.gefahrenmatrixApi = new GefahrenmatrixApi(this.configuration);
     this.etbApi = new ETBApi(this.configuration);
     this.lagekarteApi = new LagekarteApi(this.configuration);
     this.lagekarteCqrsApi = new LagekarteCQRSApi(this.configuration);
@@ -303,6 +306,15 @@ class BackendApi {
    */
   einsatzBeitritt(): EinsatzBeitrittApi {
     return this.einsatzBeitrittApi;
+  }
+
+  /**
+   * Gibt die gecachte Gefahrenmatrix-API-Instanz zurück (Issue #414)
+   *
+   * @returns Die Gefahrenmatrix-API-Instanz für Gefahrenmatrix-Management
+   */
+  gefahrenmatrix(): GefahrenmatrixApi {
+    return this.gefahrenmatrixApi;
   }
 
   /**
