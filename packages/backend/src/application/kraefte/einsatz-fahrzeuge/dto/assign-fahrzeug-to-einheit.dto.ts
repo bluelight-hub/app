@@ -9,7 +9,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
  * - null/undefined: Fahrzeug von Einheit entfernen
  */
 export class AssignFahrzeugToEinheitDto {
-  @ApiPropertyOptional({ description: 'Einheit-ID (CUID2) oder null zum Entfernen', example: 'clx1234567890abcdef12345' })
+  @ApiPropertyOptional({ description: 'Einheit-ID (CUID2) oder null zum Entfernen', example: 'clx1234567890abcdef12345', type: String })
   @IsString()
   @IsOptional()
   einheitId?: string | null;
