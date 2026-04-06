@@ -241,13 +241,11 @@ function PinnwandErinnerungenInner({ einsatzId, className, currentUserId }: Pinn
     if ((!einsatzTeilnehmer || einsatzTeilnehmer.length === 0) && erinnerungen && erinnerungen.length > 0) {
       const teilnehmerMap = new Map<string, string>();
       for (const e of erinnerungen) {
-        // eslint-disable-next-line typescript/no-explicit-any -- DTO missing fields
-        if (e.erstelltVon && (e as any).erstellerName) {
-          // eslint-disable-next-line typescript/no-explicit-any -- DTO missing fields
-          teilnehmerMap.set(e.erstelltVon, sanitizeName((e as any).erstellerName));
+        if (e.erstelltVon && e.erstellerName) {
+          teilnehmerMap.set(e.erstelltVon, sanitizeName(e.erstellerName));
         }
         if (e.assignedToId && e.assignedToName) {
-          teilnehmerMap.set(e.assignedToId as unknown as string, sanitizeName(e.assignedToName));
+          teilnehmerMap.set(e.assignedToId, sanitizeName(e.assignedToName));
         }
       }
       const fallbackList = Array.from(teilnehmerMap, ([id, name]) => ({ id, name }));
