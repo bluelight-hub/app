@@ -13,7 +13,8 @@ export const useGefahrenmatrix = (einsatzId: string) => {
   return useQuery({
     queryKey: GEFAHRENMATRIX_QUERY_KEYS.byEinsatz(einsatzId),
     queryFn: async () => {
-      return await api.gefahrenmatrix().gefahrenmatrixControllerGetVAlpha({ einsatzId });
+      const response = await api.gefahrenmatrix().gefahrenmatrixControllerGetVAlpha({ einsatzId });
+      return response.data;
     },
     enabled: !!einsatzId,
   });

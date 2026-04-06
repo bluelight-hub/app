@@ -16,10 +16,11 @@ export const useUpdateGefahrenmatrixBewertung = () => {
 
   return useMutation({
     mutationFn: async ({ einsatzId, data }: UpdateBewertungVariables) => {
-      return await api.gefahrenmatrix().gefahrenmatrixControllerUpdateBewertungVAlpha({
+      const response = await api.gefahrenmatrix().gefahrenmatrixControllerUpdateBewertungVAlpha({
         einsatzId,
         updateGefahrenmatrixDto: data,
       });
+      return response.data;
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: GEFAHRENMATRIX_QUERY_KEYS.byEinsatz(variables.einsatzId) });
