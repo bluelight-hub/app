@@ -25,6 +25,7 @@ apis/ErinnerungApi.ts
 apis/ErinnerungenApi.ts
 apis/ErinnerungsvorlagenApi.ts
 apis/FuehrungsrhythmusTemplatesAdminApi.ts
+apis/GefahrenmatrixApi.ts
 apis/GeoApi.ts
 apis/GeocodingApi.ts
 apis/HealthApi.ts
@@ -290,6 +291,10 @@ models/FuehrungsrhythmusTemplateControllerCreateVAlpha201Response.ts
 models/FuehrungsrhythmusTemplateControllerGetAllVAlpha200Response.ts
 models/FuehrungsrhythmusTemplateResponseDto.ts
 models/FunkStatusConfigDto.ts
+models/GefahrenmatrixBewertungDto.ts
+models/GefahrenmatrixControllerGetVAlpha200Response.ts
+models/GefahrenmatrixControllerUpdateBewertungVAlpha200Response.ts
+models/GefahrenmatrixResponseDto.ts
 models/GeoJsonPointDto.ts
 models/GeoPositionDto.ts
 models/GeocodeAddressDto.ts
@@ -429,6 +434,7 @@ models/UpdateFahrzeugtypDto.ts
 models/UpdateFmsStatusDto.ts
 models/UpdateFuehrungsrhythmusTemplateDto.ts
 models/UpdateFunkStatusConfigDto.ts
+models/UpdateGefahrenmatrixDto.ts
 models/UpdateNotizDto.ts
 models/UpdatePoiDto.ts
 models/UpdatePoiPositionDto.ts
