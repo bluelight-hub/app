@@ -1,3 +1,22 @@
+## 🔧 Technische Verbesserungen
+
+**Type-Safety & Code-Qualität**
+
+- Verbesserte Typ-Sicherheit im gesamten Frontend durch Entfernung unnötiger Type-Casts
+- Zentralisierte Behandlung dynamischer Navigation über neue `DynamicLink`-Komponente
+- Aktualisierte API-Client-Generierung mit korrekten TypeScript-Typen für alle DTOs
+- Optimierte Erinnerungen-, Lagekarte- und Alarm-Komponenten durch präzisere Typdefinitionen
+
+## 📦 Dependency-Updates
+
+- NestJS auf Version 11.1.18 aktualisiert
+- TanStack React Query auf Version 5.96.2 aktualisiert
+- TanStack Router Plugin auf Version 1.167.12 aktualisiert
+- React Leaflet Cluster auf Version 4.1.3 aktualisiert (verbesserte Karten-Performance)
+- React Hook Form auf Version 7.72.1 aktualisiert
+- Prometheus-Integration auf Version 6.1.0 aktualisiert
+- Verschiedene Build-Tools und Type-Definitionen aktualisiert
+
 ## Admin Panel Redesign
 
 Das Admin Panel wurde komplett überarbeitet und bietet nun eine moderne, übersichtliche Benutzeroberfläche:
