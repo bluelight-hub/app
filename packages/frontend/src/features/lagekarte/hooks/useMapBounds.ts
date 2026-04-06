@@ -1,66 +1,46 @@
 import type { PoiDto } from '@/shared';
-import L from 'leaflet';
+import { LngLatBounds } from 'maplibre-gl';
+import type { MapRef } from 'react-map-gl/maplibre';
 import { useEffect } from 'react';
-import { useMap } from 'react-leaflet';
-
-/**
- * Default-Zentrum für Deutschland
- * Wird verwendet wenn keine POIs vorhanden sind
- */
-const GERMANY_CENTER: [number, number] = [51.1657, 10.4515];
-const GERMANY_ZOOM = 6;
+import { MAP_DEFAULTS } from '../utils/map-config';
 
 /**
  * Custom Hook zum automatischen Zoomen der Karte auf alle POIs
  *
  * @param pois - Array von POIs die auf der Karte dargestellt werden sollen
- *
- * @remarks
- * - Berechnet Bounding-Box aus allen POI-Koordinaten
- * - Zoomt Karte automatisch um alle POIs anzuzeigen
- * - Fallback auf Deutschland-Zentrum wenn keine POIs vorhanden
- * - Wird nur einmal beim initialen Laden ausgeführt (nicht bei jedem Update)
- * - Überspringt POIs mit ungültigen Koordinaten
- *
- * @example
- * ```tsx
- * const MapBoundsController: React.FC<{ pois: PoiDto[] }> = ({ pois }) => {
- *   useMapBounds(pois);
- *   return null;
- * };
- *
- * // In LagekarteView:
- * <MapContainer>
- *   <MapBoundsController pois={pois} />
- * </MapContainer>
- * ```
+ * @param mapRef - React Ref zur MapLibre Map-Instanz
  */
-export const useMapBounds = (pois: PoiDto[] | undefined): void => {
-  const map = useMap();
-
+export const useMapBounds = (pois: PoiDto[] | undefined, mapRef: React.RefObject<MapRef | null>): void => {
   useEffect(() => {
-    // Keine POIs vorhanden - Fallback zu Deutschland-Zentrum
+    const map = mapRef.current;
+    if (!map) return;
+
     if (!pois || pois.length === 0) {
-      map.setView(GERMANY_CENTER, GERMANY_ZOOM);
+      map.flyTo({
+        center: [MAP_DEFAULTS.longitude, MAP_DEFAULTS.latitude],
+        zoom: MAP_DEFAULTS.zoom,
+      });
       return;
     }
 
-    // Filtere POIs mit gültigen Koordinaten
-    const validPois = pois.filter((poi) => poi.coordinate && true && true && !Number.isNaN(poi.coordinate.lat) && !Number.isNaN(poi.coordinate.lng));
+    const validPois = pois.filter((poi) => poi.coordinate && !Number.isNaN(poi.coordinate.lat) && !Number.isNaN(poi.coordinate.lng));
 
-    // Keine gültigen POIs - Fallback zu Deutschland-Zentrum
     if (validPois.length === 0) {
-      map.setView(GERMANY_CENTER, GERMANY_ZOOM);
+      map.flyTo({
+        center: [MAP_DEFAULTS.longitude, MAP_DEFAULTS.latitude],
+        zoom: MAP_DEFAULTS.zoom,
+      });
       return;
     }
 
-    // Berechne Bounding-Box aus allen POI-Koordinaten
-    const bounds = L.latLngBounds(validPois.map((poi) => [poi.coordinate.lat, poi.coordinate.lng]));
+    const bounds = new LngLatBounds();
+    for (const poi of validPois) {
+      bounds.extend([poi.coordinate.lng, poi.coordinate.lat]);
+    }
 
-    // Zoome Karte auf Bounding-Box mit Padding
     map.fitBounds(bounds, {
-      padding: [50, 50], // 50px Padding auf allen Seiten
-      maxZoom: 15, // Maximaler Zoom-Level (verhindert zu starkes Zoomen bei wenigen POIs)
+      padding: 50,
+      maxZoom: 15,
     });
-  }, [pois, map]); // Re-run wenn POIs sich ändern oder Map-Instanz wechselt
+  }, [pois, mapRef]);
 };

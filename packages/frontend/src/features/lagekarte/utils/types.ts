@@ -1,62 +1,21 @@
-import type * as L from 'leaflet';
+import type { ShapeType } from './drawing-styles';
 
 /**
- * Leaflet Layer mit Style-Properties (Polygon, Polyline, etc.)
+ * Properties eines gezeichneten Shapes (in GeoJSON Feature.properties)
  */
-export interface LayerWithStyle extends L.Layer {
-  setStyle: (style: L.PathOptions) => this;
-  options: L.PathOptions;
+export interface ShapeProperties {
+  id: string;
+  label?: string;
+  type?: ShapeType;
+  color?: string;
+  strokeWidth?: number;
+  fillOpacity?: number;
+  description?: string;
+  createdAt: string;
 }
 
 /**
- * Leaflet Layer mit Bounds (Polygon, Rectangle, etc.)
- */
-export interface LayerWithBounds extends L.Layer {
-  getBounds: () => L.LatLngBounds;
-}
-
-/**
- * Leaflet Marker mit LatLng
- */
-export interface LayerWithLatLng extends L.Layer {
-  getLatLng: () => L.LatLng;
-}
-
-/**
- * Leaflet Layer mit Geoman PM support
- */
-export interface LayerWithPM extends L.Layer {
-  pm: {
-    enable: () => void;
-    disable: () => void;
-    enabled: () => boolean;
-  };
-}
-
-/**
- * Leaflet Layer mit Shape-ID (custom property)
- */
-export interface LayerWithShapeId extends L.Layer {
-  _shapeId?: string;
-}
-
-/**
- * Leaflet Layer mit Text-Content (für Text-Marker)
- */
-export interface LayerWithTextContent extends L.Layer {
-  _textContent?: string;
-  getElement?: () => HTMLElement | null;
-}
-
-/**
- * Leaflet Layer mit GeoJSON
- */
-export interface LayerWithGeoJSON extends L.Layer {
-  toGeoJSON: () => GeoJSON.Feature;
-}
-
-/**
- * Original style for highlighting
+ * Original-Style für Highlight-Restore (reine Daten, kein Library-Bezug)
  */
 export interface OriginalStyle {
   color?: string;
