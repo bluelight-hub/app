@@ -81,9 +81,12 @@ export function GefahrenmatrixGrid({ einsatzId }: GefahrenmatrixGridProps) {
             isKombinationGueltig(typ, objekt) ? (
               <GefahrenmatrixCell key={`${typ}:${objekt}`} warnstufe={getWarnstufe(typ, objekt)} onChange={(warnstufe) => handleChange(typ, objekt, warnstufe)} />
             ) : (
-              <td key={`${typ}:${objekt}`} className="bg-surface-sunken border border-border-subtle p-0 text-center">
-                <div className="flex h-full w-full items-center justify-center px-2 py-1.5 text-xs text-text-muted">—</div>
-              </td>
+              <td
+                key={`${typ}:${objekt}`}
+                className="cursor-not-allowed border border-border-subtle p-0 text-center"
+                style={{ background: 'repeating-linear-gradient(-45deg, transparent, transparent 3px, var(--color-border-subtle) 3px, var(--color-border-subtle) 4px)' }}
+                title={`${GEFAHRENTYP_LABELS[typ]} ist für ${SCHUTZOBJEKT_LABELS[objekt]} nicht anwendbar`}
+              />
             ),
           )}
         </tr>
