@@ -281,6 +281,14 @@ export const EVENT_NAMES = {
     /** Event: Beitrittsanfrage wurde entschieden (genehmigt/abgelehnt) */
     ENTSCHIEDEN: 'beitrittsanfrage.entschieden',
   },
+
+  /**
+   * Gefahrenmatrix Bounded Context Events (Issue #414)
+   */
+  GEFAHRENMATRIX: {
+    /** Event: Gefahrenmatrix wurde aktualisiert (Bewertung geändert) */
+    AKTUALISIERT: 'gefahrenmatrix.aktualisiert',
+  },
 } as const;
 
 /**
@@ -314,4 +322,5 @@ export type EventName =
   | (typeof EVENT_NAMES.AUFBEWAHRUNG)[keyof typeof EVENT_NAMES.AUFBEWAHRUNG]
   | (typeof EVENT_NAMES.SYSTEM)[keyof typeof EVENT_NAMES.SYSTEM]
   | (typeof EVENT_NAMES.OPERATIVE_ROLLE)[keyof typeof EVENT_NAMES.OPERATIVE_ROLLE]
-  | (typeof EVENT_NAMES.BEITRITTSANFRAGE)[keyof typeof EVENT_NAMES.BEITRITTSANFRAGE];
+  | (typeof EVENT_NAMES.BEITRITTSANFRAGE)[keyof typeof EVENT_NAMES.BEITRITTSANFRAGE]
+  | (typeof EVENT_NAMES.GEFAHRENMATRIX)[keyof typeof EVENT_NAMES.GEFAHRENMATRIX];
