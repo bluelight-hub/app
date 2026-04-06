@@ -48,8 +48,8 @@ describe('einsatz workspace registry', () => {
     const fuehrungModule = EINSATZ_WORKSPACE_MODULES.find((module) => module.id === 'führung');
     const kraefteModule = EINSATZ_WORKSPACE_MODULES.find((module) => module.id === 'kräfte');
 
-    expect(visibleModules.map((module) => module.id)).toEqual(['übersicht', 'führung', 'kommunikation', 'kräfte']);
-    expect(disabledModules.map((module) => module.id)).toEqual(['sicherheit', 'patienten', 'betreuung', 'logistik', 'drohne']);
+    expect(visibleModules.map((module) => module.id)).toEqual(['übersicht', 'führung', 'kommunikation', 'kräfte', 'sicherheit']);
+    expect(disabledModules.map((module) => module.id)).toEqual(['patienten', 'betreuung', 'logistik', 'drohne']);
     expect(disabledModules.every((module) => module.visibility.reason)).toBe(true);
     expect(fuehrungModule?.subPages.find((page) => page.id === 'etb')?.visibility.default).toBe('visible');
     expect(fuehrungModule?.subPages.find((page) => page.id === 'pinnwand')?.visibility.default).toBe('visible');
