@@ -2,7 +2,8 @@ import { cn, getModuleActiveColor, getModuleColor } from '@/shared/ui';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { CommandTrigger } from '@/shared/ui/atoms/command-trigger.atom';
 import { Container } from '@/shared/ui/atoms/container.atom';
-import { Link, useNavigate } from '@tanstack/react-router';
+import { DynamicLink } from '@/shared/ui/atoms/DynamicLink';
+import { useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { PiGridFour, PiQuestion } from 'react-icons/pi';
 import type { WorkspaceBlockingOverlayState, WorkspaceModuleDefinition, WorkspaceRouteParams } from '../types';
@@ -122,10 +123,9 @@ export function ModuleRail({
       event.preventDefault();
       void navigate({
         to: matchedModule.routeTarget,
-        // eslint-disable-next-line typescript/no-explicit-any -- Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
-        params: routeParams as any,
-        search: (prev) => prev,
-      });
+        params: routeParams,
+        search: (prev: Record<string, unknown>) => prev,
+      } as Parameters<typeof navigate>[0]);
     }
 
     window.addEventListener('keydown', handleKeyDown);
@@ -163,11 +163,10 @@ export function ModuleRail({
                 }
 
                 return (
-                  <Link
+                  <DynamicLink
                     key={module.id}
                     to={module.routeTarget}
-                    // eslint-disable-next-line typescript/no-explicit-any -- Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
-                    params={routeParams as any}
+                    params={routeParams}
                     search={(prev) => prev}
                     aria-label={module.label}
                     aria-current={isActive ? 'page' : undefined}
@@ -181,7 +180,7 @@ export function ModuleRail({
                     <module.icon className="h-4 w-4" />
                     <span>{module.label}</span>
                     <ShortcutHint module={module} />
-                  </Link>
+                  </DynamicLink>
                 );
               })}
             </div>
@@ -206,11 +205,10 @@ export function ModuleRail({
                 }
 
                 return (
-                  <Link
+                  <DynamicLink
                     key={module.id}
                     to={module.routeTarget}
-                    // eslint-disable-next-line typescript/no-explicit-any -- Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
-                    params={routeParams as any}
+                    params={routeParams}
                     search={(prev) => prev}
                     aria-label={module.label}
                     aria-current={isActive ? 'page' : undefined}
@@ -224,7 +222,7 @@ export function ModuleRail({
                     <module.icon className="h-4 w-4" />
                     <span className="hidden md:inline">{module.label}</span>
                     <ShortcutHint module={module} className="shrink-0" />
-                  </Link>
+                  </DynamicLink>
                 );
               })}
 
@@ -256,11 +254,10 @@ export function ModuleRail({
                 }
 
                 return (
-                  <Link
+                  <DynamicLink
                     key={module.id}
                     to={module.routeTarget}
-                    // eslint-disable-next-line typescript/no-explicit-any -- Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
-                    params={routeParams as any}
+                    params={routeParams}
                     search={(prev) => prev}
                     aria-label={module.label}
                     aria-current={isActive ? 'page' : undefined}
@@ -274,7 +271,7 @@ export function ModuleRail({
                     <module.icon className="h-4 w-4" />
                     <span className="hidden md:inline">{module.label}</span>
                     <ShortcutHint module={module} className="shrink-0" />
-                  </Link>
+                  </DynamicLink>
                 );
               })}
 

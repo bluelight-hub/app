@@ -1,6 +1,6 @@
 import { Container } from '@/shared/ui/atoms/container.atom';
 import { cn } from '@/shared/ui/cn';
-import { Link } from '@tanstack/react-router';
+import { DynamicLink } from '@/shared/ui/atoms/DynamicLink';
 import type { ComponentType, ReactNode } from 'react';
 import { PiArrowLeft } from 'react-icons/pi';
 
@@ -30,17 +30,16 @@ export function WorkspaceContextBar({ title, subtitle, icon: ContextIcon, backAc
           <div className="flex min-h-12 items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               {backAction ? (
-                <Link
+                <DynamicLink
                   to={backAction.href}
-                  // eslint-disable-next-line typescript/no-explicit-any -- Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
-                  params={routeParams as any}
+                  params={routeParams}
                   className={cn(
                     'group inline-flex items-center justify-center gap-2 rounded-control border border-transparent px-2.5 py-1 font-sans text-body-sm font-medium text-text-secondary transition-[background-color,border-color,color,box-shadow] hover:bg-action-secondary hover:text-text-primary focus-visible:shadow-focus-ring focus-visible:outline-none',
                   )}
                 >
                   <BackIcon className="h-4 w-4" />
                   <span>{backAction.label}</span>
-                </Link>
+                </DynamicLink>
               ) : null}
 
               {backAction ? <div className="h-7 w-px bg-border-subtle" aria-hidden="true" /> : null}

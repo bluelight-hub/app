@@ -2,7 +2,7 @@ import { Button } from '@/shared/ui/atoms/button.atom';
 import { CommandTrigger } from '@/shared/ui/atoms/command-trigger.atom';
 import { Container } from '@/shared/ui/atoms/container.atom';
 import { cn } from '@/shared/ui/cn';
-import { Link } from '@tanstack/react-router';
+import { DynamicLink } from '@/shared/ui/atoms/DynamicLink';
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { PiGridFour } from 'react-icons/pi';
@@ -168,10 +168,9 @@ export function WorkspaceShell({
                           ) : null}
                         </div>
                       ) : (
-                        <Link
+                        <DynamicLink
                           to={module.routeTarget}
-                          // eslint-disable-next-line typescript/no-explicit-any -- Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
-                          params={routeParams as any}
+                          params={routeParams}
                           aria-label={module.label}
                           aria-keyshortcuts={module.shortcut ? [...module.shortcut.modifiers, module.shortcut.key].join('+') : undefined}
                           className={cn(
@@ -199,7 +198,7 @@ export function WorkspaceShell({
                               {getShortcutBadge(module)}
                             </span>
                           ) : null}
-                        </Link>
+                        </DynamicLink>
                       )}
 
                       {module.badgeHint ? (
@@ -236,11 +235,10 @@ export function WorkspaceShell({
                             }
 
                             return (
-                              <Link
+                              <DynamicLink
                                 key={page.id}
                                 to={page.href}
-                                // eslint-disable-next-line typescript/no-explicit-any -- Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
-                                params={routeParams as any}
+                                params={routeParams}
                                 search={(prev) => prev}
                                 aria-current={isActive ? 'page' : undefined}
                                 className={cn(
@@ -256,7 +254,7 @@ export function WorkspaceShell({
                                   </div>
                                   {page.description ? <p className="mt-0.5 text-body-xs text-text-secondary">{page.description}</p> : null}
                                 </div>
-                              </Link>
+                              </DynamicLink>
                             );
                           })}
                     </div>
@@ -303,11 +301,10 @@ export function WorkspaceShell({
                   }
 
                   return (
-                    <Link
+                    <DynamicLink
                       key={page.id}
                       to={page.href}
-                      // eslint-disable-next-line typescript/no-explicit-any -- Route-Parameter werden im Shell-Contract featureübergreifend übergeben.
-                      params={routeParams as any}
+                      params={routeParams}
                       search={(prev) => prev}
                       aria-current={isActive ? 'page' : undefined}
                       className={cn(
@@ -317,7 +314,7 @@ export function WorkspaceShell({
                     >
                       <page.icon className="h-4 w-4" />
                       {page.label}
-                    </Link>
+                    </DynamicLink>
                   );
                 })}
               </nav>
