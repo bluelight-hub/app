@@ -179,7 +179,8 @@ export function SingleEinsatzLayout({ className }: SingleEinsatzLayoutProps) {
   const isOnKarteRoute = !!matchRoute({ to: '/app/einsatz/$einsatzId/übersicht/karte', fuzzy: false });
   const isOnEtbRoute = !!matchRoute({ to: '/app/einsatz/$einsatzId/führung/etb', fuzzy: false });
   const isOnKraefteDashboardRoute = !!matchRoute({ to: '/app/einsatz/$einsatzId/kräfte/dashboard', fuzzy: false });
-  const supportsFullscreen = isOnKarteRoute || isOnEtbRoute || isOnKraefteDashboardRoute;
+  const isOnGefahrenRoute = !!matchRoute({ to: '/app/einsatz/$einsatzId/sicherheit/gefahren', fuzzy: false });
+  const supportsFullscreen = isOnKarteRoute || isOnEtbRoute || isOnKraefteDashboardRoute || isOnGefahrenRoute;
 
   // Lade kombinierte Einsatzdaten (Einsatz + ETB + Lagekarte)
   // ETB und Lagekarte werden im Cache vorgeladen, sodass Child-Routes diese nutzen können

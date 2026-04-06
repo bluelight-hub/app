@@ -13,12 +13,25 @@ const CELL_BG: Record<WarnstufeValue, string> = {
 interface GefahrenmatrixCellProps {
   warnstufe: WarnstufeValue;
   onChange: (warnstufe: WarnstufeValue) => void;
+  readonly?: boolean;
+  fullscreen?: boolean;
 }
 
 /**
  * Einzelne Zelle der Gefahrenmatrix mit Warnstufen-Dropdown.
+ * Im Readonly-Modus wird nur der Text ohne Dropdown angezeigt.
  */
-export function GefahrenmatrixCell({ warnstufe, onChange }: GefahrenmatrixCellProps) {
+export function GefahrenmatrixCell({ warnstufe, onChange, readonly = false, fullscreen = false }: GefahrenmatrixCellProps) {
+  if (readonly) {
+    return (
+      <td className={cn('border border-border-subtle p-0 text-center', CELL_BG[warnstufe])}>
+        <span className={cn('flex items-center justify-center', fullscreen ? 'px-3 py-3 text-sm font-medium' : 'px-2 py-1.5 text-xs')}>
+          {warnstufe === 'KEINE' ? '–' : WARNSTUFE_LABELS[warnstufe]}
+        </span>
+      </td>
+    );
+  }
+
   return (
     <td className={cn('border border-border-subtle p-0 text-center', CELL_BG[warnstufe])}>
       <Listbox value={warnstufe} onChange={onChange}>
