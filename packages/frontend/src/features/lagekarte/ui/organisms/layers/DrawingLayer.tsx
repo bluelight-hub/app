@@ -1,108 +1,35 @@
-import '@geoman-io/leaflet-geoman-free';
-import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import type { DrawingTool } from '@/features/lagekarte';
-import { ShapeContextMenu } from '@/features/lagekarte';
-import { SelectedShapeToolbar } from '@/features/lagekarte';
-import type React from 'react';
-import { memo, useCallback, useRef, useState } from 'react';
-import { useMap } from 'react-leaflet';
-import * as L from 'leaflet';
+import { ShapeContextMenu, SelectedShapeToolbar } from '@/features/lagekarte';
+import { useMapDrawing } from '@/features/lagekarte/hooks';
+import { useSelectedShapeId } from '@/features/lagekarte/hooks';
+import { calculateToolbarPositionFromGeoJSON } from '@/features/lagekarte/utils/layer-utils';
+import { setToolbarPosition, lagekarteStore } from '@/features/lagekarte/stores/lagekarte-state.store';
+import { useToolbarPosition } from '@/features/lagekarte/hooks';
+import { MAPBOX_DRAW_STYLES } from '@/features/lagekarte/utils/drawing-styles';
+import MapboxDraw from '@mapbox/mapbox-gl-draw';
+import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import type * as GeoJSON from 'geojson';
+import type React from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import type { MapRef } from 'react-map-gl/maplibre';
 import { toast } from 'sonner';
-import { getShapeIdFromLayer } from '@/features/lagekarte/utils/layer-utils';
-
-// Legacy Hooks (TODO: Migrieren zu konsolidierten Feature-Hooks)
-import {
-  useLeafletPMControls,
-  useShapeLoading,
-  useDrawingToolSelection,
-  useShapeSelection,
-  useShapeHighlighting,
-  useToolbarPositioning,
-  useKeyboardShortcuts,
-  useShapeEventHandlers,
-  useTextMarkerHandling,
-  useShapeStyleUpdates,
-} from '@/features/lagekarte/hooks/legacy';
-import type { LayerWithGeoJSON, LayerWithPM, OriginalStyle } from '@/features/lagekarte/utils/types';
-
-const isPmLayer = (layer: L.Layer): layer is LayerWithPM => {
-  return 'pm' in layer && typeof (layer as LayerWithPM).pm?.enable === 'function';
-};
-
-const isGeoJsonLayer = (layer: L.Layer): layer is LayerWithGeoJSON => {
-  return 'toGeoJSON' in layer && typeof (layer as LayerWithGeoJSON).toGeoJSON === 'function';
-};
 
 interface DrawingLayerProps {
-  /**
-   * ID des Einsatzes
-   */
+  mapRef: React.RefObject<MapRef | null>;
   einsatzId: string;
-  /**
-   * Aktuell ausgewähltes Drawing-Tool
-   */
   selectedTool: DrawingTool;
-  /**
-   * Initial State (GeoJSON FeatureCollection) aus Backend
-   */
   initialState?: GeoJSON.FeatureCollection;
-  /**
-   * Shape das updated werden soll (z.B. nach Label-Änderung)
-   */
   shapeToUpdate?: GeoJSON.Feature | null;
-  /**
-   * Callback wenn Shapes sich ändern (für Backend-Persistierung)
-   */
   onShapesChange: (shapes: GeoJSON.FeatureCollection) => void;
-  /**
-   * Callback wenn Shape-Limit erreicht wird
-   */
   onShapeLimitReached?: () => void;
-  /**
-   * Callback wenn neuer Shape erstellt wurde (öffnet Label-Modal)
-   */
   onShapeCreated?: (shape: GeoJSON.Feature) => void;
-  /**
-   * Callback wenn Shape-Update abgeschlossen ist
-   */
   onShapeUpdateComplete?: () => void;
-  /**
-   * Callback wenn Shape selektiert wird (für Property Panel)
-   */
   onShapeSelected?: (shape: GeoJSON.Feature | null) => void;
-  /**
-   * Ob POI-Platzierungs-Modus aktiv ist
-   * Wenn true, werden alle Drawing-Interaktionen deaktiviert
-   */
   isPlacementModeActive?: boolean;
 }
 
-/**
- * DrawingLayer-Komponente für Lagekarte
- *
- * Integriert Leaflet.PM (Geoman) zum Zeichnen von Polygonen, Linien und Rechtecken
- * auf der Karte. Shapes werden als GeoJSON FeatureCollection gespeichert.
- *
- * @remarks
- * - Verwendet Leaflet.PM (NOT leaflet-draw - veraltet!)
- * - Shape-Limit: Max 100 Shapes per Lagekarte
- * - Event-Handler: pm:create, pm:edit, pm:remove
- * - Shapes haben Default-Style bis Typ-Auswahl im Label-Modal
- * - Refactored: Logic aufgeteilt in Custom Hooks für bessere Wartbarkeit
- *
- * @example
- * ```tsx
- * <DrawingLayer
- *   einsatzId="einsatz-123"
- *   selectedTool={selectedTool}
- *   onShapesChange={(shapes) => saveMutation.mutate(shapes)}
- *   onShapeLimitReached={() => toast.error('Max 100 Shapes')}
- *   onShapeCreated={(shape) => setShapeLabelModalOpen(true)}
- * />
- * ```
- */
 const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
+  mapRef,
   einsatzId: _einsatzId,
   selectedTool,
   initialState,
@@ -114,255 +41,203 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
   onShapeSelected,
   isPlacementModeActive = false,
 }) => {
-  const map = useMap();
+  const [draw, setDraw] = useState<MapboxDraw | null>(null);
+  const [mapInstance, setMapInstance] = useState<maplibregl.Map | null>(null);
+  const initialLoadedRef = useRef(false);
+  const selectedShapeId = useSelectedShapeId();
 
-  // State
-  const [shapes, setShapes] = useState<GeoJSON.FeatureCollection>(
-    initialState && initialState.type === 'FeatureCollection' && Array.isArray(initialState.features)
-      ? initialState
-      : {
-          type: 'FeatureCollection',
-          features: [],
-        },
-  );
-  const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
+  // Context Menu State
   const [contextMenu, setContextMenu] = useState<{
     isOpen: boolean;
     position: { x: number; y: number };
     shapeId: string;
   } | null>(null);
 
-  // Refs
-  const layersRef = useRef<Map<string, L.Layer>>(new Map());
-  const shapesRef = useRef(shapes);
-  const originalStylesRef = useRef<Map<string, OriginalStyle>>(new Map());
+  // MapboxDraw initialisieren und bei Unmount aufräumen
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (!map) return;
 
-  // Update shapesRef bei shapes-Änderung
-  shapesRef.current = shapes;
+    let drawInstance: MapboxDraw | null = null;
 
-  // Event handlers for layers
-  const handleLayerClick = useCallback(
-    (e: L.LeafletMouseEvent) => {
-      // Deaktiviere Layer-Interaktionen während POI-Platzierung
-      if (isPlacementModeActive) return;
+    const initDraw = () => {
+      drawInstance = new MapboxDraw({
+        displayControlsDefault: false,
+        controls: {},
+        styles: MAPBOX_DRAW_STYLES,
+        userProperties: true,
+      });
 
-      L.DomEvent.stopPropagation(e);
-      const clickedLayer = e.target;
-      const clickedShapeId = getShapeIdFromLayer(clickedLayer);
-      if (clickedShapeId) {
-        setSelectedShapeId(clickedShapeId);
+      map.addControl(drawInstance as unknown as maplibregl.IControl);
+      setDraw(drawInstance);
+      setMapInstance(map);
+    };
+
+    if (map.loaded()) {
+      initDraw();
+    } else {
+      map.on('load', initDraw);
+    }
+
+    return () => {
+      map.off('load', initDraw);
+      if (drawInstance) {
+        try {
+          map.removeControl(drawInstance as unknown as maplibregl.IControl);
+        } catch {
+          // Map möglicherweise bereits entfernt
+        }
       }
-    },
-    [isPlacementModeActive],
-  );
+      setDraw(null);
+      setMapInstance(null);
+    };
+  }, [mapRef]);
 
-  const handleLayerContextMenu = useCallback(
-    (e: L.LeafletMouseEvent) => {
-      // Deaktiviere Layer-Interaktionen während POI-Platzierung
-      if (isPlacementModeActive) return;
-
-      L.DomEvent.preventDefault(e);
-      L.DomEvent.stopPropagation(e);
-      const clickedLayer = e.target;
-      const clickedShapeId = getShapeIdFromLayer(clickedLayer);
-      if (clickedShapeId) {
-        setContextMenu({
-          isOpen: true,
-          position: { x: e.originalEvent.clientX, y: e.originalEvent.clientY },
-          shapeId: clickedShapeId,
-        });
-      }
-    },
-    [isPlacementModeActive],
-  );
-
-  // Initialize Leaflet.PM Controls
-  useLeafletPMControls(map, layersRef);
-
-  // Load initial shapes from backend
-  useShapeLoading({
-    map,
-    initialState,
-    layersRef,
-    onLayerClick: handleLayerClick,
-    onLayerContextMenu: handleLayerContextMenu,
-  });
-
-  // Handle Drawing-Tool selection (deaktiviert während POI-Platzierung)
-  useDrawingToolSelection({
-    map,
-    selectedTool: isPlacementModeActive ? null : selectedTool,
-    setSelectedShapeId,
-  });
-
-  // Handle Shape Selection
-  useShapeSelection({
-    map,
-    selectedShapeId,
-    setSelectedShapeId,
-    layersRef,
-    shapesRef,
-    originalStylesRef,
-    onShapeSelected,
-  });
-
-  // Handle Shape Highlighting
-  useShapeHighlighting({
-    selectedShapeId,
-    layersRef,
-    originalStylesRef,
-  });
-
-  // Calculate Toolbar Position
-  const { toolbarPosition } = useToolbarPositioning({
-    map,
-    selectedShapeId,
-    layersRef,
-  });
-
-  // Keyboard Shortcuts (Delete/Backspace)
-  useKeyboardShortcuts({
-    map,
-    selectedShapeId,
-    setSelectedShapeId,
-    layersRef,
-    shapesRef,
-    originalStylesRef,
-    setShapes,
+  // Drawing-Hook
+  const { activateTool, updateShapeProperties, loadInitialShapes, deleteShape } = useMapDrawing(mapInstance, draw, {
     onShapesChange,
-  });
-
-  // Shape Event Handlers (pm:create, pm:edit, pm:remove)
-  useShapeEventHandlers({
-    map,
-    layersRef,
-    shapesRef,
-    setShapes,
-    onShapesChange,
-    onShapeLimitReached,
     onShapeCreated,
-    onLayerClick: handleLayerClick,
-    onLayerContextMenu: handleLayerContextMenu,
+    onShapeLimitReached,
+    onShapeSelected,
+    isPlacementModeActive,
   });
 
-  // Text Marker Handling
-  useTextMarkerHandling({
-    map,
-    shapesRef,
-    setShapes,
-    onShapesChange,
-  });
+  // Initiale Shapes laden (einmalig)
+  useEffect(() => {
+    if (!draw || initialLoadedRef.current) return;
+    if (!initialState?.features?.length) return;
 
-  // Shape Style Updates (from PropertyPanel, ShapeLabelModal, etc.)
-  useShapeStyleUpdates({
-    shapeToUpdate,
-    layersRef,
-    shapesRef,
-    originalStylesRef,
-    setShapes,
-    onShapesChange,
-    onShapeUpdateComplete,
-  });
+    loadInitialShapes(initialState);
+    initialLoadedRef.current = true;
+  }, [draw, initialState, loadInitialShapes]);
 
-  // Context Menu Handlers
-  const handleContextMenuEdit = useCallback(() => {
-    if (!contextMenu) return;
-    const layer = layersRef.current.get(contextMenu.shapeId);
-    // Defensive check: Verify pm.enable method exists before calling
-    if (layer && isPmLayer(layer)) {
-      layer.pm.enable();
-      toast.info('Bearbeitungsmodus aktiviert');
-    }
-    setContextMenu(null);
-  }, [contextMenu]);
+  // Tool-Änderungen weiterleiten
+  useEffect(() => {
+    activateTool(isPlacementModeActive ? null : selectedTool);
+  }, [selectedTool, isPlacementModeActive, activateTool]);
 
-  const handleContextMenuDelete = useCallback(() => {
-    if (!contextMenu) return;
-    const layer = layersRef.current.get(contextMenu.shapeId);
-    if (layer && isGeoJsonLayer(layer)) {
-      const geoJson = layer.toGeoJSON() as GeoJSON.Feature;
-      const shapeId = geoJson.properties?.id;
+  // Shape-Update verarbeiten (Label, Typ etc.)
+  useEffect(() => {
+    if (!shapeToUpdate || !draw) return;
 
-      if (shapeId) {
-        // Remove from tracking
-        layersRef.current.delete(shapeId);
-        originalStylesRef.current.delete(shapeId);
+    const shapeId = shapeToUpdate.properties?.id;
+    if (!shapeId) return;
 
-        // Remove from map
-        map.removeLayer(layer);
-
-        // Remove from shapes collection
-        const updatedShapes: GeoJSON.FeatureCollection = {
-          type: 'FeatureCollection',
-          features: shapesRef.current.features.filter((feature) => feature.properties?.id !== shapeId),
-        };
-        setShapes(updatedShapes);
-        onShapesChange(updatedShapes);
-
-        toast.success('Shape gelöscht');
+    const properties = shapeToUpdate.properties ?? {};
+    const propsToUpdate: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(properties)) {
+      if (key !== 'id') {
+        propsToUpdate[key] = value;
       }
     }
-    setContextMenu(null);
-  }, [contextMenu, map, onShapesChange]);
 
-  const handleContextMenuChangeStyle = useCallback(() => {
-    if (!contextMenu) return;
-    // TODO: Open style editor dialog
-    toast.info('Stil-Editor kommt bald');
-    setContextMenu(null);
-  }, [contextMenu]);
+    updateShapeProperties(shapeId, propsToUpdate);
+    onShapeUpdateComplete?.();
+  }, [shapeToUpdate, draw, updateShapeProperties, onShapeUpdateComplete]);
 
-  // Toolbar Callbacks
-  const handleToolbarEdit = useCallback(() => {
-    if (!selectedShapeId) return;
-
-    const layer = layersRef.current.get(selectedShapeId);
-    // Defensive check: Verify pm.enable method exists before calling
-    if (layer && isPmLayer(layer)) {
-      layer.pm.enable();
-      toast.info('Bearbeitungsmodus aktiviert');
-    }
-  }, [selectedShapeId]);
-
-  const handleToolbarDelete = useCallback(() => {
-    if (!selectedShapeId) return;
-
-    const layer = layersRef.current.get(selectedShapeId);
-    if (!layer) {
-      toast.error('Shape konnte nicht gelöscht werden');
+  // Toolbar-Position berechnen
+  useEffect(() => {
+    if (!selectedShapeId || !mapInstance) {
+      setToolbarPosition(null);
       return;
     }
 
+    const updatePosition = () => {
+      const feature = lagekarteStore.state.shapes.features.find((f) => f.properties?.id === selectedShapeId);
+      if (!feature) {
+        setToolbarPosition(null);
+        return;
+      }
+
+      const position = calculateToolbarPositionFromGeoJSON(feature, mapInstance);
+      setToolbarPosition(position);
+    };
+
+    updatePosition();
+
+    mapInstance.on('zoom', updatePosition);
+    mapInstance.on('move', updatePosition);
+
+    return () => {
+      mapInstance.off('zoom', updatePosition);
+      mapInstance.off('move', updatePosition);
+    };
+  }, [selectedShapeId, mapInstance]);
+
+  // Context Menu via Rechtsklick auf Karte
+  useEffect(() => {
+    if (!mapInstance || !draw) return;
+
+    const handleContextMenu = (e: maplibregl.MapMouseEvent) => {
+      if (isPlacementModeActive) return;
+
+      // Prüfe ob ein Draw-Feature unter dem Cursor liegt
+      const features = draw.getAll().features;
+      const point = [e.lngLat.lng, e.lngLat.lat];
+
+      // Einfache Prüfung: Ist ein Feature selektiert?
+      const selected = draw.getSelected();
+      if (selected.features.length > 0) {
+        const shapeId = selected.features[0].properties?.id ?? String(selected.features[0].id);
+        e.preventDefault();
+        setContextMenu({
+          isOpen: true,
+          position: { x: e.originalEvent.clientX, y: e.originalEvent.clientY },
+          shapeId,
+        });
+      }
+    };
+
+    mapInstance.on('contextmenu', handleContextMenu);
+    return () => {
+      mapInstance.off('contextmenu', handleContextMenu);
+    };
+  }, [mapInstance, draw, isPlacementModeActive]);
+
+  // Toolbar-Position reaktiv aus Store
+  const toolbarPosition = useToolbarPosition();
+
+  const handleContextMenuEdit = useCallback(() => {
+    if (!contextMenu || !draw) return;
     try {
-      // Remove from map
-      map.removeLayer(layer);
-
-      // Remove from state
-      const updatedShapes: GeoJSON.FeatureCollection = {
-        type: 'FeatureCollection',
-        features: shapesRef.current.features.filter((f) => f.properties?.id !== selectedShapeId),
-      };
-
-      setShapes(updatedShapes);
-      onShapesChange(updatedShapes);
-
-      // Cleanup references
-      layersRef.current.delete(selectedShapeId);
-      originalStylesRef.current.delete(selectedShapeId);
-      setSelectedShapeId(null);
-
-      toast.success('Shape gelöscht');
-    } catch (error) {
-      console.error('[DrawingLayer] Error deleting shape:', error);
-      toast.error('Fehler beim Löschen des Shapes');
+      draw.changeMode('direct_select', { featureId: contextMenu.shapeId });
+      toast.info('Bearbeitungsmodus aktiviert');
+    } catch {
+      // Feature möglicherweise nicht vorhanden
     }
-  }, [map, selectedShapeId, onShapesChange]);
+    setContextMenu(null);
+  }, [contextMenu, draw]);
+
+  const handleContextMenuDelete = useCallback(() => {
+    if (!contextMenu) return;
+    deleteShape(contextMenu.shapeId);
+    setContextMenu(null);
+  }, [contextMenu, deleteShape]);
+
+  const handleContextMenuChangeStyle = useCallback(() => {
+    if (!contextMenu) return;
+    toast.info('Stil-Editor kommt bald');
+    setContextMenu(null);
+  }, [contextMenu]);
+
+  const handleToolbarEdit = useCallback(() => {
+    if (!selectedShapeId || !draw) return;
+    try {
+      draw.changeMode('direct_select', { featureId: selectedShapeId });
+      toast.info('Bearbeitungsmodus aktiviert');
+    } catch {
+      // Feature möglicherweise nicht vorhanden
+    }
+  }, [selectedShapeId, draw]);
+
+  const handleToolbarDelete = useCallback(() => {
+    if (!selectedShapeId) return;
+    deleteShape(selectedShapeId);
+  }, [selectedShapeId, deleteShape]);
 
   const handleToolbarChangeStyle = useCallback(() => {
-    if (!selectedShapeId) return;
-    // TODO: Open style editor dialog
     toast.info('Stil-Editor kommt bald');
-  }, [selectedShapeId]);
+  }, []);
 
   return (
     <>
@@ -375,7 +250,6 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
         onChangeStyle={handleContextMenuChangeStyle}
       />
 
-      {/* Floating Toolbar für selektierte Shapes */}
       {selectedShapeId && toolbarPosition && (
         <SelectedShapeToolbar shapeId={selectedShapeId} position={toolbarPosition} onEdit={handleToolbarEdit} onDelete={handleToolbarDelete} onChangeStyle={handleToolbarChangeStyle} />
       )}
@@ -383,8 +257,4 @@ const DrawingLayerComponent: React.FC<DrawingLayerProps> = ({
   );
 };
 
-/**
- * Performance-optimized DrawingLayer with React.memo()
- * Prevents unnecessary re-renders when parent components update
- */
 export const DrawingLayer = memo(DrawingLayerComponent);

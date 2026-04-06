@@ -1,6 +1,5 @@
 import { LagekarteView, type LagekarteSearchParams } from '@/features/lagekarte/ui';
 import { createFileRoute } from '@tanstack/react-router';
-import 'leaflet/dist/leaflet.css';
 
 export const Route = createFileRoute('/app/einsatz/$einsatzId/übersicht/karte')({
   validateSearch: (search: Record<string, unknown>): LagekarteSearchParams => {

@@ -1,24 +1,14 @@
 import '@fontsource-variable/inter/index.css';
 import './index.tailwind.css';
-import 'leaflet/dist/leaflet.css';
-import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
-import 'leaflet.markercluster/dist/MarkerCluster.css';
-import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { routeTree } from '@/routeTree.gen';
 import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
-import { cleanupExpiredTiles } from '@/shared/lib/storage/offline-cleanup';
 import { QueryProvider } from '@/provider/query-client.provider';
 import { logger } from '@/shared/lib/logger';
 import { initializeNotificationSetup, requestNotificationPermission } from '@/features/reminders/services';
 import { initSeenAssignmentsStore } from '@/features/reminders/stores';
 import { initEtbOfflineStore } from '@/features/etb/stores';
-
-// Initialize offline tile cleanup on app startup
-cleanupExpiredTiles('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').catch((error) => {
-  logger.error('[App-Startup] Offline-Cleanup fehlgeschlagen', { error });
-});
 
 // Initialize notification system (channels, action types) and request permission
 // Runs async in background - errors are logged but don't block app startup
