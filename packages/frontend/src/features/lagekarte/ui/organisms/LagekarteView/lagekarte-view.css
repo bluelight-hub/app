@@ -5,23 +5,3 @@
 .maplibregl-ctrl-bottom-left {
   z-index: 0 !important;
 }
-
-/* MapLibre Marker Drag-Feedback */
-.maplibregl-marker {
-  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: grab;
-}
-
-.maplibregl-marker:active {
-  cursor: grabbing;
-}
-
-/* POI-Marker Styling */
-.poi-marker {
-  cursor: pointer;
-}
-
-/* MapboxDraw versteckte Standard-Controls */
-.mapbox-gl-draw_ctrl-draw-btn {
-  display: none !important;
-}

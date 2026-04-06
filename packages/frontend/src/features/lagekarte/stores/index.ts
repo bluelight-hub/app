@@ -1,1 +1,1 @@
-export * from './lagekarte-state.store';
+// Kein Store mehr vorhanden
