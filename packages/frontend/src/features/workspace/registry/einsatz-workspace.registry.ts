@@ -168,11 +168,24 @@ export const EINSATZ_WORKSPACE_MODULES: WorkspaceModuleDefinition[] = [
     icon: PiWarning,
     color: 'red',
     description: 'Gefahren und Schutzmaßnahmen',
-    visibility: disabled(LATER_RING_REASON),
     subPages: [
-      createSubPage(0, { id: 'gefahren', label: 'Gefahren', href: '/app/einsatz/$einsatzId/sicherheit/gefahren', icon: PiWarning, description: 'Gefahren an EST' }),
-      createSubPage(1, { id: 'eigenschutz', label: 'Eigenschutz', href: '/app/einsatz/$einsatzId/sicherheit/eigenschutz', icon: PiShieldWarning, description: 'Arbeitsschutz' }),
-      createSubPage(2, { id: 'hygiene', label: 'Hygiene', href: '/app/einsatz/$einsatzId/sicherheit/hygiene', icon: PiSprayBottle, description: 'Infektionsschutz' }),
+      createSubPage(0, { id: 'gefahren', label: 'Gefahren', href: '/app/einsatz/$einsatzId/sicherheit/gefahren', icon: PiWarning, description: 'Gefahrenmatrix (4A-C-5E)' }),
+      createSubPage(1, {
+        id: 'eigenschutz',
+        label: 'Eigenschutz',
+        href: '/app/einsatz/$einsatzId/sicherheit/eigenschutz',
+        icon: PiShieldWarning,
+        description: 'Arbeitsschutz',
+        visibility: disabled(LATER_RING_REASON),
+      }),
+      createSubPage(2, {
+        id: 'hygiene',
+        label: 'Hygiene',
+        href: '/app/einsatz/$einsatzId/sicherheit/hygiene',
+        icon: PiSprayBottle,
+        description: 'Infektionsschutz',
+        visibility: disabled(LATER_RING_REASON),
+      }),
     ],
   }),
   createModule(5, {
