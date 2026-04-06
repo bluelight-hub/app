@@ -36,6 +36,7 @@ export { RolleGeaendertEtbHandler } from './rolle-geaendert.handler';
 export { BefehlAnonymisiertEtbHandler } from './befehl-anonymisiert.handler';
 export { BefehlGeloeschtEtbHandler } from './befehl-geloescht-etb.handler';
 export { EtbEinsatzCompletedHandler } from './etb-einsatz-completed.handler';
+export { GefahrenmatrixAktualisiertEtbHandler } from './gefahrenmatrix-aktualisiert-etb.handler';
 
 // Issue #411: Taktische Einheiten ETB Handler (externe Handler-Dateien)
 export { EinheitErstelltEtbHandler } from '@application/kraefte/einsatz-einheiten/event-handlers/einheit-erstellt-etb.handler';

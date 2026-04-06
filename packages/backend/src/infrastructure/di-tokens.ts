@@ -288,6 +288,9 @@ export const EVENT_HANDLER = {
   /** EinsatzCompleted ETB-Lock Handler Token (Issue #581) */
   ETB_EINSATZ_COMPLETED: Symbol('IEventHandler<EinsatzCompletedEvent>:EtbLock'),
 
+  /** GefahrenmatrixAktualisiert ETB-Eintrag Handler Token (Issue #414) */
+  GEFAHRENMATRIX_AKTUALISIERT_ETB: Symbol('IEventHandler<GefahrenmatrixAktualisiertEvent>:EtbEintrag'),
+
   /** EinheitErstellt ETB-Eintrag Handler Token (Issue #411) */
   EINHEIT_ERSTELLT_ETB: Symbol('IEventHandler<EinheitErstelltEvent>:EtbEintrag'),
   /** EinheitStatusGeaendert ETB-Eintrag Handler Token (Issue #411) */
