@@ -95,18 +95,7 @@ export function GefahrenmatrixGrid({ einsatzId }: GefahrenmatrixGridProps) {
               <th key={typ} className="border border-border-subtle bg-surface-raised p-1 text-center">
                 <div className="flex flex-col items-center gap-0.5">
                   <span className="text-[10px] leading-tight text-text-muted">{GEFAHRENTYP_LABELS[typ]}</span>
-                  {GEFAHRENTYP_KUERZEL[typ] && (
-                    <span
-                      className={cn(
-                        'text-lg font-bold',
-                        GEFAHRENTYP_KUERZEL[typ] === 'A' && 'text-red-600',
-                        GEFAHRENTYP_KUERZEL[typ] === 'C' && 'text-red-600',
-                        GEFAHRENTYP_KUERZEL[typ] === 'E' && 'text-red-600',
-                      )}
-                    >
-                      {GEFAHRENTYP_KUERZEL[typ]}
-                    </span>
-                  )}
+                  {GEFAHRENTYP_KUERZEL[typ] && <span className="text-lg font-bold text-red-600">{GEFAHRENTYP_KUERZEL[typ]}</span>}
                 </div>
               </th>
             ))}

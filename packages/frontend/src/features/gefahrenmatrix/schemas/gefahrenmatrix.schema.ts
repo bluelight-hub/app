@@ -1,19 +1,19 @@
 import { z } from 'zod';
 
 export const GEFAHRENTYPEN = [
-  'ATEMGIFTE',
-  'ANGSTREAKTION',
-  'AUSBREITUNG',
-  'ATOMARE_STRAHLUNG',
-  'CHEMISCHE_STOFFE',
-  'ERKRANKUNG_VERLETZUNG',
-  'EXPLOSION',
-  'ELEKTRIZITAET',
-  'EINSTURZ',
   'ABSTURZ',
+  'ANGSTREAKTION',
+  'ATEMGIFTE',
+  'ATOMARE_STRAHLUNG',
+  'AUSBREITUNG',
   'BRAND',
+  'CHEMISCHE_STOFFE',
   'DURCHBRUCH',
+  'EINSTURZ',
+  'ELEKTRIZITAET',
+  'ERKRANKUNG_VERLETZUNG',
   'ERTRINKEN',
+  'EXPLOSION',
 ] as const;
 
 export const SCHUTZOBJEKTE = ['MENSCHEN', 'TIERE', 'UMWELT', 'SACHWERTE', 'EINSATZKRAEFTE'] as const;
@@ -50,10 +50,10 @@ export const GEFAHRENTYP_KUERZEL: Record<GefahrentypValue, string> = {
   EXPLOSION: 'E',
   ELEKTRIZITAET: 'E',
   EINSTURZ: 'E',
-  ABSTURZ: '',
-  BRAND: '',
-  DURCHBRUCH: '',
-  ERTRINKEN: '',
+  ABSTURZ: 'A',
+  BRAND: 'B',
+  DURCHBRUCH: 'D',
+  ERTRINKEN: 'E',
 };
 
 export const SCHUTZOBJEKT_LABELS: Record<SchutzobjektValue, string> = {
