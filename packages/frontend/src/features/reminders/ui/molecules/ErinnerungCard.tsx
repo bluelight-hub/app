@@ -264,7 +264,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
       // Story 4.3: Konfiguration nutzen, Fallback auf 300s (5 Min) Server-Default
       const timeoutSeconds = erinnerungConfig?.eskalationsTimeoutSeconds ?? 300;
 
-      const triggered = new Date(erinnerung.ausgeloestAm as unknown as string).getTime();
+      const triggered = new Date(erinnerung.ausgeloestAm!).getTime();
       return new Date(triggered + timeoutSeconds * 1000).toISOString();
     }
     return undefined;
@@ -296,8 +296,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
   const retriggerNumber = (erinnerung.snoozeCount ?? 0) + 1; // 1. Auslösung = 0 Snoozes + 1
   // Story 3.4 AC1: Nur aktive Erinnerungen (nicht ERLEDIGT/ESKALIERT) können zugewiesen werden
   // Story 4.2: Delegation nur erlaubt wenn mir zugewiesen oder noch niemandem zugewiesen
-  // Generator Issue: assignedToId is typed as object | null, but it is string | null
-  const assignedToId = erinnerung.assignedToId as unknown as string | null;
+  const assignedToId = erinnerung.assignedToId ?? null;
   const isAssignedToMe = currentUserId && assignedToId === currentUserId;
   const isUnassigned = !assignedToId;
 
@@ -794,18 +793,18 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                     <output
                       aria-label={`Eskaliert von: ${erinnerung.previousAssigneeName}`}
                       className="inline-flex items-center gap-1 rounded-full bg-status-danger-surface px-1.5 py-0.5 text-xs font-medium text-status-danger-text"
-                      title={`Eskaliert von ${erinnerung.previousAssigneeName} am ${erinnerung.escalatedAt ? new Date(erinnerung.escalatedAt as unknown as string).toLocaleTimeString() : ''}`}
+                      title={`Eskaliert von ${erinnerung.previousAssigneeName} am ${erinnerung.escalatedAt ? new Date(erinnerung.escalatedAt).toLocaleTimeString() : ''}`}
                     >
                       <PiWarning className="h-3 w-3" aria-hidden="true" />
                       Von {erinnerung.previousAssigneeName}
-                      {erinnerung.escalatedAt && <span className="opacity-75"> ({calculateRelativeTime(erinnerung.escalatedAt as unknown as string)})</span>}
+                      {erinnerung.escalatedAt && <span className="opacity-75"> ({calculateRelativeTime(erinnerung.escalatedAt)})</span>}
                     </output>
                   )}
                 </>
               )}
             </div>
             {/* Beschreibung: nur in full */}
-            {variant === 'full' && erinnerung.beschreibung && <p className="mt-0.5 text-xs text-text-muted">{erinnerung.beschreibung as unknown as string}</p>}
+            {variant === 'full' && erinnerung.beschreibung && <p className="mt-0.5 text-xs text-text-muted">{erinnerung.beschreibung}</p>}
 
             {/* ETB-Link: nur in full */}
             {variant === 'full' && erinnerung.etbEntryId && (
@@ -822,9 +821,9 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
             {/* Ersteller-Info: nur in full */}
             {variant === 'full' && (showCreator || isTeamReminder || (assignedToId && assignedToId === currentUserId)) && erinnerung.erstellerName && (
               <div className="mt-0.5 flex items-center gap-1.5">
-                <AvatarInitials name={erinnerung.erstellerName as unknown as string} size="sm" />
+                <AvatarInitials name={erinnerung.erstellerName ?? ''} size="sm" />
                 <p className="text-xs text-text-muted">
-                  <span className="text-text-secondary">{assignedToId === currentUserId ? 'Erstellt von' : 'von'}</span> {erinnerung.erstellerName as unknown as string}
+                  <span className="text-text-secondary">{assignedToId === currentUserId ? 'Erstellt von' : 'von'}</span> {erinnerung.erstellerName}
                 </p>
               </div>
             )}

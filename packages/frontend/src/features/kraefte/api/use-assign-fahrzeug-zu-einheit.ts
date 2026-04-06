@@ -45,7 +45,7 @@ export const useAssignFahrzeugZuEinheit = (einsatzId: string) => {
       await api.einsatzFahrzeuge().einsatzFahrzeugeControllerAssignToEinheitVAlpha({
         einsatzId,
         id: fahrzeugId,
-        assignFahrzeugToEinheitDto: { einheitId: einheitId as unknown as object },
+        assignFahrzeugToEinheitDto: { einheitId },
       });
     },
     onSuccess: () => {
