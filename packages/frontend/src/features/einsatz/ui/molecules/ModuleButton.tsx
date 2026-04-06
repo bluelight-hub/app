@@ -1,11 +1,11 @@
+import { DynamicLink } from '@/shared/ui/atoms/DynamicLink';
 import { cn } from '@/shared/ui/cn';
-import { Link } from '@tanstack/react-router';
 import { useRef } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 
 interface ModuleButtonProps {
   to: string;
-  params?: unknown;
+  params?: Record<string, string>;
   hotkey?: string;
   isActive: boolean;
   colorClasses: string;
@@ -39,11 +39,10 @@ export function ModuleButton({ to, params, hotkey, colorClasses, children, class
   };
 
   return (
-    <Link
+    <DynamicLink
       ref={linkRef}
       to={to}
-      // eslint-disable-next-line typescript/no-explicit-any -- params should be correctly typed
-      params={params as any}
+      params={params}
       className={cn(
         'group relative flex items-center gap-2 rounded-control border px-4 py-2 text-body-sm font-medium whitespace-nowrap transition-[background-color,border-color,color,box-shadow] focus-visible:shadow-focus-ring focus-visible:outline-none',
         colorClasses,
@@ -62,6 +61,6 @@ export function ModuleButton({ to, params, hotkey, colorClasses, children, class
           ⌥{formatHotkey(hotkey)}
         </span>
       )}
-    </Link>
+    </DynamicLink>
   );
 }

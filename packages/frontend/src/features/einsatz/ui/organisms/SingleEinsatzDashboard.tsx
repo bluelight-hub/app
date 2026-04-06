@@ -6,7 +6,8 @@ import type { AddressDto, EintragDto, EinsatzDetailsDto, EinsatzFahrzeugDto } fr
 import { ErrorState } from '@/shared/ui/atoms/ErrorState';
 import { LoadingState } from '@/shared/ui/atoms/LoadingState';
 import { cn, type PriorityPanelTone } from '@/shared/ui';
-import { Link, useNavigate, useParams } from '@tanstack/react-router';
+import { DynamicLink } from '@/shared/ui/atoms/DynamicLink';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { format, formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useEffect, useRef, useState, type ComponentType } from 'react';
@@ -231,15 +232,9 @@ function QuickLinkCard({ link, einsatzId }: { link: QuickLink; einsatzId: string
   }
 
   return (
-    <Link
-      to={link.to}
-      // eslint-disable-next-line typescript/no-explicit-any -- Workspace-Aktionen binden kanonische Route-Templates mit Einsatz-Parametern.
-      params={{ einsatzId } as any}
-      search={(prev) => prev}
-      className={cardClassName}
-    >
+    <DynamicLink to={link.to} params={{ einsatzId }} search={(prev) => prev} className={cardClassName}>
       {content}
-    </Link>
+    </DynamicLink>
   );
 }
 
@@ -386,10 +381,9 @@ export function SingleEinsatzDashboard() {
           onClick: () =>
             navigate({
               to: '/app/einsatz/$einsatzId/übersicht',
-              // eslint-disable-next-line typescript/no-explicit-any -- Workspace-Aktionen binden kanonische Route-Templates mit Einsatz-Parametern.
-              params: { einsatzId } as any,
+              params: { einsatzId },
               search: (prev: Record<string, unknown>) => prev,
-            }),
+            } as Parameters<typeof navigate>[0]),
         },
       });
       return;
@@ -586,10 +580,9 @@ export function SingleEinsatzDashboard() {
                 return (
                   <li key={fahrzeug.id}>
                     {vehicleTarget.available && vehicleTarget.route ? (
-                      <Link
+                      <DynamicLink
                         to={vehicleTarget.route}
-                        // eslint-disable-next-line typescript/no-explicit-any -- Workspace-Aktionen binden kanonische Route-Templates mit Einsatz-Parametern.
-                        params={{ einsatzId } as any}
+                        params={{ einsatzId }}
                         search={(prev) => prev}
                         onClick={(e) => guardNavigation(e, vehicleTarget.route as string)}
                         onKeyDown={handleLinkSpace}
@@ -597,7 +590,7 @@ export function SingleEinsatzDashboard() {
                       >
                         <span className="sr-only">{vehicleTarget.label}</span>
                         {vehicleContent}
-                      </Link>
+                      </DynamicLink>
                     ) : (
                       <div className="flex items-center justify-between gap-3 rounded-panel border border-border-subtle bg-surface-raised px-3 py-2 opacity-70">{vehicleContent}</div>
                     )}
@@ -682,10 +675,9 @@ export function SingleEinsatzDashboard() {
                 return (
                   <li key={entry.id} className={cn('py-2.5 first:pt-0 last:pb-0', isNewest ? 'opacity-100' : 'opacity-70', isHighlighted && 'animate-highlight-new rounded-panel')}>
                     {entryTarget.available && entryTarget.route ? (
-                      <Link
+                      <DynamicLink
                         to={entryTarget.route}
-                        // eslint-disable-next-line typescript/no-explicit-any -- Workspace-Aktionen binden kanonische Route-Templates mit Einsatz-Parametern.
-                        params={{ einsatzId } as any}
+                        params={{ einsatzId }}
                         search={(prev) => prev}
                         onClick={(e) => guardNavigation(e, entryTarget.route as string)}
                         onKeyDown={handleLinkSpace}
@@ -693,7 +685,7 @@ export function SingleEinsatzDashboard() {
                       >
                         <span className="sr-only">{entryTarget.label}</span>
                         {entryContent}
-                      </Link>
+                      </DynamicLink>
                     ) : (
                       <div className="-mx-2 -my-1 px-2 py-1">
                         {entryContent}
