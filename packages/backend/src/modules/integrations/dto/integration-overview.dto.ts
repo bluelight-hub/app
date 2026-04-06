@@ -39,13 +39,13 @@ export class IntegrationOverviewItemResponseDto {
   @ApiProperty({ description: 'Fehlerrate in Prozent', example: 0 })
   errorRate!: number;
 
-  @ApiProperty({ description: 'Letzter erfolgreicher Aufruf (ISO 8601)', example: '2026-03-23T10:00:00.000Z', nullable: true })
+  @ApiProperty({ description: 'Letzter erfolgreicher Aufruf (ISO 8601)', example: '2026-03-23T10:00:00.000Z', nullable: true, type: String })
   lastSuccessAt!: string | null;
 
-  @ApiProperty({ description: 'Letzter fehlgeschlagener Aufruf (ISO 8601)', example: null, nullable: true })
+  @ApiProperty({ description: 'Letzter fehlgeschlagener Aufruf (ISO 8601)', example: null, nullable: true, type: String })
   lastFailureAt!: string | null;
 
-  @ApiProperty({ description: 'Letzter manueller Verbindungstest (ISO 8601)', example: '2026-03-23T09:00:00.000Z', nullable: true })
+  @ApiProperty({ description: 'Letzter manueller Verbindungstest (ISO 8601)', example: '2026-03-23T09:00:00.000Z', nullable: true, type: String })
   lastTestedAt!: string | null;
 
   @ApiProperty({ description: 'Ob Credentials konfiguriert sind', example: true })
@@ -54,7 +54,7 @@ export class IntegrationOverviewItemResponseDto {
   @ApiProperty({ description: 'Ob die Integration aktiviert ist', example: true })
   isActive!: boolean;
 
-  @ApiProperty({ description: 'Empfohlene nächste Aktion', example: 'Verbindung testen', nullable: true })
+  @ApiProperty({ description: 'Empfohlene nächste Aktion', example: 'Verbindung testen', nullable: true, type: String })
   suggestedAction!: string | null;
 }
 

@@ -77,6 +77,7 @@ export class ErinnerungResponseDto {
     example: '2026-01-19T15:30:00.000Z',
     nullable: true,
     required: false,
+    type: String,
   })
   ausgeloestAm?: string | null;
 
@@ -110,6 +111,7 @@ export class ErinnerungResponseDto {
     example: '2026-01-19T16:00:00.000Z',
     nullable: true,
     required: false,
+    type: String,
   })
   erledigtAm?: string | null;
 
@@ -195,6 +197,7 @@ export class ErinnerungResponseDto {
     example: '2026-01-19T15:45:00.000Z',
     nullable: true,
     required: false,
+    type: String,
   })
   escalatedAt?: string | null;
 
@@ -252,6 +255,7 @@ export class ErinnerungResponseDto {
     description: 'Intervall in Minuten für wiederkehrende Erinnerungen',
     example: 30,
     nullable: true,
+    type: Number,
   })
   recurringIntervalMinutes!: number | null;
 
@@ -264,6 +268,7 @@ export class ErinnerungResponseDto {
     description: 'Endzeitpunkt der wiederkehrenden Serie (ISO-8601)',
     example: '2026-02-03T12:00:00.000Z',
     nullable: true,
+    type: String,
   })
   recurringEndDate!: string | null;
 
@@ -276,6 +281,7 @@ export class ErinnerungResponseDto {
     description: 'Maximale Anzahl Wiederholungen',
     example: 5,
     nullable: true,
+    type: Number,
   })
   recurringMaxCount!: number | null;
 
@@ -298,6 +304,7 @@ export class ErinnerungResponseDto {
     description: 'ID der Parent-Erinnerung (bei Kind-Instanzen)',
     example: null,
     nullable: true,
+    type: String,
   })
   parentErinnerungId!: string | null;
 
@@ -310,6 +317,7 @@ export class ErinnerungResponseDto {
     description: 'Sequenznummer in der wiederkehrenden Serie',
     example: null,
     nullable: true,
+    type: Number,
   })
   recurringSequenceNumber!: number | null;
 
@@ -317,20 +325,20 @@ export class ErinnerungResponseDto {
    * Story 8.2: Kategorie-ID der Erinnerung.
    * @example "clw3h8x9y0008kategorie123"
    */
-  @ApiPropertyOptional({ description: 'Kategorie-ID', nullable: true })
+  @ApiPropertyOptional({ description: 'Kategorie-ID', nullable: true, type: String })
   kategorieId?: string | null;
 
   /**
    * Story 8.2: Kategorie-Name fuer die Anzeige.
    * @example "Dringend"
    */
-  @ApiPropertyOptional({ description: 'Kategorie-Name für Anzeige', nullable: true })
+  @ApiPropertyOptional({ description: 'Kategorie-Name für Anzeige', nullable: true, type: String })
   kategorieName?: string | null;
 
   /**
    * Story 8.2: Kategorie-Farbe (Hex-Code).
    * @example "#FF5733"
    */
-  @ApiPropertyOptional({ description: 'Kategorie-Farbe (Hex-Code)', nullable: true })
+  @ApiPropertyOptional({ description: 'Kategorie-Farbe (Hex-Code)', nullable: true, type: String })
   kategorieFarbe?: string | null;
 }

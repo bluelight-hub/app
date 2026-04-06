@@ -29,6 +29,7 @@ export class HiOrgCredentialsResponseDto {
     example: '2025-01-15T10:30:00.000Z',
     required: false,
     nullable: true,
+    type: String,
   })
   lastTestedAt?: Date | null;
 
@@ -37,6 +38,7 @@ export class HiOrgCredentialsResponseDto {
     example: '2025-01-15T11:00:00.000Z',
     required: false,
     nullable: true,
+    type: String,
   })
   lastSyncAt?: Date | null;
 
@@ -57,6 +59,7 @@ export class HiOrgCredentialsResponseDto {
     example: '2025-01-15T12:00:00.000Z',
     required: false,
     nullable: true,
+    type: String,
   })
   accessTokenExpiresAt?: Date | null;
 
