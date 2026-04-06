@@ -1,578 +1,34 @@
-import { useMyEinsatzTeilnahme } from '@/features/einsatz';
-import { useEtb } from '@/features/etb';
-import {
-  ClusteredPoiLayer,
-  DrawingLayer,
-  type DrawingTool,
-  DrawingToolbar,
-  FullscreenCloseButton,
-  LagekarteToolbar,
-  type Layer,
-  LayerErrorBoundary,
-  LayerToggle,
-  MapToolbarToggle,
-  OfflineRegionModal,
-  OfflineTileLayer,
-  PoiPlacementControl,
-  PoiPlacementModal,
-  ShapeLabelModal,
-} from '@/features/lagekarte';
-import { useLagekarte, usePois } from '@/features/lagekarte/api';
-import { useLagekarteAutoSave, useMapBounds, usePlacementMode } from '@/features/lagekarte/hooks';
-import type { PoiType, ShapeType } from '@/features/lagekarte/utils';
-import { captureMapScreenshot } from '@/features/lagekarte/utils';
-import { api } from '@/shared';
+import { MAP_STYLES } from '@/features/lagekarte/utils';
+import { MAP_DEFAULTS } from '@/features/lagekarte/utils/map-config';
 import { useColorMode } from '@/shared/hooks/use-color-mode';
-import { logger } from '@/shared/lib/logger';
 import { Button } from '@/shared/ui/atoms/button.atom';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { cn } from '@/shared/ui/cn';
-import type * as GeoJSON from 'geojson';
-import * as React from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import 'maplibre-gl/dist/maplibre-gl.css';
+import type * as React from 'react';
+import { useState } from 'react';
 import { PiWarning } from 'react-icons/pi';
-import { MapContainer, useMap, useMapEvents } from 'react-leaflet';
-import { toast } from 'sonner';
-import { FahrzeugPoiLayer } from '../layers/FahrzeugPoiLayer';
-import { PropertyPanel, type ShapeProperties } from '../PropertyPanel';
+import { Map, NavigationControl } from 'react-map-gl/maplibre';
 import './lagekarte-view.css';
 
-/**
- * Layout-Modi für die Lagekarte
- * @typedef LagekarteMode
- * @property {'standard'} standard - Standard-Modus mit allen UI-Elementen
- * @property {'fullscreen'} fullscreen - Fullscreen-Modus mit Close-Button
- * @property {'presentation'} presentation - Präsentations-Modus ohne Navigation
- */
 export type LagekarteMode = 'standard' | 'fullscreen' | 'presentation';
 
-/**
- * Search-Parameter für die Lagekarte-Route
- */
 export type LagekarteSearchParams = {
   mode?: LagekarteMode;
 };
 
-/**
- * Props für die LagekarteView-Komponente
- */
 interface LagekarteViewProps {
-  /**
-   * ID des Einsatzes für den die Lagekarte angezeigt wird
-   * @remarks Aktuell nicht verwendet, reserviert für zukünftige Features (z.B. Einsatzort-Marker)
-   */
   einsatzId: string;
-  /**
-   * Layout-Modus für die Lagekarte
-   * @default 'standard'
-   */
   mode?: LagekarteMode;
 }
 
-/**
- * Error-Handler-Komponente für Tile-Load-Failures
- * Lauscht auf 'tileerror' Events vom Leaflet Map
- */
-const TileErrorHandler: React.FC<{ onError: () => void }> = ({ onError }) => {
-  useMapEvents({
-    tileerror: () => {
-      onError();
-    },
-  });
-  return null;
-};
-
-/**
- * Map-Click-Handler für POI-Platzierung
- * Öffnet Modal mit Koordinaten wenn Platzierungs-Modus aktiv
- */
-const MapClickHandler: React.FC<{
-  isPlacementActive: boolean;
-  selectedType: PoiType | null;
-  onMapClick: (lat: number, lon: number) => void;
-}> = ({ isPlacementActive, selectedType, onMapClick }) => {
-  const map = useMap();
-
-  useEffect(() => {
-    if (!isPlacementActive || !selectedType) {
-      return;
-    }
-
-    const handleClick = (e: L.LeafletMouseEvent) => {
-      const { lat, lng } = e.latlng;
-      console.log('[MapClickHandler] Map clicked in placement mode:', { lat, lng, selectedType });
-      onMapClick(lat, lng);
-    };
-
-    // Add click listener with high priority
-    map.on('click', handleClick);
-
-    console.log('[MapClickHandler] Click listener registered for placement mode');
-
-    return () => {
-      map.off('click', handleClick);
-      console.log('[MapClickHandler] Click listener removed');
-    };
-  }, [map, isPlacementActive, selectedType, onMapClick]);
-
-  return null;
-};
-
-/**
- * Map-Bounds-Controller-Komponente
- * Verwendet useMapBounds Hook um Karte automatisch auf POIs zu zoomen
- */
-const MapBoundsController: React.FC<{ lagekarteId: string | undefined }> = ({ lagekarteId }) => {
-  const { data: pois } = usePois(lagekarteId);
-  useMapBounds(pois);
-  return null;
-};
-
-/**
- * Map-Bounds-Tracker-Komponente
- * Holt aktuelle Map-Bounds und Map-Instanz für Offline-Download
- */
-const MapBoundsTracker: React.FC<{
-  onBoundsReady: (bounds: L.LatLngBounds) => void;
-  onMapReady?: (map: L.Map) => void;
-}> = ({ onBoundsReady, onMapReady }) => {
-  const map = useMap();
-
-  React.useEffect(() => {
-    if (map) {
-      const bounds = map.getBounds();
-      onBoundsReady(bounds);
-      onMapReady?.(map);
-    }
-  }, [map, onBoundsReady, onMapReady]);
-
-  return null;
-};
-
-/**
- * Lagekarte-Komponente zur Darstellung einer interaktiven Karte mit OpenStreetMap-Tiles.
- *
- * Features:
- * - Dark-Mode Support (automatischer Wechsel zwischen OSM und CartoDB Dark Matter)
- * - Mobile-responsive Layout
- * - Deutschland-Zentrum als Default-Position
- * - Error Handling für fehlgeschlagene Tile-Loads
- * - Layout-Modi: Standard, Fullscreen, Präsentation
- *
- * @component
- * @example
- * ```tsx
- * <LagekarteView einsatzId="einsatz-123" />
- * <LagekarteView einsatzId="einsatz-123" mode="fullscreen" />
- * ```
- */
-export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 'standard' }) => {
+export const LagekarteView: React.FC<LagekarteViewProps> = ({ mode = 'standard' }) => {
   const { resolvedColorMode } = useColorMode();
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
-  // Fullscreen-Indikator State (CUX-009)
-  const [showFullscreenBadge, setShowFullscreenBadge] = useState(mode === 'fullscreen');
+  const mapStyle = resolvedColorMode === 'dark' ? MAP_STYLES.dark : MAP_STYLES.light;
 
-  // POI-Placement State
-  const { selectedType, isPlacementActive, activatePlacementMode, deactivatePlacementMode } = usePlacementMode();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [clickedCoordinates, setClickedCoordinates] = useState<{ lat: number; lon: number } | null>(null);
-
-  // Drawing State - Default tool is 'select' (Selection Mode)
-  const [selectedDrawingTool, setSelectedDrawingTool] = useState<DrawingTool>('select');
-  const [isShapeLabelModalOpen, setIsShapeLabelModalOpen] = useState(false);
-  const [currentShape, setCurrentShape] = useState<GeoJSON.Feature | null>(null);
-  const [shapeToUpdate, setShapeToUpdate] = useState<GeoJSON.Feature | null>(null);
-
-  // Property Panel State
-  const [selectedShape, setSelectedShape] = useState<GeoJSON.Feature | null>(null);
-  const [showPropertyPanel, setShowPropertyPanel] = useState(false);
-
-  // Layer-Visibility State
-  const [layers, setLayers] = useState<Layer[]>([
-    { name: 'poi', label: 'POI-Marker', visible: true },
-    { name: 'drawing', label: 'Zeichnungen', visible: true },
-    { name: 'fahrzeuge', label: 'Fahrzeuge', visible: true },
-  ]);
-
-  // Tools-Visibility State (für MapToolbarToggle)
-  const [isToolsOpen, setIsToolsOpen] = useState(false);
-
-  // Offline-Download State
-  const [isOfflineModalOpen, setIsOfflineModalOpen] = useState(false);
-  const [currentMapBounds, setCurrentMapBounds] = useState<L.LatLngBounds | null>(null);
-  const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
-
-  // ETB-Export State
-  const [isExportingToEtb, setIsExportingToEtb] = useState(false);
-
-  // Lagekarte-Daten (für lagekarteId + State)
-  const { data: lagekarte } = useLagekarte(einsatzId);
-
-  // ETB erst laden wenn User dem Einsatz beigetreten ist
-  const { data: teilnahmeData } = useMyEinsatzTeilnahme(einsatzId);
-  const hasActiveTeilnahme = !!teilnahmeData?.data?.einsatzPersonId;
-
-  // ETB-Daten (für etbId beim Export)
-  const { data: etbData, refetch: refetchEtb, isLoading: isEtbLoading } = useEtb({ einsatzId, enabled: hasActiveTeilnahme });
-
-  // Auto-Save Hook (debounced 2s)
-  const { triggerAutoSave } = useLagekarteAutoSave(einsatzId);
-
-  // Fullscreen-Badge Auto-Hide Timer (CUX-009: Fade-Out nach 3 Sekunden)
-  React.useEffect(() => {
-    if (mode === 'fullscreen' && showFullscreenBadge) {
-      const timer = setTimeout(() => {
-        setShowFullscreenBadge(false);
-      }, 3000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [mode, showFullscreenBadge]);
-
-  // Tile-URL basierend auf Theme
-  const tileUrl = resolvedColorMode === 'dark' ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png' : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-
-  const attribution =
-    resolvedColorMode === 'dark'
-      ? '&copy; <a href="https://carto.com/attributions">CARTO</a> | &copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
-      : '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors';
-
-  // Deutschland-Zentrum als Default-Position
-  const defaultCenter: [number, number] = [51.1657, 10.4515];
-  const defaultZoom = 6;
-
-  /**
-   * Handler für Tile-Load-Fehler
-   * Setzt Error-State wenn Tiles nicht geladen werden können
-   */
-  const handleTileError = () => {
-    setHasError(true);
-    setIsLoading(false);
-  };
-
-  /**
-   * Reset Error-State und versuche erneut zu laden
-   */
-  const handleRetry = () => {
-    setHasError(false);
-    setIsLoading(true);
-    // Map wird durch React re-render neu initialisiert
-  };
-
-  /**
-   * Handler wenn POI-Typ aus Toolbar ausgewählt wird
-   */
-  const handlePoiTypeSelect = (type: PoiType) => {
-    activatePlacementMode(type);
-  };
-
-  /**
-   * Handler wenn User auf Karte klickt (im Platzierungs-Modus)
-   */
-  const handleMapClick = (lat: number, lon: number) => {
-    setClickedCoordinates({ lat, lon });
-    setIsModalOpen(true);
-  };
-
-  /**
-   * Handler wenn Modal geschlossen wird
-   */
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-    setClickedCoordinates(null);
-    deactivatePlacementMode();
-  };
-
-  /**
-   * Handler wenn Drawing-Tool aus Toolbar ausgewählt wird
-   */
-  const handleDrawingToolSelect = useCallback((tool: DrawingTool) => {
-    setSelectedDrawingTool(tool);
-  }, []);
-
-  /**
-   * Handler wenn Shapes sich ändern (für Backend-Persistierung)
-   * Debounced Auto-Save: Speichert nach 2s Inaktivität
-   */
-  const handleShapesChange = useCallback(
-    (shapes: GeoJSON.FeatureCollection) => {
-      // Trigger debounced auto-save (2s delay)
-      triggerAutoSave(shapes);
-    },
-    [triggerAutoSave],
-  );
-
-  /**
-   * Handler wenn neuer Shape erstellt wurde (öffnet Label-Modal)
-   * WICHTIG: Text-Marker werden ausgeschlossen - sie haben ihr eigenes Edit-Interface
-   */
-  const handleShapeCreated = useCallback((shape: GeoJSON.Feature) => {
-    // Text-Marker sind Points - aber wir müssen sie von normalen Shapes unterscheiden
-    // Normale Shapes (Polygon, LineString) öffnen das Modal
-    // Points können Text-Marker ODER Shapes sein, also prüfen wir die Geometry
-    const isTextMarker = shape.geometry.type === 'Point';
-
-    if (!isTextMarker) {
-      setCurrentShape(shape);
-      setIsShapeLabelModalOpen(true);
-    }
-  }, []);
-
-  /**
-   * Handler wenn Shape-Limit erreicht wird
-   */
-  const handleShapeLimitReached = useCallback(() => {
-    toast.error('Maximale Anzahl erreicht', {
-      description: 'Es können maximal 100 Zeichnungen pro Lagekarte erstellt werden.',
-    });
-  }, []);
-
-  /**
-   * Handler wenn Shape-Label gespeichert wird
-   */
-  const handleShapeLabelSave = useCallback(
-    (label: string, type: ShapeType) => {
-      if (!currentShape) return;
-
-      // Update shape properties with label and type
-      const updatedShape: GeoJSON.Feature = {
-        ...currentShape,
-        properties: {
-          ...currentShape.properties,
-          label,
-          type,
-        },
-      };
-
-      // Trigger shape update in DrawingLayer
-      setShapeToUpdate(updatedShape);
-
-      // Close modal
-      setIsShapeLabelModalOpen(false);
-      setCurrentShape(null);
-    },
-    [currentShape],
-  );
-
-  /**
-   * Handler wenn Shape-Update abgeschlossen ist
-   */
-  const handleShapeUpdateComplete = useCallback(() => {
-    setShapeToUpdate(null);
-  }, []);
-
-  /**
-   * Handler für Property-Änderungen aus PropertyPanel
-   * Aktualisiert Shape-Style und triggert Backend-Update
-   */
-  const handlePropertiesChange = useCallback(
-    (shapeId: string, properties: Partial<ShapeProperties>) => {
-      if (!lagekarte?.state) return;
-
-      // Find shape in current state
-      const currentState = lagekarte.state as GeoJSON.FeatureCollection;
-      const shapeIndex = currentState.features.findIndex((f) => f.properties?.id === shapeId);
-
-      if (shapeIndex === -1) return;
-
-      // Update shape properties
-      const updatedShape: GeoJSON.Feature = {
-        ...currentState.features[shapeIndex],
-        properties: {
-          ...currentState.features[shapeIndex].properties,
-          ...properties,
-        },
-      };
-
-      // Trigger shape update in DrawingLayer
-      setShapeToUpdate(updatedShape);
-
-      // Also update selectedShape to reflect changes in PropertyPanel
-      setSelectedShape(updatedShape);
-    },
-    [lagekarte],
-  );
-
-  /**
-   * Handler wenn Shape selektiert wird (öffnet Property Panel)
-   */
-  const handleShapeSelected = useCallback((shape: GeoJSON.Feature | null) => {
-    setSelectedShape(shape);
-    setShowPropertyPanel(!!shape); // Open panel if shape is selected, close if null
-  }, []);
-
-  /**
-   * Handler für Layer-Toggle
-   */
-  const handleLayerToggle = useCallback((layerName: string) => {
-    setLayers((prevLayers) => prevLayers.map((layer) => (layer.name === layerName ? { ...layer, visible: !layer.visible } : layer)));
-  }, []);
-
-  /**
-   * Handler für Offline-Download-Button
-   */
-  const handleOfflineDownloadClick = useCallback(() => {
-    setIsOfflineModalOpen(true);
-  }, []);
-
-  /**
-   * Handler wenn Map-Bounds bereit sind (für Offline-Modal)
-   */
-  const handleBoundsReady = useCallback((bounds: L.LatLngBounds) => {
-    setCurrentMapBounds(bounds);
-  }, []);
-
-  /**
-   * Handler für ETB-Export-Button
-   *
-   * **Flow:**
-   * 1. Capture screenshot from map
-   * 2. Upload screenshot to backend
-   * 3. Create ETB entry with screenshot metadata
-   * 4. Show success toast
-   *
-   * **Error Handling:**
-   * - Upload failure → Show error toast with retry option
-   * - ETB creation failure → Delete uploaded screenshot (cleanup)
-   */
-  const handleExportToEtb = useCallback(async () => {
-    console.log('[ETB Export] Handler aufgerufen', { mapInstance: !!mapInstance, etbData, etbId: etbData?.id });
-
-    // Prüfe ob ETB-Daten noch geladen werden
-    if (isEtbLoading) {
-      toast.error('Fehler beim Export', {
-        description: 'ETB-Daten werden noch geladen. Bitte warten.',
-      });
-      return;
-    }
-
-    if (!mapInstance) {
-      console.log('[ETB Export] Validation failed', { hasMapInstance: false });
-      toast.error('Fehler beim Export', {
-        description: 'Karte noch nicht geladen',
-      });
-      return;
-    }
-
-    setIsExportingToEtb(true);
-
-    // Bei fehlendem ETB: Fehler anzeigen und abbrechen
-    // ETB sollte automatisch bei Einsatz-Erstellung erstellt werden
-    let targetEtbId = etbData?.id;
-    if (!targetEtbId) {
-      console.log('[ETB Export] Kein ETB vorhanden für Einsatz', einsatzId);
-
-      // Versuche ETB-Daten neu zu laden (vielleicht noch nicht geladen)
-      const refetchResult = await refetchEtb();
-      targetEtbId = refetchResult.data?.id;
-
-      if (!targetEtbId) {
-        toast.error('Export nicht möglich', {
-          description: 'Das Einsatztagebuch wurde noch nicht erstellt. Bitte öffne zuerst das ETB.',
-        });
-        setIsExportingToEtb(false);
-        return;
-      }
-    }
-
-    console.log('[ETB Export] Starting export for ETB', targetEtbId);
-    let uploadedScreenshotUrl: string | null = null;
-
-    try {
-      // Step 1: Capture screenshot
-      const mapContainer = mapInstance.getContainer();
-      const screenshotBlob = await captureMapScreenshot(mapContainer);
-
-      // Extract actual dimensions from blob
-      const screenshotUrl = URL.createObjectURL(screenshotBlob);
-      const img = new Image();
-      img.src = screenshotUrl;
-
-      // Wait for image to load to get dimensions
-      await new Promise<void>((resolve, reject) => {
-        img.onload = () => resolve();
-        img.onerror = () => reject(new Error('Failed to load screenshot image'));
-      });
-
-      const screenshotWidth = img.naturalWidth;
-      const screenshotHeight = img.naturalHeight;
-
-      // Cleanup object URL
-      URL.revokeObjectURL(screenshotUrl);
-
-      // Step 2: Upload screenshot
-      // API-Client erstellt automatisch FormData für multipart/form-data
-      const uploadResponse = await api.lagekarte().lagekarteControllerUploadScreenshotVAlpha({
-        einsatzId,
-        file: screenshotBlob,
-      });
-
-      uploadedScreenshotUrl = uploadResponse.data.url as string;
-
-      // Step 3: Create ETB entry with screenshot reference in metadata
-      try {
-        await api.etb().etbCqrsControllerAddEintragVAlpha({
-          etbId: targetEtbId,
-          addEintragDto: {
-            kategorie: 'DOKUMENTATION',
-            text: 'Lagekarten-Screenshot erstellt',
-            einsatzId,
-            metadata: {
-              screenshot: {
-                url: uploadedScreenshotUrl,
-                width: screenshotWidth,
-                height: screenshotHeight,
-              },
-            },
-          },
-        });
-      } catch (etbError) {
-        // Log the actual error for debugging
-        logger.error('ETB entry creation failed', etbError);
-
-        // Cleanup: Delete uploaded screenshot if ETB creation fails
-        if (uploadedScreenshotUrl) {
-          try {
-            // Extract filename from URL using URL API (robust against encoded characters)
-            const url = new URL(uploadedScreenshotUrl, window.location.origin);
-            const filename = url.pathname.split('/').pop();
-            if (filename) {
-              await api.lagekarte().lagekarteControllerDeleteScreenshotVAlpha({
-                einsatzId,
-                filename,
-              });
-            }
-          } catch (cleanupError) {
-            logger.error('Failed to cleanup screenshot after ETB error', cleanupError);
-          }
-        }
-        // Re-throw the original error for better error messages
-        throw etbError;
-      }
-
-      // Success!
-      toast.success('Screenshot erfolgreich ins ETB exportiert', {
-        description: 'Der Screenshot wurde als ETB-Eintrag gespeichert',
-      });
-    } catch (error) {
-      logger.error('ETB export failed', error);
-
-      // Show error toast with retry option
-      toast.error('Fehler beim ETB-Export', {
-        description: error instanceof Error ? error.message : 'Unbekannter Fehler',
-        action: {
-          label: 'Retry',
-          onClick: () => handleExportToEtb(),
-        },
-      });
-    } finally {
-      setIsExportingToEtb(false);
-    }
-  }, [mapInstance, etbData, einsatzId, refetchEtb, isEtbLoading]);
-
-  // Error-State anzeigen
   if (hasError) {
     return (
       <div
@@ -581,7 +37,6 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
           'flex flex-col items-center justify-center',
           'bg-surface-raised',
           'border-2 border-dashed border-border-subtle',
-          // Mode-specific heights
           mode === 'standard' && 'h-[600px] md:h-[calc(100vh-120px)]',
           (mode === 'fullscreen' || mode === 'presentation') && 'h-screen',
         )}
@@ -595,7 +50,15 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
           <br />
           Bitte überprüfen Sie Ihre Internetverbindung.
         </p>
-        <Button intent="primary" appearance="filled" size="md" onClick={handleRetry}>
+        <Button
+          intent="primary"
+          appearance="filled"
+          size="md"
+          onClick={() => {
+            setHasError(false);
+            setIsLoading(true);
+          }}
+        >
           Erneut versuchen
         </Button>
       </div>
@@ -603,155 +66,30 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   }
 
   return (
-    <>
-      {/* Fullscreen-Close-Button (nur im Fullscreen-Modus) */}
-      {mode === 'fullscreen' && <FullscreenCloseButton />}
-
-      {/* Fullscreen-Indikator Badge (CUX-009) */}
-      {mode === 'fullscreen' && showFullscreenBadge && (
-        <output
-          className={cn(
-            'fixed top-4 left-4 z-[9999]',
-            'flex items-center gap-2 rounded-lg px-4 py-2',
-            'border border-status-info-border bg-status-info-surface/90 backdrop-blur-lg',
-            'shadow-lg',
-            'transition-opacity duration-500',
-            showFullscreenBadge ? 'opacity-100' : 'opacity-0',
-          )}
-          aria-label="Vollbildmodus aktiv"
-        >
-          <div className="h-2 w-2 animate-pulse rounded-full bg-status-info-text" />
-          <span className="text-sm font-medium text-status-info-text">Vollbildmodus</span>
-        </output>
+    <div className={cn('relative w-full overflow-hidden rounded-lg', mode === 'standard' && 'h-[600px] md:h-[calc(100vh-180px)]', (mode === 'fullscreen' || mode === 'presentation') && 'h-screen')}>
+      {isLoading && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-surface-panel/80">
+          <Spinner type="ring" size="lg" />
+        </div>
       )}
 
-      {/* POI-Platzierungs-Modal */}
-      {isModalOpen && selectedType && clickedCoordinates && lagekarte && (
-        <PoiPlacementModal isOpen={isModalOpen} onClose={handleModalClose} poiType={selectedType} coordinates={clickedCoordinates} einsatzId={einsatzId} lagekarteId={lagekarte.id} />
-      )}
-
-      {/* Shape-Label-Modal */}
-      {isShapeLabelModalOpen && currentShape && <ShapeLabelModal isOpen={isShapeLabelModalOpen} onClose={() => setIsShapeLabelModalOpen(false)} shape={currentShape} onSave={handleShapeLabelSave} />}
-
-      {/* Offline-Region-Modal */}
-      {isOfflineModalOpen && (
-        <OfflineRegionModal isOpen={isOfflineModalOpen} onClose={() => setIsOfflineModalOpen(false)} currentMapBounds={currentMapBounds || undefined} map={mapInstance || undefined} />
-      )}
-
-      {/* Property Panel */}
-      {showPropertyPanel && (
-        <PropertyPanel
-          selectedShape={selectedShape}
-          onPropertiesChange={handlePropertiesChange}
-          onClose={() => {
-            setShowPropertyPanel(false);
-            setSelectedShape(null);
-          }}
-        />
-      )}
-
-      {/* Karten-Container */}
-      <div
-        className={cn(
-          'relative w-full overflow-hidden rounded-lg',
-          // Mode-specific heights
-          mode === 'standard' && 'h-[600px] md:h-[calc(100vh-180px)]',
-          (mode === 'fullscreen' || mode === 'presentation') && 'h-screen',
-        )}
+      <Map
+        initialViewState={{
+          longitude: MAP_DEFAULTS.longitude,
+          latitude: MAP_DEFAULTS.latitude,
+          zoom: MAP_DEFAULTS.zoom,
+        }}
+        style={{ width: '100%', height: '100%' }}
+        mapStyle={mapStyle}
+        onLoad={() => setIsLoading(false)}
+        onError={() => {
+          setHasError(true);
+          setIsLoading(false);
+        }}
+        aria-label="Lagekarte"
       >
-        {/* Werkzeuge-Container (Flexbox für automatisches Layout) - nur im Standard-Modus */}
-        {mode === 'standard' && (
-          <div className="absolute top-40 left-2.5 z-[10] hidden flex-col gap-2 md:flex">
-            {/* Map-Werkzeuge Toggle-Button */}
-            <MapToolbarToggle isOpen={isToolsOpen} onToggle={setIsToolsOpen} />
-
-            {/* POI-Platzierungs-Control (nur sichtbar wenn Tools geöffnet) */}
-            {isToolsOpen && (
-              <PoiPlacementControl
-                onPoiTypeSelect={handlePoiTypeSelect}
-                onCancel={deactivatePlacementMode}
-                selectedType={selectedType}
-                isPlacementActive={isPlacementActive}
-                isModalOpen={isModalOpen}
-              />
-            )}
-
-            {/* Drawing-Toolbar (nur sichtbar wenn Tools geöffnet) */}
-            {isToolsOpen && <DrawingToolbar onToolSelect={handleDrawingToolSelect} selectedTool={selectedDrawingTool} />}
-          </div>
-        )}
-
-        {/* Lagekarte-Toolbar (Top-Right) - nur im Standard-Modus */}
-        {mode === 'standard' && (
-          <div className="absolute top-2.5 right-2.5 z-[10]">
-            <LagekarteToolbar onOfflineDownloadClick={handleOfflineDownloadClick} onEtbExportClick={handleExportToEtb} isExportingToEtb={isExportingToEtb || isEtbLoading} />
-          </div>
-        )}
-
-        {/* Layer-Toggle - nur im Standard-Modus */}
-        {mode === 'standard' && <LayerToggle layers={layers} onToggle={handleLayerToggle} />}
-
-        {isLoading && (
-          <div className="absolute inset-0 z-30 flex items-center justify-center bg-surface-panel/80">
-            <Spinner type="ring" size="lg" />
-          </div>
-        )}
-        <MapContainer
-          center={defaultCenter}
-          zoom={defaultZoom}
-          preferCanvas={true}
-          className={cn('h-full w-full', isPlacementActive && 'placement-active')}
-          scrollWheelZoom={true}
-          whenReady={() => setIsLoading(false)}
-          aria-label="Lagekarte"
-        >
-          <OfflineTileLayer url={tileUrl} attribution={attribution} />
-          <TileErrorHandler onError={handleTileError} />
-          <MapClickHandler isPlacementActive={isPlacementActive} selectedType={selectedType} onMapClick={handleMapClick} />
-
-          {/* POI-Layer (conditionally rendered based on layer visibility) */}
-          {layers.find((l) => l.name === 'poi')?.visible && (
-            <LayerErrorBoundary layerName="POI-Layer">
-              <ClusteredPoiLayer lagekarteId={lagekarte?.id} />
-            </LayerErrorBoundary>
-          )}
-
-          {/* Drawing-Layer (conditionally rendered based on layer visibility) */}
-          {(() => {
-            const shouldRender = layers.find((l) => l.name === 'drawing')?.visible && !!lagekarte;
-            console.log('[LagekarteView] DrawingLayer render check:', {
-              shouldRender,
-              isPlacementActive,
-              hasDrawingLayer: !!layers.find((l) => l.name === 'drawing')?.visible,
-              hasData: !!lagekarte,
-            });
-            return shouldRender;
-          })() && (
-            <DrawingLayer
-              einsatzId={einsatzId}
-              selectedTool={selectedDrawingTool}
-              initialState={lagekarte?.state}
-              shapeToUpdate={shapeToUpdate}
-              onShapesChange={handleShapesChange}
-              onShapeCreated={handleShapeCreated}
-              onShapeLimitReached={handleShapeLimitReached}
-              onShapeUpdateComplete={handleShapeUpdateComplete}
-              onShapeSelected={handleShapeSelected}
-              isPlacementModeActive={isPlacementActive}
-            />
-          )}
-
-          {/* Fahrzeug-POI-Layer (Story 8.1: Fahrzeuge als POIs auf Lagekarte) */}
-          {layers.find((l) => l.name === 'fahrzeuge')?.visible && (
-            <LayerErrorBoundary layerName="Fahrzeug-Layer">
-              <FahrzeugPoiLayer einsatzId={einsatzId} />
-            </LayerErrorBoundary>
-          )}
-
-          <MapBoundsController lagekarteId={lagekarte?.id} />
-          <MapBoundsTracker onBoundsReady={handleBoundsReady} onMapReady={setMapInstance} />
-        </MapContainer>
-      </div>
-    </>
+        <NavigationControl position="top-right" />
+      </Map>
+    </div>
   );
 };
