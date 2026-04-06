@@ -9,7 +9,7 @@ export const GEFAHRENMATRIX_QUERY_KEYS = {
 /**
  * Lädt die Gefahrenmatrix eines Einsatzes.
  */
-export const useGefahrenmatrix = (einsatzId: string) => {
+export const useGefahrenmatrix = (einsatzId: string, options?: { refetchInterval?: number }) => {
   return useQuery({
     queryKey: GEFAHRENMATRIX_QUERY_KEYS.byEinsatz(einsatzId),
     queryFn: async () => {
@@ -17,5 +17,6 @@ export const useGefahrenmatrix = (einsatzId: string) => {
       return response.data;
     },
     enabled: !!einsatzId,
+    refetchInterval: options?.refetchInterval,
   });
 };

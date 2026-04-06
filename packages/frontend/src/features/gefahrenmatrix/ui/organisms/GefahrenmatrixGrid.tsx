@@ -18,14 +18,20 @@ import { GefahrenmatrixCell } from '../molecules/GefahrenmatrixCell';
 
 interface GefahrenmatrixGridProps {
   einsatzId: string;
+  /** Readonly-Modus: Keine Dropdowns, nur Text-Anzeige (für Dashboard/Fullscreen) */
+  readonly?: boolean;
+  /** Fullscreen-Modus: Tabelle füllt verfügbaren Platz, größere Schrift und Zellen */
+  fullscreen?: boolean;
+  /** Polling-Intervall in ms für automatische Aktualisierung */
+  refetchInterval?: number;
 }
 
 /**
  * Vollständige Gefahrenmatrix als interaktive Tabelle.
- * Bildet das Papierformular der Gefahrenmatrix (4A-C-5E + Zusätzliche) ab.
+ * Bildet das Papierformular der Gefahrenmatrix (5A-B-C-D-5E) ab.
  */
-export function GefahrenmatrixGrid({ einsatzId }: GefahrenmatrixGridProps) {
-  const { data, isLoading } = useGefahrenmatrix(einsatzId);
+export function GefahrenmatrixGrid({ einsatzId, readonly = false, fullscreen = false, refetchInterval }: GefahrenmatrixGridProps) {
+  const { data, isLoading, isError } = useGefahrenmatrix(einsatzId, { refetchInterval });
   const { mutate: updateBewertung } = useUpdateGefahrenmatrixBewertung();
 
   // Bewertungen als Map: "GEFAHRENTYP:SCHUTZOBJEKT" → WarnstufeValue
@@ -67,19 +73,36 @@ export function GefahrenmatrixGrid({ einsatzId }: GefahrenmatrixGridProps) {
     return <div className="flex items-center justify-center p-8 text-text-muted">Gefahrenmatrix wird geladen...</div>;
   }
 
+  if (isError) {
+    return <div className="flex items-center justify-center p-8 text-status-danger-text">Gefahrenmatrix konnte nicht geladen werden.</div>;
+  }
+
   const renderSection = (title: string, schutzobjekte: SchutzobjektValue[]) => (
     <>
       <tr>
-        <td colSpan={GEFAHRENTYPEN.length + 1} className="bg-surface-raised px-3 py-2 text-center text-sm font-semibold text-action-primary">
+        <td colSpan={GEFAHRENTYPEN.length + 1} className={cn('bg-surface-raised text-center font-semibold text-action-primary', fullscreen ? 'px-4 py-3 text-base' : 'px-3 py-2 text-sm')}>
           {title}
         </td>
       </tr>
       {schutzobjekte.map((objekt) => (
         <tr key={objekt}>
-          <th className="border border-border-subtle bg-surface-panel px-3 py-1.5 text-left text-xs font-semibold whitespace-nowrap text-text-secondary uppercase">{SCHUTZOBJEKT_LABELS[objekt]}</th>
+          <th
+            className={cn(
+              'border border-border-subtle bg-surface-panel text-left font-semibold whitespace-nowrap text-text-secondary uppercase',
+              fullscreen ? 'px-4 py-3 text-sm' : 'px-3 py-1.5 text-xs',
+            )}
+          >
+            {SCHUTZOBJEKT_LABELS[objekt]}
+          </th>
           {GEFAHRENTYPEN.map((typ) =>
             isKombinationGueltig(typ, objekt) ? (
-              <GefahrenmatrixCell key={`${typ}:${objekt}`} warnstufe={getWarnstufe(typ, objekt)} onChange={(warnstufe) => handleChange(typ, objekt, warnstufe)} />
+              <GefahrenmatrixCell
+                key={`${typ}:${objekt}`}
+                warnstufe={getWarnstufe(typ, objekt)}
+                onChange={(warnstufe) => handleChange(typ, objekt, warnstufe)}
+                readonly={readonly}
+                fullscreen={fullscreen}
+              />
             ) : (
               <td
                 key={`${typ}:${objekt}`}
@@ -100,12 +123,12 @@ export function GefahrenmatrixGrid({ einsatzId }: GefahrenmatrixGridProps) {
         {/* Header: Gefahrentyp Labels */}
         <thead>
           <tr>
-            <th className="border border-border-subtle bg-surface-raised p-2 text-left text-xs font-bold text-text-primary uppercase">Gefahrenmatrix</th>
+            <th className={cn('border border-border-subtle bg-surface-raised text-left font-bold text-text-primary uppercase', fullscreen ? 'p-3 text-sm' : 'p-2 text-xs')}>Gefahrenmatrix</th>
             {GEFAHRENTYPEN.map((typ) => (
-              <th key={typ} className="border border-border-subtle bg-surface-raised p-1 text-center">
-                <div className="flex flex-col items-center gap-0.5">
-                  <span className="text-[10px] leading-tight text-text-muted">{GEFAHRENTYP_LABELS[typ]}</span>
-                  {GEFAHRENTYP_KUERZEL[typ] && <span className="text-lg font-bold text-red-600">{GEFAHRENTYP_KUERZEL[typ]}</span>}
+              <th key={typ} className={cn('border border-border-subtle bg-surface-raised text-center', fullscreen ? 'p-2' : 'p-1')}>
+                <div className={cn('flex flex-col items-center', fullscreen ? 'gap-1' : 'gap-0.5')}>
+                  <span className={cn('leading-tight text-text-muted', fullscreen ? 'text-xs' : 'text-[10px]')}>{GEFAHRENTYP_LABELS[typ]}</span>
+                  {GEFAHRENTYP_KUERZEL[typ] && <span className={cn('font-bold text-red-600', fullscreen ? 'text-2xl' : 'text-lg')}>{GEFAHRENTYP_KUERZEL[typ]}</span>}
                 </div>
               </th>
             ))}

@@ -1,4 +1,3 @@
-import type { WorkspaceModuleDefinition, WorkspaceSubPage, WorkspaceVisibilityRule } from '../types';
 import {
   PiAirplaneTilt,
   PiCamera,
@@ -22,6 +21,7 @@ import {
   PiUsers,
   PiWarning,
 } from 'react-icons/pi';
+import type { WorkspaceModuleDefinition, WorkspaceSubPage, WorkspaceVisibilityRule } from '../types';
 
 const visible: WorkspaceVisibilityRule = {
   default: 'visible',
@@ -169,7 +169,7 @@ export const EINSATZ_WORKSPACE_MODULES: WorkspaceModuleDefinition[] = [
     color: 'red',
     description: 'Gefahren und Schutzmaßnahmen',
     subPages: [
-      createSubPage(0, { id: 'gefahren', label: 'Gefahren', href: '/app/einsatz/$einsatzId/sicherheit/gefahren', icon: PiWarning, description: 'Gefahrenmatrix (4A-C-5E)' }),
+      createSubPage(0, { id: 'gefahren', label: 'Gefahren', href: '/app/einsatz/$einsatzId/sicherheit/gefahren', icon: PiWarning, description: 'Gefahrenmatrix (5A-B-C-D-5E)' }),
       createSubPage(1, {
         id: 'eigenschutz',
         label: 'Eigenschutz',

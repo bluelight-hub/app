@@ -2,6 +2,7 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import { useMatchRoute, useNavigate } from '@tanstack/react-router';
 import type { EtbSearchParams } from '@routes/app/einsatz/$einsatzId/führung/etb/';
 import type { LagekarteSearchParams } from '@/features/lagekarte/ui';
+import type { GefahrenmatrixSearchParams } from '@routes/app/einsatz/$einsatzId/sicherheit/gefahren';
 
 /**
  * Globale Keyboard-Shortcuts für Fullscreen-Modi
@@ -19,7 +20,7 @@ import type { LagekarteSearchParams } from '@/features/lagekarte/ui';
 export function useGlobalFullscreenHotkeys() {
   const navigate = useNavigate();
   const matchRoute = useMatchRoute();
-  type FullscreenSearchParams = LagekarteSearchParams | EtbSearchParams;
+  type FullscreenSearchParams = LagekarteSearchParams | EtbSearchParams | GefahrenmatrixSearchParams;
 
   const setFullscreenSearch = (prev: FullscreenSearchParams) => ({
     ...prev,
@@ -38,6 +39,12 @@ export function useGlobalFullscreenHotkeys() {
     fuzzy: false,
   });
 
+  // Prüfe ob auf Gefahrenmatrix-Route
+  const isOnGefahrenRoute = !!matchRoute({
+    to: '/app/einsatz/$einsatzId/sicherheit/gefahren',
+    fuzzy: false,
+  });
+
   // Fullscreen-Toggle: Cmd+E (nur wenn auf unterstützten Routes)
   useHotkeys(
     'mod+e',
@@ -48,10 +55,10 @@ export function useGlobalFullscreenHotkeys() {
       });
     },
     {
-      enabled: isOnKarteRoute || isOnEtbRoute,
+      enabled: isOnKarteRoute || isOnEtbRoute || isOnGefahrenRoute,
       enableOnFormTags: ['INPUT', 'TEXTAREA', 'SELECT'],
       preventDefault: true,
     },
-    [isOnKarteRoute, isOnEtbRoute, navigate],
+    [isOnKarteRoute, isOnEtbRoute, isOnGefahrenRoute, navigate],
   );
 }
