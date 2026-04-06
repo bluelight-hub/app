@@ -778,7 +778,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                     </output>
                   )}
                   {/* Story 4.10: Ruecklaufer Badge */}
-                  {(erinnerung as unknown as { eskalationNurAnErsteller?: boolean })?.eskalationNurAnErsteller && (
+                  {erinnerung.eskalationNurAnErsteller && (
                     <output
                       aria-label="Rückläufer aktiv - Eskalation geht an Ersteller"
                       className="inline-flex items-center gap-1 rounded-full bg-status-warning-surface px-1.5 py-0.5 text-xs font-medium text-status-warning-text"
