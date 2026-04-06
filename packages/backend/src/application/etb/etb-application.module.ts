@@ -37,6 +37,7 @@ import {
   BefehlAnonymisiertEtbHandler,
   BefehlGeloeschtEtbHandler,
   EtbEinsatzCompletedHandler,
+  GefahrenmatrixAktualisiertEtbHandler,
 } from './event-handlers';
 import {
   EinheitErstelltEtbHandler,
@@ -277,6 +278,11 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
       provide: EVENT_HANDLER.ETB_EINSATZ_COMPLETED,
       useClass: EtbEinsatzCompletedHandler,
     },
+    // GefahrenmatrixAktualisiert ETB Event Handler (Issue #414) - ETB-Eintrag bei Gefahrenbewertung
+    {
+      provide: EVENT_HANDLER.GEFAHRENMATRIX_AKTUALISIERT_ETB,
+      useClass: GefahrenmatrixAktualisiertEtbHandler,
+    },
     // EinheitErstellt ETB Event Handler (Issue #411) - ETB-Eintrag bei Einheit-Aufstellung
     {
       provide: EVENT_HANDLER.EINHEIT_ERSTELLT_ETB,
@@ -353,6 +359,7 @@ import { GetEintraegeQueryHandler, GetErinnerungTimelineQueryHandler, GetEtbHist
     EVENT_HANDLER.BEFEHL_ANONYMISIERT_ETB,
     EVENT_HANDLER.BEFEHL_GELOESCHT_ETB,
     EVENT_HANDLER.ETB_EINSATZ_COMPLETED,
+    EVENT_HANDLER.GEFAHRENMATRIX_AKTUALISIERT_ETB, // Issue #414
     EVENT_HANDLER.EINHEIT_ERSTELLT_ETB, // Issue #411
     EVENT_HANDLER.EINHEIT_STATUS_GEAENDERT_ETB, // Issue #411
     EVENT_HANDLER.PERSON_ZU_EINHEIT_ZUGEWIESEN_ETB, // Issue #411

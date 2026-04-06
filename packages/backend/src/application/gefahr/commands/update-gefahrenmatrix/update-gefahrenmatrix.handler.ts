@@ -3,6 +3,7 @@ import type { DomainEvent } from '@domain/common/domain-event';
 import { Result } from '@domain/common/result';
 import type { TransactionContext } from '@domain/common/transaction';
 import { GefahrenmatrixBewertung } from '@domain/gefahr/entities/gefahrenmatrix.entity';
+import { GefahrenmatrixAktualisiertEvent } from '@domain/gefahr/events/gefahrenmatrix-aktualisiert.event';
 import { Warnstufe } from '@domain/gefahr/value-objects/warnstufe';
 import type { IGefahrenmatrixRepository } from '@domain/gefahr/repositories/i-gefahrenmatrix.repository';
 import type { ILogger } from '@domain/ports/i-logger.port';
@@ -33,7 +34,9 @@ export class UpdateGefahrenmatrixHandler extends TransactionalCommandHandler<Upd
     if (command.warnstufe === Warnstufe.KEINE) {
       await this.repository.deleteByKey(command.einsatzId, command.gefahrentyp, command.schutzobjekt, _tx);
       this.logger.log(`Gefahrenmatrix-Bewertung entfernt (einsatzId: ${command.einsatzId}, typ: ${command.gefahrentyp}, objekt: ${command.schutzobjekt})`, 'UpdateGefahrenmatrixHandler');
-      return Result.ok(null);
+
+      const event = new GefahrenmatrixAktualisiertEvent(command.einsatzId, command.gefahrentyp, command.schutzobjekt, Warnstufe.KEINE, command.aktualisiertVon);
+      return { result: null, events: [event] };
     }
 
     // Bewertung erstellen/aktualisieren

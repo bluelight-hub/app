@@ -1,5 +1,5 @@
 /**
- * Die 13 Gefahrentypen der Gefahrenmatrix (4A-C-5E + Absturz/Brand/Durchbruch/Ertrinken).
+ * Die 13 Gefahrentypen der Gefahrenmatrix (5A-B-C-D-5E).
  */
 export enum Gefahrentyp {
   ATEMGIFTE = 'ATEMGIFTE',
