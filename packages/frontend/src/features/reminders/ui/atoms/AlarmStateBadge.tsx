@@ -1,10 +1,8 @@
+import type { ErinnerungResponseDtoStatusEnum } from '@/shared';
 import { cn } from '@/shared/ui/cn';
 import { PiBellRinging, PiCheck, PiCheckCircle, PiClock, PiMoon, PiTrendUp } from 'react-icons/pi';
 
-/**
- * Erinnerung Status Typen (API generiert)
- */
-type ErinnerungStatus = 'GEPLANT' | 'AUSGELOEST' | 'ACKNOWLEDGED' | 'SNOOZED' | 'ERLEDIGT' | 'ESKALIERT';
+type ErinnerungStatus = ErinnerungResponseDtoStatusEnum;
 
 /**
  * Urgency Level für progressive Farbwechsel bei GEPLANT Status

@@ -686,8 +686,7 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
         {/* Status-Badge und Inhalt */}
         <div className="flex items-start gap-3">
           {/* Story 1.7 AC1/AC6: AlarmStateBadge statt inline Icon */}
-          {/* eslint-disable-next-line typescript/no-explicit-any -- DTO type mismatch */}
-          <AlarmStateBadge status={erinnerung.status as any} minutesUntilDue={minutesUntilDue} size={variant === 'compact' ? 'sm' : 'md'} intensityLevel={intensityLevel} audioFailed={audioFailed} />
+          <AlarmStateBadge status={erinnerung.status} minutesUntilDue={minutesUntilDue} size={variant === 'compact' ? 'sm' : 'md'} intensityLevel={intensityLevel} audioFailed={audioFailed} />
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
