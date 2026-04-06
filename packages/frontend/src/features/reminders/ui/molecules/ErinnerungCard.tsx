@@ -711,18 +711,18 @@ export function ErinnerungCard({ erinnerung, einsatzId, className, showCreator =
                       title={
                         erinnerung.isRecurring
                           ? `Wiederkehrend alle ${erinnerung.recurringIntervalMinutes} Min`
-                          : `Instanz ${(erinnerung.recurringSequenceNumber as unknown as number) ?? '?'}/${(erinnerung.recurringMaxCount as unknown as number) ?? '\u221E'}`
+                          : `Instanz ${erinnerung.recurringSequenceNumber ?? '?'}/${erinnerung.recurringMaxCount ?? '\u221E'}`
                       }
                     >
                       <PiRepeat className="h-4 w-4" aria-hidden="true" />
                     </span>
                   )}
                   {/* Story 6.5 AC3: Serie gestoppt Badge */}
-                  {!erinnerung.isRecurring && !erinnerung.parentErinnerungId && (erinnerung.recurringCurrentCount as unknown as number) > 0 && erinnerung.recurringIntervalMinutes && (
+                  {!erinnerung.isRecurring && !erinnerung.parentErinnerungId && erinnerung.recurringCurrentCount > 0 && erinnerung.recurringIntervalMinutes && (
                     <output
                       aria-label="Serie gestoppt"
                       className="inline-flex items-center gap-1 rounded-full bg-surface-raised px-1.5 py-0.5 text-xs font-medium text-text-secondary"
-                      title={`Serie gestoppt (${erinnerung.recurringCurrentCount as unknown as number} Instanzen erstellt)`}
+                      title={`Serie gestoppt (${erinnerung.recurringCurrentCount} Instanzen erstellt)`}
                     >
                       <PiStopCircle className="h-3 w-3" aria-hidden="true" />
                       Serie gestoppt

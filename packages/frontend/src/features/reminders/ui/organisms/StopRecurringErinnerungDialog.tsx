@@ -96,10 +96,10 @@ export function StopRecurringErinnerungDialog({ isOpen, onClose, erinnerung, ein
                   <dd className="text-text-secondary">Alle {erinnerung.recurringIntervalMinutes} Min</dd>
                 </div>
               )}
-              {(erinnerung.recurringCurrentCount as unknown as number) > 0 && (
+              {erinnerung.recurringCurrentCount > 0 && (
                 <div className="flex">
                   <dt className="w-28 flex-shrink-0 text-text-muted">Instanzen:</dt>
-                  <dd className="text-text-secondary">{erinnerung.recurringCurrentCount as unknown as number} erstellt</dd>
+                  <dd className="text-text-secondary">{erinnerung.recurringCurrentCount} erstellt</dd>
                 </div>
               )}
             </dl>
