@@ -2,8 +2,8 @@
  * Layer-Detail-Provider Registry
  *
  * Zentrale Registry für alle Layer-Detail-Provider.
- * Beim Klick auf die Karte werden alle aktiven Provider abgefragt —
- * der erste Treffer gewinnt.
+ * Beim Klick auf die Karte werden alle aktiven Provider parallel abgefragt
+ * und alle Treffer gesammelt.
  */
 
 import type { MapRef } from 'react-map-gl/maplibre';
@@ -23,24 +23,19 @@ export function registerDetailProvider(provider: LayerDetailProvider): void {
 }
 
 /**
- * Fragt alle aktiven Provider an einer Koordinate ab
+ * Fragt alle aktiven Provider an einer Koordinate ab und sammelt alle Treffer.
  *
- * Iteriert über alle registrierten Provider in Reihenfolge der Registrierung.
- * Der erste Provider der ein Ergebnis liefert, gewinnt.
+ * Provider werden parallel abgefragt (Promise.allSettled), damit ein
+ * fehlschlagender Provider die anderen nicht blockiert.
  *
- * @returns Feature-Info oder null wenn kein Provider einen Treffer hat
+ * @returns Array aller Feature-Infos (leer wenn kein Provider einen Treffer hat)
  */
-export async function queryDetailProviders(lng: number, lat: number, map: MapRef): Promise<LayerFeatureInfo | null> {
+export async function queryAllDetailProviders(lng: number, lat: number, map: MapRef): Promise<LayerFeatureInfo[]> {
   const activeProviders = providers.filter((p) => p.isActive());
 
-  for (const provider of activeProviders) {
-    const result = await provider.queryFeature(lng, lat, map);
-    if (result) {
-      return result;
-    }
-  }
+  const results = await Promise.allSettled(activeProviders.map((p) => p.queryFeature(lng, lat, map)));
 
-  return null;
+  return results.filter((r): r is PromiseFulfilledResult<LayerFeatureInfo> => r.status === 'fulfilled' && r.value !== null).map((r) => r.value);
 }
 
 /**

@@ -2,20 +2,24 @@
  * Hook für Karten-Detail-Interaktionen
  *
  * Verwaltet den State für das Layer-Detail-System:
- * - Welches Feature ist selektiert? (Popup)
- * - Ist das Detail-Panel geöffnet?
+ * - Welche Features sind selektiert? (Popup mit allen Treffern)
+ * - Welches Feature wird im Detail-Panel gezeigt? (Navigation)
  * - Läuft gerade eine Feature-Abfrage?
  */
 
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { MapLayerMouseEvent } from 'react-map-gl/maplibre';
 import type { MapRef } from 'react-map-gl/maplibre';
-import { queryDetailProviders } from '../detail-providers/registry';
+import { queryAllDetailProviders } from '../detail-providers/registry';
 import type { LayerFeatureInfo } from '../detail-providers/types';
 
 interface MapDetailState {
-  /** Aktuell selektierte Feature-Info (null = nichts selektiert) */
-  featureInfo: LayerFeatureInfo | null;
+  /** Alle Treffer aller aktiven Provider am Klick-Punkt */
+  results: LayerFeatureInfo[];
+  /** Klick-Koordinaten für Popup-Positionierung */
+  coordinate: { lng: number; lat: number } | null;
+  /** Index des aktuell im Panel angezeigten Treffers */
+  panelIndex: number;
   /** Ist das Detail-Panel geöffnet? */
   isPanelOpen: boolean;
   /** Läuft gerade eine Feature-Abfrage? */
@@ -24,42 +28,65 @@ interface MapDetailState {
 
 /**
  * Verwaltet Karten-Klick → Provider-Abfrage → Popup/Panel State
+ *
+ * Fragt alle aktiven Provider parallel ab und sammelt alle Treffer.
+ * Das Panel unterstützt Navigation zwischen mehreren Treffern.
  */
 export function useMapDetail(mapRef: React.RefObject<MapRef | null>) {
   const [state, setState] = useState<MapDetailState>({
-    featureInfo: null,
+    results: [],
+    coordinate: null,
+    panelIndex: 0,
     isPanelOpen: false,
     isLoading: false,
   });
 
-  /** Karten-Klick-Handler — fragt alle Provider ab */
+  /** Generation-Counter verhindert Race Conditions bei schnellen Klicks */
+  const queryGenRef = useRef(0);
+
+  /** Karten-Klick-Handler — fragt alle Provider parallel ab */
   const handleMapClick = useCallback(
     async (event: MapLayerMouseEvent) => {
       const map = mapRef.current;
       if (!map) return;
 
+      const generation = ++queryGenRef.current;
       const { lng, lat } = event.lngLat;
 
       setState((prev) => ({ ...prev, isLoading: true }));
 
       try {
-        const result = await queryDetailProviders(lng, lat, map);
+        const results = await queryAllDetailProviders(lng, lat, map);
+
+        // Veraltete Antwort verwerfen wenn zwischenzeitlich erneut geklickt wurde
+        if (generation !== queryGenRef.current) return;
 
         setState({
-          featureInfo: result,
+          results,
+          coordinate: results.length > 0 ? { lng, lat } : null,
+          panelIndex: 0,
           isPanelOpen: false,
           isLoading: false,
         });
       } catch {
-        setState({ featureInfo: null, isPanelOpen: false, isLoading: false });
+        if (generation !== queryGenRef.current) return;
+        setState({ results: [], coordinate: null, panelIndex: 0, isPanelOpen: false, isLoading: false });
       }
     },
     [mapRef],
   );
 
-  /** Öffnet das Detail-Panel für das aktuell selektierte Feature */
-  const openPanel = useCallback(() => {
-    setState((prev) => ({ ...prev, isPanelOpen: true }));
+  /** Öffnet das Detail-Panel für einen bestimmten Treffer */
+  const openPanel = useCallback((index: number) => {
+    setState((prev) => ({ ...prev, isPanelOpen: true, panelIndex: index }));
+  }, []);
+
+  /** Navigiert im Panel zu einem anderen Treffer */
+  const navigatePanel = useCallback((index: number) => {
+    setState((prev) => ({
+      ...prev,
+      panelIndex: Math.max(0, Math.min(index, prev.results.length - 1)),
+    }));
   }, []);
 
   /** Schließt das Detail-Panel */
@@ -69,15 +96,18 @@ export function useMapDetail(mapRef: React.RefObject<MapRef | null>) {
 
   /** Schließt Popup und Panel (z.B. bei erneutem Klick auf leere Stelle) */
   const clearSelection = useCallback(() => {
-    setState({ featureInfo: null, isPanelOpen: false, isLoading: false });
+    setState({ results: [], coordinate: null, panelIndex: 0, isPanelOpen: false, isLoading: false });
   }, []);
 
   return {
-    featureInfo: state.featureInfo,
+    results: state.results,
+    coordinate: state.coordinate,
+    panelIndex: state.panelIndex,
     isPanelOpen: state.isPanelOpen,
     isLoading: state.isLoading,
     handleMapClick,
     openPanel,
+    navigatePanel,
     closePanel,
     clearSelection,
   };

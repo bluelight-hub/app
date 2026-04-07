@@ -4,6 +4,7 @@
  * Zeigt alle Informationen zu NINA-Warnungen im Side-Panel:
  * Warntyp, Beschreibung, Gültigkeit, Gebiet, Handlungsempfehlung, Herausgeber.
  * Lädt bei Bedarf die vollständigen Details über die Backend-API nach.
+ * Design: Badge-Pill + flaches Layout mit Sektions-Trennlinien.
  */
 
 import { fetchNinaWarnungDetail } from '../../api/fetch-nina-warnung-detail';
@@ -11,8 +12,16 @@ import { cn } from '@/shared/ui/cn';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { useQuery } from '@tanstack/react-query';
 import { PiCalendar, PiGlobe, PiInfo, PiMapPin, PiMegaphone, PiShieldWarning, PiTag, PiUser } from 'react-icons/pi';
-import { DEFAULT_CARD_STYLE, SEVERITY_CARD_STYLES, formatWarnungDateTime } from '../severity-styles';
+import { DEFAULT_BADGE_STYLE, SEVERITY_BADGE_STYLES, formatWarnungDateTime } from '../severity-styles';
 import type { NinaWarnung } from './nina-api';
+
+/** NINA-spezifische Labels für Warnstufen */
+const NINA_SEVERITY_LABELS: Record<string, string> = {
+  Minor: 'Geringfügig',
+  Moderate: 'Mäßig',
+  Severe: 'Schwer',
+  Extreme: 'Extrem',
+};
 
 /**
  * Bereinigt HTML aus NINA-API-Texten für sichere Darstellung.
@@ -38,44 +47,53 @@ interface NinaPanelContentProps {
 }
 
 function WarnungSection({ warnung, index, total }: { warnung: NinaWarnung; index: number; total: number }) {
-  const style = SEVERITY_CARD_STYLES[warnung.severity] ?? DEFAULT_CARD_STYLE;
+  const style = SEVERITY_BADGE_STYLES[warnung.severity] ?? DEFAULT_BADGE_STYLE;
+  const label = NINA_SEVERITY_LABELS[warnung.severity] ?? 'Warnung';
 
   return (
-    <div className={cn('rounded-lg border p-4', style.border, style.bg)}>
-      {/* Header */}
-      <div className="flex items-start gap-3">
-        <PiMegaphone className={cn('mt-0.5 h-5 w-5 flex-shrink-0', style.text)} aria-hidden="true" />
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <span className={cn('text-xs font-semibold tracking-wider uppercase', style.text)}>{style.label}</span>
-            {total > 1 && (
-              <span className="text-xs text-text-muted">
-                ({index + 1}/{total})
-              </span>
-            )}
-          </div>
-          <h3 className="mt-0.5 text-base font-semibold text-text-primary">{warnung.headline || warnung.event}</h3>
-        </div>
+    <div>
+      {/* Badge + Titel */}
+      <div className="mb-4">
+        <span className={cn('inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase', style.bg, style.text)}>
+          <PiMegaphone className="h-3 w-3" aria-hidden="true" />
+          {label}
+        </span>
+        {total > 1 && (
+          <span className="ml-2 text-xs text-text-muted">
+            ({index + 1}/{total})
+          </span>
+        )}
+        <h3 className="mt-1.5 text-base leading-snug font-semibold text-text-primary">{warnung.headline || warnung.event}</h3>
+        <p className="mt-0.5 text-xs text-text-muted">NINA · BBK Warn-App</p>
       </div>
 
-      <div className="mt-4 space-y-3">
-        {/* Beschreibung */}
+      {/* Detail-Sektionen */}
+      <div className="space-y-3.5 border-t border-border-subtle pt-3">
         {warnung.description && (
           <section>
             <div className="flex items-center gap-1.5">
-              <PiInfo className="h-4 w-4 text-text-muted" aria-hidden="true" />
-              <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Beschreibung</h4>
+              <PiInfo className="h-3.5 w-3.5 text-text-muted" aria-hidden="true" />
+              <h4 className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">Beschreibung</h4>
             </div>
             <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap text-text-primary">{sanitizeNinaText(warnung.description)}</p>
           </section>
         )}
 
-        {/* Gültigkeitszeitraum */}
+        {warnung.instruction && (
+          <section>
+            <div className="flex items-center gap-1.5">
+              <PiShieldWarning className="h-3.5 w-3.5 text-text-muted" aria-hidden="true" />
+              <h4 className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">Handlungsempfehlung</h4>
+            </div>
+            <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap text-text-primary">{sanitizeNinaText(warnung.instruction)}</p>
+          </section>
+        )}
+
         {(warnung.onset || warnung.expires) && (
           <section>
             <div className="flex items-center gap-1.5">
-              <PiCalendar className="h-4 w-4 text-text-muted" aria-hidden="true" />
-              <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Gültigkeit</h4>
+              <PiCalendar className="h-3.5 w-3.5 text-text-muted" aria-hidden="true" />
+              <h4 className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">Gültigkeit</h4>
             </div>
             <div className="mt-1 grid grid-cols-2 gap-2 text-sm text-text-primary">
               <div>
@@ -90,34 +108,21 @@ function WarnungSection({ warnung, index, total }: { warnung: NinaWarnung; index
           </section>
         )}
 
-        {/* Betroffenes Gebiet */}
         {warnung.areaDesc && (
           <section>
             <div className="flex items-center gap-1.5">
-              <PiMapPin className="h-4 w-4 text-text-muted" aria-hidden="true" />
-              <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Betroffenes Gebiet</h4>
+              <PiMapPin className="h-3.5 w-3.5 text-text-muted" aria-hidden="true" />
+              <h4 className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">Betroffenes Gebiet</h4>
             </div>
             <p className="mt-1 text-sm text-text-primary">{warnung.areaDesc}</p>
           </section>
         )}
 
-        {/* Handlungsempfehlung */}
-        {warnung.instruction && (
-          <section>
-            <div className="flex items-center gap-1.5">
-              <PiShieldWarning className="h-4 w-4 text-text-muted" aria-hidden="true" />
-              <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Handlungsempfehlung</h4>
-            </div>
-            <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap text-text-primary">{sanitizeNinaText(warnung.instruction)}</p>
-          </section>
-        )}
-
-        {/* Herausgeber */}
         {warnung.sender && (
           <section>
             <div className="flex items-center gap-1.5">
-              <PiUser className="h-4 w-4 text-text-muted" aria-hidden="true" />
-              <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Herausgeber</h4>
+              <PiUser className="h-3.5 w-3.5 text-text-muted" aria-hidden="true" />
+              <h4 className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">Herausgeber</h4>
             </div>
             <p className="mt-1 text-sm text-text-primary">{warnung.sender}</p>
           </section>
@@ -153,37 +158,32 @@ function DetailSection({ warnungId }: { warnungId: string }) {
   }
 
   return (
-    <div className="bg-surface-secondary space-y-3 rounded-lg border border-border-subtle p-4">
-      <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Erweiterte Details</h4>
-
-      {/* Beschreibung (aus Detail-API, falls vorhanden und nicht schon in der Warnung) */}
+    <div className="space-y-3.5">
       {detail.description && (
         <section>
           <div className="flex items-center gap-1.5">
-            <PiInfo className="h-4 w-4 text-text-muted" aria-hidden="true" />
-            <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Beschreibung</h4>
+            <PiInfo className="h-3.5 w-3.5 text-text-muted" aria-hidden="true" />
+            <h4 className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">Beschreibung</h4>
           </div>
           <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap text-text-primary">{sanitizeNinaText(detail.description)}</p>
         </section>
       )}
 
-      {/* Handlungsempfehlung */}
       {detail.instruction && (
         <section>
           <div className="flex items-center gap-1.5">
-            <PiShieldWarning className="h-4 w-4 text-text-muted" aria-hidden="true" />
-            <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Handlungsempfehlung</h4>
+            <PiShieldWarning className="h-3.5 w-3.5 text-text-muted" aria-hidden="true" />
+            <h4 className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">Handlungsempfehlung</h4>
           </div>
           <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap text-text-primary">{sanitizeNinaText(detail.instruction)}</p>
         </section>
       )}
 
-      {/* Gültigkeit (effective → expires) */}
       {(detail.effective || detail.expires) && (
         <section>
           <div className="flex items-center gap-1.5">
-            <PiCalendar className="h-4 w-4 text-text-muted" aria-hidden="true" />
-            <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Gültigkeit</h4>
+            <PiCalendar className="h-3.5 w-3.5 text-text-muted" aria-hidden="true" />
+            <h4 className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">Gültigkeit</h4>
           </div>
           <div className="mt-1 grid grid-cols-2 gap-2 text-sm text-text-primary">
             <div>
@@ -198,12 +198,11 @@ function DetailSection({ warnungId }: { warnungId: string }) {
         </section>
       )}
 
-      {/* Betroffene Gebiete */}
       {detail.areas && detail.areas.length > 0 && (
         <section>
           <div className="flex items-center gap-1.5">
-            <PiMapPin className="h-4 w-4 text-text-muted" aria-hidden="true" />
-            <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Betroffene Gebiete</h4>
+            <PiMapPin className="h-3.5 w-3.5 text-text-muted" aria-hidden="true" />
+            <h4 className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">Betroffene Gebiete</h4>
           </div>
           <ul className="mt-1 list-inside list-disc space-y-0.5 text-sm text-text-primary">
             {detail.areas.map((area: string, idx: number) => (
@@ -213,34 +212,31 @@ function DetailSection({ warnungId }: { warnungId: string }) {
         </section>
       )}
 
-      {/* Herausgeber */}
       {detail.senderName && (
         <section>
           <div className="flex items-center gap-1.5">
-            <PiUser className="h-4 w-4 text-text-muted" aria-hidden="true" />
-            <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Herausgeber</h4>
+            <PiUser className="h-3.5 w-3.5 text-text-muted" aria-hidden="true" />
+            <h4 className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">Herausgeber</h4>
           </div>
           <p className="mt-1 text-sm text-text-primary">{detail.senderName}</p>
         </section>
       )}
 
-      {/* Meldungstyp */}
       {detail.msgType && (
         <section>
           <div className="flex items-center gap-1.5">
-            <PiTag className="h-4 w-4 text-text-muted" aria-hidden="true" />
-            <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Meldungstyp</h4>
+            <PiTag className="h-3.5 w-3.5 text-text-muted" aria-hidden="true" />
+            <h4 className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">Meldungstyp</h4>
           </div>
           <p className="mt-1 text-sm text-text-primary">{detail.msgType}</p>
         </section>
       )}
 
-      {/* Web-Link */}
       {detail.web && (
         <section>
           <div className="flex items-center gap-1.5">
-            <PiGlobe className="h-4 w-4 text-text-muted" aria-hidden="true" />
-            <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Weitere Informationen</h4>
+            <PiGlobe className="h-3.5 w-3.5 text-text-muted" aria-hidden="true" />
+            <h4 className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">Weitere Informationen</h4>
           </div>
           <a href={detail.web} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block text-sm text-action-primary underline hover:text-action-primary-hover">
             {detail.web}
@@ -257,7 +253,7 @@ export function NinaPanelContent({ warnungen, warnungId }: NinaPanelContentProps
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {warnungen.map((warnung, idx) => (
         <WarnungSection key={warnung.id} warnung={warnung} index={idx} total={warnungen.length} />
       ))}
