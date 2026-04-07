@@ -152,6 +152,9 @@ echo "Shared Package bauen..."
 pnpm --filter @bluelight-hub/shared build
 
 # --- Prisma ---
+# node_modules/.bin in PATH aufnehmen, damit Prisma tsx findet (Seed-Command)
+export PATH="$REPO_ROOT/packages/backend/node_modules/.bin:$REPO_ROOT/node_modules/.bin:$PATH"
+
 echo ""
 echo "Prisma generate..."
 cd "$REPO_ROOT/packages/backend"
