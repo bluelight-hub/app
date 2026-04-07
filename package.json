@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "pnpm -r --filter '@bluelight-hub/*' dev",
+    "dev:web": "pnpm --filter @bluelight-hub/backend dev & pnpm --filter @bluelight-hub/frontend dev:vite & wait",
     "gen:certs": "./scripts/generate-certs.sh",
     "check:repo-hygiene": "bash ./scripts/check-repo-hygiene.sh",
     "gitmoji:sync": "node scripts/sync-gitmojis.mjs --write",
