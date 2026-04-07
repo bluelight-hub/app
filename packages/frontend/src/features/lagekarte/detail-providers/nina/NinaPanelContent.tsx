@@ -3,43 +3,25 @@
  *
  * Zeigt alle Informationen zu NINA-Warnungen im Side-Panel:
  * Warntyp, Beschreibung, Gültigkeit, Gebiet, Handlungsempfehlung, Herausgeber.
+ * Lädt bei Bedarf die vollständigen Details über die Backend-API nach.
  */
 
+import { fetchNinaWarnungDetail } from '../../api/fetch-nina-warnung-detail';
 import { cn } from '@/shared/ui/cn';
-import { format } from 'date-fns';
-import { PiCalendar, PiInfo, PiMapPin, PiMegaphone, PiShieldWarning, PiUser } from 'react-icons/pi';
+import { Spinner } from '@/shared/ui/atoms/spinner.atom';
+import { useQuery } from '@tanstack/react-query';
+import { PiCalendar, PiGlobe, PiInfo, PiMapPin, PiMegaphone, PiShieldWarning, PiTag, PiUser } from 'react-icons/pi';
+import { DEFAULT_CARD_STYLE, SEVERITY_CARD_STYLES, formatWarnungDateTime } from '../severity-styles';
 import type { NinaWarnung } from './nina-api';
 
 interface NinaPanelContentProps {
   warnungen: NinaWarnung[];
-}
-
-/** Farben für Schweregrade */
-const SEVERITY_STYLES: Record<string, { bg: string; border: string; text: string; label: string }> = {
-  Minor: { bg: 'bg-yellow-50 dark:bg-yellow-900/20', border: 'border-yellow-200 dark:border-yellow-800', text: 'text-yellow-800 dark:text-yellow-300', label: 'Geringfügig' },
-  Moderate: { bg: 'bg-orange-50 dark:bg-orange-900/20', border: 'border-orange-200 dark:border-orange-800', text: 'text-orange-800 dark:text-orange-300', label: 'Mäßig' },
-  Severe: { bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-200 dark:border-red-800', text: 'text-red-800 dark:text-red-300', label: 'Schwer' },
-  Extreme: { bg: 'bg-purple-50 dark:bg-purple-900/20', border: 'border-purple-200 dark:border-purple-800', text: 'text-purple-800 dark:text-purple-300', label: 'Extrem' },
-};
-
-const DEFAULT_STYLE = {
-  bg: 'bg-gray-50 dark:bg-gray-800/50',
-  border: 'border-gray-200 dark:border-gray-700',
-  text: 'text-gray-800 dark:text-gray-300',
-  label: 'Warnung',
-};
-
-function formatDateTime(isoString: string | undefined): string {
-  if (!isoString) return '–';
-  try {
-    return format(new Date(isoString), 'dd.MM.yyyy, HH:mm') + ' Uhr';
-  } catch {
-    return isoString;
-  }
+  /** ID der Warnung für Detail-Nachladen über die Backend-API */
+  warnungId?: string;
 }
 
 function WarnungSection({ warnung, index, total }: { warnung: NinaWarnung; index: number; total: number }) {
-  const style = SEVERITY_STYLES[warnung.severity] ?? DEFAULT_STYLE;
+  const style = SEVERITY_CARD_STYLES[warnung.severity] ?? DEFAULT_CARD_STYLE;
 
   return (
     <div className={cn('rounded-lg border p-4', style.border, style.bg)}>
@@ -81,11 +63,11 @@ function WarnungSection({ warnung, index, total }: { warnung: NinaWarnung; index
             <div className="mt-1 grid grid-cols-2 gap-2 text-sm text-text-primary">
               <div>
                 <span className="text-xs text-text-muted">Von: </span>
-                {formatDateTime(warnung.onset)}
+                {formatWarnungDateTime(warnung.onset)}
               </div>
               <div>
                 <span className="text-xs text-text-muted">Bis: </span>
-                {formatDateTime(warnung.expires)}
+                {formatWarnungDateTime(warnung.expires)}
               </div>
             </div>
           </section>
@@ -128,7 +110,131 @@ function WarnungSection({ warnung, index, total }: { warnung: NinaWarnung; index
   );
 }
 
-export function NinaPanelContent({ warnungen }: NinaPanelContentProps) {
+/** Zeigt die nachgeladenen Detail-Informationen einer NINA-Warnung */
+function DetailSection({ warnungId }: { warnungId: string }) {
+  const {
+    data: detail,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['nina-warnung-detail', warnungId],
+    queryFn: () => fetchNinaWarnungDetail(warnungId),
+    enabled: !!warnungId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-6">
+        <Spinner size="sm" type="ring" label="Details werden geladen..." />
+      </div>
+    );
+  }
+
+  if (isError || !detail) {
+    return <p className="py-2 text-center text-sm text-text-muted">Details konnten nicht geladen werden.</p>;
+  }
+
+  return (
+    <div className="bg-surface-secondary space-y-3 rounded-lg border border-border-subtle p-4">
+      <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Erweiterte Details</h4>
+
+      {/* Beschreibung (aus Detail-API, falls vorhanden und nicht schon in der Warnung) */}
+      {detail.description && (
+        <section>
+          <div className="flex items-center gap-1.5">
+            <PiInfo className="h-4 w-4 text-text-muted" aria-hidden="true" />
+            <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Beschreibung</h4>
+          </div>
+          <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap text-text-primary">{detail.description}</p>
+        </section>
+      )}
+
+      {/* Handlungsempfehlung */}
+      {detail.instruction && (
+        <section>
+          <div className="flex items-center gap-1.5">
+            <PiShieldWarning className="h-4 w-4 text-text-muted" aria-hidden="true" />
+            <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Handlungsempfehlung</h4>
+          </div>
+          <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap text-text-primary">{detail.instruction}</p>
+        </section>
+      )}
+
+      {/* Gültigkeit (effective → expires) */}
+      {(detail.effective || detail.expires) && (
+        <section>
+          <div className="flex items-center gap-1.5">
+            <PiCalendar className="h-4 w-4 text-text-muted" aria-hidden="true" />
+            <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Gültigkeit</h4>
+          </div>
+          <div className="mt-1 grid grid-cols-2 gap-2 text-sm text-text-primary">
+            <div>
+              <span className="text-xs text-text-muted">Von: </span>
+              {formatWarnungDateTime(detail.effective)}
+            </div>
+            <div>
+              <span className="text-xs text-text-muted">Bis: </span>
+              {formatWarnungDateTime(detail.expires)}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Betroffene Gebiete */}
+      {detail.areas && detail.areas.length > 0 && (
+        <section>
+          <div className="flex items-center gap-1.5">
+            <PiMapPin className="h-4 w-4 text-text-muted" aria-hidden="true" />
+            <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Betroffene Gebiete</h4>
+          </div>
+          <ul className="mt-1 list-inside list-disc space-y-0.5 text-sm text-text-primary">
+            {detail.areas.map((area: string, idx: number) => (
+              <li key={idx}>{area}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Herausgeber */}
+      {detail.senderName && (
+        <section>
+          <div className="flex items-center gap-1.5">
+            <PiUser className="h-4 w-4 text-text-muted" aria-hidden="true" />
+            <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Herausgeber</h4>
+          </div>
+          <p className="mt-1 text-sm text-text-primary">{detail.senderName}</p>
+        </section>
+      )}
+
+      {/* Meldungstyp */}
+      {detail.msgType && (
+        <section>
+          <div className="flex items-center gap-1.5">
+            <PiTag className="h-4 w-4 text-text-muted" aria-hidden="true" />
+            <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Meldungstyp</h4>
+          </div>
+          <p className="mt-1 text-sm text-text-primary">{detail.msgType}</p>
+        </section>
+      )}
+
+      {/* Web-Link */}
+      {detail.web && (
+        <section>
+          <div className="flex items-center gap-1.5">
+            <PiGlobe className="h-4 w-4 text-text-muted" aria-hidden="true" />
+            <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Weitere Informationen</h4>
+          </div>
+          <a href={detail.web} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block text-sm text-action-primary underline hover:text-action-primary-hover">
+            {detail.web}
+          </a>
+        </section>
+      )}
+    </div>
+  );
+}
+
+export function NinaPanelContent({ warnungen, warnungId }: NinaPanelContentProps) {
   if (warnungen.length === 0) {
     return <p className="py-4 text-center text-sm text-text-muted">Keine aktiven NINA-Warnungen an dieser Stelle.</p>;
   }
@@ -138,6 +244,9 @@ export function NinaPanelContent({ warnungen }: NinaPanelContentProps) {
       {warnungen.map((warnung, idx) => (
         <WarnungSection key={warnung.id} warnung={warnung} index={idx} total={warnungen.length} />
       ))}
+
+      {/* Nachgeladene Detail-Informationen */}
+      {warnungId && <DetailSection warnungId={warnungId} />}
 
       {/* Quellenangabe */}
       <p className="text-xs text-text-muted">Quelle: Bundesamt für Bevölkerungsschutz und Katastrophenhilfe (BBK) — NINA Warn-App</p>

@@ -16,6 +16,8 @@ import { NINA_FILL_LAYER_ID } from '../../ui/molecules/NinaGeoJsonLayer.molecule
 /** NINA-spezifische Feature-Info Daten */
 interface NinaFeatureData {
   warnungen: NinaWarnung[];
+  /** ID für Detail-Nachladen über die Backend-API */
+  warnungId: string;
 }
 
 export const ninaDetailProvider: LayerDetailProvider = {
@@ -45,7 +47,7 @@ export const ninaDetailProvider: LayerDetailProvider = {
     return {
       providerId: 'nina',
       title: `NINA: ${props.title ?? 'Warnung'}`,
-      data: { warnungen: [warnung] } satisfies NinaFeatureData,
+      data: { warnungen: [warnung], warnungId: props.id } satisfies NinaFeatureData,
       coordinate: { lng, lat },
     };
   },
@@ -56,7 +58,7 @@ export const ninaDetailProvider: LayerDetailProvider = {
   },
 
   renderPanel(info: LayerFeatureInfo) {
-    const { warnungen } = info.data as NinaFeatureData;
-    return <NinaPanelContent warnungen={warnungen} />;
+    const { warnungen, warnungId } = info.data as NinaFeatureData;
+    return <NinaPanelContent warnungen={warnungen} warnungId={warnungId} />;
   },
 };
