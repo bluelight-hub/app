@@ -11,9 +11,12 @@ import { GeocodingController } from './controllers/geocoding.controller';
 
 import { LagekarteController, LagekarteCqrsController } from './controllers/lagekarte.controller';
 import { PoiController } from './controllers/poi.controller';
+import { WarnungenController } from './controllers/warnungen.controller';
 
 import { LagekarteRepository } from './repositories/lagekarte.repository';
 import { PoiRepository } from './repositories/poi.repository';
+import { DwdWarnungenService } from './services/dwd-warnungen.service';
+import { NinaWarnungenService } from './services/nina-warnungen.service';
 import { GeocodingService } from './services/geocoding.service';
 import { MgrsConverterService } from './services/mgrs-converter.service';
 
@@ -51,7 +54,7 @@ import { MgrsConverterService } from './services/mgrs-converter.service';
       },
     ]),
   ],
-  controllers: [LagekarteController, LagekarteCqrsController, PoiController, GeocodingController],
+  controllers: [LagekarteController, LagekarteCqrsController, PoiController, GeocodingController, WarnungenController],
   providers: [
     // Logger für Lagekarte Services
     {
@@ -59,6 +62,8 @@ import { MgrsConverterService } from './services/mgrs-converter.service';
       useFactory: () => new NestLoggerAdapter('LagekarteModule'),
     },
     // Infrastructure Services (shared with legacy endpoints)
+    DwdWarnungenService,
+    NinaWarnungenService,
     GeocodingService,
     MgrsConverterService,
     // DEPRECATED: Alte Repositories nur noch für PoiController (wird in Story 5-2 entfernt)

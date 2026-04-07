@@ -1,15 +1,21 @@
-import { MAP_STYLES } from '@/features/lagekarte/utils';
-import { MAP_DEFAULTS } from '@/features/lagekarte/utils/map-config';
-import { useColorMode } from '@/shared/hooks/use-color-mode';
-import { Button } from '@/shared/ui/atoms/button.atom';
+import { MAP_DEFAULTS, getDwdWmsTileUrl } from '@/features/lagekarte/utils/map-config';
+import { useMapLayer } from '@/features/lagekarte/hooks/use-map-layer';
+import { useMapDetail } from '@/features/lagekarte/hooks/use-map-detail';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { cn } from '@/shared/ui/cn';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type * as React from 'react';
-import { useState } from 'react';
-import { PiWarning } from 'react-icons/pi';
-import { Map, NavigationControl } from 'react-map-gl/maplibre';
+import { useRef, useState } from 'react';
+import { Layer, Map, NavigationControl, Source } from 'react-map-gl/maplibre';
+import type { MapRef } from 'react-map-gl/maplibre';
+import { MapLayerSwitcher } from '../../molecules/MapLayerSwitcher.molecule';
+import { MapDetailPopup } from '../../molecules/MapDetailPopup.molecule';
+import { MapDetailPanel } from '../../molecules/MapDetailPanel.molecule';
+import '@/features/lagekarte/detail-providers';
 import './lagekarte-view.css';
+
+/** Stabile Referenz für DWD WMS-Tile-URL (verhindert unnötige Source-Neuregistrierungen) */
+const DWD_TILE_URL = [getDwdWmsTileUrl()];
 
 export type LagekarteMode = 'standard' | 'fullscreen' | 'presentation';
 
@@ -22,48 +28,11 @@ interface LagekarteViewProps {
   mode?: LagekarteMode;
 }
 
-export const LagekarteView: React.FC<LagekarteViewProps> = ({ mode = 'standard' }) => {
-  const { resolvedColorMode } = useColorMode();
+export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 'standard' }) => {
+  const { resolvedStyle, selectedBaseLayer, dwdOverlayEnabled, availableLayers } = useMapLayer(einsatzId);
   const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
-
-  const mapStyle = resolvedColorMode === 'dark' ? MAP_STYLES.dark : MAP_STYLES.light;
-
-  if (hasError) {
-    return (
-      <div
-        className={cn(
-          'w-full overflow-hidden rounded-lg',
-          'flex flex-col items-center justify-center',
-          'bg-surface-raised',
-          'border-2 border-dashed border-border-subtle',
-          mode === 'standard' && 'h-[600px] md:h-[calc(100vh-120px)]',
-          (mode === 'fullscreen' || mode === 'presentation') && 'h-screen',
-        )}
-        role="alert"
-        aria-live="assertive"
-      >
-        <PiWarning className="mb-4 h-12 w-12 text-status-warning-text" />
-        <h3 className="mb-2 text-lg font-semibold text-text-primary">Karte konnte nicht geladen werden</h3>
-        <p className="mb-4 text-center text-sm text-text-muted">
-          Die Karten-Tiles konnten nicht vom Server geladen werden.
-          <br />
-          Bitte überprüfen Sie Ihre Internetverbindung.
-        </p>
-        <Button
-          intent="primary"
-          appearance="filled"
-          size="md"
-          onClick={() => {
-            setHasError(false);
-            setIsLoading(true);
-          }}
-        >
-          Erneut versuchen
-        </Button>
-      </div>
-    );
-  }
+  const mapRef = useRef<MapRef | null>(null);
+  const { featureInfo, isPanelOpen, isLoading: isDetailLoading, handleMapClick, openPanel, closePanel, clearSelection } = useMapDetail(mapRef);
 
   return (
     <div className={cn('relative w-full overflow-hidden rounded-lg', mode === 'standard' && 'h-[600px] md:h-[calc(100vh-180px)]', (mode === 'fullscreen' || mode === 'presentation') && 'h-screen')}>
@@ -73,23 +42,46 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ mode = 'standard' 
         </div>
       )}
 
+      {/* Loading-Indikator für Feature-Abfrage */}
+      {isDetailLoading && (
+        <div className="absolute top-4 left-1/2 z-20 -translate-x-1/2">
+          <div className="flex items-center gap-2 rounded-lg border border-border-subtle bg-surface-panel px-3 py-1.5 text-sm text-text-muted shadow-lg">
+            <Spinner type="ring" size="sm" />
+            Informationen werden abgefragt…
+          </div>
+        </div>
+      )}
+
       <Map
+        ref={mapRef}
         initialViewState={{
           longitude: MAP_DEFAULTS.longitude,
           latitude: MAP_DEFAULTS.latitude,
           zoom: MAP_DEFAULTS.zoom,
         }}
         style={{ width: '100%', height: '100%' }}
-        mapStyle={mapStyle}
+        mapStyle={resolvedStyle}
+        onClick={handleMapClick}
+        cursor={isDetailLoading ? 'wait' : undefined}
         onLoad={() => setIsLoading(false)}
-        onError={() => {
-          setHasError(true);
-          setIsLoading(false);
-        }}
         aria-label="Lagekarte"
       >
         <NavigationControl position="top-right" />
+
+        {dwdOverlayEnabled && (
+          <Source id="dwd-warnungen" type="raster" tiles={DWD_TILE_URL} tileSize={256}>
+            <Layer id="dwd-warnungen-layer" type="raster" paint={{ 'raster-opacity': 0.6 }} />
+          </Source>
+        )}
+
+        {/* Detail-Popup am Klick-Punkt */}
+        {featureInfo && !isPanelOpen && <MapDetailPopup info={featureInfo} onShowDetails={openPanel} onClose={clearSelection} />}
       </Map>
+
+      <MapLayerSwitcher availableLayers={availableLayers} selectedBaseLayer={selectedBaseLayer} dwdOverlayEnabled={dwdOverlayEnabled} />
+
+      {/* Detail-Panel (Slide-In von rechts) */}
+      <MapDetailPanel info={featureInfo} isOpen={isPanelOpen} onClose={closePanel} />
     </div>
   );
 };

@@ -44,6 +44,7 @@ apis/PermissionsApi.ts
 apis/RollenBesetzungApi.ts
 apis/UserManagementApi.ts
 apis/UsersApi.ts
+apis/WarnungenApi.ts
 apis/index.ts
 index.ts
 models/ActivateFuehrungsrhythmusTemplateDto.ts
@@ -197,6 +198,7 @@ models/DeleteRuntimeConfigResultDto.ts
 models/DeleteUserDto.ts
 models/DetailedHealthDto.ts
 models/DisconnectResponseDto.ts
+models/DwdWarnungDto.ts
 models/EinheitCreatedResponseDto.ts
 models/EinsatzBeitrittControllerCreateVAlpha201Response.ts
 models/EinsatzBeitrittControllerFindAllVAlpha200Response.ts
@@ -356,6 +358,7 @@ models/MoveEinheitDto.ts
 models/NavigationPermissionDto.ts
 models/NavigationPermissionsControllerGetPermissionsVAlpha200Response.ts
 models/NavigationResponseDto.ts
+models/NinaWarnungDto.ts
 models/NotizControllerCreateVAlpha201Response.ts
 models/NotizControllerGetByEinsatzVAlpha200Response.ts
 models/NotizResponseDto.ts
@@ -454,6 +457,8 @@ models/UserManagementControllerFindAllVAlpha200Response.ts
 models/UserManagementControllerGetUserPermissionsVAlpha200Response.ts
 models/UserManagementControllerRemoveVAlpha200Response.ts
 models/UserPermissionDto.ts
+models/WarnungenControllerGetDwdWarnungenVAlpha200Response.ts
+models/WarnungenControllerGetNinaWarnungenVAlpha200Response.ts
 models/WeisePersonZuFahrzeugZuDto.ts
 models/ZeitverlaufBucketDto.ts
 models/ZeitverlaufStatistikDto.ts
