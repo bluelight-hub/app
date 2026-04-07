@@ -6,8 +6,15 @@
 # - Generierte .env Dateien
 # - pnpm install + Prisma migrate + Seed
 #
-# Usage: bash scripts/worktree-setup.sh
+# Usage:
+#   bash scripts/worktree-setup.sh           # Setup (bestehende .env im Hauptrepo bleibt)
+#   bash scripts/worktree-setup.sh --force   # .env auch im Hauptrepo neu generieren
 set -euo pipefail
+
+FORCE=false
+if [ "${1:-}" = "--force" ] || [ "${1:-}" = "-f" ]; then
+  FORCE=true
+fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -76,8 +83,8 @@ VITE_API_URL="${SCHEME}://localhost:${BACKEND_PORT}"
 BACKEND_ENV="$REPO_ROOT/packages/backend/.env"
 FRONTEND_ENV="$REPO_ROOT/packages/frontend/.env"
 
-if [ "$OFFSET" -eq 0 ] && [ -f "$BACKEND_ENV" ]; then
-  echo "Hauptrepo: Bestehende .env Dateien bleiben unverändert"
+if [ "$OFFSET" -eq 0 ] && [ -f "$BACKEND_ENV" ] && [ "$FORCE" = false ]; then
+  echo "Hauptrepo: Bestehende .env Dateien bleiben unverändert (--force zum Überschreiben)"
 else
   # MASTER_SECRET aus bestehender .env wiederverwenden (falls vorhanden)
   EXISTING_SECRET=""
