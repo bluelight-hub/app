@@ -1,3 +1,23 @@
+## Lagekarte
+
+Die Lagekarte wurde von Leaflet auf MapLibre GL JS migriert und erhält dadurch WebGL-basiertes Rendering mit deutlich besserer Performance. Die Karte nutzt jetzt Vektor-Kacheln statt Raster-Kacheln und profitiert von moderner GPU-Beschleunigung.
+
+**Hinweis:** In diesem Release wurden die Zeichenwerkzeuge, Layer (POIs, Zeichnungen, Fahrzeuge), ETB-Integration und Export-Funktionen temporär entfernt, um die Migration abzuschließen. Diese Funktionen werden in kommenden Releases auf Basis der neuen Technologie wieder implementiert.
+
+## Gefahrenmatrix
+
+Die neue Gefahrenmatrix ist jetzt verfügbar und ermöglicht die systematische Bewertung von Gefahren im Einsatz:
+
+- **Vollbildansicht** mit `Cmd+E` Tastenkürzel für bessere Übersicht im Einsatz
+- **Interaktive Matrix** mit 13 Gefahrentypen (A–E, 5A–5E) und drei Schutzzielen (Mensch, Sachwerte, Umwelt)
+- **Intelligente Validierung**: Ungültige Kombinationen (z.B. "Angstreaktion" bei Sachwerten) sind automatisch deaktiviert
+- **Hilfe-Dialog** mit Erklärungen zu allen Gefahrentypen
+- **Legende** mit Übersicht der Warnstufen und Eigenschutz-Hinweisen
+- **Visuelle Hervorhebung** von besonders kritischen Gefahren (Absturz, Brand, Durchbruch, Ertrinken) durch rote Kennzeichnung
+- **Echtzeit-Updates** über das Event-System – Änderungen werden automatisch synchronisiert
+
+Das Sicherheit-Modul ist jetzt in der Navigation verfügbar (Eigenschutz und Hygiene folgen in späteren Releases).
+
 ## 🔧 Technische Verbesserungen
 
 **Type-Safety & Code-Qualität**
