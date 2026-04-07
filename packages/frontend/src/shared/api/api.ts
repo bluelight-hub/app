@@ -44,6 +44,7 @@ import {
   RollenBesetzungApi,
   UserManagementApi,
   UsersApi,
+  WarnungenApi,
 } from '@bluelight-hub/shared/client';
 import { fetchWithRefresh } from './fetchWithRefresh';
 
@@ -158,6 +159,7 @@ class BackendApi {
   private readonly kategorienApi: KategorienApi;
   private readonly navigationApi: NavigationApi;
   private readonly permissionsApi: PermissionsApi;
+  private readonly warnungenApi: WarnungenApi;
 
   /**
    * Erstellt eine neue Instanz der BackendApi-Klasse
@@ -216,6 +218,7 @@ class BackendApi {
     this.kategorienApi = new KategorienApi(this.configuration);
     this.navigationApi = new NavigationApi(this.configuration);
     this.permissionsApi = new PermissionsApi(this.configuration);
+    this.warnungenApi = new WarnungenApi(this.configuration);
   }
 
   /**
@@ -589,6 +592,15 @@ class BackendApi {
    */
   permissions(): PermissionsApi {
     return this.permissionsApi;
+  }
+
+  /**
+   * Gibt die gecachte Warnungen-API-Instanz zurück
+   *
+   * @returns Die Warnungen-API-Instanz für DWD/NINA-Warnungen
+   */
+  warnungen(): WarnungenApi {
+    return this.warnungenApi;
   }
 }
 

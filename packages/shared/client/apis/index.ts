@@ -45,3 +45,4 @@ export * from './PermissionsApi';
 export * from './RollenBesetzungApi';
 export * from './UserManagementApi';
 export * from './UsersApi';
+export * from './WarnungenApi';
