@@ -66,6 +66,8 @@ interface UseDrawControlReturn {
   setMode: (mode: DrawMode) => void;
   /** Alle aktuellen Features als FeatureCollection */
   getFeatures: () => FeatureCollection;
+  /** Referenz auf die MapboxDraw-Instanz (für externe Nutzung, z.B. OSM-Markierung) */
+  drawRef: React.RefObject<MapboxDraw | null>;
 }
 
 /** Leere FeatureCollection als Fallback */
@@ -402,5 +404,6 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded }: UseD
     deleteSelected,
     setMode,
     getFeatures,
+    drawRef,
   };
 }

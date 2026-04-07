@@ -2,16 +2,26 @@ import { MAP_DEFAULTS, getDwdWmsTileUrl } from '@/features/lagekarte/utils/map-c
 import { useMapLayer } from '@/features/lagekarte/hooks/use-map-layer';
 import { useMapDetail } from '@/features/lagekarte/hooks/use-map-detail';
 import { useNinaMapData } from '@/features/lagekarte/api/use-nina-map-data';
+import { useDrawControl } from '@/features/lagekarte/hooks/use-draw-control';
+import { useLagekartePermissions } from '@/features/lagekarte/hooks/use-lagekarte-permissions';
+import { useOsmMarkierung } from '@/features/lagekarte/hooks/use-osm-markierung';
+import { drawStore } from '@/features/lagekarte/stores/draw.store';
+import { DEFAULT_DRAWING_STYLE } from '@/features/lagekarte/drawing/types';
+import type { DrawingStyle } from '@/features/lagekarte/drawing/types';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { cn } from '@/shared/ui/cn';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type * as React from 'react';
-import { useRef, useState } from 'react';
-import { Layer, Map, NavigationControl, Source } from 'react-map-gl/maplibre';
-import type { MapRef } from 'react-map-gl/maplibre';
+import { useCallback, useRef, useState } from 'react';
+import { Layer, Map, NavigationControl, Popup, Source } from 'react-map-gl/maplibre';
+import type { MapLayerMouseEvent, MapRef } from 'react-map-gl/maplibre';
+import { useStore } from '@tanstack/react-store';
 import { MapLayerSwitcher } from '../../molecules/MapLayerSwitcher.molecule';
 import { MapDetailPopup } from '../../molecules/MapDetailPopup.molecule';
 import { MapDetailPanel } from '../../molecules/MapDetailPanel.molecule';
+import { DrawToolbar } from '../../molecules/DrawToolbar.molecule';
+import { DrawStylePanel } from '../../molecules/DrawStylePanel.molecule';
+import { OsmMarkierungPopup } from '../../molecules/OsmMarkierungPopup.molecule';
 import { FullscreenCloseButton } from '../FullscreenCloseButton/FullscreenCloseButton';
 import { NinaGeoJsonLayer } from '../../molecules/NinaGeoJsonLayer.molecule';
 import '@/features/lagekarte/detail-providers';
@@ -37,6 +47,72 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   const [isLoading, setIsLoading] = useState(true);
   const mapRef = useRef<MapRef | null>(null);
   const { results, coordinate, panelIndex, isPanelOpen, isLoading: isDetailLoading, handleMapClick, openPanel, navigatePanel, closePanel, clearSelection } = useMapDetail(mapRef);
+
+  // Berechtigungen
+  const { canDraw } = useLagekartePermissions();
+
+  // Draw-Store State
+  const drawMode = useStore(drawStore, (s) => s.drawMode);
+  const selectedFeatureIds = useStore(drawStore, (s) => s.selectedFeatureIds);
+
+  // Map-Ladezustand
+  const isMapLoaded = !isLoading;
+
+  // Draw-Control (Kern-Hook)
+  const { undo, redo, canUndo, canRedo, deleteSelected, setMode, drawRef } = useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded });
+
+  // OSM-Markierung (nur bei Vektor-Basislayer)
+  const isVectorBaseLayer = selectedBaseLayer === 'osm';
+  const { handleOsmClick, pendingOsmMark, confirmOsmMark, cancelOsmMark } = useOsmMarkierung({ mapRef, drawRef, isVectorBaseLayer });
+
+  // Style-Panel State
+  const [activeStyle, setActiveStyle] = useState<DrawingStyle>(DEFAULT_DRAWING_STYLE);
+
+  /** Stil ändern und auf selektierte Features anwenden */
+  const handleStyleChange = useCallback(
+    (partial: Partial<DrawingStyle>) => {
+      setActiveStyle((prev) => ({ ...prev, ...partial }));
+      const draw = drawRef.current;
+      if (!draw) return;
+      for (const id of selectedFeatureIds) {
+        for (const [key, value] of Object.entries(partial)) {
+          draw.setFeatureProperty(id, key, value);
+        }
+      }
+    },
+    [selectedFeatureIds, drawRef],
+  );
+
+  /**
+   * Kombinierter Klick-Handler: Entscheidet je nach Zeichenmodus,
+   * ob Draw, OSM-Markierung oder Detail-Provider den Klick verarbeitet.
+   */
+  const handleCombinedClick = useCallback(
+    (event: MapLayerMouseEvent) => {
+      // 1. Im Zeichenmodus: Draw hat Vorrang (MapboxDraw verarbeitet den Klick)
+      if (drawMode !== 'idle' && drawMode !== 'select' && drawMode !== 'osm_mark') {
+        return;
+      }
+
+      // 2. OSM-Markierungsmodus: OSM-Feature-Klick verarbeiten
+      if (drawMode === 'osm_mark') {
+        handleOsmClick(event);
+        return;
+      }
+
+      // 3. Idle/Select: Bestehender Detail-Provider-Flow
+      handleMapClick(event);
+    },
+    [drawMode, handleOsmClick, handleMapClick],
+  );
+
+  /** Cursor je nach Modus bestimmen */
+  const getCursor = () => {
+    if (isDetailLoading) return 'wait';
+    if (drawMode === 'osm_mark') return 'crosshair';
+    if (drawMode !== 'idle' && drawMode !== 'select') return 'crosshair';
+    return undefined;
+  };
 
   return (
     <div className={cn('relative w-full overflow-hidden rounded-lg', mode === 'standard' && 'h-[600px] md:h-[calc(100vh-180px)]', (mode === 'fullscreen' || mode === 'presentation') && 'h-screen')}>
@@ -67,8 +143,8 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
         }}
         style={{ width: '100%', height: '100%' }}
         mapStyle={resolvedStyle}
-        onClick={handleMapClick}
-        cursor={isDetailLoading ? 'wait' : undefined}
+        onClick={handleCombinedClick}
+        cursor={getCursor()}
         onLoad={() => setIsLoading(false)}
         aria-label="Lagekarte"
       >
@@ -85,7 +161,32 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
 
         {/* Detail-Popup am Klick-Punkt */}
         {results.length > 0 && coordinate && !isPanelOpen && <MapDetailPopup results={results} coordinate={coordinate} onShowDetails={openPanel} onClose={clearSelection} />}
+
+        {/* OSM-Markierungs-Popup */}
+        {pendingOsmMark && (
+          <Popup longitude={pendingOsmMark.coordinate.lng} latitude={pendingOsmMark.coordinate.lat} onClose={cancelOsmMark} closeOnClick={false} anchor="bottom">
+            <OsmMarkierungPopup pendingMark={pendingOsmMark} onConfirm={confirmOsmMark} onCancel={cancelOsmMark} />
+          </Popup>
+        )}
       </Map>
+
+      {/* Draw-Toolbar */}
+      {canDraw && (
+        <DrawToolbar
+          activeMode={drawMode}
+          onModeChange={setMode}
+          onUndo={undo}
+          onRedo={redo}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          onDeleteSelected={deleteSelected}
+          hasSelection={selectedFeatureIds.length > 0}
+          disabled={!canDraw}
+        />
+      )}
+
+      {/* Style-Panel für selektierte Features */}
+      <DrawStylePanel style={activeStyle} onStyleChange={handleStyleChange} isVisible={selectedFeatureIds.length > 0 && canDraw} />
 
       <MapLayerSwitcher availableLayers={availableLayers} selectedBaseLayer={selectedBaseLayer} dwdOverlayEnabled={dwdOverlayEnabled} ninaOverlays={ninaOverlays} />
 
