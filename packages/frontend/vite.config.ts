@@ -32,7 +32,7 @@ export default defineConfig({
     strictPort: true,
     host: host || true,
     allowedHosts: true, // allow access from all hosts
-    port: 3090,
+    port: parseInt(process.env.VITE_PORT || '3090', 10),
     https: useHttps
       ? {
           key: readFileSync(keyPath),

@@ -82,10 +82,14 @@ pnpm --filter @bluelight-hub/backend check:arch  # Circular Dependencies
 
 ## Ports
 
-- Frontend: `localhost:3090`
-- Backend API + Swagger UI: `localhost:3091/api`
-- PostgreSQL läuft im Docker-Container `bluelight-hub-postgres` auf Port `3092`
-- Kein `psql` lokal installiert — DB-Zugriff via `docker exec bluelight-hub-postgres psql -U bluelight -d bluelight-hub -c "..."`
+Default-Ports (Hauptrepo, ohne Worktree):
+
+- Frontend: `localhost:3090` (konfigurierbar via `VITE_PORT`)
+- Backend API + Swagger UI: `localhost:3091/api` (konfigurierbar via `BACKEND_PORT` / `PORT`)
+- PostgreSQL: Port `3092` (konfigurierbar via `DATABASE_PORT`)
+- Kein `psql` lokal installiert — DB-Zugriff via `docker compose exec postgres psql -U bluelight -d bluelight-hub -c "..."`
+
+In Worktrees werden Ports automatisch via `scripts/worktree-setup.sh` zugewiesen. Setup: `bash scripts/worktree-setup.sh`
 
 ## Commit Format
 
