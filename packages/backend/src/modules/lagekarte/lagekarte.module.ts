@@ -17,6 +17,7 @@ import { LagekarteRepository } from './repositories/lagekarte.repository';
 import { PoiRepository } from './repositories/poi.repository';
 import { DwdWarnungenService } from './services/dwd-warnungen.service';
 import { NinaWarnungenService } from './services/nina-warnungen.service';
+import { NinaMapDataService } from './services/nina-map-data.service';
 import { GeocodingService } from './services/geocoding.service';
 import { MgrsConverterService } from './services/mgrs-converter.service';
 
@@ -64,6 +65,7 @@ import { MgrsConverterService } from './services/mgrs-converter.service';
     // Infrastructure Services (shared with legacy endpoints)
     DwdWarnungenService,
     NinaWarnungenService,
+    NinaMapDataService,
     GeocodingService,
     MgrsConverterService,
     // DEPRECATED: Alte Repositories nur noch für PoiController (wird in Story 5-2 entfernt)

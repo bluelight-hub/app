@@ -16,11 +16,14 @@
 import * as runtime from '../runtime';
 import type {
   WarnungenControllerGetDwdWarnungenVAlpha200Response,
+  WarnungenControllerGetNinaGeoJsonVAlpha200Response,
   WarnungenControllerGetNinaWarnungenVAlpha200Response,
 } from '../models/index';
 import {
     WarnungenControllerGetDwdWarnungenVAlpha200ResponseFromJSON,
     WarnungenControllerGetDwdWarnungenVAlpha200ResponseToJSON,
+    WarnungenControllerGetNinaGeoJsonVAlpha200ResponseFromJSON,
+    WarnungenControllerGetNinaGeoJsonVAlpha200ResponseToJSON,
     WarnungenControllerGetNinaWarnungenVAlpha200ResponseFromJSON,
     WarnungenControllerGetNinaWarnungenVAlpha200ResponseToJSON,
 } from '../models/index';
@@ -97,6 +100,32 @@ export class WarnungenApi extends runtime.BaseAPI {
      */
     async warnungenControllerGetDwdWarnungenVAlpha(requestParameters: WarnungenControllerGetDwdWarnungenVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<WarnungenControllerGetDwdWarnungenVAlpha200Response> {
         const response = await this.warnungenControllerGetDwdWarnungenVAlphaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * NINA-Warnungen als GeoJSON FeatureCollection (alle Quellen)
+     */
+    async warnungenControllerGetNinaGeoJsonVAlphaRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<WarnungenControllerGetNinaGeoJsonVAlpha200Response>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/warnungen/nina/geojson`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => WarnungenControllerGetNinaGeoJsonVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * NINA-Warnungen als GeoJSON FeatureCollection (alle Quellen)
+     */
+    async warnungenControllerGetNinaGeoJsonVAlpha(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<WarnungenControllerGetNinaGeoJsonVAlpha200Response> {
+        const response = await this.warnungenControllerGetNinaGeoJsonVAlphaRaw(initOverrides);
         return await response.value();
     }
 

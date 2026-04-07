@@ -1,16 +1,17 @@
 /**
  * NINA Warnungen - LayerDetailProvider
  *
- * Fragt NINA/BBK Warnungen über das Backend ab.
- * NINA ist immer aktiv (unabhängig von Layer-Toggles),
- * da es allgemeine Bevölkerungswarnungen liefert.
+ * Fragt NINA/BBK Warnungen über bereits gerenderte MapLibre-Layer ab.
+ * Nutzt queryRenderedFeatures statt Backend-API-Calls für schnellere Interaktion.
  */
 
 import type { MapRef } from 'react-map-gl/maplibre';
+import { isAnyNinaOverlayActive } from '../../stores/map-layer.store';
 import type { LayerDetailProvider, LayerFeatureInfo } from '../types';
 import { NinaPanelContent } from './NinaPanelContent';
 import { NinaPopupContent } from './NinaPopupContent';
-import { type NinaWarnung, queryNinaWarnungen } from './nina-api';
+import type { NinaWarnung } from './nina-api';
+import { NINA_FILL_LAYER_ID } from '../../ui/molecules/NinaGeoJsonLayer.molecule';
 
 /** NINA-spezifische Feature-Info Daten */
 interface NinaFeatureData {
@@ -21,22 +22,30 @@ export const ninaDetailProvider: LayerDetailProvider = {
   id: 'nina',
 
   isActive() {
-    // NINA ist immer aktiv — Bevölkerungswarnungen sind immer relevant
-    return true;
+    return isAnyNinaOverlayActive();
   },
 
-  async queryFeature(lng: number, lat: number, _map: MapRef): Promise<LayerFeatureInfo | null> {
-    const warnungen = await queryNinaWarnungen(lng, lat);
+  async queryFeature(lng: number, lat: number, map: MapRef): Promise<LayerFeatureInfo | null> {
+    // Synchron: Feature aus bereits gerenderten MapLibre-Layern abfragen
+    const point = map.project([lng, lat]);
+    const features = map.queryRenderedFeatures(point, { layers: [NINA_FILL_LAYER_ID] });
 
-    if (warnungen.length === 0) {
-      return null;
-    }
+    if (!features || features.length === 0) return null;
 
-    const firstWarnung = warnungen[0];
+    const props = features[0].properties;
+    if (!props) return null;
+
+    const warnung: NinaWarnung = {
+      id: props.id ?? '',
+      event: props.title ?? '',
+      severity: props.severity ?? '',
+      headline: props.title ?? '',
+    };
+
     return {
       providerId: 'nina',
-      title: warnungen.length === 1 ? `NINA: ${firstWarnung.headline || firstWarnung.event}` : `NINA: ${warnungen.length} Warnungen`,
-      data: { warnungen } satisfies NinaFeatureData,
+      title: `NINA: ${props.title ?? 'Warnung'}`,
+      data: { warnungen: [warnung] } satisfies NinaFeatureData,
       coordinate: { lng, lat },
     };
   },
