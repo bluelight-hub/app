@@ -28,26 +28,36 @@ export const ninaDetailProvider: LayerDetailProvider = {
   },
 
   async queryFeature(lng: number, lat: number, map: MapRef): Promise<LayerFeatureInfo | null> {
-    // Synchron: Feature aus bereits gerenderten MapLibre-Layern abfragen
+    // Synchron: Features aus bereits gerenderten MapLibre-Layern abfragen
     const point = map.project([lng, lat]);
     const features = map.queryRenderedFeatures(point, { layers: [NINA_FILL_LAYER_ID] });
 
     if (!features || features.length === 0) return null;
 
-    const props = features[0].properties;
-    if (!props) return null;
+    // Alle getroffenen Features dedupliziert sammeln (Tile-Boundary-Duplikate filtern)
+    const seenIds = new Set<string>();
+    const warnungen: NinaWarnung[] = [];
 
-    const warnung: NinaWarnung = {
-      id: props.id ?? '',
-      event: props.title ?? '',
-      severity: props.severity ?? '',
-      headline: props.title ?? '',
-    };
+    for (const feature of features) {
+      const props = feature.properties;
+      if (!props || seenIds.has(props.id)) continue;
+      seenIds.add(props.id);
+      warnungen.push({
+        id: props.id ?? '',
+        event: props.title ?? '',
+        severity: props.severity ?? '',
+        headline: props.title ?? '',
+      });
+    }
+
+    if (warnungen.length === 0) return null;
+
+    const title = warnungen.length === 1 ? `NINA: ${warnungen[0].headline || 'Warnung'}` : `NINA: ${warnungen.length} Warnungen`;
 
     return {
       providerId: 'nina',
-      title: `NINA: ${props.title ?? 'Warnung'}`,
-      data: { warnungen: [warnung], warnungId: props.id } satisfies NinaFeatureData,
+      title,
+      data: { warnungen, warnungId: warnungen[0].id } satisfies NinaFeatureData,
       coordinate: { lng, lat },
     };
   },

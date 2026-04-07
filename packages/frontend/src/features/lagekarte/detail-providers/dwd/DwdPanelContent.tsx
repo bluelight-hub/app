@@ -3,54 +3,74 @@
  *
  * Zeigt alle Informationen zu einer DWD-Warnung im Side-Panel:
  * Warntyp, Beschreibung, Gültigkeit, Gebiet, Handlungsempfehlung.
+ * Design: Badge-Pill + flaches Layout mit Sektions-Trennlinien.
  */
 
 import { cn } from '@/shared/ui/cn';
 import { PiCalendar, PiInfo, PiMapPin, PiShieldWarning, PiWarning } from 'react-icons/pi';
-import { DEFAULT_CARD_STYLE, SEVERITY_CARD_STYLES, formatWarnungDateTime } from '../severity-styles';
+import { DEFAULT_BADGE_STYLE, SEVERITY_BADGE_STYLES, formatWarnungDateTime } from '../severity-styles';
 import type { DwdWarnung } from './dwd-api';
 
 interface DwdPanelContentProps {
   warnungen: DwdWarnung[];
 }
 
+/** DWD-spezifische Labels für Warnstufen */
+const DWD_SEVERITY_LABELS: Record<string, string> = {
+  Minor: 'Wetterwarnung',
+  Moderate: 'Markante Warnung',
+  Severe: 'Unwetterwarnung',
+  Extreme: 'Extreme Unwetterwarnung',
+};
+
 function WarnungSection({ warnung, index, total }: { warnung: DwdWarnung; index: number; total: number }) {
-  const style = SEVERITY_CARD_STYLES[warnung.severity] ?? DEFAULT_CARD_STYLE;
+  const style = SEVERITY_BADGE_STYLES[warnung.severity] ?? DEFAULT_BADGE_STYLE;
+  const label = DWD_SEVERITY_LABELS[warnung.severity] ?? 'Warnung';
 
   return (
-    <div className={cn('rounded-lg border p-4', style.border, style.bg)}>
-      {/* Header */}
-      <div className="flex items-start gap-3">
-        <PiWarning className={cn('mt-0.5 h-5 w-5 flex-shrink-0', style.text)} aria-hidden="true" />
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <span className={cn('text-xs font-semibold tracking-wider uppercase', style.text)}>{style.label}</span>
-            {total > 1 && (
-              <span className="text-xs text-text-muted">
-                ({index + 1}/{total})
-              </span>
-            )}
-          </div>
-          <h3 className="mt-0.5 text-base font-semibold text-text-primary">{warnung.event || warnung.headline}</h3>
-        </div>
+    <div>
+      {/* Badge + Titel */}
+      <div className="mb-4">
+        <span className={cn('inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase', style.bg, style.text)}>
+          <PiWarning className="h-3 w-3" aria-hidden="true" />
+          {label}
+        </span>
+        {total > 1 && (
+          <span className="ml-2 text-xs text-text-muted">
+            ({index + 1}/{total})
+          </span>
+        )}
+        <h3 className="mt-1.5 text-base leading-snug font-semibold text-text-primary">{warnung.event || warnung.headline}</h3>
+        <p className="mt-0.5 text-xs text-text-muted">DWD · Deutscher Wetterdienst</p>
       </div>
 
-      <div className="mt-4 space-y-3">
+      {/* Detail-Sektionen */}
+      <div className="space-y-3.5 border-t border-border-subtle pt-3">
         {warnung.description && (
           <section>
             <div className="flex items-center gap-1.5">
-              <PiInfo className="h-4 w-4 text-text-muted" aria-hidden="true" />
-              <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Beschreibung</h4>
+              <PiInfo className="h-3.5 w-3.5 text-text-muted" aria-hidden="true" />
+              <h4 className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">Beschreibung</h4>
             </div>
             <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap text-text-primary">{warnung.description}</p>
+          </section>
+        )}
+
+        {warnung.instruction && (
+          <section>
+            <div className="flex items-center gap-1.5">
+              <PiShieldWarning className="h-3.5 w-3.5 text-text-muted" aria-hidden="true" />
+              <h4 className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">Handlungsempfehlung</h4>
+            </div>
+            <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap text-text-primary">{warnung.instruction}</p>
           </section>
         )}
 
         {(warnung.onset || warnung.expires) && (
           <section>
             <div className="flex items-center gap-1.5">
-              <PiCalendar className="h-4 w-4 text-text-muted" aria-hidden="true" />
-              <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Gültigkeit</h4>
+              <PiCalendar className="h-3.5 w-3.5 text-text-muted" aria-hidden="true" />
+              <h4 className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">Gültigkeit</h4>
             </div>
             <div className="mt-1 grid grid-cols-2 gap-2 text-sm text-text-primary">
               <div>
@@ -68,20 +88,10 @@ function WarnungSection({ warnung, index, total }: { warnung: DwdWarnung; index:
         {warnung.areaDesc && (
           <section>
             <div className="flex items-center gap-1.5">
-              <PiMapPin className="h-4 w-4 text-text-muted" aria-hidden="true" />
-              <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Betroffenes Gebiet</h4>
+              <PiMapPin className="h-3.5 w-3.5 text-text-muted" aria-hidden="true" />
+              <h4 className="text-[10px] font-semibold tracking-wider text-text-muted uppercase">Betroffenes Gebiet</h4>
             </div>
             <p className="mt-1 text-sm text-text-primary">{warnung.areaDesc}</p>
-          </section>
-        )}
-
-        {warnung.instruction && (
-          <section>
-            <div className="flex items-center gap-1.5">
-              <PiShieldWarning className="h-4 w-4 text-text-muted" aria-hidden="true" />
-              <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Handlungsempfehlung</h4>
-            </div>
-            <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap text-text-primary">{warnung.instruction}</p>
           </section>
         )}
       </div>
@@ -95,7 +105,7 @@ export function DwdPanelContent({ warnungen }: DwdPanelContentProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {warnungen.map((warnung, idx) => (
         <WarnungSection key={idx} warnung={warnung} index={idx} total={warnungen.length} />
       ))}

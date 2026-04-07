@@ -12,6 +12,7 @@ import type { MapRef } from 'react-map-gl/maplibre';
 import { MapLayerSwitcher } from '../../molecules/MapLayerSwitcher.molecule';
 import { MapDetailPopup } from '../../molecules/MapDetailPopup.molecule';
 import { MapDetailPanel } from '../../molecules/MapDetailPanel.molecule';
+import { FullscreenCloseButton } from '../FullscreenCloseButton/FullscreenCloseButton';
 import { NinaGeoJsonLayer } from '../../molecules/NinaGeoJsonLayer.molecule';
 import '@/features/lagekarte/detail-providers';
 import './lagekarte-view.css';
@@ -35,10 +36,12 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   const { data: ninaGeoJson } = useNinaMapData();
   const [isLoading, setIsLoading] = useState(true);
   const mapRef = useRef<MapRef | null>(null);
-  const { featureInfo, isPanelOpen, isLoading: isDetailLoading, handleMapClick, openPanel, closePanel, clearSelection } = useMapDetail(mapRef);
+  const { results, coordinate, panelIndex, isPanelOpen, isLoading: isDetailLoading, handleMapClick, openPanel, navigatePanel, closePanel, clearSelection } = useMapDetail(mapRef);
 
   return (
     <div className={cn('relative w-full overflow-hidden rounded-lg', mode === 'standard' && 'h-[600px] md:h-[calc(100vh-180px)]', (mode === 'fullscreen' || mode === 'presentation') && 'h-screen')}>
+      {mode !== 'standard' && <FullscreenCloseButton />}
+
       {isLoading && (
         <div className="absolute inset-0 z-30 flex items-center justify-center bg-surface-panel/80">
           <Spinner type="ring" size="lg" />
@@ -81,13 +84,13 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
         {ninaGeoJson && <NinaGeoJsonLayer data={ninaGeoJson} ninaOverlays={ninaOverlays} />}
 
         {/* Detail-Popup am Klick-Punkt */}
-        {featureInfo && !isPanelOpen && <MapDetailPopup info={featureInfo} onShowDetails={openPanel} onClose={clearSelection} />}
+        {results.length > 0 && coordinate && !isPanelOpen && <MapDetailPopup results={results} coordinate={coordinate} onShowDetails={openPanel} onClose={clearSelection} />}
       </Map>
 
       <MapLayerSwitcher availableLayers={availableLayers} selectedBaseLayer={selectedBaseLayer} dwdOverlayEnabled={dwdOverlayEnabled} ninaOverlays={ninaOverlays} />
 
       {/* Detail-Panel (Slide-In von rechts) */}
-      <MapDetailPanel info={featureInfo} isOpen={isPanelOpen} onClose={closePanel} />
+      <MapDetailPanel results={results} panelIndex={panelIndex} isOpen={isPanelOpen} onClose={closePanel} onNavigate={navigatePanel} />
     </div>
   );
 };

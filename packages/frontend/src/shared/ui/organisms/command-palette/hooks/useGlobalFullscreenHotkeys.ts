@@ -22,9 +22,9 @@ export function useGlobalFullscreenHotkeys() {
   const matchRoute = useMatchRoute();
   type FullscreenSearchParams = LagekarteSearchParams | EtbSearchParams | GefahrenmatrixSearchParams;
 
-  const setFullscreenSearch = (prev: FullscreenSearchParams) => ({
+  const toggleFullscreenSearch = (prev: FullscreenSearchParams) => ({
     ...prev,
-    mode: 'fullscreen' as const,
+    mode: (prev.mode === 'fullscreen' ? 'standard' : 'fullscreen') as 'fullscreen' | 'standard',
   });
 
   // Prüfe ob auf Karte-Route
@@ -51,7 +51,7 @@ export function useGlobalFullscreenHotkeys() {
     () => {
       navigate({
         to: '.',
-        search: setFullscreenSearch,
+        search: toggleFullscreenSearch,
       });
     },
     {

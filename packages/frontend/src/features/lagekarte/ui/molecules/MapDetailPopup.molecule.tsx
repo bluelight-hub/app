@@ -1,9 +1,9 @@
 /**
  * MapDetailPopup - Generischer Popup-Wrapper für Layer-Details auf der Karte
  *
- * Nutzt react-map-gl's native Popup-Komponente, die sich automatisch
- * mit der Karte bewegt. Rendert den Provider-spezifischen Popup-Content
- * und einen "Details anzeigen"-Link.
+ * Zeigt alle Treffer aller aktiven Provider gestapelt an.
+ * Jede Provider-Sektion hat einen eigenen "Details anzeigen"-Link,
+ * der das Detail-Panel mit dem jeweiligen Treffer öffnet.
  */
 
 import { cn } from '@/shared/ui/cn';
@@ -13,22 +13,23 @@ import { getDetailProvider } from '../../detail-providers/registry';
 import type { LayerFeatureInfo } from '../../detail-providers/types';
 
 interface MapDetailPopupProps {
-  /** Feature-Informationen für den Popup-Inhalt */
-  info: LayerFeatureInfo;
-  /** Callback wenn "Details anzeigen" geklickt wird */
-  onShowDetails: () => void;
+  /** Alle Feature-Treffer am Klick-Punkt */
+  results: LayerFeatureInfo[];
+  /** Klick-Koordinaten für Popup-Positionierung */
+  coordinate: { lng: number; lat: number };
+  /** Callback wenn "Details anzeigen" geklickt wird (mit Index des Treffers) */
+  onShowDetails: (index: number) => void;
   /** Callback wenn der Popup geschlossen wird */
   onClose: () => void;
 }
 
-export function MapDetailPopup({ info, onShowDetails, onClose }: MapDetailPopupProps) {
-  const provider = getDetailProvider(info.providerId);
-  if (!provider) return null;
+export function MapDetailPopup({ results, coordinate, onShowDetails, onClose }: MapDetailPopupProps) {
+  if (results.length === 0) return null;
 
   return (
-    <Popup longitude={info.coordinate.lng} latitude={info.coordinate.lat} anchor="bottom" closeButton={false} closeOnClick={false} className="lagekarte-detail-popup" maxWidth="320px" offset={12}>
-      <div className="relative min-w-48">
-        {/* Close Button */}
+    <Popup longitude={coordinate.lng} latitude={coordinate.lat} anchor="bottom" closeButton={false} closeOnClick={false} className="lagekarte-detail-popup" maxWidth="360px" offset={12}>
+      <div className="relative min-w-56">
+        {/* Schließen-Button */}
         <button
           type="button"
           onClick={onClose}
@@ -38,23 +39,34 @@ export function MapDetailPopup({ info, onShowDetails, onClose }: MapDetailPopupP
           <PiX className="h-3.5 w-3.5" aria-hidden="true" />
         </button>
 
-        {/* Provider-spezifischer Content */}
-        <div className="pr-5">{provider.renderPopup(info)}</div>
+        {/* Provider-Sektionen, getrennt durch Divider */}
+        <div className="divide-y divide-border-subtle pr-5">
+          {results.map((info, index) => {
+            const provider = getDetailProvider(info.providerId);
+            if (!provider) return null;
 
-        {/* Details-Link */}
-        <button
-          type="button"
-          onClick={onShowDetails}
-          className={cn(
-            'mt-2 flex w-full items-center justify-center gap-1.5 rounded border border-border-subtle px-3 py-1.5',
-            'text-xs font-medium text-action-primary',
-            'transition-colors hover:bg-action-secondary',
-            'focus-visible:shadow-focus-ring focus-visible:outline-none',
-          )}
-        >
-          Details anzeigen
-          <PiArrowRight className="h-3 w-3" aria-hidden="true" />
-        </button>
+            return (
+              <div key={info.providerId} className="py-2 first:pt-0 last:pb-0">
+                {/* Provider-spezifischer Content */}
+                {provider.renderPopup(info)}
+
+                {/* Details-Link für diesen Treffer */}
+                <button
+                  type="button"
+                  onClick={() => onShowDetails(index)}
+                  className={cn('mt-1.5 flex items-center gap-1 text-xs font-medium text-action-primary', 'hover:underline focus-visible:shadow-focus-ring focus-visible:outline-none')}
+                  aria-label={`Details für ${info.title} anzeigen`}
+                >
+                  Details anzeigen
+                  <PiArrowRight className="h-3 w-3" aria-hidden="true" />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Treffer-Zähler bei mehreren Providern */}
+        {results.length > 1 && <p className="mt-1.5 text-center text-[11px] text-text-muted">{results.length} Layer mit Treffern</p>}
       </div>
     </Popup>
   );
