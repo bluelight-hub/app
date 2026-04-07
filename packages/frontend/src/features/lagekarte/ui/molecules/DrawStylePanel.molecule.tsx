@@ -2,8 +2,7 @@
  * DrawStylePanel - Stil-Editor für selektierte Zeichnungsobjekte
  *
  * Schwebendes Panel rechts neben der Toolbar. Ermöglicht das Ändern von
- * Farbe, Linienstärke, Füllung und Strichmuster für das aktuell
- * ausgewählte Feature.
+ * Farbe, Linienstärke und Füllung für das aktuell ausgewählte Feature.
  */
 
 import { cn } from '@/shared/ui/cn';
@@ -47,12 +46,6 @@ const FILL_OPACITY_OPTIONS = [
   { value: 0, label: 'Keine' },
   { value: 0.2, label: 'Leicht' },
   { value: 0.5, label: 'Solide' },
-] as const;
-
-/** Optionen für Strichmuster */
-const DASH_OPTIONS = [
-  { value: undefined as string | undefined, label: 'Durchgezogen' },
-  { value: '5,5', label: 'Gestrichelt' },
 ] as const;
 
 /** Gemeinsame Toggle-Button-Styles */
@@ -103,7 +96,7 @@ export function DrawStylePanel({ style, onStyleChange, isVisible, label, onLabel
       </div>
 
       {/* Füllung */}
-      <div className="mb-3">
+      <div className={cn(label !== undefined ? 'mb-3' : '')}>
         <div className="mb-1.5 text-xs font-semibold tracking-wide text-text-muted uppercase">Füllung</div>
         <div className="flex gap-1">
           {FILL_OPACITY_OPTIONS.map(({ value, label: fillLabel }) => (
@@ -114,23 +107,6 @@ export function DrawStylePanel({ style, onStyleChange, isVisible, label, onLabel
               className={cn(toggleBase, style.fillOpacity === value ? 'bg-action-secondary text-action-primary' : 'text-text-primary hover:bg-action-secondary')}
             >
               {fillLabel}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Strichmuster */}
-      <div className={cn(label !== undefined ? 'mb-3' : '')}>
-        <div className="mb-1.5 text-xs font-semibold tracking-wide text-text-muted uppercase">Muster</div>
-        <div className="flex gap-1">
-          {DASH_OPTIONS.map(({ value, label: dashLabel }) => (
-            <button
-              key={dashLabel}
-              type="button"
-              onClick={() => onStyleChange({ strokeDasharray: value })}
-              className={cn(toggleBase, style.strokeDasharray === value ? 'bg-action-secondary text-action-primary' : 'text-text-primary hover:bg-action-secondary')}
-            >
-              {dashLabel}
             </button>
           ))}
         </div>

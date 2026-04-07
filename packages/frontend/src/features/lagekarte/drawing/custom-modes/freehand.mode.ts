@@ -5,11 +5,17 @@
  * Implementiert das MapboxDraw Custom Mode Interface.
  */
 
+/** Interner State des Freihand-Modus */
+interface FreehandState {
+  line: { id: string; coordinates: number[][]; addCoordinate: (idx: number, lng: number, lat: number) => void };
+  isDrawing: boolean;
+}
+
 // MapboxDraw Custom Mode Interface
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const FreehandMode: any = {};
 
-FreehandMode.onSetup = function () {
+FreehandMode.onSetup = function (): FreehandState {
   const line = this.newFeature({
     type: 'Feature',
     geometry: { type: 'LineString', coordinates: [] },
@@ -21,19 +27,18 @@ FreehandMode.onSetup = function () {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-FreehandMode.onMouseDown = function (state: any, e: any) {
+FreehandMode.onMouseDown = function (state: FreehandState, e: any) {
   state.isDrawing = true;
   state.line.addCoordinate(0, e.lngLat.lng, e.lngLat.lat);
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-FreehandMode.onMouseMove = function (state: any, e: any) {
+FreehandMode.onMouseMove = function (state: FreehandState, e: any) {
   if (!state.isDrawing) return;
   state.line.addCoordinate(state.line.coordinates.length, e.lngLat.lng, e.lngLat.lat);
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-FreehandMode.onMouseUp = function (state: any) {
+FreehandMode.onMouseUp = function (state: FreehandState) {
   if (!state.isDrawing) return;
   state.isDrawing = false;
 
@@ -45,12 +50,11 @@ FreehandMode.onMouseUp = function (state: any) {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-FreehandMode.toDisplayFeatures = function (_state: any, geojson: any, display: any) {
+FreehandMode.toDisplayFeatures = function (_state: FreehandState, geojson: any, display: any) {
   display(geojson);
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-FreehandMode.onStop = function (state: any) {
+FreehandMode.onStop = function (state: FreehandState) {
   if (state.line.coordinates.length < 2) {
     this.deleteFeature(state.line.id);
   }

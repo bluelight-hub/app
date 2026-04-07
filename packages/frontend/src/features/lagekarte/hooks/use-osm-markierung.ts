@@ -126,26 +126,24 @@ export function useOsmMarkierung({ mapRef, drawRef, isVectorBaseLayer }: UseOsmM
       const draw = drawRef.current;
       if (!draw || !pendingOsmMark) return;
 
+      // Alle Properties VOR dem Hinzufügen setzen, damit draw.create
+      // den vollständigen State erfasst und Auto-Save korrekt auslöst
       const feature: GeoJSON.Feature = {
         type: 'Feature',
         geometry: pendingOsmMark.geometry,
-        properties: {},
+        properties: {
+          featureType: 'osm_marking',
+          osmFeatureId: pendingOsmMark.osmFeatureId,
+          osmLayerId: pendingOsmMark.osmLayerId,
+          osmStatus: status,
+          color: OSM_MARKING_COLORS[status],
+          fillColor: OSM_MARKING_COLORS[status],
+          fillOpacity: 0.4,
+        },
       };
 
-      // Feature zu MapboxDraw hinzufügen
-      const addedIds = draw.add(feature);
-      const featureId = Array.isArray(addedIds) ? addedIds[0] : addedIds;
-
-      if (featureId) {
-        // User-Properties setzen für Rendering und Persistierung
-        draw.setFeatureProperty(String(featureId), 'featureType', 'osm_marking');
-        draw.setFeatureProperty(String(featureId), 'osmFeatureId', pendingOsmMark.osmFeatureId);
-        draw.setFeatureProperty(String(featureId), 'osmLayerId', pendingOsmMark.osmLayerId);
-        draw.setFeatureProperty(String(featureId), 'osmStatus', status);
-        draw.setFeatureProperty(String(featureId), 'color', OSM_MARKING_COLORS[status]);
-        draw.setFeatureProperty(String(featureId), 'fillColor', OSM_MARKING_COLORS[status]);
-        draw.setFeatureProperty(String(featureId), 'fillOpacity', 0.4);
-      }
+      // Feature zu MapboxDraw hinzufügen (löst draw.create Event aus)
+      draw.add(feature);
 
       setPendingOsmMark(null);
     },
