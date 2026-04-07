@@ -39,7 +39,7 @@
       "oxfmt --write --no-error-on-unmatched-pattern"
     ],
     "**/*.md": [
-      "oxfmt --check --no-error-on-unmatched-pattern"
+      "oxfmt --write --no-error-on-unmatched-pattern"
     ]
   },
   "engines": {
