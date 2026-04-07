@@ -37,6 +37,8 @@ export const CUSTOM_DRAW_STYLES: object[] = [
     paint: {
       'line-color': ['coalesce', ['get', 'user_color'], '#3b82f6'],
       'line-width': ['coalesce', ['get', 'user_strokeWidth'], 2],
+      // Hinweis: line-dasharray unterstützt keine data-driven Expressions in MapboxDraw,
+      // daher wird hier ein fester Wert verwendet
       'line-dasharray': [1],
     },
   },

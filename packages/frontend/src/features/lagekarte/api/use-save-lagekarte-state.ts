@@ -19,11 +19,13 @@ export function useSaveLagekarteState(einsatzId: string) {
         saveLagekarteStateDto: { einsatzId, state: state as unknown as object },
       });
     },
-    onSuccess: () => {
-      // Cache für die nächste Query-Abfrage invalidieren
-      queryClient.invalidateQueries({
-        queryKey: LAGEKARTE_QUERY_KEYS.byEinsatz(einsatzId),
-      });
+    onSuccess: (_data, savedState) => {
+      // Cache optimistisch aktualisieren (kein Refetch nötig)
+      queryClient.setQueryData(
+        LAGEKARTE_QUERY_KEYS.byEinsatz(einsatzId),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (old: any) => (old ? { ...old, state: savedState } : old),
+      );
     },
   });
 }

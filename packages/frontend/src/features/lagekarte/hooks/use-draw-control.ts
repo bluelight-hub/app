@@ -5,7 +5,7 @@
  * Undo/Redo, Auto-Save und Keyboard-Shortcuts.
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MapRef } from 'react-map-gl/maplibre';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import type { FeatureCollection } from 'geojson';
@@ -68,6 +68,8 @@ interface UseDrawControlReturn {
   getFeatures: () => FeatureCollection;
   /** Referenz auf die MapboxDraw-Instanz (für externe Nutzung, z.B. OSM-Markierung) */
   drawRef: React.RefObject<MapboxDraw | null>;
+  /** Auto-Save mit Debounce auslösen */
+  scheduleAutoSave: () => void;
 }
 
 /** Leere FeatureCollection als Fallback */
@@ -85,6 +87,8 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded }: UseD
   const redoStack = useRef<FeatureCollection[]>([]);
   const isUndoInProgress = useRef(false);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Letzter bekannter State VOR der aktuellen Änderung (für korrektes Undo) */
+  const lastKnownStateRef = useRef<FeatureCollection>(EMPTY_FC);
 
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
@@ -102,6 +106,12 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded }: UseD
     }
   }, [lagekarte?.state]);
 
+  // Ref für aktuellen drawMode (vermeidet Stale-Closure in Event-Handlern)
+  const drawModeRef = useRef(drawMode);
+  useEffect(() => {
+    drawModeRef.current = drawMode;
+  }, [drawMode]);
+
   /**
    * Undo/Redo-Stack-Status aktualisieren
    */
@@ -109,26 +119,6 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded }: UseD
     setCanUndo(undoStack.current.length > 0);
     setCanRedo(redoStack.current.length > 0);
   }, []);
-
-  /**
-   * Aktuellen Zustand als Snapshot auf den Undo-Stack pushen
-   */
-  const pushUndoSnapshot = useCallback(() => {
-    const draw = drawRef.current;
-    if (!draw) return;
-
-    const snapshot = draw.getAll() as FeatureCollection;
-    undoStack.current.push(snapshot);
-
-    // Stack-Tiefe begrenzen
-    if (undoStack.current.length > MAX_UNDO_DEPTH) {
-      undoStack.current.shift();
-    }
-
-    // Redo-Stack leeren bei neuer Aktion
-    redoStack.current = [];
-    updateStackState();
-  }, [updateStackState]);
 
   /**
    * Auto-Save mit Debounce auslösen
@@ -174,37 +164,60 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded }: UseD
     // Initialen Snapshot für Undo
     undoStack.current = [];
     redoStack.current = [];
+    lastKnownStateRef.current = draw.getAll() as FeatureCollection;
 
     // ----------------------------------------
     // Event-Handler
     // ----------------------------------------
-    const handleCreate = () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleCreate = (e: any) => {
       if (isUndoInProgress.current) return;
 
       // Feature-Limit prüfen
       const allFeatures = draw.getAll();
       if (allFeatures.features.length > DRAW_FEATURE_LIMIT) {
-        const lastFeature = allFeatures.features.at(-1);
-        if (lastFeature?.id) {
-          draw.delete(String(lastFeature.id));
+        const newFeatureId = e.features?.[0]?.id;
+        if (newFeatureId) {
+          draw.delete(String(newFeatureId));
         }
         console.warn(`Feature-Limit (${DRAW_FEATURE_LIMIT}) erreicht. Neues Feature wurde entfernt.`);
         return;
       }
 
-      pushUndoSnapshot();
+      // Text-Modus: Standard-Label setzen
+      if (drawModeRef.current === 'draw_text' && e.features?.length > 0) {
+        const featureId = String(e.features[0].id);
+        draw.setFeatureProperty(featureId, 'label', 'Text');
+        draw.setFeatureProperty(featureId, 'featureType', 'drawing');
+        setSelectedFeatures([featureId]);
+      }
+
+      // Undo-Snapshot: State VOR der Änderung auf den Stack pushen
+      undoStack.current.push(lastKnownStateRef.current);
+      if (undoStack.current.length > MAX_UNDO_DEPTH) undoStack.current.shift();
+      redoStack.current = [];
+      lastKnownStateRef.current = draw.getAll() as FeatureCollection;
+      updateStackState();
       scheduleAutoSave();
     };
 
     const handleUpdate = () => {
       if (isUndoInProgress.current) return;
-      pushUndoSnapshot();
+      undoStack.current.push(lastKnownStateRef.current);
+      if (undoStack.current.length > MAX_UNDO_DEPTH) undoStack.current.shift();
+      redoStack.current = [];
+      lastKnownStateRef.current = draw.getAll() as FeatureCollection;
+      updateStackState();
       scheduleAutoSave();
     };
 
     const handleDelete = () => {
       if (isUndoInProgress.current) return;
-      pushUndoSnapshot();
+      undoStack.current.push(lastKnownStateRef.current);
+      if (undoStack.current.length > MAX_UNDO_DEPTH) undoStack.current.shift();
+      redoStack.current = [];
+      lastKnownStateRef.current = draw.getAll() as FeatureCollection;
+      updateStackState();
       scheduleAutoSave();
     };
 
@@ -220,8 +233,12 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded }: UseD
     map.on('draw.selectionchange', handleSelectionChange);
 
     return () => {
-      // Timer aufräumen
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      // Ausstehenden Auto-Save sofort ausführen
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+        const currentState = draw.getAll() as FeatureCollection;
+        saveState(currentState);
+      }
 
       // Event-Handler entfernen
       map.off('draw.create', handleCreate);
@@ -243,9 +260,7 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded }: UseD
       setCanUndo(false);
       setCanRedo(false);
     };
-    // pushUndoSnapshot und scheduleAutoSave sind stabile Callbacks,
-    // aber wir listen sie trotzdem für Korrektheit
-  }, [isMapLoaded, canDraw, mapRef, pushUndoSnapshot, scheduleAutoSave]);
+  }, [isMapLoaded, canDraw, mapRef, updateStackState, scheduleAutoSave, saveState]);
 
   // ============================================
   // Modus-Synchronisierung: Store → MapboxDraw
@@ -263,51 +278,6 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded }: UseD
       // Modus-Wechsel kann fehlschlagen wenn Draw nicht bereit ist
     }
   }, [drawMode]);
-
-  // ============================================
-  // Keyboard-Shortcuts
-  // ============================================
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Nicht in Eingabefeldern reagieren
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-        return;
-      }
-
-      const isMeta = e.metaKey || e.ctrlKey;
-
-      // Escape → Idle-Modus
-      if (e.key === 'Escape') {
-        setDrawMode('idle');
-        return;
-      }
-
-      // Delete / Backspace → Ausgewählte Features löschen
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        deleteSelected();
-        return;
-      }
-
-      // Ctrl/Cmd+Shift+Z → Redo
-      if (isMeta && e.shiftKey && e.key === 'z') {
-        e.preventDefault();
-        redo();
-        return;
-      }
-
-      // Ctrl/Cmd+Z → Undo
-      if (isMeta && e.key === 'z') {
-        e.preventDefault();
-        undo();
-        return;
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- undo/redo sind stabile Refs
-  }, []);
 
   // ============================================
   // Öffentliche API
@@ -334,6 +304,7 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded }: UseD
       draw.add(prev as any);
     }
 
+    lastKnownStateRef.current = draw.getAll() as FeatureCollection;
     isUndoInProgress.current = false;
     updateStackState();
     scheduleAutoSave();
@@ -360,6 +331,7 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded }: UseD
       draw.add(next as any);
     }
 
+    lastKnownStateRef.current = draw.getAll() as FeatureCollection;
     isUndoInProgress.current = false;
     updateStackState();
     scheduleAutoSave();
@@ -375,10 +347,78 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded }: UseD
     const selected = draw.getSelectedIds();
     if (selected.length === 0) return;
 
-    pushUndoSnapshot();
+    // Undo-Snapshot: State VOR dem Löschen
+    undoStack.current.push(lastKnownStateRef.current);
+    if (undoStack.current.length > MAX_UNDO_DEPTH) undoStack.current.shift();
+    redoStack.current = [];
+
     draw.trash();
+
+    lastKnownStateRef.current = draw.getAll() as FeatureCollection;
+    updateStackState();
     scheduleAutoSave();
-  }, [pushUndoSnapshot, scheduleAutoSave]);
+  }, [updateStackState, scheduleAutoSave]);
+
+  // ============================================
+  // Refs für Keyboard-Shortcuts (C1: Stale-Closure vermeiden)
+  // ============================================
+  const undoRef = useRef(undo);
+  const redoRef = useRef(redo);
+  const deleteSelectedRef = useRef(deleteSelected);
+
+  useEffect(() => {
+    undoRef.current = undo;
+  }, [undo]);
+  useEffect(() => {
+    redoRef.current = redo;
+  }, [redo]);
+  useEffect(() => {
+    deleteSelectedRef.current = deleteSelected;
+  }, [deleteSelected]);
+
+  // ============================================
+  // Keyboard-Shortcuts
+  // ============================================
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Nicht in Eingabefeldern reagieren
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+
+      const isMeta = e.metaKey || e.ctrlKey;
+
+      // Escape → Idle-Modus
+      if (e.key === 'Escape') {
+        setDrawMode('idle');
+        return;
+      }
+
+      // Delete / Backspace → Ausgewählte Features löschen
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        deleteSelectedRef.current();
+        return;
+      }
+
+      // Ctrl/Cmd+Shift+Z → Redo
+      if (isMeta && e.shiftKey && e.key === 'z') {
+        e.preventDefault();
+        redoRef.current();
+        return;
+      }
+
+      // Ctrl/Cmd+Z → Undo
+      if (isMeta && e.key === 'z') {
+        e.preventDefault();
+        undoRef.current();
+        return;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   /**
    * Zeichenmodus setzen
@@ -396,14 +436,18 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded }: UseD
     return draw.getAll() as FeatureCollection;
   }, []);
 
-  return {
-    undo,
-    redo,
-    canUndo,
-    canRedo,
-    deleteSelected,
-    setMode,
-    getFeatures,
-    drawRef,
-  };
+  return useMemo(
+    () => ({
+      undo,
+      redo,
+      canUndo,
+      canRedo,
+      deleteSelected,
+      setMode,
+      getFeatures,
+      drawRef,
+      scheduleAutoSave,
+    }),
+    [undo, redo, canUndo, canRedo, deleteSelected, setMode, getFeatures, scheduleAutoSave],
+  );
 }

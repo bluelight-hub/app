@@ -18,7 +18,7 @@ export interface DrawingStyle {
   opacity: number;
   /** Linienstärke in Pixel */
   strokeWidth: number;
-  /** Strichmuster, z.B. '5,5' */
+  /** Strichmuster, z.B. '5,5' — Hinweis: Nicht data-driven per Feature unterstützt (MapboxDraw-Limitation) */
   strokeDasharray?: string;
   /** Füllfarbe (Hex) */
   fillColor: string;

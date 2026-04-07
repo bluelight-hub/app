@@ -28,8 +28,6 @@ export interface DrawToolbarProps {
   onDeleteSelected: () => void;
   /** Hat selektierte Features */
   hasSelection: boolean;
-  /** Toolbar deaktiviert (kein Zeichenrecht) */
-  disabled: boolean;
 }
 
 /** Konfiguration für die Zeichenmodus-Buttons */
@@ -44,14 +42,13 @@ const DRAW_MODE_BUTTONS: { mode: DrawMode; icon: React.ComponentType<{ className
 /** Gemeinsame Button-Styles */
 const buttonBase = 'flex items-center justify-center p-2 transition-colors duration-100 focus-visible:shadow-focus-ring focus-visible:outline-none';
 
-export function DrawToolbar({ activeMode, onModeChange, onUndo, onRedo, canUndo, canRedo, onDeleteSelected, hasSelection, disabled }: DrawToolbarProps) {
-  if (disabled) return null;
-
+export function DrawToolbar({ activeMode, onModeChange, onUndo, onRedo, canUndo, canRedo, onDeleteSelected, hasSelection }: DrawToolbarProps) {
   return (
     <div className={cn('absolute top-4 left-4 z-10 flex flex-col overflow-hidden rounded-lg border border-border-subtle bg-surface-panel shadow-lg')} role="toolbar" aria-label="Zeichenwerkzeuge">
       {/* Auswahl-Modus */}
       <button
         type="button"
+        aria-label="Auswählen"
         title="Auswählen"
         onClick={() => onModeChange('select')}
         className={cn(buttonBase, activeMode === 'select' ? 'bg-action-secondary text-action-primary' : 'text-text-primary hover:bg-action-secondary')}
@@ -67,6 +64,7 @@ export function DrawToolbar({ activeMode, onModeChange, onUndo, onRedo, canUndo,
         <button
           key={mode}
           type="button"
+          aria-label={label}
           title={label}
           onClick={() => onModeChange(mode)}
           className={cn(buttonBase, activeMode === mode ? 'bg-action-secondary text-action-primary' : 'text-text-primary hover:bg-action-secondary')}
@@ -81,6 +79,7 @@ export function DrawToolbar({ activeMode, onModeChange, onUndo, onRedo, canUndo,
       {/* OSM-Markierung */}
       <button
         type="button"
+        aria-label="OSM-Gebäude markieren"
         title="OSM-Gebäude markieren"
         onClick={() => onModeChange('osm_mark')}
         className={cn(buttonBase, activeMode === 'osm_mark' ? 'bg-action-secondary text-action-primary' : 'text-text-primary hover:bg-action-secondary')}
@@ -94,6 +93,7 @@ export function DrawToolbar({ activeMode, onModeChange, onUndo, onRedo, canUndo,
       {/* Undo */}
       <button
         type="button"
+        aria-label="Rückgängig"
         title="Rückgängig"
         onClick={onUndo}
         disabled={!canUndo}
@@ -105,6 +105,7 @@ export function DrawToolbar({ activeMode, onModeChange, onUndo, onRedo, canUndo,
       {/* Redo */}
       <button
         type="button"
+        aria-label="Wiederholen"
         title="Wiederholen"
         onClick={onRedo}
         disabled={!canRedo}
@@ -116,6 +117,7 @@ export function DrawToolbar({ activeMode, onModeChange, onUndo, onRedo, canUndo,
       {/* Löschen */}
       <button
         type="button"
+        aria-label="Auswahl löschen"
         title="Auswahl löschen"
         onClick={onDeleteSelected}
         disabled={!hasSelection}
