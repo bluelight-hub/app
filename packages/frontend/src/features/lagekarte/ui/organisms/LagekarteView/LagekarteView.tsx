@@ -1,6 +1,7 @@
 import { MAP_DEFAULTS, getDwdWmsTileUrl } from '@/features/lagekarte/utils/map-config';
 import { useMapLayer } from '@/features/lagekarte/hooks/use-map-layer';
 import { useMapDetail } from '@/features/lagekarte/hooks/use-map-detail';
+import { useNinaMapData } from '@/features/lagekarte/api/use-nina-map-data';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { cn } from '@/shared/ui/cn';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -11,6 +12,7 @@ import type { MapRef } from 'react-map-gl/maplibre';
 import { MapLayerSwitcher } from '../../molecules/MapLayerSwitcher.molecule';
 import { MapDetailPopup } from '../../molecules/MapDetailPopup.molecule';
 import { MapDetailPanel } from '../../molecules/MapDetailPanel.molecule';
+import { NinaGeoJsonLayer } from '../../molecules/NinaGeoJsonLayer.molecule';
 import '@/features/lagekarte/detail-providers';
 import './lagekarte-view.css';
 
@@ -29,7 +31,8 @@ interface LagekarteViewProps {
 }
 
 export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 'standard' }) => {
-  const { resolvedStyle, selectedBaseLayer, dwdOverlayEnabled, availableLayers } = useMapLayer(einsatzId);
+  const { resolvedStyle, selectedBaseLayer, dwdOverlayEnabled, availableLayers, ninaOverlays } = useMapLayer(einsatzId);
+  const { data: ninaGeoJson } = useNinaMapData();
   const [isLoading, setIsLoading] = useState(true);
   const mapRef = useRef<MapRef | null>(null);
   const { featureInfo, isPanelOpen, isLoading: isDetailLoading, handleMapClick, openPanel, closePanel, clearSelection } = useMapDetail(mapRef);
@@ -74,11 +77,14 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
           </Source>
         )}
 
+        {/* NINA Warnungen GeoJSON Layer */}
+        {ninaGeoJson && <NinaGeoJsonLayer data={ninaGeoJson} ninaOverlays={ninaOverlays} />}
+
         {/* Detail-Popup am Klick-Punkt */}
         {featureInfo && !isPanelOpen && <MapDetailPopup info={featureInfo} onShowDetails={openPanel} onClose={clearSelection} />}
       </Map>
 
-      <MapLayerSwitcher availableLayers={availableLayers} selectedBaseLayer={selectedBaseLayer} dwdOverlayEnabled={dwdOverlayEnabled} />
+      <MapLayerSwitcher availableLayers={availableLayers} selectedBaseLayer={selectedBaseLayer} dwdOverlayEnabled={dwdOverlayEnabled} ninaOverlays={ninaOverlays} />
 
       {/* Detail-Panel (Slide-In von rechts) */}
       <MapDetailPanel info={featureInfo} isOpen={isPanelOpen} onClose={closePanel} />

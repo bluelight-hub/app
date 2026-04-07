@@ -15,8 +15,10 @@ import { ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-resp
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
 import { DwdWarnungenService } from '../services/dwd-warnungen.service';
 import { NinaWarnungenService } from '../services/nina-warnungen.service';
+import { NinaMapDataService } from '../services/nina-map-data.service';
 import { DwdWarnungDto } from '../dto/dwd-warnung.dto';
 import { NinaWarnungDto } from '../dto/nina-warnung.dto';
+import { NinaGeoJsonFeatureCollectionDto } from '../dto/nina-geojson.dto';
 
 @ApiTags('Warnungen')
 @ApiBearerAuth()
@@ -32,6 +34,7 @@ export class WarnungenController {
   constructor(
     private readonly dwdWarnungenService: DwdWarnungenService,
     private readonly ninaWarnungenService: NinaWarnungenService,
+    private readonly ninaMapDataService: NinaMapDataService,
   ) {}
 
   /**
@@ -88,5 +91,32 @@ export class WarnungenController {
       expires: w.expires || undefined,
       areaDesc: w.areaDesc || undefined,
     }));
+  }
+
+  /**
+   * NINA-Warnungen als GeoJSON FeatureCollection abfragen
+   *
+   * Lädt Warnungen von allen 5 NINA-Quellen (KATWARN, BIWAPP, MOWAS, LHP, Polizei),
+   * dedupliziert sie und liefert die zugehörigen GeoJSON-Polygone.
+   */
+  @Get('nina/geojson')
+  @ApiOperation({ summary: 'NINA-Warnungen als GeoJSON FeatureCollection (alle Quellen)' })
+  @ApiWrappedResponse(NinaGeoJsonFeatureCollectionDto, { description: 'GeoJSON mit allen aktiven NINA-Warnungs-Polygonen' })
+  async getNinaGeoJson(): Promise<NinaGeoJsonFeatureCollectionDto> {
+    const features = await this.ninaMapDataService.getGeoJsonFeatures();
+    return {
+      type: 'FeatureCollection',
+      features: features.map((f) => ({
+        type: 'Feature',
+        properties: {
+          id: f.id,
+          severity: f.severity,
+          title: f.title,
+          source: f.source,
+          startDate: f.startDate || undefined,
+        },
+        geometry: f.geometry,
+      })),
+    };
   }
 }

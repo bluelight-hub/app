@@ -358,6 +358,9 @@ models/MoveEinheitDto.ts
 models/NavigationPermissionDto.ts
 models/NavigationPermissionsControllerGetPermissionsVAlpha200Response.ts
 models/NavigationResponseDto.ts
+models/NinaGeoJsonFeatureCollectionDto.ts
+models/NinaGeoJsonFeatureDto.ts
+models/NinaGeoJsonPropertiesDto.ts
 models/NinaWarnungDto.ts
 models/NotizControllerCreateVAlpha201Response.ts
 models/NotizControllerGetByEinsatzVAlpha200Response.ts
@@ -458,6 +461,7 @@ models/UserManagementControllerGetUserPermissionsVAlpha200Response.ts
 models/UserManagementControllerRemoveVAlpha200Response.ts
 models/UserPermissionDto.ts
 models/WarnungenControllerGetDwdWarnungenVAlpha200Response.ts
+models/WarnungenControllerGetNinaGeoJsonVAlpha200Response.ts
 models/WarnungenControllerGetNinaWarnungenVAlpha200Response.ts
 models/WeisePersonZuFahrzeugZuDto.ts
 models/ZeitverlaufBucketDto.ts
