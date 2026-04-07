@@ -5,3 +5,8 @@
 .maplibregl-ctrl-bottom-left {
   z-index: 0 !important;
 }
+
+/* MapboxDraw Default-Controls ausblenden — eigene Toolbar wird verwendet */
+.mapboxgl-ctrl-group:has(.mapbox-gl-draw_ctrl-draw-btn) {
+  display: none;
+}
