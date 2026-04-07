@@ -1,3 +1,24 @@
+## Entwicklungsumgebung
+
+**Worktree-Isolation für parallele Entwicklung**
+
+- Mehrere Entwickler können nun gleichzeitig an verschiedenen Features arbeiten, ohne sich gegenseitig zu stören
+- Automatische Port-Zuweisung verhindert Konflikte beim lokalen Development
+- Neue `/worktree` Kommandos vereinfachen das Setup von isolierten Arbeitsumgebungen
+- `dev:web` Script ermöglicht die Entwicklung ohne Tauri (nur Backend + Frontend)
+
+**Vereinfachte Docker-Konfiguration**
+
+- Dev Container Setup optimiert für schnelleres Onboarding
+- Setup-Scripts automatisieren die Umgebungskonfiguration
+- Ports jetzt konfigurierbar über Umgebungsvariablen
+
+## Technische Verbesserungen
+
+- Vite auf Version 8.0.5 aktualisiert für bessere Performance und Sicherheit
+- Behobene Konfigurationsprobleme beim Laden von Umgebungsvariablen
+- Verbesserte Prisma Seed-Ausführung in Worktree-Umgebungen
+
 ## Lagekarte
 
 Die Lagekarte wurde von Leaflet auf MapLibre GL JS migriert und erhält dadurch WebGL-basiertes Rendering mit deutlich besserer Performance. Die Karte nutzt jetzt Vektor-Kacheln statt Raster-Kacheln und profitiert von moderner GPU-Beschleunigung.
