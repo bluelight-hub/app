@@ -1,3 +1,28 @@
+## Lagekarte
+
+**Neue Warnebenen**
+
+- NINA-Warnungen (KATWARN, BIWAPP, MOWAS, Hochwasser, Polizei) werden nun als farbige Polygone auf der Karte angezeigt
+- DWD-Wetterwarnungen als neues Wetter-Overlay verfügbar
+- Jede Warnquelle kann einzeln ein- und ausgeblendet werden
+
+**Erweiterte Karteninteraktion**
+
+- Klick auf Warn-Polygone zeigt vollständige Details (Beschreibung, Handlungsempfehlungen, betroffene Gebiete)
+- Bei mehreren überlappenden Warnungen werden alle Treffer im Popup angezeigt
+- Navigation zwischen mehreren Warnungen am gleichen Standort mit Vor/Zurück-Buttons
+- Details-Panel öffnet direkt den Link zur jeweiligen Warnquelle
+
+**Basis-Kartenlayer**
+
+- Wechsel zwischen OpenStreetMap, Topographischer Karte und Satellitenansicht
+- Fullscreen-Modus lässt sich nun per Tastenkürzel umschalten (nicht nur aktivieren)
+
+## Sicherheit
+
+- Verbesserte Absicherung gegen HTML-Injection bei der Anzeige von NINA-Warntexten
+- HTML-Tags in Warnmeldungen werden nun sicher entfernt und korrekt als Text dargestellt
+
 ## Entwicklungsumgebung
 
 **Worktree-Isolation für parallele Entwicklung**
