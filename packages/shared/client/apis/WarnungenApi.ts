@@ -17,6 +17,7 @@ import * as runtime from '../runtime';
 import type {
   WarnungenControllerGetDwdWarnungenVAlpha200Response,
   WarnungenControllerGetNinaGeoJsonVAlpha200Response,
+  WarnungenControllerGetNinaWarnungDetailVAlpha200Response,
   WarnungenControllerGetNinaWarnungenVAlpha200Response,
 } from '../models/index';
 import {
@@ -24,6 +25,8 @@ import {
     WarnungenControllerGetDwdWarnungenVAlpha200ResponseToJSON,
     WarnungenControllerGetNinaGeoJsonVAlpha200ResponseFromJSON,
     WarnungenControllerGetNinaGeoJsonVAlpha200ResponseToJSON,
+    WarnungenControllerGetNinaWarnungDetailVAlpha200ResponseFromJSON,
+    WarnungenControllerGetNinaWarnungDetailVAlpha200ResponseToJSON,
     WarnungenControllerGetNinaWarnungenVAlpha200ResponseFromJSON,
     WarnungenControllerGetNinaWarnungenVAlpha200ResponseToJSON,
 } from '../models/index';
@@ -32,6 +35,10 @@ export interface WarnungenControllerGetDwdWarnungenVAlphaRequest {
     lng: number;
     lat: number;
     zoom: number;
+}
+
+export interface WarnungenControllerGetNinaWarnungDetailVAlphaRequest {
+    warnungId: string;
 }
 
 export interface WarnungenControllerGetNinaWarnungenVAlphaRequest {
@@ -126,6 +133,39 @@ export class WarnungenApi extends runtime.BaseAPI {
      */
     async warnungenControllerGetNinaGeoJsonVAlpha(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<WarnungenControllerGetNinaGeoJsonVAlpha200Response> {
         const response = await this.warnungenControllerGetNinaGeoJsonVAlphaRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Detail-Informationen zu einer NINA-Warnung abrufen
+     */
+    async warnungenControllerGetNinaWarnungDetailVAlphaRaw(requestParameters: WarnungenControllerGetNinaWarnungDetailVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<WarnungenControllerGetNinaWarnungDetailVAlpha200Response>> {
+        if (requestParameters['warnungId'] == null) {
+            throw new runtime.RequiredError(
+                'warnungId',
+                'Required parameter "warnungId" was null or undefined when calling warnungenControllerGetNinaWarnungDetailVAlpha().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/api/v-alpha/warnungen/nina/detail/{warnungId}`.replace(`{${"warnungId"}}`, encodeURIComponent(String(requestParameters['warnungId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => WarnungenControllerGetNinaWarnungDetailVAlpha200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Detail-Informationen zu einer NINA-Warnung abrufen
+     */
+    async warnungenControllerGetNinaWarnungDetailVAlpha(requestParameters: WarnungenControllerGetNinaWarnungDetailVAlphaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<WarnungenControllerGetNinaWarnungDetailVAlpha200Response> {
+        const response = await this.warnungenControllerGetNinaWarnungDetailVAlphaRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

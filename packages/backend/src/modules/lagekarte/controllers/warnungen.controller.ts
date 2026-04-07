@@ -8,7 +8,7 @@
  * nicht für diese Endpoints. DWD/NINA haben eigene Rate-Limits.
  */
 
-import { Controller, Get, ParseFloatPipe, Query as QueryParam, UseGuards } from '@nestjs/common';
+import { Controller, Get, NotFoundException, Param, ParseFloatPipe, Query as QueryParam, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiForbiddenResponse, ApiOperation, ApiQuery, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
 import { ApiWrappedResponse } from '@/modules/common/decorators/api-wrapped-response.decorator';
@@ -19,6 +19,7 @@ import { NinaMapDataService } from '../services/nina-map-data.service';
 import { DwdWarnungDto } from '../dto/dwd-warnung.dto';
 import { NinaWarnungDto } from '../dto/nina-warnung.dto';
 import { NinaGeoJsonFeatureCollectionDto } from '../dto/nina-geojson.dto';
+import { NinaWarnungDetailDto } from '../dto/nina-warnung-detail.dto';
 
 @ApiTags('Warnungen')
 @ApiBearerAuth()
@@ -117,6 +118,40 @@ export class WarnungenController {
         },
         geometry: f.geometry,
       })),
+    };
+  }
+
+  /**
+   * Detail-Informationen zu einer einzelnen NINA-Warnung abrufen
+   *
+   * Lädt die vollständigen Warn-Details (CAP-Format) von der NINA API
+   * inkl. Beschreibung, Handlungsempfehlung, betroffene Gebiete etc.
+   */
+  @Get('nina/detail/:warnungId')
+  @ApiOperation({ summary: 'Detail-Informationen zu einer NINA-Warnung abrufen' })
+  @ApiWrappedResponse(NinaWarnungDetailDto, { description: 'Vollständige NINA-Warn-Details' })
+  async getNinaWarnungDetail(@Param('warnungId') warnungId: string): Promise<NinaWarnungDetailDto> {
+    const detail = await this.ninaMapDataService.getWarnungDetail(warnungId);
+    if (!detail) {
+      throw new NotFoundException(`NINA-Warnung ${warnungId} nicht gefunden`);
+    }
+    return {
+      id: detail.id,
+      event: detail.event || undefined,
+      severity: detail.severity,
+      headline: detail.headline || undefined,
+      description: detail.description || undefined,
+      instruction: detail.instruction || undefined,
+      senderName: detail.senderName || undefined,
+      sender: detail.sender || undefined,
+      sent: detail.sent || undefined,
+      effective: detail.effective || undefined,
+      expires: detail.expires || undefined,
+      urgency: detail.urgency || undefined,
+      certainty: detail.certainty || undefined,
+      areas: detail.areas?.length ? detail.areas : undefined,
+      msgType: detail.msgType || undefined,
+      web: detail.web || undefined,
     };
   }
 }

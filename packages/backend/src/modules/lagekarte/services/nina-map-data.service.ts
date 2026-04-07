@@ -24,6 +24,26 @@ interface NinaMapDataEntry {
   startDate?: string;
 }
 
+/** Detail-Ergebnis für eine einzelne NINA-Warnung */
+export interface NinaWarnungDetailResult {
+  id: string;
+  event: string;
+  severity: string;
+  headline: string;
+  description: string;
+  instruction: string;
+  senderName: string;
+  sender: string;
+  sent: string;
+  effective: string;
+  expires: string;
+  urgency: string;
+  certainty: string;
+  areas: string[];
+  msgType: string;
+  web: string;
+}
+
 /** Internes Feature */
 export interface NinaGeoFeature {
   id: string;
@@ -90,6 +110,41 @@ export class NinaMapDataService {
     }
 
     return features;
+  }
+
+  /**
+   * Lädt Detail-Informationen für eine einzelne NINA-Warnung
+   */
+  async getWarnungDetail(warnungId: string): Promise<NinaWarnungDetailResult | null> {
+    try {
+      const url = `${NINA_API_BASE}/warnings/${warnungId}.json`;
+      const response = await firstValueFrom(this.httpService.get(url, { timeout: 10000 }));
+
+      const data = response.data;
+      const info = data?.info?.[0];
+
+      return {
+        id: data?.identifier ?? warnungId,
+        event: info?.event ?? '',
+        severity: info?.severity ?? '',
+        headline: info?.headline ?? '',
+        description: info?.description ?? '',
+        instruction: info?.instruction ?? '',
+        senderName: info?.senderName ?? '',
+        sender: data?.sender ?? '',
+        sent: data?.sent ?? '',
+        effective: info?.effective ?? '',
+        expires: info?.expires ?? '',
+        urgency: info?.urgency ?? '',
+        certainty: info?.certainty ?? '',
+        areas: info?.area?.map((a: { areaDesc?: string }) => a.areaDesc).filter(Boolean) ?? [],
+        msgType: data?.msgType ?? '',
+        web: info?.web ?? '',
+      };
+    } catch (error) {
+      this.logger.warn('NINA Warn-Detail Abfrage fehlgeschlagen', { error, warnungId });
+      return null;
+    }
   }
 
   /** Lädt mapData für eine Quelle */
