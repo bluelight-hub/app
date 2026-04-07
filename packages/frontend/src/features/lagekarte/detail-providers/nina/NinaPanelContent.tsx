@@ -14,6 +14,23 @@ import { PiCalendar, PiGlobe, PiInfo, PiMapPin, PiMegaphone, PiShieldWarning, Pi
 import { DEFAULT_CARD_STYLE, SEVERITY_CARD_STYLES, formatWarnungDateTime } from '../severity-styles';
 import type { NinaWarnung } from './nina-api';
 
+/**
+ * Bereinigt HTML aus NINA-API-Texten für sichere Darstellung.
+ * Konvertiert <br/> zu Zeilenumbrüchen und decoded HTML-Entities.
+ */
+function sanitizeNinaText(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&apos;/g, "'")
+    .replace(/&#(\d+);/g, (_match, code) => String.fromCharCode(Number(code)))
+    .trim();
+}
+
 interface NinaPanelContentProps {
   warnungen: NinaWarnung[];
   /** ID der Warnung für Detail-Nachladen über die Backend-API */
@@ -49,7 +66,7 @@ function WarnungSection({ warnung, index, total }: { warnung: NinaWarnung; index
               <PiInfo className="h-4 w-4 text-text-muted" aria-hidden="true" />
               <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Beschreibung</h4>
             </div>
-            <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap text-text-primary">{warnung.description}</p>
+            <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap text-text-primary">{sanitizeNinaText(warnung.description)}</p>
           </section>
         )}
 
@@ -91,7 +108,7 @@ function WarnungSection({ warnung, index, total }: { warnung: NinaWarnung; index
               <PiShieldWarning className="h-4 w-4 text-text-muted" aria-hidden="true" />
               <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Handlungsempfehlung</h4>
             </div>
-            <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap text-text-primary">{warnung.instruction}</p>
+            <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap text-text-primary">{sanitizeNinaText(warnung.instruction)}</p>
           </section>
         )}
 
@@ -146,7 +163,7 @@ function DetailSection({ warnungId }: { warnungId: string }) {
             <PiInfo className="h-4 w-4 text-text-muted" aria-hidden="true" />
             <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Beschreibung</h4>
           </div>
-          <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap text-text-primary">{detail.description}</p>
+          <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap text-text-primary">{sanitizeNinaText(detail.description)}</p>
         </section>
       )}
 
@@ -157,7 +174,7 @@ function DetailSection({ warnungId }: { warnungId: string }) {
             <PiShieldWarning className="h-4 w-4 text-text-muted" aria-hidden="true" />
             <h4 className="text-xs font-semibold tracking-wider text-text-muted uppercase">Handlungsempfehlung</h4>
           </div>
-          <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap text-text-primary">{detail.instruction}</p>
+          <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap text-text-primary">{sanitizeNinaText(detail.instruction)}</p>
         </section>
       )}
 
