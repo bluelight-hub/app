@@ -164,7 +164,7 @@ echo "Prisma migrate deploy..."
 pnpx prisma migrate deploy
 
 echo "Prisma seed..."
-pnpx prisma db seed
+pnpx tsx prisma/seed.ts
 
 # --- Fertig ---
 echo ""
