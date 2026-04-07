@@ -15,6 +15,11 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 # shellcheck source=worktree-ports.sh
 source "$SCRIPT_DIR/worktree-ports.sh"
 
+# --- mise trust (Tool-Version-Manager vertraut neuen Pfaden nicht automatisch) ---
+if command -v mise >/dev/null 2>&1; then
+  mise trust --quiet 2>/dev/null || true
+fi
+
 # --- Erkennung ---
 WORKTREE_ID="$(get_worktree_id)"
 OFFSET="$(calculate_port_offset "$WORKTREE_ID")"
