@@ -12,6 +12,7 @@ import { cn } from '@/shared/ui/cn';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { useQuery } from '@tanstack/react-query';
 import { PiCalendar, PiGlobe, PiInfo, PiMapPin, PiMegaphone, PiShieldWarning, PiTag, PiUser } from 'react-icons/pi';
+import DOMPurify from 'dompurify';
 import { DEFAULT_BADGE_STYLE, SEVERITY_BADGE_STYLES, formatWarnungDateTime } from '../severity-styles';
 import type { NinaWarnung } from './nina-api';
 
@@ -26,8 +27,8 @@ const NINA_SEVERITY_LABELS: Record<string, string> = {
 /**
  * Bereinigt HTML aus NINA-API-Texten für sichere Darstellung.
  *
- * Reihenfolge: Erst Entities decoden, dann HTML-Tags strippen und
- * verbleibende spitze Klammern entfernen (verhindert Injection nach Decode).
+ * Reihenfolge: Erst Entities decoden, dann Zeilenumbrüche normalisieren und
+ * anschließend mit DOMPurify alle HTML-Tags sicher entfernen.
  */
 function sanitizeNinaText(html: string): string {
   const decoded = html
@@ -36,12 +37,9 @@ function sanitizeNinaText(html: string): string {
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&#(\d+);/g, (_match, code) => String.fromCharCode(Number(code)))
-    .replace(/&amp;/g, '&');
-  return decoded
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<[^>]*>/g, '')
-    .replace(/[<>]/g, '')
-    .trim();
+    .replace(/&amp;/g, '&')
+    .replace(/<br\s*\/?>/gi, '\n');
+  return DOMPurify.sanitize(decoded, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] }).trim();
 }
 
 interface NinaPanelContentProps {
