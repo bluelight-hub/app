@@ -25,18 +25,22 @@ const NINA_SEVERITY_LABELS: Record<string, string> = {
 
 /**
  * Bereinigt HTML aus NINA-API-Texten für sichere Darstellung.
- * Konvertiert <br/> zu Zeilenumbrüchen und decoded HTML-Entities.
+ *
+ * Reihenfolge: Erst Entities decoden, dann HTML-Tags strippen und
+ * verbleibende spitze Klammern entfernen (verhindert Injection nach Decode).
  */
 function sanitizeNinaText(html: string): string {
-  return html
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<[^>]*>/g, '')
+  const decoded = html
     .replace(/&quot;/g, '"')
-    .replace(/&amp;/g, '&')
+    .replace(/&apos;/g, "'")
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
-    .replace(/&apos;/g, "'")
     .replace(/&#(\d+);/g, (_match, code) => String.fromCharCode(Number(code)))
+    .replace(/&amp;/g, '&');
+  return decoded
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]*>/g, '')
+    .replace(/[<>]/g, '')
     .trim();
 }
 
