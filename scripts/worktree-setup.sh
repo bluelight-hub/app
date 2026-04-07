@@ -113,6 +113,7 @@ EOF
   cat > "$FRONTEND_ENV" <<EOF
 # Auto-generiert von worktree-setup.sh (Offset: $OFFSET)
 VITE_API_URL=${VITE_API_URL}
+VITE_PORT=${VITE_PORT}
 VITE_INSECURE_MODE=$( [ "$USE_HTTPS" = true ] && echo "false" || echo "true" )
 EOF
   echo "Frontend .env generiert"

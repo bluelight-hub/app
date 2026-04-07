@@ -4,7 +4,10 @@ import react from '@vitejs/plugin-react';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import * as process from 'node:process';
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
+
+// .env laden bevor die Config ausgewertet wird (für VITE_PORT, VITE_API_URL etc.)
+Object.assign(process.env, loadEnv('development', process.cwd(), ['VITE_', 'TAURI_']));
 
 const pkg = JSON.parse(readFileSync('./package.json', 'utf8'));
 const host = process.env.TAURI_DEV_HOST;
