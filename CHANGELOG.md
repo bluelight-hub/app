@@ -1,3 +1,30 @@
+## Lagekarte – Zeichenwerkzeuge
+
+Die Lagekarte verfügt jetzt über umfassende Zeichenfunktionen zur Erstellung und Bearbeitung von Karten-Objekten:
+
+- **Zeichenwerkzeuge**: Punkte, Linien, Polygone, Freihand-Zeichnung und Text-Beschriftungen können direkt auf der Karte erstellt werden
+- **OSM-Markierung**: Gebäude und andere Objekte aus OpenStreetMap können per Klick markiert und übernommen werden. Multi-Geometrien werden automatisch in Einzelobjekte aufgeteilt, um ungewollte großflächige Einfärbungen zu vermeiden
+- **Undo/Redo**: Alle Zeichenaktionen können rückgängig gemacht und wiederhergestellt werden
+- **Kontinuierliches Zeichnen**: Nach Erstellung eines Objekts bleibt das Werkzeug aktiv, um direkt weitere Objekte zu zeichnen
+- **Automatisches Speichern**: Alle Änderungen werden automatisch gespeichert
+- **Feature-Limit**: Die Anzahl der Zeichenobjekte ist auf ein Maximum begrenzt, um die Performance zu gewährleisten
+
+## Lagekarte – Styling & Darstellung
+
+- **Farben und Stile**: Alle Zeichenobjekte können individuell eingefärbt werden (Linienfarbe, Füllfarbe, Strichstärke)
+- **Schraffur-Muster**: Polygone können mit verschiedenen Schraffur-Mustern gefüllt werden (Horizontal, Vertikal, Diagonal, Kreuz, Gepunktet) – Dichte, Winkel und Farbe sind konfigurierbar
+- **Füllung-Toggle**: Farbfüllung kann unabhängig von der Schraffur ein- und ausgeschaltet werden
+- **Text-Beschriftungen**: Zeichenobjekte können mit Text versehen werden
+- **Einklappbare Werkzeugleiste**: Die Zeichenwerkzeuge können über einen Stift-Button ein- und ausgeklappt werden, um mehr Platz auf der Karte zu schaffen
+- **Tastenkürzel-Leiste**: Eine kontextabhängige Leiste am unteren Kartenrand zeigt verfügbare Tastenkombinationen und Bedienhinweise für den aktuellen Modus
+
+## Technische Verbesserungen
+
+- Optimierte Rendering-Performance durch Konsolidierung von 8 Schraffur-Layern auf 2 datengetriebene Layer
+- Parametrische Schraffur-Muster-Generierung für flexible Darstellung
+- Verbesserte Event-Behandlung im Freihand-Modus für flüssigeres Zeichnen
+- Migration bestehender Zeichendaten auf neue Schraffur-Konfiguration
+
 ## Lagekarte
 
 **Neue Warnebenen**
