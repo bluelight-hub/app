@@ -10,6 +10,29 @@ export type DrawMode = 'idle' | 'select' | 'draw_point' | 'draw_line_string' | '
 /** Status einer OSM-Markierung */
 export type OsmMarkierungStatus = 'betroffen' | 'gesperrt' | 'evakuiert';
 
+/** Verfügbare Schraffur-Mustertypen */
+export type HatchType = 'none' | 'diagonal' | 'cross' | 'horizontal' | 'vertical';
+
+/** Konfiguration für Schraffurmuster */
+export interface HatchConfig {
+  /** Mustertyp */
+  type: HatchType;
+  /** Kachel-Größe / Linienabstand in Pixel (6–32) */
+  spacing: number;
+  /** Strichstärke der Schraffurlinien in Pixel (0.5–4) */
+  width: number;
+  /** Linienfarbe als Hex-String. Leer = Randfarbe des Features übernehmen */
+  color: string;
+}
+
+/** Standard-Schraffur-Konfiguration */
+export const DEFAULT_HATCH: HatchConfig = {
+  type: 'none',
+  spacing: 12,
+  width: 1.5,
+  color: '',
+};
+
 /** Stil-Eigenschaften für Zeichnungsobjekte */
 export interface DrawingStyle {
   /** Linienfarbe (Hex) */
@@ -24,6 +47,8 @@ export interface DrawingStyle {
   fillColor: string;
   /** Füll-Deckkraft (0–1) */
   fillOpacity: number;
+  /** Schraffur-Konfiguration */
+  hatch: HatchConfig;
 }
 
 /** Standard-Stil für neue Zeichnungen */
@@ -33,6 +58,7 @@ export const DEFAULT_DRAWING_STYLE: DrawingStyle = {
   strokeWidth: 2,
   fillColor: '#3b82f6',
   fillOpacity: 0.2,
+  hatch: { ...DEFAULT_HATCH },
 };
 
 /** Properties eines gezeichneten GeoJSON-Features */
