@@ -7,7 +7,9 @@ import { useLagekartePermissions } from '@/features/lagekarte/hooks/use-lagekart
 import { useOsmMarkierung } from '@/features/lagekarte/hooks/use-osm-markierung';
 import { drawStore } from '@/features/lagekarte/stores/draw.store';
 import { DEFAULT_DRAWING_STYLE } from '@/features/lagekarte/drawing/types';
-import type { DrawingStyle } from '@/features/lagekarte/drawing/types';
+import type { DrawingStyle, HatchConfig } from '@/features/lagekarte/drawing/types';
+import { DEFAULT_HATCH } from '@/features/lagekarte/drawing/types';
+import { ensureHatchImage, migrateLegacyFillPattern, reregisterHatchImages } from '@/features/lagekarte/drawing/hatch-patterns';
 import { Spinner } from '@/shared/ui/atoms/spinner.atom';
 import { cn } from '@/shared/ui/cn';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -80,6 +82,20 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
     const feature = draw.get(selectedFeatureIds[0]);
     if (!feature?.properties) return;
     const props = feature.properties;
+
+    // Hatch-Config wiederherstellen (neues Format oder Legacy-Migration)
+    let hatch: HatchConfig = { ...DEFAULT_HATCH };
+    if (props.hatch) {
+      try {
+        hatch = typeof props.hatch === 'string' ? JSON.parse(props.hatch) : props.hatch;
+      } catch {
+        // Ungültiges JSON — Default beibehalten
+      }
+    } else if (props.fillPattern) {
+      const migrated = migrateLegacyFillPattern(props.fillPattern);
+      if (migrated) hatch = migrated;
+    }
+
     setActiveStyle((prev) => ({
       ...prev,
       ...(props.color && { color: props.color }),
@@ -87,8 +103,21 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
       ...(props.strokeWidth != null && { strokeWidth: props.strokeWidth }),
       ...(props.fillOpacity != null && { fillOpacity: props.fillOpacity }),
       ...(props.strokeDasharray && { strokeDasharray: props.strokeDasharray }),
+      hatch,
     }));
   }, [selectedFeatureIds, drawRef]);
+
+  // Schraffurmuster bei Style-Wechsel erneut registrieren (style.load entfernt alle Images)
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (!map || isLoading) return;
+
+    const reregister = () => reregisterHatchImages(map);
+    map.on('style.load', reregister);
+    return () => {
+      map.off('style.load', reregister);
+    };
+  }, [isLoading]);
 
   // Label und Geometrie-Typ des selektierten Features lesen
   const selectedFeatureLabel = useMemo(() => {
@@ -106,17 +135,37 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   /** Stil ändern und auf selektierte Features anwenden */
   const handleStyleChange = useCallback(
     (partial: Partial<DrawingStyle>) => {
-      setActiveStyle((prev) => ({ ...prev, ...partial }));
+      const next = { ...activeStyle, ...partial };
+      setActiveStyle(next);
       const draw = drawRef.current;
       if (!draw) return;
+      const map = mapRef.current?.getMap();
+
       for (const id of selectedFeatureIds) {
         for (const [key, value] of Object.entries(partial)) {
+          if (key === 'hatch') continue;
           draw.setFeatureProperty(id, key, value);
         }
+
+        if (partial.hatch !== undefined) {
+          const hatch = next.hatch;
+          draw.setFeatureProperty(id, 'hatch', JSON.stringify(hatch));
+          const imageName = ensureHatchImage(map, hatch, next.color);
+          draw.setFeatureProperty(id, 'fillPattern', imageName);
+        }
+
+        if (partial.color !== undefined && next.hatch.type !== 'none' && next.hatch.color === '') {
+          const imageName = ensureHatchImage(map, next.hatch, next.color);
+          draw.setFeatureProperty(id, 'fillPattern', imageName);
+        }
+
+        const updated = draw.get(id);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (updated) draw.add(updated as any);
       }
       scheduleAutoSave();
     },
-    [selectedFeatureIds, drawRef, scheduleAutoSave],
+    [activeStyle, selectedFeatureIds, drawRef, mapRef, scheduleAutoSave],
   );
 
   /** Label ändern und auf selektierte Features anwenden */
