@@ -101,6 +101,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
       ...(props.color && { color: props.color }),
       ...(props.fillColor && { fillColor: props.fillColor }),
       ...(props.strokeWidth != null && { strokeWidth: props.strokeWidth }),
+      ...(props.fillEnabled != null && { fillEnabled: props.fillEnabled }),
       ...(props.fillOpacity != null && { fillOpacity: props.fillOpacity }),
       ...(props.strokeDasharray && { strokeDasharray: props.strokeDasharray }),
       hatch,

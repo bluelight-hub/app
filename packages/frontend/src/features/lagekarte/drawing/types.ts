@@ -45,6 +45,8 @@ export interface DrawingStyle {
   strokeDasharray?: string;
   /** Füllfarbe (Hex) */
   fillColor: string;
+  /** Farbfüllung aktiv */
+  fillEnabled: boolean;
   /** Füll-Deckkraft (0–1) */
   fillOpacity: number;
   /** Schraffur-Konfiguration */
@@ -57,6 +59,7 @@ export const DEFAULT_DRAWING_STYLE: DrawingStyle = {
   opacity: 1,
   strokeWidth: 2,
   fillColor: '#3b82f6',
+  fillEnabled: true,
   fillOpacity: 0.2,
   hatch: { ...DEFAULT_HATCH },
 };

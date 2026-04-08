@@ -167,23 +167,28 @@ export function DrawStylePanel({ style, onStyleChange, isVisible, label, onLabel
         </div>
       )}
 
-      {/* Deckkraft-Slider (nicht für Punkte) */}
+      {/* Füllung Toggle + Deckkraft (nicht für Punkte) */}
       {showFill && (
         <div className="mb-3">
           <div className="mb-1.5 flex items-center justify-between">
-            <span className="text-xs font-semibold tracking-wide text-text-muted uppercase">Deckkraft</span>
-            <span className="text-xs text-text-muted tabular-nums">{Math.round(style.fillOpacity * 100)}%</span>
+            <label className="flex items-center gap-1.5">
+              <input type="checkbox" checked={style.fillEnabled !== false} onChange={(e) => onStyleChange({ fillEnabled: e.target.checked })} className="h-3 w-3 accent-action-primary" />
+              <span className="text-xs font-semibold tracking-wide text-text-muted uppercase">Füllung</span>
+            </label>
+            {style.fillEnabled !== false && <span className="text-xs text-text-muted tabular-nums">{Math.round(style.fillOpacity * 100)}%</span>}
           </div>
-          <input
-            type="range"
-            min={0}
-            max={100}
-            step={5}
-            value={Math.round(style.fillOpacity * 100)}
-            onChange={(e) => onStyleChange({ fillOpacity: Number(e.target.value) / 100 })}
-            className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-border-subtle accent-action-primary"
-            aria-label="Füll-Deckkraft"
-          />
+          {style.fillEnabled !== false && (
+            <input
+              type="range"
+              min={0}
+              max={100}
+              step={5}
+              value={Math.round(style.fillOpacity * 100)}
+              onChange={(e) => onStyleChange({ fillOpacity: Number(e.target.value) / 100 })}
+              className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-border-subtle accent-action-primary"
+              aria-label="Füll-Deckkraft"
+            />
+          )}
         </div>
       )}
 

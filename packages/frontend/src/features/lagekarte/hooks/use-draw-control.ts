@@ -195,6 +195,7 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
         draw.setFeatureProperty(featureId, 'color', currentStyle.color);
         draw.setFeatureProperty(featureId, 'fillColor', currentStyle.fillColor);
         draw.setFeatureProperty(featureId, 'strokeWidth', currentStyle.strokeWidth);
+        draw.setFeatureProperty(featureId, 'fillEnabled', currentStyle.fillEnabled);
         draw.setFeatureProperty(featureId, 'fillOpacity', currentStyle.fillOpacity);
         draw.setFeatureProperty(featureId, 'hatch', JSON.stringify(currentStyle.hatch));
         const map = mapRef.current?.getMap();
