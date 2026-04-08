@@ -6,9 +6,11 @@
  */
 
 import { useState } from 'react';
+import { PiRuler } from 'react-icons/pi';
 import { cn } from '@/shared/ui/cn';
 import type { DrawingStyle, HatchConfig, HatchType } from '../../drawing/types';
 import { DEFAULT_HATCH } from '../../drawing/types';
+import type { FeatureMeasurement } from '../../utils/geo-calculations';
 
 /** Props für die DrawStylePanel-Komponente */
 export interface DrawStylePanelProps {
@@ -24,6 +26,8 @@ export interface DrawStylePanelProps {
   onLabelChange?: (label: string) => void;
   /** Geometrie-Typ des selektierten Features (steuert sichtbare Optionen) */
   geometryType?: string;
+  /** Messung des selektierten Features */
+  measurement?: FeatureMeasurement | null;
 }
 
 /** Vordefinierte Farben für die Farbauswahl */
@@ -108,7 +112,7 @@ function PatternIcon({ type }: { type: HatchType }) {
   );
 }
 
-export function DrawStylePanel({ style, onStyleChange, isVisible, label, onLabelChange, geometryType }: DrawStylePanelProps) {
+export function DrawStylePanel({ style, onStyleChange, isVisible, label, onLabelChange, geometryType, measurement }: DrawStylePanelProps) {
   const [hatchExpanded, setHatchExpanded] = useState(false);
 
   if (!isVisible) return null;
@@ -126,6 +130,14 @@ export function DrawStylePanel({ style, onStyleChange, isVisible, label, onLabel
 
   return (
     <div className={cn('absolute top-4 left-20 z-10 w-52 rounded-lg border border-border-subtle bg-surface-panel p-3 shadow-lg')}>
+      {/* Messanzeige */}
+      {measurement && (
+        <div className="bg-surface-secondary mb-3 flex items-center gap-1.5 rounded-md px-2 py-1.5">
+          <PiRuler className="h-3.5 w-3.5 shrink-0 text-text-muted" aria-hidden="true" />
+          <span className="text-xs font-medium text-text-secondary tabular-nums">{measurement.label}</span>
+        </div>
+      )}
+
       {/* Farbauswahl */}
       <div className={cn(showStrokeWidth || showFill || label !== undefined ? 'mb-3' : '')}>
         <div className="mb-1.5 text-xs font-semibold tracking-wide text-text-muted uppercase">Farbe</div>

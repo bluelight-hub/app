@@ -8,8 +8,9 @@
 
 import { cn } from '@/shared/ui/cn';
 import { useMemo } from 'react';
-import { PiArrowClockwise, PiArrowCounterClockwise, PiTrash } from 'react-icons/pi';
+import { PiArrowClockwise, PiArrowCounterClockwise, PiRuler, PiTrash } from 'react-icons/pi';
 import type { DrawMode } from '../../drawing/types';
+import type { FeatureMeasurement } from '../../utils/geo-calculations';
 
 interface Hint {
   /** Tastenkürzel — leer für reine Texthinweise */
@@ -51,9 +52,11 @@ export interface DrawShortcutBarProps {
   onRedo: () => void;
   /** Selektierte Features löschen */
   onDeleteSelected: () => void;
+  /** Live-Messung während des Zeichnens */
+  liveMeasurement?: FeatureMeasurement | null;
 }
 
-export function DrawShortcutBar({ activeMode, hasSelection, canUndo, canRedo, isDirectSelect, onUndo, onRedo, onDeleteSelected }: DrawShortcutBarProps) {
+export function DrawShortcutBar({ activeMode, hasSelection, canUndo, canRedo, isDirectSelect, onUndo, onRedo, onDeleteSelected, liveMeasurement }: DrawShortcutBarProps) {
   const hints = useMemo<Hint[]>(() => {
     const isActive = activeMode !== 'idle';
     // Hinweise zeigen wenn ein Werkzeug aktiv ist ODER ein Feature selektiert ist
@@ -94,12 +97,24 @@ export function DrawShortcutBar({ activeMode, hasSelection, canUndo, canRedo, is
   }, [activeMode, hasSelection, canUndo, canRedo, isDirectSelect]);
 
   const hasActions = canUndo || canRedo || hasSelection;
+  const showLiveMeasurement = liveMeasurement != null;
 
-  if (hints.length === 0 && !hasActions) return null;
+  if (hints.length === 0 && !hasActions && !showLiveMeasurement) return null;
 
   return (
     <div className="absolute bottom-3 left-1/2 z-10 -translate-x-1/2">
       <div className="flex items-center gap-3 rounded-lg border border-border-subtle bg-surface-panel/90 px-3 py-1.5 text-xs text-text-muted shadow-sm backdrop-blur-sm">
+        {/* Live-Messung während des Zeichnens */}
+        {showLiveMeasurement && (
+          <>
+            <span className="flex items-center gap-1.5 font-medium text-text-secondary tabular-nums">
+              <PiRuler className="h-3.5 w-3.5" aria-hidden="true" />
+              {liveMeasurement.label}
+            </span>
+            {hints.length > 0 && <span className="h-3 w-px bg-border-subtle" aria-hidden="true" />}
+          </>
+        )}
+
         {hints.map((hint, i) => (
           <span key={i} className="flex items-center gap-1.5">
             {i > 0 && <span className="mr-1.5 h-3 w-px bg-border-subtle" aria-hidden="true" />}

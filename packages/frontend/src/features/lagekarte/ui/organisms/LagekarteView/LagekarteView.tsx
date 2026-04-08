@@ -3,6 +3,7 @@ import { useMapLayer } from '@/features/lagekarte/hooks/use-map-layer';
 import { useMapDetail } from '@/features/lagekarte/hooks/use-map-detail';
 import { useNinaMapData } from '@/features/lagekarte/api/use-nina-map-data';
 import { useDrawControl } from '@/features/lagekarte/hooks/use-draw-control';
+import { useFeatureMeasurement } from '@/features/lagekarte/hooks/use-feature-measurement';
 import { useLagekartePermissions } from '@/features/lagekarte/hooks/use-lagekarte-permissions';
 import { useOsmMarkierung } from '@/features/lagekarte/hooks/use-osm-markierung';
 import { drawStore } from '@/features/lagekarte/stores/draw.store';
@@ -75,6 +76,9 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   // OSM-Markierung (nur bei Vektor-Basislayer)
   const isVectorBaseLayer = selectedBaseLayer === 'osm';
   const { handleOsmClick, pendingOsmMark, confirmOsmMark, cancelOsmMark } = useOsmMarkierung({ mapRef, drawRef, isVectorBaseLayer });
+
+  // Feature-Messungen (Fläche, Länge, Koordinaten)
+  const { selectedMeasurement, liveMeasurement } = useFeatureMeasurement({ mapRef, drawRef, isMapLoaded });
 
   // I4: Stil des selektierten Features in das StylePanel laden
   useEffect(() => {
@@ -290,6 +294,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
             onUndo={undo}
             onRedo={redo}
             onDeleteSelected={deleteSelected}
+            liveMeasurement={liveMeasurement}
           />
         </>
       )}
@@ -302,6 +307,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
         label={selectedFeatureLabel}
         onLabelChange={handleLabelChange}
         geometryType={selectedFeatureGeometryType}
+        measurement={selectedMeasurement}
       />
 
       <MapLayerSwitcher availableLayers={availableLayers} selectedBaseLayer={selectedBaseLayer} dwdOverlayEnabled={dwdOverlayEnabled} ninaOverlays={ninaOverlays} />
