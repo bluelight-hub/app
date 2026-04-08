@@ -14,7 +14,7 @@ export const CUSTOM_DRAW_STYLES: object[] = [
     paint: {
       'fill-color': ['coalesce', ['get', 'user_fillColor'], '#3b82f6'],
       'fill-outline-color': ['coalesce', ['get', 'user_color'], '#3b82f6'],
-      'fill-opacity': ['coalesce', ['get', 'user_fillOpacity'], 0.2],
+      'fill-opacity': ['case', ['==', ['get', 'user_fillEnabled'], false], 0, ['coalesce', ['get', 'user_fillOpacity'], 0.2]],
     },
   },
   // Polygon-Füllung (aktiv)
@@ -25,16 +25,17 @@ export const CUSTOM_DRAW_STYLES: object[] = [
     paint: {
       'fill-color': ['coalesce', ['get', 'user_fillColor'], '#fbbf24'],
       'fill-outline-color': ['coalesce', ['get', 'user_color'], '#fbbf24'],
-      'fill-opacity': ['coalesce', ['get', 'user_fillOpacity'], 0.3],
+      'fill-opacity': ['case', ['==', ['get', 'user_fillEnabled'], false], 0, ['coalesce', ['get', 'user_fillOpacity'], 0.3]],
     },
   },
   // Polygon-Schraffur (inaktiv) — data-driven fill-pattern, ein Layer für alle Muster
+  // fill-pattern erwartet resolvedImage → ['image', ...] Wrapper nötig
   {
     id: 'gl-draw-polygon-hatch-inactive',
     type: 'fill',
-    filter: ['all', ['==', 'active', 'false'], ['==', '$type', 'Polygon'], ['!=', 'mode', 'static'], ['has', 'user_fillPattern'], ['!=', ['get', 'user_fillPattern'], '']],
+    filter: ['all', ['==', 'active', 'false'], ['==', '$type', 'Polygon'], ['!=', 'mode', 'static'], ['has', 'user_fillPattern'], ['!=', 'user_fillPattern', '']],
     paint: {
-      'fill-pattern': ['get', 'user_fillPattern'],
+      'fill-pattern': ['image', ['get', 'user_fillPattern']],
       'fill-opacity': ['coalesce', ['get', 'user_fillOpacity'], 0.2],
     },
   },
@@ -42,9 +43,9 @@ export const CUSTOM_DRAW_STYLES: object[] = [
   {
     id: 'gl-draw-polygon-hatch-active',
     type: 'fill',
-    filter: ['all', ['==', 'active', 'true'], ['==', '$type', 'Polygon'], ['has', 'user_fillPattern'], ['!=', ['get', 'user_fillPattern'], '']],
+    filter: ['all', ['==', 'active', 'true'], ['==', '$type', 'Polygon'], ['has', 'user_fillPattern'], ['!=', 'user_fillPattern', '']],
     paint: {
-      'fill-pattern': ['get', 'user_fillPattern'],
+      'fill-pattern': ['image', ['get', 'user_fillPattern']],
       'fill-opacity': ['coalesce', ['get', 'user_fillOpacity'], 0.2],
     },
   },
