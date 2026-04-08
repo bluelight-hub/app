@@ -20,6 +20,8 @@ export interface DrawStylePanelProps {
   label?: string;
   /** Label ändern */
   onLabelChange?: (label: string) => void;
+  /** Geometrie-Typ des selektierten Features (steuert sichtbare Optionen) */
+  geometryType?: string;
 }
 
 /** Vordefinierte Farben für die Farbauswahl */
@@ -51,13 +53,17 @@ const FILL_OPACITY_OPTIONS = [
 /** Gemeinsame Toggle-Button-Styles */
 const toggleBase = 'rounded px-2.5 py-1 text-xs font-medium transition-colors duration-100 focus-visible:shadow-focus-ring focus-visible:outline-none';
 
-export function DrawStylePanel({ style, onStyleChange, isVisible, label, onLabelChange }: DrawStylePanelProps) {
+export function DrawStylePanel({ style, onStyleChange, isVisible, label, onLabelChange, geometryType }: DrawStylePanelProps) {
   if (!isVisible) return null;
+
+  const isPoint = geometryType === 'Point';
+  const showStrokeWidth = !isPoint;
+  const showFill = !isPoint;
 
   return (
     <div className={cn('absolute top-4 left-20 z-10 w-52 rounded-lg border border-border-subtle bg-surface-panel p-3 shadow-lg')}>
       {/* Farbauswahl */}
-      <div className="mb-3">
+      <div className={cn(showStrokeWidth || showFill || label !== undefined ? 'mb-3' : '')}>
         <div className="mb-1.5 text-xs font-semibold tracking-wide text-text-muted uppercase">Farbe</div>
         <div className="flex flex-wrap gap-1.5">
           {COLOR_SWATCHES.map(({ value, label: colorLabel }) => (
@@ -78,39 +84,43 @@ export function DrawStylePanel({ style, onStyleChange, isVisible, label, onLabel
         </div>
       </div>
 
-      {/* Linienstärke */}
-      <div className="mb-3">
-        <div className="mb-1.5 text-xs font-semibold tracking-wide text-text-muted uppercase">Linienstärke</div>
-        <div className="flex gap-1">
-          {STROKE_WIDTH_OPTIONS.map(({ value, label: widthLabel }) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => onStyleChange({ strokeWidth: value })}
-              className={cn(toggleBase, style.strokeWidth === value ? 'bg-action-secondary text-action-primary' : 'text-text-primary hover:bg-action-secondary')}
-            >
-              {widthLabel}
-            </button>
-          ))}
+      {/* Linienstärke (nicht für Punkte) */}
+      {showStrokeWidth && (
+        <div className={cn(showFill || label !== undefined ? 'mb-3' : '')}>
+          <div className="mb-1.5 text-xs font-semibold tracking-wide text-text-muted uppercase">Linienstärke</div>
+          <div className="flex gap-1">
+            {STROKE_WIDTH_OPTIONS.map(({ value, label: widthLabel }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => onStyleChange({ strokeWidth: value })}
+                className={cn(toggleBase, style.strokeWidth === value ? 'bg-action-secondary text-action-primary' : 'text-text-primary hover:bg-action-secondary')}
+              >
+                {widthLabel}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Füllung */}
-      <div className={cn(label !== undefined ? 'mb-3' : '')}>
-        <div className="mb-1.5 text-xs font-semibold tracking-wide text-text-muted uppercase">Füllung</div>
-        <div className="flex gap-1">
-          {FILL_OPACITY_OPTIONS.map(({ value, label: fillLabel }) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => onStyleChange({ fillOpacity: value })}
-              className={cn(toggleBase, style.fillOpacity === value ? 'bg-action-secondary text-action-primary' : 'text-text-primary hover:bg-action-secondary')}
-            >
-              {fillLabel}
-            </button>
-          ))}
+      {/* Füllung (nicht für Punkte) */}
+      {showFill && (
+        <div className={cn(label !== undefined ? 'mb-3' : '')}>
+          <div className="mb-1.5 text-xs font-semibold tracking-wide text-text-muted uppercase">Füllung</div>
+          <div className="flex gap-1">
+            {FILL_OPACITY_OPTIONS.map(({ value, label: fillLabel }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => onStyleChange({ fillOpacity: value })}
+                className={cn(toggleBase, style.fillOpacity === value ? 'bg-action-secondary text-action-primary' : 'text-text-primary hover:bg-action-secondary')}
+              >
+                {fillLabel}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Text-Label (nur für Text-Features) */}
       {label !== undefined && onLabelChange && (

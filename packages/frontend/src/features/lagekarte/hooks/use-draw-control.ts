@@ -16,7 +16,7 @@ import { useLagekarte } from '../api/use-lagekarte';
 import { DRAW_FEATURE_LIMIT } from '../utils/map-config';
 import { CUSTOM_DRAW_STYLES } from '../drawing/draw-styles';
 import { FreehandMode } from '../drawing/custom-modes/freehand.mode';
-import type { DrawMode } from '../drawing/types';
+import type { DrawMode, DrawingStyle } from '../drawing/types';
 
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 
@@ -49,6 +49,8 @@ interface UseDrawControlOptions {
   canDraw: boolean;
   /** Ob die Karte vollständig geladen ist */
   isMapLoaded: boolean;
+  /** Ref auf den aktuellen Zeichenstil (wird auf neue Features angewendet) */
+  activeStyleRef: React.RefObject<DrawingStyle>;
 }
 
 interface UseDrawControlReturn {
@@ -81,7 +83,7 @@ const EMPTY_FC: FeatureCollection = { type: 'FeatureCollection', features: [] };
  * @param options - Konfiguration für den Draw-Control
  * @returns API zum Steuern des Zeichenmodus
  */
-export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded }: UseDrawControlOptions): UseDrawControlReturn {
+export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, activeStyleRef }: UseDrawControlOptions): UseDrawControlReturn {
   const drawRef = useRef<MapboxDraw | null>(null);
   const undoStack = useRef<FeatureCollection[]>([]);
   const redoStack = useRef<FeatureCollection[]>([]);
@@ -143,6 +145,7 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded }: UseD
 
     const draw = new MapboxDraw({
       displayControlsDefault: false,
+      userProperties: true,
       modes: {
         ...MapboxDraw.modes,
         draw_freehand: FreehandMode,
@@ -184,12 +187,21 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded }: UseD
         return;
       }
 
-      // Text-Modus: Standard-Label setzen
-      if (drawModeRef.current === 'draw_text' && e.features?.length > 0) {
+      // Aktuellen Stil auf das neue Feature anwenden
+      if (e.features?.length > 0) {
         const featureId = String(e.features[0].id);
-        draw.setFeatureProperty(featureId, 'label', 'Text');
+        const currentStyle = activeStyleRef.current;
+        draw.setFeatureProperty(featureId, 'color', currentStyle.color);
+        draw.setFeatureProperty(featureId, 'fillColor', currentStyle.fillColor);
+        draw.setFeatureProperty(featureId, 'strokeWidth', currentStyle.strokeWidth);
+        draw.setFeatureProperty(featureId, 'fillOpacity', currentStyle.fillOpacity);
         draw.setFeatureProperty(featureId, 'featureType', 'drawing');
-        setSelectedFeatures([featureId]);
+
+        // Text-Modus: Standard-Label setzen
+        if (drawModeRef.current === 'draw_text') {
+          draw.setFeatureProperty(featureId, 'label', 'Text');
+          setSelectedFeatures([featureId]);
+        }
       }
 
       // Undo-Snapshot: State VOR der Änderung auf den Stack pushen
@@ -199,6 +211,21 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded }: UseD
       lastKnownStateRef.current = draw.getAll() as FeatureCollection;
       updateStackState();
       scheduleAutoSave();
+
+      // Zeichenmodus nach Feature-Erstellung erneut aktivieren (kontinuierliches Zeichnen).
+      // Text-Modus ausgenommen: Feature bleibt selektiert für Label-Bearbeitung.
+      const currentMode = drawModeRef.current;
+      const continuousModes: DrawMode[] = ['draw_point', 'draw_line_string', 'draw_polygon', 'draw_freehand'];
+      if (continuousModes.includes(currentMode)) {
+        const targetMapboxMode = DRAW_MODE_MAP[currentMode];
+        setTimeout(() => {
+          try {
+            draw.changeMode(targetMapboxMode);
+          } catch {
+            // Draw-Instanz könnte bereits entfernt sein
+          }
+        }, 0);
+      }
     };
 
     const handleUpdate = () => {
