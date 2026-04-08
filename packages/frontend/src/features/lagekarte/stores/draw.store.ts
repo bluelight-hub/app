@@ -25,7 +25,7 @@ export interface DrawStoreState {
 const initialState: DrawStoreState = {
   drawMode: 'idle',
   selectedFeatureIds: [],
-  isDrawToolbarVisible: true,
+  isDrawToolbarVisible: false,
   isDirectSelect: false,
 };
 
@@ -47,6 +47,8 @@ export const setDrawMode = (mode: DrawMode) => {
     drawMode: mode,
     // Selektion aufheben wenn ein Zeichenmodus aktiviert wird
     selectedFeatureIds: mode !== 'select' && mode !== 'idle' ? [] : state.selectedFeatureIds,
+    // Toolbar einklappen wenn Zeichenmodus beendet wird
+    isDrawToolbarVisible: mode === 'idle' ? false : state.isDrawToolbarVisible,
   }));
 };
 
@@ -77,6 +79,8 @@ export const toggleDrawToolbar = () => {
   drawStore.setState((state) => ({
     ...state,
     isDrawToolbarVisible: !state.isDrawToolbarVisible,
+    // Beim Einklappen auf Select-Modus wechseln
+    drawMode: !state.isDrawToolbarVisible ? state.drawMode : 'select',
   }));
 };
 
