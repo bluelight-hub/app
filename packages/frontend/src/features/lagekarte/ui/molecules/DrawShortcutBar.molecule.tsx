@@ -1,12 +1,14 @@
 /**
- * DrawShortcutBar — Kontextabhängige Shortcut-Anzeige für Zeichenwerkzeuge
+ * DrawShortcutBar — Kontextabhängige Shortcut-Anzeige und Aktions-Buttons für Zeichenwerkzeuge
  *
- * Zeigt am unteren Kartenrand nur die aktuell relevanten Tastenkürzel
- * und Bedienhinweise an. Passt sich dynamisch an den aktiven Zeichenmodus,
- * Selektionszustand und Vertex-Bearbeitungsmodus an.
+ * Zeigt am unteren Kartenrand relevante Tastenkürzel, Bedienhinweise sowie
+ * Aktions-Buttons (Undo/Redo/Löschen) an. Passt sich dynamisch an den aktiven
+ * Zeichenmodus, Selektionszustand und Vertex-Bearbeitungsmodus an.
  */
 
+import { cn } from '@/shared/ui/cn';
 import { useMemo } from 'react';
+import { PiArrowClockwise, PiArrowCounterClockwise, PiTrash } from 'react-icons/pi';
 import type { DrawMode } from '../../drawing/types';
 
 interface Hint {
@@ -29,6 +31,9 @@ const MODE_HINTS: Partial<Record<DrawMode, string>> = {
   osm_mark: 'Klick auf Objekt zum Markieren',
 };
 
+/** Gemeinsame Styles für Aktions-Buttons */
+const actionButtonBase = 'flex items-center justify-center rounded p-1 transition-colors duration-100 focus-visible:shadow-focus-ring focus-visible:outline-none';
+
 export interface DrawShortcutBarProps {
   /** Aktiver Zeichenmodus */
   activeMode: DrawMode;
@@ -40,9 +45,15 @@ export interface DrawShortcutBarProps {
   canRedo: boolean;
   /** Ist im Vertex-Bearbeitungsmodus (direct_select) */
   isDirectSelect: boolean;
+  /** Undo ausführen */
+  onUndo: () => void;
+  /** Redo ausführen */
+  onRedo: () => void;
+  /** Selektierte Features löschen */
+  onDeleteSelected: () => void;
 }
 
-export function DrawShortcutBar({ activeMode, hasSelection, canUndo, canRedo, isDirectSelect }: DrawShortcutBarProps) {
+export function DrawShortcutBar({ activeMode, hasSelection, canUndo, canRedo, isDirectSelect, onUndo, onRedo, onDeleteSelected }: DrawShortcutBarProps) {
   const hints = useMemo<Hint[]>(() => {
     const isActive = activeMode !== 'idle';
     // Hinweise zeigen wenn ein Werkzeug aktiv ist ODER ein Feature selektiert ist
@@ -71,7 +82,7 @@ export function DrawShortcutBar({ activeMode, hasSelection, canUndo, canRedo, is
       result.push({ keys: ['Esc'], label: 'Werkzeug ablegen' });
     }
 
-    // Undo/Redo immer anzeigen wenn verfügbar
+    // Undo/Redo-Hinweise nur als Shortcuts (Buttons sind separat)
     if (canUndo) {
       result.push({ keys: [MOD, 'Z'], label: 'Rückgängig' });
     }
@@ -82,13 +93,15 @@ export function DrawShortcutBar({ activeMode, hasSelection, canUndo, canRedo, is
     return result;
   }, [activeMode, hasSelection, canUndo, canRedo, isDirectSelect]);
 
-  if (hints.length === 0) return null;
+  const hasActions = canUndo || canRedo || hasSelection;
+
+  if (hints.length === 0 && !hasActions) return null;
 
   return (
     <div className="absolute bottom-3 left-1/2 z-10 -translate-x-1/2">
       <div className="flex items-center gap-3 rounded-lg border border-border-subtle bg-surface-panel/90 px-3 py-1.5 text-xs text-text-muted shadow-sm backdrop-blur-sm">
         {hints.map((hint, i) => (
-          <span key={hint.label} className="flex items-center gap-1.5">
+          <span key={i} className="flex items-center gap-1.5">
             {i > 0 && <span className="mr-1.5 h-3 w-px bg-border-subtle" aria-hidden="true" />}
             {hint.keys.length > 0 && (
               <span className="flex items-center gap-0.5">
@@ -105,6 +118,34 @@ export function DrawShortcutBar({ activeMode, hasSelection, canUndo, canRedo, is
             <span>{hint.label}</span>
           </span>
         ))}
+
+        {/* Aktions-Buttons */}
+        {hasActions && hints.length > 0 && <span className="h-3 w-px bg-border-subtle" aria-hidden="true" />}
+        {hasActions && (
+          <span className="flex items-center gap-1">
+            {canUndo && (
+              <button type="button" onClick={onUndo} aria-label="Rückgängig" title="Rückgängig" className={cn(actionButtonBase, 'text-text-muted hover:bg-action-secondary hover:text-text-primary')}>
+                <PiArrowCounterClockwise className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+            )}
+            {canRedo && (
+              <button type="button" onClick={onRedo} aria-label="Wiederholen" title="Wiederholen" className={cn(actionButtonBase, 'text-text-muted hover:bg-action-secondary hover:text-text-primary')}>
+                <PiArrowClockwise className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+            )}
+            {hasSelection && (
+              <button
+                type="button"
+                onClick={onDeleteSelected}
+                aria-label="Auswahl löschen"
+                title="Auswahl löschen"
+                className={cn(actionButtonBase, 'text-text-muted hover:bg-red-50 hover:text-red-600')}
+              >
+                <PiTrash className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+            )}
+          </span>
+        )}
       </div>
     </div>
   );

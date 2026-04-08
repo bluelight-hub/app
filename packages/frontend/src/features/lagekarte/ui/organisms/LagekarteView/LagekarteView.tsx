@@ -280,17 +280,17 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
       {/* Draw-Toolbar */}
       {canDraw && (
         <>
-          <DrawToolbar
+          <DrawToolbar activeMode={drawMode} onModeChange={setMode} />
+          <DrawShortcutBar
             activeMode={drawMode}
-            onModeChange={setMode}
-            onUndo={undo}
-            onRedo={redo}
+            hasSelection={selectedFeatureIds.length > 0}
             canUndo={canUndo}
             canRedo={canRedo}
+            isDirectSelect={isDirectSelect}
+            onUndo={undo}
+            onRedo={redo}
             onDeleteSelected={deleteSelected}
-            hasSelection={selectedFeatureIds.length > 0}
           />
-          <DrawShortcutBar activeMode={drawMode} hasSelection={selectedFeatureIds.length > 0} canUndo={canUndo} canRedo={canRedo} isDirectSelect={isDirectSelect} />
         </>
       )}
 
