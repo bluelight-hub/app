@@ -4,3 +4,5 @@ export * from './use-lagekarte-permissions';
 export * from './use-draw-control';
 export * from './use-osm-markierung';
 export * from './use-feature-measurement';
+export * from './use-gams-zonen';
+export * from './use-snap-control';

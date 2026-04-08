@@ -106,6 +106,78 @@ export function measureFeature(geometry: GeoJSON.Geometry): FeatureMeasurement |
 }
 
 // ============================================
+// Geometrie-Erzeugung (parametrische Formen)
+// ============================================
+
+/**
+ * Erzeugt einen Kreis als Polygon (64-Punkt-Approximation).
+ * @param center - [lng, lat]
+ * @param radiusMeters - Radius in Metern
+ */
+export function erstelleKreis(center: [number, number], radiusMeters: number): GeoJSON.Position[][] {
+  const circle = turf.circle(turf.point(center), radiusMeters, { steps: 64, units: 'meters' });
+  return circle.geometry.coordinates;
+}
+
+/**
+ * Erzeugt ein Rechteck aus zwei gegenüberliegenden Ecken.
+ */
+export function erstelleRechteck(corner1: [number, number], corner2: [number, number]): GeoJSON.Position[][] {
+  const [lng1, lat1] = corner1;
+  const [lng2, lat2] = corner2;
+  return [
+    [
+      [lng1, lat1],
+      [lng2, lat1],
+      [lng2, lat2],
+      [lng1, lat2],
+      [lng1, lat1],
+    ],
+  ];
+}
+
+/**
+ * Erzeugt einen Kreissektor (Kegel/Fächer) als Polygon.
+ * @param center - [lng, lat]
+ * @param radiusMeters - Radius in Metern
+ * @param bearing - Hauptrichtung in Grad (0=Nord, 90=Ost)
+ * @param openingAngle - Öffnungswinkel in Grad (symmetrisch um bearing)
+ */
+export function erstelleSektor(center: [number, number], radiusMeters: number, bearing: number, openingAngle: number): GeoJSON.Position[][] {
+  const half = openingAngle / 2;
+  const sector = turf.sector(turf.point(center), radiusMeters, bearing - half, bearing + half, { units: 'meters', steps: 32 });
+  return sector.geometry.coordinates;
+}
+
+/**
+ * Berechnet den Abstand zwischen zwei Koordinaten in Metern.
+ */
+export function berechneAbstand(from: [number, number], to: [number, number]): number {
+  return turf.distance(turf.point(from), turf.point(to), { units: 'meters' });
+}
+
+/**
+ * Berechnet einen Zielpunkt ausgehend von einem Startpunkt, einer Distanz und einem Bearing.
+ * @param from - Startpunkt [lng, lat]
+ * @param distanceMeters - Entfernung in Metern
+ * @param bearing - Kompassrichtung in Grad (0=Nord, 90=Ost)
+ * @returns Zielpunkt [lng, lat]
+ */
+export function berechneZielpunkt(from: [number, number], distanceMeters: number, bearing: number): [number, number] {
+  const dest = turf.destination(turf.point(from), distanceMeters, bearing, { units: 'meters' });
+  return dest.geometry.coordinates as [number, number];
+}
+
+/**
+ * Berechnet den Kompasswinkel (Bearing) von einem Punkt zum anderen.
+ * @returns Bearing in Grad (0–360)
+ */
+export function berechneBearing(from: [number, number], to: [number, number]): number {
+  const raw = turf.bearing(turf.point(from), turf.point(to));
+  return (raw + 360) % 360;
+}
+
+// ============================================
 // Geo-Algorithmen (Ersatz für manuelle Implementierungen)
 // ============================================
 

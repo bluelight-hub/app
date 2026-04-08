@@ -59,6 +59,11 @@ FreehandMode.onMouseUp = function (state: FreehandState) {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 FreehandMode.toDisplayFeatures = function (_state: FreehandState, geojson: any, display: any) {
+  if (geojson.geometry.type === 'LineString' && (geojson.geometry.coordinates?.length ?? 0) < 2) return;
+  if (geojson.geometry.type === 'Polygon') {
+    const ring = geojson.geometry.coordinates?.[0];
+    if (!ring || ring.length < 4) return;
+  }
   display(geojson);
 };
 
