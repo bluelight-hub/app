@@ -2,11 +2,13 @@
  * DrawStylePanel - Stil-Editor für selektierte Zeichnungsobjekte
  *
  * Schwebendes Panel rechts neben der Toolbar. Ermöglicht das Ändern von
- * Farbe, Linienstärke und Füllung für das aktuell ausgewählte Feature.
+ * Farbe, Linienstärke, Füllung und Schraffur für das aktuell ausgewählte Feature.
  */
 
+import { useState } from 'react';
 import { cn } from '@/shared/ui/cn';
-import type { DrawingStyle } from '../../drawing/types';
+import type { DrawingStyle, HatchConfig, HatchType } from '../../drawing/types';
+import { DEFAULT_HATCH } from '../../drawing/types';
 
 /** Props für die DrawStylePanel-Komponente */
 export interface DrawStylePanelProps {
@@ -43,22 +45,84 @@ const STROKE_WIDTH_OPTIONS = [
   { value: 4, label: 'Dick' },
 ] as const;
 
-/** Optionen für Füll-Deckkraft */
-const FILL_OPACITY_OPTIONS = [
-  { value: 0, label: 'Keine' },
-  { value: 0.2, label: 'Leicht' },
-  { value: 0.5, label: 'Solide' },
-] as const;
+/** Optionen für Schraffurmuster */
+const HATCH_TYPE_OPTIONS: { value: HatchType; label: string }[] = [
+  { value: 'none', label: 'Keine' },
+  { value: 'diagonal', label: 'Diagonal' },
+  { value: 'cross', label: 'Kreuz' },
+  { value: 'horizontal', label: 'Horizontal' },
+  { value: 'vertical', label: 'Vertikal' },
+];
 
 /** Gemeinsame Toggle-Button-Styles */
 const toggleBase = 'rounded px-2.5 py-1 text-xs font-medium transition-colors duration-100 focus-visible:shadow-focus-ring focus-visible:outline-none';
 
+/** SVG-Icon für Schraffurmuster-Vorschau */
+function PatternIcon({ type }: { type: HatchType }) {
+  const s = 14;
+  const stroke = 'currentColor';
+  const sw = 1.5;
+
+  if (type === 'none') {
+    return (
+      <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} aria-hidden>
+        <line x1={1} y1={1} x2={s - 1} y2={s - 1} stroke={stroke} strokeWidth={sw} strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (type === 'diagonal') {
+    return (
+      <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} aria-hidden>
+        <line x1={0} y1={s} x2={s} y2={0} stroke={stroke} strokeWidth={sw} />
+        <line x1={-4} y1={s - 4} x2={s - 4} y2={-4} stroke={stroke} strokeWidth={sw} />
+        <line x1={4} y1={s + 4} x2={s + 4} y2={4} stroke={stroke} strokeWidth={sw} />
+      </svg>
+    );
+  }
+
+  if (type === 'cross') {
+    return (
+      <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} aria-hidden>
+        <line x1={0} y1={s} x2={s} y2={0} stroke={stroke} strokeWidth={sw} />
+        <line x1={0} y1={0} x2={s} y2={s} stroke={stroke} strokeWidth={sw} />
+      </svg>
+    );
+  }
+
+  if (type === 'horizontal') {
+    return (
+      <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} aria-hidden>
+        <line x1={0} y1={4} x2={s} y2={4} stroke={stroke} strokeWidth={sw} />
+        <line x1={0} y1={10} x2={s} y2={10} stroke={stroke} strokeWidth={sw} />
+      </svg>
+    );
+  }
+
+  // vertical
+  return (
+    <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} aria-hidden>
+      <line x1={4} y1={0} x2={4} y2={s} stroke={stroke} strokeWidth={sw} />
+      <line x1={10} y1={0} x2={10} y2={s} stroke={stroke} strokeWidth={sw} />
+    </svg>
+  );
+}
+
 export function DrawStylePanel({ style, onStyleChange, isVisible, label, onLabelChange, geometryType }: DrawStylePanelProps) {
+  const [hatchExpanded, setHatchExpanded] = useState(false);
+
   if (!isVisible) return null;
 
   const isPoint = geometryType === 'Point';
   const showStrokeWidth = !isPoint;
   const showFill = !isPoint;
+  const hatch = style.hatch ?? DEFAULT_HATCH;
+  const hasHatch = hatch.type !== 'none';
+
+  /** Hatch-Config partiell ändern */
+  const updateHatch = (partial: Partial<HatchConfig>) => {
+    onStyleChange({ hatch: { ...hatch, ...partial } });
+  };
 
   return (
     <div className={cn('absolute top-4 left-20 z-10 w-52 rounded-lg border border-border-subtle bg-surface-panel p-3 shadow-lg')}>
@@ -103,22 +167,129 @@ export function DrawStylePanel({ style, onStyleChange, isVisible, label, onLabel
         </div>
       )}
 
-      {/* Füllung (nicht für Punkte) */}
+      {/* Deckkraft-Slider (nicht für Punkte) */}
+      {showFill && (
+        <div className="mb-3">
+          <div className="mb-1.5 flex items-center justify-between">
+            <span className="text-xs font-semibold tracking-wide text-text-muted uppercase">Deckkraft</span>
+            <span className="text-xs text-text-muted tabular-nums">{Math.round(style.fillOpacity * 100)}%</span>
+          </div>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            step={5}
+            value={Math.round(style.fillOpacity * 100)}
+            onChange={(e) => onStyleChange({ fillOpacity: Number(e.target.value) / 100 })}
+            className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-border-subtle accent-action-primary"
+            aria-label="Füll-Deckkraft"
+          />
+        </div>
+      )}
+
+      {/* Schraffur (nicht für Punkte) */}
       {showFill && (
         <div className={cn(label !== undefined ? 'mb-3' : '')}>
-          <div className="mb-1.5 text-xs font-semibold tracking-wide text-text-muted uppercase">Füllung</div>
+          <div className="mb-1.5 text-xs font-semibold tracking-wide text-text-muted uppercase">Schraffur</div>
+          {/* Muster-Buttons */}
           <div className="flex gap-1">
-            {FILL_OPACITY_OPTIONS.map(({ value, label: fillLabel }) => (
+            {HATCH_TYPE_OPTIONS.map(({ value, label: patternLabel }) => (
               <button
                 key={value}
                 type="button"
-                onClick={() => onStyleChange({ fillOpacity: value })}
-                className={cn(toggleBase, style.fillOpacity === value ? 'bg-action-secondary text-action-primary' : 'text-text-primary hover:bg-action-secondary')}
+                title={patternLabel}
+                onClick={() => updateHatch({ type: value })}
+                className={cn(
+                  'flex h-7 w-7 items-center justify-center rounded border transition-colors duration-100',
+                  'focus-visible:shadow-focus-ring focus-visible:outline-none',
+                  hatch.type === value ? 'border-action-primary bg-action-secondary' : 'border-border-subtle hover:bg-action-secondary',
+                )}
+                aria-label={`Schraffur: ${patternLabel}`}
               >
-                {fillLabel}
+                <PatternIcon type={value} />
               </button>
             ))}
           </div>
+
+          {/* Disclosure: "Anpassen..." */}
+          {hasHatch && (
+            <div className="mt-1.5">
+              <button type="button" onClick={() => setHatchExpanded((prev) => !prev)} className="flex items-center gap-1 text-[10px] text-action-primary hover:text-action-primary/80">
+                <span className={cn('inline-block transition-transform', hatchExpanded && 'rotate-180')}>&#9660;</span>
+                Anpassen…
+              </button>
+
+              {hatchExpanded && (
+                <div className="mt-1.5 rounded-md border border-border-subtle bg-surface-panel/50 p-2">
+                  {/* Abstand */}
+                  <div className="mb-2">
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="text-[10px] font-semibold tracking-wide text-text-muted uppercase">Abstand</span>
+                      <span className="text-[10px] text-text-muted tabular-nums">{hatch.spacing}px</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={6}
+                      max={32}
+                      step={2}
+                      value={hatch.spacing}
+                      onChange={(e) => updateHatch({ spacing: Number(e.target.value) })}
+                      className="h-1 w-full cursor-pointer appearance-none rounded-full bg-border-subtle accent-action-primary"
+                      aria-label="Schraffur-Abstand"
+                    />
+                  </div>
+
+                  {/* Strichstärke */}
+                  <div className="mb-2">
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="text-[10px] font-semibold tracking-wide text-text-muted uppercase">Stärke</span>
+                      <span className="text-[10px] text-text-muted tabular-nums">{hatch.width}px</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0.5}
+                      max={4}
+                      step={0.5}
+                      value={hatch.width}
+                      onChange={(e) => updateHatch({ width: Number(e.target.value) })}
+                      className="h-1 w-full cursor-pointer appearance-none rounded-full bg-border-subtle accent-action-primary"
+                      aria-label="Schraffur-Strichstärke"
+                    />
+                  </div>
+
+                  {/* Farbe */}
+                  <div>
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="text-[10px] font-semibold tracking-wide text-text-muted uppercase">Farbe</span>
+                      <label className="flex items-center gap-1 text-[10px] text-text-muted">
+                        <input type="checkbox" checked={hatch.color === ''} onChange={(e) => updateHatch({ color: e.target.checked ? '' : style.color })} className="h-3 w-3 accent-action-primary" />
+                        Auto
+                      </label>
+                    </div>
+                    {hatch.color !== '' && (
+                      <div className="flex flex-wrap gap-1">
+                        {COLOR_SWATCHES.map(({ value, label: colorLabel }) => (
+                          <button
+                            key={value}
+                            type="button"
+                            title={colorLabel}
+                            onClick={() => updateHatch({ color: value })}
+                            className={cn(
+                              'h-4 w-4 rounded-full border-2 transition-transform duration-100',
+                              'hover:scale-110 focus-visible:shadow-focus-ring focus-visible:outline-none',
+                              hatch.color === value ? 'scale-110 border-text-primary' : 'border-transparent',
+                            )}
+                            style={{ backgroundColor: value }}
+                            aria-label={`Schraffurfarbe: ${colorLabel}`}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
