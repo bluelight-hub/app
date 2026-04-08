@@ -10,7 +10,7 @@ import type { MapRef } from 'react-map-gl/maplibre';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import type { FeatureCollection } from 'geojson';
 import { useStore } from '@tanstack/react-store';
-import { drawStore, setDrawMode, setSelectedFeatures } from '../stores/draw.store';
+import { drawStore, setDirectSelect, setDrawMode, setSelectedFeatures } from '../stores/draw.store';
 import { useSaveLagekarteState } from '../api/use-save-lagekarte-state';
 import { useLagekarte } from '../api/use-lagekarte';
 import { DRAW_FEATURE_LIMIT } from '../utils/map-config';
@@ -260,10 +260,16 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
       setSelectedFeatures(ids);
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleModeChange = (e: any) => {
+      setDirectSelect(e.mode === 'direct_select');
+    };
+
     map.on('draw.create', handleCreate);
     map.on('draw.update', handleUpdate);
     map.on('draw.delete', handleDelete);
     map.on('draw.selectionchange', handleSelectionChange);
+    map.on('draw.modechange', handleModeChange);
 
     return () => {
       // Ausstehenden Auto-Save sofort ausführen
@@ -278,6 +284,7 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
       map.off('draw.update', handleUpdate);
       map.off('draw.delete', handleDelete);
       map.off('draw.selectionchange', handleSelectionChange);
+      map.off('draw.modechange', handleModeChange);
 
       // Control entfernen
       try {

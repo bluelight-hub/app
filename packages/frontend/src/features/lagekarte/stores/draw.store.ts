@@ -18,12 +18,15 @@ export interface DrawStoreState {
   selectedFeatureIds: string[];
   /** Ist die Draw-Toolbar sichtbar */
   isDrawToolbarVisible: boolean;
+  /** Ist MapboxDraw im Vertex-Bearbeitungsmodus (direct_select) */
+  isDirectSelect: boolean;
 }
 
 const initialState: DrawStoreState = {
   drawMode: 'idle',
   selectedFeatureIds: [],
   isDrawToolbarVisible: true,
+  isDirectSelect: false,
 };
 
 /**
@@ -54,6 +57,16 @@ export const setSelectedFeatures = (ids: string[]) => {
   drawStore.setState((state) => ({
     ...state,
     selectedFeatureIds: ids,
+  }));
+};
+
+/**
+ * Setzt den direct_select-Status (Vertex-Bearbeitung)
+ */
+export const setDirectSelect = (active: boolean) => {
+  drawStore.setState((state) => ({
+    ...state,
+    isDirectSelect: active,
   }));
 };
 

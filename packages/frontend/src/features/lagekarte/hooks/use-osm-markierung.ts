@@ -60,6 +60,118 @@ function resolveFeatureName(layerId: string): string {
 }
 
 /**
+ * Layer-Priorität für Feature-Auswahl.
+ * Spezifische Features (Gebäude) werden gegenüber großflächigen Features
+ * (Landuse/Landcover) bevorzugt, damit beim Klick auf ein Gebäude nicht
+ * das darunterliegende Stadtviertel-Polygon selektiert wird.
+ *
+ * Niedrigerer Wert = höhere Priorität.
+ */
+function getLayerPriority(layerId: string): number {
+  const id = layerId.toLowerCase();
+  if (id.includes('building')) return 1;
+  if (id.includes('road') || id.includes('highway') || id.includes('transport')) return 2;
+  if (id.includes('water')) return 3;
+  if (id.includes('landuse') || id.includes('landcover') || id.includes('park')) return 99;
+  return 50;
+}
+
+/**
+ * Prüft ob ein Punkt innerhalb eines Polygon-Rings liegt (Ray-Casting-Algorithmus).
+ */
+function isPointInRing(point: [number, number], ring: GeoJSON.Position[]): boolean {
+  const [x, y] = point;
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i][0],
+      yi = ring[i][1];
+    const xj = ring[j][0],
+      yj = ring[j][1];
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
+/**
+ * Quadrierte Distanz zwischen Punkt und einem Liniensegment (A→B).
+ * Vermeidet Math.sqrt für Performance.
+ */
+function sqDistToSegment(p: [number, number], a: GeoJSON.Position, b: GeoJSON.Position): number {
+  let dx = b[0] - a[0];
+  let dy = b[1] - a[1];
+  if (dx !== 0 || dy !== 0) {
+    const t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / (dx * dx + dy * dy)));
+    dx = a[0] + t * dx - p[0];
+    dy = a[1] + t * dy - p[1];
+  } else {
+    dx = a[0] - p[0];
+    dy = a[1] - p[1];
+  }
+  return dx * dx + dy * dy;
+}
+
+/**
+ * Minimale quadrierte Distanz von einem Punkt zu einer Linie (Array von Koordinaten).
+ */
+function sqDistToLine(point: [number, number], line: GeoJSON.Position[]): number {
+  let minDist = Infinity;
+  for (let i = 0; i < line.length - 1; i++) {
+    minDist = Math.min(minDist, sqDistToSegment(point, line[i], line[i + 1]));
+  }
+  return minDist;
+}
+
+/**
+ * Extrahiert die einzelne Geometrie am Klickpunkt aus Multi*-Geometrien.
+ *
+ * In Vektor-Tiles werden Features häufig pro Tile zu Multi*-Geometrien
+ * zusammengefasst. Ohne diese Zerlegung würde ein Klick auf ein einzelnes
+ * Gebäude/Straßensegment alle Features im Tile einfärben.
+ */
+function extractClickedGeometry(geometry: GeoJSON.Geometry, clickPoint: [number, number]): GeoJSON.Geometry {
+  if (geometry.type === 'MultiPolygon') {
+    for (const polygonCoords of geometry.coordinates) {
+      if (isPointInRing(clickPoint, polygonCoords[0])) {
+        return { type: 'Polygon', coordinates: polygonCoords };
+      }
+    }
+    return geometry;
+  }
+
+  if (geometry.type === 'MultiLineString') {
+    let closestIdx = 0;
+    let closestDist = Infinity;
+    for (let i = 0; i < geometry.coordinates.length; i++) {
+      const dist = sqDistToLine(clickPoint, geometry.coordinates[i]);
+      if (dist < closestDist) {
+        closestDist = dist;
+        closestIdx = i;
+      }
+    }
+    return { type: 'LineString', coordinates: geometry.coordinates[closestIdx] };
+  }
+
+  if (geometry.type === 'MultiPoint') {
+    let closestIdx = 0;
+    let closestDist = Infinity;
+    for (let i = 0; i < geometry.coordinates.length; i++) {
+      const dx = geometry.coordinates[i][0] - clickPoint[0];
+      const dy = geometry.coordinates[i][1] - clickPoint[1];
+      const dist = dx * dx + dy * dy;
+      if (dist < closestDist) {
+        closestDist = dist;
+        closestIdx = i;
+      }
+    }
+    return { type: 'Point', coordinates: geometry.coordinates[closestIdx] };
+  }
+
+  return geometry;
+}
+
+/**
  * Hook für OSM-Objekt-Markierungen
  *
  * Verarbeitet Klicks auf Vektor-Tile-Features und ermöglicht das Zuweisen
@@ -90,22 +202,32 @@ export function useOsmMarkierung({ mapRef, drawRef, isVectorBaseLayer }: UseOsmM
 
       if (!features || features.length === 0) return false;
 
-      // Erstes passendes Feature finden (MapboxDraw-Layer überspringen)
-      const match = features.find((f) => {
+      // Kandidaten filtern (MapboxDraw-Layer überspringen) und nach
+      // Layer-Priorität sortieren, damit spezifische Features (Gebäude)
+      // vor großflächigen Features (Landuse) bevorzugt werden
+      const candidates = features.filter((f) => {
         if (!f.geometry) return false;
         const layerId = f.layer?.id ?? '';
         if (layerId.startsWith('gl-draw-')) return false;
         return true;
       });
 
-      if (!match) return false;
+      if (candidates.length === 0) return false;
+
+      candidates.sort((a, b) => getLayerPriority(a.layer?.id ?? '') - getLayerPriority(b.layer?.id ?? ''));
+
+      const match = candidates[0];
 
       // Feature-ID extrahieren
       const osmFeatureId = String(match.id ?? match.properties?.id ?? match.properties?.['@id'] ?? `unknown-${Date.now()}`);
       const osmLayerId = match.layer?.id ?? 'unknown';
 
+      // Bei MultiPolygons (häufig in Vektor-Tiles: Gebäude pro Tile
+      // zusammengefasst) nur das angeklickte Einzelpolygon extrahieren
+      const resolvedGeometry = extractClickedGeometry(match.geometry, [event.lngLat.lng, event.lngLat.lat]);
+
       setPendingOsmMark({
-        geometry: match.geometry,
+        geometry: resolvedGeometry,
         osmFeatureId,
         osmLayerId,
         featureName: resolveFeatureName(osmLayerId),
