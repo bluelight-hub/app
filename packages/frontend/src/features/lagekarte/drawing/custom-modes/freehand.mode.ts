@@ -23,6 +23,8 @@ FreehandMode.onSetup = function (): FreehandState {
   });
   this.addFeature(line);
   this.setActionableState({ trash: true, combineFeatures: false, uncombineFeatures: false });
+  // dragPan deaktivieren, damit onMouseMove auch bei gedrückter Maustaste feuert
+  this.map.dragPan.disable();
   return { line, isDrawing: false };
 };
 
@@ -32,8 +34,9 @@ FreehandMode.onMouseDown = function (state: FreehandState, e: any) {
   state.line.addCoordinate(0, e.lngLat.lng, e.lngLat.lat);
 };
 
+// onDrag feuert bei Mausbewegung MIT gedrückter Taste (onMouseMove nur OHNE)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-FreehandMode.onMouseMove = function (state: FreehandState, e: any) {
+FreehandMode.onDrag = function (state: FreehandState, e: any) {
   if (!state.isDrawing) return;
   state.line.addCoordinate(state.line.coordinates.length, e.lngLat.lng, e.lngLat.lat);
 };
@@ -45,7 +48,12 @@ FreehandMode.onMouseUp = function (state: FreehandState) {
   // Feature finalisieren wenn genügend Koordinaten
   if (state.line.coordinates.length < 2) {
     this.deleteFeature(state.line.id);
+  } else {
+    // draw.create explizit feuern (wie built-in Modes, z.B. draw_point)
+    // suppressAPIEvents=true verhindert automatisches Feuern bei addFeature
+    this.fire('draw.create', { features: [state.line.toGeoJSON()] });
   }
+  this.map.dragPan.enable();
   this.changeMode('simple_select', { featureIds: [state.line.id] });
 };
 
@@ -58,6 +66,7 @@ FreehandMode.onStop = function (state: FreehandState) {
   if (state.line.coordinates.length < 2) {
     this.deleteFeature(state.line.id);
   }
+  this.map.dragPan.enable();
 };
 
 export { FreehandMode };
