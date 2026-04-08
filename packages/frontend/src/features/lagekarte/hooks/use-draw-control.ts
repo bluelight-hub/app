@@ -17,6 +17,7 @@ import { DRAW_FEATURE_LIMIT } from '../utils/map-config';
 import { CUSTOM_DRAW_STYLES } from '../drawing/draw-styles';
 import { FreehandMode } from '../drawing/custom-modes/freehand.mode';
 import type { DrawMode, DrawingStyle } from '../drawing/types';
+import { ensureHatchImage } from '../drawing/hatch-patterns';
 
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 
@@ -195,6 +196,10 @@ export function useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, active
         draw.setFeatureProperty(featureId, 'fillColor', currentStyle.fillColor);
         draw.setFeatureProperty(featureId, 'strokeWidth', currentStyle.strokeWidth);
         draw.setFeatureProperty(featureId, 'fillOpacity', currentStyle.fillOpacity);
+        draw.setFeatureProperty(featureId, 'hatch', JSON.stringify(currentStyle.hatch));
+        const map = mapRef.current?.getMap();
+        const imageName = ensureHatchImage(map, currentStyle.hatch, currentStyle.color);
+        draw.setFeatureProperty(featureId, 'fillPattern', imageName);
         draw.setFeatureProperty(featureId, 'featureType', 'drawing');
 
         // Text-Modus: Standard-Label setzen
