@@ -25,7 +25,27 @@ export const CUSTOM_DRAW_STYLES: object[] = [
     paint: {
       'fill-color': ['coalesce', ['get', 'user_fillColor'], '#fbbf24'],
       'fill-outline-color': ['coalesce', ['get', 'user_color'], '#fbbf24'],
-      'fill-opacity': 0.3,
+      'fill-opacity': ['coalesce', ['get', 'user_fillOpacity'], 0.3],
+    },
+  },
+  // Polygon-Schraffur (inaktiv) — data-driven fill-pattern, ein Layer für alle Muster
+  {
+    id: 'gl-draw-polygon-hatch-inactive',
+    type: 'fill',
+    filter: ['all', ['==', 'active', 'false'], ['==', '$type', 'Polygon'], ['!=', 'mode', 'static'], ['has', 'user_fillPattern'], ['!=', ['get', 'user_fillPattern'], '']],
+    paint: {
+      'fill-pattern': ['get', 'user_fillPattern'],
+      'fill-opacity': ['coalesce', ['get', 'user_fillOpacity'], 0.2],
+    },
+  },
+  // Polygon-Schraffur (aktiv)
+  {
+    id: 'gl-draw-polygon-hatch-active',
+    type: 'fill',
+    filter: ['all', ['==', 'active', 'true'], ['==', '$type', 'Polygon'], ['has', 'user_fillPattern'], ['!=', ['get', 'user_fillPattern'], '']],
+    paint: {
+      'fill-pattern': ['get', 'user_fillPattern'],
+      'fill-opacity': ['coalesce', ['get', 'user_fillOpacity'], 0.2],
     },
   },
   // Polygon-Kontur (inaktiv)
