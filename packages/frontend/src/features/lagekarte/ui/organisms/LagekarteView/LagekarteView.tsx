@@ -22,6 +22,7 @@ import { MapLayerSwitcher } from '../../molecules/MapLayerSwitcher.molecule';
 import { MapDetailPopup } from '../../molecules/MapDetailPopup.molecule';
 import { MapDetailPanel } from '../../molecules/MapDetailPanel.molecule';
 import { DrawToolbar } from '../../molecules/DrawToolbar.molecule';
+import { DrawShortcutBar } from '../../molecules/DrawShortcutBar.molecule';
 import { DrawStylePanel } from '../../molecules/DrawStylePanel.molecule';
 import { OsmMarkierungPopup } from '../../molecules/OsmMarkierungPopup.molecule';
 import { FullscreenCloseButton } from '../FullscreenCloseButton/FullscreenCloseButton';
@@ -56,6 +57,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   // Draw-Store State
   const drawMode = useStore(drawStore, (s) => s.drawMode);
   const selectedFeatureIds = useStore(drawStore, (s) => s.selectedFeatureIds);
+  const isDirectSelect = useStore(drawStore, (s) => s.isDirectSelect);
 
   // Map-Ladezustand
   const isMapLoaded = !isLoading;
@@ -120,11 +122,16 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
     };
   }, [isLoading]);
 
-  // Label und Geometrie-Typ des selektierten Features lesen
-  const selectedFeatureLabel = useMemo(() => {
-    if (selectedFeatureIds.length === 0 || !drawRef.current) return undefined;
+  // Label des selektierten Features (lokaler State für sofortige Input-Reaktion)
+  const [selectedFeatureLabel, setSelectedFeatureLabel] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (selectedFeatureIds.length === 0 || !drawRef.current) {
+      setSelectedFeatureLabel(undefined);
+      return;
+    }
     const feature = drawRef.current.get(selectedFeatureIds[0]);
-    return feature?.properties?.label as string | undefined;
+    setSelectedFeatureLabel(feature?.properties?.label as string | undefined);
   }, [selectedFeatureIds, drawRef]);
 
   const selectedFeatureGeometryType = useMemo(() => {
@@ -172,6 +179,7 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   /** Label ändern und auf selektierte Features anwenden */
   const handleLabelChange = useCallback(
     (label: string) => {
+      setSelectedFeatureLabel(label);
       const draw = drawRef.current;
       if (!draw) return;
       for (const id of selectedFeatureIds) {
@@ -271,16 +279,19 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
 
       {/* Draw-Toolbar */}
       {canDraw && (
-        <DrawToolbar
-          activeMode={drawMode}
-          onModeChange={setMode}
-          onUndo={undo}
-          onRedo={redo}
-          canUndo={canUndo}
-          canRedo={canRedo}
-          onDeleteSelected={deleteSelected}
-          hasSelection={selectedFeatureIds.length > 0}
-        />
+        <>
+          <DrawToolbar
+            activeMode={drawMode}
+            onModeChange={setMode}
+            onUndo={undo}
+            onRedo={redo}
+            canUndo={canUndo}
+            canRedo={canRedo}
+            onDeleteSelected={deleteSelected}
+            hasSelection={selectedFeatureIds.length > 0}
+          />
+          <DrawShortcutBar activeMode={drawMode} hasSelection={selectedFeatureIds.length > 0} canUndo={canUndo} canRedo={canRedo} isDirectSelect={isDirectSelect} />
+        </>
       )}
 
       {/* Style-Panel für selektierte Features */}
