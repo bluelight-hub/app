@@ -1,3 +1,22 @@
+## Lagekarte
+
+**Neue Zeichenwerkzeuge**
+
+- Kreis, Rechteck und Ausbreitungskegel können jetzt per Klick und Ziehen gezeichnet werden
+- GAMS-Gefahrenzonen: 4 konzentrische Kreise lassen sich durch Aufziehen oder manuelle Eingabe erstellen
+- Vereinfachte Bearbeitung von Kreisen und Sektoren mit einem Resize-Punkt statt vieler Eckpunkte
+
+**Präzise Positionierung**
+
+- Neue Snapping-Funktion zum exakten Ausrichten an bestehenden Punkten (Ein-/Ausschalten mit S-Taste)
+- Visueller Indikator zeigt an, wenn Snapping aktiv ist
+
+**Messungen**
+
+- Flächen, Längen und Koordinaten werden während des Zeichnens live angezeigt
+- Verbesserte Genauigkeit bei allen Geo-Berechnungen durch Turf.js-Integration
+- Präzisere Auswahl von OSM-Features nach Fläche bei überlappenden Objekten
+
 ## Lagekarte – Zeichenwerkzeuge
 
 Die Lagekarte verfügt jetzt über umfassende Zeichenfunktionen zur Erstellung und Bearbeitung von Karten-Objekten:
