@@ -58,15 +58,19 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
   // Map-Ladezustand
   const isMapLoaded = !isLoading;
 
+  // Style-Panel State (vor useDrawControl, damit activeStyleRef verfügbar ist)
+  const [activeStyle, setActiveStyle] = useState<DrawingStyle>(DEFAULT_DRAWING_STYLE);
+  const activeStyleRef = useRef<DrawingStyle>(DEFAULT_DRAWING_STYLE);
+  useEffect(() => {
+    activeStyleRef.current = activeStyle;
+  }, [activeStyle]);
+
   // Draw-Control (Kern-Hook)
-  const { undo, redo, canUndo, canRedo, deleteSelected, setMode, drawRef, scheduleAutoSave } = useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded });
+  const { undo, redo, canUndo, canRedo, deleteSelected, setMode, drawRef, scheduleAutoSave } = useDrawControl({ mapRef, einsatzId, canDraw, isMapLoaded, activeStyleRef });
 
   // OSM-Markierung (nur bei Vektor-Basislayer)
   const isVectorBaseLayer = selectedBaseLayer === 'osm';
   const { handleOsmClick, pendingOsmMark, confirmOsmMark, cancelOsmMark } = useOsmMarkierung({ mapRef, drawRef, isVectorBaseLayer });
-
-  // Style-Panel State
-  const [activeStyle, setActiveStyle] = useState<DrawingStyle>(DEFAULT_DRAWING_STYLE);
 
   // I4: Stil des selektierten Features in das StylePanel laden
   useEffect(() => {
@@ -86,11 +90,17 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
     }));
   }, [selectedFeatureIds, drawRef]);
 
-  // Label des selektierten Features lesen
+  // Label und Geometrie-Typ des selektierten Features lesen
   const selectedFeatureLabel = useMemo(() => {
     if (selectedFeatureIds.length === 0 || !drawRef.current) return undefined;
     const feature = drawRef.current.get(selectedFeatureIds[0]);
     return feature?.properties?.label as string | undefined;
+  }, [selectedFeatureIds, drawRef]);
+
+  const selectedFeatureGeometryType = useMemo(() => {
+    if (selectedFeatureIds.length === 0 || !drawRef.current) return undefined;
+    const feature = drawRef.current.get(selectedFeatureIds[0]);
+    return feature?.geometry?.type as string | undefined;
   }, [selectedFeatureIds, drawRef]);
 
   /** Stil ändern und auf selektierte Features anwenden */
@@ -224,7 +234,14 @@ export const LagekarteView: React.FC<LagekarteViewProps> = ({ einsatzId, mode = 
       )}
 
       {/* Style-Panel für selektierte Features */}
-      <DrawStylePanel style={activeStyle} onStyleChange={handleStyleChange} isVisible={selectedFeatureIds.length > 0 && canDraw} label={selectedFeatureLabel} onLabelChange={handleLabelChange} />
+      <DrawStylePanel
+        style={activeStyle}
+        onStyleChange={handleStyleChange}
+        isVisible={selectedFeatureIds.length > 0 && canDraw}
+        label={selectedFeatureLabel}
+        onLabelChange={handleLabelChange}
+        geometryType={selectedFeatureGeometryType}
+      />
 
       <MapLayerSwitcher availableLayers={availableLayers} selectedBaseLayer={selectedBaseLayer} dwdOverlayEnabled={dwdOverlayEnabled} ninaOverlays={ninaOverlays} />
 
